@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ModMetaData>
+	<name>Vehicle Interior Framework</name>
+	<packageId>oels.vehicleinteriorframeworkexperimental</packageId>
+	<author>OELS</author>
+	<description>
+	</description>
+	<url>https://github.com/oelsart/PortableBlueprint</url>
+
+	<supportedVersions>
+		<li>1.5</li>
+	</supportedVersions>
+
+	<modDependencies>
+		<li>
+			<packageId>brrainz.harmony</packageId>
+			<displayName>Harmony</displayName>
+			<downloadUrl>https://github.com/pardeike/HarmonyRimWorld</downloadUrl>
+			<steamWorkshopUrl>steam://url/CommunityFilePage/2009463077</steamWorkshopUrl>
+		</li>
+		<li>
+			<packageId>SmashPhil.VehicleFramework</packageId>
+			<displayName>Vehicle Framework</displayName>
+			<downloadUrl>https://github.com/SmashPhil/Vehicles/releases/latest</downloadUrl>
+			<steamWorkshopUrl>steam://url/CommunityFilePage/3014915404</steamWorkshopUrl>
+		</li>
+	</modDependencies>
+	<loadAfter>
+		<li></li>
+	</loadAfter>
+</ModMetaData>

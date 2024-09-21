@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35312.102
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VehicleInteriorFramework", "VehicleInteriorFramework.csproj", "{C4A6CE84-01A1-4F92-B731-79416B9FA721}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C4A6CE84-01A1-4F92-B731-79416B9FA721}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C4A6CE84-01A1-4F92-B731-79416B9FA721}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C4A6CE84-01A1-4F92-B731-79416B9FA721}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C4A6CE84-01A1-4F92-B731-79416B9FA721}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D0BFC129-E9A6-4492-94F6-55ACEAE4967A}
+	EndGlobalSection
+EndGlobal

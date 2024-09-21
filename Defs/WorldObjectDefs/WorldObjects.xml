@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+
+  <WorldObjectDef>
+    <defName>VIF_VehicleMap</defName>
+    <label>vehicle map</label> <!-- hidden -->
+    <worldObjectClass>VehicleInteriors.MapParent_Vehicle</worldObjectClass>
+  </WorldObjectDef>
+
+</Defs>

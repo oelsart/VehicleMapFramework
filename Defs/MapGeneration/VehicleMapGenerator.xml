@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+
+    <MapGeneratorDef>
+        <defName>VIF_InteriorGenerator</defName>
+        <label>generator</label>
+        <pocketMapProperties>
+            <biome>VIF_InteriorBiome</biome>
+            <temperature>21</temperature>
+        </pocketMapProperties>
+        <disableShadows>true</disableShadows>
+        <genSteps>
+            <li>VIF_VehicleInterior</li>
+        </genSteps>
+    </MapGeneratorDef>
+
+    <GenStepDef>
+        <defName>VIF_VehicleInterior</defName>
+        <order>1600</order>
+        <genStep Class="VehicleInteriors.GenStep_VehicleInterior" />
+    </GenStepDef>
+
+</Defs>
