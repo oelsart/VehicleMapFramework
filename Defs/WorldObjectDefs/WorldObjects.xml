@@ -5,6 +5,7 @@
     <defName>VIF_VehicleMap</defName>
     <label>vehicle map</label> <!-- hidden -->
     <worldObjectClass>VehicleInteriors.MapParent_Vehicle</worldObjectClass>
+    <mapGenerator>VIF_InteriorGenerator</mapGenerator>
   </WorldObjectDef>
 
 </Defs>

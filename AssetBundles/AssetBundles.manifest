@@ -1,0 +1,10 @@
+ManifestFileVersion: 0
+CRC: 3099808272
+AssetBundleManifest:
+  AssetBundleInfos:
+    Info_0:
+      Name: nanamefloors
+      Dependencies: {}
+    Info_1:
+      Name: vehicleinteriors
+      Dependencies: {}

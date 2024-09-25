@@ -14,5 +14,7 @@ namespace VehicleInteriors
         public static WorldObjectDef VIF_VehicleMap;
 
         public static MapGeneratorDef VIF_InteriorGenerator;
+
+        public static TerrainDef Sand_;
     }
 }

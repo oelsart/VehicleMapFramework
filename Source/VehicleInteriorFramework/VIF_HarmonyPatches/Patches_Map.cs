@@ -1,33 +1,64 @@
 ﻿using HarmonyLib;
 using RimWorld;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection.Emit;
 using Verse;
-using Verse.AI;
 
 namespace VehicleInteriors.VIF_HarmonyPatches
 {
-    [HarmonyPatch(typeof(Map), nameof(Map.MapUpdate))]
-    public static class Patch_Map_MapUpdate
+    //VehicleMapはコロニストバーに表示させない
+    [HarmonyPatch(typeof(ColonistBar), "CheckRecacheEntries")]
+    public static class Patch_ColonistBar_CheckRecacheEntries
     {
-        public static void Postfix(Map __instance)
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            if ((__instance.Parent is MapParent_Vehicle parentVehicle) && Find.CurrentMap == parentVehicle.vehicle.Map)
+            var codes = instructions.ToList();
+            var getMaps = AccessTools.PropertyGetter(typeof(Find), nameof(Find.Maps));
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(getMaps)) + 1;
+            codes.Insert(pos, CodeInstruction.Call(typeof(VehicleMapUtility), nameof(VehicleMapUtility.ExceptVehicleMaps)));
+            return codes;
+        }
+    }
+
+    //このクラスのCurrentMapにオリジナルのFind.CurrentMapを保存して、Find.CurrentMapはフォーカスされたマップがある場合そっちを参照するように改変
+    [HarmonyPatch(typeof(Find), nameof(Find.CurrentMap), MethodType.Getter)]
+    public static class Patch_Find_CurrentMap
+    {
+        [HarmonyReversePatch(HarmonyReversePatchType.Original)]
+        public static Map CurrentMap() => throw new NotImplementedException();
+
+        public static bool Prefix(ref Map __result)
+        {
+            if (VehicleMapUtility.FocusedVehicle != null)
             {
-                PlantFallColors.SetFallShaderGlobals(__instance);
-                __instance.waterInfo.SetTextures();
-                __instance.avoidGrid.DebugDrawOnMap();
-                BreachingGridDebug.DebugDrawAllOnMap(__instance);
-                __instance.mapDrawer.MapMeshDrawerUpdate_First();
-                __instance.powerNetGrid.DrawDebugPowerNetGrid();
-                DoorsDebugDrawer.DrawDebug();
-                __instance.mapDrawer.DrawMapMesh();
-                __instance.dynamicDrawManager.DrawDynamicThings();
-                __instance.gameConditionManager.GameConditionManagerDraw(__instance);
-                MapEdgeClipDrawer.DrawClippers(__instance);
-                __instance.designationManager.DrawDesignations();
-                __instance.overlayDrawer.DrawAllOverlays();
-                __instance.temporaryThingDrawer.Draw();
-                __instance.flecks.FleckManagerDraw();
+                __result = VehicleMapUtility.FocusedVehicle.interiorMap;
+                return false;
             }
+            return true;
+        }
+    }
+
+    //MapUpdateはFocusedVehicleがあってもやってほしいので保存しておいた元のCurrentMapを使わせる
+    [HarmonyPatch(typeof(Map), nameof(Map.MapUpdate))]
+    public static class  Patch_Map_MapUpdate
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var from = AccessTools.PropertyGetter(typeof(Find), nameof(Find.CurrentMap));
+            var to = AccessTools.Method(typeof(Patch_Find_CurrentMap), nameof(Patch_Find_CurrentMap.CurrentMap));
+            return instructions.MethodReplacer(from, to);
+        }
+    }
+
+    //カメラも同様
+    [HarmonyPatch(typeof(CameraDriver), nameof(CameraDriver.Update))]
+    public static class Patch_CameraDriver_Update
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return Patch_Map_MapUpdate.Transpiler(instructions);
         }
     }
 }

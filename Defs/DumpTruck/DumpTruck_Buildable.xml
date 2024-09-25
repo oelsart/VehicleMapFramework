@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<Defs>
+	<Vehicles.VehicleBuildDef ParentName="VehicleBaseBuildable"><!-- 建筑形态的载具，基本上与BuildingDef相同-->
+		<defName>DumpTruck_Blueprint_</defName>
+		<label>DumpTruck_test</label>
+		<description>Terror incarnation, car accident disclaimer, otherworldly portal - you can call it whatever you want, but in reality it's just a less useful mud truck</description>
+		<designationCategory>TC_Vehicles</designationCategory>
+		
+		<graphicData>
+			<texPath>Vehicles/DumpTruck/DumpTruck</texPath>
+			<graphicClass>Graphic_Multi</graphicClass>
+			<drawSize>(3,6)</drawSize>
+		</graphicData>
+		
+		<statBases>
+			<MaxHitPoints>500</MaxHitPoints>
+			<WorkToBuild>9500</WorkToBuild>
+			<Flammability>0.05</Flammability>
+		</statBases>
+		
+		<size>(2,5)</size>
+		
+		<costList>
+			<EngineMedium>1</EngineMedium>
+			<ComponentHeavyCasting>1</ComponentHeavyCasting>
+			<ComponentWheelTire>4</ComponentWheelTire>
+			<ComponentIndustrial>6</ComponentIndustrial>
+			<Steel>150</Steel>
+		</costList>
+		
+		<soundImpactDefault>BulletImpact_Metal</soundImpactDefault>
+		
+		<thingToSpawn>TC_DumpTruck_</thingToSpawn><!-- 建造后生成的载具Kind,这是与建筑唯一不一样的-->
+		
+		<constructionSkillPrerequisite>6</constructionSkillPrerequisite>
+	</Vehicles.VehicleBuildDef>
+</Defs>
