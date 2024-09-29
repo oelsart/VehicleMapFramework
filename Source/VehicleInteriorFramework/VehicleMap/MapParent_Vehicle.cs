@@ -1,9 +1,4 @@
 ﻿using RimWorld.Planet;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Verse;
 
 namespace VehicleInteriors
@@ -11,5 +6,11 @@ namespace VehicleInteriors
     public class MapParent_Vehicle : MapParent
     {
         public VehiclePawnWithInterior vehicle;
+
+        public override void ExposeData()
+        {
+            base.ExposeData();
+            Scribe_References.Look(ref this.vehicle, "vehicle");
+        }
     }
 }

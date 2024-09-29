@@ -40,6 +40,19 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         }
     }
 
+    [HarmonyPatch(typeof(Game), nameof(Game.CurrentMap), MethodType.Setter)]
+    public static class Patch_Game_CurrentMap
+    {
+        public static void Prefix (ref Map value)
+        {
+            VehicleMapUtility.FocusedVehicle = null;
+            if (value.Parent is MapParent_Vehicle parentVehicle)
+            {
+                value = parentVehicle.vehicle.Map;
+            }
+        }
+    }
+
     //MapUpdateはFocusedVehicleがあってもやってほしいので保存しておいた元のCurrentMapを使わせる
     [HarmonyPatch(typeof(Map), nameof(Map.MapUpdate))]
     public static class  Patch_Map_MapUpdate
@@ -59,6 +72,25 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             return Patch_Map_MapUpdate.Transpiler(instructions);
+        }
+    }
+
+    //VehicleMapの時はSectionLayer_VehicleMapの継承クラスを使い、そうでなければそれらは除外する
+    [HarmonyPatch(typeof(Section), MethodType.Constructor, typeof(IntVec3), typeof(Map))]
+    public static class Patch_Section_Constructor
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var codes = instructions.ToList();
+            var getAllSubclassesNA = AccessTools.Method(typeof(GenTypes), nameof(GenTypes.AllSubclassesNonAbstract));
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(getAllSubclassesNA)) + 1;
+
+            codes.InsertRange(pos, new[]
+            {
+                CodeInstruction.LoadArgument(2),
+                CodeInstruction.Call(typeof(VehicleMapUtility), nameof(VehicleMapUtility.SelectSectionLayers))
+            });
+            return codes;
         }
     }
 }

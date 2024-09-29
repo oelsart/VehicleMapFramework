@@ -5,9 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
+using Vehicles;
 using Verse;
 
 namespace VehicleInteriors.VIF_HarmonyPatches
@@ -175,8 +174,92 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             var codes = instructions.ToList();
             var toIntVec3 = AccessTools.Method(typeof(IntVec3Utility), nameof(IntVec3Utility.ToIntVec3));
             var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(toIntVec3));
-            codes.Insert(pos, CodeInstruction.Call(typeof(VehicleMapUtility), nameof(VehicleMapUtility.VehicleMapToOrig), new Type[] { typeof(Vector3) }));
+            codes.Insert(pos, new CodeInstruction(OpCodes.Call, VehicleMapUtility.m_VehicleMapToOrig1));
             return codes;
+        }
+    }
+
+    [HarmonyPatch(typeof(Thing), nameof(Thing.DrawPos), MethodType.Getter)]
+    public static class Patch_Thing_DrawPos
+    {
+        public static bool Prefix(Thing __instance, ref Vector3 __result)
+        {
+            if (!OnVehiclePositionCache.cacheMode && OnVehiclePositionCache.cachedDrawPos.TryGetValue(__instance, out var pos))
+            {
+                __result = pos;
+                return false;
+            }
+            return true;
+        }
+    }
+
+    [HarmonyPatch(typeof(Pawn), nameof(Pawn.DrawPos), MethodType.Getter)]
+    public static class Patch_Pawn_DrawPos
+    {
+        public static bool Prefix(Pawn __instance, ref Vector3 __result)
+        {
+            if (!OnVehiclePositionCache.cacheMode && OnVehiclePositionCache.cachedDrawPos.TryGetValue(__instance, out var pos))
+            {
+                __result = pos;
+                return false;
+            }
+            return true;
+        }
+    }
+
+    [HarmonyPatch(typeof(VehiclePawn), nameof(VehiclePawn.DrawPos), MethodType.Getter)]
+    public static class Patch_VehiclePawn_DrawPos
+    {
+        public static bool Prefix(VehiclePawn __instance, ref Vector3 __result)
+        {
+            if (!OnVehiclePositionCache.cacheMode && OnVehiclePositionCache.cachedDrawPos.TryGetValue(__instance, out var pos))
+            {
+                __result = pos;
+                return false;
+            }
+            return true;
+        }
+    }
+
+    [HarmonyPatch(typeof(AttachableThing), nameof(AttachableThing.DrawPos), MethodType.Getter)]
+    public static class Patch_AttachableThing_DrawPos
+    {
+        public static bool Prefix(AttachableThing __instance, ref Vector3 __result)
+        {
+            if (!OnVehiclePositionCache.cacheMode && OnVehiclePositionCache.cachedDrawPos.TryGetValue(__instance, out var pos))
+            {
+                __result = pos;
+                return false;
+            }
+            return true;
+        }
+    }
+
+    [HarmonyPatch(typeof(MechShield), nameof(MechShield.DrawPos), MethodType.Getter)]
+    public static class Patch_MechShield_DrawPos
+    {
+        public static bool Prefix(MechShield __instance, ref Vector3 __result)
+        {
+            if (!OnVehiclePositionCache.cacheMode && OnVehiclePositionCache.cachedDrawPos.TryGetValue(__instance, out var pos))
+            {
+                __result = pos;
+                return false;
+            }
+            return true;
+        }
+    }
+
+    [HarmonyPatch(typeof(Mote), nameof(Mote.DrawPos), MethodType.Getter)]
+    public static class Patch_Mote_DrawPos
+    {
+        public static bool Prefix(Mote __instance, ref Vector3 __result)
+        {
+            if (!OnVehiclePositionCache.cacheMode && OnVehiclePositionCache.cachedDrawPos.TryGetValue(__instance, out var pos))
+            {
+                __result = pos;
+                return false;
+            }
+            return true;
         }
     }
 
@@ -211,7 +294,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         }
     }
 
-    //thingのMapのParentがVehicleMapだった場合回転の初期値であるnum3にvehicleの回転を与え、位置はOrigToVehicleMap
+    //thingのMapのParentがVehicleMapだった場合回転の初期値であるnum3にvehicleの回転を与える
     [HarmonyPatch(typeof(SelectionDrawer), nameof(SelectionDrawer.DrawSelectionBracketFor))]
     public static class Patch_SelectionDrawer_DrawGhostThing
     {
@@ -242,20 +325,74 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                 new CodeInstruction(OpCodes.Conv_I4),
                 new CodeInstruction(OpCodes.Add)
             });
+            return codes;
+        }
+    }
 
-            var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Ldloc_S && (c.operand as LocalBuilder).LocalIndex == 16);
-            var label2 = generator.DefineLabel();
+    [HarmonyPatch(typeof(DynamicDrawManager), "ComputeCulledThings")]
+    public static class Patch_DynamicDrawManager_ComputeCulledThings
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+        {
+            var codes = instructions.ToList();
+            var expandedBy = AccessTools.Method(typeof(CellRect), nameof(CellRect.ExpandedBy));
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(expandedBy)) + 1;
+            var label = generator.DefineLabel();
+            var parentVehicle = generator.DeclareLocal(typeof(MapParent_Vehicle));
 
-            codes[pos2].labels.Add(label2);
-            codes.InsertRange(pos2, new[]
-            {
-                new CodeInstruction(OpCodes.Ldloc_S, parent),
-                new CodeInstruction(OpCodes.Brfalse_S, label2),
-                new CodeInstruction(OpCodes.Ldloc_S, parent),
+            codes[pos].labels.Add(label);
+            codes.InsertRange(pos, new[] {
+                CodeInstruction.LoadArgument(0),
+                CodeInstruction.LoadField(typeof(DynamicDrawManager), "map"),
+                new CodeInstruction(OpCodes.Callvirt, AccessTools.PropertyGetter(typeof(Map), nameof(Map.Parent))),
+                new CodeInstruction(OpCodes.Isinst, typeof(MapParent_Vehicle)),
+                new CodeInstruction(OpCodes.Stloc_S, parentVehicle),
+                new CodeInstruction(OpCodes.Ldloc_S, parentVehicle),
+                new CodeInstruction(OpCodes.Brfalse_S, label),
+                new CodeInstruction(OpCodes.Ldloc_S, parentVehicle),
                 CodeInstruction.LoadField(typeof(MapParent_Vehicle), nameof(MapParent_Vehicle.vehicle)),
-                CodeInstruction.Call(typeof(VehicleMapUtility), nameof(VehicleMapUtility.OrigToVehicleMap), new Type[]{ typeof(Vector3), typeof(VehiclePawnWithInterior) }),
+                new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.VehicleMapToOrig), new Type[]{ typeof(CellRect), typeof(VehiclePawnWithInterior) }))
             });
             return codes;
+        }
+    }
+
+    [HarmonyPatch(typeof(Graphic), nameof(Graphic.Draw))]
+    public static class Patch_Graphic_Draw
+    {
+        public static void Prefix(Thing thing, ref float extraRotation)
+        {
+            if (thing.Map.Parent is MapParent_Vehicle parentVehicle)
+            {
+                extraRotation += parentVehicle.vehicle.FullRotation.AsAngle;
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(ThingOverlays), nameof(ThingOverlays.ThingOverlaysOnGUI))]
+    public static class Patch_ThingOverlays_ThingOverlaysOnGUI
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+        {
+            var from = AccessTools.PropertyGetter(typeof(Find), nameof(Find.CurrentMap));
+            var to = AccessTools.Method(typeof(Patch_Find_CurrentMap), nameof(Patch_Find_CurrentMap.CurrentMap));
+            var codes = instructions.MethodReplacer(from, to).MethodReplacer(VehicleMapUtility.m_Thing_Position, VehicleMapUtility.m_PositionOnBaseMap).ToList();
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Stloc_1);
+
+            codes.Insert(pos, CodeInstruction.Call(typeof(Patch_ThingOverlays_ThingOverlaysOnGUI), nameof(Patch_ThingOverlays_ThingOverlaysOnGUI.IncludeVehicleMapThings)));
+
+            return codes;
+        }
+
+        public static List<Thing> IncludeVehicleMapThings(List<Thing> list)
+        {
+            var vehicles = list.OfType<VehiclePawnWithInterior>();
+            var result = new List<Thing>(list);
+            foreach (var vehicle in vehicles)
+            {
+                result.AddRange(vehicle.interiorMap.listerThings.ThingsInGroup(ThingRequestGroup.HasGUIOverlay));
+            }
+            return result;
         }
     }
 }

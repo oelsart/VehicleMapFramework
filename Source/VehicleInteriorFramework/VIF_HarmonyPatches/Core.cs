@@ -5,12 +5,14 @@ using Verse;
 namespace VehicleInteriors.VIF_HarmonyPatches
 {
     [StaticConstructorOnStartup]
-    class Core
+    public static class Core
     {
         static Core()
         {
-            var harmony = new Harmony("com.harmony.rimworld.vehicleinteriorframework");
-            harmony.PatchAll(Assembly.GetExecutingAssembly());
+            Core.harmonyInstance = new Harmony("com.harmony.rimworld.vehicleinteriorframework");
+            Core.harmonyInstance.PatchAll(Assembly.GetExecutingAssembly());
         }
+
+        public static Harmony harmonyInstance;
     }
 }

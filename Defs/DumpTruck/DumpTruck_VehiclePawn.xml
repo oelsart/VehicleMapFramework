@@ -324,6 +324,19 @@
 				<fuelCapacity>90</fuelCapacity>
 			</li>
 		</comps>
+		<modExtensions>
+			<li Class="VehicleInteriors.VehicleMap">
+				<size>(2, 3)</size>
+				<offsetNorth>(0, -0.9)</offsetNorth>
+				<offsetSouth>(0, 1.1)</offsetSouth>
+				<offsetEast>(-1, 0.2)</offsetEast>
+				<offsetWest>(1, 0.2)</offsetWest>
+				<offsetNorthEast>(-0.6, -0.6)</offsetNorthEast>
+				<offsetNorthWest>(0.6, -0.6)</offsetNorthWest>
+				<offsetSouthEast>(-1.05, 1.05)</offsetSouthEast>
+				<offsetSouthWest>(1.05, 1.05)</offsetSouthWest>
+			</li>
+		</modExtensions>
 	</Vehicles.VehicleDef>
 	<drawGUIOverlay>true</drawGUIOverlay>
 </Defs>

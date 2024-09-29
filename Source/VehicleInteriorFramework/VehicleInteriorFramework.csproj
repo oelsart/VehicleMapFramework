@@ -87,16 +87,30 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Command_FocusVehicleMap.cs" />
-    <Compile Include="GenStep_VehicleInterior.cs" />
-    <Compile Include="MapParent_Vehicle.cs" />
+    <Compile Include="Jobs\CastPositionFinderOnVehicle.cs" />
+    <Compile Include="Jobs\JobGiver_AIDefendPointOnVehicle.cs" />
+    <Compile Include="Jobs\JobGiver_AIFightEnemiesOnVehicle.cs" />
+    <Compile Include="PlaceWorker_ShowTurretRadius.cs" />
+    <Compile Include="Verbs\VerbOnVehicleUtility.cs" />
+    <Compile Include="Verbs\Verb_LaunchProjectileOnVehicle.cs" />
+    <Compile Include="Verbs\Verb_ShootBeamOnVehicle.cs" />
+    <Compile Include="Verbs\Verb_ShootOneUseOnVehicle.cs" />
+    <Compile Include="Verbs\Verb_ShootOnVehicle.cs" />
+    <Compile Include="OnVehiclePositionCache.cs" />
+    <Compile Include="VehicleMap.cs" />
+    <Compile Include="VehicleMap\Command_FocusVehicleMap.cs" />
+    <Compile Include="VehicleMap\GenStep_VehicleInterior.cs" />
+    <Compile Include="VehicleMap\MapParent_Vehicle.cs" />
     <Compile Include="Rot8Utility.cs" />
     <Compile Include="VehicleInteriors.cs" />
-    <Compile Include="VehicleMapUtility.cs" />
+    <Compile Include="VehicleMap\SectionLayer_ThingsOnVehicle.cs" />
+    <Compile Include="VehicleMap\VehicleMapUtility.cs" />
     <Compile Include="VehiclePawnWithInterior.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="VIF_DefOf.cs" />
     <Compile Include="VIF_HarmonyPatches\Core.cs" />
+    <Compile Include="VIF_HarmonyPatches\Patches_Combat.cs" />
+    <Compile Include="VIF_HarmonyPatches\Patches_Graphic.cs" />
     <Compile Include="VIF_HarmonyPatches\Patches_GUI.cs" />
     <Compile Include="VIF_HarmonyPatches\Patches_Map.cs" />
     <Compile Include="VIF_HarmonyPatches\Patches_VehicleMapOffset.cs" />
