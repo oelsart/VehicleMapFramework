@@ -87,9 +87,15 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Jobs\CastPositionFinderOnVehicle.cs" />
-    <Compile Include="Jobs\JobGiver_AIDefendPointOnVehicle.cs" />
-    <Compile Include="Jobs\JobGiver_AIFightEnemiesOnVehicle.cs" />
+    <Compile Include="Combat\AttackTargetFinderOnVehicle.cs" />
+    <Compile Include="Combat\CastPositionFinderOnVehicle.cs" />
+    <Compile Include="Combat\GenClosestOnVehicle.cs" />
+    <Compile Include="Combat\GenSightOnVehicle.cs" />
+    <Compile Include="Combat\JobGiver_AIDefendPointOnVehicle.cs" />
+    <Compile Include="Combat\JobGiver_AIFightEnemiesOnVehicle.cs" />
+    <Compile Include="Combat\ProjectileUtility.cs" />
+    <Compile Include="Combat\ShootLeanUtilityOnVehicle.cs" />
+    <Compile Include="Combat\ShotReportOnVehicle.cs" />
     <Compile Include="PlaceWorker_ShowTurretRadius.cs" />
     <Compile Include="Verbs\VerbOnVehicleUtility.cs" />
     <Compile Include="Verbs\Verb_LaunchProjectileOnVehicle.cs" />

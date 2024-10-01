@@ -16,21 +16,12 @@ namespace VehicleInteriors
         public static bool TryFindCastPosition(CastPositionRequest newReq, out IntVec3 dest)
         {
             CastPositionFinderOnVehicle.req = newReq;
-            var casterPositionOnBaseMap = CastPositionFinderOnVehicle.req.caster.PositionOnBaseMap();
-            IntVec3 targetPositionOnCasterMap;
-            if (CastPositionFinderOnVehicle.req.caster.Map.Parent is MapParent_Vehicle parentVehicle)
-            {
-                targetPositionOnCasterMap = IntVec3.Zero.OrigToVehicleMap(parentVehicle.vehicle) - casterPositionOnBaseMap;
-            }
-            else
-            {
-                targetPositionOnCasterMap = CastPositionFinderOnVehicle.req.target.PositionOnBaseMap();
-            }
-
             CastPositionFinderOnVehicle.casterLoc = CastPositionFinderOnVehicle.req.caster.Position;
-            CastPositionFinderOnVehicle.targetLoc = targetPositionOnCasterMap;
+            CastPositionFinderOnVehicle.targetLoc = CastPositionFinderOnVehicle.req.target.PositionOnAnotherThingMap(CastPositionFinderOnVehicle.req.caster);
             CastPositionFinderOnVehicle.verb = CastPositionFinderOnVehicle.req.verb;
             CastPositionFinderOnVehicle.avoidGrid = newReq.caster.GetAvoidGrid(false);
+
+            var casterPositionOnBaseMap = CastPositionFinderOnVehicle.req.caster.PositionOnBaseMap();
 
             if (CastPositionFinderOnVehicle.verb == null)
             {
@@ -210,15 +201,7 @@ namespace VehicleInteriors
             {
                 return;
             }
-            IntVec3 cellOnBaseMap;
-            if (CastPositionFinderOnVehicle.req.caster.Map.Parent is MapParent_Vehicle parentVehicle)
-            {
-                cellOnBaseMap = c.OrigToVehicleMap(parentVehicle.vehicle);
-            }
-            else
-            {
-                cellOnBaseMap = c;
-            }
+            IntVec3 cellOnBaseMap = c.OrigToThingMap(CastPositionFinderOnVehicle.req.caster);
             if (!CastPositionFinderOnVehicle.verb.CanHitTargetFrom(cellOnBaseMap, CastPositionFinderOnVehicle.req.target))
             {
                 if (DebugViewSettings.drawCastPositionSearch)

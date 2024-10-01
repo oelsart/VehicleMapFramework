@@ -4,6 +4,7 @@ using RimWorld.Planet;
 using SmashTools;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using Vehicles;
 using Verse;
@@ -36,6 +37,12 @@ namespace VehicleInteriors
             base.SpawnSetup(map, respawningAfterLoad);
         }
 
+        public override void Tick()
+        {
+            this.cachedDrawPos = this.DrawPos;
+            base.Tick();
+        }
+
         public override void DeSpawn(DestroyMode mode = DestroyMode.Vanish)
         {
             base.DeSpawn(mode);
@@ -45,6 +52,7 @@ namespace VehicleInteriors
         public override void DrawAt(Vector3 drawLoc, Rot8 rot, float extraRotation, bool flip = false, bool compDraw = true)
         {
             base.DrawAt(drawLoc, rot, extraRotation, flip, compDraw);
+            this.cachedDrawPos = drawLoc;
 
             this.CacheDrawPos();
 
@@ -84,6 +92,10 @@ namespace VehicleInteriors
 
         private void DrawSection(Section section, Vector3 drawPos)
         {
+            if (anyLayerDirty(section))
+            {
+                RegenerateDirtyLayers(section);
+            }
             this.DrawLayer(section, terrainLayerType, drawPos);
             ((SectionLayer_ThingsOnVehicle)section.GetLayer(typeof(SectionLayer_ThingsOnVehicle))).DrawLayer(this, drawPos);
             this.DrawLayer(section, typeof(SectionLayer_BuildingsDamage), drawPos);
@@ -159,20 +171,26 @@ namespace VehicleInteriors
         private void CacheDrawPos()
         {
             OnVehiclePositionCache.cacheMode = true;
-            foreach(var thing in this.interiorMap.dynamicDrawManager.DrawThings)
+            foreach(var thing in this.interiorMap.listerThings.AllThings.Where(t => t.def.drawerType != DrawerType.None))
             {
                 OnVehiclePositionCache.cachedDrawPos[thing] = thing.DrawPos.OrigToVehicleMap(this);
-                OnVehiclePositionCache.cachedPosOnBaseMap[thing] = OnVehiclePositionCache.cachedDrawPos[thing].ToIntVec3();
+                OnVehiclePositionCache.cachedPosOnBaseMap[thing] = thing.Position.OrigToVehicleMap(this);
             }
             OnVehiclePositionCache.cacheMode = false;
         }
 
         public Map interiorMap;
 
+        public Vector3 cachedDrawPos;
+
         private static readonly Type terrainLayerType = AccessTools.TypeByName("Verse.SectionLayer_Terrain");
 
         private static readonly Material ClipMat = SolidColorMaterials.NewSolidColorMaterial(new Color(0.3f, 0.1f, 0.1f, 0.65f), ShaderDatabase.MetaOverlay);
 
         private static readonly float ClipAltitude = AltitudeLayer.WorldClipper.AltitudeFor();
+
+        private static readonly AccessTools.FieldRef<Section, bool> anyLayerDirty = AccessTools.FieldRefAccess<Section, bool>("anyLayerDirty");
+
+        private static readonly FastInvokeHandler RegenerateDirtyLayers = MethodInvoker.GetHandler(AccessTools.Method(typeof(Section), "RegenerateDirtyLayers"));
     }
 }

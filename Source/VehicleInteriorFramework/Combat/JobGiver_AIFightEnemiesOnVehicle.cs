@@ -8,6 +8,13 @@ namespace VehicleInteriors
 {
     public class JobGiver_AIFightEnemiesOnVehicle : JobGiver_AIFightEnemy
     {
+        public override ThinkNode DeepCopy(bool resolve = true)
+        {
+            JobGiver_AIFightEnemiesOnVehicle jobGiver_AIFightEnemiesOnVehicle = (JobGiver_AIFightEnemiesOnVehicle)base.DeepCopy(resolve);
+            jobGiver_AIFightEnemiesOnVehicle.needLOSToAcquireNonPawnTargets = this.needLOSToAcquireNonPawnTargets;
+            return jobGiver_AIFightEnemiesOnVehicle;
+        }
+
         protected override bool TryFindShootingPosition(Pawn pawn, out IntVec3 dest, Verb verbToUse = null)
         {
             Thing enemyTarget = pawn.mindState.enemyTarget;
@@ -88,16 +95,7 @@ namespace VehicleInteriors
                 {
                     return this.MeleeAttackJob(pawn, enemyTarget);
                 }
-                IntVec3 enemyTargetPositionOnPawnMap;
-                if (pawn.Map.Parent is MapParent_Vehicle parentVehicle)
-                {
-                    enemyTargetPositionOnPawnMap = IntVec3.Zero.OrigToVehicleMap(parentVehicle.vehicle) - enemyTargetPositionOnBaseMap;
-                }
-                else
-                {
-                    enemyTargetPositionOnPawnMap = enemyTargetPositionOnBaseMap;
-                }
-                bool flag2 = CoverUtility.CalculateOverallBlockChance(pawn, enemyTargetPositionOnPawnMap, pawn.Map) > 0.01f;
+                bool flag2 = CoverUtility.CalculateOverallBlockChance(pawn, enemyTarget.PositionOnAnotherThingMap(pawn), pawn.Map) > 0.01f;
                 bool flag3 = pawn.Position.Standable(pawn.Map) && pawn.Map.pawnDestinationReservationManager.CanReserve(pawn.Position, pawn, pawn.Drafted);
                 bool flag4 = verb.CanHitTarget(enemyTarget);
                 bool flag5 = (pawnPositionOnBaseMap - enemyTargetPositionOnBaseMap).LengthHorizontalSquared < 25;
@@ -201,6 +199,41 @@ namespace VehicleInteriors
             }
         }
 
+        protected override Thing FindAttackTarget(Pawn pawn)
+        {
+            TargetScanFlags targetScanFlags = TargetScanFlags.NeedLOSToPawns | TargetScanFlags.NeedReachableIfCantHitFromMyPos | TargetScanFlags.NeedThreat | TargetScanFlags.NeedAutoTargetable;
+            if (this.needLOSToAcquireNonPawnTargets)
+            {
+                targetScanFlags |= TargetScanFlags.NeedLOSToNonPawns;
+            }
+            if (this.PrimaryVerbIsIncendiary(pawn))
+            {
+                targetScanFlags |= TargetScanFlags.NeedNonBurning;
+            }
+            if (this.ignoreNonCombatants)
+            {
+                targetScanFlags |= TargetScanFlags.IgnoreNonCombatants;
+            }
+            return (Thing)AttackTargetFinderOnVehicle.BestAttackTarget(pawn, targetScanFlags, (Thing x) => this.ExtraTargetValidator(pawn, x), 0f, this.targetAcquireRadius, this.GetFlagPosition(pawn), this.GetFlagRadius(pawn), false, true, false, this.OnlyUseRangedSearch);
+        }
+
+        private bool PrimaryVerbIsIncendiary(Pawn pawn)
+        {
+            Pawn_EquipmentTracker equipment = pawn.equipment;
+            if (((equipment != null) ? equipment.Primary : null) != null)
+            {
+                List<Verb> allVerbs = pawn.equipment.Primary.GetComp<CompEquippable>().AllVerbs;
+                for (int i = 0; i < allVerbs.Count; i++)
+                {
+                    if (allVerbs[i].verbProps.isPrimary)
+                    {
+                        return allVerbs[i].IsIncendiary_Ranged();
+                    }
+                }
+            }
+            return false;
+        }
+
         protected override bool ShouldLoseTarget(Pawn pawn)
         {
             Thing enemyTarget = pawn.mindState.enemyTarget;
@@ -213,5 +246,7 @@ namespace VehicleInteriors
             }
             return true;
         }
+
+        private bool needLOSToAcquireNonPawnTargets;
     }
 }

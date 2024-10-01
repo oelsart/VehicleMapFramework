@@ -2,13 +2,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
-using Verse.Sound;
 using Verse;
+using Verse.Sound;
 
-namespace VehicleInteriors.Verbs
+namespace VehicleInteriors
 {
     public class Verb_ShootBeamOnVehicle : Verb
     {
@@ -155,7 +153,7 @@ namespace VehicleInteriors.Verbs
 
         protected bool TryGetHitCell(IntVec3 source, IntVec3 targetCell, out IntVec3 hitCell)
         {
-            IntVec3 intVec = GenSight.LastPointOnLineOfSight(source, targetCell, (IntVec3 c) => c.InBounds(this.caster.Map) && c.CanBeSeenOverFast(this.caster.Map), true);
+            IntVec3 intVec = GenSight.LastPointOnLineOfSight(source, targetCell.ThingMapToOrig(this.caster), (IntVec3 c) => c.InBounds(this.caster.Map) && c.CanBeSeenOverFast(this.caster.Map), true);
             if (this.verbProps.beamCantHitWithinMinRange && intVec.DistanceTo(source) < this.verbProps.minRange)
             {
                 hitCell = default(IntVec3);
@@ -179,9 +177,10 @@ namespace VehicleInteriors.Verbs
                 yield break;
             }
             int num;
+            var posOnCasterMap = pos.ThingMapToOrig(this.caster);
             for (int i = 0; i < 4; i = num + 1)
             {
-                IntVec3 intVec = pos + GenAdj.CardinalDirections[i];
+                IntVec3 intVec = posOnCasterMap + GenAdj.CardinalDirections[i];
                 if (intVec.InBounds(this.Caster.Map) && (!this.verbProps.beamHitsNeighborCellsRequiresLOS || GenSight.LineOfSight(source, intVec, this.caster.Map)))
                 {
                     yield return intVec;

@@ -43,7 +43,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     [HarmonyPatch(typeof(Game), nameof(Game.CurrentMap), MethodType.Setter)]
     public static class Patch_Game_CurrentMap
     {
-        public static void Prefix (ref Map value)
+        public static void Prefix(ref Map value)
         {
             VehicleMapUtility.FocusedVehicle = null;
             if (value.Parent is MapParent_Vehicle parentVehicle)
@@ -55,7 +55,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
 
     //MapUpdateはFocusedVehicleがあってもやってほしいので保存しておいた元のCurrentMapを使わせる
     [HarmonyPatch(typeof(Map), nameof(Map.MapUpdate))]
-    public static class  Patch_Map_MapUpdate
+    public static class Patch_Map_MapUpdate
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
@@ -89,6 +89,34 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             {
                 CodeInstruction.LoadArgument(2),
                 CodeInstruction.Call(typeof(VehicleMapUtility), nameof(VehicleMapUtility.SelectSectionLayers))
+            });
+            return codes;
+        }
+    }
+
+    [HarmonyPatch(typeof(DynamicDrawManager), "ComputeCulledThings")]
+    public static class Patch_DynamicDrawManager_ComputeCulledThings
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+        {
+            var codes = instructions.ToList();
+            var expandedBy = AccessTools.Method(typeof(CellRect), nameof(CellRect.ExpandedBy));
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(expandedBy)) + 1;
+            var label = generator.DefineLabel();
+            var parentVehicle = generator.DeclareLocal(typeof(MapParent_Vehicle));
+
+            codes[pos].labels.Add(label);
+            codes.InsertRange(pos, new[] {
+                CodeInstruction.LoadArgument(0),
+                CodeInstruction.LoadField(typeof(DynamicDrawManager), "map"),
+                new CodeInstruction(OpCodes.Callvirt, AccessTools.PropertyGetter(typeof(Map), nameof(Map.Parent))),
+                new CodeInstruction(OpCodes.Isinst, typeof(MapParent_Vehicle)),
+                new CodeInstruction(OpCodes.Stloc_S, parentVehicle),
+                new CodeInstruction(OpCodes.Ldloc_S, parentVehicle),
+                new CodeInstruction(OpCodes.Brfalse_S, label),
+                new CodeInstruction(OpCodes.Ldloc_S, parentVehicle),
+                CodeInstruction.LoadField(typeof(MapParent_Vehicle), nameof(MapParent_Vehicle.vehicle)),
+                new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.VehicleMapToOrig), new Type[]{ typeof(CellRect), typeof(VehiclePawnWithInterior) }))
             });
             return codes;
         }

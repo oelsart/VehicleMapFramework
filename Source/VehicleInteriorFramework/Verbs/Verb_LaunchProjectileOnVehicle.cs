@@ -199,10 +199,10 @@ namespace VehicleInteriors
                     }
                 }
             }
-            ShotReport shotReport = ShotReport.HitReportFor(this.caster, this, this.currentTarget);
-            Thing randomCoverToMissInto = shotReport.GetRandomCoverToMissInto();
+            ShotReportOnVehicle ShotReportOnVehicle = ShotReportOnVehicle.HitReportFor(this.caster, this, this.currentTarget);
+            Thing randomCoverToMissInto = ShotReportOnVehicle.GetRandomCoverToMissInto();
             ThingDef targetCoverDef = (randomCoverToMissInto != null) ? randomCoverToMissInto.def : null;
-            if (this.verbProps.canGoWild && !Rand.Chance(shotReport.AimOnTargetChance_IgnoringPosture))
+            if (this.verbProps.canGoWild && !Rand.Chance(ShotReportOnVehicle.AimOnTargetChance_IgnoringPosture))
             {
                 bool flag2;
                 if (projectile2 == null)
@@ -215,18 +215,18 @@ namespace VehicleInteriors
                     flag2 = (((def != null) ? def.projectile : null) != null);
                 }
                 bool flyOverhead = flag2 && projectile2.def.projectile.flyOverhead;
-                shootLine.ChangeDestToMissWild_NewTemp(shotReport.AimOnTargetChance_StandardTarget, flyOverhead, casterBaseMap);
+                shootLine.ChangeDestToMissWild_NewTemp(ShotReportOnVehicle.AimOnTargetChance_StandardTarget, flyOverhead, casterBaseMap);
                 this.ThrowDebugText("ToWild" + (this.canHitNonTargetPawnsNow ? "\nchntp" : ""));
                 this.ThrowDebugText("Wild\nDest", shootLine.Dest);
                 ProjectileHitFlags projectileHitFlags2 = ProjectileHitFlags.NonTargetWorld;
                 if (Rand.Chance(0.5f) && this.canHitNonTargetPawnsNow)
                 {
-                    projectileHitFlags2 |= ProjectileHitFlags.NonTargetPawns;
+                    //projectileHitFlags2 |= ProjectileHitFlags.NonTargetPawns;
                 }
                 projectile2.Launch(thing, drawPos, shootLine.Dest, this.currentTarget, projectileHitFlags2, this.preventFriendlyFire, equipment, targetCoverDef);
                 return true;
             }
-            if (this.currentTarget.Thing != null && this.currentTarget.Thing.def.CanBenefitFromCover && !Rand.Chance(shotReport.PassCoverChance))
+            if (this.currentTarget.Thing != null && this.currentTarget.Thing.def.CanBenefitFromCover && !Rand.Chance(ShotReportOnVehicle.PassCoverChance))
             {
                 this.ThrowDebugText("ToCover" + (this.canHitNonTargetPawnsNow ? "\nchntp" : ""));
                 this.ThrowDebugText("Cover\nDest", randomCoverToMissInto.Position);

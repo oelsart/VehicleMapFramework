@@ -65,9 +65,9 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         {
             var codes = instructions.ToList();
             var pos = codes.FindIndex(c => c.opcode == OpCodes.Ldc_R4 && (float)c.operand == 15f);
-            codes[pos].operand = 20f;
+            codes[pos].operand = 25f;
             var pos2 = codes.FindIndex(c => c.opcode == OpCodes.Ldc_R4 && (float)c.operand == 50f);
-            codes[pos2].operand = 45f;
+            codes[pos2].operand = 40f;
             return codes;
         }
     }
@@ -80,11 +80,11 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             var corpse = ___pawn.Corpse;
             if (corpse != null && corpse.Map != null && corpse.Map.Parent is MapParent_Vehicle parentVehicle1)
             {
-                __result.y += parentVehicle1.vehicle.DrawPos.y + 0.09615385f;
+                __result.y += parentVehicle1.vehicle.DrawPos.y + VehicleMapUtility.altitudeOffset;
             }
             else if (posture != PawnPosture.Standing && ___pawn.Map != null && ___pawn.Map.Parent is MapParent_Vehicle parentVehicle2)
             {
-                __result.y += parentVehicle2.vehicle.DrawPos.y + 0.09615385f;
+                __result.y += parentVehicle2.vehicle.DrawPos.y + VehicleMapUtility.altitudeOffset;
             }
         }
     }
@@ -99,12 +99,42 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         }
     }
 
-    [HarmonyPatch(typeof(Pawn), nameof(Pawn.TryStartAttack))]
-    public static class Patch_Pawn_TryStartAttack
+    [HarmonyPatch(typeof(Pawn), nameof(Pawn.ProcessPostTickVisuals))]
+    public static class Patch_Pawn_ProcessPostTickVisuals
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(VehicleMapUtility.m_TargetInfo_Cell, VehicleMapUtility.m_CellOnBaseMap);
+            return instructions.MethodReplacer(VehicleMapUtility.m_Thing_Position, VehicleMapUtility.m_PositionOnBaseMap);
+        }
+    }
+
+    [HarmonyPatch(typeof(Projectile), nameof(Projectile.DrawPos), MethodType.Getter)]
+    public static class Patch_Projectile_DrawPos
+    {
+        public static void Postfix(ref Vector3 __result)
+        {
+            __result = __result.WithYOffset(VehicleMapUtility.altitudeOffsetFull);
+        }
+    }
+
+    [HarmonyPatch(typeof(DesignationDragger), nameof(DesignationDragger.DraggerUpdate))]
+    public static class Patch_DesignationDragger_DraggerUpdate
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+        {
+            var codes = instructions.ToList();
+            var m_CellRect_ClipInsideRect = AccessTools.Method(typeof(CellRect), nameof(CellRect.ClipInsideRect));
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(m_CellRect_ClipInsideRect));
+            var label = generator.DefineLabel();
+
+            codes[pos].labels.Add(label);
+            codes.InsertRange(pos, new[] {
+                new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(VehicleMapUtility), nameof(VehicleMapUtility.FocusedVehicle))),
+                new CodeInstruction(OpCodes.Brfalse_S, label),
+                new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(VehicleMapUtility), nameof(VehicleMapUtility.FocusedVehicle))),
+                new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.VehicleMapToOrig), new Type[]{ typeof(CellRect), typeof(VehiclePawnWithInterior) }))
+            });
+            return codes;
         }
     }
 }

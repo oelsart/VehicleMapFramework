@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using RimWorld.Planet;
 using SmashTools;
 using System;
 using System.Collections.Generic;
@@ -9,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using Verse;
+using static SmashTools.ConditionalPatch;
 
 namespace VehicleInteriors
 {
@@ -33,11 +35,11 @@ namespace VehicleInteriors
 
         public static Vector3 VehicleMapToOrig(this Vector3 original, VehiclePawnWithInterior vehicle)
         {
-            var vehicleMapPos = vehicle.DrawPos.Yto0() + VehicleMapUtility.OffsetOf(vehicle);
+            var vehicleMapPos = vehicle.cachedDrawPos + VehicleMapUtility.OffsetOf(vehicle);
             var map = vehicle.interiorMap;
             var pivot = new Vector3(map.Size.x / 2f, 0f, map.Size.z / 2f);
             var drawPos = (original - vehicleMapPos).RotatedBy(-vehicle.FullRotation.AsAngle) + pivot;
-            return drawPos.WithYOffset(vehicle.DrawPos.y + 0.09615385f);
+            return drawPos.WithYOffset(-VehicleMapUtility.altitudeOffset);
         }
 
         public static IntVec3 VehicleMapToOrig(this IntVec3 original, VehiclePawnWithInterior vehicle)
@@ -64,12 +66,12 @@ namespace VehicleInteriors
 
         public static Vector3 OrigToVehicleMap(this Vector3 original, VehiclePawnWithInterior vehicle)
         {
-            var vehiclePos = vehicle.DrawPos.Yto0();
+            var vehiclePos = vehicle.cachedDrawPos;
             var map = vehicle.interiorMap;
             var pivot = new Vector3(map.Size.x / 2f, 0f, map.Size.z / 2f);
             var drawPos = (original - pivot).RotatedBy(vehicle.FullRotation.AsAngle) + vehiclePos;
             drawPos += VehicleMapUtility.OffsetOf(vehicle);
-            return drawPos.WithYOffset(vehicle.DrawPos.y + 0.09615385f);
+            return drawPos.WithYOffset(VehicleMapUtility.altitudeOffset);
         }
 
         public static IntVec3 OrigToVehicleMap(this IntVec3 original, VehiclePawnWithInterior vehicle)
@@ -157,6 +159,54 @@ namespace VehicleInteriors
             return thing.Position;
         }
 
+        public static IntVec3 PositionHeldOnBaseMap(this Thing thing)
+        {
+            if (thing.Spawned)
+            {
+                return thing.PositionOnBaseMap();
+            }
+            IntVec3 rootPosition = IntVec3.Invalid;
+            var holder = thing.ParentHolder;
+            while (holder != null)
+            {
+                if (holder is Thing thing2 && thing2.PositionOnBaseMap().IsValid)
+                {
+                    rootPosition = thing.PositionOnBaseMap();
+                }
+                else
+                {
+                    if (holder is ThingComp thingComp && thingComp.parent.PositionOnBaseMap().IsValid)
+                    {
+                        rootPosition = thingComp.parent.Position;
+                    }
+                }
+                holder = holder.ParentHolder;
+            }
+            if (rootPosition.IsValid)
+            {
+                return rootPosition;
+            }
+            return thing.PositionOnBaseMap();
+        }
+
+        public static IntVec3 ThingMapToOrig(this IntVec3 origin, Thing thing)
+        {
+            if (thing.Map.Parent is MapParent_Vehicle parentVehicle)
+            {
+                return origin.VehicleMapToOrig(parentVehicle.vehicle);
+            }
+            return origin;
+        }
+
+        public static IntVec3 OrigToThingMap(this IntVec3 origin, Thing thing)
+        {
+            if (thing.Map.Parent is MapParent_Vehicle parentVehicle)
+            {
+                return origin.OrigToVehicleMap(parentVehicle.vehicle);
+            }
+            return origin;
+        }
+
         public static IntVec3 CellOnBaseMap(this ref LocalTargetInfo target)
         {
             if (target.HasThing && OnVehiclePositionCache.cachedPosOnBaseMap.TryGetValue(target.Thing, out var pos)) return pos;
@@ -179,37 +229,63 @@ namespace VehicleInteriors
             {
                 return new TargetInfo(target.Thing);
             }
-            return new TargetInfo(target.CellOnBaseMap(), map, false);
+            return new TargetInfo(target.CellOnBaseMap(), map, false);  
+        }
+
+        public static IntVec3 PositionOnAnotherThingMap(this Thing thing, Thing another)
+        {
+            if (another.Map.Parent is MapParent_Vehicle parentVehicle)
+            {
+                return thing.PositionOnBaseMap().VehicleMapToOrig(parentVehicle.vehicle);
+            }
+            return thing.PositionOnBaseMap();
+        }
+
+        public static IntVec3 CellOnAnotherThingMap(this LocalTargetInfo target, Thing another)
+        {
+            if (target.HasThing)
+            {
+                return target.Thing.PositionOnAnotherThingMap(another);
+            }
+            if (another.Map.Parent is MapParent_Vehicle parentVehicle)
+            {
+                return target.Cell.VehicleMapToOrig(parentVehicle.vehicle);
+            }
+            return target.Cell;
         }
 
         public static Rot4 rotForPrint = Rot4.North;
 
-        public static MethodInfo m_OrigToVehicleMap1 = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.OrigToVehicleMap), new Type[] { typeof(Vector3) });
+        public const float altitudeOffset = 0.09615385f;
 
-        public static MethodInfo m_OrigToVehicleMap2 = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.OrigToVehicleMap), new Type[] { typeof(Vector3), typeof(VehiclePawnWithInterior) });
+        public const float altitudeOffsetFull = 7.01923085f;
 
-        public static MethodInfo m_VehicleMapToOrig1 = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.VehicleMapToOrig), new Type[] { typeof(Vector3) });
+        public static readonly MethodInfo m_OrigToVehicleMap1 = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.OrigToVehicleMap), new Type[] { typeof(Vector3) });
 
-        public static MethodInfo m_VehicleMapToOrig2 = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.VehicleMapToOrig), new Type[] { typeof(Vector3), typeof(VehiclePawnWithInterior) });
+        public static readonly MethodInfo m_OrigToVehicleMap2 = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.OrigToVehicleMap), new Type[] { typeof(Vector3), typeof(VehiclePawnWithInterior) });
 
-        public static MethodInfo m_Thing_Map = AccessTools.PropertyGetter(typeof(Thing), nameof(Thing.Map));
+        public static readonly MethodInfo m_VehicleMapToOrig1 = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.VehicleMapToOrig), new Type[] { typeof(Vector3) });
 
-        public static MethodInfo m_BaseMapOfThing = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.BaseMapOfThing));
+        public static readonly MethodInfo m_VehicleMapToOrig2 = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.VehicleMapToOrig), new Type[] { typeof(Vector3), typeof(VehiclePawnWithInterior) });
 
-        public static MethodInfo m_Thing_Position = AccessTools.PropertyGetter(typeof(Thing), nameof(Thing.Position));
+        public static readonly MethodInfo m_Thing_Map = AccessTools.PropertyGetter(typeof(Thing), nameof(Thing.Map));
 
-        public static MethodInfo m_PositionOnBaseMap = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.PositionOnBaseMap));
+        public static readonly MethodInfo m_BaseMapOfThing = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.BaseMapOfThing));
 
-        public static MethodInfo m_TargetInfo_Cell = AccessTools.PropertyGetter(typeof(LocalTargetInfo), nameof(LocalTargetInfo.Cell));
+        public static readonly MethodInfo m_Thing_Position = AccessTools.PropertyGetter(typeof(Thing), nameof(Thing.Position));
 
-        public static MethodInfo m_CellOnBaseMap = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.CellOnBaseMap));
+        public static readonly MethodInfo m_PositionOnBaseMap = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.PositionOnBaseMap));
 
-        public static MethodInfo m_OccupiedRect = AccessTools.Method(typeof(GenAdj), nameof(GenAdj.OccupiedRect), new Type[] { typeof(Thing) });
+        public static readonly MethodInfo m_TargetInfo_Cell = AccessTools.PropertyGetter(typeof(LocalTargetInfo), nameof(LocalTargetInfo.Cell));
 
-        public static MethodInfo m_MovedOccupiedRect = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.MovedOccupiedRect));
+        public static readonly MethodInfo m_CellOnBaseMap = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.CellOnBaseMap));
 
-        public static MethodInfo m_ToTargetInfo = AccessTools.Method(typeof(LocalTargetInfo), nameof(LocalTargetInfo.ToTargetInfo));
+        public static readonly MethodInfo m_OccupiedRect = AccessTools.Method(typeof(GenAdj), nameof(GenAdj.OccupiedRect), new Type[] { typeof(Thing) });
 
-        public static MethodInfo m_ToBaseMapTargetInfo = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.ToBaseMapTargetInfo));
+        public static readonly MethodInfo m_MovedOccupiedRect = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.MovedOccupiedRect));
+
+        public static readonly MethodInfo m_ToTargetInfo = AccessTools.Method(typeof(LocalTargetInfo), nameof(LocalTargetInfo.ToTargetInfo));
+
+        public static readonly MethodInfo m_ToBaseMapTargetInfo = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.ToBaseMapTargetInfo));
     }
 }

@@ -4,6 +4,7 @@ using SmashTools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
 using Vehicles;
@@ -277,17 +278,13 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             var label = generator.DefineLabel();
             var drawFromDef = AccessTools.Method(typeof(Graphic), nameof(Graphic.DrawFromDef));
             var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Callvirt && c.OperandIs(drawFromDef));
-            var rot = generator.DeclareLocal(typeof(Rot8));
             codes[pos2].labels.Add(label);
             codes.InsertRange(pos2, new[]
             {
                 new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(VehicleMapUtility), nameof(VehicleMapUtility.FocusedVehicle))),
                 new CodeInstruction(OpCodes.Brfalse_S, label),
                 new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(VehicleMapUtility), nameof(VehicleMapUtility.FocusedVehicle))),
-                new CodeInstruction(OpCodes.Callvirt, AccessTools.PropertyGetter(typeof(VehiclePawnWithInterior), nameof(VehiclePawnWithInterior.FullRotation))),
-                new CodeInstruction(OpCodes.Stloc_S, rot),
-                new CodeInstruction(OpCodes.Ldloca_S, rot),
-                new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(Rot8), nameof(Rot8.AsAngle))),
+                new CodeInstruction(OpCodes.Callvirt, AccessTools.PropertyGetter(typeof(VehiclePawnWithInterior), nameof(VehiclePawnWithInterior.CachedAngle))),
                 new CodeInstruction(OpCodes.Add)
             });
             return codes;
@@ -296,7 +293,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
 
     //thingのMapのParentがVehicleMapだった場合回転の初期値であるnum3にvehicleの回転を与える
     [HarmonyPatch(typeof(SelectionDrawer), nameof(SelectionDrawer.DrawSelectionBracketFor))]
-    public static class Patch_SelectionDrawer_DrawGhostThing
+    public static class Patch_SelectionDrawer_DrawSelectionBracketFor
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
         {
@@ -304,7 +301,6 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             var pos = codes.FindIndex(c => c.opcode == OpCodes.Stloc_S && (c.operand as LocalBuilder).LocalIndex == 8);
             var label = generator.DefineLabel();
             var parent = generator.DeclareLocal(typeof(MapParent_Vehicle));
-            var rot = generator.DeclareLocal(typeof(Rot8));
 
             codes[pos].labels.Add(label);
             codes.InsertRange(pos, new[]
@@ -318,81 +314,11 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                 new CodeInstruction(OpCodes.Brfalse_S, label),
                 new CodeInstruction(OpCodes.Ldloc_S, parent),
                 CodeInstruction.LoadField(typeof(MapParent_Vehicle), nameof(MapParent_Vehicle.vehicle)),
-                new CodeInstruction(OpCodes.Callvirt, AccessTools.PropertyGetter(typeof(VehiclePawnWithInterior), nameof(VehiclePawnWithInterior.FullRotation))),
-                new CodeInstruction(OpCodes.Stloc_S, rot),
-                new CodeInstruction(OpCodes.Ldloca_S, rot),
-                new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(Rot8), nameof(Rot8.AsAngle))),
+                new CodeInstruction(OpCodes.Callvirt, AccessTools.PropertyGetter(typeof(VehiclePawnWithInterior), nameof(VehiclePawnWithInterior.CachedAngle))),
                 new CodeInstruction(OpCodes.Conv_I4),
                 new CodeInstruction(OpCodes.Add)
             });
             return codes;
-        }
-    }
-
-    [HarmonyPatch(typeof(DynamicDrawManager), "ComputeCulledThings")]
-    public static class Patch_DynamicDrawManager_ComputeCulledThings
-    {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
-        {
-            var codes = instructions.ToList();
-            var expandedBy = AccessTools.Method(typeof(CellRect), nameof(CellRect.ExpandedBy));
-            var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(expandedBy)) + 1;
-            var label = generator.DefineLabel();
-            var parentVehicle = generator.DeclareLocal(typeof(MapParent_Vehicle));
-
-            codes[pos].labels.Add(label);
-            codes.InsertRange(pos, new[] {
-                CodeInstruction.LoadArgument(0),
-                CodeInstruction.LoadField(typeof(DynamicDrawManager), "map"),
-                new CodeInstruction(OpCodes.Callvirt, AccessTools.PropertyGetter(typeof(Map), nameof(Map.Parent))),
-                new CodeInstruction(OpCodes.Isinst, typeof(MapParent_Vehicle)),
-                new CodeInstruction(OpCodes.Stloc_S, parentVehicle),
-                new CodeInstruction(OpCodes.Ldloc_S, parentVehicle),
-                new CodeInstruction(OpCodes.Brfalse_S, label),
-                new CodeInstruction(OpCodes.Ldloc_S, parentVehicle),
-                CodeInstruction.LoadField(typeof(MapParent_Vehicle), nameof(MapParent_Vehicle.vehicle)),
-                new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.VehicleMapToOrig), new Type[]{ typeof(CellRect), typeof(VehiclePawnWithInterior) }))
-            });
-            return codes;
-        }
-    }
-
-    [HarmonyPatch(typeof(Graphic), nameof(Graphic.Draw))]
-    public static class Patch_Graphic_Draw
-    {
-        public static void Prefix(Thing thing, ref float extraRotation)
-        {
-            if (thing.Map.Parent is MapParent_Vehicle parentVehicle)
-            {
-                extraRotation += parentVehicle.vehicle.FullRotation.AsAngle;
-            }
-        }
-    }
-
-    [HarmonyPatch(typeof(ThingOverlays), nameof(ThingOverlays.ThingOverlaysOnGUI))]
-    public static class Patch_ThingOverlays_ThingOverlaysOnGUI
-    {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
-        {
-            var from = AccessTools.PropertyGetter(typeof(Find), nameof(Find.CurrentMap));
-            var to = AccessTools.Method(typeof(Patch_Find_CurrentMap), nameof(Patch_Find_CurrentMap.CurrentMap));
-            var codes = instructions.MethodReplacer(from, to).MethodReplacer(VehicleMapUtility.m_Thing_Position, VehicleMapUtility.m_PositionOnBaseMap).ToList();
-            var pos = codes.FindIndex(c => c.opcode == OpCodes.Stloc_1);
-
-            codes.Insert(pos, CodeInstruction.Call(typeof(Patch_ThingOverlays_ThingOverlaysOnGUI), nameof(Patch_ThingOverlays_ThingOverlaysOnGUI.IncludeVehicleMapThings)));
-
-            return codes;
-        }
-
-        public static List<Thing> IncludeVehicleMapThings(List<Thing> list)
-        {
-            var vehicles = list.OfType<VehiclePawnWithInterior>();
-            var result = new List<Thing>(list);
-            foreach (var vehicle in vehicles)
-            {
-                result.AddRange(vehicle.interiorMap.listerThings.ThingsInGroup(ThingRequestGroup.HasGUIOverlay));
-            }
-            return result;
         }
     }
 }

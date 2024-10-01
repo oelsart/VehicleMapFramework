@@ -1,13 +1,11 @@
 ﻿using HarmonyLib;
 using RimWorld;
-using SmashTools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
+using System.Reflection.Emit;
 using UnityEngine;
+using VehicleInteriors.Jobs;
 using Verse;
 using Verse.AI;
 
@@ -31,42 +29,24 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         }
     }
 
-    [StaticConstructorOnStartup]
-    public static class Patch_AttackTargetFinder
-    {
-        static Patch_AttackTargetFinder()
-        {
-            var transpiler = AccessTools.Method(typeof(Patch_AttackTargetFinder), nameof(Patch_AttackTargetFinder.Transpiler));
-
-            foreach(var method in typeof(AttackTargetFinder).GetDeclaredMethods())
-            {
-                Core.harmonyInstance.Patch(method, null, null, transpiler);
-            }
-
-            foreach(var innerType in typeof(AttackTargetFinder).GetNestedTypes(AccessTools.all))
-            {
-                foreach(var method in innerType.GetDeclaredMethods())
-                {
-                    Core.harmonyInstance.Patch(method, null, null, transpiler);
-                }
-            }
-        }
-
-        private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
-            return instructions.MethodReplacer(VehicleMapUtility.m_Thing_Map, VehicleMapUtility.m_BaseMapOfThing)
-                .MethodReplacer(VehicleMapUtility.m_Thing_Position, VehicleMapUtility.m_PositionOnBaseMap)
-                .MethodReplacer(VehicleMapUtility.m_TargetInfo_Cell, VehicleMapUtility.m_CellOnBaseMap)
-                .MethodReplacer(VehicleMapUtility.m_OccupiedRect, VehicleMapUtility.m_MovedOccupiedRect);
-        }
-    }
-
     [HarmonyPatch(typeof(PawnLeaner), nameof(PawnLeaner.Notify_WarmingCastAlongLine))]
     public static class Patch_PawnLeaner_Notify_WarmingCastAlongLine
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             return instructions.MethodReplacer(VehicleMapUtility.m_Thing_Position, VehicleMapUtility.m_PositionOnBaseMap);
+        }
+    }
+
+    [HarmonyPatch(typeof(PawnLeaner), nameof(PawnLeaner.LeanOffset), MethodType.Getter)]
+    public static class Patch_PawnLeaner_LeanOffset
+    {
+        public static void Postfix(Pawn ___pawn, ref Vector3 __result)
+        {
+            if (___pawn.Map.Parent is MapParent_Vehicle parentVehicle)
+            {
+                __result = __result.RotatedBy(-parentVehicle.vehicle.FullRotation.AsAngle);
+            }
         }
     }
 
@@ -79,53 +59,88 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         }
     }
 
+    //最初のthing.MapをBaseMapに変更し、ThingCoveredには逆にthing.Mapを渡す
     [HarmonyPatch(typeof(Projectile), "CanHit")]
     public static class Patch_Projectile_CanHit
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(VehicleMapUtility.m_Thing_Map, VehicleMapUtility.m_BaseMapOfThing);
+            var codes = instructions.ToList();
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Callvirt && c.OperandIs(VehicleMapUtility.m_Thing_Map));
+            codes[pos] = new CodeInstruction(OpCodes.Call, VehicleMapUtility.m_BaseMapOfThing);
+
+            var m_ThingCovered = AccessTools.Method(typeof(CoverUtility), nameof(CoverUtility.ThingCovered));
+            var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Call && c.OperandIs(m_ThingCovered)) - 2;
+            codes[pos2] = CodeInstruction.LoadArgument(1);
+            codes[pos2 + 1].opcode = OpCodes.Callvirt;
+            return codes;
         }
     }
 
-    [HarmonyPatch(typeof(ShootLeanUtility), nameof(ShootLeanUtility.CalcShootableCellsOf))]
-    public static class Patch_ShootLeanUtility_CalcShootableCellsOf
+    [HarmonyPatch(typeof(Projectile), "CheckForFreeInterceptBetween")]
+    public static class Patch_Projectile_CheckForFreeInterceptBetween
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(VehicleMapUtility.m_Thing_Map, VehicleMapUtility.m_BaseMapOfThing)
-                .MethodReplacer(VehicleMapUtility.m_Thing_Position, VehicleMapUtility.m_PositionOnBaseMap);
+            var codes = instructions.ToList();
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Stloc_0);
+
+            codes.InsertRange(pos, new[]
+            {
+                CodeInstruction.LoadArgument(0),
+                CodeInstruction.LoadField(typeof(Projectile), "launcher"),
+                CodeInstruction.LoadArgument(0),
+                CodeInstruction.Call(typeof(Patch_Projectile_CheckForFreeInterceptBetween), nameof(Patch_Projectile_CheckForFreeInterceptBetween.IncludeVehicleMapIntercepters))
+            });
+            return codes;
+        }
+
+        public static List<Thing> IncludeVehicleMapIntercepters(List<Thing> list, Thing launcher, Projectile instance)
+        {
+            var result = new List<Thing>();
+            MapParent_Vehicle parentVehicle1 = null;
+            if ((parentVehicle1 = launcher.Map.Parent as MapParent_Vehicle) != null)
+            {
+                result.AddRange(parentVehicle1.vehicle.interiorMap.listerThings.ThingsInGroup(ThingRequestGroup.ProjectileInterceptor));
+            }
+            MapParent_Vehicle parentVehicle2 = null;
+            if (instance.usedTarget.HasThing && (parentVehicle2 = instance.usedTarget.Thing.Map.Parent as MapParent_Vehicle) != null)
+            {
+                result.AddRange(parentVehicle2.vehicle.interiorMap.listerThings.ThingsInGroup(ThingRequestGroup.ProjectileInterceptor));
+            }
+            if (parentVehicle1 == null && parentVehicle2 == null)
+            {
+                result.AddRange(list);
+            }
+            return result;
         }
     }
 
-    [HarmonyPatch(typeof(GenSight), nameof(GenSight.LineOfSightToThing))]
-    public static class Patch_GenSight_LineOfSightToThing
+    [HarmonyPatch(typeof(Projectile), "CheckForFreeIntercept")]
+    public static class Patch_Projectile_CheckForFreeIntercept
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(VehicleMapUtility.m_Thing_Position, VehicleMapUtility.m_PositionOnBaseMap)
-                .MethodReplacer(VehicleMapUtility.m_OccupiedRect, VehicleMapUtility.m_MovedOccupiedRect);
+            var codes = instructions.ToList();
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Stloc_2);
+
+            codes.InsertRange(pos, new[]
+            {
+                CodeInstruction.LoadArgument(0),
+                CodeInstruction.LoadField(typeof(Projectile), "launcher"),
+                CodeInstruction.LoadArgument(0),
+                CodeInstruction.Call(typeof(Patch_Projectile_CheckForFreeInterceptBetween), nameof(Patch_Projectile_CheckForFreeInterceptBetween.IncludeVehicleMapIntercepters))
+            });
+            return codes;
         }
     }
 
-    [HarmonyPatch(typeof(GenClosest), "<ClosestThing_Global_NewTemp>g__Process|9_0")]
-    public static class Patch_GenClosest_ClosestThing_Global_NewTemp
+    [HarmonyPatch(typeof(CompProjectileInterceptor), nameof(CompProjectileInterceptor.CheckIntercept))]
+    public static class Patch_CompProjectileInterceptor_CheckIntercept
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(AccessTools.PropertyGetter(typeof(Thing), nameof(Thing.PositionHeld)), VehicleMapUtility.m_PositionOnBaseMap);
-        }
-    }
-
-    [HarmonyPatch(typeof(ShotReport), nameof(ShotReport.HitReportFor))]
-    public static class Patch_ShotReport_HitReportFor
-    {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
-            return instructions.MethodReplacer(VehicleMapUtility.m_Thing_Map, VehicleMapUtility.m_BaseMapOfThing)
-                .MethodReplacer(VehicleMapUtility.m_Thing_Position, VehicleMapUtility.m_PositionOnBaseMap)
-                .MethodReplacer(VehicleMapUtility.m_TargetInfo_Cell, VehicleMapUtility.m_CellOnBaseMap)
-                .MethodReplacer(VehicleMapUtility.m_ToTargetInfo, VehicleMapUtility.m_ToBaseMapTargetInfo);
+            return instructions.MethodReplacer(VehicleMapUtility.m_Thing_Position, VehicleMapUtility.m_PositionOnBaseMap);
         }
     }
 
@@ -134,7 +149,6 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         public static void Postfix(IntVec3 cell, Map map, Func<Thing, bool> filter, List<Thing> __result)
         {
-            if (!cell.InBounds(map)) return;
             foreach(var vehicle in cell.GetThingList(map).OfType<VehiclePawnWithInterior>())
             {
                 var cellOnVehicle = cell.VehicleMapToOrig(vehicle);
@@ -167,6 +181,25 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         {
             return instructions.MethodReplacer(VehicleMapUtility.m_Thing_Map, VehicleMapUtility.m_BaseMapOfThing)
                 .MethodReplacer(VehicleMapUtility.m_Thing_Position, VehicleMapUtility.m_PositionOnBaseMap);
+        }
+    }
+
+    [HarmonyPatch(typeof(Pawn), nameof(Pawn.TryStartAttack))]
+    public static class Patch_Pawn_TryStartAttack
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(VehicleMapUtility.m_TargetInfo_Cell, VehicleMapUtility.m_CellOnBaseMap);
+        }
+    }
+
+    [HarmonyPatch(typeof(JobDriver_Wait), "CheckForAutoAttack")]
+    public static class Patch_JobDriver_Wait_CheckForAutoAttack
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(AccessTools.Method(typeof(AttackTargetFinder), nameof(AttackTargetFinder.BestShootTargetFromCurrentPosition)),
+                AccessTools.Method(typeof(AttackTargetFinderOnVehicle), nameof(AttackTargetFinderOnVehicle.BestShootTargetFromCurrentPosition)));
         }
     }
 }
