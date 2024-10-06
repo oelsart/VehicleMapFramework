@@ -13,7 +13,7 @@
 		<value>VehicleInteriors.JobGiver_AIFightEnemiesOnVehicle</value>
 	</Operation>
 	
-		<Operation Class = "PatchOperationAttributeSet">
+	<Operation Class = "PatchOperationAttributeSet">
 		<xpath>Defs/DutyDef/thinkNode/subNodes/li[@Class = "JobGiver_AIDefendPoint"]</xpath>
 		<attribute>Class</attribute>
 		<value>VehicleInteriors.JobGiver_AIDefendPointOnVehicle</value>

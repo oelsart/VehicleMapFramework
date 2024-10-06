@@ -9,6 +9,7 @@ using System.Runtime.Remoting.Messaging;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using Vehicles;
 using Verse;
 using static SmashTools.ConditionalPatch;
 
@@ -21,6 +22,22 @@ namespace VehicleInteriors
         public static IEnumerable<Map> ExceptVehicleMaps(this IEnumerable<Map> maps)
         {
             return maps.Where(m => !(m.Parent is MapParent_Vehicle));
+        }
+
+        public static bool IsVehicleMapOf(this Map map, out VehiclePawnWithInterior vehicle)
+        {
+            if (map?.Parent is MapParent_Vehicle parentVehicle)
+            {
+                vehicle = parentVehicle.vehicle;
+                return true;
+            }
+            vehicle = null;
+            return false;
+        }
+
+        public static bool IsOnVehicleMapOf(this Thing thing, out VehiclePawnWithInterior vehicle)
+        {
+            return thing.Map.IsVehicleMapOf(out vehicle);
         }
 
         public static Vector3 VehicleMapToOrig(this Vector3 original)
@@ -137,7 +154,7 @@ namespace VehicleInteriors
         public static float PrintExtraRotation(Thing thing)
         {
             float result = 0f;
-            if (thing.Map.Parent is MapParent_Vehicle)
+            if (thing.Map?.Parent is MapParent_Vehicle)
             {
                 result -= VehicleMapUtility.rotForPrint.AsAngle;
             }
@@ -146,9 +163,9 @@ namespace VehicleInteriors
 
         public static Map BaseMapOfThing(this Thing thing)
         {
-            if (thing.Map.Parent is MapParent_Vehicle parentVehicle)
+            if (thing.IsOnVehicleMapOf(out var vehicle))
             {
-                return parentVehicle.vehicle.Map;
+                return vehicle.Map;
             }
             return thing.Map;
         }
@@ -177,7 +194,7 @@ namespace VehicleInteriors
                 {
                     if (holder is ThingComp thingComp && thingComp.parent.PositionOnBaseMap().IsValid)
                     {
-                        rootPosition = thingComp.parent.Position;
+                        rootPosition = thingComp.parent.PositionOnBaseMap();
                     }
                 }
                 holder = holder.ParentHolder;
@@ -191,18 +208,18 @@ namespace VehicleInteriors
 
         public static IntVec3 ThingMapToOrig(this IntVec3 origin, Thing thing)
         {
-            if (thing.Map.Parent is MapParent_Vehicle parentVehicle)
+            if (thing.IsOnVehicleMapOf(out var vehicle))
             {
-                return origin.VehicleMapToOrig(parentVehicle.vehicle);
+                return origin.VehicleMapToOrig(vehicle);
             }
             return origin;
         }
 
         public static IntVec3 OrigToThingMap(this IntVec3 origin, Thing thing)
         {
-            if (thing.Map.Parent is MapParent_Vehicle parentVehicle)
+            if (thing.IsOnVehicleMapOf(out var vehicle))
             {
-                return origin.OrigToVehicleMap(parentVehicle.vehicle);
+                return origin.OrigToVehicleMap(vehicle);
             }
             return origin;
         }
@@ -234,9 +251,9 @@ namespace VehicleInteriors
 
         public static IntVec3 PositionOnAnotherThingMap(this Thing thing, Thing another)
         {
-            if (another.Map.Parent is MapParent_Vehicle parentVehicle)
+            if (another.IsOnVehicleMapOf(out var vehicle))
             {
-                return thing.PositionOnBaseMap().VehicleMapToOrig(parentVehicle.vehicle);
+                return thing.PositionOnBaseMap().VehicleMapToOrig(vehicle);
             }
             return thing.PositionOnBaseMap();
         }
@@ -247,11 +264,48 @@ namespace VehicleInteriors
             {
                 return target.Thing.PositionOnAnotherThingMap(another);
             }
-            if (another.Map.Parent is MapParent_Vehicle parentVehicle)
+            if (another.IsOnVehicleMapOf(out var vehicle))
             {
-                return target.Cell.VehicleMapToOrig(parentVehicle.vehicle);
+                return target.Cell.VehicleMapToOrig(vehicle);
             }
             return target.Cell;
+        }
+
+        public static Rot4 BaseRotationOfThing(this Thing thing)
+        {
+            if (thing.IsOnVehicleMapOf(out var vehicle))
+            {
+                return new Rot4(thing.Rotation.AsInt + vehicle.Rotation.AsInt);
+            }
+            return thing.Rotation;
+        }
+
+        public static Rot8 BaseFullRotationOfThing(this Thing thing)
+        {
+            if (thing.IsOnVehicleMapOf(out var vehicle))
+            {
+                var rot = new Rot4(thing.Rotation.AsInt + vehicle.Rotation.AsInt);
+                return new Rot8(rot, rot.IsHorizontal ? vehicle.Angle : 0f);
+            }
+            return thing.Rotation;
+        }
+
+        public static bool TryGetOnVehicleDrawPos(this Thing thing, ref Vector3 result)
+        {
+            if (OnVehiclePositionCache.cachedDrawPos.TryGetValue(thing, out var pos))
+            {
+                result = pos;
+                return true;
+            }
+            else if (!OnVehiclePositionCache.cacheMode && thing.IsOnVehicleMapOf(out var vehicle))
+            {
+                OnVehiclePositionCache.cacheMode = true;
+                OnVehiclePositionCache.cachedDrawPos[thing] = thing.DrawPos.OrigToVehicleMap(vehicle);
+                OnVehiclePositionCache.cacheMode = false;
+                result = OnVehiclePositionCache.cachedDrawPos[thing];
+                return true;
+            }
+            return false;
         }
 
         public static Rot4 rotForPrint = Rot4.North;
@@ -259,33 +313,5 @@ namespace VehicleInteriors
         public const float altitudeOffset = 0.09615385f;
 
         public const float altitudeOffsetFull = 7.01923085f;
-
-        public static readonly MethodInfo m_OrigToVehicleMap1 = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.OrigToVehicleMap), new Type[] { typeof(Vector3) });
-
-        public static readonly MethodInfo m_OrigToVehicleMap2 = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.OrigToVehicleMap), new Type[] { typeof(Vector3), typeof(VehiclePawnWithInterior) });
-
-        public static readonly MethodInfo m_VehicleMapToOrig1 = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.VehicleMapToOrig), new Type[] { typeof(Vector3) });
-
-        public static readonly MethodInfo m_VehicleMapToOrig2 = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.VehicleMapToOrig), new Type[] { typeof(Vector3), typeof(VehiclePawnWithInterior) });
-
-        public static readonly MethodInfo m_Thing_Map = AccessTools.PropertyGetter(typeof(Thing), nameof(Thing.Map));
-
-        public static readonly MethodInfo m_BaseMapOfThing = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.BaseMapOfThing));
-
-        public static readonly MethodInfo m_Thing_Position = AccessTools.PropertyGetter(typeof(Thing), nameof(Thing.Position));
-
-        public static readonly MethodInfo m_PositionOnBaseMap = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.PositionOnBaseMap));
-
-        public static readonly MethodInfo m_TargetInfo_Cell = AccessTools.PropertyGetter(typeof(LocalTargetInfo), nameof(LocalTargetInfo.Cell));
-
-        public static readonly MethodInfo m_CellOnBaseMap = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.CellOnBaseMap));
-
-        public static readonly MethodInfo m_OccupiedRect = AccessTools.Method(typeof(GenAdj), nameof(GenAdj.OccupiedRect), new Type[] { typeof(Thing) });
-
-        public static readonly MethodInfo m_MovedOccupiedRect = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.MovedOccupiedRect));
-
-        public static readonly MethodInfo m_ToTargetInfo = AccessTools.Method(typeof(LocalTargetInfo), nameof(LocalTargetInfo.ToTargetInfo));
-
-        public static readonly MethodInfo m_ToBaseMapTargetInfo = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.ToBaseMapTargetInfo));
     }
 }

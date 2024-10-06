@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+
+	<JobDef>
+		<defName>VIF_GotoAcrossMaps</defName>
+		<driverClass>VehicleInteriors.JobDriver_GotoAcrossMaps</driverClass>
+		<reportString>moving.</reportString>
+		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
+		<carryThingAfterJob>true</carryThingAfterJob>
+		<dropThingBeforeJob>false</dropThingBeforeJob>
+	</JobDef>
+
+	<JobDef>
+		<defName>VIF_AttackMeleeAcrossMaps</defName>
+		<driverClass>VehicleInteriors.JobDriver_AttackMeleeAcrossMaps</driverClass>
+		<reportString>melee attacking TargetC.</reportString>
+		<alwaysShowWeapon>true</alwaysShowWeapon>
+		<casualInterruptible>false</casualInterruptible>
+		<collideWithPawns>true</collideWithPawns>
+	</JobDef>
+</Defs>

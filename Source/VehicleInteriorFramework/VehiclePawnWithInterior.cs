@@ -8,12 +8,15 @@ using System.Linq;
 using UnityEngine;
 using Vehicles;
 using Verse;
+using Verse.AI;
 
 namespace VehicleInteriors
 {
     [StaticConstructorOnStartup]
     public class VehiclePawnWithInterior : VehiclePawn
     {
+        public override List<IntVec3> InteractionCells => this.interactionCellsInt;
+
         public override IEnumerable<Gizmo> GetGizmos()
         {
             return base.GetGizmos().AddItem(new Command_FocusVehicleMap());
@@ -33,28 +36,91 @@ namespace VehicleInteriors
                     Find.WorldObjects.Add(mapParent);
                 }
             }
-            this.UseBaseMapComponent(map);
             base.SpawnSetup(map, respawningAfterLoad);
+            this.cachedDrawPos = this.DrawPos;
+            this.CopyFromBaseMapComponents();
+        }
+
+        private void CopyFromBaseMapComponents()
+        {
+            this.interiorMap.attackTargetsCache = this.Map.attackTargetsCache;
+            this.interiorMap.listerHaulables = this.Map.listerHaulables;
+
+            foreach(var thing in this.interiorMap.listerThings.AllThings)
+            {
+                this.interiorMap.attackTargetsCache.Notify_ThingSpawned(thing);
+                if(thing.def.category == ThingCategory.Item)
+                {
+                    this.interiorMap.listerHaulables.Notify_Spawned(thing);
+                }
+            }
         }
 
         public override void Tick()
         {
-            this.cachedDrawPos = this.DrawPos;
+            if (this.Spawned)
+            {
+                this.cachedDrawPos = this.DrawPos;
+                if (VehiclePawnWithInterior.lastCachedTick != Find.TickManager.TicksGame)
+                {
+                    VehiclePawnWithInterior.lastCachedTick = Find.TickManager.TicksGame;
+                    OnVehiclePositionCache.cachedDrawPos.Clear();
+                    OnVehiclePositionCache.cachedPosOnBaseMap.Clear();
+                }
+                foreach (var thing in this.interiorMap.listerThings.AllThings.Where(t => t.def.drawerType != DrawerType.None))
+                {
+                    OnVehiclePositionCache.cachedPosOnBaseMap[thing] = thing.Position.OrigToVehicleMap(this);
+                }
+            }
             base.Tick();
+        }
+
+        public override void Destroy(DestroyMode mode = DestroyMode.Vanish)
+        {
+            base.Destroy(mode);
+            foreach (var thing in this.interiorMap.listerThings.AllThings.Where(t => t.def.drawerType != DrawerType.None))
+            {
+                OnVehiclePositionCache.cachedDrawPos.Remove(thing);
+                OnVehiclePositionCache.cachedPosOnBaseMap.Remove(thing);
+                if (mode != DestroyMode.Vanish)
+                {
+                    thing.DeSpawn(DestroyMode.Vanish);
+                    if (thing.def.category == ThingCategory.Building)
+                    {
+                        thing.Position = this.Position;
+                        GenLeaving.DoLeavingsFor(thing, this.Map, DestroyMode.Deconstruct);
+                    }
+                    else
+                    {
+                        GenPlace.TryPlaceThing(thing, this.Position, this.Map, ThingPlaceMode.Near);
+                    }
+                }
+            }
+            Current.Game.DeinitAndRemoveMap(this.interiorMap, false);
+            if (Find.WorldObjects.Contains(this.interiorMap.Parent)) Find.WorldObjects.Remove(this.interiorMap.Parent);
         }
 
         public override void DeSpawn(DestroyMode mode = DestroyMode.Vanish)
         {
+            this.interiorMap.attackTargetsCache = new AttackTargetsCache(this.interiorMap);
+            this.interiorMap.listerHaulables = new ListerHaulables(this.interiorMap);
+
+            foreach(var thing in this.interiorMap.listerThings.AllThings)
+            {
+                this.interiorMap.attackTargetsCache.Notify_ThingSpawned(thing);
+                this.Map.attackTargetsCache.Notify_ThingDespawned(thing);
+                if (thing.def.category == ThingCategory.Item)
+                {
+                    this.interiorMap.listerHaulables.Notify_Spawned(thing);
+                    this.Map.listerHaulables.Notify_DeSpawned(thing);
+                }
+            }
             base.DeSpawn(mode);
-            Current.Game.DeinitAndRemoveMap(this.interiorMap, false);
         }
 
         public override void DrawAt(Vector3 drawLoc, Rot8 rot, float extraRotation, bool flip = false, bool compDraw = true)
         {
             base.DrawAt(drawLoc, rot, extraRotation, flip, compDraw);
-            this.cachedDrawPos = drawLoc;
-
-            this.CacheDrawPos();
 
             var map = this.interiorMap;
             PlantFallColors.SetFallShaderGlobals(map);
@@ -134,7 +200,7 @@ namespace VehicleInteriors
             if (VehicleMapUtility.FocusedVehicle == this)
             {
                 Material material = VehiclePawnWithInterior.ClipMat;
-                var drawPos = this.DrawPos;
+                var drawPos = this.cachedDrawPos;
                 var quat = this.FullRotation.AsQuat();
                 IntVec3 size = map.Size;
                 Vector3 s = new Vector3(500f, 1f, (float)size.z);
@@ -160,28 +226,13 @@ namespace VehicleInteriors
             Scribe_References.Look(ref this.interiorMap, "interiorMap");
         }
 
-        private void UseBaseMapComponent(Map map)
-        {
-            this.interiorMap.attackTargetsCache = map.attackTargetsCache;
-            //this.interiorMap.listerThings = map.listerThings;
-            //this.interiorMap.listerBuildings = map.listerBuildings;
-            //this.interiorMap.mapPawns = map.mapPawns;
-        }
-
-        private void CacheDrawPos()
-        {
-            OnVehiclePositionCache.cacheMode = true;
-            foreach(var thing in this.interiorMap.listerThings.AllThings.Where(t => t.def.drawerType != DrawerType.None))
-            {
-                OnVehiclePositionCache.cachedDrawPos[thing] = thing.DrawPos.OrigToVehicleMap(this);
-                OnVehiclePositionCache.cachedPosOnBaseMap[thing] = thing.Position.OrigToVehicleMap(this);
-            }
-            OnVehiclePositionCache.cacheMode = false;
-        }
-
         public Map interiorMap;
 
         public Vector3 cachedDrawPos;
+
+        private static int lastCachedTick = -1;
+        
+        private readonly List<IntVec3> interactionCellsInt = new List<IntVec3>();
 
         private static readonly Type terrainLayerType = AccessTools.TypeByName("Verse.SectionLayer_Terrain");
 

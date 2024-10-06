@@ -12,161 +12,6 @@ using Verse;
 
 namespace VehicleInteriors.VIF_HarmonyPatches
 {
-    //フォーカスしたVehicleがある場合それ用の改変メソッドを呼んでオリジナルをスキップ
-    [HarmonyPatch(typeof(Selector), "SelectableObjectsUnderMouse")]
-    public static class Patch_Selector_SelectableObjectsUnderMouse
-    {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
-            return Patch_Map_MapUpdate.Transpiler(instructions);
-        }
-
-        public static bool Prefix(ref IEnumerable<object> __result)
-        {
-            if (VehicleMapUtility.FocusedVehicle == null) return true;
-
-            __result = new List<object>();
-            Vector2 mousePositionOnUIInverted = UI.MousePositionOnUIInverted;
-            Thing thing = Find.ColonistBar.ColonistOrCorpseAt(mousePositionOnUIInverted);
-            if (thing != null && thing.SpawnedOrAnyParentSpawned)
-            {
-                __result = __result.AddItem(thing);
-                return false;
-            }
-            if (!UI.MouseCell().InBounds(Find.CurrentMap))
-            {
-                return false;
-            }
-            TargetingParameters targetingParameters = new TargetingParameters();
-            targetingParameters.mustBeSelectable = true;
-            targetingParameters.canTargetPawns = true;
-            targetingParameters.canTargetBuildings = true;
-            targetingParameters.canTargetItems = true;
-            targetingParameters.mapObjectTargetsMustBeAutoAttackable = false;
-            var mouseVehicleMapPosition = UI.MouseMapPosition().VehicleMapToOrig();
-            List<Thing> selectableList = GenUI.ThingsUnderMouse(mouseVehicleMapPosition, 1f, targetingParameters, null);
-            if (selectableList.Count > 0 && selectableList[0] is Pawn && (selectableList[0].DrawPos - mouseVehicleMapPosition).MagnitudeHorizontal() < 0.4f)
-            {
-                for (int j = selectableList.Count - 1; j >= 0; j--)
-                {
-                    Thing thing2 = selectableList[j];
-                    if (thing2.def.category == ThingCategory.Pawn && (thing2.DrawPosHeld.Value - mouseVehicleMapPosition).MagnitudeHorizontal() > 0.4f)
-                    {
-                        selectableList.Remove(thing2);
-                    }
-                }
-            }
-            int num;
-            for (int i = 0; i < selectableList.Count; i = num + 1)
-            {
-                __result = __result.AddItem(selectableList[i]);
-                num = i;
-            }
-            Zone zone = Find.CurrentMap.zoneManager.ZoneAt(UI.MouseCell());
-            if (zone != null)
-            {
-                __result = __result.AddItem(zone);
-            }
-            return false;
-        }
-    }
-
-    //フォーカスしたVehicleがある場合それ用の改変メソッドを呼んでオリジナルをスキップ
-    [HarmonyPatch(typeof(ThingSelectionUtility), "MultiSelectableThingsInScreenRectDistinct")]
-    public static class Patch_ThingSelectionUtility_MultiSelectableThingsInScreenRectDistinct
-    {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
-            return Patch_Map_MapUpdate.Transpiler(instructions);
-        }
-
-        public static bool Prefix(ref IEnumerable<object> __result, Rect rect)
-        {
-            if (VehicleMapUtility.FocusedVehicle == null) return true;
-
-            __result = new List<object>();
-            CellRect mapRect = GetMapRect(rect);
-            yieldedThings.Clear();
-            try
-            {
-                foreach (IntVec3 c in mapRect)
-                {
-                    if (c.InBounds(Find.CurrentMap))
-                    {
-                        List<Thing> cellThings = Find.CurrentMap.thingGrid.ThingsListAt(c);
-                        if (cellThings != null)
-                        {
-                            int num;
-                            for (int i = 0; i < cellThings.Count; i = num + 1)
-                            {
-                                Thing t = cellThings[i];
-                                if ((bool)SelectableByMapClick(null, t) && !t.def.neverMultiSelect && !yieldedThings.Contains(t))
-                                {
-                                    __result = __result.AddItem(t);
-                                    yieldedThings.Add(t);
-                                }
-                                num = i;
-                            }
-                        }
-                    }
-                }
-                Rect rectInWorldSpace = GetRectInWorldSpace(rect);
-                foreach (IntVec3 c2 in mapRect.ExpandedBy(1).EdgeCells)
-                {
-                    if (c2.InBounds(Find.CurrentMap) && c2.GetItemCount(Find.CurrentMap) > 1)
-                    {
-                        foreach (Thing t in Find.CurrentMap.thingGrid.ThingsAt(c2))
-                        {
-                            if (t.def.category == ThingCategory.Item && (bool)SelectableByMapClick(null, t) && !t.def.neverMultiSelect && !yieldedThings.Contains(t))
-                            {
-                                Vector3 vector = t.TrueCenter();
-                                Rect rect2 = new Rect(vector.x - 0.5f, vector.z - 0.5f, 1f, 1f);
-                                if (rect2.Overlaps(rectInWorldSpace))
-                                {
-                                    __result = __result.AddItem(t);
-                                    yieldedThings.Add(t);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            finally
-            {
-                yieldedThings.Clear();
-            }
-            return false;
-        }
-
-        private static CellRect GetMapRect(Rect rect)
-        {
-            Vector2 screenLoc = new Vector2(rect.x, (float)UI.screenHeight - rect.y);
-            Vector2 screenLoc2 = new Vector2(rect.x + rect.width, (float)UI.screenHeight - (rect.y + rect.height));
-            Vector3 vector = UI.UIToMapPosition(screenLoc).VehicleMapToOrig();
-            Vector3 vector2 = UI.UIToMapPosition(screenLoc2).VehicleMapToOrig();
-            return new CellRect
-            {
-                minX = Mathf.FloorToInt(vector.x),
-                minZ = Mathf.FloorToInt(vector2.z),
-                maxX = Mathf.FloorToInt(vector2.x),
-                maxZ = Mathf.FloorToInt(vector.z)
-            };
-        }
-
-        private static Rect GetRectInWorldSpace(Rect rect)
-        {
-            Vector2 screenLoc = new Vector2(rect.x, (float)UI.screenHeight - rect.y);
-            Vector2 screenLoc2 = new Vector2(rect.x + rect.width, (float)UI.screenHeight - (rect.y + rect.height));
-            Vector3 vector = UI.UIToMapPosition(screenLoc).VehicleMapToOrig();
-            Vector3 vector2 = UI.UIToMapPosition(screenLoc2).VehicleMapToOrig();
-            return new Rect(vector.x, vector2.z, vector2.x - vector.x, vector.z - vector2.z);
-        }
-
-        private static readonly FastInvokeHandler SelectableByMapClick = MethodInvoker.GetHandler(AccessTools.Method(typeof(ThingSelectionUtility), "SelectableByMapClick"));
-
-        private static readonly HashSet<Thing> yieldedThings = AccessTools.StaticFieldRefAccess<HashSet<Thing>>(typeof(ThingSelectionUtility), "yieldedThings");
-    }
-
     [HarmonyPatch(typeof(UI), nameof(UI.MouseCell))]
     public static class Patch_UI_MouseCell
     {
@@ -175,7 +20,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             var codes = instructions.ToList();
             var toIntVec3 = AccessTools.Method(typeof(IntVec3Utility), nameof(IntVec3Utility.ToIntVec3));
             var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(toIntVec3));
-            codes.Insert(pos, new CodeInstruction(OpCodes.Call, VehicleMapUtility.m_VehicleMapToOrig1));
+            codes.Insert(pos, new CodeInstruction(OpCodes.Call, MethodInfoCache.m_VehicleMapToOrig1));
             return codes;
         }
     }
@@ -185,12 +30,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         public static bool Prefix(Thing __instance, ref Vector3 __result)
         {
-            if (!OnVehiclePositionCache.cacheMode && OnVehiclePositionCache.cachedDrawPos.TryGetValue(__instance, out var pos))
-            {
-                __result = pos;
-                return false;
-            }
-            return true;
+            return !__instance.TryGetOnVehicleDrawPos(ref __result);
         }
     }
 
@@ -199,12 +39,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         public static bool Prefix(Pawn __instance, ref Vector3 __result)
         {
-            if (!OnVehiclePositionCache.cacheMode && OnVehiclePositionCache.cachedDrawPos.TryGetValue(__instance, out var pos))
-            {
-                __result = pos;
-                return false;
-            }
-            return true;
+            return !__instance.TryGetOnVehicleDrawPos(ref __result);
         }
     }
 
@@ -213,12 +48,12 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         public static bool Prefix(VehiclePawn __instance, ref Vector3 __result)
         {
-            if (!OnVehiclePositionCache.cacheMode && OnVehiclePositionCache.cachedDrawPos.TryGetValue(__instance, out var pos))
-            {
-                __result = pos;
-                return false;
-            }
-            return true;
+            return !__instance.TryGetOnVehicleDrawPos(ref __result);
+        }
+
+        public static void Postfix(VehiclePawn __instance, ref Vector3 __result)
+        {
+            __result += __instance.jobs?.curDriver?.ForcedBodyOffset ?? Vector3.zero;
         }
     }
 
@@ -227,12 +62,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         public static bool Prefix(AttachableThing __instance, ref Vector3 __result)
         {
-            if (!OnVehiclePositionCache.cacheMode && OnVehiclePositionCache.cachedDrawPos.TryGetValue(__instance, out var pos))
-            {
-                __result = pos;
-                return false;
-            }
-            return true;
+            return !__instance.TryGetOnVehicleDrawPos(ref __result);
         }
     }
 
@@ -241,12 +71,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         public static bool Prefix(MechShield __instance, ref Vector3 __result)
         {
-            if (!OnVehiclePositionCache.cacheMode && OnVehiclePositionCache.cachedDrawPos.TryGetValue(__instance, out var pos))
-            {
-                __result = pos;
-                return false;
-            }
-            return true;
+            return !__instance.TryGetOnVehicleDrawPos(ref __result);
         }
     }
 
@@ -255,12 +80,19 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         public static bool Prefix(Mote __instance, ref Vector3 __result)
         {
-            if (!OnVehiclePositionCache.cacheMode && OnVehiclePositionCache.cachedDrawPos.TryGetValue(__instance, out var pos))
+            return !__instance.TryGetOnVehicleDrawPos(ref __result);
+        }
+    }
+
+    [HarmonyPatch(typeof(FleckStatic), nameof(FleckStatic.DrawPos), MethodType.Getter)]
+    public static class Patch_FleckStatic_DrawPos
+    {
+        public static void Postfix(Map ___map, ref Vector3 __result)
+        {
+            if (___map?.Parent is MapParent_Vehicle parentVehicle)
             {
-                __result = pos;
-                return false;
+                __result = __result.OrigToVehicleMap(parentVehicle.vehicle);
             }
-            return true;
         }
     }
 
@@ -278,44 +110,95 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             var label = generator.DefineLabel();
             var drawFromDef = AccessTools.Method(typeof(Graphic), nameof(Graphic.DrawFromDef));
             var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Callvirt && c.OperandIs(drawFromDef));
+            var rot = generator.DeclareLocal(typeof(Rot8));
             codes[pos2].labels.Add(label);
             codes.InsertRange(pos2, new[]
             {
-                new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(VehicleMapUtility), nameof(VehicleMapUtility.FocusedVehicle))),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.g_FocusedVehicle),
                 new CodeInstruction(OpCodes.Brfalse_S, label),
-                new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(VehicleMapUtility), nameof(VehicleMapUtility.FocusedVehicle))),
-                new CodeInstruction(OpCodes.Callvirt, AccessTools.PropertyGetter(typeof(VehiclePawnWithInterior), nameof(VehiclePawnWithInterior.CachedAngle))),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.g_FocusedVehicle),
+                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_FullRotation),
+                new CodeInstruction(OpCodes.Stloc_S, rot),
+                new CodeInstruction(OpCodes.Ldloca_S, rot),
+                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_AsAngleRot8),
                 new CodeInstruction(OpCodes.Add)
             });
             return codes;
         }
     }
 
-    //thingのMapのParentがVehicleMapだった場合回転の初期値であるnum3にvehicleの回転を与える
+    [HarmonyDebug]
+    //thingがIsOnVehicleMapだった場合回転の初期値num3にベースvehicleのAngleを与え、posはRotatePointで回転
     [HarmonyPatch(typeof(SelectionDrawer), nameof(SelectionDrawer.DrawSelectionBracketFor))]
     public static class Patch_SelectionDrawer_DrawSelectionBracketFor
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
         {
             var codes = instructions.ToList();
-            var pos = codes.FindIndex(c => c.opcode == OpCodes.Stloc_S && (c.operand as LocalBuilder).LocalIndex == 8);
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalIndex == 8);
+            var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithInterior));
+            var rot = generator.DeclareLocal(typeof(Rot8));
             var label = generator.DefineLabel();
-            var parent = generator.DeclareLocal(typeof(MapParent_Vehicle));
 
             codes[pos].labels.Add(label);
             codes.InsertRange(pos, new[]
             {
                 CodeInstruction.LoadLocal(1),
-                new CodeInstruction(OpCodes.Callvirt, AccessTools.PropertyGetter(typeof(Thing), nameof(Thing.Map))),
-                new CodeInstruction(OpCodes.Callvirt, AccessTools.PropertyGetter(typeof(Map), nameof(Map.Parent))),
-                new CodeInstruction(OpCodes.Isinst, typeof(MapParent_Vehicle)),
-                new CodeInstruction(OpCodes.Stloc_S, parent),
-                new CodeInstruction(OpCodes.Ldloc_S, parent),
+                new CodeInstruction(OpCodes.Ldloca_S, vehicle),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_IsOnVehicleMapOf),
                 new CodeInstruction(OpCodes.Brfalse_S, label),
-                new CodeInstruction(OpCodes.Ldloc_S, parent),
-                CodeInstruction.LoadField(typeof(MapParent_Vehicle), nameof(MapParent_Vehicle.vehicle)),
-                new CodeInstruction(OpCodes.Callvirt, AccessTools.PropertyGetter(typeof(VehiclePawnWithInterior), nameof(VehiclePawnWithInterior.CachedAngle))),
+                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_FullRotation),
+                new CodeInstruction(OpCodes.Stloc_S, rot),
+                new CodeInstruction(OpCodes.Ldloca_S, rot),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.g_AsAngleRot8),
                 new CodeInstruction(OpCodes.Conv_I4),
+                new CodeInstruction(OpCodes.Add),
+            });
+
+            var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Ldloc_S && ((LocalBuilder)c.operand).LocalIndex == 16);
+            var label2 = generator.DefineLabel();
+            var g_DrawPos = AccessTools.PropertyGetter(typeof(Thing), nameof(Thing.DrawPos));
+
+            codes[pos2].labels.Add(label2);
+            codes.InsertRange(pos2, new[]
+            {
+                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+                new CodeInstruction(OpCodes.Brfalse_S, label2),
+                CodeInstruction.LoadLocal(1),
+                new CodeInstruction(OpCodes.Callvirt, g_DrawPos),
+                new CodeInstruction(OpCodes.Ldloca_S, rot),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.g_AsAngleRot8),
+                new CodeInstruction(OpCodes.Neg),
+                CodeInstruction.Call(typeof(Ext_Math), nameof(Ext_Math.RotatePoint))
+            });
+            return codes;
+        }
+    }
+
+    [HarmonyPatch("Vehicles.Rendering", "DrawSelectionBracketsVehicles")]
+    public static class Patch_Rendering_DrawSelectionBracketsVehicles
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+        {
+            var codes = instructions.ToList();
+            var pos = codes.FindLastIndex(c => c.opcode == OpCodes.Stloc_3);
+            var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithInterior));
+            var rot = generator.DeclareLocal(typeof(Rot8));
+            var label = generator.DefineLabel();
+
+            codes[pos].labels.Add(label);
+            codes.InsertRange(pos, new[]
+            {
+                CodeInstruction.LoadLocal(0),
+                new CodeInstruction(OpCodes.Ldloca_S, vehicle),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_IsOnVehicleMapOf),
+                new CodeInstruction(OpCodes.Brfalse_S, label),
+                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_FullRotation),
+                new CodeInstruction(OpCodes.Stloc_S, rot),
+                new CodeInstruction(OpCodes.Ldloca_S, rot),
+                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_AsAngleRot8),
                 new CodeInstruction(OpCodes.Add)
             });
             return codes;

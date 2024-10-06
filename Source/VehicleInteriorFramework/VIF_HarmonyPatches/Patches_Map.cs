@@ -22,13 +22,9 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         }
     }
 
-    //このクラスのCurrentMapにオリジナルのFind.CurrentMapを保存して、Find.CurrentMapはフォーカスされたマップがある場合そっちを参照するように改変
-    [HarmonyPatch(typeof(Find), nameof(Find.CurrentMap), MethodType.Getter)]
-    public static class Patch_Find_CurrentMap
+    [HarmonyPatch(typeof(Designator), nameof(Designator.Map), MethodType.Getter)]
+    public static class Patch_Designator_Map
     {
-        [HarmonyReversePatch(HarmonyReversePatchType.Original)]
-        public static Map CurrentMap() => throw new NotImplementedException();
-
         public static bool Prefix(ref Map __result)
         {
             if (VehicleMapUtility.FocusedVehicle != null)
@@ -37,41 +33,6 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                 return false;
             }
             return true;
-        }
-    }
-
-    [HarmonyPatch(typeof(Game), nameof(Game.CurrentMap), MethodType.Setter)]
-    public static class Patch_Game_CurrentMap
-    {
-        public static void Prefix(ref Map value)
-        {
-            VehicleMapUtility.FocusedVehicle = null;
-            if (value.Parent is MapParent_Vehicle parentVehicle)
-            {
-                value = parentVehicle.vehicle.Map;
-            }
-        }
-    }
-
-    //MapUpdateはFocusedVehicleがあってもやってほしいので保存しておいた元のCurrentMapを使わせる
-    [HarmonyPatch(typeof(Map), nameof(Map.MapUpdate))]
-    public static class Patch_Map_MapUpdate
-    {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
-            var from = AccessTools.PropertyGetter(typeof(Find), nameof(Find.CurrentMap));
-            var to = AccessTools.Method(typeof(Patch_Find_CurrentMap), nameof(Patch_Find_CurrentMap.CurrentMap));
-            return instructions.MethodReplacer(from, to);
-        }
-    }
-
-    //カメラも同様
-    [HarmonyPatch(typeof(CameraDriver), nameof(CameraDriver.Update))]
-    public static class Patch_CameraDriver_Update
-    {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
-            return Patch_Map_MapUpdate.Transpiler(instructions);
         }
     }
 

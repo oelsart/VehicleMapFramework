@@ -133,7 +133,7 @@ namespace VehicleInteriors
 
         private static void EvaluateCell(IntVec3 c)
         {
-            var casterVehicleMap = CastPositionFinderOnVehicle.req.caster.Map;
+            var casterMap = CastPositionFinderOnVehicle.req.caster.Map;
 
             if (CastPositionFinderOnVehicle.req.validator != null && !CastPositionFinderOnVehicle.req.validator(c))
             {
@@ -143,7 +143,7 @@ namespace VehicleInteriors
             {
                 if (DebugViewSettings.drawCastPositionSearch)
                 {
-                    casterVehicleMap.debugDrawer.FlashCell(c, 0f, "range target", 50);
+                    casterMap.debugDrawer.FlashCell(c, 0f, "range target", 50);
                 }
                 return;
             }
@@ -151,7 +151,7 @@ namespace VehicleInteriors
             {
                 if (DebugViewSettings.drawCastPositionSearch)
                 {
-                    casterVehicleMap.debugDrawer.FlashCell(c, 0.1f, "range home", 50);
+                    casterMap.debugDrawer.FlashCell(c, 0.1f, "range home", 50);
                 }
                 return;
             }
@@ -162,28 +162,29 @@ namespace VehicleInteriors
                 {
                     if (DebugViewSettings.drawCastPositionSearch)
                     {
-                        casterVehicleMap.debugDrawer.FlashCell(c, 0.2f, "range caster", 50);
+                        casterMap.debugDrawer.FlashCell(c, 0.2f, "range caster", 50);
                     }
                     return;
                 }
             }
-            if (!c.Standable(casterVehicleMap))
+            if (!c.Standable(casterMap))
             {
                 return;
             }
-            if (CastPositionFinderOnVehicle.req.maxRegions > 0 && c.GetRegion(casterVehicleMap, RegionType.Set_Passable).mark != CastPositionFinderOnVehicle.inRadiusMark)
+            if (CastPositionFinderOnVehicle.req.maxRegions > 0 && c.GetRegion(casterMap, RegionType.Set_Passable).mark != CastPositionFinderOnVehicle.inRadiusMark)
             {
                 if (DebugViewSettings.drawCastPositionSearch)
                 {
-                    casterVehicleMap.debugDrawer.FlashCell(c, 0.64f, "reg radius", 50);
+                    casterMap.debugDrawer.FlashCell(c, 0.64f, "reg radius", 50);
                 }
                 return;
             }
-            if (!casterVehicleMap.reachability.CanReach(CastPositionFinderOnVehicle.req.caster.Position, c, PathEndMode.OnCell, TraverseParms.For(CastPositionFinderOnVehicle.req.caster, Danger.Some, TraverseMode.ByPawn, false, false, false)))
+            if (!ReachabilityUtilityOnVehicle.CanReach(casterMap, CastPositionFinderOnVehicle.req.caster.Position, c, PathEndMode.OnCell, TraverseParms.For(CastPositionFinderOnVehicle.req.caster, Danger.Some, TraverseMode.ByPawn, false, false, false), CastPositionFinderOnVehicle.req.target.Map, out _, out _) &&
+                !CastPositionFinderOnVehicle.req.caster.IsOnVehicleMapOf(out _) && !CastPositionFinderOnVehicle.req.target.IsOnVehicleMapOf(out _))
             {
                 if (DebugViewSettings.drawCastPositionSearch)
                 {
-                    casterVehicleMap.debugDrawer.FlashCell(c, 0.4f, "can't reach", 50);
+                    casterMap.debugDrawer.FlashCell(c, 0.4f, "can't reach", 50);
                 }
                 return;
             }
@@ -195,7 +196,7 @@ namespace VehicleInteriors
             }
             if (DebugViewSettings.drawCastPositionSearch)
             {
-                casterVehicleMap.debugDrawer.FlashCell(c, num / 4f, num.ToString("F3"), 50);
+                casterMap.debugDrawer.FlashCell(c, num / 4f, num.ToString("F3"), 50);
             }
             if (num < CastPositionFinderOnVehicle.bestSpotPref)
             {
@@ -206,23 +207,23 @@ namespace VehicleInteriors
             {
                 if (DebugViewSettings.drawCastPositionSearch)
                 {
-                    casterVehicleMap.debugDrawer.FlashCell(c, 0.6f, "can't hit", 50);
+                    casterMap.debugDrawer.FlashCell(c, 0.6f, "can't hit", 50);
                 }
                 return;
             }
-            if (!casterVehicleMap.pawnDestinationReservationManager.CanReserve(c, CastPositionFinderOnVehicle.req.caster, false))
+            if (!casterMap.pawnDestinationReservationManager.CanReserve(c, CastPositionFinderOnVehicle.req.caster, false))
             {
                 if (DebugViewSettings.drawCastPositionSearch)
                 {
-                    casterVehicleMap.debugDrawer.FlashCell(c, num * 0.9f, "resvd", 50);
+                    casterMap.debugDrawer.FlashCell(c, num * 0.9f, "resvd", 50);
                 }
                 return;
             }
-            if (PawnUtility.KnownDangerAt(c, casterVehicleMap, CastPositionFinderOnVehicle.req.caster))
+            if (PawnUtility.KnownDangerAt(c, casterMap, CastPositionFinderOnVehicle.req.caster))
             {
                 if (DebugViewSettings.drawCastPositionSearch)
                 {
-                    casterVehicleMap.debugDrawer.FlashCell(c, 0.9f, "danger", 50);
+                    casterMap.debugDrawer.FlashCell(c, 0.9f, "danger", 50);
                 }
                 return;
             }

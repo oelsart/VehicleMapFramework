@@ -93,7 +93,7 @@ namespace VehicleInteriors
                 }
                 if (verb.verbProps.IsMeleeAttack)
                 {
-                    return this.MeleeAttackJob(pawn, enemyTarget);
+                    return JobMaker.MakeJob(VIF_DefOf.VIF_AttackMeleeAcrossMaps, this.dest1, this.dest2, enemyTarget);
                 }
                 bool flag2 = CoverUtility.CalculateOverallBlockChance(pawn, enemyTarget.PositionOnAnotherThingMap(pawn), pawn.Map) > 0.01f;
                 bool flag3 = pawn.Position.Standable(pawn.Map) && pawn.Map.pawnDestinationReservationManager.CanReserve(pawn.Position, pawn, pawn.Drafted);
@@ -238,7 +238,8 @@ namespace VehicleInteriors
         {
             Thing enemyTarget = pawn.mindState.enemyTarget;
             if (!enemyTarget.Destroyed && Find.TickManager.TicksGame - pawn.mindState.lastEngageTargetTick <= this.TicksSinceEngageToLoseTarget &&
-                pawn.CanReach(enemyTarget, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn) &&
+                (pawn.CanReach(enemyTarget, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, enemyTarget.Map, out this.dest1, out this.dest2) ||
+                pawn.IsOnVehicleMapOf(out _) || enemyTarget.IsOnVehicleMapOf(out _)) &&
                 (float)(pawn.PositionOnBaseMap() - enemyTarget.PositionOnBaseMap()).LengthHorizontalSquared <= this.targetKeepRadius * this.targetKeepRadius)
             {
                 IAttackTarget attackTarget = enemyTarget as IAttackTarget;
@@ -248,5 +249,9 @@ namespace VehicleInteriors
         }
 
         private bool needLOSToAcquireNonPawnTargets;
+
+        private LocalTargetInfo dest1;
+
+        private LocalTargetInfo dest2;
     }
 }

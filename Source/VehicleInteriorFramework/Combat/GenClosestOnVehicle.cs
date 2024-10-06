@@ -8,12 +8,13 @@ using Verse.AI;
 using Verse;
 using RimWorld;
 using UnityEngine;
+using Vehicles;
 
 namespace VehicleInteriors
 {
     public static class GenClosestOnVehicle
     {
-        private static bool EarlyOutSearch(IntVec3 start, Map map, ThingRequest thingReq, IEnumerable<Thing> customGlobalSearchSet, Predicate<Thing> validator)
+        private static bool EarlyOutSearch(IntVec3 start, Map map, ThingRequest thingReq, IEnumerable<Thing> searchSet, IEnumerable<Thing> customGlobalSearchSet, Predicate<Thing> validator)
         {
             if (thingReq.group == ThingRequestGroup.Everything)
             {
@@ -31,9 +32,7 @@ namespace VehicleInteriors
                 }));
                 return true;
             }
-            bool flag = map.listerThings.GetThingsOfType<VehiclePawnWithInterior>().SelectMany(v => v.interiorMap.listerThings.ThingsMatching(thingReq)).Count() == 0;
-
-            return thingReq.group == ThingRequestGroup.Nothing || ((thingReq.IsUndefined || map.listerThings.ThingsMatching(thingReq).Count == 0) && flag && customGlobalSearchSet.EnumerableNullOrEmpty<Thing>());
+            return thingReq.group == ThingRequestGroup.Nothing || ((thingReq.IsUndefined || searchSet.Count() == 0 && customGlobalSearchSet.EnumerableNullOrEmpty<Thing>()));
         }
 
         public static Thing ClosestThingReachable(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance = 9999f, Predicate<Thing> validator = null, IEnumerable<Thing> customGlobalSearchSet = null, int searchRegionsMin = 0, int searchRegionsMax = -1, bool forceAllowGlobalSearch = false, RegionType traversableRegionTypes = RegionType.Set_Passable, bool ignoreEntirelyForbiddenRegions = false, bool lookInHaulSources = false)
@@ -48,28 +47,31 @@ namespace VehicleInteriors
                 Log.ErrorOnce("ClosestThingReachable with thing request group " + thingReq.group + " and global search not allowed. This will never find anything because this group is never stored in regions. Either allow global search or don't call this method at all.", 518498981);
                 return null;
             }
-            if (GenClosestOnVehicle.EarlyOutSearch(root, map, thingReq, customGlobalSearchSet, validator))
+
+            var baseMap = map.Parent is MapParent_Vehicle parentVehicle ? parentVehicle.vehicle.Map : map;
+            var basePos = traverseParams.pawn.PositionOnBaseMap();
+            var searchSet = baseMap.listerThings.ThingsMatching(thingReq).ConcatIfNotNull(baseMap.listerThings.GetThingsOfType<VehiclePawnWithInterior>().SelectMany((VehiclePawnWithInterior v) => v.interiorMap.listerThings.ThingsMatching(thingReq)));
+            if (GenClosestOnVehicle.EarlyOutSearch(root, map, thingReq, searchSet, customGlobalSearchSet, validator))
             {
                 return null;
             }
             Thing thing = null;
-            bool flag2 = false;
             if (!thingReq.IsUndefined && thingReq.CanBeFoundInRegion)
             {
                 int num = (searchRegionsMax > 0) ? searchRegionsMax : 30;
-                int num2;
-                thing = GenClosest.RegionwiseBFSWorker_NewTemp(root, map, thingReq, peMode, traverseParams, validator, null, searchRegionsMin, num, maxDistance, out num2, traversableRegionTypes, ignoreEntirelyForbiddenRegions, lookInHaulSources);
-                flag2 = (thing == null && num2 < num);
+                thing = GenClosest.RegionwiseBFSWorker_NewTemp(root, map, thingReq, peMode, traverseParams, validator, null, searchRegionsMin, num, maxDistance, out int num2, traversableRegionTypes, ignoreEntirelyForbiddenRegions, lookInHaulSources);
             }
-            if (thing == null && flag && !flag2)
+            if (thing == null && flag)
             {
                 if (traversableRegionTypes != RegionType.Set_Passable)
                 {
                     Log.ErrorOnce("ClosestThingReachable had to do a global search, but traversableRegionTypes is not set to passable only. It's not supported, because Reachability is based on passable regions only.", 14384767);
                 }
-                Predicate<Thing> validator2 = (Thing t) => map.reachability.CanReach(root, t, peMode, traverseParams) && (validator == null || validator(t));
-                IEnumerable<Thing> searchSet = customGlobalSearchSet ?? map.listerThings.ThingsMatching(thingReq).Concat(map.listerThings.GetThingsOfType<VehiclePawnWithInterior>().SelectMany(v => v.interiorMap.listerThings.ThingsMatching(thingReq)));
-                thing = GenClosestOnVehicle.ClosestThing_Global(root, searchSet, maxDistance, validator2, null);
+                Predicate<Thing> validator2 = (Thing t) =>
+                {
+                    return traverseParams.pawn.CanReach(t, peMode, traverseParams.maxDanger, true, true, traverseParams.mode, t.Map, out _, out _) && (validator == null || validator(t));
+                };
+                thing = GenClosestOnVehicle.ClosestThing_Global(basePos, customGlobalSearchSet ?? searchSet, maxDistance, validator2, null);
             }
             return thing;
         }
@@ -130,8 +132,8 @@ namespace VehicleInteriors
         }
 
         private static void Process(Thing t, Finder finder)
-		{
-			if (!t.Spawned && !HaulAIUtility.IsInHaulableInventory(t))
+        {
+            if (!t.Spawned && !HaulAIUtility.IsInHaulableInventory(t))
 			{
 				return;
             }

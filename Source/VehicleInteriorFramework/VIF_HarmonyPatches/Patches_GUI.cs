@@ -27,9 +27,9 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         {
             public static void Prefix(Thing thing, ref float extraRotation)
             {
-                if (thing.Map.Parent is MapParent_Vehicle parentVehicle)
+                if (thing.IsOnVehicleMapOf(out var vehicle))
                 {
-                    extraRotation += parentVehicle.vehicle.CachedAngle;
+                    extraRotation += vehicle.CachedAngle;
                 }
             }
         }
@@ -39,9 +39,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         {
             public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
             {
-                var from = AccessTools.PropertyGetter(typeof(Find), nameof(Find.CurrentMap));
-                var to = AccessTools.Method(typeof(Patch_Find_CurrentMap), nameof(Patch_Find_CurrentMap.CurrentMap));
-                var codes = instructions.MethodReplacer(from, to).MethodReplacer(VehicleMapUtility.m_Thing_Position, VehicleMapUtility.m_PositionOnBaseMap).ToList();
+                var codes = instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap).ToList();
                 var pos = codes.FindIndex(c => c.opcode == OpCodes.Stloc_1);
 
                 codes.Insert(pos, CodeInstruction.Call(typeof(Patch_ThingOverlays_ThingOverlaysOnGUI), nameof(Patch_ThingOverlays_ThingOverlaysOnGUI.IncludeVehicleMapThings)));
@@ -51,7 +49,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
 
             public static List<Thing> IncludeVehicleMapThings(List<Thing> list)
             {
-                var vehicles = list.OfType<VehiclePawnWithInterior>();
+                var vehicles = Find.CurrentMap.listerThings.GetThingsOfType<VehiclePawnWithInterior>();
                 var result = new List<Thing>(list);
                 foreach (var vehicle in vehicles)
                 {
@@ -88,7 +86,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                 var codes = instructions.ToList();
                 var m_QuaternionIdentity = AccessTools.PropertyGetter(typeof(Quaternion), nameof(Quaternion.identity));
                 var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(m_QuaternionIdentity));
-                codes.Insert(pos, new CodeInstruction(OpCodes.Call, VehicleMapUtility.m_OrigToVehicleMap1));
+                codes.Insert(pos, new CodeInstruction(OpCodes.Call, MethodInfoCache.m_OrigToVehicleMap1));
 
                 var label = generator.DefineLabel();
                 var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Ldsfld && c.OperandIs(field));
@@ -98,7 +96,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(VehicleMapUtility), nameof(VehicleMapUtility.FocusedVehicle))),
             new CodeInstruction(OpCodes.Brfalse_S, label),
             new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(VehicleMapUtility), nameof(VehicleMapUtility.FocusedVehicle))),
-            new CodeInstruction(OpCodes.Callvirt, AccessTools.PropertyGetter(typeof(VehiclePawnWithInterior), nameof(VehiclePawnWithInterior.FullRotation))),
+            new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_FullRotation),
             new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(Rot8Utility), nameof(Rot8Utility.AsQuat))),
             new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(Quaternion), "op_Multiply", new Type[]{ typeof(Quaternion), typeof(Quaternion) })),
             });
@@ -131,7 +129,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         {
             public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
             {
-                return instructions.MethodReplacer(VehicleMapUtility.m_TargetInfo_Cell, VehicleMapUtility.m_CellOnBaseMap);
+                return instructions.MethodReplacer(MethodInfoCache.g_TargetInfo_Cell, MethodInfoCache.m_CellOnBaseMap);
             }
         }
     }

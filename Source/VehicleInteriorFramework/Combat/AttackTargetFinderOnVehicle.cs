@@ -11,6 +11,7 @@ using Verse;
 using Verse.AI.Group;
 using VehicleInteriors.Jobs;
 using HarmonyLib;
+using System.Net.NetworkInformation;
 
 namespace VehicleInteriors
 {
@@ -32,8 +33,8 @@ namespace VehicleInteriors
             var maxLocusDistSquared = num * num;
             Func<IntVec3, bool> losValidator = null;
             if ((flags & TargetScanFlags.LOSBlockableByGas) != TargetScanFlags.None)
-			{
-                losValidator = ((IntVec3 vec3) => !vec3.AnyGas(searcherThing.Map, GasType.BlindSmoke));
+            {
+                losValidator = ((IntVec3 vec3) => !vec3.AnyGas(searcherThing.BaseMapOfThing(), GasType.BlindSmoke));
             }
             Predicate<IAttackTarget> innerValidator = delegate (IAttackTarget t)
             {
@@ -44,32 +45,31 @@ namespace VehicleInteriors
                     return false;
                 }
                 if (minDistSquared > 0f && (float)(searcherThing.PositionOnBaseMap() - thing.PositionOnBaseMap()).LengthHorizontalSquared < minDistSquared)
-				{
+                {
                     return false;
                 }
                 if (!canTakeTargetsCloserThanEffectiveMinRange)
 				{
                     float num2 = verb.verbProps.EffectiveMinRange(thing, searcherThing);
                     if (num2 > 0f && (float)(searcherThing.PositionOnBaseMap() - thing.PositionOnBaseMap()).LengthHorizontalSquared < num2 * num2)
-
                     {
                         return false;
                     }
                 }
                 if (maxTravelRadiusFromLocus < 9999f && (float)(thing.PositionOnBaseMap() - locus).LengthHorizontalSquared > maxLocusDistSquared)
-				{
+                {
                     return false;
                 }
                 if (!searcherThing.HostileTo(thing))
-				{
+                {
                     return false;
                 }
                 if (validator != null && !validator(thing))
-				{
+                {
                     return false;
                 }
                 if (searcherPawn != null)
-				{
+                {
                     Lord lord = searcherPawn.GetLord();
                     if (lord != null && !lord.LordJob.ValidateAttackTarget(searcherPawn, thing))
                     {
@@ -85,7 +85,7 @@ namespace VehicleInteriors
                     }
                 }
                 if ((flags & TargetScanFlags.NeedLOSToAll) != TargetScanFlags.None)
-				{
+                {
                     if (losValidator != null && (!losValidator(searcherThing.PositionOnBaseMap()) || !losValidator(thing.PositionOnBaseMap())))
 					{
                         return false;
@@ -143,15 +143,12 @@ namespace VehicleInteriors
                 else
                 {
                     bool flag4 = false;
-                    using (CellRect.Enumerator enumerator = thing.MovedOccupiedRect().GetEnumerator())
+                    foreach (var c in thing.MovedOccupiedRect())
                     {
-                        while (enumerator.MoveNext())
+                        if (!c.Fogged(baseMap))
                         {
-                            if (!enumerator.Current.Fogged(baseMap))
-                            {
-                                flag4 = true;
-                                break;
-                            }
+                            flag4 = true;
+                            break;
                         }
                     }
                     if (!flag4)
@@ -161,7 +158,6 @@ namespace VehicleInteriors
                 }
                 return true;
             };
-            Predicate<IAttackTarget> oldValidator;
             if ((AttackTargetFinderOnVehicle.HasRangedAttack(searcher) || onlyRanged) && (searcherPawn == null || !searcherPawn.InAggroMentalState))
             {
                 AttackTargetFinderOnVehicle.tmpTargets.Clear();
@@ -169,8 +165,11 @@ namespace VehicleInteriors
                 AttackTargetFinderOnVehicle.tmpTargets.RemoveAll((IAttackTarget t) => AttackTargetFinderOnVehicle.ShouldIgnoreNoncombatant(searcherThing, t, flags));
                 if ((flags & TargetScanFlags.NeedReachable) != TargetScanFlags.None)
                 {
-                    oldValidator = innerValidator;
-                    innerValidator = ((IAttackTarget t) => oldValidator(t) && AttackTargetFinderOnVehicle.CanReach(searcherThing, t.Thing, canBashDoors, canBashFences));
+                    Predicate<IAttackTarget> oldValidator = innerValidator;
+                    innerValidator = ((IAttackTarget t) =>
+                    {
+                        return oldValidator(t) && AttackTargetFinderOnVehicle.CanReach(searcherThing, t.Thing, canBashDoors, canBashFences);
+                    });
                 }
                 bool flag = false;
                 for (int i = 0; i < AttackTargetFinderOnVehicle.tmpTargets.Count; i++)
@@ -206,15 +205,21 @@ namespace VehicleInteriors
                 AttackTargetFinderOnVehicle.tmpTargets.Clear();
                 return result;
             }
-			if (searcherPawn != null && searcherPawn.mindState.duty != null && searcherPawn.mindState.duty.radius > 0f && !searcherPawn.InMentalState)
+            if (searcherPawn != null && searcherPawn.mindState.duty != null && searcherPawn.mindState.duty.radius > 0f && !searcherPawn.InMentalState)
 			{
-				oldValidator = innerValidator;
-				innerValidator = ((IAttackTarget t) => oldValidator(t) && t.Thing.PositionOnBaseMap().InHorDistOf(searcherPawn.mindState.duty.focus.CellOnBaseMap(), searcherPawn.mindState.duty.radius));
-			}
-            oldValidator = innerValidator;
-			innerValidator = ((IAttackTarget t) => oldValidator(t) && !AttackTargetFinderOnVehicle.ShouldIgnoreNoncombatant(searcherThing, t, flags));
-			IAttackTarget attackTarget2 = (IAttackTarget)GenClosestOnVehicle.ClosestThingReachable(searcherThing.PositionOnBaseMap(), searcherThing.BaseMapOfThing(), ThingRequest.ForGroup(ThingRequestGroup.AttackTarget), PathEndMode.Touch, TraverseParms.For(searcherPawn, Danger.Deadly, TraverseMode.ByPawn, canBashDoors, false, canBashFences), maxDist, (Thing x) => innerValidator((IAttackTarget)x), null, 0, (maxDist > 800f) ? -1 : 40, false, RegionType.Set_Passable, false);
-			if (attackTarget2 != null && PawnUtility.ShouldCollideWithPawns(searcherPawn))
+                Predicate<IAttackTarget> oldValidator = innerValidator;
+                innerValidator = (IAttackTarget t) =>
+                {
+                    return oldValidator(t) && t.Thing.PositionOnBaseMap().InHorDistOf(searcherPawn.mindState.duty.focus.Cell.OrigToThingMap(searcherPawn), searcherPawn.mindState.duty.radius);
+                };
+            }
+            Predicate<IAttackTarget> oldValidator2 = innerValidator;
+            innerValidator = (IAttackTarget t) =>
+            {
+                return oldValidator2(t) && !AttackTargetFinderOnVehicle.ShouldIgnoreNoncombatant(searcherThing, t, flags);
+            };
+			IAttackTarget attackTarget2 = (IAttackTarget)GenClosestOnVehicle.ClosestThingReachable(searcherThing.Position, searcherThing.Map, ThingRequest.ForGroup(ThingRequestGroup.AttackTarget), PathEndMode.Touch, TraverseParms.For(searcherPawn, Danger.Deadly, TraverseMode.ByPawn, canBashDoors, false, canBashFences), maxDist, (Thing x) => innerValidator((IAttackTarget)x), null, 0, (maxDist > 800f) ? -1 : 40, true, RegionType.Set_Passable, false);
+            if (attackTarget2 != null && PawnUtility.ShouldCollideWithPawns(searcherPawn))
 			{
 				IAttackTarget attackTarget3 = AttackTargetFinderOnVehicle.FindBestReachableMeleeTarget(innerValidator, searcherPawn, maxDist, canBashDoors, canBashFences);
 				if (attackTarget3 != null)
@@ -227,6 +232,7 @@ namespace VehicleInteriors
 					}
 				}
 			}
+            Log.Message($"{searcher} find {attackTarget2}");
 			return attackTarget2;
 		}
 
@@ -241,7 +247,7 @@ namespace VehicleInteriors
             Pawn pawn = searcher as Pawn;
             if (pawn != null)
             {
-                if (!pawn.CanReach(target, PathEndMode.Touch, Danger.Some, canBashDoors, canBashFences, TraverseMode.ByPawn))
+                if (!pawn.CanReach(target, PathEndMode.Touch, Danger.Some, canBashDoors, canBashFences, TraverseMode.ByPawn, target.Map, out _, out _))
                 {
                     return false;
                 }
@@ -249,7 +255,7 @@ namespace VehicleInteriors
             else
             {
                 TraverseMode mode = canBashDoors ? TraverseMode.PassDoors : TraverseMode.NoPassClosedDoors;
-                if (!searcher.Map.reachability.CanReach(searcher.Position, target, PathEndMode.Touch, TraverseParms.For(mode, Danger.Deadly, false, false, false)))
+                if (!ReachabilityUtilityOnVehicle.CanReach(searcher.Map, searcher.Position, target, PathEndMode.Touch, TraverseParms.For(mode, Danger.Deadly, false, false, false), target.Map, out _, out _))
                 {
                     return false;
                 }
@@ -261,7 +267,7 @@ namespace VehicleInteriors
         {
             maxTargDist = Mathf.Min(maxTargDist, 30f);
             IAttackTarget reachableTarget = null;
-            Func<IntVec3, IAttackTarget> bestTargetOnCell = delegate (IntVec3 x)
+            IAttackTarget bestTargetOnCell(IntVec3 x)
             {
                 List<Thing> thingList = x.GetThingList(searcherPawn.Map);
                 for (int i = 0; i < thingList.Count; i++)
@@ -274,7 +280,7 @@ namespace VehicleInteriors
                     }
                 }
                 return null;
-            };
+            }
             searcherPawn.Map.floodFiller.FloodFill(searcherPawn.Position, delegate (IntVec3 x)
             {
                 if (!x.WalkableBy(searcherPawn.Map, searcherPawn))

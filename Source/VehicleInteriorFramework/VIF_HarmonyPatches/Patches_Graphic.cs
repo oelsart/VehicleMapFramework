@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
 using UnityEngine;
+using Vehicles;
 using Verse;
 
 namespace VehicleInteriors.VIF_HarmonyPatches
@@ -40,7 +41,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         public static void Postfix(ref Rot4 __result)
         {
-            __result.AsInt = (__result.AsInt + VehicleMapUtility.rotForPrint.AsInt) % 4;
+            __result.AsInt += VehicleMapUtility.rotForPrint.AsInt;
         }
     }
 
@@ -49,12 +50,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         public static void Postfix(Pawn ___pawn)
         {
-            if (___pawn.Map.Parent is MapParent_Vehicle parentVehicle)
-            {
-                var rot = ___pawn.Rotation;
-                rot.AsInt = (rot.AsInt + parentVehicle.vehicle.Rotation.AsInt) % 4;
-                ___pawn.Rotation = rot;
-            }
+            ___pawn.Rotation = ___pawn.BaseRotationOfThing();
         }
     }
 
@@ -78,13 +74,13 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         public static void Postfix(PawnPosture posture, Pawn ___pawn, ref Vector3 __result)
         {
             var corpse = ___pawn.Corpse;
-            if (corpse != null && corpse.Map != null && corpse.Map.Parent is MapParent_Vehicle parentVehicle1)
+            if (corpse != null && corpse.Map?.Parent is MapParent_Vehicle)
             {
-                __result.y += parentVehicle1.vehicle.DrawPos.y + VehicleMapUtility.altitudeOffset;
+                __result.y += VehicleMapUtility.altitudeOffsetFull;
             }
-            else if (posture != PawnPosture.Standing && ___pawn.Map != null && ___pawn.Map.Parent is MapParent_Vehicle parentVehicle2)
+            else if (posture != PawnPosture.Standing && ___pawn.Map?.Parent is MapParent_Vehicle)
             {
-                __result.y += parentVehicle2.vehicle.DrawPos.y + VehicleMapUtility.altitudeOffset;
+                __result.y += VehicleMapUtility.altitudeOffsetFull;
             }
         }
     }
@@ -94,8 +90,8 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(VehicleMapUtility.m_Thing_Position, VehicleMapUtility.m_PositionOnBaseMap)
-                .MethodReplacer(VehicleMapUtility.m_TargetInfo_Cell, VehicleMapUtility.m_CellOnBaseMap);
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap)
+                .MethodReplacer(MethodInfoCache.g_TargetInfo_Cell, MethodInfoCache.m_CellOnBaseMap);
         }
     }
 
@@ -104,7 +100,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(VehicleMapUtility.m_Thing_Position, VehicleMapUtility.m_PositionOnBaseMap);
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap);
         }
     }
 
@@ -135,6 +131,18 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                 new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.VehicleMapToOrig), new Type[]{ typeof(CellRect), typeof(VehiclePawnWithInterior) }))
             });
             return codes;
+        }
+    }
+
+    [HarmonyPatch(typeof(VehiclePawn), nameof(VehiclePawn.FullRotation), MethodType.Getter)]
+    public static class Patch_VehiclePawn_FullRotation
+    {
+        public static void Postfix(VehiclePawn __instance, ref Rot8 __result)
+        {
+            if (__instance.IsOnVehicleMapOf(out var vehicle))
+            {
+                __result = new Rot8(new Rot4(__instance.Rotation.AsInt + vehicle.Rotation.AsInt), (__instance.Angle + vehicle.Angle) % 90f);
+            }
         }
     }
 }

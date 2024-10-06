@@ -126,7 +126,7 @@ namespace VehicleInteriors
 
         protected override bool TryCastShot()
         {
-            var targetBaseMap = this.currentTarget.Thing.BaseMapOfThing();
+            var targetBaseMap = this.currentTarget.HasThing ? this.currentTarget.Thing.BaseMapOfThing() : this.caster.BaseMapOfThing();
             var casterBaseMap = this.caster.BaseMapOfThing();
             var targCellOnBaseMap = this.currentTarget.CellOnBaseMap();
             var casterPositionOnBaseMap = this.caster.PositionOnBaseMap();
@@ -337,6 +337,7 @@ namespace VehicleInteriors
             {
                 if (this.verbProps.IsMeleeAttack)
                 {
+                    /*
                     Job job = JobMaker.MakeJob(JobDefOf.AttackMelee, target);
                     job.playerForced = true;
                     Pawn pawn = target.Thing as Pawn;
@@ -345,6 +346,7 @@ namespace VehicleInteriors
                         job.killIncappedTarget = pawn.Downed;
                     }
                     this.CasterPawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), false);
+                    */
                     return;
                 }
                 float num = this.verbProps.EffectiveMinRange(target, this.CasterPawn);

@@ -91,12 +91,20 @@
     <Compile Include="Combat\CastPositionFinderOnVehicle.cs" />
     <Compile Include="Combat\GenClosestOnVehicle.cs" />
     <Compile Include="Combat\GenSightOnVehicle.cs" />
-    <Compile Include="Combat\JobGiver_AIDefendPointOnVehicle.cs" />
-    <Compile Include="Combat\JobGiver_AIFightEnemiesOnVehicle.cs" />
+    <Compile Include="Jobs\JobDriver_AttackMeleeAcrossMaps.cs" />
+    <Compile Include="Jobs\JobGiver_AIDefendPointOnVehicle.cs" />
+    <Compile Include="Jobs\JobGiver_AIFightEnemiesOnVehicle.cs" />
     <Compile Include="Combat\ProjectileUtility.cs" />
     <Compile Include="Combat\ShootLeanUtilityOnVehicle.cs" />
     <Compile Include="Combat\ShotReportOnVehicle.cs" />
+    <Compile Include="FloatMenuMakerOnVehicle.cs" />
+    <Compile Include="Jobs\JobDriver_GotoAcrossMaps.cs" />
+    <Compile Include="Jobs\ToilsAcrossMaps.cs" />
+    <Compile Include="MethodInfoCache.cs" />
     <Compile Include="PlaceWorker_ShowTurretRadius.cs" />
+    <Compile Include="CompVehicleEnterSpot.cs" />
+    <Compile Include="ReachabilityUtilityOnVehicle.cs" />
+    <Compile Include="SelectorOnVehicleUtility.cs" />
     <Compile Include="Verbs\VerbOnVehicleUtility.cs" />
     <Compile Include="Verbs\Verb_LaunchProjectileOnVehicle.cs" />
     <Compile Include="Verbs\Verb_ShootBeamOnVehicle.cs" />
@@ -119,8 +127,10 @@
     <Compile Include="VIF_HarmonyPatches\Patches_Graphic.cs" />
     <Compile Include="VIF_HarmonyPatches\Patches_GUI.cs" />
     <Compile Include="VIF_HarmonyPatches\Patches_Map.cs" />
+    <Compile Include="VIF_HarmonyPatches\Patches_Selector.cs" />
     <Compile Include="VIF_HarmonyPatches\Patches_VehicleMapOffset.cs" />
     <Compile Include="VIF_Shaders.cs" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -16,5 +16,9 @@ namespace VehicleInteriors
         public static MapGeneratorDef VIF_InteriorGenerator;
 
         public static TerrainDef Sand_;
+
+        public static JobDef VIF_GotoAcrossMaps;
+
+        public static JobDef VIF_AttackMeleeAcrossMaps;
     }
 }

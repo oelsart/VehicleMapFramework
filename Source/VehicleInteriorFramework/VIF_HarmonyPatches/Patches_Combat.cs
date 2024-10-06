@@ -16,7 +16,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler (IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(VehicleMapUtility.m_Thing_Map, VehicleMapUtility.m_BaseMapOfThing);
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMapOfThing);
         }
     }
 
@@ -25,7 +25,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(VehicleMapUtility.m_Thing_Map, VehicleMapUtility.m_BaseMapOfThing);
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMapOfThing);
         }
     }
 
@@ -34,7 +34,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(VehicleMapUtility.m_Thing_Position, VehicleMapUtility.m_PositionOnBaseMap);
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap);
         }
     }
 
@@ -43,9 +43,9 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         public static void Postfix(Pawn ___pawn, ref Vector3 __result)
         {
-            if (___pawn.Map.Parent is MapParent_Vehicle parentVehicle)
+            if (___pawn.IsOnVehicleMapOf(out var vehicle))
             {
-                __result = __result.RotatedBy(-parentVehicle.vehicle.FullRotation.AsAngle);
+                __result = __result.RotatedBy(-vehicle.FullRotation.AsAngle);
             }
         }
     }
@@ -55,7 +55,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(VehicleMapUtility.m_TargetInfo_Cell, VehicleMapUtility.m_CellOnBaseMap);
+            return instructions.MethodReplacer(MethodInfoCache.g_TargetInfo_Cell, MethodInfoCache.m_CellOnBaseMap);
         }
     }
 
@@ -66,8 +66,8 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             var codes = instructions.ToList();
-            var pos = codes.FindIndex(c => c.opcode == OpCodes.Callvirt && c.OperandIs(VehicleMapUtility.m_Thing_Map));
-            codes[pos] = new CodeInstruction(OpCodes.Call, VehicleMapUtility.m_BaseMapOfThing);
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Callvirt && c.OperandIs(MethodInfoCache.g_Thing_Map));
+            codes[pos] = new CodeInstruction(OpCodes.Call, MethodInfoCache.m_BaseMapOfThing);
 
             var m_ThingCovered = AccessTools.Method(typeof(CoverUtility), nameof(CoverUtility.ThingCovered));
             var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Call && c.OperandIs(m_ThingCovered)) - 2;
@@ -140,7 +140,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(VehicleMapUtility.m_Thing_Position, VehicleMapUtility.m_PositionOnBaseMap);
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap);
         }
     }
 
@@ -169,8 +169,8 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(VehicleMapUtility.m_Thing_Map, VehicleMapUtility.m_BaseMapOfThing)
-                .MethodReplacer(VehicleMapUtility.m_ToTargetInfo, VehicleMapUtility.m_ToBaseMapTargetInfo);
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMapOfThing)
+                .MethodReplacer(MethodInfoCache.m_ToTargetInfo, MethodInfoCache.m_ToBaseMapTargetInfo);
         }
     }
 
@@ -179,8 +179,8 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(VehicleMapUtility.m_Thing_Map, VehicleMapUtility.m_BaseMapOfThing)
-                .MethodReplacer(VehicleMapUtility.m_Thing_Position, VehicleMapUtility.m_PositionOnBaseMap);
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMapOfThing)
+                .MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap);
         }
     }
 
@@ -189,7 +189,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(VehicleMapUtility.m_TargetInfo_Cell, VehicleMapUtility.m_CellOnBaseMap);
+            return instructions.MethodReplacer(MethodInfoCache.g_TargetInfo_Cell, MethodInfoCache.m_CellOnBaseMap);
         }
     }
 
