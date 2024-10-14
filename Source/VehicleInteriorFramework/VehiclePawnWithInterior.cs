@@ -15,6 +15,17 @@ namespace VehicleInteriors
     [StaticConstructorOnStartup]
     public class VehiclePawnWithInterior : VehiclePawn
     {
+        public bool AllowsAutoHaul {
+            get
+            {
+                return this.allowsAutoHaul;
+            }
+            set
+            {
+                this.allowsAutoHaul = value;
+            }
+        }
+
         public override List<IntVec3> InteractionCells => this.interactionCellsInt;
 
         public override IEnumerable<Gizmo> GetGizmos()
@@ -45,7 +56,6 @@ namespace VehicleInteriors
         {
             this.interiorMap.attackTargetsCache = this.Map.attackTargetsCache;
             this.interiorMap.listerHaulables = this.Map.listerHaulables;
-
             foreach(var thing in this.interiorMap.listerThings.AllThings)
             {
                 this.interiorMap.attackTargetsCache.Notify_ThingSpawned(thing);
@@ -54,6 +64,16 @@ namespace VehicleInteriors
                     this.interiorMap.listerHaulables.Notify_Spawned(thing);
                 }
             }
+
+            //foreach (var dest in this.interiorMap.haulDestinationManager.AllHaulDestinations.ToArray())
+            //{
+            //    this.Map.haulDestinationManager.AddHaulDestination(dest);
+            //}
+            //foreach (var source in this.interiorMap.haulDestinationManager.AllHaulSourcesListForReading.ToArray())
+            //{
+            //    this.Map.haulDestinationManager.AddHaulSource(source);
+            //}
+            //this.interiorMap.haulDestinationManager = this.Map.haulDestinationManager;
         }
 
         public override void Tick()
@@ -66,10 +86,6 @@ namespace VehicleInteriors
                     VehiclePawnWithInterior.lastCachedTick = Find.TickManager.TicksGame;
                     OnVehiclePositionCache.cachedDrawPos.Clear();
                     OnVehiclePositionCache.cachedPosOnBaseMap.Clear();
-                }
-                foreach (var thing in this.interiorMap.listerThings.AllThings.Where(t => t.def.drawerType != DrawerType.None))
-                {
-                    OnVehiclePositionCache.cachedPosOnBaseMap[thing] = thing.Position.OrigToVehicleMap(this);
                 }
             }
             base.Tick();
@@ -104,6 +120,7 @@ namespace VehicleInteriors
         {
             this.interiorMap.attackTargetsCache = new AttackTargetsCache(this.interiorMap);
             this.interiorMap.listerHaulables = new ListerHaulables(this.interiorMap);
+            //this.interiorMap.haulDestinationManager = new HaulDestinationManager(this.interiorMap);
 
             foreach(var thing in this.interiorMap.listerThings.AllThings)
             {
@@ -115,6 +132,16 @@ namespace VehicleInteriors
                     this.Map.listerHaulables.Notify_DeSpawned(thing);
                 }
             }
+            //foreach(var dest in this.Map.haulDestinationManager.AllHaulDestinations.Where(d => d.Map == this.interiorMap).ToArray())
+            //{
+            //    this.Map.haulDestinationManager.RemoveHaulDestination(dest);
+            //    this.interiorMap.haulDestinationManager.AddHaulDestination(dest);
+            //}
+            //foreach(var source in this.Map.haulDestinationManager.AllHaulSourcesListForReading.Where(s => s.Map == this.interiorMap).ToArray())
+            //{
+            //    this.Map.haulDestinationManager.RemoveHaulSource(source);
+            //    this.interiorMap.haulDestinationManager.AddHaulSource(source);
+            //}
             base.DeSpawn(mode);
         }
 
@@ -224,6 +251,7 @@ namespace VehicleInteriors
         {
             base.ExposeData();
             Scribe_References.Look(ref this.interiorMap, "interiorMap");
+            Scribe_Values.Look(ref this.allowsAutoHaul, "allowsAutoHaul");
         }
 
         public Map interiorMap;
@@ -243,5 +271,7 @@ namespace VehicleInteriors
         private static readonly AccessTools.FieldRef<Section, bool> anyLayerDirty = AccessTools.FieldRefAccess<Section, bool>("anyLayerDirty");
 
         private static readonly FastInvokeHandler RegenerateDirtyLayers = MethodInvoker.GetHandler(AccessTools.Method(typeof(Section), "RegenerateDirtyLayers"));
+
+        private bool allowsAutoHaul = true;
     }
 }

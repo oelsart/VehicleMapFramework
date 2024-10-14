@@ -1,23 +1,29 @@
-﻿using HarmonyLib;
-using RimWorld.Planet;
+﻿using RimWorld;
 using SmashTools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Runtime.Remoting.Messaging;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 using Vehicles;
 using Verse;
-using static SmashTools.ConditionalPatch;
 
 namespace VehicleInteriors
 {
     public static class VehicleMapUtility
     {
         public static VehiclePawnWithInterior FocusedVehicle { get; set; }
+
+        public static Map CurrentMap
+        {
+            get
+            {
+                if (VehicleMapUtility.FocusedVehicle != null)
+                {
+                    return VehicleMapUtility.FocusedVehicle.interiorMap;
+                }
+                return Find.CurrentMap;
+            }
+        }
 
         public static IEnumerable<Map> ExceptVehicleMaps(this IEnumerable<Map> maps)
         {
@@ -172,8 +178,26 @@ namespace VehicleInteriors
 
         public static IntVec3 PositionOnBaseMap(this Thing thing)
         {
-            if (OnVehiclePositionCache.cachedPosOnBaseMap.TryGetValue(thing, out var pos)) return pos;
+            if (OnVehiclePositionCache.cachedPosOnBaseMap.TryGetValue(thing, out var pos))
+            {
+                return pos;
+            }
+            if (thing.IsOnVehicleMapOf(out var vehicle))
+            {
+                pos = thing.Position.OrigToVehicleMap(vehicle);
+                OnVehiclePositionCache.cachedPosOnBaseMap[thing] = pos;
+                return pos;
+            }
             return thing.Position;
+        }
+
+        public static IntVec3 PositionOnBaseMap(this IHaulDestination dest)
+        {
+            if (dest.Map.IsVehicleMapOf(out var vehicle))
+            {
+                return dest.Position.OrigToVehicleMap(vehicle);
+            }
+            return dest.Position;
         }
 
         public static IntVec3 PositionHeldOnBaseMap(this Thing thing)
@@ -226,7 +250,18 @@ namespace VehicleInteriors
 
         public static IntVec3 CellOnBaseMap(this ref LocalTargetInfo target)
         {
-            if (target.HasThing && OnVehiclePositionCache.cachedPosOnBaseMap.TryGetValue(target.Thing, out var pos)) return pos;
+            if (target.HasThing) {
+                if (OnVehiclePositionCache.cachedPosOnBaseMap.TryGetValue(target.Thing, out var pos))
+                {
+                    return pos;
+                }
+                if (target.Thing.IsOnVehicleMapOf(out var vehicle))
+                {
+                    pos = target.Thing.Position.OrigToVehicleMap(vehicle);
+                    OnVehiclePositionCache.cachedPosOnBaseMap[target.Thing] = pos;
+                    return pos;
+                }
+            }
             return target.Cell;
         }
 
@@ -271,6 +306,15 @@ namespace VehicleInteriors
             return target.Cell;
         }
 
+        public static IntVec3 CellOnAnotherMap(this IntVec3 cell, Map another)
+        {
+            if (another.IsVehicleMapOf(out var vehicle))
+            {
+                return cell.VehicleMapToOrig(vehicle);
+            }
+            return cell;
+        }
+
         public static Rot4 BaseRotationOfThing(this Thing thing)
         {
             if (thing.IsOnVehicleMapOf(out var vehicle))
@@ -297,15 +341,35 @@ namespace VehicleInteriors
                 result = pos;
                 return true;
             }
-            else if (!OnVehiclePositionCache.cacheMode && thing.IsOnVehicleMapOf(out var vehicle))
+            if (!OnVehiclePositionCache.cacheMode && thing.IsOnVehicleMapOf(out var vehicle))
             {
                 OnVehiclePositionCache.cacheMode = true;
-                OnVehiclePositionCache.cachedDrawPos[thing] = thing.DrawPos.OrigToVehicleMap(vehicle);
+                var drawPos = thing.DrawPos;
+                OnVehiclePositionCache.cachedDrawPos[thing] = drawPos.OrigToVehicleMap(vehicle);
                 OnVehiclePositionCache.cacheMode = false;
                 result = OnVehiclePositionCache.cachedDrawPos[thing];
                 return true;
             }
             return false;
+        }
+
+        public static Map MapHeldBaseMap(this Thing thing)
+        {
+            var map = thing.MapHeld;
+            if (map.IsVehicleMapOf(out var vehicle))
+            {
+                return vehicle.Map;
+            }
+            return map;
+        }
+
+        public static Map BaseMap(this Map map)
+        {
+            if (map.IsVehicleMapOf(out var vehicle))
+            {
+                return vehicle.Map;
+            }
+            return map;
         }
 
         public static Rot4 rotForPrint = Rot4.North;

@@ -1,5 +1,4 @@
-﻿using RimWorld;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Verse;
@@ -7,7 +6,7 @@ using Verse.AI;
 
 namespace VehicleInteriors
 {
-    public class JobDriver_GotoAcrossMaps : JobDriver
+    public class JobDriver_GotoThingAcrossMaps : JobDriver
     {
         public override Vector3 ForcedBodyOffset
         {
@@ -17,14 +16,13 @@ namespace VehicleInteriors
             }
         }
 
+        public Job NextJob { get; set; }
+
         public override bool TryMakePreToilReservations(bool errorOnFailed)
         {
             if (this.job.targetB.HasThing)
             {
                 this.job.targetB.Thing.Map.pawnDestinationReservationManager.Reserve(this.pawn, this.job, this.job.targetC.Cell);
-            }else if (this.job.targetA.HasThing)
-            {
-                this.pawn.BaseMapOfThing().pawnDestinationReservationManager.Reserve(this.pawn, this.job, this.job.targetC.Cell);
             }
             else this.pawn.Map.pawnDestinationReservationManager.Reserve(this.pawn, this.job, this.job.targetC.Cell);
             return true;
@@ -57,18 +55,20 @@ namespace VehicleInteriors
 
                 var toil3 = ToilMaker.MakeToil("Exit Vehicle Map");
                 toil3.defaultCompleteMode = ToilCompleteMode.Instant;
+                var nextJob = JobMaker.MakeJob(VIF_DefOf.VIF_GotoAcrossMaps, LocalTargetInfo.Invalid, this.job.targetB, this.job.targetC);
                 toil3.initAction = () =>
                 {
                     var drafted = this.pawn.Drafted;
                     var selected = Find.Selector.IsSelected(this.pawn);
-                    this.pawn.DeSpawnWithoutJobClear();
+                    this.pawn.DeSpawn();
                     GenSpawn.Spawn(this.pawn, (enterSpot.PositionOnBaseMap() - enterSpot.BaseFullRotationOfThing().FacingCell), enterSpot.BaseMapOfThing(), WipeMode.VanishOrMoveAside);
                     if (this.pawn.drafter != null) this.pawn.drafter.Drafted = drafted;
                     if (selected) Find.Selector.SelectedObjects.Add(this.pawn);
+                    this.pawn.jobs.TryTakeOrderedJob(nextJob, JobTag.Misc, false);
                 };
                 yield return toil3;
             }
-            if (job.targetB.HasThing)
+            else if (job.targetB.HasThing)
             {
                 var enterSpot = this.job.targetB.Thing;
                 var toil = ToilsAcrossMaps.GotoVehicleEnterSpot(job.targetB.Thing);
@@ -100,16 +100,28 @@ namespace VehicleInteriors
                 {
                     var drafted = this.pawn.Drafted;
                     var selected = Find.Selector.IsSelected(this.pawn);
-                    this.pawn.DeSpawnWithoutJobClear();
+                    this.pawn.DeSpawn();
                     GenSpawn.Spawn(this.pawn, enterSpot.Position, enterSpot.Map, WipeMode.VanishOrMoveAside);
                     if (this.pawn.drafter != null) this.pawn.drafter.Drafted = drafted;
                     if (selected) Find.Selector.SelectedObjects.Add(this.pawn);
+                    if (this.NextJob != null)
+                    {
+                        this.pawn.jobs.TryTakeOrderedJob(this.NextJob, JobTag.Misc, false);
+                    }
                 };
                 yield return toil3;
             }
-            if (job.targetC.IsValid)
+            else if (job.targetC.IsValid)
             {
-                var toil = Toils_Goto.Goto(TargetIndex.C, PathEndMode.OnCell);
+                var toil = ToilMaker.MakeToil("MakeNextJob");
+                toil.defaultCompleteMode = ToilCompleteMode.Instant;
+                toil.initAction = () =>
+                {
+                    if (this.NextJob != null)
+                    {
+                        this.pawn.jobs.TryTakeOrderedJob(this.NextJob, JobTag.Misc, false);
+                    }
+                };
                 yield return toil;
             }
         }

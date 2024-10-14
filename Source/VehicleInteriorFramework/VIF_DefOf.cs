@@ -19,6 +19,18 @@ namespace VehicleInteriors
 
         public static JobDef VIF_GotoAcrossMaps;
 
+        public static JobDef VIF_GotoThingAcrossMaps;
+
         public static JobDef VIF_AttackMeleeAcrossMaps;
+
+        public static JobDef VIF_HaulToCellAcrossMaps;
+
+        public static JobDef VIF_HaulToContainerAcrossMaps;
+
+        public static JobDef VIF_CarryDownedPawnDraftedAcrossMaps;
+
+        public static JobDef VIF_TakeDownedPawnToBedDraftedAcrossMaps;
+
+        public static JobDef VIF_CarryToEntityHolderAlreadyHoldingAcrossMaps;
     }
 }

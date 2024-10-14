@@ -232,7 +232,8 @@ namespace VehicleInteriors
 					}
 				}
 			}
-            Log.Message($"{searcher} find {attackTarget2}");
+            
+            
 			return attackTarget2;
 		}
 

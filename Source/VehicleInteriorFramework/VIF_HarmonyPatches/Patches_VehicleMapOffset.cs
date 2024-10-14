@@ -127,7 +127,6 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         }
     }
 
-    [HarmonyDebug]
     //thingがIsOnVehicleMapだった場合回転の初期値num3にベースvehicleのAngleを与え、posはRotatePointで回転
     [HarmonyPatch(typeof(SelectionDrawer), nameof(SelectionDrawer.DrawSelectionBracketFor))]
     public static class Patch_SelectionDrawer_DrawSelectionBracketFor
@@ -204,4 +203,13 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             return codes;
         }
     }
+
+    //[HarmonyPatch(typeof(Building_Bed), nameof(Building_Bed.GetSleepingSlotPos))]
+    //public static class Patch_Building_Bed_GetSleepingSlotPos
+    //{
+    //    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    //    {
+    //        return instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap);
+    //    }
+    //}
 }

@@ -9,10 +9,13 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         static Core()
         {
-            Core.harmonyInstance = new Harmony("com.harmony.rimworld.vehicleinteriorframework");
-            Core.harmonyInstance.PatchAll(Assembly.GetExecutingAssembly());
+            VIF_Harmony.Instance = new Harmony("com.harmony.rimworld.vehicleinteriorframework");
+            VIF_Harmony.Instance.PatchAll(Assembly.GetExecutingAssembly());
         }
+    }
 
-        public static Harmony harmonyInstance;
+    public class VIF_Harmony
+    {
+        public static Harmony Instance;
     }
 }

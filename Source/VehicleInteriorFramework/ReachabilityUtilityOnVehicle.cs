@@ -114,11 +114,7 @@ namespace VehicleInteriors
 
         public static IntVec3 StandableCellNear(IntVec3 root, Map map, float radius, Predicate<IntVec3> validator, out Map destMap)
         {
-            Map baseMap = map;
-            if (map.Parent is MapParent_Vehicle parentVehicle)
-            {
-                baseMap = parentVehicle.vehicle.Map;
-            }
+            Map baseMap = map.BaseMap();
             if (root.TryGetFirstThing<VehiclePawnWithInterior>(baseMap, out var vehicle))
             {
                 var cell = root.VehicleMapToOrig(vehicle);
@@ -185,7 +181,7 @@ namespace VehicleInteriors
 					return false;
 				}
 			}
-    List<Thing> thingList = c.GetThingList(map);
+        List<Thing> thingList = c.GetThingList(map);
 			for (int i = 0; i<thingList.Count; i++)
 			{
                 Pawn pawn;

@@ -19,8 +19,15 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         public static void Postfix(ref IEnumerable<object> __result)
         {
-            VehiclePawnWithInterior vehicle = null;
-            if (__result.Any(o => (vehicle = o as VehiclePawnWithInterior) != null))
+            var mouseMapPosition = UI.MouseMapPosition();
+            var vehicles = Find.CurrentMap.listerThings.GetThingsOfType<VehiclePawnWithInterior>();
+            var vehicle = vehicles.FirstOrDefault(v =>
+            {
+                var rect = new Rect(0f, 0f, (float)v.interiorMap.Size.x, (float)v.interiorMap.Size.z);
+                var vector = mouseMapPosition.VehicleMapToOrig(v);
+                return rect.Contains(new Vector2(vector.x, vector.z));
+            });
+            if (vehicle != null)
             {
                 TargetingParameters targetingParameters = new TargetingParameters();
                 targetingParameters.mustBeSelectable = true;
@@ -28,7 +35,6 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                 targetingParameters.canTargetBuildings = true;
                 targetingParameters.canTargetItems = true;
                 targetingParameters.mapObjectTargetsMustBeAutoAttackable = false;
-                var mouseMapPosition = UI.MouseMapPosition();
                 var mouseVehicleMapPosition = mouseMapPosition.VehicleMapToOrig(vehicle);
 
                 if (!mouseVehicleMapPosition.InBounds(vehicle.interiorMap)) return;
@@ -141,6 +147,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         {
             if (VehicleMapUtility.FocusedVehicle == null) return true;
 
+            var focusedMap = VehicleMapUtility.FocusedVehicle.interiorMap;
             __result = new List<object>();
             CellRect mapRect = GetMapRect(rect);
             yieldedThings.Clear();
@@ -148,9 +155,10 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             {
                 foreach (IntVec3 c in mapRect)
                 {
-                    if (c.InBounds(Find.CurrentMap))
+                    var c2 = c.VehicleMapToOrig(VehicleMapUtility.FocusedVehicle);
+                    if (c2.InBounds(focusedMap))
                     {
-                        List<Thing> cellThings = Find.CurrentMap.thingGrid.ThingsListAt(c);
+                        List<Thing> cellThings = focusedMap.thingGrid.ThingsListAt(c2);
                         if (cellThings != null)
                         {
                             int num;
@@ -170,13 +178,14 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                 Rect rectInWorldSpace = GetRectInWorldSpace(rect);
                 foreach (IntVec3 c2 in mapRect.ExpandedBy(1).EdgeCells)
                 {
-                    if (c2.InBounds(Find.CurrentMap) && c2.GetItemCount(Find.CurrentMap) > 1)
+                    var c3 = c2.VehicleMapToOrig(VehicleMapUtility.FocusedVehicle);
+                    if (c3.InBounds(focusedMap) && c3.GetItemCount(focusedMap) > 1)
                     {
-                        foreach (Thing t in Find.CurrentMap.thingGrid.ThingsAt(c2))
+                        foreach (Thing t in focusedMap.thingGrid.ThingsAt(c3))
                         {
                             if (t.def.category == ThingCategory.Item && (bool)SelectableByMapClick(null, t) && !t.def.neverMultiSelect && !yieldedThings.Contains(t))
                             {
-                                Vector3 vector = t.TrueCenter();
+                                Vector3 vector = t.TrueCenter().OrigToVehicleMap(VehicleMapUtility.FocusedVehicle);
                                 Rect rect2 = new Rect(vector.x - 0.5f, vector.z - 0.5f, 1f, 1f);
                                 if (rect2.Overlaps(rectInWorldSpace))
                                 {
@@ -199,8 +208,8 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         {
             Vector2 screenLoc = new Vector2(rect.x, (float)UI.screenHeight - rect.y);
             Vector2 screenLoc2 = new Vector2(rect.x + rect.width, (float)UI.screenHeight - (rect.y + rect.height));
-            Vector3 vector = UI.UIToMapPosition(screenLoc).VehicleMapToOrig();
-            Vector3 vector2 = UI.UIToMapPosition(screenLoc2).VehicleMapToOrig();
+            Vector3 vector = UI.UIToMapPosition(screenLoc);
+            Vector3 vector2 = UI.UIToMapPosition(screenLoc2);
             return new CellRect
             {
                 minX = Mathf.FloorToInt(vector.x),
@@ -214,88 +223,13 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         {
             Vector2 screenLoc = new Vector2(rect.x, (float)UI.screenHeight - rect.y);
             Vector2 screenLoc2 = new Vector2(rect.x + rect.width, (float)UI.screenHeight - (rect.y + rect.height));
-            Vector3 vector = UI.UIToMapPosition(screenLoc).VehicleMapToOrig();
-            Vector3 vector2 = UI.UIToMapPosition(screenLoc2).VehicleMapToOrig();
+            Vector3 vector = UI.UIToMapPosition(screenLoc);
+            Vector3 vector2 = UI.UIToMapPosition(screenLoc2);
             return new Rect(vector.x, vector2.z, vector2.x - vector.x, vector.z - vector2.z);
         }
 
         private static readonly FastInvokeHandler SelectableByMapClick = MethodInvoker.GetHandler(AccessTools.Method(typeof(ThingSelectionUtility), "SelectableByMapClick"));
 
         private static readonly HashSet<Thing> yieldedThings = AccessTools.StaticFieldRefAccess<HashSet<Thing>>(typeof(ThingSelectionUtility), "yieldedThings");
-    }
-
-    [HarmonyPatch(typeof(FloatMenuMakerMap), "AddHumanlikeOrders")]
-    public static class Patch_FloatMenuMakerMap_AddHumanlikeOrders
-    {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
-            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMapOfThing);
-        }
-    }
-
-    [HarmonyPatch(typeof(FloatMenuMakerMap), "AddJobGiverWorkOrders")]
-    public static class Patch_FloatMenuMakerMap_AddJobGiverWorkOrders
-    {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
-            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMapOfThing);
-        }
-    }
-
-    [HarmonyPatch(typeof(FloatMenuMakerMap), nameof(FloatMenuMakerMap.ChoicesAtFor))]
-    public static class Patch_FloatMenuMakerMap_ChoicesAtFor
-    {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
-            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMapOfThing);
-        }
-    }
-
-    [HarmonyPatch(typeof(FloatMenuMakerMap), "AddDraftedOrders")]
-    public static class Patch_FloatMenuMakerMap_AddDraftedOrders
-    {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
-            return instructions.MethodReplacer(AccessTools.Method(typeof(FloatMenuMakerMap), "GotoLocationOption"),
-                AccessTools.Method(typeof(FloatMenuMakerOnVehicle), nameof(FloatMenuMakerOnVehicle.GotoLocationOption)));
-        }
-    }
-
-    /*[HarmonyPatch(typeof(RCellFinder), nameof(RCellFinder.BestOrderedGotoDestNear))]
-    public static class ReaversePatch_RCellFinder_BestOrderedGotoDestNear
-    {
-        [HarmonyReversePatch]
-        public static IntVec3 BestOrderedGotoDestNear(IntVec3 root, Pawn searcher, Predicate<IntVec3> cellValidator, Map map)
-        {
-            IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-            {
-                var codes = instructions.ToList();
-                var pos = codes.FindIndex(c => c.opcode == OpCodes.Callvirt && c.OperandIs(MethodInfoCache.g_Thing_Map)) - 2;
-
-                codes.RemoveRange(pos, 3);
-                codes.Insert(pos, CodeInstruction.LoadArgument(3));
-                return codes;
-            }
-            _ = Transpiler(null);
-            throw new NotImplementedException();
-        }
-    }*/
-
-    [HarmonyPatch]
-    public static class Patch_EnterPortalUtility_GetFloatMenuOptFor
-    {
-        [HarmonyTranspiler]
-        [HarmonyPatch(typeof(EnterPortalUtility), nameof(EnterPortalUtility.GetFloatMenuOptFor), typeof(Pawn), typeof(IntVec3))]
-        public static IEnumerable<CodeInstruction> Transpiler1(IEnumerable<CodeInstruction> instructions)
-        {
-            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMapOfThing);
-        }
-
-        [HarmonyTranspiler]
-        [HarmonyPatch(typeof(EnterPortalUtility), nameof(EnterPortalUtility.GetFloatMenuOptFor), typeof(List<Pawn>), typeof(IntVec3))]
-        public static IEnumerable<CodeInstruction> Transpiler2(IEnumerable<CodeInstruction> instructions)
-        {
-            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMapOfThing);
-        }
     }
 }

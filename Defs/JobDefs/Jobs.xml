@@ -9,6 +9,11 @@
 		<carryThingAfterJob>true</carryThingAfterJob>
 		<dropThingBeforeJob>false</dropThingBeforeJob>
 	</JobDef>
+	
+	<JobDef>
+		<defName>VIF_GotoThingAcrossMaps</defName>
+		<driverClass>VehicleInteriors.JobDriver_GotoThingAcrossMaps</driverClass>
+	</JobDef>
 
 	<JobDef>
 		<defName>VIF_AttackMeleeAcrossMaps</defName>
@@ -17,5 +22,53 @@
 		<alwaysShowWeapon>true</alwaysShowWeapon>
 		<casualInterruptible>false</casualInterruptible>
 		<collideWithPawns>true</collideWithPawns>
+	</JobDef>
+	
+	
+	<JobDef>
+		<defName>VIF_HaulToCellAcrossMaps</defName>
+		<driverClass>VehicleInteriors.JobDriver_HaulToCellAcrossMaps</driverClass>
+		<reportString>hauling TargetA.</reportString>
+		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
+	</JobDef>
+
+	<JobDef>
+		<defName>VIF_HaulToContainerAcrossMaps</defName>
+		<driverClass>VehicleInteriors.JobDriver_HaulToContainerAcrossMaps</driverClass>
+		<reportString>hauling TargetA.</reportString>
+		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
+	</JobDef>
+	
+	<JobDef>
+		<defName>VIF_CarryDownedPawnDraftedAcrossMaps</defName>
+		<driverClass>VehicleInteriors.JobDriver_CarryDownedPawnAcrossMaps</driverClass>
+		<reportString>carrying TargetA.</reportString>
+		<carryThingAfterJob>true</carryThingAfterJob>
+	</JobDef>
+	
+	<JobDef>
+		<defName>VIF_TakeDownedPawnToBedDraftedAcrossMaps</defName>
+		<driverClass>VehicleInteriors.JobDriver_TakeToBedAcrossMaps</driverClass>
+		<reportString>taking TargetA to bed.</reportString>
+		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
+		<dropThingBeforeJob>false</dropThingBeforeJob>
+	</JobDef>
+	
+	<JobDef>
+		<defName>VIF_CarryToPrisonerBedDraftedAcrossMaps</defName>
+		<driverClass>VehicleInteriors.JobDriver_TakeToBedAcrossMaps</driverClass>
+		<reportString>arresting TargetA.</reportString>
+		<alwaysShowWeapon>true</alwaysShowWeapon>
+		<makeTargetPrisoner>true</makeTargetPrisoner>
+		<casualInterruptible>false</casualInterruptible>
+		<dropThingBeforeJob>false</dropThingBeforeJob>
+		<carryThingAfterJob>true</carryThingAfterJob>
+	</JobDef>
+	
+	<JobDef>
+		<defName>VIF_CarryToEntityHolderAlreadyHoldingAcrossMaps</defName>
+		<driverClass>VehicleInteriors.JobDriver_CarryToEntityHolderAlreadyHoldingAcrossMaps</driverClass>
+		<reportString>carrying TargetB to TargetA.</reportString>
+		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
 	</JobDef>
 </Defs>

@@ -93,7 +93,7 @@ namespace VehicleInteriors
                 }
                 if (verb.verbProps.IsMeleeAttack)
                 {
-                    return JobMaker.MakeJob(VIF_DefOf.VIF_AttackMeleeAcrossMaps, this.dest1, this.dest2, enemyTarget);
+                    return JobMaker.MakeJob(VIF_DefOf.VIF_AttackMeleeAcrossMaps, enemyTarget);
                 }
                 bool flag2 = CoverUtility.CalculateOverallBlockChance(pawn, enemyTarget.PositionOnAnotherThingMap(pawn), pawn.Map) > 0.01f;
                 bool flag3 = pawn.Position.Standable(pawn.Map) && pawn.Map.pawnDestinationReservationManager.CanReserve(pawn.Position, pawn, pawn.Drafted);

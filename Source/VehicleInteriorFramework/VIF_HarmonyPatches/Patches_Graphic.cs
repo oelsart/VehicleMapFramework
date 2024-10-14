@@ -74,13 +74,20 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         public static void Postfix(PawnPosture posture, Pawn ___pawn, ref Vector3 __result)
         {
             var corpse = ___pawn.Corpse;
-            if (corpse != null && corpse.Map?.Parent is MapParent_Vehicle)
+            if (corpse != null && corpse.IsOnVehicleMapOf(out var vehicle))
             {
-                __result.y += VehicleMapUtility.altitudeOffsetFull;
+                __result.y += vehicle.cachedDrawPos.y;
             }
-            else if (posture != PawnPosture.Standing && ___pawn.Map?.Parent is MapParent_Vehicle)
+            else if (___pawn.IsOnVehicleMapOf(out var vehicle2))
             {
-                __result.y += VehicleMapUtility.altitudeOffsetFull;
+                if (___pawn.CurrentBed() != null)
+                {
+                    __result = __result.OrigToVehicleMap(vehicle2).WithYOffset(-1.923077f);
+                }
+                else if (posture != PawnPosture.Standing)
+                {
+                    __result.y += vehicle2.cachedDrawPos.y;
+                }
             }
         }
     }
@@ -91,7 +98,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             return instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap)
-                .MethodReplacer(MethodInfoCache.g_TargetInfo_Cell, MethodInfoCache.m_CellOnBaseMap);
+                .MethodReplacer(MethodInfoCache.g_LocalTargetInfo_Cell, MethodInfoCache.m_CellOnBaseMap);
         }
     }
 
