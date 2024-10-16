@@ -1,29 +1,34 @@
 ﻿using HarmonyLib;
 using RimWorld;
-using RimWorld.Planet;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 using Verse;
-using Verse.AI;
 
 namespace VehicleInteriors.VIF_HarmonyPatches
 {
-    //フォーカスしたVehicleがある場合それ用の改変メソッドを呼んでオリジナルをスキップ
-    [HarmonyPatch(typeof(Selector), "SelectableObjectsUnderMouse")]
+
+    //車上オブジェクトを選択
+    [HarmonyPatch]
     public static class Patch_Selector_SelectableObjectsUnderMouse
     {
+        [HarmonyPatch("<SelectableObjectsUnderMouse>d__40", "MoveNext")]
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var m_UI_MouseCell = AccessTools.Method(typeof(UI), nameof(UI.MouseCell));
+            var m_Stub_MouseCell = AccessTools.Method(typeof(Patch_UI_MouseCell), nameof(Patch_UI_MouseCell.MouseCell));
+            return instructions.MethodReplacer(m_UI_MouseCell, m_Stub_MouseCell);
+        }
+
+        [HarmonyPatch(typeof(Selector), "SelectableObjectsUnderMouse")]
         public static void Postfix(ref IEnumerable<object> __result)
         {
             var mouseMapPosition = UI.MouseMapPosition();
-            var vehicles = Find.CurrentMap.listerThings.GetThingsOfType<VehiclePawnWithInterior>();
+            var vehicles = VehiclePawnWithMapCache.allVehicles[Find.CurrentMap];
             var vehicle = vehicles.FirstOrDefault(v =>
             {
-                var rect = new Rect(0f, 0f, (float)v.interiorMap.Size.x, (float)v.interiorMap.Size.z);
+                var rect = new Rect(0f, 0f, (float)v.interiorMap.Size.x, (float)v.interiorMap.Size.z);  
                 var vector = mouseMapPosition.VehicleMapToOrig(v);
                 return rect.Contains(new Vector2(vector.x, vector.z));
             });
@@ -126,18 +131,18 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         }
     }
 
-    /*[HarmonyPatch(typeof(CameraJumper), "TryJumpInternal", typeof(IntVec3), typeof(Map), typeof(CameraJumper.MovementMode))]
-    public static class Patch_CameraJumper_TryJumpInternal
-    {
-        public static void Prefix(ref IntVec3 cell, ref Map map)
-        {
-            if (map.IsVehicleMapOf(out var vehicle))
-            {
-                cell = cell.OrigToVehicleMap(vehicle);
-                map = vehicle.Map;
-            }
-        }
-    }*/
+    //[HarmonyPatch(typeof(CameraJumper), "TryJumpInternal", typeof(IntVec3), typeof(Map), typeof(CameraJumper.MovementMode))]
+    //public static class Patch_CameraJumper_TryJumpInternal
+    //{
+    //    public static void Prefix(ref IntVec3 cell, ref Map map)
+    //    {
+    //        if (map.IsVehicleMapOf(out var vehicle))
+    //        {
+    //            cell = cell.OrigToVehicleMap(vehicle);
+    //            map = vehicle.Map;
+    //        }
+    //    }
+    //}
 
     //フォーカスしたVehicleがある場合それ用の改変メソッドを呼んでオリジナルをスキップ
     [HarmonyPatch(typeof(ThingSelectionUtility), "MultiSelectableThingsInScreenRectDistinct")]
@@ -145,9 +150,9 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         public static bool Prefix(ref IEnumerable<object> __result, Rect rect)
         {
-            if (VehicleMapUtility.FocusedVehicle == null) return true;
+            if (Command_FocusVehicleMap.FocusedVehicle == null) return true;
 
-            var focusedMap = VehicleMapUtility.FocusedVehicle.interiorMap;
+            var focusedMap = Command_FocusVehicleMap.FocusedVehicle.interiorMap;
             __result = new List<object>();
             CellRect mapRect = GetMapRect(rect);
             yieldedThings.Clear();
@@ -155,7 +160,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             {
                 foreach (IntVec3 c in mapRect)
                 {
-                    var c2 = c.VehicleMapToOrig(VehicleMapUtility.FocusedVehicle);
+                    var c2 = c.VehicleMapToOrig(Command_FocusVehicleMap.FocusedVehicle);
                     if (c2.InBounds(focusedMap))
                     {
                         List<Thing> cellThings = focusedMap.thingGrid.ThingsListAt(c2);
@@ -178,14 +183,14 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                 Rect rectInWorldSpace = GetRectInWorldSpace(rect);
                 foreach (IntVec3 c2 in mapRect.ExpandedBy(1).EdgeCells)
                 {
-                    var c3 = c2.VehicleMapToOrig(VehicleMapUtility.FocusedVehicle);
+                    var c3 = c2.VehicleMapToOrig(Command_FocusVehicleMap.FocusedVehicle);
                     if (c3.InBounds(focusedMap) && c3.GetItemCount(focusedMap) > 1)
                     {
                         foreach (Thing t in focusedMap.thingGrid.ThingsAt(c3))
                         {
                             if (t.def.category == ThingCategory.Item && (bool)SelectableByMapClick(null, t) && !t.def.neverMultiSelect && !yieldedThings.Contains(t))
                             {
-                                Vector3 vector = t.TrueCenter().OrigToVehicleMap(VehicleMapUtility.FocusedVehicle);
+                                Vector3 vector = t.TrueCenter().OrigToVehicleMap(Command_FocusVehicleMap.FocusedVehicle);
                                 Rect rect2 = new Rect(vector.x - 0.5f, vector.z - 0.5f, 1f, 1f);
                                 if (rect2.Overlaps(rectInWorldSpace))
                                 {

@@ -11,7 +11,7 @@ namespace VehicleInteriors
 {
     public class MethodInfoCache
     {
-        public static readonly MethodInfo g_FocusedVehicle = AccessTools.PropertyGetter(typeof(VehicleMapUtility), nameof(VehicleMapUtility.FocusedVehicle));
+        public static readonly MethodInfo g_FocusedVehicle = AccessTools.PropertyGetter(typeof(Command_FocusVehicleMap), nameof(Command_FocusVehicleMap.FocusedVehicle));
 
         public static readonly MethodInfo g_Find_CurrentMap = AccessTools.PropertyGetter(typeof(Find), nameof(Find.CurrentMap));
 

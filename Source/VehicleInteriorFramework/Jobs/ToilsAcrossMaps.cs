@@ -1,8 +1,7 @@
-﻿using RimWorld;
+﻿using HarmonyLib;
+using RimWorld;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using Unity.Jobs;
 using UnityEngine;
 using Verse;
 using Verse.AI;
@@ -113,7 +112,7 @@ namespace VehicleInteriors
                 toil2.tickAction = () =>
                 {
                     var curPos = (exitSpot.Thing.PositionOnBaseMap() - exitSpot.Thing.Rotation.FacingCell).ToVector3Shifted();
-                    driver.drawOffset = (curPos - exitSpot.Thing.DrawPos) * ((GenTicks.TicksGame - initTick) / 90f);
+                    driver.drawOffset = (curPos - exitSpot.Thing.DrawPos.WithY(0f)) * ((GenTicks.TicksGame - initTick) / 90f);
                     toil2.actor.Rotation = exitSpot.Thing.BaseRotationOfThing();
                 };
                 yield return toil2;
@@ -123,12 +122,12 @@ namespace VehicleInteriors
                 toil3.initAction = () =>
                 {
                     driver.drawOffset = Vector3.zero;
-                    var drafted = toil3.actor.Drafted;
-                    var selected = Find.Selector.IsSelected(toil3.actor);
+                    //var drafted = toil3.actor.Drafted;
+                    //var selected = Find.Selector.IsSelected(toil3.actor);
                     toil3.actor.DeSpawnWithoutJobClear();
                     GenSpawn.Spawn(toil3.actor, (exitSpot.Thing.PositionOnBaseMap() - exitSpot.Thing.BaseFullRotationOfThing().FacingCell), exitSpot.Thing.BaseMapOfThing(), WipeMode.Vanish);
-                    if (toil3.actor.drafter != null) toil3.actor.drafter.Drafted = drafted;
-                    if (selected) Find.Selector.SelectedObjects.Add(toil3.actor);
+                    //if (toil3.actor.drafter != null) draftedInt(toil3.actor.drafter) = drafted;
+                    //if (selected) Find.Selector.SelectedObjects.Add(toil3.actor);
                 };
                 yield return toil3;
                 yield return afterExitMap;
@@ -152,14 +151,14 @@ namespace VehicleInteriors
                 toil2.initAction = (Action)Delegate.Combine(toil2.initAction, new Action(() =>
                 {
                     initPos = (enterSpot.Thing.PositionOnBaseMap() - enterSpot.Thing.BaseFullRotationOfThing().FacingCell).ToVector3Shifted();
-                    initPos2 = enterSpot.Thing.DrawPos;
+                    initPos2 = enterSpot.Thing.DrawPos.WithY(0f);
                     initTick = GenTicks.TicksGame;
                 }));
 
                 toil2.tickAction = () =>
                 {
                     driver.drawOffset = (initPos2 - initPos) * ((GenTicks.TicksGame - initTick) / 90f) + enterSpot.Thing.DrawPos - initPos2;
-                    driver.drawOffset = driver.drawOffset.WithYOffset(VehicleMapUtility.altitudeOffsetFull);
+                    driver.drawOffset.y += VehicleMapUtility.altitudeOffsetFull;
                     toil2.actor.Rotation = enterSpot.Thing.BaseRotationOfThing();
                 };
                 yield return toil2;
@@ -169,16 +168,18 @@ namespace VehicleInteriors
                 toil3.initAction = () =>
                 {
                     driver.drawOffset = Vector3.zero;
-                    var drafted = toil3.actor.Drafted;
-                    var selected = Find.Selector.IsSelected(toil3.actor);
+                    //var drafted = toil3.actor.Drafted;
+                    //var selected = Find.Selector.IsSelected(toil3.actor);
                     toil3.actor.DeSpawnWithoutJobClear();
                     GenSpawn.Spawn(toil3.actor, enterSpot.Thing.Position, enterSpot.Thing.Map, WipeMode.VanishOrMoveAside);
-                    if (toil3.actor.drafter != null) toil3.actor.drafter.Drafted = drafted;
-                    if (selected) Find.Selector.SelectedObjects.Add(toil3.actor);
+                    //if (toil3.actor.drafter != null) draftedInt(toil3.actor.drafter) = drafted;
+                    //if (selected) Find.Selector.SelectedObjects.Add(toil3.actor);
                 };
                 yield return toil3;
                 yield return afterEnterMap;
             }
         }
+
+        private static AccessTools.FieldRef<Pawn_DraftController, bool> draftedInt = AccessTools.FieldRefAccess<Pawn_DraftController, bool>("draftedInt");
     }
 }

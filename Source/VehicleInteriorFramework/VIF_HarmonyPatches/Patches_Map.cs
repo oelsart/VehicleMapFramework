@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
+using UnityEngine;
 using Vehicles;
 using Verse;
 using Verse.AI;
@@ -29,12 +30,50 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         public static bool Prefix(ref Map __result)
         {
-            if (VehicleMapUtility.FocusedVehicle != null)
+            if (Command_FocusVehicleMap.FocuseLockedVehicle != null)
             {
-                __result = VehicleMapUtility.FocusedVehicle.interiorMap;
+                __result = Command_FocusVehicleMap.FocuseLockedVehicle.interiorMap;
+                return false;
+            }
+            if (Command_FocusVehicleMap.FocusedVehicle != null)
+            {
+                __result = Command_FocusVehicleMap.FocusedVehicle.interiorMap;
                 return false;
             }
             return true;
+        }
+    }
+
+    [HarmonyPatch(typeof(Designator_Build), nameof(Designator_Build.SelectedUpdate))]
+    public static class Patch_Designator_Build_SelectedUpdate
+    {
+        public static void Postfix()
+        {
+            if (Command_FocusVehicleMap.FocuseLockedVehicle != null) return;
+
+            Command_FocusVehicleMap.FocusedVehicle = null;
+            var mousePos = UI.MouseMapPosition();
+            var vehicles = VehiclePawnWithMapCache.allVehicles[Find.CurrentMap];
+            var vehicle = vehicles.FirstOrDefault(v =>
+            {
+                var rect = new Rect(0f, 0f, (float)v.interiorMap.Size.x, (float)v.interiorMap.Size.z);
+                var vector = mousePos.VehicleMapToOrig(v);
+
+                return rect.Contains(new Vector2(vector.x, vector.z));
+            });
+            Command_FocusVehicleMap.FocusedVehicle = vehicle;
+        }
+    }
+
+    [HarmonyPatch(typeof(Designator_Build), nameof(Designator_Build.Deselected))]
+    public static class Patch_Designator_Build_Deselected
+    {
+        public static void Postfix()
+        {
+            if (Command_FocusVehicleMap.FocuseLockedVehicle == null)
+            {
+                Command_FocusVehicleMap.FocusedVehicle = null;
+            }
         }
     }
 
@@ -62,26 +101,9 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
         {
-            var codes = instructions.ToList();
-            var expandedBy = AccessTools.Method(typeof(CellRect), nameof(CellRect.ExpandedBy));
-            var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(expandedBy)) + 1;
-            var label = generator.DefineLabel();
-            var parentVehicle = generator.DeclareLocal(typeof(MapParent_Vehicle));
-
-            codes[pos].labels.Add(label);
-            codes.InsertRange(pos, new[] {
-                CodeInstruction.LoadArgument(0),
-                CodeInstruction.LoadField(typeof(DynamicDrawManager), "map"),
-                new CodeInstruction(OpCodes.Callvirt, AccessTools.PropertyGetter(typeof(Map), nameof(Map.Parent))),
-                new CodeInstruction(OpCodes.Isinst, typeof(MapParent_Vehicle)),
-                new CodeInstruction(OpCodes.Stloc_S, parentVehicle),
-                new CodeInstruction(OpCodes.Ldloc_S, parentVehicle),
-                new CodeInstruction(OpCodes.Brfalse_S, label),
-                new CodeInstruction(OpCodes.Ldloc_S, parentVehicle),
-                CodeInstruction.LoadField(typeof(MapParent_Vehicle), nameof(MapParent_Vehicle.vehicle)),
-                new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.VehicleMapToOrig), new Type[]{ typeof(CellRect), typeof(VehiclePawnWithInterior) }))
-            });
-            return codes;
+            var m_CellRect_ClipInsideMap = AccessTools.Method(typeof(CellRect), nameof(CellRect.ClipInsideMap));
+            var m_ClipInsideVehicleMap = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.ClipInsideVehicleMap));
+            return instructions.MethodReplacer(m_CellRect_ClipInsideMap, m_ClipInsideVehicleMap);
         }
     }
 
@@ -131,6 +153,22 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         }
     }
 
+    [HarmonyPatch(typeof(ReservationManager), nameof(ReservationManager.CanReserveStack))]
+    public static class Patch_ReservationManager_CanReserveStack
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var codes = instructions.ToList();
+
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Callvirt && c.OperandIs(MethodInfoCache.g_Thing_Map));
+            codes[pos] = new CodeInstruction(OpCodes.Call, MethodInfoCache.m_BaseMapOfThing);
+
+            var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Beq_S);
+            codes.Insert(pos2, new CodeInstruction(OpCodes.Call, MethodInfoCache.m_BaseMap));
+            return codes;
+        }
+    }
+
     [HarmonyPatch(typeof(Reachability), nameof(Reachability.CanReach), typeof(IntVec3), typeof(LocalTargetInfo), typeof(PathEndMode), typeof(TraverseParms))]
     public static class Patch_Reachability_CanReach
     {
@@ -144,6 +182,31 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Beq_S);
             codes.Insert(pos2, new CodeInstruction(OpCodes.Call, MethodInfoCache.m_BaseMap));
             return codes;
+        }
+    }
+
+    [HarmonyPatch(typeof(Reachability), nameof(Reachability.CanReachMapEdge), typeof(IntVec3), typeof(TraverseParms))]
+    public static class Patch_Reachability_CanReachMapEdge
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var codes = instructions.ToList();
+
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Callvirt && c.OperandIs(MethodInfoCache.g_Thing_Map));
+            codes[pos] = new CodeInstruction(OpCodes.Call, MethodInfoCache.m_BaseMapOfThing);
+
+            var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Beq_S);
+            codes.Insert(pos2, new CodeInstruction(OpCodes.Call, MethodInfoCache.m_BaseMap));
+            return codes;
+        }
+    }
+
+    [HarmonyPatch(typeof(Pawn_PlayerSettings), nameof(Pawn_PlayerSettings.EffectiveAreaRestrictionInPawnCurrentMap), MethodType.Getter)]
+    public static class Patch_Pawn_PlayerSettings_EffectiveAreaRestrictionInPawnCurrentMap
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_MapHeld, MethodInfoCache.m_MapHeldBaseMap);
         }
     }
 }

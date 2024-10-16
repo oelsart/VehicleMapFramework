@@ -11,14 +11,18 @@ namespace VehicleInteriors
 
         protected override Job TryGiveJob(Pawn pawn)
         {
-            if (pawn.IsOnVehicleMapOf(out var vehicle))
+            var guest = pawn.Faction != Faction.OfPlayer;
+            if (pawn.IsOnVehicleMapOf(out var vehicle) && (vehicle.AutoGetOff || guest))
             {
                 var exitSpots = vehicle.interiorMap.listerBuildings.allBuildingsColonist.Where(b => b.HasComp<CompVehicleEnterSpot>());
                 var hostile = pawn.HostileTo(Faction.OfPlayer);
                 var spot = exitSpots.FirstOrDefault(e => pawn.CanReach(e, PathEndMode.OnCell, Danger.Deadly, hostile, hostile, TraverseMode.ByPawn));
                 if (spot != null)
                 {
-                    return JobMaker.MakeJob(VIF_DefOf.VIF_GotoAcrossMaps, spot);
+                    var job = JobMaker.MakeJob(VIF_DefOf.VIF_GotoAcrossMaps);
+                    var driver = job.GetCachedDriver(pawn) as JobDriverAcrossMaps;
+                    driver.SetSpots(spot);
+                    return job;
                 }
             }
             return null;

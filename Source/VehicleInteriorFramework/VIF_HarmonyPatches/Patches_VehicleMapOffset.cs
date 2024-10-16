@@ -9,6 +9,7 @@ using System.Reflection.Emit;
 using UnityEngine;
 using Vehicles;
 using Verse;
+using Verse.AI;
 
 namespace VehicleInteriors.VIF_HarmonyPatches
 {
@@ -22,6 +23,11 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(toIntVec3));
             codes.Insert(pos, new CodeInstruction(OpCodes.Call, MethodInfoCache.m_VehicleMapToOrig1));
             return codes;
+        }
+
+        public static IntVec3 MouseCell()
+        {
+            return UI.UIToMapPosition(UI.MousePositionOnUI).ToIntVec3();
         }
     }
 
@@ -41,6 +47,11 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         {
             return !__instance.TryGetOnVehicleDrawPos(ref __result);
         }
+
+        public static void Postfix(VehiclePawn __instance, ref Vector3 __result)
+        {
+            __result.y += __instance.jobs?.curDriver is JobDriverAcrossMaps driver ? driver.ForcedBodyOffset.y : 0f;
+        }
     }
 
     [HarmonyPatch(typeof(VehiclePawn), nameof(VehiclePawn.DrawPos), MethodType.Getter)]
@@ -53,7 +64,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
 
         public static void Postfix(VehiclePawn __instance, ref Vector3 __result)
         {
-            __result += __instance.jobs?.curDriver?.ForcedBodyOffset ?? Vector3.zero;
+            __result.y += __instance.jobs?.curDriver is JobDriverAcrossMaps driver ? driver.ForcedBodyOffset.y : 0f;
         }
     }
 
@@ -212,4 +223,118 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     //        return instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap);
     //    }
     //}
+
+    [HarmonyPatch(typeof(Pawn_JobTracker), nameof(Pawn_JobTracker.DrawLinesBetweenTargets))]
+    public static class Patch_Pawn_JobTracker_DrawLinesBetweenTargets
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var codes = instructions.ToList();
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Callvirt && c.OperandIs(MethodInfoCache.g_Thing_Position));
+            codes.RemoveRange(pos, 4);
+            var g_Pawn_DrawPos = AccessTools.PropertyGetter(typeof(Pawn), nameof(Pawn.DrawPos));
+            codes.Insert(pos, new CodeInstruction(OpCodes.Callvirt, g_Pawn_DrawPos));
+
+            var g_CenterVector3 = AccessTools.PropertyGetter(typeof(LocalTargetInfo), nameof(LocalTargetInfo.CenterVector3));
+            var m_CenterVector3VehicleOffset = AccessTools.Method(typeof(Patch_Pawn_JobTracker_DrawLinesBetweenTargets), nameof(Patch_Pawn_JobTracker_DrawLinesBetweenTargets.CenterVector3VehicleOffset));
+            return codes.MethodReplacer(g_CenterVector3, m_CenterVector3VehicleOffset);
+        }
+
+        public static Vector3 CenterVector3VehicleOffset(ref LocalTargetInfo targ)
+        {
+            if (targ.HasThing)
+            {
+                if (targ.Thing.Spawned)
+                {
+                    return targ.Thing.DrawPos;
+                }
+                if (targ.Thing.SpawnedOrAnyParentSpawned)
+                {
+                    return targ.Thing.SpawnedParentOrMe.DrawPos;
+                }
+                return FloatMenuMakerOnVehicle.FleckDrawPos;
+            }
+            else
+            {
+                if (targ.Cell.IsValid)
+                {
+                    return FloatMenuMakerOnVehicle.FleckDrawPos;
+                }
+                return default;
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(RenderHelper), nameof(RenderHelper.DrawLinesBetweenTargets))]
+    public static class Patch_RenderHelper_DrawLinesBetweenTargets
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return Patch_Pawn_JobTracker_DrawLinesBetweenTargets.Transpiler(instructions);
+        }
+    }
+
+    [HarmonyPatch(typeof(FleckMaker), nameof(FleckMaker.Static), typeof(Vector3), typeof(Map), typeof(FleckDef), typeof(float))]
+    public static class Patch_FleckMaker_Static
+    {
+        public static void Postfix(Vector3 loc)
+        {
+            FloatMenuMakerOnVehicle.FleckDrawPos = loc;
+        }
+    }
+
+    [HarmonyPatch(typeof(PawnPath), nameof(PawnPath.DrawPath))]
+    public static class Patch_PawnPath_DrawPath
+    {
+        public static IEnumerable<CodeInstruction> Transpiler (IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+        {
+            var codes = instructions.ToList();
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Stloc_0);
+            var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithInterior));
+            var label = generator.DefineLabel();
+
+            codes[pos].labels.Add(label);
+            codes.InsertRange(pos, new[]
+            {
+                CodeInstruction.LoadArgument(1),
+                new CodeInstruction(OpCodes.Ldloca_S, vehicle),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_IsOnVehicleMapOf),
+                new CodeInstruction(OpCodes.Brfalse_S, label),
+                new CodeInstruction(OpCodes.Ldc_R4, VehicleMapUtility.altitudeOffsetFull),
+                new CodeInstruction(OpCodes.Add)
+            });
+
+            var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Stloc_2);
+            var label2 = generator.DefineLabel();
+            codes[pos2].labels.Add(label2);
+            codes.InsertRange(pos2, new[]
+            {
+                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+                new CodeInstruction(OpCodes.Brfalse_S, label2),
+                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_OrigToVehicleMap2),
+            });
+            var pos3 = codes.FindIndex(pos, c => c.opcode == OpCodes.Stloc_3);
+            var label3 = generator.DefineLabel();
+            codes[pos3].labels.Add(label3);
+            codes.InsertRange(pos3, new[]
+            {
+                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+                new CodeInstruction(OpCodes.Brfalse_S, label3),
+                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_OrigToVehicleMap2),
+            });
+            var pos4 = codes.FindIndex(pos, c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalIndex == 6);
+            var label4 = generator.DefineLabel();
+            codes[pos4].labels.Add(label4);
+            codes.InsertRange(pos4, new[]
+            {
+                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+                new CodeInstruction(OpCodes.Brfalse_S, label4),
+                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_OrigToVehicleMap2),
+            });
+            return codes;
+        }
+    }
 }

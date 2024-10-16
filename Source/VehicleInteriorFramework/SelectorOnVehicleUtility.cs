@@ -132,8 +132,10 @@ namespace VehicleInteriors
 
         public static IEnumerable<LocalTargetInfo> TargetsAt(Vector3 clickPos, TargetingParameters clickParams, bool thingsOnly, ITargetingSource source)
         {
-            List<Thing> clickableList = SelectorOnVehicleUtility.ThingsUnderMouse(clickPos, 0.8f, clickParams, source);
-            Thing caster = (source != null) ? source.Caster : null;
+            List<Thing> clickableList = SelectorOnVehicleUtility.vehicleForSelector != null ?
+                SelectorOnVehicleUtility.ThingsUnderMouse(clickPos, 0.8f, clickParams, source) :
+                GenUI.ThingsUnderMouse(clickPos, 0.8f, clickParams, source);
+            Thing caster = source?.Caster;
             int num;
             for (int i = 0; i < clickableList.Count; i = num + 1)
             {
@@ -146,8 +148,9 @@ namespace VehicleInteriors
             }
             if (!thingsOnly)
             {
-                IntVec3 intVec = clickPos.VehicleMapToOrig(SelectorOnVehicleUtility.vehicleForSelector).ToIntVec3();
-                if (intVec.InBounds(SelectorOnVehicleUtility.vehicleForSelector.interiorMap, clickParams.mapBoundsContractedBy) && clickParams.CanTarget(new TargetInfo(intVec, SelectorOnVehicleUtility.vehicleForSelector.interiorMap, false), source))
+                IntVec3 intVec = SelectorOnVehicleUtility.vehicleForSelector != null ? clickPos.VehicleMapToOrig(SelectorOnVehicleUtility.vehicleForSelector).ToIntVec3() : clickPos.ToIntVec3();
+                Map map = SelectorOnVehicleUtility.vehicleForSelector != null ? SelectorOnVehicleUtility.vehicleForSelector.interiorMap : Find.CurrentMap;
+                if (intVec.InBounds(map, clickParams.mapBoundsContractedBy) && clickParams.CanTarget(new TargetInfo(intVec, map, false), source))
                 {
                     yield return intVec;
                 }

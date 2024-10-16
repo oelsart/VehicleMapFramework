@@ -167,5 +167,13 @@ namespace VehicleInteriors
                 destMap.reservationManager.Reserve(p, job, target[i], maxPawns, stackCount, layer, false, false, false);
             }
         }
+
+        public static bool CanReserveAndReach(this Pawn p, Map targMap, LocalTargetInfo target, PathEndMode peMode, Danger maxDanger, int maxPawns, int stackCount, ReservationLayerDef layer, bool ignoreOtherReservations, out LocalTargetInfo exitSpot, out LocalTargetInfo enterSpot)
+        {
+            exitSpot = null;
+            enterSpot = null;
+            return p.Spawned && p.CanReach(target, peMode, maxDanger, false, false, TraverseMode.ByPawn, targMap, out exitSpot, out enterSpot) &&
+                p.CanReserve(target, targMap, maxPawns, stackCount, layer, ignoreOtherReservations);
+        }
     }
 }

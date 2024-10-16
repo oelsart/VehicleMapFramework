@@ -16,7 +16,7 @@ namespace VehicleInteriors
             enterSpot = LocalTargetInfo.Invalid;
             var baseMap = map.BaseMap();
             List<SlotGroup> allGroupsListInPriorityOrder = baseMap.haulDestinationManager.AllGroupsListInPriorityOrder
-                .ConcatIfNotNull(baseMap.mapPawns.AllPawnsSpawned.OfType<VehiclePawnWithInterior>().Where(v => v.AllowsAutoHaul).SelectMany(v => v.interiorMap.haulDestinationManager.AllGroupsListInPriorityOrder)).OrderByDescending(d => d.Settings.Priority).ToList(); ;
+                .ConcatIfNotNull(VehiclePawnWithMapCache.allVehicles[baseMap].Where(v => v.AllowsAutoHaul).SelectMany(v => v.interiorMap.haulDestinationManager.AllGroupsListInPriorityOrder)).OrderByDescending(d => d.Settings.Priority).ToList(); ;
             if (allGroupsListInPriorityOrder.Count == 0)
             {
                 foundCell = IntVec3.Invalid;
@@ -254,7 +254,7 @@ namespace VehicleInteriors
             enterSpot = LocalTargetInfo.Invalid;
             var baseMap = map.BaseMap();
             List<IHaulDestination> allHaulDestinationsListInPriorityOrder = baseMap.haulDestinationManager.AllHaulDestinationsListInPriorityOrder
-                .ConcatIfNotNull(baseMap.mapPawns.AllPawnsSpawned.OfType<VehiclePawnWithInterior>().Where(v => v.AllowsAutoHaul).SelectMany(v => v.interiorMap.haulDestinationManager.AllHaulDestinationsListInPriorityOrder)).OrderByDescending(d => d.GetStoreSettings().Priority).ToList();
+                .ConcatIfNotNull(VehiclePawnWithMapCache.allVehicles[baseMap].Where(v => v.AllowsAutoHaul).SelectMany(v => v.interiorMap.haulDestinationManager.AllHaulDestinationsListInPriorityOrder)).OrderByDescending(d => d.GetStoreSettings().Priority).ToList();
 
             Map thingMap = t.SpawnedOrAnyParentSpawned ? t.MapHeld : carrier.MapHeld;
             IntVec3 intVec = t.SpawnedOrAnyParentSpawned ? t.PositionHeld : carrier.PositionHeld;
@@ -345,6 +345,6 @@ namespace VehicleInteriors
             return haulDestination != null;
         }
 
-        private static AccessTools.FieldRef<Pawn_PlayerSettings, Dictionary<Map, Area>> allowedAreas = AccessTools.FieldRefAccess<Pawn_PlayerSettings, Dictionary<Map, Area>>("allowedAreas");
+        private static readonly AccessTools.FieldRef<Pawn_PlayerSettings, Dictionary<Map, Area>> allowedAreas = AccessTools.FieldRefAccess<Pawn_PlayerSettings, Dictionary<Map, Area>>("allowedAreas");
     }
 }

@@ -1,136 +1,122 @@
 ﻿using HarmonyLib;
-using RimWorld;
-using RimWorld.Planet;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.Emit;
 using System.Reflection;
+using System.Reflection.Emit;
 using UnityEngine;
 using Verse;
-using System;
 
 namespace VehicleInteriors.VIF_HarmonyPatches
 {
-    [HarmonyPatch(typeof(WorldInterface), nameof(WorldInterface.WorldInterfaceOnGUI))]
-    public static class Patch_WorldInterface_WorldInterfaceOnGUI
+    [HarmonyPatch(typeof(Graphic), nameof(Graphic.Draw))]
+    public static class Patch_Graphic_Draw
     {
-        public static void Postfix()
+        public static void Prefix(Thing thing, ref float extraRotation)
         {
-            if (VehicleMapUtility.FocusedVehicle != null && !Find.WindowStack.IsOpen<MainTabWindow>() && !WorldRendererUtility.WorldRenderedNow)
+            if (thing.IsOnVehicleMapOf(out var vehicle))
             {
-                GizmoGridDrawer.DrawGizmoGrid(new List<Gizmo> { new Command_FocusVehicleMap() }, 324f, out var mouseoverGizmo);
+                extraRotation += vehicle.CachedAngle;
             }
         }
+    }
 
-        [HarmonyPatch(typeof(Graphic), nameof(Graphic.Draw))]
-        public static class Patch_Graphic_Draw
+    [HarmonyPatch(typeof(ThingOverlays), nameof(ThingOverlays.ThingOverlaysOnGUI))]
+    public static class Patch_ThingOverlays_ThingOverlaysOnGUI
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
         {
-            public static void Prefix(Thing thing, ref float extraRotation)
-            {
-                if (thing.IsOnVehicleMapOf(out var vehicle))
-                {
-                    extraRotation += vehicle.CachedAngle;
-                }
-            }
+            var codes = instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap).ToList();
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Stloc_1);
+
+            codes.Insert(pos, CodeInstruction.Call(typeof(Patch_ThingOverlays_ThingOverlaysOnGUI), nameof(Patch_ThingOverlays_ThingOverlaysOnGUI.IncludeVehicleMapThings)));
+
+            return codes;
         }
 
-        [HarmonyPatch(typeof(ThingOverlays), nameof(ThingOverlays.ThingOverlaysOnGUI))]
-        public static class Patch_ThingOverlays_ThingOverlaysOnGUI
+        public static List<Thing> IncludeVehicleMapThings(List<Thing> list)
         {
-            public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+            var vehicles = VehiclePawnWithMapCache.allVehicles[Find.CurrentMap];
+            var result = new List<Thing>(list);
+            foreach (var vehicle in vehicles)
             {
-                var codes = instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap).ToList();
-                var pos = codes.FindIndex(c => c.opcode == OpCodes.Stloc_1);
-
-                codes.Insert(pos, CodeInstruction.Call(typeof(Patch_ThingOverlays_ThingOverlaysOnGUI), nameof(Patch_ThingOverlays_ThingOverlaysOnGUI.IncludeVehicleMapThings)));
-
-                return codes;
+                result.AddRange(vehicle.interiorMap.listerThings.ThingsInGroup(ThingRequestGroup.HasGUIOverlay));
             }
+            return result;
+        }
+    }
 
-            public static List<Thing> IncludeVehicleMapThings(List<Thing> list)
+    [HarmonyPatch(typeof(Designation), nameof(Designation.DrawLoc))]
+    public static class Patch_Designation_DrawLoc
+    {
+        public static void Postfix(Designation __instance, ref Vector3 __result)
+        {
+            if (__instance.designationManager.map.Parent is MapParent_Vehicle)
             {
-                var vehicles = Find.CurrentMap.listerThings.GetThingsOfType<VehiclePawnWithInterior>();
-                var result = new List<Thing>(list);
-                foreach (var vehicle in vehicles)
-                {
-                    result.AddRange(vehicle.interiorMap.listerThings.ThingsInGroup(ThingRequestGroup.HasGUIOverlay));
-                }
-                return result;
+                __result.y += VehicleMapUtility.altitudeOffsetFull;
             }
         }
+    }
 
-        [HarmonyPatch(typeof(Designation), nameof(Designation.DrawLoc))]
-        public static class Patch_Designation_DrawLoc
+    //drawPosを移動してQuaternionに車の回転をかける。ほぼ同じなので3つまとめました
+    [HarmonyPatch(typeof(GenUI), nameof(GenUI.RenderMouseoverBracket))]
+    public static class Patch_GenUI_RenderMouseoverBracket
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
         {
-            public static void Postfix(Designation __instance, ref Vector3 __result)
-            {
-                if (__instance.designationManager.map.Parent is MapParent_Vehicle)
-                {
-                    __result.y += VehicleMapUtility.altitudeOffsetFull;
-                }
-            }
+            var f_GenUIMouseoverBracketMaterial = AccessTools.Field(typeof(GenUI), "MouseoverBracketMaterial");
+            return Patch_GenUI_RenderMouseoverBracket.TranspilerCommon(instructions, generator, f_GenUIMouseoverBracketMaterial);
         }
 
-        //drawPosを移動してQuaternionに車の回転をかける。ほぼ同じなので3つまとめました
-        [HarmonyPatch(typeof(GenUI), nameof(GenUI.RenderMouseoverBracket))]
-        public static class Patch_GenUI_RenderMouseoverBracket
+        public static IEnumerable<CodeInstruction> TranspilerCommon(IEnumerable<CodeInstruction> instructions, ILGenerator generator, FieldInfo field)
         {
-            public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
-            {
-                var f_GenUIMouseoverBracketMaterial = AccessTools.Field(typeof(GenUI), "MouseoverBracketMaterial");
-                return Patch_GenUI_RenderMouseoverBracket.TranspilerCommon(instructions, generator, f_GenUIMouseoverBracketMaterial);
-            }
+            var codes = instructions.ToList();
+            var m_QuaternionIdentity = AccessTools.PropertyGetter(typeof(Quaternion), nameof(Quaternion.identity));
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(m_QuaternionIdentity));
+            codes.Insert(pos, new CodeInstruction(OpCodes.Call, MethodInfoCache.m_OrigToVehicleMap1));
 
-            public static IEnumerable<CodeInstruction> TranspilerCommon(IEnumerable<CodeInstruction> instructions, ILGenerator generator, FieldInfo field)
+            var label = generator.DefineLabel();
+            var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Ldsfld && c.OperandIs(field));
+            codes[pos2].labels.Add(label);
+            codes.InsertRange(pos2, new[]
             {
-                var codes = instructions.ToList();
-                var m_QuaternionIdentity = AccessTools.PropertyGetter(typeof(Quaternion), nameof(Quaternion.identity));
-                var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(m_QuaternionIdentity));
-                codes.Insert(pos, new CodeInstruction(OpCodes.Call, MethodInfoCache.m_OrigToVehicleMap1));
-
-                var label = generator.DefineLabel();
-                var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Ldsfld && c.OperandIs(field));
-                codes[pos2].labels.Add(label);
-                codes.InsertRange(pos2, new[]
-                {
-            new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(VehicleMapUtility), nameof(VehicleMapUtility.FocusedVehicle))),
-            new CodeInstruction(OpCodes.Brfalse_S, label),
-            new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(VehicleMapUtility), nameof(VehicleMapUtility.FocusedVehicle))),
-            new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_FullRotation),
-            new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(Rot8Utility), nameof(Rot8Utility.AsQuat))),
-            new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(Quaternion), "op_Multiply", new Type[]{ typeof(Quaternion), typeof(Quaternion) })),
-            });
-                return codes;
-            }
+        new CodeInstruction(OpCodes.Call, MethodInfoCache.g_FocusedVehicle),
+        new CodeInstruction(OpCodes.Brfalse_S, label),
+        new CodeInstruction(OpCodes.Call, MethodInfoCache.g_FocusedVehicle),
+        new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_FullRotation),
+        new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(Rot8Utility), nameof(Rot8Utility.AsQuat))),
+        new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(Quaternion), "op_Multiply", new Type[]{ typeof(Quaternion), typeof(Quaternion) })),
+        });
+            return codes;
         }
+    }
 
-        [HarmonyPatch(typeof(DesignatorUtility), nameof(DesignatorUtility.RenderHighlightOverSelectableCells))]
-        public static class Patch_DesignatorUtility_RenderHighlightOverSelectableCells
+    [HarmonyPatch(typeof(DesignatorUtility), nameof(DesignatorUtility.RenderHighlightOverSelectableCells))]
+    public static class Patch_DesignatorUtility_RenderHighlightOverSelectableCells
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
         {
-            public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
-            {
-                var f_DesignatorUtility_DragHighlightCellMat = AccessTools.Field(typeof(DesignatorUtility), nameof(DesignatorUtility.DragHighlightCellMat));
-                return Patch_GenUI_RenderMouseoverBracket.TranspilerCommon(instructions, generator, f_DesignatorUtility_DragHighlightCellMat);
-            }
+            var f_DesignatorUtility_DragHighlightCellMat = AccessTools.Field(typeof(DesignatorUtility), nameof(DesignatorUtility.DragHighlightCellMat));
+            return Patch_GenUI_RenderMouseoverBracket.TranspilerCommon(instructions, generator, f_DesignatorUtility_DragHighlightCellMat);
         }
+    }
 
-        [HarmonyPatch(typeof(DesignatorUtility), nameof(DesignatorUtility.RenderHighlightOverSelectableThings))]
-        public static class Patch_DesignatorUtility_RenderHighlightOverSelectableThings
+    [HarmonyPatch(typeof(DesignatorUtility), nameof(DesignatorUtility.RenderHighlightOverSelectableThings))]
+    public static class Patch_DesignatorUtility_RenderHighlightOverSelectableThings
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
         {
-            public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
-            {
-                var f_DesignatorUtility_DragHighlightThingMat = AccessTools.Field(typeof(DesignatorUtility), nameof(DesignatorUtility.DragHighlightThingMat));
-                return Patch_GenUI_RenderMouseoverBracket.TranspilerCommon(instructions, generator, f_DesignatorUtility_DragHighlightThingMat);
-            }
+            var f_DesignatorUtility_DragHighlightThingMat = AccessTools.Field(typeof(DesignatorUtility), nameof(DesignatorUtility.DragHighlightThingMat));
+            return Patch_GenUI_RenderMouseoverBracket.TranspilerCommon(instructions, generator, f_DesignatorUtility_DragHighlightThingMat);
         }
+    }
 
-        [HarmonyPatch(typeof(DesignationManager), nameof(DesignationManager.DrawDesignations))]
-        public static class Patch_DesignationManager_DrawDesignations
+    [HarmonyPatch(typeof(DesignationManager), nameof(DesignationManager.DrawDesignations))]
+    public static class Patch_DesignationManager_DrawDesignations
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-            {
-                return instructions.MethodReplacer(MethodInfoCache.g_LocalTargetInfo_Cell, MethodInfoCache.m_CellOnBaseMap);
-            }
+            return instructions.MethodReplacer(MethodInfoCache.g_LocalTargetInfo_Cell, MethodInfoCache.m_CellOnBaseMap);
         }
     }
 }

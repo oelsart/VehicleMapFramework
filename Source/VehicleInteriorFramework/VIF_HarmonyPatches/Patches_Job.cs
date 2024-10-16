@@ -77,7 +77,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             {
                 searchSet.AddRange(baseMap.listerThings.ThingsMatching(scanner.PotentialWorkThingRequest));
             }
-            foreach(var vehicle in baseMap.mapPawns.AllPawnsSpawned.OfType<VehiclePawnWithInterior>())
+            foreach(var vehicle in VehiclePawnWithMapCache.allVehicles[baseMap])
             {
                 if (pawn.Map != vehicle.interiorMap)
                 {

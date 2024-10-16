@@ -33,7 +33,7 @@ namespace VehicleInteriors
                 return true;
             }
             var baseMap = map.BaseMap();
-            return thingReq.group == ThingRequestGroup.Nothing || ((thingReq.IsUndefined || baseMap.listerThings.ThingsMatching(thingReq).ConcatIfNotNull(baseMap.mapPawns.AllPawnsSpawned.OfType<VehiclePawnWithInterior>().SelectMany((VehiclePawnWithInterior v) => v.interiorMap.listerThings.ThingsMatching(thingReq))).Count() == 0) && customGlobalSearchSet.EnumerableNullOrEmpty<Thing>());
+            return thingReq.group == ThingRequestGroup.Nothing || ((thingReq.IsUndefined || baseMap.listerThings.ThingsMatching(thingReq).ConcatIfNotNull(VehiclePawnWithMapCache.allVehicles[baseMap].SelectMany((VehiclePawnWithInterior v) => v.interiorMap.listerThings.ThingsMatching(thingReq))).Count() == 0) && customGlobalSearchSet.EnumerableNullOrEmpty<Thing>());
         }
 
         public static Thing ClosestThingReachable(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance = 9999f, Predicate<Thing> validator = null, IEnumerable<Thing> customGlobalSearchSet = null, int searchRegionsMin = 0, int searchRegionsMax = -1, bool forceAllowGlobalSearch = false, RegionType traversableRegionTypes = RegionType.Set_Passable, bool ignoreEntirelyForbiddenRegions = false)
@@ -43,6 +43,17 @@ namespace VehicleInteriors
 
         public static Thing ClosestThingReachable(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance = 9999f, Predicate<Thing> validator = null, IEnumerable<Thing> customGlobalSearchSet = null, int searchRegionsMin = 0, int searchRegionsMax = -1, bool forceAllowGlobalSearch = false, RegionType traversableRegionTypes = RegionType.Set_Passable, bool ignoreEntirelyForbiddenRegions = false, bool lookInHaulSources = false)
         {
+            return GenClosestOnVehicle.ClosestThingReachable(root, map, thingReq, peMode, traverseParams, maxDistance, validator, customGlobalSearchSet, searchRegionsMin, searchRegionsMax, forceAllowGlobalSearch, traversableRegionTypes, ignoreEntirelyForbiddenRegions, lookInHaulSources, out _, out _);
+        }
+
+        public static Thing ClosestThingReachable(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance, Predicate<Thing> validator, IEnumerable<Thing> customGlobalSearchSet, int searchRegionsMin, int searchRegionsMax, bool forceAllowGlobalSearch, RegionType traversableRegionTypes, bool ignoreEntirelyForbiddenRegions, bool lookInHaulSources, out LocalTargetInfo exitSpot, out LocalTargetInfo enterSpot)
+        {
+            GenClosestOnVehicle.tmpExitSpot = null;
+            GenClosestOnVehicle.tmpEnterSpot = null;
+            GenClosestOnVehicle.exitSpotResult = null;
+            GenClosestOnVehicle.enterSpotResult = null;
+            exitSpot = null;
+            enterSpot = null;
             bool flag = searchRegionsMax < 0 || forceAllowGlobalSearch;
             if (!flag && customGlobalSearchSet != null)
             {
@@ -55,7 +66,6 @@ namespace VehicleInteriors
             }
             var baseMap = map.BaseMap();
             var basePos = map.IsVehicleMapOf(out var vehicle) ? root.OrigToVehicleMap(vehicle) : root;
-            var allVehicles = baseMap.mapPawns.AllPawnsSpawned.OfType<VehiclePawnWithInterior>();
             if (GenClosestOnVehicle.EarlyOutSearch(root, map, thingReq, customGlobalSearchSet, validator))
             {
                 return null;
@@ -76,10 +86,18 @@ namespace VehicleInteriors
                 }
                 Predicate<Thing> validator2 = (Thing t) =>
                 {
-                    return traverseParams.pawn.CanReach(t, peMode, traverseParams.maxDanger, true, true, traverseParams.mode, t.Map, out _, out _) && (validator == null || validator(t));
+                    if(traverseParams.pawn.CanReach(t, peMode, traverseParams.maxDanger, true, true, traverseParams.mode, t.Map, out var exitSpot2, out var enterSpot2) && (validator == null || validator(t)))
+                    {
+                        GenClosestOnVehicle.tmpExitSpot = exitSpot2;
+                        GenClosestOnVehicle.tmpEnterSpot = enterSpot2;
+                        return true;
+                    }
+                    return false;
                 };
-                thing = GenClosestOnVehicle.ClosestThing_Global(basePos, customGlobalSearchSet ?? baseMap.listerThings.ThingsMatching(thingReq).ConcatIfNotNull(allVehicles.SelectMany((VehiclePawnWithInterior v) => v.interiorMap.listerThings.ThingsMatching(thingReq))), maxDistance, validator2, null);
+                thing = GenClosestOnVehicle.ClosestThing_Global(basePos, customGlobalSearchSet ?? baseMap.listerThings.ThingsMatching(thingReq).ConcatIfNotNull(VehiclePawnWithMapCache.allVehicles[baseMap].SelectMany((VehiclePawnWithInterior v) => v.interiorMap.listerThings.ThingsMatching(thingReq))), maxDistance, validator2, null);
             }
+            exitSpot = GenClosestOnVehicle.exitSpotResult;
+            enterSpot = GenClosestOnVehicle.enterSpotResult;
             return thing;
         }
 
@@ -190,6 +208,8 @@ namespace VehicleInteriors
 					return;
 				}
 			}
+            GenClosestOnVehicle.exitSpotResult = GenClosestOnVehicle.tmpExitSpot;
+            GenClosestOnVehicle.enterSpotResult = GenClosestOnVehicle.tmpEnterSpot;
             finder.chosen = t;
             finder.closestDistSquared = distSquared;
             finder.bestPrio = num;
@@ -202,6 +222,17 @@ namespace VehicleInteriors
 
         public static Thing ClosestThing_Global_Reachable(IntVec3 center, Map map, IEnumerable<Thing> searchSet, PathEndMode peMode, TraverseParms traverseParams, float maxDistance = 9999f, Predicate<Thing> validator = null, Func<Thing, float> priorityGetter = null, bool canLookInHaulableSources = false)
         {
+            return GenClosestOnVehicle.ClosestThing_Global_Reachable(center, map, searchSet, peMode, traverseParams, maxDistance, validator, priorityGetter, canLookInHaulableSources, out _, out _);
+        }
+
+        public static Thing ClosestThing_Global_Reachable(IntVec3 center, Map map, IEnumerable<Thing> searchSet, PathEndMode peMode, TraverseParms traverseParams, float maxDistance, Predicate<Thing> validator, Func<Thing, float> priorityGetter, bool canLookInHaulableSources, out LocalTargetInfo exitSpot, out LocalTargetInfo enterSpot)
+        {
+            GenClosestOnVehicle.tmpExitSpot = null;
+            GenClosestOnVehicle.tmpEnterSpot = null;
+            GenClosestOnVehicle.exitSpotResult = null;
+            GenClosestOnVehicle.enterSpotResult = null;
+            exitSpot = null;
+            enterSpot = null;
             if (searchSet == null)
             {
                 return null;
@@ -253,6 +284,8 @@ namespace VehicleInteriors
                     GenClosestOnVehicle.Process(t, ref finder);
                 }
             }
+            exitSpot = GenClosestOnVehicle.exitSpotResult;
+            enterSpot = GenClosestOnVehicle.enterSpotResult;
             return finder.bestThing;
         }
 
@@ -290,7 +323,7 @@ namespace VehicleInteriors
 
         private static void ValidateThing(Thing t, float distSquared, ref FinderReachable finder)
 		{
-			if (!finder.map.reachability.CanReach(finder.center, t.SpawnedParentOrMe, finder.peMode, finder.traverseParms))
+			if (!ReachabilityUtilityOnVehicle.CanReach(finder.map, finder.center, t.SpawnedParentOrMe, finder.peMode, finder.traverseParms, t.MapHeld, out GenClosestOnVehicle.tmpExitSpot, out GenClosestOnVehicle.tmpEnterSpot))
 			{
 				return;
 			}
@@ -310,7 +343,9 @@ namespace VehicleInteriors
 				{
 					return;
 				}
-			}
+            }
+            GenClosestOnVehicle.exitSpotResult = GenClosestOnVehicle.tmpExitSpot;
+            GenClosestOnVehicle.enterSpotResult = GenClosestOnVehicle.tmpEnterSpot;
             finder.bestThing = t;
             finder.closestDistSquared = distSquared;
             finder.bestPrio = num;
@@ -365,5 +400,13 @@ namespace VehicleInteriors
 
             public float closestDistSquared;
         }
+
+        private static LocalTargetInfo tmpExitSpot;
+
+        private static LocalTargetInfo tmpEnterSpot;
+
+        private static LocalTargetInfo exitSpotResult;
+
+        private static LocalTargetInfo enterSpotResult;
     }
 }

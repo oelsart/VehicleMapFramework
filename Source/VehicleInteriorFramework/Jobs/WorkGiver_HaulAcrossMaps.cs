@@ -12,7 +12,7 @@ namespace VehicleInteriors
         {
             var baseMap = pawn.BaseMapOfThing();
             return baseMap.listerHaulables.ThingsPotentiallyNeedingHauling()
-                .Concat(baseMap.mapPawns.AllPawnsSpawned.OfType<VehiclePawnWithInterior>().Where(v => v.AllowsAutoHaul).SelectMany(v => v.interiorMap.listerHaulables.ThingsPotentiallyNeedingHauling()));
+                .Concat(VehiclePawnWithMapCache.allVehicles[baseMap].Where(v => v.AllowsAutoHaul).SelectMany(v => v.interiorMap.listerHaulables.ThingsPotentiallyNeedingHauling()));
         }
 
         public override Job JobOnThing(Pawn pawn, Thing t, bool forced = false)

@@ -132,9 +132,9 @@ namespace VehicleInteriors.VIF_HarmonyPatches
 
             codes[pos].labels.Add(label);
             codes.InsertRange(pos, new[] {
-                new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(VehicleMapUtility), nameof(VehicleMapUtility.FocusedVehicle))),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.g_FocusedVehicle),
                 new CodeInstruction(OpCodes.Brfalse_S, label),
-                new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(VehicleMapUtility), nameof(VehicleMapUtility.FocusedVehicle))),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.g_FocusedVehicle),
                 new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.VehicleMapToOrig), new Type[]{ typeof(CellRect), typeof(VehiclePawnWithInterior) }))
             });
             return codes;

@@ -11,15 +11,13 @@ namespace VehicleInteriors
 {
     public static class VehicleMapUtility
     {
-        public static VehiclePawnWithInterior FocusedVehicle { get; set; }
-
         public static Map CurrentMap
         {
             get
             {
-                if (VehicleMapUtility.FocusedVehicle != null)
+                if (Command_FocusVehicleMap.FocusedVehicle != null)
                 {
-                    return VehicleMapUtility.FocusedVehicle.interiorMap;
+                    return Command_FocusVehicleMap.FocusedVehicle.interiorMap;
                 }
                 return Find.CurrentMap;
             }
@@ -27,7 +25,7 @@ namespace VehicleInteriors
 
         public static IEnumerable<Map> ExceptVehicleMaps(this IEnumerable<Map> maps)
         {
-            return maps.Where(m => !(m.Parent is MapParent_Vehicle));
+            return maps.Where(m => !(m.Parent is MapParent_Vehicle parentVehicle) || !parentVehicle.vehicle.Spawned);
         }
 
         public static bool IsVehicleMapOf(this Map map, out VehiclePawnWithInterior vehicle)
@@ -48,10 +46,9 @@ namespace VehicleInteriors
 
         public static Vector3 VehicleMapToOrig(this Vector3 original)
         {
-            if (VehicleMapUtility.FocusedVehicle != null)
+            if (Command_FocusVehicleMap.FocusedVehicle != null)
             {
-                var vehicle = VehicleMapUtility.FocusedVehicle;
-                return VehicleMapUtility.VehicleMapToOrig(original, vehicle);
+                return VehicleMapUtility.VehicleMapToOrig(original, Command_FocusVehicleMap.FocusedVehicle);
             }
             return original;
         }
@@ -77,11 +74,21 @@ namespace VehicleInteriors
             return original.MovedBy(-vehicle.Position).MovedBy(vector);
         }
 
+        public static CellRect ClipInsideVehicleMap(ref this CellRect cellRect, Map map)
+        {
+            if (map.IsVehicleMapOf(out var vehicle))
+            {
+                var clip = cellRect.ClipInsideRect(vehicle.VehicleRect(true));
+                return cellRect = clip.MovedBy(-clip.Min);
+            }
+            return cellRect.ClipInsideMap(map);
+        }
+
         public static Vector3 OrigToVehicleMap(this Vector3 original)
         {
-            if (VehicleMapUtility.FocusedVehicle != null)
+            if (Command_FocusVehicleMap.FocusedVehicle != null)
             {
-                var vehicle = VehicleMapUtility.FocusedVehicle;
+                var vehicle = Command_FocusVehicleMap.FocusedVehicle;
                 return VehicleMapUtility.OrigToVehicleMap(original, vehicle);
             }
             return original;
@@ -150,7 +157,7 @@ namespace VehicleInteriors
 
         public static List<Type> SelectSectionLayers (List<Type> subClasses, Map map)
         {
-            if (map.Parent is MapParent_Vehicle)
+            if (map?.Parent is MapParent_Vehicle)
             {
                 return subClasses.Except(typeof(SectionLayer_ThingsGeneral)).ToList();
             }
@@ -178,14 +185,14 @@ namespace VehicleInteriors
 
         public static IntVec3 PositionOnBaseMap(this Thing thing)
         {
-            if (OnVehiclePositionCache.cachedPosOnBaseMap.TryGetValue(thing, out var pos))
+            if (VehiclePawnWithMapCache.cachedPosOnBaseMap.TryGetValue(thing, out var pos))
             {
                 return pos;
             }
             if (thing.IsOnVehicleMapOf(out var vehicle))
             {
                 pos = thing.Position.OrigToVehicleMap(vehicle);
-                OnVehiclePositionCache.cachedPosOnBaseMap[thing] = pos;
+                VehiclePawnWithMapCache.cachedPosOnBaseMap[thing] = pos;
                 return pos;
             }
             return thing.Position;
@@ -251,14 +258,14 @@ namespace VehicleInteriors
         public static IntVec3 CellOnBaseMap(this ref LocalTargetInfo target)
         {
             if (target.HasThing) {
-                if (OnVehiclePositionCache.cachedPosOnBaseMap.TryGetValue(target.Thing, out var pos))
+                if (VehiclePawnWithMapCache.cachedPosOnBaseMap.TryGetValue(target.Thing, out var pos))
                 {
                     return pos;
                 }
                 if (target.Thing.IsOnVehicleMapOf(out var vehicle))
                 {
                     pos = target.Thing.Position.OrigToVehicleMap(vehicle);
-                    OnVehiclePositionCache.cachedPosOnBaseMap[target.Thing] = pos;
+                    VehiclePawnWithMapCache.cachedPosOnBaseMap[target.Thing] = pos;
                     return pos;
                 }
             }
@@ -268,7 +275,7 @@ namespace VehicleInteriors
         public static CellRect MovedOccupiedRect(this Thing thing)
         {
             var drawSize = thing.DrawSize;
-            return GenAdj.OccupiedRect(thing.PositionOnBaseMap(), thing.Rotation, new IntVec2(Mathf.CeilToInt(drawSize.x), Mathf.CeilToInt(drawSize.y)));
+            return GenAdj.OccupiedRect(thing.PositionOnBaseMap(), thing.BaseRotationOfThing(), new IntVec2(Mathf.CeilToInt(drawSize.x), Mathf.CeilToInt(drawSize.y)));
         }
 
         public static TargetInfo ToBaseMapTargetInfo(ref LocalTargetInfo target, Map map)
@@ -336,18 +343,18 @@ namespace VehicleInteriors
 
         public static bool TryGetOnVehicleDrawPos(this Thing thing, ref Vector3 result)
         {
-            if (OnVehiclePositionCache.cachedDrawPos.TryGetValue(thing, out var pos))
+            if (VehiclePawnWithMapCache.cachedDrawPos.TryGetValue(thing, out var pos))
             {
                 result = pos;
                 return true;
             }
-            if (!OnVehiclePositionCache.cacheMode && thing.IsOnVehicleMapOf(out var vehicle))
+            if (!VehiclePawnWithMapCache.cacheMode && thing.IsOnVehicleMapOf(out var vehicle))
             {
-                OnVehiclePositionCache.cacheMode = true;
+                VehiclePawnWithMapCache.cacheMode = true;
                 var drawPos = thing.DrawPos;
-                OnVehiclePositionCache.cachedDrawPos[thing] = drawPos.OrigToVehicleMap(vehicle);
-                OnVehiclePositionCache.cacheMode = false;
-                result = OnVehiclePositionCache.cachedDrawPos[thing];
+                VehiclePawnWithMapCache.cachedDrawPos[thing] = drawPos.OrigToVehicleMap(vehicle);
+                VehiclePawnWithMapCache.cacheMode = false;
+                result = VehiclePawnWithMapCache.cachedDrawPos[thing];
                 return true;
             }
             return false;

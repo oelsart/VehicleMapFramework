@@ -1,16 +1,21 @@
-﻿using UnityEngine;
+﻿using RimWorld;
+using UnityEngine;
 using Verse;
 
 namespace VehicleInteriors
 {
     public class Command_FocusVehicleMap : Command
     {
+        public static VehiclePawnWithInterior FocuseLockedVehicle { get; set; }
+
+        public static VehiclePawnWithInterior FocusedVehicle {  get; set; }
+
         public override string Label
         {
             get
             {
                 var vehicle = Find.Selector.SingleSelectedObject as VehiclePawnWithInterior;
-                if (vehicle == null || vehicle == VehicleMapUtility.FocusedVehicle)
+                if (vehicle == null || vehicle == Command_FocusVehicleMap.FocuseLockedVehicle)
                 {
                     return "Unfocus Vehicle Map";
                 }
@@ -26,11 +31,16 @@ namespace VehicleInteriors
         public override void ProcessInput(Event ev)
         {
             var vehicle = Find.Selector.SingleSelectedObject as VehiclePawnWithInterior;
-            if (vehicle == VehicleMapUtility.FocusedVehicle)
+            if (vehicle != null && Command_FocusVehicleMap.FocuseLockedVehicle != vehicle)
             {
-                vehicle = null;
+                Command_FocusVehicleMap.FocuseLockedVehicle = vehicle;
+                Command_FocusVehicleMap.FocusedVehicle = vehicle;
             }
-            VehicleMapUtility.FocusedVehicle = vehicle;
+            else
+            {
+                Command_FocusVehicleMap.FocuseLockedVehicle = null;
+                Command_FocusVehicleMap.FocusedVehicle = null;
+            }
         }
     }
 }

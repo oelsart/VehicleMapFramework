@@ -26,6 +26,18 @@ namespace VehicleInteriors
             }
         }
 
+        public bool AutoGetOff
+        {
+            get
+            {
+                return this.autoGetOff;
+            }
+            set
+            {
+                this.autoGetOff = value;
+            }
+        }
+
         public override List<IntVec3> InteractionCells => this.interactionCellsInt;
 
         public override IEnumerable<Gizmo> GetGizmos()
@@ -50,6 +62,11 @@ namespace VehicleInteriors
             base.SpawnSetup(map, respawningAfterLoad);
             this.cachedDrawPos = this.DrawPos;
             this.CopyFromBaseMapComponents();
+            if (!VehiclePawnWithMapCache.allVehicles.ContainsKey(map))
+            {
+                VehiclePawnWithMapCache.allVehicles[map] = new List<VehiclePawnWithInterior>();
+            }
+            VehiclePawnWithMapCache.allVehicles[map].Add(this);
         }
 
         private void CopyFromBaseMapComponents()
@@ -84,8 +101,8 @@ namespace VehicleInteriors
                 if (VehiclePawnWithInterior.lastCachedTick != Find.TickManager.TicksGame)
                 {
                     VehiclePawnWithInterior.lastCachedTick = Find.TickManager.TicksGame;
-                    OnVehiclePositionCache.cachedDrawPos.Clear();
-                    OnVehiclePositionCache.cachedPosOnBaseMap.Clear();
+                    VehiclePawnWithMapCache.cachedDrawPos.Clear();
+                    VehiclePawnWithMapCache.cachedPosOnBaseMap.Clear();
                 }
             }
             base.Tick();
@@ -96,8 +113,8 @@ namespace VehicleInteriors
             base.Destroy(mode);
             foreach (var thing in this.interiorMap.listerThings.AllThings.Where(t => t.def.drawerType != DrawerType.None))
             {
-                OnVehiclePositionCache.cachedDrawPos.Remove(thing);
-                OnVehiclePositionCache.cachedPosOnBaseMap.Remove(thing);
+                VehiclePawnWithMapCache.cachedDrawPos.Remove(thing);
+                VehiclePawnWithMapCache.cachedPosOnBaseMap.Remove(thing);
                 if (mode != DestroyMode.Vanish)
                 {
                     thing.DeSpawn(DestroyMode.Vanish);
@@ -142,6 +159,7 @@ namespace VehicleInteriors
             //    this.Map.haulDestinationManager.RemoveHaulSource(source);
             //    this.interiorMap.haulDestinationManager.AddHaulSource(source);
             //}
+            VehiclePawnWithMapCache.allVehicles[this.Map].Remove(this);
             base.DeSpawn(mode);
         }
 
@@ -224,7 +242,7 @@ namespace VehicleInteriors
 
         private void DrawClippers(Map map)
         {
-            if (VehicleMapUtility.FocusedVehicle == this)
+            if (Command_FocusVehicleMap.FocuseLockedVehicle == this || Command_FocusVehicleMap.FocusedVehicle == this)
             {
                 Material material = VehiclePawnWithInterior.ClipMat;
                 var drawPos = this.cachedDrawPos;
@@ -273,5 +291,7 @@ namespace VehicleInteriors
         private static readonly FastInvokeHandler RegenerateDirtyLayers = MethodInvoker.GetHandler(AccessTools.Method(typeof(Section), "RegenerateDirtyLayers"));
 
         private bool allowsAutoHaul = true;
+
+        private bool autoGetOff = true;
     }
 }
