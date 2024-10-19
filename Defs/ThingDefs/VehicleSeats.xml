@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+	<ThingDef Name="VehicleSeatBase" ParentName="FurnitureBase" Abstract="True">
+		<designationCategory>VF_Vehicles</designationCategory>
+		<minifiedDef>MinifiedThing</minifiedDef>
+		<altitudeLayer>Building</altitudeLayer>
+		<passability>PassThroughOnly</passability>
+		<rotatable>false</rotatable>
+	</ThingDef>
+	
+	<ThingDef ParentName="VehicleSeatBase">
+		<defName>VIF_DriversSeat</defName>
+		<label>driver's seat</label>
+		<description>test</description>
+		<graphicData>
+			<texPath>Things/Building/Furniture/Armchair</texPath>
+			<graphicClass>Graphic_Multi</graphicClass>
+			<drawSize>(3,3)</drawSize>
+		</graphicData>
+		<statBases>
+			<MaxHitPoints>300</MaxHitPoints>
+			<Beauty>1</Beauty>
+			<WorkToBuild>100</WorkToBuild>
+			<Mass>5</Mass>
+		</statBases>
+		<size>(1,1)</size>
+		<costList>
+			<Steel>5</Steel>
+		</costList>
+		<uiOrder>1000</uiOrder>
+		<comps>
+			<li Class = "VehicleInteriors.CompProperties_BuildableUpgrade">
+				<compClass>VehicleInteriors.CompVehicleSeat</compClass>
+				<upgrades>
+					<li Class = "VehicleInteriors.VehicleUpgradeBuildable">
+						<roles>
+							<li Class = "VehicleInteriors.RoleUpgradeBuildable">
+								<key>driver</key>
+								<editKey>driver seat</editKey>
+								<label>driver's seat</label>
+								<handlingTypes>Movement</handlingTypes>
+								<slots>1</slots>
+								<slotsToOperate>1</slotsToOperate>
+							</li>
+						</roles>
+					</li>
+				</upgrades>
+			</li>
+		</comps>
+	</ThingDef>
+</Defs>

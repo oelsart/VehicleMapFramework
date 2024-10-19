@@ -45,6 +45,25 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         }
     }
 
+    [HarmonyPatch(typeof(Graphic), nameof(Graphic.Print))]
+    public static class Patch_Graphic_Print
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var codes = instructions.ToList();
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Stloc_3) - 1;
+
+            codes.InsertRange(pos, new[]
+            {
+                CodeInstruction.LoadField(typeof(VehicleMapUtility), nameof(VehicleMapUtility.rotForPrint), true),
+                new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(Rot4), nameof(Rot4.AsAngle))),
+                new CodeInstruction(OpCodes.Neg),
+                CodeInstruction.Call(typeof(Vector3Utility), nameof(Vector3Utility.RotatedBy), new Type[]{ typeof(Vector3), typeof(float) }),
+            });
+            return codes;
+        }
+    }
+
     [HarmonyPatch(typeof(Pawn_RotationTracker), "FaceAdjacentCell")]
     public static class Patch_Pawn_RotationTracker_FaceAdjacentCell
     {
@@ -71,7 +90,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     [HarmonyPatch(typeof(PawnRenderer), "GetBodyPos")]
     public static class Patch_PawnRenderer_GetBodyPos
     {
-        public static void Postfix(PawnPosture posture, Pawn ___pawn, ref Vector3 __result)
+        public static void Postfix(Vector3 drawLoc, PawnPosture posture, Pawn ___pawn, ref Vector3 __result)
         {
             var corpse = ___pawn.Corpse;
             if (corpse != null && corpse.IsOnVehicleMapOf(out var vehicle))
@@ -88,6 +107,10 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                 {
                     __result.y += vehicle2.cachedDrawPos.y;
                 }
+            }
+            else if (___pawn.SpawnedParentOrMe is VehiclePawnWithInterior)
+            {
+                __result.y += drawLoc.y;
             }
         }
     }

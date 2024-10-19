@@ -1,4 +1,5 @@
-﻿using RimWorld;
+﻿using HarmonyLib;
+using RimWorld;
 using SmashTools;
 using System;
 using System.Collections.Generic;
@@ -41,6 +42,11 @@ namespace VehicleInteriors
 
         public static bool IsOnVehicleMapOf(this Thing thing, out VehiclePawnWithInterior vehicle)
         {
+            if (thing == null)
+            {
+                vehicle = null;
+                return false;
+            }
             return thing.Map.IsVehicleMapOf(out vehicle);
         }
 
@@ -58,8 +64,8 @@ namespace VehicleInteriors
             var vehicleMapPos = vehicle.cachedDrawPos + VehicleMapUtility.OffsetOf(vehicle);
             var map = vehicle.interiorMap;
             var pivot = new Vector3(map.Size.x / 2f, 0f, map.Size.z / 2f);
-            var drawPos = (original - vehicleMapPos).RotatedBy(-vehicle.FullRotation.AsAngle) + pivot;
-            return drawPos.WithYOffset(-VehicleMapUtility.altitudeOffset);
+            var drawPos = (original - vehicleMapPos.WithY(0f)).RotatedBy(-vehicle.FullRotation.AsAngle) + pivot;
+            return drawPos.WithYOffset(-VehicleMapUtility.altitudeOffsetFull);
         }
 
         public static IntVec3 VehicleMapToOrig(this IntVec3 original, VehiclePawnWithInterior vehicle)
@@ -96,26 +102,45 @@ namespace VehicleInteriors
 
         public static Vector3 OrigToVehicleMap(this Vector3 original, VehiclePawnWithInterior vehicle)
         {
-            var vehiclePos = vehicle.cachedDrawPos;
+            var vehiclePos = vehicle.cachedDrawPos.WithY(0f);
             var map = vehicle.interiorMap;
             var pivot = new Vector3(map.Size.x / 2f, 0f, map.Size.z / 2f);
             var drawPos = (original - pivot).RotatedBy(vehicle.FullRotation.AsAngle) + vehiclePos;
             drawPos += VehicleMapUtility.OffsetOf(vehicle);
-            return drawPos.WithYOffset(VehicleMapUtility.altitudeOffset);
+            return drawPos.WithYOffset(VehicleMapUtility.altitudeOffsetFull);
+        }
+
+        public static Vector3 OrigToVehicleMap(this Vector3 original, VehiclePawnWithInterior vehicle, Rot8 rot)
+        {
+            var vehiclePos = vehicle.cachedDrawPos.WithY(0f);
+            var map = vehicle.interiorMap;
+            var pivot = new Vector3(map.Size.x / 2f, 0f, map.Size.z / 2f);
+            var drawPos = original.RotatedBy(rot.AsAngle) - pivot.RotatedBy(rot.AsAngle) + vehiclePos;
+            drawPos += VehicleMapUtility.OffsetOf(vehicle, rot);
+            return drawPos.WithYOffset(VehicleMapUtility.altitudeOffsetFull);
         }
 
         public static IntVec3 OrigToVehicleMap(this IntVec3 original, VehiclePawnWithInterior vehicle)
         {
             return original.ToVector3Shifted().OrigToVehicleMap(vehicle).ToIntVec3();
         }
+        public static Vector3 OrigToVehicleMap(this IntVec3 original, VehiclePawnWithInterior vehicle, Rot8 rot)
+        {
+            return original.ToVector3Shifted().OrigToVehicleMap(vehicle, rot);
+        }
 
         public static Vector3 OffsetOf(VehiclePawnWithInterior vehicle)
         {
+            return VehicleMapUtility.OffsetOf(vehicle, vehicle.FullRotation);
+        }
+
+        public static Vector3 OffsetOf(VehiclePawnWithInterior vehicle, Rot8 rot)
+        {
             var offset = Vector3.zero;
-            VehicleMap vehicleMap;
-            if ((vehicleMap = vehicle.def.GetModExtension<VehicleMap>()) != null)
+            VehicleMapProps vehicleMap;
+            if ((vehicleMap = vehicle.def.GetModExtension<VehicleMapProps>()) != null)
             {
-                switch (vehicle.FullRotation.AsByte)
+                switch (rot.AsByte)
                 {
                     case Rot8.NorthInt:
                         offset = vehicleMap.offsetNorth.ToVector3();
@@ -159,17 +184,19 @@ namespace VehicleInteriors
         {
             if (map?.Parent is MapParent_Vehicle)
             {
-                return subClasses.Except(typeof(SectionLayer_ThingsGeneral)).ToList();
+                return subClasses.Except(new Type[] { typeof(SectionLayer_ThingsGeneral), t_SectionLayer_Terrain }).ToList();
             }
-            return subClasses.Except(typeof(SectionLayer_ThingsOnVehicle)).ToList();
+            return subClasses.Except(new Type[] { typeof(SectionLayer_ThingsOnVehicle), typeof(SectionLayer_TerrainOnVehicle) }).ToList();
         }
+
+        private static Type t_SectionLayer_Terrain = AccessTools.TypeByName("Verse.SectionLayer_Terrain");
 
         public static float PrintExtraRotation(Thing thing)
         {
             float result = 0f;
-            if (thing.Map?.Parent is MapParent_Vehicle)
+            if (thing?.Map?.Parent is MapParent_Vehicle)
             {
-                result -= VehicleMapUtility.rotForPrint.AsAngle;
+                result -= VehicleMapUtility.rotForPrint.AsAngle * (thing.Graphic is Graphic_Single ? 2f : 1f);
             }
             return result;
         }
@@ -383,6 +410,6 @@ namespace VehicleInteriors
 
         public const float altitudeOffset = 0.09615385f;
 
-        public const float altitudeOffsetFull = 7.01923085f;
+        public const float altitudeOffsetFull = 11.63461585f;
     }
 }

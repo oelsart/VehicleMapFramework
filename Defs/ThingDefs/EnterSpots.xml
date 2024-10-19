@@ -17,9 +17,13 @@
 		<label>ladder</label>
 		<description>test</description>
 		<graphicData>
-			<texPath>UI/Misc/BarInstantMarker</texPath>
-			<graphicClass>Graphic_Single</graphicClass>
-			<drawSize>(1,1)</drawSize>
+			<texPath>VehicleInteriors/Things/Laddar</texPath>
+			<graphicClass>Graphic_Multi</graphicClass>
+			<drawSize>(1.84765625,1.84765625)</drawSize>
+			<drawOffsetNorth>(0,0,-1)</drawOffsetNorth>
+			<drawOffsetSouth>(0,0,1)</drawOffsetSouth>
+			<drawOffsetEast>(-1,0,-0.5)</drawOffsetEast>
+			<drawOffsetWest>(1,0,-0.5)</drawOffsetWest>
 		</graphicData>
 		<statBases>
 			<MaxHitPoints>300</MaxHitPoints>

@@ -1,7 +1,4 @@
-﻿using RimWorld;
-using System.Collections.Generic;
-using Verse;
-using UnityEngine;
+﻿using Verse;
 
 namespace VehicleInteriors
 {
@@ -16,7 +13,7 @@ namespace VehicleInteriors
             {
                 if (c.InBounds(map))
                 {
-                    terrainGrid.SetTerrain(c, VIF_DefOf.Sand_);
+                    terrainGrid.SetTerrain(c, VIF_DefOf.VIF_VehicleFloor);
                 }
             }
         }

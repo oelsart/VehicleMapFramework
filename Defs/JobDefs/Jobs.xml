@@ -205,4 +205,11 @@
 		<reportString>tending to TargetA.</reportString>
 		<casualInterruptible>false</casualInterruptible>
 	</JobDef>
+	
+	<JobDef>
+		<defName>VIF_BoardAcrossMaps</defName>
+		<driverClass>VehicleInteriors.JobDriver_BoardAcrossMaps</driverClass>
+		<reportString>Entering TargetA.</reportString>
+		<casualInterruptible>false</casualInterruptible>
+	</JobDef>
 </Defs>

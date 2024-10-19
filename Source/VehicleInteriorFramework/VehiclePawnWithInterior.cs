@@ -49,8 +49,8 @@ namespace VehicleInteriors
         {
             if (this.interiorMap == null)
             {
-                VehicleMap vehicleMap;
-                if ((vehicleMap = this.def.GetModExtension<VehicleMap>()) != null)
+                VehicleMapProps vehicleMap;
+                if ((vehicleMap = this.def.GetModExtension<VehicleMapProps>()) != null)
                 {
                     var mapParent = (MapParent_Vehicle)WorldObjectMaker.MakeWorldObject(VIF_DefOf.VIF_VehicleMap);
                     mapParent.vehicle = this;
@@ -110,14 +110,17 @@ namespace VehicleInteriors
 
         public override void Destroy(DestroyMode mode = DestroyMode.Vanish)
         {
-            base.Destroy(mode);
-            foreach (var thing in this.interiorMap.listerThings.AllThings.Where(t => t.def.drawerType != DrawerType.None))
+            if (base.Spawned)
+            {
+                this.DisembarkAll();
+            }
+            foreach (var thing in this.interiorMap.listerThings.AllThings.Where(t => t.def.drawerType != DrawerType.None).ToArray())
             {
                 VehiclePawnWithMapCache.cachedDrawPos.Remove(thing);
                 VehiclePawnWithMapCache.cachedPosOnBaseMap.Remove(thing);
                 if (mode != DestroyMode.Vanish)
                 {
-                    thing.DeSpawn(DestroyMode.Vanish);
+                    thing.Destroy(DestroyMode.Vanish);
                     if (thing.def.category == ThingCategory.Building)
                     {
                         thing.Position = this.Position;
@@ -131,6 +134,7 @@ namespace VehicleInteriors
             }
             Current.Game.DeinitAndRemoveMap(this.interiorMap, false);
             if (Find.WorldObjects.Contains(this.interiorMap.Parent)) Find.WorldObjects.Remove(this.interiorMap.Parent);
+            base.Destroy(mode);
         }
 
         public override void DeSpawn(DestroyMode mode = DestroyMode.Vanish)
@@ -179,7 +183,7 @@ namespace VehicleInteriors
             var drawPos = Vector3.zero.OrigToVehicleMap(this);
             this.DrawVehicleMapMesh(map, drawPos);
             map.dynamicDrawManager.DrawDynamicThings();
-            map.gameConditionManager.GameConditionManagerDraw(map);
+            //map.gameConditionManager.GameConditionManagerDraw(map);
             //MapEdgeClipDrawer.DrawClippers(__instance);
             this.DrawClippers(map);
             map.designationManager.DrawDesignations();
@@ -207,35 +211,35 @@ namespace VehicleInteriors
             {
                 RegenerateDirtyLayers(section);
             }
-            this.DrawLayer(section, terrainLayerType, drawPos);
+            this.DrawLayer(section, typeof(SectionLayer_TerrainOnVehicle), drawPos);
             ((SectionLayer_ThingsOnVehicle)section.GetLayer(typeof(SectionLayer_ThingsOnVehicle))).DrawLayer(this, drawPos);
+            this.DrawLayer(section, typeof(SectionLayer_LightingOverlay), drawPos);
             this.DrawLayer(section, typeof(SectionLayer_BuildingsDamage), drawPos);
             this.DrawLayer(section, typeof(SectionLayer_ThingsPowerGrid), drawPos);
-            if (DebugViewSettings.drawSectionEdges)
-            {
-                Vector3 a = section.botLeft.ToVector3();
-                GenDraw.DrawLineBetween(a, a + new Vector3(0f, 0f, 17f));
-                GenDraw.DrawLineBetween(a, a + new Vector3(17f, 0f, 0f));
-                if (section.CellRect.Contains(UI.MouseCell()))
-                {
-                    var bounds = section.Bounds;
-                    Vector3 a2 = bounds.Min.ToVector3();
-                    Vector3 a3 = bounds.Max.ToVector3() + new Vector3(1f, 0f, 1f);
-                    GenDraw.DrawLineBetween(a2, a2 + new Vector3((float)bounds.Width, 0f, 0f), SimpleColor.Magenta, 0.2f);
-                    GenDraw.DrawLineBetween(a2, a2 + new Vector3(0f, 0f, (float)bounds.Height), SimpleColor.Magenta, 0.2f);
-                    GenDraw.DrawLineBetween(a3, a3 - new Vector3((float)bounds.Width, 0f, 0f), SimpleColor.Magenta, 0.2f);
-                    GenDraw.DrawLineBetween(a3, a3 - new Vector3(0f, 0f, (float)bounds.Height), SimpleColor.Magenta, 0.2f);
-                }
-            }
+            //if (DebugViewSettings.drawSectionEdges)
+            //{
+            //    Vector3 a = section.botLeft.ToVector3();
+            //    GenDraw.DrawLineBetween(a, a + new Vector3(0f, 0f, 17f));
+            //    GenDraw.DrawLineBetween(a, a + new Vector3(17f, 0f, 0f));
+            //    if (section.CellRect.Contains(UI.MouseCell()))
+            //    {
+            //        var bounds = section.Bounds;
+            //        Vector3 a2 = bounds.Min.ToVector3();
+            //        Vector3 a3 = bounds.Max.ToVector3() + new Vector3(1f, 0f, 1f);
+            //        GenDraw.DrawLineBetween(a2, a2 + new Vector3((float)bounds.Width, 0f, 0f), SimpleColor.Magenta, 0.2f);
+            //        GenDraw.DrawLineBetween(a2, a2 + new Vector3(0f, 0f, (float)bounds.Height), SimpleColor.Magenta, 0.2f);
+            //        GenDraw.DrawLineBetween(a3, a3 - new Vector3((float)bounds.Width, 0f, 0f), SimpleColor.Magenta, 0.2f);
+            //        GenDraw.DrawLineBetween(a3, a3 - new Vector3(0f, 0f, (float)bounds.Height), SimpleColor.Magenta, 0.2f);
+            //    }
+            //}
         }
 
         private void DrawLayer(Section section, Type layerType, Vector3 drawPos)
         {
             var layer = section.GetLayer(layerType);
-            if (layer.Dirty) layer.Regenerate();
             foreach (var subMesh in layer.subMeshes)
             {
-                if (layerType == terrainLayerType && subMesh.material.shader != VIF_Shaders.terrainHardWithZ) subMesh.material.shader = VIF_Shaders.terrainHardWithZ;
+                if (layerType == typeof(SectionLayer_TerrainOnVehicle) && subMesh.material.shader != VIF_Shaders.terrainHardWithZ) subMesh.material.shader = VIF_Shaders.terrainHardWithZ;
                 Graphics.DrawMesh(subMesh.mesh, drawPos, base.FullRotation.AsQuat(), subMesh.material, 0); ;
             }
         }
@@ -250,17 +254,17 @@ namespace VehicleInteriors
                 IntVec3 size = map.Size;
                 Vector3 s = new Vector3(500f, 1f, (float)size.z);
                 Matrix4x4 matrix = default(Matrix4x4);
-                matrix.SetTRS(new Vector3(-250f, VehiclePawnWithInterior.ClipAltitude, size.z / 2f).OrigToVehicleMap(this), quat, s);
+                matrix.SetTRS(new Vector3(-250f, 0f, size.z / 2f).OrigToVehicleMap(this), quat, s);
                 Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
                 matrix = default(Matrix4x4);
-                matrix.SetTRS(new Vector3(size.x + 250f, VehiclePawnWithInterior.ClipAltitude, size.z / 2f).OrigToVehicleMap(this), quat, s);
+                matrix.SetTRS(new Vector3(size.x + 250f, 0f, size.z / 2f).OrigToVehicleMap(this), quat, s);
                 Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
                 s = new Vector3(1000f, 1f, 500f);
                 matrix = default(Matrix4x4);
-                matrix.SetTRS(new Vector3(size.x / 2f, VehiclePawnWithInterior.ClipAltitude, size.z + 250f).OrigToVehicleMap(this), quat, s);
+                matrix.SetTRS(new Vector3(size.x / 2f, 0f, size.z + 250f).OrigToVehicleMap(this), quat, s);
                 Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
                 matrix = default(Matrix4x4);
-                matrix.SetTRS(new Vector3(size.x / 2f, VehiclePawnWithInterior.ClipAltitude, -250f).OrigToVehicleMap(this), quat, s);
+                matrix.SetTRS(new Vector3(size.x / 2f, 0f, -250f).OrigToVehicleMap(this), quat, s);
                 Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
             }
         }
@@ -280,11 +284,9 @@ namespace VehicleInteriors
         
         private readonly List<IntVec3> interactionCellsInt = new List<IntVec3>();
 
-        private static readonly Type terrainLayerType = AccessTools.TypeByName("Verse.SectionLayer_Terrain");
-
         private static readonly Material ClipMat = SolidColorMaterials.NewSolidColorMaterial(new Color(0.3f, 0.1f, 0.1f, 0.65f), ShaderDatabase.MetaOverlay);
 
-        private static readonly float ClipAltitude = AltitudeLayer.WorldClipper.AltitudeFor();
+        //private static readonly float ClipAltitude = AltitudeLayer.WorldClipper.AltitudeFor();
 
         private static readonly AccessTools.FieldRef<Section, bool> anyLayerDirty = AccessTools.FieldRefAccess<Section, bool>("anyLayerDirty");
 

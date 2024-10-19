@@ -13,9 +13,16 @@ namespace VehicleInteriors
         public static Toil GotoVehicleEnterSpot(Thing enterSpot)
         {
             Toil toil = ToilMaker.MakeToil("GotoThingOnVehicle");
-            IntVec3 dest = enterSpot.PositionOnBaseMap() - enterSpot.BaseFullRotationOfThing().FacingCell;
+            IntVec3 dest = IntVec3.Invalid;
+            IntVec3 faceCell = IntVec3.Zero;
             toil.initAction = delegate ()
             {
+                faceCell = enterSpot.BaseFullRotationOfThing().FacingCell;
+                if ((enterSpot.PositionOnBaseMap() - faceCell).GetFirstThing<VehiclePawnWithInterior>(enterSpot.BaseMapOfThing()) != null)
+                {
+                    faceCell *= 2;
+                }
+                dest = enterSpot.PositionOnBaseMap() - faceCell;
                 if (toil.actor.Position == dest)
                 {
                     toil.actor.jobs.curDriver.ReadyForNextToil();
@@ -26,7 +33,7 @@ namespace VehicleInteriors
             toil.defaultCompleteMode = ToilCompleteMode.PatherArrival;
             toil.tickAction = () =>
             {
-                var curDest = enterSpot.PositionOnBaseMap() - enterSpot.BaseFullRotationOfThing().FacingCell;
+                var curDest = enterSpot.PositionOnBaseMap() - faceCell;
                 if (dest != curDest)
                 {
                     dest = curDest;
@@ -103,15 +110,23 @@ namespace VehicleInteriors
                 var toil2 = Toils_General.Wait(90);
                 toil2.handlingFacing = true;
                 var initTick = 0;
+                var faceCell = IntVec3.Zero;
+                var dist = 1;
                 toil2.initAction = (Action)Delegate.Combine(toil2.initAction, new Action(() =>
                 {
                     initTick = GenTicks.TicksGame;
-                    var curPos = (exitSpot.Thing.PositionOnBaseMap() - exitSpot.Thing.BaseFullRotationOfThing().FacingCell).ToVector3Shifted();
+                    faceCell = exitSpot.Thing.BaseFullRotationOfThing().FacingCell;
+                    if ((exitSpot.Thing.PositionOnBaseMap() - faceCell).GetFirstThing<VehiclePawnWithInterior>(exitSpot.Thing.BaseMapOfThing()) != null)
+                    {
+                        dist = 2;
+                        toil2.defaultDuration *= 2;
+                    }
+                    var curPos = (exitSpot.Thing.PositionOnBaseMap() - faceCell * dist).ToVector3Shifted();
                 }));
 
                 toil2.tickAction = () =>
                 {
-                    var curPos = (exitSpot.Thing.PositionOnBaseMap() - exitSpot.Thing.Rotation.FacingCell).ToVector3Shifted();
+                    var curPos = (exitSpot.Thing.PositionOnBaseMap() - exitSpot.Thing.Rotation.FacingCell * dist).ToVector3Shifted();
                     driver.drawOffset = (curPos - exitSpot.Thing.DrawPos.WithY(0f)) * ((GenTicks.TicksGame - initTick) / 90f);
                     toil2.actor.Rotation = exitSpot.Thing.BaseRotationOfThing();
                 };
@@ -125,7 +140,7 @@ namespace VehicleInteriors
                     //var drafted = toil3.actor.Drafted;
                     //var selected = Find.Selector.IsSelected(toil3.actor);
                     toil3.actor.DeSpawnWithoutJobClear();
-                    GenSpawn.Spawn(toil3.actor, (exitSpot.Thing.PositionOnBaseMap() - exitSpot.Thing.BaseFullRotationOfThing().FacingCell), exitSpot.Thing.BaseMapOfThing(), WipeMode.Vanish);
+                    GenSpawn.Spawn(toil3.actor, (exitSpot.Thing.PositionOnBaseMap() - faceCell * dist), exitSpot.Thing.BaseMapOfThing(), WipeMode.Vanish);
                     //if (toil3.actor.drafter != null) draftedInt(toil3.actor.drafter) = drafted;
                     //if (selected) Find.Selector.SelectedObjects.Add(toil3.actor);
                 };
@@ -148,9 +163,17 @@ namespace VehicleInteriors
                 Vector3 initPos = Vector3.zero;
                 Vector3 initPos2 = Vector3.zero;
                 var initTick = 0;
+                var faceCell = IntVec3.Zero;
+                var dist = 1;
                 toil2.initAction = (Action)Delegate.Combine(toil2.initAction, new Action(() =>
                 {
-                    initPos = (enterSpot.Thing.PositionOnBaseMap() - enterSpot.Thing.BaseFullRotationOfThing().FacingCell).ToVector3Shifted();
+                    faceCell = enterSpot.Thing.BaseFullRotationOfThing().FacingCell;
+                    if ((enterSpot.Thing.PositionOnBaseMap() - faceCell).GetFirstThing<VehiclePawnWithInterior>(enterSpot.Thing.BaseMapOfThing()) != null)
+                    {
+                        dist = 2;
+                        toil2.defaultDuration *= 2;
+                    }
+                    initPos = (enterSpot.Thing.PositionOnBaseMap() - faceCell * dist).ToVector3Shifted();
                     initPos2 = enterSpot.Thing.DrawPos.WithY(0f);
                     initTick = GenTicks.TicksGame;
                 }));
@@ -158,7 +181,6 @@ namespace VehicleInteriors
                 toil2.tickAction = () =>
                 {
                     driver.drawOffset = (initPos2 - initPos) * ((GenTicks.TicksGame - initTick) / 90f) + enterSpot.Thing.DrawPos - initPos2;
-                    driver.drawOffset.y += VehicleMapUtility.altitudeOffsetFull;
                     toil2.actor.Rotation = enterSpot.Thing.BaseRotationOfThing();
                 };
                 yield return toil2;
@@ -178,6 +200,52 @@ namespace VehicleInteriors
                 yield return toil3;
                 yield return afterEnterMap;
             }
+        }
+
+        public static T FailOnForbidden<T>(this T f, TargetIndex ind) where T : IJobEndable
+        {
+            f.AddEndCondition(delegate
+            {
+                Pawn actor = f.GetActor();
+                if (actor.Faction != Faction.OfPlayer)
+                {
+                    return JobCondition.Ongoing;
+                }
+                if (actor.jobs.curJob.ignoreForbidden)
+                {
+                    return JobCondition.Ongoing;
+                }
+                Thing thing = actor.jobs.curJob.GetTarget(ind).Thing;
+                if (thing == null)
+                {
+                    return JobCondition.Ongoing;
+                }
+                if (thing.IsForbidden(actor))
+                {
+                    return JobCondition.Incompletable;
+                }
+                return JobCondition.Ongoing;
+            });
+            return f;
+        }
+
+        public static T FailOnDespawnedOrNull<T>(this T f, TargetIndex ind) where T : IJobEndable
+        {
+            f.AddEndCondition(delegate
+            {
+                if (f.GetActor().jobs.curJob.GetTarget(ind).DespawnedOrNull(f.GetActor()))
+                {
+                    return JobCondition.Incompletable;
+                }
+                return JobCondition.Ongoing;
+            });
+            return f;
+        }
+
+        public static bool DespawnedOrNull(this LocalTargetInfo target, Pawn actor)
+        {
+            Thing thing = target.Thing;
+            return (thing != null || !target.IsValid) && (thing == null || !thing.Spawned || thing.BaseMapOfThing() != actor.BaseMapOfThing());
         }
 
         private static AccessTools.FieldRef<Pawn_DraftController, bool> draftedInt = AccessTools.FieldRefAccess<Pawn_DraftController, bool>("draftedInt");

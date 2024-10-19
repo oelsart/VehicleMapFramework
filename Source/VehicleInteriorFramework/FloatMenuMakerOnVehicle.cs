@@ -2289,9 +2289,9 @@ namespace VehicleInteriors
 					opts.Add(item8);
 				}
 			}
-			foreach (LocalTargetInfo localTargetInfo15 in GenUI.TargetsAt(clickPos, TargetingParameters.ForPawns(), true, null))
+			foreach (LocalTargetInfo localTargetInfo15 in SelectorOnVehicleUtility.TargetsAt(clickPos, TargetingParameters.ForPawns(), true, null))
 			{
-				if (!FloatMenuMakerOnVehicle.cachedThings.Contains(localTargetInfo15.Pawn))
+				if (!FloatMenuMakerOnVehicle.cachedThings.Contains(localTargetInfo15.Pawn) && localTargetInfo15.Pawn != SelectorOnVehicleUtility.vehicleForSelector)
 				{
 					foreach (FloatMenuOption item9 in localTargetInfo15.Pawn.GetFloatMenuOptions(pawn))
 					{

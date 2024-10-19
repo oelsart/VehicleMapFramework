@@ -87,11 +87,19 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="VehicleHandlerBuildable.cs" />
+    <Compile Include="VehicleMap\SectionLayer_TerrainOnVehicle.cs" />
+    <Compile Include="VehicleRoleBuildable.cs" />
+    <Compile Include="VehicleUpgradeBuildable.cs" />
     <Compile Include="CacheUtility.cs" />
     <Compile Include="Combat\AttackTargetFinderOnVehicle.cs" />
     <Compile Include="Combat\CastPositionFinderOnVehicle.cs" />
     <Compile Include="Combat\GenClosestOnVehicle.cs" />
     <Compile Include="Combat\GenSightOnVehicle.cs" />
+    <Compile Include="CompBuildableUpgrade.cs" />
+    <Compile Include="CompProperties_BuildableUpgrade.cs" />
+    <Compile Include="CompVehicleSeat.cs" />
+    <Compile Include="Jobs\JobDriver_BoardAcrossMaps.cs" />
     <Compile Include="RespawnWithJobsUtility.cs" />
     <Compile Include="FloatMenuOnVehicleUtility.cs" />
     <Compile Include="FindBuildingUtility.cs" />
@@ -148,7 +156,7 @@
     <Compile Include="Verbs\Verb_ShootOneUseOnVehicle.cs" />
     <Compile Include="Verbs\Verb_ShootOnVehicle.cs" />
     <Compile Include="VehiclePawnWithMapCache.cs" />
-    <Compile Include="VehicleMap.cs" />
+    <Compile Include="VehicleMapProps.cs" />
     <Compile Include="VehicleMap\Command_FocusVehicleMap.cs" />
     <Compile Include="VehicleMap\GenStep_VehicleInterior.cs" />
     <Compile Include="VehicleMap\MapParent_Vehicle.cs" />
@@ -168,9 +176,54 @@
     <Compile Include="VIF_HarmonyPatches\Patches_Job.cs" />
     <Compile Include="VIF_HarmonyPatches\Patches_Map.cs" />
     <Compile Include="VIF_HarmonyPatches\Patches_Selector.cs" />
+    <Compile Include="VIF_HarmonyPatches\Patches_VehicleFramework.cs" />
     <Compile Include="VIF_HarmonyPatches\Patches_VehicleMapOffset.cs" />
     <Compile Include="VIF_Shaders.cs" />
   </ItemGroup>
   <ItemGroup />
+  <ItemGroup>
+    <Content Include="..\..\Defs\BiomeDefs\Biomes_VehicleInteriors.xml">
+      <Link>Defs\BiomeDefs\Biomes_VehicleInteriors.xml</Link>
+    </Content>
+    <Content Include="..\..\Defs\JobDefs\Jobs.xml">
+      <Link>Defs\JobDefs\Jobs.xml</Link>
+    </Content>
+    <Content Include="..\..\Defs\MapGeneration\VehicleMapGenerator.xml">
+      <Link>Defs\MapGeneration\VehicleMapGenerator.xml</Link>
+    </Content>
+    <Content Include="..\..\Defs\SoundDefs\Sounds.xml">
+      <Link>Defs\SoundDefs\Sounds.xml</Link>
+    </Content>
+    <Content Include="..\..\Defs\TerrainDefs\Terrains.xml">
+      <Link>Defs\TerrainDefs\Terrains.xml</Link>
+    </Content>
+    <Content Include="..\..\Defs\ThingDefs\EnterSpots.xml">
+      <Link>Defs\ThingDefs\EnterSpots.xml</Link>
+    </Content>
+    <Content Include="..\..\Defs\ThingDefs\VehicleSeats.xml">
+      <Link>Defs\ThingDefs\VehicleSeats.xml</Link>
+    </Content>
+    <Content Include="..\..\Defs\VehicleDefs\BaseVehiclePawnWithMap.xml">
+      <Link>Defs\VehicleDefs\BaseVehiclePawnWithMap.xml</Link>
+    </Content>
+    <Content Include="..\..\Defs\VehicleDefs\Crawler\Crawler_Buildable.xml">
+      <Link>Defs\VehicleDefs\Crawler\Crawler_Buildable.xml</Link>
+    </Content>
+    <Content Include="..\..\Defs\VehicleDefs\Crawler\Crawler_VehiclePawn.xml">
+      <Link>Defs\VehicleDefs\Crawler\Crawler_VehiclePawn.xml</Link>
+    </Content>
+    <Content Include="..\..\Defs\VehicleDefs\testesa.txt">
+      <Link>Defs\VehicleDefs\testesa.txt</Link>
+    </Content>
+    <Content Include="..\..\Defs\WeatherDefs\Weathers.xml">
+      <Link>Defs\WeatherDefs\Weathers.xml</Link>
+    </Content>
+    <Content Include="..\..\Defs\WorkGiverDefs\WorkGivers.xml">
+      <Link>Defs\WorkGiverDefs\WorkGivers.xml</Link>
+    </Content>
+    <Content Include="..\..\Defs\WorldObjectDefs\WorldObjects.xml">
+      <Link>Defs\WorldObjectDefs\WorldObjects.xml</Link>
+    </Content>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -88,7 +88,7 @@ namespace VehicleInteriors
                     }
                 }
                 this.FinalizeMesh(MeshParts.All);
-                this.subMeshesByRot[i] = this.subMeshes;
+                this.subMeshesByRot[i] = this.subMeshes;    
                 VehicleMapUtility.rotForPrint.Rotate(RotationDirection.Clockwise);
             }
         }

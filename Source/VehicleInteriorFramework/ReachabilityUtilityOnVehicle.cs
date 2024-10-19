@@ -1,11 +1,9 @@
-﻿using System;
+﻿using RimWorld;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Verse.AI;
 using Verse;
-using RimWorld;
+using Verse.AI;
 
 namespace VehicleInteriors
 {
@@ -13,12 +11,13 @@ namespace VehicleInteriors
     {
         public static bool CanReach(Map departMap, IntVec3 root, LocalTargetInfo dest3, PathEndMode peMode, TraverseParms traverseParms, Map destMap, out LocalTargetInfo dest1, out LocalTargetInfo dest2)
         {
+            dest1 = LocalTargetInfo.Invalid;
+            dest2 = LocalTargetInfo.Invalid;
+            if (departMap == null || destMap == null) return false;
             MapParent_Vehicle parentVehicle;
             MapParent_Vehicle parentVehicle2;
             var destBaseMap = (parentVehicle = destMap.Parent as MapParent_Vehicle) != null ? parentVehicle.vehicle.Map : destMap;
             var departBaseMap = (parentVehicle2 = departMap.Parent as MapParent_Vehicle) != null ? parentVehicle2.vehicle.Map : departMap;
-            dest1 = LocalTargetInfo.Invalid;
-            dest2 = LocalTargetInfo.Invalid;
 
             if (departBaseMap == destBaseMap)
             {

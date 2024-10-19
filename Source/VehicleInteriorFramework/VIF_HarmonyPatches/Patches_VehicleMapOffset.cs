@@ -186,35 +186,6 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         }
     }
 
-    [HarmonyPatch("Vehicles.Rendering", "DrawSelectionBracketsVehicles")]
-    public static class Patch_Rendering_DrawSelectionBracketsVehicles
-    {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
-        {
-            var codes = instructions.ToList();
-            var pos = codes.FindLastIndex(c => c.opcode == OpCodes.Stloc_3);
-            var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithInterior));
-            var rot = generator.DeclareLocal(typeof(Rot8));
-            var label = generator.DefineLabel();
-
-            codes[pos].labels.Add(label);
-            codes.InsertRange(pos, new[]
-            {
-                CodeInstruction.LoadLocal(0),
-                new CodeInstruction(OpCodes.Ldloca_S, vehicle),
-                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_IsOnVehicleMapOf),
-                new CodeInstruction(OpCodes.Brfalse_S, label),
-                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_FullRotation),
-                new CodeInstruction(OpCodes.Stloc_S, rot),
-                new CodeInstruction(OpCodes.Ldloca_S, rot),
-                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_AsAngleRot8),
-                new CodeInstruction(OpCodes.Add)
-            });
-            return codes;
-        }
-    }
-
     //[HarmonyPatch(typeof(Building_Bed), nameof(Building_Bed.GetSleepingSlotPos))]
     //public static class Patch_Building_Bed_GetSleepingSlotPos
     //{
