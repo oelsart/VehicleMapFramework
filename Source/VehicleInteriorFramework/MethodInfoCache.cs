@@ -3,6 +3,7 @@ using RimWorld.Planet;
 using SmashTools;
 using System;
 using System.Reflection;
+using System.Reflection.Emit;
 using UnityEngine;
 using Vehicles;
 using Verse;
@@ -62,5 +63,13 @@ namespace VehicleInteriors
         public static readonly MethodInfo g_AsAngleRot8 = AccessTools.PropertyGetter(typeof(Rot8), nameof(Rot8.AsAngle));
 
         public static readonly MethodInfo m_BaseMap = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.BaseMap));
+
+        public static readonly MethodInfo m_RotatePoint = AccessTools.Method(typeof(Ext_Math), nameof(Ext_Math.RotatePoint));
+
+        public static readonly MethodInfo g_Thing_Spawned = AccessTools.PropertyGetter(typeof(Thing), nameof(Thing.Spawned));
+
+        public static readonly MethodInfo m_Rot8_AsQuat = AccessTools.Method(typeof(Rot8Utility), nameof(Rot8Utility.AsQuat));
+
+        public static readonly MethodInfo o_Quaternion_Multiply = AccessTools.Method(typeof(Quaternion), "op_Multiply", new Type[] { typeof(Quaternion), typeof(Quaternion) });
     }
 }

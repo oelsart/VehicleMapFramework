@@ -93,11 +93,11 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         public static void Postfix(Vector3 drawLoc, PawnPosture posture, Pawn ___pawn, ref Vector3 __result)
         {
             var corpse = ___pawn.Corpse;
-            if (corpse != null && corpse.IsOnVehicleMapOf(out var vehicle))
+            if (corpse != null && corpse.IsOnVehicleMapOf(out var vehicle) && vehicle.Spawned)
             {
                 __result.y += vehicle.cachedDrawPos.y;
             }
-            else if (___pawn.IsOnVehicleMapOf(out var vehicle2))
+            else if (___pawn.IsOnVehicleMapOf(out var vehicle2) && vehicle2.Spawned)
             {
                 if (___pawn.CurrentBed() != null)
                 {
@@ -110,7 +110,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             }
             else if (___pawn.SpawnedParentOrMe is VehiclePawnWithInterior)
             {
-                __result.y += drawLoc.y;
+                __result.y = drawLoc.y;
             }
         }
     }
@@ -175,4 +175,6 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             }
         }
     }
+
+
 }

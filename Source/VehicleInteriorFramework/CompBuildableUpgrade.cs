@@ -1,18 +1,13 @@
 ﻿using SmashTools;
 using System.Collections.Generic;
+using Vehicles;
 using Verse;
 
 namespace VehicleInteriors
 {
     public class CompBuildableUpgrade : ThingComp
     {
-        public CompProperties_BuildableUpgrade Props
-        {
-            get
-            {
-                return (CompProperties_BuildableUpgrade)this.props;
-            }
-        }
+        public CompProperties_BuildableUpgrade Props => (CompProperties_BuildableUpgrade)this.props;
         
         public override void PostSpawnSetup(bool respawningAfterLoad)
         {
@@ -56,6 +51,8 @@ namespace VehicleInteriors
         {
             Scribe_Collections.Look(ref this.handlerUniqueIDs, "handlerUniqueIDs", LookMode.Deep);
         }
+
+        public List<Upgrade> upgrades;
 
         public List<UpgradeID> handlerUniqueIDs = new List<UpgradeID>();
     }

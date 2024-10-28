@@ -17,7 +17,7 @@ namespace VehicleInteriors
             }
             if (!lookup.ContainsKey(shaderPath))
             {
-                lookup[shaderPath] = VehicleInteriors.mod.Content.assetBundles.loadedAssetBundles.Find(a => a.name == "vehicleinteriors").LoadAsset<Shader>($"Assets/Data/VehicleInteriors/{shaderPath}.shader");
+                lookup[shaderPath] = VehicleInteriors.Bundle.LoadAsset<Shader>($"Assets/Data/VehicleInteriors/{shaderPath}.shader");
             }
             Shader shader = lookup[shaderPath];
 
@@ -28,6 +28,7 @@ namespace VehicleInteriors
             }
             return shader;
         }
+
         public static Shader terrainHardWithZ = VIF_Shaders.LoadShader("TerrainHardWithZ");
     }
 }

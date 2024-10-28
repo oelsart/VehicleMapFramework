@@ -3,6 +3,7 @@ using RimWorld;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Vehicles;
 using Verse;
 using Verse.AI;
 
@@ -15,14 +16,17 @@ namespace VehicleInteriors
             Toil toil = ToilMaker.MakeToil("GotoThingOnVehicle");
             IntVec3 dest = IntVec3.Invalid;
             IntVec3 faceCell = IntVec3.Zero;
+            enterSpot.IsOnVehicleMapOf(out var vehicle);
+            var dist = 1;
             toil.initAction = delegate ()
             {
                 faceCell = enterSpot.BaseFullRotationOfThing().FacingCell;
-                if ((enterSpot.PositionOnBaseMap() - faceCell).GetFirstThing<VehiclePawnWithInterior>(enterSpot.BaseMapOfThing()) != null)
+                faceCell.y = 0;
+                while ((enterSpot.PositionOnBaseMap() - faceCell * dist).GetThingList(enterSpot.BaseMapOfThing()).Contains(vehicle))
                 {
-                    faceCell *= 2;
+                    dist++;
                 }
-                dest = enterSpot.PositionOnBaseMap() - faceCell;
+                dest = enterSpot.PositionOnBaseMap() - faceCell * dist;
                 if (toil.actor.Position == dest)
                 {
                     toil.actor.jobs.curDriver.ReadyForNextToil();
@@ -33,7 +37,7 @@ namespace VehicleInteriors
             toil.defaultCompleteMode = ToilCompleteMode.PatherArrival;
             toil.tickAction = () =>
             {
-                var curDest = enterSpot.PositionOnBaseMap() - faceCell;
+                var curDest = enterSpot.PositionOnBaseMap() - faceCell * dist;
                 if (dest != curDest)
                 {
                     dest = curDest;
@@ -112,16 +116,20 @@ namespace VehicleInteriors
                 var initTick = 0;
                 var faceCell = IntVec3.Zero;
                 var dist = 1;
+                exitSpot.Thing.IsOnVehicleMapOf(out var vehicle);
+                var baseMap = exitSpot.Thing.BaseMapOfThing();
                 toil2.initAction = (Action)Delegate.Combine(toil2.initAction, new Action(() =>
                 {
                     initTick = GenTicks.TicksGame;
+                    var basePos = exitSpot.Thing.PositionOnBaseMap();
                     faceCell = exitSpot.Thing.BaseFullRotationOfThing().FacingCell;
-                    if ((exitSpot.Thing.PositionOnBaseMap() - faceCell).GetFirstThing<VehiclePawnWithInterior>(exitSpot.Thing.BaseMapOfThing()) != null)
+                    faceCell.y = 0;
+                    while ((basePos - faceCell * dist).GetThingList(baseMap).Contains(vehicle))
                     {
-                        dist = 2;
-                        toil2.defaultDuration *= 2;
+                        dist++;
                     }
-                    var curPos = (exitSpot.Thing.PositionOnBaseMap() - faceCell * dist).ToVector3Shifted();
+                    toil2.defaultDuration *= dist;
+                    var curPos = (basePos - faceCell * dist).ToVector3Shifted();
                 }));
 
                 toil2.tickAction = () =>
@@ -134,6 +142,17 @@ namespace VehicleInteriors
 
                 var toil3 = ToilMaker.MakeToil("Exit Vehicle Map");
                 toil3.defaultCompleteMode = ToilCompleteMode.Instant;
+                toil3.FailOn(() =>
+                {
+                    var basePos = exitSpot.Thing.PositionOnBaseMap();
+                    faceCell = exitSpot.Thing.BaseFullRotationOfThing().FacingCell;
+                    faceCell.y = 0;
+                    while ((basePos - faceCell * dist).GetThingList(baseMap).Contains(vehicle))
+                    {
+                        dist++;
+                    }
+                    return !(basePos - faceCell * dist).Standable(baseMap);
+                });
                 toil3.initAction = () =>
                 {
                     driver.drawOffset = Vector3.zero;
@@ -165,15 +184,19 @@ namespace VehicleInteriors
                 var initTick = 0;
                 var faceCell = IntVec3.Zero;
                 var dist = 1;
+                enterSpot.Thing.IsOnVehicleMapOf(out var vehicle);
+                var baseMap = enterSpot.Thing.BaseMapOfThing();
                 toil2.initAction = (Action)Delegate.Combine(toil2.initAction, new Action(() =>
                 {
+                    var basePos = enterSpot.Thing.PositionOnBaseMap();
                     faceCell = enterSpot.Thing.BaseFullRotationOfThing().FacingCell;
-                    if ((enterSpot.Thing.PositionOnBaseMap() - faceCell).GetFirstThing<VehiclePawnWithInterior>(enterSpot.Thing.BaseMapOfThing()) != null)
+                    faceCell.y = 0;
+                    while ((basePos - faceCell * dist).GetThingList(baseMap).Contains(vehicle))
                     {
-                        dist = 2;
-                        toil2.defaultDuration *= 2;
+                        dist++;
                     }
-                    initPos = (enterSpot.Thing.PositionOnBaseMap() - faceCell * dist).ToVector3Shifted();
+                    toil2.defaultDuration *= dist;
+                    initPos = (basePos - faceCell * dist).ToVector3Shifted();
                     initPos2 = enterSpot.Thing.DrawPos.WithY(0f);
                     initTick = GenTicks.TicksGame;
                 }));

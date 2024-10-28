@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Vehicles;
 using Verse;
 
 namespace VehicleInteriors
@@ -19,8 +20,21 @@ namespace VehicleInteriors
 
         public override void DrawLayer()
         {
-            var vehicleParent = base.Map.Parent as MapParent_Vehicle;
-            this.DrawLayer(vehicleParent.vehicle, Vector3.zero.OrigToVehicleMap(vehicleParent.vehicle));
+
+            if (!this.Visible)
+            {
+                return;
+            }
+            var subMeshes = this.subMeshesByRot[Rot4.NorthInt];
+            int count = subMeshes.Count;
+            for (int i = 0; i < count; i++)
+            {
+                LayerSubMesh layerSubMesh = subMeshes[i];
+                if (layerSubMesh.finalized && !layerSubMesh.disabled)
+                {
+                    Graphics.DrawMesh(layerSubMesh.mesh, Matrix4x4.identity, layerSubMesh.material, 0);
+                }
+            }
         }
 
         public void DrawLayer(VehiclePawnWithInterior vehicle, Vector3 drawPos)

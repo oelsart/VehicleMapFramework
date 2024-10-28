@@ -1,7 +1,9 @@
 ﻿using RimWorld;
+using RimWorld.Planet;
 using SmashTools;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 using Vehicles;
 using Verse;
 using Verse.AI;
@@ -10,27 +12,25 @@ namespace VehicleInteriors
 {
     public class CompVehicleSeat : CompBuildableUpgrade
     {
-        new CompProperties_BuildableUpgrade Props => (CompProperties_BuildableUpgrade)this.props;
-
         public override IEnumerable<FloatMenuOption> CompFloatMenuOptions(Pawn selPawn)
         {
             if (this.parent.IsOnVehicleMapOf(out var vehicle) && selPawn.CanReach(this.parent, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, this.parent.Map, out var exitSpot, out var enterSpot))
             {
                 foreach (var handler in vehicle.handlers)
                 {
-                    if (this.Props.upgrades.Any(u =>
+                    if (handler.AreSlotsAvailable && this.Props.upgrades.Any(u =>
                     {
                         if (!(u is VehicleUpgrade vehicleUpgrade)) return false;
                         return vehicleUpgrade.roles.Any(r => r.key == handler.role.key);
                     }))
                     {
-                        VehicleReservationManager cachedMapComponent = vehicle.Map.GetCachedMapComponent<VehicleReservationManager>();
+                        VehicleReservationManager cachedMapComponent = vehicle.Map?.GetCachedMapComponent<VehicleReservationManager>();
                         string key = "VF_EnterVehicle";
                         NamedArgument arg = vehicle.LabelShort;
                         NamedArgument arg2 = handler.role.label;
                         int slots = handler.role.Slots;
                         int count = handler.handlers.Count;
-                        VehicleHandlerReservation reservation = cachedMapComponent.GetReservation<VehicleHandlerReservation>(vehicle);
+                        VehicleHandlerReservation reservation = cachedMapComponent?.GetReservation<VehicleHandlerReservation>(vehicle);
                         FloatMenuOption floatMenuOption2 = new FloatMenuOption(key.Translate(arg, arg2, (slots - (count + ((reservation != null) ? new int?(reservation.ClaimantsOnHandler(handler)) : null)).GetValueOrDefault()).ToString()), delegate ()
                         {
                             if (handler == null)
@@ -46,7 +46,7 @@ namespace VehicleInteriors
                             {
                                 return;
                             }
-                            vehicle.Map.GetCachedMapComponent<VehicleReservationManager>().Reserve<VehicleHandler, VehicleHandlerReservation>(vehicle, selPawn, selPawn.CurJob, handler);
+                            vehicle.Map?.GetCachedMapComponent<VehicleReservationManager>().Reserve<VehicleHandler, VehicleHandlerReservation>(vehicle, selPawn, selPawn.CurJob, handler);
                         }, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0);
                         yield return floatMenuOption2;
                     }
@@ -77,6 +77,15 @@ namespace VehicleInteriors
                             command_Action_PawnDrawer.pawn = pawn;
                             command_Action_PawnDrawer.action = delegate ()
                             {
+                                var caravan = pawn.GetCaravan();
+                                if (caravan != null)
+                                {
+                                    caravan.RemovePawn(pawn);
+                                }
+                                if (Find.WorldPawns.Contains(pawn))
+                                {
+                                    Find.WorldPawns.RemovePawn(pawn);
+                                }
                                 vehicle.DisembarkPawn(pawn);
                             };
                             if (exitBlocked)
@@ -89,5 +98,44 @@ namespace VehicleInteriors
                 }
             }
         }
+
+        public override void PostSpawnSetup(bool respawningAfterLoad)
+        {
+            base.PostSpawnSetup(respawningAfterLoad);
+            if (this.parent.IsOnVehicleMapOf(out var vehicle))
+            {
+                this.handlersToDraw = vehicle.handlers.Where(h => this.handlerUniqueIDs.Any(i => h.uniqueID == i.id))
+                    .Select(h => (h, base.Props.upgrades.SelectMany(u => (u as VehicleUpgrade).roles).FirstOrDefault(r => r?.key == h.role.key)));
+            }
+        }
+
+        public override void PostDeSpawn(Map map)
+        {
+            base.PostDeSpawn(map);
+            _ = this.handlersToDraw;
+        }
+
+        public override void PostDraw()
+        {
+            base.PostDraw();
+            if (this.parent.IsOnVehicleMapOf(out var vehicle) && !vehicle.Spawned && !this.handlersToDraw.NullOrEmpty())
+            {
+                foreach (var handler in this.handlersToDraw)
+                {
+                    if (handler.Item1.role.PawnRenderer != null)
+                    {
+                        foreach (Pawn pawn in handler.Item1.handlers)
+                        {
+                            Log.Message(pawn.ParentHolder as IThingHolderWithDrawnPawn);
+                            Vector3 drawLoc = this.parent.DrawPos + handler.Item2.pawnRenderer.DrawOffsetFor(this.parent.Rotation);
+                            Rot4 value = handler.Item1.role.PawnRenderer.RotFor(this.parent.Rotation);
+                            pawn.Drawer.renderer.RenderPawnAt(drawLoc, new Rot4?(value), false);
+                        }
+                    }
+                }
+            }
+        }
+
+        private IEnumerable<(VehicleHandler, VehicleUpgrade.RoleUpgrade)> handlersToDraw;
     }
 }

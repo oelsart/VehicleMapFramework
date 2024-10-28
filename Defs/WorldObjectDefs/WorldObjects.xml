@@ -6,6 +6,7 @@
     <label>vehicle map</label> <!-- hidden -->
     <worldObjectClass>VehicleInteriors.MapParent_Vehicle</worldObjectClass>
     <mapGenerator>VIF_InteriorGenerator</mapGenerator>
+    <useDynamicDrawer>false</useDynamicDrawer>
   </WorldObjectDef>
 
 </Defs>

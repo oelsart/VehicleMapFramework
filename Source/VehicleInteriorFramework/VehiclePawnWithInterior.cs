@@ -56,7 +56,7 @@ namespace VehicleInteriors
                     mapParent.vehicle = this;
                     mapParent.Tile = 0;
                     this.interiorMap = MapGenerator.GenerateMap(new IntVec3(vehicleMap.size.x, 1, vehicleMap.size.z), mapParent, mapParent.MapGeneratorDef, mapParent.ExtraGenStepDefs, null, true);
-                    Find.WorldObjects.Add(mapParent);
+                    VehicleMapParentsComponent.vehicleMaps.Add(mapParent);
                 }
             }
             base.SpawnSetup(map, respawningAfterLoad);
@@ -143,7 +143,7 @@ namespace VehicleInteriors
             this.interiorMap.listerHaulables = new ListerHaulables(this.interiorMap);
             //this.interiorMap.haulDestinationManager = new HaulDestinationManager(this.interiorMap);
 
-            foreach(var thing in this.interiorMap.listerThings.AllThings)
+            foreach (var thing in this.interiorMap.listerThings.AllThings)
             {
                 this.interiorMap.attackTargetsCache.Notify_ThingSpawned(thing);
                 this.Map.attackTargetsCache.Notify_ThingDespawned(thing);
@@ -165,6 +165,12 @@ namespace VehicleInteriors
             //}
             VehiclePawnWithMapCache.allVehicles[this.Map].Remove(this);
             base.DeSpawn(mode);
+            foreach (var thing in this.interiorMap.listerThings.AllThings)
+            {
+                VehiclePawnWithMapCache.cachedDrawPos.Remove(thing);
+                VehiclePawnWithMapCache.cachedPosOnBaseMap.Remove(thing);
+            }
+            this.cachedDrawPos = Vector3.zero;
         }
 
         public override void DrawAt(Vector3 drawLoc, Rot8 rot, float extraRotation, bool flip = false, bool compDraw = true)
@@ -213,9 +219,9 @@ namespace VehicleInteriors
             }
             this.DrawLayer(section, typeof(SectionLayer_TerrainOnVehicle), drawPos);
             ((SectionLayer_ThingsOnVehicle)section.GetLayer(typeof(SectionLayer_ThingsOnVehicle))).DrawLayer(this, drawPos);
-            this.DrawLayer(section, typeof(SectionLayer_LightingOverlay), drawPos);
             this.DrawLayer(section, typeof(SectionLayer_BuildingsDamage), drawPos);
             this.DrawLayer(section, typeof(SectionLayer_ThingsPowerGrid), drawPos);
+            ((SectionLayer_LightingOnVehicle)section.GetLayer(typeof(SectionLayer_LightingOnVehicle))).DrawLayer(this, drawPos);
             //if (DebugViewSettings.drawSectionEdges)
             //{
             //    Vector3 a = section.botLeft.ToVector3();
@@ -237,10 +243,16 @@ namespace VehicleInteriors
         private void DrawLayer(Section section, Type layerType, Vector3 drawPos)
         {
             var layer = section.GetLayer(layerType);
+            if (!layer.Visible)
+            {
+                return;
+            }
             foreach (var subMesh in layer.subMeshes)
             {
-                if (layerType == typeof(SectionLayer_TerrainOnVehicle) && subMesh.material.shader != VIF_Shaders.terrainHardWithZ) subMesh.material.shader = VIF_Shaders.terrainHardWithZ;
-                Graphics.DrawMesh(subMesh.mesh, drawPos, base.FullRotation.AsQuat(), subMesh.material, 0); ;
+                if (subMesh.finalized && !subMesh.disabled)
+                {
+                    Graphics.DrawMesh(subMesh.mesh, drawPos, base.FullRotation.AsQuat(), subMesh.material, 0);
+                }
             }
         }
 
@@ -249,7 +261,6 @@ namespace VehicleInteriors
             if (Command_FocusVehicleMap.FocuseLockedVehicle == this || Command_FocusVehicleMap.FocusedVehicle == this)
             {
                 Material material = VehiclePawnWithInterior.ClipMat;
-                var drawPos = this.cachedDrawPos;
                 var quat = this.FullRotation.AsQuat();
                 IntVec3 size = map.Size;
                 Vector3 s = new Vector3(500f, 1f, (float)size.z);
@@ -278,7 +289,7 @@ namespace VehicleInteriors
 
         public Map interiorMap;
 
-        public Vector3 cachedDrawPos;
+        public Vector3 cachedDrawPos = Vector3.zero;
 
         private static int lastCachedTick = -1;
         

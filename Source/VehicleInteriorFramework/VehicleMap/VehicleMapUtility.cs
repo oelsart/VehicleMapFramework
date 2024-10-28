@@ -24,11 +24,6 @@ namespace VehicleInteriors
             }
         }
 
-        public static IEnumerable<Map> ExceptVehicleMaps(this IEnumerable<Map> maps)
-        {
-            return maps.Where(m => !(m.Parent is MapParent_Vehicle parentVehicle) || !parentVehicle.vehicle.Spawned);
-        }
-
         public static bool IsVehicleMapOf(this Map map, out VehiclePawnWithInterior vehicle)
         {
             if (map?.Parent is MapParent_Vehicle parentVehicle)
@@ -82,7 +77,7 @@ namespace VehicleInteriors
 
         public static CellRect ClipInsideVehicleMap(ref this CellRect cellRect, Map map)
         {
-            if (map.IsVehicleMapOf(out var vehicle))
+            if (map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
             {
                 var clip = cellRect.ClipInsideRect(vehicle.VehicleRect(true));
                 return cellRect = clip.MovedBy(-clip.Min);
@@ -184,9 +179,9 @@ namespace VehicleInteriors
         {
             if (map?.Parent is MapParent_Vehicle)
             {
-                return subClasses.Except(new Type[] { typeof(SectionLayer_ThingsGeneral), t_SectionLayer_Terrain }).ToList();
+                return subClasses.Except(new Type[] { typeof(SectionLayer_ThingsGeneral), t_SectionLayer_Terrain, typeof(SectionLayer_LightingOverlay) }).ToList();
             }
-            return subClasses.Except(new Type[] { typeof(SectionLayer_ThingsOnVehicle), typeof(SectionLayer_TerrainOnVehicle) }).ToList();
+            return subClasses.Except(new Type[] { typeof(SectionLayer_ThingsOnVehicle), typeof(SectionLayer_TerrainOnVehicle), typeof(SectionLayer_LightingOnVehicle) }).ToList();
         }
 
         private static Type t_SectionLayer_Terrain = AccessTools.TypeByName("Verse.SectionLayer_Terrain");
@@ -203,7 +198,7 @@ namespace VehicleInteriors
 
         public static Map BaseMapOfThing(this Thing thing)
         {
-            if (thing.IsOnVehicleMapOf(out var vehicle))
+            if (thing.IsOnVehicleMapOf(out var vehicle) && vehicle.Spawned)
             {
                 return vehicle.Map;
             }
@@ -216,7 +211,7 @@ namespace VehicleInteriors
             {
                 return pos;
             }
-            if (thing.IsOnVehicleMapOf(out var vehicle))
+            if (thing.IsOnVehicleMapOf(out var vehicle) && vehicle.Spawned)
             {
                 pos = thing.Position.OrigToVehicleMap(vehicle);
                 VehiclePawnWithMapCache.cachedPosOnBaseMap[thing] = pos;
@@ -227,7 +222,7 @@ namespace VehicleInteriors
 
         public static IntVec3 PositionOnBaseMap(this IHaulDestination dest)
         {
-            if (dest.Map.IsVehicleMapOf(out var vehicle))
+            if (dest.Map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
             {
                 return dest.Position.OrigToVehicleMap(vehicle);
             }
@@ -266,7 +261,7 @@ namespace VehicleInteriors
 
         public static IntVec3 ThingMapToOrig(this IntVec3 origin, Thing thing)
         {
-            if (thing.IsOnVehicleMapOf(out var vehicle))
+            if (thing.IsOnVehicleMapOf(out var vehicle) && vehicle.Spawned)
             {
                 return origin.VehicleMapToOrig(vehicle);
             }
@@ -275,7 +270,7 @@ namespace VehicleInteriors
 
         public static IntVec3 OrigToThingMap(this IntVec3 origin, Thing thing)
         {
-            if (thing.IsOnVehicleMapOf(out var vehicle))
+            if (thing.IsOnVehicleMapOf(out var vehicle) && vehicle.Spawned)
             {
                 return origin.OrigToVehicleMap(vehicle);
             }
@@ -289,7 +284,7 @@ namespace VehicleInteriors
                 {
                     return pos;
                 }
-                if (target.Thing.IsOnVehicleMapOf(out var vehicle))
+                if (target.Thing.IsOnVehicleMapOf(out var vehicle) && vehicle.Spawned)
                 {
                     pos = target.Thing.Position.OrigToVehicleMap(vehicle);
                     VehiclePawnWithMapCache.cachedPosOnBaseMap[target.Thing] = pos;
@@ -320,7 +315,7 @@ namespace VehicleInteriors
 
         public static IntVec3 PositionOnAnotherThingMap(this Thing thing, Thing another)
         {
-            if (another.IsOnVehicleMapOf(out var vehicle))
+            if (another.IsOnVehicleMapOf(out var vehicle) && vehicle.Spawned)
             {
                 return thing.PositionOnBaseMap().VehicleMapToOrig(vehicle);
             }
@@ -333,7 +328,7 @@ namespace VehicleInteriors
             {
                 return target.Thing.PositionOnAnotherThingMap(another);
             }
-            if (another.IsOnVehicleMapOf(out var vehicle))
+            if (another.IsOnVehicleMapOf(out var vehicle) && vehicle.Spawned)
             {
                 return target.Cell.VehicleMapToOrig(vehicle);
             }
@@ -342,7 +337,7 @@ namespace VehicleInteriors
 
         public static IntVec3 CellOnAnotherMap(this IntVec3 cell, Map another)
         {
-            if (another.IsVehicleMapOf(out var vehicle))
+            if (another.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
             {
                 return cell.VehicleMapToOrig(vehicle);
             }
@@ -351,7 +346,7 @@ namespace VehicleInteriors
 
         public static Rot4 BaseRotationOfThing(this Thing thing)
         {
-            if (thing.IsOnVehicleMapOf(out var vehicle))
+            if (thing.IsOnVehicleMapOf(out var vehicle) && vehicle.Spawned)
             {
                 return new Rot4(thing.Rotation.AsInt + vehicle.Rotation.AsInt);
             }
@@ -360,7 +355,7 @@ namespace VehicleInteriors
 
         public static Rot8 BaseFullRotationOfThing(this Thing thing)
         {
-            if (thing.IsOnVehicleMapOf(out var vehicle))
+            if (thing.IsOnVehicleMapOf(out var vehicle) && vehicle.Spawned)
             {
                 var rot = new Rot4(thing.Rotation.AsInt + vehicle.Rotation.AsInt);
                 return new Rot8(rot, rot.IsHorizontal ? vehicle.Angle : 0f);
@@ -375,7 +370,7 @@ namespace VehicleInteriors
                 result = pos;
                 return true;
             }
-            if (!VehiclePawnWithMapCache.cacheMode && thing.IsOnVehicleMapOf(out var vehicle))
+            if (!VehiclePawnWithMapCache.cacheMode && thing.IsOnVehicleMapOf(out var vehicle) && vehicle.Spawned)
             {
                 VehiclePawnWithMapCache.cacheMode = true;
                 var drawPos = thing.DrawPos;
@@ -390,7 +385,7 @@ namespace VehicleInteriors
         public static Map MapHeldBaseMap(this Thing thing)
         {
             var map = thing.MapHeld;
-            if (map.IsVehicleMapOf(out var vehicle))
+            if (map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
             {
                 return vehicle.Map;
             }
@@ -399,17 +394,26 @@ namespace VehicleInteriors
 
         public static Map BaseMap(this Map map)
         {
-            if (map.IsVehicleMapOf(out var vehicle))
+            if (map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
             {
                 return vehicle.Map;
             }
             return map;
         }
 
+        public static Rot4 RotForVehicleDraw(this Rot8 rot)
+        {
+            if (rot.IsDiagonal)
+            {
+                return rot == Rot8.NorthEast || rot == Rot8.NorthWest ? Rot4.North : Rot4.South;
+            }
+            return rot;
+        }
+
         public static Rot4 rotForPrint = Rot4.North;
 
         public const float altitudeOffset = 0.09615385f;
 
-        public const float altitudeOffsetFull = 11.63461585f;
+        public const float altitudeOffsetFull = 7.692308f;
     }
 }

@@ -1,4 +1,5 @@
 ﻿using RimWorld;
+using RimWorld.Planet;
 using SmashTools;
 using System;
 using System.Collections.Generic;
@@ -50,10 +51,10 @@ namespace VehicleInteriors
                 {
                     Bill_BoardVehicle bill_BoardVehicle = vehiclePawn.bills.FirstOrDefault((Bill_BoardVehicle b) => b.pawnToBoard == pawnBoarding);
                     VehicleHandler vehicleHandler = bill_BoardVehicle?.handler;
-                    if (vehicleHandler == null)
+                    if (vehicleHandler == null && vehiclePawn.Spawned)
                     {
                         VehicleHandlerReservation reservation = MapComponentCache<VehicleReservationManager>.GetComponent(vehiclePawn.Map).GetReservation<VehicleHandlerReservation>(vehiclePawn);
-                        vehicleHandler = reservation?.ReservedHandler(pawnBoarding);
+                        vehicleHandler = reservation.ReservedHandler(pawnBoarding);
                         if (vehicleHandler == null)
                         {
                             Log.Error("Could not find assigned spot for " + pawnBoarding.LabelShort + " to board.");
@@ -67,7 +68,18 @@ namespace VehicleInteriors
                     Log.Error("[VehicleFramework] VehicleHandler is null. This should never happen as assigned seating either handles arrangements or instructs pawns to follow rather than board.");
                 }
                 vehicleAssigned.Item1.GiveLoadJob(pawnBoarding, vehicleAssigned.Item2);
-                vehicleAssigned.Item1.Notify_Boarded(pawnBoarding, null);
+                var caravan = vehiclePawn.GetCaravan();
+                if (caravan == null)
+                {
+                    vehicleAssigned.Item1.Notify_Boarded(pawnBoarding, null);
+                }
+                else
+                {
+                    pawnBoarding.DeSpawn();
+                    caravan.AddPawn(pawnBoarding, true);
+                    Find.WorldPawns.PassToWorld(pawnBoarding, PawnDiscardDecideMode.KeepForever);
+                    vehicleAssigned.Item1.Notify_BoardedCaravan(pawnBoarding, vehicleAssigned.Item2.handlers);
+                }
                 this.ThrowAppropriateHistoryEvent(vehiclePawn.VehicleDef.vehicleType, toil.actor);
             };
             toil.defaultCompleteMode = ToilCompleteMode.Instant;

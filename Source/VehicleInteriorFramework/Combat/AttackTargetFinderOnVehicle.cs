@@ -34,7 +34,7 @@ namespace VehicleInteriors
             Func<IntVec3, bool> losValidator = null;
             if ((flags & TargetScanFlags.LOSBlockableByGas) != TargetScanFlags.None)
             {
-                losValidator = ((IntVec3 vec3) => !vec3.AnyGas(searcherThing.BaseMapOfThing(), GasType.BlindSmoke));
+                losValidator = (IntVec3 vec3) => !vec3.InBounds(searcherThing.BaseMapOfThing()) || !vec3.AnyGas(searcherThing.BaseMapOfThing(), GasType.BlindSmoke);
             }
             Predicate<IAttackTarget> innerValidator = delegate (IAttackTarget t)
             {

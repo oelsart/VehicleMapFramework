@@ -199,9 +199,9 @@ namespace VehicleInteriors
             {
                 if (!unlockingAfterLoad)
                 {
-                    var role = RoleUpgradeBuildable.RoleFromUpgrade(roleUpgrade, this);
+                    var role = RoleUpgradeBuildable.RoleFromUpgrade(roleUpgrade, this, out var roleUpgrade2);
                     role.ResolveReferences(vehicle.VehicleDef);
-                    role.AddUpgrade(roleUpgrade);
+                    role.AddUpgrade(roleUpgrade2);
                     var handler = new VehicleHandlerBuildable(vehicle, role);
                     vehicle.handlers.Add(handler);
                     if (role.PawnRenderer != null)
@@ -223,9 +223,9 @@ namespace VehicleInteriors
                         Log.Error("Unable to edit " + roleUpgrade.editKey + ". Matching VehicleRole not found.");
                         return;
                     }
-                    var role = RoleUpgradeBuildable.RoleFromUpgrade(roleUpgrade, this);
+                    var role = RoleUpgradeBuildable.RoleFromUpgrade(roleUpgrade, this, out var roleUpgrade2);
                     role.ResolveReferences(vehicle.VehicleDef);
-                    role.AddUpgrade(roleUpgrade);
+                    role.AddUpgrade(roleUpgrade2);
                     handler.role = role;
                     if (role.PawnRenderer != null)
                     {
@@ -238,35 +238,58 @@ namespace VehicleInteriors
 
     public class RoleUpgradeBuildable : RoleUpgrade
     {
-        public static VehicleRoleBuildable RoleFromUpgrade(RoleUpgradeBuildable upgrade, VehicleUpgradeBuildable parentUpgrade)
+        public static VehicleRoleBuildable RoleFromUpgrade(RoleUpgradeBuildable upgrade, VehicleUpgradeBuildable parentUpgrade, out RoleUpgradeBuildable upgrade2)
         {
-            VehicleRoleBuildable vehicleRole = new VehicleRoleBuildable
+            upgrade2 = new RoleUpgradeBuildable()
             {
                 key = upgrade.key,
                 label = upgrade.label,
+                editKey = upgrade.editKey,
+                remove = upgrade.remove,
+                handlingTypes = upgrade.handlingTypes,
+                slots = upgrade.slots,
+                slotsToOperate = upgrade.slotsToOperate,
+                comfort = upgrade.comfort,
+                turretIds = upgrade.turretIds,
+                hitbox = upgrade.hitbox,
+                exposed = upgrade.exposed,
+                chanceToHit = upgrade.chanceToHit,
+                pawnRenderer = upgrade.pawnRenderer,
+            };
+            VehicleRoleBuildable vehicleRole = new VehicleRoleBuildable
+            {
+                key = upgrade2.key,
+                label = upgrade2.label,
                 upgradeSingle = parentUpgrade
             };
-            upgrade.hitbox = new ComponentHitbox
+            if (upgrade2.hitbox == null)
             {
-                Hitbox = parentUpgrade.parent.parent.OccupiedRect().Cells2D.ToList()
-            };
-            if (parentUpgrade.parent.parent.IsOnVehicleMapOf(out var vehicle))
-            {
-                var position = parentUpgrade.parent.parent.Position;
-                var vehiclePos = vehicle.cachedDrawPos;
-                upgrade.pawnRenderer = new Vehicles.PawnOverlayRenderer
+                upgrade2.hitbox = new ComponentHitbox
                 {
-                    drawOffsetNorth = position.OrigToVehicleMap(vehicle, Rot8.North) - vehiclePos,
-                    drawOffsetSouth = position.OrigToVehicleMap(vehicle, Rot8.South) - vehiclePos,
-                    drawOffsetEast = position.OrigToVehicleMap(vehicle, Rot8.East) - vehiclePos,
-                    drawOffsetWest = position.OrigToVehicleMap(vehicle, Rot8.West) - vehiclePos,
-                    drawOffsetNorthEast = position.OrigToVehicleMap(vehicle, Rot8.NorthEast) - vehiclePos,
-                    drawOffsetNorthWest = position.OrigToVehicleMap(vehicle, Rot8.NorthWest) - vehiclePos,
-                    drawOffsetSouthEast = position.OrigToVehicleMap(vehicle, Rot8.SouthEast) - vehiclePos,
-                    drawOffsetSouthWest = position.OrigToVehicleMap(vehicle, Rot8.SouthWest) - vehiclePos,
+                    Hitbox = parentUpgrade.parent.parent.OccupiedRect().Cells2D.ToList()
                 };
             }
-            vehicleRole.CopyFrom(upgrade);
+            if (parentUpgrade.parent.parent.IsOnVehicleMapOf(out var vehicle))
+            {
+                var thing = parentUpgrade.parent.parent;
+                var position = GenThing.TrueCenter(thing.Position, thing.Rotation, thing.def.Size, 0f);
+                var vehiclePos = vehicle.cachedDrawPos.WithY(0f);
+                if (upgrade.pawnRenderer != null)
+                {
+                    upgrade2.pawnRenderer = new Vehicles.PawnOverlayRenderer
+                    {
+                        drawOffsetNorth = position.OrigToVehicleMap(vehicle, Rot8.North) - vehiclePos + upgrade.pawnRenderer.DrawOffsetFor(Rot8.North),
+                        drawOffsetSouth = position.OrigToVehicleMap(vehicle, Rot8.South) - vehiclePos + upgrade.pawnRenderer.DrawOffsetFor(Rot8.South),
+                        drawOffsetEast = position.OrigToVehicleMap(vehicle, Rot8.East) - vehiclePos + upgrade.pawnRenderer.DrawOffsetFor(Rot8.East),
+                        drawOffsetWest = position.OrigToVehicleMap(vehicle, Rot8.West) - vehiclePos + upgrade.pawnRenderer.DrawOffsetFor(Rot8.West),
+                        drawOffsetNorthEast = position.OrigToVehicleMap(vehicle, Rot8.NorthEast) - vehiclePos + upgrade.pawnRenderer.DrawOffsetFor(Rot8.NorthEast),
+                        drawOffsetNorthWest = position.OrigToVehicleMap(vehicle, Rot8.NorthWest) - vehiclePos + upgrade.pawnRenderer.DrawOffsetFor(Rot8.NorthWest),
+                        drawOffsetSouthEast = position.OrigToVehicleMap(vehicle, Rot8.SouthEast) - vehiclePos + upgrade.pawnRenderer.DrawOffsetFor(Rot8.SouthEast),
+                        drawOffsetSouthWest = position.OrigToVehicleMap(vehicle, Rot8.SouthWest) - vehiclePos + upgrade.pawnRenderer.DrawOffsetFor(Rot8.SouthWest),
+                    };
+                }
+            }
+            vehicleRole.CopyFrom(upgrade2);
             return vehicleRole;
         }
     }

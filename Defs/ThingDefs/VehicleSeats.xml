@@ -17,6 +17,7 @@
 			<graphicClass>Graphic_Multi</graphicClass>
 			<drawSize>(3,3)</drawSize>
 		</graphicData>
+		<drawerType>MapMeshAndRealTime</drawerType>
 		<statBases>
 			<MaxHitPoints>300</MaxHitPoints>
 			<Beauty>1</Beauty>
@@ -40,7 +41,9 @@
 								<label>driver's seat</label>
 								<handlingTypes>Movement</handlingTypes>
 								<slots>1</slots>
-								<slotsToOperate>1</slotsToOperate>
+								<pawnRenderer>
+									<showBody>true</showBody>
+								</pawnRenderer>
 							</li>
 						</roles>
 					</li>

@@ -578,12 +578,20 @@ namespace VehicleInteriors
 				clickCell = IntVec3.FromVector3(clickPos);
 				map = pawn.BaseMapOfThing();
             }
-			foreach (var thing in clickCell.GetThingList(map))
-			{
+            var targetParms = new TargetingParameters()
+            {
+                canTargetSelf = true,
+                canTargetFires = true,
+                canTargetItems = true,
+                canTargetPlants = true,
+            };
+            var thingList = SelectorOnVehicleUtility.TargetsAt(clickPos, targetParms, true, null).Select(t => t.Thing).ToList();
+            foreach (var thing in thingList)
+            {
                 if (thing is Pawn pawn2)
                 {
                     Lord lord = pawn2.GetLord();
-                    if (((lord != null) ? lord.CurLordToil : null) != null)
+                    if (lord?.CurLordToil != null)
                     {
                         IEnumerable<FloatMenuOption> enumerable = lord.CurLordToil.ExtraFloatMenuOptions(pawn2, pawn);
                         if (enumerable != null)
@@ -646,7 +654,7 @@ namespace VehicleInteriors
                     }
                 }
             }
-            foreach (Thing t4 in clickCell.GetThingList(map))
+            foreach (Thing t4 in thingList)
 			{
                 Thing t = t4;
                 if (!t.def.IsDrug)
@@ -740,7 +748,6 @@ namespace VehicleInteriors
             }
             if (pawn.health.capacities.CapableOf(PawnCapacityDefOf.Manipulation))
 			{
-                List<Thing> thingList = clickCell.GetThingList(map);
                 foreach (Thing thing10 in thingList)
                 {
                     Corpse corpse;
@@ -1367,7 +1374,7 @@ namespace VehicleInteriors
 			}
 			if (ModsConfig.BiotechActive && pawn.CanDeathrest())
 			{
-				List<Thing> thingList2 = clickCell.GetThingList(pawn.Map);
+				List<Thing> thingList2 = thingList;
 				for (int i = 0; i < thingList2.Count; i++)
 				{
 					if (thingList2[i] is Building_Bed bed && bed.def.building.bed_humanlike)
@@ -1675,7 +1682,7 @@ namespace VehicleInteriors
 			}
 			if (pawn.equipment != null)
 			{
-				List<Thing> thingList3 = clickCell.GetThingList(map);
+				List<Thing> thingList3 = thingList;
 				for (int j = 0; j < thingList3.Count; j++)
 				{
 					if (thingList3[j].TryGetComp<CompEquippable>() != null)
@@ -1762,7 +1769,7 @@ namespace VehicleInteriors
 					}
 				}
 			}
-			foreach (Pair<IReloadableComp, Thing> pair in ReloadableUtility.FindPotentiallyReloadableGear(pawn, clickCell.GetThingList(map)))
+			foreach (Pair<IReloadableComp, Thing> pair in ReloadableUtility.FindPotentiallyReloadableGear(pawn, thingList))
 			{
 				IReloadableComp reloadable = pair.First;
 				Thing second = pair.Second;
@@ -1797,7 +1804,7 @@ namespace VehicleInteriors
 			}
 			if (pawn.apparel != null)
 			{
-				foreach (Thing thing7 in map.thingGrid.ThingsAt(clickCell))
+				foreach (Thing thing7 in thingList)
 				{
 					Apparel apparel = thing7 as Apparel;
 					if (apparel != null)
@@ -2275,7 +2282,7 @@ namespace VehicleInteriors
 					}
 				}
 			}
-			foreach (Thing thing8 in map.thingGrid.ThingsAt(clickCell))
+			foreach (Thing thing8 in thingList)
 			{
 				Thing thing9 = thing8;
 				CompSelectProxy compSelectProxy;
@@ -2318,7 +2325,15 @@ namespace VehicleInteriors
                 clickCell = IntVec3.FromVector3(clickPos);
                 map = pawn.BaseMapOfThing();
             }
-            foreach (Thing t2 in clickCell.GetThingList(map))
+            var targetParms = new TargetingParameters()
+            {
+                canTargetSelf = true,
+                canTargetFires = true,
+                canTargetItems = true,
+                canTargetPlants = true,
+            };
+            var thingList = SelectorOnVehicleUtility.TargetsAt(clickPos, targetParms, true, null).Select(t => t.Thing).ToList();
+            foreach (Thing t2 in thingList)
             {
                 Thing t = t2;
                 if (t.def.ingestible != null && t.def.ingestible.showIngestFloatOption && pawn.RaceProps.CanEverEat(t) && t.IngestibleNow)
@@ -2378,7 +2393,7 @@ namespace VehicleInteriors
                     }
                 }
             }
-            foreach(var thing in map.thingGrid.ThingsAt(clickCell))
+            foreach(var thing in thingList)
             {
 				if (thing is Building_Bed building_Bed)
 				{
@@ -2410,8 +2425,16 @@ namespace VehicleInteriors
                 clickCell = IntVec3.FromVector3(clickPos);
                 map = pawn.BaseMapOfThing();
             }
+            var targetParms = new TargetingParameters()
+            {
+                canTargetSelf = true,
+                canTargetFires = true,
+                canTargetItems = true,
+                canTargetPlants = true,
+            };
+            var thingList = SelectorOnVehicleUtility.TargetsAt(clickPos, targetParms, true, null).Select(t => t.Thing).ToList();
             var baseClickCell = IntVec3.FromVector3(clickPos);
-            foreach (Thing thing in clickCell.GetThingList(map))
+            foreach (Thing thing in thingList)
             {
                 if (thing.Spawned)
                 {
@@ -2835,7 +2858,7 @@ namespace VehicleInteriors
             return (!scanner.PotentialWorkThingRequest.Accepts(t) && (scanner.PotentialWorkThingsGlobal(pawn) == null || !scanner.PotentialWorkThingsGlobal(pawn).Contains(t))) || scanner.ShouldSkip(pawn, true);
         }
 
-        public static Vector3 FleckDrawPos;
+        public static Vector3? FleckDrawPos;
 
         private static List<Thing> cachedThings = new List<Thing>();
 

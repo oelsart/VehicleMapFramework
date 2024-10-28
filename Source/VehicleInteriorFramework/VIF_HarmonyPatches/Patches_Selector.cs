@@ -94,6 +94,9 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                 new CodeInstruction(OpCodes.Ldloca_S, vehicle),
                 new CodeInstruction(OpCodes.Call, MethodInfoCache.m_IsVehicleMapOf),
                 new CodeInstruction(OpCodes.Brfalse_S, label),
+                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Thing_Spawned),
+                new CodeInstruction(OpCodes.Brfalse_S, label),
                 new CodeInstruction(OpCodes.Pop),
                 new CodeInstruction(OpCodes.Ldloc_S, vehicle),
                 new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Thing_Map),
@@ -110,6 +113,9 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                 new CodeInstruction(OpCodes.Ldloca_S, vehicle2),
                 new CodeInstruction(OpCodes.Call, MethodInfoCache.m_IsVehicleMapOf),
                 new CodeInstruction(OpCodes.Brfalse_S, label2),
+                new CodeInstruction(OpCodes.Ldloc_S, vehicle2),
+                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Thing_Spawned),
+                new CodeInstruction(OpCodes.Brfalse_S, label2),
                 new CodeInstruction(OpCodes.Pop),
                 new CodeInstruction(OpCodes.Ldloc_S, vehicle2),
                 new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Thing_Map),
@@ -125,24 +131,27 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                 new CodeInstruction(OpCodes.Ldloc_S, vehicle),
                 new CodeInstruction(OpCodes.Brfalse_S, label4),
                 new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Thing_Spawned),
+                new CodeInstruction(OpCodes.Brfalse_S, label4),
+                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
                 new CodeInstruction(OpCodes.Call, MethodInfoCache.m_OrigToVehicleMap2)
             });
             return codes;
         }
     }
 
-    //[HarmonyPatch(typeof(CameraJumper), "TryJumpInternal", typeof(IntVec3), typeof(Map), typeof(CameraJumper.MovementMode))]
-    //public static class Patch_CameraJumper_TryJumpInternal
-    //{
-    //    public static void Prefix(ref IntVec3 cell, ref Map map)
-    //    {
-    //        if (map.IsVehicleMapOf(out var vehicle))
-    //        {
-    //            cell = cell.OrigToVehicleMap(vehicle);
-    //            map = vehicle.Map;
-    //        }
-    //    }
-    //}
+    [HarmonyPatch(typeof(CameraJumper), "TryJumpInternal", typeof(IntVec3), typeof(Map), typeof(CameraJumper.MovementMode))]
+    public static class Patch_CameraJumper_TryJumpInternal
+    {
+        public static void Prefix(ref IntVec3 cell, ref Map map)
+        {
+            if (map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
+            {
+                cell = cell.OrigToVehicleMap(vehicle);
+                map = vehicle.Map;
+            }
+        }
+    }
 
     //フォーカスしたVehicleがある場合それ用の改変メソッドを呼んでオリジナルをスキップ
     [HarmonyPatch(typeof(ThingSelectionUtility), "MultiSelectableThingsInScreenRectDistinct")]

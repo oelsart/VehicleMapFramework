@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using RimWorld;
 using RimWorld.Planet;
 using System.Linq;
 using Vehicles;
@@ -6,8 +7,50 @@ using Verse;
 
 namespace VehicleInteriors
 {
-    public class VehicleHandlerBuildable : VehicleHandler, IExposable
+    public class VehicleHandlerBuildable : VehicleHandler, IExposable, IThingHolderWithDrawnPawn
     {
+        float IThingHolderWithDrawnPawn.HeldPawnDrawPos_Y
+        {
+            get
+            {
+                Rot4 rot;
+                if (this.role is VehicleRoleBuildable role)
+                {
+                    rot = role.upgradeSingle.parent.parent.BaseFullRotationOfThing();
+                }
+                else
+                {
+                    rot = this.vehicle.FullRotation;
+                }
+                return this.vehicle.DrawPos.y + this.role.PawnRenderer.LayerFor(rot);
+            }
+        }
+
+        float IThingHolderWithDrawnPawn.HeldPawnBodyAngle
+        {
+            get
+            {
+                Rot4 rot;
+                if (this.role is VehicleRoleBuildable role)
+                {
+                    rot = role.upgradeSingle.parent.parent.BaseFullRotationOfThing();
+                }
+                else
+                {
+                    rot = this.vehicle.FullRotation;
+                }
+                return this.role.PawnRenderer.AngleFor(rot);
+            }
+        }
+
+        PawnPosture IThingHolderWithDrawnPawn.HeldPawnPosture
+        {
+            get
+            {
+                return PawnPosture.LayingInBedFaceUp;
+            }
+        }
+
         public VehicleHandlerBuildable()
         {
             if (this.handlers == null)

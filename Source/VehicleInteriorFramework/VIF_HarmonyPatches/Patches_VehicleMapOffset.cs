@@ -4,7 +4,6 @@ using SmashTools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
 using Vehicles;
@@ -68,24 +67,6 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         }
     }
 
-    [HarmonyPatch(typeof(AttachableThing), nameof(AttachableThing.DrawPos), MethodType.Getter)]
-    public static class Patch_AttachableThing_DrawPos
-    {
-        public static bool Prefix(AttachableThing __instance, ref Vector3 __result)
-        {
-            return !__instance.TryGetOnVehicleDrawPos(ref __result);
-        }
-    }
-
-    [HarmonyPatch(typeof(MechShield), nameof(MechShield.DrawPos), MethodType.Getter)]
-    public static class Patch_MechShield_DrawPos
-    {
-        public static bool Prefix(MechShield __instance, ref Vector3 __result)
-        {
-            return !__instance.TryGetOnVehicleDrawPos(ref __result);
-        }
-    }
-
     [HarmonyPatch(typeof(Mote), nameof(Mote.DrawPos), MethodType.Getter)]
     public static class Patch_Mote_DrawPos
     {
@@ -107,36 +88,33 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         }
     }
 
-    //描画位置をOrigToVehicleMapで調整して回転はextraRotationに渡す
-    [HarmonyPatch(typeof(GhostDrawer), nameof(GhostDrawer.DrawGhostThing))]
-    public static class Patch_GhostDrawer_DrawGhostThing
-    {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
-        {
-            var codes = instructions.ToList();
-            var getTrueCenter = AccessTools.Method(typeof(GenThing), nameof(GenThing.TrueCenter), new Type[] { typeof(IntVec3), typeof(Rot4), typeof(IntVec2), typeof(float) });
-            var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(getTrueCenter)) + 1;
-            codes.Insert(pos, CodeInstruction.Call(typeof(VehicleMapUtility), nameof(VehicleMapUtility.OrigToVehicleMap), new Type[] { typeof(Vector3) }));
+    ////描画位置をOrigToVehicleMapで調整
+    //[HarmonyPatch(typeof(GhostDrawer), nameof(GhostDrawer.DrawGhostThing))]
+    //public static class Patch_GhostDrawer_DrawGhostThing
+    //{
+    //    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+    //    {
+    //        var codes = instructions.ToList();
+    //        var getTrueCenter = AccessTools.Method(typeof(GenThing), nameof(GenThing.TrueCenter), new Type[] { typeof(IntVec3), typeof(Rot4), typeof(IntVec2), typeof(float) });
+    //        var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(getTrueCenter)) + 1;
+    //        codes.Insert(pos, CodeInstruction.Call(typeof(VehicleMapUtility), nameof(VehicleMapUtility.OrigToVehicleMap), new Type[] { typeof(Vector3) }));
 
-            var label = generator.DefineLabel();
-            var drawFromDef = AccessTools.Method(typeof(Graphic), nameof(Graphic.DrawFromDef));
-            var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Callvirt && c.OperandIs(drawFromDef));
-            var rot = generator.DeclareLocal(typeof(Rot8));
-            codes[pos2].labels.Add(label);
-            codes.InsertRange(pos2, new[]
-            {
-                new CodeInstruction(OpCodes.Call, MethodInfoCache.g_FocusedVehicle),
-                new CodeInstruction(OpCodes.Brfalse_S, label),
-                new CodeInstruction(OpCodes.Call, MethodInfoCache.g_FocusedVehicle),
-                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_FullRotation),
-                new CodeInstruction(OpCodes.Stloc_S, rot),
-                new CodeInstruction(OpCodes.Ldloca_S, rot),
-                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_AsAngleRot8),
-                new CodeInstruction(OpCodes.Add)
-            });
-            return codes;
-        }
-    }
+    //    //    var label = generator.DefineLabel();
+    //    //    var drawFromDef = AccessTools.Method(typeof(Graphic), nameof(Graphic.DrawFromDef));
+    //    //    var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Callvirt && c.OperandIs(drawFromDef));
+    //    //    codes[pos2].labels.Add(label);
+    //    //    codes.InsertRange(pos2, new[]
+    //    //    {
+    //    //        new CodeInstruction(OpCodes.Call, MethodInfoCache.g_FocusedVehicle),
+    //    //        new CodeInstruction(OpCodes.Brfalse_S, label),
+    //    //        new CodeInstruction(OpCodes.Call, MethodInfoCache.g_FocusedVehicle),
+    //    //        new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Angle),
+    //    //        new CodeInstruction(OpCodes.Neg),
+    //    //        new CodeInstruction(OpCodes.Add)
+    //    //    });
+    //        return codes;
+    //    }
+    //}
 
     //thingがIsOnVehicleMapだった場合回転の初期値num3にベースvehicleのAngleを与え、posはRotatePointで回転
     [HarmonyPatch(typeof(SelectionDrawer), nameof(SelectionDrawer.DrawSelectionBracketFor))]
@@ -158,6 +136,9 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                 new CodeInstruction(OpCodes.Call, MethodInfoCache.m_IsOnVehicleMapOf),
                 new CodeInstruction(OpCodes.Brfalse_S, label),
                 new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Thing_Spawned),
+                new CodeInstruction(OpCodes.Brfalse_S, label),
+                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
                 new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_FullRotation),
                 new CodeInstruction(OpCodes.Stloc_S, rot),
                 new CodeInstruction(OpCodes.Ldloca_S, rot),
@@ -175,12 +156,15 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             {
                 new CodeInstruction(OpCodes.Ldloc_S, vehicle),
                 new CodeInstruction(OpCodes.Brfalse_S, label2),
+                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Thing_Spawned),
+                new CodeInstruction(OpCodes.Brfalse_S, label2),
                 CodeInstruction.LoadLocal(1),
                 new CodeInstruction(OpCodes.Callvirt, g_DrawPos),
                 new CodeInstruction(OpCodes.Ldloca_S, rot),
                 new CodeInstruction(OpCodes.Call, MethodInfoCache.g_AsAngleRot8),
                 new CodeInstruction(OpCodes.Neg),
-                CodeInstruction.Call(typeof(Ext_Math), nameof(Ext_Math.RotatePoint))
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_RotatePoint)
             });
             return codes;
         }
@@ -223,13 +207,15 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                 {
                     return targ.Thing.SpawnedParentOrMe.DrawPos;
                 }
-                return FloatMenuMakerOnVehicle.FleckDrawPos;
+                if (FloatMenuMakerOnVehicle.FleckDrawPos.HasValue) return FloatMenuMakerOnVehicle.FleckDrawPos.Value;
+                return targ.Thing.Position.ToVector3Shifted();
             }
             else
             {
                 if (targ.Cell.IsValid)
                 {
-                    return FloatMenuMakerOnVehicle.FleckDrawPos;
+                    if (FloatMenuMakerOnVehicle.FleckDrawPos.HasValue) return FloatMenuMakerOnVehicle.FleckDrawPos.Value;
+                    return targ.Cell.ToVector3Shifted();
                 }
                 return default;
             }
@@ -271,6 +257,9 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                 new CodeInstruction(OpCodes.Ldloca_S, vehicle),
                 new CodeInstruction(OpCodes.Call, MethodInfoCache.m_IsOnVehicleMapOf),
                 new CodeInstruction(OpCodes.Brfalse_S, label),
+                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Thing_Spawned),
+                new CodeInstruction(OpCodes.Brfalse_S, label),
                 new CodeInstruction(OpCodes.Ldc_R4, VehicleMapUtility.altitudeOffsetFull),
                 new CodeInstruction(OpCodes.Add)
             });
@@ -283,6 +272,9 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                 new CodeInstruction(OpCodes.Ldloc_S, vehicle),
                 new CodeInstruction(OpCodes.Brfalse_S, label2),
                 new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Thing_Spawned),
+                new CodeInstruction(OpCodes.Brfalse_S, label2),
+                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
                 new CodeInstruction(OpCodes.Call, MethodInfoCache.m_OrigToVehicleMap2),
             });
             var pos3 = codes.FindIndex(pos, c => c.opcode == OpCodes.Stloc_3);
@@ -291,6 +283,9 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             codes.InsertRange(pos3, new[]
             {
                 new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+                new CodeInstruction(OpCodes.Brfalse_S, label3),
+                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Thing_Spawned),
                 new CodeInstruction(OpCodes.Brfalse_S, label3),
                 new CodeInstruction(OpCodes.Ldloc_S, vehicle),
                 new CodeInstruction(OpCodes.Call, MethodInfoCache.m_OrigToVehicleMap2),
@@ -303,9 +298,61 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                 new CodeInstruction(OpCodes.Ldloc_S, vehicle),
                 new CodeInstruction(OpCodes.Brfalse_S, label4),
                 new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Thing_Spawned),
+                new CodeInstruction(OpCodes.Brfalse_S, label4),
+                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
                 new CodeInstruction(OpCodes.Call, MethodInfoCache.m_OrigToVehicleMap2),
             });
             return codes;
         }
     }
+
+    [HarmonyPatch(typeof(Graphic), nameof(Graphic.Draw))]
+    public static class Patch_Graphic_Draw
+    {
+        public static void Prefix(ref Vector3 loc, ref Rot4 rot, Thing thing, ref float extraRotation, Graphic __instance)
+        {
+            if (thing.IsOnVehicleMapOf(out var vehicle) && vehicle.Spawned)
+            {
+                var fullRot = vehicle.FullRotation;
+                rot.AsInt += fullRot.RotForVehicleDraw().AsInt;
+                var angle = vehicle.Angle;
+                if (thing.def.Size != IntVec2.One || !(thing.Graphic is Graphic_Single))
+                {
+                    extraRotation -= angle;
+                    var offset = thing.Graphic.DrawOffset(rot);
+                    if (__instance is Graphic_Flicker && thing.TryGetComp<CompFireOverlay>(out var comp))
+                    {
+                        offset += comp.Props.DrawOffsetForRot(rot);
+                    }
+                    var offset2 = offset.RotatedBy(-angle);
+                    loc += new Vector3(offset2.x - offset.x, 0f, offset2.z - offset.z);
+                }
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(Graphic), nameof(Graphic.DrawFromDef))]
+    public static class Patch_Graphic_DrawFromDef
+    {
+        public static void Prefix(ref Vector3 loc, ref Rot4 rot, ThingDef thingDef, ref float extraRotation, Graphic __instance)
+        {
+            var vehicle = Command_FocusVehicleMap.FocusedVehicle;
+            if (vehicle != null)
+            {
+                loc = loc.OrigToVehicleMap(vehicle);
+                var fullRot = vehicle.FullRotation;
+                rot.AsInt += fullRot.RotForVehicleDraw().AsInt;
+                var angle = vehicle.Angle;
+                if (thingDef.Size != IntVec2.One || !(thingDef.graphic is Graphic_Single))
+                {
+                    extraRotation -= angle;
+                    var offset = __instance.DrawOffset(rot);
+                    var offset2 = offset.RotatedBy(-angle);
+                    loc += new Vector3(offset2.x - offset.x, 0f, offset2.z - offset.z);
+                }
+            }
+        }
+    }
+
 }

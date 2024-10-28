@@ -97,20 +97,14 @@ namespace VehicleInteriors.VIF_HarmonyPatches
 
         public static List<Thing> IncludeVehicleMapIntercepters(List<Thing> list, Thing launcher, Projectile instance)
         {
-            var result = new List<Thing>();
-            MapParent_Vehicle parentVehicle1 = null;
-            if ((parentVehicle1 = launcher.Map.Parent as MapParent_Vehicle) != null)
+            var result = new List<Thing>(list);
+            if (launcher.IsOnVehicleMapOf(out var vehicle))
             {
-                result.AddRange(parentVehicle1.vehicle.interiorMap.listerThings.ThingsInGroup(ThingRequestGroup.ProjectileInterceptor));
+                result.AddRange(vehicle.interiorMap.listerThings.ThingsInGroup(ThingRequestGroup.ProjectileInterceptor));
             }
-            MapParent_Vehicle parentVehicle2 = null;
-            if (instance.usedTarget.HasThing && (parentVehicle2 = instance.usedTarget.Thing.Map.Parent as MapParent_Vehicle) != null)
+            if (instance.usedTarget.HasThing && instance.usedTarget.Thing.IsOnVehicleMapOf(out var vehicle2))
             {
-                result.AddRange(parentVehicle2.vehicle.interiorMap.listerThings.ThingsInGroup(ThingRequestGroup.ProjectileInterceptor));
-            }
-            if (parentVehicle1 == null && parentVehicle2 == null)
-            {
-                result.AddRange(list);
+                result.AddRange(vehicle2.interiorMap.listerThings.ThingsInGroup(ThingRequestGroup.ProjectileInterceptor));
             }
             return result;
         }
@@ -200,6 +194,62 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         {
             return instructions.MethodReplacer(AccessTools.Method(typeof(AttackTargetFinder), nameof(AttackTargetFinder.BestShootTargetFromCurrentPosition)),
                 AccessTools.Method(typeof(AttackTargetFinderOnVehicle), nameof(AttackTargetFinderOnVehicle.BestShootTargetFromCurrentPosition)));
+        }
+    }
+
+    [HarmonyPatch(typeof(Building_TurretGun), nameof(Building_TurretGun.TryFindNewTarget))]
+    public static class Patch_Building_Turret_TryFindNewTarget
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap)
+                .MethodReplacer(AccessTools.Method(typeof(AttackTargetFinder), nameof(AttackTargetFinder.BestShootTargetFromCurrentPosition)),
+                AccessTools.Method(typeof(AttackTargetFinderOnVehicle), nameof(AttackTargetFinderOnVehicle.BestShootTargetFromCurrentPosition)));
+        }
+    }
+
+    [HarmonyPatch(typeof(TurretTop), nameof(TurretTop.TurretTopTick))]
+    public static class Patch_TurretTop_TurretTopTick
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_LocalTargetInfo_Cell, MethodInfoCache.m_CellOnBaseMap);
+        }
+    }
+
+    //Turretがターゲットに向いていない時タレットの見た目上の回転に車の回転を加える。無きゃないでいい
+    [HarmonyPatch(typeof(TurretTop), nameof(TurretTop.DrawTurret))]
+    public static class Patch_TurretTop_DrawTurret
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+        {
+            var codes = instructions.ToList();
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Ldloc_S && ((LocalBuilder)c.operand).LocalIndex == 5);
+            var label = generator.DefineLabel();
+            var target = generator.DeclareLocal(typeof(LocalTargetInfo));
+            var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithInterior));
+
+            codes[pos].labels.Add(label);
+            codes.InsertRange(pos, new[]
+            {
+                CodeInstruction.LoadArgument(0),
+                CodeInstruction.LoadField(typeof(TurretTop), "parentTurret"),
+                new CodeInstruction(OpCodes.Ldloca_S, vehicle),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_IsOnVehicleMapOf),
+                new CodeInstruction(OpCodes.Brfalse_S, label),
+                CodeInstruction.LoadArgument(0),
+                CodeInstruction.LoadField(typeof(TurretTop), "parentTurret"),
+                new CodeInstruction(OpCodes.Callvirt, AccessTools.PropertyGetter(typeof(Building_Turret), nameof(Building_Turret.CurrentTarget))),
+                new CodeInstruction(OpCodes.Stloc_S, target),
+                new CodeInstruction(OpCodes.Ldloca_S, target),
+                new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(LocalTargetInfo), nameof(LocalTargetInfo.IsValid))),
+                new CodeInstruction(OpCodes.Brtrue_S, label),
+                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_FullRotation),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_Rot8_AsQuat),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.o_Quaternion_Multiply),
+            });
+            return codes;
         }
     }
 }

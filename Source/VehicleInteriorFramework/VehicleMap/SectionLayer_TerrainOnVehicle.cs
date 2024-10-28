@@ -1,4 +1,5 @@
 ﻿using RimWorld;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Verse;
@@ -29,8 +30,23 @@ namespace VehicleInteriors
         public virtual Material GetMaterialFor(CellTerrain cellTerrain)
         {
             if (cellTerrain.def == VIF_DefOf.VIF_VehicleFloor) return this.baseTerrainMat;
+            var def = cellTerrain.def;
+            var color = cellTerrain.color;
             bool polluted = cellTerrain.polluted && cellTerrain.snowCoverage < 0.4f && cellTerrain.def.graphicPolluted != BaseContent.BadGraphic;
-            return base.Map.terrainGrid.GetMaterial(cellTerrain.def, polluted, cellTerrain.color);
+            ValueTuple<TerrainDef, bool, ColorDef> key = new ValueTuple<TerrainDef, bool, ColorDef>(def, polluted, color);
+            if (!this.terrainMatCache.ContainsKey(key))
+            {
+                Graphic graphic = polluted ? def.graphicPolluted : def.graphic;
+                if (color != null)
+                {
+                    this.terrainMatCache[key] = graphic.GetColoredVersion(VIF_Shaders.terrainHardWithZ, color.color, Color.white).MatSingle;
+                }
+                else
+                {
+                    this.terrainMatCache[key] = (polluted ? def.DrawMatPolluted : def.DrawMatSingle);
+                }
+            }
+            return this.terrainMatCache[key];
         }
 
         public bool AllowRenderingFor(TerrainDef terrain)
@@ -150,11 +166,13 @@ namespace VehicleInteriors
             base.FinalizeMesh(MeshParts.All);
         }
 
-        private Material baseTerrainMat;
+        private readonly Material baseTerrainMat;
 
         private static readonly Color32 ColorWhite = new Color32(byte.MaxValue, byte.MaxValue, byte.MaxValue, byte.MaxValue);
 
         private static readonly Color32 ColorClear = new Color32(byte.MaxValue, byte.MaxValue, byte.MaxValue, 0);
+
+        private readonly Dictionary<ValueTuple<TerrainDef, bool, ColorDef>, Material> terrainMatCache = new Dictionary<ValueTuple<TerrainDef, bool, ColorDef>, Material>();
 
         public const float MaxSnowCoverageForVisualPollution = 0.4f;
     }

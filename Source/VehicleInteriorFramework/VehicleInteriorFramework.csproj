@@ -88,10 +88,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="VehicleHandlerBuildable.cs" />
+    <Compile Include="VehicleMapParentsComponent.cs" />
+    <Compile Include="VehicleMap\SectionLayer_LightingOnVehicle.cs" />
     <Compile Include="VehicleMap\SectionLayer_TerrainOnVehicle.cs" />
     <Compile Include="VehicleRoleBuildable.cs" />
     <Compile Include="VehicleUpgradeBuildable.cs" />
-    <Compile Include="CacheUtility.cs" />
+    <Compile Include="VehiclePawnCacheComponent.cs" />
     <Compile Include="Combat\AttackTargetFinderOnVehicle.cs" />
     <Compile Include="Combat\CastPositionFinderOnVehicle.cs" />
     <Compile Include="Combat\GenClosestOnVehicle.cs" />
@@ -178,6 +180,7 @@
     <Compile Include="VIF_HarmonyPatches\Patches_Selector.cs" />
     <Compile Include="VIF_HarmonyPatches\Patches_VehicleFramework.cs" />
     <Compile Include="VIF_HarmonyPatches\Patches_VehicleMapOffset.cs" />
+    <Compile Include="VIF_Materials.cs" />
     <Compile Include="VIF_Shaders.cs" />
   </ItemGroup>
   <ItemGroup />
@@ -211,9 +214,6 @@
     </Content>
     <Content Include="..\..\Defs\VehicleDefs\Crawler\Crawler_VehiclePawn.xml">
       <Link>Defs\VehicleDefs\Crawler\Crawler_VehiclePawn.xml</Link>
-    </Content>
-    <Content Include="..\..\Defs\VehicleDefs\testesa.txt">
-      <Link>Defs\VehicleDefs\testesa.txt</Link>
     </Content>
     <Content Include="..\..\Defs\WeatherDefs\Weathers.xml">
       <Link>Defs\WeatherDefs\Weathers.xml</Link>

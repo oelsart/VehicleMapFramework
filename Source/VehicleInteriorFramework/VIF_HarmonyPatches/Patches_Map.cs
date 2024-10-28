@@ -11,20 +11,6 @@ using Verse.AI;
 
 namespace VehicleInteriors.VIF_HarmonyPatches
 {
-    //VehicleMapはコロニストバーに表示させない
-    [HarmonyPatch(typeof(ColonistBar), "CheckRecacheEntries")]
-    public static class Patch_ColonistBar_CheckRecacheEntries
-    {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
-            var codes = instructions.ToList();
-            var getMaps = AccessTools.PropertyGetter(typeof(Find), nameof(Find.Maps));
-            var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(getMaps)) + 1;
-            codes.Insert(pos, CodeInstruction.Call(typeof(VehicleMapUtility), nameof(VehicleMapUtility.ExceptVehicleMaps)));
-            return codes;
-        }
-    }
-
     [HarmonyPatch(typeof(Designator), nameof(Designator.Map), MethodType.Getter)]
     public static class Patch_Designator_Map
     {
