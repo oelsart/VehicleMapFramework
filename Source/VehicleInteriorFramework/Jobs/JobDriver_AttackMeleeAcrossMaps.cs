@@ -72,7 +72,7 @@ namespace VehicleInteriors
                     var drafted = this.pawn.Drafted;
                     var selected = Find.Selector.IsSelected(this.pawn);
                     this.pawn.DeSpawn();
-                    GenSpawn.Spawn(this.pawn, (enterSpot.PositionOnBaseMap() - enterSpot.BaseFullRotationOfThing().FacingCell), enterSpot.BaseMapOfThing(), WipeMode.VanishOrMoveAside);
+                    GenSpawn.Spawn(this.pawn, (enterSpot.PositionOnBaseMap() - enterSpot.BaseFullRotationOfThing().FacingCell), enterSpot.BaseMap(), WipeMode.VanishOrMoveAside);
                     if (this.pawn.drafter != null) this.pawn.drafter.Drafted = drafted;
                     if (selected) Find.Selector.SelectedObjects.Add(this.pawn);
                     this.pawn.jobs.TryTakeOrderedJob(nextJob, JobTag.Misc, false);

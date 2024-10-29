@@ -166,6 +166,14 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                 new CodeInstruction(OpCodes.Neg),
                 new CodeInstruction(OpCodes.Call, MethodInfoCache.m_RotatePoint)
             });
+
+            var pos3 = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(MethodInfoCache.m_GenDraw_DrawFieldEdges));
+            codes[pos3].operand = MethodInfoCache.m_GenDrawOnVehicle_DrawFieldEdges;
+            codes.InsertRange(pos3, new[]
+            {
+                CodeInstruction.LoadLocal(0),
+                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Zone_Map)
+            });
             return codes;
         }
     }
@@ -355,4 +363,15 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         }
     }
 
+    [HarmonyPatch(typeof(Designation), nameof(Designation.DrawLoc))]
+    public static class Patch_Designation_DrawLoc
+    {
+        public static void Postfix(ref Vector3 __result, DesignationManager ___designationManager, LocalTargetInfo ___target)
+        {
+            if (!___target.HasThing && ___designationManager.map.IsVehicleMapOf(out var vehicle))
+            {
+                __result = __result.OrigToVehicleMap(vehicle);
+            }
+        }
+    }
 }

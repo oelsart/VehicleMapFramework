@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+
+<Defs>
+	<Vehicles.VehicleBuildDef ParentName="VehicleBaseBuildable">
+		<defName>VIF_Crawler_Blueprint</defName>
+		<label>clawler</label>
+		<description>Basic tank platform. It has only a power unit with a pair of crawlers, and has no cabin or cargo.\n\n&lt;color=#bb8f04&gt;Fuel type:&lt;/color&gt; Chemfuel</description>
+		<designationCategory>VF_Vehicles</designationCategory>
+		<graphicData>
+			<texPath>VehicleInteriors/Crawler/Crawler</texPath>
+			<graphicClass>Graphic_Multi</graphicClass>
+			<drawSize>(4.25,8.5)</drawSize>
+		</graphicData>
+
+		<statBases>
+			<MaxHitPoints>2500</MaxHitPoints>
+			<WorkToBuild>3200</WorkToBuild>
+			<Flammability>0.05</Flammability>
+		</statBases>
+
+		<size>(4,8)</size>
+
+		<!--<researchPrerequisites>
+			<li>VVE_BasicVehicles</li>
+		</researchPrerequisites>-->
+
+		<!--<costList>
+			<VVE_EngineBlock>1</VVE_EngineBlock>
+			<VVE_CarAlternator>1</VVE_CarAlternator>
+			<VVE_CarExhaust>2</VVE_CarExhaust>
+			<VVE_CarSuspension>4</VVE_CarSuspension>
+			<VVE_CarWheel>4</VVE_CarWheel>
+			<Steel>120</Steel>
+			<ComponentIndustrial>4</ComponentIndustrial>
+		</costList>-->
+
+		<costList>
+			<Steel>640</Steel>
+			<ComponentIndustrial>20</ComponentIndustrial>
+		</costList>
+
+		<soundImpactDefault>BulletImpact_Metal</soundImpactDefault>
+
+		<thingToSpawn>VIF_Crawler</thingToSpawn>
+
+		<constructionSkillPrerequisite>6</constructionSkillPrerequisite>
+	</Vehicles.VehicleBuildDef>
+</Defs>

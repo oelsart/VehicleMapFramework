@@ -103,7 +103,7 @@ namespace VehicleInteriors
 
         protected override bool TryCastShot()
         {
-            if (this.currentTarget.HasThing && this.currentTarget.Thing.BaseMapOfThing() != this.caster.BaseMapOfThing())
+            if (this.currentTarget.HasThing && this.currentTarget.Thing.BaseMap() != this.caster.BaseMap())
             {
                 return false;
             }
@@ -247,7 +247,7 @@ namespace VehicleInteriors
         public override void BurstingTick()
         {
             var casterPositionOnBaseMap = this.caster.PositionOnBaseMap();
-            var casterBaseMap = this.caster.BaseMapOfThing();
+            var casterBaseMap = this.caster.BaseMap();
 
             this.ticksToNextPathStep--;
             Vector3 vector = this.InterpolatedPosition;
@@ -307,7 +307,7 @@ namespace VehicleInteriors
 
         public override void WarmupComplete()
         {
-            var casterBaseMap = this.caster.BaseMapOfThing();
+            var casterBaseMap = this.caster.BaseMap();
 
             this.burstShotsLeft = this.ShotsPerBurst;
             this.state = VerbState.Bursting;
@@ -370,14 +370,14 @@ namespace VehicleInteriors
 
         private void HitCell(IntVec3 cell, IntVec3 sourceCell, float damageFactor = 1f)
         {
-            if (!cell.InBounds(this.caster.BaseMapOfThing()))
+            if (!cell.InBounds(this.caster.BaseMap()))
             {
                 return;
             }
-            this.ApplyDamage(VerbUtility.ThingsToHit(cell, this.caster.BaseMapOfThing(), new Func<Thing, bool>(this.CanHit)).RandomElementWithFallback(null), sourceCell, damageFactor);
+            this.ApplyDamage(VerbUtility.ThingsToHit(cell, this.caster.BaseMap(), new Func<Thing, bool>(this.CanHit)).RandomElementWithFallback(null), sourceCell, damageFactor);
             if (this.verbProps.beamSetsGroundOnFire && Rand.Chance(this.verbProps.beamChanceToStartFire))
             {
-                FireUtility.TryStartFireIn(cell, this.caster.BaseMapOfThing(), 1f, this.caster, null);
+                FireUtility.TryStartFireIn(cell, this.caster.BaseMap(), 1f, this.caster, null);
             }
         }
 
@@ -389,7 +389,7 @@ namespace VehicleInteriors
             {
                 intVec = intVec2;
             }
-            Map map = this.caster.BaseMapOfThing();
+            Map map = this.caster.BaseMap();
             if (thing != null && this.verbProps.beamDamageDef != null)
             {
                 float angleFlat = (this.currentTarget.CellOnBaseMap() - this.caster.PositionOnBaseMap()).AngleFlat;

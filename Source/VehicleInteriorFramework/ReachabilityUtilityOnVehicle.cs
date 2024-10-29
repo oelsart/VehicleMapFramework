@@ -227,7 +227,7 @@ namespace VehicleInteriors
 
         public static bool TryFindBestExitSpot(Pawn carrier, Pawn pawn, out IntVec3 spot, out LocalTargetInfo v_exitSpot, TraverseMode mode = TraverseMode.ByPawn, bool canBash = true)
         {
-            var baseMap = pawn.BaseMapOfThing();
+            var baseMap = pawn.BaseMap();
             if ((mode == TraverseMode.PassAllDestroyableThings || mode == TraverseMode.PassAllDestroyableThingsNotWater || mode == TraverseMode.PassAllDestroyablePlayerOwnedThings) && !carrier.CanReachMapEdge(pawn, out v_exitSpot))
             {
                 LocalTargetInfo exitSpot = null;
@@ -294,7 +294,7 @@ namespace VehicleInteriors
             var traverseParms = TraverseParms.For(carrier);
             if (pawn.IsOnVehicleMapOf(out var vehicle))
             {
-                var baseMap = pawn.BaseMapOfThing();
+                var baseMap = pawn.BaseMap();
                 Thing exitSpot2 = null;
                 if(vehicle.InteractionCells.Any(c =>
                 {

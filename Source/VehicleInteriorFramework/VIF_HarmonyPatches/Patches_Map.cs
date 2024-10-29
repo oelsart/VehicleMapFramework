@@ -11,58 +11,6 @@ using Verse.AI;
 
 namespace VehicleInteriors.VIF_HarmonyPatches
 {
-    [HarmonyPatch(typeof(Designator), nameof(Designator.Map), MethodType.Getter)]
-    public static class Patch_Designator_Map
-    {
-        public static bool Prefix(ref Map __result)
-        {
-            if (Command_FocusVehicleMap.FocuseLockedVehicle != null)
-            {
-                __result = Command_FocusVehicleMap.FocuseLockedVehicle.interiorMap;
-                return false;
-            }
-            if (Command_FocusVehicleMap.FocusedVehicle != null)
-            {
-                __result = Command_FocusVehicleMap.FocusedVehicle.interiorMap;
-                return false;
-            }
-            return true;
-        }
-    }
-
-    [HarmonyPatch(typeof(Designator_Build), nameof(Designator_Build.SelectedUpdate))]
-    public static class Patch_Designator_Build_SelectedUpdate
-    {
-        public static void Postfix()
-        {
-            if (Command_FocusVehicleMap.FocuseLockedVehicle != null) return;
-
-            Command_FocusVehicleMap.FocusedVehicle = null;
-            var mousePos = UI.MouseMapPosition();
-            var vehicles = VehiclePawnWithMapCache.allVehicles[Find.CurrentMap];
-            var vehicle = vehicles.FirstOrDefault(v =>
-            {
-                var rect = new Rect(0f, 0f, (float)v.interiorMap.Size.x, (float)v.interiorMap.Size.z);
-                var vector = mousePos.VehicleMapToOrig(v);
-
-                return rect.Contains(new Vector2(vector.x, vector.z));
-            });
-            Command_FocusVehicleMap.FocusedVehicle = vehicle;
-        }
-    }
-
-    [HarmonyPatch(typeof(Designator_Build), nameof(Designator_Build.Deselected))]
-    public static class Patch_Designator_Build_Deselected
-    {
-        public static void Postfix()
-        {
-            if (Command_FocusVehicleMap.FocuseLockedVehicle == null)
-            {
-                Command_FocusVehicleMap.FocusedVehicle = null;
-            }
-        }
-    }
-
     //VehicleMapの時はSectionLayer_VehicleMapの継承クラスを使い、そうでなければそれらは除外する
     [HarmonyPatch(typeof(Section), MethodType.Constructor, typeof(IntVec3), typeof(Map))]
     public static class Patch_Section_Constructor
@@ -147,10 +95,10 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             var codes = instructions.ToList();
 
             var pos = codes.FindIndex(c => c.opcode == OpCodes.Callvirt && c.OperandIs(MethodInfoCache.g_Thing_Map));
-            codes[pos] = new CodeInstruction(OpCodes.Call, MethodInfoCache.m_BaseMapOfThing);
+            codes[pos] = new CodeInstruction(OpCodes.Call, MethodInfoCache.m_BaseMap_Thing);
 
             var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Beq_S);
-            codes.Insert(pos2, new CodeInstruction(OpCodes.Call, MethodInfoCache.m_BaseMap));
+            codes.Insert(pos2, new CodeInstruction(OpCodes.Call, MethodInfoCache.m_BaseMap_Map));
             return codes;
         }
     }
@@ -163,10 +111,10 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             var codes = instructions.ToList();
 
             var pos = codes.FindIndex(c => c.opcode == OpCodes.Callvirt && c.OperandIs(MethodInfoCache.g_Thing_Map));
-            codes[pos] = new CodeInstruction(OpCodes.Call, MethodInfoCache.m_BaseMapOfThing);
+            codes[pos] = new CodeInstruction(OpCodes.Call, MethodInfoCache.m_BaseMap_Thing);
 
             var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Beq_S);
-            codes.Insert(pos2, new CodeInstruction(OpCodes.Call, MethodInfoCache.m_BaseMap));
+            codes.Insert(pos2, new CodeInstruction(OpCodes.Call, MethodInfoCache.m_BaseMap_Map));
             return codes;
         }
     }
@@ -179,10 +127,10 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             var codes = instructions.ToList();
 
             var pos = codes.FindIndex(c => c.opcode == OpCodes.Callvirt && c.OperandIs(MethodInfoCache.g_Thing_Map));
-            codes[pos] = new CodeInstruction(OpCodes.Call, MethodInfoCache.m_BaseMapOfThing);
+            codes[pos] = new CodeInstruction(OpCodes.Call, MethodInfoCache.m_BaseMap_Thing);
 
             var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Beq_S);
-            codes.Insert(pos2, new CodeInstruction(OpCodes.Call, MethodInfoCache.m_BaseMap));
+            codes.Insert(pos2, new CodeInstruction(OpCodes.Call, MethodInfoCache.m_BaseMap_Map));
             return codes;
         }
     }
@@ -193,6 +141,40 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             return instructions.MethodReplacer(MethodInfoCache.g_Thing_MapHeld, MethodInfoCache.m_MapHeldBaseMap);
+        }
+    }
+
+    ////ストレージの優先度変更の時ベースマップや他の車両マップのlisterHaulablesにも通知
+    //[HarmonyPatch(typeof(StorageSettings), nameof(StorageSettings.Priority), MethodType.Setter)]
+    //public static class Patch_StorageSettings_Priority
+    //{
+    //    public static void Postfix(StorageSettings __instance)
+    //    {
+    //        if (Current.ProgramState != ProgramState.Playing)
+    //        {
+    //            return;
+    //        }
+    //        if (__instance.owner is StorageGroup storageGroup && storageGroup.Map != null)
+    //        {
+    //            var baseMap = storageGroup.Map.BaseMap();
+    //            foreach (var map in VehiclePawnWithMapCache.allVehicles[baseMap].Select(v => v.interiorMap).Concat(baseMap).Where(m => m != storageGroup.Map))
+    //            {
+    //                map.listerHaulables.RecalculateAllInHaulSources(storageGroup.HaulSourcesList);
+    //            }
+    //        }
+    //    }
+    //}
+
+    //主にlisterHaulablesの再計算の時のチェックでベースマップや他の車両マップを検索対象に含めるためメソッドを置き換え
+    [HarmonyPatch(typeof(StoreUtility), nameof(StoreUtility.IsInValidBestStorage))]
+    public static class Patch_StoreUtility_IsInValidBestStorage
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var m_StoreUtility_TryFindBestBetterStorageFor = AccessTools.Method(typeof(StoreUtility), nameof(StoreUtility.TryFindBestBetterStorageFor));
+            var m_StoreAcrossMapsUtility_TryFindBestBetterStorageFor = AccessTools.Method(typeof(StoreAcrossMapsUtility), nameof(StoreAcrossMapsUtility.TryFindBestBetterStorageFor),
+                new Type[] { typeof(Thing), typeof(Pawn), typeof(Map), typeof(StoragePriority), typeof(Faction), typeof(IntVec3).MakeByRefType(), typeof(IHaulDestination).MakeByRefType(), typeof(bool) });
+            return instructions.MethodReplacer(m_StoreUtility_TryFindBestBetterStorageFor, m_StoreAcrossMapsUtility_TryFindBestBetterStorageFor);
         }
     }
 }

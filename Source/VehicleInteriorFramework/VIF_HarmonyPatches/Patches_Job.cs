@@ -72,7 +72,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         private static IEnumerable<Thing> AddSearchSet(List<Thing> list, Pawn pawn, WorkGiver_Scanner scanner)
         {
             var searchSet = new List<Thing>(list);
-            var baseMap = pawn.BaseMapOfThing();
+            var baseMap = pawn.BaseMap();
             if (baseMap != pawn.Map)
             {
                 searchSet.AddRange(baseMap.listerThings.ThingsMatching(scanner.PotentialWorkThingRequest));

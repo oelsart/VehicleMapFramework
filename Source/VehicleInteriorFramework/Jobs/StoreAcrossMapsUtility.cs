@@ -10,13 +10,14 @@ namespace VehicleInteriors
 {
     public static class StoreAcrossMapsUtility
     {
-        public static bool TryFindBestBetterStoreCellFor(Thing t, Pawn carrier, Map map, StoragePriority currentPriority, Faction faction, out IntVec3 foundCell, bool needAccurateResult, out LocalTargetInfo exitSpot, out LocalTargetInfo enterSpot)
+        public static bool TryFindBestBetterStoreCellFor(Thing t, Pawn carrier, Map map, StoragePriority currentPriority, Faction faction, out IntVec3 foundCell, bool needAccurateResult, out LocalTargetInfo exitSpot, out LocalTargetInfo enterSpot, out Map destMap)
         {
             exitSpot = LocalTargetInfo.Invalid;
             enterSpot = LocalTargetInfo.Invalid;
+            destMap = map;
             var baseMap = map.BaseMap();
             List<SlotGroup> allGroupsListInPriorityOrder = baseMap.haulDestinationManager.AllGroupsListInPriorityOrder
-                .ConcatIfNotNull(VehiclePawnWithMapCache.allVehicles[baseMap].Where(v => v.AllowsAutoHaul).SelectMany(v => v.interiorMap.haulDestinationManager.AllGroupsListInPriorityOrder)).OrderByDescending(d => d.Settings.Priority).ToList(); ;
+                .ConcatIfNotNull(VehiclePawnWithMapCache.allVehicles[baseMap].Where(v => v.AllowsHaulIn).SelectMany(v => v.interiorMap.haulDestinationManager.AllGroupsListInPriorityOrder)).OrderByDescending(d => d.Settings.Priority).ToList();
             if (allGroupsListInPriorityOrder.Count == 0)
             {
                 foundCell = IntVec3.Invalid;
@@ -34,7 +35,7 @@ namespace VehicleInteriors
                 {
                     break;
                 }
-                StoreAcrossMapsUtility.TryFindBestBetterStoreCellForWorker(t, carrier, map, faction, slotGroup, needAccurateResult, ref invalid, ref num, ref storagePriority, ref exitSpot, ref enterSpot);
+                StoreAcrossMapsUtility.TryFindBestBetterStoreCellForWorker(t, carrier, map, faction, slotGroup, needAccurateResult, ref invalid, ref num, ref storagePriority, ref exitSpot, ref enterSpot, ref destMap);
             }
             if (!invalid.IsValid)
             {
@@ -45,7 +46,7 @@ namespace VehicleInteriors
             return true;
         }
 
-        private static void TryFindBestBetterStoreCellForWorker(Thing t, Pawn carrier, Map map, Faction faction, SlotGroup slotGroup, bool needAccurateResult, ref IntVec3 closestSlot, ref float closestDistSquared, ref StoragePriority foundPriority, ref LocalTargetInfo exitSpot, ref LocalTargetInfo enterSpot)
+        private static void TryFindBestBetterStoreCellForWorker(Thing t, Pawn carrier, Map map, Faction faction, SlotGroup slotGroup, bool needAccurateResult, ref IntVec3 closestSlot, ref float closestDistSquared, ref StoragePriority foundPriority, ref LocalTargetInfo exitSpot, ref LocalTargetInfo enterSpot, ref Map destMap)
         {
             if (slotGroup == null)
             {
@@ -78,6 +79,7 @@ namespace VehicleInteriors
                     closestSlot = intVec;
                     closestDistSquared = num2;
                     foundPriority = slotGroup.Settings.Priority;
+                    destMap = slotGroup.parent.Map;
                     if (i >= num)
                     {
                         break;
@@ -153,8 +155,8 @@ namespace VehicleInteriors
 
         public static bool IsForbidden(this IntVec3 c, Pawn pawn)
         {
-            var cellOnBaseMap = c.CellOnAnotherMap(pawn.BaseMapOfThing());
-            return ForbidUtility.CaresAboutForbidden(pawn, true, false) && (!cellOnBaseMap.InAllowedArea(pawn) || (pawn.mindState.maxDistToSquadFlag > 0f && !cellOnBaseMap.InHorDistOf(pawn.DutyLocation().CellOnAnotherMap(pawn.BaseMapOfThing()), pawn.mindState.maxDistToSquadFlag)));
+            var cellOnBaseMap = c.CellOnAnotherMap(pawn.BaseMap());
+            return ForbidUtility.CaresAboutForbidden(pawn, true, false) && (!cellOnBaseMap.InAllowedArea(pawn) || (pawn.mindState.maxDistToSquadFlag > 0f && !cellOnBaseMap.InHorDistOf(pawn.DutyLocation().CellOnAnotherMap(pawn.BaseMap()), pawn.mindState.maxDistToSquadFlag)));
         }
 
         public static bool InAllowedArea(this IntVec3 c, Pawn forPawn)
@@ -207,15 +209,19 @@ namespace VehicleInteriors
             return flag || c.GetItemCount(map) < c.GetMaxItemsAllowedInCell(map);
         }
 
+        public static bool TryFindBestBetterStorageFor(Thing t, Pawn carrier, Map map, StoragePriority currentPriority, Faction faction, out IntVec3 foundCell, out IHaulDestination haulDestination, bool needAccurateResult)
+        {
+            return StoreAcrossMapsUtility.TryFindBestBetterStorageFor(t, carrier, map, currentPriority, faction, out foundCell, out haulDestination, needAccurateResult, out _, out _);
+        }
+
         public static bool TryFindBestBetterStorageFor(Thing t, Pawn carrier, Map map, StoragePriority currentPriority, Faction faction, out IntVec3 foundCell, out IHaulDestination haulDestination, bool needAccurateResult, out LocalTargetInfo exitSpot, out LocalTargetInfo enterSpot)
         {
             StoragePriority storagePriority = StoragePriority.Unstored;
             LocalTargetInfo exitSpot2 = LocalTargetInfo.Invalid;
             LocalTargetInfo enterSpot2 = LocalTargetInfo.Invalid;
             IntVec3 invalid;
-            if (StoreAcrossMapsUtility.TryFindBestBetterStoreCellFor(t, carrier, map, currentPriority, faction, out invalid, needAccurateResult, out exitSpot2, out enterSpot2))
+            if (StoreAcrossMapsUtility.TryFindBestBetterStoreCellFor(t, carrier, map, currentPriority, faction, out invalid, needAccurateResult, out exitSpot2, out enterSpot2, out var map2))
             {
-                var map2 = enterSpot2.HasThing ? enterSpot2.Thing.Map : map.BaseMap();
                 storagePriority = invalid.GetSlotGroup(map2)?.Settings.Priority ?? StoragePriority.Unstored;
             }
             IHaulDestination haulDestination2;
@@ -242,7 +248,7 @@ namespace VehicleInteriors
                 return true;
             }
             foundCell = invalid;
-            haulDestination = invalid.GetSlotGroup(enterSpot2.HasThing ? enterSpot2.Thing.Map : map.BaseMap())?.parent;
+            haulDestination = invalid.GetSlotGroup(map2)?.parent;
             exitSpot = exitSpot2;
             enterSpot = enterSpot2;
             return true;
@@ -254,7 +260,7 @@ namespace VehicleInteriors
             enterSpot = LocalTargetInfo.Invalid;
             var baseMap = map.BaseMap();
             List<IHaulDestination> allHaulDestinationsListInPriorityOrder = baseMap.haulDestinationManager.AllHaulDestinationsListInPriorityOrder
-                .ConcatIfNotNull(VehiclePawnWithMapCache.allVehicles[baseMap].Where(v => v.AllowsAutoHaul).SelectMany(v => v.interiorMap.haulDestinationManager.AllHaulDestinationsListInPriorityOrder)).OrderByDescending(d => d.GetStoreSettings().Priority).ToList();
+                .ConcatIfNotNull(VehiclePawnWithMapCache.allVehicles[baseMap].Where(v => v.AllowsHaulIn).SelectMany(v => v.interiorMap.haulDestinationManager.AllHaulDestinationsListInPriorityOrder)).OrderByDescending(d => d.GetStoreSettings().Priority).ToList();
 
             Map thingMap = t.SpawnedOrAnyParentSpawned ? t.MapHeld : carrier.MapHeld;
             IntVec3 intVec = t.SpawnedOrAnyParentSpawned ? t.PositionHeld : carrier.PositionHeld;

@@ -28,7 +28,7 @@ namespace VehicleInteriors
             {
                 return false;
             }
-            var baseMap = p.BaseMapOfThing();
+            var baseMap = p.BaseMap();
             bool flag = p.PositionOnBaseMap().Fogged(baseMap);
             List<IAttackTarget> potentialTargetsFor = baseMap.attackTargetsCache.GetPotentialTargetsFor(p);
             for (int i = 0; i < potentialTargetsFor.Count; i++)

@@ -90,7 +90,7 @@ namespace VehicleInteriors
 
         public static ShotReportOnVehicle HitReportFor(Thing caster, Verb verb, LocalTargetInfo target)
         {
-            Map targetMap = target.HasThing ? target.Thing.Map : caster.BaseMapOfThing();
+            Map targetMap = target.HasThing ? target.Thing.Map : caster.BaseMap();
             IntVec3 casterPositionOnTargetMap = target.HasThing ? caster.PositionOnAnotherThingMap(target.Thing) : caster.PositionOnBaseMap();
             ShotReportOnVehicle shotReportOnVehicle;
             shotReportOnVehicle.distance = (target.Cell - casterPositionOnTargetMap).LengthHorizontal;
@@ -113,7 +113,7 @@ namespace VehicleInteriors
                 {
                     while (enumerator.MoveNext())
                     {
-                        if (enumerator.Current.AnyGas(caster.BaseMapOfThing(), GasType.BlindSmoke))
+                        if (enumerator.Current.AnyGas(caster.BaseMap(), GasType.BlindSmoke))
                         {
                             shotReportOnVehicle.factorFromCoveringGas = 0.7f;
                             break;
@@ -124,7 +124,7 @@ namespace VehicleInteriors
             }
             shotReportOnVehicle.shootLine = new ShootLine(IntVec3.Invalid, IntVec3.Invalid);
             IL_13D:
-            if (!caster.PositionOnBaseMap().Roofed(caster.BaseMapOfThing()) || !target.CellOnBaseMap().Roofed(caster.BaseMapOfThing()))
+            if (!caster.PositionOnBaseMap().Roofed(caster.BaseMap()) || !target.CellOnBaseMap().Roofed(caster.BaseMap()))
             {
                 shotReportOnVehicle.factorFromWeather = caster.Map.weatherManager.CurWeatherAccuracyMultiplier;
             }

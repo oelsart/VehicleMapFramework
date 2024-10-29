@@ -20,7 +20,7 @@ namespace VehicleInteriors
                 Log.Error("CanReserve with null claimant");
                 return false;
             }
-            if (!claimant.Spawned || claimant.BaseMapOfThing() != map.BaseMap())
+            if (!claimant.Spawned || claimant.BaseMap() != map.BaseMap())
             {
                 return false;
             }
@@ -28,7 +28,7 @@ namespace VehicleInteriors
             {
                 return false;
             }
-            if (target.HasThing && target.Thing.SpawnedOrAnyParentSpawned && target.Thing.MapHeldBaseMap() != map.BaseMap())
+            if (target.HasThing && target.Thing.SpawnedOrAnyParentSpawned && target.Thing.MapHeld != map)
             {
                 return false;
             }
@@ -148,7 +148,17 @@ namespace VehicleInteriors
 
         public static bool CanReserveNew(this Pawn p, LocalTargetInfo target, Map destMap)
         {
-            return target.IsValid && !p.HasReserved(target, null) && p.CanReserve(target, destMap, 1, -1, null, false);
+            return target.IsValid && !p.HasReserved(target, null, destMap) && p.CanReserve(target, destMap, 1, -1, null, false);
+        }
+
+        public static bool HasReserved(this Pawn p, LocalTargetInfo target, Job job, Map destMap)
+        {
+            if (!p.Spawned)
+            {
+                return false;
+            }
+
+            return destMap.reservationManager.ReservedBy(target, p, job);
         }
 
         public static bool Reserve(this Pawn p, Map map, LocalTargetInfo target, Job job, int maxPawns = 1, int stackCount = -1, ReservationLayerDef layer = null, bool errorOnFailed = true, bool ignoreOtherReservations = false)

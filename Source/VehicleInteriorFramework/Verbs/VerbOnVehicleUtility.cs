@@ -14,9 +14,9 @@ namespace VehicleInteriors
     {
         public static bool TryFindShootLineFromToOnVehicle(this Verb verb, IntVec3 root, LocalTargetInfo targ, out ShootLine resultingLine, bool ignoreRange = false)
         {
-            var casterBaseMap = verb.caster.BaseMapOfThing();
+            var casterBaseMap = verb.caster.BaseMap();
             var targCellOnBaseMap = targ.CellOnBaseMap();
-            if (targ.HasThing && targ.Thing.BaseMapOfThing() != casterBaseMap)
+            if (targ.HasThing && targ.Thing.BaseMap() != casterBaseMap)
             {
                 resultingLine = default(ShootLine);
                 return false;
@@ -79,14 +79,14 @@ namespace VehicleInteriors
             var targCellOnBaseMap = targ.CellOnBaseMap();
             if (targ.HasThing)
             {
-                if (targ.Thing.BaseMapOfThing() != verb.caster.BaseMapOfThing())
+                if (targ.Thing.BaseMap() != verb.caster.BaseMap())
                 {
                     goodDest = IntVec3.Invalid;
                     return false;
                 }
                 return verb.CanHitCellFromCellIgnoringRange(sourceCell, targ, out goodDest);
             }
-            else if (verb.CanHitCellFromCellIgnoringRange(sourceCell, targ.Cell, verb.Caster.BaseMapOfThing(), false))
+            else if (verb.CanHitCellFromCellIgnoringRange(sourceCell, targ.Cell, verb.Caster.BaseMap(), false))
             {
                 goodDest = targCellOnBaseMap;
                 return true;

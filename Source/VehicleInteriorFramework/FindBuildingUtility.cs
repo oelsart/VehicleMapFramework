@@ -97,7 +97,7 @@ namespace VehicleInteriors
             portal = null;
             exitSpot2 = null;
             enterSpot2 = null;
-            var baseMap = pawn.BaseMapOfThing();
+            var baseMap = pawn.BaseMap();
             if (!baseMap.IsPocketMap)
             {
                 return false;

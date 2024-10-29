@@ -15,14 +15,26 @@ namespace VehicleInteriors
     [StaticConstructorOnStartup]
     public class VehiclePawnWithInterior : VehiclePawn
     {
-        public bool AllowsAutoHaul {
+        public bool AllowsHaulIn {
             get
             {
-                return this.allowsAutoHaul;
+                return this.allowsHaulIn;
             }
             set
             {
-                this.allowsAutoHaul = value;
+                this.allowsHaulIn = value;
+            }
+        }
+
+        public bool AllowsHaulOut
+        {
+            get
+            {
+                return this.allowsHaulOut;
+            }
+            set
+            {
+                this.allowsHaulOut = value;
             }
         }
 
@@ -42,7 +54,79 @@ namespace VehicleInteriors
 
         public override IEnumerable<Gizmo> GetGizmos()
         {
-            return base.GetGizmos().AddItem(new Command_FocusVehicleMap());
+            foreach (var gizmo in base.GetGizmos()) yield return gizmo;
+
+            yield return new Command_FocusVehicleMap();
+
+            yield return new Command_Toggle()
+            {
+                isActive = () => this.allowsHaulIn,
+                toggleAction = () => this.allowsHaulIn = !this.allowsHaulIn,
+                defaultLabel = "VIF.AllowsHaulIn".Translate(),
+                defaultDesc = "VIF.AllowsHaulInDesc".Translate(),
+                icon = VehiclePawnWithInterior.iconAllowsHaulIn,
+            };
+
+            yield return new Command_Toggle()
+            {
+                isActive = () => this.allowsHaulOut,
+                toggleAction = () => this.allowsHaulOut = !this.allowsHaulOut,
+                defaultLabel = "VIF.AllowsHaulOut".Translate(),
+                defaultDesc = "VIF.AllowsHaulOutDesc".Translate(),
+                icon = VehiclePawnWithInterior.iconAllowsHaulOut,
+            };
+
+            yield return new Command_Action()
+            {
+                action = () =>
+                {
+                    //リンクされたストレージの優先度が変わりすぎてしまうのを防ぎかつ全てのストレージにMoteを出したいので、一度優先度をキャッシュしておく
+                    var priorityList = new List<StoragePriority>();
+                    var allGroups = this.interiorMap.haulDestinationManager.AllGroups;
+                    for (var i = 0; i < allGroups.Count(); i++)
+                    {
+                        priorityList.Add(allGroups.ElementAt(i).Settings.Priority);
+                    }
+                    for (var i = 0; i < allGroups.Count(); i++)
+                    {
+                        allGroups.ElementAt(i).Settings.Priority = (StoragePriority)Math.Min((sbyte)(priorityList[i] + 1), (sbyte)StoragePriority.Critical);
+                        MoteMaker.ThrowText(allGroups.ElementAt(i).CellsList[0].ToVector3Shifted().OrigToVehicleMap(this), this.Map, allGroups.ElementAt(i).Settings.Priority.ToString(), Color.white, -1f);
+                    }
+                },
+                defaultLabel = "VIF.IncreasePriority".Translate(),
+                defaultDesc = "VIF.IncreasePriorityDesc".Translate(),
+                icon = VehiclePawnWithInterior.iconIncreasePriority,
+            };
+
+            yield return new Command_Action()
+            {
+                action = () =>
+                {
+                    var priorityList = new List<StoragePriority>();
+                    var allGroups = this.interiorMap.haulDestinationManager.AllGroups;
+                    for (var i = 0; i < allGroups.Count(); i++)
+                    {
+                        priorityList.Add(allGroups.ElementAt(i).Settings.Priority);
+                    }
+                    for (var i = 0; i < allGroups.Count(); i++)
+                    {
+                        allGroups.ElementAt(i).Settings.Priority = (StoragePriority)Math.Max((sbyte)(priorityList[i] - 1), (sbyte)StoragePriority.Low);
+                        MoteMaker.ThrowText(allGroups.ElementAt(i).CellsList[0].ToVector3Shifted().OrigToVehicleMap(this), this.Map, allGroups.ElementAt(i).Settings.Priority.ToString(), Color.white, -1f);
+                    }
+                },
+                defaultLabel = "VIF.DecreasePriority".Translate(),
+                defaultDesc = "VIF.DecreasePriorityDesc".Translate(),
+                icon = VehiclePawnWithInterior.iconDecreasePriority,
+            };
+
+            yield return new Command_Toggle()
+            {
+                isActive = () => this.autoGetOff,
+                toggleAction = () => this.autoGetOff = !this.autoGetOff,
+                defaultLabel = "VIF.AutoGetOff".Translate(),
+                defaultDesc = "VIF.AutoGetOffDesc".Translate(),
+                icon = VehiclePawnWithInterior.iconAutoGetOff,
+            };
         }
 
         public override void SpawnSetup(Map map, bool respawningAfterLoad)
@@ -72,15 +156,15 @@ namespace VehicleInteriors
         private void CopyFromBaseMapComponents()
         {
             this.interiorMap.attackTargetsCache = this.Map.attackTargetsCache;
-            this.interiorMap.listerHaulables = this.Map.listerHaulables;
-            foreach(var thing in this.interiorMap.listerThings.AllThings)
-            {
-                this.interiorMap.attackTargetsCache.Notify_ThingSpawned(thing);
-                if(thing.def.category == ThingCategory.Item)
-                {
-                    this.interiorMap.listerHaulables.Notify_Spawned(thing);
-                }
-            }
+            //this.interiorMap.listerHaulables = this.Map.listerHaulables;
+            //foreach(var thing in this.interiorMap.listerThings.AllThings)
+            //{
+            //    this.interiorMap.attackTargetsCache.Notify_ThingSpawned(thing);
+            //    if(thing.def.category == ThingCategory.Item)
+            //    {
+            //        this.interiorMap.listerHaulables.Notify_Spawned(thing);
+            //    }
+            //}
 
             //foreach (var dest in this.interiorMap.haulDestinationManager.AllHaulDestinations.ToArray())
             //{
@@ -140,18 +224,18 @@ namespace VehicleInteriors
         public override void DeSpawn(DestroyMode mode = DestroyMode.Vanish)
         {
             this.interiorMap.attackTargetsCache = new AttackTargetsCache(this.interiorMap);
-            this.interiorMap.listerHaulables = new ListerHaulables(this.interiorMap);
+            //this.interiorMap.listerHaulables = new ListerHaulables(this.interiorMap);
             //this.interiorMap.haulDestinationManager = new HaulDestinationManager(this.interiorMap);
 
             foreach (var thing in this.interiorMap.listerThings.AllThings)
             {
                 this.interiorMap.attackTargetsCache.Notify_ThingSpawned(thing);
                 this.Map.attackTargetsCache.Notify_ThingDespawned(thing);
-                if (thing.def.category == ThingCategory.Item)
-                {
-                    this.interiorMap.listerHaulables.Notify_Spawned(thing);
-                    this.Map.listerHaulables.Notify_DeSpawned(thing);
-                }
+                //if (thing.def.category == ThingCategory.Item)
+                //{
+                //    this.interiorMap.listerHaulables.Notify_Spawned(thing);
+                //    this.Map.listerHaulables.Notify_DeSpawned(thing);
+                //}
             }
             //foreach(var dest in this.Map.haulDestinationManager.AllHaulDestinations.Where(d => d.Map == this.interiorMap).ToArray())
             //{
@@ -221,6 +305,7 @@ namespace VehicleInteriors
             ((SectionLayer_ThingsOnVehicle)section.GetLayer(typeof(SectionLayer_ThingsOnVehicle))).DrawLayer(this, drawPos);
             this.DrawLayer(section, typeof(SectionLayer_BuildingsDamage), drawPos);
             this.DrawLayer(section, typeof(SectionLayer_ThingsPowerGrid), drawPos);
+            this.DrawLayer(section, t_SectionLayer_Zones, drawPos);
             ((SectionLayer_LightingOnVehicle)section.GetLayer(typeof(SectionLayer_LightingOnVehicle))).DrawLayer(this, drawPos);
             //if (DebugViewSettings.drawSectionEdges)
             //{
@@ -284,16 +369,24 @@ namespace VehicleInteriors
         {
             base.ExposeData();
             Scribe_References.Look(ref this.interiorMap, "interiorMap");
-            Scribe_Values.Look(ref this.allowsAutoHaul, "allowsAutoHaul");
+            Scribe_Values.Look(ref this.allowsHaulIn, "allowsHaulIn");
+            Scribe_Values.Look(ref this.allowsHaulOut, "allowsHaulOut");
+            Scribe_Values.Look(ref this.autoGetOff, "autoGetOff");
         }
 
         public Map interiorMap;
 
         public Vector3 cachedDrawPos = Vector3.zero;
-
-        private static int lastCachedTick = -1;
         
         private readonly List<IntVec3> interactionCellsInt = new List<IntVec3>();
+
+        private bool allowsHaulIn = true;
+
+        private bool allowsHaulOut = true;
+
+        private bool autoGetOff = true;
+
+        private static int lastCachedTick = -1;
 
         private static readonly Material ClipMat = SolidColorMaterials.NewSolidColorMaterial(new Color(0.3f, 0.1f, 0.1f, 0.65f), ShaderDatabase.MetaOverlay);
 
@@ -303,8 +396,16 @@ namespace VehicleInteriors
 
         private static readonly FastInvokeHandler RegenerateDirtyLayers = MethodInvoker.GetHandler(AccessTools.Method(typeof(Section), "RegenerateDirtyLayers"));
 
-        private bool allowsAutoHaul = true;
+        private static readonly Texture2D iconAllowsHaulIn = ContentFinder<Texture2D>.Get("VehicleInteriors/UI/AllowsHaulIn");
 
-        private bool autoGetOff = true;
+        private static readonly Texture2D iconAllowsHaulOut = ContentFinder<Texture2D>.Get("VehicleInteriors/UI/AllowsHaulOut");
+
+        private static readonly Texture2D iconIncreasePriority = ContentFinder<Texture2D>.Get("VehicleInteriors/UI/IncreasePriority");
+
+        private static readonly Texture2D iconDecreasePriority = ContentFinder<Texture2D>.Get("VehicleInteriors/UI/DecreasePriority");
+
+        private static readonly Texture2D iconAutoGetOff = ContentFinder<Texture2D>.Get("VehicleInteriors/UI/AutoGetOff");
+
+        private static readonly Type t_SectionLayer_Zones = AccessTools.TypeByName("Verse.SectionLayer_Zones");
     }
 }

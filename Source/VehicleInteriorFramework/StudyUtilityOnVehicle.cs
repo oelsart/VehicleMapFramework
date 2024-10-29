@@ -21,7 +21,7 @@ namespace VehicleInteriors
                     return;
                 }
                 var enumerator = Find.CurrentMap.listerThings.ThingsInGroup(ThingRequestGroup.EntityHolder)
-                .Concat(VehiclePawnWithMapCache.allVehicles[Find.CurrentMap].Where(v => v.AllowsAutoHaul).SelectMany(v => v.interiorMap.listerThings.ThingsInGroup(ThingRequestGroup.EntityHolder)));
+                .Concat(VehiclePawnWithMapCache.allVehicles[Find.CurrentMap].Where(v => v.AllowsHaulOut).SelectMany(v => v.interiorMap.listerThings.ThingsInGroup(ThingRequestGroup.EntityHolder)));
                 {
                     foreach (var thing in enumerator)
                     {
@@ -107,7 +107,7 @@ namespace VehicleInteriors
             {
                 var baseMap = entity.MapHeldBaseMap();
                 var buildings = baseMap.listerBuildings.AllBuildingsColonistOfGroup(ThingRequestGroup.EntityHolder)
-                .Concat(VehiclePawnWithMapCache.allVehicles[baseMap].Where(v => v.AllowsAutoHaul).SelectMany(v => v.interiorMap.listerBuildings.AllBuildingsColonistOfGroup(ThingRequestGroup.EntityHolder)));
+                .Concat(VehiclePawnWithMapCache.allVehicles[baseMap].Where(v => v.AllowsHaulOut).SelectMany(v => v.interiorMap.listerBuildings.AllBuildingsColonistOfGroup(ThingRequestGroup.EntityHolder)));
                 foreach (Building building in buildings)
                 {
                     if (ValidateTarget(building) && (carrier == null || CanReserveForTransfer(building)))

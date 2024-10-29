@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+
+	<WorkGiverDef>
+		<defName>VIF_HaulAcrossMaps</defName>
+		<label>haul general things</label>
+		<giverClass>VehicleInteriors.WorkGiver_HaulAcrossMaps</giverClass>
+		<workType>Hauling</workType>
+		<verb>haul</verb>
+		<gerund>hauling</gerund>
+		<priorityInType>16</priorityInType>
+		<requiredCapacities>
+			<li>Manipulation</li>
+		</requiredCapacities>
+	</WorkGiverDef>
+
+</Defs>

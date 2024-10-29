@@ -126,8 +126,8 @@ namespace VehicleInteriors
 
         protected override bool TryCastShot()
         {
-            var targetBaseMap = this.currentTarget.HasThing ? this.currentTarget.Thing.BaseMapOfThing() : this.caster.BaseMapOfThing();
-            var casterBaseMap = this.caster.BaseMapOfThing();
+            var targetBaseMap = this.currentTarget.HasThing ? this.currentTarget.Thing.BaseMap() : this.caster.BaseMap();
+            var casterBaseMap = this.caster.BaseMap();
             var targCellOnBaseMap = this.currentTarget.CellOnBaseMap();
             var casterPositionOnBaseMap = this.caster.PositionOnBaseMap();
             if (this.currentTarget.HasThing && targetBaseMap != casterBaseMap)

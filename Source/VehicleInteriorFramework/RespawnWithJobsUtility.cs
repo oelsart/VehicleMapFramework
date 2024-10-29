@@ -60,7 +60,7 @@ namespace VehicleInteriors
             Find.TickManager.DeRegisterAllTickabilityFor(pawn);
             pawn.ForceSetStateToUnspawned();
             map.attackTargetsCache.Notify_ThingDespawned(pawn);
-            map.physicalInteractionReservationManager.ReleaseAllForTarget(pawn);
+            //map.physicalInteractionReservationManager.ReleaseAllForTarget(pawn);
             IHaulEnroute thing;
             if ((thing = (pawn as IHaulEnroute)) != null)
             {
@@ -130,7 +130,7 @@ namespace VehicleInteriors
             {
                 pawn_MechanitorTracker.Notify_DeSpawned(mode);
             }
-            pawn.ClearAllReservations(false);
+            //pawn.ClearAllReservations(false);
             if (map != null)
             {
                 map.mapPawns.DeRegisterPawn(pawn);

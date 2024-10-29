@@ -93,7 +93,7 @@ namespace VehicleInteriors
 
         public static IEnumerable<Pawn> CarrierCandidatesFor(Pawn pawn)
         {
-            var baseMap = pawn.BaseMapOfThing();
+            var baseMap = pawn.BaseMap();
             IEnumerable<Pawn> enumerable = pawn.IsFormingCaravan() ? pawn.GetLord().ownedPawns : baseMap.mapPawns.SpawnedPawnsInFaction(pawn.Faction).Concat(VehiclePawnWithMapCache.allVehicles[baseMap].SelectMany(v => v.interiorMap.mapPawns.SpawnedPawnsInFaction(pawn.Faction)));
             enumerable = from x in enumerable
                          where x.RaceProps.packAnimal && !x.inventory.UnloadEverything

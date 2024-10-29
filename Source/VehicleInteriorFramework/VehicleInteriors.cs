@@ -13,6 +13,5 @@ namespace VehicleInteriors
         }
 
         public static VehicleInteriors mod;
-
     }
 }

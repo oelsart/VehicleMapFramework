@@ -45,7 +45,7 @@ namespace VehicleInteriors
             yield return Toils_Jump.JumpIf(findBedForBaby, () => this.pawn.IsCarryingPawn(this.Baby)).FailOn(() => !this.pawn.IsCarryingPawn(this.Baby) && (this.pawn.Downed || this.pawn.Drafted));
             if (this.ShouldEnterTargetAMap)
             {
-                foreach(var toil in ToilsAcrossMaps.GotoTargetMap(this, this.ExitSpot1, this.EnterSpot1)) yield return toil;
+                foreach(var toil in this.GotoTargetMap(TargetIndex.A)) yield return toil;
             }
             foreach (Toil toil in JobDriver_PickupToHold.Toils(this, TargetIndex.A, true))
             {

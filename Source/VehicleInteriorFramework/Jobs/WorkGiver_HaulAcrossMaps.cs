@@ -8,11 +8,18 @@ namespace VehicleInteriors
 {
     public class WorkGiver_HaulAcrossMaps : WorkGiver_Haul
     {
+        public override bool ShouldSkip(Pawn pawn, bool forced = false)
+        {
+            var baseMap = pawn.BaseMap();
+            return baseMap.listerHaulables.ThingsPotentiallyNeedingHauling()
+                .Concat(VehiclePawnWithMapCache.allVehicles[baseMap].Where(v => v.AllowsHaulOut).SelectMany(v => v.interiorMap.listerHaulables.ThingsPotentiallyNeedingHauling())).Count() == 0;
+        }
+
         public override IEnumerable<Thing> PotentialWorkThingsGlobal(Pawn pawn)
         {
-            var baseMap = pawn.BaseMapOfThing();
+            var baseMap = pawn.BaseMap();
             return baseMap.listerHaulables.ThingsPotentiallyNeedingHauling()
-                .Concat(VehiclePawnWithMapCache.allVehicles[baseMap].Where(v => v.AllowsAutoHaul).SelectMany(v => v.interiorMap.listerHaulables.ThingsPotentiallyNeedingHauling()));
+                .Concat(VehiclePawnWithMapCache.allVehicles[baseMap].Where(v => v.AllowsHaulOut).SelectMany(v => v.interiorMap.listerHaulables.ThingsPotentiallyNeedingHauling()));
         }
 
         public override Job JobOnThing(Pawn pawn, Thing t, bool forced = false)
@@ -21,9 +28,8 @@ namespace VehicleInteriors
             {
                 return null;
             }
-            var exitSpot = LocalTargetInfo.Invalid;
-            var enterSpot = LocalTargetInfo.Invalid;
-            if (!HaulAIAcrossMapsUtility.PawnCanAutomaticallyHaulFast(pawn, t, forced, out exitSpot, out enterSpot))
+
+            if (!HaulAIAcrossMapsUtility.PawnCanAutomaticallyHaulFast(pawn, t, forced, out LocalTargetInfo exitSpot, out LocalTargetInfo enterSpot))
             {
                 return null;
             }

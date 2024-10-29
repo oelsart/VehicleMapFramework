@@ -87,6 +87,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GenDrawOnVehicle.cs" />
     <Compile Include="VehicleHandlerBuildable.cs" />
     <Compile Include="VehicleMapParentsComponent.cs" />
     <Compile Include="VehicleMap\SectionLayer_LightingOnVehicle.cs" />
@@ -172,6 +173,7 @@
     <Compile Include="VIF_HarmonyPatches\Core.cs" />
     <Compile Include="VIF_HarmonyPatches\Patches_Combat.cs" />
     <Compile Include="VIF_HarmonyPatches\Patches_DebugMenu.cs" />
+    <Compile Include="VIF_HarmonyPatches\Patches_Designator.cs" />
     <Compile Include="VIF_HarmonyPatches\Patches_FloatMenu.cs" />
     <Compile Include="VIF_HarmonyPatches\Patches_Graphic.cs" />
     <Compile Include="VIF_HarmonyPatches\Patches_GUI.cs" />
@@ -185,44 +187,13 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
-    <Content Include="..\..\Defs\BiomeDefs\Biomes_VehicleInteriors.xml">
-      <Link>Defs\BiomeDefs\Biomes_VehicleInteriors.xml</Link>
+    <Content Include="..\..\Common\Defs\**\*.*">
+      <Link>Defs\%(RecursiveDir)%(FileName)%(Extension)</Link>
     </Content>
-    <Content Include="..\..\Defs\JobDefs\Jobs.xml">
-      <Link>Defs\JobDefs\Jobs.xml</Link>
-    </Content>
-    <Content Include="..\..\Defs\MapGeneration\VehicleMapGenerator.xml">
-      <Link>Defs\MapGeneration\VehicleMapGenerator.xml</Link>
-    </Content>
-    <Content Include="..\..\Defs\SoundDefs\Sounds.xml">
-      <Link>Defs\SoundDefs\Sounds.xml</Link>
-    </Content>
-    <Content Include="..\..\Defs\TerrainDefs\Terrains.xml">
-      <Link>Defs\TerrainDefs\Terrains.xml</Link>
-    </Content>
-    <Content Include="..\..\Defs\ThingDefs\EnterSpots.xml">
-      <Link>Defs\ThingDefs\EnterSpots.xml</Link>
-    </Content>
-    <Content Include="..\..\Defs\ThingDefs\VehicleSeats.xml">
-      <Link>Defs\ThingDefs\VehicleSeats.xml</Link>
-    </Content>
-    <Content Include="..\..\Defs\VehicleDefs\BaseVehiclePawnWithMap.xml">
-      <Link>Defs\VehicleDefs\BaseVehiclePawnWithMap.xml</Link>
-    </Content>
-    <Content Include="..\..\Defs\VehicleDefs\Crawler\Crawler_Buildable.xml">
-      <Link>Defs\VehicleDefs\Crawler\Crawler_Buildable.xml</Link>
-    </Content>
-    <Content Include="..\..\Defs\VehicleDefs\Crawler\Crawler_VehiclePawn.xml">
-      <Link>Defs\VehicleDefs\Crawler\Crawler_VehiclePawn.xml</Link>
-    </Content>
-    <Content Include="..\..\Defs\WeatherDefs\Weathers.xml">
-      <Link>Defs\WeatherDefs\Weathers.xml</Link>
-    </Content>
-    <Content Include="..\..\Defs\WorkGiverDefs\WorkGivers.xml">
-      <Link>Defs\WorkGiverDefs\WorkGivers.xml</Link>
-    </Content>
-    <Content Include="..\..\Defs\WorldObjectDefs\WorldObjects.xml">
-      <Link>Defs\WorldObjectDefs\WorldObjects.xml</Link>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\..\Common\Languages\**\*.*">
+      <Link>Languages\%(RecursiveDir)%(FileName)%(Extension)</Link>
     </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

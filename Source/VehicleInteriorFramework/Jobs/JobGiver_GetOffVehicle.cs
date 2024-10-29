@@ -19,7 +19,7 @@ namespace VehicleInteriors
                 var hostile = pawn.HostileTo(Faction.OfPlayer);
                 var spot = exitSpots.FirstOrDefault(e =>
                 {
-                    var baseMap = e.BaseMapOfThing();
+                    var baseMap = e.BaseMap();
                     var basePos = e.PositionOnBaseMap();
                     var faceCell = e.BaseFullRotationOfThing().FacingCell;
                     faceCell.y = 0;

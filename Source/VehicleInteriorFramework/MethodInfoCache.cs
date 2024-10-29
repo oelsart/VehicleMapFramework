@@ -2,9 +2,11 @@
 using RimWorld.Planet;
 using SmashTools;
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
+using VehicleInteriors.VIF_HarmonyPatches;
 using Vehicles;
 using Verse;
 
@@ -32,7 +34,11 @@ namespace VehicleInteriors
 
         public static readonly MethodInfo g_Thing_Map = AccessTools.PropertyGetter(typeof(Thing), nameof(Thing.Map));
 
-        public static readonly MethodInfo m_BaseMapOfThing = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.BaseMapOfThing));
+        public static readonly MethodInfo m_BaseMap_Thing = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.BaseMap), new Type[] { typeof(Thing) });
+
+        public static readonly MethodInfo g_Zone_Map = AccessTools.PropertyGetter(typeof(Zone), nameof(Zone.Map));
+
+        public static readonly MethodInfo m_BaseMap_Zone = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.BaseMap), new Type[] { typeof(Zone) });
 
         public static readonly MethodInfo g_Thing_MapHeld = AccessTools.PropertyGetter(typeof(Thing), nameof(Thing.MapHeld));
 
@@ -62,7 +68,7 @@ namespace VehicleInteriors
 
         public static readonly MethodInfo g_AsAngleRot8 = AccessTools.PropertyGetter(typeof(Rot8), nameof(Rot8.AsAngle));
 
-        public static readonly MethodInfo m_BaseMap = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.BaseMap));
+        public static readonly MethodInfo m_BaseMap_Map = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.BaseMap), new Type[] { typeof(Map) });
 
         public static readonly MethodInfo m_RotatePoint = AccessTools.Method(typeof(Ext_Math), nameof(Ext_Math.RotatePoint));
 
@@ -71,5 +77,15 @@ namespace VehicleInteriors
         public static readonly MethodInfo m_Rot8_AsQuat = AccessTools.Method(typeof(Rot8Utility), nameof(Rot8Utility.AsQuat));
 
         public static readonly MethodInfo o_Quaternion_Multiply = AccessTools.Method(typeof(Quaternion), "op_Multiply", new Type[] { typeof(Quaternion), typeof(Quaternion) });
+
+        public static readonly MethodInfo m_GenDraw_DrawFieldEdges = AccessTools.Method(typeof(GenDraw), nameof(GenDraw.DrawFieldEdges), new Type[] { typeof(List<IntVec3>) });
+
+        public static readonly MethodInfo m_GenDrawOnVehicle_DrawFieldEdges = AccessTools.Method(typeof(GenDrawOnVehicle), nameof(GenDrawOnVehicle.DrawFieldEdges), new Type[] { typeof(List<IntVec3>), typeof(Map) });
+
+        public static readonly MethodInfo g_Designator_Map = AccessTools.PropertyGetter(typeof(Designator), nameof(Designator.Map));
+
+        public static readonly MethodInfo g_Thing_Rotation = AccessTools.PropertyGetter(typeof(Thing), nameof(Thing.Rotation));
+
+        public static readonly MethodInfo m_Thing_RotationOrig = AccessTools.Method(typeof(Patch_Thing_Rotation), nameof(Patch_Thing_Rotation.Rotation));
     }
 }

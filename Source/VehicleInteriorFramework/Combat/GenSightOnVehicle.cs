@@ -77,7 +77,7 @@ namespace VehicleInteriors.Jobs
                 return GenSightOnVehicle.LineOfSightThingToThing(thing, target.Thing, skipFirstCell, validator);
             }
             var map1 = thing.Map;
-            var map2 = thing.BaseMapOfThing();
+            var map2 = thing.BaseMap();
             if (map1 != map2)
             {
                 return GenSightOnVehicle.LineOfSightToThing(target.CellOnAnotherThingMap(thing), thing, map1, skipFirstCell, validator) &&

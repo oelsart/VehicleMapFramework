@@ -35,80 +35,6 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         }
     }
 
-    [HarmonyPatch(typeof(Designation), nameof(Designation.DrawLoc))]
-    public static class Patch_Designation_DrawLoc
-    {
-        public static void Postfix(Designation __instance, ref Vector3 __result)
-        {
-            if (__instance.designationManager.map.Parent is MapParent_Vehicle)
-            {
-                __result.y += VehicleMapUtility.altitudeOffsetFull;
-            }
-        }
-    }
-
-    //drawPosを移動してQuaternionに車の回転をかける。ほぼ同じなので3つまとめました
-    [HarmonyPatch(typeof(GenUI), nameof(GenUI.RenderMouseoverBracket))]
-    public static class Patch_GenUI_RenderMouseoverBracket
-    {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
-        {
-            var f_GenUIMouseoverBracketMaterial = AccessTools.Field(typeof(GenUI), "MouseoverBracketMaterial");
-            return Patch_GenUI_RenderMouseoverBracket.TranspilerCommon(instructions, generator, f_GenUIMouseoverBracketMaterial);
-        }
-
-        public static IEnumerable<CodeInstruction> TranspilerCommon(IEnumerable<CodeInstruction> instructions, ILGenerator generator, FieldInfo field)
-        {
-            var codes = instructions.ToList();
-            var m_QuaternionIdentity = AccessTools.PropertyGetter(typeof(Quaternion), nameof(Quaternion.identity));
-            var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(m_QuaternionIdentity));
-            codes.Insert(pos, new CodeInstruction(OpCodes.Call, MethodInfoCache.m_OrigToVehicleMap1));
-
-            var label = generator.DefineLabel();
-            var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Ldsfld && c.OperandIs(field));
-            codes[pos2].labels.Add(label);
-            codes.InsertRange(pos2, new[]
-            {
-                new CodeInstruction(OpCodes.Call, MethodInfoCache.g_FocusedVehicle),
-                new CodeInstruction(OpCodes.Brfalse_S, label),
-                new CodeInstruction(OpCodes.Call, MethodInfoCache.g_FocusedVehicle),
-                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_FullRotation),
-                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_Rot8_AsQuat),
-                new CodeInstruction(OpCodes.Call, MethodInfoCache.o_Quaternion_Multiply),
-            });
-            return codes;
-        }
-    }
-
-    [HarmonyPatch(typeof(DesignatorUtility), nameof(DesignatorUtility.RenderHighlightOverSelectableCells))]
-    public static class Patch_DesignatorUtility_RenderHighlightOverSelectableCells
-    {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
-        {
-            var f_DesignatorUtility_DragHighlightCellMat = AccessTools.Field(typeof(DesignatorUtility), nameof(DesignatorUtility.DragHighlightCellMat));
-            return Patch_GenUI_RenderMouseoverBracket.TranspilerCommon(instructions, generator, f_DesignatorUtility_DragHighlightCellMat);
-        }
-    }
-
-    [HarmonyPatch(typeof(DesignatorUtility), nameof(DesignatorUtility.RenderHighlightOverSelectableThings))]
-    public static class Patch_DesignatorUtility_RenderHighlightOverSelectableThings
-    {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
-        {
-            var f_DesignatorUtility_DragHighlightThingMat = AccessTools.Field(typeof(DesignatorUtility), nameof(DesignatorUtility.DragHighlightThingMat));
-            return Patch_GenUI_RenderMouseoverBracket.TranspilerCommon(instructions, generator, f_DesignatorUtility_DragHighlightThingMat);
-        }
-    }
-
-    [HarmonyPatch(typeof(DesignationManager), nameof(DesignationManager.DrawDesignations))]
-    public static class Patch_DesignationManager_DrawDesignations
-    {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
-            return instructions.MethodReplacer(MethodInfoCache.g_LocalTargetInfo_Cell, MethodInfoCache.m_CellOnBaseMap);
-        }
-    }
-
     //VehicleMapはコロニストバーに表示させない
     [HarmonyPatch(typeof(ColonistBar), "CheckRecacheEntries")]
     public static class Patch_ColonistBar_CheckRecacheEntries
@@ -134,7 +60,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
 
         private static IEnumerable<Map> ExcludeVehicleMaps(this IEnumerable<Map> maps)
         {
-            return maps.Where(m => !m.IsVehicleMapOf(out var vehicle) || !vehicle.Spawned);
+            return maps?.Where(m => !m.IsVehicleMapOf(out var vehicle) || !vehicle.Spawned);
         }
 
         private static List<Pawn> IncludeVehicleMapPawns(List<Pawn> tmpPawns, Map map)

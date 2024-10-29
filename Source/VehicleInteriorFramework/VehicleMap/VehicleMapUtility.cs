@@ -196,13 +196,22 @@ namespace VehicleInteriors
             return result;
         }
 
-        public static Map BaseMapOfThing(this Thing thing)
+        public static Map BaseMap(this Thing thing)
         {
             if (thing.IsOnVehicleMapOf(out var vehicle) && vehicle.Spawned)
             {
                 return vehicle.Map;
             }
             return thing.Map;
+        }
+
+        public static Map BaseMap(this Zone zone)
+        {
+            if (zone.Map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
+            {
+                return vehicle.Map;
+            }
+            return zone.Map;
         }
 
         public static IntVec3 PositionOnBaseMap(this Thing thing)

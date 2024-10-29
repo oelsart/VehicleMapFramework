@@ -82,58 +82,44 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
         {
-            var codes = instructions.ToList();
-            var pos = codes.FindIndex(c => c.opcode == OpCodes.Stloc_3);
+            var codes = instructions.MethodReplacer(MethodInfoCache.g_Thing_MapHeld, MethodInfoCache.m_MapHeldBaseMap)
+                .MethodReplacer(MethodInfoCache.g_Zone_Map, MethodInfoCache.m_BaseMap_Zone).ToList();
+            var g_Zone_Cells = AccessTools.PropertyGetter(typeof(Zone), nameof(Zone.Cells));
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Callvirt && c.OperandIs(g_Zone_Cells));
+            pos = codes.FindIndex(pos, c => c.opcode == OpCodes.Br_S);
             var label = generator.DefineLabel();
             var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithInterior));
 
             codes[pos].labels.Add(label);
             codes.InsertRange(pos, new[]
             {
-                new CodeInstruction(OpCodes.Dup),
+                CodeInstruction.LoadArgument(1),
+                new CodeInstruction(OpCodes.Castclass, typeof(Zone)),
+                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Zone_Map),
                 new CodeInstruction(OpCodes.Ldloca_S, vehicle),
                 new CodeInstruction(OpCodes.Call, MethodInfoCache.m_IsVehicleMapOf),
                 new CodeInstruction(OpCodes.Brfalse_S, label),
                 new CodeInstruction(OpCodes.Ldloc_S, vehicle),
                 new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Thing_Spawned),
                 new CodeInstruction(OpCodes.Brfalse_S, label),
-                new CodeInstruction(OpCodes.Pop),
                 new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Thing_Map),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_OrigToVehicleMap2)
             });
 
-            var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Beq_S) - 1;
-            var label2 = generator.DefineLabel();
+            var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalIndex == 6);
+            var label2 = codes[pos2].labels[0];
             var vehicle2 = generator.DeclareLocal(typeof(VehiclePawnWithInterior));
 
-            var code = codes[pos2];
             codes.InsertRange(pos2, new[]
             {
-                new CodeInstruction(OpCodes.Dup).MoveLabelsFrom(codes[pos2]),
+                CodeInstruction.LoadLocal(0),
                 new CodeInstruction(OpCodes.Ldloca_S, vehicle2),
-                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_IsVehicleMapOf),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_IsOnVehicleMapOf),
                 new CodeInstruction(OpCodes.Brfalse_S, label2),
-                new CodeInstruction(OpCodes.Ldloc_S, vehicle2),
+                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
                 new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Thing_Spawned),
                 new CodeInstruction(OpCodes.Brfalse_S, label2),
-                new CodeInstruction(OpCodes.Pop),
                 new CodeInstruction(OpCodes.Ldloc_S, vehicle2),
-                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Thing_Map),
-            });
-            code.labels.Add(label2);
-
-            var pos3 = codes.FindIndex(pos2, c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalIndex == 6);
-            var label4 = generator.DefineLabel();
-
-            codes[pos3].labels.Add(label4);
-            codes.InsertRange(pos3, new[]
-            {
-                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-                new CodeInstruction(OpCodes.Brfalse_S, label4),
-                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Thing_Spawned),
-                new CodeInstruction(OpCodes.Brfalse_S, label4),
-                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
                 new CodeInstruction(OpCodes.Call, MethodInfoCache.m_OrigToVehicleMap2)
             });
             return codes;

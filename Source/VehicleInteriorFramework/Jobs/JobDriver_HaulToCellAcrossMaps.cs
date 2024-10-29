@@ -60,7 +60,7 @@ namespace VehicleInteriors
 
         public override bool TryMakePreToilReservations(bool errorOnFailed)
         {
-            return this.DestMap.reservationManager.Reserve(this.pawn, this.job, this.job.GetTarget(TargetIndex.B), 1, -1, null, errorOnFailed, false) && this.ToHaul.MapHeld.reservationManager.Reserve(this.pawn,  this.job, this.job.GetTarget(HaulableInd), 1, -1, null, errorOnFailed, false);
+            return this.DestMap.reservationManager.Reserve(this.pawn, this.job, this.job.GetTarget(StoreCellInd), 1, -1, null, errorOnFailed, false) && this.TargetAMap.reservationManager.Reserve(this.pawn, this.job, this.job.GetTarget(HaulableInd), 1, -1, null, errorOnFailed, false);
         }
 
         public override void Notify_Starting()
@@ -107,8 +107,7 @@ namespace VehicleInteriors
                     {
                         Log.Message(string.Format("Dropping {0} because it is not the designated Thing to haul.", this.pawn.carryTracker.CarriedThing));
                     }
-                    Thing thing;
-                    this.pawn.carryTracker.TryDropCarriedThing(this.pawn.Position, ThingPlaceMode.Near, out thing, null);
+                    this.pawn.carryTracker.TryDropCarriedThing(this.pawn.Position, ThingPlaceMode.Near, out Thing thing, null);
                 }
             });
             if (this.ShouldEnterTargetAMap)
@@ -117,14 +116,14 @@ namespace VehicleInteriors
             }
             var destMap = this.DestMap;
             Toil toilGoto = null;
-            toilGoto = Toils_Goto.GotoThing(HaulableInd, PathEndMode.ClosestTouch, true).FailOnSomeonePhysicallyInteracting(HaulableInd).FailOn(delegate ()
+            toilGoto = Toils_Goto.GotoThing(HaulableInd, PathEndMode.ClosestTouch, true).FailOnSomeonePhysicallyInteracting(HaulableInd, this.TargetAMap).FailOn(delegate ()
             {
                 Pawn actor = toilGoto.actor;
                 Job curJob = actor.jobs.curJob;
                 if (curJob.haulMode == HaulMode.ToCellStorage)
                 {
                     Thing thing = curJob.GetTarget(HaulableInd).Thing;
-                    if (destMap == null || !actor.jobs.curJob.GetTarget(StoreCellInd).Cell.IsValidStorageFor(destMap, thing))
+                    if (destMap != null && !actor.jobs.curJob.GetTarget(StoreCellInd).Cell.IsValidStorageFor(destMap, thing))
                     {
                         return true;
                     }
@@ -132,8 +131,7 @@ namespace VehicleInteriors
                 return false;
             });
             yield return toilGoto;
-            var startCarry = Toils_Haul.StartCarryThing(HaulableInd, false, true, false, true, HaulAIUtility.IsInHaulableInventory(this.ToHaul));
-            yield return startCarry;
+            yield return Toils_Haul.StartCarryThing(HaulableInd, false, true, false, true, HaulAIUtility.IsInHaulableInventory(this.ToHaul));
             yield return postCarry;
             if (this.job.haulOpportunisticDuplicates)
             {
@@ -156,7 +154,7 @@ namespace VehicleInteriors
             toil.atomicWithPrevious = true;
             toil.tickAction = delegate ()
             {
-                if (Find.TickManager.TicksGame >= this.startTick + 30)
+                if (Find.TickManager.TicksGame >= this.startTick + MinimumHaulingJobTicks)
                 {
                     base.ReadyForNextToil();
                 }

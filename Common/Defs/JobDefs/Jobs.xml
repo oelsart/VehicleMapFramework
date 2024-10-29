@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+
+	<JobDef>
+		<defName>VIF_GotoAcrossMaps</defName>
+		<driverClass>VehicleInteriors.JobDriver_GotoAcrossMaps</driverClass>
+		<reportString>moving.</reportString>
+		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
+		<carryThingAfterJob>true</carryThingAfterJob>
+		<dropThingBeforeJob>false</dropThingBeforeJob>
+	</JobDef>
+	
+	<JobDef>
+		<defName>VIF_AttackMeleeAcrossMaps</defName>
+		<driverClass>VehicleInteriors.JobDriver_AttackMeleeAcrossMaps</driverClass>
+		<reportString>melee attacking TargetC.</reportString>
+		<alwaysShowWeapon>true</alwaysShowWeapon>
+		<casualInterruptible>false</casualInterruptible>
+		<collideWithPawns>true</collideWithPawns>
+	</JobDef>
+	
+	<JobDef>
+		<defName>VIF_HaulToCellAcrossMaps</defName>
+		<driverClass>VehicleInteriors.JobDriver_HaulToCellAcrossMaps</driverClass>
+		<reportString>hauling TargetA.</reportString>
+		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
+	</JobDef>
+	
+	<JobDef>
+		<defName>VIF_HaulToContainerAcrossMaps</defName>
+		<driverClass>VehicleInteriors.JobDriver_HaulToContainerAcrossMaps</driverClass>
+		<reportString>hauling TargetA.</reportString>
+		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
+	</JobDef>
+	
+	<JobDef>
+		<defName>VIF_CarryDownedPawnDraftedAcrossMaps</defName>
+		<driverClass>VehicleInteriors.JobDriver_CarryDownedPawnAcrossMaps</driverClass>
+		<reportString>carrying TargetA.</reportString>
+		<carryThingAfterJob>true</carryThingAfterJob>
+	</JobDef>
+	
+	<JobDef>
+		<defName>VIF_TakeDownedPawnToBedDraftedAcrossMaps</defName>
+		<driverClass>VehicleInteriors.JobDriver_TakeToBedAcrossMaps</driverClass>
+		<reportString>taking TargetA to bed.</reportString>
+		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
+		<dropThingBeforeJob>false</dropThingBeforeJob>
+	</JobDef>
+	
+	<JobDef>
+		<defName>VIF_CarryToPrisonerBedDraftedAcrossMaps</defName>
+		<driverClass>VehicleInteriors.JobDriver_TakeToBedAcrossMaps</driverClass>
+		<reportString>arresting TargetA.</reportString>
+		<alwaysShowWeapon>true</alwaysShowWeapon>
+		<makeTargetPrisoner>true</makeTargetPrisoner>
+		<casualInterruptible>false</casualInterruptible>
+		<dropThingBeforeJob>false</dropThingBeforeJob>
+		<carryThingAfterJob>true</carryThingAfterJob>
+	</JobDef>
+	
+	<JobDef>
+		<defName>VIF_CarryToEntityHolderAcrossMaps</defName>
+		<driverClass>VehicleInteriors.JobDriver_CarryToEntityHolderAcrossMaps</driverClass>
+		<reportString>carrying TargetB to TargetA.</reportString>
+		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
+	</JobDef>
+	
+	<JobDef>
+		<defName>VIF_CarryToEntityHolderAlreadyHoldingAcrossMaps</defName>
+		<driverClass>VehicleInteriors.JobDriver_CarryToEntityHolderAlreadyHoldingAcrossMaps</driverClass>
+		<reportString>carrying TargetB to TargetA.</reportString>
+		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
+	</JobDef>
+	
+	<JobDef>
+		<defName>VIF_TransferBetweenEntityHoldersAcrossMaps</defName>
+		<driverClass>VehicleInteriors.JobDriver_TransferBetweenEntityHoldersAcrossMaps</driverClass>
+		<reportString>transferring TargetC to another holding location.</reportString>
+	</JobDef>
+	
+	<JobDef>
+		<defName>VIF_ArrestAcrossMaps</defName>
+		<driverClass>VehicleInteriors.JobDriver_TakeToBedAcrossMaps</driverClass>
+		<reportString>arresting TargetA.</reportString>
+		<alwaysShowWeapon>true</alwaysShowWeapon>
+		<makeTargetPrisoner>true</makeTargetPrisoner>
+		<casualInterruptible>false</casualInterruptible>
+		<carryThingAfterJob>true</carryThingAfterJob>
+	</JobDef>
+	
+	<JobDef>
+		<defName>VIF_RescueAcrossMaps</defName>
+		<driverClass>VehicleInteriors.JobDriver_TakeToBedAcrossMaps</driverClass>
+		<reportString>rescuing TargetA.</reportString>
+		<casualInterruptible>false</casualInterruptible>
+		<carryThingAfterJob>true</carryThingAfterJob>
+		<dropThingBeforeJob>false</dropThingBeforeJob>
+	</JobDef>
+	
+	<JobDef>
+		<defName>VIF_BringBabyToSafetyAcrossMaps</defName>
+		<driverClass>VehicleInteriors.JobDriver_BringBabyToSafetyAcrossMaps</driverClass>
+		<reportString>putting TargetA somewhere safe.</reportString>
+		<forceCompleteBeforeNextJob>true</forceCompleteBeforeNextJob>
+	</JobDef>
+	
+	<JobDef>
+		<defName>VIF_CaptureAcrossMaps</defName>
+		<driverClass>VehicleInteriors.JobDriver_TakeToBedAcrossMaps</driverClass>
+		<reportString>capturing TargetA.</reportString>
+		<alwaysShowWeapon>true</alwaysShowWeapon>
+		<makeTargetPrisoner>true</makeTargetPrisoner>
+		<casualInterruptible>false</casualInterruptible>
+		<carryThingAfterJob>true</carryThingAfterJob>
+	</JobDef>
+	
+	<JobDef>
+		<defName>VIF_CarryToCryptosleepCasketAcrossMaps</defName>
+		<driverClass>VehicleInteriors.JobDriver_CarryToCryptosleepCasketAcrossMaps</driverClass>
+		<reportString>carrying TargetA to cryptosleep casket.</reportString>
+		<casualInterruptible>false</casualInterruptible>
+		<taleOnCompletion>PutIntoCryptosleep</taleOnCompletion>
+	</JobDef>
+	
+	<JobDef>
+		<defName>VIF_CarryToCryptosleepCasketDraftedAcrossMaps</defName>
+		<driverClass>VehicleInteriors.JobDriver_CarryToCryptosleepCasketAcrossMaps</driverClass>
+		<reportString>carrying TargetA to cryptosleep casket.</reportString>
+		<casualInterruptible>false</casualInterruptible>
+		<taleOnCompletion>PutIntoCryptosleep</taleOnCompletion>
+		<dropThingBeforeJob>false</dropThingBeforeJob>
+		<carryThingAfterJob>true</carryThingAfterJob>
+	</JobDef>
+	
+	<JobDef>
+		<defName>VIF_HaulToTransporterAcrossMaps</defName>
+		<driverClass>VehicleInteriors.JobDriver_HaulToTransporterAcrossMaps</driverClass>
+		<reportString>hauling TargetA.</reportString>
+		<suspendable>false</suspendable>
+		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
+		<dropThingBeforeJob>false</dropThingBeforeJob>
+	</JobDef>
+	
+	<JobDef>
+		<defName>VIF_ExtractRelicAcrossMaps</defName>
+		<driverClass>VehicleInteriors.JobDriver_EmptyThingContainerAcrossMaps</driverClass>
+		<reportString>extracting TargetB from TargetA.</reportString>
+	</JobDef>
+	
+	<JobDef>
+		<defName>VIF_InstallRelicAcrossMaps</defName>
+		<driverClass>VehicleInteriors.JobDriver_InstallRelicAcrossMaps</driverClass>
+		<reportString>installing TargetA in TargetB</reportString>
+	</JobDef>
+	
+	<JobDef>
+		<defName>VIF_HaulMechToChargerAcrossMaps</defName>
+		<driverClass>VehicleInteriors.JobDriver_HaulMechToChargerAcrossMaps</driverClass>
+		<reportString>hauling TargetA to charger.</reportString>
+	</JobDef>
+	
+	<JobDef>
+		<defName>VIF_DeliverToBedAcrossMaps</defName>
+		<driverClass>VehicleInteriors.JobDriver_TakeToBedAcrossMaps</driverClass>
+		<reportString>delivering TargetA.</reportString>
+		<casualInterruptible>false</casualInterruptible>
+	</JobDef>  
+	
+	<JobDef>
+		<defName>VIF_GiveToPackAnimalAcrossMaps</defName>
+		<driverClass>VehicleInteriors.JobDriver_GiveToPackAnimalAcrossMaps</driverClass>
+		<reportString>taking TargetA.</reportString>
+		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
+	</JobDef>
+	
+	<JobDef>
+		<defName>VIF_CarryDownedPawnToPortalAcrossMaps</defName>
+		<driverClass>VehicleInteriors.JobDriver_TakeAndEnterPortalAcrossMaps</driverClass>
+		<reportString>carrying TargetA.</reportString>
+		<casualInterruptible>false</casualInterruptible>
+		<checkOverrideOnDamage>Never</checkOverrideOnDamage>
+		<carryThingAfterJob>true</carryThingAfterJob>
+	</JobDef>
+	
+	<JobDef>
+		<defName>VIF_CarryDownedPawnToExitAcrossMaps</defName>
+		<driverClass>VehicleInteriors.JobDriver_KidnapAcrossMaps</driverClass>
+		<reportString>carrying TargetA.</reportString>
+		<casualInterruptible>false</casualInterruptible>
+		<checkOverrideOnDamage>Never</checkOverrideOnDamage>
+	</JobDef>
+	
+	<JobDef>
+		<defName>VIF_TendPatientAcrossMaps</defName>
+		<driverClass>VehicleInteriors.JobDriver_TendPatientAcrossMaps</driverClass>
+		<reportString>tending to TargetA.</reportString>
+		<casualInterruptible>false</casualInterruptible>
+		<suspendable>false</suspendable>
+	</JobDef>
+	
+	<JobDef>
+		<defName>VIF_TendEntityAcrossmaps</defName>
+		<driverClass>VehicleInteriors.JobDriver_TendEntityAcrossMaps</driverClass>
+		<reportString>tending to TargetA.</reportString>
+		<casualInterruptible>false</casualInterruptible>
+	</JobDef>
+	
+	<JobDef>
+		<defName>VIF_BoardAcrossMaps</defName>
+		<driverClass>VehicleInteriors.JobDriver_BoardAcrossMaps</driverClass>
+		<reportString>Entering TargetA.</reportString>
+		<casualInterruptible>false</casualInterruptible>
+	</JobDef>
+</Defs>

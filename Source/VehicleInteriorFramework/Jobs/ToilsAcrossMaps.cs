@@ -22,7 +22,7 @@ namespace VehicleInteriors
             {
                 faceCell = enterSpot.BaseFullRotationOfThing().FacingCell;
                 faceCell.y = 0;
-                while ((enterSpot.PositionOnBaseMap() - faceCell * dist).GetThingList(enterSpot.BaseMapOfThing()).Contains(vehicle))
+                while ((enterSpot.PositionOnBaseMap() - faceCell * dist).GetThingList(enterSpot.BaseMap()).Contains(vehicle))
                 {
                     dist++;
                 }
@@ -46,7 +46,7 @@ namespace VehicleInteriors
             };
             toil.FailOn(() =>
             {
-                return enterSpot == null || !enterSpot.Spawned || enterSpot.BaseMapOfThing() != toil.actor.BaseMapOfThing();
+                return enterSpot == null || !enterSpot.Spawned || enterSpot.BaseMap() != toil.actor.BaseMap();
             });
             return toil;
         }
@@ -117,7 +117,7 @@ namespace VehicleInteriors
                 var faceCell = IntVec3.Zero;
                 var dist = 1;
                 exitSpot.Thing.IsOnVehicleMapOf(out var vehicle);
-                var baseMap = exitSpot.Thing.BaseMapOfThing();
+                var baseMap = exitSpot.Thing.BaseMap();
                 toil2.initAction = (Action)Delegate.Combine(toil2.initAction, new Action(() =>
                 {
                     initTick = GenTicks.TicksGame;
@@ -159,7 +159,7 @@ namespace VehicleInteriors
                     //var drafted = toil3.actor.Drafted;
                     //var selected = Find.Selector.IsSelected(toil3.actor);
                     toil3.actor.DeSpawnWithoutJobClear();
-                    GenSpawn.Spawn(toil3.actor, (exitSpot.Thing.PositionOnBaseMap() - faceCell * dist), exitSpot.Thing.BaseMapOfThing(), WipeMode.Vanish);
+                    GenSpawn.Spawn(toil3.actor, (exitSpot.Thing.PositionOnBaseMap() - faceCell * dist), exitSpot.Thing.BaseMap(), WipeMode.Vanish);
                     //if (toil3.actor.drafter != null) draftedInt(toil3.actor.drafter) = drafted;
                     //if (selected) Find.Selector.SelectedObjects.Add(toil3.actor);
                 };
@@ -185,7 +185,7 @@ namespace VehicleInteriors
                 var faceCell = IntVec3.Zero;
                 var dist = 1;
                 enterSpot.Thing.IsOnVehicleMapOf(out var vehicle);
-                var baseMap = enterSpot.Thing.BaseMapOfThing();
+                var baseMap = enterSpot.Thing.BaseMap();
                 toil2.initAction = (Action)Delegate.Combine(toil2.initAction, new Action(() =>
                 {
                     var basePos = enterSpot.Thing.PositionOnBaseMap();
@@ -203,7 +203,7 @@ namespace VehicleInteriors
 
                 toil2.tickAction = () =>
                 {
-                    driver.drawOffset = (initPos2 - initPos) * ((GenTicks.TicksGame - initTick) / 90f) + enterSpot.Thing.DrawPos - initPos2;
+                    driver.drawOffset = (initPos2 - initPos) * ((GenTicks.TicksGame - initTick) / 90f) + enterSpot.Thing.DrawPos.WithY(VehicleMapUtility.altitudeOffsetFull) - initPos2;
                     toil2.actor.Rotation = enterSpot.Thing.BaseRotationOfThing();
                 };
                 yield return toil2;
@@ -268,9 +268,22 @@ namespace VehicleInteriors
         public static bool DespawnedOrNull(this LocalTargetInfo target, Pawn actor)
         {
             Thing thing = target.Thing;
-            return (thing != null || !target.IsValid) && (thing == null || !thing.Spawned || thing.BaseMapOfThing() != actor.BaseMapOfThing());
+            return (thing != null || !target.IsValid) && (thing == null || !thing.Spawned || thing.BaseMap() != actor.BaseMap());
         }
 
-        private static AccessTools.FieldRef<Pawn_DraftController, bool> draftedInt = AccessTools.FieldRefAccess<Pawn_DraftController, bool>("draftedInt");
+        public static T FailOnSomeonePhysicallyInteracting<T>(this T f, TargetIndex ind, Map targMap) where T : IJobEndable
+        {
+            f.AddEndCondition(delegate
+            {
+                Pawn actor = f.GetActor();
+                Thing thing = actor.jobs.curJob.GetTarget(ind).Thing;
+                if (thing != null && targMap.physicalInteractionReservationManager.IsReserved(thing) && !targMap.physicalInteractionReservationManager.IsReservedBy(actor, thing))
+                {
+                    return JobCondition.Incompletable;
+                }
+                return JobCondition.Ongoing;
+            });
+            return f;
+        }
     }
 }

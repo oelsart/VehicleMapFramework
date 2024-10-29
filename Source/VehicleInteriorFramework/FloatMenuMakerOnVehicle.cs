@@ -38,7 +38,7 @@ namespace VehicleInteriors
             else
             {
                 clickCell = IntVec3.FromVector3(clickPos);
-                map = pawn.BaseMapOfThing();
+                map = pawn.BaseMap();
             }
             var baseMap = map.BaseMap();
             List<FloatMenuOption> list = new List<FloatMenuOption>();
@@ -47,7 +47,7 @@ namespace VehicleInteriors
             {
                 return list;
             }
-            if (pawn.BaseMapOfThing() != Find.CurrentMap)
+            if (pawn.BaseMap() != Find.CurrentMap)
             {
                 return list;
             }
@@ -182,7 +182,7 @@ namespace VehicleInteriors
             else
             {
                 clickCell = IntVec3.FromVector3(clickPos);
-                map = pawn.BaseMapOfThing();
+                map = pawn.BaseMap();
             }
             foreach (LocalTargetInfo attackTarg2 in SelectorOnVehicleUtility.TargetsAt(clickPos, TargetingParameters.ForAttackHostile(), true, null))
             {
@@ -205,7 +205,7 @@ namespace VehicleInteriors
                             floatMenuOption.autoTakeablePriority = 40f;
                             floatMenuOption.action = delegate ()
                             {
-                                FleckMaker.Static(attackTarg.Thing.DrawPos, attackTarg.Thing.BaseMapOfThing(), FleckDefOf.FeedbackShoot, 1f);
+                                FleckMaker.Static(attackTarg.Thing.DrawPos, attackTarg.Thing.BaseMap(), FleckDefOf.FeedbackShoot, 1f);
                                 rangedAct();
                             };
                         }
@@ -236,7 +236,7 @@ namespace VehicleInteriors
                         floatMenuOption2.autoTakeablePriority = 30f;
                         floatMenuOption2.action = delegate ()
                         {
-                            FleckMaker.Static(attackTarg.Thing.DrawPos, attackTarg.Thing.BaseMapOfThing(), FleckDefOf.FeedbackMelee, 1f);
+                            FleckMaker.Static(attackTarg.Thing.DrawPos, attackTarg.Thing.BaseMap(), FleckDefOf.FeedbackMelee, 1f);
                             meleeAct();
                         };
                     }
@@ -576,7 +576,7 @@ namespace VehicleInteriors
 			else
 			{
 				clickCell = IntVec3.FromVector3(clickPos);
-				map = pawn.BaseMapOfThing();
+				map = pawn.BaseMap();
             }
             var targetParms = new TargetingParameters()
             {
@@ -966,7 +966,7 @@ namespace VehicleInteriors
                             }
                             else
                             {
-								var baseMap = pawn.BaseMapOfThing();
+								var baseMap = pawn.BaseMap();
                                 IEnumerable<Building_HoldingPlatform> source = baseMap.listerBuildings.AllBuildingsColonistOfClass<Building_HoldingPlatform>()
 									.Concat(VehiclePawnWithMapCache.allVehicles[baseMap].SelectMany(v => v.interiorMap.listerBuildings.AllBuildingsColonistOfClass<Building_HoldingPlatform>()));
                                 Func<Building_HoldingPlatform, bool> predicate = (Building_HoldingPlatform x) => !x.Occupied && pawn.CanReserveAndReach(x.Map, x, PathEndMode.Touch, Danger.Deadly, 1, -1, null, false, out _, out _);
@@ -1019,7 +1019,7 @@ namespace VehicleInteriors
                             if (heldPawn != null && pawn.CanReserveAndReach(holdingPlatform.Map, holdingPlatform, PathEndMode.OnCell, Danger.Deadly, 1, -1, null, true, out var exitSpot, out var enterSpot))
 							{
                                 IntVec3 position = pawn.Position;
-                                Map baseMap = pawn.BaseMapOfThing();
+                                Map baseMap = pawn.BaseMap();
                                 IEnumerable<Thing> searchSet = baseMap.listerBuildings.AllBuildingsColonistOfClass<Building_HoldingPlatform>()
                                     .Concat(VehiclePawnWithMapCache.allVehicles[baseMap].SelectMany(v => v.interiorMap.listerBuildings.AllBuildingsColonistOfClass<Building_HoldingPlatform>()));
                                 PathEndMode peMode = PathEndMode.ClosestTouch;
@@ -1182,7 +1182,7 @@ namespace VehicleInteriors
 								}
 								else
 								{
-									var destMap = enterSpot2.HasThing ? enterSpot2.Thing.Map : exitSpot2.HasThing ? exitSpot2.Thing.BaseMapOfThing() : enterSpot.HasThing ? enterSpot.Thing.Map : exitSpot.HasThing ? exitSpot.Thing.BaseMapOfThing() : pawn.Map;
+									var destMap = enterSpot2.HasThing ? enterSpot2.Thing.Map : exitSpot2.HasThing ? exitSpot2.Thing.BaseMap() : enterSpot.HasThing ? enterSpot.Thing.Map : exitSpot.HasThing ? exitSpot.Thing.BaseMap() : pawn.Map;
                                     Job job = JobMaker.MakeJob(VIF_DefOf.VIF_ExtractRelicAcrossMaps, thing, container.ContainedThing, c);
 									job.count = 1;
 									opts.Add(FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption(text3, delegate ()
@@ -1195,7 +1195,7 @@ namespace VehicleInteriors
 							}
 							else
 							{
-								var baseMap = pawn.BaseMapOfThing();
+								var baseMap = pawn.BaseMap();
 								IEnumerable<Thing> allThings = baseMap.listerThings.AllThings
 									.Concat(VehiclePawnWithMapCache.allVehicles[baseMap].SelectMany(v => v.interiorMap.listerThings.AllThings));
 								Func<Thing, bool> predicate2 = (Thing x) => CompRelicContainer.IsRelic(x) && pawn.CanReach(x, PathEndMode.ClosestTouch, Danger.Deadly, false, false, TraverseMode.ByPawn, x.Map, out var exitSpot2, out var enterSpot2);
@@ -1217,7 +1217,7 @@ namespace VehicleInteriors
 									}
 								}
 							}
-							if (!pawn.BaseMapOfThing().IsPlayerHome && !pawn.IsFormingCaravan() && container.Full)
+							if (!pawn.BaseMap().IsPlayerHome && !pawn.IsFormingCaravan() && container.Full)
 							{
 								opts.Add(FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption("ExtractRelicToInventory".Translate(container.ContainedThing.Label, 300.ToStringTicksToPeriod(true, false, true, true, false)), delegate ()
 								{
@@ -1233,7 +1233,7 @@ namespace VehicleInteriors
                     {
                         if (CompRelicContainer.IsRelic(thing4) && pawn.CanReach(thing4, PathEndMode.ClosestTouch, Danger.None, false, false, TraverseMode.ByPawn, thing4.Map, out var exitSpot, out var enterSpot))
                         {
-                            var baseMap = thing4.BaseMapOfThing();
+                            var baseMap = thing4.BaseMap();
 							IEnumerable<Thing> enumerable4 = from x in baseMap.listerThings.ThingsOfDef(ThingDefOf.Reliquary)
 															 .Concat(VehiclePawnWithMapCache.allVehicles[baseMap].SelectMany(v => v.interiorMap.listerThings.ThingsOfDef(ThingDefOf.Reliquary)))
 							where x.TryGetComp<CompRelicContainer>().ContainedThing == null
@@ -1946,9 +1946,9 @@ namespace VehicleInteriors
 				{
 					bool CanPickUp()
 					{
-						return !pawn.BaseMapOfThing().IsPlayerHome || (pawn.inventory != null && item.def.orderedTakeGroup != null && item.def.orderedTakeGroup.max > 0);
+						return !pawn.BaseMap().IsPlayerHome || (pawn.inventory != null && item.def.orderedTakeGroup != null && item.def.orderedTakeGroup.max > 0);
                     }
-					if (item.def.EverHaulable && CanPickUp() && (!pawn.BaseMapOfThing().IsPlayerHome || JobGiver_DropUnusedInventory.ShouldKeepDrugInInventory(pawn, item)))
+					if (item.def.EverHaulable && CanPickUp() && (!pawn.BaseMap().IsPlayerHome || JobGiver_DropUnusedInventory.ShouldKeepDrugInInventory(pawn, item)))
 					{
 						if (!pawn.CanReach(item, PathEndMode.ClosestTouch, Danger.Deadly, false, false, TraverseMode.ByPawn, item.MapHeld, out var exitSpot, out var enterSpot))
 						{
@@ -2026,7 +2026,7 @@ namespace VehicleInteriors
 					}
 				}
 			}
-			if (!pawn.BaseMapOfThing().IsPlayerHome && !pawn.IsFormingCaravan())
+			if (!pawn.BaseMap().IsPlayerHome && !pawn.IsFormingCaravan())
 			{
 				foreach(var item in clickCell.GetItems(map))
 				{
@@ -2093,7 +2093,7 @@ namespace VehicleInteriors
 					}
 				}
 			}
-			if (!pawn.BaseMapOfThing().IsPlayerHome && pawn.BaseMapOfThing().exitMapGrid.MapUsesExitGrid)
+			if (!pawn.BaseMap().IsPlayerHome && pawn.BaseMap().exitMapGrid.MapUsesExitGrid)
 			{
 				foreach (LocalTargetInfo target in SelectorOnVehicleUtility.TargetsAt(clickPos, TargetingParameters.ForRescue(pawn), true, null))
 				{
@@ -2323,7 +2323,7 @@ namespace VehicleInteriors
             else
             {
                 clickCell = IntVec3.FromVector3(clickPos);
-                map = pawn.BaseMapOfThing();
+                map = pawn.BaseMap();
             }
             var targetParms = new TargetingParameters()
             {
@@ -2423,7 +2423,7 @@ namespace VehicleInteriors
             else
             {
                 clickCell = IntVec3.FromVector3(clickPos);
-                map = pawn.BaseMapOfThing();
+                map = pawn.BaseMap();
             }
             var targetParms = new TargetingParameters()
             {

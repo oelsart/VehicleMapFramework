@@ -89,7 +89,7 @@ namespace VehicleInteriors
         {
             failStr = "";
             Pawn target2;
-            var map = target.HasThing ? target.Thing.Map : pawn.BaseMapOfThing();
+            var map = target.HasThing ? target.Thing.Map : pawn.BaseMap();
             var exitSpot = LocalTargetInfo.Invalid;
             var enterSpot = LocalTargetInfo.Invalid;
             if (!pawn.Drafted)

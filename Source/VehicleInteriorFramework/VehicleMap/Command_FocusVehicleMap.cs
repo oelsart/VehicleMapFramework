@@ -1,5 +1,4 @@
-﻿using RimWorld;
-using UnityEngine;
+﻿using UnityEngine;
 using Verse;
 
 namespace VehicleInteriors
@@ -17,9 +16,9 @@ namespace VehicleInteriors
                 var vehicle = Find.Selector.SingleSelectedObject as VehiclePawnWithInterior;
                 if (vehicle == null || vehicle == Command_FocusVehicleMap.FocuseLockedVehicle)
                 {
-                    return "Unfocus Vehicle Map";
+                    return "VIF.UnfocusVehicleMap".Translate();
                 }
-                return "Focus Vehicle Map";
+                return "VIF.FocusVehicleMap".Translate();
             }
         }
 

@@ -43,6 +43,9 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         {
             __result.AsInt += VehicleMapUtility.rotForPrint.AsInt;
         }
+
+        [HarmonyReversePatch]
+        public static Rot4 Rotation(Thing instance) => throw new NotImplementedException();
     }
 
     [HarmonyPatch(typeof(Graphic), nameof(Graphic.Print))]
@@ -61,6 +64,15 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                 CodeInstruction.Call(typeof(Vector3Utility), nameof(Vector3Utility.RotatedBy), new Type[]{ typeof(Vector3), typeof(float) }),
             });
             return codes;
+        }
+    }
+
+    [HarmonyPatch(typeof(Graphic_Shadow), nameof(Graphic_Shadow.Print))]
+    public static class Patch_Graphic_Shadow_Print
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Rotation, MethodInfoCache.m_Thing_RotationOrig);
         }
     }
 
@@ -176,5 +188,33 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         }
     }
 
+    [HarmonyPatch(typeof(Graphic_Shadow), nameof(Graphic_Shadow.DrawWorker))]
+    public static class Patch_Graphic_Shadow_DrawWorker
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+        {
+            var codes = instructions.ToList();
+            var f_MatBases_SunShadowFade = AccessTools.Field(typeof(MatBases), nameof(MatBases.SunShadowFade));
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Ldsfld && c.OperandIs(f_MatBases_SunShadowFade));
+            var label = generator.DefineLabel();
+            var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithInterior));
 
+            codes[pos].labels.Add(label);
+            codes.InsertRange(pos, new[]
+            {
+                CodeInstruction.LoadArgument(4),
+                new CodeInstruction(OpCodes.Ldloca_S, vehicle),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_IsOnVehicleMapOf),
+                new CodeInstruction(OpCodes.Brfalse_S, label),
+                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Thing_Spawned),
+                new CodeInstruction(OpCodes.Brfalse_S, label),
+                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_FullRotation),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_Rot8_AsQuat),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.o_Quaternion_Multiply)
+            });
+            return codes;
+        }
+    }
 }
