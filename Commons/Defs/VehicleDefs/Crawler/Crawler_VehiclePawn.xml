@@ -1,0 +1,422 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+
+<Defs>
+	<Vehicles.VehicleDef ParentName="BaseVehiclePawnWithMap">
+		<defName>VIF_Crawler</defName>
+		<label>crawler</label>
+		<description>Basic tank platform. It has only a power unit with a pair of crawlers, and has no cabin or cargo.\n\n&lt;color=#bb8f04&gt;Fuel type:&lt;/color&gt; Chemfuel</description>
+
+		<graphicData>
+			<texPath>VehicleInteriors/Crawler/Crawler</texPath>
+			<graphicClass>Vehicles.Graphic_Vehicle</graphicClass>
+			<shaderType>CutoutComplexPattern</shaderType>
+			<drawSize>(5.3125,8.5)</drawSize>
+			<color>(125, 135, 150)</color>
+			<colorTwo>(55, 100, 110)</colorTwo>
+			<colorThree>(95, 110, 130)</colorThree>
+		</graphicData>
+
+		<fillPercent>0.8</fillPercent>
+
+		<buildDef>VIF_Crawler_Blueprint</buildDef>
+
+		<size>(5,8)</size>
+
+		<vehicleMovementPermissions>DriverNeeded</vehicleMovementPermissions>
+		<vehicleCategory>Transport</vehicleCategory>
+		<techLevel>Industrial</techLevel>
+		<vehicleType>Land</vehicleType>
+
+		<statBases>
+			<ArmorRating_Blunt>0.22</ArmorRating_Blunt>
+			<ArmorRating_Sharp>0.44</ArmorRating_Sharp>
+			<ArmorRating_Heat>1.0</ArmorRating_Heat>
+			<Flammability>0.5</Flammability>
+			<MarketValue>780</MarketValue>
+		</statBases>
+
+		<vehicleStats>
+			<Mass>230</Mass>
+			<MoveSpeed>8</MoveSpeed>
+			<CargoCapacity>0</CargoCapacity>
+			<RepairRate>1</RepairRate>
+		</vehicleStats>
+		
+		<soundSustainersOnEvent>
+			<li>
+				<start>IgnitionOn</start>
+				<stop>IgnitionOff</stop>
+				<value>VIF_VehicleEngine</value>
+			</li>
+		</soundSustainersOnEvent>
+		
+		<soundOneShotsOnEvent Inherit = "False">
+			<li>
+				<key>IgnitionOn</key>
+				<value>VIF_VehicleStart</value>
+			</li>
+			<li>
+				<key>IgnitionOff</key>
+				<value>VIF_VehicleStop</value>
+			</li>
+		</soundOneShotsOnEvent>
+
+		<race>
+			<baseBodySize>6</baseBodySize>
+		</race>
+
+		<properties>
+			<customTerrainCosts DisallowTerrainWithTag="Water"/>
+			<customHillinessCosts>
+				<SmallHills>0.25</SmallHills>
+				<LargeHills>0.75</LargeHills>
+				<Mountainous>1.5</Mountainous>
+			</customHillinessCosts>
+		</properties>
+
+		<components>
+			<li>
+				<key>Engine</key>
+				<label>engine</label>
+				<health>50</health>
+				<priorityStatEfficiency>true</priorityStatEfficiency>
+				<depth>Internal</depth>
+
+				<reactors>
+					<li Class = "Vehicles.Reactor_Explosive">
+						<indicator>VF_Explosive</indicator>
+						<chance>0.25</chance>
+						<maxHealth>0.2</maxHealth>
+						<radius>3</radius>
+						<damageDef>Flame</damageDef>
+					</li>
+				</reactors>
+
+				<hitbox>
+					<cells>
+						<li>(0, 0)</li>
+						<li>(1, 0)</li>
+					</cells>
+				</hitbox>
+
+				<categories>
+					<li>MoveSpeed</li>
+				</categories>
+			</li>
+			<li>
+				<key>Gearbox</key>
+				<label>gearbox</label>
+				<health>45</health>
+				<depth>Internal</depth>
+
+				<hitbox>
+					<cells>
+						<li>(0, 1)</li>
+						<li>(1, 1)</li>
+					</cells>
+				</hitbox>
+
+				<categories>
+					<li>MoveSpeed</li>
+				</categories>
+			</li>
+			<li>
+				<key>Chemtank</key>
+				<label>chemtank</label>
+				<health>30</health>
+				<depth>External</depth>
+
+				<reactors>
+					<li Class = "Vehicles.Reactor_FuelLeak"/>
+					<li Class = "Vehicles.Reactor_Explosive">
+						<indicator>VF_Explosive</indicator>
+						<chance>0.25</chance>
+						<maxHealth>0.2</maxHealth>
+						<radius>3</radius>
+						<damageDef>Flame</damageDef>
+					</li>
+				</reactors>
+
+				<hitbox>
+					<cells>
+						<li>(0, -1)</li>
+						<li>(1, -1)</li>
+					</cells>
+				</hitbox>
+			</li>
+			<li>
+				<key>LeftTrack</key>
+				<label>left track</label>
+				<health>140</health>
+				<depth>External</depth>
+
+				<hitbox>
+					<side>Left</side>
+				</hitbox>
+
+				<categories>
+					<li>MoveSpeed</li>
+				</categories>
+			</li>
+			<li>
+				<key>RightTrack</key>
+				<label>right track</label>
+				<health>140</health>
+				<depth>External</depth>
+
+				<hitbox>
+					<side>Right</side>
+				</hitbox>
+
+				<categories>
+					<li>MoveSpeed</li>
+				</categories>
+			</li>
+			<li>
+				<key>FrontLeftDriveSprocket</key>
+				<label>front left drive sprocket</label>
+				<health>20</health>
+				<depth>External</depth>
+				
+				<hitbox>
+					<cells>
+						<li>(-1, 4)</li>
+					</cells>
+				</hitbox>
+				
+				<categories>
+					<li>MoveSpeed</li>
+				</categories>
+			</li>
+			<li>
+				<key>FrontRightDriveSprocket</key>
+				<label>front right drive sprocket</label>
+				<health>20</health>
+				<depth>External</depth>
+				
+				<hitbox>
+					<cells>
+						<li>(2, 4)</li>
+					</cells>
+				</hitbox>
+				
+				<categories>
+					<li>MoveSpeed</li>
+				</categories>
+			</li>
+			<li>
+				<key>BackLeftDriveSprocket</key>
+				<label>back left drive sprocket</label>
+				<health>20</health>
+				<depth>External</depth>
+				
+				<hitbox>
+					<cells>
+						<li>(-1, -3)</li>
+					</cells>
+				</hitbox>
+				
+				<categories>
+					<li>MoveSpeed</li>
+				</categories>
+			</li>
+			<li>
+				<key>BackRightDriveSprocket</key>
+				<label>back right drive sprocket</label>
+				<health>20</health>
+				<depth>External</depth>
+				
+				<hitbox>
+					<cells>
+						<li>(2, -3)</li>
+					</cells>
+				</hitbox>
+				
+				<categories>
+					<li>MoveSpeed</li>
+				</categories>
+			</li>
+			<li>
+				<key>LeftRoadWheels</key>
+				<label>left road wheels</label>
+				<health>120</health>
+				<depth>External</depth>
+				<tags>
+					<li>Wheel</li>
+				</tags>
+				<hitbox>
+					<cells>
+						<li>(-1, -2)</li>
+						<li>(-1, -1)</li>
+						<li>(-1, 0)</li>
+						<li>(-1, 1)</li>
+						<li>(-1, 2)</li>
+						<li>(-1, 3)</li>
+					</cells>
+				</hitbox>
+				
+				<categories>
+					<li>MoveSpeed</li>
+				</categories>
+			</li>
+			<li>
+				<key>RightRoadWheels</key>
+				<label>right road wheels</label>
+				<health>120</health>
+				<depth>External</depth>
+				<tags>
+					<li>Wheel</li>
+				</tags>
+				<hitbox>
+					<cells>
+						<li>(2, -2)</li>
+						<li>(2, -1)</li>
+						<li>(2, 0)</li>
+						<li>(2, 1)</li>
+						<li>(2, 2)</li>
+						<li>(2, 3)</li>
+					</cells>
+				</hitbox>
+
+				<categories>
+					<li>MoveSpeed</li>
+				</categories>
+			</li>			
+			<li>
+				<key>FrontLeftReturnRoller</key>
+				<label>front left return roller</label>
+				<health>10</health>
+				<depth>External</depth>
+				<tags>
+					<li>Wheel</li>
+				</tags>
+				<hitbox>
+					<cells>
+						<li>(-1, 2)</li>
+					</cells>
+				</hitbox>
+
+				<categories>
+					<li>MoveSpeed</li>
+				</categories>
+			</li>
+			<li>
+				<key>FrontRightReturnRoller</key>
+				<label>front right return roller</label>
+				<health>10</health>
+				<depth>External</depth>
+				<tags>
+					<li>Wheel</li>
+				</tags>
+				<hitbox>
+					<cells>
+						<li>(2, 2)</li>
+					</cells>
+				</hitbox>
+
+				<categories>
+					<li>MoveSpeed</li>
+				</categories>
+			</li>
+			<li>
+				<key>RearLeftReturnRoller</key>
+				<label>rear left return roller</label>
+				<health>10</health>
+				<depth>External</depth>
+				<tags>
+					<li>Wheel</li>
+				</tags>
+				<hitbox>
+					<cells>
+						<li>(-1, -1)</li>
+					</cells>
+				</hitbox>
+
+				<categories>
+					<li>MoveSpeed</li>
+				</categories>
+			</li>
+			<li>
+				<key>RearRightReturnRoller</key>
+				<label>rear right return roller</label>
+				<health>10</health>
+				<depth>External</depth>
+				<tags>
+					<li>Wheel</li>
+				</tags>
+				<hitbox>
+					<cells>
+						<li>(2, -1)</li>
+					</cells>
+				</hitbox>
+
+				<categories>
+					<li>MoveSpeed</li>
+				</categories>
+			</li>
+			<li>
+				<key>FrontArmorPlating</key>
+				<label>front armor plating</label>
+				<health>100</health>
+				<depth>External</depth>
+
+				<armor>
+					<ArmorRating_Blunt>0.48</ArmorRating_Blunt>
+					<ArmorRating_Sharp>0.80</ArmorRating_Sharp>
+				</armor>
+				
+				<hitbox>
+					<side>Front</side>
+				</hitbox>
+			</li>
+			
+			<li>
+				<key>RearArmorPlating</key>
+				<label>rear armor plating</label>
+				<health>100</health>
+				<depth>External</depth>
+
+				<armor>
+					<ArmorRating_Blunt>0.48</ArmorRating_Blunt>
+					<ArmorRating_Sharp>0.80</ArmorRating_Sharp>
+				</armor>
+				
+				<hitbox>
+					<side>Back</side>
+				</hitbox>
+			</li>
+			<li>
+				<key>Alternator</key>
+				<label>alternator</label>
+				<health>20</health>
+				<depth>Internal</depth>
+			</li>
+		</components>
+
+		<comps>
+			<li Class="Vehicles.CompProperties_FueledTravel">
+				<fuelType>Chemfuel</fuelType>
+				<leakDef>Filth_Fuel</leakDef>
+				<fuelConsumptionRate>21</fuelConsumptionRate>
+				<fuelCapacity>120</fuelCapacity>
+			</li>
+			<li Class="Vehicles.CompProperties_VehicleTurrets">
+				<turrets/>
+			</li>
+		</comps>
+
+		<modExtensions>
+			<li Class="VehicleInteriors.VehicleMapProps">
+				<size>(4,7)</size>
+				<offsetNorth>(0.004,0.402)</offsetNorth>
+				<offsetSouth>(0.004,0.402)</offsetSouth>
+				<offsetEast>(0.05,0.496)</offsetEast>
+				<offsetWest>(-0.05,0.496)</offsetWest>
+				<offsetNorthEast>(0.29,0.29)</offsetNorthEast>
+				<offsetNorthWest>(-0.29,0.29)</offsetNorthWest>
+				<offsetSouthEast>(-0.29,0.29)</offsetSouthEast>
+				<offsetSouthWest>(0.29,0.29)</offsetSouthWest>
+			</li>
+		</modExtensions>
+	</Vehicles.VehicleDef>
+</Defs>

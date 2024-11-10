@@ -1,0 +1,50 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+
+<Defs>
+	<Vehicles.VehicleBuildDef ParentName="VehicleBaseBuildable">
+		<defName>VIF_Glypto_Blueprint</defName>
+		<label>glypto</label>
+		<description>Basic tank platform. It has only a power unit with a pair of crawlers, and has no cabin or cargo.\n\n&lt;color=#bb8f04&gt;Fuel type:&lt;/color&gt; Chemfuel</description>
+		<designationCategory>VF_Vehicles</designationCategory>
+		<graphicData>
+			<texPath>VehicleInteriors/Glypto/Glypto</texPath>
+			<graphicClass>Graphic_Multi</graphicClass>
+			<drawSize>(11.45, 15.5)</drawSize>
+		</graphicData>
+
+		<statBases>
+			<MaxHitPoints>3200</MaxHitPoints>
+			<WorkToBuild>6400</WorkToBuild>
+			<Flammability>0.05</Flammability>
+		</statBases>
+
+		<size>(11,15)</size>
+
+		<!--<researchPrerequisites>
+			<li>VVE_BasicVehicles</li>
+		</researchPrerequisites>-->
+
+		<!--<costList>
+			<VVE_EngineBlock>1</VVE_EngineBlock>
+			<VVE_CarAlternator>1</VVE_CarAlternator>
+			<VVE_CarExhaust>2</VVE_CarExhaust>
+			<VVE_CarSuspension>4</VVE_CarSuspension>
+			<VVE_CarWheel>4</VVE_CarWheel>
+			<Steel>120</Steel>
+			<ComponentIndustrial>4</ComponentIndustrial>
+		</costList>-->
+
+		<costList>
+			<Steel>320</Steel>
+			<Plasteel>600</Plasteel>
+			<ComponentIndustrial>10</ComponentIndustrial>
+			<ComponentSpacer>20</ComponentSpacer>
+		</costList>
+
+		<soundImpactDefault>BulletImpact_Metal</soundImpactDefault>
+
+		<thingToSpawn>VIF_Glypto</thingToSpawn>
+
+		<constructionSkillPrerequisite>8</constructionSkillPrerequisite>
+	</Vehicles.VehicleBuildDef>
+</Defs>

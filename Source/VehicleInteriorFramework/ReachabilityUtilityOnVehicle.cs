@@ -147,7 +147,7 @@ namespace VehicleInteriors
         public static IntVec3 StandableCellNear(IntVec3 root, Map map, float radius, Predicate<IntVec3> validator, out Map destMap)
         {
             Map baseMap = map.BaseMap();
-            if (root.TryGetFirstThing<VehiclePawnWithInterior>(baseMap, out var vehicle))
+            if (root.TryGetFirstThing<VehiclePawnWithMap>(baseMap, out var vehicle))
             {
                 var cell = root.VehicleMapToOrig(vehicle);
                 if (cell.InBounds(vehicle.interiorMap))

@@ -5,7 +5,7 @@ namespace VehicleInteriors
 {
     public class MapParent_Vehicle : MapParent
     {
-        public VehiclePawnWithInterior vehicle;
+        public VehiclePawnWithMap vehicle;
 
         public override void ExposeData()
         {

@@ -1,0 +1,7 @@
+ManifestFileVersion: 0
+CRC: 3980705069
+AssetBundleManifest:
+  AssetBundleInfos:
+    Info_0:
+      Name: vehicleinteriors
+      Dependencies: {}

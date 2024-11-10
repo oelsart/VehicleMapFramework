@@ -161,7 +161,9 @@ namespace VehicleInteriors
             if ((AttackTargetFinderOnVehicle.HasRangedAttack(searcher) || onlyRanged) && (searcherPawn == null || !searcherPawn.InAggroMentalState))
             {
                 AttackTargetFinderOnVehicle.tmpTargets.Clear();
-                AttackTargetFinderOnVehicle.tmpTargets.AddRange(searcherThing.Map.attackTargetsCache.GetPotentialTargetsFor(searcher));
+                var baseMap = searcherThing.BaseMap();
+                AttackTargetFinderOnVehicle.tmpTargets.AddRange(baseMap.attackTargetsCache.GetPotentialTargetsFor(searcher));
+                AttackTargetFinderOnVehicle.tmpTargets.AddRange(VehiclePawnWithMapCache.allVehicles[baseMap].SelectMany(v => v.interiorMap.attackTargetsCache.GetPotentialTargetsFor(searcher)));
                 AttackTargetFinderOnVehicle.tmpTargets.RemoveAll((IAttackTarget t) => AttackTargetFinderOnVehicle.ShouldIgnoreNoncombatant(searcherThing, t, flags));
                 if ((flags & TargetScanFlags.NeedReachable) != TargetScanFlags.None)
                 {

@@ -88,7 +88,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             var pos = codes.FindIndex(c => c.opcode == OpCodes.Callvirt && c.OperandIs(g_Zone_Cells));
             pos = codes.FindIndex(pos, c => c.opcode == OpCodes.Br_S);
             var label = generator.DefineLabel();
-            var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithInterior));
+            var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithMap));
 
             codes[pos].labels.Add(label);
             codes.InsertRange(pos, new[]
@@ -108,16 +108,13 @@ namespace VehicleInteriors.VIF_HarmonyPatches
 
             var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalIndex == 6);
             var label2 = codes[pos2].labels[0];
-            var vehicle2 = generator.DeclareLocal(typeof(VehiclePawnWithInterior));
+            var vehicle2 = generator.DeclareLocal(typeof(VehiclePawnWithMap));
 
             codes.InsertRange(pos2, new[]
             {
                 CodeInstruction.LoadLocal(0),
                 new CodeInstruction(OpCodes.Ldloca_S, vehicle2),
-                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_IsOnVehicleMapOf),
-                new CodeInstruction(OpCodes.Brfalse_S, label2),
-                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Thing_Spawned),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_IsOnNonFocusedVehicleMapOf),
                 new CodeInstruction(OpCodes.Brfalse_S, label2),
                 new CodeInstruction(OpCodes.Ldloc_S, vehicle2),
                 new CodeInstruction(OpCodes.Call, MethodInfoCache.m_OrigToVehicleMap2)

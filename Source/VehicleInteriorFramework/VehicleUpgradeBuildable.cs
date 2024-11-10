@@ -9,7 +9,7 @@ namespace VehicleInteriors
 {
     public class VehicleUpgradeBuildable : VehicleUpgrade
     {
-        public CompBuildableUpgrade parent;
+        public CompBuildableUpgrades parent;
 
         public override void Unlock(VehiclePawn vehicle, bool unlockingPostLoad)
         {

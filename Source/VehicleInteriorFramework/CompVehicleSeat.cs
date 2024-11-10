@@ -10,7 +10,7 @@ using Verse.AI;
 
 namespace VehicleInteriors
 {
-    public class CompVehicleSeat : CompBuildableUpgrade
+    public class CompVehicleSeat : CompBuildableUpgrades
     {
         public override IEnumerable<FloatMenuOption> CompFloatMenuOptions(Pawn selPawn)
         {

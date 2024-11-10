@@ -124,7 +124,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         {
             var codes = instructions.ToList();
             var pos = codes.FindIndex(c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalIndex == 8);
-            var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithInterior));
+            var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithMap));
             var rot = generator.DeclareLocal(typeof(Rot8));
             var label = generator.DefineLabel();
 
@@ -255,7 +255,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         {
             var codes = instructions.ToList();
             var pos = codes.FindIndex(c => c.opcode == OpCodes.Stloc_0);
-            var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithInterior));
+            var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithMap));
             var label = generator.DefineLabel();
 
             codes[pos].labels.Add(label);

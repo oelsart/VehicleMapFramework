@@ -1,4 +1,5 @@
 ﻿using RimWorld;
+using Vehicles;
 using Verse;
 
 namespace VehicleInteriors
@@ -16,6 +17,12 @@ namespace VehicleInteriors
         public static MapGeneratorDef VIF_InteriorGenerator;
 
         public static TerrainDef VIF_VehicleFloor;
+
+        public static RGBOpacityShaderTypeDef VIF_CutoutComplexRGBOpacity;
+
+        public static RGBOpacityShaderTypeDef VIF_CutoutComplexPatternOpacity;
+
+        public static RGBOpacityShaderTypeDef VIF_CutoutComplexSkinOpacity;
 
         public static JobDef VIF_GotoAcrossMaps;
 

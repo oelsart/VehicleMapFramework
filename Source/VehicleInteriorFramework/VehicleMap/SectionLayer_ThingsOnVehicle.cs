@@ -37,7 +37,7 @@ namespace VehicleInteriors
             }
         }
 
-        public void DrawLayer(VehiclePawnWithInterior vehicle, Vector3 drawPos)
+        public void DrawLayer(VehiclePawnWithMap vehicle, Vector3 drawPos)
         {
             if (!DebugViewSettings.drawThingsPrinted)
             {
@@ -67,7 +67,7 @@ namespace VehicleInteriors
             }
         }
 
-        public void DrawMeshes(VehiclePawnWithInterior vehicle, List<LayerSubMesh> subMeshes, Vector3 drawPos)
+        public void DrawMeshes(VehiclePawnWithMap vehicle, List<LayerSubMesh> subMeshes, Vector3 drawPos)
         {
             if (!this.Visible)
             {

@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8" ?>
-
-<Defs>
-	<Vehicles.VehicleDef Name="BaseVehiclePawnWithMap" ParentName="BaseVehiclePawn" Abstract="True">
-		<thingClass>VehicleInteriors.VehiclePawnWithInterior</thingClass>
-	</Vehicles.VehicleDef>
-</Defs>

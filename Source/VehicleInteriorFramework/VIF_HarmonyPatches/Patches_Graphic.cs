@@ -120,7 +120,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                     __result.y += vehicle2.cachedDrawPos.y;
                 }
             }
-            else if (___pawn.SpawnedParentOrMe is VehiclePawnWithInterior)
+            else if (___pawn.SpawnedParentOrMe is VehiclePawnWithMap)
             {
                 __result.y = drawLoc.y;
             }
@@ -170,7 +170,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                 new CodeInstruction(OpCodes.Call, MethodInfoCache.g_FocusedVehicle),
                 new CodeInstruction(OpCodes.Brfalse_S, label),
                 new CodeInstruction(OpCodes.Call, MethodInfoCache.g_FocusedVehicle),
-                new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.VehicleMapToOrig), new Type[]{ typeof(CellRect), typeof(VehiclePawnWithInterior) }))
+                new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.VehicleMapToOrig), new Type[]{ typeof(CellRect), typeof(VehiclePawnWithMap) }))
             });
             return codes;
         }
@@ -181,7 +181,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         public static void Postfix(VehiclePawn __instance, ref Rot8 __result)
         {
-            if (__instance.IsOnVehicleMapOf(out var vehicle))
+            if (__instance.IsOnNonFocusedVehicleMapOf(out var vehicle))
             {
                 __result = new Rot8(new Rot4(__instance.Rotation.AsInt + vehicle.Rotation.AsInt), (__instance.Angle + vehicle.Angle) % 90f);
             }
@@ -197,7 +197,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             var f_MatBases_SunShadowFade = AccessTools.Field(typeof(MatBases), nameof(MatBases.SunShadowFade));
             var pos = codes.FindIndex(c => c.opcode == OpCodes.Ldsfld && c.OperandIs(f_MatBases_SunShadowFade));
             var label = generator.DefineLabel();
-            var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithInterior));
+            var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithMap));
 
             codes[pos].labels.Add(label);
             codes.InsertRange(pos, new[]

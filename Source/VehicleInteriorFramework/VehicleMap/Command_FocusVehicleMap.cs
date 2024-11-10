@@ -5,15 +5,15 @@ namespace VehicleInteriors
 {
     public class Command_FocusVehicleMap : Command
     {
-        public static VehiclePawnWithInterior FocuseLockedVehicle { get; set; }
+        public static VehiclePawnWithMap FocuseLockedVehicle { get; set; }
 
-        public static VehiclePawnWithInterior FocusedVehicle {  get; set; }
+        public static VehiclePawnWithMap FocusedVehicle {  get; set; }
 
         public override string Label
         {
             get
             {
-                var vehicle = Find.Selector.SingleSelectedObject as VehiclePawnWithInterior;
+                var vehicle = Find.Selector.SingleSelectedObject as VehiclePawnWithMap;
                 if (vehicle == null || vehicle == Command_FocusVehicleMap.FocuseLockedVehicle)
                 {
                     return "VIF.UnfocusVehicleMap".Translate();
@@ -29,7 +29,7 @@ namespace VehicleInteriors
 
         public override void ProcessInput(Event ev)
         {
-            var vehicle = Find.Selector.SingleSelectedObject as VehiclePawnWithInterior;
+            var vehicle = Find.Selector.SingleSelectedObject as VehiclePawnWithMap;
             if (vehicle != null && Command_FocusVehicleMap.FocuseLockedVehicle != vehicle)
             {
                 Command_FocusVehicleMap.FocuseLockedVehicle = vehicle;

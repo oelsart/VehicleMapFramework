@@ -11,23 +11,23 @@ using Verse.AI;
 
 namespace VehicleInteriors.VIF_HarmonyPatches
 {
-    [HarmonyPatch(typeof(AttackTargetsCache), nameof(AttackTargetsCache.UpdateTarget))]
-    public static class Patch_AttackTargetsCache_UpdateTarget
-    {
-        public static IEnumerable<CodeInstruction> Transpiler (IEnumerable<CodeInstruction> instructions)
-        {
-            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing);
-        }
-    }
+    //[HarmonyPatch(typeof(AttackTargetsCache), nameof(AttackTargetsCache.UpdateTarget))]
+    //public static class Patch_AttackTargetsCache_UpdateTarget
+    //{
+    //    public static IEnumerable<CodeInstruction> Transpiler (IEnumerable<CodeInstruction> instructions)
+    //    {
+    //        return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing);
+    //    }
+    //}
 
-    [HarmonyPatch(typeof(AttackTargetsCache), "RegisterTarget")]
-    public static class Patch_AttackTargetsCache_RegisterTarget
-    {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
-            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing);
-        }
-    }
+    //[HarmonyPatch(typeof(AttackTargetsCache), "RegisterTarget")]
+    //public static class Patch_AttackTargetsCache_RegisterTarget
+    //{
+    //    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    //    {
+    //        return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing);
+    //    }
+    //}
 
     [HarmonyPatch(typeof(PawnLeaner), nameof(PawnLeaner.Notify_WarmingCastAlongLine))]
     public static class Patch_PawnLeaner_Notify_WarmingCastAlongLine
@@ -143,7 +143,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         public static void Postfix(IntVec3 cell, Map map, Func<Thing, bool> filter, List<Thing> __result)
         {
-            foreach(var vehicle in cell.GetThingList(map).OfType<VehiclePawnWithInterior>())
+            foreach(var vehicle in cell.GetThingList(map).OfType<VehiclePawnWithMap>())
             {
                 var cellOnVehicle = cell.VehicleMapToOrig(vehicle);
                 if (!cellOnVehicle.InBounds(vehicle.interiorMap)) return;
@@ -227,7 +227,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             var pos = codes.FindIndex(c => c.opcode == OpCodes.Ldloc_S && ((LocalBuilder)c.operand).LocalIndex == 5);
             var label = generator.DefineLabel();
             var target = generator.DeclareLocal(typeof(LocalTargetInfo));
-            var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithInterior));
+            var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithMap));
 
             codes[pos].labels.Add(label);
             codes.InsertRange(pos, new[]

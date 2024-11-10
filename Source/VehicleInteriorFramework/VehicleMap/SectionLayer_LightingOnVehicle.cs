@@ -33,7 +33,7 @@ namespace VehicleInteriors
             this.propertyBlock = new MaterialPropertyBlock();
         }
 
-        public void DrawLayer(VehiclePawnWithInterior vehicle, Vector3 drawPos)
+        public void DrawLayer(VehiclePawnWithMap vehicle, Vector3 drawPos)
         {
             if (!this.Visible)
             {

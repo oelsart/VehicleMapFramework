@@ -1,9 +1,9 @@
 ManifestFileVersion: 0
-CRC: 3732580267
+CRC: 2096738467
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: d653392af9e718dd74a3ab99691216ee
+    Hash: c63c0454ae8d5820fb58cc419c338148
   TypeTreeHash:
     serializedVersion: 2
     Hash: 10a6a558690295dadb3dd990eda0821a
@@ -15,7 +15,10 @@ ClassTypes:
   Script: {instanceID: 0}
 SerializeReferenceClassIdentifiers: []
 Assets:
+- Assets/Data/VehicleInteriors/ShaderRGBOpacity.shader
 - Assets/Data/VehicleInteriors/LightOverlayColorDodge.mat
 - Assets/Data/VehicleInteriors/LightOverlayColorDodge.shader
+- Assets/Data/VehicleInteriors/ShaderRGBSkinOpacity.shader
+- Assets/Data/VehicleInteriors/ShaderRGBPatternOpacity.shader
 - Assets/Data/VehicleInteriors/TerrainHardWithZ.shader
 Dependencies: []

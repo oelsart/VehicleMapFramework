@@ -1863,7 +1863,7 @@ namespace VehicleInteriors
 			}
 			if (pawn.IsFormingCaravan())
 			{
-				foreach (var item in clickCell.GetItems(map))
+				foreach (var item in thingList.Where(t => t.def.category == ThingCategory.Item))
 				{
 					if (item.def.EverHaulable && item.def.canLoadIntoCaravan)
 					{
@@ -1942,7 +1942,7 @@ namespace VehicleInteriors
 			}
 			if (!pawn.IsFormingCaravan())
 			{
-				foreach(var item in clickCell.GetItems(map))
+				foreach(var item in thingList.Where(t => t.def.category == ThingCategory.Item))
 				{
 					bool CanPickUp()
 					{
@@ -2028,7 +2028,7 @@ namespace VehicleInteriors
 			}
 			if (!pawn.BaseMap().IsPlayerHome && !pawn.IsFormingCaravan())
 			{
-				foreach(var item in clickCell.GetItems(map))
+				foreach(var item in thingList.Where(t => t.def.category == ThingCategory.Item))
 				{
 					if (item.def.EverHaulable)
 					{

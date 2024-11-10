@@ -8,7 +8,7 @@ namespace VehicleInteriors
     {
         public VehiclePawnWithMapCache(Map map) : base(map)
         {
-            VehiclePawnWithMapCache.allVehicles[this.map] = new List<VehiclePawnWithInterior>();
+            VehiclePawnWithMapCache.allVehicles[this.map] = new List<VehiclePawnWithMap>();
         }
 
         public static void ClearCaches()
@@ -22,7 +22,7 @@ namespace VehicleInteriors
 
         public static Dictionary<Thing, IntVec3> cachedPosOnBaseMap = new Dictionary<Thing, IntVec3>();
 
-        public static Dictionary<Map, List<VehiclePawnWithInterior>> allVehicles = new Dictionary<Map, List<VehiclePawnWithInterior>>();
+        public static Dictionary<Map, List<VehiclePawnWithMap>> allVehicles = new Dictionary<Map, List<VehiclePawnWithMap>>();
 
         public static bool cacheMode = false;
     }

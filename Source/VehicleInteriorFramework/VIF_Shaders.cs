@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using System.Collections.Generic;
 using UnityEngine;
+using Vehicles;
 using Verse;
 
 namespace VehicleInteriors

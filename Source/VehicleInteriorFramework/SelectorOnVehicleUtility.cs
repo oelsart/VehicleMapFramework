@@ -11,7 +11,7 @@ namespace VehicleInteriors
 {
     public static class SelectorOnVehicleUtility
     {
-        public static List<Thing> ThingsUnderMouse(Vector3 clickPos, float pawnWideClickRadius, TargetingParameters clickParams, ITargetingSource source, VehiclePawnWithInterior vehicle)
+        public static List<Thing> ThingsUnderMouse(Vector3 clickPos, float pawnWideClickRadius, TargetingParameters clickParams, ITargetingSource source, VehiclePawnWithMap vehicle)
         {
             SelectorOnVehicleUtility.vehicleForSelector = vehicle;
             var list = SelectorOnVehicleUtility.ThingsUnderMouse(clickPos, pawnWideClickRadius, clickParams, source);
@@ -158,6 +158,6 @@ namespace VehicleInteriors
             yield break;
         }
 
-        public static VehiclePawnWithInterior vehicleForSelector;
+        public static VehiclePawnWithMap vehicleForSelector;
     }
 }
