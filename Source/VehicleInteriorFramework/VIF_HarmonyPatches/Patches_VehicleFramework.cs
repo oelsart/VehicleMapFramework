@@ -4,7 +4,6 @@ using SmashTools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
 using Vehicles;
@@ -80,10 +79,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             {
                 CodeInstruction.LoadLocal(0),
                 new CodeInstruction(OpCodes.Ldloca_S, vehicle),
-                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_IsOnVehicleMapOf),
-                new CodeInstruction(OpCodes.Brfalse_S, label),
-                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Thing_Spawned),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_IsOnNonFocusedVehicleMapOf),
                 new CodeInstruction(OpCodes.Brfalse_S, label),
                 new CodeInstruction(OpCodes.Ldloc_S, vehicle),
                 new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_FullRotation),
@@ -154,52 +150,81 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         }
     }
 
-    //Graphic_RGBがEdgeDetectシェーダーに対応してないみたいなのでGraphic_Multiで代替。単にGetTypeの場所へのパッチだとgraphic2へ入れてるGraphicのゲッターでエラーを吐くっぽい？
-    //graphicOverlayをextraの方に移したので不要になった
-    //[HarmonyPatch]
-    //public static class Patch_VehicleGhostUtility_GhostGraphicOverlaysFor
-    //{
-    //    private static MethodInfo TargetMethod()
-    //    {
-    //        return AccessTools.Method(targetType, "MoveNext");
-    //    }
+    [HarmonyPatch(typeof(VehicleGraphics), nameof(VehicleGraphics.RetrieveAllOverlaySettingsGraphicsProperties), typeof(Rect), typeof(VehicleDef), typeof(Rot8), typeof(PatternData), typeof(List<GraphicOverlay>))]
+    public static class Patch_VehicleGraphics_RetrieveAllOverlaySettingsGraphicsProperties
+    {
+        public static IEnumerable<VehicleGraphics.RenderData> Postfix(IEnumerable<VehicleGraphics.RenderData> values, Rect rect, VehicleDef vehicleDef, Rot8 rot, PatternData pattern)
+        {
+            foreach (var value in values)
+            {
+                yield return value;
+            }
+            foreach (CompProperties_TogglableOverlays compProperties in vehicleDef.comps.OfType<CompProperties_TogglableOverlays>())
+            {
+                foreach (var graphicOverlay in compProperties.overlays)
+                {
+                    if (graphicOverlay.data.renderUI)
+                    {
+                        yield return VehicleGraphics.RetrieveOverlaySettingsGraphicsProperties(rect, vehicleDef, rot, graphicOverlay, pattern);
+                    }
+                }
+            }
+        }
+    }
 
-    //    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
-    //    {
-    //        var codes = instructions.ToList();
-    //        var c_GraphicData = AccessTools.Constructor(typeof(GraphicData));
-    //        var pos = codes.FindIndex(c => c.opcode == OpCodes.Newobj && c.OperandIs(c_GraphicData));
-    //        var f_cachedGhostGraphics = AccessTools.Field(typeof(VehicleGhostUtility), nameof(VehicleGhostUtility.cachedGhostGraphics));
-    //        var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Ldsfld && c.OperandIs(f_cachedGhostGraphics));
-    //        var label = generator.DefineLabel();
-    //        var label2 = generator.DefineLabel();
+    [HarmonyPatch(typeof(VehicleGUI), nameof(VehicleGUI.RetrieveAllOverlaySettingsGUIProperties), typeof(Rect), typeof(VehicleDef), typeof(Rot8), typeof(List<GraphicOverlay>))]
+    public static class Patch_VehicleGUI_RetrieveAllOverlaySettingsGUIProperties
+    {
+        public static IEnumerable<VehicleGUI.RenderData> Postfix(IEnumerable<VehicleGUI.RenderData> values, Rect rect, VehicleDef vehicleDef, Rot8 rot)
+        {
+            foreach (var value in values)
+            {
+                yield return value;
+            }
+            foreach (CompProperties_TogglableOverlays compProperties in vehicleDef.comps.OfType<CompProperties_TogglableOverlays>())
+            {
+                foreach (var graphicOverlay in compProperties.overlays)
+                {
+                    if (graphicOverlay.data.renderUI)
+                    {
+                        yield return VehicleGUI.RetrieveOverlaySettingsGUIProperties(rect, vehicleDef, rot, graphicOverlay);
+                    }
+                }
+            }
+        }
+    }
 
-    //        codes[pos].labels.Add(label);
-    //        codes[pos2].labels.Add(label2);
-    //        codes.InsertRange(pos, new[]
-    //        {
-    //            CodeInstruction.LoadLocal(4),
-    //            new CodeInstruction(OpCodes.Isinst, typeof(Graphic_RGB)),
-    //            new CodeInstruction(OpCodes.Brfalse_S, label),
-    //            CodeInstruction.LoadLocal(4, true),
-    //            CodeInstruction.LoadLocal(2),
-    //            CodeInstruction.LoadArgument(0),
-    //            CodeInstruction.LoadField(targetType, "ghostColor"),
-    //            CodeInstruction.Call(typeof(Patch_VehicleGhostUtility_GhostGraphicOverlaysFor), nameof(Patch_VehicleGhostUtility_GhostGraphicOverlaysFor.GetGraphicRGB)),
-    //            new CodeInstruction(OpCodes.Br_S, label2)
-    //        });
-    //        return codes;
-    //    }
-
-    //    private static void GetGraphicRGB(ref Graphic graphic, GraphicOverlay overlay, Color ghostColor)
-    //    {
-    //        var graphicData = new GraphicData();
-    //        graphicData.CopyFrom(graphic.data);
-    //        graphicData.drawOffsetWest = graphic.data.drawOffsetWest;
-    //        graphicData.shadowData = null;
-    //        graphic = GraphicDatabase.Get(typeof(Graphic_Multi), graphic.path, ShaderTypeDefOf.EdgeDetect.Shader, graphic.drawSize, ghostColor, Color.white, graphicData, null, null);
-    //    }
-
-    //    private static readonly Type targetType = AccessTools.Inner(typeof(VehicleGhostUtility), "<GhostGraphicOverlaysFor>d__5");
-    //}
+    [HarmonyPatch(typeof(VehicleGhostUtility), nameof(VehicleGhostUtility.GhostGraphicOverlaysFor))]
+    public static class Patch_VehicleGhostUtility_GhostGraphicOverlaysFor
+    {
+        public static IEnumerable<ValueTuple<Graphic, float>> Postfix(IEnumerable<ValueTuple<Graphic, float>> values, VehicleDef vehicleDef, Color ghostColor)
+        {
+            foreach (var value in values)
+            {
+                yield return value;
+            }
+            int num = 0;
+            num = Gen.HashCombine<VehicleDef>(num, vehicleDef);
+            num = Gen.HashCombineStruct<Color>(num, ghostColor);
+            foreach (CompProperties_TogglableOverlays compProperties in vehicleDef.comps.OfType<CompProperties_TogglableOverlays>())
+            {
+                foreach (var graphicOverlay in compProperties.overlays)
+                {
+                    int key = Gen.HashCombine<GraphicDataRGB>(num, graphicOverlay.data.graphicData);
+                    if (!VehicleGhostUtility.cachedGhostGraphics.TryGetValue(key, out Graphic graphic))
+                    {
+                        graphic = graphicOverlay.Graphic;
+                        GraphicData graphicData = new GraphicData();
+                        graphicData.CopyFrom(graphic.data);
+                        graphicData.drawOffsetWest = graphic.data.drawOffsetWest;
+                        graphicData.shadowData = null;
+                        //Graphic graphic2 = graphicData.Graphic;
+                        graphic = GraphicDatabase.Get(typeof(Graphic_Multi), graphic.path, ShaderTypeDefOf.EdgeDetect.Shader, graphic.drawSize, ghostColor, Color.white, graphicData, null, null);
+                        VehicleGhostUtility.cachedGhostGraphics.Add(key, graphic);
+                    }
+                    yield return new ValueTuple<Graphic, float>(graphic, graphicOverlay.data.rotation);
+                }
+            }
+        }
+    }
 }

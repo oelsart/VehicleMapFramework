@@ -6,18 +6,18 @@ namespace VehicleInteriors
     {
         public override void PostSpawnSetup(bool respawningAfterLoad)
         {
-            if (this.parent.Map.Parent is MapParent_Vehicle parentVehicle)
+            if (this.parent.IsOnVehicleMapOf(out var vehicle))
             {
-                parentVehicle.vehicle.InteractionCells.Add(this.parent.Position);
+                vehicle.InteractionCells.Add(this.parent.Position);
             }
         }
 
         public override void PostDeSpawn(Map map)
         {
             base.PostDeSpawn(map);
-            if (map.Parent is MapParent_Vehicle parentVehicle)
+            if (map.IsVehicleMapOf(out var vehicle))
             {
-                parentVehicle.vehicle.InteractionCells.Remove(this.parent.Position);
+                vehicle.InteractionCells.Remove(this.parent.Position);
             }
         }
     }

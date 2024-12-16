@@ -23,7 +23,7 @@
 		<size>(5,8)</size>
 
 		<vehicleMovementPermissions>DriverNeeded</vehicleMovementPermissions>
-		<vehicleCategory>Transport</vehicleCategory>
+		<vehicleCategory>0</vehicleCategory>
 		<techLevel>Industrial</techLevel>
 		<vehicleType>Land</vehicleType>
 
@@ -40,6 +40,7 @@
 			<MoveSpeed>8</MoveSpeed>
 			<CargoCapacity>0</CargoCapacity>
 			<RepairRate>1</RepairRate>
+			<MaximumPayload>600</MaximumPayload>
 		</vehicleStats>
 		
 		<soundSustainersOnEvent>

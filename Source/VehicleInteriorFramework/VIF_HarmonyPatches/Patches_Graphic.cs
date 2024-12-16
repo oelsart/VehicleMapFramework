@@ -76,6 +76,67 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         }
     }
 
+    //レイヤー全体にオフセットをかけるのでこの中のDrawPosはオフセット無し版に変更
+    //コーナーフィラーの位置の回転を打ち消す
+    //マップ端のフィラー位置調整機能も切る　この機能何？
+    [HarmonyPatch(typeof(Graphic_LinkedCornerFiller), nameof(Graphic_LinkedCornerFiller.Print))]
+    public static class Patch_Graphic_LinkedCornerFiller_Print
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+        {
+            var codes = instructions.MethodReplacer(MethodInfoCache.g_Thing_DrawPos, MethodInfoCache.m_DrawPosOrig).ToList();
+            var f_Altitudes_AltIncVect = AccessTools.Field(typeof(Altitudes), nameof(Altitudes.AltIncVect));
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Ldsfld && c.OperandIs(f_Altitudes_AltIncVect)) - 1;
+
+            codes.Insert(pos, new CodeInstruction(OpCodes.Call, MethodInfoCache.m_RotateForPrintNegate));
+
+            var c_Vector3 = AccessTools.Constructor(typeof(Vector3), new Type[] { typeof(float), typeof(float), typeof(float) });
+            var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Newobj && c.OperandIs(c_Vector3)) + 1;
+            codes.Insert(pos2, new CodeInstruction(OpCodes.Call, MethodInfoCache.m_RotateForPrintNegate));
+
+            var pos3 = codes.FindIndex(pos2, c => c.opcode == OpCodes.Brtrue);
+            var label = codes[pos3].operand;
+            var l_vehicle = generator.DeclareLocal(typeof(VehiclePawnWithMap));
+
+            codes.InsertRange(pos3 + 1, new[]
+            {
+                CodeInstruction.LoadArgument(2),
+                new CodeInstruction(OpCodes.Ldloca, l_vehicle),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_IsOnVehicleMapOf),
+                new CodeInstruction(OpCodes.Brtrue, label)
+            });
+
+            return codes;
+        }
+    }
+
+    //Graphic_LinkedCornerOverlaySingleを使うためのWrap。linkDrawerTypeは適当に被らなそうな数字にしました。
+    [HarmonyPatch(typeof(GraphicUtility), nameof(GraphicUtility.WrapLinked))]
+    [HarmonyPatchCategory("VehicleInteriors.EarlyPatches")]
+    public static class Patch_GraphicUtility_WrapLinked
+    {
+        public static bool Prefix(Graphic subGraphic, LinkDrawerType linkDrawerType, ref Graphic_Linked __result)
+        {
+            if ((byte)linkDrawerType == 56)
+            {
+                __result = new Graphic_LinkedCornerOverlaySingle(subGraphic);
+                return false;
+            }
+            return true;
+        }
+    }
+
+    //バニラのCopyFromがcornerOverlayPathをコピーしてないためにエラーがでてたので修正。
+    [HarmonyPatch(typeof(GraphicData), nameof(GraphicData.CopyFrom))]
+    [HarmonyPatchCategory("VehicleInteriors.EarlyPatches")]
+    public static class Patch_GraphicData_CopyFrom
+    {
+        public static void Postfix(GraphicData __instance, GraphicData other)
+        {
+            __instance.cornerOverlayPath = other.cornerOverlayPath;
+        }
+    }
+
     [HarmonyPatch(typeof(Pawn_RotationTracker), "FaceAdjacentCell")]
     public static class Patch_Pawn_RotationTracker_FaceAdjacentCell
     {
@@ -88,7 +149,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     [HarmonyPatch(typeof(CameraDriver), "ApplyPositionToGameObject")]
     public static class Patch_CameraDriver_ApplyPositionToGameObject
     {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             var codes = instructions.ToList();
             var pos = codes.FindIndex(c => c.opcode == OpCodes.Ldc_R4 && (float)c.operand == 15f);

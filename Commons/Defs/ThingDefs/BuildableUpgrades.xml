@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+	<ThingDef Name="VehicleSeatBase" ParentName="FurnitureBase" Abstract="True">
+		<designationCategory>VF_Vehicles</designationCategory>
+		<minifiedDef>MinifiedThing</minifiedDef>
+		<altitudeLayer>Building</altitudeLayer>
+		<passability>PassThroughOnly</passability>
+		<rotatable>false</rotatable>
+	</ThingDef>
+	
+	<ThingDef ParentName="VehicleSeatBase">
+		<defName>VIF_DriverSeat</defName>
+		<label>driver seat</label>
+		<description>test</description>
+		<graphicData>
+			<texPath>Things/Building/Furniture/Armchair</texPath>
+			<graphicClass>Graphic_Multi</graphicClass>
+			<drawSize>(3,3)</drawSize>
+		</graphicData>
+		<drawerType>MapMeshAndRealTime</drawerType>
+		<statBases>
+			<MaxHitPoints>300</MaxHitPoints>
+			<Beauty>1</Beauty>
+			<WorkToBuild>100</WorkToBuild>
+			<Mass>5</Mass>
+		</statBases>
+		<size>(1,1)</size>
+		<costList>
+			<Steel>5</Steel>
+		</costList>
+		<uiOrder>1000</uiOrder>
+		<comps>
+			<li Class = "VehicleInteriors.CompProperties_BuildableUpgrades">
+				<compClass>VehicleInteriors.CompVehicleSeat</compClass>
+				<upgrades>
+					<li Class = "VehicleInteriors.VehicleUpgradeBuildable">
+						<roles>
+							<li Class = "VehicleInteriors.RoleUpgradeBuildable">
+								<key>driver</key>
+								<editKey>driver seat</editKey>
+								<label>driver seat</label>
+								<handlingTypes>Movement</handlingTypes>
+								<slots>1</slots>
+								<pawnRenderer>
+									<showBody>true</showBody>
+								</pawnRenderer>
+							</li>
+						</roles>
+					</li>
+				</upgrades>
+			</li>
+		</comps>
+	</ThingDef>
+
+	<ThingDef ParentName="FurnitureBase">
+		<defName>VIF_CargoContainer</defName>
+		<label>cargo container</label>
+		<description>test</description>
+		<designationCategory>VF_Vehicles</designationCategory>
+		<rotatable>false</rotatable>
+		<graphicData>
+			<texPath>VehicleInteriors/Things/BuildableUpgrade/CargoContainer/CargoContainer_Atlas</texPath>
+			<graphicClass>Graphic_Single</graphicClass>
+			<linkType>56</linkType>
+			<linkFlags>Custom2</linkFlags>
+			<cornerOverlayPath>VehicleInteriors/Things/BuildableUpgrade/CargoContainer/CargoContainer_Filler</cornerOverlayPath>
+			<damageData>
+				<cornerTL>Damage/Corner</cornerTL>
+				<cornerTR>Damage/Corner</cornerTR>
+				<cornerBL>Damage/Corner</cornerBL>
+				<cornerBR>Damage/Corner</cornerBR>
+				<edgeTop>Damage/Edge</edgeTop>
+				<edgeBot>Damage/Edge</edgeBot>
+				<edgeLeft>Damage/Edge</edgeLeft>
+				<edgeRight>Damage/Edge</edgeRight>
+			</damageData>
+		</graphicData>
+		<uiIconPath>VehicleInteriors/Things/BuildableUpgrade/CargoContainer/CargoContainer_MenuIcon</uiIconPath>
+		<drawerType>MapMeshOnly</drawerType>
+		<statBases>
+			<MaxHitPoints>300</MaxHitPoints>
+			<Beauty>-1</Beauty>
+			<WorkToBuild>100</WorkToBuild>
+			<Mass>10</Mass>
+		</statBases>
+		<placingDraggableDimensions>1</placingDraggableDimensions>
+		<size>(1,1)</size>
+		<stuffCategories>
+			<li>Metallic</li>
+			<li>Woody</li>
+		</stuffCategories>
+		<costStuffCount>100</costStuffCount>
+		<building>
+			<blueprintGraphicData>
+				<texPath>VehicleInteriors/Things/BuildableUpgrade/CargoContainer/CargoContainer_Blueprint_Atlas</texPath>
+				<cornerOverlayPath>VehicleInteriors/Things/BuildableUpgrade/CargoContainer/CargoContainer_Blueprint_Filler</cornerOverlayPath>
+			</blueprintGraphicData>
+		</building>
+		<uiOrder>1010</uiOrder>
+		<comps>
+			<li Class = "VehicleInteriors.CompProperties_BuildableUpgrades">
+				<upgrades>
+					<li Class = "Vehicles.StatUpgrade">
+						<vehicleStats>
+							<li>
+								<def>CargoCapacity</def>
+								<value>120</value>
+							</li>
+						</vehicleStats>
+					</li>
+				</upgrades>
+			</li>
+		</comps>
+	</ThingDef>
+
+	<ThingDef ParentName="FurnitureBase">
+		<defName>VIF_TurboCharger</defName>
+		<label>turbo charger</label>
+		<description>test</description>
+		<designationCategory>VF_Vehicles</designationCategory>
+		<graphicData>
+			<texPath>VehicleInteriors/Things/BuildableUpgrade/TurboCharger/TurboCharger</texPath>
+			<graphicClass>Graphic_Multi</graphicClass>
+			<drawSize>(2,1)</drawSize>
+			<damageData>
+				<cornerTL>Damage/Corner</cornerTL>
+				<cornerTR>Damage/Corner</cornerTR>
+				<cornerBL>Damage/Corner</cornerBL>
+				<cornerBR>Damage/Corner</cornerBR>
+				<edgeTop>Damage/Edge</edgeTop>
+				<edgeBot>Damage/Edge</edgeBot>
+				<edgeLeft>Damage/Edge</edgeLeft>
+				<edgeRight>Damage/Edge</edgeRight>
+			</damageData>
+		</graphicData>
+		<drawerType>MapMeshOnly</drawerType>
+		<statBases>
+			<MaxHitPoints>600</MaxHitPoints>
+			<Beauty>-1</Beauty>
+			<WorkToBuild>300</WorkToBuild>
+			<Mass>25</Mass>
+		</statBases>
+		<size>(2,1)</size>
+		<costList>
+			<Steel>200</Steel>
+			<ComponentIndustrial>10</ComponentIndustrial>
+			<ComponentSpacer>2</ComponentSpacer>
+		</costList>
+		<uiOrder>1020</uiOrder>
+		<comps>
+			<li Class = "VehicleInteriors.CompProperties_BuildableUpgrades">
+				<upgrades>
+					<li Class = "Vehicles.StatUpgrade">
+						<vehicleStats>
+							<li>
+								<def>MaximumPayload</def>
+								<value>300</value>
+							</li>
+						</vehicleStats>
+					</li>
+				</upgrades>
+			</li>
+		</comps>
+	</ThingDef>
+</Defs>

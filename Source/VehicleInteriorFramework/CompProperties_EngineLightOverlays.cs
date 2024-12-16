@@ -4,7 +4,7 @@
     {
         public CompProperties_EngineLightOverlays()
         {
-            compClass = typeof(CompProperties_EngineLightOverlays);
+            this.compClass = typeof(CompEngineLightOverlays);
         }
 
         public float engineOnOpacity;

@@ -77,5 +77,7 @@ namespace VehicleInteriors
         public static JobDef VIF_TendEntityAcrossmaps;
 
         public static JobDef VIF_BoardAcrossMaps;
+
+        public static VehicleStatDef MaximumPayload;
     }
 }

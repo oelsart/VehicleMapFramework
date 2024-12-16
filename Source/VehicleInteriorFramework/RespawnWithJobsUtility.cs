@@ -101,35 +101,20 @@ namespace VehicleInteriors
             }
 
             Pawn_PathFollower pawn_PathFollower = pawn.pather;
-            if (pawn_PathFollower != null)
-            {
-                pawn_PathFollower.StopDead();
-            }
+            pawn_PathFollower?.StopDead();
             Pawn_RopeTracker pawn_RopeTracker = pawn.roping;
-            if (pawn_RopeTracker != null)
-            {
-                pawn_RopeTracker.Notify_DeSpawned();
-            }
+            pawn_RopeTracker?.Notify_DeSpawned();
             pawn.mindState.droppedWeapon = null;
             Pawn_NeedsTracker pawn_NeedsTracker = pawn.needs;
             if (pawn_NeedsTracker != null)
             {
                 Need_Mood mood = pawn_NeedsTracker.mood;
-                if (mood != null)
-                {
-                    mood.thoughts.situational.Notify_SituationalThoughtsDirty();
-                }
+                mood?.thoughts.situational.Notify_SituationalThoughtsDirty();
             }
             Pawn_MeleeVerbs pawn_MeleeVerbs = pawn.meleeVerbs;
-            if (pawn_MeleeVerbs != null)
-            {
-                pawn_MeleeVerbs.Notify_PawnDespawned();
-            }
+            pawn_MeleeVerbs?.Notify_PawnDespawned();
             Pawn_MechanitorTracker pawn_MechanitorTracker = pawn.mechanitor;
-            if (pawn_MechanitorTracker != null)
-            {
-                pawn_MechanitorTracker.Notify_DeSpawned(mode);
-            }
+            pawn_MechanitorTracker?.Notify_DeSpawned(mode);
             //pawn.ClearAllReservations(false);
             if (map != null)
             {
@@ -200,44 +185,22 @@ namespace VehicleInteriors
                 if (mood != null)
                 {
                     PawnRecentMemory recentMemory = mood.recentMemory;
-                    if (recentMemory != null)
-                    {
-                        recentMemory.Notify_Spawned(respawningAfterLoad);
-                    }
+                    recentMemory?.Notify_Spawned(respawningAfterLoad);
                 }
             }
             Pawn_EquipmentTracker pawn_EquipmentTracker = pawn.equipment;
-            if (pawn_EquipmentTracker != null)
-            {
-                pawn_EquipmentTracker.Notify_PawnSpawned();
-            }
+            pawn_EquipmentTracker?.Notify_PawnSpawned();
             Pawn_HealthTracker pawn_HealthTracker = pawn.health;
-            if (pawn_HealthTracker != null)
-            {
-                pawn_HealthTracker.Notify_Spawned();
-            }
+            pawn_HealthTracker?.Notify_Spawned();
             Pawn_MechanitorTracker pawn_MechanitorTracker = pawn.mechanitor;
-            if (pawn_MechanitorTracker != null)
-            {
-                pawn_MechanitorTracker.Notify_PawnSpawned(respawningAfterLoad);
-            }
+            pawn_MechanitorTracker?.Notify_PawnSpawned(respawningAfterLoad);
             Pawn_MutantTracker pawn_MutantTracker = pawn.mutant;
-            if (pawn_MutantTracker != null)
-            {
-                pawn_MutantTracker.Notify_Spawned(respawningAfterLoad);
-            }
+            pawn_MutantTracker?.Notify_Spawned(respawningAfterLoad);
             Pawn_InfectionVectorTracker pawn_InfectionVectorTracker = pawn.infectionVectors;
-            if (pawn_InfectionVectorTracker != null)
-            {
-                pawn_InfectionVectorTracker.NotifySpawned(respawningAfterLoad);
-            }
+            pawn_InfectionVectorTracker?.NotifySpawned(respawningAfterLoad);
             if (pawn.Faction == Faction.OfPlayer)
             {
-                Ideo ideo = pawn.Ideo;
-                if (ideo != null)
-                {
-                    ideo.RecacheColonistBelieverCount();
-                }
+                pawn.Ideo?.RecacheColonistBelieverCount();
             }
             if (!respawningAfterLoad)
             {

@@ -64,7 +64,7 @@ namespace VehicleInteriors
             if (this.parent.IsOnVehicleMapOf(out var vehicle))
             {
                 bool exitBlocked = !this.parent.OccupiedRect().ExpandedBy(1).EdgeCells.NotNullAndAny((IntVec3 cell) => cell.Walkable(this.parent.Map));
-                foreach (var keyIDPair in base.handlerUniqueIDs)
+                foreach (var keyIDPair in this.handlerUniqueIDs)
                 {
                     var handler = vehicle.handlers.FirstOrDefault(h => h.uniqueID == keyIDPair.id);
                     if (handler != null)
@@ -78,10 +78,7 @@ namespace VehicleInteriors
                             command_Action_PawnDrawer.action = delegate ()
                             {
                                 var caravan = pawn.GetCaravan();
-                                if (caravan != null)
-                                {
-                                    caravan.RemovePawn(pawn);
-                                }
+                                caravan?.RemovePawn(pawn);
                                 if (Find.WorldPawns.Contains(pawn))
                                 {
                                     Find.WorldPawns.RemovePawn(pawn);
@@ -126,7 +123,6 @@ namespace VehicleInteriors
                     {
                         foreach (Pawn pawn in handler.Item1.handlers)
                         {
-                            Log.Message(pawn.ParentHolder as IThingHolderWithDrawnPawn);
                             Vector3 drawLoc = this.parent.DrawPos + handler.Item2.pawnRenderer.DrawOffsetFor(this.parent.Rotation);
                             Rot4 value = handler.Item1.role.PawnRenderer.RotFor(this.parent.Rotation);
                             pawn.Drawer.renderer.RenderPawnAt(drawLoc, new Rot4?(value), false);

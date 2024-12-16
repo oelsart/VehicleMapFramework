@@ -2,22 +2,17 @@
 <Defs>
 	<ThingDef Name="VehicleEnterSpotBase" ParentName="FurnitureBase" Abstract="True">
 		<designationCategory>VF_Vehicles</designationCategory>
-		<minifiedDef>MinifiedThing</minifiedDef>
 		<altitudeLayer>Building</altitudeLayer>
 		<passability>Standable</passability>
-		<comps>
-			<li>
-				<compClass>VehicleInteriors.CompVehicleEnterSpot</compClass>
-			</li>
-		</comps>
 	</ThingDef>
 	
 	<ThingDef ParentName="VehicleEnterSpotBase">
 		<defName>VIF_Ladder</defName>
 		<label>ladder</label>
 		<description>test</description>
+		<minifiedDef>MinifiedThing</minifiedDef>
 		<graphicData>
-			<texPath>VehicleInteriors/Things/Laddar</texPath>
+			<texPath>VehicleInteriors/Things/EnterSpot/Laddar</texPath>
 			<graphicClass>Graphic_Multi</graphicClass>
 			<drawSize>(1.84765625,1.84765625)</drawSize>
 			<drawOffsetNorth>(0,0,-1)</drawOffsetNorth>
@@ -36,5 +31,110 @@
 			<Steel>5</Steel>
 		</costList>
 		<uiOrder>1000</uiOrder>
+		<comps>
+			<li Class="VehicleInteriors.CompProperties_VehicleEnterSpot"/>
+		</comps>
+	</ThingDef>
+
+	<DesignatorDropdownGroupDef>
+		<defName>VIF_VehicleSlopeGroup</defName>
+	</DesignatorDropdownGroupDef>
+
+	<ThingDef Name="VehicleSlopeBase" ParentName="VehicleEnterSpotBase" Abstract="True">
+		<designatorDropdown>VIF_VehicleSlopeGroup</designatorDropdown>
+		<thingClass>VehicleInteriors.Building_VehicleSlope</thingClass>
+		<drawerType>MapMeshAndRealTime</drawerType>
+		<tickerType>Normal</tickerType>
+		<graphicData>
+			<graphicClass>Graphic_Terrain</graphicClass>
+		</graphicData>
+		<building>
+			<upperMoverGraphic>
+				<graphicClass>Graphic_Multi</graphicClass>
+			</upperMoverGraphic>
+		</building>
+		<comps>
+			<li Class="VehicleInteriors.CompProperties_VehicleEnterSpot">
+				<allowPassingVehicle>true</allowPassingVehicle>
+			</li>
+		</comps>
+	</ThingDef>
+	
+	<!--<ThingDef ParentName="VehicleSlopeBase">
+		<defName>VIF_SlopeSmall</defName>
+		<label>slope (1x1)</label>
+		<description>test</description>
+		<graphicData>
+			<texPath>VehicleInteriors/Things/EnterSpot/SlopeSmall</texPath>
+			<drawSize>(2,1)</drawSize>
+		</graphicData>
+		<statBases>
+			<MaxHitPoints>500</MaxHitPoints>
+			<Beauty>0</Beauty>
+			<WorkToBuild>300</WorkToBuild>
+			<Mass>15</Mass>
+		</statBases>
+		<size>(1,1)</size>
+		<costList>
+			<Steel>50</Steel>
+			<ComponentIndustrial>2</ComponentIndustrial>
+		</costList>
+		<uiOrder>1010</uiOrder>
+	</ThingDef>-->
+	
+	<ThingDef ParentName="VehicleSlopeBase">
+		<defName>VIF_SlopeMedium</defName>
+		<label>slope (1x3)</label>
+		<description>test</description>
+		<graphicData>
+			<texPath>VehicleInteriors/Things/EnterSpot/SlopeMedium</texPath>
+			<drawSize>(3,1)</drawSize>
+		</graphicData>
+		<statBases>
+			<MaxHitPoints>1500</MaxHitPoints>
+			<Beauty>0</Beauty>
+			<WorkToBuild>900</WorkToBuild>
+			<Mass>45</Mass>
+		</statBases>
+		<size>(3,1)</size>
+		<costList>
+			<Steel>150</Steel>
+			<ComponentIndustrial>4</ComponentIndustrial>
+		</costList>
+		<uiOrder>1020</uiOrder>
+		<building>
+			<upperMoverGraphic>
+				<texPath>VehicleInteriors/Things/EnterSpot/SlopeMedium</texPath>
+				<drawSize>(4,1)</drawSize>
+			</upperMoverGraphic>
+		</building>
+	</ThingDef>
+
+	<ThingDef ParentName="VehicleSlopeBase">
+		<defName>VIF_SlopeLarge</defName>
+		<label>slope (1x5)</label>
+		<description>test</description>
+		<graphicData>
+			<texPath>VehicleInteriors/Things/EnterSpot/SlopeLarge</texPath>
+			<drawSize>(5,1)</drawSize>
+		</graphicData>
+		<statBases>
+			<MaxHitPoints>2500</MaxHitPoints>
+			<Beauty>0</Beauty>
+			<WorkToBuild>1500</WorkToBuild>
+			<Mass>75</Mass>
+		</statBases>
+		<size>(5,1)</size>
+		<costList>
+			<Steel>250</Steel>
+			<ComponentIndustrial>6</ComponentIndustrial>
+		</costList>
+		<uiOrder>1030</uiOrder>
+		<building>
+			<upperMoverGraphic>
+				<texPath>VehicleInteriors/Things/EnterSpot/SlopeLarge</texPath>
+				<drawSize>(6,1)</drawSize>
+			</upperMoverGraphic>
+		</building>
 	</ThingDef>
 </Defs>

@@ -189,14 +189,14 @@ namespace VehicleInteriors
             return subClasses.Except(new Type[] { typeof(SectionLayer_ThingsOnVehicle), typeof(SectionLayer_TerrainOnVehicle), typeof(SectionLayer_LightingOnVehicle) }).ToList();
         }
 
-        private static Type t_SectionLayer_Terrain = AccessTools.TypeByName("Verse.SectionLayer_Terrain");
+        private static readonly Type t_SectionLayer_Terrain = AccessTools.TypeByName("Verse.SectionLayer_Terrain");
 
         public static float PrintExtraRotation(Thing thing)
         {
             float result = 0f;
             if (thing?.Map?.Parent is MapParent_Vehicle)
             {
-                result -= VehicleMapUtility.rotForPrint.AsAngle * (thing.Graphic is Graphic_Single ? 2f : 1f);
+                result -= VehicleMapUtility.rotForPrint.AsAngle * (thing.Graphic.GetType() == typeof(Graphic_Single) || thing.Graphic is Graphic_Collection ? 2f : 1f);
             }
             return result;
         }
@@ -371,8 +371,8 @@ namespace VehicleInteriors
         {
             if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle))
             {
-                var rot = new Rot4(thing.Rotation.AsInt + vehicle.Rotation.AsInt);
-                return new Rot8(rot, rot.IsHorizontal ? vehicle.Angle : 0f);
+                var angle = thing.Rotation.AsAngle + vehicle.FullRotation.AsAngle;
+                return angle.AsRot8();
             }
             return thing.Rotation;
         }
@@ -422,6 +422,36 @@ namespace VehicleInteriors
                 return rot == Rot8.NorthEast || rot == Rot8.NorthWest ? Rot4.North : Rot4.South;
             }
             return rot;
+        }
+
+        public static float VehicleMapMass(VehiclePawnWithMap vehicle)
+        {
+            float num = 0f;
+            foreach (var thing in vehicle.interiorMap.listerThings.AllThings)
+            {
+                if (thing is VehiclePawn vehicle2)
+                {
+                    num += vehicle2.GetStatValue(VehicleStatDefOf.Mass);
+                }
+                else
+                {
+                    num += (float)thing.stackCount * thing.GetStatValue(StatDefOf.Mass, true, -1);
+                }
+            }
+            return num;
+        }
+
+        public static Vector3 DrawPosOrig(this Thing thing)
+        {
+            VehiclePawnWithMapCache.cacheMode = true;
+            var drawPos = thing.DrawPos;
+            VehiclePawnWithMapCache.cacheMode = false;
+            return drawPos;
+        }
+
+        public static Vector3 RotateForPrintNegate(Vector3 vector)
+        {
+            return vector.RotatedBy(-VehicleMapUtility.rotForPrint.AsAngle);
         }
 
         public static Rot4 rotForPrint = Rot4.North;

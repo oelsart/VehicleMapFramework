@@ -31,5 +31,33 @@ namespace VehicleInteriors
                     return Quaternion.identity;
             }
         }
+
+        public static Rot8 AsRot8(this float angle)
+        {
+            var angle2 = angle.ClampAngle();
+            switch (angle2)
+            {
+                case 0f:
+                case 360f:
+                    return Rot8.North;
+                case 45f:
+                    return Rot8.NorthEast;
+                case 90f:
+                    return Rot8.East;
+                case 135f:
+                    return Rot8.SouthEast;
+                case 180f:
+                    return Rot8.South;
+                case 225f:
+                    return Rot8.SouthWest;
+                case 270f:
+                    return Rot8.West;
+                case 315f:
+                    return Rot8.NorthWest;
+                default:
+                    Log.Error("AsRot8 with angle = " + angle);
+                    return Rot8.Invalid;
+            }
+        }
     }
 }

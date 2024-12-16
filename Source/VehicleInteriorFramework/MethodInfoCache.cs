@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using RimWorld;
 using RimWorld.Planet;
 using SmashTools;
 using System;
@@ -89,5 +90,11 @@ namespace VehicleInteriors
         public static readonly MethodInfo g_Thing_Rotation = AccessTools.PropertyGetter(typeof(Thing), nameof(Thing.Rotation));
 
         public static readonly MethodInfo m_Thing_RotationOrig = AccessTools.Method(typeof(Patch_Thing_Rotation), nameof(Patch_Thing_Rotation.Rotation));
+
+        public static readonly MethodInfo g_Thing_DrawPos = AccessTools.PropertyGetter(typeof(Thing), nameof(Thing.DrawPos));
+
+        public static readonly MethodInfo m_DrawPosOrig = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.DrawPosOrig));
+
+        public static readonly MethodInfo m_RotateForPrintNegate = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.RotateForPrintNegate));
     }
 }

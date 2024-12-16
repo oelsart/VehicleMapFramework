@@ -111,7 +111,7 @@ namespace VehicleInteriors
                 var toil = Toils_Goto.GotoCell(exitSpot.Cell, PathEndMode.OnCell);
                 yield return toil;
 
-                var toil2 = Toils_General.Wait(90);
+                var toil2 = Toils_General.Wait(40);
                 toil2.handlingFacing = true;
                 var initTick = 0;
                 var faceCell = IntVec3.Zero;
@@ -128,15 +128,14 @@ namespace VehicleInteriors
                     {
                         dist++;
                     }
-                    toil2.defaultDuration *= dist;
-                    var curPos = (basePos - faceCell * dist).ToVector3Shifted();
+                    driver.ticksLeftThisToil *= dist;
                 }));
 
                 toil2.tickAction = () =>
                 {
-                    var curPos = (exitSpot.Thing.PositionOnBaseMap() - exitSpot.Thing.Rotation.FacingCell * dist).ToVector3Shifted();
-                    driver.drawOffset = (curPos - exitSpot.Thing.DrawPos.WithY(0f)) * ((GenTicks.TicksGame - initTick) / 90f);
-                    toil2.actor.Rotation = exitSpot.Thing.BaseRotationOfThing();
+                    var curPos = (exitSpot.Thing.PositionOnBaseMap() - exitSpot.Thing.Rotation.FacingCell * dist).ToVector3();
+                    driver.drawOffset = (curPos - exitSpot.Thing.DrawPos.WithY(0f)) * ((GenTicks.TicksGame - initTick) / (60f * dist));
+                    toil2.actor.Rotation = exitSpot.Thing.BaseRotationOfThing().Opposite;
                 };
                 yield return toil2;
 
@@ -156,12 +155,8 @@ namespace VehicleInteriors
                 toil3.initAction = () =>
                 {
                     driver.drawOffset = Vector3.zero;
-                    //var drafted = toil3.actor.Drafted;
-                    //var selected = Find.Selector.IsSelected(toil3.actor);
                     toil3.actor.DeSpawnWithoutJobClear();
                     GenSpawn.Spawn(toil3.actor, (exitSpot.Thing.PositionOnBaseMap() - faceCell * dist), exitSpot.Thing.BaseMap(), WipeMode.Vanish);
-                    //if (toil3.actor.drafter != null) draftedInt(toil3.actor.drafter) = drafted;
-                    //if (selected) Find.Selector.SelectedObjects.Add(toil3.actor);
                 };
                 yield return toil3;
                 yield return afterExitMap;
@@ -177,7 +172,18 @@ namespace VehicleInteriors
                 var toil = ToilsAcrossMaps.GotoVehicleEnterSpot(enterSpot.Thing);
                 yield return toil;
 
-                var toil2 = Toils_General.Wait(90);
+                Building_Door door;
+                if ((door = enterSpot.Cell.GetDoor(enterSpot.Thing.Map)) != null)
+                {
+                    var waitOpen = Toils_General.Wait(door.TicksToOpenNow);
+                    waitOpen.initAction = (Action)Delegate.Combine(waitOpen.initAction, new Action(() =>
+                    {
+                        door.StartManualOpenBy(waitOpen.actor);
+                    }));
+                    yield return waitOpen;
+                }
+
+                var toil2 = Toils_General.Wait(40);
                 toil2.handlingFacing = true;
                 Vector3 initPos = Vector3.zero;
                 Vector3 initPos2 = Vector3.zero;
@@ -195,7 +201,7 @@ namespace VehicleInteriors
                     {
                         dist++;
                     }
-                    toil2.defaultDuration *= dist;
+                    driver.ticksLeftThisToil *= dist;
                     initPos = (basePos - faceCell * dist).ToVector3Shifted();
                     initPos2 = enterSpot.Thing.DrawPos.WithY(0f);
                     initTick = GenTicks.TicksGame;
@@ -203,8 +209,9 @@ namespace VehicleInteriors
 
                 toil2.tickAction = () =>
                 {
-                    driver.drawOffset = (initPos2 - initPos) * ((GenTicks.TicksGame - initTick) / 90f) + enterSpot.Thing.DrawPos.WithY(VehicleMapUtility.altitudeOffsetFull) - initPos2;
+                    driver.drawOffset = (initPos2 - initPos) * ((GenTicks.TicksGame - initTick) / (40f * dist)) + enterSpot.Thing.DrawPos.WithY(VehicleMapUtility.altitudeOffsetFull) - initPos2;
                     toil2.actor.Rotation = enterSpot.Thing.BaseRotationOfThing();
+                    door?.StartManualOpenBy(toil2.actor);
                 };
                 yield return toil2;
 
@@ -213,12 +220,8 @@ namespace VehicleInteriors
                 toil3.initAction = () =>
                 {
                     driver.drawOffset = Vector3.zero;
-                    //var drafted = toil3.actor.Drafted;
-                    //var selected = Find.Selector.IsSelected(toil3.actor);
                     toil3.actor.DeSpawnWithoutJobClear();
                     GenSpawn.Spawn(toil3.actor, enterSpot.Thing.Position, enterSpot.Thing.Map, WipeMode.VanishOrMoveAside);
-                    //if (toil3.actor.drafter != null) draftedInt(toil3.actor.drafter) = drafted;
-                    //if (selected) Find.Selector.SelectedObjects.Add(toil3.actor);
                 };
                 yield return toil3;
                 yield return afterEnterMap;

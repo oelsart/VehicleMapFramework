@@ -87,12 +87,17 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Building_VehicleSlope.cs" />
     <Compile Include="CompEngineLightOverlays.cs" />
     <Compile Include="CompProperties_EngineLightOverlays.cs" />
     <Compile Include="CompProperties_TogglableOverlays.cs" />
+    <Compile Include="CompProperties_VehicleEnterSpot.cs" />
+    <Compile Include="CompProperties_VehicleLauncherWithMap.cs" />
     <Compile Include="CompTogglableOverlays.cs" />
+    <Compile Include="CompVehicleLauncherWithMap.cs" />
     <Compile Include="ExtraOverlayData.cs" />
     <Compile Include="GenDrawOnVehicle.cs" />
+    <Compile Include="Graphic_LinkedCornerOverlaySingle.cs" />
     <Compile Include="Graphic_VehicleOpacity.cs" />
     <Compile Include="EphemenalWindow.cs" />
     <Compile Include="RGBMaskDef.cs" />
@@ -103,6 +108,7 @@
     <Compile Include="VehicleMap\SectionLayer_TerrainOnVehicle.cs" />
     <Compile Include="VehiclePawnWithMap_Hover.cs" />
     <Compile Include="VehicleRoleBuildable.cs" />
+    <Compile Include="VehicleStatPart_WeightUsageWithMap.cs" />
     <Compile Include="VehicleUpgradeBuildable.cs" />
     <Compile Include="VehiclePawnCacheComponent.cs" />
     <Compile Include="Combat\AttackTargetFinderOnVehicle.cs" />
@@ -190,6 +196,7 @@
     <Compile Include="VIF_HarmonyPatches\Patches_Job.cs" />
     <Compile Include="VIF_HarmonyPatches\Patches_Map.cs" />
     <Compile Include="VIF_HarmonyPatches\Patches_Selector.cs" />
+    <Compile Include="VIF_HarmonyPatches\Patches_Thing.cs" />
     <Compile Include="VIF_HarmonyPatches\Patches_VehicleFramework.cs" />
     <Compile Include="VIF_HarmonyPatches\Patches_VehicleMapOffset.cs" />
     <Compile Include="VIF_Materials.cs" />

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using SmashTools;
+using UnityEngine;
 using Vehicles;
 using Verse;
 
@@ -30,6 +31,31 @@ namespace VehicleInteriors
             foreach (var mat in this.materials)
             {
                 mat.SetFloat("_Opacity", this.opacityInt);
+            }
+        }
+
+        public override void DrawWorker(Vector3 loc, Rot8 rot, ThingDef thingDef, Thing thing, float extraRotation)
+        {
+            Mesh mesh = this.MeshAtFull(rot);
+            Quaternion quaternion = base.QuatFromRot(rot);
+            //if ((this.EastDiagonalRotated && (rot == Rot8.NorthEast || rot == Rot8.SouthEast)) || (this.WestDiagonalRotated && (rot == Rot8.NorthWest || rot == Rot8.SouthWest)))
+            //{
+            //    quaternion *= Quaternion.Euler(-Vector3.up);
+            //}
+            if (extraRotation != 0f)
+            {
+                quaternion *= Quaternion.Euler(Vector3.up * extraRotation);
+            }
+            if (this.data != null && this.data.addTopAltitudeBias)
+            {
+                quaternion *= Quaternion.Euler(Vector3.left * 2f);
+            }
+            loc += base.DrawOffset(rot);
+            Material mat = this.MatAtFull(rot);
+            this.DrawMeshInt(mesh, loc, quaternion, mat);
+            if (base.ShadowGraphic != null)
+            {
+                base.ShadowGraphic.DrawWorker(loc, rot, thingDef, thing, extraRotation);
             }
         }
 

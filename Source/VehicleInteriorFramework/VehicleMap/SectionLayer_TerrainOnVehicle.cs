@@ -22,6 +22,7 @@ namespace VehicleInteriors
             if (!base.Map.IsVehicleMapOf(out var vehicle))
             {
                 Log.Error("[VehicleInteriors] Do not use SectionLayer_TerrainOnVehicle except for vehicle maps.");
+                return;
             }
             this.baseTerrainMat = SolidColorMaterials.NewSolidColorMaterial(vehicle.DrawColor, VIF_Shaders.terrainHardWithZ);
             this.baseTerrainMat.renderQueue = 2000;
@@ -36,14 +37,14 @@ namespace VehicleInteriors
             ValueTuple<TerrainDef, bool, ColorDef> key = new ValueTuple<TerrainDef, bool, ColorDef>(def, polluted, color);
             if (!this.terrainMatCache.ContainsKey(key))
             {
-                Graphic graphic = polluted ? def.graphicPolluted : def.graphic;
+                Graphic graphic = polluted ? def.graphicPolluted.GetCopy(def.graphicPolluted.drawSize, VIF_Shaders.terrainHardWithZ) : def.graphic.GetCopy(def.graphic.drawSize, VIF_Shaders.terrainHardWithZ);
                 if (color != null)
                 {
                     this.terrainMatCache[key] = graphic.GetColoredVersion(VIF_Shaders.terrainHardWithZ, color.color, Color.white).MatSingle;
                 }
                 else
                 {
-                    this.terrainMatCache[key] = (polluted ? def.DrawMatPolluted : def.DrawMatSingle);
+                    this.terrainMatCache[key] = graphic.MatSingle;
                 }
             }
             return this.terrainMatCache[key];
