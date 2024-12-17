@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Vehicles;
 using Verse;
 using Verse.AI;
 using Verse.AI.Group;
@@ -16,7 +17,7 @@ namespace VehicleInteriors
     {
         private static bool CanTakeOrder(Pawn pawn)
         {
-            return pawn.IsColonistPlayerControlled || pawn.IsColonyMech || pawn.IsColonyMutantPlayerControlled;
+            return pawn.IsColonistPlayerControlled || pawn.IsColonyMech || pawn.IsColonyMutantPlayerControlled || pawn is VehiclePawn;
         }
 
         private static bool LordBlocksFloatMenu(Pawn pawn)
@@ -108,29 +109,86 @@ namespace VehicleInteriors
             {
                 return null;
             }
-            IntVec3 curLoc = CellFinder.StandableCellNear(clickCell, map, 2.9f, null);
-            if (!curLoc.IsValid || (pawn.Map == map && curLoc == pawn.Position))
+
+            if (pawn is VehiclePawn vehicle)
             {
+                if (vehicle.Faction != Faction.OfPlayer || !vehicle.CanMoveFinal)
+                {
+                    return null;
+                }
+                if (vehicle.Deploying || (vehicle.CompVehicleTurrets != null && vehicle.CompVehicleTurrets.Deployed))
+                {
+                    Messages.Message("VF_VehicleImmobileDeployed".Translate(vehicle), MessageTypeDefOf.RejectInput);
+                    return null;
+                }
+
+                if (vehicle.CompFueledTravel != null && vehicle.CompFueledTravel.EmptyTank)
+                {
+                    Messages.Message("VF_OutOfFuel".Translate(vehicle), MessageTypeDefOf.RejectInput);
+                    return null;
+                }
+
+                int num = GenRadial.NumCellsInRadius(2.9f);
+                IntVec3 curLoc;
+                for (int i = 0; i < num; i++)
+                {
+                    curLoc = GenRadial.RadialPattern[i] + clickCell;
+
+                    if (GenGridVehicles.Standable(curLoc, vehicle, map) && (!VehicleMod.settings.main.fullVehiclePathing || vehicle.DrivableRectOnCell(curLoc, false, map)))
+                    {
+                        if (curLoc == vehicle.Position || vehicle.beached)
+                        {
+                            return null;
+                        }
+                        if (!vehicle.CanReachVehicle(curLoc, PathEndMode.OnCell, Danger.Deadly, TraverseMode.ByPawn, map, out var dest1, out var dest2))
+                        {
+                            Log.Message($"can not reach {map}, {dest1}, {dest2}");
+                            return new FloatMenuOption("VF_CannotMoveToCell".Translate(vehicle.LabelCap), null);
+                        }
+
+                        return new FloatMenuOption("GoHere".Translate(), delegate ()
+                        {
+                            VehicleOrientationControllerAcrossMaps.StartOrienting(vehicle, curLoc, clickCell, map, dest1, dest2);
+                        }, MenuOptionPriority.GoHere, null, null, 0f, null, null)
+                        {
+                            autoTakeable = true,
+                            autoTakeablePriority = 10f
+                        };
+                    }
+                }
                 return null;
             }
-            if (ModsConfig.BiotechActive && pawn.IsColonyMech && !MechanitorUtility.InMechanitorCommandRange(pawn, curLoc))
+            else
             {
-                return new FloatMenuOption("CannotGoOutOfRange".Translate() + ": " + "OutOfCommandRange".Translate(), null, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0);
+                if (PathingHelper.VehicleImpassableInCell(map, clickCell))
+                {
+                    return new FloatMenuOption("CannotGoNoPath".Translate(), null, MenuOptionPriority.Default, null, null, 0f, null, null);
+                }
+
+                IntVec3 curLoc = CellFinder.StandableCellNear(clickCell, map, 2.9f, null);
+                if (!curLoc.IsValid || (pawn.Map == map && curLoc == pawn.Position))
+                {
+                    return null;
+                }
+                if (ModsConfig.BiotechActive && pawn.IsColonyMech && !MechanitorUtility.InMechanitorCommandRange(pawn, curLoc))
+                {
+                    return new FloatMenuOption("CannotGoOutOfRange".Translate() + ": " + "OutOfCommandRange".Translate(), null, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0);
+                }
+                if (!pawn.CanReach(curLoc, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, map, out var dest1, out var dest2))
+                {
+                    return new FloatMenuOption("CannotGoNoPath".Translate(), null, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0);
+                }
+                Action action = delegate ()
+                {
+                    var cell = ReachabilityUtilityOnVehicle.BestOrderedGotoDestNear(curLoc, pawn, (IntVec3 c) => c.InBounds(map), map);
+                    FloatMenuMakerOnVehicle.PawnGotoAction(clickCell, pawn, map, dest1, dest2, cell);
+                };
+                return new FloatMenuOption("GoHere".Translate(), action, MenuOptionPriority.GoHere, null, null, 0f, null, null, true, 0)
+                {
+                    autoTakeable = true,
+                    autoTakeablePriority = 10f
+                };
             }
-            if (!pawn.CanReach(curLoc, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, map, out var dest1, out var dest2))
-            {
-                return new FloatMenuOption("CannotGoNoPath".Translate(), null, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0);
-            }
-            Action action = delegate ()
-            {
-                var cell = ReachabilityUtilityOnVehicle.BestOrderedGotoDestNear(curLoc, pawn, (IntVec3 c) => c.InBounds(map), map);
-                FloatMenuMakerOnVehicle.PawnGotoAction(clickCell, pawn, map, dest1, dest2, new LocalTargetInfo(cell));
-            };
-            return new FloatMenuOption("GoHere".Translate(), action, MenuOptionPriority.GoHere, null, null, 0f, null, null, true, 0)
-            {
-                autoTakeable = true,
-                autoTakeablePriority = 10f
-            };
         }
 
         public static void PawnGotoAction(IntVec3 clickCell, Pawn pawn, Map map, LocalTargetInfo dest1, LocalTargetInfo dest2, LocalTargetInfo dest3)
@@ -2237,7 +2295,7 @@ namespace VehicleInteriors
 					}, MenuOptionPriority.High, null, null, 0f, null, null, true, 0), pawn, casket.Thing, "ReservedBy", null));
 				}
 			}
-			if (pawn.health.capacities.CapableOf(PawnCapacityDefOf.Manipulation) && new TargetInfo(clickCell, map, false).IsBurning() && ReachabilityUtilityOnVehicle.CanReach(pawn.Map, pawn.Position, clickCell, PathEndMode.Touch, TraverseParms.For(pawn), map, out var exitSpot3, out var enterSpot3))
+			if (pawn.health.capacities.CapableOf(PawnCapacityDefOf.Manipulation) && clickCell.InBounds(map) && new TargetInfo(clickCell, map, false).IsBurning() && ReachabilityUtilityOnVehicle.CanReach(pawn.Map, pawn.Position, clickCell, PathEndMode.Touch, TraverseParms.For(pawn), map, out var exitSpot3, out var enterSpot3))
 			{
 				FloatMenuOption item7;
 				if (pawn.WorkTypeIsDisabled(WorkTypeDefOf.Firefighter))

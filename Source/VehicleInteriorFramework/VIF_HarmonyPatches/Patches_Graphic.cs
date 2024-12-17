@@ -240,11 +240,13 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     [HarmonyPatch(typeof(VehiclePawn), nameof(VehiclePawn.FullRotation), MethodType.Getter)]
     public static class Patch_VehiclePawn_FullRotation
     {
+
         public static void Postfix(VehiclePawn __instance, ref Rot8 __result)
         {
             if (__instance.IsOnNonFocusedVehicleMapOf(out var vehicle))
             {
-                __result = new Rot8(new Rot4(__instance.Rotation.AsInt + vehicle.Rotation.AsInt), (__instance.Angle + vehicle.Angle) % 90f);
+                var angle = __result.AsAngle + vehicle.FullRotation.AsAngle;
+                __result = angle.AsRot8();
             }
         }
     }

@@ -4,6 +4,8 @@ namespace VehicleInteriors
 {
     public class CompVehicleEnterSpot : ThingComp
     {
+        public CompProperties_VehicleEnterSpot Props => (CompProperties_VehicleEnterSpot)this.props;
+
         public override void PostSpawnSetup(bool respawningAfterLoad)
         {
             if (this.parent.IsOnVehicleMapOf(out var vehicle))

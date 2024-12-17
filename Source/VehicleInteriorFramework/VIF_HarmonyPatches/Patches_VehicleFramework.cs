@@ -227,4 +227,13 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             }
         }
     }
+
+    [HarmonyPatch(typeof(GenGridVehicles), nameof(GenGridVehicles.ImpassableForVehicles))]
+    public static class Patch_GenGridVehicles_ImpassableForVehicles
+    {
+        public static void Postfix(Thing thing, ref bool __result)
+        {
+            __result = __result && !(thing is Building_VehicleSlope && thing.def.passability != Traversability.Impassable && !thing.def.IsFence);
+        }
+    }
 }

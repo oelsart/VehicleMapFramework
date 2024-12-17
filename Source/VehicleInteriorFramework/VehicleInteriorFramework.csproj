@@ -106,6 +106,7 @@
     <Compile Include="VehicleMap\VehicleMapParentsComponent.cs" />
     <Compile Include="VehicleMap\SectionLayer_LightingOnVehicle.cs" />
     <Compile Include="VehicleMap\SectionLayer_TerrainOnVehicle.cs" />
+    <Compile Include="VehicleOrientationControllerAcrossMaps.cs" />
     <Compile Include="VehiclePawnWithMap_Hover.cs" />
     <Compile Include="VehicleRoleBuildable.cs" />
     <Compile Include="VehicleStatPart_WeightUsageWithMap.cs" />

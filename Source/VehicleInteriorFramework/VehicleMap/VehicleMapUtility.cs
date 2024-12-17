@@ -377,6 +377,16 @@ namespace VehicleInteriors
             return thing.Rotation;
         }
 
+        public static int HalfLength(this VehiclePawn vehicle)
+        {
+            return vehicle.VehicleDef.HalfLength();
+        }
+
+        public static int HalfLength(this VehicleDef vehicleDef)
+        {
+            return vehicleDef.size.z / 2;
+        }
+
         public static bool TryGetOnVehicleDrawPos(this Thing thing, ref Vector3 result)
         {
             if (VehiclePawnWithMapCache.cachedDrawPos.TryGetValue(thing, out var pos))

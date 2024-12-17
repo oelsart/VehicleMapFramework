@@ -56,14 +56,18 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     [HarmonyPatch(typeof(VehiclePawn), nameof(VehiclePawn.DrawPos), MethodType.Getter)]
     public static class Patch_VehiclePawn_DrawPos
     {
-        public static bool Prefix(VehiclePawn __instance, ref Vector3 __result)
+        public static bool Prefix(VehiclePawn __instance, ref Vector3 __result, out bool __state)
         {
-            return !__instance.TryGetOnVehicleDrawPos(ref __result);
+            __state = !__instance.TryGetOnVehicleDrawPos(ref __result);
+            return __state;
         }
 
-        public static void Postfix(VehiclePawn __instance, ref Vector3 __result)
+        public static void Postfix(VehiclePawn __instance, ref Vector3 __result, bool __state)
         {
-            __result.y += __instance.jobs?.curDriver is JobDriverAcrossMaps driver ? driver.ForcedBodyOffset.y : 0f;
+            if (__state)
+            {
+                __result += __instance.jobs?.curDriver is JobDriverAcrossMaps driver ? driver.ForcedBodyOffset : Vector3.zero;
+            }
         }
     }
 
@@ -76,17 +80,17 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         }
     }
 
-    [HarmonyPatch(typeof(FleckStatic), nameof(FleckStatic.DrawPos), MethodType.Getter)]
-    public static class Patch_FleckStatic_DrawPos
-    {
-        public static void Postfix(Map ___map, ref Vector3 __result)
-        {
-            if (___map?.Parent is MapParent_Vehicle parentVehicle)
-            {
-                __result = __result.OrigToVehicleMap(parentVehicle.vehicle);
-            }
-        }
-    }
+    //[HarmonyPatch(typeof(FleckStatic), nameof(FleckStatic.DrawPos), MethodType.Getter)]
+    //public static class Patch_FleckStatic_DrawPos
+    //{
+    //    public static void Postfix(Map ___map, ref Vector3 __result)
+    //    {
+    //        if (___map?.Parent is MapParent_Vehicle parentVehicle)
+    //        {
+    //            __result = __result.OrigToVehicleMap(parentVehicle.vehicle);
+    //        }
+    //    }
+    //}
 
     ////描画位置をOrigToVehicleMapで調整
     //[HarmonyPatch(typeof(GhostDrawer), nameof(GhostDrawer.DrawGhostThing))]

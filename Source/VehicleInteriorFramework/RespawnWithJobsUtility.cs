@@ -1,6 +1,8 @@
 ﻿using RimWorld;
 using RimWorld.Planet;
+using SmashTools;
 using System;
+using Vehicles;
 using Verse;
 using Verse.AI;
 using Verse.Sound;
@@ -122,6 +124,20 @@ namespace VehicleInteriors
                 map.autoSlaughterManager.Notify_PawnDespawned();
             }
             //PawnComponentsUtility.RemoveComponentsOnDespawned(pawn);
+        }
+
+        public static void DeSpawnWithoutJobClearVehicle(this VehiclePawn vehicle, DestroyMode mode = DestroyMode.Vanish)
+        {
+            vehicle.vehiclePather?.StopDead();
+            vehicle.Map.GetCachedMapComponent<VehiclePositionManager>().ReleaseClaimed(vehicle);
+            VehicleReservationManager cachedMapComponent = vehicle.Map.GetCachedMapComponent<VehicleReservationManager>();
+            cachedMapComponent.ClearReservedFor(vehicle);
+            cachedMapComponent.RemoveAllListerFor(vehicle);
+            vehicle.cargoToLoad.Clear();
+            vehicle.Map.GetCachedMapComponent<ListerVehiclesRepairable>().Notify_VehicleDespawned(vehicle);
+            vehicle.EventRegistry[VehicleEventDefOf.Despawned].ExecuteEvents();
+            vehicle.DeSpawnWithoutJobClear(mode);
+            vehicle.SoundCleanup();
         }
 
         public static void SpawnSetupWithoutJobClear(this Pawn pawn, Map map, bool respawningAfterLoad)
