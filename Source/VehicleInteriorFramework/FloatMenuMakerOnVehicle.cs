@@ -191,7 +191,7 @@ namespace VehicleInteriors
             }
         }
 
-        public static void PawnGotoAction(IntVec3 clickCell, Pawn pawn, Map map, LocalTargetInfo dest1, LocalTargetInfo dest2, LocalTargetInfo dest3)
+        public static void PawnGotoAction(IntVec3 clickCell, Pawn pawn, Map map, TargetInfo dest1, TargetInfo dest2, LocalTargetInfo dest3)
         {
             bool flag;
             var baseMap = map.BaseMap();
@@ -2192,7 +2192,7 @@ namespace VehicleInteriors
 								TaggedString taggedString4 = (p.Faction == Faction.OfPlayer || p.IsPrisonerOfColony) ? "CarryToExit".Translate(p.Label, p) : "CarryToExitAndCapture".Translate(p.Label, p);
 								opts.Add(FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption(taggedString4, delegate()
 								{
-									Job job = JobMaker.MakeJob(VIF_DefOf.VIF_CarryDownedPawnToExitAcrossMaps, p, exitSpot);
+									Job job = JobMaker.MakeJob(VIF_DefOf.VIF_CarryDownedPawnToExitAcrossMaps, p, exitSpot.Cell);
 									job.count = 1;
 									job.failIfCantJoinOrCreateCaravan = true;
 									var driver = job.GetCachedDriver(pawn) as JobDriverAcrossMaps;

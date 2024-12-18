@@ -46,7 +46,7 @@ namespace VehicleInteriors
             return GenClosestOnVehicle.ClosestThingReachable(root, map, thingReq, peMode, traverseParams, maxDistance, validator, customGlobalSearchSet, searchRegionsMin, searchRegionsMax, forceAllowGlobalSearch, traversableRegionTypes, ignoreEntirelyForbiddenRegions, lookInHaulSources, out _, out _);
         }
 
-        public static Thing ClosestThingReachable(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance, Predicate<Thing> validator, IEnumerable<Thing> customGlobalSearchSet, int searchRegionsMin, int searchRegionsMax, bool forceAllowGlobalSearch, RegionType traversableRegionTypes, bool ignoreEntirelyForbiddenRegions, bool lookInHaulSources, out LocalTargetInfo exitSpot, out LocalTargetInfo enterSpot)
+        public static Thing ClosestThingReachable(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance, Predicate<Thing> validator, IEnumerable<Thing> customGlobalSearchSet, int searchRegionsMin, int searchRegionsMax, bool forceAllowGlobalSearch, RegionType traversableRegionTypes, bool ignoreEntirelyForbiddenRegions, bool lookInHaulSources, out TargetInfo exitSpot, out TargetInfo enterSpot)
         {
             GenClosestOnVehicle.tmpExitSpot = null;
             GenClosestOnVehicle.tmpEnterSpot = null;
@@ -225,7 +225,7 @@ namespace VehicleInteriors
             return GenClosestOnVehicle.ClosestThing_Global_Reachable(center, map, searchSet, peMode, traverseParams, maxDistance, validator, priorityGetter, canLookInHaulableSources, out _, out _);
         }
 
-        public static Thing ClosestThing_Global_Reachable(IntVec3 center, Map map, IEnumerable<Thing> searchSet, PathEndMode peMode, TraverseParms traverseParams, float maxDistance, Predicate<Thing> validator, Func<Thing, float> priorityGetter, bool canLookInHaulableSources, out LocalTargetInfo exitSpot, out LocalTargetInfo enterSpot)
+        public static Thing ClosestThing_Global_Reachable(IntVec3 center, Map map, IEnumerable<Thing> searchSet, PathEndMode peMode, TraverseParms traverseParams, float maxDistance, Predicate<Thing> validator, Func<Thing, float> priorityGetter, bool canLookInHaulableSources, out TargetInfo exitSpot, out TargetInfo enterSpot)
         {
             GenClosestOnVehicle.tmpExitSpot = null;
             GenClosestOnVehicle.tmpEnterSpot = null;
@@ -401,12 +401,12 @@ namespace VehicleInteriors
             public float closestDistSquared;
         }
 
-        private static LocalTargetInfo tmpExitSpot;
+        private static TargetInfo tmpExitSpot;
 
-        private static LocalTargetInfo tmpEnterSpot;
+        private static TargetInfo tmpEnterSpot;
 
-        private static LocalTargetInfo exitSpotResult;
+        private static TargetInfo exitSpotResult;
 
-        private static LocalTargetInfo enterSpotResult;
+        private static TargetInfo enterSpotResult;
     }
 }

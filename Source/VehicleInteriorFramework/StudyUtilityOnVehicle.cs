@@ -9,7 +9,7 @@ namespace VehicleInteriors
 {
     public static class StudyUtilityOnVehicle
     {
-        public static void TargetHoldingPlatformForEntity(Pawn carrier, Thing entity, LocalTargetInfo exitSpot, LocalTargetInfo enterSpot, bool transferBetweenPlatforms, Thing sourcePlatform)
+        public static void TargetHoldingPlatformForEntity(Pawn carrier, Thing entity, TargetInfo exitSpot, TargetInfo enterSpot, bool transferBetweenPlatforms, Thing sourcePlatform)
         {
             bool ValidateTarget(LocalTargetInfo t) => t.HasThing && t.Thing.TryGetComp<CompEntityHolder>(out var comp) && comp.HeldPawn == null && (carrier == null || carrier.CanReserveAndReach(t.Thing.Map, t, PathEndMode.Touch, Danger.Some, 1, -1, null, false, out _, out _));
             bool CanReserveForTransfer(LocalTargetInfo t) => transferBetweenPlatforms || (t.HasThing && carrier.CanReserve(t, t.Thing.Map, 1, -1, null, false));

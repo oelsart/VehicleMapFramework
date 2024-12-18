@@ -10,7 +10,7 @@ namespace VehicleInteriors
 {
     public static class RestUtilityOnVehicle
     {
-        public static Building_Bed FindBedFor(Pawn sleeper, Pawn traveler, bool checkSocialProperness, bool ignoreOtherReservations, GuestStatus? guestStatus, out LocalTargetInfo exitSpot, out LocalTargetInfo enterSpot)
+        public static Building_Bed FindBedFor(Pawn sleeper, Pawn traveler, bool checkSocialProperness, bool ignoreOtherReservations, GuestStatus? guestStatus, out TargetInfo exitSpot, out TargetInfo enterSpot)
         {
             exitSpot = null;
             enterSpot = null;

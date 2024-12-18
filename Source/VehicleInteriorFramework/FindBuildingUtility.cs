@@ -11,7 +11,7 @@ namespace VehicleInteriors
 {
     public static class FindBuildingUtility
     {
-        public static Building_GibbetCage FindGibbetCageFor(Corpse c, Pawn traveler, bool ignoreOtherReservations, out LocalTargetInfo exitSpot, out LocalTargetInfo enterSpot)
+        public static Building_GibbetCage FindGibbetCageFor(Corpse c, Pawn traveler, bool ignoreOtherReservations, out TargetInfo exitSpot, out TargetInfo enterSpot)
         {
             if (FindBuildingUtility.cachedCages == null)
             {
@@ -39,7 +39,7 @@ namespace VehicleInteriors
             return null;
         }
 
-        public static Building_CryptosleepCasket FindCryptosleepCasketFor(Pawn p, Pawn traveler, bool ignoreOtherReservations, out LocalTargetInfo exitSpot, out LocalTargetInfo enterSpot)
+        public static Building_CryptosleepCasket FindCryptosleepCasketFor(Pawn p, Pawn traveler, bool ignoreOtherReservations, out TargetInfo exitSpot, out TargetInfo enterSpot)
         {
             if (FindBuildingUtility.cachedCaskets == null)
             {
@@ -67,7 +67,7 @@ namespace VehicleInteriors
             return null;
         }
 
-        public static Building_MechCharger GetClosestCharger(Pawn mech, Pawn carrier, bool forced, out LocalTargetInfo exitSpot, out LocalTargetInfo enterSpot)
+        public static Building_MechCharger GetClosestCharger(Pawn mech, Pawn carrier, bool forced, out TargetInfo exitSpot, out TargetInfo enterSpot)
         {
             Danger danger = forced ? Danger.Deadly : Danger.Some;
             return (Building_MechCharger)GenClosestOnVehicle.ClosestThingReachable(mech.Position, mech.Map, ThingRequest.ForGroup(ThingRequestGroup.MechCharger), PathEndMode.InteractionCell, TraverseParms.For(carrier, danger, TraverseMode.ByPawn, false, false, false), 9999f, delegate (Thing t)
@@ -92,7 +92,7 @@ namespace VehicleInteriors
             }, null, 0, -1, false, RegionType.Set_Passable, false, false, out exitSpot, out enterSpot);
         }
 
-        public static bool TryFindExitPortal(Pawn pawn, Thing thing, out Thing portal, out LocalTargetInfo exitSpot2, out LocalTargetInfo enterSpot2)
+        public static bool TryFindExitPortal(Pawn pawn, Thing thing, out Thing portal, out TargetInfo exitSpot2, out TargetInfo enterSpot2)
         {
             portal = null;
             exitSpot2 = null;

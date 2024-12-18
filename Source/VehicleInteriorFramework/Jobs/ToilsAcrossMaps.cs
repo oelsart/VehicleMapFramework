@@ -100,21 +100,24 @@ namespace VehicleInteriors
             return toil;
         }
 
-        public static IEnumerable<Toil> GotoTargetMap(JobDriverAcrossMaps driver, LocalTargetInfo exitSpot, LocalTargetInfo enterSpot)
+        public static IEnumerable<Toil> GotoTargetMap(JobDriverAcrossMaps driver, TargetInfo exitSpot, TargetInfo enterSpot)
         {
             if (exitSpot.HasThing)
             {
+                //あれ？もうexitSpotから出た後じゃない？ジャンプしよ
                 var afterExitMap = Toils_General.Label();
                 yield return Toils_Jump.JumpIf(afterExitMap, () =>
                 {
                     return driver.pawn.Map != exitSpot.Thing.Map;
                 });
 
+                //exitSpotの場所まで行く。vehicleの場合はvehicleの長さ分手前に目的地を指定
                 var vehiclePawn = driver.pawn as VehiclePawn;
                 var vehicleOffset2 = vehiclePawn != null ? exitSpot.Thing.Rotation.FacingCell * vehiclePawn.HalfLength() : IntVec3.Zero;
                 var toil = Toils_Goto.GotoCell(exitSpot.Cell + vehicleOffset2, PathEndMode.OnCell);
                 yield return toil;
 
+                //ドアがあれば開ける
                 Building_Door door;
                 if ((door = exitSpot.Cell.GetDoor(exitSpot.Thing.Map)) != null)
                 {
@@ -126,6 +129,7 @@ namespace VehicleInteriors
                     yield return waitOpen;
                 }
 
+                //マップ移動アニメーション。目的地の計算の後tick毎の描画位置を計算。ドアは開け続けておく
                 var toil2 = Toils_General.Wait(40);
                 toil2.handlingFacing = true;
                 var offset = Vector3.zero;
@@ -176,6 +180,7 @@ namespace VehicleInteriors
                 };
                 yield return toil2;
 
+                //デスポーン後目的地のマップにリスポーン。スポーン地の再計算時にそこが埋まってたらとりあえず失敗に
                 var toil3 = ToilMaker.MakeToil("Exit Vehicle Map");
                 toil3.defaultCompleteMode = ToilCompleteMode.Instant;
                 toil3.FailOn(() =>
@@ -210,16 +215,19 @@ namespace VehicleInteriors
             }
             if (enterSpot.HasThing)
             {
+                //あれ？もうenterSpotのマップに居ない？ジャンプしよ
                 var afterEnterMap = Toils_General.Label();
                 yield return Toils_Jump.JumpIf(afterEnterMap, () =>
                 {
                     return driver.pawn.Map == enterSpot.Thing.Map;
                 });
 
+                //enterSpotの手前の場所まで行く。vehicleの長さ分のオフセットはメソッド内でやっている
                 var vehiclePawn = driver.pawn as VehiclePawn;
                 var toil = ToilsAcrossMaps.GotoVehicleEnterSpot(enterSpot.Thing);
                 yield return toil;
 
+                //ドアがあれば開ける
                 Building_Door door;
                 if ((door = enterSpot.Cell.GetDoor(enterSpot.Thing.Map)) != null)
                 {
@@ -231,6 +239,7 @@ namespace VehicleInteriors
                     yield return waitOpen;
                 }
 
+                //マップ移動アニメーション。目的地の計算の後tick毎の描画位置を計算。ドアは開け続けておく
                 var toil2 = Toils_General.Wait(40);
                 toil2.handlingFacing = true;
                 var initPos3 = Vector3.zero;
@@ -243,7 +252,7 @@ namespace VehicleInteriors
                 toil2.initAction = (Action)Delegate.Combine(toil2.initAction, new Action(() =>
                 {
                     if (vehiclePawn != null) vehiclePawn.FullRotation = enterSpot.Thing.BaseFullRotationOfThing();
-                    var basePos = enterSpot.CellOnBaseMap();
+                    var basePos = enterSpot.Thing.PositionOnBaseMap();
                     faceCell = enterSpot.Thing.BaseFullRotationOfThing().FacingCell;
                     faceCell.y = 0;
                     while ((basePos - faceCell * dist).GetThingList(baseMap).Contains(vehicle))
@@ -254,7 +263,7 @@ namespace VehicleInteriors
                     var vehicleOffset = vehiclePawn != null ? faceCell * vehiclePawn.HalfLength() : IntVec3.Zero;
                     if (vehiclePawn != null)
                     {
-                        vehiclePawn.SetPositionDirect(enterSpot.CellOnBaseMap() - enterSpot.Thing.BaseFullRotationOfThing().FacingCell * dist - vehicleOffset);
+                        vehiclePawn.SetPositionDirect(enterSpot.Thing.PositionOnBaseMap() - enterSpot.Thing.BaseFullRotationOfThing().FacingCell * dist - vehicleOffset);
                         vehiclePawn.FullRotation = enterSpot.Thing.BaseFullRotationOfThing();
                     }
                     else
@@ -283,6 +292,7 @@ namespace VehicleInteriors
                 };
                 yield return toil2;
 
+                //デスポーン後目的地のマップにリスポーン。スポーン地の再計算時にそこが埋まってたらとりあえず失敗に
                 var toil3 = ToilMaker.MakeToil("Enter Vehicle Map");
                 toil3.defaultCompleteMode = ToilCompleteMode.Instant;
                 toil3.initAction = () =>

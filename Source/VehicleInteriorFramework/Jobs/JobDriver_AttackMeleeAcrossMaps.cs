@@ -7,21 +7,13 @@ using Verse.AI;
 
 namespace VehicleInteriors
 {
-    public class JobDriver_AttackMeleeAcrossMaps : JobDriver
+    public class JobDriver_AttackMeleeAcrossMaps : JobDriverAcrossMaps
     {
-        public override Vector3 ForcedBodyOffset
-        {
-            get
-            {
-                return this.offset;
-            }
-        }
-
         private Job AttackMeleeJob
         {
             get
             {
-                Job job = JobMaker.MakeJob(JobDefOf.AttackMelee, this.job.targetC);
+                Job job = JobMaker.MakeJob(JobDefOf.AttackMelee, this.job.targetA);
                 job.expiryInterval = new IntRange(360, 480).RandomInRange;
                 job.checkOverrideOnExpire = true;
                 job.expireRequiresEnemiesNearby = true;
@@ -41,87 +33,14 @@ namespace VehicleInteriors
 
         protected override IEnumerable<Toil> MakeNewToils()
         {
-            if (job.targetA.HasThing)
+            if (this.ShouldEnterTargetAMap)
             {
-                var enterSpot = this.job.targetA.Thing;
-                var toil = Toils_Goto.GotoThing(TargetIndex.A, PathEndMode.OnCell);
-                yield return toil;
-
-                var toil2 = Toils_General.Wait(90);
-                toil2.handlingFacing = true;
-                var initTick = 0;
-                toil2.initAction = (Action)Delegate.Combine(toil2.initAction, new Action(() =>
+                foreach (var toil in this.GotoTargetMap(TargetIndex.A))
                 {
-                    initTick = GenTicks.TicksGame;
-                    var curPos = (enterSpot.PositionOnBaseMap() - enterSpot.BaseFullRotationOfThing().FacingCell).ToVector3Shifted();
-                }));
-
-                toil2.tickAction = () =>
-                {
-                    var curPos = (enterSpot.PositionOnBaseMap() - enterSpot.Rotation.FacingCell).ToVector3Shifted();
-                    this.offset = (curPos - enterSpot.DrawPos) * ((GenTicks.TicksGame - initTick) / 90f);
-                    this.pawn.Rotation = enterSpot.BaseRotationOfThing();
-                };
-                yield return toil2;
-
-                var toil3 = ToilMaker.MakeToil("Exit Vehicle Map");
-                toil3.defaultCompleteMode = ToilCompleteMode.Instant;
-                var nextJob = JobMaker.MakeJob(VIF_DefOf.VIF_GotoAcrossMaps, LocalTargetInfo.Invalid, this.job.targetB, this.job.targetC);
-                toil3.initAction = () =>
-                {
-                    var drafted = this.pawn.Drafted;
-                    var selected = Find.Selector.IsSelected(this.pawn);
-                    this.pawn.DeSpawn();
-                    GenSpawn.Spawn(this.pawn, (enterSpot.PositionOnBaseMap() - enterSpot.BaseFullRotationOfThing().FacingCell), enterSpot.BaseMap(), WipeMode.VanishOrMoveAside);
-                    if (this.pawn.drafter != null) this.pawn.drafter.Drafted = drafted;
-                    if (selected) Find.Selector.SelectedObjects.Add(this.pawn);
-                    this.pawn.jobs.TryTakeOrderedJob(nextJob, JobTag.Misc, false);
-                };
-                yield return toil3;
+                    yield return toil;
+                }
             }
-            else if (job.targetB.HasThing)
-            {
-                var enterSpot = this.job.targetB.Thing;
-                var toil = ToilsAcrossMaps.GotoVehicleEnterSpot(job.targetB.Thing);
-
-                yield return toil;
-
-                var toil2 = Toils_General.Wait(90);
-                toil2.handlingFacing = true;
-                Vector3 initPos = Vector3.zero;
-                Vector3 initPos2 = Vector3.zero;
-                var initTick = 0;
-                toil2.initAction = (Action)Delegate.Combine(toil2.initAction, new Action(() =>
-                {
-                    initPos = (enterSpot.PositionOnBaseMap() - enterSpot.BaseFullRotationOfThing().FacingCell).ToVector3Shifted();
-                    initPos2 = enterSpot.DrawPos;
-                    initTick = GenTicks.TicksGame;
-                }));
-
-                toil2.tickAction = () =>
-                {
-                    this.offset = (initPos2 - initPos) * ((GenTicks.TicksGame - initTick) / 90f) + initPos2 - enterSpot.DrawPos;
-                    this.pawn.Rotation = enterSpot.BaseRotationOfThing();
-                };
-                yield return toil2;
-
-                var toil3 = ToilMaker.MakeToil("Enter Vehicle Map");
-                toil3.defaultCompleteMode = ToilCompleteMode.Instant;
-                var nextJob = this.AttackMeleeJob;
-                toil3.initAction = () =>
-                {
-                    var drafted = this.pawn.Drafted;
-                    var selected = Find.Selector.IsSelected(this.pawn);
-                    this.pawn.DeSpawn();
-                    GenSpawn.Spawn(this.pawn, enterSpot.Position, enterSpot.Map, WipeMode.VanishOrMoveAside);
-                    if (this.pawn.drafter != null) this.pawn.drafter.Drafted = drafted;
-                    if (selected) Find.Selector.SelectedObjects.Add(this.pawn);
-
-                    this.pawn.jobs.TryTakeOrderedJob(nextJob, JobTag.Misc, false);
-                };
-                yield return toil3;
-            }
-            else if (job.targetC.IsValid)
+            if (job.targetA.IsValid)
             {
                 var toil = ToilMaker.MakeToil("MakeJobAttackMelee");
                 toil.defaultCompleteMode = ToilCompleteMode.Instant;
@@ -133,7 +52,5 @@ namespace VehicleInteriors
                 yield return toil;
             }
         }
-
-        private Vector3 offset;
     }
 }

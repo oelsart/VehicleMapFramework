@@ -98,7 +98,7 @@ namespace VehicleInteriors
             return toil;
         }
 
-        public static LocalTargetInfo SafePlaceForBaby(Pawn baby, Pawn hauler, bool ignoreOtherReservations, out LocalTargetInfo exitSpot, out LocalTargetInfo enterSpot)
+        public static LocalTargetInfo SafePlaceForBaby(Pawn baby, Pawn hauler, bool ignoreOtherReservations, out TargetInfo exitSpot, out TargetInfo enterSpot)
         {
             exitSpot = null;
             enterSpot = null;

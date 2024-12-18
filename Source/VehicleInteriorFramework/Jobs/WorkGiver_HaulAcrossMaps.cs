@@ -29,7 +29,7 @@ namespace VehicleInteriors
                 return null;
             }
 
-            if (!HaulAIAcrossMapsUtility.PawnCanAutomaticallyHaulFast(pawn, t, forced, out LocalTargetInfo exitSpot, out LocalTargetInfo enterSpot))
+            if (!HaulAIAcrossMapsUtility.PawnCanAutomaticallyHaulFast(pawn, t, forced, out TargetInfo exitSpot, out TargetInfo enterSpot))
             {
                 return null;
             }

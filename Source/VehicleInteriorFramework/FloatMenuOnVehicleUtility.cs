@@ -90,8 +90,8 @@ namespace VehicleInteriors
             failStr = "";
             Pawn target2;
             var map = target.HasThing ? target.Thing.Map : pawn.BaseMap();
-            var exitSpot = LocalTargetInfo.Invalid;
-            var enterSpot = LocalTargetInfo.Invalid;
+            var exitSpot = TargetInfo.Invalid;
+            var enterSpot = TargetInfo.Invalid;
             if (!pawn.Drafted)
             {
                 failStr = "IsNotDraftedLower".Translate(pawn.LabelShort, pawn);
@@ -131,9 +131,9 @@ namespace VehicleInteriors
                 {
                     return delegate ()
                     {
-                        Job job = JobMaker.MakeJob(VIF_DefOf.VIF_AttackMeleeAcrossMaps, exitSpot, enterSpot, target);
-                        Pawn pawn3 = target.Thing as Pawn;
-                        if (pawn3 != null)
+                        JobAcrossMapsUtility.TryTakeGotoDestMapJob(pawn, exitSpot, enterSpot);
+                        Job job = JobMaker.MakeJob(JobDefOf.AttackMelee, target);
+                        if (target.Thing is Pawn pawn3)
                         {
                             job.killIncappedTarget = pawn3.Downed;
                         }

@@ -9,8 +9,8 @@ namespace VehicleInteriors
     {
         protected override Job TryGiveJob(Pawn pawn)
         {
-            LocalTargetInfo exitSpot = LocalTargetInfo.Invalid;
-            LocalTargetInfo enterSpot = LocalTargetInfo.Invalid;
+            TargetInfo exitSpot = TargetInfo.Invalid;
+            TargetInfo enterSpot = TargetInfo.Invalid;
             Predicate<Thing> validator = delegate (Thing t)
             {
                 IntVec3 intVec;

@@ -8,11 +8,11 @@ namespace VehicleInteriors
 {
     public static class HaulAIAcrossMapsUtility
     {
-        public static bool PawnCanAutomaticallyHaulFast(Pawn p, Thing t, bool forced, out LocalTargetInfo exitSpot, out LocalTargetInfo enterSpot)
+        public static bool PawnCanAutomaticallyHaulFast(Pawn p, Thing t, bool forced, out TargetInfo exitSpot, out TargetInfo enterSpot)
         {
             Building building;
-            exitSpot = LocalTargetInfo.Invalid;
-            enterSpot = LocalTargetInfo.Invalid;
+            exitSpot = TargetInfo.Invalid;
+            enterSpot = TargetInfo.Invalid;
             if (t is UnfinishedThing unfinishedThing && unfinishedThing.BoundBill != null && ((building = unfinishedThing.BoundBill.billStack.billGiver as Building) == null || (building.Spawned && building.OccupiedRect().ExpandedBy(1).Contains(unfinishedThing.Position))))
             {
                 return false;
@@ -42,11 +42,11 @@ namespace VehicleInteriors
             return true;
         }
 
-        public static Job HaulToStorageJob(Pawn p, Thing t, LocalTargetInfo exitSpot, LocalTargetInfo enterSpot)
+        public static Job HaulToStorageJob(Pawn p, Thing t, TargetInfo exitSpot, TargetInfo enterSpot)
         {
             StoragePriority currentPriority = StoreUtility.CurrentStoragePriorityOf(t);
-            var exitSpot2 = LocalTargetInfo.Invalid;
-            var enterSpot2 = LocalTargetInfo.Invalid;
+            var exitSpot2 = TargetInfo.Invalid;
+            var enterSpot2 = TargetInfo.Invalid;
             if (!StoreAcrossMapsUtility.TryFindBestBetterStorageFor(t, p, t.Map, currentPriority, p.Faction, out IntVec3 storeCell, out IHaulDestination haulDestination, true, out exitSpot2, out enterSpot2))
             {
                 JobFailReason.Is(HaulAIUtility.NoEmptyPlaceLowerTrans, null);
@@ -64,7 +64,7 @@ namespace VehicleInteriors
             return null;
         }
 
-        public static Job HaulToCellStorageJob(Pawn p, Thing t, IntVec3 storeCell, bool fitInStoreCell, LocalTargetInfo exitSpot, LocalTargetInfo enterSpot, LocalTargetInfo exitSpot2, LocalTargetInfo enterSpot2)
+        public static Job HaulToCellStorageJob(Pawn p, Thing t, IntVec3 storeCell, bool fitInStoreCell, TargetInfo exitSpot, TargetInfo enterSpot, TargetInfo exitSpot2, TargetInfo enterSpot2)
         {
             Job job = JobMaker.MakeJob(VIF_DefOf.VIF_HaulToCellAcrossMaps, t, storeCell);
             Map destMap = enterSpot2.HasThing ? enterSpot2.Thing.Map : exitSpot2.HasThing ? exitSpot2.Thing.BaseMap() : enterSpot.HasThing ? enterSpot.Thing.Map : exitSpot.HasThing ? exitSpot.Thing.BaseMap() : p.Map;
@@ -108,7 +108,7 @@ namespace VehicleInteriors
             return job;
         }
 
-        public static Job HaulToContainerJob(Pawn p, Thing t, Thing container, LocalTargetInfo exitSpot, LocalTargetInfo enterSpot, LocalTargetInfo exitSpot2, LocalTargetInfo enterSpot2)
+        public static Job HaulToContainerJob(Pawn p, Thing t, Thing container, TargetInfo exitSpot, TargetInfo enterSpot, TargetInfo exitSpot2, TargetInfo enterSpot2)
         {
             ThingOwner thingOwner = container.TryGetInnerInteractableThingOwner();
             if (thingOwner == null)

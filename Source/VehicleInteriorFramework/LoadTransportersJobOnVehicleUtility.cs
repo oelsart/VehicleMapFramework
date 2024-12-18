@@ -12,7 +12,7 @@ namespace VehicleInteriors
 {
     public static class LoadTransportersJobOnVehicleUtility
     {
-        public static ThingCount FindThingToLoad(Pawn p, CompTransporter transporter, out LocalTargetInfo exitSpot, out LocalTargetInfo enterSpot)
+        public static ThingCount FindThingToLoad(Pawn p, CompTransporter transporter, out TargetInfo exitSpot, out TargetInfo enterSpot)
         {
             LoadTransportersJobOnVehicleUtility.neededThings.Clear();
             List<TransferableOneWay> leftToLoad = transporter.leftToLoad;

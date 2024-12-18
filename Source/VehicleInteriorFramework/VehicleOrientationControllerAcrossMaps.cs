@@ -36,7 +36,7 @@ namespace VehicleInteriors
 
         public static VehicleOrientationControllerAcrossMaps Instance { get; private set; }
 
-        private void Init(VehiclePawn vehicle, IntVec3 cell, IntVec3 clickCell, Map destMap, LocalTargetInfo exitSpot, LocalTargetInfo enterSpot)
+        private void Init(VehiclePawn vehicle, IntVec3 cell, IntVec3 clickCell, Map destMap, TargetInfo exitSpot, TargetInfo enterSpot)
         {
             this.vehicle = vehicle;
             this.cell = cell;
@@ -47,12 +47,12 @@ namespace VehicleInteriors
             this.enterSpot = enterSpot;
         }
 
-        public static void StartOrienting(VehiclePawn dragging, IntVec3 cell, Map destMap, LocalTargetInfo exitSpot, LocalTargetInfo enterSpot)
+        public static void StartOrienting(VehiclePawn dragging, IntVec3 cell, Map destMap, TargetInfo exitSpot, TargetInfo enterSpot)
         {
             VehicleOrientationControllerAcrossMaps.StartOrienting(dragging, cell, cell, destMap, exitSpot, enterSpot);
         }
 
-        public static void StartOrienting(VehiclePawn dragging, IntVec3 cell, IntVec3 clickCell, Map destMap, LocalTargetInfo exitSpot, LocalTargetInfo enterSpot)
+        public static void StartOrienting(VehiclePawn dragging, IntVec3 cell, IntVec3 clickCell, Map destMap, TargetInfo exitSpot, TargetInfo enterSpot)
         {
             VehicleOrientationControllerAcrossMaps.Instance.StopTargeting();
             VehicleOrientationControllerAcrossMaps.Instance.Init(dragging, cell, clickCell, destMap, exitSpot, enterSpot);
@@ -175,8 +175,8 @@ namespace VehicleInteriors
             this.IsDragging = false;
             this.timeHeldDown = 0f;
             this.destMap = null;
-            this.exitSpot = LocalTargetInfo.Invalid;
-            this.enterSpot = LocalTargetInfo.Invalid;
+            this.exitSpot = TargetInfo.Invalid;
+            this.enterSpot = TargetInfo.Invalid;
         }
 
         public override void TargeterOnGUI()
@@ -200,9 +200,9 @@ namespace VehicleInteriors
 
         private Map destMap;
 
-        private LocalTargetInfo exitSpot;
+        private TargetInfo exitSpot;
 
-        private LocalTargetInfo enterSpot;
+        private TargetInfo enterSpot;
 
         private float timeHeldDown;
     }

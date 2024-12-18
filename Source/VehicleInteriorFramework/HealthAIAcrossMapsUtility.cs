@@ -12,7 +12,7 @@ namespace VehicleInteriors
 {
     public static class HealthAIAcrossMapsUtility
     {
-        public static bool CanRescueNow(Pawn rescuer, Pawn patient, bool forced, out LocalTargetInfo exitSpot, out LocalTargetInfo enterSpot)
+        public static bool CanRescueNow(Pawn rescuer, Pawn patient, bool forced, out TargetInfo exitSpot, out TargetInfo enterSpot)
         {
             exitSpot = null;
             enterSpot = null;
@@ -55,7 +55,7 @@ namespace VehicleInteriors
             return false;
         }
 
-        public static Thing FindBestMedicine(Pawn healer, Pawn patient, bool onlyUseInventory, out LocalTargetInfo exitSpot, out LocalTargetInfo enterSpot)
+        public static Thing FindBestMedicine(Pawn healer, Pawn patient, bool onlyUseInventory, out TargetInfo exitSpot, out TargetInfo enterSpot)
         {
             exitSpot = null;
             enterSpot = null;

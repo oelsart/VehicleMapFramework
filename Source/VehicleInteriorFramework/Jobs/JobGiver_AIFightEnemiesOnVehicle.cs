@@ -250,8 +250,8 @@ namespace VehicleInteriors
 
         private bool needLOSToAcquireNonPawnTargets;
 
-        private LocalTargetInfo dest1;
+        private TargetInfo dest1;
 
-        private LocalTargetInfo dest2;
+        private TargetInfo dest2;
     }
 }

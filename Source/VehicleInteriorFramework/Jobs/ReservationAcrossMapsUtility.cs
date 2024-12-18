@@ -179,7 +179,7 @@ namespace VehicleInteriors
             }
         }
 
-        public static bool CanReserveAndReach(this Pawn p, Map targMap, LocalTargetInfo target, PathEndMode peMode, Danger maxDanger, int maxPawns, int stackCount, ReservationLayerDef layer, bool ignoreOtherReservations, out LocalTargetInfo exitSpot, out LocalTargetInfo enterSpot)
+        public static bool CanReserveAndReach(this Pawn p, Map targMap, LocalTargetInfo target, PathEndMode peMode, Danger maxDanger, int maxPawns, int stackCount, ReservationLayerDef layer, bool ignoreOtherReservations, out TargetInfo exitSpot, out TargetInfo enterSpot)
         {
             exitSpot = null;
             enterSpot = null;
