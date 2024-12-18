@@ -7,19 +7,19 @@ namespace VehicleInteriors
 {
     public abstract class JobDriverAcrossMaps : JobDriver
     {
-        public bool ShouldEnterTargetAMap => this.exitSpot1.HasThing || this.enterSpot1.HasThing;
+        public bool ShouldEnterTargetAMap => this.exitSpot1.IsValid || this.enterSpot1.IsValid;
 
-        public bool ShouldEnterTargetBMap => this.exitSpot2.HasThing || this.enterSpot2.HasThing;
+        public bool ShouldEnterTargetBMap => this.exitSpot2.IsValid || this.enterSpot2.IsValid;
 
         public Map DestMap
         {
             get
             {
                 if (this.destMap != null) return this.destMap;
-                if (this.enterSpot2.Map != null) return this.enterSpot2.Map;
-                if (this.exitSpot2.Map != null) return this.exitSpot2.Map.BaseMap();
-                if (this.enterSpot1.Map != null) return this.enterSpot1.Map;
-                if (this.exitSpot1.Map != null) return this.exitSpot1.Map.BaseMap();
+                if (this.enterSpot2.IsValid) return this.enterSpot2.Map;
+                if (this.exitSpot2.IsValid) return this.exitSpot2.Map.BaseMap();
+                if (this.enterSpot1.IsValid) return this.enterSpot1.Map;
+                if (this.exitSpot1.IsValid) return this.exitSpot1.Map.BaseMap();
                 return base.Map;
             }
         }
@@ -29,8 +29,8 @@ namespace VehicleInteriors
             get
             {
                 if (this.targetAMap != null) return this.targetAMap;
-                if (this.enterSpot1.Map != null) return this.enterSpot1.Map;
-                if (this.exitSpot1.Map != null) return this.exitSpot1.Map.BaseMap();
+                if (this.enterSpot1.IsValid) return this.enterSpot1.Map;
+                if (this.exitSpot1.IsValid) return this.exitSpot1.Map.BaseMap();
                 return base.Map;
             }
         }

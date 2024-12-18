@@ -377,19 +377,24 @@ namespace VehicleInteriors
             return thing.Rotation;
         }
 
-        public static Rot8 BaseFullDirectionInsideMap(this IntVec3 c, Map map)
+        public static Rot4 DirectionToInsideMap(this IntVec3 c, Map map)
         {
             Rot4 dir;
             if (c.z == 0) dir = Rot4.North;
             else if (c.z == map.Size.z - 1) dir = Rot4.South;
-            else if (c.x == 0) dir = Rot4.West;
-            else if (c.x == map.Size.x - 1) dir = Rot4.East;
+            else if (c.x == 0) dir = Rot4.East;
+            else if (c.x == map.Size.x - 1) dir = Rot4.West;
             else
             {
-                Log.ErrorOnce("That position not on edge of the map", 494896165);
+                Log.ErrorOnce("That position is not the edge of the map", 494896165);
                 return Rot8.Invalid;
             }
+            return dir;
+        }
 
+        public static Rot8 BaseFullDirectionToInsideMap(this IntVec3 c, Map map)
+        {
+            var dir = c.DirectionToInsideMap(map);
             if (map.IsVehicleMapOf(out var vehicle) && Find.CurrentMap != map)
             {
                 var angle = dir.AsAngle + vehicle.FullRotation.AsAngle;
