@@ -76,7 +76,7 @@ namespace VehicleInteriors
             {
                 int num = (searchRegionsMax > 0) ? searchRegionsMax : 30;
                 thing = GenClosest.RegionwiseBFSWorker_NewTemp(root, map, thingReq, peMode, traverseParams, validator, null, searchRegionsMin, num, maxDistance, out int num2, traversableRegionTypes, ignoreEntirelyForbiddenRegions, lookInHaulSources);
-                flag2 = (thing == null && num2 < num);
+                flag2 = (thing == null && num2 < num && map == baseMap); //車上マップからRegionwiseBFSWorkerを呼んだ場合大抵1regionしか検索せずnum2 < numを満たしやすいため、map比較を条件として追加
             }
             if (thing == null && flag && !flag2)
             {
@@ -84,16 +84,16 @@ namespace VehicleInteriors
                 {
                     Log.ErrorOnce("ClosestThingReachable had to do a global search, but traversableRegionTypes is not set to passable only. It's not supported, because Reachability is based on passable regions only.", 14384767);
                 }
-                Predicate<Thing> validator2 = (Thing t) =>
+                bool validator2(Thing t)
                 {
-                    if(traverseParams.pawn.CanReach(t, peMode, traverseParams.maxDanger, true, true, traverseParams.mode, t.Map, out var exitSpot2, out var enterSpot2) && (validator == null || validator(t)))
+                    if (ReachabilityUtilityOnVehicle.CanReach(map, root, t, peMode, traverseParams, t.Map, out var exitSpot2, out var enterSpot2) && (validator == null || validator(t)))
                     {
                         GenClosestOnVehicle.tmpExitSpot = exitSpot2;
                         GenClosestOnVehicle.tmpEnterSpot = enterSpot2;
                         return true;
                     }
                     return false;
-                };
+                }
                 thing = GenClosestOnVehicle.ClosestThing_Global(basePos, customGlobalSearchSet ?? baseMap.listerThings.ThingsMatching(thingReq).ConcatIfNotNull(VehiclePawnWithMapCache.allVehicles[baseMap].SelectMany((VehiclePawnWithMap v) => v.interiorMap.listerThings.ThingsMatching(thingReq))), maxDistance, validator2, null);
             }
             exitSpot = GenClosestOnVehicle.exitSpotResult;

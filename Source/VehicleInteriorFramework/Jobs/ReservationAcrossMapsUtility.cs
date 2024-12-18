@@ -53,8 +53,7 @@ namespace VehicleInteriors
                         return true;
                     }
                 }
-                Building building;
-                if (target.HasThing && (building = (target.Thing as Building)) != null && building.def.hasInteractionCell)
+                if (target.HasThing && target.Thing is Building building && building.def.hasInteractionCell)
                 {
                     IntVec3 interactionCell = building.InteractionCell;
                     Building edifice = interactionCell.GetEdifice(map);

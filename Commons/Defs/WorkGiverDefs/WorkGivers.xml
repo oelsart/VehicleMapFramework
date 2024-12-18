@@ -14,4 +14,51 @@
 		</requiredCapacities>
 	</WorkGiverDef>
 
+	<WorkGiverDef>
+		<defName>VIF_DeliverResourcesToFramesAcrossMaps</defName>
+		<label>deliver resources to frames</label>
+		<giverClass>VehicleInteriors.WorkGiver_ConstructDeliverResourcesToFramesAcrossMaps</giverClass>
+		<workType>Hauling</workType>
+		<priorityInType>12</priorityInType>
+		<verb>deliver to</verb>
+		<gerund>delivering to</gerund>
+		<requiredCapacities>
+			<li>Manipulation</li>
+		</requiredCapacities>
+		<nonColonistsCanDo>true</nonColonistsCanDo>
+		<prioritizeSustains>true</prioritizeSustains>
+		<equivalenceGroup>AssistInConstruction</equivalenceGroup>
+	</WorkGiverDef>
+
+	<WorkGiverDef>
+		<defName>VIF_DeliverResourcesToBlueprintsAcrossMaps</defName>
+		<label>deliver resources to blueprints</label>
+		<giverClass>VehicleInteriors.WorkGiver_ConstructDeliverResourcesToBlueprintsAcrossMaps</giverClass>
+		<workType>Hauling</workType>
+		<priorityInType>11</priorityInType>
+		<verb>deliver to</verb>
+		<gerund>delivering to</gerund>
+		<requiredCapacities>
+			<li>Manipulation</li>
+		</requiredCapacities>
+		<nonColonistsCanDo>true</nonColonistsCanDo>
+		<prioritizeSustains>true</prioritizeSustains>
+		<equivalenceGroup>AssistInConstruction</equivalenceGroup>
+	</WorkGiverDef>
+
+	<WorkGiverDef>
+		<defName>VIF_ConstructFinishFramesAcrossMaps</defName>
+		<label>construct placed frames</label>
+		<giverClass>VehicleInteriors.WorkGiver_ConstructFinishFramesAcrossMaps</giverClass>
+		<workType>Construction</workType>
+		<priorityInType>81</priorityInType>
+		<verb>construct</verb>
+		<gerund>constructing</gerund>
+		<requiredCapacities>
+			<li>Manipulation</li>
+		</requiredCapacities>
+		<nonColonistsCanDo>true</nonColonistsCanDo>
+		<prioritizeSustains>true</prioritizeSustains>
+		<equivalenceGroup>AssistInConstruction</equivalenceGroup>
+	</WorkGiverDef>
 </Defs>

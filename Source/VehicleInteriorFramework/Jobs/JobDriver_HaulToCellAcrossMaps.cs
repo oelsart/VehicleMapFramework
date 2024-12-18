@@ -82,7 +82,14 @@ namespace VehicleInteriors
         protected override IEnumerable<Toil> MakeNewToils()
         {
             this.FailOnDestroyedOrNull(HaulableInd);
-            this.FailOnBurningImmobile(StoreCellInd);
+            //mapがずれることがあるのでFailOnBurningImmobileの代わりにこれを追加。何回も使うようなら関数化しよう
+            this.AddEndCondition(delegate
+            {
+                Pawn actor = this.GetActor();
+                LocalTargetInfo target = actor.jobs.curJob.GetTarget(StoreCellInd);
+                return (!target.IsValid || !target.ToTargetInfo(this.DestMap).IsBurning()) ? JobCondition.Ongoing : JobCondition.Incompletable;
+            });
+
             if (!this.forbiddenInitially)
             {
                 this.FailOnForbidden(HaulableInd);

@@ -87,4 +87,33 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             return searchSet;
         }
     }
+
+    //利用可能なthingに車上マップ上のthingを含める
+    [HarmonyPatch(typeof(ItemAvailability), nameof(ItemAvailability.ThingsAvailableAnywhere))]
+    public static class Patch_ItemAvailability_ThingsAvailableAnywhere
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var code = instructions.ToList();
+            var pos = code.FindIndex(c => c.opcode == OpCodes.Stloc_2);
+            code.InsertRange(pos, new[]
+            {
+                CodeInstruction.LoadArgument(0),
+                CodeInstruction.LoadField(typeof(ItemAvailability), "map"),
+                CodeInstruction.LoadArgument(1),
+                CodeInstruction.Call(typeof(Patch_ItemAvailability_ThingsAvailableAnywhere), nameof(Patch_ItemAvailability_ThingsAvailableAnywhere.AddThingList))
+            });
+            return code;
+        }
+
+        private static List<Thing> AddThingList(List<Thing> list, Map map, ThingDef need)
+        {
+            var result = new List<Thing>(list);
+            foreach (var vehicle in VehiclePawnWithMapCache.allVehicles[map])
+            {
+                result.AddRange(vehicle.interiorMap.listerThings.ThingsOfDef(need));
+            }
+            return result;
+        }
+    }
 }

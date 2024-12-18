@@ -812,10 +812,9 @@ namespace VehicleInteriors
                     if ((corpse = (thing10 as Corpse)) != null && corpse.IsInValidStorage())
                     {
                         StoragePriority priority2 = StoreUtility.CurrentHaulDestinationOf(corpse).GetStoreSettings().Priority;
-                        IHaulDestination haulDestination;
                         Building_Grave grave;
-						if (pawn.CanReach(corpse, PathEndMode.ClosestTouch, Danger.None, false, false, TraverseMode.ByPawn, corpse.Map, out var exitSpot1, out var enterSpot1) &&
-							StoreAcrossMapsUtility.TryFindBestBetterNonSlotGroupStorageFor(corpse, pawn, map, priority2, Faction.OfPlayer, out haulDestination, true, true, out var exitSpot2, out var enterSpot2) && haulDestination.GetStoreSettings().Priority == priority2 && (grave = (haulDestination as Building_Grave)) != null)
+                        if (pawn.CanReach(corpse, PathEndMode.ClosestTouch, Danger.None, false, false, TraverseMode.ByPawn, corpse.Map, out var exitSpot1, out var enterSpot1) &&
+							StoreAcrossMapsUtility.TryFindBestBetterNonSlotGroupStorageFor(corpse, pawn, map, priority2, Faction.OfPlayer, out var haulDestination, true, true, out var exitSpot2, out var enterSpot2) && haulDestination.GetStoreSettings().Priority == priority2 && (grave = (haulDestination as Building_Grave)) != null)
                         {
                             opts.Add(FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption("PrioritizeGeneric".Translate("Burying".Translate(), corpse.Label).CapitalizeFirst(), delegate ()
                             {
@@ -826,10 +825,9 @@ namespace VehicleInteriors
                 }
                 foreach (Thing thing2 in thingList)
                 {
-                    Corpse corpse = thing2 as Corpse;
-                    if (corpse != null)
+                    if (thing2 is Corpse corpse)
                     {
-						var canReach = pawn.CanReach(corpse, PathEndMode.ClosestTouch, Danger.None, false, false, TraverseMode.ByPawn, corpse.Map, out var exitSpot1, out var enterSpot1);
+                        var canReach = pawn.CanReach(corpse, PathEndMode.ClosestTouch, Danger.None, false, false, TraverseMode.ByPawn, corpse.Map, out var exitSpot1, out var enterSpot1);
                         Building_GibbetCage cage = FindBuildingUtility.FindGibbetCageFor(corpse, pawn, false, out var exitSpot2, out var enterSpot2);
                         if (canReach && cage != null)
                         {
@@ -842,7 +840,7 @@ namespace VehicleInteriors
                         {
                             opts.Add(FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption("Extract".Translate() + " " + HediffDefOf.MechlinkImplant.label, delegate ()
                             {
-								JobAcrossMapsUtility.TryTakeGotoDestMapJob(pawn, exitSpot1, enterSpot1);
+                                JobAcrossMapsUtility.TryTakeGotoDestMapJob(pawn, exitSpot1, enterSpot1);
                                 Job job = JobMaker.MakeJob(JobDefOf.RemoveMechlink, corpse);
                                 pawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), false);
                             }, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0), pawn, new LocalTargetInfo(corpse), "ReservedBy", null));
@@ -1232,25 +1230,23 @@ namespace VehicleInteriors
 							if (container.Full)
 							{
 								string text3 = "ExtractRelic".Translate(container.ContainedThing.Label);
-								IntVec3 c;
-								IHaulDestination haulDestination2;
-								if (!StoreAcrossMapsUtility.TryFindBestBetterStorageFor(container.ContainedThing, pawn, pawn.Map, StoragePriority.Unstored, pawn.Faction, out c, out haulDestination2, true, out var exitSpot2, out var enterSpot2))
-								{
-									opts.Add(new FloatMenuOption(text3 + " (" + HaulAIUtility.NoEmptyPlaceLowerTrans + ")", null, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0));
-								}
-								else
-								{
-									var destMap = enterSpot2.HasThing ? enterSpot2.Thing.Map : exitSpot2.HasThing ? exitSpot2.Thing.BaseMap() : enterSpot.HasThing ? enterSpot.Thing.Map : exitSpot.HasThing ? exitSpot.Thing.BaseMap() : pawn.Map;
+                                if (!StoreAcrossMapsUtility.TryFindBestBetterStorageFor(container.ContainedThing, pawn, pawn.Map, StoragePriority.Unstored, pawn.Faction, out var c, out var haulDestination2, true, out var exitSpot2, out var enterSpot2))
+                                {
+                                    opts.Add(new FloatMenuOption(text3 + " (" + HaulAIUtility.NoEmptyPlaceLowerTrans + ")", null, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0));
+                                }
+                                else
+                                {
+                                    var destMap = enterSpot2.HasThing ? enterSpot2.Thing.Map : exitSpot2.HasThing ? exitSpot2.Thing.BaseMap() : enterSpot.HasThing ? enterSpot.Thing.Map : exitSpot.HasThing ? exitSpot.Thing.BaseMap() : pawn.Map;
                                     Job job = JobMaker.MakeJob(VIF_DefOf.VIF_ExtractRelicAcrossMaps, thing, container.ContainedThing, c);
-									job.count = 1;
-									opts.Add(FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption(text3, delegate ()
-									{
-										var driver = job.GetCachedDriver(pawn) as JobDriverAcrossMaps;
-										driver.SetSpots(exitSpot, enterSpot, exitSpot2, enterSpot2);
+                                    job.count = 1;
+                                    opts.Add(FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption(text3, delegate ()
+                                    {
+                                        var driver = job.GetCachedDriver(pawn) as JobDriverAcrossMaps;
+                                        driver.SetSpots(exitSpot, enterSpot, exitSpot2, enterSpot2);
                                         pawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), true);
                                     }, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0), pawn, new LocalTargetInfo(thing), "ReservedBy", null));
-								}
-							}
+                                }
+                            }
 							else
 							{
 								var baseMap = pawn.BaseMap();

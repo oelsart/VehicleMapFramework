@@ -5,6 +5,13 @@ namespace VehicleInteriors
 {
     public static class JobAcrossMapsUtility
     {
+        public static Job GotoDestMapJob(Pawn pawn, TargetInfo? exitSpot1 = null, TargetInfo? enterSpot1 = null)
+        {
+            Job preJob = JobMaker.MakeJob(VIF_DefOf.VIF_GotoAcrossMaps);
+            preJob.SetSpotsToJobAcrossMaps(pawn, exitSpot1, enterSpot1);
+            return preJob;
+        }
+
         public static void TryTakeGotoDestMapJob(Pawn pawn, TargetInfo? exitSpot1 = null, TargetInfo? enterSpot1 = null)
         {
             Job preJob = JobMaker.MakeJob(VIF_DefOf.VIF_GotoAcrossMaps);

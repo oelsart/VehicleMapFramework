@@ -45,9 +45,7 @@ namespace VehicleInteriors
         public static Job HaulToStorageJob(Pawn p, Thing t, TargetInfo exitSpot, TargetInfo enterSpot)
         {
             StoragePriority currentPriority = StoreUtility.CurrentStoragePriorityOf(t);
-            var exitSpot2 = TargetInfo.Invalid;
-            var enterSpot2 = TargetInfo.Invalid;
-            if (!StoreAcrossMapsUtility.TryFindBestBetterStorageFor(t, p, t.Map, currentPriority, p.Faction, out IntVec3 storeCell, out IHaulDestination haulDestination, true, out exitSpot2, out enterSpot2))
+            if (!StoreAcrossMapsUtility.TryFindBestBetterStorageFor(t, p, t.Map, currentPriority, p.Faction, out IntVec3 storeCell, out IHaulDestination haulDestination, true, out var exitSpot2, out var enterSpot2))
             {
                 JobFailReason.Is(HaulAIUtility.NoEmptyPlaceLowerTrans, null);
                 return null;
@@ -67,7 +65,7 @@ namespace VehicleInteriors
         public static Job HaulToCellStorageJob(Pawn p, Thing t, IntVec3 storeCell, bool fitInStoreCell, TargetInfo exitSpot, TargetInfo enterSpot, TargetInfo exitSpot2, TargetInfo enterSpot2)
         {
             Job job = JobMaker.MakeJob(VIF_DefOf.VIF_HaulToCellAcrossMaps, t, storeCell);
-            Map destMap = enterSpot2.HasThing ? enterSpot2.Thing.Map : exitSpot2.HasThing ? exitSpot2.Thing.BaseMap() : enterSpot.HasThing ? enterSpot.Thing.Map : exitSpot.HasThing ? exitSpot.Thing.BaseMap() : p.Map;
+            Map destMap = enterSpot2.IsValid ? enterSpot2.Map : exitSpot2.IsValid ? exitSpot2.Map.BaseMap() : enterSpot.IsValid ? enterSpot.Map : exitSpot.IsValid ? exitSpot.Map.BaseMap() : p.Map;
             ISlotGroup slotGroup = destMap.haulDestinationManager.SlotGroupAt(storeCell);
             ISlotGroup storageGroup = slotGroup.StorageGroup;
             ISlotGroup slotGroup2 = storageGroup ?? slotGroup;

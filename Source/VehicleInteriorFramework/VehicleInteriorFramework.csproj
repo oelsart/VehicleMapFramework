@@ -100,6 +100,11 @@
     <Compile Include="Graphic_LinkedCornerOverlaySingle.cs" />
     <Compile Include="Graphic_VehicleOpacity.cs" />
     <Compile Include="EphemenalWindow.cs" />
+    <Compile Include="Jobs\GenConstructOnVehicle.cs" />
+    <Compile Include="Jobs\WorkGiver_ConstructDeliverResourcesAcrossMaps.cs" />
+    <Compile Include="Jobs\WorkGiver_ConstructDeliverResourcesToBlueprintsAcrossMaps.cs" />
+    <Compile Include="Jobs\WorkGiver_ConstructDeliverResourcesToFramesAcrossMaps.cs" />
+    <Compile Include="Jobs\WorkGiver_ConstructFinishFramesAcrossMaps.cs" />
     <Compile Include="RGBMaskDef.cs" />
     <Compile Include="RGBOpacityShaderTypeDef.cs" />
     <Compile Include="VehicleHandlerBuildable.cs" />
