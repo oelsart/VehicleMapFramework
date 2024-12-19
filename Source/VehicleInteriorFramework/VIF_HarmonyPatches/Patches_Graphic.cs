@@ -11,15 +11,42 @@ using Verse;
 
 namespace VehicleInteriors.VIF_HarmonyPatches
 {
+    //Graphic_Linked系統のリンクは、先にcを回転させておく。base.ShouldLinkWithを使っているところはスタブしておいたオリジナルのメソッドを使用
     [HarmonyPatch(typeof(Graphic_Linked), nameof(Graphic_Linked.ShouldLinkWith))]
     public static class Patch_Graphic_Linked_ShouldLinkWith
     {
+        [HarmonyReversePatch(HarmonyReversePatchType.Original)]
+        public static bool ShouldLinkWith(Graphic_Linked instance, IntVec3 c, Thing parent) => throw new NotImplementedException();
+
         public static void Prefix(ref IntVec3 c, Thing parent)
         {
             var offset = c - parent.Position;
             var rotated = offset.RotatedBy(VehicleMapUtility.rotForPrint.IsHorizontal ? VehicleMapUtility.rotForPrint.Opposite : VehicleMapUtility.rotForPrint);
             c = rotated + parent.Position;
         }
+    }
+
+    [HarmonyPatch(typeof(Graphic_LinkedAsymmetric), nameof(Graphic_LinkedAsymmetric.ShouldLinkWith))]
+    public static class Patch_Graphic_LinkedAsymmetric_ShouldLinkWith
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) => instructions.MethodReplacer(MethodInfoCache.m_ShouldLinkWith, MethodInfoCache.m_ShouldLinkWithOrig);
+
+        public static void Prefix(ref IntVec3 c, Thing parent) => Patch_Graphic_Linked_ShouldLinkWith.Prefix(ref c, parent);
+    }
+
+    [HarmonyPatch(typeof(Graphic_LinkedTransmitter), nameof(Graphic_LinkedTransmitter.ShouldLinkWith))]
+    public static class Patch_Graphic_LinkedTransmitter_ShouldLinkWith
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) => instructions.MethodReplacer(MethodInfoCache.m_ShouldLinkWith, MethodInfoCache.m_ShouldLinkWithOrig);
+
+        public static void Prefix(ref IntVec3 c, Thing parent) => Patch_Graphic_Linked_ShouldLinkWith.Prefix(ref c, parent);
+    }
+
+
+    [HarmonyPatch(typeof(Graphic_LinkedTransmitterOverlay), nameof(Graphic_LinkedTransmitterOverlay.ShouldLinkWith))]
+    public static class Patch_Graphic_LinkedTransmitterOverlay_ShouldLinkWith
+    {
+        public static void Prefix(ref IntVec3 c, Thing parent) => Patch_Graphic_Linked_ShouldLinkWith.Prefix(ref c, parent);
     }
 
     [HarmonyPatch(typeof(Thing), nameof(Thing.Print))]

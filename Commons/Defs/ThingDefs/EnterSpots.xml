@@ -3,13 +3,19 @@
 	<ThingDef Name="VehicleEnterSpotBase" ParentName="FurnitureBase" Abstract="True">
 		<designationCategory>VF_Vehicles</designationCategory>
 		<altitudeLayer>Building</altitudeLayer>
+		<minifiedDef Inherit="False"/>
+		<category Inherit="False"></category>
 		<passability>Standable</passability>
+		<placeWorkers>
+			<li>VehicleInteriors.PlaceWorker_ForceOnVehicle</li>
+		</placeWorkers>
 	</ThingDef>
 	
 	<ThingDef ParentName="VehicleEnterSpotBase">
 		<defName>VIF_Ladder</defName>
 		<label>ladder</label>
 		<description>test</description>
+		<category>Building</category>
 		<minifiedDef>MinifiedThing</minifiedDef>
 		<graphicData>
 			<texPath>VehicleInteriors/Things/EnterSpot/Laddar</texPath>
@@ -92,7 +98,6 @@
 		</graphicData>
 		<statBases>
 			<MaxHitPoints>1500</MaxHitPoints>
-			<Beauty>0</Beauty>
 			<WorkToBuild>900</WorkToBuild>
 			<Mass>45</Mass>
 		</statBases>
@@ -120,7 +125,6 @@
 		</graphicData>
 		<statBases>
 			<MaxHitPoints>2500</MaxHitPoints>
-			<Beauty>0</Beauty>
 			<WorkToBuild>1500</WorkToBuild>
 			<Mass>75</Mass>
 		</statBases>

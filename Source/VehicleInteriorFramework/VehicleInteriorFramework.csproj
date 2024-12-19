@@ -88,13 +88,17 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Building_VehicleSlope.cs" />
-    <Compile Include="CompEngineLightOverlays.cs" />
-    <Compile Include="CompProperties_EngineLightOverlays.cs" />
-    <Compile Include="CompProperties_TogglableOverlays.cs" />
-    <Compile Include="CompProperties_VehicleEnterSpot.cs" />
-    <Compile Include="CompProperties_VehicleLauncherWithMap.cs" />
-    <Compile Include="CompTogglableOverlays.cs" />
-    <Compile Include="CompVehicleLauncherWithMap.cs" />
+    <Compile Include="Comps\CompEngineLightOverlays.cs" />
+    <Compile Include="Comps\CompProperties_EngineLightOverlays.cs" />
+    <Compile Include="Comps\CompProperties_TogglableOverlays.cs" />
+    <Compile Include="Comps\CompProperties_VehicleEnterSpot.cs" />
+    <Compile Include="Comps\CompProperties_VehicleLauncherWithMap.cs" />
+    <Compile Include="Comps\CompProperties_WirelessCharger.cs" />
+    <Compile Include="Comps\CompTogglableOverlays.cs" />
+    <Compile Include="Comps\CompToggleLitGraphic.cs" />
+    <Compile Include="Comps\CompVehicleLauncherWithMap.cs" />
+    <Compile Include="Comps\CompWirelessReceiver.cs" />
+    <Compile Include="Comps\CompWirelessTransmitter.cs" />
     <Compile Include="ExtraOverlayData.cs" />
     <Compile Include="GenDrawOnVehicle.cs" />
     <Compile Include="Graphic_LinkedCornerOverlaySingle.cs" />
@@ -105,6 +109,8 @@
     <Compile Include="Jobs\WorkGiver_ConstructDeliverResourcesToBlueprintsAcrossMaps.cs" />
     <Compile Include="Jobs\WorkGiver_ConstructDeliverResourcesToFramesAcrossMaps.cs" />
     <Compile Include="Jobs\WorkGiver_ConstructFinishFramesAcrossMaps.cs" />
+    <Compile Include="PlaceWorker_ForbidOnVehicle.cs" />
+    <Compile Include="PlaceWorker_ForceOnVehicle.cs" />
     <Compile Include="RGBMaskDef.cs" />
     <Compile Include="RGBOpacityShaderTypeDef.cs" />
     <Compile Include="VehicleHandlerBuildable.cs" />
@@ -121,9 +127,9 @@
     <Compile Include="Combat\CastPositionFinderOnVehicle.cs" />
     <Compile Include="Combat\GenClosestOnVehicle.cs" />
     <Compile Include="Combat\GenSightOnVehicle.cs" />
-    <Compile Include="CompBuildableUpgrades.cs" />
-    <Compile Include="CompProperties_BuildableUpgrades.cs" />
-    <Compile Include="CompVehicleSeat.cs" />
+    <Compile Include="Comps\CompBuildableUpgrades.cs" />
+    <Compile Include="Comps\CompProperties_BuildableUpgrades.cs" />
+    <Compile Include="Comps\CompVehicleSeat.cs" />
     <Compile Include="Jobs\JobDriver_BoardAcrossMaps.cs" />
     <Compile Include="RespawnWithJobsUtility.cs" />
     <Compile Include="FloatMenuOnVehicleUtility.cs" />
@@ -170,7 +176,7 @@
     <Compile Include="LoadTransportersJobOnVehicleUtility.cs" />
     <Compile Include="MethodInfoCache.cs" />
     <Compile Include="PlaceWorker_ShowTurretRadius.cs" />
-    <Compile Include="CompVehicleEnterSpot.cs" />
+    <Compile Include="Comps\CompVehicleEnterSpot.cs" />
     <Compile Include="ReachabilityUtilityOnVehicle.cs" />
     <Compile Include="RestUtilityOnVehicle.cs" />
     <Compile Include="SelectorOnVehicleUtility.cs" />

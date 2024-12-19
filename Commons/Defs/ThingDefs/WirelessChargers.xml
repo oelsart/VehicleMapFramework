@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+	<DesignatorDropdownGroupDef>
+		<defName>VIF_WirelessChargerGroup</defName>
+	</DesignatorDropdownGroupDef>
+		
+	<ThingDef Name="VIF_WirelessCharger" ParentName="FurnitureBase">
+		<defName>VIF_WirelessTransmitter</defName>
+		<label>wireless power transmitter</label>
+		<description>test</description>
+		<designationCategory>VF_Vehicles</designationCategory>
+		<designatorDropdown>VIF_WirelessChargerGroup</designatorDropdown>
+		<passability>PassThroughOnly</passability>
+		<drawerType>MapMeshAndRealTime</drawerType>
+		<tickerType>Normal</tickerType>
+		<graphicData>
+			<texPath>VehicleInteriors/Things/WirelessCharger/WirelessTransmitter</texPath>
+			<graphicClass>Graphic_Single</graphicClass>
+		</graphicData>
+		<statBases>
+			<MaxHitPoints>100</MaxHitPoints>
+			<Beauty>-1</Beauty>
+			<WorkToBuild>1000</WorkToBuild>
+			<Mass>5</Mass>
+		</statBases>
+		<size>(1,1)</size>
+		<costList>
+			<Steel>50</Steel>
+			<ComponentIndustrial>4</ComponentIndustrial>
+			<ComponentSpacer>1</ComponentSpacer>
+		</costList>
+		<uiOrder>1060</uiOrder>
+		<comps>
+			<li Class="VehicleInteriors.CompProperties_WirelessCharger">
+				<compClass>VehicleInteriors.CompWirelessTransmitter</compClass>
+				<transmitsPower>true</transmitsPower>
+				<powerLossFactor>0.75</powerLossFactor>
+				<lightGraphic>
+					<texPath>VehicleInteriors/Things/WirelessCharger/WirelessTransmitterLight</texPath>
+					<graphicClass>Graphic_Single</graphicClass>
+					<shaderType>TransparentPostLight</shaderType>
+				</lightGraphic>
+			</li>
+		</comps>
+		<placeWorkers>
+			<li>VehicleInteriors.PlaceWorker_ForbidOnVehicle</li>
+		</placeWorkers>
+	</ThingDef>
+
+	<ThingDef ParentName="VIF_WirelessCharger">
+		<defName>VIF_WirelessReceiver</defName>
+		<label>wireless power receiver</label>
+		<description>test</description>
+		<graphicData>
+			<texPath>VehicleInteriors/Things/WirelessCharger/WirelessReceiver</texPath>
+		</graphicData>
+		<uiOrder>1061</uiOrder>
+		<comps Inherit="False">
+			<li Class="VehicleInteriors.CompProperties_WirelessCharger">
+				<compClass>VehicleInteriors.CompWirelessReceiver</compClass>
+				<transmitsPower>true</transmitsPower>
+				<lightGraphic>
+					<texPath>VehicleInteriors/Things/WirelessCharger/WirelessReceiverLight</texPath>
+					<graphicClass>Graphic_Single</graphicClass>
+					<shaderType>TransparentPostLight</shaderType>
+				</lightGraphic>
+			</li>
+			<li Class="CompProperties_Glower">
+				<glowRadius>5</glowRadius>
+				<glowColor>(164,231,255)</glowColor>
+			</li>
+		</comps>
+		<placeWorkers Inherit="False">
+			<li>VehicleInteriors.PlaceWorker_ForceOnVehicle</li>
+		</placeWorkers>
+	</ThingDef>
+</Defs>

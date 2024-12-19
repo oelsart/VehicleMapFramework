@@ -14,5 +14,10 @@
 	<VIF.DecreasePriorityDesc>Decrease all storage priorities on this vehicle's map</VIF.DecreasePriorityDesc>
 	<VIF.AutoGetOff>Auto Get Off</VIF.AutoGetOff>
 	<VIF.AutoGetOffDesc>Colonists who have nothing to do on the vehicle map will automatically get off this vehicle's map.</VIF.AutoGetOffDesc>
-	
+
+	<VIF.LowerPowerDesc>Lower the target power transmission amount.</VIF.LowerPowerDesc>
+	<VIF.ResetPower>Reset</VIF.ResetPower>
+	<VIF.ResetPowerDesc>Reset the target power transmission amount.</VIF.ResetPowerDesc>
+	<VIF.RaisePowerDesc>Raise the target power transmission amount.</VIF.RaisePowerDesc>
+
 </LanguageData>

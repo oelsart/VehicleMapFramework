@@ -324,7 +324,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         public static void Prefix(ref Vector3 loc, ref Rot4 rot, Thing thing, ref float extraRotation, Graphic __instance)
         {
-            if (thing.IsOnVehicleMapOf(out var vehicle) && vehicle.Spawned)
+            if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle) && vehicle.Spawned)
             {
                 var fullRot = vehicle.FullRotation;
                 rot.AsInt += fullRot.RotForVehicleDraw().AsInt;
