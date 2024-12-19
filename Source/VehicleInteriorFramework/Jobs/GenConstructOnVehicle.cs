@@ -1,4 +1,5 @@
-﻿using RimWorld;
+﻿using HarmonyLib;
+using RimWorld;
 using System.Collections.Generic;
 using System.Linq;
 using Verse;
@@ -10,7 +11,13 @@ namespace VehicleInteriors
     {
         public const float ConstructionSpeedGlobalFactor = 1.7f;
 
-        private static readonly string SkillTooLowTrans;
+        private static string SkillTooLowTrans = "SkillTooLowForConstruction".Translate();
+
+        //private static string IncapableOfDeconstruction = "IncapableOfDeconstruction".Translate();
+
+        //private static string IncapableOfMining = "IncapableOfMining".Translate();
+
+        //private static string TreeMarkedForExtraction = "TreeMarkedForExtraction".Translate();
 
         private static readonly List<string> tmpIdeoMemberNames = new List<string>();
 

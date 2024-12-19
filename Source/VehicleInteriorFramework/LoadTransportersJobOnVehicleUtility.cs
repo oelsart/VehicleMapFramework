@@ -1,12 +1,9 @@
 ﻿using RimWorld;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
-using Verse.AI;
 using Verse;
+using Verse.AI;
 
 namespace VehicleInteriors
 {
@@ -46,8 +43,7 @@ namespace VehicleInteriors
                 for (int j = 0; j < leftToLoad.Count; j++)
                 {
                     TransferableOneWay transferableOneWay2 = leftToLoad[j];
-                    int num2;
-                    if (!LoadTransportersJobOnVehicleUtility.tmpAlreadyLoading.TryGetValue(leftToLoad[j], out num2))
+                    if (!LoadTransportersJobOnVehicleUtility.tmpAlreadyLoading.TryGetValue(leftToLoad[j], out int num2))
                     {
                         num2 = 0;
                     }
@@ -65,7 +61,7 @@ namespace VehicleInteriors
                 LoadTransportersJobOnVehicleUtility.tmpAlreadyLoading.Clear();
                 exitSpot = null;
                 enterSpot = null;
-                return default(ThingCount);
+                return default;
             }
             Thing thing = GenClosestOnVehicle.ClosestThingReachable(p.Position, p.Map, ThingRequest.ForGroup(ThingRequestGroup.HaulableEver), PathEndMode.Touch, TraverseParms.For(p, Danger.Deadly, TraverseMode.ByPawn, false, false, false), 9999f, (Thing x) => LoadTransportersJobOnVehicleUtility.neededThings.Contains(x) && p.CanReserve(x, 1, -1, null, false) && !x.IsForbidden(p) && p.carryTracker.AvailableStackSpace(x.def) > 0, null, 0, -1, false, RegionType.Set_Passable, false, false, out exitSpot, out enterSpot);
             if (thing == null)

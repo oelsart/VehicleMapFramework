@@ -14,8 +14,8 @@ namespace VehicleInteriors
         public override void CompTick()
         {
             base.CompTick();
-            this.PowerOutput = 0f;
-            this.shouldBeLitNow = false;
+            if (Find.TickManager.TicksGame % ticksInterval != 0) return;
+
             var rect = CellRect.SingleCell(this.parent.Position);
             foreach (var c in rect.ExpandedBy(1).Cells)
             {
@@ -28,21 +28,35 @@ namespace VehicleInteriors
                     var receiver = c2.GetFirstThingWithComp<CompWirelessReceiver>(vehicle.interiorMap);
                     if (receiver != null)
                     {
-                        this.PowerOutput = -this.powerOutputSetting;
                         var compReceiver = receiver.GetComp<CompWirelessReceiver>();
+                        var powerNet = compReceiver.PowerNet;
+                        var powerComps = compReceiver.PowerNet.powerComps.Where(p => p != compReceiver);
+                        if (powerComps.Any(p => !p.PowerOn && FlickUtility.WantsToBeOn(p.parent) && !p.parent.IsBrokenDown()))
+                        {
+                            this.PowerOutput = Mathf.Max(this.PowerOutput - 10f, -this.powerOutputSetting);
+                        }
+                        else
+                        {
+                            var sumBatteriesDiscarge = powerNet.batteryComps.Count * 5f;
+                            var needs = (powerNet.batteryComps.Sum(b => b.AmountCanAccept) - powerComps.Sum(p => p.EnergyOutputPerTick)) / CompPower.WattsToWattDaysPerTick + sumBatteriesDiscarge;
+                            this.PowerOutput = -Mathf.Clamp(needs / this.Props.powerLossFactor + 1E-07f, sumBatteriesDiscarge, this.powerOutputSetting);
+                        }
                         compReceiver.shouldBeLitNow = true;
                         this.shouldBeLitNow = true;
                         if (compReceiver.PowerOutput == 0f)
                         {
-                            compReceiver.PowerOutput = this.powerOutputSetting * this.Props.powerLossFactor;
                             if (receiver.TryGetComp<CompGlower>(out var compGlower))
                             {
                                 compGlower.UpdateLit(receiver.Map);
                             }
                         }
+                        compReceiver.PowerOutput = -this.PowerOutput * this.Props.powerLossFactor;
+                        return;
                     }
                 }
             }
+            this.PowerOutput = 0f;
+            this.shouldBeLitNow = false;
         }
 
         public override IEnumerable<Gizmo> CompGetGizmosExtra()
@@ -138,5 +152,7 @@ namespace VehicleInteriors
         private const float minPowerOutput = 0f;
 
         private const float maxPowerOutput = 10000f;
+
+        public const int ticksInterval = 20;
     }
 }

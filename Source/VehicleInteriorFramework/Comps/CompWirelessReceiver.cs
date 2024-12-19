@@ -9,6 +9,8 @@ namespace VehicleInteriors
         public override void CompTick()
         {
             base.CompTick();
+            if (Find.TickManager.TicksGame % CompWirelessTransmitter.ticksInterval != 0) return;
+
             if (this.PowerOutput != 0f && !this.shouldBeLitNow)
             {
                 this.PowerOutput = 0f;
@@ -22,7 +24,7 @@ namespace VehicleInteriors
 
         new public bool ShouldBeLitNow()
         {
-            return this.shouldBeLitNow;
+            return this.PowerOutput != 0f;
         }
     }
 }
