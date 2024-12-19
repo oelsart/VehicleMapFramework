@@ -490,6 +490,19 @@ namespace VehicleInteriors
             return vector.RotatedBy(-VehicleMapUtility.rotForPrint.AsAngle);
         }
 
+        public static bool TryGetVehiclePawnWithMap(this Vector3 point, out VehiclePawnWithMap vehicle)
+        {
+            var vehicles = VehiclePawnWithMapCache.allVehicles[Find.CurrentMap];
+            vehicle = vehicles.FirstOrDefault(v =>
+            {
+                var rect = new Rect(0f, 0f, (float)v.interiorMap.Size.x, (float)v.interiorMap.Size.z);
+                var vector = point.VehicleMapToOrig(v);
+
+                return rect.Contains(new Vector2(vector.x, vector.z));
+            });
+            return vehicle != null;
+        }
+
         public static Rot4 rotForPrint = Rot4.North;
 
         public const float altitudeOffset = 0.09615385f;

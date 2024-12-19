@@ -1,13 +1,10 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Defs>
-	<ThingDef Name="VehicleEnterSpotBase" ParentName="FurnitureBase" Abstract="True">
+	<ThingDef Name="VehicleEnterSpotBase" ParentName="BuildingBase" Abstract="True">
 		<designationCategory>VF_Vehicles</designationCategory>
-		<altitudeLayer>Building</altitudeLayer>
-		<minifiedDef Inherit="False"/>
-		<category Inherit="False"></category>
 		<passability>Standable</passability>
 		<placeWorkers>
-			<li>VehicleInteriors.PlaceWorker_ForceOnVehicle</li>
+			<li>VehicleInteriors.PlaceWorker_ForceOnVehicleMapEdge</li>
 		</placeWorkers>
 	</ThingDef>
 	
@@ -17,6 +14,9 @@
 		<description>test</description>
 		<category>Building</category>
 		<minifiedDef>MinifiedThing</minifiedDef>
+		<thingCategories>
+			<li>BuildingsFurniture</li>
+		</thingCategories>
 		<graphicData>
 			<texPath>VehicleInteriors/Things/EnterSpot/Laddar</texPath>
 			<graphicClass>Graphic_Multi</graphicClass>
@@ -58,7 +58,16 @@
 			<upperMoverGraphic>
 				<graphicClass>Graphic_Multi</graphicClass>
 			</upperMoverGraphic>
+			<blueprintGraphicData>
+				<graphicClass>Graphic_Multi</graphicClass>
+				<shaderType>EdgeDetect</shaderType>
+				<drawOffsetNorth>(0,0,-0.5)</drawOffsetNorth>
+				<drawOffsetSouth>(0,0,0.5)</drawOffsetSouth>
+				<drawOffsetEast>(-0.5,0,-0.5)</drawOffsetEast>
+				<drawOffsetWest>(0.5,0,-0.5)</drawOffsetWest>
+			</blueprintGraphicData>
 		</building>
+		<useBlueprintGraphicAsGhost>true</useBlueprintGraphicAsGhost>
 		<comps>
 			<li Class="VehicleInteriors.CompProperties_VehicleEnterSpot">
 				<allowPassingVehicle>true</allowPassingVehicle>
@@ -112,6 +121,10 @@
 				<texPath>VehicleInteriors/Things/EnterSpot/SlopeMedium</texPath>
 				<drawSize>(4,1)</drawSize>
 			</upperMoverGraphic>
+			<blueprintGraphicData>
+				<texPath>VehicleInteriors/Things/EnterSpot/SlopeMediumBlueprint</texPath>
+				<drawSize>(4,2)</drawSize>
+			</blueprintGraphicData>
 		</building>
 	</ThingDef>
 
@@ -139,6 +152,10 @@
 				<texPath>VehicleInteriors/Things/EnterSpot/SlopeLarge</texPath>
 				<drawSize>(6,1)</drawSize>
 			</upperMoverGraphic>
+			<blueprintGraphicData>
+				<texPath>VehicleInteriors/Things/EnterSpot/SlopeLargeBlueprint</texPath>
+				<drawSize>(6,2)</drawSize>
+			</blueprintGraphicData>
 		</building>
 	</ThingDef>
 </Defs>

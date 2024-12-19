@@ -12,7 +12,7 @@ namespace VehicleInteriors
             base.PostDraw();
             if (this.PowerOutput != 0f)
             {
-                this.Props.lightGraphic?.Graphic?.Draw(this.parent.DrawPos.WithYOffset(Altitudes.AltInc), this.parent.Rotation, this.parent, this.parent.IsOnNonFocusedVehicleMapOf(out var vehicle) ? vehicle.Angle : 0f);
+                this.Props.lightGraphic?.Graphic?.Draw(this.parent.DrawPos.WithYOffset(Altitudes.AltInc), this.parent.Rotation, this.parent, this.parent.IsOnNonFocusedVehicleMapOf(out var vehicle) ? -vehicle.Angle : 0f);
             }
         }
 

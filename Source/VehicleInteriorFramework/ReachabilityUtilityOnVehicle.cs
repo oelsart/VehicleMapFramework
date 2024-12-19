@@ -384,6 +384,10 @@ namespace VehicleInteriors
                 {
                     return MapComponentCache<VehicleMapping>.GetComponent(departMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(vehicle.Position, dest3, peMode, traverseParms);
                 }
+                else if (vehicle is VehiclePawnWithMap)
+                {
+                    return false;
+                }
                 else
                 {
                     var flag = departMap == departBaseMap;

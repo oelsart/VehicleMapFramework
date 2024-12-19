@@ -109,8 +109,9 @@
     <Compile Include="Jobs\WorkGiver_ConstructDeliverResourcesToBlueprintsAcrossMaps.cs" />
     <Compile Include="Jobs\WorkGiver_ConstructDeliverResourcesToFramesAcrossMaps.cs" />
     <Compile Include="Jobs\WorkGiver_ConstructFinishFramesAcrossMaps.cs" />
-    <Compile Include="PlaceWorker_ForbidOnVehicle.cs" />
-    <Compile Include="PlaceWorker_ForceOnVehicle.cs" />
+    <Compile Include="PlaceWorkers\PlaceWorker_ForbidOnVehicle.cs" />
+    <Compile Include="PlaceWorkers\PlaceWorker_ForceOnVehicle.cs" />
+    <Compile Include="PlaceWorkers\PlaceWorker_ForceOnVehicleMapEdge.cs" />
     <Compile Include="RGBMaskDef.cs" />
     <Compile Include="RGBOpacityShaderTypeDef.cs" />
     <Compile Include="VehicleHandlerBuildable.cs" />
@@ -175,7 +176,7 @@
     <Compile Include="Jobs\WorkGiver_HaulAcrossMaps.cs" />
     <Compile Include="LoadTransportersJobOnVehicleUtility.cs" />
     <Compile Include="MethodInfoCache.cs" />
-    <Compile Include="PlaceWorker_ShowTurretRadius.cs" />
+    <Compile Include="PlaceWorkers\PlaceWorker_ShowTurretRadius.cs" />
     <Compile Include="Comps\CompVehicleEnterSpot.cs" />
     <Compile Include="ReachabilityUtilityOnVehicle.cs" />
     <Compile Include="RestUtilityOnVehicle.cs" />

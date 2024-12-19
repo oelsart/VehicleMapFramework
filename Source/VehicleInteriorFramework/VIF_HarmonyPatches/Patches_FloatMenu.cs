@@ -21,15 +21,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         public static bool Prefix(Vector3 clickPos, Pawn pawn, bool suppressAutoTakeableGoto, ref List<FloatMenuOption> __result)
         {
-            var vehicles = VehiclePawnWithMapCache.allVehicles[Find.CurrentMap];
-            var vehicle = vehicles.FirstOrDefault(v =>
-            {
-                var rect = new Rect(0f, 0f, (float)v.interiorMap.Size.x, (float)v.interiorMap.Size.z);
-                var vector = clickPos.VehicleMapToOrig(v);
-
-                return rect.Contains(new Vector2(vector.x, vector.z));
-            });
-            if (vehicle != null || pawn.IsOnVehicleMapOf(out _))
+            if (clickPos.TryGetVehiclePawnWithMap(out var vehicle) || pawn.IsOnVehicleMapOf(out _))
             {
                 SelectorOnVehicleUtility.vehicleForSelector = vehicle;
                 __result = FloatMenuMakerOnVehicle.ChoicesAtFor(clickPos, pawn, suppressAutoTakeableGoto);

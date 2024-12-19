@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+
+	<VIF.ForceOnVehicle>Cannot be placed outside of a vehicle map.</VIF.ForceOnVehicle>
+	<VIF.ForbidOnVehicle>Cannot be placed on a vehicle map.</VIF.ForbidOnVehicle>
+	<VIF.ForceOnVehicleMapEdge>Cannot be placed outside the edge of a vehicle map.</VIF.ForceOnVehicleMapEdge>
+
+</LanguageData>
