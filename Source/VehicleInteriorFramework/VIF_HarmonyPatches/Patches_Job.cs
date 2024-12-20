@@ -3,6 +3,7 @@ using RimWorld;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Emit;
 using Verse;
 using Verse.AI;
@@ -23,6 +24,28 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     [HarmonyPatch(typeof(JobGiver_Work), nameof(JobGiver_Work.TryIssueJobPackage))]
     public static class Patch_JobGiver_Work_TryIssueJobPackage
     {
+        //目的のthingとpawnのMapが違った場合目的のマップに行くJobにすり替える
+        public static void Postfix(ref ThinkResult __result, Pawn pawn)
+        {
+            if (__result == ThinkResult.NoJob) return;
+
+            var driver = __result.Job.GetCachedDriver(pawn);
+            if (!(driver is JobDriverAcrossMaps))
+            {
+                var thing = __result.Job.targetA.Thing;
+                if (thing != null && pawn.Map != thing.MapHeld && pawn.CanReach(thing, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, thing.Map, out var exitSpot, out var enterSpot))
+                {
+                    var job = JobMaker.MakeJob(VIF_DefOf.VIF_GotoDestMap);
+                    var driver2 = job.GetCachedDriver(pawn) as JobDriver_GotoDestMap;
+                    driver2.SetSpots(exitSpot, enterSpot);
+                    driver2.nextJob = __result.Job;
+                    __result = new ThinkResult(job, __result.SourceNode, __result.Tag, __result.FromQueue);
+                }
+            }
+        }
+
+        //サーチセットに複数マップのthingリストを足す
+        //GenClosestの各メソッドを自作のものに置き換える
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             var codes = instructions.ToList();
@@ -64,28 +87,106 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             var m_GenClosest_ClosestThingReachable = AccessTools.Method(typeof(GenClosest), nameof(GenClosest.ClosestThingReachable));
             var m_GenClosestOnVehicle_ClosestThingReachable = AccessTools.Method(typeof(GenClosestOnVehicle), nameof(GenClosestOnVehicle.ClosestThingReachable),
                 new[] { typeof(IntVec3), typeof(Map), typeof(ThingRequest), typeof(PathEndMode), typeof(TraverseParms), typeof(float), typeof(Predicate<Thing>), typeof(IEnumerable<Thing>), typeof(int), typeof(int), typeof(bool), typeof(RegionType), typeof(bool)});
+            var m_Scanner_PotentialWorkThingsGlobal = AccessTools.Method(typeof(WorkGiver_Scanner), nameof(WorkGiver_Scanner.PotentialWorkThingsGlobal));
+            var m_PotentialWorkThingsGlobalAll = AccessTools.Method(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(Patch_JobGiver_Work_TryIssueJobPackage.PotentialWorkThingsGlobalAll));
             return codes.MethodReplacer(m_GenClosest_ClosestThing_Global, m_GenClosestOnVehicle_ClosestThing_Global)
                 .MethodReplacer(m_GenClosest_ClosestThing_Global_Reachable, m_GenClosestOnVehicle_ClosestThing_Global_Reachable)
-                .MethodReplacer(m_GenClosest_ClosestThingReachable, m_GenClosestOnVehicle_ClosestThingReachable);
+                .MethodReplacer(m_GenClosest_ClosestThingReachable, m_GenClosestOnVehicle_ClosestThingReachable)
+                .MethodReplacer(m_Scanner_PotentialWorkThingsGlobal, m_PotentialWorkThingsGlobalAll);
         }
 
         private static IEnumerable<Thing> AddSearchSet(List<Thing> list, Pawn pawn, WorkGiver_Scanner scanner)
         {
             var searchSet = new List<Thing>(list);
             var baseMap = pawn.BaseMap();
-            if (baseMap != pawn.Map)
+            var maps = VehiclePawnWithMapCache.allVehicles[baseMap].Select(v => v.interiorMap).Concat(baseMap).Except(pawn.Map);
+            foreach(var map in maps)
             {
-                searchSet.AddRange(baseMap.listerThings.ThingsMatching(scanner.PotentialWorkThingRequest));
-            }
-            foreach(var vehicle in VehiclePawnWithMapCache.allVehicles[baseMap])
-            {
-                if (pawn.Map != vehicle.interiorMap)
-                {
-                    searchSet.AddRange(vehicle.interiorMap.listerThings.ThingsMatching(scanner.PotentialWorkThingRequest));
-                }
+                searchSet.AddRange(map.listerThings.ThingsMatching(scanner.PotentialWorkThingRequest));
             }
             return searchSet;
         }
+
+        private static IEnumerable<Thing> PotentialWorkThingsGlobalAll(WorkGiver_Scanner scanner, Pawn pawn)
+        {
+            var map = pawn.Map;
+            var enumerable = pawn.Map.BaseMapAndVehicleMaps().SelectMany(m =>
+            {
+                pawn.VirtualMapTransfer(m);
+                var things = (scanner.PotentialWorkThingsGlobal(pawn) ?? Enumerable.Empty<Thing>()).ToArray(); //こうしないとnullがconcatされて困るっぽい //あとToArray
+                pawn.VirtualMapTransfer(map);
+                return things;
+            });
+            return enumerable;
+        }
+    }
+
+    //ShouldSkipはvehicleMapを含めた全てのマップでスキップするかチェックする
+    [HarmonyPatch(typeof(JobGiver_Work), "PawnCanUseWorkGiver")]
+    public static class Patch_JobGiver_Work_PawnCanUseWorkGiver
+    {
+        public static IEnumerable<CodeInstruction> Transpiler (IEnumerable<CodeInstruction> instructions)
+        {
+            var m_WorkGiver_ShouldSkip = AccessTools.Method(typeof(WorkGiver), nameof(WorkGiver.ShouldSkip));
+            var m_ShouldSkipAll = AccessTools.Method(typeof(Patch_JobGiver_Work_PawnCanUseWorkGiver), nameof(Patch_JobGiver_Work_PawnCanUseWorkGiver.ShouldSkipAll));
+            return instructions.MethodReplacer(m_WorkGiver_ShouldSkip, m_ShouldSkipAll);
+        }
+
+        private static bool ShouldSkipAll(WorkGiver workGiver, Pawn pawn, bool forced)
+        {
+            var map = pawn.Map;
+            var result = pawn.Map.BaseMapAndVehicleMaps().All(m =>
+            {
+                pawn.VirtualMapTransfer(m);
+                var skip = workGiver.ShouldSkip(pawn, forced);
+                pawn.VirtualMapTransfer(map);
+                return skip;
+            });
+            return result;
+        }
+    }
+
+    [HarmonyPatch]
+    public static class Patch_JobGiver_Work_Validator
+    {
+        public static MethodInfo TargetMethod()
+        {
+            return AccessTools.InnerTypes(typeof(JobGiver_Work)).SelectMany(t => t.GetMethods(AccessTools.all)).First(m => m.Name.Contains("Validator"));
+        }
+
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.m_ForbidUtility_IsForbidden, MethodInfoCache.m_ReservationAcrossMapsUtility_IsForbidden)
+                .MethodReplacer(m_Scanner_HasJobOnThing, m_HasJobOnThingAll);
+        }
+
+        private static bool HasJobOnThingAll(WorkGiver_Scanner scanner, Pawn pawn, Thing t, bool forced)
+        {
+            var map = pawn.Map;
+            var result = pawn.Map.BaseMapAndVehicleMaps().Any(m =>
+            {
+                pawn.VirtualMapTransfer(m);
+                var hasJob = scanner.HasJobOnThing(pawn, t, forced);
+                pawn.VirtualMapTransfer(map);
+                return hasJob;
+            });
+            return result;
+        }
+        private static readonly MethodInfo m_Scanner_HasJobOnThing = AccessTools.Method(typeof(WorkGiver_Scanner), nameof(WorkGiver_Scanner.HasJobOnThing));
+
+        private static readonly MethodInfo m_HasJobOnThingAll = AccessTools.Method(typeof(Patch_JobGiver_Work_Validator), nameof(Patch_JobGiver_Work_Validator.HasJobOnThingAll));
+    }
+
+
+    [HarmonyPatch]
+    public static class Patch_JobGiver_Work_GiverTryGiveJobPrioritized
+    {
+        public static MethodInfo TargetMethod()
+        {
+            return AccessTools.InnerTypes(typeof(JobGiver_Work)).SelectMany(t => t.GetMethods(AccessTools.all)).First(m => m.Name.Contains("<GiverTryGiveJobPrioritized>"));
+        }
+
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) => Patch_JobGiver_Work_Validator.Transpiler(instructions);
     }
 
     //利用可能なthingに車上マップ上のthingを含める
@@ -114,21 +215,6 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                 result.AddRange(vehicle.interiorMap.listerThings.ThingsOfDef(need));
             }
             return result;
-        }
-    }
-
-    //WorkGiverDefのgiverClassを差し替え
-    [HarmonyPatch(typeof(WorkGiverDef), nameof(WorkGiverDef.Worker), MethodType.Getter)]
-    public static class Patch_WorkGiverDef_Worker
-    {
-        public static void Prefix(WorkGiverDef __instance, WorkGiver ___workerInt)
-        {
-            if (___workerInt != null) return;
-
-            if (__instance.giverClass == typeof(WorkGiver_DoBill))
-            {
-                __instance.giverClass = typeof(WorkGiver_DoBillAcrossMaps);
-            }
         }
     }
 }

@@ -24,6 +24,8 @@ namespace VehicleInteriors
 
         public static RGBOpacityShaderTypeDef VIF_CutoutComplexSkinOpacity;
 
+        public static JobDef VIF_GotoDestMap;
+
         public static JobDef VIF_GotoAcrossMaps;
 
         public static JobDef VIF_AttackMeleeAcrossMaps;
@@ -83,6 +85,10 @@ namespace VehicleInteriors
         public static JobDef VIF_RefuelAtomicAcrossMaps;
 
         public static JobDef VIF_DoBillAcrossMaps;
+
+        public static JobDef VIF_RearmTurretAcrossMaps;
+
+        public static JobDef VIF_RearmTurretAtomicAcrossMaps;
 
         public static VehicleStatDef MaximumPayload;
     }

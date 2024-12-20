@@ -3,7 +3,38 @@
 
 	<!-- ============= Hauling ============= -->
 	<WorkGiverDef>
-		<defName>VIF_HaulAcrossMaps</defName>
+		<defName>VIF_RearmTurretsAcrossMaps</defName>
+		<label>rearm turrets</label>
+		<giverClass>VehicleInteriors.WorkGiver_RefuelTurretAcrossMaps</giverClass>
+		<workType>Hauling</workType>
+		<verb>rearm</verb>
+		<gerund>rearming</gerund>
+		<priorityInType>151</priorityInType>
+		<requiredCapacities>
+			<li>Manipulation</li>
+		</requiredCapacities>
+		<prioritizeSustains>true</prioritizeSustains>
+		<canBeDoneWhileDrafted>true</canBeDoneWhileDrafted>
+		<canBeDoneByMutants>false</canBeDoneByMutants>
+	</WorkGiverDef>
+
+	<WorkGiverDef>
+		<defName>VIF_RefuelAcrossMaps</defName>
+		<label>refuel fuelable buildings</label>
+		<giverClass>VehicleInteriors.WorkGiver_RefuelAcrossMaps</giverClass>
+		<workType>Hauling</workType>
+		<verb>refuel</verb>
+		<gerund>refueling</gerund>
+		<priorityInType>141</priorityInType>
+		<requiredCapacities>
+			<li>Manipulation</li>
+		</requiredCapacities>
+		<prioritizeSustains>true</prioritizeSustains>
+		<canBeDoneByMutants>false</canBeDoneByMutants>
+	</WorkGiverDef>
+
+	<WorkGiverDef>
+		<defName>VIF_HaulGeneralAcrossMaps</defName>
 		<label>haul general things</label>
 		<giverClass>VehicleInteriors.WorkGiver_HaulAcrossMaps</giverClass>
 		<workType>Hauling</workType>

@@ -127,21 +127,6 @@ namespace VehicleInteriors
             return Danger.Some;
         }
 
-        public override bool ShouldSkip(Pawn pawn, bool forced = false)
-        {
-            var baseMap = pawn.BaseMap();
-            IEnumerable<Thing> list = baseMap.listerThings.ThingsInGroup(ThingRequestGroup.PotentialBillGiver)
-                .Concat(VehiclePawnWithMapCache.allVehicles[baseMap].SelectMany(v => v.interiorMap.listerThings.ThingsInGroup(ThingRequestGroup.PotentialBillGiver)));
-            foreach (var thing in list)
-            {
-                if (thing is IBillGiver billGiver && billGiver != pawn && ThingIsUsableBillGiver(thing) && billGiver.BillStack.AnyShouldDoNow)
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
-
         public override Job JobOnThing(Pawn pawn, Thing thing, bool forced = false)
         {
             if (!(thing is IBillGiver billGiver) || !ThingIsUsableBillGiver(thing) || !billGiver.BillStack.AnyShouldDoNow || !billGiver.UsableForBillsAfterFueling() || !pawn.CanReserve(thing, thing.Map, 1, -1, null, forced) || thing.IsBurning() || thing.IsForbidden(pawn))

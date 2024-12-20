@@ -502,8 +502,27 @@ namespace VehicleInteriors
             });
             return vehicle != null;
         }
+        public static IEnumerable<Map> BaseMapAndVehicleMaps(this Map map)
+        {
+            var baseMap = map.BaseMap();
+            yield return baseMap;
+
+            foreach (var vehicle in VehiclePawnWithMapCache.allVehicles[baseMap])
+            {
+                yield return vehicle.interiorMap;
+            }
+        }
+
+        public static void VirtualMapTransfer(this Thing thing, Map map)
+        {
+            mapIndexOrState(thing) = (sbyte)map.Index;
+        }
+
+        public static Map tmpActualMap;
 
         public static Rot4 rotForPrint = Rot4.North;
+
+        private static readonly AccessTools.FieldRef<Thing, sbyte> mapIndexOrState = AccessTools.FieldRefAccess<Thing, sbyte>("mapIndexOrState");
 
         public const float altitudeOffset = 0.09615385f;
 

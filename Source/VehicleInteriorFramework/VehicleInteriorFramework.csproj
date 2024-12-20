@@ -106,6 +106,7 @@
     <Compile Include="EphemenalWindow.cs" />
     <Compile Include="Jobs\GenConstructOnVehicle.cs" />
     <Compile Include="Jobs\JobDrivers\JobDriver_DoBillAcrossMaps.cs" />
+    <Compile Include="Jobs\JobDrivers\JobDriver_GotoDestMap.cs" />
     <Compile Include="Jobs\JobDrivers\JobDriver_RefuelAcrossMaps.cs" />
     <Compile Include="Jobs\JobDrivers\JobDriver_RefuelAtomicAcrossMaps.cs" />
     <Compile Include="Jobs\RefuelWorkGiverUtilityOnVehicle.cs" />
@@ -115,6 +116,8 @@
     <Compile Include="Jobs\WorkGivers\WorkGiver_ConstructDeliverResourcesToFramesAcrossMaps.cs" />
     <Compile Include="Jobs\WorkGivers\WorkGiver_ConstructFinishFramesAcrossMaps.cs" />
     <Compile Include="Jobs\WorkGivers\WorkGiver_DoBillAcrossMaps.cs" />
+    <Compile Include="Jobs\WorkGivers\WorkGiver_RefuelAcrossMaps.cs" />
+    <Compile Include="Jobs\WorkGivers\WorkGiver_RefuelTurretAcrossMaps.cs" />
     <Compile Include="MechanitorUtilityOnVehicle.cs" />
     <Compile Include="PlaceWorkers\PlaceWorker_ForbidOnVehicle.cs" />
     <Compile Include="PlaceWorkers\PlaceWorker_ForceOnVehicle.cs" />
@@ -209,6 +212,7 @@
     <Compile Include="VIF_HarmonyPatches\Core.cs" />
     <Compile Include="VIF_HarmonyPatches\Patches_Combat.cs" />
     <Compile Include="VIF_HarmonyPatches\Patches_DebugMenu.cs" />
+    <Compile Include="VIF_HarmonyPatches\Patches_Def.cs" />
     <Compile Include="VIF_HarmonyPatches\Patches_Designator.cs" />
     <Compile Include="VIF_HarmonyPatches\Patches_FloatMenu.cs" />
     <Compile Include="VIF_HarmonyPatches\Patches_Graphic.cs" />

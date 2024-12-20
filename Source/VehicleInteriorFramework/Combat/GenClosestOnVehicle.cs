@@ -1,14 +1,11 @@
-﻿using System;
+﻿using RimWorld;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Verse.AI;
-using Verse;
-using RimWorld;
 using UnityEngine;
-using Vehicles;
+using Verse;
+using Verse.AI;
 
 namespace VehicleInteriors
 {
@@ -21,17 +18,17 @@ namespace VehicleInteriors
                 Log.Error("Cannot do ClosestThingReachable searching everything without restriction.");
                 return true;
             }
-            if (!start.InBounds(map))
-            {
-                Log.Error(string.Concat(new object[]
-                {
-                    "Did FindClosestThing with start out of bounds (",
-                    start,
-                    "), thingReq=",
-                    thingReq
-                }));
-                return true;
-            }
+            if (!start.InBounds(map)) return true;
+            //{
+            //    Log.Error(string.Concat(new object[]
+            //    {
+            //        "Did FindClosestThing with start out of bounds (",
+            //        start,
+            //        "), thingReq=",
+            //        thingReq
+            //    }));
+            //    return true;
+            //}
             var baseMap = map.BaseMap();
             return thingReq.group == ThingRequestGroup.Nothing || ((thingReq.IsUndefined || baseMap.listerThings.ThingsMatching(thingReq).ConcatIfNotNull(VehiclePawnWithMapCache.allVehicles[baseMap].SelectMany((VehiclePawnWithMap v) => v.interiorMap.listerThings.ThingsMatching(thingReq))).Count() == 0) && customGlobalSearchSet.EnumerableNullOrEmpty<Thing>());
         }
@@ -112,108 +109,99 @@ namespace VehicleInteriors
             {
                 return null;
             }
-            var finder = new Finder
-            {
-                center = center,
-                priorityGetter = priorityGetter,
-                lookInHaulSources = lookInHaulSources,
-                validator = validator,
-                closestDistSquared = 2.1474836E+09f,
-                chosen = null,
-                bestPrio = float.MinValue,
-                maxDistanceSquared = maxDistance * maxDistance
-            };
+            var closestDistSquared = 2.1474836E+09f;
+            Thing chosen = null;
+            var bestPrio = float.MinValue;
+            var maxDistanceSquared = maxDistance * maxDistance;
             if (searchSet is IList<Thing> list)
             {
                 foreach (var target in list)
                 {
-                    GenClosestOnVehicle.Process(target, finder);
+                    Process(target);
                 }
             }
             else if (searchSet is IList<Pawn> list2)
             {
                 foreach (var target in list2)
                 {
-                    GenClosestOnVehicle.Process(target, finder);
+                    Process(target);
                 }
             }
             else if (searchSet is IList<Building> list3)
             {
                 foreach (var target in list3)
                 {
-                    GenClosestOnVehicle.Process(target, finder);
+                    Process(target);
                 }
             }
             else if (searchSet is IList<IAttackTarget> list4)
             {
                 foreach (var target in list4)
                 {
-                    GenClosestOnVehicle.Process((Thing)target, finder);
+                    Process((Thing)target);
                 }
             }
             else
             {
                 foreach (var target in searchSet)
                 {
-                    GenClosestOnVehicle.Process((Thing)target, finder);
+                    Process((Thing)target);
                 }
             }
-            return finder.chosen;
-        }
+            return chosen;
 
-        private static void Process(Thing t, Finder finder)
-        {
-            if (!t.Spawned && !HaulAIUtility.IsInHaulableInventory(t))
-			{
-				return;
-            }
-            float num = (float)(finder.center - t.PositionHeldOnBaseMap()).LengthHorizontalSquared;
-			if (num > finder.maxDistanceSquared)
-			{
-				return;
-            }
-            if (finder.priorityGetter != null || num < finder.closestDistSquared)
+            void Process(Thing t)
             {
-                GenClosestOnVehicle.ValidateThing(t, num, finder);
-				if (finder.lookInHaulSources)
+                if (!t.Spawned && !HaulAIUtility.IsInHaulableInventory(t))
                 {
-                    if (t is IHaulSource haulSource)
+                    return;
+                }
+                float num = (float)(center - t.PositionHeldOnBaseMap()).LengthHorizontalSquared;
+                if (num > maxDistanceSquared)
+                {
+                    return;
+                }
+                if (priorityGetter != null || num < closestDistSquared)
+                {
+                    ValidateThing(t, num);
+                    if (lookInHaulSources)
                     {
-                        ThingOwner directlyHeldThings = haulSource.GetDirectlyHeldThings();
-                        for (int i = 0; i < directlyHeldThings.Count; i++)
+                        if (t is IHaulSource haulSource)
                         {
-                            GenClosestOnVehicle.ValidateThing(directlyHeldThings[i], num, finder);
+                            ThingOwner directlyHeldThings = haulSource.GetDirectlyHeldThings();
+                            for (int i = 0; i < directlyHeldThings.Count; i++)
+                            {
+                                ValidateThing(directlyHeldThings[i], num);
+                            }
                         }
                     }
                 }
-			}
-		}
-
-        private static void ValidateThing(Thing t, float distSquared, Finder finder)
-		{
-			if (finder.validator != null && !finder.validator(t))
-			{
-				return;
             }
-            float num = 0f;
-			if (finder.priorityGetter != null)
+
+            void ValidateThing(Thing t, float distSquared)
             {
-                num = finder.priorityGetter(t);
-				if (num< finder.bestPrio)
-				{
-					return;
+                if (validator != null && !validator(t))
+                {
+                    return;
                 }
-                if (Mathf.Approximately(num, finder.bestPrio) && distSquared >= finder.closestDistSquared)
-				{
-					return;
-				}
-			}
-            GenClosestOnVehicle.exitSpotResult = GenClosestOnVehicle.tmpExitSpot;
-            GenClosestOnVehicle.enterSpotResult = GenClosestOnVehicle.tmpEnterSpot;
-            finder.chosen = t;
-            finder.closestDistSquared = distSquared;
-            finder.bestPrio = num;
-		}
+                float num = 0f;
+                if (priorityGetter != null)
+                {
+                    num = priorityGetter(t);
+                    if (num < bestPrio)
+                    {
+                        return;
+                    }
+                    if (Mathf.Approximately(num, bestPrio) && distSquared >= closestDistSquared)
+                    {
+                        return;
+                    }
+                }
+                chosen = t;
+                closestDistSquared = distSquared;
+                bestPrio = num;
+            }
+        }
 
         public static Thing ClosestThing_Global_Reachable(IntVec3 center, Map map, IEnumerable<Thing> searchSet, PathEndMode peMode, TraverseParms traverseParams, float maxDistance = 9999f, Predicate<Thing> validator = null, Func<Thing, float> priorityGetter = null)
         {
@@ -231,175 +219,114 @@ namespace VehicleInteriors
             GenClosestOnVehicle.tmpEnterSpot = null;
             GenClosestOnVehicle.exitSpotResult = null;
             GenClosestOnVehicle.enterSpotResult = null;
-            exitSpot = null;
-            enterSpot = null;
+            exitSpot = TargetInfo.Invalid;
+            enterSpot = TargetInfo.Invalid;
             if (searchSet == null)
             {
                 return null;
             }
-            var finder = new FinderReachable
-            {
-                center = center,
-                priorityGetter = priorityGetter,
-                canLookInHaulableSources = canLookInHaulableSources,
-                map = map,
-                peMode = peMode,
-                traverseParms = traverseParams,
-                validator = validator,
-                debug_changeCount = 0,
-                debug_scanCount = 0,
-                bestThing = null,
-                bestPrio = float.MinValue,
-                maxDistanceSquared = maxDistance * maxDistance,
-                closestDistSquared = 2.1474836E+09f
-            };
-            IList<Thing> list;
-            IList<Pawn> list2;
-            IList<Building> list3;
-            if ((list = (searchSet as IList<Thing>)) != null)
+
+            var debug_changeCount = 0;
+            var debug_scanCount = 0;
+            Thing bestThing = null;
+            var bestPrio = float.MinValue;
+            var maxDistanceSquared = maxDistance * maxDistance;
+            var closestDistSquared = 2.1474836E+09f;
+            if (searchSet is IList<Thing> list)
             {
                 for (int i = 0; i < list.Count; i++)
                 {
-                    GenClosestOnVehicle.Process(list[i], ref finder);
+                    Process(list[i]);
                 }
             }
-            else if ((list2 = (searchSet as IList<Pawn>)) != null)
+            else if (searchSet is IList<Pawn> list2)
             {
                 for (int j = 0; j < list2.Count; j++)
                 {
-                    GenClosestOnVehicle.Process(list2[j], ref finder);
+                    Process(list2[j]);
                 }
             }
-            else if ((list3 = (searchSet as IList<Building>)) != null)
+            else if (searchSet is IList<Building> list3)
             {
                 for (int k = 0; k < list3.Count; k++)
                 {
-                    GenClosestOnVehicle.Process(list3[k], ref finder);
+                    Process(list3[k]);
                 }
             }
             else
             {
                 foreach (Thing t in searchSet)
                 {
-                    GenClosestOnVehicle.Process(t, ref finder);
+                    Process(t);
                 }
             }
             exitSpot = GenClosestOnVehicle.exitSpotResult;
             enterSpot = GenClosestOnVehicle.enterSpotResult;
-            return finder.bestThing;
-        }
+            return bestThing;
 
-        private static void Process(Thing t, ref FinderReachable finder)
-        {
-            if (t == null)
+            void Process(Thing t)
             {
-                return;
-            }
-            if (!t.Spawned)
-            {
-                return;
-            }
-            int debug_scanCount = finder.debug_scanCount;
-            finder.debug_scanCount = debug_scanCount + 1;
-            float num = (float)(finder.center - t.PositionHeldOnBaseMap()).LengthHorizontalSquared;
-            if (num > finder.maxDistanceSquared)
-            {
-                return;
-            }
-            if (finder.priorityGetter != null || num < finder.closestDistSquared)
-            {
-                GenClosestOnVehicle.ValidateThing(t, num, ref finder);
-                IHaulSource haulSource;
-                if (finder.canLookInHaulableSources && (haulSource = (t as IHaulSource)) != null)
+                if (t == null)
                 {
-                    ThingOwner directlyHeldThings = haulSource.GetDirectlyHeldThings();
-                    for (int i = 0; i < directlyHeldThings.Count; i++)
+                    return;
+                }
+                if (!t.Spawned)
+                {
+                    return;
+                }
+                debug_scanCount++;
+                float num = (float)(center - t.PositionHeldOnBaseMap()).LengthHorizontalSquared;
+                if (num > maxDistanceSquared)
+                {
+                    return;
+                }
+                if (priorityGetter != null || num < closestDistSquared)
+                {
+                    ValidateThing(t, num);
+                    IHaulSource haulSource;
+                    if (canLookInHaulableSources && (haulSource = (t as IHaulSource)) != null)
                     {
-                        GenClosestOnVehicle.ValidateThing(directlyHeldThings[i], num, ref finder);
+                        ThingOwner directlyHeldThings = haulSource.GetDirectlyHeldThings();
+                        for (int i = 0; i < directlyHeldThings.Count; i++)
+                        {
+                            ValidateThing(directlyHeldThings[i], num);
+                        }
                     }
                 }
             }
-        }
 
-        private static void ValidateThing(Thing t, float distSquared, ref FinderReachable finder)
-		{
-			if (!ReachabilityUtilityOnVehicle.CanReach(finder.map, finder.center, t.SpawnedParentOrMe, finder.peMode, finder.traverseParms, t.MapHeld, out GenClosestOnVehicle.tmpExitSpot, out GenClosestOnVehicle.tmpEnterSpot))
-			{
-				return;
-			}
-			if (finder.validator != null && !finder.validator(t))
-			{
-				return;
-			}
-			float num = 0f;
-			if (finder.priorityGetter != null)
-			{
-				num = finder.priorityGetter(t);
-				if (num< finder.bestPrio)
-				{
-					return;
-				}
-				if (Mathf.Approximately(num, finder.bestPrio) && distSquared >= finder.closestDistSquared)
-				{
-					return;
-				}
+            void ValidateThing(Thing t, float distSquared)
+            {
+                if (!ReachabilityUtilityOnVehicle.CanReach(map, center, t.SpawnedParentOrMe, peMode, traverseParams, t.MapHeld, out GenClosestOnVehicle.tmpExitSpot, out GenClosestOnVehicle.tmpEnterSpot))
+                {
+                    return;
+                }
+                if (validator != null && !validator(t))
+                {
+                    return;
+                }
+                float num = 0f;
+                if (priorityGetter != null)
+                {
+                    num = priorityGetter(t);
+                    if (num < bestPrio)
+                    {
+                        return;
+                    }
+                    if (Mathf.Approximately(num, bestPrio) && distSquared >= closestDistSquared)
+                    {
+                        return;
+                    }
+                }
+                GenClosestOnVehicle.exitSpotResult = GenClosestOnVehicle.tmpExitSpot;
+                GenClosestOnVehicle.enterSpotResult = GenClosestOnVehicle.tmpEnterSpot;
+                bestThing = t;
+                closestDistSquared = distSquared;
+                bestPrio = num;
+                debug_changeCount++;
             }
-            GenClosestOnVehicle.exitSpotResult = GenClosestOnVehicle.tmpExitSpot;
-            GenClosestOnVehicle.enterSpotResult = GenClosestOnVehicle.tmpEnterSpot;
-            finder.bestThing = t;
-            finder.closestDistSquared = distSquared;
-            finder.bestPrio = num;
-            int debug_changeCount = finder.debug_changeCount;
-            finder.debug_changeCount = debug_changeCount + 1;
-		}
-
-        private class Finder
-        {
-            public IntVec3 center;
-
-            public Func<Thing, float> priorityGetter;
-
-            public bool lookInHaulSources;
-
-            public Predicate<Thing> validator;
-
-            public float closestDistSquared;
-
-            public Thing chosen;
-
-            public float bestPrio;
-
-            public float maxDistanceSquared;
         }
 
-        private class FinderReachable
-        {
-            public IntVec3 center;
-
-            public Func<Thing, float> priorityGetter;
-
-            public bool canLookInHaulableSources;
-
-            public Map map;
-
-            public PathEndMode peMode;
-
-            public TraverseParms traverseParms;
-
-            public Predicate<Thing> validator;
-
-            public int debug_changeCount;
-
-            public int debug_scanCount;
-
-            public Thing bestThing;
-
-            public float bestPrio;
-
-            public float maxDistanceSquared;
-
-            public float closestDistSquared;
-        }
 
         private static TargetInfo tmpExitSpot;
 

@@ -71,10 +71,7 @@ namespace VehicleInteriors
                     if (this.job.controlGroupTag != null)
                     {
                         Pawn overseer = this.pawn.GetOverseer();
-                        if (overseer != null)
-                        {
-                            overseer.mechanitor.GetControlGroup(this.pawn).SetTag(this.pawn, this.job.controlGroupTag);
-                        }
+                        overseer?.mechanitor.GetControlGroup(this.pawn).SetTag(this.pawn, this.job.controlGroupTag);
                     }
                 });
                 yield return toil;

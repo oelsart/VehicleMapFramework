@@ -1,7 +1,5 @@
 ﻿using RimWorld;
-using System;
 using System.Collections.Generic;
-using UnityEngine;
 using Verse;
 using Verse.AI;
 
@@ -23,11 +21,11 @@ namespace VehicleInteriors
 
         public override bool TryMakePreToilReservations(bool errorOnFailed)
         {
-            if (this.job.targetB.HasThing)
+            IAttackTarget attackTarget = this.job.targetA.Thing as IAttackTarget;
+            if (attackTarget != null)
             {
-                this.job.targetB.Thing.Map.pawnDestinationReservationManager.Reserve(this.pawn, this.job, this.job.targetC.Cell);
+                this.job.targetA.Thing.Map.attackTargetReservationManager.Reserve(this.pawn, this.job, attackTarget);
             }
-            else this.pawn.Map.pawnDestinationReservationManager.Reserve(this.pawn, this.job, this.job.targetC.Cell);
             return true;
         }
 
