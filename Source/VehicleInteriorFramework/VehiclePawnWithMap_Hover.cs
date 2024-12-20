@@ -60,6 +60,15 @@ namespace VehicleInteriors
             base.Tick();
         }
 
+        public override void ExposeData()
+        {
+            base.ExposeData();
+            Scribe_Values.Look(ref this.drawOffset, "floatingOffset");
+            Scribe_Values.Look(ref this.ignitionTick, "ignitionTick");
+            Scribe_Values.Look(ref this.ignitionComplete, "ignitionComplete");
+            Scribe_Values.Look(ref this.landingComplete, "landingComplete");
+        }
+
         private float drawOffset = 0f;
 
         private int? ignitionTick;

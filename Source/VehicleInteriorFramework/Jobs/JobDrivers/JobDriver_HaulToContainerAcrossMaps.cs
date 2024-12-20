@@ -137,8 +137,7 @@ namespace VehicleInteriors
                     {
                         return true;
                     }
-                    Thing nextTarget;
-                    if (!Toils_Haul.TryGetNextDestinationFromQueue(TargetIndex.C, TargetIndex.B, this.ThingDef, this.job, this.pawn, out nextTarget))
+                    if (!Toils_Haul.TryGetNextDestinationFromQueue(TargetIndex.C, TargetIndex.B, this.ThingDef, this.job, this.pawn, out Thing nextTarget))
                     {
                         return true;
                     }

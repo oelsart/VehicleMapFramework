@@ -57,30 +57,59 @@ namespace VehicleInteriors
 
         public override void PostSpawnSetup(bool respawningAfterLoad)
         {
+            void Init()
+            {
+                var parent = this.ParentVehicle;
+                foreach (var extraOverlay in this.Props.extraOverlays)
+                {
+                    if (!this.graphicOverlays.ContainsKey(extraOverlay.key))
+                    {
+                        var graphicOverlay = GraphicOverlay.Create(extraOverlay.graphicDataOverlay, parent);
+                        this.graphicOverlays[extraOverlay.key] = (graphicOverlay, extraOverlay.label);
+                        parent.graphicOverlay.AddOverlay(extraOverlay.key, graphicOverlay);
+                    }
+                }
+            }
+
             if (!UnityData.IsInMainThread)
             {
                 LongEventHandler.ExecuteWhenFinished(delegate
                 {
-                    this.Init();
+                    Init();
                 });
             }
             else
             {
-                this.Init();
+                Init();
             }
         }
 
-        private void Init()
+        public override void PostExposeData()
         {
-            var parent = this.ParentVehicle;
-            foreach (var extraOverlay in this.Props.extraOverlays)
+            base.PostExposeData();
+            void Init()
             {
-                if (!this.graphicOverlays.ContainsKey(extraOverlay.key))
+                foreach (var graphicOverlay in this.graphicOverlays)
                 {
-                    var graphicOverlay = GraphicOverlay.Create(extraOverlay.graphicDataOverlay, parent);
-                    this.graphicOverlays[extraOverlay.key] = (graphicOverlay, extraOverlay.label);
-                    parent.graphicOverlay.AddOverlay(extraOverlay.key, graphicOverlay);
+                    if (graphicOverlay.Value.graphicOverlay.Graphic is Graphic_VehicleOpacity graphic)
+                    {
+                        var opacity = graphic.Opacity;
+                        Scribe_Values.Look(ref opacity, graphicOverlay.Key + "Opacity");
+                        graphic.Opacity = opacity;
+                    }
                 }
+            }
+
+            if (!UnityData.IsInMainThread)
+            {
+                LongEventHandler.ExecuteWhenFinished(delegate
+                {
+                    Init();
+                });
+            }
+            else
+            {
+                Init();
             }
         }
 

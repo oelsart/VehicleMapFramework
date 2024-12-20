@@ -82,13 +82,7 @@ namespace VehicleInteriors
         protected override IEnumerable<Toil> MakeNewToils()
         {
             this.FailOnDestroyedOrNull(HaulableInd);
-            //mapがずれることがあるのでFailOnBurningImmobileの代わりにこれを追加。何回も使うようなら関数化しよう
-            this.AddEndCondition(delegate
-            {
-                Pawn actor = this.GetActor();
-                LocalTargetInfo target = actor.jobs.curJob.GetTarget(StoreCellInd);
-                return (!target.IsValid || !target.ToTargetInfo(this.DestMap).IsBurning()) ? JobCondition.Ongoing : JobCondition.Incompletable;
-            });
+            this.FailOnBurningImmobile(StoreCellInd, this.DestMap);
 
             if (!this.forbiddenInitially)
             {
@@ -123,7 +117,7 @@ namespace VehicleInteriors
             }
             var destMap = this.DestMap;
             Toil toilGoto = null;
-            toilGoto = Toils_Goto.GotoThing(HaulableInd, PathEndMode.ClosestTouch, true).FailOnSomeonePhysicallyInteracting(HaulableInd, this.TargetAMap).FailOn(delegate ()
+            toilGoto = Toils_Goto.GotoThing(HaulableInd, PathEndMode.ClosestTouch, true).FailOnSomeonePhysicallyInteracting(HaulableInd).FailOn(delegate ()
             {
                 Pawn actor = toilGoto.actor;
                 Job curJob = actor.jobs.curJob;

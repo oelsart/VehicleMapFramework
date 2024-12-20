@@ -35,7 +35,7 @@ namespace VehicleInteriors
                 {
                     break;
                 }
-                StoreAcrossMapsUtility.TryFindBestBetterStoreCellForWorker(t, carrier, map, faction, slotGroup, needAccurateResult, ref invalid, ref num, ref storagePriority, ref exitSpot, ref enterSpot, ref destMap);
+                StoreAcrossMapsUtility.TryFindBestBetterStoreCellForWorker(t, carrier, slotGroup.parent.Map, faction, slotGroup, needAccurateResult, ref invalid, ref num, ref storagePriority, ref exitSpot, ref enterSpot, ref destMap);
             }
             if (!invalid.IsValid)
             {
@@ -46,7 +46,7 @@ namespace VehicleInteriors
             return true;
         }
 
-        private static void TryFindBestBetterStoreCellForWorker(Thing t, Pawn carrier, Map map, Faction faction, SlotGroup slotGroup, bool needAccurateResult, ref IntVec3 closestSlot, ref float closestDistSquared, ref StoragePriority foundPriority, ref TargetInfo exitSpot, ref TargetInfo enterSpot, ref Map destMap)
+        private static void TryFindBestBetterStoreCellForWorker(Thing t, Pawn carrier, Map map, Faction faction, ISlotGroup slotGroup, bool needAccurateResult, ref IntVec3 closestSlot, ref float closestDistSquared, ref StoragePriority foundPriority, ref TargetInfo exitSpot, ref TargetInfo enterSpot, ref Map destMap)
         {
             if (slotGroup == null)
             {
@@ -56,7 +56,7 @@ namespace VehicleInteriors
             {
                 return;
             }
-            IntVec3 a = t.SpawnedOrAnyParentSpawned ? t.PositionHeldOnBaseMap().CellOnAnotherMap(slotGroup.parent.Map) : carrier.PositionHeldOnBaseMap().CellOnAnotherMap(slotGroup.parent.Map);
+            IntVec3 a = t.SpawnedOrAnyParentSpawned ? t.PositionHeldOnBaseMap().CellOnAnotherMap(map) : carrier.PositionHeldOnBaseMap().CellOnAnotherMap(map);
             List<IntVec3> cellsList = slotGroup.CellsList;
             int count = cellsList.Count;
             int num;
@@ -72,14 +72,14 @@ namespace VehicleInteriors
             {
                 IntVec3 intVec = cellsList[i];
                 float num2 = (float)(a - intVec).LengthHorizontalSquared;
-                if (num2 <= closestDistSquared && StoreAcrossMapsUtility.IsGoodStoreCell(intVec, slotGroup.parent.Map, t, carrier, faction, out var exitSpot2, out var enterSpot2))
+                if (num2 <= closestDistSquared && StoreAcrossMapsUtility.IsGoodStoreCell(intVec, map, t, carrier, faction, out var exitSpot2, out var enterSpot2))
                 {
                     exitSpot = exitSpot2;
                     enterSpot = enterSpot2;
                     closestSlot = intVec;
                     closestDistSquared = num2;
                     foundPriority = slotGroup.Settings.Priority;
-                    destMap = slotGroup.parent.Map;
+                    destMap = map;
                     if (i >= num)
                     {
                         break;
@@ -217,16 +217,11 @@ namespace VehicleInteriors
         public static bool TryFindBestBetterStorageFor(Thing t, Pawn carrier, Map map, StoragePriority currentPriority, Faction faction, out IntVec3 foundCell, out IHaulDestination haulDestination, bool needAccurateResult, out TargetInfo exitSpot, out TargetInfo enterSpot)
         {
             StoragePriority storagePriority = StoragePriority.Unstored;
-            TargetInfo exitSpot2 = TargetInfo.Invalid;
-            TargetInfo enterSpot2 = TargetInfo.Invalid;
-            if (StoreAcrossMapsUtility.TryFindBestBetterStoreCellFor(t, carrier, map, currentPriority, faction, out IntVec3 invalid, needAccurateResult, out exitSpot2, out enterSpot2, out var map2))
+            if (StoreAcrossMapsUtility.TryFindBestBetterStoreCellFor(t, carrier, map, currentPriority, faction, out IntVec3 invalid, needAccurateResult, out TargetInfo exitSpot2, out TargetInfo enterSpot2, out var map2))
             {
                 storagePriority = invalid.GetSlotGroup(map2)?.Settings.Priority ?? StoragePriority.Unstored;
             }
-            IHaulDestination haulDestination2;
-            TargetInfo exitSpot3 = TargetInfo.Invalid;
-            TargetInfo enterSpot3 = TargetInfo.Invalid;
-            if (!StoreAcrossMapsUtility.TryFindBestBetterNonSlotGroupStorageFor(t, carrier, map, currentPriority, faction, out haulDestination2, false, true, out exitSpot3, out enterSpot3))
+            if (!StoreAcrossMapsUtility.TryFindBestBetterNonSlotGroupStorageFor(t, carrier, map, currentPriority, faction, out IHaulDestination haulDestination2, false, true, out TargetInfo exitSpot3, out TargetInfo enterSpot3))
             {
                 haulDestination2 = null;
             }
@@ -348,6 +343,29 @@ namespace VehicleInteriors
                 }
             }
             return haulDestination != null;
+        }
+
+        public static bool TryFindBestBetterStoreCellForIn(Thing t, Pawn carrier, StoragePriority currentPriority, Faction faction, ISlotGroup slotGroup, out IntVec3 foundCell, bool needAccurateResult, out TargetInfo exitSpot, out TargetInfo enterSpot)
+        {
+            foundCell = IntVec3.Invalid;
+            exitSpot = TargetInfo.Invalid;
+            enterSpot = TargetInfo.Invalid;
+            Map destMap = null;
+            Map map = null;
+            var owner = slotGroup.Settings.owner;
+            if (!(owner is StorageGroup storageGroup))
+            {
+                if (owner is IHaulDestination haulDestination) map = haulDestination.Map;
+                else if (owner is IHaulSource haulSource) map = haulSource.Map;
+                else if (owner is ISlotGroupParent slotGroupParent) map = slotGroupParent.Map;
+            }
+            else
+            {
+                map = storageGroup.Map;
+            }
+            float closestDistSquared = 2.14748365E+09f;
+            TryFindBestBetterStoreCellForWorker(t, carrier, map, faction, slotGroup, needAccurateResult, ref foundCell, ref closestDistSquared, ref currentPriority, ref exitSpot, ref enterSpot, ref destMap);
+            return foundCell.IsValid;
         }
 
         private static readonly AccessTools.FieldRef<Pawn_PlayerSettings, Dictionary<Map, Area>> allowedAreas = AccessTools.FieldRefAccess<Pawn_PlayerSettings, Dictionary<Map, Area>>("allowedAreas");

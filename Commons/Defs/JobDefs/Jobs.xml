@@ -212,4 +212,28 @@
 		<reportString>Entering TargetA.</reportString>
 		<casualInterruptible>false</casualInterruptible>
 	</JobDef>
+
+	<JobDef>
+		<defName>VIF_RefuelAcrossMaps</defName>
+		<driverClass>VehicleInteriors.JobDriver_RefuelAcrossMaps</driverClass>
+		<reportString>refueling TargetA.</reportString>
+		<suspendable>false</suspendable>
+		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
+	</JobDef>
+	
+	<JobDef>
+		<defName>VIF_RefuelAtomicAcrossMaps</defName>
+		<driverClass>VehicleInteriors.JobDriver_RefuelAtomicAcrossMaps</driverClass>
+		<reportString>refueling TargetA.</reportString>
+		<suspendable>false</suspendable>
+		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
+	</JobDef>
+
+	<JobDef>
+		<defName>VIF_DoBillAcrossMaps</defName>
+		<driverClass>VehicleInteriors.JobDriver_DoBillAcrossMaps</driverClass>
+		<reportString>doing bill at TargetA.</reportString>
+		<suspendable>false</suspendable>
+		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
+	</JobDef>
 </Defs>

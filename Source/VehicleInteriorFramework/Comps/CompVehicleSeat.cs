@@ -38,9 +38,8 @@ namespace VehicleInteriors
                                 Messages.Message("VF_HandlerNotEnoughRoom".Translate(selPawn, vehicle), MessageTypeDefOf.RejectInput, false);
                                 return;
                             }
-                            Job job = new Job(VIF_DefOf.VIF_BoardAcrossMaps, this.parent);
+                            Job job = new Job(VIF_DefOf.VIF_BoardAcrossMaps, this.parent).SetSpotsToJobAcrossMaps(selPawn, exitSpot, enterSpot);
                             vehicle.GiveLoadJob(selPawn, handler);
-                            job.SetSpotsToJobAcrossMaps(selPawn, exitSpot, enterSpot);
                             selPawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.DraftedOrder), false);
                             if (!selPawn.Spawned)
                             {

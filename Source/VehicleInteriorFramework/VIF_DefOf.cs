@@ -78,6 +78,12 @@ namespace VehicleInteriors
 
         public static JobDef VIF_BoardAcrossMaps;
 
+        public static JobDef VIF_RefuelAcrossMaps;
+
+        public static JobDef VIF_RefuelAtomicAcrossMaps;
+
+        public static JobDef VIF_DoBillAcrossMaps;
+
         public static VehicleStatDef MaximumPayload;
     }
 }

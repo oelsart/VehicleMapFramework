@@ -178,6 +178,21 @@ namespace VehicleInteriors
             }
         }
 
+        public static bool ReserveSittableOrSpot(this Pawn pawn, Map map, IntVec3 exactSittingPos, Job job, bool errorOnFailed = true)
+        {
+            Building edifice = exactSittingPos.GetEdifice(map);
+            if (exactSittingPos.Impassable(map))
+            {
+                Log.Error("Tried reserving impassable sittable or spot.");
+                return false;
+            }
+            if (edifice == null || edifice.def.building.multiSittable)
+            {
+                return pawn.Reserve(map, exactSittingPos, job, 1, -1, null, errorOnFailed, false);
+            }
+            return (edifice == null || !edifice.def.building.isSittable || !edifice.def.hasInteractionCell || !(exactSittingPos != edifice.InteractionCell)) && pawn.Reserve(map, edifice, job, 1, -1, null, errorOnFailed, false);
+        }
+
         public static bool CanReserveAndReach(this Pawn p, Map targMap, LocalTargetInfo target, PathEndMode peMode, Danger maxDanger, int maxPawns, int stackCount, ReservationLayerDef layer, bool ignoreOtherReservations, out TargetInfo exitSpot, out TargetInfo enterSpot)
         {
             exitSpot = null;
@@ -219,6 +234,40 @@ namespace VehicleInteriors
                 }
             }
             return false;
+        }
+
+        public static bool CanReserveSittableOrSpot_NewTemp(this Pawn pawn, Map map, IntVec3 exactSittingPos, Thing ignoreThing, bool ignoreOtherReservations = false)
+        {
+            Building edifice = exactSittingPos.GetEdifice(map);
+            if (exactSittingPos.Impassable(map) || exactSittingPos.IsForbidden(pawn))
+            {
+                return false;
+            }
+
+            for (int i = 0; i < 4; i++)
+            {
+                IntVec3 c = exactSittingPos + GenAdj.CardinalDirections[i];
+                if (c.InBounds(map))
+                {
+                    Building edifice2 = c.GetEdifice(map);
+                    if (edifice2 != null && edifice2 != ignoreThing && edifice2.def.hasInteractionCell && edifice2.InteractionCell == exactSittingPos && map.reservationManager.TryGetReserver(edifice2, pawn.Faction, out var reserver) && reserver.Spawned && reserver != pawn)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            if (edifice == null || edifice.def.building.multiSittable)
+            {
+                return pawn.CanReserve(exactSittingPos, map, 1, -1, null, ignoreOtherReservations);
+            }
+
+            if (edifice.def.building.isSittable && edifice.def.hasInteractionCell && exactSittingPos != edifice.InteractionCell)
+            {
+                return false;
+            }
+
+            return pawn.CanReserve(edifice, map, 1, -1, null, ignoreOtherReservations);
         }
     }
 }
