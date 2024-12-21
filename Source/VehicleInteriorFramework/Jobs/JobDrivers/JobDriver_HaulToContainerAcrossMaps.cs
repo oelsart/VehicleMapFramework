@@ -105,10 +105,8 @@ namespace VehicleInteriors
         private bool TryReplaceWithFrame(TargetIndex index)
         {
             Thing thing = base.GetActor().jobs.curJob.GetTarget(index).Thing;
-            Building edifice = thing.Position.GetEdifice(this.Map);
-            Blueprint_Build blueprint_Build;
-            Frame frame;
-            if (edifice != null && (blueprint_Build = (thing as Blueprint_Build)) != null && (frame = (edifice as Frame)) != null && frame.BuildDef == blueprint_Build.BuildDef)
+            Building edifice = thing.Position.GetEdifice(thing.Map);
+            if (edifice != null && thing is Blueprint_Build blueprint_Build && edifice is Frame frame && frame.BuildDef == blueprint_Build.BuildDef)
             {
                 this.job.SetTarget(TargetIndex.B, frame);
                 return true;
@@ -137,7 +135,7 @@ namespace VehicleInteriors
                     {
                         return true;
                     }
-                    if (!Toils_Haul.TryGetNextDestinationFromQueue(TargetIndex.C, TargetIndex.B, this.ThingDef, this.job, this.pawn, out Thing nextTarget))
+                    if (!ToilsAcrossMaps.TryGetNextDestinationFromQueue(TargetIndex.C, TargetIndex.B, this.ThingDef, this.job, this.pawn, out Thing nextTarget))
                     {
                         return true;
                     }

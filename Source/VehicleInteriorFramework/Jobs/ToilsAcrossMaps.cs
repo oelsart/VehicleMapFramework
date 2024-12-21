@@ -908,6 +908,46 @@ namespace VehicleInteriors
             return toil;
         }
 
+        public static bool TryGetNextDestinationFromQueue(TargetIndex primaryIndex, TargetIndex destIndex, ThingDef stuff, Job job, Pawn actor, out Thing target)
+        {
+            Thing primaryTarget = job.GetTarget(primaryIndex).Thing;
+            target = null;
+            if (actor.carryTracker?.CarriedThing == null)
+            {
+                return false;
+            }
+
+            bool hasSpareItems = actor.carryTracker.CarriedThing.stackCount > 0;
+            if (primaryTarget != null && primaryTarget.Spawned && primaryTarget is IHaulEnroute enroute)
+            {
+                int spaceRemainingWithEnroute = enroute.GetSpaceRemainingWithEnroute(stuff, actor);
+                hasSpareItems = actor.carryTracker.CarriedThing.stackCount > spaceRemainingWithEnroute;
+            }
+
+            target = GenClosestOnVehicle.ClosestThing_Global_Reachable(actor.Position, actor.Map, from x in job.GetTargetQueue(destIndex)
+                                                                                         select x.Thing, PathEndMode.Touch, TraverseParms.For(actor), 99999f, Validator, null);
+            return target != null;
+            bool Validator(Thing th)
+            {
+                if (!(th is IHaulEnroute enroute2))
+                {
+                    return false;
+                }
+
+                if (enroute2.GetSpaceRemainingWithEnroute(stuff, actor) <= 0)
+                {
+                    return false;
+                }
+
+                if (th != primaryTarget && !hasSpareItems)
+                {
+                    return false;
+                }
+
+                return true;
+            }
+        }
+
         public static T FailOnForbidden<T>(this T f, TargetIndex ind) where T : IJobEndable
         {
             f.AddEndCondition(delegate

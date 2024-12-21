@@ -1,5 +1,4 @@
-﻿using HarmonyLib;
-using RimWorld;
+﻿using RimWorld;
 using System.Collections.Generic;
 using System.Linq;
 using Verse;
@@ -13,28 +12,32 @@ namespace VehicleInteriors
 
         private static string SkillTooLowTrans = "SkillTooLowForConstruction".Translate();
 
-        //private static string IncapableOfDeconstruction = "IncapableOfDeconstruction".Translate();
+        private static string IncapableOfDeconstruction = "IncapableOfDeconstruction".Translate();
 
         //private static string IncapableOfMining = "IncapableOfMining".Translate();
 
-        //private static string TreeMarkedForExtraction = "TreeMarkedForExtraction".Translate();
+        private static string TreeMarkedForExtraction = "TreeMarkedForExtraction".Translate();
 
         private static readonly List<string> tmpIdeoMemberNames = new List<string>();
 
-        public static bool CanConstruct(Thing t, Pawn pawn, WorkTypeDef workType, bool forced = false, JobDef jobForReservation = null)
+        public static bool CanConstruct(Thing t, Pawn pawn, WorkTypeDef workType, bool forced, JobDef jobForReservation, out TargetInfo exitSpot, out TargetInfo enterSpot)
         {
             if (!forced && !pawn.workSettings.WorkIsActive(workType))
             {
                 JobFailReason.Is("NotAssignedToWorkType".Translate(workType.gerundLabel).CapitalizeFirst());
+                exitSpot = TargetInfo.Invalid;
+                enterSpot = TargetInfo.Invalid;
                 return false;
             }
 
-            return CanConstruct(t, pawn, workType == WorkTypeDefOf.Construction, forced, jobForReservation);
+            return CanConstruct(t, pawn, workType == WorkTypeDefOf.Construction, forced, jobForReservation, out exitSpot, out enterSpot);
         }
 
-        public static bool CanConstruct(Thing t, Pawn p, bool checkSkills = true, bool forced = false, JobDef jobForReservation = null)
+        public static bool CanConstruct(Thing t, Pawn p, bool checkSkills, bool forced, JobDef jobForReservation, out TargetInfo exitSpot, out TargetInfo enterSpot)
         {
             GenConstructOnVehicle.tmpIdeoMemberNames.Clear();
+            exitSpot = TargetInfo.Invalid;
+            enterSpot = TargetInfo.Invalid;
             if (GenConstruct.FirstBlockingThing(t, p) != null)
             {
                 return false;
@@ -52,13 +55,13 @@ namespace VehicleInteriors
                     return false;
                 }
 
-                if (!p.CanReach(t, PathEndMode.Touch, forced ? Danger.Deadly : p.NormalMaxDanger(), false, false, TraverseMode.ByPawn, t.Map, out _, out _))
+                if (!p.CanReach(t, PathEndMode.Touch, forced ? Danger.Deadly : p.NormalMaxDanger(), false, false, TraverseMode.ByPawn, t.Map, out exitSpot, out enterSpot))
                 {
                     JobFailReason.Is("NoPath".Translate());
                     return false;
                 }
             }
-            else if (!p.CanReserveAndReach(t.Map, t, PathEndMode.Touch, forced ? Danger.Deadly : p.NormalMaxDanger(), 1, -1, null, forced, out _, out _))
+            else if (!p.CanReserveAndReach(t.Map, t, PathEndMode.Touch, forced ? Danger.Deadly : p.NormalMaxDanger(), 1, -1, null, forced, out exitSpot, out enterSpot))
             {
                 return false;
             }
@@ -144,6 +147,70 @@ namespace VehicleInteriors
             }
 
             return true;
+        }
+
+        public static Job HandleBlockingThingJob(Thing constructible, Pawn worker, bool forced = false)
+        {
+            Thing thing = GenConstruct.FirstBlockingThing(constructible, worker);
+            if (thing == null)
+            {
+                return null;
+            }
+
+            if (thing.def.category == ThingCategory.Plant)
+            {
+                if (!PlantUtility.PawnWillingToCutPlant_Job(thing, worker))
+                {
+                    return null;
+                }
+
+                if (PlantUtility.TreeMarkedForExtraction(thing))
+                {
+                    JobFailReason.Is(TreeMarkedForExtraction);
+                    return null;
+                }
+
+                if (worker.CanReserveAndReach(thing.Map, thing, PathEndMode.ClosestTouch, worker.NormalMaxDanger(), 1, -1, null, forced, out var exitSpot, out var enterSpot))
+                {
+                    return JobAcrossMapsUtility.GotoDestMapJob(worker, exitSpot, enterSpot, JobMaker.MakeJob(JobDefOf.CutPlant, thing));
+                }
+            }
+            else if (thing.def.category == ThingCategory.Item)
+            {
+                if (thing.def.EverHaulable)
+                {
+                    return HaulAIAcrossMapsUtility.HaulAsideJobFor(worker, thing);
+                }
+
+                Log.ErrorOnce(string.Concat("Never haulable ", thing, " blocking ", constructible.ToStringSafe(), " at ", constructible.Position), 6429262);
+            }
+            else if (thing.def.category == ThingCategory.Building)
+            {
+                if (((Building)thing).DeconstructibleBy(worker.Faction))
+                {
+                    if (worker.WorkTypeIsDisabled(WorkTypeDefOf.Construction) || (worker.workSettings != null && !worker.workSettings.WorkIsActive(WorkTypeDefOf.Construction)))
+                    {
+                        JobFailReason.Is(IncapableOfDeconstruction);
+                        return null;
+                    }
+
+                    if (worker.CanReserveAndReach(thing.Map, thing, PathEndMode.Touch, worker.NormalMaxDanger(), 1, -1, null, forced, out var exitSpot, out var enterSpot))
+                    {
+                        Job job = JobMaker.MakeJob(JobDefOf.Deconstruct, thing);
+                        job.ignoreDesignations = true;
+                        return JobAcrossMapsUtility.GotoDestMapJob(worker, exitSpot, enterSpot, job);
+                    }
+                }
+
+                if (thing.def.mineable && worker.CanReserveAndReach(thing.Map, thing, PathEndMode.Touch, worker.NormalMaxDanger(), 1, -1, null, forced, out var exitSpot2, out var enterSpot2))
+                {
+                    Job job2 = JobMaker.MakeJob(JobDefOf.Mine, thing);
+                    job2.ignoreDesignations = true;
+                    return JobAcrossMapsUtility.GotoDestMapJob(worker, exitSpot2, enterSpot2, job2);
+                }
+            }
+
+            return null;
         }
     }
 }

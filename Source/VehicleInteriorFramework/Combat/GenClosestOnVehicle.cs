@@ -18,17 +18,17 @@ namespace VehicleInteriors
                 Log.Error("Cannot do ClosestThingReachable searching everything without restriction.");
                 return true;
             }
-            if (!start.InBounds(map)) return true;
-            //{
-            //    Log.Error(string.Concat(new object[]
-            //    {
-            //        "Did FindClosestThing with start out of bounds (",
-            //        start,
-            //        "), thingReq=",
-            //        thingReq
-            //    }));
-            //    return true;
-            //}
+            if (!start.InBounds(map))
+            {
+                Log.Error(string.Concat(new object[]
+                {
+                    "Did FindClosestThing with start out of bounds (",
+                    start,
+                    "), thingReq=",
+                    thingReq
+                }));
+                return true;
+            }
             var baseMap = map.BaseMap();
             return thingReq.group == ThingRequestGroup.Nothing || ((thingReq.IsUndefined || baseMap.listerThings.ThingsMatching(thingReq).ConcatIfNotNull(VehiclePawnWithMapCache.allVehicles[baseMap].SelectMany((VehiclePawnWithMap v) => v.interiorMap.listerThings.ThingsMatching(thingReq))).Count() == 0) && customGlobalSearchSet.EnumerableNullOrEmpty<Thing>());
         }
@@ -197,6 +197,8 @@ namespace VehicleInteriors
                         return;
                     }
                 }
+                GenClosestOnVehicle.exitSpotResult = GenClosestOnVehicle.tmpExitSpot;
+                GenClosestOnVehicle.enterSpotResult = GenClosestOnVehicle.tmpEnterSpot;
                 chosen = t;
                 closestDistSquared = distSquared;
                 bestPrio = num;

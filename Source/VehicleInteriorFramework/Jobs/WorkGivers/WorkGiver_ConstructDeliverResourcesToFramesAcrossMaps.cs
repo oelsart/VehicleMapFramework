@@ -26,18 +26,18 @@ namespace VehicleInteriors
             }
             if (GenConstruct.FirstBlockingThing(frame, pawn) != null)
             {
-                var job = GenConstruct.HandleBlockingThingJob(frame, pawn, forced);
-                if (job != null && pawn.Map != frame.Map && pawn.CanReach(frame, this.PathEndMode, this.MaxPathDanger(pawn), false, false, TraverseMode.ByPawn, frame.Map, out var exitSpot, out var enterSpot))
-                {
-                    return job;
-                }
-                return GenConstruct.HandleBlockingThingJob(frame, pawn, forced);
+                return GenConstructOnVehicle.HandleBlockingThingJob(frame, pawn, forced);
             }
-            if (!GenConstructOnVehicle.CanConstruct(frame, pawn, this.def.workType, forced, VIF_DefOf.VIF_HaulToCellAcrossMaps))
+            if (!GenConstructOnVehicle.CanConstruct(frame, pawn, this.def.workType, forced, VIF_DefOf.VIF_HaulToCellAcrossMaps, out var exitSpot, out var enterSpot))
             {
                 return null;
             }
-            return base.ResourceDeliverJobFor(pawn, frame, true, forced);
+            var job = base.ResourceDeliverJobFor(pawn, frame, true, forced);
+            if (job != null)
+            {
+                return JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, job);
+            }
+            return null;
         }
     }
 }

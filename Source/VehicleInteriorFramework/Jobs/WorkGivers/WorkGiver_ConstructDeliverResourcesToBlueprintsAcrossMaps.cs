@@ -26,14 +26,9 @@ namespace VehicleInteriors
             }
             if (GenConstruct.FirstBlockingThing(blueprint, pawn) != null)
             {
-                var job = GenConstruct.HandleBlockingThingJob(blueprint, pawn, forced);
-                if (job != null && pawn.Map != blueprint.Map && pawn.CanReach(blueprint, this.PathEndMode, this.MaxPathDanger(pawn), false, false, TraverseMode.ByPawn, blueprint.Map, out var exitSpot, out var enterSpot))
-                {
-                    return JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot);
-                }
-                return job;
+                return GenConstructOnVehicle.HandleBlockingThingJob(blueprint, pawn, forced);
             }
-            if (!GenConstructOnVehicle.CanConstruct(blueprint, pawn, this.def.workType, forced, JobDefOf.HaulToContainer))
+            if (!GenConstructOnVehicle.CanConstruct(blueprint, pawn, this.def.workType, forced, JobDefOf.HaulToContainer, out var exitSpot, out var enterSpot))
             {
                 return null;
             }
@@ -44,27 +39,19 @@ namespace VehicleInteriors
             Job job2 = base.RemoveExistingFloorJob(pawn, blueprint);
             if (job2 != null)
             {
-                if (pawn.Map != blueprint.Map && pawn.CanReach(blueprint, this.PathEndMode, this.MaxPathDanger(pawn), false, false, TraverseMode.ByPawn, blueprint.Map, out var exitSpot, out var enterSpot))
-                {
-                    return JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot);
-                }
-                return job2;
+                return JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, job2);
             }
             Job job3 = base.ResourceDeliverJobFor(pawn, blueprint, true, forced);
             if (job3 != null)
             {
-                return job3;
+                return JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, job3);
             }
             if (this.def.workType != WorkTypeDefOf.Hauling)
             {
                 Job job4 = this.NoCostFrameMakeJobFor(blueprint);
                 if (job4 != null)
                 {
-                    if (pawn.Map != blueprint.Map && pawn.CanReach(blueprint, this.PathEndMode, this.MaxPathDanger(pawn), false, false, TraverseMode.ByPawn, blueprint.Map, out var exitSpot, out var enterSpot))
-                    {
-                        return JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot);
-                    }
-                    return job4;
+                    return JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, job4);
                 }
             }
             return null;

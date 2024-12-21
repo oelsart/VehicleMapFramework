@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using RimWorld;
+using SmashTools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,28 +28,25 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         //目的のthingとpawnのMapが違った場合目的のマップに行くJobにすり替える
         public static void Postfix(ref ThinkResult __result, Pawn pawn)
         {
-            if (__result == ThinkResult.NoJob) return;
+            if (__result == ThinkResult.NoJob || (__result.Job.workGiverDef?.Worker is WorkGiver_Scanner scanner && scanner.AllowUnreachable)) return;
 
             var driver = __result.Job.GetCachedDriver(pawn);
             if (!(driver is JobDriverAcrossMaps))
             {
-                var thing = __result.Job.targetA.Thing;
-                if (thing != null && pawn.Map != thing.MapHeld && pawn.CanReach(thing, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, thing.Map, out var exitSpot, out var enterSpot))
+                var thing = __result.Job.targetA.Thing ?? __result.Job.targetQueueA.FirstOrDefault().Thing;
+                if (thing != null && !__result.Job.targetB.IsValid && pawn.Map != thing.MapHeld && pawn.CanReach(thing, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, thing.Map, out var exitSpot, out var enterSpot))
                 {
-                    var job = JobMaker.MakeJob(VIF_DefOf.VIF_GotoDestMap);
-                    var driver2 = job.GetCachedDriver(pawn) as JobDriver_GotoDestMap;
-                    driver2.SetSpots(exitSpot, enterSpot);
-                    driver2.nextJob = __result.Job;
+                    var job = JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, __result.Job);
                     __result = new ThinkResult(job, __result.SourceNode, __result.Tag, __result.FromQueue);
                 }
             }
         }
 
-        //サーチセットに複数マップのthingリストを足す
-        //GenClosestの各メソッドを自作のものに置き換える
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             var codes = instructions.ToList();
+
+            //サーチセットに複数マップのthingリストを足す
             var pos = codes.FindIndex(c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalIndex == 17);
 
             var pos2 = codes.FindLastIndex(pos, c => c.opcode == OpCodes.Ldloc_S && ((LocalBuilder)c.operand).LocalIndex == 9);
@@ -70,14 +68,16 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             codes.InsertRange(pos, addedCodes);
 
             var pos4 = codes.FindIndex(pos, c => c.opcode == OpCodes.Callvirt && c.OperandIs(MethodInfoCache.g_Thing_Position));
-            codes[pos4] = new CodeInstruction(OpCodes.Call, MethodInfoCache.m_PositionOnBaseMap);
+            //codes[pos4] = new CodeInstruction(OpCodes.Call, MethodInfoCache.m_PositionOnBaseMap);
 
             var pos5 = codes.FindIndex(pos4, c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalIndex == 19);
             codes.InsertRange(pos5, addedCodes);
 
-            var pos6 = codes.FindIndex(pos5, c => c.opcode == OpCodes.Callvirt && c.OperandIs(MethodInfoCache.g_Thing_Position));
-            codes[pos6] = new CodeInstruction(OpCodes.Call, MethodInfoCache.m_PositionOnBaseMap);
+            //var pos6 = codes.FindIndex(pos5, c => c.opcode == OpCodes.Callvirt && c.OperandIs(MethodInfoCache.g_Thing_Position));
+            //codes[pos6] = new CodeInstruction(OpCodes.Call, MethodInfoCache.m_PositionOnBaseMap);
 
+            //GenClosestの各メソッドを自作のものに置き換える
+            //PotentialWorkThingsGlobalの各マップの結果を合計
             var m_GenClosest_ClosestThing_Global = AccessTools.Method(typeof(GenClosest), nameof(GenClosest.ClosestThing_Global));
             var m_GenClosestOnVehicle_ClosestThing_Global = AccessTools.Method(typeof(GenClosestOnVehicle), nameof(GenClosestOnVehicle.ClosestThing_Global),
                 new[] { typeof(IntVec3), typeof(IEnumerable<>), typeof(float), typeof(Predicate<Thing>), typeof(Func<Thing, float>) } );
@@ -110,14 +110,23 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         private static IEnumerable<Thing> PotentialWorkThingsGlobalAll(WorkGiver_Scanner scanner, Pawn pawn)
         {
             var map = pawn.Map;
+            var anyNotNull = false;
             var enumerable = pawn.Map.BaseMapAndVehicleMaps().SelectMany(m =>
             {
                 pawn.VirtualMapTransfer(m);
-                var things = (scanner.PotentialWorkThingsGlobal(pawn) ?? Enumerable.Empty<Thing>()).ToArray(); //こうしないとnullがconcatされて困るっぽい //あとToArray
-                pawn.VirtualMapTransfer(map);
+                var things = scanner.PotentialWorkThingsGlobal(pawn);
+                if (things != null)
+                {
+                    anyNotNull = true;
+                }
+                else
+                {
+                    things = Enumerable.Empty<Thing>(); //こうしないとnullがconcatされて困るっぽい
+                }
                 return things;
-            });
-            return enumerable;
+            }).ToList();
+            pawn.VirtualMapTransfer(map);
+            return anyNotNull ? enumerable : null; //こうしないとPotentialWorkThingRequestによるサーチセット作成が行われないよ
         }
     }
 
@@ -139,9 +148,9 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             {
                 pawn.VirtualMapTransfer(m);
                 var skip = workGiver.ShouldSkip(pawn, forced);
-                pawn.VirtualMapTransfer(map);
                 return skip;
             });
+            pawn.VirtualMapTransfer(map);
             return result;
         }
     }
@@ -167,9 +176,9 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             {
                 pawn.VirtualMapTransfer(m);
                 var hasJob = scanner.HasJobOnThing(pawn, t, forced);
-                pawn.VirtualMapTransfer(map);
                 return hasJob;
             });
+            pawn.VirtualMapTransfer(map);
             return result;
         }
         private static readonly MethodInfo m_Scanner_HasJobOnThing = AccessTools.Method(typeof(WorkGiver_Scanner), nameof(WorkGiver_Scanner.HasJobOnThing));

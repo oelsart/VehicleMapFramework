@@ -116,7 +116,7 @@ namespace VehicleInteriors
                             Thing thing;
                             if (hashSet.Count > 0)
                             {
-                                thing = hashSet.MinBy((Thing needer) => IntVec3Utility.ManhattanDistanceFlat(foundRes.PositionOnBaseMap(), needer.PositionOnBaseMap()));
+                                thing = hashSet.MinBy((Thing needer) => IntVec3Utility.ManhattanDistanceFlat(foundRes.Position, needer.Position));
                                 hashSet.Remove(thing);
                             }
                             else
@@ -231,15 +231,14 @@ namespace VehicleInteriors
             {
                 foreach (Thing thing3 in GenRadial.RadialDistinctThingsAround(thing.Position, thing.Map, 3f, false))
                 {
-                    Blueprint blue2;
-                    if (this.IsNewValidNearbyNeeder(thing3, hashSet, c, pawn) && (blue2 = (thing3 as Blueprint)) != null)
+                    if (this.IsNewValidNearbyNeeder(thing3, hashSet, c, pawn) && thing3 is Blueprint blue2)
                     {
                         Job job = this.RemoveExistingFloorJob(pawn, blue2);
                         if (job != null)
                         {
                             if (blue2.Map != pawn.Map && pawn.CanReach(blue2, this.PathEndMode, this.MaxPathDanger(pawn), false, false, TraverseMode.ByPawn, blue2.Map, out var exitSpot, out var enterSpot))
                             {
-                                jobToMakeNeederAvailable = JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot);
+                                jobToMakeNeederAvailable = JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, job);
                             }
                             else
                             {
