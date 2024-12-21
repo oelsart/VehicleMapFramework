@@ -1,11 +1,14 @@
 ﻿using RimWorld;
+using VehicleInteriors.Jobs.WorkGivers;
 using Verse;
 using Verse.AI;
 
 namespace VehicleInteriors
 {
-    public class WorkGiver_RefuelAcrossMaps : WorkGiver_Scanner
+    public class WorkGiver_RefuelAcrossMaps : WorkGiver_Scanner, IWorkGiverAcrossMaps
     {
+        public bool NeedWrapWithGotoDestJob => false;
+
         public override ThingRequest PotentialWorkThingRequest
         {
             get

@@ -17,7 +17,7 @@ namespace VehicleInteriors
             {
                 return false;
             }
-            if (!p.CanReach(t, PathEndMode.ClosestTouch, p.NormalMaxDanger(), false, false, TraverseMode.ByPawn, t.Map, out exitSpot, out enterSpot))
+            if (!p.CanReach(t, PathEndMode.ClosestTouch, p.NormalMaxDanger(), false, false, TraverseMode.ByPawn, t.MapHeld, out exitSpot, out enterSpot))
             {
                 return false;
             }

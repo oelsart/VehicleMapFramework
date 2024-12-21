@@ -518,11 +518,19 @@ namespace VehicleInteriors
             mapIndexOrState(thing) = (sbyte)map.Index;
         }
 
+        public static void VirtualMapTransfer(this Thing thing, Map map, IntVec3 c)
+        {
+            mapIndexOrState(thing) = (sbyte)map.Index;
+            positionInt(thing) = c;
+        }
+
         public static Map tmpActualMap;
 
         public static Rot4 rotForPrint = Rot4.North;
 
         private static readonly AccessTools.FieldRef<Thing, sbyte> mapIndexOrState = AccessTools.FieldRefAccess<Thing, sbyte>("mapIndexOrState");
+
+        private static readonly AccessTools.FieldRef<Thing, IntVec3> positionInt = AccessTools.FieldRefAccess<Thing, IntVec3>("positionInt");
 
         public const float altitudeOffset = 0.09615385f;
 

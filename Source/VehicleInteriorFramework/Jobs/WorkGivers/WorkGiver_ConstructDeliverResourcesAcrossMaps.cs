@@ -2,13 +2,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using VehicleInteriors.Jobs.WorkGivers;
 using Verse;
 using Verse.AI;
 
 namespace VehicleInteriors
 {
-    public abstract class WorkGiver_ConstructDeliverResourcesAcrossMaps : WorkGiver_Scanner
+    public abstract class WorkGiver_ConstructDeliverResourcesAcrossMaps : WorkGiver_Scanner, IWorkGiverAcrossMaps
     {
+        public bool NeedWrapWithGotoDestJob => false;
+
         public override Danger MaxPathDanger(Pawn pawn)
         {
             return Danger.Deadly;

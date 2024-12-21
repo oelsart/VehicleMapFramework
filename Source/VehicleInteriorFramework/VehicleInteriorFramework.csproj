@@ -110,6 +110,7 @@
     <Compile Include="Jobs\JobDrivers\JobDriver_RefuelAcrossMaps.cs" />
     <Compile Include="Jobs\JobDrivers\JobDriver_RefuelAtomicAcrossMaps.cs" />
     <Compile Include="Jobs\RefuelWorkGiverUtilityOnVehicle.cs" />
+    <Compile Include="Jobs\WorkGivers\IWorkGiverAcrossMaps.cs" />
     <Compile Include="Jobs\WorkGivers\WorkGiverUtilityOnVehicle.cs" />
     <Compile Include="Jobs\WorkGivers\WorkGiver_ConstructDeliverResourcesAcrossMaps.cs" />
     <Compile Include="Jobs\WorkGivers\WorkGiver_ConstructDeliverResourcesToBlueprintsAcrossMaps.cs" />

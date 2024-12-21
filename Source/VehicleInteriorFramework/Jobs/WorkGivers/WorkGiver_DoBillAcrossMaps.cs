@@ -3,13 +3,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using VehicleInteriors.Jobs.WorkGivers;
 using Verse;
 using Verse.AI;
 
 namespace VehicleInteriors
 {
-    public class WorkGiver_DoBillAcrossMaps : WorkGiver_Scanner
+    public class WorkGiver_DoBillAcrossMaps : WorkGiver_Scanner, IWorkGiverAcrossMaps
     {
+        public bool NeedWrapWithGotoDestJob => false;
+
         private class DefCountList
         {
             private readonly List<ThingDef> defs = new List<ThingDef>();

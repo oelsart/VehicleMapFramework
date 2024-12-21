@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using VehicleInteriors.Jobs.WorkGivers;
 using Verse;
 using Verse.AI;
 
@@ -26,21 +27,21 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     public static class Patch_JobGiver_Work_TryIssueJobPackage
     {
         //目的のthingとpawnのMapが違った場合目的のマップに行くJobにすり替える
-        public static void Postfix(ref ThinkResult __result, Pawn pawn)
-        {
-            if (__result == ThinkResult.NoJob || (__result.Job.workGiverDef?.Worker is WorkGiver_Scanner scanner && scanner.AllowUnreachable)) return;
+        //public static void Postfix(ref ThinkResult __result, Pawn pawn)
+        //{
+        //    if (__result == ThinkResult.NoJob || (__result.Job.workGiverDef?.Worker is WorkGiver_Scanner scanner && scanner.AllowUnreachable)) return;
 
-            var driver = __result.Job.GetCachedDriver(pawn);
-            if (!(driver is JobDriverAcrossMaps))
-            {
-                var thing = __result.Job.targetA.Thing ?? __result.Job.targetQueueA.FirstOrDefault().Thing;
-                if (thing != null && !__result.Job.targetB.IsValid && pawn.Map != thing.MapHeld && pawn.CanReach(thing, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, thing.Map, out var exitSpot, out var enterSpot))
-                {
-                    var job = JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, __result.Job);
-                    __result = new ThinkResult(job, __result.SourceNode, __result.Tag, __result.FromQueue);
-                }
-            }
-        }
+        //    var driver = __result.Job.GetCachedDriver(pawn);
+        //    if (!(driver is JobDriverAcrossMaps))
+        //    {
+        //        var thing = __result.Job.targetA.Thing ?? __result.Job.targetQueueA.FirstOrDefault().Thing;
+        //        if (thing != null && !__result.Job.targetB.IsValid && pawn.Map != thing.MapHeld && pawn.CanReach(thing, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, thing.Map, out var exitSpot, out var enterSpot))
+        //        {
+        //            var job = JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, __result.Job);
+        //            __result = new ThinkResult(job, __result.SourceNode, __result.Tag, __result.FromQueue);
+        //        }
+        //    }
+        //}
 
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
@@ -89,10 +90,13 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                 new[] { typeof(IntVec3), typeof(Map), typeof(ThingRequest), typeof(PathEndMode), typeof(TraverseParms), typeof(float), typeof(Predicate<Thing>), typeof(IEnumerable<Thing>), typeof(int), typeof(int), typeof(bool), typeof(RegionType), typeof(bool)});
             var m_Scanner_PotentialWorkThingsGlobal = AccessTools.Method(typeof(WorkGiver_Scanner), nameof(WorkGiver_Scanner.PotentialWorkThingsGlobal));
             var m_PotentialWorkThingsGlobalAll = AccessTools.Method(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(Patch_JobGiver_Work_TryIssueJobPackage.PotentialWorkThingsGlobalAll));
+            var m_Scanner_JobOnThing = AccessTools.Method(typeof(WorkGiver_Scanner), nameof(WorkGiver_Scanner.JobOnThing));
+            var m_JobOnThingMap = AccessTools.Method(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(Patch_JobGiver_Work_TryIssueJobPackage.JobOnThingMap));
             return codes.MethodReplacer(m_GenClosest_ClosestThing_Global, m_GenClosestOnVehicle_ClosestThing_Global)
                 .MethodReplacer(m_GenClosest_ClosestThing_Global_Reachable, m_GenClosestOnVehicle_ClosestThing_Global_Reachable)
                 .MethodReplacer(m_GenClosest_ClosestThingReachable, m_GenClosestOnVehicle_ClosestThingReachable)
-                .MethodReplacer(m_Scanner_PotentialWorkThingsGlobal, m_PotentialWorkThingsGlobalAll);
+                .MethodReplacer(m_Scanner_PotentialWorkThingsGlobal, m_PotentialWorkThingsGlobalAll)
+                .MethodReplacer(m_Scanner_JobOnThing, m_JobOnThingMap);
         }
 
         private static IEnumerable<Thing> AddSearchSet(List<Thing> list, Pawn pawn, WorkGiver_Scanner scanner)
@@ -128,13 +132,47 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             pawn.VirtualMapTransfer(map);
             return anyNotNull ? enumerable : null; //こうしないとPotentialWorkThingRequestによるサーチセット作成が行われないよ
         }
+
+        //マップと位置を仮想移動して出てきたJobをGotoDestMapでくるむ
+        private static Job JobOnThingMap(WorkGiver_Scanner scanner, Pawn pawn, Thing t, bool forced)
+        {
+            if (pawn.Map == t.MapHeld || scanner is IWorkGiverAcrossMaps workGiverAcrossMaps && !workGiverAcrossMaps.NeedWrapWithGotoDestJob)
+            {
+                return scanner.JobOnThing(pawn, t, forced);
+            }
+
+            var map = pawn.Map;
+            if (!scanner.AllowUnreachable)
+            {
+                if (pawn.CanReach(t, scanner.PathEndMode, scanner.MaxPathDanger(pawn), false, false, TraverseMode.ByPawn, t.MapHeld, out var exitSpot, out var enterSpot))
+                {
+                    var pos = pawn.Position;
+                    var dest = enterSpot.IsValid ? enterSpot.Cell : exitSpot.Cell;
+                    pawn.VirtualMapTransfer(t.MapHeld, dest);
+                    var job = scanner.JobOnThing(pawn, t, forced);
+                    pawn.VirtualMapTransfer(map, pos);
+
+                    var thing = job.targetA.Thing ?? job.targetQueueA.FirstOrDefault().Thing;
+                    if (thing != null && pawn.Map != thing.MapHeld)
+                    {
+                        return JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, job);
+                    }
+                    return job;
+                }
+                return null;
+            }
+            pawn.VirtualMapTransfer(t.MapHeld);
+            var job2 = scanner.JobOnThing(pawn, t, forced);
+            pawn.VirtualMapTransfer(map);
+            return job2;
+        }
     }
 
     //ShouldSkipはvehicleMapを含めた全てのマップでスキップするかチェックする
     [HarmonyPatch(typeof(JobGiver_Work), "PawnCanUseWorkGiver")]
     public static class Patch_JobGiver_Work_PawnCanUseWorkGiver
     {
-        public static IEnumerable<CodeInstruction> Transpiler (IEnumerable<CodeInstruction> instructions)
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             var m_WorkGiver_ShouldSkip = AccessTools.Method(typeof(WorkGiver), nameof(WorkGiver.ShouldSkip));
             var m_ShouldSkipAll = AccessTools.Method(typeof(Patch_JobGiver_Work_PawnCanUseWorkGiver), nameof(Patch_JobGiver_Work_PawnCanUseWorkGiver.ShouldSkipAll));
@@ -166,24 +204,40 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             return instructions.MethodReplacer(MethodInfoCache.m_ForbidUtility_IsForbidden, MethodInfoCache.m_ReservationAcrossMapsUtility_IsForbidden)
-                .MethodReplacer(m_Scanner_HasJobOnThing, m_HasJobOnThingAll);
+                .MethodReplacer(m_Scanner_HasJobOnThing, m_HasJobOnThingMap);
         }
 
-        private static bool HasJobOnThingAll(WorkGiver_Scanner scanner, Pawn pawn, Thing t, bool forced)
+        //目的のtに届く位置とマップに転移してからHasJobOnThingを走らせる
+        private static bool HasJobOnThingMap(WorkGiver_Scanner scanner, Pawn pawn, Thing t, bool forced)
         {
-            var map = pawn.Map;
-            var result = pawn.Map.BaseMapAndVehicleMaps().Any(m =>
+            if (pawn.Map == t.MapHeld)
             {
-                pawn.VirtualMapTransfer(m);
-                var hasJob = scanner.HasJobOnThing(pawn, t, forced);
-                return hasJob;
-            });
+                return scanner.HasJobOnThing(pawn, t, forced);
+            }
+
+            var map = pawn.Map;
+            if (!scanner.AllowUnreachable)
+            {
+                if (pawn.CanReach(t, scanner.PathEndMode, scanner.MaxPathDanger(pawn), false, false, TraverseMode.ByPawn, t.MapHeld, out var exitSpot, out var enterSpot))
+                {
+                    var pos = pawn.Position;
+                    var dest = enterSpot.IsValid ? enterSpot.Cell : exitSpot.Cell;
+                    pawn.VirtualMapTransfer(t.MapHeld, dest);
+                    var hasJob = scanner.HasJobOnThing(pawn, t, forced);
+                    pawn.VirtualMapTransfer(map, pos);
+                    return hasJob;
+                }
+                return false;
+            }
+            pawn.VirtualMapTransfer(t.MapHeld);
+            var hasJob2 = scanner.HasJobOnThing(pawn, t, forced);
             pawn.VirtualMapTransfer(map);
-            return result;
+            return hasJob2;
         }
+
         private static readonly MethodInfo m_Scanner_HasJobOnThing = AccessTools.Method(typeof(WorkGiver_Scanner), nameof(WorkGiver_Scanner.HasJobOnThing));
 
-        private static readonly MethodInfo m_HasJobOnThingAll = AccessTools.Method(typeof(Patch_JobGiver_Work_Validator), nameof(Patch_JobGiver_Work_Validator.HasJobOnThingAll));
+        private static readonly MethodInfo m_HasJobOnThingMap = AccessTools.Method(typeof(Patch_JobGiver_Work_Validator), nameof(Patch_JobGiver_Work_Validator.HasJobOnThingMap));
     }
 
 
