@@ -420,7 +420,7 @@ namespace VehicleInteriors
                 result = pos;
                 return true;
             }
-            if (!VehiclePawnWithMapCache.cacheMode && thing.IsOnVehicleMapOf(out var vehicle) && Find.CurrentMap != vehicle.interiorMap)
+            if (!VehiclePawnWithMapCache.cacheMode && thing.IsOnNonFocusedVehicleMapOf(out var vehicle))
             {
                 VehiclePawnWithMapCache.cacheMode = true;
                 var drawPos = thing.DrawPos;
@@ -481,6 +481,14 @@ namespace VehicleInteriors
         {
             VehiclePawnWithMapCache.cacheMode = true;
             var drawPos = thing.DrawPos;
+            VehiclePawnWithMapCache.cacheMode = false;
+            return drawPos;
+        }
+
+        public static Vector3 TrueCenterOrig(this Thing thing)
+        {
+            VehiclePawnWithMapCache.cacheMode = true;
+            var drawPos = thing.TrueCenter();
             VehiclePawnWithMapCache.cacheMode = false;
             return drawPos;
         }

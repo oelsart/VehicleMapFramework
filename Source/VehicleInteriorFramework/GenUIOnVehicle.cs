@@ -1,6 +1,7 @@
 ﻿using RimWorld;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using Verse;
 
@@ -127,7 +128,19 @@ namespace VehicleInteriors
             return B.Spawned.CompareTo(A.Spawned);
         }
 
-        public static IEnumerable<LocalTargetInfo> TargetsAt(Vector3 clickPos, TargetingParameters clickParams, bool thingsOnly, ITargetingSource source)
+        public static IEnumerable<LocalTargetInfo> TargetsAtMouse(TargetingParameters clickParams, bool thingsOnly = false, ITargetingSource source = null)
+        {
+            var clickPos = UI.MouseMapPosition();
+            if (clickPos.TryGetVehiclePawnWithMap(out var vehicle))
+            {
+                GenUIOnVehicle.vehicleForSelector = vehicle;
+            }
+            var list = GenUIOnVehicle.TargetsAt(clickPos, clickParams, thingsOnly, source, false).ToList();
+            GenUIOnVehicle.vehicleForSelector = null;
+            return list;
+        }
+
+        public static IEnumerable<LocalTargetInfo> TargetsAt(Vector3 clickPos, TargetingParameters clickParams, bool thingsOnly, ITargetingSource source, bool convToVehicleMap = true)
         {
             List<Thing> clickableList = GenUIOnVehicle.vehicleForSelector != null ?
                 GenUIOnVehicle.ThingsUnderMouse(clickPos, 0.8f, clickParams, source) :
@@ -136,8 +149,7 @@ namespace VehicleInteriors
             int num;
             for (int i = 0; i < clickableList.Count; i = num + 1)
             {
-                Pawn pawn;
-                if ((pawn = (clickableList[i] as Pawn)) == null || !pawn.IsPsychologicallyInvisible() || caster == null || caster.Faction == pawn.Faction)
+                if (!(clickableList[i] is Pawn pawn) || !pawn.IsPsychologicallyInvisible() || caster == null || caster.Faction == pawn.Faction)
                 {
                     yield return clickableList[i];
                 }
@@ -145,8 +157,8 @@ namespace VehicleInteriors
             }
             if (!thingsOnly)
             {
-                IntVec3 intVec = GenUIOnVehicle.vehicleForSelector != null ? clickPos.VehicleMapToOrig(GenUIOnVehicle.vehicleForSelector).ToIntVec3() : clickPos.ToIntVec3();
-                Map map = GenUIOnVehicle.vehicleForSelector != null ? GenUIOnVehicle.vehicleForSelector.interiorMap : Find.CurrentMap;
+                IntVec3 intVec = (convToVehicleMap && GenUIOnVehicle.vehicleForSelector != null) ? clickPos.VehicleMapToOrig(GenUIOnVehicle.vehicleForSelector).ToIntVec3() : clickPos.ToIntVec3();
+                Map map = (convToVehicleMap && GenUIOnVehicle.vehicleForSelector != null) ? GenUIOnVehicle.vehicleForSelector.interiorMap : Find.CurrentMap;
                 if (intVec.InBounds(map, clickParams.mapBoundsContractedBy) && clickParams.CanTarget(new TargetInfo(intVec, map, false), source))
                 {
                     yield return intVec;

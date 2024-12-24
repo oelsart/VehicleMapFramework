@@ -66,13 +66,13 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     [HarmonyPatch(typeof(Thing), nameof(Thing.Rotation), MethodType.Getter)]
     public static class Patch_Thing_Rotation
     {
+        [HarmonyReversePatch(HarmonyReversePatchType.Original)]
+        public static Rot4 Rotation(Thing instance) => throw new NotImplementedException();
+
         public static void Postfix(ref Rot4 __result)
         {
             __result.AsInt += VehicleMapUtility.rotForPrint.AsInt;
         }
-
-        [HarmonyReversePatch]
-        public static Rot4 Rotation(Thing instance) => throw new NotImplementedException();
     }
 
     [HarmonyPatch(typeof(Graphic), nameof(Graphic.Print))]
@@ -90,7 +90,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                 new CodeInstruction(OpCodes.Neg),
                 CodeInstruction.Call(typeof(Vector3Utility), nameof(Vector3Utility.RotatedBy), new Type[]{ typeof(Vector3), typeof(float) }),
             });
-            return codes;
+            return codes.MethodReplacer(MethodInfoCache.m_GenThing_TrueCenter, MethodInfoCache.m_TrueCenterOrig);
         }
     }
 
@@ -99,7 +99,8 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Rotation, MethodInfoCache.m_Thing_RotationOrig);
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Rotation, MethodInfoCache.m_Thing_RotationOrig)
+                .MethodReplacer(MethodInfoCache.m_GenThing_TrueCenter, MethodInfoCache.m_TrueCenterOrig);
         }
     }
 

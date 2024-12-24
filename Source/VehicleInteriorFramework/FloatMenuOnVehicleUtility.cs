@@ -131,13 +131,12 @@ namespace VehicleInteriors
                 {
                     return delegate ()
                     {
-                        JobAcrossMapsUtility.TryTakeGotoDestMapJob(pawn, exitSpot, enterSpot);
                         Job job = JobMaker.MakeJob(JobDefOf.AttackMelee, target);
                         if (target.Thing is Pawn pawn3)
                         {
                             job.killIncappedTarget = pawn3.Downed;
                         }
-                        pawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), false);
+                        pawn.jobs.TryTakeOrderedJob(JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, job), new JobTag?(JobTag.Misc), false);
                     };
                 }
                 failStr = "IdeoligionForbids".Translate();

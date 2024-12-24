@@ -1,15 +1,10 @@
-﻿using RimWorld.Planet;
-using RimWorld;
+﻿using RimWorld;
+using RimWorld.Planet;
 using SmashTools;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 using Vehicles;
-using Verse.AI;
 using Verse;
+using Verse.AI;
 
 namespace VehicleInteriors
 {
@@ -20,6 +15,10 @@ namespace VehicleInteriors
             get
             {
                 IntVec3 point = UI.MouseCell();
+                if (this.destMap.IsVehicleMapOf(out var vehicle) && Find.CurrentMap != this.destMap)
+                {
+                    point = point.VehicleMapToOrig(vehicle);
+                }
                 return Rot8.FromAngle(this.cell.AngleToCell(point));
             }
         }
@@ -118,8 +117,8 @@ namespace VehicleInteriors
                 return;
             }
             this.timeHeldDown += Time.deltaTime;
-            float num = Vector3.Distance(this.clickPos, UI.MouseMapPosition());
-            if (this.timeHeldDown >= 0.15f || num >= 0.5f || num <= -0.5f)
+            float num = Vector3.Distance(this.clickPos, UI.MouseMapPosition()); 
+            if (this.timeHeldDown >= HoldTimeThreshold || num >= DragThreshold || num <= -DragThreshold)
             {
                 this.IsDragging = true;
             }
@@ -163,7 +162,20 @@ namespace VehicleInteriors
                 }
             }
             graphic2.DrawFromDef(loc, rot2, vehicleDef, extraRotation);
-            VehicleGhostUtility.DrawGhostOverlays(center, rot, vehicleDef, graphic, ghostCol, drawAltitude, vehicle);
+            Vector3 vector = GenThing.TrueCenter(center, rot, vehicleDef.Size, drawAltitude.AltitudeFor());
+            if (vehicle2 != null && Find.CurrentMap != VehicleOrientationControllerAcrossMaps.Instance.destMap)
+            {
+                vector = loc.OrigToVehicleMap(vehicle2).WithY(drawAltitude.AltitudeFor());
+            }
+            foreach (var (graphicOverlay, extraRotationOverlay) in vehicleDef.GhostGraphicOverlaysFor(ghostCol))
+            {
+                graphicOverlay.DrawWorker(vector + graphic.DrawOffsetFull(rot), rot, vehicleDef, vehicle, extraRotationOverlay);
+            }
+
+            if (vehicleDef.GetSortedCompProperties<CompProperties_VehicleTurrets>() != null)
+            {
+                vehicleDef.DrawGhostTurretTextures(vector, rot, ghostCol);
+            }
         }
 
         public override void StopTargeting()

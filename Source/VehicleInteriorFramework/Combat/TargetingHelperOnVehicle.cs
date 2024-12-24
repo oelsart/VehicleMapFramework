@@ -21,7 +21,7 @@ namespace VehicleInteriors
             TargetScanFlags targetScanFlags = turret.turretDef.targetScanFlags;
             Thing thing = (Thing)BestAttackTarget(turret, targetScanFlags, delegate (Thing t)
             {
-                return turret.TargetMeetsRequirements(t);
+                return TurretTargeter.TargetMeetsRequirements(turret, t);
             }, canTakeTargetsCloserThanEffectiveMinRange: false);
             if (thing != null)
             {
@@ -287,40 +287,6 @@ namespace VehicleInteriors
             }
             //num += _  - add additional cost based on how close to friendly fire
             return num * target.TargetPriorityFactor;
-        }
-
-        public static bool TargetMeetsRequirements(this VehicleTurret turret, LocalTargetInfo target)
-        {
-            if (!turret.InRange(target.CellOnBaseMap()))
-            {
-                return false;
-            }
-            if (!turret.AngleBetween(target.CenterVector3))
-            {
-                return false;
-            }
-            if (target == turret.vehicle)
-            {
-                return false;
-            }
-            if (turret.ProjectileDef.projectile.flyOverhead)
-            {
-                return true;
-            }
-            bool result;
-            if (target.HasThing)
-            {
-                if (!target.Thing.Spawned || target.Thing.Destroyed)
-                {
-                    return false;
-                }
-                result = GenSightOnVehicle.LineOfSightToThing(turret.TurretLocation.ToIntVec3(), target.Thing, turret.vehicle.BaseMap(), false, null);
-            }
-            else
-            {
-                result = GenSightOnVehicle.LineOfSight(turret.TurretLocation.ToIntVec3(), target.CellOnBaseMap(), turret.vehicle.BaseMap());
-            }
-            return result;
         }
     }
 }

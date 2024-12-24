@@ -5,6 +5,7 @@ using SmashTools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Jobs;
 using UnityEngine;
 using Vehicles;
 using Verse;
@@ -201,9 +202,7 @@ namespace VehicleInteriors
             }
             else
             {
-                Job job = JobMaker.MakeJob(VIF_DefOf.VIF_GotoAcrossMaps, dest3);
-				var driver = job.GetCachedDriver(pawn) as JobDriverAcrossMaps;
-				driver.SetSpots(dest1, dest2);
+                Job job = JobMaker.MakeJob(VIF_DefOf.VIF_GotoAcrossMaps, dest3).SetSpotsToJobAcrossMaps(pawn, dest1, dest2);
                 if (pawn.Map == baseMap && baseMap.exitMapGrid.IsExitCell(clickCell))
                 {
                     job.exitMapOnArrival = !pawn.IsColonyMech;
@@ -320,9 +319,7 @@ namespace VehicleInteriors
                                 carryTarget.Thing.SetForbidden(false, false);
                                 Job job = JobMaker.MakeJob(VIF_DefOf.VIF_CarryDownedPawnDraftedAcrossMaps, carryTarget);
                                 job.count = 1;
-                                var driver = job.GetCachedDriver(pawn) as JobDriver_CarryDownedPawnAcrossMaps;
-                                driver.SetSpots(exitSpot, enterSpot);
-                                pawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), false);
+                                pawn.jobs.TryTakeOrderedJob(job.SetSpotsToJobAcrossMaps(pawn, exitSpot, enterSpot), new JobTag?(JobTag.Misc), false);
                             }, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0), pawn, carryTarget, "ReservedBy", null);
                         }
                         opts.Add(item);
@@ -351,9 +348,7 @@ namespace VehicleInteriors
                                     destTarget.Thing.SetForbidden(false, false);
                                     Job job = JobMaker.MakeJob(VIF_DefOf.VIF_TakeDownedPawnToBedDraftedAcrossMaps, pawn.carryTracker.CarriedThing, destTarget);
                                     job.count = 1;
-                                    var driver = job.GetCachedDriver(pawn) as JobDriver_TakeToBedAcrossMaps;
-                                    driver.SetSpots(null, null, exitSpot, enterSpot);
-                                    pawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), false);
+                                    pawn.jobs.TryTakeOrderedJob(job.SetSpotsToJobAcrossMaps(pawn, null, null, exitSpot, enterSpot), new JobTag?(JobTag.Misc), false);
                                 }, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0), pawn, destTarget, "ReservedBy", null);
                             }
                             opts.Add(item2);
@@ -385,9 +380,7 @@ namespace VehicleInteriors
                                     bed.SetForbidden(false, false);
                                     Job job = JobMaker.MakeJob(VIF_DefOf.VIF_CarryToPrisonerBedDraftedAcrossMaps, pawn.carryTracker.CarriedThing, bed);
                                     job.count = 1;
-                                    var driver = job.GetCachedDriver(pawn) as JobDriver_TakeToBedAcrossMaps;
-                                    driver.SetSpots(null, null, exitSpot, enterSpot);
-                                    pawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), false);
+                                    pawn.jobs.TryTakeOrderedJob(job.SetSpotsToJobAcrossMaps(pawn, null, null, exitSpot, enterSpot), new JobTag?(JobTag.Misc), false);
                                 }, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0), pawn, bed, "ReservedBy", null);
                             }
                             opts.Add(item3);
@@ -426,9 +419,7 @@ namespace VehicleInteriors
                                         thing.SetForbidden(false, false);
                                         Job job = JobMaker.MakeJob(VIF_DefOf.VIF_CarryToEntityHolderAlreadyHoldingAcrossMaps, thing, pawn.carryTracker.CarriedThing);
                                         job.count = 1;
-                                        var driver = job.GetCachedDriver(pawn) as JobDriver_CarryToEntityHolderAlreadyHoldingAcrossMaps;
-                                        driver.SetSpots(null, null, exitSpot, enterSpot);
-                                        pawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), false);
+                                        pawn.jobs.TryTakeOrderedJob(job.SetSpotsToJobAcrossMaps(pawn, null, null, exitSpot, enterSpot), new JobTag?(JobTag.Misc), false);
                                     }, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0), pawn, thing, "ReservedBy", null);
                                 }
                                 opts.Add(item4);
@@ -462,9 +453,7 @@ namespace VehicleInteriors
                                         Job job = JobMaker.MakeJob(VIF_DefOf.VIF_HaulToTransporterAcrossMaps, carriedPawn, transporterThing);
                                         job.ignoreForbidden = true;
                                         job.count = 1;
-                                        var driver = job.GetCachedDriver(pawn) as JobDriverAcrossMaps;
-                                        driver.SetSpots(null, null, exitSpot, enterSpot);
-                                        pawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), false);
+                                        pawn.jobs.TryTakeOrderedJob(job.SetSpotsToJobAcrossMaps(null, null, exitSpot, enterSpot), new JobTag?(JobTag.Misc), false);
                                     }, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0), pawn, transporterThing, "ReservedBy", null));
                                 }
                             }
@@ -494,9 +483,7 @@ namespace VehicleInteriors
                                 Job job = JobMaker.MakeJob(VIF_DefOf.VIF_CarryToCryptosleepCasketDraftedAcrossMaps, carriedPawn, casket);
                                 job.count = 1;
                                 job.playerForced = true;
-                                var driver = job.GetCachedDriver(pawn) as JobDriverAcrossMaps;
-                                driver.SetSpots(null, null, exitSpot, enterSpot); ;
-                                pawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), false);
+                                pawn.jobs.TryTakeOrderedJob(job.SetSpotsToJobAcrossMaps(pawn, null, null, exitSpot, enterSpot), new JobTag?(JobTag.Misc), false);
                             }, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0), pawn, casket, "ReservedBy", null));
                         }
                     }
@@ -527,9 +514,7 @@ namespace VehicleInteriors
                                 Job job = JobMaker.MakeJob(VIF_DefOf.VIF_TendPatientAcrossMaps, tendTarget, medicine);
                                 job.count = 1;
                                 job.draftedTend = true;
-                                var driver = job.GetCachedDriver(pawn) as JobDriverAcrossMaps;
-                                driver.SetSpots(null, null, exitSpot2, enterSpot2);
-                                pawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), false);
+                                pawn.jobs.TryTakeOrderedJob(job.SetSpotsToJobAcrossMaps(pawn, null, null, exitSpot2, enterSpot2), new JobTag?(JobTag.Misc), false);
                             };
                             if (tendTarget == pawn && pawn.playerSettings != null && !pawn.playerSettings.selfTend)
                             {
@@ -583,9 +568,7 @@ namespace VehicleInteriors
                                         Job job = JobMaker.MakeJob(VIF_DefOf.VIF_TendEntityAcrossmaps, targetA, medicine ?? LocalTargetInfo.Invalid);
                                         job.count = 1;
                                         job.draftedTend = true;
-                                        var driver = job.GetCachedDriver(pawn) as JobDriverAcrossMaps;
-                                        driver.SetSpots(exitSpot2, enterSpot2);
-                                        pawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), false);
+                                        pawn.jobs.TryTakeOrderedJob(job.SetSpotsToJobAcrossMaps(pawn, exitSpot2, enterSpot2), new JobTag?(JobTag.Misc), false);
                                     }, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0));
                                 }
                             }
@@ -604,8 +587,7 @@ namespace VehicleInteriors
                             {
                                 FloatMenuOption item5 = FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption("RepairThing".Translate(repairTarget), delegate ()
                                 {
-                                    JobAcrossMapsUtility.TryTakeGotoDestMapJob(pawn, exitSpot, enterSpot);
-                                    pawn.jobs.TryTakeOrderedJob(JobMaker.MakeJob(JobDefOf.Repair, repairTarget), new JobTag?(JobTag.Misc), true);
+                                    pawn.jobs.TryTakeOrderedJob(JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, JobMaker.MakeJob(JobDefOf.Repair, repairTarget)), new JobTag?(JobTag.Misc), true);
                                 }, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0), pawn, repairTarget, "ReservedBy", null);
                                 opts.Add(item5);
                             }
@@ -696,9 +678,7 @@ namespace VehicleInteriors
                                 }
                                 Job job = JobMaker.MakeJob(VIF_DefOf.VIF_ArrestAcrossMaps, pTarg, building_Bed2);
                                 job.count = 1;
-                                var driver = job.GetCachedDriver(pawn) as JobDriverAcrossMaps;
-                                driver.SetSpots(exitSpot, enterSpot, exitSpot2, enterSpot2);
-                                pawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), false);
+                                pawn.jobs.TryTakeOrderedJob(job.SetSpotsToJobAcrossMaps(pawn, exitSpot, enterSpot, exitSpot2, enterSpot2), new JobTag?(JobTag.Misc), false);
                                 if (pTarg.Faction != null && ((pTarg.Faction != Faction.OfPlayer && !pTarg.Faction.Hidden) || pTarg.IsQuestLodger()))
                                 {
                                     TutorUtility.DoModalDialogIfNotKnown(ConceptDefOf.ArrestingCreatesEnemies, new string[]
@@ -771,10 +751,9 @@ namespace VehicleInteriors
                                     return;
                                 }
                                 t.SetForbidden(false, true);
-								JobAcrossMapsUtility.TryTakeGotoDestMapJob(pawn, exitSpot, enterSpot);
                                 Job job = JobMaker.MakeJob(JobDefOf.Ingest, t);
                                 job.count = maxAmountToPickup2;
-                                pawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), true);
+                                pawn.jobs.TryTakeOrderedJob(JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, job), new JobTag?(JobTag.Misc), true);
                             }, priority, null, null, 0f, null, null, true, 0), pawn, t, "ReservedBy", null);
                             if (!maxAmountToPickup)
                             {
@@ -798,8 +777,7 @@ namespace VehicleInteriors
                 {
                     item2 = FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption(toHelpPawn.IsPrisoner ? "FreePrisoner".Translate() : "OfferHelp".Translate(), delegate ()
                     {
-						JobAcrossMapsUtility.TryTakeGotoDestMapJob(pawn, exitSpot, enterSpot);
-                        pawn.jobs.TryTakeOrderedJob(JobMaker.MakeJob(JobDefOf.OfferHelp, toHelpPawn), new JobTag?(JobTag.Misc), true);
+                        pawn.jobs.TryTakeOrderedJob(JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, JobMaker.MakeJob(JobDefOf.OfferHelp, toHelpPawn)), new JobTag?(JobTag.Misc), true);
                     }, MenuOptionPriority.RescueOrCapture, null, toHelpPawn, 0f, null, null, true, 0), pawn, toHelpPawn, "ReservedBy", null);
                 }
                 opts.Add(item2);
@@ -840,9 +818,8 @@ namespace VehicleInteriors
                         {
                             opts.Add(FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption("Extract".Translate() + " " + HediffDefOf.MechlinkImplant.label, delegate ()
                             {
-                                JobAcrossMapsUtility.TryTakeGotoDestMapJob(pawn, exitSpot1, enterSpot1);
                                 Job job = JobMaker.MakeJob(JobDefOf.RemoveMechlink, corpse);
-                                pawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), false);
+                                pawn.jobs.TryTakeOrderedJob(JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot1, enterSpot1, job), new JobTag?(JobTag.Misc), false);
                             }, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0), pawn, new LocalTargetInfo(corpse), "ReservedBy", null));
                         }
                     }
@@ -854,8 +831,7 @@ namespace VehicleInteriors
                     {
                         if (!victim.IsPrisonerOfColony && !victim.IsSlaveOfColony && !victim.IsColonyMech)
                         {
-                            ChildcareUtility.BreastfeedFailReason? breastfeedFailReason;
-                            bool isBaby = ChildcareUtility.CanSuckle(victim, out breastfeedFailReason);
+                            bool isBaby = ChildcareUtility.CanSuckle(victim, out ChildcareUtility.BreastfeedFailReason? breastfeedFailReason);
                             if ((victim.Faction == Faction.OfPlayer || victim.Faction == null || !victim.Faction.HostileTo(Faction.OfPlayer)) | isBaby)
                             {
                                 FloatMenuOption floatMenuOption2 = FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption((HealthAIUtility.ShouldSeekMedicalRest(victim) || !victim.ageTracker.CurLifeStage.alwaysDowned) ? "Rescue".Translate(victim.LabelCap, victim) : "PutSomewhereSafe".Translate(victim.LabelCap, victim), delegate ()
@@ -864,9 +840,7 @@ namespace VehicleInteriors
                                     {
                                         Job job2 = JobMaker.MakeJob(VIF_DefOf.VIF_BringBabyToSafetyAcrossMaps, victim);
                                         job2.count = 1;
-										var driver2 = job2.GetCachedDriver(pawn) as JobDriverAcrossMaps;
-										driver2.SetSpots(exitSpot, enterSpot);
-                                        pawn.jobs.TryTakeOrderedJob(job2, new JobTag?(JobTag.Misc), true);
+                                        pawn.jobs.TryTakeOrderedJob(job2.SetSpotsToJobAcrossMaps(pawn, exitSpot, enterSpot), new JobTag?(JobTag.Misc), true);
                                         return;
                                     }
                                     Building_Bed building_Bed2 = RestUtilityOnVehicle.FindBedFor(victim, pawn, false, false, null, out var exitSpot2, out var enterSpot2);
@@ -890,9 +864,7 @@ namespace VehicleInteriors
                                     }
                                     Job job = JobMaker.MakeJob(VIF_DefOf.VIF_RescueAcrossMaps, victim, building_Bed2);
                                     job.count = 1;
-                                    var driver = job.GetCachedDriver(pawn) as JobDriverAcrossMaps;
-									driver.SetSpots(exitSpot, enterSpot, exitSpot2, enterSpot2);
-                                    pawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), true);
+                                    pawn.jobs.TryTakeOrderedJob(job.SetSpotsToJobAcrossMaps(pawn, exitSpot, enterSpot, exitSpot2, enterSpot2), new JobTag?(JobTag.Misc), true);
                                     PlayerKnowledgeDatabase.KnowledgeDemonstrated(ConceptDefOf.Rescuing, KnowledgeAmount.Total);
                                 }, MenuOptionPriority.RescueOrCapture, null, victim, 0f, null, null, true, 0), pawn, victim, "ReservedBy", null);
                                 if (!isBaby)
@@ -908,19 +880,16 @@ namespace VehicleInteriors
                         {
                             FloatMenuOption floatMenuOption3 = FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption("ReturnToSlaveBed".Translate(), delegate ()
                             {
-                                Building_Bed building_Bed2 = RestUtility.FindBedFor(victim, pawn, false, false, new GuestStatus?(GuestStatus.Slave));
-                                if (building_Bed2 == null)
-                                {
-                                    building_Bed2 = RestUtility.FindBedFor(victim, pawn, false, true, new GuestStatus?(GuestStatus.Slave));
-                                }
+                                Building_Bed building_Bed2 = RestUtilityOnVehicle.FindBedFor(victim, pawn, false, false, new GuestStatus?(GuestStatus.Slave), out var exitSpot2, out var enterSpot2)
+                                ?? RestUtilityOnVehicle.FindBedFor(victim, pawn, false, true, new GuestStatus?(GuestStatus.Slave), out exitSpot2, out enterSpot2);
                                 if (building_Bed2 == null)
                                 {
                                     Messages.Message(string.Format("{0}: {1}", "CannotRescue".Translate(), "NoSlaveBed".Translate()), victim, MessageTypeDefOf.RejectInput, false);
                                     return;
                                 }
-                                Job job = JobMaker.MakeJob(JobDefOf.Rescue, victim, building_Bed2);
+                                Job job = JobMaker.MakeJob(VIF_DefOf.VIF_RescueAcrossMaps, victim, building_Bed2);
                                 job.count = 1;
-                                pawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), true);
+                                pawn.jobs.TryTakeOrderedJob(job.SetSpotsToJobAcrossMaps(pawn, exitSpot, enterSpot, exitSpot2, enterSpot2), new JobTag?(JobTag.Misc), true);
                                 PlayerKnowledgeDatabase.KnowledgeDemonstrated(ConceptDefOf.Rescuing, KnowledgeAmount.Total);
                             }, MenuOptionPriority.RescueOrCapture, null, victim, 0f, null, null, true, 0), pawn, victim, "ReservedBy", null);
                             string cannot2 = string.Format("{0}: {1}", "CannotRescue".Translate(), "NoSlaveBed".Translate());
@@ -940,11 +909,8 @@ namespace VehicleInteriors
                             }
                             FloatMenuOption floatMenuOption4 = FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption(taggedString, delegate ()
                             {
-                                Building_Bed building_Bed2 = RestUtilityOnVehicle.FindBedFor(victim, pawn, false, false, new GuestStatus?(GuestStatus.Prisoner), out var exitSpot2, out var enterSpot2);
-                                if (building_Bed2 == null)
-                                {
-                                    building_Bed2 = RestUtilityOnVehicle.FindBedFor(victim, pawn, false, true, new GuestStatus?(GuestStatus.Prisoner), out exitSpot2, out enterSpot2);
-                                }
+                                Building_Bed building_Bed2 = RestUtilityOnVehicle.FindBedFor(victim, pawn, false, false, new GuestStatus?(GuestStatus.Prisoner), out var exitSpot2, out var enterSpot2)
+                                ?? RestUtilityOnVehicle.FindBedFor(victim, pawn, false, true, new GuestStatus?(GuestStatus.Prisoner), out exitSpot2, out enterSpot2);
                                 if (building_Bed2 == null)
                                 {
                                     Messages.Message("CannotCapture".Translate() + ": " + "NoPrisonerBed".Translate(), victim, MessageTypeDefOf.RejectInput, false);
@@ -952,9 +918,7 @@ namespace VehicleInteriors
                                 }
                                 Job job = JobMaker.MakeJob(VIF_DefOf.VIF_CaptureAcrossMaps, victim, building_Bed2);
                                 job.count = 1;
-								var driver = job.GetCachedDriver(pawn) as JobDriverAcrossMaps;
-								driver.SetSpots(exitSpot, enterSpot, exitSpot2, enterSpot2);
-								pawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), true);
+								pawn.jobs.TryTakeOrderedJob(job.SetSpotsToJobAcrossMaps(pawn, exitSpot, enterSpot, exitSpot2, enterSpot2), new JobTag?(JobTag.Misc), true);
                                 PlayerKnowledgeDatabase.KnowledgeDemonstrated(ConceptDefOf.Capturing, KnowledgeAmount.Total);
                                 if (victim.Faction != null && victim.Faction != Faction.OfPlayer && !victim.Faction.Hidden && !victim.Faction.HostileTo(Faction.OfPlayer) && !victim.IsPrisonerOfColony)
                                 {
@@ -976,11 +940,8 @@ namespace VehicleInteriors
                         string text2 = "CarryToCryptosleepCasket".Translate(localTargetInfo3.Thing.LabelCap, localTargetInfo3.Thing);
                         Action action2 = delegate ()
                         {
-                            Building_CryptosleepCasket building_CryptosleepCasket = FindBuildingUtility.FindCryptosleepCasketFor(victim, pawn, false, out var exitSpot2, out var enterSpot2);
-                            if (building_CryptosleepCasket == null)
-                            {
-                                building_CryptosleepCasket = FindBuildingUtility.FindCryptosleepCasketFor(victim, pawn, true, out exitSpot2, out enterSpot2);
-                            }
+                            Building_CryptosleepCasket building_CryptosleepCasket = FindBuildingUtility.FindCryptosleepCasketFor(victim, pawn, false, out var exitSpot2, out var enterSpot2)
+                            ?? FindBuildingUtility.FindCryptosleepCasketFor(victim, pawn, true, out exitSpot2, out enterSpot2);
                             if (building_CryptosleepCasket == null)
                             {
                                 Messages.Message("CannotCarryToCryptosleepCasket".Translate() + ": " + "NoCryptosleepCasket".Translate(), victim, MessageTypeDefOf.RejectInput, false);
@@ -988,9 +949,7 @@ namespace VehicleInteriors
                             }
                             Job job = JobMaker.MakeJob(VIF_DefOf.VIF_CarryToCryptosleepCasketAcrossMaps, victim, building_CryptosleepCasket);
                             job.count = 1;
-							var driver = job.GetCachedDriver(pawn) as JobDriverAcrossMaps;
-							driver.SetSpots(exitSpot, enterSpot, exitSpot2, enterSpot2);
-                            pawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), true);
+                            pawn.jobs.TryTakeOrderedJob(job.SetSpotsToJobAcrossMaps(pawn, exitSpot, enterSpot, exitSpot2, enterSpot2), new JobTag?(JobTag.Misc), true);
                         };
                         if (victim.IsQuestLodger())
                         {
@@ -1047,9 +1006,7 @@ namespace VehicleInteriors
                                         holdComp.targetHolder = building;
                                         Job job = JobMaker.MakeJob(VIF_DefOf.VIF_CarryToEntityHolderAcrossMaps, building, studyTarget);
                                         job.count = 1;
-										var driver = job.GetCachedDriver(pawn) as JobDriverAcrossMaps;
-										driver.SetSpots(exitSpot2, enterSpot2, exitSpot, enterSpot);
-                                        pawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), false);
+                                        pawn.jobs.TryTakeOrderedJob(job.SetSpotsToJobAcrossMaps(pawn, exitSpot2, enterSpot2, exitSpot, enterSpot), new JobTag?(JobTag.Misc), false);
                                     }, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0), pawn, studyTarget, "ReservedBy", null));
                                     if (enumerable2.Count<Building_HoldingPlatform>() > 1)
                                     {
@@ -1081,11 +1038,11 @@ namespace VehicleInteriors
                                 PathEndMode peMode = PathEndMode.ClosestTouch;
                                 TraverseParms traverseParams = TraverseParms.For(pawn, Danger.Some, TraverseMode.ByPawn, false, false, false);
                                 float maxDistance = 9999f;
-                                Predicate<Thing> validator = (Thing b) =>
+                                bool validator(Thing b)
                                 {
                                     Building_HoldingPlatform building_HoldingPlatform;
                                     return (building_HoldingPlatform = (b as Building_HoldingPlatform)) != null && !building_HoldingPlatform.Occupied && pawn.CanReserve(building_HoldingPlatform, building_HoldingPlatform.Map, 1, -1, null, false);
-                                };
+                                }
                                 if (GenClosestOnVehicle.ClosestThing_Global_Reachable(position, pawn.Map, searchSet, peMode, traverseParams, maxDistance, validator, delegate (Thing t)
                                 {
                                     CompEntityHolder compEntityHolder = t.TryGetComp<CompEntityHolder>();
@@ -1145,9 +1102,7 @@ namespace VehicleInteriors
 										var job = JobMaker.MakeJob(VIF_DefOf.VIF_HaulToTransporterAcrossMaps, victim, shuttleThing);
 										job.ignoreForbidden = true;
 										job.count = 1;
-                                        var driver = job.GetCachedDriver(pawn) as JobDriverAcrossMaps;
-                                        driver.SetSpots(exitSpot, enterSpot, exitSpot2, enterSpot2);
-										pawn.jobs.TryTakeOrderedJob(job, JobTag.Misc, false);
+										pawn.jobs.TryTakeOrderedJob(job.SetSpotsToJobAcrossMaps(pawn, exitSpot, enterSpot, exitSpot2, enterSpot2), JobTag.Misc, false);
 
                                     }, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0), pawn, victim, "ReservedBy", null));
                                 }
@@ -1182,8 +1137,7 @@ namespace VehicleInteriors
 									TaggedString text6 = "ConfirmHackEnenyTerminal".Translate(ThingDefOf.AncientEnemyTerminal.label);
 									Action confirmedAct = () =>
 									{
-										JobAcrossMapsUtility.TryTakeGotoDestMapJob(pawn, exitSpot, enterSpot);
-                                        pawn.jobs.TryTakeOrderedJob(JobMaker.MakeJob(JobDefOf.Hack, thing), new JobTag?(JobTag.Misc), true);
+                                        pawn.jobs.TryTakeOrderedJob(JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, JobMaker.MakeJob(JobDefOf.Hack, thing)), new JobTag?(JobTag.Misc), true);
 									};
 									windowStack.Add(Dialog_MessageBox.CreateConfirmation(text6, confirmedAct, false, null, WindowLayer.Dialog));
 								}, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0), pawn, new LocalTargetInfo(thing), "ReservedBy", null));
@@ -1193,8 +1147,7 @@ namespace VehicleInteriors
 								TaggedString taggedString2 = (thing.def == ThingDefOf.AncientCommsConsole) ? "Hack".Translate("ToDropSupplies".Translate()) : "Hack".Translate(thing.Label);
 								opts.Add(FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption(taggedString2, delegate ()
                                 {
-                                    JobAcrossMapsUtility.TryTakeGotoDestMapJob(pawn, exitSpot, enterSpot);
-                                    pawn.jobs.TryTakeOrderedJob(JobMaker.MakeJob(JobDefOf.Hack, thing), new JobTag?(JobTag.Misc), true);
+                                    pawn.jobs.TryTakeOrderedJob(JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, JobMaker.MakeJob(JobDefOf.Hack, thing)), new JobTag?(JobTag.Misc), true);
 								}, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0), pawn, new LocalTargetInfo(thing), "ReservedBy", null));
 							}
 						}
@@ -1214,8 +1167,7 @@ namespace VehicleInteriors
 						{
 							opts.Add(FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption("Invoke".Translate("Power".Translate()), delegate ()
                             {
-                                JobAcrossMapsUtility.TryTakeGotoDestMapJob(pawn, exitSpot, enterSpot);
-                                pawn.jobs.TryTakeOrderedJob(JobMaker.MakeJob(JobDefOf.ActivateArchonexusCore, thing), new JobTag?(JobTag.Misc), true);
+                                pawn.jobs.TryTakeOrderedJob(JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, JobMaker.MakeJob(JobDefOf.ActivateArchonexusCore, thing)), new JobTag?(JobTag.Misc), true);
 							}, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0), pawn, thing, "ReservedBy", null));
 						}
                     }
@@ -1236,14 +1188,11 @@ namespace VehicleInteriors
                                 }
                                 else
                                 {
-                                    var destMap = enterSpot2.HasThing ? enterSpot2.Thing.Map : exitSpot2.HasThing ? exitSpot2.Thing.BaseMap() : enterSpot.HasThing ? enterSpot.Thing.Map : exitSpot.HasThing ? exitSpot.Thing.BaseMap() : pawn.Map;
                                     Job job = JobMaker.MakeJob(VIF_DefOf.VIF_ExtractRelicAcrossMaps, thing, container.ContainedThing, c);
                                     job.count = 1;
                                     opts.Add(FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption(text3, delegate ()
                                     {
-                                        var driver = job.GetCachedDriver(pawn) as JobDriverAcrossMaps;
-                                        driver.SetSpots(exitSpot, enterSpot, exitSpot2, enterSpot2);
-                                        pawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), true);
+                                        pawn.jobs.TryTakeOrderedJob(job.SetSpotsToJobAcrossMaps(pawn, exitSpot, enterSpot, exitSpot2, enterSpot2), new JobTag?(JobTag.Misc), true);
                                     }, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0), pawn, new LocalTargetInfo(thing), "ReservedBy", null));
                                 }
                             }
@@ -1252,8 +1201,10 @@ namespace VehicleInteriors
 								var baseMap = pawn.BaseMap();
 								IEnumerable<Thing> allThings = baseMap.listerThings.AllThings
 									.Concat(VehiclePawnWithMapCache.allVehicles[baseMap].SelectMany(v => v.interiorMap.listerThings.AllThings));
-								Func<Thing, bool> predicate2 = (Thing x) => CompRelicContainer.IsRelic(x) && pawn.CanReach(x, PathEndMode.ClosestTouch, Danger.Deadly, false, false, TraverseMode.ByPawn, x.Map, out var exitSpot2, out var enterSpot2);
-								IEnumerable<Thing> enumerable3 = allThings.Where(predicate2);
+                                var exitSpot2 = TargetInfo.Invalid;
+                                var enterSpot2 = TargetInfo.Invalid;
+                                bool predicate2(Thing x) => CompRelicContainer.IsRelic(x) && pawn.CanReach(x, PathEndMode.ClosestTouch, Danger.Deadly, false, false, TraverseMode.ByPawn, x.Map, out exitSpot2, out enterSpot2);
+                                IEnumerable<Thing> enumerable3 = allThings.Where(predicate2);
 								if (!enumerable3.Any<Thing>())
 								{
 									opts.Add(new FloatMenuOption("NoRelicToInstall".Translate(), null, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0));
@@ -1262,12 +1213,15 @@ namespace VehicleInteriors
 								{
 									foreach (Thing thing3 in enumerable3)
 									{
-										Job job = JobMaker.MakeJob(VIF_DefOf.VIF_InstallRelicAcrossMaps, thing3, thing, thing.InteractionCell);
-										job.count = 1;
-										opts.Add(FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption("InstallRelic".Translate(thing3.Label), delegate ()
-										{
-											pawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), false);
-										}, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0), pawn, new LocalTargetInfo(thing), "ReservedBy", null));
+                                        if (ReachabilityUtilityOnVehicle.CanReach(thing3.Map, thing3.Position, thing, PathEndMode.ClosestTouch, TraverseParms.For(pawn), thing.Map, out var exitSpot5, out var enterSpot5))
+                                        {
+                                            Job job = JobMaker.MakeJob(VIF_DefOf.VIF_InstallRelicAcrossMaps, thing3, thing, thing.InteractionCell);
+                                            job.count = 1;
+                                            opts.Add(FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption("InstallRelic".Translate(thing3.Label), delegate ()
+                                            {
+                                                pawn.jobs.TryTakeOrderedJob(job.SetSpotsToJobAcrossMaps(pawn, exitSpot2, exitSpot2, exitSpot5, enterSpot5), new JobTag?(JobTag.Misc), false);
+                                            }, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0), pawn, new LocalTargetInfo(thing), "ReservedBy", null));
+                                        }
 									}
 								}
 							}
@@ -1275,10 +1229,9 @@ namespace VehicleInteriors
 							{
 								opts.Add(FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption("ExtractRelicToInventory".Translate(container.ContainedThing.Label, 300.ToStringTicksToPeriod(true, false, true, true, false)), delegate ()
 								{
-									JobAcrossMapsUtility.TryTakeGotoDestMapJob(pawn, exitSpot, enterSpot);
 									Job job = JobMaker.MakeJob(JobDefOf.ExtractToInventory, thing, container.ContainedThing, thing.InteractionCell);
 									job.count = 1;
-									pawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), true);
+									pawn.jobs.TryTakeOrderedJob(JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, job), new JobTag?(JobTag.Misc), true);
 								}, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0), pawn, new LocalTargetInfo(thing), "ReservedBy", null));
 							}
 						}
@@ -1308,8 +1261,7 @@ namespace VehicleInteriors
 							{
 								Job job = JobMaker.MakeJob(VIF_DefOf.VIF_InstallRelicAcrossMaps, thing4, thing5, thing5.InteractionCell);
 								job.count = 1;
-                                var driver = job.GetCachedDriver(pawn) as JobDriverAcrossMaps;
-								driver.SetSpots(exitSpot, enterSpot, exitSpot2, enterSpot2);
+                                job.SetSpotsToJobAcrossMaps(pawn, exitSpot, enterSpot, exitSpot2, enterSpot2);
                             opts.Add(FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption("InstallInReliquary".Translate(), delegate()
 								{
 									pawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), false);
@@ -1344,9 +1296,8 @@ namespace VehicleInteriors
 								{
 									opts.Add(FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption("ControlMech".Translate(mech.LabelShort), delegate ()
 									{
-										JobAcrossMapsUtility.TryTakeGotoDestMapJob(pawn, exitSpot, enterSpot);
 										Job job = JobMaker.MakeJob(JobDefOf.ControlMech, thing);
-										pawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), true);
+										pawn.jobs.TryTakeOrderedJob(JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, job), new JobTag?(JobTag.Misc), true);
 									}, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0), pawn, new LocalTargetInfo(thing), "ReservedBy", null));
 								}
 								opts.Add(new FloatMenuOption("CannotDisassembleMech".Translate(mech.LabelCap) + ": " + "MustBeOverseer".Translate().CapitalizeFirst(), null, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0));
@@ -1366,8 +1317,7 @@ namespace VehicleInteriors
 																															select x.Summary).ToLineList("  - ", false);
 										Action confirmedAct = () =>
                                         {
-                                            JobAcrossMapsUtility.TryTakeGotoDestMapJob(pawn, exitSpot, enterSpot);
-                                            pawn.jobs.TryTakeOrderedJob(JobMaker.MakeJob(JobDefOf.DisassembleMech, thing), new JobTag?(JobTag.Misc), true);
+                                            pawn.jobs.TryTakeOrderedJob(JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, JobMaker.MakeJob(JobDefOf.DisassembleMech, thing)), new JobTag?(JobTag.Misc), true);
 										};
 										windowStack.Add(Dialog_MessageBox.CreateConfirmation(text6, confirmedAct, true, null, WindowLayer.Dialog));
 									}, MenuOptionPriority.Low, null, null, 0f, null, null, true, -20), pawn, new LocalTargetInfo(thing), "ReservedBy", null));
@@ -1383,9 +1333,8 @@ namespace VehicleInteriors
 								{
 									opts.Add(FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption("RepairThing".Translate(mech.LabelShort), delegate ()
                                     {
-                                        JobAcrossMapsUtility.TryTakeGotoDestMapJob(pawn, exitSpot, enterSpot);
                                         Job job = JobMaker.MakeJob(JobDefOf.RepairMech, mech);
-										pawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), true);
+										pawn.jobs.TryTakeOrderedJob(JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, job), new JobTag?(JobTag.Misc), true);
 									}, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0), pawn, new LocalTargetInfo(thing), "ReservedBy", null));
 								}
 							}
@@ -1417,8 +1366,7 @@ namespace VehicleInteriors
 								{
 									Job job = JobMaker.MakeJob(VIF_DefOf.VIF_HaulMechToChargerAcrossMaps, p, charger, charger.InteractionCell);
 									job.count = 1;
-									var driver = job.GetCachedDriver(pawn) as JobDriverAcrossMaps;
-									driver.SetSpots(exitSpot, enterSpot, exitSpot2, enterSpot2);
+                                    job.SetSpotsToJobAcrossMaps(pawn, exitSpot, enterSpot, exitSpot2, enterSpot2);
 									pawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), false);
 								}, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0), pawn, new LocalTargetInfo(p), "ReservedBy", null));
 							}
@@ -1451,15 +1399,12 @@ namespace VehicleInteriors
 							else
 							{
 								bool flag2 = false;
-								using (CellRect.Enumerator enumerator5 = bed.OccupiedRect().GetEnumerator())
+								foreach (var c in bed.OccupiedRect())
 								{
-									while (enumerator5.MoveNext())
+									if (c.GetRoof(bed.Map) == null)
 									{
-										if (enumerator5.Current.GetRoof(bed.Map) == null)
-										{
-											flag2 = true;
-											break;
-										}
+										flag2 = true;
+										break;
 									}
 								}
 								if (flag2)
@@ -1470,10 +1415,9 @@ namespace VehicleInteriors
 								{
 									opts.Add(new FloatMenuOption("StartDeathrest".Translate(), delegate()
 									{
-										JobAcrossMapsUtility.TryTakeGotoDestMapJob(pawn, exitSpot, enterSpot);
 										Job job = JobMaker.MakeJob(JobDefOf.Deathrest, bed);
 										job.forceSleep = true;
-										pawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), true);
+										pawn.jobs.TryTakeOrderedJob(JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, job), new JobTag?(JobTag.Misc), true);
 									}, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0));
 								}
 							}
@@ -1500,9 +1444,8 @@ namespace VehicleInteriors
 							{
 								opts.Add(FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption("BloodfeedOn".Translate(targPawn.Named("PAWN")), delegate()
 								{
-									JobAcrossMapsUtility.TryTakeGotoDestMapJob(pawn, exitSpot, enterSpot);
 									Job job = JobMaker.MakeJob(JobDefOf.PrisonerBloodfeed, targPawn);
-									pawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), true);
+									pawn.jobs.TryTakeOrderedJob(JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, job), new JobTag?(JobTag.Misc), true);
 								}, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0), pawn, targPawn, "ReservedBy", null));
 							}
 							else if (!acceptanceReport3.Reason.NullOrEmpty())
@@ -1526,19 +1469,15 @@ namespace VehicleInteriors
 						}
 						else
 						{
-							Thing bestBedOrCasket = GenClosestOnVehicle.ClosestThingReachable(targPawn.PositionHeld, targPawn.MapHeld, ThingRequest.ForDef(ThingDefOf.DeathrestCasket), PathEndMode.ClosestTouch, TraverseParms.For(pawn, Danger.Deadly, TraverseMode.ByPawn, false, false, false), 9999f, (Thing casket) => casket.Faction == Faction.OfPlayer && RestUtility.IsValidBedFor(casket, targPawn, pawn, true, false, false, targPawn.GuestStatus), null, 0, -1, false, RegionType.Set_Passable, false, false, out var exitSpot2, out var enterSpot2);
-							if (bestBedOrCasket == null)
-							{
-								bestBedOrCasket = RestUtilityOnVehicle.FindBedFor(targPawn, pawn, false, false, null, out exitSpot2, out enterSpot2);
-							}
-							if (bestBedOrCasket != null)
+							Thing bestBedOrCasket = GenClosestOnVehicle.ClosestThingReachable(targPawn.PositionHeld, targPawn.MapHeld, ThingRequest.ForDef(ThingDefOf.DeathrestCasket), PathEndMode.ClosestTouch, TraverseParms.For(pawn, Danger.Deadly, TraverseMode.ByPawn, false, false, false), 9999f, (Thing casket) => casket.Faction == Faction.OfPlayer && RestUtility.IsValidBedFor(casket, targPawn, pawn, true, false, false, targPawn.GuestStatus), null, 0, -1, false, RegionType.Set_Passable, false, false, out var exitSpot2, out var enterSpot2)
+                                ?? RestUtilityOnVehicle.FindBedFor(targPawn, pawn, false, false, null, out exitSpot2, out enterSpot2);
+                            if (bestBedOrCasket != null)
 							{
 								opts.Add(FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption("CarryToSpecificThing".Translate(bestBedOrCasket), delegate()
 								{
-									Job job = JobMaker.MakeJob(JobDefOf.DeliverToBed, targPawn, bestBedOrCasket);
+									Job job = JobMaker.MakeJob(VIF_DefOf.VIF_DeliverToBedAcrossMaps, targPawn, bestBedOrCasket);
 									job.count = 1;
-									var driver = job.GetCachedDriver(pawn) as JobDriverAcrossMaps;
-									driver.SetSpots(exitSpot, enterSpot, exitSpot2, enterSpot2);
+                                    job.SetSpotsToJobAcrossMaps(pawn, exitSpot, enterSpot, exitSpot2, enterSpot2);
 									pawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), false);
 								}, MenuOptionPriority.RescueOrCapture, null, targPawn, 0f, null, null, true, 0), pawn, targPawn, "ReservedBy", null));
 							}
@@ -1588,16 +1527,22 @@ namespace VehicleInteriors
 									WindowStack windowStack = Find.WindowStack;
 									TaggedString text6 = "WarningPawnWillDieFromReimplanting".Translate(targPawn.Named("PAWN"));
 									Action confirmedAct = () =>
-									{
-										JobAcrossMapsUtility.TryTakeGotoDestMapJob(pawn, exitSpot, enterSpot);
-										GeneUtility.GiveReimplantJob(pawn, targPawn);
-									};
+                                    {
+                                        pawn.jobs.TryTakeOrderedJob(JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, JobMaker.MakeJob(JobDefOf.AbsorbXenogerm, targPawn)), JobTag.Misc);
+                                        if (targPawn.HomeFaction != null && !targPawn.HomeFaction.Hidden && targPawn.HomeFaction != pawn.Faction && !targPawn.HomeFaction.HostileTo(Faction.OfPlayer))
+                                        {
+                                            Messages.Message("MessageAbsorbingXenogermWillAngerFaction".Translate(targPawn.HomeFaction, targPawn.Named("PAWN")), pawn, MessageTypeDefOf.CautionInput, historical: false);
+                                        }
+                                    };
 									windowStack.Add(Dialog_MessageBox.CreateConfirmation(text6, confirmedAct, true, null, WindowLayer.Dialog));
 									return;
                                 }
-                                JobAcrossMapsUtility.TryTakeGotoDestMapJob(pawn, exitSpot, enterSpot);
-                                GeneUtility.GiveReimplantJob(pawn, targPawn);
-							}, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0), pawn, targPawn, "ReservedBy", null);
+                                pawn.jobs.TryTakeOrderedJob(JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, JobMaker.MakeJob(JobDefOf.AbsorbXenogerm, targPawn)), JobTag.Misc);
+                                if (targPawn.HomeFaction != null && !targPawn.HomeFaction.Hidden && targPawn.HomeFaction != pawn.Faction && !targPawn.HomeFaction.HostileTo(Faction.OfPlayer))
+                                {
+                                    Messages.Message("MessageAbsorbingXenogermWillAngerFaction".Translate(targPawn.HomeFaction, targPawn.Named("PAWN")), pawn, MessageTypeDefOf.CautionInput, historical: false);
+                                }
+                            }, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0), pawn, targPawn, "ReservedBy", null);
 						}
 						opts.Add(item3);
 					}
@@ -1628,8 +1573,7 @@ namespace VehicleInteriors
 							{
 								floatMenuOption5 = FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption("BabyCareBreastfeed".Translate(baby.Named("BABY")), delegate()
 								{
-									JobAcrossMapsUtility.TryTakeGotoDestMapJob(pawn, exitSpot, enterSpot);
-									pawn.jobs.TryTakeOrderedJob(ChildcareUtility.MakeBreastfeedJob(baby, null), new JobTag?(JobTag.Misc), true);
+									pawn.jobs.TryTakeOrderedJob(JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, ChildcareUtility.MakeBreastfeedJob(baby, null)), new JobTag?(JobTag.Misc), true);
 								}, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0), pawn, baby, "ReservedBy", null);
 							}
 							opts.Add(floatMenuOption5);
@@ -1655,8 +1599,7 @@ namespace VehicleInteriors
 								{
 									Job job = JobMaker.MakeJob(VIF_DefOf.VIF_BringBabyToSafetyAcrossMaps, baby, safePlace);
 									job.count = 1;
-									var driver = job.GetCachedDriver(pawn) as JobDriverAcrossMaps;
-									driver.SetSpots(exitSpot, enterSpot, exitSpot2, enterSpot2);
+                                    job.SetSpotsToJobAcrossMaps(pawn, exitSpot, enterSpot, exitSpot2, enterSpot2);
 									pawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), false);
 								}, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0), pawn, baby, "ReservedBy", null);
 								ChildcareUtility.BreastfeedFailReason? breastfeedFailReason3;
@@ -1726,9 +1669,8 @@ namespace VehicleInteriors
 				{
 					item4 = FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption("Strip".Translate(stripTarg.Thing.LabelCap, stripTarg.Thing), delegate()
 					{
-						JobAcrossMapsUtility.TryTakeGotoDestMapJob(pawn, exitSpot, enterSpot);
 						stripTarg.Thing.SetForbidden(false, false);
-						pawn.jobs.TryTakeOrderedJob(JobMaker.MakeJob(JobDefOf.Strip, stripTarg), new JobTag?(JobTag.Misc), true);
+						pawn.jobs.TryTakeOrderedJob(JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, JobMaker.MakeJob(JobDefOf.Strip, stripTarg)), new JobTag?(JobTag.Misc), true);
 						StrippableUtility.CheckSendStrippingImpactsGoodwillMessage(stripTarg.Thing);
 					}, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0), pawn, stripTarg, "ReservedBy", null);
 				}
@@ -1795,9 +1737,8 @@ namespace VehicleInteriors
 								{
 									void Equip()
 									{
-										JobAcrossMapsUtility.TryTakeGotoDestMapJob(pawn, exitSpot, enterSpot);
 										equipment.SetForbidden(false, true);
-										pawn.jobs.TryTakeOrderedJob(JobMaker.MakeJob(JobDefOf.Equip, equipment), JobTag.Misc, true);
+										pawn.jobs.TryTakeOrderedJob(JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, JobMaker.MakeJob(JobDefOf.Equip, equipment)), JobTag.Misc, true);
 										FleckMaker.Static(equipment.DrawPos, equipment.MapHeld, FleckDefOf.FeedbackEquip);
 										PlayerKnowledgeDatabase.KnowledgeDemonstrated(ConceptDefOf.EquippingWeapons, KnowledgeAmount.Total);
 									}
@@ -1850,8 +1791,7 @@ namespace VehicleInteriors
 				{
 					Action action3 = delegate()
 					{
-						JobAcrossMapsUtility.TryTakeGotoDestMapJob(pawn, exitSpot, enterSpot);
-						pawn.jobs.TryTakeOrderedJob(JobGiver_Reload.MakeReloadJob(reloadable, chosenAmmo), new JobTag?(JobTag.Misc), true);
+						pawn.jobs.TryTakeOrderedJob(JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, JobGiver_Reload.MakeReloadJob(reloadable, chosenAmmo)), new JobTag?(JobTag.Misc), true);
 					};
 					opts.Add(FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption(text5, action3, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0), pawn, second, "ReservedBy", null));
 				}
@@ -1898,10 +1838,9 @@ namespace VehicleInteriors
 							{
                                 Action action7 = () =>
 								{
-									JobAcrossMapsUtility.TryTakeGotoDestMapJob(pawn, exitSpot, enterSpot);
 									apparel.SetForbidden(false, true);
 									Job job = JobMaker.MakeJob(JobDefOf.Wear, apparel);
-									pawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), true);
+									pawn.jobs.TryTakeOrderedJob(JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, job), new JobTag?(JobTag.Misc), true);
 								};
 								Action action8 = action7;
 								Apparel apparelReplacedByNewApparel = ApparelUtility.GetApparelReplacedByNewApparel(pawn, apparel);
@@ -1940,12 +1879,11 @@ namespace VehicleInteriors
 								float capacityLeft4 = capacityLeft - item.GetStatValue(StatDefOf.Mass, true, -1);
 								opts.Add(FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption(CaravanFormingUtility.AppendOverweightInfo("LoadIntoCaravan".Translate(item.Label, item), capacityLeft4), delegate ()
 								{
-									JobAcrossMapsUtility.TryTakeGotoDestMapJob(pawn, exitSpot, enterSpot);
 									item.SetForbidden(false, false);
 									Job job = JobMaker.MakeJob(jobDef, item);
 									job.count = 1;
 									job.checkEncumbrance = (packTarget == pawn);
-									pawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), true);
+									pawn.jobs.TryTakeOrderedJob(JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, job), new JobTag?(JobTag.Misc), true);
 								}, MenuOptionPriority.High, null, null, 0f, null, null, true, 0), pawn, item, "ReservedBy", null));
 							}
 							else
@@ -1980,11 +1918,10 @@ namespace VehicleInteriors
 									Action<int> confirmAction = (int count) =>
 									{
 										item.SetForbidden(false, false);
-                                        JobAcrossMapsUtility.TryTakeGotoDestMapJob(pawn, exitSpot, enterSpot);
                                         Job job = JobMaker.MakeJob(jobDef, item);
 										job.count = count;
 										job.checkEncumbrance = (packTarget == pawn);
-										pawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), true);
+										pawn.jobs.TryTakeOrderedJob(JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, job), new JobTag?(JobTag.Misc), true);
 									};
 									Dialog_Slider window = new Dialog_Slider(textGetter, from, to, confirmAction, int.MinValue, 1f);
 									Find.WindowStack.Add(window);
@@ -2024,12 +1961,11 @@ namespace VehicleInteriors
 								opts.Add(FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption("PickUpOne".Translate(item.LabelNoCount, item), delegate ()
 								{
 									item.SetForbidden(false, false);
-									JobAcrossMapsUtility.TryTakeGotoDestMapJob(pawn, exitSpot, enterSpot);
 									Job job = JobMaker.MakeJob(JobDefOf.TakeInventory, item);
 									job.count = 1;
 									job.checkEncumbrance = true;
 									job.takeInventoryDelay = 120;
-									pawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), true);
+									pawn.jobs.TryTakeOrderedJob(JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, job), new JobTag?(JobTag.Misc), true);
 								}, MenuOptionPriority.High, null, null, 0f, null, null, true, 0), pawn, item, "ReservedBy", null));
 							}
 							else
@@ -2047,12 +1983,11 @@ namespace VehicleInteriors
 									opts.Add(FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption("PickUpAll".Translate(item.Label, item), delegate ()
 									{
 										item.SetForbidden(false, false);
-                                        JobAcrossMapsUtility.TryTakeGotoDestMapJob(pawn, exitSpot, enterSpot);
                                         Job job = JobMaker.MakeJob(JobDefOf.TakeInventory, item);
 										job.count = item.stackCount;
 										job.checkEncumbrance = true;
 										job.takeInventoryDelay = 120;
-										pawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), true);
+										pawn.jobs.TryTakeOrderedJob(JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, job), new JobTag?(JobTag.Misc), true);
 									}, MenuOptionPriority.High, null, null, 0f, null, null, true, 0), pawn, item, "ReservedBy", null));
 								}
 								opts.Add(FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption("PickUpSome".Translate(item.LabelNoCount, item), delegate ()
@@ -2065,12 +2000,11 @@ namespace VehicleInteriors
 									Action<int> confirmAction = (int count) =>
 									{
 										item.SetForbidden(false, false);
-                                        JobAcrossMapsUtility.TryTakeGotoDestMapJob(pawn, exitSpot, enterSpot);
                                         Job job = JobMaker.MakeJob(JobDefOf.TakeInventory, item);
 										job.count = count;
 										job.checkEncumbrance = true;
 										job.takeInventoryDelay = 120;
-										pawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), true);
+										pawn.jobs.TryTakeOrderedJob(JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, job), new JobTag?(JobTag.Misc), true);
 									};
 									Dialog_Slider window = new Dialog_Slider(text6, from, to, confirmAction, int.MinValue, 1f);
 									Find.WindowStack.Add(window);
@@ -2102,10 +2036,9 @@ namespace VehicleInteriors
 								opts.Add(FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption("GiveToPackAnimal".Translate(item.Label, item), delegate ()
 								{
 									item.SetForbidden(false, false);
-                                    JobAcrossMapsUtility.TryTakeGotoDestMapJob(pawn, exitSpot, enterSpot);
                                     Job job = JobMaker.MakeJob(VIF_DefOf.VIF_GiveToPackAnimalAcrossMaps, item);
 									job.count = 1;
-									pawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), true);
+									pawn.jobs.TryTakeOrderedJob(JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, job), new JobTag?(JobTag.Misc), true);
 								}, MenuOptionPriority.High, null, null, 0f, null, null, true, 0), pawn, item, "ReservedBy", null));
 							}
 							else
@@ -2119,10 +2052,9 @@ namespace VehicleInteriors
 									opts.Add(FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption("GiveToPackAnimalAll".Translate(item.Label, item), delegate ()
 									{
 										item.SetForbidden(false, false);
-                                        JobAcrossMapsUtility.TryTakeGotoDestMapJob(pawn, exitSpot, enterSpot);
                                         Job job = JobMaker.MakeJob(VIF_DefOf.VIF_GiveToPackAnimalAcrossMaps, item);
 										job.count = item.stackCount;
-										pawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), true);
+										pawn.jobs.TryTakeOrderedJob(JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, job), new JobTag?(JobTag.Misc), true);
 									}, MenuOptionPriority.High, null, null, 0f, null, null, true, 0), pawn, item, "ReservedBy", null));
 								}
 								opts.Add(FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption("GiveToPackAnimalSome".Translate(item.LabelNoCount, item), delegate ()
@@ -2134,10 +2066,9 @@ namespace VehicleInteriors
 									Action<int> confirmAction = (int count) =>
 									{
 										item.SetForbidden(false, false);
-                                        JobAcrossMapsUtility.TryTakeGotoDestMapJob(pawn, exitSpot, enterSpot);
                                         Job job = JobMaker.MakeJob(VIF_DefOf.VIF_GiveToPackAnimalAcrossMaps, item);
 										job.count = count;
-										pawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), true);
+										pawn.jobs.TryTakeOrderedJob(JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, job), new JobTag?(JobTag.Misc), true);
 									};
 									Dialog_Slider window = new Dialog_Slider(text6, from, to, confirmAction, int.MinValue, 1f);
 									Find.WindowStack.Add(window);
@@ -2171,9 +2102,8 @@ namespace VehicleInteriors
 								{
 									Job job = JobMaker.MakeJob(VIF_DefOf.VIF_CarryDownedPawnToPortalAcrossMaps, portal, p);
 									job.count = 1;
-									var driver = job.GetCachedDriver(pawn) as JobDriverAcrossMaps;
-									driver.SetSpots(exitSpot, enterSpot, exitSpot2, enterSpot2);
-									pawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), false);
+                                    job.SetSpotsToJobAcrossMaps(pawn, exitSpot, enterSpot, exitSpot2, enterSpot2);
+                                    pawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), false);
 								}, MenuOptionPriority.High, null, null, 0f, null, null, true, 0), pawn, target, "ReservedBy", null));
 							}
 						}
@@ -2191,8 +2121,7 @@ namespace VehicleInteriors
 									Job job = JobMaker.MakeJob(VIF_DefOf.VIF_CarryDownedPawnToExitAcrossMaps, p, exitSpot.Cell);
 									job.count = 1;
 									job.failIfCantJoinOrCreateCaravan = true;
-									var driver = job.GetCachedDriver(pawn) as JobDriverAcrossMaps;
-									driver.SetSpots(exitSpot, enterSpot, exitSpot2);
+                                    job.SetSpotsToJobAcrossMaps(pawn, exitSpot, enterSpot, exitSpot2);
 									pawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), false);
 								}, MenuOptionPriority.High, null, null, 0f, null, null, true, 0), pawn, target, "ReservedBy", null));
 							}
@@ -2241,15 +2170,14 @@ namespace VehicleInteriors
 						}
 						else
 						{
-							Action action5 = () =>
-							{
-								JobAcrossMapsUtility.TryTakeGotoDestMapJob(pawn, exitSpot2, enterSpot2);
-								Job job = JobMaker.MakeJob(JobDefOf.TradeWithPawn, pTarg);
-								job.playerForced = true;
-								pawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), true);
-								PlayerKnowledgeDatabase.KnowledgeDemonstrated(ConceptDefOf.InteractingWithTraders, KnowledgeAmount.Total);
-							};
-							string t3 = "";
+                            void action5()
+                            {
+                                Job job = JobMaker.MakeJob(JobDefOf.TradeWithPawn, pTarg);
+                                job.playerForced = true;
+                                pawn.jobs.TryTakeOrderedJob(JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot2, enterSpot2, job), new JobTag?(JobTag.Misc), true);
+                                PlayerKnowledgeDatabase.KnowledgeDemonstrated(ConceptDefOf.InteractingWithTraders, KnowledgeAmount.Total);
+                            }
+                            string t3 = "";
 							if (pTarg.Faction != null)
 							{
 								t3 = " (" + pTarg.Faction.Name + ")";
@@ -2258,14 +2186,13 @@ namespace VehicleInteriors
 						}
 						if (pTarg.GetLord().LordJob is LordJob_TradeWithColony && !pTarg.mindState.traderDismissed)
 						{
-							Action action6 = () =>
+                            void action6()
                             {
-                                JobAcrossMapsUtility.TryTakeGotoDestMapJob(pawn, exitSpot2, enterSpot2);
                                 Job job = JobMaker.MakeJob(JobDefOf.DismissTrader, pTarg);
-								job.playerForced = true;
-								pawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), true);
-							};
-							opts.Add(FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption("DismissTrader".Translate(), action6, MenuOptionPriority.InitiateSocial, null, dest3.Thing, 0f, null, null, true, 0), pawn, pTarg, "ReservedBy", null));
+                                job.playerForced = true;
+                                pawn.jobs.TryTakeOrderedJob(JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot2, enterSpot2, job), new JobTag?(JobTag.Misc), true);
+                            }
+                            opts.Add(FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption("DismissTrader".Translate(), action6, MenuOptionPriority.InitiateSocial, null, dest3.Thing, 0f, null, null, true, 0), pawn, pTarg, "ReservedBy", null));
 						}
 					}
 				}
@@ -2284,10 +2211,9 @@ namespace VehicleInteriors
 				{
 					opts.Add(FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption("Open".Translate(casket.Thing), delegate ()
 					{
-						JobAcrossMapsUtility.TryTakeGotoDestMapJob(pawn, exitSpot2, enterSpot2);
 						Job job = JobMaker.MakeJob(JobDefOf.Open, casket.Thing);
 						job.ignoreDesignations = true;
-						pawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), true);
+						pawn.jobs.TryTakeOrderedJob(JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot2, enterSpot2, job), new JobTag?(JobTag.Misc), true);
 					}, MenuOptionPriority.High, null, null, 0f, null, null, true, 0), pawn, casket.Thing, "ReservedBy", null));
 				}
 			}
@@ -2303,13 +2229,12 @@ namespace VehicleInteriors
 				{
 					item7 = new FloatMenuOption("ExtinguishFiresNearby".Translate(), delegate()
 					{
-						JobAcrossMapsUtility.TryTakeGotoDestMapJob(pawn, exitSpot3, enterSpot3);
 						Job job = JobMaker.MakeJob(JobDefOf.ExtinguishFiresNearby);
 						foreach (Fire t5 in clickCell.GetFiresNearCell(map))
 						{
 							job.AddQueuedTarget(TargetIndex.A, t5);
 						}
-						pawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), true);
+						pawn.jobs.TryTakeOrderedJob(JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot3, enterSpot3, job), new JobTag?(JobTag.Misc), true);
 					}, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0);
 				}
 				opts.Add(item7);
@@ -2325,13 +2250,12 @@ namespace VehicleInteriors
 						string roomRoleLabel = room.GetRoomRoleLabel();
 						opts.Add(new FloatMenuOption("CleanRoom".Translate(roomRoleLabel), delegate()
 						{
-							JobAcrossMapsUtility.TryTakeGotoDestMapJob(pawn, exitSpot4, enterSpot4);
 							Job job = JobMaker.MakeJob(JobDefOf.Clean);
 							foreach (Filth t5 in filth)
 							{
 								job.AddQueuedTarget(TargetIndex.A, t5);
 							}
-							pawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), true);
+							pawn.jobs.TryTakeOrderedJob(JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot4, enterSpot4, job), new JobTag?(JobTag.Misc), true);
 						}, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0));
 					}
 				}
@@ -2506,10 +2430,13 @@ namespace VehicleInteriors
                             WorkGiverDef workGiver = workTypeDef.workGiversByPriority[i];
                             if (!drafted || workGiver.canBeDoneWhileDrafted)
                             {
-                                WorkGiver_Scanner workGiver_Scanner = workGiver.Worker as WorkGiver_Scanner;
-                                if (workGiver_Scanner != null && workGiver_Scanner.def.directOrderable)
+                                if (workGiver.Worker is WorkGiver_Scanner workGiver_Scanner && workGiver_Scanner.def.directOrderable)
                                 {
                                     JobFailReason.Clear();
+                                    var map2 = pawn.Map;
+                                    var pos = pawn.Position;
+                                    var canReach = pawn.CanReach(thing2, workGiver_Scanner.PathEndMode, Danger.Deadly, false, false, TraverseMode.ByPawn, thing2.Map, out var exitSpot, out var enterSpot);
+                                    pawn.VirtualMapTransfer(thing2.Map, enterSpot.IsValid ? enterSpot.Cell : exitSpot.IsValid ? exitSpot.Cell.OrigToThingMap(pawn) : pawn.Position);
                                     if (!FloatMenuMakerOnVehicle.ScannerShouldSkip(pawn, workGiver_Scanner, thing2))
                                     {
                                         Action action = null;
@@ -2532,6 +2459,7 @@ namespace VehicleInteriors
                                             }
                                             if (JobFailReason.Silent)
                                             {
+                                                pawn.VirtualMapTransfer(map2, pos);
                                                 continue;
                                             }
                                             if (job == null)
@@ -2552,6 +2480,7 @@ namespace VehicleInteriors
                                                 {
                                                     if (!thing2.IsForbidden(pawn))
                                                     {
+                                                        pawn.VirtualMapTransfer(map2, pos);
                                                         continue;
                                                     }
                                                     if (!thing2.PositionOnBaseMap().InAllowedArea(pawn))
@@ -2605,7 +2534,7 @@ namespace VehicleInteriors
                                                         text = "CannotPrioritizeForbidden".Translate(thing2.Label, thing2);
                                                     }
                                                 }
-                                                else if (!pawn.CanReach(thing2, workGiver_Scanner.PathEndMode, Danger.Deadly, false, false, TraverseMode.ByPawn, map, out var exitSpot, out var enterSpot))
+                                                else if (!canReach)
                                                 {
                                                     text = (thing2.Label + ": " + "NoPath".Translate().CapitalizeFirst()).CapitalizeFirst();
                                                 }
@@ -2622,8 +2551,8 @@ namespace VehicleInteriors
                                                     job.workGiverDef = workGiver_Scanner.def;
                                                     action = delegate ()
                                                     {
-                                                        JobAcrossMapsUtility.TryTakeGotoDestMapJob(pawn, exitSpot, enterSpot);
-                                                        if (pawn.jobs.TryTakeOrderedJobPrioritizedWork(localJob, localScanner, clickCell))
+                                                        var job2 = JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, localJob);
+                                                        if (pawn.jobs.TryTakeOrderedJobPrioritizedWork(job2, localScanner, clickCell))
                                                         {
                                                             var drawPos = map.IsVehicleMapOf(out var vehicle) ? clickCell.ToVector3Shifted().OrigToVehicleMap(vehicle) : clickCell.ToVector3Shifted();
                                                             var baseMap = map.BaseMap();
@@ -2666,6 +2595,7 @@ namespace VehicleInteriors
                                             }
                                         }
                                     }
+                                    pawn.VirtualMapTransfer(map2, pos);
                                 }
                             }
                         }

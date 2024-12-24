@@ -29,7 +29,7 @@ namespace VehicleInteriors
                         dist++;
                     }
                     var cell = (basePos - faceCell * dist);
-                    return pawn.CanReach(e, PathEndMode.OnCell, Danger.Deadly, hostile, hostile, TraverseMode.ByPawn) && cell.Walkable(baseMap);
+                    return pawn.CanReach(e, PathEndMode.OnCell, Danger.Deadly, hostile, hostile, TraverseMode.ByPawn) && cell.Standable(baseMap);
                 });
                 if (!spot.IsValid)
                 {
@@ -45,14 +45,12 @@ namespace VehicleInteriors
                             dist++;
                         }
                         var cell = (basePos - faceCell * dist);
-                        return pawn.CanReach(c, PathEndMode.OnCell, Danger.Deadly, hostile, hostile, TraverseMode.ByPawn) && cell.Walkable(baseMap);
+                        return pawn.CanReach(c, PathEndMode.OnCell, Danger.Deadly, hostile, hostile, TraverseMode.ByPawn) && cell.Standable(baseMap);
                     }), vehicle.interiorMap);
                 }
                 if (spot.IsValid)
                 {
-                    var job = JobMaker.MakeJob(VIF_DefOf.VIF_GotoAcrossMaps);
-                    var driver = job.GetCachedDriver(pawn) as JobDriverAcrossMaps;
-                    driver.SetSpots(spot);
+                    var job = JobMaker.MakeJob(VIF_DefOf.VIF_GotoAcrossMaps).SetSpotsToJobAcrossMaps(pawn, spot);
                     return job;
                 }
             }

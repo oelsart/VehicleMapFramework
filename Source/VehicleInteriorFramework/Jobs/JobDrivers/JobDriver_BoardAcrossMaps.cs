@@ -8,7 +8,6 @@ using Vehicles;
 using Verse;
 using Verse.AI;
 using Verse.AI.Group;
-using static UnityEngine.GraphicsBuffer;
 
 namespace VehicleInteriors
 {
@@ -37,10 +36,16 @@ namespace VehicleInteriors
             Toil toil = new Toil();
             toil.initAction = delegate ()
             {
-                var vehicleSeat = pawnBoarding.jobs.curJob.GetTarget(TargetIndex.A).Thing;
-                if (!vehicleSeat.IsOnVehicleMapOf(out var vehiclePawn))
+                var target = pawnBoarding.jobs.curJob.GetTarget(TargetIndex.A).Thing;
+                VehiclePawn vehiclePawn = target as VehiclePawn;
+                if (vehiclePawn == null)
                 {
-                    Log.Error("[VehicleWithMapFramework] TargetA of JobDriver_BoardAcrossMaps must be on vehicle map");
+                    if (!target.IsOnVehicleMapOf(out var vehiclePawnWithMap))
+                    {
+                        Log.Error("[VehicleWithMapFramework] TargetA of JobDriver_BoardAcrossMaps must be VehiclePawn or on vehicle map.");
+                        return;
+                    }
+                    vehiclePawn = vehiclePawnWithMap;
                 }
                 Lord lord = pawnBoarding.GetLord();
                 ValueTuple<VehiclePawn, VehicleHandler> vehicleAssigned;

@@ -261,11 +261,14 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             var oldAction = __result.initAction;
             __result.initAction = new Action(() =>
             {
-
                 Pawn actor = __result.actor;
                 LocalTargetInfo dest = actor.jobs.curJob.GetTarget(ind);
                 Thing thing = dest.Thing;
-                if (thing == null) return;
+                if (thing == null)
+                {
+                    oldAction();
+                    return;
+                }
                 if (canGotoSpawnedParent)
                 {
                     dest = thing.SpawnedParentOrMe;
@@ -279,6 +282,16 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                     oldAction();
                 }
             });
+
+            __result.endConditions.Clear();
+            if (canGotoSpawnedParent)
+            {
+                __result.FailOnSelfAndParentsDespawnedOrNull(ind);
+            }
+            else
+            {
+                __result.FailOnDespawnedOrNull(ind);
+            }
         }
     }
 

@@ -37,16 +37,16 @@ namespace VehicleInteriors
             AddEndCondition(() => (!RefuelableComp.IsFull) ? JobCondition.Ongoing : JobCondition.Succeeded);
             AddFailCondition(() => !job.playerForced && !RefuelableComp.ShouldAutoRefuelNowIgnoringFuelPct);
             AddFailCondition(() => !RefuelableComp.allowAutoRefuel && !job.playerForced);
+            if (this.ShouldEnterTargetBMap)
+            {
+                foreach (var toil in this.GotoTargetMap(TargetIndex.B)) yield return toil;
+            }
             yield return Toils_General.DoAtomic(delegate
             {
                 job.count = RefuelableComp.GetFuelCountToFullyRefuel();
             });
             Toil reserveFuel = Toils_Reserve.Reserve(TargetIndex.B);
             yield return reserveFuel;
-            if (this.ShouldEnterTargetBMap)
-            {
-                foreach (var toil in this.GotoTargetMap(TargetIndex.B)) yield return toil;
-            }
             yield return Toils_Goto.GotoThing(TargetIndex.B, PathEndMode.ClosestTouch).FailOnDespawnedNullOrForbidden(TargetIndex.B).FailOnSomeonePhysicallyInteracting(TargetIndex.B);
             yield return Toils_Haul.StartCarryThing(TargetIndex.B, putRemainderInQueue: false, subtractNumTakenFromJobCount: true).FailOnDestroyedNullOrForbidden(TargetIndex.B);
             yield return Toils_Haul.CheckForGetOpportunityDuplicate(reserveFuel, TargetIndex.B, TargetIndex.None, takeFromValidStorage: true);

@@ -93,6 +93,10 @@ namespace VehicleInteriors
 
         public static readonly MethodInfo m_DrawPosOrig = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.DrawPosOrig));
 
+        public static readonly MethodInfo m_GenThing_TrueCenter = AccessTools.Method(typeof(GenThing), nameof(GenThing.TrueCenter), new Type[] { typeof(Thing) });
+
+        public static readonly MethodInfo m_TrueCenterOrig = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.TrueCenterOrig));
+
         public static readonly MethodInfo m_RotateForPrintNegate = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.RotateForPrintNegate));
 
         public static readonly MethodInfo m_ShouldLinkWith = AccessTools.Method(typeof(Graphic_Linked), nameof(Graphic_Linked.ShouldLinkWith));
@@ -102,5 +106,17 @@ namespace VehicleInteriors
         public static readonly MethodInfo m_ForbidUtility_IsForbidden = AccessTools.Method(typeof(ForbidUtility), nameof(ForbidUtility.IsForbidden), new Type[] { typeof(Thing), typeof(Pawn) });
 
         public static readonly MethodInfo m_ReservationAcrossMapsUtility_IsForbidden = AccessTools.Method(typeof(ReservationAcrossMapsUtility), nameof(ReservationAcrossMapsUtility.IsForbidden));
+
+        public static readonly MethodInfo m_GenSight_LineOfSightToThing = AccessTools.Method(typeof(GenSight), nameof(GenSight.LineOfSightToThing));
+
+        public static readonly MethodInfo m_GenSightOnVehicle_LineOfSightToThing = AccessTools.Method(typeof(GenSightOnVehicle), nameof(GenSightOnVehicle.LineOfSightToThing));
+
+        public static readonly MethodInfo m_GenSight_LineOfSight = AccessTools.Method(typeof(GenSight), nameof(GenSight.LineOfSight), new Type[] { typeof(IntVec3), typeof(IntVec3), typeof(Map) });
+
+        public static readonly MethodInfo m_GenSightOnVehicle_LineOfSight = AccessTools.Method(typeof(GenSightOnVehicle), nameof(GenSightOnVehicle.LineOfSight), new Type[] { typeof(IntVec3), typeof(IntVec3), typeof(Map) });
+
+        public static readonly MethodInfo m_GenUI_TargetsAtMouse = AccessTools.Method(typeof(GenUI), nameof(GenUI.TargetsAtMouse));
+
+        public static readonly MethodInfo m_GenUIOnVehicle_TargetsAtMouse = AccessTools.Method(typeof(GenUIOnVehicle), nameof(GenUIOnVehicle.TargetsAtMouse));
     }
 }

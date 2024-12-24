@@ -29,43 +29,44 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         }
     }
 
-    [HarmonyPatch(typeof(Thing), nameof(Thing.DrawPos), MethodType.Getter)]
-    public static class Patch_Thing_DrawPos
+    [HarmonyBefore("SmashPhil.VehicleFramework")]
+    [HarmonyPatch(typeof(GenThing), nameof(GenThing.TrueCenter), typeof(Thing))]
+    public static class Patch_GenThing_TrueCenter
     {
-        public static bool Prefix(Thing __instance, ref Vector3 __result)
+        public static bool Prefix(Thing t, ref Vector3 __result)
         {
-            return !__instance.TryGetOnVehicleDrawPos(ref __result);
+            return !t.TryGetOnVehicleDrawPos(ref __result);
         }
     }
 
-    [HarmonyPatch(typeof(Pawn), nameof(Pawn.DrawPos), MethodType.Getter)]
-    public static class Patch_Pawn_DrawPos
+    [HarmonyPatch(typeof(Pawn_DrawTracker), nameof(Pawn_DrawTracker.DrawPos), MethodType.Getter)]
+    public static class Patch_Pawn_DrawTracker_DrawPos
     {
-        public static bool Prefix(Pawn __instance, ref Vector3 __result)
+        public static bool Prefix(Pawn ___pawn, ref Vector3 __result)
         {
-            return !__instance.TryGetOnVehicleDrawPos(ref __result);
+            return !___pawn.TryGetOnVehicleDrawPos(ref __result);
         }
 
-        public static void Postfix(VehiclePawn __instance, ref Vector3 __result)
+        public static void Postfix(Pawn ___pawn, ref Vector3 __result)
         {
-            __result.y += __instance.jobs?.curDriver is JobDriverAcrossMaps driver ? driver.ForcedBodyOffset.y : 0f;
+            __result.y += ___pawn.jobs?.curDriver is JobDriverAcrossMaps driver ? driver.ForcedBodyOffset.y : 0f;
         }
     }
 
-    [HarmonyPatch(typeof(VehiclePawn), nameof(VehiclePawn.DrawPos), MethodType.Getter)]
+    [HarmonyPatch(typeof(Vehicle_DrawTracker), nameof(Vehicle_DrawTracker.DrawPos), MethodType.Getter)]
     public static class Patch_VehiclePawn_DrawPos
     {
-        public static bool Prefix(VehiclePawn __instance, ref Vector3 __result, out bool __state)
+        public static bool Prefix(VehiclePawn ___vehicle, ref Vector3 __result, out bool __state)
         {
-            __state = !__instance.TryGetOnVehicleDrawPos(ref __result);
+            __state = !___vehicle.TryGetOnVehicleDrawPos(ref __result);
             return __state;
         }
 
-        public static void Postfix(VehiclePawn __instance, ref Vector3 __result, bool __state)
+        public static void Postfix(VehiclePawn ___vehicle, ref Vector3 __result, bool __state)
         {
             if (__state)
             {
-                __result += __instance.jobs?.curDriver is JobDriverAcrossMaps driver ? driver.ForcedBodyOffset : Vector3.zero;
+                __result += ___vehicle.jobs?.curDriver is JobDriverAcrossMaps driver ? driver.ForcedBodyOffset : Vector3.zero;
             }
         }
     }

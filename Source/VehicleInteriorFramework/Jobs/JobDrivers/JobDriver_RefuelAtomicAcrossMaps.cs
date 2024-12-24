@@ -34,6 +34,10 @@ namespace VehicleInteriors
             AddEndCondition(() => (!RefuelableComp.IsFull) ? JobCondition.Ongoing : JobCondition.Succeeded);
             AddFailCondition(() => (!job.playerForced && !RefuelableComp.ShouldAutoRefuelNowIgnoringFuelPct) || !RefuelableComp.allowAutoRefuel);
             AddFailCondition(() => !RefuelableComp.allowAutoRefuel && !job.playerForced);
+            if (this.ShouldEnterTargetBMap)
+            {
+                foreach (var toil in this.GotoTargetMap(TargetIndex.B)) yield return toil;
+            }
             yield return Toils_General.DoAtomic(delegate
             {
                 job.count = RefuelableComp.GetFuelCountToFullyRefuel();
@@ -41,10 +45,6 @@ namespace VehicleInteriors
             Toil getNextIngredient = Toils_General.Label();
             yield return getNextIngredient;
             yield return Toils_JobTransforms.ExtractNextTargetFromQueue(TargetIndex.B);
-            if (this.ShouldEnterTargetBMap)
-            {
-                foreach (var toil in this.GotoTargetMap(TargetIndex.B)) yield return toil;
-            }
             yield return Toils_Goto.GotoThing(TargetIndex.B, PathEndMode.ClosestTouch).FailOnDespawnedNullOrForbidden(TargetIndex.B).FailOnSomeonePhysicallyInteracting(TargetIndex.B);
             yield return Toils_Haul.StartCarryThing(TargetIndex.B, putRemainderInQueue: false, subtractNumTakenFromJobCount: true).FailOnDestroyedNullOrForbidden(TargetIndex.B);
             if (this.ShouldEnterTargetAMap)

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using Vehicles;
 using Verse;
@@ -248,14 +249,12 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         }
     }
 
-    [HarmonyPatch(typeof(VehicleTurret), "TurretTargeterTick")]
-    public static class Patch_VehicleTurret_TurretTargeterTick
+    [HarmonyPatch(typeof(VehicleTurret), nameof(VehicleTurret.InRange))]
+    public static class Patch_VehicleTurret_InRange
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            var m_TurretTargeter_TargetMeetsRequirements = AccessTools.Method(typeof(TurretTargeter), nameof(TurretTargeter.TargetMeetsRequirements));
-            var m_TargetingHelperOnVehicle_TargetMeetsRequirements = AccessTools.Method(typeof(TargetingHelperOnVehicle), nameof(TargetingHelperOnVehicle.TargetMeetsRequirements));
-            return instructions.MethodReplacer(m_TurretTargeter_TargetMeetsRequirements, m_TargetingHelperOnVehicle_TargetMeetsRequirements);
+            return instructions.MethodReplacer(MethodInfoCache.g_LocalTargetInfo_Cell, MethodInfoCache.m_CellOnBaseMap);
         }
     }
 
@@ -276,6 +275,74 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             return instructions.MethodReplacer(MethodInfoCache.g_LocalTargetInfo_Cell, MethodInfoCache.m_CellOnBaseMap)
                 .MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap)
                 .MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing);
+        }
+    }
+
+    [HarmonyPatch(typeof(VehicleTurret), nameof(VehicleTurret.TurretRotation), MethodType.Getter)]
+    public static class Patch_VehicleTurret_TurretRotation
+    {
+        public static void Postfix(ref float __result, VehiclePawn ___vehicle)
+        {
+            if (___vehicle.IsOnNonFocusedVehicleMapOf(out var vehicle2))
+            {
+                __result = Ext_Math.RotateAngle(__result, vehicle2.FullRotation.AsAngle);
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(TurretTargeter), nameof(TurretTargeter.BeginTargeting))]
+    public static class Patch_TurretTargeter_BeginTargeting
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing);
+        }
+    }
+
+    [HarmonyPatch(typeof(TurretTargeter), "CurrentTargetUnderMouse")]
+    public static class Patch_TurretTargeter_CurrentTargetUnderMouse
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.m_GenUI_TargetsAtMouse, MethodInfoCache.m_GenUIOnVehicle_TargetsAtMouse);
+        }
+    }
+
+    [HarmonyPatch(typeof(TurretTargeter), nameof(TurretTargeter.TargeterUpdate))]
+    public static class Patch_TurretTargeter_TargeterUpdate
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_LocalTargetInfo_Cell, MethodInfoCache.m_CellOnBaseMap);
+        }
+    }
+
+    [HarmonyPatch(typeof(TurretTargeter), nameof(TurretTargeter.ProcessInputEvents))]
+    public static class Patch_TurretTargeter_ProcessInputEvents
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_LocalTargetInfo_Cell, MethodInfoCache.m_CellOnBaseMap);
+        }
+    }
+
+    [HarmonyPatch(typeof(TurretTargeter), nameof(TurretTargeter.TargetMeetsRequirements))]
+    public static class Patch_TurretTargeter_TargetMeetsRequirements
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing)
+                .MethodReplacer(MethodInfoCache.m_GenSight_LineOfSightToThing, MethodInfoCache.m_GenSightOnVehicle_LineOfSightToThing)
+                .MethodReplacer(MethodInfoCache.m_GenSight_LineOfSight, MethodInfoCache.m_GenSightOnVehicle_LineOfSight);
+        }
+    }
+
+    [HarmonyPatch(typeof(TurretTargeter), nameof(TurretTargeter.TargeterValid), MethodType.Getter)]
+    public static class Patch_TurretTargeter_TargeterValid
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing);
         }
     }
 }
