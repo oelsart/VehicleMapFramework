@@ -311,7 +311,7 @@ namespace VehicleInteriors
         public static CellRect MovedOccupiedRect(this Thing thing)
         {
             var drawSize = thing.DrawSize;
-            return GenAdj.OccupiedRect(thing.PositionOnBaseMap(), thing.BaseRotationOfThing(), new IntVec2(Mathf.CeilToInt(drawSize.x), Mathf.CeilToInt(drawSize.y)));
+            return GenAdj.OccupiedRect(thing.PositionOnBaseMap(), thing.BaseRotation(), new IntVec2(Mathf.CeilToInt(drawSize.x), Mathf.CeilToInt(drawSize.y)));
         }
 
         public static TargetInfo ToBaseMapTargetInfo(ref LocalTargetInfo target, Map map)
@@ -358,7 +358,7 @@ namespace VehicleInteriors
             return cell;
         }
 
-        public static Rot4 BaseRotationOfThing(this Thing thing)
+        public static Rot4 BaseRotation(this Thing thing)
         {
             if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle))
             {
@@ -366,13 +366,22 @@ namespace VehicleInteriors
             }
             return thing.Rotation;
         }
+        public static Rot8 BaseFullRotation(this VehiclePawn vehicle)
+        {
+            if (vehicle.IsOnNonFocusedVehicleMapOf(out var vehicle2))
+            {
+                var angle = Ext_Math.RotateAngle(vehicle.FullRotation.AsAngle, vehicle2.FullRotation.AsAngle);
+                return Rot8.FromAngle(angle);
+            }
+            return vehicle.FullRotation;
+        }
 
-        public static Rot8 BaseFullRotationOfThing(this Thing thing)
+        public static Rot8 BaseFullRotation(this Thing thing)
         {
             if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle))
             {
-                var angle = thing.Rotation.AsAngle + vehicle.FullRotation.AsAngle;
-                return angle.AsRot8();
+                var angle = Ext_Math.RotateAngle(thing.Rotation.AsAngle, vehicle.FullRotation.AsAngle);
+                return Rot8.FromAngle(angle);
             }
             return thing.Rotation;
         }
@@ -397,8 +406,8 @@ namespace VehicleInteriors
             var dir = c.DirectionToInsideMap(map);
             if (map.IsVehicleMapOf(out var vehicle) && Find.CurrentMap != map)
             {
-                var angle = dir.AsAngle + vehicle.FullRotation.AsAngle;
-                return angle.AsRot8();
+                var angle = Ext_Math.RotateAngle(dir.AsAngle, vehicle.FullRotation.AsAngle);
+                return Rot8.FromAngle(angle);
             }
             return dir;
         }
@@ -415,19 +424,22 @@ namespace VehicleInteriors
 
         public static bool TryGetOnVehicleDrawPos(this Thing thing, ref Vector3 result)
         {
-            if (VehiclePawnWithMapCache.cachedDrawPos.TryGetValue(thing, out var pos))
+            if (!VehiclePawnWithMapCache.cacheMode)
             {
-                result = pos;
-                return true;
-            }
-            if (!VehiclePawnWithMapCache.cacheMode && thing.IsOnNonFocusedVehicleMapOf(out var vehicle))
-            {
-                VehiclePawnWithMapCache.cacheMode = true;
-                var drawPos = thing.DrawPos;
-                VehiclePawnWithMapCache.cachedDrawPos[thing] = drawPos.OrigToVehicleMap(vehicle);
-                VehiclePawnWithMapCache.cacheMode = false;
-                result = VehiclePawnWithMapCache.cachedDrawPos[thing];
-                return true;
+                if (VehiclePawnWithMapCache.cachedDrawPos.TryGetValue(thing, out var pos))
+                {
+                    result = pos;
+                    return true;
+                }
+                if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle))
+                {
+                    VehiclePawnWithMapCache.cacheMode = true;
+                    var drawPos = thing.DrawPos;
+                    VehiclePawnWithMapCache.cachedDrawPos[thing] = drawPos.OrigToVehicleMap(vehicle);
+                    VehiclePawnWithMapCache.cacheMode = false;
+                    result = VehiclePawnWithMapCache.cachedDrawPos[thing];
+                    return true;
+                }
             }
             return false;
         }

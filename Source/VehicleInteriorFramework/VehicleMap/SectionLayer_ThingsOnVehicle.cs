@@ -90,6 +90,7 @@ namespace VehicleInteriors
             for (var i = 0; i < 4; i++)
             {
                 this.subMeshes = new List<LayerSubMesh>();
+                VehiclePawnWithMapCache.cacheMode = true;
                 foreach (IntVec3 intVec in this.section.CellRect)
                 {
                     foreach (var thing in intVec.GetThingList(base.Map))
@@ -101,6 +102,7 @@ namespace VehicleInteriors
                         }
                     }
                 }
+                VehiclePawnWithMapCache.cacheMode = false;
                 this.FinalizeMesh(MeshParts.All);
                 this.subMeshesByRot[i] = this.subMeshes;    
                 VehicleMapUtility.rotForPrint.Rotate(RotationDirection.Clockwise);

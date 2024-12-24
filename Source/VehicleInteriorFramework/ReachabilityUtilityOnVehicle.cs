@@ -46,7 +46,7 @@ namespace VehicleInteriors
                                 if (enterSpot != null)
                                 {
                                     basePos = enterSpot.Thing.PositionOnBaseMap();
-                                    faceCell = enterSpot.Thing.BaseFullRotationOfThing().FacingCell;
+                                    faceCell = enterSpot.Thing.BaseFullRotation().FacingCell;
                                 }
                                 else
                                 {
@@ -85,7 +85,7 @@ namespace VehicleInteriors
                                 if (enterSpot != null)
                                 {
                                     basePos = enterSpot.Thing.PositionOnBaseMap();
-                                    faceCell = enterSpot.Thing.BaseFullRotationOfThing().FacingCell;
+                                    faceCell = enterSpot.Thing.BaseFullRotation().FacingCell;
                                 }
                                 else
                                 {
@@ -126,7 +126,7 @@ namespace VehicleInteriors
                                     if (enterSpot != null)
                                     {
                                         basePos = enterSpot.Thing.PositionOnBaseMap();
-                                        faceCell = enterSpot.Thing.BaseFullRotationOfThing().FacingCell;
+                                        faceCell = enterSpot.Thing.BaseFullRotation().FacingCell;
                                     }
                                     else
                                     {
@@ -150,7 +150,7 @@ namespace VehicleInteriors
                                         if (enterSpot2 != null)
                                         {
                                             basePos2 = enterSpot2.Thing.PositionOnBaseMap();
-                                            faceCell2 = enterSpot2.Thing.BaseFullRotationOfThing().FacingCell;
+                                            faceCell2 = enterSpot2.Thing.BaseFullRotation().FacingCell;
                                         }
                                         else
                                         {
@@ -353,7 +353,7 @@ namespace VehicleInteriors
                     exitSpot2 = c.GetFirstThingWithComp<CompVehicleEnterSpot>(vehicle.interiorMap);
                     if (exitSpot2 == null) return false;
                     return pawn.Map.reachability.CanReach(pawn.Position , exitSpot2, PathEndMode.OnCell, traverseParms) &&
-                    baseMap.reachability.CanReachMapEdge(exitSpot2.PositionOnBaseMap() - exitSpot2.BaseFullRotationOfThing().FacingCell, traverseParms);
+                    baseMap.reachability.CanReachMapEdge(exitSpot2.PositionOnBaseMap() - exitSpot2.BaseFullRotation().FacingCell, traverseParms);
                 }))
                 {
                     exitSpot = exitSpot2;
@@ -409,7 +409,7 @@ namespace VehicleInteriors
                                 enterSpot = c.GetThingList(departMap).FirstOrDefault(t => AvailableEnterSpot(t));
                                 if (enterSpot == null) return false;
                                 var basePos = enterSpot.PositionOnBaseMap();
-                                var rot = enterSpot.BaseFullRotationOfThing();
+                                var rot = enterSpot.BaseFullRotation();
                                 var faceCell = rot.FacingCell;
                                 faceCell.y = 0;
                                 var dist = 1;
@@ -437,7 +437,7 @@ namespace VehicleInteriors
                                 enterSpot = c.GetThingList(destMap).FirstOrDefault(t => AvailableEnterSpot(t));
                                 if (enterSpot == null) return false;
                                 var basePos = enterSpot.PositionOnBaseMap();
-                                var rot = enterSpot.BaseFullRotationOfThing();
+                                var rot = enterSpot.BaseFullRotation();
                                 var faceCell = rot.FacingCell;
                                 faceCell.y = 0;
                                 var dist = 1;
@@ -469,7 +469,7 @@ namespace VehicleInteriors
                                     enterSpot = c.GetThingList(departMap).FirstOrDefault(t => AvailableEnterSpot(t));
                                     if (enterSpot == null) return false;
                                     var basePos = enterSpot.PositionOnBaseMap();
-                                    var rot = enterSpot.BaseFullRotationOfThing();
+                                    var rot = enterSpot.BaseFullRotation();
                                     var faceCell = rot.FacingCell;
                                     faceCell.y = 0;
                                     var dist = 1;
@@ -483,7 +483,7 @@ namespace VehicleInteriors
                                         enterSpot2 = c2.GetThingList(destMap).FirstOrDefault(t => AvailableEnterSpot(t));
                                         if (enterSpot2 == null) return false;
                                         var basePos2 = enterSpot2.PositionOnBaseMap();
-                                        var rot2 = enterSpot2.BaseFullRotationOfThing();
+                                        var rot2 = enterSpot2.BaseFullRotation();
                                         var faceCell2 = rot2.FacingCell;
                                         faceCell2.y = 0;
                                         var dist2 = 1;

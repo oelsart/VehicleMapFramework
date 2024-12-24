@@ -21,7 +21,7 @@ namespace VehicleInteriors
                 {
                     var baseMap = e.BaseMap();
                     var basePos = e.PositionOnBaseMap();
-                    var faceCell = e.BaseFullRotationOfThing().FacingCell;
+                    var faceCell = e.BaseFullRotation().FacingCell;
                     faceCell.y = 0;
                     var dist = 1;
                     while ((basePos - faceCell * dist).GetThingList(baseMap).Contains(vehicle))

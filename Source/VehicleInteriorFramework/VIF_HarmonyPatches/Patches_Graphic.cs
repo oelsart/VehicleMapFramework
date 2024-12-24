@@ -52,7 +52,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     [HarmonyPatch(typeof(Thing), nameof(Thing.Print))]
     public static class Patch_Thing_Print
     {
-        public static IEnumerable<CodeInstruction> Transpiler (IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             var codes = instructions.ToList();
             var pos = codes.FindIndex(c => c.opcode == OpCodes.Ldc_R4 && (float)c.operand == 0f);
@@ -90,7 +90,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                 new CodeInstruction(OpCodes.Neg),
                 CodeInstruction.Call(typeof(Vector3Utility), nameof(Vector3Utility.RotatedBy), new Type[]{ typeof(Vector3), typeof(float) }),
             });
-            return codes.MethodReplacer(MethodInfoCache.m_GenThing_TrueCenter, MethodInfoCache.m_TrueCenterOrig);
+            return codes;
         }
     }
 
@@ -99,8 +99,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Rotation, MethodInfoCache.m_Thing_RotationOrig)
-                .MethodReplacer(MethodInfoCache.m_GenThing_TrueCenter, MethodInfoCache.m_TrueCenterOrig);
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Rotation, MethodInfoCache.m_Thing_RotationOrig);
         }
     }
 
@@ -170,7 +169,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         public static void Postfix(Pawn ___pawn)
         {
-            ___pawn.Rotation = ___pawn.BaseRotationOfThing();
+            ___pawn.Rotation = ___pawn.BaseRotation();
         }
     }
 
@@ -284,8 +283,8 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         {
             if (__instance.IsOnNonFocusedVehicleMapOf(out var vehicle))
             {
-                var angle = __result.AsAngle + vehicle.FullRotation.AsAngle;
-                __result = angle.AsRot8();
+                var angle = Ext_Math.RotateAngle(__result.AsAngle, vehicle.FullRotation.AsAngle);
+                __result = Rot8.FromAngle(angle);
             }
         }
     }

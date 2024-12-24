@@ -15,11 +15,12 @@ namespace VehicleInteriors
             get
             {
                 IntVec3 point = UI.MouseCell();
+                var c = this.cell;
                 if (this.destMap.IsVehicleMapOf(out var vehicle) && Find.CurrentMap != this.destMap)
                 {
-                    point = point.VehicleMapToOrig(vehicle);
+                    c = c.OrigToVehicleMap(vehicle);
                 }
-                return Rot8.FromAngle(this.cell.AngleToCell(point));
+                return Rot8.FromAngle(c.AngleToCell(point));
             }
         }
 
@@ -59,9 +60,7 @@ namespace VehicleInteriors
 
         public void ConfirmOrientation()
         {
-            Job job = new Job(VIF_DefOf.VIF_GotoAcrossMaps, this.cell);
-            var driver = job.GetCachedDriver(this.vehicle) as JobDriverAcrossMaps;
-            driver.SetSpots(this.exitSpot, this.enterSpot);
+            Job job = new Job(VIF_DefOf.VIF_GotoAcrossMaps, this.cell).SetSpotsToJobAcrossMaps(this.vehicle, this.exitSpot, this.enterSpot);
             bool flag = CellRect.WholeMap(this.vehicle.Map).IsOnEdge(this.clickCell, 3);
             bool flag2 = this.vehicle.Map.exitMapGrid.IsExitCell(this.clickCell);
             bool flag3 = this.vehicle.InhabitedCellsProjected(this.clickCell, Rot8.Invalid, 0).NotNullAndAny((IntVec3 cell) => cell.InBounds(this.vehicle.Map) && this.vehicle.Map.exitMapGrid.IsExitCell(cell));
@@ -87,12 +86,13 @@ namespace VehicleInteriors
             if (this.vehicle.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), false))
             {
                 Rot8 endRotation = this.IsDragging ? this.Rotation : Rot8.Invalid;
-                this.vehicle.vehiclePather.SetEndRotation(endRotation);
                 var drawPos = this.cell.ToVector3Shifted();
                 if (this.destMap.IsVehicleMapOf(out var vehicle2) && Find.CurrentMap != this.destMap)
                 {
                     drawPos = drawPos.OrigToVehicleMap(vehicle2);
+                    endRotation = this.IsDragging ? Rot8.FromAngle(Ext_Math.RotateAngle(endRotation.AsAngle, -vehicle2.FullRotation.AsAngle)) : endRotation;
                 }
+                this.vehicle.vehiclePather.SetEndRotation(endRotation);
                 FleckMaker.Static(drawPos, this.vehicle.BaseMap(), FleckDefOf.FeedbackGoto, 1f);
             }
             this.StopTargeting();

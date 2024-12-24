@@ -1,13 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using RimWorld.Planet;
+using System.Collections.Generic;
 using Verse;
 
 namespace VehicleInteriors
 {
-    public class VehicleMapParentsComponent : GameComponent
+    public class VehicleMapParentsComponent : WorldComponent
     {
-        public VehicleMapParentsComponent(Game game)
-        {
-        }
+        public VehicleMapParentsComponent(World world) : base(world) { }
 
         public override void ExposeData()
         {

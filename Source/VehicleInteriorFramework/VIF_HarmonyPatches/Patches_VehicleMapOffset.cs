@@ -37,6 +37,11 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         {
             return !t.TryGetOnVehicleDrawPos(ref __result);
         }
+
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Rotation, MethodInfoCache.m_Thing_RotationOrig);
+        }
     }
 
     [HarmonyPatch(typeof(Pawn_DrawTracker), nameof(Pawn_DrawTracker.DrawPos), MethodType.Getter)]

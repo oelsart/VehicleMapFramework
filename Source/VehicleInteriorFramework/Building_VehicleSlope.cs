@@ -12,7 +12,7 @@ namespace VehicleInteriors
         protected override void DrawAt(Vector3 drawLoc, bool flip = false)
         {
             var moverGraphic = this.def.building.upperMoverGraphic.Graphic;
-            var rot = this.BaseFullRotationOfThing();
+            var rot = this.BaseFullRotation();
             var openPct = base.OpenPct;
             var facingVect = rot.FacingCell.ToVector3();
             var offset = rot.IsDiagonal ? facingVect * 0.35355339f : facingVect / 2f;

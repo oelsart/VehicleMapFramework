@@ -290,6 +290,33 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         }
     }
 
+    [HarmonyPatch(typeof(VehicleTurret), nameof(VehicleTurret.TurretRotationTargeted), MethodType.Setter)]
+    public static class Patch_VehicleTurret_TurretRotationTargeted
+    {
+        public static void Prefix(ref float value, VehicleTurret __instance)
+        {
+            if (__instance.vehicle.IsOnNonFocusedVehicleMapOf(out var vehicle2) && (__instance.TargetLocked || TurretTargeter.Turret == __instance))
+            {
+                value = Ext_Math.RotateAngle(value, -vehicle2.FullRotation.AsAngle);
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(VehicleTurret), nameof(VehicleTurret.RotationAligned), MethodType.Getter)]
+    public static class Patch_VehicleTurret_RotationAligned
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var f_rotationTargeted = AccessTools.Field(typeof(VehicleTurret), "rotationTargeted");
+            var g_RotationTargeted = AccessTools.PropertyGetter(typeof(VehicleTurret), nameof(VehicleTurret.TurretRotationTargeted));
+            return instructions.Manipulator(c => c.OperandIs(f_rotationTargeted), c =>
+            {
+                c.opcode = OpCodes.Callvirt;
+                c.operand = g_RotationTargeted;
+            });
+        }
+    }
+
     [HarmonyPatch(typeof(TurretTargeter), nameof(TurretTargeter.BeginTargeting))]
     public static class Patch_TurretTargeter_BeginTargeting
     {
