@@ -44,7 +44,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
 
                 if (!mouseVehicleMapPosition.InBounds(vehicle.interiorMap)) return;
 
-                List<Thing> selectableList = SelectorOnVehicleUtility.ThingsUnderMouse(mouseMapPosition, 1f, targetingParameters, null, vehicle);
+                List<Thing> selectableList = GenUIOnVehicle.ThingsUnderMouse(mouseMapPosition, 1f, targetingParameters, null, vehicle);
                 if (selectableList.Count > 0)
                 {
                     __result = __result.Except(vehicle);

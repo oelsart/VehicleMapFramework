@@ -6,6 +6,9 @@
 		<altitudeLayer>Building</altitudeLayer>
 		<passability>PassThroughOnly</passability>
 		<rotatable>false</rotatable>
+		<placeWorkers>
+			<li>VehicleInteriors.PlaceWorker_ForceOnVehicle</li>
+		</placeWorkers>
 	</ThingDef>
 	
 	<ThingDef ParentName="VehicleSeatBase">

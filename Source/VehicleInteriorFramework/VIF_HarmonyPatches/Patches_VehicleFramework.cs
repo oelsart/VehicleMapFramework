@@ -236,4 +236,46 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             __result = __result && !(thing is Building_VehicleSlope && thing.def.passability != Traversability.Impassable && !thing.def.IsFence);
         }
     }
+
+    [HarmonyPatch(typeof(VehicleTurret), "TurretAutoTick")]
+    public static class Patch_VehicleTurret_TurretAutoTick
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var m_TargetingHelper_TryGetTarget = AccessTools.Method(typeof(TargetingHelper), nameof(TargetingHelper.TryGetTarget));
+            var m_TargetingHelperOnVehicle_TryGetTarget = AccessTools.Method(typeof(TargetingHelperOnVehicle), nameof(TargetingHelperOnVehicle.TryGetTarget));
+            return instructions.MethodReplacer(m_TargetingHelper_TryGetTarget, m_TargetingHelperOnVehicle_TryGetTarget);
+        }
+    }
+
+    [HarmonyPatch(typeof(VehicleTurret), "TurretTargeterTick")]
+    public static class Patch_VehicleTurret_TurretTargeterTick
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var m_TurretTargeter_TargetMeetsRequirements = AccessTools.Method(typeof(TurretTargeter), nameof(TurretTargeter.TargetMeetsRequirements));
+            var m_TargetingHelperOnVehicle_TargetMeetsRequirements = AccessTools.Method(typeof(TargetingHelperOnVehicle), nameof(TargetingHelperOnVehicle.TargetMeetsRequirements));
+            return instructions.MethodReplacer(m_TurretTargeter_TargetMeetsRequirements, m_TargetingHelperOnVehicle_TargetMeetsRequirements);
+        }
+    }
+
+    [HarmonyPatch(typeof(VehicleTurret), nameof(VehicleTurret.TryFindShootLineFromTo))]
+    public static class Patch_VehicleTurret_TryFindShootLineFromTo
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_LocalTargetInfo_Cell, MethodInfoCache.m_CellOnBaseMap);
+        }
+    }
+
+    [HarmonyPatch(typeof(VehicleTurret), nameof(VehicleTurret.FireTurret))]
+    public static class Patch_VehicleTurret_FireTurret
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_LocalTargetInfo_Cell, MethodInfoCache.m_CellOnBaseMap)
+                .MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap)
+                .MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing);
+        }
+    }
 }

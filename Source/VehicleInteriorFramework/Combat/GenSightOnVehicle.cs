@@ -1,18 +1,21 @@
-﻿using RimWorld;
-using SmashTools;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using UnityEngine;
 using Verse;
 
-namespace VehicleInteriors.Jobs
+namespace VehicleInteriors
 {
     public static class GenSightOnVehicle
     {
         public static bool LineOfSight(IntVec3 start, IntVec3 end, Map map, bool skipFirstCell = false, Func<IntVec3, bool> validator = null, int halfXOffset = 0, int halfZOffset = 0)
         {
             bool flag;
-            if (start.x == end.x)
+            if (map.IsVehicleMapOf(out var vehicle))
+            {
+                start = start.OrigToVehicleMap(vehicle);
+                end  = end.OrigToVehicleMap(vehicle);
+                map = vehicle.Map;
+            }
+            if (start.x == end.x)   
             {
                 flag = (start.z < end.z);
             }
@@ -32,7 +35,7 @@ namespace VehicleInteriors.Jobs
             num += halfXOffset * 2;
             num2 += halfZOffset * 2;
             int num7 = num / 2 - num2 / 2;
-            IntVec3 intVec = default(IntVec3);
+            IntVec3 intVec = default;
             while (i > 1)
             {
                 intVec.x = num3;
@@ -66,47 +69,43 @@ namespace VehicleInteriors.Jobs
         public static bool CanBeSeenOverOnVehicle(this IntVec3 c, Map map)
         {
             if (!c.InBounds(map)) return true;
-            Building edifice = c.GetEdifice(map);
-            return edifice == null || edifice.CanBeSeenOver();
+
+            var flag = true;
+            if (c.TryGetFirstThing<VehiclePawnWithMap>(map, out var vehicle))
+            {
+                var c2 = c.VehicleMapToOrig(vehicle);
+                flag = !c2.InBounds(vehicle.interiorMap);
+                if (!flag)
+                {
+                    Building edifice = c2.GetEdifice(vehicle.interiorMap);
+                    flag = edifice == null || edifice.CanBeSeenOver();
+                }
+            }
+            Building edifice2 = c.GetEdifice(map);
+            return flag && (edifice2 == null || edifice2.CanBeSeenOver());
         }
 
         public static bool LineOfSightThingToTarget(Thing thing, LocalTargetInfo target, bool skipFirstCell = false, Func<IntVec3, bool> validator = null)
         {
-            if (target.HasThing)
-            {
-                return GenSightOnVehicle.LineOfSightThingToThing(thing, target.Thing, skipFirstCell, validator);
-            }
-            var map1 = thing.Map;
-            var map2 = thing.BaseMap();
-            if (map1 != map2)
-            {
-                return GenSightOnVehicle.LineOfSightToThing(target.CellOnAnotherThingMap(thing), thing, map1, skipFirstCell, validator) &&
-                    GenSightOnVehicle.LineOfSight(target.Cell, thing.PositionOnBaseMap(), map2);
-            }
-            return GenSightOnVehicle.LineOfSight(target.Cell, thing.PositionOnBaseMap(), map2);
+            return GenSightOnVehicle.LineOfSight(thing.PositionOnBaseMap(), target.CellOnBaseMap(), thing.BaseMap(), skipFirstCell, validator);
         }
 
         public static bool LineOfSightThingToThing(Thing start, Thing end, bool skipFirstCell = false, Func<IntVec3, bool> validator = null)
         {
-            var map1 = start.Map;
-            var map2 = end.Map;
-            if (map1 != map2)
-            {
-                return GenSightOnVehicle.LineOfSightToThing(end.PositionOnAnotherThingMap(start), start, start.Map, skipFirstCell, validator) &&
-                    GenSightOnVehicle.LineOfSightToThing(start.PositionOnAnotherThingMap(end), end, end.Map, skipFirstCell, validator);
-            }
-            return GenSightOnVehicle.LineOfSightToThing(end.PositionOnAnotherThingMap(start), start, start.Map, skipFirstCell, validator);
+            return GenSightOnVehicle.LineOfSight(start.PositionOnBaseMap(), end.PositionOnBaseMap(), start.BaseMap(), skipFirstCell, validator);
         }
 
         public static bool LineOfSightToThing(IntVec3 start, Thing t, Map map, bool skipFirstCell = false, Func<IntVec3, bool> validator = null)
         {
             if (t.def.size == IntVec2.One)
             {
-                return GenSightOnVehicle.LineOfSight(start, t.Position, map, skipFirstCell, validator, 0, 0);
+                return GenSightOnVehicle.LineOfSight(start, t.PositionOnBaseMap(), map, skipFirstCell, validator);
             }
+            var flag = t.IsOnNonFocusedVehicleMapOf(out var vehicle);
             foreach (IntVec3 end in t.OccupiedRect())
             {
-                if (GenSightOnVehicle.LineOfSight(start, end, map, skipFirstCell, validator, 0, 0))
+                var end2 = flag ? end.OrigToVehicleMap(vehicle) : end;
+                if (GenSightOnVehicle.LineOfSight(start, end2, map, skipFirstCell, validator))
                 {
                     return true;
                 }
@@ -122,6 +121,11 @@ namespace VehicleInteriors.Jobs
         public static bool LineOfSight(IntVec3 start, IntVec3 end, Map map, CellRect startRect, CellRect endRect, Func<IntVec3, bool> validator = null)
         {
             bool flag;
+            if (map.IsVehicleMapOf(out var vehicle))
+            {
+                start = start.OrigToVehicleMap(vehicle);
+                map = vehicle.Map;
+            }
             if (start.x == end.x)
             {
                 flag = (start.z < end.z);
@@ -140,7 +144,7 @@ namespace VehicleInteriors.Jobs
             int num7 = num - num2;
             num *= 2;
             num2 *= 2;
-            IntVec3 intVec = default(IntVec3);
+            IntVec3 intVec = default;
             while (i > 1)
             {
                 intVec.x = num3;

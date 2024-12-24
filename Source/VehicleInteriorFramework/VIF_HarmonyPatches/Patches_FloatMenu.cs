@@ -23,7 +23,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         {
             if (clickPos.TryGetVehiclePawnWithMap(out var vehicle) || pawn.IsOnVehicleMapOf(out _))
             {
-                SelectorOnVehicleUtility.vehicleForSelector = vehicle;
+                GenUIOnVehicle.vehicleForSelector = vehicle;
                 __result = FloatMenuMakerOnVehicle.ChoicesAtFor(clickPos, pawn, suppressAutoTakeableGoto);
                 return false;
             }

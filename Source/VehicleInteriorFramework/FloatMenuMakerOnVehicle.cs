@@ -31,10 +31,10 @@ namespace VehicleInteriors
             IntVec3 intVec = IntVec3.FromVector3(clickPos);
             IntVec3 clickCell;
             Map map;
-            if (SelectorOnVehicleUtility.vehicleForSelector != null)
+            if (GenUIOnVehicle.vehicleForSelector != null)
             {
-                clickCell = IntVec3.FromVector3(clickPos).VehicleMapToOrig(SelectorOnVehicleUtility.vehicleForSelector);
-                map = SelectorOnVehicleUtility.vehicleForSelector.interiorMap;
+                clickCell = IntVec3.FromVector3(clickPos).VehicleMapToOrig(GenUIOnVehicle.vehicleForSelector);
+                map = GenUIOnVehicle.vehicleForSelector.interiorMap;
             }
             else
             {
@@ -98,7 +98,7 @@ namespace VehicleInteriors
             finally
             {
                 FloatMenuMakerMap.makingFor = null;
-                SelectorOnVehicleUtility.vehicleForSelector = null;
+                GenUIOnVehicle.vehicleForSelector = null;
             }
             return list;
         }
@@ -232,17 +232,17 @@ namespace VehicleInteriors
         {
             IntVec3 clickCell;
             Map map;
-            if (SelectorOnVehicleUtility.vehicleForSelector != null)
+            if (GenUIOnVehicle.vehicleForSelector != null)
             {
-                clickCell = IntVec3.FromVector3(clickPos).VehicleMapToOrig(SelectorOnVehicleUtility.vehicleForSelector);
-                map = SelectorOnVehicleUtility.vehicleForSelector.interiorMap;
+                clickCell = IntVec3.FromVector3(clickPos).VehicleMapToOrig(GenUIOnVehicle.vehicleForSelector);
+                map = GenUIOnVehicle.vehicleForSelector.interiorMap;
             }
             else
             {
                 clickCell = IntVec3.FromVector3(clickPos);
                 map = pawn.BaseMap();
             }
-            foreach (LocalTargetInfo attackTarg2 in SelectorOnVehicleUtility.TargetsAt(clickPos, TargetingParameters.ForAttackHostile(), true, null))
+            foreach (LocalTargetInfo attackTarg2 in GenUIOnVehicle.TargetsAt(clickPos, TargetingParameters.ForAttackHostile(), true, null))
             {
                 LocalTargetInfo attackTarg = attackTarg2;
                 if (!ModsConfig.BiotechActive || !pawn.IsColonyMech || MechanitorUtility.InMechanitorCommandRange(pawn, attackTarg))
@@ -306,7 +306,7 @@ namespace VehicleInteriors
             {
                 if (pawn.health.capacities.CapableOf(PawnCapacityDefOf.Manipulation))
                 {
-                    foreach (LocalTargetInfo carryTarget in SelectorOnVehicleUtility.TargetsAt(clickPos, TargetingParameters.ForCarry(pawn), true, null))
+                    foreach (LocalTargetInfo carryTarget in GenUIOnVehicle.TargetsAt(clickPos, TargetingParameters.ForCarry(pawn), true, null))
                     {
                         FloatMenuOption item;
                         if (!pawn.CanReach(carryTarget, PathEndMode.ClosestTouch, Danger.Deadly, false, false, TraverseMode.ByPawn, map, out var exitSpot, out var enterSpot))
@@ -333,7 +333,7 @@ namespace VehicleInteriors
                     Pawn carriedPawn = (Pawn)pawn.carryTracker.CarriedThing;
                     if (!carriedPawn.IsPrisonerOfColony)
                     {
-                        foreach (LocalTargetInfo destTarget in SelectorOnVehicleUtility.TargetsAt(clickPos, TargetingParameters.ForDraftedCarryBed(carriedPawn, pawn, carriedPawn.GuestStatus), true, null))
+                        foreach (LocalTargetInfo destTarget in GenUIOnVehicle.TargetsAt(clickPos, TargetingParameters.ForDraftedCarryBed(carriedPawn, pawn, carriedPawn.GuestStatus), true, null))
                         {
                             FloatMenuOption item2;
                             if (!pawn.CanReach(destTarget, PathEndMode.ClosestTouch, Danger.Deadly, false, false, TraverseMode.ByPawn, map, out var exitSpot, out var enterSpot))
@@ -361,7 +361,7 @@ namespace VehicleInteriors
                     }
                     if (carriedPawn.CanBeCaptured())
                     {
-                        foreach (var localTargetInfo in SelectorOnVehicleUtility.TargetsAt(clickPos, TargetingParameters.ForDraftedCarryBed(carriedPawn, pawn, new GuestStatus?(GuestStatus.Prisoner)), true, null))
+                        foreach (var localTargetInfo in GenUIOnVehicle.TargetsAt(clickPos, TargetingParameters.ForDraftedCarryBed(carriedPawn, pawn, new GuestStatus?(GuestStatus.Prisoner)), true, null))
                         {
                             Building_Bed bed = (Building_Bed)localTargetInfo.Thing;
                             FloatMenuOption item3;
@@ -396,7 +396,7 @@ namespace VehicleInteriors
                     CompHoldingPlatformTarget compHoldingPlatformTarget;
                     if (ModsConfig.AnomalyActive && carriedPawn.TryGetComp(out compHoldingPlatformTarget) && compHoldingPlatformTarget.CanBeCaptured)
                     {
-                        foreach (LocalTargetInfo localTargetInfo2 in SelectorOnVehicleUtility.TargetsAt(clickPos, TargetingParameters.ForBuilding(null), true, null))
+                        foreach (LocalTargetInfo localTargetInfo2 in GenUIOnVehicle.TargetsAt(clickPos, TargetingParameters.ForBuilding(null), true, null))
                         {
                             CompEntityHolder compEntityHolder;
                             if (localTargetInfo2.Thing.TryGetComp(out compEntityHolder) && compEntityHolder.Available)
@@ -435,7 +435,7 @@ namespace VehicleInteriors
                             }
                         }
                     }
-                    foreach (LocalTargetInfo localTargetInfo3 in SelectorOnVehicleUtility.TargetsAt(clickPos, TargetingParameters.ForDraftedCarryTransporter(carriedPawn), true, null))
+                    foreach (LocalTargetInfo localTargetInfo3 in GenUIOnVehicle.TargetsAt(clickPos, TargetingParameters.ForDraftedCarryTransporter(carriedPawn), true, null))
                     {
                         Thing transporterThing = localTargetInfo3.Thing;
                         if (transporterThing != null)
@@ -470,7 +470,7 @@ namespace VehicleInteriors
                             }
                         }
                     }
-                    foreach (LocalTargetInfo localTargetInfo4 in SelectorOnVehicleUtility.TargetsAt(clickPos, TargetingParameters.ForDraftedCarryCryptosleepCasket(pawn), true, null))
+                    foreach (LocalTargetInfo localTargetInfo4 in GenUIOnVehicle.TargetsAt(clickPos, TargetingParameters.ForDraftedCarryCryptosleepCasket(pawn), true, null))
                     {
                         Thing casket = localTargetInfo4.Thing;
                         pawn.CanReach(casket, PathEndMode.ClosestTouch, Danger.Deadly, false, false, TraverseMode.ByPawn, map, out var exitSpot, out var enterSpot);
@@ -503,7 +503,7 @@ namespace VehicleInteriors
                 }
                 if (pawn.health.capacities.CapableOf(PawnCapacityDefOf.Manipulation) && !pawn.IsMutant)
                 {
-                    foreach (LocalTargetInfo localTargetInfo5 in SelectorOnVehicleUtility.TargetsAt(clickPos, TargetingParameters.ForTend(pawn), true, null))
+                    foreach (LocalTargetInfo localTargetInfo5 in GenUIOnVehicle.TargetsAt(clickPos, TargetingParameters.ForTend(pawn), true, null))
                     {
                         Pawn tendTarget = (Pawn)localTargetInfo5.Thing;
                         if (!tendTarget.health.HasHediffsNeedingTend(false))
@@ -558,7 +558,7 @@ namespace VehicleInteriors
                             }
                         }
                     }
-                    foreach (LocalTargetInfo localTargetInfo6 in SelectorOnVehicleUtility.TargetsAt(clickPos, TargetingParameters.ForHeldEntity(), false, null))
+                    foreach (LocalTargetInfo localTargetInfo6 in GenUIOnVehicle.TargetsAt(clickPos, TargetingParameters.ForHeldEntity(), false, null))
                     {
                         Building_HoldingPlatform holdingPlatform;
                         if ((holdingPlatform = (localTargetInfo6.Thing as Building_HoldingPlatform)) != null)
@@ -593,7 +593,7 @@ namespace VehicleInteriors
                     }
                     if (pawn.skills != null && !pawn.skills.GetSkill(SkillDefOf.Construction).TotallyDisabled)
                     {
-                        foreach (LocalTargetInfo localTargetInfo7 in SelectorOnVehicleUtility.TargetsAt(clickPos, TargetingParameters.ForRepair(pawn), true, null))
+                        foreach (LocalTargetInfo localTargetInfo7 in GenUIOnVehicle.TargetsAt(clickPos, TargetingParameters.ForRepair(pawn), true, null))
                         {
                             Thing repairTarget = localTargetInfo7.Thing;
                             if (!pawn.CanReach(repairTarget, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, map, out var exitSpot, out var enterSpot))
@@ -625,10 +625,10 @@ namespace VehicleInteriors
         {
 			IntVec3 clickCell;
 			Map map;
-			if (SelectorOnVehicleUtility.vehicleForSelector != null)
+			if (GenUIOnVehicle.vehicleForSelector != null)
 			{
-				clickCell = IntVec3.FromVector3(clickPos).VehicleMapToOrig(SelectorOnVehicleUtility.vehicleForSelector);
-				map = SelectorOnVehicleUtility.vehicleForSelector.interiorMap;
+				clickCell = IntVec3.FromVector3(clickPos).VehicleMapToOrig(GenUIOnVehicle.vehicleForSelector);
+				map = GenUIOnVehicle.vehicleForSelector.interiorMap;
 
             }
 			else
@@ -643,7 +643,7 @@ namespace VehicleInteriors
                 canTargetItems = true,
                 canTargetPlants = true,
             };
-            var thingList = SelectorOnVehicleUtility.TargetsAt(clickPos, targetParms, true, null).Select(t => t.Thing).ToList();
+            var thingList = GenUIOnVehicle.TargetsAt(clickPos, targetParms, true, null).Select(t => t.Thing).ToList();
             foreach (var thing in thingList)
             {
                 if (thing is Pawn pawn2)
@@ -664,7 +664,7 @@ namespace VehicleInteriors
             }
             if (pawn.health.capacities.CapableOf(PawnCapacityDefOf.Manipulation))
 			{
-                foreach (LocalTargetInfo dest in SelectorOnVehicleUtility.TargetsAt(clickPos, TargetingParameters.ForArrest(pawn), true, null))
+                foreach (LocalTargetInfo dest in GenUIOnVehicle.TargetsAt(clickPos, TargetingParameters.ForArrest(pawn), true, null))
                 {
                     bool flag = dest.HasThing && dest.Thing is Pawn && ((Pawn)dest.Thing).IsWildMan();
                     if (pawn.Drafted || flag)
@@ -785,7 +785,7 @@ namespace VehicleInteriors
                     opts.Add(floatMenuOption);
                 }
             }
-            foreach (LocalTargetInfo dest2 in SelectorOnVehicleUtility.TargetsAt(clickPos, TargetingParameters.ForQuestPawnsWhoWillJoinColony(pawn), true, null))
+            foreach (LocalTargetInfo dest2 in GenUIOnVehicle.TargetsAt(clickPos, TargetingParameters.ForQuestPawnsWhoWillJoinColony(pawn), true, null))
             {
                 Pawn toHelpPawn = (Pawn)dest2.Thing;
                 FloatMenuOption item2;
@@ -847,7 +847,7 @@ namespace VehicleInteriors
                         }
                     }
                 }
-                foreach (LocalTargetInfo localTargetInfo in SelectorOnVehicleUtility.TargetsAt(clickPos, TargetingParameters.ForRescue(pawn), true, null))
+                foreach (LocalTargetInfo localTargetInfo in GenUIOnVehicle.TargetsAt(clickPos, TargetingParameters.ForRescue(pawn), true, null))
                 {
                     Pawn victim = (Pawn)localTargetInfo.Thing;
                     if (HealthAIAcrossMapsUtility.CanRescueNow(pawn, victim, true, out var exitSpot, out var enterSpot) && !victim.mindState.WillJoinColonyIfRescued)
@@ -967,7 +967,7 @@ namespace VehicleInteriors
                         }
                     }
                 }
-                foreach (LocalTargetInfo localTargetInfo2 in SelectorOnVehicleUtility.TargetsAt(clickPos, TargetingParameters.ForRescue(pawn), true, null))
+                foreach (LocalTargetInfo localTargetInfo2 in GenUIOnVehicle.TargetsAt(clickPos, TargetingParameters.ForRescue(pawn), true, null))
                 {
                     LocalTargetInfo localTargetInfo3 = localTargetInfo2;
                     Pawn victim = (Pawn)localTargetInfo3.Thing;
@@ -1010,7 +1010,7 @@ namespace VehicleInteriors
                 }
                 if (ModsConfig.AnomalyActive && pawn.ageTracker.AgeBiologicalYears >= 10)
 				{
-                    foreach (LocalTargetInfo localTargetInfo4 in SelectorOnVehicleUtility.TargetsAt(clickPos, TargetingParameters.ForEntityCapture(), true, null))
+                    foreach (LocalTargetInfo localTargetInfo4 in GenUIOnVehicle.TargetsAt(clickPos, TargetingParameters.ForEntityCapture(), true, null))
                     {
                         Thing studyTarget = localTargetInfo4.Thing;
                         CompHoldingPlatformTarget holdComp = studyTarget.TryGetComp<CompHoldingPlatformTarget>();
@@ -1066,7 +1066,7 @@ namespace VehicleInteriors
                             }
                         }
                     }
-                    foreach (LocalTargetInfo localTargetInfo5 in SelectorOnVehicleUtility.TargetsAt(clickPos, TargetingParameters.ForHeldEntity(), true, null))
+                    foreach (LocalTargetInfo localTargetInfo5 in GenUIOnVehicle.TargetsAt(clickPos, TargetingParameters.ForHeldEntity(), true, null))
                     {
                         Building_HoldingPlatform holdingPlatform;
                         if ((holdingPlatform = (localTargetInfo5.Thing as Building_HoldingPlatform)) != null)
@@ -1107,7 +1107,7 @@ namespace VehicleInteriors
                 }
                 if (ModsConfig.IdeologyActive)
                 {
-                    foreach (LocalTargetInfo localTargetInfo6 in SelectorOnVehicleUtility.TargetsAt(clickPos, TargetingParameters.ForCarryToBiosculpterPod(pawn), true, null))
+                    foreach (LocalTargetInfo localTargetInfo6 in GenUIOnVehicle.TargetsAt(clickPos, TargetingParameters.ForCarryToBiosculpterPod(pawn), true, null))
                     {
                         Pawn pawn3 = (Pawn)localTargetInfo6.Thing;
                         if ((pawn3.IsColonist && pawn3.Downed) || pawn3.IsPrisonerOfColony)
@@ -1118,7 +1118,7 @@ namespace VehicleInteriors
                 }
                 if (ModsConfig.RoyaltyActive)
                 {
-                    foreach (LocalTargetInfo localTargetInfo7 in SelectorOnVehicleUtility.TargetsAt(clickPos, TargetingParameters.ForShuttle(pawn), true, null))
+                    foreach (LocalTargetInfo localTargetInfo7 in GenUIOnVehicle.TargetsAt(clickPos, TargetingParameters.ForShuttle(pawn), true, null))
                     {
                         LocalTargetInfo localTargetInfo8 = localTargetInfo7;
                         var victim = (Pawn)localTargetInfo8.Thing;
@@ -1199,7 +1199,7 @@ namespace VehicleInteriors
 							}
 						}
                     }
-                    foreach(var thing in SelectorOnVehicleUtility.TargetsAt(clickPos, TargetingParameters.ForBuilding(ThingDefOf.ArchonexusCore), false, null))
+                    foreach(var thing in GenUIOnVehicle.TargetsAt(clickPos, TargetingParameters.ForBuilding(ThingDefOf.ArchonexusCore), false, null))
                     {
 						if (!pawn.CanReach(thing, PathEndMode.InteractionCell, Danger.Deadly, false, false, TraverseMode.ByPawn, thing.Thing.Map, out var exitSpot, out var enterSpot))
 						{
@@ -1486,7 +1486,7 @@ namespace VehicleInteriors
 				Pawn_GeneTracker genes = pawn.genes;
 				if (((genes != null) ? genes.GetFirstGeneOfType<Gene_Hemogen>() : null) != null)
 				{
-					foreach (LocalTargetInfo localTargetInfo9 in SelectorOnVehicleUtility.TargetsAt(clickPos, TargetingParameters.ForBloodfeeding(pawn), false, null))
+					foreach (LocalTargetInfo localTargetInfo9 in GenUIOnVehicle.TargetsAt(clickPos, TargetingParameters.ForBloodfeeding(pawn), false, null))
 					{
 						Pawn targPawn = (Pawn)localTargetInfo9.Thing;
 						if (!pawn.CanReach(targPawn, PathEndMode.ClosestTouch, Danger.Deadly, false, false, TraverseMode.ByPawn, targPawn.Map, out var exitSpot, out var enterSpot))
@@ -1515,7 +1515,7 @@ namespace VehicleInteriors
 			}
 			if (ModsConfig.BiotechActive && pawn.health.capacities.CapableOf(PawnCapacityDefOf.Manipulation))
 			{
-				foreach (LocalTargetInfo localTargetInfo10 in SelectorOnVehicleUtility.TargetsAt(clickPos, TargetingParameters.ForCarryDeathresterToBed(pawn), false, null))
+				foreach (LocalTargetInfo localTargetInfo10 in GenUIOnVehicle.TargetsAt(clickPos, TargetingParameters.ForCarryDeathresterToBed(pawn), false, null))
 				{
 					Pawn targPawn = (Pawn)localTargetInfo10.Thing;
 					if (!targPawn.InBed())
@@ -1552,7 +1552,7 @@ namespace VehicleInteriors
 			}
 			if (ModsConfig.BiotechActive && pawn.genes != null)
 			{
-				foreach (LocalTargetInfo localTargetInfo11 in SelectorOnVehicleUtility.TargetsAt(clickPos, TargetingParameters.ForXenogermAbsorption(pawn), true, null))
+				foreach (LocalTargetInfo localTargetInfo11 in GenUIOnVehicle.TargetsAt(clickPos, TargetingParameters.ForXenogermAbsorption(pawn), true, null))
 				{
 					Pawn targPawn = (Pawn)localTargetInfo11.Thing;
 					if (pawn.CanReserveAndReach(targPawn.Map, targPawn, PathEndMode.OnCell, Danger.Deadly, 1, -1, null, true, out var exitSpot, out var enterSpot))
@@ -1605,7 +1605,7 @@ namespace VehicleInteriors
 			}
 			if (ModsConfig.BiotechActive && !pawn.Downed && !pawn.Drafted)
 			{
-				foreach (LocalTargetInfo localTargetInfo12 in SelectorOnVehicleUtility.TargetsAt(clickPos, TargetingParameters.ForBabyCare(pawn), true, null))
+				foreach (LocalTargetInfo localTargetInfo12 in GenUIOnVehicle.TargetsAt(clickPos, TargetingParameters.ForBabyCare(pawn), true, null))
 				{
 					Pawn baby = (Pawn)localTargetInfo12.Thing;
 					ChildcareUtility.BreastfeedFailReason? breastfeedFailReason;
@@ -1692,7 +1692,7 @@ namespace VehicleInteriors
 			}
 			if (!pawn.Drafted && ModsConfig.BiotechActive)
 			{
-				foreach (LocalTargetInfo localTargetInfo13 in SelectorOnVehicleUtility.TargetsAt(clickPos, TargetingParameters.ForRomance(pawn), true, null))
+				foreach (LocalTargetInfo localTargetInfo13 in GenUIOnVehicle.TargetsAt(clickPos, TargetingParameters.ForRomance(pawn), true, null))
 				{
 					Pawn pawn5 = (Pawn)localTargetInfo13.Thing;
                     if (!pawn5.Drafted && !ChildcareUtility.CanSuckle(pawn5, out ChildcareUtility.BreastfeedFailReason? breastfeedFailReason))
@@ -1706,7 +1706,7 @@ namespace VehicleInteriors
                     }
                 }
 			}
-			foreach (LocalTargetInfo stripTarg2 in SelectorOnVehicleUtility.TargetsAt(clickPos, TargetingParameters.ForStrip(pawn), true, null))
+			foreach (LocalTargetInfo stripTarg2 in GenUIOnVehicle.TargetsAt(clickPos, TargetingParameters.ForStrip(pawn), true, null))
 			{
 				LocalTargetInfo stripTarg = stripTarg2;
 				FloatMenuOption item4;
@@ -2149,7 +2149,7 @@ namespace VehicleInteriors
 			}
 			if (!pawn.BaseMap().IsPlayerHome && pawn.BaseMap().exitMapGrid.MapUsesExitGrid)
 			{
-				foreach (LocalTargetInfo target in SelectorOnVehicleUtility.TargetsAt(clickPos, TargetingParameters.ForRescue(pawn), true, null))
+				foreach (LocalTargetInfo target in GenUIOnVehicle.TargetsAt(clickPos, TargetingParameters.ForRescue(pawn), true, null))
 				{
 					Pawn p = (Pawn)target.Thing;
 					if (p.Faction == Faction.OfPlayer || p.IsPrisonerOfColony || CaravanUtility.ShouldAutoCapture(p, Faction.OfPlayer))
@@ -2200,7 +2200,7 @@ namespace VehicleInteriors
 					}
 				}
 			}
-			if (pawn.equipment != null && pawn.equipment.Primary != null && SelectorOnVehicleUtility.TargetsAt(clickPos, TargetingParameters.ForSelf(pawn), true, null).Any<LocalTargetInfo>())
+			if (pawn.equipment != null && pawn.equipment.Primary != null && GenUIOnVehicle.TargetsAt(clickPos, TargetingParameters.ForSelf(pawn), true, null).Any<LocalTargetInfo>())
 			{
 				if (pawn.IsQuestLodger() && !EquipmentUtility.QuestLodgerCanUnequip(pawn.equipment.Primary, pawn))
 				{
@@ -2215,7 +2215,7 @@ namespace VehicleInteriors
 					opts.Add(new FloatMenuOption("Drop".Translate(pawn.equipment.Primary.Label, pawn.equipment.Primary), action4, MenuOptionPriority.Default, null, pawn, 0f, null, null, true, 0));
 				}
 			}
-			foreach (LocalTargetInfo localTargetInfo14 in SelectorOnVehicleUtility.TargetsAt(clickPos, TargetingParameters.ForTrade(), true, null))
+			foreach (LocalTargetInfo localTargetInfo14 in GenUIOnVehicle.TargetsAt(clickPos, TargetingParameters.ForTrade(), true, null))
 			{
 				LocalTargetInfo dest3 = localTargetInfo14;
 				if (!pawn.CanReach(dest3, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, map, out var exitSpot2, out var enterSpot2))
@@ -2270,7 +2270,7 @@ namespace VehicleInteriors
 					}
 				}
 			}
-			foreach(var casket in SelectorOnVehicleUtility.TargetsAt(clickPos, TargetingParameters.ForOpen(pawn), true, null))
+			foreach(var casket in GenUIOnVehicle.TargetsAt(clickPos, TargetingParameters.ForOpen(pawn), true, null))
 			{
 				if (!pawn.CanReach(casket, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, map, out var exitSpot2, out var enterSpot2))
 				{
@@ -2350,9 +2350,9 @@ namespace VehicleInteriors
 					opts.Add(item8);
 				}
 			}
-			foreach (LocalTargetInfo localTargetInfo15 in SelectorOnVehicleUtility.TargetsAt(clickPos, TargetingParameters.ForPawns(), true, null))
+			foreach (LocalTargetInfo localTargetInfo15 in GenUIOnVehicle.TargetsAt(clickPos, TargetingParameters.ForPawns(), true, null))
 			{
-				if (!FloatMenuMakerOnVehicle.cachedThings.Contains(localTargetInfo15.Pawn) && localTargetInfo15.Pawn != SelectorOnVehicleUtility.vehicleForSelector)
+				if (!FloatMenuMakerOnVehicle.cachedThings.Contains(localTargetInfo15.Pawn) && localTargetInfo15.Pawn != GenUIOnVehicle.vehicleForSelector)
 				{
 					foreach (FloatMenuOption item9 in localTargetInfo15.Pawn.GetFloatMenuOptions(pawn))
 					{
@@ -2368,10 +2368,10 @@ namespace VehicleInteriors
         {
             IntVec3 clickCell;
             Map map;
-            if (SelectorOnVehicleUtility.vehicleForSelector != null)
+            if (GenUIOnVehicle.vehicleForSelector != null)
             {
-                clickCell = IntVec3.FromVector3(clickPos).VehicleMapToOrig(SelectorOnVehicleUtility.vehicleForSelector);
-                map = SelectorOnVehicleUtility.vehicleForSelector.interiorMap;
+                clickCell = IntVec3.FromVector3(clickPos).VehicleMapToOrig(GenUIOnVehicle.vehicleForSelector);
+                map = GenUIOnVehicle.vehicleForSelector.interiorMap;
 
             }
             else
@@ -2386,7 +2386,7 @@ namespace VehicleInteriors
                 canTargetItems = true,
                 canTargetPlants = true,
             };
-            var thingList = SelectorOnVehicleUtility.TargetsAt(clickPos, targetParms, true, null).Select(t => t.Thing).ToList();
+            var thingList = GenUIOnVehicle.TargetsAt(clickPos, targetParms, true, null).Select(t => t.Thing).ToList();
             foreach (Thing t2 in thingList)
             {
                 Thing t = t2;
@@ -2468,10 +2468,10 @@ namespace VehicleInteriors
             }
             IntVec3 clickCell;
             Map map;
-            if (SelectorOnVehicleUtility.vehicleForSelector != null)
+            if (GenUIOnVehicle.vehicleForSelector != null)
             {
-                clickCell = IntVec3.FromVector3(clickPos).VehicleMapToOrig(SelectorOnVehicleUtility.vehicleForSelector);
-                map = SelectorOnVehicleUtility.vehicleForSelector.interiorMap;
+                clickCell = IntVec3.FromVector3(clickPos).VehicleMapToOrig(GenUIOnVehicle.vehicleForSelector);
+                map = GenUIOnVehicle.vehicleForSelector.interiorMap;
 
             }
             else
@@ -2486,7 +2486,7 @@ namespace VehicleInteriors
                 canTargetItems = true,
                 canTargetPlants = true,
             };
-            var thingList = SelectorOnVehicleUtility.TargetsAt(clickPos, targetParms, true, null).Select(t => t.Thing).ToList();
+            var thingList = GenUIOnVehicle.TargetsAt(clickPos, targetParms, true, null).Select(t => t.Thing).ToList();
             var baseClickCell = IntVec3.FromVector3(clickPos);
             foreach (Thing thing in thingList)
             {

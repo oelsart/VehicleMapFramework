@@ -88,6 +88,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Building_VehicleSlope.cs" />
+    <Compile Include="Combat\TargetingHelperOnVehicle.cs" />
     <Compile Include="Comps\CompEngineLightOverlays.cs" />
     <Compile Include="Comps\CompProperties_EngineLightOverlays.cs" />
     <Compile Include="Comps\CompProperties_TogglableOverlays.cs" />
@@ -191,7 +192,7 @@
     <Compile Include="Comps\CompVehicleEnterSpot.cs" />
     <Compile Include="ReachabilityUtilityOnVehicle.cs" />
     <Compile Include="RestUtilityOnVehicle.cs" />
-    <Compile Include="SelectorOnVehicleUtility.cs" />
+    <Compile Include="GenUIOnVehicle.cs" />
     <Compile Include="StudyUtilityOnVehicle.cs" />
     <Compile Include="Verbs\VerbOnVehicleUtility.cs" />
     <Compile Include="Verbs\Verb_LaunchProjectileOnVehicle.cs" />

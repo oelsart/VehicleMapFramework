@@ -628,8 +628,12 @@ namespace VehicleInteriors
 
         public static bool CanSee(this Thing seer, Thing target, Func<IntVec3, bool> validator = null)
         {
-            return AttackTargetFinderOnVehicle.CanSee(seer.Position, target.PositionOnAnotherThingMap(seer), seer.Map, validator, target) &&
-                AttackTargetFinderOnVehicle.CanSee(seer.PositionOnAnotherThingMap(target), target.Position, target.Map, validator, target);
+            if (seer.Map == target.Map)
+            {
+                return AttackTargetFinder.CanSee(seer, target, validator);
+            }
+
+            return AttackTargetFinderOnVehicle.CanSee(seer.Position, target.PositionOnAnotherThingMap(seer), seer.Map, validator, target);
         }
 
         private static bool CanSee(IntVec3 shooterPos, IntVec3 targetPos, Map map, Func<IntVec3, bool> validator, Thing target)

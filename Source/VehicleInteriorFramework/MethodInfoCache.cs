@@ -1,11 +1,9 @@
 ﻿using HarmonyLib;
 using RimWorld;
-using RimWorld.Planet;
 using SmashTools;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Reflection.Emit;
 using UnityEngine;
 using VehicleInteriors.VIF_HarmonyPatches;
 using Vehicles;

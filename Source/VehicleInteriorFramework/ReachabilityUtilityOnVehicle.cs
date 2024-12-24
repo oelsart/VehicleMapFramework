@@ -62,7 +62,7 @@ namespace VehicleInteriors
                                 }
                                 var cell = (basePos - faceCell * dist);
                                 return departMap.reachability.CanReach(root, enterSpot.Cell, PathEndMode.OnCell, traverseParms) &&
-                                cell.Walkable(departBaseMap) &&
+                                cell.Standable(departBaseMap) &&
                                 departBaseMap.reachability.CanReach(cell, dest3, peMode, TraverseMode.PassAllDestroyableThings, traverseParms.maxDanger);
                             });
                             dest1 = result ? enterSpot : TargetInfo.Invalid;
@@ -101,7 +101,7 @@ namespace VehicleInteriors
                                 }
                                 var cell = (basePos - faceCell * dist);
                                 return departMap.reachability.CanReach(root, cell, PathEndMode.OnCell, traverseParms) &&
-                                c.Walkable(destMap) &&
+                                c.Standable(destMap) &&
                                 destMap.reachability.CanReach(c, dest3, peMode, TraverseMode.PassAllDestroyableThings, traverseParms.maxDanger);
                             });
                             dest2 = result ? enterSpot : TargetInfo.Invalid;
@@ -165,8 +165,8 @@ namespace VehicleInteriors
                                             dist2++;
                                         }
                                         var cell2 = (basePos2 - faceCell2 * dist2);
-                                        return cell.Walkable(departBaseMap) &&
-                                        c2.Walkable(destMap) &&
+                                        return cell.Standable(departBaseMap) &&
+                                        c2.Standable(destMap) &&
                                         departMap.reachability.CanReach(root, enterSpot.Cell, PathEndMode.OnCell, traverseParms) &&
                                         departBaseMap.reachability.CanReach(cell, cell2, PathEndMode.OnCell, TraverseMode.PassAllDestroyableThings, traverseParms.maxDanger) &&
                                         destMap.reachability.CanReach(c2, dest3, peMode, TraverseMode.PassAllDestroyableThings, traverseParms.maxDanger);

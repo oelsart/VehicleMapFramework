@@ -201,7 +201,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             {
                 if (___pawn.CurrentBed() != null)
                 {
-                    __result = __result.OrigToVehicleMap(vehicle2).WithYOffset(-1.923077f);
+                    __result = __result.OrigToVehicleMap(vehicle2).WithYOffset(-0.9615385f);
                 }
                 else if (posture != PawnPosture.Standing)
                 {
@@ -211,6 +211,18 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             else if (___pawn.SpawnedParentOrMe is VehiclePawnWithMap)
             {
                 __result.y = drawLoc.y;
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(PawnRenderer), nameof(PawnRenderer.BodyAngle))]
+    public static class Patch_PawnRenderer_BodyAngle
+    {
+        public static void Postfix(Pawn ___pawn, ref float __result)
+        {
+            if (___pawn.IsOnVehicleMapOf(out var vehicle))
+            {
+                __result = Ext_Math.RotateAngle(__result, vehicle.FullRotation.AsAngle);
             }
         }
     }
@@ -267,7 +279,6 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     [HarmonyPatch(typeof(VehiclePawn), nameof(VehiclePawn.FullRotation), MethodType.Getter)]
     public static class Patch_VehiclePawn_FullRotation
     {
-
         public static void Postfix(VehiclePawn __instance, ref Rot8 __result)
         {
             if (__instance.IsOnNonFocusedVehicleMapOf(out var vehicle))

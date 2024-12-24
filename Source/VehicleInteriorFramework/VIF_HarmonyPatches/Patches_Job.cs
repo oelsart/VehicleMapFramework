@@ -9,6 +9,7 @@ using System.Reflection.Emit;
 using VehicleInteriors.Jobs.WorkGivers;
 using Verse;
 using Verse.AI;
+using static UnityEngine.Scripting.GarbageCollector;
 
 namespace VehicleInteriors.VIF_HarmonyPatches
 {
@@ -250,6 +251,35 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         }
 
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) => Patch_JobGiver_Work_Validator.Transpiler(instructions);
+    }
+
+    [HarmonyPatch(typeof(Toils_Goto), nameof(Toils_Goto.GotoThing), typeof(TargetIndex), typeof(PathEndMode), typeof(bool))]
+    public static class Patch_Toils_Goto_GotoThing
+    {
+        public static void Postfix(Toil __result, TargetIndex ind, PathEndMode peMode, bool canGotoSpawnedParent)
+        {
+            var oldAction = __result.initAction;
+            __result.initAction = new Action(() =>
+            {
+
+                Pawn actor = __result.actor;
+                LocalTargetInfo dest = actor.jobs.curJob.GetTarget(ind);
+                Thing thing = dest.Thing;
+                if (thing == null) return;
+                if (canGotoSpawnedParent)
+                {
+                    dest = thing.SpawnedParentOrMe;
+                }
+                if (actor.Map != dest.Thing.Map && actor.CanReach(dest, peMode, Danger.Deadly, false, false, TraverseMode.ByPawn, dest.Thing.Map, out var exitSpot, out var enterSpot))
+                {
+                    actor.jobs.StartJob(JobAcrossMapsUtility.GotoDestMapJob(actor, exitSpot, enterSpot, actor.CurJob));
+                }
+                else
+                {
+                    oldAction();
+                }
+            });
+        }
     }
 
     //利用可能なthingに車上マップ上のthingを含める

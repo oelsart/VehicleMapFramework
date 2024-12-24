@@ -13,6 +13,8 @@ namespace VehicleInteriors
 
         public override bool TryMakePreToilReservations(bool errorOnFailed)
         {
+            var thing = this.nextJob?.targetA.Thing;
+            this.pawn.Reserve(thing.Map, thing, nextJob);
             return true;
         }
 
