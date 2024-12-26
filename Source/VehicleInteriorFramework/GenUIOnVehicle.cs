@@ -9,21 +9,17 @@ namespace VehicleInteriors
 {
     public static class GenUIOnVehicle
     {
-        public static List<Thing> ThingsUnderMouse(Vector3 clickPos, float pawnWideClickRadius, TargetingParameters clickParams, ITargetingSource source, VehiclePawnWithMap vehicle)
-        {
-            GenUIOnVehicle.vehicleForSelector = vehicle;
-            var list = GenUIOnVehicle.ThingsUnderMouse(clickPos, pawnWideClickRadius, clickParams, source);
-            _ = GenUIOnVehicle.vehicleForSelector;
-            return list;
-
-        }
-
         public static List<Thing> ThingsUnderMouse(Vector3 clickPos, float pawnWideClickRadius, TargetingParameters clickParams, ITargetingSource source)
         {
-            var clickPosVehicleCor = clickPos.VehicleMapToOrig(GenUIOnVehicle.vehicleForSelector);
+            return GenUIOnVehicle.ThingsUnderMouse(clickPos, pawnWideClickRadius, clickParams, source, GenUIOnVehicle.vehicleForSelector);
+        }
+
+        public static List<Thing> ThingsUnderMouse(Vector3 clickPos, float pawnWideClickRadius, TargetingParameters clickParams, ITargetingSource source, VehiclePawnWithMap vehicle)
+        {
+            var clickPosVehicleCor = clickPos.VehicleMapToOrig(vehicle);
             IntVec3 intVec = IntVec3.FromVector3(clickPosVehicleCor);
             List<Thing> list = new List<Thing>();
-            IReadOnlyList<Pawn> allPawnsSpawned = GenUIOnVehicle.vehicleForSelector.interiorMap.mapPawns.AllPawnsSpawned;
+            IReadOnlyList<Pawn> allPawnsSpawned = vehicle.interiorMap.mapPawns.AllPawnsSpawned;
             for (int i = 0; i < allPawnsSpawned.Count; i++)
             {
                 Pawn pawn = allPawnsSpawned[i];
@@ -35,7 +31,7 @@ namespace VehicleInteriors
             }
             list.Sort(new Comparison<Thing>(GenUIOnVehicle.CompareThingsByDistanceToMousePointer));
             var cellThings = new List<Thing>(32);
-            foreach (Thing thing4 in GenUIOnVehicle.vehicleForSelector.interiorMap.thingGrid.ThingsAt(intVec))
+            foreach (Thing thing4 in vehicle.interiorMap.thingGrid.ThingsAt(intVec))
             {
                 if (!list.Contains(thing4) && clickParams.CanTarget(thing4, source))
                 {
@@ -47,9 +43,9 @@ namespace VehicleInteriors
             for (int j = 0; j < adjacentCells.Length; j++)
             {
                 IntVec3 c = adjacentCells[j] + intVec;
-                if (c.InBounds(GenUIOnVehicle.vehicleForSelector.interiorMap) && c.GetItemCount(GenUIOnVehicle.vehicleForSelector.interiorMap) > 1)
+                if (c.InBounds(vehicle.interiorMap) && c.GetItemCount(vehicle.interiorMap) > 1)
                 {
-                    foreach (Thing thing2 in GenUIOnVehicle.vehicleForSelector.interiorMap.thingGrid.ThingsAt(c))
+                    foreach (Thing thing2 in vehicle.interiorMap.thingGrid.ThingsAt(c))
                     {
                         if (thing2.def.category == ThingCategory.Item && (thing2.TrueCenter() - clickPosVehicleCor).MagnitudeHorizontalSquared() <= 0.25f && !list.Contains(thing2) && clickParams.CanTarget(thing2, source))
                         {
@@ -58,7 +54,7 @@ namespace VehicleInteriors
                     }
                 }
             }
-            List<Thing> list2 = GenUIOnVehicle.vehicleForSelector.interiorMap.listerThings.ThingsInGroup(ThingRequestGroup.WithCustomRectForSelector);
+            List<Thing> list2 = vehicle.interiorMap.listerThings.ThingsInGroup(ThingRequestGroup.WithCustomRectForSelector);
             for (int k = 0; k < list2.Count; k++)
             {
                 Thing thing3 = list2[k];
@@ -70,7 +66,7 @@ namespace VehicleInteriors
             cellThings.Sort(new Comparison<Thing>(GenUIOnVehicle.CompareThingsByDrawAltitudeOrDistToItem));
             list.AddRange(cellThings);
             cellThings.Clear();
-            IReadOnlyList<Pawn> allPawnsSpawned2 = GenUIOnVehicle.vehicleForSelector.interiorMap.mapPawns.AllPawnsSpawned;
+            IReadOnlyList<Pawn> allPawnsSpawned2 = vehicle.interiorMap.mapPawns.AllPawnsSpawned;
             for (int l = 0; l < allPawnsSpawned2.Count; l++)
             {
                 Pawn pawn2 = allPawnsSpawned2[l];
@@ -131,19 +127,21 @@ namespace VehicleInteriors
         public static IEnumerable<LocalTargetInfo> TargetsAtMouse(TargetingParameters clickParams, bool thingsOnly = false, ITargetingSource source = null)
         {
             var clickPos = UI.MouseMapPosition();
-            if (clickPos.TryGetVehiclePawnWithMap(out var vehicle))
-            {
-                GenUIOnVehicle.vehicleForSelector = vehicle;
-            }
-            var list = GenUIOnVehicle.TargetsAt(clickPos, clickParams, thingsOnly, source, false).ToList();
-            GenUIOnVehicle.vehicleForSelector = null;
+            VehiclePawnWithMap vehicle = null;
+            clickPos.TryGetVehiclePawnWithMap(Find.CurrentMap, out vehicle);
+            var list = GenUIOnVehicle.TargetsAt(clickPos, clickParams, thingsOnly, source, vehicle, false).ToArray();
             return list;
         }
 
         public static IEnumerable<LocalTargetInfo> TargetsAt(Vector3 clickPos, TargetingParameters clickParams, bool thingsOnly, ITargetingSource source, bool convToVehicleMap = true)
         {
-            List<Thing> clickableList = GenUIOnVehicle.vehicleForSelector != null ?
-                GenUIOnVehicle.ThingsUnderMouse(clickPos, 0.8f, clickParams, source) :
+            return GenUIOnVehicle.TargetsAt(clickPos, clickParams, thingsOnly, source, GenUIOnVehicle.vehicleForSelector, convToVehicleMap);
+        }
+
+        public static IEnumerable<LocalTargetInfo> TargetsAt(Vector3 clickPos, TargetingParameters clickParams, bool thingsOnly, ITargetingSource source, VehiclePawnWithMap vehicle, bool convToVehicleMap = true)
+        {
+            List<Thing> clickableList = vehicle != null ?
+                GenUIOnVehicle.ThingsUnderMouse(clickPos, 0.8f, clickParams, source, vehicle) :
                 GenUI.ThingsUnderMouse(clickPos, 0.8f, clickParams, source);
             Thing caster = source?.Caster;
             int num;
@@ -157,8 +155,8 @@ namespace VehicleInteriors
             }
             if (!thingsOnly)
             {
-                IntVec3 intVec = (convToVehicleMap && GenUIOnVehicle.vehicleForSelector != null) ? clickPos.VehicleMapToOrig(GenUIOnVehicle.vehicleForSelector).ToIntVec3() : clickPos.ToIntVec3();
-                Map map = (convToVehicleMap && GenUIOnVehicle.vehicleForSelector != null) ? GenUIOnVehicle.vehicleForSelector.interiorMap : Find.CurrentMap;
+                IntVec3 intVec = (convToVehicleMap && vehicle != null) ? clickPos.VehicleMapToOrig(vehicle).ToIntVec3() : clickPos.ToIntVec3();
+                Map map = (convToVehicleMap && vehicle != null) ? vehicle.interiorMap : Find.CurrentMap;
                 if (intVec.InBounds(map, clickParams.mapBoundsContractedBy) && clickParams.CanTarget(new TargetInfo(intVec, map, false), source))
                 {
                     yield return intVec;

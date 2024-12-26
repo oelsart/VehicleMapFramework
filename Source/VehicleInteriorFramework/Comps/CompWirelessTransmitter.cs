@@ -20,7 +20,7 @@ namespace VehicleInteriors
             foreach (var c in rect.ExpandedBy(1).Cells)
             {
                 if (!c.InBounds(this.parent.Map)) continue;
-                if (c.ToVector3Shifted().TryGetVehiclePawnWithMap(out var vehicle))
+                if (c.ToVector3Shifted().TryGetVehiclePawnWithMap(this.parent.Map, out var vehicle))
                 {
                     var c2 = c.VehicleMapToOrig(vehicle);
                     if (!c2.InBounds(vehicle.interiorMap)) continue;

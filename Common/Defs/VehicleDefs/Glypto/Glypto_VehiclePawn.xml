@@ -58,7 +58,7 @@
 			</li>
 		</soundSustainersOnEvent>
 		
-		<soundOneShotsOnEvent Inherit = "False">
+		<soundOneShotsOnEvent Inherit="False">
 			<li>
 				<key>IgnitionOn</key>
 				<value>VIF_HoverStart</value>

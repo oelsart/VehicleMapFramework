@@ -510,9 +510,9 @@ namespace VehicleInteriors
             return vector.RotatedBy(-VehicleMapUtility.rotForPrint.AsAngle);
         }
 
-        public static bool TryGetVehiclePawnWithMap(this Vector3 point, out VehiclePawnWithMap vehicle)
+        public static bool TryGetVehiclePawnWithMap(this Vector3 point, Map map, out VehiclePawnWithMap vehicle)
         {
-            var vehicles = VehiclePawnWithMapCache.allVehicles[Find.CurrentMap];
+            var vehicles = VehiclePawnWithMapCache.allVehicles[map];
             vehicle = vehicles.FirstOrDefault(v =>
             {
                 var rect = new Rect(0f, 0f, (float)v.interiorMap.Size.x, (float)v.interiorMap.Size.z);

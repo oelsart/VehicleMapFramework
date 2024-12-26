@@ -100,6 +100,7 @@
     <Compile Include="Comps\CompVehicleLauncherWithMap.cs" />
     <Compile Include="Comps\CompWirelessReceiver.cs" />
     <Compile Include="Comps\CompWirelessTransmitter.cs" />
+    <Compile Include="Combat\ExplosionAcrossMaps.cs" />
     <Compile Include="ExtraOverlayData.cs" />
     <Compile Include="GenDrawOnVehicle.cs" />
     <Compile Include="Graphic_LinkedCornerOverlaySingle.cs" />
@@ -233,12 +234,12 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
-    <Content Include="..\..\Commons\Defs\**\*.*">
+    <Content Include="..\..\Common\Defs\**\*.*">
       <Link>Defs\%(RecursiveDir)%(FileName)%(Extension)</Link>
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\..\Commons\Languages\**\*.*">
+    <Content Include="..\..\Common\Languages\**\*.*">
       <Link>Languages\%(RecursiveDir)%(FileName)%(Extension)</Link>
     </Content>
   </ItemGroup>

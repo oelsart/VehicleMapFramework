@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
+using System.Text;
 using UnityEngine;
 using Vehicles;
 using Verse;
@@ -360,7 +361,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         {
             return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing)
                 .MethodReplacer(MethodInfoCache.m_GenSight_LineOfSightToThing, MethodInfoCache.m_GenSightOnVehicle_LineOfSightToThing)
-                .MethodReplacer(MethodInfoCache.m_GenSight_LineOfSight, MethodInfoCache.m_GenSightOnVehicle_LineOfSight);
+                .MethodReplacer(MethodInfoCache.m_GenSight_LineOfSight1, MethodInfoCache.m_GenSightOnVehicle_LineOfSight1);
         }
     }
 
