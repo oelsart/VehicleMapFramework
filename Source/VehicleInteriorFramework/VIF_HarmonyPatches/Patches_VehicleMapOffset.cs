@@ -383,4 +383,23 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             }
         }
     }
+
+    [HarmonyPatch(typeof(Building_Door), "DrawMovers")]
+    public static class Patch_Building_Door_DrawMovers
+    {
+        public static void Prefix(ref float altitude, Building_Door __instance)
+        {
+            if (__instance.IsOnNonFocusedVehicleMapOf(out _))
+            {
+                altitude += VehicleMapUtility.altitudeOffsetFull;
+            }
+        }
+
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Rotation, MethodInfoCache.m_BaseFullRotation_Thing)
+                .MethodReplacer(MethodInfoCache.g_Rot4_AsQuat, MethodInfoCache.m_Rot8_AsQuatRef)
+                .MethodReplacer(MethodInfoCache.m_Rot4_Rotate, MethodInfoCache.m_Rot8_Rotate);
+        }
+    }
 }

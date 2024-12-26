@@ -6,6 +6,11 @@ namespace VehicleInteriors
 {
     public static class Rot8Utility
     {
+        public static Quaternion AsQuat(ref Rot8 rot)
+        {
+            return rot.AsQuat();
+        }
+
         public static Quaternion AsQuat(this Rot8 rot)
         {
             switch (rot.AsInt)
@@ -30,6 +35,32 @@ namespace VehicleInteriors
                     Log.Error("ToQuat with Rot = " + rot.AsInt.ToString());
                     return Quaternion.identity;
             }
+        }
+
+        //Rot4の変数に入れたRot8を無理やり回転させるためのもの。Rot4.RotateとTranspilerで簡単に置き換えられるようにしてある
+        public static void Rotate(ref Rot8 rot, RotationDirection rotDir)
+        {
+            if (rot.AsInt < 0 || rot.AsInt > 7)
+            {
+                return;
+            }
+            var rot2 = new Rot8(rot.AsInt);
+            int num = rot2.AsIntClockwise;
+            if (rotDir == RotationDirection.Clockwise)
+            {
+                num += 2;
+            }
+            if (rotDir == RotationDirection.Counterclockwise)
+            {
+                num -= 2;
+            }
+            if (rotDir == RotationDirection.Opposite)
+            {
+                num += 4;
+            }
+
+            rot2.AsInt = Rot8.FromIntClockwise(GenMath.PositiveMod(num, 8));
+            rot = rot2;
         }
     }
 }

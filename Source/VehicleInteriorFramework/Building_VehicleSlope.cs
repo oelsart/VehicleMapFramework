@@ -1,9 +1,6 @@
 ﻿using RimWorld;
 using SmashTools;
-using System.Linq;
 using UnityEngine;
-using Vehicles;
-using Verse;
 
 namespace VehicleInteriors
 {

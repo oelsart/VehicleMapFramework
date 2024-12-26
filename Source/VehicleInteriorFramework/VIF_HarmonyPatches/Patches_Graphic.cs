@@ -169,7 +169,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         public static void Postfix(Pawn ___pawn)
         {
-            ___pawn.Rotation = ___pawn.BaseRotation();
+            ___pawn.Rotation = ___pawn.BaseFullRotation();
         }
     }
 

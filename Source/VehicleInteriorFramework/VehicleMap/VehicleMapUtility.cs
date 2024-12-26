@@ -366,6 +366,7 @@ namespace VehicleInteriors
             }
             return thing.Rotation;
         }
+
         public static Rot8 BaseFullRotation(this VehiclePawn vehicle)
         {
             if (vehicle.IsOnNonFocusedVehicleMapOf(out var vehicle2))

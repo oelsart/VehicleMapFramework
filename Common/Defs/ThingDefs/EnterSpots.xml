@@ -26,6 +26,9 @@
 			<drawOffsetEast>(-1,0,-0.5)</drawOffsetEast>
 			<drawOffsetWest>(1,0,-0.5)</drawOffsetWest>
 		</graphicData>
+		<building>
+			<isEdifice>false</isEdifice>
+		</building>
 		<statBases>
 			<MaxHitPoints>300</MaxHitPoints>
 			<Beauty>1</Beauty>
@@ -106,7 +109,7 @@
 			<drawSize>(3,1)</drawSize>
 		</graphicData>
 		<statBases>
-			<MaxHitPoints>1500</MaxHitPoints>
+			<MaxHitPoints>500</MaxHitPoints>
 			<WorkToBuild>900</WorkToBuild>
 			<Mass>45</Mass>
 		</statBases>
@@ -137,7 +140,7 @@
 			<drawSize>(5,1)</drawSize>
 		</graphicData>
 		<statBases>
-			<MaxHitPoints>2500</MaxHitPoints>
+			<MaxHitPoints>800</MaxHitPoints>
 			<WorkToBuild>1500</WorkToBuild>
 			<Mass>75</Mass>
 		</statBases>

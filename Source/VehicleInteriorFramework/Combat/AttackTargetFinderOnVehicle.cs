@@ -297,8 +297,7 @@ namespace VehicleInteriors
                 Building edifice = x.GetEdifice(searcherPawn.Map);
                 if (edifice != null)
                 {
-                    Building_Door building_Door;
-                    if (!canBashDoors && (building_Door = (edifice as Building_Door)) != null && !building_Door.CanPhysicallyPass(searcherPawn))
+                    if (!canBashDoors && edifice is Building_Door building_Door && !building_Door.CanPhysicallyPass(searcherPawn))
                     {
                         return false;
                     }

@@ -110,7 +110,7 @@ namespace VehicleInteriors
 
         private static int CompareThingsByDrawAltitudeOrDistToItem(Thing A, Thing B)
         {
-            var mousePosOrig = UI.MouseMapPosition().VehicleMapToOrig(GenUIOnVehicle.vehicleForSelector);
+            var mousePosOrig = UI.MouseMapPosition();
             if (A.def.category == ThingCategory.Item && B.def.category == ThingCategory.Item)
             {
                 return (A.TrueCenter() - mousePosOrig).MagnitudeHorizontalSquared().CompareTo((B.TrueCenter() - mousePosOrig).MagnitudeHorizontalSquared());
