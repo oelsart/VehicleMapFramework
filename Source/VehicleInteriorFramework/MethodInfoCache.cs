@@ -132,5 +132,17 @@ namespace VehicleInteriors
         public static readonly MethodInfo m_GenUI_TargetsAtMouse = AccessTools.Method(typeof(GenUI), nameof(GenUI.TargetsAtMouse));
 
         public static readonly MethodInfo m_GenUIOnVehicle_TargetsAtMouse = AccessTools.Method(typeof(GenUIOnVehicle), nameof(GenUIOnVehicle.TargetsAtMouse));
+
+        public static readonly MethodInfo m_Matrix4x4_SetTRS = AccessTools.Method(typeof(Matrix4x4), nameof(Matrix4x4.SetTRS));
+
+        public static readonly MethodInfo m_SetTRSOnVehicle = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.SetTRSOnVehicle));
+
+        public static readonly MethodInfo m_Verb_TryFindShootLineFromTo = AccessTools.Method(typeof(Verb), nameof(Verb.TryFindShootLineFromTo));
+
+        public static readonly MethodInfo m_TryFindShootLineFromToOnVehicle = AccessTools.Method(typeof(VerbOnVehicleUtility), nameof(VerbOnVehicleUtility.TryFindShootLineFromToOnVehicle));
+
+        public static readonly MethodInfo m_CanBeSeenOverFast = AccessTools.Method(typeof(GenGrid), nameof(GenGrid.CanBeSeenOverFast));
+
+        public static readonly MethodInfo m_CanBeSeenOverOnVehicle = AccessTools.Method(typeof(GenSightOnVehicle), nameof(GenSightOnVehicle.CanBeSeenOverOnVehicle));
     }
 }

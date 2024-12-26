@@ -8,8 +8,7 @@ namespace VehicleInteriors
         {
             VerbProperties verbProperties = ((ThingDef)checkingDef).building.turretGunDef.Verbs
                 .Find((VerbProperties v) => v.verbClass == typeof(Verb_Shoot) ||
-                typeof(Verb_Spray).IsAssignableFrom(v.verbClass) ||
-                typeof(Verb_ShootOnVehicle).IsAssignableFrom(v.verbClass));
+                typeof(Verb_Spray).IsAssignableFrom(v.verbClass));
             if (verbProperties.range > 0f)
             {
                 GenDraw.DrawRadiusRing(loc, verbProperties.range);

@@ -88,6 +88,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Building_VehicleSlope.cs" />
+    <Compile Include="Combat\ShotReportOnVehicle.cs" />
     <Compile Include="Combat\TargetingHelperOnVehicle.cs" />
     <Compile Include="Comps\CompEngineLightOverlays.cs" />
     <Compile Include="Comps\CompProperties_EngineLightOverlays.cs" />
@@ -179,7 +180,6 @@
     <Compile Include="Jobs\JobGivers\JobGiver_AIFightEnemiesOnVehicle.cs" />
     <Compile Include="Combat\ProjectileUtility.cs" />
     <Compile Include="Combat\ShootLeanUtilityOnVehicle.cs" />
-    <Compile Include="Combat\ShotReportOnVehicle.cs" />
     <Compile Include="FloatMenuMakerOnVehicle.cs" />
     <Compile Include="Jobs\JobDrivers\JobDriver_GotoAcrossMaps.cs" />
     <Compile Include="Jobs\JobGivers\JobGiver_GetOffVehicle.cs" />
@@ -197,10 +197,6 @@
     <Compile Include="GenUIOnVehicle.cs" />
     <Compile Include="StudyUtilityOnVehicle.cs" />
     <Compile Include="Verbs\VerbOnVehicleUtility.cs" />
-    <Compile Include="Verbs\Verb_LaunchProjectileOnVehicle.cs" />
-    <Compile Include="Verbs\Verb_ShootBeamOnVehicle.cs" />
-    <Compile Include="Verbs\Verb_ShootOneUseOnVehicle.cs" />
-    <Compile Include="Verbs\Verb_ShootOnVehicle.cs" />
     <Compile Include="VehiclePawnWithMapCache.cs" />
     <Compile Include="VehicleMap\VehicleMapProps.cs" />
     <Compile Include="VehicleMap\Command_FocusVehicleMap.cs" />
@@ -228,6 +224,7 @@
     <Compile Include="VIF_HarmonyPatches\Patches_Thing.cs" />
     <Compile Include="VIF_HarmonyPatches\Patches_VehicleFramework.cs" />
     <Compile Include="VIF_HarmonyPatches\Patches_VehicleMapOffset.cs" />
+    <Compile Include="VIF_HarmonyPatches\Patches_Verb.cs" />
     <Compile Include="VIF_Materials.cs" />
     <Compile Include="VIF_Shaders.cs" />
     <Compile Include="VIF_Widgets.cs" />

@@ -26,6 +26,12 @@ namespace VehicleInteriors
 
         public static void LeanShootingSourcesFromTo(IntVec3 shooterLoc, IntVec3 targetPos, Map map, List<IntVec3> listToFill)
         {
+            var shooterLocBaseCol = shooterLoc;
+            var baseMap = map.BaseMap();
+            if (map.IsVehicleMapOf(out var vehicle))
+            {
+                shooterLocBaseCol = shooterLoc.OrigToVehicleMap(vehicle);
+            }
             listToFill.Clear();
             float angleFlat = (targetPos - shooterLoc).AngleFlat;
             bool flag = angleFlat > 270f || angleFlat < 90f;
@@ -35,7 +41,7 @@ namespace VehicleInteriors
             bool[] workingBlockedArray = ShootLeanUtilityOnVehicle.GetWorkingBlockedArray();
             for (int i = 0; i < 8; i++)
             {
-                workingBlockedArray[i] = !(shooterLoc + GenAdj.AdjacentCells[i]).CanBeSeenOverOnVehicle(map);
+                workingBlockedArray[i] = !(shooterLocBaseCol + GenAdj.AdjacentCells[i]).CanBeSeenOverOnVehicle(baseMap);
             }
             if (!workingBlockedArray[1] && ((workingBlockedArray[0] && !workingBlockedArray[5] && flag) || (workingBlockedArray[2] && !workingBlockedArray[4] && flag2)))
             {
@@ -53,7 +59,7 @@ namespace VehicleInteriors
             {
                 listToFill.Add(shooterLoc + new IntVec3(0, 0, 1));
             }
-            if (shooterLoc.CanBeSeenOverOnVehicle(map))
+            if (shooterLocBaseCol.CanBeSeenOverOnVehicle(baseMap))
             {
                 listToFill.Add(shooterLoc);
             }

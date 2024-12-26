@@ -318,4 +318,21 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             return codes;
         }
     }
+
+    [HarmonyPatch(typeof(Frame), "DrawAt")]
+    public static class Patch_Frame_DrawAt
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            foreach (var instruction in instructions)
+            {
+                if (instruction.OperandIs(MethodInfoCache.m_Matrix4x4_SetTRS))
+                {
+                    yield return CodeInstruction.LoadArgument(0);
+                    instruction.operand = MethodInfoCache.m_SetTRSOnVehicle;
+                }
+                yield return instruction;
+            }
+        }
+    }
 }

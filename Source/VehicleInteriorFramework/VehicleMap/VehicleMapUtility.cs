@@ -545,7 +545,18 @@ namespace VehicleInteriors
             positionInt(thing) = c;
         }
 
-        public static Map tmpActualMap;
+        //thingが車両マップ上にあったらthingの中心を基準として位置と回転を下の車両基準に回転するわよ
+        public static void SetTRSOnVehicle(ref Matrix4x4 matrix, Vector3 pos, Quaternion q, Vector3 s, Thing thing)
+        {
+            if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle))
+            {
+                var rot = vehicle.FullRotation;
+                var angle = rot.AsAngle;
+                matrix = Matrix4x4.TRS(Ext_Math.RotatePoint(pos, thing.TrueCenter(), -angle), q * rot.AsQuat(), s);
+                return;
+            }
+            matrix = Matrix4x4.TRS(pos, q, s);
+        }
 
         public static Rot4 rotForPrint = Rot4.North;
 

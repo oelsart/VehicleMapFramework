@@ -8,6 +8,8 @@ namespace VehicleInteriors
 {
     public class JobGiver_AIFightEnemiesOnVehicle : JobGiver_AIFightEnemy
     {
+        public override float GetPriority(Pawn pawn) => 1f;
+
         public override ThinkNode DeepCopy(bool resolve = true)
         {
             JobGiver_AIFightEnemiesOnVehicle jobGiver_AIFightEnemiesOnVehicle = (JobGiver_AIFightEnemiesOnVehicle)base.DeepCopy(resolve);
@@ -93,7 +95,7 @@ namespace VehicleInteriors
                 }
                 if (verb.verbProps.IsMeleeAttack)
                 {
-                    return JobMaker.MakeJob(VIF_DefOf.VIF_AttackMeleeAcrossMaps, enemyTarget);
+                    return JobAcrossMapsUtility.GotoDestMapJob(pawn, this.dest1, this.dest2, JobMaker.MakeJob(JobDefOf.AttackMelee, enemyTarget));
                 }
                 bool flag2 = CoverUtility.CalculateOverallBlockChance(pawn, enemyTarget.PositionOnAnotherThingMap(pawn), pawn.Map) > 0.01f;
                 bool flag3 = pawn.Position.Standable(pawn.Map) && pawn.Map.pawnDestinationReservationManager.CanReserve(pawn.Position, pawn, pawn.Drafted);
@@ -236,10 +238,11 @@ namespace VehicleInteriors
 
         protected override bool ShouldLoseTarget(Pawn pawn)
         {
+            this.dest1 = TargetInfo.Invalid;
+            this.dest2 = TargetInfo.Invalid;
             Thing enemyTarget = pawn.mindState.enemyTarget;
             if (!enemyTarget.Destroyed && Find.TickManager.TicksGame - pawn.mindState.lastEngageTargetTick <= this.TicksSinceEngageToLoseTarget &&
-                (pawn.CanReach(enemyTarget, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, enemyTarget.Map, out this.dest1, out this.dest2) ||
-                pawn.IsOnVehicleMapOf(out _) || enemyTarget.IsOnVehicleMapOf(out _)) &&
+                pawn.CanReach(enemyTarget, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, enemyTarget.Map, out this.dest1, out this.dest2) &&
                 (float)(pawn.PositionOnBaseMap() - enemyTarget.PositionOnBaseMap()).LengthHorizontalSquared <= this.targetKeepRadius * this.targetKeepRadius)
             {
                 IAttackTarget attackTarget = enemyTarget as IAttackTarget;

@@ -1,12 +1,8 @@
 ﻿using RimWorld;
 using System.Collections.Generic;
-using VehicleInteriors.Jobs;
 using Vehicles;
 using Verse;
 using Verse.AI;
-using static UnityEngine.GraphicsBuffer;
-using Verse.Noise;
-using System.Linq;
 
 namespace VehicleInteriors
 {
@@ -16,15 +12,16 @@ namespace VehicleInteriors
         {
             var casterBaseMap = verb.caster.BaseMap();
             var targCellOnBaseMap = targ.CellOnBaseMap();
+            var targMap = targ.HasThing ? targ.Thing.Map : casterBaseMap;
             if (targ.HasThing && targ.Thing.BaseMap() != casterBaseMap)
             {
-                resultingLine = default(ShootLine);
+                resultingLine = default;
                 return false;
             }
             if (verb.verbProps.IsMeleeAttack || verb.EffectiveRange <= 1.42f)
             {
                 resultingLine = new ShootLine(root, targCellOnBaseMap);
-                return ReachabilityImmediate.CanReachImmediate(root, targ, verb.caster.Map, PathEndMode.Touch, null);
+                return ReachabilityImmediate.CanReachImmediate(verb.caster.Position, targ, verb.caster.Map, PathEndMode.Touch, null);
             }
             CellRect occupiedRect = targ.HasThing ? targ.Thing.MovedOccupiedRect() : CellRect.SingleCell(targCellOnBaseMap);
             if (!ignoreRange && verb.OutOfRange(root, targ, occupiedRect))
@@ -40,18 +37,17 @@ namespace VehicleInteriors
             if (verb.CasterIsPawn)
             {
                 IntVec3 dest;
-                /*if (verb.CanHitFromCellIgnoringRange(root, targ, out dest))
+                if (verb.CanHitFromCellIgnoringRange(root, targ, out dest))
                 {
                     resultingLine = new ShootLine(root, dest);
                     return true;
-                }*/
-                ShootLeanUtilityOnVehicle.LeanShootingSourcesFromTo(root.ThingMapToOrig(verb.Caster), occupiedRect.ClosestCellTo(root).ThingMapToOrig(verb.Caster), verb.Caster.Map, VerbOnVehicleUtility.tempLeanShootSources);
+                }
+                ShootLeanUtilityOnVehicle.LeanShootingSourcesFromTo(root, occupiedRect.ClosestCellTo(root), casterBaseMap, VerbOnVehicleUtility.tempLeanShootSources);
                 for (int i = 0; i < VerbOnVehicleUtility.tempLeanShootSources.Count; i++)
                 {
-                    if (!VerbOnVehicleUtility.tempLeanShootSources[i].InBounds(verb.Caster.Map)) continue;
-                    IntVec3 intVec = VerbOnVehicleUtility.tempLeanShootSources[i].OrigToThingMap(verb.Caster);
-                    if (verb.CanHitFromCellIgnoringRange(intVec, targ, out dest) &&
-                        GenSightOnVehicle.LineOfSight(VerbOnVehicleUtility.tempLeanShootSources[i], targCellOnBaseMap.ThingMapToOrig(verb.Caster), verb.Caster.Map, true, null))
+                    if (!VerbOnVehicleUtility.tempLeanShootSources[i].ThingMapToOrig(verb.Caster).InBounds(verb.Caster.Map)) continue;
+                    IntVec3 intVec = VerbOnVehicleUtility.tempLeanShootSources[i];
+                    if (verb.CanHitFromCellIgnoringRange(intVec, targ, out dest))
                     {
                         resultingLine = new ShootLine(intVec, dest);
                         return true;
@@ -77,16 +73,25 @@ namespace VehicleInteriors
         private static bool CanHitFromCellIgnoringRange(this Verb verb, IntVec3 sourceCell, LocalTargetInfo targ, out IntVec3 goodDest)
         {
             var targCellOnBaseMap = targ.CellOnBaseMap();
+            var baseMap = verb.Caster.BaseMap();
             if (targ.HasThing)
             {
-                if (targ.Thing.BaseMap() != verb.caster.BaseMap())
+                if (targ.Thing.BaseMap() != baseMap)
                 {
                     goodDest = IntVec3.Invalid;
                     return false;
                 }
-                return verb.CanHitCellFromCellIgnoringRange(sourceCell, targ, out goodDest);
+                VerbOnVehicleUtility.CalcShootableCellsOf(VerbOnVehicleUtility.tempDestList, sourceCell, targCellOnBaseMap, targ.Thing, baseMap);
+                for (int i = 0; i < VerbOnVehicleUtility.tempDestList.Count; i++)
+                {
+                    if (verb.CanHitCellFromCellIgnoringRange(sourceCell, VerbOnVehicleUtility.tempDestList[i], targ.Thing.Map, targ.Thing.def.Fillage == FillCategory.Full))
+                    {
+                        goodDest = VerbOnVehicleUtility.tempDestList[i];
+                        return true;
+                    }
+                }
             }
-            else if (verb.CanHitCellFromCellIgnoringRange(sourceCell, targ.Cell, verb.Caster.BaseMap(), false))
+            else if (verb.CanHitCellFromCellIgnoringRange(sourceCell, targ.Cell, baseMap, false))
             {
                 goodDest = targCellOnBaseMap;
                 return true;
@@ -95,27 +100,17 @@ namespace VehicleInteriors
             return false;
         }
 
-        private static bool CanHitCellFromCellIgnoringRange(this Verb verb, IntVec3 sourceCell, LocalTargetInfo targ, out IntVec3 goodDest)
-        {
-
-            var sourceCellOnTargMap = sourceCell.ThingMapToOrig(targ.Thing);
-            VerbOnVehicleUtility.CalcShootableCellsOf(VerbOnVehicleUtility.tempDestList, sourceCellOnTargMap, targ.Cell, targ.Thing, targ.Thing.Map);
-
-            for (int i = 0; i < VerbOnVehicleUtility.tempDestList.Count; i++)
-            {
-                if (verb.CanHitCellFromCellIgnoringRange(sourceCellOnTargMap, VerbOnVehicleUtility.tempDestList[i], targ.Thing.Map, targ.Thing.def.Fillage == FillCategory.Full))
-                {
-                    goodDest = VerbOnVehicleUtility.tempDestList[i].OrigToThingMap(targ.Thing);
-                    return true;
-                }
-            }
-            goodDest = IntVec3.Invalid;
-            return false;
-        }
-
         private static bool CanHitCellFromCellIgnoringRange(this Verb verb, IntVec3 sourceSq, IntVec3 targetLoc, Map map, bool includeCorners = false)
         {
-            if (verb.verbProps.mustCastOnOpenGround && (!targetLoc.Standable(map) || map.thingGrid.CellContains(targetLoc, ThingCategory.Pawn)))
+            var targetLocOrig = targetLoc;
+            var baseMap = map;
+            if (map.IsVehicleMapOf(out var vehicle))
+            {
+                targetLocOrig = targetLoc.VehicleMapToOrig(vehicle);
+                baseMap = vehicle.Map;
+            }
+
+            if (verb.verbProps.mustCastOnOpenGround && (!targetLocOrig.Standable(map) || map.thingGrid.CellContains(targetLocOrig, ThingCategory.Pawn)))
             {
                 return false;
             }
@@ -125,13 +120,13 @@ namespace VehicleInteriors
                 {
                     if (verb.CurrentTarget.HasThing)
                     {
-                        if (!GenSightOnVehicle.LineOfSight(sourceSq, targetLoc, map, true, null))
+                        if (!GenSightOnVehicle.LineOfSight(sourceSq, targetLoc, baseMap, true, null))
                         {
                             return false;
                         }
                     }
                 }
-                else if (!GenSightOnVehicle.LineOfSightToEdges(sourceSq, targetLoc, map, true, null))
+                else if (!GenSightOnVehicle.LineOfSightToEdges(sourceSq, targetLoc, baseMap, true, null))
                 {
                     return false;
                 }
@@ -151,7 +146,7 @@ namespace VehicleInteriors
                 outCells.Add(targetPos);
                 if (target.def.size.x != 1 || target.def.size.z != 1)
                 {
-                    foreach (IntVec3 intVec in GenAdj.OccupiedRect(targetPos, target.Rotation, target.def.size))
+                    foreach (IntVec3 intVec in GenAdj.OccupiedRect(targetPos, target.BaseRotation(), target.def.size))
                     {
                         if (intVec != targetPos)
                         {
@@ -181,6 +176,8 @@ namespace VehicleInteriors
             bool flag = pawn != null && pawn.Downed;
             return (verb.CasterPawn == null || verb.CasterPawn.Faction != Faction.OfPlayer || !verb.CasterPawn.IsShambler) && (pawn == null || pawn.Faction != Faction.OfPlayer || !pawn.IsShambler) && ((thing.Faction == Faction.OfPlayer && verb.caster.HostileTo(Faction.OfPlayer)) || (verb.caster.Faction == Faction.OfPlayer && thing.HostileTo(Faction.OfPlayer) && !flag));
         }
+
+        private static readonly List<Thing> cellThingsFiltered = new List<Thing>();
 
         private static List<IntVec3> tempLeanShootSources = new List<IntVec3>();
 

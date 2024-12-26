@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using Verse;
+using Verse.Noise;
 
 namespace VehicleInteriors
 {
@@ -71,7 +73,7 @@ namespace VehicleInteriors
             if (!c.InBounds(map)) return true;
 
             var flag = true;
-            if (c.TryGetFirstThing<VehiclePawnWithMap>(map, out var vehicle))
+            if (c.ToVector3Shifted().TryGetVehiclePawnWithMap(map, out var vehicle))
             {
                 var c2 = c.VehicleMapToOrig(vehicle);
                 flag = !c2.InBounds(vehicle.interiorMap);

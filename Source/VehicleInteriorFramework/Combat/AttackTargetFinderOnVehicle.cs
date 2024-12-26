@@ -12,6 +12,7 @@ using Verse.AI.Group;
 using VehicleInteriors.Jobs;
 using HarmonyLib;
 using System.Net.NetworkInformation;
+using Verse.Noise;
 
 namespace VehicleInteriors
 {
@@ -536,22 +537,20 @@ namespace VehicleInteriors
                 return 0f;
             }
             Verb_Shoot verb_Shoot = verb as Verb_Shoot;
-            Verb_ShootOnVehicle verb_ShootOnVehicle = verb as Verb_ShootOnVehicle;
-            if (verb_Shoot == null && verb_ShootOnVehicle == null)
+            if (verb_Shoot == null)
             {
                 return 0f;
             }
-            ThingDef defaultProjectile = verb_Shoot?.verbProps.defaultProjectile;
-            ThingDef defaultProjectileOnVehicle = verb_ShootOnVehicle?.verbProps.defaultProjectile;
-            if (defaultProjectile == null && defaultProjectileOnVehicle == null)
+            ThingDef defaultProjectile = verb_Shoot.verbProps.defaultProjectile;
+            if (defaultProjectile == null)
             {
                 return 0f;
             }
-            if ((defaultProjectile ?? defaultProjectileOnVehicle).projectile.flyOverhead)
+            if (defaultProjectile.projectile.flyOverhead)
             {
                 return 0f;
             }
-            ShotReportOnVehicle report = ShotReportOnVehicle.HitReportFor(pawn, verb, (Thing)target);
+            ShotReport report = ShotReport.HitReportFor(pawn, verb, (Thing)target);
             float radius = Mathf.Max(VerbUtility.CalculateAdjustedForcedMiss(verb.verbProps.ForcedMissRadius, report.ShootLine.Dest - report.ShootLine.Source), 1.5f);
             Func<IntVec3, bool> func = null;
             IEnumerable<IntVec3> enumerable = (from dest in GenRadial.RadialCellsAround(report.ShootLine.Dest, radius, true)
@@ -632,44 +631,42 @@ namespace VehicleInteriors
                 return AttackTargetFinder.CanSee(seer, target, validator);
             }
 
-            return AttackTargetFinderOnVehicle.CanSee(seer.Position, target.PositionOnAnotherThingMap(seer), seer.Map, validator, target);
-        }
-
-        private static bool CanSee(IntVec3 shooterPos, IntVec3 targetPos, Map map, Func<IntVec3, bool> validator, Thing target)
-        {
+            var seerPosOnBaseMap = seer.PositionOnBaseMap();
+            var targPosOnBaseMap = target.PositionOnBaseMap();
+            var baseMap = seer.BaseMap();
             AttackTargetFinderOnVehicle.tempDestList.Clear();
             if (target is Pawn)
             {
-                ShootLeanUtilityOnVehicle.LeanShootingSourcesFromTo(targetPos, shooterPos, map, AttackTargetFinderOnVehicle.tempDestList);
+                ShootLeanUtilityOnVehicle.LeanShootingSourcesFromTo(targPosOnBaseMap, seerPosOnBaseMap, baseMap, AttackTargetFinderOnVehicle.tempDestList);
             }
             else
             {
-                AttackTargetFinderOnVehicle.tempDestList.Add(targetPos);
+                AttackTargetFinderOnVehicle.tempDestList.Add(targPosOnBaseMap);
                 if (target.def.size.x != 1 || target.def.size.z != 1)
                 {
-                    foreach (IntVec3 intVec in GenAdj.OccupiedRect(targetPos, target.Rotation, target.def.size))
+                    foreach (IntVec3 intVec in GenAdj.OccupiedRect(targPosOnBaseMap, target.BaseRotation(), target.def.size))
                     {
-                        if (intVec != targetPos)
+                        if (intVec != targPosOnBaseMap)
                         {
                             AttackTargetFinderOnVehicle.tempDestList.Add(intVec);
                         }
                     }
                 }
             }
-
             for (int i = 0; i < AttackTargetFinderOnVehicle.tempDestList.Count; i++)
             {
-                if (GenSightOnVehicle.LineOfSight(shooterPos, AttackTargetFinderOnVehicle.tempDestList[i], map, true, validator, 0, 0))
+                if (GenSightOnVehicle.LineOfSight(seerPosOnBaseMap, AttackTargetFinderOnVehicle.tempDestList[i], baseMap, true, validator, 0, 0))
                 {
                     return true;
                 }
             }
-            ShootLeanUtilityOnVehicle.LeanShootingSourcesFromTo(shooterPos, targetPos, map, AttackTargetFinderOnVehicle.tempSourceList);
+
+            ShootLeanUtilityOnVehicle.LeanShootingSourcesFromTo(seerPosOnBaseMap, targPosOnBaseMap, baseMap, AttackTargetFinderOnVehicle.tempSourceList);
             for (int j = 0; j < AttackTargetFinderOnVehicle.tempSourceList.Count; j++)
             {
                 for (int k = 0; k < AttackTargetFinderOnVehicle.tempDestList.Count; k++)
                 {
-                    if (GenSightOnVehicle.LineOfSight(AttackTargetFinderOnVehicle.tempSourceList[j], AttackTargetFinderOnVehicle.tempDestList[k], map, true, validator, 0, 0))
+                    if (GenSightOnVehicle.LineOfSight(AttackTargetFinderOnVehicle.tempSourceList[j], AttackTargetFinderOnVehicle.tempDestList[k], baseMap, true, validator, 0, 0))
                     {
                         return true;
                     }

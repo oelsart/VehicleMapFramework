@@ -128,6 +128,76 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         }
     }
 
+    //変更点はShotReportOnVehicle.HitReportForを参照のこと。このTranspilerは元メソッドをOnVehicleに変換するもの
+    [HarmonyPatch(typeof(ShotReport), nameof(ShotReport.HitReportFor))]
+    public static class Patch_ShotReport_HitReportFor
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+        {
+            var codes = instructions.ToList();
+            var targThing = generator.DeclareLocal(typeof(Thing));
+            var targetMap = generator.DeclareLocal(typeof(Map));
+            var casterPositionOnTargetMap = generator.DeclareLocal(typeof(IntVec3));
+
+            //冒頭のtargetMapとcasterPositionOnTargetMapの計算
+            var g_Thing = AccessTools.PropertyGetter(typeof(LocalTargetInfo), nameof(LocalTargetInfo.Thing));
+            var m_PositionOnAnotherThingMap = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.PositionOnAnotherThingMap));
+            var label = generator.DefineLabel();
+            var label2 = generator.DefineLabel();
+            var label3 = generator.DefineLabel();
+            var label4 = generator.DefineLabel();
+            codes.InsertRange(0, new[]
+            {
+                CodeInstruction.LoadArgument(2, true),
+                new CodeInstruction(OpCodes.Call, g_Thing),
+                new CodeInstruction(OpCodes.Stloc_S, targThing),
+                new CodeInstruction(OpCodes.Ldloc_S, targThing),
+                new CodeInstruction(OpCodes.Brfalse_S, label),
+                new CodeInstruction(OpCodes.Ldloc_S, targThing),
+                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Thing_Map),
+                new CodeInstruction(OpCodes.Br_S, label2),
+                CodeInstruction.LoadArgument(0).WithLabels(label),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_BaseMap_Map),
+                new CodeInstruction(OpCodes.Stloc_S, targetMap).WithLabels(label2),
+                new CodeInstruction(OpCodes.Ldloc_S, targThing),
+                new CodeInstruction(OpCodes.Brfalse_S, label3),
+                CodeInstruction.LoadArgument(0),
+                new CodeInstruction(OpCodes.Ldloc_S, targThing),
+                new CodeInstruction(OpCodes.Call, m_PositionOnAnotherThingMap),
+                new CodeInstruction(OpCodes.Br_S, label4),
+                CodeInstruction.LoadArgument(0).WithLabels(label3),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_PositionOnBaseMap),
+                new CodeInstruction(OpCodes.Stloc_S, casterPositionOnTargetMap).WithLabels(label4),
+            });
+
+            var pos2 = 0;
+            for (var i = 0; i < 3; i++)
+            {
+                //caster.Position -> casterPositionOnTargetMap
+                var pos = codes.FindIndex(pos2, c => c.opcode == OpCodes.Callvirt && c.OperandIs(MethodInfoCache.g_Thing_Position));
+                codes[pos].opcode = OpCodes.Ldloc_S;
+                codes[pos].operand = casterPositionOnTargetMap;
+                codes.RemoveAt(pos - 1);
+
+                //caster.Map -> targetMap
+                pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Callvirt && c.OperandIs(MethodInfoCache.g_Thing_Map));
+                codes[pos2].opcode = OpCodes.Ldloc_S;
+                codes[pos2].operand = targetMap;
+                codes.RemoveAt(pos2 - 1);
+            }
+
+            var codes1 = codes.Take(pos2);
+            var codes2 = codes.Skip(pos2);
+
+            codes2 = codes2.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap)
+                .MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing)
+                .MethodReplacer(MethodInfoCache.g_LocalTargetInfo_Cell, MethodInfoCache.m_CellOnBaseMap)
+                .MethodReplacer(MethodInfoCache.m_Verb_TryFindShootLineFromTo, MethodInfoCache.m_TryFindShootLineFromToOnVehicle);
+
+            return codes1.Concat(codes2);
+        }
+    }
+
     [HarmonyPatch(typeof(CompProjectileInterceptor), nameof(CompProjectileInterceptor.CheckIntercept))]
     public static class Patch_CompProjectileInterceptor_CheckIntercept
     {
@@ -142,7 +212,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         public static void Postfix(IntVec3 cell, Map map, Func<Thing, bool> filter, List<Thing> __result)
         {
-            foreach(var vehicle in cell.GetThingList(map).OfType<VehiclePawnWithMap>())
+            if (cell.ToVector3().TryGetVehiclePawnWithMap(map, out var vehicle))
             {
                 var cellOnVehicle = cell.VehicleMapToOrig(vehicle);
                 if (!cellOnVehicle.InBounds(vehicle.interiorMap)) return;

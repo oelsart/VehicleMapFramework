@@ -105,7 +105,7 @@ namespace VehicleInteriors
         private bool TryReplaceWithFrame(TargetIndex index)
         {
             Thing thing = base.GetActor().jobs.curJob.GetTarget(index).Thing;
-            Building edifice = thing.Position.GetEdifice(thing.Map);
+            Building edifice = thing.Position.GetEdifice(this.pawn.Map);
             if (edifice != null && thing is Blueprint_Build blueprint_Build && edifice is Frame frame && frame.BuildDef == blueprint_Build.BuildDef)
             {
                 this.job.SetTarget(TargetIndex.B, frame);
