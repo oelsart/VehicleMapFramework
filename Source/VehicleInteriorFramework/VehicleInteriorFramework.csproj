@@ -103,7 +103,7 @@
     <Compile Include="Comps\CompWirelessTransmitter.cs" />
     <Compile Include="Combat\ExplosionAcrossMaps.cs" />
     <Compile Include="ExtraOverlayData.cs" />
-    <Compile Include="GenDrawOnVehicle.cs" />
+    <Compile Include="Utilities\GenDrawOnVehicle.cs" />
     <Compile Include="Graphic_LinkedCornerOverlaySingle.cs" />
     <Compile Include="Graphic_VehicleOpacity.cs" />
     <Compile Include="EphemenalWindow.cs" />
@@ -123,7 +123,7 @@
     <Compile Include="Jobs\WorkGivers\WorkGiver_DoBillAcrossMaps.cs" />
     <Compile Include="Jobs\WorkGivers\WorkGiver_RefuelAcrossMaps.cs" />
     <Compile Include="Jobs\WorkGivers\WorkGiver_RefuelTurretAcrossMaps.cs" />
-    <Compile Include="MechanitorUtilityOnVehicle.cs" />
+    <Compile Include="Utilities\MechanitorUtilityOnVehicle.cs" />
     <Compile Include="PlaceWorkers\PlaceWorker_ForbidOnVehicle.cs" />
     <Compile Include="PlaceWorkers\PlaceWorker_ForceOnVehicle.cs" />
     <Compile Include="PlaceWorkers\PlaceWorker_ForceOnVehicleMapEdge.cs" />
@@ -141,17 +141,17 @@
     <Compile Include="VehiclePawnCacheComponent.cs" />
     <Compile Include="Combat\AttackTargetFinderOnVehicle.cs" />
     <Compile Include="Combat\CastPositionFinderOnVehicle.cs" />
-    <Compile Include="Combat\GenClosestOnVehicle.cs" />
-    <Compile Include="Combat\GenSightOnVehicle.cs" />
+    <Compile Include="Utilities\GenClosestOnVehicle.cs" />
+    <Compile Include="Utilities\GenSightOnVehicle.cs" />
     <Compile Include="Comps\CompBuildableUpgrades.cs" />
     <Compile Include="Comps\CompProperties_BuildableUpgrades.cs" />
     <Compile Include="Comps\CompVehicleSeat.cs" />
     <Compile Include="Jobs\JobDrivers\JobDriver_BoardAcrossMaps.cs" />
-    <Compile Include="RespawnWithJobsUtility.cs" />
+    <Compile Include="Utilities\RespawnWithJobsUtility.cs" />
     <Compile Include="FloatMenuOnVehicleUtility.cs" />
-    <Compile Include="FindBuildingUtility.cs" />
-    <Compile Include="GetHemogenUtilityOnVehicle.cs" />
-    <Compile Include="HealthAIAcrossMapsUtility.cs" />
+    <Compile Include="Utilities\FindBuildingUtility.cs" />
+    <Compile Include="Utilities\GetHemogenUtilityOnVehicle.cs" />
+    <Compile Include="Utilities\HealthAIAcrossMapsUtility.cs" />
     <Compile Include="Jobs\HaulAIAcrossMapsUtility.cs" />
     <Compile Include="Jobs\JobAcrossMapsUtility.cs" />
     <Compile Include="Jobs\JobDrivers\JobDriverAcrossMaps.cs" />
@@ -178,8 +178,8 @@
     <Compile Include="Jobs\JobDrivers\JobDriver_TransferBetweenEntityHoldersAcrossMaps.cs" />
     <Compile Include="Jobs\JobGivers\JobGiver_AIDefendPointOnVehicle.cs" />
     <Compile Include="Jobs\JobGivers\JobGiver_AIFightEnemiesOnVehicle.cs" />
-    <Compile Include="Combat\ProjectileUtility.cs" />
-    <Compile Include="Combat\ShootLeanUtilityOnVehicle.cs" />
+    <Compile Include="Utilities\ProjectileUtility.cs" />
+    <Compile Include="Utilities\ShootLeanUtilityOnVehicle.cs" />
     <Compile Include="FloatMenuMakerOnVehicle.cs" />
     <Compile Include="Jobs\JobDrivers\JobDriver_GotoAcrossMaps.cs" />
     <Compile Include="Jobs\JobGivers\JobGiver_GetOffVehicle.cs" />
@@ -188,21 +188,20 @@
     <Compile Include="Jobs\StoreAcrossMapsUtility.cs" />
     <Compile Include="Jobs\ToilsAcrossMaps.cs" />
     <Compile Include="Jobs\WorkGivers\WorkGiver_HaulAcrossMaps.cs" />
-    <Compile Include="LoadTransportersJobOnVehicleUtility.cs" />
+    <Compile Include="Utilities\LoadTransportersJobOnVehicleUtility.cs" />
     <Compile Include="MethodInfoCache.cs" />
-    <Compile Include="PlaceWorkers\PlaceWorker_ShowTurretRadius.cs" />
     <Compile Include="Comps\CompVehicleEnterSpot.cs" />
-    <Compile Include="ReachabilityUtilityOnVehicle.cs" />
-    <Compile Include="RestUtilityOnVehicle.cs" />
-    <Compile Include="GenUIOnVehicle.cs" />
-    <Compile Include="StudyUtilityOnVehicle.cs" />
+    <Compile Include="Utilities\ReachabilityUtilityOnVehicle.cs" />
+    <Compile Include="Utilities\RestUtilityOnVehicle.cs" />
+    <Compile Include="Utilities\GenUIOnVehicle.cs" />
+    <Compile Include="Utilities\StudyUtilityOnVehicle.cs" />
     <Compile Include="Verbs\VerbOnVehicleUtility.cs" />
     <Compile Include="VehiclePawnWithMapCache.cs" />
     <Compile Include="VehicleMap\VehicleMapProps.cs" />
     <Compile Include="VehicleMap\Command_FocusVehicleMap.cs" />
     <Compile Include="VehicleMap\GenStep_VehicleInterior.cs" />
     <Compile Include="VehicleMap\MapParent_Vehicle.cs" />
-    <Compile Include="Rot8Utility.cs" />
+    <Compile Include="Utilities\Rot8Utility.cs" />
     <Compile Include="VehicleInteriors.cs" />
     <Compile Include="VehicleMap\SectionLayer_ThingsOnVehicle.cs" />
     <Compile Include="VehicleMap\VehicleMapUtility.cs" />
@@ -227,7 +226,7 @@
     <Compile Include="VIF_HarmonyPatches\Patches_Verb.cs" />
     <Compile Include="VIF_Materials.cs" />
     <Compile Include="VIF_Shaders.cs" />
-    <Compile Include="VIF_Widgets.cs" />
+    <Compile Include="Utilities\VIF_Widgets.cs" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using RimWorld;
 using SmashTools;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
@@ -209,10 +210,19 @@ namespace VehicleInteriors.VIF_HarmonyPatches
 
             var g_CenterVector3 = AccessTools.PropertyGetter(typeof(LocalTargetInfo), nameof(LocalTargetInfo.CenterVector3));
             var m_CenterVector3VehicleOffset = AccessTools.Method(typeof(Patch_Pawn_JobTracker_DrawLinesBetweenTargets), nameof(Patch_Pawn_JobTracker_DrawLinesBetweenTargets.CenterVector3VehicleOffset));
-            return codes.MethodReplacer(g_CenterVector3, m_CenterVector3VehicleOffset);
+            foreach (var code in codes)
+            {
+                if (code.opcode == OpCodes.Call && code.OperandIs(g_CenterVector3))
+                {
+                    yield return CodeInstruction.LoadArgument(0);
+                    yield return CodeInstruction.LoadField(typeof(Pawn_JobTracker), "pawn");
+                    code.operand = m_CenterVector3VehicleOffset;
+                }
+                yield return code;
+            }
         }
 
-        public static Vector3 CenterVector3VehicleOffset(ref LocalTargetInfo targ)
+        public static Vector3 CenterVector3VehicleOffset(ref LocalTargetInfo targ, Pawn pawn)
         {
             if (targ.HasThing)
             {
@@ -224,14 +234,27 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                 {
                     return targ.Thing.SpawnedParentOrMe.DrawPos;
                 }
-                if (FloatMenuMakerOnVehicle.FleckDrawPos.HasValue) return FloatMenuMakerOnVehicle.FleckDrawPos.Value;
                 return targ.Thing.Position.ToVector3Shifted();
             }
             else
             {
                 if (targ.Cell.IsValid)
                 {
-                    if (FloatMenuMakerOnVehicle.FleckDrawPos.HasValue) return FloatMenuMakerOnVehicle.FleckDrawPos.Value;
+                    var driver = pawn.jobs.AllJobs()?.First()?.GetCachedDriver(pawn);
+                    if (driver is JobDriverAcrossMaps driverAcrossMaps)
+                    {
+                        if (driverAcrossMaps.DestMap.IsVehicleMapOf(out var vehicle))
+                        {
+                            return targ.Cell.ToVector3Shifted().OrigToVehicleMap(vehicle);
+                        }
+                    }
+                    else
+                    {
+                        if (pawn.IsOnNonFocusedVehicleMapOf(out var vehicle))
+                        {
+                            return targ.Cell.ToVector3Shifted().OrigToVehicleMap(vehicle);
+                        }
+                    }
                     return targ.Cell.ToVector3Shifted();
                 }
                 return default;
@@ -245,15 +268,6 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             return Patch_Pawn_JobTracker_DrawLinesBetweenTargets.Transpiler(instructions);
-        }
-    }
-
-    [HarmonyPatch(typeof(FleckMaker), nameof(FleckMaker.Static), typeof(Vector3), typeof(Map), typeof(FleckDef), typeof(float))]
-    public static class Patch_FleckMaker_Static
-    {
-        public static void Postfix(Vector3 loc)
-        {
-            FloatMenuMakerOnVehicle.FleckDrawPos = loc;
         }
     }
 
@@ -272,10 +286,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             {
                 CodeInstruction.LoadArgument(1),
                 new CodeInstruction(OpCodes.Ldloca_S, vehicle),
-                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_IsOnVehicleMapOf),
-                new CodeInstruction(OpCodes.Brfalse_S, label),
-                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Thing_Spawned),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_IsOnNonFocusedVehicleMapOf),
                 new CodeInstruction(OpCodes.Brfalse_S, label),
                 new CodeInstruction(OpCodes.Ldc_R4, VehicleMapUtility.altitudeOffsetFull),
                 new CodeInstruction(OpCodes.Add)
@@ -289,9 +300,6 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                 new CodeInstruction(OpCodes.Ldloc_S, vehicle),
                 new CodeInstruction(OpCodes.Brfalse_S, label2),
                 new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Thing_Spawned),
-                new CodeInstruction(OpCodes.Brfalse_S, label2),
-                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
                 new CodeInstruction(OpCodes.Call, MethodInfoCache.m_OrigToVehicleMap2),
             });
             var pos3 = codes.FindIndex(pos, c => c.opcode == OpCodes.Stloc_3);
@@ -302,9 +310,6 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                 new CodeInstruction(OpCodes.Ldloc_S, vehicle),
                 new CodeInstruction(OpCodes.Brfalse_S, label3),
                 new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Thing_Spawned),
-                new CodeInstruction(OpCodes.Brfalse_S, label3),
-                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
                 new CodeInstruction(OpCodes.Call, MethodInfoCache.m_OrigToVehicleMap2),
             });
             var pos4 = codes.FindIndex(pos, c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalIndex == 6);
@@ -313,9 +318,6 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             codes.InsertRange(pos4, new[]
             {
                 new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-                new CodeInstruction(OpCodes.Brfalse_S, label4),
-                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Thing_Spawned),
                 new CodeInstruction(OpCodes.Brfalse_S, label4),
                 new CodeInstruction(OpCodes.Ldloc_S, vehicle),
                 new CodeInstruction(OpCodes.Call, MethodInfoCache.m_OrigToVehicleMap2),
@@ -329,7 +331,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         public static void Prefix(ref Vector3 loc, ref Rot4 rot, Thing thing, ref float extraRotation, Graphic __instance)
         {
-            if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle) && vehicle.Spawned && thing.def.drawerType == DrawerType.RealtimeOnly)
+            if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle) && thing.def.drawerType == DrawerType.RealtimeOnly)
             {
                 var fullRot = vehicle.FullRotation;
                 rot.AsInt += fullRot.RotForVehicleDraw().AsInt;
@@ -400,6 +402,49 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             return instructions.MethodReplacer(MethodInfoCache.g_Thing_Rotation, MethodInfoCache.m_BaseFullRotation_Thing)
                 .MethodReplacer(MethodInfoCache.g_Rot4_AsQuat, MethodInfoCache.m_Rot8_AsQuatRef)
                 .MethodReplacer(MethodInfoCache.m_Rot4_Rotate, MethodInfoCache.m_Rot8_Rotate);
+        }
+    }
+
+    [HarmonyPatch(typeof(VerbProperties), nameof(VerbProperties.DrawRadiusRing_NewTemp))]
+    public static class Patch_VerbProperties_DrawRadiusRing_NewTemp
+    {
+        public static void Prefix(ref IntVec3 center, Verb verb)
+        {
+            if (verb?.caster.IsOnNonFocusedVehicleMapOf(out var vehicle) ?? false)
+            {
+                center = center.OrigToVehicleMap(vehicle);
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(GenDraw), nameof(GenDraw.DrawRadiusRing), typeof(IntVec3), typeof(float), typeof(Color), typeof(Func<IntVec3, bool>))]
+    public static class Patch_GenDraw_DrawRadiusRing
+    {
+        public static void Prefix(ref IntVec3 center)
+        {
+            var tmp = center;
+            VehiclePawnWithMap vehicle = null;
+            if (Command_FocusVehicleMap.FocusedVehicle != null)
+            {
+                center = center.OrigToVehicleMap(Command_FocusVehicleMap.FocusedVehicle);
+            }
+            else if (Find.Selector.SelectedObjects.Any(o => o is Thing thing && thing.Position == tmp && thing.IsOnNonFocusedVehicleMapOf(out vehicle)))
+            {
+                center = center.OrigToVehicleMap(vehicle);
+            }
+        }
+    }
+
+    //c.ToVector3ShiftedWithAltitude(AltitudeLayer.MetaOverlays) -> c.ToVector3ShiftedWithAltitude(AltitudeLayer.MetaOverlays).OrigToVehicleMap();
+    [HarmonyPatch(typeof(GenDraw), "DrawInteractionCell")]
+    public static class Patch_GenDraw_DrawInteractionCell
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var codes = instructions.ToList();
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Stloc_1);
+            codes.Insert(pos, new CodeInstruction(OpCodes.Call, MethodInfoCache.m_OrigToVehicleMap1));
+            return codes;
         }
     }
 }

@@ -2842,8 +2842,6 @@ namespace VehicleInteriors
             return (!scanner.PotentialWorkThingRequest.Accepts(t) && (scanner.PotentialWorkThingsGlobal(pawn) == null || !scanner.PotentialWorkThingsGlobal(pawn).Contains(t))) || scanner.ShouldSkip(pawn, true);
         }
 
-        public static Vector3? FleckDrawPos;
-
         private static List<Thing> cachedThings = new List<Thing>();
 
         private static FloatMenuOption[] equivalenceGroupTempStorage;

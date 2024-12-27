@@ -1,6 +1,5 @@
 ﻿using HarmonyLib;
 using RimWorld;
-using SmashTools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +8,6 @@ using System.Reflection.Emit;
 using VehicleInteriors.Jobs.WorkGivers;
 using Verse;
 using Verse.AI;
-using static UnityEngine.Scripting.GarbageCollector;
 
 namespace VehicleInteriors.VIF_HarmonyPatches
 {
@@ -24,26 +22,23 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         }
     }
 
+    //必要な時JobをGotoDestMapJobでくるむ
+    [HarmonyPatch(typeof(Pawn_JobTracker), nameof(Pawn_JobTracker.TryTakeOrderedJob))]
+    public static class Patch_Pawn_JobTracker_TryTakeOrderedJob
+    {
+        public static void Prefix(ref Job job, Pawn ___pawn)
+        {
+            var thing = job.targetA.Thing;
+            if (!(job.GetCachedDriver(___pawn) is JobDriverAcrossMaps) && thing != null && thing.MapHeld != ___pawn.MapHeld && ___pawn.CanReach(thing, PathEndMode.Touch, Danger.Deadly, true, true, TraverseMode.ByPawn, thing.MapHeld, out var exitSpot, out var enterSpot))
+            {
+                job = JobAcrossMapsUtility.GotoDestMapJob(___pawn, exitSpot, enterSpot, job);
+            }
+        }
+    }
+
     [HarmonyPatch(typeof(JobGiver_Work), nameof(JobGiver_Work.TryIssueJobPackage))]
     public static class Patch_JobGiver_Work_TryIssueJobPackage
     {
-        //目的のthingとpawnのMapが違った場合目的のマップに行くJobにすり替える
-        //public static void Postfix(ref ThinkResult __result, Pawn pawn)
-        //{
-        //    if (__result == ThinkResult.NoJob || (__result.Job.workGiverDef?.Worker is WorkGiver_Scanner scanner && scanner.AllowUnreachable)) return;
-
-        //    var driver = __result.Job.GetCachedDriver(pawn);
-        //    if (!(driver is JobDriverAcrossMaps))
-        //    {
-        //        var thing = __result.Job.targetA.Thing ?? __result.Job.targetQueueA.FirstOrDefault().Thing;
-        //        if (thing != null && !__result.Job.targetB.IsValid && pawn.Map != thing.MapHeld && pawn.CanReach(thing, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, thing.Map, out var exitSpot, out var enterSpot))
-        //        {
-        //            var job = JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, __result.Job);
-        //            __result = new ThinkResult(job, __result.SourceNode, __result.Tag, __result.FromQueue);
-        //        }
-        //    }
-        //}
-
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             var codes = instructions.ToList();

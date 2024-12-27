@@ -10,8 +10,7 @@ namespace VehicleInteriors
 
         public override void ExposeData()
         {
-            base.ExposeData();
-            Scribe_Collections.Look(ref VehicleMapParentsComponent.vehicleMaps, "vehicleMaps", LookMode.Deep);
+            //Scribe_Collections.Look(ref VehicleMapParentsComponent.vehicleMaps, "vehicleMaps", LookMode.Deep);
         }
 
         public static List<MapParent_Vehicle> vehicleMaps = new List<MapParent_Vehicle>();

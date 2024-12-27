@@ -140,6 +140,7 @@ namespace VehicleInteriors
                     mapParent.vehicle = this;
                     mapParent.Tile = 0;
                     this.interiorMap = MapGenerator.GenerateMap(new IntVec3(vehicleMap.size.x, 1, vehicleMap.size.z), mapParent, mapParent.MapGeneratorDef, mapParent.ExtraGenStepDefs, null, true);
+                    Find.WorldObjects.Add(mapParent);
                     VehicleMapParentsComponent.vehicleMaps.Add(mapParent);
                 }
             }
@@ -160,7 +161,7 @@ namespace VehicleInteriors
             base.Tick();
         }
 
-        private void ResetCache()
+        public void ResetCache()
         {
             if (VehiclePawnWithMap.lastCachedTick != Find.TickManager.TicksGame)
             {

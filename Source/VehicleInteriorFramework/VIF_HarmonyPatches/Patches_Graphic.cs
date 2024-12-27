@@ -276,19 +276,6 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         }
     }
 
-    [HarmonyPatch(typeof(VehiclePawn), nameof(VehiclePawn.FullRotation), MethodType.Getter)]
-    public static class Patch_VehiclePawn_FullRotation
-    {
-        public static void Postfix(VehiclePawn __instance, ref Rot8 __result)
-        {
-            if (__instance.IsOnNonFocusedVehicleMapOf(out var vehicle))
-            {
-                var angle = Ext_Math.RotateAngle(__result.AsAngle, vehicle.FullRotation.AsAngle);
-                __result = Rot8.FromAngle(angle);
-            }
-        }
-    }
-
     [HarmonyPatch(typeof(Graphic_Shadow), nameof(Graphic_Shadow.DrawWorker))]
     public static class Patch_Graphic_Shadow_DrawWorker
     {
