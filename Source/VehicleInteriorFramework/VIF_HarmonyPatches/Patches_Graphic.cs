@@ -193,11 +193,11 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         public static void Postfix(Vector3 drawLoc, PawnPosture posture, Pawn ___pawn, ref Vector3 __result)
         {
             var corpse = ___pawn.Corpse;
-            if (corpse != null && corpse.IsOnVehicleMapOf(out var vehicle) && vehicle.Spawned)
+            if (corpse != null && corpse.IsOnNonFocusedVehicleMapOf(out var vehicle))
             {
                 __result.y += vehicle.cachedDrawPos.y;
             }
-            else if (___pawn.IsOnVehicleMapOf(out var vehicle2) && vehicle2.Spawned)
+            else if (___pawn.IsOnNonFocusedVehicleMapOf(out var vehicle2))
             {
                 if (___pawn.CurrentBed() != null)
                 {
@@ -208,9 +208,23 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                     __result.y += vehicle2.cachedDrawPos.y;
                 }
             }
-            else if (___pawn.SpawnedParentOrMe is VehiclePawnWithMap)
+            else if (!(___pawn is VehiclePawnWithMap) && ___pawn.SpawnedParentOrMe is VehiclePawnWithMap vehicle3)
             {
-                __result.y = drawLoc.y;
+                __result.y += vehicle3.cachedDrawPos.y;
+            }
+            else if (Ancestor(___pawn) is VehiclePawnWithMap vehicle4)
+            {
+                __result.y += vehicle4.cachedDrawPos.y + VehicleMapUtility.altitudeOffset;
+            }
+
+            IThingHolder Ancestor(IThingHolder holder)
+            {
+                var parent = holder.ParentHolder;
+                if (parent != null)
+                {
+                    return Ancestor(parent);
+                }
+                return holder;
             }
         }
     }
@@ -220,7 +234,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         public static void Postfix(Pawn ___pawn, ref float __result)
         {
-            if (___pawn.IsOnVehicleMapOf(out var vehicle))
+            if (___pawn.IsOnNonFocusedVehicleMapOf(out var vehicle))
             {
                 __result = Ext_Math.RotateAngle(__result, vehicle.FullRotation.AsAngle);
             }

@@ -8,7 +8,6 @@ using System.Linq;
 using UnityEngine;
 using Vehicles;
 using Verse;
-using Verse.AI;
 
 namespace VehicleInteriors
 {
@@ -139,9 +138,9 @@ namespace VehicleInteriors
                     var mapParent = (MapParent_Vehicle)WorldObjectMaker.MakeWorldObject(VIF_DefOf.VIF_VehicleMap);
                     mapParent.vehicle = this;
                     mapParent.Tile = 0;
+                    mapParent.SetFaction(base.Faction);
                     this.interiorMap = MapGenerator.GenerateMap(new IntVec3(vehicleMap.size.x, 1, vehicleMap.size.z), mapParent, mapParent.MapGeneratorDef, mapParent.ExtraGenStepDefs, null, true);
-                    Find.WorldObjects.Add(mapParent);
-                    VehicleMapParentsComponent.vehicleMaps.Add(mapParent);
+                    Find.World.GetComponent<VehicleMapParentsComponent>().vehicleMaps.Add(mapParent);
                 }
             }
             base.SpawnSetup(map, respawningAfterLoad);
@@ -155,7 +154,14 @@ namespace VehicleInteriors
 
         public override void Tick()
         {
-            this.cachedDrawPos = this.DrawPos;
+            if (this.Spawned)
+            {
+                this.cachedDrawPos = this.DrawPos;
+            }
+            else if (this.CompVehicleLauncher?.launchProtocol != null)
+            {
+                this.cachedDrawPos = this.CompVehicleLauncher.launchProtocol.DrawPos;
+            }
             this.ResetCache();
 
             base.Tick();
@@ -169,13 +175,13 @@ namespace VehicleInteriors
                 VehiclePawnWithMapCache.cachedDrawPos.Clear();
                 VehiclePawnWithMapCache.cachedPosOnBaseMap.Clear();
             }
-            else
-            {
-                foreach (var thing in this.interiorMap.listerThings.AllThings)
-                {
-                    VehiclePawnWithMapCache.cachedDrawPos.Remove(thing);
-                }
-            }
+            //else
+            //{
+            //    foreach (var thing in this.interiorMap.listerThings.AllThings)
+            //    {
+            //        VehiclePawnWithMapCache.cachedDrawPos.Remove(thing);
+            //    }
+            //}
         }
 
         public override void Destroy(DestroyMode mode = DestroyMode.Vanish)
@@ -203,7 +209,7 @@ namespace VehicleInteriors
                 }
             }
             Current.Game.DeinitAndRemoveMap(this.interiorMap, false);
-            if (Find.WorldObjects.Contains(this.interiorMap.Parent)) Find.WorldObjects.Remove(this.interiorMap.Parent);
+            Find.World.GetComponent<VehicleMapParentsComponent>().vehicleMaps.Remove(this.interiorMap.Parent as MapParent_Vehicle);
             base.Destroy(mode);
         }
 
@@ -220,9 +226,23 @@ namespace VehicleInteriors
 
         public override void DrawAt(Vector3 drawLoc, Rot8 rot, float extraRotation, bool flip = false, bool compDraw = true)
         {
-            base.DrawAt(drawLoc, rot, extraRotation, flip, compDraw);
-
-            this.cachedDrawPos = drawLoc;
+            this.ResetCache();
+            if (this.Spawned)
+            {
+                this.cachedDrawPos = drawLoc;
+                base.DrawAt(drawLoc, rot, extraRotation, flip, compDraw);
+            }
+            else
+            {
+                drawLoc.y = AltitudeLayer.PawnState.AltitudeFor();
+                this.cachedDrawPos = drawLoc;
+                bool northSouthRotation = (this.VehicleGraphic.EastDiagonalRotated && (this.FullRotation == Rot8.NorthEast || this.FullRotation == Rot8.SouthEast)) || (this.VehicleGraphic.WestDiagonalRotated && (this.FullRotation == Rot8.NorthWest || this.FullRotation == Rot8.SouthWest));
+                this.Drawer.renderer.RenderPawnAt_TEMP(drawLoc, rot, extraRotation, northSouthRotation);
+                if (compDraw)
+                {
+                    this.Comps_PostDrawUnspawned(drawLoc, rot, extraRotation);
+                }
+            }
 
             var map = this.interiorMap;
             //PlantFallColors.SetFallShaderGlobals(map);
@@ -233,25 +253,24 @@ namespace VehicleInteriors
             //map.powerNetGrid.DrawDebugPowerNetGrid();
             //DoorsDebugDrawer.DrawDebug();
             //map.mapDrawer.DrawMapMesh();
-            var drawPos = Vector3.zero.OrigToVehicleMap(this);
-            this.DrawVehicleMapMesh(map, drawPos);
+            var drawPos = Vector3.zero.OrigToVehicleMap(this, extraRotation);
+            this.DrawVehicleMapMesh(map, drawPos, extraRotation);
             map.dynamicDrawManager.DrawDynamicThings();
-            //map.gameConditionManager.GameConditionManagerDraw(map);
-            //MapEdgeClipDrawer.DrawClippers(__instance);
             this.DrawClippers(map);
             map.designationManager.DrawDesignations();
             map.overlayDrawer.DrawAllOverlays();
             map.temporaryThingDrawer.Draw();
             map.flecks.FleckManagerDraw();
+            //map.gameConditionManager.GameConditionManagerDraw(map);
+            //MapEdgeClipDrawer.DrawClippers(__instance);
 
             if (!this.Spawned)
             {
                 this.cachedDrawPos = Vector3.zero;
-                this.ResetCache();
             }
         }
 
-        private void DrawVehicleMapMesh(Map map, Vector3 drawPos)
+        private void DrawVehicleMapMesh(Map map, Vector3 drawPos, float extraRotation)
         {
             var mapDrawer = map.mapDrawer;
             for (int i = 0; i < map.Size.x; i += 17)
@@ -259,23 +278,23 @@ namespace VehicleInteriors
                 for (int j = 0; j < map.Size.z; j += 17)
                 {
                     var section = mapDrawer.SectionAt(new IntVec3(i, 0, j));
-                    this.DrawSection(section, drawPos);
+                    this.DrawSection(section, drawPos, extraRotation);
                 }
             }
         }
 
-        private void DrawSection(Section section, Vector3 drawPos)
+        private void DrawSection(Section section, Vector3 drawPos, float extraRotation)
         {
             if (anyLayerDirty(section))
             {
                 RegenerateDirtyLayers(section);
             }
-            this.DrawLayer(section, typeof(SectionLayer_TerrainOnVehicle), drawPos);
-            ((SectionLayer_ThingsOnVehicle)section.GetLayer(typeof(SectionLayer_ThingsOnVehicle))).DrawLayer(this, drawPos);
-            this.DrawLayer(section, typeof(SectionLayer_BuildingsDamage), drawPos);
-            this.DrawLayer(section, typeof(SectionLayer_ThingsPowerGrid), drawPos);
-            this.DrawLayer(section, t_SectionLayer_Zones, drawPos);
-            ((SectionLayer_LightingOnVehicle)section.GetLayer(typeof(SectionLayer_LightingOnVehicle))).DrawLayer(this, drawPos);
+            this.DrawLayer(section, typeof(SectionLayer_TerrainOnVehicle), drawPos, extraRotation);
+            ((SectionLayer_ThingsOnVehicle)section.GetLayer(typeof(SectionLayer_ThingsOnVehicle))).DrawLayer(this, drawPos, extraRotation);
+            this.DrawLayer(section, typeof(SectionLayer_BuildingsDamage), drawPos, extraRotation);
+            this.DrawLayer(section, typeof(SectionLayer_ThingsPowerGrid), drawPos, extraRotation);
+            this.DrawLayer(section, t_SectionLayer_Zones, drawPos, extraRotation);
+            ((SectionLayer_LightingOnVehicle)section.GetLayer(typeof(SectionLayer_LightingOnVehicle))).DrawLayer(this, drawPos, extraRotation);
             //if (DebugViewSettings.drawSectionEdges)
             //{
             //    Vector3 a = section.botLeft.ToVector3();
@@ -294,18 +313,19 @@ namespace VehicleInteriors
             //}
         }
 
-        private void DrawLayer(Section section, Type layerType, Vector3 drawPos)
+        private void DrawLayer(Section section, Type layerType, Vector3 drawPos, float extraRotation)
         {
             var layer = section.GetLayer(layerType);
             if (!layer.Visible)
             {
                 return;
             }
+            var angle = Ext_Math.RotateAngle(this.FullRotation.AsAngle, extraRotation);
             foreach (var subMesh in layer.subMeshes)
             {
                 if (subMesh.finalized && !subMesh.disabled)
                 {
-                    Graphics.DrawMesh(subMesh.mesh, drawPos, base.FullRotation.AsQuat(), subMesh.material, 0);
+                    Graphics.DrawMesh(subMesh.mesh, drawPos, Quaternion.AngleAxis(angle, Vector3.up), subMesh.material, 0);
                 }
             }
         }

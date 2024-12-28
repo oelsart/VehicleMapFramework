@@ -204,7 +204,7 @@
     <Compile Include="Utilities\Rot8Utility.cs" />
     <Compile Include="VehicleInteriors.cs" />
     <Compile Include="VehicleMap\SectionLayer_ThingsOnVehicle.cs" />
-    <Compile Include="VehicleMap\VehicleMapUtility.cs" />
+    <Compile Include="Utilities\VehicleMapUtility.cs" />
     <Compile Include="VehiclePawnWithMap.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="VIF_DefOf.cs" />

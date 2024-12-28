@@ -122,8 +122,8 @@ namespace VehicleInteriors
                     {
                         foreach (Pawn pawn in handler.Item1.handlers)
                         {
-                            Vector3 drawLoc = this.parent.DrawPos + handler.Item2.pawnRenderer.DrawOffsetFor(this.parent.Rotation);
-                            Rot4 value = handler.Item1.role.PawnRenderer.RotFor(this.parent.Rotation);
+                            Vector3 drawLoc = this.parent.DrawPos + handler.Item2.pawnRenderer.DrawOffsetFor(this.parent.BaseRotation());
+                            Rot4 value = handler.Item1.role.PawnRenderer.RotFor(this.parent.BaseRotation());
                             pawn.Drawer.renderer.RenderPawnAt(drawLoc, new Rot4?(value), false);
                         }
                     }

@@ -1,4 +1,5 @@
-﻿using RimWorld.Planet;
+﻿using RimWorld;
+using RimWorld.Planet;
 using Verse;
 
 namespace VehicleInteriors

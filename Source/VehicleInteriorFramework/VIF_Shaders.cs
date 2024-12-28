@@ -1,7 +1,6 @@
 ﻿using HarmonyLib;
 using System.Collections.Generic;
 using UnityEngine;
-using Vehicles;
 using Verse;
 
 namespace VehicleInteriors
@@ -11,11 +10,7 @@ namespace VehicleInteriors
     {
         public static Shader LoadShader(string shaderPath)
         {
-            var lookup = AccessTools.FieldRefAccess<Dictionary<string, Shader>>(typeof(ShaderDatabase), "lookup")();
-            if (lookup == null)
-            {
-                lookup = new Dictionary<string, Shader>();
-            }
+            var lookup = AccessTools.FieldRefAccess<Dictionary<string, Shader>>(typeof(ShaderDatabase), "lookup")() ?? new Dictionary<string, Shader>();
             if (!lookup.ContainsKey(shaderPath))
             {
                 lookup[shaderPath] = VehicleInteriors.Bundle.LoadAsset<Shader>($"Assets/Data/VehicleInteriors/{shaderPath}.shader");

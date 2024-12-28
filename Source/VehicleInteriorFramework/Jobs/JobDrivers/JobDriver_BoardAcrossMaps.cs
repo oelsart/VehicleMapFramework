@@ -71,19 +71,20 @@ namespace VehicleInteriors
                 }
                 if (vehicleAssigned.Item2 == null)
                 {
-                    Log.Error("[VehicleFramework] VehicleHandler is null. This should never happen as assigned seating either handles arrangements or instructs pawns to follow rather than board.");
+                    Log.Error("[VehicleMapFramework] VehicleHandler is null. This should never happen as assigned seating either handles arrangements or instructs pawns to follow rather than board.");
                 }
                 vehicleAssigned.Item1.GiveLoadJob(pawnBoarding, vehicleAssigned.Item2);
-                var caravan = vehiclePawn.GetCaravan();
-                if (caravan == null)
+                if (vehiclePawn.Spawned)
                 {
                     vehicleAssigned.Item1.Notify_Boarded(pawnBoarding, null);
                 }
                 else
                 {
                     pawnBoarding.DeSpawn();
-                    caravan.AddPawn(pawnBoarding, true);
-                    Find.WorldPawns.PassToWorld(pawnBoarding, PawnDiscardDecideMode.KeepForever);
+                    var caravan = vehiclePawn.GetCaravan() ?? vehiclePawn.GetVehicleCaravan();
+                    caravan?.AddPawn(pawnBoarding, true);
+                    Find.WorldPawns.PassToWorld(pawnBoarding, PawnDiscardDecideMode.Decide);
+                    pawnBoarding.SetFaction(vehiclePawn.Faction);
                     vehicleAssigned.Item1.Notify_BoardedCaravan(pawnBoarding, vehicleAssigned.Item2.handlers);
                 }
                 this.ThrowAppropriateHistoryEvent(vehiclePawn.VehicleDef.vehicleType, toil.actor);

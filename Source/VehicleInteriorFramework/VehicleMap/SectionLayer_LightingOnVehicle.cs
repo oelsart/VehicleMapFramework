@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using RimWorld;
+using SmashTools;
 using System;
 using System.Text;
 using UnityEngine;
@@ -33,20 +34,21 @@ namespace VehicleInteriors
             this.propertyBlock = new MaterialPropertyBlock();
         }
 
-        public void DrawLayer(VehiclePawnWithMap vehicle, Vector3 drawPos)
+        public void DrawLayer(VehiclePawnWithMap vehicle, Vector3 drawPos, float extraRotation)
         {
             if (!this.Visible)
             {
                 return;
             }
             var baseMap = base.Map.BaseMap();
+            var angle = Ext_Math.RotateAngle(vehicle.FullRotation.AsAngle, extraRotation);
             float a = Mathf.Clamp01(1f - Mathf.Min(baseMap.gameConditionManager.MapBrightness, baseMap.skyManager.CurSkyGlow));
             this.propertyBlock.SetColor(ShaderPropertyIDs.ColorTwo, new Color(1f, 1f, 1f, a));
             foreach (var subMesh in this.subMeshes)
             {
                 if (subMesh.finalized && !subMesh.disabled)
                 {
-                    Graphics.DrawMesh(subMesh.mesh, drawPos, vehicle.FullRotation.AsQuat(), subMesh.material, 0, null, 0, this.propertyBlock);
+                    Graphics.DrawMesh(subMesh.mesh, drawPos, Quaternion.AngleAxis(angle, Vector3.up), subMesh.material, 0, null, 0, this.propertyBlock);
                 }
             }
         }

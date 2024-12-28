@@ -240,10 +240,11 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             {
                 if (targ.Cell.IsValid)
                 {
-                    var driver = pawn.jobs.AllJobs()?.First()?.GetCachedDriver(pawn);
+                    var driver = pawn.jobs.AllJobs()?.First().GetCachedDriver(pawn);
                     if (driver is JobDriverAcrossMaps driverAcrossMaps)
                     {
-                        if (driverAcrossMaps.DestMap.IsVehicleMapOf(out var vehicle))
+                        var destMap = driverAcrossMaps.DestMap;
+                        if (destMap.IsVehicleMapOf(out var vehicle) && Find.CurrentMap != destMap)
                         {
                             return targ.Cell.ToVector3Shifted().OrigToVehicleMap(vehicle);
                         }
@@ -267,7 +268,23 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return Patch_Pawn_JobTracker_DrawLinesBetweenTargets.Transpiler(instructions);
+            var codes = instructions.ToList();
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Callvirt && c.OperandIs(MethodInfoCache.g_Thing_Position));
+            codes.RemoveRange(pos, 4);
+            var g_Pawn_DrawPos = AccessTools.PropertyGetter(typeof(Pawn), nameof(Pawn.DrawPos));
+            codes.Insert(pos, new CodeInstruction(OpCodes.Callvirt, g_Pawn_DrawPos));
+
+            var g_CenterVector3 = AccessTools.PropertyGetter(typeof(LocalTargetInfo), nameof(LocalTargetInfo.CenterVector3));
+            var m_CenterVector3VehicleOffset = AccessTools.Method(typeof(Patch_Pawn_JobTracker_DrawLinesBetweenTargets), nameof(Patch_Pawn_JobTracker_DrawLinesBetweenTargets.CenterVector3VehicleOffset));
+            foreach (var code in codes)
+            {
+                if (code.opcode == OpCodes.Call && code.OperandIs(g_CenterVector3))
+                {
+                    yield return CodeInstruction.LoadArgument(0);
+                    code.operand = m_CenterVector3VehicleOffset;
+                }
+                yield return code;
+            }
         }
     }
 

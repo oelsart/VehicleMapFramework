@@ -37,37 +37,38 @@ namespace VehicleInteriors
             }
         }
 
-        public void DrawLayer(VehiclePawnWithMap vehicle, Vector3 drawPos)
+        public void DrawLayer(VehiclePawnWithMap vehicle, Vector3 drawPos, float extraRotation)
         {
             if (!DebugViewSettings.drawThingsPrinted)
             {
                 return;
             }
+            var angle = Ext_Math.RotateAngle(vehicle.FullRotation.AsAngle, extraRotation);
             switch (vehicle.FullRotation.AsByte)
             {
                 case Rot8.NorthInt:
                 case Rot8.NorthEastInt:
                 case Rot8.NorthWestInt:
-                    this.DrawMeshes(vehicle, this.subMeshesByRot[Rot4.NorthInt], drawPos);
+                    this.DrawMeshes(this.subMeshesByRot[Rot4.NorthInt], drawPos, angle);
                     break;
 
                 case Rot8.SouthInt:
                 case Rot8.SouthEastInt:
                 case Rot8.SouthWestInt:
-                    this.DrawMeshes(vehicle, this.subMeshesByRot[Rot4.SouthInt], drawPos);
+                    this.DrawMeshes(this.subMeshesByRot[Rot4.SouthInt], drawPos, angle);
                     break;
 
                 case Rot8.EastInt:
-                    this.DrawMeshes(vehicle, this.subMeshesByRot[Rot4.EastInt], drawPos);
+                    this.DrawMeshes(this.subMeshesByRot[Rot4.EastInt], drawPos, angle);
                     break;
 
                 case Rot8.WestInt:
-                    this.DrawMeshes(vehicle, this.subMeshesByRot[Rot4.WestInt], drawPos);
+                    this.DrawMeshes(this.subMeshesByRot[Rot4.WestInt], drawPos, angle);
                     break;
             }
         }
 
-        public void DrawMeshes(VehiclePawnWithMap vehicle, List<LayerSubMesh> subMeshes, Vector3 drawPos)
+        public void DrawMeshes(List<LayerSubMesh> subMeshes, Vector3 drawPos, float extraRotation)
         {
             if (!this.Visible)
             {
@@ -79,7 +80,7 @@ namespace VehicleInteriors
                 LayerSubMesh layerSubMesh = subMeshes[i];
                 if (layerSubMesh.finalized && !layerSubMesh.disabled)
                 {
-                    Graphics.DrawMesh(layerSubMesh.mesh, drawPos, vehicle.FullRotation.AsQuat(), layerSubMesh.material, 0);
+                    Graphics.DrawMesh(layerSubMesh.mesh, drawPos, Quaternion.AngleAxis(extraRotation, Vector3.up), layerSubMesh.material, 0);
                 }
             }
         }

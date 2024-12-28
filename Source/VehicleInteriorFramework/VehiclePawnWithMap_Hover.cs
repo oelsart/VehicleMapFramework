@@ -9,8 +9,13 @@ namespace VehicleInteriors
         {
             get
             {
+                VehiclePawnWithMapCache.cacheMode = true;
                 var drawPos = base.DrawPos;
-                drawPos.z += this.drawOffset;
+                VehiclePawnWithMapCache.cacheMode = false;
+                if (this.Spawned)
+                {
+                    drawPos.z += this.drawOffset;
+                }
                 return drawPos;
             }
         }
