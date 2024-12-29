@@ -11,7 +11,7 @@
 	<ThingDef ParentName="VehicleEnterSpotBase">
 		<defName>VIF_Ladder</defName>
 		<label>ladder</label>
-		<description>test</description>
+		<description>A ladder for humans to ascend and descend on a vehicle. Pawns get priority to ascend and descend from the location where this is placed.</description>
 		<category>Building</category>
 		<minifiedDef>MinifiedThing</minifiedDef>
 		<thingCategories>
@@ -46,12 +46,12 @@
 	</ThingDef>
 
 	<DesignatorDropdownGroupDef>
-		<defName>VIF_VehicleSlopeGroup</defName>
+		<defName>VIF_VehicleRampGroup</defName>
 	</DesignatorDropdownGroupDef>
 
-	<ThingDef Name="VehicleSlopeBase" ParentName="VehicleEnterSpotBase" Abstract="True">
-		<designatorDropdown>VIF_VehicleSlopeGroup</designatorDropdown>
-		<thingClass>VehicleInteriors.Building_VehicleSlope</thingClass>
+	<ThingDef Name="VehicleRampBase" ParentName="VehicleEnterSpotBase" Abstract="True">
+		<designatorDropdown>VIF_VehicleRampGroup</designatorDropdown>
+		<thingClass>VehicleInteriors.Building_VehicleRamp</thingClass>
 		<drawerType>MapMeshAndRealTime</drawerType>
 		<tickerType>Normal</tickerType>
 		<graphicData>
@@ -78,12 +78,12 @@
 		</comps>
 	</ThingDef>
 	
-	<!--<ThingDef ParentName="VehicleSlopeBase">
-		<defName>VIF_SlopeSmall</defName>
-		<label>slope (1x1)</label>
+	<!--<ThingDef ParentName="VehicleRampBase">
+		<defName>VIF_RampSmall</defName>
+		<label>ramp (1x1)</label>
 		<description>test</description>
 		<graphicData>
-			<texPath>VehicleInteriors/Things/EnterSpot/SlopeSmall</texPath>
+			<texPath>VehicleInteriors/Things/EnterSpot/RampSmall</texPath>
 			<drawSize>(2,1)</drawSize>
 		</graphicData>
 		<statBases>
@@ -100,12 +100,12 @@
 		<uiOrder>1010</uiOrder>
 	</ThingDef>-->
 	
-	<ThingDef ParentName="VehicleSlopeBase">
-		<defName>VIF_SlopeMedium</defName>
-		<label>slope (1x3)</label>
-		<description>test</description>
+	<ThingDef ParentName="VehicleRampBase">
+		<defName>VIF_RampMedium</defName>
+		<label>ramp (1x3)</label>
+		<description>A ramp for vehicles to ascend and descend to a vehicle map. Vehicles up to 3 squares wide can ascend and descend from here.</description>
 		<graphicData>
-			<texPath>VehicleInteriors/Things/EnterSpot/SlopeMedium</texPath>
+			<texPath>VehicleInteriors/Things/EnterSpot/RampMedium</texPath>
 			<drawSize>(3,1)</drawSize>
 		</graphicData>
 		<statBases>
@@ -121,22 +121,22 @@
 		<uiOrder>1020</uiOrder>
 		<building>
 			<upperMoverGraphic>
-				<texPath>VehicleInteriors/Things/EnterSpot/SlopeMedium</texPath>
+				<texPath>VehicleInteriors/Things/EnterSpot/RampMedium</texPath>
 				<drawSize>(4,1)</drawSize>
 			</upperMoverGraphic>
 			<blueprintGraphicData>
-				<texPath>VehicleInteriors/Things/EnterSpot/SlopeMediumBlueprint</texPath>
+				<texPath>VehicleInteriors/Things/EnterSpot/RampMediumBlueprint</texPath>
 				<drawSize>(4,2)</drawSize>
 			</blueprintGraphicData>
 		</building>
 	</ThingDef>
 
-	<ThingDef ParentName="VehicleSlopeBase">
-		<defName>VIF_SlopeLarge</defName>
-		<label>slope (1x5)</label>
-		<description>test</description>
+	<ThingDef ParentName="VehicleRampBase">
+		<defName>VIF_RampLarge</defName>
+		<label>ramp (1x5)</label>
+		<description>A ramp for vehicles to ascend and descend to a vehicle map. Vehicles up to 5 squares wide can ascend and descend from here.</description>
 		<graphicData>
-			<texPath>VehicleInteriors/Things/EnterSpot/SlopeLarge</texPath>
+			<texPath>VehicleInteriors/Things/EnterSpot/RampLarge</texPath>
 			<drawSize>(5,1)</drawSize>
 		</graphicData>
 		<statBases>
@@ -152,11 +152,11 @@
 		<uiOrder>1030</uiOrder>
 		<building>
 			<upperMoverGraphic>
-				<texPath>VehicleInteriors/Things/EnterSpot/SlopeLarge</texPath>
+				<texPath>VehicleInteriors/Things/EnterSpot/RampLarge</texPath>
 				<drawSize>(6,1)</drawSize>
 			</upperMoverGraphic>
 			<blueprintGraphicData>
-				<texPath>VehicleInteriors/Things/EnterSpot/SlopeLargeBlueprint</texPath>
+				<texPath>VehicleInteriors/Things/EnterSpot/RampLargeBlueprint</texPath>
 				<drawSize>(6,2)</drawSize>
 			</blueprintGraphicData>
 		</building>

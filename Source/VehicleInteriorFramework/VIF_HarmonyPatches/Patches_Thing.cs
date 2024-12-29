@@ -12,7 +12,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         public static void Postfix(Building_Door __instance, ref bool __result)
         {
-            __result = __result && !(__instance is Building_VehicleSlope);
+            __result = __result && !(__instance is Building_VehicleRamp);
         }
     }
 

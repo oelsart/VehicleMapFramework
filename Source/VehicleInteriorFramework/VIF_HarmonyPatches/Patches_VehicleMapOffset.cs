@@ -376,7 +376,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             var vehicle = Command_FocusVehicleMap.FocusedVehicle;
             if (vehicle != null)
             {
-                loc = loc.OrigToVehicleMap(vehicle);
+                loc = loc.OrigToVehicleMap(vehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor());
                 var fullRot = vehicle.FullRotation;
                 rot.AsInt += fullRot.RotForVehicleDraw().AsInt;
                 if (/*thingDef.Size != IntVec2.One || */(!(thingDef.graphic is Graphic_Single) && !(thingDef.graphic is Graphic_Collection)))
@@ -457,34 +457,30 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         }
     }
 
-    //c.ToVector3ShiftedWithAltitude(AltitudeLayer.MetaOverlays) -> DrawPosOffset(c.ToVector3ShiftedWithAltitude(AltitudeLayer.MetaOverlays), center);
+    //tDef.interactionCellGraphic.DrawFromDef(vector, rot, tDef.interactionCellIcon, 0f) ->
+    //tDef.interactionCellGraphic.DrawFromDef(vector, rot, tDef.interactionCellIcon, 0f)
+    //Graphics.DrawMesh(MeshPool.plane10, SelectedDrawPosOffset(vector, center), Quaternion.identity, GenDraw.InteractionCellMaterial, 0) ->
+    //Graphics.DrawMesh(MeshPool.plane10, FocusedDrawPosOffset(vector, center), Quaternion.identity, GenDraw.InteractionCellMaterial, 0)
     [HarmonyPatch(typeof(GenDraw), "DrawInteractionCell")]
     public static class Patch_GenDraw_DrawInteractionCell
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             var codes = instructions.ToList();
-            var pos = codes.FindIndex(c => c.opcode == OpCodes.Stloc_1);
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Ldloc_S && (c.operand as LocalBuilder).LocalIndex == 4);
             codes.InsertRange(pos, new[]
             {
                 CodeInstruction.LoadArgument(2),
-                CodeInstruction.Call(typeof(Patch_GenDraw_DrawInteractionCell), nameof(Patch_GenDraw_DrawInteractionCell.DrawPosOffset))
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_SelectedDrawPosOffset)
+            });
+
+            var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Call && c.OperandIs(MethodInfoCache.g_Quaternion_identity));
+            codes.InsertRange(pos2, new[]
+            {
+                CodeInstruction.LoadArgument(2),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_FocusedDrawPosOffset)
             });
             return codes;
-        }
-
-        private static Vector3 DrawPosOffset(Vector3 original, IntVec3 center)
-        {
-            VehiclePawnWithMap vehicle = null;
-            if (Command_FocusVehicleMap.FocusedVehicle != null)
-            {
-                return original.OrigToVehicleMap(Command_FocusVehicleMap.FocusedVehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor());
-            }
-            else if (Find.Selector.SelectedObjects.Any(o => o is Thing thing && thing.Position == center && thing.IsOnNonFocusedVehicleMapOf(out vehicle)))
-            {
-                return original.OrigToVehicleMap(vehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor());
-            }
-            return original;
         }
     }
 
@@ -581,5 +577,37 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             screenPos.y = UI.screenHeight - screenPos.y;
             return UI.UIToMapPosition(screenPos).OrigToVehicleMap().MapToUIPosition();
         }
+    }
+
+    //GenDraw.DrawLineBetween(GenThing.TrueCenter(pos, Rot4.North, def.size, def.Altitude), t.TrueCenter(), SimpleColor.Red, 0.2f) ->
+    //GenDraw.DrawLineBetween(FocusedDrawPosOffset(GenThing.TrueCenter(pos, Rot4.North, def.size, def.Altitude), pos), t.TrueCenter(), SimpleColor.Red, 0.2f)
+    [HarmonyPatch(typeof(MeditationUtility), nameof(MeditationUtility.DrawArtificialBuildingOverlay))]
+    public static class Patch_MeditationUtility_DrawArtificialBuildingOverlay
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) => Patch_MeditationUtility_DrawArtificialBuildingOverlay.TranspilerCommon(instructions);
+
+        public static IEnumerable<CodeInstruction> TranspilerCommon(IEnumerable<CodeInstruction> instructions, int ArgumentNum = 0)
+        {
+            var codes = instructions.ToList();
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(MethodInfoCache.m_GenThing_TrueCenter)) - 1;
+            codes.InsertRange(pos, new[]
+            {
+                CodeInstruction.LoadArgument(ArgumentNum),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_FocusedDrawPosOffset)
+            });
+            return codes;
+        }
+    }
+
+    [HarmonyPatch(typeof(MeditationUtility), nameof(MeditationUtility.DrawMeditationSpotOverlay))]
+    public static class Patch_MeditationUtility_DrawMeditationSpotOverlay
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) => Patch_MeditationUtility_DrawArtificialBuildingOverlay.TranspilerCommon(instructions);
+    }
+
+    [HarmonyPatch(typeof(MeditationUtility), nameof(MeditationUtility.DrawMeditationFociAffectedByBuildingOverlay))]
+    public static class Patch_MeditationUtility_DrawMeditationFociAffectedByBuildingOverlay
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) => Patch_MeditationUtility_DrawArtificialBuildingOverlay.TranspilerCommon(instructions, 3);
     }
 }

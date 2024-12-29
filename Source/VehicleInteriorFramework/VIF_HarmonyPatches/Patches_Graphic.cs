@@ -42,13 +42,6 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         public static void Prefix(ref IntVec3 c, Thing parent) => Patch_Graphic_Linked_ShouldLinkWith.Prefix(ref c, parent);
     }
 
-
-    [HarmonyPatch(typeof(Graphic_LinkedTransmitterOverlay), nameof(Graphic_LinkedTransmitterOverlay.ShouldLinkWith))]
-    public static class Patch_Graphic_LinkedTransmitterOverlay_ShouldLinkWith
-    {
-        public static void Prefix(ref IntVec3 c, Thing parent) => Patch_Graphic_Linked_ShouldLinkWith.Prefix(ref c, parent);
-    }
-
     [HarmonyPatch(typeof(Thing), nameof(Thing.Print))]
     public static class Patch_Thing_Print
     {
@@ -347,22 +340,12 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         }
     }
 
-    //[HarmonyPatch(typeof(Zone), nameof(Zone.Material), MethodType.Getter)]
-    //public static class Patch_Zone_Material
-    //{
-    //    public static void Prefix(Zone __instance, ref Material ___materialInt)
-    //    {
-    //        if (___materialInt == null && __instance.Map.IsVehicleMapOf(out _))
-    //        {
-    //            if (!Patch_Zone_Material.colorMatsAlways.TryGetValue(__instance.color, out ___materialInt))
-    //            {
-    //                ___materialInt = SolidColorMaterials.NewSolidColorMaterial(__instance.color, VIF_Shaders.SolidColorWithZ);
-    //                Patch_Zone_Material.colorMatsAlways.Add(__instance.color, ___materialInt);
-    //            }
-    //            ___materialInt.renderQueue = 3600;
-    //        }
-    //    }
-
-    //    private static readonly Dictionary<Color, Material> colorMatsAlways = new Dictionary<Color, Material>();
-    //}
+    [HarmonyPatch(typeof(MapDrawer), "ViewRect", MethodType.Getter)]
+    public static class Patch_MapDrawer_ViewRect
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.m_CellRect_ClipInsideMap, MethodInfoCache.m_ClipInsideVehicleMap);
+        }
+    }
 }

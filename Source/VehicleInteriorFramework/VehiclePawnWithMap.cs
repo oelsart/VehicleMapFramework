@@ -8,6 +8,7 @@ using System.Linq;
 using UnityEngine;
 using Vehicles;
 using Verse;
+using Verse.Noise;
 
 namespace VehicleInteriors
 {
@@ -157,6 +158,18 @@ namespace VehicleInteriors
             if (this.Spawned)
             {
                 this.cachedDrawPos = this.DrawPos;
+                //PowerGridのメッシュがタイミング的に即時にRegenerateされないので、定期チェックしている。より良い方法を検討したい
+                if (this.IsHashIntervalTick(250))
+                {
+                    var map = this.interiorMap;
+                    for (int i = 0; i < map.Size.x; i += 17)
+                    {
+                        for (int j = 0; j < map.Size.z; j += 17)
+                        {
+                            map.mapDrawer.MapMeshDirty(new IntVec3(i, 0, j), MapMeshFlagDefOf.PowerGrid);
+                        }
+                    }
+                }
             }
             else if (this.CompVehicleLauncher?.launchProtocol != null)
             {
@@ -260,7 +273,7 @@ namespace VehicleInteriors
             map.designationManager.DrawDesignations();
             map.overlayDrawer.DrawAllOverlays();
             map.temporaryThingDrawer.Draw();
-            map.flecks.FleckManagerDraw();
+            //map.flecks.FleckManagerDraw();
             //map.gameConditionManager.GameConditionManagerDraw(map);
             //MapEdgeClipDrawer.DrawClippers(__instance);
 
@@ -285,14 +298,10 @@ namespace VehicleInteriors
 
         private void DrawSection(Section section, Vector3 drawPos, float extraRotation)
         {
-            if (anyLayerDirty(section))
-            {
-                RegenerateDirtyLayers(section);
-            }
             this.DrawLayer(section, typeof(SectionLayer_TerrainOnVehicle), drawPos, extraRotation);
             ((SectionLayer_ThingsOnVehicle)section.GetLayer(typeof(SectionLayer_ThingsOnVehicle))).DrawLayer(this, drawPos, extraRotation);
             this.DrawLayer(section, typeof(SectionLayer_BuildingsDamage), drawPos, extraRotation);
-            this.DrawLayer(section, typeof(SectionLayer_ThingsPowerGrid), drawPos, extraRotation);
+            this.DrawLayer(section, typeof(SectionLayer_ThingsPowerGrid), drawPos.WithY(0f), extraRotation);
             this.DrawLayer(section, t_SectionLayer_Zones, drawPos, extraRotation);
             ((SectionLayer_LightingOnVehicle)section.GetLayer(typeof(SectionLayer_LightingOnVehicle))).DrawLayer(this, drawPos, extraRotation);
             //if (DebugViewSettings.drawSectionEdges)

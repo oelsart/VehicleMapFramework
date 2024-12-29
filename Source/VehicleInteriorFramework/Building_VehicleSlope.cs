@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace VehicleInteriors
 {
-    public class Building_VehicleSlope : Building_Door
+    public class Building_VehicleRamp : Building_Door
     {
         protected override void DrawAt(Vector3 drawLoc, bool flip = false)
         {

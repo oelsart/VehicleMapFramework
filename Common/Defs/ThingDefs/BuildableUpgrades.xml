@@ -13,8 +13,8 @@
 	
 	<ThingDef ParentName="VehicleSeatBase">
 		<defName>VIF_DriverSeat</defName>
-		<label>driver seat</label>
-		<description>test</description>
+		<label>driver's seat</label>
+		<description>Driver's seat of a vehicle. When this is installed, the vehicle can be controlled.</description>
 		<graphicData>
 			<texPath>Things/Building/Furniture/Armchair</texPath>
 			<graphicClass>Graphic_Multi</graphicClass>
@@ -58,7 +58,7 @@
 	<ThingDef ParentName="FurnitureBase">
 		<defName>VIF_CargoContainer</defName>
 		<label>cargo container</label>
-		<description>test</description>
+		<description>Storage for additional vehicle cargo capacity.\n\n&lt;color=#bb8f04&gt;Cargo capacity:&lt;/color&gt; +100 kg</description>
 		<designationCategory>VF_Vehicles</designationCategory>
 		<rotatable>false</rotatable>
 		<graphicData>
@@ -119,7 +119,7 @@
 	<ThingDef ParentName="FurnitureBase">
 		<defName>VIF_TurboCharger</defName>
 		<label>turbo charger</label>
-		<description>test</description>
+		<description>Engine components to enhance the vehicle's maximum payload.\n\n&lt;color=#bb8f04&gt;Maximum payload:&lt;/color&gt; +300 kg</description>
 		<designationCategory>VF_Vehicles</designationCategory>
 		<graphicData>
 			<texPath>VehicleInteriors/Things/BuildableUpgrade/TurboCharger/TurboCharger</texPath>

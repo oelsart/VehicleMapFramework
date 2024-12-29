@@ -576,6 +576,25 @@ namespace VehicleInteriors
             matrix = Matrix4x4.TRS(pos, q, s);
         }
 
+        public static Vector3 FocusedDrawPosOffset(Vector3 original, IntVec3 center)
+        {
+            if (Command_FocusVehicleMap.FocusedVehicle != null)
+            {
+                return original.OrigToVehicleMap(Command_FocusVehicleMap.FocusedVehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor());
+            }
+            return SelectedDrawPosOffset(original, center);
+        }
+
+        public static Vector3 SelectedDrawPosOffset(Vector3 original, IntVec3 center)
+        {
+            VehiclePawnWithMap vehicle = null;
+            if (Find.Selector.SelectedObjects.Any(o => o is Thing thing && thing.Position == center && thing.IsOnNonFocusedVehicleMapOf(out vehicle)))
+            {
+                return original.OrigToVehicleMap(vehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor());
+            }
+            return original;
+        }
+
         public static Rot4 rotForPrint = Rot4.North;
 
         private static readonly AccessTools.FieldRef<Thing, sbyte> mapIndexOrState = AccessTools.FieldRefAccess<Thing, sbyte>("mapIndexOrState");

@@ -7,7 +7,7 @@
 	<ThingDef Name="VIF_WirelessCharger" ParentName="FurnitureBase">
 		<defName>VIF_WirelessTransmitter</defName>
 		<label>wireless power transmitter</label>
-		<description>test</description>
+		<description>A device for transmitting power between a normal map and a vehicle map. Can be placed on a normal map.</description>
 		<designationCategory>VF_Vehicles</designationCategory>
 		<designatorDropdown>VIF_WirelessChargerGroup</designatorDropdown>
 		<passability>PassThroughOnly</passability>
@@ -50,7 +50,7 @@
 	<ThingDef ParentName="VIF_WirelessCharger">
 		<defName>VIF_WirelessReceiver</defName>
 		<label>wireless power receiver</label>
-		<description>test</description>
+		<description>A device that receives power from a normal map. It can be placed on a vehicle map and receive power by aligning with a transmitter.</description>
 		<graphicData>
 			<texPath>VehicleInteriors/Things/WirelessCharger/WirelessReceiver</texPath>
 		</graphicData>

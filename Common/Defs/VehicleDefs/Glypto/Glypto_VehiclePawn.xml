@@ -4,7 +4,7 @@
 	<Vehicles.VehicleDef ParentName="BaseVehiclePawnWithMapHover">
 		<defName>VIF_Glypto</defName>
 		<label>glypto</label>
-		<description>Basic tank platform. It has only a power unit with a pair of crawlers, and has no cabin or cargo.\n\n&lt;color=#bb8f04&gt;Fuel type:&lt;/color&gt; Chemfuel</description>
+		<description>Advanced hovercraft in spacer tech, with quadruple energy cannon and minimal ammo storage.\n\n&lt;color=#bb8f04&gt;Fuel type:&lt;/color&gt; Chemfuel</description>
 
 		<graphicData>
 			<texPath>VehicleInteriors/Glypto/Glypto</texPath>
@@ -12,7 +12,7 @@
 			<shaderType>CutoutComplexPattern</shaderType>
 			<pattern>VIF_RGBMask</pattern>
 			<drawSize>(11.45, 15.5)</drawSize>
-			<color>(255, 255, 255)</color>
+			<color>(255, 248, 224)</color>
 			<colorTwo>(255, 217, 116)</colorTwo>
 			<colorThree>(112, 245, 255)</colorThree>
 		</graphicData>
