@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ModMetaData>
-	<name>Vehicle Interior Framework</name>
-	<packageId>oels.vehicleinteriorframeworkexperimental</packageId>
+	<name>Vehicle Map Framework</name>
+	<packageId>oels.vehiclemapframeworkexperimental</packageId>
 	<author>OELS</author>
 	<description>
 	</description>
