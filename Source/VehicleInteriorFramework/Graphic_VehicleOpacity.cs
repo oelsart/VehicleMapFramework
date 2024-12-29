@@ -36,6 +36,8 @@ namespace VehicleInteriors
 
         public override void DrawWorker(Vector3 loc, Rot8 rot, ThingDef thingDef, Thing thing, float extraRotation)
         {
+            if (this.Opacity == 0f) return;
+
             Mesh mesh = this.MeshAtFull(rot);
             Quaternion quaternion = base.QuatFromRot(rot);
             //if ((this.EastDiagonalRotated && (rot == Rot8.NorthEast || rot == Rot8.SouthEast)) || (this.WestDiagonalRotated && (rot == Rot8.NorthWest || rot == Rot8.SouthWest)))
@@ -52,11 +54,12 @@ namespace VehicleInteriors
             }
             loc += base.DrawOffset(rot);
             Material mat = this.MatAtFull(rot);
-            this.DrawMeshInt(mesh, loc, quaternion, mat);
-            if (base.ShadowGraphic != null)
+            if (this.DataRGB?.renderQueue != 0)
             {
-                base.ShadowGraphic.DrawWorker(loc, rot, thingDef, thing, extraRotation);
+                mat.renderQueue = this.DataRGB.renderQueue;
             }
+            this.DrawMeshInt(mesh, loc, quaternion, mat);
+            base.ShadowGraphic?.DrawWorker(loc, rot, thingDef, thing, extraRotation);
         }
 
         private float opacityInt = 1f;

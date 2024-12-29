@@ -336,4 +336,33 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             }
         }
     }
+
+    [HarmonyPatch(typeof(GenDraw), nameof(GenDraw.DrawFillableBar))]
+    public static class Patch_GenDraw_DrawFillableBar
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_Rot4_AsAngle, MethodInfoCache.g_Rot8_AsAngle)
+                .MethodReplacer(MethodInfoCache.g_Rot4_AsQuat, MethodInfoCache.m_Rot8_AsQuatRef);
+        }
+    }
+
+    //[HarmonyPatch(typeof(Zone), nameof(Zone.Material), MethodType.Getter)]
+    //public static class Patch_Zone_Material
+    //{
+    //    public static void Prefix(Zone __instance, ref Material ___materialInt)
+    //    {
+    //        if (___materialInt == null && __instance.Map.IsVehicleMapOf(out _))
+    //        {
+    //            if (!Patch_Zone_Material.colorMatsAlways.TryGetValue(__instance.color, out ___materialInt))
+    //            {
+    //                ___materialInt = SolidColorMaterials.NewSolidColorMaterial(__instance.color, VIF_Shaders.SolidColorWithZ);
+    //                Patch_Zone_Material.colorMatsAlways.Add(__instance.color, ___materialInt);
+    //            }
+    //            ___materialInt.renderQueue = 3600;
+    //        }
+    //    }
+
+    //    private static readonly Dictionary<Color, Material> colorMatsAlways = new Dictionary<Color, Material>();
+    //}
 }

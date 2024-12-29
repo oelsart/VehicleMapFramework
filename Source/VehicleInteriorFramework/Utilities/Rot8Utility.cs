@@ -6,6 +6,12 @@ namespace VehicleInteriors
 {
     public static class Rot8Utility
     {
+        public static IntVec3 RighthandCell(ref Rot8 rot)
+        {
+            Rot8Utility.Rotate(ref rot, RotationDirection.Clockwise);
+            return rot.FacingCell;
+        }
+
         public static Quaternion AsQuat(ref Rot8 rot)
         {
             return rot.AsQuat();
@@ -61,6 +67,15 @@ namespace VehicleInteriors
 
             rot2.AsInt = Rot8.FromIntClockwise(GenMath.PositiveMod(num, 8));
             rot = rot2;
+        }
+
+        public static Vector3 ToFundVector3(ref IntVec3 intVec)
+        {
+            if (intVec.IsCardinal)
+            {
+                return intVec.ToVector3();
+            }
+            return intVec.ToVector3() * 0.707106781f;
         }
     }
 }

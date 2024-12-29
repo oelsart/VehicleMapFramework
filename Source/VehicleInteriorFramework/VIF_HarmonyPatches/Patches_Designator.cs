@@ -36,13 +36,63 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         static Patches_Designator_Cells_SelectedUpdate()
         {
-            var postfix = AccessTools.Method(typeof(Patch_Designator_Build_SelectedUpdate), nameof(Patch_Designator_Build_SelectedUpdate.Postfix));
-            foreach (var type in typeof(Designator_Cells).AllSubclasses())
+            var postfix = AccessTools.Method(typeof(Patches_Designator_Cells_SelectedUpdate), nameof(Patches_Designator_Cells_SelectedUpdate.Postfix));
+            foreach (var type in typeof(Designator).AllSubclasses())
             {
                 var method = AccessTools.Method(type, "SelectedUpdate");
                 if (method != null && method.IsDeclaredMember())
                 {
                     VIF_Harmony.Instance.Patch(method, null, postfix);
+                }
+            }
+        }
+        public static void Postfix()
+        {
+            if (Command_FocusVehicleMap.FocuseLockedVehicle != null) return;
+
+            Command_FocusVehicleMap.FocusedVehicle = null;
+            var mousePos = UI.MouseMapPosition();
+            var vehicles = VehiclePawnWithMapCache.allVehicles[Find.CurrentMap];
+            var vehicle = vehicles.FirstOrDefault(v =>
+            {
+                var rect = new Rect(0f, 0f, (float)v.interiorMap.Size.x, (float)v.interiorMap.Size.z);
+                var vector = mousePos.VehicleMapToOrig(v);
+
+                return rect.Contains(new Vector2(vector.x, vector.z));
+            });
+            Command_FocusVehicleMap.FocusedVehicle = vehicle;
+        }
+    }
+
+    [StaticConstructorOnStartup]
+    public static class Patches_Designator_DesignateThing
+    {
+        static Patches_Designator_DesignateThing()
+        {
+            var transpiler = AccessTools.Method(typeof(Patches_Designator_DesignateThing), nameof(Patches_Designator_DesignateThing.Transpiler));
+            foreach (var type in typeof(Designator).AllSubclasses())
+            {
+                var method = AccessTools.Method(type, "DesignateThing");
+                if (method != null && method.IsDeclaredMember())
+                {
+                    VIF_Harmony.Instance.Patch(method, null, null, transpiler);
+                }
+            }
+        }
+
+        private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            foreach (var instruction in instructions)
+            {
+                if (instruction.opcode == OpCodes.Call && instruction.OperandIs(MethodInfoCache.g_Designator_Map))
+                {
+                    yield return new CodeInstruction(OpCodes.Pop);
+                    yield return CodeInstruction.LoadArgument(1);
+                    yield return new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Thing_Map);
+                }
+                else
+                {
+                    yield return instruction;
                 }
             }
         }
@@ -66,27 +116,6 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             {
                 Command_FocusVehicleMap.FocusedVehicle = null;
             }
-        }
-    }
-
-    [HarmonyPatch(typeof(Designator_Build), nameof(Designator_Build.SelectedUpdate))]
-    public static class Patch_Designator_Build_SelectedUpdate
-    {
-        public static void Postfix()
-        {
-            if (Command_FocusVehicleMap.FocuseLockedVehicle != null) return;
-
-            Command_FocusVehicleMap.FocusedVehicle = null;
-            var mousePos = UI.MouseMapPosition();
-            var vehicles = VehiclePawnWithMapCache.allVehicles[Find.CurrentMap];
-            var vehicle = vehicles.FirstOrDefault(v =>
-            {
-                var rect = new Rect(0f, 0f, (float)v.interiorMap.Size.x, (float)v.interiorMap.Size.z);
-                var vector = mousePos.VehicleMapToOrig(v);
-
-                return rect.Contains(new Vector2(vector.x, vector.z));
-            });
-            Command_FocusVehicleMap.FocusedVehicle = vehicle;
         }
     }
 
@@ -149,15 +178,26 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         }
     }
 
-    [HarmonyPatch(typeof(DesignatorUtility), nameof(DesignatorUtility.RenderHighlightOverSelectableThings))]
-    public static class Patch_DesignatorUtility_RenderHighlightOverSelectableThings
+    //[HarmonyPatch(typeof(DesignatorUtility), nameof(DesignatorUtility.RenderHighlightOverSelectableThings))]
+    //public static class Patch_DesignatorUtility_RenderHighlightOverSelectableThings
+    //{
+    //    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+    //    {
+    //        var f_DesignatorUtility_DragHighlightThingMat = AccessTools.Field(typeof(DesignatorUtility), nameof(DesignatorUtility.DragHighlightThingMat));
+    //        return Patch_GenUI_RenderMouseoverBracket.TranspilerCommon(instructions, generator, f_DesignatorUtility_DragHighlightThingMat);
+    //    }
+    //}
+
+    [HarmonyPatch(typeof(Designator_Cancel), nameof(Designator_Cancel.RenderHighlight))]
+    public static class Patch_Designator_Cancel_RenderHighlight
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
         {
-            var f_DesignatorUtility_DragHighlightThingMat = AccessTools.Field(typeof(DesignatorUtility), nameof(DesignatorUtility.DragHighlightThingMat));
-            return Patch_GenUI_RenderMouseoverBracket.TranspilerCommon(instructions, generator, f_DesignatorUtility_DragHighlightThingMat);
+            var f_DesignatorUtility_DragHighlightCellMat = AccessTools.Field(typeof(DesignatorUtility), nameof(DesignatorUtility.DragHighlightCellMat));
+            return Patch_GenUI_RenderMouseoverBracket.TranspilerCommon(instructions, generator, f_DesignatorUtility_DragHighlightCellMat);
         }
     }
+
 
     [HarmonyPatch(typeof(DesignationManager), nameof(DesignationManager.DrawDesignations))]
     public static class Patch_DesignationManager_DrawDesignations

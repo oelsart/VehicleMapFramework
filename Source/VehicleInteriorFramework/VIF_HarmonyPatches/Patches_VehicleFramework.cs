@@ -115,7 +115,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                 new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_FullRotation),
                 new CodeInstruction(OpCodes.Stloc_S, rot),
                 new CodeInstruction(OpCodes.Ldloca_S, rot),
-                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_AsAngleRot8),
+                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Rot8_AsAngle),
                 new CodeInstruction(OpCodes.Add)
             });
             return codes;
@@ -249,7 +249,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                         graphicData.drawOffsetWest = graphic.data.drawOffsetWest;
                         graphicData.shadowData = null;
                         //Graphic graphic2 = graphicData.Graphic;
-                        graphic = GraphicDatabase.Get(typeof(Graphic_Multi), graphic.path, ShaderTypeDefOf.EdgeDetect.Shader, graphic.drawSize, ghostColor, Color.white, graphicData, null, null);
+                        graphic = GraphicDatabase.Get(typeof(Graphic_Vehicle), graphic.path, ShaderTypeDefOf.EdgeDetect.Shader, graphic.drawSize, ghostColor, Color.white, graphicData, null, null);
                         VehicleGhostUtility.cachedGhostGraphics.Add(key, graphic);
                     }
                     yield return new ValueTuple<Graphic, float>(graphic, graphicOverlay.data.rotation);

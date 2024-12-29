@@ -212,7 +212,7 @@ namespace VehicleInteriors
         public static float PrintExtraRotation(Thing thing)
         {
             float result = 0f;
-            if (thing?.Map?.Parent is MapParent_Vehicle)
+            if (thing.IsOnNonFocusedVehicleMapOf(out _))
             {
                 result -= VehicleMapUtility.rotForPrint.AsAngle * (thing.Graphic.GetType() == typeof(Graphic_Single) || thing.Graphic is Graphic_Collection ? 2f : 1f);
             }

@@ -25,6 +25,6 @@ namespace VehicleInteriors
             return shader;
         }
 
-        public static Shader terrainHardWithZ = VIF_Shaders.LoadShader("TerrainHardWithZ");
+        public static Shader terrainHardWithZ = VIF_Shaders.LoadShader("terrainHardWithZ");
     }
 }

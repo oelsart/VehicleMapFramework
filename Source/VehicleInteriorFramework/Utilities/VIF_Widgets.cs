@@ -1,4 +1,6 @@
-﻿using RimWorld;
+﻿using LudeonTK;
+using RimWorld;
+using SmashTools;
 using UnityEngine;
 using Verse;
 using Verse.Sound;
@@ -89,11 +91,50 @@ namespace VehicleInteriors
             return num;
         }
 
+        public static void DrawBoxRotated(Rect rect, int thickness = 1, Texture2D lineTexture = null, float rotation = 0f)
+        {
+            Vector2 RotatePoint(Vector2 point, Vector2 origin, float angle)
+            {
+                float x = Mathf.Cos(angle * angleToRad) * (point.x - origin.x) - Mathf.Sin(angle * angleToRad) * (point.y - origin.y) + origin.x;
+                float y = Mathf.Sin(angle * angleToRad) * (point.x - origin.x) + Mathf.Cos(angle * angleToRad) * (point.y - origin.y) + origin.y;
+                return new Vector2(x, y);
+            }
+            Vector2 vector = RotatePoint(new Vector2(rect.x, rect.y), rect.center, rotation);
+            Vector2 vector2 = RotatePoint(new Vector2(rect.xMax, rect.yMax), rect.center, rotation);
+            if (vector.x > vector2.x)
+            {
+                ref float ptr = ref vector.x;
+                float num = vector2.x;
+                float num2 = vector.x;
+                ptr = num;
+                vector2.x = num2;
+            }
+            if (vector.y > vector2.y)
+            {
+                ref float ptr = ref vector.y;
+                float num2 = vector2.y;
+                float num = vector.y;
+                ptr = num2;
+                vector2.y = num;
+            }
+            Vector3 vector3 = vector2 - vector;
+			Matrix4x4 matrix = GUI.matrix;
+            UI.RotateAroundPivot(-rotation, rect.center);
+            GUI.DrawTexture(UIScaling.AdjustRectToUIScaling(new Rect(vector.x, vector.y, (float)thickness, vector3.y)), lineTexture ?? BaseContent.WhiteTex);
+            GUI.DrawTexture(UIScaling.AdjustRectToUIScaling(new Rect(vector2.x - (float)thickness, vector.y, (float)thickness, vector3.y)), lineTexture ?? BaseContent.WhiteTex);
+            GUI.DrawTexture(UIScaling.AdjustRectToUIScaling(new Rect(vector.x + (float)thickness, vector.y, vector3.x - (float)(thickness * 2), (float)thickness)), lineTexture ?? BaseContent.WhiteTex);
+            GUI.DrawTexture(UIScaling.AdjustRectToUIScaling(new Rect(vector.x + (float)thickness, vector2.y - (float)thickness, vector3.x - (float)(thickness * 2), (float)thickness)), lineTexture ?? BaseContent.WhiteTex);
+
+            GUI.matrix = matrix;
+        }
+
         private static readonly Texture2D SliderRailAtlas = ContentFinder<Texture2D>.Get("UI/Buttons/SliderRail", true);
 
         private static readonly Texture2D SliderHandle = ContentFinder<Texture2D>.Get("UI/Buttons/SliderHandle", true);
 
         private static readonly Color RangeControlTextColor = new Color(0.6f, 0.6f, 0.6f);
+
+        private const float angleToRad = 0.017453292519943f;
 
         private static float lastDragSliderSoundTime = -1f;
 

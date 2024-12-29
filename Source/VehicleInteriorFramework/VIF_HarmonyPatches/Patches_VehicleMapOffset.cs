@@ -152,7 +152,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                 new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_FullRotation),
                 new CodeInstruction(OpCodes.Stloc_S, rot),
                 new CodeInstruction(OpCodes.Ldloca_S, rot),
-                new CodeInstruction(OpCodes.Call, MethodInfoCache.g_AsAngleRot8),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.g_Rot8_AsAngle),
                 new CodeInstruction(OpCodes.Conv_I4),
                 new CodeInstruction(OpCodes.Add),
             });
@@ -172,7 +172,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                 CodeInstruction.LoadLocal(1),
                 new CodeInstruction(OpCodes.Callvirt, g_DrawPos),
                 new CodeInstruction(OpCodes.Ldloca_S, rot),
-                new CodeInstruction(OpCodes.Call, MethodInfoCache.g_AsAngleRot8),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.g_Rot8_AsAngle),
                 new CodeInstruction(OpCodes.Neg),
                 new CodeInstruction(OpCodes.Call, MethodInfoCache.m_RotatePoint)
             });
@@ -379,13 +379,18 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                 loc = loc.OrigToVehicleMap(vehicle);
                 var fullRot = vehicle.FullRotation;
                 rot.AsInt += fullRot.RotForVehicleDraw().AsInt;
-                var angle = vehicle.Angle;
-                if (thingDef.Size != IntVec2.One || !(thingDef.graphic is Graphic_Single))
+                if (/*thingDef.Size != IntVec2.One || */(!(thingDef.graphic is Graphic_Single) && !(thingDef.graphic is Graphic_Collection)))
                 {
+                    var angle = vehicle.Angle;
                     extraRotation -= angle;
                     var offset = __instance.DrawOffset(rot);
                     var offset2 = offset.RotatedBy(-angle);
                     loc += new Vector3(offset2.x - offset.x, 0f, offset2.z - offset.z);
+                }
+                else if (thingDef.graphic is Graphic_Single || thingDef.graphic is Graphic_Collection)
+                {
+                    var angle = fullRot.AsAngle;
+                    extraRotation -= angle;
                 }
             }
         }
@@ -398,7 +403,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         {
             if (!___target.HasThing && ___designationManager.map.IsVehicleMapOf(out var vehicle))
             {
-                __result = __result.OrigToVehicleMap(vehicle);
+                __result = __result.OrigToVehicleMap(vehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor());
             }
         }
     }
@@ -452,7 +457,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         }
     }
 
-    //c.ToVector3ShiftedWithAltitude(AltitudeLayer.MetaOverlays) -> c.ToVector3ShiftedWithAltitude(AltitudeLayer.MetaOverlays).OrigToVehicleMap();
+    //c.ToVector3ShiftedWithAltitude(AltitudeLayer.MetaOverlays) -> DrawPosOffset(c.ToVector3ShiftedWithAltitude(AltitudeLayer.MetaOverlays), center);
     [HarmonyPatch(typeof(GenDraw), "DrawInteractionCell")]
     public static class Patch_GenDraw_DrawInteractionCell
     {
@@ -460,8 +465,121 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         {
             var codes = instructions.ToList();
             var pos = codes.FindIndex(c => c.opcode == OpCodes.Stloc_1);
-            codes.Insert(pos, new CodeInstruction(OpCodes.Call, MethodInfoCache.m_OrigToVehicleMap1));
+            codes.InsertRange(pos, new[]
+            {
+                CodeInstruction.LoadArgument(2),
+                CodeInstruction.Call(typeof(Patch_GenDraw_DrawInteractionCell), nameof(Patch_GenDraw_DrawInteractionCell.DrawPosOffset))
+            });
             return codes;
+        }
+
+        private static Vector3 DrawPosOffset(Vector3 original, IntVec3 center)
+        {
+            VehiclePawnWithMap vehicle = null;
+            if (Command_FocusVehicleMap.FocusedVehicle != null)
+            {
+                return original.OrigToVehicleMap(Command_FocusVehicleMap.FocusedVehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor());
+            }
+            else if (Find.Selector.SelectedObjects.Any(o => o is Thing thing && thing.Position == center && thing.IsOnNonFocusedVehicleMapOf(out vehicle)))
+            {
+                return original.OrigToVehicleMap(vehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor());
+            }
+            return original;
+        }
+    }
+
+    //Graphics.DrawMesh(MeshPool.plane10, intVec.ToVector3ShiftedWithAltitude(AltitudeLayer.MetaOverlays) + new Vector3(0f, y, 0f), new Rot4(k).AsQuat, material, 0); =>
+    //Graphics.DrawMesh(MeshPool.plane10, intVec.ToVector3ShiftedWithAltitude(AltitudeLayer.MetaOverlays).OrigToVehicleMap().WithYOffset(-VehicleMapUtility.altitudeOffsetFull) + new Vector3(0f, y, 0f), new Rot4(k).AsQuat * Command_FocuseVehicle.FocusedVehicle?.FullRotation.AsQuat(), material, 0);
+    //[HarmonyPatch(typeof(GenDraw), nameof(GenDraw.DrawFieldEdges), typeof(List<IntVec3>), typeof(Color), typeof(float?))]
+    //public static class Patch_GenDraw_DrawFieldEdges
+    //{
+    //    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+    //    {
+    //        var codes = instructions.ToList();
+    //        var m_ToVector3ShiftedWithAltitude = AccessTools.Method(typeof(IntVec3), nameof(IntVec3.ToVector3ShiftedWithAltitude), new Type[] { typeof(AltitudeLayer) });
+    //        var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(m_ToVector3ShiftedWithAltitude)) + 1;
+    //        codes.InsertRange(pos, new[]
+    //        {
+    //            new CodeInstruction(OpCodes.Call, MethodInfoCache.m_OrigToVehicleMap1),
+    //            new CodeInstruction(OpCodes.Ldc_R4, VehicleMapUtility.altitudeOffsetFull),
+    //            new CodeInstruction(OpCodes.Neg),
+    //            CodeInstruction.Call(typeof(Vector3Utility), nameof(Vector3Utility.WithYOffset))
+    //        });
+
+    //        var label = generator.DefineLabel();
+    //        var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Ldloc_2);
+    //        codes[pos2].labels.Add(label);
+    //        codes.InsertRange(pos2, new[]
+    //        {
+    //            new CodeInstruction(OpCodes.Call, MethodInfoCache.g_FocusedVehicle),
+    //            new CodeInstruction(OpCodes.Brfalse_S, label),
+    //            new CodeInstruction(OpCodes.Call, MethodInfoCache.g_FocusedVehicle),
+    //            new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_FullRotation),
+    //            new CodeInstruction(OpCodes.Call, MethodInfoCache.m_Rot8_AsQuat),
+    //            new CodeInstruction(OpCodes.Call, MethodInfoCache.o_Quaternion_Multiply),
+    //        });
+
+    //        return codes;
+    //    }
+    //}
+
+    //v, v2にOrigToVehicleをしてDrawBoxRotatedにFocusedVehicle.FullRotation.AsAngleを渡す
+    //Widgets.DrawNumberOnMap(screenPos, intVec.x, Color.white) ->
+    //Widgets.DrawNumberOnMap(ConvertToVehicleMap(screenPos), intVec.x, Color.white)を3回
+    [HarmonyPatch(typeof(DesignationDragger), nameof(DesignationDragger.DraggerOnGUI))]
+    public static class Patch_DesignationDragger_DraggerOnGUI
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+        {
+            var codes = instructions.ToList();
+            var c_Vector3 = AccessTools.Constructor(typeof(Vector3), new Type[] { typeof(float), typeof(float), typeof(float) });
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(c_Vector3)) + 1;
+            codes.InsertRange(pos, new[]
+            {
+                new CodeInstruction(OpCodes.Ldloc_2),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_OrigToVehicleMap1),
+                new CodeInstruction(OpCodes.Stloc_2)
+            });
+
+            var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Newobj && c.OperandIs(c_Vector3)) + 1;
+            codes.Insert(pos2, new CodeInstruction(OpCodes.Call, MethodInfoCache.m_OrigToVehicleMap1));
+
+            var m_Widgets_DrawBox = AccessTools.Method(typeof(Widgets), nameof(Widgets.DrawBox));
+            var pos3 = codes.FindIndex(pos2, c => c.opcode == OpCodes.Call && c.OperandIs(m_Widgets_DrawBox));
+            var m_DrawBoxRotated = AccessTools.Method(typeof(VIF_Widgets), nameof(VIF_Widgets.DrawBoxRotated));
+            var label = generator.DefineLabel();
+            var label2 = generator.DefineLabel();
+
+            codes[pos3].operand = m_DrawBoxRotated;
+            codes[pos3].labels.Add(label2);
+            codes.InsertRange(pos3, new[]
+            {
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.g_FocusedVehicle),
+                new CodeInstruction(OpCodes.Brfalse_S, label),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.g_FocusedVehicle),
+                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Angle),
+                new CodeInstruction(OpCodes.Br_S, label2),
+                new CodeInstruction(OpCodes.Ldc_R4, 0f).WithLabels(label),
+            });
+
+            var m_Widgets_DrawNumberOnMap = AccessTools.Method(typeof(Widgets), nameof(Widgets.DrawNumberOnMap));
+            var m_ConvertToVehicleMap = AccessTools.Method(typeof(Patch_DesignationDragger_DraggerOnGUI), nameof(Patch_DesignationDragger_DraggerOnGUI.ConvertToVehicleMap));
+            var pos4 = codes.FindIndex(pos3, c => c.opcode == OpCodes.Call && c.OperandIs(m_Widgets_DrawNumberOnMap)) - 3;
+            codes.Insert(pos4, new CodeInstruction(OpCodes.Call, m_ConvertToVehicleMap));
+            
+            var pos5 = codes.FindIndex(pos4 + 5, c => c.opcode == OpCodes.Call && c.OperandIs(m_Widgets_DrawNumberOnMap)) - 3;
+            codes.Insert(pos5, new CodeInstruction(OpCodes.Call, m_ConvertToVehicleMap));
+
+            var pos6 = codes.FindIndex(pos5 + 5, c => c.opcode == OpCodes.Call && c.OperandIs(m_Widgets_DrawNumberOnMap)) - 3;
+            codes.Insert(pos6, new CodeInstruction(OpCodes.Call, m_ConvertToVehicleMap));
+
+            return codes;
+        }
+
+        private static Vector2 ConvertToVehicleMap(Vector2 screenPos)
+        {
+            screenPos.y = UI.screenHeight - screenPos.y;
+            return UI.UIToMapPosition(screenPos).OrigToVehicleMap().MapToUIPosition();
         }
     }
 }

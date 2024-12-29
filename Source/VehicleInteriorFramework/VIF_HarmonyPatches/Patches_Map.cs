@@ -177,4 +177,27 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             return instructions.MethodReplacer(m_StoreUtility_TryFindBestBetterStorageFor, m_StoreAcrossMapsUtility_TryFindBestBetterStorageFor);
         }
     }
+
+    //VehicleMapの外気温はマップ上のその位置の気温、スポーンしてないなら今いるタイルの外気温
+    [HarmonyPatch(typeof(MapTemperature), nameof(MapTemperature.OutdoorTemp), MethodType.Getter)]
+    public static class Patch_MapTemperature_OutdoorTemp
+    {
+        public static bool Prefix(Map ___map, ref float __result)
+        {
+            if (___map.IsVehicleMapOf(out var vehicle))
+            {
+                if (vehicle.Spawned)
+                {
+                    __result = vehicle.Position.GetTemperature(vehicle.Map);
+                    return false;
+                }
+                else if (vehicle.Tile != -1)
+                {
+                    __result = Find.World.tileTemperatures.GetOutdoorTemp(vehicle.Tile);
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
 }

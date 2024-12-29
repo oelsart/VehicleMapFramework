@@ -9,7 +9,7 @@
 		<graphicData>
 			<texPath>VehicleInteriors/Glypto/Glypto</texPath>
 			<graphicClass>Vehicles.Graphic_Vehicle</graphicClass>
-			<shaderType>CutoutComplexRGB</shaderType>
+			<shaderType>CutoutComplexPattern</shaderType>
 			<pattern>VIF_RGBMask</pattern>
 			<drawSize>(11.45, 15.5)</drawSize>
 			<color>(255, 255, 255)</color>

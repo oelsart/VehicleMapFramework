@@ -9,6 +9,8 @@ namespace VehicleInteriors
 
         public static VehiclePawnWithMap FocusedVehicle {  get; set; }
 
+        public override bool Visible => Prefs.DevMode;
+
         public override string Label
         {
             get
