@@ -30,7 +30,7 @@ namespace VehicleInteriors
                 return true;
             }
             var baseMap = map.BaseMap();
-            return thingReq.group == ThingRequestGroup.Nothing || ((thingReq.IsUndefined || baseMap.listerThings.ThingsMatching(thingReq).ConcatIfNotNull(VehiclePawnWithMapCache.allVehicles[baseMap].SelectMany((VehiclePawnWithMap v) => v.interiorMap.listerThings.ThingsMatching(thingReq))).Count() == 0) && customGlobalSearchSet.EnumerableNullOrEmpty<Thing>());
+            return thingReq.group == ThingRequestGroup.Nothing || ((thingReq.IsUndefined || baseMap.listerThings.ThingsMatching(thingReq).ConcatIfNotNull(VehiclePawnWithMapCache.allVehicles[baseMap].SelectMany((VehiclePawnWithMap v) => v.VehicleMap.listerThings.ThingsMatching(thingReq))).Count() == 0) && customGlobalSearchSet.EnumerableNullOrEmpty<Thing>());
         }
 
         public static Thing ClosestThingReachable(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance = 9999f, Predicate<Thing> validator = null, IEnumerable<Thing> customGlobalSearchSet = null, int searchRegionsMin = 0, int searchRegionsMax = -1, bool forceAllowGlobalSearch = false, RegionType traversableRegionTypes = RegionType.Set_Passable, bool ignoreEntirelyForbiddenRegions = false)
@@ -91,7 +91,7 @@ namespace VehicleInteriors
                     }
                     return false;
                 }
-                thing = GenClosestOnVehicle.ClosestThing_Global(basePos, customGlobalSearchSet ?? baseMap.listerThings.ThingsMatching(thingReq).ConcatIfNotNull(VehiclePawnWithMapCache.allVehicles[baseMap].SelectMany((VehiclePawnWithMap v) => v.interiorMap.listerThings.ThingsMatching(thingReq))), maxDistance, validator2, null);
+                thing = GenClosestOnVehicle.ClosestThing_Global(basePos, customGlobalSearchSet ?? baseMap.listerThings.ThingsMatching(thingReq).ConcatIfNotNull(VehiclePawnWithMapCache.allVehicles[baseMap].SelectMany((VehiclePawnWithMap v) => v.VehicleMap.listerThings.ThingsMatching(thingReq))), maxDistance, validator2, null);
             }
             exitSpot = GenClosestOnVehicle.exitSpotResult;
             enterSpot = GenClosestOnVehicle.enterSpotResult;

@@ -29,7 +29,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             var result = new List<Thing>(list);
             foreach (var vehicle in vehicles)
             {
-                result.AddRange(vehicle.interiorMap.listerThings.ThingsInGroup(ThingRequestGroup.HasGUIOverlay));
+                result.AddRange(vehicle.VehicleMap.listerThings.ThingsInGroup(ThingRequestGroup.HasGUIOverlay));
             }
             return result;
         }
@@ -66,9 +66,9 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         private static List<Pawn> IncludeVehicleMapPawns(List<Pawn> tmpPawns, Map map)
         {
             var allVehicles = VehiclePawnWithMapCache.allVehicles[map];
-            tmpPawns.AddRange(allVehicles.SelectMany(v => v.interiorMap.mapPawns.FreeColonists));
-            tmpPawns.AddRange(allVehicles.SelectMany(v => v.interiorMap.mapPawns.ColonyMutantsPlayerControlled));
-            foreach(var corpse in allVehicles.SelectMany(v => v.interiorMap.listerThings.ThingsInGroup(ThingRequestGroup.Corpse)))
+            tmpPawns.AddRange(allVehicles.SelectMany(v => v.VehicleMap.mapPawns.FreeColonists));
+            tmpPawns.AddRange(allVehicles.SelectMany(v => v.VehicleMap.mapPawns.ColonyMutantsPlayerControlled));
+            foreach(var corpse in allVehicles.SelectMany(v => v.VehicleMap.listerThings.ThingsInGroup(ThingRequestGroup.Corpse)))
             {
                 if (corpse.IsDessicated()) continue;
                 var innerPawn = ((Corpse)corpse).InnerPawn;
@@ -77,7 +77,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                     tmpPawns.Add(innerPawn);
                 }
             }
-            foreach(var pawn in allVehicles.SelectMany(v => v.interiorMap.mapPawns.AllPawnsSpawned))
+            foreach(var pawn in allVehicles.SelectMany(v => v.VehicleMap.mapPawns.AllPawnsSpawned))
             {
                 if (pawn.carryTracker.CarriedThing is Corpse corpse && !corpse.IsDessicated() && corpse.InnerPawn.IsColonist)
                 {
@@ -85,6 +85,58 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                 }
             }
             return tmpPawns;
+        }
+    }
+
+    //左下のセル情報の表示。車両マップ上にマウスオーバーされている時はその車両マップの情報を表示する
+    [HarmonyPatch(typeof(MouseoverReadout), nameof(MouseoverReadout.MouseoverReadoutOnGUI))]
+    public static class Patch_MouseoverReadout_MouseoverReadoutOnGUI
+    {
+        //車両マップにマウスオーバーしていたらFocusedVehicleに入れておく。これでMouseCellが勝手にオフセットされる
+        public static void Prefix(ref VehiclePawnWithMap __state)
+        {
+            __state = Command_FocusVehicleMap.FocusedVehicle;
+            if (UI.MouseMapPosition().TryGetVehiclePawnWithMap(Find.CurrentMap, out var vehicle))
+            {
+                Command_FocusVehicleMap.FocusedVehicle = vehicle;
+            }
+        }
+
+        //FocusedVehicleがあればそのマップをFind.CurrentMapの代わりに使う
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+        {
+            var map = generator.DeclareLocal(typeof(Map));
+            var codes = instructions.Manipulator(c => c.opcode == OpCodes.Call && c.OperandIs(MethodInfoCache.g_Find_CurrentMap), c =>
+            {
+                c.opcode = OpCodes.Ldloc_S;
+                c.operand = map;
+            }).ToList();
+
+            var label = generator.DefineLabel();
+            var label2 = generator.DefineLabel();
+            var label3 = generator.DefineLabel();
+
+            codes.InsertRange(0, new[]
+            {
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.g_FocusedVehicle),
+                new CodeInstruction(OpCodes.Dup),
+                new CodeInstruction(OpCodes.Brtrue_S, label),
+                new CodeInstruction(OpCodes.Pop),
+                new CodeInstruction(OpCodes.Br_S, label2),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.g_VehicleMap).WithLabels(label),
+                new CodeInstruction(OpCodes.Dup),
+                new CodeInstruction(OpCodes.Brtrue_S, label3),
+                new CodeInstruction(OpCodes.Pop),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.g_Find_CurrentMap).WithLabels(label2),
+                new CodeInstruction(OpCodes.Stloc_S, map).WithLabels(label3)
+            });
+            return codes;
+        }
+
+        //FocusedVehicleをもとに戻しておく
+        public static void Postfix(VehiclePawnWithMap __state)
+        {
+            Command_FocusVehicleMap.FocusedVehicle = __state;
         }
     }
 }

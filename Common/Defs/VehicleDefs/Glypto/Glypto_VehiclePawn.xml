@@ -10,7 +10,7 @@
 			<texPath>VehicleInteriors/Glypto/Glypto</texPath>
 			<graphicClass>Vehicles.Graphic_Vehicle</graphicClass>
 			<shaderType>CutoutComplexPattern</shaderType>
-			<pattern>VIF_RGBMask</pattern>
+			<pattern>VIF_RGBMaskOpacity</pattern>
 			<drawSize>(11.45, 15.5)</drawSize>
 			<color>(255, 248, 224)</color>
 			<colorTwo>(255, 217, 116)</colorTwo>
@@ -85,8 +85,6 @@
 				<li>
 					<key>MainTurret</key>
 					<label>Main Turret</label>
-					<slots>1</slots>
-					<slotsToOperate>1</slotsToOperate>
 
 					<turretIds>
 						<li>mainTurret</li>
@@ -435,7 +433,7 @@
 								<texPath>VehicleInteriors/Glypto/Mobius</texPath>
 								<graphicClass>VehicleInteriors.Graphic_VehicleOpacity</graphicClass>
 								<shaderType>VIF_CutoutComplexRGBOpacity</shaderType>
-								<pattern>VIF_RGBMask</pattern>
+								<pattern>VIF_RGBMaskOpacity</pattern>
 								<layer>2500</layer>
 								<drawSize>(11.45, 15.5)</drawSize>
 							</graphicData>
@@ -456,7 +454,7 @@
 								<texPath>VehicleInteriors/Glypto/Light</texPath>
 								<graphicClass>VehicleInteriors.Graphic_VehicleOpacity</graphicClass>
 								<shaderType>VIF_CutoutComplexRGBOpacity</shaderType>
-								<pattern>VIF_RGBMask</pattern>
+								<pattern>VIF_RGBMaskOpacity</pattern>
 								<drawSize>(11.45, 15.5)</drawSize>
 							</graphicData>
 						</graphicDataOverlay>

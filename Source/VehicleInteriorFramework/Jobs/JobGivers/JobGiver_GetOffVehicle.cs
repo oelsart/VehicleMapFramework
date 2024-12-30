@@ -15,7 +15,7 @@ namespace VehicleInteriors
             var guest = pawn.Faction != Faction.OfPlayer;
             if (pawn.IsOnVehicleMapOf(out var vehicle) && vehicle.Spawned && (vehicle.AutoGetOff || guest))
             {
-                var exitSpots = vehicle.interiorMap.listerBuildings.allBuildingsColonist.Where(b => b.HasComp<CompVehicleEnterSpot>());
+                var exitSpots = vehicle.VehicleMap.listerBuildings.allBuildingsColonist.Where(b => b.HasComp<CompVehicleEnterSpot>());
                 var hostile = pawn.HostileTo(Faction.OfPlayer);
                 TargetInfo spot = exitSpots.FirstOrDefault(e =>
                 {
@@ -33,11 +33,11 @@ namespace VehicleInteriors
                 });
                 if (!spot.IsValid)
                 {
-                    spot = new TargetInfo(CellRect.WholeMap(vehicle.interiorMap).EdgeCells.OrderBy(c => (pawn.Position - c).LengthHorizontalSquared).FirstOrDefault(c =>
+                    spot = new TargetInfo(CellRect.WholeMap(vehicle.VehicleMap).EdgeCells.OrderBy(c => (pawn.Position - c).LengthHorizontalSquared).FirstOrDefault(c =>
                     {
                         var baseMap = vehicle.Map;
                         var basePos = c.OrigToVehicleMap(vehicle);
-                        var faceCell = c.BaseFullDirectionToInsideMap(vehicle.interiorMap).FacingCell;
+                        var faceCell = c.BaseFullDirectionToInsideMap(vehicle.VehicleMap).FacingCell;
                         faceCell.y = 0;
                         var dist = 1;
                         while ((basePos - faceCell * dist).GetThingList(baseMap).Contains(vehicle))
@@ -46,7 +46,7 @@ namespace VehicleInteriors
                         }
                         var cell = (basePos - faceCell * dist);
                         return pawn.CanReach(c, PathEndMode.OnCell, Danger.Deadly, hostile, hostile, TraverseMode.ByPawn) && cell.Standable(baseMap);
-                    }), vehicle.interiorMap);
+                    }), vehicle.VehicleMap);
                 }
                 if (spot.IsValid)
                 {

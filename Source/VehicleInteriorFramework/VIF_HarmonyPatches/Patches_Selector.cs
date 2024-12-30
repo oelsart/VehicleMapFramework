@@ -2,47 +2,49 @@
 using RimWorld;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
 using Verse;
 
 namespace VehicleInteriors.VIF_HarmonyPatches
 {
-
-    //車上オブジェクトを選択
     [HarmonyPatch]
-    public static class Patch_Selector_SelectableObjectsUnderMouse
+    public static class Patch_Selector_SelectableObjectsUnderMouse_MoveNext
     {
-        [HarmonyPatch("<SelectableObjectsUnderMouse>d__40", "MoveNext")]
+        private static MethodInfo TargetMethod()
+        {
+            return AccessTools.InnerTypes(typeof(Selector)).Where(t => t.Name.Contains("SelectableObjectsUnderMouse")).SelectMany(t => t.GetMethods(AccessTools.all)).First(m => m.Name == "MoveNext");
+        }
+
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             var m_UI_MouseCell = AccessTools.Method(typeof(UI), nameof(UI.MouseCell));
             var m_Stub_MouseCell = AccessTools.Method(typeof(Patch_UI_MouseCell), nameof(Patch_UI_MouseCell.MouseCell));
             return instructions.MethodReplacer(m_UI_MouseCell, m_Stub_MouseCell);
         }
+    }
 
-        [HarmonyPatch(typeof(Selector), "SelectableObjectsUnderMouse")]
+    //車上オブジェクトを選択
+    [HarmonyPatch(typeof(Selector), "SelectableObjectsUnderMouse")]
+    public static class Patch_Selector_SelectableObjectsUnderMouse
+    {
         public static void Postfix(ref IEnumerable<object> __result)
         {
             var mouseMapPosition = UI.MouseMapPosition();
-            var vehicles = VehiclePawnWithMapCache.allVehicles[Find.CurrentMap];
-            var vehicle = vehicles.FirstOrDefault(v =>
+            if (mouseMapPosition.TryGetVehiclePawnWithMap(Find.CurrentMap, out var vehicle))
             {
-                var rect = new Rect(0f, 0f, (float)v.interiorMap.Size.x, (float)v.interiorMap.Size.z);  
-                var vector = mouseMapPosition.VehicleMapToOrig(v);
-                return rect.Contains(new Vector2(vector.x, vector.z));
-            });
-            if (vehicle != null)
-            {
-                TargetingParameters targetingParameters = new TargetingParameters();
-                targetingParameters.mustBeSelectable = true;
-                targetingParameters.canTargetPawns = true;
-                targetingParameters.canTargetBuildings = true;
-                targetingParameters.canTargetItems = true;
-                targetingParameters.mapObjectTargetsMustBeAutoAttackable = false;
+                TargetingParameters targetingParameters = new TargetingParameters
+                {
+                    mustBeSelectable = true,
+                    canTargetPawns = true,
+                    canTargetBuildings = true,
+                    canTargetItems = true,
+                    mapObjectTargetsMustBeAutoAttackable = false
+                };
                 var mouseVehicleMapPosition = mouseMapPosition.VehicleMapToOrig(vehicle);
 
-                if (!mouseVehicleMapPosition.InBounds(vehicle.interiorMap)) return;
+                if (!mouseVehicleMapPosition.InBounds(vehicle.VehicleMap)) return;
 
                 List<Thing> selectableList = GenUIOnVehicle.ThingsUnderMouse(mouseMapPosition, 1f, targetingParameters, null, vehicle);
                 if (selectableList.Count > 0)
@@ -66,7 +68,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                     __result = __result.AddItem(thing);
                 }
 
-                Zone zone = vehicle.interiorMap.zoneManager.ZoneAt(mouseVehicleMapPosition.ToIntVec3());
+                Zone zone = vehicle.VehicleMap.zoneManager.ZoneAt(mouseVehicleMapPosition.ToIntVec3());
                 if (zone != null)
                 {
                     __result = __result.AddItem(zone);
@@ -144,7 +146,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         {
             if (Command_FocusVehicleMap.FocusedVehicle == null) return true;
 
-            var focusedMap = Command_FocusVehicleMap.FocusedVehicle.interiorMap;
+            var focusedMap = Command_FocusVehicleMap.FocusedVehicle.VehicleMap;
             __result = new List<object>();
             CellRect mapRect = GetMapRect(rect);
             yieldedThings.Clear();

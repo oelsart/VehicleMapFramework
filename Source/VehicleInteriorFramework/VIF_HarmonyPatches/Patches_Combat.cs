@@ -99,11 +99,11 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             var result = new List<Thing>(list);
             if (launcher.IsOnVehicleMapOf(out var vehicle))
             {
-                result.AddRange(vehicle.interiorMap.listerThings.ThingsInGroup(ThingRequestGroup.ProjectileInterceptor));
+                result.AddRange(vehicle.VehicleMap.listerThings.ThingsInGroup(ThingRequestGroup.ProjectileInterceptor));
             }
             if (instance.usedTarget.HasThing && instance.usedTarget.Thing.IsOnVehicleMapOf(out var vehicle2))
             {
-                result.AddRange(vehicle2.interiorMap.listerThings.ThingsInGroup(ThingRequestGroup.ProjectileInterceptor));
+                result.AddRange(vehicle2.VehicleMap.listerThings.ThingsInGroup(ThingRequestGroup.ProjectileInterceptor));
             }
             return result;
         }
@@ -215,8 +215,8 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             if (cell.ToVector3().TryGetVehiclePawnWithMap(map, out var vehicle))
             {
                 var cellOnVehicle = cell.VehicleMapToOrig(vehicle);
-                if (!cellOnVehicle.InBounds(vehicle.interiorMap)) return;
-                foreach (var thing in cellOnVehicle.GetThingList(vehicle.interiorMap))
+                if (!cellOnVehicle.InBounds(vehicle.VehicleMap)) return;
+                foreach (var thing in cellOnVehicle.GetThingList(vehicle.VehicleMap))
                 {
                     if ((thing.def.category == ThingCategory.Building || thing.def.category == ThingCategory.Pawn || thing.def.category == ThingCategory.Item || thing.def.category == ThingCategory.Plant) && filter(thing))
                     {

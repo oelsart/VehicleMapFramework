@@ -2,7 +2,7 @@
 
 namespace VehicleInteriors
 {
-    public class RGBOpacityShaderTypeDef : RGBShaderTypeDef
+    public class RGBMaskShaderTypeDef : RGBShaderTypeDef
     {
     }
 }

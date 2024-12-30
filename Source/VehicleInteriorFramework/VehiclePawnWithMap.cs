@@ -5,6 +5,7 @@ using SmashTools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using UnityEngine;
 using Vehicles;
 using Verse;
@@ -15,6 +16,8 @@ namespace VehicleInteriors
     [StaticConstructorOnStartup]
     public class VehiclePawnWithMap : VehiclePawn
     {
+        public Map VehicleMap => this.interiorMap;
+
         public bool AllowsHaulIn {
             get
             {
@@ -129,6 +132,20 @@ namespace VehicleInteriors
             };
         }
 
+        public override string GetInspectString()
+        {
+            var str = base.GetInspectString();
+            var stat = this.GetStatValue(VIF_DefOf.MaximumPayload);
+
+            if (stat != 0f)
+            {
+                str += $"\n{"MassCarriedSimple".Translate()}:" +
+                    $" {(VehicleMapUtility.VehicleMapMass(this) + MassUtility.InventoryMass(this)).ToStringEnsureThreshold(2, 0)} /" +
+                    $" {stat.ToStringEnsureThreshold(2, 0)} {"kg".Translate()}";
+            }
+            return str;
+        }
+
         public override void SpawnSetup(Map map, bool respawningAfterLoad)
         {
             if (this.interiorMap == null)
@@ -151,6 +168,8 @@ namespace VehicleInteriors
                 VehiclePawnWithMapCache.allVehicles[map] = new List<VehiclePawnWithMap>();
             }
             VehiclePawnWithMapCache.allVehicles[map].Add(this);
+
+            this.interiorMap.skyManager = this.Map.skyManager;
         }
 
         public override void Tick()
@@ -235,6 +254,8 @@ namespace VehicleInteriors
                 VehiclePawnWithMapCache.cachedDrawPos.Remove(thing);
                 VehiclePawnWithMapCache.cachedPosOnBaseMap.Remove(thing);
             }
+
+            this.interiorMap.skyManager = new SkyManager(this.interiorMap);
         }
 
         public override void DrawAt(Vector3 drawLoc, Rot8 rot, float extraRotation, bool flip = false, bool compDraw = true)
@@ -372,7 +393,7 @@ namespace VehicleInteriors
             Scribe_Values.Look(ref this.autoGetOff, "autoGetOff");
         }
 
-        public Map interiorMap;
+        private Map interiorMap;
 
         public Vector3 cachedDrawPos = Vector3.zero;
         

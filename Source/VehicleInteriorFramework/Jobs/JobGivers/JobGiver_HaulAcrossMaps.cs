@@ -21,7 +21,7 @@ namespace VehicleInteriors
             }
             var baseMap = pawn.BaseMap();
             var searchSet = baseMap.listerHaulables.ThingsPotentiallyNeedingHauling()
-                .Concat(VehiclePawnWithMapCache.allVehicles[baseMap].SelectMany(v => v.interiorMap.listerHaulables.ThingsPotentiallyNeedingHauling()));
+                .Concat(VehiclePawnWithMapCache.allVehicles[baseMap].SelectMany(v => v.VehicleMap.listerHaulables.ThingsPotentiallyNeedingHauling()));
             Thing thing = GenClosestOnVehicle.ClosestThing_Global_Reachable(pawn.PositionOnBaseMap(), pawn.Map, searchSet, PathEndMode.OnCell, TraverseParms.For(pawn, Danger.Deadly, TraverseMode.ByPawn, false, false, false), 9999f, validator, null);
             if (thing != null)
             {

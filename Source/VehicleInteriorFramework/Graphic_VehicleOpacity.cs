@@ -54,10 +54,6 @@ namespace VehicleInteriors
             }
             loc += base.DrawOffset(rot);
             Material mat = this.MatAtFull(rot);
-            if (this.DataRGB?.renderQueue != 0)
-            {
-                mat.renderQueue = this.DataRGB.renderQueue;
-            }
             this.DrawMeshInt(mesh, loc, quaternion, mat);
             base.ShadowGraphic?.DrawWorker(loc, rot, thingDef, thing, extraRotation);
         }

@@ -103,6 +103,7 @@
     <Compile Include="Comps\CompWirelessTransmitter.cs" />
     <Compile Include="Combat\ExplosionAcrossMaps.cs" />
     <Compile Include="ExtraOverlayData.cs" />
+    <Compile Include="RGBMaskOpacityDef.cs" />
     <Compile Include="Utilities\GenDrawOnVehicle.cs" />
     <Compile Include="Graphic_LinkedCornerOverlaySingle.cs" />
     <Compile Include="Graphic_VehicleOpacity.cs" />
@@ -127,8 +128,7 @@
     <Compile Include="PlaceWorkers\PlaceWorker_ForbidOnVehicle.cs" />
     <Compile Include="PlaceWorkers\PlaceWorker_ForceOnVehicle.cs" />
     <Compile Include="PlaceWorkers\PlaceWorker_ForceOnVehicleMapEdge.cs" />
-    <Compile Include="RGBMaskDef.cs" />
-    <Compile Include="RGBOpacityShaderTypeDef.cs" />
+    <Compile Include="RGBMaskShaderTypeDef.cs" />
     <Compile Include="VehicleHandlerBuildable.cs" />
     <Compile Include="VehicleMap\VehicleMapParentsComponent.cs" />
     <Compile Include="VehicleMap\SectionLayer_LightingOnVehicle.cs" />

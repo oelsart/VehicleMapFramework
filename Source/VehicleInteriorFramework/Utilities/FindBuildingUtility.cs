@@ -102,7 +102,7 @@ namespace VehicleInteriors
             {
                 return false;
             }
-            IEnumerable<Thing> list = baseMap.listerThings.ThingsInGroup(ThingRequestGroup.MapPortal).Concat(VehiclePawnWithMapCache.allVehicles[baseMap].SelectMany(v => v.interiorMap.listerThings.ThingsInGroup(ThingRequestGroup.MapPortal)));
+            IEnumerable<Thing> list = baseMap.listerThings.ThingsInGroup(ThingRequestGroup.MapPortal).Concat(VehiclePawnWithMapCache.allVehicles[baseMap].SelectMany(v => v.VehicleMap.listerThings.ThingsInGroup(ThingRequestGroup.MapPortal)));
             if (list.NullOrEmpty<Thing>())
             {
                 return false;

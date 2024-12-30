@@ -18,7 +18,7 @@ namespace VehicleInteriors
             {
                 if (Command_FocusVehicleMap.FocusedVehicle != null)
                 {
-                    return Command_FocusVehicleMap.FocusedVehicle.interiorMap;
+                    return Command_FocusVehicleMap.FocusedVehicle.VehicleMap;
                 }
                 return Find.CurrentMap;
             }
@@ -47,7 +47,7 @@ namespace VehicleInteriors
 
         public static bool IsOnNonFocusedVehicleMapOf(this Thing thing, out VehiclePawnWithMap vehicle)
         {
-            return thing.IsOnVehicleMapOf(out vehicle) && Find.CurrentMap != vehicle.interiorMap;
+            return thing.IsOnVehicleMapOf(out vehicle) && Find.CurrentMap != vehicle.VehicleMap;
         }
 
         public static Vector3 VehicleMapToOrig(this Vector3 original)
@@ -62,7 +62,7 @@ namespace VehicleInteriors
         public static Vector3 VehicleMapToOrig(this Vector3 original, VehiclePawnWithMap vehicle)
         {
             var vehicleMapPos = vehicle.cachedDrawPos + VehicleMapUtility.OffsetOf(vehicle);
-            var map = vehicle.interiorMap;
+            var map = vehicle.VehicleMap;
             var pivot = new Vector3(map.Size.x / 2f, 0f, map.Size.z / 2f);
             var drawPos = (original - vehicleMapPos).RotatedBy(-vehicle.FullRotation.AsAngle) + pivot;
             return drawPos;
@@ -71,7 +71,7 @@ namespace VehicleInteriors
         public static Vector3 VehicleMapToOrig(this Vector3 original, VehiclePawnWithMap vehicle, float extraRotation = 0f)
         {
             var vehicleMapPos = vehicle.cachedDrawPos + VehicleMapUtility.OffsetOf(vehicle);
-            var map = vehicle.interiorMap;
+            var map = vehicle.VehicleMap;
             var pivot = new Vector3(map.Size.x / 2f, 0f, map.Size.z / 2f);
             var drawPos = (original - vehicleMapPos).RotatedBy(-vehicle.FullRotation.AsAngle - extraRotation) + pivot;
             return drawPos;
@@ -84,14 +84,14 @@ namespace VehicleInteriors
 
         public static CellRect VehicleMapToOrig(this CellRect original, VehiclePawnWithMap vehicle)
         {
-            var mapSize = vehicle.interiorMap.Size;
+            var mapSize = vehicle.VehicleMap.Size;
             var vector = new IntVec2(-mapSize.x / 2, -mapSize.z / 2);
             return original.MovedBy(-vehicle.Position).MovedBy(vector);
         }
 
         public static CellRect ClipInsideVehicleMap(ref this CellRect cellRect, Map map)
         {
-            if (map.IsVehicleMapOf(out var vehicle) && Find.CurrentMap != vehicle.interiorMap)
+            if (map.IsVehicleMapOf(out var vehicle) && Find.CurrentMap != vehicle.VehicleMap)
             {
                 var clip = cellRect.ClipInsideRect(vehicle.VehicleRect(true));
                 return cellRect = clip.MovedBy(-clip.Min);
@@ -111,7 +111,7 @@ namespace VehicleInteriors
         public static Vector3 OrigToVehicleMap(this Vector3 original, VehiclePawnWithMap vehicle)
         {
             var vehiclePos = vehicle.cachedDrawPos;
-            var map = vehicle.interiorMap;
+            var map = vehicle.VehicleMap;
             var pivot = new Vector3(map.Size.x / 2f, 0f, map.Size.z / 2f);
             var drawPos = (original - pivot).RotatedBy(vehicle.FullRotation.AsAngle) + vehiclePos;
             drawPos += VehicleMapUtility.OffsetOf(vehicle);
@@ -121,7 +121,7 @@ namespace VehicleInteriors
         public static Vector3 OrigToVehicleMap(this Vector3 original, VehiclePawnWithMap vehicle, float extraRotation = 0f)
         {
             var vehiclePos = vehicle.cachedDrawPos;
-            var map = vehicle.interiorMap;
+            var map = vehicle.VehicleMap;
             var pivot = new Vector3(map.Size.x / 2f, 0f, map.Size.z / 2f);
             var drawPos = (original - pivot).RotatedBy(vehicle.FullRotation.AsAngle + extraRotation) + vehiclePos;
             drawPos += VehicleMapUtility.OffsetOf(vehicle);
@@ -131,7 +131,7 @@ namespace VehicleInteriors
         public static Vector3 OrigToVehicleMap(this Vector3 original, VehiclePawnWithMap vehicle, Rot8 rot)
         {
             var vehiclePos = vehicle.cachedDrawPos;
-            var map = vehicle.interiorMap;
+            var map = vehicle.VehicleMap;
             var pivot = new Vector3(map.Size.x / 2f, 0f, map.Size.z / 2f);
             var drawPos = original.RotatedBy(rot.AsAngle) - pivot.RotatedBy(rot.AsAngle) + vehiclePos;
             drawPos += VehicleMapUtility.OffsetOf(vehicle, rot);
@@ -494,7 +494,7 @@ namespace VehicleInteriors
         public static float VehicleMapMass(VehiclePawnWithMap vehicle)
         {
             float num = 0f;
-            foreach (var thing in vehicle.interiorMap.listerThings.AllThings)
+            foreach (var thing in vehicle.VehicleMap.listerThings.AllThings)
             {
                 if (thing is VehiclePawn vehicle2)
                 {
@@ -534,7 +534,7 @@ namespace VehicleInteriors
             var vehicles = VehiclePawnWithMapCache.allVehicles[map];
             vehicle = vehicles.FirstOrDefault(v =>
             {
-                var rect = new Rect(0f, 0f, (float)v.interiorMap.Size.x, (float)v.interiorMap.Size.z);
+                var rect = new Rect(0f, 0f, (float)v.VehicleMap.Size.x, (float)v.VehicleMap.Size.z);
                 var vector = point.VehicleMapToOrig(v);
 
                 return rect.Contains(new Vector2(vector.x, vector.z));
@@ -548,7 +548,7 @@ namespace VehicleInteriors
 
             foreach (var vehicle in VehiclePawnWithMapCache.allVehicles[baseMap])
             {
-                yield return vehicle.interiorMap;
+                yield return vehicle.VehicleMap;
             }
         }
 

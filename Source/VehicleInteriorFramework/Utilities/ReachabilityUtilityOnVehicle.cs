@@ -38,7 +38,7 @@ namespace VehicleInteriors
                         {
                             TargetInfo enterSpot = null;
                             var result = vehicle2.InteractionCells.OrderBy(c => (c.OrigToVehicleMap(vehicle2) - dest3.Cell).LengthHorizontalSquared).
-                                Concat(CellRect.WholeMap(vehicle2.interiorMap).EdgeCells.OrderBy(c => (c.OrigToVehicleMap(vehicle2) - dest3.Cell).LengthHorizontalSquared)).Any(c =>
+                                Concat(CellRect.WholeMap(vehicle2.VehicleMap).EdgeCells.OrderBy(c => (c.OrigToVehicleMap(vehicle2) - dest3.Cell).LengthHorizontalSquared)).Any(c =>
                             {
                                 enterSpot = c.GetThingList(departMap).FirstOrDefault(t => t.HasComp<CompVehicleEnterSpot>());
                                 IntVec3 basePos;
@@ -52,7 +52,7 @@ namespace VehicleInteriors
                                 {
                                     enterSpot = new TargetInfo(c, departMap);
                                     basePos = enterSpot.Cell.OrigToVehicleMap(vehicle2);
-                                    faceCell = enterSpot.Cell.BaseFullDirectionToInsideMap(vehicle2.interiorMap).FacingCell;
+                                    faceCell = enterSpot.Cell.BaseFullDirectionToInsideMap(vehicle2.VehicleMap).FacingCell;
                                 }
                                 faceCell.y = 0;
                                 var dist = 1;
@@ -77,7 +77,7 @@ namespace VehicleInteriors
                         {
                             TargetInfo enterSpot = null;
                             var result = vehicle.InteractionCells.OrderBy(c => (root - c.OrigToVehicleMap(vehicle)).LengthHorizontalSquared)
-                                .Concat(CellRect.WholeMap(vehicle.interiorMap).EdgeCells.OrderBy(c => (root - c.OrigToVehicleMap(vehicle)).LengthHorizontalSquared)).Any(c =>
+                                .Concat(CellRect.WholeMap(vehicle.VehicleMap).EdgeCells.OrderBy(c => (root - c.OrigToVehicleMap(vehicle)).LengthHorizontalSquared)).Any(c =>
                             {
                                 enterSpot = c.GetThingList(destMap).FirstOrDefault(t => t.HasComp<CompVehicleEnterSpot>());
                                 IntVec3 basePos;
@@ -91,7 +91,7 @@ namespace VehicleInteriors
                                 {
                                     enterSpot = new TargetInfo(c, destMap);
                                     basePos = enterSpot.Cell.OrigToVehicleMap(vehicle);
-                                    faceCell = enterSpot.Cell.BaseFullDirectionToInsideMap(vehicle.interiorMap).FacingCell;
+                                    faceCell = enterSpot.Cell.BaseFullDirectionToInsideMap(vehicle.VehicleMap).FacingCell;
                                 }
                                 faceCell.y = 0;
                                 var dist = 1;
@@ -118,7 +118,7 @@ namespace VehicleInteriors
                                 TargetInfo enterSpot = null;
                                 TargetInfo enterSpot2 = null;
                                 var result = vehicle2.InteractionCells.OrderBy(c => (c.OrigToVehicleMap(vehicle2) - dest3.Cell.OrigToVehicleMap(vehicle)).LengthHorizontalSquared)
-                                    .Concat(CellRect.WholeMap(vehicle2.interiorMap).EdgeCells.OrderBy(c => (c.OrigToVehicleMap(vehicle2) - dest3.Cell.OrigToVehicleMap(vehicle)).LengthHorizontalSquared)).Any(c =>
+                                    .Concat(CellRect.WholeMap(vehicle2.VehicleMap).EdgeCells.OrderBy(c => (c.OrigToVehicleMap(vehicle2) - dest3.Cell.OrigToVehicleMap(vehicle)).LengthHorizontalSquared)).Any(c =>
                                 {
                                     enterSpot = c.GetThingList(departMap).FirstOrDefault(t => t.HasComp<CompVehicleEnterSpot>());
                                     IntVec3 basePos;
@@ -130,9 +130,9 @@ namespace VehicleInteriors
                                     }
                                     else
                                     {
-                                        enterSpot = new TargetInfo(c, vehicle2.interiorMap);
+                                        enterSpot = new TargetInfo(c, vehicle2.VehicleMap);
                                         basePos = enterSpot.Cell.OrigToVehicleMap(vehicle2);
-                                        faceCell = enterSpot.Cell.BaseFullDirectionToInsideMap(vehicle2.interiorMap).FacingCell;
+                                        faceCell = enterSpot.Cell.BaseFullDirectionToInsideMap(vehicle2.VehicleMap).FacingCell;
                                     }
                                     faceCell.y = 0;
                                     var dist = 1;
@@ -142,7 +142,7 @@ namespace VehicleInteriors
                                     }
                                     var cell = (basePos - faceCell * dist);
                                     return vehicle.InteractionCells.OrderBy(c2 => (cell - c2.OrigToVehicleMap(vehicle)).LengthHorizontalSquared)
-                                    .Concat(CellRect.WholeMap(vehicle.interiorMap).EdgeCells.OrderBy(c2 => (cell - c2.OrigToVehicleMap(vehicle)).LengthHorizontalSquared)).Any(c2 =>
+                                    .Concat(CellRect.WholeMap(vehicle.VehicleMap).EdgeCells.OrderBy(c2 => (cell - c2.OrigToVehicleMap(vehicle)).LengthHorizontalSquared)).Any(c2 =>
                                     {
                                         enterSpot2 = c2.GetThingList(destMap).FirstOrDefault(t => t.HasComp<CompVehicleEnterSpot>());
                                         IntVec3 basePos2;
@@ -154,9 +154,9 @@ namespace VehicleInteriors
                                         }
                                         else
                                         {
-                                            enterSpot2 = new TargetInfo(c2, vehicle.interiorMap);
+                                            enterSpot2 = new TargetInfo(c2, vehicle.VehicleMap);
                                             basePos2 = enterSpot2.Cell.OrigToVehicleMap(vehicle);
-                                            faceCell2 = enterSpot2.Cell.BaseFullDirectionToInsideMap(vehicle.interiorMap).FacingCell;
+                                            faceCell2 = enterSpot2.Cell.BaseFullDirectionToInsideMap(vehicle.VehicleMap).FacingCell;
                                         }
                                         faceCell2.y = 0;
                                         var dist2 = 1;
@@ -210,9 +210,9 @@ namespace VehicleInteriors
             if (root.TryGetFirstThing<VehiclePawnWithMap>(baseMap, out var vehicle))
             {
                 var cell = root.VehicleMapToOrig(vehicle);
-                if (cell.InBounds(vehicle.interiorMap))
+                if (cell.InBounds(vehicle.VehicleMap))
                 {
-                    destMap = vehicle.interiorMap;
+                    destMap = vehicle.VehicleMap;
                     return CellFinder.StandableCellNear(cell, destMap, radius, validator);
                 }
             }
@@ -358,7 +358,7 @@ namespace VehicleInteriors
                 Thing exitSpot2 = null;
                 if(vehicle.InteractionCells.Any(c =>
                 {
-                    exitSpot2 = c.GetFirstThingWithComp<CompVehicleEnterSpot>(vehicle.interiorMap);
+                    exitSpot2 = c.GetFirstThingWithComp<CompVehicleEnterSpot>(vehicle.VehicleMap);
                     if (exitSpot2 == null) return false;
                     return pawn.Map.reachability.CanReach(pawn.Position , exitSpot2, PathEndMode.OnCell, traverseParms) &&
                     baseMap.reachability.CanReachMapEdge(exitSpot2.PositionOnBaseMap() - exitSpot2.BaseFullRotation().FacingCell, traverseParms);

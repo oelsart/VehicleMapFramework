@@ -18,11 +18,11 @@ namespace VehicleInteriors
 
         public static TerrainDef VIF_VehicleFloor;
 
-        public static RGBOpacityShaderTypeDef VIF_CutoutComplexRGBOpacity;
+        public static RGBMaskShaderTypeDef VIF_CutoutComplexRGBOpacity;
 
-        public static RGBOpacityShaderTypeDef VIF_CutoutComplexPatternOpacity;
+        public static RGBMaskShaderTypeDef VIF_CutoutComplexPatternOpacity;
 
-        public static RGBOpacityShaderTypeDef VIF_CutoutComplexSkinOpacity;
+        public static RGBMaskShaderTypeDef VIF_CutoutComplexSkinOpacity;
 
         public static JobDef VIF_GotoDestMap;
 

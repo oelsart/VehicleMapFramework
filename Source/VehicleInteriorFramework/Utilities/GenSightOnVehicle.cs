@@ -76,10 +76,10 @@ namespace VehicleInteriors
             if (c.ToVector3Shifted().TryGetVehiclePawnWithMap(map, out var vehicle))
             {
                 var c2 = c.VehicleMapToOrig(vehicle);
-                flag = !c2.InBounds(vehicle.interiorMap);
+                flag = !c2.InBounds(vehicle.VehicleMap);
                 if (!flag)
                 {
-                    Building edifice = c2.GetEdifice(vehicle.interiorMap);
+                    Building edifice = c2.GetEdifice(vehicle.VehicleMap);
                     flag = edifice == null || edifice.CanBeSeenOver();
                 }
             }

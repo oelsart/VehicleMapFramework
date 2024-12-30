@@ -164,7 +164,7 @@ namespace VehicleInteriors
                 AttackTargetFinderOnVehicle.tmpTargets.Clear();
                 var baseMap = searcherThing.BaseMap();
                 AttackTargetFinderOnVehicle.tmpTargets.AddRange(baseMap.attackTargetsCache.GetPotentialTargetsFor(searcher));
-                AttackTargetFinderOnVehicle.tmpTargets.AddRange(VehiclePawnWithMapCache.allVehicles[baseMap].SelectMany(v => v.interiorMap.attackTargetsCache.GetPotentialTargetsFor(searcher)));
+                AttackTargetFinderOnVehicle.tmpTargets.AddRange(VehiclePawnWithMapCache.allVehicles[baseMap].SelectMany(v => v.VehicleMap.attackTargetsCache.GetPotentialTargetsFor(searcher)));
                 AttackTargetFinderOnVehicle.tmpTargets.RemoveAll((IAttackTarget t) => AttackTargetFinderOnVehicle.ShouldIgnoreNoncombatant(searcherThing, t, flags));
                 if ((flags & TargetScanFlags.NeedReachable) != TargetScanFlags.None)
                 {

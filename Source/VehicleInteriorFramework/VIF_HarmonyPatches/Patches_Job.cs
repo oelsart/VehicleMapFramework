@@ -99,7 +99,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         {
             var searchSet = new List<Thing>(list);
             var baseMap = pawn.BaseMap();
-            var maps = VehiclePawnWithMapCache.allVehicles[baseMap].Select(v => v.interiorMap).Concat(baseMap).Except(pawn.Map);
+            var maps = VehiclePawnWithMapCache.allVehicles[baseMap].Select(v => v.VehicleMap).Concat(baseMap).Except(pawn.Map);
             foreach(var map in maps)
             {
                 searchSet.AddRange(map.listerThings.ThingsMatching(scanner.PotentialWorkThingRequest));
@@ -313,7 +313,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             var result = new List<Thing>(list);
             foreach (var vehicle in VehiclePawnWithMapCache.allVehicles[map])
             {
-                result.AddRange(vehicle.interiorMap.listerThings.ThingsOfDef(need));
+                result.AddRange(vehicle.VehicleMap.listerThings.ThingsOfDef(need));
             }
             return result;
         }

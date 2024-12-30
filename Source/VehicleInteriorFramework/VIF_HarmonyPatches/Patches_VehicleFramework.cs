@@ -5,8 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
-using System.Runtime.CompilerServices;
-using System.Text;
 using UnityEngine;
 using Vehicles;
 using Verse;
@@ -29,17 +27,17 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                     IntVec3 intVec = parent.Position;
                     if (cellRect.EdgeCells.Where(delegate (IntVec3 c)
                     {
-                        if (c.InBounds(vehicle.interiorMap) && c.Standable(vehicle.interiorMap))
+                        if (c.InBounds(vehicle.VehicleMap) && c.Standable(vehicle.VehicleMap))
                         {
-                            return !c.GetThingList(vehicle.interiorMap).NotNullAndAny((Thing t) => t is Pawn);
+                            return !c.GetThingList(vehicle.VehicleMap).NotNullAndAny((Thing t) => t is Pawn);
                         }
                         return false;
                     }).TryRandomElement(out IntVec3 intVec2))
                     {
                         intVec = intVec2;
                     }
-                    GenSpawn.Spawn(pawn, intVec, vehicle.interiorMap, WipeMode.Vanish);
-                    if (!intVec.Standable(vehicle.interiorMap))
+                    GenSpawn.Spawn(pawn, intVec, vehicle.VehicleMap, WipeMode.Vanish);
+                    if (!intVec.Standable(vehicle.VehicleMap))
                     {
                         pawn.pather.TryRecoverFromUnwalkablePosition(false);
                     }
@@ -129,12 +127,12 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         public static void Prefix(ShaderTypeDef __instance, ref Shader ___shaderInt)
         {
 
-            if (___shaderInt == null && __instance is RGBOpacityShaderTypeDef && VehicleMod.settings.debug.debugLoadAssetBundles)
+            if (___shaderInt == null && __instance is RGBMaskShaderTypeDef && VehicleMod.settings.debug.debugLoadAssetBundles)
             {
                 ___shaderInt = VIF_Shaders.LoadShader(__instance.shaderPath);
                 if (___shaderInt == null)
                 {
-                    SmashLog.Error("Failed to load Shader from path <text>\"" + __instance.shaderPath + "\"</text>", "");
+                    Log.Error("[VehicleMapFramework] Failed to load Shader from path ${__instance.shaderPath}");
                 }
             }
         }
@@ -147,7 +145,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         //元メソッドが__instanceを引数として取っているのでこれを取得しようとすると元メソッドのインスタンス（存在しない）と混同してしまう
         public static bool Prefix(object[] __args)
         {
-            return !(__args[0] is RGBOpacityShaderTypeDef);
+            return !(__args[0] is RGBMaskShaderTypeDef);
         }
     }
 

@@ -6,6 +6,7 @@ using System.Reflection.Emit;
 using System.Reflection;
 using UnityEngine;
 using Verse;
+using System;
 
 namespace VehicleInteriors.VIF_HarmonyPatches
 {
@@ -55,7 +56,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             var vehicles = VehiclePawnWithMapCache.allVehicles[Find.CurrentMap];
             var vehicle = vehicles.FirstOrDefault(v =>
             {
-                var rect = new Rect(0f, 0f, (float)v.interiorMap.Size.x, (float)v.interiorMap.Size.z);
+                var rect = new Rect(0f, 0f, (float)v.VehicleMap.Size.x, (float)v.VehicleMap.Size.z);
                 var vector = mousePos.VehicleMapToOrig(v);
 
                 return rect.Contains(new Vector2(vector.x, vector.z));
@@ -145,9 +146,9 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             codes.InsertRange(pos, new[]
             {
                 new CodeInstruction(OpCodes.Call, MethodInfoCache.m_OrigToVehicleMap1),
-                new CodeInstruction(OpCodes.Ldc_R4, VehicleMapUtility.altitudeOffsetFull),
-                new CodeInstruction(OpCodes.Neg),
-                CodeInstruction.Call(typeof(Vector3Utility), nameof(Vector3Utility.WithYOffset))
+                new CodeInstruction(OpCodes.Ldc_I4, 37),
+                CodeInstruction.Call(typeof(Altitudes), nameof(Altitudes.AltitudeFor), new Type[] { typeof(AltitudeLayer) } ),
+                CodeInstruction.Call(typeof(Vector3Utility), nameof(Vector3Utility.WithY))
             });
 
             var label = generator.DefineLabel();

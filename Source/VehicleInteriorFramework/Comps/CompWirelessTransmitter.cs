@@ -23,12 +23,18 @@ namespace VehicleInteriors
                 if (c.ToVector3Shifted().TryGetVehiclePawnWithMap(this.parent.Map, out var vehicle))
                 {
                     var c2 = c.VehicleMapToOrig(vehicle);
-                    if (!c2.InBounds(vehicle.interiorMap)) continue;
+                    if (!c2.InBounds(vehicle.VehicleMap)) continue;
 
-                    var receiver = c2.GetFirstThingWithComp<CompWirelessReceiver>(vehicle.interiorMap);
+                    var receiver = c2.GetFirstThingWithComp<CompWirelessReceiver>(vehicle.VehicleMap);
                     if (receiver != null)
                     {
                         var compReceiver = receiver.GetComp<CompWirelessReceiver>();
+                        if (!this.PowerOn)
+                        {
+                            compReceiver.PowerOutput = 0f;
+                            return;
+                        }
+
                         var powerNet = compReceiver.PowerNet;
                         var powerComps = compReceiver.PowerNet.powerComps.Where(p => p != compReceiver);
                         if (powerComps.Any(p => !p.PowerOn && FlickUtility.WantsToBeOn(p.parent) && !p.parent.IsBrokenDown()))
