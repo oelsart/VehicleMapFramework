@@ -24,13 +24,10 @@ namespace VehicleInteriors
                 Log.Error("[VehicleInteriors] Do not use SectionLayer_TerrainOnVehicle except for vehicle maps.");
                 return;
             }
-            this.baseTerrainMat = SolidColorMaterials.NewSolidColorMaterial(vehicle.DrawColor, VIF_Shaders.terrainHardWithZ);
-            this.baseTerrainMat.renderQueue = 2000;
         }
 
         public virtual Material GetMaterialFor(CellTerrain cellTerrain)
         {
-            if (cellTerrain.def == VIF_DefOf.VIF_VehicleFloor) return this.baseTerrainMat;
             var def = cellTerrain.def;
             var color = cellTerrain.color;
             bool polluted = cellTerrain.polluted && cellTerrain.snowCoverage < 0.4f && cellTerrain.def.graphicPolluted != BaseContent.BadGraphic;
@@ -67,6 +64,9 @@ namespace VehicleInteriors
             {
                 hashSet.Clear();
                 CellTerrain cellTerrain = new CellTerrain(terrainGrid.TerrainAt(intVec), intVec.IsPolluted(base.Map), base.Map.snowGrid.GetDepth(intVec), terrainGrid.ColorAt(intVec));
+
+                if (cellTerrain.def == VIF_DefOf.VIF_VehicleFloor) continue; //デフォルトのVehicleFloorの場合は描画しない
+
                 LayerSubMesh subMesh = base.GetSubMesh(this.GetMaterialFor(cellTerrain));
                 if (subMesh != null && this.AllowRenderingFor(cellTerrain.def))
                 {
@@ -166,8 +166,6 @@ namespace VehicleInteriors
             }
             base.FinalizeMesh(MeshParts.All);
         }
-
-        private readonly Material baseTerrainMat;
 
         private static readonly Color32 ColorWhite = new Color32(byte.MaxValue, byte.MaxValue, byte.MaxValue, byte.MaxValue);
 

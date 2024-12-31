@@ -78,7 +78,7 @@
 		<graphicData>
 			<texPath>VehicleInteriors/Glypto/Turret</texPath>
 			<graphicClass>Vehicles.Graphic_Turret</graphicClass>
-			<shaderType>CutoutComplexRGB</shaderType>
+			<shaderType>CutoutComplexPattern</shaderType>
 			<drawSize>(8, 8)</drawSize>
 			<layer>5</layer>
 		</graphicData>

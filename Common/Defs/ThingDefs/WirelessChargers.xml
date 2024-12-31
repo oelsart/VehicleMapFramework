@@ -41,6 +41,8 @@
 					<shaderType>TransparentPostLight</shaderType>
 				</lightGraphic>
 			</li>
+			<li Class="CompProperties_Flickable"/>
+			<li Class="CompProperties_Breakdownable"/>
 		</comps>
 		<placeWorkers>
 			<li>VehicleInteriors.PlaceWorker_ForbidOnVehicle</li>
@@ -69,6 +71,8 @@
 				<glowRadius>5</glowRadius>
 				<glowColor>(164,231,255)</glowColor>
 			</li>
+			<li Class="CompProperties_Flickable"/>
+			<li Class="CompProperties_Breakdownable"/>
 		</comps>
 		<placeWorkers Inherit="False">
 			<li>VehicleInteriors.PlaceWorker_ForceOnVehicle</li>

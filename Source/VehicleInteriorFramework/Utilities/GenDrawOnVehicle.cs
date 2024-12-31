@@ -13,6 +13,19 @@ namespace VehicleInteriors
 
         public static void DrawFieldEdges(List<IntVec3> cells, Color color, float? altOffset, Map map)
         {
+            if (map == null)
+            {
+                if (Command_FocusVehicleMap.FocusedVehicle != null)
+                {
+                    map = Command_FocusVehicleMap.FocusedVehicle.VehicleMap;
+                }
+                else
+                {
+                    GenDraw.DrawFieldEdges(cells, color, altOffset);
+                    return;
+                }
+            }
+
             Material material = MaterialPool.MatFrom(new MaterialRequest
             {
                 shader = ShaderDatabase.Transparent,

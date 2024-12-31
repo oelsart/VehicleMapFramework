@@ -7,6 +7,7 @@ using System.Linq;
 using UnityEngine;
 using Vehicles;
 using Verse;
+using Verse.AI.Group;
 
 namespace VehicleInteriors
 {
@@ -593,6 +594,58 @@ namespace VehicleInteriors
                 return original.OrigToVehicleMap(vehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor());
             }
             return original;
+        }
+
+        public static IEnumerable<Thing> ColonyThingsWillingToBuyOnVehicle(this VehiclePawnWithMap vehicle, ITrader trader)
+        {
+            var map = vehicle.VehicleMap;
+            IEnumerable<Thing> enumerable = map.listerThings.AllThings.Where((Thing x) => x.def.category == ThingCategory.Item && TradeUtility.PlayerSellableNow(x, trader) && !x.Position.Fogged(x.Map) && (map.areaManager.Home[x.Position] || x.IsInAnyStorage()));
+            foreach (Thing item in enumerable)
+            {
+                yield return item;
+            }
+
+            if (ModsConfig.BiotechActive)
+            {
+                List<Building> list = map.listerBuildings.AllBuildingsColonistOfDef(ThingDefOf.GeneBank);
+                foreach (Building item2 in list)
+                {
+                    CompGenepackContainer compGenepackContainer = item2.TryGetComp<CompGenepackContainer>();
+                    if (compGenepackContainer == null)
+                    {
+                        continue;
+                    }
+
+                    List<Genepack> containedGenepacks = compGenepackContainer.ContainedGenepacks;
+                    foreach (Genepack item3 in containedGenepacks)
+                    {
+                        yield return item3;
+                    }
+                }
+            }
+
+            IEnumerable<IHaulSource> enumerable2 = map.listerBuildings.AllColonistBuildingsOfType<IHaulSource>();
+            foreach (IHaulSource item4 in enumerable2)
+            {
+                Building thing = (Building)item4;
+
+                foreach (Thing item5 in (IEnumerable<Thing>)item4.GetDirectlyHeldThings())
+                {
+                    yield return item5;
+                }
+            }
+
+            if (trader is Pawn pawn && pawn.GetLord() == null)
+            {
+                yield break;
+            }
+
+            foreach (Pawn item6 in from x in TradeUtility.AllSellableColonyPawns(map)
+                                   where !x.Downed
+                                   select x)
+            {
+                yield return item6;
+            }
         }
 
         public static Rot4 rotForPrint = Rot4.North;

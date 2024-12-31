@@ -143,10 +143,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             {
                 CodeInstruction.LoadLocal(1),
                 new CodeInstruction(OpCodes.Ldloca_S, vehicle),
-                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_IsOnVehicleMapOf),
-                new CodeInstruction(OpCodes.Brfalse_S, label),
-                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Thing_Spawned),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_IsOnNonFocusedVehicleMapOf),
                 new CodeInstruction(OpCodes.Brfalse_S, label),
                 new CodeInstruction(OpCodes.Ldloc_S, vehicle),
                 new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_FullRotation),
@@ -187,15 +184,6 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             return codes;
         }
     }
-
-    //[HarmonyPatch(typeof(Building_Bed), nameof(Building_Bed.GetSleepingSlotPos))]
-    //public static class Patch_Building_Bed_GetSleepingSlotPos
-    //{
-    //    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    //    {
-    //        return instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap);
-    //    }
-    //}
 
     [HarmonyPatch(typeof(Pawn_JobTracker), nameof(Pawn_JobTracker.DrawLinesBetweenTargets))]
     public static class Patch_Pawn_JobTracker_DrawLinesBetweenTargets
@@ -609,5 +597,29 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     public static class Patch_MeditationUtility_DrawMeditationFociAffectedByBuildingOverlay
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) => Patch_MeditationUtility_DrawArtificialBuildingOverlay.TranspilerCommon(instructions, 3);
+    }
+
+    [HarmonyPatch(typeof(PlaceWorker_ShowTradeBeaconRadius), nameof(PlaceWorker_ShowTradeBeaconRadius.DrawGhost))]
+    public static class Patch_PlaceWorker_ShowTradeBeaconRadius_DrawGhost
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+        {
+            var codes = instructions.ToList();
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(MethodInfoCache.m_GenDraw_DrawFieldEdges));
+            var label = generator.DefineLabel();
+
+            codes[pos].operand = MethodInfoCache.m_GenDrawOnVehicle_DrawFieldEdges;
+            codes[pos].labels.Add(label);
+            codes.InsertRange(pos, new[]
+            {
+                new CodeInstruction(OpCodes.Ldnull),
+                CodeInstruction.LoadArgument(5),
+                new CodeInstruction(OpCodes.Brfalse_S, label),
+                new CodeInstruction(OpCodes.Pop),
+                CodeInstruction.LoadArgument(5),
+                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Thing_Map),
+            });
+            return codes;
+        }
     }
 }

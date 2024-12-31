@@ -221,6 +221,7 @@
     <Compile Include="VIF_HarmonyPatches\Patches_Selector.cs" />
     <Compile Include="VIF_HarmonyPatches\Patches_Targeter.cs" />
     <Compile Include="VIF_HarmonyPatches\Patches_Thing.cs" />
+    <Compile Include="VIF_HarmonyPatches\Patches_Trade.cs" />
     <Compile Include="VIF_HarmonyPatches\Patches_VehicleFramework.cs" />
     <Compile Include="VIF_HarmonyPatches\Patches_VehicleMapOffset.cs" />
     <Compile Include="VIF_HarmonyPatches\Patches_Verb.cs" />

@@ -1,4 +1,5 @@
-﻿using RimWorld;
+﻿using HarmonyLib;
+using RimWorld;
 using SmashTools;
 using System;
 using System.Collections.Generic;
@@ -203,6 +204,25 @@ namespace VehicleInteriors
             var destMap = dest3.HasThing ? dest3.Thing.MapHeld : pawn.BaseMap();
             return pawn.Spawned && ReachabilityUtilityOnVehicle.CanReach(pawn.Map, pawn.Position, dest3, peMode, traverseParms, destMap, out _, out _);
         }
+
+        //Reachability.CanReachの代替にできるマップ間CanReach。departMapを先にtmpDepartMapにセットしておき、
+        //destMapはthing.MapHeldか、reachability.mapと同じと推定する（VirtualMapTransferと組み合わせて使用することを想定しているため）。
+        public static bool CanReachReplaceable(this Reachability reachability, IntVec3 start, LocalTargetInfo dest, PathEndMode peMode, TraverseMode traverseMode, Danger danger)
+        {
+            return reachability.CanReachReplaceable(start, dest, peMode, TraverseParms.For(traverseMode, danger));
+        }
+
+        public static bool CanReachReplaceable(this Reachability reachability, IntVec3 start, LocalTargetInfo dest, PathEndMode peMode, TraverseParms traverseParms)
+        {
+            var departMap = ReachabilityUtilityOnVehicle.tmpDepartMap;
+            var destMap = dest.HasThing ? dest.Thing.MapHeld : map(reachability);
+            var result = ReachabilityUtilityOnVehicle.CanReach(departMap, start, dest, peMode, traverseParms, destMap, out _, out _);
+            return result;
+        }
+
+        public static Map tmpDepartMap;
+
+        private static AccessTools.FieldRef<Reachability, Map> map = AccessTools.FieldRefAccess<Reachability, Map>("map");
 
         public static IntVec3 StandableCellNear(IntVec3 root, Map map, float radius, Predicate<IntVec3> validator, out Map destMap)
         {
