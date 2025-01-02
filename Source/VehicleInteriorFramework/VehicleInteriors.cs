@@ -5,13 +5,13 @@ namespace VehicleInteriors
 {
     public class VehicleInteriors : Mod
     {
-        public static AssetBundle Bundle => VehicleInteriors.mod.Content.assetBundles.loadedAssetBundles.Find(a => a.name == "vehicleinteriors");
+        public static VehicleInteriors Mod { get; private set; }
+
+        public static AssetBundle Bundle => VehicleInteriors.Mod.Content.assetBundles.loadedAssetBundles.Find(a => a.name == "vehicleinteriors");
 
         public VehicleInteriors(ModContentPack content) : base(content)
         {
-            VehicleInteriors.mod = this;
+            VehicleInteriors.Mod = this;
         }
-
-        public static VehicleInteriors mod;
     }
 }
