@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using RimWorld;
 using RimWorld.Planet;
+using SmashTools;
 using System.Linq;
 using Vehicles;
 using Verse;
@@ -13,7 +14,7 @@ namespace VehicleInteriors
         {
             get
             {
-                Rot4 rot;
+                Rot8 rot;
                 if (this.role is VehicleRoleBuildable role)
                 {
                     rot = role.upgradeSingle.parent.parent.BaseFullRotation();
@@ -30,7 +31,7 @@ namespace VehicleInteriors
         {
             get
             {
-                Rot4 rot;
+                Rot8 rot;
                 if (this.role is VehicleRoleBuildable role)
                 {
                     rot = role.upgradeSingle.parent.parent.BaseFullRotation();

@@ -82,6 +82,8 @@
 			<drawSize>(8, 8)</drawSize>
 			<layer>5</layer>
 		</graphicData>
+
+		<gizmoIconTexPath>VehicleInteriors/Glypto/TurretIcon</gizmoIconTexPath>
 		
 		<ammunition>
 			<thingDefs>

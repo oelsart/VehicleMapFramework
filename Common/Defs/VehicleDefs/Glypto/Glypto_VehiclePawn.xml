@@ -80,21 +80,6 @@
 				<LargeHills>0.75</LargeHills>
 				<Mountainous>1.5</Mountainous>
 			</customHillinessCosts>
-
-			<roles>
-				<li>
-					<key>MainTurret</key>
-					<label>Main Turret</label>
-
-					<turretIds>
-						<li>mainTurret</li>
-					</turretIds>
-
-					<handlingTypes>
-						<li>Turret</li>
-					</handlingTypes>
-				</li>
-			</roles>
 		</properties>
 
 		<components>
@@ -416,7 +401,7 @@
 						
 						<gizmoLabel>Main Turret</gizmoLabel>
 
-						<angleRestricted>(-25, 25)</angleRestricted>
+						<angleRestricted>(335, 25)</angleRestricted>
 						<aimPieOffset>(0, 4)</aimPieOffset>
 						
 						<key>mainTurret</key>

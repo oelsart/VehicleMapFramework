@@ -62,7 +62,7 @@ namespace VehicleInteriors
 
         public static Vector3 VehicleMapToOrig(this Vector3 original, VehiclePawnWithMap vehicle)
         {
-            var vehicleMapPos = vehicle.cachedDrawPos + VehicleMapUtility.OffsetOf(vehicle);
+            var vehicleMapPos = vehicle.cachedDrawPos + VehicleMapUtility.OffsetFor(vehicle);
             var map = vehicle.VehicleMap;
             var pivot = new Vector3(map.Size.x / 2f, 0f, map.Size.z / 2f);
             var drawPos = (original - vehicleMapPos).RotatedBy(-vehicle.FullRotation.AsAngle) + pivot;
@@ -71,7 +71,7 @@ namespace VehicleInteriors
 
         public static Vector3 VehicleMapToOrig(this Vector3 original, VehiclePawnWithMap vehicle, float extraRotation = 0f)
         {
-            var vehicleMapPos = vehicle.cachedDrawPos + VehicleMapUtility.OffsetOf(vehicle);
+            var vehicleMapPos = vehicle.cachedDrawPos + VehicleMapUtility.OffsetFor(vehicle);
             var map = vehicle.VehicleMap;
             var pivot = new Vector3(map.Size.x / 2f, 0f, map.Size.z / 2f);
             var drawPos = (original - vehicleMapPos).RotatedBy(-vehicle.FullRotation.AsAngle - extraRotation) + pivot;
@@ -115,7 +115,7 @@ namespace VehicleInteriors
             var map = vehicle.VehicleMap;
             var pivot = new Vector3(map.Size.x / 2f, 0f, map.Size.z / 2f);
             var drawPos = (original - pivot).RotatedBy(vehicle.FullRotation.AsAngle) + vehiclePos;
-            drawPos += VehicleMapUtility.OffsetOf(vehicle);
+            drawPos += VehicleMapUtility.OffsetFor(vehicle);
             return drawPos.WithYOffset(VehicleMapUtility.altitudeOffset);
         }
 
@@ -125,7 +125,7 @@ namespace VehicleInteriors
             var map = vehicle.VehicleMap;
             var pivot = new Vector3(map.Size.x / 2f, 0f, map.Size.z / 2f);
             var drawPos = (original - pivot).RotatedBy(vehicle.FullRotation.AsAngle + extraRotation) + vehiclePos;
-            drawPos += VehicleMapUtility.OffsetOf(vehicle);
+            drawPos += VehicleMapUtility.OffsetFor(vehicle);
             return drawPos.WithYOffset(VehicleMapUtility.altitudeOffset);
         }
 
@@ -135,7 +135,7 @@ namespace VehicleInteriors
             var map = vehicle.VehicleMap;
             var pivot = new Vector3(map.Size.x / 2f, 0f, map.Size.z / 2f);
             var drawPos = original.RotatedBy(rot.AsAngle) - pivot.RotatedBy(rot.AsAngle) + vehiclePos;
-            drawPos += VehicleMapUtility.OffsetOf(vehicle, rot);
+            drawPos += VehicleMapUtility.OffsetFor(vehicle, rot);
             return drawPos.WithYOffset(VehicleMapUtility.altitudeOffset);
         }
 
@@ -148,12 +148,12 @@ namespace VehicleInteriors
             return original.ToVector3Shifted().OrigToVehicleMap(vehicle, rot);
         }
 
-        public static Vector3 OffsetOf(VehiclePawnWithMap vehicle)
+        public static Vector3 OffsetFor(VehiclePawnWithMap vehicle)
         {
-            return VehicleMapUtility.OffsetOf(vehicle, vehicle.FullRotation);
+            return VehicleMapUtility.OffsetFor(vehicle, vehicle.FullRotation);
         }
 
-        public static Vector3 OffsetOf(VehiclePawnWithMap vehicle, Rot8 rot)
+        public static Vector3 OffsetFor(VehiclePawnWithMap vehicle, Rot8 rot)
         {
             var offset = Vector3.zero;
             VehicleMapProps vehicleMap;

@@ -63,7 +63,6 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         private static readonly AccessTools.FieldRef<VehiclePawn, bool> outOfFoodNotified = AccessTools.FieldRefAccess<VehiclePawn, bool>("outOfFoodNotified");
     }
 
-
     [HarmonyPatch(typeof(VehiclePawn), nameof(VehiclePawn.FullRotation))]
     public static class Patch_VehiclePawn_FullRotation
     {
@@ -71,7 +70,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         [HarmonyPatch(MethodType.Getter)]
         public static void PostGetter(VehiclePawn __instance, ref Rot8 __result)
         {
-            if (__instance.IsOnNonFocusedVehicleMapOf(out var vehicle))
+            if (__instance.VehicleDef.graphicData.drawRotated && __instance.IsOnNonFocusedVehicleMapOf(out var vehicle))
             {
                 var angle = Ext_Math.RotateAngle(__result.AsAngle, vehicle.FullRotation.AsAngle);
                 __result = Rot8.FromAngle(angle);

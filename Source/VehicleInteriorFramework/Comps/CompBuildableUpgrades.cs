@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using RimWorld;
+using System.Collections.Generic;
+using System.Linq;
 using Vehicles;
 using Verse;
 
@@ -46,12 +48,56 @@ namespace VehicleInteriors
             }
         }
 
+        public override IEnumerable<Gizmo> CompGetGizmosExtra()
+        {
+            if (this.parent.IsOnVehicleMapOf(out var vehicle))
+            {
+                var turretRoleUpgrades = this.Props.upgrades.Where(u => u is VehicleUpgrade u2 && (u2.roles?.Any(r => r.handlingTypes == HandlingTypeFlags.Turret) ?? false)).ToList();
+                if (turretRoleUpgrades.Count != 0)
+                {
+                    var turret = vehicle.CompVehicleTurrets?.turrets.FirstOrDefault(t => this.handlerUniqueIDs.Any(h => h.turretIds?.Contains(t.key) ?? false));
+                    Command_Action command_Action = new Command_Action
+                    {
+                        action = delegate ()
+                        {
+                            foreach (var upgrade in turretRoleUpgrades)
+                            {
+                                if (upgrade is VehicleUpgradeBuildable buildable)
+                                {
+                                    buildable.parent = this;
+                                    buildable.Refund(vehicle);
+                                }
+                                else
+                                {
+                                    upgrade.Refund(vehicle);
+                                }
+                            }
+                            foreach (var upgrade in turretRoleUpgrades)
+                            {
+                                if (upgrade is VehicleUpgradeBuildable buildable)
+                                {
+                                    buildable.parent = this;
+                                    buildable.Unlock(vehicle, false);
+                                }
+                                else
+                                {
+                                    upgrade.Unlock(vehicle, false);
+                                }
+                            }
+                        },
+                        defaultLabel = "VIF.Reassign".Translate(),
+                        defaultDesc = "VIF.ReassignDesc".Translate(),
+                        icon = turret?.GizmoIcon ?? BaseContent.ClearTex,
+                    };
+                    yield return command_Action;
+                }
+            }
+        }
+
         public override void PostExposeData()
         {
             Scribe_Collections.Look(ref this.handlerUniqueIDs, "handlerUniqueIDs", LookMode.Deep);
         }
-
-        public List<Upgrade> upgrades;
 
         public List<UpgradeID> handlerUniqueIDs = new List<UpgradeID>();
     }
@@ -62,14 +108,17 @@ namespace VehicleInteriors
 
         public string editKey;
 
+        public List<string> turretIds;
+
         public int id;
 
         public UpgradeID() { }
 
-        public UpgradeID(string key, string editKey, int id)
+        public UpgradeID(string key, string editKey, List<string> turretIds, int id)
         {
             this.key = key;
             this.editKey = editKey;
+            this.turretIds = turretIds;
             this.id = id;
         }
 
@@ -77,6 +126,7 @@ namespace VehicleInteriors
         {
             Scribe_Values.Look(ref this.key, "key");
             Scribe_Values.Look(ref this.editKey, "editKey");
+            Scribe_Collections.Look(ref this.turretIds, "turretIds", LookMode.Value);
             Scribe_Values.Look(ref this.id, "id");
         }
     }

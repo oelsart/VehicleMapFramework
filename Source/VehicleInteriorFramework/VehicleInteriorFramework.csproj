@@ -102,6 +102,7 @@
     <Compile Include="Comps\CompWirelessReceiver.cs" />
     <Compile Include="Comps\CompWirelessTransmitter.cs" />
     <Compile Include="Combat\ExplosionAcrossMaps.cs" />
+    <Compile Include="Dialog_ChooseVehicleRoles.cs" />
     <Compile Include="ExtraOverlayData.cs" />
     <Compile Include="RGBMaskOpacityDef.cs" />
     <Compile Include="Utilities\GenDrawOnVehicle.cs" />

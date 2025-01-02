@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<Defs>
+<Defs>		
 	<ThingDef Name="VehicleSeatBase" ParentName="FurnitureBase" Abstract="True">
 		<designationCategory>VF_Vehicles</designationCategory>
 		<minifiedDef>MinifiedThing</minifiedDef>
 		<altitudeLayer>Building</altitudeLayer>
 		<passability>PassThroughOnly</passability>
-		<rotatable>false</rotatable>
 		<placeWorkers>
 			<li>VehicleInteriors.PlaceWorker_ForceOnVehicle</li>
 		</placeWorkers>
@@ -13,25 +12,31 @@
 	
 	<ThingDef ParentName="VehicleSeatBase">
 		<defName>VIF_DriverSeat</defName>
-		<label>driver's seat</label>
+		<label>driver seat</label>
 		<description>Driver's seat of a vehicle. When this is installed, the vehicle can be controlled.</description>
 		<graphicData>
-			<texPath>Things/Building/Furniture/Armchair</texPath>
+			<texPath>VehicleInteriors/Things/BuildableUpgrade/VehicleSeat/DriverSeat</texPath>
 			<graphicClass>Graphic_Multi</graphicClass>
-			<drawSize>(3,3)</drawSize>
+			<drawSize>(1.1,2)</drawSize>
 		</graphicData>
-		<drawerType>MapMeshAndRealTime</drawerType>
+		<rotatable>false</rotatable>
 		<statBases>
-			<MaxHitPoints>300</MaxHitPoints>
+			<MaxHitPoints>200</MaxHitPoints>
 			<Beauty>1</Beauty>
-			<WorkToBuild>100</WorkToBuild>
-			<Mass>5</Mass>
+			<WorkToBuild>500</WorkToBuild>
+			<Mass>15</Mass>
 		</statBases>
-		<size>(1,1)</size>
+		<size>(1,2)</size>
+		<stuffCategories>
+			<li>Fabric</li>
+			<li>Leathery</li>
+		</stuffCategories>
+		<costStuffCount>100</costStuffCount>
 		<costList>
-			<Steel>5</Steel>
+			<ComponentIndustrial>1</ComponentIndustrial>
+			<Steel>30</Steel>
 		</costList>
-		<uiOrder>1000</uiOrder>
+		<uiOrder>1020</uiOrder>
 		<comps>
 			<li Class = "VehicleInteriors.CompProperties_BuildableUpgrades">
 				<compClass>VehicleInteriors.CompVehicleSeat</compClass>
@@ -46,6 +51,124 @@
 								<slots>1</slots>
 								<pawnRenderer>
 									<showBody>true</showBody>
+									<drawOffsetNorth>(0,0,-0.15)</drawOffsetNorth>
+									<drawOffsetSouth>(0,0,0.3)</drawOffsetSouth>
+									<drawOffsetEast>(-0.3,0,0.15)</drawOffsetEast>
+									<angleEast>-15</angleEast>
+									<angleNorthEast>45</angleNorthEast>
+									<angleSouthEast>-45</angleSouthEast>
+									<angleSouthWest>45</angleSouthWest>
+									<angleNorthWest>-45</angleNorthWest>
+								</pawnRenderer>
+							</li>
+						</roles>
+					</li>
+				</upgrades>
+			</li>
+		</comps>
+	</ThingDef>
+	
+	<ThingDef ParentName="VehicleSeatBase">
+		<defName>VIF_GunnerSeat</defName>
+		<label>gunner seat</label>
+		<description>Gunner's seat of a vehicle. When this is installed, the selected turret of the vehicle can be controlled.</description>
+		<graphicData>
+			<texPath>VehicleInteriors/Things/BuildableUpgrade/VehicleSeat/GunnerSeat</texPath>
+			<graphicClass>Graphic_Multi</graphicClass>
+			<drawSize>(1.1,2)</drawSize>
+		</graphicData>
+		<statBases>
+			<MaxHitPoints>200</MaxHitPoints>
+			<Beauty>1</Beauty>
+			<WorkToBuild>500</WorkToBuild>
+			<Mass>15</Mass>
+		</statBases>
+		<size>(1,2)</size>
+		<stuffCategories>
+			<li>Fabric</li>
+			<li>Leathery</li>
+		</stuffCategories>
+		<costStuffCount>100</costStuffCount>
+		<costList>
+			<ComponentIndustrial>1</ComponentIndustrial>
+			<Steel>30</Steel>
+		</costList>
+		<uiOrder>1021</uiOrder>
+		<comps>
+			<li Class = "VehicleInteriors.CompProperties_BuildableUpgrades">
+				<compClass>VehicleInteriors.CompVehicleSeat</compClass>
+				<upgrades>
+					<li Class = "VehicleInteriors.VehicleUpgradeBuildable">
+						<roles>
+							<li Class = "VehicleInteriors.RoleUpgradeBuildable">
+								<key>gunner</key>
+								<editKey>gunner seat</editKey>
+								<label>gunner seat</label>
+								<handlingTypes>Turret</handlingTypes>
+								<slots>1</slots>
+								<pawnRenderer>
+									<showBody>true</showBody>
+									<drawOffsetNorth>(0,0,-0.15)</drawOffsetNorth>
+									<drawOffsetSouth>(0,0,0.3)</drawOffsetSouth>
+									<drawOffsetEast>(-0.3,0,0.15)</drawOffsetEast>
+									<angleEast>-15</angleEast>
+									<angleNorthEast>45</angleNorthEast>
+									<angleSouthEast>-45</angleSouthEast>
+									<angleSouthWest>45</angleSouthWest>
+									<angleNorthWest>-45</angleNorthWest>
+								</pawnRenderer>
+							</li>
+						</roles>
+					</li>
+				</upgrades>
+			</li>
+		</comps>
+	</ThingDef>
+	
+	<ThingDef ParentName="VehicleSeatBase">
+		<defName>VIF_PassengerSeat</defName>
+		<label>passenger seat</label>
+		<description>Passenger's seat of a vehicle.</description>
+		<graphicData>
+			<texPath>VehicleInteriors/Things/BuildableUpgrade/VehicleSeat/PassengerSeat</texPath>
+			<graphicClass>Graphic_Multi</graphicClass>
+			<drawSize>(1.1,1.3417)</drawSize>
+		</graphicData>
+		<statBases>
+			<MaxHitPoints>200</MaxHitPoints>
+			<Beauty>1</Beauty>
+			<WorkToBuild>250</WorkToBuild>
+			<Mass>15</Mass>
+		</statBases>
+		<size>(1,1)</size>
+		<stuffCategories>
+			<li>Fabric</li>
+			<li>Leathery</li>
+		</stuffCategories>
+		<costStuffCount>100</costStuffCount>
+		<uiOrder>1022</uiOrder>
+		<comps>
+			<li Class = "VehicleInteriors.CompProperties_BuildableUpgrades">
+				<compClass>VehicleInteriors.CompVehicleSeat</compClass>
+				<upgrades>
+					<li Class = "VehicleInteriors.VehicleUpgradeBuildable">
+						<roles>
+							<li Class = "VehicleInteriors.RoleUpgradeBuildable">
+								<key>passenger</key>
+								<editKey>passenger seat</editKey>
+								<label>passenger seat</label>
+								<handlingTypes>None</handlingTypes>
+								<slots>1</slots>
+								<pawnRenderer>
+									<showBody>true</showBody>
+									<drawOffsetNorth>(0,0,0.3)</drawOffsetNorth>
+									<drawOffsetSouth>(0,0,-0.15)</drawOffsetSouth>
+									<drawOffsetEast>(0.2,0,0.15)</drawOffsetEast>
+									<angleEast>-15</angleEast>
+									<angleNorthEast>45</angleNorthEast>
+									<angleSouthEast>-45</angleSouthEast>
+									<angleSouthWest>45</angleSouthWest>
+									<angleNorthWest>-45</angleNorthWest>
 								</pawnRenderer>
 							</li>
 						</roles>
@@ -99,7 +222,7 @@
 				<cornerOverlayPath>VehicleInteriors/Things/BuildableUpgrade/CargoContainer/CargoContainer_Blueprint_Filler</cornerOverlayPath>
 			</blueprintGraphicData>
 		</building>
-		<uiOrder>1010</uiOrder>
+		<uiOrder>1023</uiOrder>
 		<comps>
 			<li Class = "VehicleInteriors.CompProperties_BuildableUpgrades">
 				<upgrades>
@@ -149,7 +272,7 @@
 			<ComponentIndustrial>10</ComponentIndustrial>
 			<ComponentSpacer>2</ComponentSpacer>
 		</costList>
-		<uiOrder>1020</uiOrder>
+		<uiOrder>1024</uiOrder>
 		<comps>
 			<li Class = "VehicleInteriors.CompProperties_BuildableUpgrades">
 				<upgrades>

@@ -118,7 +118,7 @@
 			<Steel>150</Steel>
 			<ComponentIndustrial>4</ComponentIndustrial>
 		</costList>
-		<uiOrder>1020</uiOrder>
+		<uiOrder>1011</uiOrder>
 		<building>
 			<upperMoverGraphic>
 				<texPath>VehicleInteriors/Things/EnterSpot/RampMedium</texPath>
@@ -149,7 +149,7 @@
 			<Steel>250</Steel>
 			<ComponentIndustrial>6</ComponentIndustrial>
 		</costList>
-		<uiOrder>1030</uiOrder>
+		<uiOrder>1012</uiOrder>
 		<building>
 			<upperMoverGraphic>
 				<texPath>VehicleInteriors/Things/EnterSpot/RampLarge</texPath>
