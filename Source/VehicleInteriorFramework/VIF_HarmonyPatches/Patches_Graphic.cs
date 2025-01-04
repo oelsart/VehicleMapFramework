@@ -87,6 +87,26 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         }
     }
 
+    //CompPrintForPowerGridからこれを呼んだ時rotForPrintによってRotationがずれてnullを返しちゃってたので修正
+    [HarmonyPatch(typeof(GenConstruct), nameof(GenConstruct.GetWallAttachedTo), typeof(Thing))]
+    public static class Patch_GenConstruct_GetWallAttachedTo
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Rotation, MethodInfoCache.m_Thing_RotationOrig);
+        }
+    }
+
+    //オフセットの修正
+    [HarmonyPatch(typeof(PowerNetGraphics), nameof(PowerNetGraphics.PrintWirePieceConnecting))]
+    public static class Patch_PowerNetGraphics_PrintWirePieceConnecting
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Rotation, MethodInfoCache.m_Thing_RotationOrig);
+        }
+    }
+
     [HarmonyPatch(typeof(Graphic_Shadow), nameof(Graphic_Shadow.Print))]
     public static class Patch_Graphic_Shadow_Print
     {
@@ -104,7 +124,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
         {
-            var codes = instructions.MethodReplacer(MethodInfoCache.g_Thing_DrawPos, MethodInfoCache.m_DrawPosOrig).ToList();
+            var codes = instructions.ToList();
             var f_Altitudes_AltIncVect = AccessTools.Field(typeof(Altitudes), nameof(Altitudes.AltIncVect));
             var pos = codes.FindIndex(c => c.opcode == OpCodes.Ldsfld && c.OperandIs(f_Altitudes_AltIncVect)) - 1;
 
@@ -160,12 +180,17 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     [HarmonyPatch(typeof(Pawn_RotationTracker), "FaceAdjacentCell")]
     public static class Patch_Pawn_RotationTracker_FaceAdjacentCell
     {
-        public static void Postfix(Pawn ___pawn)
+        public static void Prefix(ref IntVec3 c, Pawn ___pawn)
         {
-            ___pawn.Rotation = ___pawn.BaseFullRotation();
+            if (___pawn.IsOnNonFocusedVehicleMapOf(out var vehicle))
+            {
+
+                c = ___pawn.Position + (c - ___pawn.Position).RotatedBy(vehicle.Rotation);
+            }
         }
     }
 
+    //ズームしすぎて車上オブジェクトがカメラの手前に来ないようにする
     [HarmonyPatch(typeof(CameraDriver), "ApplyPositionToGameObject")]
     public static class Patch_CameraDriver_ApplyPositionToGameObject
     {
@@ -180,10 +205,71 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         }
     }
 
+    //カメラの制限範囲を書き換える。CurrentMapがVehicleMapだったらDrawSizeの長辺を参照する
+    [HarmonyPatch(typeof(CameraDriver), nameof(CameraDriver.Update))]
+    public static class Patch_CameraDriver_Update
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+        {
+            var codes = instructions.ToList();
+            var g_Thing_DrawSize = AccessTools.PropertyGetter(typeof(Thing), nameof(Thing.DrawSize));
+            var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithMap));
+            var isVehicleMap = generator.DeclareLocal(typeof(bool));
+            var longSide = generator.DeclareLocal(typeof(float));
+            var drawSize = generator.DeclareLocal(typeof(Vector2));
+
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Ldc_R4 && c.OperandIs(2f)) + 1;
+            var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Ldc_R4 && c.OperandIs(-2f));
+            var label = generator.DefineLabel();
+            var label2 = generator.DefineLabel();
+            codes[pos].labels.Add(label);
+            codes[pos2].labels.Add(label2);
+            codes.InsertRange(pos, new[]
+            {
+                CodeInstruction.LoadField(typeof(VehicleInteriors), nameof(VehicleInteriors.settings)),
+                CodeInstruction.LoadField(typeof(VehicleMapSettings), nameof(VehicleMapSettings.drawPlanet)),
+                new CodeInstruction(OpCodes.Brfalse_S, label),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.g_Find_CurrentMap),
+                new CodeInstruction(OpCodes.Ldloca_S, vehicle),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_IsVehicleMapOf),
+                new CodeInstruction(OpCodes.Stloc_S, isVehicleMap),
+                new CodeInstruction(OpCodes.Ldloc_S, isVehicleMap),
+                new CodeInstruction(OpCodes.Brfalse_S, label),
+                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+                new CodeInstruction(OpCodes.Callvirt, g_Thing_DrawSize),
+                new CodeInstruction(OpCodes.Stloc_S, drawSize),
+                new CodeInstruction(OpCodes.Ldloc_S, drawSize),
+                CodeInstruction.LoadField(typeof(Vector2), nameof(Vector2.x)),
+                new CodeInstruction(OpCodes.Ldloc_S, drawSize),
+                CodeInstruction.LoadField(typeof(Vector2), nameof(Vector2.y)),
+                CodeInstruction.Call(typeof(Mathf), nameof(Mathf.Max), new Type[] { typeof(float), typeof(float) }),
+                new CodeInstruction(OpCodes.Stloc_S, longSide),
+                new CodeInstruction(OpCodes.Ldloc_S, longSide),
+                new CodeInstruction(OpCodes.Br_S, label2),
+            });
+
+            pos = codes.FindIndex(pos2, c => c.opcode == OpCodes.Ldc_R4 && c.OperandIs(2f)) + 1;
+            pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Ldc_R4 && c.OperandIs(-2f));
+            var label3 = generator.DefineLabel();
+            var label4 = generator.DefineLabel();
+            codes[pos].labels.Add(label3);
+            codes[pos2].labels.Add(label4);
+            codes.InsertRange(pos, new[]
+            {
+                new CodeInstruction(OpCodes.Ldloc_S, isVehicleMap),
+                new CodeInstruction(OpCodes.Brfalse_S, label3),
+                new CodeInstruction(OpCodes.Ldloc_S, longSide),
+                new CodeInstruction(OpCodes.Br_S, label4),
+            });
+
+            return codes;
+        }
+    }
+
     [HarmonyPatch(typeof(PawnRenderer), "GetBodyPos")]
     public static class Patch_PawnRenderer_GetBodyPos
     {
-        public static void Postfix(Vector3 drawLoc, PawnPosture posture, Pawn ___pawn, ref Vector3 __result)
+        public static void Postfix(PawnPosture posture, Pawn ___pawn, ref Vector3 __result)
         {
             var corpse = ___pawn.Corpse;
             if (corpse != null && corpse.IsOnNonFocusedVehicleMapOf(out var vehicle))
@@ -262,27 +348,6 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         }
     }
 
-    [HarmonyPatch(typeof(DesignationDragger), nameof(DesignationDragger.DraggerUpdate))]
-    public static class Patch_DesignationDragger_DraggerUpdate
-    {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
-        {
-            var codes = instructions.ToList();
-            var m_CellRect_ClipInsideRect = AccessTools.Method(typeof(CellRect), nameof(CellRect.ClipInsideRect));
-            var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(m_CellRect_ClipInsideRect));
-            var label = generator.DefineLabel();
-
-            codes[pos].labels.Add(label);
-            codes.InsertRange(pos, new[] {
-                new CodeInstruction(OpCodes.Call, MethodInfoCache.g_FocusedVehicle),
-                new CodeInstruction(OpCodes.Brfalse_S, label),
-                new CodeInstruction(OpCodes.Call, MethodInfoCache.g_FocusedVehicle),
-                new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.VehicleMapToOrig), new Type[]{ typeof(CellRect), typeof(VehiclePawnWithMap) }))
-            });
-            return codes;
-        }
-    }
-
     [HarmonyPatch(typeof(Graphic_Shadow), nameof(Graphic_Shadow.DrawWorker))]
     public static class Patch_Graphic_Shadow_DrawWorker
     {
@@ -301,9 +366,9 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                 new CodeInstruction(OpCodes.Ldloca_S, vehicle),
                 new CodeInstruction(OpCodes.Call, MethodInfoCache.m_IsOnVehicleMapOf),
                 new CodeInstruction(OpCodes.Brfalse_S, label),
-                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Thing_Spawned),
-                new CodeInstruction(OpCodes.Brfalse_S, label),
+                //new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+                //new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Thing_Spawned),
+                //new CodeInstruction(OpCodes.Brfalse_S, label),
                 new CodeInstruction(OpCodes.Ldloc_S, vehicle),
                 new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_FullRotation),
                 new CodeInstruction(OpCodes.Call, MethodInfoCache.m_Rot8_AsQuat),

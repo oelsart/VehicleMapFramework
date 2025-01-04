@@ -6,7 +6,7 @@ using Verse;
 
 namespace VehicleInteriors
 {
-    public class CompTogglableOverlays : ThingComp
+    public class CompTogglableOverlays : VehicleComp
     {
         public CompProperties_TogglableOverlays Props => (CompProperties_TogglableOverlays)this.props;
 
@@ -55,7 +55,7 @@ namespace VehicleInteriors
             }
         }
 
-        public override void PostSpawnSetup(bool respawningAfterLoad)
+        public override void PostLoad()
         {
             void Init()
             {
@@ -99,7 +99,6 @@ namespace VehicleInteriors
                     }
                 }
             }
-
             if (!UnityData.IsInMainThread)
             {
                 LongEventHandler.ExecuteWhenFinished(delegate

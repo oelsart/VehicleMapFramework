@@ -1,13 +1,19 @@
 ﻿using HarmonyLib;
 using RimWorld;
+using RimWorld.Planet;
+using SmashTools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
+using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Rendering;
 using Vehicles;
 using Verse;
 using Verse.AI;
+using Verse.Noise;
+using static Vehicles.VehicleRegion;
 
 namespace VehicleInteriors.VIF_HarmonyPatches
 {
@@ -197,5 +203,137 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             }
             return true;
         }
+    }
+
+    //リソースカウンターに車上マップのリソースを追加
+    [HarmonyPatch(typeof(ResourceCounter), nameof(ResourceCounter.UpdateResourceCounts))]
+    public static class Patch_ResourceCounter_UpdateResourceCounts
+    {
+        public static void Postfix(Map ___map, Dictionary<ThingDef, int> ___countedAmounts)
+        {
+            List<SlotGroup> allGroupsListForReading = VehiclePawnWithMapCache.allVehicles[___map].SelectMany(v => v.VehicleMap.haulDestinationManager.AllGroupsListForReading).ToList(); ;
+            for (int i = 0; i < allGroupsListForReading.Count; i++)
+            {
+                foreach (Thing outerThing in allGroupsListForReading[i].HeldThings)
+                {
+                    Thing innerIfMinified = outerThing.GetInnerIfMinified();
+                    if (innerIfMinified.def.CountAsResource && !innerIfMinified.IsNotFresh())
+                    {
+                        Dictionary<ThingDef, int> dictionary = ___countedAmounts;
+                        ThingDef def = innerIfMinified.def;
+                        dictionary[def] += innerIfMinified.stackCount;
+                    }
+                }
+            }
+        }
+    }
+
+    [StaticConstructorOnStartup]
+    [HarmonyPatch(typeof(Map), nameof(Map.MapUpdate))]
+    public static class Patch_Map_MapUpdate
+    {
+        public static void Postfix(Map __instance)
+        {
+            WorldObject GetWorldObject(IThingHolder holder)
+            {
+                while (holder != null)
+                {
+                    if (holder is WorldObject worldObject)
+                    {
+                        return worldObject;
+                    }
+                    holder = holder.ParentHolder;
+                }
+                return null;
+            }
+
+            if (VehicleInteriors.settings.drawPlanet && Find.CurrentMap == __instance && __instance.IsVehicleMapOf(out var vehicle) &&
+                !WorldRendererUtility.WorldRenderedNow)
+            {
+                if (Find.TickManager.TicksGame != lastRenderedTick)
+                {
+                    lastRenderedTick = Find.TickManager.TicksGame;
+                    var worldObject = GetWorldObject(vehicle);
+                    var targetTexture = Find.WorldCamera.targetTexture;
+                    Find.World.renderer.wantedMode = WorldRenderMode.Planet;
+                    Find.WorldCameraDriver.JumpTo(worldObject.DrawPos);
+                    Find.WorldCameraDriver.ResetAltitude();
+                    Find.WorldCameraDriver.Update();
+                    Find.WorldCamera.gameObject.SetActive(true);
+                    WorldRendererUtility.UpdateWorldShadersParams();
+                    foreach (var layer in layers(Find.World.renderer).Where(l => l.Isnt<WorldLayer_SingleTile>()))
+                    {
+                        layer.Render();
+                    }
+                    Find.World.dynamicDrawManager.DrawDynamicWorldObjects();
+                    Find.WorldCamera.targetTexture = renderTexture;
+                    Find.WorldCamera.Render();
+                    Find.WorldCamera.targetTexture = targetTexture;
+                    Find.World.renderer.wantedMode = WorldRenderMode.None;
+                    Find.WorldCamera.gameObject.SetActive(false);
+                    Find.Camera.gameObject.SetActive(true);
+                    Find.CameraDriver.Update();
+                    RenderTexture.active = renderTexture;
+                    texture.ReadPixels(new Rect(0f, 0f, 2048, 2048), 0, 0);
+                    texture.Apply();
+                    RenderTexture.active = null;
+                    if (mat == null)
+                    {
+                        mat = MaterialPool.MatFrom(texture);
+                    }
+                    else
+                    {
+                        mat.SetTexture(0, texture);
+                    }
+                    vehicle.FullRotation = worldObject is VehicleCaravan vehicleCaravan ?
+                        Rot8.FromAngle((Find.WorldGrid.GetTileCenter(vehicleCaravan.vehiclePather.nextTile != -1 ? vehicleCaravan.vehiclePather.nextTile : vehicleCaravan.Tile) - Find.WorldGrid.GetTileCenter(vehicleCaravan.Tile)).AngleFlat()) :
+                        worldObject is Caravan caravan ?
+                        Rot8.FromAngle((Find.WorldGrid.GetTileCenter(caravan.pather.nextTile != -1 ? caravan.pather.nextTile : caravan.Tile) - Find.WorldGrid.GetTileCenter(caravan.Tile)).AngleFlat()) :
+                        worldObject is AerialVehicleInFlight aerial ? Rot8.FromAngle((aerial.DrawPos - aerial.position).AngleFlat()) : Rot8.East;
+                }
+                var longSide = Mathf.Max(vehicle.DrawSize.x / 2f, vehicle.DrawSize.y / 2f);
+                var drawPos = new Vector3(longSide, 0f, longSide);
+                Graphics.DrawMesh(mesh200, drawPos, Quaternion.identity, mat, 0);
+                vehicle.DrawAt(drawPos, vehicle.FullRotation, 0f);
+            }
+        }
+
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+        {
+            var codes = instructions.ToList();
+            var g_WorldRenderedNow = AccessTools.PropertyGetter(typeof(WorldRendererUtility), nameof(WorldRendererUtility.WorldRenderedNow));
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(g_WorldRenderedNow)) + 1;
+            var label = generator.DefineLabel();
+            var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithMap));
+
+            codes[pos].labels.Add(label);
+            codes.InsertRange(pos, new[]
+            {
+                new CodeInstruction(OpCodes.Dup),
+                new CodeInstruction(OpCodes.Brtrue_S, label),
+                new CodeInstruction(OpCodes.Pop),
+                CodeInstruction.LoadField(typeof(VehicleInteriors), nameof(VehicleInteriors.settings)),
+                CodeInstruction.LoadField(typeof(VehicleMapSettings), nameof(VehicleMapSettings.drawPlanet)),
+                new CodeInstruction(OpCodes.Brfalse_S, label),
+                CodeInstruction.LoadArgument(0),
+                new CodeInstruction(OpCodes.Ldloca, vehicle),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_IsVehicleMapOf),
+            });
+            return codes;
+        }
+
+        private static RenderTexture renderTexture = RenderTexture.GetTemporary(2048, 2048);
+
+        private static Texture2D texture = new Texture2D(2048, 2048);
+
+        private static Mesh mesh200 = MeshMakerPlanes.NewPlaneMesh(200f);
+
+        private static Material mat;
+
+        private static int lastRenderedTick = 0;
+
+        private const int tickInterval = 60;
+
+        private static AccessTools.FieldRef<WorldRenderer, List<WorldLayer>> layers = AccessTools.FieldRefAccess<WorldRenderer, List<WorldLayer>>("layers");
     }
 }

@@ -24,7 +24,7 @@ namespace VehicleInteriors
         {
             get
             {
-                return DebugViewSettings.drawLightingOverlay;
+                return DebugViewSettings.drawLightingOverlay && Find.CurrentMap != base.Map;
             }
         }
 

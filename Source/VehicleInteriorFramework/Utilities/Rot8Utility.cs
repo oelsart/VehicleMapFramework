@@ -77,5 +77,15 @@ namespace VehicleInteriors
             }
             return intVec.ToVector3() * 0.707106781f;
         }
+
+        public static Vector3 AsFundVector2(ref Rot8 rot)
+        {
+            var vector = rot.AsVector2;
+            if (rot.IsDiagonal)
+            {
+                vector *= 0.707106781f;
+            }
+            return vector;
+        }
     }
 }

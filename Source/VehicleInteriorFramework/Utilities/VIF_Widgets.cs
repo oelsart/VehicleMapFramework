@@ -118,7 +118,7 @@ namespace VehicleInteriors
                 vector2.y = num;
             }
             Vector3 vector3 = vector2 - vector;
-			Matrix4x4 matrix = GUI.matrix;
+            Matrix4x4 matrix = GUI.matrix;
             UI.RotateAroundPivot(-rotation, rect.center);
             GUI.DrawTexture(UIScaling.AdjustRectToUIScaling(new Rect(vector.x, vector.y, (float)thickness, vector3.y)), lineTexture ?? BaseContent.WhiteTex);
             GUI.DrawTexture(UIScaling.AdjustRectToUIScaling(new Rect(vector2.x - (float)thickness, vector.y, (float)thickness, vector3.y)), lineTexture ?? BaseContent.WhiteTex);

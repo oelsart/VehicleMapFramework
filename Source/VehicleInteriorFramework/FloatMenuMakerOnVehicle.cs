@@ -45,7 +45,7 @@ namespace VehicleInteriors
             var baseMap = map.BaseMap();
             List<FloatMenuOption> list = new List<FloatMenuOption>();
             pawn.GetLord();
-            if (!intVec.InBounds(baseMap) || !FloatMenuMakerOnVehicle.CanTakeOrder(pawn) || FloatMenuMakerOnVehicle.LordBlocksFloatMenu(pawn))
+            if ((!intVec.InBounds(baseMap) && !clickCell.InBounds(map)) || !FloatMenuMakerOnVehicle.CanTakeOrder(pawn) || FloatMenuMakerOnVehicle.LordBlocksFloatMenu(pawn))
             {
                 return list;
             }
@@ -89,10 +89,13 @@ namespace VehicleInteriors
                     {
                         list.Add(item);
                     }
-                    FloatMenuOption floatMenuOptFor = EnterPortalUtility.GetFloatMenuOptFor(pawn, intVec);
-                    if (floatMenuOptFor != null)
+                    if (!Find.CurrentMap.IsVehicleMapOf(out _))
                     {
-                        list.Add(floatMenuOptFor);
+                        FloatMenuOption floatMenuOptFor = EnterPortalUtility.GetFloatMenuOptFor(pawn, intVec);
+                        if (floatMenuOptFor != null)
+                        {
+                            list.Add(floatMenuOptFor);
+                        }
                     }
                 }
             }

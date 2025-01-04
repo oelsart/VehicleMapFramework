@@ -4,6 +4,7 @@ using SmashTools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.NetworkInformation;
 using System.Reflection.Emit;
 using UnityEngine;
 using Vehicles;
@@ -163,9 +164,9 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             {
                 new CodeInstruction(OpCodes.Ldloc_S, vehicle),
                 new CodeInstruction(OpCodes.Brfalse_S, label2),
-                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Thing_Spawned),
-                new CodeInstruction(OpCodes.Brfalse_S, label2),
+                //new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+                //new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Thing_Spawned),
+                //new CodeInstruction(OpCodes.Brfalse_S, label2),
                 CodeInstruction.LoadLocal(1),
                 new CodeInstruction(OpCodes.Callvirt, g_DrawPos),
                 new CodeInstruction(OpCodes.Ldloca_S, rot),
@@ -232,7 +233,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                     if (driver is JobDriverAcrossMaps driverAcrossMaps)
                     {
                         var destMap = driverAcrossMaps.DestMap;
-                        if (destMap.IsVehicleMapOf(out var vehicle) && Find.CurrentMap != destMap)
+                        if (destMap.IsVehicleMapOf(out var vehicle) && (Find.CurrentMap != destMap || Find.CurrentMap.IsVehicleMapOf(out _)))
                         {
                             return targ.Cell.ToVector3Shifted().OrigToVehicleMap(vehicle);
                         }
@@ -338,14 +339,18 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         {
             if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle) && thing.def.drawerType == DrawerType.RealtimeOnly)
             {
-                var fullRot = vehicle.FullRotation;
-                rot.AsInt += fullRot.RotForVehicleDraw().AsInt;
-                var angle = vehicle.Angle;
-                if (thing.def.Size != IntVec2.One || !(thing.Graphic is Graphic_Single))
+                var def = thing.def.IsBlueprint ? thing.def.entityDefToBuild as ThingDef : thing.def;
+                if (def.rotatable || def.graphic is Graphic_Multi)
                 {
+                    var fullRot = vehicle.FullRotation;
+                    rot.AsInt += fullRot.RotForVehicleDraw().AsInt;
+                }
+                if (def.ShouldRotatedOnVehicle())
+                {
+                    var angle = vehicle.Angle;
                     extraRotation -= angle;
                     var offset = thing.Graphic.DrawOffset(rot);
-                    if (__instance is Graphic_Flicker && thing.TryGetComp<CompFireOverlay>(out var comp))
+                    if (__instance is Graphic_Flicker && !(thing.Graphic is Graphic_Single) && thing.TryGetComp<CompFireOverlay>(out var comp))
                     {
                         offset += comp.Props.DrawOffsetForRot(rot);
                     }
@@ -364,21 +369,37 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             var vehicle = Command_FocusVehicleMap.FocusedVehicle;
             if (vehicle != null)
             {
-                loc = loc.OrigToVehicleMap(vehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor());
-                var fullRot = vehicle.FullRotation;
-                rot.AsInt += fullRot.RotForVehicleDraw().AsInt;
-                if (/*thingDef.Size != IntVec2.One || */(!(thingDef.graphic is Graphic_Single) && !(thingDef.graphic is Graphic_Collection)))
+                var def = thingDef.IsBlueprint ? thingDef.entityDefToBuild as ThingDef : thingDef;
+                var compProperties = def.GetCompProperties<CompProperties_FireOverlay>();
+                var flag = __instance is Graphic_Flicker && compProperties != null;
+
+                if (flag)
                 {
-                    var angle = vehicle.Angle;
-                    extraRotation -= angle;
-                    var offset = __instance.DrawOffset(rot);
-                    var offset2 = offset.RotatedBy(-angle);
-                    loc += new Vector3(offset2.x - offset.x, 0f, offset2.z - offset.z);
+                    loc -= def.graphicData.DrawOffsetForRot(rot) + compProperties.DrawOffsetForRot(rot);
                 }
-                else if (thingDef.graphic is Graphic_Single || thingDef.graphic is Graphic_Collection)
+
+                var angle = vehicle.Angle;
+                loc = loc.OrigToVehicleMap(vehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor());
+                if ((def.rotatable || def.graphic is Graphic_Multi) && !def.graphicData.Linked)
                 {
-                    var angle = fullRot.AsAngle;
+                    var fullRot = vehicle.FullRotation;
+                    rot.AsInt += fullRot.RotForVehicleDraw().AsInt;
+                }
+                var flag2 = def.ShouldRotatedOnVehicle();
+                if (flag2)
+                {
                     extraRotation -= angle;
+                }
+                Vector3 offset = def.graphicData.DrawOffsetForRot(rot);
+                if (flag)
+                {
+                    var offset2 = compProperties.DrawOffsetForRot(rot);
+                    loc += (offset + offset2).RotatedBy(flag2 ? -angle : 0f);
+                }
+                else
+                {
+                    var offset2 = offset.RotatedBy(flag2 ? -angle : 0f);
+                    loc += new Vector3(offset2.x - offset.x, 0f, offset2.z - offset.z);
                 }
             }
         }
@@ -389,10 +410,29 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         public static void Postfix(ref Vector3 __result, DesignationManager ___designationManager, LocalTargetInfo ___target)
         {
-            if (!___target.HasThing && ___designationManager.map.IsVehicleMapOf(out var vehicle))
+            if (___designationManager.map.IsVehicleMapOf(out var vehicle))
             {
-                __result = __result.OrigToVehicleMap(vehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor());
+                if (!___target.HasThing)
+                {
+                    __result = __result.OrigToVehicleMap(vehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor());
+                }
             }
+        }
+
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Rotation, MethodInfoCache.m_BaseFullRotation_Thing)
+                .MethodReplacer(MethodInfoCache.g_Rot4_AsVector2, MethodInfoCache.m_AsFundVector2);
+        }
+    }
+
+    [HarmonyPatch(typeof(OverlayDrawer), "RenderPulsingOverlay", typeof(Thing), typeof(Material), typeof(int), typeof(Mesh), typeof(bool))]
+    public static class Patch_OverlayDrawer_RenderPulsingOverlay
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Rotation, MethodInfoCache.m_BaseFullRotation_Thing)
+                .MethodReplacer(MethodInfoCache.g_Rot4_AsVector2, MethodInfoCache.m_AsFundVector2);
         }
     }
 

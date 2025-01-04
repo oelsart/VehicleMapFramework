@@ -17,6 +17,7 @@
 			<texPath>VehicleInteriors/Things/WirelessCharger/WirelessTransmitter</texPath>
 			<graphicClass>Graphic_Single</graphicClass>
 		</graphicData>
+		<rotatable>false</rotatable>
 		<statBases>
 			<MaxHitPoints>100</MaxHitPoints>
 			<Beauty>-1</Beauty>
@@ -56,6 +57,7 @@
 		<graphicData>
 			<texPath>VehicleInteriors/Things/WirelessCharger/WirelessReceiver</texPath>
 		</graphicData>
+		<rotatable>false</rotatable>
 		<uiOrder>1061</uiOrder>
 		<comps Inherit="False">
 			<li Class="VehicleInteriors.CompProperties_WirelessCharger">

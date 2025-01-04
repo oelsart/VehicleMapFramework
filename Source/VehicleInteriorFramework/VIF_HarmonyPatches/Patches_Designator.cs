@@ -33,11 +33,11 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     }
 
     [StaticConstructorOnStartup]
-    public static class Patches_Designator_Cells_SelectedUpdate
+    public static class Patches_Designator_SelectedUpdate
     {
-        static Patches_Designator_Cells_SelectedUpdate()
+        static Patches_Designator_SelectedUpdate()
         {
-            var postfix = AccessTools.Method(typeof(Patches_Designator_Cells_SelectedUpdate), nameof(Patches_Designator_Cells_SelectedUpdate.Postfix));
+            var postfix = AccessTools.Method(typeof(Patches_Designator_SelectedUpdate), nameof(Patches_Designator_SelectedUpdate.Postfix));
             foreach (var type in typeof(Designator).AllSubclasses())
             {
                 var method = AccessTools.Method(type, "SelectedUpdate");
@@ -53,15 +53,10 @@ namespace VehicleInteriors.VIF_HarmonyPatches
 
             Command_FocusVehicleMap.FocusedVehicle = null;
             var mousePos = UI.MouseMapPosition();
-            var vehicles = VehiclePawnWithMapCache.allVehicles[Find.CurrentMap];
-            var vehicle = vehicles.FirstOrDefault(v =>
+            if (mousePos.TryGetVehiclePawnWithMap(Find.CurrentMap, out var vehicle))
             {
-                var rect = new Rect(0f, 0f, (float)v.VehicleMap.Size.x, (float)v.VehicleMap.Size.z);
-                var vector = mousePos.VehicleMapToOrig(v);
-
-                return rect.Contains(new Vector2(vector.x, vector.z));
-            });
-            Command_FocusVehicleMap.FocusedVehicle = vehicle;
+                Command_FocusVehicleMap.FocusedVehicle = vehicle;
+            }
         }
     }
 
@@ -229,6 +224,47 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             {
                 CodeInstruction.LoadArgument(0),
                 new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Designator_Map),
+            });
+            return codes;
+        }
+    }
+
+    //利用可能なthingに車上マップ上のthingを含める
+    [HarmonyPatch(typeof(Designator_Build), nameof(Designator_Build.ProcessInput))]
+    public static class Patch_Designator_Build_ProcessInput
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var code = instructions.ToList();
+            var g_Count = AccessTools.PropertyGetter(typeof(List<Thing>), nameof(List<Thing>.Count));
+            var pos = code.FindIndex(c => c.opcode == OpCodes.Callvirt && c.OperandIs(g_Count));
+            code.InsertRange(pos, new[]
+            {
+                CodeInstruction.LoadArgument(0),
+                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Designator_Map),
+                CodeInstruction.LoadLocal(4),
+                CodeInstruction.Call(typeof(Patch_ItemAvailability_ThingsAvailableAnywhere), nameof(Patch_ItemAvailability_ThingsAvailableAnywhere.AddThingList))
+            });
+            return code;
+        }
+    }
+
+    [HarmonyPatch(typeof(DesignationDragger), nameof(DesignationDragger.DraggerUpdate))]
+    public static class Patch_DesignationDragger_DraggerUpdate
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+        {
+            var codes = instructions.ToList();
+            var m_CellRect_ClipInsideRect = AccessTools.Method(typeof(CellRect), nameof(CellRect.ClipInsideRect));
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(m_CellRect_ClipInsideRect));
+            var label = generator.DefineLabel();
+
+            codes[pos].labels.Add(label);
+            codes.InsertRange(pos, new[] {
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.g_FocusedVehicle),
+                new CodeInstruction(OpCodes.Brfalse_S, label),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.g_FocusedVehicle),
+                new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.VehicleMapToOrig), new Type[]{ typeof(CellRect), typeof(VehiclePawnWithMap) }))
             });
             return codes;
         }

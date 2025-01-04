@@ -308,7 +308,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             return code;
         }
 
-        private static List<Thing> AddThingList(List<Thing> list, Map map, ThingDef need)
+        public static List<Thing> AddThingList(List<Thing> list, Map map, ThingDef need)
         {
             var result = new List<Thing>(list);
             foreach (var vehicle in VehiclePawnWithMapCache.allVehicles[map])

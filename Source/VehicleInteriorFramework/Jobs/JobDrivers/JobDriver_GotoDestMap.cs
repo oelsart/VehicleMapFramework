@@ -13,7 +13,6 @@ namespace VehicleInteriors
 
         public override bool TryMakePreToilReservations(bool errorOnFailed)
         {
-            var driver = nextJob.GetCachedDriver(this.pawn);
             var map = this.pawn.Map;
             var map2 = this.TargetAMap;
             if (map != map2)

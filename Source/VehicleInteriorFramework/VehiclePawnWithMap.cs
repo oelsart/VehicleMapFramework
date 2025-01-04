@@ -5,11 +5,9 @@ using SmashTools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 using Vehicles;
 using Verse;
-using Verse.Noise;
 
 namespace VehicleInteriors
 {
@@ -170,6 +168,8 @@ namespace VehicleInteriors
             VehiclePawnWithMapCache.allVehicles[map].Add(this);
 
             this.interiorMap.skyManager = this.Map.skyManager;
+            this.interiorMap.weatherDecider = this.Map.weatherDecider;
+            this.interiorMap.weatherManager = this.Map.weatherManager;
         }
 
         public override void Tick()
@@ -190,7 +190,7 @@ namespace VehicleInteriors
                     }
                 }
             }
-            else if (this.CompVehicleLauncher?.launchProtocol != null)
+            else if (this.CompVehicleLauncher?.launchProtocol != null && Find.CurrentMap != this.interiorMap)
             {
                 this.cachedDrawPos = this.CompVehicleLauncher.launchProtocol.DrawPos;
             }
@@ -248,20 +248,30 @@ namespace VehicleInteriors
         public override void DeSpawn(DestroyMode mode = DestroyMode.Vanish)
         {
             VehiclePawnWithMapCache.allVehicles[this.Map].Remove(this);
+            this.interiorMap.skyManager = new SkyManager(this.interiorMap);
+            this.interiorMap.skyManager.ForceSetCurSkyGlow(this.Map.skyManager.CurSkyGlow);
+            this.interiorMap.weatherManager = new WeatherManager(this.interiorMap);
+            this.interiorMap.weatherManager.curWeather = this.Map.weatherManager.curWeather;
+            this.interiorMap.weatherManager.lastWeather = this.Map.weatherManager.lastWeather;
+            this.interiorMap.weatherManager.prevSkyTargetLerp = this.Map.weatherManager.prevSkyTargetLerp;
+            this.interiorMap.weatherManager.currSkyTargetLerp = this.Map.weatherManager.currSkyTargetLerp;
+            this.interiorMap.weatherManager.curWeatherAge = this.Map.weatherManager.curWeatherAge;
+            this.interiorMap.weatherManager.growthSeasonMemory = this.Map.weatherManager.growthSeasonMemory;
+            this.interiorMap.weatherDecider = new WeatherDecider(this.Map);
+
+
             base.DeSpawn(mode);
             foreach (var thing in this.interiorMap.listerThings.AllThings)
             {
                 VehiclePawnWithMapCache.cachedDrawPos.Remove(thing);
                 VehiclePawnWithMapCache.cachedPosOnBaseMap.Remove(thing);
             }
-
-            this.interiorMap.skyManager = new SkyManager(this.interiorMap);
         }
 
         public override void DrawAt(Vector3 drawLoc, Rot8 rot, float extraRotation, bool flip = false, bool compDraw = true)
         {
             this.ResetCache();
-            if (this.Spawned)
+            if (this.Spawned || Find.CurrentMap == this.interiorMap)
             {
                 this.cachedDrawPos = drawLoc;
                 base.DrawAt(drawLoc, rot, extraRotation, flip, compDraw);
@@ -278,12 +288,19 @@ namespace VehicleInteriors
                 }
             }
 
+            this.DrawVehicleMap(extraRotation);
+        }
+
+        public void DrawVehicleMap(float extraRotation)
+        {
             var map = this.interiorMap;
             //PlantFallColors.SetFallShaderGlobals(map);
             //map.waterInfo.SetTextures();
             //map.avoidGrid.DebugDrawOnMap();
             //BreachingGridDebug.DebugDrawAllOnMap(map);
+            VehiclePawnWithMapCache.cacheMode = true;
             map.mapDrawer.MapMeshDrawerUpdate_First();
+            VehiclePawnWithMapCache.cacheMode = false;
             //map.powerNetGrid.DrawDebugPowerNetGrid();
             //DoorsDebugDrawer.DrawDebug();
             //map.mapDrawer.DrawMapMesh();
@@ -297,11 +314,6 @@ namespace VehicleInteriors
             //map.flecks.FleckManagerDraw();
             //map.gameConditionManager.GameConditionManagerDraw(map);
             //MapEdgeClipDrawer.DrawClippers(__instance);
-
-            if (!this.Spawned)
-            {
-                this.cachedDrawPos = Vector3.zero;
-            }
         }
 
         private void DrawVehicleMapMesh(Map map, Vector3 drawPos, float extraRotation)
@@ -320,11 +332,16 @@ namespace VehicleInteriors
         private void DrawSection(Section section, Vector3 drawPos, float extraRotation)
         {
             this.DrawLayer(section, typeof(SectionLayer_TerrainOnVehicle), drawPos, extraRotation);
-            ((SectionLayer_ThingsOnVehicle)section.GetLayer(typeof(SectionLayer_ThingsOnVehicle))).DrawLayer(this, drawPos, extraRotation);
+            ((SectionLayer_ThingsGeneralOnVehicle)section.GetLayer(typeof(SectionLayer_ThingsGeneralOnVehicle))).DrawLayer(this.FullRotation, drawPos, extraRotation);
             this.DrawLayer(section, typeof(SectionLayer_BuildingsDamage), drawPos, extraRotation);
-            this.DrawLayer(section, typeof(SectionLayer_ThingsPowerGrid), drawPos.WithY(0f), extraRotation);
+            ((SectionLayer_ThingsPowerGridOnVehicle)section.GetLayer(typeof(SectionLayer_ThingsPowerGridOnVehicle))).DrawLayer(this.FullRotation, drawPos.WithY(0f), extraRotation);
             this.DrawLayer(section, t_SectionLayer_Zones, drawPos, extraRotation);
             ((SectionLayer_LightingOnVehicle)section.GetLayer(typeof(SectionLayer_LightingOnVehicle))).DrawLayer(this, drawPos, extraRotation);
+            if (Find.CurrentMap == this.interiorMap)
+            {
+                this.DrawLayer(section, typeof(SectionLayer_IndoorMask), drawPos, extraRotation);
+                this.DrawLayer(section, typeof(SectionLayer_LightingOverlay), drawPos, extraRotation);
+            }
             //if (DebugViewSettings.drawSectionEdges)
             //{
             //    Vector3 a = section.botLeft.ToVector3();
@@ -393,6 +410,15 @@ namespace VehicleInteriors
             Scribe_Values.Look(ref this.autoGetOff, "autoGetOff");
         }
 
+        protected override void PostLoad()
+        {
+            base.PostLoad();
+            if (!this.Spawned)
+            {
+                this.CompVehicleTurrets?.InitTurrets();
+            }
+        }
+
         private Map interiorMap;
 
         public Vector3 cachedDrawPos = Vector3.zero;
@@ -410,10 +436,6 @@ namespace VehicleInteriors
         private static readonly Material ClipMat = SolidColorMaterials.NewSolidColorMaterial(new Color(0.3f, 0.1f, 0.1f, 0.65f), ShaderDatabase.MetaOverlay);
 
         //private static readonly float ClipAltitude = AltitudeLayer.WorldClipper.AltitudeFor();
-
-        private static readonly AccessTools.FieldRef<Section, bool> anyLayerDirty = AccessTools.FieldRefAccess<Section, bool>("anyLayerDirty");
-
-        private static readonly FastInvokeHandler RegenerateDirtyLayers = MethodInvoker.GetHandler(AccessTools.Method(typeof(Section), "RegenerateDirtyLayers"));
 
         private static readonly Texture2D iconAllowsHaulIn = ContentFinder<Texture2D>.Get("VehicleInteriors/UI/AllowsHaulIn");
 

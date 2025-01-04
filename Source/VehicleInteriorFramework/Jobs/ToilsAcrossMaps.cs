@@ -219,12 +219,12 @@ namespace VehicleInteriors
                     if (vehiclePawn != null)
                     {
                         vehiclePawn.DeSpawnWithoutJobClearVehicle();
-                        GenSpawn.Spawn(toil3.actor, basePos - faceCell * dist - faceCell * vehiclePawn.HalfLength(), exitSpot.Map.BaseMap(), baseRot.Opposite, WipeMode.Vanish);
+                        GenSpawn.Spawn(toil3.actor, basePos - faceCell * dist - faceCell * vehiclePawn.HalfLength(), baseMap, baseRot.Opposite, WipeMode.Vanish);
                     }
                     else
                     {
                         toil3.actor.DeSpawnWithoutJobClear();
-                        GenSpawn.Spawn(toil3.actor, basePos - faceCell * dist, exitSpot.Map.BaseMap(), baseRot.Opposite, WipeMode.Vanish);
+                        GenSpawn.Spawn(toil3.actor, basePos - faceCell * dist, baseMap, baseRot.Opposite, WipeMode.Vanish);
                     }
                 };
                 yield return toil3;

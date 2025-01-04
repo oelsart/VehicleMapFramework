@@ -3,6 +3,7 @@
 	<ThingDef Name="VehicleSeatBase" ParentName="FurnitureBase" Abstract="True">
 		<designationCategory>VF_Vehicles</designationCategory>
 		<minifiedDef>MinifiedThing</minifiedDef>
+		<drawerType>MapMeshAndRealTime</drawerType>
 		<altitudeLayer>Building</altitudeLayer>
 		<passability>PassThroughOnly</passability>
 		<placeWorkers>

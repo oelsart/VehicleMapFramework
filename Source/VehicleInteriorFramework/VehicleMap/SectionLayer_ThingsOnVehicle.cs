@@ -1,13 +1,11 @@
 ﻿using SmashTools;
-using System;
 using System.Collections.Generic;
 using UnityEngine;
-using Vehicles;
 using Verse;
 
 namespace VehicleInteriors
 {
-    public class SectionLayer_ThingsOnVehicle : SectionLayer_ThingsGeneral
+    public abstract class SectionLayer_ThingsOnVehicle : SectionLayer_Things
     {
         public SectionLayer_ThingsOnVehicle(Section section) : base(section)
         {
@@ -18,33 +16,20 @@ namespace VehicleInteriors
             return this.bounds;
         }
 
+        //drawPlanetがオフでVehicleMapにフォーカスした時しか呼ばれないよ
         public override void DrawLayer()
         {
-
-            if (!this.Visible)
-            {
-                return;
-            }
-            var subMeshes = this.subMeshesByRot[Rot4.NorthInt];
-            int count = subMeshes.Count;
-            for (int i = 0; i < count; i++)
-            {
-                LayerSubMesh layerSubMesh = subMeshes[i];
-                if (layerSubMesh.finalized && !layerSubMesh.disabled)
-                {
-                    Graphics.DrawMesh(layerSubMesh.mesh, Matrix4x4.identity, layerSubMesh.material, 0);
-                }
-            }
+            this.DrawLayer(Rot8.North, Vector3.zero, 0f);
         }
 
-        public void DrawLayer(VehiclePawnWithMap vehicle, Vector3 drawPos, float extraRotation)
+        public void DrawLayer(Rot8 rot, Vector3 drawPos, float extraRotation)
         {
             if (!DebugViewSettings.drawThingsPrinted)
             {
                 return;
             }
-            var angle = Ext_Math.RotateAngle(vehicle.FullRotation.AsAngle, extraRotation);
-            switch (vehicle.FullRotation.AsByte)
+            var angle = Ext_Math.RotateAngle(rot.AsAngle, extraRotation);
+            switch (rot.AsByte)
             {
                 case Rot8.NorthInt:
                 case Rot8.NorthEastInt:
@@ -91,7 +76,6 @@ namespace VehicleInteriors
             for (var i = 0; i < 4; i++)
             {
                 this.subMeshes = new List<LayerSubMesh>();
-                VehiclePawnWithMapCache.cacheMode = true;
                 foreach (IntVec3 intVec in this.section.CellRect)
                 {
                     foreach (var thing in intVec.GetThingList(base.Map))
@@ -103,30 +87,9 @@ namespace VehicleInteriors
                         }
                     }
                 }
-                VehiclePawnWithMapCache.cacheMode = false;
                 this.FinalizeMesh(MeshParts.All);
                 this.subMeshesByRot[i] = this.subMeshes;    
                 VehicleMapUtility.rotForPrint.Rotate(RotationDirection.Clockwise);
-            }
-        }
-
-        protected override void TakePrintFrom(Thing t)
-        {
-            try
-            {
-                t.Print(this);
-            }
-            catch (Exception ex)
-            {
-                Log.Error(string.Concat(new object[]
-                {
-                    "Exception printing ",
-                    t,
-                    " at ",
-                    t.Position,
-                    ": ",
-                    ex
-                }));
             }
         }
 

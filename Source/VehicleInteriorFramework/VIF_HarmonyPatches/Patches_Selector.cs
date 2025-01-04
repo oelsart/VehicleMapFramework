@@ -29,51 +29,58 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     [HarmonyPatch(typeof(Selector), "SelectableObjectsUnderMouse")]
     public static class Patch_Selector_SelectableObjectsUnderMouse
     {
-        public static void Postfix(ref IEnumerable<object> __result)
+        public static bool Prefix(ref IEnumerable<object> __result)
         {
             var mouseMapPosition = UI.MouseMapPosition();
-            if (mouseMapPosition.TryGetVehiclePawnWithMap(Find.CurrentMap, out var vehicle))
+            if (!mouseMapPosition.TryGetVehiclePawnWithMap(Find.CurrentMap, out var vehicle))
             {
-                TargetingParameters targetingParameters = new TargetingParameters
-                {
-                    mustBeSelectable = true,
-                    canTargetPawns = true,
-                    canTargetBuildings = true,
-                    canTargetItems = true,
-                    mapObjectTargetsMustBeAutoAttackable = false
-                };
-                var mouseVehicleMapPosition = mouseMapPosition.VehicleMapToOrig(vehicle);
+                return true;
+            }
 
-                if (!mouseVehicleMapPosition.InBounds(vehicle.VehicleMap)) return;
+            var result = new List<object>();
+            TargetingParameters targetingParameters = new TargetingParameters
+            {
+                mustBeSelectable = true,
+                canTargetPawns = true,
+                canTargetBuildings = true,
+                canTargetItems = true,
+                mapObjectTargetsMustBeAutoAttackable = false
+            };
+            var mouseVehicleMapPosition = mouseMapPosition.VehicleMapToOrig(vehicle);
 
-                List<Thing> selectableList = GenUIOnVehicle.ThingsUnderMouse(mouseMapPosition, 1f, targetingParameters, null, vehicle);
-                if (selectableList.Count > 0)
+            if (!mouseVehicleMapPosition.InBounds(vehicle.VehicleMap)) return true;
+
+            List<Thing> selectableList = GenUIOnVehicle.ThingsUnderMouse(mouseMapPosition, 1f, targetingParameters, null, vehicle);
+            if (selectableList.Count > 0)
+            {
+                if (selectableList[0] is Pawn && (selectableList[0].DrawPos - mouseMapPosition).MagnitudeHorizontal() < 0.4f)
                 {
-                    __result = __result.Except(vehicle);
-                    if (selectableList[0] is Pawn && (selectableList[0].DrawPos - mouseMapPosition).MagnitudeHorizontal() < 0.4f)
+                    for (int j = selectableList.Count - 1; j >= 0; j--)
                     {
-                        for (int j = selectableList.Count - 1; j >= 0; j--)
+                        Thing thing2 = selectableList[j];
+                        if (thing2.def.category == ThingCategory.Pawn && (thing2.DrawPosHeld.Value - mouseMapPosition).MagnitudeHorizontal() > 0.4f)
                         {
-                            Thing thing2 = selectableList[j];
-                            if (thing2.def.category == ThingCategory.Pawn && (thing2.DrawPosHeld.Value - mouseMapPosition).MagnitudeHorizontal() > 0.4f)
-                            {
-                                selectableList.Remove(thing2);
-                            }
+                            selectableList.Remove(thing2);
                         }
                     }
                 }
-
-                foreach (var thing in selectableList)
-                {
-                    __result = __result.AddItem(thing);
-                }
-
-                Zone zone = vehicle.VehicleMap.zoneManager.ZoneAt(mouseVehicleMapPosition.ToIntVec3());
-                if (zone != null)
-                {
-                    __result = __result.AddItem(zone);
-                }
             }
+
+            result.AddRange(selectableList);
+
+            Zone zone = vehicle.VehicleMap.zoneManager.ZoneAt(mouseVehicleMapPosition.ToIntVec3());
+            if (zone != null)
+            {
+                result.Add(zone);
+            }
+
+            if (result.Empty() && vehicle.Spawned)
+            {
+                result.Add(vehicle);
+            }
+
+            __result = result;
+            return false;
         }
     }
 
@@ -101,9 +108,9 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                 new CodeInstruction(OpCodes.Ldloca_S, vehicle),
                 new CodeInstruction(OpCodes.Call, MethodInfoCache.m_IsVehicleMapOf),
                 new CodeInstruction(OpCodes.Brfalse_S, label),
-                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Thing_Spawned),
-                new CodeInstruction(OpCodes.Brfalse_S, label),
+                //new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+                //new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Thing_Spawned),
+                //new CodeInstruction(OpCodes.Brfalse_S, label),
                 new CodeInstruction(OpCodes.Ldloc_S, vehicle),
                 new CodeInstruction(OpCodes.Call, MethodInfoCache.m_OrigToVehicleMap2)
             });
@@ -130,7 +137,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         public static void Prefix(ref IntVec3 cell, ref Map map)
         {
-            if (map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
+            if (map.IsVehicleMapOf(out var vehicle))
             {
                 cell = cell.OrigToVehicleMap(vehicle);
                 map = vehicle.Map;
@@ -144,9 +151,13 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         public static bool Prefix(ref IEnumerable<object> __result, Rect rect)
         {
-            if (Command_FocusVehicleMap.FocusedVehicle == null) return true;
+            var mouseMapPosition = UI.MouseMapPosition();
+            if (!mouseMapPosition.TryGetVehiclePawnWithMap(Find.CurrentMap, out var vehicle))
+            {
+                return true;
+            }
 
-            var focusedMap = Command_FocusVehicleMap.FocusedVehicle.VehicleMap;
+            var focusedMap = vehicle.VehicleMap;
             __result = new List<object>();
             CellRect mapRect = GetMapRect(rect);
             yieldedThings.Clear();
@@ -154,7 +165,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             {
                 foreach (IntVec3 c in mapRect)
                 {
-                    var c2 = c.VehicleMapToOrig(Command_FocusVehicleMap.FocusedVehicle);
+                    var c2 = c.VehicleMapToOrig(vehicle);
                     if (c2.InBounds(focusedMap))
                     {
                         List<Thing> cellThings = focusedMap.thingGrid.ThingsListAt(c2);
@@ -177,14 +188,14 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                 Rect rectInWorldSpace = GetRectInWorldSpace(rect);
                 foreach (IntVec3 c2 in mapRect.ExpandedBy(1).EdgeCells)
                 {
-                    var c3 = c2.VehicleMapToOrig(Command_FocusVehicleMap.FocusedVehicle);
+                    var c3 = c2.VehicleMapToOrig(vehicle);
                     if (c3.InBounds(focusedMap) && c3.GetItemCount(focusedMap) > 1)
                     {
                         foreach (Thing t in focusedMap.thingGrid.ThingsAt(c3))
                         {
                             if (t.def.category == ThingCategory.Item && (bool)SelectableByMapClick(null, t) && !t.def.neverMultiSelect && !yieldedThings.Contains(t))
                             {
-                                Vector3 vector = t.TrueCenter().OrigToVehicleMap(Command_FocusVehicleMap.FocusedVehicle);
+                                Vector3 vector = t.TrueCenter();
                                 Rect rect2 = new Rect(vector.x - 0.5f, vector.z - 0.5f, 1f, 1f);
                                 if (rect2.Overlaps(rectInWorldSpace))
                                 {

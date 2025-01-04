@@ -92,6 +92,11 @@ namespace VehicleInteriors
                         }
                     }
                 }
+
+                foreach (var gizmo in vehicle.AllComps.Where(c => c is CompTogglableOverlays).SelectMany(c => c.CompGetGizmosExtra()))
+                {
+                    yield return gizmo;
+                }
             }
         }
 
@@ -105,11 +110,11 @@ namespace VehicleInteriors
             }
         }
 
-        public override void PostDeSpawn(Map map)
-        {
-            base.PostDeSpawn(map);
-            _ = this.handlersToDraw;
-        }
+        //public override void PostDeSpawn(Map map)
+        //{
+        //    base.PostDeSpawn(map);
+        //    _ = this.handlersToDraw;
+        //}
 
         public override void PostDraw()
         {

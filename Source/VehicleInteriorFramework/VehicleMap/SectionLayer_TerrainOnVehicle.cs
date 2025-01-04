@@ -1,4 +1,5 @@
 ﻿using RimWorld;
+using SmashTools;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -24,6 +25,19 @@ namespace VehicleInteriors
                 Log.Error("[VehicleInteriors] Do not use SectionLayer_TerrainOnVehicle except for vehicle maps.");
                 return;
             }
+            this.baseTerrainMat = SolidColorMaterials.NewSolidColorMaterial(vehicle.DrawColor, ShaderDatabase.TerrainHard);
+        }
+
+        //drawPlanetがオフでVehicleMapにフォーカスした時しか呼ばれないよ
+        public override void DrawLayer()
+        {
+            if (!base.Map.IsVehicleMapOf(out var vehicle))
+            {
+                Log.Error("[VehicleInteriors] Do not use SectionLayer_TerrainOnVehicle except for vehicle maps.");
+                return;
+            }
+            var mapSize = new Vector3(vehicle.VehicleMap.Size.x, 0f, vehicle.VehicleMap.Size.z);
+            Graphics.DrawMesh(MeshPool.plane10, Matrix4x4.TRS(mapSize / 2f, Quaternion.identity, mapSize), this.baseTerrainMat, 0);
         }
 
         public virtual Material GetMaterialFor(CellTerrain cellTerrain)
@@ -166,6 +180,8 @@ namespace VehicleInteriors
             }
             base.FinalizeMesh(MeshParts.All);
         }
+
+        private readonly Material baseTerrainMat;
 
         private static readonly Color32 ColorWhite = new Color32(byte.MaxValue, byte.MaxValue, byte.MaxValue, byte.MaxValue);
 

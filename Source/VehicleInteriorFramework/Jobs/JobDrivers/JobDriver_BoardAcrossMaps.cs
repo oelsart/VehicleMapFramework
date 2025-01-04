@@ -84,7 +84,10 @@ namespace VehicleInteriors
                     var caravan = vehiclePawn.GetCaravan() ?? vehiclePawn.GetVehicleCaravan();
                     caravan?.AddPawn(pawnBoarding, true);
                     Find.WorldPawns.PassToWorld(pawnBoarding, PawnDiscardDecideMode.Decide);
-                    pawnBoarding.SetFaction(vehiclePawn.Faction);
+                    if (pawnBoarding.Faction != vehiclePawn.Faction)
+                    {
+                        pawnBoarding.SetFaction(vehiclePawn.Faction);
+                    }
                     vehicleAssigned.Item1.Notify_BoardedCaravan(pawnBoarding, vehicleAssigned.Item2.handlers);
                 }
                 this.ThrowAppropriateHistoryEvent(vehiclePawn.VehicleDef.vehicleType, toil.actor);

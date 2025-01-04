@@ -1,5 +1,4 @@
-﻿using RimWorld;
-using RimWorld.Planet;
+﻿using RimWorld.Planet;
 using Verse;
 
 namespace VehicleInteriors
@@ -7,6 +6,17 @@ namespace VehicleInteriors
     public class MapParent_Vehicle : MapParent
     {
         public VehiclePawnWithMap vehicle;
+
+        public override void FinalizeLoading()
+        {
+            base.FinalizeLoading();
+            LongEventHandler.ExecuteWhenFinished(() =>
+            {
+                VehiclePawnWithMapCache.cacheMode = true;
+                this.vehicle.VehicleMap.mapDrawer.RegenerateEverythingNow();
+                VehiclePawnWithMapCache.cacheMode = false;
+            });
+        }
 
         public override void ExposeData()
         {

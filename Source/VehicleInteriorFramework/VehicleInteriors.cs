@@ -5,13 +5,29 @@ namespace VehicleInteriors
 {
     public class VehicleInteriors : Mod
     {
-        public static VehicleInteriors Mod { get; private set; }
+        public static VehicleInteriors mod;
 
-        public static AssetBundle Bundle => VehicleInteriors.Mod.Content.assetBundles.loadedAssetBundles.Find(a => a.name == "vehicleinteriors");
+        public static VehicleMapSettings settings;
+
+        public static AssetBundle Bundle => VehicleInteriors.mod.Content.assetBundles.loadedAssetBundles.Find(a => a.name == "vehicleinteriors");
 
         public VehicleInteriors(ModContentPack content) : base(content)
         {
-            VehicleInteriors.Mod = this;
+            VehicleInteriors.mod = this;
+            VehicleInteriors.settings = base.GetSettings<VehicleMapSettings>();
+        }
+
+        public override void DoSettingsWindowContents(Rect inRect)
+        {
+            Listing_Standard listingStandard = new Listing_Standard();
+            listingStandard.Begin(inRect);
+            listingStandard.CheckboxLabeled("VIF.Settings.DrawPlanet".Translate(), ref settings.drawPlanet);
+            listingStandard.End();
+        }
+
+        public override string SettingsCategory()
+        {
+            return "Vehicle Map Framework";
         }
     }
 }
