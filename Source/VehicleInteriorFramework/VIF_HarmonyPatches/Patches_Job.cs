@@ -20,6 +20,15 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             var m_GetCachedDriver = AccessTools.Method(typeof(Job), nameof(Job.GetCachedDriver));
             return instructions.MethodReplacer(m_MakeDriver, m_GetCachedDriver);
         }
+
+        public static void Prefix(ref Job newJob, Pawn ___pawn)
+        {
+            var thing = newJob.targetA.Thing;
+            if (!(newJob.GetCachedDriver(___pawn) is JobDriverAcrossMaps) && thing != null && thing.MapHeld != ___pawn.MapHeld && ___pawn.CanReach(thing, PathEndMode.Touch, Danger.Deadly, true, true, TraverseMode.ByPawn, thing.MapHeld, out var exitSpot, out var enterSpot))
+            {
+                newJob = JobAcrossMapsUtility.GotoDestMapJob(___pawn, exitSpot, enterSpot, newJob);
+            }
+        }
     }
 
     //必要な時JobをGotoDestMapJobでくるむ
@@ -316,6 +325,128 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                 result.AddRange(vehicle.VehicleMap.listerThings.ThingsOfDef(need));
             }
             return result;
+        }
+    }
+
+    [HarmonyPatch(typeof(GenClosest), nameof(GenClosest.ClosestThingReachable_NewTemp))]
+    public static class Patch_GenClosest_ClosestThingReachable_NewTemp
+    {
+        public static bool Prefix(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance, Predicate<Thing> validator, IEnumerable<Thing> customGlobalSearchSet, int searchRegionsMin, int searchRegionsMax, bool forceAllowGlobalSearch, RegionType traversableRegionTypes, bool ignoreEntirelyForbiddenRegions, bool lookInHaulSources, ref Thing __result)
+        {
+            if (traverseParams.pawn != null && traverseParams.pawn.jobs.DeterminingNextJob)
+            {
+                __result = GenClosestOnVehicle.ClosestThingReachable(root, map, thingReq, peMode, traverseParams, maxDistance, validator, customGlobalSearchSet, searchRegionsMin, searchRegionsMax, true, traversableRegionTypes, ignoreEntirelyForbiddenRegions, lookInHaulSources);
+                return false;
+            }
+            return true;
+        }
+    }
+
+    [HarmonyPatch(typeof(ReservationManager), nameof(ReservationManager.CanReserve))]
+    public static class Patch_ReservationManager_CanReserve
+    {
+        public static bool Prefix(Pawn claimant, LocalTargetInfo target, int maxPawns, int stackCount, ReservationLayerDef layer, bool ignoreOtherReservations, ref bool __result)
+        {
+            if (target.HasThing && claimant.Map != target.Thing.MapHeld)
+            {
+                __result = claimant.CanReserve(target, target.Thing.MapHeld, maxPawns, stackCount, layer, ignoreOtherReservations);
+                return false;
+            }
+            return true;
+        }
+    }
+
+    [HarmonyPatch(typeof(ReservationManager), nameof(ReservationManager.Reserve))]
+    public static class Patch_ReservationManager_Reserve
+    {
+        public static bool Prefix(ReservationManager __instance, Pawn claimant, Job job, LocalTargetInfo target, int maxPawns, int stackCount, ReservationLayerDef layer, bool errorOnFailed, bool ignoreOtherReservations, bool canReserversStartJobs, ref bool __result)
+        {
+            if (__instance == claimant.Map.reservationManager && target.HasThing && claimant.Map != target.Thing.MapHeld)
+            {
+                __result = target.Thing.MapHeld.reservationManager.Reserve(claimant, job, target, maxPawns, stackCount, layer, errorOnFailed, ignoreOtherReservations, canReserversStartJobs);
+                return false;
+            }
+            return true;
+        }
+
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var m_ReservationManager_CanReserve = AccessTools.Method(typeof(ReservationManager), nameof(ReservationManager.CanReserve));
+            var m_ReservationAcrossMapsUtility_CanReserve = AccessTools.Method(typeof(ReservationAcrossMapsUtility), nameof(ReservationAcrossMapsUtility.CanReserve),
+                new Type[] { typeof(ReservationManager), typeof(Pawn), typeof(LocalTargetInfo), typeof(int), typeof(int), typeof(ReservationLayerDef), typeof(bool), typeof(Map) });
+            var f_ReservationManager_map = AccessTools.Field(typeof(ReservationManager), "map");
+
+            foreach (var instruction in instructions)
+            {
+                if (instruction.opcode == OpCodes.Call && instruction.OperandIs(m_ReservationManager_CanReserve))
+                {
+                    yield return CodeInstruction.LoadArgument(0);
+                    yield return new CodeInstruction(OpCodes.Ldfld, f_ReservationManager_map);
+                    yield return new CodeInstruction(OpCodes.Call, m_ReservationAcrossMapsUtility_CanReserve);
+                }
+                else
+                {
+                    yield return instruction;
+                }
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(ReservationManager), nameof(ReservationManager.CanReserveStack))]
+    public static class Patch_ReservationManager_CanReserveStack
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var codes = instructions.ToList();
+
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Callvirt && c.OperandIs(MethodInfoCache.g_Thing_Map));
+            codes[pos] = new CodeInstruction(OpCodes.Call, MethodInfoCache.m_BaseMap_Thing);
+
+            var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Beq_S);
+            codes.Insert(pos2, new CodeInstruction(OpCodes.Call, MethodInfoCache.m_BaseMap_Map));
+            return codes;
+        }
+    }
+
+    [HarmonyPatch(typeof(FoodUtility), nameof(FoodUtility.BestFoodSourceOnMap))]
+    public static class Patch_FoodUtility_BestFoodSourceOnMap
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var codes = instructions.ToList();
+
+            var m_ThingsMatching = AccessTools.Method(typeof(ListerThings), nameof(ListerThings.ThingsMatching));
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Callvirt && c.OperandIs(m_ThingsMatching)) + 1;
+            codes.InsertRange(pos, new[]
+            {
+                CodeInstruction.LoadArgument(0),
+                CodeInstruction.LoadLocal(1),
+                CodeInstruction.Call(typeof(Patch_FoodUtility_BestFoodSourceOnMap), nameof(Patch_FoodUtility_BestFoodSourceOnMap.AddSearchSet))
+            });
+            return codes;
+        }
+
+        private static IEnumerable<Thing> AddSearchSet(List<Thing> list, Pawn getter, ThingRequest req)
+        {
+            var searchSet = new List<Thing>(list);
+            var baseMap = getter.BaseMap();
+            var maps = VehiclePawnWithMapCache.allVehicles[baseMap].Select(v => v.VehicleMap).Concat(baseMap).Except(getter.Map);
+            foreach (var map in maps)
+            {
+                searchSet.AddRange(map.listerThings.ThingsMatching(req));
+            }
+            return searchSet;
+        }
+    }
+
+    [HarmonyPatch(typeof(RestUtility), nameof(RestUtility.CanUseBedNow))]
+    public static class Patch_RestUtility_CanUseBedNow
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.m_ForbidUtility_IsForbidden, MethodInfoCache.m_ReservationAcrossMapsUtility_IsForbidden)
+                .MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing)
+                .MethodReplacer(MethodInfoCache.g_Thing_MapHeld, MethodInfoCache.m_MapHeldBaseMap);
         }
     }
 }

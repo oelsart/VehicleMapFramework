@@ -65,51 +65,19 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         }
     }
 
-    [HarmonyPatch(typeof(ReservationManager), nameof(ReservationManager.Reserve))]
-    public static class Patch_ReservationManager_Reserve
-    {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
-            var m_ReservationManager_CanReserve = AccessTools.Method(typeof(ReservationManager), nameof(ReservationManager.CanReserve));
-            var m_ReservationAcrossMapsUtility_CanReserve = AccessTools.Method(typeof(ReservationAcrossMapsUtility), nameof(ReservationAcrossMapsUtility.CanReserve),
-                new Type[] { typeof(ReservationManager), typeof(Pawn), typeof(LocalTargetInfo), typeof(int), typeof(int), typeof(ReservationLayerDef), typeof(bool), typeof(Map) });
-            var f_ReservationManager_map = AccessTools.Field(typeof(ReservationManager), "map");
-
-            foreach(var instruction in instructions)
-            {
-                if (instruction.opcode == OpCodes.Call && instruction.OperandIs(m_ReservationManager_CanReserve))
-                {
-                    yield return CodeInstruction.LoadArgument(0);
-                    yield return new CodeInstruction(OpCodes.Ldfld, f_ReservationManager_map);
-                    yield return new CodeInstruction(OpCodes.Call, m_ReservationAcrossMapsUtility_CanReserve);
-                }
-                else
-                {
-                    yield return instruction;
-                }
-            }
-        }
-    }
-
-    [HarmonyPatch(typeof(ReservationManager), nameof(ReservationManager.CanReserveStack))]
-    public static class Patch_ReservationManager_CanReserveStack
-    {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
-            var codes = instructions.ToList();
-
-            var pos = codes.FindIndex(c => c.opcode == OpCodes.Callvirt && c.OperandIs(MethodInfoCache.g_Thing_Map));
-            codes[pos] = new CodeInstruction(OpCodes.Call, MethodInfoCache.m_BaseMap_Thing);
-
-            var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Beq_S);
-            codes.Insert(pos2, new CodeInstruction(OpCodes.Call, MethodInfoCache.m_BaseMap_Map));
-            return codes;
-        }
-    }
-
     [HarmonyPatch(typeof(Reachability), nameof(Reachability.CanReach), typeof(IntVec3), typeof(LocalTargetInfo), typeof(PathEndMode), typeof(TraverseParms))]
     public static class Patch_Reachability_CanReach
     {
+        public static bool Prefix(Reachability __instance, IntVec3 start, LocalTargetInfo dest, PathEndMode peMode, TraverseParms traverseParams, ref bool __result)
+        {
+            if (traverseParams.pawn != null && traverseParams.pawn.jobs.DeterminingNextJob && dest.HasThing && dest.Thing.MapHeld.reachability != __instance)
+            {
+                __result = ReachabilityUtilityOnVehicle.CanReach(traverseParams.pawn.Map, start, dest, peMode, traverseParams, dest.Thing.MapHeld, out _, out _);
+                return false;
+            }
+            return true;
+        }
+
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             var codes = instructions.ToList();
