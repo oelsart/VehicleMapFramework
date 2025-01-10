@@ -8,4 +8,12 @@
 	<Vehicles.VehicleDef Name="BaseVehiclePawnWithMapHover" ParentName="BaseVehiclePawn" Abstract="True">
 		<thingClass>VehicleInteriors.VehiclePawnWithMap_Hover</thingClass>
 	</Vehicles.VehicleDef>
+
+	<Vehicles.VehicleDef Name="BaseSeaVehiclePawnWithMap" ParentName="BaseSeaVehicle" Abstract="True">
+		<thingClass>VehicleInteriors.VehiclePawnWithMap</thingClass>
+	</Vehicles.VehicleDef>
+
+	<Vehicles.VehicleDef Name="BaseSeaVehiclePawnWithMapHover" ParentName="BaseSeaVehicle" Abstract="True">
+		<thingClass>VehicleInteriors.VehiclePawnWithMap_Hover</thingClass>
+	</Vehicles.VehicleDef>
 </Defs>

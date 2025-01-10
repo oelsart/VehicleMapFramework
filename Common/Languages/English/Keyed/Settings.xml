@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LanguageData>
 
-	<VIF.Settings.DrawPlanet>Draw the world map during caravan.</VIF.Settings.DrawPlanet>
+	<VIF_Settings.DrawPlanet>Draw the world map during caravan.</VIF_Settings.DrawPlanet>
 
 </LanguageData>

@@ -28,9 +28,12 @@ namespace VehicleInteriors
 
         private void Notify_OpacityChanged()
         {
-            foreach (var mat in this.materials)
+            if (!this.materials.NullOrEmpty())
             {
-                mat.SetFloat("_Opacity", this.opacityInt);
+                foreach (var mat in this.materials)
+                {
+                    mat?.SetFloat("_Opacity", this.opacityInt);
+                }
             }
         }
 

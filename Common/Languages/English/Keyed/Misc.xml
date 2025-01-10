@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LanguageData>
 
-	<VIF.PowerTransferSetting>Power transfer setting</VIF.PowerTransferSetting>
+	<VIF_PowerTransferSetting>Power transfer setting</VIF_PowerTransferSetting>
+
+	<VIF_StatsReport_HumanPowerAverage>Operators' Strength Factor: {0}</VIF_StatsReport_HumanPowerAverage>
 
 </LanguageData>

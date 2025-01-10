@@ -16,7 +16,7 @@ namespace VehicleInteriors
 
         public override void CompTick()
         {
-            if (base.ParentVehicle.ignition.Drafted && !this.ignitionComplete)
+            if (base.Vehicle.ignition.Drafted && !this.ignitionComplete)
             {
                 if (this.ignitionTick == null)
                 {
@@ -38,7 +38,7 @@ namespace VehicleInteriors
                     }
                 }
             }
-            if(!base.ParentVehicle.ignition.Drafted && ignitionTick != null)
+            if(!base.Vehicle.ignition.Drafted && ignitionTick != null)
             {
                 this.ignitionTick = null;
                 this.ignitionComplete = false;
@@ -60,19 +60,27 @@ namespace VehicleInteriors
                 }
             }
 
-            if (base.ParentVehicle.CompVehicleLauncher != null && base.ParentVehicle.CompVehicleLauncher.inFlight)
+            if (base.Vehicle.CompVehicleLauncher != null && base.Vehicle.CompVehicleLauncher.inFlight)
             {
                 foreach (var graphicOverlay in base.Overlays)
                 {
                     if (graphicOverlay.Graphic is Graphic_VehicleOpacity graphic)
                     {
-                        var launchProtocol = base.ParentVehicle.CompVehicleLauncher.launchProtocol;
+                        var launchProtocol = base.Vehicle.CompVehicleLauncher.launchProtocol;
                         var timeInAnimation = launchProtocol is VTOLTakeoff vtol ? vtol.TimeInAnimationVTOL : launchProtocol.TimeInAnimation;
                         var opacity = Mathf.Min(graphic.Opacity + (this.Props.inFlightOpacity - graphic.Opacity) * timeInAnimation * 0.1f, this.Props.inFlightOpacity);
                         graphic.Opacity = opacity;
                     }
                 }
             }
+        }
+
+        public override void PostExposeData()
+        {
+            base.PostExposeData();
+            Scribe_Values.Look(ref this.ignitionTick, "ignitionTick");
+            Scribe_Values.Look(ref this.ignitionComplete, "ignitionComplete");
+            Scribe_Values.Look(ref this.landingComplete, "landingComplete");
         }
 
         private int? ignitionTick = 0;

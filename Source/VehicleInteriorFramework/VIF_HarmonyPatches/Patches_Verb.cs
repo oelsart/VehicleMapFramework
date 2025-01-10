@@ -194,4 +194,36 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                 .MethodReplacer(MethodInfoCache.m_CanBeSeenOverFast, MethodInfoCache.m_CanBeSeenOverOnVehicle);
         }
     }
+
+    [HarmonyPatch(typeof(Verb_Spray), "TryCastShot")]
+    public static class Patch_Verb_Spray_TryCastShot
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.m_Verb_TryFindShootLineFromTo, MethodInfoCache.m_TryFindShootLineFromToOnVehicle)
+                .MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing)
+                .MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap);
+        }
+    }
+
+    [HarmonyPatch(typeof(Verb_ArcSpray), "PreparePath")]
+    public static class Patch_Verb_ArcSpray_PreparePath
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap)
+                .MethodReplacer(MethodInfoCache.g_LocalTargetInfo_Cell, MethodInfoCache.m_CellOnBaseMap);
+        }
+    }
+
+    [HarmonyPatch(typeof(Verb_ArcSprayProjectile), "HitCell")]
+    public static class Patch_Verb_ArcSprayProjectile_HitCell
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing)
+                .MethodReplacer(MethodInfoCache.m_GenSight_LineOfSight2, MethodInfoCache.m_GenSightOnVehicle_LineOfSight2)
+                .MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap);
+        }
+    }
 }

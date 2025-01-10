@@ -79,7 +79,7 @@ namespace VehicleInteriors
                     MoteMaker.ThrowText(this.parent.DrawPos, this.parent.BaseMap(), this.powerOutputSetting.ToString(), Color.white, -1f);
                 },
                 defaultLabel = "-1000W",
-                defaultDesc = "VIF.LowerPowerDesc".Translate(),
+                defaultDesc = "VIF_LowerPowerDesc".Translate(),
                 hotKey = KeyBindingDefOf.Misc5,
                 icon = ContentFinder<Texture2D>.Get("VehicleInteriors/UI/PowerLower", true)
             };
@@ -91,7 +91,7 @@ namespace VehicleInteriors
                     MoteMaker.ThrowText(this.parent.DrawPos, this.parent.BaseMap(), this.powerOutputSetting.ToString(), Color.white, -1f);
                 },
                 defaultLabel = "-100W",
-                defaultDesc = "VIF.LowerPowerDesc".Translate(),
+                defaultDesc = "VIF_LowerPowerDesc".Translate(),
                 hotKey = KeyBindingDefOf.Misc4,
                 icon = ContentFinder<Texture2D>.Get("VehicleInteriors/UI/PowerLower", true)
             };
@@ -103,8 +103,8 @@ namespace VehicleInteriors
                     SoundDefOf.Tick_Tiny.PlayOneShotOnCamera(null);
                     MoteMaker.ThrowText(this.parent.DrawPos, this.parent.BaseMap(), this.powerOutputSetting.ToString(), Color.white, -1f);
                 },
-                defaultLabel = "VIF.ResetPower".Translate(),
-                defaultDesc = "VIF.ResetPowerDesc".Translate(),
+                defaultLabel = "VIF_ResetPower".Translate(),
+                defaultDesc = "VIF_ResetPowerDesc".Translate(),
                 hotKey = KeyBindingDefOf.Misc1,
                 icon = ContentFinder<Texture2D>.Get("VehicleInteriors/UI/PowerReset", true)
             };
@@ -116,7 +116,7 @@ namespace VehicleInteriors
                     MoteMaker.ThrowText(this.parent.DrawPos, this.parent.BaseMap(), this.powerOutputSetting.ToString(), Color.white, -1f);
                 },
                 defaultLabel = "+100W",
-                defaultDesc = "VIF.RaisePowerDesc".Translate(),
+                defaultDesc = "VIF_RaisePowerDesc".Translate(),
                 hotKey = KeyBindingDefOf.Misc2,
                 icon = ContentFinder<Texture2D>.Get("VehicleInteriors/UI/PowerRaise", true)
             };
@@ -128,7 +128,7 @@ namespace VehicleInteriors
                     MoteMaker.ThrowText(this.parent.DrawPos, this.parent.BaseMap(), this.powerOutputSetting.ToString(), Color.white, -1f);
                 },
                 defaultLabel = "+1000W",
-                defaultDesc = "VIF.RaisePowerDesc".Translate(),
+                defaultDesc = "VIF_RaisePowerDesc".Translate(),
                 hotKey = KeyBindingDefOf.Misc3,
                 icon = ContentFinder<Texture2D>.Get("VehicleInteriors/UI/PowerRaise", true)
             };
@@ -149,7 +149,7 @@ namespace VehicleInteriors
         public override string CompInspectStringExtra()
         {
             var str = base.CompInspectStringExtra() + "\n";
-            str += $"{"VIF.PowerTransferSetting".Translate()}: {this.powerOutputSetting} W";
+            str += $"{"VIF_PowerTransferSetting".Translate()}: {this.powerOutputSetting} W";
             return str;
         }
 

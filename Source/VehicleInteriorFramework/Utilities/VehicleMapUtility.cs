@@ -114,7 +114,7 @@ namespace VehicleInteriors
             if (Command_FocusVehicleMap.FocusedVehicle != null)
             {
                 var vehicle = Command_FocusVehicleMap.FocusedVehicle;
-                return VehicleMapUtility.OrigToVehicleMap(original, vehicle);
+                return VehicleMapUtility.OrigToVehicleMap(original, vehicle).WithY(original.y);
             }
             return original;
         }
@@ -171,35 +171,35 @@ namespace VehicleInteriors
                 switch (rot.AsByte)
                 {
                     case Rot8.NorthInt:
-                        offset = vehicleMap.offsetNorth.ToVector3();
+                        offset = vehicleMap.offsetNorth ?? (vehicleMap.offsetNorth = vehicleMap.offsetSouth?.MirrorVertical() ?? (vehicleMap.offsetSouth = vehicleMap.offset).Value.MirrorVertical()).Value;
                         break;
 
                     case Rot8.EastInt:
-                        offset = vehicleMap.offsetEast.ToVector3();
+                        offset = vehicleMap.offsetEast ?? (vehicleMap.offsetEast = vehicleMap.offsetWest?.MirrorHorizontal() ?? (vehicleMap.offsetWest = vehicleMap.offset).Value.MirrorHorizontal()).Value;
                         break;
 
                     case Rot8.SouthInt:
-                        offset = vehicleMap.offsetSouth.ToVector3();
+                        offset = vehicleMap.offsetSouth ?? (vehicleMap.offsetSouth = vehicleMap.offsetNorth?.MirrorVertical() ?? (vehicleMap.offsetNorth = vehicleMap.offset).Value.MirrorVertical()).Value;
                         break;
 
                     case Rot8.WestInt:
-                        offset = vehicleMap.offsetWest.ToVector3();
+                        offset = vehicleMap.offsetWest ?? (vehicleMap.offsetWest = vehicleMap.offsetEast?.MirrorHorizontal() ?? (vehicleMap.offsetEast = vehicleMap.offset).Value.MirrorHorizontal()).Value;
                         break;
 
                     case Rot8.NorthEastInt:
-                        offset = vehicleMap.offsetNorthEast.ToVector3();
+                        offset = vehicleMap.offsetNorthEast ?? (vehicleMap.offsetNorthEast = (vehicleMap.offsetNorthWest ?? (vehicleMap.offsetNorthWest = vehicleMap.offsetNorth?.RotatedBy(-45f) ?? (vehicleMap.offsetNorth = vehicleMap.offset.RotatedBy(rot.AsAngle)))).Value.MirrorHorizontal()).Value;
                         break;
 
                     case Rot8.SouthEastInt:
-                        offset = vehicleMap.offsetSouthEast.ToVector3();
+                        offset = vehicleMap.offsetSouthEast ?? (vehicleMap.offsetSouthEast = (vehicleMap.offsetSouthWest ?? (vehicleMap.offsetSouthWest = vehicleMap.offsetSouth?.RotatedBy(-45f) ?? (vehicleMap.offsetSouth = vehicleMap.offset.RotatedBy(rot.AsAngle)))).Value.MirrorHorizontal()).Value;
                         break;
 
                     case Rot8.SouthWestInt:
-                        offset = vehicleMap.offsetSouthWest.ToVector3();
+                        offset = vehicleMap.offsetSouthWest ?? (vehicleMap.offsetSouthWest = (vehicleMap.offsetSouthEast ?? (vehicleMap.offsetSouthEast = vehicleMap.offsetSouth?.RotatedBy(45f) ?? (vehicleMap.offsetSouth = vehicleMap.offset.RotatedBy(rot.AsAngle)))).Value.MirrorHorizontal()).Value;
                         break;
 
                     case Rot8.NorthWestInt:
-                        offset = vehicleMap.offsetNorthWest.ToVector3();
+                        offset = vehicleMap.offsetNorthWest ?? (vehicleMap.offsetNorthWest = (vehicleMap.offsetNorthEast ?? (vehicleMap.offsetNorthEast = vehicleMap.offsetNorth?.RotatedBy(45f) ?? (vehicleMap.offsetNorth = vehicleMap.offset.RotatedBy(rot.AsAngle)))).Value.MirrorHorizontal()).Value;
                         break;
 
                     default: break;
@@ -399,8 +399,7 @@ namespace VehicleInteriors
         {
             if (vehicle.IsOnNonFocusedVehicleMapOf(out var vehicle2))
             {
-                var angle = Ext_Math.RotateAngle(vehicle.FullRotation.AsAngle, vehicle2.FullRotation.AsAngle);
-                return Rot8.FromAngle(angle);
+                return new Rot8(Rot8.FromIntClockwise((vehicle2.FullRotation.AsIntClockwise + vehicle.FullRotation.AsIntClockwise) % 8));
             }
             return vehicle.FullRotation;
         }
@@ -409,8 +408,7 @@ namespace VehicleInteriors
         {
             if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle))
             {
-                var angle = Ext_Math.RotateAngle(thing.Rotation.AsAngle, vehicle.FullRotation.AsAngle);
-                return Rot8.FromAngle(angle);
+                return new Rot8(Rot8.FromIntClockwise((new Rot8(thing.Rotation).AsIntClockwise + vehicle.FullRotation.AsIntClockwise) % 8));
             }
             return thing.Rotation;
         }
@@ -666,6 +664,25 @@ namespace VehicleInteriors
         {
             return tDef.fillPercent > 0.25f || tDef.Size != IntVec2.One || (!(tDef.graphic is Graphic_Single) && !(tDef.graphic is Graphic_Collection)) ||
                 tDef.hasInteractionCell || tDef.drawerType == DrawerType.MapMeshOnly;
+        }
+
+        public static List<Thing> GetThingListAcrossMaps(this IntVec3 c, Map map)
+        {
+            var result = new List<Thing>();
+            var orig = map.IsVehicleMapOf(out var vehicle) ? c.VehicleMapToOrig(vehicle) : c;
+            foreach (var m in map.BaseMapAndVehicleMaps())
+            {
+                if (m.IsVehicleMapOf(out var vehicle2))
+                {
+                    var c2 = orig.OrigToVehicleMap(vehicle2);
+                    result.AddRange(m.thingGrid.ThingsAt(c2));
+                }
+                else
+                {
+                    result.AddRange(m.thingGrid.ThingsAt(orig));
+                }
+            }
+            return result;
         }
 
         public static Rot4 rotForPrint = Rot4.North;

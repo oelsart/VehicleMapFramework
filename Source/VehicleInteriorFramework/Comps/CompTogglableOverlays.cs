@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using SmashTools;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using Vehicles;
@@ -10,13 +11,10 @@ namespace VehicleInteriors
     {
         public CompProperties_TogglableOverlays Props => (CompProperties_TogglableOverlays)this.props;
 
-        public VehiclePawn ParentVehicle => (VehiclePawn)this.parent;
-
         public IEnumerable<GraphicOverlay> Overlays => this.graphicOverlays.Values.Select(v => v.graphicOverlay);
 
         public override IEnumerable<Gizmo> CompGetGizmosExtra()
         {
-            var parent = this.ParentVehicle;
             foreach (var graphicOverlay in this.graphicOverlays.Values)
             {
                 var tex = ContentFinder<Texture2D>.Get(graphicOverlay.graphicOverlay.Graphic.path + "_east");
@@ -55,11 +53,11 @@ namespace VehicleInteriors
             }
         }
 
-        public override void PostLoad()
+        public override void PostSpawnSetup(bool respawningAfterLoad)
         {
             void Init()
             {
-                var parent = this.ParentVehicle;
+                var parent = this.Vehicle;
                 foreach (var extraOverlay in this.Props.extraOverlays)
                 {
                     if (!this.graphicOverlays.ContainsKey(extraOverlay.key))
@@ -67,6 +65,11 @@ namespace VehicleInteriors
                         var graphicOverlay = GraphicOverlay.Create(extraOverlay.graphicDataOverlay, parent);
                         this.graphicOverlays[extraOverlay.key] = (graphicOverlay, extraOverlay.label);
                         parent.graphicOverlay.AddOverlay(extraOverlay.key, graphicOverlay);
+
+                        if (graphicOverlay.Graphic is Graphic_VehicleOpacity graphicOpacity && this.tmpOpacities.ContainsKey(extraOverlay.key))
+                        {
+                            graphicOpacity.Opacity = this.tmpOpacities[extraOverlay.key];
+                        }
                     }
                 }
             }
@@ -87,7 +90,8 @@ namespace VehicleInteriors
         public override void PostExposeData()
         {
             base.PostExposeData();
-            void Init()
+            var parent = this.Vehicle;
+            if (Scribe.mode == LoadSaveMode.Saving)
             {
                 foreach (var graphicOverlay in this.graphicOverlays)
                 {
@@ -95,22 +99,24 @@ namespace VehicleInteriors
                     {
                         var opacity = graphic.Opacity;
                         Scribe_Values.Look(ref opacity, graphicOverlay.Key + "Opacity");
-                        graphic.Opacity = opacity;
                     }
                 }
             }
-            if (!UnityData.IsInMainThread)
+            else if (Scribe.mode == LoadSaveMode.LoadingVars)
             {
-                LongEventHandler.ExecuteWhenFinished(delegate
+                foreach (var extraOverlay in this.Props.extraOverlays)
                 {
-                    Init();
-                });
-            }
-            else
-            {
-                Init();
+                    if (extraOverlay.graphicDataOverlay.graphicData.Graphic is Graphic_VehicleOpacity)
+                    {
+                        var opacity = 1f;
+                        Scribe_Values.Look(ref opacity, extraOverlay.key + "Opacity");
+                        this.tmpOpacities[extraOverlay.key] = opacity;
+                    }
+                }
             }
         }
+
+        private readonly Dictionary<string, float> tmpOpacities = new Dictionary<string, float>();
 
         private readonly Dictionary<string, (GraphicOverlay graphicOverlay, string label)> graphicOverlays = new Dictionary<string, (GraphicOverlay graphicOverlay, string label)>();
     }

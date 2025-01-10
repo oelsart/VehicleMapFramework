@@ -277,6 +277,18 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         }
     }
 
+    [HarmonyPatch(typeof(Building_TurretFoam), nameof(Building_TurretFoam.TryFindNewTarget))]
+    public static class Patch_Building_TurretFoam_TryFindNewTarget
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap)
+                .MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing)
+                .MethodReplacer(MethodInfoCache.m_GenSight_LineOfSight2, MethodInfoCache.m_GenSightOnVehicle_LineOfSight2)
+                .MethodReplacer(MethodInfoCache.m_GetThingList, MethodInfoCache.m_GetThingListAcrossMaps);
+        }
+    }
+
     [HarmonyPatch(typeof(Building_TurretGun), nameof(Building_TurretGun.OrderAttack))]
     public static class Patch_Building_Turret_OrderAttack
     {
@@ -349,6 +361,35 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         {
             return instructions.MethodReplacer(MethodInfoCache.m_GenSight_LineOfSight1, MethodInfoCache.m_GenSightOnVehicle_LineOfSight1)
                 .MethodReplacer(MethodInfoCache.m_GenSight_LineOfSight2, MethodInfoCache.m_GenSightOnVehicle_LineOfSight2);
+        }
+    }
+
+    [HarmonyPatch(typeof(Projectile_Liquid), "DoImpact")]
+    public static class Patch_Projectile_Liquid_DoImpact
+    {
+        public static bool Prefix(Projectile_Liquid __instance, Thing hitThing, IntVec3 cell, ThingDef ___targetCoverDef)
+        {
+            if (cell.ToVector3Shifted().TryGetVehiclePawnWithMap(__instance.Map, out var vehicle))
+            {
+                var cell2 = cell.VehicleMapToOrig(vehicle);
+                if (__instance.def.projectile.filth != null && __instance.def.projectile.filthCount.TrueMax > 0 && !cell2.Filled(vehicle.VehicleMap))
+                {
+                    FilthMaker.TryMakeFilth(cell2, vehicle.VehicleMap, __instance.def.projectile.filth, __instance.def.projectile.filthCount.RandomInRange, FilthSourceFlags.None, true);
+                }
+                List<Thing> thingList = cell2.GetThingList(vehicle.VehicleMap);
+                for (int i = 0; i < thingList.Count; i++)
+                {
+                    Thing thing = thingList[i];
+                    if (!(thing is Mote) && !(thing is Filth) && thing != hitThing)
+                    {
+                        Find.BattleLog.Add(new BattleLogEntry_RangedImpact(__instance.Launcher, thing, thing, __instance.EquipmentDef, __instance.def, ___targetCoverDef));
+                        DamageInfo dinfo = new DamageInfo(__instance.def.projectile.damageDef, (float)__instance.def.projectile.GetDamageAmount(null, null), __instance.def.projectile.GetArmorPenetration(null, null), -1f, __instance.Launcher, null, null, DamageInfo.SourceCategory.ThingOrUnknown, null, true, true, QualityCategory.Normal, true);
+                        thing.TakeDamage(dinfo);
+                    }
+                }
+                return false;
+            }
+            return true;
         }
     }
 }

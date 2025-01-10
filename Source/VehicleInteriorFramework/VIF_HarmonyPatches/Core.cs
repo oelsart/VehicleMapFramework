@@ -1,8 +1,11 @@
 ﻿using HarmonyLib;
+using RimWorld;
 using SmashTools;
+using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Vehicles;
 using Verse;
 
 namespace VehicleInteriors.VIF_HarmonyPatches

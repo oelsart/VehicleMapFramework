@@ -16,6 +16,10 @@ namespace VehicleInteriors
 
         public static MapGeneratorDef VIF_InteriorGenerator;
 
+        public static ThingDef VIF_VehicleStructureFilled;
+
+        public static ThingDef VIF_VehicleStructureEmpty;
+
         public static TerrainDef VIF_VehicleFloor;
 
         public static RGBMaskShaderTypeDef VIF_CutoutComplexRGBOpacity;

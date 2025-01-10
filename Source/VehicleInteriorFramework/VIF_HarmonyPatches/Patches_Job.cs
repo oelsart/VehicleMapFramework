@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using VehicleInteriors.Jobs.WorkGivers;
+using Vehicles;
 using Verse;
 using Verse.AI;
 
@@ -141,7 +142,9 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         //マップと位置を仮想移動して出てきたJobをGotoDestMapでくるむ
         private static Job JobOnThingMap(WorkGiver_Scanner scanner, Pawn pawn, Thing t, bool forced)
         {
-            if (pawn.Map == t.MapHeld || scanner is IWorkGiverAcrossMaps workGiverAcrossMaps && !workGiverAcrossMaps.NeedWrapWithGotoDestJob)
+            var thingMap = t.MapHeld;
+            //VFの浅瀬と深い水の境界でのタレット補給バグを回避するため、WorkGiver_RefuelVehicleTurretは除外
+            if ((pawn.Map == thingMap || scanner is IWorkGiverAcrossMaps workGiverAcrossMaps && !workGiverAcrossMaps.NeedWrapWithGotoDestJob) && scanner.Isnt<WorkGiver_RefuelVehicleTurret>())
             {
                 return scanner.JobOnThing(pawn, t, forced);
             }
@@ -149,11 +152,11 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             var map = pawn.Map;
             if (!scanner.AllowUnreachable)
             {
-                if (pawn.CanReach(t, scanner.PathEndMode, scanner.MaxPathDanger(pawn), false, false, TraverseMode.ByPawn, t.MapHeld, out var exitSpot, out var enterSpot))
+                if (pawn.CanReach(t, scanner.PathEndMode, scanner.MaxPathDanger(pawn), false, false, TraverseMode.ByPawn, thingMap, out var exitSpot, out var enterSpot))
                 {
                     var pos = pawn.Position;
-                    var dest = enterSpot.IsValid ? enterSpot.Cell : exitSpot.Cell;
-                    pawn.VirtualMapTransfer(t.MapHeld, dest);
+                    var dest = t.PositionHeld;
+                    pawn.VirtualMapTransfer(thingMap, dest);
                     var job = scanner.JobOnThing(pawn, t, forced);
                     pawn.VirtualMapTransfer(map, pos);
 
@@ -166,9 +169,11 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                 }
                 return null;
             }
-            pawn.VirtualMapTransfer(t.MapHeld);
+            var cell = pawn.Position;
+            var cell2 = CellRect.WholeMap(thingMap).RandomCell;
+            pawn.VirtualMapTransfer(thingMap, cell2);
             var job2 = scanner.JobOnThing(pawn, t, forced);
-            pawn.VirtualMapTransfer(map);
+            pawn.VirtualMapTransfer(map, cell);
             return job2;
         }
     }
@@ -208,6 +213,8 @@ namespace VehicleInteriors.VIF_HarmonyPatches
 
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
+            var m_Scanner_HasJobOnThing = AccessTools.Method(typeof(WorkGiver_Scanner), nameof(WorkGiver_Scanner.HasJobOnThing));
+            var m_HasJobOnThingMap = AccessTools.Method(typeof(Patch_JobGiver_Work_Validator), nameof(Patch_JobGiver_Work_Validator.HasJobOnThingMap));
             return instructions.MethodReplacer(MethodInfoCache.m_ForbidUtility_IsForbidden, MethodInfoCache.m_ReservationAcrossMapsUtility_IsForbidden)
                 .MethodReplacer(m_Scanner_HasJobOnThing, m_HasJobOnThingMap);
         }
@@ -215,7 +222,9 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         //目的のtに届く位置とマップに転移してからHasJobOnThingを走らせる
         private static bool HasJobOnThingMap(WorkGiver_Scanner scanner, Pawn pawn, Thing t, bool forced)
         {
-            if (pawn.Map == t.MapHeld)
+            var thingMap = t.MapHeld;
+            //VFの浅瀬と深い水の境界でのタレット補給バグを回避するため、WorkGiver_RefuelVehicleTurretは除外
+            if ((pawn.Map == thingMap || scanner is IWorkGiverAcrossMaps workGiverAcrossMaps && !workGiverAcrossMaps.NeedWrapWithGotoDestJob) && scanner.Isnt<WorkGiver_RefuelVehicleTurret>())
             {
                 return scanner.HasJobOnThing(pawn, t, forced);
             }
@@ -223,26 +232,24 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             var map = pawn.Map;
             if (!scanner.AllowUnreachable)
             {
-                if (pawn.CanReach(t, scanner.PathEndMode, scanner.MaxPathDanger(pawn), false, false, TraverseMode.ByPawn, t.MapHeld, out var exitSpot, out var enterSpot))
+                if (pawn.CanReach(t, scanner.PathEndMode, scanner.MaxPathDanger(pawn), false, false, TraverseMode.ByPawn, thingMap, out _, out _))
                 {
                     var pos = pawn.Position;
-                    var dest = enterSpot.IsValid ? enterSpot.Cell : exitSpot.Cell;
-                    pawn.VirtualMapTransfer(t.MapHeld, dest);
+                    var dest = t.PositionHeld;
+                    pawn.VirtualMapTransfer(thingMap, dest);
                     var hasJob = scanner.HasJobOnThing(pawn, t, forced);
                     pawn.VirtualMapTransfer(map, pos);
                     return hasJob;
                 }
                 return false;
             }
-            pawn.VirtualMapTransfer(t.MapHeld);
+            var cell = pawn.Position;
+            var cell2 = CellRect.WholeMap(thingMap).RandomCell;
+            pawn.VirtualMapTransfer(thingMap, cell2);
             var hasJob2 = scanner.HasJobOnThing(pawn, t, forced);
-            pawn.VirtualMapTransfer(map);
+            pawn.VirtualMapTransfer(map, cell);
             return hasJob2;
         }
-
-        private static readonly MethodInfo m_Scanner_HasJobOnThing = AccessTools.Method(typeof(WorkGiver_Scanner), nameof(WorkGiver_Scanner.HasJobOnThing));
-
-        private static readonly MethodInfo m_HasJobOnThingMap = AccessTools.Method(typeof(Patch_JobGiver_Work_Validator), nameof(Patch_JobGiver_Work_Validator.HasJobOnThingMap));
     }
 
 

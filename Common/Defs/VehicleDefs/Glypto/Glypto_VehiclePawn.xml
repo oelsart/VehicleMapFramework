@@ -24,7 +24,7 @@
 		<size>(11,15)</size>
 
 		<vehicleMovementPermissions>DriverNeeded</vehicleMovementPermissions>
-		<vehicleCategory>0</vehicleCategory>
+		<vehicleCategory>Combat</vehicleCategory>
 		<techLevel>Spacer</techLevel>
 		<vehicleType>Air</vehicleType>
 
@@ -133,7 +133,7 @@
 				<key>Chemtank</key>
 				<label>chemtank</label>
 				<health>60</health>
-				<depth>External</depth>
+				<depth>Internal</depth>
 
 				<reactors>
 					<li Class = "Vehicles.Reactor_FuelLeak"/>
@@ -736,14 +736,14 @@
 		<modExtensions>
 			<li Class="VehicleInteriors.VehicleMapProps">
 				<size>(6,9)</size>
-				<offsetNorth>(0.004,-1.55)</offsetNorth>
-				<offsetSouth>(-0.004,1.615)</offsetSouth>
-				<offsetEast>(-1.577,0.355)</offsetEast>
-				<offsetWest>(1.577,0.355)</offsetWest>
-				<offsetNorthEast>(-1.1,-1.1)</offsetNorthEast>
-				<offsetNorthWest>(1.1,-1.1)</offsetNorthWest>
-				<offsetSouthEast>(-1.1,1.1)</offsetSouthEast>
-				<offsetSouthWest>(1.1,1.1)</offsetSouthWest>
+				<offsetNorth>(0.004,0,-1.55)</offsetNorth>
+				<offsetSouth>(-0.004,0,1.615)</offsetSouth>
+				<offsetEast>(-1.577,0,0.355)</offsetEast>
+				<offsetWest>(1.577,0,0.355)</offsetWest>
+				<offsetNorthEast>(-1.1,0,-1.1)</offsetNorthEast>
+				<offsetNorthWest>(1.1,0,-1.1)</offsetNorthWest>
+				<offsetSouthEast>(-1.1,0,1.1)</offsetSouthEast>
+				<offsetSouthWest>(1.1,0,1.1)</offsetSouthWest>
 			</li>
 		</modExtensions>
 	</Vehicles.VehicleDef>

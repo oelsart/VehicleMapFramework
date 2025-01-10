@@ -18,11 +18,7 @@ namespace VehicleInteriors
             {
                 foreach (var handler in vehicle.handlers)
                 {
-                    if (handler.AreSlotsAvailable && this.Props.upgrades.Any(u =>
-                    {
-                        if (!(u is VehicleUpgrade vehicleUpgrade)) return false;
-                        return vehicleUpgrade.roles.Any(r => r.key == handler.role.key);
-                    }))
+                    if (handler.AreSlotsAvailable && this.handlerUniqueIDs.Any(h => h.id == handler.uniqueID))
                     {
                         VehicleReservationManager cachedMapComponent = vehicle.Map?.GetCachedMapComponent<VehicleReservationManager>();
                         string key = "VF_EnterVehicle";
@@ -110,12 +106,6 @@ namespace VehicleInteriors
             }
         }
 
-        //public override void PostDeSpawn(Map map)
-        //{
-        //    base.PostDeSpawn(map);
-        //    _ = this.handlersToDraw;
-        //}
-
         public override void PostDraw()
         {
             base.PostDraw();
@@ -127,8 +117,8 @@ namespace VehicleInteriors
                     {
                         foreach (Pawn pawn in handler.Item1.handlers)
                         {
-                            Vector3 drawLoc = this.parent.DrawPos + handler.Item2.pawnRenderer.DrawOffsetFor(this.parent.BaseRotation());
-                            Rot4 value = handler.Item1.role.PawnRenderer.RotFor(this.parent.BaseRotation());
+                            Vector3 drawLoc = this.parent.DrawPos + handler.Item2.pawnRenderer.DrawOffsetFor(this.parent.BaseFullRotation());
+                            Rot4 value = handler.Item1.role.PawnRenderer.RotFor(this.parent.BaseFullRotation());
                             pawn.Drawer.renderer.RenderPawnAt(drawLoc, new Rot4?(value), false);
                         }
                     }

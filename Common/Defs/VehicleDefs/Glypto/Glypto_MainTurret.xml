@@ -3,7 +3,7 @@
 <Defs>
 	<ThingDef ParentName="BaseBullet">
 		<defName>VIF_Bullet_Energy</defName>
-		<label>energy burret</label>
+		<label>energy bullet</label>
 		<thingClass>Bullet</thingClass>
 		
 		<graphicData>

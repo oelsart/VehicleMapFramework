@@ -17,6 +17,10 @@
 		<modSettingsInfo>
 			<settingsType>IntegerBox</settingsType>
 		</modSettingsInfo>
+
+		<parts>
+			<li Class = "VehicleInteriors.VehicleStatPart_HumanPower"/>
+		</parts>
 	</Vehicles.VehicleStatDef>
 	
 </Defs>

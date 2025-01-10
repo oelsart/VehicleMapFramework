@@ -12,7 +12,7 @@ namespace VehicleInteriors
             }
             else
             {
-                return "VIF.ForceOnVehicleMapEdge".Translate();
+                return "VIF_ForceOnVehicleMapEdge".Translate();
             }
         }
     }

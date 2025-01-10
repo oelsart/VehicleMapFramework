@@ -409,14 +409,14 @@
 		<modExtensions>
 			<li Class="VehicleInteriors.VehicleMapProps">
 				<size>(4,7)</size>
-				<offsetNorth>(0.004,0.402)</offsetNorth>
-				<offsetSouth>(0.004,0.402)</offsetSouth>
-				<offsetEast>(0.05,0.496)</offsetEast>
-				<offsetWest>(-0.05,0.496)</offsetWest>
-				<offsetNorthEast>(0.29,0.29)</offsetNorthEast>
-				<offsetNorthWest>(-0.29,0.29)</offsetNorthWest>
-				<offsetSouthEast>(-0.29,0.29)</offsetSouthEast>
-				<offsetSouthWest>(0.29,0.29)</offsetSouthWest>
+				<offsetNorth>(0.004,0,0.402)</offsetNorth>
+				<offsetSouth>(0.004,0,0.402)</offsetSouth>
+				<offsetEast>(0.05,0,0.496)</offsetEast>
+				<offsetWest>(-0.05,0,0.496)</offsetWest>
+				<offsetNorthEast>(0.29,0,0.29)</offsetNorthEast>
+				<offsetNorthWest>(-0.29,0,0.29)</offsetNorthWest>
+				<offsetSouthEast>(-0.29,0,0.29)</offsetSouthEast>
+				<offsetSouthWest>(0.29,0,0.29)</offsetSouthWest>
 			</li>
 		</modExtensions>
 	</Vehicles.VehicleDef>

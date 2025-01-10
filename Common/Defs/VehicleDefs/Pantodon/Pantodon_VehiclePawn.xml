@@ -1,0 +1,623 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+
+<Defs>
+	<Vehicles.VehicleDef ParentName="BaseSeaVehiclePawnWithMapHover">
+		<defName>VIF_Pantodon</defName>
+		<label>pantodon</label>
+		<description>Advanced hovercraft in spacer tech, with quadruple energy cannon and minimal ammo storage.\n\n&lt;color=#bb8f04&gt;Fuel type:&lt;/color&gt; Chemfuel</description>
+
+		<graphicData>
+			<texPath>VehicleInteriors/Pantodon/Pantodon</texPath>
+			<graphicClass>Vehicles.Graphic_Vehicle</graphicClass>
+			<shaderType>CutoutComplexPattern</shaderType>
+			<pattern>VIF_RGBMaskOpacity</pattern>
+			<drawSize>(8.125, 19.888671875)</drawSize>
+			<color>(238, 250, 255)</color>
+			<colorTwo>(255, 217, 116)</colorTwo>
+			<colorThree>(112, 245, 255)</colorThree>
+		</graphicData>
+
+		<fillPercent>0.8</fillPercent>
+
+		<buildDef>VIF_Glypto_Blueprint</buildDef>
+
+		<size>(7,19)</size>
+
+		<vehicleMovementPermissions>DriverNeeded</vehicleMovementPermissions>
+		<vehicleCategory>Transport</vehicleCategory>
+		<techLevel>Industrial</techLevel>
+		<vehicleType>Sea</vehicleType>
+
+		<statBases>
+			<ArmorRating_Blunt>0.5</ArmorRating_Blunt>
+			<ArmorRating_Sharp>0.2</ArmorRating_Sharp>
+			<ArmorRating_Heat>1.0</ArmorRating_Heat>
+			<Flammability>0.5</Flammability>
+			<MarketValue>2800</MarketValue>
+		</statBases>
+
+		<vehicleStats>
+			<Mass>650</Mass>
+			<MoveSpeed>12</MoveSpeed>
+			<CargoCapacity>0</CargoCapacity>
+			<RepairRate>1</RepairRate>
+			<MaximumPayload>950</MaximumPayload>
+		</vehicleStats>
+		
+		<soundSustainersOnEvent>
+			<li>
+				<start>IgnitionOn</start>
+				<stop>IgnitionOff</stop>
+				<value>VIF_HoverEngine</value>
+			</li>
+			<li>
+				<start>AerialVehicleLaunch</start>
+				<stop>AerialVehicleLeftMap</stop>
+				<value>VIF_HoverEngineLaunch</value>
+			</li>
+		</soundSustainersOnEvent>
+		
+		<soundOneShotsOnEvent Inherit="False">
+			<li>
+				<key>IgnitionOn</key>
+				<value>VIF_HoverStart</value>
+			</li>
+			<li>
+				<key>IgnitionOff</key>
+				<value>VIF_HoverStop</value>
+			</li>
+		</soundOneShotsOnEvent>
+
+		<race>
+			<baseBodySize>12</baseBodySize>
+		</race>
+
+		<properties>
+			<fishing>true</fishing>
+			<winterSpeedMultiplier>5</winterSpeedMultiplier>
+			<riverCost>1</riverCost>
+
+			<track Class = "Vehicles.VehicleTrack_Wake">
+				<speed>1</speed>
+			</track>
+		</properties>
+
+		<components>
+			<li>
+				<key>Chemtank</key>
+				<label>chemtank</label>
+				<health>180</health>
+				<depth>Internal</depth>
+
+				<reactors>
+					<li Class = "Vehicles.Reactor_FuelLeak"/>
+					<li Class = "Vehicles.Reactor_Explosive">
+						<indicator>VF_Explosive</indicator>
+						<chance>0.25</chance>
+						<maxHealth>0.2</maxHealth>
+						<radius>3</radius>
+						<damageDef>Flame</damageDef>
+					</li>
+				</reactors>
+
+				<hitbox>
+					<cells>
+						<li>(-1, 0)</li>
+						<li>(0, 0)</li>
+						<li>(1, 0)</li>
+					</cells>
+				</hitbox>
+			</li>
+			<li>
+				<key>FrontLeftEngine</key>
+				<label>front left engine</label>
+				<health>160</health>
+				<depth>External</depth>
+
+				<armor>
+					<ArmorRating_Blunt>0.32</ArmorRating_Blunt>
+					<ArmorRating_Sharp>0.60</ArmorRating_Sharp>
+				</armor>
+
+				<reactors>
+					<li Class = "Vehicles.Reactor_Explosive">
+						<indicator>VF_Explosive</indicator>
+						<chance>0.25</chance>
+						<maxHealth>0.2</maxHealth>
+						<radius>2</radius>
+						<damageDef>Flame</damageDef>
+					</li>
+				</reactors>
+
+				<hitbox>
+					<cells>
+						<li>(-3, 7)</li>
+						<li>(-3, 6)</li>
+					</cells>
+				</hitbox>
+
+				<categories>
+					<li>MaximumPayload</li>
+				</categories>
+			</li>
+			<li>
+				<key>MiddleLeftEngine</key>
+				<label>middle left engine</label>
+				<health>160</health>
+				<depth>External</depth>
+
+				<armor>
+					<ArmorRating_Blunt>0.32</ArmorRating_Blunt>
+					<ArmorRating_Sharp>0.60</ArmorRating_Sharp>
+				</armor>
+
+				<reactors>
+					<li Class = "Vehicles.Reactor_Explosive">
+						<indicator>VF_Explosive</indicator>
+						<chance>0.25</chance>
+						<maxHealth>0.2</maxHealth>
+						<radius>2</radius>
+						<damageDef>Flame</damageDef>
+					</li>
+				</reactors>
+
+				<hitbox>
+					<cells>
+						<li>(-3, 4)</li>
+						<li>(-3, 3)</li>
+					</cells>
+				</hitbox>
+
+				<categories>
+					<li>MaximumPayload</li>
+				</categories>
+			</li>
+			<li>
+				<key>RearLeftEngine</key>
+				<label>rear left engine</label>
+				<health>160</health>
+				<depth>External</depth>
+
+				<armor>
+					<ArmorRating_Blunt>0.32</ArmorRating_Blunt>
+					<ArmorRating_Sharp>0.60</ArmorRating_Sharp>
+				</armor>
+
+				<reactors>
+					<li Class = "Vehicles.Reactor_Explosive">
+						<indicator>VF_Explosive</indicator>
+						<chance>0.25</chance>
+						<maxHealth>0.2</maxHealth>
+						<radius>2</radius>
+						<damageDef>Flame</damageDef>
+					</li>
+				</reactors>
+
+				<hitbox>
+					<cells>
+						<li>(-3, 1)</li>
+						<li>(-3, 0)</li>
+					</cells>
+				</hitbox>
+
+				<categories>
+					<li>MaximumPayload</li>
+				</categories>
+			</li>
+			<li>
+				<key>FrontRightEngine</key>
+				<label>front right engine</label>
+				<health>160</health>
+				<depth>External</depth>
+
+				<armor>
+					<ArmorRating_Blunt>0.32</ArmorRating_Blunt>
+					<ArmorRating_Sharp>0.60</ArmorRating_Sharp>
+				</armor>
+
+				<reactors>
+					<li Class = "Vehicles.Reactor_Explosive">
+						<indicator>VF_Explosive</indicator>
+						<chance>0.25</chance>
+						<maxHealth>0.2</maxHealth>
+						<radius>2</radius>
+						<damageDef>Flame</damageDef>
+					</li>
+				</reactors>
+
+				<hitbox>
+					<cells>
+						<li>(3, 7)</li>
+						<li>(3, 6)</li>
+					</cells>
+				</hitbox>
+
+				<categories>
+					<li>MaximumPayload</li>
+				</categories>
+			</li>
+			<li>
+				<key>MiddleRightEngine</key>
+				<label>middle right engine</label>
+				<health>160</health>
+				<depth>External</depth>
+
+				<armor>
+					<ArmorRating_Blunt>0.32</ArmorRating_Blunt>
+					<ArmorRating_Sharp>0.60</ArmorRating_Sharp>
+				</armor>
+
+				<reactors>
+					<li Class = "Vehicles.Reactor_Explosive">
+						<indicator>VF_Explosive</indicator>
+						<chance>0.25</chance>
+						<maxHealth>0.2</maxHealth>
+						<radius>2</radius>
+						<damageDef>Flame</damageDef>
+					</li>
+				</reactors>
+
+				<hitbox>
+					<cells>
+						<li>(3, 4)</li>
+						<li>(3, 3)</li>
+					</cells>
+				</hitbox>
+
+				<categories>
+					<li>MaximumPayload</li>
+				</categories>
+			</li>
+			<li>
+				<key>RearRightEngine</key>
+				<label>rear right engine</label>
+				<health>160</health>
+				<depth>External</depth>
+
+				<armor>
+					<ArmorRating_Blunt>0.32</ArmorRating_Blunt>
+					<ArmorRating_Sharp>0.60</ArmorRating_Sharp>
+				</armor>
+
+				<reactors>
+					<li Class = "Vehicles.Reactor_Explosive">
+						<indicator>VF_Explosive</indicator>
+						<chance>0.25</chance>
+						<maxHealth>0.2</maxHealth>
+						<radius>2</radius>
+						<damageDef>Flame</damageDef>
+					</li>
+				</reactors>
+
+				<hitbox>
+					<cells>
+						<li>(3, 1)</li>
+						<li>(3, 0)</li>
+					</cells>
+				</hitbox>
+
+				<categories>
+					<li>MaximumPayload</li>
+				</categories>
+			</li>
+			<li>
+				<key>LeftPropeller</key>
+				<label>left propeller</label>
+				<health>200</health>
+				<depth>External</depth>
+				
+				<armor>
+					<ArmorRating_Blunt>0.10</ArmorRating_Blunt>
+					<ArmorRating_Sharp>0.30</ArmorRating_Sharp>
+				</armor>
+
+				<hitbox>
+					<cells>
+						<li>(-3, -9)</li>
+						<li>(-2, -9)</li>
+						<li>(-1, -9)</li>
+						<li>(-3, -8)</li>
+						<li>(-2, -8)</li>
+						<li>(-1, -8)</li>
+					</cells>
+				</hitbox>
+
+				<categories>
+					<li>MoveSpeed</li>
+				</categories>
+			</li>
+			<li>
+				<key>RightPropeller</key>
+				<label>right propeller</label>
+				<health>200</health>
+				<depth>External</depth>
+
+				<armor>
+					<ArmorRating_Blunt>0.10</ArmorRating_Blunt>
+					<ArmorRating_Sharp>0.30</ArmorRating_Sharp>
+				</armor>
+
+				<hitbox>
+					<cells>
+						<li>(3, -9)</li>
+						<li>(2, -9)</li>
+						<li>(1, -9)</li>
+						<li>(3, -8)</li>
+						<li>(2, -8)</li>
+						<li>(1, -8)</li>
+					</cells>
+				</hitbox>
+
+				<categories>
+					<li>MoveSpeed</li>
+				</categories>
+			</li>
+			<li>
+				<key>Skirt</key>
+				<label>skirt</label>
+				<health>320</health>
+				<depth>External</depth>
+
+				<armor>
+					<ArmorRating_Blunt>0.75</ArmorRating_Blunt>
+				</armor>
+
+				<hitbox>
+					<cells>
+						<li>(-3,-7)</li>
+						<li>(-3,-6)</li>
+						<li>(-3,-5)</li>
+						<li>(-3,-4)</li>
+						<li>(-3,-3)</li>
+						<li>(-3,-2)</li>
+						<li>(-3,-1)</li>
+						<li>(-3,0)</li>
+						<li>(-3,1)</li>
+						<li>(-3,2)</li>
+						<li>(-3,3)</li>
+						<li>(-3,4)</li>
+						<li>(-3,5)</li>
+						<li>(-3,6)</li>
+						<li>(-3,7)</li>
+						<li>(3,-7)</li>
+						<li>(3,-6)</li>
+						<li>(3,-5)</li>
+						<li>(3,-4)</li>
+						<li>(3,-3)</li>
+						<li>(3,-2)</li>
+						<li>(3,-1)</li>
+						<li>(3,0)</li>
+						<li>(3,1)</li>
+						<li>(3,2)</li>
+						<li>(3,3)</li>
+						<li>(3,4)</li>
+						<li>(3,5)</li>
+						<li>(3,6)</li>
+						<li>(3,7)</li>
+						<li>(-2,-7)</li>
+						<li>(-1,-7)</li>
+						<li>(0,-7)</li>
+						<li>(1,-7)</li>
+						<li>(2,-7)</li>
+						<li>(-2,7)</li>
+						<li>(-1,7)</li>
+						<li>(0,7)</li>
+						<li>(1,7)</li>
+						<li>(2,7)</li>
+					</cells>
+				</hitbox>
+
+				<categories>
+					<li>MaximumPayload</li>
+				</categories>
+			</li>
+		</components>
+
+		<comps>
+			<li Class="Vehicles.CompProperties_FueledTravel">
+				<fuelType>Chemfuel</fuelType>
+				<leakDef>Filth_Fuel</leakDef>
+				<fuelConsumptionRate>40</fuelConsumptionRate>
+				<fuelCapacity>450</fuelCapacity>
+			</li>
+			<li Class="Vehicles.CompProperties_VehicleTurrets">
+				<turrets>
+					<li>
+						<turretDef>VIF_Pantodon_Turret</turretDef>
+						
+						<renderProperties>
+							<north>(-3.4, 7.734375)</north>
+							<south>(3.4, -7.03125)</south>
+							<east>(7.265625, 3.359375)</east>
+							<west>(-7.265625, -2.640625)</west>
+						</renderProperties>
+						
+						<gizmoLabel>Turret1</gizmoLabel>
+
+						<defaultAngleRotated>270</defaultAngleRotated>
+						<angleRestricted>(250, 290)</angleRestricted>
+						<aimPieOffset>(0, 1)</aimPieOffset>
+						
+						<key>turret1</key>
+					</li>
+					<li>
+						<turretDef>VIF_Pantodon_Turret</turretDef>
+
+						<renderProperties>
+							<north>(-3.4, 4.734375)</north>
+							<south>(3.4, -4.03125)</south>
+							<east>(4.265625, 3.359375)</east>
+							<west>(-4.265625, -2.640625)</west>
+						</renderProperties>
+
+						<gizmoLabel>Turret2</gizmoLabel>
+
+						<defaultAngleRotated>270</defaultAngleRotated>
+						<angleRestricted>(250, 290)</angleRestricted>
+						<aimPieOffset>(0, 1)</aimPieOffset>
+
+						<key>turret2</key>
+					</li>
+					<li>
+						<turretDef>VIF_Pantodon_Turret</turretDef>
+
+						<renderProperties>
+							<north>(-3.4, 1.734375)</north>
+							<south>(3.4, -1.03125)</south>
+							<east>(1.265625, 3.359375)</east>
+							<west>(-1.265625, -2.640625)</west>
+						</renderProperties>
+
+						<gizmoLabel>Turret3</gizmoLabel>
+
+						<defaultAngleRotated>270</defaultAngleRotated>
+						<angleRestricted>(250, 290)</angleRestricted>
+						<aimPieOffset>(0, 1)</aimPieOffset>
+
+						<key>turret3</key>
+					</li>
+					<li>
+						<turretDef>VIF_Pantodon_Turret</turretDef>
+
+						<renderProperties>
+							<north>(-3.4, -1.265625)</north>
+							<south>(3.4, 1.96875)</south>
+							<east>(-1.734375, 3.359375)</east>
+							<west>(1.734375, -2.640625)</west>
+						</renderProperties>
+
+						<gizmoLabel>Turret4</gizmoLabel>
+
+						<defaultAngleRotated>270</defaultAngleRotated>
+						<angleRestricted>(250, 290)</angleRestricted>
+						<aimPieOffset>(0, 1)</aimPieOffset>
+
+						<key>turret4</key>
+					</li>
+					<li>
+						<turretDef>VIF_Pantodon_Turret</turretDef>
+
+						<renderProperties>
+							<north>(3.4, 7.734375)</north>
+							<south>(-3.4, -7.03125)</south>
+							<east>(7.265625, -2.640625)</east>
+							<west>(-7.265625, 3.359375)</west>
+						</renderProperties>
+
+						<gizmoLabel>Turret5</gizmoLabel>
+
+						<defaultAngleRotated>90</defaultAngleRotated>
+						<angleRestricted>(70, 110)</angleRestricted>
+						<aimPieOffset>(0, 1)</aimPieOffset>
+
+						<key>turret5</key>
+					</li>
+					<li>
+						<turretDef>VIF_Pantodon_Turret</turretDef>
+
+						<renderProperties>
+							<north>(3.4, 4.734375)</north>
+							<south>(-3.4, -4.03125)</south>
+							<east>(4.265625, -2.640625)</east>
+							<west>(-4.265625, 3.359375)</west>
+						</renderProperties>
+
+						<gizmoLabel>Turret6</gizmoLabel>
+
+						<defaultAngleRotated>90</defaultAngleRotated>
+						<angleRestricted>(70, 110)</angleRestricted>
+						<aimPieOffset>(0, 1)</aimPieOffset>
+
+						<key>turret6</key>
+					</li>
+					<li>
+						<turretDef>VIF_Pantodon_Turret</turretDef>
+
+						<renderProperties>
+							<north>(3.4, 1.734375)</north>
+							<south>(-3.4, -1.03125)</south>
+							<east>(1.265625, -2.640625)</east>
+							<west>(-1.265625, 3.359375)</west>
+						</renderProperties>
+
+						<gizmoLabel>Turret7</gizmoLabel>
+
+						<defaultAngleRotated>90</defaultAngleRotated>
+						<angleRestricted>(70, 110)</angleRestricted>
+						<aimPieOffset>(0, 1)</aimPieOffset>
+
+						<key>turret7</key>
+					</li>
+					<li>
+						<turretDef>VIF_Pantodon_Turret</turretDef>
+
+						<renderProperties>
+							<north>(3.4, -1.265625)</north>
+							<south>(-3.4, 1.96875)</south>
+							<east>(-1.734375, -2.640625)</east>
+							<west>(1.734375, 3.359375)</west>
+						</renderProperties>
+
+						<gizmoLabel>Turret8</gizmoLabel>
+
+						<defaultAngleRotated>90</defaultAngleRotated>
+						<angleRestricted>(70, 110)</angleRestricted>
+						<aimPieOffset>(0, 1)</aimPieOffset>
+
+						<key>turret8</key>
+					</li>
+				</turrets>
+			</li>
+			
+			<li Class="VehicleInteriors.CompProperties_TogglableOverlays">
+				<extraOverlays>
+					<li>
+						<key>Upper</key>
+						<label>upper</label>
+						<graphicDataOverlay>
+							<graphicData>
+								<texPath>VehicleInteriors/Pantodon/Upper</texPath>
+								<graphicClass>VehicleInteriors.Graphic_VehicleOpacity</graphicClass>
+								<shaderType>VIF_CutoutComplexRGBOpacity</shaderType>
+								<pattern>VIF_RGBMaskOpacity</pattern>
+								<layer>2500</layer>
+								<drawSize>(8.125, 19.888671875)</drawSize>
+							</graphicData>
+						</graphicDataOverlay>
+					</li>
+				</extraOverlays>
+			</li>
+		</comps>
+
+		<modExtensions>
+			<li Class="VehicleInteriors.VehicleMapProps">
+				<size>(7,15)</size>
+				<offsetNorth>(0,0,0.615234375)</offsetNorth>
+				<offsetSouth>(0,0,-0.029296875)</offsetSouth>
+				<offsetEast>(0.259765625,0,0.205078125)</offsetEast>
+				<filledStructureCells>
+					<li>(0,5)</li>
+					<li>(0,6)</li>
+					<li>(0,7)</li>
+					<li>(0,8)</li>
+					<li>(0,9)</li>
+					<li>(0,10)</li>
+					<li>(0,11)</li>
+					<li>(0,12)</li>
+					<li>(0,13)</li>
+					<li>(0,14)</li>
+					<li>(6,5)</li>
+					<li>(6,6)</li>
+					<li>(6,7)</li>
+					<li>(6,8)</li>
+					<li>(6,9)</li>
+					<li>(6,10)</li>
+					<li>(6,11)</li>
+					<li>(6,12)</li>
+					<li>(6,13)</li>
+					<li>(6,14)</li>
+				</filledStructureCells>
+			</li>
+		</modExtensions>
+	</Vehicles.VehicleDef>
+</Defs>

@@ -5,6 +5,7 @@ using SmashTools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using UnityEngine;
 using Vehicles;
 using Verse;
@@ -57,14 +58,12 @@ namespace VehicleInteriors
         {
             foreach (var gizmo in base.GetGizmos()) yield return gizmo;
 
-            yield return new Command_FocusVehicleMap();
-
             yield return new Command_Toggle()
             {
                 isActive = () => this.allowsHaulIn,
                 toggleAction = () => this.allowsHaulIn = !this.allowsHaulIn,
-                defaultLabel = "VIF.AllowsHaulIn".Translate(),
-                defaultDesc = "VIF.AllowsHaulInDesc".Translate(),
+                defaultLabel = "VIF_AllowsHaulIn".Translate(),
+                defaultDesc = "VIF_AllowsHaulInDesc".Translate(),
                 icon = VehiclePawnWithMap.iconAllowsHaulIn,
             };
 
@@ -72,8 +71,8 @@ namespace VehicleInteriors
             {
                 isActive = () => this.allowsHaulOut,
                 toggleAction = () => this.allowsHaulOut = !this.allowsHaulOut,
-                defaultLabel = "VIF.AllowsHaulOut".Translate(),
-                defaultDesc = "VIF.AllowsHaulOutDesc".Translate(),
+                defaultLabel = "VIF_AllowsHaulOut".Translate(),
+                defaultDesc = "VIF_AllowsHaulOutDesc".Translate(),
                 icon = VehiclePawnWithMap.iconAllowsHaulOut,
             };
 
@@ -94,8 +93,8 @@ namespace VehicleInteriors
                         MoteMaker.ThrowText(allGroups.ElementAt(i).CellsList[0].ToVector3Shifted().OrigToVehicleMap(this), this.Map, allGroups.ElementAt(i).Settings.Priority.ToString(), Color.white, -1f);
                     }
                 },
-                defaultLabel = "VIF.IncreasePriority".Translate(),
-                defaultDesc = "VIF.IncreasePriorityDesc".Translate(),
+                defaultLabel = "VIF_IncreasePriority".Translate(),
+                defaultDesc = "VIF_IncreasePriorityDesc".Translate(),
                 icon = VehiclePawnWithMap.iconIncreasePriority,
             };
 
@@ -115,8 +114,8 @@ namespace VehicleInteriors
                         MoteMaker.ThrowText(allGroups.ElementAt(i).CellsList[0].ToVector3Shifted().OrigToVehicleMap(this), this.Map, allGroups.ElementAt(i).Settings.Priority.ToString(), Color.white, -1f);
                     }
                 },
-                defaultLabel = "VIF.DecreasePriority".Translate(),
-                defaultDesc = "VIF.DecreasePriorityDesc".Translate(),
+                defaultLabel = "VIF_DecreasePriority".Translate(),
+                defaultDesc = "VIF_DecreasePriorityDesc".Translate(),
                 icon = VehiclePawnWithMap.iconDecreasePriority,
             };
 
@@ -124,10 +123,15 @@ namespace VehicleInteriors
             {
                 isActive = () => this.autoGetOff,
                 toggleAction = () => this.autoGetOff = !this.autoGetOff,
-                defaultLabel = "VIF.AutoGetOff".Translate(),
-                defaultDesc = "VIF.AutoGetOffDesc".Translate(),
+                defaultLabel = "VIF_AutoGetOff".Translate(),
+                defaultDesc = "VIF_AutoGetOffDesc".Translate(),
                 icon = VehiclePawnWithMap.iconAutoGetOff,
             };
+
+            if (DebugSettings.ShowDevGizmos)
+            {
+                yield return new Command_FocusVehicleMap();
+            }
         }
 
         public override string GetInspectString()
@@ -157,6 +161,21 @@ namespace VehicleInteriors
                     mapParent.SetFaction(base.Faction);
                     this.interiorMap = MapGenerator.GenerateMap(new IntVec3(vehicleMap.size.x, 1, vehicleMap.size.z), mapParent, mapParent.MapGeneratorDef, mapParent.ExtraGenStepDefs, null, true);
                     Find.World.GetComponent<VehicleMapParentsComponent>().vehicleMaps.Add(mapParent);
+
+                    if (!vehicleMap.emptyStructureCells.NullOrEmpty())
+                    {
+                        foreach (var c in vehicleMap.emptyStructureCells)
+                        {
+                            GenSpawn.Spawn(VIF_DefOf.VIF_VehicleStructureEmpty, c.ToIntVec3, this.interiorMap);
+                        }
+                    }
+                    if (!vehicleMap.filledStructureCells.NullOrEmpty())
+                    {
+                        foreach (var c in vehicleMap.filledStructureCells)
+                        {
+                            GenSpawn.Spawn(VIF_DefOf.VIF_VehicleStructureFilled, c.ToIntVec3, this.interiorMap);
+                        }
+                    }
                 }
             }
             base.SpawnSetup(map, respawningAfterLoad);
@@ -222,26 +241,47 @@ namespace VehicleInteriors
             {
                 this.DisembarkAll();
             }
+            StringBuilder stringBuilder = new StringBuilder();
+            bool flag = false;
             foreach (var thing in this.interiorMap.listerThings.AllThings.Where(t => t.def.drawerType != DrawerType.None).ToArray())
             {
                 VehiclePawnWithMapCache.cachedDrawPos.Remove(thing);
                 VehiclePawnWithMapCache.cachedPosOnBaseMap.Remove(thing);
                 if (mode != DestroyMode.Vanish)
                 {
-                    thing.Destroy(DestroyMode.Vanish);
+                    var positionOnBaseMap = thing.PositionOnBaseMap();
                     if (thing.def.category == ThingCategory.Building)
                     {
-                        thing.Position = this.Position;
+                        thing.Destroy();
+                        thing.Position = positionOnBaseMap;
                         GenLeaving.DoLeavingsFor(thing, this.Map, DestroyMode.Deconstruct);
                     }
                     else
                     {
-                        GenPlace.TryPlaceThing(thing, this.Position, this.Map, ThingPlaceMode.Near);
+                        thing.DeSpawn();
+                        var terrain = positionOnBaseMap.GetTerrain(base.Map);
+                        if (thing is Pawn pawn && (terrain == TerrainDefOf.WaterDeep || terrain == TerrainDefOf.WaterOceanDeep) &&
+                            HediffHelper.AttemptToDrown(pawn))
+                        {
+                            flag = true;
+                            stringBuilder.AppendLine(pawn.LabelCap);
+                        }
+                        if (!GenPlace.TryPlaceThing(thing, positionOnBaseMap, base.Map, ThingPlaceMode.Near))
+                        {
+                            CellFinder.TryFindRandomCellNear(positionOnBaseMap, base.Map, 50, c => GenPlace.TryPlaceThing(thing, c, base.Map, ThingPlaceMode.Near), out _);
+                        }
                     }
                 }
             }
+
+            if (flag)
+            {
+                string text = "VF_BoatSunkWithPawnsDesc".Translate(LabelShort, stringBuilder.ToString());
+                Find.LetterStack.ReceiveLetter("VF_BoatSunk".Translate(), text, LetterDefOf.NegativeEvent, new TargetInfo(base.Position, base.Map));
+            }
             Current.Game.DeinitAndRemoveMap(this.interiorMap, false);
             Find.World.GetComponent<VehicleMapParentsComponent>().vehicleMaps.Remove(this.interiorMap.Parent as MapParent_Vehicle);
+            _ = this.interiorMap;
             base.Destroy(mode);
         }
 
@@ -257,7 +297,7 @@ namespace VehicleInteriors
             this.interiorMap.weatherManager.currSkyTargetLerp = this.Map.weatherManager.currSkyTargetLerp;
             this.interiorMap.weatherManager.curWeatherAge = this.Map.weatherManager.curWeatherAge;
             this.interiorMap.weatherManager.growthSeasonMemory = this.Map.weatherManager.growthSeasonMemory;
-            this.interiorMap.weatherDecider = new WeatherDecider(this.Map);
+            this.interiorMap.weatherDecider = new WeatherDecider(this.interiorMap);
 
 
             base.DeSpawn(mode);

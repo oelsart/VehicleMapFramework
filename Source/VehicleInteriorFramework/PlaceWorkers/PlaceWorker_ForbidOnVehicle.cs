@@ -12,7 +12,7 @@ namespace VehicleInteriors
             }
             else
             {
-                return "VIF.ForbidOnVehicle".Translate();
+                return "VIF_ForbidOnVehicle".Translate();
             }
         }
     }

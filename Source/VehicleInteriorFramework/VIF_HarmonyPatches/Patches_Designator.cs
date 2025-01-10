@@ -38,7 +38,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         static Patches_Designator_SelectedUpdate()
         {
             var postfix = AccessTools.Method(typeof(Patches_Designator_SelectedUpdate), nameof(Patches_Designator_SelectedUpdate.Postfix));
-            foreach (var type in typeof(Designator).AllSubclasses())
+            foreach (var type in typeof(Designator).AllSubclasses().Concat(typeof(Designator)))
             {
                 var method = AccessTools.Method(type, "SelectedUpdate");
                 if (method != null && method.IsDeclaredMember())
@@ -47,6 +47,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                 }
             }
         }
+
         public static void Postfix()
         {
             if (Command_FocusVehicleMap.FocuseLockedVehicle != null) return;
@@ -138,13 +139,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         {
             var codes = instructions.ToList();
             var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(MethodInfoCache.g_Quaternion_identity));
-            codes.InsertRange(pos, new[]
-            {
-                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_OrigToVehicleMap1),
-                new CodeInstruction(OpCodes.Ldc_I4, 37),
-                CodeInstruction.Call(typeof(Altitudes), nameof(Altitudes.AltitudeFor), new Type[] { typeof(AltitudeLayer) } ),
-                CodeInstruction.Call(typeof(Vector3Utility), nameof(Vector3Utility.WithY))
-            });
+            codes.Insert(pos, new CodeInstruction(OpCodes.Call, MethodInfoCache.m_OrigToVehicleMap1));
 
             var label = generator.DefineLabel();
             var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Ldsfld && c.OperandIs(field));

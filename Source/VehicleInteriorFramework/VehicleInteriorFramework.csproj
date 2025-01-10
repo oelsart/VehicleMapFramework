@@ -91,7 +91,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Building_VehicleSlope.cs" />
+    <Compile Include="BuildableUpgrades\Building_VehicleSlope.cs" />
     <Compile Include="Combat\ShotReportOnVehicle.cs" />
     <Compile Include="Combat\TargetingHelperOnVehicle.cs" />
     <Compile Include="Comps\CompEngineLightOverlays.cs" />
@@ -103,11 +103,13 @@
     <Compile Include="Comps\CompTogglableOverlays.cs" />
     <Compile Include="Comps\CompToggleLitGraphic.cs" />
     <Compile Include="Comps\CompVehicleLauncherWithMap.cs" />
+    <Compile Include="Comps\CompVehicleStructure.cs" />
     <Compile Include="Comps\CompWirelessReceiver.cs" />
     <Compile Include="Comps\CompWirelessTransmitter.cs" />
     <Compile Include="Combat\ExplosionAcrossMaps.cs" />
-    <Compile Include="Dialog_ChooseVehicleRoles.cs" />
+    <Compile Include="BuildableUpgrades\Dialog_ChooseVehicleRoles.cs" />
     <Compile Include="ExtraOverlayData.cs" />
+    <Compile Include="PlaceWorkers\PlaceWorker_ForceOnHoverVehicle.cs" />
     <Compile Include="RGBMaskOpacityDef.cs" />
     <Compile Include="Utilities\GenDrawOnVehicle.cs" />
     <Compile Include="Graphic_LinkedCornerOverlaySingle.cs" />
@@ -134,7 +136,8 @@
     <Compile Include="PlaceWorkers\PlaceWorker_ForceOnVehicle.cs" />
     <Compile Include="PlaceWorkers\PlaceWorker_ForceOnVehicleMapEdge.cs" />
     <Compile Include="RGBMaskShaderTypeDef.cs" />
-    <Compile Include="VehicleHandlerBuildable.cs" />
+    <Compile Include="BuildableUpgrades\VehicleHandlerBuildable.cs" />
+    <Compile Include="VehicleHumanPowered.cs" />
     <Compile Include="VehicleMapSettings.cs" />
     <Compile Include="VehicleMap\SectionLayer_ThingsGeneralOnVehicle.cs" />
     <Compile Include="VehicleMap\SectionLayer_ThingsPowerGridOnVehicle.cs" />
@@ -143,9 +146,9 @@
     <Compile Include="VehicleMap\SectionLayer_TerrainOnVehicle.cs" />
     <Compile Include="VehicleOrientationControllerAcrossMaps.cs" />
     <Compile Include="VehiclePawnWithMap_Hover.cs" />
-    <Compile Include="VehicleRoleBuildable.cs" />
+    <Compile Include="BuildableUpgrades\VehicleRoleBuildable.cs" />
     <Compile Include="VehicleStatPart_WeightUsageWithMap.cs" />
-    <Compile Include="VehicleUpgradeBuildable.cs" />
+    <Compile Include="BuildableUpgrades\VehicleUpgradeBuildable.cs" />
     <Compile Include="VehiclePawnCacheComponent.cs" />
     <Compile Include="Combat\AttackTargetFinderOnVehicle.cs" />
     <Compile Include="Combat\CastPositionFinderOnVehicle.cs" />
@@ -203,6 +206,7 @@
     <Compile Include="Utilities\RestUtilityOnVehicle.cs" />
     <Compile Include="Utilities\GenUIOnVehicle.cs" />
     <Compile Include="Utilities\StudyUtilityOnVehicle.cs" />
+    <Compile Include="VehicleStatPart_HumanPower.cs" />
     <Compile Include="Verbs\VerbOnVehicleUtility.cs" />
     <Compile Include="VehiclePawnWithMapCache.cs" />
     <Compile Include="VehicleMap\VehicleMapProps.cs" />

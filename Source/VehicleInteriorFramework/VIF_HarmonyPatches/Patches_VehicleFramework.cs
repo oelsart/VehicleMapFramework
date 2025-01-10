@@ -12,6 +12,85 @@ using Verse.AI.Group;
 
 namespace VehicleInteriors.VIF_HarmonyPatches
 {
+    //VehiclePawnWithMapの場合Movementフラグを持つハンドラーが存在しない場合コントロールできないようにする
+    [HarmonyPatch(typeof(VehiclePawn), nameof(VehiclePawn.CanMoveWithOperators), MethodType.Getter)]
+    public static class Patch_VehiclePawn_CanMoveWithOperators
+    {
+        public static bool Prefix(VehiclePawn __instance, ref bool __result)
+        {
+            if (__instance is VehiclePawnWithMap)
+            {
+                if (__instance.MovementPermissions == VehiclePermissions.NoDriverNeeded)
+                {
+                    __result = true;
+                    return false;
+                }
+                var matchHandlers = __instance.handlers.Where(h => h.role.HandlingTypes.HasFlag(HandlingTypeFlags.Movement)).ToList();
+                if (matchHandlers.Empty())
+                {
+                    __result = false;
+                    return false;
+                }
+                __result = matchHandlers.All(h => h.RoleFulfilled);
+                return false;
+            }
+            return true;
+        }
+    }
+
+    //VehiclePawnWithMapの場合タレットに対応するハンドラーが存在しない場合コントロールできないようにする
+    [HarmonyPatch(typeof(VehicleTurret), nameof(VehicleTurret.RecacheMannedStatus))]
+    public static class Patch_VehicleTurret_RecacheMannedStatus
+    {
+        public static bool Prefix(VehicleTurret __instance)
+        {
+            if (__instance.vehicle is VehiclePawnWithMap)
+            {
+                if (VehicleMod.settings.debug.debugShootAnyTurret)
+                {
+                    IsManned(__instance, true);
+                    return false;
+                }
+                var matchHandlers = __instance.vehicle.handlers.FindAll(h => h.role.HandlingTypes.HasFlag(HandlingTypeFlags.Turret) && (h.role.TurretIds.Contains(__instance.key) || h.role.TurretIds.Contains(__instance.groupKey)));
+                if (matchHandlers.Empty())
+                {
+                    IsManned(__instance, false);
+                    return false;
+                }
+                Log.Message(matchHandlers.All(h => h.RoleFulfilled));
+                IsManned(__instance, matchHandlers.All(h => h.RoleFulfilled));
+                return false;
+            }
+            return true;
+        }
+
+        private static readonly FastInvokeHandler IsManned = MethodInvoker.GetHandler(AccessTools.PropertySetter(typeof(VehicleTurret), nameof(IsManned)));
+    }
+
+    //VehiclePawnWithMapの場合タレットに対応するハンドラーが存在しない場合ギズモを操作不能にする
+    [HarmonyPatch(typeof(CompVehicleTurrets), nameof(CompVehicleTurrets.CompGetGizmosExtra))]
+    public static class Patch_CompVehicleTurrets_CompGetGizmosExtra
+    {
+        public static IEnumerable<Gizmo> Postfix(IEnumerable<Gizmo> gizmos, CompVehicleTurrets __instance)
+        {
+            if (__instance.Vehicle is VehiclePawnWithMap)
+            {
+                foreach (var gizmo in gizmos)
+                {
+                    if (gizmo is Command_CooldownAction command_CooldownAction)
+                    {
+                        var turret = command_CooldownAction.turret;
+                        if (!VehicleMod.settings.debug.debugShootAnyTurret && !command_CooldownAction.Disabled && __instance.Vehicle.GetAllHandlersMatch(HandlingTypeFlags.Turret, !turret.groupKey.NullOrEmpty() ? turret.groupKey : turret.key).Empty())
+                        {
+                            command_CooldownAction.Disable("VIF_NoRoles".Translate(__instance.Vehicle.LabelShort));
+                        }
+                    }
+                    yield return gizmo;
+                }
+            }
+        }
+    }
+
     [HarmonyPatch(typeof(VehiclePawn), nameof(VehiclePawn.DisembarkPawn))]
     public static class Patch_VehiclePawn_DisembarkPawn
     {
@@ -396,6 +475,48 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing);
+        }
+    }
+
+    //タレットの自動ロードがVehicleDefのCargoCapacityを参照してたので、これをVehiclePawnのインスタンスからステータスを参照させる
+    [HarmonyPatch(typeof(Command_CooldownAction), "DrawBottomBar")]
+    public static class Patch_Command_CooldownAction_DrawBottomBar
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var codes = instructions.ToList();
+            var m_GetStatValueAbstract = AccessTools.Method(typeof(Ext_Vehicles), nameof(Ext_Vehicles.GetStatValueAbstract));
+            var m_VehiclePawn_GetStatValue = AccessTools.Method(typeof(VehiclePawn), nameof(VehiclePawn.GetStatValue));
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(m_GetStatValueAbstract));
+
+            if (pos != -1)
+            {
+                codes[pos].opcode = OpCodes.Callvirt;
+                codes[pos].operand = m_VehiclePawn_GetStatValue;
+
+                var g_VehiclePawn_VehicleDef = AccessTools.PropertyGetter(typeof(VehiclePawn), nameof(VehiclePawn.VehicleDef));
+                var pos2 = codes.FindLastIndex(pos, c => c.opcode == OpCodes.Callvirt && c.OperandIs(g_VehiclePawn_VehicleDef));
+                if (pos2 != -1)
+                {
+                    codes.RemoveAt(pos2);
+                }
+            }
+            return codes;
+        }
+    }
+
+    //VehicleTurretがdefaultAngleRotatedのままだとセーブされないので、forceSaveさせる
+    [HarmonyPatch(typeof(VehicleTurret), nameof(VehicleTurret.ExposeData))]
+    public static class Patch_VehicleTurret_ExposeData
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var codes = instructions.ToList();
+            var f_defaultAngleRotated = AccessTools.Field(typeof(VehicleTurret), nameof(VehicleTurret.defaultAngleRotated));
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Ldfld && c.OperandIs(f_defaultAngleRotated)) + 1;
+
+            codes[pos].opcode = OpCodes.Ldc_I4_1;
+            return codes;
         }
     }
 }

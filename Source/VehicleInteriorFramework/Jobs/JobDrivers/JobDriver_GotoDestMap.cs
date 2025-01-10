@@ -13,17 +13,17 @@ namespace VehicleInteriors
 
         public override bool TryMakePreToilReservations(bool errorOnFailed)
         {
-            var map = this.pawn.Map;
-            var map2 = this.TargetAMap;
-            if (map != map2)
-            {
-                this.pawn.VirtualMapTransfer(map2);
-            }
+            //var map = this.pawn.Map;
+            //var map2 = this.TargetAMap;
+            //if (map != map2)
+            //{
+            //    this.pawn.VirtualMapTransfer(map2);
+            //}
             var result = nextJob.TryMakePreToilReservations(this.pawn, false);
-            if (map != map2)
-            {
-                this.pawn.VirtualMapTransfer(map);
-            }
+            //if (map != map2)
+            //{
+            //    this.pawn.VirtualMapTransfer(map);
+            //}
             return result;
         }
 

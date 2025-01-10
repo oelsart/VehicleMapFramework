@@ -9,8 +9,6 @@ namespace VehicleInteriors
 
         public static VehiclePawnWithMap FocusedVehicle {  get; set; }
 
-        public override bool Visible => Prefs.DevMode;
-
         public override string Label
         {
             get
@@ -18,9 +16,9 @@ namespace VehicleInteriors
                 var vehicle = Find.Selector.SingleSelectedObject as VehiclePawnWithMap;
                 if (vehicle == null || vehicle == Command_FocusVehicleMap.FocuseLockedVehicle)
                 {
-                    return "VIF.UnfocusVehicleMap".Translate();
+                    return "VIF_UnfocusVehicleMap".Translate();
                 }
-                return "VIF.FocusVehicleMap".Translate();
+                return "VIF_FocusVehicleMap".Translate();
             }
         }
 

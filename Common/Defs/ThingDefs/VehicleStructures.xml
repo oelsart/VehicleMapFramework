@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+	<ThingDef Name="VIF_VehicleStructure">
+		<defName>VIF_VehicleStructureFilled</defName>
+		<label>vehicle structure filled</label>
+		<description>Structure of a vehicle.</description>
+		<thingClass>ThingWithComps</thingClass>
+		<category>Building</category>
+		<drawerType>None</drawerType>
+		<statBases>
+			<MaxHitPoints>1</MaxHitPoints>
+			<WorkToBuild>0</WorkToBuild>
+			<Flammability>0</Flammability>
+		</statBases>
+		<leaveResourcesWhenKilled>false</leaveResourcesWhenKilled>
+		<altitudeLayer>Building</altitudeLayer>
+		<passability>Impassable</passability>
+		<blockWind>true</blockWind>
+		<fillPercent>1</fillPercent>
+		<coversFloor>true</coversFloor>
+		<tickerType>Never</tickerType>
+		<rotatable>false</rotatable>
+		<selectable>false</selectable>
+		<neverMultiSelect>true</neverMultiSelect>
+		<neverOverlapFloors>true</neverOverlapFloors>
+		<blockLight>true</blockLight>
+		<canOverlapZones>false</canOverlapZones>
+		<fertility>0</fertility>
+		<destroyable>false</destroyable>
+		<building>
+			<isTargetable>false</isTargetable>
+			<deconstructible>false</deconstructible>
+			<claimable>false</claimable>
+			<expandHomeArea>false</expandHomeArea>
+			<neverBuildable>true</neverBuildable>
+			<allowWireConnection>false</allowWireConnection>
+			<canPlaceOverImpassablePlant>false</canPlaceOverImpassablePlant>
+			<canBuildNonEdificesUnder>false</canBuildNonEdificesUnder>
+			<allowAutoroof>false</allowAutoroof>
+		</building>
+		<comps>
+			<li>
+				<compClass>VehicleInteriors.CompVehicleStructure</compClass>
+			</li>
+		</comps>
+	</ThingDef>
+
+	<ThingDef ParentName="VIF_VehicleStructure">
+		<defName>VIF_VehicleStructureEmpty</defName>
+		<label>vehicle structure empty</label>
+		<fillPercent>0</fillPercent>
+	</ThingDef>
+</Defs>

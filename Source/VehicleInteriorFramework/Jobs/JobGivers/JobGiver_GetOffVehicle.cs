@@ -33,7 +33,7 @@ namespace VehicleInteriors
                 });
                 if (!spot.IsValid)
                 {
-                    spot = new TargetInfo(CellRect.WholeMap(vehicle.VehicleMap).EdgeCells.OrderBy(c => (pawn.Position - c).LengthHorizontalSquared).FirstOrDefault(c =>
+                    spot = new TargetInfo(CellRect.WholeMap(vehicle.VehicleMap).EdgeCells.OrderBy(c => (pawn.Position - c).LengthHorizontalSquared).FirstOrFallback(c =>
                     {
                         var baseMap = vehicle.Map;
                         var basePos = c.OrigToVehicleMap(vehicle);
@@ -46,7 +46,7 @@ namespace VehicleInteriors
                         }
                         var cell = (basePos - faceCell * dist);
                         return pawn.CanReach(c, PathEndMode.OnCell, Danger.Deadly, hostile, hostile, TraverseMode.ByPawn) && cell.Standable(baseMap);
-                    }), vehicle.VehicleMap);
+                    }, IntVec3.Invalid), vehicle.VehicleMap);
                 }
                 if (spot.IsValid)
                 {

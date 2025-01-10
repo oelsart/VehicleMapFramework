@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+
+<Defs>
+	<Vehicles.VehicleBuildDef ParentName="VehicleBoatWithMapBaseBuildable">
+		<defName>VIF_Pantodon_Blueprint</defName>
+		<label>pantodon</label>
+		<description>Basic tank platform. It has only a power unit with a pair of crawlers, and has no cabin or cargo.\n\n&lt;color=#bb8f04&gt;Fuel type:&lt;/color&gt; Chemfuel</description>
+		<designationCategory>VF_Vehicles</designationCategory>
+		<graphicData>
+			<texPath>VehicleInteriors/Pantodon/Pantodon</texPath>
+			<graphicClass>Graphic_Multi</graphicClass>
+			<drawSize>(8.125, 19.888671875)</drawSize>
+		</graphicData>
+
+		<statBases>
+			<MaxHitPoints>2600</MaxHitPoints>
+			<WorkToBuild>5600</WorkToBuild>
+			<Flammability>0.2</Flammability>
+		</statBases>
+
+		<size>(7,19)</size>
+
+		<!--<researchPrerequisites>
+			<li>VVE_BasicVehicles</li>
+		</researchPrerequisites>-->
+
+		<!--<costList>
+			<VVE_EngineBlock>1</VVE_EngineBlock>
+			<VVE_CarAlternator>1</VVE_CarAlternator>
+			<VVE_CarExhaust>2</VVE_CarExhaust>
+			<VVE_CarSuspension>4</VVE_CarSuspension>
+			<VVE_CarWheel>4</VVE_CarWheel>
+			<Steel>120</Steel>
+			<ComponentIndustrial>4</ComponentIndustrial>
+		</costList>-->
+
+		<costList>
+			<Steel>800</Steel>
+			<Plasteel>100</Plasteel>
+			<ComponentIndustrial>32</ComponentIndustrial>
+		</costList>
+
+		<soundImpactDefault>BulletImpact_Metal</soundImpactDefault>
+
+		<thingToSpawn>VIF_Pantodon</thingToSpawn>
+
+		<constructionSkillPrerequisite>8</constructionSkillPrerequisite>
+	</Vehicles.VehicleBuildDef>
+</Defs>

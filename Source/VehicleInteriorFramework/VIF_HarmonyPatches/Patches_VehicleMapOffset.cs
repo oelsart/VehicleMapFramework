@@ -87,46 +87,6 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         }
     }
 
-    //[HarmonyPatch(typeof(FleckStatic), nameof(FleckStatic.DrawPos), MethodType.Getter)]
-    //public static class Patch_FleckStatic_DrawPos
-    //{
-    //    public static void Postfix(Map ___map, ref Vector3 __result)
-    //    {
-    //        if (___map?.Parent is MapParent_Vehicle parentVehicle)
-    //        {
-    //            __result = __result.OrigToVehicleMap(parentVehicle.vehicle);
-    //        }
-    //    }
-    //}
-
-    ////描画位置をOrigToVehicleMapで調整
-    //[HarmonyPatch(typeof(GhostDrawer), nameof(GhostDrawer.DrawGhostThing))]
-    //public static class Patch_GhostDrawer_DrawGhostThing
-    //{
-    //    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
-    //    {
-    //        var codes = instructions.ToList();
-    //        var getTrueCenter = AccessTools.Method(typeof(GenThing), nameof(GenThing.TrueCenter), new Type[] { typeof(IntVec3), typeof(Rot4), typeof(IntVec2), typeof(float) });
-    //        var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(getTrueCenter)) + 1;
-    //        codes.Insert(pos, CodeInstruction.Call(typeof(VehicleMapUtility), nameof(VehicleMapUtility.OrigToVehicleMap), new Type[] { typeof(Vector3) }));
-
-    //    //    var label = generator.DefineLabel();
-    //    //    var drawFromDef = AccessTools.Method(typeof(Graphic), nameof(Graphic.DrawFromDef));
-    //    //    var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Callvirt && c.OperandIs(drawFromDef));
-    //    //    codes[pos2].labels.Add(label);
-    //    //    codes.InsertRange(pos2, new[]
-    //    //    {
-    //    //        new CodeInstruction(OpCodes.Call, MethodInfoCache.g_FocusedVehicle),
-    //    //        new CodeInstruction(OpCodes.Brfalse_S, label),
-    //    //        new CodeInstruction(OpCodes.Call, MethodInfoCache.g_FocusedVehicle),
-    //    //        new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Angle),
-    //    //        new CodeInstruction(OpCodes.Neg),
-    //    //        new CodeInstruction(OpCodes.Add)
-    //    //    });
-    //        return codes;
-    //    }
-    //}
-
     //thingがIsOnVehicleMapだった場合回転の初期値num3にベースvehicleのAngleを与え、posはRotatePointで回転
     [HarmonyPatch(typeof(SelectionDrawer), nameof(SelectionDrawer.DrawSelectionBracketFor))]
     public static class Patch_SelectionDrawer_DrawSelectionBracketFor
@@ -511,41 +471,6 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             return codes;
         }
     }
-
-    //Graphics.DrawMesh(MeshPool.plane10, intVec.ToVector3ShiftedWithAltitude(AltitudeLayer.MetaOverlays) + new Vector3(0f, y, 0f), new Rot4(k).AsQuat, material, 0); =>
-    //Graphics.DrawMesh(MeshPool.plane10, intVec.ToVector3ShiftedWithAltitude(AltitudeLayer.MetaOverlays).OrigToVehicleMap().WithYOffset(-VehicleMapUtility.altitudeOffsetFull) + new Vector3(0f, y, 0f), new Rot4(k).AsQuat * Command_FocuseVehicle.FocusedVehicle?.FullRotation.AsQuat(), material, 0);
-    //[HarmonyPatch(typeof(GenDraw), nameof(GenDraw.DrawFieldEdges), typeof(List<IntVec3>), typeof(Color), typeof(float?))]
-    //public static class Patch_GenDraw_DrawFieldEdges
-    //{
-    //    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
-    //    {
-    //        var codes = instructions.ToList();
-    //        var m_ToVector3ShiftedWithAltitude = AccessTools.Method(typeof(IntVec3), nameof(IntVec3.ToVector3ShiftedWithAltitude), new Type[] { typeof(AltitudeLayer) });
-    //        var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(m_ToVector3ShiftedWithAltitude)) + 1;
-    //        codes.InsertRange(pos, new[]
-    //        {
-    //            new CodeInstruction(OpCodes.Call, MethodInfoCache.m_OrigToVehicleMap1),
-    //            new CodeInstruction(OpCodes.Ldc_R4, VehicleMapUtility.altitudeOffsetFull),
-    //            new CodeInstruction(OpCodes.Neg),
-    //            CodeInstruction.Call(typeof(Vector3Utility), nameof(Vector3Utility.WithYOffset))
-    //        });
-
-    //        var label = generator.DefineLabel();
-    //        var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Ldloc_2);
-    //        codes[pos2].labels.Add(label);
-    //        codes.InsertRange(pos2, new[]
-    //        {
-    //            new CodeInstruction(OpCodes.Call, MethodInfoCache.g_FocusedVehicle),
-    //            new CodeInstruction(OpCodes.Brfalse_S, label),
-    //            new CodeInstruction(OpCodes.Call, MethodInfoCache.g_FocusedVehicle),
-    //            new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_FullRotation),
-    //            new CodeInstruction(OpCodes.Call, MethodInfoCache.m_Rot8_AsQuat),
-    //            new CodeInstruction(OpCodes.Call, MethodInfoCache.o_Quaternion_Multiply),
-    //        });
-
-    //        return codes;
-    //    }
-    //}
 
     //v, v2にOrigToVehicleをしてDrawBoxRotatedにFocusedVehicle.FullRotation.AsAngleを渡す
     //Widgets.DrawNumberOnMap(screenPos, intVec.x, Color.white) ->

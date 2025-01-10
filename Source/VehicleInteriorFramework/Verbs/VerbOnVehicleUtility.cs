@@ -12,7 +12,7 @@ namespace VehicleInteriors
         {
             var casterBaseMap = verb.caster.BaseMap();
             var targCellOnBaseMap = targ.CellOnBaseMap();
-            var targMap = targ.HasThing ? targ.Thing.Map : casterBaseMap;
+            //var targMap = targ.HasThing ? targ.Thing.Map : casterBaseMap;
             if (targ.HasThing && targ.Thing.BaseMap() != casterBaseMap)
             {
                 resultingLine = default;
