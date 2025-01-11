@@ -1,4 +1,5 @@
-﻿using Verse;
+﻿using RimWorld;
+using Verse;
 using Verse.AI;
 
 namespace VehicleInteriors
@@ -25,12 +26,18 @@ namespace VehicleInteriors
             driver.SetSpots(exitSpot1, enterSpot1, exitSpot2, enterSpot2);
             return job;
         }
+
         public static Job SetSpotsAndNextJob(this Job job, Pawn pawn, TargetInfo? exitSpot1 = null, TargetInfo? enterSpot1 = null, TargetInfo? exitSpot2 = null, TargetInfo? enterSpot2 = null, Job nextJob = null)
         {
             var driver = job.GetCachedDriver(pawn) as JobDriver_GotoDestMap;
             driver.SetSpots(exitSpot1, enterSpot1, exitSpot2, enterSpot2);
             driver.nextJob = nextJob;
             return job;
+        }
+
+        public static bool PawnDeterminingJob(this Pawn pawn)
+        {
+            return pawn.jobs.DeterminingNextJob || FloatMenuMakerMap.makingFor == pawn || Find.Selector.SingleSelectedObject == pawn;
         }
     }
 }

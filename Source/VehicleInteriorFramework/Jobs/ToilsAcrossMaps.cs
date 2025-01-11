@@ -110,8 +110,6 @@ namespace VehicleInteriors
 
         public static IEnumerable<Toil> GotoTargetMap(JobDriverAcrossMaps driver, TargetInfo exitSpot, TargetInfo enterSpot)
         {
-            if (enterSpot.IsValid && driver.pawn.Map == enterSpot.Map) yield break;
-
             if (exitSpot.IsValid)
             {
                 //あれ？もうexitSpotから出た後じゃない？ジャンプしよ
@@ -193,6 +191,8 @@ namespace VehicleInteriors
                     driver.drawOffset = offset.RotatedBy(-vehicle.FullRotation.AsAngle) * ((GenTicks.TicksGame - initTick) / ticks);
                     door?.StartManualOpenBy(toil2.actor);
                 };
+
+                toil2.FailOn(() => !exitSpot.Cell.Standable(exitSpot.Map));
                 yield return toil2;
 
                 //デスポーン後目的地のマップにリスポーン。スポーン地の再計算時にそこが埋まってたらとりあえず失敗に
@@ -316,7 +316,6 @@ namespace VehicleInteriors
                 };
                 yield return toil2;
 
-                //デスポーン後目的地のマップにリスポーン。スポーン地の再計算時にそこが埋まってたらとりあえず失敗に
                 var toil3 = ToilMaker.MakeToil("Enter Vehicle Map");
                 toil3.defaultCompleteMode = ToilCompleteMode.Instant;
                 toil3.initAction = () =>

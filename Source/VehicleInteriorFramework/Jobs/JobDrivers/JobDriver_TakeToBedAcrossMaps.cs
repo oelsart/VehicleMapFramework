@@ -35,7 +35,7 @@ namespace VehicleInteriors
 
         public override string GetReport()
         {
-            if (this.job.def == JobDefOf.Rescue && !this.TakeeRescued)
+            if (this.job.def == VIF_DefOf.VIF_RescueAcrossMaps && !this.TakeeRescued)
             {
                 return "TakingToBed".Translate(this.Takee);
             }
@@ -45,7 +45,7 @@ namespace VehicleInteriors
         public override bool TryMakePreToilReservations(bool errorOnFailed)
         {
             this.Takee.ClearAllReservations(true);
-            return this.pawn.Reserve(this.Takee.Map, this.Takee, this.job, 1, -1, null, errorOnFailed, false) && this.pawn.Reserve(this.DropBed, this.job, this.DropBed.SleepingSlotsCount, 0, null, errorOnFailed, false);
+            return this.pawn.Reserve(this.Takee.Map, this.Takee, this.job, 1, -1, null, errorOnFailed, false) && this.pawn.Reserve(this.DropBed.Map, this.DropBed, this.job, this.DropBed.SleepingSlotsCount, 0, null, errorOnFailed, false);
         }
 
         protected override IEnumerable<Toil> MakeNewToils()
@@ -127,8 +127,13 @@ namespace VehicleInteriors
             });
             Toil goToBed = Toils_Goto.GotoThing(TargetIndex.B, PathEndMode.Touch, false).FailOn(() => !this.pawn.IsCarryingPawn(this.Takee));
             goToBed.FailOnBedNoLongerUsable(TargetIndex.B, TargetIndex.A);
-            yield return Toils_Jump.JumpIf(goToBed, () => this.pawn.IsCarryingPawn(this.Takee));
+            var label = Toils_General.Label();
+            yield return Toils_Jump.JumpIf(label, () => this.pawn.IsCarryingPawn(this.Takee));
             yield return startCarrying;
+            label.AddFinishAction(() =>
+            {
+            });
+            yield return label;
             if (this.ShouldEnterTargetBMap)
             {
                 foreach (var toil2 in this.GotoTargetMap(BedIndex)) yield return toil2;
@@ -151,17 +156,11 @@ namespace VehicleInteriors
                 if (!this.job.ritualTag.NullOrEmpty())
                 {
                     Lord lord = this.Takee.GetLord();
-                    LordJob_Ritual lordJob_Ritual = ((lord != null) ? lord.LordJob : null) as LordJob_Ritual;
-                    if (lordJob_Ritual != null)
-                    {
-                        lordJob_Ritual.AddTagForPawn(this.Takee, this.job.ritualTag);
-                    }
+                    LordJob_Ritual lordJob_Ritual = lord?.LordJob as LordJob_Ritual;
+                    lordJob_Ritual?.AddTagForPawn(this.Takee, this.job.ritualTag);
                     Lord lord2 = this.pawn.GetLord();
-                    lordJob_Ritual = (((lord2 != null) ? lord2.LordJob : null) as LordJob_Ritual);
-                    if (lordJob_Ritual != null)
-                    {
-                        lordJob_Ritual.AddTagForPawn(this.pawn, this.job.ritualTag);
-                    }
+                    lordJob_Ritual = lord2?.LordJob as LordJob_Ritual;
+                    lordJob_Ritual?.AddTagForPawn(this.pawn, this.job.ritualTag);
                 }
             });
             yield break;

@@ -75,18 +75,16 @@ namespace VehicleInteriors
                     {
                         return;
                     }
-                    toil.GetActor().CurJob.SetTarget(TargetIndex.B, pack);
-                    var gotoDestMap = JobMaker.MakeJob(VIF_DefOf.VIF_GotoAcrossMaps);
-                    var driver = gotoDestMap.GetCachedDriver(toil.actor) as JobDriverAcrossMaps;
-                    driver.SetSpots(exitSpot, enterSpot);
-                    toil.actor.jobs.StartJob(gotoDestMap, JobCondition.Ongoing, null, true);
+                    toil.actor.CurJob.SetTarget(TargetIndex.B, pack);
+                    var job = toil.actor.CurJob.Clone();
+                    toil.actor.jobs.StartJob(JobAcrossMapsUtility.GotoDestMapJob(toil.actor, exitSpot, enterSpot, job), keepCarryingThingOverride: true);
                     return;
                 }
                 else
                 {
                     if (pack2.IsValid)
                     {
-                        toil.GetActor().CurJob.SetTarget(TargetIndex.B, pack2);
+                        toil.actor.CurJob.SetTarget(TargetIndex.B, pack2);
                         return;
                     }
                     this.pawn.jobs.EndCurrentJob(JobCondition.InterruptForced, true, true);
@@ -122,8 +120,7 @@ namespace VehicleInteriors
                 return building_Bed;
             }
             LocalTargetInfo result = LocalTargetInfo.Invalid;
-            Region targetRegion;
-            if (ChildcareUtility.BabyNeedsMovingForTemperatureReasons(baby, hauler, out targetRegion, null))
+            if (ChildcareUtility.BabyNeedsMovingForTemperatureReasons(baby, hauler, out Region targetRegion, null))
             {
                 result = RCellFinder.SpotToStandDuringJob(hauler, null, targetRegion);
             }

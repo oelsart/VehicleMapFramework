@@ -121,22 +121,28 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         {
             var map = pawn.Map;
             var anyNotNull = false;
-            var enumerable = pawn.Map.BaseMapAndVehicleMaps().SelectMany(m =>
+            try
             {
-                pawn.VirtualMapTransfer(m);
-                var things = scanner.PotentialWorkThingsGlobal(pawn);
-                if (things != null)
+                var enumerable = pawn.Map.BaseMapAndVehicleMaps().SelectMany(m =>
                 {
-                    anyNotNull = true;
-                }
-                else
-                {
-                    things = Enumerable.Empty<Thing>(); //こうしないとnullがconcatされて困るっぽい
-                }
-                return things;
-            }).ToList();
-            pawn.VirtualMapTransfer(map);
-            return anyNotNull ? enumerable : null; //こうしないとPotentialWorkThingRequestによるサーチセット作成が行われないよ
+                    pawn.VirtualMapTransfer(m);
+                    var things = scanner.PotentialWorkThingsGlobal(pawn);
+                    if (things != null)
+                    {
+                        anyNotNull = true;
+                    }
+                    else
+                    {
+                        things = Enumerable.Empty<Thing>(); //こうしないとnullがconcatされて困るっぽい
+                    }
+                    return things;
+                }).ToList();
+                return anyNotNull ? enumerable : null; //こうしないとPotentialWorkThingRequestによるサーチセット作成が行われないよ
+            }
+            finally
+            {
+                pawn.VirtualMapTransfer(map);
+            }
         }
 
         //マップと位置を仮想移動して出てきたJobをGotoDestMapでくるむ
@@ -157,8 +163,15 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                     var pos = pawn.Position;
                     var dest = t.PositionHeld;
                     pawn.VirtualMapTransfer(thingMap, dest);
-                    var job = scanner.JobOnThing(pawn, t, forced);
-                    pawn.VirtualMapTransfer(map, pos);
+                    Job job;
+                    try
+                    {
+                        job = scanner.JobOnThing(pawn, t, forced);
+                    }
+                    finally
+                    {
+                        pawn.VirtualMapTransfer(map, pos);
+                    }
 
                     var thing = job.targetA.Thing ?? job.targetQueueA.FirstOrDefault().Thing;
                     if (thing != null && pawn.Map != thing.MapHeld)
@@ -172,9 +185,14 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             var cell = pawn.Position;
             var cell2 = CellRect.WholeMap(thingMap).RandomCell;
             pawn.VirtualMapTransfer(thingMap, cell2);
-            var job2 = scanner.JobOnThing(pawn, t, forced);
-            pawn.VirtualMapTransfer(map, cell);
-            return job2;
+            try
+            {
+                return scanner.JobOnThing(pawn, t, forced);
+            }
+            finally
+            {
+                pawn.VirtualMapTransfer(map, cell);
+            }
         }
     }
 
@@ -192,14 +210,19 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         private static bool ShouldSkipAll(WorkGiver workGiver, Pawn pawn, bool forced)
         {
             var map = pawn.Map;
-            var result = pawn.Map.BaseMapAndVehicleMaps().All(m =>
+            try
             {
-                pawn.VirtualMapTransfer(m);
-                var skip = workGiver.ShouldSkip(pawn, forced);
-                return skip;
-            });
-            pawn.VirtualMapTransfer(map);
-            return result;
+                return pawn.Map.BaseMapAndVehicleMaps().All(m =>
+                {
+                    pawn.VirtualMapTransfer(m);
+                    var skip = workGiver.ShouldSkip(pawn, forced);
+                    return skip;
+                });
+            }
+            finally
+            {
+                pawn.VirtualMapTransfer(map);
+            }
         }
     }
 
@@ -215,8 +238,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         {
             var m_Scanner_HasJobOnThing = AccessTools.Method(typeof(WorkGiver_Scanner), nameof(WorkGiver_Scanner.HasJobOnThing));
             var m_HasJobOnThingMap = AccessTools.Method(typeof(Patch_JobGiver_Work_Validator), nameof(Patch_JobGiver_Work_Validator.HasJobOnThingMap));
-            return instructions.MethodReplacer(MethodInfoCache.m_ForbidUtility_IsForbidden, MethodInfoCache.m_ReservationAcrossMapsUtility_IsForbidden)
-                .MethodReplacer(m_Scanner_HasJobOnThing, m_HasJobOnThingMap);
+            return instructions.MethodReplacer(m_Scanner_HasJobOnThing, m_HasJobOnThingMap);
         }
 
         //目的のtに届く位置とマップに転移してからHasJobOnThingを走らせる
@@ -237,18 +259,28 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                     var pos = pawn.Position;
                     var dest = t.PositionHeld;
                     pawn.VirtualMapTransfer(thingMap, dest);
-                    var hasJob = scanner.HasJobOnThing(pawn, t, forced);
-                    pawn.VirtualMapTransfer(map, pos);
-                    return hasJob;
+                    try
+                    {
+                        return scanner.HasJobOnThing(pawn, t, forced);
+                    }
+                    finally
+                    {
+                        pawn.VirtualMapTransfer(map, pos);
+                    }
                 }
                 return false;
             }
             var cell = pawn.Position;
             var cell2 = CellRect.WholeMap(thingMap).RandomCell;
             pawn.VirtualMapTransfer(thingMap, cell2);
-            var hasJob2 = scanner.HasJobOnThing(pawn, t, forced);
-            pawn.VirtualMapTransfer(map, cell);
-            return hasJob2;
+            try
+            {
+                return scanner.HasJobOnThing(pawn, t, forced);
+            }
+            finally
+            {
+                pawn.VirtualMapTransfer(map, cell);
+            }
         }
     }
 
@@ -269,15 +301,13 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         public static void Postfix(Toil __result, TargetIndex ind, PathEndMode peMode, bool canGotoSpawnedParent)
         {
-            var oldAction = __result.initAction;
-            __result.initAction = new Action(() =>
+            __result.AddPreInitAction(() =>
             {
                 Pawn actor = __result.actor;
                 LocalTargetInfo dest = actor.jobs.curJob.GetTarget(ind);
                 Thing thing = dest.Thing;
                 if (thing == null)
                 {
-                    oldAction();
                     return;
                 }
                 if (canGotoSpawnedParent)
@@ -286,11 +316,9 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                 }
                 if (actor.Map != dest.Thing.Map && actor.CanReach(dest, peMode, Danger.Deadly, false, false, TraverseMode.ByPawn, dest.Thing.Map, out var exitSpot, out var enterSpot))
                 {
-                    actor.jobs.StartJob(JobAcrossMapsUtility.GotoDestMapJob(actor, exitSpot, enterSpot, actor.CurJob));
-                }
-                else
-                {
-                    oldAction();
+                    var nextJob = actor.CurJob.Clone();
+                    actor.jobs.curDriver.globalFinishActions.Clear(); //Jobはまだ終わっちゃいねえためFinishActionはさせない。TryDropThingなどをしていることもあるし
+                    actor.jobs.StartJob(JobAcrossMapsUtility.GotoDestMapJob(actor, exitSpot, enterSpot, nextJob), JobCondition.InterruptForced, keepCarryingThingOverride: true);
                 }
             });
 
@@ -340,7 +368,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         public static bool Prefix(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance, Predicate<Thing> validator, IEnumerable<Thing> customGlobalSearchSet, int searchRegionsMin, int searchRegionsMax, bool forceAllowGlobalSearch, RegionType traversableRegionTypes, bool ignoreEntirelyForbiddenRegions, bool lookInHaulSources, ref Thing __result)
         {
-            if (traverseParams.pawn != null && traverseParams.pawn.jobs.DeterminingNextJob)
+            if (traverseParams.pawn != null && traverseParams.pawn.PawnDeterminingJob())
             {
                 __result = GenClosestOnVehicle.ClosestThingReachable(root, map, thingReq, peMode, traverseParams, maxDistance, validator, customGlobalSearchSet, searchRegionsMin, searchRegionsMax, true, traversableRegionTypes, ignoreEntirelyForbiddenRegions, lookInHaulSources);
                 return false;
@@ -352,9 +380,9 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     [HarmonyPatch(typeof(ReservationManager), nameof(ReservationManager.CanReserve))]
     public static class Patch_ReservationManager_CanReserve
     {
-        public static bool Prefix(Pawn claimant, LocalTargetInfo target, int maxPawns, int stackCount, ReservationLayerDef layer, bool ignoreOtherReservations, ref bool __result)
+        public static bool Prefix(ReservationManager __instance, Pawn claimant, LocalTargetInfo target, int maxPawns, int stackCount, ReservationLayerDef layer, bool ignoreOtherReservations, ref bool __result)
         {
-            if (target.HasThing && claimant.Map != target.Thing.MapHeld)
+            if (__instance == claimant.Map.reservationManager && target.HasThing && claimant.Map != target.Thing.MapHeld)
             {
                 __result = claimant.CanReserve(target, target.Thing.MapHeld, maxPawns, stackCount, layer, ignoreOtherReservations);
                 return false;
@@ -451,9 +479,64 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(MethodInfoCache.m_ForbidUtility_IsForbidden, MethodInfoCache.m_ReservationAcrossMapsUtility_IsForbidden)
-                .MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing)
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing)
                 .MethodReplacer(MethodInfoCache.g_Thing_MapHeld, MethodInfoCache.m_MapHeldBaseMap);
+        }
+    }
+
+    [HarmonyPatch(typeof(ToilFailConditions), nameof(ToilFailConditions.DespawnedOrNull))]
+    public static class Patch_ToilFailConditions_DespawnedOrNull
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_MapHeld, MethodInfoCache.m_MapHeldBaseMap)
+                .MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing);
+        }
+    }
+
+    [HarmonyPatch(typeof(ToilFailConditions), nameof(ToilFailConditions.SelfAndParentsDespawnedOrNull))]
+    public static class Patch_ToilFailConditions_SelfAndParentsDespawnedOrNull
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_MapHeld, MethodInfoCache.m_MapHeldBaseMap)
+                .MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing);
+        }
+    }
+
+    [HarmonyPatch(typeof(ForbidUtility), nameof(ForbidUtility.IsForbidden), typeof(Thing), typeof(Pawn))]
+    public static class Patch_ForbidUtility_IsForbidden
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_PositionHeld, MethodInfoCache.m_PositionHeldOnBaseMap);
+        }
+    }
+
+    [HarmonyPatch]
+    public static class Patch_ToilFailConditions_FailOnSomeonePhysicallyInteracting
+    {
+        private static MethodInfo TargetMethod()
+        {
+            return AccessTools.InnerTypes(typeof(ToilFailConditions)).SelectMany(t =>
+            {
+                var type = t.IsGenericTypeDefinition ? t.MakeGenericType(typeof(Toil)) : t;
+                return type.GetMethods(AccessTools.all);
+            }).First(m => m.Name.Contains("<FailOnSomeonePhysicallyInteracting>"));
+        }
+
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var codes = instructions.ToList();
+
+            return codes.Select((c, i) =>
+            {
+                if (c.opcode == OpCodes.Callvirt && c.OperandIs(MethodInfoCache.g_Thing_Map))
+                {
+                    codes[i - 1].opcode = OpCodes.Ldloc_1;
+                }
+                return c;
+            });
         }
     }
 }

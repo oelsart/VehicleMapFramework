@@ -36,7 +36,10 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap);
+            var m_ChoicesAtFor = AccessTools.Method(typeof(FloatMenuMakerMap), nameof(FloatMenuMakerMap.ChoicesAtFor));
+            var m_ChoicesAtForOnVehicle = AccessTools.Method(typeof(FloatMenuMakerOnVehicle), nameof(FloatMenuMakerOnVehicle.ChoicesAtFor));
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap)
+                .MethodReplacer(m_ChoicesAtFor, m_ChoicesAtForOnVehicle);
         }
     }
 
@@ -55,6 +58,17 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         public static IEnumerable<CodeInstruction> Transpiler2(IEnumerable<CodeInstruction> instructions)
         {
             return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing);
+        }
+    }
+
+    //ValidateTakeToBedOptionの完全な置き換え(FindBedとReservation関係が置換してある)。こんなところはあまり触られてないことを祈る
+    [HarmonyPatch(typeof(FloatMenuMakerMap), "ValidateTakeToBedOption")]
+    public static class Patch_FloatMenuMakerMap_ValidateTakeToBedOption
+    {
+        public static bool Prefix(Pawn pawn, Pawn target, FloatMenuOption option, string cannot, GuestStatus? guestStatus)
+        {
+            FloatMenuMakerOnVehicle.ValidateTakeToBedOption(pawn, target, option, cannot, guestStatus);
+            return false;
         }
     }
 }

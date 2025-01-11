@@ -58,7 +58,7 @@ namespace VehicleInteriors
                         for (int j = 0; j < 2; j++)
                         {
                             Danger maxDanger = (j == 0) ? Danger.None : Danger.Deadly;
-                            Building_Bed building_Bed = (Building_Bed)GenClosestOnVehicle.ClosestThingReachable(sleeper.Position, sleeper.MapHeld, ThingRequest.ForDef(thingDef), PathEndMode.OnCell, TraverseParms.For(traveler, Danger.Deadly, TraverseMode.ByPawn, false, false, false), 9999f, (Thing b) => ((Building_Bed)b).Medical && b.Position.GetDangerFor(sleeper, sleeper.Map) <= maxDanger && RestUtility.IsValidBedFor(b, sleeper, traveler, checkSocialProperness, false, ignoreOtherReservations, guestStatus), null, 0, -1, false, RegionType.Set_Passable, false);
+                            Building_Bed building_Bed = (Building_Bed)GenClosestOnVehicle.ClosestThingReachable(sleeper.Position, sleeper.MapHeld, ThingRequest.ForDef(thingDef), PathEndMode.OnCell, TraverseParms.For(traveler, Danger.Deadly, TraverseMode.ByPawn, false, false, false), 9999f, (Thing b) => ((Building_Bed)b).Medical && b.Position.GetDangerFor(sleeper, sleeper.Map) <= maxDanger && RestUtility.IsValidBedFor(b, sleeper, traveler, checkSocialProperness, false, ignoreOtherReservations, guestStatus), null, 0, -1, false, RegionType.Set_Passable, false, false, out exitSpot, out enterSpot);
                             if (building_Bed != null)
                             {
                                 return building_Bed;
@@ -100,7 +100,7 @@ namespace VehicleInteriors
                         PathEndMode peMode = PathEndMode.OnCell;
                         TraverseParms traverseParams = TraverseParms.For(traveler, Danger.Deadly, TraverseMode.ByPawn, false, false, false);
                         float maxDistance = 9999f;
-                        Predicate<Thing> validator = (Thing b) =>
+                        bool validator(Thing b)
                         {
                             if (((Building_Bed)b).Medical || b.Position.GetDangerFor(sleeper, b.MapHeld) > maxDanger || !RestUtility.IsValidBedFor(b, sleeper, traveler, checkSocialProperness, false, ignoreOtherReservations, guestStatus))
                             {
@@ -111,7 +111,7 @@ namespace VehicleInteriors
                                 return !b.Position.GetItems(b.Map).Any((Thing thing) => thing.def.IsCorpse);
                             }
                             return true;
-                        };
+                        }
                         Building_Bed building_Bed2 = (Building_Bed)GenClosestOnVehicle.ClosestThingReachable(positionHeld, mapHeld, thingReq, peMode, traverseParams, maxDistance, validator, null, 0, -1, false, RegionType.Set_Passable, false, false, out exitSpot, out enterSpot);
                         if (building_Bed2 != null)
                         {

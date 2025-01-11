@@ -198,7 +198,7 @@ namespace VehicleInteriors
         }
 
         //置き換え用
-        public static bool CanReach(this Pawn pawn, LocalTargetInfo dest3, PathEndMode peMode, Danger maxDanger, bool canBashDoors, bool canBashFences, TraverseMode mode)
+        public static bool CanReach(Pawn pawn, LocalTargetInfo dest3, PathEndMode peMode, Danger maxDanger, bool canBashDoors, bool canBashFences, TraverseMode mode)
         {
             var traverseParms = TraverseParms.For(pawn, maxDanger, mode, canBashDoors, false, canBashFences);
             var destMap = dest3.HasThing ? dest3.Thing.MapHeld : pawn.BaseMap();

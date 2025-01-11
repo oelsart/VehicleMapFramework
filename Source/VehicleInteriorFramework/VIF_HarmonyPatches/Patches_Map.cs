@@ -70,7 +70,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         public static bool Prefix(Reachability __instance, IntVec3 start, LocalTargetInfo dest, PathEndMode peMode, TraverseParms traverseParams, ref bool __result)
         {
-            if (traverseParams.pawn != null && traverseParams.pawn.jobs.DeterminingNextJob && dest.HasThing && dest.Thing.MapHeld.reachability != __instance)
+            if (traverseParams.pawn != null && (traverseParams.pawn.PawnDeterminingJob() || (traverseParams.pawn.CurJob?.AnyTargetIs(dest) ?? false)) && dest.HasThing && dest.Thing.MapHeld.reachability != __instance)
             {
                 __result = ReachabilityUtilityOnVehicle.CanReach(traverseParams.pawn.Map, start, dest, peMode, traverseParams, dest.Thing.MapHeld, out _, out _);
                 return false;
@@ -303,5 +303,50 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         private const int tickInterval = 60;
 
         private static AccessTools.FieldRef<WorldRenderer, List<WorldLayer>> layers = AccessTools.FieldRefAccess<WorldRenderer, List<WorldLayer>>("layers");
+    }
+
+    [HarmonyPatch(typeof(MapPawns), nameof(MapPawns.AllPawns), MethodType.Getter)]
+    public static class Patch_MapPawns_AllPawns
+    {
+        public static List<Pawn> Postfix(List<Pawn> __result, Map ___map)
+        {
+            return __result.Concat(VehiclePawnWithMapCache.allVehicles[___map].SelectMany(v => v.VehicleMap.mapPawns.AllPawns)).ToList();
+        }
+    }
+
+    [HarmonyPatch(typeof(MapPawns), nameof(MapPawns.AllPawnsSpawned), MethodType.Getter)]
+    public static class Patch_MapPawns_AllPawnsSpawned
+    {
+        public static IReadOnlyList<Pawn> Postfix(IReadOnlyList<Pawn> __result, Map ___map)
+        {
+            return __result.Concat(VehiclePawnWithMapCache.allVehicles[___map].SelectMany(v => v.VehicleMap.mapPawns.AllPawnsSpawned)).ToArray();
+        }
+    }
+
+    [HarmonyPatch(typeof(MapPawns), nameof(MapPawns.AllPawnsUnspawned), MethodType.Getter)]
+    public static class Patch_MapPawns_AllPawnsUnspawned
+    {
+        public static void Postfix(List<Pawn> __result, Map ___map)
+        {
+            __result.AddRange(VehiclePawnWithMapCache.allVehicles[___map].SelectMany(v => v.VehicleMap.mapPawns.AllPawnsUnspawned));
+        }
+    }
+
+    [HarmonyPatch(typeof(MapPawns), nameof(MapPawns.FreeHumanlikesSpawnedOfFaction))]
+    public static class Patch_MapPawns_FreeHumanlikesSpawnedOfFaction
+    {
+        public static void Postfix(List<Pawn> __result, Map ___map, Faction faction)
+        {
+            __result.AddRange(VehiclePawnWithMapCache.allVehicles[___map].SelectMany(v => v.VehicleMap.mapPawns.FreeHumanlikesSpawnedOfFaction(faction)));
+        }
+    }
+
+    [HarmonyPatch(typeof(MapPawns), nameof(MapPawns.SpawnedBabiesInFaction))]
+    public static class Patch_MapPawns_SpawnedBabiesInFaction
+    {
+        public static void Postfix(List<Pawn> __result, Map ___map, Faction faction)
+        {
+            __result.AddRange(VehiclePawnWithMapCache.allVehicles[___map].SelectMany(v => v.VehicleMap.mapPawns.SpawnedBabiesInFaction(faction)));
+        }
     }
 }
