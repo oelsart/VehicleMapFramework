@@ -346,7 +346,10 @@ namespace VehicleInteriors
             //map.mapDrawer.DrawMapMesh();
             var drawPos = Vector3.zero.OrigToVehicleMap(this, extraRotation);
             this.DrawVehicleMapMesh(map, drawPos, extraRotation);
-            map.dynamicDrawManager.DrawDynamicThings();
+            LongEventHandler.ExecuteWhenFinished(() =>
+            {
+                map.dynamicDrawManager.DrawDynamicThings();
+            });
             this.DrawClippers(map);
             map.designationManager.DrawDesignations();
             map.overlayDrawer.DrawAllOverlays();

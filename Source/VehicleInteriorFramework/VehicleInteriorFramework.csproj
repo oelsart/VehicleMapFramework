@@ -234,6 +234,7 @@
     <Compile Include="VIF_HarmonyPatches\Patches_GUI.cs" />
     <Compile Include="VIF_HarmonyPatches\Patches_Job.cs" />
     <Compile Include="VIF_HarmonyPatches\Patches_Map.cs" />
+    <Compile Include="VIF_HarmonyPatches\Patches_PerformanceFish.cs" />
     <Compile Include="VIF_HarmonyPatches\Patches_Selector.cs" />
     <Compile Include="VIF_HarmonyPatches\Patches_Targeter.cs" />
     <Compile Include="VIF_HarmonyPatches\Patches_Thing.cs" />
