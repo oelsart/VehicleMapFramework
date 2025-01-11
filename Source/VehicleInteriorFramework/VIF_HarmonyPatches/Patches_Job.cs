@@ -539,4 +539,17 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             });
         }
     }
+
+    //JobDriver_GotoDestMapはnextJobを使ってReservationを行っているので、それを使って解放しなければならない
+    [HarmonyPatch(typeof(Pawn), nameof(Pawn.ClearReservationsForJob))]
+    public static class Patch_Pawn_ClearReservationsForJob
+    {
+        public static void Prefix(ref Job job, Pawn __instance)
+        {
+            if (job.GetCachedDriver(__instance) is JobDriver_GotoDestMap gotoDestMap)
+            {
+                job = gotoDestMap.nextJob;
+            }
+        }
+    }
 }

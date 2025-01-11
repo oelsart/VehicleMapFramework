@@ -8,8 +8,6 @@ namespace VehicleInteriors
 {
     public class JobGiver_AIFightEnemiesOnVehicle : JobGiver_AIFightEnemy
     {
-        public override float GetPriority(Pawn pawn) => 1f;
-
         public override ThinkNode DeepCopy(bool resolve = true)
         {
             JobGiver_AIFightEnemiesOnVehicle jobGiver_AIFightEnemiesOnVehicle = (JobGiver_AIFightEnemiesOnVehicle)base.DeepCopy(resolve);
