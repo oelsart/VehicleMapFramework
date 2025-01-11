@@ -57,7 +57,6 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                     IsManned(__instance, false);
                     return false;
                 }
-                Log.Message(matchHandlers.All(h => h.RoleFulfilled));
                 IsManned(__instance, matchHandlers.All(h => h.RoleFulfilled));
                 return false;
             }

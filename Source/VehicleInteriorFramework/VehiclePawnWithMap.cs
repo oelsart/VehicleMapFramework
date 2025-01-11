@@ -7,8 +7,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using VehicleInteriors.VIF_HarmonyPatches;
 using Vehicles;
 using Verse;
+using Verse.Noise;
 
 namespace VehicleInteriors
 {
@@ -348,7 +350,7 @@ namespace VehicleInteriors
             this.DrawVehicleMapMesh(map, drawPos, extraRotation);
             LongEventHandler.ExecuteWhenFinished(() =>
             {
-                map.dynamicDrawManager.DrawDynamicThings();
+                DynamicDrawManagerOnVehicle.DrawDynamicThings(map);
             });
             this.DrawClippers(map);
             map.designationManager.DrawDesignations();

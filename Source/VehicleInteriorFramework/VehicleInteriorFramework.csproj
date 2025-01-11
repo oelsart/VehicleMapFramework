@@ -53,6 +53,14 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
+    <Reference Include="Unity.Burst">
+      <HintPath>..\..\..\..\RimWorldWin64_Data\Managed\Unity.Burst.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.Burst.Unsafe">
+      <HintPath>..\..\..\..\RimWorldWin64_Data\Managed\Unity.Burst.Unsafe.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="UnityEngine">
       <HintPath>..\..\..\..\RimWorldWin64_Data\Managed\UnityEngine.dll</HintPath>
       <Private>False</Private>
@@ -143,6 +151,7 @@
     <Compile Include="BuildableUpgrades\VehicleHandlerBuildable.cs" />
     <Compile Include="VehicleHumanPowered.cs" />
     <Compile Include="VehicleMapSettings.cs" />
+    <Compile Include="VehicleMap\DynamicDrawManagerOnVehicle.cs" />
     <Compile Include="VehicleMap\SectionLayer_ThingsGeneralOnVehicle.cs" />
     <Compile Include="VehicleMap\SectionLayer_ThingsPowerGridOnVehicle.cs" />
     <Compile Include="VehicleMap\VehicleMapParentsComponent.cs" />
@@ -234,7 +243,6 @@
     <Compile Include="VIF_HarmonyPatches\Patches_GUI.cs" />
     <Compile Include="VIF_HarmonyPatches\Patches_Job.cs" />
     <Compile Include="VIF_HarmonyPatches\Patches_Map.cs" />
-    <Compile Include="VIF_HarmonyPatches\Patches_PerformanceFish.cs" />
     <Compile Include="VIF_HarmonyPatches\Patches_Selector.cs" />
     <Compile Include="VIF_HarmonyPatches\Patches_Targeter.cs" />
     <Compile Include="VIF_HarmonyPatches\Patches_Thing.cs" />

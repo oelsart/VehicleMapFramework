@@ -36,15 +36,6 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         }
     }
 
-    [HarmonyPatch(typeof(DynamicDrawManager), "ComputeCulledThings")]
-    public static class Patch_DynamicDrawManager_ComputeCulledThings
-    {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
-            return instructions.MethodReplacer(MethodInfoCache.m_CellRect_ClipInsideMap, MethodInfoCache.m_ClipInsideVehicleMap);
-        }
-    }
-
     [HarmonyPatch(typeof(MechanitorUtility), nameof(MechanitorUtility.InMechanitorCommandRange))]
     public static class Patch_MechanitorUtility_InMechanitorCommandRange
     {
