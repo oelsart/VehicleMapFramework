@@ -416,10 +416,10 @@ namespace VehicleInteriors
         public static Rot4 DirectionToInsideMap(this IntVec3 c, Map map)
         {
             Rot4 dir;
-            if (c.z == 0) dir = Rot4.North;
-            else if (c.z == map.Size.z - 1) dir = Rot4.South;
-            else if (c.x == 0) dir = Rot4.East;
+            if (c.x == 0) dir = Rot4.East;
             else if (c.x == map.Size.x - 1) dir = Rot4.West;
+            else if (c.z == 0) dir = Rot4.North;
+            else if (c.z == map.Size.z - 1) dir = Rot4.South;
             else
             {
                 Log.ErrorOnce("That position is not the edge of the map", 494896165);
@@ -669,12 +669,12 @@ namespace VehicleInteriors
         public static List<Thing> GetThingListAcrossMaps(this IntVec3 c, Map map)
         {
             var result = new List<Thing>();
-            var orig = map.IsVehicleMapOf(out var vehicle) ? c.VehicleMapToOrig(vehicle) : c;
+            var orig = map.IsVehicleMapOf(out var vehicle) ? c.OrigToVehicleMap(vehicle) : c;
             foreach (var m in map.BaseMapAndVehicleMaps())
             {
                 if (m.IsVehicleMapOf(out var vehicle2))
                 {
-                    var c2 = orig.OrigToVehicleMap(vehicle2);
+                    var c2 = orig.VehicleMapToOrig(vehicle2);
                     result.AddRange(m.thingGrid.ThingsAt(c2));
                 }
                 else

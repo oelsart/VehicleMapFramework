@@ -16,7 +16,6 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         static EarlyPatchCore()
         {
-            VIF_Harmony.Instance = new Harmony("com.harmony.oels.vehicleinteriorframework");
             VIF_Harmony.Instance.PatchCategory("VehicleInteriors.EarlyPatches");
         }
     }
@@ -36,6 +35,6 @@ namespace VehicleInteriors.VIF_HarmonyPatches
 
     public class VIF_Harmony
     {
-        public static Harmony Instance;
+        public static Harmony Instance = new Harmony("com.harmony.oels.vehicleinteriorframework");
     }
 }

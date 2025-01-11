@@ -26,31 +26,36 @@ namespace VehicleInteriors
 
             var map = base.Map;
             var pos = base.Position;
-            foreach (var vehicle in vehicles)
+            try
             {
-                this.cellsToAffectOnVehicles[vehicle] = SimplePool<List<IntVec3>>.Get();
-                this.VirtualMapTransfer(vehicle.VehicleMap, pos.VehicleMapToOrig(vehicle));
-                if (!base.overrideCells.NullOrEmpty())
+                foreach (var vehicle in vehicles)
                 {
-                    foreach (var c in base.overrideCells)
+                    this.cellsToAffectOnVehicles[vehicle] = SimplePool<List<IntVec3>>.Get();
+                    this.VirtualMapTransfer(vehicle.VehicleMap, pos.VehicleMapToOrig(vehicle));
+                    if (!base.overrideCells.NullOrEmpty())
                     {
-                        this.cellsToAffectOnVehicles[vehicle].Add(c.VehicleMapToOrig(vehicle));
+                        foreach (var c in base.overrideCells)
+                        {
+                            this.cellsToAffectOnVehicles[vehicle].Add(c.VehicleMapToOrig(vehicle));
+                        }
                     }
-                }
-                else
-                {
-                    this.cellsToAffectOnVehicles[vehicle].AddRange(damType.Worker.ExplosionCellsToHit(this));
-                }
+                    else
+                    {
+                        this.cellsToAffectOnVehicles[vehicle].AddRange(damType.Worker.ExplosionCellsToHit(this));
+                    }
 
-                if (applyDamageToExplosionCellsNeighbors)
-                {
-                    AddCellsNeighbors(this, this.cellsToAffectOnVehicles[vehicle]);
-                }
+                    if (applyDamageToExplosionCellsNeighbors)
+                    {
+                        AddCellsNeighbors(this, this.cellsToAffectOnVehicles[vehicle]);
+                    }
 
-                vehicle.VehicleMap.listerThings.AllThings.ForEach(t => t.Notify_Explosion(this));
+                    vehicle.VehicleMap.listerThings.AllThings.ForEach(t => t.Notify_Explosion(this));
+                }
             }
-
-            this.VirtualMapTransfer(map, pos);
+            finally
+            {
+                this.VirtualMapTransfer(map, pos);
+            }
         }
 
         public override void Tick()
@@ -79,35 +84,41 @@ namespace VehicleInteriors
 
             var map = base.Map;
             var pos = base.Position;
-            foreach (var vehicle in this.cellsToAffectOnVehicles.Keys)
+            try
             {
-                this.VirtualMapTransfer(vehicle.VehicleMap, pos.VehicleMapToOrig(vehicle));
-                num = this.cellsToAffectOnVehicles[vehicle].Count - 1;
-                while (num >= 0 && ticksGame >= (int)GetCellAffectTick(this, this.cellsToAffectOnVehicles[vehicle][num]))
+                foreach (var vehicle in this.cellsToAffectOnVehicles.Keys)
                 {
-                    try
+                    this.VirtualMapTransfer(vehicle.VehicleMap, pos.VehicleMapToOrig(vehicle));
+                    num = this.cellsToAffectOnVehicles[vehicle].Count - 1;
+                    while (num >= 0 && ticksGame >= (int)GetCellAffectTick(this, this.cellsToAffectOnVehicles[vehicle][num]))
                     {
-                        AffectCell(this, this.cellsToAffectOnVehicles[vehicle][num]);
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Error(string.Concat(new object[]
+                        try
                         {
+                            AffectCell(this, this.cellsToAffectOnVehicles[vehicle][num]);
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error(string.Concat(new object[]
+                            {
                         "Explosion could not affect cell ",
                         this.cellsToAffectOnVehicles[vehicle][num],
                         ": ",
                         ex
-                        }));
+                            }));
+                        }
+                        this.cellsToAffectOnVehicles[vehicle].RemoveAt(num);
+                        num--;
                     }
-                    this.cellsToAffectOnVehicles[vehicle].RemoveAt(num);
-                    num--;
                 }
             }
-            this.VirtualMapTransfer(map, pos);
-
-            if (!cellsToAffect(this).Any<IntVec3>() && !this.cellsToAffectOnVehicles.Any(v => v.Value.Any<IntVec3>()))
+            finally
             {
-                this.Destroy(DestroyMode.Vanish);
+                this.VirtualMapTransfer(map, pos);
+
+                if (!cellsToAffect(this).Any<IntVec3>() && !this.cellsToAffectOnVehicles.Any(v => v.Value.Any<IntVec3>()))
+                {
+                    this.Destroy(DestroyMode.Vanish);
+                }
             }
         }
 
