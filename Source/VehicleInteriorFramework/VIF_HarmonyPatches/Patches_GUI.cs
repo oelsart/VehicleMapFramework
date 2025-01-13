@@ -62,7 +62,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         public static void Prefix(ref VehiclePawnWithMap __state)
         {
             __state = Command_FocusVehicleMap.FocusedVehicle;
-            if (UI.MouseMapPosition().TryGetVehiclePawnWithMap(Find.CurrentMap, out var vehicle))
+            if (UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out var vehicle))
             {
                 Command_FocusVehicleMap.FocusedVehicle = vehicle;
             }

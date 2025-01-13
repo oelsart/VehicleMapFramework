@@ -62,8 +62,9 @@ namespace VehicleInteriors
                                     dist++;
                                 }
                                 var cell = (basePos - faceCell * dist);
-                                return departMap.reachability.CanReach(root, enterSpot.Cell, PathEndMode.OnCell, traverseParms) &&
+                                return c.Walkable(departMap) &&
                                 cell.Standable(departBaseMap) &&
+                                departMap.reachability.CanReach(root, enterSpot.Cell, PathEndMode.OnCell, traverseParms) &&
                                 departBaseMap.reachability.CanReach(cell, dest3, peMode, TraverseMode.PassAllDestroyableThings, traverseParms.maxDanger);
                             });
                             dest1 = result ? enterSpot : TargetInfo.Invalid;
@@ -101,8 +102,9 @@ namespace VehicleInteriors
                                     dist++;
                                 }
                                 var cell = (basePos - faceCell * dist);
-                                return departMap.reachability.CanReach(root, cell, PathEndMode.OnCell, traverseParms) &&
-                                c.Standable(destMap) &&
+                                return c.Standable(destMap) &&
+                                cell.Walkable(departMap) &&
+                                departMap.reachability.CanReach(root, cell, PathEndMode.OnCell, traverseParms) &&
                                 destMap.reachability.CanReach(c, dest3, peMode, TraverseMode.PassAllDestroyableThings, traverseParms.maxDanger);
                             });
                             dest2 = result ? enterSpot : TargetInfo.Invalid;
@@ -166,7 +168,9 @@ namespace VehicleInteriors
                                             dist2++;
                                         }
                                         var cell2 = (basePos2 - faceCell2 * dist2);
-                                        return cell.Standable(departBaseMap) &&
+                                        return c.Walkable(departMap) &&
+                                        cell.Standable(departBaseMap) &&
+                                        cell2.Walkable(departBaseMap) &&
                                         c2.Standable(destMap) &&
                                         departMap.reachability.CanReach(root, enterSpot.Cell, PathEndMode.OnCell, traverseParms) &&
                                         departBaseMap.reachability.CanReach(cell, cell2, PathEndMode.OnCell, TraverseMode.PassAllDestroyableThings, traverseParms.maxDanger) &&

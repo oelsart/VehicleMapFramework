@@ -124,6 +124,12 @@ namespace VehicleInteriors
                 map.autoSlaughterManager.Notify_PawnDespawned();
             }
             //PawnComponentsUtility.RemoveComponentsOnDespawned(pawn);
+
+            //Designationの掃除をしておかないとdesignationManagerに登録されたままになってしまう
+            if (pawn.IsCarrying())
+            {
+                map.designationManager.RemoveAllDesignationsOn(pawn.carryTracker.CarriedThing);
+            }
         }
 
         public static void DeSpawnWithoutJobClearVehicle(this VehiclePawn vehicle, DestroyMode mode = DestroyMode.Vanish)

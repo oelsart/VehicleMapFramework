@@ -127,7 +127,7 @@ namespace VehicleInteriors
         public static IEnumerable<LocalTargetInfo> TargetsAtMouse(TargetingParameters clickParams, bool thingsOnly = false, ITargetingSource source = null)
         {
             var clickPos = UI.MouseMapPosition();
-            clickPos.TryGetVehiclePawnWithMap(Find.CurrentMap, out var vehicle);
+            clickPos.TryGetVehicleMap(Find.CurrentMap, out var vehicle);
             var list = GenUIOnVehicle.TargetsAt(clickPos, clickParams, thingsOnly, source, vehicle, false).ToArray();
             return list;
         }

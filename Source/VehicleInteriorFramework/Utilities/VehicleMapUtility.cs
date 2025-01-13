@@ -171,35 +171,35 @@ namespace VehicleInteriors
                 switch (rot.AsByte)
                 {
                     case Rot8.NorthInt:
-                        offset = vehicleMap.offsetNorth ?? (vehicleMap.offsetNorth = vehicleMap.offsetSouth?.MirrorVertical() ?? (vehicleMap.offsetSouth = vehicleMap.offset).Value.MirrorVertical()).Value;
+                        offset = vehicleMap.offsetNorth ?? (vehicleMap.offsetNorth = (vehicleMap.offsetSouth ?? (vehicleMap.offsetSouth = vehicleMap.offset)).Value.MirrorVertical()).Value;
                         break;
 
                     case Rot8.EastInt:
-                        offset = vehicleMap.offsetEast ?? (vehicleMap.offsetEast = vehicleMap.offsetWest?.MirrorHorizontal() ?? (vehicleMap.offsetWest = vehicleMap.offset).Value.MirrorHorizontal()).Value;
+                        offset = vehicleMap.offsetEast ?? (vehicleMap.offsetEast = (vehicleMap.offsetWest ?? (vehicleMap.offsetWest = vehicleMap.offset)).Value.MirrorHorizontal()).Value;
                         break;
 
                     case Rot8.SouthInt:
-                        offset = vehicleMap.offsetSouth ?? (vehicleMap.offsetSouth = vehicleMap.offsetNorth?.MirrorVertical() ?? (vehicleMap.offsetNorth = vehicleMap.offset).Value.MirrorVertical()).Value;
+                        offset = vehicleMap.offsetSouth ?? (vehicleMap.offsetSouth = (vehicleMap.offsetNorth ?? (vehicleMap.offsetNorth = vehicleMap.offset)).Value.MirrorVertical()).Value;
                         break;
 
                     case Rot8.WestInt:
-                        offset = vehicleMap.offsetWest ?? (vehicleMap.offsetWest = vehicleMap.offsetEast?.MirrorHorizontal() ?? (vehicleMap.offsetEast = vehicleMap.offset).Value.MirrorHorizontal()).Value;
+                        offset = vehicleMap.offsetWest ?? (vehicleMap.offsetWest = (vehicleMap.offsetEast ?? (vehicleMap.offsetEast = vehicleMap.offset)).Value.MirrorHorizontal()).Value;
                         break;
 
                     case Rot8.NorthEastInt:
-                        offset = vehicleMap.offsetNorthEast ?? (vehicleMap.offsetNorthEast = (vehicleMap.offsetNorthWest ?? (vehicleMap.offsetNorthWest = vehicleMap.offsetNorth?.RotatedBy(-45f) ?? (vehicleMap.offsetNorth = vehicleMap.offset.RotatedBy(rot.AsAngle)))).Value.MirrorHorizontal()).Value;
+                        offset = vehicleMap.offsetNorthEast ?? (vehicleMap.offsetNorthEast = (vehicleMap.offsetNorthWest ?? (vehicleMap.offsetNorthWest = (vehicleMap.offsetNorth ?? (vehicleMap.offsetNorth = vehicleMap.offset.RotatedBy(rot.AsAngle))).Value.RotatedBy(-45f))).Value.MirrorHorizontal()).Value;
                         break;
 
                     case Rot8.SouthEastInt:
-                        offset = vehicleMap.offsetSouthEast ?? (vehicleMap.offsetSouthEast = (vehicleMap.offsetSouthWest ?? (vehicleMap.offsetSouthWest = vehicleMap.offsetSouth?.RotatedBy(-45f) ?? (vehicleMap.offsetSouth = vehicleMap.offset.RotatedBy(rot.AsAngle)))).Value.MirrorHorizontal()).Value;
+                        offset = vehicleMap.offsetSouthEast ?? (vehicleMap.offsetSouthEast = (vehicleMap.offsetSouthWest ?? (vehicleMap.offsetSouthWest = (vehicleMap.offsetSouth ?? (vehicleMap.offsetSouth = vehicleMap.offset.RotatedBy(rot.AsAngle))).Value.RotatedBy(45f))).Value.MirrorHorizontal()).Value;
                         break;
 
                     case Rot8.SouthWestInt:
-                        offset = vehicleMap.offsetSouthWest ?? (vehicleMap.offsetSouthWest = (vehicleMap.offsetSouthEast ?? (vehicleMap.offsetSouthEast = vehicleMap.offsetSouth?.RotatedBy(45f) ?? (vehicleMap.offsetSouth = vehicleMap.offset.RotatedBy(rot.AsAngle)))).Value.MirrorHorizontal()).Value;
+                        offset = vehicleMap.offsetSouthWest ?? (vehicleMap.offsetSouthWest = (vehicleMap.offsetSouthEast ?? (vehicleMap.offsetSouthEast = (vehicleMap.offsetSouth ?? (vehicleMap.offsetSouth = vehicleMap.offset.RotatedBy(rot.AsAngle))).Value.RotatedBy(-45f))).Value.MirrorHorizontal()).Value;
                         break;
 
                     case Rot8.NorthWestInt:
-                        offset = vehicleMap.offsetNorthWest ?? (vehicleMap.offsetNorthWest = (vehicleMap.offsetNorthEast ?? (vehicleMap.offsetNorthEast = vehicleMap.offsetNorth?.RotatedBy(45f) ?? (vehicleMap.offsetNorth = vehicleMap.offset.RotatedBy(rot.AsAngle)))).Value.MirrorHorizontal()).Value;
+                        offset = vehicleMap.offsetNorthWest ?? (vehicleMap.offsetNorthWest = (vehicleMap.offsetNorthEast ?? (vehicleMap.offsetNorthEast = (vehicleMap.offsetNorth ?? (vehicleMap.offsetNorth = vehicleMap.offset.RotatedBy(rot.AsAngle))).Value.RotatedBy(45f))).Value.MirrorHorizontal()).Value;
                         break;
 
                     default: break;
@@ -462,6 +462,11 @@ namespace VehicleInteriors
                 {
                     VehiclePawnWithMapCache.cacheMode = true;
                     var drawPos = thing.DrawPos;
+                    VehicleMapProps mapProps;
+                    if (thing.HasComp<CompVehicleEnterSpot>() && (mapProps = vehicle.VehicleDef.GetModExtension<VehicleMapProps>()) != null)
+                    {
+                        
+                    }
                     VehiclePawnWithMapCache.cachedDrawPos[thing] = drawPos.OrigToVehicleMap(vehicle);
                     VehiclePawnWithMapCache.cacheMode = false;
                     result = VehiclePawnWithMapCache.cachedDrawPos[thing];
@@ -537,7 +542,7 @@ namespace VehicleInteriors
             return vector.RotatedBy(-VehicleMapUtility.rotForPrint.AsAngle);
         }
 
-        public static bool TryGetVehiclePawnWithMap(this Vector3 point, Map map, out VehiclePawnWithMap vehicle)
+        public static bool TryGetVehicleMap(this Vector3 point, Map map, out VehiclePawnWithMap vehicle)
         {
             if (VehicleInteriors.settings.drawPlanet && Find.CurrentMap.IsVehicleMapOf(out vehicle))
             {
@@ -547,10 +552,9 @@ namespace VehicleInteriors
             var vehicles = VehiclePawnWithMapCache.allVehicles[map];
             vehicle = vehicles.FirstOrDefault(v =>
             {
-                var rect = new Rect(0f, 0f, (float)v.VehicleMap.Size.x, (float)v.VehicleMap.Size.z);
+                var rect = new Rect(0f, 0f, (float)v.VehicleMap.Size.x, (float)v.VehicleMap.Size.z).ContractedBy(0.01f);
                 var vector = point.VehicleMapToOrig(v);
-
-                return rect.Contains(new Vector2(vector.x, vector.z));
+                return rect.Contains(new Vector2(vector.x, vector.z)) && !v.CachedStructureCells.Contains(vector.ToIntVec3());
             });
             return vehicle != null;
         }

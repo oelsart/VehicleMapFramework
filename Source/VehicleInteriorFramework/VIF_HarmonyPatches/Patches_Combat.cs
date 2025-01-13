@@ -212,7 +212,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         public static void Postfix(IntVec3 cell, Map map, Func<Thing, bool> filter, List<Thing> __result)
         {
-            if (cell.ToVector3().TryGetVehiclePawnWithMap(map, out var vehicle))
+            if (cell.ToVector3().TryGetVehicleMap(map, out var vehicle))
             {
                 var cellOnVehicle = cell.VehicleMapToOrig(vehicle);
                 if (!cellOnVehicle.InBounds(vehicle.VehicleMap)) return;
@@ -369,7 +369,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         public static bool Prefix(Projectile_Liquid __instance, Thing hitThing, IntVec3 cell, ThingDef ___targetCoverDef)
         {
-            if (cell.ToVector3Shifted().TryGetVehiclePawnWithMap(__instance.Map, out var vehicle))
+            if (cell.ToVector3Shifted().TryGetVehicleMap(__instance.Map, out var vehicle))
             {
                 var cell2 = cell.VehicleMapToOrig(vehicle);
                 if (__instance.def.projectile.filth != null && __instance.def.projectile.filthCount.TrueMax > 0 && !cell2.Filled(vehicle.VehicleMap))

@@ -54,7 +54,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
 
             Command_FocusVehicleMap.FocusedVehicle = null;
             var mousePos = UI.MouseMapPosition();
-            if (mousePos.TryGetVehiclePawnWithMap(Find.CurrentMap, out var vehicle))
+            if (mousePos.TryGetVehicleMap(Find.CurrentMap, out var vehicle))
             {
                 Command_FocusVehicleMap.FocusedVehicle = vehicle;
             }

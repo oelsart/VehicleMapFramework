@@ -16,16 +16,5 @@ namespace VehicleInteriors
             });
             return f;
         }
-
-        public static T FailOnSomeonePhysicallyInteracting<T>(this T f, TargetIndex ind) where T : IJobEndable
-        {
-            f.AddEndCondition(delegate
-            {
-                Pawn actor = f.GetActor();
-                Thing thing = actor.jobs.curJob.GetTarget(ind).Thing;
-                return (thing == null || !actor.Map.physicalInteractionReservationManager.IsReserved(thing) || actor.Map.physicalInteractionReservationManager.IsReservedBy(actor, thing)) ? JobCondition.Ongoing : JobCondition.Incompletable;
-            });
-            return f;
-        }
     }
 }

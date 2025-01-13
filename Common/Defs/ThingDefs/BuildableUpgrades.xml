@@ -49,10 +49,11 @@
 							<li Class = "VehicleInteriors.RoleUpgradeBuildable">
 								<key>driver</key>
 								<editKey>driver seat</editKey>
-								<label>driver seat</label>
+								<label>Driver seat</label>
 								<handlingTypes>Movement</handlingTypes>
 								<slots>1</slots>
 								<slotsToOperate>1</slotsToOperate>
+								<exposed>true</exposed>
 								<pawnRenderer>
 									<showBody>true</showBody>
 									<drawOffsetNorth>(0,0,-0.15)</drawOffsetNorth>
@@ -102,10 +103,11 @@
 							<li Class = "VehicleInteriors.RoleUpgradeBuildable">
 								<key>gunner</key>
 								<editKey>gunner seat</editKey>
-								<label>gunner seat</label>
+								<label>Gunner seat</label>
 								<handlingTypes>Turret</handlingTypes>
 								<slots>1</slots>
 								<slotsToOperate>1</slotsToOperate>
+								<exposed>true</exposed>
 								<pawnRenderer>
 									<showBody>true</showBody>
 									<drawOffsetNorth>(0,0,-0.15)</drawOffsetNorth>
@@ -151,9 +153,10 @@
 							<li Class = "VehicleInteriors.RoleUpgradeBuildable">
 								<key>passenger</key>
 								<editKey>passenger seat</editKey>
-								<label>passenger seat</label>
+								<label>Passenger seat</label>
 								<handlingTypes>None</handlingTypes>
 								<slots>1</slots>
+								<exposed>true</exposed>
 								<pawnRenderer>
 									<showBody>true</showBody>
 									<drawOffsetNorth>(0,0,0.3)</drawOffsetNorth>

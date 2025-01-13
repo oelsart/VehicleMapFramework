@@ -297,7 +297,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         public static void Prefix(ref Vector3 loc, ref Rot4 rot, Thing thing, ref float extraRotation, Graphic __instance)
         {
-            if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle) && thing.def.drawerType == DrawerType.RealtimeOnly)
+            if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle) && thing.def.drawerType == DrawerType.RealtimeOnly && thing.def.category != ThingCategory.Item)
             {
                 var def = thing.def.IsBlueprint ? thing.def.entityDefToBuild as ThingDef : thing.def;
                 if (def.rotatable || def.graphic is Graphic_Multi)
@@ -317,6 +317,14 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                     var offset2 = offset.RotatedBy(-angle);
                     loc += new Vector3(offset2.x - offset.x, 0f, offset2.z - offset.z);
                 }
+
+                ////はしごとかのマップ端オフセット
+                //VehicleMapProps mapProps;
+                //if (thing.HasComp<CompVehicleEnterSpot>() && (mapProps = vehicle.VehicleDef.GetModExtension<VehicleMapProps>()) != null)
+                //{
+                //    var baseRot = thing.BaseFullRotation().Opposite;
+                //    loc += baseRot.Opposite.AsVector2.ToVector3() * mapProps.EdgeSpaceValue(vehicle.FullRotation, thing.Rotation.Opposite);
+                //}
             }
         }
     }
@@ -329,6 +337,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             var vehicle = Command_FocusVehicleMap.FocusedVehicle;
             if (vehicle != null)
             {
+
                 var def = thingDef.IsBlueprint ? thingDef.entityDefToBuild as ThingDef : thingDef;
                 var compProperties = def.GetCompProperties<CompProperties_FireOverlay>();
                 var flag = __instance is Graphic_Flicker && compProperties != null;
@@ -340,6 +349,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
 
                 var angle = vehicle.Angle;
                 loc = loc.OrigToVehicleMap(vehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor());
+                var rot2 = rot;
                 if ((def.rotatable || def.graphic is Graphic_Multi) && !def.graphicData.Linked)
                 {
                     var fullRot = vehicle.FullRotation;
@@ -360,6 +370,14 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                 {
                     var offset2 = offset.RotatedBy(flag2 ? -angle : 0f);
                     loc += new Vector3(offset2.x - offset.x, 0f, offset2.z - offset.z);
+                }
+
+                //はしごとかのマップ端オフセット
+                VehicleMapProps mapProps;
+                if (thingDef.HasComp<CompVehicleEnterSpot>() && (mapProps = vehicle.VehicleDef.GetModExtension<VehicleMapProps>()) != null)
+                {
+                    var baseRot = new Rot8(Rot8.FromIntClockwise((vehicle.FullRotation.AsIntClockwise + new Rot8(rot2).AsIntClockwise) % 8));
+                    loc += baseRot.Opposite.AsVector2.ToVector3() * mapProps.EdgeSpaceValue(vehicle.FullRotation, rot2.Opposite);
                 }
             }
         }

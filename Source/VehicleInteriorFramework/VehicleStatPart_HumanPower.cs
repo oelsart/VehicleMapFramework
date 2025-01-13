@@ -1,4 +1,5 @@
 ﻿using RimWorld;
+using SmashTools;
 using System.Linq;
 using UnityEngine;
 using Vehicles;
@@ -8,47 +9,46 @@ namespace VehicleInteriors
 {
     public class VehicleStatPart_HumanPower : VehicleStatPart
     {
-        protected float Modifier(VehiclePawn vehicle)
+
+        public override bool Disabled(VehiclePawn vehicle)
         {
-            return vehicle.handlers.Where(h => h.Isnt<VehicleHandlerBuildable>() && h.RequiredForMovement).Average(h =>
-            {
-                var statValue = 0f;
-                foreach (var pawn in h.handlers)
-                {
-                    if (!h.CanOperateRole(pawn)) continue;
-                    var statFactor = 1f;
-                    statFactor *= pawn.GetStatValue(StatDefOf.MoveSpeed);
-                    statFactor *= this.StatFactorByWeight(pawn.GetStatValue(StatDefOf.IncomingDamageFactor), 0.75f);
-                    statFactor *= this.StatFactorByWeight(pawn.GetStatValue(StatDefOf.WorkSpeedGlobal), 0.5f);
-                    statFactor *= this.StatFactorByWeight(pawn.BodySize, 1.25f);
-                    var skillFactor = Mathf.Max(pawn.skills.GetSkill(SkillDefOf.Melee).Level + pawn.skills.GetSkill(SkillDefOf.Mining).Level, 20f) / 10f;
-                    statFactor *= this.StatFactorByWeight(skillFactor, 0.75f);
-                }
-                return statValue / h.role.Slots;
-            });
+            return !vehicle.VehicleDef.HasModExtension<VehicleHumanPowered>();
         }
 
-        private float StatFactorByWeight(float value, float weight)
+        protected float? Modifier(VehiclePawn vehicle)
         {
-            return 1f + (value - 1f) * weight;
+            var handlers = vehicle.handlers?.Where(h => h.Isnt<VehicleHandlerBuildable>() && h.RequiredForMovement);
+            if (!handlers.NullOrEmpty())
+            {
+                return handlers.Average(h =>
+                {
+                    var statValue = 0f;
+                    foreach (var pawn in h.handlers)
+                    {
+                        if (!h.CanOperateRole(pawn)) continue;
+                        var statFactor = 1f;
+                        statFactor *= pawn.GetStatValue(StatDefOf.MoveSpeed) / StatDefOf.MoveSpeed.defaultBaseValue;
+                        statFactor *= Mathf.LerpUnclamped(1f, (1f / pawn.GetStatValue(StatDefOf.IncomingDamageFactor) / StatDefOf.IncomingDamageFactor.defaultBaseValue), 0.5f);
+                        statFactor *= Mathf.LerpUnclamped(1f, pawn.GetStatValue(StatDefOf.WorkSpeedGlobal) / StatDefOf.WorkSpeedGlobal.defaultBaseValue, 0.25f);
+                        statFactor *= Mathf.LerpUnclamped(1f, pawn.BodySize, 1.25f);
+                        var skillFactor = Mathf.Min(pawn.skills.GetSkill(SkillDefOf.Melee).Level + pawn.skills.GetSkill(SkillDefOf.Mining).Level, 20f) / 10f;
+                        statFactor *= Mathf.LerpUnclamped(1f, skillFactor, 0.25f);
+                        statValue += statFactor;
+                    }
+                    return statValue / h.role.Slots;
+                });
+            }
+            return 0f;
         }
 
         public override float TransformValue(VehiclePawn vehicle, float value)
         {
-            if (vehicle.VehicleDef.HasModExtension<VehicleHumanPowered>())
-            {
-                return value * this.Modifier(vehicle);
-            }
-            return value;
+            return value * this.Modifier(vehicle).GetValueOrDefault();
         }
 
         public override string ExplanationPart(VehiclePawn vehicle)
         {
-            if (vehicle.VehicleDef.HasModExtension<VehicleHumanPowered>())
-            {
-                return "VIF_StatsReport_HumanPowerAverage".Translate(this.Modifier(vehicle));
-            }
-            return null;
+            return "VIF_StatsReport_HumanPowerAverage".Translate(this.Modifier(vehicle).GetValueOrDefault().ToStringByStyle(ToStringStyle.FloatMaxTwo, ToStringNumberSense.Factor));
         }
     }
 }

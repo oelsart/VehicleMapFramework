@@ -85,7 +85,7 @@
 		<components>
 			<li>
 				<key>Engine</key>
-				<label>engine</label>
+				<label>Engine</label>
 				<health>100</health>
 				<priorityStatEfficiency>true</priorityStatEfficiency>
 				<depth>Internal</depth>
@@ -113,7 +113,7 @@
 			</li>
 			<li>
 				<key>Gearbox</key>
-				<label>gearbox</label>
+				<label>Gearbox</label>
 				<health>75</health>
 				<depth>Internal</depth>
 
@@ -131,7 +131,7 @@
 			</li>
 			<li>
 				<key>Chemtank</key>
-				<label>chemtank</label>
+				<label>Chemtank</label>
 				<health>60</health>
 				<depth>Internal</depth>
 
@@ -156,7 +156,7 @@
 			</li>
 			<li>
 				<key>FrontLeftHoverEngine</key>
-				<label>front left hover engine</label>
+				<label>Front Left Hover Engine</label>
 				<health>320</health>
 				<depth>External</depth>
 
@@ -169,6 +169,10 @@
 						<damageDef>Flame</damageDef>
 					</li>
 				</reactors>
+
+				<tags>
+					<li>HoverEngines</li>
+				</tags>
 
 				<hitbox>
 					<cells>
@@ -196,7 +200,7 @@
 			</li>
 			<li>
 				<key>FrontRightHoverEngine</key>
-				<label>front right hover engine</label>
+				<label>Front Right Hover Engine</label>
 				<health>320</health>
 				<depth>External</depth>
 
@@ -209,6 +213,10 @@
 						<damageDef>Flame</damageDef>
 					</li>
 				</reactors>
+
+				<tags>
+					<li>HoverEngines</li>
+				</tags>
 
 				<hitbox>
 					<cells>
@@ -236,7 +244,7 @@
 			</li>
 			<li>
 				<key>RearLeftHoverEngine</key>
-				<label>rear left hover engine</label>
+				<label>Rear Left Hover Engine</label>
 				<health>400</health>
 				<depth>External</depth>
 
@@ -249,6 +257,10 @@
 						<damageDef>Flame</damageDef>
 					</li>
 				</reactors>
+
+				<tags>
+					<li>HoverEngines</li>
+				</tags>
 
 				<hitbox>
 					<cells>
@@ -288,7 +300,7 @@
 			</li>
 			<li>
 				<key>RearRightHoverEngine</key>
-				<label>rear right hover engine</label>
+				<label>Rear Right Rover Rngine</label>
 				<health>400</health>
 				<depth>External</depth>
 
@@ -301,6 +313,10 @@
 						<damageDef>Flame</damageDef>
 					</li>
 				</reactors>
+
+				<tags>
+					<li>HoverEngines</li>
+				</tags>
 
 				<hitbox>
 					<cells>
@@ -340,7 +356,7 @@
 			</li>
 			<li>
 				<key>FrontArmorPlating</key>
-				<label>front armor plating</label>
+				<label>Front Armor Plating</label>
 				<health>200</health>
 				<depth>External</depth>
 

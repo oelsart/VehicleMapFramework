@@ -103,7 +103,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BuildableUpgrades\Building_VehicleSlope.cs" />
+    <Compile Include="BuildableUpgrades\Building_VehicleRamp.cs" />
     <Compile Include="Combat\ShotReportOnVehicle.cs" />
     <Compile Include="Combat\TargetingHelperOnVehicle.cs" />
     <Compile Include="Comps\CompEngineLightOverlays.cs" />

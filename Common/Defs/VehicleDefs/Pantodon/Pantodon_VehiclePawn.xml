@@ -85,7 +85,7 @@
 		<components>
 			<li>
 				<key>Chemtank</key>
-				<label>chemtank</label>
+				<label>Chemtank</label>
 				<health>180</health>
 				<depth>Internal</depth>
 
@@ -110,7 +110,7 @@
 			</li>
 			<li>
 				<key>FrontLeftEngine</key>
-				<label>front left engine</label>
+				<label>Front Left Engine</label>
 				<health>160</health>
 				<depth>External</depth>
 
@@ -142,7 +142,7 @@
 			</li>
 			<li>
 				<key>MiddleLeftEngine</key>
-				<label>middle left engine</label>
+				<label>Middle Left Engine</label>
 				<health>160</health>
 				<depth>External</depth>
 
@@ -174,7 +174,7 @@
 			</li>
 			<li>
 				<key>RearLeftEngine</key>
-				<label>rear left engine</label>
+				<label>Rear Left Engine</label>
 				<health>160</health>
 				<depth>External</depth>
 
@@ -206,7 +206,7 @@
 			</li>
 			<li>
 				<key>FrontRightEngine</key>
-				<label>front right engine</label>
+				<label>Front Right Engine</label>
 				<health>160</health>
 				<depth>External</depth>
 
@@ -238,7 +238,7 @@
 			</li>
 			<li>
 				<key>MiddleRightEngine</key>
-				<label>middle right engine</label>
+				<label>Middle Right Engine</label>
 				<health>160</health>
 				<depth>External</depth>
 
@@ -270,7 +270,7 @@
 			</li>
 			<li>
 				<key>RearRightEngine</key>
-				<label>rear right engine</label>
+				<label>Rear Right Engine</label>
 				<health>160</health>
 				<depth>External</depth>
 
@@ -289,6 +289,10 @@
 					</li>
 				</reactors>
 
+				<tags>
+					<li>Engines</li>
+				</tags>
+
 				<hitbox>
 					<cells>
 						<li>(3, 1)</li>
@@ -302,7 +306,7 @@
 			</li>
 			<li>
 				<key>LeftPropeller</key>
-				<label>left propeller</label>
+				<label>Left propeller</label>
 				<health>200</health>
 				<depth>External</depth>
 				
@@ -328,7 +332,7 @@
 			</li>
 			<li>
 				<key>RightPropeller</key>
-				<label>right propeller</label>
+				<label>Right propeller</label>
 				<health>200</health>
 				<depth>External</depth>
 
@@ -354,7 +358,7 @@
 			</li>
 			<li>
 				<key>Skirt</key>
-				<label>skirt</label>
+				<label>Skirt</label>
 				<health>320</health>
 				<depth>External</depth>
 
@@ -595,28 +599,10 @@
 				<offsetNorth>(0,0,0.615234375)</offsetNorth>
 				<offsetSouth>(0,0,-0.029296875)</offsetSouth>
 				<offsetEast>(0.259765625,0,0.205078125)</offsetEast>
-				<filledStructureCells>
-					<li>(0,5)</li>
-					<li>(0,6)</li>
-					<li>(0,7)</li>
-					<li>(0,8)</li>
-					<li>(0,9)</li>
-					<li>(0,10)</li>
-					<li>(0,11)</li>
-					<li>(0,12)</li>
-					<li>(0,13)</li>
-					<li>(0,14)</li>
-					<li>(6,5)</li>
-					<li>(6,6)</li>
-					<li>(6,7)</li>
-					<li>(6,8)</li>
-					<li>(6,9)</li>
-					<li>(6,10)</li>
-					<li>(6,11)</li>
-					<li>(6,12)</li>
-					<li>(6,13)</li>
-					<li>(6,14)</li>
-				</filledStructureCells>
+				<filledStructureCellRects>
+					<li>(0,5,0,14)</li>
+					<li>(6,5,6,14)</li>
+				</filledStructureCellRects>
 			</li>
 		</modExtensions>
 	</Vehicles.VehicleDef>

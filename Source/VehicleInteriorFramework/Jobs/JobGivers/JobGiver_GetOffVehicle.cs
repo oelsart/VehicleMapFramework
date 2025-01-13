@@ -15,42 +15,13 @@ namespace VehicleInteriors
             var guest = pawn.Faction != Faction.OfPlayer;
             if (pawn.IsOnVehicleMapOf(out var vehicle) && vehicle.Spawned && (vehicle.AutoGetOff || guest))
             {
-                var exitSpots = vehicle.VehicleMap.listerBuildings.allBuildingsColonist.Where(b => b.HasComp<CompVehicleEnterSpot>());
                 var hostile = pawn.HostileTo(Faction.OfPlayer);
-                TargetInfo spot = exitSpots.FirstOrDefault(e =>
+                var cells = vehicle.VehicleRect().ExpandedBy(1);
+
+                TargetInfo exitSpot = TargetInfo.Invalid;
+                if (cells.Any(c => pawn.CanReach(c, PathEndMode.OnCell, Danger.Deadly, hostile, hostile, TraverseMode.ByPawn, vehicle.Map, out exitSpot, out _)))
                 {
-                    var baseMap = e.BaseMap();
-                    var basePos = e.PositionOnBaseMap();
-                    var faceCell = e.BaseFullRotation().FacingCell;
-                    faceCell.y = 0;
-                    var dist = 1;
-                    while ((basePos - faceCell * dist).GetThingList(baseMap).Contains(vehicle))
-                    {
-                        dist++;
-                    }
-                    var cell = (basePos - faceCell * dist);
-                    return pawn.CanReach(e, PathEndMode.OnCell, Danger.Deadly, hostile, hostile, TraverseMode.ByPawn) && cell.Standable(baseMap);
-                });
-                if (!spot.IsValid)
-                {
-                    spot = new TargetInfo(CellRect.WholeMap(vehicle.VehicleMap).EdgeCells.OrderBy(c => (pawn.Position - c).LengthHorizontalSquared).FirstOrFallback(c =>
-                    {
-                        var baseMap = vehicle.Map;
-                        var basePos = c.OrigToVehicleMap(vehicle);
-                        var faceCell = c.BaseFullDirectionToInsideMap(vehicle.VehicleMap).FacingCell;
-                        faceCell.y = 0;
-                        var dist = 1;
-                        while ((basePos - faceCell * dist).GetThingList(baseMap).Contains(vehicle))
-                        {
-                            dist++;
-                        }
-                        var cell = (basePos - faceCell * dist);
-                        return pawn.CanReach(c, PathEndMode.OnCell, Danger.Deadly, hostile, hostile, TraverseMode.ByPawn) && cell.Standable(baseMap);
-                    }, IntVec3.Invalid), vehicle.VehicleMap);
-                }
-                if (spot.IsValid)
-                {
-                    var job = JobMaker.MakeJob(VIF_DefOf.VIF_GotoAcrossMaps).SetSpotsToJobAcrossMaps(pawn, spot);
+                    var job = JobMaker.MakeJob(VIF_DefOf.VIF_GotoAcrossMaps).SetSpotsToJobAcrossMaps(pawn, exitSpot);
                     return job;
                 }
             }

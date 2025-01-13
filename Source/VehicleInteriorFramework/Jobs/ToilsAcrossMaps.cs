@@ -192,7 +192,7 @@ namespace VehicleInteriors
                     door?.StartManualOpenBy(toil2.actor);
                 };
 
-                toil2.FailOn(() => !exitSpot.Cell.Standable(exitSpot.Map));
+                //toil2.FailOn(() => !exitSpot.Cell.Standable(exitSpot.Map));
                 yield return toil2;
 
                 //デスポーン後目的地のマップにリスポーン。スポーン地の再計算時にそこが埋まってたらとりあえず失敗に

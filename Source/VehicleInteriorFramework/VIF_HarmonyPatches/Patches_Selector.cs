@@ -32,7 +32,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         public static bool Prefix(ref IEnumerable<object> __result)
         {
             var mouseMapPosition = UI.MouseMapPosition();
-            if (!mouseMapPosition.TryGetVehiclePawnWithMap(Find.CurrentMap, out var vehicle))
+            if (!mouseMapPosition.TryGetVehicleMap(Find.CurrentMap, out var vehicle))
             {
                 return true;
             }
@@ -152,7 +152,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         public static bool Prefix(ref IEnumerable<object> __result, Rect rect)
         {
             var mouseMapPosition = UI.MouseMapPosition();
-            if (!mouseMapPosition.TryGetVehiclePawnWithMap(Find.CurrentMap, out var vehicle))
+            if (!mouseMapPosition.TryGetVehicleMap(Find.CurrentMap, out var vehicle))
             {
                 return true;
             }

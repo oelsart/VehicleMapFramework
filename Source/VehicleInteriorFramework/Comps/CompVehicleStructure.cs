@@ -13,5 +13,21 @@ namespace VehicleInteriors
             }
             absorbed = true;
         }
+
+        public override void PostSpawnSetup(bool respawningAfterLoad)
+        {
+            if (this.parent.IsOnVehicleMapOf(out var vehicle))
+            {
+                vehicle.structureCellsDirty = true;
+            }
+        }
+
+        public override void PostDeSpawn(Map map)
+        {
+            if (this.parent.IsOnVehicleMapOf(out var vehicle))
+            {
+                vehicle.structureCellsDirty = true;
+            }
+        }
     }
 }

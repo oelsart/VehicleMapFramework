@@ -71,7 +71,7 @@ namespace VehicleInteriors
             if (!c.InBounds(map)) return true;
 
             var flag = true;
-            if (c.ToVector3Shifted().TryGetVehiclePawnWithMap(map, out var vehicle))
+            if (c.ToVector3Shifted().TryGetVehicleMap(map, out var vehicle))
             {
                 var c2 = c.VehicleMapToOrig(vehicle);
                 flag = !c2.InBounds(vehicle.VehicleMap);

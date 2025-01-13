@@ -82,8 +82,22 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                 new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(Rot4), nameof(Rot4.AsAngle))),
                 new CodeInstruction(OpCodes.Neg),
                 CodeInstruction.Call(typeof(Vector3Utility), nameof(Vector3Utility.RotatedBy), new Type[]{ typeof(Vector3), typeof(float) }),
+                CodeInstruction.LoadArgument(2),
+                CodeInstruction.Call(typeof(Patch_Graphic_Print), nameof(Patch_Graphic_Print.EdgeSpacerOffset)),
             });
             return codes;
+        }
+
+        //はしごとかのマップ端オフセットを足す
+        private static Vector3 EdgeSpacerOffset(Vector3 vector, Thing thing)
+        {
+            VehicleMapProps mapProps;
+            if (thing.HasComp<CompVehicleEnterSpot>() && thing.IsOnVehicleMapOf(out var vehicle) && (mapProps = vehicle.VehicleDef.GetModExtension<VehicleMapProps>()) != null)
+            {
+                var opposite = Patch_Thing_Rotation.Rotation(thing).Opposite;
+                return vector + opposite.AsVector2.ToVector3() * mapProps.EdgeSpaceValue(VehicleMapUtility.rotForPrint, opposite);
+            }
+            return vector;
         }
     }
 

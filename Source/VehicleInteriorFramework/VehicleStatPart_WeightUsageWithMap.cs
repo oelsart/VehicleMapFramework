@@ -43,7 +43,7 @@ namespace VehicleInteriors
             string value;
             if (vehicle is VehiclePawnWithMap vehicleWithMap)
             {
-                float statValue = vehicle.GetStatValue(VIF_DefOf.MaximumPayload);
+                var statValue = vehicle.GetStatValue(VIF_DefOf.MaximumPayload).ToStringByStyle(ToStringStyle.FloatTwo);
                 if (this.formatString.NullOrEmpty())
                 {
                     value = string.Format(this.statDef.formatString, MassUtility.InventoryMass(vehicleWithMap) + VehicleMapUtility.VehicleMapMass(vehicleWithMap), statValue);
@@ -55,7 +55,7 @@ namespace VehicleInteriors
             }
             else
             {
-                float statValue = vehicle.GetStatValue(VehicleStatDefOf.CargoCapacity);
+                var statValue = vehicle.GetStatValue(VehicleStatDefOf.CargoCapacity).ToStringByStyle(ToStringStyle.FloatTwo);
                 if (this.formatString.NullOrEmpty())
                 {
                     value = string.Format(this.statDef.formatString, MassUtility.InventoryMass(vehicle) , statValue);

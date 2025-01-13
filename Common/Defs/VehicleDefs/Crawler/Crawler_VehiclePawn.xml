@@ -23,7 +23,7 @@
 		<size>(5,8)</size>
 
 		<vehicleMovementPermissions>DriverNeeded</vehicleMovementPermissions>
-		<vehicleCategory>0</vehicleCategory>
+		<vehicleCategory>Combat</vehicleCategory>
 		<techLevel>Industrial</techLevel>
 		<vehicleType>Land</vehicleType>
 
@@ -78,7 +78,7 @@
 		<components>
 			<li>
 				<key>Engine</key>
-				<label>engine</label>
+				<label>Engine</label>
 				<health>50</health>
 				<priorityStatEfficiency>true</priorityStatEfficiency>
 				<depth>Internal</depth>
@@ -106,7 +106,7 @@
 			</li>
 			<li>
 				<key>Gearbox</key>
-				<label>gearbox</label>
+				<label>Gearbox</label>
 				<health>45</health>
 				<depth>Internal</depth>
 
@@ -123,7 +123,7 @@
 			</li>
 			<li>
 				<key>Chemtank</key>
-				<label>chemtank</label>
+				<label>Chemtank</label>
 				<health>30</health>
 				<depth>External</depth>
 
@@ -147,7 +147,7 @@
 			</li>
 			<li>
 				<key>LeftTrack</key>
-				<label>left track</label>
+				<label>Left track</label>
 				<health>140</health>
 				<depth>External</depth>
 
@@ -161,7 +161,7 @@
 			</li>
 			<li>
 				<key>RightTrack</key>
-				<label>right track</label>
+				<label>Right track</label>
 				<health>140</health>
 				<depth>External</depth>
 
@@ -175,7 +175,7 @@
 			</li>
 			<li>
 				<key>FrontLeftDriveSprocket</key>
-				<label>front left drive sprocket</label>
+				<label>Front Left Drive Sprocket</label>
 				<health>20</health>
 				<depth>External</depth>
 				
@@ -191,7 +191,7 @@
 			</li>
 			<li>
 				<key>FrontRightDriveSprocket</key>
-				<label>front right drive sprocket</label>
+				<label>Front Right Drive Sprocket</label>
 				<health>20</health>
 				<depth>External</depth>
 				
@@ -207,7 +207,7 @@
 			</li>
 			<li>
 				<key>BackLeftDriveSprocket</key>
-				<label>back left drive sprocket</label>
+				<label>Back Left Drive Sprocket</label>
 				<health>20</health>
 				<depth>External</depth>
 				
@@ -223,7 +223,7 @@
 			</li>
 			<li>
 				<key>BackRightDriveSprocket</key>
-				<label>back right drive sprocket</label>
+				<label>Back Right Drive Sprocket</label>
 				<health>20</health>
 				<depth>External</depth>
 				
@@ -239,7 +239,7 @@
 			</li>
 			<li>
 				<key>LeftRoadWheels</key>
-				<label>left road wheels</label>
+				<label>Left Road Wheels</label>
 				<health>120</health>
 				<depth>External</depth>
 				<tags>
@@ -262,7 +262,7 @@
 			</li>
 			<li>
 				<key>RightRoadWheels</key>
-				<label>right road wheels</label>
+				<label>Right Road Wheels</label>
 				<health>120</health>
 				<depth>External</depth>
 				<tags>
@@ -285,7 +285,7 @@
 			</li>			
 			<li>
 				<key>FrontLeftReturnRoller</key>
-				<label>front left return roller</label>
+				<label>Front Left Return Roller</label>
 				<health>10</health>
 				<depth>External</depth>
 				<tags>
@@ -303,7 +303,7 @@
 			</li>
 			<li>
 				<key>FrontRightReturnRoller</key>
-				<label>front right return roller</label>
+				<label>Front Right Return Roller</label>
 				<health>10</health>
 				<depth>External</depth>
 				<tags>
@@ -321,7 +321,7 @@
 			</li>
 			<li>
 				<key>RearLeftReturnRoller</key>
-				<label>rear left return roller</label>
+				<label>Rear Left Return Roller</label>
 				<health>10</health>
 				<depth>External</depth>
 				<tags>
@@ -339,7 +339,7 @@
 			</li>
 			<li>
 				<key>RearRightReturnRoller</key>
-				<label>rear right return roller</label>
+				<label>Rear Right Return Roller</label>
 				<health>10</health>
 				<depth>External</depth>
 				<tags>
@@ -357,7 +357,7 @@
 			</li>
 			<li>
 				<key>FrontArmorPlating</key>
-				<label>front armor plating</label>
+				<label>Front Armor Plating</label>
 				<health>100</health>
 				<depth>External</depth>
 
@@ -373,7 +373,7 @@
 			
 			<li>
 				<key>RearArmorPlating</key>
-				<label>rear armor plating</label>
+				<label>Rear Armor Plating</label>
 				<health>100</health>
 				<depth>External</depth>
 
@@ -388,7 +388,7 @@
 			</li>
 			<li>
 				<key>Alternator</key>
-				<label>alternator</label>
+				<label>Alternator</label>
 				<health>20</health>
 				<depth>Internal</depth>
 			</li>

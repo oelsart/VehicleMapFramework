@@ -54,6 +54,19 @@ namespace VehicleInteriors
             }
         }
 
+        public HashSet<IntVec3> CachedStructureCells
+        {
+            get
+            {
+                if (this.structureCellsCache == null || this.structureCellsDirty)
+                {
+                    this.structureCellsCache = this.interiorMap.listerThings.ThingsOfDef(VIF_DefOf.VIF_VehicleStructureFilled)
+                            .Concat(this.interiorMap.listerThings.ThingsOfDef(VIF_DefOf.VIF_VehicleStructureEmpty)).Select(b => b.Position).ToHashSet();
+                }
+                return this.structureCellsCache;
+            }
+        }
+
         public override List<IntVec3> InteractionCells => this.interactionCellsInt;
 
         public override IEnumerable<Gizmo> GetGizmos()
@@ -139,14 +152,15 @@ namespace VehicleInteriors
         public override string GetInspectString()
         {
             var str = base.GetInspectString();
+            //if (Find.TickManager.TicksGame % 250 == 0)
+            //{
+            //    this.statHandler.MarkStatDirty(VIF_DefOf.MaximumPayload);
+            //}
             var stat = this.GetStatValue(VIF_DefOf.MaximumPayload);
 
-            if (stat != 0f)
-            {
-                str += $"\n{"MassCarriedSimple".Translate()}:" +
-                    $" {(VehicleMapUtility.VehicleMapMass(this) + MassUtility.InventoryMass(this)).ToStringEnsureThreshold(2, 0)} /" +
-                    $" {stat.ToStringEnsureThreshold(2, 0)} {"kg".Translate()}";
-            }
+            str += $"\n{"MassCarriedSimple".Translate()}:" +
+                $" {(VehicleMapUtility.VehicleMapMass(this) + MassUtility.InventoryMass(this)).ToStringEnsureThreshold(2, 0)} /" +
+                $" {stat.ToStringEnsureThreshold(2, 0)} {"kg".Translate()}";
             return str;
         }
 
@@ -164,19 +178,13 @@ namespace VehicleInteriors
                     this.interiorMap = MapGenerator.GenerateMap(new IntVec3(vehicleMap.size.x, 1, vehicleMap.size.z), mapParent, mapParent.MapGeneratorDef, mapParent.ExtraGenStepDefs, null, true);
                     Find.World.GetComponent<VehicleMapParentsComponent>().vehicleMaps.Add(mapParent);
 
-                    if (!vehicleMap.emptyStructureCells.NullOrEmpty())
+                    foreach (var c in vehicleMap.EmptyStructureCells)
                     {
-                        foreach (var c in vehicleMap.emptyStructureCells)
-                        {
-                            GenSpawn.Spawn(VIF_DefOf.VIF_VehicleStructureEmpty, c.ToIntVec3, this.interiorMap);
-                        }
+                        GenSpawn.Spawn(VIF_DefOf.VIF_VehicleStructureEmpty, c.ToIntVec3, this.interiorMap).SetFaction(Faction.OfPlayer);
                     }
-                    if (!vehicleMap.filledStructureCells.NullOrEmpty())
+                    foreach (var c in vehicleMap.FilledStructureCells)
                     {
-                        foreach (var c in vehicleMap.filledStructureCells)
-                        {
-                            GenSpawn.Spawn(VIF_DefOf.VIF_VehicleStructureFilled, c.ToIntVec3, this.interiorMap);
-                        }
+                        GenSpawn.Spawn(VIF_DefOf.VIF_VehicleStructureFilled, c.ToIntVec3, this.interiorMap).SetFaction(Faction.OfPlayer);
                     }
                 }
             }
@@ -443,6 +451,13 @@ namespace VehicleInteriors
                 matrix = default;
                 matrix.SetTRS(new Vector3(size.x / 2f, 0f, -250f).OrigToVehicleMap(this), quat, s);
                 Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
+
+                s = Vector3.one;
+                foreach (var c in this.CachedStructureCells)
+                {
+                    matrix.SetTRS(c.ToVector3Shifted().OrigToVehicleMap(), quat, s);
+                    Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
+                }
             }
         }
 
@@ -476,9 +491,13 @@ namespace VehicleInteriors
 
         private bool autoGetOff = true;
 
+        private HashSet<IntVec3> structureCellsCache;
+
+        public bool structureCellsDirty;
+
         private static int lastCachedTick = -1;
 
-        private static readonly Material ClipMat = SolidColorMaterials.NewSolidColorMaterial(new Color(0.3f, 0.1f, 0.1f, 0.65f), ShaderDatabase.MetaOverlay);
+        private static readonly Material ClipMat = SolidColorMaterials.NewSolidColorMaterial(new Color(0.3f, 0.1f, 0.1f, 0.5f), ShaderDatabase.MetaOverlay);
 
         //private static readonly float ClipAltitude = AltitudeLayer.WorldClipper.AltitudeFor();
 

@@ -169,7 +169,14 @@ namespace VehicleInteriors
             }
             foreach (var (graphicOverlay, extraRotationOverlay) in vehicleDef.GhostGraphicOverlaysFor(ghostCol))
             {
-                graphicOverlay.DrawWorker(vector + graphic.DrawOffsetFull(rot), rot, vehicleDef, vehicle, extraRotationOverlay);
+                if (graphicOverlay is Graphic_RGB graphicOverlayRGB)
+                {
+                    graphicOverlayRGB.DrawWorker(vector + graphic.DrawOffsetFull(rot), rot, vehicleDef, vehicle, extraRotationOverlay);
+                }
+                else
+                {
+                    graphicOverlay.DrawWorker(vector + graphic.DrawOffsetFull(rot), rot, vehicleDef, vehicle, extraRotationOverlay);
+                }
             }
 
             if (vehicleDef.GetSortedCompProperties<CompProperties_VehicleTurrets>() != null)
