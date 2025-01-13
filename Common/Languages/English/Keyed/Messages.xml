@@ -4,6 +4,7 @@
 	<VIF_ForceOnVehicle>Cannot be placed outside of a vehicle map.</VIF_ForceOnVehicle>
 	<VIF_ForceOnVehicle>Cannot be placed outside of a hover vehicle map.</VIF_ForceOnVehicle>
 	<VIF_ForbidOnVehicle>Cannot be placed on a vehicle map.</VIF_ForbidOnVehicle>
+	<VIF_ForbidOnHumanPoweredVehicle>Cannot be placed on a human powered vehicle map.</VIF_ForbidOnHumanPoweredVehicle>
 	<VIF_ForceOnVehicleMapEdge>Cannot be placed outside the edge of a vehicle map.</VIF_ForceOnVehicleMapEdge>
 
 	<VIF_NoRoles>No roles for operating this turret in {0}.</VIF_NoRoles>

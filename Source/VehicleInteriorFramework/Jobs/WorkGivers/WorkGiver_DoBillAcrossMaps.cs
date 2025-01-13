@@ -605,14 +605,14 @@ namespace VehicleInteriors
             {
                 if (building.def.hasInteractionCell)
                 {
-                    return building.InteractionCell;
+                    return building.InteractionCell.OrigToThingMap(building);
                 }
 
                 Log.Error(string.Concat("Tried to find bill ingredients for ", billGiver, " which has no interaction cell."));
-                return forPawn.Position;
+                return forPawn.PositionOnBaseMap();
             }
 
-            return billGiver.Position;
+            return billGiver.PositionOnBaseMap();
         }
 
         private static void AddEveryMedicineToRelevantThings(Pawn pawn, Thing billGiver, List<Thing> relevantThings, Predicate<Thing> baseValidator, Map map)
@@ -665,8 +665,8 @@ namespace VehicleInteriors
             {
                 Comparison<Thing> comparison = delegate (Thing t1, Thing t2)
                 {
-                    float num4 = (t1.PositionHeld - rootCell).LengthHorizontalSquared;
-                    float value = (t2.PositionHeld - rootCell).LengthHorizontalSquared;
+                    float num4 = (t1.PositionHeldOnBaseMap() - rootCell).LengthHorizontalSquared;
+                    float value = (t2.PositionHeldOnBaseMap() - rootCell).LengthHorizontalSquared;
                     return num4.CompareTo(value);
                 };
                 availableThings.Sort(comparison);

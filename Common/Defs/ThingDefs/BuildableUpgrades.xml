@@ -290,6 +290,9 @@
 				</upgrades>
 			</li>
 		</comps>
+		<placeWorkers>
+			<li>VehicleInteriors.PlaceWorker_ForbidOnHumanPoweredVehicle</li>
+		</placeWorkers>
 	</ThingDef>
 
 	<ThingDef ParentName="FurnitureBase">
