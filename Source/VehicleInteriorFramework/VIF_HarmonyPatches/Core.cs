@@ -27,8 +27,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         {
             VIF_Harmony.Instance.PatchAllUncategorized(Assembly.GetExecutingAssembly());
 
-            var version = File.ReadAllText(Path.Combine(VehicleInteriors.mod.Content.RootDir, "Version.txt"));
-            Log.Message($"[VehicleMapFramework] {version}");
+            Log.Message($"[VehicleMapFramework] {VehicleInteriors.mod.Content.ModMetaData.ModVersion}");
             Log.Message($"[VehicleMapFramework] {VIF_Harmony.Instance.GetPatchedMethods().Count()} patches applied.");
         }
     }

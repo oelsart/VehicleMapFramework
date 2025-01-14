@@ -198,6 +198,7 @@
 		</graphicData>
 		<uiIconPath>VehicleInteriors/Things/BuildableUpgrade/CargoContainer/CargoContainer_MenuIcon</uiIconPath>
 		<drawerType>MapMeshOnly</drawerType>
+		<tickerType>Normal</tickerType>
 		<statBases>
 			<MaxHitPoints>300</MaxHitPoints>
 			<Beauty>-1</Beauty>
@@ -212,12 +213,16 @@
 		</stuffCategories>
 		<costStuffCount>100</costStuffCount>
 		<building>
+			<maxItemsInCell>0</maxItemsInCell>
 			<blueprintGraphicData>
 				<texPath>VehicleInteriors/Things/BuildableUpgrade/CargoContainer/CargoContainer_Blueprint_Atlas</texPath>
 				<cornerOverlayPath>VehicleInteriors/Things/BuildableUpgrade/CargoContainer/CargoContainer_Blueprint_Filler</cornerOverlayPath>
 			</blueprintGraphicData>
 		</building>
 		<uiOrder>1023</uiOrder>
+		<inspectorTabs>
+			<li>ITab_ContentsTransporter</li>
+		</inspectorTabs>
 		<comps>
 			<li Class = "VehicleInteriors.CompProperties_BuildableUpgrades">
 				<upgrades>
@@ -230,6 +235,12 @@
 						</vehicleStats>
 					</li>
 				</upgrades>
+			</li>
+			<li Class = "CompProperties_Transporter">
+				<compClass>VehicleInteriors.CompBuildableContainer</compClass>
+				<max1PerGroup>true</max1PerGroup>
+				<canChangeAssignedThingsAfterStarting>true</canChangeAssignedThingsAfterStarting>
+				<showOverallStats>false</showOverallStats>
 			</li>
 		</comps>
 	</ThingDef>

@@ -106,6 +106,7 @@
     <Compile Include="BuildableUpgrades\Building_VehicleRamp.cs" />
     <Compile Include="Combat\ShotReportOnVehicle.cs" />
     <Compile Include="Combat\TargetingHelperOnVehicle.cs" />
+    <Compile Include="Comps\CompBuildableContainer.cs" />
     <Compile Include="Comps\CompEngineLightOverlays.cs" />
     <Compile Include="Comps\CompProperties_EngineLightOverlays.cs" />
     <Compile Include="Comps\CompProperties_TogglableOverlays.cs" />
@@ -120,13 +121,16 @@
     <Compile Include="Comps\CompWirelessTransmitter.cs" />
     <Compile Include="Combat\ExplosionAcrossMaps.cs" />
     <Compile Include="BuildableUpgrades\Dialog_ChooseVehicleRoles.cs" />
-    <Compile Include="ExtraOverlayData.cs" />
+    <Compile Include="Dialog_LoadCargoToBuildableContainer.cs" />
+    <Compile Include="Graphics\ExtraOverlayData.cs" />
+    <Compile Include="Jobs\WorkGivers\WorkGiver_LoadBuildableContainer.cs" />
+    <Compile Include="ModExtensions\VehicleHumanPowered.cs" />
     <Compile Include="PlaceWorkers\PlaceWorker_ForbidOnHumanPoweredVehicle.cs" />
     <Compile Include="PlaceWorkers\PlaceWorker_ForceOnHoverVehicle.cs" />
-    <Compile Include="RGBMaskOpacityDef.cs" />
+    <Compile Include="Graphics\RGBMaskOpacityDef.cs" />
     <Compile Include="Utilities\GenDrawOnVehicle.cs" />
-    <Compile Include="Graphic_LinkedCornerOverlaySingle.cs" />
-    <Compile Include="Graphic_VehicleOpacity.cs" />
+    <Compile Include="Graphics\Graphic_LinkedCornerOverlaySingle.cs" />
+    <Compile Include="Graphics\Graphic_VehicleOpacity.cs" />
     <Compile Include="EphemenalWindow.cs" />
     <Compile Include="Jobs\GenConstructOnVehicle.cs" />
     <Compile Include="Jobs\JobDrivers\JobDriver_DoBillAcrossMaps.cs" />
@@ -148,9 +152,8 @@
     <Compile Include="PlaceWorkers\PlaceWorker_ForbidOnVehicle.cs" />
     <Compile Include="PlaceWorkers\PlaceWorker_ForceOnVehicle.cs" />
     <Compile Include="PlaceWorkers\PlaceWorker_ForceOnVehicleMapEdge.cs" />
-    <Compile Include="RGBMaskShaderTypeDef.cs" />
+    <Compile Include="Graphics\RGBMaskShaderTypeDef.cs" />
     <Compile Include="BuildableUpgrades\VehicleHandlerBuildable.cs" />
-    <Compile Include="VehicleHumanPowered.cs" />
     <Compile Include="VehicleMapSettings.cs" />
     <Compile Include="VehicleMap\DynamicDrawManagerOnVehicle.cs" />
     <Compile Include="VehicleMap\SectionLayer_ThingsGeneralOnVehicle.cs" />
@@ -158,7 +161,7 @@
     <Compile Include="VehicleMap\VehicleMapParentsComponent.cs" />
     <Compile Include="VehicleMap\SectionLayer_LightingOnVehicle.cs" />
     <Compile Include="VehicleMap\SectionLayer_TerrainOnVehicle.cs" />
-    <Compile Include="VehicleOrientationControllerAcrossMaps.cs" />
+    <Compile Include="FloatMenus\VehicleOrientationControllerAcrossMaps.cs" />
     <Compile Include="VehiclePawnWithMap_Hover.cs" />
     <Compile Include="BuildableUpgrades\VehicleRoleBuildable.cs" />
     <Compile Include="VehicleStatPart_WeightUsageWithMap.cs" />
@@ -173,7 +176,7 @@
     <Compile Include="Comps\CompVehicleSeat.cs" />
     <Compile Include="Jobs\JobDrivers\JobDriver_BoardAcrossMaps.cs" />
     <Compile Include="Utilities\RespawnWithJobsUtility.cs" />
-    <Compile Include="FloatMenuOnVehicleUtility.cs" />
+    <Compile Include="FloatMenus\FloatMenuOnVehicleUtility.cs" />
     <Compile Include="Utilities\FindBuildingUtility.cs" />
     <Compile Include="Utilities\GetHemogenUtilityOnVehicle.cs" />
     <Compile Include="Utilities\HealthAIAcrossMapsUtility.cs" />
@@ -205,7 +208,7 @@
     <Compile Include="Jobs\JobGivers\JobGiver_AIFightEnemiesOnVehicle.cs" />
     <Compile Include="Utilities\ProjectileUtility.cs" />
     <Compile Include="Utilities\ShootLeanUtilityOnVehicle.cs" />
-    <Compile Include="FloatMenuMakerOnVehicle.cs" />
+    <Compile Include="FloatMenus\FloatMenuMakerOnVehicle.cs" />
     <Compile Include="Jobs\JobDrivers\JobDriver_GotoAcrossMaps.cs" />
     <Compile Include="Jobs\JobGivers\JobGiver_GetOffVehicle.cs" />
     <Compile Include="Jobs\JobGivers\JobGiver_HaulAcrossMaps.cs" />
@@ -261,7 +264,7 @@
     <Content Include="..\..\Common\Defs\**\*.*">
       <Link>Defs\%(RecursiveDir)%(FileName)%(Extension)</Link>
     </Content>
-    <Content Include="Version.txt" />
+    <Content Include="About.xml" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\..\Common\Languages\**\*.*">

@@ -110,7 +110,7 @@ namespace VehicleInteriors
 
         public static IEnumerable<Toil> GotoTargetMap(JobDriverAcrossMaps driver, TargetInfo exitSpot, TargetInfo enterSpot)
         {
-            if (exitSpot.IsValid)
+            if (exitSpot.IsValid && exitSpot.Map != null)
             {
                 //あれ？もうexitSpotから出た後じゃない？ジャンプしよ
                 var afterExitMap = Toils_General.Label();
@@ -230,7 +230,7 @@ namespace VehicleInteriors
                 yield return toil3;
                 yield return afterExitMap;
             }
-            if (enterSpot.IsValid)
+            if (enterSpot.IsValid && enterSpot.Map != null)
             {
                 //あれ？もうenterSpotのマップに居ない？ジャンプしよ
                 var afterEnterMap = Toils_General.Label();

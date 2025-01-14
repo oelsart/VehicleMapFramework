@@ -8,8 +8,17 @@ namespace VehicleInteriors
     {
         public static Job GotoDestMapJob(Pawn pawn, TargetInfo? exitSpot1 = null, TargetInfo? enterSpot1 = null, Job nextJob = null)
         {
-            if (((enterSpot1.HasValue && enterSpot1.Value.IsValid) || (exitSpot1.HasValue && exitSpot1.Value.IsValid)) && !(nextJob.GetCachedDriver(pawn) is JobDriverAcrossMaps))
+            if ((enterSpot1.HasValue && enterSpot1.Value.Map != null) || (exitSpot1.HasValue && exitSpot1.Value.Map != null))
             {
+                //if (nextJob.GetCachedDriver(pawn) is JobDriverAcrossMaps driver)
+                //{
+                //    var destMap = enterSpot1.Value.Map ?? exitSpot1.Value.Map;
+                //    Log.Message($"{driver.TargetAMap} {driver.DestMap} {destMap}");
+                //    if (driver.TargetAMap == destMap || driver.DestMap == destMap)
+                //    {
+                //        return nextJob;
+                //    }
+                //}
                 return JobMaker.MakeJob(VIF_DefOf.VIF_GotoDestMap).SetSpotsAndNextJob(pawn, exitSpot1, enterSpot1, nextJob: nextJob);
             }
             return nextJob;

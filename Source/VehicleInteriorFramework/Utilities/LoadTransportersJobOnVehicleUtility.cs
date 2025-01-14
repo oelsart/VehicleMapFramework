@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using VehicleInteriors.VIF_HarmonyPatches;
 using Verse;
 using Verse.AI;
 
@@ -9,26 +10,27 @@ namespace VehicleInteriors
 {
     public static class LoadTransportersJobOnVehicleUtility
     {
-        public static ThingCount FindThingToLoad(Pawn p, CompTransporter transporter, out TargetInfo exitSpot, out TargetInfo enterSpot)
+        public static ThingCount FindThingToLoad(Pawn p, CompTransporter transporter, bool gatherFromBaseMap, out TargetInfo exitSpot, out TargetInfo enterSpot)
         {
             LoadTransportersJobOnVehicleUtility.neededThings.Clear();
             List<TransferableOneWay> leftToLoad = transporter.leftToLoad;
             LoadTransportersJobOnVehicleUtility.tmpAlreadyLoading.Clear();
+            exitSpot = TargetInfo.Invalid;
+            enterSpot = TargetInfo.Invalid;
             if (leftToLoad != null)
             {
-                IReadOnlyList<Pawn> allPawnsSpawned = transporter.Map.mapPawns.AllPawnsSpawned;
+                IReadOnlyList<Pawn> allPawnsSpawned = transporter.Map.BaseMap().mapPawns.AllPawnsSpawned;
                 for (int i = 0; i < allPawnsSpawned.Count; i++)
                 {
-                    if (allPawnsSpawned[i] != p && allPawnsSpawned[i].CurJobDef == JobDefOf.HaulToTransporter)
+                    if (allPawnsSpawned[i] != p && allPawnsSpawned[i].CurJobDef == VIF_DefOf.VIF_HaulToTransporterAcrossMaps)
                     {
-                        JobDriver_HaulToTransporter jobDriver_HaulToTransporter = (JobDriver_HaulToTransporter)allPawnsSpawned[i].jobs.curDriver;
+                        JobDriver_HaulToTransporterAcrossMaps jobDriver_HaulToTransporter = (JobDriver_HaulToTransporterAcrossMaps)allPawnsSpawned[i].jobs.curDriver;
                         if (jobDriver_HaulToTransporter.Container == transporter.parent)
                         {
                             TransferableOneWay transferableOneWay = TransferableUtility.TransferableMatchingDesperate(jobDriver_HaulToTransporter.ThingToCarry, leftToLoad, TransferAsOneMode.PodsOrCaravanPacking);
                             if (transferableOneWay != null)
                             {
-                                int num = 0;
-                                if (LoadTransportersJobOnVehicleUtility.tmpAlreadyLoading.TryGetValue(transferableOneWay, out num))
+                                if (LoadTransportersJobOnVehicleUtility.tmpAlreadyLoading.TryGetValue(transferableOneWay, out int num))
                                 {
                                     LoadTransportersJobOnVehicleUtility.tmpAlreadyLoading[transferableOneWay] = num + jobDriver_HaulToTransporter.initialCount;
                                 }
@@ -59,11 +61,21 @@ namespace VehicleInteriors
             if (!LoadTransportersJobOnVehicleUtility.neededThings.Any<Thing>())
             {
                 LoadTransportersJobOnVehicleUtility.tmpAlreadyLoading.Clear();
-                exitSpot = null;
-                enterSpot = null;
                 return default;
             }
-            Thing thing = GenClosestOnVehicle.ClosestThingReachable(p.Position, p.Map, ThingRequest.ForGroup(ThingRequestGroup.HaulableEver), PathEndMode.Touch, TraverseParms.For(p, Danger.Deadly, TraverseMode.ByPawn, false, false, false), 9999f, (Thing x) => LoadTransportersJobOnVehicleUtility.neededThings.Contains(x) && p.CanReserve(x, 1, -1, null, false) && !x.IsForbidden(p) && p.carryTracker.AvailableStackSpace(x.def) > 0, null, 0, -1, false, RegionType.Set_Passable, false, false, out exitSpot, out enterSpot);
+            Thing thing;
+            if (gatherFromBaseMap)
+            {
+                thing = GenClosestOnVehicle.ClosestThingReachable(p.Position, p.Map, ThingRequest.ForGroup(ThingRequestGroup.HaulableEver), PathEndMode.Touch, TraverseParms.For(p, Danger.Deadly, TraverseMode.ByPawn, false, false, false), 9999f, (Thing x) => LoadTransportersJobOnVehicleUtility.neededThings.Contains(x) && p.CanReserve(x, 1, -1, null, false) && !x.IsForbidden(p) && p.carryTracker.AvailableStackSpace(x.def) > 0, null, 0, -1, false, RegionType.Set_Passable, false, false, out exitSpot, out enterSpot);
+            }
+            else
+            {
+                TargetInfo exitSpot2 = TargetInfo.Invalid;
+                TargetInfo enterSpot2 = TargetInfo.Invalid;
+                thing = Patch_GenClosest_ClosestThingReachable_NewTemp.ClosestThingReachable_NewTempOriginal(transporter.parent.Position, transporter.parent.Map, ThingRequest.ForGroup(ThingRequestGroup.HaulableEver), PathEndMode.Touch, TraverseParms.For(p, Danger.Deadly, TraverseMode.ByPawn, false, false, false), 9999f, (Thing x) => LoadTransportersJobOnVehicleUtility.neededThings.Contains(x) && p.CanReserve(x, 1, -1, null, false) && !x.IsForbidden(p) && p.carryTracker.AvailableStackSpace(x.def) > 0 && p.CanReach(x, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, x.Map, out exitSpot2, out enterSpot2), null, 0, -1, false, RegionType.Set_Passable, false, false);
+                exitSpot = exitSpot2;
+                enterSpot = enterSpot2;
+            }
             if (thing == null)
             {
                 foreach (Thing thing2 in LoadTransportersJobOnVehicleUtility.neededThings)
@@ -98,6 +110,43 @@ namespace VehicleInteriors
             }
             LoadTransportersJobOnVehicleUtility.tmpAlreadyLoading.Clear();
             return default(ThingCount);
+        }
+
+        public static Job JobOnTransporter(Pawn p, CompTransporter transporter)
+        {
+            Job job = JobMaker.MakeJob(VIF_DefOf.VIF_HaulToTransporterAcrossMaps, LocalTargetInfo.Invalid, transporter.parent);
+            job.ignoreForbidden = true;
+            return job;
+        }
+
+        public static bool HasJobOnTransporter(Pawn pawn, CompTransporter transporter)
+        {
+            if (transporter.parent.IsForbidden(pawn))
+            {
+                return false;
+            }
+
+            if (!transporter.AnythingLeftToLoad)
+            {
+                return false;
+            }
+
+            if (!pawn.health.capacities.CapableOf(PawnCapacityDefOf.Manipulation))
+            {
+                return false;
+            }
+
+            if (!pawn.CanReach(transporter.parent, PathEndMode.Touch, pawn.NormalMaxDanger(), false, false, TraverseMode.ByPawn, transporter.parent.Map, out _, out _))
+            {
+                return false;
+            }
+
+            if (LoadTransportersJobOnVehicleUtility.FindThingToLoad(pawn, transporter, !(transporter is CompBuildableContainer container) || container.GatherFromBaseMap, out _, out _).Thing == null)
+            {
+                return false;
+            }
+
+            return true;
         }
 
         private static readonly HashSet<Thing> neededThings = new HashSet<Thing>();

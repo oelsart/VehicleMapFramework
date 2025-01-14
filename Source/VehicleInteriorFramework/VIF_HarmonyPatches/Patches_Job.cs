@@ -173,7 +173,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                         pawn.VirtualMapTransfer(map, pos);
                     }
 
-                    var thing = job.targetA.Thing ?? job.targetQueueA.FirstOrDefault().Thing;
+                    var thing = job.targetA.Thing ?? job.targetQueueA?.FirstOrDefault().Thing;
                     if (thing != null && pawn.Map != thing.MapHeld)
                     {
                         return JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, job);
@@ -296,43 +296,31 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) => Patch_JobGiver_Work_Validator.Transpiler(instructions);
     }
 
-    [HarmonyPatch(typeof(Toils_Goto), nameof(Toils_Goto.GotoThing), typeof(TargetIndex), typeof(PathEndMode), typeof(bool))]
+    [HarmonyPatch(typeof(Pawn_PathFollower), nameof(Pawn_PathFollower.StartPath))]
     public static class Patch_Toils_Goto_GotoThing
     {
-        public static void Postfix(Toil __result, TargetIndex ind, PathEndMode peMode, bool canGotoSpawnedParent)
+        public static bool Prefix(LocalTargetInfo dest, PathEndMode peMode, Pawn ___pawn)
         {
-            __result.AddPreInitAction(() =>
-            {
-                Pawn actor = __result.actor;
-                LocalTargetInfo dest = actor.jobs.curJob.GetTarget(ind);
-                Thing thing = dest.Thing;
-                if (thing == null)
-                {
-                    return;
-                }
-                if (canGotoSpawnedParent)
-                {
-                    dest = thing.SpawnedParentOrMe;
-                }
-                if (actor.Map != dest.Thing.Map && actor.CanReach(dest, peMode, Danger.Deadly, false, false, TraverseMode.ByPawn, dest.Thing.Map, out var exitSpot, out var enterSpot))
-                {
-                    var nextJob = actor.CurJob.Clone();
-                    actor.jobs.curDriver.globalFinishActions.Clear(); //Jobはまだ終わっちゃいねえためFinishActionはさせない。TryDropThingなどをしていることもあるし
-                    actor.jobs.StartJob(JobAcrossMapsUtility.GotoDestMapJob(actor, exitSpot, enterSpot, nextJob), JobCondition.InterruptForced, keepCarryingThingOverride: true);
-                }
-            });
+            if (___pawn.CurJob == null) return true;
 
-            __result.endConditions.Clear();
-            if (canGotoSpawnedParent)
+            Thing thing = dest.Thing;
+            if (thing == null)
             {
-                __result.FailOnSelfAndParentsDespawnedOrNull(ind);
+                return true;
             }
-            else
+            dest = thing.SpawnedParentOrMe;
+            if (___pawn.Map != dest.Thing.Map && ___pawn.CanReach(dest, peMode, Danger.Deadly, false, false, TraverseMode.ByPawn, dest.Thing.Map, out var exitSpot, out var enterSpot))
             {
-                __result.FailOnDespawnedOrNull(ind);
+                var nextJob = ___pawn.CurJob?.Clone();
+                ___pawn.jobs.curDriver.globalFinishActions.Clear(); //Jobはまだ終わっちゃいねえためFinishActionはさせない。TryDropThingなどをしていることもあるし
+                ___pawn.jobs.StartJob(JobAcrossMapsUtility.GotoDestMapJob(___pawn, exitSpot, enterSpot, nextJob), JobCondition.InterruptForced, keepCarryingThingOverride: true);
+                return false;
             }
+            return true;
         }
     }
+
+    [HarmonyPatch(typeof(Toils_Haul))]
 
     //利用可能なthingに車上マップ上のthingを含める
     [HarmonyPatch(typeof(ItemAvailability), nameof(ItemAvailability.ThingsAvailableAnywhere))]
@@ -366,6 +354,9 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     [HarmonyPatch(typeof(GenClosest), nameof(GenClosest.ClosestThingReachable_NewTemp))]
     public static class Patch_GenClosest_ClosestThingReachable_NewTemp
     {
+        [HarmonyReversePatch(HarmonyReversePatchType.Original)]
+        public static Thing ClosestThingReachable_NewTempOriginal(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance, Predicate<Thing> validator, IEnumerable<Thing> customGlobalSearchSet, int searchRegionsMin, int searchRegionsMax, bool forceAllowGlobalSearch, RegionType traversableRegionTypes, bool ignoreEntirelyForbiddenRegions, bool lookInHaulSources) => throw new NotImplementedException();
+
         public static bool Prefix(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance, Predicate<Thing> validator, IEnumerable<Thing> customGlobalSearchSet, int searchRegionsMin, int searchRegionsMax, bool forceAllowGlobalSearch, RegionType traversableRegionTypes, bool ignoreEntirelyForbiddenRegions, bool lookInHaulSources, ref Thing __result)
         {
             if (traverseParams.pawn != null && traverseParams.pawn.PawnDeterminingJob())
@@ -549,6 +540,63 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             if (job.GetCachedDriver(__instance) is JobDriver_GotoDestMap gotoDestMap)
             {
                 job = gotoDestMap.nextJob;
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(TransporterUtility), nameof(TransporterUtility.GetTransportersInGroup))]
+    public static class Patch_TransporterUtility_GetTransportersInGroup
+    {
+        public static void Postfix(int transportersGroup, Map map, List<CompTransporter> outTransporters)
+        {
+            if (transportersGroup < 0)
+            {
+                return;
+            }
+
+            foreach (var vehicle in VehiclePawnWithMapCache.allVehicles[map.BaseMap()])
+            {
+                IEnumerable<Thing> list = vehicle.VehicleMap.listerThings.GetAllThings(t => t.HasComp<CompBuildableContainer>());
+                foreach (var container in list)
+                {
+                    CompTransporter compTransporter = container.TryGetComp<CompBuildableContainer>();
+                    if (compTransporter.groupID == transportersGroup)
+                    {
+                        outTransporters.Add(compTransporter);
+                    }
+                }
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(ThingOwner), "NotifyAdded")]
+    public static class Patch_ThingOwner_NotifyAdded
+    {
+        public static void Postfix(Thing item, IThingHolder ___owner)
+        {
+            if (___owner is Pawn_InventoryTracker inventory && inventory.pawn is VehiclePawnWithMap vehicle)
+            {
+                foreach (var container in vehicle.VehicleMap.listerBuildings.allBuildingsColonist.Where(b => b.HasComp<CompBuildableContainer>()))
+                {
+                    var comp = container.TryGetComp<CompBuildableContainer>();
+                    comp.Notify_ThingAdded(item);
+                }
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(ThingOwner), "NotifyAddedAndMergedWith")]
+    public static class Patch_ThingOwner_NotifyAddedAndMergedWith
+    {
+        public static void Postfix(Thing item, IThingHolder ___owner, int mergedCount)
+        {
+            if (___owner is Pawn_InventoryTracker inventory && inventory.pawn is VehiclePawnWithMap vehicle)
+            {
+                foreach (var container in vehicle.VehicleMap.listerBuildings.allBuildingsColonist.Where(b => b.HasComp<CompBuildableContainer>()))
+                {
+                    var comp = container.TryGetComp<CompBuildableContainer>();
+                    comp.Notify_ThingAddedAndMergedWith(item, mergedCount);
+                }
             }
         }
     }

@@ -26,14 +26,8 @@ namespace VehicleInteriors
 
         public override bool TryMakePreToilReservations(bool errorOnFailed)
         {
-            if (this.job.targetA.HasThing)
-            {
-                this.pawn.ReserveAsManyAsPossible(this.job.targetA.Thing.Map, this.job.GetTargetQueue(TargetIndex.A), this.job, 1, -1, null);
-            }
-            if (this.job.targetB.HasThing)
-            {
-                this.pawn.ReserveAsManyAsPossible(this.job.targetB.Thing.Map, this.job.GetTargetQueue(TargetIndex.B), this.job, 1, -1, null);
-            }
+            this.pawn.ReserveAsManyAsPossible(this.job.GetTargetQueue(TargetIndex.A), this.job, 1, -1, null);
+            this.pawn.ReserveAsManyAsPossible(this.job.GetTargetQueue(TargetIndex.B), this.job, 1, -1, null);
             return true;
         }
 
@@ -47,21 +41,19 @@ namespace VehicleInteriors
             }
             else
             {
-                thingCount = LoadTransportersJobOnVehicleUtility.FindThingToLoad(this.pawn, base.Container.TryGetComp<CompTransporter>(), out var exitSpot, out var enterSpot);
-                var gotoDestMap = JobMaker.MakeJob(VIF_DefOf.VIF_GotoAcrossMaps);
-                var driver = gotoDestMap.GetCachedDriver(this.pawn) as JobDriverAcrossMaps;
-                driver.SetSpots(exitSpot, enterSpot);
-                this.pawn.jobs.StartJob(gotoDestMap, JobCondition.Ongoing, null, true);
+                var transporter = base.Container.TryGetComp<CompTransporter>();
+                var gatherFromBaseMap = !(transporter is CompBuildableContainer container) || container.GatherFromBaseMap;
+                thingCount = LoadTransportersJobOnVehicleUtility.FindThingToLoad(this.pawn, transporter, gatherFromBaseMap, out var exitSpot, out var enterSpot);
+                this.SetSpots(exitSpot, enterSpot);
             }
             if (this.job.playerForced && this.pawn.carryTracker.CarriedThing != null && this.pawn.carryTracker.CarriedThing != thingCount.Thing)
             {
-                Thing thing;
-                this.pawn.carryTracker.TryDropCarriedThing(this.pawn.Position, ThingPlaceMode.Near, out thing, null);
+                this.pawn.carryTracker.TryDropCarriedThing(this.pawn.Position, ThingPlaceMode.Near, out Thing thing, null);
             }
             this.job.targetA = thingCount.Thing;
             this.job.count = thingCount.Count;
             this.initialCount = thingCount.Count;
-            this.pawn.Reserve(thingCount.Thing.Map, thingCount.Thing, this.job, 1, -1, null, true, false);
+            this.pawn.Reserve(thingCount.Thing.MapHeld, thingCount.Thing, this.job, 1, -1, null, true, false);
         }
 
         public int initialCount;

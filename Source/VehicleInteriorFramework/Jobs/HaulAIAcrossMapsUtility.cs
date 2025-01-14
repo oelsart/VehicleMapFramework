@@ -65,7 +65,7 @@ namespace VehicleInteriors
         public static Job HaulToCellStorageJob(Pawn p, Thing t, IntVec3 storeCell, bool fitInStoreCell, TargetInfo exitSpot, TargetInfo enterSpot, TargetInfo exitSpot2, TargetInfo enterSpot2)
         {
             Job job = JobMaker.MakeJob(VIF_DefOf.VIF_HaulToCellAcrossMaps, t, storeCell);
-            Map destMap = enterSpot2.IsValid ? enterSpot2.Map : exitSpot2.IsValid ? exitSpot2.Map.BaseMap() : enterSpot.IsValid ? enterSpot.Map : exitSpot.IsValid ? exitSpot.Map.BaseMap() : p.Map;
+            Map destMap = enterSpot2.Map ?? exitSpot2.Map?.BaseMap() ?? enterSpot.Map ?? exitSpot.Map?.BaseMap() ?? p.Map;
             ISlotGroup slotGroup = destMap.haulDestinationManager.SlotGroupAt(storeCell);
             ISlotGroup storageGroup = slotGroup.StorageGroup;
             ISlotGroup slotGroup2 = storageGroup ?? slotGroup;
@@ -101,8 +101,7 @@ namespace VehicleInteriors
             job.count = Mathf.Min(job.count, num);
             job.haulOpportunisticDuplicates = true;
             job.haulMode = HaulMode.ToCellStorage;
-            var driver = job.GetCachedDriver(p) as JobDriver_HaulToCellAcrossMaps;
-            driver.SetSpots(exitSpot, enterSpot, exitSpot2, enterSpot2);
+            job.SetSpotsToJobAcrossMaps(p, exitSpot, enterSpot, exitSpot2, enterSpot2);
             return job;
         }
 
@@ -117,8 +116,7 @@ namespace VehicleInteriors
             Job job = JobMaker.MakeJob(VIF_DefOf.VIF_HaulToContainerAcrossMaps, t, container);
             job.count = Mathf.Min(t.stackCount, thingOwner.GetCountCanAccept(t, true));
             job.haulMode = HaulMode.ToContainer;
-            var driver = job.GetCachedDriver(p) as JobDriver_HaulToContainerAcrossMaps;
-            driver.SetSpots(exitSpot, enterSpot, exitSpot2, enterSpot2);
+            job.SetSpotsToJobAcrossMaps(p, exitSpot, enterSpot, exitSpot2, enterSpot2);
             return job;
         }
 

@@ -8,6 +8,7 @@ using UnityEngine;
 using Vehicles;
 using Verse;
 using Verse.AI;
+using static SmashTools.ConditionalPatch;
 
 namespace VehicleInteriors
 {
@@ -37,7 +38,7 @@ namespace VehicleInteriors
                     {
                         if (vehicle2 != null)
                         {
-                            TargetInfo enterSpot = null;
+                            TargetInfo enterSpot = TargetInfo.Invalid;
                             var result = vehicle2.InteractionCells.OrderBy(c => (c.OrigToVehicleMap(vehicle2) - dest3.Cell).LengthHorizontalSquared).
                                 Concat(CellRect.WholeMap(vehicle2.VehicleMap).EdgeCells.OrderBy(c => (c.OrigToVehicleMap(vehicle2) - dest3.Cell).LengthHorizontalSquared)).Any(c =>
                             {
@@ -77,7 +78,7 @@ namespace VehicleInteriors
                     {
                         if (vehicle != null)
                         {
-                            TargetInfo enterSpot = null;
+                            TargetInfo enterSpot = TargetInfo.Invalid;
                             var result = vehicle.InteractionCells.OrderBy(c => (root - c.OrigToVehicleMap(vehicle)).LengthHorizontalSquared)
                                 .Concat(CellRect.WholeMap(vehicle.VehicleMap).EdgeCells.OrderBy(c => (root - c.OrigToVehicleMap(vehicle)).LengthHorizontalSquared)).Any(c =>
                             {
@@ -118,8 +119,8 @@ namespace VehicleInteriors
                         {
                             if (vehicle != null)
                             {
-                                TargetInfo enterSpot = null;
-                                TargetInfo enterSpot2 = null;
+                                TargetInfo enterSpot = TargetInfo.Invalid;
+                                TargetInfo enterSpot2 = TargetInfo.Invalid;
                                 var result = vehicle2.InteractionCells.OrderBy(c => (c.OrigToVehicleMap(vehicle2) - dest3.Cell.OrigToVehicleMap(vehicle)).LengthHorizontalSquared)
                                     .Concat(CellRect.WholeMap(vehicle2.VehicleMap).EdgeCells.OrderBy(c => (c.OrigToVehicleMap(vehicle2) - dest3.Cell.OrigToVehicleMap(vehicle)).LengthHorizontalSquared)).Any(c =>
                                 {
@@ -314,7 +315,7 @@ namespace VehicleInteriors
             var baseMap = pawn.BaseMap();
             if ((mode == TraverseMode.PassAllDestroyableThings || mode == TraverseMode.PassAllDestroyableThingsNotWater || mode == TraverseMode.PassAllDestroyablePlayerOwnedThings) && !carrier.CanReachMapEdge(pawn, out v_exitSpot))
             {
-                TargetInfo exitSpot = null;
+                TargetInfo exitSpot = TargetInfo.Invalid;
                 if (RCellFinder.TryFindRandomPawnEntryCell(out spot, baseMap, 0f, true, (IntVec3 x) => ReachabilityUtilityOnVehicle.CanReach(pawn.Map, pawn.Position, x, PathEndMode.OnCell, TraverseParms.For(carrier), baseMap, out exitSpot, out _)))
                 {
                     v_exitSpot = exitSpot;
@@ -361,7 +362,7 @@ namespace VehicleInteriors
                 }
             }
             spot = pawn.Position;
-            v_exitSpot = null;
+            v_exitSpot = TargetInfo.Invalid;
             return false;
             Block_10:
             spot = intVec2;
@@ -370,7 +371,7 @@ namespace VehicleInteriors
 
         public static bool CanReachMapEdge(this Pawn carrier, Pawn pawn, out TargetInfo exitSpot)
         {
-            exitSpot = null;
+            exitSpot = TargetInfo.Invalid;
             if (!carrier.Spawned)
             {
                 return false;
@@ -378,20 +379,41 @@ namespace VehicleInteriors
             var traverseParms = TraverseParms.For(carrier);
             if (pawn.IsOnVehicleMapOf(out var vehicle))
             {
+                var departMap = vehicle.VehicleMap;
                 var baseMap = pawn.BaseMap();
-                Thing exitSpot2 = null;
-                if(vehicle.InteractionCells.Any(c =>
+                TargetInfo exitSpot2 = TargetInfo.Invalid;
+                var result = vehicle.InteractionCells.OrderBy(c => (c - pawn.Position).LengthHorizontalSquared)
+                    .Concat(CellRect.WholeMap(vehicle.VehicleMap).EdgeCells.OrderBy(c => (c - pawn.Position).LengthHorizontalSquared)).Any(c =>
                 {
-                    exitSpot2 = c.GetFirstThingWithComp<CompVehicleEnterSpot>(vehicle.VehicleMap);
-                    if (exitSpot2 == null) return false;
-                    return pawn.Map.reachability.CanReach(pawn.Position , exitSpot2, PathEndMode.OnCell, traverseParms) &&
-                    baseMap.reachability.CanReachMapEdge(exitSpot2.PositionOnBaseMap() - exitSpot2.BaseFullRotation().FacingCell, traverseParms);
-                }))
-                {
-                    exitSpot = exitSpot2;
-                    return true;
-                }
-                return false;
+                    exitSpot2 = c.GetThingList(departMap).FirstOrDefault(t => t.HasComp<CompVehicleEnterSpot>());
+                    IntVec3 basePos;
+                    IntVec3 faceCell;
+                    if (exitSpot2 != null)
+                    {
+                        basePos = exitSpot2.Thing.PositionOnBaseMap();
+                        faceCell = exitSpot2.Thing.BaseFullRotation().FacingCell;
+                    }
+                    else
+                    {
+                        exitSpot2 = new TargetInfo(c, departMap);
+                        basePos = exitSpot2.Cell.OrigToVehicleMap(vehicle);
+                        faceCell = exitSpot2.Cell.BaseFullDirectionToInsideMap(departMap).FacingCell;
+                    }
+                    faceCell.y = 0;
+                    var dist = 1;
+                    while ((basePos - faceCell * dist).GetThingList(baseMap).Contains(vehicle))
+                    {
+                        dist++;
+                    }
+                    var cell = (basePos - faceCell * dist);
+                    return c.Walkable(departMap) &&
+                    cell.Standable(baseMap) &&
+                    departMap.reachability.CanReach(pawn.Position, exitSpot2.Cell, PathEndMode.OnCell, traverseParms) &&
+                    baseMap.reachability.CanReachMapEdge(cell, traverseParms);
+                });
+                exitSpot = result ? exitSpot2 : TargetInfo.Invalid;
+
+                return result;
             }
             return pawn.Map.reachability.CanReachMapEdge(pawn.Position, traverseParms);
         }

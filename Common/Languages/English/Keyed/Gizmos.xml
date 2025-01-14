@@ -23,4 +23,6 @@
 	<VIF_Reassign>Reassign</VIF_Reassign>
 	<VIF_ReassignDesc>Reassign the turret that this seat operates.</VIF_ReassignDesc>
 
+	<VIF_GatherFromBaseMap>Gather From Basemap</VIF_GatherFromBaseMap>
+
 </LanguageData>

@@ -34,8 +34,8 @@ namespace VehicleInteriors
                     return building_GibbetCage;
                 }
             }
-            exitSpot = null;
-            enterSpot = null;
+            exitSpot = TargetInfo.Invalid;
+            enterSpot = TargetInfo.Invalid;
             return null;
         }
 
@@ -62,8 +62,8 @@ namespace VehicleInteriors
                     return building_CryptosleepCasket;
                 }
             }
-            exitSpot = null;
-            enterSpot = null;
+            exitSpot = TargetInfo.Invalid;
+            enterSpot = TargetInfo.Invalid;
             return null;
         }
 

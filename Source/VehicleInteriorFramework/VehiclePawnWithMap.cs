@@ -7,10 +7,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-using VehicleInteriors.VIF_HarmonyPatches;
 using Vehicles;
 using Verse;
-using Verse.Noise;
 
 namespace VehicleInteriors
 {
@@ -341,7 +339,7 @@ namespace VehicleInteriors
             this.DrawVehicleMap(extraRotation);
         }
 
-        public void DrawVehicleMap(float extraRotation)
+        public virtual void DrawVehicleMap(float extraRotation)
         {
             var map = this.interiorMap;
             //PlantFallColors.SetFallShaderGlobals(map);
@@ -382,7 +380,7 @@ namespace VehicleInteriors
             }
         }
 
-        private void DrawSection(Section section, Vector3 drawPos, float extraRotation)
+        protected virtual void DrawSection(Section section, Vector3 drawPos, float extraRotation)
         {
             this.DrawLayer(section, typeof(SectionLayer_TerrainOnVehicle), drawPos, extraRotation);
             ((SectionLayer_ThingsGeneralOnVehicle)section.GetLayer(typeof(SectionLayer_ThingsGeneralOnVehicle))).DrawLayer(this.FullRotation, drawPos, extraRotation);

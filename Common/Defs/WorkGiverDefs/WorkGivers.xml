@@ -93,4 +93,17 @@
 		<prioritizeSustains>true</prioritizeSustains>
 		<equivalenceGroup>AssistInConstruction</equivalenceGroup>
 	</WorkGiverDef>
+
+	<WorkGiverDef>
+		<defName>LoadBuildableContainer</defName>
+		<label>load buildable container</label>
+		<giverClass>VehicleInteriors.WorkGiver_LoadBuildableContainer</giverClass>
+		<workType>Hauling</workType>
+		<verb>load</verb>
+		<gerund>loading</gerund>
+		<priorityInType>110</priorityInType>
+		<requiredCapacities>
+			<li>Manipulation</li>
+		</requiredCapacities>
+	</WorkGiverDef>
 </Defs>

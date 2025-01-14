@@ -14,8 +14,8 @@ namespace VehicleInteriors
     {
         public static bool CanRescueNow(Pawn rescuer, Pawn patient, bool forced, out TargetInfo exitSpot, out TargetInfo enterSpot)
         {
-            exitSpot = null;
-            enterSpot = null;
+            exitSpot = TargetInfo.Invalid;
+            enterSpot = TargetInfo.Invalid;
             return (forced || patient.Faction == rescuer.Faction) && HealthAIUtility.WantsToBeRescued(patient) && (forced ||
                 !patient.IsForbidden(rescuer)) && (forced || !HealthAIAcrossMapsUtility.EnemyIsNear(patient, 25f, out _, false)) &&
                 rescuer.CanReserveAndReach(patient.Map, patient, PathEndMode.OnCell, Danger.Deadly, 1, -1, null, forced, out exitSpot, out enterSpot);
@@ -57,8 +57,8 @@ namespace VehicleInteriors
 
         public static Thing FindBestMedicine(Pawn healer, Pawn patient, bool onlyUseInventory, out TargetInfo exitSpot, out TargetInfo enterSpot)
         {
-            exitSpot = null;
-            enterSpot = null;
+            exitSpot = TargetInfo.Invalid;
+            enterSpot = TargetInfo.Invalid;
             if (patient.playerSettings != null && patient.playerSettings.medCare <= MedicalCareCategory.NoMeds)
 			{
                 return null;

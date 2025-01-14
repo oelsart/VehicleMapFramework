@@ -12,8 +12,8 @@ namespace VehicleInteriors
     {
         public static Building_Bed FindBedFor(Pawn sleeper, Pawn traveler, bool checkSocialProperness, bool ignoreOtherReservations, GuestStatus? guestStatus, out TargetInfo exitSpot, out TargetInfo enterSpot)
         {
-            exitSpot = null;
-            enterSpot = null;
+            exitSpot = TargetInfo.Invalid;
+            enterSpot = TargetInfo.Invalid;
             if (sleeper.RaceProps.IsMechanoid)
 			{
                 return null;

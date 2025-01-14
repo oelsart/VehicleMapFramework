@@ -51,6 +51,14 @@ namespace VehicleInteriors
             this.enterSpot2 = enterSpot2 ?? TargetInfo.Invalid;
             this.targetAMap = this.TargetAMap;
             this.destMap = this.DestMap;
+
+            if (this.exitSpot1.IsValid && this.exitSpot1.Map == null ||
+                this.enterSpot1.IsValid && this.enterSpot1.Map == null ||
+                this.exitSpot2.IsValid && this.exitSpot2.Map == null ||
+                this.enterSpot2.IsValid && this.enterSpot2.Map == null)
+            {
+                Log.Error("[VehicleMapFramework] SetSpots with null map.");
+            }
         }
 
         public IEnumerable<Toil> GotoTargetMap(TargetIndex ind)
@@ -87,13 +95,13 @@ namespace VehicleInteriors
             base.ExposeData();
         }
 
-        private TargetInfo exitSpot1;
+        private TargetInfo exitSpot1 = TargetInfo.Invalid;
 
-        private TargetInfo enterSpot1;
+        private TargetInfo enterSpot1 = TargetInfo.Invalid;
 
-        private TargetInfo exitSpot2;
+        private TargetInfo exitSpot2 = TargetInfo.Invalid;
 
-        private TargetInfo enterSpot2;
+        private TargetInfo enterSpot2 = TargetInfo.Invalid;
 
         public Vector3 drawOffset;
 

@@ -45,12 +45,12 @@ namespace VehicleInteriors
 
         public static Thing ClosestThingReachable(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance, Predicate<Thing> validator, IEnumerable<Thing> customGlobalSearchSet, int searchRegionsMin, int searchRegionsMax, bool forceAllowGlobalSearch, RegionType traversableRegionTypes, bool ignoreEntirelyForbiddenRegions, bool lookInHaulSources, out TargetInfo exitSpot, out TargetInfo enterSpot)
         {
-            GenClosestOnVehicle.tmpExitSpot = null;
-            GenClosestOnVehicle.tmpEnterSpot = null;
-            GenClosestOnVehicle.exitSpotResult = null;
-            GenClosestOnVehicle.enterSpotResult = null;
-            exitSpot = null;
-            enterSpot = null;
+            GenClosestOnVehicle.tmpExitSpot = TargetInfo.Invalid;
+            GenClosestOnVehicle.tmpEnterSpot = TargetInfo.Invalid;
+            GenClosestOnVehicle.exitSpotResult = TargetInfo.Invalid;
+            GenClosestOnVehicle.enterSpotResult = TargetInfo.Invalid;
+            exitSpot = TargetInfo.Invalid;
+            enterSpot = TargetInfo.Invalid;
             bool flag = searchRegionsMax < 0 || forceAllowGlobalSearch;
             if (!flag && customGlobalSearchSet != null)
             {
@@ -217,10 +217,10 @@ namespace VehicleInteriors
 
         public static Thing ClosestThing_Global_Reachable(IntVec3 center, Map map, IEnumerable<Thing> searchSet, PathEndMode peMode, TraverseParms traverseParams, float maxDistance, Predicate<Thing> validator, Func<Thing, float> priorityGetter, bool canLookInHaulableSources, out TargetInfo exitSpot, out TargetInfo enterSpot)
         {
-            GenClosestOnVehicle.tmpExitSpot = null;
-            GenClosestOnVehicle.tmpEnterSpot = null;
-            GenClosestOnVehicle.exitSpotResult = null;
-            GenClosestOnVehicle.enterSpotResult = null;
+            GenClosestOnVehicle.tmpExitSpot = TargetInfo.Invalid;
+            GenClosestOnVehicle.tmpEnterSpot = TargetInfo.Invalid;
+            GenClosestOnVehicle.exitSpotResult = TargetInfo.Invalid;
+            GenClosestOnVehicle.enterSpotResult = TargetInfo.Invalid;
             exitSpot = TargetInfo.Invalid;
             enterSpot = TargetInfo.Invalid;
             if (searchSet == null)

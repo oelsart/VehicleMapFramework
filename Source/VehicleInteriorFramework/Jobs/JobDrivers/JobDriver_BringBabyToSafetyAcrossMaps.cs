@@ -98,8 +98,8 @@ namespace VehicleInteriors
 
         public static LocalTargetInfo SafePlaceForBaby(Pawn baby, Pawn hauler, bool ignoreOtherReservations, out TargetInfo exitSpot, out TargetInfo enterSpot)
         {
-            exitSpot = null;
-            enterSpot = null;
+            exitSpot = TargetInfo.Invalid;
+            enterSpot = TargetInfo.Invalid;
             ChildcareUtility.BreastfeedFailReason? breastfeedFailReason;
             if (!ChildcareUtility.CanSuckle(baby, out breastfeedFailReason))
             {

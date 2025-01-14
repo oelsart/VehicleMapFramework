@@ -158,6 +158,10 @@ namespace VehicleInteriors
 
         public static bool Reserve(this Pawn p, Map map, LocalTargetInfo target, Job job, int maxPawns = 1, int stackCount = -1, ReservationLayerDef layer = null, bool errorOnFailed = true, bool ignoreOtherReservations = false)
         {
+            if (map == null && target.HasThing)
+            {
+                map = target.Thing.MapHeld;
+            }
             return map.reservationManager.Reserve(p, job, target, maxPawns, stackCount, layer, errorOnFailed, ignoreOtherReservations, true);
         }
 
@@ -169,7 +173,7 @@ namespace VehicleInteriors
             }
             for (int i = 0; i < target.Count; i++)
             {
-                var destMap = target[i].HasThing ? target[i].Thing.Map : map;
+                var destMap = target[i].HasThing ? target[i].Thing.MapHeld : map;
                 destMap.reservationManager.Reserve(p, job, target[i], maxPawns, stackCount, layer, false, false, false);
             }
         }
@@ -191,8 +195,8 @@ namespace VehicleInteriors
 
         public static bool CanReserveAndReach(this Pawn p, Map targMap, LocalTargetInfo target, PathEndMode peMode, Danger maxDanger, int maxPawns, int stackCount, ReservationLayerDef layer, bool ignoreOtherReservations, out TargetInfo exitSpot, out TargetInfo enterSpot)
         {
-            exitSpot = null;
-            enterSpot = null;
+            exitSpot = TargetInfo.Invalid;
+            enterSpot = TargetInfo.Invalid;
             return p.Spawned && p.CanReach(target, peMode, maxDanger, false, false, TraverseMode.ByPawn, targMap, out exitSpot, out enterSpot) &&
                 p.CanReserve(target, targMap, maxPawns, stackCount, layer, ignoreOtherReservations);
         }
