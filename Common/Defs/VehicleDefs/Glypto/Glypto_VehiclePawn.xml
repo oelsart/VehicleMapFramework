@@ -41,7 +41,7 @@
 			<MoveSpeed>8</MoveSpeed>
 			<CargoCapacity>80</CargoCapacity>
 			<RepairRate>1</RepairRate>
-			<FlightSpeed>5</FlightSpeed>
+			<FlightSpeed>3.5</FlightSpeed>
 			<MaximumPayload>1200</MaximumPayload>
 		</vehicleStats>
 		
@@ -400,7 +400,7 @@
 			<li Class="Vehicles.CompProperties_FueledTravel">
 				<fuelType>Chemfuel</fuelType>
 				<leakDef>Filth_Fuel</leakDef>
-				<fuelConsumptionRate>28</fuelConsumptionRate>
+				<fuelConsumptionRate>480</fuelConsumptionRate>
 				<fuelCapacity>280</fuelCapacity>
 			</li>
 			<li Class="Vehicles.CompProperties_VehicleTurrets">

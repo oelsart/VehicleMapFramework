@@ -87,6 +87,46 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         }
     }
 
+    [HarmonyPatch(typeof(VehicleSkyfaller), "RootPos", MethodType.Getter)]
+    public static class Patch_VehicleSkyfaller_RootPos
+    {
+        public static void Postfix(VehicleSkyfaller __instance, ref Vector3 __result)
+        {
+            if (__instance.IsOnNonFocusedVehicleMapOf(out var vehicle))
+            {
+                __result = __result.OrigToVehicleMap(vehicle);
+            }
+        }
+    }
+
+
+    //VehicleSkyfallerのyが上書きされてたので車上のVehicleSkyfallerはy足しときなね
+    [HarmonyPatch(typeof(LaunchProtocol), nameof(LaunchProtocol.Draw))]
+    public static class Patch_LaunchProtocol_Draw
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+        {
+            var codes = instructions.ToList();
+            var m_AltitudeFor = AccessTools.Method(typeof(Altitudes), nameof(Altitudes.AltitudeFor), new Type[] { typeof(AltitudeLayer) });
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(m_AltitudeFor)) + 1;
+            var label = generator.DefineLabel();
+            var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithMap));
+
+            codes[pos].labels.Add(label);
+            codes.InsertRange(pos, new[]
+            {
+                CodeInstruction.LoadArgument(0),
+                CodeInstruction.LoadField(typeof(LaunchProtocol), "map"),
+                new CodeInstruction(OpCodes.Ldloca_S, vehicle),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_IsNonFocusedVehicleMapOf),
+                new CodeInstruction(OpCodes.Brfalse_S, label),
+                new CodeInstruction(OpCodes.Ldc_R4, VehicleMapUtility.altitudeOffsetFull),
+                new CodeInstruction(OpCodes.Add)
+            });
+            return codes;
+        }
+    }
+
     //thingがIsOnVehicleMapだった場合回転の初期値num3にベースvehicleのAngleを与え、posはRotatePointで回転
     [HarmonyPatch(typeof(SelectionDrawer), nameof(SelectionDrawer.DrawSelectionBracketFor))]
     public static class Patch_SelectionDrawer_DrawSelectionBracketFor
@@ -335,9 +375,12 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         public static void Prefix(ref Vector3 loc, ref Rot4 rot, ThingDef thingDef, ref float extraRotation, Graphic __instance)
         {
             var vehicle = Command_FocusVehicleMap.FocusedVehicle;
+            if (vehicle == null && VehicleInteriors.settings.drawPlanet)
+            {
+                Find.CurrentMap.IsVehicleMapOf(out vehicle);
+            }
             if (vehicle != null)
             {
-
                 var def = thingDef.IsBlueprint ? thingDef.entityDefToBuild as ThingDef : thingDef;
                 var compProperties = def.GetCompProperties<CompProperties_FireOverlay>();
                 var flag = __instance is Graphic_Flicker && compProperties != null;
@@ -487,6 +530,27 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                 new CodeInstruction(OpCodes.Call, MethodInfoCache.m_FocusedDrawPosOffset)
             });
             return codes;
+        }
+    }
+
+    [HarmonyPatch(typeof(GenDraw), nameof(GenDraw.DrawTargetHighlightWithLayer))]
+    public static class Patch_GenDraw_DrawTargetHighlightWithLayer
+    {
+        //Vector3 position = c.ToVector3ShiftedWithAltitude(layer); ->
+        //Vector3 position = c.ToVector3ShiftedWithAltitude(layer).OrigToVehicleMap();
+        [HarmonyPatch(new Type[] { typeof(IntVec3), typeof(AltitudeLayer), typeof(Material) })]
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var codes = instructions.ToList();
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Stloc_0);
+            codes.Insert(pos, new CodeInstruction(OpCodes.Call, MethodInfoCache.m_OrigToVehicleMap1));
+            return codes;
+        }
+
+        [HarmonyPatch(new Type[] { typeof(Vector3), typeof(AltitudeLayer) })]
+        public static void Prefix(ref Vector3 c)
+        {
+            c = c.OrigToVehicleMap();
         }
     }
 

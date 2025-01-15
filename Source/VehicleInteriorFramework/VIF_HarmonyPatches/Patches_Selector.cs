@@ -19,9 +19,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
 
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            var m_UI_MouseCell = AccessTools.Method(typeof(UI), nameof(UI.MouseCell));
-            var m_Stub_MouseCell = AccessTools.Method(typeof(Patch_UI_MouseCell), nameof(Patch_UI_MouseCell.MouseCell));
-            return instructions.MethodReplacer(m_UI_MouseCell, m_Stub_MouseCell);
+            return instructions.MethodReplacer(MethodInfoCache.m_UI_MouseCell, MethodInfoCache.m_Stub_MouseCell);
         }
     }
 
@@ -139,8 +137,17 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         {
             if (map.IsVehicleMapOf(out var vehicle))
             {
-                cell = cell.OrigToVehicleMap(vehicle);
-                map = vehicle.Map;
+                if (vehicle.Spawned)
+                {
+                    map = vehicle.Map;
+                    cell = cell.OrigToVehicleMap(vehicle);
+                }
+                else if (VehicleInteriors.settings.drawPlanet)
+                {
+                    cell = cell.OrigToVehicleMap(vehicle);
+                    vehicle.ForceResetCache();
+                    Patch_Map_MapUpdate.lastRenderedTick = -1;
+                }
             }
         }
     }

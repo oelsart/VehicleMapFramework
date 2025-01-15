@@ -8,7 +8,12 @@ namespace VehicleInteriors
     {
         public VehiclePawnWithMapCache(Map map) : base(map)
         {
-            VehiclePawnWithMapCache.allVehicles[this.map] = new List<VehiclePawnWithMap>();
+            VehiclePawnWithMapCache.allVehicles[map] = new List<VehiclePawnWithMap>();
+        }
+
+        public override void FinalizeInit()
+        {
+            this.map.Parent.AllComps.Add(new VehicleMapHolderComp());
         }
 
         public static void ClearCaches()

@@ -1,6 +1,8 @@
 ﻿using HarmonyLib;
 using RimWorld;
+using RimWorld.Planet;
 using System.Linq;
+using Vehicles;
 using Verse;
 
 namespace VehicleInteriors.VIF_HarmonyPatches
@@ -50,6 +52,18 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             if (__instance.giverClass == typeof(WorkGiver_DoBill))
             {
                 __instance.giverClass = typeof(WorkGiver_DoBillAcrossMaps);
+            }
+        }
+    }
+
+    [StaticConstructorOnStartup]
+    public static class AddVehicleMapHolderComp
+    {
+        static AddVehicleMapHolderComp()
+        {
+            foreach (var worldObjectDef in DefDatabase<WorldObjectDef>.AllDefs.Where(d => typeof(Caravan).IsAssignableFrom(d.worldObjectClass) || typeof(AerialVehicleInFlight).IsAssignableFrom(d.worldObjectClass)))
+            {
+                worldObjectDef.comps.Add(new WorldObjectCompProperties_VehicleMapHolderComp());
             }
         }
     }

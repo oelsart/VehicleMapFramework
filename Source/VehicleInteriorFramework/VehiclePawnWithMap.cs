@@ -67,6 +67,19 @@ namespace VehicleInteriors
 
         public override List<IntVec3> InteractionCells => this.interactionCellsInt;
 
+        //VehiclePawnWithMapに関してはcachModeに関わらず先にcachedDrawPosから取らないとずれるぜ
+        public override Vector3 DrawPos
+        {
+            get
+            {
+                if (!VehiclePawnWithMapCache.cachedDrawPos.TryGetValue(this, out var result))
+                {
+                    result = base.DrawPos;
+                }
+                return result;
+            }
+        }
+
         public override IEnumerable<Gizmo> GetGizmos()
         {
             foreach (var gizmo in base.GetGizmos()) yield return gizmo;
@@ -187,7 +200,6 @@ namespace VehicleInteriors
                 }
             }
             base.SpawnSetup(map, respawningAfterLoad);
-            this.cachedDrawPos = this.DrawPos;
             if (!VehiclePawnWithMapCache.allVehicles.ContainsKey(map))
             {
                 VehiclePawnWithMapCache.allVehicles[map] = new List<VehiclePawnWithMap>();
@@ -201,9 +213,8 @@ namespace VehicleInteriors
 
         public override void Tick()
         {
-            if (this.Spawned)
+            if (this.Spawned || VehicleInteriors.settings.drawPlanet && Find.CurrentMap == this.interiorMap)
             {
-                this.cachedDrawPos = this.DrawPos;
                 //PowerGridのメッシュがタイミング的に即時にRegenerateされないので、定期チェックしている。より良い方法を検討したい
                 if (this.IsHashIntervalTick(250))
                 {
@@ -217,13 +228,19 @@ namespace VehicleInteriors
                     }
                 }
             }
-            else if (this.CompVehicleLauncher?.launchProtocol != null && Find.CurrentMap != this.interiorMap)
+            if (this.Spawned)
             {
-                this.cachedDrawPos = this.CompVehicleLauncher.launchProtocol.DrawPos;
+                this.ResetCache();
             }
-            this.ResetCache();
 
             base.Tick();
+        }
+
+        public void ForceResetCache()
+        {
+            VehiclePawnWithMap.lastCachedTick = Find.TickManager.TicksGame;
+            VehiclePawnWithMapCache.cachedDrawPos.Clear();
+            VehiclePawnWithMapCache.cachedPosOnBaseMap.Clear();
         }
 
         public void ResetCache()
@@ -234,13 +251,6 @@ namespace VehicleInteriors
                 VehiclePawnWithMapCache.cachedDrawPos.Clear();
                 VehiclePawnWithMapCache.cachedPosOnBaseMap.Clear();
             }
-            //else
-            //{
-            //    foreach (var thing in this.interiorMap.listerThings.AllThings)
-            //    {
-            //        VehiclePawnWithMapCache.cachedDrawPos.Remove(thing);
-            //    }
-            //}
         }
 
         public override void Destroy(DestroyMode mode = DestroyMode.Vanish)
@@ -319,22 +329,12 @@ namespace VehicleInteriors
         public override void DrawAt(Vector3 drawLoc, Rot8 rot, float extraRotation, bool flip = false, bool compDraw = true)
         {
             this.ResetCache();
-            if (this.Spawned || Find.CurrentMap == this.interiorMap)
-            {
-                this.cachedDrawPos = drawLoc;
-                base.DrawAt(drawLoc, rot, extraRotation, flip, compDraw);
-            }
-            else
+            if (base.CompVehicleLauncher?.inFlight ?? false)
             {
                 drawLoc.y = AltitudeLayer.PawnState.AltitudeFor();
-                this.cachedDrawPos = drawLoc;
-                bool northSouthRotation = (this.VehicleGraphic.EastDiagonalRotated && (this.FullRotation == Rot8.NorthEast || this.FullRotation == Rot8.SouthEast)) || (this.VehicleGraphic.WestDiagonalRotated && (this.FullRotation == Rot8.NorthWest || this.FullRotation == Rot8.SouthWest));
-                this.Drawer.renderer.RenderPawnAt_TEMP(drawLoc, rot, extraRotation, northSouthRotation);
-                if (compDraw)
-                {
-                    this.Comps_PostDrawUnspawned(drawLoc, rot, extraRotation);
-                }
             }
+            VehiclePawnWithMapCache.cachedDrawPos[this] = drawLoc;
+            base.DrawAt(drawLoc, rot, extraRotation, flip, compDraw);
 
             this.DrawVehicleMap(extraRotation);
         }
@@ -391,7 +391,7 @@ namespace VehicleInteriors
             if (Find.CurrentMap == this.interiorMap)
             {
                 this.DrawLayer(section, typeof(SectionLayer_IndoorMask), drawPos, extraRotation);
-                this.DrawLayer(section, typeof(SectionLayer_LightingOverlay), drawPos, extraRotation);
+                //this.DrawLayer(section, typeof(SectionLayer_LightingOverlay), drawPos, extraRotation);
             }
             //if (DebugViewSettings.drawSectionEdges)
             //{
@@ -478,8 +478,6 @@ namespace VehicleInteriors
         }
 
         private Map interiorMap;
-
-        public Vector3 cachedDrawPos = Vector3.zero;
         
         private readonly List<IntVec3> interactionCellsInt = new List<IntVec3>();
 

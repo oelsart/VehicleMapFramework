@@ -121,6 +121,8 @@
     <Compile Include="Comps\CompWirelessTransmitter.cs" />
     <Compile Include="Combat\ExplosionAcrossMaps.cs" />
     <Compile Include="BuildableUpgrades\Dialog_ChooseVehicleRoles.cs" />
+    <Compile Include="Comps\VehicleMapHolderComp.cs" />
+    <Compile Include="Comps\WorldObjectCompProperties_VehicleMapHolderComp.cs" />
     <Compile Include="Dialog_LoadCargoToBuildableContainer.cs" />
     <Compile Include="Graphics\ExtraOverlayData.cs" />
     <Compile Include="Jobs\WorkGivers\WorkGiver_LoadBuildableContainer.cs" />
@@ -158,6 +160,7 @@
     <Compile Include="VehicleMap\DynamicDrawManagerOnVehicle.cs" />
     <Compile Include="VehicleMap\SectionLayer_ThingsGeneralOnVehicle.cs" />
     <Compile Include="VehicleMap\SectionLayer_ThingsPowerGridOnVehicle.cs" />
+    <Compile Include="VehicleMap\TransportPodsArrivalAction_LandInVehicleMap.cs" />
     <Compile Include="VehicleMap\VehicleMapParentsComponent.cs" />
     <Compile Include="VehicleMap\SectionLayer_LightingOnVehicle.cs" />
     <Compile Include="VehicleMap\SectionLayer_TerrainOnVehicle.cs" />
@@ -265,6 +268,23 @@
       <Link>Defs\%(RecursiveDir)%(FileName)%(Extension)</Link>
     </Content>
     <Content Include="About.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\..\Common\Patches\Patches_AddJobGivers.xml">
+      <Link>Patches\Patches_AddJobGivers.xml</Link>
+    </Content>
+    <Content Include="..\..\Common\Patches\Patches_AddWorldObjectComp.xml">
+      <Link>Patches\Patches_AddWorldObjectComp.xml</Link>
+    </Content>
+    <Content Include="..\..\Common\Patches\Patches_InsertJobGivers.xml">
+      <Link>Patches\Patches_InsertJobGivers.xml</Link>
+    </Content>
+    <Content Include="..\..\Common\Patches\Patches_ReplaceExplosion.xml">
+      <Link>Patches\Patches_ReplaceExplosion.xml</Link>
+    </Content>
+    <Content Include="..\..\Common\Patches\Patches_VehicleMoveSpeed.xml">
+      <Link>Patches\Patches_VehicleMoveSpeed.xml</Link>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\..\Common\Languages\**\*.*">

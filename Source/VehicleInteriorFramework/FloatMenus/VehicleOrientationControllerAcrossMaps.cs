@@ -133,7 +133,7 @@ namespace VehicleInteriors
             Graphic graphic = vehicleDef.graphic;
             Graphic graphic2 = GhostUtility.GhostGraphicFor(graphic, vehicleDef, ghostCol, null);
             Vector3 loc = GenThing.TrueCenter(center, rot, vehicleDef.Size, drawAltitude.AltitudeFor());
-            if (VehicleOrientationControllerAcrossMaps.Instance.destMap.IsVehicleMapOf(out var vehicle2) && Find.CurrentMap != VehicleOrientationControllerAcrossMaps.Instance.destMap)
+            if (VehicleOrientationControllerAcrossMaps.Instance.destMap.IsNonFocusedVehicleMapOf(out var vehicle2))
             {
                 loc = loc.OrigToVehicleMap(vehicle2).WithY(drawAltitude.AltitudeFor());
             }

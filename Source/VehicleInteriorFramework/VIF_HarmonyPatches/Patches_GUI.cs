@@ -1,11 +1,13 @@
 ﻿using HarmonyLib;
 using RimWorld;
+using RimWorld.Planet;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
+using Vehicles;
 using Verse;
 
 namespace VehicleInteriors.VIF_HarmonyPatches
@@ -50,7 +52,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
 
         private static IEnumerable<Map> ExcludeVehicleMaps(this IEnumerable<Map> maps)
         {
-            return maps?.Where(m => !m.IsVehicleMapOf(out var vehicle) || !vehicle.Spawned);
+            return maps?.Where(m => !m.IsVehicleMapOf(out var vehicle) || vehicle.GetAerialVehicle() != null || vehicle.GetVehicleCaravan() != null || vehicle.GetCaravan() != null);
         }
     }
 

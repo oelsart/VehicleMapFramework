@@ -309,11 +309,11 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                 return true;
             }
             dest = thing.SpawnedParentOrMe;
-            if (___pawn.Map != dest.Thing.Map && ___pawn.CanReach(dest, peMode, Danger.Deadly, false, false, TraverseMode.ByPawn, dest.Thing.Map, out var exitSpot, out var enterSpot))
+            if (___pawn.CurJob.GetCachedDriver(___pawn).Isnt<JobDriverAcrossMaps>() && ___pawn.Map != dest.Thing.Map && ___pawn.CanReach(dest, peMode, Danger.Deadly, false, false, TraverseMode.ByPawn, dest.Thing.Map, out var exitSpot, out var enterSpot))
             {
                 var nextJob = ___pawn.CurJob?.Clone();
                 ___pawn.jobs.curDriver.globalFinishActions.Clear(); //Jobはまだ終わっちゃいねえためFinishActionはさせない。TryDropThingなどをしていることもあるし
-                ___pawn.jobs.StartJob(JobAcrossMapsUtility.GotoDestMapJob(___pawn, exitSpot, enterSpot, nextJob), JobCondition.InterruptForced, keepCarryingThingOverride: true);
+                ___pawn.jobs.StartJob(JobAcrossMapsUtility.GotoDestMapJob(___pawn, exitSpot, enterSpot, nextJob), JobCondition.Succeeded, keepCarryingThingOverride: true);
                 return false;
             }
             return true;

@@ -209,18 +209,26 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             if (VehicleInteriors.settings.drawPlanet && Find.CurrentMap == __instance && __instance.IsVehicleMapOf(out var vehicle) &&
                 !WorldRendererUtility.WorldRenderedNow)
             {
-                if (Find.TickManager.TicksGame != lastRenderedTick)
+                if (Find.World.renderer.RegenerateLayersIfDirtyInLongEvent())
                 {
-                    lastRenderedTick = Find.TickManager.TicksGame;
+                    return;
+                }
+
+                if (Find.TickManager.TicksGame != lastRenderedTick && Time.frameCount % 2 == 0)
+                {
                     var worldObject = GetWorldObject(vehicle);
+                    if (worldObject == null) return;
+                    lastRenderedTick = Find.TickManager.TicksGame;
                     var targetTexture = Find.WorldCamera.targetTexture;
                     Find.World.renderer.wantedMode = WorldRenderMode.Planet;
                     Find.WorldCameraDriver.JumpTo(worldObject.DrawPos);
-                    Find.WorldCameraDriver.ResetAltitude();
+                    Find.WorldCameraDriver.altitude = 140f;
+                    desiredAltitude(Find.WorldCameraDriver) = 140f;
                     Find.WorldCameraDriver.Update();
                     Find.WorldCamera.gameObject.SetActive(true);
                     WorldRendererUtility.UpdateWorldShadersParams();
-                    foreach (var layer in layers(Find.World.renderer).Where(l => l.Isnt<WorldLayer_SingleTile>()))
+                    ExpandableWorldObjectsUtility.ExpandableWorldObjectsUpdate();
+                    foreach (var layer in layers(Find.World.renderer).Where(l => l.Isnt<WorldLayer_SingleTile>() && l.Isnt<WorldLayer_Sun>() && l.Isnt<WorldLayer_Stars>()))
                     {
                         layer.Render();
                     }
@@ -232,17 +240,13 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                     Find.WorldCamera.gameObject.SetActive(false);
                     Find.Camera.gameObject.SetActive(true);
                     Find.CameraDriver.Update();
-                    RenderTexture.active = renderTexture;
-                    texture.ReadPixels(new Rect(0f, 0f, 2048, 2048), 0, 0);
-                    texture.Apply();
-                    RenderTexture.active = null;
                     if (mat == null)
                     {
-                        mat = MaterialPool.MatFrom(texture);
+                        mat = MaterialPool.MatFrom(new MaterialRequest(renderTexture));
                     }
                     else
                     {
-                        mat.SetTexture(0, texture);
+                        mat.SetTexture(0, renderTexture);
                     }
                     vehicle.FullRotation = worldObject is VehicleCaravan vehicleCaravan ?
                         Rot8.FromAngle((Find.WorldGrid.GetTileCenter(vehicleCaravan.vehiclePather.nextTile != -1 ? vehicleCaravan.vehiclePather.nextTile : vehicleCaravan.Tile) - Find.WorldGrid.GetTileCenter(vehicleCaravan.Tile)).AngleFlat()) :
@@ -252,7 +256,10 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                 }
                 var longSide = Mathf.Max(vehicle.DrawSize.x / 2f, vehicle.DrawSize.y / 2f);
                 var drawPos = new Vector3(longSide, 0f, longSide);
-                Graphics.DrawMesh(mesh200, drawPos, Quaternion.identity, mat, 0);
+                if (mat != null)
+                {
+                    Graphics.DrawMesh(mesh200, drawPos, Quaternion.identity, mat, 0);
+                }
                 vehicle.DrawAt(drawPos, vehicle.FullRotation, 0f);
             }
         }
@@ -281,19 +288,19 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             return codes;
         }
 
-        private static RenderTexture renderTexture = RenderTexture.GetTemporary(2048, 2048);
+        private static RenderTexture renderTexture = RenderTexture.GetTemporary(textureSize, textureSize);
 
-        private static Texture2D texture = new Texture2D(2048, 2048);
+        private const int textureSize = 2048;
 
-        private static Mesh mesh200 = MeshMakerPlanes.NewPlaneMesh(200f);
+        private static Mesh mesh200 = MeshPool.GridPlane(new Vector2(200f, 200f));
 
         private static Material mat;
 
-        private static int lastRenderedTick = 0;
-
-        private const int tickInterval = 60;
+        public static int lastRenderedTick = -1;
 
         private static AccessTools.FieldRef<WorldRenderer, List<WorldLayer>> layers = AccessTools.FieldRefAccess<WorldRenderer, List<WorldLayer>>("layers");
+
+        private static AccessTools.FieldRef<WorldCameraDriver, float> desiredAltitude = AccessTools.FieldRefAccess<WorldCameraDriver, float>("desiredAltitude");
     }
 
     [HarmonyPatch(typeof(MapPawns), nameof(MapPawns.AllPawns), MethodType.Getter)]
@@ -301,7 +308,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         public static List<Pawn> Postfix(List<Pawn> __result, Map ___map)
         {
-            return __result.Concat(VehiclePawnWithMapCache.allVehicles[___map].SelectMany(v => v.VehicleMap.mapPawns.AllPawns)).ToList();
+            return __result.Concat(VehiclePawnWithMapCache.allVehicles[___map].SelectMany(v => v.VehicleMap.mapPawns.AllPawnsSpawned)).ToList();
         }
     }
 
@@ -314,14 +321,14 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         }
     }
 
-    [HarmonyPatch(typeof(MapPawns), nameof(MapPawns.AllPawnsUnspawned), MethodType.Getter)]
-    public static class Patch_MapPawns_AllPawnsUnspawned
-    {
-        public static void Postfix(List<Pawn> __result, Map ___map)
-        {
-            __result.AddRange(VehiclePawnWithMapCache.allVehicles[___map].SelectMany(v => v.VehicleMap.mapPawns.AllPawnsUnspawned));
-        }
-    }
+    //[HarmonyPatch(typeof(MapPawns), nameof(MapPawns.AllPawnsUnspawned), MethodType.Getter)]
+    //public static class Patch_MapPawns_AllPawnsUnspawned
+    //{
+    //    public static void Postfix(List<Pawn> __result, Map ___map)
+    //    {
+    //        __result.AddRange(VehiclePawnWithMapCache.allVehicles[___map].SelectMany(v => v.VehicleMap.mapPawns.AllPawnsUnspawned));
+    //    }
+    //}
 
     [HarmonyPatch(typeof(MapPawns), nameof(MapPawns.FreeHumanlikesSpawnedOfFaction))]
     public static class Patch_MapPawns_FreeHumanlikesSpawnedOfFaction
@@ -338,6 +345,55 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         public static void Postfix(List<Pawn> __result, Map ___map, Faction faction)
         {
             __result.AddRange(VehiclePawnWithMapCache.allVehicles[___map].SelectMany(v => v.VehicleMap.mapPawns.SpawnedBabiesInFaction(faction)));
+        }
+    }
+
+    [HarmonyPatch(typeof(WorldObject), nameof(WorldObject.Tile), MethodType.Getter)]
+    public static class Patch_WorldObject_Tile
+    {
+        public static bool Prefix(WorldObject __instance, ref int __result)
+        {
+            if (__instance is MapParent_Vehicle mapParent_Vehicle)
+            {
+                WorldObject GetWorldObject(IThingHolder holder)
+                {
+                    while (holder != null)
+                    {
+                        if (holder is WorldObject worldObject)
+                        {
+                            return worldObject;
+                        }
+
+                        holder = holder.ParentHolder;
+                    }
+                    return null;
+                }
+                var worldObject2 = GetWorldObject(mapParent_Vehicle.vehicle);
+                if (worldObject2 is AerialVehicleInFlight aerial)
+                {
+                    __result = WorldHelper.GetNearestTile(aerial.DrawPos);
+                    return false;
+                }
+                if (worldObject2 == null)
+                {
+                    return true;
+                }
+                __result = worldObject2.Tile;
+                return false;
+            }
+            return true;
+        }
+    }
+
+    [HarmonyPatch(typeof(CameraJumper), nameof(CameraJumper.GetWorldTarget))]
+    public static class Patch_CameraJumper_GetWorldTarget
+    {
+        public static void Prefix(ref GlobalTargetInfo target)
+        {
+            if (target.Thing?.IsOnVehicleMapOf(out var vehicle) ?? false)
+            {
+                target = vehicle;
+            }
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using RimWorld;
+using RimWorld.Planet;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
@@ -31,7 +32,8 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Rotation, MethodInfoCache.m_BaseFullRotation_Thing);
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Rotation, MethodInfoCache.m_BaseFullRotation_Thing)
+                .MethodReplacer(MethodInfoCache.m_Rot4_Rotate, MethodInfoCache.m_Rot8_Rotate);
         }
     }
 
@@ -108,6 +110,44 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             {
                 center = center.OrigToVehicleMap(vehicle);
                 rot.AsInt += vehicle.Rotation.AsInt;
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(CompRefuelable), nameof(CompRefuelable.PostDraw))]
+    public static class Patch_CompRefuelable_PostDraw
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Rotation, MethodInfoCache.m_BaseFullRotation_Thing)
+                .MethodReplacer(MethodInfoCache.m_Rot4_Rotate, MethodInfoCache.m_Rot8_Rotate);
+        }
+    }
+
+    [HarmonyPatch(typeof(PlaceWorker_FuelingPort), nameof(PlaceWorker_FuelingPort.DrawFuelingPortCell))]
+    public static class Patch_PlaceWorker_FuelingPort_DrawFuelingPortCell
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var codes = instructions.ToList();
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Stloc_0);
+            codes.InsertRange(pos, new[]
+            {
+                CodeInstruction.LoadArgument(0),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_FocusedDrawPosOffset)
+            });
+            return codes;
+        }
+    }
+
+    [HarmonyPatch(typeof(TravelingTransportPods), nameof(TravelingTransportPods.Tick))]
+    public static class Patch_TravelingTransportPods_Tick
+    {
+        public static void Postfix(TravelingTransportPods __instance)
+        {
+            if (__instance.arrivalAction is TransportPodsArrivalAction_LandInVehicleMap arrivalAction && arrivalAction.mapParent is MapParent_Vehicle mapParent)
+            {
+                __instance.destinationTile = mapParent.Tile;
             }
         }
     }

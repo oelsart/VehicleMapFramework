@@ -89,19 +89,17 @@ namespace VehicleInteriors
             });
             if (Scribe.mode == LoadSaveMode.PostLoadInit)
             {
-                this.role = new VehicleRole();
-                if (this.role == null)
+                this.role = new VehicleRole
                 {
-                    Log.Error("Unable to load role=" + roleKey(this) + ". Creating empty role to avoid game-breaking issues.");
-                    if (this.role == null)
-                    {
-                        this.role = new VehicleRole
-                        {
-                            key = roleKey(this) + "_INVALID",
-                            label = roleKey(this) + " (INVALID)"
-                        };
-                    }
-                }
+                    key = roleKey(this) + "_INVALID",
+                    label = roleKey(this) + " (INVALID)"
+                };
+                this.role.AddUpgrade(new VehicleUpgrade.RoleUpgrade()
+                {
+                    key = this.role.key,
+                    label = this.role.label,
+                    handlingTypes = HandlingTypeFlags.Movement,
+                });
             }
         }
 

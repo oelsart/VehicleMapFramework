@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using RimWorld;
+using RimWorld.Planet;
 using SmashTools;
 using System;
 using System.Collections.Generic;
@@ -161,7 +162,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         {
             if (__instance is VehiclePawnWithMap vehicle)
             {
-                vehicle.ResetCache();
+                vehicle.ForceResetCache();
             }
         }
 
@@ -516,6 +517,84 @@ namespace VehicleInteriors.VIF_HarmonyPatches
 
             codes[pos].opcode = OpCodes.Ldc_I4_1;
             return codes;
+        }
+    }
+
+    [HarmonyPatch(typeof(LaunchProtocol), nameof(LaunchProtocol.GetFloatMenuOptionsAt))]
+    public static class Patch_LaunchProtocol_GetFloatMenuOptionsAt
+    {
+        public static IEnumerable<FloatMenuOption> Postfix(IEnumerable<FloatMenuOption> __result, int tile, LaunchProtocol __instance)
+        {
+            foreach (var floatMenu in __result)
+            {
+                yield return floatMenu;
+            }
+
+            IEnumerable<VehiclePawnWithMap> vehicles = null;
+            MapParent mapParent;
+            Caravan caravan;
+            AerialVehicleInFlight aerial;
+            if ((mapParent = Find.WorldObjects.MapParentAt(tile)) != null && mapParent.HasMap)
+            {
+                vehicles = VehiclePawnWithMapCache.allVehicles[mapParent.Map];
+            }
+            else if ((caravan = Find.WorldObjects.PlayerControlledCaravanAt(tile)) != null)
+            {
+                if (caravan is VehicleCaravan vehicleCaravan)
+                {
+                    vehicles = vehicleCaravan.Vehicles.OfType<VehiclePawnWithMap>();
+                }
+                else
+                {
+                    vehicles = caravan.pawns.OfType<VehiclePawnWithMap>();
+                }
+            }
+            else if ((aerial = VehicleWorldObjectsHolder.Instance.AerialVehicles.FirstOrDefault(a => a.Tile == tile)) != null)
+            {
+                vehicles = aerial.Vehicles.OfType<VehiclePawnWithMap>();
+            }
+
+            if (vehicles.NullOrEmpty()) yield break;
+
+            foreach (var vehicle in vehicles)
+            {
+                mapParent = vehicle.VehicleMap.Parent;
+
+                bool CanLandInSpecificCell()
+                {
+                    if (mapParent != null && mapParent.HasMap)
+                    {
+                        if (mapParent.EnterCooldownBlocksEntering())
+                        {
+                            return FloatMenuAcceptanceReport.WithFailMessage("MessageEnterCooldownBlocksEntering".Translate(mapParent.EnterCooldownTicksLeft().ToStringTicksToPeriod()));
+                        }
+
+                        return true;
+                    }
+
+                    return false;
+                }
+
+                if (CanLandInSpecificCell())
+                {
+                    yield return (FloatMenuOption)AccessTools.Method(__instance.GetType(), "FloatMenuOption_LandInsideMap").Invoke(__instance, new object[] { mapParent, tile });
+                }
+            }
+        }
+    }
+
+    //カーソルが画面からマップの表示範囲から大きく外れた時に範囲外でGetRoofしようとしてしまう、おそらくVF本体のバグ修正
+    [HarmonyPatch(typeof(Ext_Vehicles), nameof(Ext_Vehicles.IsRoofRestricted), typeof(IntVec3), typeof(Map), typeof(bool))]
+    public static class Patch_Ext_Vehicles_IsRoofRestricted
+    {
+        public static bool Prefix(IntVec3 cell, Map map, ref bool __result)
+        {
+            if (!cell.InBounds(map))
+            {
+                __result = false;
+                return false;
+            }
+            return true;
         }
     }
 }

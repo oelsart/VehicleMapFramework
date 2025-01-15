@@ -12,7 +12,7 @@ namespace VehicleInteriors
                 var drawPos = base.DrawPos;
                 if (this.Spawned)
                 {
-                    drawPos.z += this.drawOffset;
+                    drawPos.z = drawPosZ ?? (drawPosZ = drawPos.z).Value;
                 }
                 return drawPos;
             }
@@ -20,6 +20,7 @@ namespace VehicleInteriors
 
         public override void Tick()
         {
+            this.prevOffset = this.drawOffset;
             if (base.ignition.Drafted)
             {
                 if (!this.ignitionComplete)
@@ -59,7 +60,7 @@ namespace VehicleInteriors
                     this.landingComplete = true;
                 }
             }
-
+            this.drawPosZ += this.drawOffset - this.prevOffset;
             base.Tick();
         }
 
@@ -67,12 +68,18 @@ namespace VehicleInteriors
         {
             base.ExposeData();
             Scribe_Values.Look(ref this.drawOffset, "floatingOffset");
+            Scribe_Values.Look(ref this.prevOffset, "floatingOffsetPrev");
+            Scribe_Values.Look(ref this.drawPosZ, "drawPosZ");
             Scribe_Values.Look(ref this.ignitionTick, "ignitionTick");
             Scribe_Values.Look(ref this.ignitionComplete, "ignitionComplete");
             Scribe_Values.Look(ref this.landingComplete, "landingComplete");
         }
 
         private float drawOffset = 0f;
+
+        private float prevOffset = 0f;
+
+        private float? drawPosZ;
 
         private int? ignitionTick;
 

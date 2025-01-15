@@ -288,7 +288,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             var corpse = ___pawn.Corpse;
             if (corpse != null && corpse.IsOnNonFocusedVehicleMapOf(out var vehicle))
             {
-                __result.y += vehicle.cachedDrawPos.y;
+                __result.y += vehicle.DrawPos.y;
             }
             else if (___pawn.IsOnNonFocusedVehicleMapOf(out var vehicle2))
             {
@@ -298,26 +298,17 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                 }
                 else if (posture != PawnPosture.Standing)
                 {
-                    __result.y += vehicle2.cachedDrawPos.y;
+                    __result.y += vehicle2.DrawPos.y;
                 }
             }
             else if (!(___pawn is VehiclePawnWithMap) && ___pawn.SpawnedParentOrMe is VehiclePawnWithMap vehicle3)
             {
-                __result.y += vehicle3.cachedDrawPos.y;
+                __result.y += vehicle3.DrawPos.y;
             }
-            else if (Ancestor(___pawn) is VehiclePawnWithMap vehicle4)
+            //pawn <- VehicleHandler <- VehiclePawnの順に保有
+            else if (___pawn.ParentHolder?.ParentHolder is VehiclePawnWithMap)
             {
-                __result.y += vehicle4.cachedDrawPos.y + VehicleMapUtility.altitudeOffset;
-            }
-
-            IThingHolder Ancestor(IThingHolder holder)
-            {
-                var parent = holder.ParentHolder;
-                if (parent != null)
-                {
-                    return Ancestor(parent);
-                }
-                return holder;
+                __result.y += VehicleMapUtility.altitudeOffsetFull;
             }
         }
     }

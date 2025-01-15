@@ -277,7 +277,7 @@ namespace VehicleInteriors
                 {
                     var thing = parentUpgrade.parent.parent;
                     var position = GenThing.TrueCenter(thing.Position, thing.Rotation, thing.def.Size, 0f);
-                    var vehiclePos = vehicle.cachedDrawPos.WithY(0f);
+                    var vehiclePos = vehicle.DrawPos.WithY(0f);
                     var rot = thing.Rotation;
                     var angle = rot.AsAngle;
                     var intClockwise = new Rot8(rot).AsIntClockwise;
@@ -308,7 +308,7 @@ namespace VehicleInteriors
                         drawOffsetEast = position.OrigToVehicleMap(vehicle, Rot8.East) - vehiclePos + pawnRenderer.DrawOffsetFor(new Rot4(Rot4.EastInt + rot.AsInt)),
                         drawOffsetWest = position.OrigToVehicleMap(vehicle, Rot8.West) - vehiclePos + pawnRenderer.DrawOffsetFor(new Rot4(Rot4.WestInt + rot.AsInt)),
                         drawOffsetNorthEast = position.OrigToVehicleMap(vehicle, Rot8.NorthEast) - vehiclePos + (rot.IsHorizontal ? pawnRenderer.DrawOffsetFor(rot).RotatedBy(45f) : pawnRenderer.DrawOffsetFor(new Rot8(Rot8.FromIntClockwise((intClockwise + Rot8.NorthEast.AsIntClockwise) % 8)))),
-                        drawOffsetNorthWest = position.OrigToVehicleMap(vehicle, Rot8.NorthWest) - vehiclePos + (rot.IsHorizontal ? pawnRenderer.DrawOffsetFor(rot).RotatedBy(-45f) : pawnRenderer.DrawOffsetFor(new Rot8(Rot8.FromIntClockwise((intClockwise + Rot8.NorthEast.AsIntClockwise) % 8)))),
+                        drawOffsetNorthWest = position.OrigToVehicleMap(vehicle, Rot8.NorthWest) - vehiclePos + (rot.IsHorizontal ? pawnRenderer.DrawOffsetFor(rot).RotatedBy(-45f) : pawnRenderer.DrawOffsetFor(new Rot8(Rot8.FromIntClockwise((intClockwise + Rot8.NorthWest.AsIntClockwise) % 8)))),
                         drawOffsetSouthEast = position.OrigToVehicleMap(vehicle, Rot8.SouthEast) - vehiclePos + (rot.IsHorizontal ? pawnRenderer.DrawOffsetFor(rot.Opposite).RotatedBy(-45f) : pawnRenderer.DrawOffsetFor(new Rot8(Rot8.FromIntClockwise((intClockwise + Rot8.SouthEast.AsIntClockwise) % 8)))),
                         drawOffsetSouthWest = position.OrigToVehicleMap(vehicle, Rot8.SouthWest) - vehiclePos + (rot.IsHorizontal ? pawnRenderer.DrawOffsetFor(rot.Opposite).RotatedBy(45f) : pawnRenderer.DrawOffsetFor(new Rot8(Rot8.FromIntClockwise((intClockwise + Rot8.SouthWest.AsIntClockwise) % 8)))),
                         angle = pawnRenderer.angle,

@@ -106,25 +106,26 @@ namespace VehicleInteriors
             }
         }
 
-        public override void PostDraw()
-        {
-            base.PostDraw();
-            if (this.parent.IsOnVehicleMapOf(out var vehicle) && !vehicle.Spawned && !this.handlersToDraw.NullOrEmpty())
-            {
-                foreach (var handler in this.handlersToDraw)
-                {
-                    if (handler.Item1.role.PawnRenderer != null)
-                    {
-                        foreach (Pawn pawn in handler.Item1.handlers)
-                        {
-                            Vector3 drawLoc = this.parent.DrawPos + handler.Item2.pawnRenderer.DrawOffsetFor(this.parent.BaseFullRotation());
-                            Rot4 value = handler.Item1.role.PawnRenderer.RotFor(this.parent.BaseFullRotation());
-                            pawn.Drawer.renderer.RenderPawnAt(drawLoc, new Rot4?(value), false);
-                        }
-                    }
-                }
-            }
-        }
+        //public override void PostDraw()
+        //{
+        //    base.PostDraw();
+        //    if (this.parent.IsOnVehicleMapOf(out var vehicle) && !vehicle.Spawned && (VehicleInteriors.settings.drawPlanet || Find.CurrentMap != vehicle.VehicleMap) && !this.handlersToDraw.NullOrEmpty())
+        //    {
+        //        foreach (var handler in this.handlersToDraw)
+        //        {
+        //            if (handler.Item1.role.PawnRenderer != null)
+        //            {
+        //                foreach (Pawn pawn in handler.Item1.handlers)
+        //                {
+        //                    Vector3 drawLoc = this.parent.DrawPos + handler.Item2.pawnRenderer.DrawOffsetFor(this.parent.BaseFullRotation());
+        //                    Log.Message(drawLoc);
+        //                    Rot4 value = handler.Item1.role.PawnRenderer.RotFor(this.parent.BaseFullRotation());
+        //                    pawn.Drawer.renderer.RenderPawnAt(drawLoc, new Rot4?(value), false);
+        //                }
+        //            }
+        //        }
+        //    }
+        //}
 
         private IEnumerable<(VehicleHandler, VehicleUpgrade.RoleUpgrade)> handlersToDraw;
     }
