@@ -66,6 +66,8 @@ namespace VehicleInteriors
                     {
                         foreach (var pawn in handler.handlers)
                         {
+                            if (vehicle.Drafted || handler.role.HandlingTypes.HasFlag(HandlingTypeFlags.Movement)) continue;
+
                             Command_Action_PawnDrawer command_Action_PawnDrawer = new Command_Action_PawnDrawer();
                             command_Action_PawnDrawer.defaultLabel = "VF_DisembarkSinglePawn".Translate(pawn.LabelShort);
                             command_Action_PawnDrawer.groupable = false;

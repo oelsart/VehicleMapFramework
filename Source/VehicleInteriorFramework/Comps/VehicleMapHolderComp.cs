@@ -58,13 +58,13 @@ namespace VehicleInteriors
                 {
                     continue;
                 }
-
-                yield return new FloatMenuOption("LandInExistingMap".Translate(this.parent.Label), delegate
+                yield return new FloatMenuOption("VIF_LandInSpecificMap".Translate(vehicle.VehicleMap.Parent.Label, this.parent.Label), delegate
                 {
                     Map myMap = representative.parent.Map;
                     Map map = vehicle.VehicleMap;
                     Current.Game.CurrentMap = map;
                     CameraJumper.TryHideWorld();
+                    vehicle.ForceResetCache();
                     Find.Targeter.BeginTargeting(TargetingParameters.ForDropPodsDestination(), delegate (LocalTargetInfo x)
                     {
                         representative.TryLaunch(tile, new TransportPodsArrivalAction_LandInVehicleMap(mapParent, x.Cell, representative.parent.TryGetComp<CompShuttle>() != null));

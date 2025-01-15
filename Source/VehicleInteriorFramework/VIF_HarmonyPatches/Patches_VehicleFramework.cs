@@ -577,7 +577,13 @@ namespace VehicleInteriors.VIF_HarmonyPatches
 
                 if (CanLandInSpecificCell())
                 {
-                    yield return (FloatMenuOption)AccessTools.Method(__instance.GetType(), "FloatMenuOption_LandInsideMap").Invoke(__instance, new object[] { mapParent, tile });
+                    var floatMenu = (FloatMenuOption)AccessTools.Method(__instance.GetType(), "FloatMenuOption_LandInsideMap").Invoke(__instance, new object[] { mapParent, tile });
+                    floatMenu.action = (Action)Delegate.Combine(new Action(() =>
+                    {
+                        vehicle.ForceResetCache();
+                    }), floatMenu.action);
+                    floatMenu.Label = "VIF_LandInSpecificMap".Translate(vehicle.VehicleMap.Parent.Label, __instance.Vehicle.Label);
+                    yield return floatMenu;
                 }
             }
         }

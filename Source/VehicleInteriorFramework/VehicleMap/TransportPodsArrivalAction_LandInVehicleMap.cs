@@ -40,13 +40,6 @@ namespace VehicleInteriors
 
         public override FloatMenuAcceptanceReport StillValid(IEnumerable<IThingHolder> pods, int destinationTile)
         {
-
-            Log.Message("StillValid");
-            if (mapParent != null)
-            {
-                return false;
-            }
-
             return CanLandInSpecificCell(pods, mapParent);
         }
 

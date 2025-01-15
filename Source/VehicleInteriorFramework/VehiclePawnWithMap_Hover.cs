@@ -10,7 +10,7 @@ namespace VehicleInteriors
             get
             {
                 var drawPos = base.DrawPos;
-                if (this.Spawned)
+                if (this.Spawned && Find.CurrentMap != this.VehicleMap)
                 {
                     drawPos.z = drawPosZ ?? (drawPosZ = drawPos.z).Value;
                 }

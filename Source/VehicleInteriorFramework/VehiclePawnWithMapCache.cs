@@ -13,7 +13,11 @@ namespace VehicleInteriors
 
         public override void FinalizeInit()
         {
-            this.map.Parent.AllComps.Add(new VehicleMapHolderComp());
+            var comp = new VehicleMapHolderComp
+            {
+                parent = this.map.Parent
+            };
+            this.map.Parent.AllComps.Add(comp);
         }
 
         public static void ClearCaches()

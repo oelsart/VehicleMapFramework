@@ -7,6 +7,14 @@ namespace VehicleInteriors
     {
         public VehiclePawnWithMap vehicle;
 
+        public override string Label
+        {
+            get
+            {
+                return $"{this.vehicle.Label}{"VIF_VehicleMap".Translate()}";
+            }
+        }
+
         public override void FinalizeLoading()
         {
             base.FinalizeLoading();
