@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+	<MaximumPayload.label>最大積載重量</MaximumPayload.label>
+	<MaximumPayload.description>車が運ぶことができる最大積載重量です. 乗り物マップ上の物の重さも含みます.</MaximumPayload.description>
+
+</LanguageData>

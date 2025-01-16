@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+
+	<VMF_FocusVehicleMap>乗り物マップフォーカス</VMF_FocusVehicleMap>
+	<VMF_UnfocusVehicleMap>乗り物マップフォーカス解除</VMF_UnfocusVehicleMap>
+
+	<VMF_AllowsHaulIn>運び込み</VMF_AllowsHaulIn>
+	<VMF_AllowsHaulInDesc>入植者にこの乗り物のマップ上のストレージに運搬することを許可します.</VMF_AllowsHaulInDesc>
+	<VMF_AllowsHaulOut>運び出し</VMF_AllowsHaulOut>
+	<VMF_AllowsHaulOutDesc>入植者にこの乗り物のマップ上のストレージから運搬することを許可します.</VMF_AllowsHaulOutDesc>
+	<VMF_IncreasePriority>優先度 +1</VMF_IncreasePriority>
+	<VMF_IncreasePriorityDesc>この乗り物のマップ上のストレージの優先度を1つ上げます</VMF_IncreasePriorityDesc>
+	<VMF_DecreasePriority>優先度 -1</VMF_DecreasePriority>
+	<VMF_DecreasePriorityDesc>この乗り物のマップ上のストレージの優先度を1つ下げます</VMF_DecreasePriorityDesc>
+	<VMF_AutoGetOff>自動降車</VMF_AutoGetOff>
+	<VMF_AutoGetOffDesc>この乗り物のマップ上でやることが無い入植者は自動的に乗り物マップを降ります.</VMF_AutoGetOffDesc>
+
+	<VMF_LowerPowerDesc>ターゲットの送電容量を下げます.</VMF_LowerPowerDesc>
+	<VMF_ResetPower>リセット</VMF_ResetPower>
+	<VMF_ResetPowerDesc>ターゲットの送電容量をリセットします.</VMF_ResetPowerDesc>
+	<VMF_RaisePowerDesc>ターゲットの送電容量を上げます.</VMF_RaisePowerDesc>
+
+	<VMF_Reassign>再割り当て</VMF_Reassign>
+	<VMF_ReassignDesc>この席が操作するタレットを再割り当てします.</VMF_ReassignDesc>
+
+	<VMF_GatherFromBaseMap>ベースマップから収集</VMF_GatherFromBaseMap>
+
+</LanguageData>

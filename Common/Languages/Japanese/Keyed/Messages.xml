@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+
+	<VMF_ForceOnVehicle>乗り物マップの外には置けません.</VMF_ForceOnVehicle>
+	<VMF_ForceOnVehicle>ホバータイプの乗り物マップの外には置けません.</VMF_ForceOnVehicle>
+	<VMF_ForbidOnVehicle>乗り物マップには置けません.</VMF_ForbidOnVehicle>
+	<VMF_ForbidOnHumanPoweredVehicle>人力タイプの乗り物マップには置けません.</VMF_ForbidOnHumanPoweredVehicle>
+	<VMF_ForceOnVehicleMapEdge>乗り物マップの端以外には置けません.</VMF_ForceOnVehicleMapEdge>
+
+	<VMF_NoRoles>{0} にこのタレットを操作する役割が存在しません.</VMF_NoRoles>
+
+</LanguageData>

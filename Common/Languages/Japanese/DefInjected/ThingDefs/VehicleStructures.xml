@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+	<VMF_VehicleStructureFilled.label>乗り物の構造体</VMF_VehicleStructureFilled.label>
+	<VMF_VehicleStructureFilled.description>乗り物の構造体です.</VMF_VehicleStructureFilled.description>
+	
+	<VMF_VehicleStructureEmpty.label>乗り物の構造体</VMF_VehicleStructureEmpty.label>
+	<VMF_VehicleStructureEmpty.description>乗り物の構造体です.</VMF_VehicleStructureEmpty.description>
+
+</LanguageData>

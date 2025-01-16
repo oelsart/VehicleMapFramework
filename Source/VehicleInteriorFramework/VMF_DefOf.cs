@@ -14,8 +14,6 @@ namespace VehicleInteriors
 
         public static WorldObjectDef VMF_VehicleMap;
 
-        public static MapGeneratorDef VMF_InteriorGenerator;
-
         public static ThingDef VMF_VehicleStructureFilled;
 
         public static ThingDef VMF_VehicleStructureEmpty;
@@ -93,6 +91,8 @@ namespace VehicleInteriors
         public static JobDef VMF_RearmTurretAcrossMaps;
 
         public static JobDef VMF_RearmTurretAtomicAcrossMaps;
+
+        public static WorkGiverDef VMF_LoadBuildableContainer;
 
         public static VehicleStatDef MaximumPayload;
     }

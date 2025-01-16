@@ -5,7 +5,7 @@
     <defName>VMF_VehicleMap</defName>
     <label>vehicle map</label> <!-- hidden -->
     <worldObjectClass>VehicleInteriors.MapParent_Vehicle</worldObjectClass>
-    <mapGenerator>VMF_InteriorGenerator</mapGenerator>
+    <mapGenerator>VMF_VehicleMapGenerator</mapGenerator>
     <useDynamicDrawer>false</useDynamicDrawer>
   </WorldObjectDef>
 

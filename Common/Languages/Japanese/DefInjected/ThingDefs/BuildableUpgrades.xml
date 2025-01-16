@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+	<VMF_DriverSeat.label>運転席</VMF_DriverSeat.label>
+	<VMF_DriverSeat.description>乗り物の運転席です. これが設置されていると, 乗り物が動かせるようになります.</VMF_DriverSeat.description>
+	
+	<VMF_GunnerSeat.label>砲手席</VMF_GunnerSeat.label>
+	<VMF_GunnerSeat.description>乗り物の砲手席です. これが設置されていると, 選択したタレットを操作できるようになります.</VMF_GunnerSeat.description>
+	
+	<VMF_PassengerSeat.label>搭乗者席</VMF_PassengerSeat.label>
+	<VMF_PassengerSeat.description>乗り物の搭乗者席.</VMF_PassengerSeat.description>
+	
+	<VMF_CargoContainer.label>コンテナ</VMF_CargoContainer.label>
+	<VMF_CargoContainer.description>乗り物の積載容量を増加させるコンテナです.\n\n&lt;color=#bb8f04&gt;積載容量:&lt;/color&gt; +100 kg</VMF_CargoContainer.description>
+	
+	<VMF_TurboCharger.label>ターボチャージャー</VMF_TurboCharger.label>
+	<VMF_TurboCharger.description>乗り物が運ぶことのできる最大重量を増加させるエンジンパーツです.\n\n&lt;color=#bb8f04&gt;最大積載重量:&lt;/color&gt; +300 kg</VMF_TurboCharger.description>
+	
+	<VMF_LiftFan.label>リフトファン</VMF_LiftFan.label>
+	<VMF_LiftFan.description>乗り物が運ぶことのできる最大重量を増加させるリフトファンです. ホバータイプの乗り物にのみ設置できます.\n\n&lt;color=#bb8f04&gt;最大積載重量:&lt;/color&gt; +150 kg</VMF_LiftFan.description>
+
+</LanguageData>

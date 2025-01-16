@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+	<VMF_WirelessTransmitter.label>ワイヤレス送信機</VMF_WirelessTransmitter.label>
+	<VMF_WirelessTransmitter.description>通常マップと乗り物マップ間で電力を送信する装置です. 通常マップにのみ設置できます.</VMF_WirelessTransmitter.description>
+	
+	<VMF_WirelessReceiver.label>ワイヤレス受信機</VMF_WirelessReceiver.label>
+	<VMF_WirelessReceiver.description>通常マップから電力を受信する装置です. 乗り物マップに設置し, 送信機と位置を合わせることで電力を受信します.</VMF_WirelessReceiver.description>
+
+</LanguageData>

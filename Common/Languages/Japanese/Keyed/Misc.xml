@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+
+	<VMF_VehicleMap>のマップ</VMF_VehicleMap>
+
+	<VMF_PowerTransferSetting>送電容量設定</VMF_PowerTransferSetting>
+
+	<VMF_StatsReport_HumanPowerAverage>乗り物を動かす人たちの体力ファクター: {0}</VMF_StatsReport_HumanPowerAverage>
+
+	<VMF_LandInSpecificMap>{0}にズームインして,{1}の着陸地点を選択する</VMF_LandInSpecificMap>
+
+</LanguageData>

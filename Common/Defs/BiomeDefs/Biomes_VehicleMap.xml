@@ -2,9 +2,9 @@
 <Defs>
  
  <BiomeDef>
-    <defName>VMF_InteriorBiome</defName>
-    <label>Interior biome</label>
-    <description>A biome of vehicle interior.</description>
+    <defName>VMF_VehicleMapBiome</defName>
+    <label>Vehicle map biome</label>
+    <description>A biome of vehicle map.</description>
     <generatesNaturally>false</generatesNaturally>
     <animalDensity>0</animalDensity>
     <plantDensity>0</plantDensity>

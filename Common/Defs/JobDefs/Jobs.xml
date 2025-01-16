@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Defs>
-	
+	<!-- Reportstrings are automatically overwritten and do not need to be translated -->
 	<JobDef>
 		<defName>VMF_GotoDestMap</defName>
 		<driverClass>VehicleInteriors.JobDriver_GotoDestMap</driverClass>

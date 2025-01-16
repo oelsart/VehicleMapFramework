@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+	<VMF_Ladder.label>はしご</VMF_Ladder.label>
+	<VMF_Ladder.description>人間が乗り物の上に昇降するためのはしごです. ポーンはこれが設置されている場所から優先的に昇降します.</VMF_Ladder.description>
+	
+	<VMF_RampMedium.label>スロープ (1x3)</VMF_RampMedium.label>
+	<VMF_RampMedium.description>乗り物が乗り物マップに昇降するためのスロープです. 幅3マスまでの乗り物がここから昇降できます.</VMF_RampMedium.description>
+	
+	<VMF_RampLarge.label>スロープ (1x5)</VMF_RampLarge.label>
+	<VMF_RampLarge.description>乗り物が乗り物マップに昇降するためのスロープです. 幅5マスまでの乗り物がここから昇降できます.</VMF_RampLarge.description>
+
+</LanguageData>

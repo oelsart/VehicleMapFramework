@@ -24,6 +24,11 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 }
             }
 
+            var loadTransporters = DefDatabase<WorkGiverDef>.GetNamedSilentFail("LoadTransporters");
+            VMF_DefOf.VMF_LoadBuildableContainer.label = loadTransporters.label;
+            VMF_DefOf.VMF_LoadBuildableContainer.verb = loadTransporters.verb;
+            VMF_DefOf.VMF_LoadBuildableContainer.gerund = loadTransporters.gerund;
+
             foreach (var jobDef in DefDatabase<JobDef>.AllDefs.Where(d => d.defName.StartsWith(prefix) && d.defName.EndsWith(suffix)))
             {
                 var baseDefName = jobDef.defName.Replace(prefix, "").Replace(suffix, "");
