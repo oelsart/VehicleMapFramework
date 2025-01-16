@@ -7,7 +7,7 @@ using System.Reflection.Emit;
 using UnityEngine;
 using Verse;
 
-namespace VehicleInteriors.VIF_HarmonyPatches
+namespace VehicleInteriors.VMF_HarmonyPatches
 {
     [HarmonyPatch]
     public static class Patch_Selector_SelectableObjectsUnderMouse_MoveNext

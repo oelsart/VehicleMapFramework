@@ -15,7 +15,7 @@ using Verse.AI;
 using Verse.Noise;
 using static Vehicles.VehicleRegion;
 
-namespace VehicleInteriors.VIF_HarmonyPatches
+namespace VehicleInteriors.VMF_HarmonyPatches
 {
     //VehicleMapの時はSectionLayer_VehicleMapの継承クラスを使い、そうでなければそれらは除外する
     [HarmonyPatch(typeof(Section), MethodType.Constructor, typeof(IntVec3), typeof(Map))]

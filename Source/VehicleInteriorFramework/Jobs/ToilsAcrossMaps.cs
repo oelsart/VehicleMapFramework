@@ -396,7 +396,7 @@ namespace VehicleInteriors
                                 }
                             }
 
-                            if (curJob.def == JobDefOf.DoBill || curJob.def == VIF_DefOf.VIF_DoBillAcrossMaps)
+                            if (curJob.def == JobDefOf.DoBill || curJob.def == VMF_DefOf.VMF_DoBillAcrossMaps)
                             {
                                 HaulAIUtility.UpdateJobWithPlacedThings(curJob, carriedThing, num2);
                             }
@@ -516,7 +516,7 @@ namespace VehicleInteriors
 
                     Action<Thing, int> placedAction = null;
                     if (curJob.def == JobDefOf.DoBill || curJob.def == JobDefOf.RecolorApparel || curJob.def == JobDefOf.RefuelAtomic || curJob.def == JobDefOf.RearmTurretAtomic ||
-                    curJob.def == VIF_DefOf.VIF_DoBillAcrossMaps || curJob.def == VIF_DefOf.VIF_RefuelAcrossMaps)
+                    curJob.def == VMF_DefOf.VMF_DoBillAcrossMaps || curJob.def == VMF_DefOf.VMF_RefuelAcrossMaps)
                     {
                         placedAction = delegate (Thing th, int added)
                         {

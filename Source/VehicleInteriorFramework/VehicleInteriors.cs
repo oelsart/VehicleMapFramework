@@ -21,7 +21,7 @@ namespace VehicleInteriors
         {
             Listing_Standard listingStandard = new Listing_Standard();
             listingStandard.Begin(inRect);
-            listingStandard.CheckboxLabeled("VIF_Settings.DrawPlanet".Translate(), ref settings.drawPlanet);
+            listingStandard.CheckboxLabeled("VMF_Settings.DrawPlanet".Translate(), ref settings.drawPlanet);
             listingStandard.End();
         }
 

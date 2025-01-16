@@ -9,7 +9,7 @@ using UnityEngine;
 using Vehicles;
 using Verse;
 
-namespace VehicleInteriors.VIF_HarmonyPatches
+namespace VehicleInteriors.VMF_HarmonyPatches
 {
     //Graphic_Linked系統のリンクは、先にcを回転させておく。base.ShouldLinkWithを使っているところはスタブしておいたオリジナルのメソッドを使用
     [HarmonyPatch(typeof(Graphic_Linked), nameof(Graphic_Linked.ShouldLinkWith))]

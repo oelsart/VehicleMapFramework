@@ -10,7 +10,7 @@ using Vehicles;
 using Verse;
 using Verse.AI;
 
-namespace VehicleInteriors.VIF_HarmonyPatches
+namespace VehicleInteriors.VMF_HarmonyPatches
 {
     [HarmonyPatch(typeof(Pawn_JobTracker), nameof(Pawn_JobTracker.StartJob))]
     public static class Patch_Pawn_JobTracker_StartJob

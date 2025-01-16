@@ -47,7 +47,7 @@ namespace VehicleInteriors
                 {
                     if (t.HasThing && ReachabilityUtilityOnVehicle.CanReach(entity.Map, entity.Position, t, PathEndMode.ClosestTouch, TraverseParms.For(carrier), t.Thing.Map, out var exitSpot2, out var enterSpot2))
                     {
-                        Job job = transferBetweenPlatforms ? JobMaker.MakeJob(VIF_DefOf.VIF_TransferBetweenEntityHoldersAcrossMaps, sourcePlatform, t, entity) : JobMaker.MakeJob(VIF_DefOf.VIF_CarryToEntityHolderAcrossMaps, t, entity);
+                        Job job = transferBetweenPlatforms ? JobMaker.MakeJob(VMF_DefOf.VMF_TransferBetweenEntityHoldersAcrossMaps, sourcePlatform, t, entity) : JobMaker.MakeJob(VMF_DefOf.VMF_CarryToEntityHolderAcrossMaps, t, entity);
                         job.count = 1;
                         var driver = job.GetCachedDriver(carrier) as JobDriverAcrossMaps;
                         driver.SetSpots(exitSpot, enterSpot, exitSpot2, enterSpot2);

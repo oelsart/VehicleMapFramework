@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using Verse;
 
-namespace VehicleInteriors.VIF_HarmonyPatches
+namespace VehicleInteriors.VMF_HarmonyPatches
 {
     [StaticConstructorOnStartup]
     public static class Patches_VEF
@@ -15,12 +15,12 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         {
             if (ModsConfig.IsActive("VanillaExpanded.VFESecurity"))
             {
-                VIF_Harmony.Instance.PatchCategory("VIF_Patches_VEF_Security");
+                VMF_Harmony.Instance.PatchCategory("VMF_Patches_VEF_Security");
             }
         }
     }
 
-    [HarmonyPatchCategory("VIF_Patches_VEF_Security")]
+    [HarmonyPatchCategory("VMF_Patches_VEF_Security")]
     [HarmonyPatch]
     public static class Patch_Building_Shield_ThingsWithinRadius
     {
@@ -35,7 +35,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory("VIF_Patches_VEF_Security")]
+    [HarmonyPatchCategory("VMF_Patches_VEF_Security")]
     [HarmonyPatch]
     public static class Patch_Building_Shield_ThingsWithinScanArea
     {
@@ -50,7 +50,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory("VIF_Patches_VEF_Security")]
+    [HarmonyPatchCategory("VMF_Patches_VEF_Security")]
     [HarmonyPatch("VFESecurity.Building_Shield", "AbsorbDamage")]
     [HarmonyPatch(new Type[] { typeof(float), typeof(DamageDef), typeof(float) })]
     public static class Patch_Building_Shield_AbsorbDamage
@@ -65,7 +65,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory("VIF_Patches_VEF_Security")]
+    [HarmonyPatchCategory("VMF_Patches_VEF_Security")]
     [HarmonyPatch("VFESecurity.Building_Shield", "DrawAt")]
     public static class Patch_Building_Shield_DrawAt
     {
@@ -90,7 +90,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory("VIF_Patches_VEF_Security")]
+    [HarmonyPatchCategory("VMF_Patches_VEF_Security")]
     [HarmonyPatch("VFESecurity.Building_Shield", "EnergyShieldTick")]
     public static class Patch_Building_Shield_EnergyShieldTick
     {
@@ -108,7 +108,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory("VIF_Patches_VEF_Security")]
+    [HarmonyPatchCategory("VMF_Patches_VEF_Security")]
     [HarmonyPatch("VFESecurity.Building_Shield", "UpdateCache")]
     public static class Patch_Building_Shield_UpdateCache
     {

@@ -48,10 +48,10 @@ namespace VehicleInteriors
             ValueTuple<TerrainDef, bool, ColorDef> key = new ValueTuple<TerrainDef, bool, ColorDef>(def, polluted, color);
             if (!this.terrainMatCache.ContainsKey(key))
             {
-                Graphic graphic = polluted ? def.graphicPolluted.GetCopy(def.graphicPolluted.drawSize, VIF_Shaders.terrainHardWithZ) : def.graphic.GetCopy(def.graphic.drawSize, VIF_Shaders.terrainHardWithZ);
+                Graphic graphic = polluted ? def.graphicPolluted.GetCopy(def.graphicPolluted.drawSize, VMF_Shaders.terrainHardWithZ) : def.graphic.GetCopy(def.graphic.drawSize, VMF_Shaders.terrainHardWithZ);
                 if (color != null)
                 {
-                    this.terrainMatCache[key] = graphic.GetColoredVersion(VIF_Shaders.terrainHardWithZ, color.color, Color.white).MatSingle;
+                    this.terrainMatCache[key] = graphic.GetColoredVersion(VMF_Shaders.terrainHardWithZ, color.color, Color.white).MatSingle;
                 }
                 else
                 {
@@ -79,7 +79,7 @@ namespace VehicleInteriors
                 hashSet.Clear();
                 CellTerrain cellTerrain = new CellTerrain(terrainGrid.TerrainAt(intVec), intVec.IsPolluted(base.Map), base.Map.snowGrid.GetDepth(intVec), terrainGrid.ColorAt(intVec));
 
-                if (cellTerrain.def == VIF_DefOf.VIF_VehicleFloor) continue; //デフォルトのVehicleFloorの場合は描画しない
+                if (cellTerrain.def == VMF_DefOf.VMF_VehicleFloor) continue; //デフォルトのVehicleFloorの場合は描画しない
 
                 LayerSubMesh subMesh = base.GetSubMesh(this.GetMaterialFor(cellTerrain));
                 if (subMesh != null && this.AllowRenderingFor(cellTerrain.def))

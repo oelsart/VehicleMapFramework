@@ -11,7 +11,7 @@ using Vehicles;
 using Verse;
 using Verse.AI;
 
-namespace VehicleInteriors.VIF_HarmonyPatches
+namespace VehicleInteriors.VMF_HarmonyPatches
 {
     [HarmonyPatch(typeof(UI), nameof(UI.MouseCell))]
     public static class Patch_UI_MouseCell
@@ -577,7 +577,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
 
             var m_Widgets_DrawBox = AccessTools.Method(typeof(Widgets), nameof(Widgets.DrawBox));
             var pos3 = codes.FindIndex(pos2, c => c.opcode == OpCodes.Call && c.OperandIs(m_Widgets_DrawBox));
-            var m_DrawBoxRotated = AccessTools.Method(typeof(VIF_Widgets), nameof(VIF_Widgets.DrawBoxRotated));
+            var m_DrawBoxRotated = AccessTools.Method(typeof(VMF_Widgets), nameof(VMF_Widgets.DrawBoxRotated));
             var label = generator.DefineLabel();
             var label2 = generator.DefineLabel();
 

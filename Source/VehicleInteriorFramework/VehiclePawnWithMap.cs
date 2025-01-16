@@ -58,8 +58,8 @@ namespace VehicleInteriors
             {
                 if (this.structureCellsCache == null || this.structureCellsDirty)
                 {
-                    this.structureCellsCache = this.interiorMap.listerThings.ThingsOfDef(VIF_DefOf.VIF_VehicleStructureFilled)
-                            .Concat(this.interiorMap.listerThings.ThingsOfDef(VIF_DefOf.VIF_VehicleStructureEmpty)).Select(b => b.Position).ToHashSet();
+                    this.structureCellsCache = this.interiorMap.listerThings.ThingsOfDef(VMF_DefOf.VMF_VehicleStructureFilled)
+                            .Concat(this.interiorMap.listerThings.ThingsOfDef(VMF_DefOf.VMF_VehicleStructureEmpty)).Select(b => b.Position).ToHashSet();
                 }
                 return this.structureCellsCache;
             }
@@ -88,8 +88,8 @@ namespace VehicleInteriors
             {
                 isActive = () => this.allowsHaulIn,
                 toggleAction = () => this.allowsHaulIn = !this.allowsHaulIn,
-                defaultLabel = "VIF_AllowsHaulIn".Translate(),
-                defaultDesc = "VIF_AllowsHaulInDesc".Translate(),
+                defaultLabel = "VMF_AllowsHaulIn".Translate(),
+                defaultDesc = "VMF_AllowsHaulInDesc".Translate(),
                 icon = VehiclePawnWithMap.iconAllowsHaulIn,
             };
 
@@ -97,8 +97,8 @@ namespace VehicleInteriors
             {
                 isActive = () => this.allowsHaulOut,
                 toggleAction = () => this.allowsHaulOut = !this.allowsHaulOut,
-                defaultLabel = "VIF_AllowsHaulOut".Translate(),
-                defaultDesc = "VIF_AllowsHaulOutDesc".Translate(),
+                defaultLabel = "VMF_AllowsHaulOut".Translate(),
+                defaultDesc = "VMF_AllowsHaulOutDesc".Translate(),
                 icon = VehiclePawnWithMap.iconAllowsHaulOut,
             };
 
@@ -119,8 +119,8 @@ namespace VehicleInteriors
                         MoteMaker.ThrowText(allGroups.ElementAt(i).CellsList[0].ToVector3Shifted().OrigToVehicleMap(this), this.Map, allGroups.ElementAt(i).Settings.Priority.ToString(), Color.white, -1f);
                     }
                 },
-                defaultLabel = "VIF_IncreasePriority".Translate(),
-                defaultDesc = "VIF_IncreasePriorityDesc".Translate(),
+                defaultLabel = "VMF_IncreasePriority".Translate(),
+                defaultDesc = "VMF_IncreasePriorityDesc".Translate(),
                 icon = VehiclePawnWithMap.iconIncreasePriority,
             };
 
@@ -140,8 +140,8 @@ namespace VehicleInteriors
                         MoteMaker.ThrowText(allGroups.ElementAt(i).CellsList[0].ToVector3Shifted().OrigToVehicleMap(this), this.Map, allGroups.ElementAt(i).Settings.Priority.ToString(), Color.white, -1f);
                     }
                 },
-                defaultLabel = "VIF_DecreasePriority".Translate(),
-                defaultDesc = "VIF_DecreasePriorityDesc".Translate(),
+                defaultLabel = "VMF_DecreasePriority".Translate(),
+                defaultDesc = "VMF_DecreasePriorityDesc".Translate(),
                 icon = VehiclePawnWithMap.iconDecreasePriority,
             };
 
@@ -149,8 +149,8 @@ namespace VehicleInteriors
             {
                 isActive = () => this.autoGetOff,
                 toggleAction = () => this.autoGetOff = !this.autoGetOff,
-                defaultLabel = "VIF_AutoGetOff".Translate(),
-                defaultDesc = "VIF_AutoGetOffDesc".Translate(),
+                defaultLabel = "VMF_AutoGetOff".Translate(),
+                defaultDesc = "VMF_AutoGetOffDesc".Translate(),
                 icon = VehiclePawnWithMap.iconAutoGetOff,
             };
 
@@ -165,9 +165,9 @@ namespace VehicleInteriors
             var str = base.GetInspectString();
             //if (Find.TickManager.TicksGame % 250 == 0)
             //{
-            //    this.statHandler.MarkStatDirty(VIF_DefOf.MaximumPayload);
+            //    this.statHandler.MarkStatDirty(VMF_DefOf.MaximumPayload);
             //}
-            var stat = this.GetStatValue(VIF_DefOf.MaximumPayload);
+            var stat = this.GetStatValue(VMF_DefOf.MaximumPayload);
 
             str += $"\n{"MassCarriedSimple".Translate()}:" +
                 $" {(VehicleMapUtility.VehicleMapMass(this) + MassUtility.InventoryMass(this)).ToStringEnsureThreshold(2, 0)} /" +
@@ -182,7 +182,7 @@ namespace VehicleInteriors
                 VehicleMapProps vehicleMap;
                 if ((vehicleMap = this.def.GetModExtension<VehicleMapProps>()) != null)
                 {
-                    var mapParent = (MapParent_Vehicle)WorldObjectMaker.MakeWorldObject(VIF_DefOf.VIF_VehicleMap);
+                    var mapParent = (MapParent_Vehicle)WorldObjectMaker.MakeWorldObject(VMF_DefOf.VMF_VehicleMap);
                     mapParent.vehicle = this;
                     mapParent.Tile = 0;
                     mapParent.SetFaction(base.Faction);
@@ -191,11 +191,11 @@ namespace VehicleInteriors
 
                     foreach (var c in vehicleMap.EmptyStructureCells)
                     {
-                        GenSpawn.Spawn(VIF_DefOf.VIF_VehicleStructureEmpty, c.ToIntVec3, this.interiorMap).SetFaction(Faction.OfPlayer);
+                        GenSpawn.Spawn(VMF_DefOf.VMF_VehicleStructureEmpty, c.ToIntVec3, this.interiorMap).SetFaction(Faction.OfPlayer);
                     }
                     foreach (var c in vehicleMap.FilledStructureCells)
                     {
-                        GenSpawn.Spawn(VIF_DefOf.VIF_VehicleStructureFilled, c.ToIntVec3, this.interiorMap).SetFaction(Faction.OfPlayer);
+                        GenSpawn.Spawn(VMF_DefOf.VMF_VehicleStructureFilled, c.ToIntVec3, this.interiorMap).SetFaction(Faction.OfPlayer);
                     }
                 }
             }

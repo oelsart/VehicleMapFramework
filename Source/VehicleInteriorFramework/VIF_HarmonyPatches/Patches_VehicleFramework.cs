@@ -11,7 +11,7 @@ using Vehicles;
 using Verse;
 using Verse.AI.Group;
 
-namespace VehicleInteriors.VIF_HarmonyPatches
+namespace VehicleInteriors.VMF_HarmonyPatches
 {
     //VehiclePawnWithMapの場合Movementフラグを持つハンドラーが存在しない場合コントロールできないようにする
     [HarmonyPatch(typeof(VehiclePawn), nameof(VehiclePawn.CanMoveWithOperators), MethodType.Getter)]
@@ -82,7 +82,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                         var turret = command_CooldownAction.turret;
                         if (!VehicleMod.settings.debug.debugShootAnyTurret && !command_CooldownAction.Disabled && __instance.Vehicle.GetAllHandlersMatch(HandlingTypeFlags.Turret, !turret.groupKey.NullOrEmpty() ? turret.groupKey : turret.key).Empty())
                         {
-                            command_CooldownAction.Disable("VIF_NoRoles".Translate(__instance.Vehicle.LabelShort));
+                            command_CooldownAction.Disable("VMF_NoRoles".Translate(__instance.Vehicle.LabelShort));
                         }
                     }
                     yield return gizmo;
@@ -207,7 +207,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
 
             if (___shaderInt == null && __instance is RGBMaskShaderTypeDef && VehicleMod.settings.debug.debugLoadAssetBundles)
             {
-                ___shaderInt = VIF_Shaders.LoadShader(__instance.shaderPath);
+                ___shaderInt = VMF_Shaders.LoadShader(__instance.shaderPath);
                 if (___shaderInt == null)
                 {
                     Log.Error("[VehicleMapFramework] Failed to load Shader from path ${__instance.shaderPath}");
@@ -233,9 +233,9 @@ namespace VehicleInteriors.VIF_HarmonyPatches
         public static void Postfix(ref bool __result, Shader shader, bool ignoreSettings)
         {
             __result = __result || ((VehicleMod.settings.main.useCustomShaders || ignoreSettings) &&
-                (shader == VIF_DefOf.VIF_CutoutComplexRGBOpacity.Shader ||
-                shader == VIF_DefOf.VIF_CutoutComplexPatternOpacity.Shader ||
-                shader == VIF_DefOf.VIF_CutoutComplexSkinOpacity.Shader));
+                (shader == VMF_DefOf.VMF_CutoutComplexRGBOpacity.Shader ||
+                shader == VMF_DefOf.VMF_CutoutComplexPatternOpacity.Shader ||
+                shader == VMF_DefOf.VMF_CutoutComplexSkinOpacity.Shader));
         }
     }
 
@@ -582,7 +582,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                     {
                         vehicle.ForceResetCache();
                     }), floatMenu.action);
-                    floatMenu.Label = "VIF_LandInSpecificMap".Translate(vehicle.VehicleMap.Parent.Label, __instance.Vehicle.Label);
+                    floatMenu.Label = "VMF_LandInSpecificMap".Translate(vehicle.VehicleMap.Parent.Label, __instance.Vehicle.Label);
                     yield return floatMenu;
                 }
             }

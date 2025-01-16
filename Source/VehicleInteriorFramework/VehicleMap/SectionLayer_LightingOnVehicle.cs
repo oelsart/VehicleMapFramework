@@ -55,7 +55,7 @@ namespace VehicleInteriors
 
         public string GlowReportAt(IntVec3 c)
         {
-            Color32[] colors = base.GetSubMesh(VIF_Materials.LightOverlayColorDodge).mesh.colors32;
+            Color32[] colors = base.GetSubMesh(VMF_Materials.LightOverlayColorDodge).mesh.colors32;
             this.CalculateVertexIndices(c.x, c.z, out int num, out int num2, out int num3, out int num4, out int num5);
             StringBuilder stringBuilder = new StringBuilder();
             stringBuilder.Append("BL=" + colors[num]);
@@ -68,7 +68,7 @@ namespace VehicleInteriors
 
         public override void Regenerate()
         {
-            LayerSubMesh subMesh = base.GetSubMesh(VIF_Materials.LightOverlayColorDodge);
+            LayerSubMesh subMesh = base.GetSubMesh(VMF_Materials.LightOverlayColorDodge);
             if (subMesh.verts.Count == 0)
             {
                 this.MakeBaseGeometry(subMesh);

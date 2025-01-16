@@ -2,20 +2,20 @@
 <Defs>
 
     <MapGeneratorDef>
-        <defName>VIF_InteriorGenerator</defName>
+        <defName>VMF_InteriorGenerator</defName>
         <label>generator</label>
         <pocketMapProperties>
-            <biome>VIF_InteriorBiome</biome>
+            <biome>VMF_InteriorBiome</biome>
             <temperature>21</temperature>
         </pocketMapProperties>
         <disableShadows>true</disableShadows>
         <genSteps>
-			<li>VIF_VehicleInterior</li>
+			<li>VMF_VehicleInterior</li>
         </genSteps>
     </MapGeneratorDef>
 
 	<GenStepDef>
-		<defName>VIF_VehicleInterior</defName>
+		<defName>VMF_VehicleInterior</defName>
 		<order>10</order>
 		<genStep Class="VehicleInteriors.GenStep_VehicleInterior"/>
 	</GenStepDef>

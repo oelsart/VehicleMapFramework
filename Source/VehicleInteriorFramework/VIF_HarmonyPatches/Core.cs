@@ -8,7 +8,7 @@ using System.Reflection;
 using Vehicles;
 using Verse;
 
-namespace VehicleInteriors.VIF_HarmonyPatches
+namespace VehicleInteriors.VMF_HarmonyPatches
 {
     [LoadedEarly]
     [StaticConstructorOnModInit]
@@ -16,7 +16,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         static EarlyPatchCore()
         {
-            VIF_Harmony.Instance.PatchCategory("VehicleInteriors.EarlyPatches");
+            VMF_Harmony.Instance.PatchCategory("VehicleInteriors.EarlyPatches");
         }
     }
 
@@ -25,14 +25,14 @@ namespace VehicleInteriors.VIF_HarmonyPatches
     {
         static Core()
         {
-            VIF_Harmony.Instance.PatchAllUncategorized(Assembly.GetExecutingAssembly());
+            VMF_Harmony.Instance.PatchAllUncategorized(Assembly.GetExecutingAssembly());
 
             Log.Message($"[VehicleMapFramework] {VehicleInteriors.mod.Content.ModMetaData.ModVersion}");
-            Log.Message($"[VehicleMapFramework] {VIF_Harmony.Instance.GetPatchedMethods().Count()} patches applied.");
+            Log.Message($"[VehicleMapFramework] {VMF_Harmony.Instance.GetPatchedMethods().Count()} patches applied.");
         }
     }
 
-    public class VIF_Harmony
+    public class VMF_Harmony
     {
         public static Harmony Instance = new Harmony("com.harmony.oels.vehicleinteriorframework");
     }

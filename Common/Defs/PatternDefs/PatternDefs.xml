@@ -2,7 +2,7 @@
 
 <Defs>	
 	<VehicleInteriors.RGBMaskOpacityDef>
-		<defName>VIF_RGBMaskOpacity</defName>
+		<defName>VMF_RGBMaskOpacity</defName>
 		<label>RGB Mask Opacity</label>
 		<path>Graphics/Patterns/Default/Default</path>
 		<properties>

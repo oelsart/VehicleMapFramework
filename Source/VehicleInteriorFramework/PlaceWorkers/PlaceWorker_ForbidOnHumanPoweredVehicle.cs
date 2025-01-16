@@ -12,7 +12,7 @@ namespace VehicleInteriors
             }
             else
             {
-                return "VIF_ForbidOnHumanPoweredVehicle".Translate();
+                return "VMF_ForbidOnHumanPoweredVehicle".Translate();
             }
         }
 

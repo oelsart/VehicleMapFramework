@@ -114,7 +114,7 @@ namespace VehicleInteriors
             {
                 if (gotoDestMap.actor.CanReach(this.Platform, PathEndMode.InteractionCell, Danger.Deadly, false, false, TraverseMode.ByPawn, this.Platform.Map, out var exitSpot, out var enterSpot))
                 {
-                    var job = JobMaker.MakeJob(VIF_DefOf.VIF_GotoAcrossMaps);
+                    var job = JobMaker.MakeJob(VMF_DefOf.VMF_GotoAcrossMaps);
                     var driver = job.GetCachedDriver(this.pawn) as JobDriverAcrossMaps;
                     driver.SetSpots(exitSpot, enterSpot);
                     this.pawn.jobs.StartJob(job, JobCondition.Ongoing, null, true);

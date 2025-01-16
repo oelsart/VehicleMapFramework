@@ -6,7 +6,7 @@ using Verse;
 namespace VehicleInteriors
 {
     [StaticConstructorOnStartup]
-    public static class VIF_Shaders
+    public static class VMF_Shaders
     {
         public static Shader LoadShader(string shaderPath)
         {
@@ -25,6 +25,6 @@ namespace VehicleInteriors
             return shader;
         }
 
-        public static Shader terrainHardWithZ = VIF_Shaders.LoadShader("terrainHardWithZ");
+        public static Shader terrainHardWithZ = VMF_Shaders.LoadShader("terrainHardWithZ");
     }
 }

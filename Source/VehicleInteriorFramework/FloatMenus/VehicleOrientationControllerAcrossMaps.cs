@@ -60,7 +60,7 @@ namespace VehicleInteriors
 
         public void ConfirmOrientation()
         {
-            Job job = new Job(VIF_DefOf.VIF_GotoAcrossMaps, this.cell).SetSpotsToJobAcrossMaps(this.vehicle, this.exitSpot, this.enterSpot);
+            Job job = new Job(VMF_DefOf.VMF_GotoAcrossMaps, this.cell).SetSpotsToJobAcrossMaps(this.vehicle, this.exitSpot, this.enterSpot);
             bool flag = CellRect.WholeMap(this.vehicle.Map).IsOnEdge(this.clickCell, 3);
             bool flag2 = this.vehicle.Map.exitMapGrid.IsExitCell(this.clickCell);
             bool flag3 = this.vehicle.InhabitedCellsProjected(this.clickCell, Rot8.Invalid, 0).NotNullAndAny((IntVec3 cell) => cell.InBounds(this.vehicle.Map) && this.vehicle.Map.exitMapGrid.IsExitCell(cell));

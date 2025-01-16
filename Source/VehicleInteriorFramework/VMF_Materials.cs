@@ -4,7 +4,7 @@ using Verse;
 namespace VehicleInteriors
 {
     [StaticConstructorOnStartup]
-    public static class VIF_Materials
+    public static class VMF_Materials
     {
         public static Material LoadMat(string matPath)
         {
@@ -17,6 +17,6 @@ namespace VehicleInteriors
             return mat;
         }
 
-        public static readonly Material LightOverlayColorDodge = VIF_Materials.LoadMat("LightOverlayColorDodge");
+        public static readonly Material LightOverlayColorDodge = VMF_Materials.LoadMat("LightOverlayColorDodge");
     }
 }

@@ -13,7 +13,7 @@ namespace VehicleInteriors
             {
                 if (c.InBounds(map))
                 {
-                    terrainGrid.SetTerrain(c, VIF_DefOf.VIF_VehicleFloor);
+                    terrainGrid.SetTerrain(c, VMF_DefOf.VMF_VehicleFloor);
                 }
             }
         }

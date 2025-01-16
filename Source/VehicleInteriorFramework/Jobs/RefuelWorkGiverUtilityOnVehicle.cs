@@ -71,14 +71,14 @@ namespace VehicleInteriors
                 Thing thing = FindBestFuel(pawn, t, out var exitSpot, out var enterSpot);
                 if (ReachabilityUtilityOnVehicle.CanReach(thing.Map, thing.Position, t, PathEndMode.ClosestTouch, TraverseParms.For(pawn), t.Map, out var exitSpot2, out var enterSpot2))
                 {
-                    return JobMaker.MakeJob(customRefuelJob ?? VIF_DefOf.VIF_RefuelAcrossMaps, t, thing).SetSpotsToJobAcrossMaps(pawn, exitSpot2, enterSpot2, exitSpot, enterSpot);
+                    return JobMaker.MakeJob(customRefuelJob ?? VMF_DefOf.VMF_RefuelAcrossMaps, t, thing).SetSpotsToJobAcrossMaps(pawn, exitSpot2, enterSpot2, exitSpot, enterSpot);
                 }
             }
 
             List<Thing> source = FindAllFuel(pawn, t, out var exitSpot3, out var enterSpot3);
             if (!source.NullOrEmpty() && ReachabilityUtilityOnVehicle.CanReach(source.First().Map, source.First().Position, t, PathEndMode.ClosestTouch, TraverseParms.For(pawn), t.Map, out var exitSpot4, out var enterSpot4))
             {
-                var job = JobMaker.MakeJob(customAtomicRefuelJob ?? VIF_DefOf.VIF_RefuelAtomicAcrossMaps, t).SetSpotsToJobAcrossMaps(pawn, exitSpot4, enterSpot4, exitSpot3, enterSpot3);
+                var job = JobMaker.MakeJob(customAtomicRefuelJob ?? VMF_DefOf.VMF_RefuelAtomicAcrossMaps, t).SetSpotsToJobAcrossMaps(pawn, exitSpot4, enterSpot4, exitSpot3, enterSpot3);
                 job.targetQueueB = source.Select((Thing f) => new LocalTargetInfo(f)).ToList();
                 return job;
             }

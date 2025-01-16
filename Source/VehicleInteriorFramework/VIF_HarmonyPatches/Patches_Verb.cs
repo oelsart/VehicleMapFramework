@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Verse;
 
-namespace VehicleInteriors.VIF_HarmonyPatches
+namespace VehicleInteriors.VMF_HarmonyPatches
 {
     [HarmonyPatch(typeof(Verb_LaunchProjectile), "GetForcedMissTarget")]
     public static class Patch_Verb_LaunchProjectile_GetForcedMissTarget

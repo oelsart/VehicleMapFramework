@@ -296,7 +296,7 @@ namespace VehicleInteriors
                                 IHaulEnroute enroute;
                                 if ((enroute = (thing as IHaulEnroute)) != null)
                                 {
-                                    if (!thing.Map.reservationManager.OnlyReservationsForJobDef(thing, VIF_DefOf.VIF_HaulToContainerAcrossMaps, false))
+                                    if (!thing.Map.reservationManager.OnlyReservationsForJobDef(thing, VMF_DefOf.VMF_HaulToContainerAcrossMaps, false))
                                     {
                                         continue;
                                     }

@@ -2,10 +2,10 @@
 <Defs>
 
   <WorldObjectDef>
-    <defName>VIF_VehicleMap</defName>
+    <defName>VMF_VehicleMap</defName>
     <label>vehicle map</label> <!-- hidden -->
     <worldObjectClass>VehicleInteriors.MapParent_Vehicle</worldObjectClass>
-    <mapGenerator>VIF_InteriorGenerator</mapGenerator>
+    <mapGenerator>VMF_InteriorGenerator</mapGenerator>
     <useDynamicDrawer>false</useDynamicDrawer>
   </WorldObjectDef>
 

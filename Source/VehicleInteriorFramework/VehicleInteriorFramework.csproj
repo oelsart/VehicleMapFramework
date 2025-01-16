@@ -239,7 +239,7 @@
     <Compile Include="Utilities\VehicleMapUtility.cs" />
     <Compile Include="VehiclePawnWithMap.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="VIF_DefOf.cs" />
+    <Compile Include="VMF_DefOf.cs" />
     <Compile Include="VIF_HarmonyPatches\Core.cs" />
     <Compile Include="VIF_HarmonyPatches\Patches_Combat.cs" />
     <Compile Include="VIF_HarmonyPatches\Patches_DebugMenu.cs" />
@@ -258,37 +258,19 @@
     <Compile Include="VIF_HarmonyPatches\Patches_VehicleFramework.cs" />
     <Compile Include="VIF_HarmonyPatches\Patches_VehicleMapOffset.cs" />
     <Compile Include="VIF_HarmonyPatches\Patches_Verb.cs" />
-    <Compile Include="VIF_Materials.cs" />
-    <Compile Include="VIF_Shaders.cs" />
+    <Compile Include="VMF_Materials.cs" />
+    <Compile Include="VMF_Shaders.cs" />
     <Compile Include="Utilities\VIF_Widgets.cs" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
-    <Content Include="..\..\Common\Defs\**\*.*">
-      <Link>Defs\%(RecursiveDir)%(FileName)%(Extension)</Link>
-    </Content>
-    <Content Include="About.xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="..\..\Common\Patches\Patches_AddJobGivers.xml">
-      <Link>Patches\Patches_AddJobGivers.xml</Link>
-    </Content>
-    <Content Include="..\..\Common\Patches\Patches_AddWorldObjectComp.xml">
-      <Link>Patches\Patches_AddWorldObjectComp.xml</Link>
-    </Content>
-    <Content Include="..\..\Common\Patches\Patches_InsertJobGivers.xml">
-      <Link>Patches\Patches_InsertJobGivers.xml</Link>
-    </Content>
-    <Content Include="..\..\Common\Patches\Patches_ReplaceExplosion.xml">
-      <Link>Patches\Patches_ReplaceExplosion.xml</Link>
-    </Content>
-    <Content Include="..\..\Common\Patches\Patches_VehicleMoveSpeed.xml">
-      <Link>Patches\Patches_VehicleMoveSpeed.xml</Link>
+    <Content Include="..\..\**\*.xml">
+      <Link>%(RecursiveDir)%(FileName)%(Extension)</Link>
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\..\Common\Languages\**\*.*">
-      <Link>Languages\%(RecursiveDir)%(FileName)%(Extension)</Link>
+    <Content Include="..\..\..\MapVehicles\**\*.xml">
+      <Link>%(RecursiveDir)%(FileName)%(Extension)</Link>
     </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

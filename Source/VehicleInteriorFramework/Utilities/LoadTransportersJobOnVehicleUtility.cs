@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using VehicleInteriors.VIF_HarmonyPatches;
+using VehicleInteriors.VMF_HarmonyPatches;
 using Verse;
 using Verse.AI;
 
@@ -22,7 +22,7 @@ namespace VehicleInteriors
                 IReadOnlyList<Pawn> allPawnsSpawned = transporter.Map.BaseMap().mapPawns.AllPawnsSpawned;
                 for (int i = 0; i < allPawnsSpawned.Count; i++)
                 {
-                    if (allPawnsSpawned[i] != p && allPawnsSpawned[i].CurJobDef == VIF_DefOf.VIF_HaulToTransporterAcrossMaps)
+                    if (allPawnsSpawned[i] != p && allPawnsSpawned[i].CurJobDef == VMF_DefOf.VMF_HaulToTransporterAcrossMaps)
                     {
                         JobDriver_HaulToTransporterAcrossMaps jobDriver_HaulToTransporter = (JobDriver_HaulToTransporterAcrossMaps)allPawnsSpawned[i].jobs.curDriver;
                         if (jobDriver_HaulToTransporter.Container == transporter.parent)
@@ -114,7 +114,7 @@ namespace VehicleInteriors
 
         public static Job JobOnTransporter(Pawn p, CompTransporter transporter)
         {
-            Job job = JobMaker.MakeJob(VIF_DefOf.VIF_HaulToTransporterAcrossMaps, LocalTargetInfo.Invalid, transporter.parent);
+            Job job = JobMaker.MakeJob(VMF_DefOf.VMF_HaulToTransporterAcrossMaps, LocalTargetInfo.Invalid, transporter.parent);
             job.ignoreForbidden = true;
             return job;
         }

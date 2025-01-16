@@ -8,7 +8,7 @@ using Verse.Sound;
 namespace VehicleInteriors
 {
     [StaticConstructorOnStartup]
-    public static class VIF_Widgets
+    public static class VMF_Widgets
     {
         public static float HorizontalSlider(Rect rect, float value, float min, float max, bool middleAlignment = false, string label = null, string leftAlignedLabel = null, string rightAlignedLabel = null, float roundTo = -1f, Color colorFactor = default)
         {
@@ -30,19 +30,19 @@ namespace VehicleInteriors
             Rect rect2 = rect;
             rect2.xMin += 6f;
             rect2.xMax -= 6f;
-            GUI.color = VIF_Widgets.RangeControlTextColor * colorFactor;
+            GUI.color = VMF_Widgets.RangeControlTextColor * colorFactor;
             Rect rect3 = new Rect(rect2.x, rect2.y + 2f, rect2.width, 8f);
-            Widgets.DrawAtlas(rect3, VIF_Widgets.SliderRailAtlas);
+            Widgets.DrawAtlas(rect3, VMF_Widgets.SliderRailAtlas);
             GUI.color = colorFactor;
             float x = Mathf.Clamp(rect2.x - 6f + rect2.width * Mathf.InverseLerp(min, max, num), rect2.xMin - 6f, rect2.xMax - 6f);
-            GUI.DrawTexture(new Rect(x, rect3.center.y - 6f, 12f, 12f), VIF_Widgets.SliderHandle);
-            if (Event.current.type == EventType.MouseDown && Mouse.IsOver(rect) && VIF_Widgets.sliderDraggingID != num2)
+            GUI.DrawTexture(new Rect(x, rect3.center.y - 6f, 12f, 12f), VMF_Widgets.SliderHandle);
+            if (Event.current.type == EventType.MouseDown && Mouse.IsOver(rect) && VMF_Widgets.sliderDraggingID != num2)
             {
-                VIF_Widgets.sliderDraggingID = num2;
+                VMF_Widgets.sliderDraggingID = num2;
                 SoundDefOf.DragSlider.PlayOneShotOnCamera(null);
                 Event.current.Use();
             }
-            if (VIF_Widgets.sliderDraggingID == num2 && UnityGUIBugsFixer.MouseDrag(0))
+            if (VMF_Widgets.sliderDraggingID == num2 && UnityGUIBugsFixer.MouseDrag(0))
             {
                 num = Mathf.Clamp((Event.current.mousePosition.x - rect2.x) / rect2.width * (max - min) + min, min, max);
                 if (Event.current.type == EventType.MouseDrag)
@@ -81,10 +81,10 @@ namespace VehicleInteriors
             }
             if (value != num)
             {
-                if (Time.realtimeSinceStartup > VIF_Widgets.lastDragSliderSoundTime + 0.075f)
+                if (Time.realtimeSinceStartup > VMF_Widgets.lastDragSliderSoundTime + 0.075f)
                 {
                     SoundDefOf.DragSlider.PlayOneShotOnCamera(null);
-                    VIF_Widgets.lastDragSliderSoundTime = Time.realtimeSinceStartup;
+                    VMF_Widgets.lastDragSliderSoundTime = Time.realtimeSinceStartup;
                 }
             }
             GUI.color = color;

@@ -49,7 +49,7 @@ namespace VehicleInteriors
             }
             else
             {
-                float statValue = base.Vehicle.GetStatValue(VIF_DefOf.MaximumPayload);
+                float statValue = base.Vehicle.GetStatValue(VMF_DefOf.MaximumPayload);
                 var mass = MassUtility.InventoryMass(base.Vehicle);
                 if (base.Vehicle is VehiclePawnWithMap vehicleWithMap)
                 {

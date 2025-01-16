@@ -10,7 +10,7 @@ using UnityEngine;
 using Vehicles;
 using Verse;
 
-namespace VehicleInteriors.VIF_HarmonyPatches
+namespace VehicleInteriors.VMF_HarmonyPatches
 {
     [HarmonyPatch(typeof(ThingOverlays), nameof(ThingOverlays.ThingOverlaysOnGUI))]
     public static class Patch_ThingOverlays_ThingOverlaysOnGUI

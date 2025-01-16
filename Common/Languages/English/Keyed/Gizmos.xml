@@ -1,28 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LanguageData>
 
-	<VIF_FocusVehicleMap>Focus Vehicle Map</VIF_FocusVehicleMap>
-	<VIF_UnfocusVehicleMap>Unfocus Vehicle Map</VIF_UnfocusVehicleMap>
+	<VMF_FocusVehicleMap>Focus Vehicle Map</VMF_FocusVehicleMap>
+	<VMF_UnfocusVehicleMap>Unfocus Vehicle Map</VMF_UnfocusVehicleMap>
 
-	<VIF_AllowsHaulIn>Allows Haul In</VIF_AllowsHaulIn>
-	<VIF_AllowsHaulInDesc>Allows colonists to haul in storage on this vehicle's map.</VIF_AllowsHaulInDesc>
-	<VIF_AllowsHaulOut>Allows Haul Out</VIF_AllowsHaulOut>
-	<VIF_AllowsHaulOutDesc>Allows colonists to haul out storage on this vehicle's map.</VIF_AllowsHaulOutDesc>
-	<VIF_IncreasePriority>Increase Priority</VIF_IncreasePriority>
-	<VIF_IncreasePriorityDesc>Increase all storage priorities on this vehicle's map</VIF_IncreasePriorityDesc>
-	<VIF_DecreasePriority>Decrease Priority</VIF_DecreasePriority>
-	<VIF_DecreasePriorityDesc>Decrease all storage priorities on this vehicle's map</VIF_DecreasePriorityDesc>
-	<VIF_AutoGetOff>Auto Get Off</VIF_AutoGetOff>
-	<VIF_AutoGetOffDesc>Colonists who have nothing to do on the vehicle map will automatically get off this vehicle's map.</VIF_AutoGetOffDesc>
+	<VMF_AllowsHaulIn>Allows Haul In</VMF_AllowsHaulIn>
+	<VMF_AllowsHaulInDesc>Allows colonists to haul in storage on this vehicle's map.</VMF_AllowsHaulInDesc>
+	<VMF_AllowsHaulOut>Allows Haul Out</VMF_AllowsHaulOut>
+	<VMF_AllowsHaulOutDesc>Allows colonists to haul out storage on this vehicle's map.</VMF_AllowsHaulOutDesc>
+	<VMF_IncreasePriority>Increase Priority</VMF_IncreasePriority>
+	<VMF_IncreasePriorityDesc>Increase all storage priorities on this vehicle's map</VMF_IncreasePriorityDesc>
+	<VMF_DecreasePriority>Decrease Priority</VMF_DecreasePriority>
+	<VMF_DecreasePriorityDesc>Decrease all storage priorities on this vehicle's map</VMF_DecreasePriorityDesc>
+	<VMF_AutoGetOff>Auto Get Off</VMF_AutoGetOff>
+	<VMF_AutoGetOffDesc>Colonists who have nothing to do on the vehicle map will automatically get off this vehicle's map.</VMF_AutoGetOffDesc>
 
-	<VIF_LowerPowerDesc>Lower the target power transmission amount.</VIF_LowerPowerDesc>
-	<VIF_ResetPower>Reset</VIF_ResetPower>
-	<VIF_ResetPowerDesc>Reset the target power transmission amount.</VIF_ResetPowerDesc>
-	<VIF_RaisePowerDesc>Raise the target power transmission amount.</VIF_RaisePowerDesc>
+	<VMF_LowerPowerDesc>Lower the target power transmission amount.</VMF_LowerPowerDesc>
+	<VMF_ResetPower>Reset</VMF_ResetPower>
+	<VMF_ResetPowerDesc>Reset the target power transmission amount.</VMF_ResetPowerDesc>
+	<VMF_RaisePowerDesc>Raise the target power transmission amount.</VMF_RaisePowerDesc>
 
-	<VIF_Reassign>Reassign</VIF_Reassign>
-	<VIF_ReassignDesc>Reassign the turret that this seat operates.</VIF_ReassignDesc>
+	<VMF_Reassign>Reassign</VMF_Reassign>
+	<VMF_ReassignDesc>Reassign the turret that this seat operates.</VMF_ReassignDesc>
 
-	<VIF_GatherFromBaseMap>Gather From Basemap</VIF_GatherFromBaseMap>
+	<VMF_GatherFromBaseMap>Gather From Basemap</VMF_GatherFromBaseMap>
 
 </LanguageData>

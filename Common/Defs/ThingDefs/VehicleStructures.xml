@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Defs>
-	<ThingDef Name="VIF_VehicleStructure">
-		<defName>VIF_VehicleStructureFilled</defName>
+	<ThingDef Name="VMF_VehicleStructure">
+		<defName>VMF_VehicleStructureFilled</defName>
 		<label>vehicle structure filled</label>
 		<description>Structure of a vehicle.</description>
 		<thingClass>ThingWithComps</thingClass>
@@ -45,8 +45,8 @@
 		</comps>
 	</ThingDef>
 
-	<ThingDef ParentName="VIF_VehicleStructure">
-		<defName>VIF_VehicleStructureEmpty</defName>
+	<ThingDef ParentName="VMF_VehicleStructure">
+		<defName>VMF_VehicleStructureEmpty</defName>
 		<label>vehicle structure empty</label>
 		<fillPercent>0</fillPercent>
 	</ThingDef>

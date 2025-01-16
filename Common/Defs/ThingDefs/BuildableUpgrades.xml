@@ -8,13 +8,16 @@
 		<fillPercent>0.5</fillPercent>
 		<passability>PassThroughOnly</passability>
 		<pathCost>50</pathCost>
+		<researchPrerequisites>
+			<li MayRequire="OskarPotocki.VanillaVehiclesExpanded">VVE_BasicVehicles</li>
+		</researchPrerequisites>
 		<placeWorkers>
 			<li>VehicleInteriors.PlaceWorker_ForceOnVehicle</li>
 		</placeWorkers>
 	</ThingDef>
 	
 	<ThingDef ParentName="VehicleSeatBase">
-		<defName>VIF_DriverSeat</defName>
+		<defName>VMF_DriverSeat</defName>
 		<label>driver seat</label>
 		<description>Driver's seat of a vehicle. When this is installed, the vehicle can be controlled.</description>
 		<graphicData>
@@ -69,7 +72,7 @@
 	</ThingDef>
 	
 	<ThingDef ParentName="VehicleSeatBase">
-		<defName>VIF_GunnerSeat</defName>
+		<defName>VMF_GunnerSeat</defName>
 		<label>gunner seat</label>
 		<description>Gunner's seat of a vehicle. When this is installed, the selected turret of the vehicle can be controlled.</description>
 		<graphicData>
@@ -123,7 +126,7 @@
 	</ThingDef>
 	
 	<ThingDef ParentName="VehicleSeatBase">
-		<defName>VIF_PassengerSeat</defName>
+		<defName>VMF_PassengerSeat</defName>
 		<label>passenger seat</label>
 		<description>Passenger's seat of a vehicle.</description>
 		<graphicData>
@@ -172,7 +175,7 @@
 	</ThingDef>
 
 	<ThingDef ParentName="FurnitureBase">
-		<defName>VIF_CargoContainer</defName>
+		<defName>VMF_CargoContainer</defName>
 		<label>cargo container</label>
 		<description>Storage for additional vehicle cargo capacity.\n\n&lt;color=#bb8f04&gt;Cargo capacity:&lt;/color&gt; +100 kg</description>
 		<designationCategory>VF_Vehicles</designationCategory>
@@ -212,6 +215,9 @@
 			<li>Woody</li>
 		</stuffCategories>
 		<costStuffCount>100</costStuffCount>
+		<researchPrerequisites>
+			<li MayRequire="OELS.MapVehicles">MV_Cart</li>
+		</researchPrerequisites>
 		<building>
 			<maxItemsInCell>0</maxItemsInCell>
 			<blueprintGraphicData>
@@ -246,7 +252,7 @@
 	</ThingDef>
 
 	<ThingDef ParentName="FurnitureBase">
-		<defName>VIF_TurboCharger</defName>
+		<defName>VMF_TurboCharger</defName>
 		<label>turbo charger</label>
 		<description>Engine components to enhance the vehicle's maximum payload.\n\n&lt;color=#bb8f04&gt;Maximum payload:&lt;/color&gt; +300 kg\n&lt;color=#bb8f04&gt;Fuel Consumption:&lt;/color&gt; +8 /day</description>
 		<designationCategory>VF_Vehicles</designationCategory>
@@ -278,8 +284,10 @@
 		<costList>
 			<Steel>200</Steel>
 			<ComponentIndustrial>10</ComponentIndustrial>
-			<ComponentSpacer>2</ComponentSpacer>
 		</costList>
+		<researchPrerequisites>
+			<li MayRequire="OskarPotocki.VanillaVehiclesExpanded">VVE_BasicVehicles</li>
+		</researchPrerequisites>
 		<uiOrder>1024</uiOrder>
 		<comps>
 			<li Class = "VehicleInteriors.CompProperties_BuildableUpgrades">
@@ -307,7 +315,7 @@
 	</ThingDef>
 
 	<ThingDef ParentName="FurnitureBase">
-		<defName>VIF_LiftFan</defName>
+		<defName>VMF_LiftFan</defName>
 		<label>lift fan</label>
 		<description>A Lift fan to enhance the hover vehicle's maximum payload.\n\n&lt;color=#bb8f04&gt;Maximum Payload:&lt;/color&gt; +150 kg\n&lt;color=#bb8f04&gt;Fuel Consumption:&lt;/color&gt; +4 /day</description>
 		<designationCategory>VF_Vehicles</designationCategory>
@@ -342,6 +350,9 @@
 			<Steel>80</Steel>
 			<ComponentIndustrial>1</ComponentIndustrial>
 		</costList>
+		<researchPrerequisites>
+			<li MayRequire="OskarPotocki.VanillaVehiclesExpanded">VVE_BasicVehicles</li>
+		</researchPrerequisites>
 		<uiOrder>1025</uiOrder>
 		<comps>
 			<li Class = "VehicleInteriors.CompProperties_BuildableUpgrades">

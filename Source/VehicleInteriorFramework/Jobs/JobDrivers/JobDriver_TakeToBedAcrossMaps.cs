@@ -35,7 +35,7 @@ namespace VehicleInteriors
 
         public override string GetReport()
         {
-            if (this.job.def == VIF_DefOf.VIF_RescueAcrossMaps && !this.TakeeRescued)
+            if (this.job.def == VMF_DefOf.VMF_RescueAcrossMaps && !this.TakeeRescued)
             {
                 return "TakingToBed".Translate(this.Takee);
             }

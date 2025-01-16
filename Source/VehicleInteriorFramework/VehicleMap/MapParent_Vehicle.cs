@@ -11,7 +11,7 @@ namespace VehicleInteriors
         {
             get
             {
-                return $"{this.vehicle.Label}{"VIF_VehicleMap".Translate()}";
+                return $"{this.vehicle.Label}{"VMF_VehicleMap".Translate()}";
             }
         }
 

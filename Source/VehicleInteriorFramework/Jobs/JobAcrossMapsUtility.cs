@@ -19,14 +19,14 @@ namespace VehicleInteriors
                 //        return nextJob;
                 //    }
                 //}
-                return JobMaker.MakeJob(VIF_DefOf.VIF_GotoDestMap).SetSpotsAndNextJob(pawn, exitSpot1, enterSpot1, nextJob: nextJob);
+                return JobMaker.MakeJob(VMF_DefOf.VMF_GotoDestMap).SetSpotsAndNextJob(pawn, exitSpot1, enterSpot1, nextJob: nextJob);
             }
             return nextJob;
         }
 
         public static void TryTakeGotoDestMapJob(Pawn pawn, TargetInfo? exitSpot1 = null, TargetInfo? enterSpot1 = null)
         {
-            pawn.jobs.TryTakeOrderedJob(JobMaker.MakeJob(VIF_DefOf.VIF_GotoAcrossMaps).SetSpotsToJobAcrossMaps(pawn, exitSpot1, enterSpot1), new JobTag?(JobTag.Misc), false);
+            pawn.jobs.TryTakeOrderedJob(JobMaker.MakeJob(VMF_DefOf.VMF_GotoAcrossMaps).SetSpotsToJobAcrossMaps(pawn, exitSpot1, enterSpot1), new JobTag?(JobTag.Misc), false);
         }
 
         public static Job SetSpotsToJobAcrossMaps(this Job job, Pawn pawn, TargetInfo? exitSpot1 = null, TargetInfo? enterSpot1 = null, TargetInfo? exitSpot2 = null, TargetInfo? enterSpot2 = null)

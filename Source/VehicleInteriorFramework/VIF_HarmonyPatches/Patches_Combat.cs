@@ -8,7 +8,7 @@ using UnityEngine;
 using Verse;
 using Verse.AI;
 
-namespace VehicleInteriors.VIF_HarmonyPatches
+namespace VehicleInteriors.VMF_HarmonyPatches
 {
     //[HarmonyPatch(typeof(AttackTargetsCache), nameof(AttackTargetsCache.UpdateTarget))]
     //public static class Patch_AttackTargetsCache_UpdateTarget

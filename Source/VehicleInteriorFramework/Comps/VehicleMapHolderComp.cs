@@ -58,7 +58,7 @@ namespace VehicleInteriors
                 {
                     continue;
                 }
-                yield return new FloatMenuOption("VIF_LandInSpecificMap".Translate(vehicle.VehicleMap.Parent.Label, this.parent.Label), delegate
+                yield return new FloatMenuOption("VMF_LandInSpecificMap".Translate(vehicle.VehicleMap.Parent.Label, this.parent.Label), delegate
                 {
                     Map myMap = representative.parent.Map;
                     Map map = vehicle.VehicleMap;

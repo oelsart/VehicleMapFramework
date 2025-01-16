@@ -42,7 +42,7 @@ namespace VehicleInteriors
 
             bool IsValidJob(Job job)
 		    {
-			    return job.def != VIF_DefOf.VIF_HaulToContainerAcrossMaps || job.targetA != carriedThing;
+			    return job.def != VMF_DefOf.VMF_HaulToContainerAcrossMaps || job.targetA != carriedThing;
 		    }
             if (pawn.CurJob != null && !IsValidJob(pawn.CurJob))
 			{
@@ -141,7 +141,7 @@ namespace VehicleInteriors
                             {
                                 return null;
                             }
-                            Job job2 = JobMaker.MakeJob(VIF_DefOf.VIF_HaulToContainerAcrossMaps);
+                            Job job2 = JobMaker.MakeJob(VMF_DefOf.VMF_HaulToContainerAcrossMaps);
                             var driver = job2.GetCachedDriver(pawn) as JobDriverAcrossMaps;
                             driver.SetSpots(exitSpot, enterSpot, exitSpot2, enterSpot2);
                             job2.targetA = foundRes;
@@ -318,7 +318,7 @@ namespace VehicleInteriors
             {
                 return null;
             }
-            Job job = JobMaker.MakeJob(VIF_DefOf.VIF_HaulToContainerAcrossMaps, miniToInstallOrBuildingToReinstall, install);
+            Job job = JobMaker.MakeJob(VMF_DefOf.VMF_HaulToContainerAcrossMaps, miniToInstallOrBuildingToReinstall, install);
             var driver = job.GetCachedDriver(pawn) as JobDriverAcrossMaps;
             driver.SetSpots(exitSpot, enterSpot, exitSpot2, enterSpot2);
             job.count = 1;

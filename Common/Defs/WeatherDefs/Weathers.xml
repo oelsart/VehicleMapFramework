@@ -2,7 +2,7 @@
 <Defs>
 
     <WeatherDef>
-    <defName>VIF_Indoor</defName>
+    <defName>VMF_Indoor</defName>
     <label>indoor</label> 
     <description>No weather.</description> 
     <repeatable>true</repeatable>

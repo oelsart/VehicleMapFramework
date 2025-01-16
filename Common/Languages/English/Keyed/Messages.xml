@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LanguageData>
 
-	<VIF_ForceOnVehicle>Cannot be placed outside of a vehicle map.</VIF_ForceOnVehicle>
-	<VIF_ForceOnVehicle>Cannot be placed outside of a hover vehicle map.</VIF_ForceOnVehicle>
-	<VIF_ForbidOnVehicle>Cannot be placed on a vehicle map.</VIF_ForbidOnVehicle>
-	<VIF_ForbidOnHumanPoweredVehicle>Cannot be placed on a human powered vehicle map.</VIF_ForbidOnHumanPoweredVehicle>
-	<VIF_ForceOnVehicleMapEdge>Cannot be placed outside the edge of a vehicle map.</VIF_ForceOnVehicleMapEdge>
+	<VMF_ForceOnVehicle>Cannot be placed outside of a vehicle map.</VMF_ForceOnVehicle>
+	<VMF_ForceOnVehicle>Cannot be placed outside of a hover vehicle map.</VMF_ForceOnVehicle>
+	<VMF_ForbidOnVehicle>Cannot be placed on a vehicle map.</VMF_ForbidOnVehicle>
+	<VMF_ForbidOnHumanPoweredVehicle>Cannot be placed on a human powered vehicle map.</VMF_ForbidOnHumanPoweredVehicle>
+	<VMF_ForceOnVehicleMapEdge>Cannot be placed outside the edge of a vehicle map.</VMF_ForceOnVehicleMapEdge>
 
-	<VIF_NoRoles>No roles for operating this turret in {0}.</VIF_NoRoles>
+	<VMF_NoRoles>No roles for operating this turret in {0}.</VMF_NoRoles>
 
 </LanguageData>

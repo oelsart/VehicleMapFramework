@@ -58,7 +58,7 @@ namespace VehicleInteriors
                 }
                 this.job.SetTarget(TargetIndex.B, pawn);
                 this.pawn.CanReach(pawn, PathEndMode.ClosestTouch, Danger.Deadly, false, false, TraverseMode.ByPawn, pawn.Map, out var exitSpot, out var enterSpot);
-                var gotoDestMap = JobMaker.MakeJob(VIF_DefOf.VIF_GotoAcrossMaps);
+                var gotoDestMap = JobMaker.MakeJob(VMF_DefOf.VMF_GotoAcrossMaps);
                 var driver = gotoDestMap.GetCachedDriver(toil.actor) as JobDriverAcrossMaps;
                 driver.SetSpots(exitSpot, enterSpot);
                 toil.actor.jobs.StartJob(gotoDestMap, JobCondition.Ongoing, null, true);

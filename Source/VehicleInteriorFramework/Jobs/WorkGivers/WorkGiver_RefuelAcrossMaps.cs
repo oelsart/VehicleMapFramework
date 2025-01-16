@@ -29,7 +29,7 @@ namespace VehicleInteriors
         {
             get
             {
-                return VIF_DefOf.VIF_RefuelAcrossMaps;
+                return VMF_DefOf.VMF_RefuelAcrossMaps;
             }
         }
 
@@ -37,7 +37,7 @@ namespace VehicleInteriors
         {
             get
             {
-                return VIF_DefOf.VIF_RefuelAtomicAcrossMaps;
+                return VMF_DefOf.VMF_RefuelAtomicAcrossMaps;
             }
         }
 

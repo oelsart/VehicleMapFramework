@@ -180,7 +180,7 @@ namespace VehicleInteriors
             var giver = (Thing)bill.billStack.billGiver;
             if (ReachabilityUtilityOnVehicle.CanReach(uft.Map, uft.Position, giver, PathEndMode.InteractionCell, TraverseParms.For(pawn), giver.Map, out var exitSpot2, out var enterSpot2))
             {
-                Job job2 = JobMaker.MakeJob(VIF_DefOf.VIF_DoBillAcrossMaps, giver).SetSpotsToJobAcrossMaps(pawn, exitSpot, enterSpot, exitSpot2, enterSpot2);
+                Job job2 = JobMaker.MakeJob(VMF_DefOf.VMF_DoBillAcrossMaps, giver).SetSpotsToJobAcrossMaps(pawn, exitSpot, enterSpot, exitSpot2, enterSpot2);
                 job2.bill = bill;
                 job2.targetQueueB = new List<LocalTargetInfo> { uft };
                 job2.countQueue = new List<int> { 1 };
@@ -369,7 +369,7 @@ namespace VehicleInteriors
             var giverThing = (Thing)giver;
             if (ReachabilityUtilityOnVehicle.CanReach(firstThing.Map, firstThing.Position, giverThing, PathEndMode.InteractionCell, TraverseParms.For(pawn), giver.Map, out var exitSpot2, out var enterSpot2))
             {
-                Job job = JobMaker.MakeJob(VIF_DefOf.VIF_DoBillAcrossMaps, (Thing)giver).SetSpotsToJobAcrossMaps(pawn, exitSpot, enterSpot, exitSpot2, enterSpot2);
+                Job job = JobMaker.MakeJob(VMF_DefOf.VMF_DoBillAcrossMaps, (Thing)giver).SetSpotsToJobAcrossMaps(pawn, exitSpot, enterSpot, exitSpot2, enterSpot2);
                 job.targetQueueB = new List<LocalTargetInfo>(chosenIngThings.Count);
                 job.countQueue = new List<int>(chosenIngThings.Count);
                 for (int i = 0; i < chosenIngThings.Count; i++)

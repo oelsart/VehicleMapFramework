@@ -2,7 +2,7 @@
 <Defs>
 
 	<TerrainDef>
-		<defName>VIF_VehicleFloor</defName>
+		<defName>VMF_VehicleFloor</defName>
 		<label>vehicle floor</label>
 		<texturePath>PlaceholderImage</texturePath>
 		<edgeType>Hard</edgeType>

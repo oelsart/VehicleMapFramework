@@ -2,7 +2,7 @@
 using RimWorld;
 using System.Collections.Generic;
 
-namespace VehicleInteriors.VIF_HarmonyPatches
+namespace VehicleInteriors.VMF_HarmonyPatches
 {
     [HarmonyPatch(typeof(Targeter), "ConfirmStillValid")]
     public static class Patch_Targeter_ConfirmStillValid

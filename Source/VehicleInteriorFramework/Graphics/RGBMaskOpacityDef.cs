@@ -4,6 +4,6 @@ namespace VehicleInteriors
 {
     public class RGBMaskOpacityDef : PatternDef
     {
-        public override RGBShaderTypeDef ShaderTypeDef => VIF_DefOf.VIF_CutoutComplexRGBOpacity;
+        public override RGBShaderTypeDef ShaderTypeDef => VMF_DefOf.VMF_CutoutComplexRGBOpacity;
     }
 }

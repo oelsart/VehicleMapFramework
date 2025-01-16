@@ -48,7 +48,7 @@ namespace VehicleInteriors
 
         public override string ExplanationPart(VehiclePawn vehicle)
         {
-            return "VIF_StatsReport_HumanPowerAverage".Translate(this.Modifier(vehicle).GetValueOrDefault().ToStringByStyle(ToStringStyle.FloatMaxTwo, ToStringNumberSense.Factor));
+            return "VMF_StatsReport_HumanPowerAverage".Translate(this.Modifier(vehicle).GetValueOrDefault().ToStringByStyle(ToStringStyle.FloatMaxTwo, ToStringNumberSense.Factor));
         }
     }
 }

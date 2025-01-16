@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
-using VehicleInteriors.VIF_HarmonyPatches;
+using VehicleInteriors.VMF_HarmonyPatches;
 using Vehicles;
 using Verse;
 using Verse.AI;

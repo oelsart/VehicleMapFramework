@@ -2,7 +2,7 @@
 <Defs>
 	
 	<JobDef>
-		<defName>VIF_GotoDestMap</defName>
+		<defName>VMF_GotoDestMap</defName>
 		<driverClass>VehicleInteriors.JobDriver_GotoDestMap</driverClass>
 		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
 		<carryThingAfterJob>true</carryThingAfterJob>
@@ -10,7 +10,7 @@
 	</JobDef>
 
 	<JobDef>
-		<defName>VIF_GotoAcrossMaps</defName>
+		<defName>VMF_GotoAcrossMaps</defName>
 		<driverClass>VehicleInteriors.JobDriver_GotoAcrossMaps</driverClass>
 		<reportString>moving.</reportString>
 		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
@@ -19,7 +19,7 @@
 	</JobDef>
 	
 	<JobDef>
-		<defName>VIF_AttackMeleeAcrossMaps</defName>
+		<defName>VMF_AttackMeleeAcrossMaps</defName>
 		<driverClass>VehicleInteriors.JobDriver_AttackMeleeAcrossMaps</driverClass>
 		<reportString>melee attacking TargetC.</reportString>
 		<alwaysShowWeapon>true</alwaysShowWeapon>
@@ -28,28 +28,28 @@
 	</JobDef>
 	
 	<JobDef>
-		<defName>VIF_HaulToCellAcrossMaps</defName>
+		<defName>VMF_HaulToCellAcrossMaps</defName>
 		<driverClass>VehicleInteriors.JobDriver_HaulToCellAcrossMaps</driverClass>
 		<reportString>hauling TargetA.</reportString>
 		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
 	</JobDef>
 	
 	<JobDef>
-		<defName>VIF_HaulToContainerAcrossMaps</defName>
+		<defName>VMF_HaulToContainerAcrossMaps</defName>
 		<driverClass>VehicleInteriors.JobDriver_HaulToContainerAcrossMaps</driverClass>
 		<reportString>hauling TargetA.</reportString>
 		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
 	</JobDef>
 	
 	<JobDef>
-		<defName>VIF_CarryDownedPawnDraftedAcrossMaps</defName>
+		<defName>VMF_CarryDownedPawnDraftedAcrossMaps</defName>
 		<driverClass>VehicleInteriors.JobDriver_CarryDownedPawnAcrossMaps</driverClass>
 		<reportString>carrying TargetA.</reportString>
 		<carryThingAfterJob>true</carryThingAfterJob>
 	</JobDef>
 	
 	<JobDef>
-		<defName>VIF_TakeDownedPawnToBedDraftedAcrossMaps</defName>
+		<defName>VMF_TakeDownedPawnToBedDraftedAcrossMaps</defName>
 		<driverClass>VehicleInteriors.JobDriver_TakeToBedAcrossMaps</driverClass>
 		<reportString>taking TargetA to bed.</reportString>
 		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
@@ -57,7 +57,7 @@
 	</JobDef>
 	
 	<JobDef>
-		<defName>VIF_CarryToPrisonerBedDraftedAcrossMaps</defName>
+		<defName>VMF_CarryToPrisonerBedDraftedAcrossMaps</defName>
 		<driverClass>VehicleInteriors.JobDriver_TakeToBedAcrossMaps</driverClass>
 		<reportString>arresting TargetA.</reportString>
 		<alwaysShowWeapon>true</alwaysShowWeapon>
@@ -68,27 +68,27 @@
 	</JobDef>
 	
 	<JobDef>
-		<defName>VIF_CarryToEntityHolderAcrossMaps</defName>
+		<defName>VMF_CarryToEntityHolderAcrossMaps</defName>
 		<driverClass>VehicleInteriors.JobDriver_CarryToEntityHolderAcrossMaps</driverClass>
 		<reportString>carrying TargetB to TargetA.</reportString>
 		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
 	</JobDef>
 	
 	<JobDef>
-		<defName>VIF_CarryToEntityHolderAlreadyHoldingAcrossMaps</defName>
+		<defName>VMF_CarryToEntityHolderAlreadyHoldingAcrossMaps</defName>
 		<driverClass>VehicleInteriors.JobDriver_CarryToEntityHolderAlreadyHoldingAcrossMaps</driverClass>
 		<reportString>carrying TargetB to TargetA.</reportString>
 		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
 	</JobDef>
 	
 	<JobDef>
-		<defName>VIF_TransferBetweenEntityHoldersAcrossMaps</defName>
+		<defName>VMF_TransferBetweenEntityHoldersAcrossMaps</defName>
 		<driverClass>VehicleInteriors.JobDriver_TransferBetweenEntityHoldersAcrossMaps</driverClass>
 		<reportString>transferring TargetC to another holding location.</reportString>
 	</JobDef>
 	
 	<JobDef>
-		<defName>VIF_ArrestAcrossMaps</defName>
+		<defName>VMF_ArrestAcrossMaps</defName>
 		<driverClass>VehicleInteriors.JobDriver_TakeToBedAcrossMaps</driverClass>
 		<reportString>arresting TargetA.</reportString>
 		<alwaysShowWeapon>true</alwaysShowWeapon>
@@ -98,7 +98,7 @@
 	</JobDef>
 	
 	<JobDef>
-		<defName>VIF_RescueAcrossMaps</defName>
+		<defName>VMF_RescueAcrossMaps</defName>
 		<driverClass>VehicleInteriors.JobDriver_TakeToBedAcrossMaps</driverClass>
 		<reportString>rescuing TargetA.</reportString>
 		<casualInterruptible>false</casualInterruptible>
@@ -107,14 +107,14 @@
 	</JobDef>
 	
 	<JobDef>
-		<defName>VIF_BringBabyToSafetyAcrossMaps</defName>
+		<defName>VMF_BringBabyToSafetyAcrossMaps</defName>
 		<driverClass>VehicleInteriors.JobDriver_BringBabyToSafetyAcrossMaps</driverClass>
 		<reportString>putting TargetA somewhere safe.</reportString>
 		<forceCompleteBeforeNextJob>true</forceCompleteBeforeNextJob>
 	</JobDef>
 	
 	<JobDef>
-		<defName>VIF_CaptureAcrossMaps</defName>
+		<defName>VMF_CaptureAcrossMaps</defName>
 		<driverClass>VehicleInteriors.JobDriver_TakeToBedAcrossMaps</driverClass>
 		<reportString>capturing TargetA.</reportString>
 		<alwaysShowWeapon>true</alwaysShowWeapon>
@@ -124,7 +124,7 @@
 	</JobDef>
 	
 	<JobDef>
-		<defName>VIF_CarryToCryptosleepCasketAcrossMaps</defName>
+		<defName>VMF_CarryToCryptosleepCasketAcrossMaps</defName>
 		<driverClass>VehicleInteriors.JobDriver_CarryToCryptosleepCasketAcrossMaps</driverClass>
 		<reportString>carrying TargetA to clyptosleep casket.</reportString>
 		<casualInterruptible>false</casualInterruptible>
@@ -132,7 +132,7 @@
 	</JobDef>
 	
 	<JobDef>
-		<defName>VIF_CarryToCryptosleepCasketDraftedAcrossMaps</defName>
+		<defName>VMF_CarryToCryptosleepCasketDraftedAcrossMaps</defName>
 		<driverClass>VehicleInteriors.JobDriver_CarryToCryptosleepCasketAcrossMaps</driverClass>
 		<reportString>carrying TargetA to clyptosleep casket.</reportString>
 		<casualInterruptible>false</casualInterruptible>
@@ -142,7 +142,7 @@
 	</JobDef>
 	
 	<JobDef>
-		<defName>VIF_HaulToTransporterAcrossMaps</defName>
+		<defName>VMF_HaulToTransporterAcrossMaps</defName>
 		<driverClass>VehicleInteriors.JobDriver_HaulToTransporterAcrossMaps</driverClass>
 		<reportString>hauling TargetA.</reportString>
 		<suspendable>false</suspendable>
@@ -151,39 +151,39 @@
 	</JobDef>
 	
 	<JobDef>
-		<defName>VIF_ExtractRelicAcrossMaps</defName>
+		<defName>VMF_ExtractRelicAcrossMaps</defName>
 		<driverClass>VehicleInteriors.JobDriver_EmptyThingContainerAcrossMaps</driverClass>
 		<reportString>extracting TargetB from TargetA.</reportString>
 	</JobDef>
 	
 	<JobDef>
-		<defName>VIF_InstallRelicAcrossMaps</defName>
+		<defName>VMF_InstallRelicAcrossMaps</defName>
 		<driverClass>VehicleInteriors.JobDriver_InstallRelicAcrossMaps</driverClass>
 		<reportString>installing TargetA in TargetB</reportString>
 	</JobDef>
 	
 	<JobDef>
-		<defName>VIF_HaulMechToChargerAcrossMaps</defName>
+		<defName>VMF_HaulMechToChargerAcrossMaps</defName>
 		<driverClass>VehicleInteriors.JobDriver_HaulMechToChargerAcrossMaps</driverClass>
 		<reportString>hauling TargetA to charger.</reportString>
 	</JobDef>
 	
 	<JobDef>
-		<defName>VIF_DeliverToBedAcrossMaps</defName>
+		<defName>VMF_DeliverToBedAcrossMaps</defName>
 		<driverClass>VehicleInteriors.JobDriver_TakeToBedAcrossMaps</driverClass>
 		<reportString>delivering TargetA.</reportString>
 		<casualInterruptible>false</casualInterruptible>
 	</JobDef>  
 	
 	<JobDef>
-		<defName>VIF_GiveToPackAnimalAcrossMaps</defName>
+		<defName>VMF_GiveToPackAnimalAcrossMaps</defName>
 		<driverClass>VehicleInteriors.JobDriver_GiveToPackAnimalAcrossMaps</driverClass>
 		<reportString>taking TargetA.</reportString>
 		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
 	</JobDef>
 	
 	<JobDef>
-		<defName>VIF_CarryDownedPawnToPortalAcrossMaps</defName>
+		<defName>VMF_CarryDownedPawnToPortalAcrossMaps</defName>
 		<driverClass>VehicleInteriors.JobDriver_TakeAndEnterPortalAcrossMaps</driverClass>
 		<reportString>carrying TargetA.</reportString>
 		<casualInterruptible>false</casualInterruptible>
@@ -192,7 +192,7 @@
 	</JobDef>
 	
 	<JobDef>
-		<defName>VIF_CarryDownedPawnToExitAcrossMaps</defName>
+		<defName>VMF_CarryDownedPawnToExitAcrossMaps</defName>
 		<driverClass>VehicleInteriors.JobDriver_KidnapAcrossMaps</driverClass>
 		<reportString>carrying TargetA.</reportString>
 		<casualInterruptible>false</casualInterruptible>
@@ -200,7 +200,7 @@
 	</JobDef>
 	
 	<JobDef>
-		<defName>VIF_TendPatientAcrossMaps</defName>
+		<defName>VMF_TendPatientAcrossMaps</defName>
 		<driverClass>VehicleInteriors.JobDriver_TendPatientAcrossMaps</driverClass>
 		<reportString>tending to TargetA.</reportString>
 		<casualInterruptible>false</casualInterruptible>
@@ -208,21 +208,21 @@
 	</JobDef>
 	
 	<JobDef>
-		<defName>VIF_TendEntityAcrossmaps</defName>
+		<defName>VMF_TendEntityAcrossmaps</defName>
 		<driverClass>VehicleInteriors.JobDriver_TendEntityAcrossMaps</driverClass>
 		<reportString>tending to TargetA.</reportString>
 		<casualInterruptible>false</casualInterruptible>
 	</JobDef>
 	
 	<JobDef>
-		<defName>VIF_BoardAcrossMaps</defName>
+		<defName>VMF_BoardAcrossMaps</defName>
 		<driverClass>VehicleInteriors.JobDriver_BoardAcrossMaps</driverClass>
 		<reportString>Entering TargetA.</reportString>
 		<casualInterruptible>false</casualInterruptible>
 	</JobDef>
 
 	<JobDef>
-		<defName>VIF_RefuelAcrossMaps</defName>
+		<defName>VMF_RefuelAcrossMaps</defName>
 		<driverClass>VehicleInteriors.JobDriver_RefuelAcrossMaps</driverClass>
 		<reportString>refueling TargetA.</reportString>
 		<suspendable>false</suspendable>
@@ -230,7 +230,7 @@
 	</JobDef>
 	
 	<JobDef>
-		<defName>VIF_RefuelAtomicAcrossMaps</defName>
+		<defName>VMF_RefuelAtomicAcrossMaps</defName>
 		<driverClass>VehicleInteriors.JobDriver_RefuelAtomicAcrossMaps</driverClass>
 		<reportString>refueling TargetA.</reportString>
 		<suspendable>false</suspendable>
@@ -238,7 +238,7 @@
 	</JobDef>
 
 	<JobDef>
-		<defName>VIF_RearmTurretAcrossMaps</defName>
+		<defName>VMF_RearmTurretAcrossMaps</defName>
 		<driverClass>VehicleInteriors.JobDriver_RefuelAcrossMaps</driverClass>
 		<reportString>rearming TargetA.</reportString>
 		<suspendable>false</suspendable>
@@ -246,7 +246,7 @@
 	</JobDef>
 
 	<JobDef>
-		<defName>VIF_RearmTurretAtomicAcrossMaps</defName>
+		<defName>VMF_RearmTurretAtomicAcrossMaps</defName>
 		<driverClass>VehicleInteriors.JobDriver_RefuelAtomicAcrossMaps</driverClass>
 		<reportString>rearming TargetA.</reportString>
 		<suspendable>false</suspendable>
@@ -254,7 +254,7 @@
 	</JobDef>
 
 	<JobDef>
-		<defName>VIF_DoBillAcrossMaps</defName>
+		<defName>VMF_DoBillAcrossMaps</defName>
 		<driverClass>VehicleInteriors.JobDriver_DoBillAcrossMaps</driverClass>
 		<reportString>doing bill at TargetA.</reportString>
 		<suspendable>false</suspendable>

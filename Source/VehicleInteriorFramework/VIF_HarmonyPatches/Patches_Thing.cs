@@ -6,7 +6,7 @@ using System.Linq;
 using System.Reflection.Emit;
 using Verse;
 
-namespace VehicleInteriors.VIF_HarmonyPatches
+namespace VehicleInteriors.VMF_HarmonyPatches
 {
     [HarmonyPatch(typeof(Building_Door), "StuckOpen", MethodType.Getter)]
     public static class Patch_Building_Door_StuckOpen

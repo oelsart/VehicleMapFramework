@@ -7,7 +7,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using Verse;
 
-namespace VehicleInteriors.VIF_HarmonyPatches
+namespace VehicleInteriors.VMF_HarmonyPatches
 {
     //車上マップにそれぞれVirtualMapTransferしてColonyThingsWillingToBuyを集める
     [HarmonyPatch(typeof(Pawn), nameof(Pawn.ColonyThingsWillingToBuy))]

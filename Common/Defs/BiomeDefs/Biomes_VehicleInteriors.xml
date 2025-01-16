@@ -2,7 +2,7 @@
 <Defs>
  
  <BiomeDef>
-    <defName>VIF_InteriorBiome</defName>
+    <defName>VMF_InteriorBiome</defName>
     <label>Interior biome</label>
     <description>A biome of vehicle interior.</description>
     <generatesNaturally>false</generatesNaturally>
@@ -10,7 +10,7 @@
     <plantDensity>0</plantDensity>
     <wildAnimalsCanWanderInto>false</wildAnimalsCanWanderInto>
     <baseWeatherCommonalities>
-      <VIF_Indoor>1</VIF_Indoor>
+      <VMF_Indoor>1</VMF_Indoor>
     </baseWeatherCommonalities>
     <diseaseMtbDays>80</diseaseMtbDays>
     <diseases>

@@ -116,7 +116,7 @@ namespace VehicleInteriors
             {
                 if (gotoDestMap.actor.CanReach(this.Deliveree, PathEndMode.InteractionCell, Danger.Deadly, false, false, TraverseMode.ByPawn, this.Deliveree.Map, out var exitSpot, out var enterSpot))
                 {
-                    var job = JobMaker.MakeJob(VIF_DefOf.VIF_GotoAcrossMaps);
+                    var job = JobMaker.MakeJob(VMF_DefOf.VMF_GotoAcrossMaps);
                     var driver = job.GetCachedDriver(this.pawn) as JobDriverAcrossMaps;
                     driver.SetSpots(exitSpot, enterSpot);
                     this.pawn.jobs.StartJob(job, JobCondition.Ongoing, null, true);
@@ -231,7 +231,7 @@ namespace VehicleInteriors
                     Thing thing = HealthAIAcrossMapsUtility.FindBestMedicine(doctor, patient, false, out var exitSpot, out var enterSpot);
                     if (thing != null)
                     {
-                        var gotoDestMap = JobMaker.MakeJob(VIF_DefOf.VIF_GotoAcrossMaps);
+                        var gotoDestMap = JobMaker.MakeJob(VMF_DefOf.VMF_GotoAcrossMaps);
                         var driver = gotoDestMap.GetCachedDriver(doctor) as JobDriverAcrossMaps;
                         driver.SetSpots(exitSpot, enterSpot);
                         doctor.jobs.StartJob(gotoDestMap, JobCondition.Ongoing, null, true);

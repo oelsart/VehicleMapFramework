@@ -9,7 +9,7 @@ namespace VehicleInteriors
         {
             get
             {
-                return VIF_DefOf.VIF_RearmTurretAcrossMaps;
+                return VMF_DefOf.VMF_RearmTurretAcrossMaps;
             }
         }
 
@@ -17,7 +17,7 @@ namespace VehicleInteriors
         {
             get
             {
-                return VIF_DefOf.VIF_RearmTurretAtomicAcrossMaps;
+                return VMF_DefOf.VMF_RearmTurretAtomicAcrossMaps;
             }
         }
 

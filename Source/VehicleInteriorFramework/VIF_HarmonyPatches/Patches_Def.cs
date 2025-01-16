@@ -5,7 +5,7 @@ using System.Linq;
 using Vehicles;
 using Verse;
 
-namespace VehicleInteriors.VIF_HarmonyPatches
+namespace VehicleInteriors.VMF_HarmonyPatches
 {
     [StaticConstructorOnStartup]
     public static class DefMessagesReplace
@@ -36,7 +36,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             }
         }
 
-        public const string prefix = "VIF_";
+        public const string prefix = "VMF_";
 
         public const string suffix = "AcrossMaps";
     }

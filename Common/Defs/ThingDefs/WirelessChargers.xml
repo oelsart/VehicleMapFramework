@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Defs>
 	<DesignatorDropdownGroupDef>
-		<defName>VIF_WirelessChargerGroup</defName>
+		<defName>VMF_WirelessChargerGroup</defName>
 	</DesignatorDropdownGroupDef>
 		
-	<ThingDef Name="VIF_WirelessCharger" ParentName="FurnitureBase">
-		<defName>VIF_WirelessTransmitter</defName>
+	<ThingDef Name="VMF_WirelessCharger" ParentName="FurnitureBase">
+		<defName>VMF_WirelessTransmitter</defName>
 		<label>wireless power transmitter</label>
 		<description>A device for transmitting power between a normal map and a vehicle map. Can be placed on a normal map.</description>
 		<designationCategory>VF_Vehicles</designationCategory>
-		<designatorDropdown>VIF_WirelessChargerGroup</designatorDropdown>
+		<designatorDropdown>VMF_WirelessChargerGroup</designatorDropdown>
 		<passability>PassThroughOnly</passability>
 		<drawerType>MapMeshAndRealTime</drawerType>
 		<tickerType>Normal</tickerType>
@@ -30,6 +30,10 @@
 			<ComponentIndustrial>4</ComponentIndustrial>
 			<ComponentSpacer>1</ComponentSpacer>
 		</costList>
+		<researchPrerequisites>
+			<li>Electricity</li>
+			<li MayRequire="OskarPotocki.VanillaVehiclesExpanded">VVE_BasicVehicles</li>
+		</researchPrerequisites>
 		<uiOrder>1060</uiOrder>
 		<comps>
 			<li Class="VehicleInteriors.CompProperties_WirelessCharger">
@@ -50,8 +54,8 @@
 		</placeWorkers>
 	</ThingDef>
 
-	<ThingDef ParentName="VIF_WirelessCharger">
-		<defName>VIF_WirelessReceiver</defName>
+	<ThingDef ParentName="VMF_WirelessCharger">
+		<defName>VMF_WirelessReceiver</defName>
 		<label>wireless power receiver</label>
 		<description>A device that receives power from a normal map. It can be placed on a vehicle map and receive power by aligning with a transmitter.</description>
 		<graphicData>

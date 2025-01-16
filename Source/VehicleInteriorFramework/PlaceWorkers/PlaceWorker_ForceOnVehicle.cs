@@ -12,7 +12,7 @@ namespace VehicleInteriors
             }
             else
             {
-                return "VIF_ForceOnVehicle".Translate();
+                return "VMF_ForceOnVehicle".Translate();
             }
         }
     }

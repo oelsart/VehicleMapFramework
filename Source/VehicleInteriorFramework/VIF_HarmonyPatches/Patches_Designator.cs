@@ -8,7 +8,7 @@ using UnityEngine;
 using Verse;
 using System;
 
-namespace VehicleInteriors.VIF_HarmonyPatches
+namespace VehicleInteriors.VMF_HarmonyPatches
 {
     [StaticConstructorOnStartup]
     public static class Patches_Designator_ZoneAdd_MakeNewZone
@@ -21,7 +21,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                 var method = AccessTools.Method(type, "MakeNewZone");
                 if (method != null && method.IsDeclaredMember())
                 {
-                    VIF_Harmony.Instance.Patch(method, null, null, transpiler);
+                    VMF_Harmony.Instance.Patch(method, null, null, transpiler);
                 }
             }
         }
@@ -43,7 +43,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                 var method = AccessTools.Method(type, "SelectedUpdate");
                 if (method != null && method.IsDeclaredMember())
                 {
-                    VIF_Harmony.Instance.Patch(method, null, postfix);
+                    VMF_Harmony.Instance.Patch(method, null, postfix);
                 }
             }
         }
@@ -72,7 +72,7 @@ namespace VehicleInteriors.VIF_HarmonyPatches
                 var method = AccessTools.Method(type, "DesignateThing");
                 if (method != null && method.IsDeclaredMember())
                 {
-                    VIF_Harmony.Instance.Patch(method, null, null, transpiler);
+                    VMF_Harmony.Instance.Patch(method, null, null, transpiler);
                 }
             }
         }

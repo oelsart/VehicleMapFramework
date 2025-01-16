@@ -28,7 +28,7 @@ namespace VehicleInteriors
             {
                 return GenConstructOnVehicle.HandleBlockingThingJob(frame, pawn, forced);
             }
-            if (!GenConstructOnVehicle.CanConstruct(frame, pawn, this.def.workType, forced, VIF_DefOf.VIF_HaulToCellAcrossMaps, out var exitSpot, out var enterSpot))
+            if (!GenConstructOnVehicle.CanConstruct(frame, pawn, this.def.workType, forced, VMF_DefOf.VMF_HaulToCellAcrossMaps, out var exitSpot, out var enterSpot))
             {
                 return null;
             }

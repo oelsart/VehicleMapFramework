@@ -21,7 +21,7 @@ namespace VehicleInteriors
                 TargetInfo exitSpot = TargetInfo.Invalid;
                 if (cells.Any(c => pawn.CanReach(c, PathEndMode.OnCell, Danger.Deadly, hostile, hostile, TraverseMode.ByPawn, vehicle.Map, out exitSpot, out _)))
                 {
-                    var job = JobMaker.MakeJob(VIF_DefOf.VIF_GotoAcrossMaps).SetSpotsToJobAcrossMaps(pawn, exitSpot);
+                    var job = JobMaker.MakeJob(VMF_DefOf.VMF_GotoAcrossMaps).SetSpotsToJobAcrossMaps(pawn, exitSpot);
                     return job;
                 }
             }

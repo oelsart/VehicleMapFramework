@@ -9,7 +9,7 @@
 	</ThingDef>
 	
 	<ThingDef ParentName="VehicleEnterSpotBase">
-		<defName>VIF_Ladder</defName>
+		<defName>VMF_Ladder</defName>
 		<label>ladder</label>
 		<description>A ladder for humans to ascend and descend on a vehicle. Pawns get priority to ascend and descend from the location where this is placed.</description>
 		<category>Building</category>
@@ -26,6 +26,9 @@
 			<drawOffsetEast>(-1,0,-0.5)</drawOffsetEast>
 			<drawOffsetWest>(1,0,-0.5)</drawOffsetWest>
 		</graphicData>
+		<researchPrerequisites>
+			<li  MayRequire="OELS.MapVehicles">MV_Cart</li>
+		</researchPrerequisites>
 		<building>
 			<isEdifice>false</isEdifice>
 		</building>
@@ -46,17 +49,20 @@
 	</ThingDef>
 
 	<DesignatorDropdownGroupDef>
-		<defName>VIF_VehicleRampGroup</defName>
+		<defName>VMF_VehicleRampGroup</defName>
 	</DesignatorDropdownGroupDef>
 
 	<ThingDef Name="VehicleRampBase" ParentName="VehicleEnterSpotBase" Abstract="True">
-		<designatorDropdown>VIF_VehicleRampGroup</designatorDropdown>
+		<designatorDropdown>VMF_VehicleRampGroup</designatorDropdown>
 		<thingClass>VehicleInteriors.Building_VehicleRamp</thingClass>
 		<drawerType>MapMeshAndRealTime</drawerType>
 		<tickerType>Normal</tickerType>
 		<graphicData>
 			<graphicClass>Graphic_Terrain</graphicClass>
 		</graphicData>
+		<researchPrerequisites>
+			<li MayRequire="OskarPotocki.VanillaVehiclesExpanded">VVE_BasicVehicles</li>
+		</researchPrerequisites>
 		<building>
 			<upperMoverGraphic>
 				<graphicClass>Graphic_Multi</graphicClass>
@@ -79,7 +85,7 @@
 	</ThingDef>
 	
 	<!--<ThingDef ParentName="VehicleRampBase">
-		<defName>VIF_RampSmall</defName>
+		<defName>VMF_RampSmall</defName>
 		<label>ramp (1x1)</label>
 		<description>test</description>
 		<graphicData>
@@ -101,7 +107,7 @@
 	</ThingDef>-->
 	
 	<ThingDef ParentName="VehicleRampBase">
-		<defName>VIF_RampMedium</defName>
+		<defName>VMF_RampMedium</defName>
 		<label>ramp (1x3)</label>
 		<description>A ramp for vehicles to ascend and descend to a vehicle map. Vehicles up to 3 squares wide can ascend and descend from here.</description>
 		<graphicData>
@@ -132,7 +138,7 @@
 	</ThingDef>
 
 	<ThingDef ParentName="VehicleRampBase">
-		<defName>VIF_RampLarge</defName>
+		<defName>VMF_RampLarge</defName>
 		<label>ramp (1x5)</label>
 		<description>A ramp for vehicles to ascend and descend to a vehicle map. Vehicles up to 5 squares wide can ascend and descend from here.</description>
 		<graphicData>

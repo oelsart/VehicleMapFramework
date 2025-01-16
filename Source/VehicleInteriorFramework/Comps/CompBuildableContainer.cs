@@ -167,7 +167,7 @@ namespace VehicleInteriors
 
             Command_Toggle command_Toggle = new Command_Toggle
             {
-                defaultLabel = "VIF_GatherFromBaseMap".Translate(),
+                defaultLabel = "VMF_GatherFromBaseMap".Translate(),
                 icon = this.Vehicle.VehicleDef.LoadCargoIcon,
                 isActive = () => this.gatherFromBaseMap,
                 toggleAction = () =>

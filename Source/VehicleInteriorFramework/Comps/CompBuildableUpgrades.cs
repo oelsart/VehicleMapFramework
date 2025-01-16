@@ -85,8 +85,8 @@ namespace VehicleInteriors
                                 }
                             }
                         },
-                        defaultLabel = "VIF_Reassign".Translate(),
-                        defaultDesc = "VIF_ReassignDesc".Translate(),
+                        defaultLabel = "VMF_Reassign".Translate(),
+                        defaultDesc = "VMF_ReassignDesc".Translate(),
                         icon = turret?.GizmoIcon ?? BaseContent.ClearTex,
                     };
                     yield return command_Action;

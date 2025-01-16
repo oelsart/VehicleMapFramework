@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Verse;
 
-namespace VehicleInteriors.VIF_HarmonyPatches
+namespace VehicleInteriors.VMF_HarmonyPatches
 {
     [StaticConstructorOnStartup]
     public static class Patches_DebugTools
@@ -13,20 +13,20 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             foreach (var method in typeof(DebugToolsSpawning).GetDeclaredMethods())
             {
                 if (method.IsGenericMethod || method.ContainsGenericParameters) continue;
-                VIF_Harmony.Instance.Patch(method, null, null, transpiler);
+                VMF_Harmony.Instance.Patch(method, null, null, transpiler);
             }
             foreach (var type in AccessTools.InnerTypes(typeof(DebugToolsSpawning)))
             {
                 foreach(var method in type.GetDeclaredMethods())
                 {
                     if (method.IsGenericMethod || method.ContainsGenericParameters) continue;
-                    VIF_Harmony.Instance.Patch(method, null, null, transpiler);
+                    VMF_Harmony.Instance.Patch(method, null, null, transpiler);
                 }
             }
             foreach (var method in typeof(DebugToolsGeneral).GetDeclaredMethods())
             {
                 if (method.IsGenericMethod || method.ContainsGenericParameters) continue;
-                VIF_Harmony.Instance.Patch(method, null, null, transpiler);
+                VMF_Harmony.Instance.Patch(method, null, null, transpiler);
             }
         }
 

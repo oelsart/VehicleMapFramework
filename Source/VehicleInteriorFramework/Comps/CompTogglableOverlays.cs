@@ -44,7 +44,7 @@ namespace VehicleInteriors
                                 doWindowFunc = () =>
                                 {
                                     Widgets.DrawWindowBackground(rect.AtZero(), GUI.color);
-                                    graphic.Opacity = VIF_Widgets.HorizontalSlider(new Rect(0f, 15f, rect.width, rect.height), graphic.Opacity, 0f, 1f, false, null, "0%", "100%", -1, GUI.color);
+                                    graphic.Opacity = VMF_Widgets.HorizontalSlider(new Rect(0f, 15f, rect.width, rect.height), graphic.Opacity, 0f, 1f, false, null, "0%", "100%", -1, GUI.color);
                                 }
                             });
                         }
