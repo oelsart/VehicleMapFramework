@@ -169,8 +169,8 @@ namespace VehicleInteriors
             //}
             var stat = this.GetStatValue(VMF_DefOf.MaximumPayload);
 
-            str += $"\n{"MassCarriedSimple".Translate()}:" +
-                $" {(VehicleMapUtility.VehicleMapMass(this) + MassUtility.InventoryMass(this)).ToStringEnsureThreshold(2, 0)} /" +
+            str += $"\n{VMF_DefOf.MaximumPayload.LabelCap}:" +
+                $" {VehicleMapUtility.VehicleMapMass(this).ToStringEnsureThreshold(2, 0)} /" +
                 $" {stat.ToStringEnsureThreshold(2, 0)} {"kg".Translate()}";
             return str;
         }
@@ -362,7 +362,7 @@ namespace VehicleInteriors
             map.designationManager.DrawDesignations();
             map.overlayDrawer.DrawAllOverlays();
             map.temporaryThingDrawer.Draw();
-            //map.flecks.FleckManagerDraw();
+            map.flecks.FleckManagerDraw();
             //map.gameConditionManager.GameConditionManagerDraw(map);
             //MapEdgeClipDrawer.DrawClippers(__instance);
         }

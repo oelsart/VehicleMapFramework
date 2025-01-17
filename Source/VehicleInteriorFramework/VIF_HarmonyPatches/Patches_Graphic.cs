@@ -50,8 +50,29 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             var codes = instructions.ToList();
             var pos = codes.FindIndex(c => c.opcode == OpCodes.Ldc_R4 && (float)c.operand == 0f);
 
-            codes.Replace(codes[pos], CodeInstruction.Call(typeof(VehicleMapUtility), nameof(VehicleMapUtility.PrintExtraRotation)));
+            codes.Replace(codes[pos], new CodeInstruction(OpCodes.Call, MethodInfoCache.m_PrintExtraRotation));
             codes.Insert(pos, CodeInstruction.LoadArgument(0));
+            return codes;
+        }
+    }
+
+    [HarmonyPatch(typeof(MinifiedThing), nameof(MinifiedThing.Print))]
+    public static class Patch_MinifiedThing_Print
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var codes = instructions.ToList();
+            var m_PrintPlane = AccessTools.Method(typeof(Printer_Plane), nameof(Printer_Plane.PrintPlane));
+
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(m_PrintPlane));
+            var pos2 = codes.FindLastIndex(pos, c => c.opcode == OpCodes.Ldloc_1) + 1;
+            codes.Replace(codes[pos2], new CodeInstruction(OpCodes.Call, MethodInfoCache.m_PrintExtraRotation));
+            codes.Insert(pos2, CodeInstruction.LoadArgument(0));
+
+            pos = codes.FindIndex(pos + 1, c => c.opcode == OpCodes.Call && c.OperandIs(m_PrintPlane));
+            pos2 = codes.FindLastIndex(c => c.opcode == OpCodes.Ldloc_S && (c.operand as LocalBuilder).LocalIndex == 4) + 1;
+            codes.Replace(codes[pos2], new CodeInstruction(OpCodes.Call, MethodInfoCache.m_PrintExtraRotation));
+            codes.Insert(pos2, CodeInstruction.LoadArgument(0));
             return codes;
         }
     }
@@ -59,12 +80,15 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     [HarmonyPatch(typeof(Thing), nameof(Thing.Rotation), MethodType.Getter)]
     public static class Patch_Thing_Rotation
     {
-        [HarmonyReversePatch(HarmonyReversePatchType.Original)]
+        [HarmonyReversePatch(HarmonyReversePatchType.Original)] 
         public static Rot4 Rotation(Thing instance) => throw new NotImplementedException();
 
-        public static void Postfix(ref Rot4 __result)
+        public static void Postfix(ref Rot4 __result, Thing __instance)
         {
-            __result.AsInt += VehicleMapUtility.rotForPrint.AsInt;
+            if (__instance.def.graphicData?.drawRotated ?? false)
+            {
+                __result.AsInt += VehicleMapUtility.rotForPrint.AsInt;
+            }
         }
     }
 
@@ -301,12 +325,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                     __result.y += vehicle2.DrawPos.y;
                 }
             }
-            else if (!(___pawn is VehiclePawnWithMap) && ___pawn.SpawnedParentOrMe is VehiclePawnWithMap vehicle3)
-            {
-                __result.y += vehicle3.DrawPos.y;
-            }
-            //pawn <- VehicleHandler <- VehiclePawnの順に保有
-            else if (___pawn.ParentHolder?.ParentHolder is VehiclePawnWithMap)
+            else if (___pawn.ParentHolder is VehicleHandlerBuildable)
             {
                 __result.y += VehicleMapUtility.altitudeOffsetFull;
             }

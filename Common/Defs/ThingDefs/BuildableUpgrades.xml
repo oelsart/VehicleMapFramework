@@ -52,7 +52,7 @@
 							<li Class = "VehicleInteriors.RoleUpgradeBuildable">
 								<key>driver</key>
 								<editKey>driver seat</editKey>
-								<label>Driver seat</label>
+								<label>Driver</label>
 								<handlingTypes>Movement</handlingTypes>
 								<slots>1</slots>
 								<slotsToOperate>1</slotsToOperate>
@@ -106,7 +106,7 @@
 							<li Class = "VehicleInteriors.RoleUpgradeBuildable">
 								<key>gunner</key>
 								<editKey>gunner seat</editKey>
-								<label>Gunner seat</label>
+								<label>Gunner</label>
 								<handlingTypes>Turret</handlingTypes>
 								<slots>1</slots>
 								<slotsToOperate>1</slotsToOperate>
@@ -156,7 +156,7 @@
 							<li Class = "VehicleInteriors.RoleUpgradeBuildable">
 								<key>passenger</key>
 								<editKey>passenger seat</editKey>
-								<label>Passenger seat</label>
+								<label>Passenger</label>
 								<handlingTypes>None</handlingTypes>
 								<slots>1</slots>
 								<exposed>true</exposed>

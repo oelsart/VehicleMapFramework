@@ -15,13 +15,13 @@ namespace VehicleInteriors
                 float statValue = vehicle.GetStatValue(VMF_DefOf.MaximumPayload);
                 if (statValue > 0f)
                 {
-                    num = (MassUtility.InventoryMass(vehicle) + VehicleMapUtility.VehicleMapMass(vehicle)) / statValue;
+                    num = VehicleMapUtility.VehicleMapMass(vehicle) / statValue;
                 }
                 num = this.usageCurve.Evaluate(num);
             }
             else
             {
-                num = MassUtility.InventoryMass(vehicle) + VehicleMapUtility.VehicleMapMass(vehicle);
+                num = VehicleMapUtility.VehicleMapMass(vehicle);
             }
             return num;
         }
@@ -32,10 +32,7 @@ namespace VehicleInteriors
             {
                 return this.operation.Apply(value, this.Modifier(vehicleWithMap));
             }
-            else
-            {
-                return this.operation.Apply(value, base.Modifier(vehicle));
-            }
+            return value;
         }
 
         public override string ExplanationPart(VehiclePawn vehicle)
@@ -46,26 +43,15 @@ namespace VehicleInteriors
                 var statValue = vehicle.GetStatValue(VMF_DefOf.MaximumPayload).ToStringByStyle(ToStringStyle.FloatTwo);
                 if (this.formatString.NullOrEmpty())
                 {
-                    value = string.Format(this.statDef.formatString, MassUtility.InventoryMass(vehicleWithMap) + VehicleMapUtility.VehicleMapMass(vehicleWithMap), statValue);
+                    value = string.Format(this.statDef.formatString, VehicleMapUtility.VehicleMapMass(vehicleWithMap), statValue);
                 }
                 else
                 {
-                    value = string.Format(this.formatString, MassUtility.InventoryMass(vehicleWithMap) + VehicleMapUtility.VehicleMapMass(vehicleWithMap), statValue);
+                    value = string.Format(this.formatString, VehicleMapUtility.VehicleMapMass(vehicleWithMap), statValue);
                 }
+                return "VMF_StatsReport_MaximumPayload".Translate(value);
             }
-            else
-            {
-                var statValue = vehicle.GetStatValue(VehicleStatDefOf.CargoCapacity).ToStringByStyle(ToStringStyle.FloatTwo);
-                if (this.formatString.NullOrEmpty())
-                {
-                    value = string.Format(this.statDef.formatString, MassUtility.InventoryMass(vehicle) , statValue);
-                }
-                else
-                {
-                    value = string.Format(this.formatString, MassUtility.InventoryMass(vehicle), statValue);
-                }
-            }
-            return "VF_StatsReport_CargoWeight".Translate(value);
+            return null;
         }
     }
 }

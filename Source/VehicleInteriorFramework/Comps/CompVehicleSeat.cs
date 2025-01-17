@@ -66,21 +66,23 @@ namespace VehicleInteriors
                     {
                         foreach (var pawn in handler.handlers)
                         {
-                            if (vehicle.Drafted || handler.role.HandlingTypes.HasFlag(HandlingTypeFlags.Movement)) continue;
+                            if (vehicle.Drafted && handler.role.HandlingTypes.HasFlag(HandlingTypeFlags.Movement)) continue;
 
-                            Command_Action_PawnDrawer command_Action_PawnDrawer = new Command_Action_PawnDrawer();
-                            command_Action_PawnDrawer.defaultLabel = "VF_DisembarkSinglePawn".Translate(pawn.LabelShort);
-                            command_Action_PawnDrawer.groupable = false;
-                            command_Action_PawnDrawer.pawn = pawn;
-                            command_Action_PawnDrawer.action = delegate ()
+                            Command_Action_PawnDrawer command_Action_PawnDrawer = new Command_Action_PawnDrawer
                             {
-                                var caravan = pawn.GetCaravan();
-                                caravan?.RemovePawn(pawn);
-                                if (Find.WorldPawns.Contains(pawn))
+                                defaultLabel = "VF_DisembarkSinglePawn".Translate(pawn.LabelShort),
+                                groupable = false,
+                                pawn = pawn,
+                                action = delegate ()
                                 {
-                                    Find.WorldPawns.RemovePawn(pawn);
+                                    var caravan = pawn.GetCaravan();
+                                    caravan?.RemovePawn(pawn);
+                                    if (Find.WorldPawns.Contains(pawn))
+                                    {
+                                        Find.WorldPawns.RemovePawn(pawn);
+                                    }
+                                    vehicle.DisembarkPawn(pawn);
                                 }
-                                vehicle.DisembarkPawn(pawn);
                             };
                             if (exitBlocked)
                             {

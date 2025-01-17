@@ -5,6 +5,8 @@
 
 	<VMF_PowerTransferSetting>Power transfer setting</VMF_PowerTransferSetting>
 
+	<VMF_StatsReport_MaximumPayload>Payload: {0}</VMF_StatsReport_MaximumPayload>
+
 	<VMF_StatsReport_HumanPowerAverage>Operators' Strength Factor: {0}</VMF_StatsReport_HumanPowerAverage>
 
 	<VMF_LandInSpecificMap>Zoom in to {0} and choose a landing spot in {1}</VMF_LandInSpecificMap>

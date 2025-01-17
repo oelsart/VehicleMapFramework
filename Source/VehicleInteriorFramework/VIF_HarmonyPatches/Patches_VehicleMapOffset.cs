@@ -340,7 +340,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle) && thing.def.drawerType == DrawerType.RealtimeOnly && thing.def.category != ThingCategory.Item)
             {
                 var def = thing.def.IsBlueprint ? thing.def.entityDefToBuild as ThingDef : thing.def;
-                if (def.rotatable || def.graphic is Graphic_Multi)
+                if ((def.rotatable || def.graphic is Graphic_Multi) && (def.graphicData?.drawRotated ?? false) && !def.graphicData.Linked)
                 {
                     var fullRot = vehicle.FullRotation;
                     rot.AsInt += fullRot.RotForVehicleDraw().AsInt;
@@ -393,7 +393,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 var angle = vehicle.Angle;
                 loc = loc.OrigToVehicleMap(vehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor());
                 var rot2 = rot;
-                if ((def.rotatable || def.graphic is Graphic_Multi) && !def.graphicData.Linked)
+                if ((def.rotatable || def.graphic is Graphic_Multi) && (def.graphicData?.drawRotated ?? false) && !def.graphicData.Linked)
                 {
                     var fullRot = vehicle.FullRotation;
                     rot.AsInt += fullRot.RotForVehicleDraw().AsInt;
@@ -667,6 +667,15 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Thing_Map),
             });
             return codes;
+        }
+    }
+
+    [HarmonyPatch(typeof(MoteMaker), nameof(MoteMaker.MakeInteractionOverlay), typeof(ThingDef), typeof(TargetInfo), typeof(TargetInfo) )]
+    class Debug
+    {
+        static void Postfix()
+        {
+            Log.Message("Called");
         }
     }
 }

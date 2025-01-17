@@ -5,6 +5,7 @@ using System.Linq;
 using UnityEngine;
 using Vehicles;
 using Verse;
+using Verse.Noise;
 using static Vehicles.VehicleUpgrade;
 
 namespace VehicleInteriors
@@ -276,6 +277,7 @@ namespace VehicleInteriors
                 {
                     var thing = parentUpgrade.parent.parent;
                     var position = GenThing.TrueCenter(thing.Position, thing.Rotation, thing.def.Size, 0f);
+                    var pivot = new Vector3(vehicle.VehicleMap.Size.x / 2f, 0f, vehicle.VehicleMap.Size.z / 2f);
                     var vehiclePos = vehicle.DrawPos.WithY(0f);
                     var rot = thing.Rotation;
                     var angle = rot.AsAngle;

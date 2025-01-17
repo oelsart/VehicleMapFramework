@@ -21,8 +21,9 @@
 				</li>
 			</value>
 		</nomatch>
-		<match Class="PatchOperationReplace">
+		<match Class="PatchOperationInsert">
 			<xpath>/Defs/Vehicles.VehicleStatDef[defName = "MoveSpeed"]/parts/li[@Class = "Vehicles.VehicleStatPart_WeightUsage"]</xpath>
+			<order>Append</order>
 			<value>
 				<li Class = "VehicleInteriors.VehicleStatPart_WeightUsageWithMap">
 					<operation>Multiplication</operation>

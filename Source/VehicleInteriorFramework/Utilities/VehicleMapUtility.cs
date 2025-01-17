@@ -4,6 +4,7 @@ using SmashTools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using UnityEngine;
 using Vehicles;
 using Verse;
@@ -242,7 +243,7 @@ namespace VehicleInteriors
             float result = 0f;
             if (thing.IsOnVehicleMapOf(out _))
             {
-                result -= VehicleMapUtility.rotForPrint.AsAngle * (!thing.def.rotatable && thing.Graphic.Isnt<Graphic_Multi>() && !thing.def.graphicData.Linked ? 2f : 1f);
+                result -= VehicleMapUtility.rotForPrint.AsAngle * (!thing.def.rotatable && thing.Graphic.Isnt<Graphic_Multi>() && thing.def.category.HasFlag(ThingCategory.Item) && !thing.def.graphicData.Linked ? 2f : 1f);
             }
             return result;
         }
@@ -686,7 +687,7 @@ namespace VehicleInteriors
 
         public static bool ShouldRotatedOnVehicle(this ThingDef tDef)
         {
-            return tDef.fillPercent > 0.25f || tDef.Size != IntVec2.One || (!(tDef.graphic is Graphic_Single) && !(tDef.graphic is Graphic_Collection)) ||
+            return tDef.graphicData?.drawRotated ?? false && tDef.fillPercent > 0.25f || tDef.Size != IntVec2.One || (!(tDef.graphic is Graphic_Single) && !(tDef.graphic is Graphic_Collection)) ||
                 tDef.hasInteractionCell || tDef.drawerType == DrawerType.MapMeshOnly;
         }
 

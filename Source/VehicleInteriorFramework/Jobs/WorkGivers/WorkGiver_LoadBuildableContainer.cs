@@ -1,13 +1,16 @@
 ﻿using RimWorld;
 using System.Collections.Generic;
 using System.Linq;
+using VehicleInteriors.Jobs.WorkGivers;
 using Verse;
 using Verse.AI;
 
 namespace VehicleInteriors
 {
-    public class WorkGiver_LoadBuildableContainer : WorkGiver_Scanner
+    public class WorkGiver_LoadBuildableContainer : WorkGiver_Scanner, IWorkGiverAcrossMaps
     {
+        public bool NeedWrapWithGotoDestJob => false;
+
         public override IEnumerable<Thing> PotentialWorkThingsGlobal(Pawn pawn)
         {
             return pawn.Map.listerBuildings.allBuildingsColonist.Where(b => b.HasComp<CompBuildableContainer>());

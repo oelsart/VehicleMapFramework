@@ -284,7 +284,6 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
-
     [HarmonyPatch]
     public static class Patch_JobGiver_Work_GiverTryGiveJobPrioritized
     {
@@ -297,7 +296,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     }
 
     [HarmonyPatch(typeof(Pawn_PathFollower), nameof(Pawn_PathFollower.StartPath))]
-    public static class Patch_Toils_Goto_GotoThing
+    public static class Patch_Pawn_PathFollower_StartPath
     {
         public static bool Prefix(LocalTargetInfo dest, PathEndMode peMode, Pawn ___pawn)
         {
@@ -309,7 +308,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 return true;
             }
             dest = thing.SpawnedParentOrMe;
-            if (___pawn.CurJob.GetCachedDriver(___pawn).Isnt<JobDriverAcrossMaps>() && ___pawn.Map != dest.Thing.Map && ___pawn.CanReach(dest, peMode, Danger.Deadly, false, false, TraverseMode.ByPawn, dest.Thing.Map, out var exitSpot, out var enterSpot))
+            if (/*___pawn.CurJob.GetCachedDriver(___pawn).Isnt<JobDriverAcrossMaps>() && */___pawn.Map != dest.Thing.Map && ___pawn.CanReach(dest, peMode, Danger.Deadly, false, false, TraverseMode.ByPawn, dest.Thing.Map, out var exitSpot, out var enterSpot))
             {
                 var nextJob = ___pawn.CurJob?.Clone();
                 ___pawn.jobs.curDriver.globalFinishActions.Clear(); //Jobはまだ終わっちゃいねえためFinishActionはさせない。TryDropThingなどをしていることもあるし
@@ -319,8 +318,6 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             return true;
         }
     }
-
-    [HarmonyPatch(typeof(Toils_Haul))]
 
     //利用可能なthingに車上マップ上のthingを含める
     [HarmonyPatch(typeof(ItemAvailability), nameof(ItemAvailability.ThingsAvailableAnywhere))]

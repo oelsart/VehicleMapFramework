@@ -239,6 +239,7 @@
     <Compile Include="Utilities\VehicleMapUtility.cs" />
     <Compile Include="VehiclePawnWithMap.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="VIF_HarmonyPatches\Patches_AdaptiveStorage.cs" />
     <Compile Include="VMF_DefOf.cs" />
     <Compile Include="VIF_HarmonyPatches\Core.cs" />
     <Compile Include="VIF_HarmonyPatches\Patches_Combat.cs" />
@@ -264,13 +265,205 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
-    <Content Include="..\..\**\*.xml">
-      <Link>%(RecursiveDir)%(FileName)%(Extension)</Link>
+    <Content Include="..\..\.git\ms-persist.xml">
+      <Link>.git\ms-persist.xml</Link>
+    </Content>
+    <Content Include="..\..\About\About.xml">
+      <Link>About.xml</Link>
+    </Content>
+    <Content Include="..\..\Common\Defs\BiomeDefs\Biomes_VehicleMap.xml">
+      <Link>Common\Defs\BiomeDefs\Biomes_VehicleMap.xml</Link>
+    </Content>
+    <Content Include="..\..\Common\Defs\JobDefs\Jobs.xml">
+      <Link>Common\Defs\JobDefs\Jobs.xml</Link>
+    </Content>
+    <Content Include="..\..\Common\Defs\MapGeneration\VehicleMapGenerator.xml">
+      <Link>Common\Defs\MapGeneration\VehicleMapGenerator.xml</Link>
+    </Content>
+    <Content Include="..\..\Common\Defs\PatternDefs\PatternDefs.xml">
+      <Link>Common\Defs\PatternDefs\PatternDefs.xml</Link>
+    </Content>
+    <Content Include="..\..\Common\Defs\ShaderTypeDefs\RGBShaderTypeDef.xml">
+      <Link>Common\Defs\ShaderTypeDefs\RGBShaderTypeDef.xml</Link>
+    </Content>
+    <Content Include="..\..\Common\Defs\TerrainDefs\Terrains.xml">
+      <Link>Common\Defs\TerrainDefs\Terrains.xml</Link>
+    </Content>
+    <Content Include="..\..\Common\Defs\ThingDefs\BuildableUpgrades.xml">
+      <Link>Common\Defs\ThingDefs\BuildableUpgrades.xml</Link>
+    </Content>
+    <Content Include="..\..\Common\Defs\ThingDefs\EnterSpots.xml">
+      <Link>Common\Defs\ThingDefs\EnterSpots.xml</Link>
+    </Content>
+    <Content Include="..\..\Common\Defs\ThingDefs\VehicleStructures.xml">
+      <Link>Common\Defs\ThingDefs\VehicleStructures.xml</Link>
+    </Content>
+    <Content Include="..\..\Common\Defs\ThingDefs\WirelessChargers.xml">
+      <Link>Common\Defs\ThingDefs\WirelessChargers.xml</Link>
+    </Content>
+    <Content Include="..\..\Common\Defs\VehicleDefs\BaseVehiclePawnWithMap.xml">
+      <Link>Common\Defs\VehicleDefs\BaseVehiclePawnWithMap.xml</Link>
+    </Content>
+    <Content Include="..\..\Common\Defs\VehicleDefs\Buildable_VehiclePawnWithMap.xml">
+      <Link>Common\Defs\VehicleDefs\Buildable_VehiclePawnWithMap.xml</Link>
+    </Content>
+    <Content Include="..\..\Common\Defs\VehicleStatDefs\VehicleStats.xml">
+      <Link>Common\Defs\VehicleStatDefs\VehicleStats.xml</Link>
+    </Content>
+    <Content Include="..\..\Common\Defs\WeatherDefs\Weathers.xml">
+      <Link>Common\Defs\WeatherDefs\Weathers.xml</Link>
+    </Content>
+    <Content Include="..\..\Common\Defs\WorkGiverDefs\WorkGivers.xml">
+      <Link>Common\Defs\WorkGiverDefs\WorkGivers.xml</Link>
+    </Content>
+    <Content Include="..\..\Common\Defs\WorldObjectDefs\WorldObjects.xml">
+      <Link>Common\Defs\WorldObjectDefs\WorldObjects.xml</Link>
+    </Content>
+    <Content Include="..\..\Common\Languages\English\Keyed\Gizmos.xml">
+      <Link>Common\Languages\English\Keyed\Gizmos.xml</Link>
+    </Content>
+    <Content Include="..\..\Common\Languages\English\Keyed\Messages.xml">
+      <Link>Common\Languages\English\Keyed\Messages.xml</Link>
+    </Content>
+    <Content Include="..\..\Common\Languages\English\Keyed\Misc.xml">
+      <Link>Common\Languages\English\Keyed\Misc.xml</Link>
+    </Content>
+    <Content Include="..\..\Common\Languages\English\Keyed\Settings.xml">
+      <Link>Common\Languages\English\Keyed\Settings.xml</Link>
+    </Content>
+    <Content Include="..\..\Common\Languages\Japanese\DefInjected\BiomeDefs\Biomes_VehicleMap.xml">
+      <Link>Common\Languages\Japanese\DefInjected\BiomeDefs\Biomes_VehicleMap.xml</Link>
+    </Content>
+    <Content Include="..\..\Common\Languages\Japanese\DefInjected\TerrainDefs\Terrains.xml">
+      <Link>Common\Languages\Japanese\DefInjected\TerrainDefs\Terrains.xml</Link>
+    </Content>
+    <Content Include="..\..\Common\Languages\Japanese\DefInjected\ThingDefs\BuildableUpgrades.xml">
+      <Link>Common\Languages\Japanese\DefInjected\ThingDefs\BuildableUpgrades.xml</Link>
+    </Content>
+    <Content Include="..\..\Common\Languages\Japanese\DefInjected\ThingDefs\EnterSpots.xml">
+      <Link>Common\Languages\Japanese\DefInjected\ThingDefs\EnterSpots.xml</Link>
+    </Content>
+    <Content Include="..\..\Common\Languages\Japanese\DefInjected\ThingDefs\VehicleStructures.xml">
+      <Link>Common\Languages\Japanese\DefInjected\ThingDefs\VehicleStructures.xml</Link>
+    </Content>
+    <Content Include="..\..\Common\Languages\Japanese\DefInjected\ThingDefs\WirelessChargers.xml">
+      <Link>Common\Languages\Japanese\DefInjected\ThingDefs\WirelessChargers.xml</Link>
+    </Content>
+    <Content Include="..\..\Common\Languages\Japanese\DefInjected\Vehicles.VehicleStatDef\VehicleStats.xml">
+      <Link>Common\Languages\Japanese\DefInjected\Vehicles.VehicleStatDef\VehicleStats.xml</Link>
+    </Content>
+    <Content Include="..\..\Common\Languages\Japanese\Keyed\Gizmos.xml">
+      <Link>Common\Languages\Japanese\Keyed\Gizmos.xml</Link>
+    </Content>
+    <Content Include="..\..\Common\Languages\Japanese\Keyed\Messages.xml">
+      <Link>Common\Languages\Japanese\Keyed\Messages.xml</Link>
+    </Content>
+    <Content Include="..\..\Common\Languages\Japanese\Keyed\Misc.xml">
+      <Link>Common\Languages\Japanese\Keyed\Misc.xml</Link>
+    </Content>
+    <Content Include="..\..\Common\Languages\Japanese\Keyed\Settings.xml">
+      <Link>Common\Languages\Japanese\Keyed\Settings.xml</Link>
+    </Content>
+    <Content Include="..\..\Common\Patches\Patches_InsertJobGivers.xml">
+      <Link>Common\Patches\Patches_InsertJobGivers.xml</Link>
+    </Content>
+    <Content Include="..\..\Common\Patches\Patches_ReplaceExplosion.xml">
+      <Link>Common\Patches\Patches_ReplaceExplosion.xml</Link>
+    </Content>
+    <Content Include="..\..\Common\Patches\Patches_VehicleMoveSpeed.xml">
+      <Link>Common\Patches\Patches_VehicleMoveSpeed.xml</Link>
+    </Content>
+    <Content Include="..\..\LoadFolders.xml">
+      <Link>LoadFolders.xml</Link>
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\..\..\MapVehicles\**\*.xml">
-      <Link>%(RecursiveDir)%(FileName)%(Extension)</Link>
+    <Content Include="..\..\..\MapVehicles\About\About.xml">
+      <Link>About\About.xml</Link>
+    </Content>
+    <Content Include="..\..\..\MapVehicles\Common\Defs\FleckDefs\Fleck_Vehicles.xml">
+      <Link>Common\Defs\FleckDefs\Fleck_Vehicles.xml</Link>
+    </Content>
+    <Content Include="..\..\..\MapVehicles\Common\Defs\ResearchProjectDefs\ResearchProjects.xml">
+      <Link>Common\Defs\ResearchProjectDefs\ResearchProjects.xml</Link>
+    </Content>
+    <Content Include="..\..\..\MapVehicles\Common\Defs\SoundDefs\Sounds.xml">
+      <Link>Common\Defs\SoundDefs\Sounds.xml</Link>
+    </Content>
+    <Content Include="..\..\..\MapVehicles\Common\Defs\VehicleDefs\Cart\Cart_Buildable.xml">
+      <Link>Common\Defs\VehicleDefs\Cart\Cart_Buildable.xml</Link>
+    </Content>
+    <Content Include="..\..\..\MapVehicles\Common\Defs\VehicleDefs\Cart\Cart_VehiclePawn.xml">
+      <Link>Common\Defs\VehicleDefs\Cart\Cart_VehiclePawn.xml</Link>
+    </Content>
+    <Content Include="..\..\..\MapVehicles\Common\Defs\VehicleDefs\Crawler\Crawler_Buildable.xml">
+      <Link>Common\Defs\VehicleDefs\Crawler\Crawler_Buildable.xml</Link>
+    </Content>
+    <Content Include="..\..\..\MapVehicles\Common\Defs\VehicleDefs\Crawler\Crawler_VehiclePawn.xml">
+      <Link>Common\Defs\VehicleDefs\Crawler\Crawler_VehiclePawn.xml</Link>
+    </Content>
+    <Content Include="..\..\..\MapVehicles\Common\Defs\VehicleDefs\Glypto\Glypto_Buildable.xml">
+      <Link>Common\Defs\VehicleDefs\Glypto\Glypto_Buildable.xml</Link>
+    </Content>
+    <Content Include="..\..\..\MapVehicles\Common\Defs\VehicleDefs\Glypto\Glypto_MainTurret.xml">
+      <Link>Common\Defs\VehicleDefs\Glypto\Glypto_MainTurret.xml</Link>
+    </Content>
+    <Content Include="..\..\..\MapVehicles\Common\Defs\VehicleDefs\Glypto\Glypto_VehiclePawn.xml">
+      <Link>Common\Defs\VehicleDefs\Glypto\Glypto_VehiclePawn.xml</Link>
+    </Content>
+    <Content Include="..\..\..\MapVehicles\Common\Defs\VehicleDefs\Pantodon\Pantodon_Buildable.xml">
+      <Link>Common\Defs\VehicleDefs\Pantodon\Pantodon_Buildable.xml</Link>
+    </Content>
+    <Content Include="..\..\..\MapVehicles\Common\Defs\VehicleDefs\Pantodon\Pantodon_Turret.xml">
+      <Link>Common\Defs\VehicleDefs\Pantodon\Pantodon_Turret.xml</Link>
+    </Content>
+    <Content Include="..\..\..\MapVehicles\Common\Defs\VehicleDefs\Pantodon\Pantodon_VehiclePawn.xml">
+      <Link>Common\Defs\VehicleDefs\Pantodon\Pantodon_VehiclePawn.xml</Link>
+    </Content>
+    <Content Include="..\..\..\MapVehicles\Common\Languages\Japanese\DefInjected\ResearchProjectDefs\ResearchProjects.xml">
+      <Link>Common\Languages\Japanese\DefInjected\ResearchProjectDefs\ResearchProjects.xml</Link>
+    </Content>
+    <Content Include="..\..\..\MapVehicles\Common\Languages\Japanese\DefInjected\ThingDef\Projectiles.xml">
+      <Link>Common\Languages\Japanese\DefInjected\ThingDefs\Projectiles.xml</Link>
+    </Content>
+    <Content Include="..\..\..\MapVehicles\Common\Languages\Japanese\DefInjected\Vehicles.VehicleBuildDef\Cart_Buildable.xml">
+      <Link>Common\Languages\Japanese\DefInjected\Vehicles.VehicleBuildDef\Cart_Buildable.xml</Link>
+    </Content>
+    <Content Include="..\..\..\MapVehicles\Common\Languages\Japanese\DefInjected\Vehicles.VehicleBuildDef\Crawler_Buildable.xml">
+      <Link>Common\Languages\Japanese\DefInjected\Vehicles.VehicleBuildDef\Crawler_Buildable.xml</Link>
+    </Content>
+    <Content Include="..\..\..\MapVehicles\Common\Languages\Japanese\DefInjected\Vehicles.VehicleBuildDef\Glypto_Buildable.xml">
+      <Link>Common\Languages\Japanese\DefInjected\Vehicles.VehicleBuildDef\Glypto_Buildable.xml</Link>
+    </Content>
+    <Content Include="..\..\..\MapVehicles\Common\Languages\Japanese\DefInjected\Vehicles.VehicleBuildDef\Pantodon_Buildable.xml">
+      <Link>Common\Languages\Japanese\DefInjected\Vehicles.VehicleBuildDef\Pantodon_Buildable.xml</Link>
+    </Content>
+    <Content Include="..\..\..\MapVehicles\Common\Languages\Japanese\DefInjected\Vehicles.VehicleDef\Cart_VehiclePawn.xml">
+      <Link>Common\Languages\Japanese\DefInjected\Vehicles.VehicleDef\Cart_VehiclePawn.xml</Link>
+    </Content>
+    <Content Include="..\..\..\MapVehicles\Common\Languages\Japanese\DefInjected\Vehicles.VehicleDef\Crawler_VehiclePawn.xml">
+      <Link>Common\Languages\Japanese\DefInjected\Vehicles.VehicleDef\Crawler_VehiclePawn.xml</Link>
+    </Content>
+    <Content Include="..\..\..\MapVehicles\Common\Languages\Japanese\DefInjected\Vehicles.VehicleDef\Glypto_VehiclePawn.xml">
+      <Link>Common\Languages\Japanese\DefInjected\Vehicles.VehicleDef\Glypto_VehiclePawn.xml</Link>
+    </Content>
+    <Content Include="..\..\..\MapVehicles\Common\Languages\Japanese\DefInjected\Vehicles.VehicleDef\Pantodon_VehiclePawn.xml">
+      <Link>Common\Languages\Japanese\DefInjected\Vehicles.VehicleDef\Pantodon_VehiclePawn.xml</Link>
+    </Content>
+    <Content Include="..\..\..\MapVehicles\Common\Languages\Japanese\DefInjected\Vehicles.VehicleTurretDef\Glypto_MainTurret.xml">
+      <Link>Common\Languages\Japanese\DefInjected\Vehicles.VehicleTurretDef\Glypto_MainTurret.xml</Link>
+    </Content>
+    <Content Include="..\..\..\MapVehicles\Common\Languages\Japanese\DefInjected\Vehicles.VehicleTurretDef\Pantodon_Turret.xml">
+      <Link>Common\Languages\Japanese\DefInjected\Vehicles.VehicleTurretDef\Pantodon_Turret.xml</Link>
+    </Content>
+    <Content Include="..\..\..\MapVehicles\Common\Patches\Patches_VVE_ResearchTab.xml">
+      <Link>Common\Patches\Patches_VVE_ResearchTab.xml</Link>
+    </Content>
+    <Content Include="..\..\..\MapVehicles\Common\Patches\Patches_VVE_RTC_ReplaceCostList.xml">
+      <Link>Common\Patches\Patches_VVE_RTC_ReplaceCostList.xml</Link>
+    </Content>
+    <Content Include="..\..\..\MapVehicles\LoadFolders.xml">
+      <Link>LoadFolders.xml</Link>
     </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
