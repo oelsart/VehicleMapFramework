@@ -160,12 +160,22 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
         {
             var codes = instructions.ToList();
-            var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(MethodInfoCache.m_IntVec3_ToVector3Shifted)) + 1;
+            var rot = generator.DeclareLocal(typeof(Rot4));
+            var f_rotation = AccessTools.Field(typeof(GenDraw.FillableBarRequest), nameof(GenDraw.FillableBarRequest.rotation));
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Stfld && c.OperandIs(f_rotation));
+            //一度Rot4に格納しないとエラー出したので
+            codes.InsertRange(pos, new[]
+            {
+                new CodeInstruction(OpCodes.Stloc_S, rot),
+                new CodeInstruction(OpCodes.Ldloc_S, rot),
+            });
+
+            var pos2 = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(MethodInfoCache.m_IntVec3_ToVector3Shifted)) + 1;
             var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithMap));
             var label = generator.DefineLabel();
 
-            codes[pos].labels.Add(label);
-            codes.InsertRange(pos, new[]
+            codes[pos2].labels.Add(label);
+            codes.InsertRange(pos2, new[]
             {
                 CodeInstruction.LoadArgument(0),
                 new CodeInstruction(OpCodes.Ldloca_S, vehicle),
