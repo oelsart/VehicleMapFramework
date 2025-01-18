@@ -1,11 +1,14 @@
 ﻿using RimWorld;
+using VehicleInteriors.Jobs.WorkGivers;
 using Verse;
 using Verse.AI;
 
 namespace VehicleInteriors
 {
-    public class WorkGiver_ConstructFinishFramesAcrossMaps : WorkGiver_Scanner
+    public class WorkGiver_ConstructFinishFramesAcrossMaps : WorkGiver_Scanner, IWorkGiverAcrossMaps
     {
+        public bool NeedVirtualMapTransfer => false;
+
         public override PathEndMode PathEndMode
         {
             get

@@ -7,7 +7,7 @@ namespace VehicleInteriors
 {
     public class WorkGiver_HaulAcrossMaps : WorkGiver_Haul, IWorkGiverAcrossMaps
     {
-        public bool NeedWrapWithGotoDestJob => false;
+        public bool NeedVirtualMapTransfer => false;
 
         public override Job JobOnThing(Pawn pawn, Thing t, bool forced = false)
         {

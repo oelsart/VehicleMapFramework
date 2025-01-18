@@ -243,7 +243,7 @@ namespace VehicleInteriors
             float result = 0f;
             if (thing.IsOnVehicleMapOf(out _))
             {
-                result -= VehicleMapUtility.rotForPrint.AsAngle * (!thing.def.rotatable && thing.Graphic.Isnt<Graphic_Multi>() && thing.def.category.HasFlag(ThingCategory.Item) && !thing.def.graphicData.Linked ? 2f : 1f);
+                result -= VehicleMapUtility.rotForPrint.AsAngle * (!thing.def.rotatable && thing.Graphic.Isnt<Graphic_Multi>() && !thing.def.category.HasFlag(ThingCategory.Item) && !thing.def.graphicData.Linked ? 2f : 1f);
             }
             return result;
         }
@@ -330,6 +330,15 @@ namespace VehicleInteriors
         }
 
         public static IntVec3 OrigToThingMap(this IntVec3 origin, Thing thing)
+        {
+            if (thing.IsOnVehicleMapOf(out var vehicle))
+            {
+                return origin.OrigToVehicleMap(vehicle);
+            }
+            return origin;
+        }
+
+        public static Vector3 OrigToThingMap(this Vector3 origin, Thing thing)
         {
             if (thing.IsOnVehicleMapOf(out var vehicle))
             {
@@ -609,7 +618,15 @@ namespace VehicleInteriors
 
         public static Vector3 FocusedDrawPosOffset(Vector3 original, IntVec3 center)
         {
-            if (Command_FocusVehicleMap.FocusedVehicle != null)
+            Thing thing;
+            if ((thing = Find.Selector.SelectedObjects.OfType<Thing>().FirstOrDefault(t => t.Position == center)) != null)
+            {
+                if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle))
+                {
+                    return original.OrigToVehicleMap(vehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor());
+                }
+            }
+            else if (Command_FocusVehicleMap.FocusedVehicle != null)
             {
                 return original.OrigToVehicleMap(Command_FocusVehicleMap.FocusedVehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor());
             }
@@ -617,10 +634,7 @@ namespace VehicleInteriors
             {
                 return original.OrigToVehicleMap(vehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor());
             }
-            else
-            {
-                return SelectedDrawPosOffset(original, center);
-            }
+            return original;
         }
 
         public static Vector3 SelectedDrawPosOffset(Vector3 original, IntVec3 center)
@@ -687,7 +701,7 @@ namespace VehicleInteriors
 
         public static bool ShouldRotatedOnVehicle(this ThingDef tDef)
         {
-            return tDef.graphicData?.drawRotated ?? false && tDef.fillPercent > 0.25f || tDef.Size != IntVec2.One || (!(tDef.graphic is Graphic_Single) && !(tDef.graphic is Graphic_Collection)) ||
+            return tDef.fillPercent > 0.25f || tDef.Size != IntVec2.One || (!(tDef.graphic is Graphic_Single) && !(tDef.graphic is Graphic_Collection)) ||
                 tDef.hasInteractionCell || tDef.drawerType == DrawerType.MapMeshOnly;
         }
 

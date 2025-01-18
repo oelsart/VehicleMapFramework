@@ -9,7 +9,7 @@ namespace VehicleInteriors
 {
     public class WorkGiver_LoadBuildableContainer : WorkGiver_Scanner, IWorkGiverAcrossMaps
     {
-        public bool NeedWrapWithGotoDestJob => false;
+        public bool NeedVirtualMapTransfer => false;
 
         public override IEnumerable<Thing> PotentialWorkThingsGlobal(Pawn pawn)
         {

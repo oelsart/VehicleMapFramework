@@ -1,7 +1,7 @@
 ﻿namespace VehicleInteriors.Jobs.WorkGivers
 {
-    interface IWorkGiverAcrossMaps
+    public interface IWorkGiverAcrossMaps
     {
-        bool NeedWrapWithGotoDestJob {  get; }
+        bool NeedVirtualMapTransfer {  get; }
     }
 }

@@ -10,7 +10,7 @@ namespace VehicleInteriors
 {
     public abstract class WorkGiver_ConstructDeliverResourcesAcrossMaps : WorkGiver_Scanner, IWorkGiverAcrossMaps
     {
-        public bool NeedWrapWithGotoDestJob => false;
+        public bool NeedVirtualMapTransfer => false;
 
         public override Danger MaxPathDanger(Pawn pawn)
         {
@@ -239,14 +239,7 @@ namespace VehicleInteriors
                         Job job = this.RemoveExistingFloorJob(pawn, blue2);
                         if (job != null)
                         {
-                            if (blue2.Map != pawn.Map && pawn.CanReach(blue2, this.PathEndMode, this.MaxPathDanger(pawn), false, false, TraverseMode.ByPawn, blue2.Map, out var exitSpot, out var enterSpot))
-                            {
-                                jobToMakeNeederAvailable = JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, job);
-                            }
-                            else
-                            {
-                                jobToMakeNeederAvailable = job;
-                            }
+                            jobToMakeNeederAvailable = job;
                             return hashSet;
                         }
                     }
@@ -319,8 +312,7 @@ namespace VehicleInteriors
                 return null;
             }
             Job job = JobMaker.MakeJob(VMF_DefOf.VMF_HaulToContainerAcrossMaps, miniToInstallOrBuildingToReinstall, install);
-            var driver = job.GetCachedDriver(pawn) as JobDriverAcrossMaps;
-            driver.SetSpots(exitSpot, enterSpot, exitSpot2, enterSpot2);
+            job.SetSpotsToJobAcrossMaps(pawn, exitSpot, enterSpot, exitSpot2, enterSpot2);
             job.count = 1;
             job.haulMode = HaulMode.ToContainer;
             return job;

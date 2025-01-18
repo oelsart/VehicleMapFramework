@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Security.Cryptography;
 using VehicleInteriors.Jobs.WorkGivers;
 using Vehicles;
 using Verse;
@@ -20,29 +21,6 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             var m_MakeDriver = AccessTools.Method(typeof(Job), nameof(Job.MakeDriver));
             var m_GetCachedDriver = AccessTools.Method(typeof(Job), nameof(Job.GetCachedDriver));
             return instructions.MethodReplacer(m_MakeDriver, m_GetCachedDriver);
-        }
-
-        public static void Prefix(ref Job newJob, Pawn ___pawn)
-        {
-            var thing = newJob.targetA.Thing;
-            if (!(newJob.GetCachedDriver(___pawn) is JobDriverAcrossMaps) && thing != null && thing.MapHeld != ___pawn.MapHeld && ___pawn.CanReach(thing, PathEndMode.Touch, Danger.Deadly, true, true, TraverseMode.ByPawn, thing.MapHeld, out var exitSpot, out var enterSpot))
-            {
-                newJob = JobAcrossMapsUtility.GotoDestMapJob(___pawn, exitSpot, enterSpot, newJob);
-            }
-        }
-    }
-
-    //必要な時JobをGotoDestMapJobでくるむ
-    [HarmonyPatch(typeof(Pawn_JobTracker), nameof(Pawn_JobTracker.TryTakeOrderedJob))]
-    public static class Patch_Pawn_JobTracker_TryTakeOrderedJob
-    {
-        public static void Prefix(ref Job job, Pawn ___pawn)
-        {
-            var thing = job.targetA.Thing;
-            if (!(job.GetCachedDriver(___pawn) is JobDriverAcrossMaps) && thing != null && thing.MapHeld != ___pawn.MapHeld && ___pawn.CanReach(thing, PathEndMode.Touch, Danger.Deadly, true, true, TraverseMode.ByPawn, thing.MapHeld, out var exitSpot, out var enterSpot))
-            {
-                job = JobAcrossMapsUtility.GotoDestMapJob(___pawn, exitSpot, enterSpot, job);
-            }
         }
     }
 
@@ -145,12 +123,41 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             }
         }
 
-        //マップと位置を仮想移動して出てきたJobをGotoDestMapでくるむ
+        //ShouldSkipはvehicleMapを含めた全てのマップでスキップするかチェックする
+        [HarmonyPatch(typeof(JobGiver_Work), "PawnCanUseWorkGiver")]
+        public static class Patch_JobGiver_Work_PawnCanUseWorkGiver
+        {
+            public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+            {
+                var m_WorkGiver_ShouldSkip = AccessTools.Method(typeof(WorkGiver), nameof(WorkGiver.ShouldSkip));
+                var m_ShouldSkipAll = AccessTools.Method(typeof(Patch_JobGiver_Work_PawnCanUseWorkGiver), nameof(Patch_JobGiver_Work_PawnCanUseWorkGiver.ShouldSkipAll));
+                return instructions.MethodReplacer(m_WorkGiver_ShouldSkip, m_ShouldSkipAll);
+            }
+
+            private static bool ShouldSkipAll(WorkGiver workGiver, Pawn pawn, bool forced)
+            {
+                var map = pawn.Map;
+                try
+                {
+                    return pawn.Map.BaseMapAndVehicleMaps().All(m =>
+                    {
+                        pawn.VirtualMapTransfer(m);
+                        var skip = workGiver.ShouldSkip(pawn, forced);
+                        return skip;
+                    });
+                }
+                finally
+                {
+                    pawn.VirtualMapTransfer(map);
+                }
+            }
+        }
+
         private static Job JobOnThingMap(WorkGiver_Scanner scanner, Pawn pawn, Thing t, bool forced)
         {
             var thingMap = t.MapHeld;
             //VFの浅瀬と深い水の境界でのタレット補給バグを回避するため、WorkGiver_RefuelVehicleTurretは除外
-            if ((pawn.Map == thingMap || scanner is IWorkGiverAcrossMaps workGiverAcrossMaps && !workGiverAcrossMaps.NeedWrapWithGotoDestJob) && scanner.Isnt<WorkGiver_RefuelVehicleTurret>())
+            if ((pawn.Map == thingMap || scanner is IWorkGiverAcrossMaps workGiverAcrossMaps && !workGiverAcrossMaps.NeedVirtualMapTransfer) && scanner.Isnt<WorkGiver_RefuelVehicleTurret>())
             {
                 return scanner.JobOnThing(pawn, t, forced);
             }
@@ -158,7 +165,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             var map = pawn.Map;
             if (!scanner.AllowUnreachable)
             {
-                if (pawn.CanReach(t, scanner.PathEndMode, scanner.MaxPathDanger(pawn), false, false, TraverseMode.ByPawn, thingMap, out var exitSpot, out var enterSpot))
+                if (pawn.CanReach(t, scanner.PathEndMode, scanner.MaxPathDanger(pawn), false, false, TraverseMode.ByPawn, thingMap, out _, out _))
                 {
                     var pos = pawn.Position;
                     var dest = t.PositionHeld;
@@ -171,12 +178,6 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                     finally
                     {
                         pawn.VirtualMapTransfer(map, pos);
-                    }
-
-                    var thing = job.targetA.Thing ?? job.targetQueueA?.FirstOrDefault().Thing;
-                    if (thing != null && pawn.Map != thing.MapHeld)
-                    {
-                        return JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, job);
                     }
                     return job;
                 }
@@ -192,36 +193,6 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             finally
             {
                 pawn.VirtualMapTransfer(map, cell);
-            }
-        }
-    }
-
-    //ShouldSkipはvehicleMapを含めた全てのマップでスキップするかチェックする
-    [HarmonyPatch(typeof(JobGiver_Work), "PawnCanUseWorkGiver")]
-    public static class Patch_JobGiver_Work_PawnCanUseWorkGiver
-    {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
-            var m_WorkGiver_ShouldSkip = AccessTools.Method(typeof(WorkGiver), nameof(WorkGiver.ShouldSkip));
-            var m_ShouldSkipAll = AccessTools.Method(typeof(Patch_JobGiver_Work_PawnCanUseWorkGiver), nameof(Patch_JobGiver_Work_PawnCanUseWorkGiver.ShouldSkipAll));
-            return instructions.MethodReplacer(m_WorkGiver_ShouldSkip, m_ShouldSkipAll);
-        }
-
-        private static bool ShouldSkipAll(WorkGiver workGiver, Pawn pawn, bool forced)
-        {
-            var map = pawn.Map;
-            try
-            {
-                return pawn.Map.BaseMapAndVehicleMaps().All(m =>
-                {
-                    pawn.VirtualMapTransfer(m);
-                    var skip = workGiver.ShouldSkip(pawn, forced);
-                    return skip;
-                });
-            }
-            finally
-            {
-                pawn.VirtualMapTransfer(map);
             }
         }
     }
@@ -246,7 +217,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             var thingMap = t.MapHeld;
             //VFの浅瀬と深い水の境界でのタレット補給バグを回避するため、WorkGiver_RefuelVehicleTurretは除外
-            if ((pawn.Map == thingMap || scanner is IWorkGiverAcrossMaps workGiverAcrossMaps && !workGiverAcrossMaps.NeedWrapWithGotoDestJob) && scanner.Isnt<WorkGiver_RefuelVehicleTurret>())
+            if ((pawn.Map == thingMap || scanner is IWorkGiverAcrossMaps workGiverAcrossMaps && !workGiverAcrossMaps.NeedVirtualMapTransfer) && scanner.Isnt<WorkGiver_RefuelVehicleTurret>())
             {
                 return scanner.HasJobOnThing(pawn, t, forced);
             }
@@ -308,14 +279,37 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 return true;
             }
             dest = thing.SpawnedParentOrMe;
-            if (/*___pawn.CurJob.GetCachedDriver(___pawn).Isnt<JobDriverAcrossMaps>() && */___pawn.Map != dest.Thing.Map && ___pawn.CanReach(dest, peMode, Danger.Deadly, false, false, TraverseMode.ByPawn, dest.Thing.Map, out var exitSpot, out var enterSpot))
+            if (___pawn.Map != dest.Thing.Map && ___pawn.CanReach(dest, peMode, Danger.Deadly, false, false, TraverseMode.ByPawn, dest.Thing.Map, out var exitSpot, out var enterSpot))
             {
-                var nextJob = ___pawn.CurJob?.Clone();
+                var nextJob = ___pawn.CurJob.Clone();
+                var driver = nextJob.GetCachedDriver(___pawn);
+                curToilIndex(driver) = ___pawn.jobs.curDriver.CurToilIndex - 1;
                 ___pawn.jobs.curDriver.globalFinishActions.Clear(); //Jobはまだ終わっちゃいねえためFinishActionはさせない。TryDropThingなどをしていることもあるし
-                ___pawn.jobs.StartJob(JobAcrossMapsUtility.GotoDestMapJob(___pawn, exitSpot, enterSpot, nextJob), JobCondition.Succeeded, keepCarryingThingOverride: true);
+                ___pawn.jobs.StartJob(JobAcrossMapsUtility.GotoDestMapJob(___pawn, exitSpot, enterSpot, nextJob), JobCondition.InterruptForced, keepCarryingThingOverride: true);
                 return false;
             }
             return true;
+        }
+
+        private static AccessTools.FieldRef<JobDriver, int> curToilIndex = AccessTools.FieldRefAccess<JobDriver, int>("curToilIndex");
+    }
+
+    [HarmonyPatch(typeof(Toils_Bed), nameof(Toils_Bed.GotoBed))]
+    public static  class Patch_Toils_Bed_GotoBed
+    {
+        public static void Postfix(TargetIndex bedIndex, Toil __result)
+        {
+            __result.AddPreInitAction(() =>
+            {
+                var pawn = __result.actor;
+                var bed = pawn.CurJob.GetTarget(bedIndex).Thing;
+                if (pawn.Map != bed.Map && pawn.CanReach(bed, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, bed.Map, out var exitSpot, out var enterSpot))
+                {
+                    var nextJob = pawn.CurJob.Clone();
+                    pawn.jobs.curDriver.globalFinishActions.Clear();
+                    pawn.jobs.StartJob(JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, nextJob), JobCondition.InterruptForced, keepCarryingThingOverride: true);
+                }
+            });
         }
     }
 
@@ -356,7 +350,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
 
         public static bool Prefix(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance, Predicate<Thing> validator, IEnumerable<Thing> customGlobalSearchSet, int searchRegionsMin, int searchRegionsMax, bool forceAllowGlobalSearch, RegionType traversableRegionTypes, bool ignoreEntirelyForbiddenRegions, bool lookInHaulSources, ref Thing __result)
         {
-            if (traverseParams.pawn != null && traverseParams.pawn.PawnDeterminingJob())
+            if (traverseParams.pawn != null)// && traverseParams.pawn.PawnDeterminingJob())
             {
                 __result = GenClosestOnVehicle.ClosestThingReachable(root, map, thingReq, peMode, traverseParams, maxDistance, validator, customGlobalSearchSet, searchRegionsMin, searchRegionsMax, true, traversableRegionTypes, ignoreEntirelyForbiddenRegions, lookInHaulSources);
                 return false;

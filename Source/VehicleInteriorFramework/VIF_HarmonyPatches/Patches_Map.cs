@@ -61,7 +61,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static bool Prefix(Reachability __instance, IntVec3 start, LocalTargetInfo dest, PathEndMode peMode, TraverseParms traverseParams, ref bool __result)
         {
-            if (traverseParams.pawn != null && (traverseParams.pawn.PawnDeterminingJob() || (traverseParams.pawn.CurJob?.AnyTargetIs(dest) ?? false)) && dest.HasThing && dest.Thing.MapHeld.reachability != __instance)
+            if (traverseParams.pawn != null && /*(traverseParams.pawn.PawnDeterminingJob() || (traverseParams.pawn.CurJob?.AnyTargetIs(dest) ?? false)) && */dest.HasThing && dest.Thing.MapHeld.reachability != __instance)
             {
                 __result = ReachabilityUtilityOnVehicle.CanReach(traverseParams.pawn.Map, start, dest, peMode, traverseParams, dest.Thing.MapHeld, out _, out _);
                 return false;

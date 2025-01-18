@@ -165,8 +165,6 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 vehicle.ForceResetCache();
             }
         }
-
-
     }
 
     [HarmonyPatch("Vehicles.Rendering", "DrawSelectionBracketsVehicles")]

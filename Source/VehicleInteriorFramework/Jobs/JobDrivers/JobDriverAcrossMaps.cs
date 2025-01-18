@@ -7,9 +7,9 @@ namespace VehicleInteriors
 {
     public abstract class JobDriverAcrossMaps : JobDriver
     {
-        public bool ShouldEnterTargetAMap => this.exitSpot1.IsValid || this.enterSpot1.IsValid;
+        public bool ShouldEnterTargetAMap => this.exitSpot1.Map != null || this.enterSpot1.Map != null;
 
-        public bool ShouldEnterTargetBMap => this.exitSpot2.IsValid || this.enterSpot2.IsValid;
+        public bool ShouldEnterTargetBMap => this.exitSpot2.Map != null || this.enterSpot2.Map != null;
 
         public Map DestMap
         {
@@ -65,21 +65,13 @@ namespace VehicleInteriors
         {
             if (ind == TargetIndex.A)
             {
-                var exitSpot = this.exitSpot1;
-                var enterSpot = this.enterSpot1;
-                this.exitSpot1 = TargetInfo.Invalid;
-                this.enterSpot1 = TargetInfo.Invalid;
-                return ToilsAcrossMaps.GotoTargetMap(this, exitSpot, enterSpot);
+                return ToilsAcrossMaps.GotoTargetMap(this, this.exitSpot1, this.enterSpot1);
             }
             if (ind == TargetIndex.B)
             {
-                var exitSpot = this.exitSpot2;
-                var enterSpot = this.enterSpot2;
-                this.exitSpot2 = TargetInfo.Invalid;
-                this.enterSpot2 = TargetInfo.Invalid;
-                return ToilsAcrossMaps.GotoTargetMap(this, exitSpot, enterSpot);
+                return ToilsAcrossMaps.GotoTargetMap(this, this.exitSpot2, this.enterSpot2);
             }
-            Log.Error("[VehicleInteriors] GotoTargetMap() does not support TargetIndex.C.");
+            Log.Error("[VehicleMapFramework] GotoTargetMap() does not support TargetIndex.C.");
             return null;
         }
 

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Jobs;
 using UnityEngine;
+using VehicleInteriors.Jobs.WorkGivers;
 using Vehicles;
 using Verse;
 using Verse.AI;
@@ -174,7 +175,8 @@ namespace VehicleInteriors
                 {
                     return null;
                 }
-                if (ModsConfig.BiotechActive && pawn.IsColonyMech && !MechanitorUtility.InMechanitorCommandRange(pawn, curLoc))
+                var baseLoc = map.IsVehicleMapOf(out var vehicle2) ? curLoc.OrigToVehicleMap(vehicle2) : curLoc;
+                if (ModsConfig.BiotechActive && pawn.IsColonyMech && !MechanitorUtility.InMechanitorCommandRange(pawn, baseLoc))
                 {
                     return new FloatMenuOption("CannotGoOutOfRange".Translate() + ": " + "OutOfCommandRange".Translate(), null, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0);
                 }
@@ -2392,7 +2394,7 @@ namespace VehicleInteriors
             Map map;
             if (GenUIOnVehicle.vehicleForSelector != null)
             {
-                clickCell = IntVec3.FromVector3(clickPos).VehicleMapToOrig(GenUIOnVehicle.vehicleForSelector);
+                clickCell = IntVec3.FromVector3(clickPos.VehicleMapToOrig(GenUIOnVehicle.vehicleForSelector));
                 map = GenUIOnVehicle.vehicleForSelector.VehicleMap;
 
             }
@@ -2407,10 +2409,10 @@ namespace VehicleInteriors
                 canTargetFires = true,
                 canTargetItems = true,
                 canTargetPlants = true,
+                canTargetCorpses = true
             };
-            var thingList = GenUIOnVehicle.TargetsAt(clickPos, targetParms, true, null).Select(t => t.Thing).ToList();
             var baseClickCell = IntVec3.FromVector3(clickPos);
-            foreach (Thing thing in thingList)
+            foreach (Thing thing in clickCell.GetThingList(map))
             {
                 if (thing.Spawned)
                 {
@@ -2434,7 +2436,11 @@ namespace VehicleInteriors
                                     var map2 = pawn.Map;
                                     var pos = pawn.Position;
                                     var canReach = pawn.CanReach(thing2, workGiver_Scanner.PathEndMode, Danger.Deadly, false, false, TraverseMode.ByPawn, thing2.Map, out var exitSpot, out var enterSpot);
-                                    pawn.VirtualMapTransfer(thing2.Map, enterSpot.IsValid ? enterSpot.Cell : exitSpot.IsValid ? exitSpot.Cell.OrigToThingMap(pawn) : pawn.Position);
+                                    var needTransfer = pawn.Map != thing2.Map && (!(workGiver_Scanner is IWorkGiverAcrossMaps workGiverAcrossMaps) || workGiverAcrossMaps.NeedVirtualMapTransfer) || workGiver_Scanner is WorkGiver_RefuelVehicleTurret;
+                                    if (needTransfer)
+                                    {
+                                        pawn.VirtualMapTransfer(thing2.Map, enterSpot.IsValid ? enterSpot.Cell : exitSpot.IsValid ? exitSpot.Cell.OrigToThingMap(pawn) : pawn.Position);
+                                    }
                                     try
                                     {
                                         if (!FloatMenuMakerOnVehicle.ScannerShouldSkip(pawn, workGiver_Scanner, thing2))
@@ -2549,7 +2555,7 @@ namespace VehicleInteriors
                                                         job.workGiverDef = workGiver_Scanner.def;
                                                         action = delegate ()
                                                         {
-                                                            var job2 = JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, localJob);
+                                                            var job2 = needTransfer ? JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, localJob) : localJob;
                                                             if (pawn.jobs.TryTakeOrderedJobPrioritizedWork(job2, localScanner, clickCell))
                                                             {
                                                                 var drawPos = map.IsVehicleMapOf(out var vehicle) ? clickCell.ToVector3Shifted().OrigToVehicleMap(vehicle) : clickCell.ToVector3Shifted();
@@ -2596,7 +2602,10 @@ namespace VehicleInteriors
                                     }
                                     finally
                                     {
-                                        pawn.VirtualMapTransfer(map2, pos);
+                                        if (needTransfer)
+                                        {
+                                            pawn.VirtualMapTransfer(map2, pos);
+                                        }
                                     }
                                 }
                             }

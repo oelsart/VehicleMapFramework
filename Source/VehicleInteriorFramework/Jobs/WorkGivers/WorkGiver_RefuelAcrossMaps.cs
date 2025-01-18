@@ -7,7 +7,7 @@ namespace VehicleInteriors
 {
     public class WorkGiver_RefuelAcrossMaps : WorkGiver_Scanner, IWorkGiverAcrossMaps
     {
-        public bool NeedWrapWithGotoDestJob => false;
+        public bool NeedVirtualMapTransfer => false;
 
         public override ThingRequest PotentialWorkThingRequest
         {

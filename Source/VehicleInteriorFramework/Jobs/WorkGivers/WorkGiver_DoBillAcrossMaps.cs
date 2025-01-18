@@ -11,7 +11,7 @@ namespace VehicleInteriors
 {
     public class WorkGiver_DoBillAcrossMaps : WorkGiver_Scanner, IWorkGiverAcrossMaps
     {
-        public bool NeedWrapWithGotoDestJob => false;
+        public bool NeedVirtualMapTransfer => false;
 
         private class DefCountList
         {

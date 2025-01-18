@@ -147,9 +147,9 @@ namespace VehicleInteriors
                 var faceCell = IntVec3.Zero;
                 var dist = 1;
                 exitSpot.Map.IsVehicleMapOf(out var vehicle);
-                var baseMap = exitSpot.Map.BaseMap();
                 toil2.initAction = (Action)Delegate.Combine(toil2.initAction, new Action(() =>
                 {
+                    var baseMap = exitSpot.Map.BaseMap();
                     initTick = GenTicks.TicksGame;
                     var basePos = exitSpot.HasThing ? exitSpot.Thing.PositionOnBaseMap() : exitSpot.Cell.OrigToVehicleMap(vehicle);
                     faceCell = exitSpot.HasThing ? exitSpot.Thing.BaseFullRotation().FacingCell : exitSpot.Cell.BaseFullDirectionToInsideMap(exitSpot.Map).FacingCell;
@@ -200,6 +200,7 @@ namespace VehicleInteriors
                 toil3.defaultCompleteMode = ToilCompleteMode.Instant;
                 toil3.FailOn(() =>
                 {
+                    var baseMap = exitSpot.Map.BaseMap();
                     var basePos = exitSpot.HasThing ? exitSpot.Thing.PositionOnBaseMap() : exitSpot.Cell.OrigToVehicleMap(vehicle);
                     var rot = exitSpot.HasThing ? exitSpot.Thing.BaseFullRotation() : exitSpot.Cell.BaseFullDirectionToInsideMap(exitSpot.Map);
                     faceCell = rot.FacingCell;
@@ -213,6 +214,7 @@ namespace VehicleInteriors
                 });
                 toil3.initAction = () =>
                 {
+                    var baseMap = exitSpot.Map.BaseMap();
                     var basePos = exitSpot.HasThing ? exitSpot.Thing.PositionOnBaseMap() : exitSpot.Cell.OrigToVehicleMap(vehicle);
                     var baseRot = exitSpot.HasThing ? exitSpot.Thing.BaseFullRotation() : exitSpot.Cell.BaseFullDirectionToInsideMap(exitSpot.Map);
                     driver.drawOffset = Vector3.zero;
@@ -267,9 +269,9 @@ namespace VehicleInteriors
                 var faceCell = IntVec3.Zero;
                 var dist = 1;
                 enterSpot.Map.IsVehicleMapOf(out var vehicle);
-                var baseMap = enterSpot.Map.BaseMap();
                 toil2.initAction = (Action)Delegate.Combine(toil2.initAction, new Action(() =>
                 {
+                    var baseMap = enterSpot.Map.BaseMap();
                     var baseRot8 = enterSpot.HasThing ? enterSpot.Thing.BaseFullRotation() : enterSpot.Cell.BaseFullDirectionToInsideMap(enterSpot.Map);
                     Rot4 baseRot4 = baseRot8;
                     var basePos = enterSpot.HasThing ? enterSpot.Thing.PositionOnBaseMap() : enterSpot.Cell.OrigToVehicleMap(vehicle);

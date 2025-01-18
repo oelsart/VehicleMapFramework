@@ -44,7 +44,7 @@ namespace VehicleInteriors
             Job job3 = base.ResourceDeliverJobFor(pawn, blueprint, true, forced);
             if (job3 != null)
             {
-                return JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, job3);
+                return job3;
             }
             if (this.def.workType != WorkTypeDefOf.Hauling)
             {

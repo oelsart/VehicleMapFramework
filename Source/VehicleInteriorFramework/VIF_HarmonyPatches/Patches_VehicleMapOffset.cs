@@ -340,7 +340,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle) && thing.def.drawerType == DrawerType.RealtimeOnly && thing.def.category != ThingCategory.Item)
             {
                 var def = thing.def.IsBlueprint ? thing.def.entityDefToBuild as ThingDef : thing.def;
-                if ((def.rotatable || def.graphic is Graphic_Multi) && (def.graphicData?.drawRotated ?? false) && !def.graphicData.Linked)
+                if ((def.rotatable || def.graphic is Graphic_Multi) && (!def.graphicData?.Linked ?? true))
                 {
                     var fullRot = vehicle.FullRotation;
                     rot.AsInt += fullRot.RotForVehicleDraw().AsInt;
@@ -393,7 +393,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 var angle = vehicle.Angle;
                 loc = loc.OrigToVehicleMap(vehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor());
                 var rot2 = rot;
-                if ((def.rotatable || def.graphic is Graphic_Multi) && (def.graphicData?.drawRotated ?? false) && !def.graphicData.Linked)
+                if ((def.rotatable || def.graphic is Graphic_Multi) && (!def.graphicData?.Linked ?? true))
                 {
                     var fullRot = vehicle.FullRotation;
                     rot.AsInt += fullRot.RotForVehicleDraw().AsInt;
@@ -495,13 +495,17 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             var tmp = center;
             VehiclePawnWithMap vehicle = null;
-            if (Command_FocusVehicleMap.FocusedVehicle != null)
+            Thing thing;
+            if ((thing = Find.Selector.SelectedObjects.OfType<Thing>().FirstOrDefault(t => t.Position == tmp)) != null)
+            {
+                if (thing.IsOnNonFocusedVehicleMapOf(out vehicle))
+                {
+                    center = center.OrigToVehicleMap(vehicle);
+                }
+            }
+            else if (Command_FocusVehicleMap.FocusedVehicle != null)
             {
                 center = center.OrigToVehicleMap(Command_FocusVehicleMap.FocusedVehicle);
-            }
-            else if (Find.Selector.SelectedObjects.Any(o => o is Thing thing && thing.Position == tmp && thing.IsOnNonFocusedVehicleMapOf(out vehicle)))
-            {
-                center = center.OrigToVehicleMap(vehicle);
             }
         }
     }
@@ -654,7 +658,6 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             var codes = instructions.ToList();
             var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(MethodInfoCache.m_GenDraw_DrawFieldEdges));
             var label = generator.DefineLabel();
-
             codes[pos].operand = MethodInfoCache.m_GenDrawOnVehicle_DrawFieldEdges;
             codes[pos].labels.Add(label);
             codes.InsertRange(pos, new[]
@@ -670,12 +673,31 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatch(typeof(MoteMaker), nameof(MoteMaker.MakeInteractionOverlay), typeof(ThingDef), typeof(TargetInfo), typeof(TargetInfo) )]
-    class Debug
+    //CellがターゲットのMoteにオフセットをかける
+    [HarmonyDebug]
+    [HarmonyPatch(typeof(MoteAttachLink), nameof(MoteAttachLink.UpdateDrawPos))]
+    public static class Patch_MoteAttachLink_UpdateDrawPos
     {
-        static void Postfix()
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
         {
-            Log.Message("Called");
+            var codes = instructions.ToList();
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(MethodInfoCache.m_IntVec3_ToVector3Shifted)) + 1;
+            var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithMap));
+            var label = generator.DefineLabel();
+
+            codes[pos].labels.Add(label);
+            codes.InsertRange(pos, new[]
+            {
+                CodeInstruction.LoadArgument(0),
+                CodeInstruction.LoadField(typeof(MoteAttachLink), "targetInt", true),
+                new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(TargetInfo), nameof(TargetInfo.Map))),
+                new CodeInstruction(OpCodes.Ldloca, vehicle),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_IsNonFocusedVehicleMapOf),
+                new CodeInstruction(OpCodes.Brfalse_S, label),
+                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_OrigToVehicleMap2)
+            });
+            return codes;
         }
     }
 }

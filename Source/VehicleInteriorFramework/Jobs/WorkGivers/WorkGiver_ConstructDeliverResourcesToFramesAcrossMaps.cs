@@ -28,14 +28,14 @@ namespace VehicleInteriors
             {
                 return GenConstructOnVehicle.HandleBlockingThingJob(frame, pawn, forced);
             }
-            if (!GenConstructOnVehicle.CanConstruct(frame, pawn, this.def.workType, forced, VMF_DefOf.VMF_HaulToCellAcrossMaps, out var exitSpot, out var enterSpot))
+            if (!GenConstructOnVehicle.CanConstruct(frame, pawn, this.def.workType, forced, VMF_DefOf.VMF_HaulToCellAcrossMaps, out _, out _))
             {
                 return null;
             }
             var job = base.ResourceDeliverJobFor(pawn, frame, true, forced);
             if (job != null)
             {
-                return JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, job);
+                return job;
             }
             return null;
         }

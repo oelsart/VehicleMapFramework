@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using VehicleInteriors.Jobs;
 using Verse;
 
 namespace VehicleInteriors

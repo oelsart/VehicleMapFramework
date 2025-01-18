@@ -2,17 +2,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
-using Vehicles;
-using Verse.AI;
 using Verse;
+using Verse.AI;
 using Verse.AI.Group;
-using VehicleInteriors.Jobs;
-using HarmonyLib;
-using System.Net.NetworkInformation;
-using Verse.Noise;
 
 namespace VehicleInteriors
 {

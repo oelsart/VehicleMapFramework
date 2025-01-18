@@ -140,6 +140,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
+    //Vehicleは移動するからTickごとにTileを取得し直す
     [HarmonyPatch(typeof(TravelingTransportPods), nameof(TravelingTransportPods.Tick))]
     public static class Patch_TravelingTransportPods_Tick
     {
@@ -149,6 +150,31 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             {
                 __instance.destinationTile = mapParent.Tile;
             }
+        }
+    }
+
+    //ワイヤーの行き先オフセット
+    [HarmonyPatch(typeof(Building_MechCharger), "DrawAt")]
+    public static class Patch_Building_MechCharger_DrawAt
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+        {
+            var codes = instructions.ToList();
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(MethodInfoCache.m_IntVec3_ToVector3Shifted)) + 1;
+            var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithMap));
+            var label = generator.DefineLabel();
+
+            codes[pos].labels.Add(label);
+            codes.InsertRange(pos, new[]
+            {
+                CodeInstruction.LoadArgument(0),
+                new CodeInstruction(OpCodes.Ldloca_S, vehicle),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_IsOnNonFocusedVehicleMapOf),
+                new CodeInstruction(OpCodes.Brfalse_S, label),
+                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_OrigToVehicleMap2)
+            });
+            return codes.MethodReplacer(MethodInfoCache.g_Thing_Rotation, MethodInfoCache.m_BaseFullRotation_Thing);
         }
     }
 }
