@@ -395,7 +395,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 new CodeInstruction(OpCodes.Call, MethodInfoCache.m_Rot8_AsQuat),
                 new CodeInstruction(OpCodes.Call, MethodInfoCache.o_Quaternion_Multiply)
             });
-            return codes;
+            return codes.MethodReplacer(MethodInfoCache.g_Rot4_AsQuat, MethodInfoCache.m_Rot8_AsQuatRef);
         }
     }
 

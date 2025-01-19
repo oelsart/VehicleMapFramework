@@ -1,4 +1,5 @@
-﻿using RimWorld;
+﻿using HarmonyLib;
+using RimWorld;
 using Verse;
 using Verse.AI;
 
@@ -6,27 +7,29 @@ namespace VehicleInteriors
 {
     public static class JobAcrossMapsUtility
     {
-        public static Job GotoDestMapJob(Pawn pawn, TargetInfo? exitSpot1 = null, TargetInfo? enterSpot1 = null, Job nextJob = null)
+        public static void StartGotoDestMapJob(Pawn pawn, TargetInfo? exitSpot = null, TargetInfo? enterSpot = null)
         {
-            if ((enterSpot1.HasValue && enterSpot1.Value.Map != null) || (exitSpot1.HasValue && exitSpot1.Value.Map != null))
+            var nextJob = pawn.CurJob.Clone();
+            var driver = nextJob.GetCachedDriver(pawn);
+            curToilIndex(driver) = pawn.jobs.curDriver.CurToilIndex - 1;
+            pawn.jobs.curDriver.globalFinishActions.Clear(); //Jobはまだ終わっちゃいねえためFinishActionはさせない。TryDropThingなどをしていることもあるし
+            pawn.jobs.StartJob(JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, nextJob), JobCondition.InterruptForced, keepCarryingThingOverride: true);
+        }
+
+        private static AccessTools.FieldRef<JobDriver, int> curToilIndex = AccessTools.FieldRefAccess<JobDriver, int>("curToilIndex");
+
+        public static Job GotoDestMapJob(Pawn pawn, TargetInfo? exitSpot = null, TargetInfo? enterSpot = null, Job nextJob = null)
+        {
+            if ((enterSpot.HasValue && enterSpot.Value.Map != null) || (exitSpot.HasValue && exitSpot.Value.Map != null))
             {
-                //if (nextJob.GetCachedDriver(pawn) is JobDriverAcrossMaps driver)
-                //{
-                //    var destMap = enterSpot1.Value.Map ?? exitSpot1.Value.Map;
-                //    Log.Message($"{driver.TargetAMap} {driver.DestMap} {destMap}");
-                //    if (driver.TargetAMap == destMap || driver.DestMap == destMap)
-                //    {
-                //        return nextJob;
-                //    }
-                //}
-                return JobMaker.MakeJob(VMF_DefOf.VMF_GotoDestMap).SetSpotsAndNextJob(pawn, exitSpot1, enterSpot1, nextJob: nextJob);
+                return JobMaker.MakeJob(VMF_DefOf.VMF_GotoDestMap).SetSpotsAndNextJob(pawn, exitSpot, enterSpot, nextJob: nextJob);
             }
             return nextJob;
         }
 
-        public static void TryTakeGotoDestMapJob(Pawn pawn, TargetInfo? exitSpot1 = null, TargetInfo? enterSpot1 = null)
+        public static void TryTakeGotoDestMapJob(Pawn pawn, TargetInfo? exitSpot = null, TargetInfo? enterSpot = null)
         {
-            pawn.jobs.TryTakeOrderedJob(JobMaker.MakeJob(VMF_DefOf.VMF_GotoAcrossMaps).SetSpotsToJobAcrossMaps(pawn, exitSpot1, enterSpot1), new JobTag?(JobTag.Misc), false);
+            pawn.jobs.TryTakeOrderedJob(JobMaker.MakeJob(VMF_DefOf.VMF_GotoAcrossMaps).SetSpotsToJobAcrossMaps(pawn, exitSpot, enterSpot), new JobTag?(JobTag.Misc), false);
         }
 
         public static Job SetSpotsToJobAcrossMaps(this Job job, Pawn pawn, TargetInfo? exitSpot1 = null, TargetInfo? enterSpot1 = null, TargetInfo? exitSpot2 = null, TargetInfo? enterSpot2 = null)

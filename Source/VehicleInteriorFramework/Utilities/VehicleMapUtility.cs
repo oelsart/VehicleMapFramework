@@ -243,7 +243,7 @@ namespace VehicleInteriors
             float result = 0f;
             if (thing.IsOnVehicleMapOf(out _))
             {
-                result -= VehicleMapUtility.rotForPrint.AsAngle * (!thing.def.rotatable && thing.Graphic.Isnt<Graphic_Multi>() && !thing.def.category.HasFlag(ThingCategory.Item) && !thing.def.graphicData.Linked ? 2f : 1f);
+                result -= VehicleMapUtility.rotForPrint.AsAngle * (!thing.def.rotatable && thing.Graphic.Isnt<Graphic_Multi>() && thing.def.category != ThingCategory.Item && !thing.def.graphicData.Linked ? 2f : 1f);
             }
             return result;
         }
@@ -437,6 +437,16 @@ namespace VehicleInteriors
             if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle))
             {
                 return new Rot8(Rot8.FromIntClockwise((new Rot8(thing.Rotation).AsIntClockwise + vehicle.FullRotation.AsIntClockwise) % 8));
+            }
+            return thing.Rotation;
+        }
+
+        public static Rot8 BaseFullRotationDoor(this Thing thing)
+        {
+            if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle))
+            {
+                var rot = new Rot8(Rot8.FromIntClockwise((new Rot8(thing.Rotation).AsIntClockwise + vehicle.FullRotation.AsIntClockwise) % 8));
+                return rot.FacingCell.z < 0 ? rot.Opposite : rot;
             }
             return thing.Rotation;
         }

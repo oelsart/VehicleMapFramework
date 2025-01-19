@@ -105,7 +105,7 @@ namespace VehicleInteriors
             Pawn_PathFollower pawn_PathFollower = pawn.pather;
             pawn_PathFollower?.StopDead();
             Pawn_RopeTracker pawn_RopeTracker = pawn.roping;
-            pawn_RopeTracker?.Notify_DeSpawned();
+            //pawn_RopeTracker?.Notify_DeSpawned();
             pawn.mindState.droppedWeapon = null;
             Pawn_NeedsTracker pawn_NeedsTracker = pawn.needs;
             if (pawn_NeedsTracker != null)

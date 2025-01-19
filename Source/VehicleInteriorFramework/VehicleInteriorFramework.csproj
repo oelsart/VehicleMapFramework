@@ -131,6 +131,7 @@
     <Compile Include="PlaceWorkers\PlaceWorker_ForbidOnHumanPoweredVehicle.cs" />
     <Compile Include="PlaceWorkers\PlaceWorker_ForceOnHoverVehicle.cs" />
     <Compile Include="Graphics\RGBMaskOpacityDef.cs" />
+    <Compile Include="Utilities\AnimalPenUtilityOnVehicle.cs" />
     <Compile Include="Utilities\GenDrawOnVehicle.cs" />
     <Compile Include="Graphics\Graphic_LinkedCornerOverlaySingle.cs" />
     <Compile Include="Graphics\Graphic_VehicleOpacity.cs" />
@@ -240,6 +241,7 @@
     <Compile Include="VehiclePawnWithMap.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="VIF_HarmonyPatches\Patches_AdaptiveStorage.cs" />
+    <Compile Include="VIF_HarmonyPatches\Patches_AnimalPen.cs" />
     <Compile Include="VMF_DefOf.cs" />
     <Compile Include="VIF_HarmonyPatches\Core.cs" />
     <Compile Include="VIF_HarmonyPatches\Patches_Combat.cs" />

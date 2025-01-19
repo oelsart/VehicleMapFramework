@@ -27,7 +27,7 @@
 			<drawOffsetWest>(1,0,-0.5)</drawOffsetWest>
 		</graphicData>
 		<researchPrerequisites>
-			<li  MayRequire="OELS.MapVehicles">MV_Cart</li>
+			<li MayRequire="OELS.MapVehicles">MV_Cart</li>
 		</researchPrerequisites>
 		<building>
 			<isEdifice>false</isEdifice>

@@ -226,7 +226,15 @@ namespace VehicleInteriors
                     else
                     {
                         toil3.actor.DeSpawnWithoutJobClear();
+                        foreach (var ropee in toil3.actor.roping?.Ropees)
+                        {
+                            ropee.DeSpawnWithoutJobClear();
+                        }
                         GenSpawn.Spawn(toil3.actor, basePos - faceCell * dist, baseMap, baseRot.Opposite, WipeMode.Vanish);
+                        foreach (var ropee in toil3.actor.roping?.Ropees)
+                        {
+                            GenSpawn.Spawn(ropee, basePos - faceCell * dist, baseMap, baseRot.Opposite, WipeMode.Vanish);
+                        }
                     }
                 };
                 yield return toil3;
@@ -332,7 +340,15 @@ namespace VehicleInteriors
                     else
                     {
                         toil3.actor.DeSpawnWithoutJobClear();
+                        foreach (var ropee in toil3.actor.roping?.Ropees)
+                        {
+                            ropee.DeSpawnWithoutJobClear();
+                        }
                         GenSpawn.Spawn(toil3.actor, enterSpot.Cell, enterSpot.Map, rot, WipeMode.VanishOrMoveAside);
+                        foreach (var ropee in toil3.actor.roping?.Ropees)
+                        {
+                            GenSpawn.Spawn(ropee, enterSpot.Cell, enterSpot.Map, rot, WipeMode.VanishOrMoveAside);
+                        }
                     }
                 };
                 yield return toil3;

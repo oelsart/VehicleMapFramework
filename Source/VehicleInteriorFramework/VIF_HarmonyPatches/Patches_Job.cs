@@ -281,11 +281,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             dest = thing.SpawnedParentOrMe;
             if (___pawn.Map != dest.Thing.Map && ___pawn.CanReach(dest, peMode, Danger.Deadly, false, false, TraverseMode.ByPawn, dest.Thing.Map, out var exitSpot, out var enterSpot))
             {
-                var nextJob = ___pawn.CurJob.Clone();
-                var driver = nextJob.GetCachedDriver(___pawn);
-                curToilIndex(driver) = ___pawn.jobs.curDriver.CurToilIndex - 1;
-                ___pawn.jobs.curDriver.globalFinishActions.Clear(); //Jobはまだ終わっちゃいねえためFinishActionはさせない。TryDropThingなどをしていることもあるし
-                ___pawn.jobs.StartJob(JobAcrossMapsUtility.GotoDestMapJob(___pawn, exitSpot, enterSpot, nextJob), JobCondition.InterruptForced, keepCarryingThingOverride: true);
+                JobAcrossMapsUtility.StartGotoDestMapJob(___pawn, exitSpot, enterSpot);
                 return false;
             }
             return true;

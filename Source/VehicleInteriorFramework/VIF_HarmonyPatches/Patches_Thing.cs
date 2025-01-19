@@ -1,9 +1,12 @@
 ﻿using HarmonyLib;
 using RimWorld;
 using RimWorld.Planet;
+using SmashTools;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
+using UnityEngine;
 using Verse;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
@@ -14,6 +17,47 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         public static void Postfix(Building_Door __instance, ref bool __result)
         {
             __result = __result && !(__instance is Building_VehicleRamp);
+        }
+    }
+
+    [HarmonyPatch(typeof(Building_Door), "DrawMovers")]
+    public static class Patch_Building_Door_DrawMovers
+    {
+        public static void Prefix(ref float altitude, Building_Door __instance)
+        {
+            if (__instance.IsOnNonFocusedVehicleMapOf(out _))
+            {
+                altitude += VehicleMapUtility.altitudeOffsetFull;
+            }
+        }
+
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+        {
+            var codes = instructions.ToList();
+            var m_MatAt = AccessTools.Method(typeof(Graphic), nameof(Graphic.MatAt));
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Callvirt && c.OperandIs(m_MatAt));
+            codes.Insert(pos - 1, CodeInstruction.Call(typeof(VehicleMapUtility), nameof(VehicleMapUtility.RotForVehicleDraw)));
+            return codes.MethodReplacer(MethodInfoCache.g_Thing_Rotation, AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.BaseFullRotationDoor)))
+                .MethodReplacer(MethodInfoCache.g_Rot4_AsQuat, MethodInfoCache.m_Rot8_AsQuatRef)
+                .MethodReplacer(MethodInfoCache.m_Rot4_Rotate, MethodInfoCache.m_Rot8_Rotate);
+        }
+    }
+
+    [HarmonyPatch(typeof(Building_MultiTileDoor), "DrawAt")]
+    public static class Patch_Building_MultiTileDoor_DrawAt
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var f_Vector3_y = AccessTools.Field(typeof(Vector3), nameof(Vector3.y));
+            foreach (var instruction in instructions)
+            {
+                if (instruction.opcode == OpCodes.Stfld && instruction.OperandIs(f_Vector3_y))
+                {
+                    yield return new CodeInstruction(OpCodes.Ldc_R4, VehicleMapUtility.altitudeOffsetFull);
+                    yield return new CodeInstruction(OpCodes.Add);
+                }
+                yield return instruction;
+            }
         }
     }
 
@@ -153,7 +197,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
-    //ワイヤーの行き先オフセット
+    //ワイヤーの行き先オフセットとFillableBarの回転
     [HarmonyPatch(typeof(Building_MechCharger), "DrawAt")]
     public static class Patch_Building_MechCharger_DrawAt
     {
@@ -188,3 +232,4 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 }
+
