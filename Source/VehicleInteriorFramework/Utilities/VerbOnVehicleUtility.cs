@@ -1,5 +1,9 @@
-﻿using RimWorld;
+﻿using HarmonyLib;
+using RimWorld;
+using SmashTools.Pathfinding;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using Vehicles;
 using Verse;
 using Verse.AI;
@@ -67,7 +71,7 @@ namespace VehicleInteriors
             return false;
         }
 
-        private static bool CanHitFromCellIgnoringRange(this Verb verb, IntVec3 sourceCellBaseCol, LocalTargetInfo targ, out IntVec3 goodDest)
+        public static bool CanHitFromCellIgnoringRange(this Verb verb, IntVec3 sourceCellBaseCol, LocalTargetInfo targ, out IntVec3 goodDest)
         {
             var targCellOnBaseMap = targ.CellOnBaseMap();
             var baseMap = verb.Caster.BaseMap();

@@ -103,6 +103,7 @@ namespace VehicleInteriors
             return GenClosestOnVehicle.ClosestThing_Global(center, searchSet, maxDistance, validator, priorityGetter, false);
         }
 
+
         public static Thing ClosestThing_Global(IntVec3 center, IEnumerable searchSet, float maxDistance = 99999f, Predicate<Thing> validator = null, Func<Thing, float> priorityGetter = null, bool lookInHaulSources = false)
         {
             if (searchSet == null)

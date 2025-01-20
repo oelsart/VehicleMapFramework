@@ -13,10 +13,13 @@ namespace VehicleInteriors
     {
         public static IAttackTarget BestAttackTarget(IAttackTargetSearcher searcher, TargetScanFlags flags, Predicate<Thing> validator = null, float minDist = 0f, float maxDist = 9999f, IntVec3 locus = default(IntVec3), float maxTravelRadiusFromLocus = 3.4028235E+38f, bool canBashDoors = false, bool canTakeTargetsCloserThanEffectiveMinRange = true, bool canBashFences = false, bool onlyRanged = false)
         {
+            AttackTargetFinderOnVehicle.interceptors = searcher.Thing?.Map.BaseMapAndVehicleMaps()
+                .SelectMany(m => m.listerThings.ThingsInGroup(ThingRequestGroup.ProjectileInterceptor)
+                .Select(t => t.TryGetComp<CompProjectileInterceptor>())).ToList() ?? new List<CompProjectileInterceptor>();
             var searcherThing = searcher.Thing;
             var searcherPawn = searcher as Pawn;
             var verb = searcher.CurrentEffectiveVerb;
-            var CEActive = ModsConfig.IsActive("ceteam.combatextended");
+            var CEActive = ModsConfig.IsActive("CETeam.CombatExtended");
             if (verb == null)
 			{
                 Log.Error("BestAttackTarget with " + searcher.ToStringSafe<IAttackTargetSearcher>() + " who has no attack verb.");
@@ -156,51 +159,40 @@ namespace VehicleInteriors
             if ((AttackTargetFinderOnVehicle.HasRangedAttack(searcher) || onlyRanged) && (searcherPawn == null || !searcherPawn.InAggroMentalState))
             {
                 AttackTargetFinderOnVehicle.tmpTargets.Clear();
-                var baseMap = searcherThing.BaseMap();
-                AttackTargetFinderOnVehicle.tmpTargets.AddRange(baseMap.attackTargetsCache.GetPotentialTargetsFor(searcher));
-                AttackTargetFinderOnVehicle.tmpTargets.AddRange(VehiclePawnWithMapCache.allVehicles[baseMap].SelectMany(v => v.VehicleMap.attackTargetsCache.GetPotentialTargetsFor(searcher)));
-                AttackTargetFinderOnVehicle.tmpTargets.RemoveAll((IAttackTarget t) => AttackTargetFinderOnVehicle.ShouldIgnoreNoncombatant(searcherThing, t, flags));
-                if ((flags & TargetScanFlags.NeedReachable) != TargetScanFlags.None)
-                {
-                    Predicate<IAttackTarget> oldValidator = innerValidator;
-                    innerValidator = ((IAttackTarget t) =>
-                    {
-                        return oldValidator(t) && AttackTargetFinderOnVehicle.CanReach(searcherThing, t.Thing, canBashDoors, canBashFences);
-                    });
-                }
-                bool flag = false;
+                AttackTargetFinderOnVehicle.tmpTargets.AddRange(searcherThing.Map.BaseMapAndVehicleMaps().SelectMany(m => m.attackTargetsCache.GetPotentialTargetsFor(searcher)));
+                AttackTargetFinderOnVehicle.validTargets.Clear();
+
                 for (int i = 0; i < AttackTargetFinderOnVehicle.tmpTargets.Count; i++)
                 {
                     IAttackTarget attackTarget = AttackTargetFinderOnVehicle.tmpTargets[i];
-                    if (attackTarget.Thing.PositionOnBaseMap().InHorDistOf(searcherThing.PositionOnBaseMap(), maxDist) && innerValidator(attackTarget) && AttackTargetFinderOnVehicle.CanShootAtFromCurrentPosition(attackTarget, searcher, verb))
+                    if (attackTarget.Thing.PositionOnBaseMap().InHorDistOf(searcherThing.PositionOnBaseMap(), maxDist) && innerValidator(attackTarget))
                     {
-                        flag = true;
-                        break;
+                        AttackTargetFinderOnVehicle.validTargets.Add(attackTarget);
                     }
                 }
-                IAttackTarget result;
-                if (flag)
+
+                if (AttackTargetFinderOnVehicle.validTargets.Count == 0)
                 {
-                    AttackTargetFinderOnVehicle.tmpTargets.RemoveAll((IAttackTarget x) => !x.Thing.PositionOnBaseMap().InHorDistOf(searcherThing.PositionOnBaseMap(), maxDist) || !innerValidator(x));
-                    result = AttackTargetFinderOnVehicle.GetRandomShootingTargetByScore(AttackTargetFinderOnVehicle.tmpTargets, searcher, verb);
+                    return null;
                 }
-                else
+
+                var targetToHit = AttackTargetFinderOnVehicle.GetRandomShootingTargetByScore(AttackTargetFinderOnVehicle.validTargets, searcher, verb);
+                if (targetToHit != null || searcher is Building_Turret || (searcher is Pawn sercherPawn && searcherPawn.CurJobDef == JobDefOf.ManTurret))
                 {
-                    bool flag2 = (flags & TargetScanFlags.NeedReachableIfCantHitFromMyPos) > TargetScanFlags.None;
-                    bool flag3 = (flags & TargetScanFlags.NeedReachable) > TargetScanFlags.None;
-                    Predicate<Thing> validator2;
-                    if (flag2 && !flag3)
-                    {
-                        validator2 = ((Thing t) => innerValidator((IAttackTarget)t) && (AttackTargetFinderOnVehicle.CanReach(searcherThing, t, canBashDoors, canBashFences) || AttackTargetFinderOnVehicle.CanShootAtFromCurrentPosition((IAttackTarget)t, searcher, verb)));
-                    }
-                    else
-                    {
-                        validator2 = ((Thing t) => innerValidator((IAttackTarget)t));
-                    }
-                    result = (IAttackTarget)GenClosestOnVehicle.ClosestThing_Global(searcherThing.PositionOnBaseMap(), AttackTargetFinderOnVehicle.tmpTargets, maxDist, validator2, null);
+                    return targetToHit;
                 }
-                AttackTargetFinderOnVehicle.tmpTargets.Clear();
-                return result;
+                if (flags.HasFlag(TargetScanFlags.NeedReachableIfCantHitFromMyPos) || flags.HasFlag(TargetScanFlags.NeedReachable))
+                {
+                    return (IAttackTarget)GenClosestOnVehicle.ClosestThing_Global(
+                        searcher.Thing.Position,
+                        AttackTargetFinderOnVehicle.validTargets,
+                        maxDist, 
+                        (Thing t) => AttackTargetFinderOnVehicle.CanReach(searcher.Thing, t, canBashDoors, canBashFences),
+                        null,
+                        false
+                        );
+                }
+                return (IAttackTarget)GenClosestOnVehicle.ClosestThing_Global(searcher.Thing.Position, AttackTargetFinderOnVehicle.validTargets, maxDist, null, null, false);
             }
             if (searcherPawn != null && searcherPawn.mindState.duty != null && searcherPawn.mindState.duty.radius > 0f && !searcherPawn.InMentalState)
 			{
@@ -782,6 +774,8 @@ namespace VehicleInteriors
         private static List<IAttackTarget> tmpTargets = new List<IAttackTarget>(128);
 
         private static List<IAttackTarget> validTargets = new List<IAttackTarget>();
+
+        private static List<CompProjectileInterceptor> interceptors;
 
         private static List<Pair<IAttackTarget, float>> availableShootingTargets = new List<Pair<IAttackTarget, float>>();
 
