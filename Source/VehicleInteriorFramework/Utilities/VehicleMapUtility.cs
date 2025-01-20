@@ -575,7 +575,7 @@ namespace VehicleInteriors
             return vector.RotatedBy(-VehicleMapUtility.rotForPrint.AsAngle);
         }
 
-        public static bool TryGetVehicleMap(this Vector3 point, Map map, out VehiclePawnWithMap vehicle)
+        public static bool TryGetVehicleMap(this Vector3 point, Map map, out VehiclePawnWithMap vehicle, bool getStructureCell = true)
         {
             if (VehicleInteriors.settings.drawPlanet && Find.CurrentMap.IsVehicleMapOf(out vehicle))
             {
@@ -587,7 +587,8 @@ namespace VehicleInteriors
             {
                 var rect = new Rect(0f, 0f, (float)v.VehicleMap.Size.x, (float)v.VehicleMap.Size.z).ExpandedBy(0.01f);
                 var vector = point.VehicleMapToOrig(v);
-                return rect.Contains(new Vector2(vector.x, vector.z)) && !v.CachedStructureCells.Contains(vector.ToIntVec3());
+                var intVec = vector.ToIntVec3();
+                return rect.Contains(new Vector2(vector.x, vector.z)) && !v.CachedOutOfBoundsCells.Contains(intVec) && (getStructureCell || !v.CachedStructureCells.Contains(intVec));
             });
             return vehicle != null;
         }

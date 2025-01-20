@@ -65,6 +65,23 @@ namespace VehicleInteriors
             }
         }
 
+        public HashSet<IntVec3> CachedOutOfBoundsCells
+        {
+            get
+            {
+                if (this.structureCellsCache == null)
+                {
+                    var props = this.VehicleDef.GetModExtension<VehicleMapProps>();
+                    if (props != null)
+                    {
+                        return props.OutOfBoundsCells.Select(c => c.ToIntVec3).ToHashSet();
+                    }
+                    return new HashSet<IntVec3>();
+                }
+                return this.structureCellsCache;
+            }
+        }
+
         public override List<IntVec3> InteractionCells => this.interactionCellsInt;
 
         //VehiclePawnWithMapに関してはcachModeに関わらず先にcachedDrawPosから取らないとずれるぜ
@@ -179,23 +196,41 @@ namespace VehicleInteriors
         {
             if (this.interiorMap == null)
             {
-                VehicleMapProps vehicleMap;
-                if ((vehicleMap = this.def.GetModExtension<VehicleMapProps>()) != null)
+                VehicleMapProps props;
+                if ((props = this.def.GetModExtension<VehicleMapProps>()) != null)
                 {
                     var mapParent = (MapParent_Vehicle)WorldObjectMaker.MakeWorldObject(VMF_DefOf.VMF_VehicleMap);
                     mapParent.vehicle = this;
                     mapParent.Tile = 0;
                     mapParent.SetFaction(base.Faction);
-                    this.interiorMap = MapGenerator.GenerateMap(new IntVec3(vehicleMap.size.x, 1, vehicleMap.size.z), mapParent, mapParent.MapGeneratorDef, mapParent.ExtraGenStepDefs, null, true);
+                    var mapSize = new IntVec3(props.size.x, 1, props.size.z);
+                    if (!props.specificOutOfBounds)
+                    {
+                        mapSize.x += 2;
+                        mapSize.z += 2;
+                    }
+                    this.interiorMap = MapGenerator.GenerateMap(new IntVec3(props.size.x, 1, props.size.z), mapParent, mapParent.MapGeneratorDef, mapParent.ExtraGenStepDefs, null, true);
                     Find.World.GetComponent<VehicleMapParentsComponent>().vehicleMaps.Add(mapParent);
 
-                    foreach (var c in vehicleMap.EmptyStructureCells)
+                    foreach (var c in props.EmptyStructureCells)
                     {
-                        GenSpawn.Spawn(VMF_DefOf.VMF_VehicleStructureEmpty, c.ToIntVec3, this.interiorMap).SetFaction(Faction.OfPlayer);
+                        var c2 = c;
+                        if (!props.specificOutOfBounds)
+                        {
+                            c2.x += 1;
+                            c2.z += 1;
+                        }
+                        GenSpawn.Spawn(VMF_DefOf.VMF_VehicleStructureEmpty, c2.ToIntVec3, this.interiorMap).SetFaction(Faction.OfPlayer);
                     }
-                    foreach (var c in vehicleMap.FilledStructureCells)
+                    foreach (var c in props.FilledStructureCells)
                     {
-                        GenSpawn.Spawn(VMF_DefOf.VMF_VehicleStructureFilled, c.ToIntVec3, this.interiorMap).SetFaction(Faction.OfPlayer);
+                        var c2 = c;
+                        if (!props.specificOutOfBounds)
+                        {
+                            c2.x += 1;
+                            c2.z += 1;
+                        }
+                        GenSpawn.Spawn(VMF_DefOf.VMF_VehicleStructureFilled, c2.ToIntVec3, this.interiorMap).SetFaction(Faction.OfPlayer);
                     }
                 }
             }
@@ -488,6 +523,8 @@ namespace VehicleInteriors
         private bool autoGetOff = true;
 
         private HashSet<IntVec3> structureCellsCache;
+
+        private HashSet<IntVec3> outOfBoundsCellsCache;
 
         public bool structureCellsDirty;
 

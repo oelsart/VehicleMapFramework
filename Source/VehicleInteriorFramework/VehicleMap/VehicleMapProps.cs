@@ -8,8 +8,10 @@ namespace VehicleInteriors
 {
     public class VehicleMapProps : DefModExtension
     {
+        //Map size.
         public IntVec2 size;
 
+        //Draw offset of vehicle map.
         public Vector3 offset = Vector3.zero;
 
         public Vector3? offsetNorth;
@@ -28,14 +30,24 @@ namespace VehicleInteriors
 
         public Vector3? offsetSouthWest;
 
+        //Specify vehicle structures with a fillPercent of 1.0. Vehicle structures cannot be destroyed and damage is absorbed by the vehicle.
         public List<IntVec2> filledStructureCells = new List<IntVec2>();
-
-        public List<IntVec2> emptyStructureCells = new List<IntVec2>();
 
         public List<CellRect> filledStructureCellRects = new List<CellRect>();
 
+        //Specify vehicle structures with a fillPercent of 0.0. Vehicle structures cannot be destroyed and damage is absorbed by the vehicle.
+        public List<IntVec2> emptyStructureCells = new List<IntVec2>();
+
         public List<CellRect> emptyStructureCellRects = new List<CellRect>();
 
+        //Explicitly specify cells to be designated as OutOfBounds. If this is false, the map size is expanded by 1 and edges are specified as OutOfBounds
+        public bool specificOutOfBounds;
+
+        public List<IntVec2> outOfBoundsCells = new List<IntVec2>();
+
+        public List<CellRect> outOfBoundsCellRects = new List<CellRect>();
+
+        //Specify the size of the gap between the position of the entrance to the vehicle map, such as a ladder or ramp, and where it will actually draw.
         public EdgeSpace edgeSpace;
 
         public EdgeSpace? edgeSpaceNorth;
@@ -57,6 +69,18 @@ namespace VehicleInteriors
         public IEnumerable<IntVec2> FilledStructureCells => this.filledStructureCells.Union(this.filledStructureCellRects.SelectMany(r => r.Cells2D));
 
         public IEnumerable<IntVec2> EmptyStructureCells => this.emptyStructureCells.Union(this.emptyStructureCellRects.SelectMany(r => r.Cells2D));
+
+        public IEnumerable<IntVec2> OutOfBoundsCells
+        {
+            get
+            {
+                if (this.specificOutOfBounds)
+                {
+                    return this.outOfBoundsCells.Union(this.outOfBoundsCellRects.SelectMany(r => r.Cells2D));
+                }
+                return new CellRect(0, 0, this.size.x, this.size.z).EdgeCells.Select(c => c.ToIntVec2);
+            }
+        }
 
         public override IEnumerable<string> ConfigErrors()
         {

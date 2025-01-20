@@ -22,7 +22,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static bool Prefix(Vector3 clickPos, Pawn pawn, bool suppressAutoTakeableGoto, ref List<FloatMenuOption> __result)
         {
-            if (clickPos.TryGetVehicleMap(Find.CurrentMap, out var vehicle) || pawn.IsOnNonFocusedVehicleMapOf(out _))
+            if (clickPos.TryGetVehicleMap(Find.CurrentMap, out var vehicle, false) || pawn.IsOnNonFocusedVehicleMapOf(out _))
             {
                 GenUIOnVehicle.vehicleForSelector = vehicle;
                 __result = FloatMenuMakerOnVehicle.ChoicesAtFor(clickPos, pawn, suppressAutoTakeableGoto);

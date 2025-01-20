@@ -138,7 +138,7 @@ namespace VehicleInteriors
                 }
 
                 //マップ移動アニメーション。目的地の計算の後tick毎の描画位置を計算。ドアは開け続けておく
-                var ticks = driver.pawn.TicksPerMoveCardinal * 3f;
+                var ticks = driver.pawn.TicksPerMoveCardinal * 4f;
                 if (!exitSpot.HasThing) ticks *= 2f;
                 var toil2 = Toils_General.Wait((int)ticks);
                 toil2.handlingFacing = true;
@@ -267,7 +267,7 @@ namespace VehicleInteriors
                 }
 
                 //マップ移動アニメーション。目的地の計算の後tick毎の描画位置を計算。ドアは開け続けておく
-                var ticks = driver.pawn.TicksPerMoveCardinal * 3f;
+                var ticks = driver.pawn.TicksPerMoveCardinal * 4f;
                 if (!enterSpot.HasThing) ticks *= 2f;
                 var toil2 = Toils_General.Wait((int)ticks);
                 toil2.handlingFacing = true;

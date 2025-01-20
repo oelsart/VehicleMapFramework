@@ -130,7 +130,7 @@ namespace VehicleInteriors
             bool convToVehicleMap;
             if (!(convToVehicleMap = Find.CurrentMap.IsVehicleMapOf(out var vehicle)))
             {
-                clickPos.TryGetVehicleMap(Find.CurrentMap, out vehicle);
+                clickPos.TryGetVehicleMap(Find.CurrentMap, out vehicle, false);
             }
             var list = GenUIOnVehicle.TargetsAt(clickPos, clickParams, thingsOnly, source, vehicle, convToVehicleMap).ToArray();
             return list;
