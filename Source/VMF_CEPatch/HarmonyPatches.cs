@@ -2,9 +2,12 @@
 using HarmonyLib;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Security.Policy;
+using UnityEngine;
 using VehicleInteriors;
 using VehicleInteriors.VMF_HarmonyPatches;
 using Verse;
@@ -107,8 +110,7 @@ namespace VMF_CEPatch
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             return instructions.MethodReplacer(MethodInfoCache.g_LocalTargetInfo_Cell, MethodInfoCache.m_CellOnBaseMap)
-                .MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing)
-                .MethodReplacer(MethodInfoCacheCE.m_TryFindCEShootLineFromTo, MethodInfoCacheCE.m_TryFindCEShootLineFromToOnVehicle);
+                .MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing);
         }
     }
 
@@ -135,8 +137,22 @@ namespace VMF_CEPatch
             return instructions.MethodReplacer(MethodInfoCache.g_LocalTargetInfo_Cell, MethodInfoCache.m_CellOnBaseMap)
                 .MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap)
                 .MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing)
-                .MethodReplacer(MethodInfoCache.m_GetThingList, MethodInfoCache.m_GetThingListAcrossMaps)
-                .MethodReplacer(MethodInfoCacheCE.m_TryFindCEShootLineFromTo, MethodInfoCacheCE.m_TryFindCEShootLineFromToOnVehicle);
+                .MethodReplacer(MethodInfoCache.m_GetThingList, MethodInfoCache.m_GetThingListAcrossMaps);
+        }
+    }
+
+    [HarmonyPatchCategory("VMF_Patches_CE")]
+    [HarmonyPatch(typeof(Verb_LaunchProjectileCE), nameof(Verb_LaunchProjectileCE.TryFindCEShootLineFromTo))]
+    public static class Patch_Verb_LaunchProjectileCE_TryFindCEShootLineFromTo
+    {
+        public static bool Prefix(Verb_LaunchProjectileCE __instance, IntVec3 root, LocalTargetInfo targ, ref ShootLine resultingLine, ref bool __result)
+        {
+            if (__instance.caster.IsOnVehicleMapOf(out _) || (targ.HasThing && targ.Thing.Map != __instance.caster.Map))
+            {
+                __result = __instance.TryFindCEShootLineFromToOnVehicle(root, targ, out resultingLine);
+                return false;
+            }
+            return true;
         }
     }
 
@@ -282,6 +298,16 @@ namespace VMF_CEPatch
     }
 
     [HarmonyPatchCategory("VMF_Patches_CE")]
+    [HarmonyPatch(typeof(ProjectileCE), nameof(ProjectileCE.Launch), typeof(Thing), typeof(Vector2), typeof(float), typeof(float), typeof(float), typeof(float), typeof(Thing), typeof(float))]
+    public static class Patch_ProjectileCE_Launch
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing);
+        }
+    }
+
+    [HarmonyPatchCategory("VMF_Patches_CE")]
     [HarmonyPatch(typeof(ProjectileCE), nameof(ProjectileCE.ImpactSomething))]
     public static class Patch_ProjectileCE_ImpactSomething
     {
@@ -355,6 +381,29 @@ namespace VMF_CEPatch
         {
             return instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap)
                 .MethodReplacer(MethodInfoCache.g_LocalTargetInfo_Cell, MethodInfoCache.m_CellOnBaseMap);
+        }
+    }
+
+    [HarmonyPatchCategory("VMF_Patches_CE")]
+    [HarmonyPatch(typeof(Building_TurretGunCE), nameof(Building_TurretGunCE.TryStartShootSomething))]
+    public static class Patch_Building_TurretGunCE_TryStartShootSomething
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap)
+                .MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing);
+        }
+    }
+
+    [HarmonyPatch(typeof(ExplosionCE), nameof(ExplosionCE.StartExplosionCE))]
+    public static class Patch_ExplosionCE_StartExplosionCE
+    {
+        public static void Postfix(ExplosionCE __instance, SoundDef explosionSound, List<Thing> ignoredThings)
+        {
+            if (__instance is ExplosionCEAcrossMaps explosion)
+            {
+                explosion.StartExplosionCEOnVehicle(explosionSound, ignoredThings);
+            }
         }
     }
 }

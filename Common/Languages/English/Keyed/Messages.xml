@@ -2,7 +2,7 @@
 <LanguageData>
 
 	<VMF_ForceOnVehicle>Cannot be placed outside of a vehicle map.</VMF_ForceOnVehicle>
-	<VMF_ForceOnVehicle>Cannot be placed outside of a hover vehicle map.</VMF_ForceOnVehicle>
+	<VMF_ForceOnHoverVehicle>Cannot be placed outside of a hover vehicle map.</VMF_ForceOnHoverVehicle>
 	<VMF_ForbidOnVehicle>Cannot be placed on a vehicle map.</VMF_ForbidOnVehicle>
 	<VMF_ForbidOnHumanPoweredVehicle>Cannot be placed on a human powered vehicle map.</VMF_ForbidOnHumanPoweredVehicle>
 	<VMF_ForceOnVehicleMapEdge>Cannot be placed outside the edge of a vehicle map.</VMF_ForceOnVehicleMapEdge>

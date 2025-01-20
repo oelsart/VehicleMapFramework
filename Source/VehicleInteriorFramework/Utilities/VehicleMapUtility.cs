@@ -451,28 +451,72 @@ namespace VehicleInteriors
             return thing.Rotation;
         }
 
-        public static Rot4 DirectionToInsideMap(this IntVec3 c, Map map)
+        public static Rot4 DirectionToInsideMap(this IntVec3 c, VehiclePawnWithMap vehicle)
         {
             Rot4 dir;
-            if (c.x == 0) dir = Rot4.East;
-            else if (c.x == map.Size.x - 1) dir = Rot4.West;
-            else if (c.z == 0) dir = Rot4.North;
-            else if (c.z == map.Size.z - 1) dir = Rot4.South;
+            var map = vehicle.VehicleMap;
+            if (c.x == 0 || vehicle.CachedOutOfBoundsCells.Contains(new IntVec3(c.x - 1, c.y, c.z))) dir = Rot4.East;
+            else if (c.x == map.Size.x - 1 || vehicle.CachedOutOfBoundsCells.Contains(new IntVec3(c.x + 1, c.y, c.z))) dir = Rot4.West;
+            else if (c.z == 0 || vehicle.CachedOutOfBoundsCells.Contains(new IntVec3(c.x, c.y, c.z - 1))) dir = Rot4.North;
+            else if (c.z == map.Size.z - 1 || vehicle.CachedOutOfBoundsCells.Contains(new IntVec3(c.x, c.y, c.z + 1))) dir = Rot4.South;
             else
             {
                 Log.ErrorOnce("That position is not the edge of the map", 494896165);
-                return Rot8.Invalid;
+                return Rot4.Invalid;
             }
             return dir;
         }
 
-        public static Rot8 BaseFullDirectionToInsideMap(this IntVec3 c, Map map)
+        public static Rot8 BaseFullDirectionToInsideMap(this IntVec3 c, VehiclePawnWithMap vehicle)
         {
-            var dir = c.DirectionToInsideMap(map);
-            if (map.IsVehicleMapOf(out var vehicle) && Find.CurrentMap != map)
+            var dir = c.DirectionToInsideMap(vehicle);
+            var map = vehicle.VehicleMap;
+            if (Find.CurrentMap != map)
             {
-                var angle = Ext_Math.RotateAngle(dir.AsAngle, vehicle.FullRotation.AsAngle);
-                return Rot8.FromAngle(angle);
+                return new Rot8(Rot8.FromIntClockwise((new Rot8(dir).AsIntClockwise + vehicle.FullRotation.AsIntClockwise) % 8));
+            }
+            return dir;
+        }
+
+        public static Rot8 FullDirectionToInsideMap(this IntVec3 c, Map map)
+        {
+            Rot8 dir;
+            if (c.x == 0)
+            {
+                if (c.z == 0)
+                {
+                    dir = Rot8.NorthEast;
+                }
+                else if (c.z == map.Size.z - 1)
+                {
+                    dir = Rot8.SouthEast;
+                }
+                else
+                {
+                    dir = Rot8.East;
+                }
+            }
+            else if (c.x == map.Size.x - 1)
+            {
+                if (c.z == 0)
+                {
+                    dir = Rot8.NorthWest;
+                }
+                else if (c.z == map.Size.z - 1)
+                {
+                    dir = Rot8.SouthWest;
+                }
+                else
+                {
+                    dir = Rot8.West;
+                }
+            }
+            else if (c.z == 0) dir = Rot8.North;
+            else if (c.z == map.Size.z - 1) dir = Rot8.South;
+            else
+            {
+                Log.ErrorOnce("That position is not the edge of the map", 494896165);
+                return Rot8.Invalid;
             }
             return dir;
         }

@@ -45,6 +45,10 @@
       <HintPath>..\..\..\..\..\..\workshop\content\294100\2890901044\Assemblies\CombatExtended.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="SmashTools">
+      <HintPath>..\..\..\..\..\..\workshop\content\294100\3014915404\1.5\Assemblies\SmashTools.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -103,8 +107,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ExplosionCEAcrossMaps.cs" />
     <Compile Include="HarmonyPatches.cs" />
-    <Compile Include="MethodInfoCacheCE.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="VerbOnVehicleCEUtility.cs" />
   </ItemGroup>

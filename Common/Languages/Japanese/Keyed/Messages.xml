@@ -2,7 +2,7 @@
 <LanguageData>
 
 	<VMF_ForceOnVehicle>乗り物マップの外には置けません.</VMF_ForceOnVehicle>
-	<VMF_ForceOnVehicle>ホバータイプの乗り物マップの外には置けません.</VMF_ForceOnVehicle>
+	<VMF_ForceOnHoverVehicle>ホバータイプの乗り物マップの外には置けません.</VMF_ForceOnHoverVehicle>
 	<VMF_ForbidOnVehicle>乗り物マップには置けません.</VMF_ForbidOnVehicle>
 	<VMF_ForbidOnHumanPoweredVehicle>人力タイプの乗り物マップには置けません.</VMF_ForbidOnHumanPoweredVehicle>
 	<VMF_ForceOnVehicleMapEdge>乗り物マップの端以外には置けません.</VMF_ForceOnVehicleMapEdge>

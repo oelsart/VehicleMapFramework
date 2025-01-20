@@ -260,7 +260,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static MethodInfo TargetMethod()
         {
-            return AccessTools.InnerTypes(typeof(JobGiver_Work)).SelectMany(t => t.GetMethods(AccessTools.all)).First(m => m.Name.Contains("<GiverTryGiveJobPrioritized>"));
+            return AccessTools.FindIncludingInnerTypes(typeof(JobGiver_Work), t => t.GetMethods(AccessTools.all).FirstOrDefault(m => m.Name.Contains("<GiverTryGiveJobPrioritized>")));
         }
 
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) => Patch_JobGiver_Work_Validator.Transpiler(instructions);
@@ -286,8 +286,26 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             }
             return true;
         }
+    }
 
-        private static AccessTools.FieldRef<JobDriver, int> curToilIndex = AccessTools.FieldRefAccess<JobDriver, int>("curToilIndex");
+    //targetにThingが入ってるのにGotoCellを使ってるようなケースでは先にマップが違うかどうかチェックする
+    [HarmonyPatch(typeof(Toils_Goto), nameof(Toils_Goto.GotoCell), typeof(IntVec3), typeof(PathEndMode))]
+    public static class Patch_Toils_Goto_GotoCell
+    {
+        public static void Postfix(IntVec3 cell, PathEndMode peMode, Toil __result)
+        {
+            __result.AddPreInitAction(() =>
+            {
+                var actor = __result.actor;
+                var curJob = actor.CurJob;
+                var allTargets = new[] { curJob.targetA, curJob.targetB, curJob.targetC }.ConcatIfNotNull(curJob.targetQueueA).ConcatIfNotNull(curJob.targetQueueB);
+                var target = allTargets.FirstOrFallback(t => t.Cell == cell && t.HasThing, LocalTargetInfo.Invalid);
+                if (target.IsValid && actor.Map != target.Thing.Map && actor.CanReach(target, peMode, Danger.Deadly, false, false, TraverseMode.ByPawn, target.Thing.Map, out var exitSpot, out var enterSpot))
+                {
+                    JobAcrossMapsUtility.StartGotoDestMapJob(actor, exitSpot, enterSpot);
+                }
+            });
+        }
     }
 
     [HarmonyPatch(typeof(Toils_Bed), nameof(Toils_Bed.GotoBed))]

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<Patch>
+	<Operation Class = "PatchOperationReplace">
+		<xpath>Defs/ThingDef[defName = "ExplosionCE"]/thingClass</xpath>
+		<value>
+			<thingClass>VMF_CEPatch.ExplosionCEAcrossMaps</thingClass>
+		</value>
+	</Operation>
+</Patch>

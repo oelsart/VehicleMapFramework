@@ -249,6 +249,9 @@
 				<showOverallStats>false</showOverallStats>
 			</li>
 		</comps>
+		<placeWorkers>
+			<li>VehicleInteriors.PlaceWorker_ForceOnVehicle</li>
+		</placeWorkers>
 	</ThingDef>
 
 	<ThingDef ParentName="FurnitureBase">
@@ -296,7 +299,7 @@
 						<vehicleStats>
 							<li>
 								<def>MaximumPayload</def>
-								<value>300</value>
+								<value>500</value>
 							</li>
 						</vehicleStats>
 						<statCategories>
@@ -361,7 +364,7 @@
 						<vehicleStats>
 							<li>
 								<def>MaximumPayload</def>
-								<value>150</value>
+								<value>250</value>
 							</li>
 						</vehicleStats>
 						<statCategories>

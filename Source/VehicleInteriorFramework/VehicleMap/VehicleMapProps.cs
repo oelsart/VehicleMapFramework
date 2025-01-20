@@ -78,7 +78,7 @@ namespace VehicleInteriors
                 {
                     return this.outOfBoundsCells.Union(this.outOfBoundsCellRects.SelectMany(r => r.Cells2D));
                 }
-                return new CellRect(0, 0, this.size.x, this.size.z).EdgeCells.Select(c => c.ToIntVec2);
+                return new CellRect(0, 0, this.size.x + 2, this.size.z + 2).EdgeCells.Select(c => c.ToIntVec2);
             }
         }
 
