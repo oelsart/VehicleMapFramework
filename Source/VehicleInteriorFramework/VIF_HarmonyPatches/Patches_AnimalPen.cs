@@ -264,18 +264,4 @@ namespace VehicleInteriors.VIF_HarmonyPatches
             return codes;
         }
     }
-
-    //[HarmonyPatch(typeof(AnimalPenEnclosureCalculator), "VisitPen")]
-    //public static class Patch_AnimalPenEnclosureCalculator_VisitPen
-    //{
-    //    public static bool Prefix(Map map, ref bool __result)
-    //    {
-    //        if (map.IsVehicleMapOf(out _))
-    //        {
-    //            __result = true;
-    //            return false;
-    //        }
-    //        return true;
-    //    }
-    //}
 }

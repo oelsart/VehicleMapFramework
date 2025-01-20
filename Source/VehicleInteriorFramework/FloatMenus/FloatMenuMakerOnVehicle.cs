@@ -238,7 +238,7 @@ namespace VehicleInteriors
             Map map;
             if (GenUIOnVehicle.vehicleForSelector != null)
             {
-                clickCell = IntVec3.FromVector3(clickPos).VehicleMapToOrig(GenUIOnVehicle.vehicleForSelector);
+                clickCell = IntVec3.FromVector3(clickPos.VehicleMapToOrig(GenUIOnVehicle.vehicleForSelector));
                 map = GenUIOnVehicle.vehicleForSelector.VehicleMap;
             }
             else

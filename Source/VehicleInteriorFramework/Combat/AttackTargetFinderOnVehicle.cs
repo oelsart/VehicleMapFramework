@@ -16,12 +16,13 @@ namespace VehicleInteriors
             var searcherThing = searcher.Thing;
             var searcherPawn = searcher as Pawn;
             var verb = searcher.CurrentEffectiveVerb;
+            var CEActive = ModsConfig.IsActive("ceteam.combatextended");
             if (verb == null)
 			{
                 Log.Error("BestAttackTarget with " + searcher.ToStringSafe<IAttackTargetSearcher>() + " who has no attack verb.");
                 return null;
             }
-            var onlyTargetMachines = verb.IsEMP();
+            var onlyTargetMachines = !CEActive && verb.IsEMP();
             var minDistSquared = minDist * minDist;
             float num = maxTravelRadiusFromLocus + verb.verbProps.range;
             var maxLocusDistSquared = num * num;
@@ -628,38 +629,21 @@ namespace VehicleInteriors
             var targPosOnBaseMap = target.PositionOnBaseMap();
             var baseMap = seer.BaseMap();
             AttackTargetFinderOnVehicle.tempDestList.Clear();
-            if (target is Pawn)
-            {
-                ShootLeanUtilityOnVehicle.LeanShootingSourcesFromTo(targPosOnBaseMap, seerPosOnBaseMap, baseMap, AttackTargetFinderOnVehicle.tempDestList);
-            }
-            else
-            {
-                AttackTargetFinderOnVehicle.tempDestList.Add(targPosOnBaseMap);
-                if (target.def.size.x != 1 || target.def.size.z != 1)
-                {
-                    foreach (IntVec3 intVec in GenAdj.OccupiedRect(targPosOnBaseMap, target.BaseRotation(), target.def.size))
-                    {
-                        if (intVec != targPosOnBaseMap)
-                        {
-                            AttackTargetFinderOnVehicle.tempDestList.Add(intVec);
-                        }
-                    }
-                }
-            }
+            ShootLeanUtilityOnVehicle.CalcShootableCellsOf(AttackTargetFinderOnVehicle.tempDestList, target, seerPosOnBaseMap);
             for (int i = 0; i < AttackTargetFinderOnVehicle.tempDestList.Count; i++)
             {
-                if (GenSightOnVehicle.LineOfSight(seerPosOnBaseMap, AttackTargetFinderOnVehicle.tempDestList[i], baseMap, true, validator, 0, 0))
+                if (GenSightOnVehicle.LineOfSight(seerPosOnBaseMap, AttackTargetFinderOnVehicle.tempDestList[i].OrigToThingMap(target), baseMap, true, validator, 0, 0))
                 {
                     return true;
                 }
             }
 
-            ShootLeanUtilityOnVehicle.LeanShootingSourcesFromTo(seerPosOnBaseMap, targPosOnBaseMap, baseMap, AttackTargetFinderOnVehicle.tempSourceList);
+            ShootLeanUtilityOnVehicle.LeanShootingSourcesFromTo(seer.Position, targPosOnBaseMap, seer.Map, AttackTargetFinderOnVehicle.tempSourceList);
             for (int j = 0; j < AttackTargetFinderOnVehicle.tempSourceList.Count; j++)
             {
                 for (int k = 0; k < AttackTargetFinderOnVehicle.tempDestList.Count; k++)
                 {
-                    if (GenSightOnVehicle.LineOfSight(AttackTargetFinderOnVehicle.tempSourceList[j], AttackTargetFinderOnVehicle.tempDestList[k], baseMap, true, validator, 0, 0))
+                    if (GenSightOnVehicle.LineOfSight(AttackTargetFinderOnVehicle.tempSourceList[j].OrigToThingMap(seer), AttackTargetFinderOnVehicle.tempDestList[k].OrigToThingMap(target), baseMap, true, validator, 0, 0))
                     {
                         return true;
                     }
@@ -796,6 +780,8 @@ namespace VehicleInteriors
         private const float FriendlyFireScoreOffsetSelf = 40f;
 
         private static List<IAttackTarget> tmpTargets = new List<IAttackTarget>(128);
+
+        private static List<IAttackTarget> validTargets = new List<IAttackTarget>();
 
         private static List<Pair<IAttackTarget, float>> availableShootingTargets = new List<Pair<IAttackTarget, float>>();
 

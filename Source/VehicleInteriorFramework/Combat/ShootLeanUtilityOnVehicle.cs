@@ -23,7 +23,28 @@ namespace VehicleInteriors
             }
         }
 
-        public static void LeanShootingSourcesFromTo(IntVec3 shooterLoc, IntVec3 targetPos, Map map, List<IntVec3> listToFill)
+        public static void CalcShootableCellsOf(List<IntVec3> outCells, Thing t, IntVec3 shooterPosOnBaseMap)
+        {
+            outCells.Clear();
+            if (t is Pawn)
+            {
+                ShootLeanUtilityOnVehicle.LeanShootingSourcesFromTo(t.Position, shooterPosOnBaseMap, t.Map, outCells);
+                return;
+            }
+            outCells.Add(t.Position);
+            if (t.def.size.x != 1 || t.def.size.z != 1)
+            {
+                foreach (IntVec3 intVec in t.OccupiedRect())
+                {
+                    if (intVec != t.Position)
+                    {
+                        outCells.Add(intVec);
+                    }
+                }
+            }
+        }
+
+        public static void LeanShootingSourcesFromTo(IntVec3 shooterLoc, IntVec3 targetPosBaseCol, Map map, List<IntVec3> listToFill)
         {
             var shooterLocBaseCol = shooterLoc;
             var baseMap = map.BaseMap();
@@ -32,7 +53,7 @@ namespace VehicleInteriors
                 shooterLocBaseCol = shooterLoc.OrigToVehicleMap(vehicle);
             }
             listToFill.Clear();
-            float angleFlat = (targetPos - shooterLoc).AngleFlat;
+            float angleFlat = (targetPosBaseCol - shooterLocBaseCol).AngleFlat;
             bool flag = angleFlat > 270f || angleFlat < 90f;
             bool flag2 = angleFlat > 90f && angleFlat < 270f;
             bool flag3 = angleFlat > 180f;

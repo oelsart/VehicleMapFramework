@@ -211,7 +211,7 @@
     <Compile Include="Jobs\JobGivers\JobGiver_AIDefendPointOnVehicle.cs" />
     <Compile Include="Jobs\JobGivers\JobGiver_AIFightEnemiesOnVehicle.cs" />
     <Compile Include="Utilities\ProjectileUtility.cs" />
-    <Compile Include="Utilities\ShootLeanUtilityOnVehicle.cs" />
+    <Compile Include="Combat\ShootLeanUtilityOnVehicle.cs" />
     <Compile Include="FloatMenus\FloatMenuMakerOnVehicle.cs" />
     <Compile Include="Jobs\JobDrivers\JobDriver_GotoAcrossMaps.cs" />
     <Compile Include="Jobs\JobGivers\JobGiver_GetOffVehicle.cs" />
@@ -228,7 +228,7 @@
     <Compile Include="Utilities\GenUIOnVehicle.cs" />
     <Compile Include="Utilities\StudyUtilityOnVehicle.cs" />
     <Compile Include="VehicleStatPart_HumanPower.cs" />
-    <Compile Include="Verbs\VerbOnVehicleUtility.cs" />
+    <Compile Include="Utilities\VerbOnVehicleUtility.cs" />
     <Compile Include="VehiclePawnWithMapCache.cs" />
     <Compile Include="VehicleMap\VehicleMapProps.cs" />
     <Compile Include="VehicleMap\Command_FocusVehicleMap.cs" />

@@ -585,7 +585,7 @@ namespace VehicleInteriors
             var vehicles = VehiclePawnWithMapCache.allVehicles[map];
             vehicle = vehicles.FirstOrDefault(v =>
             {
-                var rect = new Rect(0f, 0f, (float)v.VehicleMap.Size.x, (float)v.VehicleMap.Size.z).ContractedBy(0.01f);
+                var rect = new Rect(0f, 0f, (float)v.VehicleMap.Size.x, (float)v.VehicleMap.Size.z).ExpandedBy(0.01f);
                 var vector = point.VehicleMapToOrig(v);
                 return rect.Contains(new Vector2(vector.x, vector.z)) && !v.CachedStructureCells.Contains(vector.ToIntVec3());
             });
