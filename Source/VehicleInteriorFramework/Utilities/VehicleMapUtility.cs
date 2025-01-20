@@ -734,6 +734,33 @@ namespace VehicleInteriors
             return result;
         }
 
+        public static Pawn GetFirstPawnAcrossMaps(this IntVec3 c, Map map)
+        {
+            List<Thing> thingList = c.GetThingListAcrossMaps(map);
+            for (int i = 0; i < thingList.Count; i++)
+            {
+                if (thingList[i] is Pawn result)
+                {
+                    return result;
+                }
+            }
+
+            return null;
+        }
+
+        public static Thing GetCoverOnThingMap(this IntVec3 c, Map map, Thing thing)
+        {
+            if (thing != null)
+            {
+                var c2 = c.OrigToThingMap(thing);
+                if (c2.InBounds(thing.Map))
+                {
+                    return c2.GetCover(thing.Map);
+                }
+            }
+            return c.GetCover(map);
+        }
+
         public static Rot4 rotForPrint = Rot4.North;
 
         private static readonly AccessTools.FieldRef<Thing, sbyte> mapIndexOrState = AccessTools.FieldRefAccess<Thing, sbyte>("mapIndexOrState");

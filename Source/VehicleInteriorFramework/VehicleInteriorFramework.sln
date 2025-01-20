@@ -5,6 +5,8 @@ VisualStudioVersion = 17.11.35312.102
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VehicleInteriorFramework", "VehicleInteriorFramework.csproj", "{C4A6CE84-01A1-4F92-B731-79416B9FA721}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VMF_CEPatch", "..\VMF_CEPatch\VMF_CEPatch.csproj", "{F7561E20-4CE2-4E05-9972-F195A648D0A4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{C4A6CE84-01A1-4F92-B731-79416B9FA721}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C4A6CE84-01A1-4F92-B731-79416B9FA721}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C4A6CE84-01A1-4F92-B731-79416B9FA721}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F7561E20-4CE2-4E05-9972-F195A648D0A4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F7561E20-4CE2-4E05-9972-F195A648D0A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F7561E20-4CE2-4E05-9972-F195A648D0A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F7561E20-4CE2-4E05-9972-F195A648D0A4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
