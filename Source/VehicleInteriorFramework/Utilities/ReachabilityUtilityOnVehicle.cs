@@ -62,6 +62,7 @@ namespace VehicleInteriors
                                 {
                                     dist++;
                                 }
+                                if (enterSpot.Thing is Building_VehicleRamp) dist++;
                                 var cell = (basePos - faceCell * dist);
                                 return c.Walkable(departMap) &&
                                 cell.Standable(departBaseMap) &&
@@ -102,6 +103,7 @@ namespace VehicleInteriors
                                 {
                                     dist++;
                                 }
+                                if (enterSpot.Thing is Building_VehicleRamp) dist++;
                                 var cell = (basePos - faceCell * dist);
                                 return c.Standable(destMap) &&
                                 cell.Walkable(departMap) &&
@@ -144,6 +146,7 @@ namespace VehicleInteriors
                                     {
                                         dist++;
                                     }
+                                    if (enterSpot.Thing is Building_VehicleRamp) dist++;
                                     var cell = (basePos - faceCell * dist);
                                     return vehicle.InteractionCells.OrderBy(c2 => (cell - c2.OrigToVehicleMap(vehicle)).LengthHorizontalSquared)
                                     .Concat(CellRect.WholeMap(vehicle.VehicleMap).EdgeCells.OrderBy(c2 => (cell - c2.OrigToVehicleMap(vehicle)).LengthHorizontalSquared)).Any(c2 =>
@@ -168,6 +171,7 @@ namespace VehicleInteriors
                                         {
                                             dist2++;
                                         }
+                                        if (enterSpot2.Thing is Building_VehicleRamp) dist2++;
                                         var cell2 = (basePos2 - faceCell2 * dist2);
                                         return c.Walkable(departMap) &&
                                         cell.Standable(departBaseMap) &&
@@ -405,6 +409,7 @@ namespace VehicleInteriors
                     {
                         dist++;
                     }
+                    if (exitSpot2.Thing is Building_VehicleRamp) dist++;
                     var cell = (basePos - faceCell * dist);
                     return c.Walkable(departMap) &&
                     cell.Standable(baseMap) &&
@@ -471,6 +476,7 @@ namespace VehicleInteriors
                                 {
                                     dist++;
                                 }
+                                if (enterSpot is Building_VehicleRamp) dist++;
                                 var cell = basePos - faceCell * dist - faceCell * vehicle.HalfLength();
                                 return MapComponentCache<VehicleMapping>.GetComponent(departMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(vehicle.Position, enterSpot, PathEndMode.OnCell, traverseParms) &&
                                 vehicle.VehicleDef.CellRectStandable(departBaseMap, cell, rot.Opposite) &&
@@ -499,6 +505,7 @@ namespace VehicleInteriors
                                 {
                                     dist++;
                                 }
+                                if (enterSpot is Building_VehicleRamp) dist++;
                                 var cell = basePos - faceCell * dist - faceCell * vehicle.HalfLength();
                                 var cell2 = enterSpot.Position + enterSpot.Rotation.FacingCell * vehicle.HalfLength();
                                 return MapComponentCache<VehicleMapping>.GetComponent(departMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(vehicle.Position, cell, PathEndMode.OnCell, traverseParms) &&
@@ -531,6 +538,7 @@ namespace VehicleInteriors
                                     {
                                         dist++;
                                     }
+                                    if (enterSpot is Building_VehicleRamp) dist++;
                                     var cell = basePos - faceCell * dist - faceCell * vehicle.HalfLength();
                                     return vehicle2.InteractionCells.OrderBy(c2 => (cell - c2.OrigToVehicleMap(vehicle2)).LengthHorizontalSquared).Any(c2 =>
                                     {
@@ -545,6 +553,7 @@ namespace VehicleInteriors
                                         {
                                             dist2++;
                                         }
+                                        if (enterSpot2 is Building_VehicleRamp) dist2++;
                                         var cell2 = basePos2 - faceCell2 * dist2 - faceCell2 * vehicle.HalfLength();
                                         var cell3 = enterSpot2.Position + enterSpot.Rotation.FacingCell * vehicle.HalfLength();
                                         return MapComponentCache<VehicleMapping>.GetComponent(departMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(vehicle.Position, enterSpot, PathEndMode.OnCell, traverseParms) &&

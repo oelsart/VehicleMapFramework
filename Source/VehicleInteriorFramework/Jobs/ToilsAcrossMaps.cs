@@ -31,6 +31,7 @@ namespace VehicleInteriors
                 {
                     dist++;
                 }
+                if (enterSpot.Thing is Building_VehicleRamp) dist++;
                 if (toil.actor is VehiclePawn vehiclePawn) vehicleOffset = faceCell * vehiclePawn.HalfLength(); 
                 dest = basePos - faceCell * dist - vehicleOffset;
                 if (toil.actor.Position == dest)
@@ -160,6 +161,7 @@ namespace VehicleInteriors
                     {
                         dist++;
                     }
+                    if (exitSpot.Thing is Building_VehicleRamp) dist++;
                     ticks *= dist + (vehiclePawn != null ? vehiclePawn.HalfLength() * 2 : 0);
                     driver.ticksLeftThisToil = (int)ticks;
                     if (vehiclePawn != null)
@@ -210,6 +212,7 @@ namespace VehicleInteriors
                     {
                         dist++;
                     }
+                    if (exitSpot.Thing is Building_VehicleRamp) dist++;
                     return vehiclePawn != null ? !vehiclePawn.CellRectStandable(baseMap, basePos - faceCell * dist - vehicleOffset, rot.Opposite) : !(basePos - faceCell * dist).Standable(baseMap);
                 });
                 toil3.initAction = () =>
@@ -289,6 +292,7 @@ namespace VehicleInteriors
                     {
                         dist++;
                     }
+                    if (enterSpot.Thing is Building_VehicleRamp) dist++;
                     ticks *= dist + (vehiclePawn != null ? vehiclePawn.HalfLength() * 2 : 0);
                     driver.ticksLeftThisToil = (int)ticks;
                     var vehicleOffset = vehiclePawn != null ? faceCell * vehiclePawn.HalfLength() : IntVec3.Zero;
