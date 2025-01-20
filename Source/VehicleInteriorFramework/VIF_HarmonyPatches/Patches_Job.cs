@@ -299,7 +299,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 var actor = __result.actor;
                 var curJob = actor.CurJob;
                 var allTargets = new[] { curJob.targetA, curJob.targetB, curJob.targetC }.ConcatIfNotNull(curJob.targetQueueA).ConcatIfNotNull(curJob.targetQueueB);
-                var target = allTargets.FirstOrFallback(t => t.Cell == cell && t.HasThing, LocalTargetInfo.Invalid);
+                var target = allTargets.FirstOrFallback(t => t.HasThing && (t.Cell == cell || t.Thing.InteractionCell == cell), LocalTargetInfo.Invalid);
                 if (target.IsValid && actor.Map != target.Thing.Map && actor.CanReach(target, peMode, Danger.Deadly, false, false, TraverseMode.ByPawn, target.Thing.Map, out var exitSpot, out var enterSpot))
                 {
                     JobAcrossMapsUtility.StartGotoDestMapJob(actor, exitSpot, enterSpot);

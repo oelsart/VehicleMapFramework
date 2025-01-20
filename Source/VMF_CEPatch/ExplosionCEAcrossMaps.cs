@@ -32,7 +32,7 @@ namespace VMF_CEPatch
                     }
 
                     damType.Worker.ExplosionStart(this, this.cellsToAffectOnVehicles[vehicle]);
-                    this.cellsToAffectOnVehicles[vehicle].Sort((IntVec3 a, IntVec3 b) => ((int)GetCellAffectTick(b)).CompareTo(GetCellAffectTick(a)));
+                    this.cellsToAffectOnVehicles[vehicle].Sort((IntVec3 a, IntVec3 b) => ((int)GetCellAffectTick(this, b)).CompareTo(GetCellAffectTick(this, a)));
                     RegionTraverser.BreadthFirstTraverse(base.Position, base.Map, (Region from, Region to) => true, delegate (Region x)
                     {
                         List<Thing> list = x.ListerThings.ThingsInGroup(ThingRequestGroup.Pawn);
@@ -55,11 +55,11 @@ namespace VMF_CEPatch
         {
             int ticksGame = Find.TickManager.TicksGame;
             int num = cellsToAffect(this).Count - 1;
-            while (!this.toBeMerged && num >= 0 && ticksGame >= (int)GetCellAffectTick(cellsToAffect(this)[num]))
+            while (!this.toBeMerged && num >= 0 && ticksGame >= (int)GetCellAffectTick(this, cellsToAffect(this)[num]))
             {
                 try
                 {
-                    AffectCell(cellsToAffect(this)[num]);
+                    AffectCell(this, cellsToAffect(this)[num]);
                 }
                 catch (Exception ex)
                 {
