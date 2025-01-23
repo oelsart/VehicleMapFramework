@@ -32,6 +32,7 @@
 		</costList>
 		<researchPrerequisites>
 			<li>Electricity</li>
+			<li>Fabrication</li>
 			<li MayRequire="OskarPotocki.VanillaVehiclesExpanded">VVE_BasicVehicles</li>
 		</researchPrerequisites>
 		<uiOrder>1060</uiOrder>

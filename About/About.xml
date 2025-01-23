@@ -5,7 +5,7 @@
 	<author>OELS</author>
 	<description>
 	</description>
-	<modVersion>ver.0.7.12-alpha</modVersion>
+	<modVersion>ver.0.8.0-beta</modVersion>
 	<url>https://github.com/oelsart/VehicleMapFramework</url>
 
 	<supportedVersions>
@@ -27,6 +27,7 @@
 		</li>
 	</modDependencies>
 	<loadAfter>
+		<li>SmashPhil.VehicleFramework</li>
 		<li>CETeam.CombatExtended</li>
 	</loadAfter>
 </ModMetaData>

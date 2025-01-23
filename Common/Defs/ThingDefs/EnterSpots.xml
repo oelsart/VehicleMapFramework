@@ -62,6 +62,7 @@
 			<graphicClass>Graphic_Terrain</graphicClass>
 		</graphicData>
 		<researchPrerequisites>
+			<li>Fabrication</li>
 			<li MayRequire="OskarPotocki.VanillaVehiclesExpanded">VVE_BasicVehicles</li>
 		</researchPrerequisites>
 		<building>

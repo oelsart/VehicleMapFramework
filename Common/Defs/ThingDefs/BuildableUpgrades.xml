@@ -9,6 +9,7 @@
 		<passability>PassThroughOnly</passability>
 		<pathCost>50</pathCost>
 		<researchPrerequisites>
+			<li>Fabrication</li>
 			<li MayRequire="OskarPotocki.VanillaVehiclesExpanded">VVE_BasicVehicles</li>
 		</researchPrerequisites>
 		<placeWorkers>
