@@ -29,7 +29,7 @@ namespace VehicleInteriors
             {
                 if (mapParent.HasMap)
                 {
-                    vehicles = VehiclePawnWithMapCache.allVehicles[mapParent.Map];
+                    vehicles = VehiclePawnWithMapCache.AllVehiclesOn(mapParent.Map);
                 }
             }
 

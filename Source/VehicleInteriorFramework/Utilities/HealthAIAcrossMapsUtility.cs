@@ -92,13 +92,13 @@ namespace VehicleInteriors
                 return thing;
             }
             var baseMap = patient.MapHeldBaseMap();
-            var serchSet = baseMap.listerThings.ThingsInGroup(ThingRequestGroup.Medicine).Concat(VehiclePawnWithMapCache.allVehicles[baseMap].SelectMany(v => v.VehicleMap.listerThings.ThingsInGroup(ThingRequestGroup.Medicine)));
+            var serchSet = baseMap.BaseMapAndVehicleMaps().SelectMany(m => m.listerThings.ThingsInGroup(ThingRequestGroup.Medicine));
             Thing thing2 = GenClosestOnVehicle.ClosestThing_Global_Reachable(patient.PositionHeld, patient.MapHeld, serchSet, PathEndMode.ClosestTouch, TraverseParms.For(healer, Danger.Deadly, TraverseMode.ByPawn, false, false, false), 9999f, validator, PriorityOf, false, out var exitSpot2, out var enterSpot2);
             if (thing == null || thing2 == null)
             {
                 if (thing == null && thing2 == null && healer.IsColonist && healer.Map != null)
 				{
-                    var mapPawns = baseMap.mapPawns.SpawnedColonyAnimals.Concat(VehiclePawnWithMapCache.allVehicles[baseMap].SelectMany(v => v.VehicleMap.mapPawns.SpawnedColonyAnimals));
+                    var mapPawns = baseMap.mapPawns.SpawnedColonyAnimals;
                     foreach (Pawn pawn in mapPawns)
 					{
                         Thing thing3 = GetBestMedInInventory(pawn.inventory.innerContainer);

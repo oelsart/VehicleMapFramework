@@ -87,7 +87,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             var searchSet = new List<Thing>(list);
             var baseMap = pawn.BaseMap();
-            var maps = VehiclePawnWithMapCache.allVehicles[baseMap].Select(v => v.VehicleMap).Concat(baseMap).Except(pawn.Map);
+            var maps = pawn.Map.BaseMapAndVehicleMaps().Except(pawn.Map);
             foreach(var map in maps)
             {
                 searchSet.AddRange(map.listerThings.ThingsMatching(scanner.PotentialWorkThingRequest));
@@ -348,7 +348,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         public static List<Thing> AddThingList(List<Thing> list, Map map, ThingDef need)
         {
             var result = new List<Thing>(list);
-            foreach (var vehicle in VehiclePawnWithMapCache.allVehicles[map])
+            foreach (var vehicle in VehiclePawnWithMapCache.AllVehiclesOn(map))
             {
                 result.AddRange(vehicle.VehicleMap.listerThings.ThingsOfDef(need));
             }
@@ -459,14 +459,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
 
         private static IEnumerable<Thing> AddSearchSet(List<Thing> list, Pawn getter, ThingRequest req)
         {
-            var searchSet = new List<Thing>(list);
-            var baseMap = getter.BaseMap();
-            var maps = VehiclePawnWithMapCache.allVehicles[baseMap].Select(v => v.VehicleMap).Concat(baseMap).Except(getter.Map);
-            foreach (var map in maps)
-            {
-                searchSet.AddRange(map.listerThings.ThingsMatching(req));
-            }
-            return searchSet;
+            return getter.Map.BaseMapAndVehicleMaps().Except(getter.Map).SelectMany(m => m.listerThings.ThingsMatching(req));
         }
     }
 
@@ -559,7 +552,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 return;
             }
 
-            foreach (var vehicle in VehiclePawnWithMapCache.allVehicles[map.BaseMap()])
+            foreach (var vehicle in VehiclePawnWithMapCache.AllVehiclesOn(map.BaseMap()))
             {
                 IEnumerable<Thing> list = vehicle.VehicleMap.listerThings.GetAllThings(t => t.HasComp<CompBuildableContainer>());
                 foreach (var container in list)

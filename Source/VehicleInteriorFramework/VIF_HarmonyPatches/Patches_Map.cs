@@ -166,7 +166,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static void Postfix(Map ___map, Dictionary<ThingDef, int> ___countedAmounts)
         {
-            List<SlotGroup> allGroupsListForReading = VehiclePawnWithMapCache.allVehicles[___map].SelectMany(v => v.VehicleMap.haulDestinationManager.AllGroupsListForReading).ToList(); ;
+            List<SlotGroup> allGroupsListForReading = VehiclePawnWithMapCache.AllVehiclesOn(___map).SelectMany(v => v.VehicleMap.haulDestinationManager.AllGroupsListForReading).ToList(); ;
             for (int i = 0; i < allGroupsListForReading.Count; i++)
             {
                 foreach (Thing outerThing in allGroupsListForReading[i].HeldThings)
@@ -304,7 +304,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static List<Pawn> Postfix(List<Pawn> __result, Map ___map)
         {
-            return __result.Concat(VehiclePawnWithMapCache.allVehicles[___map].SelectMany(v => v.VehicleMap.mapPawns.AllPawnsSpawned)).ToList();
+            return __result.Concat(VehiclePawnWithMapCache.AllVehiclesOn(___map).SelectMany(v => v.VehicleMap.mapPawns.AllPawnsSpawned)).ToList();
         }
     }
 
@@ -313,7 +313,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IReadOnlyList<Pawn> Postfix(IReadOnlyList<Pawn> __result, Map ___map)
         {
-            return __result.Concat(VehiclePawnWithMapCache.allVehicles[___map].SelectMany(v => v.VehicleMap.mapPawns.AllPawnsSpawned)).ToArray();
+            return __result.Concat(VehiclePawnWithMapCache.AllVehiclesOn(___map).SelectMany(v => v.VehicleMap.mapPawns.AllPawnsSpawned)).ToArray();
         }
     }
 
@@ -331,7 +331,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static void Postfix(List<Pawn> __result, Map ___map, Faction faction)
         {
-            __result.AddRange(VehiclePawnWithMapCache.allVehicles[___map].SelectMany(v => v.VehicleMap.mapPawns.FreeHumanlikesSpawnedOfFaction(faction)));
+            __result.AddRange(VehiclePawnWithMapCache.AllVehiclesOn(___map).SelectMany(v => v.VehicleMap.mapPawns.FreeHumanlikesSpawnedOfFaction(faction)));
         }
     }
 
@@ -340,7 +340,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static void Postfix(List<Pawn> __result, Map ___map, Faction faction)
         {
-            __result.AddRange(VehiclePawnWithMapCache.allVehicles[___map].SelectMany(v => v.VehicleMap.mapPawns.SpawnedBabiesInFaction(faction)));
+            __result.AddRange(VehiclePawnWithMapCache.AllVehiclesOn(___map).SelectMany(v => v.VehicleMap.mapPawns.SpawnedBabiesInFaction(faction)));
         }
     }
 

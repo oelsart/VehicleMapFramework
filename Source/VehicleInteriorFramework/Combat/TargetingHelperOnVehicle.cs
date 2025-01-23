@@ -148,7 +148,7 @@ namespace VehicleInteriors
 
             List<IAttackTarget> tmpTargets = new List<IAttackTarget>();
             tmpTargets.AddRange(baseMap.attackTargetsCache.GetPotentialTargetsFor(searcherPawn));
-            tmpTargets.AddRange(VehiclePawnWithMapCache.allVehicles[baseMap].SelectMany(v => v.VehicleMap.attackTargetsCache.GetPotentialTargetsFor(searcherPawn)));
+            tmpTargets.AddRange(VehiclePawnWithMapCache.AllVehiclesOn(baseMap).SelectMany(v => v.VehicleMap.attackTargetsCache.GetPotentialTargetsFor(searcherPawn)));
 
             bool flag = false;
             for (int i = 0; i < tmpTargets.Count; i++)

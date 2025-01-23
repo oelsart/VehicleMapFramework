@@ -27,13 +27,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
 
         public static List<Thing> IncludeVehicleMapThings(List<Thing> list)
         {
-            var vehicles = VehiclePawnWithMapCache.allVehicles[Find.CurrentMap];
-            var result = new List<Thing>(list);
-            foreach (var vehicle in vehicles)
-            {
-                result.AddRange(vehicle.VehicleMap.listerThings.ThingsInGroup(ThingRequestGroup.HasGUIOverlay));
-            }
-            return result;
+            return list.Concat(VehiclePawnWithMapCache.AllVehiclesOn(Find.CurrentMap).SelectMany(v => v.VehicleMap.listerThings.ThingsInGroup(ThingRequestGroup.HasGUIOverlay))).ToList();
         }
     }
 

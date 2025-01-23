@@ -640,7 +640,7 @@ namespace VehicleInteriors
                 return true;
             }
 
-            var vehicles = VehiclePawnWithMapCache.allVehicles[map];
+            var vehicles = VehiclePawnWithMapCache.AllVehiclesOn(map);
             vehicle = vehicles.FirstOrDefault(v =>
             {
                 var rect = new Rect(0f, 0f, (float)v.VehicleMap.Size.x, (float)v.VehicleMap.Size.z).ExpandedBy(0.1f);
@@ -655,7 +655,7 @@ namespace VehicleInteriors
             var baseMap = map.BaseMap();
             yield return baseMap;
 
-            foreach (var vehicle in VehiclePawnWithMapCache.allVehicles[baseMap])
+            foreach (var vehicle in VehiclePawnWithMapCache.AllVehiclesOn(baseMap))
             {
                 yield return vehicle.VehicleMap;
             }

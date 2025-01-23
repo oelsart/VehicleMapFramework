@@ -267,11 +267,7 @@ namespace VehicleInteriors
                 }
             }
             base.SpawnSetup(map, respawningAfterLoad);
-            if (!VehiclePawnWithMapCache.allVehicles.ContainsKey(map))
-            {
-                VehiclePawnWithMapCache.allVehicles[map] = new List<VehiclePawnWithMap>();
-            }
-            VehiclePawnWithMapCache.allVehicles[map].Add(this);
+            VehiclePawnWithMapCache.RegisterVehicle(this);
 
             this.interiorMap.skyManager = this.Map.skyManager;
             this.interiorMap.weatherDecider = this.Map.weatherDecider;
@@ -372,7 +368,7 @@ namespace VehicleInteriors
 
         public override void DeSpawn(DestroyMode mode = DestroyMode.Vanish)
         {
-            VehiclePawnWithMapCache.allVehicles[this.Map].Remove(this);
+            VehiclePawnWithMapCache.DeRegisterVehicle(this);
             this.interiorMap.skyManager = new SkyManager(this.interiorMap);
             this.interiorMap.skyManager.ForceSetCurSkyGlow(this.Map.skyManager.CurSkyGlow);
             this.interiorMap.weatherManager = new WeatherManager(this.interiorMap);
@@ -403,9 +399,21 @@ namespace VehicleInteriors
             VehiclePawnWithMapCache.cachedDrawPos[this] = drawLoc;
             base.DrawAt(drawLoc, rot, extraRotation, flip, compDraw);
 
+            if (base.vehiclePather.Moving)
+            {
+                this.CellDesignationsDirty();
+            }
             this.DrawVehicleMap(extraRotation);
             this.interiorMap.roofGrid.RoofGridUpdate();
             this.interiorMap.mapTemperature.TemperatureUpdate();
+        }
+
+        private void CellDesignationsDirty()
+        {
+            foreach (var def in DefDatabase<DesignationDef>.AllDefs.Where(d => d.targetType == TargetType.Cell))
+            {
+                DirtyCellDesignationsCache(this.interiorMap.designationManager, def);
+            }
         }
 
         public virtual void DrawVehicleMap(float extraRotation)
@@ -592,5 +600,7 @@ namespace VehicleInteriors
         private static readonly Texture2D iconAutoGetOff = ContentFinder<Texture2D>.Get("VehicleInteriors/UI/AutoGetOff");
 
         private static readonly Type t_SectionLayer_Zones = AccessTools.TypeByName("Verse.SectionLayer_Zones");
+
+        private static readonly FastInvokeHandler DirtyCellDesignationsCache = MethodInvoker.GetHandler(AccessTools.Method(typeof(DesignationManager), "DirtyCellDesignationsCache"));
     }
 }

@@ -20,8 +20,7 @@ namespace VehicleInteriors
                 StoreAcrossMapsUtility.TryFindBestBetterStoreCellFor(t, pawn, pawn.Map, StoreUtility.CurrentStoragePriorityOf(t), pawn.Faction, out IntVec3 intVec, true, out _, out _, out _);
             }
             var baseMap = pawn.BaseMap();
-            var searchSet = baseMap.listerHaulables.ThingsPotentiallyNeedingHauling()
-                .Concat(VehiclePawnWithMapCache.allVehicles[baseMap].SelectMany(v => v.VehicleMap.listerHaulables.ThingsPotentiallyNeedingHauling()));
+            var searchSet = baseMap.BaseMapAndVehicleMaps().SelectMany(m => m.listerHaulables.ThingsPotentiallyNeedingHauling());
             Thing thing = GenClosestOnVehicle.ClosestThing_Global_Reachable(pawn.PositionOnBaseMap(), pawn.Map, searchSet, PathEndMode.OnCell, TraverseParms.For(pawn, Danger.Deadly, TraverseMode.ByPawn, false, false, false), 9999f, validator, null);
             if (thing != null)
             {

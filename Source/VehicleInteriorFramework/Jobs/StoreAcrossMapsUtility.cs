@@ -15,9 +15,7 @@ namespace VehicleInteriors
             exitSpot = TargetInfo.Invalid;
             enterSpot = TargetInfo.Invalid;
             destMap = map;
-            var baseMap = map.BaseMap();
-            List<SlotGroup> allGroupsListInPriorityOrder = baseMap.haulDestinationManager.AllGroupsListInPriorityOrder
-                .ConcatIfNotNull(VehiclePawnWithMapCache.allVehicles[baseMap].Where(v => v.AllowsHaulIn).SelectMany(v => v.VehicleMap.haulDestinationManager.AllGroupsListInPriorityOrder)).OrderByDescending(d => d.Settings.Priority).ToList();
+            List<SlotGroup> allGroupsListInPriorityOrder = map.BaseMapAndVehicleMaps().SelectMany(m => m.haulDestinationManager.AllGroupsListInPriorityOrder).OrderByDescending(d => d.Settings.Priority).ToList();
             if (allGroupsListInPriorityOrder.Count == 0)
             {
                 foundCell = IntVec3.Invalid;
@@ -252,9 +250,7 @@ namespace VehicleInteriors
         {
             exitSpot = TargetInfo.Invalid;
             enterSpot = TargetInfo.Invalid;
-            var baseMap = map.BaseMap();
-            List<IHaulDestination> allHaulDestinationsListInPriorityOrder = baseMap.haulDestinationManager.AllHaulDestinationsListInPriorityOrder
-                .ConcatIfNotNull(VehiclePawnWithMapCache.allVehicles[baseMap].Where(v => v.AllowsHaulIn).SelectMany(v => v.VehicleMap.haulDestinationManager.AllHaulDestinationsListInPriorityOrder)).OrderByDescending(d => d.GetStoreSettings().Priority).ToList();
+            List<IHaulDestination> allHaulDestinationsListInPriorityOrder = map.BaseMapAndVehicleMaps().SelectMany(m => m.haulDestinationManager.AllHaulDestinationsListInPriorityOrder).OrderByDescending(d => d.GetStoreSettings().Priority).ToList();
 
             Map thingMap = t.SpawnedOrAnyParentSpawned ? t.MapHeld : carrier.MapHeld;
             IntVec3 intVec = t.SpawnedOrAnyParentSpawned ? t.PositionHeld : carrier.PositionHeld;

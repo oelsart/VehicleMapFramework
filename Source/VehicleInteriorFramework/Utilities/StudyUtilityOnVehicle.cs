@@ -15,13 +15,12 @@ namespace VehicleInteriors
             bool CanReserveForTransfer(LocalTargetInfo t) => transferBetweenPlatforms || (t.HasThing && carrier.CanReserve(t, t.Thing.Map, 1, -1, null, false));
             Find.Targeter.BeginTargeting(TargetingParameters.ForBuilding(null), (LocalTargetInfo t) =>
             {
-                if (carrier != null && !CanReserveForTransfer(t))
-                {
-                    Messages.Message("MessageHolderReserved".Translate(t.Thing.Label), MessageTypeDefOf.RejectInput, true);
-                    return;
-                }
-                var enumerator = Find.CurrentMap.listerThings.ThingsInGroup(ThingRequestGroup.EntityHolder)
-                .Concat(VehiclePawnWithMapCache.allVehicles[Find.CurrentMap].Where(v => v.AllowsHaulOut).SelectMany(v => v.VehicleMap.listerThings.ThingsInGroup(ThingRequestGroup.EntityHolder)));
+            if (carrier != null && !CanReserveForTransfer(t))
+            {
+                Messages.Message("MessageHolderReserved".Translate(t.Thing.Label), MessageTypeDefOf.RejectInput, true);
+                return;
+            }
+            var enumerator = Find.CurrentMap.BaseMapAndVehicleMaps().SelectMany(m => m.listerThings.ThingsInGroup(ThingRequestGroup.EntityHolder));
                 {
                     foreach (var thing in enumerator)
                     {
@@ -107,7 +106,7 @@ namespace VehicleInteriors
             {
                 var baseMap = entity.MapHeldBaseMap();
                 var buildings = baseMap.listerBuildings.AllBuildingsColonistOfGroup(ThingRequestGroup.EntityHolder)
-                .Concat(VehiclePawnWithMapCache.allVehicles[baseMap].Where(v => v.AllowsHaulOut).SelectMany(v => v.VehicleMap.listerBuildings.AllBuildingsColonistOfGroup(ThingRequestGroup.EntityHolder)));
+                .Concat(VehiclePawnWithMapCache.AllVehiclesOn(baseMap).Where(v => v.AllowsHaulOut).SelectMany(v => v.VehicleMap.listerBuildings.AllBuildingsColonistOfGroup(ThingRequestGroup.EntityHolder)));
                 foreach (Building building in buildings)
                 {
                     if (ValidateTarget(building) && (carrier == null || CanReserveForTransfer(building)))

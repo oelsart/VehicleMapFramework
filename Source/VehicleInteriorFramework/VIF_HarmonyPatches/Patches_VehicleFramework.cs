@@ -539,7 +539,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             AerialVehicleInFlight aerial;
             if ((mapParent = Find.WorldObjects.MapParentAt(tile)) != null && mapParent.HasMap)
             {
-                vehicles = VehiclePawnWithMapCache.allVehicles[mapParent.Map];
+                vehicles = VehiclePawnWithMapCache.AllVehiclesOn(mapParent.Map);
             }
             else if ((caravan = Find.WorldObjects.PlayerControlledCaravanAt(tile)) != null)
             {

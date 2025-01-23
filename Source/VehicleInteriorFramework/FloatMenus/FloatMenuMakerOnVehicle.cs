@@ -984,7 +984,7 @@ namespace VehicleInteriors
                             {
 								var baseMap = pawn.BaseMap();
                                 IEnumerable<Building_HoldingPlatform> source = baseMap.listerBuildings.AllBuildingsColonistOfClass<Building_HoldingPlatform>()
-									.Concat(VehiclePawnWithMapCache.allVehicles[baseMap].SelectMany(v => v.VehicleMap.listerBuildings.AllBuildingsColonistOfClass<Building_HoldingPlatform>()));
+									.Concat(VehiclePawnWithMapCache.AllVehiclesOn(baseMap).SelectMany(v => v.VehicleMap.listerBuildings.AllBuildingsColonistOfClass<Building_HoldingPlatform>()));
                                 Func<Building_HoldingPlatform, bool> predicate = (Building_HoldingPlatform x) => !x.Occupied && pawn.CanReserveAndReach(x.Map, x, PathEndMode.Touch, Danger.Deadly, 1, -1, null, false, out _, out _);
                                 IEnumerable<Building_HoldingPlatform> enumerable2 = source.Where(predicate);
                                 Thing building = GenClosestOnVehicle.ClosestThing_Global_Reachable(pawn.Position, pawn.Map, enumerable2, PathEndMode.ClosestTouch, TraverseParms.For(pawn, Danger.Some, TraverseMode.ByPawn, false, false, false), 9999f, null, delegate (Thing t)
@@ -1035,7 +1035,7 @@ namespace VehicleInteriors
                                 IntVec3 position = pawn.Position;
                                 Map baseMap = pawn.BaseMap();
                                 IEnumerable<Thing> searchSet = baseMap.listerBuildings.AllBuildingsColonistOfClass<Building_HoldingPlatform>()
-                                    .Concat(VehiclePawnWithMapCache.allVehicles[baseMap].SelectMany(v => v.VehicleMap.listerBuildings.AllBuildingsColonistOfClass<Building_HoldingPlatform>()));
+                                    .Concat(VehiclePawnWithMapCache.AllVehiclesOn(baseMap).SelectMany(v => v.VehicleMap.listerBuildings.AllBuildingsColonistOfClass<Building_HoldingPlatform>()));
                                 PathEndMode peMode = PathEndMode.ClosestTouch;
                                 TraverseParms traverseParams = TraverseParms.For(pawn, Danger.Some, TraverseMode.ByPawn, false, false, false);
                                 float maxDistance = 9999f;
@@ -1200,8 +1200,7 @@ namespace VehicleInteriors
 							else
 							{
 								var baseMap = pawn.BaseMap();
-								IEnumerable<Thing> allThings = baseMap.listerThings.AllThings
-									.Concat(VehiclePawnWithMapCache.allVehicles[baseMap].SelectMany(v => v.VehicleMap.listerThings.AllThings));
+                                IEnumerable<Thing> allThings = map.BaseMapAndVehicleMaps().SelectMany(m => m.listerThings.AllThings);
                                 var exitSpot2 = TargetInfo.Invalid;
                                 var enterSpot2 = TargetInfo.Invalid;
                                 bool predicate2(Thing x) => CompRelicContainer.IsRelic(x) && pawn.CanReach(x, PathEndMode.ClosestTouch, Danger.Deadly, false, false, TraverseMode.ByPawn, x.Map, out exitSpot2, out enterSpot2);
@@ -1242,8 +1241,7 @@ namespace VehicleInteriors
                         if (CompRelicContainer.IsRelic(thing4) && pawn.CanReach(thing4, PathEndMode.ClosestTouch, Danger.None, false, false, TraverseMode.ByPawn, thing4.Map, out var exitSpot, out var enterSpot))
                         {
                             var baseMap = thing4.BaseMap();
-							IEnumerable<Thing> enumerable4 = from x in baseMap.listerThings.ThingsOfDef(ThingDefOf.Reliquary)
-															 .Concat(VehiclePawnWithMapCache.allVehicles[baseMap].SelectMany(v => v.VehicleMap.listerThings.ThingsOfDef(ThingDefOf.Reliquary)))
+                            IEnumerable<Thing> enumerable4 = from x in map.BaseMapAndVehicleMaps().SelectMany(m => m.listerThings.ThingsOfDef(ThingDefOf.Reliquary))
 							where x.TryGetComp<CompRelicContainer>().ContainedThing == null
 							select x;
 							IntVec3 position2 = thing4.Position;
