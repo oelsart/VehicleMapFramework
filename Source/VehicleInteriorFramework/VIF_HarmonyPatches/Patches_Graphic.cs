@@ -314,20 +314,20 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             {
                 __result.y += vehicle.DrawPos.y;
             }
+            else if (___pawn.ParentHolder is VehicleHandlerBuildable)
+            {
+                __result.y += VehicleMapUtility.altitudeOffsetFull;
+            }
             else if (___pawn.IsOnNonFocusedVehicleMapOf(out var vehicle2))
             {
                 if (___pawn.CurrentBed() != null)
                 {
-                    __result = __result.OrigToVehicleMap(vehicle2).WithYOffset(-0.9615385f);
+                    __result = __result.ToBaseMapCoord(vehicle2).WithYOffset(-0.9615385f);
                 }
                 else if (posture != PawnPosture.Standing)
                 {
                     __result.y += vehicle2.DrawPos.y;
                 }
-            }
-            else if (___pawn.ParentHolder is VehicleHandlerBuildable)
-            {
-                __result.y += VehicleMapUtility.altitudeOffsetFull;
             }
         }
     }
@@ -363,8 +363,8 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatch(typeof(Projectile), nameof(Projectile.DrawPos), MethodType.Getter)]
-    public static class Patch_Projectile_DrawPos
+    [HarmonyPatch(typeof(Projectile), nameof(Projectile.ExactPosition), MethodType.Getter)]
+    public static class Patch_Projectile_ExactPosition
     {
         public static void Postfix(ref Vector3 __result)
         {

@@ -202,7 +202,7 @@ namespace VehicleInteriors
             {
                 return;
             }
-            IntVec3 cellOnBaseMap = c.OrigToThingMap(CastPositionFinderOnVehicle.req.caster);
+            IntVec3 cellOnBaseMap = c.ToThingBaseMapCoord(CastPositionFinderOnVehicle.req.caster);
             if (!CastPositionFinderOnVehicle.verb.CanHitTargetFrom(cellOnBaseMap, CastPositionFinderOnVehicle.req.target))
             {
                 if (DebugViewSettings.drawCastPositionSearch)

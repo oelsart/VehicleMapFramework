@@ -16,9 +16,9 @@ namespace VehicleInteriors
                 Log.Error("Missing Key on VehicleRole " + reference.label);
             }
             this.CopyFrom(reference);
-            this.upgradeSingle = reference.upgradeSingle;
+            this.upgradeComp = reference.upgradeComp;
         }
 
-        public VehicleUpgradeBuildable upgradeSingle;
+        public CompBuildableUpgrades upgradeComp;
     }
 }

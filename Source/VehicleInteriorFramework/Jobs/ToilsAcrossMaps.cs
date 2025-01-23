@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
+using System.Security.Principal;
 using UnityEngine;
 using Vehicles;
 using Verse;
@@ -26,7 +27,7 @@ namespace VehicleInteriors
             {
                 faceCell = enterSpot.HasThing ? enterSpot.Thing.BaseFullRotation().FacingCell : enterSpot.Cell.BaseFullDirectionToInsideMap(vehicle).FacingCell;
                 faceCell.y = 0;
-                var basePos = enterSpot.HasThing ? enterSpot.Thing.PositionOnBaseMap() : enterSpot.Cell.OrigToVehicleMap(vehicle);
+                var basePos = enterSpot.HasThing ? enterSpot.Thing.PositionOnBaseMap() : enterSpot.Cell.ToBaseMapCoord(vehicle);
                 while ((basePos - faceCell * dist).GetThingList(baseMap).Contains(vehicle))
                 {
                     dist++;
@@ -46,7 +47,7 @@ namespace VehicleInteriors
             {
                 faceCell = enterSpot.HasThing ? enterSpot.Thing.BaseFullRotation().FacingCell : enterSpot.Cell.BaseFullDirectionToInsideMap(vehicle).FacingCell;
                 faceCell.y = 0;
-                var basePos = enterSpot.HasThing ? enterSpot.Thing.PositionOnBaseMap() : enterSpot.Cell.OrigToVehicleMap(vehicle);
+                var basePos = enterSpot.HasThing ? enterSpot.Thing.PositionOnBaseMap() : enterSpot.Cell.ToBaseMapCoord(vehicle);
                 if (toil.actor is VehiclePawn vehiclePawn) vehicleOffset = faceCell * vehiclePawn.HalfLength();
                 var curDest = basePos - faceCell * dist - vehicleOffset;
                 if (dest != curDest)
@@ -138,6 +139,15 @@ namespace VehicleInteriors
                     }));
                     yield return waitOpen;
                 }
+                if (exitSpot.Cell.TryGetFirstThing<Building_VehicleRamp>(exitSpot.Map, out var ramp))
+                {
+                    var waitOpen = Toils_General.Wait(ramp.TicksToOpenNow);
+                    waitOpen.initAction = (Action)Delegate.Combine(waitOpen.initAction, new Action(() =>
+                    {
+                        ramp.StartManualOpenBy(waitOpen.actor);
+                    }));
+                    yield return waitOpen;
+                }
 
                 //マップ移動アニメーション。目的地の計算の後tick毎の描画位置を計算。ドアは開け続けておく
                 var ticks = driver.pawn.TicksPerMoveCardinal * 4f;
@@ -152,7 +162,7 @@ namespace VehicleInteriors
                 {
                     var baseMap = exitSpot.Map.BaseMap();
                     initTick = GenTicks.TicksGame;
-                    var basePos = exitSpot.HasThing ? exitSpot.Thing.PositionOnBaseMap() : exitSpot.Cell.OrigToVehicleMap(vehicle);
+                    var basePos = exitSpot.HasThing ? exitSpot.Thing.PositionOnBaseMap() : exitSpot.Cell.ToBaseMapCoord(vehicle);
                     faceCell = exitSpot.HasThing ? exitSpot.Thing.BaseFullRotation().FacingCell : exitSpot.Cell.BaseFullDirectionToInsideMap(vehicle).FacingCell;
                     faceCell.y = 0;
                     var rot = exitSpot.HasThing ? exitSpot.Thing.Rotation : exitSpot.Cell.DirectionToInsideMap(vehicle);
@@ -184,7 +194,7 @@ namespace VehicleInteriors
                     {
                         initPos += baseRot.IsHorizontal ? Vector3.back : Vector3.right;
                     }
-                    var initPos2 = GenThing.TrueCenter(exitSpot.Cell + (vehiclePawn != null ? faceCell2 * vehiclePawn.HalfLength() : IntVec3.Zero), rot.Opposite, driver.pawn.def.size, 0f).OrigToVehicleMap(vehicle).WithY(0f);
+                    var initPos2 = GenThing.TrueCenter(exitSpot.Cell + (vehiclePawn != null ? faceCell2 * vehiclePawn.HalfLength() : IntVec3.Zero), rot.Opposite, driver.pawn.def.size, 0f).ToBaseMapCoord(vehicle).WithY(0f);
                     offset = initPos - initPos2;
                 }));
 
@@ -192,6 +202,7 @@ namespace VehicleInteriors
                 {
                     driver.drawOffset = offset.RotatedBy(-vehicle.FullRotation.AsAngle) * ((GenTicks.TicksGame - initTick) / ticks);
                     door?.StartManualOpenBy(toil2.actor);
+                    ramp?.StartManualOpenBy(toil2.actor);
                 };
 
                 //toil2.FailOn(() => !exitSpot.Cell.Standable(exitSpot.Map));
@@ -203,7 +214,7 @@ namespace VehicleInteriors
                 toil3.FailOn(() =>
                 {
                     var baseMap = exitSpot.Map.BaseMap();
-                    var basePos = exitSpot.HasThing ? exitSpot.Thing.PositionOnBaseMap() : exitSpot.Cell.OrigToVehicleMap(vehicle);
+                    var basePos = exitSpot.HasThing ? exitSpot.Thing.PositionOnBaseMap() : exitSpot.Cell.ToBaseMapCoord(vehicle);
                     var rot = exitSpot.HasThing ? exitSpot.Thing.BaseFullRotation() : exitSpot.Cell.BaseFullDirectionToInsideMap(vehicle);
                     faceCell = rot.FacingCell;
                     faceCell.y = 0;
@@ -218,7 +229,7 @@ namespace VehicleInteriors
                 toil3.initAction = () =>
                 {
                     var baseMap = exitSpot.Map.BaseMap();
-                    var basePos = exitSpot.HasThing ? exitSpot.Thing.PositionOnBaseMap() : exitSpot.Cell.OrigToVehicleMap(vehicle);
+                    var basePos = exitSpot.HasThing ? exitSpot.Thing.PositionOnBaseMap() : exitSpot.Cell.ToBaseMapCoord(vehicle);
                     var baseRot = exitSpot.HasThing ? exitSpot.Thing.BaseFullRotation() : exitSpot.Cell.BaseFullDirectionToInsideMap(vehicle);
                     driver.drawOffset = Vector3.zero;
                     if (vehiclePawn != null)
@@ -268,6 +279,15 @@ namespace VehicleInteriors
                     }));
                     yield return waitOpen;
                 }
+                if (enterSpot.Cell.TryGetFirstThing<Building_VehicleRamp>(enterSpot.Map, out var ramp))
+                {
+                    var waitOpen = Toils_General.Wait(ramp.TicksToOpenNow);
+                    waitOpen.initAction = (Action)Delegate.Combine(waitOpen.initAction, new Action(() =>
+                    {
+                        ramp.StartManualOpenBy(waitOpen.actor);
+                    }));
+                    yield return waitOpen;
+                }
 
                 //マップ移動アニメーション。目的地の計算の後tick毎の描画位置を計算。ドアは開け続けておく
                 var ticks = driver.pawn.TicksPerMoveCardinal * 4f;
@@ -285,7 +305,7 @@ namespace VehicleInteriors
                     var baseMap = enterSpot.Map.BaseMap();
                     var baseRot8 = enterSpot.HasThing ? enterSpot.Thing.BaseFullRotation() : enterSpot.Cell.BaseFullDirectionToInsideMap(vehicle);
                     Rot4 baseRot4 = baseRot8;
-                    var basePos = enterSpot.HasThing ? enterSpot.Thing.PositionOnBaseMap() : enterSpot.Cell.OrigToVehicleMap(vehicle);
+                    var basePos = enterSpot.HasThing ? enterSpot.Thing.PositionOnBaseMap() : enterSpot.Cell.ToBaseMapCoord(vehicle);
                     faceCell = baseRot8.FacingCell;
                     faceCell.y = 0;
                     while ((basePos - faceCell * dist).GetThingList(baseMap).Contains(vehicle))
@@ -308,7 +328,7 @@ namespace VehicleInteriors
                     var rot = enterSpot.HasThing ? enterSpot.Thing.Rotation : enterSpot.Cell.DirectionToInsideMap(vehicle);
                     var faceCell2 = rot.FacingCell;
                     faceCell2.y = 0;
-                    var initPos = GenThing.TrueCenter(enterSpot.Cell + (vehiclePawn != null ? faceCell2 * vehiclePawn.HalfLength() : IntVec3.Zero), rot, driver.pawn.def.size, 0f).OrigToVehicleMap(vehicle).WithY(0f);
+                    var initPos = GenThing.TrueCenter(enterSpot.Cell + (vehiclePawn != null ? faceCell2 * vehiclePawn.HalfLength() : IntVec3.Zero), rot, driver.pawn.def.size, 0f).ToBaseMapCoord(vehicle).WithY(0f);
                     if (driver.pawn.def.size.x % 2 == 0 &&
                     ((vehicle.Rotation == Rot4.East && rot.IsHorizontal) ||
                     (vehicle.Rotation == Rot4.West && !rot.IsHorizontal) ||
@@ -318,15 +338,16 @@ namespace VehicleInteriors
                         initPos += baseRot4.IsHorizontal ? Vector3.forward : Vector3.left;
                     }
                     var initPos2 = GenThing.TrueCenter(basePos - faceCell * dist - vehicleOffset, baseRot8, driver.pawn.def.size, 0f);
-                    initPos3 = enterSpot.Cell.OrigToVehicleMap(vehicle).ToVector3().WithY(0f);
+                    initPos3 = enterSpot.Cell.ToBaseMapCoord(vehicle).ToVector3().WithY(0f);
                     offset = initPos - initPos2;
                     initTick = GenTicks.TicksGame;
                 }));
 
                 toil2.tickAction = () =>
                 {
-                    driver.drawOffset = offset * ((GenTicks.TicksGame - initTick) / ticks) + enterSpot.Cell.OrigToVehicleMap(vehicle).ToVector3().WithY(VehicleMapUtility.altitudeOffsetFull) - initPos3;
+                    driver.drawOffset = offset * ((GenTicks.TicksGame - initTick) / ticks) + enterSpot.Cell.ToBaseMapCoord(vehicle).ToVector3().WithY(VehicleMapUtility.altitudeOffsetFull) - initPos3;
                     door?.StartManualOpenBy(toil2.actor);
+                    ramp?.StartManualOpenBy(toil2.actor);
                 };
                 yield return toil2;
 

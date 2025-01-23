@@ -23,9 +23,9 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static void Prefix(ref float altitude, Building_Door __instance)
         {
-            if (__instance.IsOnNonFocusedVehicleMapOf(out _))
+            if (__instance.IsOnNonFocusedVehicleMapOf(out var vehicle))
             {
-                altitude += VehicleMapUtility.altitudeOffsetFull;
+                altitude += vehicle.DrawPos.y;
             }
         }
 
@@ -51,7 +51,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             {
                 if (instruction.opcode == OpCodes.Stfld && instruction.OperandIs(f_Vector3_y))
                 {
-                    yield return new CodeInstruction(OpCodes.Ldc_R4, VehicleMapUtility.altitudeOffsetFull);
+                    yield return new CodeInstruction(OpCodes.Ldc_R4, 7.3076926f);
                     yield return new CodeInstruction(OpCodes.Add);
                 }
                 yield return instruction;
@@ -133,6 +133,8 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
+            var ldcr4 = instructions.FirstOrDefault(c => c.opcode == OpCodes.Ldc_R4 && c.OperandIs(0.1f));
+            if (ldcr4 != null) ldcr4.operand = 0.75f;
             return instructions.MethodReplacer(MethodInfoCache.g_Thing_Rotation, MethodInfoCache.m_BaseFullRotation_Thing)
                 .MethodReplacer(MethodInfoCache.m_Rot4_Rotate, MethodInfoCache.m_Rot8_Rotate);
         }
@@ -145,12 +147,12 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             if (Command_FocusVehicleMap.FocusedVehicle != null)
             {
-                center = center.OrigToVehicleMap(Command_FocusVehicleMap.FocusedVehicle);
+                center = center.ToBaseMapCoord(Command_FocusVehicleMap.FocusedVehicle);
                 rot.AsInt += Command_FocusVehicleMap.FocusedVehicle.Rotation.AsInt;
             }
             if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle))
             {
-                center = center.OrigToVehicleMap(vehicle);
+                center = center.ToBaseMapCoord(vehicle);
                 rot.AsInt += vehicle.Rotation.AsInt;
             }
         }
@@ -224,7 +226,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 new CodeInstruction(OpCodes.Call, MethodInfoCache.m_IsOnNonFocusedVehicleMapOf),
                 new CodeInstruction(OpCodes.Brfalse_S, label),
                 new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_OrigToVehicleMap2)
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_ToBaseMapCoord2)
             });
             return codes.MethodReplacer(MethodInfoCache.g_Thing_Rotation, MethodInfoCache.m_BaseFullRotation_Thing);
         }

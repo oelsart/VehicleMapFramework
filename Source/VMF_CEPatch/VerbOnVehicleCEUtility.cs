@@ -67,7 +67,7 @@ namespace VMF_CEPatch
                 foreach (var leanLoc in tempLeanShootSources.OrderBy(c => c.DistanceTo(targCellOnCasterMap)))
                 {
                     var leanOffset = 0.5f - 0.001f;
-                    var leanLocOnBaseMap = leanLoc.OrigToThingMap(verb.caster);
+                    var leanLocOnBaseMap = leanLoc.ToThingBaseMapCoord(verb.caster);
                     var leanPosOffset = (leanLocOnBaseMap - root).ToVector3() * leanOffset;
                     if (verb.CanHitFromCellIgnoringRange(shotSource + leanPosOffset, targ, out dest))
                     {
@@ -136,7 +136,7 @@ namespace VMF_CEPatch
                     targetPos = targetLoc.ToVector3Shifted();
                     if (map.IsVehicleMapOf(out var vehicle))
                     {
-                        targetPos = targetPos.OrigToVehicleMap(vehicle);
+                        targetPos = targetPos.ToBaseMapCoord(vehicle);
                     }
                 }
                 Ray shotLine = new Ray(shotSource, (targetPos - shotSource));
@@ -207,7 +207,7 @@ namespace VMF_CEPatch
                     {
                         verb.caster.BaseMap().debugDrawer.FlashCell(curCell, 0.4f);
                     }
-                    if (curCell != shotSource.ToIntVec3() && curCell != targetLoc && !CanShootThroughCell(targetThing != null ? curCell.ThingMapToOrig(targetThing) : curCell))
+                    if (curCell != shotSource.ToIntVec3() && curCell != targetLoc && !CanShootThroughCell(targetThing != null ? curCell.ToThingMapCoord(targetThing) : curCell))
                     {
                         return false;
                     }

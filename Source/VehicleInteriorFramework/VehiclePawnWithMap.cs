@@ -161,7 +161,7 @@ namespace VehicleInteriors
                     for (var i = 0; i < allGroups.Count(); i++)
                     {
                         allGroups.ElementAt(i).Settings.Priority = (StoragePriority)Math.Min((sbyte)(priorityList[i] + 1), (sbyte)StoragePriority.Critical);
-                        MoteMaker.ThrowText(allGroups.ElementAt(i).CellsList[0].ToVector3Shifted().OrigToVehicleMap(this), this.Map, allGroups.ElementAt(i).Settings.Priority.ToString(), Color.white, -1f);
+                        MoteMaker.ThrowText(allGroups.ElementAt(i).CellsList[0].ToVector3Shifted().ToBaseMapCoord(this), this.Map, allGroups.ElementAt(i).Settings.Priority.ToString(), Color.white, -1f);
                     }
                 },
                 defaultLabel = "VMF_IncreasePriority".Translate(),
@@ -182,7 +182,7 @@ namespace VehicleInteriors
                     for (var i = 0; i < allGroups.Count(); i++)
                     {
                         allGroups.ElementAt(i).Settings.Priority = (StoragePriority)Math.Max((sbyte)(priorityList[i] - 1), (sbyte)StoragePriority.Low);
-                        MoteMaker.ThrowText(allGroups.ElementAt(i).CellsList[0].ToVector3Shifted().OrigToVehicleMap(this), this.Map, allGroups.ElementAt(i).Settings.Priority.ToString(), Color.white, -1f);
+                        MoteMaker.ThrowText(allGroups.ElementAt(i).CellsList[0].ToVector3Shifted().ToBaseMapCoord(this), this.Map, allGroups.ElementAt(i).Settings.Priority.ToString(), Color.white, -1f);
                     }
                 },
                 defaultLabel = "VMF_DecreasePriority".Translate(),
@@ -404,6 +404,8 @@ namespace VehicleInteriors
             base.DrawAt(drawLoc, rot, extraRotation, flip, compDraw);
 
             this.DrawVehicleMap(extraRotation);
+            this.interiorMap.roofGrid.RoofGridUpdate();
+            this.interiorMap.mapTemperature.TemperatureUpdate();
         }
 
         public virtual void DrawVehicleMap(float extraRotation)
@@ -419,7 +421,7 @@ namespace VehicleInteriors
             //map.powerNetGrid.DrawDebugPowerNetGrid();
             //DoorsDebugDrawer.DrawDebug();
             //map.mapDrawer.DrawMapMesh();
-            var drawPos = Vector3.zero.OrigToVehicleMap(this, extraRotation);
+            var drawPos = Vector3.zero.ToBaseMapCoord(this, extraRotation);
             this.DrawVehicleMapMesh(map, drawPos, extraRotation);
             LongEventHandler.ExecuteWhenFinished(() =>
             {
@@ -504,23 +506,23 @@ namespace VehicleInteriors
                 IntVec3 size = map.Size;
                 Vector3 s = new Vector3(500f, 1f, size.z);
                 Matrix4x4 matrix = default;
-                matrix.SetTRS(new Vector3(-250f, 0f, size.z / 2f).OrigToVehicleMap(this), quat, s);
+                matrix.SetTRS(new Vector3(-250f, 0f, size.z / 2f).ToBaseMapCoord(this), quat, s);
                 Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
                 matrix = default;
-                matrix.SetTRS(new Vector3(size.x + 250f, 0f, size.z / 2f).OrigToVehicleMap(this), quat, s);
+                matrix.SetTRS(new Vector3(size.x + 250f, 0f, size.z / 2f).ToBaseMapCoord(this), quat, s);
                 Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
                 s = new Vector3(1000f, 1f, 500f);
                 matrix = default;
-                matrix.SetTRS(new Vector3(size.x / 2f, 0f, size.z + 250f).OrigToVehicleMap(this), quat, s);
+                matrix.SetTRS(new Vector3(size.x / 2f, 0f, size.z + 250f).ToBaseMapCoord(this), quat, s);
                 Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
                 matrix = default;
-                matrix.SetTRS(new Vector3(size.x / 2f, 0f, -250f).OrigToVehicleMap(this), quat, s);
+                matrix.SetTRS(new Vector3(size.x / 2f, 0f, -250f).ToBaseMapCoord(this), quat, s);
                 Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
 
                 s = Vector3.one;
                 foreach (var c in this.CachedStructureCells)
                 {
-                    matrix.SetTRS(c.ToVector3Shifted().OrigToVehicleMap(), quat, s);
+                    matrix.SetTRS(c.ToVector3Shifted().ToBaseMapCoord(), quat, s);
                     Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
                 }
             }
@@ -541,6 +543,17 @@ namespace VehicleInteriors
             if (!this.Spawned)
             {
                 this.CompVehicleTurrets?.InitTurrets();
+                if (!UnityData.IsInMainThread)
+                {
+                    LongEventHandler.ExecuteWhenFinished(delegate
+                    {
+                        base.graphicOverlay.Init();
+                    });
+                }
+                else
+                {
+                    base.graphicOverlay.Init();
+                }
             }
         }
 

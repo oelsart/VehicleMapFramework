@@ -4,7 +4,6 @@ using SmashTools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.NetworkInformation;
 using System.Reflection.Emit;
 using UnityEngine;
 using Vehicles;
@@ -21,7 +20,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             var codes = instructions.ToList();
             var toIntVec3 = AccessTools.Method(typeof(IntVec3Utility), nameof(IntVec3Utility.ToIntVec3));
             var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(toIntVec3));
-            codes.Insert(pos, new CodeInstruction(OpCodes.Call, MethodInfoCache.m_VehicleMapToOrig1));
+            codes.Insert(pos, new CodeInstruction(OpCodes.Call, MethodInfoCache.m_ToVehicleMapCoord1));
             return codes;
         }
 
@@ -94,11 +93,46 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             if (__instance.IsOnNonFocusedVehicleMapOf(out var vehicle))
             {
-                __result = __result.OrigToVehicleMap(vehicle);
+                __result = __result.ToBaseMapCoord(vehicle);
             }
         }
     }
 
+    [HarmonyPatch(typeof(FleckSystemBase<FleckStatic>), nameof(FleckSystemBase<FleckStatic>.CreateFleck))]
+    public static class Patch_FleckSystemBase_FleckStatic_CreateFleck
+    {
+        public static void Prefix(FleckSystemBase<FleckStatic> __instance, ref FleckCreationData creationData)
+        {
+            if (__instance.parent.parent.IsNonFocusedVehicleMapOf(out var vehicle))
+            {
+                creationData.spawnPosition = creationData.spawnPosition.ToBaseMapCoord(vehicle);
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(FleckSystemBase<FleckThrown>), nameof(FleckSystemBase<FleckThrown>.CreateFleck))]
+    public static class Patch_FleckSystemBase_FleckThrown_CreateFleck
+    {
+        public static void Prefix(FleckSystemBase<FleckThrown> __instance, ref FleckCreationData creationData)
+        {
+            if (__instance.parent.parent.IsNonFocusedVehicleMapOf(out var vehicle))
+            {
+                creationData.spawnPosition = creationData.spawnPosition.ToBaseMapCoord(vehicle);
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(FleckSystemBase<FleckSplash>), nameof(FleckSystemBase<FleckSplash>.CreateFleck))]
+    public static class Patch_FleckSystemBase_FleckSplash_CreateFleck
+    {
+        public static void Prefix(FleckSystemBase<FleckSplash> __instance, ref FleckCreationData creationData)
+        {
+            if (__instance.parent.parent.IsNonFocusedVehicleMapOf(out var vehicle))
+            {
+                creationData.spawnPosition = creationData.spawnPosition.ToBaseMapCoord(vehicle);
+            }
+        }
+    }
 
     //VehicleSkyfallerのyが上書きされてたので車上のVehicleSkyfallerはy足しときなね
     [HarmonyPatch(typeof(LaunchProtocol), nameof(LaunchProtocol.Draw))]
@@ -235,14 +269,14 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                         var destMap = driverAcrossMaps.DestMap;
                         if (destMap.IsVehicleMapOf(out var vehicle) && (Find.CurrentMap != destMap || Find.CurrentMap.IsVehicleMapOf(out _)))
                         {
-                            return targ.Cell.ToVector3Shifted().OrigToVehicleMap(vehicle);
+                            return targ.Cell.ToVector3Shifted().ToBaseMapCoord(vehicle);
                         }
                     }
                     else
                     {
                         if (pawn.IsOnNonFocusedVehicleMapOf(out var vehicle))
                         {
-                            return targ.Cell.ToVector3Shifted().OrigToVehicleMap(vehicle);
+                            return targ.Cell.ToVector3Shifted().ToBaseMapCoord(vehicle);
                         }
                     }
                     return targ.Cell.ToVector3Shifted();
@@ -306,7 +340,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 new CodeInstruction(OpCodes.Ldloc_S, vehicle),
                 new CodeInstruction(OpCodes.Brfalse_S, label2),
                 new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_OrigToVehicleMap2),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_ToBaseMapCoord2),
             });
             var pos3 = codes.FindIndex(pos, c => c.opcode == OpCodes.Stloc_3);
             var label3 = generator.DefineLabel();
@@ -316,7 +350,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 new CodeInstruction(OpCodes.Ldloc_S, vehicle),
                 new CodeInstruction(OpCodes.Brfalse_S, label3),
                 new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_OrigToVehicleMap2),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_ToBaseMapCoord2),
             });
             var pos4 = codes.FindIndex(pos, c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalIndex == 6);
             var label4 = generator.DefineLabel();
@@ -326,7 +360,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 new CodeInstruction(OpCodes.Ldloc_S, vehicle),
                 new CodeInstruction(OpCodes.Brfalse_S, label4),
                 new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_OrigToVehicleMap2),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_ToBaseMapCoord2),
             });
             return codes;
         }
@@ -374,12 +408,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static void Prefix(ref Vector3 loc, ref Rot4 rot, ThingDef thingDef, ref float extraRotation, Graphic __instance)
         {
-            var vehicle = Command_FocusVehicleMap.FocusedVehicle;
-            if (vehicle == null && VehicleInteriors.settings.drawPlanet)
-            {
-                Find.CurrentMap.IsVehicleMapOf(out vehicle);
-            }
-            if (vehicle != null)
+            if (VehicleMapUtility.FocusedOnVehicleMap(out var vehicle))
             {
                 var def = thingDef.IsBlueprint ? thingDef.entityDefToBuild as ThingDef : thingDef;
                 var compProperties = def.GetCompProperties<CompProperties_FireOverlay>();
@@ -387,11 +416,11 @@ namespace VehicleInteriors.VMF_HarmonyPatches
 
                 if (flag)
                 {
-                    loc -= def.graphicData.DrawOffsetForRot(rot) + compProperties.DrawOffsetForRot(rot);
+                    loc -= (def.graphicData?.DrawOffsetForRot(rot) ?? Vector3.zero) + compProperties.DrawOffsetForRot(rot);
                 }
 
                 var angle = vehicle.Angle;
-                loc = loc.OrigToVehicleMap(vehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor());
+                loc = loc.ToBaseMapCoord(vehicle).WithY(loc.y);
                 var rot2 = rot;
                 if ((def.rotatable || def.graphic is Graphic_Multi) && (!def.graphicData?.Linked ?? true))
                 {
@@ -403,7 +432,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 {
                     extraRotation -= angle;
                 }
-                Vector3 offset = def.graphicData.DrawOffsetForRot(rot);
+                Vector3 offset = def.graphicData?.DrawOffsetForRot(rot) ?? Vector3.zero;
                 if (flag)
                 {
                     var offset2 = compProperties.DrawOffsetForRot(rot);
@@ -435,7 +464,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             {
                 if (!___target.HasThing)
                 {
-                    __result = __result.OrigToVehicleMap(vehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor());
+                    __result = __result.ToBaseMapCoord(vehicle).WithY(__result.y);
                 }
             }
         }
@@ -464,7 +493,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             if (verb?.caster.IsOnNonFocusedVehicleMapOf(out var vehicle) ?? false)
             {
-                center = center.OrigToVehicleMap(vehicle);
+                center = center.ToBaseMapCoord(vehicle);
             }
         }
     }
@@ -481,12 +510,12 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             {
                 if (thing.IsOnNonFocusedVehicleMapOf(out vehicle))
                 {
-                    center = center.OrigToVehicleMap(vehicle);
+                    center = center.ToBaseMapCoord(vehicle);
                 }
             }
             else if (Command_FocusVehicleMap.FocusedVehicle != null)
             {
-                center = center.OrigToVehicleMap(Command_FocusVehicleMap.FocusedVehicle);
+                center = center.ToBaseMapCoord(Command_FocusVehicleMap.FocusedVehicle);
             }
         }
     }
@@ -528,14 +557,14 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             var codes = instructions.ToList();
             var pos = codes.FindIndex(c => c.opcode == OpCodes.Stloc_0);
-            codes.Insert(pos, new CodeInstruction(OpCodes.Call, MethodInfoCache.m_OrigToVehicleMap1));
+            codes.Insert(pos, new CodeInstruction(OpCodes.Call, MethodInfoCache.m_ToBaseMapCoord1));
             return codes;
         }
 
         [HarmonyPatch(new Type[] { typeof(Vector3), typeof(AltitudeLayer) })]
         public static void Prefix(ref Vector3 c)
         {
-            c = c.OrigToVehicleMap();
+            c = c.ToBaseMapCoord();
         }
     }
 
@@ -553,12 +582,12 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             codes.InsertRange(pos, new[]
             {
                 new CodeInstruction(OpCodes.Ldloc_2),
-                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_OrigToVehicleMap1),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_ToBaseMapCoord1),
                 new CodeInstruction(OpCodes.Stloc_2)
             });
 
             var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Newobj && c.OperandIs(c_Vector3)) + 1;
-            codes.Insert(pos2, new CodeInstruction(OpCodes.Call, MethodInfoCache.m_OrigToVehicleMap1));
+            codes.Insert(pos2, new CodeInstruction(OpCodes.Call, MethodInfoCache.m_ToBaseMapCoord1));
 
             var m_Widgets_DrawBox = AccessTools.Method(typeof(Widgets), nameof(Widgets.DrawBox));
             var pos3 = codes.FindIndex(pos2, c => c.opcode == OpCodes.Call && c.OperandIs(m_Widgets_DrawBox));
@@ -595,7 +624,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         private static Vector2 ConvertToVehicleMap(Vector2 screenPos)
         {
             screenPos.y = UI.screenHeight - screenPos.y;
-            return UI.UIToMapPosition(screenPos).OrigToVehicleMap().MapToUIPosition();
+            return UI.UIToMapPosition(screenPos).ToBaseMapCoord().MapToUIPosition();
         }
     }
 
@@ -675,7 +704,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 new CodeInstruction(OpCodes.Call, MethodInfoCache.m_IsNonFocusedVehicleMapOf),
                 new CodeInstruction(OpCodes.Brfalse_S, label),
                 new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_OrigToVehicleMap2)
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_ToBaseMapCoord2)
             });
             return codes;
         }

@@ -68,7 +68,7 @@ namespace VehicleInteriors
                         {
                             if (vehicleMap)
                             {
-                                Graphics.DrawMesh(MeshPool.plane10, intVec.ToVector3Shifted().OrigToVehicleMap(vehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor()).WithYOffset(y), new Rot4(k).AsQuat * vehicle.FullRotation.AsQuat(), material, 0);
+                                Graphics.DrawMesh(MeshPool.plane10, intVec.ToVector3Shifted().ToBaseMapCoord(vehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor()).WithYOffset(y), new Rot4(k).AsQuat * vehicle.FullRotation.AsQuat(), material, 0);
                             }
                             else
                             {

@@ -18,6 +18,8 @@ namespace VehicleInteriors
 
         public static readonly MethodInfo g_FocusedVehicle = AccessTools.PropertyGetter(typeof(Command_FocusVehicleMap), nameof(Command_FocusVehicleMap.FocusedVehicle));
 
+        public static readonly MethodInfo m_FocusedOnVehicleMap = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.FocusedOnVehicleMap));
+
         public static readonly MethodInfo g_Find_CurrentMap = AccessTools.PropertyGetter(typeof(Find), nameof(Find.CurrentMap));
 
         public static readonly MethodInfo g_VehicleMapUtility_CurrentMap = AccessTools.PropertyGetter(typeof(VehicleMapUtility), nameof(VehicleMapUtility.CurrentMap));
@@ -30,17 +32,17 @@ namespace VehicleInteriors
 
         public static readonly MethodInfo m_IsOnNonFocusedVehicleMapOf = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.IsOnNonFocusedVehicleMapOf));
 
-        public static readonly MethodInfo m_OrigToVehicleMap1 = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.OrigToVehicleMap), new Type[] { typeof(Vector3) });
+        public static readonly MethodInfo m_ToBaseMapCoord1 = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.ToBaseMapCoord), new Type[] { typeof(Vector3) });
 
-        public static readonly MethodInfo m_OrigToVehicleMap2 = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.OrigToVehicleMap), new Type[] { typeof(Vector3), typeof(VehiclePawnWithMap) });
+        public static readonly MethodInfo m_ToBaseMapCoord2 = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.ToBaseMapCoord), new Type[] { typeof(Vector3), typeof(VehiclePawnWithMap) });
 
-        public static readonly MethodInfo m_OrigToThingMap1 = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.OrigToThingMap), new Type[] { typeof(IntVec3), typeof(Thing) });
+        public static readonly MethodInfo m_ToThingBaseMapCoord1 = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.ToThingBaseMapCoord), new Type[] { typeof(IntVec3), typeof(Thing) });
 
-        public static readonly MethodInfo m_OrigToThingMap2 = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.OrigToThingMap), new Type[] { typeof(Vector3), typeof(Thing) });
+        public static readonly MethodInfo m_ToThingBaseMapCoord2 = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.ToThingBaseMapCoord), new Type[] { typeof(Vector3), typeof(Thing) });
 
-        public static readonly MethodInfo m_VehicleMapToOrig1 = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.VehicleMapToOrig), new Type[] { typeof(Vector3) });
+        public static readonly MethodInfo m_ToVehicleMapCoord1 = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.ToVehicleMapCoord), new Type[] { typeof(Vector3) });
 
-        public static readonly MethodInfo m_VehicleMapToOrig2 = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.VehicleMapToOrig), new Type[] { typeof(Vector3), typeof(VehiclePawnWithMap) });
+        public static readonly MethodInfo m_ToVehicleMapCoord2 = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.ToVehicleMapCoord), new Type[] { typeof(Vector3), typeof(VehiclePawnWithMap) });
 
         public static readonly MethodInfo g_Thing_Map = AccessTools.PropertyGetter(typeof(Thing), nameof(Thing.Map));
 

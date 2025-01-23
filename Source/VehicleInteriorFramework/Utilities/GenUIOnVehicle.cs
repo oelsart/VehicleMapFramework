@@ -16,7 +16,7 @@ namespace VehicleInteriors
 
         public static List<Thing> ThingsUnderMouse(Vector3 clickPos, float pawnWideClickRadius, TargetingParameters clickParams, ITargetingSource source, VehiclePawnWithMap vehicle)
         {
-            var clickPosVehicleCor = clickPos.VehicleMapToOrig(vehicle);
+            var clickPosVehicleCor = clickPos.ToVehicleMapCoord(vehicle);
             IntVec3 intVec = IntVec3.FromVector3(clickPosVehicleCor);
             List<Thing> list = new List<Thing>();
             IReadOnlyList<Pawn> allPawnsSpawned = vehicle.VehicleMap.mapPawns.AllPawnsSpawned;
@@ -158,7 +158,7 @@ namespace VehicleInteriors
             }
             if (!thingsOnly)
             {
-                IntVec3 intVec = (convToVehicleMap && vehicle != null) ? clickPos.VehicleMapToOrig(vehicle).ToIntVec3() : clickPos.ToIntVec3();
+                IntVec3 intVec = (convToVehicleMap && vehicle != null) ? clickPos.ToVehicleMapCoord(vehicle).ToIntVec3() : clickPos.ToIntVec3();
                 Map map = (convToVehicleMap && vehicle != null) ? vehicle.VehicleMap : Find.CurrentMap;
                 if (intVec.InBounds(map, clickParams.mapBoundsContractedBy) && clickParams.CanTarget(new TargetInfo(intVec, map, false), source))
                 {

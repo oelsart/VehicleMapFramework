@@ -11,8 +11,8 @@ namespace VehicleInteriors
             bool flag;
             if (map.IsVehicleMapOf(out var vehicle))
             {
-                start = start.OrigToVehicleMap(vehicle);
-                end  = end.OrigToVehicleMap(vehicle);
+                start = start.ToBaseMapCoord(vehicle);
+                end  = end.ToBaseMapCoord(vehicle);
                 map = vehicle.Map;
             }
             if (start.x == end.x)   
@@ -73,7 +73,7 @@ namespace VehicleInteriors
             var flag = true;
             if (c.ToVector3Shifted().TryGetVehicleMap(map, out var vehicle))
             {
-                var c2 = c.VehicleMapToOrig(vehicle);
+                var c2 = c.ToVehicleMapCoord(vehicle);
                 flag = !c2.InBounds(vehicle.VehicleMap);
                 if (!flag)
                 {
@@ -95,17 +95,18 @@ namespace VehicleInteriors
             return GenSightOnVehicle.LineOfSight(start.PositionOnBaseMap(), end.PositionOnBaseMap(), start.BaseMap(), skipFirstCell, validator);
         }
 
+        //いまのところTargetMeetsRequirementsにしか使ってないので、skipFirstCellを強制trueに（タレットのセルにFilledVehicleStructureがある可能性もあるので）
         public static bool LineOfSightToThing(IntVec3 start, Thing t, Map map, bool skipFirstCell = false, Func<IntVec3, bool> validator = null)
         {
             if (t.def.size == IntVec2.One)
             {
-                return GenSightOnVehicle.LineOfSight(start, t.PositionOnBaseMap(), map, skipFirstCell, validator);
+                return GenSightOnVehicle.LineOfSight(start, t.PositionOnBaseMap(), map, true, validator);
             }
             var flag = t.IsOnNonFocusedVehicleMapOf(out var vehicle);
             foreach (IntVec3 end in t.OccupiedRect())
             {
-                var end2 = flag ? end.OrigToVehicleMap(vehicle) : end;
-                if (GenSightOnVehicle.LineOfSight(start, end2, map, skipFirstCell, validator))
+                var end2 = flag ? end.ToBaseMapCoord(vehicle) : end;
+                if (GenSightOnVehicle.LineOfSight(start, end2, map, true, validator))
                 {
                     return true;
                 }
@@ -123,7 +124,7 @@ namespace VehicleInteriors
             bool flag;
             if (map.IsVehicleMapOf(out var vehicle))
             {
-                start = start.OrigToVehicleMap(vehicle);
+                start = start.ToBaseMapCoord(vehicle);
                 map = vehicle.Map;
             }
             if (start.x == end.x)

@@ -48,7 +48,7 @@ namespace VehicleInteriors
                 ShootLeanUtilityOnVehicle.LeanShootingSourcesFromTo(verb.caster.Position, occupiedRect.ClosestCellTo(root), verb.caster.Map, VerbOnVehicleUtility.tempLeanShootSources);
                 for (int i = 0; i < VerbOnVehicleUtility.tempLeanShootSources.Count; i++)
                 {
-                    IntVec3 intVec = VerbOnVehicleUtility.tempLeanShootSources[i].OrigToThingMap(verb.caster);
+                    IntVec3 intVec = VerbOnVehicleUtility.tempLeanShootSources[i].ToThingBaseMapCoord(verb.caster);
                     if (verb.CanHitFromCellIgnoringRange(intVec, targ, out dest))
                     {
                         resultingLine = new ShootLine(intVec, dest);
@@ -83,12 +83,12 @@ namespace VehicleInteriors
                     return false;
                 }
                 ShootLeanUtilityOnVehicle.CalcShootableCellsOf(VerbOnVehicleUtility.tempDestList, targ.Thing, sourceCellBaseCol);
-                var intVec = sourceCellBaseCol.ThingMapToOrig(targ.Thing);
+                var intVec = sourceCellBaseCol.ToThingMapCoord(targ.Thing);
                 for (int i = 0; i < VerbOnVehicleUtility.tempDestList.Count; i++)
                 {
                     if (verb.CanHitCellFromCellIgnoringRange(intVec, VerbOnVehicleUtility.tempDestList[i], targ.Thing.Map, targ.Thing.def.Fillage == FillCategory.Full))
                     {
-                        goodDest = VerbOnVehicleUtility.tempDestList[i].OrigToThingMap(targ.Thing);
+                        goodDest = VerbOnVehicleUtility.tempDestList[i].ToThingBaseMapCoord(targ.Thing);
                         return true;
                     }
                 }

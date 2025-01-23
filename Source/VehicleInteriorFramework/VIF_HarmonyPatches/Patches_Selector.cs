@@ -9,19 +9,19 @@ using Verse;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
 {
-    [HarmonyPatch]
-    public static class Patch_Selector_SelectableObjectsUnderMouse_MoveNext
-    {
-        private static MethodInfo TargetMethod()
-        {
-            return AccessTools.InnerTypes(typeof(Selector)).Where(t => t.Name.Contains("SelectableObjectsUnderMouse")).SelectMany(t => t.GetMethods(AccessTools.all)).First(m => m.Name == "MoveNext");
-        }
+    //[HarmonyPatch]
+    //public static class Patch_Selector_SelectableObjectsUnderMouse_MoveNext
+    //{
+    //    private static MethodInfo TargetMethod()
+    //    {
+    //        return AccessTools.InnerTypes(typeof(Selector)).Where(t => t.Name.Contains("SelectableObjectsUnderMouse")).SelectMany(t => t.GetMethods(AccessTools.all)).First(m => m.Name == "MoveNext");
+    //    }
 
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
-            return instructions.MethodReplacer(MethodInfoCache.m_UI_MouseCell, MethodInfoCache.m_Stub_MouseCell);
-        }
-    }
+    //    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    //    {
+    //        return instructions.MethodReplacer(MethodInfoCache.m_UI_MouseCell, MethodInfoCache.m_Stub_MouseCell);
+    //    }
+    //}
 
     //車上オブジェクトを選択
     [HarmonyPatch(typeof(Selector), "SelectableObjectsUnderMouse")]
@@ -44,7 +44,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 canTargetItems = true,
                 mapObjectTargetsMustBeAutoAttackable = false
             };
-            var mouseVehicleMapPosition = mouseMapPosition.VehicleMapToOrig(vehicle);
+            var mouseVehicleMapPosition = mouseMapPosition.ToVehicleMapCoord(vehicle);
 
             if (!mouseVehicleMapPosition.InBounds(vehicle.VehicleMap)) return true;
 
@@ -110,7 +110,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 //new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Thing_Spawned),
                 //new CodeInstruction(OpCodes.Brfalse_S, label),
                 new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_OrigToVehicleMap2)
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_ToBaseMapCoord2)
             });
 
             var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalIndex == 6);
@@ -124,7 +124,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 new CodeInstruction(OpCodes.Call, MethodInfoCache.m_IsOnNonFocusedVehicleMapOf),
                 new CodeInstruction(OpCodes.Brfalse_S, label2),
                 new CodeInstruction(OpCodes.Ldloc_S, vehicle2),
-                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_OrigToVehicleMap2)
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_ToBaseMapCoord2)
             });
             return codes;
         }
@@ -140,11 +140,11 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 if (vehicle.Spawned)
                 {
                     map = vehicle.Map;
-                    cell = cell.OrigToVehicleMap(vehicle);
+                    cell = cell.ToBaseMapCoord(vehicle);
                 }
                 else if (VehicleInteriors.settings.drawPlanet)
                 {
-                    cell = cell.OrigToVehicleMap(vehicle);
+                    cell = cell.ToBaseMapCoord(vehicle);
                     vehicle.ForceResetCache();
                     Patch_Map_MapUpdate.lastRenderedTick = -1;
                 }
@@ -172,7 +172,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             {
                 foreach (IntVec3 c in mapRect)
                 {
-                    var c2 = c.VehicleMapToOrig(vehicle);
+                    var c2 = c.ToVehicleMapCoord(vehicle);
                     if (c2.InBounds(focusedMap))
                     {
                         List<Thing> cellThings = focusedMap.thingGrid.ThingsListAt(c2);
@@ -195,7 +195,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 Rect rectInWorldSpace = GetRectInWorldSpace(rect);
                 foreach (IntVec3 c2 in mapRect.ExpandedBy(1).EdgeCells)
                 {
-                    var c3 = c2.VehicleMapToOrig(vehicle);
+                    var c3 = c2.ToVehicleMapCoord(vehicle);
                     if (c3.InBounds(focusedMap) && c3.GetItemCount(focusedMap) > 1)
                     {
                         foreach (Thing t in focusedMap.thingGrid.ThingsAt(c3))

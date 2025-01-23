@@ -22,7 +22,7 @@ namespace VehicleInteriors
                 if (!c.InBounds(this.parent.Map)) continue;
                 if (c.ToVector3Shifted().TryGetVehicleMap(this.parent.Map, out var vehicle, false))
                 {
-                    var c2 = c.VehicleMapToOrig(vehicle);
+                    var c2 = c.ToVehicleMapCoord(vehicle);
                     if (!c2.InBounds(vehicle.VehicleMap)) continue;
 
                     var receiver = c2.GetFirstThingWithComp<CompWirelessReceiver>(vehicle.VehicleMap);

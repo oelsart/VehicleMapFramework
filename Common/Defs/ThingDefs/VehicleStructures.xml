@@ -4,7 +4,7 @@
 		<defName>VMF_VehicleStructureFilled</defName>
 		<label>vehicle structure</label>
 		<description>Structure of a vehicle.</description>
-		<thingClass>ThingWithComps</thingClass>
+		<thingClass>VehicleInteriors.VehicleStructure</thingClass>
 		<category>Building</category>
 		<drawerType>None</drawerType>
 		<statBases>
@@ -28,6 +28,7 @@
 		<fertility>0</fertility>
 		<destroyable>false</destroyable>
 		<building>
+			<canBeDamagedByAttacks>false</canBeDamagedByAttacks>
 			<isTargetable>false</isTargetable>
 			<deconstructible>false</deconstructible>
 			<claimable>false</claimable>
@@ -38,11 +39,6 @@
 			<canBuildNonEdificesUnder>false</canBuildNonEdificesUnder>
 			<allowAutoroof>false</allowAutoroof>
 		</building>
-		<comps>
-			<li>
-				<compClass>VehicleInteriors.CompVehicleStructure</compClass>
-			</li>
-		</comps>
 	</ThingDef>
 
 	<ThingDef ParentName="VMF_VehicleStructure">

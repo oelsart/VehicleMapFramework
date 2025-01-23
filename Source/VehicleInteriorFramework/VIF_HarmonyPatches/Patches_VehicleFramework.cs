@@ -99,7 +99,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             var handler = __instance.handlers.First(h => h.handlers.Contains(pawn));
             if (handler.role is VehicleRoleBuildable buildable && __instance is VehiclePawnWithMap vehicle)
             {
-                var parent = buildable.upgradeSingle.parent.parent;
+                var parent = buildable.upgradeComp.parent;
                 if (!pawn.Spawned)
                 {
                     CellRect cellRect = parent.OccupiedRect().ExpandedBy(1);
@@ -526,6 +526,11 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             foreach (var floatMenu in __result)
             {
                 yield return floatMenu;
+            }
+
+            if (__instance.Vehicle is VehiclePawnWithMap)
+            {
+                yield break;
             }
 
             IEnumerable<VehiclePawnWithMap> vehicles = null;

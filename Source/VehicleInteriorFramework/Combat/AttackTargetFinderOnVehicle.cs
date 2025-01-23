@@ -1,4 +1,5 @@
 ﻿using RimWorld;
+using SmashTools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -184,7 +185,7 @@ namespace VehicleInteriors
                 if (flags.HasFlag(TargetScanFlags.NeedReachableIfCantHitFromMyPos) || flags.HasFlag(TargetScanFlags.NeedReachable))
                 {
                     return (IAttackTarget)GenClosestOnVehicle.ClosestThing_Global(
-                        searcher.Thing.Position,
+                        searcher.Thing.PositionOnBaseMap(),
                         AttackTargetFinderOnVehicle.validTargets,
                         maxDist, 
                         (Thing t) => AttackTargetFinderOnVehicle.CanReach(searcher.Thing, t, canBashDoors, canBashFences),
@@ -192,20 +193,22 @@ namespace VehicleInteriors
                         false
                         );
                 }
-                return (IAttackTarget)GenClosestOnVehicle.ClosestThing_Global(searcher.Thing.Position, AttackTargetFinderOnVehicle.validTargets, maxDist, null, null, false);
+                return (IAttackTarget)GenClosestOnVehicle.ClosestThing_Global(searcher.Thing.PositionOnBaseMap(), AttackTargetFinderOnVehicle.validTargets, maxDist, null, null, false);
             }
             if (searcherPawn != null && searcherPawn.mindState.duty != null && searcherPawn.mindState.duty.radius > 0f && !searcherPawn.InMentalState)
 			{
                 Predicate<IAttackTarget> oldValidator = innerValidator;
                 innerValidator = (IAttackTarget t) =>
                 {
-                    return oldValidator(t) && t.Thing.PositionOnBaseMap().InHorDistOf(searcherPawn.mindState.duty.focus.Cell.OrigToThingMap(searcherPawn), searcherPawn.mindState.duty.radius);
+                    return oldValidator(t) && t.Thing.PositionOnBaseMap().InHorDistOf(searcherPawn.mindState.duty.focus.CellOnBaseMap(), searcherPawn.mindState.duty.radius);
                 };
             }
             Predicate<IAttackTarget> oldValidator2 = innerValidator;
             innerValidator = (IAttackTarget t) =>
             {
-                return oldValidator2(t) && !AttackTargetFinderOnVehicle.ShouldIgnoreNoncombatant(searcherThing, t, flags);
+                return oldValidator2(t) && !AttackTargetFinderOnVehicle.ShouldIgnoreNoncombatant(searcherThing, t, flags) &&
+                (!(t is VehiclePawnWithMap vehicle) || vehicle.VehicleMap.mapPawns.AllPawnsSpawned.CountWhere(p => p.HostileTo(searcherPawn)) == 0);
+                //VehicleMap上に敵対ポーンが居る場合そっちをターゲットとして優先したい
             };
 			IAttackTarget attackTarget2 = (IAttackTarget)GenClosestOnVehicle.ClosestThingReachable(searcherThing.Position, searcherThing.Map, ThingRequest.ForGroup(ThingRequestGroup.AttackTarget), PathEndMode.Touch, TraverseParms.For(searcherPawn, Danger.Deadly, TraverseMode.ByPawn, canBashDoors, false, canBashFences), maxDist, (Thing x) => innerValidator((IAttackTarget)x), null, 0, (maxDist > 800f) ? -1 : 40, true, RegionType.Set_Passable, false);
             if (attackTarget2 != null && PawnUtility.ShouldCollideWithPawns(searcherPawn))
@@ -213,8 +216,8 @@ namespace VehicleInteriors
 				IAttackTarget attackTarget3 = AttackTargetFinderOnVehicle.FindBestReachableMeleeTarget(innerValidator, searcherPawn, maxDist, canBashDoors, canBashFences);
 				if (attackTarget3 != null)
 				{
-					float lengthHorizontal = (searcherPawn.Position - attackTarget2.Thing.Position).LengthHorizontal;
-					float lengthHorizontal2 = (searcherPawn.Position - attackTarget3.Thing.Position).LengthHorizontal;
+					float lengthHorizontal = (searcherPawn.PositionOnBaseMap() - attackTarget2.Thing.PositionOnBaseMap()).LengthHorizontal;
+					float lengthHorizontal2 = (searcherPawn.PositionOnBaseMap() - attackTarget3.Thing.PositionOnBaseMap()).LengthHorizontal;
 					if (Mathf.Abs(lengthHorizontal - lengthHorizontal2) < 50f)
 					{
 						attackTarget2 = attackTarget3;
@@ -228,14 +231,12 @@ namespace VehicleInteriors
 
         private static bool ShouldIgnoreNoncombatant(Thing searcherThing, IAttackTarget t, TargetScanFlags flags)
         {
-            Pawn pawn;
-            return (pawn = (t as Pawn)) != null && !pawn.IsCombatant() && ((flags & TargetScanFlags.IgnoreNonCombatants) != TargetScanFlags.None || !GenSightOnVehicle.LineOfSightThingToThing(searcherThing, pawn, false, null));
+            return t is Pawn pawn && !pawn.IsCombatant() && ((flags & TargetScanFlags.IgnoreNonCombatants) != TargetScanFlags.None || !GenSightOnVehicle.LineOfSightThingToThing(searcherThing, pawn, false, null));
         }
 
         private static bool CanReach(Thing searcher, Thing target, bool canBashDoors, bool canBashFences)
         {
-            Pawn pawn = searcher as Pawn;
-            if (pawn != null)
+            if (searcher is Pawn pawn)
             {
                 if (!pawn.CanReach(target, PathEndMode.Touch, Danger.Some, canBashDoors, canBashFences, TraverseMode.ByPawn, target.Map, out _, out _))
                 {
@@ -548,8 +549,8 @@ namespace VehicleInteriors
                                                     {
                                                         predicate = (func = ((IntVec3 pos) =>
                                                         {
-                                                            return pos.ThingMapToOrig(searcher.Thing).CanBeSeenOverOnVehicle(searcher.Thing.Map) &&
-                                                            pos.ThingMapToOrig(target.Thing).CanBeSeenOverOnVehicle(target.Thing.Map);
+                                                            return pos.ToThingMapCoord(searcher.Thing).CanBeSeenOverOnVehicle(searcher.Thing.Map) &&
+                                                            pos.ToThingMapCoord(target.Thing).CanBeSeenOverOnVehicle(target.Thing.Map);
                                                         }));
                                                     }
                                                     return source.TakeWhile(predicate);
@@ -560,10 +561,10 @@ namespace VehicleInteriors
                 float num2 = VerbUtility.InterceptChanceFactorFromDistance(report.ShootLine.Source.ToVector3Shifted(), c);
                 if (num2 > 0f)
                 {
-                    IEnumerable<Thing> thingList = searcher.Thing.Map.thingGrid.ThingsAt(c.ThingMapToOrig(searcher.Thing));
+                    IEnumerable<Thing> thingList = searcher.Thing.Map.thingGrid.ThingsAt(c.ToThingMapCoord(searcher.Thing));
                     if (searcher.Thing.Map != target.Thing.Map)
                     {
-                        thingList = thingList.Concat(target.Thing.Map.thingGrid.ThingsAt(c.ThingMapToOrig(target.Thing)));
+                        thingList = thingList.Concat(target.Thing.Map.thingGrid.ThingsAt(c.ToThingMapCoord(target.Thing)));
                     }
                     foreach (var thing in thingList)
                     {
@@ -624,7 +625,7 @@ namespace VehicleInteriors
             ShootLeanUtilityOnVehicle.CalcShootableCellsOf(AttackTargetFinderOnVehicle.tempDestList, target, seerPosOnBaseMap);
             for (int i = 0; i < AttackTargetFinderOnVehicle.tempDestList.Count; i++)
             {
-                if (GenSightOnVehicle.LineOfSight(seerPosOnBaseMap, AttackTargetFinderOnVehicle.tempDestList[i].OrigToThingMap(target), baseMap, true, validator, 0, 0))
+                if (GenSightOnVehicle.LineOfSight(seerPosOnBaseMap, AttackTargetFinderOnVehicle.tempDestList[i].ToThingBaseMapCoord(target), baseMap, true, validator, 0, 0))
                 {
                     return true;
                 }
@@ -635,7 +636,7 @@ namespace VehicleInteriors
             {
                 for (int k = 0; k < AttackTargetFinderOnVehicle.tempDestList.Count; k++)
                 {
-                    if (GenSightOnVehicle.LineOfSight(AttackTargetFinderOnVehicle.tempSourceList[j].OrigToThingMap(seer), AttackTargetFinderOnVehicle.tempDestList[k].OrigToThingMap(target), baseMap, true, validator, 0, 0))
+                    if (GenSightOnVehicle.LineOfSight(AttackTargetFinderOnVehicle.tempSourceList[j].ToThingBaseMapCoord(seer), AttackTargetFinderOnVehicle.tempDestList[k].ToThingBaseMapCoord(target), baseMap, true, validator, 0, 0))
                     {
                         return true;
                     }

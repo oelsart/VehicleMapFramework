@@ -84,7 +84,10 @@ namespace VehicleInteriors
             Scribe_Values.Look(ref this.drawOffset, "drawOffset");
             Scribe_References.Look(ref this.targetAMap, "targetAMap");
             Scribe_References.Look(ref this.destMap, "destMap");
-            base.ExposeData();
+            LongEventHandler.ExecuteWhenFinished(() =>
+            {
+                base.ExposeData();
+            });
         }
 
         private TargetInfo exitSpot1 = TargetInfo.Invalid;

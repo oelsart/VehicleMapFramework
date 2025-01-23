@@ -50,7 +50,7 @@ namespace VehicleInteriors
             var baseMap = map.BaseMap();
             if (map.IsVehicleMapOf(out var vehicle))
             {
-                shooterLocBaseCol = shooterLoc.OrigToVehicleMap(vehicle);
+                shooterLocBaseCol = shooterLoc.ToBaseMapCoord(vehicle);
             }
             listToFill.Clear();
             float angleFlat = (targetPosBaseCol - shooterLocBaseCol).AngleFlat;

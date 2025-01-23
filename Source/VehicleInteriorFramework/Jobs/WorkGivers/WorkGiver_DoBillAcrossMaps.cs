@@ -605,7 +605,7 @@ namespace VehicleInteriors
             {
                 if (building.def.hasInteractionCell)
                 {
-                    return building.InteractionCell.OrigToThingMap(building);
+                    return building.InteractionCell.ToThingBaseMapCoord(building);
                 }
 
                 Log.Error(string.Concat("Tried to find bill ingredients for ", billGiver, " which has no interaction cell."));

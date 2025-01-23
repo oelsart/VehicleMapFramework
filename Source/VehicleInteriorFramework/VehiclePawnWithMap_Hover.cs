@@ -1,4 +1,8 @@
-﻿using UnityEngine;
+﻿using HarmonyLib;
+using SmashTools;
+using UnityEngine;
+using VehicleInteriors.VMF_HarmonyPatches;
+using Vehicles;
 using Verse;
 
 namespace VehicleInteriors
@@ -9,12 +13,19 @@ namespace VehicleInteriors
         {
             get
             {
-                var drawPos = base.DrawPos;
                 if (this.Spawned && Find.CurrentMap != this.VehicleMap)
                 {
-                    drawPos.z = drawPosZ ?? (drawPosZ = drawPos.z).Value;
+                    this.Drawer.tweener.PreDrawPosCalculation();
+                    Vector3 drawPos = this.Drawer.tweener.TweenedPos;
+                    drawPos.y = this.def.Altitude;
+                    if (this.Drawer.rTracker.Recoil > 0f)
+                    {
+                        drawPos = drawPos.PointFromAngle(this.Drawer.rTracker.Recoil, this.Drawer.rTracker.Angle);
+                    }
+                    drawPos.z += this.drawOffset;
+                    return drawPos;
                 }
-                return drawPos;
+                return base.DrawPos;
             }
         }
 
@@ -60,7 +71,6 @@ namespace VehicleInteriors
                     this.landingComplete = true;
                 }
             }
-            this.drawPosZ += this.drawOffset - this.prevOffset;
             base.Tick();
         }
 

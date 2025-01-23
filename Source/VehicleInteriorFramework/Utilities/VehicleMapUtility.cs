@@ -26,6 +26,20 @@ namespace VehicleInteriors
             }
         }
 
+        public static bool FocusedOnVehicleMap(out VehiclePawnWithMap vehicle)
+        {
+            if (Command_FocusVehicleMap.FocusedVehicle != null)
+            {
+                vehicle = Command_FocusVehicleMap.FocusedVehicle;
+                return true;
+            }
+            if (Find.CurrentMap.IsNonFocusedVehicleMapOf(out vehicle))
+            {
+                return true;
+            }
+            return false;
+        }
+
         public static bool IsVehicleMapOf(this Map map, out VehiclePawnWithMap vehicle)
         {
             if (map?.Parent is MapParent_Vehicle parentVehicle)
@@ -63,20 +77,20 @@ namespace VehicleInteriors
             return thing.IsOnVehicleMapOf(out vehicle) && (VehicleInteriors.settings.drawPlanet || Find.CurrentMap != vehicle.VehicleMap);
         }
 
-        public static Vector3 VehicleMapToOrig(this Vector3 original)
+        public static Vector3 ToVehicleMapCoord(this Vector3 original)
         {
             if (Command_FocusVehicleMap.FocusedVehicle != null)
             {
-                return VehicleMapUtility.VehicleMapToOrig(original, Command_FocusVehicleMap.FocusedVehicle);
+                return VehicleMapUtility.ToVehicleMapCoord(original, Command_FocusVehicleMap.FocusedVehicle);
             }
             if (VehicleInteriors.settings.drawPlanet && Find.CurrentMap.IsVehicleMapOf(out var vehicle))
             {
-                return VehicleMapUtility.VehicleMapToOrig(original, vehicle);
+                return VehicleMapUtility.ToVehicleMapCoord(original, vehicle);
             }
             return original;
         }
 
-        public static Vector3 VehicleMapToOrig(this Vector3 original, VehiclePawnWithMap vehicle)
+        public static Vector3 ToVehicleMapCoord(this Vector3 original, VehiclePawnWithMap vehicle)
         {
             var vehicleMapPos = vehicle.DrawPos + VehicleMapUtility.OffsetFor(vehicle);
             var map = vehicle.VehicleMap;
@@ -85,7 +99,7 @@ namespace VehicleInteriors
             return drawPos;
         }
 
-        public static Vector3 VehicleMapToOrig(this Vector3 original, VehiclePawnWithMap vehicle, float extraRotation = 0f)
+        public static Vector3 ToVehicleMapCoord(this Vector3 original, VehiclePawnWithMap vehicle, float extraRotation = 0f)
         {
             var vehicleMapPos = vehicle.DrawPos + VehicleMapUtility.OffsetFor(vehicle);
             var map = vehicle.VehicleMap;
@@ -94,12 +108,12 @@ namespace VehicleInteriors
             return drawPos;
         }
 
-        public static IntVec3 VehicleMapToOrig(this IntVec3 original, VehiclePawnWithMap vehicle)
+        public static IntVec3 ToVehicleMapCoord(this IntVec3 original, VehiclePawnWithMap vehicle)
         {
-            return original.ToVector3Shifted().VehicleMapToOrig(vehicle).ToIntVec3();
+            return original.ToVector3Shifted().ToVehicleMapCoord(vehicle).ToIntVec3();
         }
 
-        public static CellRect VehicleMapToOrig(this CellRect original, VehiclePawnWithMap vehicle)
+        public static CellRect ToVehicleMapCoord(this CellRect original, VehiclePawnWithMap vehicle)
         {
             var mapSize = vehicle.VehicleMap.Size;
             var vector = new IntVec2(-mapSize.x / 2, -mapSize.z / 2);
@@ -125,19 +139,19 @@ namespace VehicleInteriors
             return cellRect.ClipInsideMap(map);
         }
 
-        public static Vector3 OrigToVehicleMap(this Vector3 original)
+        public static Vector3 ToBaseMapCoord(this Vector3 original)
         {
             if (Command_FocusVehicleMap.FocusedVehicle != null)
             {
-                return VehicleMapUtility.OrigToVehicleMap(original, Command_FocusVehicleMap.FocusedVehicle).WithY(original.y);
+                return VehicleMapUtility.ToBaseMapCoord(original, Command_FocusVehicleMap.FocusedVehicle).WithY(original.y);
             }
             if (VehicleInteriors.settings.drawPlanet && Find.CurrentMap.IsVehicleMapOf(out var vehicle))
             {
-                return VehicleMapUtility.OrigToVehicleMap(original, vehicle).WithY(original.y);
+                return VehicleMapUtility.ToBaseMapCoord(original, vehicle).WithY(original.y);
             }
             return original;
         }
-        public static Vector3 OrigToVehicleMap(this Vector3 original, VehiclePawnWithMap vehicle)
+        public static Vector3 ToBaseMapCoord(this Vector3 original, VehiclePawnWithMap vehicle)
         {
             var vehiclePos = vehicle.DrawPos;
             var map = vehicle.VehicleMap;
@@ -147,7 +161,7 @@ namespace VehicleInteriors
             return drawPos.WithYOffset(VehicleMapUtility.altitudeOffset);
         }
 
-        public static Vector3 OrigToVehicleMap(this Vector3 original, VehiclePawnWithMap vehicle, float extraRotation = 0f)
+        public static Vector3 ToBaseMapCoord(this Vector3 original, VehiclePawnWithMap vehicle, float extraRotation = 0f)
         {
             var vehiclePos = vehicle.DrawPos;
             var map = vehicle.VehicleMap;
@@ -157,7 +171,7 @@ namespace VehicleInteriors
             return drawPos.WithYOffset(VehicleMapUtility.altitudeOffset);
         }
 
-        public static Vector3 OrigToVehicleMap(this Vector3 original, VehiclePawnWithMap vehicle, Rot8 rot)
+        public static Vector3 ToBaseMapCoord(this Vector3 original, VehiclePawnWithMap vehicle, Rot8 rot)
         {
             var vehiclePos = vehicle.DrawPos;
             var map = vehicle.VehicleMap;
@@ -167,13 +181,13 @@ namespace VehicleInteriors
             return drawPos.WithYOffset(VehicleMapUtility.altitudeOffset);
         }
 
-        public static IntVec3 OrigToVehicleMap(this IntVec3 original, VehiclePawnWithMap vehicle)
+        public static IntVec3 ToBaseMapCoord(this IntVec3 original, VehiclePawnWithMap vehicle)
         {
-            return original.ToVector3Shifted().OrigToVehicleMap(vehicle).ToIntVec3();
+            return original.ToVector3Shifted().ToBaseMapCoord(vehicle).ToIntVec3();
         }
-        public static Vector3 OrigToVehicleMap(this IntVec3 original, VehiclePawnWithMap vehicle, Rot8 rot)
+        public static Vector3 ToBaseMapCoord(this IntVec3 original, VehiclePawnWithMap vehicle, Rot8 rot)
         {
-            return original.ToVector3Shifted().OrigToVehicleMap(vehicle, rot);
+            return original.ToVector3Shifted().ToBaseMapCoord(vehicle, rot);
         }
 
         public static Vector3 OffsetFor(VehiclePawnWithMap vehicle)
@@ -274,7 +288,7 @@ namespace VehicleInteriors
             }
             if (thing.IsOnVehicleMapOf(out var vehicle))
             {
-                pos = thing.Position.OrigToVehicleMap(vehicle);
+                pos = thing.Position.ToBaseMapCoord(vehicle);
                 VehiclePawnWithMapCache.cachedPosOnBaseMap[thing] = pos;
                 return pos;
             }
@@ -285,7 +299,7 @@ namespace VehicleInteriors
         {
             if (dest.Map.IsVehicleMapOf(out var vehicle))
             {
-                return dest.Position.OrigToVehicleMap(vehicle);
+                return dest.Position.ToBaseMapCoord(vehicle);
             }
             return dest.Position;
         }
@@ -320,29 +334,29 @@ namespace VehicleInteriors
             return thing.PositionOnBaseMap();
         }
 
-        public static IntVec3 ThingMapToOrig(this IntVec3 origin, Thing thing)
+        public static IntVec3 ToThingMapCoord(this IntVec3 origin, Thing thing)
         {
             if (thing.IsOnVehicleMapOf(out var vehicle))
             {
-                return origin.VehicleMapToOrig(vehicle);
+                return origin.ToVehicleMapCoord(vehicle);
             }
             return origin;
         }
 
-        public static IntVec3 OrigToThingMap(this IntVec3 origin, Thing thing)
+        public static IntVec3 ToThingBaseMapCoord(this IntVec3 origin, Thing thing)
         {
             if (thing.IsOnVehicleMapOf(out var vehicle))
             {
-                return origin.OrigToVehicleMap(vehicle);
+                return origin.ToBaseMapCoord(vehicle);
             }
             return origin;
         }
 
-        public static Vector3 OrigToThingMap(this Vector3 origin, Thing thing)
+        public static Vector3 ToThingBaseMapCoord(this Vector3 origin, Thing thing)
         {
             if (thing.IsOnVehicleMapOf(out var vehicle))
             {
-                return origin.OrigToVehicleMap(vehicle);
+                return origin.ToBaseMapCoord(vehicle);
             }
             return origin;
         }
@@ -356,7 +370,7 @@ namespace VehicleInteriors
                 }
                 if (target.Thing.IsOnVehicleMapOf(out var vehicle))
                 {
-                    pos = target.Thing.Position.OrigToVehicleMap(vehicle);
+                    pos = target.Thing.Position.ToBaseMapCoord(vehicle);
                     VehiclePawnWithMapCache.cachedPosOnBaseMap[target.Thing] = pos;
                     return pos;
                 }
@@ -387,7 +401,7 @@ namespace VehicleInteriors
         {
             if (another.IsOnVehicleMapOf(out var vehicle))
             {
-                return thing.PositionOnBaseMap().VehicleMapToOrig(vehicle);
+                return thing.PositionOnBaseMap().ToVehicleMapCoord(vehicle);
             }
             return thing.PositionOnBaseMap();
         }
@@ -400,7 +414,7 @@ namespace VehicleInteriors
             }
             if (another.IsOnVehicleMapOf(out var vehicle))
             {
-                return target.Cell.VehicleMapToOrig(vehicle);
+                return target.Cell.ToVehicleMapCoord(vehicle);
             }
             return target.Cell;
         }
@@ -409,7 +423,7 @@ namespace VehicleInteriors
         {
             if (another.IsVehicleMapOf(out var vehicle))
             {
-                return cell.VehicleMapToOrig(vehicle);
+                return cell.ToVehicleMapCoord(vehicle);
             }
             return cell;
         }
@@ -544,7 +558,7 @@ namespace VehicleInteriors
                 {
                     VehiclePawnWithMapCache.cacheMode = true;
                     var drawPos = thing.DrawPos;
-                    VehiclePawnWithMapCache.cachedDrawPos[thing] = drawPos.OrigToVehicleMap(vehicle);
+                    VehiclePawnWithMapCache.cachedDrawPos[thing] = drawPos.ToBaseMapCoord(vehicle);
                     VehiclePawnWithMapCache.cacheMode = false;
                     result = VehiclePawnWithMapCache.cachedDrawPos[thing];
                     return true;
@@ -629,8 +643,8 @@ namespace VehicleInteriors
             var vehicles = VehiclePawnWithMapCache.allVehicles[map];
             vehicle = vehicles.FirstOrDefault(v =>
             {
-                var rect = new Rect(0f, 0f, (float)v.VehicleMap.Size.x, (float)v.VehicleMap.Size.z).ExpandedBy(0.01f);
-                var vector = point.VehicleMapToOrig(v);
+                var rect = new Rect(0f, 0f, (float)v.VehicleMap.Size.x, (float)v.VehicleMap.Size.z).ExpandedBy(0.1f);
+                var vector = point.ToVehicleMapCoord(v);
                 var intVec = vector.ToIntVec3();
                 return rect.Contains(new Vector2(vector.x, vector.z)) && !v.CachedOutOfBoundsCells.Contains(intVec) && (getStructureCell || !v.CachedStructureCells.Contains(intVec));
             });
@@ -678,16 +692,12 @@ namespace VehicleInteriors
             {
                 if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle))
                 {
-                    return original.OrigToVehicleMap(vehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor());
+                    return original.ToBaseMapCoord(vehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor());
                 }
             }
-            else if (Command_FocusVehicleMap.FocusedVehicle != null)
+            else if (VehicleMapUtility.FocusedOnVehicleMap(out var vehicle))
             {
-                return original.OrigToVehicleMap(Command_FocusVehicleMap.FocusedVehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor());
-            }
-            else if (Find.CurrentMap.IsNonFocusedVehicleMapOf(out var vehicle))
-            {
-                return original.OrigToVehicleMap(vehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor());
+                return original.ToBaseMapCoord(vehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor());
             }
             return original;
         }
@@ -697,7 +707,7 @@ namespace VehicleInteriors
             VehiclePawnWithMap vehicle = null;
             if (Find.Selector.SelectedObjects.Any(o => o is Thing thing && thing.Position == center && thing.IsOnNonFocusedVehicleMapOf(out vehicle)))
             {
-                return original.OrigToVehicleMap(vehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor());
+                return original.ToBaseMapCoord(vehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor());
             }
             return original;
         }
@@ -763,12 +773,12 @@ namespace VehicleInteriors
         public static List<Thing> GetThingListAcrossMaps(this IntVec3 c, Map map)
         {
             var result = new List<Thing>();
-            var orig = map.IsVehicleMapOf(out var vehicle) ? c.OrigToVehicleMap(vehicle) : c;
+            var orig = map.IsVehicleMapOf(out var vehicle) ? c.ToBaseMapCoord(vehicle) : c;
             foreach (var m in map.BaseMapAndVehicleMaps())
             {
                 if (m.IsVehicleMapOf(out var vehicle2))
                 {
-                    var c2 = orig.VehicleMapToOrig(vehicle2);
+                    var c2 = orig.ToVehicleMapCoord(vehicle2);
                     result.AddRange(m.thingGrid.ThingsAt(c2));
                 }
                 else
@@ -797,7 +807,7 @@ namespace VehicleInteriors
         {
             if (thing != null)
             {
-                var c2 = c.OrigToThingMap(thing);
+                var c2 = c.ToThingBaseMapCoord(thing);
                 if (c2.InBounds(thing.Map))
                 {
                     return c2.GetCover(thing.Map);

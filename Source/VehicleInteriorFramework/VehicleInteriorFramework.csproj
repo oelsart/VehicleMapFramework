@@ -116,7 +116,6 @@
     <Compile Include="Comps\CompTogglableOverlays.cs" />
     <Compile Include="Comps\CompToggleLitGraphic.cs" />
     <Compile Include="Comps\CompVehicleLauncherWithMap.cs" />
-    <Compile Include="Comps\CompVehicleStructure.cs" />
     <Compile Include="Comps\CompWirelessReceiver.cs" />
     <Compile Include="Comps\CompWirelessTransmitter.cs" />
     <Compile Include="Combat\ExplosionAcrossMaps.cs" />
@@ -240,6 +239,7 @@
     <Compile Include="Utilities\VehicleMapUtility.cs" />
     <Compile Include="VehiclePawnWithMap.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="VehicleStructure.cs" />
     <Compile Include="VIF_HarmonyPatches\Patches_AdaptiveStorage.cs" />
     <Compile Include="VIF_HarmonyPatches\Patches_AnimalPen.cs" />
     <Compile Include="VMF_DefOf.cs" />

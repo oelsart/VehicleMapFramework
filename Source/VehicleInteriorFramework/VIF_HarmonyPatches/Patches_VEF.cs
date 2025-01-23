@@ -1,9 +1,11 @@
 ﻿using HarmonyLib;
+using SmashTools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using UnityEngine;
 using Verse;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
@@ -16,6 +18,10 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             if (ModsConfig.IsActive("VanillaExpanded.VFESecurity"))
             {
                 VMF_Harmony.Instance.PatchCategory("VMF_Patches_VEF_Security");
+            }
+            if (ModsConfig.IsActive("OskarPotocki.VanillaVehiclesExpanded"))
+            {
+                VMF_Harmony.Instance.PatchCategory("VMF_Patches_VVE");
             }
         }
     }
@@ -84,7 +90,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 new CodeInstruction(OpCodes.Call, MethodInfoCache.m_IsOnNonFocusedVehicleMapOf),
                 new CodeInstruction(OpCodes.Brfalse_S, label),
                 new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_OrigToVehicleMap2),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_ToBaseMapCoord2),
             });
             return codes;
         }
@@ -116,6 +122,45 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing)
                 .MethodReplacer(MethodInfoCache.g_Thing_MapHeld, MethodInfoCache.m_MapHeldBaseMap);
+        }
+    }
+
+    [HarmonyPatchCategory("VMF_Patches_VVE")]
+    [HarmonyPatch("VanillaVehiclesExpanded.GarageDoor", "DrawAt")]
+    public static class Patch_GarageDoor_DrawAt
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+        {
+            //Graphics.DrawMesh(MeshPool.GridPlane(size), drawPos, base.Rotation.AsQuat, this.def.graphicData.GraphicColoredFor(this).MatAt(base.Rotation, this), 0);
+            //this.Graphic.ShadowGraphic?.DrawWorker(drawPos, base.Rotation, this.def, this, 0f);
+            //↓
+            //Graphics.DrawMesh(MeshPool.GridPlane(size), RotateOffset(drawPos, this), this.BaseFullRotation().AsQuat(), this.def.graphicData.GraphicColoredFor(this).MatAt(this.BaseRotation(), this), 0);
+            //this.Graphic.ShadowGraphic?.DrawWorker(drawPos, this.BaseFullRotation(), this.def, this, 0f);
+            var codes = instructions.ToList();
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(MethodInfoCache.g_Rot4_AsQuat));
+            codes[pos].operand = MethodInfoCache.m_Rot8_AsQuatRef;
+            pos = codes.FindLastIndex(pos, c => c.opcode == OpCodes.Call && c.OperandIs(MethodInfoCache.g_Thing_Rotation));
+            codes[pos].operand = MethodInfoCache.m_BaseFullRotation_Thing;
+            pos = codes.FindLastIndex(pos, c => c.opcode == OpCodes.Ldarg_0);
+            codes.InsertRange(pos, new[]
+            {
+                CodeInstruction.LoadArgument(0),
+                CodeInstruction.Call(typeof(Patch_GarageDoor_DrawAt), nameof(Patch_GarageDoor_DrawAt.RotateOffset))
+            });
+            pos = codes.FindIndex(pos, c => c.opcode == OpCodes.Call && c.OperandIs(MethodInfoCache.g_Thing_Rotation));
+            codes[pos].operand = MethodInfoCache.m_BaseRotation;
+            pos = codes.FindIndex(pos, c => c.opcode == OpCodes.Call && c.OperandIs(MethodInfoCache.g_Thing_Rotation));
+            codes[pos].operand = MethodInfoCache.m_BaseFullRotation_Thing;
+            return codes;
+        }
+
+        private static Vector3 RotateOffset(Vector3 point, Building garageDoor)
+        {
+            if (garageDoor.IsOnNonFocusedVehicleMapOf(out var vehicle))
+            {
+                return Ext_Math.RotatePoint(point, garageDoor.DrawPos, -vehicle.FullRotation.AsAngle);
+            }
+            return point;
         }
     }
 }

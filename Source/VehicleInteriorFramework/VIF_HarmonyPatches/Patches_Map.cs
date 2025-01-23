@@ -6,14 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
-using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.Rendering;
 using Vehicles;
 using Verse;
 using Verse.AI;
-using Verse.Noise;
-using static Vehicles.VehicleRegion;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
 {
@@ -394,6 +390,36 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             {
                 target = vehicle;
             }
+        }
+    }
+
+    [HarmonyPatch(typeof(DesignationManager), nameof(DesignationManager.DesignationOn))]
+    public static class Patch_DesignationManager_DesignationOn
+    {
+        [HarmonyPatch(new Type[] { typeof(Thing) })]
+        [HarmonyPrefix]
+        public static bool Prefix1(Thing t, DesignationManager __instance, ref Designation __result)
+        {
+            var thingMap = t.MapHeld;
+            if (thingMap != __instance.map)
+            {
+                __result = thingMap.designationManager.DesignationOn(t);
+                return false;
+            }
+            return true;
+        }
+
+        [HarmonyPatch(new Type[] { typeof(Thing), typeof(DesignationDef) })]
+        [HarmonyPrefix]
+        public static bool Prefix2(Thing t, DesignationDef def, DesignationManager __instance, ref Designation __result)
+        {
+            var thingMap = t.MapHeld;
+            if (thingMap != __instance.map)
+            {
+                __result = thingMap.designationManager.DesignationOn(t, def);
+                return false;
+            }
+            return true;
         }
     }
 }

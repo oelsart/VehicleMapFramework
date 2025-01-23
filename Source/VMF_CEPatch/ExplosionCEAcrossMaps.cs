@@ -13,6 +13,7 @@ namespace VMF_CEPatch
     {
         public void StartExplosionCEOnVehicle(SoundDef explosionSound, List<Thing> ignoredThings)
         {
+            base.StartExplosionCE(explosionSound, ignoredThings);
             var vehicles = base.Position.GetRoom(base.Map).ContainedThings<VehiclePawnWithMap>();
 
             var map = base.Map;
@@ -23,7 +24,7 @@ namespace VMF_CEPatch
                 foreach (var vehicle in vehicles)
                 {
                     this.cellsToAffectOnVehicles[vehicle] = SimplePool<List<IntVec3>>.Get();
-                    this.VirtualMapTransfer(vehicle.VehicleMap, pos.VehicleMapToOrig(vehicle));
+                    this.VirtualMapTransfer(vehicle.VehicleMap, pos.ToVehicleMapCoord(vehicle));
                     this.cellsToAffectOnVehicles[vehicle].AddRange(base.ExplosionCellsToHit);
 
                     if (applyDamageToExplosionCellsNeighbors)
@@ -80,7 +81,7 @@ namespace VMF_CEPatch
             {
                 foreach (var vehicle in this.cellsToAffectOnVehicles.Keys)
                 {
-                    this.VirtualMapTransfer(vehicle.VehicleMap, pos.VehicleMapToOrig(vehicle));
+                    this.VirtualMapTransfer(vehicle.VehicleMap, pos.ToVehicleMapCoord(vehicle));
                     num = this.cellsToAffectOnVehicles[vehicle].Count - 1;
                     while (num >= 0 && ticksGame >= (int)GetCellAffectTick(this, this.cellsToAffectOnVehicles[vehicle][num]))
                     {

@@ -17,7 +17,7 @@ namespace VehicleInteriors
                 Rot8 rot;
                 if (this.role is VehicleRoleBuildable role)
                 {
-                    rot = role.upgradeSingle.parent.parent.BaseFullRotation();
+                    rot = role.upgradeComp.parent.BaseFullRotation();
                 }
                 else
                 {
@@ -34,7 +34,7 @@ namespace VehicleInteriors
                 Rot8 rot;
                 if (this.role is VehicleRoleBuildable role)
                 {
-                    rot = role.upgradeSingle.parent.parent.BaseFullRotation();
+                    rot = role.upgradeComp.parent.BaseFullRotation();
                 }
                 else
                 {

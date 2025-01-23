@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Patch>
 	<Operation Class="PatchOperationAdd">
-		<success>Always</success>
-		<xpath>/Defs/ThingDef[defName = "GroundPenetratingScanner"]/placeWorkers</xpath>
+		<xpath>/Defs/ThingDef[defName="GroundPenetratingScanner" or defName="DeepDrill"]/placeWorkers</xpath>
 		<value>
 			<li>VehicleInteriors.PlaceWorker_ForbidOnVehicle</li>
 		</value>

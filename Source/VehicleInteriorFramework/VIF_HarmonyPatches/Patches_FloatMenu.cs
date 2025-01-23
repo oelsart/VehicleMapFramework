@@ -43,7 +43,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             {
                 CodeInstruction.LoadArgument(0),
                 CodeInstruction.LoadField(typeof(FloatMenuOption), nameof(FloatMenuOption.revalidateClickTarget)),
-                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_OrigToThingMap2)
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_ToThingBaseMapCoord2)
             });
             return codes;
         }

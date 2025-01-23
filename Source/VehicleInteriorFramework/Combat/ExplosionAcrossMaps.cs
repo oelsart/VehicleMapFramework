@@ -31,12 +31,12 @@ namespace VehicleInteriors
                 foreach (var vehicle in vehicles)
                 {
                     this.cellsToAffectOnVehicles[vehicle] = SimplePool<List<IntVec3>>.Get();
-                    this.VirtualMapTransfer(vehicle.VehicleMap, pos.VehicleMapToOrig(vehicle));
+                    this.VirtualMapTransfer(vehicle.VehicleMap, pos.ToVehicleMapCoord(vehicle));
                     if (!base.overrideCells.NullOrEmpty())
                     {
                         foreach (var c in base.overrideCells)
                         {
-                            this.cellsToAffectOnVehicles[vehicle].Add(c.VehicleMapToOrig(vehicle));
+                            this.cellsToAffectOnVehicles[vehicle].Add(c.ToVehicleMapCoord(vehicle));
                         }
                     }
                     else
@@ -88,7 +88,7 @@ namespace VehicleInteriors
             {
                 foreach (var vehicle in this.cellsToAffectOnVehicles.Keys)
                 {
-                    this.VirtualMapTransfer(vehicle.VehicleMap, pos.VehicleMapToOrig(vehicle));
+                    this.VirtualMapTransfer(vehicle.VehicleMap, pos.ToVehicleMapCoord(vehicle));
                     num = this.cellsToAffectOnVehicles[vehicle].Count - 1;
                     while (num >= 0 && ticksGame >= (int)GetCellAffectTick(this, this.cellsToAffectOnVehicles[vehicle][num]))
                     {

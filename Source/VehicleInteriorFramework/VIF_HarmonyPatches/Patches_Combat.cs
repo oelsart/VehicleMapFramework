@@ -10,24 +10,6 @@ using Verse.AI;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
 {
-    //[HarmonyPatch(typeof(AttackTargetsCache), nameof(AttackTargetsCache.UpdateTarget))]
-    //public static class Patch_AttackTargetsCache_UpdateTarget
-    //{
-    //    public static IEnumerable<CodeInstruction> Transpiler (IEnumerable<CodeInstruction> instructions)
-    //    {
-    //        return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing);
-    //    }
-    //}
-
-    //[HarmonyPatch(typeof(AttackTargetsCache), "RegisterTarget")]
-    //public static class Patch_AttackTargetsCache_RegisterTarget
-    //{
-    //    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    //    {
-    //        return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing);
-    //    }
-    //}
-
     [HarmonyPatch(typeof(PawnLeaner), nameof(PawnLeaner.Notify_WarmingCastAlongLine))]
     public static class Patch_PawnLeaner_Notify_WarmingCastAlongLine
     {
@@ -208,20 +190,9 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     [HarmonyPatch(typeof(VerbUtility), nameof(VerbUtility.ThingsToHit))]
     public static class Patch_VerbUtility_ThingsToHit
     {
-        public static void Postfix(IntVec3 cell, Map map, Func<Thing, bool> filter, List<Thing> __result)
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            if (cell.ToVector3().TryGetVehicleMap(map, out var vehicle))
-            {
-                var cellOnVehicle = cell.VehicleMapToOrig(vehicle);
-                if (!cellOnVehicle.InBounds(vehicle.VehicleMap)) return;
-                foreach (var thing in cellOnVehicle.GetThingList(vehicle.VehicleMap))
-                {
-                    if ((thing.def.category == ThingCategory.Building || thing.def.category == ThingCategory.Pawn || thing.def.category == ThingCategory.Item || thing.def.category == ThingCategory.Plant) && filter(thing))
-                    {
-                        __result.Add(thing);
-                    }
-                }
-            }
+            return instructions.MethodReplacer(MethodInfoCache.m_GetThingList, MethodInfoCache.m_GetThingListAcrossMaps);
         }
     }
 
@@ -369,7 +340,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             if (cell.ToVector3Shifted().TryGetVehicleMap(__instance.Map, out var vehicle))
             {
-                var cell2 = cell.VehicleMapToOrig(vehicle);
+                var cell2 = cell.ToVehicleMapCoord(vehicle);
                 if (__instance.def.projectile.filth != null && __instance.def.projectile.filthCount.TrueMax > 0 && !cell2.Filled(vehicle.VehicleMap))
                 {
                     FilthMaker.TryMakeFilth(cell2, vehicle.VehicleMap, __instance.def.projectile.filth, __instance.def.projectile.filthCount.RandomInRange, FilthSourceFlags.None, true);

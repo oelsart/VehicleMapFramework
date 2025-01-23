@@ -226,7 +226,7 @@ namespace VMF_CEPatch
                 var c2 = c;
                 if (map2.IsVehicleMapOf(out var vehicle))
                 {
-                    c2 = c.VehicleMapToOrig(vehicle);
+                    c2 = c.ToVehicleMapCoord(vehicle);
                 }
                 if (c2.InBounds(map2))
                 {

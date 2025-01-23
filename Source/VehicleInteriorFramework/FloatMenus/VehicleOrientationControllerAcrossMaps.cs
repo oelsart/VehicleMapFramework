@@ -18,7 +18,7 @@ namespace VehicleInteriors
                 var c = this.cell;
                 if (this.destMap.IsVehicleMapOf(out var vehicle) && Find.CurrentMap != this.destMap)
                 {
-                    c = c.OrigToVehicleMap(vehicle);
+                    c = c.ToBaseMapCoord(vehicle);
                 }
                 return Rot8.FromAngle(c.AngleToCell(point));
             }
@@ -89,7 +89,7 @@ namespace VehicleInteriors
                 var drawPos = this.cell.ToVector3Shifted();
                 if (this.destMap.IsVehicleMapOf(out var vehicle2) && Find.CurrentMap != this.destMap)
                 {
-                    drawPos = drawPos.OrigToVehicleMap(vehicle2);
+                    drawPos = drawPos.ToBaseMapCoord(vehicle2);
                     endRotation = this.IsDragging ? Rot8.FromAngle(Ext_Math.RotateAngle(endRotation.AsAngle, -vehicle2.FullRotation.AsAngle)) : endRotation;
                 }
                 this.vehicle.vehiclePather.SetEndRotation(endRotation);
@@ -135,7 +135,7 @@ namespace VehicleInteriors
             Vector3 loc = GenThing.TrueCenter(center, rot, vehicleDef.Size, drawAltitude.AltitudeFor());
             if (VehicleOrientationControllerAcrossMaps.Instance.destMap.IsNonFocusedVehicleMapOf(out var vehicle2))
             {
-                loc = loc.OrigToVehicleMap(vehicle2).WithY(drawAltitude.AltitudeFor());
+                loc = loc.ToBaseMapCoord(vehicle2).WithY(drawAltitude.AltitudeFor());
             }
             Rot8 rot2 = rot;
             float extraRotation = rot.AsRotationAngle;
@@ -165,7 +165,7 @@ namespace VehicleInteriors
             Vector3 vector = GenThing.TrueCenter(center, rot, vehicleDef.Size, drawAltitude.AltitudeFor());
             if (vehicle2 != null && Find.CurrentMap != VehicleOrientationControllerAcrossMaps.Instance.destMap)
             {
-                vector = loc.OrigToVehicleMap(vehicle2).WithY(drawAltitude.AltitudeFor());
+                vector = loc.ToBaseMapCoord(vehicle2).WithY(drawAltitude.AltitudeFor());
             }
             foreach (var (graphicOverlay, extraRotationOverlay) in vehicleDef.GhostGraphicOverlaysFor(ghostCol))
             {

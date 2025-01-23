@@ -5,7 +5,6 @@ using System.Linq;
 using UnityEngine;
 using Vehicles;
 using Verse;
-using Verse.Noise;
 using static Vehicles.VehicleUpgrade;
 
 namespace VehicleInteriors
@@ -199,7 +198,7 @@ namespace VehicleInteriors
             {
                 if (!unlockingAfterLoad)
                 {
-                    var role = RoleUpgradeBuildable.RoleFromUpgrade(roleUpgrade, this, out var roleUpgrade2, turretIds);
+                    var role = RoleUpgradeBuildable.RoleFromUpgrade(roleUpgrade, this.parent, out var roleUpgrade2, turretIds);
                     role.ResolveReferences(vehicle.VehicleDef);
                     role.AddUpgrade(roleUpgrade2);
                     var handler = new VehicleHandlerBuildable(vehicle, role);
@@ -224,7 +223,7 @@ namespace VehicleInteriors
                         Log.Error("Unable to edit " + roleUpgrade.editKey + ". Matching VehicleRole not found.");
                         return;
                     }
-                    var role = RoleUpgradeBuildable.RoleFromUpgrade(roleUpgrade, this, out var roleUpgrade2, uniqueID.turretIds);
+                    var role = RoleUpgradeBuildable.RoleFromUpgrade(roleUpgrade, this.parent, out var roleUpgrade2, uniqueID.turretIds);
                     role.ResolveReferences(vehicle.VehicleDef);
                     role.AddUpgrade(roleUpgrade2);
                     handler.role = role;
@@ -239,7 +238,7 @@ namespace VehicleInteriors
 
     public class RoleUpgradeBuildable : RoleUpgrade
     {
-        public static VehicleRoleBuildable RoleFromUpgrade(RoleUpgradeBuildable upgrade, VehicleUpgradeBuildable parentUpgrade, out RoleUpgradeBuildable upgrade2, List<string> turretIds = null)
+        public static VehicleRoleBuildable RoleFromUpgrade(RoleUpgradeBuildable upgrade, CompBuildableUpgrades compBuildableUpgrades, out RoleUpgradeBuildable upgrade2, List<string> turretIds = null)
         {
             upgrade2 = new RoleUpgradeBuildable()
             {
@@ -268,14 +267,14 @@ namespace VehicleInteriors
             {
                 key = upgrade2.key,
                 label = upgrade2.label,
-                upgradeSingle = parentUpgrade
+                upgradeComp = compBuildableUpgrades
             };
-            if (parentUpgrade.parent.parent.IsOnVehicleMapOf(out var vehicle))
+            if (compBuildableUpgrades.parent.IsOnVehicleMapOf(out var vehicle))
             {
                 var pawnRenderer = upgrade.pawnRenderer;
                 if (pawnRenderer != null)
                 {
-                    var thing = parentUpgrade.parent.parent;
+                    var thing = compBuildableUpgrades.parent;
                     var position = GenThing.TrueCenter(thing.Position, thing.Rotation, thing.def.Size, 0f);
                     var pivot = new Vector3(vehicle.VehicleMap.Size.x / 2f, 0f, vehicle.VehicleMap.Size.z / 2f);
                     var vehiclePos = vehicle.DrawPos.WithY(0f);
@@ -303,15 +302,15 @@ namespace VehicleInteriors
                         layerSouthEast = pawnRenderer.layerSouthEast,
                         layerSouthWest = pawnRenderer.layerSouthWest,
                         layerNorthWest = pawnRenderer.layerNorthWest,
-                        drawOffset = position.OrigToVehicleMap(vehicle, Rot8.North) - vehiclePos + pawnRenderer.drawOffset,
-                        drawOffsetNorth = position.OrigToVehicleMap(vehicle, Rot8.North) - vehiclePos + pawnRenderer.DrawOffsetFor(new Rot4(Rot4.NorthInt + rot.AsInt)),
-                        drawOffsetSouth = position.OrigToVehicleMap(vehicle, Rot8.South) - vehiclePos + pawnRenderer.DrawOffsetFor(new Rot4(Rot4.SouthInt + rot.AsInt)),
-                        drawOffsetEast = position.OrigToVehicleMap(vehicle, Rot8.East) - vehiclePos + pawnRenderer.DrawOffsetFor(new Rot4(Rot4.EastInt + rot.AsInt)),
-                        drawOffsetWest = position.OrigToVehicleMap(vehicle, Rot8.West) - vehiclePos + pawnRenderer.DrawOffsetFor(new Rot4(Rot4.WestInt + rot.AsInt)),
-                        drawOffsetNorthEast = position.OrigToVehicleMap(vehicle, Rot8.NorthEast) - vehiclePos + (rot.IsHorizontal ? pawnRenderer.DrawOffsetFor(rot).RotatedBy(45f) : pawnRenderer.DrawOffsetFor(new Rot8(Rot8.FromIntClockwise((intClockwise + Rot8.NorthEast.AsIntClockwise) % 8)))),
-                        drawOffsetNorthWest = position.OrigToVehicleMap(vehicle, Rot8.NorthWest) - vehiclePos + (rot.IsHorizontal ? pawnRenderer.DrawOffsetFor(rot).RotatedBy(-45f) : pawnRenderer.DrawOffsetFor(new Rot8(Rot8.FromIntClockwise((intClockwise + Rot8.NorthWest.AsIntClockwise) % 8)))),
-                        drawOffsetSouthEast = position.OrigToVehicleMap(vehicle, Rot8.SouthEast) - vehiclePos + (rot.IsHorizontal ? pawnRenderer.DrawOffsetFor(rot.Opposite).RotatedBy(-45f) : pawnRenderer.DrawOffsetFor(new Rot8(Rot8.FromIntClockwise((intClockwise + Rot8.SouthEast.AsIntClockwise) % 8)))),
-                        drawOffsetSouthWest = position.OrigToVehicleMap(vehicle, Rot8.SouthWest) - vehiclePos + (rot.IsHorizontal ? pawnRenderer.DrawOffsetFor(rot.Opposite).RotatedBy(45f) : pawnRenderer.DrawOffsetFor(new Rot8(Rot8.FromIntClockwise((intClockwise + Rot8.SouthWest.AsIntClockwise) % 8)))),
+                        drawOffset = position.ToBaseMapCoord(vehicle, Rot8.North) - vehiclePos + pawnRenderer.drawOffset,
+                        drawOffsetNorth = position.ToBaseMapCoord(vehicle, Rot8.North) - vehiclePos + pawnRenderer.DrawOffsetFor(new Rot4(Rot4.NorthInt + rot.AsInt)),
+                        drawOffsetSouth = position.ToBaseMapCoord(vehicle, Rot8.South) - vehiclePos + pawnRenderer.DrawOffsetFor(new Rot4(Rot4.SouthInt + rot.AsInt)),
+                        drawOffsetEast = position.ToBaseMapCoord(vehicle, Rot8.East) - vehiclePos + pawnRenderer.DrawOffsetFor(new Rot4(Rot4.EastInt + rot.AsInt)),
+                        drawOffsetWest = position.ToBaseMapCoord(vehicle, Rot8.West) - vehiclePos + pawnRenderer.DrawOffsetFor(new Rot4(Rot4.WestInt + rot.AsInt)),
+                        drawOffsetNorthEast = position.ToBaseMapCoord(vehicle, Rot8.NorthEast) - vehiclePos + (rot.IsHorizontal ? pawnRenderer.DrawOffsetFor(rot).RotatedBy(45f) : pawnRenderer.DrawOffsetFor(new Rot8(Rot8.FromIntClockwise((intClockwise + Rot8.NorthEast.AsIntClockwise) % 8)))),
+                        drawOffsetNorthWest = position.ToBaseMapCoord(vehicle, Rot8.NorthWest) - vehiclePos + (rot.IsHorizontal ? pawnRenderer.DrawOffsetFor(rot).RotatedBy(-45f) : pawnRenderer.DrawOffsetFor(new Rot8(Rot8.FromIntClockwise((intClockwise + Rot8.NorthWest.AsIntClockwise) % 8)))),
+                        drawOffsetSouthEast = position.ToBaseMapCoord(vehicle, Rot8.SouthEast) - vehiclePos + (rot.IsHorizontal ? pawnRenderer.DrawOffsetFor(rot.Opposite).RotatedBy(-45f) : pawnRenderer.DrawOffsetFor(new Rot8(Rot8.FromIntClockwise((intClockwise + Rot8.SouthEast.AsIntClockwise) % 8)))),
+                        drawOffsetSouthWest = position.ToBaseMapCoord(vehicle, Rot8.SouthWest) - vehiclePos + (rot.IsHorizontal ? pawnRenderer.DrawOffsetFor(rot.Opposite).RotatedBy(45f) : pawnRenderer.DrawOffsetFor(new Rot8(Rot8.FromIntClockwise((intClockwise + Rot8.SouthWest.AsIntClockwise) % 8)))),
                         angle = pawnRenderer.angle,
                         angleNorth = pawnRenderer.angleNorth ?? (pawnRenderer.angleSouth + 180f) ?? pawnRenderer.angle,
                         angleEast = pawnRenderer.angleEast ?? -pawnRenderer.angleWest ?? pawnRenderer.angle,
@@ -326,10 +325,10 @@ namespace VehicleInteriors
 
                 if (upgrade2.hitbox == null)
                 {
-                    var orig = Vector3.zero.OrigToVehicleMap(vehicle).VehicleMapToOrig(vehicle).ToIntVec3();
+                    var orig = Vector3.zero.ToBaseMapCoord(vehicle).ToVehicleMapCoord(vehicle).ToIntVec3();
                     upgrade2.hitbox = new ComponentHitbox
                 {
-                    Hitbox = parentUpgrade.parent.parent.OccupiedRect().MovedBy(orig).Cells2D.ToList()
+                    Hitbox = compBuildableUpgrades.parent.OccupiedRect().MovedBy(orig).Cells2D.ToList()
                 };
                 }
             }
