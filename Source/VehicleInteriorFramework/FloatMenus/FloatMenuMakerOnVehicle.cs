@@ -981,9 +981,7 @@ namespace VehicleInteriors
                             }
                             else
                             {
-								var baseMap = pawn.BaseMap();
-                                IEnumerable<Building_HoldingPlatform> source = baseMap.listerBuildings.AllBuildingsColonistOfClass<Building_HoldingPlatform>()
-									.Concat(VehiclePawnWithMapCache.AllVehiclesOn(baseMap).SelectMany(v => v.VehicleMap.listerBuildings.AllBuildingsColonistOfClass<Building_HoldingPlatform>()));
+                                IEnumerable<Building_HoldingPlatform> source = pawn.Map.BaseMapAndVehicleMaps().SelectMany(m => m.listerBuildings.AllBuildingsColonistOfClass<Building_HoldingPlatform>());
                                 Func<Building_HoldingPlatform, bool> predicate = (Building_HoldingPlatform x) => !x.Occupied && pawn.CanReserveAndReach(x.Map, x, PathEndMode.Touch, Danger.Deadly, 1, -1, null, false, out _, out _);
                                 IEnumerable<Building_HoldingPlatform> enumerable2 = source.Where(predicate);
                                 Thing building = GenClosestOnVehicle.ClosestThing_Global_Reachable(pawn.Position, pawn.Map, enumerable2, PathEndMode.ClosestTouch, TraverseParms.For(pawn, Danger.Some, TraverseMode.ByPawn, false, false, false), 9999f, null, delegate (Thing t)
@@ -1032,9 +1030,7 @@ namespace VehicleInteriors
                             if (heldPawn != null && pawn.CanReserveAndReach(holdingPlatform.Map, holdingPlatform, PathEndMode.OnCell, Danger.Deadly, 1, -1, null, true, out var exitSpot, out var enterSpot))
 							{
                                 IntVec3 position = pawn.Position;
-                                Map baseMap = pawn.BaseMap();
-                                IEnumerable<Thing> searchSet = baseMap.listerBuildings.AllBuildingsColonistOfClass<Building_HoldingPlatform>()
-                                    .Concat(VehiclePawnWithMapCache.AllVehiclesOn(baseMap).SelectMany(v => v.VehicleMap.listerBuildings.AllBuildingsColonistOfClass<Building_HoldingPlatform>()));
+                                IEnumerable<Thing> searchSet = pawn.Map.BaseMapAndVehicleMaps().SelectMany(m => m.listerBuildings.AllBuildingsColonistOfClass<Building_HoldingPlatform>());
                                 PathEndMode peMode = PathEndMode.ClosestTouch;
                                 TraverseParms traverseParams = TraverseParms.For(pawn, Danger.Some, TraverseMode.ByPawn, false, false, false);
                                 float maxDistance = 9999f;

@@ -77,4 +77,28 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             return false;
         }
     }
+
+    //ベースマップに居る時のFloatMenuにもHoldingPlatform検索を足しときます
+    [HarmonyPatch(typeof(FloatMenuMakerMap), "AddHumanlikeOrders")]
+    public static class Patch_FloatMenuMakerMap_AddHumanlikeOrders
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var m_AllBuildingsColonistOfClass = AccessTools.Method(typeof(ListerBuildings), nameof(ListerBuildings.AllBuildingsColonistOfClass)).MakeGenericMethod(typeof(Building_HoldingPlatform));
+            var m_AddHoldingPlatforms = AccessTools.Method(typeof(Patch_FloatMenuMakerMap_AddHumanlikeOrders), nameof(Patch_FloatMenuMakerMap_AddHumanlikeOrders.AddHoldingPlatforms));
+            foreach (var instruction in instructions)
+            {
+                yield return instruction;
+                if (instruction.opcode == OpCodes.Callvirt && instruction.OperandIs(m_AllBuildingsColonistOfClass))
+                {
+                    yield return new CodeInstruction(OpCodes.Call, m_AddHoldingPlatforms);
+                }
+            }
+        }
+
+        private static IEnumerable<Building_HoldingPlatform> AddHoldingPlatforms(IEnumerable<Building_HoldingPlatform> enumerable)
+        {
+            return enumerable.Concat(VehiclePawnWithMapCache.AllVehiclesOn(Find.CurrentMap).SelectMany(v => v.VehicleMap.listerBuildings.AllBuildingsColonistOfClass<Building_HoldingPlatform>()));
+        }
+    }
 }
