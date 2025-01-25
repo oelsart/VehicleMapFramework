@@ -393,7 +393,8 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static bool Prefix(ReservationManager __instance, Pawn claimant, Job job, LocalTargetInfo target, int maxPawns, int stackCount, ReservationLayerDef layer, bool errorOnFailed, bool ignoreOtherReservations, bool canReserversStartJobs, ref bool __result)
         {
-            if (__instance == claimant.Map.reservationManager && target.HasThing && claimant.Map != target.Thing.MapHeld)
+            Map map;
+            if (__instance == claimant.Map.reservationManager && target.HasThing && (map = target.Thing.MapHeld) != null && claimant.Map != map)
             {
                 __result = target.Thing.MapHeld.reservationManager.Reserve(claimant, job, target, maxPawns, stackCount, layer, errorOnFailed, ignoreOtherReservations, canReserversStartJobs);
                 return false;

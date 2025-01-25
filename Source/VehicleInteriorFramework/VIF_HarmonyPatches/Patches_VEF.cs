@@ -15,9 +15,13 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         static Patches_VEF()
         {
+            if (ModsConfig.IsActive("VanillaExpanded.VFEArchitect"))
+            {
+                VMF_Harmony.Instance.PatchCategory("VMF_Patches_VFE_Architect");
+            }
             if (ModsConfig.IsActive("VanillaExpanded.VFESecurity"))
             {
-                VMF_Harmony.Instance.PatchCategory("VMF_Patches_VEF_Security");
+                VMF_Harmony.Instance.PatchCategory("VMF_Patches_VFE_Security");
             }
             if (ModsConfig.IsActive("OskarPotocki.VanillaVehiclesExpanded"))
             {
@@ -26,7 +30,17 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory("VMF_Patches_VEF_Security")]
+    [HarmonyPatchCategory("VMF_Patches_VFE_Architect")]
+    [HarmonyPatch("VFEArchitect.Building_DoorSingle", "DrawAt")]
+    public static class Patch_Building_DoorSingle_DrawAt
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return Patch_Building_MultiTileDoor_DrawAt.Transpiler(Patch_Building_Door_DrawMovers.Transpiler(instructions));
+        }
+    }
+
+    [HarmonyPatchCategory("VMF_Patches_VFE_Security")]
     [HarmonyPatch]
     public static class Patch_Building_Shield_ThingsWithinRadius
     {
@@ -41,7 +55,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory("VMF_Patches_VEF_Security")]
+    [HarmonyPatchCategory("VMF_Patches_VFE_Security")]
     [HarmonyPatch]
     public static class Patch_Building_Shield_ThingsWithinScanArea
     {
@@ -56,7 +70,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory("VMF_Patches_VEF_Security")]
+    [HarmonyPatchCategory("VMF_Patches_VFE_Security")]
     [HarmonyPatch("VFESecurity.Building_Shield", "AbsorbDamage")]
     [HarmonyPatch(new Type[] { typeof(float), typeof(DamageDef), typeof(float) })]
     public static class Patch_Building_Shield_AbsorbDamage
@@ -71,7 +85,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory("VMF_Patches_VEF_Security")]
+    [HarmonyPatchCategory("VMF_Patches_VFE_Security")]
     [HarmonyPatch("VFESecurity.Building_Shield", "DrawAt")]
     public static class Patch_Building_Shield_DrawAt
     {
@@ -96,7 +110,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory("VMF_Patches_VEF_Security")]
+    [HarmonyPatchCategory("VMF_Patches_VFE_Security")]
     [HarmonyPatch("VFESecurity.Building_Shield", "EnergyShieldTick")]
     public static class Patch_Building_Shield_EnergyShieldTick
     {
@@ -114,7 +128,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory("VMF_Patches_VEF_Security")]
+    [HarmonyPatchCategory("VMF_Patches_VFE_Security")]
     [HarmonyPatch("VFESecurity.Building_Shield", "UpdateCache")]
     public static class Patch_Building_Shield_UpdateCache
     {

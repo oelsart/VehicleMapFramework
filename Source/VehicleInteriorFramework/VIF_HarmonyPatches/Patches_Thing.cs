@@ -29,7 +29,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             }
         }
 
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             var codes = instructions.ToList();
             var m_MatAt = AccessTools.Method(typeof(Graphic), nameof(Graphic.MatAt));
