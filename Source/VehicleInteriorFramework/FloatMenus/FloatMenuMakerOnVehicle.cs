@@ -395,8 +395,7 @@ namespace VehicleInteriors
                     {
                         foreach (LocalTargetInfo localTargetInfo2 in GenUIOnVehicle.TargetsAt(clickPos, TargetingParameters.ForBuilding(null), true, null))
                         {
-                            CompEntityHolder compEntityHolder;
-                            if (localTargetInfo2.Thing.TryGetComp(out compEntityHolder) && compEntityHolder.Available)
+                            if (localTargetInfo2.Thing.TryGetComp(out CompEntityHolder compEntityHolder) && compEntityHolder.Available)
                             {
                                 Thing thing = localTargetInfo2.Thing;
                                 FloatMenuOption item4;

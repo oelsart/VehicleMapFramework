@@ -470,8 +470,22 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing)
-                .MethodReplacer(MethodInfoCache.g_Thing_MapHeld, MethodInfoCache.m_MapHeldBaseMap);
+            //!building_Bed.Position.IsInPrisonCell(building_Bed.Map)があるので置き換えるのは最初のMapのみ
+            var code = instructions.FirstOrDefault(i => i.opcode == OpCodes.Callvirt && i.OperandIs(MethodInfoCache.g_Thing_Map));
+            if (code != null)
+            {
+                code.operand = MethodInfoCache.m_BaseMap_Thing;
+            }
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_MapHeld, MethodInfoCache.m_MapHeldBaseMap);
+        }
+    }
+
+    [HarmonyPatch(typeof(RestUtility), nameof(RestUtility.IsValidBedFor))]
+    public static class Patch_RestUtility_IsValidBedFor
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.m_ReachabilityUtility_CanReach, MethodInfoCache.m_ReachabilityUtilityOnVehicle_CanReach);
         }
     }
 

@@ -435,4 +435,23 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             }
         }
     }
+
+    [HarmonyPatch(typeof(Room), nameof(Room.DrawFieldEdges))]
+    public static class Patch_Room_DrawFieldEdges
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var codes = instructions.ToList();
+            var m_DrawFieldEdges = AccessTools.Method(typeof(GenDraw), nameof(GenDraw.DrawFieldEdges), new Type[] { typeof(List<IntVec3>), typeof(Color), typeof(float?) });
+            var m_DrawFieldEdgesOnVehicle = AccessTools.Method(typeof(GenDrawOnVehicle), nameof(GenDrawOnVehicle.DrawFieldEdges), new Type[] { typeof(List<IntVec3>), typeof(Color), typeof(float?), typeof(Map) });
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(m_DrawFieldEdges));
+            codes[pos].operand = m_DrawFieldEdgesOnVehicle;
+            codes.InsertRange(pos, new[]
+            {
+                CodeInstruction.LoadArgument(0),
+                new CodeInstruction(OpCodes.Callvirt, AccessTools.PropertyGetter(typeof(Room), nameof(Room.Map)))
+            });
+            return codes;
+        }
+    }
 }
