@@ -145,7 +145,12 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             var codes = instructions.ToList();
             var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(MethodInfoCache.g_Quaternion_identity));
-            codes.Insert(pos, new CodeInstruction(OpCodes.Call, MethodInfoCache.m_ToBaseMapCoord1));
+            codes.InsertRange(pos, new[]
+            {
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_ToBaseMapCoord1),
+                new CodeInstruction(OpCodes.Ldc_R4, AltitudeLayer.MetaOverlays.AltitudeFor()),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_Vector3Utility_WithY)
+            });
 
             var label = generator.DefineLabel();
             var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Ldsfld && c.OperandIs(field));
@@ -264,8 +269,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             codes.InsertRange(pos, new[] {
                 new CodeInstruction(OpCodes.Call, MethodInfoCache.g_FocusedVehicle),
                 new CodeInstruction(OpCodes.Brfalse_S, label),
-                new CodeInstruction(OpCodes.Call, MethodInfoCache.g_FocusedVehicle),
-                new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.ToVehicleMapCoord), new Type[]{ typeof(CellRect), typeof(VehiclePawnWithMap) }))
+                new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.ToVehicleMapCoord), new Type[]{ typeof(CellRect) }))
             });
             return codes;
         }

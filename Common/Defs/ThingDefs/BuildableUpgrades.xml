@@ -290,6 +290,7 @@
 			<ComponentIndustrial>10</ComponentIndustrial>
 		</costList>
 		<researchPrerequisites>
+			<li>Fabrication</li>
 			<li MayRequire="OskarPotocki.VanillaVehiclesExpanded">VVE_BasicVehicles</li>
 		</researchPrerequisites>
 		<uiOrder>1024</uiOrder>
@@ -355,6 +356,7 @@
 			<ComponentIndustrial>1</ComponentIndustrial>
 		</costList>
 		<researchPrerequisites>
+			<li>Fabrication</li>
 			<li MayRequire="OskarPotocki.VanillaVehiclesExpanded">VVE_BasicVehicles</li>
 		</researchPrerequisites>
 		<uiOrder>1025</uiOrder>

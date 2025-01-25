@@ -374,7 +374,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle) && thing.def.drawerType == DrawerType.RealtimeOnly && thing.def.category != ThingCategory.Item)
             {
                 var def = thing.def.IsBlueprint ? thing.def.entityDefToBuild as ThingDef : thing.def;
-                if ((def.rotatable || def.graphic is Graphic_Multi) && (!def.graphicData?.Linked ?? true))
+                if ((def.rotatable || def.graphic is Graphic_Multi) && (!def.graphicData?.Linked ?? true) && (def.graphicData?.drawRotated ?? true))
                 {
                     var fullRot = vehicle.FullRotation;
                     rot.AsInt += fullRot.RotForVehicleDraw().AsInt;
@@ -420,9 +420,10 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 }
 
                 var angle = vehicle.Angle;
-                loc = loc.ToBaseMapCoord(vehicle).WithY(loc.y);
+                var loc2 = loc.ToBaseMapCoord(vehicle);
+                loc = loc2.WithY(Mathf.Min(loc2.y, AltitudeLayer.MetaOverlays.AltitudeFor()));
                 var rot2 = rot;
-                if ((def.rotatable || def.graphic is Graphic_Multi) && (!def.graphicData?.Linked ?? true))
+                if ((def.rotatable || def.graphic is Graphic_Multi) && (!def.graphicData?.Linked ?? true) && (def.graphicData?.drawRotated ?? true))
                 {
                     var fullRot = vehicle.FullRotation;
                     rot.AsInt += fullRot.RotForVehicleDraw().AsInt;
@@ -568,7 +569,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
-    //v, v2にOrigToVehicleをしてDrawBoxRotatedにFocusedVehicle.FullRotation.AsAngleを渡す
+    //v, v2にToBaseMapCoordをしてDrawBoxRotatedにFocusedVehicle.FullRotation.AsAngleを渡す
     //Widgets.DrawNumberOnMap(screenPos, intVec.x, Color.white) ->
     //Widgets.DrawNumberOnMap(ConvertToVehicleMap(screenPos), intVec.x, Color.white)を3回
     [HarmonyPatch(typeof(DesignationDragger), nameof(DesignationDragger.DraggerOnGUI))]
@@ -583,11 +584,18 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             {
                 new CodeInstruction(OpCodes.Ldloc_2),
                 new CodeInstruction(OpCodes.Call, MethodInfoCache.m_ToBaseMapCoord1),
+                new CodeInstruction(OpCodes.Ldc_R4, 0f),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_Vector3Utility_WithY),
                 new CodeInstruction(OpCodes.Stloc_2)
             });
 
             var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Newobj && c.OperandIs(c_Vector3)) + 1;
-            codes.Insert(pos2, new CodeInstruction(OpCodes.Call, MethodInfoCache.m_ToBaseMapCoord1));
+            codes.InsertRange(pos2, new[]
+            {
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_ToBaseMapCoord1),
+                new CodeInstruction(OpCodes.Ldc_R4, 0f),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_Vector3Utility_WithY),
+            });
 
             var m_Widgets_DrawBox = AccessTools.Method(typeof(Widgets), nameof(Widgets.DrawBox));
             var pos3 = codes.FindIndex(pos2, c => c.opcode == OpCodes.Call && c.OperandIs(m_Widgets_DrawBox));
@@ -624,7 +632,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         private static Vector2 ConvertToVehicleMap(Vector2 screenPos)
         {
             screenPos.y = UI.screenHeight - screenPos.y;
-            return UI.UIToMapPosition(screenPos).ToBaseMapCoord().MapToUIPosition();
+            return UI.UIToMapPosition(screenPos).ToBaseMapCoord().WithY(0f).MapToUIPosition();
         }
     }
 

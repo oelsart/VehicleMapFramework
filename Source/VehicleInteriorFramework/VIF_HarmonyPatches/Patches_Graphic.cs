@@ -102,10 +102,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
 
             codes.InsertRange(pos, new[]
             {
-                CodeInstruction.LoadField(typeof(VehicleMapUtility), nameof(VehicleMapUtility.rotForPrint), true),
-                new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(Rot4), nameof(Rot4.AsAngle))),
-                new CodeInstruction(OpCodes.Neg),
-                CodeInstruction.Call(typeof(Vector3Utility), nameof(Vector3Utility.RotatedBy), new Type[]{ typeof(Vector3), typeof(float) }),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_RotateForPrintNegate),
                 CodeInstruction.LoadArgument(2),
                 CodeInstruction.Call(typeof(Patch_Graphic_Print), nameof(Patch_Graphic_Print.EdgeSpacerOffset)),
             });

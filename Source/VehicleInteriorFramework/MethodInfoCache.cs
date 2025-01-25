@@ -211,5 +211,7 @@ namespace VehicleInteriors
         public static readonly MethodInfo m_Stub_MouseCell = AccessTools.Method(typeof(Patch_UI_MouseCell), nameof(Patch_UI_MouseCell.MouseCell));
 
         public static readonly MethodInfo m_PrintExtraRotation = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.PrintExtraRotation));
+
+        public static readonly MethodInfo m_Vector3Utility_WithY = AccessTools.Method(typeof(Vector3Utility), nameof(Vector3Utility.WithY));
     }
 }

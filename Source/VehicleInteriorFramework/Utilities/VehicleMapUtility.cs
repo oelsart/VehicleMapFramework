@@ -113,11 +113,10 @@ namespace VehicleInteriors
             return original.ToVector3Shifted().ToVehicleMapCoord(vehicle).ToIntVec3();
         }
 
-        public static CellRect ToVehicleMapCoord(this CellRect original, VehiclePawnWithMap vehicle)
+        public static CellRect ToVehicleMapCoord(this CellRect original)
         {
-            var mapSize = vehicle.VehicleMap.Size;
-            var vector = new IntVec2(-mapSize.x / 2, -mapSize.z / 2);
-            return original.MovedBy(-vehicle.Position).MovedBy(vector);
+            var longSide = Mathf.Max(original.Width, original.Height);
+            return new CellRect(0, 0, longSide, longSide);
         }
 
         public static CellRect ClipInsideVehicleMap(ref this CellRect cellRect, Map map)
@@ -257,7 +256,7 @@ namespace VehicleInteriors
             float result = 0f;
             if (thing.IsOnVehicleMapOf(out _))
             {
-                result -= VehicleMapUtility.rotForPrint.AsAngle * (!thing.def.rotatable && thing.Graphic.Isnt<Graphic_Multi>() && thing.def.category != ThingCategory.Item && !thing.def.graphicData.Linked ? 2f : 1f);
+                result -= VehicleMapUtility.rotForPrint.AsAngle * (!thing.def.rotatable && thing.Graphic.Isnt<Graphic_Multi>() && thing.def.category != ThingCategory.Item && !thing.def.graphicData.Linked && thing.def.graphicData.drawRotated ? 2f : 1f);
             }
             return result;
         }
