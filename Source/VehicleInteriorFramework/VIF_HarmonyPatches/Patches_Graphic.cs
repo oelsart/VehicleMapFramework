@@ -83,6 +83,24 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         [HarmonyReversePatch(HarmonyReversePatchType.Original)] 
         public static Rot4 Rotation(Thing instance) => throw new NotImplementedException();
 
+        [HarmonyPatch(MethodType.Setter)]
+        public static void Prefix(Thing __instance, ref Rot4 value)
+        {
+            if (__instance is Pawn pawn && pawn.IsOnNonFocusedVehicleMapOf(out var vehicle))
+            {
+                var angle = (pawn.pather.nextCell - pawn.Position).AngleFlat;
+                if (angle != 0f)
+                {
+                    value = Rot8.FromAngle(Ext_Math.RotateAngle(angle, vehicle.FullRotation.AsAngle));
+                }
+                else
+                {
+                    value.AsInt += vehicle.FullRotation.AsInt;
+                }
+            }
+        }
+
+        [HarmonyPatch(MethodType.Getter)]
         public static void Postfix(ref Rot4 __result, Thing __instance)
         {
             if (__instance.def.graphicData?.drawRotated ?? false)
@@ -212,18 +230,17 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatch(typeof(Pawn_RotationTracker), "FaceAdjacentCell")]
-    public static class Patch_Pawn_RotationTracker_FaceAdjacentCell
-    {
-        public static void Prefix(ref IntVec3 c, Pawn ___pawn)
-        {
-            if (___pawn.IsOnNonFocusedVehicleMapOf(out var vehicle))
-            {
-
-                c = ___pawn.Position + (c - ___pawn.Position).RotatedBy(vehicle.Rotation);
-            }
-        }
-    }
+    //[HarmonyPatch(typeof(Pawn_RotationTracker), "FaceAdjacentCell")]
+    //public static class Patch_Pawn_RotationTracker_FaceAdjacentCell
+    //{
+    //    public static void Prefix(ref IntVec3 c, Pawn ___pawn)
+    //    {
+    //        if (___pawn.IsOnNonFocusedVehicleMapOf(out var vehicle))
+    //        {
+    //            c = ___pawn.Position + (c - ___pawn.Position).RotatedBy(vehicle.Rotation);
+    //        }
+    //    }
+    //}
 
     //ズームしすぎて車上オブジェクトがカメラの手前に来ないようにする
     [HarmonyPatch(typeof(CameraDriver), "ApplyPositionToGameObject")]

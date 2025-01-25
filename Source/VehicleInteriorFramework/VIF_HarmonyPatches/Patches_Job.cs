@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Security.Cryptography;
+using UnityEngine;
 using VehicleInteriors.Jobs.WorkGivers;
 using Vehicles;
 using Verse;
@@ -595,6 +596,18 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                     var comp = container.TryGetComp<CompBuildableContainer>();
                     comp.Notify_ThingAddedAndMergedWith(item, mergedCount);
                 }
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(JobDriver_Ingest), nameof(JobDriver_Ingest.ModifyCarriedThingDrawPosWorker))]
+    public static class Patch_JobDriver_Ingest_ModifyCarriedThingDrawPosWorker
+    {
+        public static void Postfix(ref Vector3 drawPos, Pawn pawn)
+        {
+            if (!pawn.pather.Moving && pawn.IsOnNonFocusedVehicleMapOf(out var vehicle))
+            {
+                drawPos = drawPos.ToBaseMapCoord(vehicle).WithY(drawPos.y);
             }
         }
     }

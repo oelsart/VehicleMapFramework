@@ -358,9 +358,9 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static void Postfix(Map ___map, IntVec3 c, ref bool __result)
         {
-            if (___map.IsVehicleMapOf(out var vehicle))
+            if (___map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
             {
-                __result = __result || ___map.BaseMap().roofGrid.Roofed(c.ToBaseMapCoord(vehicle));
+                __result = __result || vehicle.Map.roofGrid.Roofed(c.ToBaseMapCoord(vehicle));
             }
         }
     }

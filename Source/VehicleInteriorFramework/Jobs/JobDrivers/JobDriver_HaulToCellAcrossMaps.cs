@@ -5,7 +5,7 @@ using Verse.AI;
 
 namespace VehicleInteriors
 {
-    internal class JobDriver_HaulToCellAcrossMaps : JobDriverAcrossMaps
+    public class JobDriver_HaulToCellAcrossMaps : JobDriverAcrossMaps
     {
         public Thing ToHaul
         {

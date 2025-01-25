@@ -429,7 +429,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static void Prefix(ref SoundInfo info)
         {
-            if (info.Maker.IsValid && info.Maker.Map.IsVehicleMapOf(out var vehicle) && info.Maker.Map != Find.CurrentMap)
+            if (info.Maker.IsValid && info.Maker.Map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
             {
                 info = SoundInfo.InMap(new TargetInfo(info.Maker.Cell.ToBaseMapCoord(vehicle), vehicle.Map), info.Maintenance);
             }

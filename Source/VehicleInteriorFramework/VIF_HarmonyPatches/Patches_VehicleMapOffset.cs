@@ -400,6 +400,10 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 //    loc += baseRot.Opposite.AsVector2.ToVector3() * mapProps.EdgeSpaceValue(vehicle.FullRotation, thing.Rotation.Opposite);
                 //}
             }
+            else if (!thing.Spawned && thing.SpawnedParentOrMe.IsOnNonFocusedVehicleMapOf(out vehicle))
+            {
+                extraRotation += vehicle.FullRotation.AsAngle;
+            }
         }
     }
 
