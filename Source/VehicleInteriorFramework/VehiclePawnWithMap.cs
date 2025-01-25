@@ -404,8 +404,11 @@ namespace VehicleInteriors
                 this.CellDesignationsDirty();
             }
             this.DrawVehicleMap(extraRotation);
+            var focused = Command_FocusVehicleMap.FocusedVehicle;
+            Command_FocusVehicleMap.FocusedVehicle = this;
             this.interiorMap.roofGrid.RoofGridUpdate();
             this.interiorMap.mapTemperature.TemperatureUpdate();
+            Command_FocusVehicleMap.FocusedVehicle = focused;
         }
 
         private void CellDesignationsDirty()

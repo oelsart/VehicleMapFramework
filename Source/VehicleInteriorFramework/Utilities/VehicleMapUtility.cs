@@ -668,7 +668,7 @@ namespace VehicleInteriors
         public static void VirtualMapTransfer(this Thing thing, Map map, IntVec3 c)
         {
             mapIndexOrState(thing) = (sbyte)map.Index;
-            positionInt(thing) = c;
+            thing.SetPositionDirect(c);
         }
 
         //thingが車両マップ上にあったらthingの中心を基準として位置と回転を下の車両基準に回転するわよ
@@ -818,8 +818,6 @@ namespace VehicleInteriors
         public static Rot4 rotForPrint = Rot4.North;
 
         private static readonly AccessTools.FieldRef<Thing, sbyte> mapIndexOrState = AccessTools.FieldRefAccess<Thing, sbyte>("mapIndexOrState");
-
-        private static readonly AccessTools.FieldRef<Thing, IntVec3> positionInt = AccessTools.FieldRefAccess<Thing, IntVec3>("positionInt");
 
         public const float altitudeOffset = 0.09615385f;
 

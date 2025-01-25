@@ -53,14 +53,26 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             };
             codes.InsertRange(pos, addedCodes);
 
-            var pos4 = codes.FindIndex(pos, c => c.opcode == OpCodes.Callvirt && c.OperandIs(MethodInfoCache.g_Thing_Position));
-            //codes[pos4] = new CodeInstruction(OpCodes.Call, MethodInfoCache.m_PositionOnBaseMap);
+            var pos4 = codes.FindIndex(pos, c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalIndex == 19);
+            codes.InsertRange(pos4, addedCodes);
 
-            var pos5 = codes.FindIndex(pos4, c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalIndex == 19);
-            codes.InsertRange(pos5, addedCodes);
+            var pos5 = codes.FindIndex(pos4, c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalIndex == 21) + 1;
+            codes.InsertRange(pos5, new[]
+            {
+                CodeInstruction.LoadLocal(12),
+                CodeInstruction.LoadLocal(0, true),
+                CodeInstruction.LoadLocal(20, true),
+                CodeInstruction.Call(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(Patch_JobGiver_Work_TryIssueJobPackage.ScanCellsAcrossMaps))
+            });
 
-            //var pos6 = codes.FindIndex(pos5, c => c.opcode == OpCodes.Callvirt && c.OperandIs(MethodInfoCache.g_Thing_Position));
-            //codes[pos6] = new CodeInstruction(OpCodes.Call, MethodInfoCache.m_PositionOnBaseMap);
+            var m_JobOnCell = AccessTools.Method(typeof(WorkGiver_Scanner), nameof(WorkGiver_Scanner.JobOnCell));
+            var pos6 = codes.FindIndex(pos5, c => c.opcode == OpCodes.Callvirt && c.OperandIs(m_JobOnCell));
+            codes[pos6].opcode = OpCodes.Call;
+            codes[pos6].operand = AccessTools.Method(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(Patch_JobGiver_Work_TryIssueJobPackage.JobOnCellMap));
+
+            var g_TargetInfo_Cell = AccessTools.PropertyGetter(typeof(TargetInfo), nameof(TargetInfo.Cell));
+            var pos7 = codes.FindLastIndex(pos6, c => c.opcode == OpCodes.Call && c.OperandIs(g_TargetInfo_Cell));
+            codes.RemoveAt(pos7);
 
             //GenClosestの各メソッドを自作のものに置き換える
             //PotentialWorkThingsGlobalの各マップの結果を合計
@@ -87,7 +99,6 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         private static IEnumerable<Thing> AddSearchSet(List<Thing> list, Pawn pawn, WorkGiver_Scanner scanner)
         {
             var searchSet = new List<Thing>(list);
-            var baseMap = pawn.BaseMap();
             var maps = pawn.Map.BaseMapAndVehicleMaps().Except(pawn.Map);
             foreach(var map in maps)
             {
@@ -121,36 +132,6 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             finally
             {
                 pawn.VirtualMapTransfer(map);
-            }
-        }
-
-        //ShouldSkipはvehicleMapを含めた全てのマップでスキップするかチェックする
-        [HarmonyPatch(typeof(JobGiver_Work), "PawnCanUseWorkGiver")]
-        public static class Patch_JobGiver_Work_PawnCanUseWorkGiver
-        {
-            public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-            {
-                var m_WorkGiver_ShouldSkip = AccessTools.Method(typeof(WorkGiver), nameof(WorkGiver.ShouldSkip));
-                var m_ShouldSkipAll = AccessTools.Method(typeof(Patch_JobGiver_Work_PawnCanUseWorkGiver), nameof(Patch_JobGiver_Work_PawnCanUseWorkGiver.ShouldSkipAll));
-                return instructions.MethodReplacer(m_WorkGiver_ShouldSkip, m_ShouldSkipAll);
-            }
-
-            private static bool ShouldSkipAll(WorkGiver workGiver, Pawn pawn, bool forced)
-            {
-                var map = pawn.Map;
-                try
-                {
-                    return pawn.Map.BaseMapAndVehicleMaps().All(m =>
-                    {
-                        pawn.VirtualMapTransfer(m);
-                        var skip = workGiver.ShouldSkip(pawn, forced);
-                        return skip;
-                    });
-                }
-                finally
-                {
-                    pawn.VirtualMapTransfer(map);
-                }
             }
         }
 
@@ -194,6 +175,142 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             finally
             {
                 pawn.VirtualMapTransfer(map, cell);
+            }
+        }
+
+        private static Job JobOnCellMap(WorkGiver_Scanner scanner, Pawn pawn, in TargetInfo target, bool forced)
+        {
+            var targetMap = target.Map;
+            if (pawn.Map == targetMap || scanner is IWorkGiverAcrossMaps workGiverAcrossMaps && !workGiverAcrossMaps.NeedVirtualMapTransfer)
+            {
+                return scanner.JobOnCell(pawn, target.Cell, forced);
+            }
+
+            var map = pawn.Map;
+            if (pawn.CanReach(target.Cell, scanner.PathEndMode, scanner.MaxPathDanger(pawn), false, false, TraverseMode.ByPawn, targetMap, out var exitSpot, out var enterSpot))
+            {
+                var pos = pawn.Position;
+                var dest = target.Cell;
+                pawn.VirtualMapTransfer(targetMap, dest);
+                Job job;
+                try
+                {
+                    job = scanner.JobOnCell(pawn, dest, forced);
+                }
+                finally
+                {
+                    pawn.VirtualMapTransfer(map, pos);
+                }
+                return JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, job);
+            }
+            return null;
+        }
+
+        private static void ScanCellsAcrossMaps(WorkGiver_Scanner scanner, ref InnerClass innerClass, ref InnerStruct innerStruct)
+        {
+            var pawn = innerClass.pawn;
+            var basePos = pawn.PositionOnBaseMap();
+            var map = pawn.Map;
+            var maps = map.BaseMapAndVehicleMaps().Except(map);
+            try
+            {
+                foreach(var map2 in maps)
+                {
+                    pawn.VirtualMapTransfer(map2);
+                    var positionOnMap = map2.IsVehicleMapOf(out var vehicle) ? basePos.ToVehicleMapCoord(vehicle) : basePos;
+                    IEnumerable<IntVec3> enumerable2 = scanner.PotentialWorkCellsGlobal(pawn);
+                    foreach (IntVec3 c in enumerable2)
+                    {
+                        if (ReachabilityUtilityOnVehicle.CanReach(map, innerStruct.pawnPosition, c, scanner.PathEndMode, TraverseParms.For(pawn, innerStruct.maxPathDanger), map2, out _, out _))
+                        {
+                            pawn.SetPositionDirect(c);
+                        }
+                        bool flag2 = false;
+                        float num4 = (c - positionOnMap).LengthHorizontalSquared;
+                        float num5 = 0f;
+                        if (innerStruct.prioritized)
+                        {
+                            if (!c.IsForbidden(pawn) && scanner.HasJobOnCell(pawn, c))
+                            {
+                                num5 = scanner.GetPriority(pawn, c);
+                                if (num5 > innerStruct.bestPriority || (num5 == innerStruct.bestPriority && num4 < innerStruct.closestDistSquared))
+                                {
+                                    flag2 = true;
+                                }
+                            }
+                        }
+                        else if (num4 < innerStruct.closestDistSquared && !c.IsForbidden(pawn) && scanner.HasJobOnCell(pawn, c))
+                        {
+                            flag2 = true;
+                        }
+
+                        if (flag2)
+                        {
+                            innerClass.bestTargetOfLastPriority = new TargetInfo(c, map2);
+                            innerClass.scannerWhoProvidedTarget = scanner;
+                            innerStruct.closestDistSquared = num4;
+                            innerStruct.bestPriority = num5;
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                pawn.VirtualMapTransfer(map, innerStruct.pawnPosition);
+            }
+        }
+
+        public struct InnerStruct
+        {
+            public IntVec3 pawnPosition;
+
+            public bool prioritized;
+
+            public bool allowUnreachable;
+
+            public Danger maxPathDanger;
+
+            public float bestPriority;
+
+            public float closestDistSquared;
+        }
+
+        public class InnerClass
+        {
+            public Pawn pawn;
+
+            public TargetInfo bestTargetOfLastPriority;
+
+            public WorkGiver_Scanner scannerWhoProvidedTarget;
+        }
+    }        
+
+    //ShouldSkipはvehicleMapを含めた全てのマップでスキップするかチェックする
+    [HarmonyPatch(typeof(JobGiver_Work), "PawnCanUseWorkGiver")]
+    public static class Patch_JobGiver_Work_PawnCanUseWorkGiver
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var m_WorkGiver_ShouldSkip = AccessTools.Method(typeof(WorkGiver), nameof(WorkGiver.ShouldSkip));
+            var m_ShouldSkipAll = AccessTools.Method(typeof(Patch_JobGiver_Work_PawnCanUseWorkGiver), nameof(Patch_JobGiver_Work_PawnCanUseWorkGiver.ShouldSkipAll));
+            return instructions.MethodReplacer(m_WorkGiver_ShouldSkip, m_ShouldSkipAll);
+        }
+
+        private static bool ShouldSkipAll(WorkGiver workGiver, Pawn pawn, bool forced)
+        {
+            var map = pawn.Map;
+            try
+            {
+                return pawn.Map.BaseMapAndVehicleMaps().All(m =>
+                {
+                    pawn.VirtualMapTransfer(m);
+                    var skip = workGiver.ShouldSkip(pawn, forced);
+                    return skip;
+                });
+            }
+            finally
+            {
+                pawn.VirtualMapTransfer(map);
             }
         }
     }
