@@ -2,16 +2,13 @@
 using HarmonyLib;
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
-using System.Security.Policy;
 using UnityEngine;
 using VehicleInteriors;
 using VehicleInteriors.VMF_HarmonyPatches;
 using Verse;
-using Verse.AI;
 
 namespace VMF_CEPatch
 {
@@ -339,14 +336,12 @@ namespace VMF_CEPatch
             var f_allBuildingsColonist = AccessTools.Field(typeof(ListerBuildings), nameof(ListerBuildings.allBuildingsColonist));
             var pos = codes.FindIndex(c => c.opcode == OpCodes.Ldfld && c.OperandIs(f_allBuildingsColonist));
             codes.InsertRange(pos, new[]
-{
+            {
                 CodeInstruction.LoadArgument(0),
                 new CodeInstruction(OpCodes.Call, MethodInfoCache.g_Thing_Map),
                 CodeInstruction.Call(typeof(Patch_Building_TurretGunCE_TryFindNewTarget), nameof(Patch_Building_TurretGunCE_TryFindNewTarget.AddBuildingList))
             });
-            var m_BestShootTargetFromCurrentPosition = AccessTools.Method(typeof(AttackTargetFinder), nameof(AttackTargetFinder.BestShootTargetFromCurrentPosition));
-            var m_BestShootTargetFromCurrentPositionOnVehicle = AccessTools.Method(typeof(AttackTargetFinderOnVehicle), nameof(AttackTargetFinderOnVehicle.BestShootTargetFromCurrentPosition));
-            return codes.MethodReplacer(m_BestShootTargetFromCurrentPosition, m_BestShootTargetFromCurrentPositionOnVehicle);
+            return codes;
         }
 
         private static List<Building> AddBuildingList(List<Building> list, Map map)
@@ -381,17 +376,6 @@ namespace VMF_CEPatch
         {
             return instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap)
                 .MethodReplacer(MethodInfoCache.g_LocalTargetInfo_Cell, MethodInfoCache.m_CellOnBaseMap);
-        }
-    }
-
-    [HarmonyPatchCategory("VMF_Patches_CE")]
-    [HarmonyPatch(typeof(Building_TurretGunCE), nameof(Building_TurretGunCE.TryStartShootSomething))]
-    public static class Patch_Building_TurretGunCE_TryStartShootSomething
-    {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
-            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap)
-                .MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing);
         }
     }
 

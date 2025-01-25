@@ -10,6 +10,7 @@ using UnityEngine;
 using Vehicles;
 using Verse;
 using Verse.AI;
+using Verse.Sound;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
 {
@@ -420,6 +421,18 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 return false;
             }
             return true;
+        }
+    }
+
+    [HarmonyPatch(typeof(SoundStarter), nameof(SoundStarter.PlayOneShot))]
+    public static class Patch_SoundStarter_PlayOneShot
+    {
+        public static void Prefix(ref SoundInfo info)
+        {
+            if (info.Maker.IsValid && info.Maker.Map.IsVehicleMapOf(out var vehicle) && info.Maker.Map != Find.CurrentMap)
+            {
+                info = SoundInfo.InMap(new TargetInfo(info.Maker.Cell.ToBaseMapCoord(vehicle), vehicle.Map), info.Maintenance);
+            }
         }
     }
 }

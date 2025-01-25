@@ -160,7 +160,7 @@ namespace VehicleInteriors
             if ((AttackTargetFinderOnVehicle.HasRangedAttack(searcher) || onlyRanged) && (searcherPawn == null || !searcherPawn.InAggroMentalState))
             {
                 AttackTargetFinderOnVehicle.tmpTargets.Clear();
-                AttackTargetFinderOnVehicle.tmpTargets.AddRange(searcherThing.Map.BaseMapAndVehicleMaps().SelectMany(m => m.attackTargetsCache.GetPotentialTargetsFor(searcher)));
+                AttackTargetFinderOnVehicle.tmpTargets.AddRange(searcherThing.Map.BaseMapAndVehicleMaps().Except(searcherThing.Map).SelectMany(m => m.attackTargetsCache.GetPotentialTargetsFor(searcher)));
                 AttackTargetFinderOnVehicle.validTargets.Clear();
 
                 for (int i = 0; i < AttackTargetFinderOnVehicle.tmpTargets.Count; i++)
@@ -598,17 +598,6 @@ namespace VehicleInteriors
                 }
             }
             return num;
-        }
-
-        public static IAttackTarget BestShootTargetFromCurrentPosition(IAttackTargetSearcher searcher, TargetScanFlags flags, Predicate<Thing> validator = null, float minDistance = 0f, float maxDistance = 9999f)
-        {
-            Verb currentEffectiveVerb = searcher.CurrentEffectiveVerb;
-            if (currentEffectiveVerb == null)
-            {
-                Log.Error("BestShootTargetFromCurrentPosition with " + searcher.ToStringSafe<IAttackTargetSearcher>() + " who has no attack verb.");
-                return null;
-            }
-            return AttackTargetFinderOnVehicle.BestAttackTarget(searcher, flags, validator, Mathf.Max(minDistance, currentEffectiveVerb.verbProps.minRange), Mathf.Min(maxDistance, currentEffectiveVerb.verbProps.range), default(IntVec3), float.MaxValue, false, false, false, false);
         }
 
         public static bool CanSee(this Thing seer, Thing target, Func<IntVec3, bool> validator = null)

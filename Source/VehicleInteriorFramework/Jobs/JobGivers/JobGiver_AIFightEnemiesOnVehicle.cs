@@ -214,7 +214,7 @@ namespace VehicleInteriors
             {
                 targetScanFlags |= TargetScanFlags.IgnoreNonCombatants;
             }
-            return (Thing)AttackTargetFinderOnVehicle.BestAttackTarget(pawn, targetScanFlags, (Thing x) => this.ExtraTargetValidator(pawn, x), 0f, this.targetAcquireRadius, this.GetFlagPosition(pawn), this.GetFlagRadius(pawn), false, true, false, this.OnlyUseRangedSearch);
+            return (Thing)AttackTargetFinder.BestAttackTarget(pawn, targetScanFlags, (Thing x) => this.ExtraTargetValidator(pawn, x), 0f, this.targetAcquireRadius, this.GetFlagPosition(pawn), this.GetFlagRadius(pawn), false, true, false, this.OnlyUseRangedSearch);
         }
 
         private bool PrimaryVerbIsIncendiary(Pawn pawn)

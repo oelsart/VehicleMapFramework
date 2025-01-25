@@ -10,6 +10,19 @@ using Verse.AI;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
 {
+    [HarmonyPatch(typeof(AttackTargetFinder), nameof(AttackTargetFinder.BestAttackTarget))]
+    public static class Patch_AttackTargetFinder_BestAttackTarget
+    {
+        public static void Postfix(IAttackTargetSearcher searcher, TargetScanFlags flags, Predicate<Thing> validator, float minDist, float maxDist, IntVec3 locus, float maxTravelRadiusFromLocus, bool canBashDoors, bool canTakeTargetsCloserThanEffectiveMinRange, bool canBashFences, bool onlyRanged, ref IAttackTarget __result)
+        {
+            var target = AttackTargetFinderOnVehicle.BestAttackTarget(searcher, flags, validator, minDist, maxDist, locus, maxTravelRadiusFromLocus, canBashDoors, canTakeTargetsCloserThanEffectiveMinRange, canBashFences, onlyRanged);
+            if ((__result.Thing.Position - searcher.Thing.Position).LengthHorizontalSquared > (target.Thing.PositionOnBaseMap() - searcher.Thing.PositionOnBaseMap()).LengthHorizontalSquared)
+            {
+                __result = target;
+            }
+        }
+    }
+
     [HarmonyPatch(typeof(PawnLeaner), nameof(PawnLeaner.Notify_WarmingCastAlongLine))]
     public static class Patch_PawnLeaner_Notify_WarmingCastAlongLine
     {
@@ -225,24 +238,12 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatch(typeof(JobDriver_Wait), "CheckForAutoAttack")]
-    public static class Patch_JobDriver_Wait_CheckForAutoAttack
-    {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
-            return instructions.MethodReplacer(AccessTools.Method(typeof(AttackTargetFinder), nameof(AttackTargetFinder.BestShootTargetFromCurrentPosition)),
-                AccessTools.Method(typeof(AttackTargetFinderOnVehicle), nameof(AttackTargetFinderOnVehicle.BestShootTargetFromCurrentPosition)));
-        }
-    }
-
     [HarmonyPatch(typeof(Building_TurretGun), nameof(Building_TurretGun.TryFindNewTarget))]
     public static class Patch_Building_Turret_TryFindNewTarget
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap)
-                .MethodReplacer(AccessTools.Method(typeof(AttackTargetFinder), nameof(AttackTargetFinder.BestShootTargetFromCurrentPosition)),
-                AccessTools.Method(typeof(AttackTargetFinderOnVehicle), nameof(AttackTargetFinderOnVehicle.BestShootTargetFromCurrentPosition)));
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap);
         }
     }
 
@@ -265,16 +266,6 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             return instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap)
                 .MethodReplacer(MethodInfoCache.g_LocalTargetInfo_Cell, MethodInfoCache.m_CellOnBaseMap);
-        }
-    }
-
-    [HarmonyPatch(typeof(Building_TurretGun), nameof(Building_TurretGun.TryStartShootSomething))]
-    public static class Patch_Building_Turret_TryStartShootSomething
-    {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
-            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap)
-                .MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing);
         }
     }
 
@@ -359,6 +350,18 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 return false;
             }
             return true;
+        }
+    }
+
+    [HarmonyPatch(typeof(RoofGrid), nameof(RoofGrid.Roofed), typeof(IntVec3))]
+    public static class Patch_RoofGrid_Roofed
+    {
+        public static void Postfix(Map ___map, IntVec3 c, ref bool __result)
+        {
+            if (___map.IsVehicleMapOf(out var vehicle))
+            {
+                __result = __result || ___map.BaseMap().roofGrid.Roofed(c.ToBaseMapCoord(vehicle));
+            }
         }
     }
 }

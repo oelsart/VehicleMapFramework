@@ -457,9 +457,9 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             return codes;
         }
 
-        private static IEnumerable<Thing> AddSearchSet(List<Thing> list, Pawn getter, ThingRequest req)
+        private static List<Thing> AddSearchSet(List<Thing> list, Pawn getter, ThingRequest req)
         {
-            return getter.Map.BaseMapAndVehicleMaps().Except(getter.Map).SelectMany(m => m.listerThings.ThingsMatching(req));
+            return list.Concat(getter.Map.BaseMapAndVehicleMaps().Except(getter.Map).SelectMany(m => m.listerThings.ThingsMatching(req))).ToList();
         }
     }
 
