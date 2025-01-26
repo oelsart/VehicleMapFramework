@@ -362,31 +362,27 @@ namespace VehicleInteriors
             }
             Current.Game.DeinitAndRemoveMap(this.interiorMap, false);
             Find.World.GetComponent<VehicleMapParentsComponent>().vehicleMaps.Remove(this.interiorMap.Parent as MapParent_Vehicle);
-            _ = this.interiorMap;
             base.Destroy(mode);
+            _ = this.interiorMap;
         }
 
         public override void DeSpawn(DestroyMode mode = DestroyMode.Vanish)
         {
             VehiclePawnWithMapCache.DeRegisterVehicle(this);
-            this.interiorMap.skyManager = new SkyManager(this.interiorMap);
-            this.interiorMap.skyManager.ForceSetCurSkyGlow(this.Map.skyManager.CurSkyGlow);
-            this.interiorMap.weatherManager = new WeatherManager(this.interiorMap);
-            this.interiorMap.weatherManager.curWeather = this.Map.weatherManager.curWeather;
-            this.interiorMap.weatherManager.lastWeather = this.Map.weatherManager.lastWeather;
-            this.interiorMap.weatherManager.prevSkyTargetLerp = this.Map.weatherManager.prevSkyTargetLerp;
-            this.interiorMap.weatherManager.currSkyTargetLerp = this.Map.weatherManager.currSkyTargetLerp;
-            this.interiorMap.weatherManager.curWeatherAge = this.Map.weatherManager.curWeatherAge;
-            this.interiorMap.weatherManager.growthSeasonMemory = this.Map.weatherManager.growthSeasonMemory;
-            this.interiorMap.weatherDecider = new WeatherDecider(this.interiorMap);
-
-
-            base.DeSpawn(mode);
-            foreach (var thing in this.interiorMap.listerThings.AllThings)
+            if (mode != DestroyMode.KillFinalize)
             {
-                VehiclePawnWithMapCache.cachedDrawPos.Remove(thing);
-                VehiclePawnWithMapCache.cachedPosOnBaseMap.Remove(thing);
+                this.interiorMap.skyManager = new SkyManager(this.interiorMap);
+                this.interiorMap.skyManager.ForceSetCurSkyGlow(this.Map.skyManager.CurSkyGlow);
+                this.interiorMap.weatherManager = new WeatherManager(this.interiorMap);
+                this.interiorMap.weatherManager.curWeather = this.Map.weatherManager.curWeather;
+                this.interiorMap.weatherManager.lastWeather = this.Map.weatherManager.lastWeather;
+                this.interiorMap.weatherManager.prevSkyTargetLerp = this.Map.weatherManager.prevSkyTargetLerp;
+                this.interiorMap.weatherManager.currSkyTargetLerp = this.Map.weatherManager.currSkyTargetLerp;
+                this.interiorMap.weatherManager.curWeatherAge = this.Map.weatherManager.curWeatherAge;
+                this.interiorMap.weatherManager.growthSeasonMemory = this.Map.weatherManager.growthSeasonMemory;
+                this.interiorMap.weatherDecider = new WeatherDecider(this.interiorMap);
             }
+            base.DeSpawn(mode);
         }
 
         public override void DrawAt(Vector3 drawLoc, Rot8 rot, float extraRotation, bool flip = false, bool compDraw = true)

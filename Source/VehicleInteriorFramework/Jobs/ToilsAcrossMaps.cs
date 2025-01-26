@@ -203,7 +203,7 @@ namespace VehicleInteriors
                 };
 
                 //toil2.FailOn(() => !exitSpot.Cell.Standable(exitSpot.Map));
-                yield return toil2;
+                yield return toil2.FailOn(() => exitSpot.Map?.Disposed ?? true);
 
                 //デスポーン後目的地のマップにリスポーン。スポーン地の再計算時にそこが埋まってたらとりあえず失敗に
                 var toil3 = ToilMaker.MakeToil("Exit Vehicle Map");
@@ -248,7 +248,7 @@ namespace VehicleInteriors
                         }
                     }
                 };
-                yield return toil3;
+                yield return toil3.FailOn(() => exitSpot.Map?.Disposed ?? true);
                 yield return afterExitMap;
             }
             if (enterSpot.IsValid && enterSpot.Map != null)
@@ -346,7 +346,7 @@ namespace VehicleInteriors
                     door?.StartManualOpenBy(toil2.actor);
                     ramp?.StartManualOpenBy(toil2.actor);
                 };
-                yield return toil2;
+                yield return toil2.FailOn(() => enterSpot.Map?.Disposed ?? true);
 
                 var toil3 = ToilMaker.MakeToil("Enter Vehicle Map");
                 toil3.defaultCompleteMode = ToilCompleteMode.Instant;
@@ -373,7 +373,7 @@ namespace VehicleInteriors
                         }
                     }
                 };
-                yield return toil3;
+                yield return toil3.FailOn(() => enterSpot.Map?.Disposed ?? true);
                 yield return afterEnterMap;
             }
         }

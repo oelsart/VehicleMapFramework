@@ -67,7 +67,7 @@ namespace VehicleInteriors
                                 return c.Walkable(departMap) &&
                                 cell.Standable(departBaseMap) &&
                                 departMap.reachability.CanReach(root, enterSpot.Cell, PathEndMode.OnCell, traverseParms) &&
-                                departBaseMap.reachability.CanReach(cell, dest3, peMode, TraverseMode.ByPawn, traverseParms.maxDanger);
+                                departBaseMap.reachability.CanReach(cell, dest3, peMode, TraverseMode.PassDoors, traverseParms.maxDanger);
                             });
                             dest1 = result ? enterSpot : TargetInfo.Invalid;
 
@@ -108,7 +108,7 @@ namespace VehicleInteriors
                                 return c.Standable(destMap) &&
                                 cell.Walkable(departMap) &&
                                 departMap.reachability.CanReach(root, cell, PathEndMode.OnCell, traverseParms) &&
-                                destMap.reachability.CanReach(c, dest3, peMode, TraverseMode.ByPawn, traverseParms.maxDanger);
+                                destMap.reachability.CanReach(c, dest3, peMode, TraverseMode.PassDoors, traverseParms.maxDanger);
                             });
                             dest2 = result ? enterSpot : TargetInfo.Invalid;
                             return result;
@@ -178,8 +178,8 @@ namespace VehicleInteriors
                                         cell2.Walkable(departBaseMap) &&
                                         c2.Standable(destMap) &&
                                         departMap.reachability.CanReach(root, enterSpot.Cell, PathEndMode.OnCell, traverseParms) &&
-                                        departBaseMap.reachability.CanReach(cell, cell2, PathEndMode.OnCell, TraverseMode.ByPawn, traverseParms.maxDanger) &&
-                                        destMap.reachability.CanReach(c2, dest3, peMode, TraverseMode.ByPawn, traverseParms.maxDanger);
+                                        departBaseMap.reachability.CanReach(cell, cell2, PathEndMode.OnCell, TraverseMode.PassDoors, traverseParms.maxDanger) &&
+                                        destMap.reachability.CanReach(c2, dest3, peMode, TraverseMode.PassDoors, traverseParms.maxDanger);
                                     });
                                 });
                                 dest1 = result ? enterSpot : TargetInfo.Invalid;
@@ -486,7 +486,7 @@ namespace VehicleInteriors
                                 var cell = basePos - faceCell * dist - faceCell * vehicle.HalfLength();
                                 return MapComponentCache<VehicleMapping>.GetComponent(departMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(vehicle.Position, enterSpot, PathEndMode.OnCell, traverseParms) &&
                                 vehicle.VehicleDef.CellRectStandable(departBaseMap, cell, rot.Opposite) &&
-                                MapComponentCache<VehicleMapping>.GetComponent(departBaseMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(cell, dest3, peMode, TraverseMode.ByPawn, traverseParms.maxDanger);
+                                MapComponentCache<VehicleMapping>.GetComponent(departBaseMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(cell, dest3, peMode, TraverseMode.PassDoors, traverseParms.maxDanger);
                             });
                             dest1 = result ? enterSpot : TargetInfo.Invalid;
                             return result;
@@ -516,7 +516,7 @@ namespace VehicleInteriors
                                 var cell2 = enterSpot.Position + enterSpot.Rotation.FacingCell * vehicle.HalfLength();
                                 return MapComponentCache<VehicleMapping>.GetComponent(departMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(vehicle.Position, cell, PathEndMode.OnCell, traverseParms) &&
                                 vehicle.VehicleDef.CellRectStandable(destMap, cell2, enterSpot.Rotation) &&
-                                MapComponentCache<VehicleMapping>.GetComponent(destMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(cell2, dest3, peMode, TraverseMode.ByPawn, traverseParms.maxDanger);
+                                MapComponentCache<VehicleMapping>.GetComponent(destMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(cell2, dest3, peMode, TraverseMode.PassDoors, traverseParms.maxDanger);
                             });
                             dest2 = result ? enterSpot : TargetInfo.Invalid;
                             return result;
@@ -564,9 +564,9 @@ namespace VehicleInteriors
                                         var cell3 = enterSpot2.Position + enterSpot.Rotation.FacingCell * vehicle.HalfLength();
                                         return MapComponentCache<VehicleMapping>.GetComponent(departMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(vehicle.Position, enterSpot, PathEndMode.OnCell, traverseParms) &&
                                         vehicle.VehicleDef.CellRectStandable(departBaseMap, cell, rot.Opposite) &&
-                                        MapComponentCache<VehicleMapping>.GetComponent(departBaseMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(cell, cell2, PathEndMode.OnCell, TraverseMode.ByPawn, traverseParms.maxDanger) &&
+                                        MapComponentCache<VehicleMapping>.GetComponent(departBaseMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(cell, cell2, PathEndMode.OnCell, TraverseMode.PassDoors, traverseParms.maxDanger) &&
                                         vehicle.VehicleDef.CellRectStandable(destMap, cell3, enterSpot2.Rotation) &&
-                                        MapComponentCache<VehicleMapping>.GetComponent(destMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(cell3, dest3, peMode, TraverseMode.ByPawn, traverseParms.maxDanger);
+                                        MapComponentCache<VehicleMapping>.GetComponent(destMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(cell3, dest3, peMode, TraverseMode.PassDoors, traverseParms.maxDanger);
                                     });
                                 });
                                 dest1 = result ? enterSpot : TargetInfo.Invalid;

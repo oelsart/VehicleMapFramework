@@ -395,8 +395,8 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             {
                 return true;
             }
-            dest = thing.SpawnedParentOrMe;
-            if (___pawn.Map != dest.Thing.Map && ___pawn.CanReach(dest, peMode, Danger.Deadly, false, false, TraverseMode.ByPawn, dest.Thing.Map, out var exitSpot, out var enterSpot))
+            var parent = thing.SpawnedParentOrMe;
+            if (parent != null && ___pawn.Map != parent.Map && ___pawn.CanReach(dest, peMode, Danger.Deadly, false, false, TraverseMode.ByPawn, parent.Map, out var exitSpot, out var enterSpot))
             {
                 JobAcrossMapsUtility.StartGotoDestMapJob(___pawn, exitSpot, enterSpot);
                 return false;
@@ -416,8 +416,8 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 var actor = __result.actor;
                 var curJob = actor.CurJob;
                 var allTargets = new[] { curJob.targetA, curJob.targetB, curJob.targetC }.ConcatIfNotNull(curJob.targetQueueA).ConcatIfNotNull(curJob.targetQueueB);
-                var target = allTargets.FirstOrFallback(t => t.HasThing && (t.Cell == cell || t.Thing.InteractionCell == cell), LocalTargetInfo.Invalid);
-                if (target.IsValid && actor.Map != target.Thing.Map && actor.CanReach(target, peMode, Danger.Deadly, false, false, TraverseMode.ByPawn, target.Thing.Map, out var exitSpot, out var enterSpot))
+                var target = allTargets.FirstOrFallback(t => t.HasThing && (t.Cell == cell || (t.Thing.Spawned && t.Thing.InteractionCell == cell)), LocalTargetInfo.Invalid);
+                if (target.IsValid && actor.Map != target.Thing.MapHeld && actor.CanReach(target, peMode, Danger.Deadly, false, false, TraverseMode.ByPawn, target.Thing.MapHeld, out var exitSpot, out var enterSpot))
                 {
                     JobAcrossMapsUtility.StartGotoDestMapJob(actor, exitSpot, enterSpot);
                 }

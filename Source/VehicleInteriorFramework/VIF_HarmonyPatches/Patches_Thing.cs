@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using RimWorld;
 using RimWorld.Planet;
+using SmashTools;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
@@ -47,6 +48,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             var f_Vector3_y = AccessTools.Field(typeof(Vector3), nameof(Vector3.y));
+            var num = 0;
             foreach (var instruction in instructions)
             {
                 if (instruction.opcode == OpCodes.Stfld && instruction.OperandIs(f_Vector3_y))
@@ -54,7 +56,16 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                     yield return new CodeInstruction(OpCodes.Ldc_R4, 7.3076926f);
                     yield return new CodeInstruction(OpCodes.Add);
                 }
-                yield return instruction;
+                if (instruction.opcode == OpCodes.Call && instruction.OperandIs(MethodInfoCache.g_Thing_Rotation) && num < 2)
+                {
+                    yield return new CodeInstruction(OpCodes.Call, MethodInfoCache.m_BaseFullRotation_Thing);
+                    yield return CodeInstruction.Call(typeof(VehicleMapUtility), nameof(VehicleMapUtility.RotForVehicleDraw));
+                    num++;
+                }
+                else
+                {
+                    yield return instruction;
+                }
             }
         }
     }
@@ -69,13 +80,29 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
+    //ソーラーパネルはGraphic_Singleで見た目上回転しないのでFullRotationがHorizontalだったら回転しない
     [HarmonyPatch(typeof(CompPowerPlantSolar), nameof(CompPowerPlantSolar.PostDraw))]
     public static class Patch_CompPowerPlantSolar_PostDraw
     {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
         {
-            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Rotation, MethodInfoCache.m_BaseFullRotation_Thing)
-                .MethodReplacer(MethodInfoCache.m_Rot4_Rotate, MethodInfoCache.m_Rot8_Rotate);
+            var codes = instructions.MethodReplacer(MethodInfoCache.g_Thing_Rotation, MethodInfoCache.m_BaseFullRotation_Thing)
+                .MethodReplacer(MethodInfoCache.m_Rot4_Rotate, MethodInfoCache.m_Rot8_Rotate).ToList();
+
+            var label = generator.DefineLabel();
+            var label2 = generator.DefineLabel();
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(MethodInfoCache.m_Rot8_Rotate)) - 1;
+            codes[pos].labels.Add(label);
+            codes[pos + 2].labels.Add(label2);
+            codes.InsertRange(pos, new[]
+            {
+                new CodeInstruction(OpCodes.Dup),
+                new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(Rot8), nameof(Rot8.IsHorizontal))),
+                new CodeInstruction(OpCodes.Brfalse_S, label),
+                new CodeInstruction(OpCodes.Pop),
+                new CodeInstruction(OpCodes.Br_S, label2)
+            });
+            return codes;
         }
     }
 

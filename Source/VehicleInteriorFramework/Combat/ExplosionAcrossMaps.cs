@@ -88,6 +88,8 @@ namespace VehicleInteriors
             {
                 foreach (var vehicle in this.cellsToAffectOnVehicles.Keys)
                 {
+                    if (vehicle?.VehicleMap?.Disposed ?? true) continue; //既にVehicleが破壊された時など
+
                     this.VirtualMapTransfer(vehicle.VehicleMap, pos.ToVehicleMapCoord(vehicle));
                     num = this.cellsToAffectOnVehicles[vehicle].Count - 1;
                     while (num >= 0 && ticksGame >= (int)GetCellAffectTick(this, this.cellsToAffectOnVehicles[vehicle][num]))
