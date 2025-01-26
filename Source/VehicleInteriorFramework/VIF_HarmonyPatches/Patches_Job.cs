@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
-using System.Security.Cryptography;
 using UnityEngine;
 using VehicleInteriors.Jobs.WorkGivers;
 using Vehicles;
@@ -558,6 +557,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
+    //FoodSourceの一覧に車上マップの物を含める
     [HarmonyPatch(typeof(FoodUtility), nameof(FoodUtility.BestFoodSourceOnMap))]
     public static class Patch_FoodUtility_BestFoodSourceOnMap
     {
@@ -573,12 +573,32 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 CodeInstruction.LoadLocal(1),
                 CodeInstruction.Call(typeof(Patch_FoodUtility_BestFoodSourceOnMap), nameof(Patch_FoodUtility_BestFoodSourceOnMap.AddSearchSet))
             });
-            return codes;
+            var m_CanReachNonLocal = AccessTools.Method(typeof(Reachability), nameof(Reachability.CanReachNonLocal), new Type[] { typeof(IntVec3), typeof(TargetInfo), typeof(PathEndMode), typeof(TraverseParms) });
+            var m_CanReachNonLocalReaplaceable = AccessTools.Method(typeof(ReachabilityUtilityOnVehicle), nameof(ReachabilityUtilityOnVehicle.CanReachNonLocalReplaceable), new Type[] { typeof(Reachability), typeof(IntVec3), typeof(TargetInfo), typeof(PathEndMode), typeof(TraverseParms) });
+            return codes.MethodReplacer(m_CanReachNonLocal, m_CanReachNonLocalReaplaceable);
         }
 
         private static List<Thing> AddSearchSet(List<Thing> list, Pawn getter, ThingRequest req)
         {
             return list.Concat(getter.Map.BaseMapAndVehicleMaps().Except(getter.Map).SelectMany(m => m.listerThings.ThingsMatching(req))).ToList();
+        }
+    }
+
+    //ペーストディスペンサーを探す時のPredicateにCanReachNonLocalが含まれているので置き換える
+    [HarmonyPatch]
+    public static class Patch_FoodUtility_BestFoodSourceOnMap_Predicate
+    {
+        public static MethodInfo TargetMethod()
+        {
+            return AccessTools.FindIncludingInnerTypes<MethodInfo>(typeof(FoodUtility),
+                t => t.GetMethods(AccessTools.all).FirstOrDefault(m => m.Name.Contains("<BestFoodSourceOnMap>") && m.HasMethodBody() && m.GetMethodBody().LocalVariables.Any(l => l.LocalType == typeof(Building_NutrientPasteDispenser))));
+        }
+
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var m_CanReachNonLocal = AccessTools.Method(typeof(Reachability), nameof(Reachability.CanReachNonLocal), new Type[] { typeof(IntVec3), typeof(TargetInfo), typeof(PathEndMode), typeof(TraverseParms) });
+            var m_CanReachNonLocalReaplaceable = AccessTools.Method(typeof(ReachabilityUtilityOnVehicle), nameof(ReachabilityUtilityOnVehicle.CanReachNonLocalReplaceable), new Type[] { typeof(Reachability), typeof(IntVec3), typeof(TargetInfo), typeof(PathEndMode), typeof(TraverseParms) });
+            return instructions.MethodReplacer(m_CanReachNonLocal, m_CanReachNonLocalReaplaceable);
         }
     }
 

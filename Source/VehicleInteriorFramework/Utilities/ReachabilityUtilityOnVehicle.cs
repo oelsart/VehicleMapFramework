@@ -225,13 +225,19 @@ namespace VehicleInteriors
         {
             var departMap = ReachabilityUtilityOnVehicle.tmpDepartMap;
             var destMap = dest.HasThing ? dest.Thing.MapHeld : map(reachability);
-            var result = ReachabilityUtilityOnVehicle.CanReach(departMap, start, dest, peMode, traverseParms, destMap, out _, out _);
-            return result;
+            return ReachabilityUtilityOnVehicle.CanReach(departMap, start, dest, peMode, traverseParms, destMap, out _, out _);
         }
 
         public static Map tmpDepartMap;
 
         private static AccessTools.FieldRef<Reachability, Map> map = AccessTools.FieldRefAccess<Reachability, Map>("map");
+
+        public static bool CanReachNonLocalReplaceable(this Reachability reachability, IntVec3 start, TargetInfo dest, PathEndMode peMode, TraverseParms traverseParms)
+        {
+            var departMap = map(reachability);
+            var destMap = dest.Map;
+            return ReachabilityUtilityOnVehicle.CanReach(departMap, start, (LocalTargetInfo)dest, peMode, traverseParms, destMap, out _, out _);
+        }
 
         public static IntVec3 StandableCellNear(IntVec3 root, Map map, float radius, Predicate<IntVec3> validator, out Map destMap)
         {

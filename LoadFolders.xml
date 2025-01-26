@@ -2,6 +2,8 @@
   <v1.5>
     <li>1.5</li>
     <li>Common</li>
-    <li IfModActive="CETeam.CombatExtended">1.5/CE</li>
+    <li IfModActive="CETeam.CombatExtended">1.5/_CE</li>
+    <li IfModActive="telardo.MultiFloors">Common/_MultiFloors</li>
+    <li IfModActive="XMB.AncientUrbanrUins.MO">Common/_AncientUrbanRuins</li>
   </v1.5>
 </loadFolders>
