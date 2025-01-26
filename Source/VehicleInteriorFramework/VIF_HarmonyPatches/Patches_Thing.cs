@@ -258,5 +258,31 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             return codes.MethodReplacer(MethodInfoCache.g_Thing_Rotation, MethodInfoCache.m_BaseFullRotation_Thing);
         }
     }
+
+    //ThingがあればThing.Map、なければFocusedVehicle.VehicleMap、それもなければFind.CurrentMapを参照するようにする
+    [HarmonyPatch(typeof(PlaceWorker_WatchArea), nameof(PlaceWorker_WatchArea.DrawGhost))]
+    public static class Patch_PlaceWorker_WatchArea_DrawGhost
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+        {
+            var codes = instructions.ToList();
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Stloc_0);
+            var label = generator.DefineLabel();
+
+            codes[pos].labels.Add(label);
+            codes.InsertRange(pos, new[]
+            {
+                CodeInstruction.LoadArgument(5),
+                new CodeInstruction(OpCodes.Brfalse_S, label),
+                new CodeInstruction(OpCodes.Pop),
+                CodeInstruction.LoadArgument(5),
+                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Thing_Map)
+            });
+            pos = codes.FindIndex(pos, c => c.opcode == OpCodes.Call && c.OperandIs(MethodInfoCache.m_GenDraw_DrawFieldEdges));
+            codes.Insert(pos, CodeInstruction.LoadLocal(0));
+            return codes.MethodReplacer(MethodInfoCache.g_Find_CurrentMap, MethodInfoCache.g_VehicleMapUtility_CurrentMap)
+                .MethodReplacer(MethodInfoCache.m_GenDraw_DrawFieldEdges, MethodInfoCache.m_GenDrawOnVehicle_DrawFieldEdges);
+        }
+    }
 }
 
