@@ -86,7 +86,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         [HarmonyPatch(MethodType.Setter)]
         public static void Prefix(Thing __instance, ref Rot4 value)
         {
-            if (__instance is Pawn pawn && pawn.IsOnNonFocusedVehicleMapOf(out var vehicle))
+            if (__instance is Pawn pawn && (pawn.pather?.Moving ?? false) && pawn.IsOnNonFocusedVehicleMapOf(out var vehicle))
             {
                 var angle = (pawn.pather.nextCell - pawn.Position).AngleFlat;
                 if (angle != 0f)
@@ -103,7 +103,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         [HarmonyPatch(MethodType.Getter)]
         public static void Postfix(ref Rot4 __result, Thing __instance)
         {
-            if (__instance.def.graphicData?.drawRotated ?? false)
+            if (VehicleMapUtility.rotForPrint != Rot4.North && (__instance.def.rotatable || (__instance.def.graphicData?.drawRotated ?? false) && __instance.Graphic is Graphic_Multi))
             {
                 __result.AsInt += VehicleMapUtility.rotForPrint.AsInt;
             }

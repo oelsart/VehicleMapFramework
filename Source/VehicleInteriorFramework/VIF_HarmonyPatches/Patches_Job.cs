@@ -688,7 +688,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static void Prefix(ref Job job, Pawn __instance)
         {
-            if (job.GetCachedDriver(__instance) is JobDriver_GotoDestMap gotoDestMap)
+            if (job?.def != null && job.GetCachedDriver(__instance) is JobDriver_GotoDestMap gotoDestMap)
             {
                 job = gotoDestMap.nextJob;
             }

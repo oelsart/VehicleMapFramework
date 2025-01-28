@@ -125,8 +125,9 @@ namespace VehicleInteriors
             {
                 if (Find.CurrentMap != vehicle.VehicleMap)
                 {
-                    var clip = cellRect.ClipInsideRect(vehicle.VehicleRect(true));
-                    return cellRect = clip.MovedBy(-clip.Min);
+                    var vehicleRect = vehicle.VehicleRect(true);
+                    var clip = cellRect.ClipInsideRect(vehicleRect);
+                    return cellRect = clip.MovedBy(-vehicleRect.Min).ExpandedBy(2);
                 }
                 else if (VehicleInteriors.settings.drawPlanet)
                 {
@@ -256,7 +257,7 @@ namespace VehicleInteriors
             float result = 0f;
             if (thing.IsOnVehicleMapOf(out _))
             {
-                result -= VehicleMapUtility.rotForPrint.AsAngle * (!thing.def.rotatable && thing.Graphic.Isnt<Graphic_Multi>() && thing.def.category != ThingCategory.Item && !thing.def.graphicData.Linked && thing.def.graphicData.drawRotated ? 2f : 1f);
+                result -= VehicleMapUtility.rotForPrint.AsAngle;
             }
             return result;
         }
