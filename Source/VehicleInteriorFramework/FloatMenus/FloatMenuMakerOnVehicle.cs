@@ -1,4 +1,5 @@
-﻿using RimWorld;
+﻿using HarmonyLib;
+using RimWorld;
 using RimWorld.Planet;
 using RimWorld.Utility;
 using SmashTools;
@@ -2280,7 +2281,14 @@ namespace VehicleInteriors
 				}
 			}
 			FloatMenuMakerOnVehicle.cachedThings.Clear();
+
+            if (ModsConfig.IsActive("co.uk.epicguru.meleeanimation"))
+            {
+                opts.AddRange((IEnumerable<FloatMenuOption>)GenerateAMMenuOptions(null, clickPos, pawn));
+            }
 		}
+
+        private static FastInvokeHandler GenerateAMMenuOptions = MethodInvoker.GetHandler(AccessTools.Method("AM.UI.DraftedFloatMenuOptionsUI:GenerateMenuOptions"));
 
         private static void AddMutantOrders(Vector3 clickPos, Pawn pawn, List<FloatMenuOption> opts)
         {

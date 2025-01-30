@@ -462,7 +462,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing)
-                .MethodReplacer(MethodInfoCache.m_GenSight_LineOfSightToThing, MethodInfoCache.m_GenSightOnVehicle_LineOfSightToThing)
+                .MethodReplacer(MethodInfoCache.m_GenSight_LineOfSightToThing, MethodInfoCache.m_GenSightOnVehicle_LineOfSightToThingVehicle)
                 .MethodReplacer(MethodInfoCache.m_GenSight_LineOfSight1, MethodInfoCache.m_GenSightOnVehicle_LineOfSight1);
         }
     }

@@ -103,7 +103,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         [HarmonyPatch(MethodType.Getter)]
         public static void Postfix(ref Rot4 __result, Thing __instance)
         {
-            if (VehicleMapUtility.rotForPrint != Rot4.North && (__instance.def.rotatable || (__instance.def.graphicData?.drawRotated ?? false) && __instance.Graphic is Graphic_Multi))
+            if (VehicleMapUtility.rotForPrint != Rot4.North && (__instance.def.size.x != __instance.def.size.z || __instance.def.rotatable || (__instance.def.graphicData?.drawRotated ?? false) && __instance.Graphic is Graphic_Multi))
             {
                 __result.AsInt += VehicleMapUtility.rotForPrint.AsInt;
             }

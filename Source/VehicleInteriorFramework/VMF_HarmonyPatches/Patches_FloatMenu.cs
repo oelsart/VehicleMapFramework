@@ -32,6 +32,25 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
+    [HarmonyPatch(typeof(GenUI), nameof(GenUI.TargetsAt))]
+    public static class Patch_GenUI_TargetsAt
+    {
+        public static bool Prefix(Vector3 clickPos, TargetingParameters clickParams, bool thingsOnly, ITargetingSource source, ref IEnumerable<LocalTargetInfo> __result)
+        {
+            bool convToVehicleMap;
+            if (!(convToVehicleMap = Find.CurrentMap.IsVehicleMapOf(out var vehicle)))
+            {
+                clickPos.TryGetVehicleMap(Find.CurrentMap, out vehicle, false);
+            }
+            if (vehicle != null)
+            {
+                __result = GenUIOnVehicle.TargetsAt(clickPos, clickParams, thingsOnly, source, vehicle, convToVehicleMap);
+                return false;
+            }
+            return true;
+        }
+    }
+
     [HarmonyPatch(typeof(FloatMenuMap), "StillValid")]
     public static class Patch_FloatMenuMap_StillValid
     {

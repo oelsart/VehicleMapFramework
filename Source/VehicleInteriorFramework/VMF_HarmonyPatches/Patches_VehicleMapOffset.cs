@@ -374,7 +374,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle) && thing.def.drawerType == DrawerType.RealtimeOnly && thing.def.category != ThingCategory.Item)
             {
                 var def = thing.def.IsBlueprint ? thing.def.entityDefToBuild as ThingDef : thing.def;
-                if ((def.rotatable || def.graphic is Graphic_Multi) && (!def.graphicData?.Linked ?? true) && (def.graphicData?.drawRotated ?? true))
+                if ((def.rotatable || def.graphic is Graphic_Multi || def.size.x != def.size.z) && (!def.graphicData?.Linked ?? true) && (def.graphicData?.drawRotated ?? true))
                 {
                     var fullRot = vehicle.FullRotation;
                     rot.AsInt += fullRot.RotForVehicleDraw().AsInt;
@@ -427,7 +427,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 var loc2 = loc.ToBaseMapCoord(vehicle);
                 loc = loc2.WithY(Mathf.Min(loc2.y, AltitudeLayer.MetaOverlays.AltitudeFor()));
                 var rot2 = rot;
-                if ((def.rotatable || def.graphic is Graphic_Multi) && (!def.graphicData?.Linked ?? true) && (def.graphicData?.drawRotated ?? true))
+                if ((def.rotatable || def.graphic is Graphic_Multi || def.size.x != def.size.z) && (!def.graphicData?.Linked ?? true) && (def.graphicData?.drawRotated ?? true))
                 {
                     var fullRot = vehicle.FullRotation;
                     rot.AsInt += fullRot.RotForVehicleDraw().AsInt;

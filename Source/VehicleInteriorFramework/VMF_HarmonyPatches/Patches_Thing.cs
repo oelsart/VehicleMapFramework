@@ -2,6 +2,7 @@
 using RimWorld;
 using RimWorld.Planet;
 using SmashTools;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
@@ -282,6 +283,47 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             codes.Insert(pos, CodeInstruction.LoadLocal(0));
             return codes.MethodReplacer(MethodInfoCache.g_Find_CurrentMap, MethodInfoCache.g_VehicleMapUtility_CurrentMap)
                 .MethodReplacer(MethodInfoCache.m_GenDraw_DrawFieldEdges, MethodInfoCache.m_GenDrawOnVehicle_DrawFieldEdges);
+        }
+    }
+
+    //マップ外からPawnFlyerが飛んでくることが起こりうるので(MeleeAnimationのLassoなど)領域外の時はPositionのセットをスキップする
+    [HarmonyPatch(typeof(PawnFlyer), "RecomputePosition")]
+    public static class Patch_PawnFlyer_RecomputePosition
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+        {
+            var codes = instructions.ToList();
+            var s_Position = AccessTools.PropertySetter(typeof(Thing), nameof(Thing.Position));
+            var pos = codes.FindLastIndex(c => c.opcode == OpCodes.Call && c.OperandIs(s_Position));
+
+            var label = generator.DefineLabel();
+            var m_InBounds = AccessTools.Method(typeof(GenGrid), nameof(GenGrid.InBounds), new Type[] { typeof(IntVec3), typeof(Map) });
+
+            codes[pos].labels.Add(label);
+            codes.InsertRange(pos, new[]
+            {
+                new CodeInstruction(OpCodes.Dup),
+                CodeInstruction.LoadArgument(0),
+                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Thing_Map),
+                new CodeInstruction(OpCodes.Call, m_InBounds),
+                new CodeInstruction(OpCodes.Brtrue_S, label),
+                new CodeInstruction(OpCodes.Pop),
+                new CodeInstruction(OpCodes.Pop),
+                new CodeInstruction(OpCodes.Ret)
+            });
+            return codes;
+        }
+    }
+
+    [HarmonyPatch(typeof(PawnFlyer), nameof(PawnFlyer.DestinationPos), MethodType.Getter)]
+    public static class Patch_PawnFlyer_DestinationPos
+    {
+        public static void Postfix(PawnFlyer __instance, ref Vector3 __result)
+        {
+            if (__instance.Map.IsNonFocusedVehicleMapOf(out var vehicle))
+            {
+                __result = __result.ToBaseMapCoord(vehicle);
+            }
         }
     }
 }

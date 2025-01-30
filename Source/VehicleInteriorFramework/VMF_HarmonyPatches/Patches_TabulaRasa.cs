@@ -4,10 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
 using UnityEngine;
-using VehicleInteriors.VMF_HarmonyPatches;
 using Verse;
 
-namespace VehicleInteriors.VIF_HarmonyPatches
+namespace VehicleInteriors.VMF_HarmonyPatches.TR
 {
     [StaticConstructorOnStartup]
     public static class Patches_TabulaRasa

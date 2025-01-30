@@ -181,6 +181,13 @@ namespace VehicleInteriors
             return drawPos.WithYOffset(VehicleMapUtility.altitudeOffset);
         }
 
+        public static Matrix4x4 ToBaseMapCoord(this Matrix4x4 matrix, VehiclePawnWithMap vehicle)
+        {
+            var rootPos = matrix.Position();
+            matrix.SetColumn(3, rootPos.ToBaseMapCoord(vehicle).WithY(rootPos.y));
+            return matrix;
+        }
+
         public static IntVec3 ToBaseMapCoord(this IntVec3 original, VehiclePawnWithMap vehicle)
         {
             return original.ToVector3Shifted().ToBaseMapCoord(vehicle).ToIntVec3();
@@ -767,7 +774,7 @@ namespace VehicleInteriors
         public static bool ShouldRotatedOnVehicle(this ThingDef tDef)
         {
             return tDef.fillPercent > 0.25f || tDef.Size != IntVec2.One || (!(tDef.graphic is Graphic_Single) && !(tDef.graphic is Graphic_Collection)) ||
-                tDef.hasInteractionCell || tDef.drawerType == DrawerType.MapMeshOnly;
+                tDef.hasInteractionCell || tDef.drawerType == DrawerType.MapMeshOnly || tDef.size.x != tDef.size.z;
         }
 
         public static List<Thing> GetThingListAcrossMaps(this IntVec3 c, Map map)

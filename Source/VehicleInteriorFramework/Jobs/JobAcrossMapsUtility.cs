@@ -47,9 +47,15 @@ namespace VehicleInteriors
             return job;
         }
 
+        public static Job NextJobOfGotoDestmapJob(Pawn pawn)
+        {
+            var driver = pawn.jobs.curDriver as JobDriver_GotoDestMap;
+            return driver?.nextJob;
+        }
+        
         public static bool PawnDeterminingJob(this Pawn pawn)
         {
-            return pawn.jobs.DeterminingNextJob || FloatMenuMakerMap.makingFor == pawn || Find.Selector.SingleSelectedObject == pawn;
+            return pawn.jobs.DeterminingNextJob || FloatMenuMakerMap.makingFor == pawn;
         }
     }
 }

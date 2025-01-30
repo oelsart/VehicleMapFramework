@@ -9,7 +9,7 @@ namespace VehicleInteriors
         public static bool LineOfSight(IntVec3 start, IntVec3 end, Map map, bool skipFirstCell = false, Func<IntVec3, bool> validator = null, int halfXOffset = 0, int halfZOffset = 0)
         {
             bool flag;
-            if (map.IsVehicleMapOf(out var vehicle))
+            if (map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
             {
                 start = start.ToBaseMapCoord(vehicle);
                 end  = end.ToBaseMapCoord(vehicle);
@@ -96,7 +96,7 @@ namespace VehicleInteriors
         }
 
         //いまのところTargetMeetsRequirementsにしか使ってないので、skipFirstCellを強制trueに（タレットのセルにFilledVehicleStructureがある可能性もあるので）
-        public static bool LineOfSightToThing(IntVec3 start, Thing t, Map map, bool skipFirstCell = false, Func<IntVec3, bool> validator = null)
+        public static bool LineOfSightToThingVehicle(IntVec3 start, Thing t, Map map, bool skipFirstCell = false, Func<IntVec3, bool> validator = null)
         {
             if (t.def.size == IntVec2.One)
             {
@@ -114,6 +114,30 @@ namespace VehicleInteriors
             return false;
         }
 
+        public static bool LineOfSightToThing(IntVec3 start, Thing t, Map map, bool skipFirstCell = false, Func<IntVec3, bool> validator = null)
+        {
+            var flag = false;
+            if (map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
+            {
+                start = start.ToBaseMapCoord(vehicle);
+                map = vehicle.Map;
+                flag = true;
+            }
+            if (t.def.size == IntVec2.One)
+            {
+                return GenSightOnVehicle.LineOfSight(start, t.PositionOnBaseMap(), map, skipFirstCell, validator);
+            }
+            foreach (IntVec3 end in t.OccupiedRect())
+            {
+                var end2 = flag ? end.ToBaseMapCoord(vehicle) : end;
+                if (GenSightOnVehicle.LineOfSight(start, end2, map, skipFirstCell, validator))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         public static bool LineOfSight(IntVec3 start, IntVec3 end, Map map)
         {
             return GenSightOnVehicle.LineOfSight(start, end, map, CellRect.SingleCell(start), CellRect.SingleCell(end), null);
@@ -122,7 +146,7 @@ namespace VehicleInteriors
         public static bool LineOfSight(IntVec3 start, IntVec3 end, Map map, CellRect startRect, CellRect endRect, Func<IntVec3, bool> validator = null)
         {
             bool flag;
-            if (map.IsVehicleMapOf(out var vehicle))
+            if (map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
             {
                 start = start.ToBaseMapCoord(vehicle);
                 map = vehicle.Map;

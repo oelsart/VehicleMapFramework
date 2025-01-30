@@ -3,10 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
-using VehicleInteriors.VMF_HarmonyPatches;
 using Verse;
 
-namespace VehicleInteriors.VIF_HarmonyPatches
+namespace VehicleInteriors.VMF_HarmonyPatches
 {
     [StaticConstructorOnStartup]
     public static class Patches_Vivi
