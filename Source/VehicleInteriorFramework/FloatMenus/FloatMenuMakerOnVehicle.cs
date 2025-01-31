@@ -6,7 +6,6 @@ using SmashTools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.Jobs;
 using UnityEngine;
 using VehicleInteriors.Jobs.WorkGivers;
 using Vehicles;
@@ -187,7 +186,7 @@ namespace VehicleInteriors
                 }
                 Action action = delegate ()
                 {
-                    var cell = ReachabilityUtilityOnVehicle.BestOrderedGotoDestNear(curLoc, pawn, (IntVec3 c) => c.InBounds(map), map);
+                    var cell = ReachabilityUtilityOnVehicle.BestOrderedGotoDestNear(curLoc, pawn, (IntVec3 c) => c.InBounds(map), map, out dest1, out dest2);
                     FloatMenuMakerOnVehicle.PawnGotoAction(clickCell, pawn, map, dest1, dest2, cell);
                 };
                 return new FloatMenuOption("GoHere".Translate(), action, MenuOptionPriority.GoHere, null, null, 0f, null, null, true, 0)
@@ -2264,7 +2263,7 @@ namespace VehicleInteriors
 					thing9 = compSelectProxy.thingToSelect;
 				}
 				foreach (FloatMenuOption item8 in thing9.GetFloatMenuOptions(pawn))
-				{
+                {
                     FloatMenuMakerOnVehicle.cachedThings.Add(thing8);
 					opts.Add(item8);
 				}
@@ -2284,11 +2283,15 @@ namespace VehicleInteriors
 
             if (ModsConfig.IsActive("co.uk.epicguru.meleeanimation"))
             {
+                if (GenerateAMMenuOptions == null)
+                {
+                    GenerateAMMenuOptions = MethodInvoker.GetHandler(AccessTools.Method("AM.UI.DraftedFloatMenuOptionsUI:GenerateMenuOptions"));
+                }
                 opts.AddRange((IEnumerable<FloatMenuOption>)GenerateAMMenuOptions(null, clickPos, pawn));
             }
 		}
 
-        private static FastInvokeHandler GenerateAMMenuOptions = MethodInvoker.GetHandler(AccessTools.Method("AM.UI.DraftedFloatMenuOptionsUI:GenerateMenuOptions"));
+        private static FastInvokeHandler GenerateAMMenuOptions;
 
         private static void AddMutantOrders(Vector3 clickPos, Pawn pawn, List<FloatMenuOption> opts)
         {
@@ -2404,6 +2407,7 @@ namespace VehicleInteriors
                 clickCell = IntVec3.FromVector3(clickPos);
                 map = pawn.BaseMap();
             }
+            if (!clickCell.InBounds(map)) return;
             var targetParms = new TargetingParameters()
             {
                 canTargetSelf = true,

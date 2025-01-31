@@ -36,6 +36,18 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     [HarmonyPatch(typeof(MechanitorUtility), nameof(MechanitorUtility.InMechanitorCommandRange))]
     public static class Patch_MechanitorUtility_InMechanitorCommandRange
     {
+        public static void Prefix(Pawn mech, ref LocalTargetInfo target)
+        {
+            if (Patch_MultiPawnGotoController_RecomputeDestinations.tmpEnterSpots.TryGetValue((mech, target.Cell), out var spots))
+            {
+                var destMap = spots.enterSpot.Map ?? spots.exitSpot.Map.BaseMap() ?? mech.MapHeld;
+                if (destMap.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
+                {
+                    target = target.Cell.ToBaseMapCoord(vehicle);
+                }
+            }
+        }
+
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             return instructions.MethodReplacer(MethodInfoCache.g_Thing_MapHeld, MethodInfoCache.m_MapHeldBaseMap);

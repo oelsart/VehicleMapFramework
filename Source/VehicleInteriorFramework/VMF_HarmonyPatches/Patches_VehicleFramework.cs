@@ -606,4 +606,19 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             return true;
         }
     }
+
+    //VehicleMap上を右クリックしている時は複数ポーンのVehicle乗り込みフロートメニューをオフにする
+    [HarmonyPatch(typeof(SelectionHelper), nameof(SelectionHelper.MultiSelectClicker))]
+    public static class Patch_SelectionHelper_MultiSelectClicker
+    {
+        public static bool Prefix(ref bool __result)
+        {
+            if (UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out _))
+            {
+                __result = false;
+                return false;
+            }
+            return true;
+        }
+    }
 }

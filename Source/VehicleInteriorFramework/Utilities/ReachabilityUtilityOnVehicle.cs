@@ -210,7 +210,7 @@ namespace VehicleInteriors
         public static bool CanReach(Pawn pawn, LocalTargetInfo dest3, PathEndMode peMode, Danger maxDanger, bool canBashDoors, bool canBashFences, TraverseMode mode)
         {
             var traverseParms = TraverseParms.For(pawn, maxDanger, mode, canBashDoors, false, canBashFences);
-            var destMap = dest3.HasThing ? dest3.Thing.MapHeld : pawn.BaseMap();
+            var destMap = ReachabilityUtilityOnVehicle.tmpDestMap ?? (dest3.HasThing ? dest3.Thing.MapHeld : pawn.BaseMap());
             return pawn.Spawned && ReachabilityUtilityOnVehicle.CanReach(pawn.Map, pawn.Position, dest3, peMode, traverseParms, destMap, out _, out _);
         }
 
@@ -224,9 +224,11 @@ namespace VehicleInteriors
         public static bool CanReachReplaceable(this Reachability reachability, IntVec3 start, LocalTargetInfo dest, PathEndMode peMode, TraverseParms traverseParms)
         {
             var departMap = ReachabilityUtilityOnVehicle.tmpDepartMap;
-            var destMap = dest.HasThing ? dest.Thing.MapHeld : map(reachability);
+            var destMap = ReachabilityUtilityOnVehicle.tmpDestMap ?? (dest.HasThing ? dest.Thing.MapHeld : map(reachability));
             return ReachabilityUtilityOnVehicle.CanReach(departMap, start, dest, peMode, traverseParms, destMap, out _, out _);
         }
+
+        public static Map tmpDestMap;
 
         public static Map tmpDepartMap;
 
@@ -255,9 +257,11 @@ namespace VehicleInteriors
             return CellFinder.StandableCellNear(root, baseMap, radius, validator);
         }
 
-        public static IntVec3 BestOrderedGotoDestNear(IntVec3 root, Pawn searcher, Predicate<IntVec3> cellValidator, Map map)
+        public static IntVec3 BestOrderedGotoDestNear(IntVec3 root, Pawn searcher, Predicate<IntVec3> cellValidator, Map map, out TargetInfo exitSpot, out TargetInfo enterSpot)
         {
-            if (ReachabilityUtilityOnVehicle.IsGoodDest(root, searcher, cellValidator, map))
+            exitSpot = TargetInfo.Invalid;
+            enterSpot = TargetInfo.Invalid;
+            if (ReachabilityUtilityOnVehicle.IsGoodDest(root, searcher, cellValidator, map, out exitSpot, out enterSpot))
             {
                 return root;
             }
@@ -269,7 +273,7 @@ namespace VehicleInteriors
             do
             {
                 IntVec3 intVec = root + GenRadial.RadialPattern[num];
-                if (ReachabilityUtilityOnVehicle.IsGoodDest(intVec, searcher, cellValidator, map))
+                if (ReachabilityUtilityOnVehicle.IsGoodDest(intVec, searcher, cellValidator, map, out exitSpot, out enterSpot))
                 {
                     float num4 = CoverUtility.TotalSurroundingCoverScore(intVec, map);
                     if (num4 > num2)
@@ -289,14 +293,16 @@ namespace VehicleInteriors
             return searcher.Position;
         }
 
-        public static bool IsGoodDest(IntVec3 c, Pawn searcher, Predicate<IntVec3> cellValidator, Map map)
+        public static bool IsGoodDest(IntVec3 c, Pawn searcher, Predicate<IntVec3> cellValidator, Map map, out TargetInfo exitSpot, out TargetInfo enterSpot)
 		{
+            exitSpot = TargetInfo.Invalid;
+            enterSpot = TargetInfo.Invalid;
 			if (cellValidator != null && !cellValidator(c))
 			{
 				return false;
 			}
 
-            if (!map.pawnDestinationReservationManager.CanReserve(c, searcher, true) || !searcher.CanReach(c, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, map, out _, out _))
+            if (!map.pawnDestinationReservationManager.CanReserve(c, searcher, true) || !searcher.CanReach(c, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, map, out exitSpot, out enterSpot))
 			{
 				return false;
 			}

@@ -1,19 +1,14 @@
 ﻿using HarmonyLib;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
-using VehicleInteriors.VMF_HarmonyPatches;
 using Verse;
 
-namespace VehicleInteriors.VIF_HarmonyPatches
+namespace VehicleInteriors.VMF_HarmonyPatches
 {
     [StaticConstructorOnStartup]
-    public static class Patches_VEF
+    public static class Patches_AdaptiveStorage
     {
-        static Patches_VEF()
+        static Patches_AdaptiveStorage()
         {
             if (ModsConfig.IsActive("adaptive.storage.framework"))
             {

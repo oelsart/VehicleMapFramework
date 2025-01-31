@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
-using VehicleInteriors.VMF_HarmonyPatches;
 using Verse;
 
 namespace VehicleInteriors.VMF_HarmonyPatches

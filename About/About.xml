@@ -5,7 +5,7 @@
 	<author>OELS</author>
 	<description>
 	</description>
-	<modVersion>ver.0.8.0-beta</modVersion>
+	<modVersion IgnoreIfNoMatchingField="True">ver.0.8.0-beta</modVersion>
 	<url>https://github.com/oelsart/VehicleMapFramework</url>
 
 	<supportedVersions>

@@ -2,27 +2,12 @@
 using RimWorld;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
 using Verse;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
 {
-    //[HarmonyPatch]
-    //public static class Patch_Selector_SelectableObjectsUnderMouse_MoveNext
-    //{
-    //    private static MethodInfo TargetMethod()
-    //    {
-    //        return AccessTools.InnerTypes(typeof(Selector)).Where(t => t.Name.Contains("SelectableObjectsUnderMouse")).SelectMany(t => t.GetMethods(AccessTools.all)).First(m => m.Name == "MoveNext");
-    //    }
-
-    //    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    //    {
-    //        return instructions.MethodReplacer(MethodInfoCache.m_UI_MouseCell, MethodInfoCache.m_Stub_MouseCell);
-    //    }
-    //}
-
     //車上オブジェクトを選択
     [HarmonyPatch(typeof(Selector), "SelectableObjectsUnderMouse")]
     public static class Patch_Selector_SelectableObjectsUnderMouse

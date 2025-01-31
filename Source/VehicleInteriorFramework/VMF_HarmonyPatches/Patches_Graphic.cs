@@ -326,7 +326,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             var corpse = ___pawn.Corpse;
             if (corpse != null && corpse.IsOnNonFocusedVehicleMapOf(out var vehicle))
             {
-                __result.y += vehicle.DrawPos.y;
+                corpse.TryGetOnVehicleDrawPos(ref __result);
             }
             else if (___pawn.ParentHolder is VehicleHandlerBuildable)
             {

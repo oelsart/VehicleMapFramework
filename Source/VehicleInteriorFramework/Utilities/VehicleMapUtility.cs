@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using UnityEngine;
+using VehicleInteriors.VMF_HarmonyPatches;
 using Vehicles;
 using Verse;
 using Verse.AI.Group;
