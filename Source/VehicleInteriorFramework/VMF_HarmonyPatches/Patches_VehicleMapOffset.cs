@@ -264,7 +264,11 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 if (targ.Cell.IsValid)
                 {
                     var driver = pawn.jobs.AllJobs()?.First().GetCachedDriver(pawn);
-                    if (driver is JobDriverAcrossMaps driverAcrossMaps)
+                    if (GenUIOnVehicle.TargetMap != null && pawn.stances.curStance is Stance_Busy)
+                    {
+                        return targ.Cell.ToVector3Shifted().ToBaseMapCoord(GenUIOnVehicle.TargetMap);
+                    }
+                    else if (driver is JobDriverAcrossMaps driverAcrossMaps)
                     {
                         var destMap = driverAcrossMaps.DestMap;
                         if (destMap.IsNonFocusedVehicleMapOf(out var vehicle))
@@ -272,12 +276,9 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                             return targ.Cell.ToVector3Shifted().ToBaseMapCoord(vehicle);
                         }
                     }
-                    else
+                    else if (pawn.IsOnNonFocusedVehicleMapOf(out var vehicle) && !(pawn.stances.curStance is Stance_Busy busy && (busy.verb is Verb_Jump || busy.verb is Verb_CastAbilityJump)))
                     {
-                        if (pawn.IsOnNonFocusedVehicleMapOf(out var vehicle))
-                        {
-                            return targ.Cell.ToVector3Shifted().ToBaseMapCoord(vehicle);
-                        }
+                        return targ.Cell.ToVector3Shifted().ToBaseMapCoord(vehicle);
                     }
                     return targ.Cell.ToVector3Shifted();
                 }

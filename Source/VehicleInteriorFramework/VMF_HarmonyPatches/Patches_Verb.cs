@@ -1,8 +1,13 @@
 ﻿using HarmonyLib;
+using RimWorld;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Emit;
+using UnityEngine;
+using Vehicles;
 using Verse;
+using Verse.AI;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
 {
@@ -220,6 +225,196 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing)
                 .MethodReplacer(MethodInfoCache.m_GenSight_LineOfSight2, MethodInfoCache.m_GenSightOnVehicle_LineOfSight2)
                 .MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap);
+        }
+    }
+
+    [HarmonyPatch(typeof(JumpUtility), nameof(JumpUtility.CanHitTargetFrom))]
+    public static class Patch_JumpUtility_CanHitTargetFrom
+    {
+        public static void Prefix(ref LocalTargetInfo targ)
+        {
+            if (GenUIOnVehicle.TargetMap != null)
+            {
+                targ = targ.Cell.ToBaseMapCoord(GenUIOnVehicle.TargetMap);
+            }
+        }
+
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing)
+                .MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap)
+                .MethodReplacer(MethodInfoCache.m_GenSight_LineOfSight1, MethodInfoCache.m_GenSightOnVehicle_LineOfSight1);
+        }
+    }
+
+    [HarmonyPatch(typeof(JumpUtility), nameof(JumpUtility.OrderJump))]
+    public static class Patch_JumpUtility_OrderJump
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, m_TargetMap)
+                .MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap);
+        }
+
+        public static Map TargetMap(Pawn pawn)
+        {
+            return GenUIOnVehicle.TargetMap ?? Find.CurrentMap;
+        }
+
+        public static MethodInfo m_TargetMap = AccessTools.Method(typeof(Patch_JumpUtility_OrderJump), nameof(TargetMap));
+    }
+
+    [HarmonyPatch]
+    public static class Patch_JumpUtility_OrderJump_Delegate
+    {
+        public static MethodBase TargetMethod()
+        {
+            return AccessTools.FindIncludingInnerTypes<MethodBase>(typeof(JumpUtility), t => t.GetMethods(AccessTools.all).FirstOrDefault(m => m.Name.Contains("<OrderJump>")));
+        }
+
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap);
+        }
+    }
+
+    [HarmonyPatch(typeof(JumpUtility), nameof(JumpUtility.DoJump))]
+    public static class Patch_JumpUtility_DoJump
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, Patch_JumpUtility_OrderJump.m_TargetMap);
+        }
+    }
+
+    [HarmonyPatch(typeof(JobDriver_CastJump), nameof(JobDriver_CastJump.TryMakePreToilReservations))]
+    public static class Patch_JobDriver_CastJump_TryMakePreToilReservations
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, Patch_JumpUtility_OrderJump.m_TargetMap);
+        }
+    }
+
+    [HarmonyPatch(typeof(PawnFlyer), nameof(PawnFlyer.SpawnSetup))]
+    public static class Patch_PawnFlyer_SpawnSetup
+    {
+        public static void Prefix(Vector3 ___startVec, IntVec3 ___destCell, ref float ___flightDistance)
+        {
+            var cell = GenUIOnVehicle.TargetMap != null ? ___destCell.ToBaseMapCoord(GenUIOnVehicle.TargetMap) : ___destCell;
+            ___flightDistance = cell.DistanceTo(___startVec.ToIntVec3());
+        }
+    }
+
+    [HarmonyPatch(typeof(Verb_Jump), nameof(Verb_Jump.DrawHighlight))]
+    public static class Patch_Verb_Jump_DrawHighlight
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var m_CenterVector3 = AccessTools.PropertyGetter(typeof(LocalTargetInfo), nameof(LocalTargetInfo.CenterVector3));
+            var m_CenterVector3Offset = AccessTools.Method(typeof(Patch_Verb_Jump_DrawHighlight), nameof(CenterVector3Offset));
+            return instructions.MethodReplacer(m_CenterVector3, m_CenterVector3Offset)
+                .MethodReplacer(MethodInfoCache.g_Thing_Map, Patch_JumpUtility_OrderJump.m_TargetMap);
+        }
+
+        public static Vector3 CenterVector3Offset(ref LocalTargetInfo target)
+        {
+            var thing = target.Thing;
+            if (thing != null)
+            {
+                if (thing.Spawned)
+                {
+                    return thing.DrawPos;
+                }
+                if (thing.SpawnedOrAnyParentSpawned)
+                {
+                    if (GenUIOnVehicle.TargetMap != null)
+                    {
+                        return thing.PositionHeld.ToVector3Shifted().ToBaseMapCoord(GenUIOnVehicle.TargetMap);
+                    }
+                    else
+                    {
+                        return thing.PositionHeld.ToVector3Shifted();
+                    }
+                }
+                if (GenUIOnVehicle.TargetMap != null)
+                {
+                    return thing.Position.ToVector3Shifted().ToBaseMapCoord(GenUIOnVehicle.TargetMap);
+                }
+                else
+                {
+                    return thing.Position.ToVector3Shifted();
+                }
+            }
+            else
+            {
+                var cell = target.Cell;
+                if (cell.IsValid)
+                {
+                    if (GenUIOnVehicle.TargetMap != null)
+                    {
+                        return cell.ToVector3Shifted().ToBaseMapCoord(GenUIOnVehicle.TargetMap);
+                    }
+                    else
+                    {
+                        return cell.ToVector3Shifted();
+                    }
+                }
+                return default(Vector3);
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(Verb_CastAbilityJump), nameof(Verb_CastAbilityJump.DrawHighlight))]
+    public static class Patch_Verb_CastAbilityJump_DrawHighlight
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) => Patch_Verb_Jump_DrawHighlight.Transpiler(instructions);
+    }
+
+    [HarmonyPatch(typeof(Verb_Jump), nameof(Verb_Jump.OnGUI))]
+    public static class Patch_Verb_Jump_OnGUI
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, Patch_JumpUtility_OrderJump.m_TargetMap);
+        }
+    }
+
+    [HarmonyPatch(typeof(Verb_CastAbilityJump), nameof(Verb_CastAbilityJump.OnGUI))]
+    public static class Patch_Verb_CastAbilityJump_OnGUI
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) => Patch_Verb_Jump_OnGUI.Transpiler(instructions);
+    }
+
+    [HarmonyPatch(typeof(Verb_Jump), nameof(Verb_Jump.ValidateTarget))]
+    public static class Patch_Verb_Jump_ValidateTarget
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, Patch_JumpUtility_OrderJump.m_TargetMap);
+        }
+    }
+
+    [HarmonyPatch(typeof(Verb_CastAbilityJump), nameof(Verb_CastAbilityJump.ValidateTarget))]
+    public static class Patch_Verb_CastAbilityJump_ValidateTarget
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) => Patch_Verb_Jump_ValidateTarget.Transpiler(instructions);
+    }
+
+    [HarmonyPatch]
+    public static class Patch_Verb_Jump_DrawHighlight_Delegate
+    {
+        private static IEnumerable<MethodBase> TargetMethods()
+        {
+            yield return typeof(Verb_Jump).GetMethods(AccessTools.all).FirstOrDefault(m => m.Name.Contains("<DrawHighlight>"));
+            yield return typeof(Verb_CastAbilityJump).GetMethods(AccessTools.all).FirstOrDefault(m => m.Name.Contains("<DrawHighlight>"));
+        }
+
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap)
+                .MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing)
+                .MethodReplacer(MethodInfoCache.m_GenSight_LineOfSight1, MethodInfoCache.m_GenSightOnVehicle_LineOfSight1);
         }
     }
 }

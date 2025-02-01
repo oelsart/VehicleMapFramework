@@ -115,6 +115,15 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
+    [HarmonyPatch(typeof(Selector), nameof(Selector.Deselect))]
+    public static class Patch_Selector_Deselect
+    {
+        public static void Postfix()
+        {
+            GenUIOnVehicle.TargetMap = null;
+        }
+    }
+
     [HarmonyPatch(typeof(CameraJumper), "TryJumpInternal", typeof(IntVec3), typeof(Map), typeof(CameraJumper.MovementMode))]
     public static class Patch_CameraJumper_TryJumpInternal
     {

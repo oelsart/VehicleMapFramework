@@ -128,15 +128,24 @@ namespace VehicleInteriors
         public static IEnumerable<LocalTargetInfo> TargetsAtMouse(TargetingParameters clickParams, bool thingsOnly = false, ITargetingSource source = null)
         {
             var clickPos = UI.MouseMapPosition();
+            TargetMap = null;
             bool convToVehicleMap;
             if (!(convToVehicleMap = Find.CurrentMap.IsVehicleMapOf(out var vehicle)))
             {
-                clickPos.TryGetVehicleMap(Find.CurrentMap, out vehicle, false);
+                if (clickPos.TryGetVehicleMap(Find.CurrentMap, out vehicle, false))
+                {
+                    if (source is Verb_Jump || source is Verb_CastAbilityJump)
+                    {
+                        convToVehicleMap = true;
+                        TargetMap = vehicle.VehicleMap;
+                    }
+                }
             }
-            convToVehicleMap = convToVehicleMap || source is Verb_Jump || source is Verb_CastAbilityJump;
             var list = GenUIOnVehicle.TargetsAt(clickPos, clickParams, thingsOnly, source, vehicle, convToVehicleMap).ToArray();
             return list;
         }
+
+        public static Map TargetMap;
 
         public static IEnumerable<LocalTargetInfo> TargetsAt(Vector3 clickPos, TargetingParameters clickParams, bool thingsOnly, ITargetingSource source, bool convToVehicleMap = true)
         {

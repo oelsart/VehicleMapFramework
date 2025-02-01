@@ -361,6 +361,14 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     [HarmonyPatch(typeof(GenDraw), nameof(GenDraw.DrawAimPie))]
     public static class Patch_GenDraw_DrawAimPie
     {
+        public static void Prefix(ref LocalTargetInfo target)
+        {
+            if (!target.HasThing && GenUIOnVehicle.TargetMap != null)
+            {
+                target = target.Cell.ToBaseMapCoord(GenUIOnVehicle.TargetMap);
+            }
+        }
+
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             return instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap)

@@ -326,5 +326,17 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             }
         }
     }
+
+    [HarmonyPatch(typeof(GenSpawn), nameof(GenSpawn.Spawn), typeof(Thing), typeof(IntVec3), typeof(Map), typeof(Rot4), typeof(WipeMode), typeof(bool), typeof(bool))]
+    public static class Patch_GenSpawn_Spawn
+    {
+        public static void Prefix(Thing newThing, ref Map map)
+        {
+            if (newThing is Projectile)
+            {
+                map = map.BaseMap();
+            }
+        }
+    }
 }
 

@@ -224,11 +224,20 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     }
 
     //行き先がVehicleMap上にあると登録されているかsearcherがVehicleMap上に居る時はBestOrderedGotoDestNearを置き換え
+    //ジャンプ時のTargetVehicleも考慮にいれるよう変更
     [HarmonyPatch(typeof(RCellFinder), nameof(RCellFinder.BestOrderedGotoDestNear))]
     public static class Patch_RCellFinder_BestOrderedGotoDestNear
     {
         public static bool Prefix(IntVec3 root, Pawn searcher, Predicate<IntVec3> cellValidator, ref IntVec3 __result)
         {
+            if (GenUIOnVehicle.TargetMap != null)
+            {
+                __result = ReachabilityUtilityOnVehicle.BestOrderedGotoDestNear(root, searcher, cellValidator, GenUIOnVehicle.TargetMap, out _, out _);
+                if (__result.IsValid)
+                {
+                    return false;
+                }
+            }
             if (root.ToVector3Shifted().TryGetVehicleMap(Find.CurrentMap, out var vehicle) || searcher.IsOnNonFocusedVehicleMapOf(out _))
             {
                 var dest = vehicle != null ? root.ToVehicleMapCoord(vehicle) : root;
@@ -241,8 +250,8 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                     out var enterSpot);
                 if (__result.IsValid)
                 {
-                Patch_MultiPawnGotoController_RecomputeDestinations.tmpEnterSpots[(searcher, __result)] = (exitSpot, enterSpot);
-                return false;
+                    Patch_MultiPawnGotoController_RecomputeDestinations.tmpEnterSpots[(searcher, __result)] = (exitSpot, enterSpot);
+                    return false;
                 }
             }
             return true;

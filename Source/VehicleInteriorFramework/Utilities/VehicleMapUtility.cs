@@ -152,6 +152,16 @@ namespace VehicleInteriors
             }
             return original;
         }
+
+        public static Vector3 ToBaseMapCoord(this Vector3 original, Map map)
+        {
+            if (map.IsVehicleMapOf(out var vehicle))
+            {
+                return VehicleMapUtility.ToBaseMapCoord(original, vehicle);
+            }
+            return original;
+        }
+
         public static Vector3 ToBaseMapCoord(this Vector3 original, VehiclePawnWithMap vehicle)
         {
             var vehiclePos = vehicle.DrawPos;
@@ -193,6 +203,12 @@ namespace VehicleInteriors
         {
             return original.ToVector3Shifted().ToBaseMapCoord(vehicle).ToIntVec3();
         }
+
+        public static IntVec3 ToBaseMapCoord(this IntVec3 original, Map map)
+        {
+            return original.ToVector3Shifted().ToBaseMapCoord(map).ToIntVec3();
+        }
+
         public static Vector3 ToBaseMapCoord(this IntVec3 original, VehiclePawnWithMap vehicle, Rot8 rot)
         {
             return original.ToVector3Shifted().ToBaseMapCoord(vehicle, rot);
