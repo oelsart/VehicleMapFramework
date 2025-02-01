@@ -208,10 +208,6 @@ namespace VehicleInteriors
         public override string GetInspectString()
         {
             var str = base.GetInspectString();
-            //if (Find.TickManager.TicksGame % 250 == 0)
-            //{
-            //    this.statHandler.MarkStatDirty(VMF_DefOf.MaximumPayload);
-            //}
             var stat = this.GetStatValue(VMF_DefOf.MaximumPayload);
 
             str += $"\n{VMF_DefOf.MaximumPayload.LabelCap}:" +
@@ -286,7 +282,7 @@ namespace VehicleInteriors
                     {
                         for (int j = 0; j < map.Size.z; j += 17)
                         {
-                            map.mapDrawer.MapMeshDirty(new IntVec3(i, 0, j), MapMeshFlagDefOf.PowerGrid);
+                            map.mapDrawer?.MapMeshDirty(new IntVec3(i, 0, j), MapMeshFlagDefOf.PowerGrid);
                         }
                     }
                 }
@@ -395,7 +391,7 @@ namespace VehicleInteriors
             VehiclePawnWithMapCache.cachedDrawPos[this] = drawLoc;
             base.DrawAt(drawLoc, rot, extraRotation, flip, compDraw);
 
-            if (base.vehiclePather.Moving)
+            if (base.vehiclePather?.Moving ?? false)
             {
                 this.CellDesignationsDirty();
             }
@@ -550,17 +546,18 @@ namespace VehicleInteriors
             if (!this.Spawned)
             {
                 this.CompVehicleTurrets?.InitTurrets();
-                if (!UnityData.IsInMainThread)
+                if (UnityData.IsInMainThread)
                 {
-                    LongEventHandler.ExecuteWhenFinished(delegate
-                    {
-                        base.graphicOverlay.Init();
-                    });
+                    this.graphicOverlay.Init();
                 }
                 else
                 {
-                    base.graphicOverlay.Init();
+                    LongEventHandler.ExecuteWhenFinished(() =>
+                    {
+                        this.graphicOverlay.Init();
+                    });
                 }
+                base.ResetRenderStatus();
             }
         }
 

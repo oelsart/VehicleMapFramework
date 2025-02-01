@@ -80,7 +80,10 @@ namespace VehicleInteriors
                 }
                 else
                 {
-                    pawnBoarding.DeSpawn();
+                    if (pawnBoarding.Spawned)
+                    {
+                        pawnBoarding.DeSpawn();
+                    }
                     var caravan = vehiclePawn.GetCaravan() ?? vehiclePawn.GetVehicleCaravan();
                     caravan?.AddPawn(pawnBoarding, true);
                     Find.WorldPawns.PassToWorld(pawnBoarding, PawnDiscardDecideMode.Decide);
@@ -89,6 +92,11 @@ namespace VehicleInteriors
                         pawnBoarding.SetFaction(vehiclePawn.Faction);
                     }
                     vehicleAssigned.Item1.Notify_BoardedCaravan(pawnBoarding, vehicleAssigned.Item2.handlers);
+                    var bill = vehicleAssigned.Item1.bills.FirstOrDefault(b => b.pawnToBoard == pawnBoarding);
+                    if (bill != null)
+                    {
+                        vehicleAssigned.Item1.bills.Remove(bill);
+                    }
                 }
                 this.ThrowAppropriateHistoryEvent(vehiclePawn.VehicleDef.vehicleType, toil.actor);
             };

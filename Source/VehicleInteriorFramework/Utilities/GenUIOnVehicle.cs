@@ -1,6 +1,7 @@
 ﻿using RimWorld;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Tracing;
 using System.Linq;
 using UnityEngine;
 using Verse;
@@ -132,6 +133,7 @@ namespace VehicleInteriors
             {
                 clickPos.TryGetVehicleMap(Find.CurrentMap, out vehicle, false);
             }
+            convToVehicleMap = convToVehicleMap || source is Verb_Jump || source is Verb_CastAbilityJump;
             var list = GenUIOnVehicle.TargetsAt(clickPos, clickParams, thingsOnly, source, vehicle, convToVehicleMap).ToArray();
             return list;
         }

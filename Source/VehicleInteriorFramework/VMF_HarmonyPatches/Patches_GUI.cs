@@ -64,32 +64,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         //FocusedVehicleがあればそのマップをFind.CurrentMapの代わりに使う
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
         {
-            var map = generator.DeclareLocal(typeof(Map));
-            var codes = instructions.Manipulator(c => c.opcode == OpCodes.Call && c.OperandIs(MethodInfoCache.g_Find_CurrentMap), c =>
-            {
-                c.opcode = OpCodes.Ldloc_S;
-                c.operand = map;
-            }).ToList();
-
-            var label = generator.DefineLabel();
-            var label2 = generator.DefineLabel();
-            var label3 = generator.DefineLabel();
-
-            codes.InsertRange(0, new[]
-            {
-                new CodeInstruction(OpCodes.Call, MethodInfoCache.g_FocusedVehicle),
-                new CodeInstruction(OpCodes.Dup),
-                new CodeInstruction(OpCodes.Brtrue_S, label),
-                new CodeInstruction(OpCodes.Pop),
-                new CodeInstruction(OpCodes.Br_S, label2),
-                new CodeInstruction(OpCodes.Call, MethodInfoCache.g_VehicleMap).WithLabels(label),
-                new CodeInstruction(OpCodes.Dup),
-                new CodeInstruction(OpCodes.Brtrue_S, label3),
-                new CodeInstruction(OpCodes.Pop),
-                new CodeInstruction(OpCodes.Call, MethodInfoCache.g_Find_CurrentMap).WithLabels(label2),
-                new CodeInstruction(OpCodes.Stloc_S, map).WithLabels(label3)
-            });
-            return codes;
+            return instructions.MethodReplacer(MethodInfoCache.g_Find_CurrentMap, MethodInfoCache.g_VehicleMapUtility_CurrentMap);
         }
 
         //FocusedVehicleをもとに戻しておく

@@ -1,5 +1,4 @@
-﻿using SmashTools;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using Vehicles;
@@ -53,27 +52,27 @@ namespace VehicleInteriors
             }
         }
 
-        public override void PostSpawnSetup(bool respawningAfterLoad)
+        private void Init()
         {
-            void Init()
+            var parent = this.Vehicle;
+            foreach (var extraOverlay in this.Props.extraOverlays)
             {
-                var parent = this.Vehicle;
-                foreach (var extraOverlay in this.Props.extraOverlays)
+                if (!this.graphicOverlays.ContainsKey(extraOverlay.key))
                 {
-                    if (!this.graphicOverlays.ContainsKey(extraOverlay.key))
-                    {
-                        var graphicOverlay = GraphicOverlay.Create(extraOverlay.graphicDataOverlay, parent);
-                        this.graphicOverlays[extraOverlay.key] = (graphicOverlay, extraOverlay.label);
-                        parent.graphicOverlay.AddOverlay(extraOverlay.key, graphicOverlay);
+                    var graphicOverlay = GraphicOverlay.Create(extraOverlay.graphicDataOverlay, parent);
+                    this.graphicOverlays[extraOverlay.key] = (graphicOverlay, extraOverlay.label);
+                    parent.graphicOverlay.AddOverlay(extraOverlay.key, graphicOverlay);
 
-                        if (graphicOverlay.Graphic is Graphic_VehicleOpacity graphicOpacity && this.tmpOpacities.ContainsKey(extraOverlay.key))
-                        {
-                            graphicOpacity.Opacity = this.tmpOpacities[extraOverlay.key];
-                        }
+                    if (graphicOverlay.Graphic is Graphic_VehicleOpacity graphicOpacity && this.tmpOpacities.ContainsKey(extraOverlay.key))
+                    {
+                        graphicOpacity.Opacity = this.tmpOpacities[extraOverlay.key];
                     }
                 }
             }
+        }
 
+        public override void PostSpawnSetup(bool respawningAfterLoad)
+        {
             if (!UnityData.IsInMainThread)
             {
                 LongEventHandler.ExecuteWhenFinished(delegate
@@ -87,10 +86,27 @@ namespace VehicleInteriors
             }
         }
 
+        public override void PostLoad()
+        {
+            if (!this.parent.Spawned)
+            {
+                if (!UnityData.IsInMainThread)
+                {
+                    LongEventHandler.ExecuteWhenFinished(delegate
+                    {
+                        Init();
+                    });
+                }
+                else
+                {
+                    Init();
+                }
+            }
+        }
+
         public override void PostExposeData()
         {
             base.PostExposeData();
-            var parent = this.Vehicle;
             if (Scribe.mode == LoadSaveMode.Saving)
             {
                 foreach (var graphicOverlay in this.graphicOverlays)

@@ -466,4 +466,28 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             return codes;
         }
     }
+
+    [HarmonyPatch(typeof(WorldObjectsHolder), nameof(WorldObjectsHolder.MapParentAt))]
+    public static class Patch_WorldObjectsHolder_MapParentAt
+    {
+        public static void Postfix(ref MapParent __result, List<MapParent> ___mapParents, int tile)
+        {
+            if (__result is MapParent_Vehicle)
+            {
+                __result = ___mapParents.FirstOrDefault(p => p.Tile == tile && p.Isnt<MapParent_Vehicle>());
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(Game), nameof(Game.FindMap), typeof(int))]
+    public static class Patch_Game_FindMap
+    {
+        public static void Postfix(ref Map __result, List<Map> ___maps, int tile)
+        {
+            if (__result.IsVehicleMapOf(out _))
+            {
+                __result = ___maps.FirstOrDefault(m => m.Tile == tile && !m.IsVehicleMapOf(out _));
+            }
+        }
+    }
 }

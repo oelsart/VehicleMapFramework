@@ -267,7 +267,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                     if (driver is JobDriverAcrossMaps driverAcrossMaps)
                     {
                         var destMap = driverAcrossMaps.DestMap;
-                        if (destMap.IsVehicleMapOf(out var vehicle) && (Find.CurrentMap != destMap || Find.CurrentMap.IsVehicleMapOf(out _)))
+                        if (destMap.IsNonFocusedVehicleMapOf(out var vehicle))
                         {
                             return targ.Cell.ToVector3Shifted().ToBaseMapCoord(vehicle);
                         }
