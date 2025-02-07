@@ -23,7 +23,7 @@ namespace VehicleInteriors
         {
             try
             {
-                if (!this.adaptiveStorageActive || this.Prefix(t))
+                if (!this.adaptiveStorageActive || this.AllowPrint(t))
                 {
                     t.Print(this);
                 }
@@ -42,7 +42,7 @@ namespace VehicleInteriors
             }
         }
 
-        private bool Prefix(Thing t)
+        private bool AllowPrint(Thing t)
         {
             if (t.def.category == ThingCategory.Item)
             {

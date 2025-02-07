@@ -8,7 +8,7 @@ using Verse;
 
 namespace VehicleInteriors.VMF_HarmonyPatches.TR
 {
-    [StaticConstructorOnStartup]
+    [StaticConstructorOnStartupPriority(Priority.Low)]
     public static class Patches_TabulaRasa
     {
         static Patches_TabulaRasa()

@@ -7,7 +7,7 @@ using Verse;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
 {
-    [StaticConstructorOnStartup]
+    [StaticConstructorOnStartupPriority(Priority.Low)]
     public static class Patches_Vivi
     {
         static Patches_Vivi()
@@ -23,9 +23,9 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     [HarmonyPatch]
     public static class Patch_ArcanePlant_Turret_TryFindNewTarget_Delegate
     {
-        private static MethodInfo TargetMethod()
+        private static MethodBase TargetMethod()
         {
-            return AccessTools.FindIncludingInnerTypes<MethodInfo>(AccessTools.TypeByName("VVRace.ArcanePlant_Turret"),
+            return AccessTools.FindIncludingInnerTypes<MethodBase>(AccessTools.TypeByName("VVRace.ArcanePlant_Turret"),
                 t => t.GetMethods(AccessTools.all).FirstOrDefault(m => m.Name.Contains("<TryFindNewTarget>")));
         }
 

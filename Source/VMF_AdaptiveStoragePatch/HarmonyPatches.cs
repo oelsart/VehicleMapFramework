@@ -1,27 +1,28 @@
-﻿using HarmonyLib;
+﻿using AdaptiveStorage;
+using HarmonyLib;
 using RimWorld;
 using SmashTools;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using VehicleInteriors;
+using VehicleInteriors.VMF_HarmonyPatches;
+using Vehicles;
 using Verse;
 
-namespace VehicleInteriors.VMF_HarmonyPatches
+namespace VMF_AdaptiveStoragePatch
 {
     [StaticConstructorOnStartupPriority(Priority.Low)]
     public static class Patches_AdaptiveStorage
     {
         static Patches_AdaptiveStorage()
         {
-            if (ModsConfig.IsActive("adaptive.storage.framework"))
-            {
-                VMF_Harmony.Instance.PatchCategory("VMF_Patches_AdaptiveStorage");
-            }
+            VMF_Harmony.Instance.PatchCategory("VMF_Patches_AdaptiveStorage");
         }
     }
 
     [HarmonyPatchCategory("VMF_Patches_AdaptiveStorage")]
-    [HarmonyPatch("AdaptiveStorage.PrintUtility", "PrintAt")]
+    [HarmonyPatch(typeof(PrintUtility), nameof(PrintUtility.PrintAt))]
     [HarmonyPatch(new Type[] { typeof(Graphic), typeof(SectionLayer), typeof(Thing), typeof(Vector3), typeof(Vector2), typeof(float) }, new ArgumentType[] { ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Ref, ArgumentType.Ref, ArgumentType.Normal })]
     public static class Patch_PrintUtility_PrintAt
     {
@@ -31,18 +32,18 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
-    //[HarmonyPatchCategory("VMF_Patches_AdaptiveStorage")]
-    //[HarmonyPatch("AdaptiveStorage.StorageRenderer", "PrintAt")]
-    //[HarmonyPatch(new Type[] { typeof(SectionLayer), typeof(Vector3) }, new ArgumentType[] { ArgumentType.Normal, ArgumentType.Ref })]
-    //public static class Patch_StorageRenderer_PrintAt
-    //{
-    //    public static void Prefix(object __instance, SectionLayer layer)
-    //    {
-    //        InitializeStoredThingGraphics(__instance, layer);
-    //    }
-
-    //    private static FastInvokeHandler InitializeStoredThingGraphics = MethodInvoker.GetHandler(AccessTools.Method("AdaptiveStorage.StorageRenderer:InitializeStoredThingGraphics"));
-    //}
+    [HarmonyPatchCategory("VMF_Patches_AdaptiveStorage")]
+    [HarmonyPatch(typeof(StorageRenderer), nameof(StorageRenderer.PrintAt), new Type[] { typeof(SectionLayer), typeof(Vector3) }, new ArgumentType[] { ArgumentType.Normal, ArgumentType.Ref })]
+    public static class Patch_StorageRenderer_PrintAt
+    {
+        public static void Prefix(StorageRenderer __instance, SectionLayer layer)
+        {
+            if (__instance.Parent.IsOnVehicleMapOf(out _))
+            {
+                __instance.InitializeStoredThingGraphics(layer);
+            }
+        }
+    }
 
     [HarmonyPatchCategory("VMF_Patches_AdaptiveStorage")]
     [HarmonyPatch("AdaptiveStorage.StorageRenderer", "GetItemGraphicFor")]

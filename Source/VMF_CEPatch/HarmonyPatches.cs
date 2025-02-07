@@ -12,7 +12,7 @@ using Verse;
 
 namespace VMF_CEPatch
 {
-    [StaticConstructorOnStartup]
+    [StaticConstructorOnStartupPriority(Priority.Low)]
     public static class Patches_CE
     {
         static Patches_CE()

@@ -15,6 +15,10 @@ namespace VehicleInteriors
             {
                 this.m_ThingListToDisplay = MethodInvoker.GetHandler(AccessTools.Method("LWM.DeepStorage.PatchDisplay_SectionLayer_Things_Regenerate:ThingListToDisplay"));
             }
+            for (var i = 0; i < 4; i++)
+            {
+                this.subMeshesByRot[i] = new List<LayerSubMesh>();
+            }
         }
 
         public override CellRect GetBoundaryRect()
@@ -81,22 +85,28 @@ namespace VehicleInteriors
             this.bounds = this.section.CellRect;
             for (var i = 0; i < 4; i++)
             {
-                this.subMeshes = new List<LayerSubMesh>();
-                foreach (IntVec3 intVec in this.section.CellRect)
+                try
                 {
-                    var list = this.deepStorageActive ? (List<Thing>)this.m_ThingListToDisplay(null, base.Map, intVec) : intVec.GetThingList(base.Map);
-                    foreach (var thing in list)
+                    this.subMeshes = this.subMeshesByRot[i];
+                    this.subMeshes.Clear();
+                    foreach (IntVec3 intVec in this.section.CellRect)
                     {
-                        if ((thing.def.seeThroughFog || !base.Map.fogGrid.IsFogged(thing.Position)) && thing.def.drawerType != DrawerType.None && (thing.def.drawerType != DrawerType.RealtimeOnly || !this.requireAddToMapMesh) && (thing.def.hideAtSnowDepth >= 1f || base.Map.snowGrid.GetDepth(thing.Position) <= thing.def.hideAtSnowDepth) && thing.Position.x == intVec.x && thing.Position.z == intVec.z)
+                        var list = this.deepStorageActive ? (List<Thing>)this.m_ThingListToDisplay(null, base.Map, intVec) : intVec.GetThingList(base.Map);
+                        foreach (var thing in list)
                         {
-                            this.TakePrintFrom(thing);
-                            this.bounds.Encapsulate(thing.OccupiedDrawRect());
+                            if ((thing.def.seeThroughFog || !base.Map.fogGrid.IsFogged(thing.Position)) && thing.def.drawerType != DrawerType.None && (thing.def.drawerType != DrawerType.RealtimeOnly || !this.requireAddToMapMesh) && (thing.def.hideAtSnowDepth >= 1f || base.Map.snowGrid.GetDepth(thing.Position) <= thing.def.hideAtSnowDepth) && thing.Position.x == intVec.x && thing.Position.z == intVec.z)
+                            {
+                                this.TakePrintFrom(thing);
+                                this.bounds.Encapsulate(thing.OccupiedDrawRect());
+                            }
                         }
                     }
+                    this.FinalizeMesh(MeshParts.All);
                 }
-                this.FinalizeMesh(MeshParts.All);
-                this.subMeshesByRot[i] = this.subMeshes;    
-                VehicleMapUtility.rotForPrint.Rotate(RotationDirection.Clockwise);
+                finally
+                {
+                    VehicleMapUtility.rotForPrint.Rotate(RotationDirection.Clockwise);
+                }
             }
         }
 

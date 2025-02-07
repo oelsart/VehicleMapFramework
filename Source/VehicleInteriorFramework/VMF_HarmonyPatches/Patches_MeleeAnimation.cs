@@ -11,7 +11,7 @@ using Verse.AI;
 
 namespace VehicleInteriors.VMF_HarmonyPatches.AM
 {
-    [StaticConstructorOnStartup]
+    [StaticConstructorOnStartupPriority(Priority.Low)]
     public static class Patches_MeleeAnimation
     {
         static Patches_MeleeAnimation()

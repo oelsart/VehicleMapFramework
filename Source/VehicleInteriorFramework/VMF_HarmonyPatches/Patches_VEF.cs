@@ -10,7 +10,7 @@ using Verse;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
 {
-    [StaticConstructorOnStartup]
+    [StaticConstructorOnStartupPriority(Priority.Low)]
     public static class Patches_VEF
     {
         static Patches_VEF()

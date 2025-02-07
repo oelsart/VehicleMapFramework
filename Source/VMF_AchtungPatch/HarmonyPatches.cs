@@ -12,7 +12,7 @@ using Verse.AI;
 
 namespace VMF_AchtungPatch
 {
-    [StaticConstructorOnStartup]
+    [StaticConstructorOnStartupPriority(Priority.Low)]
     public static class Patches_Achtung
     {
         static Patches_Achtung()

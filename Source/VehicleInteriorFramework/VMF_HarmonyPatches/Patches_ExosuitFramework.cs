@@ -7,7 +7,7 @@ using Verse;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
 {
-    [StaticConstructorOnStartup]
+    [StaticConstructorOnStartupPriority(Priority.Low)]
     public static class Patches_ExosuitFramework
     {
         static Patches_ExosuitFramework()
