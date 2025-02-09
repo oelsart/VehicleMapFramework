@@ -456,4 +456,26 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             return instructions.MethodReplacer(MethodInfoCache.m_CellRect_ClipInsideMap, MethodInfoCache.m_ClipInsideVehicleMap);
         }
     }
+
+    [HarmonyPatch(typeof(GenView), nameof(GenView.ShouldSpawnMotesAt))]
+    public static class Patch_GenView_ShouldSpawnMotesAt
+    {
+        [HarmonyPatch(new Type[] { typeof(Vector3), typeof(Map), typeof(bool) })]
+        [HarmonyPrefix]
+        public static void Prefix1(ref Map map)
+        {
+            map = map.BaseMap();
+        }
+
+        [HarmonyPatch(new Type[] { typeof(IntVec3), typeof(Map), typeof(bool) })]
+        [HarmonyPrefix]
+        public static void Prefix1(ref IntVec3 loc, ref Map map)
+        {
+            if (map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
+            {
+                loc = loc.ToBaseMapCoord(vehicle);
+                map = vehicle.Map;
+            }
+        }
+    }
 }

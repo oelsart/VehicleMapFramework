@@ -333,7 +333,7 @@ namespace VehicleInteriors
                         thing.Position = positionOnBaseMap;
                         GenLeaving.DoLeavingsFor(thing, this.Map, DestroyMode.Deconstruct);
                     }
-                    else
+                    else if (thing.Isnt<Explosion>())
                     {
                         thing.DeSpawn();
                         var terrain = positionOnBaseMap.GetTerrain(base.Map);

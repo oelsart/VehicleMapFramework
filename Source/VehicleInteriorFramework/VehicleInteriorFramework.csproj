@@ -243,6 +243,7 @@
     <Compile Include="VehicleStructure.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_AdaptiveStorage.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_AnimalPen.cs" />
+    <Compile Include="VMF_HarmonyPatches\Patches_DMS.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_ExosuitFramework.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_MeleeAnimation.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_TabulaRasa.cs" />
