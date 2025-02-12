@@ -194,8 +194,8 @@ namespace VehicleInteriors
             {
                 isActive = () => this.allowsGetOff,
                 toggleAction = () => this.allowsGetOff = !this.allowsGetOff,
-                defaultLabel = "VMF_AutoGetOff".Translate(),
-                defaultDesc = "VMF_AutoGetOffDesc".Translate(),
+                defaultLabel = "VMF_AllowsGetOff".Translate(),
+                defaultDesc = "VMF_AllowsGetOffDesc".Translate(),
                 icon = VehiclePawnWithMap.iconAllowsGetOff,
             };
 
@@ -359,7 +359,7 @@ namespace VehicleInteriors
             Current.Game.DeinitAndRemoveMap(this.interiorMap, false);
             Find.World.GetComponent<VehicleMapParentsComponent>().vehicleMaps.Remove(this.interiorMap.Parent as MapParent_Vehicle);
             base.Destroy(mode);
-            _ = this.interiorMap;
+            this.interiorMap = null;
         }
 
         public override void DeSpawn(DestroyMode mode = DestroyMode.Vanish)

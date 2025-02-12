@@ -621,4 +621,29 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             return true;
         }
     }
+
+    //aerialVehicleInFlight.vehicle.AllPawnsAboardのとこにnullチェックを追加
+    [HarmonyPatch(typeof(Ext_Vehicles), nameof(Ext_Vehicles.GetAerialVehicle))]
+    public static class Patch_Ext_Vehicles_GetAerialVehicle
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+        {
+            var codes = instructions.ToList();
+            var g_AllPawnsAboard = AccessTools.PropertyGetter(typeof(VehiclePawn), nameof(VehiclePawn.AllPawnsAboard));
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Callvirt && c.OperandIs(g_AllPawnsAboard));
+            var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Brfalse_S);
+            var label = codes[pos2].operand;
+            var label2 = generator.DefineLabel();
+
+            codes[pos].labels.Add(label2);
+            codes.InsertRange(pos, new[]
+            {
+                new CodeInstruction(OpCodes.Dup),
+                new CodeInstruction(OpCodes.Brtrue_S, label2),
+                new CodeInstruction(OpCodes.Pop),
+                new CodeInstruction(OpCodes.Br_S, label)
+            });
+            return codes;
+        }
+    }
 }

@@ -46,6 +46,11 @@ namespace VehicleInteriors
                 return;
             }
             list.Remove(vehicle);
+            if (Command_FocusVehicleMap.FocusedVehicle == vehicle)
+            {
+                Command_FocusVehicleMap.FocuseLockedVehicle = null;
+                Command_FocusVehicleMap.FocusedVehicle = null;
+            }
         }
 
         public static IReadOnlyList<VehiclePawnWithMap> AllVehiclesOn(Map map)

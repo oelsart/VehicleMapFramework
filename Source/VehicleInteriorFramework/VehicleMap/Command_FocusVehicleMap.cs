@@ -13,8 +13,7 @@ namespace VehicleInteriors
         {
             get
             {
-                var vehicle = Find.Selector.SingleSelectedObject as VehiclePawnWithMap;
-                if (vehicle == null || vehicle == Command_FocusVehicleMap.FocuseLockedVehicle)
+                if (!(Find.Selector.SingleSelectedObject is VehiclePawnWithMap vehicle) || vehicle == Command_FocusVehicleMap.FocuseLockedVehicle)
                 {
                     return "VMF_UnfocusVehicleMap".Translate();
                 }
