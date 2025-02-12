@@ -298,6 +298,17 @@ namespace VehicleInteriors
             return result;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Map BaseMap(this Map map)
+        {
+            if (map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
+            {
+                return vehicle.Map;
+            }
+            return map;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Map BaseMap(this Thing thing)
         {
             if (thing.IsOnVehicleMapOf(out var vehicle) && vehicle.Spawned)
@@ -606,15 +617,6 @@ namespace VehicleInteriors
         public static Map MapHeldBaseMap(this Thing thing)
         {
             var map = thing.MapHeld;
-            if (map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
-            {
-                return vehicle.Map;
-            }
-            return map;
-        }
-
-        public static Map BaseMap(this Map map)
-        {
             if (map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
             {
                 return vehicle.Map;

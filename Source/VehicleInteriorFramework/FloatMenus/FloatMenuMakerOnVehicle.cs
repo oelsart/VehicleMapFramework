@@ -180,13 +180,33 @@ namespace VehicleInteriors
                 {
                     return new FloatMenuOption("CannotGoOutOfRange".Translate() + ": " + "OutOfCommandRange".Translate(), null, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0);
                 }
-                if (!pawn.CanReach(curLoc, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, map, out var dest1, out var dest2))
+                bool allowsGetOff = false;
+                if (vehicle2 != null)
+                {
+                    allowsGetOff = vehicle2.AllowsGetOff;
+                    vehicle2.AllowsGetOff = true;
+                }
+                var canReach = pawn.CanReach(curLoc, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, map, out var dest1, out var dest2);
+                if (vehicle2 != null)
+                {
+                    vehicle2.AllowsGetOff = allowsGetOff;
+                }
+                if (!canReach)
                 {
                     return new FloatMenuOption("CannotGoNoPath".Translate(), null, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0);
                 }
                 Action action = delegate ()
                 {
+                    if (vehicle2 != null)
+                    {
+                        allowsGetOff = vehicle2.AllowsGetOff;
+                        vehicle2.AllowsGetOff = true;
+                    }
                     var cell = ReachabilityUtilityOnVehicle.BestOrderedGotoDestNear(curLoc, pawn, (IntVec3 c) => c.InBounds(map), map, out dest1, out dest2);
+                    if (vehicle2 != null)
+                    {
+                        vehicle2.AllowsGetOff = allowsGetOff;
+                    }
                     FloatMenuMakerOnVehicle.PawnGotoAction(clickCell, pawn, map, dest1, dest2, cell);
                 };
                 return new FloatMenuOption("GoHere".Translate(), action, MenuOptionPriority.GoHere, null, null, 0f, null, null, true, 0)
