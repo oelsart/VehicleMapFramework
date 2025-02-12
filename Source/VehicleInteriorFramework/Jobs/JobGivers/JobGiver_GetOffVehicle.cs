@@ -13,7 +13,7 @@ namespace VehicleInteriors
         protected override Job TryGiveJob(Pawn pawn)
         {
             var guest = pawn.Faction != Faction.OfPlayer;
-            if (pawn.IsOnVehicleMapOf(out var vehicle) && vehicle.Spawned && (vehicle.AutoGetOff || guest))
+            if (pawn.IsOnVehicleMapOf(out var vehicle) && vehicle.Spawned)
             {
                 var hostile = pawn.HostileTo(Faction.OfPlayer);
                 var cells = vehicle.VehicleRect().ExpandedBy(1);

@@ -4,9 +4,8 @@ using SmashTools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
+using System.Runtime.CompilerServices;
 using UnityEngine;
-using VehicleInteriors.VMF_HarmonyPatches;
 using Vehicles;
 using Verse;
 using Verse.AI.Group;
@@ -41,6 +40,7 @@ namespace VehicleInteriors
             return false;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsVehicleMapOf(this Map map, out VehiclePawnWithMap vehicle)
         {
             if (map?.Parent is MapParent_Vehicle parentVehicle)
@@ -52,6 +52,7 @@ namespace VehicleInteriors
             return false;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsNonFocusedVehicleMapOf(this Map map, out VehiclePawnWithMap vehicle)
         {
             if (map?.Parent is MapParent_Vehicle parentVehicle && (VehicleInteriors.settings.drawPlanet || Find.CurrentMap != parentVehicle.vehicle.VehicleMap))
@@ -63,6 +64,7 @@ namespace VehicleInteriors
             return false;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsOnVehicleMapOf(this Thing thing, out VehiclePawnWithMap vehicle)
         {
             if (thing == null)
@@ -73,11 +75,13 @@ namespace VehicleInteriors
             return thing.Map.IsVehicleMapOf(out vehicle);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsOnNonFocusedVehicleMapOf(this Thing thing, out VehiclePawnWithMap vehicle)
         {
             return thing.IsOnVehicleMapOf(out vehicle) && (VehicleInteriors.settings.drawPlanet || Find.CurrentMap != vehicle.VehicleMap);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 ToVehicleMapCoord(this Vector3 original)
         {
             if (Command_FocusVehicleMap.FocusedVehicle != null)
@@ -91,6 +95,7 @@ namespace VehicleInteriors
             return original;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 ToVehicleMapCoord(this Vector3 original, VehiclePawnWithMap vehicle)
         {
             var vehicleMapPos = vehicle.DrawPos + VehicleMapUtility.OffsetFor(vehicle);
@@ -100,6 +105,7 @@ namespace VehicleInteriors
             return drawPos;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 ToVehicleMapCoord(this Vector3 original, VehiclePawnWithMap vehicle, float extraRotation = 0f)
         {
             var vehicleMapPos = vehicle.DrawPos + VehicleMapUtility.OffsetFor(vehicle);
@@ -109,6 +115,7 @@ namespace VehicleInteriors
             return drawPos;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static IntVec3 ToVehicleMapCoord(this IntVec3 original, VehiclePawnWithMap vehicle)
         {
             return original.ToVector3Shifted().ToVehicleMapCoord(vehicle).ToIntVec3();
@@ -140,6 +147,7 @@ namespace VehicleInteriors
             return cellRect.ClipInsideMap(map);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 ToBaseMapCoord(this Vector3 original)
         {
             if (Command_FocusVehicleMap.FocusedVehicle != null)
@@ -153,6 +161,7 @@ namespace VehicleInteriors
             return original;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 ToBaseMapCoord(this Vector3 original, Map map)
         {
             if (map.IsVehicleMapOf(out var vehicle))
@@ -162,6 +171,7 @@ namespace VehicleInteriors
             return original;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 ToBaseMapCoord(this Vector3 original, VehiclePawnWithMap vehicle)
         {
             var vehiclePos = vehicle.DrawPos;
@@ -199,11 +209,13 @@ namespace VehicleInteriors
             return matrix;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static IntVec3 ToBaseMapCoord(this IntVec3 original, VehiclePawnWithMap vehicle)
         {
             return original.ToVector3Shifted().ToBaseMapCoord(vehicle).ToIntVec3();
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static IntVec3 ToBaseMapCoord(this IntVec3 original, Map map)
         {
             return original.ToVector3Shifted().ToBaseMapCoord(map).ToIntVec3();
@@ -657,6 +669,7 @@ namespace VehicleInteriors
             return vector.RotatedBy(-VehicleMapUtility.rotForPrint.AsAngle);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool TryGetVehicleMap(this Vector3 point, Map map, out VehiclePawnWithMap vehicle, bool getStructureCell = true)
         {
             if (VehicleInteriors.settings.drawPlanet && Find.CurrentMap.IsVehicleMapOf(out vehicle))

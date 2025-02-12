@@ -4,11 +4,9 @@ using SmashTools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 using Vehicles;
 using Verse;
 using Verse.AI;
-using static SmashTools.ConditionalPatch;
 
 namespace VehicleInteriors
 {
@@ -38,6 +36,11 @@ namespace VehicleInteriors
                     {
                         if (vehicle2 != null)
                         {
+                            if (!vehicle2.AllowsGetOff)
+                            {
+                                return false;
+                            }
+
                             TargetInfo enterSpot = TargetInfo.Invalid;
                             var result = vehicle2.InteractionCells.OrderBy(c => (c.ToBaseMapCoord(vehicle2) - dest3.Cell).LengthHorizontalSquared).
                                 Concat(vehicle2.CachedMapEdgeCells.OrderBy(c => (c.ToBaseMapCoord(vehicle2) - dest3.Cell).LengthHorizontalSquared)).Any(c =>
@@ -119,6 +122,11 @@ namespace VehicleInteriors
                     {
                         if (vehicle2 != null)
                         {
+                            if (!vehicle2.AllowsGetOff)
+                            {
+                                return false;
+                            }
+
                             if (vehicle != null)
                             {
                                 TargetInfo enterSpot = TargetInfo.Invalid;

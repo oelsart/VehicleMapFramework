@@ -40,15 +40,15 @@ namespace VehicleInteriors
             }
         }
 
-        public bool AutoGetOff
+        public bool AllowsGetOff
         {
             get
             {
-                return this.autoGetOff;
+                return this.allowsGetOff;
             }
             set
             {
-                this.autoGetOff = value;
+                this.allowsGetOff = value;
             }
         }
 
@@ -192,11 +192,11 @@ namespace VehicleInteriors
 
             yield return new Command_Toggle()
             {
-                isActive = () => this.autoGetOff,
-                toggleAction = () => this.autoGetOff = !this.autoGetOff,
+                isActive = () => this.allowsGetOff,
+                toggleAction = () => this.allowsGetOff = !this.allowsGetOff,
                 defaultLabel = "VMF_AutoGetOff".Translate(),
                 defaultDesc = "VMF_AutoGetOffDesc".Translate(),
-                icon = VehiclePawnWithMap.iconAutoGetOff,
+                icon = VehiclePawnWithMap.iconAllowsGetOff,
             };
 
             if (DebugSettings.ShowDevGizmos)
@@ -537,7 +537,7 @@ namespace VehicleInteriors
             Scribe_References.Look(ref this.interiorMap, "interiorMap");
             Scribe_Values.Look(ref this.allowsHaulIn, "allowsHaulIn");
             Scribe_Values.Look(ref this.allowsHaulOut, "allowsHaulOut");
-            Scribe_Values.Look(ref this.autoGetOff, "autoGetOff");
+            Scribe_Values.Look(ref this.allowsGetOff, "autoGetOff");
         }
 
         protected override void PostLoad()
@@ -569,7 +569,7 @@ namespace VehicleInteriors
 
         private bool allowsHaulOut = true;
 
-        private bool autoGetOff = true;
+        private bool allowsGetOff = true;
 
         private HashSet<IntVec3> structureCellsCache;
 
@@ -583,8 +583,6 @@ namespace VehicleInteriors
 
         private static readonly Material ClipMat = SolidColorMaterials.NewSolidColorMaterial(new Color(0.3f, 0.1f, 0.1f, 0.5f), ShaderDatabase.MetaOverlay);
 
-        //private static readonly float ClipAltitude = AltitudeLayer.WorldClipper.AltitudeFor();
-
         private static readonly Texture2D iconAllowsHaulIn = ContentFinder<Texture2D>.Get("VehicleInteriors/UI/AllowsHaulIn");
 
         private static readonly Texture2D iconAllowsHaulOut = ContentFinder<Texture2D>.Get("VehicleInteriors/UI/AllowsHaulOut");
@@ -593,7 +591,7 @@ namespace VehicleInteriors
 
         private static readonly Texture2D iconDecreasePriority = ContentFinder<Texture2D>.Get("VehicleInteriors/UI/DecreasePriority");
 
-        private static readonly Texture2D iconAutoGetOff = ContentFinder<Texture2D>.Get("VehicleInteriors/UI/AutoGetOff");
+        private static readonly Texture2D iconAllowsGetOff = ContentFinder<Texture2D>.Get("VehicleInteriors/UI/AllowsGetOff");
 
         private static readonly Type t_SectionLayer_Zones = AccessTools.TypeByName("Verse.SectionLayer_Zones");
 
