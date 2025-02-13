@@ -39,7 +39,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         static Patches_Designator_SelectedUpdate()
         {
             var postfix = AccessTools.Method(typeof(Patches_Designator_SelectedUpdate), nameof(Patches_Designator_SelectedUpdate.Postfix));
-            foreach (var type in typeof(Designator).AllSubclasses().Concat(typeof(Designator)))
+            foreach (var type in typeof(Designator).AllSubclasses().Concat(typeof(Designator)).Except(typeof(Designator_AreaAllowed)))
             {
                 var method = AccessTools.Method(type, "SelectedUpdate");
                 if (method != null && method.IsDeclaredMember())
@@ -178,16 +178,6 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             return Patch_GenUI_RenderMouseoverBracket.TranspilerCommon(instructions, generator, f_DesignatorUtility_DragHighlightCellMat);
         }
     }
-
-    //[HarmonyPatch(typeof(DesignatorUtility), nameof(DesignatorUtility.RenderHighlightOverSelectableThings))]
-    //public static class Patch_DesignatorUtility_RenderHighlightOverSelectableThings
-    //{
-    //    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
-    //    {
-    //        var f_DesignatorUtility_DragHighlightThingMat = AccessTools.Field(typeof(DesignatorUtility), nameof(DesignatorUtility.DragHighlightThingMat));
-    //        return Patch_GenUI_RenderMouseoverBracket.TranspilerCommon(instructions, generator, f_DesignatorUtility_DragHighlightThingMat);
-    //    }
-    //}
 
     [HarmonyPatch(typeof(Designator_Cancel), nameof(Designator_Cancel.RenderHighlight))]
     public static class Patch_Designator_Cancel_RenderHighlight

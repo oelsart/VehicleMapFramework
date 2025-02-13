@@ -156,6 +156,8 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             var m_ToVector3ShiftedWithAltitude = AccessTools.Method(typeof(IntVec3), nameof(IntVec3.ToVector3ShiftedWithAltitude), new Type[] { typeof(float) });
             var m_ToVector3ShiftedOffsetWithAltitude = AccessTools.Method(typeof(Patch_MultiPawnGotoController_Draw), nameof(ToVector3ShiftedOffsetWithAltitude));
+            var m_Fogged = AccessTools.Method(typeof(GridsUtility), nameof(GridsUtility.Fogged), new Type[] { typeof(IntVec3), typeof(Map) });
+            var m_FoggedOffset = AccessTools.Method(typeof(Patch_MultiPawnGotoController_Draw), nameof(FoggedOffset));
             var num = 0;
             foreach (var instruction in instructions)
             {
@@ -164,6 +166,12 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                     yield return CodeInstruction.LoadLocal(5);
                     instruction.operand = m_ToVector3ShiftedOffsetWithAltitude;
                     num++;
+                }
+                if (instruction.opcode == OpCodes.Call && instruction.OperandIs(m_Fogged))
+                {
+                    yield return new CodeInstruction(OpCodes.Pop);
+                    yield return CodeInstruction.LoadLocal(5);
+                    instruction.operand = m_FoggedOffset;
                 }
                 yield return instruction;
             }
@@ -181,6 +189,19 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             }
             return intVec.ToVector3ShiftedWithAltitude(AddedAltitude);
         }
+
+        private static bool FoggedOffset(IntVec3 intVec, Pawn pawn)
+        {
+            if (Patch_MultiPawnGotoController_RecomputeDestinations.tmpEnterSpots.TryGetValue((pawn, intVec), out var spots))
+            {
+                var destMap = spots.enterSpot.Map ?? spots.exitSpot.Map.BaseMap() ?? pawn.Map;
+                if (destMap.IsNonFocusedVehicleMapOf(out var vehicle))
+                {
+                    return intVec.ToBaseMapCoord(vehicle).Fogged(destMap);
+                }
+            }
+            return intVec.Fogged(pawn.Map);
+        }
     }
 
     [HarmonyPatch(typeof(MultiPawnGotoController), nameof(MultiPawnGotoController.OnGUI))]
@@ -190,12 +211,20 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             var m_ToUIRect = AccessTools.Method(typeof(IntVec3), nameof(IntVec3.ToUIRect));
             var m_ToUIRectOffset = AccessTools.Method(typeof(Patch_MultiPawnGotoController_OnGUI), nameof(ToUIRectOffset));
+            var m_Fogged = AccessTools.Method(typeof(GridsUtility), nameof(GridsUtility.Fogged), new Type[] { typeof(IntVec3), typeof(Map) });
+            var m_FoggedOffset = AccessTools.Method(typeof(Patch_MultiPawnGotoController_Draw), "FoggedOffset");
             foreach (var instruction in instructions)
             {
                 if (instruction.opcode == OpCodes.Call && instruction.OperandIs(m_ToUIRect))
                 {
                     yield return CodeInstruction.LoadLocal(1);
                     instruction.operand = m_ToUIRectOffset;
+                }
+                if (instruction.opcode == OpCodes.Call && instruction.OperandIs(m_Fogged))
+                {
+                    yield return new CodeInstruction(OpCodes.Pop);
+                    yield return CodeInstruction.LoadLocal(1);
+                    instruction.operand = m_FoggedOffset;
                 }
                 yield return instruction;
             }
