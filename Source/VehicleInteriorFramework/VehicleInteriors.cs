@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Runtime.InteropServices;
+using UnityEngine;
 using Verse;
 
 namespace VehicleInteriors
@@ -9,7 +10,40 @@ namespace VehicleInteriors
 
         public static VehicleMapSettings settings;
 
-        public static AssetBundle Bundle => VehicleInteriors.mod.Content.assetBundles.loadedAssetBundles.Find(a => a.name == "vehicleinteriors");
+        public static AssetBundle Bundle
+        {
+            get
+            {
+                if (bundleInt == null)
+                {
+                    bundleInt = AssetBundle.LoadFromFile($@"{VehicleInteriors.mod.Content.RootDir}\Common\AssetBundles\{PlatformInfo}");
+                }
+                return bundleInt;
+            }
+        }
+
+        private static AssetBundle bundleInt;
+
+        private static string PlatformInfo
+        {
+            get
+            {
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    return "StandaloneWindows64";
+                }
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                {
+                    return "StandaloneLinux64";
+                }
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                {
+                    return "StandaloneLinux64";
+                }
+                Log.Error($"[VehicleMapFramework] {RuntimeInformation.OSDescription} is not supported platform. Please let the mod author know the OS info.");
+                return null;
+            }
+        }
 
         public VehicleInteriors(ModContentPack content) : base(content)
         {
