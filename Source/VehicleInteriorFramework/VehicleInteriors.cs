@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using SmashTools;
+using System.Runtime.InteropServices;
 using UnityEngine;
 using Verse;
 
@@ -51,11 +52,14 @@ namespace VehicleInteriors
             VehicleInteriors.settings = base.GetSettings<VehicleMapSettings>();
         }
 
+        private static float test = 1f;
+
         public override void DoSettingsWindowContents(Rect inRect)
         {
             Listing_Standard listingStandard = new Listing_Standard();
             listingStandard.Begin(inRect);
             listingStandard.CheckboxLabeled("VMF_Settings.DrawPlanet".Translate(), ref settings.drawPlanet);
+            listingStandard.SliderLabeled("VMF_Settings.WeightFactor".Translate(), null, null, ref settings.weightFactor, 0f, 3f);
             listingStandard.End();
         }
 

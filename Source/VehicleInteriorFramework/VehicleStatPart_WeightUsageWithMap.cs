@@ -15,13 +15,13 @@ namespace VehicleInteriors
                 float statValue = vehicle.GetStatValue(VMF_DefOf.MaximumPayload);
                 if (statValue > 0f)
                 {
-                    num = VehicleMapUtility.VehicleMapMass(vehicle) / statValue;
+                    num = VehicleMapUtility.VehicleMapMass(vehicle) * VehicleInteriors.settings.weightFactor / statValue;
                 }
                 num = this.usageCurve.Evaluate(num);
             }
             else
             {
-                num = VehicleMapUtility.VehicleMapMass(vehicle);
+                num = VehicleMapUtility.VehicleMapMass(vehicle) * VehicleInteriors.settings.weightFactor;
             }
             return num;
         }

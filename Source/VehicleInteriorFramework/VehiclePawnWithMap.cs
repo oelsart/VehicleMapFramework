@@ -205,17 +205,6 @@ namespace VehicleInteriors
             }
         }
 
-        public override string GetInspectString()
-        {
-            var str = base.GetInspectString();
-            var stat = this.GetStatValue(VMF_DefOf.MaximumPayload);
-
-            str += $"\n{VMF_DefOf.MaximumPayload.LabelCap}:" +
-                $" {VehicleMapUtility.VehicleMapMass(this).ToStringEnsureThreshold(2, 0)} /" +
-                $" {stat.ToStringEnsureThreshold(2, 0)} {"kg".Translate()}";
-            return str;
-        }
-
         public override void SpawnSetup(Map map, bool respawningAfterLoad)
         {
             if (this.interiorMap == null)
@@ -529,6 +518,19 @@ namespace VehicleInteriors
                     Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
                 }
             }
+        }
+
+        public override string GetInspectString()
+        {
+            if (VehicleInteriors.settings.weightFactor == 0f) return null;
+
+            var str = base.GetInspectString();
+            var stat = this.GetStatValue(VMF_DefOf.MaximumPayload);
+
+            str += $"\n{VMF_DefOf.MaximumPayload.LabelCap}:" +
+                $" {(VehicleMapUtility.VehicleMapMass(this) * VehicleInteriors.settings.weightFactor).ToStringEnsureThreshold(2, 0)} /" +
+                $" {stat.ToStringEnsureThreshold(2, 0)} {"kg".Translate()}";
+            return str;
         }
 
         public override void ExposeData()

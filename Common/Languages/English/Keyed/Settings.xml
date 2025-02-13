@@ -2,5 +2,6 @@
 <LanguageData>
 
 	<VMF_Settings.DrawPlanet>Draw the world map during caravan.</VMF_Settings.DrawPlanet>
+	<VMF_Settings.WeightFactor>Weight factor of things on the vehicle map.</VMF_Settings.WeightFactor>
 
 </LanguageData>

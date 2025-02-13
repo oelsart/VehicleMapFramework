@@ -2,5 +2,6 @@
 <LanguageData>
 
 	<VMF_Settings.DrawPlanet>キャラバン中にワールドマップを描画する.</VMF_Settings.DrawPlanet>
+	<VMF_Settings.WeightFactor>車両マップの上の物の重さ係数.</VMF_Settings.WeightFactor>
 
 </LanguageData>

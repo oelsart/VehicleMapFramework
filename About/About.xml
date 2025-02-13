@@ -3,9 +3,10 @@
 	<name>Vehicle Map Framework</name>
 	<packageId>OELS.VehicleMapFramework</packageId>
 	<author>OELS</author>
-	<description>
+	<description>This mod is a framework mod for vehicles using Vehicle Framework to put a map on vehicle which floors and buildings can be constructed.
+このModはVehicle Frameworkを使用した車両に、床や建築物を建設可能なマップを載せるためのフレームワークMODです。
 	</description>
-	<modVersion IgnoreIfNoMatchingField="True">ver.0.9.0-beta</modVersion>
+	<modVersion IgnoreIfNoMatchingField="True">ver.0.9.1-beta</modVersion>
 	<url>https://github.com/oelsart/VehicleMapFramework</url>
 
 	<supportedVersions>
