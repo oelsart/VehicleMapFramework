@@ -1,4 +1,5 @@
-﻿using SmashTools;
+﻿using RimWorld;
+using SmashTools;
 using Verse;
 
 namespace VehicleInteriors
@@ -7,7 +8,7 @@ namespace VehicleInteriors
     {
         public override void PreApplyDamage(ref DamageInfo dinfo, out bool absorbed)
         {
-            if (this.IsOnVehicleMapOf(out var vehicle))
+            if (this.IsOnVehicleMapOf(out var vehicle) && dinfo.Def != DamageDefOf.Bomb)
             {
                 vehicle.TakeDamage(dinfo, (this.Position.ToVector3() - VehicleMapUtility.OffsetFor(vehicle, Rot8.North)).ToIntVec3().ToIntVec2);
             }

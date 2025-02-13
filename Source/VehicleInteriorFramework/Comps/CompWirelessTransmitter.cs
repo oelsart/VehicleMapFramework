@@ -16,8 +16,7 @@ namespace VehicleInteriors
             base.CompTick();
             if (Find.TickManager.TicksGame % ticksInterval != 0) return;
 
-            var rect = CellRect.SingleCell(this.parent.Position);
-            foreach (var c in rect.ExpandedBy(1).Cells)
+            foreach (var c in this.parent.OccupiedRect().ExpandedBy(1).Cells)
             {
                 if (!c.InBounds(this.parent.Map)) continue;
                 if (c.ToVector3Shifted().TryGetVehicleMap(this.parent.Map, out var vehicle, false))
