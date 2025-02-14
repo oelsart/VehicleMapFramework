@@ -52,8 +52,6 @@ namespace VehicleInteriors
             VehicleInteriors.settings = base.GetSettings<VehicleMapSettings>();
         }
 
-        private static float test = 1f;
-
         public override void DoSettingsWindowContents(Rect inRect)
         {
             Listing_Standard listingStandard = new Listing_Standard();
