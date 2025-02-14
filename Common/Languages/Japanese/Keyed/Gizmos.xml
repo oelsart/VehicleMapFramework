@@ -12,8 +12,8 @@
 	<VMF_IncreasePriorityDesc>この乗り物のマップ上のストレージの優先度を1つ上げます</VMF_IncreasePriorityDesc>
 	<VMF_DecreasePriority>優先度 -1</VMF_DecreasePriority>
 	<VMF_DecreasePriorityDesc>この乗り物のマップ上のストレージの優先度を1つ下げます</VMF_DecreasePriorityDesc>
-	<VMF_AutoGetOff>降車許可</VMF_AutoGetOff>
-	<VMF_AutoGetOffDesc>入植者のAIにこの車両マップから降りることを許可します.</VMF_AutoGetOffDesc>
+	<VMF_AllowsGetOff>降車許可</VMF_AllowsGetOff>
+	<VMF_VMF_AllowsGetOffDesc>入植者のAIにこの車両マップから降りることを許可します.</VMF_AllowsGetOffDesc>
 
 	<VMF_LowerPowerDesc>ターゲットの送電容量を下げます.</VMF_LowerPowerDesc>
 	<VMF_ResetPower>リセット</VMF_ResetPower>

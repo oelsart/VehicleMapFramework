@@ -9,6 +9,7 @@ using System.Reflection.Emit;
 using UnityEngine;
 using Vehicles;
 using Verse;
+using Verse.AI;
 using Verse.AI.Group;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
@@ -644,6 +645,27 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 new CodeInstruction(OpCodes.Br_S, label)
             });
             return codes;
+        }
+    }
+
+    //主にRepairVehicleに使用される。ターゲットAをVehicleとしてターゲットB(=直す場所)に先に向かうため、StartGotoDestMapJobを挟む
+    [HarmonyPatch(typeof(JobDriver_WorkVehicle), "MakeNewToils")]
+    public static class Patch_JobDriver_WorkVehicle_MakeNewToils
+    {
+        public static IEnumerable<Toil> Postfix(IEnumerable<Toil> values, Pawn ___pawn, Job ___job, JobDriver_WorkVehicle __instance)
+        {
+            var thingMap = ___job.targetA.Thing?.Map;
+            if (thingMap != ___pawn.Map && ___pawn.CanReach(___job.targetA.Thing, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, thingMap, out var exitSpot, out var enterSpot))
+            {
+                yield return Toils_General.Do(() =>
+                {
+                    JobAcrossMapsUtility.StartGotoDestMapJob(___pawn, exitSpot, enterSpot);
+                });
+            }
+            foreach (var toil in values)
+            {
+                yield return toil;
+            }
         }
     }
 }
