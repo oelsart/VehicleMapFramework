@@ -74,20 +74,17 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IEnumerable<Gizmo> Postfix(IEnumerable<Gizmo> gizmos, CompVehicleTurrets __instance)
         {
-            if (__instance.Vehicle is VehiclePawnWithMap)
+            foreach (var gizmo in gizmos)
             {
-                foreach (var gizmo in gizmos)
+                if (gizmo is Command_CooldownAction command_CooldownAction && __instance.Vehicle is VehiclePawnWithMap)
                 {
-                    if (gizmo is Command_CooldownAction command_CooldownAction)
+                    var turret = command_CooldownAction.turret;
+                    if (!VehicleMod.settings.debug.debugShootAnyTurret && !command_CooldownAction.Disabled && __instance.Vehicle.GetAllHandlersMatch(HandlingTypeFlags.Turret, !turret.groupKey.NullOrEmpty() ? turret.groupKey : turret.key).Empty())
                     {
-                        var turret = command_CooldownAction.turret;
-                        if (!VehicleMod.settings.debug.debugShootAnyTurret && !command_CooldownAction.Disabled && __instance.Vehicle.GetAllHandlersMatch(HandlingTypeFlags.Turret, !turret.groupKey.NullOrEmpty() ? turret.groupKey : turret.key).Empty())
-                        {
-                            command_CooldownAction.Disable("VMF_NoRoles".Translate(__instance.Vehicle.LabelShort));
-                        }
+                        command_CooldownAction.Disable("VMF_NoRoles".Translate(__instance.Vehicle.LabelShort));
                     }
-                    yield return gizmo;
                 }
+                yield return gizmo;
             }
         }
     }
