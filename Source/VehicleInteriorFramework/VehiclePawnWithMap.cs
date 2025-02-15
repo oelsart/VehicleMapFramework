@@ -402,18 +402,15 @@ namespace VehicleInteriors
 
         private void DrawVehicleMapMesh(Map map, Vector3 drawPos, float extraRotation)
         {
-            Task.Run(() =>
+            var mapDrawer = map.mapDrawer;
+            for (int i = 0; i < map.Size.x; i += 17)
             {
-                var mapDrawer = map.mapDrawer;
-                for (int i = 0; i < map.Size.x; i += 17)
+                for (int j = 0; j < map.Size.z; j += 17)
                 {
-                    for (int j = 0; j < map.Size.z; j += 17)
-                    {
-                        var section = mapDrawer.SectionAt(new IntVec3(i, 0, j));
-                        this.DrawSection(section, drawPos, extraRotation);
-                    }
+                    var section = mapDrawer.SectionAt(new IntVec3(i, 0, j));
+                    this.DrawSection(section, drawPos, extraRotation);
                 }
-            });
+            }
         }
 
         protected virtual void DrawSection(Section section, Vector3 drawPos, float extraRotation)
