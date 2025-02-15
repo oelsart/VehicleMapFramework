@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+    <VMF_VehicleStructureFilled.label>載具結構體</VMF_VehicleStructureFilled.label>
+    <VMF_VehicleStructureFilled.description>構成載具主體的結構部件。</VMF_VehicleStructureFilled.description>
+    
+    <VMF_VehicleStructureEmpty.label>載具結構體</VMF_VehicleStructureEmpty.label>
+    <VMF_VehicleStructureEmpty.description>構成載具主體的結構部件。</VMF_VehicleStructureEmpty.description>
+
+</LanguageData>

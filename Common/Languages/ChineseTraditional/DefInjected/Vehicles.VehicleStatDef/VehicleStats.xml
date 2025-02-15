@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+	<MaximumPayload.label>最大負重</MaximumPayload.label>
+	<MaximumPayload.description>這台載具能夠承載的最大重量，包含載具地圖上所有物品的重量。</MaximumPayload.description>
+
+</LanguageData>

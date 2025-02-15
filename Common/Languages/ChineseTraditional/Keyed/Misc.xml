@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+
+	<VMF_VehicleMap>的載具地圖</VMF_VehicleMap>
+
+	<VMF_PowerTransferSetting>電力傳輸設定</VMF_PowerTransferSetting>
+
+	<VMF_StatsReport_MaximumPayload>最大載重: {0}</VMF_StatsReport_MaximumPayload>
+
+	<VMF_StatsReport_HumanPowerAverage>駕駛員體力係數: {0}</VMF_StatsReport_HumanPowerAverage>
+
+	<VMF_LandInSpecificMap>放大到{0}，選擇{1}的著陸點</VMF_LandInSpecificMap>
+
+</LanguageData>
