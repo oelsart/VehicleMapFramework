@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+    <VMF_DriverSeat.label>駕駛座</VMF_DriverSeat.label>
+    <VMF_DriverSeat.description>載具的駕駛座位。安裝後才能駕駛載具。</VMF_DriverSeat.description>
+    <VMF_DriverSeat.comps.0.upgrades.0.roles.0.label>駕駛員</VMF_DriverSeat.comps.0.upgrades.0.roles.0.label>
+    
+    <VMF_GunnerSeat.label>砲手座</VMF_GunnerSeat.label>
+    <VMF_GunnerSeat.description>載具的砲手座位。安裝後可操作指定的砲塔。</VMF_GunnerSeat.description>
+    <VMF_GunnerSeat.comps.0.upgrades.0.roles.0.label>砲手</VMF_GunnerSeat.comps.0.upgrades.0.roles.0.label>
+    
+    <VMF_PassengerSeat.label>乘客座</VMF_PassengerSeat.label>
+    <VMF_PassengerSeat.description>載具的乘客座位。</VMF_PassengerSeat.description>
+    <VMF_PassengerSeat.comps.0.upgrades.0.roles.0.label>乘客</VMF_PassengerSeat.comps.0.upgrades.0.roles.0.label>
+    
+    <VMF_CargoContainer.label>貨櫃</VMF_CargoContainer.label>
+    <VMF_CargoContainer.description>增加載具裝載容量的貨櫃。\n\n&lt;color=#bb8f04&gt;額外容量:&lt;/color&gt; +100 公斤</VMF_CargoContainer.description>
+    
+    <VMF_TurboCharger.label>渦輪增壓器</VMF_TurboCharger.label>
+    <VMF_TurboCharger.description>增加載具最大承載重量的引擎部件。\n\n&lt;color=#bb8f04&gt;最大承載:&lt;/color&gt; +300 公斤</VMF_TurboCharger.description>
+    
+    <VMF_LiftFan.label>升力扇</VMF_LiftFan.label>
+    <VMF_LiftFan.description>增加載具最大承載重量的升力扇。僅能安裝在懸浮載具上。\n\n&lt;color=#bb8f04&gt;最大承載:&lt;/color&gt; +150 公斤</VMF_LiftFan.description>
+
+</LanguageData>

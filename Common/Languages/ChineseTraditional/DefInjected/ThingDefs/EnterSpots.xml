@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+    <VMF_Ladder.label>梯子</VMF_Ladder.label>
+    <VMF_Ladder.description>讓人員上下載具的梯子。殖民者會優先從這裡上下載具。</VMF_Ladder.description>
+    
+    <VMF_RampMedium.label>坡道 (1x3)</VMF_RampMedium.label>
+    <VMF_RampMedium.description>讓載具進出載具地圖的坡道。可供寬度不超過3格的載具使用。</VMF_RampMedium.description>
+    
+    <VMF_RampLarge.label>坡道 (1x5)</VMF_RampLarge.label>
+    <VMF_RampLarge.description>讓載具進出載具地圖的坡道。可供寬度不超過5格的載具使用。</VMF_RampLarge.description>
+
+</LanguageData>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+	<VMF_WirelessTransmitter.label>無線電力發射器</VMF_WirelessTransmitter.label>
+	<VMF_WirelessTransmitter.description>在基地地圖和載具地圖之間傳輸電力的裝置。只能安裝在基地地圖上。</VMF_WirelessTransmitter.description>
+	
+	<VMF_WirelessReceiver.label>無線電力接收器</VMF_WirelessReceiver.label>
+	<VMF_WirelessReceiver.description>從基地地圖接收電力的裝置。安裝在載具地圖上，對準發射器的位置就能接收電力。</VMF_WirelessReceiver.description>
+
+</LanguageData>
