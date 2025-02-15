@@ -4,6 +4,7 @@ using SmashTools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using VehicleInteriors.VMF_HarmonyPatches;
 using Vehicles;
 using Verse;
 using Verse.AI;
@@ -24,12 +25,15 @@ namespace VehicleInteriors
             {
                 if (departMap == destMap)
                 {
-                    return departMap.reachability.CanReach(root, dest3, peMode, traverseParms);
+                    return destMap.reachability.CanReachPatched(root, dest3, peMode, traverseParms);
                 }
                 else
                 {
                     var flag = departMap == departBaseMap;
                     var flag2 = departBaseMap == destMap;
+                    var traverseParms2 = traverseParms.pawn != null ?
+                        TraverseParms.For(traverseParms.pawn, traverseParms.maxDanger, TraverseMode.PassDoors, traverseParms.canBashDoors, traverseParms.alwaysUseAvoidGrid, traverseParms.canBashFences) :
+                        TraverseParms.For(TraverseMode.PassDoors, traverseParms.maxDanger, traverseParms.canBashDoors, traverseParms.alwaysUseAvoidGrid, traverseParms.canBashFences);
 
                     //出発地が車上マップで目的地がベースマップ
                     if (!flag && flag2)
@@ -69,8 +73,8 @@ namespace VehicleInteriors
                                 var cell = (basePos - faceCell * dist);
                                 return c.Standable(departMap) &&
                                 cell.Standable(departBaseMap) &&
-                                departMap.reachability.CanReach(root, enterSpot.Cell, PathEndMode.OnCell, traverseParms) &&
-                                departBaseMap.reachability.CanReach(cell, dest3, peMode, TraverseMode.PassDoors, traverseParms.maxDanger);
+                                departMap.reachability.CanReachPatched(root, enterSpot.Cell, PathEndMode.OnCell, traverseParms) &&
+                                departBaseMap.reachability.CanReachPatched(cell, dest3, peMode, traverseParms2);
                             });
                             dest1 = result ? enterSpot : TargetInfo.Invalid;
 
@@ -110,8 +114,8 @@ namespace VehicleInteriors
                                 var cell = (basePos - faceCell * dist);
                                 return c.Standable(destMap) &&
                                 cell.Standable(departMap) &&
-                                departMap.reachability.CanReach(root, cell, PathEndMode.OnCell, traverseParms) &&
-                                destMap.reachability.CanReach(c, dest3, peMode, TraverseMode.PassDoors, traverseParms.maxDanger);
+                                departMap.reachability.CanReachPatched(root, cell, PathEndMode.OnCell, traverseParms) &&
+                                destMap.reachability.CanReachPatched(c, dest3, peMode, traverseParms2);
                             });
                             dest2 = result ? enterSpot : TargetInfo.Invalid;
                             return result;
@@ -185,9 +189,9 @@ namespace VehicleInteriors
                                         cell.Standable(departBaseMap) &&
                                         cell2.Standable(departBaseMap) &&
                                         c2.Standable(destMap) &&
-                                        departMap.reachability.CanReach(root, enterSpot.Cell, PathEndMode.OnCell, traverseParms) &&
-                                        departBaseMap.reachability.CanReach(cell, cell2, PathEndMode.OnCell, TraverseMode.PassDoors, traverseParms.maxDanger) &&
-                                        destMap.reachability.CanReach(c2, dest3, peMode, TraverseMode.PassDoors, traverseParms.maxDanger);
+                                        departMap.reachability.CanReachPatched(root, enterSpot.Cell, PathEndMode.OnCell, traverseParms) &&
+                                        departBaseMap.reachability.CanReachPatched(cell, cell2, PathEndMode.OnCell, traverseParms2) &&
+                                        destMap.reachability.CanReachPatched(c2, dest3, peMode, traverseParms2);
                                     });
                                 });
                                 dest1 = result ? enterSpot : TargetInfo.Invalid;

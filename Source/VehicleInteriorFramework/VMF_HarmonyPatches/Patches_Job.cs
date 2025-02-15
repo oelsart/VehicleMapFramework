@@ -366,6 +366,10 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 pawn.VirtualMapTransfer(map, cell);
             }
         }
+
+        public static Map tmpMap;
+
+        public static IntVec3 tmpCell = IntVec3.Invalid;
     }
 
     [HarmonyPatch]
