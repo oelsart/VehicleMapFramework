@@ -24,6 +24,7 @@ namespace VMF_CEPatch
                 foreach (var vehicle in vehicles)
                 {
                     this.cellsToAffectOnVehicles[vehicle] = SimplePool<List<IntVec3>>.Get();
+                    this.cellsToAffectOnVehicles[vehicle].Clear();
                     this.VirtualMapTransfer(vehicle.VehicleMap, pos.ToVehicleMapCoord(vehicle));
                     this.cellsToAffectOnVehicles[vehicle].AddRange(base.ExplosionCellsToHit);
 
@@ -81,6 +82,8 @@ namespace VMF_CEPatch
             {
                 foreach (var vehicle in this.cellsToAffectOnVehicles.Keys)
                 {
+                    if (vehicle?.VehicleMap == null) continue;
+
                     this.VirtualMapTransfer(vehicle.VehicleMap, pos.ToVehicleMapCoord(vehicle));
                     num = this.cellsToAffectOnVehicles[vehicle].Count - 1;
                     while (num >= 0 && ticksGame >= (int)GetCellAffectTick(this, this.cellsToAffectOnVehicles[vehicle][num]) && !vehicle.VehicleMap.Disposed)

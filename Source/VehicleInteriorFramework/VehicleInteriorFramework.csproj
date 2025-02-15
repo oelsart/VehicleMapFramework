@@ -271,6 +271,7 @@
     <Compile Include="VMF_HarmonyPatches\Patches_DMS.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_ExosuitFramework.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_MeleeAnimation.cs" />
+    <Compile Include="VMF_HarmonyPatches\Patches_PathfindingFramework.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_TabulaRasa.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_Vivi.cs" />
     <Compile Include="VMF_DefOf.cs" />
