@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+
+    <VMF_FocusVehicleMap>切換到載具視角</VMF_FocusVehicleMap>
+    <VMF_UnfocusVehicleMap>退出載具視角</VMF_UnfocusVehicleMap>
+
+    <VMF_AllowsHaulIn>允許搬入</VMF_AllowsHaulIn>
+    <VMF_AllowsHaulInDesc>允許殖民者將物品搬進這台載具的儲存空間</VMF_AllowsHaulInDesc>
+    <VMF_AllowsHaulOut>允許搬出</VMF_AllowsHaulOut>
+    <VMF_AllowsHaulOutDesc>允許殖民者從這台載具的儲存空間搬出物品</VMF_AllowsHaulOutDesc>
+    <VMF_IncreasePriority>提高優先度</VMF_IncreasePriority>
+    <VMF_IncreasePriorityDesc>提高這台載具儲存空間的優先度</VMF_IncreasePriorityDesc>
+    <VMF_DecreasePriority>降低優先度</VMF_DecreasePriority>
+    <VMF_DecreasePriorityDesc>降低這台載具儲存空間的優先度</VMF_DecreasePriorityDesc>
+    <VMF_AllowsGetOff>允許下車</VMF_AllowsGetOff>
+    <VMF_VMF_AllowsGetOffDesc>允許殖民者AI離開這台載具</VMF_VMF_AllowsGetOffDesc>
+
+    <VMF_LowerPowerDesc>降低目標的電力傳輸量</VMF_LowerPowerDesc>
+    <VMF_ResetPower>重設</VMF_ResetPower>
+    <VMF_ResetPowerDesc>重設目標的電力傳輸量</VMF_ResetPowerDesc>
+    <VMF_RaisePowerDesc>提高目標的電力傳輸量</VMF_RaisePowerDesc>
+
+    <VMF_Reassign>重新分配</VMF_Reassign>
+    <VMF_ReassignDesc>重新分配這個座位要操作的砲塔</VMF_ReassignDesc>
+
+    <VMF_GatherFromBaseMap>從基地收集</VMF_GatherFromBaseMap>
+
+</LanguageData>

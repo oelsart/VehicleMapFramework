@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+
+    <VMF_ForceOnVehicle>只能放在載具地圖上</VMF_ForceOnVehicle>
+    <VMF_ForceOnHoverVehicle>只能放在懸浮載具地圖上</VMF_ForceOnHoverVehicle>
+    <VMF_ForbidOnVehicle>不能放在載具地圖上</VMF_ForbidOnVehicle>
+    <VMF_ForbidOnHumanPoweredVehicle>不能放在人力載具地圖上</VMF_ForbidOnHumanPoweredVehicle>
+    <VMF_ForceOnVehicleMapEdge>只能放在載具地圖邊緣</VMF_ForceOnVehicleMapEdge>
+    
+    <VMF_NoRoles>{0}上沒有可以操作這個砲塔的職位</VMF_NoRoles>
+
+</LanguageData>
