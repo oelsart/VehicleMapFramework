@@ -732,7 +732,7 @@ namespace VehicleInteriors
         }
 
         public static Toil FinishRecipeAndStartStoringProduct(TargetIndex productIndex = TargetIndex.A)
-        {    
+        {
             List<Thing> CalculateIngredients(Job job, Pawn actor)
             {
                 if (job.GetTarget(TargetIndex.B).Thing is UnfinishedThing unfinishedThing)

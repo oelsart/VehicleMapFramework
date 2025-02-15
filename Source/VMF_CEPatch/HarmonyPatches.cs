@@ -216,7 +216,8 @@ namespace VMF_CEPatch
 
         public static List<Thing> AddThingList(List<Thing> list, Map map, IntVec3 c)
         {
-            List<Thing> result = new List<Thing>(list);
+            tmpList.Clear();
+            tmpList.AddRange(list);
             var maps = map.BaseMapAndVehicleMaps().Except(map);
             foreach (var map2 in maps)
             {
@@ -227,11 +228,13 @@ namespace VMF_CEPatch
                 }
                 if (c2.InBounds(map2))
                 {
-                    result.AddRange(map2.thingGrid.ThingsListAtFast(c2));
+                    tmpList.AddRange(map2.thingGrid.ThingsListAtFast(c2));
                 }
             }
-            return result;
+            return tmpList;
         }
+
+        private static readonly List<Thing> tmpList = new List<Thing>();
     }
 
     [HarmonyPatchCategory("VMF_Patches_CE")]
@@ -263,11 +266,14 @@ namespace VMF_CEPatch
 
         private static List<Thing> AddThingList(List<Thing> list, Map map)
         {
-            List<Thing> result = new List<Thing>(list);
+            tmpList.Clear();
+            tmpList.AddRange(list);
             var maps = map.BaseMapAndVehicleMaps().Except(map);
-            result.AddRange(maps.SelectMany(m => m.listerThings.ThingsInGroup(ThingRequestGroup.ProjectileInterceptor)));
-            return result;
+            tmpList.AddRange(maps.SelectMany(m => m.listerThings.ThingsInGroup(ThingRequestGroup.ProjectileInterceptor)));
+            return tmpList;
         }
+
+        private static readonly List<Thing> tmpList = new List<Thing>();
     }
 
     [HarmonyPatchCategory("VMF_Patches_CE")]
@@ -346,11 +352,14 @@ namespace VMF_CEPatch
 
         private static List<Building> AddBuildingList(List<Building> list, Map map)
         {
-            List<Building> result = new List<Building>(list);
+            tmpList.Clear();
+            tmpList.AddRange(list);
             var maps = map.BaseMapAndVehicleMaps().Except(map);
-            result.AddRange(maps.SelectMany(m => m.listerBuildings.allBuildingsColonist));
-            return result;
+            tmpList.AddRange(maps.SelectMany(m => m.listerBuildings.allBuildingsColonist));
+            return tmpList;
         }
+
+        private static readonly List<Building> tmpList = new List<Building>();
     }
 
     [HarmonyPatchCategory("VMF_Patches_CE")]

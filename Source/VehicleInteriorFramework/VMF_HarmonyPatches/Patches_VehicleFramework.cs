@@ -163,7 +163,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             if (__instance is VehiclePawnWithMap vehicle)
             {
-                vehicle.ForceResetCache();
+                VehiclePawnWithMapCache.ForceResetCache();
             }
         }
     }
@@ -584,7 +584,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                     var floatMenu = (FloatMenuOption)AccessTools.Method(__instance.GetType(), "FloatMenuOption_LandInsideMap").Invoke(__instance, new object[] { mapParent, tile });
                     floatMenu.action = (Action)Delegate.Combine(new Action(() =>
                     {
-                        vehicle.ForceResetCache();
+                        VehiclePawnWithMapCache.ForceResetCache();
                     }), floatMenu.action);
                     floatMenu.Label = "VMF_LandInSpecificMap".Translate(vehicle.VehicleMap.Parent.Label, __instance.Vehicle.Label);
                     yield return floatMenu;

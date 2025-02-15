@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
 using UnityEngine;
+using Vehicles;
 using Verse;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
@@ -20,7 +21,12 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 return true;
             }
 
-            var result = new List<object>();
+            __result = SelectableObjects(vehicle, mouseMapPosition);
+            return false;
+        }
+
+        private static IEnumerable<object> SelectableObjects(VehiclePawnWithMap vehicle, Vector3 mouseMapPosition)
+        {
             TargetingParameters targetingParameters = new TargetingParameters
             {
                 mustBeSelectable = true,
@@ -31,7 +37,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             };
             var mouseVehicleMapPosition = mouseMapPosition.ToVehicleMapCoord(vehicle);
 
-            if (!mouseVehicleMapPosition.InBounds(vehicle.VehicleMap)) return true;
+            if (!mouseVehicleMapPosition.InBounds(vehicle.VehicleMap)) yield break;
 
             List<Thing> selectableList = GenUIOnVehicle.ThingsUnderMouse(mouseMapPosition, 1f, targetingParameters, null, vehicle);
             if (selectableList.Count > 0)
@@ -49,21 +55,20 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 }
             }
 
-            result.AddRange(selectableList);
+            foreach (var thing in selectableList)
+            {
+                yield return thing;
+            }
 
             Zone zone = vehicle.VehicleMap.zoneManager.ZoneAt(mouseVehicleMapPosition.ToIntVec3());
             if (zone != null)
             {
-                result.Add(zone);
+                yield return zone;
             }
-
-            if (result.Empty() && vehicle.Spawned)
+            else if (selectableList.Empty() && vehicle.Spawned)
             {
-                result.Add(vehicle);
+                yield return vehicle;
             }
-
-            __result = result;
-            return false;
         }
     }
 
@@ -139,7 +144,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 else if (VehicleInteriors.settings.drawPlanet)
                 {
                     cell = cell.ToBaseMapCoord(vehicle);
-                    vehicle.ForceResetCache();
+                    VehiclePawnWithMapCache.ForceResetCache();
                     Patch_Map_MapUpdate.lastRenderedTick = -1;
                 }
             }
@@ -157,9 +162,13 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             {
                 return true;
             }
+            __result = MultiSelectableThings(vehicle, rect);
+            return false;
+        }
 
+        private static IEnumerable<object> MultiSelectableThings(VehiclePawnWithMap vehicle, Rect rect)
+        {
             var focusedMap = vehicle.VehicleMap;
-            __result = new List<object>();
             CellRect mapRect = GetMapRect(rect);
             yieldedThings.Clear();
             try
@@ -178,7 +187,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                                 Thing t = cellThings[i];
                                 if ((bool)SelectableByMapClick(null, t) && !t.def.neverMultiSelect && !yieldedThings.Contains(t))
                                 {
-                                    __result = __result.AddItem(t);
+                                    yield return t;
                                     yieldedThings.Add(t);
                                 }
                                 num = i;
@@ -200,7 +209,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                                 Rect rect2 = new Rect(vector.x - 0.5f, vector.z - 0.5f, 1f, 1f);
                                 if (rect2.Overlaps(rectInWorldSpace))
                                 {
-                                    __result = __result.AddItem(t);
+                                    yield return t;
                                     yieldedThings.Add(t);
                                 }
                             }
@@ -212,7 +221,6 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             {
                 yieldedThings.Clear();
             }
-            return false;
         }
 
         private static CellRect GetMapRect(Rect rect)

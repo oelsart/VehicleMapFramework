@@ -19,22 +19,22 @@ namespace VehicleInteriors
         {
             var clickPosVehicleCor = clickPos.ToVehicleMapCoord(vehicle);
             IntVec3 intVec = IntVec3.FromVector3(clickPosVehicleCor);
-            List<Thing> list = new List<Thing>();
+            tmpList.Clear();
             IReadOnlyList<Pawn> allPawnsSpawned = vehicle.VehicleMap.mapPawns.AllPawnsSpawned;
             for (int i = 0; i < allPawnsSpawned.Count; i++)
             {
                 Pawn pawn = allPawnsSpawned[i];
                 if ((pawn.DrawPos - clickPos).MagnitudeHorizontal() < 0.4f && clickParams.CanTarget(pawn, source))
                 {
-                    list.Add(pawn);
-                    list.AddRange(ContainingSelectionUtility.SelectableContainedThings(pawn));
+                    tmpList.Add(pawn);
+                    tmpList.AddRange(ContainingSelectionUtility.SelectableContainedThings(pawn));
                 }
             }
-            list.Sort(new Comparison<Thing>(GenUIOnVehicle.CompareThingsByDistanceToMousePointer));
-            var cellThings = new List<Thing>(32);
+            tmpList.Sort(new Comparison<Thing>(GenUIOnVehicle.CompareThingsByDistanceToMousePointer));
+            cellThings.Clear();
             foreach (Thing thing4 in vehicle.VehicleMap.thingGrid.ThingsAt(intVec))
             {
-                if (!list.Contains(thing4) && clickParams.CanTarget(thing4, source))
+                if (!tmpList.Contains(thing4) && clickParams.CanTarget(thing4, source))
                 {
                     cellThings.Add(thing4);
                     cellThings.AddRange(ContainingSelectionUtility.SelectableContainedThings(thing4));
@@ -48,7 +48,7 @@ namespace VehicleInteriors
                 {
                     foreach (Thing thing2 in vehicle.VehicleMap.thingGrid.ThingsAt(c))
                     {
-                        if (thing2.def.category == ThingCategory.Item && (thing2.TrueCenter() - clickPos).MagnitudeHorizontalSquared() <= 0.25f && !list.Contains(thing2) && clickParams.CanTarget(thing2, source))
+                        if (thing2.def.category == ThingCategory.Item && (thing2.TrueCenter() - clickPos).MagnitudeHorizontalSquared() <= 0.25f && !tmpList.Contains(thing2) && clickParams.CanTarget(thing2, source))
                         {
                             cellThings.Add(thing2);
                         }
@@ -59,13 +59,13 @@ namespace VehicleInteriors
             for (int k = 0; k < list2.Count; k++)
             {
                 Thing thing3 = list2[k];
-                if (thing3.CustomRectForSelector != null && thing3.CustomRectForSelector.Value.Contains(intVec) && !list.Contains(thing3) && clickParams.CanTarget(thing3, source))
+                if (thing3.CustomRectForSelector != null && thing3.CustomRectForSelector.Value.Contains(intVec) && !tmpList.Contains(thing3) && clickParams.CanTarget(thing3, source))
                 {
                     cellThings.Add(thing3);
                 }
             }
             cellThings.Sort(new Comparison<Thing>(GenUIOnVehicle.CompareThingsByDrawAltitudeOrDistToItem));
-            list.AddRange(cellThings);
+            tmpList.AddRange(cellThings);
             cellThings.Clear();
             IReadOnlyList<Pawn> allPawnsSpawned2 = vehicle.VehicleMap.mapPawns.AllPawnsSpawned;
             for (int l = 0; l < allPawnsSpawned2.Count; l++)
@@ -79,19 +79,23 @@ namespace VehicleInteriors
             cellThings.Sort(new Comparison<Thing>(GenUIOnVehicle.CompareThingsByDistanceToMousePointer));
             for (int m = 0; m < cellThings.Count; m++)
             {
-                if (!list.Contains(cellThings[m]))
+                if (!tmpList.Contains(cellThings[m]))
                 {
-                    list.Add(cellThings[m]);
-                    list.AddRange(ContainingSelectionUtility.SelectableContainedThings(cellThings[m]));
+                    tmpList.Add(cellThings[m]);
+                    tmpList.AddRange(ContainingSelectionUtility.SelectableContainedThings(cellThings[m]));
                 }
             }
-            list.RemoveAll((Thing thing) => !clickParams.CanTarget(thing, source));
-            list.RemoveAll(delegate (Thing thing)
+            tmpList.RemoveAll((Thing thing) => !clickParams.CanTarget(thing, source));
+            tmpList.RemoveAll(delegate (Thing thing)
             {
                 return thing is Pawn pawn3 && pawn3.IsHiddenFromPlayer();
             });
-            return list;
+            return tmpList;
         }
+
+        private static List<Thing> tmpList = new List<Thing>();
+
+        private static List<Thing> cellThings = new List<Thing>(32);
 
         private static int CompareThingsByDistanceToMousePointer(Thing a, Thing b)
         {

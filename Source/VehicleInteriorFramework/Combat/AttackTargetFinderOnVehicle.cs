@@ -14,9 +14,9 @@ namespace VehicleInteriors
     {
         public static IAttackTarget BestAttackTarget(IAttackTargetSearcher searcher, TargetScanFlags flags, Predicate<Thing> validator = null, float minDist = 0f, float maxDist = 9999f, IntVec3 locus = default(IntVec3), float maxTravelRadiusFromLocus = 3.4028235E+38f, bool canBashDoors = false, bool canTakeTargetsCloserThanEffectiveMinRange = true, bool canBashFences = false, bool onlyRanged = false)
         {
-            AttackTargetFinderOnVehicle.interceptors = searcher.Thing?.Map.BaseMapAndVehicleMaps()
-                .SelectMany(m => m.listerThings.ThingsInGroup(ThingRequestGroup.ProjectileInterceptor)
-                .Select(t => t.TryGetComp<CompProjectileInterceptor>())).ToList() ?? new List<CompProjectileInterceptor>();
+            //AttackTargetFinderOnVehicle.interceptors = searcher.Thing?.Map.BaseMapAndVehicleMaps()
+            //    .SelectMany(m => m.listerThings.ThingsInGroup(ThingRequestGroup.ProjectileInterceptor)
+            //    .Select(t => t.TryGetComp<CompProjectileInterceptor>())).ToList() ?? new List<CompProjectileInterceptor>();
             var searcherThing = searcher.Thing;
             var searcherPawn = searcher as Pawn;
             var verb = searcher.CurrentEffectiveVerb;
@@ -196,7 +196,7 @@ namespace VehicleInteriors
                 return (IAttackTarget)GenClosestOnVehicle.ClosestThing_Global(searcher.Thing.PositionOnBaseMap(), AttackTargetFinderOnVehicle.validTargets, maxDist, null, null, false);
             }
             if (searcherPawn != null && searcherPawn.mindState.duty != null && searcherPawn.mindState.duty.radius > 0f && !searcherPawn.InMentalState)
-			{
+            {
                 Predicate<IAttackTarget> oldValidator = innerValidator;
                 innerValidator = (IAttackTarget t) =>
                 {
@@ -210,23 +210,22 @@ namespace VehicleInteriors
                 (!(t is VehiclePawnWithMap vehicle) || vehicle.VehicleMap.mapPawns.AllPawnsSpawned.CountWhere(p => p.HostileTo(searcherPawn)) == 0);
                 //VehicleMap上に敵対ポーンが居る場合そっちをターゲットとして優先したい
             };
-			IAttackTarget attackTarget2 = (IAttackTarget)GenClosestOnVehicle.ClosestThingReachable(searcherThing.Position, searcherThing.Map, ThingRequest.ForGroup(ThingRequestGroup.AttackTarget), PathEndMode.Touch, TraverseParms.For(searcherPawn, Danger.Deadly, TraverseMode.ByPawn, canBashDoors, false, canBashFences), maxDist, (Thing x) => innerValidator((IAttackTarget)x), null, 0, (maxDist > 800f) ? -1 : 40, true, RegionType.Set_Passable, false);
+            IAttackTarget attackTarget2 = (IAttackTarget)GenClosestOnVehicle.ClosestThingReachable(searcherThing.Position, searcherThing.Map, ThingRequest.ForGroup(ThingRequestGroup.AttackTarget), PathEndMode.Touch, TraverseParms.For(searcherPawn, Danger.Deadly, TraverseMode.ByPawn, canBashDoors, false, canBashFences), maxDist, (Thing x) => innerValidator((IAttackTarget)x), null, 0, (maxDist > 800f) ? -1 : 40, true, RegionType.Set_Passable, false);
             if (attackTarget2 != null && PawnUtility.ShouldCollideWithPawns(searcherPawn))
-			{
-				IAttackTarget attackTarget3 = AttackTargetFinderOnVehicle.FindBestReachableMeleeTarget(innerValidator, searcherPawn, maxDist, canBashDoors, canBashFences);
-				if (attackTarget3 != null)
-				{
-					float lengthHorizontal = (searcherPawn.PositionOnBaseMap() - attackTarget2.Thing.PositionOnBaseMap()).LengthHorizontal;
-					float lengthHorizontal2 = (searcherPawn.PositionOnBaseMap() - attackTarget3.Thing.PositionOnBaseMap()).LengthHorizontal;
-					if (Mathf.Abs(lengthHorizontal - lengthHorizontal2) < 50f)
-					{
-						attackTarget2 = attackTarget3;
-					}
-				}
-			}
-            
-            
-			return attackTarget2;
+            {
+                IAttackTarget attackTarget3 = AttackTargetFinderOnVehicle.FindBestReachableMeleeTarget(innerValidator, searcherPawn, maxDist, canBashDoors, canBashFences);
+                if (attackTarget3 != null)
+                {
+                    float lengthHorizontal = (searcherPawn.PositionOnBaseMap() - attackTarget2.Thing.PositionOnBaseMap()).LengthHorizontal;
+                    float lengthHorizontal2 = (searcherPawn.PositionOnBaseMap() - attackTarget3.Thing.PositionOnBaseMap()).LengthHorizontal;
+                    if (Mathf.Abs(lengthHorizontal - lengthHorizontal2) < 50f)
+                    {
+                        attackTarget2 = attackTarget3;
+                    }
+                }
+            }
+
+            return null;
 		}
 
         private static bool ShouldIgnoreNoncombatant(Thing searcherThing, IAttackTarget t, TargetScanFlags flags)
@@ -765,7 +764,7 @@ namespace VehicleInteriors
 
         private static List<IAttackTarget> validTargets = new List<IAttackTarget>();
 
-        private static List<CompProjectileInterceptor> interceptors;
+        //private static List<CompProjectileInterceptor> interceptors;
 
         private static List<Pair<IAttackTarget, float>> availableShootingTargets = new List<Pair<IAttackTarget, float>>();
 

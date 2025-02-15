@@ -15,12 +15,18 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static void Postfix(IAttackTargetSearcher searcher, TargetScanFlags flags, Predicate<Thing> validator, float minDist, float maxDist, IntVec3 locus, float maxTravelRadiusFromLocus, bool canBashDoors, bool canTakeTargetsCloserThanEffectiveMinRange, bool canBashFences, bool onlyRanged, ref IAttackTarget __result)
         {
-            var target = AttackTargetFinderOnVehicle.BestAttackTarget(searcher, flags, validator, minDist, maxDist, locus, maxTravelRadiusFromLocus, canBashDoors, canTakeTargetsCloserThanEffectiveMinRange, canBashFences, onlyRanged);
-            if (__result == null || target != null && (__result.Thing.Position - searcher.Thing.Position).LengthHorizontalSquared > (target.Thing.PositionOnBaseMap() - searcher.Thing.PositionOnBaseMap()).LengthHorizontalSquared)
+            if (Find.TickManager.TicksGame - lastSearchTick > 10)
             {
-                __result = target;
+                var target = AttackTargetFinderOnVehicle.BestAttackTarget(searcher, flags, validator, minDist, maxDist, locus, maxTravelRadiusFromLocus, canBashDoors, canTakeTargetsCloserThanEffectiveMinRange, canBashFences, onlyRanged);
+                if (__result == null || target != null && (__result.Thing.Position - searcher.Thing.Position).LengthHorizontalSquared > (target.Thing.PositionOnBaseMap() - searcher.Thing.PositionOnBaseMap()).LengthHorizontalSquared)
+                {
+                    __result = target;
+                }
+                lastSearchTick = Find.TickManager.TicksGame;
             }
         }
+
+        private static int lastSearchTick = -1;
     }
 
     [HarmonyPatch(typeof(PawnLeaner), nameof(PawnLeaner.Notify_WarmingCastAlongLine))]
@@ -91,17 +97,20 @@ namespace VehicleInteriors.VMF_HarmonyPatches
 
         public static List<Thing> IncludeVehicleMapIntercepters(List<Thing> list, Thing launcher, Projectile instance)
         {
-            var result = new List<Thing>(list);
+            tmpList.Clear();
+            tmpList.AddRange(list);
             if (launcher.IsOnVehicleMapOf(out var vehicle))
             {
-                result.AddRange(vehicle.VehicleMap.listerThings.ThingsInGroup(ThingRequestGroup.ProjectileInterceptor));
+                tmpList.AddRange(vehicle.VehicleMap.listerThings.ThingsInGroup(ThingRequestGroup.ProjectileInterceptor));
             }
             if (instance.usedTarget.HasThing && instance.usedTarget.Thing.IsOnVehicleMapOf(out var vehicle2))
             {
-                result.AddRange(vehicle2.VehicleMap.listerThings.ThingsInGroup(ThingRequestGroup.ProjectileInterceptor));
+                tmpList.AddRange(vehicle2.VehicleMap.listerThings.ThingsInGroup(ThingRequestGroup.ProjectileInterceptor));
             }
-            return result;
+            return tmpList;
         }
+
+        private static readonly List<Thing> tmpList = new List<Thing>();
     }
 
     [HarmonyPatch(typeof(Projectile), "CheckForFreeIntercept")]
@@ -353,14 +362,14 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatch(typeof(RoofGrid), nameof(RoofGrid.Roofed), typeof(IntVec3))]
+    //[HarmonyPatch(typeof(RoofGrid), nameof(RoofGrid.Roofed), typeof(IntVec3))]
     public static class Patch_RoofGrid_Roofed
     {
         public static void Postfix(Map ___map, IntVec3 c, ref bool __result)
         {
             if (___map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
             {
-                __result = __result || vehicle.Map.roofGrid.Roofed(c.ToBaseMapCoord(vehicle));
+                __result = __result || vehicle.Map.roofGrid.RoofAt(c.ToBaseMapCoord(vehicle)) != null;
             }
         }
     }

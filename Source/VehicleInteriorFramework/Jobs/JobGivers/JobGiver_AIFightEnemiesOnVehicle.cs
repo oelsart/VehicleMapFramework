@@ -12,6 +12,8 @@ namespace VehicleInteriors
         {
             JobGiver_AIFightEnemiesOnVehicle jobGiver_AIFightEnemiesOnVehicle = (JobGiver_AIFightEnemiesOnVehicle)base.DeepCopy(resolve);
             jobGiver_AIFightEnemiesOnVehicle.needLOSToAcquireNonPawnTargets = this.needLOSToAcquireNonPawnTargets;
+            jobGiver_AIFightEnemiesOnVehicle.dest1 = this.dest1;
+            jobGiver_AIFightEnemiesOnVehicle.dest2 = this.dest2;
             return jobGiver_AIFightEnemiesOnVehicle;
         }
 

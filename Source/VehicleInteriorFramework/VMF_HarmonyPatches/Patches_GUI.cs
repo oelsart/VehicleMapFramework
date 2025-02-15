@@ -1,9 +1,11 @@
 ﻿using HarmonyLib;
 using RimWorld;
 using RimWorld.Planet;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
+using UnityEngine;
 using Vehicles;
 using Verse;
 
@@ -12,19 +14,38 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     [HarmonyPatch(typeof(ThingOverlays), nameof(ThingOverlays.ThingOverlaysOnGUI))]
     public static class Patch_ThingOverlays_ThingOverlaysOnGUI
     {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+        public static void Postfix()
         {
-            var codes = instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap).ToList();
-            var pos = codes.FindIndex(c => c.opcode == OpCodes.Stloc_1);
-
-            codes.Insert(pos, CodeInstruction.Call(typeof(Patch_ThingOverlays_ThingOverlaysOnGUI), nameof(Patch_ThingOverlays_ThingOverlaysOnGUI.IncludeVehicleMapThings)));
-
-            return codes;
-        }
-
-        public static List<Thing> IncludeVehicleMapThings(List<Thing> list)
-        {
-            return list.Concat(VehiclePawnWithMapCache.AllVehiclesOn(Find.CurrentMap).SelectMany(v => v.VehicleMap.listerThings.ThingsInGroup(ThingRequestGroup.HasGUIOverlay))).ToList();
+            if (Event.current.type != EventType.Repaint)
+            {
+                return;
+            }
+            var vehicles = VehiclePawnWithMapCache.AllVehiclesOn(Find.CurrentMap);
+            if (vehicles.Count == 0)
+            {
+                return;
+            }
+            CellRect currentViewRect = Find.CameraDriver.CurrentViewRect;
+            foreach (var thing in vehicles.SelectMany(v => v.VehicleMap.listerThings.ThingsInGroup(ThingRequestGroup.HasGUIOverlay)))
+            {
+                if (currentViewRect.Contains(thing.PositionOnBaseMap())/* && !Find.CurrentMap.fogGrid.IsFogged(thing.PositionOnBaseMap())*/) //車両マップである時点でFoggedはスキップしていいはず
+                {
+                    try
+                    {
+                        thing.DrawGUIOverlay();
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(string.Concat(new object[]
+                        {
+                            "Exception drawing ThingOverlay for ",
+                            thing,
+                            ": ",
+                            ex
+                        }));
+                    }
+                }
+            }
         }
     }
 

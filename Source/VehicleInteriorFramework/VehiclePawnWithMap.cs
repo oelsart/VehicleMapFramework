@@ -3,9 +3,11 @@ using RimWorld;
 using RimWorld.Planet;
 using SmashTools;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using UnityEngine;
 using Vehicles;
 using Verse;
@@ -152,12 +154,8 @@ namespace VehicleInteriors
                 action = () =>
                 {
                     //リンクされたストレージの優先度が変わりすぎてしまうのを防ぎかつ全てのストレージにMoteを出したいので、一度優先度をキャッシュしておく
-                    var priorityList = new List<StoragePriority>();
                     var allGroups = this.interiorMap.haulDestinationManager.AllGroups;
-                    for (var i = 0; i < allGroups.Count(); i++)
-                    {
-                        priorityList.Add(allGroups.ElementAt(i).Settings.Priority);
-                    }
+                    var priorityList = allGroups.Select(g => g.Settings.Priority).ToList();
                     for (var i = 0; i < allGroups.Count(); i++)
                     {
                         allGroups.ElementAt(i).Settings.Priority = (StoragePriority)Math.Min((sbyte)(priorityList[i] + 1), (sbyte)StoragePriority.Critical);
@@ -173,12 +171,8 @@ namespace VehicleInteriors
             {
                 action = () =>
                 {
-                    var priorityList = new List<StoragePriority>();
                     var allGroups = this.interiorMap.haulDestinationManager.AllGroups;
-                    for (var i = 0; i < allGroups.Count(); i++)
-                    {
-                        priorityList.Add(allGroups.ElementAt(i).Settings.Priority);
-                    }
+                    var priorityList = allGroups.Select(g => g.Settings.Priority).ToList();
                     for (var i = 0; i < allGroups.Count(); i++)
                     {
                         allGroups.ElementAt(i).Settings.Priority = (StoragePriority)Math.Max((sbyte)(priorityList[i] - 1), (sbyte)StoragePriority.Low);
@@ -276,29 +270,8 @@ namespace VehicleInteriors
                     }
                 }
             }
-            if (this.Spawned)
-            {
-                this.ResetCache();
-            }
 
             base.Tick();
-        }
-
-        public void ForceResetCache()
-        {
-            VehiclePawnWithMap.lastCachedTick = Find.TickManager.TicksGame;
-            VehiclePawnWithMapCache.cachedDrawPos.Clear();
-            VehiclePawnWithMapCache.cachedPosOnBaseMap.Clear();
-        }
-
-        public void ResetCache()
-        {
-            if (VehiclePawnWithMap.lastCachedTick != Find.TickManager.TicksGame)
-            {
-                VehiclePawnWithMap.lastCachedTick = Find.TickManager.TicksGame;
-                VehiclePawnWithMapCache.cachedDrawPos.Clear();
-                VehiclePawnWithMapCache.cachedPosOnBaseMap.Clear();
-            }
         }
 
         public override void Destroy(DestroyMode mode = DestroyMode.Vanish)
@@ -372,14 +345,13 @@ namespace VehicleInteriors
 
         public override void DrawAt(Vector3 drawLoc, Rot8 rot, float extraRotation, bool flip = false, bool compDraw = true)
         {
-            this.ResetCache();
             if (base.CompVehicleLauncher?.inFlight ?? false)
             {
                 drawLoc.y = AltitudeLayer.PawnState.AltitudeFor();
             }
             VehiclePawnWithMapCache.cachedDrawPos[this] = drawLoc;
             base.DrawAt(drawLoc, rot, extraRotation, flip, compDraw);
-
+            
             if (base.vehiclePather?.Moving ?? false)
             {
                 this.CellDesignationsDirty();
@@ -430,15 +402,18 @@ namespace VehicleInteriors
 
         private void DrawVehicleMapMesh(Map map, Vector3 drawPos, float extraRotation)
         {
-            var mapDrawer = map.mapDrawer;
-            for (int i = 0; i < map.Size.x; i += 17)
+            Task.Run(() =>
             {
-                for (int j = 0; j < map.Size.z; j += 17)
+                var mapDrawer = map.mapDrawer;
+                for (int i = 0; i < map.Size.x; i += 17)
                 {
-                    var section = mapDrawer.SectionAt(new IntVec3(i, 0, j));
-                    this.DrawSection(section, drawPos, extraRotation);
+                    for (int j = 0; j < map.Size.z; j += 17)
+                    {
+                        var section = mapDrawer.SectionAt(new IntVec3(i, 0, j));
+                        this.DrawSection(section, drawPos, extraRotation);
+                    }
                 }
-            }
+            });
         }
 
         protected virtual void DrawSection(Section section, Vector3 drawPos, float extraRotation)
@@ -580,8 +555,6 @@ namespace VehicleInteriors
         private HashSet<IntVec3> mapEdgeCellsCache;
 
         public bool structureCellsDirty;
-
-        private static int lastCachedTick = -1;
 
         private static readonly Material ClipMat = SolidColorMaterials.NewSolidColorMaterial(new Color(0.3f, 0.1f, 0.1f, 0.5f), ShaderDatabase.MetaOverlay);
 

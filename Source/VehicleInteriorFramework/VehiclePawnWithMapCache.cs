@@ -10,6 +10,7 @@ namespace VehicleInteriors
         public VehiclePawnWithMapCache(Map map) : base(map)
         {
             VehiclePawnWithMapCache.allVehicles[map] = new List<VehiclePawnWithMap>();
+            VehiclePawnWithMapCache.cachedParentVehicle[this.map] = this.map.Parent is MapParent_Vehicle parentVehicle ? parentVehicle.vehicle : null;
         }
 
         public override void FinalizeInit()
@@ -58,11 +59,37 @@ namespace VehicleInteriors
             return VehiclePawnWithMapCache.allVehicles[map];
         }
 
+        public static void ForceResetCache()
+        {
+            VehiclePawnWithMapCache.lastCachedTick = Find.TickManager.TicksGame;
+            VehiclePawnWithMapCache.cachedDrawPos.Clear();
+            VehiclePawnWithMapCache.cachedPosOnBaseMap.Clear();
+        }
+
+        public static void ResetCache()
+        {
+            if (VehiclePawnWithMapCache.lastCachedTick != Find.TickManager.TicksGame)
+            {
+                VehiclePawnWithMapCache.lastCachedTick = Find.TickManager.TicksGame;
+                VehiclePawnWithMapCache.cachedDrawPos.Clear();
+                VehiclePawnWithMapCache.cachedPosOnBaseMap.Clear();
+            }
+        }
+
+        public override void MapComponentTick()
+        {
+            ResetCache();
+        }
+
         public static Dictionary<Thing, Vector3> cachedDrawPos = new Dictionary<Thing, Vector3>();
 
         public static Dictionary<Thing, IntVec3> cachedPosOnBaseMap = new Dictionary<Thing, IntVec3>();
 
+        public static Dictionary<Map, VehiclePawnWithMap> cachedParentVehicle = new Dictionary<Map, VehiclePawnWithMap>();
+
         public static bool cacheMode = false;
+
+        private static int lastCachedTick = -1;
 
         private static Dictionary<Map, List<VehiclePawnWithMap>> allVehicles = new Dictionary<Map, List<VehiclePawnWithMap>>();
     }

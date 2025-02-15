@@ -24,6 +24,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
+    [HarmonyAfter("SmarterConstruction")]
     [HarmonyPatch(typeof(JobGiver_Work), nameof(JobGiver_Work.TryIssueJobPackage))]
     public static class Patch_JobGiver_Work_TryIssueJobPackage
     {
@@ -97,13 +98,8 @@ namespace VehicleInteriors.VMF_HarmonyPatches
 
         private static IEnumerable<Thing> AddSearchSet(List<Thing> list, Pawn pawn, WorkGiver_Scanner scanner)
         {
-            var searchSet = new List<Thing>(list);
             var maps = pawn.Map.BaseMapAndVehicleMaps().Except(pawn.Map);
-            foreach(var map in maps)
-            {
-                searchSet.AddRange(map.listerThings.ThingsMatching(scanner.PotentialWorkThingRequest));
-            }
-            return searchSet;
+            return list.Concat(maps.SelectMany(m => m.listerThings.ThingsMatching(scanner.PotentialWorkThingRequest)));
         }
 
         private static IEnumerable<Thing> PotentialWorkThingsGlobalAll(WorkGiver_Scanner scanner, Pawn pawn)
@@ -464,13 +460,16 @@ namespace VehicleInteriors.VMF_HarmonyPatches
 
         public static List<Thing> AddThingList(List<Thing> list, Map map, ThingDef need)
         {
-            var result = new List<Thing>(list);
+            tmpList.Clear();
+            tmpList.AddRange(list);
             foreach (var vehicle in VehiclePawnWithMapCache.AllVehiclesOn(map))
             {
-                result.AddRange(vehicle.VehicleMap.listerThings.ThingsOfDef(need));
+                tmpList.AddRange(vehicle.VehicleMap.listerThings.ThingsOfDef(need));
             }
-            return result;
+            return tmpList;
         }
+
+        private static readonly List<Thing> tmpList = new List<Thing>();
     }
 
     [HarmonyPatch(typeof(GenClosest), nameof(GenClosest.ClosestThingReachable_NewTemp))]
@@ -614,15 +613,6 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 code.operand = MethodInfoCache.m_BaseMap_Thing;
             }
             return instructions.MethodReplacer(MethodInfoCache.g_Thing_MapHeld, MethodInfoCache.m_MapHeldBaseMap);
-        }
-    }
-
-    [HarmonyPatch(typeof(RestUtility), nameof(RestUtility.IsValidBedFor))]
-    public static class Patch_RestUtility_IsValidBedFor
-    {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
-            return instructions.MethodReplacer(MethodInfoCache.m_ReachabilityUtility_CanReach, MethodInfoCache.m_ReachabilityUtilityOnVehicle_CanReach);
         }
     }
 

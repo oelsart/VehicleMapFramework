@@ -115,13 +115,35 @@ namespace VMF_CEPatch
             }
         }
 
+        public override void SpawnSetup(Map map, bool respawningAfterLoad)
+        {
+            base.SpawnSetup(map, respawningAfterLoad);
+            this.cellsToAffectOnVehicles = SimplePool<Dictionary<VehiclePawnWithMap, List<IntVec3>>>.Get();
+            this.cellsToAffectOnVehicles.Clear();
+        }
+
+        public override void DeSpawn(DestroyMode mode = DestroyMode.Vanish)
+        {
+            base.DeSpawn(mode);
+            foreach (var cellsToAffect in this.cellsToAffectOnVehicles)
+            {
+                cellsToAffect.Value.Clear();
+                SimplePool<List<IntVec3>>.Return(cellsToAffect.Value);
+                this.cellsToAffectOnVehicles[cellsToAffect.Key] = null;
+            }
+
+            this.cellsToAffectOnVehicles.Clear();
+            SimplePool<Dictionary<VehiclePawnWithMap, List<IntVec3>>>.Return(cellsToAffectOnVehicles);
+            this.cellsToAffectOnVehicles = null;
+        }
+
         public override void ExposeData()
         {
             base.ExposeData();
             Scribe_NestedCollections.Look(ref this.cellsToAffectOnVehicles, "cellsToAffectOnVehicles", LookMode.Reference, LookMode.Value);
         }
 
-        private Dictionary<VehiclePawnWithMap, List<IntVec3>> cellsToAffectOnVehicles = new Dictionary<VehiclePawnWithMap, List<IntVec3>>();
+        private Dictionary<VehiclePawnWithMap, List<IntVec3>> cellsToAffectOnVehicles;
 
         private static readonly AccessTools.FieldRef<Explosion, List<IntVec3>> cellsToAffect = AccessTools.FieldRefAccess<Explosion, List<IntVec3>>("cellsToAffect");
 

@@ -64,7 +64,7 @@ namespace VehicleInteriors
                     Map map = vehicle.VehicleMap;
                     Current.Game.CurrentMap = map;
                     CameraJumper.TryHideWorld();
-                    vehicle.ForceResetCache();
+                    VehiclePawnWithMapCache.ForceResetCache();
                     Find.Targeter.BeginTargeting(TargetingParameters.ForDropPodsDestination(), delegate (LocalTargetInfo x)
                     {
                         representative.TryLaunch(tile, new TransportPodsArrivalAction_LandInVehicleMap(mapParent, x.Cell, representative.parent.TryGetComp<CompShuttle>() != null));

@@ -43,10 +43,10 @@ namespace VehicleInteriors
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsVehicleMapOf(this Map map, out VehiclePawnWithMap vehicle)
         {
-            if (map?.Parent is MapParent_Vehicle parentVehicle)
+            if (map != null)
             {
-                vehicle = parentVehicle.vehicle;
-                return true;
+                vehicle = VehiclePawnWithMapCache.cachedParentVehicle[map];
+                return vehicle != null;
             }
             vehicle = null;
             return false;
@@ -55,10 +55,14 @@ namespace VehicleInteriors
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsNonFocusedVehicleMapOf(this Map map, out VehiclePawnWithMap vehicle)
         {
-            if (map?.Parent is MapParent_Vehicle parentVehicle && (VehicleInteriors.settings.drawPlanet || Find.CurrentMap != parentVehicle.vehicle.VehicleMap))
+            if (map != null)
             {
-                vehicle = parentVehicle.vehicle;
-                return true;
+                var tmpVehicle = VehiclePawnWithMapCache.cachedParentVehicle[map];
+                if (tmpVehicle != null && (VehicleInteriors.settings.drawPlanet || Find.CurrentMap != tmpVehicle.VehicleMap))
+                {
+                    vehicle = tmpVehicle;
+                    return true;
+                }
             }
             vehicle = null;
             return false;
@@ -67,18 +71,13 @@ namespace VehicleInteriors
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsOnVehicleMapOf(this Thing thing, out VehiclePawnWithMap vehicle)
         {
-            if (thing == null)
-            {
-                vehicle = null;
-                return false;
-            }
             return thing.Map.IsVehicleMapOf(out vehicle);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsOnNonFocusedVehicleMapOf(this Thing thing, out VehiclePawnWithMap vehicle)
         {
-            return thing.IsOnVehicleMapOf(out vehicle) && (VehicleInteriors.settings.drawPlanet || Find.CurrentMap != vehicle.VehicleMap);
+            return thing.Map.IsNonFocusedVehicleMapOf(out vehicle);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -411,14 +410,14 @@ namespace VehicleInteriors
         public static IntVec3 CellOnBaseMap(this ref LocalTargetInfo target)
         {
             if (target.HasThing) {
-                if (VehiclePawnWithMapCache.cachedPosOnBaseMap.TryGetValue(target.Thing, out var pos))
-                {
-                    return pos;
-                }
+                //if (VehiclePawnWithMapCache.cachedPosOnBaseMap.TryGetValue(target.Thing, out var pos))
+                //{
+                //    return pos;
+                //}
                 if (target.Thing.IsOnVehicleMapOf(out var vehicle))
                 {
-                    pos = target.Thing.Position.ToBaseMapCoord(vehicle);
-                    VehiclePawnWithMapCache.cachedPosOnBaseMap[target.Thing] = pos;
+                    var pos = target.Thing.Position.ToBaseMapCoord(vehicle);
+                    //VehiclePawnWithMapCache.cachedPosOnBaseMap[target.Thing] = pos;
                     return pos;
                 }
             }
@@ -711,6 +710,8 @@ namespace VehicleInteriors
             thing.SetPositionDirect(c);
         }
 
+        private static readonly AccessTools.FieldRef<Thing, sbyte> mapIndexOrState = AccessTools.FieldRefAccess<Thing, sbyte>("mapIndexOrState");
+
         //thingが車両マップ上にあったらthingの中心を基準として位置と回転を下の車両基準に回転するわよ
         public static void SetTRSOnVehicle(ref Matrix4x4 matrix, Vector3 pos, Quaternion q, Vector3 s, Thing thing)
         {
@@ -811,22 +812,24 @@ namespace VehicleInteriors
 
         public static List<Thing> GetThingListAcrossMaps(this IntVec3 c, Map map)
         {
-            var result = new List<Thing>();
+            tmpList.Clear();
             var orig = map.IsVehicleMapOf(out var vehicle) ? c.ToBaseMapCoord(vehicle) : c;
             foreach (var m in map.BaseMapAndVehicleMaps())
             {
                 if (m.IsVehicleMapOf(out var vehicle2))
                 {
                     var c2 = orig.ToVehicleMapCoord(vehicle2);
-                    result.AddRange(m.thingGrid.ThingsAt(c2));
+                    tmpList.AddRange(m.thingGrid.ThingsAt(c2));
                 }
                 else
                 {
-                    result.AddRange(m.thingGrid.ThingsAt(orig));
+                    tmpList.AddRange(m.thingGrid.ThingsAt(orig));
                 }
             }
-            return result;
+            return tmpList;
         }
+
+        private static List<Thing> tmpList = new List<Thing>();
 
         public static Pawn GetFirstPawnAcrossMaps(this IntVec3 c, Map map)
         {
@@ -856,8 +859,6 @@ namespace VehicleInteriors
         }
 
         public static Rot4 rotForPrint = Rot4.North;
-
-        private static readonly AccessTools.FieldRef<Thing, sbyte> mapIndexOrState = AccessTools.FieldRefAccess<Thing, sbyte>("mapIndexOrState");
 
         public const float altitudeOffset = 0.09615385f;
 

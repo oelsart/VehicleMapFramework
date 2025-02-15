@@ -9,15 +9,6 @@ namespace VehicleInteriors
 {
     public class ExplosionAcrossMaps : Explosion
     {
-        public override void DeSpawn(DestroyMode mode = DestroyMode.Vanish)
-        {
-            base.DeSpawn(mode);
-            foreach(var pair in this.cellsToAffectOnVehicles)
-            {
-                SimplePool<List<IntVec3>>.Return(pair.Value);
-            }
-        }
-
         public override void StartExplosion(SoundDef explosionSound, List<Thing> ignoredThings)
         {
             base.StartExplosion(explosionSound, ignoredThings);
@@ -121,6 +112,28 @@ namespace VehicleInteriors
                     this.Destroy(DestroyMode.Vanish);
                 }
             }
+        }
+
+        public override void SpawnSetup(Map map, bool respawningAfterLoad)
+        {
+            base.SpawnSetup(map, respawningAfterLoad);
+            this.cellsToAffectOnVehicles = SimplePool<Dictionary<VehiclePawnWithMap, List<IntVec3>>>.Get();
+            this.cellsToAffectOnVehicles.Clear();
+        }
+
+        public override void DeSpawn(DestroyMode mode = DestroyMode.Vanish)
+        {
+            base.DeSpawn(mode);
+            foreach (var cellsToAffect in this.cellsToAffectOnVehicles)
+            {
+                cellsToAffect.Value.Clear();
+                SimplePool<List<IntVec3>>.Return(cellsToAffect.Value);
+                this.cellsToAffectOnVehicles[cellsToAffect.Key] = null;
+            }
+
+            this.cellsToAffectOnVehicles.Clear();
+            SimplePool<Dictionary<VehiclePawnWithMap, List<IntVec3>>>.Return(cellsToAffectOnVehicles);
+            this.cellsToAffectOnVehicles = null;
         }
 
         public override void ExposeData()
