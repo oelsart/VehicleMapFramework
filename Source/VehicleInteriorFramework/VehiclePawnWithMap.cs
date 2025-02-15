@@ -211,32 +211,23 @@ namespace VehicleInteriors
                     mapParent.Tile = 0;
                     mapParent.SetFaction(base.Faction);
                     var mapSize = new IntVec3(props.size.x, 1, props.size.z);
-                    if (!props.specificOutOfBounds)
-                    {
-                        mapSize.x += 2;
-                        mapSize.z += 2;
-                    }
+                    mapSize.x += 2;
+                    mapSize.z += 2;
                     this.interiorMap = MapGenerator.GenerateMap(mapSize, mapParent, mapParent.MapGeneratorDef, mapParent.ExtraGenStepDefs, null, true);
                     Find.World.GetComponent<VehicleMapParentsComponent>().vehicleMaps.Add(mapParent);
 
                     foreach (var c in props.EmptyStructureCells)
                     {
                         var c2 = c;
-                        if (!props.specificOutOfBounds)
-                        {
-                            c2.x += 1;
-                            c2.z += 1;
-                        }
+                        c2.x += 1;
+                        c2.z += 1;
                         GenSpawn.Spawn(VMF_DefOf.VMF_VehicleStructureEmpty, c2.ToIntVec3, this.interiorMap).SetFaction(Faction.OfPlayer);
                     }
                     foreach (var c in props.FilledStructureCells)
                     {
                         var c2 = c;
-                        if (!props.specificOutOfBounds)
-                        {
-                            c2.x += 1;
-                            c2.z += 1;
-                        }
+                        c2.x += 1;
+                        c2.z += 1;
                         GenSpawn.Spawn(VMF_DefOf.VMF_VehicleStructureFilled, c2.ToIntVec3, this.interiorMap).SetFaction(Faction.OfPlayer);
                     }
                     foreach (var c in this.CachedOutOfBoundsCells)

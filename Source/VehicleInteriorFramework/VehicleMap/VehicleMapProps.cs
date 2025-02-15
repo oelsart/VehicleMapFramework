@@ -40,9 +40,7 @@ namespace VehicleInteriors
 
         public List<CellRect> emptyStructureCellRects = new List<CellRect>();
 
-        //Explicitly specify cells to be designated as OutOfBounds. If this is false, the map size is expanded by 1 and edges are specified as OutOfBounds
-        public bool specificOutOfBounds;
-
+        //Specify cells to be designated as OutOfBounds.
         public List<IntVec2> outOfBoundsCells = new List<IntVec2>();
 
         public List<CellRect> outOfBoundsCellRects = new List<CellRect>();
@@ -74,11 +72,7 @@ namespace VehicleInteriors
         {
             get
             {
-                if (this.specificOutOfBounds)
-                {
-                    return this.outOfBoundsCells.Union(this.outOfBoundsCellRects.SelectMany(r => r.Cells2D));
-                }
-                return new CellRect(0, 0, this.size.x + 2, this.size.z + 2).EdgeCells.Select(c => c.ToIntVec2);
+                return new CellRect(0, 0, this.size.x + 2, this.size.z + 2).EdgeCells.Select(c => c.ToIntVec2).Union(this.outOfBoundsCells.Union(this.outOfBoundsCellRects.SelectMany(r => r.Cells2D)));
             }
         }
 
