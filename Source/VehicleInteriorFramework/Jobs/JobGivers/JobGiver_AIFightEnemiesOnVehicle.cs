@@ -39,6 +39,8 @@ namespace VehicleInteriors
 
         protected override Job TryGiveJob(Pawn pawn)
         {
+            if (pawn.Map.dangerWatcher.DangerRating == StoryDanger.None) return null;
+
             var pawnPositionOnBaseMap = pawn.PositionOnBaseMap();
             if ((pawn.IsColonist || pawn.IsColonyMutant) && pawn.playerSettings.hostilityResponse != HostilityResponseMode.Attack)
             {

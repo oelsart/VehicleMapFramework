@@ -124,11 +124,12 @@ namespace VehicleInteriors
         public override void DeSpawn(DestroyMode mode = DestroyMode.Vanish)
         {
             base.DeSpawn(mode);
-            foreach (var cellsToAffect in this.cellsToAffectOnVehicles)
+            for (var i = 0; i < this.cellsToAffectOnVehicles.Count; i++)
             {
-                cellsToAffect.Value.Clear();
-                SimplePool<List<IntVec3>>.Return(cellsToAffect.Value);
-                this.cellsToAffectOnVehicles[cellsToAffect.Key] = null;
+                var key = this.cellsToAffectOnVehicles.ElementAt(i).Key;
+                this.cellsToAffectOnVehicles[key].Clear();
+                SimplePool<List<IntVec3>>.Return(this.cellsToAffectOnVehicles[key]);
+                this.cellsToAffectOnVehicles[key] = null;
             }
 
             this.cellsToAffectOnVehicles.Clear();
