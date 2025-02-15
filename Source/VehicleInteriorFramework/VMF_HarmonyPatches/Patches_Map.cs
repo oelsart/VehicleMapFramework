@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
+using System.Threading.Tasks;
 using UnityEngine;
 using Vehicles;
 using Verse;
@@ -179,20 +180,23 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static void Postfix(Map ___map, Dictionary<ThingDef, int> ___countedAmounts)
         {
-            List<SlotGroup> allGroupsListForReading = VehiclePawnWithMapCache.AllVehiclesOn(___map).SelectMany(v => v.VehicleMap.haulDestinationManager.AllGroupsListForReading).ToList(); ;
-            for (int i = 0; i < allGroupsListForReading.Count; i++)
+            Task.Run(() =>
             {
-                foreach (Thing outerThing in allGroupsListForReading[i].HeldThings)
+                List<SlotGroup> allGroupsListForReading = VehiclePawnWithMapCache.AllVehiclesOn(___map).SelectMany(v => v.VehicleMap.haulDestinationManager.AllGroupsListForReading).ToList(); ;
+                for (int i = 0; i < allGroupsListForReading.Count; i++)
                 {
-                    Thing innerIfMinified = outerThing.GetInnerIfMinified();
-                    if (innerIfMinified.def.CountAsResource && !innerIfMinified.IsNotFresh())
+                    foreach (Thing outerThing in allGroupsListForReading[i].HeldThings)
                     {
-                        Dictionary<ThingDef, int> dictionary = ___countedAmounts;
-                        ThingDef def = innerIfMinified.def;
-                        dictionary[def] += innerIfMinified.stackCount;
+                        Thing innerIfMinified = outerThing.GetInnerIfMinified();
+                        if (innerIfMinified.def.CountAsResource && !innerIfMinified.IsNotFresh())
+                        {
+                            Dictionary<ThingDef, int> dictionary = ___countedAmounts;
+                            ThingDef def = innerIfMinified.def;
+                            dictionary[def] += innerIfMinified.stackCount;
+                        }
                     }
                 }
-            }
+            });
         }
     }
 

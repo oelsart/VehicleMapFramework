@@ -20,12 +20,12 @@ namespace VehicleInteriors
         public SectionLayer_TerrainOnVehicle(Section section) : base(section)
         {
             this.relevantChangeTypes = MapMeshFlagDefOf.Terrain;
-            if (!base.Map.IsVehicleMapOf(out var vehicle))
+            if (!(base.Map.Parent is MapParent_Vehicle parentVehicle))
             {
-                Log.Error("[VehicleInteriors] Do not use SectionLayer_TerrainOnVehicle except for vehicle maps.");
+                Log.Error("[VehicleMapFramework] Do not use SectionLayer_TerrainOnVehicle except for vehicle maps.");
                 return;
             }
-            this.baseTerrainMat = SolidColorMaterials.NewSolidColorMaterial(vehicle.DrawColor, ShaderDatabase.TerrainHard);
+            this.baseTerrainMat = SolidColorMaterials.NewSolidColorMaterial(parentVehicle.vehicle.DrawColor, ShaderDatabase.TerrainHard);
         }
 
         //drawPlanetがオフでVehicleMapにフォーカスした時しか呼ばれないよ
@@ -33,7 +33,7 @@ namespace VehicleInteriors
         {
             if (!base.Map.IsVehicleMapOf(out var vehicle))
             {
-                Log.Error("[VehicleInteriors] Do not use SectionLayer_TerrainOnVehicle except for vehicle maps.");
+                Log.Error("[VehicleMapFramework] Do not use SectionLayer_TerrainOnVehicle except for vehicle maps.");
                 return;
             }
             var mapSize = new Vector3(vehicle.VehicleMap.Size.x, 0f, vehicle.VehicleMap.Size.z);

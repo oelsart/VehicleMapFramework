@@ -29,6 +29,11 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             extraRotation += VehicleMapUtility.PrintExtraRotation(thing);
         }
+
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Rotation, MethodInfoCache.m_RotationForPrint);
+        }
     }
 
     //[HarmonyPatchCategory("VMF_Patches_AdaptiveStorage")]
@@ -45,25 +50,16 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     //}
 
     [HarmonyPatchCategory("VMF_Patches_AdaptiveStorage")]
-    [HarmonyPatch("AdaptiveStorage.StorageRenderer", "GetItemGraphicFor")]
-    public static class Patch_StorageRenderer_GetItemGraphicFor
-    {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
-            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Rotation, MethodInfoCache.m_Thing_RotationOrig);
-        }
-    }
-
-    [HarmonyPatchCategory("VMF_Patches_AdaptiveStorage")]
     [HarmonyPatch("AdaptiveStorage.StorageRenderer", "DrawOffsetForThing")]
     public static class Patch_StorageRenderer_DrawOffsetForThing
     {
-        public static void Postfix(Thing thing, Vector3 parentDrawLoc, ref Vector3 __result)
+        public static void Postfix(Thing thing, Vector3 parentDrawLoc, object itemGraphic, ref Vector3 __result)
         {
             if (thing.IsOnVehicleMapOf(out _))
             {
                 var parent = thing.StoringThing();
-                if (parent == null || parent.def.size.x == parent.def.size.z) return;
+                //stackBehaviourがCircleの時
+                if (parent == null || stackBehaviour(itemGraphic) == 1) return;
 
                 var angle = VehicleMapUtility.rotForPrint.AsAngle;
                 Vector3 origin;
@@ -79,7 +75,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 {
                     origin = Vector3.zero;
                 }
-                if (!parent.Rotation.IsHorizontal)
+                if (!parent.RotationForPrint().IsHorizontal)
                 {
                     if (VehicleMapUtility.rotForPrint == Rot4.East)
                     {
@@ -94,6 +90,13 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 __result = Ext_Math.RotatePoint(__result, origin, angle);
             }
         }
+
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Rotation, MethodInfoCache.m_RotationForPrint);
+        }
+
+        private static AccessTools.FieldRef<object, int> stackBehaviour = AccessTools.FieldRefAccess<int>("AdaptiveStorage.ItemGraphic:stackBehaviour");
     }
 
     [HarmonyPatchCategory("VMF_Patches_AdaptiveStorage")]

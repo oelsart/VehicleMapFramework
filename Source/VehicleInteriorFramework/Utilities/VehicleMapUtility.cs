@@ -45,7 +45,19 @@ namespace VehicleInteriors
         {
             if (map != null)
             {
-                vehicle = VehiclePawnWithMapCache.cachedParentVehicle[map];
+                if (VehiclePawnWithMapCache.cachedParentVehicle.TryGetValue(map, out vehicle))
+                {
+                    return vehicle != null;
+                }
+                else if (map.Parent is MapParent_Vehicle mapParent_Vehicle)
+                {
+                    vehicle = mapParent_Vehicle.vehicle;
+                }
+                else
+                {
+                    vehicle = null;
+                }
+                VehiclePawnWithMapCache.cachedParentVehicle[map] = vehicle;
                 return vehicle != null;
             }
             vehicle = null;
@@ -55,14 +67,9 @@ namespace VehicleInteriors
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsNonFocusedVehicleMapOf(this Map map, out VehiclePawnWithMap vehicle)
         {
-            if (map != null)
+            if (map.IsVehicleMapOf(out vehicle) && (VehicleInteriors.settings.drawPlanet || Find.CurrentMap != vehicle.VehicleMap))
             {
-                var tmpVehicle = VehiclePawnWithMapCache.cachedParentVehicle[map];
-                if (tmpVehicle != null && (VehicleInteriors.settings.drawPlanet || Find.CurrentMap != tmpVehicle.VehicleMap))
-                {
-                    vehicle = tmpVehicle;
-                    return true;
-                }
+                return true;
             }
             vehicle = null;
             return false;
@@ -286,6 +293,16 @@ namespace VehicleInteriors
         }
 
         private static readonly Type t_SectionLayer_Terrain = AccessTools.TypeByName("Verse.SectionLayer_Terrain");
+
+        public static Rot4 RotationForPrint(this Thing thing)
+        {
+            var rot = thing.Rotation;
+            if (VehicleMapUtility.rotForPrint != Rot4.North && (thing.def.size.x != thing.def.size.z || thing.def.rotatable || (thing.def.graphicData?.drawRotated ?? false) && thing.Graphic is Graphic_Multi))
+            {
+                rot.AsInt += VehicleMapUtility.rotForPrint.AsInt;
+            }
+            return rot;
+        }
 
         public static float PrintExtraRotation(Thing thing)
         {

@@ -80,9 +80,6 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     [HarmonyPatch(typeof(Thing), nameof(Thing.Rotation), MethodType.Getter)]
     public static class Patch_Thing_Rotation
     {
-        [HarmonyReversePatch(HarmonyReversePatchType.Original)] 
-        public static Rot4 Rotation(Thing instance) => throw new NotImplementedException();
-
         [HarmonyPatch(MethodType.Setter)]
         public static void Prefix(Thing __instance, ref Rot4 value)
         {
@@ -97,15 +94,6 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 {
                     value.AsInt += vehicle.FullRotation.AsInt;
                 }
-            }
-        }
-
-        [HarmonyPatch(MethodType.Getter)]
-        public static void Postfix(ref Rot4 __result, Thing __instance)
-        {
-            if (VehicleMapUtility.rotForPrint != Rot4.North && (__instance.def.size.x != __instance.def.size.z || __instance.def.rotatable || (__instance.def.graphicData?.drawRotated ?? false) && __instance.Graphic is Graphic_Multi))
-            {
-                __result.AsInt += VehicleMapUtility.rotForPrint.AsInt;
             }
         }
     }
@@ -124,7 +112,8 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 CodeInstruction.LoadArgument(2),
                 CodeInstruction.Call(typeof(Patch_Graphic_Print), nameof(Patch_Graphic_Print.EdgeSpacerOffset)),
             });
-            return codes;
+
+            return codes.MethodReplacer(MethodInfoCache.g_Thing_Rotation, MethodInfoCache.m_RotationForPrint);
         }
 
         //はしごとかのマップ端オフセットを足す
@@ -133,39 +122,10 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             VehicleMapProps mapProps;
             if (thing.HasComp<CompVehicleEnterSpot>() && thing.IsOnVehicleMapOf(out var vehicle) && (mapProps = vehicle.VehicleDef.GetModExtension<VehicleMapProps>()) != null)
             {
-                var opposite = Patch_Thing_Rotation.Rotation(thing).Opposite;
+                var opposite = thing.Rotation.Opposite;
                 return vector + opposite.AsVector2.ToVector3() * mapProps.EdgeSpaceValue(VehicleMapUtility.rotForPrint, opposite);
             }
             return vector;
-        }
-    }
-
-    //CompPrintForPowerGridからこれを呼んだ時rotForPrintによってRotationがずれてnullを返しちゃってたので修正
-    [HarmonyPatch(typeof(GenConstruct), nameof(GenConstruct.GetWallAttachedTo), typeof(Thing))]
-    public static class Patch_GenConstruct_GetWallAttachedTo
-    {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
-            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Rotation, MethodInfoCache.m_Thing_RotationOrig);
-        }
-    }
-
-    //オフセットの修正
-    [HarmonyPatch(typeof(PowerNetGraphics), nameof(PowerNetGraphics.PrintWirePieceConnecting))]
-    public static class Patch_PowerNetGraphics_PrintWirePieceConnecting
-    {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
-            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Rotation, MethodInfoCache.m_Thing_RotationOrig);
-        }
-    }
-
-    [HarmonyPatch(typeof(Graphic_Shadow), nameof(Graphic_Shadow.Print))]
-    public static class Patch_Graphic_Shadow_Print
-    {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
-            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Rotation, MethodInfoCache.m_Thing_RotationOrig);
         }
     }
 

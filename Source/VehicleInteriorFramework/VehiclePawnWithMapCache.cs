@@ -10,7 +10,6 @@ namespace VehicleInteriors
         public VehiclePawnWithMapCache(Map map) : base(map)
         {
             VehiclePawnWithMapCache.allVehicles[map] = new List<VehiclePawnWithMap>();
-            VehiclePawnWithMapCache.cachedParentVehicle[this.map] = this.map.Parent is MapParent_Vehicle parentVehicle ? parentVehicle.vehicle : null;
         }
 
         public override void FinalizeInit()

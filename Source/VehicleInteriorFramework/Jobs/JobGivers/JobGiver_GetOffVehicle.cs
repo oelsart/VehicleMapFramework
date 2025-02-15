@@ -12,11 +12,10 @@ namespace VehicleInteriors
 
         protected override Job TryGiveJob(Pawn pawn)
         {
-            var guest = pawn.Faction != Faction.OfPlayer;
             if (pawn.IsOnVehicleMapOf(out var vehicle) && vehicle.Spawned)
             {
                 var hostile = pawn.HostileTo(Faction.OfPlayer);
-                var cells = vehicle.VehicleRect().ExpandedBy(1);
+                var cells = vehicle.VehicleRect().ExpandedBy(1).EdgeCells;
 
                 TargetInfo exitSpot = TargetInfo.Invalid;
                 if (cells.Any(c => pawn.CanReach(c, PathEndMode.OnCell, Danger.Deadly, hostile, hostile, TraverseMode.ByPawn, vehicle.Map, out exitSpot, out _)))
