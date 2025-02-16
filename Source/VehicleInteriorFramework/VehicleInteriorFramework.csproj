@@ -182,6 +182,7 @@
     <Compile Include="PlaceWorkers\PlaceWorker_ForceOnVehicleMapEdge.cs" />
     <Compile Include="Graphics\RGBMaskShaderTypeDef.cs" />
     <Compile Include="BuildableUpgrades\VehicleHandlerBuildable.cs" />
+    <Compile Include="Utilities\RegionTraverserAcrossMaps.cs" />
     <Compile Include="VehicleMapSettings.cs" />
     <Compile Include="VehicleMap\DynamicDrawManagerOnVehicle.cs" />
     <Compile Include="VehicleMap\SectionLayer_ThingsGeneralOnVehicle.cs" />

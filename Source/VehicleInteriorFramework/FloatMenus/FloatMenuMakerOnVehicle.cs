@@ -2462,7 +2462,7 @@ namespace VehicleInteriors
                                     var map2 = pawn.Map;
                                     var pos = pawn.Position;
                                     var canReach = pawn.CanReach(thing2, workGiver_Scanner.PathEndMode, Danger.Deadly, false, false, TraverseMode.ByPawn, thing2.Map, out var exitSpot, out var enterSpot);
-                                    var needTransfer = pawn.Map != thing2.Map && (!(workGiver_Scanner is IWorkGiverAcrossMaps workGiverAcrossMaps) || workGiverAcrossMaps.NeedVirtualMapTransfer) || workGiver_Scanner is WorkGiver_RefuelVehicleTurret;
+                                    var needTransfer = !JobAcrossMapsUtility.NoNeedVirtualMapTransfer(pawn.Map, thing2.Map, workGiver_Scanner);
                                     if (needTransfer)
                                     {
                                         pawn.VirtualMapTransfer(thing2.Map, enterSpot.IsValid ? enterSpot.Cell : exitSpot.IsValid ? exitSpot.Cell.ToThingBaseMapCoord(pawn) : pawn.Position);

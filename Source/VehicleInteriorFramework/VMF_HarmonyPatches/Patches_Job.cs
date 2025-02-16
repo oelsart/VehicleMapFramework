@@ -6,8 +6,6 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
-using VehicleInteriors.Jobs.WorkGivers;
-using Vehicles;
 using Verse;
 using Verse.AI;
 
@@ -16,6 +14,17 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     [HarmonyPatch(typeof(Pawn_JobTracker), nameof(Pawn_JobTracker.StartJob))]
     public static class Patch_Pawn_JobTracker_StartJob
     {
+        public static void Prefix(Job newJob, Pawn ___pawn)
+        {
+            var targetMap = newJob.targetA.Thing?.MapHeld;
+            if (newJob.def == JobDefOf.HaulToCell && targetMap != ___pawn.Map &&
+                ___pawn.CanReach(newJob.targetA, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, targetMap, out var exitSpot, out var enterSpot))
+            {
+                newJob.def = VMF_DefOf.VMF_HaulToCellAcrossMaps;
+                newJob.SetSpotsToJobAcrossMaps(___pawn, exitSpot, enterSpot);
+            }
+        }
+
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             var m_MakeDriver = AccessTools.Method(typeof(Job), nameof(Job.MakeDriver));
@@ -134,7 +143,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             var thingMap = t.MapHeld;
             //VFの浅瀬と深い水の境界でのタレット補給バグを回避するため、WorkGiver_RefuelVehicleTurretは除外
-            if ((pawn.Map == thingMap || scanner is IWorkGiverAcrossMaps workGiverAcrossMaps && !workGiverAcrossMaps.NeedVirtualMapTransfer) && scanner.Isnt<WorkGiver_RefuelVehicleTurret>())
+            if (JobAcrossMapsUtility.NoNeedVirtualMapTransfer(pawn.Map, thingMap, scanner))
             {
                 return scanner.JobOnThing(pawn, t, forced);
             }
@@ -176,7 +185,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         private static Job JobOnCellMap(WorkGiver_Scanner scanner, Pawn pawn, in TargetInfo target, bool forced)
         {
             var targetMap = target.Map;
-            if (pawn.Map == targetMap || scanner is IWorkGiverAcrossMaps workGiverAcrossMaps && !workGiverAcrossMaps.NeedVirtualMapTransfer)
+            if (JobAcrossMapsUtility.NoNeedVirtualMapTransfer(pawn.Map, targetMap, scanner))
             {
                 return scanner.JobOnCell(pawn, target.Cell, forced);
             }
@@ -329,8 +338,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         private static bool HasJobOnThingMap(WorkGiver_Scanner scanner, Pawn pawn, Thing t, bool forced)
         {
             var thingMap = t.MapHeld;
-            //VFの浅瀬と深い水の境界でのタレット補給バグを回避するため、WorkGiver_RefuelVehicleTurretは除外
-            if ((pawn.Map == thingMap || scanner is IWorkGiverAcrossMaps workGiverAcrossMaps && !workGiverAcrossMaps.NeedVirtualMapTransfer) && scanner.Isnt<WorkGiver_RefuelVehicleTurret>())
+            if (JobAcrossMapsUtility.NoNeedVirtualMapTransfer(pawn.Map, thingMap, scanner))
             {
                 return scanner.HasJobOnThing(pawn, t, forced);
             }
