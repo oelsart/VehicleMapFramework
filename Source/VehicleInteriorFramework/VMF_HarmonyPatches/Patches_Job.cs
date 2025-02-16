@@ -521,6 +521,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             return true;
         }
 
+        [HarmonyBefore("net.pardeike.rimworld.mods.achtung")]
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             var m_ReservationManager_CanReserve = AccessTools.Method(typeof(ReservationManager), nameof(ReservationManager.CanReserve));
