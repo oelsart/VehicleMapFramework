@@ -71,8 +71,18 @@ namespace VehicleInteriors
             if (!thingReq.IsUndefined && thingReq.CanBeFoundInRegion)
             {
                 int num = (searchRegionsMax > 0) ? searchRegionsMax : 30;
-                thing = GenClosest.RegionwiseBFSWorker_NewTemp(root, map, thingReq, peMode, traverseParams, validator, null, searchRegionsMin, num, maxDistance, out int num2, traversableRegionTypes, ignoreEntirelyForbiddenRegions, lookInHaulSources);
-                flag2 = (thing == null && num2 < num && map == baseMap); //車上マップからRegionwiseBFSWorkerを呼んだ場合大抵1regionしか検索せずnum2 < numを満たしやすいため、map比較を条件として追加
+                thing = GenClosestOnVehicle.RegionwiseBFSWorker(root, map, thingReq, peMode, traverseParams, validator, null, searchRegionsMin, num, maxDistance, out int num2, traversableRegionTypes, ignoreEntirelyForbiddenRegions, lookInHaulSources);
+                if (thing != null && ReachabilityUtilityOnVehicle.CanReach(map, root, thing, peMode, traverseParams, thing.Map, out var exitSpot2, out var enterSpot2) && (validator == null || validator(thing)))
+                {
+                    GenClosestOnVehicle.tmpExitSpot = exitSpot2;
+                    GenClosestOnVehicle.tmpEnterSpot = enterSpot2;
+                    return thing;
+                }
+                else
+                {
+                    thing = null;
+                }
+                flag2 = thing == null && num2 < num;
             }
             if (thing == null && flag && !flag2)
             {
@@ -97,11 +107,58 @@ namespace VehicleInteriors
             return thing;
         }
 
+        public static Thing RegionwiseBFSWorker(IntVec3 root, Map map, ThingRequest req, PathEndMode peMode, TraverseParms traverseParams, Predicate<Thing> validator, Func<Thing, float> priorityGetter, int minRegions, int maxRegions, float maxDistance, out int regionsSeen, RegionType traversableRegionTypes = RegionType.Set_Passable, bool ignoreEntirelyForbiddenRegions = false)
+        {
+            return RegionwiseBFSWorker(root, map, req, peMode, traverseParams, validator, priorityGetter, minRegions, maxRegions, maxDistance, out regionsSeen, traversableRegionTypes, ignoreEntirelyForbiddenRegions);
+        }
+
+        public static Thing RegionwiseBFSWorker(IntVec3 root, Map map, ThingRequest req, PathEndMode peMode, TraverseParms traverseParams, Predicate<Thing> validator, Func<Thing, float> priorityGetter, int minRegions, int maxRegions, float maxDistance, out int regionsSeen, RegionType traversableRegionTypes = RegionType.Set_Passable, bool ignoreEntirelyForbiddenRegions = false, bool lookInHaulSources = false)
+        {
+            regionsSeen = 0;
+            if (traverseParams.mode == TraverseMode.PassAllDestroyableThings)
+            {
+                Log.Error("RegionwiseBFSWorker with traverseParams.mode PassAllDestroyableThings. Use ClosestThingGlobal.");
+                return null;
+            }
+
+            if (traverseParams.mode == TraverseMode.PassAllDestroyablePlayerOwnedThings)
+            {
+                Log.Error("RegionwiseBFSWorker with traverseParams.mode PassAllDestroyablePlayerOwnedThings. Use ClosestThingGlobal.");
+                return null;
+            }
+
+            if (traverseParams.mode == TraverseMode.PassAllDestroyableThingsNotWater)
+            {
+                Log.Error("RegionwiseBFSWorker with traverseParams.mode PassAllDestroyableThingsNotWater. Use ClosestThingGlobal.");
+                return null;
+            }
+
+            if (!req.IsUndefined && !req.CanBeFoundInRegion)
+            {
+                Log.ErrorOnce(string.Concat("RegionwiseBFSWorker with thing request group ", req.group, ". This group is never stored in regions. Most likely a global search should have been used."), 385766189);
+                return null;
+            }
+
+            Region region = root.GetRegion(map, traversableRegionTypes);
+            if (region == null)
+            {
+                return null;
+            }
+
+            RegionProcessorClosestThingReachable regionProcessorClosestThingReachable = SimplePool<RegionProcessorClosestThingReachable>.Get();
+            regionProcessorClosestThingReachable.SetParameters_NewTemp(traverseParams, maxDistance, root, ignoreEntirelyForbiddenRegions, req, peMode, priorityGetter, validator, minRegions, 9999999f, 0, float.MinValue, null, lookInHaulSources);
+            RegionTraverserAcrossMaps.BreadthFirstTraverse(region, regionProcessorClosestThingReachable, maxRegions, traversableRegionTypes);
+            regionsSeen = regionProcessorClosestThingReachable.regionsSeenScan;
+            Thing closestThing = regionProcessorClosestThingReachable.closestThing;
+            regionProcessorClosestThingReachable.Clear();
+            SimplePool<RegionProcessorClosestThingReachable>.Return(regionProcessorClosestThingReachable);
+            return closestThing;
+        }
+
         public static Thing ClosestThing_Global(IntVec3 center, IEnumerable searchSet, float maxDistance = 99999f, Predicate<Thing> validator = null, Func<Thing, float> priorityGetter = null)
         {
             return GenClosestOnVehicle.ClosestThing_Global(center, searchSet, maxDistance, validator, priorityGetter, false);
         }
-
 
         public static Thing ClosestThing_Global(IntVec3 center, IEnumerable searchSet, float maxDistance = 99999f, Predicate<Thing> validator = null, Func<Thing, float> priorityGetter = null, bool lookInHaulSources = false)
         {
