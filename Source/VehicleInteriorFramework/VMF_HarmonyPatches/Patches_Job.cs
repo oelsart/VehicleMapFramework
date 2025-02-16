@@ -6,7 +6,6 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
-using Vehicles;
 using Verse;
 using Verse.AI;
 
@@ -143,6 +142,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         private static Job JobOnThingMap(WorkGiver_Scanner scanner, Pawn pawn, Thing t, bool forced)
         {
             var thingMap = t.MapHeld;
+            //VFの浅瀬と深い水の境界でのタレット補給バグを回避するため、WorkGiver_RefuelVehicleTurretは除外
             if (JobAcrossMapsUtility.NoNeedVirtualMapTransfer(pawn.Map, thingMap, scanner))
             {
                 return scanner.JobOnThing(pawn, t, forced);

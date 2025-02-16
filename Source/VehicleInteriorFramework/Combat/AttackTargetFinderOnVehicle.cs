@@ -171,7 +171,6 @@ namespace VehicleInteriors
                         AttackTargetFinderOnVehicle.validTargets.Add(attackTarget);
                     }
                 }
-
                 if (AttackTargetFinderOnVehicle.validTargets.Count == 0)
                 {
                     return null;
@@ -225,7 +224,7 @@ namespace VehicleInteriors
                 }
             }
 
-            return null;
+            return attackTarget2;
 		}
 
         private static bool ShouldIgnoreNoncombatant(Thing searcherThing, IAttackTarget t, TargetScanFlags flags)

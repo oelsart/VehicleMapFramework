@@ -9,7 +9,7 @@ using Verse.AI;
 
 namespace VehicleInteriors
 {
-    public class WorkGiver_DoBillAcrossMaps : WorkGiver_Scanner, IWorkGiverAcrossMaps
+    public class WorkGiver_DoBillAcrossMaps : WorkGiver_DoBill, IWorkGiverAcrossMaps
     {
         public bool NeedVirtualMapTransfer => false;
 
@@ -176,7 +176,7 @@ namespace VehicleInteriors
             {
                 return job;
             }
-
+            
             var giver = (Thing)bill.billStack.billGiver;
             if (ReachabilityUtilityOnVehicle.CanReach(uft.Map, uft.Position, giver, PathEndMode.InteractionCell, TraverseParms.For(pawn), giver.Map, out var exitSpot2, out var enterSpot2))
             {
@@ -398,60 +398,6 @@ namespace VehicleInteriors
             return job;
         }
 
-        public bool ThingIsUsableBillGiver(Thing thing)
-        {
-            Pawn pawn = thing as Pawn;
-            Corpse corpse = thing as Corpse;
-            Pawn pawn2 = null;
-            if (corpse != null)
-            {
-                pawn2 = corpse.InnerPawn;
-            }
-
-            if (def.fixedBillGiverDefs != null && def.fixedBillGiverDefs.Contains(thing.def))
-            {
-                return true;
-            }
-
-            if (pawn != null)
-            {
-                if (def.billGiversAllHumanlikes && pawn.RaceProps.Humanlike)
-                {
-                    return true;
-                }
-
-                if (def.billGiversAllMechanoids && pawn.RaceProps.IsMechanoid)
-                {
-                    return true;
-                }
-
-                if (def.billGiversAllAnimals && pawn.IsNonMutantAnimal)
-                {
-                    return true;
-                }
-            }
-
-            if (corpse != null && pawn2 != null)
-            {
-                if (def.billGiversAllHumanlikesCorpses && pawn2.RaceProps.Humanlike)
-                {
-                    return true;
-                }
-
-                if (def.billGiversAllMechanoidsCorpses && pawn2.RaceProps.IsMechanoid)
-                {
-                    return true;
-                }
-
-                if (def.billGiversAllAnimalsCorpses && pawn2.IsNonMutantAnimal)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
         private static bool IsUsableIngredient(Thing t, Bill bill)
         {
             if (!bill.IsFixedOrAllowedIngredient(t))
@@ -470,22 +416,6 @@ namespace VehicleInteriors
             return false;
         }
 
-        public static bool TryFindBestFixedIngredients(List<IngredientCount> ingredients, Pawn pawn, Thing ingredientDestination, List<ThingCount> chosen, float searchRadius = 999f)
-        {
-            return TryFindBestIngredientsHelper(delegate (Thing t)
-            {
-                foreach (IngredientCount ingredient in ingredients)
-                {
-                    if (ingredient.filter.Allows(t))
-                    {
-                        return true;
-                    }
-                }
-
-                return false;
-            }, (List<Thing> foundThings) => TryFindBestIngredientsInSet_NoMixHelper(foundThings, ingredients, chosen, GetBillGiverRootCell(ingredientDestination, pawn), alreadySorted: false, null), ingredients, pawn, ingredientDestination, chosen, searchRadius);
-        }
-
         private static bool TryFindBestBillIngredients(Bill bill, Pawn pawn, Thing billGiver, List<ThingCount> chosen, List<IngredientCount> missingIngredients)
         {
             return TryFindBestIngredientsHelper((Thing t) => IsUsableIngredient(t, bill), (List<Thing> foundThings) => TryFindBestBillIngredientsInSet(foundThings, bill, chosen, GetBillGiverRootCell(billGiver, pawn), billGiver is Pawn, missingIngredients), bill.recipe.ingredients, pawn, billGiver, chosen, bill.ingredientSearchRadius);
@@ -501,7 +431,7 @@ namespace VehicleInteriors
             }
 
             IntVec3 billGiverRootCell = GetBillGiverRootCell(billGiver, pawn);
-            Region rootReg = billGiverRootCell.GetRegion(pawn.Map);
+            Region rootReg = billGiverRootCell.GetRegion(billGiver.Map);
             if (rootReg == null)
             {
                 return false;
@@ -511,7 +441,7 @@ namespace VehicleInteriors
             processedThings.Clear();
             bool foundAll = false;
             float radiusSq = searchRadius * searchRadius;
-            Predicate<Thing> baseValidator = (Thing t) => t.Spawned && thingValidator(t) && (float)(t.Position - billGiver.Position).LengthHorizontalSquared < radiusSq && !t.IsForbidden(pawn) && pawn.CanReserve(t);
+            bool baseValidator(Thing t) => t.Spawned && thingValidator(t) && (float)(t.PositionOnBaseMap() - billGiver.PositionOnBaseMap()).LengthHorizontalSquared < radiusSq && !t.IsForbidden(pawn) && pawn.CanReserve(t);
             bool billGiverIsPawn = billGiver is Pawn;
             if (billGiverIsPawn)
             {
@@ -564,7 +494,7 @@ namespace VehicleInteriors
             int regionsProcessed = 0;
             processedThings.AddRange(relevantThings);
             foundAllIngredientsAndChoose(relevantThings);
-            RegionProcessor regionProcessor = delegate (Region r)
+            bool regionProcessor(Region r)
             {
                 List<Thing> list = r.ListerThings.ThingsMatching(ThingRequest.ForGroup(ThingRequestGroup.HaulableEver));
                 for (int i = 0; i < list.Count; i++)
@@ -591,8 +521,8 @@ namespace VehicleInteriors
                 }
 
                 return false;
-            };
-            RegionTraverser.BreadthFirstTraverse(rootReg, entryCondition, regionProcessor, 99999);
+            }
+            RegionTraverserAcrossMaps.BreadthFirstTraverse(rootReg, entryCondition, regionProcessor, 99999);
             relevantThings.Clear();
             newRelevantThings.Clear();
             processedThings.Clear();
@@ -605,14 +535,14 @@ namespace VehicleInteriors
             {
                 if (building.def.hasInteractionCell)
                 {
-                    return building.InteractionCell.ToThingBaseMapCoord(building);
+                    return building.InteractionCell;
                 }
 
                 Log.Error(string.Concat("Tried to find bill ingredients for ", billGiver, " which has no interaction cell."));
-                return forPawn.PositionOnBaseMap();
+                return forPawn.Position;
             }
 
-            return billGiver.PositionOnBaseMap();
+            return billGiver.Position;
         }
 
         private static void AddEveryMedicineToRelevantThings(Pawn pawn, Thing billGiver, List<Thing> relevantThings, Predicate<Thing> baseValidator, Map map)
@@ -623,26 +553,17 @@ namespace VehicleInteriors
             for (int i = 0; i < list.Count; i++)
             {
                 Thing thing = list[i];
-                if (medicalCareCategory.AllowsMedicine(thing.def) && baseValidator(thing) && pawn.CanReach(thing, PathEndMode.OnCell, Danger.Deadly))
+                if (medicalCareCategory.AllowsMedicine(thing.def) && baseValidator(thing) && pawn.CanReach(thing, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, thing.MapHeld, out _, out _))
                 {
                     tmpMedicine.Add(thing);
                 }
             }
 
-            tmpMedicine.SortBy((Thing x) => 0f - x.GetStatValue(StatDefOf.MedicalPotency), (Thing x) => x.Position.DistanceToSquared(billGiver.Position));
+            tmpMedicine.SortBy((Thing x) => 0f - x.GetStatValue(StatDefOf.MedicalPotency), (Thing x) => x.PositionOnBaseMap().DistanceToSquared(billGiver.PositionOnBaseMap()));
             relevantThings.AddRange(tmpMedicine);
             tmpMedicine.Clear();
         }
 
-        public static MedicalCareCategory GetMedicalCareCategory(Thing billGiver)
-        {
-            if (billGiver is Pawn pawn && pawn.playerSettings != null)
-            {
-                return pawn.playerSettings.medCare;
-            }
-
-            return MedicalCareCategory.Best;
-        }
 
         private static bool TryFindBestBillIngredientsInSet(List<Thing> availableThings, Bill bill, List<ThingCount> chosen, IntVec3 rootCell, bool alreadySorted, List<IngredientCount> missingIngredients)
         {

@@ -116,6 +116,7 @@ namespace VehicleInteriors
                 foreach (var toil in this.GotoTargetMap(HaulableInd)) yield return toil;
             }
             var destMap = this.DestMap;
+            var targetAMap = this.TargetAMap;
             Toil toilGoto = null;
             toilGoto = Toils_Goto.GotoThing(HaulableInd, PathEndMode.ClosestTouch, true).FailOnSomeonePhysicallyInteracting(HaulableInd).FailOn(delegate ()
             {
