@@ -4,6 +4,7 @@ using Verse;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
 {
+    [StaticConstructorOnStartupPriority(Priority.Low)]
     public static class Patches_Gunplay
     {
         static Patches_Gunplay()
@@ -15,6 +16,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
+    [HarmonyPatchCategory("VMF_Patches_Gunplay")]
     [HarmonyPatch("Gunplay.Patch.PatchProjectileLaunch", "Postfix")]
     public static class Patch_PatchProjectileLaunch_Postfix
     {

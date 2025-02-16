@@ -54,7 +54,7 @@ namespace VehicleInteriors
                 closedIndex++;
                 open.Clear();
                 numRegionsProcessed = 0;
-                QueueNewOpenRegion(root);
+                open.Enqueue(root);
                 while (open.Count > 0)
                 {
                     Region region = open.Dequeue();
@@ -80,6 +80,15 @@ namespace VehicleInteriors
                         return;
                     }
 
+                    foreach (var vehicle2 in region.ListerThings.AllThings.OfType<VehiclePawnWithMap>())
+                    {
+                        var region2 = vehicle2.VehicleMap.regionGrid.AllRegions.FirstOrDefault();
+                        if (region2 != null && !open.Contains(region2) && region2.closedIndex[closedArrayPos] != closedIndex)
+                        {
+                            QueueNewOpenRegion(region2);
+                        }
+                    }
+
                     for (int i = 0; i < region.links.Count; i++)
                     {
                         RegionLink regionLink = region.links[i];
@@ -99,14 +108,6 @@ namespace VehicleInteriors
                         if (!open.Contains(baseRegion) && baseRegion.closedIndex[closedArrayPos] != closedIndex)
                         {
                             QueueNewOpenRegion(baseRegion);
-                        }
-                    }
-                    foreach (var vehicle2 in region.ListerThings.AllThings.OfType<VehiclePawnWithMap>())
-                    {
-                        var region2 = vehicle2.VehicleMap.regionGrid.AllRegions.FirstOrDefault();
-                        if (region2 != null && !open.Contains(region2) && region2.closedIndex[closedArrayPos] != closedIndex)
-                        {
-                            QueueNewOpenRegion(region2);
                         }
                     }
                 }
