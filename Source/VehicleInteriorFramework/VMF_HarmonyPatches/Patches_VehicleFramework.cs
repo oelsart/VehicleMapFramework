@@ -665,4 +665,14 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             }
         }
     }
+
+    //WorkGiver_RefuelVehicleTurretでVehicleが海上に居た場合Regionがnullでエラーを吐いていた問題の修正
+    [HarmonyPatch(typeof(WorkGiver_RefuelVehicleTurret), nameof(WorkGiver_RefuelVehicleTurret.JobOnThing))]
+    public static class Patch_WorkGiver_RefuelVehicleTurret_JobOnThing
+    {
+        public static bool Prefix(Thing thing)
+        {
+            return thing.Position.GetRegion(thing.Map) != null;
+        }
+    }
 }
