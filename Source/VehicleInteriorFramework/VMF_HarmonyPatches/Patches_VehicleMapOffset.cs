@@ -9,6 +9,7 @@ using UnityEngine;
 using Vehicles;
 using Verse;
 using Verse.AI;
+using static HarmonyLib.Code;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
 {
@@ -158,6 +159,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
 
     //thingがIsOnVehicleMapだった場合回転の初期値num3にベースvehicleのAngleを与え、posはRotatePointで回転
     [HarmonyPatch(typeof(SelectionDrawer), nameof(SelectionDrawer.DrawSelectionBracketFor))]
+    [HarmonyAfter("owlchemist.smartfarming")]
     public static class Patch_SelectionDrawer_DrawSelectionBracketFor
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
@@ -193,9 +195,6 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             {
                 new CodeInstruction(OpCodes.Ldloc_S, vehicle),
                 new CodeInstruction(OpCodes.Brfalse_S, label2),
-                //new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-                //new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Thing_Spawned),
-                //new CodeInstruction(OpCodes.Brfalse_S, label2),
                 CodeInstruction.LoadLocal(1),
                 new CodeInstruction(OpCodes.Callvirt, g_DrawPos),
                 new CodeInstruction(OpCodes.Ldloca_S, rot),
@@ -204,8 +203,9 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 new CodeInstruction(OpCodes.Call, MethodInfoCache.m_RotatePoint)
             });
 
-            var pos3 = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(MethodInfoCache.m_GenDraw_DrawFieldEdges));
-            codes[pos3].operand = MethodInfoCache.m_GenDrawOnVehicle_DrawFieldEdges;
+            var smartFarmingActive = ModsConfig.IsActive("Owlchemist.SmartFarming");
+            var pos3 = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(smartFarmingActive ? AccessTools.Method("SmartFarming.MapComponent_SmartFarming:DrawFieldEdges") :MethodInfoCache.m_GenDraw_DrawFieldEdges));
+            codes[pos3].operand = smartFarmingActive ? AccessTools.Method("VMF_SmartFarmingPatch.GenDrawOnVehicleSF:DrawFieldEdges") : MethodInfoCache.m_GenDrawOnVehicle_DrawFieldEdges;
             codes.InsertRange(pos3, new[]
             {
                 CodeInstruction.LoadLocal(0),
