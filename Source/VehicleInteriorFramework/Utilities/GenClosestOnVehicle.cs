@@ -71,8 +71,18 @@ namespace VehicleInteriors
             if (!thingReq.IsUndefined && thingReq.CanBeFoundInRegion)
             {
                 int num = (searchRegionsMax > 0) ? searchRegionsMax : 30;
-                thing = GenClosest.RegionwiseBFSWorker_NewTemp(root, map, thingReq, peMode, traverseParams, validator, null, searchRegionsMin, num, maxDistance, out int num2, traversableRegionTypes, ignoreEntirelyForbiddenRegions, lookInHaulSources);
-                flag2 = thing == null && num2 < num && map == baseMap; //車上マップからRegionwiseBFSWorkerを呼んだ場合大抵1regionしか検索せずnum2 < numを満たしやすいため、map比較を条件として追加
+                thing = GenClosestOnVehicle.RegionwiseBFSWorker(root, map, thingReq, peMode, traverseParams, validator, null, searchRegionsMin, num, maxDistance, out int num2, traversableRegionTypes, ignoreEntirelyForbiddenRegions, lookInHaulSources);
+                if (thing != null && ReachabilityUtilityOnVehicle.CanReach(map, root, thing, peMode, traverseParams, thing.Map, out var exitSpot2, out var enterSpot2) && (validator == null || validator(thing)))
+                {
+                    GenClosestOnVehicle.tmpExitSpot = exitSpot2;
+                    GenClosestOnVehicle.tmpEnterSpot = enterSpot2;
+                    return thing;
+                }
+                else
+                {
+                    thing = null;
+                }
+                flag2 = thing == null && num2 < num;
             }
             if (thing == null && flag && !flag2)
             {

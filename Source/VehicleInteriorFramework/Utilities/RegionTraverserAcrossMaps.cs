@@ -105,7 +105,7 @@ namespace VehicleInteriors
                     if (region.Map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
                     {
                         var baseRegion = vehicle.Position.GetRegion(vehicle.Map);
-                        if (!open.Contains(baseRegion) && baseRegion.closedIndex[closedArrayPos] != closedIndex)
+                        if (baseRegion != null && !open.Contains(baseRegion) && baseRegion.closedIndex[closedArrayPos] != closedIndex)
                         {
                             QueueNewOpenRegion(baseRegion);
                         }
