@@ -9,7 +9,7 @@ using Verse.AI;
 
 namespace VehicleInteriors
 {
-    public class WorkGiver_DoBillAcrossMaps : WorkGiver_Scanner, IWorkGiverAcrossMaps
+    public class WorkGiver_DoBillAcrossMaps : WorkGiver_DoBill, IWorkGiverAcrossMaps
     {
         public bool NeedVirtualMapTransfer => false;
 
@@ -398,60 +398,6 @@ namespace VehicleInteriors
             return job;
         }
 
-        public bool ThingIsUsableBillGiver(Thing thing)
-        {
-            Pawn pawn = thing as Pawn;
-            Corpse corpse = thing as Corpse;
-            Pawn pawn2 = null;
-            if (corpse != null)
-            {
-                pawn2 = corpse.InnerPawn;
-            }
-
-            if (def.fixedBillGiverDefs != null && def.fixedBillGiverDefs.Contains(thing.def))
-            {
-                return true;
-            }
-
-            if (pawn != null)
-            {
-                if (def.billGiversAllHumanlikes && pawn.RaceProps.Humanlike)
-                {
-                    return true;
-                }
-
-                if (def.billGiversAllMechanoids && pawn.RaceProps.IsMechanoid)
-                {
-                    return true;
-                }
-
-                if (def.billGiversAllAnimals && pawn.IsNonMutantAnimal)
-                {
-                    return true;
-                }
-            }
-
-            if (corpse != null && pawn2 != null)
-            {
-                if (def.billGiversAllHumanlikesCorpses && pawn2.RaceProps.Humanlike)
-                {
-                    return true;
-                }
-
-                if (def.billGiversAllMechanoidsCorpses && pawn2.RaceProps.IsMechanoid)
-                {
-                    return true;
-                }
-
-                if (def.billGiversAllAnimalsCorpses && pawn2.IsNonMutantAnimal)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
         private static bool IsUsableIngredient(Thing t, Bill bill)
         {
             if (!bill.IsFixedOrAllowedIngredient(t))
@@ -468,22 +414,6 @@ namespace VehicleInteriors
             }
 
             return false;
-        }
-
-        public static bool TryFindBestFixedIngredients(List<IngredientCount> ingredients, Pawn pawn, Thing ingredientDestination, List<ThingCount> chosen, float searchRadius = 999f)
-        {
-            return TryFindBestIngredientsHelper(delegate (Thing t)
-            {
-                foreach (IngredientCount ingredient in ingredients)
-                {
-                    if (ingredient.filter.Allows(t))
-                    {
-                        return true;
-                    }
-                }
-
-                return false;
-            }, (List<Thing> foundThings) => TryFindBestIngredientsInSet_NoMixHelper(foundThings, ingredients, chosen, GetBillGiverRootCell(ingredientDestination, pawn), alreadySorted: false, null), ingredients, pawn, ingredientDestination, chosen, searchRadius);
         }
 
         private static bool TryFindBestBillIngredients(Bill bill, Pawn pawn, Thing billGiver, List<ThingCount> chosen, List<IngredientCount> missingIngredients)
@@ -634,15 +564,6 @@ namespace VehicleInteriors
             tmpMedicine.Clear();
         }
 
-        public static MedicalCareCategory GetMedicalCareCategory(Thing billGiver)
-        {
-            if (billGiver is Pawn pawn && pawn.playerSettings != null)
-            {
-                return pawn.playerSettings.medCare;
-            }
-
-            return MedicalCareCategory.Best;
-        }
 
         private static bool TryFindBestBillIngredientsInSet(List<Thing> availableThings, Bill bill, List<ThingCount> chosen, IntVec3 rootCell, bool alreadySorted, List<IngredientCount> missingIngredients)
         {
