@@ -5,6 +5,7 @@ using SmashTools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
 using Vehicles;
@@ -673,6 +674,23 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         public static bool Prefix(Thing thing)
         {
             return thing.Position.GetRegion(thing.Map) != null;
+        }
+    }
+
+    [HarmonyPatch]
+    public static class Patch_Dialog_FormVehicleCaravan_TryFindExitSpot
+    {
+        private static IEnumerable<MethodBase> TargetMethods()
+        {
+            yield return AccessTools.FindIncludingInnerTypes<MethodBase>(typeof(Dialog_FormVehicleCaravan), t => t.GetMethods(AccessTools.all).FirstOrDefault(m => m.Name.Contains("<TryFindExitSpot>b__2")));
+            yield return AccessTools.Method(typeof(Dialog_FormVehicleCaravan), "TryFindExitSpot",
+                new Type[] { typeof(Map), typeof(List<Pawn>), typeof(bool), typeof(Rot4), typeof(IntVec3).MakeByRefType(), typeof(bool) });
+        }
+
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, MethodBase method)
+        {
+            if (instructions.FirstOrDefault(c => c.OperandIs(MethodInfoCache.m_ReachabilityUtility_CanReach)) == null) Log.Error(method.Name);
+            return instructions.MethodReplacer(MethodInfoCache.m_ReachabilityUtility_CanReach, MethodInfoCache.m_ReachabilityUtilityOnVehicle_CanReach);
         }
     }
 }
