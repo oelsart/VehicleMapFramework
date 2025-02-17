@@ -1,7 +1,5 @@
 ﻿using HarmonyLib;
 using RimWorld;
-using VehicleInteriors.Jobs.WorkGivers;
-using Vehicles;
 using Verse;
 using Verse.AI;
 
@@ -62,13 +60,13 @@ namespace VehicleInteriors
 
         public static bool NoNeedVirtualMapTransfer(Map pawnMap, Map targetMap, WorkGiver_Scanner scanner)
         {
-            return scanner.Isnt<WorkGiver_RefuelVehicleTurret>() && (pawnMap == targetMap ||
+            return pawnMap == targetMap ||
                 scanner is IWorkGiverAcrossMaps workGiverAcrossMaps && !workGiverAcrossMaps.NeedVirtualMapTransfer ||
                 scanner is WorkGiver_Haul ||
                 scanner is WorkGiver_DoBill ||
                 scanner is WorkGiver_ConstructDeliverResources ||
                 scanner is WorkGiver_ConstructFinishFrames ||
-                scanner is WorkGiver_Refuel) && scanner.Isnt<WorkGiver_RefuelVehicleTurret>();
+                scanner is WorkGiver_Refuel;
         }
     }
 }
