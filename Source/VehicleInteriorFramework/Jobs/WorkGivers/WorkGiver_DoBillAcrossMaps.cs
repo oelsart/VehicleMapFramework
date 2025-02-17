@@ -371,9 +371,11 @@ namespace VehicleInteriors
             {
                 return haulOffJob;
             }
-            var firstThing = chosenIngThings.First().Thing;
+            var firstThing = chosenIngThings.FirstOrDefault().Thing;
             var giverThing = (Thing)giver;
-            if (ReachabilityUtilityOnVehicle.CanReach(firstThing.Map, firstThing.Position, giverThing, PathEndMode.InteractionCell, TraverseParms.For(pawn), giver.Map, out var exitSpot2, out var enterSpot2))
+            var exitSpot2 = TargetInfo.Invalid;
+            var enterSpot2 = TargetInfo.Invalid;
+            if (firstThing == null || ReachabilityUtilityOnVehicle.CanReach(firstThing.Map, firstThing.Position, giverThing, PathEndMode.InteractionCell, TraverseParms.For(pawn), giver.Map, out exitSpot2, out enterSpot2))
             {
                 Job job = JobMaker.MakeJob(VMF_DefOf.VMF_DoBillAcrossMaps, (Thing)giver).SetSpotsToJobAcrossMaps(pawn, exitSpot, enterSpot, exitSpot2, enterSpot2);
                 job.targetQueueB = new List<LocalTargetInfo>(chosenIngThings.Count);
