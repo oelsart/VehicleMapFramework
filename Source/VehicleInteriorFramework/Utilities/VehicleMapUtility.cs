@@ -78,12 +78,22 @@ namespace VehicleInteriors
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsOnVehicleMapOf(this Thing thing, out VehiclePawnWithMap vehicle)
         {
+            if (thing == null)
+            {
+                vehicle = null;
+                return false;
+            }
             return thing.Map.IsVehicleMapOf(out vehicle);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsOnNonFocusedVehicleMapOf(this Thing thing, out VehiclePawnWithMap vehicle)
         {
+            if (thing == null)
+            {
+                vehicle = null;
+                return false;
+            }
             return thing.Map.IsNonFocusedVehicleMapOf(out vehicle);
         }
 

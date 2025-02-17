@@ -246,18 +246,17 @@ namespace VehicleInteriors
 
         public override void Tick()
         {
-            if (this.Spawned || VehicleInteriors.settings.drawPlanet && Find.CurrentMap == this.interiorMap)
+            if (this.Spawned || VehicleInteriors.settings.drawPlanet && Find.CurrentMap == this.interiorMap &&
+                this.IsHashIntervalTick(50) && (Find.WindowStack.TryGetWindow<MainTabWindow_Architect>(out var window) && (window.selectedDesPanel?.def.showPowerGrid ?? false) ||
+                Find.DesignatorManager.SelectedDesignator is Designator_Build designator && designator.PlacingDef is ThingDef tDef && tDef.HasComp<CompPower>()))
             {
                 //PowerGridのメッシュがタイミング的に即時にRegenerateされないので、定期チェックしている。より良い方法を検討したい
-                if (this.IsHashIntervalTick(250))
+                var map = this.interiorMap;
+                for (int i = 0; i < map.Size.x; i += 17)
                 {
-                    var map = this.interiorMap;
-                    for (int i = 0; i < map.Size.x; i += 17)
+                    for (int j = 0; j < map.Size.z; j += 17)
                     {
-                        for (int j = 0; j < map.Size.z; j += 17)
-                        {
-                            map.mapDrawer?.MapMeshDirty(new IntVec3(i, 0, j), MapMeshFlagDefOf.PowerGrid);
-                        }
+                        map.mapDrawer?.MapMeshDirty(new IntVec3(i, 0, j), MapMeshFlagDefOf.PowerGrid);
                     }
                 }
             }
@@ -330,6 +329,10 @@ namespace VehicleInteriors
                 this.interiorMap.weatherManager.curWeatherAge = this.Map.weatherManager.curWeatherAge;
                 this.interiorMap.weatherManager.growthSeasonMemory = this.Map.weatherManager.growthSeasonMemory;
                 this.interiorMap.weatherDecider = new WeatherDecider(this.interiorMap);
+            }
+            foreach (var thing in this.interiorMap.listerThings.AllThings.Intersect(Find.Selector.SelectedObjects))
+            {
+                Find.Selector.Deselect(thing);
             }
             base.DeSpawn(mode);
         }
@@ -409,7 +412,11 @@ namespace VehicleInteriors
             this.DrawLayer(section, typeof(SectionLayer_TerrainOnVehicle), drawPos, extraRotation);
             ((SectionLayer_ThingsGeneralOnVehicle)section.GetLayer(typeof(SectionLayer_ThingsGeneralOnVehicle))).DrawLayer(this.FullRotation, drawPos, extraRotation);
             this.DrawLayer(section, typeof(SectionLayer_BuildingsDamage), drawPos, extraRotation);
-            ((SectionLayer_ThingsPowerGridOnVehicle)section.GetLayer(typeof(SectionLayer_ThingsPowerGridOnVehicle))).DrawLayer(this.FullRotation, drawPos.WithY(0f), extraRotation);
+            if (Find.WindowStack.TryGetWindow<MainTabWindow_Architect>(out var window) && (window.selectedDesPanel?.def.showPowerGrid ?? false) ||
+                Find.DesignatorManager.SelectedDesignator is Designator_Build designator && designator.PlacingDef is ThingDef tDef && tDef.HasComp<CompPower>())
+            {
+                ((SectionLayer_ThingsPowerGridOnVehicle)section.GetLayer(typeof(SectionLayer_ThingsPowerGridOnVehicle))).DrawLayer(this.FullRotation, drawPos.WithY(0f), extraRotation);
+            }
             this.DrawLayer(section, t_SectionLayer_Zones, drawPos, extraRotation);
             ((SectionLayer_LightingOnVehicle)section.GetLayer(typeof(SectionLayer_LightingOnVehicle))).DrawLayer(this, drawPos, extraRotation);
             if (Find.CurrentMap == this.interiorMap)

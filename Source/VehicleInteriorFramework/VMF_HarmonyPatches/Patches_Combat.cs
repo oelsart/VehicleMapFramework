@@ -362,7 +362,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
-    //[HarmonyPatch(typeof(RoofGrid), nameof(RoofGrid.Roofed), typeof(IntVec3))]
+    [HarmonyPatch(typeof(RoofGrid), nameof(RoofGrid.Roofed), typeof(IntVec3))]
     public static class Patch_RoofGrid_Roofed
     {
         public static void Postfix(Map ___map, IntVec3 c, ref bool __result)

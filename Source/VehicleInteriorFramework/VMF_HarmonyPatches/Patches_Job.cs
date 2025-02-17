@@ -6,6 +6,8 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
+using VehicleInteriors.Jobs.WorkGivers;
+using Vehicles;
 using Verse;
 using Verse.AI;
 
@@ -142,7 +144,6 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         private static Job JobOnThingMap(WorkGiver_Scanner scanner, Pawn pawn, Thing t, bool forced)
         {
             var thingMap = t.MapHeld;
-            //VFの浅瀬と深い水の境界でのタレット補給バグを回避するため、WorkGiver_RefuelVehicleTurretは除外
             if (JobAcrossMapsUtility.NoNeedVirtualMapTransfer(pawn.Map, thingMap, scanner))
             {
                 return scanner.JobOnThing(pawn, t, forced);
@@ -185,7 +186,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         private static Job JobOnCellMap(WorkGiver_Scanner scanner, Pawn pawn, in TargetInfo target, bool forced)
         {
             var targetMap = target.Map;
-            if (JobAcrossMapsUtility.NoNeedVirtualMapTransfer(pawn.Map, targetMap, scanner))
+            if (pawn.Map == targetMap || scanner is IWorkGiverAcrossMaps workGiverAcrossMaps && !workGiverAcrossMaps.NeedVirtualMapTransfer)
             {
                 return scanner.JobOnCell(pawn, target.Cell, forced);
             }
@@ -758,9 +759,9 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     [HarmonyPatch(typeof(JobDriver_Ingest), nameof(JobDriver_Ingest.ModifyCarriedThingDrawPosWorker))]
     public static class Patch_JobDriver_Ingest_ModifyCarriedThingDrawPosWorker
     {
-        public static void Postfix(ref Vector3 drawPos, Pawn pawn)
+        public static void Postfix(ref Vector3 drawPos, Pawn pawn, bool __result)
         {
-            if (!pawn.pather.Moving && pawn.IsOnNonFocusedVehicleMapOf(out var vehicle))
+            if (__result && pawn.IsOnNonFocusedVehicleMapOf(out var vehicle))
             {
                 drawPos = drawPos.ToBaseMapCoord(vehicle).WithY(drawPos.y);
             }

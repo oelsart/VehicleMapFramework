@@ -77,27 +77,6 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatch(typeof(Thing), nameof(Thing.Rotation), MethodType.Getter)]
-    public static class Patch_Thing_Rotation
-    {
-        [HarmonyPatch(MethodType.Setter)]
-        public static void Prefix(Thing __instance, ref Rot4 value)
-        {
-            if (__instance is Pawn pawn && (pawn.pather?.Moving ?? false) && pawn.IsOnNonFocusedVehicleMapOf(out var vehicle))
-            {
-                var angle = (pawn.pather.nextCell - pawn.Position).AngleFlat;
-                if (angle != 0f)
-                {
-                    value = Rot8.FromAngle(Ext_Math.RotateAngle(angle, vehicle.FullRotation.AsAngle));
-                }
-                else
-                {
-                    value.AsInt += vehicle.FullRotation.AsInt;
-                }
-            }
-        }
-    }
-
     [HarmonyPatch(typeof(Graphic), nameof(Graphic.Print))]
     public static class Patch_Graphic_Print
     {
