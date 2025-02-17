@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using Vehicles;
+﻿using Vehicles;
 
 namespace VehicleInteriors
 {

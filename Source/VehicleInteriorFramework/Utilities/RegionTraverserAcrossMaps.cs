@@ -11,18 +11,11 @@ namespace VehicleInteriors
         {
             private Queue<Region> open = new Queue<Region>();
 
+            private HashSet<Region> close = new HashSet<Region>();
+
             private int numRegionsProcessed;
 
-            private uint closedIndex = 1u;
-
-            private int closedArrayPos;
-
             private const int skippableRegionSize = 4;
-
-            public BFSWorker(int closedArrayPos)
-            {
-                this.closedArrayPos = closedArrayPos;
-            }
 
             public void Clear()
             {
@@ -31,13 +24,8 @@ namespace VehicleInteriors
 
             private void QueueNewOpenRegion(Region region)
             {
-                if (region.closedIndex[closedArrayPos] == closedIndex)
-                {
-                    throw new InvalidOperationException("Region is already closed; you can't open it. Region: " + region.ToString());
-                }
-
                 open.Enqueue(region);
-                region.closedIndex[closedArrayPos] = closedIndex;
+                close.Add(region);
             }
 
             private void FinalizeSearch()
@@ -51,8 +39,8 @@ namespace VehicleInteriors
                     return;
                 }
 
-                closedIndex++;
                 open.Clear();
+                close.Clear();
                 numRegionsProcessed = 0;
                 open.Enqueue(root);
                 while (open.Count > 0)
@@ -83,7 +71,7 @@ namespace VehicleInteriors
                     foreach (var vehicle2 in region.ListerThings.AllThings.OfType<VehiclePawnWithMap>())
                     {
                         var region2 = vehicle2.VehicleMap.regionGrid.AllRegions.FirstOrDefault();
-                        if (region2 != null && !open.Contains(region2) && region2.closedIndex[closedArrayPos] != closedIndex)
+                        if (region2 != null && !open.Contains(region2) && !close.Contains(region2))
                         {
                             QueueNewOpenRegion(region2);
                         }
@@ -95,7 +83,7 @@ namespace VehicleInteriors
                         for (int j = 0; j < 2; j++)
                         {
                             Region region2 = regionLink.regions[j];
-                            if (region2 != null && region2.closedIndex[closedArrayPos] != closedIndex && (region2.type & traversableRegionTypes) != 0 && (entryCondition == null || entryCondition(region, region2)))
+                            if (region2 != null && !open.Contains(region2) && !close.Contains(region2) && (region2.type & traversableRegionTypes) != 0 && (entryCondition == null || entryCondition(region, region2)))
                             {
                                 QueueNewOpenRegion(region2);
                             }
@@ -105,7 +93,7 @@ namespace VehicleInteriors
                     if (region.Map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
                     {
                         var baseRegion = vehicle.Position.GetRegion(vehicle.Map);
-                        if (baseRegion != null && !open.Contains(baseRegion) && baseRegion.closedIndex[closedArrayPos] != closedIndex)
+                        if (baseRegion != null && !open.Contains(baseRegion) && !close.Contains(baseRegion))
                         {
                             QueueNewOpenRegion(baseRegion);
                         }
@@ -227,7 +215,7 @@ namespace VehicleInteriors
             freeWorkers.Clear();
             for (int i = 0; i < NumWorkers; i++)
             {
-                freeWorkers.Enqueue(new BFSWorker(i));
+                freeWorkers.Enqueue(new BFSWorker());
             }
         }
 

@@ -159,13 +159,19 @@ namespace VehicleInteriors
 
         private static UnfinishedThing ClosestUnfinishedThingForBill(Pawn pawn, Bill_ProductionWithUft bill, out TargetInfo exitSpot, out TargetInfo enterSpot)
         {
-            bool validator(Thing t) => !t.IsForbidden(pawn) && ((UnfinishedThing)t).Recipe == bill.recipe && ((UnfinishedThing)t).Creator == pawn && ((UnfinishedThing)t).ingredients.TrueForAll((Thing x) => bill.IsFixedOrAllowedIngredient(x.def)) && pawn.CanReserve(t, t.Map);
+            if (NoJobAuthorsActive)
+            {
+
+            }
+            bool validator(Thing t) => !t.IsForbidden(pawn) && ((UnfinishedThing)t).Recipe == bill.recipe && (NoJobAuthorsActive || ((UnfinishedThing)t).Creator == pawn) && ((UnfinishedThing)t).ingredients.TrueForAll((Thing x) => bill.IsFixedOrAllowedIngredient(x.def)) && pawn.CanReserve(t, t.Map);
             return (UnfinishedThing)GenClosestOnVehicle.ClosestThingReachable(pawn.Position, pawn.Map, ThingRequest.ForDef(bill.recipe.unfinishedThingDef), PathEndMode.InteractionCell, TraverseParms.For(pawn, pawn.NormalMaxDanger()), 9999f, validator, null, 0, -1, false, RegionType.Set_Passable, false, false, out exitSpot, out enterSpot);
         }
 
+        private static bool NoJobAuthorsActive = ModsConfig.IsActive("Doug.NoJobAuthors");
+
         private static Job FinishUftJob(Pawn pawn, UnfinishedThing uft, Bill_ProductionWithUft bill, TargetInfo exitSpot, TargetInfo enterSpot)
         {
-            if (uft.Creator != pawn)
+            if (uft.Creator != pawn && !NoJobAuthorsActive)
             {
                 Log.Error(string.Concat("Tried to get FinishUftJob for ", pawn, " finishing ", uft, " but its creator is ", uft.Creator));
                 return null;
@@ -234,7 +240,7 @@ namespace VehicleInteriors
                 {
                     if (bill_ProductionWithUft.BoundUft != null)
                     {
-                        if (bill_ProductionWithUft.BoundWorker == pawn && pawn.CanReserveAndReach(bill_ProductionWithUft.BoundUft.Map, bill_ProductionWithUft.BoundUft, PathEndMode.Touch, Danger.Deadly, 1, -1, null, false, out var exitSpot, out var enterSpot) && !bill_ProductionWithUft.BoundUft.IsForbidden(pawn))
+                        if ((bill_ProductionWithUft.BoundWorker == pawn || NoJobAuthorsActive) && bill_ProductionWithUft.BoundUft != null && pawn.CanReserveAndReach(bill_ProductionWithUft.BoundUft.Map, bill_ProductionWithUft.BoundUft, PathEndMode.Touch, Danger.Deadly, 1, -1, null, false, out var exitSpot, out var enterSpot) && !bill_ProductionWithUft.BoundUft.IsForbidden(pawn))
                         {
                             return FinishUftJob(pawn, bill_ProductionWithUft.BoundUft, bill_ProductionWithUft, exitSpot, enterSpot);
                         }
@@ -584,12 +590,12 @@ namespace VehicleInteriors
         {
             if (!alreadySorted)
             {
-                Comparison<Thing> comparison = delegate (Thing t1, Thing t2)
+                int comparison(Thing t1, Thing t2)
                 {
                     float num4 = (t1.PositionHeldOnBaseMap() - rootCell).LengthHorizontalSquared;
                     float value = (t2.PositionHeldOnBaseMap() - rootCell).LengthHorizontalSquared;
                     return num4.CompareTo(value);
-                };
+                }
                 availableThings.Sort(comparison);
             }
 
