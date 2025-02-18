@@ -88,7 +88,7 @@ namespace VehicleInteriors
 
         public override void PostLoad()
         {
-            if (!this.parent.Spawned)
+            if (!this.parent.Spawned && !this.parent.Destroyed)
             {
                 if (!UnityData.IsInMainThread)
                 {

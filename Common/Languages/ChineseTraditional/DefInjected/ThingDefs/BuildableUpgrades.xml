@@ -14,7 +14,7 @@
     <VMF_PassengerSeat.comps.0.upgrades.0.roles.0.label>乘客</VMF_PassengerSeat.comps.0.upgrades.0.roles.0.label>
     
     <VMF_CargoContainer.label>貨櫃</VMF_CargoContainer.label>
-    <VMF_CargoContainer.description>增加載具裝載容量的貨櫃。\n\n&lt;color=#bb8f04&gt;額外容量:&lt;/color&gt; +100 公斤</VMF_CargoContainer.description>
+    <VMF_CargoContainer.description>增加載具裝載容量的貨櫃。\n\n&lt;color=#bb8f04&gt;額外容量:&lt;/color&gt; +150 公斤</VMF_CargoContainer.description>
     
     <VMF_TurboCharger.label>渦輪增壓器</VMF_TurboCharger.label>
     <VMF_TurboCharger.description>增加載具最大承載重量的引擎部件。\n\n&lt;color=#bb8f04&gt;最大承載:&lt;/color&gt; +300 公斤</VMF_TurboCharger.description>

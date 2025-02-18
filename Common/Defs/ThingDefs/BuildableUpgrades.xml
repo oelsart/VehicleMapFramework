@@ -178,7 +178,7 @@
 	<ThingDef ParentName="FurnitureBase">
 		<defName>VMF_CargoContainer</defName>
 		<label>cargo container</label>
-		<description>Storage for additional vehicle cargo capacity.\n\n&lt;color=#bb8f04&gt;Cargo capacity:&lt;/color&gt; +100 kg</description>
+		<description>Storage for additional vehicle cargo capacity.\n\n&lt;color=#bb8f04&gt;Cargo capacity:&lt;/color&gt; +150 kg</description>
 		<designationCategory>VF_Vehicles</designationCategory>
 		<rotatable>false</rotatable>
 		<pathCost>80</pathCost>
@@ -237,7 +237,7 @@
 						<vehicleStats>
 							<li>
 								<def>CargoCapacity</def>
-								<value>120</value>
+								<value>150</value>
 							</li>
 						</vehicleStats>
 					</li>

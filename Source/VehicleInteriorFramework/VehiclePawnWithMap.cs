@@ -515,7 +515,7 @@ namespace VehicleInteriors
         protected override void PostLoad()
         {
             base.PostLoad();
-            if (!this.Spawned)
+            if (!this.Spawned && !this.Destroyed)
             {
                 this.CompVehicleTurrets?.InitTurrets();
                 if (UnityData.IsInMainThread)

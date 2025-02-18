@@ -14,7 +14,7 @@
 	<VMF_PassengerSeat.comps.0.upgrades.0.roles.0.label>搭乗者</VMF_PassengerSeat.comps.0.upgrades.0.roles.0.label>
 	
 	<VMF_CargoContainer.label>コンテナ</VMF_CargoContainer.label>
-	<VMF_CargoContainer.description>乗り物の積載容量を増加させるコンテナです.\n\n&lt;color=#bb8f04&gt;積載容量:&lt;/color&gt; +100 kg</VMF_CargoContainer.description>
+	<VMF_CargoContainer.description>乗り物の積載容量を増加させるコンテナです.\n\n&lt;color=#bb8f04&gt;積載容量:&lt;/color&gt; +150 kg</VMF_CargoContainer.description>
 	
 	<VMF_TurboCharger.label>ターボチャージャー</VMF_TurboCharger.label>
 	<VMF_TurboCharger.description>乗り物が運ぶことのできる最大重量を増加させるエンジンパーツです.\n\n&lt;color=#bb8f04&gt;最大積載重量:&lt;/color&gt; +300 kg</VMF_TurboCharger.description>

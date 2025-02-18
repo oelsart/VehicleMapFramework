@@ -9,5 +9,7 @@
     <li IfModActive="XMB.AncientUrbanrUins.MO">Common/_AncientUrbanRuins</li>
     <li IfModActive="daylight.RLEsExpansionProductPS">Common/_RimLifeExpansionProductionPlus</li>
     <li IfModActive="kentington.saveourship2">Common/_SaveOurShip2</li>
+    <li IfModActive="DankPyon.Medieval.Overhaul">Common/_MedievalOverhaul</li>
+    <li IfModActive="Cain.Mineshaft">Common/_Mines</li>
   </v1.5>
 </loadFolders>
