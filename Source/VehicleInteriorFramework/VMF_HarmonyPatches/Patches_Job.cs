@@ -680,6 +680,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 if (c.opcode == OpCodes.Callvirt && c.OperandIs(MethodInfoCache.g_Thing_Map))
                 {
                     codes[i - 1].opcode = OpCodes.Ldloc_1;
+                    c.operand = MethodInfoCache.g_Thing_MapHeld;
                 }
                 return c;
             });
