@@ -1,8 +1,8 @@
-﻿using Verse;
+﻿using PipeSystem;
 
 namespace VehicleInteriors
 {
-    public class CompProperties_PipeConnector : CompProperties
+    public class CompProperties_PipeConnector : CompProperties_Resource
     {
         public CompProperties_PipeConnector()
         {

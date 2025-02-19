@@ -7,8 +7,8 @@
     <ProjectGuid>{BBBD028A-BEF4-4F5E-98C6-97CC435E5E5C}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>VEFIntegrate</RootNamespace>
-    <AssemblyName>VEFIntegrate</AssemblyName>
+    <RootNamespace>VehicleInteriors</RootNamespace>
+    <AssemblyName>VMF_VEFIntegrate</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -35,6 +35,10 @@
     <IntermediateOutputPath>C:\Users\ppss2\AppData\Local\Temp\vs8B2B.tmp\Release\</IntermediateOutputPath>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="0Harmony">
+      <HintPath>..\..\..\..\..\..\workshop\content\294100\2009463077\Current\Assemblies\0Harmony.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="Assembly-CSharp">
       <HintPath>..\..\..\..\RimWorldWin64_Data\Managed\1.5\Assembly-CSharp.dll</HintPath>
       <Private>False</Private>

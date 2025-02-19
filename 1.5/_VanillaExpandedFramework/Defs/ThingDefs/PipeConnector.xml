@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Defs>
-	<ThingDef>
+	<ThingDef ParentName="FurnitureBase">
 		<defName>VMF_PipeConnector</defName>
 		<label>pipe connector</label>
 		<description>Connection to pipe between the normal map and the vehicle map.\nPlaced on the normal map and the vehicle map, they are connected by aligning their positions.</description>
@@ -26,7 +26,8 @@
 		</costList>
 		<uiOrder>1062</uiOrder>
 		<comps>
-			<li Class="">
+			<li Class="VehicleInteriors.CompProperties_PipeConnector">
+				<pipeNet>VMF_UnassignedNet</pipeNet>
 			</li>
 		</comps>
 	</ThingDef>
