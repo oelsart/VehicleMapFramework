@@ -158,6 +158,6 @@ namespace VehicleInteriors
 
         private const float maxPowerOutput = 10000f;
 
-        public const int ticksInterval = 20;
+        public const int ticksInterval = 30;
     }
 }

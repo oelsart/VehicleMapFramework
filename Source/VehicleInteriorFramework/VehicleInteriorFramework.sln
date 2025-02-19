@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VMF_AchtungPatch", "..\VMF_
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VMF_SmartFarmingPatch", "..\VMF_SmartFarmingPatch\VMF_SmartFarmingPatch.csproj", "{1D31E760-4B98-4D07-881C-B0454D542439}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VMF_VEFIntegrate", "..\VEFIntegrate\VMF_VEFIntegrate.csproj", "{BBBD028A-BEF4-4F5E-98C6-97CC435E5E5C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -69,6 +71,18 @@ Global
 		{1D31E760-4B98-4D07-881C-B0454D542439}.Release|ARM64.Build.0 = Release|Any CPU
 		{1D31E760-4B98-4D07-881C-B0454D542439}.Release|x64.ActiveCfg = Release|Any CPU
 		{1D31E760-4B98-4D07-881C-B0454D542439}.Release|x64.Build.0 = Release|Any CPU
+		{BBBD028A-BEF4-4F5E-98C6-97CC435E5E5C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BBBD028A-BEF4-4F5E-98C6-97CC435E5E5C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BBBD028A-BEF4-4F5E-98C6-97CC435E5E5C}.Debug|ARM64.ActiveCfg = Debug|Any CPU
+		{BBBD028A-BEF4-4F5E-98C6-97CC435E5E5C}.Debug|ARM64.Build.0 = Debug|Any CPU
+		{BBBD028A-BEF4-4F5E-98C6-97CC435E5E5C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{BBBD028A-BEF4-4F5E-98C6-97CC435E5E5C}.Debug|x64.Build.0 = Debug|Any CPU
+		{BBBD028A-BEF4-4F5E-98C6-97CC435E5E5C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BBBD028A-BEF4-4F5E-98C6-97CC435E5E5C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BBBD028A-BEF4-4F5E-98C6-97CC435E5E5C}.Release|ARM64.ActiveCfg = Release|Any CPU
+		{BBBD028A-BEF4-4F5E-98C6-97CC435E5E5C}.Release|ARM64.Build.0 = Release|Any CPU
+		{BBBD028A-BEF4-4F5E-98C6-97CC435E5E5C}.Release|x64.ActiveCfg = Release|Any CPU
+		{BBBD028A-BEF4-4F5E-98C6-97CC435E5E5C}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
