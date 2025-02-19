@@ -97,7 +97,7 @@ namespace VehicleInteriors
                         }
                         else
                         {
-                            foundRes = GenClosestOnVehicle.ClosestThingReachable(pawn.Position, pawn.Map, ThingRequest.ForDef(need.thingDef), PathEndMode.ClosestTouch, TraverseParms.For(pawn, Danger.Deadly, TraverseMode.ByPawn, false, false, false), 9999f, (Thing r) => WorkGiver_ConstructDeliverResourcesAcrossMaps.ResourceValidator(pawn, need, r), null, 0, -1, true, RegionType.Set_Passable, false, false, out exitSpot, out enterSpot);
+                            foundRes = GenClosestOnVehicle.ClosestThingReachable(pawn.Position, pawn.Map, ThingRequest.ForDef(need.thingDef), PathEndMode.ClosestTouch, TraverseParms.For(pawn, Danger.Deadly, TraverseMode.ByPawn), 9999f, (Thing r) => WorkGiver_ConstructDeliverResourcesAcrossMaps.ResourceValidator(pawn, need, r), null, 0, -1, true, RegionType.Set_Passable, false, false, out exitSpot, out enterSpot);
                         }
                         if (foundRes == null)
                         {
@@ -137,7 +137,7 @@ namespace VehicleInteriors
                             while (num4 < num3 && num4 < num2 && i < WorkGiver_ConstructDeliverResourcesAcrossMaps.resourcesAvailable.Count);
                             WorkGiver_ConstructDeliverResourcesAcrossMaps.resourcesAvailable.RemoveRange(i, WorkGiver_ConstructDeliverResourcesAcrossMaps.resourcesAvailable.Count - i);
                             WorkGiver_ConstructDeliverResourcesAcrossMaps.resourcesAvailable.Remove(foundRes);
-                            if (!ReachabilityUtilityOnVehicle.CanReach(foundRes.Map, foundRes.Position, thing, this.PathEndMode, TraverseParms.For(TraverseMode.PassAllDestroyableThings, this.MaxPathDanger(pawn)), thing.Map, out var exitSpot2, out var enterSpot2))
+                            if (!ReachabilityUtilityOnVehicle.CanReach(foundRes.Map, foundRes.Position, thing, this.PathEndMode, TraverseParms.For(pawn, this.MaxPathDanger(pawn), TraverseMode.ByPawn), thing.Map, out var exitSpot2, out var enterSpot2))
                             {
                                 return null;
                             }
@@ -306,7 +306,7 @@ namespace VehicleInteriors
                 }
                 return null;
             }
-            var traverseParms = TraverseParms.For(TraverseMode.ByPawn, this.MaxPathDanger(pawn));
+            var traverseParms = TraverseParms.For(pawn, this.MaxPathDanger(pawn), TraverseMode.ByPawn);
             if (!ReachabilityUtilityOnVehicle.CanReach(miniToInstallOrBuildingToReinstall.MapHeld, miniToInstallOrBuildingToReinstall.PositionHeld, install, this.PathEndMode, traverseParms, install.Map, out var exitSpot2, out var enterSpot2))
             {
                 return null;
