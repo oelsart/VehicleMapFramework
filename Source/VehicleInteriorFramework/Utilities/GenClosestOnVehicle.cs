@@ -60,6 +60,10 @@ namespace VehicleInteriors
                 Log.ErrorOnce("ClosestThingReachable with thing request group " + thingReq.group + " and global search not allowed. This will never find anything because this group is never stored in regions. Either allow global search or don't call this method at all.", 518498981);
                 return null;
             }
+            if (map == null)
+            {
+                return null;
+            }
             var baseMap = map.BaseMap();
             var basePos = map.IsVehicleMapOf(out var vehicle) ? root.ToBaseMapCoord(vehicle) : root;
             if (GenClosestOnVehicle.EarlyOutSearch(root, map, thingReq, customGlobalSearchSet, validator))
