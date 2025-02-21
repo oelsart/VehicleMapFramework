@@ -681,19 +681,7 @@ namespace VehicleInteriors
 
         public static float VehicleMapMass(VehiclePawnWithMap vehicle)
         {
-            float num = 0f;
-            foreach (var thing in vehicle.VehicleMap.listerThings.AllThings)
-            {
-                if (thing is VehiclePawn vehicle2)
-                {
-                    num += vehicle2.GetStatValue(VehicleStatDefOf.Mass);
-                }
-                else
-                {
-                    num += (float)thing.stackCount * thing.GetStatValue(StatDefOf.Mass, true, -1);
-                }
-            }
-            return num;
+            return CollectionsMassCalculator.MassUsage(vehicle.VehicleMap.listerThings.AllThings, IgnorePawnsInventoryMode.DontIgnore, true);
         }
 
         public static Vector3 DrawPosOrig(this Thing thing)

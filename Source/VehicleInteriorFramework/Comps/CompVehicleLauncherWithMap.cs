@@ -49,13 +49,19 @@ namespace VehicleInteriors
             }
             else
             {
-                float statValue = base.Vehicle.GetStatValue(VMF_DefOf.MaximumPayload);
+                float cargoCapacity = base.Vehicle.GetStatValue(VehicleStatDefOf.CargoCapacity);
                 var mass = MassUtility.InventoryMass(base.Vehicle);
+                var flag = true;
                 if (base.Vehicle is VehiclePawnWithMap vehicleWithMap)
                 {
-                    mass += VehicleMapUtility.VehicleMapMass(vehicleWithMap);
+                    float maximumPayload = base.Vehicle.GetStatValue(VMF_DefOf.MaximumPayload);
+                    var mass2 = CollectionsMassCalculator.MassUsage(vehicleWithMap.VehicleMap.listerThings.AllThings, IgnorePawnsInventoryMode.DontIgnore, true);
+                    if (mass2 > maximumPayload)
+                    {
+                        flag = false;
+                    }
                 }
-                if (mass > statValue)
+                if (mass > cargoCapacity && flag)
                 {
                     disableReason = "VF_CannotLaunchOverEncumbered".Translate(base.Vehicle.LabelShort);
                 }

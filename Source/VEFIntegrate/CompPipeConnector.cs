@@ -1,10 +1,12 @@
 ﻿using HarmonyLib;
 using PipeSystem;
+using RimWorld;
 using SmashTools;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using Verse;
+using Verse.Noise;
 
 namespace VehicleInteriors
 {
@@ -46,20 +48,21 @@ namespace VehicleInteriors
                 if (this.Pair != null && !this.connectReq)
                 {
                     var pipeNetManager = MapComponentCache<PipeNetManager>.GetComponent(this.parent.Map);
-                    this.PipeNet = pipeNetManager.CreatePipeNetFrom(this, this.pipeNet, out var treated);
-                    pipeNetManager.pipeNets.Add(this.PipeNet);
-                    pipeNetCount(pipeNetManager)++;
-                    for (var i = 0; i < treated.Count; i++)
+                    var newConnectors = this.PipeNet.connectors.Where(c => c.parent.Map == this.parent.Map);
+                    if (!pipeNetManager.pipeNets.Remove(this.PipeNet))
                     {
-                        this.Pair.PipeNet.UnregisterComp(treated.ElementAt(i));
+                        pipeNetCount(pipeNetManager)++;
+                    }
+                    this.PipeNet = PipeNetMaker.MakePipeNet(newConnectors, this.parent.Map, this.pipeNet);
+                    pipeNetManager.pipeNets.Add(this.PipeNet);
+                    foreach (var connector in newConnectors.ToArray())
+                    {
+                        this.Pair.PipeNet.UnregisterComp(connector);
                     }
                     this.Pair = null;
                 }
-                else
-                {
-                    this.connectReq = false;
-                }
-            }
+                this.connectReq = false;
+            }   
             else
             {
                 var flag = false;
@@ -72,14 +75,14 @@ namespace VehicleInteriors
                         var c2 = c.ToVehicleMapCoord(vehicle);
                         if (!c2.InBounds(vehicle.VehicleMap)) continue;
 
-                        var receiver = c2.GetFirstThingWithComp<CompPipeConnector>(vehicle.VehicleMap);
-                        if (receiver != null)
+                        var connector = c2.GetFirstThingWithComp<CompPipeConnector>(vehicle.VehicleMap);
+                        if (connector != null)
                         {
-                            var compConnector = receiver.GetComp<CompPipeConnector>();
+                            var compConnector = connector.GetComp<CompPipeConnector>();
                             if (compConnector.pipeNet == this.pipeNet)
                             {
                                 compConnector.connectReq = true;
-                                if (compConnector.Pair != this)
+                                if (this.PipeNet != compConnector.PipeNet)
                                 {
                                     this.Pair = compConnector;
                                     compConnector.Pair = this;
@@ -88,12 +91,16 @@ namespace VehicleInteriors
                                     {
                                         this.PipeNet.RegisterComp(pipeNet.connectors[i]);
                                     }
+                                    compConnector.PipeNet = this.PipeNet;
                                     pipeNet.Destroy();
                                     pipeNetCount(MapComponentCache<PipeNetManager>.GetComponent(compConnector.parent.Map))--;
+                                    this.parent.DirtyMapMesh(this.parent.Map);
+                                    Log.Message($"{pipeNetCount(MapComponentCache<PipeNetManager>.GetComponent(compConnector.parent.Map))} " +
+                                        $"{pipeNetCount(MapComponentCache<PipeNetManager>.GetComponent(this.parent.Map))}");
                                 }
+                                flag = true;
+                                break;
                             }
-                            flag = true;
-                            break;
                         }
                     }
                 }
@@ -104,7 +111,7 @@ namespace VehicleInteriors
             }
         }
 
-        private static readonly AccessTools.FieldRef<PipeNetManager, int> pipeNetCount = AccessTools.FieldRefAccess<PipeNetManager, int>("pipeNetsCount");
+        public static readonly AccessTools.FieldRef<PipeNetManager, int> pipeNetCount = AccessTools.FieldRefAccess<PipeNetManager, int>("pipeNetsCount");
 
         public override void PostDraw()
         {
@@ -138,11 +145,11 @@ namespace VehicleInteriors
                     {
                         return new FloatMenuOption(d.resource.name, () =>
                         {
-                            var pipeNetManager = MapComponentCache<PipeNetManager>.GetComponent(this.parent.Map);
-                            pipeNetManager.UnregisterConnector(this);
                             this.pipeNet = d;
                             this.parent.DrawColor = d.resource.color;
-                            pipeNetManager.RegisterConnector(this);
+                            this.PostDeSpawn(this.parent.Map);
+                            this.PostSpawnSetup(false);
+
                         });
                     }).ToList()));
                 }

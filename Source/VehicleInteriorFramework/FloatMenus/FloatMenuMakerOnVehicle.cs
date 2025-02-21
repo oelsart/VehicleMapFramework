@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using VehicleInteriors.Jobs.WorkGivers;
 using Vehicles;
 using Verse;
 using Verse.AI;
@@ -196,7 +195,7 @@ namespace VehicleInteriors
                 {
                     return new FloatMenuOption("CannotGoNoPath".Translate(), null, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0);
                 }
-                Action action = delegate ()
+                void action()
                 {
                     if (vehicle3 != null)
                     {
@@ -209,7 +208,7 @@ namespace VehicleInteriors
                         vehicle3.AllowsGetOff = allowsGetOff;
                     }
                     FloatMenuMakerOnVehicle.PawnGotoAction(clickCell, pawn, map, dest1, dest2, cell);
-                };
+                }
                 return new FloatMenuOption("GoHere".Translate(), action, MenuOptionPriority.GoHere, null, null, 0f, null, null, true, 0)
                 {
                     autoTakeable = true,
@@ -673,12 +672,12 @@ namespace VehicleInteriors
 			{
                 foreach (LocalTargetInfo dest in GenUIOnVehicle.TargetsAt(clickPos, TargetingParameters.ForArrest(pawn), true, null))
                 {
-                    bool flag = dest.HasThing && dest.Thing is Pawn && ((Pawn)dest.Thing).IsWildMan();
+                    bool flag = dest.Thing is Pawn pawn1 && pawn1.IsWildMan();
                     if (pawn.Drafted || flag)
 					{
-                        if (dest.Thing is Pawn && (pawn.InSameExtraFaction((Pawn)dest.Thing, ExtraFactionType.HomeFaction, null) || pawn.InSameExtraFaction((Pawn)dest.Thing, ExtraFactionType.MiniFaction, null)))
+                        if (dest.Thing is Pawn pawn2 && (pawn.InSameExtraFaction(pawn2, ExtraFactionType.HomeFaction, null) || pawn.InSameExtraFaction(pawn2, ExtraFactionType.MiniFaction, null)))
 						{
-                            opts.Add(new FloatMenuOption("CannotArrest".Translate() + ": " + "SameFaction".Translate((Pawn)dest.Thing), null, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0));
+                            opts.Add(new FloatMenuOption("CannotArrest".Translate() + ": " + "SameFaction".Translate(pawn2), null, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0));
                         }
 
                         else if (!pawn.CanReach(dest, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, map, out var exitSpot, out var enterSpot))
@@ -2291,7 +2290,7 @@ namespace VehicleInteriors
 			}
 			foreach (LocalTargetInfo localTargetInfo15 in GenUIOnVehicle.TargetsAt(clickPos, TargetingParameters.ForPawns(), true, null))
 			{
-				if (!FloatMenuMakerOnVehicle.cachedThings.Contains(localTargetInfo15.Pawn) && localTargetInfo15.Pawn != GenUIOnVehicle.vehicleForSelector)
+				if (!FloatMenuMakerOnVehicle.cachedThings.Contains(localTargetInfo15.Pawn) && (localTargetInfo15.Pawn != GenUIOnVehicle.vehicleForSelector))
 				{
 					foreach (FloatMenuOption item9 in localTargetInfo15.Pawn.GetFloatMenuOptions(pawn))
 					{
@@ -2438,7 +2437,12 @@ namespace VehicleInteriors
                 canTargetCorpses = true
             };
             var baseClickCell = IntVec3.FromVector3(clickPos);
-            foreach (Thing thing in clickCell.GetThingList(map))
+            IEnumerable<Thing> searchSet = clickCell.GetThingList(map);
+            if (!pawn.Drafted && GenUIOnVehicle.vehicleForSelector != null && GenUIOnVehicle.vehicleForSelector.Spawned)
+            {
+                searchSet = searchSet.Concat(GenUIOnVehicle.vehicleForSelector);
+            }
+            foreach (Thing thing in searchSet)
             {
                 if (thing.Spawned)
                 {

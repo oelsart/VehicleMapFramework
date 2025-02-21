@@ -188,23 +188,19 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static void Postfix(Map ___map, Dictionary<ThingDef, int> ___countedAmounts)
         {
-            Task.Run(() =>
+            List<SlotGroup> allGroupsListForReading = VehiclePawnWithMapCache.AllVehiclesOn(___map).SelectMany(v => v.VehicleMap.haulDestinationManager.AllGroupsListForReading).ToList(); ;
+            for (int i = 0; i < allGroupsListForReading.Count; i++)
             {
-                List<SlotGroup> allGroupsListForReading = VehiclePawnWithMapCache.AllVehiclesOn(___map).SelectMany(v => v.VehicleMap.haulDestinationManager.AllGroupsListForReading).ToList(); ;
-                for (int i = 0; i < allGroupsListForReading.Count; i++)
+                foreach (Thing outerThing in allGroupsListForReading[i].HeldThings)
                 {
-                    foreach (Thing outerThing in allGroupsListForReading[i].HeldThings)
+                    Thing innerIfMinified = outerThing.GetInnerIfMinified();
+                    if (innerIfMinified.def.CountAsResource && !innerIfMinified.IsNotFresh())
                     {
-                        Thing innerIfMinified = outerThing.GetInnerIfMinified();
-                        if (innerIfMinified.def.CountAsResource && !innerIfMinified.IsNotFresh())
-                        {
-                            Dictionary<ThingDef, int> dictionary = ___countedAmounts;
-                            ThingDef def = innerIfMinified.def;
-                            dictionary[def] += innerIfMinified.stackCount;
-                        }
+                        ThingDef def = innerIfMinified.def;
+                        ___countedAmounts[def] += innerIfMinified.stackCount;
                     }
                 }
-            });
+            }
         }
     }
 

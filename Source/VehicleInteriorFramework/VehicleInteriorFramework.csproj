@@ -123,10 +123,6 @@
       <HintPath>..\..\..\..\..\..\workshop\content\294100\3014915404\1.5\Assemblies\Vehicles.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="VFESecurity">
-      <HintPath>..\..\..\..\..\..\workshop\content\294100\1845154007\1.5\Assemblies\VFESecurity.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BuildableUpgrades\Building_VehicleRamp.cs" />

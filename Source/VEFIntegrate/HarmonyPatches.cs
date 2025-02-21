@@ -1,5 +1,7 @@
 ﻿using HarmonyLib;
 using PipeSystem;
+using SmashTools;
+using System.Linq;
 using UnityEngine;
 using Vehicles;
 using Verse;
@@ -30,6 +32,39 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
 
         private static readonly CompProperties_Resource dummy = new CompProperties_Resource();
+    }
+
+    [HarmonyPatchCategory("VMF_Patches_VEF")]
+    [HarmonyPatch(typeof(PipeNetManager), nameof(PipeNetManager.UnregisterConnector))]
+    public static class Patch_PipeNetManager_UnregisterConnector
+    {
+        public static void Prefix(PipeNetManager __instance, CompResource comp)
+        {
+            var pipeNetMap = comp.PipeNet.map;
+            if (__instance.map != pipeNetMap)
+            {
+                var component = MapComponentCache<PipeNetManager>.GetComponent(pipeNetMap);
+                var connectors = comp.PipeNet.connectors.Where(c => c.parent.Map == pipeNetMap);
+                var newNet = PipeNetMaker.MakePipeNet(connectors, pipeNetMap, comp.PipeNet.def);
+                component.pipeNets.Add(newNet);
+                CompPipeConnector.pipeNetCount(MapComponentCache<PipeNetManager>.GetComponent(__instance.map))++;
+            }
+        }
+    }
+
+    [HarmonyPatchCategory("VMF_Patches_VEF")]
+    [HarmonyPatch(typeof(PipeNet), nameof(PipeNet.Merge))]
+    public static class Patch_PipeNet_Merge
+    {
+        public static bool Prefix(ref PipeNet __instance, ref PipeNet otherNet)
+        {
+            if (__instance.map.IsVehicleMapOf(out _) && otherNet.map != __instance.map)
+            {
+                otherNet.Merge(__instance);
+                return false;
+            }
+            return true;
+        }
     }
 
     [HarmonyPatchCategory("VMF_Patches_VEF")]
