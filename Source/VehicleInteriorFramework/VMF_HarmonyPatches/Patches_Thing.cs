@@ -363,5 +363,123 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             }
         }
     }
+
+    //[HarmonyPatch(typeof(Pawn_RotationTracker), nameof(Pawn_RotationTracker.FaceTarget))]
+    //public static class Patch_Pawn_RotationTracker_FaceTarget
+    //{
+    //    public static bool Prefix(Pawn_RotationTracker __instance, Pawn ___pawn, LocalTargetInfo target)
+    //    {
+    //        Log.Message($"{___pawn.def.size}");
+    //        if (___pawn is VehiclePawn vehicle) Log.Message(vehicle.VehicleDef.Size);
+    //        if (___pawn is VehiclePawn vehicle2 && vehicle2.VehicleDef.size.x * vehicle2.VehicleDef.size.z > 200)
+    //        {
+    //            FaceTarget_Threaded(__instance, ___pawn, target);
+    //            return false;
+    //        }
+    //        return true;
+    //    }
+
+    //    private static void FaceTarget_Threaded(Pawn_RotationTracker __instance, Pawn ___pawn, LocalTargetInfo target)
+    //    {
+    //        if (!target.IsValid)
+    //        {
+    //            return;
+    //        }
+
+    //        if (target.HasThing)
+    //        {
+    //            Thing thing = (target.Thing.Spawned ? target.Thing : ThingOwnerUtility.GetFirstSpawnedParentThing(target.Thing));
+    //            if (thing == null || !thing.Spawned)
+    //            {
+    //                return;
+    //            }
+
+    //            bool flag = false;
+    //            IntVec3 c = default(IntVec3);
+    //            CellRect cellRect = thing.OccupiedRect();
+    //            var flag2 = false;
+    //            Parallel.ForEach(cellRect, c2 =>
+    //            {
+    //                if (!flag2 && ___pawn.Position == c2)
+    //                {
+    //                    __instance.Face(thing.DrawPos);
+    //                    flag2 = true;
+    //                }
+    //            });
+    //            if (flag2) return;
+
+    //            var flag3 = false;
+    //            Parallel.ForEach(cellRect, c2 =>
+    //            {
+    //                if (!flag3 && c.AdjacentToCardinal(___pawn.Position))
+    //                {
+    //                    FaceAdjacentCell(___pawn, c2);
+    //                    flag3 = true;
+    //                }
+
+    //                if (!flag3 && c2.AdjacentTo8Way(___pawn.Position))
+    //                {
+    //                    flag = true;
+    //                    c = c2;
+    //                }
+    //            });
+    //            if (flag3) return;
+
+    //            if (flag)
+    //            {
+    //                if (DebugViewSettings.drawPawnRotatorTarget)
+    //                {
+    //                    ___pawn.Map.debugDrawer.FlashCell(___pawn.Position, 0.6f, "jbthing");
+    //                    GenDraw.DrawLineBetween(___pawn.Position.ToVector3Shifted(), c.ToVector3Shifted());
+    //                }
+
+    //                FaceAdjacentCell(___pawn, c);
+    //            }
+    //            else
+    //            {
+    //                __instance.Face(thing.DrawPos);
+    //            }
+    //        }
+    //        else if (___pawn.Position.AdjacentTo8Way(target.Cell))
+    //        {
+    //            if (DebugViewSettings.drawPawnRotatorTarget)
+    //            {
+    //                ___pawn.Map.debugDrawer.FlashCell(___pawn.Position, 0.2f, "jbloc");
+    //                GenDraw.DrawLineBetween(___pawn.Position.ToVector3Shifted(), target.Cell.ToVector3Shifted());
+    //            }
+
+    //            FaceAdjacentCell(___pawn, target.Cell);
+    //        }
+    //        else if (target.Cell.IsValid && target.Cell != ___pawn.Position)
+    //        {
+    //            __instance.Face(target.Cell.ToVector3());
+    //        }
+    //    }
+
+    //    private static void FaceAdjacentCell(Pawn pawn, IntVec3 c)
+    //    {
+    //        if (c == pawn.Position)
+    //        {
+    //            return;
+    //        }
+    //        IntVec3 intVec = c - pawn.Position;
+    //        if (intVec.x > 0)
+    //        {
+    //            pawn.Rotation = Rot4.East;
+    //            return;
+    //        }
+    //        if (intVec.x < 0)
+    //        {
+    //            pawn.Rotation = Rot4.West;
+    //            return;
+    //        }
+    //        if (intVec.z > 0)
+    //        {
+    //            pawn.Rotation = Rot4.North;
+    //            return;
+    //        }
+    //        pawn.Rotation = Rot4.South;
+    //    }
+    //}
 }
 

@@ -502,4 +502,22 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             }
         }
     }
+
+    //ForceRecountへのパッチだと実行タイミングがずれてProgramStateがMapInitializingになるようだったので、RecountIfNeededにパッチ
+    [HarmonyPatch(typeof(WealthWatcher), "RecountIfNeeded")]
+    public static class Patch_WealthWatcher_RecountIfNeeded
+    {
+        public static void Postfix(Map ___map, ref float ___wealthItems, ref float ___wealthBuildings, ref float ___wealthFloorsOnly, float ___lastCountTick)
+        {
+            if (Find.TickManager.TicksGame == ___lastCountTick)
+            {
+                foreach (var vehicle in VehiclePawnWithMapCache.AllVehiclesOn(___map))
+                {
+                    ___wealthItems += vehicle.VehicleMap.wealthWatcher.WealthItems;
+                    ___wealthBuildings += vehicle.VehicleMap.wealthWatcher.WealthBuildings;
+                    ___wealthFloorsOnly += vehicle.VehicleMap.wealthWatcher.WealthFloorsOnly;
+                }
+            }
+        }
+    }
 }

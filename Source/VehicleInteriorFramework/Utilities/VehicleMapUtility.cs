@@ -295,11 +295,22 @@ namespace VehicleInteriors
 
         public static List<Type> SelectSectionLayers (List<Type> subClasses, Map map)
         {
+            var excepts = new HashSet<Type>();
             if (map?.Parent is MapParent_Vehicle)
             {
-                return subClasses.Except(new Type[] { typeof(SectionLayer_ThingsGeneral), t_SectionLayer_Terrain, typeof(SectionLayer_ThingsPowerGrid) }).ToList();
+                excepts.AddRange(new Type[] { typeof(SectionLayer_ThingsGeneral), t_SectionLayer_Terrain, typeof(SectionLayer_ThingsPowerGrid) });
+                if (ModsConfig.IsActive("OskarPotocki.VanillaFactionsExpanded.Core"))
+                {
+                    excepts.Add(AccessTools.TypeByName("PipeSystem.SectionLayer_Resource"));
+                }
+                return subClasses.Except(excepts).ToList();
             }
-            return subClasses.Except(new Type[] { typeof(SectionLayer_ThingsGeneralOnVehicle), typeof(SectionLayer_TerrainOnVehicle), typeof(SectionLayer_LightingOnVehicle), typeof(SectionLayer_ThingsPowerGridOnVehicle) }).ToList();
+            excepts.AddRange(new Type[] { typeof(SectionLayer_ThingsGeneralOnVehicle), typeof(SectionLayer_TerrainOnVehicle), typeof(SectionLayer_LightingOnVehicle), typeof(SectionLayer_ThingsPowerGridOnVehicle) });
+            if (ModsConfig.IsActive("OskarPotocki.VanillaFactionsExpanded.Core"))
+            {
+                excepts.Add(AccessTools.TypeByName("VehicleInteriors.SectionLayer_ResourceOnVehicle"));
+            }
+            return subClasses.Except(excepts).ToList();
         }
 
         private static readonly Type t_SectionLayer_Terrain = AccessTools.TypeByName("Verse.SectionLayer_Terrain");
@@ -506,6 +517,15 @@ namespace VehicleInteriors
             if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle))
             {
                 return new Rot4(thing.Rotation.AsInt + vehicle.Rotation.AsInt);
+            }
+            return thing.Rotation;
+        }
+
+        public static Rot4 BaseRotationVehicleDraw(this Thing thing)
+        {
+            if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle))
+            {
+                return new Rot4(thing.Rotation.AsInt + vehicle.FullRotation.RotForVehicleDraw().AsInt);
             }
             return thing.Rotation;
         }

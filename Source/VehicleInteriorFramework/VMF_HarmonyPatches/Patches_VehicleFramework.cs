@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Threading.Tasks;
 using UnityEngine;
 using Vehicles;
 using Verse;
@@ -692,5 +693,159 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             if (instructions.FirstOrDefault(c => c.OperandIs(MethodInfoCache.m_ReachabilityUtility_CanReach)) == null) Log.Error(method.Name);
             return instructions.MethodReplacer(MethodInfoCache.m_ReachabilityUtility_CanReach, MethodInfoCache.m_ReachabilityUtilityOnVehicle_CanReach);
         }
+    }
+
+    //[HarmonyPatch(typeof(Vehicle_PathFollower), "TryEnterNextPathCell")]
+    //public static class Patch_Vehicle_PathFollower_TryEnterNextPathCell
+    //{
+    //    public static bool Prefix(Vehicle_PathFollower __instance, VehiclePawn ___vehicle, ref int ___waitTicks, ref IntVec3 ___lastCell, IntVec3 ___nextCell, HashSet<IntVec3> ___hitboxUpdateCells)
+    //    {
+    //        var size = ___vehicle.VehicleDef.Size;
+    //        if (size.x * size.z > 100)
+    //        {
+    //            TryEnterNextPathCell(__instance, ___vehicle, ref ___waitTicks, ref ___lastCell, ___nextCell, ___hitboxUpdateCells);
+    //            return false;
+    //        }
+    //        return true;
+    //    }
+
+    //    private static void TryEnterNextPathCell(Vehicle_PathFollower __instance, VehiclePawn ___vehicle, ref int ___waitTicks, ref IntVec3 ___lastCell, IntVec3 ___nextCell, HashSet<IntVec3> ___hitboxUpdateCells)
+    //    {
+    //        if (___waitTicks > 0)
+    //        {
+    //            ___waitTicks--;
+    //        }
+    //        else
+    //        {
+    //            if (__instance.CalculatingPath)
+    //            {
+    //                return;
+    //            }
+
+    //            CellRect cellRect = ___vehicle.OccupiedRect();
+    //            ___lastCell = ___vehicle.Position;
+    //            ___vehicle.Position = ___nextCell;
+    //            ___hitboxUpdateCells.Clear();
+    //            ___hitboxUpdateCells.AddRange(cellRect);
+    //            ___hitboxUpdateCells.AddRange(___vehicle.OccupiedRect());
+    //            Parallel.ForEach(___hitboxUpdateCells, c =>
+    //            {
+    //                ___vehicle.Map.pathing.RecalculatePerceivedPathCostAt(c);
+    //            });
+    //            ___hitboxUpdateCells.Clear();
+
+    //            if (VehicleMod.settings.main.runOverPawns)
+    //            {
+    //                float num = Mathf.Max(1f, __instance.nextCellCostTotal / 450f);
+    //                float num2 = 1f / (__instance.nextCellCostTotal / 60f / num);
+    //                if (___vehicle.FullRotation.IsDiagonal)
+    //                {
+    //                    num2 *= Ext_Math.Sqrt2;
+    //                }
+
+    //                WarnPawnsImpendingCollision(__instance);
+    //                ___vehicle.CheckForCollisions(num2);
+    //            }
+
+    //            if (___vehicle.beached)
+    //            {
+    //                ___vehicle.BeachShip();
+    //                ___vehicle.Position = ___nextCell;
+    //                __instance.PatherFailed();
+    //                return;
+    //            }
+
+    //            if (___vehicle.BodySize > 0.9f)
+    //            {
+    //                ___vehicle.Map.snowGrid.AddDepth(___vehicle.Position, -0.001f);
+    //            }
+
+    //            switch (NeedNewPath(__instance))
+    //            {
+    //                case PathRequest.Fail:
+    //                    __instance.PatherFailed();
+    //                    return;
+    //                case PathRequest.Wait:
+    //                    ___waitTicks = 10;
+    //                    return;
+    //                case PathRequest.NeedNew:
+    //                    TrySetNewPath_Threaded(__instance);
+    //                    break;
+    //                default:
+    //                    throw new NotImplementedException("TryEnterNextPathCell.PathRequest");
+    //                case PathRequest.None:
+    //                    break;
+    //            }
+
+    //            if (__instance.curPath != null)
+    //            {
+    //                if ((bool)AtDestinationPosition(__instance))
+    //                {
+    //                    PatherArrived(__instance);
+    //                    return;
+    //                }
+
+    //                SetupMoveIntoNextCell(__instance);
+    //                Ext_Map.GetCachedMapComponent<VehiclePositionManager>(___vehicle.Map).ClaimPosition(___vehicle);
+    //            }
+    //        }
+    //    }
+
+    //    private static FastInvokeHandler WarnPawnsImpendingCollision = MethodInvoker.GetHandler(AccessTools.Method(typeof(Vehicle_PathFollower), "WarnPawnsImpendingCollision"));
+
+    //    private static FastInvokeHandler NeedNewPath = MethodInvoker.GetHandler(AccessTools.Method(typeof(Vehicle_PathFollower), "NeedNewPath"));
+
+    //    private static FastInvokeHandler TrySetNewPath_Threaded = MethodInvoker.GetHandler(AccessTools.Method(typeof(Vehicle_PathFollower), "TrySetNewPath_Threaded"));
+
+    //    private static FastInvokeHandler AtDestinationPosition = MethodInvoker.GetHandler(AccessTools.Method(typeof(Vehicle_PathFollower), "AtDestinationPosition"));
+
+    //    private static FastInvokeHandler PatherArrived = MethodInvoker.GetHandler(AccessTools.Method(typeof(Vehicle_PathFollower), "PatherArrived"));
+
+    //    private static FastInvokeHandler SetupMoveIntoNextCell = MethodInvoker.GetHandler(AccessTools.Method(typeof(Vehicle_PathFollower), "SetupMoveIntoNextCell"));
+    //}
+
+    //サイズの大きなVehicleの場合はVF本体のスレッド管理を回避しつつ独自にマルチスレッド化
+    [HarmonyPatch]
+    public static class Patch_VehiclePathing_SetRotationAndUpdateVehicleRegionsClipping
+    {
+        private static MethodBase TargetMethod()
+        {
+            return AccessTools.Method("Vehicles.VehiclePathing:SetRotationAndUpdateVehicleRegionsClipping");
+        }
+
+        public static bool Prefix(ref bool __result, object[] __args, HashSet<IntVec3> ___hitboxUpdateCells)
+        {
+            if (__args[0] is VehiclePawnWithMap vehicle && vehicle.Spawned && vehicle.VehicleDef.Size.x * vehicle.VehicleDef.Size.z > 150)
+            {
+                __result = SetRotationAndUpdateVehicleRegionsClipping(vehicle, (Rot4)__args[1], ___hitboxUpdateCells);
+                return false;
+            }
+            return true;
+        }
+
+        private static bool SetRotationAndUpdateVehicleRegionsClipping(VehiclePawn vehicle, Rot4 value, HashSet<IntVec3> hitboxUpdateCells)
+        {
+            var map = vehicle.Map;
+            if (!vehicle.OccupiedRectShifted(IntVec2.Zero, new Rot4?(value)).InBounds(map))
+            {
+                return false;
+            }
+            hitboxUpdateCells.Clear();
+            hitboxUpdateCells.AddRange(vehicle.OccupiedRectShifted(IntVec2.Zero, new Rot4?(Rot4.East)));
+            hitboxUpdateCells.AddRange(vehicle.OccupiedRectShifted(IntVec2.Zero, new Rot4?(Rot4.North)));
+            var mapping = MapComponentCache<VehicleMapping>.GetComponent(map);
+            var allMoveableVehicleDefs = (List<VehicleDef>)AllMoveableVehicleDefs(null);
+            Parallel.ForEach(hitboxUpdateCells, c =>
+            {
+                foreach (VehicleDef vehicleDef in allMoveableVehicleDefs)
+                {
+                    mapping[vehicleDef].VehiclePathGrid.RecalculatePerceivedPathCostAt(c, map.thingGrid.ThingsListAtFast(c));
+                }
+            });
+            hitboxUpdateCells.Clear();
+            return true;
+        }
+
+        private static FastInvokeHandler AllMoveableVehicleDefs = MethodInvoker.GetHandler(AccessTools.PropertyGetter("Vehicles.VehicleHarmony:AllMoveableVehicleDefs"));
     }
 }

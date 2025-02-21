@@ -2,6 +2,7 @@
 using RimWorld;
 using SmashTools;
 using System;
+using System.Linq;
 using System.Text;
 using UnityEngine;
 using Verse;
@@ -138,8 +139,10 @@ namespace VehicleInteriors
                     num7++;
                 }
                 int num11 = maxX + 2 - this.sectRect.minX;
-                num2 -= num11 - ExpandSize;
-                num7 -= num11 - ExpandSize;
+                var offset = num11;
+                if (this.expandWest) offset -= ExpandSize;
+                num2 -= offset;
+                num7 -= offset;
                 num2 += width + 1;
                 num7 += map.Size.x;
             }
@@ -169,52 +172,111 @@ namespace VehicleInteriors
                     num13++;
                     num14++;
                 }
-                num12 += ExpandSize * 2 + 1;
-                num13 += ExpandSize * 2;
-                num14 -= width - ExpandSize * 2;
+                var offset = 0;
+                if (this.expandWest) offset++;
+                if (this.expandEast) offset++;
+                num12 += offset * ExpandSize + 1;
+                num13 += offset * ExpandSize;
+                num14 -= width - offset * ExpandSize;
                 num14 += map.Size.x;
             }
 
+            //こっから下でマップ周辺に漏れ出る光の計算
             var rect = new CellRect(this.section.botLeft.x, this.section.botLeft.z, 17, 17);
             rect.ClipInsideMap(base.Map);
-            rect.MovedBy(rect.Min);
+            rect = rect.MovedBy(-rect.Min);
+
             int IndexGetterCorner(IntVec3 c)
             {
-                return (ExpandSize + c.z) * (width + 1) + ExpandSize + c.x;
+                return ((expandSouth ? ExpandSize : 0) + c.z) * (width + 1) + (expandWest ? ExpandSize : 0) + c.x;
             }
+
             int IndexGetterCenter(IntVec3 c)
             {
-                return this.firstCenterInd + (ExpandSize + c.z) * width + ExpandSize + c.x;
+                return this.firstCenterInd + ((expandSouth ? ExpandSize : 0) + c.z) * width + (expandWest ? ExpandSize : 0) + c.x;
             }
-            for (var i = ExpandSize; i > 0; i--)
-            {
-                var prevRect = rect;
-                rect = rect.ExpandedBy(1);
-                var rect2 = rect;
-                rect2.maxX++;
-                rect2.maxZ++;
-                prevRect.maxX++;
-                prevRect.maxZ++;
-                foreach (var cell in rect2.EdgeCells)
-                {
-                    var edge = prevRect.ClosestCellTo(cell);
-                    var cardinal = (edge - cell).IsCardinal;
-                    byte Decrease(byte cur)
-                    {
-                        return (byte)Math.Max(0, cur - cur / i - (cardinal ? 50 : 100) / ExpandSize);
-                    }
-                    var edgeColorCorner = array[IndexGetterCorner(edge)];
-                    array[IndexGetterCorner(cell)] = new Color32(Decrease(edgeColorCorner.r), Decrease(edgeColorCorner.g), Decrease(edgeColorCorner.b), edgeColorCorner.a);
-                }
 
-                foreach (var cell in rect.EdgeCells)
+            if (this.expandEast || this.expandSouth || this.expandEast || this.expandNorth)
+            {
+                for (var i = ExpandSize; i > 0; i--)
                 {
-                    var corner = IndexGetterCorner(cell);
-                    ColorInt colorInt = default(ColorInt) + array[corner];
-                    colorInt += array[corner + 1];
-                    colorInt += array[corner + width + 1];
-                    colorInt += array[corner + width + 2];
-                    array[IndexGetterCenter(cell)] = new Color32((byte)(colorInt.r / 4), (byte)(colorInt.g / 4), (byte)(colorInt.b / 4), (byte)(colorInt.a / 4));
+                    var prevRect = rect;
+                    if (this.expandWest)
+                    {
+                        rect.minX -= 1;
+                    }
+                    if (this.expandSouth)
+                    {
+                        rect.minZ -= 1;
+                    }
+                    if (this.expandEast)
+                    {
+                        rect.maxX += 1;
+                    }
+                    if (this.expandNorth)
+                    {
+                        rect.maxZ += 1;
+                    }
+                    var rect2 = rect;
+                    rect2.maxX++;
+                    rect2.maxZ++;
+                    prevRect.maxX++;
+                    prevRect.maxZ++;
+                    var cells = Enumerable.Empty<IntVec3>();
+                    if (this.expandWest)
+                    {
+                        cells = cells.Union(rect2.GetEdgeCells(Rot4.West));
+                    }
+                    if (this.expandSouth)
+                    {
+                        cells = cells.Union(rect2.GetEdgeCells(Rot4.South));
+                    }
+                    if (this.expandEast)
+                    {
+                        cells = cells.Union(rect2.GetEdgeCells(Rot4.East));
+                    }
+                    if (this.expandNorth)
+                    {
+                        cells = cells.Union(rect2.GetEdgeCells(Rot4.North));
+                    }
+                    foreach (var cell in cells)
+                    {
+                        var edge = prevRect.ClosestCellTo(cell);
+                        var cardinal = (edge - cell).IsCardinal;
+                        byte Decrease(byte cur)
+                        {
+                            return (byte)Math.Max(0, cur - cur / i - (cardinal ? 50 : 100) / ExpandSize);
+                        }
+                        var edgeColorCorner = array[IndexGetterCorner(edge)];
+                        array[IndexGetterCorner(cell)] = new Color32(Decrease(edgeColorCorner.r), Decrease(edgeColorCorner.g), Decrease(edgeColorCorner.b), edgeColorCorner.a);
+                    }
+
+                    cells = Enumerable.Empty<IntVec3>();
+                    if (this.expandWest)
+                    {
+                        cells = cells.Union(rect.GetEdgeCells(Rot4.West));
+                    }
+                    if (this.expandSouth)
+                    {
+                        cells = cells.Union(rect.GetEdgeCells(Rot4.South));
+                    }
+                    if (this.expandEast)
+                    {
+                        cells = cells.Union(rect.GetEdgeCells(Rot4.East));
+                    }
+                    if (this.expandNorth)
+                    {
+                        cells = cells.Union(rect.GetEdgeCells(Rot4.North));
+                    }
+                    foreach (var cell in cells)
+                    {
+                        var corner = IndexGetterCorner(cell);
+                        ColorInt colorInt = default(ColorInt) + array[corner];
+                        colorInt += array[corner + 1];
+                        colorInt += array[corner + width + 1];
+                        colorInt += array[corner + width + 2];
+                        array[IndexGetterCenter(cell)] = new Color32((byte)(colorInt.r / 4), (byte)(colorInt.g / 4), (byte)(colorInt.b / 4), (byte)(colorInt.a / 4));
+                    }
                 }
             }
 
@@ -225,7 +287,28 @@ namespace VehicleInteriors
         {
             this.sectRect = new CellRect(this.section.botLeft.x, this.section.botLeft.z, 17, 17);
             this.sectRect.ClipInsideMap(base.Map);
-            this.sectRect = this.sectRect.ExpandedBy(ExpandSize);
+            var min = this.sectRect.Min;
+            var max = this.sectRect.Max;
+            if (!(min + IntVec3.West).InBounds(base.Map))
+            {
+                this.expandWest = true;
+                this.sectRect.minX -= ExpandSize;
+            }
+            if (!(min + IntVec3.South).InBounds(base.Map))
+            {
+                this.expandSouth = true;
+                this.sectRect.minZ -= ExpandSize;
+            }
+            if (!(max + IntVec3.East).InBounds(base.Map))
+            {
+                this.expandEast = true;
+                this.sectRect.maxX += ExpandSize;
+            }
+            if (!(max + IntVec3.North).InBounds(base.Map))
+            {
+                this.expandNorth = true;
+                this.sectRect.maxZ += ExpandSize;
+            }
             int capacity = (this.sectRect.Width + 1) * (this.sectRect.Height + 1) + this.sectRect.Area;
             float y = AltitudeLayer.PawnState.AltitudeFor();
             sm.verts.Capacity = capacity;
@@ -285,6 +368,14 @@ namespace VehicleInteriors
         private const byte RoofedAreaMinSkyCover = 100;
 
         private MaterialPropertyBlock propertyBlock;
+
+        private bool expandWest;
+
+        private bool expandSouth;
+
+        private bool expandEast;
+
+        private bool expandNorth;
 
         private const int ExpandSize = 5;
 

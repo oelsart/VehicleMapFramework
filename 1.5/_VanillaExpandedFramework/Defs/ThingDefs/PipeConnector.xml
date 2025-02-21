@@ -11,6 +11,7 @@
 		<graphicData>
 			<texPath>VehicleInteriors/Things/PipeConnector</texPath>
 			<graphicClass>Graphic_Single</graphicClass>
+			<shaderType>CutoutComplex</shaderType>
 		</graphicData>
 		<rotatable>false</rotatable>
 		<statBases>
@@ -28,6 +29,9 @@
 		<comps>
 			<li Class="VehicleInteriors.CompProperties_PipeConnector">
 				<pipeNet>VMF_UnassignedNet</pipeNet>
+			</li>
+			<li>
+				<compClass>CompColorable</compClass>
 			</li>
 		</comps>
 	</ThingDef>

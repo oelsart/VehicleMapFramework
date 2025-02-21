@@ -417,6 +417,10 @@ namespace VehicleInteriors
             {
                 ((SectionLayer_ThingsPowerGridOnVehicle)section.GetLayer(typeof(SectionLayer_ThingsPowerGridOnVehicle))).DrawLayer(this.FullRotation, drawPos.WithY(0f), extraRotation);
             }
+            if (VEFActive)
+            {
+                ((SectionLayer_ThingsOnVehicle)section.GetLayer(t_SectionLayer_ResourceOnVehicle)).DrawLayer(this.FullRotation, drawPos, extraRotation);
+            }
             this.DrawLayer(section, t_SectionLayer_Zones, drawPos, extraRotation);
             ((SectionLayer_LightingOnVehicle)section.GetLayer(typeof(SectionLayer_LightingOnVehicle))).DrawLayer(this, drawPos, extraRotation);
             if (Find.CurrentMap == this.interiorMap)
@@ -564,6 +568,10 @@ namespace VehicleInteriors
         private static readonly Texture2D iconAllowsGetOff = ContentFinder<Texture2D>.Get("VehicleInteriors/UI/AllowsGetOff");
 
         private static readonly Type t_SectionLayer_Zones = AccessTools.TypeByName("Verse.SectionLayer_Zones");
+
+        private static readonly bool VEFActive = ModsConfig.IsActive("OskarPotocki.VanillaFactionsExpanded.Core");
+
+        private static readonly Type t_SectionLayer_ResourceOnVehicle = AccessTools.TypeByName("VehicleInteriors.SectionLayer_ResourceOnVehicle");
 
         private static readonly FastInvokeHandler DirtyCellDesignationsCache = MethodInvoker.GetHandler(AccessTools.Method(typeof(DesignationManager), "DirtyCellDesignationsCache"));
     }

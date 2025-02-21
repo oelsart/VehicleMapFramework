@@ -44,5 +44,6 @@
 	<ThingDef ParentName="VMF_VehicleStructure">
 		<defName>VMF_VehicleStructureEmpty</defName>
 		<fillPercent>0</fillPercent>
+		<blockLight>false</blockLight>
 	</ThingDef>
 </Defs>
