@@ -815,7 +815,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
 
         public static bool Prefix(ref bool __result, object[] __args, HashSet<IntVec3> ___hitboxUpdateCells)
         {
-            if (__args[0] is VehiclePawnWithMap vehicle && vehicle.Spawned && vehicle.VehicleDef.Size.x * vehicle.VehicleDef.Size.z > 150)
+            if (VehicleInteriors.settings.threadingPathCost && __args[0] is VehiclePawnWithMap vehicle && vehicle.Spawned && vehicle.def.size.x * vehicle.def.size.z > VehicleInteriors.settings.minAreaForThreading)
             {
                 __result = SetRotationAndUpdateVehicleRegionsClipping(vehicle, (Rot4)__args[1], ___hitboxUpdateCells);
                 return false;

@@ -58,6 +58,12 @@ namespace VehicleInteriors
             listingStandard.Begin(inRect);
             listingStandard.CheckboxLabeled("VMF_Settings.DrawPlanet".Translate(), ref settings.drawPlanet);
             listingStandard.SliderLabeled("VMF_Settings.WeightFactor".Translate(), null, null, ref settings.weightFactor, 0f, 3f);
+            listingStandard.GapLine();
+            listingStandard.CheckboxLabeled("VMF_Settings.ThreadingPathCost".Translate(), ref settings.threadingPathCost);
+            if (settings.threadingPathCost)
+            {
+                listingStandard.SliderLabeled("VMF_Settings.MinAreaForThreading".Translate(), null, null, ref settings.minAreaForThreading, 0, 2500, 1, "0", "2500");
+            }
             listingStandard.End();
         }
 

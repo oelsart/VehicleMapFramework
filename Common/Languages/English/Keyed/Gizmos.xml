@@ -24,5 +24,7 @@
 	<VMF_ReassignDesc>Reassign the turret that this seat operates.</VMF_ReassignDesc>
 
 	<VMF_GatherFromBaseMap>Gather From Basemap</VMF_GatherFromBaseMap>
+	
+	<VMF_AssignPipeNet>Assign</VMF_AssignPipeNet>
 
 </LanguageData>

@@ -24,5 +24,7 @@
 	<VMF_ReassignDesc>この席が操作するタレットを再割り当てします.</VMF_ReassignDesc>
 
 	<VMF_GatherFromBaseMap>ベースマップから収集</VMF_GatherFromBaseMap>
+	
+	<VMF_AssignPipeNet>割り当て</VMF_AssignPipeNet>
 
 </LanguageData>
