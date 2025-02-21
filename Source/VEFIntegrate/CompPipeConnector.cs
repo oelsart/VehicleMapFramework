@@ -2,6 +2,7 @@
 using PipeSystem;
 using RimWorld;
 using SmashTools;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -93,10 +94,13 @@ namespace VehicleInteriors
                                     }
                                     compConnector.PipeNet = this.PipeNet;
                                     pipeNet.Destroy();
-                                    pipeNetCount(MapComponentCache<PipeNetManager>.GetComponent(compConnector.parent.Map))--;
+                                    var component = MapComponentCache<PipeNetManager>.GetComponent(compConnector.parent.Map);
+                                    pipeNetCount(component) = component.pipeNets.Count;
                                     this.parent.DirtyMapMesh(this.parent.Map);
-                                    Log.Message($"{pipeNetCount(MapComponentCache<PipeNetManager>.GetComponent(compConnector.parent.Map))} " +
-                                        $"{pipeNetCount(MapComponentCache<PipeNetManager>.GetComponent(this.parent.Map))}");
+                                    Log.Message($"{pipeNetCount(MapComponentCache<PipeNetManager>.GetComponent(compConnector.parent.Map))}" +
+                                        $"{MapComponentCache<PipeNetManager>.GetComponent(compConnector.parent.Map).pipeNets.Count}" +
+                                        $"{pipeNetCount(MapComponentCache<PipeNetManager>.GetComponent(this.parent.Map))}" +
+                                        $"{MapComponentCache<PipeNetManager>.GetComponent(this.parent.Map).pipeNets.Count}");
                                 }
                                 flag = true;
                                 break;
@@ -118,7 +122,7 @@ namespace VehicleInteriors
             base.PostDraw();
             if (this.Pair != null && this.parent.IsOnVehicleMapOf(out _))
             {
-                var y = AltitudeLayer.MetaOverlays.AltitudeFor();
+                var y = AltitudeLayer.LightingOverlay.AltitudeFor() - 0.001f;
                 var drawPosA = this.parent.DrawPos.WithY(y);
                 var drawPosB = this.Pair.parent.DrawPos.WithY(y);
                 var graphic = this.PipeEndGraphic;
@@ -147,8 +151,9 @@ namespace VehicleInteriors
                         {
                             this.pipeNet = d;
                             this.parent.DrawColor = d.resource.color;
-                            this.PostDeSpawn(this.parent.Map);
-                            this.PostSpawnSetup(false);
+                            this.PipeNet.UnregisterComp(this);
+                            this.PipeNetManager.RegisterConnector(this);
+                            pipeNetCount(this.PipeNetManager) = this.PipeNetManager.pipeNets.Count;
 
                         });
                     }).ToList()));
