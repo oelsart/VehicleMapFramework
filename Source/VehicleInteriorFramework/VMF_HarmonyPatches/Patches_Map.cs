@@ -365,6 +365,16 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
+    [HarmonyPatch(typeof(MapPawns), nameof(MapPawns.AnyPawnBlockingMapRemoval), MethodType.Getter)]
+    public static class Patch_MapPawns_AnyPawnBlockingMapRemoval
+    {
+        public static void Postfix(ref bool __result, Map ___map)
+        {
+            __result = __result || VehiclePawnWithMapCache.AllVehiclesOn(___map).Any(v => v.VehicleMap.mapPawns.AnyPawnBlockingMapRemoval);
+        }
+    }
+
+
     [HarmonyPatch(typeof(WorldObject), nameof(WorldObject.Tile), MethodType.Getter)]
     public static class Patch_WorldObject_Tile
     {
