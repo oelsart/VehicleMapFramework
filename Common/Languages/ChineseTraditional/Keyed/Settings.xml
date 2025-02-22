@@ -3,5 +3,8 @@
 
 	<VMF_Settings.DrawPlanet>旅隊移動時顯示世界地圖</VMF_Settings.DrawPlanet>
 	<VMF_Settings.WeightFactor>載具地圖上物品的重量係數</VMF_Settings.WeightFactor>
+	<VMF_Settings.ThreadingPathCost>大型載具的路徑成本計算多線程化</VMF_Settings.ThreadingPathCost>
+	<VMF_Settings.MinAreaForThreading>使用多線程計算的最小載具面積</VMF_Settings.MinAreaForThreading>
+
 
 </LanguageData>
