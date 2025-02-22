@@ -25,4 +25,6 @@
 
     <VMF_GatherFromBaseMap>從基地收集</VMF_GatherFromBaseMap>
 
+	<VMF_AssignPipeNet>指派</VMF_AssignPipeNet>
+
 </LanguageData>
