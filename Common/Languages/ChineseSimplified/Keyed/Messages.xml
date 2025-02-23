@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<LanguageData>
+
+	<!-- EN: Cannot be placed outside of a vehicle map. -->
+  <VMF_ForceOnVehicle>无法放置在载具地图之外。</VMF_ForceOnVehicle>
+	<!-- EN: Cannot be placed outside of a hover vehicle map. -->
+  <VMF_ForceOnHoverVehicle>无法放置在悬浮载具地图之外。</VMF_ForceOnHoverVehicle>
+	<!-- EN: Cannot be placed on a vehicle map. -->
+  <VMF_ForbidOnVehicle>无法放置在载具地图上。</VMF_ForbidOnVehicle>
+	<!-- EN: Cannot be placed on a human powered vehicle map. -->
+  <VMF_ForbidOnHumanPoweredVehicle>无法放置在人力载具地图上。</VMF_ForbidOnHumanPoweredVehicle>
+	<!-- EN: Cannot be placed outside the edge of a vehicle map. -->
+  <VMF_ForceOnVehicleMapEdge>只可放置在载具地图边缘。</VMF_ForceOnVehicleMapEdge>
+
+	<!-- EN: No roles for operating this turret in {0}. -->
+  <VMF_NoRoles>武器 {0} 没有操作者。</VMF_NoRoles>
+
+</LanguageData>

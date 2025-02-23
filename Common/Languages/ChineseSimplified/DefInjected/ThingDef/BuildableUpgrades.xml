@@ -1,0 +1,40 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<LanguageData>
+  
+  <!-- EN: cargo container -->
+  <VMF_CargoContainer.label>货箱</VMF_CargoContainer.label>
+  <!-- EN: Storage for additional vehicle cargo capacity.\n\n<color=#bb8f04>Cargo capacity:</color> +150 kg -->
+  <VMF_CargoContainer.description>让载具能装下更多货物。\n\n&lt;color=#bb8f04&gt;货物容量：&lt;/color&gt; +150 kg</VMF_CargoContainer.description>
+  
+  <!-- EN: driver seat -->
+  <VMF_DriverSeat.label>驾驶位</VMF_DriverSeat.label>
+  <!-- EN: Driver's seat of a vehicle. When this is installed, the vehicle can be controlled. -->
+  <VMF_DriverSeat.description>载具驾驶员的座位。只有在安装了这个后才能控制载具。</VMF_DriverSeat.description>
+  <!-- EN: driver seat -->
+  <VMF_DriverSeat.comps.CompVehicleSeat.upgrades.0.roles.0.editKey>驾驶位</VMF_DriverSeat.comps.CompVehicleSeat.upgrades.0.roles.0.editKey>
+  
+  <!-- EN: gunner seat -->
+  <VMF_GunnerSeat.label>炮手位</VMF_GunnerSeat.label>
+  <!-- EN: Gunner's seat of a vehicle. When this is installed, the selected turret of the vehicle can be controlled. -->
+  <VMF_GunnerSeat.description>载具炮手的座位。只有在安装了这个后才能控制载具载具上对应的自带武器。</VMF_GunnerSeat.description>
+  <!-- EN: gunner seat -->
+  <VMF_GunnerSeat.comps.CompVehicleSeat.upgrades.0.roles.0.editKey>TODO</VMF_GunnerSeat.comps.CompVehicleSeat.upgrades.0.roles.0.editKey>
+  
+  <!-- EN: lift fan -->
+  <VMF_LiftFan.label>升力引擎</VMF_LiftFan.label>
+  <!-- EN: A Lift fan to enhance the hover vehicle's maximum payload. Can only be installed on hover type vehicles.\n\n<color=#bb8f04>Maximum Payload:</color> +150 kg\n<color=#bb8f04>Fuel Consumption:</color> +4 /day -->
+  <VMF_LiftFan.description>能提供升力的推进器，提升浮空载具的载荷。仅可被安装在浮空载具上。\n\n&lt;color=#bb8f04&gt;最大载荷：&lt;/color&gt; +150 kg\n&lt;color=#bb8f04&gt;燃料消耗：&lt;/color&gt; +4/日</VMF_LiftFan.description>
+  
+  <!-- EN: passenger seat -->
+  <VMF_PassengerSeat.label>乘客位</VMF_PassengerSeat.label>
+  <!-- EN: Passenger's seat of a vehicle. -->
+  <VMF_PassengerSeat.description>载具乘客的座位。</VMF_PassengerSeat.description>
+  <!-- EN: passenger seat -->
+  <VMF_PassengerSeat.comps.CompVehicleSeat.upgrades.0.roles.0.editKey>乘客位</VMF_PassengerSeat.comps.CompVehicleSeat.upgrades.0.roles.0.editKey>
+  
+  <!-- EN: turbo charger -->
+  <VMF_TurboCharger.label>涡轮增压器</VMF_TurboCharger.label>
+  <!-- EN: Engine components to enhance the vehicle's maximum payload.\n\n<color=#bb8f04>Maximum payload:</color> +300 kg\n<color=#bb8f04>Fuel Consumption:</color> +8 /day -->
+  <VMF_TurboCharger.description>强化引擎出力，提升载具的载荷。\n\n&lt;color=#bb8f04&gt;最大载荷：&lt;/color&gt; +300 kg\n&lt;color=#bb8f04&gt;燃料消耗：&lt;/color&gt; +8/日</VMF_TurboCharger.description>
+  
+</LanguageData>

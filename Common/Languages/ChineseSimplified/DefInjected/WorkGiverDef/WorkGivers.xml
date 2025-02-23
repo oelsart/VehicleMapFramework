@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<LanguageData>
+  
+  <!-- EN: 建造布置好的框架 -->
+  <VMF_ConstructFinishFramesAcrossMaps.label>建造布置好的框架</VMF_ConstructFinishFramesAcrossMaps.label>
+  <!-- EN: 建造 -->
+  <VMF_ConstructFinishFramesAcrossMaps.gerund>建造</VMF_ConstructFinishFramesAcrossMaps.gerund>
+  <!-- EN: 建造 -->
+  <VMF_ConstructFinishFramesAcrossMaps.verb>建造</VMF_ConstructFinishFramesAcrossMaps.verb>
+  
+  <!-- EN: 向建筑蓝图运送物资 -->
+  <VMF_DeliverResourcesToBlueprintsAcrossMaps.label>向建筑蓝图运送物资</VMF_DeliverResourcesToBlueprintsAcrossMaps.label>
+  <!-- EN: 运送至 -->
+  <VMF_DeliverResourcesToBlueprintsAcrossMaps.gerund>运送至</VMF_DeliverResourcesToBlueprintsAcrossMaps.gerund>
+  <!-- EN: 运送至 -->
+  <VMF_DeliverResourcesToBlueprintsAcrossMaps.verb>运送至</VMF_DeliverResourcesToBlueprintsAcrossMaps.verb>
+  
+  <!-- EN: 向建筑框架运送物资 -->
+  <VMF_DeliverResourcesToFramesAcrossMaps.label>向建筑框架运送物资</VMF_DeliverResourcesToFramesAcrossMaps.label>
+  <!-- EN: 运送至 -->
+  <VMF_DeliverResourcesToFramesAcrossMaps.gerund>运送至</VMF_DeliverResourcesToFramesAcrossMaps.gerund>
+  <!-- EN: 运送至 -->
+  <VMF_DeliverResourcesToFramesAcrossMaps.verb>运送至</VMF_DeliverResourcesToFramesAcrossMaps.verb>
+  
+  <!-- EN: 搬运物品 -->
+  <VMF_HaulGeneralAcrossMaps.label>搬运物品</VMF_HaulGeneralAcrossMaps.label>
+  <!-- EN: 搬运 -->
+  <VMF_HaulGeneralAcrossMaps.gerund>搬运</VMF_HaulGeneralAcrossMaps.gerund>
+  <!-- EN: 搬运 -->
+  <VMF_HaulGeneralAcrossMaps.verb>搬运</VMF_HaulGeneralAcrossMaps.verb>
+  
+  <!-- EN: 装载运输舱 -->
+  <VMF_LoadBuildableContainer.label>装载运输舱</VMF_LoadBuildableContainer.label>
+  <!-- EN: 装货 -->
+  <VMF_LoadBuildableContainer.gerund>装货</VMF_LoadBuildableContainer.gerund>
+  <!-- EN: 装货 -->
+  <VMF_LoadBuildableContainer.verb>装货</VMF_LoadBuildableContainer.verb>
+  
+  <!-- EN: 整备炮塔 -->
+  <VMF_RearmTurretsAcrossMaps.label>整备炮塔</VMF_RearmTurretsAcrossMaps.label>
+  <!-- EN: 整备 -->
+  <VMF_RearmTurretsAcrossMaps.gerund>整备</VMF_RearmTurretsAcrossMaps.gerund>
+  <!-- EN: 整备 -->
+  <VMF_RearmTurretsAcrossMaps.verb>整备</VMF_RearmTurretsAcrossMaps.verb>
+  
+  <!-- EN: 补充燃料 -->
+  <VMF_RefuelAcrossMaps.label>补充燃料</VMF_RefuelAcrossMaps.label>
+  <!-- EN: 补充燃料 -->
+  <VMF_RefuelAcrossMaps.gerund>补充燃料</VMF_RefuelAcrossMaps.gerund>
+  <!-- EN: 补充燃料 -->
+  <VMF_RefuelAcrossMaps.verb>补充燃料</VMF_RefuelAcrossMaps.verb>
+  
+</LanguageData>

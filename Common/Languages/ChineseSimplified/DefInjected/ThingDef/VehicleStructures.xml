@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<LanguageData>
+  
+  <!-- EN: vehicle structure -->
+  <VMF_VehicleStructureEmpty.label>载具结构</VMF_VehicleStructureEmpty.label>
+  <!-- EN: Structure of a vehicle. -->
+  <VMF_VehicleStructureEmpty.description>载具的结构。</VMF_VehicleStructureEmpty.description>
+  
+  <!-- EN: vehicle structure -->
+  <VMF_VehicleStructureFilled.label>载具结构</VMF_VehicleStructureFilled.label>
+  <!-- EN: Structure of a vehicle. -->
+  <VMF_VehicleStructureFilled.description>载具的结构。</VMF_VehicleStructureFilled.description>
+  
+</LanguageData>

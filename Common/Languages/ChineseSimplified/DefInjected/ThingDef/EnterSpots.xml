@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<LanguageData>
+  
+  <!-- EN: ladder -->
+  <VMF_Ladder.label>载具梯子</VMF_Ladder.label>
+  <!-- EN: A ladder for humans to ascend and descend on a vehicle. Pawns get priority to ascend and descend from the location where this is placed. -->
+  <VMF_Ladder.description>方便人员上下载具的梯子。在安装了梯子后，所有人员都会优先从这里上下载具。</VMF_Ladder.description>
+  
+  <!-- EN: ramp (1x5) -->
+  <VMF_RampLarge.label>载具坡道（1x5）</VMF_RampLarge.label>
+  <!-- EN: A ramp for vehicles to ascend and descend to a vehicle map. Vehicles up to 5 squares wide can ascend and descend from here. -->
+  <VMF_RampLarge.description>一段坡道，方便其它载具上下地图载具。宽度限额5格。</VMF_RampLarge.description>
+  
+  <!-- EN: ramp (1x3) -->
+  <VMF_RampMedium.label>载具坡道（1x3）</VMF_RampMedium.label>
+  <!-- EN: A ramp for vehicles to ascend and descend to a vehicle map. Vehicles up to 3 squares wide can ascend and descend from here. -->
+  <VMF_RampMedium.description>一段坡道，方便其它载具上下地图载具。宽度限额3格。</VMF_RampMedium.description>
+  
+</LanguageData>

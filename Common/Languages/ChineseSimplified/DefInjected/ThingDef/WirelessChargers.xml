@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<LanguageData>
+  
+  <!-- EN: wireless power receiver -->
+  <VMF_WirelessReceiver.label>载具电力接收器</VMF_WirelessReceiver.label>
+  <!-- EN: A device that receives power from a normal map. It can be placed on a vehicle map and receive power by aligning with a transmitter. -->
+  <VMF_WirelessReceiver.description>用于接收来自常规地图的电力。只可被放置在载具地图上，可以和常规地图的传输器对接。</VMF_WirelessReceiver.description>
+  
+  <!-- EN: wireless power transmitter -->
+  <VMF_WirelessTransmitter.label>载具电力传输器</VMF_WirelessTransmitter.label>
+  <!-- EN: A device for transmitting power between a normal map and a vehicle map. Can be placed on a normal map. -->
+  <VMF_WirelessTransmitter.description>用于从常规地图给载具地图传输电力。只可被放置在常规地图上。</VMF_WirelessTransmitter.description>
+  
+</LanguageData>

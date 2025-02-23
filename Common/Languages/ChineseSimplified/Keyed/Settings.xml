@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<LanguageData>
+
+	<!-- EN: Draw the world map during caravan. -->
+  <VMF_Settings.DrawPlanet>在远行队时绘制世界地图。</VMF_Settings.DrawPlanet>
+	<!-- EN: Weight factor of things on the vehicle map. -->
+  <VMF_Settings.WeightFactor>载具地图上物件的重量乘数。</VMF_Settings.WeightFactor>
+	<!-- EN: Multi-threading for path cost calculations on large vehicles. -->
+  <VMF_Settings.ThreadingPathCost>在大型载具上的寻路计算中使用多线程。</VMF_Settings.ThreadingPathCost>
+	<!-- EN: Minimum area of vehicle calculated in multi-threading. -->
+  <VMF_Settings.MinAreaForThreading>启用多线程的最低载具面积。</VMF_Settings.MinAreaForThreading>
+
+</LanguageData>
