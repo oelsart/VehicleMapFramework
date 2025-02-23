@@ -1,0 +1,103 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<LanguageData>
+  
+  <!-- EN: 正在拘捕TargetA。 -->
+  <VMF_ArrestAcrossMaps.reportString>正在拘捕TargetA。</VMF_ArrestAcrossMaps.reportString>
+  
+  <!-- EN: 近身攻击TargetA。 -->
+  <VMF_AttackMeleeAcrossMaps.reportString>近身攻击TargetA。</VMF_AttackMeleeAcrossMaps.reportString>
+  
+  <!-- EN: Entering TargetA. -->
+  <VMF_BoardAcrossMaps.reportString>进入TargetA。</VMF_BoardAcrossMaps.reportString>
+  
+  <!-- EN: 正在将TargetA放到安全的地方。 -->
+  <VMF_BringBabyToSafetyAcrossMaps.reportString>正在将TargetA放到安全的地方。</VMF_BringBabyToSafetyAcrossMaps.reportString>
+  
+  <!-- EN: 正在俘虏TargetA。 -->
+  <VMF_CaptureAcrossMaps.reportString>正在俘虏TargetA。</VMF_CaptureAcrossMaps.reportString>
+  
+  <!-- EN: 正在抬走TargetA。 -->
+  <VMF_CarryDownedPawnDraftedAcrossMaps.reportString>正在抬走TargetA。</VMF_CarryDownedPawnDraftedAcrossMaps.reportString>
+  
+  <!-- EN: 正在抬走TargetA。 -->
+  <VMF_CarryDownedPawnToExitAcrossMaps.reportString>正在抬走TargetA。</VMF_CarryDownedPawnToExitAcrossMaps.reportString>
+  
+  <!-- EN: 正在抬走TargetA。 -->
+  <VMF_CarryDownedPawnToPortalAcrossMaps.reportString>正在抬走TargetA。</VMF_CarryDownedPawnToPortalAcrossMaps.reportString>
+  
+  <!-- EN: 正在将TargetA送入低温休眠舱。 -->
+  <VMF_CarryToCryptosleepCasketAcrossMaps.reportString>正在将TargetA送入低温休眠舱。</VMF_CarryToCryptosleepCasketAcrossMaps.reportString>
+  
+  <!-- EN: 正在将TargetA送入低温休眠舱。 -->
+  <VMF_CarryToCryptosleepCasketDraftedAcrossMaps.reportString> 正在将TargetA送入低温休眠舱。</VMF_CarryToCryptosleepCasketDraftedAcrossMaps.reportString>
+  
+  <!-- EN: 正在将TargetB带至TargetA。 -->
+  <VMF_CarryToEntityHolderAcrossMaps.reportString>正在将TargetB带至TargetA。</VMF_CarryToEntityHolderAcrossMaps.reportString>
+  
+  <!-- EN: 正在将TargetB带至TargetA。 -->
+  <VMF_CarryToEntityHolderAlreadyHoldingAcrossMaps.reportString>正在将TargetB带至TargetA。</VMF_CarryToEntityHolderAlreadyHoldingAcrossMaps.reportString>
+  
+  <!-- EN: 正在拘捕TargetA。 -->
+  <VMF_CarryToPrisonerBedDraftedAcrossMaps.reportString>正在拘捕TargetA。</VMF_CarryToPrisonerBedDraftedAcrossMaps.reportString>
+  
+  <!-- EN: 交付TargetA。 -->
+  <VMF_DeliverToBedAcrossMaps.reportString>交付TargetA。</VMF_DeliverToBedAcrossMaps.reportString>
+  
+  <!-- EN: 正在完成TargetA清单。 -->
+  <VMF_DoBillAcrossMaps.reportString>正在完成TargetA清单。</VMF_DoBillAcrossMaps.reportString>
+  
+  <!-- EN: 正在从TargetA中提取TargetB。 -->
+  <VMF_ExtractRelicAcrossMaps.reportString>正在从TargetA中提取TargetB。</VMF_ExtractRelicAcrossMaps.reportString>
+  
+  <!-- EN: 搬运TargetA。 -->
+  <VMF_GiveToPackAnimalAcrossMaps.reportString>搬运TargetA。</VMF_GiveToPackAnimalAcrossMaps.reportString>
+  
+  <!-- EN: 走动中。 -->
+  <VMF_GotoAcrossMaps.reportString>走动中。</VMF_GotoAcrossMaps.reportString>
+  
+  <!-- EN: Doing something. -->
+  <VMF_GotoDestMap.reportString>在做些什么。</VMF_GotoDestMap.reportString>
+  
+  <!-- EN: 正在搬运TargetA到充电站。 -->
+  <VMF_HaulMechToChargerAcrossMaps.reportString>正在搬运TargetA到充电站。</VMF_HaulMechToChargerAcrossMaps.reportString>
+  
+  <!-- EN: 正在搬运TargetA。 -->
+  <VMF_HaulToCellAcrossMaps.reportString>正在搬运TargetA。</VMF_HaulToCellAcrossMaps.reportString>
+  
+  <!-- EN: 正在搬运TargetA。 -->
+  <VMF_HaulToContainerAcrossMaps.reportString>正在搬运TargetA。</VMF_HaulToContainerAcrossMaps.reportString>
+  
+  <!-- EN: 正在搬运TargetA。 -->
+  <VMF_HaulToTransporterAcrossMaps.reportString>正在搬运TargetA。</VMF_HaulToTransporterAcrossMaps.reportString>
+  
+  <!-- EN: 正在将TargetA安装进TargetB。 -->
+  <VMF_InstallRelicAcrossMaps.reportString>正在将TargetA安装进TargetB。</VMF_InstallRelicAcrossMaps.reportString>
+  
+  <!-- EN: 整备TargetA。 -->
+  <VMF_RearmTurretAcrossMaps.reportString>整备TargetA。</VMF_RearmTurretAcrossMaps.reportString>
+  
+  <!-- EN: 正在整备TargetA。 -->
+  <VMF_RearmTurretAtomicAcrossMaps.reportString>正在整备TargetA。</VMF_RearmTurretAtomicAcrossMaps.reportString>
+  
+  <!-- EN: 给TargetA加燃料。 -->
+  <VMF_RefuelAcrossMaps.reportString>给TargetA加燃料。</VMF_RefuelAcrossMaps.reportString>
+  
+  <!-- EN: 正在给TargetA加燃料。 -->
+  <VMF_RefuelAtomicAcrossMaps.reportString>正在给TargetA加燃料。</VMF_RefuelAtomicAcrossMaps.reportString>
+  
+  <!-- EN: 正在救援TargetA。 -->
+  <VMF_RescueAcrossMaps.reportString>正在救援TargetA。</VMF_RescueAcrossMaps.reportString>
+  
+  <!-- EN: 正在将TargetA送到床上。 -->
+  <VMF_TakeDownedPawnToBedDraftedAcrossMaps.reportString>正在将TargetA送到床上。</VMF_TakeDownedPawnToBedDraftedAcrossMaps.reportString>
+  
+  <!-- EN: tending to TargetA. -->
+  <VMF_TendEntityAcrossmaps.reportString>正在治疗TargetA。</VMF_TendEntityAcrossmaps.reportString>
+  
+  <!-- EN: 正在治疗TargetA。 -->
+  <VMF_TendPatientAcrossMaps.reportString>正在治疗TargetA。</VMF_TendPatientAcrossMaps.reportString>
+  
+  <!-- EN: 正在将TargetC转移至其他收容地点。 -->
+  <VMF_TransferBetweenEntityHoldersAcrossMaps.reportString>正在将TargetC转移至其他收容地点。</VMF_TransferBetweenEntityHoldersAcrossMaps.reportString>
+  
+</LanguageData>

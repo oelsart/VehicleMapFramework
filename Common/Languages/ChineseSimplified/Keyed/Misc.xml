@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<LanguageData>
+
+	<!-- EN: 's map -->
+  <VMF_VehicleMap>的地图</VMF_VehicleMap>
+
+	<!-- EN: Power transfer setting -->
+  <VMF_PowerTransferSetting>电力传输设置</VMF_PowerTransferSetting>
+
+	<!-- EN: Payload: {0} -->
+  <VMF_StatsReport_MaximumPayload>载荷：{0}</VMF_StatsReport_MaximumPayload>
+
+	<!-- EN: Operators' Strength Factor: {0} -->
+  <VMF_StatsReport_HumanPowerAverage>操作者的力量影响：{0}</VMF_StatsReport_HumanPowerAverage>
+
+	<!-- EN: Zoom in to {0} and choose a landing spot in {1} -->
+  <VMF_LandInSpecificMap>拉近到{0}并选择{1}的降落点</VMF_LandInSpecificMap>
+
+</LanguageData>

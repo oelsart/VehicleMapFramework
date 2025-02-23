@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<LanguageData>
+  
+  <!-- EN: Vehicle map biome -->
+  <VMF_VehicleMapBiome.label>载具地图</VMF_VehicleMapBiome.label>
+  <!-- EN: A biome of vehicle map. -->
+  <VMF_VehicleMapBiome.description>属于载具的地图。</VMF_VehicleMapBiome.description>
+  
+</LanguageData>

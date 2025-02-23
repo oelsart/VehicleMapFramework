@@ -1,0 +1,50 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<LanguageData>
+
+	<!-- EN: Focus Vehicle Map -->
+  <VMF_FocusVehicleMap>聚焦载具地图</VMF_FocusVehicleMap>
+	<!-- EN: Unfocus Vehicle Map -->
+  <VMF_UnfocusVehicleMap>停止聚焦载具地图</VMF_UnfocusVehicleMap>
+
+	<!-- EN: Allows Haul In -->
+  <VMF_AllowsHaulIn>允许搬入</VMF_AllowsHaulIn>
+	<!-- EN: Allows colonists to haul in storage on this vehicle's map. -->
+  <VMF_AllowsHaulInDesc>允许殖民者将物品搬入该载具地图</VMF_AllowsHaulInDesc>
+	<!-- EN: Allows Haul Out -->
+  <VMF_AllowsHaulOut>允许搬出</VMF_AllowsHaulOut>
+	<!-- EN: Allows colonists to haul out storage on this vehicle's map. -->
+  <VMF_AllowsHaulOutDesc>允许殖民者将物品搬出该载具地图</VMF_AllowsHaulOutDesc>
+	<!-- EN: Increase Priority -->
+  <VMF_IncreasePriority>增加储存优先度</VMF_IncreasePriority>
+	<!-- EN: Increase all storage priorities on this vehicle's map -->
+  <VMF_IncreasePriorityDesc>增加该载具地图上的所有储存优先度</VMF_IncreasePriorityDesc>
+	<!-- EN: Decrease Priority -->
+  <VMF_DecreasePriority>减少储存优先度</VMF_DecreasePriority>
+	<!-- EN: Decrease all storage priorities on this vehicle's map -->
+  <VMF_DecreasePriorityDesc>减少该载具地图上的所有储存优先度</VMF_DecreasePriorityDesc>
+	<!-- EN: Allows Get Off -->
+  <VMF_AllowsGetOff>允许离开</VMF_AllowsGetOff>
+	<!-- EN: Allows colonists AI to get off the vehicle map. -->
+  <VMF_AllowsGetOffDesc>允许殖民者AI离开该载具地图。</VMF_AllowsGetOffDesc>
+
+	<!-- EN: Lower the target power transmission amount. -->
+  <VMF_LowerPowerDesc>降低目标电力传输量。</VMF_LowerPowerDesc>
+	<!-- EN: Reset -->
+  <VMF_ResetPower>重置</VMF_ResetPower>
+	<!-- EN: Reset the target power transmission amount. -->
+  <VMF_ResetPowerDesc>重置目标电力传输量。</VMF_ResetPowerDesc>
+	<!-- EN: Raise the target power transmission amount. -->
+  <VMF_RaisePowerDesc>提升目标电力传输量。</VMF_RaisePowerDesc>
+
+	<!-- EN: Reassign -->
+  <VMF_Reassign>重新分配</VMF_Reassign>
+	<!-- EN: Reassign the turret that this seat operates. -->
+  <VMF_ReassignDesc>重新分配该座位对应的武器</VMF_ReassignDesc>
+
+	<!-- EN: Gather From Basemap -->
+  <VMF_GatherFromBaseMap>从基地收集</VMF_GatherFromBaseMap>
+	
+	<!-- EN: Assign -->
+  <VMF_AssignPipeNet>分配</VMF_AssignPipeNet>
+
+</LanguageData>

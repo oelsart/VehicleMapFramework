@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<LanguageData>
+  
+  <!-- EN: indoor -->
+  <VMF_Indoor.label>室内</VMF_Indoor.label>
+  <!-- EN: No weather. -->
+  <VMF_Indoor.description>无天气</VMF_Indoor.description>
+  
+</LanguageData>

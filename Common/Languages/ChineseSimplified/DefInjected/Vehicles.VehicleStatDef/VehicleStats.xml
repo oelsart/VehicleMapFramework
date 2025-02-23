@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<LanguageData>
+  
+  <!-- EN: payload -->
+  <MaximumPayload.label>载荷</MaximumPayload.label>
+  <!-- EN: The maximum weight the vehicle can carry. Including weight of things on vehicle map. -->
+  <MaximumPayload.description>载具可以搭载的最大重量。包括载具地图上的一切物件。</MaximumPayload.description>
+  <!-- EN: {0} kg -->
+  <MaximumPayload.formatString>{0} kg</MaximumPayload.formatString>
+  
+</LanguageData>
