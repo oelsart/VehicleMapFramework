@@ -125,6 +125,7 @@ namespace VehicleInteriors
                 if (curJob.haulMode == HaulMode.ToCellStorage)
                 {
                     Thing thing = curJob.GetTarget(HaulableInd).Thing;
+                    var cell = actor.jobs.curJob.GetTarget(StoreCellInd).Cell;
                     if (destMap != null && !actor.jobs.curJob.GetTarget(StoreCellInd).Cell.IsValidStorageFor(destMap, thing))
                     {
                         return true;

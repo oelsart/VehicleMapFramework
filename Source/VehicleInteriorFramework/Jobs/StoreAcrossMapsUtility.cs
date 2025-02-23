@@ -94,7 +94,7 @@ namespace VehicleInteriors
             {
                 return false;
             }
-            if (!StoreAcrossMapsUtility.NoStorageBlockersIn(c, map, t))
+            if (!c.IsValidStorageFor(map, t))
             {
                 return false;
             }

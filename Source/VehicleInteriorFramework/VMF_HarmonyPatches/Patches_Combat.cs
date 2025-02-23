@@ -369,7 +369,8 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             if (___map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
             {
-                __result = __result || vehicle.Map.roofGrid.RoofAt(c.ToBaseMapCoord(vehicle)) != null;
+                IntVec3 c2;
+                __result = __result || (c2 = c.ToBaseMapCoord(vehicle)).InBounds(vehicle.Map) && vehicle.Map.roofGrid.RoofAt(c2) != null;
             }
         }
     }
