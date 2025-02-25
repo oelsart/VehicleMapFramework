@@ -62,6 +62,10 @@ namespace VehicleInteriors
 
             if (base.Vehicle.CompVehicleLauncher != null && base.Vehicle.CompVehicleLauncher.inFlight)
             {
+                if (this.ignitionTick == null)
+                {
+                    this.ignitionTick = Find.TickManager.TicksGame;
+                }
                 foreach (var graphicOverlay in base.Overlays)
                 {
                     if (graphicOverlay.Graphic is Graphic_VehicleOpacity graphic)

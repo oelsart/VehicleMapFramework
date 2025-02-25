@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using SmashTools;
 using System.Collections.Generic;
+using System.ComponentModel;
 using UnityEngine;
 using Verse;
 
@@ -85,6 +86,8 @@ namespace VehicleInteriors
             this.bounds = this.section.CellRect;
             for (var i = 0; i < 4; i++)
             {
+                var component = MapComponentCache<VehiclePawnWithMapCache>.GetComponent(base.Map);
+                component.cacheMode = true;
                 try
                 {
                     this.subMeshes = this.subMeshesByRot[i];
@@ -105,6 +108,7 @@ namespace VehicleInteriors
                 }
                 finally
                 {
+                    component.cacheMode = false;
                     VehicleMapUtility.rotForPrint.Rotate(RotationDirection.Clockwise);
                 }
             }

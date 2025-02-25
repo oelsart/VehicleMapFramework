@@ -635,12 +635,25 @@ namespace VehicleInteriors
         public static bool TryGetDrawPos(this Thing thing, ref Vector3 result)
         {
             var map = thing.Map;
-            if (map.IsVehicleMapOf(out _))
+            if (map.IsVehicleMapOf(out var vehicle))
             {
                 var component = MapComponentCache<VehiclePawnWithMapCache>.GetComponent(map);
                 if (!component.cacheMode)
                 {
-                    return component.cachedDrawPos.TryGetValue(thing, out result);
+                    if (!component.cachedDrawPos.TryGetValue(thing, out result))
+                    {
+                        component.cacheMode = true;
+                        try
+                        {
+                            result = thing.DrawPos.ToBaseMapCoord(vehicle);
+                            component.cachedDrawPos[thing] = result;
+                        }
+                        finally
+                        {
+                            component.cacheMode = false;
+                        }
+                    }
+                    return true;
                 }
             }
             return false;

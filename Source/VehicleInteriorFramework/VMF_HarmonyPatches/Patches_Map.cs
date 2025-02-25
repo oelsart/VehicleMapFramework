@@ -525,4 +525,18 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             }
         }
     }
+
+    [HarmonyPatch(typeof(Hediff_MetalhorrorImplant), nameof(Hediff_MetalhorrorImplant.Emerge))]
+    public static class Patch_Hediff_MetalhorrorImplant_Emerge
+    {
+        private static bool Prepare()
+        {
+            return ModsConfig.AnomalyActive;
+        }
+
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_MapHeld, MethodInfoCache.m_MapHeldBaseMap);
+        }
+    }
 }
