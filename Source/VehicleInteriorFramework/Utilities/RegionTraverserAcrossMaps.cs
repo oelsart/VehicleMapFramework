@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.ConstrainedExecution;
 using Verse;
 
 namespace VehicleInteriors
@@ -20,6 +21,7 @@ namespace VehicleInteriors
             public void Clear()
             {
                 open.Clear();
+                close.Clear();
             }
 
             private void QueueNewOpenRegion(Region region)
@@ -39,8 +41,7 @@ namespace VehicleInteriors
                     return;
                 }
 
-                open.Clear();
-                close.Clear();
+                Clear();
                 numRegionsProcessed = 0;
                 open.Enqueue(root);
                 while (open.Count > 0)

@@ -288,7 +288,6 @@ namespace VehicleInteriors
             {
                 return null;
             }
-
             var debug_changeCount = 0;
             var debug_scanCount = 0;
             Thing bestThing = null;

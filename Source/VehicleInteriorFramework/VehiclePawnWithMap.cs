@@ -3,11 +3,9 @@ using RimWorld;
 using RimWorld.Planet;
 using SmashTools;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 using Vehicles;
 using Verse;
@@ -114,16 +112,15 @@ namespace VehicleInteriors
 
         public override List<IntVec3> InteractionCells => this.interactionCellsInt;
 
-        //VehiclePawnWithMapに関してはcachModeに関わらず先にcachedDrawPosから取らないとずれるぜ
         public override Vector3 DrawPos
         {
             get
             {
-                if (!VehiclePawnWithMapCache.cachedDrawPos.TryGetValue(this, out var result))
+                if (this.Spawned)
                 {
-                    result = base.DrawPos;
+                    return base.DrawPos;
                 }
-                return result;
+                return this.cachedDrawPos;
             }
         }
 
@@ -246,19 +243,25 @@ namespace VehicleInteriors
 
         public override void Tick()
         {
-            if (this.Spawned || VehicleInteriors.settings.drawPlanet && Find.CurrentMap == this.interiorMap &&
-                this.IsHashIntervalTick(50) && (Find.WindowStack.TryGetWindow<MainTabWindow_Architect>(out var window) && (window.selectedDesPanel?.def.showPowerGrid ?? false) ||
-                Find.DesignatorManager.SelectedDesignator is Designator_Build designator && designator.PlacingDef is ThingDef tDef && tDef.HasComp<CompPower>()))
+            if (this.Spawned || VehicleInteriors.settings.drawPlanet && Find.CurrentMap == this.interiorMap)
             {
-                //PowerGridのメッシュがタイミング的に即時にRegenerateされないので、定期チェックしている。より良い方法を検討したい
-                var map = this.interiorMap;
-                for (int i = 0; i < map.Size.x; i += 17)
+                if (this.IsHashIntervalTick(50) && (Find.WindowStack.TryGetWindow<MainTabWindow_Architect>(out var window) && (window.selectedDesPanel?.def.showPowerGrid ?? false) ||
+                Find.DesignatorManager.SelectedDesignator is Designator_Build designator && designator.PlacingDef is ThingDef tDef && tDef.HasComp<CompPower>()))
                 {
-                    for (int j = 0; j < map.Size.z; j += 17)
+                    //PowerGridのメッシュがタイミング的に即時にRegenerateされないので、定期チェックしている。より良い方法を検討したい
+                    var map = this.interiorMap;
+                    for (int i = 0; i < map.Size.x; i += 17)
                     {
-                        map.mapDrawer?.MapMeshDirty(new IntVec3(i, 0, j), MapMeshFlagDefOf.PowerGrid);
+                        for (int j = 0; j < map.Size.z; j += 17)
+                        {
+                            map.mapDrawer?.MapMeshDirty(new IntVec3(i, 0, j), MapMeshFlagDefOf.PowerGrid);
+                        }
                     }
                 }
+            }
+            if (this.Spawned && (base.vehiclePather?.Moving ?? false))
+            {
+                this.cachedDrawPos = this.DrawPos;
             }
 
             base.Tick();
@@ -274,8 +277,6 @@ namespace VehicleInteriors
             bool flag = false;
             foreach (var thing in this.interiorMap.listerThings.AllThings.Where(t => t.def.drawerType != DrawerType.None).ToArray())
             {
-                VehiclePawnWithMapCache.cachedDrawPos.Remove(thing);
-                VehiclePawnWithMapCache.cachedPosOnBaseMap.Remove(thing);
                 if (mode != DestroyMode.Vanish)
                 {
                     var positionOnBaseMap = thing.PositionOnBaseMap();
@@ -308,7 +309,10 @@ namespace VehicleInteriors
                 string text = "VF_BoatSunkWithPawnsDesc".Translate(LabelShort, stringBuilder.ToString());
                 Find.LetterStack.ReceiveLetter("VF_BoatSunk".Translate(), text, LetterDefOf.NegativeEvent, new TargetInfo(base.Position, base.Map));
             }
-            Current.Game.DeinitAndRemoveMap(this.interiorMap, false);
+            if (Find.Maps.Contains(this.interiorMap))
+            {
+                Current.Game.DeinitAndRemoveMap(this.interiorMap, false);
+            }
             Find.World.GetComponent<VehicleMapParentsComponent>().vehicleMaps.Remove(this.interiorMap.Parent as MapParent_Vehicle);
             base.Destroy(mode);
             this.interiorMap = null;
@@ -343,7 +347,7 @@ namespace VehicleInteriors
             {
                 drawLoc.y = AltitudeLayer.PawnState.AltitudeFor();
             }
-            VehiclePawnWithMapCache.cachedDrawPos[this] = drawLoc;
+            this.cachedDrawPos = drawLoc;
             base.DrawAt(drawLoc, rot, extraRotation, flip, compDraw);
             
             if (base.vehiclePather?.Moving ?? false)
@@ -373,9 +377,7 @@ namespace VehicleInteriors
             //map.waterInfo.SetTextures();
             //map.avoidGrid.DebugDrawOnMap();
             //BreachingGridDebug.DebugDrawAllOnMap(map);
-            VehiclePawnWithMapCache.cacheMode = true;
             map.mapDrawer.MapMeshDrawerUpdate_First();
-            VehiclePawnWithMapCache.cacheMode = false;
             //map.powerNetGrid.DrawDebugPowerNetGrid();
             //DoorsDebugDrawer.DrawDebug();
             //map.mapDrawer.DrawMapMesh();
@@ -538,6 +540,8 @@ namespace VehicleInteriors
         }
 
         private Map interiorMap;
+
+        public Vector3 cachedDrawPos;
         
         private readonly List<IntVec3> interactionCellsInt = new List<IntVec3>();
 

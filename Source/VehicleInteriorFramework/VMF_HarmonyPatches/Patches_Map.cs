@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
-using System.Threading.Tasks;
 using UnityEngine;
 using Vehicles;
 using Verse;
@@ -15,7 +14,7 @@ using Verse.Sound;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
 {
-    //VehicleMapの時はSectionLayer_VehicleMapの継承クラスを使い、そうでなければそれらは除外する
+    //VehicleMapの時はいくつかを専用のSectionLayerに置き換え、そうでなければそれらは除外する
     [HarmonyPatch(typeof(Section), MethodType.Constructor, typeof(IntVec3), typeof(Map))]
     public static class Patch_Section_Constructor
     {

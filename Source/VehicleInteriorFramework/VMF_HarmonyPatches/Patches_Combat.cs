@@ -161,7 +161,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Thing_Map),
                 new CodeInstruction(OpCodes.Br_S, label2),
                 CodeInstruction.LoadArgument(0).WithLabels(label),
-                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_BaseMap_Map),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_BaseMap_Thing),
                 new CodeInstruction(OpCodes.Stloc_S, targetMap).WithLabels(label2),
                 new CodeInstruction(OpCodes.Ldloc_S, targThing),
                 new CodeInstruction(OpCodes.Brfalse_S, label3),
@@ -362,10 +362,15 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatch(typeof(RoofGrid), nameof(RoofGrid.Roofed), typeof(IntVec3))]
+    [HarmonyPatch(typeof(RoofGrid), nameof(RoofGrid.Roofed), new Type[] { typeof(IntVec3) })]
     public static class Patch_RoofGrid_Roofed
     {
-        public static void Postfix(Map ___map, IntVec3 c, ref bool __result)
+        private static bool Prepare()
+        {
+            return VehicleInteriors.settings.roofedPatch;
+        }
+
+        public static void Postfix(IntVec3 c, Map ___map, ref bool __result)
         {
             if (___map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
             {

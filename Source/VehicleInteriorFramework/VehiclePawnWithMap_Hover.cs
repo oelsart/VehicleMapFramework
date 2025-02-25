@@ -1,8 +1,5 @@
-﻿using HarmonyLib;
-using SmashTools;
+﻿using SmashTools;
 using UnityEngine;
-using VehicleInteriors.VMF_HarmonyPatches;
-using Vehicles;
 using Verse;
 
 namespace VehicleInteriors

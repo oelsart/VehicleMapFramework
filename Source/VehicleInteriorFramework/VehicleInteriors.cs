@@ -1,6 +1,10 @@
-﻿using SmashTools;
+﻿using HarmonyLib;
+using SmashTools;
+using System;
+using System.Linq;
 using System.Runtime.InteropServices;
 using UnityEngine;
+using VehicleInteriors.VMF_HarmonyPatches;
 using Verse;
 
 namespace VehicleInteriors
@@ -57,6 +61,7 @@ namespace VehicleInteriors
             Listing_Standard listingStandard = new Listing_Standard();
             listingStandard.Begin(inRect);
             listingStandard.CheckboxLabeled("VMF_Settings.DrawPlanet".Translate(), ref settings.drawPlanet);
+            listingStandard.CheckboxLabeled("VMF_Settings.RoofedPatch".Translate(), ref settings.roofedPatch);
             listingStandard.SliderLabeled("VMF_Settings.WeightFactor".Translate(), null, null, ref settings.weightFactor, 0f, 3f);
             listingStandard.GapLine();
             listingStandard.CheckboxLabeled("VMF_Settings.ThreadingPathCost".Translate(), ref settings.threadingPathCost);
@@ -65,6 +70,25 @@ namespace VehicleInteriors
                 listingStandard.SliderLabeled("VMF_Settings.MinAreaForThreading".Translate(), null, null, ref settings.minAreaForThreading, 0, 2500, 1, "0", "2500");
             }
             listingStandard.End();
+        }
+
+        public override void WriteSettings()
+        {
+            base.WriteSettings();
+            var m_Roofed = AccessTools.Method(typeof(RoofGrid), nameof(RoofGrid.Roofed), new Type[] { typeof(IntVec3) });
+            if (VMF_Harmony.Instance.GetPatchedMethods().Contains(m_Roofed))
+            {
+                if (!settings.roofedPatch)
+                {
+                    var m_Postfix = AccessTools.Method(typeof(Patch_RoofGrid_Roofed), nameof(Patch_RoofGrid_Roofed.Postfix));
+                    VMF_Harmony.Instance.Unpatch(m_Roofed, m_Postfix);
+                }
+            }
+            else if (settings.roofedPatch)
+            {
+                var m_Postfix = AccessTools.Method(typeof(Patch_RoofGrid_Roofed), nameof(Patch_RoofGrid_Roofed.Postfix));
+                VMF_Harmony.Instance.Patch(m_Roofed, m_Postfix);
+            }
         }
 
         public override string SettingsCategory()

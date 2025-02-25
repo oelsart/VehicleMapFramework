@@ -234,7 +234,7 @@ namespace VMF_AchtungPatch
             return IntVec3.FromVector3(pos.ToVehicleMapCoord());
         }
 
-        public static void Postfix()
+        public static void Finalizer()
         {
             Command_FocusVehicleMap.FocusedVehicle = tmpFocusedMap;
         }

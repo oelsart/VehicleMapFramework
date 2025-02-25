@@ -2,6 +2,7 @@
 <LanguageData>
 
 	<VMF_Settings.DrawPlanet>キャラバン中にワールドマップを描画する.</VMF_Settings.DrawPlanet>
+	<VMF_Settings.RoofedPatch>車両マップの屋根判定にベースマップの屋根も参照する.\n(パフォーマンスに影響します)</VMF_Settings.RoofedPatch>
 	<VMF_Settings.WeightFactor>車両マップの上の物の重さ係数.</VMF_Settings.WeightFactor>
 	<VMF_Settings.ThreadingPathCost>大きな乗り物における経路コスト計算のマルチスレッド化.</VMF_Settings.ThreadingPathCost>
 	<VMF_Settings.MinAreaForThreading>マルチスレッドで計算される乗り物の最小面積.</VMF_Settings.MinAreaForThreading>

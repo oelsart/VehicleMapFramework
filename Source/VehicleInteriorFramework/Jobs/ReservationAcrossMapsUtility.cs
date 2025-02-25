@@ -173,7 +173,7 @@ namespace VehicleInteriors
             }
             for (int i = 0; i < target.Count; i++)
             {
-                var destMap = target[i].HasThing ? target[i].Thing.MapHeld : map;
+                var destMap = target[i].Thing?.MapHeld ?? map;
                 destMap.reservationManager.Reserve(p, job, target[i], maxPawns, stackCount, layer, false, false, false);
             }
         }

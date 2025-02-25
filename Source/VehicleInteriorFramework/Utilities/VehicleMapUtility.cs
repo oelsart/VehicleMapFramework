@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using UnityEngine;
 using Vehicles;
 using Verse;
@@ -43,22 +44,10 @@ namespace VehicleInteriors
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsVehicleMapOf(this Map map, out VehiclePawnWithMap vehicle)
         {
-            if (map != null)
+            if (map?.Parent is MapParent_Vehicle mapParent_Vehicle)
             {
-                if (VehiclePawnWithMapCache.cachedParentVehicle.TryGetValue(map, out vehicle))
-                {
-                    return vehicle != null;
-                }
-                else if (map.Parent is MapParent_Vehicle mapParent_Vehicle)
-                {
-                    vehicle = mapParent_Vehicle.vehicle;
-                }
-                else
-                {
-                    vehicle = null;
-                }
-                VehiclePawnWithMapCache.cachedParentVehicle[map] = vehicle;
-                return vehicle != null;
+                vehicle = mapParent_Vehicle.vehicle;
+                return true;
             }
             vehicle = null;
             return false;
@@ -114,7 +103,7 @@ namespace VehicleInteriors
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 ToVehicleMapCoord(this Vector3 original, VehiclePawnWithMap vehicle)
         {
-            var vehicleMapPos = vehicle.DrawPos + VehicleMapUtility.OffsetFor(vehicle);
+            var vehicleMapPos = vehicle.cachedDrawPos + VehicleMapUtility.OffsetFor(vehicle);
             var map = vehicle.VehicleMap;
             var pivot = new Vector3(map.Size.x / 2f, 0f, map.Size.z / 2f);
             var drawPos = (original - vehicleMapPos).RotatedBy(-vehicle.FullRotation.AsAngle) + pivot;
@@ -124,7 +113,7 @@ namespace VehicleInteriors
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 ToVehicleMapCoord(this Vector3 original, VehiclePawnWithMap vehicle, float extraRotation = 0f)
         {
-            var vehicleMapPos = vehicle.DrawPos + VehicleMapUtility.OffsetFor(vehicle);
+            var vehicleMapPos = vehicle.cachedDrawPos + VehicleMapUtility.OffsetFor(vehicle);
             var map = vehicle.VehicleMap;
             var pivot = new Vector3(map.Size.x / 2f, 0f, map.Size.z / 2f);
             var drawPos = (original - vehicleMapPos).RotatedBy(-vehicle.FullRotation.AsAngle - extraRotation) + pivot;
@@ -190,7 +179,7 @@ namespace VehicleInteriors
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 ToBaseMapCoord(this Vector3 original, VehiclePawnWithMap vehicle)
         {
-            var vehiclePos = vehicle.DrawPos;
+            var vehiclePos = vehicle.cachedDrawPos;
             var map = vehicle.VehicleMap;
             var pivot = new Vector3(map.Size.x / 2f, 0f, map.Size.z / 2f);
             var drawPos = (original - pivot).RotatedBy(vehicle.FullRotation.AsAngle) + vehiclePos;
@@ -200,7 +189,7 @@ namespace VehicleInteriors
 
         public static Vector3 ToBaseMapCoord(this Vector3 original, VehiclePawnWithMap vehicle, float extraRotation = 0f)
         {
-            var vehiclePos = vehicle.DrawPos;
+            var vehiclePos = vehicle.cachedDrawPos;
             var map = vehicle.VehicleMap;
             var pivot = new Vector3(map.Size.x / 2f, 0f, map.Size.z / 2f);
             var drawPos = (original - pivot).RotatedBy(vehicle.FullRotation.AsAngle + extraRotation) + vehiclePos;
@@ -210,7 +199,7 @@ namespace VehicleInteriors
 
         public static Vector3 ToBaseMapCoord(this Vector3 original, VehiclePawnWithMap vehicle, Rot8 rot)
         {
-            var vehiclePos = vehicle.DrawPos;
+            var vehiclePos = vehicle.cachedDrawPos;
             var map = vehicle.VehicleMap;
             var pivot = new Vector3(map.Size.x / 2f, 0f, map.Size.z / 2f);
             var drawPos = original.RotatedBy(rot.AsAngle) - pivot.RotatedBy(rot.AsAngle) + vehiclePos;
@@ -364,16 +353,18 @@ namespace VehicleInteriors
             return zone.Map;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static IntVec3 PositionOnBaseMap(this Thing thing)
         {
-            if (VehiclePawnWithMapCache.cachedPosOnBaseMap.TryGetValue(thing, out var pos))
-            {
-                return pos;
-            }
             if (thing.IsOnVehicleMapOf(out var vehicle))
             {
+                var component = MapComponentCache<VehiclePawnWithMapCache>.GetComponent(thing.Map);
+                if (component.cachedPosOnBaseMap.TryGetValue(thing, out var pos))
+                {
+                    return pos;
+                }
                 pos = thing.Position.ToBaseMapCoord(vehicle);
-                VehiclePawnWithMapCache.cachedPosOnBaseMap[thing] = pos;
+                component.cachedPosOnBaseMap[thing] = pos;
                 return pos;
             }
             return thing.Position;
@@ -447,15 +438,17 @@ namespace VehicleInteriors
 
         public static IntVec3 CellOnBaseMap(this ref LocalTargetInfo target)
         {
-            if (target.HasThing) {
-                //if (VehiclePawnWithMapCache.cachedPosOnBaseMap.TryGetValue(target.Thing, out var pos))
-                //{
-                //    return pos;
-                //}
+            if (target.HasThing)
+            {
                 if (target.Thing.IsOnVehicleMapOf(out var vehicle))
                 {
-                    var pos = target.Thing.Position.ToBaseMapCoord(vehicle);
-                    //VehiclePawnWithMapCache.cachedPosOnBaseMap[target.Thing] = pos;
+                    var component = MapComponentCache<VehiclePawnWithMapCache>.GetComponent(target.Thing.Map);
+                    if (component.cachedPosOnBaseMap.TryGetValue(target.Thing, out var pos))
+                    {
+                        return pos;
+                    }
+                    pos = target.Thing.Position.ToBaseMapCoord(vehicle);
+                    component.cachedPosOnBaseMap[target.Thing] = pos;
                     return pos;
                 }
             }
@@ -638,23 +631,16 @@ namespace VehicleInteriors
             return vehicleDef.size.z / 2;
         }
 
-        public static bool TryGetOnVehicleDrawPos(this Thing thing, ref Vector3 result)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool TryGetDrawPos(this Thing thing, ref Vector3 result)
         {
-            if (!VehiclePawnWithMapCache.cacheMode)
+            var map = thing.Map;
+            if (map.IsVehicleMapOf(out _))
             {
-                if (VehiclePawnWithMapCache.cachedDrawPos.TryGetValue(thing, out var pos))
+                var component = MapComponentCache<VehiclePawnWithMapCache>.GetComponent(map);
+                if (!component.cacheMode)
                 {
-                    result = pos;
-                    return true;
-                }
-                if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle))
-                {
-                    VehiclePawnWithMapCache.cacheMode = true;
-                    var drawPos = thing.DrawPos;
-                    VehiclePawnWithMapCache.cachedDrawPos[thing] = drawPos.ToBaseMapCoord(vehicle);
-                    VehiclePawnWithMapCache.cacheMode = false;
-                    result = VehiclePawnWithMapCache.cachedDrawPos[thing];
-                    return true;
+                    return component.cachedDrawPos.TryGetValue(thing, out result);
                 }
             }
             return false;
@@ -682,22 +668,6 @@ namespace VehicleInteriors
         public static float VehicleMapMass(VehiclePawnWithMap vehicle)
         {
             return CollectionsMassCalculator.MassUsage(vehicle.VehicleMap.listerThings.AllThings, IgnorePawnsInventoryMode.DontIgnore, true);
-        }
-
-        public static Vector3 DrawPosOrig(this Thing thing)
-        {
-            VehiclePawnWithMapCache.cacheMode = true;
-            var drawPos = thing.DrawPos;
-            VehiclePawnWithMapCache.cacheMode = false;
-            return drawPos;
-        }
-
-        public static Vector3 TrueCenterOrig(this Thing thing)
-        {
-            VehiclePawnWithMapCache.cacheMode = true;
-            var drawPos = thing.TrueCenter();
-            VehiclePawnWithMapCache.cacheMode = false;
-            return drawPos;
         }
 
         public static Vector3 RotateForPrintNegate(Vector3 vector)
@@ -820,7 +790,7 @@ namespace VehicleInteriors
             {
                 Building thing = (Building)item4;
 
-                foreach (Thing item5 in (IEnumerable<Thing>)item4.GetDirectlyHeldThings())
+                foreach (Thing item5 in item4.GetDirectlyHeldThings())
                 {
                     yield return item5;
                 }

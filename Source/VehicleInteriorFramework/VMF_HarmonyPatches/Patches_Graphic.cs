@@ -263,23 +263,23 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         public static void Postfix(PawnPosture posture, Pawn ___pawn, ref Vector3 __result)
         {
             var corpse = ___pawn.Corpse;
-            if (corpse != null && corpse.IsOnNonFocusedVehicleMapOf(out var vehicle))
+            if (corpse != null && corpse.IsOnNonFocusedVehicleMapOf(out _))
             {
-                corpse.TryGetOnVehicleDrawPos(ref __result);
+                corpse.TryGetDrawPos(ref __result);
             }
             else if (___pawn.ParentHolder is VehicleHandlerBuildable)
             {
                 __result.y += VehicleMapUtility.altitudeOffsetFull;
             }
-            else if (___pawn.IsOnNonFocusedVehicleMapOf(out var vehicle2))
+            else if (___pawn.IsOnNonFocusedVehicleMapOf(out var vehicle))
             {
                 if (___pawn.CurrentBed() != null)
                 {
-                    __result = __result.ToBaseMapCoord(vehicle2).WithYOffset(-0.9615385f);
+                    __result = __result.ToBaseMapCoord(vehicle).WithYOffset(-0.9615385f);
                 }
                 else if (posture != PawnPosture.Standing)
                 {
-                    __result.y += vehicle2.DrawPos.y;
+                    __result.y += vehicle.DrawPos.y;
                 }
             }
         }

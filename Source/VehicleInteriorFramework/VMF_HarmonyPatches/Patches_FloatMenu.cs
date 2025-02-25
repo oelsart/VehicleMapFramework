@@ -336,8 +336,14 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             {
                 var focusedVehicle = Command_FocusVehicleMap.FocusedVehicle;
                 Command_FocusVehicleMap.FocusedVehicle = vehicle;
-                MassTakeFirstAutoTakeableOptionOrGoto(___tmpDraftedGotoPawns);
-                Command_FocusVehicleMap.FocusedVehicle = focusedVehicle;
+                try
+                {
+                    MassTakeFirstAutoTakeableOptionOrGoto(___tmpDraftedGotoPawns);
+                }
+                finally
+                {
+                    Command_FocusVehicleMap.FocusedVehicle = focusedVehicle;
+                }
                 return false;
             }
             return true;

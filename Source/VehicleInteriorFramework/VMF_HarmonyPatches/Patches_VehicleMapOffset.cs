@@ -9,7 +9,6 @@ using UnityEngine;
 using Vehicles;
 using Verse;
 using Verse.AI;
-using static HarmonyLib.Code;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
 {
@@ -37,7 +36,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static bool Prefix(Thing t, ref Vector3 __result)
         {
-            return !t.TryGetOnVehicleDrawPos(ref __result);
+            return !t.TryGetDrawPos(ref __result);
         }
     }
 
@@ -46,7 +45,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static bool Prefix(Pawn ___pawn, ref Vector3 __result)
         {
-            return !___pawn.TryGetOnVehicleDrawPos(ref __result);
+            return !___pawn.TryGetDrawPos(ref __result);
         }
 
         public static void Postfix(Pawn ___pawn, ref Vector3 __result)
@@ -60,7 +59,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static bool Prefix(VehiclePawn ___vehicle, ref Vector3 __result, out bool __state)
         {
-            __state = !___vehicle.TryGetOnVehicleDrawPos(ref __result);
+            __state = !___vehicle.TryGetDrawPos(ref __result);
             return __state;
         }
 
@@ -78,7 +77,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static bool Prefix(Mote __instance, ref Vector3 __result)
         {
-            return !__instance.TryGetOnVehicleDrawPos(ref __result);
+            return !__instance.TryGetDrawPos(ref __result);
         }
     }
 

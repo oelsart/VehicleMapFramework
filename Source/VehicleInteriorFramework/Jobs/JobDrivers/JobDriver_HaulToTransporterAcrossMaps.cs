@@ -1,6 +1,8 @@
 ﻿using RimWorld;
+using System.Security.Principal;
 using Verse;
 using Verse.AI;
+using static UnityEngine.GraphicsBuffer;
 
 namespace VehicleInteriors
 {
@@ -26,8 +28,8 @@ namespace VehicleInteriors
 
         public override bool TryMakePreToilReservations(bool errorOnFailed)
         {
-            this.pawn.ReserveAsManyAsPossible(this.job.GetTargetQueue(TargetIndex.A), this.job, 1, -1, null);
-            this.pawn.ReserveAsManyAsPossible(this.job.GetTargetQueue(TargetIndex.B), this.job, 1, -1, null);
+            this.pawn.ReserveAsManyAsPossible(this.TargetAMap, this.job.GetTargetQueue(TargetIndex.A), this.job, 1, -1, null);
+            this.pawn.ReserveAsManyAsPossible(this.DestMap, this.job.GetTargetQueue(TargetIndex.B), this.job, 1, -1, null);
             return true;
         }
 

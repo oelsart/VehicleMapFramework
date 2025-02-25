@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
 using UnityEngine;
-using Vehicles;
 using Verse;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
@@ -144,7 +143,6 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 else if (VehicleInteriors.settings.drawPlanet)
                 {
                     cell = cell.ToBaseMapCoord(vehicle);
-                    VehiclePawnWithMapCache.ForceResetCache();
                     Patch_Map_MapUpdate.lastRenderedTick = -1;
                 }
             }

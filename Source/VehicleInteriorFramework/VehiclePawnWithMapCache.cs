@@ -1,5 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using RimWorld.Planet;
+using SmashTools;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using UnityEngine;
 using Verse;
 
@@ -9,7 +12,6 @@ namespace VehicleInteriors
     {
         public VehiclePawnWithMapCache(Map map) : base(map)
         {
-            VehiclePawnWithMapCache.allVehicles[map] = new List<VehiclePawnWithMap>();
         }
 
         public override void FinalizeInit()
@@ -21,31 +23,59 @@ namespace VehicleInteriors
             this.map.Parent.AllComps.Add(comp);
         }
 
+        public override void MapRemoved()
+        {
+            bool WorldObjectSpawned(IThingHolder holder)
+            {
+                while (holder != null)
+                {
+                    if (holder is WorldObject worldObject)
+                    {
+                        return worldObject.Spawned;
+                    }
+                    holder = holder.ParentHolder;
+                }
+                return false;
+            }
+
+            LongEventHandler.ExecuteWhenFinished(() =>
+            {
+                foreach (var mapParent_Vehicle in Find.World.GetComponent<VehicleMapParentsComponent>().vehicleMaps.ToArray())
+                {
+                    var vehicle = mapParent_Vehicle.vehicle;
+                    if (!vehicle.SpawnedOrAnyParentSpawned && !WorldObjectSpawned(vehicle) && !vehicle.Destroyed)
+                    {
+                        vehicle.Destroy();
+                    }
+                }
+            });
+        }
+
         public static void ClearCaches()
         {
-            VehiclePawnWithMapCache.cachedDrawPos.Clear();
-            VehiclePawnWithMapCache.cachedPosOnBaseMap.Clear();
-            VehiclePawnWithMapCache.allVehicles.Clear();
+            Find.Maps.ForEach(m =>
+            {
+                var component = MapComponentCache<VehiclePawnWithMapCache>.GetComponent(m);
+                component.cachedDrawPos.Clear();
+                component.cachedPosOnBaseMap.Clear();
+                component.allVehicles.Clear();
+            });
         }
 
         public static void RegisterVehicle(VehiclePawnWithMap vehicle)
         {
-            if (!VehiclePawnWithMapCache.allVehicles.ContainsKey(vehicle.Map))
-            {
-                VehiclePawnWithMapCache.allVehicles[vehicle.Map] = new List<VehiclePawnWithMap>();
-            }
-            VehiclePawnWithMapCache.allVehicles[vehicle.Map].Add(vehicle);
+            MapComponentCache<VehiclePawnWithMapCache>.GetComponent(vehicle.Map).allVehicles.Add(vehicle);
         }
 
         public static void DeRegisterVehicle(VehiclePawnWithMap vehicle)
         {
-            var list = VehiclePawnWithMapCache.allVehicles.FirstOrDefault(v => v.Value.Contains(vehicle)).Value;
-            if (list == null)
+            var hashSet = Find.Maps.Select(m => MapComponentCache<VehiclePawnWithMapCache>.GetComponent(m).allVehicles).FirstOrDefault(h => h.Contains(vehicle));
+            if (hashSet == null)
             {
                 Log.Warning("[VehicleMapFramework] Tried to deregister an unregistered vehicle.");
                 return;
             }
-            list.Remove(vehicle);
+            hashSet.Remove(vehicle);
             if (Command_FocusVehicleMap.FocusedVehicle == vehicle)
             {
                 Command_FocusVehicleMap.FocuseLockedVehicle = null;
@@ -53,43 +83,69 @@ namespace VehicleInteriors
             }
         }
 
-        public static IReadOnlyList<VehiclePawnWithMap> AllVehiclesOn(Map map)
+        public static IReadOnlyCollection<VehiclePawnWithMap> AllVehiclesOn(Map map)
         {
-            return VehiclePawnWithMapCache.allVehicles[map];
+            return MapComponentCache<VehiclePawnWithMapCache>.GetComponent(map).allVehicles;
         }
 
-        public static void ForceResetCache()
+        public void ForceResetCache()
         {
-            VehiclePawnWithMapCache.lastCachedTick = Find.TickManager.TicksGame;
-            VehiclePawnWithMapCache.cachedDrawPos.Clear();
-            VehiclePawnWithMapCache.cachedPosOnBaseMap.Clear();
+            lastCachedTick = Find.TickManager.TicksGame;
+            cachedDrawPos.Clear();
+            cachedPosOnBaseMap.Clear();
+            CacheDrawPos();
         }
 
-        public static void ResetCache()
+        public void ResetCache()
         {
-            if (VehiclePawnWithMapCache.lastCachedTick != Find.TickManager.TicksGame)
+            if (lastCachedTick != Find.TickManager.TicksGame)
             {
-                VehiclePawnWithMapCache.lastCachedTick = Find.TickManager.TicksGame;
-                VehiclePawnWithMapCache.cachedDrawPos.Clear();
-                VehiclePawnWithMapCache.cachedPosOnBaseMap.Clear();
+                lastCachedTick = Find.TickManager.TicksGame;
+                cachedDrawPos.Keys.Except(map.listerThings.AllThings).ToArray().ForEach(t => cachedDrawPos.Remove(t));
+                cachedPosOnBaseMap.Clear();
+                CacheDrawPos();
             }
         }
 
-        public override void MapComponentTick()
+        private void CacheDrawPos()
         {
-            ResetCache();
+            if (map.IsVehicleMapOf(out var vehicle))
+            {
+                cacheMode = true;
+                if (vehicle.vehiclePather?.Moving ?? false)
+                {
+                    map.listerThings.AllThings.ForEach(t =>
+                    {
+                        cachedDrawPos[t] = t.DrawPos.ToBaseMapCoord(vehicle);
+                    });
+                }
+                else
+                {
+                    map.dynamicDrawManager.DrawThings.ForEach(t =>
+                    {
+                        cachedDrawPos[t] = t.DrawPos.ToBaseMapCoord(vehicle);
+                    });
+                }
+                cacheMode = false;
+            }
         }
 
-        public static Dictionary<Thing, Vector3> cachedDrawPos = new Dictionary<Thing, Vector3>();
+        public override void MapComponentUpdate()
+        {
+            if (map.IsVehicleMapOf(out _))
+            {
+                ResetCache();
+            }
+        }
 
-        public static Dictionary<Thing, IntVec3> cachedPosOnBaseMap = new Dictionary<Thing, IntVec3>();
+        public Dictionary<Thing, Vector3> cachedDrawPos = new Dictionary<Thing, Vector3>();
 
-        public static Dictionary<Map, VehiclePawnWithMap> cachedParentVehicle = new Dictionary<Map, VehiclePawnWithMap>();
+        public Dictionary<Thing, IntVec3> cachedPosOnBaseMap = new Dictionary<Thing, IntVec3>();
 
-        public static bool cacheMode = false;
+        private int lastCachedTick = -1;
 
-        private static int lastCachedTick = -1;
+        public bool cacheMode;
 
-        private static Dictionary<Map, List<VehiclePawnWithMap>> allVehicles = new Dictionary<Map, List<VehiclePawnWithMap>>();
+        private HashSet<VehiclePawnWithMap> allVehicles = new HashSet<VehiclePawnWithMap>();
     }
 }

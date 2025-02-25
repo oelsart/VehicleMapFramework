@@ -124,11 +124,7 @@ namespace VehicleInteriors
 
         public static readonly MethodInfo g_Thing_DrawPos = AccessTools.PropertyGetter(typeof(Thing), nameof(Thing.DrawPos));
 
-        public static readonly MethodInfo m_DrawPosOrig = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.DrawPosOrig));
-
         public static readonly MethodInfo m_GenThing_TrueCenter = AccessTools.Method(typeof(GenThing), nameof(GenThing.TrueCenter), new Type[] { typeof(Thing) });
-
-        public static readonly MethodInfo m_TrueCenterOrig = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.TrueCenterOrig));
 
         public static readonly MethodInfo m_RotateForPrintNegate = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.RotateForPrintNegate));
 

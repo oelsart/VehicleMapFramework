@@ -20,9 +20,7 @@ namespace VehicleInteriors
             base.FinalizeLoading();
             LongEventHandler.ExecuteWhenFinished(() =>
             {
-                VehiclePawnWithMapCache.cacheMode = true;
                 this.vehicle.VehicleMap.mapDrawer.RegenerateEverythingNow();
-                VehiclePawnWithMapCache.cacheMode = false;
             });
         }
 
