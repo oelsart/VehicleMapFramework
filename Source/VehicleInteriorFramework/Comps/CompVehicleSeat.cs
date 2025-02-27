@@ -66,7 +66,7 @@ namespace VehicleInteriors
                     {
                         foreach (var pawn in handler.handlers)
                         {
-                            if (vehicle.Drafted && handler.role.HandlingTypes.HasFlag(HandlingTypeFlags.Movement)) continue;
+                            if (vehicle.Drafted && handler.role.HandlingTypes.HasFlag(HandlingTypeFlags.Movement) && vehicle.Spawned) continue;
 
                             Command_Action_PawnDrawer command_Action_PawnDrawer = new Command_Action_PawnDrawer
                             {

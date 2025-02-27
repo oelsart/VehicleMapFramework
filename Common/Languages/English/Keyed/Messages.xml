@@ -9,4 +9,6 @@
 
 	<VMF_NoRoles>No roles for operating this turret in {0}.</VMF_NoRoles>
 
+	<VMF_FailedEnterMap>The vehicle failed to enter the map.</VMF_FailedEnterMap>
+
 </LanguageData>

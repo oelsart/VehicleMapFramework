@@ -836,7 +836,10 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             {
                 foreach (VehicleDef vehicleDef in allMoveableVehicleDefs)
                 {
-                    mapping[vehicleDef].VehiclePathGrid.RecalculatePerceivedPathCostAt(c, map.thingGrid.ThingsListAtFast(c));
+                    if (c.InBounds(map))
+                    {
+                        mapping[vehicleDef].VehiclePathGrid.RecalculatePerceivedPathCostAt(c, map.thingGrid.ThingsListAtFast(c));
+                    }
                 }
             });
             hitboxUpdateCells.Clear();
@@ -844,5 +847,18 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
 
         private static FastInvokeHandler AllMoveableVehicleDefs = MethodInvoker.GetHandler(AccessTools.PropertyGetter("Vehicles.VehicleHarmony:AllMoveableVehicleDefs"));
+    }
+
+    [HarmonyPatch(typeof(EnterMapUtilityVehicles), nameof(EnterMapUtilityVehicles.EnterAndSpawn))]
+    public static class Patch_EnterMapUtilityVehicles_EnterAndSpawn
+    {
+        public static Exception Finalizer(Exception __exception)
+        {
+            if (__exception != null)
+            {
+                Messages.Message("VMF_FailedEnterMap".Translate(), MessageTypeDefOf.NegativeEvent);
+            }
+            return null;
+        }
     }
 }

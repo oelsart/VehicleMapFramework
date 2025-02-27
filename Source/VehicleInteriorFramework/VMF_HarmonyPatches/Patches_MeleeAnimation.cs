@@ -65,12 +65,15 @@ namespace VehicleInteriors.VMF_HarmonyPatches.AM
     {
         public static void Postfix(PawnFlyer __instance, Pawn ___Grappler, IntVec3 ___destCell, ref int ___ticksFlightTime)
         {
-            if (___Grappler != null)
+            var flyingThing = (Thing)FlyingThing(__instance);
+            if (flyingThing != null && ___Grappler != null)
             {
-                float num = Mathf.Max(__instance.FlyingPawn.PositionOnAnotherThingMap(___Grappler).DistanceTo(___destCell), 1f) / Mathf.Max(__instance.FlyingPawn.Position.DistanceTo(___destCell), 1f);
+                float num = Mathf.Max(flyingThing.PositionOnAnotherThingMap(___Grappler).DistanceTo(___destCell), 1f) / Mathf.Max(__instance.FlyingPawn.Position.DistanceTo(___destCell), 1f);
                 ___ticksFlightTime = (int)(___ticksFlightTime * num);
             }
         }
+
+        private static FastInvokeHandler FlyingThing = MethodInvoker.GetHandler(AccessTools.PropertyGetter(typeof(PawnFlyer), "FlyingThing"));
     }
 
     [HarmonyPatchCategory("VMF_Patches_MeleeAnimation")]

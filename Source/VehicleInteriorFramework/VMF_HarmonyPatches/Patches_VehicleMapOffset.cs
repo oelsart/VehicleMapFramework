@@ -257,7 +257,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             {
                 if (targ.Cell.IsValid)
                 {
-                    var driver = pawn.jobs.AllJobs()?.First().GetCachedDriver(pawn);
+                    var driver = pawn.jobs.AllJobs()?.FirstOrDefault()?.GetCachedDriver(pawn);
                     if (GenUIOnVehicle.TargetMap != null && pawn.stances.curStance is Stance_Busy)
                     {
                         return targ.Cell.ToVector3Shifted().ToBaseMapCoord(GenUIOnVehicle.TargetMap);
