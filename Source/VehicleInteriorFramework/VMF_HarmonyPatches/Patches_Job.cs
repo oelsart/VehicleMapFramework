@@ -502,6 +502,15 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
+    [HarmonyPatch(typeof(RegionProcessorClosestThingReachable), "ProcessThing")]
+    public static class Patch_RegionProcessorClosestThingReachable_ProcessThing
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_MapHeld, MethodInfoCache.m_MapHeldBaseMap);
+        }
+    }
+
     [HarmonyPatch(typeof(ReservationManager), nameof(ReservationManager.CanReserve))]
     public static class Patch_ReservationManager_CanReserve
     {

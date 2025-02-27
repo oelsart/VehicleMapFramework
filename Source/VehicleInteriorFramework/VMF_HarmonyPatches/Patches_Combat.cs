@@ -1,10 +1,12 @@
 ﻿using HarmonyLib;
 using RimWorld;
+using SmashTools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
 using UnityEngine;
+using Vehicles;
 using Verse;
 using Verse.AI;
 
@@ -247,6 +249,15 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
+    [HarmonyPatch(typeof(Building_Turret), nameof(Building_Turret.Tick))]
+    public static class Patch_Building_Turret_Tick
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing);
+        }
+    }
+
     [HarmonyPatch(typeof(Building_TurretGun), nameof(Building_TurretGun.TryFindNewTarget))]
     public static class Patch_Building_Turret_TryFindNewTarget
     {
@@ -278,6 +289,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
+
     [HarmonyPatch(typeof(TurretTop), nameof(TurretTop.TurretTopTick))]
     public static class Patch_TurretTop_TurretTopTick
     {
@@ -294,28 +306,43 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
         {
             var codes = instructions.ToList();
-            var pos = codes.FindIndex(c => c.opcode == OpCodes.Ldloc_S && ((LocalBuilder)c.operand).LocalIndex == 5);
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Stloc_0) - 1;
             var label = generator.DefineLabel();
-            var target = generator.DeclareLocal(typeof(LocalTargetInfo));
             var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithMap));
-
+            var rot = generator.DeclareLocal(typeof(Rot8));
             codes[pos].labels.Add(label);
             codes.InsertRange(pos, new[]
             {
                 CodeInstruction.LoadArgument(0),
                 CodeInstruction.LoadField(typeof(TurretTop), "parentTurret"),
                 new CodeInstruction(OpCodes.Ldloca_S, vehicle),
-                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_IsOnVehicleMapOf),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_IsOnNonFocusedVehicleMapOf),
                 new CodeInstruction(OpCodes.Brfalse_S, label),
+                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_FullRotation),
+                new CodeInstruction(OpCodes.Stloc_S, rot),
+                new CodeInstruction(OpCodes.Ldloca_S, rot),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.g_Rot8_AsAngle),
+                new CodeInstruction(OpCodes.Add)
+            });
+
+            pos = codes.FindIndex(pos, c => c.opcode == OpCodes.Ldloc_S && ((LocalBuilder)c.operand).LocalIndex == 5);
+            var label2 = generator.DefineLabel();
+            var target = generator.DeclareLocal(typeof(LocalTargetInfo));
+
+            codes[pos].labels.Add(label2);
+            codes.InsertRange(pos, new[]
+            {
+                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+                new CodeInstruction(OpCodes.Brfalse_S, label2),
                 CodeInstruction.LoadArgument(0),
                 CodeInstruction.LoadField(typeof(TurretTop), "parentTurret"),
                 new CodeInstruction(OpCodes.Callvirt, AccessTools.PropertyGetter(typeof(Building_Turret), nameof(Building_Turret.CurrentTarget))),
                 new CodeInstruction(OpCodes.Stloc_S, target),
                 new CodeInstruction(OpCodes.Ldloca_S, target),
                 new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(LocalTargetInfo), nameof(LocalTargetInfo.IsValid))),
-                new CodeInstruction(OpCodes.Brtrue_S, label),
-                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_FullRotation),
+                new CodeInstruction(OpCodes.Brtrue_S, label2),
+                new CodeInstruction(OpCodes.Ldloc_S, rot),
                 new CodeInstruction(OpCodes.Call, MethodInfoCache.m_Rot8_AsQuat),
                 new CodeInstruction(OpCodes.Call, MethodInfoCache.o_Quaternion_Multiply),
             });

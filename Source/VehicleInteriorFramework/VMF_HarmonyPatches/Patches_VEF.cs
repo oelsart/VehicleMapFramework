@@ -27,6 +27,10 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             {
                 VMF_Harmony.Instance.PatchCategory("VMF_Patches_VVE");
             }
+            if (ModsConfig.IsActive("OskarPotocki.VFE.Pirates"))
+            {
+                VMF_Harmony.Instance.PatchCategory("VMF_Patches_VFE_Pirates");
+            }
         }
     }
 
@@ -175,6 +179,51 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 return Ext_Math.RotatePoint(point, garageDoor.DrawPos, -vehicle.FullRotation.AsAngle);
             }
             return point;
+        }
+    }
+
+    [HarmonyPatchCategory("VMF_Patches_VFE_Pirates")]
+    [HarmonyPatch("VFEPirates.Verb_ShootCone", "DrawLines")]
+    public static class Patch_Verb_ShootCone_DrawLines
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap)
+                .MethodReplacer(MethodInfoCache.g_Thing_Rotation, MethodInfoCache.m_BaseFullRotationAsRot4)
+                .MethodReplacer(MethodInfoCache.g_Rot4_AsQuat, MethodInfoCache.m_Rot8_AsQuatRef);
+        }
+    }
+
+    [HarmonyPatchCategory("VMF_Patches_VFE_Pirates")]
+    [HarmonyPatch("VFEPirates.Verb_ShootCone", "DrawConeRounded")]
+    public static class Patch_Verb_ShootCone_DrawConeRounded
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap)
+                .MethodReplacer(MethodInfoCache.g_Thing_Rotation, MethodInfoCache.m_BaseFullRotationAsRot4);
+        }
+    }
+
+    [HarmonyPatchCategory("VMF_Patches_VFE_Pirates")]
+    [HarmonyPatch("VFEPirates.Verb_ShootCone", "CanHitTarget")]
+    public static class Patch_Verb_ShootCone_CanHitTarget
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap)
+                .MethodReplacer(MethodInfoCache.g_LocalTargetInfo_Cell, MethodInfoCache.m_CellOnBaseMap)
+                .MethodReplacer(MethodInfoCache.g_Thing_Rotation, MethodInfoCache.m_BaseFullRotation_Thing);
+        }
+    }
+
+    [HarmonyPatchCategory("VMF_Patches_VFE_Pirates")]
+    [HarmonyPatch("VFEPirates.Verb_ShootCone", "InCone")]
+    public static class Patch_Verb_ShootCone_InCone
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_Rot4_AsAngle, MethodInfoCache.g_Rot8_AsAngle);
         }
     }
 }

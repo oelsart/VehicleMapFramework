@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using UnityEngine;
 using Vehicles;
 using Verse;
@@ -540,6 +539,15 @@ namespace VehicleInteriors
             }
             return thing.Rotation;
         }
+
+        public static Rot4 BaseFullRotationAsRot4(this Thing thing)
+        {
+            var rot = Rot4.Invalid;
+            rotInt(ref rot) = thing.BaseFullRotation().AsByte;
+            return rot;
+        }
+
+        private static readonly AccessTools.StructFieldRef<Rot4, byte> rotInt = AccessTools.StructFieldRefAccess<Rot4, byte>("rotInt");
 
         public static Rot8 BaseFullRotationDoor(this Thing thing)
         {

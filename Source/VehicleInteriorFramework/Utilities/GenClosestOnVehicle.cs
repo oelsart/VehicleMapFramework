@@ -65,7 +65,6 @@ namespace VehicleInteriors
                 return null;
             }
             var baseMap = map.BaseMap();
-            var basePos = map.IsVehicleMapOf(out var vehicle) ? root.ToBaseMapCoord(vehicle) : root;
             if (GenClosestOnVehicle.EarlyOutSearch(root, map, thingReq, customGlobalSearchSet, validator))
             {
                 return null;
@@ -104,6 +103,7 @@ namespace VehicleInteriors
                     }
                     return false;
                 }
+                var basePos = map.IsVehicleMapOf(out var vehicle) ? root.ToBaseMapCoord(vehicle) : root;
                 thing = GenClosestOnVehicle.ClosestThing_Global(basePos, customGlobalSearchSet ?? map.BaseMapAndVehicleMaps().SelectMany(m => m.listerThings.ThingsMatching(thingReq)), maxDistance, validator2, null);
             }
             exitSpot = GenClosestOnVehicle.exitSpotResult;
@@ -150,7 +150,8 @@ namespace VehicleInteriors
             }
 
             RegionProcessorClosestThingReachable regionProcessorClosestThingReachable = SimplePool<RegionProcessorClosestThingReachable>.Get();
-            regionProcessorClosestThingReachable.SetParameters_NewTemp(traverseParams, maxDistance, root, ignoreEntirelyForbiddenRegions, req, peMode, priorityGetter, validator, minRegions, 9999999f, 0, float.MinValue, null, lookInHaulSources);
+            var basePos = map.IsVehicleMapOf(out var vehicle) ? root.ToBaseMapCoord(vehicle) : root;
+            regionProcessorClosestThingReachable.SetParameters_NewTemp(traverseParams, maxDistance, basePos, ignoreEntirelyForbiddenRegions, req, peMode, priorityGetter, validator, minRegions, 9999999f, 0, float.MinValue, null, lookInHaulSources);
             RegionTraverserAcrossMaps.BreadthFirstTraverse(region, regionProcessorClosestThingReachable, maxRegions, traversableRegionTypes);
             regionsSeen = regionProcessorClosestThingReachable.regionsSeenScan;
             Thing closestThing = regionProcessorClosestThingReachable.closestThing;

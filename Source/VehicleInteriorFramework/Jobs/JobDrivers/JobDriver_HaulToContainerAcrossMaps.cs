@@ -201,7 +201,7 @@ namespace VehicleInteriors
             this.ModifyPrepareToil(toil);
             yield return toil;
             yield return Toils_Construct.MakeSolidThingFromBlueprintIfNecessary(TargetIndex.B, TargetIndex.C);
-            yield return Toils_Haul.DepositHauledThingInContainer(TargetIndex.B, TargetIndex.C, null);
+            yield return ToilsAcrossMaps.DepositHauledThingInContainer(TargetIndex.B, TargetIndex.C, null);
             yield return Toils_Haul.JumpToCarryToNextContainerIfPossible(carryToContainer, TargetIndex.C);
             yield break;
         }
