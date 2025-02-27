@@ -454,6 +454,15 @@ namespace VehicleInteriors
             return target.Cell;
         }
 
+        public static IntVec3 CellOnBaseMap(this ref TargetInfo target)
+        {
+            if (target.Map.IsVehicleMapOf(out var vehicle))
+            {
+                return target.Cell.ToBaseMapCoord(vehicle);
+            }
+            return target.Cell;
+        }
+
         public static CellRect MovedOccupiedRect(this Thing thing)
         {
             var drawSize = thing.DrawSize;

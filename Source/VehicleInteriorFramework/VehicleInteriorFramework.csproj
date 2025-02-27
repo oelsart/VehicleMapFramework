@@ -272,6 +272,7 @@
     <Compile Include="VMF_HarmonyPatches\Patches_Gunplay.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_MeleeAnimation.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_PathfindingFramework.cs" />
+    <Compile Include="VMF_HarmonyPatches\Patches_SmarterConstruction.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_TabulaRasa.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_Vivi.cs" />
     <Compile Include="VMF_DefOf.cs" />

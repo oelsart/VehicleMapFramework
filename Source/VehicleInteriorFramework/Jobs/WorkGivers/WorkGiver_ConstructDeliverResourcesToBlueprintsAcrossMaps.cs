@@ -28,7 +28,11 @@ namespace VehicleInteriors
             {
                 return GenConstructOnVehicle.HandleBlockingThingJob(blueprint, pawn, forced);
             }
-            if (!GenConstructOnVehicle.CanConstruct(blueprint, pawn, this.def.workType, forced, VMF_DefOf.VMF_HaulToCellAcrossMaps, out var exitSpot, out var enterSpot))
+            if (!GenConstruct.CanConstruct(blueprint, pawn, this.def.workType, forced, VMF_DefOf.VMF_HaulToCellAcrossMaps))
+            {
+                return null;
+            }
+            if (!pawn.CanReach(blueprint, PathEndMode.Touch, forced ? Danger.Deadly : pawn.NormalMaxDanger(), false, false, TraverseMode.ByPawn, blueprint.Map, out var exitSpot, out var enterSpot))
             {
                 return null;
             }

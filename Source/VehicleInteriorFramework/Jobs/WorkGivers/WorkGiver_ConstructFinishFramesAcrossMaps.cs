@@ -5,7 +5,7 @@ using Verse.AI;
 
 namespace VehicleInteriors
 {
-    public class WorkGiver_ConstructFinishFramesAcrossMaps : WorkGiver_Scanner, IWorkGiverAcrossMaps
+    public class WorkGiver_ConstructFinishFramesAcrossMaps : WorkGiver_ConstructFinishFrames, IWorkGiverAcrossMaps
     {
         public bool NeedVirtualMapTransfer => false;
 
@@ -48,11 +48,22 @@ namespace VehicleInteriors
             {
                 return GenConstructOnVehicle.HandleBlockingThingJob(frame, pawn, forced);
             }
-            if (!GenConstructOnVehicle.CanConstruct(frame, pawn, true, forced, null, out var exitSpot, out var enterSpot))
+            if (!GenConstruct.CanConstruct(frame, pawn, true, forced, null))
             {
                 return null;
             }
-            return JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, JobMaker.MakeJob(JobDefOf.FinishFrame, frame));
+            if (!pawn.CanReach(frame, PathEndMode.Touch, forced ? Danger.Deadly : pawn.NormalMaxDanger(), false, false, TraverseMode.ByPawn, frame.Map, out var exitSpot, out var enterSpot))
+            {
+                return null;
+            }
+            if (exitSpot.Map != null || enterSpot.Map != null)
+            {
+                return JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, JobMaker.MakeJob(JobDefOf.FinishFrame, frame));
+            }
+            else
+            {
+                return JobMaker.MakeJob(JobDefOf.FinishFrame, frame);
+            }
         }
     }
 }
