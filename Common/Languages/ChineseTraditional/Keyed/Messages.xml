@@ -9,4 +9,6 @@
     
     <VMF_NoRoles>{0}上沒有可以操作這個砲塔的職位</VMF_NoRoles>
 
+	<VMF_FailedEnterMap>載具無法進入地圖。</VMF_FailedEnterMap>
+
 </LanguageData>
