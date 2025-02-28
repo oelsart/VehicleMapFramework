@@ -537,21 +537,15 @@ namespace VehicleInteriors
             }
             ShotReport report = ShotReport.HitReportFor(pawn, verb, (Thing)target);
             float radius = Mathf.Max(VerbUtility.CalculateAdjustedForcedMiss(verb.verbProps.ForcedMissRadius, report.ShootLine.Dest - report.ShootLine.Source), 1.5f);
-            Func<IntVec3, bool> func = null;
             IEnumerable<IntVec3> enumerable = (from dest in GenRadial.RadialCellsAround(report.ShootLine.Dest, radius, true)
                                                 select new ShootLine(report.ShootLine.Source, dest)).SelectMany(delegate (ShootLine line)
                                                 {
                                                     IEnumerable<IntVec3> source = line.Points().Concat(line.Dest);
-                                                    Func<IntVec3, bool> predicate;
-                                                    if ((predicate = func) == null)
+                                                    Func<IntVec3, bool> func = (IntVec3 pos) =>
                                                     {
-                                                        predicate = (func = ((IntVec3 pos) =>
-                                                        {
-                                                            return pos.ToThingMapCoord(searcher.Thing).CanBeSeenOverOnVehicle(searcher.Thing.Map) &&
-                                                            pos.ToThingMapCoord(target.Thing).CanBeSeenOverOnVehicle(target.Thing.Map);
-                                                        }));
-                                                    }
-                                                    return source.TakeWhile(predicate);
+                                                        return pos.CanBeSeenOverOnVehicle(pawn.BaseMap());
+                                                    };
+                                                    return source.TakeWhile(func);
                                                 }).Distinct<IntVec3>();
             float num = 0f;
             foreach (IntVec3 c in enumerable)

@@ -391,11 +391,11 @@ namespace VMF_CEPatch
     [HarmonyPatch(typeof(ExplosionCE), nameof(ExplosionCE.StartExplosionCE))]
     public static class Patch_ExplosionCE_StartExplosionCE
     {
-        public static void Postfix(ExplosionCE __instance, SoundDef explosionSound, List<Thing> ignoredThings)
+        public static void Postfix(ExplosionCE __instance)
         {
             if (__instance is ExplosionCEAcrossMaps explosion)
             {
-                explosion.StartExplosionCEOnVehicle(explosionSound, ignoredThings);
+                explosion.StartExplosionCEOnVehicle();
             }
         }
     }

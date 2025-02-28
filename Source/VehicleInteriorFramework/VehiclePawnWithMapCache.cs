@@ -2,7 +2,6 @@
 using SmashTools;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using UnityEngine;
 using Verse;
 
@@ -101,33 +100,34 @@ namespace VehicleInteriors
             if (lastCachedTick != Find.TickManager.TicksGame)
             {
                 lastCachedTick = Find.TickManager.TicksGame;
-                cachedDrawPos.Keys.Except(map.listerThings.AllThings).ToArray().ForEach(t => cachedDrawPos.Remove(t));
+                //cachedDrawPos.Keys.Except(map.listerThings.AllThings).ToArray().ForEach(t => cachedDrawPos.Remove(t));
+                cachedDrawPos.Clear();
                 cachedPosOnBaseMap.Clear();
-                CacheDrawPos();
+                //CacheDrawPos();
             }
         }
 
         private void CacheDrawPos()
         {
-            if (map.IsVehicleMapOf(out var vehicle))
-            {
-                cacheMode = true;
-                if (vehicle.vehiclePather?.Moving ?? false)
-                {
-                    map.listerThings.AllThings.ForEach(t =>
-                    {
-                        cachedDrawPos[t] = t.DrawPos.ToBaseMapCoord(vehicle);
-                    });
-                }
-                else
-                {
-                    map.dynamicDrawManager.DrawThings.ForEach(t =>
-                    {
-                        cachedDrawPos[t] = t.DrawPos.ToBaseMapCoord(vehicle);
-                    });
-                }
-                cacheMode = false;
-            }
+            //if (map.IsVehicleMapOf(out var vehicle))
+            //{
+            //    cacheMode = true;
+            //    if (vehicle.vehiclePather?.Moving ?? false)
+            //    {
+            //        map.listerThings.AllThings.ForEach(t =>
+            //        {
+            //            cachedDrawPos[t] = t.DrawPos.ToBaseMapCoord(vehicle);
+            //        });
+            //    }
+            //    else
+            //    {
+            //        map.dynamicDrawManager.DrawThings.ForEach(t =>
+            //        {
+            //            cachedDrawPos[t] = t.DrawPos.ToBaseMapCoord(vehicle);
+            //        });
+            //    }
+            //    cacheMode = false;
+            //}
         }
 
         public override void MapComponentUpdate()

@@ -1,13 +1,22 @@
 ﻿using HarmonyLib;
 using SmashTools;
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
+using UnityEngine;
 using Verse;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
 {
+    public class VMF_Harmony
+    {
+        public static Harmony Instance = new Harmony("com.harmony.oels.vehicleinteriorframework");
+    }
+
     [LoadedEarly]
     [StaticConstructorOnModInit]
     public static class EarlyPatchCore
@@ -73,10 +82,28 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             Log.Message($"[VehicleMapFramework] {VehicleInteriors.mod.Content.ModMetaData.ModVersion}");
             Log.Message($"[VehicleMapFramework] {VMF_Harmony.Instance.GetPatchedMethods().Count()} patches applied.");
         }
-    }
 
-    public class VMF_Harmony
-    {
-        public static Harmony Instance = new Harmony("com.harmony.oels.vehicleinteriorframework");
+        public static IEnumerable<CodeInstruction> MethodReplacerLog(this IEnumerable<CodeInstruction> instructions, MethodBase from, MethodBase to)
+        {
+            if (instructions.Any(c => c.OperandIs(from))) Log.Error("Could not find the method to be replaced.");
+            if (from == null)
+            {
+                throw new ArgumentException("Unexpected null argument", "from");
+            }
+            if (to == null)
+            {
+                throw new ArgumentException("Unexpected null argument", "to");
+            }
+            foreach (CodeInstruction codeInstruction in instructions)
+            {
+                MethodBase left = codeInstruction.operand as MethodBase;
+                if (left == from)
+                {
+                    codeInstruction.opcode = (to.IsConstructor ? OpCodes.Newobj : OpCodes.Call);
+                    codeInstruction.operand = to;
+                }
+                yield return codeInstruction;
+            }
+        }
     }
 }

@@ -17,18 +17,12 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static void Postfix(IAttackTargetSearcher searcher, TargetScanFlags flags, Predicate<Thing> validator, float minDist, float maxDist, IntVec3 locus, float maxTravelRadiusFromLocus, bool canBashDoors, bool canTakeTargetsCloserThanEffectiveMinRange, bool canBashFences, bool onlyRanged, ref IAttackTarget __result)
         {
-            if (Find.TickManager.TicksGame - lastSearchTick > 10)
+            var target = AttackTargetFinderOnVehicle.BestAttackTarget(searcher, flags, validator, minDist, maxDist, locus, maxTravelRadiusFromLocus, canBashDoors, canTakeTargetsCloserThanEffectiveMinRange, canBashFences, onlyRanged);
+            if (__result == null || target != null && (__result.Thing.Position - searcher.Thing.Position).LengthHorizontalSquared > (target.Thing.PositionOnBaseMap() - searcher.Thing.PositionOnBaseMap()).LengthHorizontalSquared)
             {
-                var target = AttackTargetFinderOnVehicle.BestAttackTarget(searcher, flags, validator, minDist, maxDist, locus, maxTravelRadiusFromLocus, canBashDoors, canTakeTargetsCloserThanEffectiveMinRange, canBashFences, onlyRanged);
-                if (__result == null || target != null && (__result.Thing.Position - searcher.Thing.Position).LengthHorizontalSquared > (target.Thing.PositionOnBaseMap() - searcher.Thing.PositionOnBaseMap()).LengthHorizontalSquared)
-                {
-                    __result = target;
-                }
-                lastSearchTick = Find.TickManager.TicksGame;
+                __result = target;
             }
         }
-
-        private static int lastSearchTick = -1;
     }
 
     [HarmonyPatch(typeof(PawnLeaner), nameof(PawnLeaner.Notify_WarmingCastAlongLine))]
@@ -289,6 +283,15 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
+    [HarmonyPatch(typeof(Building_TurretGun), "IsValidTarget")]
+    public static class Patch_Building_TurretGun_IsValidTarget
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap)
+                .MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing);
+        }
+    }
 
     [HarmonyPatch(typeof(TurretTop), nameof(TurretTop.TurretTopTick))]
     public static class Patch_TurretTop_TurretTopTick

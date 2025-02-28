@@ -214,6 +214,12 @@ namespace VehicleInteriors
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static IntVec3 ToBaseMapCoord(this IntVec3 original)
+        {
+            return original.ToVector3Shifted().ToBaseMapCoord().ToIntVec3();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static IntVec3 ToBaseMapCoord(this IntVec3 original, VehiclePawnWithMap vehicle)
         {
             return original.ToVector3Shifted().ToBaseMapCoord(vehicle).ToIntVec3();

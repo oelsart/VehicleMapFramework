@@ -13,7 +13,8 @@ namespace VehicleInteriors
         {
             base.StartExplosion(explosionSound, ignoredThings);
 
-            var vehicles = base.Position.GetRoom(base.Map).ContainedThings<VehiclePawnWithMap>();
+            var vehicles = base.Position.GetRoom(base.Map)?.ContainedThings<VehiclePawnWithMap>();
+            if (vehicles.NullOrEmpty()) return;
 
             var map = base.Map;
             var pos = base.Position;

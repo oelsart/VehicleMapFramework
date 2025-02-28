@@ -123,7 +123,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing)
-                .MethodReplacer(MethodInfoCache.m_GenSight_LineOfSight1, MethodInfoCache.m_GenSightOnVehicle_LineOfSight2);
+                .MethodReplacer(MethodInfoCache.m_GenSight_LineOfSight1, MethodInfoCache.m_GenSightOnVehicle_LineOfSight1);
         }
     }
 
@@ -256,7 +256,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 .MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap);
         }
 
-        public static Map TargetMap(Pawn pawn)
+        public static Map TargetMap(Pawn _)
         {
             return GenUIOnVehicle.TargetMap ?? Find.CurrentMap;
         }
@@ -299,10 +299,9 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     [HarmonyPatch(typeof(PawnFlyer), nameof(PawnFlyer.SpawnSetup))]
     public static class Patch_PawnFlyer_SpawnSetup
     {
-        public static void Prefix(Vector3 ___startVec, IntVec3 ___destCell, ref float ___flightDistance)
+        public static void Prefix(Map map, Vector3 ___startVec, IntVec3 ___destCell, ref float ___flightDistance)
         {
-            var cell = GenUIOnVehicle.TargetMap != null ? ___destCell.ToBaseMapCoord(GenUIOnVehicle.TargetMap) : ___destCell;
-            ___flightDistance = cell.DistanceTo(___startVec.ToIntVec3());
+            ___flightDistance = ___destCell.ToBaseMapCoord(map).DistanceTo(___startVec.ToIntVec3());
         }
     }
 

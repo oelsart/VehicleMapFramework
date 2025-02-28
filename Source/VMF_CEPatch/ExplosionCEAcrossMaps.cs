@@ -11,10 +11,83 @@ namespace VMF_CEPatch
 {
     public class ExplosionCEAcrossMaps : ExplosionCE
     {
-        public void StartExplosionCEOnVehicle(SoundDef explosionSound, List<Thing> ignoredThings)
+        public override IEnumerable<IntVec3> ExplosionCellsToHit
         {
-            base.StartExplosionCE(explosionSound, ignoredThings);
-            var vehicles = base.Position.GetRoom(base.Map).ContainedThings<VehiclePawnWithMap>();
+            get
+            {
+                bool flag = base.Position.InBounds(base.Map) && base.Position.Roofed(base.Map);
+                bool flag2 = height >= 2f;
+                List<IntVec3> list = SimplePool<List<IntVec3>>.Get();
+                list.Clear();
+                List<IntVec3> list2 = SimplePool<List<IntVec3>>.Get();
+                list2.Clear();
+                int num = GenRadial.NumCellsInRadius(radius);
+                for (int i = 0; i < num; i++)
+                {
+                    IntVec3 intVec = base.Position + GenRadial.RadialPattern[i];
+                    if (!intVec.InBounds(base.Map))
+                    {
+                        continue;
+                    }
+
+                    if (flag2)
+                    {
+                        if ((!flag && GenSightOnVehicle.LineOfSight(base.Position, intVec, base.Map, skipFirstCell: false, null, 0, 0)) || !intVec.Roofed(base.Map))
+                        {
+                            list.Add(intVec);
+                        }
+                    }
+                    else
+                    {
+                        if (!GenSightOnVehicle.LineOfSight(base.Position, intVec, base.Map, skipFirstCell: true))
+                        {
+                            continue;
+                        }
+
+                        if (needLOSToCell1.HasValue || needLOSToCell2.HasValue)
+                        {
+                            bool flag3 = needLOSToCell1.HasValue && GenSight.LineOfSight(needLOSToCell1.Value, intVec, base.Map, skipFirstCell: false, null, 0, 0);
+                            bool flag4 = needLOSToCell2.HasValue && GenSight.LineOfSight(needLOSToCell2.Value, intVec, base.Map, skipFirstCell: false, null, 0, 0);
+                            if (!flag3 && !flag4)
+                            {
+                                continue;
+                            }
+                        }
+
+                        list.Add(intVec);
+                    }
+                }
+
+                foreach (IntVec3 item in list)
+                {
+                    if (!item.Walkable(base.Map))
+                    {
+                        continue;
+                    }
+
+                    for (int j = 0; j < 4; j++)
+                    {
+                        IntVec3 intVec2 = item + GenAdj.CardinalDirections[j];
+                        if (intVec2.InHorDistOf(base.Position, radius) && intVec2.InBounds(base.Map) && !intVec2.Standable(base.Map) && intVec2.GetEdifice(base.Map) != null && !list.Contains(intVec2) && list2.Contains(intVec2))
+                        {
+                            list2.Add(intVec2);
+                        }
+                    }
+                }
+
+                var result = list.Concat(list2).ToArray();
+                list.Clear();
+                list2.Clear();
+                SimplePool<List<IntVec3>>.Return(list);
+                SimplePool<List<IntVec3>>.Return(list2);
+                return result;
+            }
+        }
+
+        public void StartExplosionCEOnVehicle()
+        {
+            var vehicles = base.Position.GetRoom(base.Map)?.ContainedThings<VehiclePawnWithMap>();
+            if (vehicles.NullOrEmpty()) return;
 
             var map = base.Map;
             var pos = base.Position;

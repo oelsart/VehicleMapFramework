@@ -407,7 +407,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static void Prefix(ref Vector3 loc, ref Rot4 rot, ThingDef thingDef, ref float extraRotation, Graphic __instance)
         {
-            if (VehicleMapUtility.FocusedOnVehicleMap(out var vehicle))
+            if (VehicleMapUtility.FocusedOnVehicleMap(out var vehicle) && thingDef != null)
             {
                 var def = thingDef.IsBlueprint ? thingDef.entityDefToBuild as ThingDef : thingDef;
                 var compProperties = def.GetCompProperties<CompProperties_FireOverlay>();

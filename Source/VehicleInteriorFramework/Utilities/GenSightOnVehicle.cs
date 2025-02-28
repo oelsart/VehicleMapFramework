@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using UnityEngine;
 using Verse;
 
@@ -42,7 +43,7 @@ namespace VehicleInteriors
                 intVec.z = num4;
                 if (!skipFirstCell || !(intVec == start))
                 {
-                    if (!intVec.CanBeSeenOverOnVehicle(map))
+                    if (!intVec.CanBeSeenOverOnVehicleFast(map))
                     {
                         return false;
                     }
@@ -68,8 +69,25 @@ namespace VehicleInteriors
 
         public static bool CanBeSeenOverOnVehicle(this IntVec3 c, Map map)
         {
-            if (!c.InBounds(map)) return true;
+            if (!c.InBounds(map)) return false;
 
+            var flag = true;
+            if (c.ToVector3Shifted().TryGetVehicleMap(map, out var vehicle))
+            {
+                var c2 = c.ToVehicleMapCoord(vehicle);
+                flag = !c2.InBounds(vehicle.VehicleMap);
+                if (!flag)
+                {
+                    Building edifice = c2.GetEdifice(vehicle.VehicleMap);
+                    flag = edifice == null || edifice.CanBeSeenOver();
+                }
+            }
+            Building edifice2 = c.GetEdifice(map);
+            return flag && (edifice2 == null || edifice2.CanBeSeenOver());
+        }
+
+        public static bool CanBeSeenOverOnVehicleFast(this IntVec3 c, Map map)
+        {
             var flag = true;
             if (c.ToVector3Shifted().TryGetVehicleMap(map, out var vehicle))
             {
@@ -140,24 +158,25 @@ namespace VehicleInteriors
 
         public static bool LineOfSight(IntVec3 start, IntVec3 end, Map map)
         {
+            if (map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
+            {
+                start = start.ToBaseMapCoord(vehicle);
+                end = end.ToBaseMapCoord(vehicle);
+                map = vehicle.Map;
+            }
             return GenSightOnVehicle.LineOfSight(start, end, map, CellRect.SingleCell(start), CellRect.SingleCell(end), null);
         }
 
         public static bool LineOfSight(IntVec3 start, IntVec3 end, Map map, CellRect startRect, CellRect endRect, Func<IntVec3, bool> validator = null)
         {
             bool flag;
-            if (map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
-            {
-                start = start.ToBaseMapCoord(vehicle);
-                map = vehicle.Map;
-            }
             if (start.x == end.x)
             {
-                flag = (start.z < end.z);
+                flag = start.z < end.z;
             }
             else
             {
-                flag = (start.x < end.x);
+                flag = start.x < end.x;
             }
             int num = Mathf.Abs(end.x - start.x);
             int num2 = Mathf.Abs(end.z - start.z);
@@ -180,7 +199,7 @@ namespace VehicleInteriors
                 }
                 if (!startRect.Contains(intVec))
                 {
-                    if (!intVec.CanBeSeenOverOnVehicle(map))
+                    if (!intVec.CanBeSeenOverOnVehicleFast(map))
                     {
                         return false;
                     }
