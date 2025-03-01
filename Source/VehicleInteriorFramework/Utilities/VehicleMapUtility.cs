@@ -729,14 +729,28 @@ namespace VehicleInteriors
             });
             return vehicle != null;
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool TryGetVehicleMap(this IntVec3 c, Map map, out VehiclePawnWithMap vehicle)
+        {
+            vehicle = MapComponentCache<VehicleMapGrid>.GetComponent(map).VehicleAt(c);
+            return vehicle != null;
+        }
+
         public static IEnumerable<Map> BaseMapAndVehicleMaps(this Map map)
         {
             var baseMap = map.BaseMap();
-            yield return baseMap;
+            if (baseMap != null)
+            {
+                yield return baseMap;
+            }
 
             foreach (var vehicle in VehiclePawnWithMapCache.AllVehiclesOn(baseMap))
             {
-                yield return vehicle.VehicleMap;
+                if (vehicle.VehicleMap != null)
+                {
+                    yield return vehicle.VehicleMap;
+                }
             }
         }
 

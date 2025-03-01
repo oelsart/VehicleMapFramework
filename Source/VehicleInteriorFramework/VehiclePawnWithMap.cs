@@ -235,6 +235,7 @@ namespace VehicleInteriors
             }
             base.SpawnSetup(map, respawningAfterLoad);
             VehiclePawnWithMapCache.RegisterVehicle(this);
+            this.mapFollower = new Vehicle_MapFollower(this);
 
             this.interiorMap.skyManager = this.Map.skyManager;
             this.interiorMap.weatherDecider = this.Map.weatherDecider;
@@ -259,12 +260,14 @@ namespace VehicleInteriors
                     }
                 }
             }
-            if (this.Spawned && (base.vehiclePather?.Moving ?? false))
+            if (this.Spawned)
             {
                 this.cachedDrawPos = this.DrawPos;
             }
 
             base.Tick();
+
+            this.mapFollower.MapFollowerTick();
         }
 
         public override void Destroy(DestroyMode mode = DestroyMode.Vanish)
@@ -338,6 +341,7 @@ namespace VehicleInteriors
             {
                 Find.Selector.Deselect(thing);
             }
+            this.mapFollower.DeRegisterVehicle();
             base.DeSpawn(mode);
         }
 
@@ -540,6 +544,8 @@ namespace VehicleInteriors
         }
 
         private Map interiorMap;
+
+        public Vehicle_MapFollower mapFollower;
 
         public Vector3 cachedDrawPos;
         

@@ -368,7 +368,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static bool Prefix(Projectile_Liquid __instance, Thing hitThing, IntVec3 cell, ThingDef ___targetCoverDef)
         {
-            if (cell.ToVector3Shifted().TryGetVehicleMap(__instance.Map, out var vehicle))
+            if (cell.TryGetVehicleMap(__instance.Map, out var vehicle))
             {
                 var cell2 = cell.ToVehicleMapCoord(vehicle);
                 if (__instance.def.projectile.filth != null && __instance.def.projectile.filthCount.TrueMax > 0 && !cell2.Filled(vehicle.VehicleMap))

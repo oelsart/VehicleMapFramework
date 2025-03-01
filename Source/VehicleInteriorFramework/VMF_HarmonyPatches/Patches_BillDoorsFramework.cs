@@ -37,17 +37,20 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                     foreach (VerbProperties verbProperties in ((ThingDef)checkingDef).building.turretGunDef.Verbs)
                     {
                         locCache = loc;
-                        var cells = GenRadial.RadialCellsAround(loc, verbProperties.minRange, verbProperties.range).ToArray();
-                        Parallel.ForEach(cells, cell =>
+                        if (map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
                         {
-                            //TryGetVehicleMapの高速化が終わり次第LineOfSightを換装予定
-                            if (GenSight.LineOfSight(loc, cell, map))
+                            loc = loc.ToBaseMapCoord(vehicle);
+                            map = vehicle.Map;
+                        }
+                        Parallel.ForEach(GenRadial.RadialCellsAround(loc, verbProperties.minRange, verbProperties.range), cell =>
+                        {
+                            if (GenSightOnVehicle.LineOfSight(loc, cell, map))
                             {
-                                cellCache.Add(cell.ToBaseMapCoord());
+                                cellCache.Add(cell);
                             }
                             else
                             {
-                                badCellCache.Add(cell.ToBaseMapCoord());
+                                badCellCache.Add(cell);
                             }
                         });
                     }

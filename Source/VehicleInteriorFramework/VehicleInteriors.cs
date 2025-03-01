@@ -69,6 +69,8 @@ namespace VehicleInteriors
             {
                 listingStandard.SliderLabeled("VMF_Settings.MinAreaForThreading".Translate(), null, null, ref settings.minAreaForThreading, 0, 2500, 1, "0", "2500");
             }
+            listingStandard.GapLine();
+            listingStandard.CheckboxLabeled("(Debug) Draw vehicle map grid", ref settings.drawVehicleMapGrid);
             listingStandard.End();
         }
 

@@ -14,6 +14,8 @@ namespace VehicleInteriors
 
         public bool roofedPatch = false;
 
+        public bool drawVehicleMapGrid = false;
+
         public override void ExposeData()
         {
             Scribe_Values.Look(ref this.drawPlanet, "drawPlanet", true);
@@ -21,6 +23,7 @@ namespace VehicleInteriors
             Scribe_Values.Look(ref this.threadingPathCost, "threadingPathCost", true);
             Scribe_Values.Look(ref this.minAreaForThreading, "minAreaForThreading", 150);
             Scribe_Values.Look(ref this.roofedPatch, "roofedPatch", false);
+            Scribe_Values.Look(ref this.drawVehicleMapGrid, "drawVehicleMapGrid", false);
         }
     }
 }

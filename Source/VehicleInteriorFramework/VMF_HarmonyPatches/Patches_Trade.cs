@@ -18,15 +18,21 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             var result = values.ToList();
             var maps = __instance.Map.BaseMapAndVehicleMaps().Except(__instance.Map);
             var departMap = playerNegotiator.Map;
-
             ReachabilityUtilityOnVehicle.tmpDepartMap = departMap;
-            foreach (var map in maps)
+
+            try
             {
-                __instance.VirtualMapTransfer(map);
-                result.AddRange(__instance.trader.ColonyThingsWillingToBuy(playerNegotiator));
+                foreach (var map in maps)
+                {
+                    __instance.VirtualMapTransfer(map);
+                    result.AddRange(__instance.trader.ColonyThingsWillingToBuy(playerNegotiator));
+                }
             }
-            __instance.VirtualMapTransfer(departMap);
-            _ = ReachabilityUtilityOnVehicle.tmpDepartMap;
+            finally
+            {
+                __instance.VirtualMapTransfer(departMap);
+                ReachabilityUtilityOnVehicle.tmpDepartMap = null;
+            }
 
             return result;
         }

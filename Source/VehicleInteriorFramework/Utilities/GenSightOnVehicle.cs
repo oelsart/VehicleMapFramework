@@ -72,7 +72,7 @@ namespace VehicleInteriors
             if (!c.InBounds(map)) return false;
 
             var flag = true;
-            if (c.ToVector3Shifted().TryGetVehicleMap(map, out var vehicle))
+            if (c.TryGetVehicleMap(map, out var vehicle))
             {
                 var c2 = c.ToVehicleMapCoord(vehicle);
                 flag = !c2.InBounds(vehicle.VehicleMap);
@@ -89,7 +89,7 @@ namespace VehicleInteriors
         public static bool CanBeSeenOverOnVehicleFast(this IntVec3 c, Map map)
         {
             var flag = true;
-            if (c.ToVector3Shifted().TryGetVehicleMap(map, out var vehicle))
+            if (c.TryGetVehicleMap(map, out var vehicle))
             {
                 var c2 = c.ToVehicleMapCoord(vehicle);
                 flag = !c2.InBounds(vehicle.VehicleMap);
