@@ -9,15 +9,20 @@ namespace VehicleInteriors
     {
         protected override void DrawAt(Vector3 drawLoc, bool flip = false)
         {
+            if (this.IsOnVehicleMapOf(out var vehicle) && vehicle.DrawColor != this.DrawColor)
+            {
+                this.DrawColor = vehicle.DrawColor;
+            }
+
             var rot = this.BaseFullRotation();
             //マップ端オフセット
             VehicleMapProps mapProps;
-            if (this.HasComp<CompVehicleEnterSpot>() && this.IsOnNonFocusedVehicleMapOf(out var vehicle) && (mapProps = vehicle.VehicleDef.GetModExtension<VehicleMapProps>()) != null)
+            if (this.HasComp<CompVehicleEnterSpot>() && this.IsOnNonFocusedVehicleMapOf(out var vehicle2) && (mapProps = vehicle2.VehicleDef.GetModExtension<VehicleMapProps>()) != null)
             {
-                drawLoc += rot.Opposite.AsVector2.ToVector3() * mapProps.EdgeSpaceValue(vehicle.FullRotation, this.Rotation.Opposite);
+                drawLoc += rot.Opposite.AsVector2.ToVector3() * mapProps.EdgeSpaceValue(vehicle2.FullRotation, this.Rotation.Opposite);
             }
 
-            var moverGraphic = this.def.building.upperMoverGraphic.Graphic;
+            var moverGraphic = this.def.building.upperMoverGraphic.Graphic.GetColoredVersion(ShaderDatabase.Cutout, this.DrawColor, this.DrawColorTwo);
             var openPct = base.OpenPct;
             var facingVect = rot.FacingCell.ToVector3();
             var offset = rot.IsDiagonal ? facingVect * 0.35355339f : facingVect / 2f;

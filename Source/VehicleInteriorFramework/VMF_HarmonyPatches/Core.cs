@@ -82,28 +82,5 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             Log.Message($"[VehicleMapFramework] {VehicleInteriors.mod.Content.ModMetaData.ModVersion} rev{Assembly.GetExecutingAssembly().GetName().Version.Revision}");
             Log.Message($"[VehicleMapFramework] {VMF_Harmony.Instance.GetPatchedMethods().Count()} patches applied.");
         }
-
-        public static IEnumerable<CodeInstruction> MethodReplacerLog(this IEnumerable<CodeInstruction> instructions, MethodBase from, MethodBase to)
-        {
-            if (instructions.Any(c => c.OperandIs(from))) Log.Error("Could not find the method to be replaced.");
-            if (from == null)
-            {
-                throw new ArgumentException("Unexpected null argument", "from");
-            }
-            if (to == null)
-            {
-                throw new ArgumentException("Unexpected null argument", "to");
-            }
-            foreach (CodeInstruction codeInstruction in instructions)
-            {
-                MethodBase left = codeInstruction.operand as MethodBase;
-                if (left == from)
-                {
-                    codeInstruction.opcode = (to.IsConstructor ? OpCodes.Newobj : OpCodes.Call);
-                    codeInstruction.operand = to;
-                }
-                yield return codeInstruction;
-            }
-        }
     }
 }

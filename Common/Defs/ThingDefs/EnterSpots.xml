@@ -30,6 +30,7 @@
 			<li MayRequire="OELS.MapVehicles">MV_Cart</li>
 		</researchPrerequisites>
 		<building>
+			<paintable>true</paintable>
 			<isEdifice>false</isEdifice>
 		</building>
 		<statBases>
@@ -45,6 +46,9 @@
 		<uiOrder>1000</uiOrder>
 		<comps>
 			<li Class="VehicleInteriors.CompProperties_VehicleEnterSpot"/>
+			<li>
+				<compClass>CompColorable</compClass>
+			</li>
 		</comps>
 	</ThingDef>
 
@@ -83,6 +87,9 @@
 		<comps>
 			<li Class="VehicleInteriors.CompProperties_VehicleEnterSpot">
 				<allowPassingVehicle>true</allowPassingVehicle>
+			</li>
+			<li>
+				<compClass>CompColorable</compClass>
 			</li>
 		</comps>
 	</ThingDef>

@@ -13,19 +13,32 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     [HarmonyPatch(typeof(Pawn), nameof(Pawn.ColonyThingsWillingToBuy))]
     public static class Patch_Pawn_ColonyThingsWillingToBuy
     {
+        public static void Prefix(Pawn playerNegotiator)
+        {
+            ReachabilityUtilityOnVehicle.tmpDepartMap = playerNegotiator.Map;
+        }
+
         public static IEnumerable<Thing> Postfix(IEnumerable<Thing> values, Pawn playerNegotiator, Pawn __instance)
         {
-            var result = values.ToList();
+            if (values != null)
+            {
+                foreach (var thing in values)
+                {
+                    yield return thing;
+                }
+            }
             var maps = __instance.Map.BaseMapAndVehicleMaps().Except(__instance.Map);
+            if (!maps.Any()) yield break;
             var departMap = playerNegotiator.Map;
-            ReachabilityUtilityOnVehicle.tmpDepartMap = departMap;
-
             try
             {
                 foreach (var map in maps)
                 {
                     __instance.VirtualMapTransfer(map);
-                    result.AddRange(__instance.trader.ColonyThingsWillingToBuy(playerNegotiator));
+                    foreach (var thing in __instance.trader.ColonyThingsWillingToBuy(playerNegotiator))
+                    {
+                        yield return thing;
+                    }
                 }
             }
             finally
@@ -33,8 +46,6 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 __instance.VirtualMapTransfer(departMap);
                 ReachabilityUtilityOnVehicle.tmpDepartMap = null;
             }
-
-            return result;
         }
     }
 
@@ -53,13 +64,22 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IEnumerable<Thing> Postfix(IEnumerable<Thing> values, Pawn playerNegotiator)
         {
-            var result = values.ToList();
             var vehicles = playerNegotiator.GetCaravan().PawnsListForReading.OfType<VehiclePawnWithMap>();
+
+            if (values != null)
+            {
+                foreach (var thing in values)
+                {
+                    yield return thing;
+                }
+            }
             foreach (var vehicle in vehicles)
             {
-                result.AddRange(vehicle.ColonyThingsWillingToBuyOnVehicle(playerNegotiator));
+                foreach (var thing in vehicle.ColonyThingsWillingToBuyOnVehicle(playerNegotiator))
+                {
+                    yield return thing;
+                }
             }
-            return result;
         }
     }
 
