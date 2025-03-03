@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
 using Verse;
+using Verse.AI;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
 {
@@ -45,5 +46,25 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             return instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap);
         }
+    }
+
+    [HarmonyPatchCategory("VMF_Patches_SmarterConstruction")]
+    [HarmonyPatch("SmarterConstruction.Core.PathGridWrapper", "Walkable")]
+    public static class Patch_PathGridWrapper_Walkable
+    {
+        public static void Postfix(IntVec3 loc, PathGrid ____pathGrid, ref bool __result)
+        {
+            if (!__result)
+            {
+                var map2 = map(____pathGrid);
+                var inBounds = loc.InBounds(map2);
+                if (inBounds && loc.GetEdifice(map(____pathGrid)) is VehicleStructure || !inBounds)
+                {
+                    __result = true;
+                }
+            }
+        }
+
+        private static AccessTools.FieldRef<PathGrid, Map> map = AccessTools.FieldRefAccess<PathGrid, Map>("map");
     }
 }

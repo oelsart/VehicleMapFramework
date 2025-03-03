@@ -254,6 +254,18 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
+    [HarmonyPatch(typeof(VehicleTurret), nameof(VehicleTurret.AngleBetween))]
+    public static class Patch_VehicleTurret_AngleBetween
+    {
+        public static void Prefix(VehicleTurret __instance, ref Vector3 mousePosition)
+        {
+            if (__instance.vehicle.IsOnNonFocusedVehicleMapOf(out var vehicle))
+            {
+                mousePosition = Ext_Math.RotatePoint(mousePosition, __instance.TurretLocation, vehicle.FullRotation.AsAngle);
+            }
+        }
+    }
+
     [HarmonyPatch(typeof(VehicleGraphics), nameof(VehicleGraphics.RetrieveAllOverlaySettingsGraphicsProperties), typeof(Rect), typeof(VehicleDef), typeof(Rot8), typeof(PatternData), typeof(List<GraphicOverlay>))]
     public static class Patch_VehicleGraphics_RetrieveAllOverlaySettingsGraphicsProperties
     {
@@ -859,6 +871,24 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 Messages.Message("VMF_FailedEnterMap".Translate(), MessageTypeDefOf.NegativeEvent);
             }
             return null;
+        }
+    }
+
+    //車両マップ上からLoadVehicleをしようとした時など
+    [HarmonyPatch(typeof(JobDriver_LoadVehicle), nameof(JobDriver_LoadVehicle.FailJob))]
+    public static class Patch_JobDriver_LoadVehicle_FailJob
+    {
+        public static void Postfix(JobDriver_LoadVehicle __instance, ref bool __result)
+        {
+            if (__result)
+            {
+                var map = __instance.pawn.MapHeld;
+                var maps = map.BaseMapAndVehicleMaps().Except(map);
+                if (maps.Any(m => MapComponentCache<VehicleReservationManager>.GetComponent(m).VehicleListed(__instance.Vehicle, __instance.ListerTag)))
+                {
+                    __result = false;
+                }
+            }
         }
     }
 }

@@ -267,7 +267,8 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                     return false;
                 }
             }
-            if (root.TryGetVehicleMap(Find.CurrentMap, out var vehicle) || searcher.IsOnNonFocusedVehicleMapOf(out _))
+            VehiclePawnWithMap vehicle = null;
+            if (root.InBounds(Find.CurrentMap) && root.TryGetVehicleMap(Find.CurrentMap, out vehicle) || searcher.IsOnNonFocusedVehicleMapOf(out _))
             {
                 var dest = vehicle != null ? root.ToVehicleMapCoord(vehicle) : root;
                 __result = ReachabilityUtilityOnVehicle.BestOrderedGotoDestNear(

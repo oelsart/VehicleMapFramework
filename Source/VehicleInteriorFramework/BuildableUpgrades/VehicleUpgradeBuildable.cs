@@ -277,7 +277,7 @@ namespace VehicleInteriors
                     var thing = compBuildableUpgrades.parent;
                     var position = GenThing.TrueCenter(thing.Position, thing.Rotation, thing.def.Size, 0f);
                     var pivot = new Vector3(vehicle.VehicleMap.Size.x / 2f, 0f, vehicle.VehicleMap.Size.z / 2f);
-                    var vehiclePos = vehicle.DrawPos.WithY(0f);
+                    var vehiclePos = vehicle.cachedDrawPos.WithY(0f);
                     var rot = thing.Rotation;
                     var angle = rot.AsAngle;
                     var intClockwise = new Rot8(rot).AsIntClockwise;
