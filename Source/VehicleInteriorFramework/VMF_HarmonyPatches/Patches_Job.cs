@@ -7,7 +7,6 @@ using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
 using VehicleInteriors.Jobs.WorkGivers;
-using Vehicles;
 using Verse;
 using Verse.AI;
 
@@ -46,29 +45,19 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             //サーチセットに複数マップのthingリストを足す
             var pos = codes.FindIndex(c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalIndex == 17);
 
-            var pos2 = codes.FindLastIndex(pos, c => c.opcode == OpCodes.Ldloc_S && ((LocalBuilder)c.operand).LocalIndex == 9);
-            var ldfld_scanner = codes[pos2 + 1];
-
-            var pos3 = codes.FindLastIndex(pos2 - 1, c => c.opcode == OpCodes.Ldloc_S && ((LocalBuilder)c.operand).LocalIndex == 9);
-            var ldfld_innerClass = codes[pos3 + 1];
-            var ldfld_pawn = codes[pos3 + 2];
-
             var addedCodes = new[]
             {
-                CodeInstruction.LoadLocal(9),
-                ldfld_innerClass,
-                ldfld_pawn,
-                CodeInstruction.LoadLocal(9),
-                ldfld_scanner,
+                CodeInstruction.LoadArgument(1),
+                CodeInstruction.LoadLocal(12),
                 CodeInstruction.Call(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(Patch_JobGiver_Work_TryIssueJobPackage.AddSearchSet))
             };
             codes.InsertRange(pos, addedCodes);
 
-            var pos4 = codes.FindIndex(pos, c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalIndex == 19);
-            codes.InsertRange(pos4, addedCodes);
+            var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalIndex == 19);
+            codes.InsertRange(pos2, addedCodes);
 
-            var pos5 = codes.FindIndex(pos4, c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalIndex == 21) + 1;
-            codes.InsertRange(pos5, new[]
+            var pos3 = codes.FindIndex(pos2, c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalIndex == 21) + 1;
+            codes.InsertRange(pos3, new[]
             {
                 CodeInstruction.LoadLocal(12),
                 CodeInstruction.LoadLocal(0, true),
@@ -77,13 +66,13 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             });
 
             var m_JobOnCell = AccessTools.Method(typeof(WorkGiver_Scanner), nameof(WorkGiver_Scanner.JobOnCell));
-            var pos6 = codes.FindIndex(pos5, c => c.opcode == OpCodes.Callvirt && c.OperandIs(m_JobOnCell));
-            codes[pos6].opcode = OpCodes.Call;
-            codes[pos6].operand = AccessTools.Method(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(Patch_JobGiver_Work_TryIssueJobPackage.JobOnCellMap));
+            var pos4 = codes.FindIndex(pos3, c => c.opcode == OpCodes.Callvirt && c.OperandIs(m_JobOnCell));
+            codes[pos4].opcode = OpCodes.Call;
+            codes[pos4].operand = AccessTools.Method(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(Patch_JobGiver_Work_TryIssueJobPackage.JobOnCellMap));
 
             var g_TargetInfo_Cell = AccessTools.PropertyGetter(typeof(TargetInfo), nameof(TargetInfo.Cell));
-            var pos7 = codes.FindLastIndex(pos6, c => c.opcode == OpCodes.Call && c.OperandIs(g_TargetInfo_Cell));
-            codes.RemoveAt(pos7);
+            var pos5 = codes.FindLastIndex(pos4, c => c.opcode == OpCodes.Call && c.OperandIs(g_TargetInfo_Cell));
+            codes.RemoveAt(pos5);
 
             //GenClosestの各メソッドを自作のものに置き換える
             //PotentialWorkThingsGlobalの各マップの結果を合計

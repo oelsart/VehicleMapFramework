@@ -81,20 +81,20 @@ namespace VehicleInteriors
 
         public override bool TryMakePreToilReservations(bool errorOnFailed)
         {
-            if (!this.pawn.Reserve(this.ThingToCarry.Map, this.job.GetTarget(TargetIndex.A), this.job, 1, -1, null, errorOnFailed, false))
+            if (!this.pawn.Reserve(this.ThingToCarry.MapHeld, this.job.GetTarget(TargetIndex.A), this.job, 1, -1, null, errorOnFailed, false))
             {
                 return false;
             }
             if (this.Container.Isnt<IHaulEnroute>())
             {
-                if (!this.pawn.Reserve(this.Container.Map, this.job.GetTarget(TargetIndex.B), this.job, 1, 1, null, errorOnFailed, false))
+                if (!this.pawn.Reserve(this.Container.MapHeld, this.job.GetTarget(TargetIndex.B), this.job, 1, 1, null, errorOnFailed, false))
                 {
                     return false;
                 }
-                this.pawn.ReserveAsManyAsPossible(this.Container.Map, this.job.GetTargetQueue(TargetIndex.B), this.job, 1, -1, null);
+                this.pawn.ReserveAsManyAsPossible(this.Container.MapHeld, this.job.GetTargetQueue(TargetIndex.B), this.job, 1, -1, null);
             }
             this.UpdateEnrouteTrackers();
-            this.pawn.ReserveAsManyAsPossible(this.ThingToCarry.Map, this.job.GetTargetQueue(TargetIndex.A), this.job, 1, -1, null);
+            this.pawn.ReserveAsManyAsPossible(this.ThingToCarry.MapHeld, this.job.GetTargetQueue(TargetIndex.A), this.job, 1, -1, null);
             return true;
         }
 

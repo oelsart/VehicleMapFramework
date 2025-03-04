@@ -1,20 +1,16 @@
 ﻿using HarmonyLib;
 using SmashTools;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
-using UnityEngine;
 using Verse;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
 {
     public class VMF_Harmony
     {
-        public static Harmony Instance = new Harmony("com.harmony.oels.vehicleinteriorframework");
+        public static Harmony Instance = new Harmony("com.harmony.oels.vehiclemapframework");
     }
 
     [LoadedEarly]

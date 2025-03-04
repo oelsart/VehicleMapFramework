@@ -68,7 +68,7 @@ namespace VehicleInteriors
             var ingredient = job.GetTargetQueue(TargetIndex.B).FirstOrDefault(t => t.HasThing).Thing;
             if (ingredient != null)
             {
-                pawn.ReserveAsManyAsPossible(ingredient.Map, job.GetTargetQueue(TargetIndex.B), job);
+                pawn.ReserveAsManyAsPossible(ingredient.MapHeld, job.GetTargetQueue(TargetIndex.B), job);
             }
             return true;
         }
