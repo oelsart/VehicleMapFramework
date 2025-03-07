@@ -43,7 +43,7 @@ namespace VehicleInteriors
                 }
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 {
-                    return "StandaloneLinux64";
+                    return "StandaloneOSX";
                 }
                 Log.Error($"[VehicleMapFramework] {RuntimeInformation.OSDescription} is not supported platform. Please let the mod author know the OS info.");
                 return null;

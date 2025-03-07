@@ -471,8 +471,8 @@ namespace VehicleInteriors
 
         public static CellRect MovedOccupiedRect(this Thing thing)
         {
-            var drawSize = thing.DrawSize;
-            return GenAdj.OccupiedRect(thing.PositionOnBaseMap(), thing.BaseRotation(), new IntVec2(Mathf.CeilToInt(drawSize.x), Mathf.CeilToInt(drawSize.y)));
+            var size = thing.def.size;
+            return GenAdj.OccupiedRect(thing.PositionOnBaseMap(), thing.BaseRotation(), new IntVec2(Mathf.CeilToInt(size.x), Mathf.CeilToInt(size.z)));
         }
 
         public static TargetInfo ToBaseMapTargetInfo(ref LocalTargetInfo target, Map map)
@@ -558,11 +558,9 @@ namespace VehicleInteriors
         public static Rot4 BaseFullRotationAsRot4(this Thing thing)
         {
             var rot = Rot4.Invalid;
-            rotInt(ref rot) = thing.BaseFullRotation().AsByte;
+            Rot8Utility.rotInt(ref rot) = thing.BaseFullRotation().AsByte;
             return rot;
         }
-
-        private static readonly AccessTools.StructFieldRef<Rot4, byte> rotInt = AccessTools.StructFieldRefAccess<Rot4, byte>("rotInt");
 
         public static Rot8 BaseFullRotationDoor(this Thing thing)
         {
@@ -737,6 +735,7 @@ namespace VehicleInteriors
             return vehicle != null;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static IEnumerable<Map> BaseMapAndVehicleMaps(this Map map)
         {
             var baseMap = map.BaseMap();

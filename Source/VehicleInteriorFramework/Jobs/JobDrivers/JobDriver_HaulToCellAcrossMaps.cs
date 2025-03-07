@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using Verse;
 using Verse.AI;
-using Verse.Noise;
 
 namespace VehicleInteriors
 {

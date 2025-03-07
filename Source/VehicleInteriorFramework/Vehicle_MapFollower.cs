@@ -98,7 +98,7 @@ namespace VehicleInteriors
                 Parallel.ForEach(cellRect, cell =>
                 {
                     var point = cell.ToVector3Shifted().ToVehicleMapCoord(vehicle);
-                    if (mapRect.Contains(new Vector2(point.x, point.z)))
+                    if (mapRect.Contains(new Vector2(point.x, point.z)) && cell.InBounds(vehicle.Map))
                     {
                         tmpOccupiedCells.Add(cell);
                     }
@@ -109,7 +109,7 @@ namespace VehicleInteriors
                 foreach (var cell in cellRect)
                 {
                     var point = cell.ToVector3Shifted().ToVehicleMapCoord(vehicle);
-                    if (mapRect.Contains(new Vector2(point.x, point.z)))
+                    if (mapRect.Contains(new Vector2(point.x, point.z)) && cell.InBounds(vehicle.Map))
                     {
                         tmpOccupiedCells.Add(cell);
                     }

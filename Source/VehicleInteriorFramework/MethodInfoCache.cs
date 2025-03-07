@@ -217,5 +217,21 @@ namespace VehicleInteriors
         public static readonly MethodInfo m_PrintExtraRotation = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.PrintExtraRotation));
 
         public static readonly MethodInfo m_Vector3Utility_WithY = AccessTools.Method(typeof(Vector3Utility), nameof(Vector3Utility.WithY));
+
+        public static readonly MethodInfo m_HaulToStorageJob = AccessTools.Method(typeof(HaulAIUtility), nameof(HaulAIUtility.HaulToStorageJob));
+
+        public static readonly MethodInfo m_HaulToStorageJobReplace = AccessTools.Method(typeof(HaulAIAcrossMapsUtility), nameof(HaulAIAcrossMapsUtility.HaulToStorageJobReplace));
+
+        public static readonly MethodInfo m_PawnCanAutomaticallyHaulFast = AccessTools.Method(typeof(HaulAIUtility), nameof(HaulAIUtility.PawnCanAutomaticallyHaulFast));
+
+        public static readonly MethodInfo m_PawnCanAutomaticallyHaulFastReplace = AccessTools.Method(typeof(HaulAIAcrossMapsUtility), nameof(HaulAIAcrossMapsUtility.PawnCanAutomaticallyHaulFastReplace));
+
+        public static readonly MethodInfo m_TryFindBestBetterStorageFor = AccessTools.Method(typeof(StoreUtility), nameof(StoreUtility.TryFindBestBetterStorageFor));
+
+        public static readonly MethodInfo m_TryFindBestBetterStorageForReplace = AccessTools.Method(typeof(StoreAcrossMapsUtility), nameof(StoreAcrossMapsUtility.TryFindBestBetterStorageForReplace));
+
+        public static readonly MethodInfo m_IsGoodStoreCell = AccessTools.Method(typeof(StoreUtility), nameof(StoreUtility.IsGoodStoreCell));
+
+        public static readonly MethodInfo m_IsGoodStoreCellReplace = AccessTools.Method(typeof(StoreAcrossMapsUtility), nameof(StoreAcrossMapsUtility.IsGoodStoreCellReplace));
     }
 }

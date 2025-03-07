@@ -97,7 +97,7 @@ namespace VehicleInteriors
 
         public void ResetCache()
         {
-            if (lastCachedTick != Find.TickManager.TicksGame)
+            if (lastCachedTick != Find.TickManager.TicksGame || Find.TickManager.Paused)
             {
                 lastCachedTick = Find.TickManager.TicksGame;
                 //cachedDrawPos.Keys.Except(map.listerThings.AllThings).ToArray().ForEach(t => cachedDrawPos.Remove(t));

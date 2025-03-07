@@ -104,10 +104,16 @@ namespace VehicleInteriors.VMF_HarmonyPatches
 
         private static IEnumerable<Thing> PotentialWorkThingsGlobalAll(WorkGiver_Scanner scanner, Pawn pawn)
         {
+            if (JobAcrossMapsUtility.NoNeedVirtualMapTransfer(pawn.Map, null, scanner))
+            {
+                return scanner.PotentialWorkThingsGlobal(pawn);
+            }
             var map = pawn.Map;
+            var pos = pawn.Position;
             var anyNotNull = false;
             try
             {
+                var basePos = pawn.PositionOnBaseMap();
                 var enumerable = pawn.Map.BaseMapAndVehicleMaps().SelectMany(m =>
                 {
                     pawn.VirtualMapTransfer(m);
@@ -126,7 +132,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             }
             finally
             {
-                pawn.VirtualMapTransfer(map);
+                pawn.VirtualMapTransfer(map, pos);
             }
         }
 
@@ -420,6 +426,61 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                     JobAcrossMapsUtility.StartGotoDestMapJob(actor, exitSpot, enterSpot);
                 }
             });
+        }
+    }
+
+    //GotoCellと同じやり方でSittableOrSpotのチェック
+    [HarmonyPatch(typeof(ReservationUtility), nameof(ReservationUtility.ReserveSittableOrSpot))]
+    public static class Patch_ReservationUtility_ReserveSittableOrSpot
+    {
+        public static void Prefix(Pawn pawn, IntVec3 exactSittingPos, Job job, ref Map __state)
+        {
+            var allTargets = new[] { job.targetA, job.targetB, job.targetC }.ConcatIfNotNull(job.targetQueueA).ConcatIfNotNull(job.targetQueueB);
+            var target = allTargets.FirstOrFallback(t => t.HasThing && (t.Cell == exactSittingPos || (t.Thing.Spawned && t.Thing.InteractionCell == exactSittingPos)), LocalTargetInfo.Invalid);
+            if (target.IsValid && pawn.Map != target.Thing.MapHeld)
+            {
+                __state = pawn.Map;
+                pawn.VirtualMapTransfer(target.Thing.MapHeld);
+            }
+        }
+
+        public static void Finalizer(Pawn pawn, Map __state)
+        {
+            if (__state != null)
+            {
+                pawn.VirtualMapTransfer(__state);
+            }
+        }
+    }
+
+    //GotoCellと同じやり方でSittableOrSpotのチェック
+    [HarmonyPatch(typeof(ReservationUtility), nameof(ReservationUtility.CanReserveSittableOrSpot_NewTemp))]
+    public static class Patch_ReservationUtility_CanReserveSittableOrSpot_NewTemp
+    {
+        public static bool Prefix(Pawn pawn, IntVec3 exactSittingPos, ref Map __state, ref bool __result)
+        {
+            if (!exactSittingPos.InBounds(pawn.Map))
+            {
+                var maps = pawn.Map.BaseMapAndVehicleMaps().Except(pawn.Map);
+                Map map;
+                if ((map = maps.FirstOrDefault(m => exactSittingPos.IsBuildingInteractionCell(m))) != null)
+                {
+                    __state = pawn.Map;
+                    pawn.VirtualMapTransfer(map);
+                    return true;
+                }
+                __result = false;
+                return false;
+            }
+            return true;
+        }
+
+        public static void Finalizer(Pawn pawn, Map __state)
+        {
+            if (__state != null)
+            {
+                pawn.VirtualMapTransfer(__state);
+            }
         }
     }
 

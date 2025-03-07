@@ -201,41 +201,6 @@ namespace VehicleInteriors
                 p.CanReserve(target, targMap, maxPawns, stackCount, layer, ignoreOtherReservations);
         }
 
-        public static bool IsForbidden(this Thing t, Pawn pawn)
-        {
-            if (!ForbidUtility.CaresAboutForbidden(pawn, false, false))
-            {
-                return false;
-            }
-            if ((t.Spawned || t.SpawnedParentOrMe != pawn) && t.PositionHeldOnBaseMap().IsForbidden(pawn))
-            {
-                return true;
-            }
-            if (t.IsForbidden(pawn.Faction) || t.IsForbidden(pawn.HostFaction))
-            {
-                return true;
-            }
-            Lord lord = pawn.GetLord();
-            if (lord != null && lord.extraForbiddenThings.Contains(t))
-            {
-                return true;
-            }
-            foreach (Lord lord2 in pawn.MapHeld.lordManager.lords)
-            {
-                if (lord2.CurLordToil is LordToil_Ritual lordToil_Ritual && lordToil_Ritual.ReservedThings.Contains(t) && lord2 != lord)
-                {
-                    return true;
-                }
-                LordToil_PsychicRitual lordToil_PsychicRitual;
-                PsychicRitualDef_InvocationCircle psychicRitualDef_InvocationCircle;
-                if ((lordToil_PsychicRitual = (lord2.CurLordToil as LordToil_PsychicRitual)) != null && (psychicRitualDef_InvocationCircle = (lordToil_PsychicRitual.RitualData.psychicRitual.def as PsychicRitualDef_InvocationCircle)) != null && psychicRitualDef_InvocationCircle.TargetRole != null && lordToil_PsychicRitual.RitualData.psychicRitual.assignments.FirstAssignedPawn(psychicRitualDef_InvocationCircle.TargetRole) == t && !(lordToil_PsychicRitual.RitualData.CurPsychicRitualToil is PsychicRitualToil_TargetCleanup) && lord2 != lord)
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
         public static bool CanReserveSittableOrSpot_NewTemp(this Pawn pawn, Map map, IntVec3 exactSittingPos, Thing ignoreThing, bool ignoreOtherReservations = false)
         {
             Building edifice = exactSittingPos.GetEdifice(map);

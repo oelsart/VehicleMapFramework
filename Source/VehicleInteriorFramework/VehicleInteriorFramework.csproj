@@ -129,6 +129,7 @@
     <Compile Include="Combat\TargetingHelperOnVehicle.cs" />
     <Compile Include="Comps\CompBuildableContainer.cs" />
     <Compile Include="Comps\CompEngineLightOverlays.cs" />
+    <Compile Include="Comps\CompFuelTank.cs" />
     <Compile Include="Comps\CompProperties_EngineLightOverlays.cs" />
     <Compile Include="Comps\CompProperties_TogglableOverlays.cs" />
     <Compile Include="Comps\CompProperties_VehicleEnterSpot.cs" />
@@ -299,6 +300,7 @@
     <Compile Include="VMF_HarmonyPatches\Patches_VehicleFramework.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_VehicleMapOffset.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_Verb.cs" />
+    <Compile Include="VMF_HarmonyPatches\Patches_WhileYoureUp.cs" />
     <Compile Include="VMF_Materials.cs" />
     <Compile Include="VMF_Shaders.cs" />
     <Compile Include="Utilities\VIF_Widgets.cs" />

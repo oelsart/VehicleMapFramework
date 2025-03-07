@@ -8,6 +8,11 @@ namespace VehicleInteriors
 {
     public static class HaulAIAcrossMapsUtility
     {
+        public static bool PawnCanAutomaticallyHaulFastReplace(Pawn p, Thing t, bool forced)
+        {
+            return PawnCanAutomaticallyHaulFast(p, t, forced, out _, out _);
+        }
+
         public static bool PawnCanAutomaticallyHaulFast(Pawn p, Thing t, bool forced, out TargetInfo exitSpot, out TargetInfo enterSpot)
         {
             Building building;
@@ -40,6 +45,11 @@ namespace VehicleInteriors
                 return false;
             }
             return true;
+        }
+
+        public static Job HaulToStorageJobReplace(Pawn p, Thing t)
+        {
+            return HaulToStorageJob(p, t, TargetInfo.Invalid, TargetInfo.Invalid);
         }
 
         public static Job HaulToStorageJob(Pawn p, Thing t, TargetInfo exitSpot, TargetInfo enterSpot)

@@ -1,4 +1,5 @@
-﻿using SmashTools;
+﻿using HarmonyLib;
+using SmashTools;
 using UnityEngine;
 using Verse;
 
@@ -6,7 +7,7 @@ namespace VehicleInteriors
 {
     public static class Rot8Utility
     {
-        public static IntVec3 RighthandCell(ref Rot8 rot)
+        public static IntVec3 RighthandCell(ref Rot4 rot)
         {
             Rot8Utility.Rotate(ref rot, RotationDirection.Clockwise);
             return rot.FacingCell;
@@ -44,7 +45,7 @@ namespace VehicleInteriors
         }
 
         //Rot4の変数に入れたRot8を無理やり回転させるためのもの。Rot4.RotateとTranspilerで簡単に置き換えられるようにしてある
-        public static void Rotate(ref Rot8 rot, RotationDirection rotDir)
+        public static void Rotate(ref Rot4 rot, RotationDirection rotDir)
         {
             if (rot.AsInt < 0 || rot.AsInt > 7)
             {
@@ -66,8 +67,10 @@ namespace VehicleInteriors
             }
 
             rot2.AsInt = Rot8.FromIntClockwise(GenMath.PositiveMod(num, 8));
-            rot = rot2;
+            rotInt(ref rot) = rot2.AsByte;
         }
+
+        public static readonly AccessTools.StructFieldRef<Rot4, byte> rotInt = AccessTools.StructFieldRefAccess<Rot4, byte>("rotInt");
 
         public static Vector3 ToFundVector3(ref IntVec3 intVec)
         {

@@ -101,8 +101,8 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static void Prefix(CompResourceStorage __instance, ref GenDraw.FillableBarRequest ___request)
         {
-            var fullRot = __instance.parent.BaseFullRotation();
-            var offset = (__instance.Props.centerOffset + Vector3.up * 0.1f).RotatedBy(fullRot.AsAngle);
+            var fullRot = __instance.parent.BaseFullRotationAsRot4();
+            var offset = (__instance.Props.centerOffset + Vector3.up * 0.1f).RotatedBy(new Rot8(fullRot.AsInt).AsAngle);
             if (__instance.parent.Graphic.WestFlipped && __instance.parent.BaseRotationVehicleDraw() == Rot4.West)
             {
                 offset = offset.RotatedBy(180f);

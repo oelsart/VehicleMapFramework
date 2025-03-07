@@ -6,11 +6,13 @@
     <li IfModActive="brrainz.achtung">1.5/_Achtung</li>
     <li IfModActive="Owlchemist.SmartFarming">1.5/_SmartFarming</li>
     <li IfModActive="OskarPotocki.VanillaFactionsExpanded.Core">1.5/_VanillaExpandedFramework</li>
+    <li IfModActive="Mehni.PickUpAndHaul">1.5/_PUAH</li>
     <li IfModActive="telardo.MultiFloors">Common/_MultiFloors</li>
     <li IfModActive="XMB.AncientUrbanrUins.MO">Common/_AncientUrbanRuins</li>
     <li IfModActive="daylight.RLEsExpansionProductPS">Common/_RimLifeExpansionProductionPlus</li>
     <li IfModActive="kentington.saveourship2">Common/_SaveOurShip2</li>
     <li IfModActive="DankPyon.Medieval.Overhaul">Common/_MedievalOverhaul</li>
     <li IfModActive="Cain.Mineshaft">Common/_Mines</li>
+    <li IfModActive="OskarPotocki.VFE.Mechanoid">Common/_VFEMechanoids</li>
   </v1.5>
 </loadFolders>

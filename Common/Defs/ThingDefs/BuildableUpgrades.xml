@@ -293,7 +293,7 @@
 			<li>Fabrication</li>
 			<li MayRequire="OskarPotocki.VanillaVehiclesExpanded">VVE_BasicVehicles</li>
 		</researchPrerequisites>
-		<uiOrder>1024</uiOrder>
+		<uiOrder>1025</uiOrder>
 		<comps>
 			<li Class = "VehicleInteriors.CompProperties_BuildableUpgrades">
 				<upgrades>
@@ -359,7 +359,7 @@
 			<li>Fabrication</li>
 			<li MayRequire="OskarPotocki.VanillaVehiclesExpanded">VVE_BasicVehicles</li>
 		</researchPrerequisites>
-		<uiOrder>1025</uiOrder>
+		<uiOrder>1026</uiOrder>
 		<comps>
 			<li Class = "VehicleInteriors.CompProperties_BuildableUpgrades">
 				<upgrades>
@@ -384,4 +384,68 @@
 			<li>VehicleInteriors.PlaceWorker_ForceOnHoverVehicle</li>
 		</placeWorkers>
 	</ThingDef>
+		
+	<!--<ThingDef ParentName="FurnitureBase">
+		<defName>VMF_FuelTank</defName>
+		<label>fuel tank</label>
+		<description>Tank for increase fuel capacity of the vehicle.\n\n&lt;color=#bb8f04&gt;Fuel capacity:&lt;/color&gt; +300</description>
+		<designationCategory>VF_Vehicles</designationCategory>
+		<rotatable>false</rotatable>
+		<fillPercent>0.60</fillPercent>
+		<graphicData>
+			<texPath>VehicleInteriors/Things/BuildableUpgrade/FuelTank/FuelTank</texPath>
+			<graphicClass>Graphic_Single</graphicClass>
+			<shaderType>CutoutComplex</shaderType>
+			<damageData>
+				<cornerTL>Damage/Corner</cornerTL>
+				<cornerTR>Damage/Corner</cornerTR>
+				<cornerBL>Damage/Corner</cornerBL>
+				<cornerBR>Damage/Corner</cornerBR>
+				<edgeTop>Damage/Edge</edgeTop>
+				<edgeBot>Damage/Edge</edgeBot>
+				<edgeLeft>Damage/Edge</edgeLeft>
+				<edgeRight>Damage/Edge</edgeRight>
+			</damageData>
+			<drawSize>(1,1.265625)</drawSize>
+			<drawOffset>(0,0,0.1328125)</drawOffset>
+		</graphicData>
+		<drawerType>MapMeshAndRealTime</drawerType>
+		<statBases>
+			<MaxHitPoints>300</MaxHitPoints>
+			<Beauty>-1</Beauty>
+			<WorkToBuild>500</WorkToBuild>
+			<Mass>80</Mass>
+		</statBases>
+		<placingDraggableDimensions>1</placingDraggableDimensions>
+		<size>(1,1)</size>
+		<stuffCategories>
+			<li>Metallic</li>
+		</stuffCategories>
+		<costStuffCount>150</costStuffCount>
+		<researchPrerequisites>
+			<li>Fabrication</li>
+			<li MayRequire="OskarPotocki.VanillaVehiclesExpanded">VVE_BasicVehicles</li>
+		</researchPrerequisites>
+		<uiOrder>1024</uiOrder>
+		<comps>
+			<li Class = "VehicleInteriors.CompProperties_BuildableUpgrades">
+				<upgrades>
+					<li Class = "Vehicles.StatUpgrade">
+						<statCategories>
+							<li>
+								<def>FuelCapacity</def>
+								<value>300</value>
+							</li>
+						</statCategories>
+					</li>
+				</upgrades>
+			</li>
+			<li>
+				<compClass>VehicleInteriors.CompFuelTank</compClass>
+			</li>
+		</comps>
+		<placeWorkers>
+			<li>VehicleInteriors.PlaceWorker_ForceOnVehicle</li>
+		</placeWorkers>
+	</ThingDef>-->
 </Defs>

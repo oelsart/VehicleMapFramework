@@ -1,12 +1,22 @@
-﻿using RimWorld;
+﻿using HarmonyLib;
+using RimWorld;
 using System.Linq;
 using Verse;
 using Verse.AI;
 
 namespace VehicleInteriors
 {
+    [StaticConstructorOnStartup]
     public class JobGiver_HaulAcrossMaps : ThinkNode_JobGiver
     {
+        static JobGiver_HaulAcrossMaps()
+        {
+            if (PUAHActive)
+            {
+                IsAllowedRace = MethodInvoker.GetHandler(AccessTools.Method("PickUpAndHaul.Settings:IsAllowedRace"));
+            }
+        }
+
         protected override Job TryGiveJob(Pawn pawn)
         {
             TargetInfo exitSpot = TargetInfo.Invalid;
@@ -24,9 +34,17 @@ namespace VehicleInteriors
             Thing thing = GenClosestOnVehicle.ClosestThing_Global_Reachable(pawn.PositionOnBaseMap(), pawn.Map, searchSet, PathEndMode.OnCell, TraverseParms.For(pawn, Danger.Deadly, TraverseMode.ByPawn, false, false, false), 9999f, validator, null);
             if (thing != null)
             {
+                if (PUAHActive && (bool)IsAllowedRace(pawn.RaceProps))
+                {
+                    return ((WorkGiver_Scanner)DefDatabase<WorkGiverDef>.GetNamed("HaulToInventory", true).Worker).JobOnThing(pawn, thing, false);
+                }
                 return HaulAIAcrossMapsUtility.HaulToStorageJob(pawn, thing, exitSpot, enterSpot);
             }
             return null;
         }
+
+        private static bool PUAHActive = ModsConfig.IsActive("Mehni.PickUpAndHaul");
+
+        private static FastInvokeHandler IsAllowedRace;
     }
 }

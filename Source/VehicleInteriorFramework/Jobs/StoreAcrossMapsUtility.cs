@@ -10,6 +10,11 @@ namespace VehicleInteriors
 {
     public static class StoreAcrossMapsUtility
     {
+        public static bool TryFindBestBetterStoreCellForReplace(Thing t, Pawn carrier, Map map, StoragePriority currentPriority, Faction faction, out IntVec3 foundCell, bool needAccurateResult)
+        {
+            return TryFindBestBetterStoreCellFor(t, carrier, map, currentPriority, faction, out foundCell, needAccurateResult, out _, out _, out _);
+        }
+
         public static bool TryFindBestBetterStoreCellFor(Thing t, Pawn carrier, Map map, StoragePriority currentPriority, Faction faction, out IntVec3 foundCell, bool needAccurateResult, out TargetInfo exitSpot, out TargetInfo enterSpot, out Map destMap)
         {
             exitSpot = TargetInfo.Invalid;
@@ -84,6 +89,11 @@ namespace VehicleInteriors
                     }
                 }
             }
+        }
+
+        public static bool IsGoodStoreCellReplace(IntVec3 c, Map map, Thing t, Pawn carrier, Faction faction)
+        {
+            return IsGoodStoreCell(c, map, t, carrier, faction, out _, out _);
         }
 
         public static bool IsGoodStoreCell(IntVec3 c, Map map, Thing t, Pawn carrier, Faction faction, out TargetInfo dest1, out TargetInfo dest2)
@@ -207,7 +217,7 @@ namespace VehicleInteriors
             return flag || c.GetItemCount(map) < c.GetMaxItemsAllowedInCell(map);
         }
 
-        public static bool TryFindBestBetterStorageFor(Thing t, Pawn carrier, Map map, StoragePriority currentPriority, Faction faction, out IntVec3 foundCell, out IHaulDestination haulDestination, bool needAccurateResult)
+        public static bool TryFindBestBetterStorageForReplace(Thing t, Pawn carrier, Map map, StoragePriority currentPriority, Faction faction, out IntVec3 foundCell, out IHaulDestination haulDestination, bool needAccurateResult)
         {
             return StoreAcrossMapsUtility.TryFindBestBetterStorageFor(t, carrier, map, currentPriority, faction, out foundCell, out haulDestination, needAccurateResult, out _, out _);
         }
