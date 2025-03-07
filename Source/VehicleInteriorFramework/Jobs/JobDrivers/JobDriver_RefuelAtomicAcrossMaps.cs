@@ -23,9 +23,9 @@ namespace VehicleInteriors
 
         public override bool TryMakePreToilReservations(bool errorOnFailed)
         {
-            pawn.ReserveAsManyAsPossible(this.Fuel.MapHeld, job.GetTargetQueue(TargetIndex.B), job);
+            pawn.ReserveAsManyAsPossible(DestMap, job.GetTargetQueue(TargetIndex.B), job);
             var refuelable = this.Refuelable;
-            return pawn.Reserve(refuelable.Map, refuelable, job, 1, -1, null, errorOnFailed);
+            return pawn.Reserve(TargetAMap, refuelable, job, 1, -1, null, errorOnFailed);
         }
 
         protected override IEnumerable<Toil> MakeNewToils()
@@ -58,7 +58,7 @@ namespace VehicleInteriors
             yield return Toils_Jump.JumpIf(getNextIngredient, () => !job.GetTargetQueue(TargetIndex.B).NullOrEmpty());
             yield return Toils_General.Wait(240).FailOnDestroyedNullOrForbidden(TargetIndex.A).FailOnCannotTouch(TargetIndex.A, PathEndMode.Touch)
                 .WithProgressBarToilDelay(TargetIndex.A);
-            yield return Toils_Refuel.FinalizeRefueling(TargetIndex.A, TargetIndex.None);
+            yield return Toils_Refuel.FinalizeRefueling(TargetIndex.A, TargetIndex.B);
         }
     }
 }
