@@ -109,7 +109,7 @@ namespace VMF_PUAHPatch
                 return HaulAIAcrossMapsUtility.HaulToStorageJob(pawn, thing, exitSpot, enterSpot);
             }
 
-            var job = JobMaker.MakeJob(VMF_PUAH_DefOf.HaulToInventoryAcrossMaps, null, storeTarget);   //Things will be in queues
+            var job = JobMaker.MakeJob(VMF_PUAH_DefOf.VMF_HaulToInventoryAcrossMaps, null, storeTarget);   //Things will be in queues
             Log.Message($"-------------------------------------------------------------------");
             Log.Message($"------------------------------------------------------------------");//different size so the log doesn't count it 2x
             Log.Message($"{pawn} job found to haul: {thing} to {storeTarget}:{capacityStoreCell}, looking for more now");

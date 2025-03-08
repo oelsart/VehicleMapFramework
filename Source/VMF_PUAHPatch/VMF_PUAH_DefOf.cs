@@ -11,6 +11,6 @@ namespace VMF_PUAHPatch
             DefOfHelper.EnsureInitializedInCtor(typeof(VMF_PUAH_DefOf));
         }
 
-        public static JobDef HaulToInventoryAcrossMaps;
+        public static JobDef VMF_HaulToInventoryAcrossMaps;
     }
 }
