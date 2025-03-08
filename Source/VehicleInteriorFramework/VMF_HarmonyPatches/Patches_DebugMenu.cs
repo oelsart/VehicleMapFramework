@@ -1,5 +1,8 @@
 ﻿using HarmonyLib;
+using LudeonTK;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using Verse;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
@@ -9,24 +12,47 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         static Patches_DebugTools()
         {
-            var transpiler = AccessTools.Method(typeof(Patches_DebugTools), nameof(Patches_DebugTools.Transpiler));
+            if (VehicleInteriors.settings.debugToolPatches)
+            {
+                ApplyPatches();
+            }
+        }
+
+        public static void ApplyPatches(bool unpatch = false)
+        {
+            var transpiler = AccessTools.Method(typeof(Patches_DebugTools), nameof(Transpiler));
+            void Patch(MethodInfo method)
+            {
+                if (method.IsGenericMethod || method.ContainsGenericParameters) return;
+                if (unpatch)
+                {
+                    VMF_Harmony.Instance.Unpatch(method, transpiler);
+                }
+                else
+                {
+                    VMF_Harmony.Instance.Patch(method, transpiler: transpiler);
+                }
+            }
+
+            Patch(AccessTools.FindIncludingInnerTypes(typeof(DebugActionNode), t => t.GetMethods(AccessTools.all).FirstOrDefault(m => m.Name.Contains("<Enter>"))));
             foreach (var method in typeof(DebugToolsSpawning).GetDeclaredMethods())
             {
-                if (method.IsGenericMethod || method.ContainsGenericParameters) continue;
-                VMF_Harmony.Instance.Patch(method, null, null, transpiler);
+                Patch(method);
             }
             foreach (var type in AccessTools.InnerTypes(typeof(DebugToolsSpawning)))
             {
-                foreach(var method in type.GetDeclaredMethods())
+                foreach (var method in type.GetDeclaredMethods())
                 {
-                    if (method.IsGenericMethod || method.ContainsGenericParameters) continue;
-                    VMF_Harmony.Instance.Patch(method, null, null, transpiler);
+                    Patch(method);
                 }
             }
             foreach (var method in typeof(DebugToolsGeneral).GetDeclaredMethods())
             {
-                if (method.IsGenericMethod || method.ContainsGenericParameters) continue;
-                VMF_Harmony.Instance.Patch(method, null, null, transpiler);
+                Patch(method);
+            }
+            foreach (var method in typeof(DebugToolsPawns).GetDeclaredMethods())
+            {
+                Patch(method);
             }
         }
 

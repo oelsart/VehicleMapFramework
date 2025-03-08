@@ -14,7 +14,9 @@ namespace VehicleInteriors
             var driver = nextJob.GetCachedDriver(pawn);
             curToilIndex(driver) = pawn.jobs.curDriver.CurToilIndex - 1;
             pawn.jobs.curDriver.globalFinishActions.Clear(); //Jobはまだ終わっちゃいねえためFinishActionはさせない。TryDropThingなどをしていることもあるし
-            pawn.jobs.StartJob(JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, nextJob), JobCondition.InterruptForced, keepCarryingThingOverride: true);
+            var job = JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, nextJob);
+            job.playerForced = nextJob.playerForced;
+            pawn.jobs.StartJob(job, JobCondition.InterruptForced, keepCarryingThingOverride: true);
         }
 
         private static AccessTools.FieldRef<JobDriver, int> curToilIndex = AccessTools.FieldRefAccess<JobDriver, int>("curToilIndex");

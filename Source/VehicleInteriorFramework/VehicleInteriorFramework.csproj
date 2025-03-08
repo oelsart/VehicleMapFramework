@@ -268,6 +268,7 @@
     <Compile Include="VMF_HarmonyPatches\Patches_AdaptiveStorage.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_AnimalPen.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_BillDoorsFramework.cs" />
+    <Compile Include="VMF_HarmonyPatches\Patches_CallTradeShips.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_ColonyGroups.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_DeepStorage.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_DMS.cs" />

@@ -112,12 +112,9 @@ namespace VehicleInteriors
             {
                 if (!includeCorners)
                 {
-                    if (verb.CurrentTarget.HasThing)
+                    if (!GenSightOnVehicle.LineOfSight(sourceSq, targetLoc, map, false, null))
                     {
-                        if (!GenSightOnVehicle.LineOfSight(sourceSq, targetLoc, map, false, null))
-                        {
-                            return false;
-                        }
+                        return false;
                     }
                 }
                 else if (!GenSightOnVehicle.LineOfSightToEdges(sourceSq, targetLoc, map, false, null))

@@ -71,6 +71,7 @@ namespace VehicleInteriors
             }
             listingStandard.GapLine();
             listingStandard.CheckboxLabeled("(Debug) Draw vehicle map grid", ref settings.drawVehicleMapGrid);
+            listingStandard.CheckboxLabeled("(Debug) Enable debug tool patches", ref settings.debugToolPatches);
             listingStandard.End();
         }
 
@@ -90,6 +91,19 @@ namespace VehicleInteriors
             {
                 var m_Postfix = AccessTools.Method(typeof(Patch_RoofGrid_Roofed), nameof(Patch_RoofGrid_Roofed.Postfix));
                 VMF_Harmony.Instance.Patch(m_Roofed, m_Postfix);
+            }
+
+            var m_GenericRectTool = AccessTools.Method(typeof(DebugToolsGeneral), nameof(DebugToolsGeneral.GenericRectTool));
+            if (VMF_Harmony.Instance.GetPatchedMethods().Contains(m_GenericRectTool))
+            {
+                if (!settings.debugToolPatches)
+                {
+                    Patches_DebugTools.ApplyPatches(unpatch: true);
+                }
+            }
+            else if (settings.debugToolPatches)
+            {
+                Patches_DebugTools.ApplyPatches();
             }
         }
 

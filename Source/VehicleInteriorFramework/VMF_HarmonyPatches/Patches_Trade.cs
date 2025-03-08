@@ -158,6 +158,16 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
+    //posのInBoundsチェックはやってるのに範囲内のセルのInBoundsはチェックしてないのぉ？なんでよ……まあ建築限界線があるからだろうけども。チェックを追加します。
+    [HarmonyPatch(typeof(Building_OrbitalTradeBeacon), nameof(Building_OrbitalTradeBeacon.TradeableCellsAround))]
+    public static class Patch_Building_OrbitalTradeBeacon_TradeableCellsAround
+    {
+        public static void Postfix(Map map, List<IntVec3> __result)
+        {
+            __result.RemoveAll(c => !c.InBounds(map));
+        }
+    }
+
     //map.thingGrid.ThingsAt(c) -> building_OrbitalTradeBeacon.Map.thingGrid.ThingsAt(c)
     [HarmonyPatch(typeof(TradeUtility), nameof(TradeUtility.LaunchThingsOfType))]
     public static class Patch_TradeUtility_LaunchThingsOfType
