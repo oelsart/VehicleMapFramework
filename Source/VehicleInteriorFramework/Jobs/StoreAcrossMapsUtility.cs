@@ -20,7 +20,7 @@ namespace VehicleInteriors
             exitSpot = TargetInfo.Invalid;
             enterSpot = TargetInfo.Invalid;
             destMap = map;
-            List<SlotGroup> allGroupsListInPriorityOrder = map.BaseMapAndVehicleMaps().SelectMany(m => m.haulDestinationManager.AllGroupsListInPriorityOrder).OrderByDescending(d => d.Settings.Priority).ToList();
+            List<SlotGroup> allGroupsListInPriorityOrder = map.BaseMapAndVehicleMaps().SelectMany(m => m.haulDestinationManager.AllGroupsListInPriorityOrder).OrderByDescending(s => s.Settings.Priority).ToList();
             if (allGroupsListInPriorityOrder.Count == 0)
             {
                 foundCell = IntVec3.Invalid;

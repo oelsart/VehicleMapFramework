@@ -6,5 +6,7 @@
 	<VMF_Settings.WeightFactor>車両マップの上の物の重さ係数.</VMF_Settings.WeightFactor>
 	<VMF_Settings.ThreadingPathCost>大きな乗り物における経路コスト計算のマルチスレッド化.</VMF_Settings.ThreadingPathCost>
 	<VMF_Settings.MinAreaForThreading>マルチスレッドで計算される乗り物の最小面積.</VMF_Settings.MinAreaForThreading>
+	<VMF_Settings.AsyncClosestThing>到達可能な最も近い物を取得する計算のマルチスレッド化.</VMF_Settings.AsyncClosestThing>
+	<VMF_Settings.MinSearchSetCount>マルチスレッドで計算されるサーチセットの最小数.</VMF_Settings.MinSearchSetCount>
 
 </LanguageData>
