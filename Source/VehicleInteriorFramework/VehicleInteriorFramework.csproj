@@ -148,6 +148,7 @@
     <Compile Include="Graphics\ExtraOverlayData.cs" />
     <Compile Include="Jobs\WorkGivers\IWorkGiverAcrossMaps.cs" />
     <Compile Include="Jobs\WorkGivers\WorkGiver_LoadBuildableContainer.cs" />
+    <Compile Include="MapComponents\CrossMapHaulDestinationManager.cs" />
     <Compile Include="ModExtensions\VehicleHumanPowered.cs" />
     <Compile Include="PlaceWorkers\PlaceWorker_ForbidOnHumanPoweredVehicle.cs" />
     <Compile Include="PlaceWorkers\PlaceWorker_ForceOnHoverVehicle.cs" />
@@ -187,7 +188,7 @@
     <Compile Include="VehicleMap\SectionLayer_ThingsGeneralOnVehicle.cs" />
     <Compile Include="VehicleMap\SectionLayer_ThingsPowerGridOnVehicle.cs" />
     <Compile Include="VehicleMap\TransportPodsArrivalAction_LandInVehicleMap.cs" />
-    <Compile Include="VehicleMap\VehicleMapGrid.cs" />
+    <Compile Include="MapComponents\VehicleMapGrid.cs" />
     <Compile Include="VehicleMap\VehicleMapParentsComponent.cs" />
     <Compile Include="VehicleMap\SectionLayer_LightingOnVehicle.cs" />
     <Compile Include="VehicleMap\SectionLayer_TerrainOnVehicle.cs" />
@@ -243,7 +244,7 @@
     <Compile Include="Jobs\JobGivers\JobGiver_GetOffVehicle.cs" />
     <Compile Include="Jobs\JobGivers\JobGiver_HaulAcrossMaps.cs" />
     <Compile Include="Jobs\ReservationAcrossMapsUtility.cs" />
-    <Compile Include="Jobs\StoreAcrossMapsUtility.cs" />
+    <Compile Include="Utilities\StoreAcrossMapsUtility.cs" />
     <Compile Include="Jobs\ToilsAcrossMaps.cs" />
     <Compile Include="Jobs\WorkGivers\WorkGiver_HaulAcrossMaps.cs" />
     <Compile Include="Utilities\LoadTransportersJobOnVehicleUtility.cs" />
@@ -255,7 +256,7 @@
     <Compile Include="Utilities\StudyUtilityOnVehicle.cs" />
     <Compile Include="VehicleStatPart_HumanPower.cs" />
     <Compile Include="Utilities\VerbOnVehicleUtility.cs" />
-    <Compile Include="VehiclePawnWithMapCache.cs" />
+    <Compile Include="MapComponents\VehiclePawnWithMapCache.cs" />
     <Compile Include="VehicleMap\VehicleMapProps.cs" />
     <Compile Include="VehicleMap\Command_FocusVehicleMap.cs" />
     <Compile Include="VehicleMap\GenStep_VehicleInterior.cs" />

@@ -1002,7 +1002,7 @@ namespace VehicleInteriors
                             else
                             {
                                 IEnumerable<Building_HoldingPlatform> source = pawn.Map.BaseMapAndVehicleMaps().SelectMany(m => m.listerBuildings.AllBuildingsColonistOfClass<Building_HoldingPlatform>());
-                                Func<Building_HoldingPlatform, bool> predicate = (Building_HoldingPlatform x) => !x.Occupied && pawn.CanReserveAndReach(x.Map, x, PathEndMode.Touch, Danger.Deadly, 1, -1, null, false, out _, out _);
+                                bool predicate(Building_HoldingPlatform x) => !x.Occupied && pawn.CanReserveAndReach(x.Map, x, PathEndMode.Touch, Danger.Deadly, 1, -1, null, false, out _, out _);
                                 IEnumerable<Building_HoldingPlatform> enumerable2 = source.Where(predicate);
                                 Thing building = GenClosestOnVehicle.ClosestThing_Global_Reachable(pawn.Position, pawn.Map, enumerable2, PathEndMode.ClosestTouch, TraverseParms.For(pawn, Danger.Some, TraverseMode.ByPawn, false, false, false), 9999f, null, delegate (Thing t)
                                 {

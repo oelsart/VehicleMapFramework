@@ -92,7 +92,11 @@ namespace VehicleInteriors
         private static void ComputeCulledThings(NativeArray<ThingCullDetails> details, Map map, IReadOnlyList<Thing> drawThings)
         {
             CellRect cellRect = Find.CameraDriver.CurrentViewRect;
-            cellRect = cellRect.ExpandedBy(1);
+            if (map.IsVehicleMapOf(out var vehicle))
+            {
+                var size = vehicle.def.size;
+                cellRect.ExpandedBy(Mathf.FloorToInt(Mathf.Max(size.x, size.z) / 2f));
+            }
             cellRect.ClipInsideVehicleMap(map);
             using (new ProfilerBlock("Prepare cull job"))
             {

@@ -263,11 +263,11 @@ namespace VehicleInteriors
             if (this.Spawned)
             {
                 this.cachedDrawPos = this.DrawPos;
+
+                this.mapFollower.MapFollowerTick();
             }
 
             base.Tick();
-
-            this.mapFollower.MapFollowerTick();
         }
 
         public override void Destroy(DestroyMode mode = DestroyMode.Vanish)
@@ -324,6 +324,7 @@ namespace VehicleInteriors
         public override void DeSpawn(DestroyMode mode = DestroyMode.Vanish)
         {
             VehiclePawnWithMapCache.DeRegisterVehicle(this);
+            this.mapFollower.DeRegisterVehicle();
             if (mode != DestroyMode.KillFinalize)
             {
                 this.interiorMap.skyManager = new SkyManager(this.interiorMap);
@@ -341,7 +342,19 @@ namespace VehicleInteriors
             {
                 Find.Selector.Deselect(thing);
             }
-            this.mapFollower.DeRegisterVehicle();
+            foreach (var zone in this.interiorMap.zoneManager.AllZones.Intersect(Find.Selector.SelectedObjects))
+            {
+                Find.Selector.Deselect(zone);
+            }
+            var crossMapHaulDestinationManager = this.Map.GetCachedMapComponent<CrossMapHaulDestinationManager>();
+            foreach (var haulSource in this.interiorMap.haulDestinationManager.AllHaulSourcesListForReading)
+            {
+                crossMapHaulDestinationManager.RemoveHaulSource(haulSource);
+            }
+            foreach (var haulDestination in this.interiorMap.haulDestinationManager.AllHaulDestinations)
+            {
+                crossMapHaulDestinationManager.RemoveHaulDestination(haulDestination);
+            }
             base.DeSpawn(mode);
         }
 

@@ -64,23 +64,23 @@ namespace VehicleInteriors
             {
                 return null;
             }
-            Predicate<Thing> validator = (Thing m) =>
+            bool Validator(Thing m)
             {
                 bool flag = ((patient.playerSettings != null) ? patient.playerSettings.medCare : MedicalCareCategory.NoMeds).AllowsMedicine(m.def);
                 if (patient.playerSettings == null & onlyUseInventory)
-				{
+                {
                     flag = true;
                 }
                 return !m.IsForbidden(healer) && flag && healer.CanReserve(m, m.Map, 10, 1, null, false);
-            };
+            }
             Func<Thing, bool> FindBestMedicine = (Thing t) =>
             {
-                return t.def.IsMedicine && validator(t);
+                return t.def.IsMedicine && Validator(t);
             };
-            Func<Thing, float> PriorityOf = (Thing t) =>
+            float PriorityOf(Thing t)
             {
                 return t.def.GetStatValueAbstract(StatDefOf.MedicalPotency);
-            };
+            }
             Thing GetBestMedInInventory(ThingOwner<Thing> inventory)
             {
                 if (inventory.Count == 0) return null;
@@ -93,7 +93,7 @@ namespace VehicleInteriors
             }
             var baseMap = patient.MapHeldBaseMap();
             var serchSet = baseMap.BaseMapAndVehicleMaps().SelectMany(m => m.listerThings.ThingsInGroup(ThingRequestGroup.Medicine));
-            Thing thing2 = GenClosestOnVehicle.ClosestThing_Global_Reachable(patient.PositionHeld, patient.MapHeld, serchSet, PathEndMode.ClosestTouch, TraverseParms.For(healer, Danger.Deadly, TraverseMode.ByPawn, false, false, false), 9999f, validator, PriorityOf, false, out var exitSpot2, out var enterSpot2);
+            Thing thing2 = GenClosestOnVehicle.ClosestThing_Global_Reachable(patient.PositionHeld, patient.MapHeld, serchSet, PathEndMode.ClosestTouch, TraverseParms.For(healer, Danger.Deadly, TraverseMode.ByPawn, false, false, false), 9999f, Validator, PriorityOf, false, out var exitSpot2, out var enterSpot2);
             if (thing == null || thing2 == null)
             {
                 if (thing == null && thing2 == null && healer.IsColonist && healer.Map != null)

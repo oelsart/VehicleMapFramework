@@ -388,7 +388,6 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                         {
                             return worldObject;
                         }
-
                         holder = holder.ParentHolder;
                     }
                     return null;
@@ -396,10 +395,10 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 var worldObject2 = GetWorldObject(mapParent_Vehicle.vehicle);
                 if (worldObject2 is AerialVehicleInFlight aerial)
                 {
-                    __result = WorldHelper.GetNearestTile(aerial.DrawPos);
+                    __result = GetTile(aerial);
                     return false;
                 }
-                if (worldObject2 == null)
+                if (worldObject2 == null || worldObject2 is MapParent_Vehicle)
                 {
                     return true;
                 }
@@ -407,6 +406,25 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 return false;
             }
             return true;
+        }
+
+        private static Dictionary<AerialVehicleInFlight, int> tileCache = new Dictionary<AerialVehicleInFlight, int>();
+
+        private static int lastCachedTick = -1;
+
+        private static int GetTile(AerialVehicleInFlight aerial)
+        {
+            if (Find.TickManager.TicksAbs - lastCachedTick > 10)
+            {
+                tileCache.Clear();
+                lastCachedTick = Find.TickManager.TicksAbs;
+            }
+            if (tileCache.TryGetValue(aerial, out var tile))
+            {
+                return tile;
+            }
+            tileCache[aerial] = WorldHelper.GetNearestTile(aerial.DrawPos);
+            return tileCache[aerial];
         }
     }
 
@@ -430,7 +448,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         public static bool Prefix1(Thing t, DesignationManager __instance, ref Designation __result)
         {
             var thingMap = t.MapHeld;
-            if (thingMap != __instance.map)
+            if (thingMap != null && thingMap != __instance.map)
             {
                 __result = thingMap.designationManager.DesignationOn(t);
                 return false;
@@ -443,7 +461,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         public static bool Prefix2(Thing t, DesignationDef def, DesignationManager __instance, ref Designation __result)
         {
             var thingMap = t.MapHeld;
-            if (thingMap != __instance.map)
+            if (thingMap != null && thingMap != __instance.map)
             {
                 __result = thingMap.designationManager.DesignationOn(t, def);
                 return false;
@@ -536,6 +554,51 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             return instructions.MethodReplacer(MethodInfoCache.g_Thing_MapHeld, MethodInfoCache.m_MapHeldBaseMap);
+        }
+    }
+
+    [HarmonyPatch(typeof(HaulDestinationManager), nameof(HaulDestinationManager.AddHaulSource))]
+    public static class Patch_HaulDestinationManager_AddHaulSource
+    {
+        public static void Postfix(Map ___map, IHaulSource source)
+        {
+            ___map.GetCachedMapComponent<CrossMapHaulDestinationManager>().AddHaulSource(source);
+        }
+    }
+
+    [HarmonyPatch(typeof(HaulDestinationManager), nameof(HaulDestinationManager.AddHaulDestination))]
+    public static class Patch_HaulDestinationManager_AddHaulDestination
+    {
+        public static void Postfix(Map ___map, IHaulDestination haulDestination)
+        {
+            ___map.GetCachedMapComponent<CrossMapHaulDestinationManager>().AddHaulDestination(haulDestination);
+        }
+    }
+
+    [HarmonyPatch(typeof(HaulDestinationManager), nameof(HaulDestinationManager.RemoveHaulSource))]
+    public static class Patch_HaulDestinationManager_RemoveHaulSource
+    {
+        public static void Postfix(Map ___map, IHaulSource source)
+        {
+            ___map.GetCachedMapComponent<CrossMapHaulDestinationManager>().RemoveHaulSource(source);
+        }
+    }
+
+    [HarmonyPatch(typeof(HaulDestinationManager), nameof(HaulDestinationManager.RemoveHaulDestination))]
+    public static class Patch_HaulDestinationManager_RemoveHaulDestination
+    {
+        public static void Postfix(Map ___map, IHaulDestination haulDestination)
+        {
+            ___map.GetCachedMapComponent<CrossMapHaulDestinationManager>().RemoveHaulDestination(haulDestination);
+        }
+    }
+
+    [HarmonyPatch(typeof(HaulDestinationManager), nameof(HaulDestinationManager.Notify_HaulDestinationChangedPriority))]
+    public static class Patch_HaulDestinationManager_Notify_HaulDestinationChangedPriority
+    {
+        public static void Postfix(Map ___map)
+        {
+            ___map.GetCachedMapComponent<CrossMapHaulDestinationManager>().Notify_HaulDestinationChangedPriority();
         }
     }
 }

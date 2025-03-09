@@ -827,4 +827,28 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             }
         }
     }
+
+    //FoodDeliverはtargetCのセルに向かってStartPathしてるのでtargetB（囚人）とのマップの違いをチェックしてそのマップに行く必要がある
+    [HarmonyPatch(typeof(JobDriver_FoodDeliver), "MakeNewToils")]
+    public static class Patch_JobDriver_FoodDeliver_MakeNewToils
+    {
+        public static IEnumerable<Toil> Postfix(IEnumerable<Toil> values, Job ___job)
+        {
+            var found = false;
+            foreach (var toil in values)
+            {
+                if (toil.debugName == "MakeNewToils" && !found)
+                {
+                    toil.AddPreInitAction(() =>
+                    {
+                        if (___job.targetB.HasThing && toil.actor.Map != ___job.targetB.Thing.MapHeld && toil.actor.CanReach(___job.targetB, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, ___job.targetB.Thing.MapHeld, out var exitSpot, out var enterSpot))
+                        {
+                            JobAcrossMapsUtility.StartGotoDestMapJob(toil.actor, exitSpot, enterSpot);
+                        }
+                    });
+                }
+                yield return toil;
+            }
+        }
+    }
 }

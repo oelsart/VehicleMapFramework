@@ -622,7 +622,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static bool Prefix(ref bool __result)
         {
-            if (UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out _))
+            if (UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out _, false))
             {
                 __result = false;
                 return false;
