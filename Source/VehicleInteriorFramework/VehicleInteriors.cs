@@ -1,11 +1,13 @@
 ﻿using HarmonyLib;
-using SmashTools;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using UnityEngine;
+using VehicleInteriors.Settings;
 using VehicleInteriors.VMF_HarmonyPatches;
 using Verse;
+using VMF_PUAHPatch;
 
 namespace VehicleInteriors
 {
@@ -14,6 +16,8 @@ namespace VehicleInteriors
         public static VehicleInteriors mod;
 
         public static VehicleMapSettings settings;
+
+        private static List<TabRecord> tabs = new List<TabRecord>();
 
         public static AssetBundle Bundle
         {
@@ -56,28 +60,44 @@ namespace VehicleInteriors
             VehicleInteriors.settings = base.GetSettings<VehicleMapSettings>();
         }
 
+        public void InitializeTabs()
+        {
+            VehicleInteriors.tabs.Clear();
+            var mainTab = new SettingsTab_Main();
+            VehicleInteriors.tabs.Add(new TabRecord("VMF_Settings.Tab.Main".Translate(), () =>
+            {
+                CurrentTab = mainTab;
+            }, () => CurrentTab == mainTab));
+            var PUAHTab = new SettingsTab_VMF_PUAHPatch();
+            VehicleInteriors.tabs.Add(new TabRecord("VMF_Settings.Tab.PUAHPatch".Translate(), () =>
+            {
+                CurrentTab = PUAHTab;
+            }, () => CurrentTab == PUAHTab));
+
+            CurrentTab = mainTab;
+        }
+
+        internal static SettingsTabDrawer CurrentTab { get; set; }
+
         public override void DoSettingsWindowContents(Rect inRect)
         {
-            Listing_Standard listingStandard = new Listing_Standard();
-            listingStandard.Begin(inRect);
-            listingStandard.CheckboxLabeled("VMF_Settings.DrawPlanet".Translate(), ref settings.drawPlanet);
-            listingStandard.CheckboxLabeled("VMF_Settings.RoofedPatch".Translate(), ref settings.roofedPatch);
-            listingStandard.SliderLabeled("VMF_Settings.WeightFactor".Translate(), null, null, ref settings.weightFactor, 0f, 3f);
-            listingStandard.GapLine();
-            listingStandard.CheckboxLabeled("VMF_Settings.ThreadingPathCost".Translate(), ref settings.threadingPathCost);
-            if (settings.threadingPathCost)
+            if (CurrentTab == null)
             {
-                listingStandard.SliderLabeled("VMF_Settings.MinAreaForThreading".Translate(), null, null, ref settings.minAreaForThreading, 0, 2500, 1, "0", "2500");
+                InitializeTabs();
             }
-            listingStandard.GapLine();
-            listingStandard.CheckboxLabeled("(Debug) Draw vehicle map grid", ref settings.drawVehicleMapGrid);
-            listingStandard.CheckboxLabeled("(Debug) Enable debug tool patches", ref settings.debugToolPatches);
-            listingStandard.End();
+
+            base.DoSettingsWindowContents(inRect);
+            var rect = new Rect(inRect.x, inRect.y + TabDrawer.TabHeight, inRect.width, inRect.height - TabDrawer.TabHeight);
+            Widgets.DrawMenuSection(rect);
+            TabDrawer.DrawTabs(rect, VehicleInteriors.tabs);
+            CurrentTab.Draw(rect.ContractedBy(10f));
         }
 
         public override void WriteSettings()
         {
             base.WriteSettings();
+            VMF_PUAHMod.mod.WriteSettings();
+
             var m_Roofed = AccessTools.Method(typeof(RoofGrid), nameof(RoofGrid.Roofed), new Type[] { typeof(IntVec3) });
             if (VMF_Harmony.Instance.GetPatchedMethods().Contains(m_Roofed))
             {
@@ -104,6 +124,19 @@ namespace VehicleInteriors
             else if (settings.debugToolPatches)
             {
                 Patches_DebugTools.ApplyPatches();
+            }
+
+            var m_SetSpotsToJobAcrossMaps = JobAcrossMapsUtilityPatch.TargetMethod();
+            if (VMF_Harmony.Instance.GetPatchedMethods().Contains(m_SetSpotsToJobAcrossMaps))
+            {
+                if (!VMF_PUAHMod.settings.patchEnabled)
+                {
+                    VMF_Harmony.Instance.UnpatchCategory("VMF_Compatibility_Patch");
+                }
+            }
+            else if (VMF_PUAHMod.settings.patchEnabled)
+            {
+                VMF_Harmony.Instance.PatchCategory("VMF_Compatibility_Patch");
             }
         }
 

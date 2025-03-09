@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LanguageData>
 
+	<VMF_Settings.Tab.Main>Main</VMF_Settings.Tab.Main>
+	<VMF_Settings.Tab.PUAHPatch>PUAH Patch</VMF_Settings.Tab.PUAHPatch>
+	
 	<VMF_Settings.DrawPlanet>Draw the world map during caravan.</VMF_Settings.DrawPlanet>
 	<VMF_Settings.RoofedPatch>Refer also to roofed on base map for roofed on vehicle map.\n(Impact to performance)</VMF_Settings.RoofedPatch>
 	<VMF_Settings.WeightFactor>Weight factor of things on the vehicle map.</VMF_Settings.WeightFactor>

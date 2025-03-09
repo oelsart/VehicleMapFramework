@@ -152,6 +152,9 @@
     <Compile Include="PlaceWorkers\PlaceWorker_ForbidOnHumanPoweredVehicle.cs" />
     <Compile Include="PlaceWorkers\PlaceWorker_ForceOnHoverVehicle.cs" />
     <Compile Include="Graphics\RGBMaskOpacityDef.cs" />
+    <Compile Include="Settings\SettingsTabDrawer.cs" />
+    <Compile Include="Settings\SettingsTab_Main.cs" />
+    <Compile Include="Settings\SettingsTab_VMF_PUAHPatch.cs" />
     <Compile Include="Utilities\AnimalPenUtilityOnVehicle.cs" />
     <Compile Include="Utilities\GenDrawOnVehicle.cs" />
     <Compile Include="Graphics\Graphic_LinkedCornerOverlaySingle.cs" />
@@ -179,7 +182,7 @@
     <Compile Include="Graphics\RGBMaskShaderTypeDef.cs" />
     <Compile Include="BuildableUpgrades\VehicleHandlerBuildable.cs" />
     <Compile Include="Utilities\RegionTraverserAcrossMaps.cs" />
-    <Compile Include="VehicleMapSettings.cs" />
+    <Compile Include="Settings\VehicleMapSettings.cs" />
     <Compile Include="VehicleMap\DynamicDrawManagerOnVehicle.cs" />
     <Compile Include="VehicleMap\SectionLayer_ThingsGeneralOnVehicle.cs" />
     <Compile Include="VehicleMap\SectionLayer_ThingsPowerGridOnVehicle.cs" />
@@ -303,6 +306,7 @@
     <Compile Include="VMF_HarmonyPatches\Patches_Verb.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_WhileYoureUp.cs" />
     <Compile Include="VMF_Materials.cs" />
+    <Compile Include="VMF_PUAHPatch.cs" />
     <Compile Include="VMF_Shaders.cs" />
     <Compile Include="Utilities\VIF_Widgets.cs" />
   </ItemGroup>
