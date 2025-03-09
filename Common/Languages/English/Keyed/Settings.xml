@@ -9,5 +9,7 @@
 	<VMF_Settings.WeightFactor>Weight factor of things on the vehicle map.</VMF_Settings.WeightFactor>
 	<VMF_Settings.ThreadingPathCost>Multi-threading for path cost calculations on large vehicles.</VMF_Settings.ThreadingPathCost>
 	<VMF_Settings.MinAreaForThreading>Minimum area of vehicle calculated in multi-threading.</VMF_Settings.MinAreaForThreading>
+	<VMF_Settings.AsyncClosestThing>Multi-threading of calculations to get closest reachable thing.</VMF_Settings.AsyncClosestThing>
+	<VMF_Settings.MinSearchSetCount>Minimum search set count calculated in multi-threading.</VMF_Settings.MinSearchSetCount>
 
 </LanguageData>

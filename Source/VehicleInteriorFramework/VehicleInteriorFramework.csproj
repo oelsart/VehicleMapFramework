@@ -183,8 +183,11 @@
     <Compile Include="Graphics\RGBMaskShaderTypeDef.cs" />
     <Compile Include="BuildableUpgrades\VehicleHandlerBuildable.cs" />
     <Compile Include="Utilities\RegionTraverserAcrossMaps.cs" />
-    <Compile Include="Settings\VehicleMapSettings.cs" />
+    <Compile Include="VehicleMapSettings.cs" />
+    <Compile Include="VehicleMap\AsyncReachability.cs" />
+    <Compile Include="VehicleMap\AsyncReachabilityCache.cs" />
     <Compile Include="VehicleMap\DynamicDrawManagerOnVehicle.cs" />
+    <Compile Include="Utilities\RegionUtility.cs" />
     <Compile Include="VehicleMap\SectionLayer_ThingsGeneralOnVehicle.cs" />
     <Compile Include="VehicleMap\SectionLayer_ThingsPowerGridOnVehicle.cs" />
     <Compile Include="VehicleMap\TransportPodsArrivalAction_LandInVehicleMap.cs" />
@@ -268,7 +271,7 @@
     <Compile Include="VehiclePawnWithMap.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="VehicleStructure.cs" />
-    <Compile Include="Vehicle_MapFollower.cs" />
+    <Compile Include="VehicleMap\Vehicle_MapFollower.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_AdaptiveStorage.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_AnimalPen.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_BillDoorsFramework.cs" />

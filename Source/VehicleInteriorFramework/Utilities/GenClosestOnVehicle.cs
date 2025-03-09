@@ -3,7 +3,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using UnityEngine;
+using Vehicles;
 using Verse;
 using Verse.AI;
 
@@ -93,7 +96,7 @@ namespace VehicleInteriors
                 {
                     Log.ErrorOnce("ClosestThingReachable had to do a global search, but traversableRegionTypes is not set to passable only. It's not supported, because Reachability is based on passable regions only.", 14384767);
                 }
-                bool validator2(Thing t)
+                bool Validator(Thing t)
                 {
                     if (ReachabilityUtilityOnVehicle.CanReach(map, root, t, peMode, traverseParams, t.Map, out var exitSpot2, out var enterSpot2) && (validator == null || validator(t)))
                     {
@@ -103,8 +106,26 @@ namespace VehicleInteriors
                     }
                     return false;
                 }
+                bool ValidatorAsync(Thing t)
+                {
+                    if (ReachabilityUtilityOnVehicle.CanReachAsync(map, root, t, peMode, traverseParams, t.Map, out var exitSpot2, out var enterSpot2) && (validator == null || validator(t)))
+                    {
+                        GenClosestOnVehicle.tmpExitSpot = exitSpot2;
+                        GenClosestOnVehicle.tmpEnterSpot = enterSpot2;
+                        return true;
+                    }
+                    return false;
+                }
                 var basePos = map.IsVehicleMapOf(out var vehicle) ? root.ToBaseMapCoord(vehicle) : root;
-                thing = GenClosestOnVehicle.ClosestThing_Global(basePos, customGlobalSearchSet ?? map.BaseMapAndVehicleMaps().SelectMany(m => m.listerThings.ThingsMatching(thingReq)), maxDistance, validator2, null);
+                var searchSet = customGlobalSearchSet ?? map.BaseMapAndVehicleMaps().SelectMany(m => m.listerThings.ThingsMatching(thingReq));
+                if (VehicleInteriors.settings.asyncClosestThing && searchSet.Count() >= VehicleInteriors.settings.minSearchSetCount)
+                {
+                    thing = GenClosestOnVehicle.ClosestThing_Global(basePos, searchSet, maxDistance, ValidatorAsync, async: true);
+                }
+                else
+                {
+                    thing = GenClosestOnVehicle.ClosestThing_Global(basePos, searchSet, maxDistance, Validator, null);
+                }
             }
             exitSpot = GenClosestOnVehicle.exitSpotResult;
             enterSpot = GenClosestOnVehicle.enterSpotResult;
@@ -162,52 +183,117 @@ namespace VehicleInteriors
 
         public static Thing ClosestThing_Global(IntVec3 center, IEnumerable searchSet, float maxDistance = 99999f, Predicate<Thing> validator = null, Func<Thing, float> priorityGetter = null)
         {
-            return GenClosestOnVehicle.ClosestThing_Global(center, searchSet, maxDistance, validator, priorityGetter, false);
+            return GenClosestOnVehicle.ClosestThing_Global(center, searchSet, maxDistance, validator, priorityGetter, false, false);
         }
 
         public static Thing ClosestThing_Global(IntVec3 center, IEnumerable searchSet, float maxDistance = 99999f, Predicate<Thing> validator = null, Func<Thing, float> priorityGetter = null, bool lookInHaulSources = false)
+        {
+            var async = VehicleInteriors.settings.asyncClosestThing && searchSet.EnumerableCount() >= VehicleInteriors.settings.minSearchSetCount;
+            return GenClosestOnVehicle.ClosestThing_Global(center, searchSet, maxDistance, validator, priorityGetter, lookInHaulSources, async);
+        }
+
+        private static ParallelOptions parallelOptions = new ParallelOptions()
+        {
+            TaskScheduler = TaskScheduler.Default,
+            MaxDegreeOfParallelism = AsyncReachability.NumWorkers,
+            CancellationToken = CancellationToken.None
+        };
+
+        public static Thing ClosestThing_Global(IntVec3 center, IEnumerable searchSet, float maxDistance = 99999f, Predicate<Thing> validator = null, Func<Thing, float> priorityGetter = null, bool lookInHaulSources = false, bool async = false)
         {
             if (searchSet == null)
             {
                 return null;
             }
+            if (async) Log.Message($"async={searchSet.EnumerableCount()}");
+            else Log.Message($"sync={searchSet.EnumerableCount()}");
             var closestDistSquared = 2.1474836E+09f;
             Thing chosen = null;
             var bestPrio = float.MinValue;
             var maxDistanceSquared = maxDistance * maxDistance;
             if (searchSet is IList<Thing> list)
             {
-                foreach (var target in list)
+                if (async)
                 {
-                    Process(target);
+                    Parallel.ForEach(list, parallelOptions, target =>
+                    {
+                        Process(target);
+                    });
+                }
+                else
+                {
+                    foreach (var target in list)
+                    {
+                        Process(target);
+                    }
                 }
             }
             else if (searchSet is IList<Pawn> list2)
             {
-                foreach (var target in list2)
+                if (async)
                 {
-                    Process(target);
+                    Parallel.ForEach(list2, parallelOptions, target =>
+                    {
+                        Process(target);
+                    });
+                }
+                else
+                {
+                    foreach (var target in list2)
+                    {
+                        Process(target);
+                    }
                 }
             }
             else if (searchSet is IList<Building> list3)
             {
-                foreach (var target in list3)
+                if (async)
                 {
-                    Process(target);
+                    Parallel.ForEach(list3, parallelOptions, target =>
+                    {
+                        Process(target);
+                    });
+                }
+                else
+                {
+                    foreach (var target in list3)
+                    {
+                        Process(target);
+                    }
                 }
             }
             else if (searchSet is IList<IAttackTarget> list4)
             {
-                foreach (var target in list4)
+                if (async)
                 {
-                    Process((Thing)target);
+                    Parallel.ForEach(list4, parallelOptions, target =>
+                    {
+                        Process(target.Thing);
+                    });
+                }
+                else
+                {
+                    foreach (var target in list4)
+                    {
+                        Process(target.Thing);
+                    }
                 }
             }
             else
             {
-                foreach (var target in searchSet)
+                if (async)
                 {
-                    Process((Thing)target);
+                    Parallel.ForEach(searchSet.Cast<Thing>(), parallelOptions, target =>
+                    {
+                        Process(target);
+                    });
+                }
+                else
+                {
+                    foreach (var target in searchSet)
+                    {
+                        Process((Thing)target);
+                    }
                 }
             }
             return chosen;
