@@ -340,7 +340,7 @@ namespace VMF_CEPatch
         {
             var codes = instructions.ToList();
             var f_allBuildingsColonist = AccessTools.Field(typeof(ListerBuildings), nameof(ListerBuildings.allBuildingsColonist));
-            var pos = codes.FindIndex(c => c.opcode == OpCodes.Ldfld && c.OperandIs(f_allBuildingsColonist));
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Ldfld && c.OperandIs(f_allBuildingsColonist)) + 1;
             codes.InsertRange(pos, new[]
             {
                 CodeInstruction.LoadArgument(0),

@@ -92,12 +92,11 @@ namespace VehicleInteriors
         private static void ComputeCulledThings(NativeArray<ThingCullDetails> details, Map map, IReadOnlyList<Thing> drawThings)
         {
             CellRect cellRect = Find.CameraDriver.CurrentViewRect;
-            if (map.IsVehicleMapOf(out var vehicle))
+            cellRect = cellRect.ExpandedBy(1);
+            if (map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
             {
-                var size = vehicle.def.size;
-                cellRect.ExpandedBy(Mathf.FloorToInt(Mathf.Max(size.x, size.z) / 2f));
+                cellRect.ClipInsideMap(vehicle.Map);
             }
-            cellRect.ClipInsideVehicleMap(map);
             using (new ProfilerBlock("Prepare cull job"))
             {
                 for (int i = 0; i < drawThings.Count; i++)
@@ -106,7 +105,7 @@ namespace VehicleInteriors
                     ThingCullDetails value = new ThingCullDetails
                     {
                         cell = thing.Position,
-                        coarseBounds = thing.OccupiedDrawRect(),
+                        coarseBounds = thing.MovedOccupiedDrawRect(),
                         hideAtSnowDepth = thing.def.hideAtSnowDepth,
                         seeThroughFog = thing.def.seeThroughFog,
                         hasSunShadows = thing.def.HasSunShadows
@@ -156,7 +155,11 @@ namespace VehicleInteriors
             {
                 rect.minZ -= Mathf.CeilToInt(lightSourceInfo.vector.y);
             }
-            cachedRect[map] = (RealTime.frameCount, rect.ClipInsideVehicleMap(map));
+            if (map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
+            {
+                rect.ClipInsideMap(vehicle.Map);
+            }
+            cachedRect[map] = (RealTime.frameCount, rect);
             return cachedRect[map].rect;
         }
 

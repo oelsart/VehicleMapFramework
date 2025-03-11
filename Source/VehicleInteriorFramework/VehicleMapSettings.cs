@@ -4,35 +4,58 @@ namespace VehicleInteriors
 {
     public class VehicleMapSettings : ModSettings
     {
-        public bool drawPlanet = true;
+        internal static Default DefaultSettings = new Default();
 
-        public float weightFactor = 1f;
+        public bool drawPlanet = DefaultSettings.drawPlanet;
 
-        public bool threadingPathCost = true;
+        public float weightFactor = DefaultSettings.weightFactor;
 
-        public int minAreaForThreading = 150;
+        public bool threadingPathCost = DefaultSettings.threadingPathCost;
 
-        public bool asyncClosestThing = false;
+        public int minAreaForThreading = DefaultSettings.minAreaForThreading;
 
-        public int minSearchSetCount = 128;
+        public bool asyncClosestThing = DefaultSettings.asyncClosestThing;
 
-        public bool roofedPatch = false;
+        public int minSearchSetCount = DefaultSettings.minSearchSetCount;
 
-        public bool drawVehicleMapGrid = false;
+        public bool roofedPatch = DefaultSettings.roofedPatch;
 
-        public bool debugToolPatches = false;
+        public bool drawVehicleMapGrid = DefaultSettings.drawVehicleMapGrid;
+
+        public bool debugToolPatches = DefaultSettings.debugToolPatches;
 
         public override void ExposeData()
         {
-            Scribe_Values.Look(ref this.drawPlanet, "drawPlanet", true);
-            Scribe_Values.Look(ref this.weightFactor, "weightFactor", 1f);
-            Scribe_Values.Look(ref this.threadingPathCost, "threadingPathCost", true);
-            Scribe_Values.Look(ref this.minAreaForThreading, "minAreaForThreading", 150);
-            Scribe_Values.Look(ref this.asyncClosestThing, "asyncClosestThing", false);
-            Scribe_Values.Look(ref this.minSearchSetCount, "minSearchSetCount", 128);
-            Scribe_Values.Look(ref this.roofedPatch, "roofedPatch", false);
-            Scribe_Values.Look(ref this.drawVehicleMapGrid, "drawVehicleMapGrid", false);
-            Scribe_Values.Look(ref this.debugToolPatches, "debugToolPatches", false);
+            Scribe_Values.Look(ref this.drawPlanet, "drawPlanet", DefaultSettings.drawPlanet);
+            Scribe_Values.Look(ref this.weightFactor, "weightFactor", DefaultSettings.weightFactor);
+            Scribe_Values.Look(ref this.threadingPathCost, "threadingPathCost", DefaultSettings.threadingPathCost);
+            Scribe_Values.Look(ref this.minAreaForThreading, "minAreaForThreading", DefaultSettings.minAreaForThreading);
+            Scribe_Values.Look(ref this.asyncClosestThing, "asyncClosestThing", DefaultSettings.asyncClosestThing);
+            Scribe_Values.Look(ref this.minSearchSetCount, "minSearchSetCount", DefaultSettings.minSearchSetCount);
+            Scribe_Values.Look(ref this.roofedPatch, "roofedPatch", DefaultSettings.roofedPatch);
+            Scribe_Values.Look(ref this.drawVehicleMapGrid, "drawVehicleMapGrid", DefaultSettings.drawVehicleMapGrid);
+            Scribe_Values.Look(ref this.debugToolPatches, "debugToolPatches", DefaultSettings.debugToolPatches);
+        }
+
+        internal class Default
+        {
+            public readonly bool drawPlanet = true;
+
+            public readonly float weightFactor = 1f;
+
+            public readonly bool threadingPathCost = true;
+
+            public readonly int minAreaForThreading = 150;
+
+            public readonly bool asyncClosestThing = false;
+
+            public readonly int minSearchSetCount = 64;
+
+            public readonly bool roofedPatch = false;
+
+            public readonly bool drawVehicleMapGrid = false;
+
+            public readonly bool debugToolPatches = false;
         }
     }
 }

@@ -146,7 +146,6 @@ namespace VehicleInteriors
                         }
                         if (!vehicle.CanReachVehicle(curLoc, PathEndMode.OnCell, Danger.Deadly, TraverseMode.ByPawn, map, out var dest1, out var dest2))
                         {
-                            Log.Message($"can not reach {map}, {dest1}, {dest2}");
                             return new FloatMenuOption("VF_CannotMoveToCell".Translate(vehicle.LabelCap), null);
                         }
 
@@ -247,7 +246,7 @@ namespace VehicleInteriors
             }
             if (flag)
             {
-                var drawPos = map.IsVehicleMapOf(out var vehicle) ? dest3.Cell.ToVector3Shifted().ToBaseMapCoord(vehicle) : dest3.Cell.ToVector3Shifted();
+                var drawPos = map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned ? dest3.Cell.ToVector3Shifted().ToBaseMapCoord(vehicle) : dest3.Cell.ToVector3Shifted();
                 FleckMaker.Static(drawPos, baseMap, FleckDefOf.FeedbackGoto, 1f);
             }
         }
@@ -2438,6 +2437,10 @@ namespace VehicleInteriors
             };
             var baseClickCell = IntVec3.FromVector3(clickPos);
             IEnumerable<Thing> searchSet = clickCell.GetThingList(map);
+            if (FloatMenuMakerMap.makingFor is VehiclePawn)
+            {
+                searchSet = searchSet.Except(FloatMenuMakerMap.makingFor);
+            }
             if (!pawn.Drafted && GenUIOnVehicle.vehicleForSelector != null && GenUIOnVehicle.vehicleForSelector.Spawned)
             {
                 searchSet = searchSet.Concat(GenUIOnVehicle.vehicleForSelector);

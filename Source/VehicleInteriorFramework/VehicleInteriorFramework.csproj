@@ -184,8 +184,8 @@
     <Compile Include="BuildableUpgrades\VehicleHandlerBuildable.cs" />
     <Compile Include="Utilities\RegionTraverserAcrossMaps.cs" />
     <Compile Include="VehicleMapSettings.cs" />
-    <Compile Include="VehicleMap\AsyncReachability.cs" />
-    <Compile Include="VehicleMap\AsyncReachabilityCache.cs" />
+    <Compile Include="MapComponents\AsyncReachability.cs" />
+    <Compile Include="MapComponents\AsyncReachabilityCache.cs" />
     <Compile Include="VehicleMap\DynamicDrawManagerOnVehicle.cs" />
     <Compile Include="Utilities\RegionUtility.cs" />
     <Compile Include="VehicleMap\SectionLayer_ThingsGeneralOnVehicle.cs" />
@@ -283,6 +283,7 @@
     <Compile Include="VMF_HarmonyPatches\Patches_GiantImperialTurret.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_Gunplay.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_MeleeAnimation.cs" />
+    <Compile Include="VMF_HarmonyPatches\Patches_MiscRobots.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_MuzzleFlash.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_PathfindingFramework.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_PRF.cs" />

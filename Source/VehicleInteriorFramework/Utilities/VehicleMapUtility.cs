@@ -139,16 +139,28 @@ namespace VehicleInteriors
                 {
                     var vehicleRect = vehicle.VehicleRect(true);
                     var clip = cellRect.ClipInsideRect(vehicleRect);
-                    return cellRect = clip.MovedBy(-vehicleRect.Min).ExpandedBy(2);
+                    cellRect = clip.MovedBy(-vehicleRect.Min);
+                    var size = vehicle.def.size;
+                    cellRect = cellRect.ExpandedBy(Mathf.FloorToInt(Mathf.Max(size.x, size.z) / 2));
+                    return cellRect;
                 }
                 else if (VehicleInteriors.settings.drawPlanet)
                 {
                     var longSide = Mathf.Max(vehicle.DrawSize.x / 2f, vehicle.DrawSize.y / 2f);
                     var offset = new IntVec3((int)longSide, 0, (int)longSide);
-                    return cellRect = cellRect.MovedBy(-offset).ExpandedBy(2);
+                    cellRect = cellRect.MovedBy(-offset);
+                    var size = vehicle.def.size;
+                    cellRect = cellRect.ExpandedBy(Mathf.FloorToInt(Mathf.Max(size.x, size.z) / 2));
+                    return cellRect;
                 }
             }
             return cellRect.ClipInsideMap(map);
+        }
+
+        public static CellRect MovedOccupiedDrawRect(this Thing t)
+        {
+            Vector2 drawSize = t.DrawSize;
+            return GenAdj.OccupiedRect(t.PositionOnBaseMap(), t.BaseRotation(), new IntVec2(Mathf.CeilToInt(drawSize.x), Mathf.CeilToInt(drawSize.y)));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

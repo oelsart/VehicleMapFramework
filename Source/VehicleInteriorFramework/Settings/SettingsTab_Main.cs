@@ -33,6 +33,11 @@ namespace VehicleInteriors.Settings
             {
                 listingStandard.SliderLabeled("VMF_Settings.MinAreaForThreading".Translate(), null, null, ref settings.minAreaForThreading, 0, 2500, 1, "2500", "0");
             }
+            listingStandard.CheckboxLabeled("(Testing) " + "VMF_Settings.AsyncClosestThing".Translate(), ref settings.asyncClosestThing);
+            if (settings.asyncClosestThing)
+            {
+                listingStandard.SliderLabeled("VMF_Settings.MinSearchSetCount".Translate(), null, null, ref settings.minSearchSetCount, 0, 640, 1, "0", "640");
+            }
             listingStandard.GapLine();
             listingStandard.CheckboxLabeled("(Debug) Draw vehicle map grid", ref settings.drawVehicleMapGrid);
             listingStandard.CheckboxLabeled("(Debug) Enable debug tool patches", ref settings.debugToolPatches);

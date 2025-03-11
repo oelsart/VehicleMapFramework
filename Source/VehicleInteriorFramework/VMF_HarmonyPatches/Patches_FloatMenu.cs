@@ -26,7 +26,10 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             if (clickPos.TryGetVehicleMap(Find.CurrentMap, out var vehicle, false) || pawn.IsOnNonFocusedVehicleMapOf(out _))
             {
-                GenUIOnVehicle.vehicleForSelector = vehicle;
+                if (pawn != vehicle)
+                {
+                    GenUIOnVehicle.vehicleForSelector = vehicle;
+                }
                 __result = FloatMenuMakerOnVehicle.ChoicesAtFor(clickPos, pawn, suppressAutoTakeableGoto);
                 return false;
             }

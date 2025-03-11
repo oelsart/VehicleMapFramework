@@ -72,7 +72,7 @@ namespace VehicleInteriors
 
         private ConcurrentDictionary<CachedEntry, bool> cacheDict = new ConcurrentDictionary<CachedEntry, bool>();
 
-        private static ConcurrentSet<AsyncReachabilityCache.CachedEntry> tmpCachedEntries;
+        private static ConcurrentSet<AsyncReachabilityCache.CachedEntry> tmpCachedEntries = new ConcurrentSet<AsyncReachabilityCache.CachedEntry>();
 
         public int Count => cacheDict.Count;
 

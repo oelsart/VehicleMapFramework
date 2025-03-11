@@ -1,14 +1,15 @@
 ﻿using RimWorld;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using Vehicles;
 using Verse;
 using Verse.AI;
-using static VehicleInteriors.AsyncReachability;
 
 namespace VehicleInteriors
 {
+    [StaticConstructorOnStartup]
     public class AsyncReachability : MapComponent
     {
         public AsyncReachability(Map map) : base(map)
@@ -87,6 +88,8 @@ namespace VehicleInteriors
             private PathGrid pathGrid;
 
             private RegionGrid regionGrid;
+
+            private static readonly object _lock = new object();
 
             public Worker(Map map, AsyncReachabilityCache cache)
             {
@@ -182,9 +185,19 @@ namespace VehicleInteriors
                     }
                 }
 
-                if (ReachabilityImmediate.CanReachImmediate(start, dest, map, peMode, traverseParams.pawn))
+                lock (_lock)
                 {
-                    return true;
+                    try
+                    {
+                        if (ReachabilityImmediate.CanReachImmediate(start, dest, map, peMode, traverseParams.pawn))
+                        {
+                            return true;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Error($"Exception in ReachabilityImmediate.CanReachImmediate(): {e.Message}");
+                    }
                 }
 
                 if (!dest.IsValid)
@@ -192,7 +205,7 @@ namespace VehicleInteriors
                     return false;
                 }
 
-                if (dest.HasThing && dest.Thing.MapHeld != map)
+                if (dest.HasThing && dest.Thing.MapHeldBaseMap() != map)
                 {
                     return false;
                 }
@@ -221,7 +234,17 @@ namespace VehicleInteriors
                     }
                 }
 
-                dest = (LocalTargetInfo)GenPath.ResolvePathMode(traverseParams.pawn, dest.ToTargetInfo(map), ref peMode);
+                lock (_lock)
+                {
+                    try
+                    {
+                        dest = (LocalTargetInfo)GenPath.ResolvePathMode(traverseParams.pawn, dest.ToTargetInfo(map), ref peMode);
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Error($"Exception in GenPath.ResolvePathMode(): {e.Message}");
+                    }
+                }
 
                 pathGrid = map.pathing.For(traverseParams).pathGrid;
                 regionGrid = map.regionGrid;
@@ -275,8 +298,19 @@ namespace VehicleInteriors
 
                 if (traverseParams.mode == TraverseMode.PassAllDestroyableThings || traverseParams.mode == TraverseMode.PassAllDestroyablePlayerOwnedThings || traverseParams.mode == TraverseMode.PassAllDestroyableThingsNotWater || traverseParams.mode == TraverseMode.NoPassClosedDoorsOrWater)
                 {
-                    bool result = CheckCellBasedReachability(start, dest, peMode, traverseParams);
-                    FinalizeCheck();
+                    bool result = false;
+                    lock (_lock)
+                    {
+                        try
+                        {
+                            result = CheckCellBasedReachability(start, dest, peMode, traverseParams);
+                            FinalizeCheck();
+                        }
+                        catch (Exception e)
+                        {
+                            Log.Error($"Exception in AsyncReachability.CheckCellBasedReachability(): {e.Message}");
+                        }
+                    }
                     return result;
                 }
 
@@ -424,8 +458,8 @@ namespace VehicleInteriors
                     }
 
                     Region region = directRegionGrid[num];
-                    return (region == null || region.Allows(traverseParams, isDestination: false)) ? true : false;
-                }, delegate (IntVec3 c)
+                    return (region == null || region.Allows(traverseParams, isDestination: false));
+                }, c =>
                 {
                     if (ReachabilityImmediate.CanReachImmediate(c, dest, map, peMode, traverseParams.pawn))
                     {

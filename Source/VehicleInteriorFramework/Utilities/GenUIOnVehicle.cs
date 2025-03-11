@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Vehicles;
 using Verse;
 
 namespace VehicleInteriors
@@ -164,6 +165,12 @@ namespace VehicleInteriors
             int num;
             for (int i = 0; i < clickableList.Count; i = num + 1)
             {
+                if (clickableList[i] is VehiclePawn vehicle2 && vehicle2 == FloatMenuMakerMap.makingFor)
+                {
+                    num = i;
+                    continue;
+                }
+
                 if (!(clickableList[i] is Pawn pawn) || !pawn.IsPsychologicallyInvisible() || caster == null || caster.Faction == pawn.Faction)
                 {
                     yield return clickableList[i];

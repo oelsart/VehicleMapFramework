@@ -118,7 +118,7 @@ namespace VehicleInteriors
                 }
                 var basePos = map.IsVehicleMapOf(out var vehicle) ? root.ToBaseMapCoord(vehicle) : root;
                 var searchSet = customGlobalSearchSet ?? map.BaseMapAndVehicleMaps().SelectMany(m => m.listerThings.ThingsMatching(thingReq));
-                if (VehicleInteriors.settings.asyncClosestThing && searchSet.Count() >= VehicleInteriors.settings.minSearchSetCount)
+                if (ShouldUseAsync(searchSet))
                 {
                     thing = GenClosestOnVehicle.ClosestThing_Global(basePos, searchSet, maxDistance, ValidatorAsync, async: true);
                 }
@@ -130,6 +130,11 @@ namespace VehicleInteriors
             exitSpot = GenClosestOnVehicle.exitSpotResult;
             enterSpot = GenClosestOnVehicle.enterSpotResult;
             return thing;
+        }
+
+        private static bool ShouldUseAsync(IEnumerable searchSet)
+        {
+            return VehicleInteriors.settings.asyncClosestThing && searchSet.EnumerableCount() >= VehicleInteriors.settings.minSearchSetCount;
         }
 
         public static Thing RegionwiseBFSWorker(IntVec3 root, Map map, ThingRequest req, PathEndMode peMode, TraverseParms traverseParams, Predicate<Thing> validator, Func<Thing, float> priorityGetter, int minRegions, int maxRegions, float maxDistance, out int regionsSeen, RegionType traversableRegionTypes = RegionType.Set_Passable, bool ignoreEntirelyForbiddenRegions = false)
@@ -205,8 +210,6 @@ namespace VehicleInteriors
             {
                 return null;
             }
-            if (async) Log.Message($"async={searchSet.EnumerableCount()}");
-            else Log.Message($"sync={searchSet.EnumerableCount()}");
             var closestDistSquared = 2.1474836E+09f;
             Thing chosen = null;
             var bestPrio = float.MinValue;
@@ -328,9 +331,12 @@ namespace VehicleInteriors
 
             void ValidateThing(Thing t, float distSquared)
             {
-                if (validator != null && !validator(t))
+                lock (_lock)
                 {
-                    return;
+                    if (validator != null && !validator(t))
+                    {
+                        return;
+                    }
                 }
                 float num = 0f;
                 if (priorityGetter != null)
@@ -352,6 +358,8 @@ namespace VehicleInteriors
                 bestPrio = num;
             }
         }
+
+        private static readonly object _lock = new object();
 
         public static Thing ClosestThing_Global_Reachable(IntVec3 center, Map map, IEnumerable<Thing> searchSet, PathEndMode peMode, TraverseParms traverseParams, float maxDistance = 9999f, Predicate<Thing> validator = null, Func<Thing, float> priorityGetter = null)
         {

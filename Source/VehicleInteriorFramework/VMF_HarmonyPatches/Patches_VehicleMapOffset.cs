@@ -72,14 +72,14 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatch(typeof(Mote), nameof(Mote.DrawPos), MethodType.Getter)]
-    public static class Patch_Mote_DrawPos
-    {
-        public static bool Prefix(Mote __instance, ref Vector3 __result)
-        {
-            return !__instance.TryGetDrawPos(ref __result);
-        }
-    }
+    //[HarmonyPatch(typeof(Mote), nameof(Mote.DrawPos), MethodType.Getter)]
+    //public static class Patch_Mote_DrawPos
+    //{
+    //    public static bool Prefix(Mote __instance, ref Vector3 __result)
+    //    {
+    //        return !__instance.TryGetDrawPos(ref __result);
+    //    }
+    //}
 
     [HarmonyPatch(typeof(VehicleSkyfaller), "RootPos", MethodType.Getter)]
     public static class Patch_VehicleSkyfaller_RootPos
