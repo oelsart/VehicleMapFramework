@@ -1,8 +1,10 @@
 ﻿using RimWorld;
 using RimWorld.Planet;
 using SmashTools;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using VehicleInteriors.VMF_HarmonyPatches;
 using Vehicles;
 using Verse;
 
@@ -39,7 +41,7 @@ namespace VehicleInteriors
             {
                 var mapParent = vehicle.VehicleMap.Parent;
                 var aerial = vehicle.GetAerialVehicle();
-                var tile = aerial != null ? WorldHelper.GetNearestTile(aerial.DrawPos) : vehicle.GetRootTile();
+                var tile = aerial != null ? Patch_WorldObject_Tile.GetTile(aerial) : vehicle.GetRootTile();
 
                 bool CanLandInSpecificCell()
                 {

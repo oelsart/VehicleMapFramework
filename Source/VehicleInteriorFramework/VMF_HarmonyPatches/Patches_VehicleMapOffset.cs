@@ -369,10 +369,19 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle) && thing.def.drawerType == DrawerType.RealtimeOnly && thing.def.category != ThingCategory.Item)
             {
                 var def = thing.def.IsBlueprint ? thing.def.entityDefToBuild as ThingDef : thing.def;
-                if ((def.rotatable || def.graphic is Graphic_Multi || def.size.x != def.size.z || (def.graphicData?.drawRotated ?? false)) && (!def.graphicData?.Linked ?? true))
+
+                var rot2 = rot;
+                var baseRotInt = vehicle.FullRotation.RotForVehicleDraw().AsInt;
+                bool SameMaterialByRot()
                 {
-                    var fullRot = vehicle.FullRotation;
-                    rot.AsInt += fullRot.RotForVehicleDraw().AsInt;
+                    var graphic = def.graphic;
+                    var rotation = new Rot4(rot2.AsInt + baseRotInt);
+                    return graphic != null && graphic.MatAt(rot2, thing) == graphic.MatAt(rotation, thing) && graphic.DrawOffset(rot2) == graphic.DrawOffset(rotation);
+                }
+
+                if (def.size.x != def.size.z || ((def.graphicData?.drawRotated ?? false) && (!def.graphicData?.Linked ?? true) || def.rotatable) && !SameMaterialByRot())
+                {
+                     rot.AsInt += baseRotInt;
                 }
                 if (def.ShouldRotatedOnVehicle())
                 {
@@ -422,10 +431,17 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 var loc2 = loc.ToBaseMapCoord(vehicle);
                 loc = loc2.WithY(Mathf.Min(loc2.y, AltitudeLayer.MetaOverlays.AltitudeFor()));
                 var rot2 = rot;
-                if ((def.rotatable || def.graphic is Graphic_Multi || def.size.x != def.size.z || (def.graphicData?.drawRotated ?? false)) && (!def.graphicData?.Linked ?? true))
+                var baseRotInt = vehicle.FullRotation.RotForVehicleDraw().AsInt;
+                bool SameMaterialByRot()
                 {
-                    var fullRot = vehicle.FullRotation;
-                    rot.AsInt += fullRot.RotForVehicleDraw().AsInt;
+                    var graphic = def.graphic;
+                    var rotation = new Rot4(rot2.AsInt + baseRotInt);
+                    return graphic != null && graphic.MatAt(rot2, null) == graphic.MatAt(rotation, null) && graphic.DrawOffset(rot2) == graphic.DrawOffset(rotation);
+                }
+
+                if (def.size.x != def.size.z || ((def.graphicData?.drawRotated ?? false) && (!def.graphicData?.Linked ?? true) || def.rotatable) && !SameMaterialByRot())
+                {
+                     rot.AsInt += baseRotInt;
                 }
                 var flag2 = def.ShouldRotatedOnVehicle();
                 if (flag2)

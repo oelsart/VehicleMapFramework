@@ -324,7 +324,15 @@ namespace VehicleInteriors
         public static Rot4 RotationForPrint(this Thing thing)
         {
             var rot = thing.Rotation;
-            if (VehicleMapUtility.rotForPrint != Rot4.North && (thing.def.size.x != thing.def.size.z || thing.def.rotatable || (thing.def.graphicData?.drawRotated ?? false) && thing.Graphic is Graphic_Multi))
+
+            bool SameMaterialByRot()
+            {
+                var graphic = thing.Graphic;
+                var rotation = new Rot4(rot.AsInt + VehicleMapUtility.rotForPrint.AsInt);
+                return graphic != null && graphic.MatAt(rot, thing) == graphic.MatAt(rotation, thing) && graphic.DrawOffset(rot) == graphic.DrawOffset(rotation);
+            }
+
+            if (VehicleMapUtility.rotForPrint != Rot4.North && (thing.def.size.x != thing.def.size.z || (thing.def.rotatable || (thing.def.graphicData?.drawRotated ?? false))) && thing.Graphic is Graphic_Multi && !SameMaterialByRot())
             {
                 rot.AsInt += VehicleMapUtility.rotForPrint.AsInt;
             }
