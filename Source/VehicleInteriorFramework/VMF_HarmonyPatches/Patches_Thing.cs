@@ -376,4 +376,13 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             return codes;
         }
     }
+
+    [HarmonyPatch(typeof(Building_Bookcase), "DrawAt")]
+    public static class Patch_Building_Bookcase_DrawAt
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Rotation, MethodInfoCache.m_BaseRotationVehicleDraw);
+        }
+    }
 }

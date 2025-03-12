@@ -178,7 +178,7 @@ namespace VehicleInteriors
                         return false;
                     }
 
-                    if (traverseParams.pawn.BaseMap() != map)
+                    if (traverseParams.pawn.BaseMap() != map.BaseMap())
                     {
                         Log.Error(string.Concat("Called CanReach() with a pawn spawned not on this map. This means that we can't check his reachability here. Pawn's current map should have been used instead of this one. pawn=", traverseParams.pawn, " pawn.Map=", traverseParams.pawn.Map, " map=", map));
                         return false;

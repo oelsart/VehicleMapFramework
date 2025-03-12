@@ -310,6 +310,7 @@
     <Compile Include="VMF_HarmonyPatches\Patches_VehicleMapOffset.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_Verb.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_WhileYoureUp.cs" />
+    <Compile Include="VMF_HarmonyPatches\Patches_YayosCombat3.cs" />
     <Compile Include="VMF_Materials.cs" />
     <Compile Include="VMF_PUAHPatch.cs" />
     <Compile Include="VMF_Shaders.cs" />

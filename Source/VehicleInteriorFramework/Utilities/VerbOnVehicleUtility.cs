@@ -1,9 +1,5 @@
-﻿using HarmonyLib;
-using RimWorld;
-using SmashTools.Pathfinding;
-using System;
+﻿using RimWorld;
 using System.Collections.Generic;
-using System.Linq;
 using Vehicles;
 using Verse;
 using Verse.AI;
@@ -14,6 +10,8 @@ namespace VehicleInteriors
     {
         public static bool TryFindShootLineFromToOnVehicle(this Verb verb, IntVec3 root, LocalTargetInfo targ, out ShootLine resultingLine, bool ignoreRange = false)
         {
+            if (targ.HasThing && verb.caster.Map == targ.Thing.Map) return verb.TryFindShootLineFromTo(root, targ, out resultingLine, ignoreRange);
+
             var casterBaseMap = verb.caster.BaseMap();
             var targCellOnBaseMap = targ.HasThing ? targ.CellOnBaseMap() : GenUIOnVehicle.TargetMap != null ? targ.Cell.ToBaseMapCoord(GenUIOnVehicle.TargetMap) : targ.Cell;
             //var targMap = targ.HasThing ? targ.Thing.Map : casterBaseMap;
