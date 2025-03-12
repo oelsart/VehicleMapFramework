@@ -210,8 +210,8 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             var pawn = innerClass.pawn;
             var basePos = pawn.PositionOnBaseMap();
-            var map = pawn.Map;
-            var maps = map.BaseMapAndVehicleMaps().Except(map);
+            tmpMap = pawn.Map;
+            var maps = tmpMap.BaseMapAndVehicleMaps().Except(tmpMap);
             try
             {
                 foreach(var map2 in maps)
@@ -221,7 +221,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                     IEnumerable<IntVec3> enumerable2 = scanner.PotentialWorkCellsGlobal(pawn);
                     foreach (IntVec3 c in enumerable2)
                     {
-                        if (ReachabilityUtilityOnVehicle.CanReach(map, innerStruct.pawnPosition, c, scanner.PathEndMode, TraverseParms.For(pawn, innerStruct.maxPathDanger), map2, out _, out _))
+                        if (ReachabilityUtilityOnVehicle.CanReach(tmpMap, innerStruct.pawnPosition, c, scanner.PathEndMode, TraverseParms.For(pawn, innerStruct.maxPathDanger), map2, out _, out _))
                         {
                             pawn.SetPositionDirect(c);
                         }
@@ -256,9 +256,12 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             }
             finally
             {
-                pawn.VirtualMapTransfer(map, innerStruct.pawnPosition);
+                pawn.VirtualMapTransfer(tmpMap, innerStruct.pawnPosition);
+                tmpMap = null;
             }
         }
+
+        public static Map tmpMap;
 
         public struct InnerStruct
         {

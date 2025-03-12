@@ -2281,21 +2281,21 @@ namespace VehicleInteriors
 				{
 					thing9 = compSelectProxy.thingToSelect;
 				}
-				foreach (FloatMenuOption item8 in thing9.GetFloatMenuOptions(pawn))
+                foreach (FloatMenuOption item8 in thing9.GetFloatMenuOptions(pawn))
                 {
                     FloatMenuMakerOnVehicle.cachedThings.Add(thing8);
-					opts.Add(item8);
-				}
+                    opts.Add(item8);
+                }
 			}
 			foreach (LocalTargetInfo localTargetInfo15 in GenUIOnVehicle.TargetsAt(clickPos, TargetingParameters.ForPawns(), true, null))
 			{
 				if (!FloatMenuMakerOnVehicle.cachedThings.Contains(localTargetInfo15.Pawn) && (localTargetInfo15.Pawn != GenUIOnVehicle.vehicleForSelector))
-				{
-					foreach (FloatMenuOption item9 in localTargetInfo15.Pawn.GetFloatMenuOptions(pawn))
-					{
+                {
+                    foreach (FloatMenuOption item9 in localTargetInfo15.Pawn.GetFloatMenuOptions(pawn))
+                    {
                         FloatMenuMakerOnVehicle.cachedThings.Add(localTargetInfo15.Pawn);
-						opts.Add(item9);
-					}
+                        opts.Add(item9);
+                    }
 				}
 			}
 			FloatMenuMakerOnVehicle.cachedThings.Clear();
@@ -2316,17 +2316,20 @@ namespace VehicleInteriors
         {
             IntVec3 clickCell;
             Map map;
+            Vector3 clickPos2;
             if (GenUIOnVehicle.vehicleForSelector != null)
             {
-                clickCell = IntVec3.FromVector3(clickPos).ToVehicleMapCoord(GenUIOnVehicle.vehicleForSelector);
+                clickPos2 = clickPos.ToVehicleMapCoord(GenUIOnVehicle.vehicleForSelector);
                 map = GenUIOnVehicle.vehicleForSelector.VehicleMap;
 
             }
             else
             {
-                clickCell = IntVec3.FromVector3(clickPos);
+                clickPos2 = clickPos;
                 map = pawn.BaseMap();
             }
+            clickCell = IntVec3.FromVector3(clickPos2);
+
             var targetParms = new TargetingParameters()
             {
                 canTargetSelf = true,
@@ -2405,7 +2408,28 @@ namespace VehicleInteriors
 					}
 				}
             }
+
+            if (ModsConfig.IsActive("Orpheusly.PawnStorages"))
+            {
+                if (PawnStorages_MutantOrdersPatch == null)
+                {
+                    PawnStorages_MutantOrdersPatch = AccessTools.MethodDelegate<Action<Vector3, Pawn, List<FloatMenuOption>>>(AccessTools.Method("PawnStorages.MutantOrdersPatch:Postfix"));
+                }
+                var pawnMap = pawn.Map;
+                var flag = pawnMap != map;
+                try
+                {
+                    if (flag) pawn.VirtualMapTransfer(map);
+                    PawnStorages_MutantOrdersPatch(clickPos2, pawn, opts);
+                }
+                finally
+                {
+                    if (flag) pawn.VirtualMapTransfer(pawnMap);
+                }
+            }
         }
+
+        private static Action<Vector3, Pawn, List<FloatMenuOption>> PawnStorages_MutantOrdersPatch;
 
         private static void AddJobGiverWorkOrders(Vector3 clickPos, Pawn pawn, List<FloatMenuOption> opts, bool drafted)
         {

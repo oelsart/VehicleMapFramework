@@ -416,4 +416,41 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             return false;
         }
     }
+
+    //複数ポーン選択時のフロートメニュー
+    [HarmonyPatch(typeof(FloatMenuMakerMap), nameof(FloatMenuMakerMap.ChoicesAtForMultiSelect))]
+    public static class Patch_FloatMenuMakerMap_ChoicesAtForMultiSelect
+    {
+        public static void Prefix(ref Vector3 clickPos, List<Pawn> pawns)
+        {
+            tmpVehicle = Command_FocusVehicleMap.FocusedVehicle;
+            if (clickPos.TryGetVehicleMap(Find.CurrentMap, out var vehicle, false))
+            {
+                clickPos = clickPos.ToVehicleMapCoord(vehicle);
+                tmpMap = vehicle.VehicleMap;
+                Command_FocusVehicleMap.FocusedVehicle = vehicle;
+            }
+        }
+
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_Find_CurrentMap, MethodInfoCache.g_VehicleMapUtility_CurrentMap)
+                .MethodReplacer(MethodInfoCache.g_Thing_Map, AccessTools.Method(typeof(Patch_FloatMenuMakerMap_ChoicesAtForMultiSelect), nameof(GetMap)));
+        }
+
+        private static Map GetMap(Thing _)
+        {
+            return tmpMap ?? Find.CurrentMap;
+        }
+
+        public static void Finalizer()
+        {
+            Command_FocusVehicleMap.FocusedVehicle = tmpVehicle;
+            tmpMap = null;
+        }
+
+        private static VehiclePawnWithMap tmpVehicle;
+
+        private static Map tmpMap;
+    }
 }

@@ -1,4 +1,6 @@
 ﻿using HarmonyLib;
+using System.Collections.Generic;
+using System.Reflection;
 using Verse;
 using Verse.AI;
 
@@ -67,6 +69,22 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 }
                 __result = __instance.Normal;
             }
+        }
+    }
+
+    //VirtualMapTransfer中にpawn.Position.GetTerrain(pawn.Map)をやってらしたのでtmpMapを参照せなならんね
+    [HarmonyPatchCategory("VMF_Patches_PathfindingFramework")]
+    [HarmonyPatch("PathfindingFramework.Patches.RegionPathfinding.Region_Allows_Patch", "MovementTypePassable")]
+    public static class Patch_Region_Allows_Patch_MovementTypePassable
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, AccessTools.Method(typeof(Patch_Region_Allows_Patch_MovementTypePassable), nameof(GetMap)));
+        }
+
+        public static Map GetMap(Thing thing)
+        {
+            return Patch_JobGiver_Work_TryIssueJobPackage.tmpMap ?? thing.Map;
         }
     }
 }
