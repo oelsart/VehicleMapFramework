@@ -309,6 +309,10 @@ namespace VehicleInteriors
                 {
                     excepts.Add(AccessTools.TypeByName("PipeSystem.SectionLayer_Resource"));
                 }
+                if (!ModsConfig.IsActive("Dubwise.DubsBadHygiene") && !ModsConfig.IsActive("Dubwise.DubsBadHygiene.Lite"))
+                {
+                    excepts.Add(typeof(SectionLayer_ThingsSewagePipeOnVehicle));
+                }
                 return subClasses.Except(excepts).ToList();
             }
             excepts.AddRange(new Type[] { typeof(SectionLayer_ThingsGeneralOnVehicle), typeof(SectionLayer_TerrainOnVehicle), typeof(SectionLayer_LightingOnVehicle), typeof(SectionLayer_ThingsPowerGridOnVehicle) });
@@ -316,6 +320,7 @@ namespace VehicleInteriors
             {
                 excepts.Add(AccessTools.TypeByName("VehicleInteriors.SectionLayer_ResourceOnVehicle"));
             }
+            excepts.Add(typeof(SectionLayer_ThingsSewagePipeOnVehicle));
             return subClasses.Except(excepts).ToList();
         }
 

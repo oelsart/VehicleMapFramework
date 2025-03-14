@@ -297,8 +297,9 @@ namespace VMF_PUAHPatch
         }
 
         // Prefix patch to prevent cross-map hauling when on same map
-        [HarmonyPrefix]
-        public static bool Prefix(Pawn pawn, Thing thing, bool forced, ref Job __result)
+        //[HarmonyPrefix]
+        //Disabled by OELS: Because the pawn and Thing could be on the same map but the storage could be on a different map
+        public static bool _(Pawn pawn, Thing thing, bool forced, ref Job __result)
         {
             // Basic null checks
             if (pawn == null || thing == null)

@@ -1,13 +1,11 @@
 ﻿using HarmonyLib;
 using RimWorld;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.Emit;
 using System.Reflection;
-using UnityEngine;
+using System.Reflection.Emit;
 using Verse;
-using System;
-using SmashTools;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
 {
@@ -308,6 +306,16 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 new CodeInstruction(OpCodes.Call, MethodInfoCache.o_Quaternion_Multiply)
             });
             return codes;
+        }
+    }
+
+    //CurrentMapがVehicleMapだったらマップエッジを描くことなんてないよ
+    [HarmonyPatch(typeof(GenDraw), "DrawMapEdgeLines")]
+    public static class Patch_GenDraw_DrawMapEdgeLines
+    {
+        public static bool Prefix()
+        {
+            return !Find.CurrentMap.IsVehicleMapOf(out _);
         }
     }
 }

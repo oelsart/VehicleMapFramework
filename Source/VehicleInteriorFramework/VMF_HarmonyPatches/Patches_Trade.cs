@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using Vehicles;
 using Verse;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
@@ -64,7 +65,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IEnumerable<Thing> Postfix(IEnumerable<Thing> values, Pawn playerNegotiator)
         {
-            var vehicles = playerNegotiator.GetCaravan().PawnsListForReading.OfType<VehiclePawnWithMap>();
+            var vehicles = playerNegotiator.GetCaravan()?.PawnsListForReading?.OfType<VehiclePawnWithMap>() ?? playerNegotiator.GetVehicleCaravan()?.Vehicles?.OfType<VehiclePawnWithMap>();
 
             if (values != null)
             {
@@ -73,11 +74,14 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                     yield return thing;
                 }
             }
-            foreach (var vehicle in vehicles)
+            if (vehicles != null)
             {
-                foreach (var thing in vehicle.ColonyThingsWillingToBuyOnVehicle(playerNegotiator))
+                foreach (var vehicle in vehicles)
                 {
-                    yield return thing;
+                    foreach (var thing in vehicle.ColonyThingsWillingToBuyOnVehicle(playerNegotiator))
+                    {
+                        yield return thing;
+                    }
                 }
             }
         }

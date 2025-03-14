@@ -190,6 +190,7 @@
     <Compile Include="Utilities\RegionUtility.cs" />
     <Compile Include="VehicleMap\SectionLayer_ThingsGeneralOnVehicle.cs" />
     <Compile Include="VehicleMap\SectionLayer_ThingsPowerGridOnVehicle.cs" />
+    <Compile Include="VehicleMap\SectionLayer_ThingsSewagePipeOnVehicle.cs" />
     <Compile Include="VehicleMap\TransportPodsArrivalAction_LandInVehicleMap.cs" />
     <Compile Include="MapComponents\VehicleMapGrid.cs" />
     <Compile Include="VehicleMap\VehicleMapParentsComponent.cs" />
@@ -273,12 +274,16 @@
     <Compile Include="VehicleStructure.cs" />
     <Compile Include="VehicleMap\Vehicle_MapFollower.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_AdaptiveStorage.cs" />
+    <Compile Include="VMF_HarmonyPatches\Patches_AllowTool.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_AnimalPen.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_BillDoorsFramework.cs" />
+    <Compile Include="VMF_HarmonyPatches\Patches_BiomesCaverns.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_CallTradeShips.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_ColonyGroups.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_DeepStorage.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_DMS.cs" />
+    <Compile Include="VMF_HarmonyPatches\Patches_DubsBadHygiene.cs" />
+    <Compile Include="VMF_HarmonyPatches\Patches_EccentricTech.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_ExosuitFramework.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_GiantImperialTurret.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_Gunplay.cs" />

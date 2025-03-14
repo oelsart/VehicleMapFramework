@@ -34,6 +34,12 @@ namespace VehicleInteriors
 
         public void DrawLayer(Rot8 rot, Vector3 drawPos, float extraRotation)
         {
+            //タイミングによってスポーン前にRegenerateされてる気がするので遅延してRegenerateさせるための仕組み
+            if (dirty && Time.frameCount != dirtyFrame)
+            {
+                RegenerateActually();
+                dirty = false;
+            }
             if (!DebugViewSettings.drawThingsPrinted)
             {
                 return;
@@ -82,6 +88,12 @@ namespace VehicleInteriors
 
         public override void Regenerate()
         {
+            dirty = true;
+            dirtyFrame = Time.frameCount;
+        }
+
+        public void RegenerateActually()
+        {
             this.bounds = this.section.CellRect;
             for (var i = 0; i < 4; i++)
             {
@@ -112,6 +124,10 @@ namespace VehicleInteriors
                 }
             }
         }
+
+        private bool dirty;
+
+        private int dirtyFrame;
 
         private CellRect bounds;
 

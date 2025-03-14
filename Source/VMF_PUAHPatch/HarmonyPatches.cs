@@ -1,10 +1,12 @@
 ﻿using HarmonyLib;
 using PickUpAndHaul;
 using RimWorld;
+using Verse;
+using VMF_PUAHPatch;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
 {
-    [StaticConstructorOnStartupPriority(Priority.Low)]
+    [StaticConstructorOnStartupPriority(Priority.VeryLow)]
     public class Patches_PUAH
     {
         static Patches_PUAH()
@@ -14,6 +16,16 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             //VMF_Harmony.Instance.Patch(original, postfix: patch);
 
             VMF_Harmony.Instance.PatchCategory("VMF_Patches_PUAH");
+
+            var workGiver_HaulToInventoryAcrossMaps = new WorkGiver_HaulToInventoryAcrossMaps();
+            Patches_AllowTool.JobOnThingDelegate = (Pawn pawn, Thing t, bool forced) =>
+            {
+                if (workGiver_HaulToInventoryAcrossMaps.ShouldSkip(pawn, forced))
+                {
+                    return null;
+                }
+                return workGiver_HaulToInventoryAcrossMaps.JobOnThing(pawn, t, forced);
+            };
         }
     }
 
