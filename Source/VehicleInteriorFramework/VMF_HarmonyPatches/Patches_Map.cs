@@ -71,14 +71,13 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     public static class Patch_Reachability_CanReach
     {
         [HarmonyPriority(Priority.Low)]
-        public static bool Prefix(Reachability __instance, IntVec3 start, LocalTargetInfo dest, PathEndMode peMode, TraverseParms traverseParams, ref bool __result)
+        public static void Postfix(Reachability __instance, IntVec3 start, LocalTargetInfo dest, PathEndMode peMode, TraverseParms traverseParams, ref bool __result)
         {
-            if (traverseParams.pawn != null && dest.HasThing && dest.Thing.MapHeld != null && dest.Thing.MapHeld.reachability != __instance)
+            Map thingMap;
+            if (!__result && traverseParams.pawn != null && (thingMap = dest.Thing?.MapHeld) != null && traverseParams.pawn.Map != thingMap)
             {
-                __result = ReachabilityUtilityOnVehicle.CanReach(traverseParams.pawn.Map, start, dest, peMode, traverseParams, dest.Thing.MapHeld, out _, out _);
-                return false;
+                __result = ReachabilityUtilityOnVehicle.CanReach(traverseParams.pawn.Map, start, dest, peMode, traverseParams, thingMap, out _, out _);
             }
-            return true;
         }
 
         [HarmonyReversePatch(HarmonyReversePatchType.Snapshot)]

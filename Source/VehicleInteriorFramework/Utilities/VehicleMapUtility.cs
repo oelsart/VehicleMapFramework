@@ -681,7 +681,7 @@ namespace VehicleInteriors
         public static bool TryGetDrawPos(this Thing thing, ref Vector3 result)
         {
             var map = thing.Map;
-            if (map.IsVehicleMapOf(out var vehicle))
+            if (map.IsNonFocusedVehicleMapOf(out var vehicle))
             {
                 var component = MapComponentCache<VehiclePawnWithMapCache>.GetComponent(map);
                 if (!component.cacheMode)

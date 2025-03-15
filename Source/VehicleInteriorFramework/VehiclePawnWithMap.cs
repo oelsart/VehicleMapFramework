@@ -495,7 +495,7 @@ namespace VehicleInteriors
         {
             if (VEFActive)
             {
-                ((SectionLayer_ThingsOnVehicle)section.GetLayer(t_SectionLayer_ResourceOnVehicle)).DrawLayer(this.FullRotation, drawPos, extraRotation);
+                ((SectionLayer_ThingsOnVehicle)section.GetLayer(t_SectionLayer_ResourceOnVehicle))?.DrawLayer(this.FullRotation, drawPos, extraRotation);
             }
             if (DefenceGridActive)
             {
@@ -504,7 +504,7 @@ namespace VehicleInteriors
                 {
                     this.DrawLayer(section, t_SectionLayer_DefenseGridOverlay, drawPos.Yto0(), extraRotation);
                 }
-                else if (t_Designator_DeconstructConduit.IsAssignableFrom(selDesignator.GetType()))
+                else if (t_Designator_DeconstructConduit.IsAssignableFrom(selDesignator?.GetType()))
                 {
                     this.DrawLayer(section, t_SectionLayer_DefenseGridOverlay, drawPos.Yto0(), extraRotation);
                 }
@@ -516,7 +516,7 @@ namespace VehicleInteriors
                 var airDuctOverlay = section.GetLayer(t_SectionLayer_AirDuctOverlay);
                 CompProperties compProperties;
                 if (selDesignator is Designator_Build designator_Build && designator_Build.PlacingDef is ThingDef thingDef &&
-                    (compProperties = thingDef.comps.Find(c => t_CompProperties_Pipe.IsAssignableFrom(c.GetType()))) != null)
+                    (compProperties = thingDef.comps.Find(c => t_CompProperties_Pipe?.IsAssignableFrom(c.GetType()) ?? false)) != null)
                 {
                     var mode = CompProperties_Pipe_mode(compProperties);
                     if (sewagePipeOverlay != null & SectionLayer_PipeOverlay_mode(sewagePipeOverlay) == mode)
@@ -535,7 +535,7 @@ namespace VehicleInteriors
                 }
                 this.DrawLayer(section, t_SectionLayer_Irrigation, drawPos, extraRotation);
                 this.DrawLayer(section, t_SectionLayer_FertilizerGrid, drawPos, extraRotation);
-                ((SectionLayer_ThingsSewagePipeOnVehicle)section.GetLayer(typeof(SectionLayer_ThingsSewagePipeOnVehicle))).DrawLayer(this.FullRotation, drawPos, extraRotation);
+                ((SectionLayer_ThingsSewagePipeOnVehicle)section.GetLayer(typeof(SectionLayer_ThingsSewagePipeOnVehicle)))?.DrawLayer(this.FullRotation, drawPos, extraRotation);
             }
         }
 
