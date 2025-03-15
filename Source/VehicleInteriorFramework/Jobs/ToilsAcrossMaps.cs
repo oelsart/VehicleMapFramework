@@ -248,7 +248,7 @@ namespace VehicleInteriors
                         }
                     }
                 };
-                yield return toil3.FailOn(() => exitSpot.Map?.Disposed ?? true);
+                yield return toil3.FailOn(() => (exitSpot.Map?.Disposed ?? true) || exitSpot.Map.BaseMap() == exitSpot.Map);
                 yield return afterExitMap;
             }
             if (enterSpot.IsValid && enterSpot.Map != null)

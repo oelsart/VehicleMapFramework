@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using RimWorld;
 using RimWorld.Planet;
+using SmashTools;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -74,7 +75,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                     yield return thing;
                 }
             }
-            if (vehicles != null)
+            if (!vehicles.NullOrEmpty())
             {
                 foreach (var vehicle in vehicles)
                 {
@@ -82,6 +83,13 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                     {
                         yield return thing;
                     }
+                }
+            }
+            else if (playerNegotiator is VehiclePawnWithMap vehicle2)
+            {
+                foreach (var thing in vehicle2.ColonyThingsWillingToBuyOnVehicle(playerNegotiator))
+                {
+                    yield return thing;
                 }
             }
         }
