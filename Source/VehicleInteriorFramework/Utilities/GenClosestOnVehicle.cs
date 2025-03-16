@@ -1,6 +1,7 @@
 ﻿using RimWorld;
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -222,6 +223,8 @@ namespace VehicleInteriors
             CancellationToken = CancellationToken.None
         };
 
+        private static ConcurrentQueue<Thing> tmpThings = new ConcurrentQueue<Thing>();
+
         public static Thing ClosestThing_Global(IntVec3 center, IEnumerable searchSet, float maxDistance = 99999f, Predicate<Thing> validator = null, Func<Thing, float> priorityGetter = null, bool lookInHaulSources = false, bool async = false)
         {
             if (searchSet == null)
@@ -236,16 +239,23 @@ namespace VehicleInteriors
             {
                 if (async)
                 {
-                    Parallel.ForEach(list, parallelOptions, target =>
+                    for (int i = 0; i < list.Count; i++)
                     {
-                        Process(target);
+                        tmpThings.Enqueue(list[i]);
+                    }
+                    Parallel.For(0, list.Count, parallelOptions, i =>
+                    {
+                        if (tmpThings.TryDequeue(out var t))
+                        {
+                            Process(t);
+                        }
                     });
                 }
                 else
                 {
-                    foreach (var target in list)
+                    for (int i = 0; i < list.Count; i++)
                     {
-                        Process(target);
+                        Process(list[i]);
                     }
                 }
             }
@@ -253,16 +263,23 @@ namespace VehicleInteriors
             {
                 if (async)
                 {
-                    Parallel.ForEach(list2, parallelOptions, target =>
+                    for (int i = 0; i < list2.Count; i++)
                     {
-                        Process(target);
+                        tmpThings.Enqueue(list2[i]);
+                    }
+                    Parallel.For(0, list2.Count, parallelOptions, i =>
+                    {
+                        if (tmpThings.TryDequeue(out var t))
+                        {
+                            Process(t);
+                        }
                     });
                 }
                 else
                 {
-                    foreach (var target in list2)
+                    for (int i = 0; i < list2.Count; i++)
                     {
-                        Process(target);
+                        Process(list2[i]);
                     }
                 }
             }
@@ -270,16 +287,23 @@ namespace VehicleInteriors
             {
                 if (async)
                 {
-                    Parallel.ForEach(list3, parallelOptions, target =>
+                    for (int i = 0; i < list3.Count; i++)
                     {
-                        Process(target);
+                        tmpThings.Enqueue(list3[i]);
+                    }
+                    Parallel.For(0, list3.Count, parallelOptions, i =>
+                    {
+                        if (tmpThings.TryDequeue(out var t))
+                        {
+                            Process(t);
+                        }
                     });
                 }
                 else
                 {
-                    foreach (var target in list3)
+                    for (int i = 0; i < list3.Count; i++)
                     {
-                        Process(target);
+                        Process(list3[i]);
                     }
                 }
             }
@@ -287,16 +311,23 @@ namespace VehicleInteriors
             {
                 if (async)
                 {
-                    Parallel.ForEach(list4, parallelOptions, target =>
+                    for (int i = 0; i < list4.Count; i++)
                     {
-                        Process(target.Thing);
+                        tmpThings.Enqueue((Thing)list4[i]);
+                    }
+                    Parallel.For(0, list4.Count, parallelOptions, i =>
+                    {
+                        if (tmpThings.TryDequeue(out var t))
+                        {
+                            Process(t);
+                        }
                     });
                 }
                 else
                 {
-                    foreach (var target in list4)
+                    for (int i = 0; i < list4.Count; i++)
                     {
-                        Process(target.Thing);
+                        Process((Thing)list4[i]);
                     }
                 }
             }
@@ -304,9 +335,16 @@ namespace VehicleInteriors
             {
                 if (async)
                 {
-                    Parallel.ForEach(searchSet.Cast<Thing>(), parallelOptions, target =>
+                    foreach (var target in searchSet)
                     {
-                        Process(target);
+                        tmpThings.Enqueue((Thing)target);
+                    }
+                    Parallel.For(0, tmpThings.Count, parallelOptions, i =>
+                    {
+                        if (tmpThings.TryDequeue(out var t))
+                        {
+                            Process(t);
+                        }
                     });
                 }
                 else

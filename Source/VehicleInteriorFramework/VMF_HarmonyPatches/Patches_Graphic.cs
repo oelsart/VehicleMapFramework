@@ -17,14 +17,29 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         [HarmonyReversePatch(HarmonyReversePatchType.Original)]
         [HarmonyPriority(Priority.Normal)]
-        public static bool ShouldLinkWith(Graphic_Linked instance, IntVec3 c, Thing parent) => throw new NotImplementedException();
+        //なんでReversePatchしてるのにオリジナルのメソッドをコピーしてるのかって？Performance AnalyzerがReversePatchに対応してないからだよ！
+        public static bool ShouldLinkWith(Graphic_Linked instance, IntVec3 c, Thing parent)
+        {
+            if (!parent.Spawned)
+            {
+                return false;
+            }
+            if (!c.InBounds(parent.Map))
+            {
+                return (parent.def.graphicData.linkFlags & LinkFlags.MapEdge) > LinkFlags.None;
+            }
+            return (parent.Map.linkGrid.LinkFlagsAt(c) & parent.def.graphicData.linkFlags) > LinkFlags.None;
+        }
 
         [HarmonyPriority(Priority.Low)]
         public static void Prefix(ref IntVec3 c, Thing parent)
         {
-            var offset = c - parent.Position;
-            var rotated = offset.RotatedBy(VehicleMapUtility.rotForPrint.IsHorizontal ? VehicleMapUtility.rotForPrint.Opposite : VehicleMapUtility.rotForPrint);
-            c = rotated + parent.Position;
+            if (VehicleMapUtility.rotForPrint != Rot4.North)
+            {
+                var offset = c - parent.Position;
+                var rotated = offset.RotatedBy(VehicleMapUtility.rotForPrint.IsHorizontal ? VehicleMapUtility.rotForPrint.Opposite : VehicleMapUtility.rotForPrint);
+                c = rotated + parent.Position;
+            }
         }
     }
 
