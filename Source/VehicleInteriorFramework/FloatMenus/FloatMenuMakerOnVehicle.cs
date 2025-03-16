@@ -2688,8 +2688,7 @@ namespace VehicleInteriors
                     WorkGiverDef workGiver = workTypeDef2.workGiversByPriority[k];
                     if (!drafted || workGiver.canBeDoneWhileDrafted)
                     {
-                        WorkGiver_Scanner workGiver_Scanner2 = workGiver.Worker as WorkGiver_Scanner;
-                        if (workGiver_Scanner2 != null && workGiver_Scanner2.def.directOrderable)
+                        if (workGiver.Worker is WorkGiver_Scanner workGiver_Scanner2 && workGiver_Scanner2.def.directOrderable)
                         {
                             JobFailReason.Clear();
                             if (workGiver_Scanner2.PotentialWorkCellsGlobal(pawn).Contains(clickCell) && !workGiver_Scanner2.ShouldSkip(pawn, true))

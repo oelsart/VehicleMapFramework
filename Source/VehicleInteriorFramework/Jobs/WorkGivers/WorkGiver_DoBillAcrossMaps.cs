@@ -125,6 +125,20 @@ namespace VehicleInteriors
             }
         }
 
+        public override bool ShouldSkip(Pawn pawn, bool forced = false)
+        {
+            var enumerable = pawn.Map.BaseMapAndVehicleMaps().SelectMany(m => m.listerThings.ThingsInGroup(ThingRequestGroup.PotentialBillGiver));
+            foreach (var thing in enumerable)
+            { 
+                if (thing is IBillGiver billGiver && billGiver != pawn && ThingIsUsableBillGiver(thing) && billGiver.BillStack.AnyShouldDoNow)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         public override Danger MaxPathDanger(Pawn pawn)
         {
             return Danger.Some;
