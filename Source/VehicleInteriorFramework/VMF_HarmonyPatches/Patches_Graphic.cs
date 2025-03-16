@@ -16,8 +16,10 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     public static class Patch_Graphic_Linked_ShouldLinkWith
     {
         [HarmonyReversePatch(HarmonyReversePatchType.Original)]
+        [HarmonyPriority(Priority.Normal)]
         public static bool ShouldLinkWith(Graphic_Linked instance, IntVec3 c, Thing parent) => throw new NotImplementedException();
 
+        [HarmonyPriority(Priority.Low)]
         public static void Prefix(ref IntVec3 c, Thing parent)
         {
             var offset = c - parent.Position;

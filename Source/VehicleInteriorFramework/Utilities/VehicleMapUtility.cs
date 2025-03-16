@@ -400,6 +400,7 @@ namespace VehicleInteriors
             return thing.Position;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static IntVec3 PositionOnBaseMap(this IHaulDestination dest)
         {
             if (dest.Map.IsVehicleMapOf(out var vehicle))
@@ -409,6 +410,7 @@ namespace VehicleInteriors
             return dest.Position;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static IntVec3 PositionHeldOnBaseMap(this Thing thing)
         {
             if (thing.Spawned)

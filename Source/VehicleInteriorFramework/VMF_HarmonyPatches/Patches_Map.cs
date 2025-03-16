@@ -70,33 +70,25 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     [HarmonyPatch(typeof(Reachability), nameof(Reachability.CanReach), typeof(IntVec3), typeof(LocalTargetInfo), typeof(PathEndMode), typeof(TraverseParms))]
     public static class Patch_Reachability_CanReach
     {
-        [HarmonyPriority(Priority.Low)]
         public static void Postfix(Reachability __instance, IntVec3 start, LocalTargetInfo dest, PathEndMode peMode, TraverseParms traverseParams, ref bool __result)
         {
             Map thingMap;
-            if (!__result && traverseParams.pawn != null && (thingMap = dest.Thing?.MapHeld) != null && traverseParams.pawn.Map != thingMap)
+            if (!ReachabilityUtilityOnVehicle.working && !__result && traverseParams.pawn != null && (thingMap = dest.Thing?.MapHeld) != null && traverseParams.pawn.Map != thingMap)
             {
                 __result = ReachabilityUtilityOnVehicle.CanReach(traverseParams.pawn.Map, start, dest, peMode, traverseParams, thingMap, out _, out _);
             }
         }
 
-        [HarmonyReversePatch(HarmonyReversePatchType.Snapshot)]
-        [HarmonyPriority(Priority.Normal)]
-        public static bool CanReachPatched(this Reachability instance, IntVec3 start, LocalTargetInfo dest, PathEndMode peMode, TraverseParms traverseParams)
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-            {
-                var codes = instructions.ToList();
+            var codes = instructions.ToList();
 
-                var pos = codes.FindIndex(c => c.opcode == OpCodes.Callvirt && c.OperandIs(MethodInfoCache.g_Thing_Map));
-                codes[pos] = new CodeInstruction(OpCodes.Call, MethodInfoCache.m_BaseMap_Thing);
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Callvirt && c.OperandIs(MethodInfoCache.g_Thing_Map));
+            codes[pos] = new CodeInstruction(OpCodes.Call, MethodInfoCache.m_BaseMap_Thing);
 
-                var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Beq_S);
-                codes.Insert(pos2, new CodeInstruction(OpCodes.Call, MethodInfoCache.m_BaseMap_Map));
-                return codes;
-            }
-            _ = Transpiler(null);
-            throw new NotImplementedException();
+            var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Beq_S);
+            codes.Insert(pos2, new CodeInstruction(OpCodes.Call, MethodInfoCache.m_BaseMap_Map));
+            return codes;
         }
     }
 

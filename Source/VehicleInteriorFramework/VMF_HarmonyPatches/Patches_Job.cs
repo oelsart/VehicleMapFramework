@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using RimWorld;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -99,7 +100,11 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         private static IEnumerable<Thing> AddSearchSet(List<Thing> list, Pawn pawn, WorkGiver_Scanner scanner)
         {
             var maps = pawn.Map.BaseMapAndVehicleMaps().Except(pawn.Map);
-            return list.Concat(maps.SelectMany(m => m.listerThings.ThingsMatching(scanner.PotentialWorkThingRequest)));
+            if (maps.Any())
+            {
+                return list.Concat(maps.SelectMany(m => m.listerThings.ThingsMatching(scanner.PotentialWorkThingRequest)));
+            }
+            return list;
         }
 
         private static IEnumerable<Thing> PotentialWorkThingsGlobalAll(WorkGiver_Scanner scanner, Pawn pawn)
@@ -546,9 +551,10 @@ namespace VehicleInteriors.VMF_HarmonyPatches
 
         public static bool Prefix(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance, Predicate<Thing> validator, IEnumerable<Thing> customGlobalSearchSet, int searchRegionsMin, int searchRegionsMax, bool forceAllowGlobalSearch, RegionType traversableRegionTypes, bool ignoreEntirelyForbiddenRegions, bool lookInHaulSources, ref Thing __result)
         {
-            if (traverseParams.pawn != null)// && traverseParams.pawn.PawnDeterminingJob())
+            var maps = map.BaseMapAndVehicleMaps().Except(map);
+            if (traverseParams.pawn != null && maps.Any())
             {
-                __result = GenClosestOnVehicle.ClosestThingReachable(root, map, thingReq, peMode, traverseParams, maxDistance, validator, customGlobalSearchSet, searchRegionsMin, searchRegionsMax, true, traversableRegionTypes, ignoreEntirelyForbiddenRegions, lookInHaulSources);
+                __result = GenClosestOnVehicle.ClosestThingReachable(root, map, thingReq, peMode, traverseParams, maxDistance, validator, customGlobalSearchSet, searchRegionsMin, searchRegionsMax, forceAllowGlobalSearch, traversableRegionTypes, ignoreEntirelyForbiddenRegions, lookInHaulSources);
                 return false;
             }
             return true;
@@ -655,8 +661,21 @@ namespace VehicleInteriors.VMF_HarmonyPatches
 
         private static List<Thing> AddSearchSet(List<Thing> list, Pawn getter, ThingRequest req)
         {
-            return list.Concat(getter.Map.BaseMapAndVehicleMaps().Except(getter.Map).SelectMany(m => m.listerThings.ThingsMatching(req))).ToList();
+            var maps = getter.Map.BaseMapAndVehicleMaps().Except(getter.Map);
+            if (maps.Any())
+            {
+                searchSet.Clear();
+                searchSet.AddRange(list);
+                foreach (var map in maps)
+                {
+                    searchSet.AddRange(map.listerThings.ThingsMatching(req));
+                }
+                return searchSet;
+            }
+            return list;
         }
+
+        private static List<Thing> searchSet = new List<Thing>();
     }
 
     //ペーストディスペンサーを探す時のPredicateにCanReachNonLocalが含まれているので置き換える

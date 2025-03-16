@@ -14,6 +14,8 @@ namespace VehicleInteriors
 {
     public static class GenClosestOnVehicle
     {
+        private static readonly List<Thing> tmpSearchSet = new List<Thing>();
+
         private static bool EarlyOutSearch(IntVec3 start, Map map, ThingRequest thingReq, IEnumerable<Thing> customGlobalSearchSet, Predicate<Thing> validator)
         {
             if (thingReq.group == ThingRequestGroup.Everything)
@@ -32,7 +34,16 @@ namespace VehicleInteriors
                 }));
                 return true;
             }
-            return thingReq.group == ThingRequestGroup.Nothing || ((thingReq.IsUndefined || map.BaseMapAndVehicleMaps().SelectMany(m => m.listerThings.ThingsMatching(thingReq)).Count() == 0) && customGlobalSearchSet.EnumerableNullOrEmpty<Thing>());
+            if (thingReq.group == ThingRequestGroup.Nothing)
+            {
+                return true;
+            }
+            tmpSearchSet.Clear();
+            if (!thingReq.IsUndefined)
+            {
+                tmpSearchSet.AddRange(map.BaseMapAndVehicleMaps().SelectMany(m => m.listerThings.ThingsMatching(thingReq)));
+            }
+            return tmpSearchSet.Empty() && customGlobalSearchSet.EnumerableNullOrEmpty();
         }
 
         public static Thing ClosestThingReachable(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance = 9999f, Predicate<Thing> validator = null, IEnumerable<Thing> customGlobalSearchSet = null, int searchRegionsMin = 0, int searchRegionsMax = -1, bool forceAllowGlobalSearch = false, RegionType traversableRegionTypes = RegionType.Set_Passable, bool ignoreEntirelyForbiddenRegions = false)
@@ -67,7 +78,6 @@ namespace VehicleInteriors
             {
                 return null;
             }
-            var baseMap = map.BaseMap();
             if (GenClosestOnVehicle.EarlyOutSearch(root, map, thingReq, customGlobalSearchSet, validator))
             {
                 return null;
@@ -78,10 +88,10 @@ namespace VehicleInteriors
             {
                 int num = (searchRegionsMax > 0) ? searchRegionsMax : 30;
                 thing = GenClosestOnVehicle.RegionwiseBFSWorker(root, map, thingReq, peMode, traverseParams, validator, null, searchRegionsMin, num, maxDistance, out int num2, traversableRegionTypes, ignoreEntirelyForbiddenRegions, lookInHaulSources);
-                if (thing != null && ReachabilityUtilityOnVehicle.CanReach(map, root, thing, peMode, traverseParams, thing.Map, out var exitSpot2, out var enterSpot2) && (validator == null || validator(thing)))
+                if (thing != null && ReachabilityUtilityOnVehicle.CanReach(map, root, thing, peMode, traverseParams, thing.MapHeld, out var exitSpot2, out var enterSpot2))
                 {
-                    GenClosestOnVehicle.tmpExitSpot = exitSpot2;
-                    GenClosestOnVehicle.tmpEnterSpot = enterSpot2;
+                    exitSpot = exitSpot2;
+                    enterSpot = enterSpot2;
                     return thing;
                 }
                 else
@@ -96,34 +106,43 @@ namespace VehicleInteriors
                 {
                     Log.ErrorOnce("ClosestThingReachable had to do a global search, but traversableRegionTypes is not set to passable only. It's not supported, because Reachability is based on passable regions only.", 14384767);
                 }
-                bool Validator(Thing t)
-                {
-                    if (ReachabilityUtilityOnVehicle.CanReach(map, root, t, peMode, traverseParams, t.Map, out var exitSpot2, out var enterSpot2) && (validator == null || validator(t)))
-                    {
-                        GenClosestOnVehicle.tmpExitSpot = exitSpot2;
-                        GenClosestOnVehicle.tmpEnterSpot = enterSpot2;
-                        return true;
-                    }
-                    return false;
-                }
-                bool ValidatorAsync(Thing t)
-                {
-                    if (ReachabilityUtilityOnVehicle.CanReachAsync(map, root, t, peMode, traverseParams, t.Map, out var exitSpot2, out var enterSpot2) && (validator == null || validator(t)))
-                    {
-                        GenClosestOnVehicle.tmpExitSpot = exitSpot2;
-                        GenClosestOnVehicle.tmpEnterSpot = enterSpot2;
-                        return true;
-                    }
-                    return false;
-                }
+
                 var basePos = map.IsVehicleMapOf(out var vehicle) ? root.ToBaseMapCoord(vehicle) : root;
-                var searchSet = customGlobalSearchSet ?? map.BaseMapAndVehicleMaps().SelectMany(m => m.listerThings.ThingsMatching(thingReq));
+                var searchSet = customGlobalSearchSet ?? tmpSearchSet;
                 if (ShouldUseAsync(searchSet))
                 {
+                    bool ValidatorAsync(Thing t)
+                    {
+                        if (ReachabilityUtilityOnVehicle.CanReachAsync(map, root, t, peMode, traverseParams, t.Map, out var exitSpot2, out var enterSpot2))
+                        {
+                            lock (_lock)
+                            {
+                                if (validator == null || validator(t))
+                                {
+                                    GenClosestOnVehicle.tmpExitSpot = exitSpot2;
+                                    GenClosestOnVehicle.tmpEnterSpot = enterSpot2;
+                                    return true;
+                                }
+                            }
+                        }
+                        return false;
+                    }
+
                     thing = GenClosestOnVehicle.ClosestThing_Global(basePos, searchSet, maxDistance, ValidatorAsync, async: true);
                 }
                 else
                 {
+                    bool Validator(Thing t)
+                    {
+                        if (ReachabilityUtilityOnVehicle.CanReach(map, root, t, peMode, traverseParams, t.Map, out var exitSpot2, out var enterSpot2) && (validator == null || validator(t)))
+                        {
+                            GenClosestOnVehicle.tmpExitSpot = exitSpot2;
+                            GenClosestOnVehicle.tmpEnterSpot = enterSpot2;
+                            return true;
+                        }
+                        return false;
+                    }
+
                     thing = GenClosestOnVehicle.ClosestThing_Global(basePos, searchSet, maxDistance, Validator, null);
                 }
             }
@@ -193,7 +212,7 @@ namespace VehicleInteriors
 
         public static Thing ClosestThing_Global(IntVec3 center, IEnumerable searchSet, float maxDistance = 99999f, Predicate<Thing> validator = null, Func<Thing, float> priorityGetter = null, bool lookInHaulSources = false)
         {
-            return GenClosestOnVehicle.ClosestThing_Global(center, searchSet, maxDistance, validator, priorityGetter, lookInHaulSources, ShouldUseAsync(searchSet));
+            return GenClosestOnVehicle.ClosestThing_Global(center, searchSet, maxDistance, validator, priorityGetter, lookInHaulSources, false);
         }
 
         private static ParallelOptions parallelOptions = new ParallelOptions()
@@ -332,21 +351,15 @@ namespace VehicleInteriors
             {
                 if (validator != null)
                 {
-                    lock (_lock)
+                    if (!validator(t))
                     {
-                        if (!validator(t))
-                        {
-                            return;
-                        }
+                        return;
                     }
                 }
                 float num = 0f;
                 if (priorityGetter != null)
                 {
-                    lock (_lock)
-                    {
-                        num = priorityGetter(t);
-                    }
+                    num = priorityGetter(t);
                     if (num < bestPrio)
                     {
                         return;

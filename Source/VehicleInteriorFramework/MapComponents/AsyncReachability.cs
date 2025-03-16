@@ -254,9 +254,15 @@ namespace VehicleInteriors
                     case PathEndMode.OnCell:
                         {
                             Region region = dest.Cell.GetRegion(map);
-                            if (region != null && region.Allows(traverseParams, isDestination: true))
+                            if (region != null)
                             {
-                                destRegions.Add(region);
+                                lock (_lock)
+                                {
+                                    if (region.Allows(traverseParams, isDestination: true))
+                                    {
+                                        destRegions.Add(region);
+                                    }
+                                }
                             }
 
                             break;
@@ -387,9 +393,16 @@ namespace VehicleInteriors
                         for (int j = 0; j < 2; j++)
                         {
                             Region region2 = regionLink.regions[j];
-                            if (region2 == null || closeList.Contains(region2) || !region2.type.Passable() || !region2.Allows(traverseParams, isDestination: false))
+                            if (region2 == null || closeList.Contains(region2) || !region2.type.Passable())
                             {
                                 continue;
+                            }
+                            lock (_lock)
+                            {
+                                if (!region2.Allows(traverseParams, isDestination: false))
+                                {
+                                    continue;
+                                }
                             }
 
                             if (destRegions.Contains(region2))
@@ -458,7 +471,14 @@ namespace VehicleInteriors
                     }
 
                     Region region = directRegionGrid[num];
-                    return (region == null || region.Allows(traverseParams, isDestination: false));
+                    if (region == null)
+                    {
+                        return true;
+                    }
+                    lock (_lock)
+                    {
+                        return region.Allows(traverseParams, isDestination: false);
+                    }
                 }, c =>
                 {
                     if (ReachabilityImmediate.CanReachImmediate(c, dest, map, peMode, traverseParams.pawn))
@@ -601,9 +621,15 @@ namespace VehicleInteriors
                     return true;
                 }
 
-                RegionEntryPredicate entryCondition = (Region from, Region r) => r.Allows(traverseParms, isDestination: false);
+                bool entryCondition(Region from, Region r)
+                {
+                    lock (_lock)
+                    {
+                        return r.Allows(traverseParms, isDestination: false);
+                    }
+                }
                 bool foundReg = false;
-                RegionProcessor regionProcessor = delegate (Region r)
+                bool regionProcessor(Region r)
                 {
                     if (r.District.TouchesMapEdge)
                     {
@@ -612,7 +638,7 @@ namespace VehicleInteriors
                     }
 
                     return false;
-                };
+                }
                 RegionTraverser.BreadthFirstTraverse(region, entryCondition, regionProcessor, 9999);
                 return foundReg;
             }
@@ -649,9 +675,15 @@ namespace VehicleInteriors
                     return false;
                 }
 
-                RegionEntryPredicate entryCondition = (Region from, Region r) => r.Allows(traverseParms, isDestination: false);
+                bool entryCondition(Region from, Region r)
+                {
+                    lock (_lock)
+                    {
+                        return r.Allows(traverseParms, isDestination: false);
+                    }
+                }
                 bool foundReg = false;
-                RegionProcessor regionProcessor = delegate (Region r)
+                bool regionProcessor(Region r)
                 {
                     if (!r.AnyCell.Fogged(map))
                     {
@@ -660,7 +692,7 @@ namespace VehicleInteriors
                     }
 
                     return false;
-                };
+                }
                 RegionTraverser.BreadthFirstTraverse(region, entryCondition, regionProcessor, 9999);
                 return foundReg;
             }

@@ -283,6 +283,16 @@ namespace VMF_PUAHPatch
             return null;
         }
 
+        public static bool Stackable(Thing nextThing, KeyValuePair<StoreTarget, CellAllocation> allocation, Map destMap)
+        {
+            if (nextThing != allocation.Value.allocated && !allocation.Value.allocated.CanStackWith(nextThing))
+            {
+                return HoldMultipleThings_Support.StackableAt(nextThing, allocation.Key.cell, destMap);
+            }
+
+            return true;
+        }
+
         public static bool AllocateThingAtCell(Dictionary<StoreTarget, CellAllocation> storeCellCapacity, Pawn pawn, Thing nextThing, Job job, Map destMap)
         {
             var map = pawn.Map;
@@ -291,7 +301,7 @@ namespace VMF_PUAHPatch
                 kvp.Key is var storeTarget
                 && (storeTarget.container?.TryGetInnerInteractableThingOwner().CanAcceptAnyOf(nextThing)
                 ?? storeTarget.cell.GetSlotGroup(destMap).parent.Accepts(nextThing))
-                && Stackable(nextThing, kvp));
+                && Stackable(nextThing, kvp, destMap));
             var storeCell = allocation.Key;
 
             //Can't stack with allocated cells, find a new cell:
