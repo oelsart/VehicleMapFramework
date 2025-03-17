@@ -439,6 +439,7 @@ namespace VehicleInteriors
             {
                 return null;
             }
+            var basePos = map.IsVehicleMapOf(out var vehicle) ? center.ToBaseMapCoord(vehicle) : center;
             var debug_changeCount = 0;
             var debug_scanCount = 0;
             Thing bestThing = null;
@@ -488,7 +489,7 @@ namespace VehicleInteriors
                     return;
                 }
                 debug_scanCount++;
-                float num = (float)(center - t.PositionHeldOnBaseMap()).LengthHorizontalSquared;
+                float num = (float)(basePos - t.PositionHeldOnBaseMap()).LengthHorizontalSquared;
                 if (num > maxDistanceSquared)
                 {
                     return;

@@ -21,7 +21,7 @@ namespace VehicleInteriors
         {
             TargetInfo exitSpot = TargetInfo.Invalid;
             TargetInfo enterSpot = TargetInfo.Invalid;
-            bool validator(Thing t)
+            bool Validator(Thing t)
             {
                 return !t.IsForbidden(pawn) &&
                 (!t.IsOnVehicleMapOf(out var vehicle) || vehicle.AllowsHaulOut) &&
@@ -31,7 +31,7 @@ namespace VehicleInteriors
             }
             var baseMap = pawn.BaseMap();
             var searchSet = baseMap.BaseMapAndVehicleMaps().SelectMany(m => m.listerHaulables.ThingsPotentiallyNeedingHauling());
-            Thing thing = GenClosestOnVehicle.ClosestThing_Global_Reachable(pawn.PositionOnBaseMap(), pawn.Map, searchSet, PathEndMode.OnCell, TraverseParms.For(pawn, Danger.Deadly, TraverseMode.ByPawn, false, false, false), 9999f, validator, null);
+            Thing thing = GenClosestOnVehicle.ClosestThing_Global_Reachable(pawn.Position, pawn.Map, searchSet, PathEndMode.OnCell, TraverseParms.For(pawn, Danger.Deadly, TraverseMode.ByPawn, false, false, false), 9999f, Validator, null);
             if (thing != null)
             {
                 if (PUAHActive && (bool)IsAllowedRace(pawn.RaceProps))
