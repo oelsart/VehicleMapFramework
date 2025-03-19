@@ -1,4 +1,5 @@
 ﻿using RimWorld;
+using SmashTools;
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
@@ -15,8 +16,6 @@ namespace VehicleInteriors
 {
     public static class GenClosestOnVehicle
     {
-        private static readonly List<Thing> tmpSearchSet = new List<Thing>();
-
         private static bool EarlyOutSearch(IntVec3 start, Map map, ThingRequest thingReq, IEnumerable<Thing> customGlobalSearchSet, Predicate<Thing> validator)
         {
             if (thingReq.group == ThingRequestGroup.Everything)
@@ -35,16 +34,7 @@ namespace VehicleInteriors
                 }));
                 return true;
             }
-            if (thingReq.group == ThingRequestGroup.Nothing)
-            {
-                return true;
-            }
-            tmpSearchSet.Clear();
-            if (!thingReq.IsUndefined)
-            {
-                tmpSearchSet.AddRange(map.BaseMapAndVehicleMaps().SelectMany(m => m.listerThings.ThingsMatching(thingReq)));
-            }
-            return tmpSearchSet.Empty() && customGlobalSearchSet.EnumerableNullOrEmpty();
+            return thingReq.group == ThingRequestGroup.Nothing || ((thingReq.IsUndefined || !map.BaseMapAndVehicleMaps().SelectMany(m => m.listerThings.ThingsMatching(thingReq)).Any()) && customGlobalSearchSet.EnumerableNullOrEmpty());
         }
 
         public static Thing ClosestThingReachable(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance = 9999f, Predicate<Thing> validator = null, IEnumerable<Thing> customGlobalSearchSet = null, int searchRegionsMin = 0, int searchRegionsMax = -1, bool forceAllowGlobalSearch = false, RegionType traversableRegionTypes = RegionType.Set_Passable, bool ignoreEntirelyForbiddenRegions = false)
@@ -109,7 +99,7 @@ namespace VehicleInteriors
                 }
 
                 var basePos = map.IsVehicleMapOf(out var vehicle) ? root.ToBaseMapCoord(vehicle) : root;
-                var searchSet = customGlobalSearchSet ?? tmpSearchSet;
+                var searchSet = customGlobalSearchSet ?? map.BaseMapAndVehicleMaps().SelectMany(m => m.listerThings.ThingsMatching(thingReq));
                 if (ShouldUseAsync(searchSet))
                 {
                     bool ValidatorAsync(Thing t)

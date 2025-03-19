@@ -69,7 +69,8 @@ namespace VehicleInteriors
                 scanner is WorkGiver_DoBill ||
                 scanner is WorkGiver_ConstructDeliverResources ||
                 scanner is WorkGiver_ConstructFinishFrames ||
-                scanner is WorkGiver_Refuel;
+                scanner is WorkGiver_Refuel ||
+                scanner is WorkGiver_LoadTransporters;
         }
     }
 }

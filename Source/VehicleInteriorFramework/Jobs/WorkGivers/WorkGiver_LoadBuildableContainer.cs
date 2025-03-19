@@ -13,7 +13,7 @@ namespace VehicleInteriors
 
         public override IEnumerable<Thing> PotentialWorkThingsGlobal(Pawn pawn)
         {
-            return pawn.Map.listerBuildings.allBuildingsColonist.Where(b => b.HasComp<CompBuildableContainer>());
+            return pawn.Map.BaseMapAndVehicleMaps().SelectMany(m => m.listerBuildings.allBuildingsColonist.Where(b => b.HasComp<CompTransporter>()));
         }
 
         public override PathEndMode PathEndMode

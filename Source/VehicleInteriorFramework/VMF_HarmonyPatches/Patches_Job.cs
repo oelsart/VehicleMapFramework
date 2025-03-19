@@ -1,7 +1,7 @@
 ﻿using HarmonyLib;
 using RimWorld;
+using SmashTools;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -99,6 +99,14 @@ namespace VehicleInteriors.VMF_HarmonyPatches
 
         private static IEnumerable<Thing> AddSearchSet(List<Thing> list, Pawn pawn, WorkGiver_Scanner scanner)
         {
+            if (scanner is WorkGiver_LoadTransporters)
+            {
+                Log.Message("Help!");
+            }
+            if (JobAcrossMapsUtility.NoNeedVirtualMapTransfer(pawn.Map, null, scanner))
+            {
+                return list;
+            }
             var maps = pawn.Map.BaseMapAndVehicleMaps().Except(pawn.Map);
             if (maps.Any())
             {
