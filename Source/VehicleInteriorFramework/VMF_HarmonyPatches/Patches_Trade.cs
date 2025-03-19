@@ -2,6 +2,7 @@
 using RimWorld;
 using RimWorld.Planet;
 using SmashTools;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -194,6 +195,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             codes.InsertRange(pos, new[]
             {
                 CodeInstruction.LoadLocal(2),
+                new CodeInstruction(OpCodes.Callvirt, AccessTools.PropertyGetter(typeof(IEnumerator<Building_OrbitalTradeBeacon>), nameof(IEnumerator.Current))),
                 new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Thing_Map)
             });
             return codes;
