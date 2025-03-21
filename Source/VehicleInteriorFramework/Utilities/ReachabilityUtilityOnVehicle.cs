@@ -442,7 +442,7 @@ namespace VehicleInteriors
 
         public static bool CanReachReplaceable(this Reachability reachability, IntVec3 start, LocalTargetInfo dest, PathEndMode peMode, TraverseParms traverseParms)
         {
-            var departMap = ReachabilityUtilityOnVehicle.tmpDepartMap;
+            var departMap = ReachabilityUtilityOnVehicle.tmpDepartMap ?? (traverseParms.pawn != null ? traverseParms.pawn.Map : map(reachability));
             var destMap = ReachabilityUtilityOnVehicle.tmpDestMap ?? (dest.HasThing ? dest.Thing.MapHeld : map(reachability));
             return ReachabilityUtilityOnVehicle.CanReach(departMap, start, dest, peMode, traverseParms, destMap, out _, out _);
         }
