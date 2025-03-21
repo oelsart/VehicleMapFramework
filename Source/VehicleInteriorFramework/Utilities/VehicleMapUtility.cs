@@ -43,13 +43,13 @@ namespace VehicleInteriors
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsVehicleMapOf(this Map map, out VehiclePawnWithMap vehicle)
         {
-            if (map?.Parent is MapParent_Vehicle mapParent_Vehicle)
+            if (map == null)
             {
-                vehicle = mapParent_Vehicle.vehicle;
-                return true;
+                vehicle = null;
+                return false;
             }
-            vehicle = null;
-            return false;
+            vehicle = VehiclePawnWithMapCache.cachedParentVehicle[map];
+            return vehicle != null;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

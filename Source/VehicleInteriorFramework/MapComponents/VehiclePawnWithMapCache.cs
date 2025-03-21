@@ -11,6 +11,14 @@ namespace VehicleInteriors
     {
         public VehiclePawnWithMapCache(Map map) : base(map)
         {
+            if (this.map.Parent is MapParent_Vehicle parentVehicle)
+            {
+                cachedParentVehicle[this.map] = parentVehicle.vehicle;
+            }
+            else
+            {
+                cachedParentVehicle[this.map] = null;
+            }
         }
 
         public override void FinalizeInit()
@@ -59,6 +67,7 @@ namespace VehicleInteriors
                 component.cachedPosOnBaseMap.Clear();
                 component.allVehicles.Clear();
             });
+            cachedParentVehicle.Clear();
         }
 
         public static void RegisterVehicle(VehiclePawnWithMap vehicle)
@@ -147,5 +156,7 @@ namespace VehicleInteriors
         public bool cacheMode;
 
         private HashSet<VehiclePawnWithMap> allVehicles = new HashSet<VehiclePawnWithMap>();
+
+        public static Dictionary<Map, VehiclePawnWithMap> cachedParentVehicle = new Dictionary<Map, VehiclePawnWithMap>();
     }
 }
