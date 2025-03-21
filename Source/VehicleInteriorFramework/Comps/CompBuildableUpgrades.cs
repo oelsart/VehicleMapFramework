@@ -45,6 +45,17 @@ namespace VehicleInteriors
                         upgrade.Refund(vehicle);
                     }
                 }
+
+                //あふれた分の燃料を消費させる
+                CompFueledTravel comp;
+                if ((comp = vehicle.CompFueledTravel) != null)
+                {
+                    var fuel = comp.Fuel - comp.FuelCapacity;
+                    if (fuel > 0)
+                    {
+                        comp.ConsumeFuel(fuel);
+                    }
+                }
             }
         }
 

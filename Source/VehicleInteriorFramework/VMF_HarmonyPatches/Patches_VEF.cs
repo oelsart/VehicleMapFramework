@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
+using Vehicles;
 using Verse;
 using static UnityEngine.GraphicsBuffer;
 
@@ -186,6 +187,32 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             }
             return point;
         }
+    }
+
+    [HarmonyPatchCategory("VMF_Patches_VVE")]
+    [HarmonyPatch("VanillaVehiclesExpanded.CompRefuelingPump", "CompTick")]
+    public static class Patch_CompRefuelingPump_CompTick
+    {
+        public static void Postfix(ThingWithComps ___parent, CompRefuelable ___compRefuelable, CompProperties ___props)
+        {
+            if (___parent.Spawned)
+            {
+                CompFuelTank compFuelTank = default;
+                var fuelTank = ___parent.InteractionCell.GetThingList(___parent.Map).FirstOrDefault(t => t.TryGetComp(out compFuelTank));
+                if (fuelTank != null && ___compRefuelable.HasFuel)
+                {
+                    CompFueledTravel compFueledTravel = compFuelTank.Vehicle?.CompFueledTravel;
+                    if (compFueledTravel != null && compFueledTravel.Fuel < compFueledTravel.FuelCapacity)
+                    {
+                        float amount = Mathf.Min(compFueledTravel.FuelCapacity - compFueledTravel.Fuel, refuelAmountPerTick(___props));
+                        compFueledTravel.Refuel(amount);
+                        ___compRefuelable.ConsumeFuel(amount);
+                    }
+                }
+            }
+        }
+
+        private static AccessTools.FieldRef<CompProperties, float> refuelAmountPerTick = AccessTools.FieldRefAccess<float>("VanillaVehiclesExpanded.CompProperties_RefuelingPump:refuelAmountPerTick");
     }
 
     [HarmonyPatchCategory("VMF_Patches_VFE_Pirates")]

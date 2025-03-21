@@ -27,14 +27,20 @@ namespace VehicleInteriors
             CompFueledTravel comp;
             if ((comp = Vehicle?.CompFueledTravel) != null)
             {
+                var rot = Vehicle.FullRotation.RotForVehicleDraw();
+                if (!rot.IsHorizontal) rot = rot.Opposite;
+                if ((parent.Position + rot.FacingCell).GetFirstThing(parent.Map, parent.def) != null)
+                {
+                    return;
+                }
                 GenDraw.FillableBarRequest r = new GenDraw.FillableBarRequest
                 {
-                    center = this.parent.DrawPos + DrawOffset.RotatedBy(-vehicle.Angle),
+                    center = this.parent.DrawPos + DrawOffset.RotatedBy(-vehicle.Angle) + Vector3.down * 0.015f,
                     size = BarSize,
                     fillPercent = comp.FuelPercent,
                     filledMat = FilledMat,
                     unfilledMat = UnfilledMat,
-                    margin = 0.01f,
+                    margin = 0.03f,
                     rotation = this.parent.BaseFullRotationAsRot4()
                 };
                 //中にRot8が入ってるのでIsHorizontalは使えません

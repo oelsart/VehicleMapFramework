@@ -548,6 +548,7 @@ namespace VehicleInteriors
             {
                 return;
             }
+
             var angle = Ext_Math.RotateAngle(this.FullRotation.AsAngle, extraRotation);
             foreach (var subMesh in layer.subMeshes)
             {
