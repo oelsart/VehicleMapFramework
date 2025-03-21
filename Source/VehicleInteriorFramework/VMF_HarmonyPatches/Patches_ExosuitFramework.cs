@@ -60,11 +60,6 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     [HarmonyPatch("WalkerGear.WG_PawnFlyer", "RespawnPawn")]
     public static class Patch_WG_PawnFlyer_RespawnPawn
     {
-        static void Prefix(bool ___isLanding, LocalTargetInfo ___actionTarget)
-        {
-            Log.Message($"isLanding: {___isLanding}, actionTarget:{___actionTarget}");
-        }
-
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             return instructions.MethodReplacer(MethodInfoCache.g_LocalTargetInfo_Cell, MethodInfoCache.m_CellOnBaseMap);

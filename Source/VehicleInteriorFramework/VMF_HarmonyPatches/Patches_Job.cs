@@ -99,10 +99,6 @@ namespace VehicleInteriors.VMF_HarmonyPatches
 
         private static IEnumerable<Thing> AddSearchSet(List<Thing> list, Pawn pawn, WorkGiver_Scanner scanner)
         {
-            if (scanner is WorkGiver_LoadTransporters)
-            {
-                Log.Message("Help!");
-            }
             if (JobAcrossMapsUtility.NoNeedVirtualMapTransfer(pawn.Map, null, scanner))
             {
                 return list;

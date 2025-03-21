@@ -42,7 +42,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
 
     [HarmonyPatchCategory("VMF_Patches_DubsBadGygiene")]
     [HarmonyPatch("DubsBadHygiene.Graphic_LinkedPipe", "ShouldLinkWith")]
-    public static class Patch_Graphic_LinkedPipe_ShouldLinkWith
+    public static class Patch_Graphic_LinkedPipeDBH_ShouldLinkWith
     {
         public static void Prefix(IntVec3 c, Thing parent) => Patch_Graphic_Linked_ShouldLinkWith.Prefix(ref c, parent);
     }

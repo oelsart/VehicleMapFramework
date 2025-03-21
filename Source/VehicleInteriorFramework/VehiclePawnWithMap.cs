@@ -5,10 +5,12 @@ using SmashTools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Emit;
 using System.Text;
 using UnityEngine;
 using Vehicles;
 using Verse;
+using static RimWorld.MechClusterSketch;
 
 namespace VehicleInteriors
 {
@@ -428,13 +430,14 @@ namespace VehicleInteriors
 
         protected virtual void DrawSection(Section section, Vector3 drawPos, float extraRotation)
         {
-            this.DrawLayer(section, typeof(SectionLayer_TerrainOnVehicle), drawPos, extraRotation);
-            ((SectionLayer_ThingsGeneralOnVehicle)section.GetLayer(typeof(SectionLayer_ThingsGeneralOnVehicle))).DrawLayer(this.FullRotation, drawPos, extraRotation);
+            var rot = this.FullRotation;
+            ((SectionLayer_TerrainOnVehicle)section.GetLayer(typeof(SectionLayer_TerrainOnVehicle))).DrawLayer(rot, drawPos, extraRotation);
+            ((SectionLayer_ThingsGeneralOnVehicle)section.GetLayer(typeof(SectionLayer_ThingsGeneralOnVehicle))).DrawLayer(rot, drawPos, extraRotation);
             this.DrawLayer(section, typeof(SectionLayer_BuildingsDamage), drawPos, extraRotation);
             if (Find.WindowStack.TryGetWindow<MainTabWindow_Architect>(out var window) && (window.selectedDesPanel?.def.showPowerGrid ?? false) ||
                 Find.DesignatorManager.SelectedDesignator is Designator_Build designator && designator.PlacingDef is ThingDef tDef && tDef.HasComp<CompPower>())
             {
-                ((SectionLayer_ThingsPowerGridOnVehicle)section.GetLayer(typeof(SectionLayer_ThingsPowerGridOnVehicle))).DrawLayer(this.FullRotation, drawPos.WithY(0f), extraRotation);
+                ((SectionLayer_ThingsPowerGridOnVehicle)section.GetLayer(typeof(SectionLayer_ThingsPowerGridOnVehicle))).DrawLayer(rot, drawPos.WithY(0f), extraRotation);
             }
             this.DrawLayer(section, t_SectionLayer_Zones, drawPos, extraRotation);
             ((SectionLayer_LightingOnVehicle)section.GetLayer(typeof(SectionLayer_LightingOnVehicle))).DrawLayer(this, drawPos, extraRotation);
@@ -539,6 +542,8 @@ namespace VehicleInteriors
             }
         }
 
+        private List<Matrix4x4> matrices = new List<Matrix4x4>();
+
         private void DrawLayer(Section section, Type layerType, Vector3 drawPos, float extraRotation)
         {
             if (layerType == null) return;
@@ -548,7 +553,6 @@ namespace VehicleInteriors
             {
                 return;
             }
-
             var angle = Ext_Math.RotateAngle(this.FullRotation.AsAngle, extraRotation);
             foreach (var subMesh in layer.subMeshes)
             {

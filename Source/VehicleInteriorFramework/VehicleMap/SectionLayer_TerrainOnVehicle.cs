@@ -28,6 +28,22 @@ namespace VehicleInteriors
             this.baseTerrainMat = SolidColorMaterials.NewSolidColorMaterial(parentVehicle.vehicle.DrawColor, ShaderDatabase.TerrainHard);
         }
 
+        public void DrawLayer(Rot8 rot, Vector3 drawPos, float extraRotation)
+        {
+            if (!this.Visible)
+            {
+                return;
+            }
+            var angle = Ext_Math.RotateAngle(rot.AsAngle, extraRotation);
+            foreach (var layerSubMesh in this.subMeshes)
+            {
+                if (layerSubMesh.finalized && !layerSubMesh.disabled)
+                {
+                    Graphics.DrawMesh(layerSubMesh.mesh, drawPos, Quaternion.AngleAxis(angle, Vector3.up), layerSubMesh.material, 0);
+                }
+            }
+        }
+
         //drawPlanetがオフでVehicleMapにフォーカスした時しか呼ばれないよ
         public override void DrawLayer()
         {
@@ -46,19 +62,19 @@ namespace VehicleInteriors
             var color = cellTerrain.color;
             bool polluted = cellTerrain.polluted && cellTerrain.snowCoverage < 0.4f && cellTerrain.def.graphicPolluted != BaseContent.BadGraphic;
             ValueTuple<TerrainDef, bool, ColorDef> key = new ValueTuple<TerrainDef, bool, ColorDef>(def, polluted, color);
-            if (!this.terrainMatCache.ContainsKey(key))
+            if (!terrainMatCache.ContainsKey(key))
             {
                 Graphic graphic = polluted ? def.graphicPolluted.GetCopy(def.graphicPolluted.drawSize, VMF_Shaders.terrainHardWithZ) : def.graphic.GetCopy(def.graphic.drawSize, VMF_Shaders.terrainHardWithZ);
                 if (color != null)
                 {
-                    this.terrainMatCache[key] = graphic.GetColoredVersion(VMF_Shaders.terrainHardWithZ, color.color, Color.white).MatSingle;
+                    terrainMatCache[key] = new Material(graphic.GetColoredVersion(VMF_Shaders.terrainHardWithZ, color.color, Color.white).MatSingle);
                 }
                 else
                 {
-                    this.terrainMatCache[key] = graphic.MatSingle;
+                    terrainMatCache[key] = new Material(graphic.MatSingle);
                 }
             }
-            return this.terrainMatCache[key];
+            return terrainMatCache[key];
         }
 
         public bool AllowRenderingFor(TerrainDef terrain)

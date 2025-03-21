@@ -75,13 +75,13 @@ namespace VehicleInteriors.VMF_HarmonyPatches
 
     [HarmonyPatchCategory("VMF_Patches_VEF")]
     [HarmonyPatch(typeof(Graphic_LinkedPipe), nameof(Graphic_LinkedPipe.ShouldLinkWith))]
-    public static class Patch_Graphic_LinkedPipe_ShouldLinkWith
+    public static class Patch_Graphic_LinkedPipeVEF_ShouldLinkWith
     {
         public static void Prefix(ref IntVec3 c, Thing parent) => Patch_Graphic_Linked_ShouldLinkWith.Prefix(ref c, parent);
 
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, AccessTools.Method(typeof(Patch_Graphic_LinkedPipe_ShouldLinkWith), nameof(MapModified)));
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, AccessTools.Method(typeof(Patch_Graphic_LinkedPipeVEF_ShouldLinkWith), nameof(MapModified)));
         }
 
         private static Map MapModified(Thing thing)

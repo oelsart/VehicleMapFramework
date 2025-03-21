@@ -95,10 +95,6 @@ namespace VehicleInteriors
                                     var component = MapComponentCache<PipeNetManager>.GetComponent(compConnector.parent.Map);
                                     pipeNetCount(component) = component.pipeNets.Count;
                                     this.parent.DirtyMapMesh(this.parent.Map);
-                                    Log.Message($"{pipeNetCount(MapComponentCache<PipeNetManager>.GetComponent(compConnector.parent.Map))}" +
-                                        $"{MapComponentCache<PipeNetManager>.GetComponent(compConnector.parent.Map).pipeNets.Count}" +
-                                        $"{pipeNetCount(MapComponentCache<PipeNetManager>.GetComponent(this.parent.Map))}" +
-                                        $"{MapComponentCache<PipeNetManager>.GetComponent(this.parent.Map).pipeNets.Count}");
                                 }
                                 flag = true;
                                 break;
