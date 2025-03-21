@@ -397,10 +397,37 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     [HarmonyPatch(typeof(GenDraw), nameof(GenDraw.DrawFillableBar))]
     public static class Patch_GenDraw_DrawFillableBar
     {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        public static bool Prefix(GenDraw.FillableBarRequest r)
         {
-            return instructions.MethodReplacer(MethodInfoCache.g_Rot4_AsAngle, MethodInfoCache.g_Rot8_AsAngle)
-                .MethodReplacer(MethodInfoCache.g_Rot4_AsQuat, MethodInfoCache.m_Rot8_AsQuatRef);
+            if (r.rotation.AsInt >= 4)
+            {
+                var rot = new Rot8(r.rotation.AsInt);
+                Vector2 vector = r.preRotationOffset.RotatedBy(rot.AsAngle);
+                r.center += new Vector3(vector.x, 0f, vector.y);
+                if (rot == Rot8.SouthWest)
+                {
+                    rot = Rot8.NorthEast;
+                }
+                if (rot == Rot8.SouthEast)
+                {
+                    rot = Rot8.NorthWest;
+                }
+                Vector3 s = new Vector3(r.size.x + r.margin, 1f, r.size.y + r.margin);
+                Matrix4x4 matrix = default;
+                matrix.SetTRS(r.center, rot.AsQuat(), s);
+                Graphics.DrawMesh(MeshPool.plane10, matrix, r.unfilledMat, 0);
+                if (r.fillPercent > 0.001f)
+                {
+                    s = new Vector3(r.size.x * r.fillPercent, 1f, r.size.y);
+                    matrix = default;
+                    Vector3 pos = r.center + Vector3.up * 0.01f;
+                    pos += new Vector3(-r.size.x * 0.5f + 0.5f * r.size.x * r.fillPercent, 0f, 0f).RotatedBy(rot.AsAngle);
+                    matrix.SetTRS(pos, rot.AsQuat(), s);
+                    Graphics.DrawMesh(MeshPool.plane10, matrix, r.filledMat, 0);
+                }
+                return false;
+            }
+            return true;
         }
     }
 

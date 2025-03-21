@@ -48,7 +48,7 @@ namespace VehicleInteriors
                 vehicle = null;
                 return false;
             }
-            vehicle = VehiclePawnWithMapCache.cachedParentVehicle[map];
+            vehicle = VehiclePawnWithMapCache.cachedParentVehicle[map].Value;
             return vehicle != null;
         }
 

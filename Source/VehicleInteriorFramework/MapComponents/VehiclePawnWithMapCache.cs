@@ -1,5 +1,6 @@
 ﻿using RimWorld.Planet;
 using SmashTools;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -11,14 +12,13 @@ namespace VehicleInteriors
     {
         public VehiclePawnWithMapCache(Map map) : base(map)
         {
-            if (this.map.Parent is MapParent_Vehicle parentVehicle)
-            {
-                cachedParentVehicle[this.map] = parentVehicle.vehicle;
-            }
-            else
-            {
-                cachedParentVehicle[this.map] = null;
-            }
+            cachedParentVehicle[this.map] = new Lazy<VehiclePawnWithMap>(() => {
+                if (this.map.Parent is MapParent_Vehicle parentVehicle)
+                {
+                    return parentVehicle.vehicle;
+                }
+                return null;
+            }, false);
         }
 
         public override void FinalizeInit()
@@ -157,6 +157,6 @@ namespace VehicleInteriors
 
         private HashSet<VehiclePawnWithMap> allVehicles = new HashSet<VehiclePawnWithMap>();
 
-        public static Dictionary<Map, VehiclePawnWithMap> cachedParentVehicle = new Dictionary<Map, VehiclePawnWithMap>();
+        public static Dictionary<Map, Lazy<VehiclePawnWithMap>> cachedParentVehicle = new Dictionary<Map, Lazy<VehiclePawnWithMap>>();
     }
 }

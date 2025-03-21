@@ -529,12 +529,15 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             public static void Postfix(Map ___map, ref float ___wealthItems, ref float ___wealthBuildings, ref float ___wealthFloorsOnly, float ___lastCountTick)
             {
+                var state = Current.ProgramState;
+                Current.ProgramState = ProgramState.Playing;
                 foreach (var vehicle in VehiclePawnWithMapCache.AllVehiclesOn(___map))
                 {
                     ___wealthItems += vehicle.VehicleMap.wealthWatcher.WealthItems;
                     ___wealthBuildings += vehicle.VehicleMap.wealthWatcher.WealthBuildings;
                     ___wealthFloorsOnly += vehicle.VehicleMap.wealthWatcher.WealthFloorsOnly;
                 }
+                Current.ProgramState = state;
             }
         }
 
