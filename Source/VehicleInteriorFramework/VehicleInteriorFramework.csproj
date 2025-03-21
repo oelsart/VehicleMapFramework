@@ -146,8 +146,10 @@
     <Compile Include="Comps\WorldObjectCompProperties_VehicleMapHolderComp.cs" />
     <Compile Include="Dialog_LoadCargoToBuildableContainer.cs" />
     <Compile Include="Graphics\ExtraOverlayData.cs" />
+    <Compile Include="Jobs\JobDrivers\JobDriver_RefuelVehicleTank.cs" />
     <Compile Include="Jobs\WorkGivers\IWorkGiverAcrossMaps.cs" />
     <Compile Include="Jobs\WorkGivers\WorkGiver_LoadBuildableContainer.cs" />
+    <Compile Include="Jobs\WorkGivers\WorkGiver_RefuelVehicleTank.cs" />
     <Compile Include="MapComponents\CrossMapHaulDestinationManager.cs" />
     <Compile Include="ModExtensions\VehicleHumanPowered.cs" />
     <Compile Include="PlaceWorkers\PlaceWorker_ForbidOnHumanPoweredVehicle.cs" />

@@ -385,7 +385,7 @@
 		</placeWorkers>
 	</ThingDef>
 		
-	<!--<ThingDef ParentName="FurnitureBase">
+	<ThingDef ParentName="FurnitureBase">
 		<defName>VMF_FuelTank</defName>
 		<label>fuel tank</label>
 		<description>Tank for increase fuel capacity of the vehicle.\n\n&lt;color=#bb8f04&gt;Fuel capacity:&lt;/color&gt; +300</description>
@@ -447,5 +447,5 @@
 		<placeWorkers>
 			<li>VehicleInteriors.PlaceWorker_ForceOnVehicle</li>
 		</placeWorkers>
-	</ThingDef>-->
+	</ThingDef>
 </Defs>

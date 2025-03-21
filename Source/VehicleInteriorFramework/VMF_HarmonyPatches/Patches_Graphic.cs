@@ -404,9 +404,9 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 var rot = new Rot8(r.rotation.AsInt);
                 Vector2 vector = r.preRotationOffset.RotatedBy(rot.AsAngle);
                 r.center += new Vector3(vector.x, 0f, vector.y);
-                if (rot == Rot8.SouthWest)
+                if (rot == Rot8.NorthEast)
                 {
-                    rot = Rot8.NorthEast;
+                    rot = Rot8.SouthWest;
                 }
                 if (rot == Rot8.SouthEast)
                 {

@@ -25,9 +25,21 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             }
 
             var loadTransporters = DefDatabase<WorkGiverDef>.GetNamedSilentFail("LoadTransporters");
-            VMF_DefOf.VMF_LoadBuildableContainer.label = loadTransporters.label;
-            VMF_DefOf.VMF_LoadBuildableContainer.verb = loadTransporters.verb;
-            VMF_DefOf.VMF_LoadBuildableContainer.gerund = loadTransporters.gerund;
+            if (loadTransporters != null)
+            {
+                VMF_DefOf.VMF_LoadBuildableContainer.label = loadTransporters.label;
+                VMF_DefOf.VMF_LoadBuildableContainer.verb = loadTransporters.verb;
+                VMF_DefOf.VMF_LoadBuildableContainer.gerund = loadTransporters.gerund;
+            }
+
+            var refuelVehicleTank = DefDatabase<WorkGiverDef>.GetNamedSilentFail("VMF_RefuelVehicleTank");
+            var refuelVehicle = DefDatabase<WorkGiverDef>.GetNamedSilentFail("RefuelVehicle");
+            if (refuelVehicleTank != null && refuelVehicle != null)
+            {
+                refuelVehicleTank.label = refuelVehicle.label;
+                refuelVehicleTank.verb = refuelVehicle.verb;
+                refuelVehicleTank.gerund = refuelVehicle.gerund;
+            }
 
             foreach (var jobDef in DefDatabase<JobDef>.AllDefs.Where(d => d.defName.StartsWith(prefix) && d.defName.EndsWith(suffix)))
             {
@@ -39,6 +51,22 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                     jobDef.reportString = baseDef.reportString;
                 }
             }
+
+            var VMF_RefuelVehicleTank = VMF_DefOf.VMF_RefuelVehicleTank;
+            var RefuelVehicle = JobDefOf_Vehicles.RefuelVehicle;
+            if (VMF_RefuelVehicleTank != null && RefuelVehicle != null)
+            {
+                VMF_RefuelVehicleTank.label = RefuelVehicle.label;
+                VMF_RefuelVehicleTank.reportString = RefuelVehicle.reportString;
+            }
+
+            //var VMF_RefuelVehicleTankAtomic = VMF_DefOf.VMF_RefuelVehicleTankAtomic;
+            //var RefuelVehicleAtomic = JobDefOf_Vehicles.RefuelVehicleAtomic;
+            //if (VMF_RefuelVehicleTankAtomic != null && RefuelVehicle != null)
+            //{
+            //    VMF_RefuelVehicleTankAtomic.label = RefuelVehicleAtomic.label;
+            //    VMF_RefuelVehicleTankAtomic.reportString = RefuelVehicleAtomic.reportString;
+            //}
         }
 
         public const string prefix = "VMF_";

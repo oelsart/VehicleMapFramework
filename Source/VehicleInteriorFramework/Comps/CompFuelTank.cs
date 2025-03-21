@@ -7,14 +7,29 @@ namespace VehicleInteriors
     [StaticConstructorOnStartup]
     public class CompFuelTank : ThingComp
     {
+        public VehiclePawnWithMap Vehicle
+        {
+            get
+            {
+                if (vehicle == null)
+                {
+                    if (!this.parent.IsOnVehicleMapOf(out vehicle))
+                    {
+                        Log.Error("[VehicleMapFramework] Fuel tank is not on vehicle map.");
+                    }
+                }
+                return vehicle;
+            }
+        }
+
         public override void PostDraw()
         {
             CompFueledTravel comp;
-            if (this.parent.IsOnVehicleMapOf(out var vehicle) && (comp = vehicle.CompFueledTravel) != null)
+            if ((comp = Vehicle?.CompFueledTravel) != null)
             {
                 GenDraw.FillableBarRequest r = new GenDraw.FillableBarRequest
                 {
-                    center = this.parent.DrawPos + DrawOffset,
+                    center = this.parent.DrawPos + DrawOffset.RotatedBy(-vehicle.Angle),
                     size = BarSize,
                     fillPercent = comp.FuelPercent,
                     filledMat = FilledMat,
@@ -22,9 +37,17 @@ namespace VehicleInteriors
                     margin = 0.01f,
                     rotation = this.parent.BaseFullRotationAsRot4()
                 };
+                //中にRot8が入ってるのでIsHorizontalは使えません
+                if (r.rotation == Rot4.East || r.rotation == Rot4.West)
+                {
+                    r.rotation = Rot4.North;
+                }
+                Rot8Utility.Rotate(ref r.rotation, RotationDirection.Clockwise);
                 GenDraw.DrawFillableBar(r);
             }
         }
+
+        private VehiclePawnWithMap vehicle;
 
         private static readonly Vector3 DrawOffset = new Vector3(0.0015f, 0.1f, -0.3125f);
 

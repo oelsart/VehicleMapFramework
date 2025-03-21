@@ -260,4 +260,20 @@
 		<suspendable>false</suspendable>
 		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
 	</JobDef>
+
+	<JobDef>
+		<defName>VMF_RefuelVehicleTank</defName>
+		<driverClass>VehicleInteriors.JobDriver_RefuelVehicleTank</driverClass>
+		<reportString>Refueling TargetA</reportString>
+		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
+		<casualInterruptible>false</casualInterruptible>
+	</JobDef>
+
+	<!--<JobDef>
+		<defName>VMF_RefuelVehicleTankAtomic</defName>
+		<driverClass>VehicleInteriors.JobDriver_RefuelVehicleTankAtomic</driverClass>
+		<reportString>Refueling TargetA</reportString>
+		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
+		<casualInterruptible>false</casualInterruptible>
+	</JobDef>-->
 </Defs>

@@ -584,7 +584,7 @@ namespace VehicleInteriors
 
         public static Rot4 BaseFullRotationAsRot4(this Thing thing)
         {
-            var rot = Rot4.Invalid;
+            Rot4 rot = default;
             Rot8Utility.rotInt(ref rot) = thing.BaseFullRotation().AsByte;
             return rot;
         }
@@ -888,7 +888,7 @@ namespace VehicleInteriors
         public static bool ShouldRotatedOnVehicle(this ThingDef tDef)
         {
             return tDef.fillPercent > 0.25f || tDef.Size != IntVec2.One || (!(tDef.graphic is Graphic_Single) && !(tDef.graphic is Graphic_Collection)) ||
-                tDef.hasInteractionCell || tDef.drawerType == DrawerType.MapMeshOnly || tDef.size.x != tDef.size.z;
+                tDef.hasInteractionCell || tDef.drawerType == DrawerType.MapMeshOnly || tDef.drawerType == DrawerType.MapMeshAndRealTime || tDef.size.x != tDef.size.z;
         }
 
         public static List<Thing> GetThingListAcrossMaps(this IntVec3 c, Map map)

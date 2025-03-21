@@ -106,4 +106,17 @@
 		<prioritizeSustains>true</prioritizeSustains>
 		<equivalenceGroup>AssistInConstruction</equivalenceGroup>
 	</WorkGiverDef>
+
+	<WorkGiverDef>
+		<defName>VMF_RefuelVehicleTank</defName>
+		<label>refuel vehicle tank</label>
+		<giverClass>VehicleInteriors.WorkGiver_RefuelVehicleTank</giverClass>
+		<workType>Hauling</workType>
+		<verb>refuel</verb>
+		<gerund>refueling</gerund>
+		<priorityInType>90</priorityInType>
+		<requiredCapacities>
+			<li>Manipulation</li>
+		</requiredCapacities>
+	</WorkGiverDef>
 </Defs>

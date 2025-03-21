@@ -92,6 +92,10 @@ namespace VehicleInteriors
 
         public static JobDef VMF_RearmTurretAtomicAcrossMaps;
 
+        public static JobDef VMF_RefuelVehicleTank;
+
+        //public static JobDef VMF_RefuelVehicleTankAtomic;
+
         public static WorkGiverDef VMF_LoadBuildableContainer;
 
         public static VehicleStatDef MaximumPayload;
