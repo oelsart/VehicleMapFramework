@@ -114,7 +114,7 @@
 		<workType>Hauling</workType>
 		<verb>refuel</verb>
 		<gerund>refueling</gerund>
-		<priorityInType>90</priorityInType>
+		<priorityInType>89</priorityInType>
 		<requiredCapacities>
 			<li>Manipulation</li>
 		</requiredCapacities>

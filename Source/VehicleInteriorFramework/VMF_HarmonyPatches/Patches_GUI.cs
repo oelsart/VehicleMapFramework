@@ -79,17 +79,151 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             if (UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out var vehicle))
             {
                 Command_FocusVehicleMap.FocusedVehicle = vehicle;
+                if (!UI.MouseCell().InBounds(vehicle.VehicleMap))
+                {
+                    Command_FocusVehicleMap.FocusedVehicle = __state;
+                }
             }
         }
 
         //FocusedVehicleがあればそのマップをFind.CurrentMapの代わりに使う
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             return instructions.MethodReplacer(MethodInfoCache.g_Find_CurrentMap, MethodInfoCache.g_VehicleMapUtility_CurrentMap);
         }
 
         //FocusedVehicleをもとに戻しておく
-        public static void Postfix(VehiclePawnWithMap __state)
+        public static void Finalizer(VehiclePawnWithMap __state)
+        {
+            Command_FocusVehicleMap.FocusedVehicle = __state;
+        }
+    }
+
+    //Alt押した時のセル情報表示。MouseoverReadoutOnGUIと全く同じ
+    [HarmonyPatch(typeof(CellInspectorDrawer), "DrawMapInspector")]
+    public static class Patch_CellInspectorDrawer_DrawMapInspector
+    {
+        //車両マップにマウスオーバーしていたらFocusedVehicleに入れておく。これでMouseCellが勝手にオフセットされる
+        public static void Prefix(ref VehiclePawnWithMap __state)
+        {
+            __state = Command_FocusVehicleMap.FocusedVehicle;
+            if (UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out var vehicle))
+            {
+                Command_FocusVehicleMap.FocusedVehicle = vehicle;
+                if (!UI.MouseCell().InBounds(vehicle.VehicleMap))
+                {
+                    Command_FocusVehicleMap.FocusedVehicle = __state;
+                }
+            }
+        }
+
+        //FocusedVehicleがあればそのマップをFind.CurrentMapの代わりに使う
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_Find_CurrentMap, MethodInfoCache.g_VehicleMapUtility_CurrentMap);
+        }
+
+        //FocusedVehicleをもとに戻しておく
+        public static void Finalizer(VehiclePawnWithMap __state)
+        {
+            Command_FocusVehicleMap.FocusedVehicle = __state;
+        }
+    }
+
+    [HarmonyPatch(typeof(CellInspectorDrawer), nameof(CellInspectorDrawer.Update))]
+    public static class Patch_CellInspectorDrawer_Update
+    {
+        //車両マップにマウスオーバーしていたらFocusedVehicleに入れておく。これでMouseCellが勝手にオフセットされる
+        public static void Prefix(ref VehiclePawnWithMap __state)
+        {
+            __state = Command_FocusVehicleMap.FocusedVehicle;
+            if (!KeyBindingDefOf.ShowCellInspector.IsDown) return;
+            if (UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out var vehicle))
+            {
+                Command_FocusVehicleMap.FocusedVehicle = vehicle;
+                if (!UI.MouseCell().InBounds(vehicle.VehicleMap))
+                {
+                    Command_FocusVehicleMap.FocusedVehicle = __state;
+                }
+            }
+        }
+
+        //FocusedVehicleをもとに戻しておく
+        public static void Finalizer(VehiclePawnWithMap __state)
+        {
+            Command_FocusVehicleMap.FocusedVehicle = __state;
+        }
+    }
+
+    //Alt押した時のセルの美しさ
+    [HarmonyPatch(typeof(BeautyDrawer), "DrawBeautyAroundMouse")]
+    public static class Patch_BeautyDrawer_DrawBeautyAroundMouse
+    {
+        //車両マップにマウスオーバーしていたらFocusedVehicleに入れておく。これでMouseCellが勝手にオフセットされる
+        public static void Prefix(ref VehiclePawnWithMap __state)
+        {
+            __state = Command_FocusVehicleMap.FocusedVehicle;
+            if (UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out var vehicle))
+            {
+                Command_FocusVehicleMap.FocusedVehicle = vehicle;
+                if (!UI.MouseCell().InBounds(vehicle.VehicleMap))
+                {
+                    Command_FocusVehicleMap.FocusedVehicle = __state;
+                }
+            }
+        }
+
+        //FocusedVehicleがあればそのマップをFind.CurrentMapの代わりに使う
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var m_LabelDrawPosFor = AccessTools.Method(typeof(GenMapUI), nameof(GenMapUI.LabelDrawPosFor), new[] { typeof(IntVec3) });
+            var m_LabelDrawPosForOffset = AccessTools.Method(typeof(Patch_BeautyDrawer_DrawBeautyAroundMouse), nameof(LabelDrawPosForOffset));
+            return instructions.MethodReplacer(MethodInfoCache.g_Find_CurrentMap, MethodInfoCache.g_VehicleMapUtility_CurrentMap)
+                .MethodReplacer(m_LabelDrawPosFor, m_LabelDrawPosForOffset);
+        }
+
+        private static Vector2 LabelDrawPosForOffset(IntVec3 center)
+        {
+            Vector3 position = center.ToVector3ShiftedWithAltitude(AltitudeLayer.MetaOverlays).ToBaseMapCoord();
+            Vector2 vector = Find.Camera.WorldToScreenPoint(position) / Prefs.UIScale;
+            vector.y = UI.screenHeight - vector.y;
+            vector.y -= 1f;
+            return vector;
+        }
+
+        //FocusedVehicleをもとに戻しておく
+        public static void Finalizer(VehiclePawnWithMap __state)
+        {
+            Command_FocusVehicleMap.FocusedVehicle = __state;
+        }
+    }
+
+    //右下の温度表示
+    [HarmonyPatch(typeof(GlobalControls), "TemperatureString")]
+    public static class Patch_GlobalControls_TemperatureString
+    {
+        //車両マップにマウスオーバーしていたらFocusedVehicleに入れておく。これでMouseCellが勝手にオフセットされる
+        public static void Prefix(ref VehiclePawnWithMap __state)
+        {
+            __state = Command_FocusVehicleMap.FocusedVehicle;
+            if (UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out var vehicle))
+            {
+                Command_FocusVehicleMap.FocusedVehicle = vehicle;
+                if (!UI.MouseCell().InBounds(vehicle.VehicleMap))
+                {
+                    Command_FocusVehicleMap.FocusedVehicle = __state;
+                }
+            }
+        }
+
+        //FocusedVehicleがあればそのマップをFind.CurrentMapの代わりに使う
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_Find_CurrentMap, MethodInfoCache.g_VehicleMapUtility_CurrentMap);
+        }
+
+        //FocusedVehicleをもとに戻しておく
+        public static void Finalizer(VehiclePawnWithMap __state)
         {
             Command_FocusVehicleMap.FocusedVehicle = __state;
         }
