@@ -200,7 +200,15 @@ namespace VehicleInteriors
             var giver = (Thing)bill.billStack.billGiver;
             if (ReachabilityUtilityOnVehicle.CanReach(uft.Map, uft.Position, giver, PathEndMode.InteractionCell, TraverseParms.For(pawn), giver.Map, out var exitSpot2, out var enterSpot2))
             {
-                Job job2 = JobMaker.MakeJob(VMF_DefOf.VMF_DoBillAcrossMaps, giver).SetSpotsToJobAcrossMaps(pawn, exitSpot, enterSpot, exitSpot2, enterSpot2);
+                Job job2;
+                if (exitSpot.Map == null && enterSpot.Map == null && exitSpot2.Map == null && enterSpot2.Map == null)
+                {
+                    job2 = JobMaker.MakeJob(JobDefOf.DoBill, giver);
+                }
+                else
+                {
+                    job2 = JobMaker.MakeJob(VMF_DefOf.VMF_DoBillAcrossMaps, giver).SetSpotsToJobAcrossMaps(pawn, exitSpot, enterSpot, exitSpot2, enterSpot2);
+                }
                 job2.bill = bill;
                 job2.targetQueueB = new List<LocalTargetInfo> { uft };
                 job2.countQueue = new List<int> { 1 };
@@ -391,7 +399,15 @@ namespace VehicleInteriors
             var enterSpot2 = TargetInfo.Invalid;
             if (firstThing == null || ReachabilityUtilityOnVehicle.CanReach(firstThing.Map, firstThing.Position, giverThing, PathEndMode.InteractionCell, TraverseParms.For(pawn), giver.Map, out exitSpot2, out enterSpot2))
             {
-                Job job = JobMaker.MakeJob(VMF_DefOf.VMF_DoBillAcrossMaps, (Thing)giver).SetSpotsToJobAcrossMaps(pawn, exitSpot, enterSpot, exitSpot2, enterSpot2);
+                Job job;
+                if (exitSpot.Map == null && enterSpot.Map == null && exitSpot2.Map == null && enterSpot2.Map == null)
+                {
+                    job = JobMaker.MakeJob(JobDefOf.DoBill, (Thing)giver);
+                }
+                else
+                {
+                    job = JobMaker.MakeJob(VMF_DefOf.VMF_DoBillAcrossMaps, (Thing)giver).SetSpotsToJobAcrossMaps(pawn, exitSpot, enterSpot, exitSpot2, enterSpot2);
+                }
                 job.targetQueueB = new List<LocalTargetInfo>(chosenIngThings.Count);
                 job.countQueue = new List<int>(chosenIngThings.Count);
                 for (int i = 0; i < chosenIngThings.Count; i++)
