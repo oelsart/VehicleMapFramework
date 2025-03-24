@@ -1911,8 +1911,7 @@ namespace VehicleInteriors
 									opts.Add(FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption(CaravanFormingUtility.AppendOverweightInfo("LoadIntoCaravanAll".Translate(item.Label, item), capacityLeft2), delegate ()
 									{
 										item.SetForbidden(false, false);
-                                        JobAcrossMapsUtility.TryTakeGotoDestMapJob(pawn, exitSpot, enterSpot);
-                                        Job job = JobMaker.MakeJob(jobDef, item);
+                                        Job job = JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, JobMaker.MakeJob(jobDef, item));
 										job.count = item.stackCount;
 										job.checkEncumbrance = (packTarget == pawn);
 										pawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), true);
@@ -2852,7 +2851,7 @@ namespace VehicleInteriors
                 {
                     return new FloatMenuOption("UseMedicalBed".Translate() + " (" + "NotForSlaves".Translate() + ")", null, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0);
                 }
-                Action action = delegate ()
+                void Action()
                 {
                     if (!bed.ForPrisoners && bed.Medical && myPawn.CanReserveAndReach(bed.Map, bed, PathEndMode.ClosestTouch, Danger.Deadly, bed.SleepingSlotsCount, -1, null, true, out var exitSpot, out var enterSpot))
                     {
@@ -2862,15 +2861,14 @@ namespace VehicleInteriors
                         }
                         else
                         {
-							JobAcrossMapsUtility.TryTakeGotoDestMapJob(myPawn, exitSpot, enterSpot);
-                            Job job = JobMaker.MakeJob(JobDefOf.LayDown, bed);
+                            Job job = JobAcrossMapsUtility.GotoDestMapJob(myPawn, exitSpot, enterSpot, JobMaker.MakeJob(JobDefOf.LayDown, bed));
                             job.restUntilHealed = true;
                             myPawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), true);
                         }
                         myPawn.mindState.ResetLastDisturbanceTick();
                     }
-                };
-                return FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption("UseMedicalBed".Translate(), action, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0), myPawn, bed, (bed.AnyUnoccupiedSleepingSlot ? "ReservedBy" : "SomeoneElseSleeping").CapitalizeFirst(), null);
+                }
+                return FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption("UseMedicalBed".Translate(), Action, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0), myPawn, bed, (bed.AnyUnoccupiedSleepingSlot ? "ReservedBy" : "SomeoneElseSleeping").CapitalizeFirst(), null);
             }
         }
 

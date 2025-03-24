@@ -7,6 +7,7 @@ using Verse.AI;
 
 namespace VehicleInteriors
 {
+    [Obsolete("Using vanilla JobDriver_DoBill for compatibility")]
     public class JobDriver_DoBillAcrossMaps : JobDriverAcrossMaps
     {
         public float workLeft;

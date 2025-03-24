@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using RimWorld;
+using System;
 using VehicleInteriors.Jobs.WorkGivers;
 using Verse;
 using Verse.AI;
@@ -30,6 +31,7 @@ namespace VehicleInteriors
             return nextJob;
         }
 
+        [Obsolete]
         public static void TryTakeGotoDestMapJob(Pawn pawn, TargetInfo? exitSpot = null, TargetInfo? enterSpot = null)
         {
             pawn.jobs.TryTakeOrderedJob(JobMaker.MakeJob(VMF_DefOf.VMF_GotoAcrossMaps).SetSpotsToJobAcrossMaps(pawn, exitSpot, enterSpot), new JobTag?(JobTag.Misc), false);
