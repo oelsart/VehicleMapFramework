@@ -42,7 +42,7 @@ namespace VehicleInteriors
                 {
                     if (!target.IsOnVehicleMapOf(out var vehiclePawnWithMap))
                     {
-                        Log.Error("[VehicleWithMapFramework] TargetA of JobDriver_BoardAcrossMaps must be VehiclePawn or on vehicle map.");
+                        Log.Error("[VehicleMapFramework] TargetA of JobDriver_BoardAcrossMaps must be VehiclePawn or on vehicle map.");
                         return;
                     }
                     vehiclePawn = vehiclePawnWithMap;

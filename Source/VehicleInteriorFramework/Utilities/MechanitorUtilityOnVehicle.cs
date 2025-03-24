@@ -1,10 +1,12 @@
 ﻿using RimWorld;
+using System;
 using Verse;
 
 namespace VehicleInteriors
 {
     public static class MechanitorUtilityOnVehicle
     {
+        [Obsolete]
         public static string GetMechGestationJobString(JobDriver_DoBillAcrossMaps job, Pawn mechanitor, Bill_Mech bill)
         {
             switch ((int)bill.State)

@@ -13,6 +13,7 @@ using Vehicles;
 using Verse;
 using Verse.AI;
 using Verse.AI.Group;
+using Verse.Sound;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
 {
@@ -704,115 +705,6 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
-    //[HarmonyPatch(typeof(Vehicle_PathFollower), "TryEnterNextPathCell")]
-    //public static class Patch_Vehicle_PathFollower_TryEnterNextPathCell
-    //{
-    //    public static bool Prefix(Vehicle_PathFollower __instance, VehiclePawn ___vehicle, ref int ___waitTicks, ref IntVec3 ___lastCell, IntVec3 ___nextCell, HashSet<IntVec3> ___hitboxUpdateCells)
-    //    {
-    //        var size = ___vehicle.VehicleDef.Size;
-    //        if (size.x * size.z > 100)
-    //        {
-    //            TryEnterNextPathCell(__instance, ___vehicle, ref ___waitTicks, ref ___lastCell, ___nextCell, ___hitboxUpdateCells);
-    //            return false;
-    //        }
-    //        return true;
-    //    }
-
-    //    private static void TryEnterNextPathCell(Vehicle_PathFollower __instance, VehiclePawn ___vehicle, ref int ___waitTicks, ref IntVec3 ___lastCell, IntVec3 ___nextCell, HashSet<IntVec3> ___hitboxUpdateCells)
-    //    {
-    //        if (___waitTicks > 0)
-    //        {
-    //            ___waitTicks--;
-    //        }
-    //        else
-    //        {
-    //            if (__instance.CalculatingPath)
-    //            {
-    //                return;
-    //            }
-
-    //            CellRect cellRect = ___vehicle.OccupiedRect();
-    //            ___lastCell = ___vehicle.Position;
-    //            ___vehicle.Position = ___nextCell;
-    //            ___hitboxUpdateCells.Clear();
-    //            ___hitboxUpdateCells.AddRange(cellRect);
-    //            ___hitboxUpdateCells.AddRange(___vehicle.OccupiedRect());
-    //            Parallel.ForEach(___hitboxUpdateCells, c =>
-    //            {
-    //                ___vehicle.Map.pathing.RecalculatePerceivedPathCostAt(c);
-    //            });
-    //            ___hitboxUpdateCells.Clear();
-
-    //            if (VehicleMod.settings.main.runOverPawns)
-    //            {
-    //                float num = Mathf.Max(1f, __instance.nextCellCostTotal / 450f);
-    //                float num2 = 1f / (__instance.nextCellCostTotal / 60f / num);
-    //                if (___vehicle.FullRotation.IsDiagonal)
-    //                {
-    //                    num2 *= Ext_Math.Sqrt2;
-    //                }
-
-    //                WarnPawnsImpendingCollision(__instance);
-    //                ___vehicle.CheckForCollisions(num2);
-    //            }
-
-    //            if (___vehicle.beached)
-    //            {
-    //                ___vehicle.BeachShip();
-    //                ___vehicle.Position = ___nextCell;
-    //                __instance.PatherFailed();
-    //                return;
-    //            }
-
-    //            if (___vehicle.BodySize > 0.9f)
-    //            {
-    //                ___vehicle.Map.snowGrid.AddDepth(___vehicle.Position, -0.001f);
-    //            }
-
-    //            switch (NeedNewPath(__instance))
-    //            {
-    //                case PathRequest.Fail:
-    //                    __instance.PatherFailed();
-    //                    return;
-    //                case PathRequest.Wait:
-    //                    ___waitTicks = 10;
-    //                    return;
-    //                case PathRequest.NeedNew:
-    //                    TrySetNewPath_Threaded(__instance);
-    //                    break;
-    //                default:
-    //                    throw new NotImplementedException("TryEnterNextPathCell.PathRequest");
-    //                case PathRequest.None:
-    //                    break;
-    //            }
-
-    //            if (__instance.curPath != null)
-    //            {
-    //                if ((bool)AtDestinationPosition(__instance))
-    //                {
-    //                    PatherArrived(__instance);
-    //                    return;
-    //                }
-
-    //                SetupMoveIntoNextCell(__instance);
-    //                Ext_Map.GetCachedMapComponent<VehiclePositionManager>(___vehicle.Map).ClaimPosition(___vehicle);
-    //            }
-    //        }
-    //    }
-
-    //    private static FastInvokeHandler WarnPawnsImpendingCollision = MethodInvoker.GetHandler(AccessTools.Method(typeof(Vehicle_PathFollower), "WarnPawnsImpendingCollision"));
-
-    //    private static FastInvokeHandler NeedNewPath = MethodInvoker.GetHandler(AccessTools.Method(typeof(Vehicle_PathFollower), "NeedNewPath"));
-
-    //    private static FastInvokeHandler TrySetNewPath_Threaded = MethodInvoker.GetHandler(AccessTools.Method(typeof(Vehicle_PathFollower), "TrySetNewPath_Threaded"));
-
-    //    private static FastInvokeHandler AtDestinationPosition = MethodInvoker.GetHandler(AccessTools.Method(typeof(Vehicle_PathFollower), "AtDestinationPosition"));
-
-    //    private static FastInvokeHandler PatherArrived = MethodInvoker.GetHandler(AccessTools.Method(typeof(Vehicle_PathFollower), "PatherArrived"));
-
-    //    private static FastInvokeHandler SetupMoveIntoNextCell = MethodInvoker.GetHandler(AccessTools.Method(typeof(Vehicle_PathFollower), "SetupMoveIntoNextCell"));
-    //}
-
     //サイズの大きなVehicleの場合はVF本体のスレッド管理を回避しつつ独自にマルチスレッド化
     [HarmonyPatch]
     public static class Patch_VehiclePathing_SetRotationAndUpdateVehicleRegionsClipping
@@ -891,4 +783,197 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             }
         }
     }
+
+    [HarmonyPatch(typeof(VehicleTabHelper_Passenger), nameof(VehicleTabHelper_Passenger.DrawPassengersFor))]
+    public static class Patch_VehicleTabHelper_Passenger_DrawPassengersFor
+    {
+        public static void Postfix(ref float curY, Rect viewRect, Vector2 scrollPos, VehiclePawn vehicle, ref Pawn moreDetailsForPawn)
+        {
+            if (vehicle is VehiclePawnWithMap mapVehicle)
+            {
+                GUIState.Push();
+                var draggedPawn = Patch_VehicleTabHelper_Passenger_DrawPassengersFor.draggedPawn();
+                var pawns = mapVehicle.VehicleMap.mapPawns.AllPawnsSpawned;
+                var rect = new Rect(0f, curY, viewRect.width - 48f, 25f + VehicleTabHelper_Passenger.PawnRowHeight * pawns.Count);
+                if (draggedPawn != null && Mouse.IsOver(rect) && draggedPawn.Map != mapVehicle.VehicleMap)
+                {
+                    transferToHolder() = mapVehicle.VehicleMap;
+                    overDropSpot() = true;
+                    Widgets.DrawHighlight(rect);
+                }
+                Widgets.ListSeparator(ref curY, viewRect.width, mapVehicle.LabelCap + "VMF_VehicleMap".Translate());
+                foreach (var pawn in pawns)
+                {
+                    if (DoRow(curY, viewRect, scrollPos, pawn, ref moreDetailsForPawn, true))
+                    {
+                        hoveringOverPawn() = pawn;
+                    }
+                    curY += VehicleTabHelper_Passenger.PawnRowHeight;
+                }
+                GUIState.Pop();
+            }
+        }
+
+        public static AccessTools.FieldRef<Pawn> draggedPawn = AccessTools.StaticFieldRefAccess<Pawn>(AccessTools.Field(typeof(VehicleTabHelper_Passenger), "draggedPawn"));
+
+        public static AccessTools.FieldRef<IThingHolder> transferToHolder = AccessTools.StaticFieldRefAccess<IThingHolder>(AccessTools.Field(typeof(VehicleTabHelper_Passenger), "transferToHolder"));
+
+        public static AccessTools.FieldRef<bool> overDropSpot = AccessTools.StaticFieldRefAccess<bool>(AccessTools.Field(typeof(VehicleTabHelper_Passenger), "overDropSpot"));
+
+        public static AccessTools.FieldRef<Pawn> hoveringOverPawn = AccessTools.StaticFieldRefAccess<Pawn>(AccessTools.Field(typeof(VehicleTabHelper_Passenger), "hoveringOverPawn"));
+
+        private delegate bool DoRowGetter(float curY, Rect viewRect, Vector2 scrollPos, Pawn pawn, ref Pawn moreDetailsForPawn, bool highlight);
+
+        private static DoRowGetter DoRow = AccessTools.MethodDelegate<DoRowGetter>(AccessTools.Method(typeof(VehicleTabHelper_Passenger), "DoRow"));
+    }
+
+    [HarmonyPatch(typeof(VehicleTabHelper_Passenger), nameof(VehicleTabHelper_Passenger.HandleDragEvent))]
+    public static class Patch_VehicleTabHelper_Passenger_HandleDragEvent
+    {
+        public static bool Prefix()
+        {
+            if (Event.current.type == EventType.MouseUp && Event.current.button == 0)
+            {
+                var draggedPawn = Patch_VehicleTabHelper_Passenger_DrawPassengersFor.draggedPawn();
+                var transferToHolder = Patch_VehicleTabHelper_Passenger_DrawPassengersFor.transferToHolder();
+                if (draggedPawn != null && transferToHolder != null)
+                {
+                    if (transferToHolder is Map map && map.IsVehicleMapOf(out var vehicle))
+                    {
+                        if (draggedPawn.ParentHolder is VehicleHandler vehicleHandler)
+                        {
+                            if (!draggedPawn.Spawned && TryFindSpawnSpot(vehicle, vehicleHandler, out var intVec))
+                            {
+                                vehicle.RemovePawn(draggedPawn);
+                                GenSpawn.Spawn(draggedPawn, intVec, vehicle.VehicleMap, WipeMode.Vanish);
+                                vehicleHandler.vehicle.EventRegistry[VehicleEventDefOf.PawnExited].ExecuteEvents();
+                                SoundDefOf.Click.PlayOneShotOnCamera();
+                            }
+                        }
+                        else if (!draggedPawn.Spawned && draggedPawn.IsWorldPawn() && TryFindSpawnSpot(vehicle, null, out var intVec))
+                        {
+                            Find.WorldPawns.RemovePawn(draggedPawn);
+                            GenSpawn.Spawn(draggedPawn, intVec, vehicle.VehicleMap, WipeMode.Vanish);
+                            SoundDefOf.Click.PlayOneShotOnCamera();
+                        }
+                        else if (draggedPawn.IsOnVehicleMapOf(out var vehicle2) && vehicle != vehicle2 && TryFindSpawnSpot(vehicle2, null, out intVec))
+                        {
+                            draggedPawn.DeSpawn();
+                            GenSpawn.Spawn(draggedPawn, intVec, vehicle.VehicleMap, WipeMode.Vanish);
+                            SoundDefOf.Click.PlayOneShotOnCamera();
+                        }
+                        else
+                        {
+                            Messages.Message("VMF_FailedToSpawn".Translate(draggedPawn), MessageTypeDefOf.RejectInput, true);
+                        }
+                        Patch_VehicleTabHelper_Passenger_DrawPassengersFor.draggedPawn() = null;
+                        return false;
+                    }
+                    else if(draggedPawn.IsOnVehicleMapOf(out vehicle))
+                    {
+                        if (transferToHolder is VehicleHandler vehicleHandler)
+                        {
+                            if (!vehicleHandler.CanOperateRole(draggedPawn))
+                            {
+                                Messages.Message("VF_HandlerNotEnoughRoom".Translate(draggedPawn, vehicleHandler.role.label), MessageTypeDefOf.RejectInput, true);
+                                Patch_VehicleTabHelper_Passenger_DrawPassengersFor.draggedPawn() = null;
+                                return false;
+                            }
+                            if (!vehicleHandler.AreSlotsAvailable)
+                            {
+                                var hoveringOverPawn = Patch_VehicleTabHelper_Passenger_DrawPassengersFor.hoveringOverPawn();
+                                if (hoveringOverPawn != null)
+                                {
+                                    if (TryFindSpawnSpot(vehicle, vehicleHandler, out var intVec))
+                                    {
+                                        vehicle.RemovePawn(hoveringOverPawn);
+                                        GenSpawn.Spawn(hoveringOverPawn, intVec, vehicle.VehicleMap, WipeMode.Vanish);
+                                        vehicleHandler.vehicle.EventRegistry[VehicleEventDefOf.PawnExited].ExecuteEvents();
+                                    }
+                                    else
+                                    {
+                                        Messages.Message("VMF_FailedToSpawn".Translate(hoveringOverPawn), MessageTypeDefOf.RejectInput, true);
+                                        Patch_VehicleTabHelper_Passenger_DrawPassengersFor.draggedPawn() = null;
+                                        return false;
+                                    }
+                                }
+                                else
+                                {
+                                    Messages.Message("VF_HandlerNotEnoughRoom".Translate(draggedPawn, vehicleHandler.role.label), MessageTypeDefOf.RejectInput, true);
+                                    Patch_VehicleTabHelper_Passenger_DrawPassengersFor.draggedPawn() = null;
+                                    return false;
+                                }
+                            }
+                        }
+
+                        var pos = draggedPawn.Position;
+                        draggedPawn.DeSpawn();
+                        if (transferToHolder.GetDirectlyHeldThings().TryAddOrTransfer(draggedPawn, false))
+                        {
+                            SoundDefOf.Click.PlayOneShotOnCamera();
+                            if (transferToHolder is VehicleHandler vehicleHandler2)
+                            {
+                                vehicleHandler2.vehicle.EventRegistry[VehicleEventDefOf.PawnEntered].ExecuteEvents();
+                            }
+                            else if (!draggedPawn.IsWorldPawn())
+                            {
+                                Find.WorldPawns.PassToWorld(draggedPawn);
+                            }
+                        }
+                        else
+                        {
+                            GenSpawn.Spawn(draggedPawn, pos, vehicle.VehicleMap);
+                        }
+                        Patch_VehicleTabHelper_Passenger_DrawPassengersFor.draggedPawn() = null;
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        private static bool TryFindSpawnSpot(VehiclePawnWithMap vehicle, VehicleHandler vehicleHandler, out IntVec3 spot)
+        {
+            bool Predicate(IntVec3 c)
+            {
+                return c.Standable(vehicle.VehicleMap) || c.GetDoor(vehicle.VehicleMap) != null;
+            }
+
+            if (vehicleHandler != null && vehicleHandler.vehicle == vehicle && vehicleHandler.role is VehicleRoleBuildable vehicleRoleBuildable)
+            {
+                var parent = vehicleRoleBuildable.upgradeComp.parent;
+                CellRect cellRect = parent.OccupiedRect().ExpandedBy(1);
+                IntVec3 intVec = parent.Position;
+                if (cellRect.EdgeCells.Where(delegate (IntVec3 c)
+                {
+                    if (c.InBounds(vehicle.VehicleMap) && c.Standable(vehicle.VehicleMap))
+                    {
+                        return !c.GetThingList(vehicle.VehicleMap).NotNullAndAny((Thing t) => t is Pawn);
+                    }
+                    return false;
+                }).TryRandomElement(out spot))
+                {
+                    return true;
+                }
+                spot = IntVec3.Invalid;
+                return false;
+            }
+            if (vehicle.InteractionCells.Any() && vehicle.InteractionCells.TryRandomElement(Predicate, out spot))
+            {
+                return true;
+            }
+            if (vehicle.CachedMapEdgeCells.TryRandomElement(Predicate, out spot))
+            {
+                return true;
+            }
+            var cell = vehicle.CachedMapEdgeCells.RandomElement();
+            if (RCellFinder.TryFindRandomCellNearWith(cell, Predicate, vehicle.VehicleMap, out spot))
+            {
+                return true;
+            }
+            spot = IntVec3.Invalid;
+            return false;
+        }
+    }
+
 }

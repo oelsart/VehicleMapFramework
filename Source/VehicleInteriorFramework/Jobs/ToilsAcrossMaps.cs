@@ -603,6 +603,7 @@ namespace VehicleInteriors
             return toil;
         }
 
+        [Obsolete]
         public static Toil DoRecipeWork()
         {
             Toil toil = ToilMaker.MakeToil("DoRecipeWork");
@@ -732,6 +733,7 @@ namespace VehicleInteriors
             return toil;
         }
 
+        [Obsolete]
         public static Toil FinishRecipeAndStartStoringProduct(TargetIndex productIndex = TargetIndex.A)
         {
             List<Thing> CalculateIngredients(Job job, Pawn actor)
