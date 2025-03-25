@@ -284,6 +284,7 @@
     <Compile Include="VMF_HarmonyPatches\Patches_ColonyGroups.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_DeepStorage.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_DMS.cs" />
+    <Compile Include="VMF_HarmonyPatches\Patches_DrakkenLaserDrill.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_DubsBadHygiene.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_EccentricTech.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_EnterHere.cs" />

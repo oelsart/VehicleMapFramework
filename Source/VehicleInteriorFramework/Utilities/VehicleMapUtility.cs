@@ -744,6 +744,12 @@ namespace VehicleInteriors
                 return true;
             }
 
+            if (map == null)
+            {
+                vehicle = null;
+                return false;
+            }
+
             var vehicles = VehiclePawnWithMapCache.AllVehiclesOn(map);
             vehicle = vehicles.FirstOrDefault(v =>
             {
