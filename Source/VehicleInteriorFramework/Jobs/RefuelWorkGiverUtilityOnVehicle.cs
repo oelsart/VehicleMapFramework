@@ -97,7 +97,7 @@ namespace VehicleInteriors
 
                 return filter.Allows(x);
             }
-            return GenClosestOnVehicle.ClosestThingReachable(pawn.Position, pawn.Map, filter.BestThingRequest, PathEndMode.ClosestTouch, TraverseParms.For(pawn), 9999f, (Predicate<Thing>)validator, null, 0, -1, true, RegionType.Set_Passable, false, false, out exitSpot, out enterSpot);
+            return GenClosestOnVehicle.ClosestThingReachable(pawn.Position, pawn.Map, filter.BestThingRequest, PathEndMode.ClosestTouch, TraverseParms.For(pawn), 9999f, (Predicate<Thing>)validator, null, 0, -1, false, RegionType.Set_Passable, false, false, out exitSpot, out enterSpot);
         }
 
         private static List<Thing> FindAllFuel(Pawn pawn, Thing refuelable, out TargetInfo exitSpot, out TargetInfo enterSpot)
@@ -118,7 +118,7 @@ namespace VehicleInteriors
 
                 return validThing(x);
             }
-            var firstThing = GenClosestOnVehicle.ClosestThingReachable(pawn.Position, pawn.Map, request, PathEndMode.ClosestTouch, TraverseParms.For(pawn), 9999f, validator, null, 0, -1, true, RegionType.Set_Passable, false, false, out exitSpot, out enterSpot);
+            var firstThing = GenClosestOnVehicle.ClosestThingReachable(pawn.Position, pawn.Map, request, PathEndMode.ClosestTouch, TraverseParms.For(pawn), 9999f, validator, null, 0, -1, false, RegionType.Set_Passable, false, false, out exitSpot, out enterSpot);
 
             Region region2 = firstThing.Position.GetRegion(firstThing.Map);
             TraverseParms traverseParams = TraverseParms.For(pawn);

@@ -97,7 +97,7 @@ namespace VehicleInteriors
                         }
                         else
                         {
-                            foundRes = GenClosestOnVehicle.ClosestThingReachable(pawn.Position, pawn.Map, ThingRequest.ForDef(need.thingDef), PathEndMode.ClosestTouch, TraverseParms.For(pawn, Danger.Deadly, TraverseMode.ByPawn), 9999f, (Thing r) => WorkGiver_ConstructDeliverResourcesAcrossMaps.ResourceValidator(pawn, need, r), null, 0, -1, true, RegionType.Set_Passable, false, false, out exitSpot, out enterSpot);
+                            foundRes = GenClosestOnVehicle.ClosestThingReachable(pawn.Position, pawn.Map, ThingRequest.ForDef(need.thingDef), PathEndMode.ClosestTouch, TraverseParms.For(pawn, Danger.Deadly, TraverseMode.ByPawn), 9999f, (Thing r) => WorkGiver_ConstructDeliverResourcesAcrossMaps.ResourceValidator(pawn, need, r), null, 0, -1, false, RegionType.Set_Passable, false, false, out exitSpot, out enterSpot);
                         }
                         if (foundRes == null)
                         {

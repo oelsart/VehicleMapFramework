@@ -20,13 +20,12 @@ namespace VehicleInteriors
             var searcherThing = searcher.Thing;
             var searcherPawn = searcher as Pawn;
             var verb = searcher.CurrentEffectiveVerb;
-            var CEActive = ModsConfig.IsActive("CETeam.CombatExtended");
             if (verb == null)
 			{
                 Log.Error("BestAttackTarget with " + searcher.ToStringSafe<IAttackTargetSearcher>() + " who has no attack verb.");
                 return null;
             }
-            var onlyTargetMachines = !CEActive && verb.IsEMP();
+            var onlyTargetMachines = !ModCompat.CombatExtended && verb.IsEMP();
             var minDistSquared = minDist * minDist;
             float num = maxTravelRadiusFromLocus + verb.verbProps.range;
             var maxLocusDistSquared = num * num;
@@ -208,7 +207,7 @@ namespace VehicleInteriors
                 (!(t is VehiclePawnWithMap vehicle) || vehicle.VehicleMap.mapPawns.AllPawnsSpawned.CountWhere(p => p.HostileTo(searcherPawn)) == 0);
                 //VehicleMap上に敵対ポーンが居る場合そっちをターゲットとして優先したい
             };
-            IAttackTarget attackTarget2 = (IAttackTarget)GenClosestOnVehicle.ClosestThingReachable(searcherThing.Position, searcherThing.Map, ThingRequest.ForGroup(ThingRequestGroup.AttackTarget), PathEndMode.Touch, TraverseParms.For(searcherPawn, Danger.Deadly, TraverseMode.ByPawn, canBashDoors, false, canBashFences), maxDist, (Thing x) => innerValidator((IAttackTarget)x), null, 0, (maxDist > 800f) ? -1 : 40, true, RegionType.Set_Passable, false);
+            IAttackTarget attackTarget2 = (IAttackTarget)GenClosestOnVehicle.ClosestThingReachable(searcherThing.Position, searcherThing.Map, ThingRequest.ForGroup(ThingRequestGroup.AttackTarget), PathEndMode.Touch, TraverseParms.For(searcherPawn, Danger.Deadly, TraverseMode.ByPawn, canBashDoors, false, canBashFences), maxDist, (Thing x) => innerValidator((IAttackTarget)x), null, 0, (maxDist > 800f) ? -1 : 40, false, RegionType.Set_Passable, false);
             if (attackTarget2 != null && PawnUtility.ShouldCollideWithPawns(searcherPawn))
             {
                 IAttackTarget attackTarget3 = AttackTargetFinderOnVehicle.FindBestReachableMeleeTarget(innerValidator, searcherPawn, maxDist, canBashDoors, canBashFences);

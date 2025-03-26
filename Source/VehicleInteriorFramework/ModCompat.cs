@@ -19,6 +19,8 @@ namespace VehicleInteriors
 
         public static readonly bool CallTradeShips = ModsConfig.IsActive("calltradeships.kv.rw");
 
+        public static readonly bool CombatExtended = ModsConfig.IsActive("CETeam.CombatExtended");
+
         public static readonly bool ColonyGroups = ModsConfig.IsActive("DerekBickley.LTOColonyGroupsFinal");
 
         public static readonly bool DeepStorage = ModsConfig.IsActive("LWM.DeepStorage");
@@ -156,5 +158,7 @@ namespace VehicleInteriors
                 }
             }
         }
+
+        public static readonly bool NoJobAuthors = ModsConfig.IsActive("Doug.NoJobAuthors");
     }
 }
