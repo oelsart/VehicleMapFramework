@@ -1,8 +1,10 @@
-﻿using Verse;
+﻿using System;
+using Verse;
 using Verse.AI;
 
 namespace VehicleInteriors
 {
+    [Obsolete]
     public class JobGiver_AIDefendPointOnVehicle : JobGiver_AIFightEnemiesOnVehicle
     {
         protected override bool TryFindShootingPosition(Pawn pawn, out IntVec3 dest, Verb verbToUse = null)

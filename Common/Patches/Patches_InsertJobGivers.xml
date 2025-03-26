@@ -14,18 +14,4 @@
 			<li Class="VehicleInteriors.JobGiver_GetOffVehicle" />
 		</value>
 	</Operation>
-	
-	<Operation Class = "PatchOperationInsert">
-		<xpath>Defs/DutyDef/thinkNode/subNodes//li[@Class = "JobGiver_AIFightEnemies"]</xpath>
-		<value>
-			<li Class="VehicleInteriors.JobGiver_AIFightEnemiesOnVehicle"/>
-		</value>
-	</Operation>
-	
-	<Operation Class = "PatchOperationInsert">
-		<xpath>Defs/DutyDef/thinkNode/subNodes//li[@Class = "JobGiver_AIDefendPoint"]</xpath>
-		<value>
-			<li Class="VehicleInteriors.JobGiver_AIDefendPointOnVehicle"/>
-		</value>
-	</Operation>
 </Patch>

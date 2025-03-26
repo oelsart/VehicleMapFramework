@@ -1,4 +1,5 @@
 ﻿using RimWorld;
+using System;
 using System.Collections.Generic;
 using Verse;
 using Verse.AI;
@@ -6,6 +7,7 @@ using Verse.AI.Group;
 
 namespace VehicleInteriors
 {
+    [Obsolete]
     public class JobGiver_AIFightEnemiesOnVehicle : JobGiver_AIFightEnemy
     {
         public override ThinkNode DeepCopy(bool resolve = true)
@@ -74,8 +76,7 @@ namespace VehicleInteriors
             }
             if (this.OnlyUseAbilityVerbs)
             {
-                IntVec3 intVec;
-                if (!this.TryFindShootingPosition(pawn, out intVec, null))
+                if (!this.TryFindShootingPosition(pawn, out IntVec3 intVec, null))
                 {
                     return null;
                 }
@@ -176,10 +177,7 @@ namespace VehicleInteriors
                 {
                     pawn.mindState.lastEngageTargetTick = Find.TickManager.TicksGame;
                     Lord lord = pawn.GetLord();
-                    if (lord != null)
-                    {
-                        lord.Notify_PawnAcquiredTarget(pawn, thing);
-                    }
+                    lord?.Notify_PawnAcquiredTarget(pawn, thing);
                 }
             }
             else
@@ -224,7 +222,7 @@ namespace VehicleInteriors
         private bool PrimaryVerbIsIncendiary(Pawn pawn)
         {
             Pawn_EquipmentTracker equipment = pawn.equipment;
-            if (((equipment != null) ? equipment.Primary : null) != null)
+            if ((equipment?.Primary) != null)
             {
                 List<Verb> allVerbs = pawn.equipment.Primary.GetComp<CompEquippable>().AllVerbs;
                 for (int i = 0; i < allVerbs.Count; i++)
@@ -247,8 +245,7 @@ namespace VehicleInteriors
                 pawn.CanReach(enemyTarget, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, enemyTarget.Map, out this.dest1, out this.dest2) &&
                 (float)(pawn.PositionOnBaseMap() - enemyTarget.PositionOnBaseMap()).LengthHorizontalSquared <= this.targetKeepRadius * this.targetKeepRadius)
             {
-                IAttackTarget attackTarget = enemyTarget as IAttackTarget;
-                return attackTarget != null && attackTarget.ThreatDisabled(pawn);
+                return enemyTarget is IAttackTarget attackTarget && attackTarget.ThreatDisabled(pawn);
             }
             return true;
         }

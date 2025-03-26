@@ -412,4 +412,59 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             }
         }
     }
+
+    [HarmonyPatch(typeof(JobGiver_AIFightEnemy), "TryGiveJob")]
+    public static class Patch_JobGiver_AIFightEnemy_TryGiveJob
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var codes = instructions.ToList();
+            var g_LengthHorizontalSquared = AccessTools.PropertyGetter(typeof(IntVec3), nameof(IntVec3.LengthHorizontalSquared));
+            var pos = codes.FindIndex(c => c.Calls(g_LengthHorizontalSquared));
+
+            for (var i = 0; i < 2; i++)
+            {
+                pos = codes.FindLastIndex(pos - 1, c => c.Calls(MethodInfoCache.g_Thing_Position));
+                codes[pos].opcode = OpCodes.Call;
+                codes[pos].operand = MethodInfoCache.m_PositionOnBaseMap;
+            }
+            return codes;
+        }
+    }
+
+    [HarmonyPatch(typeof(JobGiver_AIFightEnemy), "UpdateEnemyTarget")]
+    public static class Patch_JobGiver_AIFightEnemy_UpdateEnemyTarget
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap);
+        }
+    }
+
+    [HarmonyPatch(typeof(JobGiver_AIFightEnemy), "ShouldLoseTarget")]
+    public static class Patch_JobGiver_AIFightEnemy_ShouldLoseTarget
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap);
+        }
+    }
+
+    [HarmonyPatch(typeof(JobGiver_AIFightEnemies), "TryFindShootingPosition")]
+    public static class Patch_JobGiver_AIFightEnemies_TryFindShootingPosition
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.m_TryFindCastPosition, MethodInfoCache.m_m_TryFindCastPositionOnVehicle);
+        }
+    }
+
+    [HarmonyPatch(typeof(JobGiver_AIDefendPoint), "TryFindShootingPosition")]
+    public static class Patch_JobGiver_AIDefendPoint_TryFindShootingPosition
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.m_TryFindCastPosition, MethodInfoCache.m_m_TryFindCastPositionOnVehicle);
+        }
+    }
 }
