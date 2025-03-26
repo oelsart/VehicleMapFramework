@@ -1,5 +1,4 @@
 ﻿using RimWorld;
-using SmashTools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -203,8 +202,8 @@ namespace VehicleInteriors
             Predicate<IAttackTarget> oldValidator2 = innerValidator;
             innerValidator = (IAttackTarget t) =>
             {
-                return oldValidator2(t) && !AttackTargetFinderOnVehicle.ShouldIgnoreNoncombatant(searcherThing, t, flags) &&
-                (!(t is VehiclePawnWithMap vehicle) || vehicle.VehicleMap.mapPawns.AllPawnsSpawned.CountWhere(p => p.HostileTo(searcherPawn)) == 0);
+                return oldValidator2(t) && !AttackTargetFinderOnVehicle.ShouldIgnoreNoncombatant(searcherThing, t, flags);// &&
+                //(!(t is VehiclePawnWithMap vehicle) || vehicle.VehicleMap.mapPawns.AllPawnsSpawned.CountWhere(p => p.HostileTo(searcherPawn)) == 0);
                 //VehicleMap上に敵対ポーンが居る場合そっちをターゲットとして優先したい
             };
             IAttackTarget attackTarget2 = (IAttackTarget)GenClosestOnVehicle.ClosestThingReachable(searcherThing.Position, searcherThing.Map, ThingRequest.ForGroup(ThingRequestGroup.AttackTarget), PathEndMode.Touch, TraverseParms.For(searcherPawn, Danger.Deadly, TraverseMode.ByPawn, canBashDoors, false, canBashFences), maxDist, (Thing x) => innerValidator((IAttackTarget)x), null, 0, (maxDist > 800f) ? -1 : 40, false, RegionType.Set_Passable, false);
@@ -324,8 +323,7 @@ namespace VehicleInteriors
 
         private static IAttackTarget GetRandomShootingTargetByScore(List<IAttackTarget> targets, IAttackTargetSearcher searcher, Verb verb)
         {
-            Pair<IAttackTarget, float> pair;
-            if (AttackTargetFinderOnVehicle.GetAvailableShootingTargetsByScore(targets, searcher, verb).TryRandomElementByWeight((Pair<IAttackTarget, float> x) => x.Second, out pair))
+            if (AttackTargetFinderOnVehicle.GetAvailableShootingTargetsByScore(targets, searcher, verb).TryRandomElementByWeight((Pair<IAttackTarget, float> x) => x.Second, out Pair<IAttackTarget, float> pair))
             {
                 return pair.First;
             }

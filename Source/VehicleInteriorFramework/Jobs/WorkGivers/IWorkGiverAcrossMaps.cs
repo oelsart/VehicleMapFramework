@@ -2,6 +2,6 @@
 {
     public interface IWorkGiverAcrossMaps
     {
-        bool NeedVirtualMapTransfer {  get; }
+        bool NeedVirtualMapTransfer { get; }
     }
 }

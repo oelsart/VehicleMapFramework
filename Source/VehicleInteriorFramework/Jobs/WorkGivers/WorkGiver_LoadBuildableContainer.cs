@@ -11,6 +11,11 @@ namespace VehicleInteriors
     {
         public bool NeedVirtualMapTransfer => false;
 
+        public override bool ShouldSkip(Pawn pawn, bool forced = false)
+        {
+            return base.ShouldSkip(pawn, forced);
+        }
+
         public override IEnumerable<Thing> PotentialWorkThingsGlobal(Pawn pawn)
         {
             return pawn.Map.BaseMapAndVehicleMaps().SelectMany(m => m.listerBuildings.allBuildingsColonist.Where(b => b.HasComp<CompTransporter>()));

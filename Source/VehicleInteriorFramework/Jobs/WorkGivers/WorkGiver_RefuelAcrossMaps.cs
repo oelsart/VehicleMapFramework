@@ -1,10 +1,12 @@
 ﻿using RimWorld;
+using System;
 using VehicleInteriors.Jobs.WorkGivers;
 using Verse;
 using Verse.AI;
 
 namespace VehicleInteriors
 {
+    [Obsolete]
     public class WorkGiver_RefuelAcrossMaps : WorkGiver_Scanner, IWorkGiverAcrossMaps
     {
         public bool NeedVirtualMapTransfer => false;

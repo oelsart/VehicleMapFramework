@@ -1,4 +1,5 @@
 ﻿using RimWorld;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -8,6 +9,7 @@ using Verse.AI;
 
 namespace VehicleInteriors
 {
+    [Obsolete]
     public abstract class WorkGiver_ConstructDeliverResourcesAcrossMaps : WorkGiver_Scanner, IWorkGiverAcrossMaps
     {
         public bool NeedVirtualMapTransfer => false;

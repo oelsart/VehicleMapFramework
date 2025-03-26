@@ -127,6 +127,8 @@ namespace VehicleInteriors
 
         public override bool ShouldSkip(Pawn pawn, bool forced = false)
         {
+            if (!pawn.Map.BaseMapAndVehicleMaps().Except(pawn.Map).Any()) return true;
+
             var enumerable = pawn.Map.BaseMapAndVehicleMaps().SelectMany(m => m.listerThings.ThingsInGroup(ThingRequestGroup.PotentialBillGiver));
             foreach (var thing in enumerable)
             { 

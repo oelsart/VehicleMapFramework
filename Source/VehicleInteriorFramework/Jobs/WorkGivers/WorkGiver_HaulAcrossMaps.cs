@@ -11,6 +11,13 @@ namespace VehicleInteriors
     {
         public bool NeedVirtualMapTransfer => false;
 
+        public override bool ShouldSkip(Pawn pawn, bool forced = false)
+        {
+            if (!pawn.Map.BaseMapAndVehicleMaps().Except(pawn.Map).Any()) return true;
+
+            return base.ShouldSkip(pawn, forced);
+        }
+
         public override IEnumerable<Thing> PotentialWorkThingsGlobal(Pawn pawn)
         {
             return pawn.Map.BaseMapAndVehicleMaps().SelectMany(m => m.listerHaulables.ThingsPotentiallyNeedingHauling());

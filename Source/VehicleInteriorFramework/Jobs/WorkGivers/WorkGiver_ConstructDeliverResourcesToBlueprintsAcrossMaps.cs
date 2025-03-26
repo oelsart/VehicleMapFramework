@@ -1,9 +1,11 @@
 ﻿using RimWorld;
+using System;
 using Verse;
 using Verse.AI;
 
 namespace VehicleInteriors
 {
+    [Obsolete]
     public class WorkGiver_ConstructDeliverResourcesToBlueprintsAcrossMaps : WorkGiver_ConstructDeliverResourcesAcrossMaps
     {
         public override ThingRequest PotentialWorkThingRequest

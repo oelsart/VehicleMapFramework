@@ -1,8 +1,10 @@
 ﻿using RimWorld;
+using System;
 using Verse;
 
 namespace VehicleInteriors
 {
+    [Obsolete]
     public class WorkGiver_RefuelTurretAcrossMaps : WorkGiver_RefuelAcrossMaps
     {
         public override JobDef JobStandard

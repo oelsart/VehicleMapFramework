@@ -15,7 +15,7 @@
 		</requiredCapacities>
 	</WorkGiverDef>
 	
-	<WorkGiverDef>
+	<!--<WorkGiverDef>
 		<defName>VMF_RearmTurretsAcrossMaps</defName>
 		<label>rearm turrets</label>
 		<giverClass>VehicleInteriors.WorkGiver_RefuelTurretAcrossMaps</giverClass>
@@ -44,7 +44,7 @@
 		</requiredCapacities>
 		<prioritizeSustains>true</prioritizeSustains>
 		<canBeDoneByMutants>false</canBeDoneByMutants>
-	</WorkGiverDef>
+	</WorkGiverDef>-->
 
 	<WorkGiverDef>
 		<defName>VMF_HaulGeneralAcrossMaps</defName>
@@ -59,7 +59,7 @@
 		</requiredCapacities>
 	</WorkGiverDef>
 
-	<WorkGiverDef>
+	<!--<WorkGiverDef>
 		<defName>VMF_DeliverResourcesToFramesAcrossMaps</defName>
 		<label>deliver resources to frames</label>
 		<giverClass>VehicleInteriors.WorkGiver_ConstructDeliverResourcesToFramesAcrossMaps</giverClass>
@@ -105,7 +105,7 @@
 		<nonColonistsCanDo>true</nonColonistsCanDo>
 		<prioritizeSustains>true</prioritizeSustains>
 		<equivalenceGroup>AssistInConstruction</equivalenceGroup>
-	</WorkGiverDef>
+	</WorkGiverDef>-->
 
 	<WorkGiverDef>
 		<defName>VMF_RefuelVehicleTank</defName>

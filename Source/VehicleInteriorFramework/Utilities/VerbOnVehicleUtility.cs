@@ -14,7 +14,6 @@ namespace VehicleInteriors
             {
                 return verb.TryFindShootLineFromTo(root, targ, out resultingLine, ignoreRange);
             }
-
             var casterBaseMap = verb.caster.BaseMap();
             var targCellOnBaseMap = targ.HasThing ? targ.CellOnBaseMap() : GenUIOnVehicle.TargetMap != null ? targ.Cell.ToBaseMapCoord(GenUIOnVehicle.TargetMap) : targ.Cell;
             //var targMap = targ.HasThing ? targ.Thing.Map : casterBaseMap;
