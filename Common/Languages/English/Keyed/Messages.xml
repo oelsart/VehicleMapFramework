@@ -10,5 +10,7 @@
 	<VMF_NoRoles>No roles for operating this turret in {0}.</VMF_NoRoles>
 
 	<VMF_FailedEnterMap>The vehicle failed to enter the map.</VMF_FailedEnterMap>
+	<VMF_CannotSpawn>{0} cannot spawn.</VMF_CannotSpawn>
+
 
 </LanguageData>

@@ -10,5 +10,7 @@
 	<VMF_NoRoles>{0} にこのタレットを操作する役割が存在しません.</VMF_NoRoles>
 
 	<VMF_FailedEnterMap>車両がマップに入るのに失敗しました.</VMF_FailedEnterMap>
+	<VMF_CannotSpawn>{0} がスポーンできません.</VMF_CannotSpawn>
+
 
 </LanguageData>

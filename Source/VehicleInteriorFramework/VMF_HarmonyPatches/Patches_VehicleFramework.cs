@@ -864,7 +864,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                         }
                         else
                         {
-                            Messages.Message("VMF_FailedToSpawn".Translate(draggedPawn), MessageTypeDefOf.RejectInput, true);
+                            Messages.Message("VMF_CannotSpawn".Translate(draggedPawn), MessageTypeDefOf.RejectInput, true);
                         }
                         Patch_VehicleTabHelper_Passenger_DrawPassengersFor.draggedPawn() = null;
                         return false;
@@ -892,7 +892,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                                     }
                                     else
                                     {
-                                        Messages.Message("VMF_FailedToSpawn".Translate(hoveringOverPawn), MessageTypeDefOf.RejectInput, true);
+                                        Messages.Message("VMF_CannotSpawn".Translate(hoveringOverPawn), MessageTypeDefOf.RejectInput, true);
                                         Patch_VehicleTabHelper_Passenger_DrawPassengersFor.draggedPawn() = null;
                                         return false;
                                     }
