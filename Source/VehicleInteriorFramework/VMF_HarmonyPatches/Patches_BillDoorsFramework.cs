@@ -13,7 +13,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         static Patches_BillDoorsFramework()
         {
-            if (ModsConfig.IsActive("3HSTltd.Framework"))
+            if (ModCompat.BillDoorsFramework)
             {
                 VMF_Harmony.Instance.PatchCategory("VMF_Patches_BillDoorsFramework");
             }

@@ -13,7 +13,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches.TR
     {
         static Patches_TabulaRasa()
         {
-            if (ModsConfig.IsActive("neronix17.toolbox"))
+            if (ModCompat.TabulaRasa)
             {
                 VMF_Harmony.Instance.PatchCategory("VMF_Patches_TabulaRasa");
             }

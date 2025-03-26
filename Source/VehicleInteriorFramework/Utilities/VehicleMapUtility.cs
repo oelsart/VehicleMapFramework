@@ -305,18 +305,18 @@ namespace VehicleInteriors
             if (map?.Parent is MapParent_Vehicle)
             {
                 excepts.AddRange(new Type[] { typeof(SectionLayer_ThingsGeneral), t_SectionLayer_Terrain, typeof(SectionLayer_ThingsPowerGrid) });
-                if (ModsConfig.IsActive("OskarPotocki.VanillaFactionsExpanded.Core"))
+                if (ModCompat.VFECore.Active)
                 {
                     excepts.Add(AccessTools.TypeByName("PipeSystem.SectionLayer_Resource"));
                 }
-                if (!ModsConfig.IsActive("Dubwise.DubsBadHygiene") && !ModsConfig.IsActive("Dubwise.DubsBadHygiene.Lite"))
+                if (!ModCompat.DubsBadHygiene.Active)
                 {
                     excepts.Add(typeof(SectionLayer_ThingsSewagePipeOnVehicle));
                 }
                 return subClasses.Except(excepts).ToList();
             }
             excepts.AddRange(new Type[] { typeof(SectionLayer_ThingsGeneralOnVehicle), typeof(SectionLayer_TerrainOnVehicle), typeof(SectionLayer_LightingOnVehicle), typeof(SectionLayer_ThingsPowerGridOnVehicle) });
-            if (ModsConfig.IsActive("OskarPotocki.VanillaFactionsExpanded.Core"))
+            if (ModCompat.VFECore.Active)
             {
                 excepts.Add(AccessTools.TypeByName("VehicleInteriors.SectionLayer_ResourceOnVehicle"));
             }

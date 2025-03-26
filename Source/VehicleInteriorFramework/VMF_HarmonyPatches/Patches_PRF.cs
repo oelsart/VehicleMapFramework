@@ -14,7 +14,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         static Patches_PRF()
         {
-            if (ModsConfig.IsActive("spdskatr.projectrimfactory"))
+            if (ModCompat.ProjectRimFactory)
             {
                 VMF_Harmony.Instance.PatchCategory("VMF_Patches_PRF");
             }

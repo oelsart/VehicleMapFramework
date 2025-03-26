@@ -13,7 +13,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         static Patches_AdaptiveStorage()
         {
-            if (ModsConfig.IsActive("adaptive.storage.framework"))
+            if (ModCompat.AdaptiveStorage)
             {
                 VMF_Harmony.Instance.PatchCategory("VMF_Patches_AdaptiveStorage");
             }

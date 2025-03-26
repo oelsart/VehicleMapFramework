@@ -1,7 +1,4 @@
 ﻿using HarmonyLib;
-using System;
-using System.CodeDom;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
@@ -15,7 +12,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         static Patches_EccentricTech()
         {
-            if (ModsConfig.IsActive("Aelanna.EccentricTech.DefenseGrid"))
+            if (ModCompat.DefenseGrid.Active)
             {
                 VMF_Harmony.Instance.PatchCategory("VMF_Patches_EccentricTech_DefenseGrid");
             }

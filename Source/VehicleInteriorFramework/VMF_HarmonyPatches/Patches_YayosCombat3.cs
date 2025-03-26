@@ -10,7 +10,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         static Patches_YayosCombat3()
         {
-            if (ModsConfig.IsActive("Mlie.YayosCombat3"))
+            if (ModCompat.YayosCombat3)
             {
                 VMF_Harmony.Instance.PatchCategory("VMF_Patches_YayosCombat3");
             }

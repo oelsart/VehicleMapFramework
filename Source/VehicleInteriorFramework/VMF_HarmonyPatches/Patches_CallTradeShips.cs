@@ -13,7 +13,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         static Patches_CallTradeShips()
         {
-            if (ModsConfig.IsActive("calltradeships.kv.rw"))
+            if (ModCompat.CallTradeShips)
             {
                 var method = AccessTools.Method(typeof(FloatMenuMakerOnVehicle), "AddHumanlikeOrders");
                 var patch = AccessTools.Method(typeof(Patches_CallTradeShips), nameof(Postfix));

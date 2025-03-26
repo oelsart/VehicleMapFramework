@@ -9,7 +9,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         static Patches_Gunplay()
         {
-            if (ModsConfig.IsActive("automatic.gunplay"))
+            if (ModCompat.Gunplay)
             {
                 VMF_Harmony.Instance.PatchCategory("VMF_Patches_Gunplay");
             }

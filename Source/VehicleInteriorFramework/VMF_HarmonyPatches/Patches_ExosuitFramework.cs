@@ -12,7 +12,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         static Patches_ExosuitFramework()
         {
-            if (ModsConfig.IsActive("Aoba.Exosuit.Framework"))
+            if (ModCompat.ExosuitFramework)
             {
                 VMF_Harmony.Instance.PatchCategory("VMF_Patches_ExosuitFramework");
             }

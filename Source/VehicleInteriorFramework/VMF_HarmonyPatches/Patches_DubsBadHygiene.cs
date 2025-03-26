@@ -12,7 +12,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         static Patches_DubsBadHygiene()
         {
-            if (ModsConfig.IsActive("Dubwise.DubsBadHygiene") || ModsConfig.IsActive("Dubwise.DubsBadHygiene.Lite"))
+            if (ModCompat.DubsBadHygiene.Active)
             {
                 VMF_Harmony.Instance.PatchCategory("VMF_Patches_DubsBadGygiene");
             }

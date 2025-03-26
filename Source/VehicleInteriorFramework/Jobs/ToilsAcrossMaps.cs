@@ -1,5 +1,4 @@
-﻿using HarmonyLib;
-using RimWorld;
+﻿using RimWorld;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -907,18 +906,9 @@ namespace VehicleInteriors
                         {
                             StoreAcrossMapsUtility.TryFindBestBetterStoreCellForIn(list[0], actor, StoragePriority.Unstored, actor.Faction, curJob.bill.GetSlotGroup(), out foundCell, true, out exitSpot, out enterSpot);
                         }
-                        else if (!TakeItToStorageActive || !TakeItToStorageFindCell())
+                        else if (!ModCompat.TakeItToStorage.Active || !ModCompat.TakeItToStorage.FindCell(actor, list, ref foundCell))
                         {
                             Log.ErrorOnce("Unknown store mode", 9158246);
-                        }
-
-                        bool TakeItToStorageFindCell()
-                        {
-                            if (FindCell == null)
-                            {
-                                FindCell = AccessTools.MethodDelegate<FindCellGetter>("HaulToBuilding.Toils_Recipe_Patches:FindCell");
-                            }
-                            return FindCell(actor, list, ref foundCell);
                         }
 
                         if (foundCell.IsValid)
@@ -958,12 +948,6 @@ namespace VehicleInteriors
             };
             return toil;
         }
-
-        private static bool TakeItToStorageActive = ModsConfig.IsActive("legodude17.htsb");
-
-        private delegate bool FindCellGetter(Pawn pawn, List<Thing> things, ref IntVec3 cell);
-
-        private static FindCellGetter FindCell;
 
         public static bool TryGetNextDestinationFromQueue(TargetIndex primaryIndex, TargetIndex destIndex, ThingDef stuff, Job job, Pawn actor, out Thing target)
         {

@@ -12,7 +12,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         static Patches_EnterHere()
         {
-            if (ModsConfig.IsActive("Mlie.EnterHere"))
+            if (ModCompat.EnterHere)
             {
                 VMF_Harmony.Instance.PatchCategory("VMF_Patches_EnterHere");
             }

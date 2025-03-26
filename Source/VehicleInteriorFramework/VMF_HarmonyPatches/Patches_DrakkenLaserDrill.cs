@@ -11,7 +11,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         static Patches_DrakkenLaserDrill()
         {
-            if (ModsConfig.IsActive("MYDE.DrakkenLaserDrill"))
+            if (ModCompat.DrakkenLaserDrill)
             {
                 VMF_Harmony.Instance.PatchCategory("VMF_Patches_DrakkenLaserDrill");
             }

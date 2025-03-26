@@ -201,16 +201,14 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 var pos = pawn.Position;
                 var dest = target.Cell;
                 pawn.VirtualMapTransfer(targetMap, dest);
-                Job job;
                 try
                 {
-                    job = scanner.JobOnCell(pawn, dest, forced);
+                    return JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, scanner.JobOnCell(pawn, dest, forced));
                 }
                 finally
                 {
                     pawn.VirtualMapTransfer(map, pos);
                 }
-                return JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, job);
             }
             return null;
         }

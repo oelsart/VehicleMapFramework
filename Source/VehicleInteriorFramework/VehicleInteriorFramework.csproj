@@ -151,6 +151,7 @@
     <Compile Include="Jobs\WorkGivers\WorkGiver_LoadBuildableContainer.cs" />
     <Compile Include="Jobs\WorkGivers\WorkGiver_RefuelVehicleTank.cs" />
     <Compile Include="MapComponents\CrossMapHaulDestinationManager.cs" />
+    <Compile Include="ModCompat.cs" />
     <Compile Include="ModExtensions\VehicleHumanPowered.cs" />
     <Compile Include="PlaceWorkers\PlaceWorker_ForbidOnHumanPoweredVehicle.cs" />
     <Compile Include="PlaceWorkers\PlaceWorker_ForceOnHoverVehicle.cs" />
@@ -285,6 +286,7 @@
     <Compile Include="VMF_HarmonyPatches\Patches_DeepStorage.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_DMS.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_DrakkenLaserDrill.cs" />
+    <Compile Include="VMF_HarmonyPatches\Patches_DrillTurret.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_DubsBadHygiene.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_EccentricTech.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_EnterHere.cs" />

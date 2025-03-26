@@ -1,5 +1,4 @@
-﻿using HarmonyLib;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Verse;
 using Verse.AI;
 
@@ -14,8 +13,16 @@ namespace VehicleInteriors
 
         public override bool TryMakePreToilReservations(bool errorOnFailed)
         {
-            var result = nextJob?.TryMakePreToilReservations(this.pawn, false);
-            return result ?? true;
+            var map = this.pawn.Map;
+            this.pawn.VirtualMapTransfer(this.DestMap); //ScanCellのWorkなどの場合にVirtualMapTransferは必要
+            try
+            {
+                return nextJob?.TryMakePreToilReservations(this.pawn, false) ?? true;
+            }
+            finally
+            {
+                this.pawn.VirtualMapTransfer(map);
+            }
         }
 
         protected override IEnumerable<Toil> MakeNewToils()

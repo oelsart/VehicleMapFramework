@@ -18,23 +18,23 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         static Patches_VEF()
         {
-            if (ModsConfig.IsActive("VanillaExpanded.VFEArchitect"))
+            if (ModCompat.VFEArchitect)
             {
                 VMF_Harmony.Instance.PatchCategory("VMF_Patches_VFE_Architect");
             }
-            if (ModsConfig.IsActive("VanillaExpanded.VFESecurity"))
+            if (ModCompat.VFESecurity)
             {
                 VMF_Harmony.Instance.PatchCategory("VMF_Patches_VFE_Security");
             }
-            if (ModsConfig.IsActive("OskarPotocki.VanillaVehiclesExpanded"))
+            if (ModCompat.VVE)
             {
                 VMF_Harmony.Instance.PatchCategory("VMF_Patches_VVE");
             }
-            if (ModsConfig.IsActive("OskarPotocki.VFE.Pirates"))
+            if (ModCompat.VFEPirates)
             {
                 VMF_Harmony.Instance.PatchCategory("VMF_Patches_VFE_Pirates");
             }
-            if (ModsConfig.IsActive("OskarPotocki.VFE.Mechanoid"))
+            if (ModCompat.VFEMechanoid)
             {
                 VMF_Harmony.Instance.PatchCategory("VMF_Patches_VFE_Mechanoid");
             }

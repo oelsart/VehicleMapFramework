@@ -15,7 +15,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         static Patches_WhileYoureUp()
         {
-            if (ModsConfig.IsActive("CodeOptimist.JobsOfOpportunity"))
+            if (ModCompat.WhileYoureUp)
             {
                 MethodBase original;
                 MethodInfo patch;

@@ -11,7 +11,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         static Patches_PathfindingFramework()
         {
-            if (ModsConfig.IsActive("pathfinding.framework"))
+            if (ModCompat.PathfindingFramework)
             {
                 VMF_Harmony.Instance.PatchCategory("VMF_Patches_PathfindingFramework");
             }

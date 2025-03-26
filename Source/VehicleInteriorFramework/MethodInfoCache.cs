@@ -192,6 +192,10 @@ namespace VehicleInteriors
 
         public static readonly MethodInfo m_IntVec3_ToVector3Shifted = AccessTools.Method(typeof(IntVec3), nameof(IntVec3.ToVector3Shifted));
 
+        public static readonly MethodInfo m_IntVec3_ToVector3ShiftedWithAltitude1 = AccessTools.Method(typeof(IntVec3), nameof(IntVec3.ToVector3ShiftedWithAltitude), new[] { typeof(AltitudeLayer) });
+
+        public static readonly MethodInfo m_IntVec3_ToVector3ShiftedWithAltitude2 = AccessTools.Method(typeof(IntVec3), nameof(IntVec3.ToVector3ShiftedWithAltitude), new[] { typeof(float) });
+
         public static readonly MethodInfo m_Rot8Utility_ToFundVector3 = AccessTools.Method(typeof(Rot8Utility), nameof(Rot8Utility.ToFundVector3));
 
         public static readonly MethodInfo m_CellRect_ClipInsideMap = AccessTools.Method(typeof(CellRect), nameof(CellRect.ClipInsideMap));

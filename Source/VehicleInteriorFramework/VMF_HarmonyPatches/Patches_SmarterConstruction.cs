@@ -12,7 +12,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         static Patches_SmarterConstruction()
         {
-            if (ModsConfig.IsActive("dhultgren.smarterconstruction"))
+            if (ModCompat.SmarterConstruction)
             {
                 VMF_Harmony.Instance.PatchCategory("VMF_Patches_SmarterConstruction");
                 var original = AccessTools.Method(typeof(WorkGiver_ConstructFinishFramesAcrossMaps), nameof(WorkGiver_ConstructFinishFramesAcrossMaps.JobOnThing));

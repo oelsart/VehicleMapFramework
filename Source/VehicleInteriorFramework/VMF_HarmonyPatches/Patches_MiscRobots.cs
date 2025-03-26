@@ -13,7 +13,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         static Patches_MiscRobots()
         {
-            if (ModsConfig.IsActive("Haplo.Miscellaneous.Robots"))
+            if (ModCompat.MiscRobots)
             {
                 VMF_Harmony.Instance.PatchCategory("VMF_Patches_MiscRobots");
             }

@@ -11,7 +11,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         static Patches_BiomesCaverns()
         {
-            if (ModsConfig.IsActive("BiomesTeam.BiomesCaverns"))
+            if (ModCompat.BiomesCaverns)
             {
                 VMF_Harmony.Instance.PatchCategory("VMF_Patches_BiomesCaverns");
             }

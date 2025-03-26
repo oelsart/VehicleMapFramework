@@ -9,7 +9,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         static Patches_DMS()
         {
-            if (ModsConfig.IsActive("Aoba.DeadManSwitch.AncientCorps"))
+            if (ModCompat.DeadMansSwitch)
             {
                 VMF_Harmony.Instance.PatchCategory("VMF_Patches_DMSAncientCorps");
             }

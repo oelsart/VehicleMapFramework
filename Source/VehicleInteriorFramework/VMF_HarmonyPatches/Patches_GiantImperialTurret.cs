@@ -16,7 +16,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         static Patches_GiantImperialTurret()
         {
-            if (ModsConfig.IsActive("XMB.Giantimperialcannonturret.MO"))
+            if (ModCompat.GiantImperialTurret)
             {
                 VMF_Harmony.Instance.PatchCategory("VMF_Patches_GiantImperialTurret");
             }

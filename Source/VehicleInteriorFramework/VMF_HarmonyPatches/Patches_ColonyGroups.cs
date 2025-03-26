@@ -9,7 +9,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         static Patches_ColonyGroups()
         {
-            if (ModsConfig.IsActive("DerekBickley.LTOColonyGroupsFinal"))
+            if (ModCompat.ColonyGroups)
             {
                 VMF_Harmony.Instance.PatchCategory("VMF_Patches_ColonyGroups");
             }

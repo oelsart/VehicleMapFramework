@@ -16,7 +16,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches.AM
     {
         static Patches_MeleeAnimation()
         {
-            if (ModsConfig.IsActive("co.uk.epicguru.meleeanimation"))
+            if (ModCompat.MeleeAnimation)
             {
                 VMF_Harmony.Instance.PatchCategory("VMF_Patches_MeleeAnimation");
             }

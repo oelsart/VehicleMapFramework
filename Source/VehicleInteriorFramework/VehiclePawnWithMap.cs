@@ -5,12 +5,10 @@ using SmashTools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.Emit;
 using System.Text;
 using UnityEngine;
 using Vehicles;
 using Verse;
-using static RimWorld.MechClusterSketch;
 
 namespace VehicleInteriors
 {
@@ -465,79 +463,50 @@ namespace VehicleInteriors
             //}
         }
 
-        static VehiclePawnWithMap()
-        {
-            VEFActive = ModsConfig.IsActive("OskarPotocki.VanillaFactionsExpanded.Core");
-            if (VEFActive)
-            {
-                t_SectionLayer_ResourceOnVehicle = AccessTools.TypeByName("VehicleInteriors.SectionLayer_ResourceOnVehicle");
-            }
-
-            DefenceGridActive = ModsConfig.IsActive("Aelanna.EccentricTech.DefenseGrid");
-            if (DefenceGridActive)
-            {
-                t_SectionLayer_DefenseGridOverlay = AccessTools.TypeByName("EccentricDefenseGrid.SectionLayer_DefenseGridOverlay");
-                t_CompDefenseConduit = AccessTools.TypeByName("EccentricDefenseGrid.CompDefenseConduit");
-                t_Designator_DeconstructConduit = AccessTools.TypeByName("EccentricDefenseGrid.Designator_DeconstructConduit");
-            }
-
-            BadHygieneActive = ModsConfig.IsActive("Dubwise.DubsBadHygiene") || ModsConfig.IsActive("Dubwise.DubsBadHygiene.Lite");
-            if (BadHygieneActive)
-            {
-                t_SectionLayer_SewagePipeOverlay = AccessTools.TypeByName("DubsBadHygiene.SectionLayer_SewagePipeOverlay");
-                t_SectionLayer_AirDuctOverlay = AccessTools.TypeByName("DubsBadHygiene.SectionLayer_AirDuctOverlay");
-                t_SectionLayer_Irrigation = AccessTools.TypeByName("DubsBadHygiene.SectionLayer_Irrigation");
-                t_SectionLayer_FertilizerGrid = AccessTools.TypeByName("DubsBadHygiene.SectionLayer_FertilizerGrid");
-                t_CompProperties_Pipe = AccessTools.TypeByName("DubsBadHygiene.CompProperties_Pipe");
-                CompProperties_Pipe_mode = AccessTools.FieldRefAccess<int>(t_CompProperties_Pipe, "mode");
-                SectionLayer_PipeOverlay_mode = AccessTools.FieldRefAccess<int>("DubsBadHygiene.SectionLayer_PipeOverlay:mode");
-            }
-        }
-
         protected virtual void DrawModLayers(Section section, Vector3 drawPos, float extraRotation)
         {
-            if (VEFActive)
+            if (ModCompat.VFECore.Active)
             {
-                ((SectionLayer_ThingsOnVehicle)section.GetLayer(t_SectionLayer_ResourceOnVehicle))?.DrawLayer(this.FullRotation, drawPos, extraRotation);
+                ((SectionLayer_ThingsOnVehicle)section.GetLayer(ModCompat.VFECore.SectionLayer_ResourceOnVehicle))?.DrawLayer(this.FullRotation, drawPos, extraRotation);
             }
-            if (DefenceGridActive)
+            if (ModCompat.DefenseGrid.Active)
             {
                 var selDesignator = Find.DesignatorManager.SelectedDesignator;
-                if (selDesignator is Designator_Build designator_Build && designator_Build.PlacingDef is ThingDef thingDef && thingDef.HasComp(t_CompDefenseConduit))
+                if (selDesignator is Designator_Build designator_Build && designator_Build.PlacingDef is ThingDef thingDef && thingDef.HasComp(ModCompat.DefenseGrid.CompDefenseConduit))
                 {
-                    this.DrawLayer(section, t_SectionLayer_DefenseGridOverlay, drawPos.Yto0(), extraRotation);
+                    this.DrawLayer(section, ModCompat.DefenseGrid.SectionLayer_DefenseGridOverlay, drawPos.Yto0(), extraRotation);
                 }
-                else if (t_Designator_DeconstructConduit.IsAssignableFrom(selDesignator?.GetType()))
+                else if (ModCompat.DefenseGrid.Designator_DeconstructConduit.IsAssignableFrom(selDesignator?.GetType()))
                 {
-                    this.DrawLayer(section, t_SectionLayer_DefenseGridOverlay, drawPos.Yto0(), extraRotation);
+                    this.DrawLayer(section, ModCompat.DefenseGrid.SectionLayer_DefenseGridOverlay, drawPos.Yto0(), extraRotation);
                 }
             }
-            if (BadHygieneActive)
+            if (ModCompat.DubsBadHygiene.Active)
             {
                 var selDesignator = Find.DesignatorManager.SelectedDesignator;
-                var sewagePipeOverlay = section.GetLayer(t_SectionLayer_SewagePipeOverlay);
-                var airDuctOverlay = section.GetLayer(t_SectionLayer_AirDuctOverlay);
+                var sewagePipeOverlay = section.GetLayer(ModCompat.DubsBadHygiene.SectionLayer_SewagePipeOverlay);
+                var airDuctOverlay = section.GetLayer(ModCompat.DubsBadHygiene.SectionLayer_AirDuctOverlay);
                 CompProperties compProperties;
                 if (selDesignator is Designator_Build designator_Build && designator_Build.PlacingDef is ThingDef thingDef &&
-                    (compProperties = thingDef.comps.Find(c => t_CompProperties_Pipe?.IsAssignableFrom(c.GetType()) ?? false)) != null)
+                    (compProperties = thingDef.comps.Find(c => ModCompat.DubsBadHygiene.CompProperties_Pipe?.IsAssignableFrom(c.GetType()) ?? false)) != null)
                 {
-                    var mode = CompProperties_Pipe_mode(compProperties);
-                    if (sewagePipeOverlay != null & SectionLayer_PipeOverlay_mode(sewagePipeOverlay) == mode)
+                    var mode = ModCompat.DubsBadHygiene.CompProperties_Pipe_mode(compProperties);
+                    if (sewagePipeOverlay != null & ModCompat.DubsBadHygiene.SectionLayer_PipeOverlay_mode(sewagePipeOverlay) == mode)
                     {
-                        this.DrawLayer(section, t_SectionLayer_SewagePipeOverlay, drawPos.Yto0(), extraRotation);
+                        this.DrawLayer(section, ModCompat.DubsBadHygiene.SectionLayer_SewagePipeOverlay, drawPos.Yto0(), extraRotation);
                     }
-                    if (airDuctOverlay != null && SectionLayer_PipeOverlay_mode(airDuctOverlay) == mode)
+                    if (airDuctOverlay != null && ModCompat.DubsBadHygiene.SectionLayer_PipeOverlay_mode(airDuctOverlay) == mode)
                     {
-                        this.DrawLayer(section, t_SectionLayer_AirDuctOverlay, drawPos.Yto0(), extraRotation);
+                        this.DrawLayer(section, ModCompat.DubsBadHygiene.SectionLayer_AirDuctOverlay, drawPos.Yto0(), extraRotation);
                     }
                     if (Time.frameCount % 120 == 0)
                     {
-                        section.GetLayer(t_SectionLayer_SewagePipeOverlay)?.Regenerate();
-                        section.GetLayer(t_SectionLayer_AirDuctOverlay)?.Regenerate();
+                        section.GetLayer(ModCompat.DubsBadHygiene.SectionLayer_SewagePipeOverlay)?.Regenerate();
+                        section.GetLayer(ModCompat.DubsBadHygiene.SectionLayer_AirDuctOverlay)?.Regenerate();
                     }
                 }
-                this.DrawLayer(section, t_SectionLayer_Irrigation, drawPos, extraRotation);
-                this.DrawLayer(section, t_SectionLayer_FertilizerGrid, drawPos, extraRotation);
+                this.DrawLayer(section, ModCompat.DubsBadHygiene.SectionLayer_Irrigation, drawPos, extraRotation);
+                this.DrawLayer(section, ModCompat.DubsBadHygiene.SectionLayer_FertilizerGrid, drawPos, extraRotation);
                 ((SectionLayer_ThingsSewagePipeOnVehicle)section.GetLayer(typeof(SectionLayer_ThingsSewagePipeOnVehicle)))?.DrawLayer(this.FullRotation, drawPos, extraRotation);
             }
         }
@@ -674,33 +643,5 @@ namespace VehicleInteriors
         private static readonly Type t_SectionLayer_Zones = AccessTools.TypeByName("Verse.SectionLayer_Zones");
 
         private static readonly FastInvokeHandler DirtyCellDesignationsCache = MethodInvoker.GetHandler(AccessTools.Method(typeof(DesignationManager), "DirtyCellDesignationsCache"));
-
-        private static readonly bool VEFActive;
-
-        private static readonly Type t_SectionLayer_ResourceOnVehicle;
-
-        private static readonly bool DefenceGridActive;
-
-        private static readonly Type t_SectionLayer_DefenseGridOverlay;
-
-        private static readonly Type t_CompDefenseConduit;
-
-        private static readonly Type t_Designator_DeconstructConduit;
-
-        private static readonly bool BadHygieneActive;
-
-        private static readonly Type t_SectionLayer_SewagePipeOverlay;
-
-        private static readonly Type t_SectionLayer_AirDuctOverlay;
-
-        private static readonly Type t_SectionLayer_Irrigation;
-
-        private static readonly Type t_SectionLayer_FertilizerGrid;
-
-        private static readonly Type t_CompProperties_Pipe;
-
-        private static readonly AccessTools.FieldRef<object, int> CompProperties_Pipe_mode;
-
-        private static readonly AccessTools.FieldRef<object, int> SectionLayer_PipeOverlay_mode;
     }
 }

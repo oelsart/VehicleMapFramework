@@ -17,7 +17,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
 
         static Patches_AllowTool()
         {
-            if (ModsConfig.IsActive("UnlimitedHugs.AllowTool"))
+            if (ModCompat.AllowTool)
             {
                 VMF_Harmony.Instance.PatchCategory("VMF_Patches_AllowTool");
 

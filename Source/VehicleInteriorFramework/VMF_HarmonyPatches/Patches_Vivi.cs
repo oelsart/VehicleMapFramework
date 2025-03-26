@@ -12,7 +12,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         static Patches_Vivi()
         {
-            if (ModsConfig.IsActive("gguake.race.vivi"))
+            if (ModCompat.Vivi)
             {
                 VMF_Harmony.Instance.PatchCategory("VMF_Patches_Vivi");
             }

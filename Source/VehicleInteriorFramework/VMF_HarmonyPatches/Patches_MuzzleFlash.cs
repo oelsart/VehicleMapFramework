@@ -10,7 +10,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         static Patches_MuzzleFlash()
         {
-            if (ModsConfig.IsActive("IssacZhuang.MuzzleFlash"))
+            if (ModCompat.MuzzleFlash)
             {
                 VMF_Harmony.Instance.PatchCategory("VMF_Patches_MuzzleFlash");
             }
