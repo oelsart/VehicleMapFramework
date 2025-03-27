@@ -1,4 +1,6 @@
 ﻿using HarmonyLib;
+using RimWorld;
+using SmashTools;
 using System;
 using System.Collections.Generic;
 using VehicleInteriors.VMF_HarmonyPatches;
@@ -160,5 +162,24 @@ namespace VehicleInteriors
         }
 
         public static readonly bool NoJobAuthors = ModsConfig.IsActive("Doug.NoJobAuthors");
+
+        [StaticConstructorOnStartup]
+        public static class PickUpAndHaul
+        {
+            public static readonly bool Active = ModsConfig.IsActive("Mehni.PickUpAndHaul");
+
+            public static readonly Func<RaceProperties, bool> IsAllowedRace;
+
+            public static readonly WorkGiverDef HaulToInventory;
+
+            static PickUpAndHaul()
+            {
+                if (Active)
+                {
+                    IsAllowedRace = AccessTools.MethodDelegate<Func<RaceProperties, bool>>("PickUpAndHaul.Settings:IsAllowedRace");
+                    HaulToInventory = DefDatabase<WorkGiverDef>.GetNamed("HaulToInventory");
+                }
+            }
+        }
     }
 }
