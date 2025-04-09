@@ -1,14 +1,15 @@
-﻿using RimWorld;
+﻿using HarmonyLib;
+using RimWorld;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 using VehicleInteriors.Jobs.WorkGivers;
 using Verse;
 using Verse.AI;
 
 namespace VehicleInteriors
 {
+    [Obsolete]
     public class WorkGiver_DoBillAcrossMaps : WorkGiver_DoBill, IWorkGiverAcrossMaps
     {
         public bool NeedVirtualMapTransfer => false;
@@ -379,32 +380,24 @@ namespace VehicleInteriors
             {
                 return haulOffJob;
             }
-            var firstThing = chosenIngThings.FirstOrDefault().Thing;
-            var giverThing = (Thing)giver;
-            var exitSpot2 = TargetInfo.Invalid;
-            var enterSpot2 = TargetInfo.Invalid;
-            if (firstThing == null || ReachabilityUtilityOnVehicle.CanReach(firstThing.Map, firstThing.Position, giverThing, PathEndMode.InteractionCell, TraverseParms.For(pawn), giver.Map, out exitSpot2, out enterSpot2))
+            Job job = JobMaker.MakeJob(JobDefOf.DoBill, (Thing)giver);
+            job.targetQueueB = new List<LocalTargetInfo>(chosenIngThings.Count);
+            job.countQueue = new List<int>(chosenIngThings.Count);
+            for (int i = 0; i < chosenIngThings.Count; i++)
             {
-                Job job = JobMaker.MakeJob(JobDefOf.DoBill, (Thing)giver);
-                job.targetQueueB = new List<LocalTargetInfo>(chosenIngThings.Count);
-                job.countQueue = new List<int>(chosenIngThings.Count);
-                for (int i = 0; i < chosenIngThings.Count; i++)
-                {
-                    job.targetQueueB.Add(chosenIngThings[i].Thing);
-                    job.countQueue.Add(chosenIngThings[i].Count);
-                }
-
-                if (bill.xenogerm != null)
-                {
-                    job.targetQueueB.Add(bill.xenogerm);
-                    job.countQueue.Add(1);
-                }
-
-                job.haulMode = HaulMode.ToCellNonStorage;
-                job.bill = bill;
-                return job;
+                job.targetQueueB.Add(chosenIngThings[i].Thing);
+                job.countQueue.Add(chosenIngThings[i].Count);
             }
-            return null;
+
+            if (bill.xenogerm != null)
+            {
+                job.targetQueueB.Add(bill.xenogerm);
+                job.countQueue.Add(1);
+            }
+
+            job.haulMode = HaulMode.ToCellNonStorage;
+            job.bill = bill;
+            return job;
         }
 
         private static Job WorkOnFormedBill(Thing giver, Bill_Autonomous bill)
@@ -432,10 +425,10 @@ namespace VehicleInteriors
             return false;
         }
 
-        private static bool TryFindBestBillIngredients(Bill bill, Pawn pawn, Thing billGiver, List<ThingCount> chosen, List<IngredientCount> missingIngredients)
-        {
-            return TryFindBestIngredientsHelper((Thing t) => IsUsableIngredient(t, bill), (List<Thing> foundThings) => TryFindBestBillIngredientsInSet(foundThings, bill, chosen, GetBillGiverRootCell(billGiver, pawn), billGiver is Pawn, missingIngredients), bill.recipe.ingredients, pawn, billGiver, chosen, bill.ingredientSearchRadius);
-        }
+        //private static bool TryFindBestBillIngredients(Bill bill, Pawn pawn, Thing billGiver, List<ThingCount> chosen, List<IngredientCount> missingIngredients)
+        //{
+        //    return TryFindBestIngredientsHelper((Thing t) => IsUsableIngredient(t, bill), (List<Thing> foundThings) => TryFindBestBillIngredientsInSet(foundThings, bill, chosen, GetBillGiverRootCell(billGiver, pawn), billGiver is Pawn, missingIngredients), bill.recipe.ingredients, pawn, billGiver, chosen, bill.ingredientSearchRadius);
+        //}
 
         private static bool TryFindBestIngredientsHelper(Predicate<Thing> thingValidator, Predicate<List<Thing>> foundAllIngredientsAndChoose, List<IngredientCount> ingredients, Pawn pawn, Thing billGiver, List<ThingCount> chosen, float searchRadius)
         {
@@ -580,148 +573,149 @@ namespace VehicleInteriors
             tmpMedicine.Clear();
         }
 
+        //private static bool TryFindBestBillIngredientsInSet(List<Thing> availableThings, Bill bill, List<ThingCount> chosen, IntVec3 rootCell, bool alreadySorted, List<IngredientCount> missingIngredients)
+        //{
+        //    if (bill.recipe.allowMixingIngredients)
+        //    {
+        //        return TryFindBestBillIngredientsInSet_AllowMix(availableThings, bill, chosen, rootCell, missingIngredients);
+        //    }
 
-        private static bool TryFindBestBillIngredientsInSet(List<Thing> availableThings, Bill bill, List<ThingCount> chosen, IntVec3 rootCell, bool alreadySorted, List<IngredientCount> missingIngredients)
-        {
-            if (bill.recipe.allowMixingIngredients)
-            {
-                return TryFindBestBillIngredientsInSet_AllowMix(availableThings, bill, chosen, rootCell, missingIngredients);
-            }
+        //    return TryFindBestBillIngredientsInSet_NoMix(availableThings, bill, chosen, rootCell, alreadySorted, missingIngredients);
+        //}
 
-            return TryFindBestBillIngredientsInSet_NoMix(availableThings, bill, chosen, rootCell, alreadySorted, missingIngredients);
-        }
+        //private static bool TryFindBestBillIngredientsInSet_NoMix(List<Thing> availableThings, Bill bill, List<ThingCount> chosen, IntVec3 rootCell, bool alreadySorted, List<IngredientCount> missingIngredients)
+        //{
+        //    return TryFindBestIngredientsInSet_NoMixHelper(availableThings, bill.recipe.ingredients, chosen, rootCell, alreadySorted, missingIngredients, bill);
+        //}
 
-        private static bool TryFindBestBillIngredientsInSet_NoMix(List<Thing> availableThings, Bill bill, List<ThingCount> chosen, IntVec3 rootCell, bool alreadySorted, List<IngredientCount> missingIngredients)
-        {
-            return TryFindBestIngredientsInSet_NoMixHelper(availableThings, bill.recipe.ingredients, chosen, rootCell, alreadySorted, missingIngredients, bill);
-        }
+        //private static bool TryFindBestIngredientsInSet_NoMixHelper(List<Thing> availableThings, List<IngredientCount> ingredients, List<ThingCount> chosen, IntVec3 rootCell, bool alreadySorted, List<IngredientCount> missingIngredients, Bill bill = null)
+        //{
+        //    if (!alreadySorted)
+        //    {
+        //        int comparison(Thing t1, Thing t2)
+        //        {
+        //            float num4 = (t1.PositionHeldOnBaseMap() - rootCell).LengthHorizontalSquared;
+        //            float value = (t2.PositionHeldOnBaseMap() - rootCell).LengthHorizontalSquared;
+        //            return num4.CompareTo(value);
+        //        }
+        //        availableThings.Sort(comparison);
+        //    }
 
-        private static bool TryFindBestIngredientsInSet_NoMixHelper(List<Thing> availableThings, List<IngredientCount> ingredients, List<ThingCount> chosen, IntVec3 rootCell, bool alreadySorted, List<IngredientCount> missingIngredients, Bill bill = null)
-        {
-            if (!alreadySorted)
-            {
-                int comparison(Thing t1, Thing t2)
-                {
-                    float num4 = (t1.PositionHeldOnBaseMap() - rootCell).LengthHorizontalSquared;
-                    float value = (t2.PositionHeldOnBaseMap() - rootCell).LengthHorizontalSquared;
-                    return num4.CompareTo(value);
-                }
-                availableThings.Sort(comparison);
-            }
+        //    chosen.Clear();
+        //    availableCounts.Clear();
+        //    missingIngredients?.Clear();
+        //    availableCounts.GenerateFrom(availableThings);
+        //    for (int i = 0; i < ingredients.Count; i++)
+        //    {
+        //        IngredientCount ingredientCount = ingredients[i];
+        //        bool flag = false;
+        //        for (int j = 0; j < availableCounts.Count; j++)
+        //        {
+        //            float num = ((bill != null) ? ((float)ingredientCount.CountRequiredOfFor(availableCounts.GetDef(j), bill.recipe, bill)) : ingredientCount.GetBaseCount());
+        //            if ((bill != null && !bill.recipe.ignoreIngredientCountTakeEntireStacks && num > availableCounts.GetCount(j)) || !ingredientCount.filter.Allows(availableCounts.GetDef(j)) || (bill != null && !ingredientCount.IsFixedIngredient && !bill.ingredientFilter.Allows(availableCounts.GetDef(j))))
+        //            {
+        //                continue;
+        //            }
 
-            chosen.Clear();
-            availableCounts.Clear();
-            missingIngredients?.Clear();
-            availableCounts.GenerateFrom(availableThings);
-            for (int i = 0; i < ingredients.Count; i++)
-            {
-                IngredientCount ingredientCount = ingredients[i];
-                bool flag = false;
-                for (int j = 0; j < availableCounts.Count; j++)
-                {
-                    float num = ((bill != null) ? ((float)ingredientCount.CountRequiredOfFor(availableCounts.GetDef(j), bill.recipe, bill)) : ingredientCount.GetBaseCount());
-                    if ((bill != null && !bill.recipe.ignoreIngredientCountTakeEntireStacks && num > availableCounts.GetCount(j)) || !ingredientCount.filter.Allows(availableCounts.GetDef(j)) || (bill != null && !ingredientCount.IsFixedIngredient && !bill.ingredientFilter.Allows(availableCounts.GetDef(j))))
-                    {
-                        continue;
-                    }
+        //            for (int k = 0; k < availableThings.Count; k++)
+        //            {
+        //                if (availableThings[k].def != availableCounts.GetDef(j))
+        //                {
+        //                    continue;
+        //                }
 
-                    for (int k = 0; k < availableThings.Count; k++)
-                    {
-                        if (availableThings[k].def != availableCounts.GetDef(j))
-                        {
-                            continue;
-                        }
+        //                int num2 = availableThings[k].stackCount - ThingCountUtility.CountOf(chosen, availableThings[k]);
+        //                if (num2 > 0)
+        //                {
+        //                    if (bill != null && bill.recipe.ignoreIngredientCountTakeEntireStacks)
+        //                    {
+        //                        ThingCountUtility.AddToList(chosen, availableThings[k], num2);
+        //                        return true;
+        //                    }
 
-                        int num2 = availableThings[k].stackCount - ThingCountUtility.CountOf(chosen, availableThings[k]);
-                        if (num2 > 0)
-                        {
-                            if (bill != null && bill.recipe.ignoreIngredientCountTakeEntireStacks)
-                            {
-                                ThingCountUtility.AddToList(chosen, availableThings[k], num2);
-                                return true;
-                            }
+        //                    int num3 = Mathf.Min(Mathf.FloorToInt(num), num2);
+        //                    ThingCountUtility.AddToList(chosen, availableThings[k], num3);
+        //                    num -= (float)num3;
+        //                    if (num < 0.001f)
+        //                    {
+        //                        flag = true;
+        //                        float count = availableCounts.GetCount(j);
+        //                        count -= num;
+        //                        availableCounts.SetCount(j, count);
+        //                        break;
+        //                    }
+        //                }
+        //            }
 
-                            int num3 = Mathf.Min(Mathf.FloorToInt(num), num2);
-                            ThingCountUtility.AddToList(chosen, availableThings[k], num3);
-                            num -= (float)num3;
-                            if (num < 0.001f)
-                            {
-                                flag = true;
-                                float count = availableCounts.GetCount(j);
-                                count -= num;
-                                availableCounts.SetCount(j, count);
-                                break;
-                            }
-                        }
-                    }
+        //            if (flag)
+        //            {
+        //                break;
+        //            }
+        //        }
 
-                    if (flag)
-                    {
-                        break;
-                    }
-                }
+        //        if (!flag)
+        //        {
+        //            if (missingIngredients == null)
+        //            {
+        //                return false;
+        //            }
 
-                if (!flag)
-                {
-                    if (missingIngredients == null)
-                    {
-                        return false;
-                    }
+        //            missingIngredients.Add(ingredientCount);
+        //        }
+        //    }
 
-                    missingIngredients.Add(ingredientCount);
-                }
-            }
+        //    if (missingIngredients != null)
+        //    {
+        //        return missingIngredients.Count == 0;
+        //    }
 
-            if (missingIngredients != null)
-            {
-                return missingIngredients.Count == 0;
-            }
+        //    return true;
+        //}
 
-            return true;
-        }
+        //private static bool TryFindBestBillIngredientsInSet_AllowMix(List<Thing> availableThings, Bill bill, List<ThingCount> chosen, IntVec3 rootCell, List<IngredientCount> missingIngredients)
+        //{
+        //    chosen.Clear();
+        //    missingIngredients?.Clear();
+        //    availableThings.SortBy((Thing t) => bill.recipe.IngredientValueGetter.ValuePerUnitOf(t.def), (Thing t) => (t.Position - rootCell).LengthHorizontalSquared);
+        //    for (int i = 0; i < bill.recipe.ingredients.Count; i++)
+        //    {
+        //        IngredientCount ingredientCount = bill.recipe.ingredients[i];
+        //        float num = ingredientCount.GetBaseCount();
+        //        for (int j = 0; j < availableThings.Count; j++)
+        //        {
+        //            Thing thing = availableThings[j];
+        //            if (ingredientCount.filter.Allows(thing) && (ingredientCount.IsFixedIngredient || bill.ingredientFilter.Allows(thing)))
+        //            {
+        //                float num2 = bill.recipe.IngredientValueGetter.ValuePerUnitOf(thing.def);
+        //                int num3 = Mathf.Min(Mathf.CeilToInt(num / num2), thing.stackCount);
+        //                ThingCountUtility.AddToList(chosen, thing, num3);
+        //                num -= (float)num3 * num2;
+        //                if (num <= 0.0001f)
+        //                {
+        //                    break;
+        //                }
+        //            }
+        //        }
 
-        private static bool TryFindBestBillIngredientsInSet_AllowMix(List<Thing> availableThings, Bill bill, List<ThingCount> chosen, IntVec3 rootCell, List<IngredientCount> missingIngredients)
-        {
-            chosen.Clear();
-            missingIngredients?.Clear();
-            availableThings.SortBy((Thing t) => bill.recipe.IngredientValueGetter.ValuePerUnitOf(t.def), (Thing t) => (t.Position - rootCell).LengthHorizontalSquared);
-            for (int i = 0; i < bill.recipe.ingredients.Count; i++)
-            {
-                IngredientCount ingredientCount = bill.recipe.ingredients[i];
-                float num = ingredientCount.GetBaseCount();
-                for (int j = 0; j < availableThings.Count; j++)
-                {
-                    Thing thing = availableThings[j];
-                    if (ingredientCount.filter.Allows(thing) && (ingredientCount.IsFixedIngredient || bill.ingredientFilter.Allows(thing)))
-                    {
-                        float num2 = bill.recipe.IngredientValueGetter.ValuePerUnitOf(thing.def);
-                        int num3 = Mathf.Min(Mathf.CeilToInt(num / num2), thing.stackCount);
-                        ThingCountUtility.AddToList(chosen, thing, num3);
-                        num -= (float)num3 * num2;
-                        if (num <= 0.0001f)
-                        {
-                            break;
-                        }
-                    }
-                }
+        //        if (num > 0.0001f)
+        //        {
+        //            if (missingIngredients == null)
+        //            {
+        //                return false;
+        //            }
 
-                if (num > 0.0001f)
-                {
-                    if (missingIngredients == null)
-                    {
-                        return false;
-                    }
+        //            missingIngredients.Add(ingredientCount);
+        //        }
+        //    }
 
-                    missingIngredients.Add(ingredientCount);
-                }
-            }
+        //    if (missingIngredients != null)
+        //    {
+        //        return missingIngredients.Count == 0;
+        //    }
 
-            if (missingIngredients != null)
-            {
-                return missingIngredients.Count == 0;
-            }
+        //    return true;
+        //}
 
-            return true;
-        }
+        private static Func<Bill, Pawn, Thing, List<ThingCount>, List<IngredientCount>, bool> TryFindBestBillIngredients = AccessTools.MethodDelegate<Func<Bill, Pawn, Thing, List<ThingCount>, List<IngredientCount>, bool>>(AccessTools.Method(typeof(WorkGiver_DoBill), "TryFindBestBillIngredients"));
     }
 }

@@ -306,7 +306,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             return instructions.MethodReplacer(m_WorkGiver_ShouldSkip, m_ShouldSkipAll);
         }
 
-        private static bool ShouldSkipAll(WorkGiver workGiver, Pawn pawn, bool forced)
+        public static bool ShouldSkipAll(this WorkGiver workGiver, Pawn pawn, bool forced)
         {
             var map = pawn.Map;
             try
@@ -314,8 +314,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 return pawn.Map.BaseMapAndVehicleMaps().All(m =>
                 {
                     pawn.VirtualMapTransfer(m);
-                    var skip = workGiver.ShouldSkip(pawn, forced);
-                    return skip;
+                    return workGiver.ShouldSkip(pawn, forced);
                 });
             }
             finally

@@ -75,19 +75,19 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     }
 
     //WorkGiverDefのgiverClassを差し替え
-    [HarmonyPatch(typeof(WorkGiverDef), nameof(WorkGiverDef.Worker), MethodType.Getter)]
-    public static class Patch_WorkGiverDef_Worker
-    {
-        public static void Prefix(WorkGiverDef __instance, WorkGiver ___workerInt)
-        {
-            if (___workerInt != null) return;
+    //[HarmonyPatch(typeof(WorkGiverDef), nameof(WorkGiverDef.Worker), MethodType.Getter)]
+    //public static class Patch_WorkGiverDef_Worker
+    //{
+    //    public static void Prefix(WorkGiverDef __instance, WorkGiver ___workerInt)
+    //    {
+    //        if (___workerInt != null) return;
 
-            if (__instance.giverClass == typeof(WorkGiver_DoBill))
-            {
-                __instance.giverClass = typeof(WorkGiver_DoBillAcrossMaps);
-            }
-        }
-    }
+    //        if (__instance.giverClass == typeof(WorkGiver_DoBill))
+    //        {
+    //            __instance.giverClass = typeof(WorkGiver_DoBillAcrossMaps);
+    //        }
+    //    }
+    //}
 
     [StaticConstructorOnStartup]
     public static class AddVehicleMapHolderComp

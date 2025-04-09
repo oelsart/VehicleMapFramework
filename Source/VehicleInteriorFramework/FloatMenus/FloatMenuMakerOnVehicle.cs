@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using VehicleInteriors.VMF_HarmonyPatches;
 using Vehicles;
 using Verse;
 using Verse.AI;
@@ -2298,8 +2299,7 @@ namespace VehicleInteriors
 				}
 			}
 			FloatMenuMakerOnVehicle.cachedThings.Clear();
-
-            if (ModsConfig.IsActive("co.uk.epicguru.meleeanimation"))
+            if (ModCompat.MeleeAnimation)
             {
                 if (GenerateAMMenuOptions == null)
                 {
@@ -2903,7 +2903,7 @@ namespace VehicleInteriors
 
         private static bool ScannerShouldSkip(Pawn pawn, WorkGiver_Scanner scanner, Thing t)
         {
-            return (!scanner.PotentialWorkThingRequest.Accepts(t) && (scanner.PotentialWorkThingsGlobal(pawn) == null || !scanner.PotentialWorkThingsGlobal(pawn).Contains(t))) || scanner.ShouldSkip(pawn, true);
+            return (!scanner.PotentialWorkThingRequest.Accepts(t) && (scanner.PotentialWorkThingsGlobal(pawn) == null || !scanner.PotentialWorkThingsGlobal(pawn).Contains(t))) || scanner.ShouldSkipAll(pawn, true);
         }
 
         private static List<Thing> cachedThings = new List<Thing>();

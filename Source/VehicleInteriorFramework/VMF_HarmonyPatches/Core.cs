@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using RimWorld;
 using SmashTools;
 using System;
 using System.Linq;
