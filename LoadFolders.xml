@@ -2,7 +2,7 @@
   <v1.5>
     <li>1.5</li>
     <li>Common</li>
-    <li IfModActive="CETeam.CombatExtended">1.5/_CE</li>
+    <li IfModActive="CETeam.CombatExtended,CETeam.CombatExtended_steam">1.5/_CE</li>
     <li IfModActive="brrainz.achtung">1.5/_Achtung</li>
     <li IfModActive="Owlchemist.SmartFarming">1.5/_SmartFarming</li>
     <li IfModActive="OskarPotocki.VanillaFactionsExpanded.Core">1.5/_VanillaExpandedFramework</li>
