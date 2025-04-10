@@ -81,6 +81,72 @@ namespace VMF_CEPatch
             return false;
         }
 
+        public static bool TryFindCEShootLineFromToOnVehicle_NewTemp(this Verb_LaunchProjectileCE verb, IntVec3 root, LocalTargetInfo targ, out ShootLine resultingLine, out Vector3 targetPos)
+        {
+            targetPos = targ.Thing is Pawn ? targ.Thing.TrueCenter() : targ.CellOnBaseMap().ToVector3Shifted();
+            var casterBaseMap = verb.caster.BaseMap();
+            var targCellOnBaseMap = targ.CellOnBaseMap();
+            if (targ.HasThing && targ.Thing.BaseMap() != casterBaseMap)
+            {
+                resultingLine = default;
+                return false;
+            }
+            if (verb.EffectiveRange <= ShootTuning.MeleeRange)
+            {
+                resultingLine = new ShootLine(root, targCellOnBaseMap);
+                return ReachabilityImmediate.CanReachImmediate(verb.caster.Position, targ, verb.caster.Map, PathEndMode.Touch, null);
+            }
+            CellRect cellRect = (!targ.HasThing) ? CellRect.SingleCell(targ.Cell) : targ.Thing.MovedOccupiedRect();
+            float num = cellRect.ClosestDistSquaredTo(root);
+            if (num > verb.EffectiveRange * verb.EffectiveRange || num < verb.verbProps.minRange * verb.verbProps.minRange)
+            {
+                resultingLine = new ShootLine(root, targCellOnBaseMap);
+                return false;
+            }
+            if (verb.Projectile.projectile.flyOverhead)
+            {
+                resultingLine = new ShootLine(root, targCellOnBaseMap);
+                return true;
+            }
+
+            var shotSource = root.ToVector3Shifted();
+            shotSource.y = verb.ShotHeight;
+
+            // Adjust for multi-tile turrets
+            if (verb.caster.def.building?.IsTurret ?? false)
+            {
+                shotSource = verb.ShotSource();
+            }
+
+            if (verb.CanHitFromCellIgnoringRange(shotSource, targ, out IntVec3 dest))
+            {
+                targetPos = dest.ToVector3Shifted();
+                resultingLine = new ShootLine(root, dest);
+                return true;
+            }
+
+            if (verb.CasterIsPawn)
+            {
+                ShootLeanUtilityOnVehicle.LeanShootingSourcesFromTo(verb.caster.Position, cellRect.ClosestCellTo(root), verb.caster.Map, tempLeanShootSources);
+                var targCellOnCasterMap = targ.CellOnAnotherThingMap(verb.caster);
+                foreach (var leanLoc in tempLeanShootSources.OrderBy(c => c.DistanceTo(targCellOnCasterMap)))
+                {
+                    var leanOffset = 0.5f - 0.001f;
+                    var leanLocOnBaseMap = leanLoc.ToThingBaseMapCoord(verb.caster);
+                    var leanPosOffset = (leanLocOnBaseMap - root).ToVector3() * leanOffset;
+                    if (verb.CanHitFromCellIgnoringRange(shotSource + leanPosOffset, targ, out dest))
+                    {
+                        targetPos = dest.ToVector3Shifted();
+                        resultingLine = new ShootLine(leanLocOnBaseMap, dest);
+                        return true;
+                    }
+                }
+            }
+
+            resultingLine = new ShootLine(root, targCellOnBaseMap);
+            return false;
+        }
+
         private static bool CanHitFromCellIgnoringRange(this Verb_LaunchProjectileCE verb, Vector3 shotSource, LocalTargetInfo targ, out IntVec3 goodDest)
         {
             var targCellOnBaseMap = targ.CellOnBaseMap();
@@ -125,8 +191,7 @@ namespace VMF_CEPatch
                     shotSource.y = shotHeight;
                     Vector3 targDrawPos = targetThing.DrawPos;
                     targetPos = new Vector3(targDrawPos.x, new CollisionVertical(targetThing).Max, targDrawPos.z);
-                    var targPawn = targetThing as Pawn;
-                    if (targPawn != null)
+                    if (targetThing is Pawn targPawn)
                     {
                         targetPos += targPawn.Drawer.leaner.LeanOffset * 0.6f;
                     }
@@ -144,7 +209,7 @@ namespace VMF_CEPatch
                 // Create validator to check for intersection with partial cover
                 var aimMode = verb.CompFireModes?.CurrentAimMode;
 
-                Predicate<IntVec3> CanShootThroughCell = (IntVec3 cell) =>
+                bool CanShootThroughCell(IntVec3 cell)
                 {
                     Thing cover = cell.InBounds(map) ? cell.GetFirstPawn(map) ?? cell.GetCover(map) : null;
                     if (verb.caster.IsOnVehicleMapOf(out var vehicle) && cover == vehicle)
@@ -198,7 +263,7 @@ namespace VMF_CEPatch
                     }
 
                     return true;
-                };
+                }
 
                 // Add validator to parameters
                 foreach (IntVec3 curCell in GenSightCE.PointsOnLineOfSight(shotSource, targetPos))

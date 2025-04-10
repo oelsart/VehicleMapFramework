@@ -91,9 +91,15 @@ namespace VehicleInteriors
             }
         }
 
+        public static IReadOnlyCollection<VehiclePawnWithMap> TryGetAllVehiclesOn(Map map)
+        {
+            //ColonyManagerReduxでコンポーネント構築中に呼ばれてしまうため、nullを想定する必要がある
+            return map.GetComponent<VehiclePawnWithMapCache>()?.allVehicles ?? new HashSet<VehiclePawnWithMap>();
+        }
+
         public static IReadOnlyCollection<VehiclePawnWithMap> AllVehiclesOn(Map map)
         {
-            return MapComponentCache<VehiclePawnWithMapCache>.GetComponent(map).allVehicles;
+            return map.GetCachedMapComponent<VehiclePawnWithMapCache>().allVehicles;
         }
 
         public void ForceResetCache()

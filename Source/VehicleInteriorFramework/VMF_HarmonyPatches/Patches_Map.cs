@@ -319,7 +319,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static List<Pawn> Postfix(List<Pawn> __result, Map ___map)
         {
-            return __result.Concat(VehiclePawnWithMapCache.AllVehiclesOn(___map).SelectMany(v => v.VehicleMap.mapPawns.AllPawnsSpawned)).ToList();
+            return __result.Concat(VehiclePawnWithMapCache.TryGetAllVehiclesOn(___map).SelectMany(v => v.VehicleMap.mapPawns.AllPawnsSpawned)).ToList();
         }
     }
 
@@ -328,7 +328,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IReadOnlyList<Pawn> Postfix(IReadOnlyList<Pawn> __result, Map ___map)
         {
-            return __result.Concat(VehiclePawnWithMapCache.AllVehiclesOn(___map).SelectMany(v => v.VehicleMap.mapPawns.AllPawnsSpawned)).ToArray();
+            return __result.Concat(VehiclePawnWithMapCache.TryGetAllVehiclesOn(___map).SelectMany(v => v.VehicleMap.mapPawns.AllPawnsSpawned)).ToArray();
         }
     }
 
@@ -346,7 +346,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static void Postfix(List<Pawn> __result, Map ___map, Faction faction)
         {
-            __result.AddRange(VehiclePawnWithMapCache.AllVehiclesOn(___map).SelectMany(v => v.VehicleMap.mapPawns.FreeHumanlikesSpawnedOfFaction(faction)));
+            __result.AddRange(VehiclePawnWithMapCache.TryGetAllVehiclesOn(___map).SelectMany(v => v.VehicleMap.mapPawns.FreeHumanlikesSpawnedOfFaction(faction)));
         }
     }
 
@@ -355,7 +355,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static void Postfix(List<Pawn> __result, Map ___map, Faction faction)
         {
-            __result.AddRange(VehiclePawnWithMapCache.AllVehiclesOn(___map).SelectMany(v => v.VehicleMap.mapPawns.SpawnedBabiesInFaction(faction)));
+            __result.AddRange(VehiclePawnWithMapCache.TryGetAllVehiclesOn(___map).SelectMany(v => v.VehicleMap.mapPawns.SpawnedBabiesInFaction(faction)));
         }
     }
 
@@ -364,7 +364,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static void Postfix(ref bool __result, Map ___map)
         {
-            __result = __result || VehiclePawnWithMapCache.AllVehiclesOn(___map).Any(v => v.VehicleMap.mapPawns.AnyPawnBlockingMapRemoval);
+            __result = __result || VehiclePawnWithMapCache.TryGetAllVehiclesOn(___map).Any(v => v.VehicleMap.mapPawns.AnyPawnBlockingMapRemoval);
         }
     }
 

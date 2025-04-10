@@ -99,7 +99,7 @@ namespace VMF_CEPatch
                     this.cellsToAffectOnVehicles[vehicle] = SimplePool<List<IntVec3>>.Get();
                     this.cellsToAffectOnVehicles[vehicle].Clear();
                     this.VirtualMapTransfer(vehicle.VehicleMap, pos.ToVehicleMapCoord(vehicle));
-                    this.cellsToAffectOnVehicles[vehicle].AddRange(base.ExplosionCellsToHit);
+                    this.cellsToAffectOnVehicles[vehicle].AddRange(this.ExplosionCellsToHit);
 
                     if (applyDamageToExplosionCellsNeighbors)
                     {

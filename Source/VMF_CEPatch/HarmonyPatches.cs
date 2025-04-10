@@ -140,14 +140,53 @@ namespace VMF_CEPatch
     }
 
     [HarmonyPatchCategory("VMF_Patches_CE")]
-    [HarmonyPatch(typeof(Verb_LaunchProjectileCE), nameof(Verb_LaunchProjectileCE.TryFindCEShootLineFromTo))]
+    [HarmonyPatch]
     public static class Patch_Verb_LaunchProjectileCE_TryFindCEShootLineFromTo
     {
+        private static readonly MethodBase m_TryFindCEShootLineFromTo = AccessTools.Method(typeof(Verb_LaunchProjectileCE), "TryFindCEShootLineFromTo", new[] { typeof(IntVec3), typeof(LocalTargetInfo), typeof(ShootLine).MakeByRefType() });
+
+        private static bool Prepare()
+        {
+            return m_TryFindCEShootLineFromTo != null;
+        }
+
+        private static MethodBase TargetMethod()
+        {
+            return m_TryFindCEShootLineFromTo;
+        }
+
         public static bool Prefix(Verb_LaunchProjectileCE __instance, IntVec3 root, LocalTargetInfo targ, ref ShootLine resultingLine, ref bool __result)
         {
             if (__instance.caster.IsOnVehicleMapOf(out _) || (targ.HasThing && targ.Thing.Map != __instance.caster.Map))
             {
                 __result = __instance.TryFindCEShootLineFromToOnVehicle(root, targ, out resultingLine);
+                return false;
+            }
+            return true;
+        }
+    }
+
+    [HarmonyPatchCategory("VMF_Patches_CE")]
+    [HarmonyPatch]
+    public static class Patch_Verb_LaunchProjectileCE_TryFindCEShootLineFromTo_NewTemp
+    {
+        private static readonly MethodBase m_TryFindCEShootLineFromTo = AccessTools.Method(typeof(Verb_LaunchProjectileCE), "TryFindCEShootLineFromTo", new[] { typeof(IntVec3), typeof(LocalTargetInfo), typeof(ShootLine).MakeByRefType(), typeof(Vector3).MakeByRefType() });
+
+        private static bool Prepare()
+        {
+            return m_TryFindCEShootLineFromTo != null;
+        }
+
+        private static MethodBase TargetMethod()
+        {
+            return m_TryFindCEShootLineFromTo;
+        }
+
+        public static bool Prefix(Verb_LaunchProjectileCE __instance, IntVec3 root, LocalTargetInfo targ, ref ShootLine resultingLine, ref Vector3 targetPos, ref bool __result)
+        {
+            if (__instance.caster.IsOnVehicleMapOf(out _) || (targ.HasThing && targ.Thing.Map != __instance.caster.Map))
+            {
+                __result = __instance.TryFindCEShootLineFromToOnVehicle_NewTemp(root, targ, out resultingLine, out targetPos);
                 return false;
             }
             return true;
@@ -412,6 +451,7 @@ namespace VMF_CEPatch
         }
     }
 
+    [HarmonyPatchCategory("VMF_Patches_CE")]
     [HarmonyPatch(typeof(ExplosionCE), nameof(ExplosionCE.StartExplosionCE))]
     public static class Patch_ExplosionCE_StartExplosionCE
     {
@@ -421,6 +461,28 @@ namespace VMF_CEPatch
             {
                 explosion.StartExplosionCEOnVehicle();
             }
+        }
+    }
+
+    [HarmonyPatchCategory("VMF_Patches_CE")]
+    [HarmonyPatch]
+    public static class Patch_Verb_LaunchProjectileCE_ShiftTarget
+    {
+        private static readonly MethodBase m_ShiftTarget = AccessTools.Method(typeof(Verb_LaunchProjectileCE), "ShiftTarget", new[] { typeof(ShiftVecReport), typeof(bool), typeof(bool) });
+
+        private static bool Prepare()
+        {
+            return m_ShiftTarget != null;
+        }
+
+        private static MethodBase TargetMethod()
+        {
+            return m_ShiftTarget;
+        }
+
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_LocalTargetInfo_Cell, MethodInfoCache.m_CellOnBaseMap);
         }
     }
 }

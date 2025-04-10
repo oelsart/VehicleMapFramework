@@ -158,9 +158,15 @@ namespace VehicleInteriors
 
         public static IEnumerable<LocalTargetInfo> TargetsAt(Vector3 clickPos, TargetingParameters clickParams, bool thingsOnly, ITargetingSource source, VehiclePawnWithMap vehicle, bool convToVehicleMap = true)
         {
-            List<Thing> clickableList = vehicle != null ?
-                GenUIOnVehicle.ThingsUnderMouse(clickPos, 0.8f, clickParams, source, vehicle) :
-                GenUI.ThingsUnderMouse(clickPos, 0.8f, clickParams, source);
+            List<Thing> clickableList;
+            if (vehicle != null)
+            {
+                clickableList = GenUIOnVehicle.ThingsUnderMouse(clickPos, 0.8f, clickParams, source, vehicle);
+            }
+            else
+            {
+                clickableList = GenUI.ThingsUnderMouse(clickPos, 0.8f, clickParams, source);
+            }
             Thing caster = source?.Caster;
             int num;
             for (int i = 0; i < clickableList.Count; i = num + 1)
@@ -186,7 +192,6 @@ namespace VehicleInteriors
                     yield return intVec;
                 }
             }
-            yield break;
         }
 
         public static VehiclePawnWithMap vehicleForSelector;
