@@ -3,6 +3,7 @@ using RimWorld.Planet;
 using SmashTools;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 using Vehicles;
 using Verse;
 using Verse.AI;
@@ -106,7 +107,37 @@ namespace VehicleInteriors
             {
                 vehicle.CompVehicleTurrets?.RecacheTurretPermissions();
                 vehicle.RecachePawnCount();
+                this.handlersToDraw = vehicle.handlers.Where(h => this.handlerUniqueIDs.Any(i => h.uniqueID == i.id))
+                    .Select(h => (h, base.Props.upgrades.SelectMany(u => (u as VehicleUpgrade).roles).FirstOrDefault(r => r?.key == h.role.key)));
             }
         }
+
+        public override void PostDeSpawn(Map map)
+        {
+            base.PostDeSpawn(map);
+            this.handlersToDraw = null;
+        }
+
+        public override void PostDraw()
+        {
+            base.PostDraw();
+            if (!VehicleInteriors.settings.drawPlanet && this.parent.IsOnVehicleMapOf(out var vehicle) && !vehicle.Spawned && !this.handlersToDraw.NullOrEmpty())
+            {
+                foreach (var handler in this.handlersToDraw)
+                {
+                    if (handler.Item1.role.PawnRenderer != null)
+                    {
+                        foreach (Pawn pawn in handler.Item1.handlers)
+                        {
+                            Vector3 drawLoc = this.parent.DrawPos + handler.Item2.pawnRenderer.DrawOffsetFor(this.parent.BaseRotation());
+                            Rot4 value = handler.Item1.role.PawnRenderer.RotFor(this.parent.BaseRotation());
+                            pawn.Drawer.renderer.RenderPawnAt(drawLoc, new Rot4?(value), false);
+                        }
+                    }
+                }
+            }
+        }
+
+        private IEnumerable<(VehicleHandler, VehicleUpgrade.RoleUpgrade)> handlersToDraw;
     }
 }
