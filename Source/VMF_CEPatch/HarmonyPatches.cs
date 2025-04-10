@@ -1,5 +1,6 @@
 ﻿using CombatExtended;
 using HarmonyLib;
+using RimWorld;
 using RimWorld.Planet;
 using System;
 using System.Collections.Generic;
@@ -483,6 +484,22 @@ namespace VMF_CEPatch
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             return instructions.MethodReplacer(MethodInfoCache.g_LocalTargetInfo_Cell, MethodInfoCache.m_CellOnBaseMap);
+        }
+    }
+
+    [HarmonyPatchCategory("VMF_Patches_CE")]
+    [HarmonyPatch(typeof(ProjectileCE), "DistanceTraveled", MethodType.Getter)]
+    public static class Patch_ProjectileCE_DistanceTraveled
+    {
+        public static bool Prefix(ProjectileCE __instance, Vector2 ___origin, LocalTargetInfo ___intendedTarget, ref float __result)
+        {
+            if (__instance is ProjectileCE_Explosive && ___intendedTarget.Thing.IsOnVehicleMapOf(out _))
+            {
+                var dest = ___intendedTarget.Thing.TrueCenter();
+                __result = Vector2.Distance(___origin, new Vector2(dest.x, dest.z));
+                return false;
+            }
+            return true;
         }
     }
 }
