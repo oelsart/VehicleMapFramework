@@ -117,27 +117,6 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
-    ////ストレージの優先度変更の時ベースマップや他の車両マップのlisterHaulablesにも通知
-    //[HarmonyPatch(typeof(StorageSettings), nameof(StorageSettings.Priority), MethodType.Setter)]
-    //public static class Patch_StorageSettings_Priority
-    //{
-    //    public static void Postfix(StorageSettings __instance)
-    //    {
-    //        if (Current.ProgramState != ProgramState.Playing)
-    //        {
-    //            return;
-    //        }
-    //        if (__instance.owner is StorageGroup storageGroup && storageGroup.Map != null)
-    //        {
-    //            var baseMap = storageGroup.Map.BaseMap();
-    //            foreach (var map in VehiclePawnWithMapCache.allVehicles[baseMap].Select(v => v.interiorMap).Concat(baseMap).Where(m => m != storageGroup.Map))
-    //            {
-    //                map.listerHaulables.RecalculateAllInHaulSources(storageGroup.HaulSourcesList);
-    //            }
-    //        }
-    //    }
-    //}
-
     //主にlisterHaulablesの再計算の時のチェックでベースマップや他の車両マップを検索対象に含めるためメソッドを置き換え
     [HarmonyPatch(typeof(StoreUtility), nameof(StoreUtility.IsInValidBestStorage))]
     public static class Patch_StoreUtility_IsInValidBestStorage
@@ -332,15 +311,6 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
-    //[HarmonyPatch(typeof(MapPawns), nameof(MapPawns.AllPawnsUnspawned), MethodType.Getter)]
-    //public static class Patch_MapPawns_AllPawnsUnspawned
-    //{
-    //    public static void Postfix(List<Pawn> __result, Map ___map)
-    //    {
-    //        __result.AddRange(VehiclePawnWithMapCache.allVehicles[___map].SelectMany(v => v.VehicleMap.mapPawns.AllPawnsUnspawned));
-    //    }
-    //}
-
     [HarmonyPatch(typeof(MapPawns), nameof(MapPawns.FreeHumanlikesSpawnedOfFaction))]
     public static class Patch_MapPawns_FreeHumanlikesSpawnedOfFaction
     {
@@ -376,6 +346,12 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             if (__instance is MapParent_Vehicle mapParent_Vehicle)
             {
+                if (mapParent_Vehicle.vehicle.Spawned)
+                {
+                    __result = mapParent_Vehicle.vehicle.Map.Tile;
+                    return false;
+                }
+
                 WorldObject GetWorldObject(IThingHolder holder)
                 {
                     while (holder != null)

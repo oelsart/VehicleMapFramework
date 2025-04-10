@@ -28,6 +28,19 @@ namespace VMF_CEPatch
     }
 
     [HarmonyPatchCategory("VMF_Patches_CE")]
+    [HarmonyPatch(typeof(GenSpawn), nameof(GenSpawn.Spawn), typeof(Thing), typeof(IntVec3), typeof(Map), typeof(Rot4), typeof(WipeMode), typeof(bool), typeof(bool))]
+    public static class Patch_GenSpawn_Spawn
+    {
+        public static void Prefix(Thing newThing, ref Map map)
+        {
+            if (newThing is ProjectileCE)
+            {
+                map = map.BaseMap();
+            }
+        }
+    }
+
+    [HarmonyPatchCategory("VMF_Patches_CE")]
     [HarmonyPatch(typeof(Verb_LaunchProjectileCE), "ShotSpeed", MethodType.Getter)]
     public static class Patch_Verb_LaunchProjectileCE_ShotSpeed
     {

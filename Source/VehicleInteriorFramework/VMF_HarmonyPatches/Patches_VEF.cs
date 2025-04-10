@@ -260,37 +260,6 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
-    //[HarmonyPatchCategory("VMF_Patches_VFE_Mechanoid")]
-    //[HarmonyPatch("VFEMech.Building_Autocrane", "SpawnSetup")]
-    //public static class Patch_Building_Autocrane_SpawnSetup
-    //{
-    //    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    //    {
-    //        foreach (var instruction in instructions)
-    //        {
-    //            if (instruction.opcode == OpCodes.Call && instruction.OperandIs(MethodInfoCache.m_IntVec3_ToVector3Shifted))
-    //            {
-    //                yield return CodeInstruction.LoadArgument(0);
-    //                yield return CodeInstruction.Call(typeof(Patch_Building_Autocrane_SpawnSetup), nameof(ToVector3Shifted));
-    //            }
-    //            else
-    //            {
-    //                yield return instruction;
-    //            }
-    //        }
-    //    }
-
-    //    private static Vector3 ToVector3Shifted(ref IntVec3 c, Building b)
-    //    {
-    //        var vector = c.ToVector3Shifted();
-    //        if (b.IsOnNonFocusedVehicleMapOf(out var vehicle))
-    //        {
-    //            vector = vector.ToBaseMapCoord(vehicle);
-    //        }
-    //        return vector;
-    //    }
-    //}
-
     [HarmonyPatchCategory("VMF_Patches_VFE_Mechanoid")]
     [HarmonyPatch("VFEMech.Building_Autocrane", "GetStartingEndCranePosition")]
     public static class Patch_Building_Autocrane_GetStartingEndCranePosition
@@ -475,21 +444,6 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             return Mathf.Abs(b - a) < 0.1f;
         }
     }
-
-    //[HarmonyPatchCategory("VMF_Patches_VFE_Mechanoid")]
-    //[HarmonyPatch("VFEMech.Building_Autocrane", "Tick")]
-    //public static class Patch_Building_Autocrane_Tick
-    //{
-    //    public static void Prefix(Building __instance, Frame ___curFrameTarget, Building ___curBuildingTarget, ref IntVec3 ___curCellTarget)
-    //    {
-    //        if (__instance.IsOnNonFocusedVehicleMapOf(out var vehicle) && ___curCellTarget.IsValid && ___curFrameTarget == null && ___curBuildingTarget == null && (vehicle.vehiclePather?.Moving ?? false))
-    //        {
-    //            ___curCellTarget = (IntVec3)GetStartingEndCranePosition(__instance);
-    //        }
-    //    }
-
-    //    private static FastInvokeHandler GetStartingEndCranePosition = MethodInvoker.GetHandler(AccessTools.Method("VFEMech.Building_Autocrane:GetStartingEndCranePosition"));
-    //}
 
     [HarmonyPatchCategory("VMF_Patches_VFE_Mechanoid")]
     [HarmonyPatch("VFE.Mechanoids.PlaceWorkers.PlaceWorker_AutoCrane", "DrawGhost")]
