@@ -900,7 +900,7 @@ namespace VehicleInteriors
                         TargetInfo enterSpot = TargetInfo.Invalid;
                         if (curJob.bill.GetStoreMode() == BillStoreModeDefOf.BestStockpile)
                         {
-                            StoreAcrossMapsUtility.TryFindBestBetterStoreCellFor(list[0], actor, actor.Map, StoragePriority.Unstored, actor.Faction, out foundCell, true, out exitSpot, out  enterSpot, out _);
+                            StoreAcrossMapsUtility.TryFindBestBetterStoreCellFor(list[0], actor, actor.Map, StoragePriority.Unstored, actor.Faction, out foundCell, true, out exitSpot, out enterSpot, out _);
                         }
                         else if (curJob.bill.GetStoreMode() == BillStoreModeDefOf.SpecificStockpile)
                         {

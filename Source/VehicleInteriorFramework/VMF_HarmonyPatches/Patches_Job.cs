@@ -1,6 +1,5 @@
 ﻿using HarmonyLib;
 using RimWorld;
-using SmashTools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -872,6 +871,40 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 }
                 yield return toil;
             }
+        }
+    }
+
+    //billGiverRootCell.GetRegion(pawn.Map, RegionType.Set_Passable); -> billGiverRootCell.GetRegion(billGiver.Map, RegionType.Set_Passable);
+    [HarmonyPatch(typeof(WorkGiver_DoBill), "TryFindBestIngredientsHelper")]
+    public static class Patch_WorkGiver_DoBill_TryFindBestIngredientsHelper
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var codes = instructions.ToList();
+            var pos = codes.FindIndex(c => c.Calls(MethodInfoCache.g_Thing_Map));
+            codes.InsertRange(pos, new[]
+            {
+                new CodeInstruction(OpCodes.Pop),
+                CodeInstruction.LoadArgument(4)
+            });
+
+            var m_BreadthFirstTraverse = AccessTools.Method(typeof(RegionTraverser), nameof(RegionTraverser.BreadthFirstTraverse), new[] { typeof(Region), typeof(RegionEntryPredicate), typeof(RegionProcessor), typeof(int), typeof(RegionType) } );
+            var m_BreadthFirstTraverseAcrossMaps = AccessTools.Method(typeof(RegionTraverserAcrossMaps), nameof(RegionTraverserAcrossMaps.BreadthFirstTraverse), new[] { typeof(Region), typeof(RegionEntryPredicate), typeof(RegionProcessor), typeof(int), typeof(RegionType) });
+            return codes.MethodReplacer(m_BreadthFirstTraverse, m_BreadthFirstTraverseAcrossMaps);
+        }
+    }
+
+    [HarmonyPatch]
+    public static class Patch_WorkGiver_DoBill_TryFindBestIngredientsHelper_Predicate
+    {
+        private static MethodBase TargetMethod()
+        {
+            return AccessTools.FindIncludingInnerTypes<MethodBase>(typeof(WorkGiver_DoBill), t => t.GetMethods(AccessTools.all).FirstOrDefault(m => m.Name == "<TryFindBestIngredientsHelper>b__0"));
+        }
+
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap);
         }
     }
 }
