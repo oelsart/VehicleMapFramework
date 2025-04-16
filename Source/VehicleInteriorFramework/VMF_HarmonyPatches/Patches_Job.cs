@@ -234,20 +234,28 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                         bool flag2 = false;
                         float num4 = (c - positionOnMap).LengthHorizontalSquared;
                         float num5 = 0f;
-                        if (innerStruct.prioritized)
+                        try
                         {
-                            if (!c.IsForbidden(pawn) && scanner.HasJobOnCell(pawn, c))
+                            Patch_ForbidUtility_IsForbidden.Map = map2;
+                            if (innerStruct.prioritized)
                             {
-                                num5 = scanner.GetPriority(pawn, c);
-                                if (num5 > innerStruct.bestPriority || (num5 == innerStruct.bestPriority && num4 < innerStruct.closestDistSquared))
+                                if (!c.IsForbidden(pawn) && scanner.HasJobOnCell(pawn, c))
                                 {
-                                    flag2 = true;
+                                    num5 = scanner.GetPriority(pawn, c);
+                                    if (num5 > innerStruct.bestPriority || (num5 == innerStruct.bestPriority && num4 < innerStruct.closestDistSquared))
+                                    {
+                                        flag2 = true;
+                                    }
                                 }
                             }
+                            else if (num4 < innerStruct.closestDistSquared && !c.IsForbidden(pawn) && scanner.HasJobOnCell(pawn, c))
+                            {
+                                flag2 = true;
+                            }
                         }
-                        else if (num4 < innerStruct.closestDistSquared && !c.IsForbidden(pawn) && scanner.HasJobOnCell(pawn, c))
+                        finally
                         {
-                            flag2 = true;
+                            Patch_ForbidUtility_IsForbidden.Map = null;
                         }
 
                         if (flag2)
@@ -465,8 +473,10 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     [HarmonyPatch(typeof(ReservationUtility), nameof(ReservationUtility.CanReserveSittableOrSpot_NewTemp))]
     public static class Patch_ReservationUtility_CanReserveSittableOrSpot_NewTemp
     {
-        public static bool Prefix(Pawn pawn, IntVec3 exactSittingPos, ref Map __state, ref bool __result)
+        public static bool Prefix(Pawn pawn, IntVec3 exactSittingPos, Thing ignoreThing, ref Map __state, ref bool __result)
         {
+            Patch_ForbidUtility_IsForbidden.Map = ignoreThing?.Map;
+
             if (!exactSittingPos.InBounds(pawn.Map))
             {
                 var maps = pawn.Map.BaseMapAndVehicleMaps().Except(pawn.Map);
@@ -485,6 +495,8 @@ namespace VehicleInteriors.VMF_HarmonyPatches
 
         public static void Finalizer(Pawn pawn, Map __state)
         {
+            Patch_ForbidUtility_IsForbidden.Map = null;
+
             if (__state != null)
             {
                 pawn.VirtualMapTransfer(__state);
@@ -731,12 +743,38 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatch(typeof(ForbidUtility), nameof(ForbidUtility.IsForbidden), typeof(Thing), typeof(Pawn))]
+    [HarmonyPatch]
     public static class Patch_ForbidUtility_IsForbidden
     {
+        [HarmonyPatch(typeof(ForbidUtility), nameof(ForbidUtility.IsForbidden), typeof(Thing), typeof(Pawn))]
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             return instructions.MethodReplacer(MethodInfoCache.g_Thing_PositionHeld, MethodInfoCache.m_PositionHeldOnBaseMap);
+        }
+
+        [HarmonyPatch(typeof(ForbidUtility), nameof(ForbidUtility.IsForbidden), typeof(IntVec3), typeof(Pawn))]
+        public static void Prefix(ref IntVec3 c)
+        {
+            if (Map != null)
+            {
+                var basePos = c.ToBaseMapCoord(Map);
+                if (basePos.InBounds(Map.BaseMap()))
+                {
+                    c = basePos;
+                }
+            }
+        }
+
+        public static Map Map { get; set; }
+    }
+
+    [HarmonyPatch(typeof(PawnUtility), nameof(PawnUtility.DutyLocation))]
+    public static class Patch_PawnUtility_DutyLocation
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_LocalTargetInfo_Cell, MethodInfoCache.m_CellOnBaseMap)
+                .MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap);
         }
     }
 

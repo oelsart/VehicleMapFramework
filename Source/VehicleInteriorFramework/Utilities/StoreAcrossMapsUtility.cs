@@ -2,8 +2,8 @@
 using RimWorld;
 using SmashTools;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
+using VehicleInteriors.VMF_HarmonyPatches;
 using Verse;
 using Verse.AI;
 
@@ -102,9 +102,18 @@ namespace VehicleInteriors
         {
             dest1 = TargetInfo.Invalid;
             dest2 = TargetInfo.Invalid;
-            if (carrier != null && c.IsForbidden(carrier))
+
+            try
             {
-                return false;
+                Patch_ForbidUtility_IsForbidden.Map = map;
+                if (carrier != null && c.IsForbidden(carrier))
+                {
+                    return false;
+                }
+            }
+            finally
+            {
+                Patch_ForbidUtility_IsForbidden.Map = null;
             }
             if (!c.IsValidStorageFor(map, t))
             {
@@ -161,39 +170,6 @@ namespace VehicleInteriors
                 }
             }
             return true;
-        }
-
-        public static bool IsForbidden(this IntVec3 c, Pawn pawn)
-        {
-            var cellOnBaseMap = c.CellOnAnotherMap(pawn.BaseMap());
-            return ForbidUtility.CaresAboutForbidden(pawn, true, false) && (!cellOnBaseMap.InAllowedArea(pawn) || (pawn.mindState.maxDistToSquadFlag > 0f && !cellOnBaseMap.InHorDistOf(pawn.DutyLocation().CellOnAnotherMap(pawn.BaseMap()), pawn.mindState.maxDistToSquadFlag)));
-        }
-
-        public static bool InAllowedArea(this IntVec3 c, Pawn forPawn)
-        {
-            if (forPawn.playerSettings != null)
-            {
-                Area effectiveAreaRestrictionInPawnBaseMap = forPawn.EffectiveAreaRestrictionInPawnBaseMap();
-                if (effectiveAreaRestrictionInPawnBaseMap != null && effectiveAreaRestrictionInPawnBaseMap.TrueCount > 0 && !effectiveAreaRestrictionInPawnBaseMap[c])
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        public static Area EffectiveAreaRestrictionInPawnBaseMap(this Pawn pawn)
-        {
-            if (!pawn.playerSettings.RespectsAllowedArea)
-            {
-                return null;
-            }
-            Area result;
-            if (!allowedAreas(pawn.playerSettings).TryGetValue(pawn.MapHeld.BaseMap(), out result))
-            {
-                return null;
-            }
-            return result;
         }
 
         private static bool NoStorageBlockersIn(IntVec3 c, Map map, Thing thing)

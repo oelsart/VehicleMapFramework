@@ -423,7 +423,7 @@ namespace VehicleInteriors
             {
                 if (holder is Thing thing2 && thing2.PositionOnBaseMap().IsValid)
                 {
-                    rootPosition = thing.PositionOnBaseMap();
+                    rootPosition = thing2.PositionOnBaseMap();
                 }
                 else
                 {
@@ -709,12 +709,7 @@ namespace VehicleInteriors
 
         public static Map MapHeldBaseMap(this Thing thing)
         {
-            var map = thing.MapHeld;
-            if (map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
-            {
-                return vehicle.Map;
-            }
-            return map;
+            return thing.MapHeld.BaseMap();
         }
 
         public static Rot4 RotForVehicleDraw(this Rot8 rot)

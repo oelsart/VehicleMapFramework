@@ -2458,7 +2458,7 @@ namespace VehicleInteriors
                 canTargetPlants = true,
                 canTargetCorpses = true
             };
-            var baseClickCell = IntVec3.FromVector3(clickPos);
+            var baseClickCell = GenUIOnVehicle.vehicleForSelector != null && !GenUIOnVehicle.vehicleForSelector.Spawned ? clickCell : IntVec3.FromVector3(clickPos);
             IEnumerable<Thing> searchSet = clickCell.GetThingList(map);
             if (FloatMenuMakerMap.makingFor is VehiclePawn)
             {
@@ -2726,7 +2726,7 @@ namespace VehicleInteriors
                                         }
                                         else
                                         {
-                                            if (!clickCell.IsForbidden(pawn))
+                                            if (!baseClickCell.IsForbidden(pawn))
                                             {
                                                 continue;
                                             }
@@ -2762,9 +2762,9 @@ namespace VehicleInteriors
                                                 label = "CannotPrioritizeWorkTypeDisabled".Translate(workType2.pawnLabel);
                                             }
                                         }
-                                        else if (clickCell.IsForbidden(pawn))
+                                        else if (baseClickCell.IsForbidden(pawn))
                                         {
-                                            if (!clickCell.InAllowedArea(pawn))
+                                            if (!baseClickCell.InAllowedArea(pawn))
                                             {
                                                 label = "CannotPrioritizeForbiddenOutsideAllowedArea".Translate() + ": " + pawn.playerSettings.EffectiveAreaRestrictionInPawnCurrentMap.Label;
                                             }
@@ -2773,7 +2773,7 @@ namespace VehicleInteriors
                                                 label = "CannotPrioritizeCellForbidden".Translate();
                                             }
                                         }
-                                        else if (!pawn.CanReach(clickCell, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn))
+                                        else if (!pawn.CanReach(clickCell, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, map, out var exitSpot, out var enterSpot))
                                         {
                                             label = "AreaLower".Translate().CapitalizeFirst() + ": " + "NoPath".Translate().CapitalizeFirst();
                                         }
@@ -2785,7 +2785,7 @@ namespace VehicleInteriors
                                             job2.workGiverDef = workGiver_Scanner2.def;
                                             action2 = delegate ()
                                             {
-                                                if (pawn.jobs.TryTakeOrderedJob(localJob, JobTag.Misc, true))
+                                                if (pawn.jobs.TryTakeOrderedJob(JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, localJob), JobTag.Misc, true))
                                                 {
                                                     localJob.workGiverDef = localScanner.def;
                                                     if (localScanner.def.prioritizeSustains)
