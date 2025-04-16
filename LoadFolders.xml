@@ -14,6 +14,7 @@
     <li IfModActive="DankPyon.Medieval.Overhaul">Common/_MedievalOverhaul</li>
     <li IfModActive="Cain.Mineshaft">Common/_Mines</li>
     <li IfModActive="OskarPotocki.VFE.Mechanoid">Common/_VFEMechanoids</li>
+    <li IfModActive="VanillaExpanded.VFESecurity">Common/_VFESecurity</li>
     <li IfModActive="Dubwise.DubsBadHygiene,Dubwise.DubsBadHygiene.Lite">Common/_DubsBadHygiene</li>
   </v1.5>
 </loadFolders>

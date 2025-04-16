@@ -1,15 +1,13 @@
 ﻿using HarmonyLib;
 using RimWorld;
-using SmashTools;
 using System;
 using System.Collections.Generic;
-using VehicleInteriors.VMF_HarmonyPatches;
 using Verse;
 
 namespace VehicleInteriors
 {
     [StaticConstructorOnStartup]
-    internal static class ModCompat
+    public static class ModCompat
     {
         public static readonly bool AdaptiveStorage = ModsConfig.IsActive("adaptive.storage.framework");
 

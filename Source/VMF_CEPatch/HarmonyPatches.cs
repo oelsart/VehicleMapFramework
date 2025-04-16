@@ -1,7 +1,9 @@
 ﻿using CombatExtended;
+using CombatExtended.Compatibility;
 using HarmonyLib;
 using RimWorld;
 using RimWorld.Planet;
+using SmashTools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,6 +26,11 @@ namespace VMF_CEPatch
             VMF_Harmony.Instance.Patch(m_GetShootingTargetScore, null, m_GetShootingTargetScore_Postfix);
 
             VMF_Harmony.Instance.PatchCategory("VMF_Patches_CE");
+
+            if (ModCompat.VFESecurity)
+            {
+                VMF_Harmony.Instance.PatchCategory("VMF_Patches_CE_VFESecurity");
+            }
         }
     }
 
@@ -513,6 +520,44 @@ namespace VMF_CEPatch
                 return false;
             }
             return true;
+        }
+    }
+
+    [HarmonyPatchCategory("VMF_Patches_CE_VFESecurity")]
+    [HarmonyPatch(typeof(VanillaFurnitureExpandedSecurity), "refreshShields")]
+    public static class Patch_VanillaFurnitureExpandedSecurity_refreshShields
+    {
+        public static void Postfix(Map map, HashSet<Building> ___shields)
+        {
+            VehiclePawnWithMapCache.AllVehiclesOn(map).ForEach(v =>
+            {
+                ___shields.AddRange(listerShieldGens(v.VehicleMap.GetComponent(t_ListerThingsExtended)));
+            });
+        }
+
+        private static readonly Type t_ListerThingsExtended = AccessTools.TypeByName("VFESecurity.ListerThingsExtended");
+
+        private static readonly AccessTools.FieldRef<MapComponent, IEnumerable<Building>> listerShieldGens = AccessTools.FieldRefAccess<IEnumerable<Building>>(t_ListerThingsExtended, "listerShieldGens");
+    }
+
+    [HarmonyPatchCategory("VMF_Patches_CE_VFESecurity")]
+    [HarmonyPatch(typeof(VanillaFurnitureExpandedSecurity), "ShieldInterceptsProjectile")]
+    public static class Patch_VanillaFurnitureExpandedSecurity_ShieldInterceptsProjectile
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            foreach (var instruction in instructions)
+            {
+                if (instruction.Calls(MethodInfoCache.g_Thing_Position))
+                {
+                    yield return CodeInstruction.LoadArgument(0);
+                    yield return new CodeInstruction(OpCodes.Call, MethodInfoCache.m_PositionOnAnotherThingMap);
+                }
+                else
+                {
+                    yield return instruction;
+                }
+            }
         }
     }
 }
