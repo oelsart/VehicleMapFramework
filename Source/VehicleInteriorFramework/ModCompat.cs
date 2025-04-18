@@ -179,5 +179,24 @@ namespace VehicleInteriors
                 }
             }
         }
+
+        [StaticConstructorOnStartup]
+        public static class EnergyShield
+        {
+            public static readonly bool Active = ModsConfig.IsActive("zhuzi.AdvancedEnergy.Shields");
+
+            public static readonly Type Building_Shield;
+
+            public static readonly bool CECompat;
+
+            static EnergyShield()
+            {
+                if (Active)
+                {
+                    Building_Shield = AccessTools.TypeByName("zhuzi.AdvancedEnergy.Shields.Shields.Building_Shield");
+                    CECompat = ModsConfig.IsActive("cn.zhuzijun.EnergyShieldCECompat");
+                }
+            }
+        }
     }
 }
