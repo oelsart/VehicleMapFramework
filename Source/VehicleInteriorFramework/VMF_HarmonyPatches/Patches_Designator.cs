@@ -81,15 +81,22 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             }
         }
 
-        private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
         {
             foreach (var instruction in instructions)
             {
-                if (instruction.opcode == OpCodes.Call && instruction.OperandIs(MethodInfoCache.g_Designator_Map))
+                if (instruction.Calls(MethodInfoCache.g_Designator_Map))
                 {
+                    var label = generator.DefineLabel();
                     yield return new CodeInstruction(OpCodes.Pop);
                     yield return CodeInstruction.LoadArgument(1);
                     yield return new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Thing_MapHeld);
+                    yield return new CodeInstruction(OpCodes.Dup);
+                    yield return new CodeInstruction(OpCodes.Brtrue_S, label);
+                    yield return new CodeInstruction(OpCodes.Pop);
+                    yield return CodeInstruction.LoadArgument(0);
+                    yield return new CodeInstruction(OpCodes.Call, MethodInfoCache.g_Designator_Map);
+                    yield return new CodeInstruction(OpCodes.Nop).WithLabels(label);
                 }
                 else
                 {
