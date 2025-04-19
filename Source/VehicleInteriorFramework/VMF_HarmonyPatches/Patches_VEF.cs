@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using RimWorld;
+using RimWorld.Planet;
 using SmashTools;
 using System;
 using System.Collections.Generic;
@@ -9,7 +10,6 @@ using System.Reflection.Emit;
 using UnityEngine;
 using Vehicles;
 using Verse;
-using static UnityEngine.GraphicsBuffer;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
 {
@@ -148,6 +148,26 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing)
                 .MethodReplacer(MethodInfoCache.g_Thing_MapHeld, MethodInfoCache.m_MapHeldBaseMap);
         }
+    }
+
+    [HarmonyPatchCategory("VMF_Patches_VFE_Security")]
+    [HarmonyPatch("VFESecurity.CompLongRangeArtillery", "CompTick")]
+    public static class Patch_CompLongRangeArtillery_CompTick
+    {
+        public static void Postfix(ThingComp __instance)
+        {
+            GlobalTargetInfo target;
+            if (__instance.parent.IsOnVehicleMapOf(out var vehicle) && __instance.parent.IsHashIntervalTick(60) && (target = targetedTile(__instance)).IsValid)
+            {
+                if (Find.WorldGrid.TraversalDistanceBetween(vehicle.Tile, target.Tile, true, 2147483647) < worldTileRange(__instance.props)) return;
+
+                targetedTile(__instance) = GlobalTargetInfo.Invalid;
+            }
+        }
+
+        private static AccessTools.FieldRef<object, GlobalTargetInfo> targetedTile = AccessTools.FieldRefAccess<GlobalTargetInfo>("VFESecurity.CompLongRangeArtillery:targetedTile");
+
+        private static AccessTools.FieldRef<object, int> worldTileRange = AccessTools.FieldRefAccess<int>("VFESecurity.CompProperties_LongRangeArtillery:worldTileRange");
     }
 
     [HarmonyPatchCategory("VMF_Patches_VVE")]
