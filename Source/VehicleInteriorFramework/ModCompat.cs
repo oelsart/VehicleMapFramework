@@ -198,5 +198,7 @@ namespace VehicleInteriors
                 }
             }
         }
+
+        public static readonly bool TraderShips = ModsConfig.IsActive("automatic.traderships");
     }
 }
