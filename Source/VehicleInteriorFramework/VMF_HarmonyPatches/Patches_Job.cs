@@ -6,7 +6,6 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
-using VehicleInteriors.Jobs.WorkGivers;
 using Verse;
 using Verse.AI;
 
@@ -15,8 +14,15 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     [HarmonyPatch(typeof(Pawn_JobTracker), nameof(Pawn_JobTracker.StartJob))]
     public static class Patch_Pawn_JobTracker_StartJob
     {
+        private static AccessTools.FieldRef<Job, JobDriver> cachedDriver = AccessTools.FieldRefAccess<Job, JobDriver>("cachedDriver");
+
         public static void Prefix(Job newJob, Pawn ___pawn)
         {
+            if (newJob.GetCachedDriverDirect != null && newJob.GetCachedDriverDirect.Isnt<JobDriverAcrossMaps>())
+            {
+                cachedDriver(newJob) = newJob.MakeDriver(___pawn);
+            }
+
             var targetMap = newJob.targetA.Thing?.MapHeld;
             if (newJob.def == JobDefOf.HaulToCell && targetMap != ___pawn.Map &&
                 ___pawn.CanReach(newJob.targetA, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, targetMap, out var exitSpot, out var enterSpot))
@@ -604,7 +610,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             Map map;
             if (__instance == claimant.Map.reservationManager && target.HasThing && (map = target.Thing.MapHeld) != null && claimant.Map != map)
             {
-                __result = target.Thing.MapHeld.reservationManager.Reserve(claimant, job, target, maxPawns, stackCount, layer, errorOnFailed, ignoreOtherReservations, canReserversStartJobs);
+                __result = map.reservationManager.Reserve(claimant, job, target, maxPawns, stackCount, layer, errorOnFailed, ignoreOtherReservations, canReserversStartJobs);
                 return false;
             }
             return true;

@@ -1,5 +1,4 @@
 ﻿using RimWorld;
-using VehicleInteriors.Jobs.WorkGivers;
 using Verse;
 using Verse.AI;
 

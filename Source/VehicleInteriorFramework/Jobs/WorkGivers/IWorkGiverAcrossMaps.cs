@@ -1,4 +1,4 @@
-﻿namespace VehicleInteriors.Jobs.WorkGivers
+﻿namespace VehicleInteriors
 {
     public interface IWorkGiverAcrossMaps
     {
