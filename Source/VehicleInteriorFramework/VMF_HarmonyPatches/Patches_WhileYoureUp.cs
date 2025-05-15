@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using System.Reflection;
+using Verse;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
 {
@@ -43,6 +44,16 @@ namespace VehicleInteriors.VMF_HarmonyPatches
 
                 VMF_Harmony.Instance.PatchCategory("VMF_Patches_WhileYoureUp");
             }
+        }
+    }
+
+    [HarmonyPatchCategory("VMF_Patches_WhileYoureUp")]
+    [HarmonyPatch("WhileYoureUp.Mod", "TryFindBestBetterStoreCellFor_MidwayToTarget")]
+    public static class Patch_WhileYoureUp_Mod_TryFindBestBetterStoreCellFor_MidwayToTarget
+    {
+        public static void Prefix(Thing thing, ref Map map)
+        {
+            map = thing.MapHeld ?? map;
         }
     }
 
