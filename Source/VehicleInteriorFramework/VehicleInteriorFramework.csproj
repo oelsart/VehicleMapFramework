@@ -127,9 +127,11 @@
     <Compile Include="BuildableUpgrades\Building_VehicleRamp.cs" />
     <Compile Include="Combat\ShotReportOnVehicle.cs" />
     <Compile Include="Combat\TargetingHelperOnVehicle.cs" />
+    <Compile Include="Comps\CompAlternator.cs" />
     <Compile Include="Comps\CompBuildableContainer.cs" />
     <Compile Include="Comps\CompEngineLightOverlays.cs" />
     <Compile Include="Comps\CompFuelTank.cs" />
+    <Compile Include="Comps\CompProperties_Alternator.cs" />
     <Compile Include="Comps\CompProperties_EngineLightOverlays.cs" />
     <Compile Include="Comps\CompProperties_TogglableOverlays.cs" />
     <Compile Include="Comps\CompProperties_VehicleEnterSpot.cs" />
@@ -364,8 +366,8 @@
     <Content Include="..\..\Common\Defs\ThingDefs\VehicleStructures.xml">
       <Link>Common\Defs\ThingDefs\VehicleStructures.xml</Link>
     </Content>
-    <Content Include="..\..\Common\Defs\ThingDefs\WirelessChargers.xml">
-      <Link>Common\Defs\ThingDefs\WirelessChargers.xml</Link>
+    <Content Include="..\..\Common\Defs\ThingDefs\Furnitures.xml">
+      <Link>Common\Defs\ThingDefs\Furnitures.xml</Link>
     </Content>
     <Content Include="..\..\Common\Defs\VehicleDefs\BaseVehiclePawnWithMap.xml">
       <Link>Common\Defs\VehicleDefs\BaseVehiclePawnWithMap.xml</Link>
@@ -412,8 +414,8 @@
     <Content Include="..\..\Common\Languages\Japanese\DefInjected\ThingDefs\VehicleStructures.xml">
       <Link>Common\Languages\Japanese\DefInjected\ThingDefs\VehicleStructures.xml</Link>
     </Content>
-    <Content Include="..\..\Common\Languages\Japanese\DefInjected\ThingDefs\WirelessChargers.xml">
-      <Link>Common\Languages\Japanese\DefInjected\ThingDefs\WirelessChargers.xml</Link>
+    <Content Include="..\..\Common\Languages\Japanese\DefInjected\ThingDefs\Furnitures.xml">
+      <Link>Common\Languages\Japanese\DefInjected\ThingDefs\Furnitures.xml</Link>
     </Content>
     <Content Include="..\..\Common\Languages\Japanese\DefInjected\Vehicles.VehicleStatDef\VehicleStats.xml">
       <Link>Common\Languages\Japanese\DefInjected\Vehicles.VehicleStatDef\VehicleStats.xml</Link>

@@ -85,4 +85,72 @@
 			<li>VehicleInteriors.PlaceWorker_ForceOnVehicle</li>
 		</placeWorkers>
 	</ThingDef>
+
+	<ThingDef ParentName="FurnitureBase">
+		<defName>VMF_Alternator</defName>
+		<label>alternator</label>
+		<description>Component that uses vehicle fuel to generate electricity.</description>
+		<designationCategory>VF_Vehicles</designationCategory>
+		<fillPercent>0.60</fillPercent>
+		<graphicData>
+			<texPath>VehicleInteriors/Things/Alternator/Alternator</texPath>
+			<graphicClass>Graphic_Multi</graphicClass>
+			<damageData>
+				<cornerTL>Damage/Corner</cornerTL>
+				<cornerTR>Damage/Corner</cornerTR>
+				<cornerBL>Damage/Corner</cornerBL>
+				<cornerBR>Damage/Corner</cornerBR>
+				<edgeTop>Damage/Edge</edgeTop>
+				<edgeBot>Damage/Edge</edgeBot>
+				<edgeLeft>Damage/Edge</edgeLeft>
+				<edgeRight>Damage/Edge</edgeRight>
+			</damageData>
+		</graphicData>
+		<drawerType>MapMeshOnly</drawerType>
+		<tickerType>Normal</tickerType>
+		<statBases>
+			<MaxHitPoints>200</MaxHitPoints>
+			<Beauty>-1</Beauty>
+			<WorkToBuild>1500</WorkToBuild>
+			<Mass>20</Mass>
+		</statBases>
+		<size>(1,1)</size>
+		<costList>
+			<Steel>50</Steel>
+			<ComponentIndustrial>8</ComponentIndustrial>
+		</costList>
+		<researchPrerequisites>
+			<li>Fabrication</li>
+			<li MayRequire="OskarPotocki.VanillaVehiclesExpanded">VVE_BasicVehicles</li>
+		</researchPrerequisites>
+		<uiOrder>1025</uiOrder>
+		<comps>
+			<li Class="CompProperties_Flickable"/>
+			<li Class="VehicleInteriors.CompProperties_Alternator">
+				<basePowerConsumption>-1000</basePowerConsumption>
+				<transmitsPower>true</transmitsPower>
+				<soundAmbientProducingPower>ChemfuelFiredGenerator_Ambience</soundAmbientProducingPower>
+				<fuelConsumptionRates>
+					<Chemfuel>4.5</Chemfuel>
+					<WoodLog>22.0</WoodLog>
+					<Hay>55.0</Hay>
+					<Uranium>0.75</Uranium>
+				</fuelConsumptionRates>
+			</li>
+			<li Class="CompProperties_HeatPusher">
+				<compClass>CompHeatPusherPowered</compClass>
+				<heatPerSecond>2</heatPerSecond>
+			</li>
+			<li Class="CompProperties_Breakdownable"/>
+			<li Class="CompProperties_Stunnable">
+				<useLargeEMPEffecter>true</useLargeEMPEffecter>
+				<affectedDamageDefs>
+					<li>EMP</li>
+				</affectedDamageDefs>
+			</li>
+		</comps>
+		<placeWorkers>
+			<li>VehicleInteriors.PlaceWorker_ForceOnVehicle</li>
+		</placeWorkers>
+	</ThingDef>
 </Defs>

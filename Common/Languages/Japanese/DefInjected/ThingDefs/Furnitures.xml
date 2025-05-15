@@ -7,4 +7,7 @@
 	<VMF_WirelessReceiver.label>ワイヤレス受信機</VMF_WirelessReceiver.label>
 	<VMF_WirelessReceiver.description>通常マップから電力を受信する装置です. 乗り物マップに設置し, 送信機と位置を合わせることで電力を受信します.</VMF_WirelessReceiver.description>
 
+	<VMF_Alternator.label>オルタネーター</VMF_Alternator.label>
+	<VMF_Alternator.description>車両の燃料を使って電力を生み出す部品です.</VMF_Alternator.description>
+
 </LanguageData>
