@@ -951,4 +951,34 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             return instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap);
         }
     }
+
+    [HarmonyPatch]
+    public static class Patch_JobDriver_Mine_MakeNewToils_Delegate
+    {
+        private static MethodBase TargetMethod()
+        {
+            return AccessTools.FindIncludingInnerTypes<MethodBase>(typeof(JobDriver_Mine), t => t.GetMethods(AccessTools.all).FirstOrDefault(m => m.Name == "<MakeNewToils>b__0"));
+        }
+
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            foreach (var instruction in instructions)
+            {
+                if (instruction.Calls(MethodInfoCache.g_Thing_Map))
+                {
+                    yield return CodeInstruction.LoadLocal(0);
+                    yield return CodeInstruction.Call(typeof(Patch_JobDriver_Mine_MakeNewToils_Delegate), nameof(Patch_JobDriver_Mine_MakeNewToils_Delegate.TargetMap));
+                }
+                else
+                {
+                    yield return instruction;
+                }
+            }
+        }
+
+        private static Map TargetMap(Thing thing, LocalTargetInfo target)
+        {
+            return target.Thing?.Map ?? thing.Map;
+        }
+    }
 }

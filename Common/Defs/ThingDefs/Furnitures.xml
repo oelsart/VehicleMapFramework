@@ -135,6 +135,7 @@
 					<WoodLog>22.0</WoodLog>
 					<Hay>55.0</Hay>
 					<Uranium>0.75</Uranium>
+					<Bioferrite MayRequire="Ludeon.RimWorld.Anomaly">6</Bioferrite>
 				</fuelConsumptionRates>
 			</li>
 			<li Class="CompProperties_HeatPusher">
