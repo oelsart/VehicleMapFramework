@@ -201,4 +201,33 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             return codes;
         }
     }
+
+    //CommsConsoleを車両マップに建てている場合でもトレーダー船が現れるようにする
+    [HarmonyPatch(typeof(IncidentWorker_OrbitalTraderArrival), "TryExecuteWorker")]
+    public static class Patch_IncidentWorker_OrbitalTraderArrival_TryExecuteWorker
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            foreach (var instruction in instructions)
+            {
+                yield return instruction;
+
+                if (instruction.LoadsField(AccessTools.Field(typeof(ListerBuildings), nameof(ListerBuildings.allBuildingsColonist))))
+                {
+                    yield return CodeInstruction.LoadArgument(1);
+                    yield return CodeInstruction.Call(typeof(Patch_IncidentWorker_OrbitalTraderArrival_TryExecuteWorker), nameof(AddBuildings));
+                }
+            }
+        }
+
+        private static List<Building> AddBuildings(List<Building> buildings, IncidentParms parms)
+        {
+            buildings.Clear();
+            buildings.AddRange(buildings);
+            buildings.AddRange(VehiclePawnWithMapCache.AllVehiclesOn((Map)parms.target).SelectMany(v => v.VehicleMap.listerBuildings.allBuildingsColonist));
+            return buildings;
+        }
+
+        private static List<Building> buildings = new List<Building>();
+    }
 }
