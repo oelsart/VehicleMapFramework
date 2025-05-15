@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using Vehicles;
 using Verse;
+using Verse.Noise;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
 {
@@ -108,18 +109,16 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IEnumerable<Building_OrbitalTradeBeacon> Postfix(IEnumerable<Building_OrbitalTradeBeacon> values, Map map)
         {
-            var result = values.ToList();
-            var maps = map.BaseMapAndVehicleMaps().Except(map);
+            foreach (var b in values) yield return b;
 
-            foreach (var map2 in maps)
+            var maps = map.BaseMapAndVehicleMaps().Except(map);
+            var buildings = maps.SelectMany(m => m.listerBuildings.AllBuildingsColonistOfClass<Building_OrbitalTradeBeacon>().Where(b =>
             {
-                result.AddRange(map2.listerBuildings.AllBuildingsColonistOfClass<Building_OrbitalTradeBeacon>().Where(b =>
-                {
-                    var comp = b.GetComp<CompPowerTrader>();
-                    return comp == null || comp.PowerOn;
-                }));
-            }
-            return result.Where(b => b != null);
+                var comp = b.GetComp<CompPowerTrader>();
+                return comp == null || comp.PowerOn;
+            }));
+
+            foreach (var b in buildings) yield return b;
         }
     }
 
@@ -151,23 +150,32 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             return AccessTools.Method(type, "MoveNext");
         }
 
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+        //ローカル変数からビーコンを取ろうとするとforeachのMoveNextタイミングによってなんかがなんかしてたまにnullになるのでstaticフィールドでやりとりします
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            var codes = instructions.ToList();
             var m_GetThingList = AccessTools.Method(typeof(GridsUtility), nameof(GridsUtility.GetThingList));
-            var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(m_GetThingList));
-            var label = generator.DefineLabel();
-
-            codes[pos].labels.Add(label);
-            codes.InsertRange(pos, new[]
+            foreach (var instruction in instructions)
             {
-                CodeInstruction.LoadLocal(2),
-                new CodeInstruction(OpCodes.Brfalse_S, label),
-                new CodeInstruction(OpCodes.Pop),
-                CodeInstruction.LoadLocal(2),
-                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Thing_Map)
-            });
-            return codes;
+                if (instruction.Calls(m_GetThingList))
+                {
+                    yield return CodeInstruction.Call(typeof(Patch_TradeUtility_AllLaunchableThingsForTrade), nameof(BuildingMap));
+                }
+
+                yield return instruction;
+
+                if (instruction.opcode == OpCodes.Stloc_2)
+                {
+                    yield return CodeInstruction.LoadLocal(2);
+                    yield return CodeInstruction.StoreField(typeof(Patch_TradeUtility_AllLaunchableThingsForTrade), nameof(beacon));
+                }
+            }
+        }
+
+        private static Building_OrbitalTradeBeacon beacon;
+
+        private static Map BuildingMap(Map map)
+        {
+            return beacon?.Map ?? map;
         }
     }
 
