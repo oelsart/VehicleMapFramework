@@ -150,6 +150,8 @@
     <Compile Include="Graphics\ExtraOverlayData.cs" />
     <Compile Include="Jobs\JobDrivers\JobDriver_RefuelVehicleTank.cs" />
     <Compile Include="Jobs\WorkGivers\IWorkGiverAcrossMaps.cs" />
+    <Compile Include="Jobs\WorkGivers\WorkGiver_HaulCorpsesAcrossMaps.cs" />
+    <Compile Include="Jobs\WorkGivers\WorkGiver_HaulGeneralAcrossMaps.cs" />
     <Compile Include="Jobs\WorkGivers\WorkGiver_LoadBuildableContainer.cs" />
     <Compile Include="Jobs\WorkGivers\WorkGiver_RefuelVehicleTank.cs" />
     <Compile Include="MapComponents\CrossMapHaulDestinationManager.cs" />

@@ -24,10 +24,6 @@ namespace VehicleInteriors
 
         public override Job JobOnThing(Pawn pawn, Thing t, bool forced = false)
         {
-            if (t is Corpse)
-            {
-                return null;
-            }
             if (!HaulAIAcrossMapsUtility.PawnCanAutomaticallyHaulFast(pawn, t, forced, out TargetInfo exitSpot, out TargetInfo enterSpot))
             {
                 return null;

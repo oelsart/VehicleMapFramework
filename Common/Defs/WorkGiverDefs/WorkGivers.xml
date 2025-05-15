@@ -14,98 +14,32 @@
 			<li>Manipulation</li>
 		</requiredCapacities>
 	</WorkGiverDef>
-	
-	<!--<WorkGiverDef>
-		<defName>VMF_RearmTurretsAcrossMaps</defName>
-		<label>rearm turrets</label>
-		<giverClass>VehicleInteriors.WorkGiver_RefuelTurretAcrossMaps</giverClass>
-		<workType>Hauling</workType>
-		<verb>rearm</verb>
-		<gerund>rearming</gerund>
-		<priorityInType>151</priorityInType>
-		<requiredCapacities>
-			<li>Manipulation</li>
-		</requiredCapacities>
-		<prioritizeSustains>true</prioritizeSustains>
-		<canBeDoneWhileDrafted>true</canBeDoneWhileDrafted>
-		<canBeDoneByMutants>false</canBeDoneByMutants>
-	</WorkGiverDef>
-
-	<WorkGiverDef>
-		<defName>VMF_RefuelAcrossMaps</defName>
-		<label>refuel fuelable buildings</label>
-		<giverClass>VehicleInteriors.WorkGiver_RefuelAcrossMaps</giverClass>
-		<workType>Hauling</workType>
-		<verb>refuel</verb>
-		<gerund>refueling</gerund>
-		<priorityInType>141</priorityInType>
-		<requiredCapacities>
-			<li>Manipulation</li>
-		</requiredCapacities>
-		<prioritizeSustains>true</prioritizeSustains>
-		<canBeDoneByMutants>false</canBeDoneByMutants>
-	</WorkGiverDef>-->
 
 	<WorkGiverDef>
 		<defName>VMF_HaulGeneralAcrossMaps</defName>
 		<label>haul general things</label>
-		<giverClass>VehicleInteriors.WorkGiver_HaulAcrossMaps</giverClass>
+		<giverClass>VehicleInteriors.WorkGiver_HaulGeneralAcrossMaps</giverClass>
 		<workType>Hauling</workType>
 		<verb>haul</verb>
 		<gerund>hauling</gerund>
-		<priorityInType>16</priorityInType>
+		<priorityInType>14</priorityInType>
 		<requiredCapacities>
 			<li>Manipulation</li>
 		</requiredCapacities>
-	</WorkGiverDef>
-
-	<!--<WorkGiverDef>
-		<defName>VMF_DeliverResourcesToFramesAcrossMaps</defName>
-		<label>deliver resources to frames</label>
-		<giverClass>VehicleInteriors.WorkGiver_ConstructDeliverResourcesToFramesAcrossMaps</giverClass>
-		<workType>Hauling</workType>
-		<priorityInType>12</priorityInType>
-		<verb>deliver to</verb>
-		<gerund>delivering to</gerund>
-		<requiredCapacities>
-			<li>Manipulation</li>
-		</requiredCapacities>
-		<nonColonistsCanDo>true</nonColonistsCanDo>
-		<prioritizeSustains>true</prioritizeSustains>
-		<equivalenceGroup>AssistInConstruction</equivalenceGroup>
 	</WorkGiverDef>
 
 	<WorkGiverDef>
-		<defName>VMF_DeliverResourcesToBlueprintsAcrossMaps</defName>
-		<label>deliver resources to blueprints</label>
-		<giverClass>VehicleInteriors.WorkGiver_ConstructDeliverResourcesToBlueprintsAcrossMaps</giverClass>
+		<defName>VMF_HaulCorpsesAcrossMaps</defName>
+		<label>haul corpses</label>
+		<giverClass>VehicleInteriors.WorkGiver_HaulCorpsesAcrossMaps</giverClass>
 		<workType>Hauling</workType>
-		<priorityInType>11</priorityInType>
-		<verb>deliver to</verb>
-		<gerund>delivering to</gerund>
+		<verb>haul</verb>
+		<gerund>hauling</gerund>
+		<priorityInType>89</priorityInType>
 		<requiredCapacities>
 			<li>Manipulation</li>
 		</requiredCapacities>
-		<nonColonistsCanDo>true</nonColonistsCanDo>
-		<prioritizeSustains>true</prioritizeSustains>
-		<equivalenceGroup>AssistInConstruction</equivalenceGroup>
 	</WorkGiverDef>
-
-	<WorkGiverDef>
-		<defName>VMF_ConstructFinishFramesAcrossMaps</defName>
-		<label>construct placed frames</label>
-		<giverClass>VehicleInteriors.WorkGiver_ConstructFinishFramesAcrossMaps</giverClass>
-		<workType>Construction</workType>
-		<priorityInType>81</priorityInType>
-		<verb>construct</verb>
-		<gerund>constructing</gerund>
-		<requiredCapacities>
-			<li>Manipulation</li>
-		</requiredCapacities>
-		<nonColonistsCanDo>true</nonColonistsCanDo>
-		<prioritizeSustains>true</prioritizeSustains>
-		<equivalenceGroup>AssistInConstruction</equivalenceGroup>
-	</WorkGiverDef>-->
 
 	<WorkGiverDef>
 		<defName>VMF_RefuelVehicleTank</defName>
