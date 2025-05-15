@@ -283,6 +283,7 @@
     <Compile Include="VMF_HarmonyPatches\Patches_AdaptiveStorage.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_AllowTool.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_AnimalPen.cs" />
+    <Compile Include="VMF_HarmonyPatches\Patches_Aquariums.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_BillDoorsFramework.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_BiomesCaverns.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_CallTradeShips.cs" />
@@ -301,6 +302,7 @@
     <Compile Include="VMF_HarmonyPatches\Patches_MeleeAnimation.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_MiscRobots.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_MuzzleFlash.cs" />
+    <Compile Include="VMF_HarmonyPatches\Patches_NightmareCore.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_PathfindingFramework.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_PRF.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_SmarterConstruction.cs" />

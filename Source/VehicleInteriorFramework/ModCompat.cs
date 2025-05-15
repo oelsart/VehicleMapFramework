@@ -200,5 +200,9 @@ namespace VehicleInteriors
         }
 
         public static readonly bool TraderShips = ModsConfig.IsActive("automatic.traderships");
+
+        public static readonly bool NightmareCore = ModsConfig.IsActive("Nightmare.Core");
+
+        public static readonly bool Aquariums = ModsConfig.IsActive("Nightmare.Aquariums");
     }
 }
