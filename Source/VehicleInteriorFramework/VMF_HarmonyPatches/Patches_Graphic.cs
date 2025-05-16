@@ -186,18 +186,6 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
-    //[HarmonyPatch(typeof(Pawn_RotationTracker), "FaceAdjacentCell")]
-    //public static class Patch_Pawn_RotationTracker_FaceAdjacentCell
-    //{
-    //    public static void Prefix(ref IntVec3 c, Pawn ___pawn)
-    //    {
-    //        if (___pawn.IsOnNonFocusedVehicleMapOf(out var vehicle))
-    //        {
-    //            c = ___pawn.Position + (c - ___pawn.Position).RotatedBy(vehicle.Rotation);
-    //        }
-    //    }
-    //}
-
     //ズームしすぎて車上オブジェクトがカメラの手前に来ないようにする
     [HarmonyPatch(typeof(CameraDriver), "ApplyPositionToGameObject")]
     public static class Patch_CameraDriver_ApplyPositionToGameObject
