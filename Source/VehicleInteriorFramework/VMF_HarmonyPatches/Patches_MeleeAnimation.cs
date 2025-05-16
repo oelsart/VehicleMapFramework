@@ -18,7 +18,26 @@ namespace VehicleInteriors.VMF_HarmonyPatches.AM
         {
             if (ModCompat.MeleeAnimation)
             {
-                VMF_Harmony.Instance.PatchCategory("VMF_Patches_MeleeAnimation");
+                //VMF_Harmony.Instance.PatchCategory("VMF_Patches_MeleeAnimation");
+
+                VMF_Harmony.Instance.Patch(AccessTools.Method(typeof(Pawn_JobTracker), nameof(Pawn_JobTracker.StartJob)), prefix: AccessTools.Method(typeof(Patch_Pawn_JobTracker_StartJob), nameof(Patch_Pawn_JobTracker_StartJob.Prefix)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("AM.Controller.ActionController:GetGrappleReport"), transpiler: AccessTools.Method(typeof(Patch_ActionController_GetGrappleReport), nameof(Patch_ActionController_GetGrappleReport.Transpiler)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("AM.Grappling.GrappleFlyer:SpawnSetup"), postfix: AccessTools.Method(typeof(Patch_GrappleFlyer_SpawnSetup), nameof(Patch_GrappleFlyer_SpawnSetup.Postfix)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("AM.Grappling.JobDriver_GrapplePawn:TickPreEnsnare"), transpiler: AccessTools.Method(typeof(Patch_JobDriver_GrapplePawn_TickPreEnsnare), nameof(Patch_JobDriver_GrapplePawn_TickPreEnsnare.Transpiler)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("AM.Controller.ActionController:CheckCell"), prefix: AccessTools.Method(typeof(Patch_ActionController_CheckCell), nameof(Patch_ActionController_CheckCell.Prefix)));
+                foreach (var method in AccessTools.TypeByName("AM.Controller.ActionController").GetMethods(AccessTools.all).Where(m => m.Name == "UpdateClosestCells"))
+                {
+                    VMF_Harmony.Instance.Patch(method, transpiler: AccessTools.Method(typeof(Patch_ActionController_UpdateClosestCells), nameof(Patch_ActionController_UpdateClosestCells.Transpiler)));
+                }
+                VMF_Harmony.Instance.Patch(AccessTools.Method("AM.AnimRenderer:Draw"), transpiler: AccessTools.Method(typeof(Patch_AnimRenderer_Draw), nameof(Patch_AnimRenderer_Draw.Transpiler)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("AM.AnimRenderer:DrawPawns"), transpiler: AccessTools.Method(typeof(Patch_AnimRenderer_DrawPawns), nameof(Patch_AnimRenderer_DrawPawns.Transpiler)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("AM.Sweep.PartWithSweep:Draw"), transpiler: AccessTools.Method(typeof(Patch_PartWithSweep_Draw), nameof(Patch_PartWithSweep_Draw.Transpiler)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("AM.AnimRenderer:DrawSingle"), transpiler: AccessTools.Method(typeof(Patch_AnimRenderer_DrawSingle), nameof(Patch_AnimRenderer_DrawSingle.Transpiler)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("AM.Patches.Patch_PawnRenderer_RenderPawnAt:MakeDrawArgs"), transpiler: AccessTools.Method(typeof(Patch_Patch_PawnRenderer_RenderPawnAt_MakeDrawArgs), nameof(Patch_Patch_PawnRenderer_RenderPawnAt_MakeDrawArgs.Transpiler)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("AM.Events.Workers.MoteWorker:Run"), transpiler: AccessTools.Method(typeof(Patch_MoteWorker_Run), nameof(Patch_MoteWorker_Run.Transpiler)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("AM.Events.Workers.TextMoteWorker:Run"), transpiler: AccessTools.Method(typeof(Patch_TextMoteWorker_Run), nameof(Patch_TextMoteWorker_Run.Transpiler)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("AnimPartSnapshot:GetWorldDirection"), postfix: AccessTools.Method(typeof(Patch_AnimPartSnapshot_GetWorldDirection), nameof(Patch_AnimPartSnapshot_GetWorldDirection.Postfix)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("AM.UI.DraftedFloatMenuOptionsUI:ExecutionEnabledOnClick"), transpiler: AccessTools.Method(typeof(Patch_DraftedFloatMenuOptionsUI_ExecutionEnabledOnClick), nameof(Patch_DraftedFloatMenuOptionsUI_ExecutionEnabledOnClick.Transpiler)));
             }
         }
     }
@@ -178,19 +197,6 @@ namespace VehicleInteriors.VMF_HarmonyPatches.AM
 
         public static AccessTools.FieldRef<Def, IReadOnlyList<object>> f_cellData = AccessTools.FieldRefAccess<IReadOnlyList<object>>("AM.AnimDef:cellData");
     }
-
-    //[HarmonyPatchCategory("VMF_Patches_MeleeAnimation")]
-    //[HarmonyPatch("AM.AnimRenderer", "OnStart")]
-    //public static class Patch_AnimRenderer_OnStart
-    //{
-    //    public static void Postfix(ref Matrix4x4 ___RootTransform, Map ___Map)
-    //    {
-    //        if (___Map.IsNonFocusedVehicleMapOf(out var vehicle))
-    //        {
-    //            ___RootTransform.SetColumn(3, ___RootTransform.Position().ToBaseMapCoord(vehicle));
-    //        }
-    //    }
-    //}
 
     [HarmonyPatchCategory("VMF_Patches_MeleeAnimation")]
     [HarmonyPatch("AM.AnimRenderer", "DrawPawns")]

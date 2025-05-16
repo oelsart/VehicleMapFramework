@@ -1,6 +1,5 @@
 ﻿using HarmonyLib;
 using System.Collections.Generic;
-using Verse;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
 {
@@ -11,7 +10,9 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             if (ModCompat.ColonyGroups)
             {
-                VMF_Harmony.Instance.PatchCategory("VMF_Patches_ColonyGroups");
+                //VMF_Harmony.Instance.PatchCategory("VMF_Patches_ColonyGroups");
+
+                VMF_Harmony.Instance.Patch(AccessTools.Method("TacticalGroups.TacticalColonistBar:CheckRecacheEntries"), transpiler: AccessTools.Method(typeof(Patch_TacticalColonistBar_CheckRecacheEntries), nameof(Patch_TacticalColonistBar_CheckRecacheEntries.Transpiler)));
             }
         }
     }

@@ -15,7 +15,9 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             if (ModCompat.BillDoorsFramework)
             {
-                VMF_Harmony.Instance.PatchCategory("VMF_Patches_BillDoorsFramework");
+                //VMF_Harmony.Instance.PatchCategory("VMF_Patches_BillDoorsFramework");
+
+                VMF_Harmony.Instance.Patch(AccessTools.Method("BillDoorsFramework.PlaceWorker_ShowVerbRadiusBySight:AllowsPlacing"), prefix: AccessTools.Method(typeof(Patch_PlaceWorker_ShowVerbRadiusBySight_AllowsPlacing), nameof(Patch_PlaceWorker_ShowVerbRadiusBySight_AllowsPlacing.Prefix)));
             }
         }
     }

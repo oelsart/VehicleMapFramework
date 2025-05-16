@@ -14,7 +14,15 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             if (ModCompat.DefenseGrid.Active)
             {
-                VMF_Harmony.Instance.PatchCategory("VMF_Patches_EccentricTech_DefenseGrid");
+                //VMF_Harmony.Instance.PatchCategory("VMF_Patches_EccentricTech_DefenseGrid");
+
+                VMF_Harmony.Instance.Patch(AccessTools.Method("EccentricDefenseGrid.PlaceWorker_DefenseProjector:DrawGhost"), prefix: AccessTools.Method(typeof(Patch_PlaceWorker_DefenseProjector_DrawGhost), nameof(Patch_PlaceWorker_DefenseProjector_DrawGhost.Prefix)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("EccentricDefenseGrid.PlaceWorker_ArtillerySensor:DrawGhost"), prefix: AccessTools.Method(typeof(Patch_PlaceWorker_ArtillerySensor_DrawGhost), nameof(Patch_PlaceWorker_ArtillerySensor_DrawGhost.Prefix)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("EccentricDefenseGrid.Graphic_DefenseConduit:ShouldLinkWith"), prefix: AccessTools.Method(typeof(Patch_Graphic_DefenseConduit_ShouldLinkWith), nameof(Patch_Graphic_DefenseConduit_ShouldLinkWith.Prefix)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("EccentricDefenseGrid.CompProjectorOverlay:PostDraw"), transpiler: AccessTools.Method(typeof(Patch_CompProjectorOverlay_PostDraw), nameof(Patch_CompProjectorOverlay_PostDraw.Transpiler)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("EccentricProjectiles.InterceptorMapComponent:MapComponentUpdate"), transpiler: AccessTools.Method(typeof(Patch_InterceptorMapComponent_MapComponentUpdate), nameof(Patch_InterceptorMapComponent_MapComponentUpdate.Transpiler)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("EccentricProjectiles.InterceptorMapComponent:Draw"), transpiler: AccessTools.Method(typeof(Patch_InterceptorMapComponent_Draw), nameof(Patch_InterceptorMapComponent_Draw.Transpiler)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("EccentricProjectiles.CompProjectileInterceptor:ShouldDrawField"), transpiler: AccessTools.Method(typeof(Patch_CompProjectileInterceptor_ShouldDrawField), nameof(Patch_CompProjectileInterceptor_ShouldDrawField.Transpiler)));
             }
         }
     }
@@ -51,33 +59,6 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static void Prefix(ref IntVec3 cell, Thing parent) => Patch_Graphic_Linked_ShouldLinkWith.Prefix(ref cell, parent);
     }
-
-    //[HarmonyPatchCategory("VMF_Patches_EccentricTech_DefenseGrid")]
-    //[HarmonyPatch("EccentricProjectiles.HarmonyPatches", "CheckIntercept")]
-    //public static class Patch_EccentricProjectiles_HarmonyPatches_CheckIntercept
-    //{
-    //    public static void Postfix(Projectile projectile, Vector3 origin, Vector3 destination, ref bool __result)
-    //    {
-    //        if (__result) return;
-
-    //        if (projectile.Spawned)
-    //        {
-    //            foreach (var vehicle in VehiclePawnWithMapCache.AllVehiclesOn(projectile.Map))
-    //            {
-    //                var component = vehicle.VehicleMap.GetComponent(t_InterceptorMapComponent);
-    //                if (component != null)
-    //                {
-    //                    __result = (bool)CheckIntercept(component, projectile, origin, destination);
-    //                    if (__result) return;
-    //                }
-    //            }
-    //        }
-    //    }
-
-    //    private static Type t_InterceptorMapComponent = AccessTools.TypeByName("EccentricProjectiles.InterceptorMapComponent");
-
-    //    private static FastInvokeHandler CheckIntercept = MethodInvoker.GetHandler(AccessTools.Method(t_InterceptorMapComponent, "CheckIntercept"));
-    //}
 
     [HarmonyPatchCategory("VMF_Patches_EccentricTech_DefenseGrid")]
     [HarmonyPatch("EccentricDefenseGrid.CompProjectorOverlay", "PostDraw")]

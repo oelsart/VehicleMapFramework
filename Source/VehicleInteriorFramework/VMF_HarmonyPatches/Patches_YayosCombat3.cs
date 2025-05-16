@@ -10,7 +10,9 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             if (ModCompat.YayosCombat3)
             {
-                VMF_Harmony.Instance.PatchCategory("VMF_Patches_YayosCombat3");
+                //VMF_Harmony.Instance.PatchCategory("VMF_Patches_YayosCombat3");
+
+                VMF_Harmony.Instance.Patch(AccessTools.Method("yayoCombat.HarmonyPatches.Verb_LaunchProjectile_TryCastShot:Prefix"), transpiler: AccessTools.Method(typeof(Patch_Verb_LaunchProjectile_TryCastShot_Prefix), nameof(Patch_Verb_LaunchProjectile_TryCastShot_Prefix.Transpiler)));
             }
         }
     }

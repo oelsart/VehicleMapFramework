@@ -14,7 +14,16 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             if (ModCompat.DrillTurret)
             {
-                VMF_Harmony.Instance.PatchCategory("VMF_Patches_DrillTurret");
+                //VMF_Harmony.Instance.PatchCategory("VMF_Patches_DrillTurret");
+
+                VMF_Harmony.Instance.Patch(AccessTools.Method("DrillTurret.Building_DrillTurret:LookForNewTarget"), transpiler: AccessTools.Method(typeof(Patch_Building_DrillTurret_LookForNewTarget), nameof(Patch_Building_DrillTurret_LookForNewTarget.Transpiler)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("DrillTurret.Building_DrillTurret:IsValidTargetAt"), transpiler: AccessTools.Method(typeof(Patch_Building_DrillTurret_IsValidTargetAt), nameof(Patch_Building_DrillTurret_IsValidTargetAt.Transpiler)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("DrillTurret.Building_DrillTurret:IsValidTargetAtForGizmo"), transpiler: AccessTools.Method(typeof(Patch_Building_DrillTurret_IsValidTargetAtForGizmo), nameof(Patch_Building_DrillTurret_IsValidTargetAtForGizmo.Transpiler)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("DrillTurret.Building_DrillTurret:DrillRock"), transpiler: AccessTools.Method(typeof(Patch_Building_DrillTurret_DrillRock), nameof(Patch_Building_DrillTurret_DrillRock.Transpiler)));
+                VMF_Harmony.Instance.Patch(AccessTools.FindIncludingInnerTypes<MethodBase>(AccessTools.TypeByName("DrillTurret.Building_DrillTurret"), t => t.GetMethods(AccessTools.all).FirstOrDefault(m => m.Name.Contains("<SelectTarget>"))), transpiler: AccessTools.Method(typeof(Patch_Building_DrillTurret_SelectTarget), nameof(Patch_Building_DrillTurret_SelectTarget.Transpiler)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("DrillTurret.Building_DrillTurret:SetForcedTarget"), transpiler: AccessTools.Method(typeof(Patch_Building_DrillTurret_SetForcedTarget), nameof(Patch_Building_DrillTurret_SetForcedTarget.Transpiler)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("DrillTurret.Building_DrillTurret:ComputeDrawingParameters"), prefix: AccessTools.Method(typeof(Patch_Building_DrillTurret_ComputeDrawingParameters), nameof(Patch_Building_DrillTurret_ComputeDrawingParameters.Prefix)), transpiler: AccessTools.Method(typeof(Patch_Building_DrillTurret_ComputeDrawingParameters), nameof(Patch_Building_DrillTurret_ComputeDrawingParameters.Transpiler)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("DrillTurret.Building_DrillTurret:DrawAt"), prefix: AccessTools.Method(typeof(Patch_Building_DrillTurret_DrawAt), nameof(Patch_Building_DrillTurret_DrawAt.Prefix)), transpiler: AccessTools.Method(typeof(Patch_Building_DrillTurret_DrawAt), nameof(Patch_Building_DrillTurret_DrawAt.Transpiler)));
             }
         }
     }

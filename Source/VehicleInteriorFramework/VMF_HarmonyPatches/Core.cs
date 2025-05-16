@@ -1,5 +1,4 @@
 ﻿using HarmonyLib;
-using RimWorld;
 using SmashTools;
 using System;
 using System.Linq;
@@ -42,7 +41,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         public int priority = -1;
     }
 
-    //[StaticConstructorOnStartup]
+    [StaticConstructorOnStartup]
     public static class StaticConstructorOnStartupPriorityUtility
     {
         static StaticConstructorOnStartupPriorityUtility()

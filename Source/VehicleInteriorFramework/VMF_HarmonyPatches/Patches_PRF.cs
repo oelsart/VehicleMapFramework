@@ -1,11 +1,7 @@
 ﻿using HarmonyLib;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
-using System.Text;
-using System.Threading.Tasks;
-using Verse;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
 {
@@ -16,7 +12,9 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             if (ModCompat.ProjectRimFactory)
             {
-                VMF_Harmony.Instance.PatchCategory("VMF_Patches_PRF");
+                //VMF_Harmony.Instance.PatchCategory("VMF_Patches_PRF");
+
+                VMF_Harmony.Instance.Patch(AccessTools.Method("ProjectRimFactory.Common.HarmonyPatches.Patch_CanReserve_SAL:Postfix"), transpiler: AccessTools.Method(typeof(Patch_Patch_CanReserve_SAL_Postfix), nameof(Patch_Patch_CanReserve_SAL_Postfix.Transpiler)));
             }
         }
     }

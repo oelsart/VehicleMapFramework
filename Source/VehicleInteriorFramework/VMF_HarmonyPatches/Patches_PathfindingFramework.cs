@@ -1,6 +1,5 @@
 ﻿using HarmonyLib;
 using System.Collections.Generic;
-using System.Reflection;
 using Verse;
 using Verse.AI;
 
@@ -13,7 +12,12 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             if (ModCompat.PathfindingFramework)
             {
-                VMF_Harmony.Instance.PatchCategory("VMF_Patches_PathfindingFramework");
+                //VMF_Harmony.Instance.PatchCategory("VMF_Patches_PathfindingFramework");
+
+                VMF_Harmony.Instance.Patch(AccessTools.Method("PathfindingFramework.LocationFinding:IsPassableRegion"), prefix: AccessTools.Method(typeof(Patch_LocationFinding_IsPassableRegion), nameof(Patch_LocationFinding_IsPassableRegion.Prefix)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method(typeof(Pathing), nameof(Pathing.For) , new[] { typeof(TraverseParms) }), postfix: AccessTools.Method(typeof(Patch_Pathing_For_TraverseParms), nameof(Patch_Pathing_For_TraverseParms.Postfix)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method(typeof(Pathing), nameof(Pathing.For), new[] { typeof(Pawn) }), postfix: AccessTools.Method(typeof(Patch_Pathing_For_Pawn), nameof(Patch_Pathing_For_Pawn.Postfix)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("PathfindingFramework.Patches.RegionPathfinding.Region_Allows_Patch:MovementTypePassable"), transpiler: AccessTools.Method(typeof(Patch_Region_Allows_Patch_MovementTypePassable), nameof(Patch_Region_Allows_Patch_MovementTypePassable.Transpiler)));
             }
         }
     }

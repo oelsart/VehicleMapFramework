@@ -21,7 +21,8 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 VMF_Harmony.Instance.CreateReversePatcher(patchOrig, patch).Patch();
                 VMF_Harmony.Instance.Patch(method, postfix: patch);
 
-                VMF_Harmony.Instance.PatchCategory("VMF_Patches_CallTradeShips");
+                //VMF_Harmony.Instance.PatchCategory("VMF_Patches_CallTradeShips");
+                VMF_Harmony.Instance.Patch(AccessTools.Method(typeof(Job), nameof(Job.Clone)), prefix: AccessTools.Method(typeof(Patch_Job_Clone), nameof(Patch_Job_Clone.Prefix)));
             }
         }
 

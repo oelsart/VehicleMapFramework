@@ -14,7 +14,11 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             if (ModCompat.Vivi)
             {
-                VMF_Harmony.Instance.PatchCategory("VMF_Patches_Vivi");
+                //VMF_Harmony.Instance.PatchCategory("VMF_Patches_Vivi");
+
+                VMF_Harmony.Instance.Patch(AccessTools.FindIncludingInnerTypes<MethodBase>(AccessTools.TypeByName("VVRace.ArcanePlant_Turret"),
+                t => t.GetMethods(AccessTools.all).FirstOrDefault(m => m.Name.Contains("<TryFindNewTarget>"))), transpiler: AccessTools.Method(typeof(Patch_ArcanePlant_Turret_TryFindNewTarget_Delegate), nameof(Patch_ArcanePlant_Turret_TryFindNewTarget_Delegate.Transpiler)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("VVRace.ArcanePlant_Turret:TryFindNewTarget"), transpiler: AccessTools.Method(typeof(Patch_ArcanePlant_Turret_TryFindNewTarget), nameof(Patch_ArcanePlant_Turret_TryFindNewTarget.Transpiler)));
             }
         }
     }

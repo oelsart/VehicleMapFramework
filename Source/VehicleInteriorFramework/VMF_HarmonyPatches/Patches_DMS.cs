@@ -1,6 +1,5 @@
 ﻿using HarmonyLib;
 using System.Collections.Generic;
-using Verse;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
 {
@@ -11,7 +10,9 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             if (ModCompat.DeadMansSwitch)
             {
-                VMF_Harmony.Instance.PatchCategory("VMF_Patches_DMSAncientCorps");
+                //VMF_Harmony.Instance.PatchCategory("VMF_Patches_DMSAncientCorps");
+                VMF_Harmony.Instance.Patch(AccessTools.Method("AncientCorps.CompAbilityEffect_ActiveProtectionSystem:AICanTargetNow"), transpiler: AccessTools.Method(typeof(Patch_CompAbilityEffect_ActiveProtectionSystem_AICanTargetNow), nameof(Patch_CompAbilityEffect_ActiveProtectionSystem_AICanTargetNow.Transpiler)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("AncientCorps.CompAbilityEffect_ActiveProtectionSystem:CompTick"), transpiler: AccessTools.Method(typeof(Patch_CompAbilityEffect_ActiveProtectionSystem_CompTick), nameof(Patch_CompAbilityEffect_ActiveProtectionSystem_CompTick.Transpiler)));
             }
         }
     }

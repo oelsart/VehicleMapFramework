@@ -19,7 +19,16 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             if (ModCompat.AllowTool)
             {
-                VMF_Harmony.Instance.PatchCategory("VMF_Patches_AllowTool");
+                //VMF_Harmony.Instance.PatchCategory("VMF_Patches_AllowTool");
+
+                VMF_Harmony.Instance.Patch(AccessTools.Method("AllowTool.WorkGiver_HaulUrgently:JobOnThing"), prefix: AccessTools.Method(typeof(Patch_WorkGiver_HaulUrgently_JobOnThing), nameof(Patch_WorkGiver_HaulUrgently_JobOnThing.Prefix)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("AllowTool.WorkGiver_HaulUrgently:PotentialWorkThingsGlobal"), transpiler: AccessTools.Method(typeof(Patch_WorkGiver_HaulUrgently_PotentialWorkThingsGlobal), nameof(Patch_WorkGiver_HaulUrgently_PotentialWorkThingsGlobal.Transpiler)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("AllowTool.Designator_SelectSimilar:ProcessSingleCellClick"), transpiler: AccessTools.Method(typeof(Patch_Designator_SelectSimilar_ProcessSingleCellClick), nameof(Patch_Designator_SelectSimilar_ProcessSingleCellClick.Transpiler)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("AllowTool.Designator_SelectableThings:DesignateMultiCell"), transpiler: AccessTools.Method(typeof(Patch_Designator_SelectableThings_DesignateMultiCell), nameof(Patch_Designator_SelectableThings_DesignateMultiCell.Transpiler)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("AllowTool.UnlimitedAreaDragger:OnSelectionStarted"), transpiler: AccessTools.Method(typeof(Patch_Designator_SelectableThings_DesignateMultiCell), nameof(Patch_Designator_SelectableThings_DesignateMultiCell.Transpiler)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("AllowTool.UnlimitedAreaDragger:Update"), transpiler: AccessTools.Method(typeof(Patch_UnlimitedAreaDragger_Update), nameof(Patch_UnlimitedAreaDragger_Update.Transpiler)));
+                VMF_Harmony.Instance.Patch(AccessTools.TypeByName("AllowTool.MapCellHighlighter+CachedHighlight").Constructor(new Type[] { typeof(Vector3), typeof(Material) }), prefix: AccessTools.Method(typeof(Patch_MapCellHighlighter_CachedHighlight), nameof(Patch_MapCellHighlighter_CachedHighlight.Prefix)));
+
 
                 JobOnThingDelegate = (Pawn pawn, Thing t, bool forced) => HaulAIAcrossMapsUtility.HaulToStorageJobReplace(pawn, t);
             }

@@ -12,7 +12,9 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             if (ModCompat.MuzzleFlash)
             {
-                VMF_Harmony.Instance.PatchCategory("VMF_Patches_MuzzleFlash");
+                //VMF_Harmony.Instance.PatchCategory("VMF_Patches_MuzzleFlash");
+
+                VMF_Harmony.Instance.Patch(AccessTools.Method("MuzzleFlash.MapComponent_MuzzleFlashManager:MapComponentUpdate"), transpiler: AccessTools.Method(typeof(Patch_MapComponent_MuzzleFlashManager_MapComponentUpdate), nameof(Patch_MapComponent_MuzzleFlashManager_MapComponentUpdate.Transpiler)));
             }
         }
     }

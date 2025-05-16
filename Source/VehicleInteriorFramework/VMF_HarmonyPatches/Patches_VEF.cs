@@ -20,23 +20,60 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             if (ModCompat.VFEArchitect)
             {
-                VMF_Harmony.Instance.PatchCategory("VMF_Patches_VFE_Architect");
+                //VMF_Harmony.Instance.PatchCategory("VMF_Patches_VFE_Architect");
+
+                VMF_Harmony.Instance.Patch(AccessTools.Method("VFEArchitect.Building_DoorSingle:DrawAt"), transpiler: AccessTools.Method(typeof(Patch_Building_DoorSingle_DrawAt), nameof(Patch_Building_DoorSingle_DrawAt.Transpiler)));
             }
             if (ModCompat.VFESecurity)
             {
-                VMF_Harmony.Instance.PatchCategory("VMF_Patches_VFE_Security");
+                //VMF_Harmony.Instance.PatchCategory("VMF_Patches_VFE_Security");
+
+                VMF_Harmony.Instance.Patch(AccessTools.Method(AccessTools.TypeByName("VFESecurity.Building_Shield").FirstInner(t => t.Name.Contains("ThingsWithinRadius")), "MoveNext"), transpiler: AccessTools.Method(typeof(Patch_Building_Shield_ThingsWithinRadius), nameof(Patch_Building_Shield_ThingsWithinRadius.Transpiler)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method(AccessTools.TypeByName("VFESecurity.Building_Shield").FirstInner(t => t.Name.Contains("ThingsWithinScanArea")), "MoveNext"), transpiler: AccessTools.Method(typeof(Patch_Building_Shield_ThingsWithinScanArea), nameof(Patch_Building_Shield_ThingsWithinScanArea.Transpiler)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("VFESecurity.Building_Shield:AbsorbDamage", new[] { typeof(float), typeof(DamageDef), typeof(float) }), transpiler: AccessTools.Method(typeof(Patch_Building_Shield_AbsorbDamage), nameof(Patch_Building_Shield_AbsorbDamage.Transpiler)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("VFESecurity.Building_Shield:DrawAt"), transpiler: AccessTools.Method(typeof(Patch_Building_Shield_DrawAt), nameof(Patch_Building_Shield_DrawAt.Transpiler)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("VFESecurity.Building_Shield:EnergyShieldTick"), transpiler: AccessTools.Method(typeof(Patch_Building_Shield_EnergyShieldTick), nameof(Patch_Building_Shield_EnergyShieldTick.Transpiler)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("VFESecurity.Building_Shield:UpdateCache"), transpiler: AccessTools.Method(typeof(Patch_Building_Shield_UpdateCache), nameof(Patch_Building_Shield_UpdateCache.Transpiler)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("VFESecurity.CompLongRangeArtillery:CompTick"), postfix: AccessTools.Method(typeof(Patch_CompLongRangeArtillery_CompTick), nameof(Patch_CompLongRangeArtillery_CompTick.Postfix)));
             }
             if (ModCompat.VVE)
             {
-                VMF_Harmony.Instance.PatchCategory("VMF_Patches_VVE");
+                //VMF_Harmony.Instance.PatchCategory("VMF_Patches_VVE");
+
+                VMF_Harmony.Instance.Patch(AccessTools.Method("VanillaVehiclesExpanded.GarageDoor:DrawAt"), transpiler: AccessTools.Method(typeof(Patch_GarageDoor_DrawAt), nameof(Patch_GarageDoor_DrawAt.Transpiler)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("VanillaVehiclesExpanded.CompRefuelingPump:CompTick"), postfix: AccessTools.Method(typeof(Patch_CompRefuelingPump_CompTick), nameof(Patch_CompRefuelingPump_CompTick.Postfix)));
             }
             if (ModCompat.VFEPirates)
             {
-                VMF_Harmony.Instance.PatchCategory("VMF_Patches_VFE_Pirates");
+                //VMF_Harmony.Instance.PatchCategory("VMF_Patches_VFE_Pirates");
+
+                VMF_Harmony.Instance.Patch(AccessTools.Method("VFEPirates.Verb_ShootCone:DrawLines"), transpiler: AccessTools.Method(typeof(Patch_Verb_ShootCone_DrawLines), nameof(Patch_Verb_ShootCone_DrawLines.Transpiler)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("VFEPirates.Verb_ShootCone:DrawConeRounded"), transpiler: AccessTools.Method(typeof(Patch_Verb_ShootCone_DrawConeRounded), nameof(Patch_Verb_ShootCone_DrawConeRounded.Transpiler)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("VFEPirates.Verb_ShootCone:CanHitTarget"), transpiler: AccessTools.Method(typeof(Patch_Verb_ShootCone_CanHitTarget), nameof(Patch_Verb_ShootCone_CanHitTarget.Transpiler)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("VFEPirates.Verb_ShootCone:InCone"), transpiler: AccessTools.Method(typeof(Patch_Verb_ShootCone_InCone), nameof(Patch_Verb_ShootCone_InCone.Transpiler)));
             }
             if (ModCompat.VFEMechanoid)
             {
-                VMF_Harmony.Instance.PatchCategory("VMF_Patches_VFE_Mechanoid");
+                //VMF_Harmony.Instance.PatchCategory("VMF_Patches_VFE_Mechanoid");
+
+                VMF_Harmony.Instance.Patch(AccessTools.Method("VFEMech.Building_Autocrane:GetStartingEndCranePosition"), transpiler: AccessTools.Method(typeof(Patch_Building_Autocrane_GetStartingEndCranePosition), nameof(Patch_Building_Autocrane_GetStartingEndCranePosition.Transpiler)));
+                VMF_Harmony.Instance.Patch(AccessTools.PropertySetter("VFEMech.Building_Autocrane:CurRotation"), prefix: AccessTools.Method(typeof(Patch_Building_Autocrane_CurRotation), nameof(Patch_Building_Autocrane_CurRotation.Prefix)));
+                VMF_Harmony.Instance.Patch(AccessTools.PropertyGetter("VFEMech.Building_Autocrane:CurRotation"), postfix: AccessTools.Method(typeof(Patch_Building_Autocrane_CurRotation), nameof(Patch_Building_Autocrane_CurRotation.Postfix)));
+                VMF_Harmony.Instance.Patch(AccessTools.PropertyGetter("VFEMech.Building_Autocrane:CraneDrawPos"), postfix: AccessTools.Method(typeof(Patch_Building_Autocrane_CraneDrawPos), nameof(Patch_Building_Autocrane_CraneDrawPos.Postfix)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("VFEMech.Building_Autocrane:NextFrameTarget"), postfix: AccessTools.Method(typeof(Patch_Building_Autocrane_NextFrameTarget), nameof(Patch_Building_Autocrane_NextFrameTarget.Postfix)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("VFEMech.Building_Autocrane:NextDamagedBuildingTarget"), postfix: AccessTools.Method(typeof(Patch_Building_Autocrane_NextDamagedBuildingTarget), nameof(Patch_Building_Autocrane_NextDamagedBuildingTarget.Postfix)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("VFEMech.Building_Autocrane:DoConstruction"), transpiler: AccessTools.Method(typeof(Patch_Building_Autocrane_DoConstruction), nameof(Patch_Building_Autocrane_DoConstruction.Transpiler)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("VFEMech.Building_Autocrane:DoRepairing"), transpiler: AccessTools.Method(typeof(Patch_Building_Autocrane_DoRepairing), nameof(Patch_Building_Autocrane_DoRepairing.Transpiler)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("VFEMech.Building_Autocrane:TryMoveTo"), prefix: AccessTools.Method(typeof(Patch_Building_Autocrane_TryMoveTo), nameof(Patch_Building_Autocrane_TryMoveTo.Prefix)), transpiler: AccessTools.Method(typeof(Patch_Building_Autocrane_TryMoveTo), nameof(Patch_Building_Autocrane_TryMoveTo.Transpiler)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("VFE.Mechanoids.PlaceWorkers.PlaceWorker_AutoCrane:DrawGhost"), prefix: AccessTools.Method(typeof(Patch_PlaceWorker_AutoCrane_DrawGhost), nameof(Patch_PlaceWorker_AutoCrane_DrawGhost.Prefix)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("VFE.Mechanoids.PlaceWorkers.PlaceWorker_AutoPlant:GetCells"), postfix: AccessTools.Method(typeof(Patch_PlaceWorker_AutoPlant_GetCells), nameof(Patch_PlaceWorker_AutoPlant_GetCells.Postfix)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("VFE.Mechanoids.Buildings.Building_AutoPlant:DoWorkOnCells"), prefix: AccessTools.Method(typeof(Patch_Building_AutoPlant_DoWorkOnCells), nameof(Patch_Building_AutoPlant_DoWorkOnCells.Prefix)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("VFE.Mechanoids.Buildings.Building_AutoPlant:CheckCellsClear"), prefix: AccessTools.Method(typeof(Patch_Building_AutoPlant_CheckCellsClear), nameof(Patch_Building_AutoPlant_CheckCellsClear.Prefix)));
+                VMF_Harmony.Instance.Patch(AccessTools.PropertyGetter("VFE.Mechanoids.Buildings.Building_AutoPlant:DrawPos"), prefix: AccessTools.Method(typeof(Patch_Building_AutoPlant_DrawPos), nameof(Patch_Building_AutoPlant_DrawPos.Prefix)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("VFE.Mechanoids.Buildings.Building_AutoPlant:DrawAt"), prefix: AccessTools.Method(typeof(Patch_Building_AutoPlant_DrawAt), nameof(Patch_Building_AutoPlant_DrawAt.Prefix)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("VFE.Mechanoids.Buildings.Building_AutoSower:DoWorkOnCell"), transpiler: AccessTools.Method(typeof(Patch_Building_AutoSower_DoWorkOnCell), nameof(Patch_Building_AutoSower_DoWorkOnCell.Transpiler)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("VFE.Mechanoids.Buildings.Building_AutoHarvester:DoWorkOnCell"), transpiler: AccessTools.Method(typeof(Patch_Building_AutoHarvester_DoWorkOnCell), nameof(Patch_Building_AutoHarvester_DoWorkOnCell.Transpiler)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("VFE.Mechanoids.Buildings.Building_AutoHarvester:PlantCollected"), transpiler: AccessTools.Method(typeof(Patch_Building_AutoHarvester_PlantCollected), nameof(Patch_Building_AutoHarvester_PlantCollected.Transpiler)));
             }
         }
     }

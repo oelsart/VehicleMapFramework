@@ -171,7 +171,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             }
         }
 
-        private static Building_OrbitalTradeBeacon beacon;
+        public static Building_OrbitalTradeBeacon beacon;
 
         private static Map BuildingMap(Map map)
         {

@@ -15,20 +15,22 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             if (ModCompat.MiscRobots)
             {
-                VMF_Harmony.Instance.PatchCategory("VMF_Patches_MiscRobots");
+                //VMF_Harmony.Instance.PatchCategory("VMF_Patches_MiscRobots");
+
+                VMF_Harmony.Instance.Patch(AccessTools.Method("X2_JobGiver_Return2BaseRoom:TryIssueJobPackage"), prefix: AccessTools.Method(typeof(Patch_X2_JobGiver_Return2BaseRoom_TryIssueJobPackage), nameof(Patch_X2_JobGiver_Return2BaseRoom_TryIssueJobPackage.Prefix)));
             }
         }
     }
 
     [HarmonyPatchCategory("VMF_Patches_MiscRobots")]
     [HarmonyPatch("X2_JobGiver_Return2BaseRoom", "TryIssueJobPackage")]
-    public static class Patche_X2_JobGiver_Return2BaseRoom_TryIssueJobPackage
+    public static class Patch_X2_JobGiver_Return2BaseRoom_TryIssueJobPackage
     {
         public static bool Prefix(ThinkNode __instance, Pawn pawn, ref ThinkResult __result)
         {
             if (!t_X2_AIRobot?.IsAssignableFrom(pawn.GetType()) ?? true) return true;
 
-            var rechargeStation = Patche_X2_JobGiver_Return2BaseRoom_TryIssueJobPackage.rechargeStation(pawn);
+            var rechargeStation = Patch_X2_JobGiver_Return2BaseRoom_TryIssueJobPackage.rechargeStation(pawn);
             if (pawn.Map == rechargeStation?.Map) return true;
 
             if (pawn.DestroyedOrNull())

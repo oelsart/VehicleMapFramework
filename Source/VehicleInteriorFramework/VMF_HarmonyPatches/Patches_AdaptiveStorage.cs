@@ -15,7 +15,11 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             if (ModCompat.AdaptiveStorage)
             {
-                VMF_Harmony.Instance.PatchCategory("VMF_Patches_AdaptiveStorage");
+                //VMF_Harmony.Instance.PatchCategory("VMF_Patches_AdaptiveStorage");
+
+                VMF_Harmony.Instance.Patch(AccessTools.Method("AdaptiveStorage.PrintUtility:PrintAt", new Type[] { typeof(Graphic), typeof(SectionLayer), typeof(Thing), typeof(Vector3).MakeByRefType(), typeof(Vector2).MakeByRefType(), typeof(float) }), prefix: AccessTools.Method(typeof(Patch_PrintUtility_PrintAt), nameof(Patch_PrintUtility_PrintAt.Prefix)), transpiler: AccessTools.Method(typeof(Patch_PrintUtility_PrintAt), nameof(Patch_PrintUtility_PrintAt.Transpiler)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("AdaptiveStorage.StorageRenderer:DrawOffsetForThing"), postfix: AccessTools.Method(typeof(Patch_StorageRenderer_DrawOffsetForThing), nameof(Patch_StorageRenderer_DrawOffsetForThing.Postfix)), transpiler: AccessTools.Method(typeof(Patch_StorageRenderer_DrawOffsetForThing), nameof(Patch_StorageRenderer_DrawOffsetForThing.Transpiler)));
+                VMF_Harmony.Instance.Patch(AccessTools.Method("AdaptiveStorage.StorageRenderer:ItemOffsetAt"), postfix: AccessTools.Method(typeof(Patch_StorageRenderer_ItemOffsetAt), nameof(Patch_StorageRenderer_ItemOffsetAt.Postfix)));
             }
         }
     }
@@ -35,19 +39,6 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             return instructions.MethodReplacer(MethodInfoCache.g_Thing_Rotation, MethodInfoCache.m_RotationForPrint);
         }
     }
-
-    //[HarmonyPatchCategory("VMF_Patches_AdaptiveStorage")]
-    //[HarmonyPatch("AdaptiveStorage.StorageRenderer", "PrintAt")]
-    //[HarmonyPatch(new Type[] { typeof(SectionLayer), typeof(Vector3) }, new ArgumentType[] { ArgumentType.Normal, ArgumentType.Ref })]
-    //public static class Patch_StorageRenderer_PrintAt
-    //{
-    //    public static void Prefix(object __instance, SectionLayer layer)
-    //    {
-    //        InitializeStoredThingGraphics(__instance, layer);
-    //    }
-
-    //    private static FastInvokeHandler InitializeStoredThingGraphics = MethodInvoker.GetHandler(AccessTools.Method("AdaptiveStorage.StorageRenderer:InitializeStoredThingGraphics"));
-    //}
 
     [HarmonyPatchCategory("VMF_Patches_AdaptiveStorage")]
     [HarmonyPatch("AdaptiveStorage.StorageRenderer", "DrawOffsetForThing")]
