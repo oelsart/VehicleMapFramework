@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using UnityEngine;
 using VehicleInteriors.Settings;
 using VehicleInteriors.VMF_HarmonyPatches;
+using Vehicles;
 using Verse;
 using VMF_PUAHPatch;
 
@@ -58,6 +59,7 @@ namespace VehicleInteriors
         {
             VehicleInteriors.mod = this;
             VehicleInteriors.settings = base.GetSettings<VehicleMapSettings>();
+
         }
 
         public void InitializeTabs()
