@@ -306,6 +306,7 @@
     <Compile Include="VMF_HarmonyPatches\Patches_PathfindingFramework.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_PRF.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_SmarterConstruction.cs" />
+    <Compile Include="VMF_HarmonyPatches\Patches_SmartPistol.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_TabulaRasa.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_TraderShips.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_Vivi.cs" />

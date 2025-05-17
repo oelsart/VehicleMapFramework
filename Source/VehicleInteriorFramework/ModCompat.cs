@@ -204,5 +204,7 @@ namespace VehicleInteriors
         public static readonly bool NightmareCore = ModsConfig.IsActive("Nightmare.Core");
 
         public static readonly bool Aquariums = ModsConfig.IsActive("Nightmare.Aquariums");
+
+        public static readonly bool SmartPistol = ModsConfig.IsActive("rabiosus.smartpistol");
     }
 }
