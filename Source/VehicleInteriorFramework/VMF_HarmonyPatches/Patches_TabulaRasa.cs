@@ -15,23 +15,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches.TR
         {
             if (ModCompat.TabulaRasa)
             {
-                //VMF_Harmony.Instance.PatchCategory("VMF_Patches_TabulaRasa");
-                var harmonyID = new[] { "Neronix17.TabulaRasa.RimWorld" };
-
-                VMF_Harmony.Instance.Patch(AccessTools.PropertyGetter("TabulaRasa.Comp_Shield:CurShieldPosition"), postfix: AccessTools.Method(typeof(Patch_Comp_Shield_CurShieldPosition), nameof(Patch_Comp_Shield_CurShieldPosition.Postfix)));
-                VMF_Harmony.Instance.Patch(AccessTools.Method("TabulaRasa.Comp_Shield:ShouldBeBlocked"), transpiler: AccessTools.Method(typeof(Patch_Comp_Shield_ShouldBeBlocked), nameof(Patch_Comp_Shield_ShouldBeBlocked.Transpiler)));
-                VMF_Harmony.Instance.Patch(AccessTools.Method("TabulaRasa.Comp_Shield:BombardmentCanStartFireAt"), transpiler: AccessTools.Method(typeof(Patch_Comp_Shield_BombardmentCanStartFireAt), nameof(Patch_Comp_Shield_BombardmentCanStartFireAt.Transpiler)));
-                VMF_Harmony.Instance.Patch(AccessTools.Method("TabulaRasa.Patch_Projectile_CheckForFreeInterceptBetween:Postfix"), transpiler: AccessTools.Method(typeof(Patch_Patch_Projectile_CheckForFreeInterceptBetween_Postfix), nameof(Patch_Patch_Projectile_CheckForFreeInterceptBetween_Postfix.Transpiler)));
-                VMF_Harmony.Instance.Patch(AccessTools.Method(typeof(Projectile), "CheckForFreeInterceptBetween"), postfix: new HarmonyMethod(AccessTools.Method(typeof(Patch_Projectile_CheckForFreeInterceptBetween), nameof(Patch_Projectile_CheckForFreeInterceptBetween.Postfix)))
-                {
-                    after = harmonyID
-                });
-                VMF_Harmony.Instance.Patch(AccessTools.Method("TabulaRasa.Patch_Skyfaller_Tick:Prefix"), transpiler: AccessTools.Method(typeof(Patch_Patch_Skyfaller_Tick_Prefix), nameof(Patch_Patch_Skyfaller_Tick_Prefix.Transpiler)));
-                VMF_Harmony.Instance.Patch(AccessTools.Method(typeof(Skyfaller), nameof(Skyfaller.Tick)), transpiler: new HarmonyMethod(AccessTools.Method(typeof(Patch_Patch_Skyfaller_Tick_Prefix), nameof(Patch_Patch_Skyfaller_Tick_Prefix.Transpiler)))
-                {
-                    after = harmonyID
-                });
-                VMF_Harmony.Instance.Patch(AccessTools.Method("TabulaRasa.PlaceWorker_ShowShieldRadius:DrawGhost"), transpiler: AccessTools.Method(typeof(Patch_PlaceWorker_ShowShieldRadius_DrawGhost), nameof(Patch_PlaceWorker_ShowShieldRadius_DrawGhost.Transpiler)));
+                VMF_Harmony.PatchCategory("VMF_Patches_TabulaRasa");
             }
         }
 

@@ -15,9 +15,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             if (ModCompat.BillDoorsFramework)
             {
-                //VMF_Harmony.Instance.PatchCategory("VMF_Patches_BillDoorsFramework");
-
-                VMF_Harmony.Instance.Patch(AccessTools.Method("BillDoorsFramework.PlaceWorker_ShowVerbRadiusBySight:AllowsPlacing"), prefix: AccessTools.Method(typeof(Patch_PlaceWorker_ShowVerbRadiusBySight_AllowsPlacing), nameof(Patch_PlaceWorker_ShowVerbRadiusBySight_AllowsPlacing.Prefix)));
+                VMF_Harmony.PatchCategory("VMF_Patches_BillDoorsFramework");
             }
         }
     }
@@ -89,9 +87,9 @@ namespace VehicleInteriors.VMF_HarmonyPatches
 
         private static IntVec3 locCache;
 
-        private static ConcurrentSet<IntVec3> cellCache = new ConcurrentSet<IntVec3>();
+        private static ConcurrentSet<IntVec3> cellCache;
 
-        private static ConcurrentSet<IntVec3> badCellCache = new ConcurrentSet<IntVec3>();
+        private static ConcurrentSet<IntVec3> badCellCache;
 
         private static Material redMat;
 
@@ -99,10 +97,15 @@ namespace VehicleInteriors.VMF_HarmonyPatches
 
         static Patch_PlaceWorker_ShowVerbRadiusBySight_AllowsPlacing()
         {
-            redMat = DebugMatsSpectrum.Mat(0, false);
-            redMat.color = redMat.color.ToTransparent(0.1f);
-            greenMat = DebugMatsSpectrum.Mat(50, false);
-            greenMat.color = greenMat.color.ToTransparent(0.1f);
+            if (ModCompat.BillDoorsFramework)
+            {
+                redMat = DebugMatsSpectrum.Mat(0, false);
+                redMat.color = redMat.color.ToTransparent(0.1f);
+                greenMat = DebugMatsSpectrum.Mat(50, false);
+                greenMat.color = greenMat.color.ToTransparent(0.1f);
+                cellCache = new ConcurrentSet<IntVec3>();
+                badCellCache = new ConcurrentSet<IntVec3>();
+            }
         }
     }
 }

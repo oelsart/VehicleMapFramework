@@ -15,9 +15,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             if (ModCompat.MiscRobots)
             {
-                //VMF_Harmony.Instance.PatchCategory("VMF_Patches_MiscRobots");
-
-                VMF_Harmony.Instance.Patch(AccessTools.Method("X2_JobGiver_Return2BaseRoom:TryIssueJobPackage"), prefix: AccessTools.Method(typeof(Patch_X2_JobGiver_Return2BaseRoom_TryIssueJobPackage), nameof(Patch_X2_JobGiver_Return2BaseRoom_TryIssueJobPackage.Prefix)));
+                VMF_Harmony.PatchCategory("VMF_Patches_MiscRobots");
             }
         }
     }

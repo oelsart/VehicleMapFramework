@@ -12,9 +12,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             if (ModCompat.ProjectRimFactory)
             {
-                //VMF_Harmony.Instance.PatchCategory("VMF_Patches_PRF");
-
-                VMF_Harmony.Instance.Patch(AccessTools.Method("ProjectRimFactory.Common.HarmonyPatches.Patch_CanReserve_SAL:Postfix"), transpiler: AccessTools.Method(typeof(Patch_Patch_CanReserve_SAL_Postfix), nameof(Patch_Patch_CanReserve_SAL_Postfix.Transpiler)));
+                VMF_Harmony.PatchCategory("VMF_Patches_PRF");
             }
         }
     }

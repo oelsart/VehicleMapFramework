@@ -13,30 +13,12 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             if (ModCompat.EnergyShield.Active)
             {
-                //VMF_Harmony.Instance.PatchCategory("VMF_Patches_EnergyShield");
-
-                VMF_Harmony.Instance.Patch(AccessTools.Method("zhuzi.AdvancedEnergy.Shields.Shields.ShieldManagerMapComp:WillInterceptOrbitalStrike"), transpiler: AccessTools.Method(typeof(Patch_ShieldManagerMapComp_WillInterceptOrbitalStrike), nameof(Patch_ShieldManagerMapComp_WillInterceptOrbitalStrike.Transpiler)));
-                VMF_Harmony.Instance.Patch(AccessTools.Method("zhuzi.AdvancedEnergy.Shields.Shields.ShieldManagerMapComp:WillInterceptExplosion"), transpiler: AccessTools.Method(typeof(Patch_ShieldManagerMapComp_WillInterceptExplosion), nameof(Patch_ShieldManagerMapComp_WillInterceptExplosion.Transpiler)));
-                VMF_Harmony.Instance.Patch(AccessTools.Method("zhuzi.AdvancedEnergy.Shields.Shields.ShieldManagerMapComp:WillInterceptExplosionAffectCell"), transpiler: AccessTools.Method(typeof(Patch_ShieldManagerMapComp_WillInterceptExplosionAffectCell), nameof(Patch_ShieldManagerMapComp_WillInterceptExplosionAffectCell.Transpiler)));
-                VMF_Harmony.Instance.Patch(AccessTools.Method("zhuzi.AdvancedEnergy.Shields.Shields.ShieldManagerMapComp:WillDropPodBeIntercepted"), transpiler: AccessTools.Method(typeof(Patch_ShieldManagerMapComp_WillDropPodBeIntercepted), nameof(Patch_ShieldManagerMapComp_WillDropPodBeIntercepted.Transpiler)));
-                VMF_Harmony.Instance.Patch(AccessTools.Method("zhuzi.AdvancedEnergy.Shields.Shields.ShieldManagerMapComp:WillProjectileBeBlocked"), transpiler: AccessTools.Method(typeof(Patch_ShieldManagerMapComp_WillProjectileBeBlocked), nameof(Patch_ShieldManagerMapComp_WillProjectileBeBlocked.Transpiler)));
-                VMF_Harmony.Instance.Patch(AccessTools.Method("zhuzi.AdvancedEnergy.Shields.Shields.Comp_ShieldGenerator:costShield"), transpiler: AccessTools.Method(typeof(Patch_Comp_ShieldGenerator_costShield), nameof(Patch_Comp_ShieldGenerator_costShield.Transpiler)));
-                VMF_Harmony.Instance.Patch(AccessTools.Method("zhuzi.AdvancedEnergy.Shields.Shields.Comp_ShieldGenerator:WillInterceptOrbitalStrike"), transpiler: AccessTools.Method(typeof(Patch_Comp_ShieldGenerator_WillInterceptOrbitalStrike), nameof(Patch_Comp_ShieldGenerator_WillInterceptOrbitalStrike.Transpiler)));
-                VMF_Harmony.Instance.Patch(AccessTools.Method("zhuzi.AdvancedEnergy.Shields.Shields.Comp_ShieldGenerator:WillInterceptExplosionAffectCell"), transpiler: AccessTools.Method(typeof(Patch_Comp_ShieldGenerator_WillInterceptExplosionAffectCell), nameof(Patch_Comp_ShieldGenerator_WillInterceptExplosionAffectCell.Transpiler)));
-                VMF_Harmony.Instance.Patch(AccessTools.Method("zhuzi.AdvancedEnergy.Shields.Shields.Comp_ShieldGenerator:WillInterceptExplosion"), transpiler: AccessTools.Method(typeof(Patch_Comp_ShieldGenerator_WillInterceptExplosion), nameof(Patch_Comp_ShieldGenerator_WillInterceptExplosion.Transpiler)));
-                VMF_Harmony.Instance.Patch(AccessTools.Method("zhuzi.AdvancedEnergy.Shields.Shields.Comp_ShieldGenerator:WillInterceptDropPod"), transpiler: AccessTools.Method(typeof(Patch_Comp_ShieldGenerator_WillInterceptDropPod), nameof(Patch_Comp_ShieldGenerator_WillInterceptDropPod.Transpiler)));
-                VMF_Harmony.Instance.Patch(AccessTools.Method("zhuzi.AdvancedEnergy.Shields.Shields.Comp_ShieldGenerator:WillProjectileBeBlocked"), transpiler: AccessTools.Method(typeof(Patch_Comp_ShieldGenerator_WillProjectileBeBlocked), nameof(Patch_Comp_ShieldGenerator_WillProjectileBeBlocked.Transpiler)));
-                VMF_Harmony.Instance.Patch(AccessTools.Method("zhuzi.AdvancedEnergy.Shields.Shields.Comp_ShieldGenerator:PostDraw"), transpiler: AccessTools.Method(typeof(Patch_Comp_ShieldGenerator_PostDraw), nameof(Patch_Comp_ShieldGenerator_PostDraw.Transpiler)));
+                VMF_Harmony.PatchCategory("VMF_Patches_EnergyShield");
 
                 if (ModCompat.EnergyShield.CECompat)
                 {
-                    //VMF_Harmony.Instance.PatchCategory("VMF_Patches_EnergyShieldCECompat");
-
-                    VMF_Harmony.Instance.Patch(AccessTools.Method("EnergyShieldCECompat.PatchProjectileCE:TickPostfix"), transpiler: AccessTools.Method(typeof(Patch_PatchProjectileCE_TickPostfix), nameof(Patch_PatchProjectileCE_TickPostfix.Transpiler)));
-                    VMF_Harmony.Instance.Patch(AccessTools.Method("cn.zhuzijun.EnergyShieldCECompat.ZMod:CheckIntercept"), transpiler: AccessTools.Method(typeof(Patch_ZMod_CheckIntercept), nameof(Patch_ZMod_CheckIntercept.Transpiler)));
-                    VMF_Harmony.Instance.Patch(AccessTools.Method("cn.zhuzijun.EnergyShieldCECompat.ZMod:ImpactSomethingCallback"), transpiler: AccessTools.Method(typeof(Patch_ZMod_ImpactSomethingCallback), nameof(Patch_ZMod_ImpactSomethingCallback.Transpiler)));
-                    VMF_Harmony.Instance.Patch(AccessTools.Method("cn.zhuzijun.EnergyShieldCECompat.ZMod:ShieldZonesCallback"), transpiler: AccessTools.Method(typeof(Patch_ZMod_ShieldZonesCallback), nameof(Patch_ZMod_ShieldZonesCallback.Transpiler)));
-                }
+                    VMF_Harmony.PatchCategory("VMF_Patches_EnergyShieldCECompat");
+               }
             }
         }
     }

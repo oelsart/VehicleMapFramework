@@ -133,12 +133,12 @@ namespace VehicleInteriors
             {
                 if (!VMF_PUAHMod.settings.patchEnabled)
                 {
-                    VMF_Harmony.Instance.UnpatchCategory("VMF_Compatibility_Patch");
+                    VMF_CompatibilityPatchMod.ApplyPatches(unpatch: true);
                 }
             }
             else if (VMF_PUAHMod.settings.patchEnabled)
             {
-                VMF_Harmony.Instance.PatchCategory("VMF_Compatibility_Patch");
+                VMF_CompatibilityPatchMod.ApplyPatches();
             }
         }
 

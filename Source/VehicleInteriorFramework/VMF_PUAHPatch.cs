@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
+using VehicleInteriors;
 using VehicleInteriors.VMF_HarmonyPatches;
 using Verse;
 using Verse.AI;
@@ -118,14 +119,66 @@ namespace VMF_PUAHPatch
                 // Apply all other patches
                 if (VMF_PUAHMod.settings.patchEnabled)
                 {
-                    VMF_Harmony.Instance.PatchCategory("VMF_Compatibility_Patch");
-
+                    //VMF_Harmony.Instance.PatchCategory("VMF_Compatibility_Patch");
+                    ApplyPatches();
                     VMF_PUAHLogger.LogInfo("[VMF Compatibility Patch] Initialized");
                 }
             }
             catch (Exception ex)
             {
                 VMF_PUAHLogger.LogIssue($"[VMF Compatibility Patch] [ISSUE] Error during initialization: {ex.Message}");
+            }
+        }
+
+        public static void ApplyPatches(bool unpatch = false)
+        {
+            //Patch(AccessTools.Method(typeof(Job), "MakeDriver"), prefix: AccessTools.Method(typeof(JobMakeDriverPatch), nameof(JobMakeDriverPatch.Prefix)));
+            //Patch(AccessTools.Method(typeof(JobAcrossMapsUtility), nameof(JobAcrossMapsUtility.SetSpotsToJobAcrossMaps)), prefix: AccessTools.Method(typeof(JobAcrossMapsUtilityPatch), nameof(JobAcrossMapsUtilityPatch.Prefix)));
+            if (ModCompat.PickUpAndHaul.Active)
+            {
+                var targetMethod = HaulToInventoryAcrossMapsPatch.TargetMethod();
+                if (targetMethod != null)
+                {
+                    Patch(targetMethod, postfix: AccessTools.Method(typeof(HaulToInventoryAcrossMapsPatch), nameof(HaulToInventoryAcrossMapsPatch.Postfix)));
+                }
+            }
+            //Patch(AccessTools.Method(typeof(FloatMenuMakerMap), "AddJobGiverWorkOrders"), prefix: AccessTools.Method(typeof(FloatMenuMakerMapPatch), nameof(FloatMenuMakerMapPatch.Prefix)));
+            if (ModCompat.VFECore.Active)
+            {
+                var targetMethod = ShieldsSystemPatch.TargetMethod();
+                if (targetMethod != null)
+                {
+                    Patch(targetMethod, prefix: AccessTools.Method(typeof(ShieldsSystemPatch), nameof(ShieldsSystemPatch.Prefix)));
+                }
+            }
+            //Patch(AccessTools.Method(typeof(JobDriver), nameof(JobDriver.GetReport)), prefix: AccessTools.Method(typeof(JobDriverGetReportPatch), nameof(JobDriverGetReportPatch.Prefix)));
+            //Patch(AccessTools.Method(typeof(Pawn), nameof(Pawn.SpawnSetup)), prefix: AccessTools.Method(typeof(PawnSpawnSetupPatch), nameof(PawnSpawnSetupPatch.Prefix)));
+
+            void Patch(MethodBase original, MethodInfo prefix = null, MethodInfo postfix = null, MethodInfo transpiler = null, MethodInfo finalizer = null)
+            {
+                if (unpatch)
+                {
+                    if (prefix != null)
+                    {
+                        VMF_Harmony.Instance.Unpatch(original, prefix);
+                    }
+                    if (postfix != null)
+                    {
+                        VMF_Harmony.Instance.Unpatch(original, postfix);
+                    }
+                    if (transpiler != null)
+                    {
+                        VMF_Harmony.Instance.Unpatch(original, transpiler);
+                    }
+                    if (finalizer != null)
+                    {
+                        VMF_Harmony.Instance.Unpatch(original, finalizer);
+                    }
+                }
+                else
+                {
+                    VMF_Harmony.Instance.Patch(original, prefix, postfix, transpiler, finalizer);
+                }
             }
         }
 
@@ -212,7 +265,7 @@ namespace VMF_PUAHPatch
 
         // Prefix patch with full parameter list to match the original method
         [HarmonyPrefix]
-        public static bool Prefix(Job job, Pawn pawn, object exitSpot1, object enterSpot1, object exitSpot2, object enterSpot2)
+        public static bool Prefix(Job job, Pawn pawn)
         {
             // If job is null, we can't proceed
             if (job == null || pawn == null)
@@ -423,7 +476,7 @@ namespace VMF_PUAHPatch
     public static class FloatMenuMakerMapPatch
     {
         [HarmonyPrefix]
-        public static bool Prefix(Vector3 clickPos, Pawn pawn, List<FloatMenuOption> opts, bool drafted)
+        public static bool Prefix(Pawn pawn, List<FloatMenuOption> opts)
         {
             if (pawn == null || opts == null)
             {

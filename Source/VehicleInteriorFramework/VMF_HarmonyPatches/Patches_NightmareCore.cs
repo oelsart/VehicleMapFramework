@@ -14,10 +14,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             if (ModCompat.NightmareCore)
             {
-                //VMF_Harmony.Instance.PatchCategory("VMF_Patches_NightmareCore");
-
-                VMF_Harmony.Instance.Patch(AccessTools.Method("NightmareCore.DiagonalAtlasGraphics.Graphic_LinkedStitched:Print"), transpiler: AccessTools.Method(typeof(Patch_Graphic_LinkedStitched_Print), nameof(Patch_Graphic_LinkedStitched_Print.Transpiler)));
-                VMF_Harmony.Instance.Patch(AccessTools.Method("NightmareCore.ThingComp_AdditionalGraphics:PostPrintOnto"), transpiler: AccessTools.Method(typeof(Patch_ThingComp_AdditionalGraphics_PostPrintOnto), nameof(Patch_ThingComp_AdditionalGraphics_PostPrintOnto.Transpiler)));
+                VMF_Harmony.PatchCategory("VMF_Patches_NightmareCore");
             }
         }
     }

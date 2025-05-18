@@ -10,9 +10,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             if (ModCompat.Gunplay)
             {
-                //VMF_Harmony.Instance.PatchCategory("VMF_Patches_Gunplay");
-
-                VMF_Harmony.Instance.Patch(AccessTools.Method("Gunplay.Patch.PatchProjectileLaunch:Postfix"), transpiler: AccessTools.Method(typeof(Patch_PatchProjectileLaunch_Postfix), nameof(Patch_PatchProjectileLaunch_Postfix.Transpiler)));
+                VMF_Harmony.PatchCategory("VMF_Patches_Gunplay");
             }
         }
     }

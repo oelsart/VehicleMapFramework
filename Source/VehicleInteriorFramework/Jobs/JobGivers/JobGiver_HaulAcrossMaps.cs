@@ -5,7 +5,6 @@ using Verse.AI;
 
 namespace VehicleInteriors
 {
-    [StaticConstructorOnStartup]
     public class JobGiver_HaulAcrossMaps : ThinkNode_JobGiver
     {
         protected override Job TryGiveJob(Pawn pawn)

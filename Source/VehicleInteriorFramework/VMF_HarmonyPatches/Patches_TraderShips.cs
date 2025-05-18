@@ -13,11 +13,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             if (ModCompat.TraderShips)
             {
-                //VMF_Harmony.Instance.PatchCategory("VMF_Patches_TraderShips");
-
-                VMF_Harmony.Instance.Patch(AccessTools.Method("TraderShips.CompShip:PostDraw"), transpiler: AccessTools.Method(typeof(Patch_CompShip_PostDraw), nameof(Patch_CompShip_PostDraw.Transpiler)));
-                VMF_Harmony.Instance.Patch(AccessTools.Method("TraderShips.LandedShip:ColonyThingsWillingToBuy"), prefix: AccessTools.Method(typeof(Patch_LandedShip_ColonyThingsWillingToBuy), nameof(Patch_LandedShip_ColonyThingsWillingToBuy.Prefix)), postfix: AccessTools.Method(typeof(Patch_LandedShip_ColonyThingsWillingToBuy), nameof(Patch_LandedShip_ColonyThingsWillingToBuy.Postfix)));
-                VMF_Harmony.Instance.Patch(AccessTools.Method("TraderShips.LandedShip:ReachableForTrade"), transpiler: AccessTools.Method(typeof(Patch_LandedShip_ReachableForTrade), nameof(Patch_LandedShip_ReachableForTrade.Transpiler)));
+                VMF_Harmony.PatchCategory("VMF_Patches_TraderShips");
             }
         }
     }

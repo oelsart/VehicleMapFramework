@@ -42,9 +42,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 patch = AccessTools.Method("WhileYoureUp.Mod+JobDriver_HaulToCell__MakeNewToils_Patch:ClearDetourOnFinish");
                 VMF_Harmony.Instance.Patch(original, postfix: patch);
 
-                //VMF_Harmony.Instance.PatchCategory("VMF_Patches_WhileYoureUp");
-
-                VMF_Harmony.Instance.Patch(AccessTools.Method("WhileYoureUp.Mod:TryFindBestBetterStoreCellFor_MidwayToTarget"), prefix: AccessTools.Method(typeof(Patch_WhileYoureUp_Mod_TryFindBestBetterStoreCellFor_MidwayToTarget), nameof(Patch_WhileYoureUp_Mod_TryFindBestBetterStoreCellFor_MidwayToTarget.Prefix)));
+                VMF_Harmony.PatchCategory("VMF_Patches_WhileYoureUp");
             }
         }
     }

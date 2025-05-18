@@ -9,7 +9,7 @@ using Verse;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
 {
-    [StaticConstructorOnStartup]
+    [StaticConstructorOnStartupPriority(Priority.Normal)]
     public static class Patches_Designator_ZoneAdd_MakeNewZone
     {
         static Patches_Designator_ZoneAdd_MakeNewZone()
@@ -20,7 +20,10 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 var method = AccessTools.Method(type, "MakeNewZone");
                 if (method != null && method.IsDeclaredMember())
                 {
-                    VMF_Harmony.Instance.Patch(method, null, null, transpiler);
+                    if (PatchProcessor.ReadMethodBody(method).Any(i => MethodInfoCache.g_Find_CurrentMap.Equals(i.Value)))
+                    {
+                        VMF_Harmony.Instance.Patch(method, null, null, transpiler);
+                    }
                 }
             }
         }
@@ -31,36 +34,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
-    [StaticConstructorOnStartup]
-    public static class Patches_Designator_SelectedUpdate
-    {
-        static Patches_Designator_SelectedUpdate()
-        {
-            var postfix = AccessTools.Method(typeof(Patches_Designator_SelectedUpdate), nameof(Patches_Designator_SelectedUpdate.Postfix));
-            foreach (var type in typeof(Designator).AllSubclasses().Concat(typeof(Designator)).Except(typeof(Designator_AreaAllowed)))
-            {
-                var method = AccessTools.Method(type, "SelectedUpdate");
-                if (method != null && method.IsDeclaredMember())
-                {
-                    VMF_Harmony.Instance.Patch(method, null, postfix);
-                }
-            }
-        }
-
-        public static void Postfix()
-        {
-            if (Command_FocusVehicleMap.FocuseLockedVehicle != null) return;
-
-            Command_FocusVehicleMap.FocusedVehicle = null;
-            var mousePos = UI.MouseMapPosition();
-            if (mousePos.TryGetVehicleMap(Find.CurrentMap, out var vehicle, false))
-            {
-                Command_FocusVehicleMap.FocusedVehicle = vehicle;
-            }
-        }
-    }
-
-    [StaticConstructorOnStartup]
+    [StaticConstructorOnStartupPriority(Priority.Normal)]
     public static class Patches_Designator_DesignateThing
     {
         static Patches_Designator_DesignateThing()
@@ -71,12 +45,18 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 var method = AccessTools.Method(type, "DesignateThing");
                 if (method != null && method.IsDeclaredMember())
                 {
-                    VMF_Harmony.Instance.Patch(method, null, null, transpiler);
+                    if (PatchProcessor.ReadMethodBody(method).Any(i => MethodInfoCache.g_Designator_Map.Equals(i.Value)))
+                    {
+                        VMF_Harmony.Instance.Patch(method, null, null, transpiler);
+                    }
                 }
                 var method2 = AccessTools.Method(type, "CanDesignateThing");
                 if (method2 != null && method2.IsDeclaredMember())
                 {
-                    VMF_Harmony.Instance.Patch(method2, null, null, transpiler);
+                    if (PatchProcessor.ReadMethodBody(method2).Any(i => MethodInfoCache.g_Designator_Map.Equals(i.Value)))
+                    {
+                        VMF_Harmony.Instance.Patch(method2, null, null, transpiler);
+                    }
                 }
             }
         }
@@ -102,6 +82,37 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 {
                     yield return instruction;
                 }
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(DesignatorManager), nameof(DesignatorManager.DesignatorManagerUpdate))]
+    public static class Patch_Designator_SelectedUpdate
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+        {
+            var m_SelectedUpdate = AccessTools.Method(typeof(Designator), nameof(Designator.SelectedUpdate));
+            foreach (var instruction in instructions)
+            {
+                yield return instruction;
+                if (instruction.Calls(m_SelectedUpdate))
+                {
+                    yield return CodeInstruction.LoadArgument(0);
+                    yield return CodeInstruction.LoadField(typeof(DesignatorManager), "selectedDesignator");
+                    yield return CodeInstruction.Call(typeof(Patch_Designator_SelectedUpdate), nameof(SelectedUpdatePostfix));
+                }
+            }
+        }
+
+        public static void SelectedUpdatePostfix(Designator ___selectedDesignator)
+        {
+            if (Command_FocusVehicleMap.FocuseLockedVehicle != null || ___selectedDesignator is Designator_AreaAllowed) return;
+
+            Command_FocusVehicleMap.FocusedVehicle = null;
+            var mousePos = UI.MouseMapPosition();
+            if (mousePos.TryGetVehicleMap(Find.CurrentMap, out var vehicle, false))
+            {
+                Command_FocusVehicleMap.FocusedVehicle = vehicle;
             }
         }
     }

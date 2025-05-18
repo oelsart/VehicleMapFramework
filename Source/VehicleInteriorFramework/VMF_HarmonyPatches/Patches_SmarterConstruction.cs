@@ -14,11 +14,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             if (ModCompat.SmarterConstruction)
             {
-                //VMF_Harmony.Instance.PatchCategory("VMF_Patches_SmarterConstruction");
-
-                VMF_Harmony.Instance.Patch(AccessTools.Method("SmarterConstruction.Patches.Patch_WorkGiver_Scanner_GetPriority:PriorityPostfix"), transpiler: AccessTools.Method(typeof(Patch_Patch_WorkGiver_Scanner_GetPriority_PriorityPostfix), nameof(Patch_Patch_WorkGiver_Scanner_GetPriority_PriorityPostfix.Transpiler)));
-                VMF_Harmony.Instance.Patch(AccessTools.Method("SmarterConstruction.Patches.CustomGenClosest:ClosestThing_Global_Reachable_Custom"), transpiler: AccessTools.Method(typeof(Patch_CustomGenClosest_ClosestThing_Global_Reachable_Custom), nameof(Patch_CustomGenClosest_ClosestThing_Global_Reachable_Custom.Transpiler)));
-                VMF_Harmony.Instance.Patch(AccessTools.Method("SmarterConstruction.Core.PathGridWrapper:Walkable"), postfix: AccessTools.Method(typeof(Patch_PathGridWrapper_Walkable), nameof(Patch_PathGridWrapper_Walkable.Postfix)));
+                VMF_Harmony.PatchCategory("VMF_Patches_SmarterConstruction");
 
                 var original = AccessTools.Method(typeof(WorkGiver_ConstructFinishFramesAcrossMaps), nameof(WorkGiver_ConstructFinishFramesAcrossMaps.JobOnThing));
                 var postfix = AccessTools.Method("SmarterConstruction.Patches.WorkGiver_ConstructFinishFrames_JobOnThing:Postfix");

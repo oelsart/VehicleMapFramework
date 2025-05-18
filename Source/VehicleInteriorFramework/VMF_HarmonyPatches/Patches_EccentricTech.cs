@@ -14,15 +14,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             if (ModCompat.DefenseGrid.Active)
             {
-                //VMF_Harmony.Instance.PatchCategory("VMF_Patches_EccentricTech_DefenseGrid");
-
-                VMF_Harmony.Instance.Patch(AccessTools.Method("EccentricDefenseGrid.PlaceWorker_DefenseProjector:DrawGhost"), prefix: AccessTools.Method(typeof(Patch_PlaceWorker_DefenseProjector_DrawGhost), nameof(Patch_PlaceWorker_DefenseProjector_DrawGhost.Prefix)));
-                VMF_Harmony.Instance.Patch(AccessTools.Method("EccentricDefenseGrid.PlaceWorker_ArtillerySensor:DrawGhost"), prefix: AccessTools.Method(typeof(Patch_PlaceWorker_ArtillerySensor_DrawGhost), nameof(Patch_PlaceWorker_ArtillerySensor_DrawGhost.Prefix)));
-                VMF_Harmony.Instance.Patch(AccessTools.Method("EccentricDefenseGrid.Graphic_DefenseConduit:ShouldLinkWith"), prefix: AccessTools.Method(typeof(Patch_Graphic_DefenseConduit_ShouldLinkWith), nameof(Patch_Graphic_DefenseConduit_ShouldLinkWith.Prefix)));
-                VMF_Harmony.Instance.Patch(AccessTools.Method("EccentricDefenseGrid.CompProjectorOverlay:PostDraw"), transpiler: AccessTools.Method(typeof(Patch_CompProjectorOverlay_PostDraw), nameof(Patch_CompProjectorOverlay_PostDraw.Transpiler)));
-                VMF_Harmony.Instance.Patch(AccessTools.Method("EccentricProjectiles.InterceptorMapComponent:MapComponentUpdate"), transpiler: AccessTools.Method(typeof(Patch_InterceptorMapComponent_MapComponentUpdate), nameof(Patch_InterceptorMapComponent_MapComponentUpdate.Transpiler)));
-                VMF_Harmony.Instance.Patch(AccessTools.Method("EccentricProjectiles.InterceptorMapComponent:Draw"), transpiler: AccessTools.Method(typeof(Patch_InterceptorMapComponent_Draw), nameof(Patch_InterceptorMapComponent_Draw.Transpiler)));
-                VMF_Harmony.Instance.Patch(AccessTools.Method("EccentricProjectiles.CompProjectileInterceptor:ShouldDrawField"), transpiler: AccessTools.Method(typeof(Patch_CompProjectileInterceptor_ShouldDrawField), nameof(Patch_CompProjectileInterceptor_ShouldDrawField.Transpiler)));
+                VMF_Harmony.PatchCategory("VMF_Patches_EccentricTech_DefenseGrid");
             }
         }
     }

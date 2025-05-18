@@ -14,14 +14,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             if (ModCompat.ExosuitFramework)
             {
-                //VMF_Harmony.Instance.PatchCategory("VMF_Patches_ExosuitFramework");
-
-                VMF_Harmony.Instance.Patch(AccessTools.Method("WalkerGear.CompBuildingExtraRenderer:PostPrintOnto"), transpiler: AccessTools.Method(typeof(Patch_CompBuildingExtraRenderer_PostPrintOnto), nameof(Patch_CompBuildingExtraRenderer_PostPrintOnto.Transpiler)));
-                VMF_Harmony.Instance.Patch(AccessTools.Method("WalkerGear.WG_AbilityVerb_QuickJump:DoJump", new Type[] { typeof(Pawn), typeof(Map), typeof(LocalTargetInfo), typeof(LocalTargetInfo), typeof(bool), typeof(bool) }), prefix: AccessTools.Method(typeof(Patch_WG_AbilityVerb_QuickJump_DoJump), nameof(Patch_WG_AbilityVerb_QuickJump_DoJump.Prefix)), transpiler: AccessTools.Method(typeof(Patch_WG_AbilityVerb_QuickJump_DoJump), nameof(Patch_WG_AbilityVerb_QuickJump_DoJump.Transpiler)));
-                VMF_Harmony.Instance.Patch(AccessTools.Method("WalkerGear.WG_PawnFlyer:RespawnPawn"), transpiler: AccessTools.Method(typeof(Patch_WG_PawnFlyer_RespawnPawn), nameof(Patch_WG_PawnFlyer_RespawnPawn.Transpiler)));
-                VMF_Harmony.Instance.Patch(AccessTools.Method("WalkerGear.WG_PawnFlyer:SpawnSetup"), postfix: AccessTools.Method(typeof(Patch_WG_PawnFlyer_SpawnSetup), nameof(Patch_WG_PawnFlyer_SpawnSetup.Postfix)));
-                VMF_Harmony.Instance.Patch(AccessTools.Method("WalkerGear.Building_EjectorBay:DynamicDrawPhaseAt"), transpiler: AccessTools.Method(typeof(Patch_Building_EjectorBay_DynamicDrawPhaseAt), nameof(Patch_Building_EjectorBay_DynamicDrawPhaseAt.Transpiler)));
-                VMF_Harmony.Instance.Patch(AccessTools.Method("WalkerGear.Building_MaintenanceBay:DynamicDrawPhaseAt"), prefix: AccessTools.Method(typeof(Patch_Building_MaintenanceBay_DynamicDrawPhaseAt), nameof(Patch_Building_MaintenanceBay_DynamicDrawPhaseAt.Prefix)));
+                VMF_Harmony.PatchCategory("VMF_Patches_ExosuitFramework");
             }
         }
     }

@@ -15,11 +15,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             if (ModCompat.AdaptiveStorage)
             {
-                //VMF_Harmony.Instance.PatchCategory("VMF_Patches_AdaptiveStorage");
-
-                VMF_Harmony.Instance.Patch(AccessTools.Method("AdaptiveStorage.PrintUtility:PrintAt", new Type[] { typeof(Graphic), typeof(SectionLayer), typeof(Thing), typeof(Vector3).MakeByRefType(), typeof(Vector2).MakeByRefType(), typeof(float) }), prefix: AccessTools.Method(typeof(Patch_PrintUtility_PrintAt), nameof(Patch_PrintUtility_PrintAt.Prefix)), transpiler: AccessTools.Method(typeof(Patch_PrintUtility_PrintAt), nameof(Patch_PrintUtility_PrintAt.Transpiler)));
-                VMF_Harmony.Instance.Patch(AccessTools.Method("AdaptiveStorage.StorageRenderer:DrawOffsetForThing"), postfix: AccessTools.Method(typeof(Patch_StorageRenderer_DrawOffsetForThing), nameof(Patch_StorageRenderer_DrawOffsetForThing.Postfix)), transpiler: AccessTools.Method(typeof(Patch_StorageRenderer_DrawOffsetForThing), nameof(Patch_StorageRenderer_DrawOffsetForThing.Transpiler)));
-                VMF_Harmony.Instance.Patch(AccessTools.Method("AdaptiveStorage.StorageRenderer:ItemOffsetAt"), postfix: AccessTools.Method(typeof(Patch_StorageRenderer_ItemOffsetAt), nameof(Patch_StorageRenderer_ItemOffsetAt.Postfix)));
+                VMF_Harmony.PatchCategory("VMF_Patches_AdaptiveStorage");
             }
         }
     }

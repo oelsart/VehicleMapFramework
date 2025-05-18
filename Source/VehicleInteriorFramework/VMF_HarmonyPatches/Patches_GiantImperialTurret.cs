@@ -18,18 +18,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             if (ModCompat.GiantImperialTurret)
             {
-                //VMF_Harmony.Instance.PatchCategory("VMF_Patches_GiantImperialTurret");
-
-                var type = AccessTools.TypeByName("BreadMoProjOffset.Building_TurretGunNonSnap");
-                var methods = type.GetMethods(AccessTools.all).Where(m => m.Name.Contains("<TryFindNewTarget>") || m.Name.Contains("<>"));
-                foreach (var method in methods)
-                {
-                    VMF_Harmony.Instance.Patch(method, transpiler: AccessTools.Method(typeof(Patch_Building_TurretGunNonSnap_TryFindNewTarget), nameof(Patch_Building_TurretGunNonSnap_TryFindNewTarget.Transpiler)));
-                }
-                VMF_Harmony.Instance.Patch(AccessTools.Method("BreadMoProjOffset.Building_TurretGunNonSnap:IsValidTarget"), transpiler: AccessTools.Method(typeof(Patch_Building_TurretGunNonSnap_IsValidTarget), nameof(Patch_Building_TurretGunNonSnap_IsValidTarget.Transpiler)));
-                VMF_Harmony.Instance.Patch(AccessTools.Method("BreadMoProjOffset.Building_TurretGunNonSnap:TryFindNewTarget"), postfix: AccessTools.Method(typeof(Patch_Building_TurretGunNonSnap_TryFindNewTarget2), nameof(Patch_Building_TurretGunNonSnap_TryFindNewTarget2.Postfix)));
-                VMF_Harmony.Instance.Patch(AccessTools.Method("BreadMoProjOffset.Building_TurretGunNonSnap:Tick"), prefix: AccessTools.Method(typeof(Patch_Building_TurretGunNonSnap_Tick), nameof(Patch_Building_TurretGunNonSnap_Tick.Prefix)), postfix: AccessTools.Method(typeof(Patch_Building_TurretGunNonSnap_Tick), nameof(Patch_Building_TurretGunNonSnap_Tick.Postfix)));
-                VMF_Harmony.Instance.Patch(AccessTools.Method("BreadMoProjOffset.AttackTargetFinderAngle:BestAttackTarget"), postfix: AccessTools.Method(typeof(Patch_AttackTargetFinderAngle_BestAttackTarget), nameof(Patch_AttackTargetFinderAngle_BestAttackTarget.Postfix)));
+                VMF_Harmony.PatchCategory("VMF_Patches_GiantImperialTurret");
             }
         }
     }

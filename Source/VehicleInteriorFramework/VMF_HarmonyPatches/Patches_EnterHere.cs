@@ -14,11 +14,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             if (ModCompat.EnterHere)
             {
-                //VMF_Harmony.Instance.PatchCategory("VMF_Patches_EnterHere");
-
-                VMF_Harmony.Instance.Patch(AccessTools.FindIncludingInnerTypes<MethodBase>(AccessTools.TypeByName("EnterHere.VehicleCaravanFormingUtility_StartFormingCaravan"),
-                t => t.GetMethods(AccessTools.all).FirstOrDefault(m => m.Name.Contains("<Prefix>b__0"))), prefix: AccessTools.Method(typeof(Patch_VehicleCaravanFormingUtility_StartFormingCaravan_Prefix_Func), nameof(Patch_VehicleCaravanFormingUtility_StartFormingCaravan_Prefix_Func.Prefix)));
-                VMF_Harmony.Instance.Patch(AccessTools.Method("EnterHere.VehicleCaravanFormingUtility_StartFormingCaravan:Prefix"), transpiler: AccessTools.Method(typeof(Patch_VehicleCaravanFormingUtility_StartFormingCaravan_Prefix), nameof(Patch_VehicleCaravanFormingUtility_StartFormingCaravan_Prefix.Transpiler)));
+                VMF_Harmony.Instance.PatchCategory("VMF_Patches_EnterHere");
             }
         }
     }

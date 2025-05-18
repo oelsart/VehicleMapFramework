@@ -13,9 +13,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             if (ModCompat.BiomesCaverns)
             {
-                //VMF_Harmony.Instance.PatchCategory("VMF_Patches_BiomesCaverns");
-
-                VMF_Harmony.Instance.Patch(AccessTools.Method("Caveworld_Flora_Unleashed.MapComponent_CaveFungus:MapComponentTick"), transpiler: AccessTools.Method(typeof(Patch_MapComponent_CaveFungus_MapComponentTick), nameof(Patch_MapComponent_CaveFungus_MapComponentTick.Transpiler)));
+                VMF_Harmony.PatchCategory("VMF_Patches_BiomesCaverns");
             }
         }
     }

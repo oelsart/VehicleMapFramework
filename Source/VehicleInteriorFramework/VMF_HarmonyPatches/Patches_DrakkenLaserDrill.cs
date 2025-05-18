@@ -13,15 +13,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             if (ModCompat.DrakkenLaserDrill)
             {
-                //VMF_Harmony.Instance.PatchCategory("VMF_Patches_DrakkenLaserDrill");
-
-                VMF_Harmony.Instance.Patch(AccessTools.Method("MYDE_DrakkenLaserDrill.Building_DrakkenLaserDrill:DrawAt"), transpiler: AccessTools.Method(typeof(Patch_Building_DrakkenLaserDrill_DrawAt), nameof(Patch_Building_DrakkenLaserDrill_DrawAt.Transpiler)));
-                VMF_Harmony.Instance.Patch(AccessTools.Method("MYDE_DrakkenLaserDrill.Comp_DrakkenLaserDrill_MouseAttack:DoSomething"), transpiler: AccessTools.Method(typeof(Patch_Comp_DrakkenLaserDrill_MouseAttack_DoSomething), nameof(Patch_Comp_DrakkenLaserDrill_MouseAttack_DoSomething.Transpiler)));
-                VMF_Harmony.Instance.Patch(AccessTools.Method("MYDE_DrakkenLaserDrill.Comp_DrakkenLaserDrill_MouseAttack:DoSomething_Move"), transpiler: AccessTools.Method(typeof(Patch_Comp_DrakkenLaserDrill_MouseAttack_DoSomething_Move), nameof(Patch_Comp_DrakkenLaserDrill_MouseAttack_DoSomething_Move.Transpiler)));
-                VMF_Harmony.Instance.Patch(AccessTools.Method("MYDE_DrakkenLaserDrill.Comp_DrakkenLaserDrill_AutoAttack:DoSomething_AttackAllPawn"), transpiler: AccessTools.Method(typeof(Patch_Comp_DrakkenLaserDrill_AutoAttack_DoSomething_AttackAllPawn), nameof(Patch_Comp_DrakkenLaserDrill_AutoAttack_DoSomething_AttackAllPawn.Transpiler)));
-                VMF_Harmony.Instance.Patch(AccessTools.Method("MYDE_DrakkenLaserDrill.Comp_DrakkenLaserDrill_AutoAttack:PrepareToAttack"), transpiler: AccessTools.Method(typeof(Patch_Comp_DrakkenLaserDrill_AutoAttack_PrepareToAttack), nameof(Patch_Comp_DrakkenLaserDrill_AutoAttack_PrepareToAttack.Transpiler)));
-                VMF_Harmony.Instance.Patch(AccessTools.Method("MYDE_DrakkenLaserDrill.Comp_DrakkenLaserDrill_Attack:DoSomething_I"), transpiler: AccessTools.Method(typeof(Patch_Comp_DrakkenLaserDrill_Attack_DoSomething_I), nameof(Patch_Comp_DrakkenLaserDrill_Attack_DoSomething_I.Transpiler)));
-                VMF_Harmony.Instance.Patch(AccessTools.Method("MYDE_DrakkenLaserDrill.Comp_DrakkenLaserDrill_Attack:DoSomething_II"), transpiler: AccessTools.Method(typeof(Patch_Comp_DrakkenLaserDrill_Attack_DoSomething_II), nameof(Patch_Comp_DrakkenLaserDrill_Attack_DoSomething_II.Transpiler)));
+                VMF_Harmony.PatchCategory("VMF_Patches_DrakkenLaserDrill");
             }
         }
     }

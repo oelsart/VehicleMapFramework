@@ -12,11 +12,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             if (ModCompat.Aquariums)
             {
-                //VMF_Harmony.Instance.PatchCategory("VMF_Patches_Aquariums");
-
-                VMF_Harmony.Instance.Patch(AccessTools.Method("Aquariums.ThingComp_WaterGraphic:PostPrintOnto"), transpiler: AccessTools.Method(typeof(Patch_ThingComp_WaterGraphic_PostPrintOnto), nameof(Patch_ThingComp_WaterGraphic_PostPrintOnto.Transpiler)));
-                VMF_Harmony.Instance.Patch(AccessTools.Method("Aquariums.TankNet:DrawTankOutline"), prefix: AccessTools.Method(typeof(Patch_TankNet_DrawTankOutline), nameof(Patch_TankNet_DrawTankOutline.Prefix)));
-                VMF_Harmony.Instance.Patch(AccessTools.PropertyGetter("Aquariums.FishMovementBehavior:PositionWithOffsets"), postfix: AccessTools.Method(typeof(Patch_FishMovementBehavior_PositionWithOffsets), nameof(Patch_FishMovementBehavior_PositionWithOffsets.Postfix)));
+                VMF_Harmony.PatchCategory("VMF_Patches_Aquariums");
             }
         }
     }

@@ -14,12 +14,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             if (ModCompat.DubsBadHygiene.Active)
             {
-                //VMF_Harmony.Instance.PatchCategory("VMF_Patches_DubsBadGygiene");
-
-                VMF_Harmony.Instance.Patch(AccessTools.Method("DubsBadHygiene.SectionLayer_PipeOverlay:DrawAllTileOverlays"), transpiler: AccessTools.Method(typeof(Patch_SectionLayer_PipeOverlay_DrawAllTileOverlays), nameof(Patch_SectionLayer_PipeOverlay_DrawAllTileOverlays.Transpiler)));
-                VMF_Harmony.Instance.Patch(AccessTools.Method("DubsBadHygiene.Graphic_LinkedPipe:ShouldLinkWith"), prefix: AccessTools.Method(typeof(Patch_Graphic_LinkedPipeDBH_ShouldLinkWith), nameof(Patch_Graphic_LinkedPipeDBH_ShouldLinkWith.Prefix)));
-                VMF_Harmony.Instance.Patch(AccessTools.Method("DubsBadHygiene.Building_AssignableFixture:Print"), transpiler: AccessTools.Method(typeof(Patch_Building_AssignableFixture_Print), nameof(Patch_Building_AssignableFixture_Print.Transpiler)));
-                VMF_Harmony.Instance.Patch(AccessTools.Method("DubsBadHygiene.Building_StallDoor:DrawAt"), transpiler: AccessTools.Method(typeof(Patch_Building_StallDoor_DrawAt), nameof(Patch_Building_StallDoor_DrawAt.Transpiler)));
+                VMF_Harmony.PatchCategory("VMF_Patches_DubsBadGygiene");
             }
         }
     }
