@@ -290,15 +290,19 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             var codes = instructions.ToList();
             var pos = codes.FindIndex(c => c.opcode == OpCodes.Stloc_0);
             var label = generator.DefineLabel();
+            var label2 = generator.DefineLabel();
 
-            codes[pos].labels.Add(label);
-            codes.InsertRange(pos, new[]
+            codes[pos].labels.Add(label2);
+            codes.InsertRange(pos - 1, new[]
             {
                 CodeInstruction.LoadArgument(5),
+                new CodeInstruction(OpCodes.Dup),
                 new CodeInstruction(OpCodes.Brfalse_S, label),
-                new CodeInstruction(OpCodes.Pop),
-                CodeInstruction.LoadArgument(5),
-                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Thing_Map)
+                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Thing_Map),
+                new CodeInstruction(OpCodes.Dup),
+                new CodeInstruction(OpCodes.Brfalse_S, label),
+                new CodeInstruction(OpCodes.Br_S, label2),
+                new CodeInstruction(OpCodes.Pop).WithLabels(label)
             });
             pos = codes.FindIndex(pos, c => c.opcode == OpCodes.Call && c.OperandIs(MethodInfoCache.m_GenDraw_DrawFieldEdges));
             codes.Insert(pos, CodeInstruction.LoadLocal(0));
