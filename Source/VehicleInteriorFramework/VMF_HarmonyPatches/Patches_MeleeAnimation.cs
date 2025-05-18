@@ -1,5 +1,4 @@
 ﻿using HarmonyLib;
-using RimWorld;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -59,22 +58,22 @@ namespace VehicleInteriors.VMF_HarmonyPatches.AM
         }
     }
 
-    [HarmonyPatchCategory("VMF_Patches_MeleeAnimation")]
-    [HarmonyPatch("AM.Grappling.GrappleFlyer", "SpawnSetup")]
-    public static class Patch_GrappleFlyer_SpawnSetup
-    {
-        public static void Postfix(PawnFlyer __instance, Pawn ___Grappler, IntVec3 ___destCell, ref int ___ticksFlightTime)
-        {
-            var flyingThing = (Thing)FlyingThing(__instance);
-            if (flyingThing != null && ___Grappler != null)
-            {
-                float num = Mathf.Max(flyingThing.PositionOnAnotherThingMap(___Grappler).DistanceTo(___destCell), 1f) / Mathf.Max(__instance.FlyingPawn.Position.DistanceTo(___destCell), 1f);
-                ___ticksFlightTime = (int)(___ticksFlightTime * num);
-            }
-        }
+    //[HarmonyPatchCategory("VMF_Patches_MeleeAnimation")]
+    //[HarmonyPatch("AM.Grappling.GrappleFlyer", "SpawnSetup")]
+    //public static class Patch_GrappleFlyer_SpawnSetup
+    //{
+    //    public static void Postfix(PawnFlyer __instance, Pawn ___Grappler, IntVec3 ___destCell, ref int ___ticksFlightTime)
+    //    {
+    //        var flyingThing = (Thing)FlyingThing(__instance);
+    //        if (flyingThing != null && ___Grappler != null)
+    //        {
+    //            float num = Mathf.Max(flyingThing.PositionOnAnotherThingMap(___Grappler).DistanceTo(___destCell), 1f) / Mathf.Max(__instance.FlyingPawn.Position.DistanceTo(___destCell), 1f);
+    //            ___ticksFlightTime = (int)(___ticksFlightTime * num);
+    //        }
+    //    }
 
-        private static FastInvokeHandler FlyingThing = MethodInvoker.GetHandler(AccessTools.PropertyGetter(typeof(PawnFlyer), "FlyingThing"));
-    }
+    //    private static FastInvokeHandler FlyingThing = MethodInvoker.GetHandler(AccessTools.PropertyGetter(typeof(PawnFlyer), "FlyingThing"));
+    //}
 
     [HarmonyPatchCategory("VMF_Patches_MeleeAnimation")]
     [HarmonyPatch("AM.Grappling.JobDriver_GrapplePawn", "TickPreEnsnare")]
