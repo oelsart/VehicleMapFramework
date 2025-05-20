@@ -34,23 +34,14 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             }
         }
 
-        private static List<Building> AddBuildings(List<Building> buildings, Map map)
+        private static List<Building> AddBuildings(List<Building> list, Map map)
         {
             buildings.Clear();
-            buildings.AddRange(buildings);
+            buildings.AddRange(list);
             buildings.AddRange(VehiclePawnWithMapCache.AllVehiclesOn(map).SelectMany(v => v.VehicleMap.listerBuildings.allBuildingsColonist));
             return buildings;
         }
 
         private static List<Building> buildings = new List<Building>();
-    }
-
-    [HarmonyPatch(typeof(ListerBuildings), "ColonistsHaveResearchBench")]
-    public static class Debug
-    {
-        public static void Postfix(ListerBuildings __instance)
-        {
-            //Find.Maps.Do(m => Log.Message(m.listerBuildings.allBuildingsColonist.Count));
-        }
     }
 }

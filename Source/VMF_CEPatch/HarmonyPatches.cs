@@ -516,16 +516,6 @@ namespace VMF_CEPatch
     }
 
     [HarmonyPatchCategory("VMF_Patches_CE")]
-    [HarmonyPatch(typeof(Verb_LaunchProjectileCE), "ShotAngle", typeof(Vector3), typeof(Vector3))]
-    public static class Patch_Verb_LaunchProjectileCE_ShotAngle
-    {
-        public static void Postfix(Vector3 source, Vector3 targetPos)
-        {
-            Log.Message($"{source} {targetPos}");
-        }
-    }
-
-    [HarmonyPatchCategory("VMF_Patches_CE")]
     [HarmonyPatch(typeof(ProjectileCE), "DistanceTraveled", MethodType.Getter)]
     public static class Patch_ProjectileCE_DistanceTraveled
     {
