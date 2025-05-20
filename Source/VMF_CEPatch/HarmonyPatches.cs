@@ -24,12 +24,11 @@ namespace VMF_CEPatch
             var m_GetShootingTargetScore = AccessTools.Method(typeof(AttackTargetFinderOnVehicle), "GetShootingTargetScore");
             var m_GetShootingTargetScore_Postfix = AccessTools.Method("CombatExtended.HarmonyCE.Harmony_AttackTargetFinder+Harmony_AttackTargetFinder_GetShootingTargetScore:Postfix");
             VMF_Harmony.Instance.Patch(m_GetShootingTargetScore, null, m_GetShootingTargetScore_Postfix);
-
-            VMF_Harmony.Instance.PatchCategory("VMF_Patches_CE");
+            VMF_Harmony.PatchCategory("VMF_Patches_CE");
 
             if (ModCompat.VFESecurity)
             {
-                VMF_Harmony.Instance.PatchCategory("VMF_Patches_CE_VFESecurity");
+                VMF_Harmony.PatchCategory("VMF_Patches_CE_VFESecurity");
             }
         }
     }
@@ -70,12 +69,21 @@ namespace VMF_CEPatch
 
     [HarmonyPatchCategory("VMF_Patches_CE")]
     [HarmonyPatch(typeof(Verb_LaunchProjectileCE), nameof(Verb_LaunchProjectileCE.ShiftVecReportFor), typeof(LocalTargetInfo))]
-    public static class Patch_Verb_LaunchProjectileCE_ShiftVecReportFor
+    public static class Patch_Verb_LaunchProjectileCE_ShiftVecReportFor1
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(MethodInfoCache.g_LocalTargetInfo_Cell, MethodInfoCache.m_CellOnBaseMap)
-                .MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap)
+            return instructions.MethodReplacer(MethodInfoCache.g_LocalTargetInfo_Cell, MethodInfoCache.m_CellOnBaseMap);
+        }
+    }
+
+    [HarmonyPatchCategory("VMF_Patches_CE")]
+    [HarmonyPatch(typeof(Verb_LaunchProjectileCE), nameof(Verb_LaunchProjectileCE.ShiftVecReportFor), typeof(LocalTargetInfo), typeof(IntVec3))]
+    public static class Patch_Verb_LaunchProjectileCE_ShiftVecReportFor2
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap)
                 .MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing);
         }
     }
@@ -122,8 +130,8 @@ namespace VMF_CEPatch
     }
 
     [HarmonyPatchCategory("VMF_Patches_CE")]
-    [HarmonyPatch(typeof(Verb_LaunchProjectileCE), "CanHitTargetFrom")]
-    [HarmonyPatch(new Type[] { typeof(IntVec3), typeof(LocalTargetInfo), typeof(string) }, new ArgumentType[] { ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Out })]
+    [HarmonyPatch(typeof(Verb_LaunchProjectileCE), nameof(Verb_LaunchProjectileCE.CanHitTargetFrom))]
+    [HarmonyPatch(new[] { typeof(IntVec3), typeof(LocalTargetInfo), typeof(string) }, new[] { ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Out })]
     public static class Patch_Verb_LaunchProjectileCE_CanHitTargetFrom
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -489,7 +497,7 @@ namespace VMF_CEPatch
     [HarmonyPatch]
     public static class Patch_Verb_LaunchProjectileCE_ShiftTarget
     {
-        private static readonly MethodBase m_ShiftTarget = AccessTools.Method(typeof(Verb_LaunchProjectileCE), "ShiftTarget", new[] { typeof(ShiftVecReport), typeof(bool), typeof(bool) });
+        private static readonly MethodBase m_ShiftTarget = AccessTools.Method(typeof(Verb_LaunchProjectileCE), nameof(Verb_LaunchProjectileCE.ShiftTarget), new[] { typeof(ShiftVecReport), typeof(bool), typeof(bool) });
 
         private static bool Prepare()
         {
@@ -504,6 +512,16 @@ namespace VMF_CEPatch
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             return instructions.MethodReplacer(MethodInfoCache.g_LocalTargetInfo_Cell, MethodInfoCache.m_CellOnBaseMap);
+        }
+    }
+
+    [HarmonyPatchCategory("VMF_Patches_CE")]
+    [HarmonyPatch(typeof(Verb_LaunchProjectileCE), "ShotAngle", typeof(Vector3), typeof(Vector3))]
+    public static class Patch_Verb_LaunchProjectileCE_ShotAngle
+    {
+        public static void Postfix(Vector3 source, Vector3 targetPos)
+        {
+            Log.Message($"{source} {targetPos}");
         }
     }
 

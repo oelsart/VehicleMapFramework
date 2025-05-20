@@ -131,8 +131,10 @@
     <Compile Include="Comps\CompBuildableContainer.cs" />
     <Compile Include="Comps\CompEngineLightOverlays.cs" />
     <Compile Include="Comps\CompFuelTank.cs" />
+    <Compile Include="Comps\CompPipeConnector.cs" />
     <Compile Include="Comps\CompProperties_Alternator.cs" />
     <Compile Include="Comps\CompProperties_EngineLightOverlays.cs" />
+    <Compile Include="Comps\CompProperties_PipeConnector.cs" />
     <Compile Include="Comps\CompProperties_TogglableOverlays.cs" />
     <Compile Include="Comps\CompProperties_VehicleEnterSpot.cs" />
     <Compile Include="Comps\CompProperties_VehicleLauncherWithMap.cs" />
@@ -144,6 +146,7 @@
     <Compile Include="Comps\CompWirelessTransmitter.cs" />
     <Compile Include="Combat\ExplosionAcrossMaps.cs" />
     <Compile Include="BuildableUpgrades\Dialog_ChooseVehicleRoles.cs" />
+    <Compile Include="Comps\IPipeConnector.cs" />
     <Compile Include="Comps\VehicleMapHolderComp.cs" />
     <Compile Include="Comps\WorldObjectCompProperties_VehicleMapHolderComp.cs" />
     <Compile Include="Dialog_LoadCargoToBuildableContainer.cs" />
@@ -281,6 +284,7 @@
     <Compile Include="VehicleStructure.cs" />
     <Compile Include="VehicleMap\Vehicle_MapFollower.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_AdaptiveStorage.cs" />
+    <Compile Include="VMF_HarmonyPatches\Patches_Alert.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_AllowTool.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_AnimalPen.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_Aquariums.cs" />
@@ -446,9 +450,6 @@
     <Content Include="..\..\Common\Patches\Patches_VehicleMoveSpeed.xml">
       <Link>Common\Patches\Patches_VehicleMoveSpeed.xml</Link>
     </Content>
-    <Content Include="..\..\LoadFolders.xml">
-      <Link>LoadFolders.xml</Link>
-    </Content>
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\..\..\MapVehicles\About\About.xml">
@@ -534,9 +535,6 @@
     </Content>
     <Content Include="..\..\..\MapVehicles\Common\Patches\Patches_VVE_RTC_ReplaceCostList.xml">
       <Link>Common\Patches\Patches_VVE_RTC_ReplaceCostList.xml</Link>
-    </Content>
-    <Content Include="..\..\..\MapVehicles\LoadFolders.xml">
-      <Link>LoadFolders.xml</Link>
     </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

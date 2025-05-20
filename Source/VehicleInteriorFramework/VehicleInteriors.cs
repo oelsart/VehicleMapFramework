@@ -112,7 +112,7 @@ namespace VehicleInteriors
             else if (settings.roofedPatch)
             {
                 var m_Postfix = AccessTools.Method(typeof(Patch_RoofGrid_Roofed), nameof(Patch_RoofGrid_Roofed.Postfix));
-                VMF_Harmony.Instance.Patch(m_Roofed, m_Postfix);
+                VMF_Harmony.Instance.Patch(m_Roofed, postfix: m_Postfix);
             }
 
             var m_GenericRectTool = AccessTools.Method(typeof(DebugToolsGeneral), nameof(DebugToolsGeneral.GenericRectTool));

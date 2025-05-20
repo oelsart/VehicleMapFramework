@@ -116,11 +116,14 @@ namespace VehicleInteriors
 
             public static readonly Type SectionLayer_ResourceOnVehicle;
 
+            public static readonly Type PipeNetDef;
+
             static VFECore()
             {
                 if (Active)
                 {
                     SectionLayer_ResourceOnVehicle = AccessTools.TypeByName("VehicleInteriors.SectionLayer_ResourceOnVehicle");
+                    PipeNetDef = AccessTools.TypeByName("PipeSystem.PipeNetDef");
                 }
             }
         }

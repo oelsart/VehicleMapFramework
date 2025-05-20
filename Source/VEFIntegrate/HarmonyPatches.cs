@@ -14,13 +14,8 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         static Patches_VEF()
         {
-            //VMF_Harmony.Instance.PatchCategory("VMF_Patches_VEF");
-            VMF_Harmony.Instance.Patch(AccessTools.PropertyGetter(typeof(CompResource), nameof(CompResource.Props)), postfix: AccessTools.Method(typeof(Patch_CompResource_Props), nameof(Patch_CompResource_Props.Postfix)));
-            VMF_Harmony.Instance.Patch(AccessTools.Method(typeof(PipeNetManager), nameof(PipeNetManager.UnregisterConnector)), prefix: AccessTools.Method(typeof(Patch_PipeNetManager_UnregisterConnector), nameof(Patch_PipeNetManager_UnregisterConnector.Prefix)));
-            VMF_Harmony.Instance.Patch(AccessTools.Method(typeof(PipeNet), nameof(PipeNet.Merge)), prefix: AccessTools.Method(typeof(Patch_PipeNet_Merge), nameof(Patch_PipeNet_Merge.Prefix)));
-            VMF_Harmony.Instance.Patch(AccessTools.Method(typeof(Graphic_LinkedPipe), nameof(Graphic_LinkedPipe.ShouldLinkWith)), prefix: AccessTools.Method(typeof(Patch_Graphic_LinkedPipeVEF_ShouldLinkWith), nameof(Patch_Graphic_LinkedPipeVEF_ShouldLinkWith.Prefix)), transpiler: AccessTools.Method(typeof(Patch_Graphic_LinkedPipeVEF_ShouldLinkWith), nameof(Patch_Graphic_LinkedPipeVEF_ShouldLinkWith.Transpiler)));
-            VMF_Harmony.Instance.Patch(AccessTools.Method(typeof(CompResourceStorage), nameof(CompResourceStorage.PostDraw)), prefix: AccessTools.Method(typeof(Patch_CompResourceStorage_PostDraw), nameof(Patch_CompResourceStorage_PostDraw.Prefix)));
-           if (DefDatabase<PipeNetDef>.AllDefsListForReading.Count < 2)
+            VMF_Harmony.PatchCategory("VMF_Patches_VEF");
+            if (DefDatabase<PipeNetDef>.AllDefsListForReading.Count < 2)
             {
                 DefDatabase<ThingDef>.GetNamed("VMF_PipeConnector").designationCategory = null;
                 DefDatabase<DesignationCategoryDef>.GetNamed("VF_Vehicles").ResolveReferences();
@@ -34,7 +29,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static void Postfix(CompResource __instance, ref CompProperties_Resource __result)
         {
-            if (__instance is CompPipeConnector connector)
+            if (__instance is CompPipeConnectorVEF connector)
             {
                 dummy.pipeNet = connector.pipeNet;
                 dummy.soundAmbient = __result.soundAmbient;
@@ -58,7 +53,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 var connectors = comp.PipeNet.connectors.Where(c => c.parent.Map == pipeNetMap);
                 var newNet = PipeNetMaker.MakePipeNet(connectors, pipeNetMap, comp.PipeNet.def);
                 component.pipeNets.Add(newNet);
-                CompPipeConnector.pipeNetCount(MapComponentCache<PipeNetManager>.GetComponent(__instance.map))++;
+                CompPipeConnectorVEF.pipeNetCount(MapComponentCache<PipeNetManager>.GetComponent(__instance.map))++;
             }
         }
     }

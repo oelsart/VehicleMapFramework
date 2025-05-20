@@ -177,7 +177,22 @@ namespace VMF_PUAHPatch
                 }
                 else
                 {
-                    VMF_Harmony.Instance.Patch(original, prefix, postfix, transpiler, finalizer);
+                    if (prefix != null)
+                    {
+                        VMF_Harmony.Instance.Patch(original, prefix: prefix);
+                    }
+                    if (postfix != null)
+                    {
+                        VMF_Harmony.Instance.Patch(original, postfix: postfix);
+                    }
+                    if (transpiler != null)
+                    {
+                        VMF_Harmony.Instance.Patch(original, transpiler: transpiler);
+                    }
+                    if (finalizer != null)
+                    {
+                        VMF_Harmony.Instance.Patch(original, finalizer: finalizer);
+                    }
                 }
             }
         }

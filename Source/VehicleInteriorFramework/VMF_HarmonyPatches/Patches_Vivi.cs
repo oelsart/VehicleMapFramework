@@ -54,7 +54,13 @@ namespace VehicleInteriors.VMF_HarmonyPatches
 
         private static List<Building> AddBuildingList(List<Building> list, Building instance)
         {
-            return list.Concat(instance.Map.BaseMapAndVehicleMaps().Except(instance.Map).SelectMany(m => m.listerBuildings.allBuildingsColonist)).ToList();
+            tmpList.Clear();
+            tmpList.AddRange(list);
+            var maps = instance.Map.BaseMapAndVehicleMaps().Except(instance.Map);
+            tmpList.AddRange(maps.SelectMany(m => m.listerBuildings.allBuildingsColonist));
+            return tmpList;
         }
+
+        private static List<Building> tmpList = new List<Building>();
     }
 }

@@ -17,7 +17,7 @@ namespace VMF_AchtungPatch
     {
         static Patches_Achtung()
         {
-            VMF_Harmony.Instance.PatchCategory("VMF_Patches_Achtung");
+            VMF_Harmony.PatchCategory("VMF_Patches_Achtung");
 
             var type = AccessTools.TypeByName("AchtungMod.FloatMenuMakerMap_AddJobGiverWorkOrders_Patch");
             var prefix = AccessTools.Method(type, "Prefix");

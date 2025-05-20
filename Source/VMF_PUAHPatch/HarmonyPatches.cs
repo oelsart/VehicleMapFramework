@@ -15,7 +15,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             //var patch = AccessTools.Method("PickUpAndHaul.HarmonyPatches:JobDriver_HaulToCell_PostFix");
             //VMF_Harmony.Instance.Patch(original, postfix: patch);
 
-            VMF_Harmony.Instance.PatchCategory("VMF_Patches_PUAH");
+            VMF_Harmony.PatchCategory("VMF_Patches_PUAH");
 
             var workGiver_HaulToInventoryAcrossMaps = new WorkGiver_HaulToInventoryAcrossMaps();
             Patches_AllowTool.JobOnThingDelegate = (Pawn pawn, Thing t, bool forced) =>

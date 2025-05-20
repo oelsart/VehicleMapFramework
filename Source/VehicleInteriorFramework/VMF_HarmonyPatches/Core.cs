@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using SmashTools;
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -12,11 +13,11 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static Harmony Instance = new Harmony("com.harmony.oels.vehiclemapframework");
 
-        public static Type[] AllTypes = AccessTools.GetTypesFromAssembly(Assembly.GetExecutingAssembly());
-
         public static void PatchCategory(string category)
         {
-            AllTypes
+            var method = new StackTrace().GetFrame(1).GetMethod();
+            var assembly = method.ReflectedType.Assembly;
+            AccessTools.GetTypesFromAssembly(assembly)
                 .Where(t => t.CustomAttributes.Any(a => a.AttributeType == typeof(HarmonyPatch)) &&
                 t.CustomAttributes.Any(a => a.AttributeType == typeof(HarmonyPatchCategory) && a.ConstructorArguments.Any(c => c.Value.Equals(category))))
                 .Select(Instance.CreateClassProcessor)
@@ -30,13 +31,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         static EarlyPatchCore()
         {
-            //PatchCategoryを手動パッチに変更することでロード時間が短縮された。この件について追加調査を行う必要があるかもしれない。
             VMF_Harmony.PatchCategory("VehicleInteriors.EarlyPatches");
-
-            //VMF_Harmony.Instance.Patch(AccessTools.PropertyGetter(typeof(ShaderTypeDef), nameof(ShaderTypeDef.Shader)), prefix: AccessTools.Method(typeof(Patch_ShaderTypeDef_Shader), nameof(Patch_ShaderTypeDef_Shader.Prefix)));
-            //VMF_Harmony.Instance.Patch(AccessTools.Method(typeof(VehicleHarmonyOnMod), nameof(VehicleHarmonyOnMod.ShaderFromAssetBundle)), prefix: AccessTools.Method(typeof(Patch_VehicleHarmonyOnMod_ShaderFromAssetBundle), nameof(Patch_VehicleHarmonyOnMod_ShaderFromAssetBundle.Prefix)));
-            //VMF_Harmony.Instance.Patch(AccessTools.Method(typeof(GraphicUtility), nameof(GraphicUtility.WrapLinked)), prefix: AccessTools.Method(typeof(Patch_GraphicUtility_WrapLinked), nameof(Patch_GraphicUtility_WrapLinked.Prefix)));
-            //VMF_Harmony.Instance.Patch(AccessTools.Method(typeof(GraphicData), nameof(GraphicData.CopyFrom)), postfix: AccessTools.Method(typeof(Patch_GraphicData_CopyFrom), nameof(Patch_GraphicData_CopyFrom.Postfix)));
         }
     }
 
@@ -83,7 +78,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         static Core()
         {
-            VMF_Harmony.AllTypes
+            AccessTools.GetTypesFromAssembly(Assembly.GetExecutingAssembly())
                 .Where(t => t.CustomAttributes.Any(a => a.AttributeType == typeof(HarmonyPatch)) && t.CustomAttributes.All(a => a.AttributeType != typeof(HarmonyPatchCategory)))
                 .Select(VMF_Harmony.Instance.CreateClassProcessor)
                 .DoIf(p => p.Category.NullOrEmpty(), p => p.Patch());

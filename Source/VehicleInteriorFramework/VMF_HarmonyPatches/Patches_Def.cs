@@ -1,8 +1,13 @@
-﻿using RimWorld;
+﻿using HarmonyLib;
+using RimWorld;
 using RimWorld.Planet;
+using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using Vehicles;
 using Verse;
+using Verse.AI;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
 {
@@ -82,6 +87,34 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             {
                 worldObjectDef.comps.Add(new WorldObjectCompProperties_VehicleMapHolderComp());
             }
+        }
+    }
+
+    [StaticConstructorOnStartup]
+    public static class CheckEnablePipeConnector
+    {
+        static CheckEnablePipeConnector()
+        {
+            if (!EnablePipeConnector())
+            {
+                DefDatabase<ThingDef>.GetNamed("VMF_PipeConnector").designationCategory = null;
+                DefDatabase<DesignationCategoryDef>.GetNamed("VF_Vehicles").ResolveReferences();
+            }
+        }
+
+        private static bool EnablePipeConnector()
+        {
+            if (ModCompat.DubsBadHygiene.Active) return true;
+
+            if (ModCompat.VFECore.Active)
+            {
+                var allDefs = (IEnumerable<object>)AccessTools.PropertyGetter(typeof(DefDatabase<>).MakeGenericType(ModCompat.VFECore.PipeNetDef), "AllDefs").Invoke(null, null);
+                if (allDefs.Count() > 1)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }
