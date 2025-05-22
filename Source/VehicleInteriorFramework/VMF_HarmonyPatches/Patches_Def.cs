@@ -105,6 +105,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         private static bool EnablePipeConnector()
         {
             if (ModCompat.DubsBadHygiene.Active) return true;
+            if (ModCompat.Rimefeller.Active) return true;
 
             if (ModCompat.VFECore.Active)
             {
