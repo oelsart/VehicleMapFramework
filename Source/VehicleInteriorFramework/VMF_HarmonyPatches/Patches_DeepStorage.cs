@@ -7,7 +7,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         static Patches_DeepStorage()
         {
-            if (ModCompat.DeepStorage)
+            if (ModCompat.DeepStorage.Active)
             {
                 var original = AccessTools.Method(typeof(HaulAIAcrossMapsUtility), nameof(HaulAIAcrossMapsUtility.HaulToCellStorageJob));
                 var patch = AccessTools.Method("LWM.DeepStorage.Patch_HaulAIUtility_HaulToCellStorageJob:Transpiler");

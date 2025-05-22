@@ -17,12 +17,21 @@ namespace VehicleInteriors
 
             public static readonly Type RotationAngle;
 
+            public static readonly Type ThingClass;
+
+            public static readonly FastInvokeHandler Renderer;
+
+            public static readonly FastInvokeHandler SetAllPrintDatasDirty;
+
             static AdaptiveStorage()
             {
                 if (Active)
                 {
                     TransformData = AccessTools.TypeByName("ITransformable.TransformData");
                     RotationAngle = AccessTools.TypeByName("ITransformable.RotationAngle");
+                    ThingClass = AccessTools.TypeByName("AdaptiveStorage.ThingClass");
+                    Renderer = MethodInvoker.GetHandler(AccessTools.PropertyGetter(ThingClass, "Renderer"));
+                    SetAllPrintDatasDirty = MethodInvoker.GetHandler(AccessTools.Method("AdaptiveStorage.StorageRenderer:SetAllPrintDatasDirty"));
                 }
             }
         }
@@ -39,7 +48,20 @@ namespace VehicleInteriors
 
         public static readonly bool ColonyGroups = ModsConfig.IsActive("DerekBickley.LTOColonyGroupsFinal");
 
-        public static readonly bool DeepStorage = ModsConfig.IsActive("LWM.DeepStorage");
+        public static class DeepStorage
+        {
+            public static readonly bool Active = ModsConfig.IsActive("LWM.DeepStorage");
+
+            public static readonly FastInvokeHandler ThingListToDisplay;
+
+            static DeepStorage()
+            {
+                if (Active)
+                {
+                    ThingListToDisplay = MethodInvoker.GetHandler(AccessTools.Method("LWM.DeepStorage.PatchDisplay_SectionLayer_Things_Regenerate:ThingListToDisplay"));
+                }
+            }
+        }
 
         public static readonly bool DeadMansSwitch = ModsConfig.IsActive("Aoba.DeadManSwitch.AncientCorps");
 

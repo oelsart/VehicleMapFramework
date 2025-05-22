@@ -3,6 +3,7 @@ using SmashTools;
 using System.Collections.Generic;
 using UnityEngine;
 using Verse;
+using static VehicleInteriors.ModCompat;
 
 namespace VehicleInteriors
 {
@@ -10,11 +11,6 @@ namespace VehicleInteriors
     {
         public SectionLayer_ThingsOnVehicle(Section section) : base(section)
         {
-            this.deepStorageActive = ModsConfig.IsActive("lwm.deepstorage");
-            if (this.deepStorageActive)
-            {
-                this.m_ThingListToDisplay = MethodInvoker.GetHandler(AccessTools.Method("LWM.DeepStorage.PatchDisplay_SectionLayer_Things_Regenerate:ThingListToDisplay"));
-            }
             for (var i = 0; i < 4; i++)
             {
                 this.subMeshesByRot[i] = new List<LayerSubMesh>();
@@ -105,7 +101,7 @@ namespace VehicleInteriors
                     this.subMeshes.Clear();
                     foreach (IntVec3 intVec in this.section.CellRect)
                     {
-                        var list = this.deepStorageActive ? (List<Thing>)this.m_ThingListToDisplay(null, base.Map, intVec) : intVec.GetThingList(base.Map);
+                        var list = DeepStorage.Active ? (List<Thing>)DeepStorage.ThingListToDisplay(null, base.Map, intVec) : intVec.GetThingList(base.Map);
                         foreach (var thing in list)
                         {
                             if ((thing.def.seeThroughFog || !base.Map.fogGrid.IsFogged(thing.Position)) && thing.def.drawerType != DrawerType.None && (thing.def.drawerType != DrawerType.RealtimeOnly || !this.requireAddToMapMesh) && (thing.def.hideAtSnowDepth >= 1f || base.Map.snowGrid.GetDepth(thing.Position) <= thing.def.hideAtSnowDepth) && thing.Position.x == intVec.x && thing.Position.z == intVec.z)
@@ -132,9 +128,5 @@ namespace VehicleInteriors
         private CellRect bounds;
 
         public List<LayerSubMesh>[] subMeshesByRot = new List<LayerSubMesh>[4];
-
-        private bool deepStorageActive;
-
-        private FastInvokeHandler m_ThingListToDisplay;
     }
 }
