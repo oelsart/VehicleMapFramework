@@ -31,7 +31,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
+    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
     <IntermediateOutputPath>C:\Users\ppss2\AppData\Local\Temp\vs8B2B.tmp\Release\</IntermediateOutputPath>
   </PropertyGroup>
   <ItemGroup>

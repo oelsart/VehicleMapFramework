@@ -30,7 +30,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
+    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="0Harmony">
@@ -195,8 +195,6 @@
     <Compile Include="BuildableUpgrades\VehicleHandlerBuildable.cs" />
     <Compile Include="Utilities\RegionTraverserAcrossMaps.cs" />
     <Compile Include="VehicleMapSettings.cs" />
-    <Compile Include="MapComponents\AsyncReachability.cs" />
-    <Compile Include="MapComponents\AsyncReachabilityCache.cs" />
     <Compile Include="VehicleMap\DynamicDrawManagerOnVehicle.cs" />
     <Compile Include="Utilities\RegionUtility.cs" />
     <Compile Include="VehicleMap\SectionLayer_ThingsGeneralOnVehicle.cs" />

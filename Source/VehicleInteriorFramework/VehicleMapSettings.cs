@@ -14,10 +14,6 @@ namespace VehicleInteriors
 
         public int minAreaForThreading = DefaultSettings.minAreaForThreading;
 
-        public bool asyncClosestThing = DefaultSettings.asyncClosestThing;
-
-        public int minSearchSetCount = DefaultSettings.minSearchSetCount;
-
         public bool roofedPatch = DefaultSettings.roofedPatch;
 
         public bool drawVehicleMapGrid = DefaultSettings.drawVehicleMapGrid;
@@ -30,8 +26,6 @@ namespace VehicleInteriors
             Scribe_Values.Look(ref this.weightFactor, "weightFactor", DefaultSettings.weightFactor);
             Scribe_Values.Look(ref this.threadingPathCost, "threadingPathCost", DefaultSettings.threadingPathCost);
             Scribe_Values.Look(ref this.minAreaForThreading, "minAreaForThreading", DefaultSettings.minAreaForThreading);
-            Scribe_Values.Look(ref this.asyncClosestThing, "asyncClosestThing", DefaultSettings.asyncClosestThing);
-            Scribe_Values.Look(ref this.minSearchSetCount, "minSearchSetCount", DefaultSettings.minSearchSetCount);
             Scribe_Values.Look(ref this.roofedPatch, "roofedPatch", DefaultSettings.roofedPatch);
             Scribe_Values.Look(ref this.drawVehicleMapGrid, "drawVehicleMapGrid", DefaultSettings.drawVehicleMapGrid);
             Scribe_Values.Look(ref this.debugToolPatches, "debugToolPatches", DefaultSettings.debugToolPatches);
@@ -46,10 +40,6 @@ namespace VehicleInteriors
             public readonly bool threadingPathCost = true;
 
             public readonly int minAreaForThreading = 150;
-
-            public readonly bool asyncClosestThing = false;
-
-            public readonly int minSearchSetCount = 64;
 
             public readonly bool roofedPatch = false;
 

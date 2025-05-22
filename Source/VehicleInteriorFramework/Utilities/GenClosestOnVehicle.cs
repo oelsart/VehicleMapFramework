@@ -100,51 +100,22 @@ namespace VehicleInteriors
 
                 var basePos = map.IsVehicleMapOf(out var vehicle) ? root.ToBaseMapCoord(vehicle) : root;
                 var searchSet = customGlobalSearchSet ?? map.BaseMapAndVehicleMaps().SelectMany(m => m.listerThings.ThingsMatching(thingReq));
-                if (ShouldUseAsync(searchSet))
+                bool Validator(Thing t)
                 {
-                    bool ValidatorAsync(Thing t)
+                    if (ReachabilityUtilityOnVehicle.CanReach(map, root, t, peMode, traverseParams, t.Map, out var exitSpot2, out var enterSpot2) && (validator == null || validator(t)))
                     {
-                        if (ReachabilityUtilityOnVehicle.CanReachAsync(map, root, t, peMode, traverseParams, t.Map, out var exitSpot2, out var enterSpot2))
-                        {
-                            lock (_lock)
-                            {
-                                if (validator == null || validator(t))
-                                {
-                                    GenClosestOnVehicle.tmpExitSpot = exitSpot2;
-                                    GenClosestOnVehicle.tmpEnterSpot = enterSpot2;
-                                    return true;
-                                }
-                            }
-                        }
-                        return false;
+                        GenClosestOnVehicle.tmpExitSpot = exitSpot2;
+                        GenClosestOnVehicle.tmpEnterSpot = enterSpot2;
+                        return true;
                     }
-
-                    thing = GenClosestOnVehicle.ClosestThing_Global(basePos, searchSet, maxDistance, ValidatorAsync, async: true);
+                    return false;
                 }
-                else
-                {
-                    bool Validator(Thing t)
-                    {
-                        if (ReachabilityUtilityOnVehicle.CanReach(map, root, t, peMode, traverseParams, t.Map, out var exitSpot2, out var enterSpot2) && (validator == null || validator(t)))
-                        {
-                            GenClosestOnVehicle.tmpExitSpot = exitSpot2;
-                            GenClosestOnVehicle.tmpEnterSpot = enterSpot2;
-                            return true;
-                        }
-                        return false;
-                    }
 
-                    thing = GenClosestOnVehicle.ClosestThing_Global(basePos, searchSet, maxDistance, Validator, null);
-                }
+                thing = GenClosestOnVehicle.ClosestThing_Global(basePos, searchSet, maxDistance, Validator, null);
             }
             exitSpot = GenClosestOnVehicle.exitSpotResult;
             enterSpot = GenClosestOnVehicle.enterSpotResult;
             return thing;
-        }
-
-        private static bool ShouldUseAsync(IEnumerable searchSet)
-        {
-            return VehicleInteriors.settings.asyncClosestThing && searchSet.EnumerableCount() >= VehicleInteriors.settings.minSearchSetCount;
         }
 
         public static Thing RegionwiseBFSWorker(IntVec3 root, Map map, ThingRequest req, PathEndMode peMode, TraverseParms traverseParams, Predicate<Thing> validator, Func<Thing, float> priorityGetter, int minRegions, int maxRegions, float maxDistance, out int regionsSeen, RegionType traversableRegionTypes = RegionType.Set_Passable, bool ignoreEntirelyForbiddenRegions = false)
@@ -198,24 +169,10 @@ namespace VehicleInteriors
 
         public static Thing ClosestThing_Global(IntVec3 center, IEnumerable searchSet, float maxDistance = 99999f, Predicate<Thing> validator = null, Func<Thing, float> priorityGetter = null)
         {
-            return GenClosestOnVehicle.ClosestThing_Global(center, searchSet, maxDistance, validator, priorityGetter, false, false);
+            return GenClosestOnVehicle.ClosestThing_Global(center, searchSet, maxDistance, validator, priorityGetter, false);
         }
 
         public static Thing ClosestThing_Global(IntVec3 center, IEnumerable searchSet, float maxDistance = 99999f, Predicate<Thing> validator = null, Func<Thing, float> priorityGetter = null, bool lookInHaulSources = false)
-        {
-            return GenClosestOnVehicle.ClosestThing_Global(center, searchSet, maxDistance, validator, priorityGetter, lookInHaulSources, false);
-        }
-
-        private static ParallelOptions parallelOptions = new ParallelOptions()
-        {
-            TaskScheduler = TaskScheduler.Default,
-            MaxDegreeOfParallelism = AsyncReachability.NumWorkers,
-            CancellationToken = CancellationToken.None
-        };
-
-        private static ConcurrentQueue<Thing> tmpThings = new ConcurrentQueue<Thing>();
-
-        public static Thing ClosestThing_Global(IntVec3 center, IEnumerable searchSet, float maxDistance = 99999f, Predicate<Thing> validator = null, Func<Thing, float> priorityGetter = null, bool lookInHaulSources = false, bool async = false)
         {
             if (searchSet == null)
             {
@@ -227,122 +184,37 @@ namespace VehicleInteriors
             var maxDistanceSquared = maxDistance * maxDistance;
             if (searchSet is IList<Thing> list)
             {
-                if (async)
+                for (int i = 0; i < list.Count; i++)
                 {
-                    for (int i = 0; i < list.Count; i++)
-                    {
-                        tmpThings.Enqueue(list[i]);
-                    }
-                    Parallel.For(0, list.Count, parallelOptions, i =>
-                    {
-                        if (tmpThings.TryDequeue(out var t))
-                        {
-                            Process(t);
-                        }
-                    });
-                }
-                else
-                {
-                    for (int i = 0; i < list.Count; i++)
-                    {
-                        Process(list[i]);
-                    }
+                    Process(list[i]);
                 }
             }
             else if (searchSet is IList<Pawn> list2)
             {
-                if (async)
+                for (int i = 0; i < list2.Count; i++)
                 {
-                    for (int i = 0; i < list2.Count; i++)
-                    {
-                        tmpThings.Enqueue(list2[i]);
-                    }
-                    Parallel.For(0, list2.Count, parallelOptions, i =>
-                    {
-                        if (tmpThings.TryDequeue(out var t))
-                        {
-                            Process(t);
-                        }
-                    });
-                }
-                else
-                {
-                    for (int i = 0; i < list2.Count; i++)
-                    {
-                        Process(list2[i]);
-                    }
+                    Process(list2[i]);
                 }
             }
             else if (searchSet is IList<Building> list3)
             {
-                if (async)
+                for (int i = 0; i < list3.Count; i++)
                 {
-                    for (int i = 0; i < list3.Count; i++)
-                    {
-                        tmpThings.Enqueue(list3[i]);
-                    }
-                    Parallel.For(0, list3.Count, parallelOptions, i =>
-                    {
-                        if (tmpThings.TryDequeue(out var t))
-                        {
-                            Process(t);
-                        }
-                    });
-                }
-                else
-                {
-                    for (int i = 0; i < list3.Count; i++)
-                    {
-                        Process(list3[i]);
-                    }
+                    Process(list3[i]);
                 }
             }
             else if (searchSet is IList<IAttackTarget> list4)
             {
-                if (async)
+                for (int i = 0; i < list4.Count; i++)
                 {
-                    for (int i = 0; i < list4.Count; i++)
-                    {
-                        tmpThings.Enqueue((Thing)list4[i]);
-                    }
-                    Parallel.For(0, list4.Count, parallelOptions, i =>
-                    {
-                        if (tmpThings.TryDequeue(out var t))
-                        {
-                            Process(t);
-                        }
-                    });
-                }
-                else
-                {
-                    for (int i = 0; i < list4.Count; i++)
-                    {
-                        Process((Thing)list4[i]);
-                    }
+                    Process((Thing)list4[i]);
                 }
             }
             else
             {
-                if (async)
+                foreach (var target in searchSet)
                 {
-                    foreach (var target in searchSet)
-                    {
-                        tmpThings.Enqueue((Thing)target);
-                    }
-                    Parallel.For(0, tmpThings.Count, parallelOptions, i =>
-                    {
-                        if (tmpThings.TryDequeue(out var t))
-                        {
-                            Process(t);
-                        }
-                    });
-                }
-                else
-                {
-                    foreach (var target in searchSet)
-                    {
-                        Process((Thing)target);
-                    }
+                    Process((Thing)target);
                 }
             }
             return chosen;
