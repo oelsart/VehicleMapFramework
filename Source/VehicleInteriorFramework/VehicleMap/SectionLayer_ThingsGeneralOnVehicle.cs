@@ -20,7 +20,7 @@ namespace VehicleInteriors
             {
                 if (!AdaptiveStorage.Active || this.AllowPrint(t))
                 {
-                    if (AdaptiveStorage.ThingClass.IsAssignableFrom(t.GetType()))
+                    if (AdaptiveStorage.Active && AdaptiveStorage.ThingClass.IsAssignableFrom(t.GetType()))
                     {
                         var renderer = AdaptiveStorage.Renderer(t);
                         if (renderer != null)
