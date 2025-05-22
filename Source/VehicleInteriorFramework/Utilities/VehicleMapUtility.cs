@@ -135,24 +135,9 @@ namespace VehicleInteriors
         {
             if (map.IsVehicleMapOf(out var vehicle))
             {
-                if (Find.CurrentMap != vehicle.VehicleMap)
-                {
-                    var vehicleRect = vehicle.VehicleRect(true);
-                    var clip = cellRect.ClipInsideRect(vehicleRect);
-                    cellRect = clip.MovedBy(-vehicleRect.Min);
-                    var size = vehicle.def.size;
-                    cellRect = cellRect.ExpandedBy(Mathf.FloorToInt(Mathf.Max(size.x, size.z) / 2));
-                    return cellRect;
-                }
-                else if (VehicleInteriors.settings.drawPlanet)
-                {
-                    var longSide = Mathf.Max(vehicle.DrawSize.x / 2f, vehicle.DrawSize.y / 2f);
-                    var offset = new IntVec3((int)longSide, 0, (int)longSide);
-                    cellRect = cellRect.MovedBy(-offset);
-                    var size = vehicle.def.size;
-                    cellRect = cellRect.ExpandedBy(Mathf.FloorToInt(Mathf.Max(size.x, size.z) / 2));
-                    return cellRect;
-                }
+                var vehicleRect = vehicle.VehicleRect(true);
+                cellRect = cellRect.MovedBy(-vehicleRect.Min);
+                return cellRect.ClipInsideMap(vehicle.VehicleMap);
             }
             return cellRect.ClipInsideMap(map);
         }
@@ -313,6 +298,10 @@ namespace VehicleInteriors
                 {
                     excepts.Add(typeof(SectionLayer_ThingsSewagePipeOnVehicle));
                 }
+                if (!ModCompat.Rimefeller.Active)
+                {
+                    excepts.Add(typeof(SectionLayer_ThingsPipeOnVehicle));
+                }
                 return subClasses.Except(excepts).ToList();
             }
             excepts.AddRange(new Type[] { typeof(SectionLayer_ThingsGeneralOnVehicle), typeof(SectionLayer_TerrainOnVehicle), typeof(SectionLayer_LightingOnVehicle), typeof(SectionLayer_ThingsPowerGridOnVehicle) });
@@ -321,6 +310,7 @@ namespace VehicleInteriors
                 excepts.Add(AccessTools.TypeByName("VehicleInteriors.SectionLayer_ResourceOnVehicle"));
             }
             excepts.Add(typeof(SectionLayer_ThingsSewagePipeOnVehicle));
+            excepts.Add(typeof(SectionLayer_ThingsPipeOnVehicle));
             return subClasses.Except(excepts).ToList();
         }
 

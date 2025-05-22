@@ -244,22 +244,6 @@ namespace VehicleInteriors
 
         public override void Tick()
         {
-            //if (this.Spawned || VehicleInteriors.settings.drawPlanet && Find.CurrentMap == this.interiorMap)
-            //{
-            //    if (this.IsHashIntervalTick(50) && (Find.WindowStack.TryGetWindow<MainTabWindow_Architect>(out var window) && (window.selectedDesPanel?.def.showPowerGrid ?? false) ||
-            //    Find.DesignatorManager.SelectedDesignator is Designator_Build designator && designator.PlacingDef is ThingDef tDef && tDef.HasComp<CompPower>()))
-            //    {
-            //        //PowerGridのメッシュがタイミング的に即時にRegenerateされないので、定期チェックしている。より良い方法を検討したい
-            //        var map = this.interiorMap;
-            //        for (int i = 0; i < map.Size.x; i += 17)
-            //        {
-            //            for (int j = 0; j < map.Size.z; j += 17)
-            //            {
-            //                map.mapDrawer?.MapMeshDirty(new IntVec3(i, 0, j), MapMeshFlagDefOf.PowerGrid);
-            //            }
-            //        }
-            //    }
-            //}
             if (this.Spawned)
             {
                 this.cachedDrawPos = this.DrawPos;
@@ -508,6 +492,28 @@ namespace VehicleInteriors
                 this.DrawLayer(section, ModCompat.DubsBadHygiene.SectionLayer_Irrigation, drawPos, extraRotation);
                 this.DrawLayer(section, ModCompat.DubsBadHygiene.SectionLayer_FertilizerGrid, drawPos, extraRotation);
                 ((SectionLayer_ThingsSewagePipeOnVehicle)section.GetLayer(typeof(SectionLayer_ThingsSewagePipeOnVehicle)))?.DrawLayer(this.FullRotation, drawPos, extraRotation);
+            }
+            if (ModCompat.Rimefeller.Active)
+            {
+                var selDesignator = Find.DesignatorManager.SelectedDesignator;
+                var sewagePipeOverlay = section.GetLayer(ModCompat.Rimefeller.SectionLayer_SewagePipe);
+                CompProperties compProperties;
+                if (selDesignator is Designator_Build designator_Build && designator_Build.PlacingDef is ThingDef thingDef &&
+                    (compProperties = thingDef.comps.Find(c => ModCompat.Rimefeller.CompProperties_Pipe?.IsAssignableFrom(c.GetType()) ?? false)) != null)
+                {
+                    var mode = ModCompat.Rimefeller.CompProperties_Pipe_mode(compProperties);
+                    if (sewagePipeOverlay != null & ModCompat.Rimefeller.SectionLayer_PipeOverlay_mode(sewagePipeOverlay) == mode)
+                    {
+                        this.DrawLayer(section, ModCompat.Rimefeller.SectionLayer_SewagePipe, drawPos.Yto0(), extraRotation);
+                    }
+                    if (Time.frameCount % 120 == 0)
+                    {
+                        section.GetLayer(ModCompat.Rimefeller.SectionLayer_SewagePipe)?.Regenerate();
+                    }
+                }
+                this.DrawLayer(section, ModCompat.Rimefeller.XSectionLayer_Napalm, drawPos, extraRotation);
+                this.DrawLayer(section, ModCompat.Rimefeller.XSectionLayer_OilSpill, drawPos, extraRotation);
+                ((SectionLayer_ThingsPipeOnVehicle)section.GetLayer(typeof(SectionLayer_ThingsPipeOnVehicle)))?.DrawLayer(this.FullRotation, drawPos, extraRotation);
             }
         }
 

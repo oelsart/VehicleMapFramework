@@ -26,5 +26,7 @@
 	<VMF_GatherFromBaseMap>Gather From Basemap</VMF_GatherFromBaseMap>
 	
 	<VMF_AssignPipeNet>Assign</VMF_AssignPipeNet>
+	<VMF_PumpUp>Pump Up</VMF_PumpUp>
+	<VMF_Drain>Drain</VMF_Drain>
 
 </LanguageData>

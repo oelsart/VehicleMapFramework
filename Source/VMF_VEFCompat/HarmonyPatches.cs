@@ -15,11 +15,6 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         static Patches_VEF()
         {
             VMF_Harmony.PatchCategory("VMF_Patches_VEF");
-            if (DefDatabase<PipeNetDef>.AllDefsListForReading.Count < 2)
-            {
-                DefDatabase<ThingDef>.GetNamed("VMF_PipeConnector").designationCategory = null;
-                DefDatabase<DesignationCategoryDef>.GetNamed("VF_Vehicles").ResolveReferences();
-            }
         }
     }
 

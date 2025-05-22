@@ -14,14 +14,10 @@ namespace VehicleInteriors
 
         protected override void TakePrintFrom(Thing t)
         {
-            if (t_Building_Pipe.IsAssignableFrom(t.GetType()))
+            if (ModCompat.DubsBadHygiene.Building_Pipe.IsAssignableFrom(t.GetType()))
             {
-                PrintForGrid(t, this);
+                ModCompat.DubsBadHygiene.PrintForGrid(t, this);
             }
         }
-
-        private static Type t_Building_Pipe = AccessTools.TypeByName("DubsBadHygiene.Building_Pipe");
-
-        private static FastInvokeHandler PrintForGrid = MethodInvoker.GetHandler(AccessTools.Method(t_Building_Pipe, "PrintForGrid"));
     }
 }

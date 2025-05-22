@@ -127,6 +127,7 @@
     <Compile Include="BuildableUpgrades\Building_VehicleRamp.cs" />
     <Compile Include="Combat\ShotReportOnVehicle.cs" />
     <Compile Include="Combat\TargetingHelperOnVehicle.cs" />
+    <Compile Include="Command_ToggleIcon.cs" />
     <Compile Include="Comps\CompAlternator.cs" />
     <Compile Include="Comps\CompBuildableContainer.cs" />
     <Compile Include="Comps\CompEngineLightOverlays.cs" />
@@ -199,6 +200,7 @@
     <Compile Include="VehicleMap\DynamicDrawManagerOnVehicle.cs" />
     <Compile Include="Utilities\RegionUtility.cs" />
     <Compile Include="VehicleMap\SectionLayer_ThingsGeneralOnVehicle.cs" />
+    <Compile Include="VehicleMap\SectionLayer_ThingsPipeOnVehicle.cs" />
     <Compile Include="VehicleMap\SectionLayer_ThingsPowerGridOnVehicle.cs" />
     <Compile Include="VehicleMap\SectionLayer_ThingsSewagePipeOnVehicle.cs" />
     <Compile Include="VehicleMap\TransportPodsArrivalAction_LandInVehicleMap.cs" />

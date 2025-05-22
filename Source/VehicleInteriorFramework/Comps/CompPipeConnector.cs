@@ -45,6 +45,60 @@ namespace VehicleInteriors
             }
         }
 
+        public override void CompTick()
+        {
+            base.CompTick();
+            if (Find.TickManager.TicksGame % ticksInterval != 0 || selectedComp == null) return;
+
+            if (this.parent.IsOnVehicleMapOf(out _))
+            {
+                if (Pair != null && !this.connectReq)
+                {
+                    selectedComp.DisconnectedAction();
+                    Pair = null;
+                }
+                this.connectReq = false;
+            }
+            else
+            {
+                var flag = false;
+                foreach (var c in this.parent.OccupiedRect().ExpandedBy(2).Cells)
+                {
+                    if (!c.InBounds(this.parent.Map)) continue;
+
+                    if (c.TryGetVehicleMap(this.parent.Map, out var vehicle))
+                    {
+                        var c2 = c.ToVehicleMapCoord(vehicle);
+                        if (!c2.InBounds(vehicle.VehicleMap)) continue;
+
+                        var connector = c2.GetFirstThingWithComp<CompPipeConnector>(vehicle.VehicleMap);
+                        if (connector != null)
+                        {
+                            var compConnector = connector.GetComp<CompPipeConnector>();
+                            if (compConnector.selectedComp?.Mod != selectedComp.Mod) continue;
+
+                            if (selectedComp.ConnectCondition(compConnector))
+                            {
+                                compConnector.connectReq = true;
+                                if (Pair != compConnector || compConnector.Pair != this)
+                                {
+                                    Pair = compConnector;
+                                    compConnector.Pair = this;
+                                }
+                                selectedComp.ConnectedTickAction();
+                                flag = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (!flag)
+                {
+                    Pair = null;
+                }
+            }
+        }
+
         public override void PostDraw()
         {
             base.PostDraw();
@@ -66,13 +120,34 @@ namespace VehicleInteriors
             yield return new Command_Action
             {
                 defaultLabel = "VMF_AssignPipeNet".Translate(),
-                icon = ConnectorComps.Select(c => c.GizmoIcon).FirstOrDefault(t => t != null) ?? BaseContent.ClearTex,
+                icon = selectedComp?.GizmoIcon ?? BaseContent.ClearTex,
                 action = () =>
                 {
-                    Find.WindowStack.Add(new FloatMenu(ConnectorComps.SelectMany(c => c.FloatMenuOptions).ToList()));
+                    Find.WindowStack.Add(new FloatMenu(ConnectorComps.SelectMany(c => c.FloatMenuOptions.Select(f =>
+                    {
+                        f.action += () =>
+                        {
+                            selectedComp = c;
+                        };
+                        return f;
+                    })).ToList()));
                 }
             };
         }
+
+        public override string CompInspectStringExtra()
+        {
+            return (selectedComp as ThingComp)?.CompInspectStringExtra();
+        }
+
+        public override void PostExposeData()
+        {
+            var mod = selectedComp?.Mod;
+            Scribe_Values.Look(ref mod, "selectedComp");
+            selectedComp = ConnectorComps.FirstOrDefault(c => c.Mod == mod);
+        }
+
+        public IPipeConnector selectedComp;
 
         private Material pipeMat;
 
@@ -83,5 +158,12 @@ namespace VehicleInteriors
         private List<IPipeConnector> connectorComps;
 
         public const int ticksInterval = 30;
+
+        public enum PipeMod
+        {
+            VanillaExpandedFramework,
+            DubsBadHygiene,
+            Rimefeller
+        }
     }
 }

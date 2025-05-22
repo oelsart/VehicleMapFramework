@@ -33,5 +33,8 @@
 		<li>CETeam.CombatExtended</li>
 		<li>OskarPotocki.VanillaFactionsExpanded.Core</li>
 		<li>Mehni.PickUpAndHaul</li>
+		<li>Dubwise.DubsBadHygiene</li>
+		<li>Dubwise.DubsBadHygiene.Lite</li>
+		<li>Dubwise.Rimefeller</li>
 	</loadAfter>
 </ModMetaData>

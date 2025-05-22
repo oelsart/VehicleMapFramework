@@ -9,7 +9,23 @@ namespace VehicleInteriors
     [StaticConstructorOnStartup]
     public static class ModCompat
     {
-        public static readonly bool AdaptiveStorage = ModsConfig.IsActive("adaptive.storage.framework");
+        public static class AdaptiveStorage
+        {
+            public static readonly bool Active = ModsConfig.IsActive("adaptive.storage.framework");
+
+            public static readonly Type TransformData;
+
+            public static readonly Type RotationAngle;
+
+            static AdaptiveStorage()
+            {
+                if (Active)
+                {
+                    TransformData = AccessTools.TypeByName("ITransformable.TransformData");
+                    RotationAngle = AccessTools.TypeByName("ITransformable.RotationAngle");
+                }
+            }
+        }
 
         public static readonly bool AllowTool = ModsConfig.IsActive("UnlimitedHugs.AllowTool");
 
@@ -31,7 +47,6 @@ namespace VehicleInteriors
 
         public static readonly bool DrillTurret = ModsConfig.IsActive("Mlie.MiningCoDrillTurret");
 
-        [StaticConstructorOnStartup]
         public static class DubsBadHygiene
         {
             public static readonly bool Active = ModsConfig.IsActive("Dubwise.DubsBadHygiene") || ModsConfig.IsActive("Dubwise.DubsBadHygiene.Lite");
@@ -43,6 +58,10 @@ namespace VehicleInteriors
             public static readonly Type SectionLayer_Irrigation;
 
             public static readonly Type SectionLayer_FertilizerGrid;
+
+            public static readonly Type Building_Pipe;
+
+            public static FastInvokeHandler PrintForGrid;
 
             public static readonly Type CompProperties_Pipe;
 
@@ -58,6 +77,8 @@ namespace VehicleInteriors
                     SectionLayer_AirDuctOverlay = AccessTools.TypeByName("DubsBadHygiene.SectionLayer_AirDuctOverlay");
                     SectionLayer_Irrigation = AccessTools.TypeByName("DubsBadHygiene.SectionLayer_Irrigation");
                     SectionLayer_FertilizerGrid = AccessTools.TypeByName("DubsBadHygiene.SectionLayer_FertilizerGrid");
+                    Building_Pipe = AccessTools.TypeByName("DubsBadHygiene.Building_Pipe");
+                    PrintForGrid = MethodInvoker.GetHandler(AccessTools.Method(Building_Pipe, "PrintForGrid"));
                     CompProperties_Pipe = AccessTools.TypeByName("DubsBadHygiene.CompProperties_Pipe");
                     CompProperties_Pipe_mode = AccessTools.FieldRefAccess<int>(CompProperties_Pipe, "mode");
                     SectionLayer_PipeOverlay_mode = AccessTools.FieldRefAccess<int>("DubsBadHygiene.SectionLayer_PipeOverlay:mode");
@@ -65,7 +86,45 @@ namespace VehicleInteriors
             }
         }
 
-        [StaticConstructorOnStartup]
+        public static class Rimefeller
+        {
+            public static readonly bool Active = ModsConfig.IsActive("Dubwise.Rimefeller");
+
+            public static readonly Type SectionLayer_SewagePipe;
+
+            public static readonly Type SectionLayer_ThingsPipe;
+
+            public static readonly Type XSectionLayer_Napalm;
+
+            public static readonly Type XSectionLayer_OilSpill;
+
+            public static readonly Type Building_Pipe;
+
+            public static FastInvokeHandler PrintForGrid;
+
+            public static readonly Type CompProperties_Pipe;
+
+            public static readonly AccessTools.FieldRef<object, int> CompProperties_Pipe_mode;
+
+            public static readonly AccessTools.FieldRef<object, int> SectionLayer_PipeOverlay_mode;
+
+            static Rimefeller()
+            {
+                if (Active)
+                {
+                    SectionLayer_SewagePipe = AccessTools.TypeByName("Rimefeller.SectionLayer_SewagePipe");
+                    SectionLayer_ThingsPipe = AccessTools.TypeByName("Rimefeller.SectionLayer_ThingsPipe");
+                    XSectionLayer_Napalm = AccessTools.TypeByName("Rimefeller.XSectionLayer_Napalm");
+                    XSectionLayer_OilSpill = AccessTools.TypeByName("Rimefeller.XSectionLayer_OilSpill");
+                    Building_Pipe = AccessTools.TypeByName("Rimefeller.Building_Pipe");
+                    PrintForGrid = MethodInvoker.GetHandler(AccessTools.Method(Building_Pipe, "PrintForGrid"));
+                    CompProperties_Pipe = AccessTools.TypeByName("Rimefeller.CompProperties_Pipe");
+                    CompProperties_Pipe_mode = AccessTools.FieldRefAccess<int>(CompProperties_Pipe, "mode");
+                    SectionLayer_PipeOverlay_mode = AccessTools.FieldRefAccess<int>("Rimefeller.SectionLayer_PipeOverlay:mode");
+                }
+            }
+        }
+
         public static class DefenseGrid
         {
             public static readonly bool Active = ModsConfig.IsActive("Aelanna.EccentricTech.DefenseGrid");
@@ -109,7 +168,6 @@ namespace VehicleInteriors
 
         public static readonly bool TabulaRasa = ModsConfig.IsActive("neronix17.toolbox");
 
-        [StaticConstructorOnStartup]
         public static class VFECore
         {
             public static readonly bool Active = ModsConfig.IsActive("OskarPotocki.VanillaFactionsExpanded.Core");
@@ -144,7 +202,6 @@ namespace VehicleInteriors
 
         public static readonly bool YayosCombat3 = ModsConfig.IsActive("Mlie.YayosCombat3");
 
-        [StaticConstructorOnStartup]
         public static class TakeItToStorage
         {
             public static readonly bool Active = ModsConfig.IsActive("legodude17.htsb");
@@ -164,7 +221,6 @@ namespace VehicleInteriors
 
         public static readonly bool NoJobAuthors = ModsConfig.IsActive("Doug.NoJobAuthors");
 
-        [StaticConstructorOnStartup]
         public static class PickUpAndHaul
         {
             public static readonly bool Active = ModsConfig.IsActive("Mehni.PickUpAndHaul");
@@ -183,7 +239,6 @@ namespace VehicleInteriors
             }
         }
 
-        [StaticConstructorOnStartup]
         public static class EnergyShield
         {
             public static readonly bool Active = ModsConfig.IsActive("zhuzi.AdvancedEnergy.Shields");

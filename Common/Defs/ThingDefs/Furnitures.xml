@@ -186,6 +186,8 @@
 			<li Class="VehicleInteriors.CompProperties_PipeConnectorVEF" MayRequire="OskarPotocki.VanillaFactionsExpanded.Core">
 				<pipeNet>VMF_UnassignedNet</pipeNet>
 			</li>
+			<li Class="VehicleInteriors.CompProperties_PipeConnectorDBH" MayRequireAnyOf="Dubwise.DubsBadHygiene,Dubwise.DubsBadHygiene.Lite"/>
+			<li Class="VehicleInteriors.CompProperties_PipeConnectorRF" MayRequire="Dubwise.Rimefeller"/>
 			<li>
 				<compClass>CompColorable</compClass>
 			</li>
