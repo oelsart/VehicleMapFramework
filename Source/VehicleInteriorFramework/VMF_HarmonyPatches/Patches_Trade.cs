@@ -228,10 +228,10 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             }
         }
 
-        private static List<Building> AddBuildings(List<Building> buildings, IncidentParms parms)
+        private static List<Building> AddBuildings(List<Building> list, IncidentParms parms)
         {
             buildings.Clear();
-            buildings.AddRange(buildings);
+            buildings.AddRange(list);
             buildings.AddRange(VehiclePawnWithMapCache.AllVehiclesOn((Map)parms.target).SelectMany(v => v.VehicleMap.listerBuildings.allBuildingsColonist));
             return buildings;
         }
