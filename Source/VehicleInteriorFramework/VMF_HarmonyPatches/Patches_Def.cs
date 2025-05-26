@@ -1,13 +1,11 @@
 ﻿using HarmonyLib;
 using RimWorld;
 using RimWorld.Planet;
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Vehicles;
 using Verse;
-using Verse.AI;
+using static VehicleInteriors.ModCompat;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
 {
@@ -104,10 +102,10 @@ namespace VehicleInteriors.VMF_HarmonyPatches
 
         private static bool EnablePipeConnector()
         {
-            if (ModCompat.DubsBadHygiene.Active) return true;
-            if (ModCompat.Rimefeller.Active) return true;
+            if (DubsBadHygiene.Active && !DubsBadHygiene.LiteMode) return true;
+            if (Rimefeller.Active) return true;
 
-            if (ModCompat.VFECore.Active)
+            if (VFECore.Active)
             {
                 var allDefs = (IEnumerable<object>)AccessTools.PropertyGetter(typeof(DefDatabase<>).MakeGenericType(ModCompat.VFECore.PipeNetDef), "AllDefs").Invoke(null, null);
                 if (allDefs.Count() > 1)

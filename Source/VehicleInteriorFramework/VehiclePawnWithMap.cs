@@ -9,6 +9,7 @@ using System.Text;
 using UnityEngine;
 using Vehicles;
 using Verse;
+using static VehicleInteriors.ModCompat;
 
 namespace VehicleInteriors
 {
@@ -449,70 +450,70 @@ namespace VehicleInteriors
 
         protected virtual void DrawModLayers(Section section, Vector3 drawPos, float extraRotation)
         {
-            if (ModCompat.VFECore.Active)
+            if (VFECore.Active)
             {
-                ((SectionLayer_ThingsOnVehicle)section.GetLayer(ModCompat.VFECore.SectionLayer_ResourceOnVehicle))?.DrawLayer(this.FullRotation, drawPos, extraRotation);
+                ((SectionLayer_ThingsOnVehicle)section.GetLayer(VFECore.SectionLayer_ResourceOnVehicle))?.DrawLayer(this.FullRotation, drawPos, extraRotation);
             }
-            if (ModCompat.DefenseGrid.Active)
+            if (DefenseGrid.Active)
             {
                 var selDesignator = Find.DesignatorManager.SelectedDesignator;
-                if (selDesignator is Designator_Build designator_Build && designator_Build.PlacingDef is ThingDef thingDef && thingDef.HasComp(ModCompat.DefenseGrid.CompDefenseConduit))
+                if (selDesignator is Designator_Build designator_Build && designator_Build.PlacingDef is ThingDef thingDef && thingDef.HasComp(DefenseGrid.CompDefenseConduit))
                 {
-                    this.DrawLayer(section, ModCompat.DefenseGrid.SectionLayer_DefenseGridOverlay, drawPos.Yto0(), extraRotation);
+                    this.DrawLayer(section, DefenseGrid.SectionLayer_DefenseGridOverlay, drawPos.Yto0(), extraRotation);
                 }
-                else if (ModCompat.DefenseGrid.Designator_DeconstructConduit.IsAssignableFrom(selDesignator?.GetType()))
+                else if (DefenseGrid.Designator_DeconstructConduit.IsAssignableFrom(selDesignator?.GetType()))
                 {
-                    this.DrawLayer(section, ModCompat.DefenseGrid.SectionLayer_DefenseGridOverlay, drawPos.Yto0(), extraRotation);
+                    this.DrawLayer(section, DefenseGrid.SectionLayer_DefenseGridOverlay, drawPos.Yto0(), extraRotation);
                 }
             }
-            if (ModCompat.DubsBadHygiene.Active)
+            if (DubsBadHygiene.Active && !DubsBadHygiene.LiteMode)
             {
                 var selDesignator = Find.DesignatorManager.SelectedDesignator;
-                var sewagePipeOverlay = section.GetLayer(ModCompat.DubsBadHygiene.SectionLayer_SewagePipeOverlay);
-                var airDuctOverlay = section.GetLayer(ModCompat.DubsBadHygiene.SectionLayer_AirDuctOverlay);
+                var sewagePipeOverlay = section.GetLayer(DubsBadHygiene.SectionLayer_SewagePipeOverlay);
+                var airDuctOverlay = section.GetLayer(DubsBadHygiene.SectionLayer_AirDuctOverlay);
                 CompProperties compProperties;
                 if (selDesignator is Designator_Build designator_Build && designator_Build.PlacingDef is ThingDef thingDef &&
-                    (compProperties = thingDef.comps.Find(c => ModCompat.DubsBadHygiene.CompProperties_Pipe?.IsAssignableFrom(c.GetType()) ?? false)) != null)
+                    (compProperties = thingDef.comps.Find(c => DubsBadHygiene.CompProperties_Pipe?.IsAssignableFrom(c.GetType()) ?? false)) != null)
                 {
-                    var mode = ModCompat.DubsBadHygiene.CompProperties_Pipe_mode(compProperties);
-                    if (sewagePipeOverlay != null & ModCompat.DubsBadHygiene.SectionLayer_PipeOverlay_mode(sewagePipeOverlay) == mode)
+                    var mode = DubsBadHygiene.CompProperties_Pipe_mode(compProperties);
+                    if (sewagePipeOverlay != null & DubsBadHygiene.SectionLayer_PipeOverlay_mode(sewagePipeOverlay) == mode)
                     {
-                        this.DrawLayer(section, ModCompat.DubsBadHygiene.SectionLayer_SewagePipeOverlay, drawPos.Yto0(), extraRotation);
+                        this.DrawLayer(section, DubsBadHygiene.SectionLayer_SewagePipeOverlay, drawPos.Yto0(), extraRotation);
                     }
-                    if (airDuctOverlay != null && ModCompat.DubsBadHygiene.SectionLayer_PipeOverlay_mode(airDuctOverlay) == mode)
+                    if (airDuctOverlay != null && DubsBadHygiene.SectionLayer_PipeOverlay_mode(airDuctOverlay) == mode)
                     {
-                        this.DrawLayer(section, ModCompat.DubsBadHygiene.SectionLayer_AirDuctOverlay, drawPos.Yto0(), extraRotation);
+                        this.DrawLayer(section, DubsBadHygiene.SectionLayer_AirDuctOverlay, drawPos.Yto0(), extraRotation);
                     }
                     if (Time.frameCount % 120 == 0)
                     {
-                        section.GetLayer(ModCompat.DubsBadHygiene.SectionLayer_SewagePipeOverlay)?.Regenerate();
-                        section.GetLayer(ModCompat.DubsBadHygiene.SectionLayer_AirDuctOverlay)?.Regenerate();
+                        section.GetLayer(DubsBadHygiene.SectionLayer_SewagePipeOverlay)?.Regenerate();
+                        section.GetLayer(DubsBadHygiene.SectionLayer_AirDuctOverlay)?.Regenerate();
                     }
                 }
-                this.DrawLayer(section, ModCompat.DubsBadHygiene.SectionLayer_Irrigation, drawPos, extraRotation);
-                this.DrawLayer(section, ModCompat.DubsBadHygiene.SectionLayer_FertilizerGrid, drawPos, extraRotation);
+                this.DrawLayer(section, DubsBadHygiene.SectionLayer_Irrigation, drawPos, extraRotation);
+                this.DrawLayer(section, DubsBadHygiene.SectionLayer_FertilizerGrid, drawPos, extraRotation);
                 ((SectionLayer_ThingsSewagePipeOnVehicle)section.GetLayer(typeof(SectionLayer_ThingsSewagePipeOnVehicle)))?.DrawLayer(this.FullRotation, drawPos, extraRotation);
             }
-            if (ModCompat.Rimefeller.Active)
+            if (Rimefeller.Active)
             {
                 var selDesignator = Find.DesignatorManager.SelectedDesignator;
-                var sewagePipeOverlay = section.GetLayer(ModCompat.Rimefeller.SectionLayer_SewagePipe);
+                var sewagePipeOverlay = section.GetLayer(Rimefeller.SectionLayer_SewagePipe);
                 CompProperties compProperties;
                 if (selDesignator is Designator_Build designator_Build && designator_Build.PlacingDef is ThingDef thingDef &&
-                    (compProperties = thingDef.comps.Find(c => ModCompat.Rimefeller.CompProperties_Pipe?.IsAssignableFrom(c.GetType()) ?? false)) != null)
+                    (compProperties = thingDef.comps.Find(c => Rimefeller.CompProperties_Pipe?.IsAssignableFrom(c.GetType()) ?? false)) != null)
                 {
-                    var mode = ModCompat.Rimefeller.CompProperties_Pipe_mode(compProperties);
-                    if (sewagePipeOverlay != null & ModCompat.Rimefeller.SectionLayer_PipeOverlay_mode(sewagePipeOverlay) == mode)
+                    var mode = Rimefeller.CompProperties_Pipe_mode(compProperties);
+                    if (sewagePipeOverlay != null & Rimefeller.SectionLayer_PipeOverlay_mode(sewagePipeOverlay) == mode)
                     {
-                        this.DrawLayer(section, ModCompat.Rimefeller.SectionLayer_SewagePipe, drawPos.Yto0(), extraRotation);
+                        this.DrawLayer(section, Rimefeller.SectionLayer_SewagePipe, drawPos.Yto0(), extraRotation);
                     }
                     if (Time.frameCount % 120 == 0)
                     {
-                        section.GetLayer(ModCompat.Rimefeller.SectionLayer_SewagePipe)?.Regenerate();
+                        section.GetLayer(Rimefeller.SectionLayer_SewagePipe)?.Regenerate();
                     }
                 }
-                this.DrawLayer(section, ModCompat.Rimefeller.XSectionLayer_Napalm, drawPos, extraRotation);
-                this.DrawLayer(section, ModCompat.Rimefeller.XSectionLayer_OilSpill, drawPos, extraRotation);
+                this.DrawLayer(section, Rimefeller.XSectionLayer_Napalm, drawPos, extraRotation);
+                this.DrawLayer(section, Rimefeller.XSectionLayer_OilSpill, drawPos, extraRotation);
                 ((SectionLayer_ThingsPipeOnVehicle)section.GetLayer(typeof(SectionLayer_ThingsPipeOnVehicle)))?.DrawLayer(this.FullRotation, drawPos, extraRotation);
             }
         }

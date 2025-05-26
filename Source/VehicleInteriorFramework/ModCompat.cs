@@ -73,6 +73,8 @@ namespace VehicleInteriors
         {
             public static readonly bool Active = ModsConfig.IsActive("Dubwise.DubsBadHygiene") || ModsConfig.IsActive("Dubwise.DubsBadHygiene.Lite");
 
+            public static readonly bool LiteMode;
+
             public static readonly Type SectionLayer_SewagePipeOverlay;
 
             public static readonly Type SectionLayer_AirDuctOverlay;
@@ -95,6 +97,9 @@ namespace VehicleInteriors
             {
                 if (Active)
                 {
+                    LiteMode = (bool)AccessTools.PropertyGetter("DubsBadHygiene.Settings:LiteMode").Invoke(null, null);
+                    if (LiteMode) return;
+
                     SectionLayer_SewagePipeOverlay = AccessTools.TypeByName("DubsBadHygiene.SectionLayer_SewagePipeOverlay");
                     SectionLayer_AirDuctOverlay = AccessTools.TypeByName("DubsBadHygiene.SectionLayer_AirDuctOverlay");
                     SectionLayer_Irrigation = AccessTools.TypeByName("DubsBadHygiene.SectionLayer_Irrigation");

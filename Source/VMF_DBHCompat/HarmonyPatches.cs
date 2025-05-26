@@ -15,6 +15,10 @@ namespace VehicleInteriors
         static Patches_VEF()
         {
             VMF_Harmony.PatchCategory("VMF_Patches_DBH");
+            if (DubsBadHygiene.Settings.LiteMode)
+            {
+                DefDatabase<ThingDef>.GetNamed("VMF_PipeConnector").comps.RemoveAll(c => c is CompProperties_PipeConnectorDBH);
+            }
         }
     }
 

@@ -9,6 +9,7 @@ using UnityEngine;
 using Vehicles;
 using Verse;
 using Verse.AI.Group;
+using static VehicleInteriors.ModCompat;
 
 namespace VehicleInteriors
 {
@@ -290,22 +291,22 @@ namespace VehicleInteriors
             if (map?.Parent is MapParent_Vehicle)
             {
                 excepts.AddRange(new Type[] { typeof(SectionLayer_ThingsGeneral), t_SectionLayer_Terrain, typeof(SectionLayer_ThingsPowerGrid) });
-                if (ModCompat.VFECore.Active)
+                if (VFECore.Active)
                 {
                     excepts.Add(AccessTools.TypeByName("PipeSystem.SectionLayer_Resource"));
                 }
-                if (!ModCompat.DubsBadHygiene.Active)
+                if (!DubsBadHygiene.Active || DubsBadHygiene.LiteMode)
                 {
                     excepts.Add(typeof(SectionLayer_ThingsSewagePipeOnVehicle));
                 }
-                if (!ModCompat.Rimefeller.Active)
+                if (!Rimefeller.Active)
                 {
                     excepts.Add(typeof(SectionLayer_ThingsPipeOnVehicle));
                 }
                 return subClasses.Except(excepts).ToList();
             }
             excepts.AddRange(new Type[] { typeof(SectionLayer_ThingsGeneralOnVehicle), typeof(SectionLayer_TerrainOnVehicle), typeof(SectionLayer_LightingOnVehicle), typeof(SectionLayer_ThingsPowerGridOnVehicle) });
-            if (ModCompat.VFECore.Active)
+            if (VFECore.Active)
             {
                 excepts.Add(AccessTools.TypeByName("VehicleInteriors.SectionLayer_ResourceOnVehicle"));
             }
