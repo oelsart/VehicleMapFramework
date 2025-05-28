@@ -2,7 +2,10 @@
 using RimWorld;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 using Verse;
+using Verse.AI;
 
 namespace VehicleInteriors
 {
@@ -44,7 +47,20 @@ namespace VehicleInteriors
 
         public static readonly bool CallTradeShips = ModsConfig.IsActive("calltradeships.kv.rw");
 
-        public static readonly bool CombatExtended = ModsConfig.IsActive("CETeam.CombatExtended");
+        public static class CombatExtended
+        {
+            public static readonly bool Active = ModsConfig.IsActive("CETeam.CombatExtended") || ModsConfig.IsActive("CETeam.CombatExtended_steam");
+
+            public static readonly Action<Vector3, Pawn, List<FloatMenuOption>, List<Thing>> AddMenuItems;
+
+            static CombatExtended()
+            {
+                if (Active)
+                {
+                    AddMenuItems = AccessTools.MethodDelegate<Action<Vector3, Pawn, List<FloatMenuOption>, List<Thing>>>("VMF_CEPatch.Patch_FloatMenuMakerMap_Modify_AddHumanlikeOrders_AddMenuItems:AddMenuItems");
+                }
+            }
+        }
 
         public static readonly bool ColonyGroups = ModsConfig.IsActive("DerekBickley.LTOColonyGroupsFinal");
 
@@ -181,7 +197,20 @@ namespace VehicleInteriors
 
         public static readonly bool Gunplay = ModsConfig.IsActive("automatic.gunplay");
 
-        public static readonly bool MeleeAnimation = ModsConfig.IsActive("co.uk.epicguru.meleeanimation");
+        public static class MeleeAnimation
+        {
+            public static readonly bool Active = ModsConfig.IsActive("co.uk.epicguru.meleeanimation");
+
+            public static readonly Func<Vector3, Pawn, IEnumerable<FloatMenuOption>> GenerateAMMenuOptions;
+
+            static MeleeAnimation()
+            {
+                if (Active)
+                {
+                    GenerateAMMenuOptions = AccessTools.MethodDelegate<Func<Vector3, Pawn, IEnumerable<FloatMenuOption>>>(AccessTools.Method("AM.UI.DraftedFloatMenuOptionsUI:GenerateMenuOptions"));
+                }
+            }
+        }
 
         public static readonly bool MiscRobots = ModsConfig.IsActive("Haplo.Miscellaneous.Robots");
 

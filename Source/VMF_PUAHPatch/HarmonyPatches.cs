@@ -2,9 +2,10 @@
 using PickUpAndHaul;
 using RimWorld;
 using Verse;
-using VMF_PUAHPatch;
+using VehicleInteriors;
+using VehicleInteriors.VMF_HarmonyPatches;
 
-namespace VehicleInteriors.VMF_HarmonyPatches
+namespace VMF_PUAHPatch
 {
     [StaticConstructorOnStartupPriority(Priority.VeryLow)]
     public class Patches_PUAH

@@ -6,6 +6,7 @@ using UnityEngine;
 using Verse;
 using Verse.AI;
 using Verse.AI.Group;
+using static VehicleInteriors.ModCompat;
 
 namespace VehicleInteriors
 {
@@ -24,7 +25,7 @@ namespace VehicleInteriors
                 Log.Error("BestAttackTarget with " + searcher.ToStringSafe<IAttackTargetSearcher>() + " who has no attack verb.");
                 return null;
             }
-            var onlyTargetMachines = !ModCompat.CombatExtended && verb.IsEMP();
+            var onlyTargetMachines = !CombatExtended.Active && verb.IsEMP();
             var minDistSquared = minDist * minDist;
             float num = maxTravelRadiusFromLocus + verb.verbProps.range;
             var maxLocusDistSquared = num * num;

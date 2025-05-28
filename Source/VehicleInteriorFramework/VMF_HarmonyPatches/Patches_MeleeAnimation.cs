@@ -15,7 +15,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches.AM
     {
         static Patches_MeleeAnimation()
         {
-            if (ModCompat.MeleeAnimation)
+            if (ModCompat.MeleeAnimation.Active)
             {
                 VMF_Harmony.PatchCategory("VMF_Patches_MeleeAnimation");
             }

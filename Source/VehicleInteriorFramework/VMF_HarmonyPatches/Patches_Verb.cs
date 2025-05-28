@@ -3,11 +3,10 @@ using RimWorld;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Reflection.Emit;
 using UnityEngine;
-using Vehicles;
 using Verse;
 using Verse.AI;
+using static VehicleInteriors.ModCompat;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
 {
@@ -52,7 +51,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             instructions = instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap);
-            if (!ModCompat.CombatExtended)
+            if (!CombatExtended.Active)
             {
                 instructions = instructions.MethodReplacer(MethodInfoCache.m_Verb_TryFindShootLineFromTo, MethodInfoCache.m_TryFindShootLineFromToOnVehicle);
             }

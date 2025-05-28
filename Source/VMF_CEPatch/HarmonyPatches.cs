@@ -21,9 +21,23 @@ namespace VMF_CEPatch
     {
         static Patches_CE()
         {
-            var m_GetShootingTargetScore = AccessTools.Method(typeof(AttackTargetFinderOnVehicle), "GetShootingTargetScore");
-            var m_GetShootingTargetScore_Postfix = AccessTools.Method("CombatExtended.HarmonyCE.Harmony_AttackTargetFinder+Harmony_AttackTargetFinder_GetShootingTargetScore:Postfix");
-            VMF_Harmony.Instance.Patch(m_GetShootingTargetScore, null, m_GetShootingTargetScore_Postfix);
+            var method = AccessTools.Method(typeof(AttackTargetFinderOnVehicle), "GetShootingTargetScore");
+            var patch = AccessTools.Method("CombatExtended.HarmonyCE.Harmony_AttackTargetFinder+Harmony_AttackTargetFinder_GetShootingTargetScore:Postfix");
+            VMF_Harmony.Instance.Patch(method, postfix: patch);
+
+            method = AccessTools.FindIncludingInnerTypes(typeof(FloatMenuMakerOnVehicle), t =>
+            {
+                var field = AccessTools.Field(t, "equipment");
+                if (field != null && field.FieldType == typeof(ThingWithComps))
+                {
+                    return t.GetMethods(AccessTools.all).FirstOrDefault(m => m.Name.Contains("Equip"));
+                }
+                return null;
+            });
+            patch = AccessTools.Method("CombatExtended.HarmonyCE.FloatMenuMakerMap_PatchKnowledge:Transpiler");
+            VMF_Harmony.Instance.Patch(method, transpiler: patch);
+
+
             VMF_Harmony.PatchCategory("VMF_Patches_CE");
 
             if (ModCompat.VFESecurity)
@@ -528,6 +542,34 @@ namespace VMF_CEPatch
                 return false;
             }
             return true;
+        }
+    }
+
+    [HarmonyPatchCategory("VMF_Patches_CE")]
+    [HarmonyPatch("CombatExtended.HarmonyCE.FloatMenuMakerMap_Modify_AddHumanlikeOrders", "AddMenuItems")]
+    public static class Patch_FloatMenuMakerMap_Modify_AddHumanlikeOrders_AddMenuItems
+    {
+        [HarmonyReversePatch]
+        public static void AddMenuItems(Vector3 clickPos, Pawn pawn, List<FloatMenuOption> opts, List<Thing> thingList)
+        {
+            IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+            {
+                var codes = instructions.ToList();
+                var m_TargetsAt = AccessTools.Method(typeof(GenUI), nameof(GenUI.TargetsAt));
+                var m_TargetsAtOnVehicle = AccessTools.Method(typeof(GenUIOnVehicle), nameof(GenUIOnVehicle.TargetsAt), new[] { typeof(Vector3), typeof(TargetingParameters), typeof(bool), typeof(ITargetingSource), typeof(bool) });
+                var pos = codes.FindIndex(c => c.Calls(m_TargetsAt));
+                codes[pos].operand = m_TargetsAtOnVehicle;
+                codes.Insert(pos, new CodeInstruction(OpCodes.Ldc_I4_1));
+
+                pos = codes.FindIndex(c => c.Calls(MethodInfoCache.m_GetThingList));
+                codes[pos] = CodeInstruction.LoadArgument(3);
+                codes.RemoveRange(pos - 4, 4);
+
+                return codes;
+            }
+            _ = Transpiler(null);
+
+            throw new NotImplementedException();
         }
     }
 

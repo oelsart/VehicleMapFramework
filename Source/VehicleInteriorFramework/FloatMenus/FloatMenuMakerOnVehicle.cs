@@ -12,6 +12,7 @@ using Vehicles;
 using Verse;
 using Verse.AI;
 using Verse.AI.Group;
+using static VehicleInteriors.ModCompat;
 
 namespace VehicleInteriors
 {
@@ -958,7 +959,7 @@ namespace VehicleInteriors
                     if (victim.Downed && pawn.CanReserveAndReach(victim.Map, victim, PathEndMode.OnCell, Danger.Deadly, 1, -1, null, true, out var exitSpot, out var enterSpot) && Building_CryptosleepCasket.FindCryptosleepCasketFor(victim, pawn, true) != null)
 					{
                         string text2 = "CarryToCryptosleepCasket".Translate(localTargetInfo3.Thing.LabelCap, localTargetInfo3.Thing);
-                        Action action2 = delegate ()
+                        void action2()
                         {
                             Building_CryptosleepCasket building_CryptosleepCasket = FindBuildingUtility.FindCryptosleepCasketFor(victim, pawn, false, out var exitSpot2, out var enterSpot2)
                             ?? FindBuildingUtility.FindCryptosleepCasketFor(victim, pawn, true, out exitSpot2, out enterSpot2);
@@ -970,7 +971,7 @@ namespace VehicleInteriors
                             Job job = JobMaker.MakeJob(VMF_DefOf.VMF_CarryToCryptosleepCasketAcrossMaps, victim, building_CryptosleepCasket);
                             job.count = 1;
                             pawn.jobs.TryTakeOrderedJob(job.SetSpotsToJobAcrossMaps(pawn, exitSpot, enterSpot, exitSpot2, enterSpot2), new JobTag?(JobTag.Misc), true);
-                        };
+                        }
                         if (victim.IsQuestLodger())
                         {
                             text2 += " (" + "CryptosleepCasketGuestsNotAllowed".Translate() + ")";
@@ -1577,9 +1578,8 @@ namespace VehicleInteriors
 							{
 								continue;
 							}
-							ChildcareUtility.BreastfeedFailReason? breastfeedFailReason2;
-							FloatMenuOption floatMenuOption5;
-							if (!ChildcareUtility.CanMomAutoBreastfeedBabyNow(pawn, baby, true, out breastfeedFailReason2))
+                            FloatMenuOption floatMenuOption5;
+                            if (!ChildcareUtility.CanMomAutoBreastfeedBabyNow(pawn, baby, true, out ChildcareUtility.BreastfeedFailReason? breastfeedFailReason2))
 							{
 								floatMenuOption5 = new FloatMenuOption("BabyCareBreastfeedUnable".Translate(baby.Named("BABY")) + ": " + breastfeedFailReason2.Value.Translate(pawn, pawn, baby).CapitalizeFirst(), null, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0);
 							}
@@ -2150,11 +2150,11 @@ namespace VehicleInteriors
 				}
 				else
 				{
-					Action action4 = delegate()
-					{
-						pawn.jobs.TryTakeOrderedJob(JobMaker.MakeJob(JobDefOf.DropEquipment, pawn.equipment.Primary), new JobTag?(JobTag.Misc), false);
-					};
-					opts.Add(new FloatMenuOption("Drop".Translate(pawn.equipment.Primary.Label, pawn.equipment.Primary), action4, MenuOptionPriority.Default, null, pawn, 0f, null, null, true, 0));
+                    void action4()
+                    {
+                        pawn.jobs.TryTakeOrderedJob(JobMaker.MakeJob(JobDefOf.DropEquipment, pawn.equipment.Primary), new JobTag?(JobTag.Misc), false);
+                    }
+                    opts.Add(new FloatMenuOption("Drop".Translate(pawn.equipment.Primary.Label, pawn.equipment.Primary), action4, MenuOptionPriority.Default, null, pawn, 0f, null, null, true, 0));
 				}
 			}
 			foreach (LocalTargetInfo localTargetInfo14 in GenUIOnVehicle.TargetsAt(clickPos, TargetingParameters.ForTrade(), true, null))
@@ -2299,17 +2299,16 @@ namespace VehicleInteriors
 				}
 			}
 			FloatMenuMakerOnVehicle.cachedThings.Clear();
-            if (ModCompat.MeleeAnimation)
+            if (MeleeAnimation.Active)
             {
-                if (GenerateAMMenuOptions == null)
-                {
-                    GenerateAMMenuOptions = MethodInvoker.GetHandler(AccessTools.Method("AM.UI.DraftedFloatMenuOptionsUI:GenerateMenuOptions"));
-                }
-                opts.AddRange((IEnumerable<FloatMenuOption>)GenerateAMMenuOptions(null, clickPos, pawn));
+                opts.AddRange(MeleeAnimation.GenerateAMMenuOptions(clickPos, pawn));
+            }
+            if (CombatExtended.Active)
+            {
+                Log.Message("AddMenuItems");
+                CombatExtended.AddMenuItems(clickPos, pawn, opts, thingList);
             }
 		}
-
-        private static FastInvokeHandler GenerateAMMenuOptions;
 
         private static void AddMutantOrders(Vector3 clickPos, Pawn pawn, List<FloatMenuOption> opts)
         {
