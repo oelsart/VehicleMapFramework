@@ -319,7 +319,7 @@
 		<defName>VMF_ZiplineEnd</defName>
 		<label>zipline end</label>
 		<thingClass>VehicleInteriors.ZiplineEnd</thingClass>
-		<category>Item</category>
+		<category>Filth</category>
 		<drawerType>MapMeshAndRealTime</drawerType>
 		<graphicData>
 			<graphicClass>Graphic_Single</graphicClass>

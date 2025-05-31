@@ -13,7 +13,38 @@ namespace VehicleInteriors
     public static class ReachabilityUtilityOnVehicle
     {
         public static bool working;
+        public static IntVec3 EnterVehiclePosition(TargetInfo enterSpot, VehiclePawn enterer = null)
+        {
+            if (!enterSpot.Map.IsVehicleMapOf(out var vehicle))
+            {
+                Log.ErrorOnce($"[VehicleMapFramework] Invalid TargetInfo: {enterSpot}.", 3516351);
+            }
 
+            var cell = enterSpot.Cell.ToBaseMapCoord(vehicle);
+            IntVec3 faceCell;
+            if (enterSpot.HasThing)
+            {
+                faceCell = enterSpot.Thing.BaseFullRotation().FacingCell;
+            }
+            else
+            {
+                faceCell = enterSpot.Cell.BaseFullDirectionToInsideMap(vehicle).FacingCell;
+            }
+
+            var dist = 1;
+            while ((cell - faceCell * dist).GetThingList(vehicle.Map).Contains(vehicle))
+            {
+                dist++;
+            }
+            if (enterSpot.Thing is Building_VehicleRamp && dist < 2) dist++;
+
+            var result = cell - faceCell * dist;
+            if (enterer != null)
+            {
+                result -= faceCell * vehicle.HalfLength();
+            }
+            return result;
+        }
         public static bool CanReach(Map departMap, IntVec3 root, LocalTargetInfo dest, PathEndMode peMode, TraverseParms traverseParms, Map destMap, out TargetInfo exitSpot, out TargetInfo enterSpot)
         {
             try
@@ -26,6 +57,12 @@ namespace VehicleInteriors
                     return false;
                 }
                 working = true;
+
+                if (traverseParms.pawn is VehiclePawn vehiclePawn)
+                {
+                    return vehiclePawn.CanReachVehicle(dest, peMode, traverseParms.maxDanger, traverseParms.mode, destMap, out exitSpot, out enterSpot);
+                }
+
                 if (departMap == null || destMap == null) return false;
                 if (departMap == destMap)
                 {
@@ -42,6 +79,14 @@ namespace VehicleInteriors
                         TraverseParms.For(traverseParms.pawn, traverseParms.maxDanger, TraverseMode.PassDoors, traverseParms.canBashDoors, traverseParms.alwaysUseAvoidGrid, traverseParms.canBashFences) :
                         TraverseParms.For(TraverseMode.PassDoors, traverseParms.maxDanger, traverseParms.canBashDoors, traverseParms.alwaysUseAvoidGrid, traverseParms.canBashFences);
 
+
+                    bool CanReach(IntVec3 cell, IntVec3 cell2)
+                    {
+                        return cell.Standable(departMap) &&
+                            cell2.Standable(destMap) &&
+                            departMap.reachability.CanReach(root, cell, PathEndMode.OnCell, traverseParms) &&
+                            destMap.reachability.CanReach(cell2, dest, peMode, traverseParms2);
+                    }
                     //出発地が車上マップで目的地がベースマップ
                     if (!flag && flag2)
                     {
@@ -52,51 +97,36 @@ namespace VehicleInteriors
                                 return false;
                             }
 
-                            TargetInfo tmpSpot = TargetInfo.Invalid;
-                            var result = vehicle2.EnterComps.OrderBy(e => e.DistanceSquared(dest.Cell)).Select(e => e.parent.Position).
-                            Concat(vehicle2.CachedMapEdgeCells.OrderBy(c => (c.ToBaseMapCoord(vehicle2) - dest.Cell).LengthHorizontalSquared)).Any(c =>
+                            foreach (var comp in vehicle2.EnterComps.OrderBy(e => e.DistanceSquared(dest.Cell)))
                             {
-                                tmpSpot = c.GetFirstThingWithComp<CompZipline>(departMap);
                                 IntVec3 cell;
-                                if (tmpSpot != null)
+                                if (comp is CompZipline compZipline)
                                 {
-                                    var comp = tmpSpot.Thing.TryGetComp<CompZipline>();
-                                    var pair = comp.Pair;
-                                    if (pair == null || !pair.HasComp<CompZipline>() || pair.Map != destMap) return false;
+                                    var pair = compZipline.Pair;
+                                    if (pair == null || !pair.HasComp<CompZipline>() || pair.Map != destMap) continue;
+
                                     cell = pair.Position;
                                 }
                                 else
                                 {
-                                    tmpSpot = c.GetFirstThingWithComp<CompVehicleEnterSpot>(departMap);
-                                    IntVec3 basePos;
-                                    IntVec3 faceCell;
-                                    if (tmpSpot != null)
-                                    {
-                                        basePos = tmpSpot.Thing.PositionOnBaseMap();
-                                        faceCell = tmpSpot.Thing.BaseFullRotation().FacingCell;
-                                    }
-                                    else
-                                    {
-                                        tmpSpot = new TargetInfo(c, departMap);
-                                        basePos = tmpSpot.Cell.ToBaseMapCoord(vehicle2);
-                                        faceCell = tmpSpot.Cell.BaseFullDirectionToInsideMap(vehicle2).FacingCell;
-                                    }
-                                    var dist = 1;
-                                    while ((basePos - faceCell * dist).GetThingList(departBaseMap).Contains(vehicle2))
-                                    {
-                                        dist++;
-                                    }
-                                    if (tmpSpot.Thing is Building_VehicleRamp && dist < 2) dist++;
-                                    cell = basePos - faceCell * dist;
+                                    cell = EnterVehiclePosition(comp.parent);
                                 }
-                                return c.Standable(departMap) &&
-                                cell.Standable(departBaseMap) &&
-                                departMap.reachability.CanReach(root, tmpSpot.Cell, PathEndMode.OnCell, traverseParms) &&
-                                departBaseMap.reachability.CanReach(cell, dest, peMode, traverseParms2);
-                            });
-                            exitSpot = result ? tmpSpot : TargetInfo.Invalid;
-
-                            return result;
+                                if (CanReach(comp.parent.Position, cell))
+                                {
+                                    exitSpot = comp.parent;
+                                    return true;
+                                }
+                            }
+                            foreach (var c in vehicle2.CachedMapEdgeCells.OrderBy(c => (c.ToBaseMapCoord(vehicle2) - dest.Cell).LengthHorizontalSquared))
+                            {
+                                var targetInfo = new TargetInfo(c, departMap);
+                                var cell = EnterVehiclePosition(targetInfo);
+                                if (CanReach(c, cell))
+                                {
+                                    exitSpot = targetInfo;
+                                    return true;
+                                }
+                            }
                         }
                     }
                     //出発地がベースマップで目的地が車上マップ
@@ -104,51 +134,36 @@ namespace VehicleInteriors
                     {
                         if (vehicle != null)
                         {
-                            TargetInfo tmpSpot = TargetInfo.Invalid;
-                            var result = vehicle.EnterComps.OrderBy(e => e.DistanceSquared(root)).Select(e => e.parent.Position)
-                            .Concat(vehicle.CachedMapEdgeCells.OrderBy(c => (root - c.ToBaseMapCoord(vehicle)).LengthHorizontalSquared)).Any(c =>
+                            foreach (var comp in vehicle.EnterComps.OrderBy(e => e.DistanceSquared(root)))
                             {
-                                tmpSpot = c.GetFirstThingWithComp<CompZipline>(destMap);
                                 IntVec3 cell;
-                                if (tmpSpot != null)
+                                if (comp is CompZipline compZipline)
                                 {
-                                    var comp = tmpSpot.Thing.TryGetComp<CompZipline>();
-                                    var pair = comp.Pair;
-                                    if (pair == null || !pair.HasComp<CompZipline>() || pair.Map != departMap) return false;
+                                    var pair = compZipline.Pair;
+                                    if (pair == null || !pair.HasComp<CompZipline>() || pair.Map != departMap) continue;
 
                                     cell = pair.Position;
                                 }
                                 else
                                 {
-                                    tmpSpot = c.GetFirstThingWithComp<CompVehicleEnterSpot>(destMap);
-                                    IntVec3 basePos;
-                                    IntVec3 faceCell;
-                                    if (tmpSpot != null)
-                                    {
-                                        basePos = tmpSpot.Thing.PositionOnBaseMap();
-                                        faceCell = tmpSpot.Thing.BaseFullRotation().FacingCell;
-                                    }
-                                    else
-                                    {
-                                        tmpSpot = new TargetInfo(c, destMap);
-                                        basePos = tmpSpot.Cell.ToBaseMapCoord(vehicle);
-                                        faceCell = tmpSpot.Cell.BaseFullDirectionToInsideMap(vehicle).FacingCell;
-                                    }
-                                    var dist = 1;
-                                    while ((basePos - faceCell * dist).GetThingList(destBaseMap).Contains(vehicle))
-                                    {
-                                        dist++;
-                                    }
-                                    if (tmpSpot.Thing is Building_VehicleRamp && dist < 2) dist++;
-                                    cell = basePos - faceCell * dist;
+                                    cell = EnterVehiclePosition(comp.parent);
                                 }
-                                return c.Standable(destMap) &&
-                                cell.Standable(departMap) &&
-                                departMap.reachability.CanReach(root, cell, PathEndMode.OnCell, traverseParms) &&
-                                destMap.reachability.CanReach(c, dest, peMode, traverseParms2);
-                            });
-                            enterSpot = result ? tmpSpot : TargetInfo.Invalid;
-                            return result;
+                                if (CanReach(cell, comp.parent.Position))
+                                {
+                                    enterSpot = comp.parent;
+                                    return true;
+                                }
+                            }
+                            foreach (var c in vehicle.CachedMapEdgeCells.OrderBy(c => (root - c.ToBaseMapCoord(vehicle)).LengthHorizontalSquared))
+                            {
+                                var targetInfo = new TargetInfo(c, destMap);
+                                var cell = EnterVehiclePosition(targetInfo);
+                                if (CanReach(cell, c))
+                                {
+                                    enterSpot = targetInfo;
+                                    return true;
+                                }
+                            }
                         }
                     }
                     //出発地と目的地がそれぞれ別の車上マップ
@@ -163,103 +178,112 @@ namespace VehicleInteriors
 
                             if (vehicle != null)
                             {
-                                TargetInfo tmpSpot = TargetInfo.Invalid;
-                                TargetInfo tmpSpot2 = TargetInfo.Invalid;
-                                var result = vehicle2.EnterComps.OrderBy(e => e.DistanceSquared(dest.Cell.ToBaseMapCoord(vehicle))).Select(e => e.parent.Position)
-                                .Concat(vehicle2.CachedMapEdgeCells.OrderBy(c => (c.ToBaseMapCoord(vehicle2) - dest.Cell.ToBaseMapCoord(vehicle)).LengthHorizontalSquared)).Any(c =>
+                                bool CanReach2(IntVec3 cell, IntVec3 cell2, IntVec3 cell3, IntVec3 cell4)
                                 {
-                                    tmpSpot = c.GetFirstThingWithComp<CompZipline>(departMap);
+                                    return cell.Standable(departMap) &&
+                                        cell2.Standable(departBaseMap) &&
+                                        cell3.Standable(departBaseMap) &&
+                                        cell4.Standable(destMap) &&
+                                        departMap.reachability.CanReach(root, cell, PathEndMode.OnCell, traverseParms) &&
+                                        departBaseMap.reachability.CanReach(cell2, cell3, PathEndMode.OnCell, traverseParms2) &&
+                                        destMap.reachability.CanReach(cell4, dest, peMode, traverseParms2);
+                                }
+
+                                foreach (var comp in vehicle2.EnterComps.OrderBy(e => e.DistanceSquared(dest.Cell.ToBaseMapCoord(vehicle))))
+                                {
                                     IntVec3 cell;
-                                    if (tmpSpot != null)
+                                    if (comp is CompZipline compZipline)
                                     {
-                                        var comp = tmpSpot.Thing.TryGetComp<CompZipline>();
-                                        var pair = comp.Pair;
-                                        if (pair == null || !pair.HasComp<CompZipline>() || pair.Map == departMap) return false;
+                                        var pair = compZipline.Pair;
+                                        if (pair == null || !pair.HasComp<CompZipline>() || pair.Map == departMap) continue;
+
+                                        cell = pair.Position;
 
                                         //departMapからdestMapまで直通のジップラインがある場合
-                                        cell = pair.Position;
                                         if (pair.Map == destMap)
                                         {
-                                            tmpSpot2 = pair;
-                                            return c.Standable(departMap) &&
-                                            cell.Standable(destMap) &&
-                                            departMap.reachability.CanReach(root, c, PathEndMode.OnCell, traverseParms) &&
-                                            destMap.reachability.CanReach(cell, dest, peMode, traverseParms2);
+                                            var c = comp.parent.Position;
+                                            if (CanReach(c, cell))
+                                            {
+                                                exitSpot = comp.parent;
+                                                enterSpot = pair;
+                                                return true;
+                                            }
                                         }
                                     }
                                     else
                                     {
-                                        tmpSpot = c.GetFirstThingWithComp<CompVehicleEnterSpot>(departMap);
-                                        IntVec3 basePos;
-                                        IntVec3 faceCell;
-                                        if (tmpSpot != null)
-                                        {
-                                            basePos = tmpSpot.Thing.PositionOnBaseMap();
-                                            faceCell = tmpSpot.Thing.BaseFullRotation().FacingCell;
-                                        }
-                                        else
-                                        {
-                                            tmpSpot = new TargetInfo(c, vehicle2.VehicleMap);
-                                            basePos = tmpSpot.Cell.ToBaseMapCoord(vehicle2);
-                                            faceCell = tmpSpot.Cell.BaseFullDirectionToInsideMap(vehicle2).FacingCell;
-                                        }
-                                        var dist = 1;
-                                        while ((basePos - faceCell * dist).GetThingList(departBaseMap).Contains(vehicle2))
-                                        {
-                                            dist++;
-                                        }
-                                        if (tmpSpot.Thing is Building_VehicleRamp && dist < 2) dist++;
-                                        cell = (basePos - faceCell * dist);
+                                        cell = EnterVehiclePosition(comp.parent);
                                     }
-                                    return vehicle.EnterComps.OrderBy(e => e.DistanceSquared(cell)).Select(e => e.parent.Position)
-                                    .Concat(vehicle.CachedMapEdgeCells.OrderBy(c2 => (cell - c2.ToBaseMapCoord(vehicle)).LengthHorizontalSquared)).Any(c2 =>
+                                    foreach (var comp2 in vehicle.EnterComps.OrderBy(e => e.DistanceSquared(cell)))
                                     {
-                                        tmpSpot2 = c2.GetFirstThingWithComp<CompZipline>(destMap);
                                         IntVec3 cell2;
-                                        if (tmpSpot2 != null)
+                                        if (comp2 is CompZipline compZipline2)
                                         {
-                                            var comp = tmpSpot2.Thing.TryGetComp<CompZipline>();
-                                            var pair = comp.Pair;
+                                            var pair = compZipline2.Pair;
                                             if (pair == null || pair.Isnt<ZiplineEnd>() || pair.Map != departBaseMap) return false;
                                             cell2 = pair.Position;
                                         }
                                         else
                                         {
-                                            tmpSpot2 = c2.GetFirstThingWithComp<CompVehicleEnterSpot>(destMap);
-                                            IntVec3 basePos2;
-                                            IntVec3 faceCell2;
-                                            if (tmpSpot2 != null)
-                                            {
-                                                basePos2 = tmpSpot2.Thing.PositionOnBaseMap();
-                                                faceCell2 = tmpSpot2.Thing.BaseFullRotation().FacingCell;
-                                            }
-                                            else
-                                            {
-                                                tmpSpot2 = new TargetInfo(c2, vehicle.VehicleMap);
-                                                basePos2 = tmpSpot2.Cell.ToBaseMapCoord(vehicle);
-                                                faceCell2 = tmpSpot2.Cell.BaseFullDirectionToInsideMap(vehicle).FacingCell;
-                                            }
-                                            faceCell2.y = 0;
-                                            var dist2 = 1;
-                                            while ((basePos2 - faceCell2 * dist2).GetThingList(destBaseMap).Contains(vehicle))
-                                            {
-                                                dist2++;
-                                            }
-                                            if (tmpSpot2.Thing is Building_VehicleRamp && dist2 < 2) dist2++;
-                                            cell2 = (basePos2 - faceCell2 * dist2);
+                                            cell2 = EnterVehiclePosition(comp2.parent);
                                         }
-                                        return c.Standable(departMap) &&
-                                        cell.Standable(departBaseMap) &&
-                                        cell2.Standable(departBaseMap) &&
-                                        c2.Standable(destMap) &&
-                                        departMap.reachability.CanReach(root, tmpSpot.Cell, PathEndMode.OnCell, traverseParms) &&
-                                        departBaseMap.reachability.CanReach(cell, cell2, PathEndMode.OnCell, traverseParms2) &&
-                                        destMap.reachability.CanReach(c2, dest, peMode, traverseParms2);
-                                    });
-                                });
-                                exitSpot = result ? tmpSpot : TargetInfo.Invalid;
-                                enterSpot = result ? tmpSpot2 : TargetInfo.Invalid;
-                                return result;
+                                        if (CanReach2(comp.parent.Position, cell, cell2, comp2.parent.Position))
+                                        {
+                                            exitSpot = comp.parent;
+                                            enterSpot = comp2.parent;
+                                            return true;
+                                        }
+                                    }
+                                    foreach (var c2 in vehicle.CachedMapEdgeCells.OrderBy(c2 => cell - c2.ToBaseMapCoord(vehicle)))
+                                    {
+                                        var targetInfo = new TargetInfo(c2, destMap);
+                                        var cell2 = EnterVehiclePosition(targetInfo);
+                                        if (CanReach2(comp.parent.Position, cell, cell2, c2))
+                                        {
+                                            exitSpot = comp.parent;
+                                            enterSpot = targetInfo;
+                                            return true;
+                                        }
+                                    }
+                                }
+                                foreach (var c in vehicle2.CachedMapEdgeCells.OrderBy(c => (c.ToBaseMapCoord(vehicle2) - dest.Cell.ToBaseMapCoord(vehicle)).LengthHorizontalSquared))
+                                {
+                                    var targetInfo = new TargetInfo(c, departMap);
+                                    var cell = EnterVehiclePosition(targetInfo);
+
+                                    foreach (var comp2 in vehicle.EnterComps.OrderBy(e => e.DistanceSquared(cell)))
+                                    {
+                                        IntVec3 cell2;
+                                        if (comp2 is CompZipline compZipline)
+                                        {
+                                            var pair = compZipline.Pair;
+                                            if (pair == null || pair.Isnt<ZiplineEnd>() || pair.Map != departBaseMap) return false;
+                                            cell2 = pair.Position;
+                                        }
+                                        else
+                                        {
+                                            cell2 = EnterVehiclePosition(comp2.parent);
+                                        }
+                                        if (CanReach2(c, cell, cell2, comp2.parent.Position))
+                                        {
+                                            exitSpot = targetInfo;
+                                            enterSpot = comp2.parent;
+                                            return true;
+                                        }
+                                    }
+                                    foreach (var c2 in vehicle.CachedMapEdgeCells.OrderBy(c2 => (cell - c2.ToBaseMapCoord(vehicle)).LengthHorizontalSquared))
+                                    {
+                                        var targetInfo2 = new TargetInfo(c2, destMap);
+                                        var cell2 = EnterVehiclePosition(targetInfo2);
+                                        if (CanReach2(c, cell, cell2, c2))
+                                        {
+                                            exitSpot = targetInfo;
+                                            enterSpot = targetInfo2;
+                                            return true;
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -476,50 +500,53 @@ namespace VehicleInteriors
             if (pawn.IsOnVehicleMapOf(out var vehicle))
             {
                 var departMap = vehicle.VehicleMap;
-                var baseMap = pawn.BaseMap();
-                TargetInfo exitSpot2 = TargetInfo.Invalid;
-                var result = vehicle.EnterComps.OrderBy(e => e.DistanceSquared(pawn.PositionOnBaseMap())).Select(e => e.parent.Position)
-                    .Concat(vehicle.CachedMapEdgeCells.OrderBy(c => (c - pawn.Position).LengthHorizontalSquared)).Any(c =>
+                var destMap = pawn.BaseMap();
+                bool CanReach(IntVec3 cell, IntVec3 cell2)
                 {
-                    exitSpot2 = c.GetThingList(departMap).FirstOrDefault(t => t.HasComp<CompVehicleEnterSpot>());
-                    IntVec3 basePos;
-                    IntVec3 faceCell;
-                    if (exitSpot2 != null)
+                    return cell.Standable(departMap) &&
+                        cell2.Standable(destMap) &&
+                        departMap.reachability.CanReach(carrier.Position, cell, PathEndMode.OnCell, traverseParms) &&
+                        destMap.reachability.CanReachMapEdge(cell2, traverseParms);
+                }
+                foreach (var comp in vehicle.EnterComps.OrderBy(e => e.DistanceSquared(pawn.PositionOnBaseMap())))
+                {
+                    IntVec3 cell;
+                    if (comp is CompZipline compZipline)
                     {
-                        basePos = exitSpot2.Thing.PositionOnBaseMap();
-                        faceCell = exitSpot2.Thing.BaseFullRotation().FacingCell;
+                        var pair = compZipline.Pair;
+                        if (pair == null || !pair.HasComp<CompZipline>() || pair.Map != destMap) return false;
+                        cell = pair.Position;
                     }
                     else
                     {
-                        exitSpot2 = new TargetInfo(c, departMap);
-                        basePos = exitSpot2.Cell.ToBaseMapCoord(vehicle);
-                        faceCell = exitSpot2.Cell.BaseFullDirectionToInsideMap(vehicle).FacingCell;
+                        cell = EnterVehiclePosition(comp.parent);
                     }
-                    faceCell.y = 0;
-                    var dist = 1;
-                    while ((basePos - faceCell * dist).GetThingList(baseMap).Contains(vehicle))
+                    if (CanReach(comp.parent.Position, cell))
                     {
-                        dist++;
+                        exitSpot = comp.parent;
+                        return true;
                     }
-                    if (exitSpot2.Thing is Building_VehicleRamp && dist < 2) dist++;
-                    var cell = (basePos - faceCell * dist);
-                    return c.Walkable(departMap) &&
-                    cell.Standable(baseMap) &&
-                    departMap.reachability.CanReach(pawn.Position, exitSpot2.Cell, PathEndMode.OnCell, traverseParms) &&
-                    baseMap.reachability.CanReachMapEdge(cell, traverseParms);
-                });
-                exitSpot = result ? exitSpot2 : TargetInfo.Invalid;
-
-                return result;
+                }
+                foreach (var c in vehicle.CachedMapEdgeCells.OrderBy(c => (c - pawn.Position).LengthHorizontalSquared))
+                {
+                    var targetInfo = new TargetInfo(c, departMap);
+                    var cell = EnterVehiclePosition(targetInfo);
+                    if (CanReach(c, cell))
+                    {
+                        exitSpot = targetInfo;
+                        return true;
+                    }
+                }
+                return false;
             }
             return pawn.Map.reachability.CanReachMapEdge(pawn.Position, traverseParms);
         }
 
-        public static bool CanReachVehicle(this VehiclePawn vehicle, LocalTargetInfo dest3, PathEndMode peMode, Danger maxDanger, TraverseMode mode, Map destMap, out TargetInfo dest1, out TargetInfo dest2)
+        public static bool CanReachVehicle(this VehiclePawn vehicle, LocalTargetInfo dest, PathEndMode peMode, Danger maxDanger, TraverseMode mode, Map destMap, out TargetInfo exitSpot, out TargetInfo enterSpot)
         {
-            dest1 = TargetInfo.Invalid;
-            dest2 = TargetInfo.Invalid;
-            if (dest3.Cell == vehicle.Position && destMap == vehicle.Map)
+            exitSpot = TargetInfo.Invalid;
+            enterSpot = TargetInfo.Invalid;
+            if (dest.Cell == vehicle.Position && destMap == vehicle.Map)
             {
                 return true;
             }
@@ -530,7 +557,7 @@ namespace VehicleInteriors
             if (departMap == null || destMap == null) return false;
             if (departMap == destMap)
             {
-                return MapComponentCache<VehicleMapping>.GetComponent(departMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(vehicle.Position, dest3, peMode, traverseParms);
+                return MapComponentCache<VehicleMapping>.GetComponent(departMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(vehicle.Position, dest, peMode, traverseParms);
             }
             var destBaseMap = destMap.IsVehicleMapOf(out var vehicle2) && vehicle2.Spawned ? vehicle2.Map : destMap;
             var departBaseMap = departMap.IsVehicleMapOf(out var vehicle3) && vehicle3.Spawned ? vehicle3.Map : departMap;
@@ -543,9 +570,9 @@ namespace VehicleInteriors
                 }
                 var flag = departMap == departBaseMap;
                 var flag2 = departBaseMap == destMap;
-                bool AvailableEnterSpot(Thing t)
+                bool AvailableEnterSpot(CompVehicleEnterSpot comp)
                 {
-                    return t.TryGetComp<CompVehicleEnterSpot>(out var comp) && comp.Props.allowPassingVehicle && t.def.size.x >= vehicle.VehicleDef.size.x;
+                    return comp != null && comp.Props.allowPassingVehicle && comp.parent.def.size.x >= vehicle.VehicleDef.size.x;
                 }
 
                 //vehicleが車上マップに居て目的地がベースマップ
@@ -553,27 +580,18 @@ namespace VehicleInteriors
                 {
                     if (vehicle3 != null)
                     {
-                        Thing enterSpot = null;
-                        var result = vehicle3.EnterComps.OrderBy(e => e.DistanceSquared(dest3.Cell)).Select(e => e.parent.Position).Any(c =>
+                        Thing tmpSpot = null;
+                        var result = vehicle3.EnterComps.Where(e => e.Isnt<CompZipline>()).OrderBy(e => e.DistanceSquared(dest.Cell)).Any(e =>
                         {
-                            enterSpot = c.GetThingList(departMap).FirstOrDefault(t => AvailableEnterSpot(t));
-                            if (enterSpot == null || enterSpot.OccupiedRect().Any(c3 => !vehicle.Drivable(c3, departMap))) return false;
-                            var basePos = enterSpot.PositionOnBaseMap();
-                            var rot = enterSpot.BaseFullRotation();
-                            var faceCell = rot.FacingCell;
-                            faceCell.y = 0;
-                            var dist = 1;
-                            while ((basePos - faceCell * dist).GetThingList(departBaseMap).Contains(vehicle3))
-                            {
-                                dist++;
-                            }
-                            if (enterSpot is Building_VehicleRamp && dist < 2) dist++;
-                            var cell = basePos - faceCell * dist - faceCell * vehicle.HalfLength();
-                            return MapComponentCache<VehicleMapping>.GetComponent(departMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(vehicle.Position, enterSpot, PathEndMode.OnCell, traverseParms) &&
-                            vehicle.VehicleDef.CellRectStandable(departBaseMap, cell, rot.Opposite) &&
-                            MapComponentCache<VehicleMapping>.GetComponent(departBaseMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(cell, dest3, peMode, TraverseMode.PassDoors, traverseParms.maxDanger);
+                            tmpSpot = e.parent;
+                            if (!AvailableEnterSpot(e) || tmpSpot.OccupiedRect().Any(c3 => !vehicle.Drivable(c3, departMap))) return false;
+
+                            var cell = EnterVehiclePosition(tmpSpot, vehicle);
+                            return vehicle.VehicleDef.CellRectStandable(destMap, cell, tmpSpot.BaseFullRotation().Opposite) &&
+                                MapComponentCache<VehicleMapping>.GetComponent(departMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(vehicle.Position, tmpSpot, PathEndMode.OnCell, traverseParms) &&
+                                MapComponentCache<VehicleMapping>.GetComponent(destMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(cell, dest, peMode, TraverseMode.PassDoors, traverseParms.maxDanger);
                         });
-                        dest1 = result ? enterSpot : TargetInfo.Invalid;
+                        exitSpot = result ? tmpSpot : TargetInfo.Invalid;
                         return result;
                     }
                 }
@@ -582,28 +600,19 @@ namespace VehicleInteriors
                 {
                     if (vehicle2 != null)
                     {
-                        Thing enterSpot = null;
-                        var result = vehicle2.EnterComps.OrderBy(e => e.DistanceSquared(vehicle.Position)).Select(e => e.parent.Position).Any(c =>
+                        Thing tmpSpot = null;
+                        var result = vehicle2.EnterComps.Where(e => e.Isnt<CompZipline>()).OrderBy(e => e.DistanceSquared(vehicle.Position)).Any(e =>
                         {
-                            enterSpot = c.GetThingList(destMap).FirstOrDefault(t => AvailableEnterSpot(t));
-                            if (enterSpot == null || enterSpot.OccupiedRect().Any(c3 => !vehicle.Drivable(c3, destMap))) return false;
-                            var basePos = enterSpot.PositionOnBaseMap();
-                            var rot = enterSpot.BaseFullRotation();
-                            var faceCell = rot.FacingCell;
-                            faceCell.y = 0;
-                            var dist = 1;
-                            while ((basePos - faceCell * dist).GetThingList(destBaseMap).Contains(vehicle2))
-                            {
-                                dist++;
-                            }
-                            if (enterSpot is Building_VehicleRamp && dist < 2) dist++;
-                            var cell = basePos - faceCell * dist - faceCell * vehicle.HalfLength();
-                            var cell2 = enterSpot.Position + enterSpot.Rotation.FacingCell * vehicle.HalfLength();
-                            return MapComponentCache<VehicleMapping>.GetComponent(departMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(vehicle.Position, cell, PathEndMode.OnCell, traverseParms) &&
-                            vehicle.VehicleDef.CellRectStandable(destMap, cell2, enterSpot.Rotation) &&
-                            MapComponentCache<VehicleMapping>.GetComponent(destMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(cell2, dest3, peMode, TraverseMode.PassDoors, traverseParms.maxDanger);
+                            tmpSpot = e.parent;
+                            if (!AvailableEnterSpot(e) || tmpSpot.OccupiedRect().Any(c3 => !vehicle.Drivable(c3, destMap))) return false;
+
+                            var cell = EnterVehiclePosition(tmpSpot, vehicle);
+                            var cell2 = tmpSpot.Position + tmpSpot.Rotation.FacingCell * vehicle.HalfLength();
+                            return vehicle.VehicleDef.CellRectStandable(destMap, cell2, tmpSpot.Rotation) &&
+                                MapComponentCache<VehicleMapping>.GetComponent(departMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(vehicle.Position, cell, PathEndMode.OnCell, traverseParms) &&
+                                MapComponentCache<VehicleMapping>.GetComponent(destMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(cell2, dest, peMode, TraverseMode.PassDoors, traverseParms.maxDanger);
                         });
-                        dest2 = result ? enterSpot : TargetInfo.Invalid;
+                        enterSpot = result ? tmpSpot : TargetInfo.Invalid;
                         return result;
                     }
                 }
@@ -614,48 +623,32 @@ namespace VehicleInteriors
                     {
                         if (vehicle2 != null)
                         {
-                            Thing enterSpot = null;
-                            Thing enterSpot2 = null;
-                            var result = vehicle3.EnterComps.OrderBy(e => e.DistanceSquared(dest3.Cell.ToBaseMapCoord(vehicle2))).Select(e => e.parent.Position).Any(c =>
+                            Thing tmpSpot = null;
+                            Thing tmpSpot2 = null;
+                            var result = vehicle3.EnterComps.Where(e => e.Isnt<CompZipline>()).OrderBy(e => e.DistanceSquared(dest.Cell.ToBaseMapCoord(vehicle2))).Any(e =>
                             {
-                                enterSpot = c.GetThingList(departMap).FirstOrDefault(t => AvailableEnterSpot(t));
-                                if (enterSpot == null || enterSpot.OccupiedRect().Any(c3 => !vehicle.Drivable(c3, departMap))) return false;
-                                var basePos = enterSpot.PositionOnBaseMap();
-                                var rot = enterSpot.BaseFullRotation();
-                                var faceCell = rot.FacingCell;
-                                faceCell.y = 0;
-                                var dist = 1;
-                                while ((basePos - faceCell * dist).GetThingList(departBaseMap).Contains(vehicle3))
+                                tmpSpot = e.parent;
+                                if (!AvailableEnterSpot(e) || tmpSpot.OccupiedRect().Any(c => !vehicle.Drivable(c, departMap))) return false;
+
+                                var cell = EnterVehiclePosition(tmpSpot, vehicle);
+
+                                return vehicle2.EnterComps.Where(e2 => e2.Isnt<CompZipline>()).OrderBy(e2 => e2.DistanceSquared(cell)).Any(e2 =>
                                 {
-                                    dist++;
-                                }
-                                if (enterSpot is Building_VehicleRamp && dist < 2) dist++;
-                                var cell = basePos - faceCell * dist - faceCell * vehicle.HalfLength();
-                                return vehicle2.EnterComps.OrderBy(e => e.DistanceSquared(cell)).Select(e => e.parent.Position).Any(c2 =>
-                                {
-                                    enterSpot2 = c2.GetThingList(destMap).FirstOrDefault(t => AvailableEnterSpot(t));
-                                    if (enterSpot2 == null || enterSpot2.OccupiedRect().Any(c3 => !vehicle.Drivable(c3, destMap))) return false;
-                                    var basePos2 = enterSpot2.PositionOnBaseMap();
-                                    var rot2 = enterSpot2.BaseFullRotation();
-                                    var faceCell2 = rot2.FacingCell;
-                                    faceCell2.y = 0;
-                                    var dist2 = 1;
-                                    while ((basePos2 - faceCell2 * dist2).GetThingList(destBaseMap).Contains(vehicle2))
-                                    {
-                                        dist2++;
-                                    }
-                                    if (enterSpot2 is Building_VehicleRamp && dist < 2) dist2++;
-                                    var cell2 = basePos2 - faceCell2 * dist2 - faceCell2 * vehicle.HalfLength();
-                                    var cell3 = enterSpot2.Position + enterSpot.Rotation.FacingCell * vehicle.HalfLength();
-                                    return MapComponentCache<VehicleMapping>.GetComponent(departMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(vehicle.Position, enterSpot, PathEndMode.OnCell, traverseParms) &&
-                                    vehicle.VehicleDef.CellRectStandable(departBaseMap, cell, rot.Opposite) &&
-                                    MapComponentCache<VehicleMapping>.GetComponent(departBaseMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(cell, cell2, PathEndMode.OnCell, TraverseMode.PassDoors, traverseParms.maxDanger) &&
-                                    vehicle.VehicleDef.CellRectStandable(destMap, cell3, enterSpot2.Rotation) &&
-                                    MapComponentCache<VehicleMapping>.GetComponent(destMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(cell3, dest3, peMode, TraverseMode.PassDoors, traverseParms.maxDanger);
+                                    tmpSpot2 = e2.parent;
+                                    if (!AvailableEnterSpot(e2) || tmpSpot2.OccupiedRect().Any(c => !vehicle.Drivable(c, destMap))) return false;
+
+                                    var cell2 = EnterVehiclePosition(tmpSpot2, vehicle);
+                                    var cell3 = tmpSpot2.Position + tmpSpot2.Rotation.FacingCell * vehicle.HalfLength();
+
+                                    return vehicle.VehicleDef.CellRectStandable(departBaseMap, cell, tmpSpot.BaseFullRotation().Opposite) &&
+                                        vehicle.VehicleDef.CellRectStandable(destMap, cell3, tmpSpot2.Rotation) &&
+                                        MapComponentCache<VehicleMapping>.GetComponent(departMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(vehicle.Position, tmpSpot, PathEndMode.OnCell, traverseParms) &&
+                                        MapComponentCache<VehicleMapping>.GetComponent(departBaseMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(cell, cell2, PathEndMode.OnCell, TraverseMode.PassDoors, traverseParms.maxDanger) &&
+                                        MapComponentCache<VehicleMapping>.GetComponent(destMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(cell3, dest, peMode, TraverseMode.PassDoors, traverseParms.maxDanger);
                                 });
                             });
-                            dest1 = result ? enterSpot : TargetInfo.Invalid;
-                            dest2 = result ? enterSpot2 : TargetInfo.Invalid;
+                            exitSpot = result ? tmpSpot : TargetInfo.Invalid;
+                            enterSpot = result ? tmpSpot2 : TargetInfo.Invalid;
                             return result;
                         }
                     }

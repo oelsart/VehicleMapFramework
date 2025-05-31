@@ -37,6 +37,7 @@ namespace VehicleInteriors
                 toil.defaultCompleteMode = ToilCompleteMode.Instant;
                 toil.initAction = () =>
                 {
+
                     this.pawn.jobs.StartJob(this.nextJob, JobCondition.InterruptForced, keepCarryingThingOverride: true);
                 };
                 yield return toil;

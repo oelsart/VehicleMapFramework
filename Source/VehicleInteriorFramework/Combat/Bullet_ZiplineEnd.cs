@@ -90,7 +90,6 @@ namespace VehicleInteriors
             {
                 float num = ArcHeightFactor * GenMath.InverseParabola(DistanceCoveredFractionArc);
                 var drawPosA = drawLoc + Vector3.forward * num + (Vector3.back * ZiplineEnd.ZiplineEndOffset).RotatedBy(ExactRotation.eulerAngles.y);
-
                 var launcherPos = launcher.DrawPos;
                 var drawPosB = launcherPos + (Vector3.forward * ZiplineEnd.LauncherOffset).RotatedBy((drawPosA - launcherPos).AngleFlat());
                 var y = Mathf.Max(drawPosA.y, drawPosB.y);

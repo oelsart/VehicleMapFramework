@@ -12,6 +12,13 @@ namespace VehicleInteriors
         {
             var nextJob = pawn.CurJob.Clone();
             var driver = nextJob.GetCachedDriver(pawn);
+
+            //QueueBを使い果たした後でDoBillを再開するといらんとこまでJumpIfしてしまうためその対策
+            if (driver is JobDriver_DoBill && pawn.CurJob.targetQueueB.NullOrEmpty() && pawn.IsCarrying())
+            {
+                nextJob.AddQueuedTarget(TargetIndex.B, pawn.carryTracker.CarriedThing);
+            }
+
             curToilIndex(driver) = pawn.jobs.curDriver.CurToilIndex - 1;
             pawn.jobs.curDriver.globalFinishActions.Clear(); //Jobはまだ終わっちゃいねえためFinishActionはさせない。TryDropThingなどをしていることもあるし
             var job = JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, nextJob);

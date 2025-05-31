@@ -981,4 +981,25 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             return target.Thing?.Map ?? thing.Map;
         }
     }
+
+    //[HarmonyPatch(typeof(JobDriver_DoBill), "MakeNewToils")]
+    //class Debug
+    //{
+    //    static IEnumerable<Toil> Postfix(IEnumerable<Toil> __result)
+    //    {
+    //        var i = 0;
+    //        foreach (var toil in __result)
+    //        {
+    //            if (toil.debugName == "JumpIf" && i == 0)
+    //            {
+    //                i++;
+    //                toil.initAction = () =>
+    //                {
+    //                    toil.actor.CurJob.queue
+    //                };
+    //            }
+    //            yield return toil;
+    //        }
+    //    }
+    //}
 }
