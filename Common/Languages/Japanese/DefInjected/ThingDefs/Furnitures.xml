@@ -10,4 +10,19 @@
 	<VMF_Alternator.label>オルタネーター</VMF_Alternator.label>
 	<VMF_Alternator.description>車両の燃料を使って電力を生み出す部品です.</VMF_Alternator.description>
 
+	<VMF_PipeConnector.label>パイプコネクター</VMF_PipeConnector.label>
+	<VMF_PipeConnector.description>通常マップと乗り物マップのパイプを繋ぐコネクターです.\n通常マップと乗り物マップに置き, 位置を合わせると接続します.</VMF_PipeConnector.description>
+
+	<VMF_Turret_ZiplineTurret.label>ジップラインタレット</VMF_Turret_ZiplineTurret.label>
+	<VMF_Turret_ZiplineTurret.description>突き刺した場所に向けてジップラインを張る射出機です. 異なる乗り物間マップ間で直接行き来する時などに使用します.</VMF_Turret_ZiplineTurret.description>
+
+	<VMF_Gun_ZiplineTurret.label>ジップラインタレット砲塔</VMF_Gun_ZiplineTurret.label>
+	<VMF_Gun_ZiplineTurret.description>ジップラインタレットに取り付けられる砲塔です.</VMF_Gun_ZiplineTurret.description>
+
+	<VMF_Bullet_ZiplineTurret.label>ジップライン射出体</VMF_Bullet_ZiplineTurret.label>
+	
+	<VMF_Bullet_ZiplineTurretReturn.label>ジップライン射出体</VMF_Bullet_ZiplineTurretReturn.label>
+
+	<VMF_ZiplineEnd.label>ジップライン先端</VMF_ZiplineEnd.label>
+
 </LanguageData>

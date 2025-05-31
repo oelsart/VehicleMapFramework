@@ -274,7 +274,7 @@
 			<li>
 				<verbClass>VehicleInteriors.Verb_LaunchZipline</verbClass>
 				<defaultProjectile>VMF_Bullet_ZiplineTurret</defaultProjectile>
-				<range>28.9</range>
+				<range>11.9</range>
 				<targetParams>
 					<canTargetLocations>true</canTargetLocations>
 					<canTargetBuildings>false</canTargetBuildings>
@@ -311,7 +311,7 @@
 			<texPath>VehicleInteriors/Things/ZiplineTurret/Bullet_ZiplineEnd</texPath>
 		</graphicData>
 		<projectile>
-			<speed>30</speed>
+			<speed>45</speed>
 		</projectile>
 	</ThingDef>
 
