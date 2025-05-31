@@ -510,6 +510,52 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
+    //ChewSpotのThingが見つかった場合にGotoTargetMapを挟む
+    [HarmonyPatch]
+    public static class Patch_Toils_Ingest_CarryIngestibleToChewSpot_Delegate
+    {
+        private static MethodBase TargetMethod()
+        {
+            return AccessTools.FindIncludingInnerTypes(typeof(Toils_Ingest), t => t.GetMethods(AccessTools.all).FirstOrDefault(m => m.Name.Contains("<CarryIngestibleToChewSpot>")));
+        }
+
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+        {
+            var f_actor = instructions.First(c => c.opcode == OpCodes.Stfld && ((FieldInfo)c.operand).FieldType == typeof(Pawn)).operand;
+            foreach (var instruction in instructions)
+            {
+                yield return instruction;
+                if (instruction.opcode == OpCodes.Stloc_2)
+                {
+                    var label = generator.DefineLabel();
+                    yield return CodeInstruction.LoadLocal(2);
+                    yield return CodeInstruction.LoadLocal(0);
+                    yield return new CodeInstruction(OpCodes.Ldfld, f_actor);
+                    yield return CodeInstruction.Call(typeof(Patch_Toils_Ingest_CarryIngestibleToChewSpot_Delegate), nameof(StartGotoDestMapJob));
+                    yield return new CodeInstruction(OpCodes.Brfalse_S, label);
+                    yield return new CodeInstruction(OpCodes.Ret);
+                    yield return new CodeInstruction(OpCodes.Nop).WithLabels(label);
+                }
+            }
+        }
+
+        private static bool StartGotoDestMapJob(Thing thing, Pawn pawn)
+        {
+            if (thing == null)
+            {
+                return false;
+            }
+            var parent = thing.SpawnedParentOrMe;
+            if (parent != null && pawn.Map != parent.Map && pawn.CanReach(thing, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, parent.Map, out var exitSpot, out var enterSpot))
+            {
+                JobAcrossMapsUtility.StartGotoDestMapJob(pawn, exitSpot, enterSpot);
+                return true;
+            }
+            return false;
+        }
+    }
+
+
     [HarmonyPatch(typeof(Toils_Bed), nameof(Toils_Bed.GotoBed))]
     public static  class Patch_Toils_Bed_GotoBed
     {
@@ -981,25 +1027,4 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             return target.Thing?.Map ?? thing.Map;
         }
     }
-
-    //[HarmonyPatch(typeof(JobDriver_DoBill), "MakeNewToils")]
-    //class Debug
-    //{
-    //    static IEnumerable<Toil> Postfix(IEnumerable<Toil> __result)
-    //    {
-    //        var i = 0;
-    //        foreach (var toil in __result)
-    //        {
-    //            if (toil.debugName == "JumpIf" && i == 0)
-    //            {
-    //                i++;
-    //                toil.initAction = () =>
-    //                {
-    //                    toil.actor.CurJob.queue
-    //                };
-    //            }
-    //            yield return toil;
-    //        }
-    //    }
-    //}
 }

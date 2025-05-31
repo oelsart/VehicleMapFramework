@@ -338,7 +338,8 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
-
+    [HarmonyBefore("SettlementQuestsMod")]
+    [HarmonyPatchCategory("VehicleInteriors.EarlyPatches")]
     [HarmonyPatch(typeof(WorldObject), nameof(WorldObject.Tile), MethodType.Getter)]
     public static class Patch_WorldObject_Tile
     {
@@ -402,178 +403,178 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             tileCache[aerial] = WorldHelper.GetNearestTile(aerial.DrawPos);
             return tileCache[aerial];
         }
+    }
 
-        [HarmonyPatch(typeof(CameraJumper), nameof(CameraJumper.GetWorldTarget))]
-        public static class Patch_CameraJumper_GetWorldTarget
+    [HarmonyPatch(typeof(CameraJumper), nameof(CameraJumper.GetWorldTarget))]
+    public static class Patch_CameraJumper_GetWorldTarget
+    {
+        public static void Prefix(ref GlobalTargetInfo target)
         {
-            public static void Prefix(ref GlobalTargetInfo target)
+            if (target.Thing?.IsOnVehicleMapOf(out var vehicle) ?? false)
             {
-                if (target.Thing?.IsOnVehicleMapOf(out var vehicle) ?? false)
-                {
-                    target = vehicle;
-                }
+                target = vehicle;
             }
         }
+    }
 
-        [HarmonyPatch(typeof(DesignationManager), nameof(DesignationManager.DesignationOn))]
-        public static class Patch_DesignationManager_DesignationOn
+    [HarmonyPatch(typeof(DesignationManager), nameof(DesignationManager.DesignationOn))]
+    public static class Patch_DesignationManager_DesignationOn
+    {
+        [HarmonyPatch(new Type[] { typeof(Thing) })]
+        [HarmonyPrefix]
+        public static bool Prefix1(Thing t, DesignationManager __instance, ref Designation __result)
         {
-            [HarmonyPatch(new Type[] { typeof(Thing) })]
-            [HarmonyPrefix]
-            public static bool Prefix1(Thing t, DesignationManager __instance, ref Designation __result)
+            var thingMap = t.MapHeld;
+            if (thingMap != null && thingMap != __instance.map)
             {
-                var thingMap = t.MapHeld;
-                if (thingMap != null && thingMap != __instance.map)
-                {
-                    __result = thingMap.designationManager.DesignationOn(t);
-                    return false;
-                }
-                return true;
+                __result = thingMap.designationManager.DesignationOn(t);
+                return false;
             }
-
-            [HarmonyPatch(new Type[] { typeof(Thing), typeof(DesignationDef) })]
-            [HarmonyPrefix]
-            public static bool Prefix2(Thing t, DesignationDef def, DesignationManager __instance, ref Designation __result)
-            {
-                var thingMap = t.MapHeld;
-                if (thingMap != null && thingMap != __instance.map)
-                {
-                    __result = thingMap.designationManager.DesignationOn(t, def);
-                    return false;
-                }
-                return true;
-            }
+            return true;
         }
 
-        [HarmonyPatch(typeof(SoundStarter), nameof(SoundStarter.PlayOneShot))]
-        public static class Patch_SoundStarter_PlayOneShot
+        [HarmonyPatch(new Type[] { typeof(Thing), typeof(DesignationDef) })]
+        [HarmonyPrefix]
+        public static bool Prefix2(Thing t, DesignationDef def, DesignationManager __instance, ref Designation __result)
         {
-            public static void Prefix(ref SoundInfo info)
+            var thingMap = t.MapHeld;
+            if (thingMap != null && thingMap != __instance.map)
             {
-                if (info.Maker.IsValid && info.Maker.Map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
-                {
-                    info = SoundInfo.InMap(new TargetInfo(info.Maker.Cell.ToBaseMapCoord(vehicle), vehicle.Map), info.Maintenance);
-                }
+                __result = thingMap.designationManager.DesignationOn(t, def);
+                return false;
+            }
+            return true;
+        }
+    }
+
+    [HarmonyPatch(typeof(SoundStarter), nameof(SoundStarter.PlayOneShot))]
+    public static class Patch_SoundStarter_PlayOneShot
+    {
+        public static void Prefix(ref SoundInfo info)
+        {
+            if (info.Maker.IsValid && info.Maker.Map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
+            {
+                info = SoundInfo.InMap(new TargetInfo(info.Maker.Cell.ToBaseMapCoord(vehicle), vehicle.Map), info.Maintenance);
             }
         }
+    }
 
-        [HarmonyPatch(typeof(Room), nameof(Room.DrawFieldEdges))]
-        public static class Patch_Room_DrawFieldEdges
+    [HarmonyPatch(typeof(Room), nameof(Room.DrawFieldEdges))]
+    public static class Patch_Room_DrawFieldEdges
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+            var codes = instructions.ToList();
+            var m_DrawFieldEdges = AccessTools.Method(typeof(GenDraw), nameof(GenDraw.DrawFieldEdges), new Type[] { typeof(List<IntVec3>), typeof(Color), typeof(float?) });
+            var m_DrawFieldEdgesOnVehicle = AccessTools.Method(typeof(GenDrawOnVehicle), nameof(GenDrawOnVehicle.DrawFieldEdges), new Type[] { typeof(List<IntVec3>), typeof(Color), typeof(float?), typeof(Map) });
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(m_DrawFieldEdges));
+            codes[pos].operand = m_DrawFieldEdgesOnVehicle;
+            codes.InsertRange(pos, new[]
             {
-                var codes = instructions.ToList();
-                var m_DrawFieldEdges = AccessTools.Method(typeof(GenDraw), nameof(GenDraw.DrawFieldEdges), new Type[] { typeof(List<IntVec3>), typeof(Color), typeof(float?) });
-                var m_DrawFieldEdgesOnVehicle = AccessTools.Method(typeof(GenDrawOnVehicle), nameof(GenDrawOnVehicle.DrawFieldEdges), new Type[] { typeof(List<IntVec3>), typeof(Color), typeof(float?), typeof(Map) });
-                var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(m_DrawFieldEdges));
-                codes[pos].operand = m_DrawFieldEdgesOnVehicle;
-                codes.InsertRange(pos, new[]
-                {
                 CodeInstruction.LoadArgument(0),
                 new CodeInstruction(OpCodes.Callvirt, AccessTools.PropertyGetter(typeof(Room), nameof(Room.Map)))
             });
-                return codes;
+            return codes;
+        }
+    }
+
+    [HarmonyPatch(typeof(WorldObjectsHolder), nameof(WorldObjectsHolder.MapParentAt))]
+    public static class Patch_WorldObjectsHolder_MapParentAt
+    {
+        public static void Postfix(ref MapParent __result, List<MapParent> ___mapParents, int tile)
+        {
+            if (__result is MapParent_Vehicle)
+            {
+                __result = ___mapParents.FirstOrDefault(p => p.Tile == tile && p.Isnt<MapParent_Vehicle>());
             }
         }
+    }
 
-        [HarmonyPatch(typeof(WorldObjectsHolder), nameof(WorldObjectsHolder.MapParentAt))]
-        public static class Patch_WorldObjectsHolder_MapParentAt
+    [HarmonyPatch(typeof(Game), nameof(Game.FindMap), typeof(int))]
+    public static class Patch_Game_FindMap
+    {
+        public static void Postfix(ref Map __result, List<Map> ___maps, int tile)
         {
-            public static void Postfix(ref MapParent __result, List<MapParent> ___mapParents, int tile)
+            if (__result.IsVehicleMapOf(out _))
             {
-                if (__result is MapParent_Vehicle)
-                {
-                    __result = ___mapParents.FirstOrDefault(p => p.Tile == tile && p.Isnt<MapParent_Vehicle>());
-                }
+                __result = ___maps.FirstOrDefault(m => m.Tile == tile && !m.IsVehicleMapOf(out _));
             }
         }
+    }
 
-        [HarmonyPatch(typeof(Game), nameof(Game.FindMap), typeof(int))]
-        public static class Patch_Game_FindMap
+    [HarmonyPatch(typeof(WealthWatcher), nameof(WealthWatcher.ForceRecount))]
+    public static class Patch_WealthWatcher_ForceRecount
+    {
+        public static void Postfix(Map ___map, ref float ___wealthItems, ref float ___wealthBuildings, ref float ___wealthFloorsOnly, float ___lastCountTick)
         {
-            public static void Postfix(ref Map __result, List<Map> ___maps, int tile)
+            var state = Current.ProgramState;
+            Current.ProgramState = ProgramState.Playing;
+            foreach (var vehicle in VehiclePawnWithMapCache.AllVehiclesOn(___map))
             {
-                if (__result.IsVehicleMapOf(out _))
-                {
-                    __result = ___maps.FirstOrDefault(m => m.Tile == tile && !m.IsVehicleMapOf(out _));
-                }
+                ___wealthItems += vehicle.VehicleMap.wealthWatcher.WealthItems;
+                ___wealthBuildings += vehicle.VehicleMap.wealthWatcher.WealthBuildings;
+                ___wealthFloorsOnly += vehicle.VehicleMap.wealthWatcher.WealthFloorsOnly;
             }
+            Current.ProgramState = state;
+        }
+    }
+
+    [HarmonyPatch(typeof(Hediff_MetalhorrorImplant), nameof(Hediff_MetalhorrorImplant.Emerge))]
+    public static class Patch_Hediff_MetalhorrorImplant_Emerge
+    {
+        private static bool Prepare()
+        {
+            return ModsConfig.AnomalyActive;
         }
 
-        [HarmonyPatch(typeof(WealthWatcher), nameof(WealthWatcher.ForceRecount))]
-        public static class Patch_WealthWatcher_ForceRecount
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            public static void Postfix(Map ___map, ref float ___wealthItems, ref float ___wealthBuildings, ref float ___wealthFloorsOnly, float ___lastCountTick)
-            {
-                var state = Current.ProgramState;
-                Current.ProgramState = ProgramState.Playing;
-                foreach (var vehicle in VehiclePawnWithMapCache.AllVehiclesOn(___map))
-                {
-                    ___wealthItems += vehicle.VehicleMap.wealthWatcher.WealthItems;
-                    ___wealthBuildings += vehicle.VehicleMap.wealthWatcher.WealthBuildings;
-                    ___wealthFloorsOnly += vehicle.VehicleMap.wealthWatcher.WealthFloorsOnly;
-                }
-                Current.ProgramState = state;
-            }
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_MapHeld, MethodInfoCache.m_MapHeldBaseMap);
         }
+    }
 
-        [HarmonyPatch(typeof(Hediff_MetalhorrorImplant), nameof(Hediff_MetalhorrorImplant.Emerge))]
-        public static class Patch_Hediff_MetalhorrorImplant_Emerge
+    [HarmonyPatch(typeof(HaulDestinationManager), nameof(HaulDestinationManager.AddHaulSource))]
+    public static class Patch_HaulDestinationManager_AddHaulSource
+    {
+        public static void Postfix(Map ___map, IHaulSource source)
         {
-            private static bool Prepare()
-            {
-                return ModsConfig.AnomalyActive;
-            }
-
-            public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-            {
-                return instructions.MethodReplacer(MethodInfoCache.g_Thing_MapHeld, MethodInfoCache.m_MapHeldBaseMap);
-            }
+            ___map.GetCachedMapComponent<CrossMapHaulDestinationManager>().AddHaulSource(source);
         }
+    }
 
-        [HarmonyPatch(typeof(HaulDestinationManager), nameof(HaulDestinationManager.AddHaulSource))]
-        public static class Patch_HaulDestinationManager_AddHaulSource
+    [HarmonyPatch(typeof(HaulDestinationManager), nameof(HaulDestinationManager.AddHaulDestination))]
+    public static class Patch_HaulDestinationManager_AddHaulDestination
+    {
+        public static void Postfix(Map ___map, IHaulDestination haulDestination)
         {
-            public static void Postfix(Map ___map, IHaulSource source)
-            {
-                ___map.GetCachedMapComponent<CrossMapHaulDestinationManager>().AddHaulSource(source);
-            }
+            ___map.GetCachedMapComponent<CrossMapHaulDestinationManager>().AddHaulDestination(haulDestination);
         }
+    }
 
-        [HarmonyPatch(typeof(HaulDestinationManager), nameof(HaulDestinationManager.AddHaulDestination))]
-        public static class Patch_HaulDestinationManager_AddHaulDestination
+    [HarmonyPatch(typeof(HaulDestinationManager), nameof(HaulDestinationManager.RemoveHaulSource))]
+    public static class Patch_HaulDestinationManager_RemoveHaulSource
+    {
+        public static void Postfix(Map ___map, IHaulSource source)
         {
-            public static void Postfix(Map ___map, IHaulDestination haulDestination)
-            {
-                ___map.GetCachedMapComponent<CrossMapHaulDestinationManager>().AddHaulDestination(haulDestination);
-            }
+            ___map.GetCachedMapComponent<CrossMapHaulDestinationManager>().RemoveHaulSource(source);
         }
+    }
 
-        [HarmonyPatch(typeof(HaulDestinationManager), nameof(HaulDestinationManager.RemoveHaulSource))]
-        public static class Patch_HaulDestinationManager_RemoveHaulSource
+    [HarmonyPatch(typeof(HaulDestinationManager), nameof(HaulDestinationManager.RemoveHaulDestination))]
+    public static class Patch_HaulDestinationManager_RemoveHaulDestination
+    {
+        public static void Postfix(Map ___map, IHaulDestination haulDestination)
         {
-            public static void Postfix(Map ___map, IHaulSource source)
-            {
-                ___map.GetCachedMapComponent<CrossMapHaulDestinationManager>().RemoveHaulSource(source);
-            }
+            ___map.GetCachedMapComponent<CrossMapHaulDestinationManager>().RemoveHaulDestination(haulDestination);
         }
+    }
 
-        [HarmonyPatch(typeof(HaulDestinationManager), nameof(HaulDestinationManager.RemoveHaulDestination))]
-        public static class Patch_HaulDestinationManager_RemoveHaulDestination
+    [HarmonyPatch(typeof(HaulDestinationManager), nameof(HaulDestinationManager.Notify_HaulDestinationChangedPriority))]
+    public static class Patch_HaulDestinationManager_Notify_HaulDestinationChangedPriority
+    {
+        public static void Postfix(Map ___map)
         {
-            public static void Postfix(Map ___map, IHaulDestination haulDestination)
-            {
-                ___map.GetCachedMapComponent<CrossMapHaulDestinationManager>().RemoveHaulDestination(haulDestination);
-            }
-        }
-
-        [HarmonyPatch(typeof(HaulDestinationManager), nameof(HaulDestinationManager.Notify_HaulDestinationChangedPriority))]
-        public static class Patch_HaulDestinationManager_Notify_HaulDestinationChangedPriority
-        {
-            public static void Postfix(Map ___map)
-            {
-                ___map.GetCachedMapComponent<CrossMapHaulDestinationManager>().Notify_HaulDestinationChangedPriority();
-            }
+            ___map.GetCachedMapComponent<CrossMapHaulDestinationManager>().Notify_HaulDestinationChangedPriority();
         }
     }
 }

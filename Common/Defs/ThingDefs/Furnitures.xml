@@ -319,7 +319,7 @@
 		<defName>VMF_ZiplineEnd</defName>
 		<label>zipline end</label>
 		<thingClass>VehicleInteriors.ZiplineEnd</thingClass>
-		<category>Filth</category>
+		<category>Attachment</category>
 		<drawerType>MapMeshAndRealTime</drawerType>
 		<graphicData>
 			<graphicClass>Graphic_Single</graphicClass>
@@ -327,7 +327,6 @@
 		</graphicData>
 		<statBases>
 			<Mass>0.1</Mass>
-			<Beauty>-1</Beauty>
 		</statBases>
 		<comps>
 			<li Class="VehicleInteriors.CompProperties_Zipline"/>

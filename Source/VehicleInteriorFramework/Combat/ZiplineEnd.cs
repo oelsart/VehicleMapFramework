@@ -20,12 +20,20 @@ namespace VehicleInteriors
                 launchVerb.OutOfRange(launchVerb.caster.PositionOnBaseMap(), this, this.MovedOccupiedRect()) ||
                 !GenSightOnVehicle.LineOfSightThingToThing(launchVerb.caster, this))
             {
+                Destroy(DestroyMode.Vanish);
+            }
+        }
+
+        public override void Destroy(DestroyMode mode = DestroyMode.Vanish)
+        {
+            if (launchVerb.caster?.Spawned ?? false)
+            {
                 var bullet = (Bullet_ZiplineEndReturn)GenSpawn.Spawn(VMF_DefOf.VMF_Bullet_ZiplineTurretReturn, this.PositionOnBaseMap(), this.BaseMap());
                 bullet.launchVerb = launchVerb;
                 launchVerb.ZiplineEnd = bullet;
                 bullet.Launch(launchVerb.caster, this.TrueCenter(), launchVerb.caster, launchVerb.caster, ProjectileHitFlags.IntendedTarget);
-                Destroy(DestroyMode.Vanish);
             }
+            base.Destroy(mode);
         }
 
         public override void Print(SectionLayer layer)
