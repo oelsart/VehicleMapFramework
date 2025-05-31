@@ -95,9 +95,6 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 new CodeInstruction(OpCodes.Ldloca_S, vehicle),
                 new CodeInstruction(OpCodes.Call, MethodInfoCache.m_IsVehicleMapOf),
                 new CodeInstruction(OpCodes.Brfalse_S, label),
-                //new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-                //new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Thing_Spawned),
-                //new CodeInstruction(OpCodes.Brfalse_S, label),
                 new CodeInstruction(OpCodes.Ldloc_S, vehicle),
                 new CodeInstruction(OpCodes.Call, MethodInfoCache.m_ToBaseMapCoord2)
             });
@@ -122,9 +119,12 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     [HarmonyPatch(typeof(Selector), nameof(Selector.Deselect))]
     public static class Patch_Selector_Deselect
     {
-        public static void Postfix()
+        public static void Postfix(object obj)
         {
-            GenUIOnVehicle.TargetMap = null;
+            if (obj is Thing thing)
+            {
+                Find.World.GetComponent<TargetMapManager>().TargetMap.Remove(thing);
+            }
         }
     }
 

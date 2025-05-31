@@ -1,5 +1,4 @@
 ﻿using RimWorld;
-using System;
 using Vehicles;
 using Verse;
 
@@ -18,6 +17,10 @@ namespace VehicleInteriors
         public static ThingDef VMF_VehicleStructureFilled;
 
         public static ThingDef VMF_VehicleStructureEmpty;
+
+        public static ThingDef VMF_ZiplineEnd;
+
+        public static ThingDef VMF_Bullet_ZiplineTurretReturn;
 
         public static TerrainDef VMF_VehicleFloor;
 

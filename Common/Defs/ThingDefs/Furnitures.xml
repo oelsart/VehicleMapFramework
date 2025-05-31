@@ -180,6 +180,10 @@
 			<Steel>50</Steel>
 			<ComponentIndustrial>1</ComponentIndustrial>
 		</costList>
+		<researchPrerequisites>
+			<li>Fabrication</li>
+			<li MayRequire="OskarPotocki.VanillaVehiclesExpanded">VVE_BasicVehicles</li>
+		</researchPrerequisites>
 		<uiOrder>1062</uiOrder>
 		<comps>
 			<li Class="VehicleInteriors.CompProperties_PipeConnector"/>
@@ -191,6 +195,142 @@
 			<li>
 				<compClass>CompColorable</compClass>
 			</li>
+		</comps>
+	</ThingDef>
+
+	<ThingDef ParentName="BaseArtilleryBuilding">
+		<defName>VMF_Turret_ZiplineTurret</defName>
+		<label>zipline turret</label>
+		<description>A turret that sets up a zipline at the location where it pierces. Used for direct access between vehicles.</description>
+		<thingClass>VehicleInteriors.Building_TurretGunForcedTargetOnly</thingClass>
+		<designationCategory>VF_Vehicles</designationCategory>
+		<graphicData>
+			<texPath>VehicleInteriors/Things/ZiplineTurret/ZiplineTurret_Base</texPath>
+			<drawSize>(2,2)</drawSize>
+			<drawOffset>(0,0,0.05)</drawOffset>
+			<drawRotated>false</drawRotated>
+		</graphicData>
+		<size>(1,1)</size>
+		<stuffCategories Inherit="False"/>
+		<costList>
+			<Steel>70</Steel>
+			<ComponentIndustrial>4</ComponentIndustrial>
+		</costList>
+		<inspectorTabs Inherit="False"/>
+		<building>
+			<turretGunDef>VMF_Gun_ZiplineTurret</turretGunDef>
+			<turretBurstWarmupTime>0</turretBurstWarmupTime>
+			<turretBurstCooldownTime>0</turretBurstCooldownTime>
+		</building>
+		<passability>Standable</passability>
+		<hasInteractionCell>false</hasInteractionCell>
+		<statBases>
+			<MaxHitPoints>120</MaxHitPoints>
+			<Flammability>0.01</Flammability>
+			<WorkToBuild>1500</WorkToBuild>
+			<Mass>20</Mass>
+			<Beauty>-20</Beauty>
+			<ShootingAccuracyTurret>1</ShootingAccuracyTurret>
+		</statBases>
+		<comps Inherit="False">
+			<li Class="CompProperties_Forbiddable"/>
+			<li Class="CompProperties_Power">
+				<compClass>CompPowerTrader</compClass>
+				<basePowerConsumption>80</basePowerConsumption>
+			</li>
+			<li Class="CompProperties_Breakdownable"/>
+			<li Class="CompProperties_Stunnable">
+				<affectedDamageDefs>
+					<li>Stun</li>
+					<li>EMP</li>
+				</affectedDamageDefs>
+			</li>
+			<li Class="VehicleInteriors.CompProperties_Zipline"/>
+		</comps>
+		<researchPrerequisites>
+			<li>Fabrication</li>
+			<li MayRequire="OskarPotocki.VanillaVehiclesExpanded">VVE_BasicVehicles</li>
+		</researchPrerequisites>
+		<uiOrder>1063</uiOrder>
+		<uiIconPath>VehicleInteriors/Things/ZiplineTurret/ZiplineTurret_MenuIcon</uiIconPath>
+		<placeWorkers Inherit="False">
+			<li>PlaceWorker_TurretTop</li>
+		</placeWorkers>
+	</ThingDef>
+
+	<ThingDef ParentName="BaseWeaponTurret">
+		<defName>VMF_Gun_ZiplineTurret</defName>
+		<label>zipline turret gun</label>
+		<description>A gun made to be mounted on a zipline turret.</description>
+		<graphicData>
+			<texPath>VehicleInteriors/Things/ZiplineTurret/ZiplineTurret_Top</texPath>
+			<graphicClass>Graphic_Single</graphicClass>
+		</graphicData>
+		<statBases>
+			<Mass>5</Mass>
+			<Flammability>0</Flammability>
+		</statBases>
+		<verbs>
+			<li>
+				<verbClass>VehicleInteriors.Verb_LaunchZipline</verbClass>
+				<defaultProjectile>VMF_Bullet_ZiplineTurret</defaultProjectile>
+				<range>28.9</range>
+				<targetParams>
+					<canTargetLocations>true</canTargetLocations>
+					<canTargetBuildings>false</canTargetBuildings>
+					<canTargetHumans>false</canTargetHumans>
+					<canTargetMechs>false</canTargetMechs>
+					<canTargetAnimals>false</canTargetAnimals>
+					<onlyTargetColonists>false</onlyTargetColonists>
+				</targetParams>
+				<soundCast>Shot_Autocannon</soundCast>
+				<soundCastTail>GunTail_Heavy</soundCastTail>
+			</li>
+		</verbs>
+	</ThingDef>
+
+	<ThingDef ParentName="BaseBullet">
+		<defName>VMF_Bullet_ZiplineTurret</defName>
+		<label>zipline turret bullet</label>
+		<thingClass>VehicleInteriors.Bullet_ZiplineEnd</thingClass>
+		<graphicData>
+			<graphicClass>Graphic_Single</graphicClass>
+			<texPath>VehicleInteriors/Things/ZiplineTurret/Bullet_ZiplineEnd</texPath>
+		</graphicData>
+		<projectile>
+			<speed>120</speed>
+		</projectile>
+	</ThingDef>
+
+	<ThingDef ParentName="BaseBullet">
+		<defName>VMF_Bullet_ZiplineTurretReturn</defName>
+		<label>zipline turret bullet</label>
+		<thingClass>VehicleInteriors.Bullet_ZiplineEndReturn</thingClass>
+		<graphicData>
+			<graphicClass>Graphic_Single</graphicClass>
+			<texPath>VehicleInteriors/Things/ZiplineTurret/Bullet_ZiplineEnd</texPath>
+		</graphicData>
+		<projectile>
+			<speed>30</speed>
+		</projectile>
+	</ThingDef>
+
+	<ThingDef ParentName="BaseBullet">
+		<defName>VMF_ZiplineEnd</defName>
+		<label>zipline end</label>
+		<thingClass>VehicleInteriors.ZiplineEnd</thingClass>
+		<category>Item</category>
+		<drawerType>MapMeshAndRealTime</drawerType>
+		<graphicData>
+			<graphicClass>Graphic_Single</graphicClass>
+			<texPath>VehicleInteriors/Things/ZiplineTurret/ZiplineEnd</texPath>
+		</graphicData>
+		<statBases>
+			<Mass>0.1</Mass>
+			<Beauty>-1</Beauty>
+		</statBases>
+		<comps>
+			<li Class="VehicleInteriors.CompProperties_Zipline"/>
 		</comps>
 	</ThingDef>
 </Defs>

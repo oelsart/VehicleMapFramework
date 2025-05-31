@@ -12,5 +12,5 @@
 	<VMF_FailedEnterMap>車両がマップに入るのに失敗しました.</VMF_FailedEnterMap>
 	<VMF_CannotSpawn>{0} がスポーンできません.</VMF_CannotSpawn>
 
-
+	<VMF_MustShotAtAnotherMap>ジップラインは別のマップに発射される必要があります.</VMF_MustShotAtAnotherMap>
 </LanguageData>

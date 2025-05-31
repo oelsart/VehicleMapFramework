@@ -281,8 +281,19 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap)
-                .MethodReplacer(MethodInfoCache.g_LocalTargetInfo_Cell, MethodInfoCache.m_CellOnBaseMap);
+            instructions = instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap);
+            foreach (var instruction in instructions)
+            {
+                if (instruction.Calls(MethodInfoCache.g_LocalTargetInfo_Cell))
+                {
+                    yield return CodeInstruction.LoadArgument(0);
+                    yield return new CodeInstruction(OpCodes.Call, MethodInfoCache.m_TargetCellOnBaseMap);
+                }
+                else
+                {
+                    yield return instruction;
+                }
+            }
         }
     }
 
@@ -296,12 +307,44 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
+    [HarmonyPatch(typeof(Building_TurretGun), nameof(Building_TurretGun.DrawExtraSelectionOverlays))]
+    public static class Patch_Building_TurretGun_DrawExtraSelectionOverlays
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            foreach (var instruction in instructions)
+            {
+                if (instruction.Calls(MethodInfoCache.g_LocalTargetInfo_Cell))
+                {
+                    yield return CodeInstruction.LoadArgument(0);
+                    yield return new CodeInstruction(OpCodes.Call, MethodInfoCache.m_TargetCellOnBaseMap);
+                }
+                else
+                {
+                    yield return instruction;
+                }
+            }
+        }
+    }
+
     [HarmonyPatch(typeof(TurretTop), nameof(TurretTop.TurretTopTick))]
     public static class Patch_TurretTop_TurretTopTick
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(MethodInfoCache.g_LocalTargetInfo_Cell, MethodInfoCache.m_CellOnBaseMap);
+            foreach (var instruction in instructions)
+            {
+                if (instruction.Calls(MethodInfoCache.g_LocalTargetInfo_Cell))
+                {
+                    yield return CodeInstruction.LoadArgument(0);
+                    yield return CodeInstruction.LoadField(typeof(TurretTop), "parentTurret");
+                    yield return new CodeInstruction(OpCodes.Call, MethodInfoCache.m_TargetCellOnBaseMap);
+                }
+                else
+                {
+                    yield return instruction;
+                }
+            }
         }
     }
 
@@ -455,7 +498,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(MethodInfoCache.m_TryFindCastPosition, MethodInfoCache.m_m_TryFindCastPositionOnVehicle);
+            return instructions.MethodReplacer(MethodInfoCache.m_TryFindCastPosition, MethodInfoCache.m_TryFindCastPositionOnVehicle);
         }
     }
 
@@ -464,7 +507,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(MethodInfoCache.m_TryFindCastPosition, MethodInfoCache.m_m_TryFindCastPositionOnVehicle);
+            return instructions.MethodReplacer(MethodInfoCache.m_TryFindCastPosition, MethodInfoCache.m_TryFindCastPositionOnVehicle);
         }
     }
 }

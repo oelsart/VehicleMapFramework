@@ -879,8 +879,13 @@ namespace VehicleInteriors
 
         public static bool ShouldRotatedOnVehicle(this ThingDef tDef)
         {
-            return tDef.fillPercent > 0.25f || tDef.Size != IntVec2.One || (!(tDef.graphic is Graphic_Single) && !(tDef.graphic is Graphic_Collection)) ||
-                tDef.hasInteractionCell || tDef.drawerType == DrawerType.MapMeshOnly || tDef.drawerType == DrawerType.MapMeshAndRealTime || tDef.size.x != tDef.size.z;
+            return tDef.fillPercent > 0.25f ||
+                tDef.Size != IntVec2.One ||
+                !(tDef.graphic is Graphic_Single) && !(tDef.graphic is Graphic_Collection) ||
+                tDef.hasInteractionCell ||
+                tDef.drawerType == DrawerType.MapMeshOnly ||
+                tDef.drawerType == DrawerType.MapMeshAndRealTime ||
+                tDef.size.x != tDef.size.z;
         }
 
         public static List<Thing> GetThingListAcrossMaps(this IntVec3 c, Map map)

@@ -6,11 +6,15 @@ namespace VehicleInteriors
     {
         public CompProperties_VehicleEnterSpot Props => (CompProperties_VehicleEnterSpot)this.props;
 
+        public virtual float DistanceSquared(IntVec3 root)
+        {
+            return (this.parent.PositionOnBaseMap() - root).LengthHorizontalSquared;
+        }
         public override void PostSpawnSetup(bool respawningAfterLoad)
         {
             if (this.parent.IsOnVehicleMapOf(out var vehicle))
             {
-                vehicle.InteractionCells.Add(this.parent.Position);
+                vehicle.EnterComps.Add(this);
             }
         }
 
@@ -19,7 +23,7 @@ namespace VehicleInteriors
             base.PostDeSpawn(map);
             if (map.IsVehicleMapOf(out var vehicle))
             {
-                vehicle.InteractionCells.Remove(this.parent.Position);
+                vehicle.EnterComps.Remove(this);
             }
         }
     }

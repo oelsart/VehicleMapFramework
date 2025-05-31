@@ -242,6 +242,8 @@ namespace VehicleInteriors
 
         public static readonly MethodInfo m_TryFindCastPosition = AccessTools.Method(typeof(CastPositionFinder), nameof(CastPositionFinder.TryFindCastPosition));
 
-        public static readonly MethodInfo m_m_TryFindCastPositionOnVehicle = AccessTools.Method(typeof(CastPositionFinderOnVehicle), nameof(CastPositionFinderOnVehicle.TryFindCastPosition));
+        public static readonly MethodInfo m_TryFindCastPositionOnVehicle = AccessTools.Method(typeof(CastPositionFinderOnVehicle), nameof(CastPositionFinderOnVehicle.TryFindCastPosition));
+
+        public static readonly MethodInfo m_TargetCellOnBaseMap = AccessTools.Method(typeof(TargetMapManager), nameof(TargetMapManager.TargetCellOnBaseMap));
     }
 }

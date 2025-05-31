@@ -111,7 +111,7 @@ namespace VehicleInteriors
             }
         }
 
-        public override List<IntVec3> InteractionCells => this.interactionCellsInt;
+        public List<CompVehicleEnterSpot> EnterComps => this.enterCompsInt;
 
         public override Vector3 DrawPos
         {
@@ -619,7 +619,7 @@ namespace VehicleInteriors
 
         public Vector3 cachedDrawPos;
         
-        private readonly List<IntVec3> interactionCellsInt = new List<IntVec3>();
+        private readonly List<CompVehicleEnterSpot> enterCompsInt = new List<CompVehicleEnterSpot>();
 
         private bool allowsHaulIn = true;
 

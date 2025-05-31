@@ -260,9 +260,9 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 if (targ.Cell.IsValid)
                 {
                     var driver = pawn.jobs.AllJobs()?.FirstOrDefault()?.GetCachedDriver(pawn);
-                    if (GenUIOnVehicle.TargetMap != null && pawn.stances.curStance is Stance_Busy)
+                    if (TargetMapManager.HasTargetMap(pawn, out var map) && pawn.stances.curStance is Stance_Busy)
                     {
-                        return targ.Cell.ToVector3Shifted().ToBaseMapCoord(GenUIOnVehicle.TargetMap);
+                        return targ.Cell.ToVector3Shifted().ToBaseMapCoord(map);
                     }
                     else if (driver is JobDriverAcrossMaps driverAcrossMaps)
                     {
@@ -381,9 +381,12 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                     return graphic != null && graphic.MatAt(rot2, thing) == graphic.MatAt(rotation, thing) && graphic.DrawOffset(rot2) == graphic.DrawOffset(rotation);
                 }
 
-                if (def.size.x != def.size.z || ((def.graphicData?.drawRotated ?? false) && (!def.graphicData?.Linked ?? true) || def.rotatable) && !SameMaterialByRot())
+                if (thing.Isnt<Building_Bookcase>() || thing.Graphic == __instance)
                 {
-                     rot.AsInt += baseRotInt;
+                    if (def.size.x != def.size.z || ((def.graphicData?.drawRotated ?? false) && (!def.graphicData?.Linked ?? true) || def.rotatable) && !SameMaterialByRot())
+                    {
+                        rot.AsInt += baseRotInt;
+                    }
                 }
                 if (def.ShouldRotatedOnVehicle())
                 {

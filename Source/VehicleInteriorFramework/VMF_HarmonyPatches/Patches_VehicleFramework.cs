@@ -958,7 +958,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 spot = IntVec3.Invalid;
                 return false;
             }
-            if (vehicle.InteractionCells.Any() && vehicle.InteractionCells.TryRandomElement(Predicate, out spot))
+            if (vehicle.EnterComps.Any() && vehicle.EnterComps.Select(c => c.parent.Position).TryRandomElement(Predicate, out spot))
             {
                 return true;
             }

@@ -6,7 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
+using System.Security.Cryptography;
 using UnityEngine;
+using Vehicles;
 using Verse;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
@@ -384,9 +386,31 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     [HarmonyPatch(typeof(Building_Bookcase), "DrawAt")]
     public static class Patch_Building_Bookcase_DrawAt
     {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
         {
-            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Rotation, MethodInfoCache.m_BaseRotationVehicleDraw);
+            instructions = instructions.MethodReplacer(MethodInfoCache.g_Thing_Rotation, MethodInfoCache.m_BaseRotationVehicleDraw);
+            foreach (var instruction in instructions)
+            {
+                if (instruction.opcode == OpCodes.Stloc_2 || instruction.opcode == OpCodes.Stloc_3 || instruction.opcode == OpCodes.Stloc_S && ((LocalBuilder)instruction.operand).LocalIndex == 4)
+                {
+                    var label = generator.DefineLabel();
+                    var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithMap));
+
+                    yield return CodeInstruction.LoadArgument(0);
+                    yield return new CodeInstruction(OpCodes.Ldloca_S, vehicle);
+                    yield return new CodeInstruction(OpCodes.Call, MethodInfoCache.m_IsOnNonFocusedVehicleMapOf);
+                    yield return new CodeInstruction(OpCodes.Brfalse_S, label);
+                    yield return new CodeInstruction(OpCodes.Ldloc_S, vehicle);
+                    yield return new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Angle);
+                    yield return new CodeInstruction(OpCodes.Neg);
+                    yield return CodeInstruction.Call(typeof(Vector3Utility), nameof(Vector3Utility.RotatedBy), new[] { typeof(Vector3), typeof(float) });
+                    yield return instruction.WithLabels(label);
+                }
+                else
+                {
+                    yield return instruction;
+                }
+            }
         }
     }
 }

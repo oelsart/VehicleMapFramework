@@ -3,6 +3,7 @@ using RimWorld;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Emit;
 using UnityEngine;
 using Verse;
 using Verse.AI;
@@ -234,11 +235,11 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     [HarmonyPatch(typeof(JumpUtility), nameof(JumpUtility.CanHitTargetFrom))]
     public static class Patch_JumpUtility_CanHitTargetFrom
     {
-        public static void Prefix(ref LocalTargetInfo targ)
+        public static void Prefix(Pawn pawn, ref LocalTargetInfo targ)
         {
-            if (GenUIOnVehicle.TargetMap != null)
+            if (TargetMapManager.HasTargetMap(pawn, out var map))
             {
-                targ = targ.Cell.ToBaseMapCoord(GenUIOnVehicle.TargetMap);
+                targ = targ.Cell.ToBaseMapCoord(map);
             }
         }
 
@@ -255,13 +256,12 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, m_TargetMap)
-                .MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap);
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, m_TargetMap);
         }
 
-        public static Map TargetMap(Pawn _)
+        public static Map TargetMap(Thing thing)
         {
-            return GenUIOnVehicle.TargetMap ?? Find.CurrentMap;
+            return TargetMapManager.HasTargetMap(thing, out var map) ? map : thing.Map;
         }
 
         public static MethodInfo m_TargetMap = AccessTools.Method(typeof(Patch_JumpUtility_OrderJump), nameof(TargetMap));
@@ -288,6 +288,12 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, Patch_JumpUtility_OrderJump.m_TargetMap);
         }
+
+        public static void Finalizer(Pawn pawn, bool __result)
+        {
+            if (!__result) return;
+            Find.World.GetComponent<TargetMapManager>().TargetMap.Remove(pawn);
+        }
     }
 
     [HarmonyPatch(typeof(JobDriver_CastJump), nameof(JobDriver_CastJump.TryMakePreToilReservations))]
@@ -313,14 +319,34 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
+            instructions = instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, Patch_JumpUtility_OrderJump.m_TargetMap);
+
             var m_CenterVector3 = AccessTools.PropertyGetter(typeof(LocalTargetInfo), nameof(LocalTargetInfo.CenterVector3));
             var m_CenterVector3Offset = AccessTools.Method(typeof(Patch_Verb_Jump_DrawHighlight), nameof(CenterVector3Offset));
-            return instructions.MethodReplacer(m_CenterVector3, m_CenterVector3Offset)
-                .MethodReplacer(MethodInfoCache.g_Thing_Map, Patch_JumpUtility_OrderJump.m_TargetMap);
+            foreach (var instruction in instructions)
+            {
+                if (instruction.Calls(m_CenterVector3))
+                {
+                    yield return CodeInstruction.LoadArgument(0);
+                    yield return new CodeInstruction(OpCodes.Call, m_CenterVector3Offset);
+                }
+                else
+                {
+                    yield return instruction;
+                }
+            }
         }
 
-        public static Vector3 CenterVector3Offset(ref LocalTargetInfo target)
+        public static Vector3 CenterVector3Offset(ref LocalTargetInfo target, Verb verb)
         {
+            var caster = verb.caster;
+            Map map;
+            bool HasTargetMap()
+            {
+                map = null;
+                return caster != null && TargetMapManager.HasTargetMap(caster, out map);
+            }
+
             var thing = target.Thing;
             if (thing != null)
             {
@@ -330,18 +356,18 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 }
                 if (thing.SpawnedOrAnyParentSpawned)
                 {
-                    if (GenUIOnVehicle.TargetMap != null)
+                    if (HasTargetMap())
                     {
-                        return thing.PositionHeld.ToVector3Shifted().ToBaseMapCoord(GenUIOnVehicle.TargetMap);
+                        return thing.PositionHeld.ToVector3Shifted().ToBaseMapCoord(map);
                     }
                     else
                     {
                         return thing.PositionHeld.ToVector3Shifted();
                     }
                 }
-                if (GenUIOnVehicle.TargetMap != null)
+                if (HasTargetMap())
                 {
-                    return thing.Position.ToVector3Shifted().ToBaseMapCoord(GenUIOnVehicle.TargetMap);
+                    return thing.Position.ToVector3Shifted().ToBaseMapCoord(map);
                 }
                 else
                 {
@@ -353,16 +379,16 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 var cell = target.Cell;
                 if (cell.IsValid)
                 {
-                    if (GenUIOnVehicle.TargetMap != null)
+                    if (HasTargetMap())
                     {
-                        return cell.ToVector3Shifted().ToBaseMapCoord(GenUIOnVehicle.TargetMap);
+                        return cell.ToVector3Shifted().ToBaseMapCoord(map);
                     }
                     else
                     {
                         return cell.ToVector3Shifted();
                     }
                 }
-                return default(Vector3);
+                return default;
             }
         }
     }

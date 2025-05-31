@@ -305,11 +305,11 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     [HarmonyPatch(typeof(GenDraw), nameof(GenDraw.DrawAimPie))]
     public static class Patch_GenDraw_DrawAimPie
     {
-        public static void Prefix(ref LocalTargetInfo target)
+        public static void Prefix(Thing shooter, ref LocalTargetInfo target)
         {
-            if (!target.HasThing && GenUIOnVehicle.TargetMap != null)
+            if (!target.HasThing && TargetMapManager.HasTargetMap(shooter, out var map))
             {
-                target = target.Cell.ToBaseMapCoord(GenUIOnVehicle.TargetMap);
+                target = target.Cell.ToBaseMapCoord(map);
             }
         }
 

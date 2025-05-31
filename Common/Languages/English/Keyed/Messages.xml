@@ -12,5 +12,6 @@
 	<VMF_FailedEnterMap>The vehicle failed to enter the map.</VMF_FailedEnterMap>
 	<VMF_CannotSpawn>{0} cannot spawn.</VMF_CannotSpawn>
 
+	<VMF_MustShotAtAnotherMap>Ziplines must be shot at another map.</VMF_MustShotAtAnotherMap>
 
 </LanguageData>

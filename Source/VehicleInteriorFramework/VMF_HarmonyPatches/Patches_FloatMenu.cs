@@ -262,9 +262,9 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static bool Prefix(IntVec3 root, Pawn searcher, Predicate<IntVec3> cellValidator, ref IntVec3 __result)
         {
-            if (GenUIOnVehicle.TargetMap != null)
+            if (TargetMapManager.HasTargetMap(searcher, out var map))
             {
-                __result = ReachabilityUtilityOnVehicle.BestOrderedGotoDestNear(root, searcher, cellValidator, GenUIOnVehicle.TargetMap, out _, out _);
+                __result = ReachabilityUtilityOnVehicle.BestOrderedGotoDestNear(root, searcher, cellValidator, map, out _, out _);
                 if (__result.IsValid)
                 {
                     return false;
