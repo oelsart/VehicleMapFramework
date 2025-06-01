@@ -2305,7 +2305,6 @@ namespace VehicleInteriors
             }
             if (CombatExtended.Active)
             {
-                Log.Message("AddMenuItems");
                 CombatExtended.AddMenuItems(clickPos, pawn, opts, thingList);
             }
 		}

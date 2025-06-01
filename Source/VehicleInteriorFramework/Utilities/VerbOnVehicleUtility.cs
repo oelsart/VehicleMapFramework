@@ -40,7 +40,7 @@ namespace VehicleInteriors
             }
             if (verb.CasterIsPawn)
             {
-                if (verb.CanHitFromCellIgnoringRange(root, targCellOnBaseMap, targ, out IntVec3 dest))
+                if (verb.CanHitFromCellIgnoringRange(root, targ, out IntVec3 dest))
                 {
                     resultingLine = new ShootLine(root, dest);
                     return true;
@@ -49,7 +49,7 @@ namespace VehicleInteriors
                 for (int i = 0; i < VerbOnVehicleUtility.tempLeanShootSources.Count; i++)
                 {
                     IntVec3 intVec = VerbOnVehicleUtility.tempLeanShootSources[i].ToThingBaseMapCoord(verb.caster);
-                    if (verb.CanHitFromCellIgnoringRange(intVec, targCellOnBaseMap, targ, out dest))
+                    if (verb.CanHitFromCellIgnoringRange(intVec, targ, out dest))
                     {
                         resultingLine = new ShootLine(intVec, dest);
                         return true;
@@ -60,7 +60,7 @@ namespace VehicleInteriors
             {
                 foreach (IntVec3 intVec2 in verb.Caster.MovedOccupiedRect())
                 {
-                    if (verb.CanHitFromCellIgnoringRange(intVec2, targCellOnBaseMap, targ, out IntVec3 dest))
+                    if (verb.CanHitFromCellIgnoringRange(intVec2, targ, out IntVec3 dest))
                     {
                         resultingLine = new ShootLine(intVec2, dest);
                         return true;
@@ -71,9 +71,10 @@ namespace VehicleInteriors
             return false;
         }
 
-        public static bool CanHitFromCellIgnoringRange(this Verb verb, IntVec3 sourceCellBaseCol, IntVec3 targCellOnBaseMap, LocalTargetInfo targ, out IntVec3 goodDest)
+        public static bool CanHitFromCellIgnoringRange(this Verb verb, IntVec3 sourceCellBaseCol, LocalTargetInfo targ, out IntVec3 goodDest)
         {
             var baseMap = verb.Caster.BaseMap();
+            var targCellOnBaseMap = TargetMapManager.TargetCellOnBaseMap(ref targ, verb.caster);
             if (targ.HasThing)
             {
                 if (targ.Thing.BaseMap() != baseMap)

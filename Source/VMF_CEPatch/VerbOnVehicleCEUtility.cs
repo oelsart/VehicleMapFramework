@@ -95,7 +95,7 @@ namespace VMF_CEPatch
                 resultingLine = new ShootLine(root, targCellOnBaseMap);
                 return ReachabilityImmediate.CanReachImmediate(verb.caster.Position, targ, verb.caster.Map, PathEndMode.Touch, null);
             }
-            CellRect cellRect = (!targ.HasThing) ? CellRect.SingleCell(targ.Cell) : targ.Thing.MovedOccupiedRect();
+            CellRect cellRect = !targ.HasThing ? CellRect.SingleCell(targ.Cell) : targ.Thing.MovedOccupiedRect();
             float num = cellRect.ClosestDistSquaredTo(root);
             if (num > verb.EffectiveRange * verb.EffectiveRange || num < verb.verbProps.minRange * verb.verbProps.minRange)
             {

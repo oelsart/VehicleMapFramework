@@ -18,6 +18,5 @@
     <li IfModActive="Cain.Mineshaft">Common/_Mines</li>
     <li IfModActive="OskarPotocki.VFE.Mechanoid">Common/_VFEMechanoids</li>
     <li IfModActive="VanillaExpanded.VFESecurity">Common/_VFESecurity</li>
-    <li IfModActive="IslandPotato.SettlementQuests">Common/_SettlementQuests</li>
   </v1.5>
 </loadFolders>
