@@ -307,7 +307,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IReadOnlyList<Pawn> Postfix(IReadOnlyList<Pawn> __result, Map ___map)
         {
-            return __result.Concat(VehiclePawnWithMapCache.TryGetAllVehiclesOn(___map).SelectMany(v => v.VehicleMap.mapPawns.AllPawnsSpawned)).ToArray();
+            return __result.Concat(VehiclePawnWithMapCache.TryGetAllVehiclesOn(___map).SelectMany(v => v.VehicleMap.mapPawns.AllPawnsSpawned)).ToList();
         }
     }
 

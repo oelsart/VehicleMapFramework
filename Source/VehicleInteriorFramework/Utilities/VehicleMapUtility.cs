@@ -234,6 +234,12 @@ namespace VehicleInteriors
             return original.ToVector3Shifted().ToBaseMapCoord(vehicle, rot);
         }
 
+        public static IntVec2 ToHitCell(this IntVec3 cell, VehiclePawnWithMap vehicle)
+        {
+            var orig = Vector3.zero.ToBaseMapCoord(vehicle).ToVehicleMapCoord(vehicle).ToIntVec3();
+            return (orig + cell).ToIntVec2;
+        }
+
         public static Vector3 OffsetFor(VehiclePawnWithMap vehicle)
         {
             return VehicleMapUtility.OffsetFor(vehicle, vehicle.FullRotation);
@@ -925,12 +931,13 @@ namespace VehicleInteriors
 
         public static Thing GetCoverOnThingMap(this IntVec3 c, Map map, Thing thing)
         {
-            if (thing != null)
+            var thingMap = thing?.MapHeld;
+            if (thingMap != null)
             {
-                var c2 = c.ToThingBaseMapCoord(thing);
-                if (c2.InBounds(thing.Map))
+                var c2 = c.ToBaseMapCoord(thingMap);
+                if (c2.InBounds(thingMap))
                 {
-                    return c2.GetCover(thing.Map);
+                    return c2.GetCover(thingMap);
                 }
             }
             return c.GetCover(map);

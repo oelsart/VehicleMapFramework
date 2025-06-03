@@ -299,6 +299,8 @@
 		</graphicData>
 		<projectile>
 			<speed>120</speed>
+			<damageDef>Stab</damageDef>
+			<damageAmountBase>0</damageAmountBase>
 		</projectile>
 	</ThingDef>
 
@@ -312,6 +314,8 @@
 		</graphicData>
 		<projectile>
 			<speed>45</speed>
+			<damageDef>Stab</damageDef>
+			<damageAmountBase>0</damageAmountBase>
 		</projectile>
 	</ThingDef>
 

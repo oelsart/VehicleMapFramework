@@ -37,7 +37,7 @@ namespace VehicleInteriors
                     {
                         originCell = originCell.ToVehicleMapCoord(vehicle);
                     }
-                    if (forcedTarget.IsValid && forcedTarget != originCell)
+                    if (forcedTarget != originCell)
                     {
                         tmpTarget = forcedTarget;
                         building_Turret.OrderAttack(originCell);
@@ -57,7 +57,7 @@ namespace VehicleInteriors
 
             Destroy(DestroyMode.Vanish);
             launchVerb.ZiplineEnd = null;
-            if (tmpTarget.IsValid && launchVerb.caster is Building_Turret building_Turret)
+            if (launchVerb.caster is Building_Turret building_Turret)
             {
                 building_Turret.OrderAttack(tmpTarget);
             }

@@ -1,5 +1,6 @@
 ﻿using RimWorld;
 using UnityEngine;
+using Vehicles;
 using Verse;
 using Verse.Sound;
 
@@ -50,7 +51,11 @@ namespace VehicleInteriors
             {
                 if (destMap.IsVehicleMapOf(out var vehicle))
                 {
-                    ImpactSoundUtility.PlayImpactSound(vehicle, ImpactSoundTypeDefOf.Bullet, destMap.BaseMap());
+                    vehicle.PlayImpactSound(new VehicleComponent.DamageResult
+                    {
+                        penetration = VehicleComponent.Penetration.Penetrated,
+                        cell = intendedTarget.Cell.ToHitCell(vehicle)
+                    });
                     ziplineEnd.rotation += vehicle.Angle;
                 }
                 else

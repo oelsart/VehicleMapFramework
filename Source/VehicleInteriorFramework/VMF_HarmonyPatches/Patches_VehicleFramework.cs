@@ -975,5 +975,4 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             return false;
         }
     }
-
 }
