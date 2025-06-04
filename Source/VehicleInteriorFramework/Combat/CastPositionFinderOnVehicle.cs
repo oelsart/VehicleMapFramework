@@ -8,7 +8,7 @@ namespace VehicleInteriors
 {
     public static class CastPositionFinderOnVehicle
     {
-        public static bool TryFindCastPosition(CastPositionRequest newReq, out IntVec3 dest)
+        public static bool TryFindCastPosition(Verse.AI.CastPositionRequest newReq, out IntVec3 dest)
         {
             CastPositionFinderOnVehicle.req = newReq;
             CastPositionFinderOnVehicle.casterLoc = CastPositionFinderOnVehicle.req.caster.Position;
@@ -282,7 +282,7 @@ namespace VehicleInteriors
             return num;
         }
 
-        private static CastPositionRequest req;
+        private static Verse.AI.CastPositionRequest req;
 
         private static IntVec3 casterLoc;
 

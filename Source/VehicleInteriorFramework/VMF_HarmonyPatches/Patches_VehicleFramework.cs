@@ -174,7 +174,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
         {
             var codes = instructions.ToList();
-            var pos = codes.FindLastIndex(c => c.opcode == OpCodes.Stloc_3);
+            var pos = codes.FindLastIndex(c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalIndex == 4);
             var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithMap));
             var rot = generator.DeclareLocal(typeof(Rot8));
             var label = generator.DefineLabel();
@@ -215,7 +215,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatch(typeof(VehicleHarmonyOnMod), nameof(VehicleHarmonyOnMod.ShaderFromAssetBundle))]
+    [HarmonyPatch(typeof(VehicleHarmonyOnMod), "ShaderFromAssetBundle")]
     [HarmonyPatchCategory("VehicleInteriors.EarlyPatches")]
     public static class Patch_VehicleHarmonyOnMod_ShaderFromAssetBundle
     {
@@ -354,14 +354,20 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatch(typeof(VehicleTurret), "TurretAutoTick")]
-    public static class Patch_VehicleTurret_TurretAutoTick
+    [HarmonyPatch(typeof(TargetingHelper), nameof(TargetingHelper.BestAttackTarget))]
+    public static class Patch_TargetingHelper_BestAttackTarget
     {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        public static void Postfix(VehicleTurret turret, TargetScanFlags flags, Predicate<Thing> validator, float minDist, float maxDist, IntVec3 locus, float maxTravelRadiusFromLocus, bool canTakeTargetsCloserThanEffectiveMinRange, ref IAttackTarget __result)
         {
-            var m_TargetingHelper_TryGetTarget = AccessTools.Method(typeof(TargetingHelper), nameof(TargetingHelper.TryGetTarget));
-            var m_TargetingHelperOnVehicle_TryGetTarget = AccessTools.Method(typeof(TargetingHelperOnVehicle), nameof(TargetingHelperOnVehicle.TryGetTarget));
-            return instructions.MethodReplacer(m_TargetingHelper_TryGetTarget, m_TargetingHelperOnVehicle_TryGetTarget);
+            var searcher = turret.vehicle;
+            var map = searcher.Thing.Map;
+            if (!searcher.IsHashIntervalTick(10) || !map.BaseMapAndVehicleMaps().Except(map).Any()) return;
+
+            var target = TargetingHelperOnVehicle.BestAttackTarget(turret, flags, validator, minDist, maxDist, locus, maxTravelRadiusFromLocus, canTakeTargetsCloserThanEffectiveMinRange);
+            if (__result == null || target != null && (__result.Thing.Position - searcher.Thing.Position).LengthHorizontalSquared > (target.Thing.PositionOnBaseMap() - searcher.Thing.PositionOnBaseMap()).LengthHorizontalSquared)
+            {
+                __result = target;
+            }
         }
     }
 
@@ -466,17 +472,6 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             return instructions.MethodReplacer(MethodInfoCache.g_LocalTargetInfo_Cell, MethodInfoCache.m_CellOnBaseMap);
-        }
-    }
-
-    [HarmonyPatch(typeof(TurretTargeter), nameof(TurretTargeter.TargetMeetsRequirements))]
-    public static class Patch_TurretTargeter_TargetMeetsRequirements
-    {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
-            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing)
-                .MethodReplacer(MethodInfoCache.m_GenSight_LineOfSightToThing, MethodInfoCache.m_GenSightOnVehicle_LineOfSightToThingVehicle)
-                .MethodReplacer(MethodInfoCache.m_GenSight_LineOfSight1, MethodInfoCache.m_GenSightOnVehicle_LineOfSight1);
         }
     }
 
@@ -742,7 +737,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 {
                     if (c.InBounds(map))
                     {
-                        mapping[vehicleDef].VehiclePathGrid.RecalculatePerceivedPathCostAt(c, map.thingGrid.ThingsListAtFast(c));
+                        mapping[vehicleDef].VehiclePathGrid.RecalculatePerceivedPathCostAt(c);
                     }
                 }
             });
@@ -791,10 +786,9 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             if (vehicle is VehiclePawnWithMap mapVehicle)
             {
-                GUIState.Push();
                 var draggedPawn = Patch_VehicleTabHelper_Passenger_DrawPassengersFor.draggedPawn();
                 var pawns = mapVehicle.VehicleMap.mapPawns.AllPawnsSpawned;
-                var rect = new Rect(0f, curY, viewRect.width - 48f, 25f + VehicleTabHelper_Passenger.PawnRowHeight * pawns.Count);
+                var rect = new Rect(0f, curY, viewRect.width - 48f, 25f + PawnRowHeight * pawns.Count);
                 if (draggedPawn != null && Mouse.IsOver(rect) && draggedPawn.Map != mapVehicle.VehicleMap)
                 {
                     transferToHolder() = mapVehicle.VehicleMap;
@@ -808,9 +802,8 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                     {
                         hoveringOverPawn() = pawn;
                     }
-                    curY += VehicleTabHelper_Passenger.PawnRowHeight;
+                    curY += PawnRowHeight;
                 }
-                GUIState.Pop();
             }
         }
 
@@ -825,6 +818,8 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         private delegate bool DoRowGetter(float curY, Rect viewRect, Vector2 scrollPos, Pawn pawn, ref Pawn moreDetailsForPawn, bool highlight);
 
         private static DoRowGetter DoRow = AccessTools.MethodDelegate<DoRowGetter>(AccessTools.Method(typeof(VehicleTabHelper_Passenger), "DoRow"));
+
+        private const float PawnRowHeight = 50f;
     }
 
     [HarmonyPatch(typeof(VehicleTabHelper_Passenger), nameof(VehicleTabHelper_Passenger.HandleDragEvent))]

@@ -61,7 +61,7 @@ namespace VehicleInteriors
                 {
                     var graphicOverlay = GraphicOverlay.Create(extraOverlay.graphicDataOverlay, parent);
                     this.graphicOverlays[extraOverlay.key] = (graphicOverlay, extraOverlay.label);
-                    parent.graphicOverlay.AddOverlay(extraOverlay.key, graphicOverlay);
+                    parent.overlayRenderer.AddOverlay(extraOverlay.key, graphicOverlay);
 
                     if (graphicOverlay.Graphic is Graphic_VehicleOpacity graphicOpacity && this.tmpOpacities.ContainsKey(extraOverlay.key))
                     {

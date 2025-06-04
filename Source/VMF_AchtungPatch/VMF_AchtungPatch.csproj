@@ -132,8 +132,7 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="Vehicles">
-      <HintPath>..\..\..\..\..\..\workshop\content\294100\3014915404\1.5\Assemblies\Vehicles.dll</HintPath>
-      <Private>False</Private>
+      <HintPath>..\..\..\Vehicle-Framework\1.5\Assemblies\Vehicles.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

@@ -279,7 +279,7 @@ namespace VehicleInteriors
                         thing.DeSpawn();
                         var terrain = positionOnBaseMap.GetTerrain(base.Map);
                         if (thing is Pawn pawn && (terrain == TerrainDefOf.WaterDeep || terrain == TerrainDefOf.WaterOceanDeep) &&
-                            HediffHelper.AttemptToDrown(pawn))
+                            HealthHelper.AttemptToDrown(pawn))
                         {
                             flag = true;
                             stringBuilder.AppendLine(pawn.LabelCap);
@@ -343,7 +343,30 @@ namespace VehicleInteriors
             base.DeSpawn(mode);
         }
 
-        public override void DrawAt(Vector3 drawLoc, Rot8 rot, float extraRotation, bool flip = false, bool compDraw = true)
+        public override void DrawAt(in TransformData transform, bool compDraw = true)
+        {
+            var drawLoc = transform.position;
+            if (base.CompVehicleLauncher?.inFlight ?? false)
+            {
+                drawLoc.y = AltitudeLayer.PawnState.AltitudeFor();
+            }
+            this.cachedDrawPos = drawLoc;
+            base.DrawAt(transform, compDraw);
+
+            if (base.vehiclePather?.Moving ?? false)
+            {
+                this.CellDesignationsDirty();
+            }
+            this.DrawVehicleMap(transform.rotation);
+            var focused = Command_FocusVehicleMap.FocusedVehicle;
+            Command_FocusVehicleMap.FocusedVehicle = this;
+            this.interiorMap.roofGrid.RoofGridUpdate();
+            this.interiorMap.mapTemperature.TemperatureUpdate();
+            Command_FocusVehicleMap.FocusedVehicle = focused;
+        }
+
+        [Obsolete]
+        public override void DrawAt(Vector3 drawLoc,  Rot8 rot, float extraRotation, bool flip = false, bool compDraw = true)
         {
             if (base.CompVehicleLauncher?.inFlight ?? false)
             {
@@ -600,13 +623,13 @@ namespace VehicleInteriors
                 this.CompVehicleTurrets?.InitTurrets();
                 if (UnityData.IsInMainThread)
                 {
-                    this.graphicOverlay.Init();
+                    this.overlayRenderer.Init();
                 }
                 else
                 {
                     LongEventHandler.ExecuteWhenFinished(() =>
                     {
-                        this.graphicOverlay.Init();
+                        this.overlayRenderer.Init();
                     });
                 }
                 base.ResetRenderStatus();

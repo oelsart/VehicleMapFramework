@@ -250,7 +250,8 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 {
                     Graphics.DrawMesh(mesh200, drawPos, Quaternion.identity, mat, 0);
                 }
-                vehicle.DrawAt(drawPos, vehicle.FullRotation, 0f);
+                var transformData = new TransformData(drawPos, vehicle.FullRotation);
+                vehicle.DrawAt(transformData);
             }
         }
 

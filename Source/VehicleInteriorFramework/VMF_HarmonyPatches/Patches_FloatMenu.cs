@@ -331,7 +331,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatch(typeof(Selector), "MassTakeFirstAutoTakeableOptionOrGoto")]
+    [HarmonyPatch(typeof(RimWorld.Selector), "MassTakeFirstAutoTakeableOptionOrGoto")]
     public static class Patch_Selector_MassTakeFirstAutoTakeableOptionOrGoto
     {
         public static bool Prefix(List<Pawn> ___tmpDraftedGotoPawns)
