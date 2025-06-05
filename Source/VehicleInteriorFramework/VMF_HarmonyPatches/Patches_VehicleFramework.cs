@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
-using System.Threading.Tasks;
 using UnityEngine;
 using Vehicles;
 using Verse;
@@ -701,52 +700,53 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     }
 
     //サイズの大きなVehicleの場合はVF本体のスレッド管理を回避しつつ独自にマルチスレッド化
-    [HarmonyPatch]
-    public static class Patch_VehiclePathing_SetRotationAndUpdateVehicleRegionsClipping
-    {
-        private static MethodBase TargetMethod()
-        {
-            return AccessTools.Method("Vehicles.VehiclePathing:SetRotationAndUpdateVehicleRegionsClipping");
-        }
+    //最新版では本体で直ってるからたぶん要らない
+    //[HarmonyPatch]
+    //public static class Patch_VehiclePathing_SetRotationAndUpdateVehicleRegionsClipping
+    //{
+    //    private static MethodBase TargetMethod()
+    //    {
+    //        return AccessTools.Method("Vehicles.VehiclePathing:SetRotationAndUpdateVehicleRegionsClipping");
+    //    }
 
-        public static bool Prefix(ref bool __result, object[] __args, HashSet<IntVec3> ___hitboxUpdateCells)
-        {
-            if (VehicleInteriors.settings.threadingPathCost && __args[0] is VehiclePawnWithMap vehicle && vehicle.Spawned && vehicle.def.size.x * vehicle.def.size.z > VehicleInteriors.settings.minAreaForThreading)
-            {
-                __result = SetRotationAndUpdateVehicleRegionsClipping(vehicle, (Rot4)__args[1], ___hitboxUpdateCells);
-                return false;
-            }
-            return true;
-        }
+    //    public static bool Prefix(ref bool __result, object[] __args, HashSet<IntVec3> ___hitboxUpdateCells)
+    //    {
+    //        if (VehicleInteriors.settings.threadingPathCost && __args[0] is VehiclePawnWithMap vehicle && vehicle.Spawned && vehicle.def.size.x * vehicle.def.size.z > VehicleInteriors.settings.minAreaForThreading)
+    //        {
+    //            __result = SetRotationAndUpdateVehicleRegionsClipping(vehicle, (Rot4)__args[1], ___hitboxUpdateCells);
+    //            return false;
+    //        }
+    //        return true;
+    //    }
 
-        private static bool SetRotationAndUpdateVehicleRegionsClipping(VehiclePawn vehicle, Rot4 value, HashSet<IntVec3> hitboxUpdateCells)
-        {
-            var map = vehicle.Map;
-            if (!vehicle.OccupiedRectShifted(IntVec2.Zero, new Rot4?(value)).InBounds(map))
-            {
-                return false;
-            }
-            hitboxUpdateCells.Clear();
-            hitboxUpdateCells.AddRange(vehicle.OccupiedRectShifted(IntVec2.Zero, new Rot4?(Rot4.East)));
-            hitboxUpdateCells.AddRange(vehicle.OccupiedRectShifted(IntVec2.Zero, new Rot4?(Rot4.North)));
-            var mapping = MapComponentCache<VehicleMapping>.GetComponent(map);
-            var allMoveableVehicleDefs = (List<VehicleDef>)AllMoveableVehicleDefs(null);
-            Parallel.ForEach(hitboxUpdateCells, c =>
-            {
-                foreach (VehicleDef vehicleDef in allMoveableVehicleDefs)
-                {
-                    if (c.InBounds(map))
-                    {
-                        mapping[vehicleDef].VehiclePathGrid.RecalculatePerceivedPathCostAt(c);
-                    }
-                }
-            });
-            hitboxUpdateCells.Clear();
-            return true;
-        }
+    //    private static bool SetRotationAndUpdateVehicleRegionsClipping(VehiclePawn vehicle, Rot4 value, HashSet<IntVec3> hitboxUpdateCells)
+    //    {
+    //        var map = vehicle.Map;
+    //        if (!vehicle.OccupiedRectShifted(IntVec2.Zero, new Rot4?(value)).InBounds(map))
+    //        {
+    //            return false;
+    //        }
+    //        hitboxUpdateCells.Clear();
+    //        hitboxUpdateCells.AddRange(vehicle.OccupiedRectShifted(IntVec2.Zero, new Rot4?(Rot4.East)));
+    //        hitboxUpdateCells.AddRange(vehicle.OccupiedRectShifted(IntVec2.Zero, new Rot4?(Rot4.North)));
+    //        var mapping = MapComponentCache<VehicleMapping>.GetComponent(map);
+    //        var allMoveableVehicleDefs = (List<VehicleDef>)AllMoveableVehicleDefs(null);
+    //        Parallel.ForEach(hitboxUpdateCells, c =>
+    //        {
+    //            foreach (VehicleDef vehicleDef in allMoveableVehicleDefs)
+    //            {
+    //                if (c.InBounds(map))
+    //                {
+    //                    mapping[vehicleDef].VehiclePathGrid.RecalculatePerceivedPathCostAt(c);
+    //                }
+    //            }
+    //        });
+    //        hitboxUpdateCells.Clear();
+    //        return true;
+    //    }
 
-        private static FastInvokeHandler AllMoveableVehicleDefs = MethodInvoker.GetHandler(AccessTools.PropertyGetter("Vehicles.VehicleHarmony:AllMoveableVehicleDefs"));
-    }
+    //    private static FastInvokeHandler AllMoveableVehicleDefs = MethodInvoker.GetHandler(AccessTools.PropertyGetter("Vehicles.VehicleHarmony:AllMoveableVehicleDefs"));
+    //}
 
     [HarmonyPatch(typeof(EnterMapUtilityVehicles), nameof(EnterMapUtilityVehicles.EnterAndSpawn))]
     public static class Patch_EnterMapUtilityVehicles_EnterAndSpawn
