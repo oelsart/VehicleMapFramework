@@ -59,7 +59,6 @@ namespace VehicleInteriors
         {
             VehicleInteriors.mod = this;
             VehicleInteriors.settings = base.GetSettings<VehicleMapSettings>();
-
         }
 
         public void InitializeTabs()

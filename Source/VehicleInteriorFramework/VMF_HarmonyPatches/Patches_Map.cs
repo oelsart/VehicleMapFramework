@@ -298,8 +298,12 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static List<Pawn> Postfix(List<Pawn> __result, Map ___map)
         {
-            return __result.Concat(VehiclePawnWithMapCache.TryGetAllVehiclesOn(___map).SelectMany(v => v.VehicleMap.mapPawns.AllPawnsSpawned)).ToList();
+            tmpList.Clear();
+            tmpList.AddRange(__result.Concat(VehiclePawnWithMapCache.TryGetAllVehiclesOn(___map).SelectMany(v => v.VehicleMap.mapPawns.AllPawns)));
+            return tmpList;
         }
+
+        private static List<Pawn> tmpList = new List<Pawn>();
     }
 
     [HarmonyPatch(typeof(MapPawns), nameof(MapPawns.AllPawnsSpawned), MethodType.Getter)]
@@ -307,8 +311,12 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IReadOnlyList<Pawn> Postfix(IReadOnlyList<Pawn> __result, Map ___map)
         {
-            return __result.Concat(VehiclePawnWithMapCache.TryGetAllVehiclesOn(___map).SelectMany(v => v.VehicleMap.mapPawns.AllPawnsSpawned)).ToList();
+            tmpList.Clear();
+            tmpList.AddRange(__result.Concat(VehiclePawnWithMapCache.TryGetAllVehiclesOn(___map).SelectMany(v => v.VehicleMap.mapPawns.AllPawnsSpawned)));
+            return tmpList;
         }
+
+        private static List<Pawn> tmpList = new List<Pawn>();
     }
 
     [HarmonyPatch(typeof(MapPawns), nameof(MapPawns.FreeHumanlikesSpawnedOfFaction))]
