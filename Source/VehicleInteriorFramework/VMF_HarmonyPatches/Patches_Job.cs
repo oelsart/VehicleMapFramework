@@ -137,9 +137,9 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                     {
                         enumerable = things;
                     }
-                    else
+                    else if (things != null)
                     {
-                        enumerable.ConcatIfNotNull(things);
+                        enumerable = enumerable.Concat(things);
                     }
                 });
                 return enumerable;
