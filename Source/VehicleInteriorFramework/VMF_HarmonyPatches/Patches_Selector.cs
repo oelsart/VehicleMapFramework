@@ -123,7 +123,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             if (obj is Thing thing)
             {
-                Find.World.GetComponent<TargetMapManager>().TargetMap.Remove(thing);
+                TargetMapManager.TargetMap.Remove(thing);
             }
         }
     }

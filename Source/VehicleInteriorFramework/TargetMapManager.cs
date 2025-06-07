@@ -6,15 +6,18 @@ namespace VehicleInteriors
 {
     public class TargetMapManager : WorldComponent
     {
-        public Dictionary<Thing, Map> TargetMap
+        public static Dictionary<Thing, Map> TargetMap
         {
             get
             {
-                if (targetMap == null)
+                var component = Find.World?.GetComponent<TargetMapManager>();
+                if (component == null) return null;
+
+                if (component.targetMap == null)
                 {
-                    targetMap = new Dictionary<Thing, Map>();
+                    component.targetMap = new Dictionary<Thing, Map>();
                 }
-                return targetMap;
+                return component.targetMap;
             }
         }
 
@@ -24,7 +27,7 @@ namespace VehicleInteriors
 
         public static bool HasTargetMap(Thing thing, out Map map)
         {
-            return Find.World.GetComponent<TargetMapManager>().TargetMap.TryGetValue(thing, out map) && map != null;
+            return TargetMap.TryGetValue(thing, out map) && map != null;
         }
 
         public static IntVec3 TargetCellOnBaseMap(ref LocalTargetInfo targ, Thing thing)
@@ -37,6 +40,6 @@ namespace VehicleInteriors
             Scribe_Collections.Look(ref targetMap, "TargetMap", LookMode.Reference, LookMode.Reference);
         }
 
-        public Dictionary<Thing, Map> targetMap;
+        private Dictionary<Thing, Map> targetMap;
     }
 }

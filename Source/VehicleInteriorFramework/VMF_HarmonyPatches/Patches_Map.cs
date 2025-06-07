@@ -298,8 +298,14 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static List<Pawn> Postfix(List<Pawn> __result, Map ___map)
         {
+            if (___map.IsVehicleMapOf(out _)) return __result;
+
             tmpList.Clear();
-            tmpList.AddRange(__result.Concat(VehiclePawnWithMapCache.TryGetAllVehiclesOn(___map).SelectMany(v => v.VehicleMap.mapPawns.AllPawns)));
+            tmpList.AddRange(__result);
+            foreach (var vehicle in VehiclePawnWithMapCache.TryGetAllVehiclesOn(___map))
+            {
+                tmpList.AddRange(vehicle.VehicleMap.mapPawns.AllPawns);
+            }
             return tmpList;
         }
 
@@ -311,8 +317,14 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IReadOnlyList<Pawn> Postfix(IReadOnlyList<Pawn> __result, Map ___map)
         {
+            if (___map.IsVehicleMapOf(out _)) return __result;
+
             tmpList.Clear();
-            tmpList.AddRange(__result.Concat(VehiclePawnWithMapCache.TryGetAllVehiclesOn(___map).SelectMany(v => v.VehicleMap.mapPawns.AllPawnsSpawned)));
+            tmpList.AddRange(__result);
+            foreach (var vehicle in VehiclePawnWithMapCache.TryGetAllVehiclesOn(___map))
+            {
+                tmpList.AddRange(vehicle.VehicleMap.mapPawns.AllPawnsSpawned);
+            }
             return tmpList;
         }
 

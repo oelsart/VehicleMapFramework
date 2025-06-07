@@ -132,11 +132,10 @@ namespace VehicleInteriors
         public static IEnumerable<LocalTargetInfo> TargetsAtMouse(TargetingParameters clickParams, bool thingsOnly = false, ITargetingSource source = null)
         {
             var clickPos = UI.MouseMapPosition();
-            var component = Find.World.GetComponent<TargetMapManager>();
             Thing caster;
             if ((caster = source?.Caster) != null)
             {
-                component.TargetMap[caster] = Find.CurrentMap;
+                TargetMapManager.TargetMap[caster] = Find.CurrentMap;
             }
             bool convToVehicleMap;
             if (!(convToVehicleMap = Find.CurrentMap.IsVehicleMapOf(out var vehicle)))
@@ -148,7 +147,7 @@ namespace VehicleInteriors
                         convToVehicleMap = true;
                         if (caster != null)
                         {
-                            component.TargetMap[caster] = vehicle.VehicleMap;
+                            TargetMapManager.TargetMap[caster] = vehicle.VehicleMap;
                         }
                     }
                 }

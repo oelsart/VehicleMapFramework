@@ -432,15 +432,18 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     public static class Patch_GenView_ShouldSpawnMotesAt
     {
         [HarmonyPatch(new Type[] { typeof(Vector3), typeof(Map), typeof(bool) })]
-        [HarmonyPrefix]
-        public static void Prefix1(ref Map map)
+        public static void Prefix(ref Map map)
         {
-            map = map.BaseMap();
+            offset = false;
+            if (map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
+            {
+                offset = true;
+                map = vehicle.Map;
+            }
         }
 
         [HarmonyPatch(new Type[] { typeof(IntVec3), typeof(Map), typeof(bool) })]
-        [HarmonyPrefix]
-        public static void Prefix1(ref IntVec3 loc, ref Map map)
+        public static void Prefix(ref IntVec3 loc, ref Map map)
         {
             if (map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
             {
@@ -448,5 +451,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 map = vehicle.Map;
             }
         }
+
+        public static bool offset;
     }
 }

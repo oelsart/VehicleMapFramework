@@ -77,7 +77,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static bool Prefix(Mote __instance, ref Vector3 __result)
         {
-            if (__instance is MoteBubble) return true;
+            if (__instance.link1.Target.HasThing) return true;
 
             return !__instance.TryGetDrawPos(ref __result);
         }
@@ -102,6 +102,19 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             if (__instance.parent.parent.IsNonFocusedVehicleMapOf(out var vehicle))
             {
+                creationData.Offset(vehicle);
+            }
+        }
+
+        public static void Offset(this ref FleckCreationData creationData, VehiclePawnWithMap vehicle)
+        {
+            if (creationData.link.Target.HasThing || Patch_GenView_ShouldSpawnMotesAt.offset)
+            {
+                creationData.spawnPosition.y += vehicle.DrawPos.y;
+                Patch_GenView_ShouldSpawnMotesAt.offset = false;
+            }
+            else
+            {
                 creationData.spawnPosition = creationData.spawnPosition.ToBaseMapCoord(vehicle);
             }
         }
@@ -114,7 +127,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             if (__instance.parent.parent.IsNonFocusedVehicleMapOf(out var vehicle))
             {
-                creationData.spawnPosition = creationData.spawnPosition.ToBaseMapCoord(vehicle);
+                creationData.Offset(vehicle);
             }
         }
     }
@@ -126,8 +139,17 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             if (__instance.parent.parent.IsNonFocusedVehicleMapOf(out var vehicle))
             {
-                creationData.spawnPosition = creationData.spawnPosition.ToBaseMapCoord(vehicle);
+                creationData.Offset(vehicle);
             }
+        }
+    }
+
+    [HarmonyPatch(typeof(FleckStatic), nameof(FleckStatic.Draw), new[] { typeof(float), typeof(DrawBatch) })]
+    public static class Patch_FleckStatic_Draw
+    {
+        public static void Prefix(FleckStatic __instance, ref float altitude)
+        {
+            altitude = __instance.DrawPos.y;
         }
     }
 
