@@ -138,6 +138,22 @@ namespace VehicleInteriors
             }
         }
 
+        public override string CompInspectStringExtra()
+        {
+            if (VehicleInteriors.settings.weightFactor == 0f) return null;
+
+            if (this.parent.IsOnVehicleMapOf(out var vehicle))
+            {
+                var str = base.CompInspectStringExtra();
+                var stat = vehicle.GetStatValue(VMF_DefOf.MaximumPayload);
+
+                return str + $"{VMF_DefOf.MaximumPayload.LabelCap}:" +
+                    $" {(VehicleMapUtility.VehicleMapMass(vehicle) * VehicleInteriors.settings.weightFactor).ToStringEnsureThreshold(2, 0)} /" +
+                    $" {stat.ToStringEnsureThreshold(2, 0)} {"kg".Translate()}";
+            }
+            return null;
+        }
+
         private IEnumerable<(VehicleHandler, VehicleUpgrade.RoleUpgrade)> handlersToDraw;
     }
 }

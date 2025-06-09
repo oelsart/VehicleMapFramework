@@ -705,6 +705,67 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
+    //ポーンがVehicleRoleBuildableに割り当てられている時はその席へのCanReachにすり替える
+    [HarmonyPatch(typeof(Dialog_FormVehicleCaravan), "CheckForErrors")]
+    public static class Patch_Dialog_FormVehicleCaravan_CheckForErrors
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var codes = instructions.ToList();
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Ldloc_3) + 1;
+
+            codes.InsertRange(pos, new[]
+            {
+                CodeInstruction.LoadLocal(5),
+                CodeInstruction.Call(typeof(Patch_Dialog_FormVehicleCaravan_CheckForErrors), nameof(TargetThing))
+            });
+            return codes;
+        }
+
+        private static Thing TargetThing(VehiclePawn vehicle, Pawn pawn)
+        {
+            if (CaravanHelper.assignedSeats.TryGetValue(pawn, out var assignedSeat) && assignedSeat.handler.role is VehicleRoleBuildable vehicleRoleBuildable)
+            {
+                return vehicleRoleBuildable.upgradeComp.parent;
+            }
+            return vehicle;
+        }
+    }
+
+    //キャラバン編成画面でVehicleRoleBuildableに割り当てられているポーンはその席へ行くようにする
+    [HarmonyPatch(typeof(JobDriver_Board), "MakeNewToils")]
+    public static class Patch_JobDriver_Board_MakeNewToils
+    {
+        public static IEnumerable<Toil> Postfix(IEnumerable<Toil> values)
+        {
+            foreach (Toil toil in values)
+            {
+                if (toil.debugName == "GotoThing")
+                {
+                    var oldAction = toil.initAction;
+                    toil.initAction = () =>
+                    {
+                        var actor = toil.actor;
+                        if (actor.GetLord()?.LordJob is LordJob_FormAndSendVehicles lordJob_FormAndSendVehicles &&
+                        lordJob_FormAndSendVehicles.GetVehicleAssigned(actor).handler?.role is VehicleRoleBuildable vehicleRoleBuildable)
+                        {
+                            var dest = vehicleRoleBuildable.upgradeComp?.parent;
+                            if (!dest?.Spawned ?? true || ToilFailConditions.DespawnedOrNull(dest, actor))
+                            {
+                                actor.jobs.EndCurrentJob(JobCondition.Incompletable, canReturnToPool: false);
+                                return;
+                            }
+                            actor.pather.StartPath(dest, PathEndMode.Touch);
+                            return;
+                        }
+                        oldAction();
+                    };
+                }
+                yield return toil;
+            }
+        }
+    }
+
     //サイズの大きなVehicleの場合はVF本体のスレッド管理を回避しつつ独自にマルチスレッド化
     [HarmonyPatch]
     public static class Patch_VehiclePathing_SetRotationAndUpdateVehicleRegionsClipping
