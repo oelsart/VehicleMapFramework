@@ -258,7 +258,7 @@
 	<ThingDef ParentName="FurnitureBase">
 		<defName>VMF_TurboCharger</defName>
 		<label>turbo charger</label>
-		<description>Engine components to enhance the vehicle's maximum payload.\n\n&lt;color=#bb8f04&gt;Maximum payload:&lt;/color&gt; +300 kg\n&lt;color=#bb8f04&gt;Fuel Consumption:&lt;/color&gt; +8 /day</description>
+		<description>Engine components to enhance the vehicle's maximum payload.\n\n&lt;color=#bb8f04&gt;Maximum payload:&lt;/color&gt; +500 kg\n&lt;color=#bb8f04&gt;Fuel Consumption:&lt;/color&gt; +8 /day</description>
 		<designationCategory>VF_Vehicles</designationCategory>
 		<pathCost>80</pathCost>
 		<fillPercent>0.2</fillPercent>
@@ -322,7 +322,7 @@
 	<ThingDef ParentName="FurnitureBase">
 		<defName>VMF_LiftFan</defName>
 		<label>lift fan</label>
-		<description>A Lift fan to enhance the hover vehicle's maximum payload. Can only be installed on hover type vehicles.\n\n&lt;color=#bb8f04&gt;Maximum Payload:&lt;/color&gt; +150 kg\n&lt;color=#bb8f04&gt;Fuel Consumption:&lt;/color&gt; +4 /day</description>
+		<description>A Lift fan to enhance the hover vehicle's maximum payload. Can only be installed on hover type vehicles.\n\n&lt;color=#bb8f04&gt;Maximum Payload:&lt;/color&gt; +250 kg\n&lt;color=#bb8f04&gt;Fuel Consumption:&lt;/color&gt; +4 /day</description>
 		<designationCategory>VF_Vehicles</designationCategory>
 		<graphicData>
 			<texPath>VehicleInteriors/Things/BuildableUpgrade/LiftFan</texPath>

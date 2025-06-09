@@ -111,7 +111,23 @@ namespace VehicleInteriors
             }
         }
 
+        public HashSet<IntVec3> CachedStandableMapEdgeCells
+        {
+            get
+            {
+                if (this.standableCellsCachedTick != Find.TickManager.TicksGame || Find.TickManager.Paused)
+                {
+                    this.standableCellsCachedTick = Find.TickManager.TicksGame;
+                    this.standableMapEdgeCellsCache.Clear();
+                    this.standableMapEdgeCellsCache.AddRange(CachedMapEdgeCells.Where(c => c.Standable(this.interiorMap)));
+                }
+                return this.standableMapEdgeCellsCache;
+            }
+        }
+
         public List<CompVehicleEnterSpot> EnterComps => this.enterCompsInt;
+
+        public IEnumerable<CompVehicleEnterSpot> StandableEnterComps => EnterComps.Where(c => c.parent.Position.Standable(interiorMap));
 
         public override Vector3 DrawPos
         {
@@ -633,7 +649,11 @@ namespace VehicleInteriors
 
         private HashSet<IntVec3> mapEdgeCellsCache;
 
+        private HashSet<IntVec3> standableMapEdgeCellsCache = new HashSet<IntVec3>();
+
         public bool structureCellsDirty;
+
+        private int standableCellsCachedTick;
 
         private static readonly Material ClipMat = SolidColorMaterials.NewSolidColorMaterial(new Color(0.3f, 0.1f, 0.1f, 0.5f), ShaderDatabase.MetaOverlay);
 

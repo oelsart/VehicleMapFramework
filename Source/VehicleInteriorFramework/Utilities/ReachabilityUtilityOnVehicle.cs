@@ -13,7 +13,13 @@ namespace VehicleInteriors
     public static class ReachabilityUtilityOnVehicle
     {
         public static bool working;
+
         public static IntVec3 EnterVehiclePosition(TargetInfo enterSpot, VehiclePawn enterer = null)
+        {
+            return EnterVehiclePosition(enterSpot, out _, enterer);
+        }
+
+        public static IntVec3 EnterVehiclePosition(TargetInfo enterSpot, out int dist, VehiclePawn enterer = null)
         {
             if (!enterSpot.Map.IsVehicleMapOf(out var vehicle))
             {
@@ -31,7 +37,7 @@ namespace VehicleInteriors
                 faceCell = enterSpot.Cell.BaseFullDirectionToInsideMap(vehicle).FacingCell;
             }
 
-            var dist = 1;
+            dist = 1;
             while ((cell - faceCell * dist).GetThingList(vehicle.Map).Contains(vehicle))
             {
                 dist++;
@@ -45,12 +51,14 @@ namespace VehicleInteriors
             }
             return result;
         }
+
         public static bool CanReach(Map departMap, IntVec3 root, LocalTargetInfo dest, PathEndMode peMode, TraverseParms traverseParms, Map destMap, out TargetInfo exitSpot, out TargetInfo enterSpot)
         {
+            bool result = false;
+            exitSpot = TargetInfo.Invalid;
+            enterSpot = TargetInfo.Invalid;
             try
             {
-                exitSpot = TargetInfo.Invalid;
-                enterSpot = TargetInfo.Invalid;
                 if (working)
                 {
                     Log.ErrorOnce("Called CanReach() while working. This should never happen. Suppressing further errors.", 7312233);
@@ -64,10 +72,17 @@ namespace VehicleInteriors
                 }
 
                 if (departMap == null || destMap == null) return false;
+
                 if (departMap == destMap)
                 {
                     return destMap.reachability.CanReach(root, dest, peMode, traverseParms);
                 }
+
+                if (CrossMapReachabilityCache.TryGetCache(new TargetInfo(root, departMap), dest.ToTargetInfo(destMap), traverseParms, out result, out exitSpot, out enterSpot))
+                {
+                    return result;
+                }
+
                 var destBaseMap = destMap.IsVehicleMapOf(out var vehicle) && vehicle.Spawned ? vehicle.Map : destMap;
                 var departBaseMap = departMap.IsVehicleMapOf(out var vehicle2) && vehicle2.Spawned ? vehicle2.Map : departMap;
 
@@ -79,12 +94,9 @@ namespace VehicleInteriors
                         TraverseParms.For(traverseParms.pawn, traverseParms.maxDanger, TraverseMode.PassDoors, traverseParms.canBashDoors, traverseParms.alwaysUseAvoidGrid, traverseParms.canBashFences) :
                         TraverseParms.For(TraverseMode.PassDoors, traverseParms.maxDanger, traverseParms.canBashDoors, traverseParms.alwaysUseAvoidGrid, traverseParms.canBashFences);
 
-
                     bool CanReach(IntVec3 cell, IntVec3 cell2)
                     {
-                        return cell.Standable(departMap) &&
-                            cell2.Standable(destMap) &&
-                            departMap.reachability.CanReach(root, cell, PathEndMode.OnCell, traverseParms) &&
+                        return departMap.reachability.CanReach(root, cell, PathEndMode.OnCell, traverseParms) &&
                             destMap.reachability.CanReach(cell2, dest, peMode, traverseParms2);
                     }
                     //出発地が車上マップで目的地がベースマップ
@@ -94,10 +106,10 @@ namespace VehicleInteriors
                         {
                             if (!vehicle2.AllowsGetOff)
                             {
-                                return false;
+                                result = false;
+                                return result;
                             }
-
-                            foreach (var comp in vehicle2.EnterComps.OrderBy(e => e.DistanceSquared(dest.Cell)))
+                            foreach (var comp in vehicle2.StandableEnterComps.OrderBy(e => e.DistanceSquared(dest.Cell)))
                             {
                                 IntVec3 cell;
                                 if (comp is CompZipline compZipline)
@@ -111,20 +123,22 @@ namespace VehicleInteriors
                                 {
                                     cell = EnterVehiclePosition(comp.parent);
                                 }
-                                if (CanReach(comp.parent.Position, cell))
+                                if (cell.Standable(destMap) && CanReach(comp.parent.Position, cell))
                                 {
                                     exitSpot = comp.parent;
-                                    return true;
+                                    result = true;
+                                    return result;
                                 }
                             }
-                            foreach (var c in vehicle2.CachedMapEdgeCells.OrderBy(c => (c.ToBaseMapCoord(vehicle2) - dest.Cell).LengthHorizontalSquared))
+                            foreach (var c in vehicle2.CachedStandableMapEdgeCells.OrderBy(c => (c.ToBaseMapCoord(vehicle2) - dest.Cell).LengthHorizontalSquared))
                             {
                                 var targetInfo = new TargetInfo(c, departMap);
                                 var cell = EnterVehiclePosition(targetInfo);
-                                if (CanReach(c, cell))
+                                if (cell.Standable(destMap) && CanReach(c, cell))
                                 {
                                     exitSpot = targetInfo;
-                                    return true;
+                                    result = true;
+                                    return result;
                                 }
                             }
                         }
@@ -148,20 +162,22 @@ namespace VehicleInteriors
                                 {
                                     cell = EnterVehiclePosition(comp.parent);
                                 }
-                                if (CanReach(cell, comp.parent.Position))
+                                if (cell.Standable(departMap) && CanReach(cell, comp.parent.Position))
                                 {
                                     enterSpot = comp.parent;
-                                    return true;
+                                    result = true;
+                                    return result;
                                 }
                             }
-                            foreach (var c in vehicle.CachedMapEdgeCells.OrderBy(c => (root - c.ToBaseMapCoord(vehicle)).LengthHorizontalSquared))
+                            foreach (var c in vehicle.CachedStandableMapEdgeCells.OrderBy(c => (root - c.ToBaseMapCoord(vehicle)).LengthHorizontalSquared))
                             {
                                 var targetInfo = new TargetInfo(c, destMap);
                                 var cell = EnterVehiclePosition(targetInfo);
-                                if (CanReach(cell, c))
+                                if (cell.Standable(departMap) && CanReach(cell, c))
                                 {
                                     enterSpot = targetInfo;
-                                    return true;
+                                    result = true;
+                                    return result;
                                 }
                             }
                         }
@@ -173,23 +189,22 @@ namespace VehicleInteriors
                         {
                             if (!vehicle2.AllowsGetOff)
                             {
-                                return false;
+                                result = false;
+                                return result;
                             }
 
                             if (vehicle != null)
                             {
                                 bool CanReach2(IntVec3 cell, IntVec3 cell2, IntVec3 cell3, IntVec3 cell4)
                                 {
-                                    return cell.Standable(departMap) &&
-                                        cell2.Standable(departBaseMap) &&
+                                    return cell2.Standable(departBaseMap) &&
                                         cell3.Standable(departBaseMap) &&
-                                        cell4.Standable(destMap) &&
                                         departMap.reachability.CanReach(root, cell, PathEndMode.OnCell, traverseParms) &&
                                         departBaseMap.reachability.CanReach(cell2, cell3, PathEndMode.OnCell, traverseParms2) &&
                                         destMap.reachability.CanReach(cell4, dest, peMode, traverseParms2);
                                 }
 
-                                foreach (var comp in vehicle2.EnterComps.OrderBy(e => e.DistanceSquared(dest.Cell.ToBaseMapCoord(vehicle))))
+                                foreach (var comp in vehicle2.StandableEnterComps.OrderBy(e => e.DistanceSquared(dest.Cell.ToBaseMapCoord(vehicle))))
                                 {
                                     IntVec3 cell;
                                     if (comp is CompZipline compZipline)
@@ -203,11 +218,12 @@ namespace VehicleInteriors
                                         if (pair.Map == destMap)
                                         {
                                             var c = comp.parent.Position;
-                                            if (CanReach(c, cell))
+                                            if (cell.Standable(destMap) && CanReach(c, cell))
                                             {
                                                 exitSpot = comp.parent;
                                                 enterSpot = pair;
-                                                return true;
+                                                result = true;
+                                                return result;
                                             }
                                         }
                                     }
@@ -215,7 +231,7 @@ namespace VehicleInteriors
                                     {
                                         cell = EnterVehiclePosition(comp.parent);
                                     }
-                                    foreach (var comp2 in vehicle.EnterComps.OrderBy(e => e.DistanceSquared(cell)))
+                                    foreach (var comp2 in vehicle.StandableEnterComps.OrderBy(e => e.DistanceSquared(cell)))
                                     {
                                         IntVec3 cell2;
                                         if (comp2 is CompZipline compZipline2)
@@ -232,10 +248,11 @@ namespace VehicleInteriors
                                         {
                                             exitSpot = comp.parent;
                                             enterSpot = comp2.parent;
-                                            return true;
+                                            result = true;
+                                            return result;
                                         }
                                     }
-                                    foreach (var c2 in vehicle.CachedMapEdgeCells.OrderBy(c2 => cell - c2.ToBaseMapCoord(vehicle)))
+                                    foreach (var c2 in vehicle.CachedStandableMapEdgeCells.OrderBy(c2 => cell - c2.ToBaseMapCoord(vehicle)))
                                     {
                                         var targetInfo = new TargetInfo(c2, destMap);
                                         var cell2 = EnterVehiclePosition(targetInfo);
@@ -243,22 +260,23 @@ namespace VehicleInteriors
                                         {
                                             exitSpot = comp.parent;
                                             enterSpot = targetInfo;
-                                            return true;
+                                            result = true;
+                                            return result;
                                         }
                                     }
                                 }
-                                foreach (var c in vehicle2.CachedMapEdgeCells.OrderBy(c => (c.ToBaseMapCoord(vehicle2) - dest.Cell.ToBaseMapCoord(vehicle)).LengthHorizontalSquared))
+                                foreach (var c in vehicle2.CachedStandableMapEdgeCells.OrderBy(c => (c.ToBaseMapCoord(vehicle2) - dest.Cell.ToBaseMapCoord(vehicle)).LengthHorizontalSquared))
                                 {
                                     var targetInfo = new TargetInfo(c, departMap);
                                     var cell = EnterVehiclePosition(targetInfo);
 
-                                    foreach (var comp2 in vehicle.EnterComps.OrderBy(e => e.DistanceSquared(cell)))
+                                    foreach (var comp2 in vehicle.StandableEnterComps.OrderBy(e => e.DistanceSquared(cell)))
                                     {
                                         IntVec3 cell2;
                                         if (comp2 is CompZipline compZipline)
                                         {
                                             var pair = compZipline.Pair;
-                                            if (pair == null || pair.Isnt<ZiplineEnd>() || pair.Map != departBaseMap) return false;
+                                            if (pair == null || pair.Isnt<ZiplineEnd>() || pair.Map != departBaseMap) continue;
                                             cell2 = pair.Position;
                                         }
                                         else
@@ -269,10 +287,11 @@ namespace VehicleInteriors
                                         {
                                             exitSpot = targetInfo;
                                             enterSpot = comp2.parent;
-                                            return true;
+                                            result = true;
+                                            return result;
                                         }
                                     }
-                                    foreach (var c2 in vehicle.CachedMapEdgeCells.OrderBy(c2 => (cell - c2.ToBaseMapCoord(vehicle)).LengthHorizontalSquared))
+                                    foreach (var c2 in vehicle.CachedStandableMapEdgeCells.OrderBy(c2 => (cell - c2.ToBaseMapCoord(vehicle)).LengthHorizontalSquared))
                                     {
                                         var targetInfo2 = new TargetInfo(c2, destMap);
                                         var cell2 = EnterVehiclePosition(targetInfo2);
@@ -280,7 +299,8 @@ namespace VehicleInteriors
                                         {
                                             exitSpot = targetInfo;
                                             enterSpot = targetInfo2;
-                                            return true;
+                                            result = true;
+                                            return result;
                                         }
                                     }
                                 }
@@ -288,10 +308,12 @@ namespace VehicleInteriors
                         }
                     }
                 }
-                return false;
+                result = false;
+                return result;
             }
             finally
             {
+                CrossMapReachabilityCache.Cache(new TargetInfo(root, departMap), dest.ToTargetInfo(destMap), traverseParms, result, exitSpot, enterSpot);
                 working = false;
             }
 

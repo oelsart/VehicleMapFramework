@@ -1,9 +1,0 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
-<LanguageData>
-  
-  <!-- EN: pipe connector -->
-  <VMF_PipeConnector.label>载具管道中继器</VMF_PipeConnector.label>
-  <!-- EN: Connection to pipe between the normal map and the vehicle map.\nPlaced on the normal map and the vehicle map, they are connected by aligning their positions. -->
-  <VMF_PipeConnector.description>连接常规地图和载具地图上的管道。\n在两个地图各自放置一个，当中继器两端合在同一个位置时即可对接。</VMF_PipeConnector.description>
-  
-</LanguageData>

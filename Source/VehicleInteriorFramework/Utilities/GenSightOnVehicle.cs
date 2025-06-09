@@ -16,6 +16,8 @@ namespace VehicleInteriors
                 end  = end.ToBaseMapCoord(vehicle);
                 map = vehicle.Map;
             }
+            if (!start.InBounds(map) || !end.InBounds(map)) return false;
+
             if (start.x == end.x)   
             {
                 flag = (start.z < end.z);
@@ -158,17 +160,19 @@ namespace VehicleInteriors
 
         public static bool LineOfSight(IntVec3 start, IntVec3 end, Map map)
         {
+            return GenSightOnVehicle.LineOfSight(start, end, map, CellRect.SingleCell(start), CellRect.SingleCell(end), null);
+        }
+
+        public static bool LineOfSight(IntVec3 start, IntVec3 end, Map map, CellRect startRect, CellRect endRect, Func<IntVec3, bool> validator = null)
+        {
             if (map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
             {
                 start = start.ToBaseMapCoord(vehicle);
                 end = end.ToBaseMapCoord(vehicle);
                 map = vehicle.Map;
             }
-            return GenSightOnVehicle.LineOfSight(start, end, map, CellRect.SingleCell(start), CellRect.SingleCell(end), null);
-        }
+            if (!start.InBounds(map) || !end.InBounds(map)) return false;
 
-        public static bool LineOfSight(IntVec3 start, IntVec3 end, Map map, CellRect startRect, CellRect endRect, Func<IntVec3, bool> validator = null)
-        {
             bool flag;
             if (start.x == end.x)
             {
