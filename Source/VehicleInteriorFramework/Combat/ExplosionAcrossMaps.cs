@@ -81,7 +81,7 @@ namespace VehicleInteriors
             {
                 foreach (var vehicle in this.cellsToAffectOnVehicles.Keys)
                 {
-                    if (vehicle?.VehicleMap == null) continue;
+                    if (vehicle?.VehicleMap == null || !vehicle.Spawned) continue;
 
                     this.VirtualMapTransfer(vehicle.VehicleMap, pos.ToVehicleMapCoord(vehicle));
                     num = this.cellsToAffectOnVehicles[vehicle].Count - 1;

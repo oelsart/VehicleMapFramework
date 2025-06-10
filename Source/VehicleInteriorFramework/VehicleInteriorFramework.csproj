@@ -293,6 +293,7 @@
     <Compile Include="VehicleStructure.cs" />
     <Compile Include="VehicleMap\Vehicle_MapFollower.cs" />
     <Compile Include="VMF_HarmonyPatches\ModCompat\Patches_AdaptiveStorage.cs" />
+    <Compile Include="VMF_HarmonyPatches\Patches_Ability.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_Alert.cs" />
     <Compile Include="VMF_HarmonyPatches\ModCompat\Patches_AllowTool.cs" />
     <Compile Include="VMF_HarmonyPatches\Patches_AnimalPen.cs" />

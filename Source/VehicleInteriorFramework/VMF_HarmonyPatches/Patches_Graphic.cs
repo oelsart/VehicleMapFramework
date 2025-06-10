@@ -454,4 +454,17 @@ namespace VehicleInteriors.VMF_HarmonyPatches
 
         public static bool offset;
     }
+
+    //主にSubEffector_Splayerで使用される
+    [HarmonyPatch(typeof(TargetInfo), nameof(TargetInfo.CenterVector3), MethodType.Getter)]
+    public static class Patch_TargetInfo_CenterVector3
+    {
+        public static void Postfix(Thing ___thingInt, Map ___mapInt, ref Vector3 __result)
+        {
+            if (___thingInt == null && ___mapInt.IsNonFocusedVehicleMapOf(out var vehicle))
+            {
+                __result = __result.ToBaseMapCoord(vehicle);
+            }
+        }
+    }
 }

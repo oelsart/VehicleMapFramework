@@ -87,10 +87,24 @@ namespace VehicleInteriors
                     {
                         FloatMenuMakerOnVehicle.AddUndraftedOrders(clickPos, pawn, list);
                     }
-                    foreach (FloatMenuOption item in pawn.GetExtraFloatMenuOptionsFor(intVec))
+
+                    var pawnMap = pawn.Map;
+                    var pawnPos = pawn.Position;
+                    try
                     {
-                        list.Add(item);
+                        var pos = pawn.CanReach(clickCell, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, map, out _, out _) ?
+                            clickCell : pawnPos;
+                        pawn.VirtualMapTransfer(map, pos);
+                        foreach (FloatMenuOption item in pawn.GetExtraFloatMenuOptionsFor(clickCell))
+                        {
+                            list.Add(item);
+                        }
                     }
+                    finally
+                    {
+                        pawn.VirtualMapTransfer(pawnMap, pawnPos);
+                    }
+
                     if (!Find.CurrentMap.IsVehicleMapOf(out _))
                     {
                         FloatMenuOption floatMenuOptFor = EnterPortalUtility.GetFloatMenuOptFor(pawn, intVec);

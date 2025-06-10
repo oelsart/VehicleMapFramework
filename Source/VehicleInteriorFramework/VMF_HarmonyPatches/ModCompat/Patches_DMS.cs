@@ -10,31 +10,28 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             if (ModCompat.DeadMansSwitch)
             {
-                VMF_Harmony.PatchCategory("VMF_Patches_DMSAncientCorps");
+                VMF_Harmony.PatchCategory("VMF_Patches_DMS");
             }
         }
     }
 
-    [HarmonyPatchCategory("VMF_Patches_DMSAncientCorps")]
-    [HarmonyPatch("AncientCorps.CompAbilityEffect_ActiveProtectionSystem", "AICanTargetNow")]
-    public static class Patch_CompAbilityEffect_ActiveProtectionSystem_AICanTargetNow
+    [HarmonyPatchCategory("VMF_Patches_DMS")]
+    [HarmonyPatch("DMS.Verb_CastAbilityArcSprayProjectile", "TryCastShot")]
+    public static class Patch_Verb_CastAbilityArcSprayProjectile_TryCastShot
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(MethodInfoCache.g_Thing_MapHeld, MethodInfoCache.m_MapHeldBaseMap)
-                .MethodReplacer(MethodInfoCache.m_OccupiedRect, MethodInfoCache.m_MovedOccupiedRect);
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing);
         }
     }
 
-    [HarmonyPatchCategory("VMF_Patches_DMSAncientCorps")]
-    [HarmonyPatch("AncientCorps.CompAbilityEffect_ActiveProtectionSystem", "CompTick")]
-    public static class Patch_CompAbilityEffect_ActiveProtectionSystem_CompTick
+    [HarmonyPatchCategory("VMF_Patches_DMS")]
+    [HarmonyPatch("DMS.Verb_CastAbilityArcSprayProjectile", "PreparePath")]
+    public static class Patch_Verb_CastAbilityArcSprayProjectile_PreparePath
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(MethodInfoCache.g_Thing_MapHeld, MethodInfoCache.m_MapHeldBaseMap)
-                .MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing)
-                .MethodReplacer(MethodInfoCache.m_OccupiedRect, MethodInfoCache.m_MovedOccupiedRect);
+            return Patch_Verb_ArcSpray_PreparePath.Transpiler(instructions);
         }
     }
 }

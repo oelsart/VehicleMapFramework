@@ -7,10 +7,37 @@ using System.Reflection.Emit;
 using UnityEngine;
 using Verse;
 using Verse.AI;
-using static VehicleInteriors.ModCompat;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
 {
+    [HarmonyPatch(typeof(Verb), nameof(Verb.TryFindShootLineFromTo))]
+    public static class Patch_Verb_TryFindShootLineFromTo
+    {
+        public static bool Prefix(Verb __instance, IntVec3 root, LocalTargetInfo targ, ref ShootLine resultingLine, bool ignoreRange, ref bool __result)
+        {
+            if (ModCompat.CombatExtended.Active) return true;
+
+            if ((__instance.caster.IsOnVehicleMapOf(out _) ||
+                targ.Thing.IsOnVehicleMapOf(out _) ||
+                TargetMapManager.HasTargetMap(__instance.caster, out var map) && map.IsVehicleMapOf(out _)) && !VerbOnVehicleUtility.working)
+            {
+                __result = __instance.TryFindShootLineFromToOnVehicle(root, targ, out resultingLine, ignoreRange);
+                return false;
+            }
+            return true;
+        }
+    }
+
+    //CanHitTargetFrom内でrootとターゲットとの距離を測ってたりする時用（Jumpなど）
+    [HarmonyPatch(typeof(Verb), nameof(Verb.CanHitTarget))]
+    public static class Patch_Verb_CanHitTarget
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap);
+        }
+    }
+
     [HarmonyPatch(typeof(Verb_LaunchProjectile), "GetForcedMissTarget")]
     public static class Patch_Verb_LaunchProjectile_GetForcedMissTarget
     {
@@ -40,7 +67,6 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing)
-                .MethodReplacer(MethodInfoCache.m_Verb_TryFindShootLineFromTo, MethodInfoCache.m_TryFindShootLineFromToOnVehicle)
                 .MethodReplacer(MethodInfoCache.g_LocalTargetInfo_Cell, MethodInfoCache.m_CellOnBaseMap)
                 .MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap);
         }
@@ -51,30 +77,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            instructions = instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap);
-            if (!CombatExtended.Active)
-            {
-                instructions = instructions.MethodReplacer(MethodInfoCache.m_Verb_TryFindShootLineFromTo, MethodInfoCache.m_TryFindShootLineFromToOnVehicle);
-            }
-            return instructions;
-        }
-    }
-
-    [HarmonyPatch(typeof(Verb), nameof(Verb.CanHitTarget))]
-    public static class Patch_Verb_CanHitTarget
-    {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
             return instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap);
-        }
-    }
-
-    [HarmonyPatch(typeof(Verb), nameof(Verb.CanHitTargetFrom))]
-    public static class Patch_Verb_CanHitTargetFrom
-    {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
-            return instructions.MethodReplacer(MethodInfoCache.m_Verb_TryFindShootLineFromTo, MethodInfoCache.m_TryFindShootLineFromToOnVehicle);
         }
     }
 
@@ -84,9 +87,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing)
-                .MethodReplacer(MethodInfoCache.m_Verb_TryFindShootLineFromTo, MethodInfoCache.m_TryFindShootLineFromToOnVehicle)
-                .MethodReplacer(MethodInfoCache.g_LocalTargetInfo_Cell, MethodInfoCache.m_CellOnBaseMap)
-                .MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap);
+                .MethodReplacer(MethodInfoCache.g_LocalTargetInfo_Cell, MethodInfoCache.m_CellOnBaseMap);
         }
     }
 
@@ -97,9 +98,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             return instructions.MethodReplacer(MethodInfoCache.g_Thing_Rotation, MethodInfoCache.m_BaseFullRotation_Thing)
                 .MethodReplacer(MethodInfoCache.g_Rot4_AsQuat, MethodInfoCache.m_Rot8_AsQuatRef)
-                .MethodReplacer(MethodInfoCache.m_Verb_TryFindShootLineFromTo, MethodInfoCache.m_TryFindShootLineFromToOnVehicle)
-                .MethodReplacer(MethodInfoCache.g_LocalTargetInfo_Cell, MethodInfoCache.m_CellOnBaseMap)
-                .MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap);
+                .MethodReplacer(MethodInfoCache.g_LocalTargetInfo_Cell, MethodInfoCache.m_CellOnBaseMap);
         }
     }
 
@@ -205,9 +204,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(MethodInfoCache.m_Verb_TryFindShootLineFromTo, MethodInfoCache.m_TryFindShootLineFromToOnVehicle)
-                .MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing)
-                .MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap);
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing);
         }
     }
 
@@ -235,19 +232,16 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     [HarmonyPatch(typeof(JumpUtility), nameof(JumpUtility.CanHitTargetFrom))]
     public static class Patch_JumpUtility_CanHitTargetFrom
     {
-        public static void Prefix(Pawn pawn, ref LocalTargetInfo targ)
-        {
-            if (TargetMapManager.HasTargetMap(pawn, out var map))
-            {
-                targ = targ.Cell.ToBaseMapCoord(map);
-            }
-        }
-
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing)
+            var codes = instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing)
                 .MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap)
-                .MethodReplacer(MethodInfoCache.m_GenSight_LineOfSight1, MethodInfoCache.m_GenSightOnVehicle_LineOfSight1);
+                .MethodReplacer(MethodInfoCache.g_LocalTargetInfo_Cell, MethodInfoCache.m_TargetCellOnBaseMap)
+                .MethodReplacer(MethodInfoCache.m_GenSight_LineOfSight1, MethodInfoCache.m_GenSightOnVehicle_LineOfSight1).ToList();
+
+            var pos = codes.FindIndex(c => c.Calls(MethodInfoCache.m_TargetCellOnBaseMap));
+            codes.Insert(pos, CodeInstruction.LoadArgument(0));
+            return codes;
         }
     }
 

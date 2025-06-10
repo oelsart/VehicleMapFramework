@@ -268,7 +268,10 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 __result = ReachabilityUtilityOnVehicle.BestOrderedGotoDestNear(root, searcher, cellValidator, map, out var exitSpot, out var enterSpot);
                 if (__result.IsValid)
                 {
-                    Patch_MultiPawnGotoController_RecomputeDestinations.tmpEnterSpots[(searcher, __result)] = (exitSpot, enterSpot);
+                    if (Find.Selector.gotoController.Active)
+                    {
+                        Patch_MultiPawnGotoController_RecomputeDestinations.tmpEnterSpots[(searcher, __result)] = (exitSpot, enterSpot);
+                    }
                     return false;
                 }
             }

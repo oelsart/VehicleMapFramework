@@ -592,4 +592,36 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             ___map.GetCachedMapComponent<CrossMapHaulDestinationManager>().Notify_HaulDestinationChangedPriority();
         }
     }
+
+    //極端に小さいマップではCeilToIntのせいで毎tick必ずどこかのセルの物が劣化する処理だったんでこれを車両マップ上では緩和
+    [HarmonyPatch(typeof(SteadyEnvironmentEffects), nameof(SteadyEnvironmentEffects.SteadyEnvironmentEffectsTick))]
+    public static class Patch_SteadyEnvironmentEffects_SteadyEnvironmentEffectsTick
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var codes = instructions.ToList();
+            var m_CeilToInt = AccessTools.Method(typeof(Mathf), nameof(Mathf.CeilToInt));
+            var pos = codes.FindIndex(c => c.Calls(m_CeilToInt));
+
+            codes[pos].operand = AccessTools.Method(typeof(Patch_SteadyEnvironmentEffects_SteadyEnvironmentEffectsTick), nameof(ChanceToInt));
+            codes.InsertRange(pos, new[]
+            {
+                CodeInstruction.LoadArgument(0),
+                CodeInstruction.LoadField(typeof(SteadyEnvironmentEffects), "map")
+            });
+            return codes;
+        }
+
+        public static int ChanceToInt(float chance, Map map)
+        {
+            if (map.IsVehicleMapOf(out _))
+            {
+                var floor = Mathf.FloorToInt(chance);
+                chance -= floor;
+                if (Rand.Chance(chance)) floor++;
+                return floor;
+            }
+            return Mathf.CeilToInt(chance);
+        }
+    }
 }

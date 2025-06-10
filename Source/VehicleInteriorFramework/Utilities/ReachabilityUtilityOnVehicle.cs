@@ -429,15 +429,15 @@ namespace VehicleInteriors
 			}
 
             if (!map.pawnDestinationReservationManager.CanReserve(c, searcher, true) || !searcher.CanReach(c, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, map, out exitSpot, out enterSpot))
-			{
-				return false;
+            {
+                return false;
 			}
 			if (!c.Standable(map))
 			{
 				Building_Door door = c.GetDoor(map);
 				if (door == null || !door.CanPhysicallyPass(searcher))
-				{
-					return false;
+                {
+                    return false;
 				}
 			}
             List<Thing> thingList = c.GetThingList(map);
@@ -445,8 +445,8 @@ namespace VehicleInteriors
 			{
                 Pawn pawn;
                 if ((pawn = (thingList[i] as Pawn)) != null && pawn != searcher && pawn.RaceProps.Humanlike && ((searcher.Faction == Faction.OfPlayer && pawn.Faction == searcher.Faction) || (searcher.Faction != Faction.OfPlayer && pawn.Faction != Faction.OfPlayer)))
-				{
-					return false;
+                {
+                    return false;
 				}
 			}
 			return true;

@@ -10,66 +10,80 @@ namespace VehicleInteriors
     {
         public static bool TryFindShootLineFromToOnVehicle(this Verb verb, IntVec3 root, LocalTargetInfo targ, out ShootLine resultingLine, bool ignoreRange = false)
         {
-            if (targ.HasThing && verb.caster.Map == targ.Thing.Map && !verb.caster.Map.IsVehicleMapOf(out _))
+            working = true;
+            try
             {
-                return verb.TryFindShootLineFromTo(root, targ, out resultingLine, ignoreRange);
-            }
-            var casterBaseMap = verb.caster.BaseMap();
-            var targCellOnBaseMap = TargetMapManager.TargetCellOnBaseMap(ref targ, verb.caster);
-
-            if (targ.HasThing && targ.Thing.BaseMap() != casterBaseMap)
-            {
-                resultingLine = default;
-                return false;
-            }
-            if (verb.verbProps.IsMeleeAttack || verb.EffectiveRange <= 1.42f)
-            {
-                resultingLine = new ShootLine(root, targCellOnBaseMap);
-                return ReachabilityImmediate.CanReachImmediate(verb.caster.Position, targ, verb.caster.Map, PathEndMode.Touch, null);
-            }
-            CellRect occupiedRect = targ.HasThing ? targ.Thing.MovedOccupiedRect() : CellRect.SingleCell(targCellOnBaseMap);
-            if (!ignoreRange && verb.OutOfRange(root, targ, occupiedRect))
-            {
-                resultingLine = new ShootLine(root, targCellOnBaseMap);
-                return false;
-            }
-            if (!verb.verbProps.requireLineOfSight)
-            {
-                resultingLine = new ShootLine(root, targCellOnBaseMap);
-                return true;
-            }
-            if (verb.CasterIsPawn)
-            {
-                if (verb.CanHitFromCellIgnoringRange(root, targ, out IntVec3 dest))
+                if (!verb.caster.IsOnVehicleMapOf(out _) && !targ.Thing.IsOnVehicleMapOf(out _) && (!TargetMapManager.HasTargetMap(verb.caster, out var map) || !map.IsVehicleMapOf(out _)))
                 {
-                    resultingLine = new ShootLine(root, dest);
+                    return verb.TryFindShootLineFromTo(root, targ, out resultingLine, ignoreRange);
+                }
+                if (root == verb.caster.Position)
+                {
+                    root = verb.caster.PositionOnBaseMap();
+                }
+                var casterBaseMap = verb.caster.BaseMap();
+                var targCellOnBaseMap = TargetMapManager.TargetCellOnBaseMap(ref targ, verb.caster);
+
+                if (targ.HasThing && targ.Thing.BaseMap() != casterBaseMap)
+                {
+                    resultingLine = default;
+                    return false;
+                }
+                if (verb.verbProps.IsMeleeAttack || verb.EffectiveRange <= 1.42f)
+                {
+                    resultingLine = new ShootLine(root, targCellOnBaseMap);
+                    return ReachabilityImmediate.CanReachImmediate(verb.caster.Position, targ, verb.caster.Map, PathEndMode.Touch, null);
+                }
+                CellRect occupiedRect = targ.HasThing ? targ.Thing.MovedOccupiedRect() : CellRect.SingleCell(targCellOnBaseMap);
+                if (!ignoreRange && verb.OutOfRange(root, targ, occupiedRect))
+                {
+                    resultingLine = new ShootLine(root, targCellOnBaseMap);
+                    return false;
+                }
+                if (!verb.verbProps.requireLineOfSight)
+                {
+                    resultingLine = new ShootLine(root, targCellOnBaseMap);
                     return true;
                 }
-                ShootLeanUtilityOnVehicle.LeanShootingSourcesFromTo(verb.caster.Position, occupiedRect.ClosestCellTo(root), verb.caster.Map, VerbOnVehicleUtility.tempLeanShootSources);
-                for (int i = 0; i < VerbOnVehicleUtility.tempLeanShootSources.Count; i++)
+                if (verb.CasterIsPawn)
                 {
-                    IntVec3 intVec = VerbOnVehicleUtility.tempLeanShootSources[i].ToThingBaseMapCoord(verb.caster);
-                    if (verb.CanHitFromCellIgnoringRange(intVec, targ, out dest))
+                    if (verb.CanHitFromCellIgnoringRange(root, targ, out IntVec3 dest))
                     {
-                        resultingLine = new ShootLine(intVec, dest);
+                        resultingLine = new ShootLine(root, dest);
                         return true;
                     }
+                    ShootLeanUtilityOnVehicle.LeanShootingSourcesFromTo(verb.caster.Position, occupiedRect.ClosestCellTo(root), verb.caster.Map, VerbOnVehicleUtility.tempLeanShootSources);
+                    for (int i = 0; i < VerbOnVehicleUtility.tempLeanShootSources.Count; i++)
+                    {
+                        IntVec3 intVec = VerbOnVehicleUtility.tempLeanShootSources[i].ToThingBaseMapCoord(verb.caster);
+                        if (verb.CanHitFromCellIgnoringRange(intVec, targ, out dest))
+                        {
+                            resultingLine = new ShootLine(intVec, dest);
+                            return true;
+                        }
+                    }
                 }
+                else
+                {
+                    foreach (IntVec3 intVec2 in verb.Caster.MovedOccupiedRect())
+                    {
+                        if (verb.CanHitFromCellIgnoringRange(intVec2, targ, out IntVec3 dest))
+                        {
+                            resultingLine = new ShootLine(intVec2, dest);
+                            return true;
+                        }
+                    }
+                }
+                resultingLine = new ShootLine(root, targCellOnBaseMap);
+                return false;
             }
-            else
+            finally
             {
-                foreach (IntVec3 intVec2 in verb.Caster.MovedOccupiedRect())
-                {
-                    if (verb.CanHitFromCellIgnoringRange(intVec2, targ, out IntVec3 dest))
-                    {
-                        resultingLine = new ShootLine(intVec2, dest);
-                        return true;
-                    }
-                }
+                working = false;
             }
-            resultingLine = new ShootLine(root, targCellOnBaseMap);
-            return false;
         }
+
+        public static bool working;
 
         public static bool CanHitFromCellIgnoringRange(this Verb verb, IntVec3 sourceCellBaseCol, LocalTargetInfo targ, out IntVec3 goodDest)
         {

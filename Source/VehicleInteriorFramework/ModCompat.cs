@@ -79,7 +79,7 @@ namespace VehicleInteriors
             }
         }
 
-        public static readonly bool DeadMansSwitch = ModsConfig.IsActive("Aoba.DeadManSwitch.AncientCorps");
+        public static readonly bool DeadMansSwitch = ModsConfig.IsActive("Aoba.DeadManSwitch.Core");
 
         public static readonly bool DrakkenLaserDrill = ModsConfig.IsActive("MYDE.DrakkenLaserDrill");
 
