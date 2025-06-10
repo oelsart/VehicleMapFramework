@@ -70,8 +70,10 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     [HarmonyPatch(typeof(Reachability), nameof(Reachability.CanReach), typeof(IntVec3), typeof(LocalTargetInfo), typeof(PathEndMode), typeof(TraverseParms))]
     public static class Patch_Reachability_CanReach
     {
-        public static void Postfix(Reachability __instance, IntVec3 start, LocalTargetInfo dest, PathEndMode peMode, TraverseParms traverseParams, ref bool __result)
+        public static void Postfix(IntVec3 start, LocalTargetInfo dest, PathEndMode peMode, TraverseParms traverseParams, Map ___map, ref bool __result)
         {
+            if (!VehiclePawnWithMapCache.AllVehiclesOn(___map.BaseMap()).Any()) return;
+
             Map thingMap;
             if (!ReachabilityUtilityOnVehicle.working && !__result && traverseParams.pawn != null && (thingMap = dest.Thing?.MapHeld) != null && traverseParams.pawn.Map != thingMap)
             {
@@ -97,14 +99,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            var codes = instructions.ToList();
-
-            var pos = codes.FindIndex(c => c.opcode == OpCodes.Callvirt && c.OperandIs(MethodInfoCache.g_Thing_Map));
-            codes[pos] = new CodeInstruction(OpCodes.Call, MethodInfoCache.m_BaseMap_Thing);
-
-            var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Beq_S);
-            codes.Insert(pos2, new CodeInstruction(OpCodes.Call, MethodInfoCache.m_BaseMap_Map));
-            return codes;
+            return Patch_Reachability_CanReach.Transpiler(instructions);
         }
     }
 
@@ -299,8 +294,18 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static List<Pawn> Postfix(List<Pawn> __result, Map ___map)
         {
-            return __result.Concat(VehiclePawnWithMapCache.TryGetAllVehiclesOn(___map).SelectMany(v => v.VehicleMap.mapPawns.AllPawnsSpawned)).ToList();
+            if (___map.IsVehicleMapOf(out _)) return __result;
+
+            tmpList.Clear();
+            tmpList.AddRange(__result);
+            foreach (var vehicle in VehiclePawnWithMapCache.TryGetAllVehiclesOn(___map))
+            {
+                tmpList.AddRange(vehicle.VehicleMap.mapPawns.AllPawns);
+            }
+            return tmpList;
         }
+
+        private static List<Pawn> tmpList = new List<Pawn>();
     }
 
     [HarmonyPatch(typeof(MapPawns), nameof(MapPawns.AllPawnsSpawned), MethodType.Getter)]
@@ -308,8 +313,18 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IReadOnlyList<Pawn> Postfix(IReadOnlyList<Pawn> __result, Map ___map)
         {
-            return __result.Concat(VehiclePawnWithMapCache.TryGetAllVehiclesOn(___map).SelectMany(v => v.VehicleMap.mapPawns.AllPawnsSpawned)).ToList();
+            if (___map.IsVehicleMapOf(out _)) return __result;
+
+            tmpList.Clear();
+            tmpList.AddRange(__result);
+            foreach (var vehicle in VehiclePawnWithMapCache.TryGetAllVehiclesOn(___map))
+            {
+                tmpList.AddRange(vehicle.VehicleMap.mapPawns.AllPawnsSpawned);
+            }
+            return tmpList;
         }
+
+        private static List<Pawn> tmpList = new List<Pawn>();
     }
 
     [HarmonyPatch(typeof(MapPawns), nameof(MapPawns.FreeHumanlikesSpawnedOfFaction))]

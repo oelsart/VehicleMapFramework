@@ -262,16 +262,17 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static bool Prefix(IntVec3 root, Pawn searcher, Predicate<IntVec3> cellValidator, ref IntVec3 __result)
         {
+            VehiclePawnWithMap vehicle = null;
             if (TargetMapManager.HasTargetMap(searcher, out var map))
             {
-                __result = ReachabilityUtilityOnVehicle.BestOrderedGotoDestNear(root, searcher, cellValidator, map, out _, out _);
+                __result = ReachabilityUtilityOnVehicle.BestOrderedGotoDestNear(root, searcher, cellValidator, map, out var exitSpot, out var enterSpot);
                 if (__result.IsValid)
                 {
+                    Patch_MultiPawnGotoController_RecomputeDestinations.tmpEnterSpots[(searcher, __result)] = (exitSpot, enterSpot);
                     return false;
                 }
             }
-            VehiclePawnWithMap vehicle = null;
-            if (root.InBounds(Find.CurrentMap) && root.TryGetVehicleMap(Find.CurrentMap, out vehicle) || searcher.IsOnNonFocusedVehicleMapOf(out _))
+            else if (root.InBounds(Find.CurrentMap) && root.TryGetVehicleMap(Find.CurrentMap, out vehicle) || searcher.IsOnNonFocusedVehicleMapOf(out _))
             {
                 var dest = vehicle != null ? root.ToVehicleMapCoord(vehicle) : root;
                 __result = ReachabilityUtilityOnVehicle.BestOrderedGotoDestNear(

@@ -292,7 +292,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         public static void Finalizer(Pawn pawn, bool __result)
         {
             if (!__result) return;
-            Find.World.GetComponent<TargetMapManager>().TargetMap.Remove(pawn);
+            TargetMapManager.TargetMap.Remove(pawn);
         }
     }
 

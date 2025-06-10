@@ -49,7 +49,7 @@ namespace VehicleInteriors
                 vehicle = null;
                 return false;
             }
-            vehicle = VehiclePawnWithMapCache.cachedParentVehicle[map].Value;
+            vehicle = VehicleMapParentsComponent.CachedParentVehicle[map].Value;
             return vehicle != null;
         }
 
@@ -745,7 +745,7 @@ namespace VehicleInteriors
             var vehicles = VehiclePawnWithMapCache.AllVehiclesOn(map);
             vehicle = vehicles.FirstOrDefault(v =>
             {
-                var rect = new Rect(0f, 0f, (float)v.VehicleMap.Size.x, (float)v.VehicleMap.Size.z).ExpandedBy(0.1f);
+                var rect = new Rect(0f, 0f, (float)v.VehicleMap.Size.x, (float)v.VehicleMap.Size.z).ContractedBy(0.9f);
                 var vector = point.ToVehicleMapCoord(v);
                 var intVec = vector.ToIntVec3();
                 return rect.Contains(new Vector2(vector.x, vector.z)) && !v.CachedOutOfBoundsCells.Contains(intVec) && (getStructureCell || !v.CachedStructureCells.Contains(intVec));

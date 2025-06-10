@@ -158,6 +158,7 @@
     <Compile Include="Comps\IPipeConnector.cs" />
     <Compile Include="Comps\VehicleMapHolderComp.cs" />
     <Compile Include="Comps\WorldObjectCompProperties_VehicleMapHolderComp.cs" />
+    <Compile Include="CrossMapReachabilityCache.cs" />
     <Compile Include="Dialog_LoadCargoToBuildableContainer.cs" />
     <Compile Include="Graphics\ExtraOverlayData.cs" />
     <Compile Include="Jobs\JobDrivers\JobDriver_RefuelVehicleTank.cs" />
@@ -220,7 +221,6 @@
     <Compile Include="BuildableUpgrades\VehicleRoleBuildable.cs" />
     <Compile Include="VehicleStatPart_WeightUsageWithMap.cs" />
     <Compile Include="BuildableUpgrades\VehicleUpgradeBuildable.cs" />
-    <Compile Include="VehiclePawnCacheComponent.cs" />
     <Compile Include="Combat\AttackTargetFinderOnVehicle.cs" />
     <Compile Include="Combat\CastPositionFinderOnVehicle.cs" />
     <Compile Include="Utilities\GenClosestOnVehicle.cs" />

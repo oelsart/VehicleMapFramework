@@ -12,7 +12,8 @@ namespace VehicleInteriors
     {
         public VehiclePawnWithMapCache(Map map) : base(map)
         {
-            cachedParentVehicle[this.map] = new Lazy<VehiclePawnWithMap>(() => {
+            VehicleMapParentsComponent.CachedParentVehicle[this.map] = new Lazy<VehiclePawnWithMap>(() =>
+            {
                 if (this.map.Parent is MapParent_Vehicle parentVehicle)
                 {
                     return parentVehicle.vehicle;
@@ -56,18 +57,6 @@ namespace VehicleInteriors
                     }
                 }
             });
-        }
-
-        public static void ClearCaches()
-        {
-            Find.Maps.ForEach(m =>
-            {
-                var component = MapComponentCache<VehiclePawnWithMapCache>.GetComponent(m);
-                component.cachedDrawPos.Clear();
-                component.cachedPosOnBaseMap.Clear();
-                component.allVehicles.Clear();
-            });
-            cachedParentVehicle.Clear();
         }
 
         public static void RegisterVehicle(VehiclePawnWithMap vehicle)
@@ -162,7 +151,5 @@ namespace VehicleInteriors
         public bool cacheMode;
 
         private HashSet<VehiclePawnWithMap> allVehicles = new HashSet<VehiclePawnWithMap>();
-
-        public static Dictionary<Map, Lazy<VehiclePawnWithMap>> cachedParentVehicle = new Dictionary<Map, Lazy<VehiclePawnWithMap>>();
     }
 }

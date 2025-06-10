@@ -17,12 +17,12 @@
 	<VMF_CargoContainer.description>乗り物の積載容量を増加させるコンテナです.\n\n&lt;color=#bb8f04&gt;積載容量:&lt;/color&gt; +150 kg</VMF_CargoContainer.description>
 	
 	<VMF_TurboCharger.label>ターボチャージャー</VMF_TurboCharger.label>
-	<VMF_TurboCharger.description>乗り物が運ぶことのできる最大重量を増加させるエンジンパーツです.\n\n&lt;color=#bb8f04&gt;最大積載重量:&lt;/color&gt; +300 kg</VMF_TurboCharger.description>
+	<VMF_TurboCharger.description>乗り物が運ぶことのできる最大重量を増加させるエンジンパーツです.\n\n&lt;color=#bb8f04&gt;最大積載重量:&lt;/color&gt; +500 kg</VMF_TurboCharger.description>
 	
 	<VMF_LiftFan.label>リフトファン</VMF_LiftFan.label>
-	<VMF_LiftFan.description>乗り物が運ぶことのできる最大重量を増加させるリフトファンです. ホバータイプの乗り物にのみ設置できます.\n\n&lt;color=#bb8f04&gt;最大積載重量:&lt;/color&gt; +150 kg</VMF_LiftFan.description>
+	<VMF_LiftFan.description>乗り物が運ぶことのできる最大重量を増加させるリフトファンです. ホバータイプの乗り物にのみ設置できます.\n\n&lt;color=#bb8f04&gt;最大積載重量:&lt;/color&gt; +250 kg</VMF_LiftFan.description>
 
 	<VMF_FuelTank.label>燃料タンク</VMF_FuelTank.label>
-	<VMF_FuelTank.description>乗り物の燃料搭載量を増加させる追加タンク.\n\n&lt;color=#bb8f04&gt;燃料搭載量:&lt;/color&gt; +300</VMF_FuelTank.description>
+	<VMF_FuelTank.description>乗り物の燃料搭載量を増加させる追加タンクです.\n\n&lt;color=#bb8f04&gt;燃料搭載量:&lt;/color&gt; +300</VMF_FuelTank.description>
 
 </LanguageData>

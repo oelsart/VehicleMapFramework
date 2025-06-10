@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using RimWorld;
+using SmashTools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -124,25 +125,24 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             }
             var map = pawn.Map;
             var pos = pawn.Position;
-            var anyNotNull = false;
             try
             {
                 var basePos = pawn.PositionOnBaseMap();
-                var enumerable = pawn.Map.BaseMapAndVehicleMaps().SelectMany(m =>
+                IEnumerable<Thing> enumerable = null;
+                pawn.Map.BaseMapAndVehicleMaps().ForEach(m =>
                 {
                     pawn.VirtualMapTransfer(m);
                     var things = scanner.PotentialWorkThingsGlobal(pawn);
-                    if (things != null)
+                    if (enumerable == null)
                     {
-                        anyNotNull = true;
+                        enumerable = things;
                     }
-                    else
+                    else if (things != null)
                     {
-                        things = Enumerable.Empty<Thing>(); //こうしないとnullがconcatされて困るっぽい
+                        enumerable = enumerable.Concat(things);
                     }
-                    return things;
-                }).ToList();
-                return anyNotNull ? enumerable : null; //こうしないとPotentialWorkThingRequestによるサーチセット作成が行われないよ
+                });
+                return enumerable;
             }
             finally
             {

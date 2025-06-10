@@ -6,17 +6,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
-using System.Security.Cryptography;
 using UnityEngine;
-using Vehicles;
 using Verse;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
 {
-    [HarmonyPatch(typeof(Thing), nameof(Thing.Rotation), MethodType.Getter)]
+    [HarmonyPatch(typeof(Thing), nameof(Thing.Rotation), MethodType.Setter)]
     public static class Patch_Thing_Rotation
     {
-        [HarmonyPatch(MethodType.Setter)]
         public static void Prefix(Thing __instance, ref Rot4 value)
         {
             if (__instance is Pawn pawn && pawn.IsOnNonFocusedVehicleMapOf(out var vehicle))

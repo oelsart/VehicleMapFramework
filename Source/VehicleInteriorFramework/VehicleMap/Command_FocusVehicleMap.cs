@@ -28,8 +28,7 @@ namespace VehicleInteriors
 
         public override void ProcessInput(Event ev)
         {
-            var vehicle = Find.Selector.SingleSelectedObject as VehiclePawnWithMap;
-            if (vehicle != null && Command_FocusVehicleMap.FocuseLockedVehicle != vehicle)
+            if (Find.Selector.SingleSelectedObject is VehiclePawnWithMap vehicle && Command_FocusVehicleMap.FocuseLockedVehicle != vehicle)
             {
                 Command_FocusVehicleMap.FocuseLockedVehicle = vehicle;
                 Command_FocusVehicleMap.FocusedVehicle = vehicle;

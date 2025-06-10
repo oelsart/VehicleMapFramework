@@ -44,16 +44,18 @@ namespace VMF_AchtungPatch
     {
         public static bool Prefix(Colonist __instance, ref Vector3 pos, ref IntVec3 __result)
         {
+            TargetMapManager.TargetMap.Remove(__instance.pawn);
             if (Find.TickManager.TicksGame != lastCachedTick)
             {
                 tmpDestMaps.Clear();
                 lastCachedTick = Find.TickManager.TicksGame;
             }
-            if (pos.TryGetVehicleMap(Find.CurrentMap, out var vehicle) || __instance.pawn.MapHeld.IsNonFocusedVehicleMapOf(out _))
+            if (pos.TryGetVehicleMap(Find.CurrentMap, out var vehicle, false) || __instance.pawn.MapHeld.IsNonFocusedVehicleMapOf(out _))
             {
                 __result = UpdateOrderPos(__instance, pos, vehicle);
                 return false;
             }
+            TargetMapManager.TargetMap[__instance.pawn] = __instance.pawn.Map;
             return true;
         }
 
@@ -73,6 +75,7 @@ namespace VMF_AchtungPatch
                 destCell = destCellOnBaseMap = pos.ToIntVec3();
                 destMap = colonist.pawn.MapHeldBaseMap();
             }
+            TargetMapManager.TargetMap[colonist.pawn] = destMap;
             tmpExitSpot = TargetInfo.Invalid;
             tmpEnterSpot = TargetInfo.Invalid;
             var allowsGetOff = false;
@@ -168,6 +171,8 @@ namespace VMF_AchtungPatch
 
             if (pawn.jobs?.IsCurrentJobPlayerInterruptible() ?? false)
                 _ = pawn.jobs.TryTakeOrderedJob(job);
+
+            TargetMapManager.TargetMap.Remove(pawn);
         }
     }
 
@@ -214,9 +219,9 @@ namespace VMF_AchtungPatch
     {
         public static void Prefix(Vector3 pos)
         {
-            if (pos.TryGetVehicleMap(Find.CurrentMap, out var vehicle))
+            tmpFocusedMap = Command_FocusVehicleMap.FocusedVehicle;
+            if (pos.TryGetVehicleMap(Find.CurrentMap, out var vehicle, false))
             {
-                tmpFocusedMap = Command_FocusVehicleMap.FocusedVehicle;
                 Command_FocusVehicleMap.FocusedVehicle = vehicle;
             }
         }

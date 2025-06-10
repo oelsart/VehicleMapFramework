@@ -69,7 +69,7 @@ namespace VehicleInteriors
                 SoundDefOf.BulletImpact_Ground.PlayOneShot(intendedTarget.ToTargetInfo(Map));
                 GenSpawn.Spawn(ziplineEnd, intendedTarget.Cell, Map);
             }
-            Find.World.GetComponent<TargetMapManager>().TargetMap.Remove(launchVerb.caster);
+            TargetMapManager.TargetMap.Remove(launchVerb.caster);
 
             base.Destroy(DestroyMode.Vanish);
 

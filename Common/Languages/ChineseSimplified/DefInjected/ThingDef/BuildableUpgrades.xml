@@ -22,8 +22,8 @@
   
   <!-- EN: lift fan -->
   <VMF_LiftFan.label>升力引擎</VMF_LiftFan.label>
-  <!-- EN: A Lift fan to enhance the hover vehicle's maximum payload. Can only be installed on hover type vehicles.\n\n<color=#bb8f04>Maximum Payload:</color> +150 kg\n<color=#bb8f04>Fuel Consumption:</color> +4 /day -->
-  <VMF_LiftFan.description>能提供升力的推进器，提升浮空载具的载荷。仅可被安装在浮空载具上。\n\n&lt;color=#bb8f04&gt;最大载荷：&lt;/color&gt; +150 kg\n&lt;color=#bb8f04&gt;燃料消耗：&lt;/color&gt; +4/日</VMF_LiftFan.description>
+  <!-- EN: A Lift fan to enhance the hover vehicle's maximum payload. Can only be installed on hover type vehicles.\n\n<color=#bb8f04>Maximum Payload:</color> +250 kg\n<color=#bb8f04>Fuel Consumption:</color> +4 /day -->
+  <VMF_LiftFan.description>能提供升力的推进器，提升浮空载具的载荷。仅可被安装在浮空载具上。\n\n&lt;color=#bb8f04&gt;最大载荷：&lt;/color&gt; +250 kg\n&lt;color=#bb8f04&gt;燃料消耗：&lt;/color&gt; +4/日</VMF_LiftFan.description>
   
   <!-- EN: passenger seat -->
   <VMF_PassengerSeat.label>乘客位</VMF_PassengerSeat.label>
@@ -34,7 +34,7 @@
   
   <!-- EN: turbo charger -->
   <VMF_TurboCharger.label>涡轮增压器</VMF_TurboCharger.label>
-  <!-- EN: Engine components to enhance the vehicle's maximum payload.\n\n<color=#bb8f04>Maximum payload:</color> +300 kg\n<color=#bb8f04>Fuel Consumption:</color> +8 /day -->
-  <VMF_TurboCharger.description>强化引擎出力，提升载具的载荷。\n\n&lt;color=#bb8f04&gt;最大载荷：&lt;/color&gt; +300 kg\n&lt;color=#bb8f04&gt;燃料消耗：&lt;/color&gt; +8/日</VMF_TurboCharger.description>
+  <!-- EN: Engine components to enhance the vehicle's maximum payload.\n\n<color=#bb8f04>Maximum payload:</color> +500 kg\n<color=#bb8f04>Fuel Consumption:</color> +8 /day -->
+  <VMF_TurboCharger.description>强化引擎出力，提升载具的载荷。\n\n&lt;color=#bb8f04&gt;最大载荷：&lt;/color&gt; +500 kg\n&lt;color=#bb8f04&gt;燃料消耗：&lt;/color&gt; +8/日</VMF_TurboCharger.description>
   
 </LanguageData>
