@@ -104,7 +104,7 @@ namespace VehicleInteriors
                         var list = DeepStorage.Active ? (List<Thing>)DeepStorage.ThingListToDisplay(null, base.Map, intVec) : intVec.GetThingList(base.Map);
                         foreach (var thing in list)
                         {
-                            if ((thing.def.seeThroughFog || !base.Map.fogGrid.IsFogged(thing.Position)) && thing.def.drawerType != DrawerType.None && (thing.def.drawerType != DrawerType.RealtimeOnly || !this.requireAddToMapMesh) && (thing.def.hideAtSnowDepth >= 1f || base.Map.snowGrid.GetDepth(thing.Position) <= thing.def.hideAtSnowDepth) && thing.Position.x == intVec.x && thing.Position.z == intVec.z)
+                            if ((thing.def.seeThroughFog || !base.Map.fogGrid.IsFogged(thing.Position)) && thing.def.drawerType != DrawerType.None && (thing.def.drawerType != DrawerType.RealtimeOnly || !this.requireAddToMapMesh) && (thing.def.hideAtSnowOrSandDepth >= 1f || base.Map.snowGrid.GetDepth(thing.Position) <= thing.def.hideAtSnowOrSandDepth) && thing.Position.x == intVec.x && thing.Position.z == intVec.z)
                             {
                                 this.TakePrintFrom(thing);
                                 this.bounds.Encapsulate(thing.OccupiedDrawRect());

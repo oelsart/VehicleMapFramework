@@ -118,7 +118,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches.TR
 
         [HarmonyAfter("Neronix17.TabulaRasa.RimWorld")]
         [HarmonyPatchCategory("VMF_Patches_TabulaRasa")]
-        [HarmonyPatch(typeof(Skyfaller), nameof(Skyfaller.Tick))]
+        [HarmonyPatch(typeof(Skyfaller), "Tick")]
         public static class Patch_Skyfaller_Tick
         {
             public static bool Prefix(Projectile __instance)

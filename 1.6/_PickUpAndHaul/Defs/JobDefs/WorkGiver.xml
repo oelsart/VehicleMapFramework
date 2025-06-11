@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+
+	<WorkGiverDef>
+		<defName>VMF_HaulToInventoryAcrossMaps</defName>
+		<label>stuff things in inventory and haul</label>
+		<giverClass>VMF_PUAHPatch.WorkGiver_HaulToInventoryAcrossMaps</giverClass>
+		<workType>Hauling</workType>
+		<verb>haul</verb>
+		<gerund>hauling</gerund>
+		<priorityInType>17</priorityInType>
+		<requiredCapacities>
+			<li>Manipulation</li>
+		</requiredCapacities>
+	</WorkGiverDef>
+
+	<JobDef>
+		<defName>VMF_HaulToInventoryAcrossMaps</defName>
+		<driverClass>VMF_PUAHPatch.JobDriver_HaulToInventoryAcrossMaps</driverClass>
+		<reportString>gathering TargetA to hauling inventory.</reportString>
+		<casualInterruptible>false</casualInterruptible>
+		<suspendable>false</suspendable>
+	</JobDef>
+
+</Defs>

@@ -19,22 +19,22 @@ namespace VMF_AchtungPatch
         {
             VMF_Harmony.PatchCategory("VMF_Patches_Achtung");
 
-            var type = AccessTools.TypeByName("AchtungMod.FloatMenuMakerMap_AddJobGiverWorkOrders_Patch");
-            var prefix = AccessTools.Method(type, "Prefix");
-            var postfix = AccessTools.Method(type, "Postfix");
-            var transpiler = AccessTools.Method(type, "Transpiler");
-            var original = AccessTools.Method(typeof(FloatMenuMakerOnVehicle), "AddJobGiverWorkOrders");
-            VMF_Harmony.Instance.Patch(original, prefix, postfix, transpiler);
+            //var type = AccessTools.TypeByName("AchtungMod.FloatMenuMakerMap_AddJobGiverWorkOrders_Patch");
+            //var prefix = AccessTools.Method(type, "Prefix");
+            //var postfix = AccessTools.Method(type, "Postfix");
+            //var transpiler = AccessTools.Method(type, "Transpiler");
+            //var original = AccessTools.Method(typeof(FloatMenuMakerOnVehicle), "AddJobGiverWorkOrders");
+            //VMF_Harmony.Instance.Patch(original, prefix, postfix, transpiler);
 
-            type = AccessTools.TypeByName("AchtungMod.FloatMenuMakerMap_ChoicesAtFor_Postfix");
-            postfix = AccessTools.Method(type, "Postfix");
-            original = AccessTools.Method(typeof(FloatMenuMakerOnVehicle), nameof(FloatMenuMakerOnVehicle.ChoicesAtFor));
-            VMF_Harmony.Instance.Patch(original, postfix: postfix);
+            //type = AccessTools.TypeByName("AchtungMod.FloatMenuMakerMap_ChoicesAtFor_Postfix");
+            //postfix = AccessTools.Method(type, "Postfix");
+            //original = AccessTools.Method(typeof(FloatMenuMakerOnVehicle), nameof(FloatMenuMakerOnVehicle.ChoicesAtFor));
+            //VMF_Harmony.Instance.Patch(original, postfix: postfix);
 
-            type = AccessTools.TypeByName("AchtungMod.FloatMenuMakerMap_ScannerShouldSkip_Patch");
-            prefix = AccessTools.Method(type, "Prefix");
-            original = AccessTools.Method(typeof(FloatMenuMakerOnVehicle), "ScannerShouldSkip");
-            VMF_Harmony.Instance.Patch(original, prefix: prefix);
+            //type = AccessTools.TypeByName("AchtungMod.FloatMenuMakerMap_ScannerShouldSkip_Patch");
+            //prefix = AccessTools.Method(type, "Prefix");
+            //original = AccessTools.Method(typeof(FloatMenuMakerOnVehicle), "ScannerShouldSkip");
+            //VMF_Harmony.Instance.Patch(original, prefix: prefix);
         }
     }
 

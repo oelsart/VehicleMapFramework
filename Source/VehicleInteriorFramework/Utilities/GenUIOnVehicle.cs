@@ -17,22 +17,23 @@ namespace VehicleInteriors
 
         public static List<Thing> ThingsUnderMouse(Vector3 clickPos, float pawnWideClickRadius, TargetingParameters clickParams, ITargetingSource source, VehiclePawnWithMap vehicle)
         {
-            var clickPosVehicleCor = clickPos.ToVehicleMapCoord(vehicle);
-            IntVec3 intVec = IntVec3.FromVector3(clickPosVehicleCor);
+            var mouseMapPosition = UI.MouseMapPosition();
+            IntVec3 intVec = IntVec3.FromVector3(clickPos);
+            Map map = vehicle != null ? vehicle.VehicleMap : Find.CurrentMap;
             tmpList.Clear();
-            IReadOnlyList<Pawn> allPawnsSpawned = vehicle.VehicleMap.mapPawns.AllPawnsSpawned;
+            IReadOnlyList<Pawn> allPawnsSpawned = Find.CurrentMap.mapPawns.AllPawnsSpawned;
             for (int i = 0; i < allPawnsSpawned.Count; i++)
             {
                 Pawn pawn = allPawnsSpawned[i];
-                if ((pawn.DrawPos - clickPos).MagnitudeHorizontal() < 0.4f && clickParams.CanTarget(pawn, source))
+                if ((pawn.DrawPos - mouseMapPosition).MagnitudeHorizontal() < 0.4f && clickParams.CanTarget(pawn, source))
                 {
                     tmpList.Add(pawn);
                     tmpList.AddRange(ContainingSelectionUtility.SelectableContainedThings(pawn));
                 }
             }
-            tmpList.Sort(new Comparison<Thing>(GenUIOnVehicle.CompareThingsByDistanceToMousePointer));
+            tmpList.Sort(new Comparison<Thing>(CompareThingsByDistanceToMousePointer));
             cellThings.Clear();
-            foreach (Thing thing4 in vehicle.VehicleMap.thingGrid.ThingsAt(intVec))
+            foreach (Thing thing4 in map.thingGrid.ThingsAt(intVec))
             {
                 if (!tmpList.Contains(thing4) && clickParams.CanTarget(thing4, source))
                 {
@@ -44,18 +45,18 @@ namespace VehicleInteriors
             for (int j = 0; j < adjacentCells.Length; j++)
             {
                 IntVec3 c = adjacentCells[j] + intVec;
-                if (c.InBounds(vehicle.VehicleMap) && c.GetItemCount(vehicle.VehicleMap) > 1)
+                if (c.InBounds(map) && c.GetItemCount(map) > 1)
                 {
-                    foreach (Thing thing2 in vehicle.VehicleMap.thingGrid.ThingsAt(c))
+                    foreach (Thing thing2 in map.thingGrid.ThingsAt(c))
                     {
-                        if (thing2.def.category == ThingCategory.Item && (thing2.TrueCenter() - clickPos).MagnitudeHorizontalSquared() <= 0.25f && !tmpList.Contains(thing2) && clickParams.CanTarget(thing2, source))
+                        if (thing2.def.category == ThingCategory.Item && (thing2.TrueCenter() - mouseMapPosition).MagnitudeHorizontalSquared() <= 0.25f && !tmpList.Contains(thing2) && clickParams.CanTarget(thing2, source))
                         {
                             cellThings.Add(thing2);
                         }
                     }
                 }
             }
-            List<Thing> list2 = vehicle.VehicleMap.listerThings.ThingsInGroup(ThingRequestGroup.WithCustomRectForSelector);
+            List<Thing> list2 = map.listerThings.ThingsInGroup(ThingRequestGroup.WithCustomRectForSelector);
             for (int k = 0; k < list2.Count; k++)
             {
                 Thing thing3 = list2[k];
@@ -64,19 +65,19 @@ namespace VehicleInteriors
                     cellThings.Add(thing3);
                 }
             }
-            cellThings.Sort(new Comparison<Thing>(GenUIOnVehicle.CompareThingsByDrawAltitudeOrDistToItem));
+            cellThings.Sort(new Comparison<Thing>(CompareThingsByDrawAltitudeOrDistToItem));
             tmpList.AddRange(cellThings);
             cellThings.Clear();
-            IReadOnlyList<Pawn> allPawnsSpawned2 = vehicle.VehicleMap.mapPawns.AllPawnsSpawned;
+            IReadOnlyList<Pawn> allPawnsSpawned2 = Find.CurrentMap.mapPawns.AllPawnsSpawned;
             for (int l = 0; l < allPawnsSpawned2.Count; l++)
             {
                 Pawn pawn2 = allPawnsSpawned2[l];
-                if ((pawn2.DrawPos - clickPos).MagnitudeHorizontal() < pawnWideClickRadius && clickParams.CanTarget(pawn2, source))
+                if ((pawn2.DrawPos - mouseMapPosition).MagnitudeHorizontal() < pawnWideClickRadius && clickParams.CanTarget(pawn2, source))
                 {
                     cellThings.Add(pawn2);
                 }
             }
-            cellThings.Sort(new Comparison<Thing>(GenUIOnVehicle.CompareThingsByDistanceToMousePointer));
+            cellThings.Sort(new Comparison<Thing>(CompareThingsByDistanceToMousePointer));
             for (int m = 0; m < cellThings.Count; m++)
             {
                 if (!tmpList.Contains(cellThings[m]))
@@ -85,8 +86,8 @@ namespace VehicleInteriors
                     tmpList.AddRange(ContainingSelectionUtility.SelectableContainedThings(cellThings[m]));
                 }
             }
-            tmpList.RemoveAll((Thing thing) => !clickParams.CanTarget(thing, source));
-            tmpList.RemoveAll(delegate (Thing thing)
+            tmpList.RemoveAll(thing => !clickParams.CanTarget(thing, source));
+            tmpList.RemoveAll(thing =>
             {
                 return thing is Pawn pawn3 && pawn3.IsHiddenFromPlayer();
             });

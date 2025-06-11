@@ -245,7 +245,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatch(typeof(Building_Turret), nameof(Building_Turret.Tick))]
+    [HarmonyPatch(typeof(Building_Turret), "Tick")]
     public static class Patch_Building_Turret_Tick
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)

@@ -124,7 +124,7 @@ namespace VehicleInteriors
                     }
                     if (num9 > 0)
                     {
-                        array[num2] = (colorInt / num9).ProjectToColor32;
+                        array[num2] = (colorInt / num9).ProjectToColor32();
                     }
                     else
                     {

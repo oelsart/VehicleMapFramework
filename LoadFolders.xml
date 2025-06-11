@@ -19,4 +19,24 @@
     <li IfModActive="OskarPotocki.VFE.Mechanoid">Common/_VFEMechanoids</li>
     <li IfModActive="VanillaExpanded.VFESecurity">Common/_VFESecurity</li>
   </v1.5>
+  <v1.6>
+    <li>1.6</li>
+    <li>Common</li>
+    <li IfModActive="CETeam.CombatExtended,CETeam.CombatExtended_steam">1.6/_CombatExtended</li>
+    <li IfModActive="brrainz.achtung">1.6/_Achtung</li>
+    <li IfModActive="Dubwise.DubsBadHygiene,Dubwise.DubsBadHygiene.Lite">1.6/_DubsBadHygiene</li>
+    <li IfModActive="Dubwise.Rimefeller">1.6/_Rimefeller</li>
+    <li IfModActive="Owlchemist.SmartFarming">1.6/_SmartFarming</li>
+    <li IfModActive="OskarPotocki.VanillaFactionsExpanded.Core">1.6/_VanillaExpandedFramework</li>
+    <li IfModActive="Mehni.PickUpAndHaul">1.6/_PickUpAndHaul</li>
+    <li IfModActive="telardo.MultiFloors">Common/_MultiFloors</li>
+    <li IfModActive="XMB.AncientUrbanrUins.MO">Common/_AncientUrbanRuins</li>
+    <li IfModActive="daylight.RLEsExpansionProductPS">Common/_RimLifeExpansionProductionPlus</li>
+    <li IfModActive="kentington.saveourship2">Common/_SaveOurShip2</li>
+    <li IfModActive="glasses.sos2srtsZone">Common/_RooflessHull</li>
+    <li IfModActive="DankPyon.Medieval.Overhaul">Common/_MedievalOverhaul</li>
+    <li IfModActive="Cain.Mineshaft">Common/_Mines</li>
+    <li IfModActive="OskarPotocki.VFE.Mechanoid">Common/_VFEMechanoids</li>
+    <li IfModActive="VanillaExpanded.VFESecurity">Common/_VFESecurity</li>
+  </v1.6>
 </loadFolders>

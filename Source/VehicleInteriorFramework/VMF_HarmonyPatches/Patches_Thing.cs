@@ -233,12 +233,12 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     }
 
     //Vehicleは移動するからTickごとにTileを取得し直す
-    [HarmonyPatch(typeof(TravelingTransportPods), nameof(TravelingTransportPods.Tick))]
-    public static class Patch_TravelingTransportPods_Tick
+    [HarmonyPatch(typeof(TravellingTransporters), "TickInterval")]
+    public static class Patch_TravellingTransporters_Tick
     {
-        public static void Postfix(TravelingTransportPods __instance)
+        public static void Postfix(TravellingTransporters __instance)
         {
-            if (__instance.arrivalAction is TransportPodsArrivalAction_LandInVehicleMap arrivalAction && arrivalAction.mapParent is MapParent_Vehicle mapParent)
+            if (__instance.arrivalAction is TransportersArrivalAction_LandInVehicleMap arrivalAction && arrivalAction.mapParent is MapParent_Vehicle mapParent)
             {
                 __instance.destinationTile = mapParent.Tile;
             }

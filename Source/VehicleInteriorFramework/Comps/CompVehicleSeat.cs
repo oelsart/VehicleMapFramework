@@ -112,7 +112,7 @@ namespace VehicleInteriors
             }
         }
 
-        public override void PostDeSpawn(Map map)
+        public override void PostDeSpawn(Map map, DestroyMode mode = DestroyMode.Vanish)
         {
             base.PostDeSpawn(map);
             this.handlersToDraw = null;

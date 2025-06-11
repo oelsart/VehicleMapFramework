@@ -476,8 +476,8 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     }
 
     //GotoCellと同じやり方でSittableOrSpotのチェック
-    [HarmonyPatch(typeof(ReservationUtility), nameof(ReservationUtility.CanReserveSittableOrSpot_NewTemp))]
-    public static class Patch_ReservationUtility_CanReserveSittableOrSpot_NewTemp
+    [HarmonyPatch(typeof(ReservationUtility), nameof(ReservationUtility.CanReserveSittableOrSpot), new[] { typeof(Pawn), typeof(IntVec3), typeof(Thing), typeof(bool) })]
+    public static class Patch_ReservationUtility_CanReserveSittableOrSpot
     {
         public static bool Prefix(Pawn pawn, IntVec3 exactSittingPos, Thing ignoreThing, ref Map __state, ref bool __result)
         {
@@ -607,11 +607,11 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         private static readonly List<Thing> tmpList = new List<Thing>();
     }
 
-    [HarmonyPatch(typeof(GenClosest), nameof(GenClosest.ClosestThingReachable_NewTemp))]
-    public static class Patch_GenClosest_ClosestThingReachable_NewTemp
+    [HarmonyPatch(typeof(GenClosest), nameof(GenClosest.ClosestThingReachable))]
+    public static class Patch_GenClosest_ClosestThingReachable
     {
         [HarmonyReversePatch(HarmonyReversePatchType.Original)]
-        public static Thing ClosestThingReachable_NewTempOriginal(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance, Predicate<Thing> validator, IEnumerable<Thing> customGlobalSearchSet, int searchRegionsMin, int searchRegionsMax, bool forceAllowGlobalSearch, RegionType traversableRegionTypes, bool ignoreEntirelyForbiddenRegions, bool lookInHaulSources) => throw new NotImplementedException();
+        public static Thing ClosestThingReachableOriginal(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance, Predicate<Thing> validator, IEnumerable<Thing> customGlobalSearchSet, int searchRegionsMin, int searchRegionsMax, bool forceAllowGlobalSearch, RegionType traversableRegionTypes, bool ignoreEntirelyForbiddenRegions, bool lookInHaulSources) => throw new NotImplementedException();
 
         public static bool Prefix(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance, Predicate<Thing> validator, IEnumerable<Thing> customGlobalSearchSet, int searchRegionsMin, int searchRegionsMax, bool forceAllowGlobalSearch, RegionType traversableRegionTypes, bool ignoreEntirelyForbiddenRegions, bool lookInHaulSources, ref Thing __result)
         {
@@ -619,6 +619,21 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             if (traverseParams.pawn != null && maps.Any())
             {
                 __result = GenClosestOnVehicle.ClosestThingReachable(root, map, thingReq, peMode, traverseParams, maxDistance, validator, customGlobalSearchSet, searchRegionsMin, searchRegionsMax, forceAllowGlobalSearch, traversableRegionTypes, ignoreEntirelyForbiddenRegions, lookInHaulSources);
+                return false;
+            }
+            return true;
+        }
+    }
+
+    [HarmonyPatch(typeof(GenClosest), nameof(GenClosest.ClosestThing_Regionwise_ReachablePrioritized))]
+    public static class Patch_GenClosest_ClosestThing_Regionwise_ReachablePrioritized
+    {
+        public static bool Prefix(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance, Predicate<Thing> validator, Func<Thing, float> priorityGetter, int minRegions, int maxRegions, bool lookInHaulSources, ref Thing __result)
+        {
+            var maps = map.BaseMapAndVehicleMaps().Except(map);
+            if (traverseParams.pawn != null && maps.Any())
+            {
+                __result = GenClosestOnVehicle.ClosestThing_Regionwise_ReachablePrioritized(root, map, thingReq, peMode, traverseParams, maxDistance, validator, priorityGetter, minRegions, maxRegions, lookInHaulSources);
                 return false;
             }
             return true;
@@ -700,6 +715,23 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             codes.Insert(pos2, new CodeInstruction(OpCodes.Call, MethodInfoCache.m_BaseMap_Map));
             return codes;
         }
+    }
+
+    [HarmonyPatch(typeof(ReservationManager), nameof(ReservationManager.TryGetReserver))]
+    public static class Patch_ReservationManager_TryGetReserver
+    {
+        public static bool Prefix(ReservationManager __instance, LocalTargetInfo target, Faction faction, ref Pawn reserver, ref bool __result)
+        {
+            Map thingMap;
+            if ((thingMap = target.Thing?.MapHeld) != null && map(__instance) != thingMap)
+            {
+                __result = thingMap.reservationManager.TryGetReserver(target, faction, out reserver);
+                return false;
+            }
+            return true;
+        }
+
+        private static AccessTools.FieldRef<ReservationManager, Map> map = AccessTools.FieldRefAccess<ReservationManager, Map>("map");
     }
 
     //FoodSourceの一覧に車上マップの物を含める

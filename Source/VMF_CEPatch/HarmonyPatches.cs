@@ -25,18 +25,17 @@ namespace VMF_CEPatch
             var patch = AccessTools.Method("CombatExtended.HarmonyCE.Harmony_AttackTargetFinder+Harmony_AttackTargetFinder_GetShootingTargetScore:Postfix");
             VMF_Harmony.Instance.Patch(method, postfix: patch);
 
-            method = AccessTools.FindIncludingInnerTypes(typeof(FloatMenuMakerOnVehicle), t =>
-            {
-                var field = AccessTools.Field(t, "equipment");
-                if (field != null && field.FieldType == typeof(ThingWithComps))
-                {
-                    return t.GetMethods(AccessTools.all).FirstOrDefault(m => m.Name.Contains("Equip"));
-                }
-                return null;
-            });
-            patch = AccessTools.Method("CombatExtended.HarmonyCE.FloatMenuMakerMap_PatchKnowledge:Transpiler");
-            VMF_Harmony.Instance.Patch(method, transpiler: patch);
-
+            //method = AccessTools.FindIncludingInnerTypes(typeof(FloatMenuMakerOnVehicle), t =>
+            //{
+            //    var field = AccessTools.Field(t, "equipment");
+            //    if (field != null && field.FieldType == typeof(ThingWithComps))
+            //    {
+            //        return t.GetMethods(AccessTools.all).FirstOrDefault(m => m.Name.Contains("Equip"));
+            //    }
+            //    return null;
+            //});
+            //patch = AccessTools.Method("CombatExtended.HarmonyCE.FloatMenuMakerMap_PatchKnowledge:Transpiler");
+            //VMF_Harmony.Instance.Patch(method, transpiler: patch);
 
             VMF_Harmony.PatchCategory("VMF_Patches_CE");
 

@@ -105,7 +105,7 @@ namespace VehicleInteriors
             if (verbProps.canGoWild && !Rand.Chance(shotReport.AimOnTargetChance_IgnoringPosture))
             {
                 bool flyOverhead = projectile2?.def?.projectile != null && projectile2.def.projectile.flyOverhead;
-                resultingLine.ChangeDestToMissWild_NewTemp(shotReport.AimOnTargetChance_StandardTarget, flyOverhead, caster.BaseMap());
+                resultingLine.ChangeDestToMissWild(shotReport.AimOnTargetChance_StandardTarget, flyOverhead, caster.BaseMap());
                 ProjectileHitFlags projectileHitFlags2 = ProjectileHitFlags.NonTargetWorld;
                 if (Rand.Chance(0.5f) && canHitNonTargetPawnsNow)
                 {
@@ -153,21 +153,21 @@ namespace VehicleInteriors
 
         public override void DrawHighlight(LocalTargetInfo target)
         {
-            if (this.caster != null && !this.caster.Spawned)
+            if (caster != null && !caster.Spawned)
             {
                 return;
             }
-            var map = Patch_JumpUtility_OrderJump.TargetMap(this.caster);
-            if (target.IsValid && JumpUtility.ValidJumpTarget(map, target.Cell))
+            var map = Patch_JumpUtility_OrderJump.TargetMap(caster);
+            if (target.IsValid && JumpUtility.ValidJumpTarget(caster, map, target.Cell))
             {
                 GenDraw.DrawTargetHighlightWithLayer(Patch_Verb_Jump_DrawHighlight.CenterVector3Offset(ref target, this), AltitudeLayer.MetaOverlays);
             }
-            GenDraw.DrawRadiusRing(this.caster.Position, this.EffectiveRange, Color.white, c => GenSightOnVehicle.LineOfSight(this.caster.PositionOnBaseMap(), c, this.caster.BaseMap()) && JumpUtility.ValidJumpTarget(this.caster.BaseMap(), c));
+            GenDraw.DrawRadiusRing(caster.Position, EffectiveRange, Color.white, c => GenSightOnVehicle.LineOfSight(caster.PositionOnBaseMap(), c, this.caster.BaseMap()) && JumpUtility.ValidJumpTarget(caster, caster.BaseMap(), c));
         }
 
         public override void OnGUI(LocalTargetInfo target)
         {
-            if (this.CanHitTarget(target) && JumpUtility.ValidJumpTarget(Patch_JumpUtility_OrderJump.TargetMap(this.caster), target.Cell))
+            if (CanHitTarget(target) && JumpUtility.ValidJumpTarget(caster, Patch_JumpUtility_OrderJump.TargetMap(caster), target.Cell))
             {
                 base.OnGUI(target);
                 return;

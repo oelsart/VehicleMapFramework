@@ -51,7 +51,7 @@ namespace VehicleInteriors
             }
         }
 
-        public override void Tick()
+        protected override void Tick()
         {
             int ticksGame = Find.TickManager.TicksGame;
             int num = cellsToAffect(this).Count - 1;

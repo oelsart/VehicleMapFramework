@@ -93,7 +93,7 @@ namespace VehicleInteriors
             foreach (IntVec3 intVec in cellRect)
             {
                 hashSet.Clear();
-                CellTerrain cellTerrain = new CellTerrain(terrainGrid.TerrainAt(intVec), intVec.IsPolluted(base.Map), base.Map.snowGrid.GetDepth(intVec), terrainGrid.ColorAt(intVec));
+                CellTerrain cellTerrain = new CellTerrain(terrainGrid.TerrainAt(intVec), intVec.IsPolluted(base.Map), base.Map.snowGrid.GetDepth(intVec), intVec.GetSandDepth(Map), terrainGrid.ColorAt(intVec));
 
                 if (cellTerrain.def == VMF_DefOf.VMF_VehicleFloor) continue; //デフォルトのVehicleFloorの場合は描画しない
 
@@ -125,7 +125,7 @@ namespace VehicleInteriors
                     }
                     else
                     {
-                        CellTerrain cellTerrain2 = new CellTerrain(terrainGrid.TerrainAt(c), c.IsPolluted(base.Map), base.Map.snowGrid.GetDepth(c), terrainGrid.ColorAt(c));
+                        CellTerrain cellTerrain2 = new CellTerrain(terrainGrid.TerrainAt(c), c.IsPolluted(base.Map), base.Map.snowGrid.GetDepth(c), c.GetSandDepth(Map), terrainGrid.ColorAt(c));
                         Thing edifice = c.GetEdifice(base.Map);
                         if (edifice != null && edifice.def.coversFloor)
                         {

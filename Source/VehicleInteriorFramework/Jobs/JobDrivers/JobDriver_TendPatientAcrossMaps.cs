@@ -141,7 +141,7 @@ namespace VehicleInteriors
             }
             else
             {
-                waitToil = Toils_General.WaitWith_NewTemp(TargetIndex.A, ticks, false, true, false, TargetIndex.A, this.pathEndMode);
+                waitToil = Toils_General.WaitWith(TargetIndex.A, ticks, false, true, false, TargetIndex.A, this.pathEndMode);
                 waitToil.AddFinishAction(delegate
                 {
                     if (this.Deliveree != null && this.Deliveree != this.pawn && this.Deliveree.CurJob != null && (this.Deliveree.CurJob.def == JobDefOf.Wait || this.Deliveree.CurJob.def == JobDefOf.Wait_MaintainPosture))

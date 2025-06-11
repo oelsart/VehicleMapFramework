@@ -7,7 +7,7 @@ namespace VehicleInteriors
     [StaticConstructorOnStartup]
     public class ZiplineEnd : ThingWithComps, IZiplineEnd
     {
-        public override void Tick()
+        protected override void Tick()
         {
             base.Tick();
             if (!launchVerb.caster?.Spawned ?? false)

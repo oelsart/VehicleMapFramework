@@ -106,7 +106,7 @@ namespace VehicleInteriors
                     {
                         cell = thing.Position,
                         coarseBounds = thing.MovedOccupiedDrawRect(),
-                        hideAtSnowDepth = thing.def.hideAtSnowDepth,
+                        hideAtSnowOrSandDepth = thing.def.hideAtSnowOrSandDepth,
                         seeThroughFog = thing.def.seeThroughFog,
                         hasSunShadows = thing.def.HasSunShadows
                     };
@@ -259,7 +259,7 @@ namespace VehicleInteriors
 
             public bool seeThroughFog;
 
-            public float hideAtSnowDepth;
+            public float hideAtSnowOrSandDepth;
 
             public Vector3 pos;
 

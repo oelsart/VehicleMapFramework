@@ -1,4 +1,6 @@
-﻿using RimWorld;
+﻿using LudeonTK;
+using RimWorld;
+using Unity.Collections;
 using UnityEngine;
 using Vehicles;
 using Verse;
@@ -14,7 +16,8 @@ namespace VehicleInteriors
             CastPositionFinderOnVehicle.casterLoc = CastPositionFinderOnVehicle.req.caster.Position;
             CastPositionFinderOnVehicle.targetLoc = CastPositionFinderOnVehicle.req.target.PositionOnAnotherThingMap(CastPositionFinderOnVehicle.req.caster);
             CastPositionFinderOnVehicle.verb = CastPositionFinderOnVehicle.req.verb;
-            CastPositionFinderOnVehicle.avoidGrid = newReq.caster.GetAvoidGrid(false);
+            CastPositionFinderOnVehicle.avoidGrid = newReq.caster.TryGetAvoidGrid(out var avoidGrid) ?
+                avoidGrid.Grid : CastPositionFinderOnVehicle.emptyByteArray.AsReadOnly();
 
             var casterPositionOnBaseMap = CastPositionFinderOnVehicle.req.caster.PositionOnBaseMap();
 
@@ -184,9 +187,9 @@ namespace VehicleInteriors
                 return;
             }
             float num = CastPositionFinderOnVehicle.CastPositionPreference(c);
-            if (CastPositionFinderOnVehicle.avoidGrid != null)
+            if (CastPositionFinderOnVehicle.avoidGrid.Length > 0)
             {
-                byte b = CastPositionFinderOnVehicle.avoidGrid[c];
+                byte b = CastPositionFinderOnVehicle.avoidGrid[CastPositionFinderOnVehicle.req.caster.Map.cellIndices.CellToIndex(c)];
                 num *= Mathf.Max(0.1f, (37.5f - (float)b) / 37.5f);
             }
             if (DebugViewSettings.drawCastPositionSearch)
@@ -302,7 +305,7 @@ namespace VehicleInteriors
 
         private static int inRadiusMark;
 
-        private static ByteGrid avoidGrid;
+        private static NativeArray<byte>.ReadOnly avoidGrid;
 
         private static float maxRangeFromCasterSquared;
 
@@ -313,6 +316,8 @@ namespace VehicleInteriors
         private static IntVec3 bestSpot = IntVec3.Invalid;
 
         private static float bestSpotPref = 0.001f;
+
+        private static NativeArray<byte> emptyByteArray = NativeArrayUtility.EmptyArray<byte>();
 
         private const float BaseAIPreference = 0.3f;
 

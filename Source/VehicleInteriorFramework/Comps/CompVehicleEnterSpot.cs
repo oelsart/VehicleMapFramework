@@ -18,7 +18,7 @@ namespace VehicleInteriors
             }
         }
 
-        public override void PostDeSpawn(Map map)
+        public override void PostDeSpawn(Map map, DestroyMode mode = DestroyMode.Vanish)
         {
             base.PostDeSpawn(map);
             if (map.IsVehicleMapOf(out var vehicle))

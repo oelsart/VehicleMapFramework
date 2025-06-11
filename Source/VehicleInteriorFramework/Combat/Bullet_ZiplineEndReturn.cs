@@ -22,7 +22,7 @@ namespace VehicleInteriors
 
         public override Quaternion ExactRotation => Quaternion.LookRotation((origin - destination).Yto0());
 
-        public override void Tick()
+        protected override void Tick()
         {
             if (launchVerb.caster?.Spawned ?? false)
             {

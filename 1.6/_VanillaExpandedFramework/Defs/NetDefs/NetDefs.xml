@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Defs>
+
+	<PipeSystem.PipeNetDef>
+		<defName>VMF_UnassignedNet</defName>
+		<resource>
+			<name>Unassigned</name>
+			<unit>l</unit>
+			<color>(128, 128, 128)</color>
+		</resource>
+		<pipeDefs/>
+		<overlayOptions>
+			<overlayColor>(128, 128, 128)</overlayColor>
+		</overlayOptions> 
+	</PipeSystem.PipeNetDef>
+
+</Defs>

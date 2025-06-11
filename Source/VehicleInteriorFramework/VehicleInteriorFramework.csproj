@@ -26,7 +26,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>none</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\..\1.5\Assemblies\</OutputPath>
+    <OutputPath>..\..\1.6\Assemblies\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -38,8 +38,7 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="Assembly-CSharp">
-      <HintPath>..\..\..\..\RimWorldWin64_Data\Managed\1.5\Assembly-CSharp.dll</HintPath>
-      <Private>False</Private>
+      <HintPath>..\..\..\..\RimWorldWin64_Data\Managed\1.6\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="SmashTools">
       <HintPath>..\..\..\..\..\..\workshop\content\294100\3014915404\1.5\Assemblies\SmashTools.dll</HintPath>
@@ -156,8 +155,6 @@
     <Compile Include="BuildableUpgrades\Dialog_ChooseVehicleRoles.cs" />
     <Compile Include="Comps\CompZipline.cs" />
     <Compile Include="Comps\IPipeConnector.cs" />
-    <Compile Include="Comps\VehicleMapHolderComp.cs" />
-    <Compile Include="Comps\WorldObjectCompProperties_VehicleMapHolderComp.cs" />
     <Compile Include="CrossMapReachabilityCache.cs" />
     <Compile Include="Dialog_LoadCargoToBuildableContainer.cs" />
     <Compile Include="Graphics\ExtraOverlayData.cs" />
@@ -183,7 +180,6 @@
     <Compile Include="Graphics\Graphic_VehicleOpacity.cs" />
     <Compile Include="EphemenalWindow.cs" />
     <Compile Include="Jobs\GenConstructOnVehicle.cs" />
-    <Compile Include="Jobs\JobDrivers\JobDriver_DoBillAcrossMaps.cs" />
     <Compile Include="Jobs\JobDrivers\JobDriver_GotoDestMap.cs" />
     <Compile Include="Jobs\JobDrivers\JobDriver_RefuelAcrossMaps.cs" />
     <Compile Include="Jobs\JobDrivers\JobDriver_RefuelAtomicAcrossMaps.cs" />
@@ -197,7 +193,6 @@
     <Compile Include="Jobs\WorkGivers\WorkGiver_DoBillAcrossMaps.cs" />
     <Compile Include="Jobs\WorkGivers\WorkGiver_RefuelAcrossMaps.cs" />
     <Compile Include="Jobs\WorkGivers\WorkGiver_RefuelTurretAcrossMaps.cs" />
-    <Compile Include="Utilities\MechanitorUtilityOnVehicle.cs" />
     <Compile Include="PlaceWorkers\PlaceWorker_ForbidOnVehicle.cs" />
     <Compile Include="PlaceWorkers\PlaceWorker_ForceOnVehicle.cs" />
     <Compile Include="PlaceWorkers\PlaceWorker_ForceOnVehicleMapEdge.cs" />
@@ -211,7 +206,7 @@
     <Compile Include="VehicleMap\SectionLayer_ThingsPipeOnVehicle.cs" />
     <Compile Include="VehicleMap\SectionLayer_ThingsPowerGridOnVehicle.cs" />
     <Compile Include="VehicleMap\SectionLayer_ThingsSewagePipeOnVehicle.cs" />
-    <Compile Include="VehicleMap\TransportPodsArrivalAction_LandInVehicleMap.cs" />
+    <Compile Include="VehicleMap\TransportersArrivalAction_LandInVehicleMap.cs" />
     <Compile Include="MapComponents\VehicleMapGrid.cs" />
     <Compile Include="VehicleMap\VehicleMapParentsComponent.cs" />
     <Compile Include="VehicleMap\SectionLayer_LightingOnVehicle.cs" />
@@ -230,7 +225,6 @@
     <Compile Include="Comps\CompVehicleSeat.cs" />
     <Compile Include="Jobs\JobDrivers\JobDriver_BoardAcrossMaps.cs" />
     <Compile Include="Utilities\RespawnWithJobsUtility.cs" />
-    <Compile Include="FloatMenus\FloatMenuOnVehicleUtility.cs" />
     <Compile Include="Utilities\FindBuildingUtility.cs" />
     <Compile Include="Utilities\GetHemogenUtilityOnVehicle.cs" />
     <Compile Include="Utilities\HealthAIAcrossMapsUtility.cs" />
@@ -258,11 +252,8 @@
     <Compile Include="Jobs\JobDrivers\JobDriver_TendEntityAcrossMaps.cs" />
     <Compile Include="Jobs\JobDrivers\JobDriver_TendPatientAcrossMaps.cs" />
     <Compile Include="Jobs\JobDrivers\JobDriver_TransferBetweenEntityHoldersAcrossMaps.cs" />
-    <Compile Include="Jobs\JobGivers\JobGiver_AIDefendPointOnVehicle.cs" />
-    <Compile Include="Jobs\JobGivers\JobGiver_AIFightEnemiesOnVehicle.cs" />
     <Compile Include="Utilities\ProjectileUtility.cs" />
     <Compile Include="Combat\ShootLeanUtilityOnVehicle.cs" />
-    <Compile Include="FloatMenus\FloatMenuMakerOnVehicle.cs" />
     <Compile Include="Jobs\JobDrivers\JobDriver_GotoAcrossMaps.cs" />
     <Compile Include="Jobs\JobGivers\JobGiver_GetOffVehicle.cs" />
     <Compile Include="Jobs\JobGivers\JobGiver_HaulAcrossMaps.cs" />

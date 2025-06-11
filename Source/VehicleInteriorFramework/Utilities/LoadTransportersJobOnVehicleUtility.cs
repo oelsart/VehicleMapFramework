@@ -72,7 +72,7 @@ namespace VehicleInteriors
             {
                 TargetInfo exitSpot2 = TargetInfo.Invalid;
                 TargetInfo enterSpot2 = TargetInfo.Invalid;
-                thing = Patch_GenClosest_ClosestThingReachable_NewTemp.ClosestThingReachable_NewTempOriginal(transporter.parent.Position, transporter.parent.Map, ThingRequest.ForGroup(ThingRequestGroup.HaulableEver), PathEndMode.Touch, TraverseParms.For(p, Danger.Deadly, TraverseMode.ByPawn, false, false, false), 9999f, (Thing x) => LoadTransportersJobOnVehicleUtility.neededThings.Contains(x) && p.CanReserve(x, 1, -1, null, false) && !x.IsForbidden(p) && p.carryTracker.AvailableStackSpace(x.def) > 0 && p.CanReach(x, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, x.Map, out exitSpot2, out enterSpot2), null, 0, -1, false, RegionType.Set_Passable, false, false);
+                thing = Patch_GenClosest_ClosestThingReachable.ClosestThingReachableOriginal(transporter.parent.Position, transporter.parent.Map, ThingRequest.ForGroup(ThingRequestGroup.HaulableEver), PathEndMode.Touch, TraverseParms.For(p, Danger.Deadly, TraverseMode.ByPawn, false, false, false), 9999f, (Thing x) => LoadTransportersJobOnVehicleUtility.neededThings.Contains(x) && p.CanReserve(x, 1, -1, null, false) && !x.IsForbidden(p) && p.carryTracker.AvailableStackSpace(x.def) > 0 && p.CanReach(x, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, x.Map, out exitSpot2, out enterSpot2), null, 0, -1, false, RegionType.Set_Passable, false, false);
                 exitSpot = exitSpot2;
                 enterSpot = enterSpot2;
             }

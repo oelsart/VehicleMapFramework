@@ -22,15 +22,6 @@ namespace VehicleInteriors
             }, false);
         }
 
-        public override void FinalizeInit()
-        {
-            var comp = new VehicleMapHolderComp
-            {
-                parent = this.map.Parent
-            };
-            this.map.Parent.AllComps.Add(comp);
-        }
-
         public override void MapRemoved()
         {
             bool WorldObjectSpawned(IThingHolder holder)

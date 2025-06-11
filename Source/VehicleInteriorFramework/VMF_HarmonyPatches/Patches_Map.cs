@@ -192,7 +192,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             }
 
             if (VehicleInteriors.settings.drawPlanet && Find.CurrentMap == __instance && __instance.IsVehicleMapOf(out var vehicle) &&
-                !WorldRendererUtility.WorldRenderedNow)
+                !WorldRendererUtility.WorldRendered)
             {
                 if (Find.World.renderer.RegenerateLayersIfDirtyInLongEvent())
                 {
@@ -211,9 +211,9 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                     desiredAltitude(Find.WorldCameraDriver) = 140f;
                     Find.WorldCameraDriver.Update();
                     Find.WorldCamera.gameObject.SetActive(true);
-                    WorldRendererUtility.UpdateWorldShadersParams();
+                    WorldRendererUtility.UpdateGlobalShadersParams();
                     ExpandableWorldObjectsUtility.ExpandableWorldObjectsUpdate();
-                    foreach (var layer in layers(Find.World.renderer).Where(l => l.Isnt<WorldLayer_SingleTile>() && l.Isnt<WorldLayer_Sun>() && l.Isnt<WorldLayer_Stars>()))
+                    foreach (var layer in Find.World.renderer.AllVisibleDrawLayers.Where(l => l.Isnt<WorldDrawLayer_SingleTile>() && l.Isnt<WorldDrawLayer_Satellites>()))
                     {
                         layer.Render();
                     }
@@ -234,7 +234,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                         mat.SetTexture(0, renderTexture);
                     }
                     vehicle.FullRotation = worldObject is VehicleCaravan vehicleCaravan ?
-                        Rot8.FromAngle((Find.WorldGrid.GetTileCenter(vehicleCaravan.vehiclePather.nextTile != -1 ? vehicleCaravan.vehiclePather.nextTile : vehicleCaravan.Tile) - Find.WorldGrid.GetTileCenter(vehicleCaravan.Tile)).AngleFlat()) :
+                        Rot8.FromAngle((Find.WorldGrid.GetTileCenter(vehicleCaravan.vehiclePather.nextTile != -1 ? vehicleCaravan.vehiclePather.nextTile : vehicleCaravan.Tile.tileId) - Find.WorldGrid.GetTileCenter(vehicleCaravan.Tile)).AngleFlat()) :
                         worldObject is Caravan caravan ?
                         Rot8.FromAngle((Find.WorldGrid.GetTileCenter(caravan.pather.nextTile != -1 ? caravan.pather.nextTile : caravan.Tile) - Find.WorldGrid.GetTileCenter(caravan.Tile)).AngleFlat()) :
                         worldObject is AerialVehicleInFlight aerial ? Rot8.FromAngle((aerial.DrawPos - aerial.position).AngleFlat()) : Rot8.East;
@@ -252,7 +252,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
         {
             var codes = instructions.ToList();
-            var g_WorldRenderedNow = AccessTools.PropertyGetter(typeof(WorldRendererUtility), nameof(WorldRendererUtility.WorldRenderedNow));
+            var g_WorldRenderedNow = AccessTools.PropertyGetter(typeof(WorldRendererUtility), nameof(WorldRendererUtility.WorldRendered));
             var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(g_WorldRenderedNow)) + 1;
             var label = generator.DefineLabel();
             var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithMap));
@@ -282,8 +282,6 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         private static Material mat;
 
         public static int lastRenderedTick = -1;
-
-        private static AccessTools.FieldRef<WorldRenderer, List<WorldLayer>> layers = AccessTools.FieldRefAccess<WorldRenderer, List<WorldLayer>>("layers");
 
         private static AccessTools.FieldRef<WorldCameraDriver, float> desiredAltitude = AccessTools.FieldRefAccess<WorldCameraDriver, float>("desiredAltitude");
     }
@@ -400,7 +398,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
 
         private static int lastCachedTick = -1;
 
-        public static int GetTile(AerialVehicleInFlight aerial)
+        public static PlanetTile GetTile(AerialVehicleInFlight aerial)
         {
             if (tileCache.TryGetValue(aerial, out var tile))
             {
@@ -622,6 +620,62 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 return floor;
             }
             return Mathf.CeilToInt(chance);
+        }
+    }
+
+    [HarmonyPatch(typeof(MapParent), nameof(MapParent.GetTransportersFloatMenuOptions))]
+    public static class Patch_MapParent_GetTransportersFloatMenuOptions
+    {
+        public static IEnumerable<FloatMenuOption> Postfix(IEnumerable<FloatMenuOption> values, MapParent __instance, IEnumerable<IThingHolder> pods, Action<PlanetTile, TransportersArrivalAction> launchAction)
+        {
+            foreach (var value in values)
+            {
+                yield return value;
+            }
+
+            IEnumerable<VehiclePawnWithMap> vehicles = null;
+            if (__instance.HasMap)
+            {
+                vehicles = VehiclePawnWithMapCache.AllVehiclesOn(__instance.Map);
+            }
+
+            if (vehicles.NullOrEmpty()) yield break;
+
+            foreach (var vehicle in vehicles)
+            {
+                var mapParent = vehicle.VehicleMap.Parent;
+                var aerial = vehicle.GetAerialVehicle();
+                var tile = aerial != null ? Patch_WorldObject_Tile.GetTile(aerial) : vehicle.GetRootTile();
+
+                bool CanLandInSpecificCell()
+                {
+                    if (mapParent == null || !mapParent.HasMap)
+                    {
+                        return false;
+                    }
+                    if (mapParent.EnterCooldownBlocksEntering())
+                    {
+                        return FloatMenuAcceptanceReport.WithFailMessage("MessageEnterCooldownBlocksEntering".Translate(mapParent.EnterCooldownTicksLeft().ToStringTicksToPeriod()));
+                    }
+                    return true;
+                }
+
+                if (!CanLandInSpecificCell())
+                {
+                    continue;
+                }
+                yield return new FloatMenuOption("VMF_LandInSpecificMap".Translate(vehicle.VehicleMap.Parent.Label, __instance.Label), delegate
+                {
+                    Map map = vehicle.VehicleMap;
+                    Current.Game.CurrentMap = map;
+                    CameraJumper.TryHideWorld();
+                    MapComponentCache<VehiclePawnWithMapCache>.GetComponent(map).ForceResetCache();
+                    Find.Targeter.BeginTargeting(TargetingParameters.ForDropPodsDestination(), x =>
+                    {
+                        launchAction(__instance.Tile, new TransportersArrivalAction_LandInSpecificCell(mapParent, x.Cell, Rot4.North, landInShuttle: false));
+                    }, null, null, CompLaunchable.TargeterMouseAttachment);
+                });
+            }
         }
     }
 }

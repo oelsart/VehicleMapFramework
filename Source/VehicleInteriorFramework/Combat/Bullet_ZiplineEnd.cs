@@ -27,7 +27,7 @@ namespace VehicleInteriors
             base.Launch(launcher, origin, usedTarget, intendedTarget, hitFlags, preventFriendlyFire, equipment, targetCoverDef);
             this.origin += (Vector3.forward * ZiplineEnd.LauncherOffset).RotatedBy(ExactRotation.eulerAngles.y);
         }
-        public override void Tick()
+        protected override void Tick()
         {
             base.Tick();
             destination = destMap != null ? intendedTarget.Cell.ToVector3Shifted().ToBaseMapCoord(destMap) : intendedTarget.Cell.ToVector3Shifted();

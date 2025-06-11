@@ -336,7 +336,6 @@ namespace VehicleInteriors
                 this.interiorMap.weatherManager.prevSkyTargetLerp = this.Map.weatherManager.prevSkyTargetLerp;
                 this.interiorMap.weatherManager.currSkyTargetLerp = this.Map.weatherManager.currSkyTargetLerp;
                 this.interiorMap.weatherManager.curWeatherAge = this.Map.weatherManager.curWeatherAge;
-                this.interiorMap.weatherManager.growthSeasonMemory = this.Map.weatherManager.growthSeasonMemory;
                 this.interiorMap.weatherDecider = new WeatherDecider(this.interiorMap);
             }
             foreach (var thing in this.interiorMap.listerThings.AllThings.Intersect(Find.Selector.SelectedObjects))

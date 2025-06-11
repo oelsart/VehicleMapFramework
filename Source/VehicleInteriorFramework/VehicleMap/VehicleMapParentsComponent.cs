@@ -15,7 +15,7 @@ namespace VehicleInteriors
             Command_FocusVehicleMap.FocusedVehicle = null;
         }
 
-        public override void FinalizeInit()
+        public override void FinalizeInit(bool fromLoad)
         {
             cachedParentVehicle.Clear();
         }

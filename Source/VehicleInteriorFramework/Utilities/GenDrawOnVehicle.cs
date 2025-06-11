@@ -6,12 +6,12 @@ namespace VehicleInteriors
 {
     public static class GenDrawOnVehicle
     {
-        public static void DrawFieldEdges(List<IntVec3> cells, Map map)
+        public static void DrawFieldEdges(List<IntVec3> cells, int renderQueue, Map map)
         {
-            GenDrawOnVehicle.DrawFieldEdges(cells, Color.white, null, map);
+            GenDrawOnVehicle.DrawFieldEdges(cells, Color.white, null, renderQueue, map);
         }
 
-        public static void DrawFieldEdges(List<IntVec3> cells, Color color, float? altOffset, Map map)
+        public static void DrawFieldEdges(List<IntVec3> cells, Color color, float? altOffset, int renderQueue, Map map)
         {
             if (map == null)
             {
@@ -30,7 +30,8 @@ namespace VehicleInteriors
             {
                 shader = ShaderDatabase.Transparent,
                 color = color,
-                BaseTexPath = "UI/Overlays/TargetHighlight_Side"
+                BaseTexPath = "UI/Overlays/TargetHighlight_Side",
+                renderQueue = renderQueue
             });
             material.GetTexture("_MainTex").wrapMode = TextureWrapMode.Clamp;
             if (GenDrawOnVehicle.fieldGrid == null)

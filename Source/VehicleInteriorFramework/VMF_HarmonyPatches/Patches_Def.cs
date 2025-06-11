@@ -77,18 +77,6 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     }
 
     [StaticConstructorOnStartup]
-    public static class AddVehicleMapHolderComp
-    {
-        static AddVehicleMapHolderComp()
-        {
-            foreach (var worldObjectDef in DefDatabase<WorldObjectDef>.AllDefs.Where(d => typeof(Caravan).IsAssignableFrom(d.worldObjectClass) || typeof(AerialVehicleInFlight).IsAssignableFrom(d.worldObjectClass)))
-            {
-                worldObjectDef.comps.Add(new WorldObjectCompProperties_VehicleMapHolderComp());
-            }
-        }
-    }
-
-    [StaticConstructorOnStartup]
     public static class CheckEnablePipeConnector
     {
         static CheckEnablePipeConnector()

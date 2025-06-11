@@ -529,8 +529,8 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatch(typeof(VerbProperties), nameof(VerbProperties.DrawRadiusRing_NewTemp))]
-    public static class Patch_VerbProperties_DrawRadiusRing_NewTemp
+    [HarmonyPatch(typeof(VerbProperties), nameof(VerbProperties.DrawRadiusRing))]
+    public static class Patch_VerbProperties_DrawRadiusRing
     {
         public static void Prefix(ref IntVec3 center, Verb verb)
         {
