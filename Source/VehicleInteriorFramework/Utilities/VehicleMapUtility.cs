@@ -44,12 +44,12 @@ namespace VehicleInteriors
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsVehicleMapOf(this Map map, out VehiclePawnWithMap vehicle)
         {
-            if (map == null)
+            if (map == null || !VehicleMapParentsComponent.CachedParentVehicle.TryGetValue(map, out var vehicleLazy))
             {
                 vehicle = null;
                 return false;
             }
-            vehicle = VehicleMapParentsComponent.CachedParentVehicle[map].Value;
+            vehicle = vehicleLazy.Value;
             return vehicle != null;
         }
 
