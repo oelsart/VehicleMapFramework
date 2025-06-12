@@ -52,7 +52,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         private static MethodInfo TargetMethod()
         {
-            return typeof(Verb_LaunchProjectile).GetMethods(AccessTools.all).First(m => m.Name.Contains("<GetForcedMissTarget>"));
+            return typeof(Verb_LaunchProjectile).GetDeclaredMethods().First(m => m.Name.Contains("<GetForcedMissTarget>"));
         }
 
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -145,7 +145,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         private static MethodInfo TargetMethod()
         {
-            return typeof(Verb_ShootBeam).GetMethods(AccessTools.all).First(m => m.Name.Contains("<BurstingTick>"));
+            return typeof(Verb_ShootBeam).GetDeclaredMethods().First(m => m.Name.Contains("<BurstingTick>"));
         }
 
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -189,7 +189,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         private static MethodInfo TargetMethod()
         {
-            return typeof(Verb_ShootBeam).GetMethods(AccessTools.all).First(m => m.Name.Contains("<ApplyDamage>"));
+            return typeof(Verb_ShootBeam).GetDeclaredMethods().First(m => m.Name.Contains("<ApplyDamage>"));
         }
 
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -266,7 +266,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static MethodBase TargetMethod()
         {
-            return AccessTools.FindIncludingInnerTypes<MethodBase>(typeof(JumpUtility), t => t.GetMethods(AccessTools.all).FirstOrDefault(m => m.Name.Contains("<OrderJump>")));
+            return AccessTools.FindIncludingInnerTypes<MethodBase>(typeof(JumpUtility), t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<OrderJump>")));
         }
 
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -428,8 +428,8 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         private static IEnumerable<MethodBase> TargetMethods()
         {
-            yield return typeof(Verb_Jump).GetMethods(AccessTools.all).FirstOrDefault(m => m.Name.Contains("<DrawHighlight>"));
-            yield return typeof(Verb_CastAbilityJump).GetMethods(AccessTools.all).FirstOrDefault(m => m.Name.Contains("<DrawHighlight>"));
+            yield return typeof(Verb_Jump).GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<DrawHighlight>"));
+            yield return typeof(Verb_CastAbilityJump).GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<DrawHighlight>"));
         }
 
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)

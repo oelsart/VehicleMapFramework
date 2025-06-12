@@ -70,7 +70,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         private static MethodBase TargetMethod()
         {
-            return AccessTools.FindIncludingInnerTypes<MethodBase>(AccessTools.TypeByName("DrillTurret.Building_DrillTurret"), t => t.GetMethods(AccessTools.all).FirstOrDefault(m => m.Name.Contains("<SelectTarget>")));
+            return AccessTools.FindIncludingInnerTypes<MethodBase>(AccessTools.TypeByName("DrillTurret.Building_DrillTurret"), t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<SelectTarget>")));
         }
 
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)

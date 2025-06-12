@@ -30,7 +30,7 @@ namespace VMF_CEPatch
                 var field = AccessTools.Field(t, "equipment");
                 if (field != null && field.FieldType == typeof(ThingWithComps))
                 {
-                    return t.GetMethods(AccessTools.all).FirstOrDefault(m => m.Name.Contains("Equip"));
+                    return t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("Equip"));
                 }
                 return null;
             });
@@ -474,7 +474,7 @@ namespace VMF_CEPatch
     {
         private static MethodInfo TargetMethod()
         {
-            return AccessTools.FindIncludingInnerTypes<MethodInfo>(typeof(Building_TurretGunCE), t => t.GetMethods(AccessTools.all).FirstOrDefault(m => m.Name.Contains("TryFindNewTarget")));
+            return AccessTools.FindIncludingInnerTypes<MethodInfo>(typeof(Building_TurretGunCE), t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("TryFindNewTarget")));
         }
 
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)

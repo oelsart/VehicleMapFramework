@@ -34,7 +34,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 }
             }
 
-            Patch(AccessTools.FindIncludingInnerTypes(typeof(DebugActionNode), t => t.GetMethods(AccessTools.all).FirstOrDefault(m => m.Name.Contains("<Enter>"))));
+            Patch(AccessTools.FindIncludingInnerTypes(typeof(DebugActionNode), t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<Enter>"))));
             foreach (var method in typeof(DebugToolsSpawning).GetDeclaredMethods())
             {
                 Patch(method);

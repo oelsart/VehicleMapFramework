@@ -204,7 +204,7 @@ namespace VMF_AchtungPatch
     {
         private static MethodBase TargetMethod()
         {
-            return AccessTools.FindIncludingInnerTypes<MethodBase>(typeof(Controller), t => t.GetMethods(AccessTools.all).FirstOrDefault(m => m.Name.Contains("<HandleDrawing>")));
+            return AccessTools.FindIncludingInnerTypes<MethodBase>(typeof(Controller), t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<HandleDrawing>")));
         }
 
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)

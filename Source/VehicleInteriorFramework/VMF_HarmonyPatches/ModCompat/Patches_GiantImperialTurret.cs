@@ -30,7 +30,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         private static IEnumerable<MethodBase> TargetMethods()
         {
             var type = AccessTools.TypeByName("BreadMoProjOffset.Building_TurretGunNonSnap");
-            var methods = type.GetMethods(AccessTools.all);
+            var methods = type.GetDeclaredMethods();
             return methods.Where(m => m.Name.Contains("<TryFindNewTarget>") || m.Name.Contains("<>"));
         }
 

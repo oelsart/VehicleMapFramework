@@ -81,7 +81,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         private static MethodBase TargetMethod()
         {
             return AccessTools.FindIncludingInnerTypes<MethodBase>(typeof(PlaceWorker_SewageArea),
-                t => t.GetMethods(AccessTools.all).FirstOrDefault(m => m.Name.Contains("<DrawGhost>")));
+                t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<DrawGhost>")));
         }
 
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)

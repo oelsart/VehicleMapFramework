@@ -342,7 +342,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static MethodInfo TargetMethod()
         {
-            return AccessTools.InnerTypes(typeof(JobGiver_Work)).SelectMany(t => t.GetMethods(AccessTools.all)).First(m => m.Name.Contains("Validator"));
+            return AccessTools.InnerTypes(typeof(JobGiver_Work)).SelectMany(t => t.GetDeclaredMethods()).First(m => m.Name.Contains("Validator"));
         }
 
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -403,7 +403,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static MethodInfo TargetMethod()
         {
-            return AccessTools.FindIncludingInnerTypes(typeof(JobGiver_Work), t => t.GetMethods(AccessTools.all).FirstOrDefault(m => m.Name.Contains("<GiverTryGiveJobPrioritized>")));
+            return AccessTools.FindIncludingInnerTypes(typeof(JobGiver_Work), t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<GiverTryGiveJobPrioritized>")));
         }
 
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) => Patch_JobGiver_Work_Validator.Transpiler(instructions);
@@ -516,7 +516,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         private static MethodBase TargetMethod()
         {
-            return AccessTools.FindIncludingInnerTypes(typeof(Toils_Ingest), t => t.GetMethods(AccessTools.all).FirstOrDefault(m => m.Name.Contains("<CarryIngestibleToChewSpot>")));
+            return AccessTools.FindIncludingInnerTypes(typeof(Toils_Ingest), t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<CarryIngestibleToChewSpot>")));
         }
 
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
@@ -749,7 +749,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         public static MethodInfo TargetMethod()
         {
             return AccessTools.FindIncludingInnerTypes<MethodInfo>(typeof(FoodUtility),
-                t => t.GetMethods(AccessTools.all).FirstOrDefault(m => m.Name.Contains("<BestFoodSourceOnMap>") && m.HasMethodBody() && m.GetMethodBody().LocalVariables.Any(l => l.LocalType == typeof(Building_NutrientPasteDispenser))));
+                t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<BestFoodSourceOnMap>") && m.HasMethodBody() && m.GetMethodBody().LocalVariables.Any(l => l.LocalType == typeof(Building_NutrientPasteDispenser))));
         }
 
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -838,7 +838,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             return AccessTools.InnerTypes(typeof(ToilFailConditions)).SelectMany(t =>
             {
                 var type = t.IsGenericTypeDefinition ? t.MakeGenericType(typeof(Toil)) : t;
-                return type.GetMethods(AccessTools.all);
+                return type.GetDeclaredMethods();
             }).First(m => m.Name.Contains("<FailOnSomeonePhysicallyInteracting>"));
         }
 
@@ -989,7 +989,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         private static MethodBase TargetMethod()
         {
-            return AccessTools.FindIncludingInnerTypes<MethodBase>(typeof(WorkGiver_DoBill), t => t.GetMethods(AccessTools.all).FirstOrDefault(m => m.Name == "<TryFindBestIngredientsHelper>b__0"));
+            return AccessTools.FindIncludingInnerTypes<MethodBase>(typeof(WorkGiver_DoBill), t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name == "<TryFindBestIngredientsHelper>b__0"));
         }
 
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -1003,7 +1003,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         private static MethodBase TargetMethod()
         {
-            return AccessTools.FindIncludingInnerTypes<MethodBase>(typeof(JobDriver_Mine), t => t.GetMethods(AccessTools.all).FirstOrDefault(m => m.Name == "<MakeNewToils>b__0"));
+            return AccessTools.FindIncludingInnerTypes<MethodBase>(typeof(JobDriver_Mine), t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name == "<MakeNewToils>b__0"));
         }
 
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)

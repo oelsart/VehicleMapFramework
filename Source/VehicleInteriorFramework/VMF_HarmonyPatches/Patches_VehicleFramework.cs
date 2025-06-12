@@ -677,7 +677,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         private static IEnumerable<MethodBase> TargetMethods()
         {
-            yield return AccessTools.FindIncludingInnerTypes<MethodBase>(typeof(Dialog_FormVehicleCaravan), t => t.GetMethods(AccessTools.all).FirstOrDefault(m => m.Name.Contains("<TryFindExitSpot>b__2")));
+            yield return AccessTools.FindIncludingInnerTypes<MethodBase>(typeof(Dialog_FormVehicleCaravan), t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<TryFindExitSpot>b__2")));
             yield return AccessTools.Method(typeof(Dialog_FormVehicleCaravan), "TryFindExitSpot",
                 new Type[] { typeof(Map), typeof(List<Pawn>), typeof(bool), typeof(Rot4), typeof(IntVec3).MakeByRefType(), typeof(bool) });
         }

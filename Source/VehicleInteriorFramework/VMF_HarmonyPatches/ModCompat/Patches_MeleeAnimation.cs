@@ -111,7 +111,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches.AM
     {
         private static IEnumerable<MethodBase> TargetMethods()
         {
-            return AccessTools.TypeByName("AM.Controller.ActionController").GetMethods(AccessTools.all).Where(m => m.Name == "UpdateClosestCells");
+            return AccessTools.TypeByName("AM.Controller.ActionController").GetDeclaredMethods().Where(m => m.Name == "UpdateClosestCells");
         }
 
         //req.Target.Position -> req.Target.PositionOnAnotherThingMap(req.Grappler)
