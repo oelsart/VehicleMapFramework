@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Verse;
 using Verse.AI;
+using static VehicleInteriors.MethodInfoCache;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
 {
@@ -78,7 +79,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, AccessTools.Method(typeof(Patch_Region_Allows_Patch_MovementTypePassable), nameof(GetMap)));
+            return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, AccessTools.Method(typeof(Patch_Region_Allows_Patch_MovementTypePassable), nameof(GetMap)));
         }
 
         public static Map GetMap(Thing thing)

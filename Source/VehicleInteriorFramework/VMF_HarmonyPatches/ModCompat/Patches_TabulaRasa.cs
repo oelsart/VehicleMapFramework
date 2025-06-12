@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection.Emit;
 using UnityEngine;
 using Verse;
+using static VehicleInteriors.MethodInfoCache;
 
 namespace VehicleInteriors.VMF_HarmonyPatches.TR
 {
@@ -38,7 +39,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches.TR
         {
             public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
             {
-                return instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap);
+                return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
             }
         }
 
@@ -48,7 +49,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches.TR
         {
             public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
             {
-                return instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap);
+                return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
             }
         }
 
@@ -58,7 +59,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches.TR
         {
             public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
             {
-                return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map,
+                return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map,
                     AccessTools.Method(typeof(Patch_Patch_Projectile_CheckForFreeInterceptBetween_Postfix), nameof(Patch_Patch_Projectile_CheckForFreeInterceptBetween_Postfix.ReplaceMap)));
             }
 
@@ -106,7 +107,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches.TR
         {
             public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
             {
-                return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map,
+                return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map,
                     AccessTools.Method(typeof(Patch_Patch_Skyfaller_Tick_Prefix), nameof(Patch_Patch_Skyfaller_Tick_Prefix.ReplaceMap)));
             }
 
@@ -154,9 +155,9 @@ namespace VehicleInteriors.VMF_HarmonyPatches.TR
                 foreach (var instruction in instructions)
                 {
                     yield return instruction;
-                    if (instruction.opcode == OpCodes.Call && instruction.OperandIs(MethodInfoCache.m_IntVec3_ToVector3Shifted))
+                    if (instruction.opcode == OpCodes.Call && instruction.OperandIs(CachedMethodInfo.m_IntVec3_ToVector3Shifted))
                     {
-                        yield return new CodeInstruction(OpCodes.Call, MethodInfoCache.m_ToBaseMapCoord1);
+                        yield return new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ToBaseMapCoord1);
                     }
                 }
             }
