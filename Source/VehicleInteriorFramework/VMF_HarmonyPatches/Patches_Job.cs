@@ -56,7 +56,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             {
                 CodeInstruction.LoadArgument(1),
                 CodeInstruction.LoadLocal(12),
-                CodeInstruction.Call(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(Patch_JobGiver_Work_TryIssueJobPackage.AddSearchSet))
+                CodeInstruction.Call(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(AddSearchSet))
             };
             codes.InsertRange(pos, addedCodes);
 
@@ -69,13 +69,13 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 CodeInstruction.LoadLocal(12),
                 CodeInstruction.LoadLocal(0, true),
                 CodeInstruction.LoadLocal(20, true),
-                CodeInstruction.Call(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(Patch_JobGiver_Work_TryIssueJobPackage.ScanCellsAcrossMaps))
+                CodeInstruction.Call(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(ScanCellsAcrossMaps))
             });
 
             var m_JobOnCell = AccessTools.Method(typeof(WorkGiver_Scanner), nameof(WorkGiver_Scanner.JobOnCell));
             var pos4 = codes.FindIndex(pos3, c => c.opcode == OpCodes.Callvirt && c.OperandIs(m_JobOnCell));
             codes[pos4].opcode = OpCodes.Call;
-            codes[pos4].operand = AccessTools.Method(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(Patch_JobGiver_Work_TryIssueJobPackage.JobOnCellMap));
+            codes[pos4].operand = AccessTools.Method(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(JobOnCellMap));
 
             var g_TargetInfo_Cell = AccessTools.PropertyGetter(typeof(TargetInfo), nameof(TargetInfo.Cell));
             var pos5 = codes.FindLastIndex(pos4, c => c.opcode == OpCodes.Call && c.OperandIs(g_TargetInfo_Cell));
@@ -93,9 +93,9 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             var m_GenClosestOnVehicle_ClosestThingReachable = AccessTools.Method(typeof(GenClosestOnVehicle), nameof(GenClosestOnVehicle.ClosestThingReachable),
                 new[] { typeof(IntVec3), typeof(Map), typeof(ThingRequest), typeof(PathEndMode), typeof(TraverseParms), typeof(float), typeof(Predicate<Thing>), typeof(IEnumerable<Thing>), typeof(int), typeof(int), typeof(bool), typeof(RegionType), typeof(bool)});
             var m_Scanner_PotentialWorkThingsGlobal = AccessTools.Method(typeof(WorkGiver_Scanner), nameof(WorkGiver_Scanner.PotentialWorkThingsGlobal));
-            var m_PotentialWorkThingsGlobalAll = AccessTools.Method(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(Patch_JobGiver_Work_TryIssueJobPackage.PotentialWorkThingsGlobalAll));
+            var m_PotentialWorkThingsGlobalAll = AccessTools.Method(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(PotentialWorkThingsGlobalAll));
             var m_Scanner_JobOnThing = AccessTools.Method(typeof(WorkGiver_Scanner), nameof(WorkGiver_Scanner.JobOnThing));
-            var m_JobOnThingMap = AccessTools.Method(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(Patch_JobGiver_Work_TryIssueJobPackage.JobOnThingMap));
+            var m_JobOnThingMap = AccessTools.Method(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(JobOnThingMap));
             return codes.MethodReplacer(m_GenClosest_ClosestThing_Global, m_GenClosestOnVehicle_ClosestThing_Global)
                 .MethodReplacer(m_GenClosest_ClosestThing_Global_Reachable, m_GenClosestOnVehicle_ClosestThing_Global_Reachable)
                 .MethodReplacer(m_GenClosest_ClosestThingReachable, m_GenClosestOnVehicle_ClosestThingReachable)
@@ -112,7 +112,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             var maps = pawn.Map.BaseMapAndVehicleMaps().Except(pawn.Map);
             if (maps.Any())
             {
-                return list.Concat(maps.SelectMany(m => m.listerThings.ThingsMatching(scanner.PotentialWorkThingRequest)));
+                return maps.SelectMany(m => m.listerThings.ThingsMatching(scanner.PotentialWorkThingRequest)).ConcatIfNotNull(list);
             }
             return list;
         }
@@ -315,7 +315,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             var m_WorkGiver_ShouldSkip = AccessTools.Method(typeof(WorkGiver), nameof(WorkGiver.ShouldSkip));
-            var m_ShouldSkipAll = AccessTools.Method(typeof(Patch_JobGiver_Work_PawnCanUseWorkGiver), nameof(Patch_JobGiver_Work_PawnCanUseWorkGiver.ShouldSkipAll));
+            var m_ShouldSkipAll = AccessTools.Method(typeof(Patch_JobGiver_Work_PawnCanUseWorkGiver), nameof(ShouldSkipAll));
             return instructions.MethodReplacer(m_WorkGiver_ShouldSkip, m_ShouldSkipAll);
         }
 

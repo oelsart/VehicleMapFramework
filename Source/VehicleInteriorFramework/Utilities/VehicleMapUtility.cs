@@ -9,6 +9,7 @@ using UnityEngine;
 using Vehicles;
 using Verse;
 using Verse.AI.Group;
+using Verse.Noise;
 using static VehicleInteriors.ModCompat;
 
 namespace VehicleInteriors
@@ -563,11 +564,16 @@ namespace VehicleInteriors
 
         public static Rot8 BaseFullRotation(this VehiclePawn vehicle)
         {
+            if (!vehicle.VehicleDef.graphicData.drawRotated)
+            {
+                return Rot8.North;
+            }
+            var rot = new Rot8(vehicle.Rotation, vehicle.Angle);
             if (vehicle.IsOnNonFocusedVehicleMapOf(out var vehicle2))
             {
-                return new Rot8(Rot8.FromIntClockwise((vehicle2.FullRotation.AsIntClockwise + vehicle.FullRotation.AsIntClockwise) % 8));
+                rot = new Rot8(Rot8.FromIntClockwise((rot.AsIntClockwise + vehicle2.FullRotation.AsIntClockwise) % 8));
             }
-            return vehicle.FullRotation;
+            return rot;
         }
 
         public static Rot8 BaseFullRotation(this Thing thing)
@@ -704,6 +710,23 @@ namespace VehicleInteriors
             return false;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool TryGetFullRotation(this VehiclePawn vehicle, ref Rot8 rot)
+        {
+            var map = vehicle.Map;
+            if (map != null)
+            {
+                var component = MapComponentCache<VehiclePawnWithMapCache>.GetComponent(map);
+                if (!component.cachedFullRot.TryGetValue(vehicle, out rot))
+                {
+                    rot = vehicle.BaseFullRotation();
+                    component.cachedFullRot[vehicle] = rot;
+                }
+                return true;
+            }
+            return false;
+        }
+
         public static Map MapHeldBaseMap(this Thing thing)
         {
             return thing.MapHeld.BaseMap();
@@ -764,10 +787,11 @@ namespace VehicleInteriors
         public static IEnumerable<Map> BaseMapAndVehicleMaps(this Map map)
         {
             var baseMap = map.BaseMap();
-            if (baseMap != null)
+            if (baseMap == null)
             {
-                yield return baseMap;
+                yield break;
             }
+            yield return baseMap;
 
             foreach (var vehicle in VehiclePawnWithMapCache.AllVehiclesOn(baseMap))
             {

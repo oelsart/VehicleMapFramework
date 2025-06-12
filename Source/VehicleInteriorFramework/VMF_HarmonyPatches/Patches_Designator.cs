@@ -39,7 +39,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         static Patches_Designator_DesignateThing()
         {
-            var transpiler = AccessTools.Method(typeof(Patches_Designator_DesignateThing), nameof(Patches_Designator_DesignateThing.Transpiler));
+            var transpiler = AccessTools.Method(typeof(Patches_Designator_DesignateThing), nameof(Transpiler));
             foreach (var type in typeof(Designator).AllSubclasses())
             {
                 var method = AccessTools.Method(type, "DesignateThing");

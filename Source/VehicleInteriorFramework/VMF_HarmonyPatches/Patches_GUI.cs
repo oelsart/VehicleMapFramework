@@ -73,9 +73,14 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     public static class Patch_MouseoverReadout_MouseoverReadoutOnGUI
     {
         //車両マップにマウスオーバーしていたらFocusedVehicleに入れておく。これでMouseCellが勝手にオフセットされる
-        public static void Prefix(ref VehiclePawnWithMap __state)
+        public static bool Prefix(ref VehiclePawnWithMap __state)
         {
             __state = Command_FocusVehicleMap.FocusedVehicle;
+            if (Event.current.type != EventType.Repaint || Find.MainTabsRoot.OpenTab != null)
+            {
+                return false;
+            }
+
             if (UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out var vehicle))
             {
                 Command_FocusVehicleMap.FocusedVehicle = vehicle;
@@ -84,6 +89,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                     Command_FocusVehicleMap.FocusedVehicle = __state;
                 }
             }
+            return true;
         }
 
         //FocusedVehicleがあればそのマップをFind.CurrentMapの代わりに使う
