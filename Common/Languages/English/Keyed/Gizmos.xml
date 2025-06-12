@@ -12,8 +12,10 @@
 	<VMF_IncreasePriorityDesc>Increase all storage priorities on this vehicle's map</VMF_IncreasePriorityDesc>
 	<VMF_DecreasePriority>Decrease Priority</VMF_DecreasePriority>
 	<VMF_DecreasePriorityDesc>Decrease all storage priorities on this vehicle's map</VMF_DecreasePriorityDesc>
-	<VMF_AllowsGetOff>Allows Get Off</VMF_AllowsGetOff>
-	<VMF_AllowsGetOffDesc>Allows colonists AI to get off the vehicle map.</VMF_AllowsGetOffDesc>
+	<VMF_AllowsGetOff>Allows Exit</VMF_AllowsGetOff>
+	<VMF_AllowsGetOffDesc>Allows colonists AI to exit the vehicle map.</VMF_AllowsGetOffDesc>
+	<VMF_AllowEnter>Allow Enter</VMF_AllowEnter>
+	<VMF_AllowEnterDesc>Allows colonists AI to enter the vehicle map.</VMF_AllowEnterDesc>
 
 	<VMF_LowerPowerDesc>Lower the target power transmission amount.</VMF_LowerPowerDesc>
 	<VMF_ResetPower>Reset</VMF_ResetPower>
