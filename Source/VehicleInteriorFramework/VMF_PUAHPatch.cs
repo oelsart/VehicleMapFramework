@@ -103,7 +103,7 @@ namespace VMF_PUAHPatch
         }
     }
 
-    [StaticConstructorOnStartupPriority(Priority.Low)]
+    [StaticConstructorOnStartup]
     public static class VMF_CompatibilityPatchMod
     {
         // Flag to control whether shield system patching is enabled

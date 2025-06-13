@@ -8,7 +8,7 @@ using static VehicleInteriors.MethodInfoCache;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
 {
-    [StaticConstructorOnStartupPriority(Priority.Low)]
+    [StaticConstructorOnStartup]
     public static class Patches_DebugTools
     {
         static Patches_DebugTools()
