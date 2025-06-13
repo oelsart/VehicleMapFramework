@@ -8,7 +8,6 @@ using System.Reflection.Emit;
 using UnityEngine;
 using Vehicles;
 using Verse;
-using static VehicleInteriors.MethodInfoCache;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
 {
@@ -96,7 +95,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         //FocusedVehicleがあればそのマップをFind.CurrentMapの代わりに使う
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(CachedMethodInfo.g_Find_CurrentMap, CachedMethodInfo.g_VehicleMapUtility_CurrentMap);
+            return instructions.MethodReplacer(MethodInfoCache.g_Find_CurrentMap, MethodInfoCache.g_VehicleMapUtility_CurrentMap);
         }
 
         //FocusedVehicleをもとに戻しておく
@@ -127,7 +126,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         //FocusedVehicleがあればそのマップをFind.CurrentMapの代わりに使う
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(CachedMethodInfo.g_Find_CurrentMap, CachedMethodInfo.g_VehicleMapUtility_CurrentMap);
+            return instructions.MethodReplacer(MethodInfoCache.g_Find_CurrentMap, MethodInfoCache.g_VehicleMapUtility_CurrentMap);
         }
 
         //FocusedVehicleをもとに戻しておく
@@ -185,7 +184,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             var m_LabelDrawPosFor = AccessTools.Method(typeof(GenMapUI), nameof(GenMapUI.LabelDrawPosFor), new[] { typeof(IntVec3) });
             var m_LabelDrawPosForOffset = AccessTools.Method(typeof(Patch_BeautyDrawer_DrawBeautyAroundMouse), nameof(LabelDrawPosForOffset));
-            return instructions.MethodReplacer(CachedMethodInfo.g_Find_CurrentMap, CachedMethodInfo.g_VehicleMapUtility_CurrentMap)
+            return instructions.MethodReplacer(MethodInfoCache.g_Find_CurrentMap, MethodInfoCache.g_VehicleMapUtility_CurrentMap)
                 .MethodReplacer(m_LabelDrawPosFor, m_LabelDrawPosForOffset);
         }
 
@@ -226,7 +225,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         //FocusedVehicleがあればそのマップをFind.CurrentMapの代わりに使う
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(CachedMethodInfo.g_Find_CurrentMap, CachedMethodInfo.g_VehicleMapUtility_CurrentMap);
+            return instructions.MethodReplacer(MethodInfoCache.g_Find_CurrentMap, MethodInfoCache.g_VehicleMapUtility_CurrentMap);
         }
 
         //FocusedVehicleをもとに戻しておく

@@ -4,7 +4,6 @@ using System.Linq;
 using System.Reflection.Emit;
 using UnityEngine;
 using Verse;
-using static VehicleInteriors.MethodInfoCache;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
 {
@@ -26,7 +25,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            var codes = instructions.MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_RotationForPrint).ToList();
+            var codes = instructions.MethodReplacer(MethodInfoCache.g_Thing_Rotation, MethodInfoCache.m_RotationForPrint).ToList();
             var pos = codes.FindLastIndex(c => c.Calls(AccessTools.Method(typeof(Vector3), "op_Addition")));
             codes.Insert(pos, CodeInstruction.Call(typeof(Patch_Graphic_LinkedStitched_Print), nameof(RotateVector)));
 
@@ -50,7 +49,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             var codes = instructions.ToList();
             var pos = codes.FindIndex(c => c.opcode == OpCodes.Ldc_R4 && (float)c.operand == 0f);
 
-            codes.Replace(codes[pos], new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_PrintExtraRotation));
+            codes.Replace(codes[pos], new CodeInstruction(OpCodes.Call, MethodInfoCache.m_PrintExtraRotation));
             codes.InsertRange(pos, new[]
             {
                 CodeInstruction.LoadArgument(0),

@@ -9,7 +9,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using Vehicles;
 using Verse;
-using static VehicleInteriors.MethodInfoCache;
+using Verse.Noise;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
 {
@@ -58,7 +58,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(CachedMethodInfo.m_Reachability_CanReach1, CachedMethodInfo.m_CanReachReaplaceable1);
+            return instructions.MethodReplacer(MethodInfoCache.m_Reachability_CanReach1, MethodInfoCache.m_CanReachReaplaceable1);
         }
     }
 
@@ -204,7 +204,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             {
                 CodeInstruction.LoadLocal(2),
                 new CodeInstruction(OpCodes.Callvirt, AccessTools.PropertyGetter(typeof(IEnumerator<Building_OrbitalTradeBeacon>), nameof(IEnumerator.Current))),
-                new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_Thing_Map)
+                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Thing_Map)
             });
             return codes;
         }

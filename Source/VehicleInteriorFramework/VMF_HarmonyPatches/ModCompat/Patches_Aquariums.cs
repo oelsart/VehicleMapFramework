@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Verse;
-using static VehicleInteriors.MethodInfoCache;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
 {

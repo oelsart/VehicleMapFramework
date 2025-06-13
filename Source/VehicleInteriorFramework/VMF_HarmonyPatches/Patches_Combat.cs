@@ -9,7 +9,6 @@ using UnityEngine;
 using Vehicles;
 using Verse;
 using Verse.AI;
-using static VehicleInteriors.MethodInfoCache;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
 {
@@ -34,7 +33,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap);
         }
     }
 
@@ -55,7 +54,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap);
+            return instructions.MethodReplacer(MethodInfoCache.g_LocalTargetInfo_Cell, MethodInfoCache.m_CellOnBaseMap);
         }
     }
 
@@ -66,8 +65,8 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             var codes = instructions.ToList();
-            var pos = codes.FindIndex(c => c.opcode == OpCodes.Callvirt && c.OperandIs(CachedMethodInfo.g_Thing_Map));
-            codes[pos] = new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMap_Thing);
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Callvirt && c.OperandIs(MethodInfoCache.g_Thing_Map));
+            codes[pos] = new CodeInstruction(OpCodes.Call, MethodInfoCache.m_BaseMap_Thing);
 
             var m_ThingCovered = AccessTools.Method(typeof(CoverUtility), nameof(CoverUtility.ThingCovered));
             var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Call && c.OperandIs(m_ThingCovered)) - 2;
@@ -158,10 +157,10 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 new CodeInstruction(OpCodes.Ldloc_S, targThing),
                 new CodeInstruction(OpCodes.Brfalse_S, label),
                 new CodeInstruction(OpCodes.Ldloc_S, targThing),
-                new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_Thing_Map),
+                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Thing_Map),
                 new CodeInstruction(OpCodes.Br_S, label2),
                 CodeInstruction.LoadArgument(0).WithLabels(label),
-                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMap_Thing),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_BaseMap_Thing),
                 new CodeInstruction(OpCodes.Stloc_S, targetMap).WithLabels(label2),
                 new CodeInstruction(OpCodes.Ldloc_S, targThing),
                 new CodeInstruction(OpCodes.Brfalse_S, label3),
@@ -170,7 +169,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 new CodeInstruction(OpCodes.Call, m_PositionOnAnotherThingMap),
                 new CodeInstruction(OpCodes.Br_S, label4),
                 CodeInstruction.LoadArgument(0).WithLabels(label3),
-                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_PositionOnBaseMap),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_PositionOnBaseMap),
                 new CodeInstruction(OpCodes.Stloc_S, casterPositionOnTargetMap).WithLabels(label4),
             });
 
@@ -178,22 +177,22 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             for (var i = 0; i < 3; i++)
             {
                 //caster.Position -> casterPositionOnTargetMap
-                var pos = codes.FindIndex(pos2, c => c.opcode == OpCodes.Callvirt && c.OperandIs(CachedMethodInfo.g_Thing_Position));
+                var pos = codes.FindIndex(pos2, c => c.opcode == OpCodes.Callvirt && c.OperandIs(MethodInfoCache.g_Thing_Position));
                 codes[pos].opcode = OpCodes.Ldloc_S;
                 codes[pos].operand = casterPositionOnTargetMap;
                 codes.RemoveAt(pos - 1);
 
                 //caster.Map -> targetMap
-                pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Callvirt && c.OperandIs(CachedMethodInfo.g_Thing_Map));
+                pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Callvirt && c.OperandIs(MethodInfoCache.g_Thing_Map));
                 codes[pos2].opcode = OpCodes.Ldloc_S;
                 codes[pos2].operand = targetMap;
                 codes.RemoveAt(pos2 - 1);
             }
 
             var codes1 = codes.Take(pos2);
-            var codes2 = codes.Skip(pos2).MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap)
-                .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap)
-                .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
+            var codes2 = codes.Skip(pos2).MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap)
+                .MethodReplacer(MethodInfoCache.g_LocalTargetInfo_Cell, MethodInfoCache.m_CellOnBaseMap)
+                .MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing);
 
             return codes1.Concat(codes2);
         }
@@ -204,7 +203,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap);
         }
     }
 
@@ -213,7 +212,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(CachedMethodInfo.m_GetThingList, CachedMethodInfo.m_GetThingListAcrossMaps);
+            return instructions.MethodReplacer(MethodInfoCache.m_GetThingList, MethodInfoCache.m_GetThingListAcrossMaps);
         }
     }
 
@@ -222,8 +221,8 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-                .MethodReplacer(CachedMethodInfo.m_ToTargetInfo, CachedMethodInfo.m_ToBaseMapTargetInfo);
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing)
+                .MethodReplacer(MethodInfoCache.m_ToTargetInfo, MethodInfoCache.m_ToBaseMapTargetInfo);
         }
     }
 
@@ -232,8 +231,8 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-                .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing)
+                .MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap);
         }
     }
 
@@ -242,7 +241,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap);
+            return instructions.MethodReplacer(MethodInfoCache.g_LocalTargetInfo_Cell, MethodInfoCache.m_CellOnBaseMap);
         }
     }
 
@@ -251,7 +250,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing);
         }
     }
 
@@ -260,7 +259,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap);
         }
     }
 
@@ -269,10 +268,10 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap)
-                .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-                .MethodReplacer(CachedMethodInfo.m_GenSight_LineOfSight2, CachedMethodInfo.m_GenSightOnVehicle_LineOfSight2)
-                .MethodReplacer(CachedMethodInfo.m_GetThingList, CachedMethodInfo.m_GetThingListAcrossMaps);
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap)
+                .MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing)
+                .MethodReplacer(MethodInfoCache.m_GenSight_LineOfSight2, MethodInfoCache.m_GenSightOnVehicle_LineOfSight2)
+                .MethodReplacer(MethodInfoCache.m_GetThingList, MethodInfoCache.m_GetThingListAcrossMaps);
         }
     }
 
@@ -281,13 +280,13 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            instructions = instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
+            instructions = instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap);
             foreach (var instruction in instructions)
             {
-                if (instruction.Calls(CachedMethodInfo.g_LocalTargetInfo_Cell))
+                if (instruction.Calls(MethodInfoCache.g_LocalTargetInfo_Cell))
                 {
                     yield return CodeInstruction.LoadArgument(0);
-                    yield return new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_TargetCellOnBaseMap);
+                    yield return new CodeInstruction(OpCodes.Call, MethodInfoCache.m_TargetCellOnBaseMap);
                 }
                 else
                 {
@@ -302,8 +301,8 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap)
-                .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap)
+                .MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing);
         }
     }
 
@@ -314,10 +313,10 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             foreach (var instruction in instructions)
             {
-                if (instruction.Calls(CachedMethodInfo.g_LocalTargetInfo_Cell))
+                if (instruction.Calls(MethodInfoCache.g_LocalTargetInfo_Cell))
                 {
                     yield return CodeInstruction.LoadArgument(0);
-                    yield return new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_TargetCellOnBaseMap);
+                    yield return new CodeInstruction(OpCodes.Call, MethodInfoCache.m_TargetCellOnBaseMap);
                 }
                 else
                 {
@@ -334,11 +333,11 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             foreach (var instruction in instructions)
             {
-                if (instruction.Calls(CachedMethodInfo.g_LocalTargetInfo_Cell))
+                if (instruction.Calls(MethodInfoCache.g_LocalTargetInfo_Cell))
                 {
                     yield return CodeInstruction.LoadArgument(0);
                     yield return CodeInstruction.LoadField(typeof(TurretTop), "parentTurret");
-                    yield return new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_TargetCellOnBaseMap);
+                    yield return new CodeInstruction(OpCodes.Call, MethodInfoCache.m_TargetCellOnBaseMap);
                 }
                 else
                 {
@@ -365,13 +364,13 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 CodeInstruction.LoadArgument(0),
                 CodeInstruction.LoadField(typeof(TurretTop), "parentTurret"),
                 new CodeInstruction(OpCodes.Ldloca_S, vehicle),
-                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_IsOnNonFocusedVehicleMapOf),
                 new CodeInstruction(OpCodes.Brfalse_S, label),
                 new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-                new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_FullRotation),
+                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_FullRotation),
                 new CodeInstruction(OpCodes.Stloc_S, rot),
                 new CodeInstruction(OpCodes.Ldloca_S, rot),
-                new CodeInstruction(OpCodes.Call, CachedMethodInfo.g_Rot8_AsAngle),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.g_Rot8_AsAngle),
                 new CodeInstruction(OpCodes.Add)
             });
 
@@ -392,8 +391,8 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(LocalTargetInfo), nameof(LocalTargetInfo.IsValid))),
                 new CodeInstruction(OpCodes.Brtrue_S, label2),
                 new CodeInstruction(OpCodes.Ldloc_S, rot),
-                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_Rot8_AsQuat),
-                new CodeInstruction(OpCodes.Call, CachedMethodInfo.o_Quaternion_Multiply),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_Rot8_AsQuat),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.o_Quaternion_Multiply),
             });
             return codes;
         }
@@ -404,8 +403,8 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(CachedMethodInfo.m_GenSight_LineOfSight1, CachedMethodInfo.m_GenSightOnVehicle_LineOfSight1)
-                .MethodReplacer(CachedMethodInfo.m_GenSight_LineOfSight2, CachedMethodInfo.m_GenSightOnVehicle_LineOfSight2);
+            return instructions.MethodReplacer(MethodInfoCache.m_GenSight_LineOfSight1, MethodInfoCache.m_GenSightOnVehicle_LineOfSight1)
+                .MethodReplacer(MethodInfoCache.m_GenSight_LineOfSight2, MethodInfoCache.m_GenSightOnVehicle_LineOfSight2);
         }
     }
 
@@ -467,9 +466,9 @@ namespace VehicleInteriors.VMF_HarmonyPatches
 
             for (var i = 0; i < 2; i++)
             {
-                pos = codes.FindLastIndex(pos - 1, c => c.Calls(CachedMethodInfo.g_Thing_Position));
+                pos = codes.FindLastIndex(pos - 1, c => c.Calls(MethodInfoCache.g_Thing_Position));
                 codes[pos].opcode = OpCodes.Call;
-                codes[pos].operand = CachedMethodInfo.m_PositionOnBaseMap;
+                codes[pos].operand = MethodInfoCache.m_PositionOnBaseMap;
             }
             return codes;
         }
@@ -480,7 +479,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap);
         }
     }
 
@@ -489,7 +488,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap);
         }
     }
 
@@ -498,7 +497,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(CachedMethodInfo.m_TryFindCastPosition, CachedMethodInfo.m_TryFindCastPositionOnVehicle);
+            return instructions.MethodReplacer(MethodInfoCache.m_TryFindCastPosition, MethodInfoCache.m_TryFindCastPositionOnVehicle);
         }
     }
 
@@ -507,7 +506,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(CachedMethodInfo.m_TryFindCastPosition, CachedMethodInfo.m_TryFindCastPositionOnVehicle);
+            return instructions.MethodReplacer(MethodInfoCache.m_TryFindCastPosition, MethodInfoCache.m_TryFindCastPositionOnVehicle);
         }
     }
 }

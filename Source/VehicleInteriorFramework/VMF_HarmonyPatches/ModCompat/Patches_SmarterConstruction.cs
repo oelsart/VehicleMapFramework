@@ -4,7 +4,6 @@ using System.Linq;
 using System.Reflection.Emit;
 using Verse;
 using Verse.AI;
-using static VehicleInteriors.MethodInfoCache;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
 {
@@ -33,9 +32,9 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             var codes = instructions.ToList();
             var m_DistanceTo = AccessTools.Method(typeof(IntVec3Utility), nameof(IntVec3Utility.DistanceTo));
             var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(m_DistanceTo)) - 1;
-            codes[pos].operand = CachedMethodInfo.m_CellOnBaseMap_TargetInfo;
+            codes[pos].operand = MethodInfoCache.m_CellOnBaseMap_TargetInfo;
             codes[pos - 2].opcode = OpCodes.Call;
-            codes[pos - 2].operand = CachedMethodInfo.m_PositionOnBaseMap;
+            codes[pos - 2].operand = MethodInfoCache.m_PositionOnBaseMap;
             return codes;
         }
     }
@@ -46,7 +45,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
+            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap);
         }
     }
 

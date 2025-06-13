@@ -9,7 +9,6 @@ using VehicleInteriors;
 using VehicleInteriors.VMF_HarmonyPatches;
 using Verse;
 using Verse.AI;
-using static VehicleInteriors.MethodInfoCache;
 
 namespace VMF_AchtungPatch
 {
@@ -168,7 +167,7 @@ namespace VMF_AchtungPatch
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(CachedMethodInfo.m_IntVec3_ToVector3Shifted, m_ToVector3ShiftedOffset);
+            return instructions.MethodReplacer(MethodInfoCache.m_IntVec3_ToVector3Shifted, m_ToVector3ShiftedOffset);
         }
 
         public static Vector3 ToVector3ShiftedOffset(ref IntVec3 cell)
@@ -195,7 +194,7 @@ namespace VMF_AchtungPatch
 
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(CachedMethodInfo.m_IntVec3_ToVector3Shifted, Patch_Tools_LabelDrawPosFor.m_ToVector3ShiftedOffset);
+            return instructions.MethodReplacer(MethodInfoCache.m_IntVec3_ToVector3Shifted, Patch_Tools_LabelDrawPosFor.m_ToVector3ShiftedOffset);
         }
     }
 
@@ -216,7 +215,7 @@ namespace VMF_AchtungPatch
         {
             var m_FromVector3 = AccessTools.Method(typeof(IntVec3), nameof(IntVec3.FromVector3), new Type[] { typeof(Vector3) });
             var m_FromVector3Offset = AccessTools.Method(typeof(Patch_Controller_MouseDown), nameof(FromVector3Offset));
-            return instructions.MethodReplacer(CachedMethodInfo.g_Find_CurrentMap, CachedMethodInfo.g_VehicleMapUtility_CurrentMap)
+            return instructions.MethodReplacer(MethodInfoCache.g_Find_CurrentMap, MethodInfoCache.g_VehicleMapUtility_CurrentMap)
                 .MethodReplacer(m_FromVector3, m_FromVector3Offset);
         }
 

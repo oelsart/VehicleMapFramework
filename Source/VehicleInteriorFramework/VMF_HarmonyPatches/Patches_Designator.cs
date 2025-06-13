@@ -6,7 +6,6 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using Verse;
-using static VehicleInteriors.MethodInfoCache;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
 {
@@ -21,7 +20,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 var method = AccessTools.Method(type, "MakeNewZone");
                 if (method != null && method.IsDeclaredMember())
                 {
-                    if (PatchProcessor.ReadMethodBody(method).Any(i => CachedMethodInfo.g_Find_CurrentMap.Equals(i.Value)))
+                    if (PatchProcessor.ReadMethodBody(method).Any(i => MethodInfoCache.g_Find_CurrentMap.Equals(i.Value)))
                     {
                         VMF_Harmony.Instance.Patch(method, null, null, transpiler);
                     }
@@ -31,7 +30,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
 
         private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(CachedMethodInfo.g_Find_CurrentMap, CachedMethodInfo.g_VehicleMapUtility_CurrentMap);
+            return instructions.MethodReplacer(MethodInfoCache.g_Find_CurrentMap, MethodInfoCache.g_VehicleMapUtility_CurrentMap);
         }
     }
 
@@ -46,7 +45,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 var method = AccessTools.Method(type, "DesignateThing");
                 if (method != null && method.IsDeclaredMember())
                 {
-                    if (PatchProcessor.ReadMethodBody(method).Any(i => CachedMethodInfo.g_Designator_Map.Equals(i.Value)))
+                    if (PatchProcessor.ReadMethodBody(method).Any(i => MethodInfoCache.g_Designator_Map.Equals(i.Value)))
                     {
                         VMF_Harmony.Instance.Patch(method, null, null, transpiler);
                     }
@@ -54,7 +53,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 var method2 = AccessTools.Method(type, "CanDesignateThing");
                 if (method2 != null && method2.IsDeclaredMember())
                 {
-                    if (PatchProcessor.ReadMethodBody(method2).Any(i => CachedMethodInfo.g_Designator_Map.Equals(i.Value)))
+                    if (PatchProcessor.ReadMethodBody(method2).Any(i => MethodInfoCache.g_Designator_Map.Equals(i.Value)))
                     {
                         VMF_Harmony.Instance.Patch(method2, null, null, transpiler);
                     }
@@ -66,17 +65,17 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             foreach (var instruction in instructions)
             {
-                if (instruction.Calls(CachedMethodInfo.g_Designator_Map))
+                if (instruction.Calls(MethodInfoCache.g_Designator_Map))
                 {
                     var label = generator.DefineLabel();
                     yield return new CodeInstruction(OpCodes.Pop);
                     yield return CodeInstruction.LoadArgument(1);
-                    yield return new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_Thing_MapHeld);
+                    yield return new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Thing_MapHeld);
                     yield return new CodeInstruction(OpCodes.Dup);
                     yield return new CodeInstruction(OpCodes.Brtrue_S, label);
                     yield return new CodeInstruction(OpCodes.Pop);
                     yield return CodeInstruction.LoadArgument(0);
-                    yield return new CodeInstruction(OpCodes.Call, CachedMethodInfo.g_Designator_Map);
+                    yield return new CodeInstruction(OpCodes.Call, MethodInfoCache.g_Designator_Map);
                     yield return new CodeInstruction(OpCodes.Nop).WithLabels(label);
                 }
                 else
@@ -123,7 +122,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(CachedMethodInfo.g_Find_CurrentMap, CachedMethodInfo.g_VehicleMapUtility_CurrentMap);
+            return instructions.MethodReplacer(MethodInfoCache.g_Find_CurrentMap, MethodInfoCache.g_VehicleMapUtility_CurrentMap);
         }
     }
 
@@ -161,12 +160,12 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         public static IEnumerable<CodeInstruction> TranspilerCommon(IEnumerable<CodeInstruction> instructions, ILGenerator generator, FieldInfo field)
         {
             var codes = instructions.ToList();
-            var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(CachedMethodInfo.g_Quaternion_identity));
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(MethodInfoCache.g_Quaternion_identity));
             codes.InsertRange(pos, new[]
             {
-                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ToBaseMapCoord1),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_ToBaseMapCoord1),
                 new CodeInstruction(OpCodes.Ldc_R4, AltitudeLayer.MetaOverlays.AltitudeFor()),
-                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_Vector3Utility_WithY)
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_Vector3Utility_WithY)
             });
 
             var label = generator.DefineLabel();
@@ -174,12 +173,12 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             codes[pos2].labels.Add(label);
             codes.InsertRange(pos2, new[]
             {
-                new CodeInstruction(OpCodes.Call, CachedMethodInfo.g_FocusedVehicle),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.g_FocusedVehicle),
                 new CodeInstruction(OpCodes.Brfalse_S, label),
-                new CodeInstruction(OpCodes.Call, CachedMethodInfo.g_FocusedVehicle),
-                new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_FullRotation),
-                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_Rot8_AsQuat),
-                new CodeInstruction(OpCodes.Call, CachedMethodInfo.o_Quaternion_Multiply),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.g_FocusedVehicle),
+                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_FullRotation),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_Rot8_AsQuat),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.o_Quaternion_Multiply),
             });
             return codes;
         }
@@ -212,7 +211,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap);
+            return instructions.MethodReplacer(MethodInfoCache.g_LocalTargetInfo_Cell, MethodInfoCache.m_CellOnBaseMap);
         }
     }
 
@@ -231,12 +230,12 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             var codes = instructions.ToList();
-            var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(CachedMethodInfo.m_GenDraw_DrawFieldEdges));
-            codes[pos].operand = CachedMethodInfo.m_GenDrawOnVehicle_DrawFieldEdges;
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(MethodInfoCache.m_GenDraw_DrawFieldEdges));
+            codes[pos].operand = MethodInfoCache.m_GenDrawOnVehicle_DrawFieldEdges;
             codes.InsertRange(pos, new[]
             {
                 CodeInstruction.LoadArgument(0),
-                new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_Designator_Map),
+                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Designator_Map),
             });
             return codes;
         }
@@ -254,7 +253,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             code.InsertRange(pos, new[]
             {
                 CodeInstruction.LoadArgument(0),
-                new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_Designator_Map),
+                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Designator_Map),
                 CodeInstruction.LoadLocal(4),
                 CodeInstruction.Call(typeof(Patch_ItemAvailability_ThingsAvailableAnywhere), nameof(Patch_ItemAvailability_ThingsAvailableAnywhere.AddThingList))
             });
@@ -274,7 +273,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
 
             codes[pos].labels.Add(label);
             codes.InsertRange(pos, new[] {
-                new CodeInstruction(OpCodes.Call, CachedMethodInfo.g_FocusedVehicle),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.g_FocusedVehicle),
                 new CodeInstruction(OpCodes.Brfalse_S, label),
                 new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.ToVehicleMapCoord), new Type[]{ typeof(CellRect) }))
             });
@@ -287,7 +286,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(CachedMethodInfo.g_Find_CurrentMap, CachedMethodInfo.g_VehicleMapUtility_CurrentMap);
+            return instructions.MethodReplacer(MethodInfoCache.g_Find_CurrentMap, MethodInfoCache.g_VehicleMapUtility_CurrentMap);
         }
     }
 
@@ -297,22 +296,22 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
         {
             var codes = instructions.ToList();
-            var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(CachedMethodInfo.g_Quaternion_identity));
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(MethodInfoCache.g_Quaternion_identity));
             var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithMap));
             var label = generator.DefineLabel();
 
             codes[pos].labels.Add(label);
             codes.InsertRange(pos, new[] {
                 new CodeInstruction(OpCodes.Ldloca_S, vehicle),
-                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_FocusedOnVehicleMap),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_FocusedOnVehicleMap),
                 new CodeInstruction(OpCodes.Brfalse_S, label),
                 new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ToBaseMapCoord2),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_ToBaseMapCoord2),
                 new CodeInstruction(OpCodes.Ldc_R4, 0f),
                 CodeInstruction.Call(typeof(Vector3Utility), nameof(Vector3Utility.WithY))
             });
 
-            pos = codes.FindIndex(pos, c => c.opcode == OpCodes.Call && c.OperandIs(CachedMethodInfo.g_Quaternion_identity)) + 1;
+            pos = codes.FindIndex(pos, c => c.opcode == OpCodes.Call && c.OperandIs(MethodInfoCache.g_Quaternion_identity)) + 1;
             var label2 = generator.DefineLabel();
             codes[pos].labels.Add(label2);
             codes.InsertRange(pos, new[]
@@ -320,9 +319,9 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 new CodeInstruction(OpCodes.Ldloc_S, vehicle),
                 new CodeInstruction(OpCodes.Brfalse_S, label2),
                 new CodeInstruction(OpCodes.Ldloc_S, vehicle),  
-                new CodeInstruction(OpCodes.Call, CachedMethodInfo.g_FullRotation),
-                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_Rot8_AsQuat),
-                new CodeInstruction(OpCodes.Call, CachedMethodInfo.o_Quaternion_Multiply)
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.g_FullRotation),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_Rot8_AsQuat),
+                new CodeInstruction(OpCodes.Call, MethodInfoCache.o_Quaternion_Multiply)
             });
             return codes;
         }
