@@ -104,7 +104,7 @@ namespace VehicleInteriors
                     {
                         if (vehicle2 != null)
                         {
-                            if (!vehicle2.AllowsGetOff)
+                            if (!vehicle2.AllowExitFor(traverseParms.pawn))
                             {
                                 result = false;
                                 return result;
@@ -148,6 +148,11 @@ namespace VehicleInteriors
                     {
                         if (vehicle != null)
                         {
+                            if (!vehicle.AllowEnterFor(traverseParms.pawn))
+                            {
+                                result = false;
+                                return result;
+                            }
                             foreach (var comp in vehicle.EnterComps.OrderBy(e => e.DistanceSquared(root)))
                             {
                                 IntVec3 cell;
@@ -187,7 +192,7 @@ namespace VehicleInteriors
                     {
                         if (vehicle2 != null)
                         {
-                            if (!vehicle2.AllowsGetOff)
+                            if (!vehicle2.AllowExitFor(traverseParms.pawn))
                             {
                                 result = false;
                                 return result;
@@ -195,6 +200,12 @@ namespace VehicleInteriors
 
                             if (vehicle != null)
                             {
+                                if (!vehicle.AllowEnterFor(traverseParms.pawn))
+                                {
+                                    result = false;
+                                    return result;
+                                }
+
                                 bool CanReach2(IntVec3 cell, IntVec3 cell2, IntVec3 cell3, IntVec3 cell4)
                                 {
                                     return cell2.Standable(departBaseMap) &&

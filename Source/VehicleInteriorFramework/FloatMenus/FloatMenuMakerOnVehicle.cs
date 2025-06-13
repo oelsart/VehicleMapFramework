@@ -194,34 +194,13 @@ namespace VehicleInteriors
                 {
                     return new FloatMenuOption("CannotGoOutOfRange".Translate() + ": " + "OutOfCommandRange".Translate(), null, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0);
                 }
-                bool allowsGetOff = false;
-                pawn.IsOnVehicleMapOf(out var vehicle3);
-                if (vehicle3 != null)
-                {
-                    allowsGetOff = vehicle3.AllowsGetOff;
-                    vehicle3.AllowsGetOff = true;
-                }
-                var canReach = pawn.CanReach(curLoc, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, map, out var dest1, out var dest2);
-                if (vehicle3 != null)
-                {
-                    vehicle3.AllowsGetOff = allowsGetOff;
-                }
-                if (!canReach)
+                if (!pawn.CanReach(curLoc, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, map, out var dest1, out var dest2))
                 {
                     return new FloatMenuOption("CannotGoNoPath".Translate(), null, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0);
                 }
                 void action()
                 {
-                    if (vehicle3 != null)
-                    {
-                        allowsGetOff = vehicle3.AllowsGetOff;
-                        vehicle3.AllowsGetOff = true;
-                    }
                     var cell = ReachabilityUtilityOnVehicle.BestOrderedGotoDestNear(curLoc, pawn, (IntVec3 c) => c.InBounds(map), map, out dest1, out dest2);
-                    if (vehicle3 != null)
-                    {
-                        vehicle3.AllowsGetOff = allowsGetOff;
-                    }
                     FloatMenuMakerOnVehicle.PawnGotoAction(clickCell, pawn, map, dest1, dest2, cell);
                 }
                 return new FloatMenuOption("GoHere".Translate(), action, MenuOptionPriority.GoHere, null, null, 0f, null, null, true, 0)
