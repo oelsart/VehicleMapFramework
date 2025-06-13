@@ -964,7 +964,7 @@ namespace VehicleInteriors
                         {
                             StoreAcrossMapsUtility.TryFindBestBetterStoreCellForIn(list[0], actor, StoragePriority.Unstored, actor.Faction, curJob.bill.GetSlotGroup(), out foundCell, true, out exitSpot, out enterSpot);
                         }
-                        else if (!ModCompat.TakeItToStorage.Active || !ModCompat.TakeItToStorage.FindCell(actor, list, ref foundCell))
+                        else if (!ModCompat.TakeItToStorage.Active || ModCompat.TakeItToStorage.FindCell == null || !ModCompat.TakeItToStorage.FindCell(actor, list, ref foundCell))
                         {
                             Log.ErrorOnce("Unknown store mode", 9158246);
                         }

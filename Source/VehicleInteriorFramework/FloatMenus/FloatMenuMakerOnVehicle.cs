@@ -2292,11 +2292,11 @@ namespace VehicleInteriors
 				}
 			}
 			FloatMenuMakerOnVehicle.cachedThings.Clear();
-            if (MeleeAnimation.Active)
+            if (MeleeAnimation.Active && MeleeAnimation.GenerateAMMenuOptions != null)
             {
                 opts.AddRange(MeleeAnimation.GenerateAMMenuOptions(clickPos, pawn));
             }
-            if (CombatExtended.Active)
+            if (CombatExtended.Active && CombatExtended.AddMenuItems != null)
             {
                 CombatExtended.AddMenuItems(clickPos, pawn, opts, thingList);
             }
@@ -2399,18 +2399,14 @@ namespace VehicleInteriors
 				}
             }
 
-            if (ModsConfig.IsActive("Orpheusly.PawnStorages"))
+            if (PawnStorages.Active && PawnStorages.MutantOrdersPatch != null)
             {
-                if (PawnStorages_MutantOrdersPatch == null)
-                {
-                    PawnStorages_MutantOrdersPatch = AccessTools.MethodDelegate<Action<Vector3, Pawn, List<FloatMenuOption>>>(AccessTools.Method("PawnStorages.MutantOrdersPatch:Postfix"));
-                }
                 var pawnMap = pawn.Map;
                 var flag = pawnMap != map;
                 try
                 {
                     if (flag) pawn.VirtualMapTransfer(map);
-                    PawnStorages_MutantOrdersPatch(clickPos2, pawn, opts);
+                    PawnStorages.MutantOrdersPatch(clickPos2, pawn, opts);
                 }
                 finally
                 {
@@ -2418,8 +2414,6 @@ namespace VehicleInteriors
                 }
             }
         }
-
-        private static Action<Vector3, Pawn, List<FloatMenuOption>> PawnStorages_MutantOrdersPatch;
 
         private static void AddJobGiverWorkOrders(Vector3 clickPos, Pawn pawn, List<FloatMenuOption> opts, bool drafted)
         {

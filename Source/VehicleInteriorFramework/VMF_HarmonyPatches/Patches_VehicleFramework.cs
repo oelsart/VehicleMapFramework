@@ -848,6 +848,8 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                     Widgets.DrawHighlight(rect);
                 }
                 Widgets.ListSeparator(ref curY, viewRect.width, mapVehicle.LabelCap + "VMF_VehicleMap".Translate());
+
+                if (DoRow == null) return;
                 foreach (var pawn in pawns)
                 {
                     if (DoRow(curY, viewRect, scrollPos, pawn, ref moreDetailsForPawn, true))
