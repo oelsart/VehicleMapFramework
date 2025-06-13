@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection.Emit;
 using UnityEngine;
 using Verse;
+using static VehicleInteriors.MethodInfoCache;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
 {
@@ -33,7 +34,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             {
                 CodeInstruction.LoadLocal(1),
                 new CodeInstruction(OpCodes.Ldloca_S, vehicle),
-                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_IsNonFocusedVehicleMapOf),
+                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsNonFocusedVehicleMapOf),
                 new CodeInstruction(OpCodes.Brtrue_S, label)
             });
             return codes;
@@ -56,7 +57,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             var codes = instructions.ToList();
             var pos = codes.FindIndex(c => c.opcode == OpCodes.Ldc_R4 && (float)c.operand == 0f);
 
-            codes.Replace(codes[pos], new CodeInstruction(OpCodes.Call, MethodInfoCache.m_PrintExtraRotation));
+            codes.Replace(codes[pos], new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_PrintExtraRotation));
             codes.Insert(pos, CodeInstruction.LoadArgument(0));
             return codes;
         }
@@ -79,7 +80,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             {
                 CodeInstruction.LoadArgument(0),
                 new CodeInstruction(OpCodes.Ldloca_S, vehicle),
-                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_IsOnNonFocusedVehicleMapOf),
+                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf),
                 new CodeInstruction(OpCodes.Brfalse_S, label),
                 new CodeInstruction(OpCodes.Ldc_R4, VehicleMapUtility.altitudeOffsetFull),
                 new CodeInstruction(OpCodes.Add)

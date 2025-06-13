@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Reflection.Emit;
 using Verse;
+using static VehicleInteriors.MethodInfoCache;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
 {
@@ -29,7 +30,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 yield return instruction;
                 if (instruction.opcode == OpCodes.Ldfld && instruction.OperandIs(f_map))
                 {
-                    yield return new CodeInstruction(OpCodes.Call, MethodInfoCache.m_BaseMap_Map);
+                    yield return new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMap_Map);
                 }
             }
         }

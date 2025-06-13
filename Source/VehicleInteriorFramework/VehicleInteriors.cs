@@ -99,6 +99,7 @@ namespace VehicleInteriors
             base.WriteSettings();
             VMF_PUAHMod.mod.WriteSettings();
 
+            MethodInfoCache.CachedMethodInfo = new MethodInfoCache();
             var m_Roofed = AccessTools.Method(typeof(RoofGrid), nameof(RoofGrid.Roofed), new Type[] { typeof(IntVec3) });
             if (VMF_Harmony.Instance.GetPatchedMethods().Contains(m_Roofed))
             {
@@ -139,6 +140,7 @@ namespace VehicleInteriors
             {
                 VMF_CompatibilityPatchMod.ApplyPatches();
             }
+            MethodInfoCache.CachedMethodInfo = null;
         }
 
         public override string SettingsCategory()

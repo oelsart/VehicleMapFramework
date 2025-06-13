@@ -9,6 +9,7 @@ using System.Reflection.Emit;
 using UnityEngine;
 using Verse;
 using Verse.AI;
+using static VehicleInteriors.MethodInfoCache;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
 {
@@ -630,7 +631,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(MethodInfoCache.g_Thing_PositionHeld, MethodInfoCache.m_PositionHeldOnBaseMap);
+            return instructions.MethodReplacer(CachedMethodInfo.g_Thing_PositionHeld, CachedMethodInfo.m_PositionHeldOnBaseMap);
         }
     }
 
@@ -693,11 +694,11 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             var codes = instructions.ToList();
 
-            var pos = codes.FindIndex(c => c.opcode == OpCodes.Callvirt && c.OperandIs(MethodInfoCache.g_Thing_Map));
-            codes[pos] = new CodeInstruction(OpCodes.Call, MethodInfoCache.m_BaseMap_Thing);
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Callvirt && c.OperandIs(CachedMethodInfo.g_Thing_Map));
+            codes[pos] = new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMap_Thing);
 
             var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Beq_S);
-            codes.Insert(pos2, new CodeInstruction(OpCodes.Call, MethodInfoCache.m_BaseMap_Map));
+            codes.Insert(pos2, new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMap_Map));
             return codes;
         }
     }
@@ -766,12 +767,12 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             //!building_Bed.Position.IsInPrisonCell(building_Bed.Map)があるので置き換えるのは最初のMapのみ
-            var code = instructions.FirstOrDefault(i => i.opcode == OpCodes.Callvirt && i.OperandIs(MethodInfoCache.g_Thing_Map));
+            var code = instructions.FirstOrDefault(i => i.opcode == OpCodes.Callvirt && i.OperandIs(CachedMethodInfo.g_Thing_Map));
             if (code != null)
             {
-                code.operand = MethodInfoCache.m_BaseMap_Thing;
+                code.operand = CachedMethodInfo.m_BaseMap_Thing;
             }
-            return instructions.MethodReplacer(MethodInfoCache.g_Thing_MapHeld, MethodInfoCache.m_MapHeldBaseMap);
+            return instructions.MethodReplacer(CachedMethodInfo.g_Thing_MapHeld, CachedMethodInfo.m_MapHeldBaseMap);
         }
     }
 
@@ -780,8 +781,8 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(MethodInfoCache.g_Thing_MapHeld, MethodInfoCache.m_MapHeldBaseMap)
-                .MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing);
+            return instructions.MethodReplacer(CachedMethodInfo.g_Thing_MapHeld, CachedMethodInfo.m_MapHeldBaseMap)
+                .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
         }
     }
 
@@ -790,8 +791,8 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(MethodInfoCache.g_Thing_MapHeld, MethodInfoCache.m_MapHeldBaseMap)
-                .MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing);
+            return instructions.MethodReplacer(CachedMethodInfo.g_Thing_MapHeld, CachedMethodInfo.m_MapHeldBaseMap)
+                .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
         }
     }
 
@@ -801,7 +802,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         [HarmonyPatch(typeof(ForbidUtility), nameof(ForbidUtility.IsForbidden), typeof(Thing), typeof(Pawn))]
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(MethodInfoCache.g_Thing_PositionHeld, MethodInfoCache.m_PositionHeldOnBaseMap);
+            return instructions.MethodReplacer(CachedMethodInfo.g_Thing_PositionHeld, CachedMethodInfo.m_PositionHeldOnBaseMap);
         }
 
         [HarmonyPatch(typeof(ForbidUtility), nameof(ForbidUtility.IsForbidden), typeof(IntVec3), typeof(Pawn))]
@@ -825,8 +826,8 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(MethodInfoCache.g_LocalTargetInfo_Cell, MethodInfoCache.m_CellOnBaseMap)
-                .MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap);
+            return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap)
+                .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
         }
     }
 
@@ -848,10 +849,10 @@ namespace VehicleInteriors.VMF_HarmonyPatches
 
             return codes.Select((c, i) =>
             {
-                if (c.opcode == OpCodes.Callvirt && c.OperandIs(MethodInfoCache.g_Thing_Map))
+                if (c.opcode == OpCodes.Callvirt && c.OperandIs(CachedMethodInfo.g_Thing_Map))
                 {
                     codes[i - 1].opcode = OpCodes.Ldloc_1;
-                    c.operand = MethodInfoCache.g_Thing_MapHeld;
+                    c.operand = CachedMethodInfo.g_Thing_MapHeld;
                 }
                 return c;
             });
@@ -971,7 +972,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             var codes = instructions.ToList();
-            var pos = codes.FindIndex(c => c.Calls(MethodInfoCache.g_Thing_Map));
+            var pos = codes.FindIndex(c => c.Calls(CachedMethodInfo.g_Thing_Map));
             codes.InsertRange(pos, new[]
             {
                 new CodeInstruction(OpCodes.Pop),
@@ -994,7 +995,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
 
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap);
+            return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
         }
     }
 
@@ -1010,7 +1011,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             foreach (var instruction in instructions)
             {
-                if (instruction.Calls(MethodInfoCache.g_Thing_Map))
+                if (instruction.Calls(CachedMethodInfo.g_Thing_Map))
                 {
                     yield return CodeInstruction.LoadLocal(0);
                     yield return CodeInstruction.Call(typeof(Patch_JobDriver_Mine_MakeNewToils_Delegate), nameof(Patch_JobDriver_Mine_MakeNewToils_Delegate.TargetMap));

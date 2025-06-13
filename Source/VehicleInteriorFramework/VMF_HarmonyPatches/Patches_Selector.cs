@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection.Emit;
 using UnityEngine;
 using Verse;
+using static VehicleInteriors.MethodInfoCache;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
 {
@@ -78,8 +79,8 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
         {
-            var codes = instructions.MethodReplacer(MethodInfoCache.g_Thing_MapHeld, MethodInfoCache.m_MapHeldBaseMap)
-                .MethodReplacer(MethodInfoCache.g_Zone_Map, MethodInfoCache.m_BaseMap_Zone).ToList();
+            var codes = instructions.MethodReplacer(CachedMethodInfo.g_Thing_MapHeld, CachedMethodInfo.m_MapHeldBaseMap)
+                .MethodReplacer(CachedMethodInfo.g_Zone_Map, CachedMethodInfo.m_BaseMap_Zone).ToList();
             var g_Zone_Cells = AccessTools.PropertyGetter(typeof(Zone), nameof(Zone.Cells));
             var pos = codes.FindIndex(c => c.opcode == OpCodes.Callvirt && c.OperandIs(g_Zone_Cells));
             pos = codes.FindIndex(pos, c => c.opcode == OpCodes.Br_S);
@@ -91,12 +92,12 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             {
                 CodeInstruction.LoadArgument(1),
                 new CodeInstruction(OpCodes.Castclass, typeof(Zone)),
-                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Zone_Map),
+                new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_Zone_Map),
                 new CodeInstruction(OpCodes.Ldloca_S, vehicle),
-                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_IsVehicleMapOf),
+                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsVehicleMapOf),
                 new CodeInstruction(OpCodes.Brfalse_S, label),
                 new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_ToBaseMapCoord2)
+                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ToBaseMapCoord2)
             });
 
             var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalIndex == 6);
@@ -107,10 +108,10 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             {
                 CodeInstruction.LoadLocal(0),
                 new CodeInstruction(OpCodes.Ldloca_S, vehicle2),
-                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_IsOnNonFocusedVehicleMapOf),
+                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf),
                 new CodeInstruction(OpCodes.Brfalse_S, label2),
                 new CodeInstruction(OpCodes.Ldloc_S, vehicle2),
-                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_ToBaseMapCoord2)
+                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ToBaseMapCoord2)
             });
             return codes;
         }
