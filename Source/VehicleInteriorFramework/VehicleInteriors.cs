@@ -140,7 +140,7 @@ namespace VehicleInteriors
             {
                 VMF_CompatibilityPatchMod.ApplyPatches();
             }
-            //MethodInfoCache.CachedMethodInfo = null;
+            MethodInfoCache.CachedMethodInfo = null;
         }
 
         public override string SettingsCategory()
