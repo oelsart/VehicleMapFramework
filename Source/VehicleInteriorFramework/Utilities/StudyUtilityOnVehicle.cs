@@ -106,7 +106,7 @@ namespace VehicleInteriors
             {
                 var baseMap = entity.MapHeldBaseMap();
                 var buildings = baseMap.listerBuildings.AllBuildingsColonistOfGroup(ThingRequestGroup.EntityHolder)
-                .Concat(VehiclePawnWithMapCache.AllVehiclesOn(baseMap).Where(v => v.AllowHaulOut).SelectMany(v => v.VehicleMap.listerBuildings.AllBuildingsColonistOfGroup(ThingRequestGroup.EntityHolder)));
+                .Concat(VehiclePawnWithMapCache.AllVehiclesOn(baseMap).Where(v => v.AllowsHaulOut).SelectMany(v => v.VehicleMap.listerBuildings.AllBuildingsColonistOfGroup(ThingRequestGroup.EntityHolder)));
                 foreach (Building building in buildings)
                 {
                     if (ValidateTarget(building) && (carrier == null || CanReserveForTransfer(building)))

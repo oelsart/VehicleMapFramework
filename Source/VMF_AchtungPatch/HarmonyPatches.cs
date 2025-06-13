@@ -78,47 +78,62 @@ namespace VMF_AchtungPatch
             TargetMapManager.TargetMap[colonist.pawn] = destMap;
             tmpExitSpot = TargetInfo.Invalid;
             tmpEnterSpot = TargetInfo.Invalid;
-
-            if (AchtungLoader.IsSameSpotInstalled)
+            var allowsGetOff = false;
+            if (colonist.pawn.IsOnVehicleMapOf(out var vehicle2))
             {
-                if (destCell.Standable(destMap) && colonist.pawn.CanReach(destCell, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, destMap, out tmpExitSpot, out tmpEnterSpot))
+                allowsGetOff = vehicle2.AllowsGetOff;
+                vehicle2.AllowsGetOff = true;
+            }
+            try
+            {
+                if (AchtungLoader.IsSameSpotInstalled)
                 {
-                    colonist.designation = destCell;
-                    tmpDestMaps[destCell] = destMap;
-                    return destCell;
+                    if (destCell.Standable(destMap) && colonist.pawn.CanReach(destCell, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, destMap, out tmpExitSpot, out tmpEnterSpot))
+                    {
+                        colonist.designation = destCell;
+                        tmpDestMaps[destCell] = destMap;
+                        return destCell;
+                    }
+                }
+
+                var bestCell = IntVec3.Invalid;
+                if (ModsConfig.BiotechActive && colonist.pawn.IsColonyMech && MechanitorUtility.InMechanitorCommandRange(colonist.pawn, destCellOnBaseMap) == false)
+                {
+                    var overseer = colonist.pawn.GetOverseer();
+                    var map = overseer.MapHeld;
+                    if (map.BaseMap() == colonist.pawn.MapHeldBaseMap())
+                    {
+                        var mechanitor = overseer.mechanitor;
+                        foreach (var newPos in GenRadial.RadialCellsAround(destCell, 20f, false))
+                            if (mechanitor.CanCommandTo(newPos))
+                                if (destMap.pawnDestinationReservationManager.CanReserve(newPos, colonist.pawn, true)
+                                    && newPos.Standable(destMap)
+                                    && colonist.pawn.CanReach(newPos, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, destMap, out tmpExitSpot, out tmpEnterSpot)
+                                )
+                                {
+                                    bestCell = newPos;
+                                    tmpDestMaps[newPos] = destMap;
+                                    break;
+                                }
+                    }
+                }
+                else
+                    bestCell = ReachabilityUtilityOnVehicle.BestOrderedGotoDestNear(destCell, colonist.pawn, null, destMap, out tmpExitSpot, out tmpEnterSpot);
+                if (bestCell.InBounds(destMap))
+                {
+                    colonist.designation = bestCell;
+                    tmpDestMaps[bestCell] = destMap;
+                    return bestCell;
+                }
+                return IntVec3.Invalid;
+            }
+            finally
+            {
+                if (vehicle2 != null)
+                {
+                    vehicle2.AllowsGetOff = allowsGetOff;
                 }
             }
-
-            var bestCell = IntVec3.Invalid;
-            if (ModsConfig.BiotechActive && colonist.pawn.IsColonyMech && MechanitorUtility.InMechanitorCommandRange(colonist.pawn, destCellOnBaseMap) == false)
-            {
-                var overseer = colonist.pawn.GetOverseer();
-                var map = overseer.MapHeld;
-                if (map.BaseMap() == colonist.pawn.MapHeldBaseMap())
-                {
-                    var mechanitor = overseer.mechanitor;
-                    foreach (var newPos in GenRadial.RadialCellsAround(destCell, 20f, false))
-                        if (mechanitor.CanCommandTo(newPos))
-                            if (destMap.pawnDestinationReservationManager.CanReserve(newPos, colonist.pawn, true)
-                                && newPos.Standable(destMap)
-                                && colonist.pawn.CanReach(newPos, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, destMap, out tmpExitSpot, out tmpEnterSpot)
-                            )
-                            {
-                                bestCell = newPos;
-                                tmpDestMaps[newPos] = destMap;
-                                break;
-                            }
-                }
-            }
-            else
-                bestCell = ReachabilityUtilityOnVehicle.BestOrderedGotoDestNear(destCell, colonist.pawn, null, destMap, out tmpExitSpot, out tmpEnterSpot);
-            if (bestCell.InBounds(destMap))
-            {
-                colonist.designation = bestCell;
-                tmpDestMaps[bestCell] = destMap;
-                return bestCell;
-            }
-            return IntVec3.Invalid;
         }
 
         public static TargetInfo tmpExitSpot;

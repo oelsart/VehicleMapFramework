@@ -18,42 +18,38 @@ namespace VehicleInteriors
     {
         public Map VehicleMap => this.interiorMap;
 
-        public bool AllowHaulIn {
+        public bool AllowsHaulIn {
             get
             {
-                return this.allowHaulIn;
+                return this.allowsHaulIn;
             }
             set
             {
-                this.allowHaulIn = value;
+                this.allowsHaulIn = value;
             }
         }
 
-        public bool AllowHaulOut
+        public bool AllowsHaulOut
         {
             get
             {
-                return this.allowHaulOut;
+                return this.allowsHaulOut;
             }
             set
             {
-                this.allowHaulOut = value;
+                this.allowsHaulOut = value;
             }
         }
 
-        public bool AllowEnter
+        public bool AllowsGetOff
         {
             get
             {
-                return this.allowEnter;
+                return this.allowsGetOff;
             }
-        }
-
-        public bool AllowExit
-        {
-            get
+            set
             {
-                return this.allowExit;
+                this.allowsGetOff = value;
             }
         }
 
@@ -149,6 +145,24 @@ namespace VehicleInteriors
         {
             foreach (var gizmo in base.GetGizmos()) yield return gizmo;
 
+            yield return new Command_Toggle()
+            {
+                isActive = () => this.allowsHaulIn,
+                toggleAction = () => this.allowsHaulIn = !this.allowsHaulIn,
+                defaultLabel = "VMF_AllowsHaulIn".Translate(),
+                defaultDesc = "VMF_AllowsHaulInDesc".Translate(),
+                icon = VehiclePawnWithMap.iconAllowsHaulIn,
+            };
+
+            yield return new Command_Toggle()
+            {
+                isActive = () => this.allowsHaulOut,
+                toggleAction = () => this.allowsHaulOut = !this.allowsHaulOut,
+                defaultLabel = "VMF_AllowsHaulOut".Translate(),
+                defaultDesc = "VMF_AllowsHaulOutDesc".Translate(),
+                icon = VehiclePawnWithMap.iconAllowsHaulOut,
+            };
+
             yield return new Command_Action()
             {
                 action = () =>
@@ -164,7 +178,7 @@ namespace VehicleInteriors
                 },
                 defaultLabel = "VMF_IncreasePriority".Translate(),
                 defaultDesc = "VMF_IncreasePriorityDesc".Translate(),
-                icon = iconIncreasePriority,
+                icon = VehiclePawnWithMap.iconIncreasePriority,
             };
 
             yield return new Command_Action()
@@ -181,43 +195,16 @@ namespace VehicleInteriors
                 },
                 defaultLabel = "VMF_DecreasePriority".Translate(),
                 defaultDesc = "VMF_DecreasePriorityDesc".Translate(),
-                icon = iconDecreasePriority,
+                icon = VehiclePawnWithMap.iconDecreasePriority,
             };
 
             yield return new Command_Toggle()
             {
-                isActive = () => this.allowHaulIn,
-                toggleAction = () => this.allowHaulIn = !this.allowHaulIn,
-                defaultLabel = "VMF_AllowsHaulIn".Translate(),
-                defaultDesc = "VMF_AllowsHaulInDesc".Translate(),
-                icon = iconAllowHaulIn,
-            };
-
-            yield return new Command_Toggle()
-            {
-                isActive = () => this.allowHaulOut,
-                toggleAction = () => this.allowHaulOut = !this.allowHaulOut,
-                defaultLabel = "VMF_AllowsHaulOut".Translate(),
-                defaultDesc = "VMF_AllowsHaulOutDesc".Translate(),
-                icon = iconAllowHaulOut,
-            };
-
-            yield return new Command_Toggle()
-            {
-                isActive = () => this.allowEnter,
-                toggleAction = () => this.allowEnter = !this.allowEnter,
-                defaultLabel = "VMF_AllowEnter".Translate(),
-                defaultDesc = "VMF_AllowEnterDesc".Translate(),
-                icon = iconAllowEnter,
-            };
-
-            yield return new Command_Toggle()
-            {
-                isActive = () => this.allowExit,
-                toggleAction = () => this.allowExit = !this.allowExit,
+                isActive = () => this.allowsGetOff,
+                toggleAction = () => this.allowsGetOff = !this.allowsGetOff,
                 defaultLabel = "VMF_AllowsGetOff".Translate(),
                 defaultDesc = "VMF_AllowsGetOffDesc".Translate(),
-                icon = iconAllowExit,
+                icon = VehiclePawnWithMap.iconAllowsGetOff,
             };
 
             if (DebugSettings.ShowDevGizmos)
@@ -612,24 +599,13 @@ namespace VehicleInteriors
             return str;
         }
 
-        public virtual bool AllowEnterFor(Pawn pawn)
-        {
-            return AllowEnter || (pawn?.HostileTo(Faction.OfPlayer) ?? true) || pawn.Drafted;
-        }
-
-        public virtual bool AllowExitFor(Pawn pawn)
-        {
-            return AllowExit || (pawn?.HostileTo(Faction.OfPlayer) ?? true) || pawn.Drafted;
-        }
-
         public override void ExposeData()
         {
             base.ExposeData();
             Scribe_References.Look(ref this.interiorMap, "interiorMap");
-            Scribe_Values.Look(ref this.allowHaulIn, "allowsHaulIn");
-            Scribe_Values.Look(ref this.allowHaulOut, "allowsHaulOut");
-            Scribe_Values.Look(ref this.allowEnter, "allowEnter");
-            Scribe_Values.Look(ref this.allowExit, "autoGetOff");
+            Scribe_Values.Look(ref this.allowsHaulIn, "allowsHaulIn");
+            Scribe_Values.Look(ref this.allowsHaulOut, "allowsHaulOut");
+            Scribe_Values.Look(ref this.allowsGetOff, "autoGetOff");
         }
 
         protected override void PostLoad()
@@ -661,13 +637,11 @@ namespace VehicleInteriors
         
         private readonly List<CompVehicleEnterSpot> enterCompsInt = new List<CompVehicleEnterSpot>();
 
-        private bool allowHaulIn = true;
+        private bool allowsHaulIn = true;
 
-        private bool allowHaulOut = true;
+        private bool allowsHaulOut = true;
 
-        private bool allowEnter = true;
-
-        private bool allowExit = true;
+        private bool allowsGetOff = true;
 
         private HashSet<IntVec3> structureCellsCache;
 
@@ -683,17 +657,15 @@ namespace VehicleInteriors
 
         private static readonly Material ClipMat = SolidColorMaterials.NewSolidColorMaterial(new Color(0.3f, 0.1f, 0.1f, 0.5f), ShaderDatabase.MetaOverlay);
 
-        private static readonly Texture2D iconAllowHaulIn = ContentFinder<Texture2D>.Get("VehicleInteriors/UI/AllowHaulIn");
+        private static readonly Texture2D iconAllowsHaulIn = ContentFinder<Texture2D>.Get("VehicleInteriors/UI/AllowsHaulIn");
 
-        private static readonly Texture2D iconAllowHaulOut = ContentFinder<Texture2D>.Get("VehicleInteriors/UI/AllowHaulOut");
+        private static readonly Texture2D iconAllowsHaulOut = ContentFinder<Texture2D>.Get("VehicleInteriors/UI/AllowsHaulOut");
 
         private static readonly Texture2D iconIncreasePriority = ContentFinder<Texture2D>.Get("VehicleInteriors/UI/IncreasePriority");
 
         private static readonly Texture2D iconDecreasePriority = ContentFinder<Texture2D>.Get("VehicleInteriors/UI/DecreasePriority");
 
-        private static readonly Texture2D iconAllowEnter = ContentFinder<Texture2D>.Get("VehicleInteriors/UI/AllowEnter");
-
-        private static readonly Texture2D iconAllowExit = ContentFinder<Texture2D>.Get("VehicleInteriors/UI/AllowExit");
+        private static readonly Texture2D iconAllowsGetOff = ContentFinder<Texture2D>.Get("VehicleInteriors/UI/AllowsGetOff");
 
         private static readonly Type t_SectionLayer_Zones = AccessTools.TypeByName("Verse.SectionLayer_Zones");
 
