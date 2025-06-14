@@ -7,4 +7,22 @@
 	<VMF_WirelessReceiver.label>無線電力接收器</VMF_WirelessReceiver.label>
 	<VMF_WirelessReceiver.description>從基地地圖接收電力的裝置。安裝在載具地圖上，對準發射器的位置就能接收電力。</VMF_WirelessReceiver.description>
 
+	<VMF_Alternator.label>發電機</VMF_Alternator.label>
+	<VMF_Alternator.description>使用載具燃料產生電力的組件。</VMF_Alternator.description>
+
+	<VMF_PipeConnector.label>管道連接器</VMF_PipeConnector.label>
+	<VMF_PipeConnector.description>連接基地地圖和載具地圖管道系統的連接器。\n放在基地地圖和載具地圖上，兩者位置對齊就能連接。</VMF_PipeConnector.description>
+
+	<VMF_Turret_ZiplineTurret.label>滑索發射器</VMF_Turret_ZiplineTurret.label>
+	<VMF_Turret_ZiplineTurret.description>向目標位置發射滑索的裝置。用於在不同載具地圖之間直接移動。</VMF_Turret_ZiplineTurret.description>
+
+	<VMF_Gun_ZiplineTurret.label>滑索發射砲</VMF_Gun_ZiplineTurret.label>
+	<VMF_Gun_ZiplineTurret.description>安裝在滑索發射器上的發射裝置。</VMF_Gun_ZiplineTurret.description>
+
+	<VMF_Bullet_ZiplineTurret.label>滑索發射物</VMF_Bullet_ZiplineTurret.label>
+	
+	<VMF_Bullet_ZiplineTurretReturn.label>滑索發射物</VMF_Bullet_ZiplineTurretReturn.label>
+
+	<VMF_ZiplineEnd.label>滑索端點</VMF_ZiplineEnd.label>
+
 </LanguageData>

@@ -22,4 +22,7 @@
     <VMF_LiftFan.label>升力扇</VMF_LiftFan.label>
     <VMF_LiftFan.description>增加載具最大承載重量的升力扇。僅能安裝在懸浮載具上。\n\n&lt;color=#bb8f04&gt;最大承載:&lt;/color&gt; +150 公斤</VMF_LiftFan.description>
 
+    <VMF_FuelTank.label>燃料箱</VMF_FuelTank.label>
+    <VMF_FuelTank.description>增加載具燃料容量的額外油箱。\n\n&lt;color=#bb8f04&gt;燃料容量:&lt;/color&gt; +300</VMF_FuelTank.description>
+
 </LanguageData>
