@@ -26,7 +26,7 @@ namespace VehicleInteriors
             {
                 if (bundleInt == null)
                 {
-                    bundleInt = AssetBundle.LoadFromFile($@"{VehicleInteriors.mod.Content.RootDir}\Common\AssetBundles\{PlatformInfo}");
+                    bundleInt = AssetBundle.LoadFromFile($@"{VehicleInteriors.mod.Content.RootDir}\1.5\AssetBundles\{PlatformInfo}");
                 }
                 return bundleInt;
             }
