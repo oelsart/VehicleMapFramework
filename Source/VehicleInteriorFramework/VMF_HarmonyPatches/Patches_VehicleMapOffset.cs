@@ -55,7 +55,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatch(typeof(Vehicle_DrawTracker), nameof(Vehicle_DrawTracker.DrawPos), MethodType.Getter)]
+    [HarmonyPatch(typeof(VehicleDrawTracker), nameof(VehicleDrawTracker.DrawPos), MethodType.Getter)]
     public static class Patch_VehiclePawn_DrawPos
     {
         public static bool Prefix(VehiclePawn ___vehicle, ref Vector3 __result, out bool __state)

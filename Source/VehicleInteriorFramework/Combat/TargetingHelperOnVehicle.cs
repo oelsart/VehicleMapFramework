@@ -12,26 +12,6 @@ namespace VehicleInteriors
     public static class TargetingHelperOnVehicle
     {
         /// <summary>
-		/// Find best attack target for VehicleTurret
-		/// </summary>
-		/// <seealso cref="BestAttackTarget(VehicleTurret, TargetScanFlags, Predicate{Thing}, float, float, IntVec3, float, bool, bool)"/>
-		public static bool TryGetTarget(this VehicleTurret turret, out LocalTargetInfo targetInfo, TargetingParameters param = null)
-        {
-            targetInfo = LocalTargetInfo.Invalid;
-            TargetScanFlags targetScanFlags = turret.turretDef.targetScanFlags;
-            Thing thing = (Thing)BestAttackTarget(turret, targetScanFlags, delegate (Thing t)
-            {
-                return TurretTargeter.TargetMeetsRequirements(turret, t);
-            }, canTakeTargetsCloserThanEffectiveMinRange: false);
-            if (thing != null)
-            {
-                targetInfo = new LocalTargetInfo(thing);
-                return true;
-            }
-            return false;
-        }
-
-        /// <summary>
         /// Best attack target for VehicleTurret
         /// </summary>
         public static IAttackTarget BestAttackTarget(VehicleTurret turret, TargetScanFlags flags, Predicate<Thing> validator = null, float minDist = 0f, float maxDist = 9999f, IntVec3 locus = default(IntVec3), float maxTravelRadiusFromLocus = 3.4028235E+38f, bool canBash = false, bool canTakeTargetsCloserThanEffectiveMinRange = true)
@@ -147,8 +127,8 @@ namespace VehicleInteriors
             }
 
             List<IAttackTarget> tmpTargets = new List<IAttackTarget>();
-            tmpTargets.AddRange(baseMap.attackTargetsCache.GetPotentialTargetsFor(searcherPawn));
-            tmpTargets.AddRange(VehiclePawnWithMapCache.AllVehiclesOn(baseMap).SelectMany(v => v.VehicleMap.attackTargetsCache.GetPotentialTargetsFor(searcherPawn)));
+            var maps = searcherPawn.Map.BaseMapAndVehicleMaps().Except(searcherPawn.Map);
+            tmpTargets.AddRange(maps.SelectMany(m => m.attackTargetsCache.GetPotentialTargetsFor(searcherPawn)));
 
             bool flag = false;
             for (int i = 0; i < tmpTargets.Count; i++)
@@ -191,7 +171,8 @@ namespace VehicleInteriors
         /// <param name="searcher"></param>
         public static IAttackTarget GetRandomShootingTargetByScore(List<IAttackTarget> targets, VehiclePawn searcher)
         {
-            if (GetAvailableShootingTargetsByScore(targets, searcher).TryRandomElementByWeight((Pair<IAttackTarget, float> x) => x.Second, out Pair<IAttackTarget, float> pair))
+            if (GetAvailableShootingTargetsByScore(targets, searcher).TryRandomElementByWeight(
+                (Pair<IAttackTarget, float> x) => x.Second, out Pair<IAttackTarget, float> pair))
             {
                 return pair.First;
             }

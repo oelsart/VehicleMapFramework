@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
-using System.Threading.Tasks;
 using UnityEngine;
 using Vehicles;
 using Verse;
@@ -159,7 +158,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
         {
             var codes = instructions.ToList();
-            var pos = codes.FindLastIndex(c => c.opcode == OpCodes.Stloc_3);
+            var pos = codes.FindLastIndex(c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalIndex == 4);
             var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithMap));
             var rot = generator.DeclareLocal(typeof(Rot8));
             var label = generator.DefineLabel();
@@ -200,7 +199,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatch(typeof(VehicleHarmonyOnMod), nameof(VehicleHarmonyOnMod.ShaderFromAssetBundle))]
+    [HarmonyPatch(typeof(VehicleHarmonyOnMod), "ShaderFromAssetBundle")]
     [HarmonyPatchCategory("VehicleInteriors.EarlyPatches")]
     public static class Patch_VehicleHarmonyOnMod_ShaderFromAssetBundle
     {
@@ -339,14 +338,20 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatch(typeof(VehicleTurret), "TurretAutoTick")]
-    public static class Patch_VehicleTurret_TurretAutoTick
+    [HarmonyPatch(typeof(TargetingHelper), nameof(TargetingHelper.BestAttackTarget))]
+    public static class Patch_TargetingHelper_BestAttackTarget
     {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        public static void Postfix(VehicleTurret turret, TargetScanFlags flags, Predicate<Thing> validator, float minDist, float maxDist, IntVec3 locus, float maxTravelRadiusFromLocus, bool canTakeTargetsCloserThanEffectiveMinRange, ref IAttackTarget __result)
         {
-            var m_TargetingHelper_TryGetTarget = AccessTools.Method(typeof(TargetingHelper), nameof(TargetingHelper.TryGetTarget));
-            var m_TargetingHelperOnVehicle_TryGetTarget = AccessTools.Method(typeof(TargetingHelperOnVehicle), nameof(TargetingHelperOnVehicle.TryGetTarget));
-            return instructions.MethodReplacer(m_TargetingHelper_TryGetTarget, m_TargetingHelperOnVehicle_TryGetTarget);
+            var searcher = turret.vehicle;
+            var map = searcher.Thing.Map;
+            if (!searcher.IsHashIntervalTick(10) || !map.BaseMapAndVehicleMaps().Except(map).Any()) return;
+
+            var target = TargetingHelperOnVehicle.BestAttackTarget(turret, flags, validator, minDist, maxDist, locus, maxTravelRadiusFromLocus, canTakeTargetsCloserThanEffectiveMinRange);
+            if (__result == null || target != null && (__result.Thing.Position - searcher.Thing.Position).LengthHorizontalSquared > (target.Thing.PositionOnBaseMap() - searcher.Thing.PositionOnBaseMap()).LengthHorizontalSquared)
+            {
+                __result = target;
+            }
         }
     }
 
@@ -451,17 +456,6 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap);
-        }
-    }
-
-    [HarmonyPatch(typeof(TurretTargeter), nameof(TurretTargeter.TargetMeetsRequirements))]
-    public static class Patch_TurretTargeter_TargetMeetsRequirements
-    {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
-            return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-                .MethodReplacer(CachedMethodInfo.m_GenSight_LineOfSightToThing, CachedMethodInfo.m_GenSightOnVehicle_LineOfSightToThingVehicle)
-                .MethodReplacer(CachedMethodInfo.m_GenSight_LineOfSight1, CachedMethodInfo.m_GenSightOnVehicle_LineOfSight1);
         }
     }
 
@@ -697,11 +691,11 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             var codes = instructions.ToList();
-            var pos = codes.FindIndex(c => c.opcode == OpCodes.Ldloc_3) + 1;
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Ldloc_S && ((LocalBuilder)c.operand).LocalIndex == 11) + 1;
 
             codes.InsertRange(pos, new[]
             {
-                CodeInstruction.LoadLocal(5),
+                CodeInstruction.LoadLocal(13),
                 CodeInstruction.Call(typeof(Patch_Dialog_FormVehicleCaravan_CheckForErrors), nameof(TargetThing))
             });
             return codes;
@@ -752,52 +746,53 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     }
 
     //サイズの大きなVehicleの場合はVF本体のスレッド管理を回避しつつ独自にマルチスレッド化
-    [HarmonyPatch]
-    public static class Patch_VehiclePathing_SetRotationAndUpdateVehicleRegionsClipping
-    {
-        private static MethodBase TargetMethod()
-        {
-            return AccessTools.Method("Vehicles.VehiclePathing:SetRotationAndUpdateVehicleRegionsClipping");
-        }
+    //最新版では本体で直ってるからたぶん要らない
+    //[HarmonyPatch]
+    //public static class Patch_VehiclePathing_SetRotationAndUpdateVehicleRegionsClipping
+    //{
+    //    private static MethodBase TargetMethod()
+    //    {
+    //        return AccessTools.Method("Vehicles.VehiclePathing:SetRotationAndUpdateVehicleRegionsClipping");
+    //    }
 
-        public static bool Prefix(ref bool __result, object[] __args, HashSet<IntVec3> ___hitboxUpdateCells)
-        {
-            if (VehicleInteriors.settings.threadingPathCost && __args[0] is VehiclePawnWithMap vehicle && vehicle.Spawned && vehicle.def.size.x * vehicle.def.size.z > VehicleInteriors.settings.minAreaForThreading)
-            {
-                __result = SetRotationAndUpdateVehicleRegionsClipping(vehicle, (Rot4)__args[1], ___hitboxUpdateCells);
-                return false;
-            }
-            return true;
-        }
+    //    public static bool Prefix(ref bool __result, object[] __args, HashSet<IntVec3> ___hitboxUpdateCells)
+    //    {
+    //        if (VehicleInteriors.settings.threadingPathCost && __args[0] is VehiclePawnWithMap vehicle && vehicle.Spawned && vehicle.def.size.x * vehicle.def.size.z > VehicleInteriors.settings.minAreaForThreading)
+    //        {
+    //            __result = SetRotationAndUpdateVehicleRegionsClipping(vehicle, (Rot4)__args[1], ___hitboxUpdateCells);
+    //            return false;
+    //        }
+    //        return true;
+    //    }
 
-        private static bool SetRotationAndUpdateVehicleRegionsClipping(VehiclePawn vehicle, Rot4 value, HashSet<IntVec3> hitboxUpdateCells)
-        {
-            var map = vehicle.Map;
-            if (!vehicle.OccupiedRectShifted(IntVec2.Zero, new Rot4?(value)).InBounds(map))
-            {
-                return false;
-            }
-            hitboxUpdateCells.Clear();
-            hitboxUpdateCells.AddRange(vehicle.OccupiedRectShifted(IntVec2.Zero, new Rot4?(Rot4.East)));
-            hitboxUpdateCells.AddRange(vehicle.OccupiedRectShifted(IntVec2.Zero, new Rot4?(Rot4.North)));
-            var mapping = MapComponentCache<VehicleMapping>.GetComponent(map);
-            var allMoveableVehicleDefs = (List<VehicleDef>)AllMoveableVehicleDefs(null);
-            Parallel.ForEach(hitboxUpdateCells, c =>
-            {
-                foreach (VehicleDef vehicleDef in allMoveableVehicleDefs)
-                {
-                    if (c.InBounds(map))
-                    {
-                        mapping[vehicleDef].VehiclePathGrid.RecalculatePerceivedPathCostAt(c, map.thingGrid.ThingsListAtFast(c));
-                    }
-                }
-            });
-            hitboxUpdateCells.Clear();
-            return true;
-        }
+    //    private static bool SetRotationAndUpdateVehicleRegionsClipping(VehiclePawn vehicle, Rot4 value, HashSet<IntVec3> hitboxUpdateCells)
+    //    {
+    //        var map = vehicle.Map;
+    //        if (!vehicle.OccupiedRectShifted(IntVec2.Zero, new Rot4?(value)).InBounds(map))
+    //        {
+    //            return false;
+    //        }
+    //        hitboxUpdateCells.Clear();
+    //        hitboxUpdateCells.AddRange(vehicle.OccupiedRectShifted(IntVec2.Zero, new Rot4?(Rot4.East)));
+    //        hitboxUpdateCells.AddRange(vehicle.OccupiedRectShifted(IntVec2.Zero, new Rot4?(Rot4.North)));
+    //        var mapping = MapComponentCache<VehicleMapping>.GetComponent(map);
+    //        var allMoveableVehicleDefs = (List<VehicleDef>)AllMoveableVehicleDefs(null);
+    //        Parallel.ForEach(hitboxUpdateCells, c =>
+    //        {
+    //            foreach (VehicleDef vehicleDef in allMoveableVehicleDefs)
+    //            {
+    //                if (c.InBounds(map))
+    //                {
+    //                    mapping[vehicleDef].VehiclePathGrid.RecalculatePerceivedPathCostAt(c);
+    //                }
+    //            }
+    //        });
+    //        hitboxUpdateCells.Clear();
+    //        return true;
+    //    }
 
-        private static FastInvokeHandler AllMoveableVehicleDefs = MethodInvoker.GetHandler(AccessTools.PropertyGetter("Vehicles.VehicleHarmony:AllMoveableVehicleDefs"));
-    }
+    //    private static FastInvokeHandler AllMoveableVehicleDefs = MethodInvoker.GetHandler(AccessTools.PropertyGetter("Vehicles.VehicleHarmony:AllMoveableVehicleDefs"));
+    //}
 
     [HarmonyPatch(typeof(EnterMapUtilityVehicles), nameof(EnterMapUtilityVehicles.EnterAndSpawn))]
     public static class Patch_EnterMapUtilityVehicles_EnterAndSpawn
@@ -837,10 +832,9 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             if (vehicle is VehiclePawnWithMap mapVehicle)
             {
-                GUIState.Push();
                 var draggedPawn = Patch_VehicleTabHelper_Passenger_DrawPassengersFor.draggedPawn();
                 var pawns = mapVehicle.VehicleMap.mapPawns.AllPawnsSpawned;
-                var rect = new Rect(0f, curY, viewRect.width - 48f, 25f + VehicleTabHelper_Passenger.PawnRowHeight * pawns.Count);
+                var rect = new Rect(0f, curY, viewRect.width - 48f, 25f + PawnRowHeight * pawns.Count);
                 if (draggedPawn != null && Mouse.IsOver(rect) && draggedPawn.Map != mapVehicle.VehicleMap)
                 {
                     transferToHolder() = mapVehicle.VehicleMap;
@@ -856,9 +850,8 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                     {
                         hoveringOverPawn() = pawn;
                     }
-                    curY += VehicleTabHelper_Passenger.PawnRowHeight;
+                    curY += PawnRowHeight;
                 }
-                GUIState.Pop();
             }
         }
 
@@ -873,6 +866,8 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         private delegate bool DoRowGetter(float curY, Rect viewRect, Vector2 scrollPos, Pawn pawn, ref Pawn moreDetailsForPawn, bool highlight);
 
         private static DoRowGetter DoRow = AccessTools.MethodDelegate<DoRowGetter>(AccessTools.Method(typeof(VehicleTabHelper_Passenger), "DoRow"));
+
+        private const float PawnRowHeight = 50f;
     }
 
     [HarmonyPatch(typeof(VehicleTabHelper_Passenger), nameof(VehicleTabHelper_Passenger.HandleDragEvent))]

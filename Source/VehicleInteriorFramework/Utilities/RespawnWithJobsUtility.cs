@@ -140,7 +140,7 @@ namespace VehicleInteriors
             cachedMapComponent.ClearReservedFor(vehicle);
             cachedMapComponent.RemoveAllListerFor(vehicle);
             vehicle.cargoToLoad.Clear();
-            vehicle.Map.GetCachedMapComponent<ListerVehiclesRepairable>().Notify_VehicleDespawned(vehicle);
+            vehicle.Map.GetCachedMapComponent<ListerVehiclesRepairable>().NotifyVehicleDespawned(vehicle);
             vehicle.EventRegistry[VehicleEventDefOf.Despawned].ExecuteEvents();
             vehicle.DeSpawnWithoutJobClear(mode);
             vehicle.SoundCleanup();

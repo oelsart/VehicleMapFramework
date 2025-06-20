@@ -86,7 +86,7 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="Vehicles">
-      <HintPath>..\..\..\..\..\..\workshop\content\294100\3014915404\1.5\Assemblies\Vehicles.dll</HintPath>
+      <HintPath>..\..\..\Vehicle-Framework\1.5\Assemblies\Vehicles.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>

@@ -76,7 +76,7 @@ namespace VehicleInteriors
                 vehicleAssigned.Item1.GiveLoadJob(pawnBoarding, vehicleAssigned.Item2);
                 if (vehiclePawn.Spawned)
                 {
-                    vehicleAssigned.Item1.Notify_Boarded(pawnBoarding, null);
+                    vehicleAssigned.Item1.Notify_Boarded(pawnBoarding);
                 }
                 else
                 {
