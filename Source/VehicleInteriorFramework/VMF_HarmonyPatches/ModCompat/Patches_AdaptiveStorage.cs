@@ -7,6 +7,7 @@ using System.Reflection.Emit;
 using UnityEngine;
 using Verse;
 using static VehicleInteriors.ModCompat.AdaptiveStorage;
+using static VehicleInteriors.MethodInfoCache;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
 {
@@ -35,10 +36,10 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             {
                 CodeInstruction.LoadArgument(1),
                 CodeInstruction.LoadLocal(0),
-                new CodeInstruction(OpCodes.Call, MethodInfoCache.m_PrintExtraRotation),
+                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_PrintExtraRotation),
                 new CodeInstruction(OpCodes.Callvirt, AccessTools.PropertySetter("AdaptiveStorage.PrintDatas.PrintData:ExtraRotation"))
             });
-            return codes.MethodReplacer(MethodInfoCache.g_Thing_Rotation, MethodInfoCache.m_RotationForPrint);
+            return codes.MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_RotationForPrint);
         }
     }
 
@@ -86,7 +87,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
 
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Rotation, MethodInfoCache.m_RotationForPrint);
+            return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_RotationForPrint);
         }
 
         private static AccessTools.FieldRef<object, int> stackBehaviour = AccessTools.FieldRefAccess<int>("AdaptiveStorage.ItemGraphic:stackBehaviour");

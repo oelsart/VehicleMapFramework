@@ -1,5 +1,4 @@
 ﻿using HarmonyLib;
-using RimWorld;
 using SmashTools;
 using System;
 using System.Diagnostics;
@@ -93,6 +92,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             Log.Message($"[VehicleMapFramework] {VehicleInteriors.mod.Content.ModMetaData.ModVersion} rev{Assembly.GetExecutingAssembly().GetName().Version.Revision}");
             Log.Message($"[VehicleMapFramework] {VMF_Harmony.Instance.GetPatchedMethods().Count()} patches applied.");
+            //MethodInfoCache.CachedMethodInfo = null;
         }
     }
 }

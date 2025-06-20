@@ -9,6 +9,7 @@ using System.Reflection.Emit;
 using UnityEngine;
 using Verse;
 using Verse.AI;
+using static VehicleInteriors.MethodInfoCache;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
 {
@@ -39,6 +40,14 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             var m_GetCachedDriver = AccessTools.Method(typeof(Job), nameof(Job.GetCachedDriver));
             return instructions.MethodReplacer(m_MakeDriver, m_GetCachedDriver);
         }
+
+        public static void Postfix(Pawn ___pawn)
+        {
+            if (___pawn.stances.curStance.Isnt<Stance_Busy>())
+            {
+                TargetMapManager.TargetMap.Remove(___pawn);
+            }
+        }
     }
 
     [HarmonyAfter("SmarterConstruction")]
@@ -56,7 +65,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             {
                 CodeInstruction.LoadArgument(1),
                 CodeInstruction.LoadLocal(12),
-                CodeInstruction.Call(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(Patch_JobGiver_Work_TryIssueJobPackage.AddSearchSet))
+                CodeInstruction.Call(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(AddSearchSet))
             };
             codes.InsertRange(pos, addedCodes);
 
@@ -69,13 +78,13 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 CodeInstruction.LoadLocal(12),
                 CodeInstruction.LoadLocal(0, true),
                 CodeInstruction.LoadLocal(20, true),
-                CodeInstruction.Call(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(Patch_JobGiver_Work_TryIssueJobPackage.ScanCellsAcrossMaps))
+                CodeInstruction.Call(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(ScanCellsAcrossMaps))
             });
 
             var m_JobOnCell = AccessTools.Method(typeof(WorkGiver_Scanner), nameof(WorkGiver_Scanner.JobOnCell));
             var pos4 = codes.FindIndex(pos3, c => c.opcode == OpCodes.Callvirt && c.OperandIs(m_JobOnCell));
             codes[pos4].opcode = OpCodes.Call;
-            codes[pos4].operand = AccessTools.Method(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(Patch_JobGiver_Work_TryIssueJobPackage.JobOnCellMap));
+            codes[pos4].operand = AccessTools.Method(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(JobOnCellMap));
 
             var g_TargetInfo_Cell = AccessTools.PropertyGetter(typeof(TargetInfo), nameof(TargetInfo.Cell));
             var pos5 = codes.FindLastIndex(pos4, c => c.opcode == OpCodes.Call && c.OperandIs(g_TargetInfo_Cell));
@@ -93,9 +102,9 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             var m_GenClosestOnVehicle_ClosestThingReachable = AccessTools.Method(typeof(GenClosestOnVehicle), nameof(GenClosestOnVehicle.ClosestThingReachable),
                 new[] { typeof(IntVec3), typeof(Map), typeof(ThingRequest), typeof(PathEndMode), typeof(TraverseParms), typeof(float), typeof(Predicate<Thing>), typeof(IEnumerable<Thing>), typeof(int), typeof(int), typeof(bool), typeof(RegionType), typeof(bool)});
             var m_Scanner_PotentialWorkThingsGlobal = AccessTools.Method(typeof(WorkGiver_Scanner), nameof(WorkGiver_Scanner.PotentialWorkThingsGlobal));
-            var m_PotentialWorkThingsGlobalAll = AccessTools.Method(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(Patch_JobGiver_Work_TryIssueJobPackage.PotentialWorkThingsGlobalAll));
+            var m_PotentialWorkThingsGlobalAll = AccessTools.Method(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(PotentialWorkThingsGlobalAll));
             var m_Scanner_JobOnThing = AccessTools.Method(typeof(WorkGiver_Scanner), nameof(WorkGiver_Scanner.JobOnThing));
-            var m_JobOnThingMap = AccessTools.Method(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(Patch_JobGiver_Work_TryIssueJobPackage.JobOnThingMap));
+            var m_JobOnThingMap = AccessTools.Method(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(JobOnThingMap));
             return codes.MethodReplacer(m_GenClosest_ClosestThing_Global, m_GenClosestOnVehicle_ClosestThing_Global)
                 .MethodReplacer(m_GenClosest_ClosestThing_Global_Reachable, m_GenClosestOnVehicle_ClosestThing_Global_Reachable)
                 .MethodReplacer(m_GenClosest_ClosestThingReachable, m_GenClosestOnVehicle_ClosestThingReachable)
@@ -112,7 +121,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             var maps = pawn.Map.BaseMapAndVehicleMaps().Except(pawn.Map);
             if (maps.Any())
             {
-                return list.Concat(maps.SelectMany(m => m.listerThings.ThingsMatching(scanner.PotentialWorkThingRequest)));
+                return maps.SelectMany(m => m.listerThings.ThingsMatching(scanner.PotentialWorkThingRequest)).ConcatIfNotNull(list);
             }
             return list;
         }
@@ -315,7 +324,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             var m_WorkGiver_ShouldSkip = AccessTools.Method(typeof(WorkGiver), nameof(WorkGiver.ShouldSkip));
-            var m_ShouldSkipAll = AccessTools.Method(typeof(Patch_JobGiver_Work_PawnCanUseWorkGiver), nameof(Patch_JobGiver_Work_PawnCanUseWorkGiver.ShouldSkipAll));
+            var m_ShouldSkipAll = AccessTools.Method(typeof(Patch_JobGiver_Work_PawnCanUseWorkGiver), nameof(ShouldSkipAll));
             return instructions.MethodReplacer(m_WorkGiver_ShouldSkip, m_ShouldSkipAll);
         }
 
@@ -342,7 +351,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static MethodInfo TargetMethod()
         {
-            return AccessTools.InnerTypes(typeof(JobGiver_Work)).SelectMany(t => t.GetMethods(AccessTools.all)).First(m => m.Name.Contains("Validator"));
+            return AccessTools.InnerTypes(typeof(JobGiver_Work)).SelectMany(t => t.GetDeclaredMethods()).First(m => m.Name.Contains("Validator"));
         }
 
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -403,7 +412,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static MethodInfo TargetMethod()
         {
-            return AccessTools.FindIncludingInnerTypes(typeof(JobGiver_Work), t => t.GetMethods(AccessTools.all).FirstOrDefault(m => m.Name.Contains("<GiverTryGiveJobPrioritized>")));
+            return AccessTools.FindIncludingInnerTypes(typeof(JobGiver_Work), t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<GiverTryGiveJobPrioritized>")));
         }
 
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) => Patch_JobGiver_Work_Validator.Transpiler(instructions);
@@ -516,7 +525,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         private static MethodBase TargetMethod()
         {
-            return AccessTools.FindIncludingInnerTypes(typeof(Toils_Ingest), t => t.GetMethods(AccessTools.all).FirstOrDefault(m => m.Name.Contains("<CarryIngestibleToChewSpot>")));
+            return AccessTools.FindIncludingInnerTypes(typeof(Toils_Ingest), t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<CarryIngestibleToChewSpot>")));
         }
 
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
@@ -645,7 +654,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(MethodInfoCache.g_Thing_PositionHeld, MethodInfoCache.m_PositionHeldOnBaseMap);
+            return instructions.MethodReplacer(CachedMethodInfo.g_Thing_PositionHeld, CachedMethodInfo.m_PositionHeldOnBaseMap);
         }
     }
 
@@ -708,11 +717,11 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             var codes = instructions.ToList();
 
-            var pos = codes.FindIndex(c => c.opcode == OpCodes.Callvirt && c.OperandIs(MethodInfoCache.g_Thing_Map));
-            codes[pos] = new CodeInstruction(OpCodes.Call, MethodInfoCache.m_BaseMap_Thing);
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Callvirt && c.OperandIs(CachedMethodInfo.g_Thing_Map));
+            codes[pos] = new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMap_Thing);
 
             var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Beq_S);
-            codes.Insert(pos2, new CodeInstruction(OpCodes.Call, MethodInfoCache.m_BaseMap_Map));
+            codes.Insert(pos2, new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMap_Map));
             return codes;
         }
     }
@@ -781,7 +790,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         public static MethodInfo TargetMethod()
         {
             return AccessTools.FindIncludingInnerTypes<MethodInfo>(typeof(FoodUtility),
-                t => t.GetMethods(AccessTools.all).FirstOrDefault(m => m.Name.Contains("<BestFoodSourceOnMap>") && m.HasMethodBody() && m.GetMethodBody().LocalVariables.Any(l => l.LocalType == typeof(Building_NutrientPasteDispenser))));
+                t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<BestFoodSourceOnMap>") && m.HasMethodBody() && m.GetMethodBody().LocalVariables.Any(l => l.LocalType == typeof(Building_NutrientPasteDispenser))));
         }
 
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -798,12 +807,12 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             //!building_Bed.Position.IsInPrisonCell(building_Bed.Map)があるので置き換えるのは最初のMapのみ
-            var code = instructions.FirstOrDefault(i => i.opcode == OpCodes.Callvirt && i.OperandIs(MethodInfoCache.g_Thing_Map));
+            var code = instructions.FirstOrDefault(i => i.opcode == OpCodes.Callvirt && i.OperandIs(CachedMethodInfo.g_Thing_Map));
             if (code != null)
             {
-                code.operand = MethodInfoCache.m_BaseMap_Thing;
+                code.operand = CachedMethodInfo.m_BaseMap_Thing;
             }
-            return instructions.MethodReplacer(MethodInfoCache.g_Thing_MapHeld, MethodInfoCache.m_MapHeldBaseMap);
+            return instructions.MethodReplacer(CachedMethodInfo.g_Thing_MapHeld, CachedMethodInfo.m_MapHeldBaseMap);
         }
     }
 
@@ -812,8 +821,8 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(MethodInfoCache.g_Thing_MapHeld, MethodInfoCache.m_MapHeldBaseMap)
-                .MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing);
+            return instructions.MethodReplacer(CachedMethodInfo.g_Thing_MapHeld, CachedMethodInfo.m_MapHeldBaseMap)
+                .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
         }
     }
 
@@ -822,8 +831,8 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(MethodInfoCache.g_Thing_MapHeld, MethodInfoCache.m_MapHeldBaseMap)
-                .MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing);
+            return instructions.MethodReplacer(CachedMethodInfo.g_Thing_MapHeld, CachedMethodInfo.m_MapHeldBaseMap)
+                .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
         }
     }
 
@@ -833,7 +842,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         [HarmonyPatch(typeof(ForbidUtility), nameof(ForbidUtility.IsForbidden), typeof(Thing), typeof(Pawn))]
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(MethodInfoCache.g_Thing_PositionHeld, MethodInfoCache.m_PositionHeldOnBaseMap);
+            return instructions.MethodReplacer(CachedMethodInfo.g_Thing_PositionHeld, CachedMethodInfo.m_PositionHeldOnBaseMap);
         }
 
         [HarmonyPatch(typeof(ForbidUtility), nameof(ForbidUtility.IsForbidden), typeof(IntVec3), typeof(Pawn))]
@@ -857,8 +866,8 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(MethodInfoCache.g_LocalTargetInfo_Cell, MethodInfoCache.m_CellOnBaseMap)
-                .MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap);
+            return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap)
+                .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
         }
     }
 
@@ -870,7 +879,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             return AccessTools.InnerTypes(typeof(ToilFailConditions)).SelectMany(t =>
             {
                 var type = t.IsGenericTypeDefinition ? t.MakeGenericType(typeof(Toil)) : t;
-                return type.GetMethods(AccessTools.all);
+                return type.GetDeclaredMethods();
             }).First(m => m.Name.Contains("<FailOnSomeonePhysicallyInteracting>"));
         }
 
@@ -880,10 +889,10 @@ namespace VehicleInteriors.VMF_HarmonyPatches
 
             return codes.Select((c, i) =>
             {
-                if (c.opcode == OpCodes.Callvirt && c.OperandIs(MethodInfoCache.g_Thing_Map))
+                if (c.opcode == OpCodes.Callvirt && c.OperandIs(CachedMethodInfo.g_Thing_Map))
                 {
                     codes[i - 1].opcode = OpCodes.Ldloc_1;
-                    c.operand = MethodInfoCache.g_Thing_MapHeld;
+                    c.operand = CachedMethodInfo.g_Thing_MapHeld;
                 }
                 return c;
             });
@@ -1003,7 +1012,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             var codes = instructions.ToList();
-            var pos = codes.FindIndex(c => c.Calls(MethodInfoCache.g_Thing_Map));
+            var pos = codes.FindIndex(c => c.Calls(CachedMethodInfo.g_Thing_Map));
             codes.InsertRange(pos, new[]
             {
                 new CodeInstruction(OpCodes.Pop),
@@ -1021,12 +1030,12 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         private static MethodBase TargetMethod()
         {
-            return AccessTools.FindIncludingInnerTypes<MethodBase>(typeof(WorkGiver_DoBill), t => t.GetMethods(AccessTools.all).FirstOrDefault(m => m.Name == "<TryFindBestIngredientsHelper>b__0"));
+            return AccessTools.FindIncludingInnerTypes<MethodBase>(typeof(WorkGiver_DoBill), t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name == "<TryFindBestIngredientsHelper>b__0"));
         }
 
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap);
+            return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
         }
     }
 
@@ -1035,14 +1044,14 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         private static MethodBase TargetMethod()
         {
-            return AccessTools.FindIncludingInnerTypes<MethodBase>(typeof(JobDriver_Mine), t => t.GetMethods(AccessTools.all).FirstOrDefault(m => m.Name == "<MakeNewToils>b__0"));
+            return AccessTools.FindIncludingInnerTypes<MethodBase>(typeof(JobDriver_Mine), t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name == "<MakeNewToils>b__0"));
         }
 
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             foreach (var instruction in instructions)
             {
-                if (instruction.Calls(MethodInfoCache.g_Thing_Map))
+                if (instruction.Calls(CachedMethodInfo.g_Thing_Map))
                 {
                     yield return CodeInstruction.LoadLocal(0);
                     yield return CodeInstruction.Call(typeof(Patch_JobDriver_Mine_MakeNewToils_Delegate), nameof(Patch_JobDriver_Mine_MakeNewToils_Delegate.TargetMap));

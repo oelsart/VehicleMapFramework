@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using Verse;
+using static VehicleInteriors.MethodInfoCache;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
 {
@@ -57,20 +58,20 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 CodeInstruction.LoadArgument(5),
                 new CodeInstruction(OpCodes.Dup),
                 new CodeInstruction(OpCodes.Brfalse_S, label),
-                new CodeInstruction(OpCodes.Callvirt, MethodInfoCache.g_Thing_Map),
+                new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_Thing_Map),
                 new CodeInstruction(OpCodes.Dup),
                 new CodeInstruction(OpCodes.Brfalse_S, label),
                 new CodeInstruction(OpCodes.Br_S, label2),
                 new CodeInstruction(OpCodes.Pop).WithLabels(label)
             });
-            pos = codes.FindIndex(pos, c => c.opcode == OpCodes.Call && c.OperandIs(MethodInfoCache.m_GenDraw_DrawFieldEdges));
+            pos = codes.FindIndex(pos, c => c.opcode == OpCodes.Call && c.OperandIs(CachedMethodInfo.m_GenDraw_DrawFieldEdges));
             codes.InsertRange(pos, new[]
             {
                 CodeInstruction.LoadLocal(0),
                 new CodeInstruction(OpCodes.Ldfld, f_visibleMap)
             });
-            return codes.MethodReplacer(MethodInfoCache.g_Find_CurrentMap, MethodInfoCache.g_VehicleMapUtility_CurrentMap)
-                .MethodReplacer(MethodInfoCache.m_GenDraw_DrawFieldEdges, MethodInfoCache.m_GenDrawOnVehicle_DrawFieldEdges);
+            return codes.MethodReplacer(CachedMethodInfo.g_Find_CurrentMap, CachedMethodInfo.g_VehicleMapUtility_CurrentMap)
+                .MethodReplacer(CachedMethodInfo.m_GenDraw_DrawFieldEdges, CachedMethodInfo.m_GenDrawOnVehicle_DrawFieldEdges);
         }
     }
 
@@ -81,7 +82,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         private static MethodBase TargetMethod()
         {
             return AccessTools.FindIncludingInnerTypes<MethodBase>(typeof(PlaceWorker_SewageArea),
-                t => t.GetMethods(AccessTools.all).FirstOrDefault(m => m.Name.Contains("<DrawGhost>")));
+                t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<DrawGhost>")));
         }
 
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
@@ -128,7 +129,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(MethodInfoCache.m_CellRect_ClipInsideMap, MethodInfoCache.m_ClipInsideVehicleMap);
+            return instructions.MethodReplacer(CachedMethodInfo.m_CellRect_ClipInsideMap, CachedMethodInfo.m_ClipInsideVehicleMap);
         }
     }
 }

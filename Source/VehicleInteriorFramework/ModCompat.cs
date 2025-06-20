@@ -2,16 +2,19 @@
 using RimWorld;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using Verse;
-using Verse.AI;
 
 namespace VehicleInteriors
 {
     [StaticConstructorOnStartup]
     public static class ModCompat
     {
+        private static void LogIncompat(string modName)
+        {
+            Log.Error($"[VehicleMapFramework] {modName} compatibility is broken.");
+        }
+
         public static class AdaptiveStorage
         {
             public static readonly bool Active = ModsConfig.IsActive("adaptive.storage.framework");
@@ -57,7 +60,13 @@ namespace VehicleInteriors
             {
                 if (Active)
                 {
-                    AddMenuItems = AccessTools.MethodDelegate<Action<Vector3, Pawn, List<FloatMenuOption>, List<Thing>>>("VMF_CEPatch.Patch_FloatMenuMakerMap_Modify_AddHumanlikeOrders_AddMenuItems:AddMenuItems");
+                    var method = AccessTools.Method("VMF_CEPatch.Patch_FloatMenuMakerMap_Modify_AddHumanlikeOrders_AddMenuItems:AddMenuItems");
+                    if (method == null)
+                    {
+                        LogIncompat("CombatExtended");
+                        return;
+                    }
+                    AddMenuItems = AccessTools.MethodDelegate<Action<Vector3, Pawn, List<FloatMenuOption>, List<Thing>>>(method);
                 }
             }
         }
@@ -207,7 +216,13 @@ namespace VehicleInteriors
             {
                 if (Active)
                 {
-                    GenerateAMMenuOptions = AccessTools.MethodDelegate<Func<Vector3, Pawn, IEnumerable<FloatMenuOption>>>(AccessTools.Method("AM.UI.DraftedFloatMenuOptionsUI:GenerateMenuOptions"));
+                    var method = AccessTools.Method("AM.UI.DraftedFloatMenuOptionsUI:GenerateMenuOptions");
+                    if (method == null)
+                    {
+                        LogIncompat("MeleeAnimation");
+                        return;
+                    }
+                    GenerateAMMenuOptions = AccessTools.MethodDelegate<Func<Vector3, Pawn, IEnumerable<FloatMenuOption>>>(method);
                 }
             }
         }
@@ -270,7 +285,13 @@ namespace VehicleInteriors
             {
                 if (Active)
                 {
-                    FindCell = AccessTools.MethodDelegate<FindCellGetter>("HaulToBuilding.Toils_Recipe_Patches:FindCell");
+                    var method = AccessTools.Method("HaulToBuilding.Toils_Recipe_Patches:FindCell");
+                    if (method == null)
+                    {
+                        LogIncompat("TakeItToStorage");
+                        return;
+                    }
+                    FindCell = AccessTools.MethodDelegate<FindCellGetter>(method);
                 }
             }
         }
@@ -289,8 +310,14 @@ namespace VehicleInteriors
             {
                 if (Active)
                 {
-                    IsAllowedRace = AccessTools.MethodDelegate<Func<RaceProperties, bool>>("PickUpAndHaul.Settings:IsAllowedRace");
                     HaulToInventory = DefDatabase<WorkGiverDef>.GetNamed("HaulToInventory");
+                    var method = AccessTools.Method("PickUpAndHaul.Settings:IsAllowedRace");
+                    if (method == null)
+                    {
+                        LogIncompat("PickUpAndHaul");
+                        return;
+                    }
+                    IsAllowedRace = AccessTools.MethodDelegate<Func<RaceProperties, bool>>(method);
                 }
             }
         }
@@ -320,5 +347,26 @@ namespace VehicleInteriors
         public static readonly bool Aquariums = ModsConfig.IsActive("Nightmare.Aquariums");
 
         public static readonly bool SmartPistol = ModsConfig.IsActive("rabiosus.smartpistol");
+
+        public static class PawnStorages
+        {
+            public static bool Active = ModsConfig.IsActive("Orpheusly.PawnStorages");
+
+            public static Action<Vector3, Pawn, List<FloatMenuOption>> MutantOrdersPatch;
+
+            static PawnStorages()
+            {
+                if (Active)
+                {
+                    var method = AccessTools.Method("PawnStorages.MutantOrdersPatch:Postfix");
+                    if (method == null)
+                    {
+                        LogIncompat("PawnStorages");
+                        return;
+                    }
+                    MutantOrdersPatch = AccessTools.MethodDelegate<Action<Vector3, Pawn, List<FloatMenuOption>>>(method);
+                }
+            }
+        }
     }
 }

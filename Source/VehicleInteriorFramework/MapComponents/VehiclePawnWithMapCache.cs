@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Vehicles;
 using Verse;
 
 namespace VehicleInteriors
@@ -87,55 +88,51 @@ namespace VehicleInteriors
             lastCachedTick = Find.TickManager.TicksGame;
             cachedDrawPos.Clear();
             cachedPosOnBaseMap.Clear();
-            CacheDrawPos();
+            cachedFullRot.Clear();
+            //CacheDrawPos();
         }
 
         public void ResetCache()
         {
             if (lastCachedTick != Find.TickManager.TicksGame || Find.TickManager.Paused)
             {
-                lastCachedTick = Find.TickManager.TicksGame;
-                //cachedDrawPos.Keys.Except(map.listerThings.AllThings).ToArray().ForEach(t => cachedDrawPos.Remove(t));
-                cachedDrawPos.Clear();
-                cachedPosOnBaseMap.Clear();
-                //CacheDrawPos();
+                ForceResetCache();
             }
         }
 
         private void CacheDrawPos()
         {
-            //if (map.IsVehicleMapOf(out var vehicle))
-            //{
-            //    cacheMode = true;
-            //    if (vehicle.vehiclePather?.Moving ?? false)
-            //    {
-            //        map.listerThings.AllThings.ForEach(t =>
-            //        {
-            //            cachedDrawPos[t] = t.DrawPos.ToBaseMapCoord(vehicle);
-            //        });
-            //    }
-            //    else
-            //    {
-            //        map.dynamicDrawManager.DrawThings.ForEach(t =>
-            //        {
-            //            cachedDrawPos[t] = t.DrawPos.ToBaseMapCoord(vehicle);
-            //        });
-            //    }
-            //    cacheMode = false;
-            //}
+            if (map.IsVehicleMapOf(out var vehicle))
+            {
+                cacheMode = true;
+                if (vehicle.vehiclePather?.Moving ?? false)
+                {
+                    map.listerThings.AllThings.ForEach(t =>
+                    {
+                        cachedDrawPos[t] = t.DrawPos.ToBaseMapCoord(vehicle);
+                    });
+                }
+                else
+                {
+                    map.dynamicDrawManager.DrawThings.ForEach(t =>
+                    {
+                        cachedDrawPos[t] = t.DrawPos.ToBaseMapCoord(vehicle);
+                    });
+                }
+                cacheMode = false;
+            }
         }
 
         public override void MapComponentUpdate()
         {
-            if (map.IsVehicleMapOf(out _))
-            {
-                ResetCache();
-            }
+            ResetCache();
         }
 
         public Dictionary<Thing, Vector3> cachedDrawPos = new Dictionary<Thing, Vector3>();
 
         public Dictionary<Thing, IntVec3> cachedPosOnBaseMap = new Dictionary<Thing, IntVec3>();
+
+        public Dictionary<VehiclePawn, Rot8> cachedFullRot = new Dictionary<VehiclePawn, Rot8>();
 
         private int lastCachedTick = -1;
 

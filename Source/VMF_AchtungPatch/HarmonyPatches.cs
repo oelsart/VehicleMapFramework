@@ -9,6 +9,7 @@ using VehicleInteriors;
 using VehicleInteriors.VMF_HarmonyPatches;
 using Verse;
 using Verse.AI;
+using static VehicleInteriors.MethodInfoCache;
 
 namespace VMF_AchtungPatch
 {
@@ -44,7 +45,7 @@ namespace VMF_AchtungPatch
     {
         public static bool Prefix(Colonist __instance, ref Vector3 pos, ref IntVec3 __result)
         {
-            TargetMapManager.TargetMap.Remove(__instance.pawn);
+            TargetMapManager.TargetMap[__instance.pawn] = __instance.pawn.Map;
             if (Find.TickManager.TicksGame != lastCachedTick)
             {
                 tmpDestMaps.Clear();
@@ -55,7 +56,6 @@ namespace VMF_AchtungPatch
                 __result = UpdateOrderPos(__instance, pos, vehicle);
                 return false;
             }
-            TargetMapManager.TargetMap[__instance.pawn] = __instance.pawn.Map;
             return true;
         }
 
@@ -78,62 +78,47 @@ namespace VMF_AchtungPatch
             TargetMapManager.TargetMap[colonist.pawn] = destMap;
             tmpExitSpot = TargetInfo.Invalid;
             tmpEnterSpot = TargetInfo.Invalid;
-            var allowsGetOff = false;
-            if (colonist.pawn.IsOnVehicleMapOf(out var vehicle2))
-            {
-                allowsGetOff = vehicle2.AllowsGetOff;
-                vehicle2.AllowsGetOff = true;
-            }
-            try
-            {
-                if (AchtungLoader.IsSameSpotInstalled)
-                {
-                    if (destCell.Standable(destMap) && colonist.pawn.CanReach(destCell, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, destMap, out tmpExitSpot, out tmpEnterSpot))
-                    {
-                        colonist.designation = destCell;
-                        tmpDestMaps[destCell] = destMap;
-                        return destCell;
-                    }
-                }
 
-                var bestCell = IntVec3.Invalid;
-                if (ModsConfig.BiotechActive && colonist.pawn.IsColonyMech && MechanitorUtility.InMechanitorCommandRange(colonist.pawn, destCellOnBaseMap) == false)
-                {
-                    var overseer = colonist.pawn.GetOverseer();
-                    var map = overseer.MapHeld;
-                    if (map.BaseMap() == colonist.pawn.MapHeldBaseMap())
-                    {
-                        var mechanitor = overseer.mechanitor;
-                        foreach (var newPos in GenRadial.RadialCellsAround(destCell, 20f, false))
-                            if (mechanitor.CanCommandTo(newPos))
-                                if (destMap.pawnDestinationReservationManager.CanReserve(newPos, colonist.pawn, true)
-                                    && newPos.Standable(destMap)
-                                    && colonist.pawn.CanReach(newPos, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, destMap, out tmpExitSpot, out tmpEnterSpot)
-                                )
-                                {
-                                    bestCell = newPos;
-                                    tmpDestMaps[newPos] = destMap;
-                                    break;
-                                }
-                    }
-                }
-                else
-                    bestCell = ReachabilityUtilityOnVehicle.BestOrderedGotoDestNear(destCell, colonist.pawn, null, destMap, out tmpExitSpot, out tmpEnterSpot);
-                if (bestCell.InBounds(destMap))
-                {
-                    colonist.designation = bestCell;
-                    tmpDestMaps[bestCell] = destMap;
-                    return bestCell;
-                }
-                return IntVec3.Invalid;
-            }
-            finally
+            if (AchtungLoader.IsSameSpotInstalled)
             {
-                if (vehicle2 != null)
+                if (destCell.Standable(destMap) && colonist.pawn.CanReach(destCell, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, destMap, out tmpExitSpot, out tmpEnterSpot))
                 {
-                    vehicle2.AllowsGetOff = allowsGetOff;
+                    colonist.designation = destCell;
+                    tmpDestMaps[destCell] = destMap;
+                    return destCell;
                 }
             }
+
+            var bestCell = IntVec3.Invalid;
+            if (ModsConfig.BiotechActive && colonist.pawn.IsColonyMech && MechanitorUtility.InMechanitorCommandRange(colonist.pawn, destCellOnBaseMap) == false)
+            {
+                var overseer = colonist.pawn.GetOverseer();
+                var map = overseer.MapHeld;
+                if (map.BaseMap() == colonist.pawn.MapHeldBaseMap())
+                {
+                    var mechanitor = overseer.mechanitor;
+                    foreach (var newPos in GenRadial.RadialCellsAround(destCell, 20f, false))
+                        if (mechanitor.CanCommandTo(newPos))
+                            if (destMap.pawnDestinationReservationManager.CanReserve(newPos, colonist.pawn, true)
+                                && newPos.Standable(destMap)
+                                && colonist.pawn.CanReach(newPos, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, destMap, out tmpExitSpot, out tmpEnterSpot)
+                            )
+                            {
+                                bestCell = newPos;
+                                tmpDestMaps[newPos] = destMap;
+                                break;
+                            }
+                }
+            }
+            else
+                bestCell = ReachabilityUtilityOnVehicle.BestOrderedGotoDestNear(destCell, colonist.pawn, null, destMap, out tmpExitSpot, out tmpEnterSpot);
+            if (bestCell.InBounds(destMap))
+            {
+                colonist.designation = bestCell;
+                tmpDestMaps[bestCell] = destMap;
+                return bestCell;
+            }
+            return IntVec3.Invalid;
         }
 
         public static TargetInfo tmpExitSpot;
@@ -151,6 +136,7 @@ namespace VMF_AchtungPatch
     {
         public static bool Prefix(Pawn pawn, int x, int z)
         {
+            TargetMapManager.TargetMap.Remove(pawn);
             if (Patch_Colonist_UpdateOrderPos.tmpDestMaps.TryGetValue(new IntVec3(x, 0, z), out var map) && map != null)
             {
                 OrderTo(pawn, x, z);
@@ -171,8 +157,6 @@ namespace VMF_AchtungPatch
 
             if (pawn.jobs?.IsCurrentJobPlayerInterruptible() ?? false)
                 _ = pawn.jobs.TryTakeOrderedJob(job);
-
-            TargetMapManager.TargetMap.Remove(pawn);
         }
     }
 
@@ -182,7 +166,7 @@ namespace VMF_AchtungPatch
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(MethodInfoCache.m_IntVec3_ToVector3Shifted, m_ToVector3ShiftedOffset);
+            return instructions.MethodReplacer(CachedMethodInfo.m_IntVec3_ToVector3Shifted, m_ToVector3ShiftedOffset);
         }
 
         public static Vector3 ToVector3ShiftedOffset(ref IntVec3 cell)
@@ -204,12 +188,12 @@ namespace VMF_AchtungPatch
     {
         private static MethodBase TargetMethod()
         {
-            return AccessTools.FindIncludingInnerTypes<MethodBase>(typeof(Controller), t => t.GetMethods(AccessTools.all).FirstOrDefault(m => m.Name.Contains("<HandleDrawing>")));
+            return AccessTools.FindIncludingInnerTypes<MethodBase>(typeof(Controller), t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<HandleDrawing>")));
         }
 
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(MethodInfoCache.m_IntVec3_ToVector3Shifted, Patch_Tools_LabelDrawPosFor.m_ToVector3ShiftedOffset);
+            return instructions.MethodReplacer(CachedMethodInfo.m_IntVec3_ToVector3Shifted, Patch_Tools_LabelDrawPosFor.m_ToVector3ShiftedOffset);
         }
     }
 
@@ -230,7 +214,7 @@ namespace VMF_AchtungPatch
         {
             var m_FromVector3 = AccessTools.Method(typeof(IntVec3), nameof(IntVec3.FromVector3), new Type[] { typeof(Vector3) });
             var m_FromVector3Offset = AccessTools.Method(typeof(Patch_Controller_MouseDown), nameof(FromVector3Offset));
-            return instructions.MethodReplacer(MethodInfoCache.g_Find_CurrentMap, MethodInfoCache.g_VehicleMapUtility_CurrentMap)
+            return instructions.MethodReplacer(CachedMethodInfo.g_Find_CurrentMap, CachedMethodInfo.g_VehicleMapUtility_CurrentMap)
                 .MethodReplacer(m_FromVector3, m_FromVector3Offset);
         }
 

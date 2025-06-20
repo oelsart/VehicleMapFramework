@@ -26,7 +26,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         private static MethodBase TargetMethod()
         {
             return AccessTools.FindIncludingInnerTypes<MethodBase>(AccessTools.TypeByName("EnterHere.VehicleCaravanFormingUtility_StartFormingCaravan"),
-                t => t.GetMethods(AccessTools.all).FirstOrDefault(m => m.Name.Contains("<Prefix>b__0")));
+                t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<Prefix>b__0")));
         }
 
         public static bool Prefix(Pawn pawnObject, Type ___vehiclePawnType, ref bool __result)

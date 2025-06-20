@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection.Emit;
 using UnityEngine;
 using Verse;
+using static VehicleInteriors.MethodInfoCache;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
 {
@@ -66,7 +67,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             yield return CodeInstruction.LoadArgument(0);
             yield return CodeInstruction.LoadField(typeof(ThingComp), nameof(ThingComp.parent));
             yield return new CodeInstruction(OpCodes.Ldloca_S, vehicle);
-            yield return new CodeInstruction(OpCodes.Call, MethodInfoCache.m_IsOnNonFocusedVehicleMapOf);
+            yield return new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf);
             yield return new CodeInstruction(OpCodes.Brfalse_S, label);
             yield return new CodeInstruction(OpCodes.Ldc_R4, VehicleMapUtility.altitudeOffsetFull);
             yield return new CodeInstruction(OpCodes.Stloc_S, YOffset);
@@ -93,7 +94,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             var codes = instructions.ToList();
             var f_map = AccessTools.Field(typeof(MapComponent), nameof(MapComponent.map));
             var pos = codes.FindIndex(c => c.opcode == OpCodes.Ldfld && c.OperandIs(f_map)) + 1;
-            codes.Insert(pos, new CodeInstruction(OpCodes.Call, MethodInfoCache.m_BaseMap_Map));
+            codes.Insert(pos, new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMap_Map));
             return codes;
         }
     }
@@ -111,7 +112,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap);
+            return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
         }
     }
 }

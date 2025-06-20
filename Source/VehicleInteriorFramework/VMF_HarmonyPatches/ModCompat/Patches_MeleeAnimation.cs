@@ -7,6 +7,7 @@ using System.Reflection.Emit;
 using UnityEngine;
 using Verse;
 using Verse.AI;
+using static VehicleInteriors.MethodInfoCache;
 
 namespace VehicleInteriors.VMF_HarmonyPatches.AM
 {
@@ -42,17 +43,17 @@ namespace VehicleInteriors.VMF_HarmonyPatches.AM
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            var codes = instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap)
-                .MethodReplacer(MethodInfoCache.m_GenSight_LineOfSightToThing, MethodInfoCache.m_GenSightOnVehicle_LineOfSightToThing).ToList();
+            var codes = instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap)
+                .MethodReplacer(CachedMethodInfo.m_GenSight_LineOfSightToThing, CachedMethodInfo.m_GenSightOnVehicle_LineOfSightToThing).ToList();
 
             //GrapplerとTargetのマップ比較のとこだけBaseMapに変換する
-            var pos = codes.FindIndex(c => c.opcode == OpCodes.Callvirt && c.OperandIs(MethodInfoCache.g_Thing_Map));
-            pos = codes.FindIndex(pos + 1, c => c.opcode == OpCodes.Callvirt && c.OperandIs(MethodInfoCache.g_Thing_Map));
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Callvirt && c.OperandIs(CachedMethodInfo.g_Thing_Map));
+            pos = codes.FindIndex(pos + 1, c => c.opcode == OpCodes.Callvirt && c.OperandIs(CachedMethodInfo.g_Thing_Map));
             codes[pos].opcode = OpCodes.Callvirt;
-            codes[pos].operand = MethodInfoCache.m_BaseMap_Thing;
+            codes[pos].operand = CachedMethodInfo.m_BaseMap_Thing;
 
             pos = codes.FindLastIndex(pos, c => c.opcode == OpCodes.Ldarg_1);
-            codes.Insert(pos, new CodeInstruction(OpCodes.Call, MethodInfoCache.m_BaseMap_Map));
+            codes.Insert(pos, new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMap_Map));
 
             return codes;
         }
@@ -81,8 +82,8 @@ namespace VehicleInteriors.VMF_HarmonyPatches.AM
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(MethodInfoCache.g_Thing_Position, MethodInfoCache.m_PositionOnBaseMap)
-                .MethodReplacer(MethodInfoCache.m_GenSight_LineOfSightToThing, MethodInfoCache.m_GenSightOnVehicle_LineOfSightToThing);
+            return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap)
+                .MethodReplacer(CachedMethodInfo.m_GenSight_LineOfSightToThing, CachedMethodInfo.m_GenSightOnVehicle_LineOfSightToThing);
         }
     }
 
@@ -111,17 +112,17 @@ namespace VehicleInteriors.VMF_HarmonyPatches.AM
     {
         private static IEnumerable<MethodBase> TargetMethods()
         {
-            return AccessTools.TypeByName("AM.Controller.ActionController").GetMethods(AccessTools.all).Where(m => m.Name == "UpdateClosestCells");
+            return AccessTools.TypeByName("AM.Controller.ActionController").GetDeclaredMethods().Where(m => m.Name == "UpdateClosestCells");
         }
 
         //req.Target.Position -> req.Target.PositionOnAnotherThingMap(req.Grappler)
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             var codes = instructions.ToList();
-            var pos = codes.FindIndex(c => c.opcode == OpCodes.Callvirt && c.OperandIs(MethodInfoCache.g_Thing_Position));
-            pos = codes.FindIndex(pos + 1, c => c.opcode == OpCodes.Callvirt && c.OperandIs(MethodInfoCache.g_Thing_Position));
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Callvirt && c.OperandIs(CachedMethodInfo.g_Thing_Position));
+            pos = codes.FindIndex(pos + 1, c => c.opcode == OpCodes.Callvirt && c.OperandIs(CachedMethodInfo.g_Thing_Position));
             codes[pos].opcode = OpCodes.Call;
-            codes[pos].operand = MethodInfoCache.m_PositionOnAnotherThingMap;
+            codes[pos].operand = CachedMethodInfo.m_PositionOnAnotherThingMap;
             codes.InsertRange(pos, new[]
             {
                 CodeInstruction.LoadArgument(1),

@@ -4,10 +4,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Verse;
+using static VehicleInteriors.MethodInfoCache;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
 {
-    [StaticConstructorOnStartup]
+    [StaticConstructorOnStartupPriority(Priority.Low)]
     public static class Patches_DebugTools
     {
         static Patches_DebugTools()
@@ -34,7 +35,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 }
             }
 
-            Patch(AccessTools.FindIncludingInnerTypes(typeof(DebugActionNode), t => t.GetMethods(AccessTools.all).FirstOrDefault(m => m.Name.Contains("<Enter>"))));
+            Patch(AccessTools.FindIncludingInnerTypes(typeof(DebugActionNode), t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<Enter>"))));
             foreach (var method in typeof(DebugToolsSpawning).GetDeclaredMethods())
             {
                 Patch(method);
@@ -58,7 +59,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
 
         private static IEnumerable<CodeInstruction> Transpiler (IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(MethodInfoCache.g_Find_CurrentMap, MethodInfoCache.g_VehicleMapUtility_CurrentMap);
+            return instructions.MethodReplacer(CachedMethodInfo.g_Find_CurrentMap, CachedMethodInfo.g_VehicleMapUtility_CurrentMap);
         }
     }
 }

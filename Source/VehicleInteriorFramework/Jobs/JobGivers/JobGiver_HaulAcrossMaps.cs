@@ -14,7 +14,7 @@ namespace VehicleInteriors
             bool Validator(Thing t)
             {
                 return !t.IsForbidden(pawn) &&
-                (!t.IsOnVehicleMapOf(out var vehicle) || vehicle.AllowsHaulOut) &&
+                (!t.IsOnVehicleMapOf(out var vehicle) || vehicle.AllowHaulOut) &&
                 HaulAIAcrossMapsUtility.PawnCanAutomaticallyHaulFast(pawn, t, false, out exitSpot, out enterSpot) &&
                 pawn.carryTracker.MaxStackSpaceEver(t.def) > 0 &&
                 StoreAcrossMapsUtility.TryFindBestBetterStoreCellFor(t, pawn, pawn.Map, StoreUtility.CurrentStoragePriorityOf(t), pawn.Faction, out IntVec3 intVec, true, out _, out _, out _);
