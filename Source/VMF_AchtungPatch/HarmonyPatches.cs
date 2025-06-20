@@ -45,7 +45,7 @@ namespace VMF_AchtungPatch
     {
         public static bool Prefix(Colonist __instance, ref Vector3 pos, ref IntVec3 __result)
         {
-            TargetMapManager.TargetMap.Remove(__instance.pawn);
+            TargetMapManager.TargetMap[__instance.pawn] = __instance.pawn.Map;
             if (Find.TickManager.TicksGame != lastCachedTick)
             {
                 tmpDestMaps.Clear();
@@ -56,7 +56,6 @@ namespace VMF_AchtungPatch
                 __result = UpdateOrderPos(__instance, pos, vehicle);
                 return false;
             }
-            TargetMapManager.TargetMap[__instance.pawn] = __instance.pawn.Map;
             return true;
         }
 
@@ -137,6 +136,7 @@ namespace VMF_AchtungPatch
     {
         public static bool Prefix(Pawn pawn, int x, int z)
         {
+            TargetMapManager.TargetMap.Remove(pawn);
             if (Patch_Colonist_UpdateOrderPos.tmpDestMaps.TryGetValue(new IntVec3(x, 0, z), out var map) && map != null)
             {
                 OrderTo(pawn, x, z);
@@ -157,8 +157,6 @@ namespace VMF_AchtungPatch
 
             if (pawn.jobs?.IsCurrentJobPlayerInterruptible() ?? false)
                 _ = pawn.jobs.TryTakeOrderedJob(job);
-
-            TargetMapManager.TargetMap.Remove(pawn);
         }
     }
 

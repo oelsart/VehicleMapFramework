@@ -40,6 +40,14 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             var m_GetCachedDriver = AccessTools.Method(typeof(Job), nameof(Job.GetCachedDriver));
             return instructions.MethodReplacer(m_MakeDriver, m_GetCachedDriver);
         }
+
+        public static void Postfix(Pawn ___pawn)
+        {
+            if (___pawn.stances.curStance.Isnt<Stance_Busy>())
+            {
+                TargetMapManager.TargetMap.Remove(___pawn);
+            }
+        }
     }
 
     [HarmonyAfter("SmarterConstruction")]
