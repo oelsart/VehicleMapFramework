@@ -8,7 +8,7 @@ namespace VehicleInteriors
     {
         public static Material LoadMat(string matPath)
         {
-            var mat = VehicleInteriors.Bundle.LoadAsset<Material>($"Assets/Data/VehicleInteriors/{matPath}.mat");
+            var mat = VehicleInteriors.Bundle.LoadAsset<Material>($"Assets/Data/OELS.VehicleMapFramework/Materials/{matPath}.mat");
             if (mat == null)
             {
                 Log.Warning("Could not load material " + mat);

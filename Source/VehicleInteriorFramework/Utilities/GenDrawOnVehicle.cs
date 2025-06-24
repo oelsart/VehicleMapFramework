@@ -6,12 +6,12 @@ namespace VehicleInteriors
 {
     public static class GenDrawOnVehicle
     {
-        public static void DrawFieldEdges(List<IntVec3> cells, int renderQueue, Map map)
+        public static void DrawFieldEdges(List<IntVec3> cells, int renderQueue = 2900, Map map = null)
         {
-            GenDrawOnVehicle.DrawFieldEdges(cells, Color.white, null, renderQueue, map);
+            DrawFieldEdges(cells, Color.white, null, null, renderQueue, map);
         }
 
-        public static void DrawFieldEdges(List<IntVec3> cells, Color color, float? altOffset, int renderQueue, Map map)
+        public static void DrawFieldEdges(List<IntVec3> cells, Color color, float? altOffset, HashSet<IntVec3> ignoreBorderCells = null, int renderQueue = 2900, Map map = null)
         {
             if (map == null)
             {
@@ -34,13 +34,13 @@ namespace VehicleInteriors
                 renderQueue = renderQueue
             });
             material.GetTexture("_MainTex").wrapMode = TextureWrapMode.Clamp;
-            if (GenDrawOnVehicle.fieldGrid == null)
+            if (fieldGrid == null)
             {
-                GenDrawOnVehicle.fieldGrid = new BoolGrid(map);
+                fieldGrid = new BoolGrid(map);
             }
             else
             {
-                GenDrawOnVehicle.fieldGrid.ClearAndResizeTo(map);
+                fieldGrid.ClearAndResizeTo(map);
             }
             int x = map.Size.x;
             int z = map.Size.z;
@@ -50,7 +50,7 @@ namespace VehicleInteriors
             {
                 if (cells[i].InBounds(map))
                 {
-                    GenDrawOnVehicle.fieldGrid[cells[i].x, cells[i].z] = true;
+                    fieldGrid[cells[i].x, cells[i].z] = true;
                 }
             }
             var vehicleMap = map.IsVehicleMapOf(out var vehicle);
@@ -59,13 +59,13 @@ namespace VehicleInteriors
                 IntVec3 intVec = cells[j];
                 if (intVec.InBounds(map))
                 {
-                    GenDrawOnVehicle.rotNeeded[0] = (intVec.z < z - 1 && !GenDrawOnVehicle.fieldGrid[intVec.x, intVec.z + 1]) || !(intVec + IntVec3.North).InBounds(map);
-                    GenDrawOnVehicle.rotNeeded[1] = (intVec.x < x - 1 && !GenDrawOnVehicle.fieldGrid[intVec.x + 1, intVec.z]) || !(intVec + IntVec3.East).InBounds(map);
-                    GenDrawOnVehicle.rotNeeded[2] = (intVec.z > 0 && !GenDrawOnVehicle.fieldGrid[intVec.x, intVec.z - 1]) || !(intVec + IntVec3.South).InBounds(map);
-                    GenDrawOnVehicle.rotNeeded[3] = (intVec.x > 0 && !GenDrawOnVehicle.fieldGrid[intVec.x - 1, intVec.z]) || !(intVec + IntVec3.West).InBounds(map);
+                    rotNeeded[0] = intVec.z < z - 1 && !fieldGrid[intVec.x, intVec.z + 1] && !(ignoreBorderCells?.Contains(intVec + IntVec3.North) ?? false);
+                    rotNeeded[1] = intVec.x < x - 1 && !fieldGrid[intVec.x + 1, intVec.z] && !(ignoreBorderCells?.Contains(intVec + IntVec3.East) ?? false);
+                    rotNeeded[2] = intVec.z > 0 && !fieldGrid[intVec.x, intVec.z - 1] && !(ignoreBorderCells?.Contains(intVec + IntVec3.South) ?? false);
+                    rotNeeded[3] = intVec.x > 0 && !fieldGrid[intVec.x - 1, intVec.z] && !(ignoreBorderCells?.Contains(intVec + IntVec3.West) ?? false);
                     for (int k = 0; k < 4; k++)
                     {
-                        if (GenDrawOnVehicle.rotNeeded[k])
+                        if (rotNeeded[k])
                         {
                             if (vehicleMap)
                             {

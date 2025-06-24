@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
 using Vehicles;
+using Vehicles.Rendering;
 using Verse;
 using Verse.AI;
 using Verse.AI.Group;
@@ -25,12 +26,12 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             if (__instance is VehiclePawnWithMap)
             {
-                if (__instance.MovementPermissions == VehiclePermissions.NoDriverNeeded)
+                if (__instance.MovementPermissions == VehiclePermissions.None)
                 {
                     __result = true;
                     return false;
                 }
-                var matchHandlers = __instance.handlers.Where(h => h.role.HandlingTypes.HasFlag(HandlingTypeFlags.Movement)).ToList();
+                var matchHandlers = __instance.handlers.Where(h => h.role.HandlingTypes.HasFlag(HandlingType.Movement)).ToList();
                 if (matchHandlers.Empty())
                 {
                     __result = false;
@@ -56,7 +57,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                     IsManned(__instance, true);
                     return false;
                 }
-                var matchHandlers = __instance.vehicle.handlers.FindAll(h => h.role.HandlingTypes.HasFlag(HandlingTypeFlags.Turret) && (h.role.TurretIds.Contains(__instance.key) || h.role.TurretIds.Contains(__instance.groupKey)));
+                var matchHandlers = __instance.vehicle.handlers.FindAll(h => h.role.HandlingTypes.HasFlag(HandlingType.Turret) && (h.role.TurretIds.Contains(__instance.key) || h.role.TurretIds.Contains(__instance.groupKey)));
                 if (matchHandlers.Empty())
                 {
                     IsManned(__instance, false);
@@ -82,7 +83,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 if (gizmo is Command_CooldownAction command_CooldownAction && __instance.Vehicle is VehiclePawnWithMap)
                 {
                     var turret = command_CooldownAction.turret;
-                    if (!VehicleMod.settings.debug.debugShootAnyTurret && !command_CooldownAction.Disabled && __instance.Vehicle.GetAllHandlersMatch(HandlingTypeFlags.Turret, !turret.groupKey.NullOrEmpty() ? turret.groupKey : turret.key).Empty())
+                    if (!VehicleMod.settings.debug.debugShootAnyTurret && !command_CooldownAction.Disabled && __instance.Vehicle.GetAllHandlersMatch(HandlingType.Turret, !turret.groupKey.NullOrEmpty() ? turret.groupKey : turret.key).Empty())
                     {
                         command_CooldownAction.Disable("VMF_NoRoles".Translate(__instance.Vehicle.LabelShort));
                     }
@@ -97,7 +98,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static bool Prefix(Pawn pawn, VehiclePawn __instance)
         {
-            var handler = __instance.handlers.First(h => h.handlers.Contains(pawn));
+            var handler = __instance.handlers.First(h => h.thingOwner.Contains(pawn));
             if (handler.role is VehicleRoleBuildable buildable && __instance is VehiclePawnWithMap vehicle)
             {
                 var parent = buildable.upgradeComp.parent;
@@ -152,7 +153,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatch("Vehicles.Rendering", "DrawSelectionBracketsVehicles")]
+    [HarmonyPatch("Vehicles.Patch_Rendering", "DrawSelectionBracketsVehicles")]
     public static class Patch_Rendering_DrawSelectionBracketsVehicles
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
@@ -181,34 +182,34 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatch(typeof(ShaderTypeDef), nameof(ShaderTypeDef.Shader), MethodType.Getter)]
-    [HarmonyPatchCategory("VehicleInteriors.EarlyPatches")]
-    public static class Patch_ShaderTypeDef_Shader
-    {
-        public static void Prefix(ShaderTypeDef __instance, ref Shader ___shaderInt)
-        {
+    //[HarmonyPatch(typeof(ShaderTypeDef), nameof(ShaderTypeDef.Shader), MethodType.Getter)]
+    //[HarmonyPatchCategory("VehicleInteriors.EarlyPatches")]
+    //public static class Patch_ShaderTypeDef_Shader
+    //{
+    //    public static void Prefix(ShaderTypeDef __instance, ref Shader ___shaderInt)
+    //    {
 
-            if (___shaderInt == null && __instance is RGBMaskShaderTypeDef && VehicleMod.settings.debug.debugLoadAssetBundles)
-            {
-                ___shaderInt = VMF_Shaders.LoadShader(__instance.shaderPath);
-                if (___shaderInt == null)
-                {
-                    Log.Error("[VehicleMapFramework] Failed to load Shader from path ${__instance.shaderPath}");
-                }
-            }
-        }
-    }
+    //        if (___shaderInt == null && __instance is RGBMaskShaderTypeDef && VehicleMod.settings.debug.debug)
+    //        {
+    //            ___shaderInt = VMF_Shaders.LoadShader(__instance.shaderPath);
+    //            if (___shaderInt == null)
+    //            {
+    //                Log.Error("[VehicleMapFramework] Failed to load Shader from path ${__instance.shaderPath}");
+    //            }
+    //        }
+    //    }
+    //}
 
-    [HarmonyPatch(typeof(VehicleHarmonyOnMod), "ShaderFromAssetBundle")]
-    [HarmonyPatchCategory("VehicleInteriors.EarlyPatches")]
-    public static class Patch_VehicleHarmonyOnMod_ShaderFromAssetBundle
-    {
-        //元メソッドが__instanceを引数として取っているのでこれを取得しようとすると元メソッドのインスタンス（存在しない）と混同してしまう
-        public static bool Prefix(object[] __args)
-        {
-            return !(__args[0] is RGBMaskShaderTypeDef);
-        }
-    }
+    //[HarmonyPatch(typeof(VehicleHarmonyOnMod), "ShaderFromAssetBundle")]
+    //[HarmonyPatchCategory("VehicleInteriors.EarlyPatches")]
+    //public static class Patch_VehicleHarmonyOnMod_ShaderFromAssetBundle
+    //{
+    //    //元メソッドが__instanceを引数として取っているのでこれを取得しようとすると元メソッドのインスタンス（存在しない）と混同してしまう
+    //    public static bool Prefix(object[] __args)
+    //    {
+    //        return !(__args[0] is RGBMaskShaderTypeDef);
+    //    }
+    //}
 
     [HarmonyPatch(typeof(AssetBundleDatabase), nameof(AssetBundleDatabase.SupportsRGBMaskTex))]
     public static class Patch_AssetBundleDatabase_SupportsRGBMaskTex
@@ -222,31 +223,31 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatch(typeof(VehicleTurret), nameof(VehicleTurret.DrawAt))]
-    public static class Patch_VehicleTurret_DrawAt
-    {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
-            var g_Rot8_North = AccessTools.PropertyGetter(typeof(Rot8), nameof(Rot8.North));
-            foreach (var instruction in instructions)
-            {
-                if (instruction.opcode == OpCodes.Call && instruction.OperandIs(g_Rot8_North))
-                {
-                    yield return CodeInstruction.LoadArgument(2);
-                }
-                else yield return instruction;
-            }
-        }
-    }
+    //[HarmonyPatch(typeof(VehicleTurret), nameof(VehicleTurret.DrawAt))]
+    //public static class Patch_VehicleTurret_DrawAt
+    //{
+    //    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    //    {
+    //        var g_Rot8_North = AccessTools.PropertyGetter(typeof(Rot8), nameof(Rot8.North));
+    //        foreach (var instruction in instructions)
+    //        {
+    //            if (instruction.opcode == OpCodes.Call && instruction.OperandIs(g_Rot8_North))
+    //            {
+    //                yield return CodeInstruction.LoadArgument(2);
+    //            }
+    //            else yield return instruction;
+    //        }
+    //    }
+    //}
 
     [HarmonyPatch(typeof(VehicleTurret), nameof(VehicleTurret.AngleBetween))]
     public static class Patch_VehicleTurret_AngleBetween
     {
-        public static void Prefix(VehicleTurret __instance, ref Vector3 mousePosition)
+        public static void Prefix(VehicleTurret __instance, ref Vector3 position)
         {
             if (__instance.vehicle.IsOnNonFocusedVehicleMapOf(out var vehicle))
             {
-                mousePosition = Ext_Math.RotatePoint(mousePosition, __instance.TurretLocation, vehicle.FullRotation.AsAngle);
+                position = Ext_Math.RotatePoint(position, __instance.TurretLocation, vehicle.FullRotation.AsAngle);
             }
         }
     }
@@ -273,61 +274,61 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatch(typeof(VehicleGUI), nameof(VehicleGUI.RetrieveAllOverlaySettingsGUIProperties), typeof(Rect), typeof(VehicleDef), typeof(Rot8), typeof(List<GraphicOverlay>))]
-    public static class Patch_VehicleGUI_RetrieveAllOverlaySettingsGUIProperties
-    {
-        public static IEnumerable<VehicleGUI.RenderData> Postfix(IEnumerable<VehicleGUI.RenderData> values, Rect rect, VehicleDef vehicleDef, Rot8 rot)
-        {
-            foreach (var value in values)
-            {
-                yield return value;
-            }
-            foreach (CompProperties_TogglableOverlays compProperties in vehicleDef.comps.OfType<CompProperties_TogglableOverlays>())
-            {
-                foreach (var graphicOverlay in compProperties.overlays)
-                {
-                    if (graphicOverlay.data.renderUI)
-                    {
-                        yield return VehicleGUI.RetrieveOverlaySettingsGUIProperties(rect, vehicleDef, rot, graphicOverlay);
-                    }
-                }
-            }
-        }
-    }
+    //[HarmonyPatch(typeof(VehicleGui), nameof(VehicleGui.RetrieveAllOverlaySettingsGUIProperties), typeof(Rect), typeof(VehicleDef), typeof(Rot8), typeof(List<GraphicOverlay>))]
+    //public static class Patch_VehicleGUI_RetrieveAllOverlaySettingsGUIProperties
+    //{
+    //    public static IEnumerable<VehicleGui.RenderData> Postfix(IEnumerable<VehicleGui.RenderData> values, Rect rect, VehicleDef vehicleDef, Rot8 rot)
+    //    {
+    //        foreach (var value in values)
+    //        {
+    //            yield return value;
+    //        }
+    //        foreach (CompProperties_TogglableOverlays compProperties in vehicleDef.comps.OfType<CompProperties_TogglableOverlays>())
+    //        {
+    //            foreach (var graphicOverlay in compProperties.overlays)
+    //            {
+    //                if (graphicOverlay.data.renderUI)
+    //                {
+    //                    yield return VehicleGUI.RetrieveOverlaySettingsGUIProperties(rect, vehicleDef, rot, graphicOverlay);
+    //                }
+    //            }
+    //        }
+    //    }
+    //}
 
-    [HarmonyPatch(typeof(VehicleGhostUtility), nameof(VehicleGhostUtility.GhostGraphicOverlaysFor))]
-    public static class Patch_VehicleGhostUtility_GhostGraphicOverlaysFor
-    {
-        public static IEnumerable<ValueTuple<Graphic, float>> Postfix(IEnumerable<ValueTuple<Graphic, float>> values, VehicleDef vehicleDef, Color ghostColor)
-        {
-            foreach (var value in values)
-            {
-                yield return value;
-            }
-            int num = 0;
-            num = Gen.HashCombine<VehicleDef>(num, vehicleDef);
-            num = Gen.HashCombineStruct<Color>(num, ghostColor);
-            foreach (CompProperties_TogglableOverlays compProperties in vehicleDef.comps.OfType<CompProperties_TogglableOverlays>())
-            {
-                foreach (var graphicOverlay in compProperties.overlays)
-                {
-                    int key = Gen.HashCombine<GraphicDataRGB>(num, graphicOverlay.data.graphicData);
-                    if (!VehicleGhostUtility.cachedGhostGraphics.TryGetValue(key, out Graphic graphic))
-                    {
-                        graphic = graphicOverlay.Graphic;
-                        GraphicData graphicData = new GraphicData();
-                        graphicData.CopyFrom(graphic.data);
-                        graphicData.drawOffsetWest = graphic.data.drawOffsetWest;
-                        graphicData.shadowData = null;
-                        //Graphic graphic2 = graphicData.Graphic;
-                        graphic = GraphicDatabase.Get(typeof(Graphic_Vehicle), graphic.path, ShaderTypeDefOf.EdgeDetect.Shader, graphic.drawSize, ghostColor, Color.white, graphicData, null, null);
-                        VehicleGhostUtility.cachedGhostGraphics.Add(key, graphic);
-                    }
-                    yield return new ValueTuple<Graphic, float>(graphic, graphicOverlay.data.rotation);
-                }
-            }
-        }
-    }
+    //[HarmonyPatch(typeof(VehicleGhostUtility), nameof(VehicleGhostUtility.GhostGraphicOverlaysFor))]
+    //public static class Patch_VehicleGhostUtility_GhostGraphicOverlaysFor
+    //{
+    //    public static IEnumerable<ValueTuple<Graphic, float>> Postfix(IEnumerable<ValueTuple<Graphic, float>> values, VehicleDef vehicleDef, Color ghostColor)
+    //    {
+    //        foreach (var value in values)
+    //        {
+    //            yield return value;
+    //        }
+    //        int num = 0;
+    //        num = Gen.HashCombine<VehicleDef>(num, vehicleDef);
+    //        num = Gen.HashCombineStruct<Color>(num, ghostColor);
+    //        foreach (CompProperties_TogglableOverlays compProperties in vehicleDef.comps.OfType<CompProperties_TogglableOverlays>())
+    //        {
+    //            foreach (var graphicOverlay in compProperties.overlays)
+    //            {
+    //                int key = Gen.HashCombine<GraphicDataRGB>(num, graphicOverlay.data.graphicData);
+    //                if (!VehicleGhostUtility.cachedGhostGraphics.TryGetValue(key, out Graphic graphic))
+    //                {
+    //                    graphic = graphicOverlay.Graphic;
+    //                    GraphicData graphicData = new GraphicData();
+    //                    graphicData.CopyFrom(graphic.data);
+    //                    graphicData.drawOffsetWest = graphic.data.drawOffsetWest;
+    //                    graphicData.shadowData = null;
+    //                    //Graphic graphic2 = graphicData.Graphic;
+    //                    graphic = GraphicDatabase.Get(typeof(Graphic_Vehicle), graphic.path, ShaderTypeDefOf.EdgeDetect.Shader, graphic.drawSize, ghostColor, Color.white, graphicData, null, null);
+    //                    VehicleGhostUtility.cachedGhostGraphics.Add(key, graphic);
+    //                }
+    //                yield return new ValueTuple<Graphic, float>(graphic, graphicOverlay.data.rotation);
+    //            }
+    //        }
+    //    }
+    //}
 
     [HarmonyPatch(typeof(GenGridVehicles), nameof(GenGridVehicles.ImpassableForVehicles))]
     public static class Patch_GenGridVehicles_ImpassableForVehicles
@@ -338,7 +339,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatch(typeof(TargetingHelper), nameof(TargetingHelper.BestAttackTarget))]
+    [HarmonyPatch(typeof(TargetingHelper), "BestAttackTarget")]
     public static class Patch_TargetingHelper_BestAttackTarget
     {
         public static void Postfix(VehicleTurret turret, TargetScanFlags flags, Predicate<Thing> validator, float minDist, float maxDist, IntVec3 locus, float maxTravelRadiusFromLocus, bool canTakeTargetsCloserThanEffectiveMinRange, ref IAttackTarget __result)
@@ -459,7 +460,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatch(typeof(TurretTargeter), nameof(TurretTargeter.TargeterValid), MethodType.Getter)]
+    [HarmonyPatch(typeof(TurretTargeter), "TargeterValid", MethodType.Getter)]
     public static class Patch_TurretTargeter_TargeterValid
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -491,21 +492,6 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                     codes.RemoveAt(pos2);
                 }
             }
-            return codes;
-        }
-    }
-
-    //VehicleTurretがdefaultAngleRotatedのままだとセーブされないので、forceSaveさせる
-    [HarmonyPatch(typeof(VehicleTurret), nameof(VehicleTurret.ExposeData))]
-    public static class Patch_VehicleTurret_ExposeData
-    {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
-            var codes = instructions.ToList();
-            var f_defaultAngleRotated = AccessTools.Field(typeof(VehicleTurret), nameof(VehicleTurret.defaultAngleRotated));
-            var pos = codes.FindIndex(c => c.opcode == OpCodes.Ldfld && c.OperandIs(f_defaultAngleRotated)) + 1;
-
-            codes[pos].opcode = OpCodes.Ldc_I4_1;
             return codes;
         }
     }
@@ -883,7 +869,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 {
                     if (transferToHolder is Map map && map.IsVehicleMapOf(out var vehicle))
                     {
-                        if (draggedPawn.ParentHolder is VehicleHandler vehicleHandler)
+                        if (draggedPawn.ParentHolder is VehicleRoleHandler vehicleHandler)
                         {
                             if (!draggedPawn.Spawned && TryFindSpawnSpot(vehicle, vehicleHandler, out var intVec))
                             {
@@ -914,7 +900,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                     }
                     else if(draggedPawn.IsOnVehicleMapOf(out vehicle))
                     {
-                        if (transferToHolder is VehicleHandler vehicleHandler)
+                        if (transferToHolder is VehicleRoleHandler vehicleHandler)
                         {
                             if (!vehicleHandler.CanOperateRole(draggedPawn))
                             {
@@ -954,7 +940,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                         if (transferToHolder.GetDirectlyHeldThings().TryAddOrTransfer(draggedPawn, false))
                         {
                             SoundDefOf.Click.PlayOneShotOnCamera();
-                            if (transferToHolder is VehicleHandler vehicleHandler2)
+                            if (transferToHolder is VehicleRoleHandler vehicleHandler2)
                             {
                                 vehicleHandler2.vehicle.EventRegistry[VehicleEventDefOf.PawnEntered].ExecuteEvents();
                             }
@@ -975,7 +961,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             return true;
         }
 
-        private static bool TryFindSpawnSpot(VehiclePawnWithMap vehicle, VehicleHandler vehicleHandler, out IntVec3 spot)
+        private static bool TryFindSpawnSpot(VehiclePawnWithMap vehicle, VehicleRoleHandler vehicleHandler, out IntVec3 spot)
         {
             bool Predicate(IntVec3 c)
             {

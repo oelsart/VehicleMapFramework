@@ -268,12 +268,12 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
         {
             var codes = instructions.ToList();
-            var m_CellRect_ClipInsideRect = AccessTools.Method(typeof(CellRect), nameof(CellRect.ClipInsideRect));
-            var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(m_CellRect_ClipInsideRect));
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Stloc_0);
             var label = generator.DefineLabel();
 
             codes[pos].labels.Add(label);
-            codes.InsertRange(pos, new[] {
+            codes.InsertRange(pos, new[]
+            {
                 new CodeInstruction(OpCodes.Call, CachedMethodInfo.g_FocusedVehicle),
                 new CodeInstruction(OpCodes.Brfalse_S, label),
                 new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.ToVehicleMapCoord), new Type[]{ typeof(CellRect) }))

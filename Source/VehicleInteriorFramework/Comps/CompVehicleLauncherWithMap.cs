@@ -13,13 +13,13 @@ namespace VehicleInteriors
             {
                 yield return gizmo;
             }
-            if (this.launchProtocol == null)
+            if (launchProtocol == null)
             {
                 Log.ErrorOnce(string.Format("No launch protocols for {0}. At least 1 must be included in order to initiate takeoff.", base.Vehicle), base.Vehicle.thingIDNumber);
                 yield break;
             }
-            Command_ActionHighlighter launchCommand = this.launchProtocol.LaunchCommand;
-            if (!this.CanLaunchWithCargoCapacityWithMap(out string reason))
+            Command_ActionHighlighter launchCommand = launchProtocol.LaunchCommand;
+            if (!CanLaunchWithCargoCapacityWithMap(out string reason))
             {
                 launchCommand.Disable(reason);
             }
@@ -40,11 +40,15 @@ namespace VehicleInteriors
                     disableReason = "CommandLaunchGroupFailUnderRoof".Translate();
                 }
             }
-            if (SettingsCache.TryGetValue<VehiclePermissions>(base.Vehicle.VehicleDef, typeof(VehicleDef), "vehicleMovementPermissions", base.Vehicle.VehicleDef.vehicleMovementPermissions) > VehiclePermissions.NotAllowed)
+            if (base.Vehicle.MovementPermissions.HasFlag(VehiclePermissions.Mobile))
             {
-                if (!base.Vehicle.CanMoveFinal || base.Vehicle.Angle != 0f)
+                if (!base.Vehicle.CanMoveFinal)
                 {
                     disableReason = "VF_CannotLaunchImmobile".Translate(base.Vehicle.LabelShort);
+                }
+                else if (base.Vehicle.Angle != 0f)
+                {
+                    disableReason = "VF_CannotLaunchRotated".Translate(base.Vehicle.LabelShort);
                 }
             }
             else
@@ -74,13 +78,13 @@ namespace VehicleInteriors
             {
                 disableReason = "VF_LaunchOutOfFuel".Translate();
             }
-            else if (this.FlightSpeed <= 0f)
+            else if (FlightSpeed <= 0f)
             {
                 disableReason = "VF_NoFlightSpeed".Translate();
             }
-            if (!this.launchProtocol.CanLaunchNow)
+            if (!launchProtocol.CanLaunchNow)
             {
-                disableReason = this.launchProtocol.FailLaunchMessage;
+                disableReason = launchProtocol.FailLaunchMessage;
             }
             return disableReason.NullOrEmpty();
         }

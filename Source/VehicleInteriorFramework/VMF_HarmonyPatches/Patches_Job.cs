@@ -54,60 +54,64 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     [HarmonyPatch(typeof(JobGiver_Work), nameof(JobGiver_Work.TryIssueJobPackage))]
     public static class Patch_JobGiver_Work_TryIssueJobPackage
     {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
         {
             var codes = instructions.ToList();
+            //scanner変数をローカルに保存しておく
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Isinst && c.operand.Equals(typeof(WorkGiver_Scanner))) + 1;
+            var scanner = generator.DeclareLocal(typeof(WorkGiver_Scanner));
+            codes.InsertRange(pos, new[]
+            {
+                new CodeInstruction(OpCodes.Dup),
+                new CodeInstruction(OpCodes.Stloc_S, scanner)
+            });
 
             //サーチセットに複数マップのthingリストを足す
-            var pos = codes.FindIndex(c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalIndex == 17);
+            pos = codes.FindIndex(c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalIndex == 16);
 
             var addedCodes = new[]
             {
                 CodeInstruction.LoadArgument(1),
-                CodeInstruction.LoadLocal(12),
+                new CodeInstruction(OpCodes.Ldloc_S, scanner),
                 CodeInstruction.Call(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(AddSearchSet))
             };
             codes.InsertRange(pos, addedCodes);
 
-            var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalIndex == 19);
+            var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalIndex == 18);
             codes.InsertRange(pos2, addedCodes);
 
-            var pos3 = codes.FindIndex(pos2, c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalIndex == 21) + 1;
+            var pos3 = codes.FindIndex(pos2, c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalIndex == 20) + 1;
             codes.InsertRange(pos3, new[]
             {
-                CodeInstruction.LoadLocal(12),
+                new CodeInstruction(OpCodes.Ldloc_S, scanner),
                 CodeInstruction.LoadLocal(0, true),
-                CodeInstruction.LoadLocal(20, true),
+                CodeInstruction.LoadLocal(19, true),
                 CodeInstruction.Call(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(ScanCellsAcrossMaps))
             });
 
             var m_JobOnCell = AccessTools.Method(typeof(WorkGiver_Scanner), nameof(WorkGiver_Scanner.JobOnCell));
-            var pos4 = codes.FindIndex(pos3, c => c.opcode == OpCodes.Callvirt && c.OperandIs(m_JobOnCell));
+            var pos4 = codes.FindIndex(pos3, c => c.Calls(m_JobOnCell));
             codes[pos4].opcode = OpCodes.Call;
             codes[pos4].operand = AccessTools.Method(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(JobOnCellMap));
 
             var g_TargetInfo_Cell = AccessTools.PropertyGetter(typeof(TargetInfo), nameof(TargetInfo.Cell));
-            var pos5 = codes.FindLastIndex(pos4, c => c.opcode == OpCodes.Call && c.OperandIs(g_TargetInfo_Cell));
+            var pos5 = codes.FindLastIndex(pos4, c => c.Calls(g_TargetInfo_Cell));
             codes.RemoveAt(pos5);
 
             //GenClosestの各メソッドを自作のものに置き換える
             //PotentialWorkThingsGlobalの各マップの結果を合計
             var m_GenClosest_ClosestThing_Global = AccessTools.Method(typeof(GenClosest), nameof(GenClosest.ClosestThing_Global));
             var m_GenClosestOnVehicle_ClosestThing_Global = AccessTools.Method(typeof(GenClosestOnVehicle), nameof(GenClosestOnVehicle.ClosestThing_Global),
-                new[] { typeof(IntVec3), typeof(IEnumerable<>), typeof(float), typeof(Predicate<Thing>), typeof(Func<Thing, float>) } );
+                new[] { typeof(IntVec3), typeof(IEnumerable<>), typeof(float), typeof(Predicate<Thing>), typeof(Func<Thing, float>), typeof(bool) } );
             var m_GenClosest_ClosestThing_Global_Reachable = AccessTools.Method(typeof(GenClosest), nameof(GenClosest.ClosestThing_Global_Reachable));
             var m_GenClosestOnVehicle_ClosestThing_Global_Reachable = AccessTools.Method(typeof(GenClosestOnVehicle), nameof(GenClosestOnVehicle.ClosestThing_Global_Reachable),
-                new[] { typeof(IntVec3), typeof(Map), typeof(IEnumerable<Thing>), typeof(PathEndMode), typeof(TraverseParms), typeof(float), typeof(Predicate<Thing>), typeof(Func<Thing, float>) });
-            var m_GenClosest_ClosestThingReachable = AccessTools.Method(typeof(GenClosest), nameof(GenClosest.ClosestThingReachable));
-            var m_GenClosestOnVehicle_ClosestThingReachable = AccessTools.Method(typeof(GenClosestOnVehicle), nameof(GenClosestOnVehicle.ClosestThingReachable),
-                new[] { typeof(IntVec3), typeof(Map), typeof(ThingRequest), typeof(PathEndMode), typeof(TraverseParms), typeof(float), typeof(Predicate<Thing>), typeof(IEnumerable<Thing>), typeof(int), typeof(int), typeof(bool), typeof(RegionType), typeof(bool)});
+                new[] { typeof(IntVec3), typeof(Map), typeof(IEnumerable<Thing>), typeof(PathEndMode), typeof(TraverseParms), typeof(float), typeof(Predicate<Thing>), typeof(Func<Thing, float>), typeof(bool) });
             var m_Scanner_PotentialWorkThingsGlobal = AccessTools.Method(typeof(WorkGiver_Scanner), nameof(WorkGiver_Scanner.PotentialWorkThingsGlobal));
             var m_PotentialWorkThingsGlobalAll = AccessTools.Method(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(PotentialWorkThingsGlobalAll));
             var m_Scanner_JobOnThing = AccessTools.Method(typeof(WorkGiver_Scanner), nameof(WorkGiver_Scanner.JobOnThing));
             var m_JobOnThingMap = AccessTools.Method(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(JobOnThingMap));
             return codes.MethodReplacer(m_GenClosest_ClosestThing_Global, m_GenClosestOnVehicle_ClosestThing_Global)
                 .MethodReplacer(m_GenClosest_ClosestThing_Global_Reachable, m_GenClosestOnVehicle_ClosestThing_Global_Reachable)
-                .MethodReplacer(m_GenClosest_ClosestThingReachable, m_GenClosestOnVehicle_ClosestThingReachable)
                 .MethodReplacer(m_Scanner_PotentialWorkThingsGlobal, m_PotentialWorkThingsGlobalAll)
                 .MethodReplacer(m_Scanner_JobOnThing, m_JobOnThingMap);
         }
@@ -203,13 +207,13 @@ namespace VehicleInteriors.VMF_HarmonyPatches
 
         private static Job JobOnCellMap(WorkGiver_Scanner scanner, Pawn pawn, in TargetInfo target, bool forced)
         {
+            var map = pawn.Map;
             var targetMap = target.Map;
-            if (pawn.Map == targetMap || scanner is IWorkGiverAcrossMaps workGiverAcrossMaps && !workGiverAcrossMaps.NeedVirtualMapTransfer)
+            if (map == targetMap || scanner is IWorkGiverAcrossMaps workGiverAcrossMaps && !workGiverAcrossMaps.NeedVirtualMapTransfer)
             {
                 return scanner.JobOnCell(pawn, target.Cell, forced);
             }
 
-            var map = pawn.Map;
             if (pawn.CanReach(target.Cell, scanner.PathEndMode, scanner.MaxPathDanger(pawn), false, false, TraverseMode.ByPawn, targetMap, out var exitSpot, out var enterSpot))
             {
                 var pos = pawn.Position;
@@ -529,8 +533,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
 
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
-        {
-            var f_actor = instructions.First(c => c.opcode == OpCodes.Stfld && ((FieldInfo)c.operand).FieldType == typeof(Pawn)).operand;
+        {   
             foreach (var instruction in instructions)
             {
                 yield return instruction;
@@ -539,7 +542,6 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                     var label = generator.DefineLabel();
                     yield return CodeInstruction.LoadLocal(2);
                     yield return CodeInstruction.LoadLocal(0);
-                    yield return new CodeInstruction(OpCodes.Ldfld, f_actor);
                     yield return CodeInstruction.Call(typeof(Patch_Toils_Ingest_CarryIngestibleToChewSpot_Delegate), nameof(StartGotoDestMapJob));
                     yield return new CodeInstruction(OpCodes.Brfalse_S, label);
                     yield return new CodeInstruction(OpCodes.Ret);

@@ -24,11 +24,13 @@ namespace VehicleInteriors
 
         public static TerrainDef VMF_VehicleFloor;
 
-        public static RGBMaskShaderTypeDef VMF_CutoutComplexRGBOpacity;
+        public static ShaderTypeDef VMF_TerrainHardWithZ;
 
-        public static RGBMaskShaderTypeDef VMF_CutoutComplexPatternOpacity;
+        public static ShaderTypeDef VMF_CutoutComplexRGBOpacity;
 
-        public static RGBMaskShaderTypeDef VMF_CutoutComplexSkinOpacity;
+        public static ShaderTypeDef VMF_CutoutComplexPatternOpacity;
+
+        public static ShaderTypeDef VMF_CutoutComplexSkinOpacity;
 
         public static JobDef VMF_GotoDestMap;
 
@@ -89,8 +91,6 @@ namespace VehicleInteriors
         public static JobDef VMF_RefuelAcrossMaps;
 
         public static JobDef VMF_RefuelAtomicAcrossMaps;
-
-        public static JobDef VMF_DoBillAcrossMaps;
 
         public static JobDef VMF_RearmTurretAcrossMaps;
 

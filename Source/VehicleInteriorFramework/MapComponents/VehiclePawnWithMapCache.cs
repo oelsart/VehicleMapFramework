@@ -23,34 +23,6 @@ namespace VehicleInteriors
             }, false);
         }
 
-        public override void MapRemoved()
-        {
-            bool WorldObjectSpawned(IThingHolder holder)
-            {
-                while (holder != null)
-                {
-                    if (holder is WorldObject worldObject)
-                    {
-                        return worldObject.Spawned;
-                    }
-                    holder = holder.ParentHolder;
-                }
-                return false;
-            }
-
-            LongEventHandler.ExecuteWhenFinished(() =>
-            {
-                foreach (var mapParent_Vehicle in Find.World.GetComponent<VehicleMapParentsComponent>().vehicleMaps.ToArray())
-                {
-                    var vehicle = mapParent_Vehicle.vehicle;
-                    if (!vehicle.SpawnedOrAnyParentSpawned && !WorldObjectSpawned(vehicle) && !vehicle.Destroyed)
-                    {
-                        vehicle.Destroy();
-                    }
-                }
-            });
-        }
-
         public static void RegisterVehicle(VehiclePawnWithMap vehicle)
         {
             MapComponentCache<VehiclePawnWithMapCache>.GetComponent(vehicle.Map).allVehicles.Add(vehicle);

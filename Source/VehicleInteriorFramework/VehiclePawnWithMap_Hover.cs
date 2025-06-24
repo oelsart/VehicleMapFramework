@@ -10,62 +10,62 @@ namespace VehicleInteriors
         {
             get
             {
-                if (this.Spawned && Find.CurrentMap != this.VehicleMap)
+                if (Spawned && Find.CurrentMap != VehicleMap)
                 {
-                    this.Drawer.tweener.PreDrawPosCalculation();
-                    Vector3 drawPos = this.Drawer.tweener.TweenedPos;
-                    drawPos.y = this.def.Altitude;
-                    if (this.Drawer.rTracker.Recoil > 0f)
+                    DrawTracker.tweener.PreDrawPosCalculation();
+                    Vector3 drawPos = DrawTracker.tweener.TweenedPos;
+                    drawPos.y = def.Altitude;
+                    if (DrawTracker.recoilTracker.Recoil > 0f)
                     {
-                        drawPos = drawPos.PointFromAngle(this.Drawer.rTracker.Recoil, this.Drawer.rTracker.Angle);
+                        drawPos = drawPos.PointFromAngle(DrawTracker.recoilTracker.Recoil, DrawTracker.recoilTracker.Angle);
                     }
-                    drawPos.z += this.drawOffset;
+                    drawPos.z += drawOffset;
                     return drawPos;
                 }
                 return base.DrawPos;
             }
         }
 
-        public override void Tick()
+        protected override void Tick()
         {
-            this.prevOffset = this.drawOffset;
+            prevOffset = drawOffset;
             if (base.ignition.Drafted)
             {
-                if (!this.ignitionComplete)
+                if (!ignitionComplete)
                 {
-                    if (this.ignitionTick == null)
+                    if (ignitionTick == null)
                     {
-                        this.ignitionTick = Find.TickManager.TicksGame;
+                        ignitionTick = Find.TickManager.TicksGame;
                     }
                     else
                     {
-                        var offsetFactor = Mathf.Min((Find.TickManager.TicksGame - this.ignitionTick.Value) / ignitionDuration, 1f);
+                        var offsetFactor = Mathf.Min((Find.TickManager.TicksGame - ignitionTick.Value) / ignitionDuration, 1f);
                         if (offsetFactor == 1f)
                         {
                             ignitionComplete = true;
                         }
-                        this.drawOffset = this.offsetDrafted * offsetFactor;
+                        drawOffset = offsetDrafted * offsetFactor;
                     }
                 }
                 else
                 {
-                    this.drawOffset = this.offsetDrafted;
-                    this.drawOffset += Mathf.Sin(Find.TickManager.TicksGame * 0.075f) * 0.035f;
+                    drawOffset = offsetDrafted;
+                    drawOffset += Mathf.Sin(Find.TickManager.TicksGame * 0.075f) * 0.035f;
                 }
             }
-            else if (this.ignitionTick != null)
+            else if (ignitionTick != null)
             {
-                this.ignitionTick = null;
-                this.ignitionComplete = false;
-                this.landingComplete = false;
+                ignitionTick = null;
+                ignitionComplete = false;
+                landingComplete = false;
             }
 
-            if (!this.landingComplete)
+            if (!landingComplete)
             {
-                this.drawOffset = Mathf.Max(0f, this.drawOffset - 0.004f);
-                if (this.drawOffset == 0f)
+                drawOffset = Mathf.Max(0f, drawOffset - 0.004f);
+                if (drawOffset == 0f)
                 {
-                    this.landingComplete = true;
+                    landingComplete = true;
                 }
             }
             base.Tick();
@@ -74,12 +74,12 @@ namespace VehicleInteriors
         public override void ExposeData()
         {
             base.ExposeData();
-            Scribe_Values.Look(ref this.drawOffset, "floatingOffset");
-            Scribe_Values.Look(ref this.prevOffset, "floatingOffsetPrev");
-            Scribe_Values.Look(ref this.drawPosZ, "drawPosZ");
-            Scribe_Values.Look(ref this.ignitionTick, "ignitionTick");
-            Scribe_Values.Look(ref this.ignitionComplete, "ignitionComplete");
-            Scribe_Values.Look(ref this.landingComplete, "landingComplete");
+            Scribe_Values.Look(ref drawOffset, "floatingOffset");
+            Scribe_Values.Look(ref prevOffset, "floatingOffsetPrev");
+            Scribe_Values.Look(ref drawPosZ, "drawPosZ");
+            Scribe_Values.Look(ref ignitionTick, "ignitionTick");
+            Scribe_Values.Look(ref ignitionComplete, "ignitionComplete");
+            Scribe_Values.Look(ref landingComplete, "landingComplete");
         }
 
         private float drawOffset = 0f;

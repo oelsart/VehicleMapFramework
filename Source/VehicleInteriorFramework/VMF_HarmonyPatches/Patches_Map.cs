@@ -41,7 +41,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static void Prefix(Pawn mech, ref LocalTargetInfo target)
         {
-            if (Patch_MultiPawnGotoController_RecomputeDestinations.tmpEnterSpots.TryGetValue((mech, target.Cell), out var spots))
+            if (Patch_MultiPawnGotoController_RecomputeDestinations.tmpEnterSpots.TryGetValue(mech, out var spots))
             {
                 var destMap = spots.enterSpot.Map ?? spots.exitSpot.Map.BaseMap() ?? mech.MapHeld;
                 if (destMap.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
@@ -73,12 +73,16 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static void Postfix(IntVec3 start, LocalTargetInfo dest, PathEndMode peMode, TraverseParms traverseParams, Map ___map, ref bool __result)
         {
-            if (!VehiclePawnWithMapCache.AllVehiclesOn(___map.BaseMap()).Any()) return;
+            if (__result || !VehiclePawnWithMapCache.AllVehiclesOn(___map.BaseMap()).Any()) return;
 
-            Map thingMap;
-            if (!ReachabilityUtilityOnVehicle.working && !__result && traverseParams.pawn != null && (thingMap = dest.Thing?.MapHeld) != null && traverseParams.pawn.Map != thingMap)
+            Map destMap;
+            if ((destMap = dest.Thing?.MapHeld) == null && traverseParams.pawn != null && TargetMapManager.HasTargetMap(traverseParams.pawn, out var map))
             {
-                __result = ReachabilityUtilityOnVehicle.CanReach(traverseParams.pawn.Map, start, dest, peMode, traverseParams, thingMap, out _, out _);
+                destMap = map;
+            }
+            if (!ReachabilityUtilityOnVehicle.working && traverseParams.pawn != null && destMap != null && traverseParams.pawn.Map != destMap)
+            {
+                __result = ReachabilityUtilityOnVehicle.CanReach(traverseParams.pawn.Map, start, dest, peMode, traverseParams, destMap, out _, out _);
             }
         }
 
@@ -235,7 +239,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                         mat.SetTexture(0, renderTexture);
                     }
                     vehicle.FullRotation = worldObject is VehicleCaravan vehicleCaravan ?
-                        Rot8.FromAngle((Find.WorldGrid.GetTileCenter(vehicleCaravan.vehiclePather.nextTile != -1 ? vehicleCaravan.vehiclePather.nextTile : vehicleCaravan.Tile.tileId) - Find.WorldGrid.GetTileCenter(vehicleCaravan.Tile)).AngleFlat()) :
+                        Rot8.FromAngle((Find.WorldGrid.GetTileCenter(vehicleCaravan.vehiclePather.nextTile != -1 ? vehicleCaravan.vehiclePather.nextTile : vehicleCaravan.Tile) - Find.WorldGrid.GetTileCenter(vehicleCaravan.Tile)).AngleFlat()) :
                         worldObject is Caravan caravan ?
                         Rot8.FromAngle((Find.WorldGrid.GetTileCenter(caravan.pather.nextTile != -1 ? caravan.pather.nextTile : caravan.Tile) - Find.WorldGrid.GetTileCenter(caravan.Tile)).AngleFlat()) :
                         worldObject is AerialVehicleInFlight aerial ? Rot8.FromAngle((aerial.DrawPos - aerial.position).AngleFlat()) : Rot8.East;
@@ -246,16 +250,15 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 {
                     Graphics.DrawMesh(mesh200, drawPos, Quaternion.identity, mat, 0);
                 }
-                var transformData = new TransformData(drawPos, vehicle.FullRotation);
-                vehicle.DrawAt(transformData);
+                vehicle.DynamicDrawPhaseAt(DrawPhase.Draw, drawPos);
             }
         }
 
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
         {
             var codes = instructions.ToList();
-            var g_WorldRenderedNow = AccessTools.PropertyGetter(typeof(WorldRendererUtility), nameof(WorldRendererUtility.WorldRendered));
-            var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(g_WorldRenderedNow)) + 1;
+            var g_DrawingMap = AccessTools.PropertyGetter(typeof(WorldRendererUtility), nameof(WorldRendererUtility.DrawingMap));
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(g_DrawingMap)) + 1;
             var label = generator.DefineLabel();
             var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithMap));
 
@@ -358,7 +361,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     [HarmonyPatch(typeof(WorldObject), nameof(WorldObject.Tile), MethodType.Getter)]
     public static class Patch_WorldObject_Tile
     {
-        public static bool Prefix(WorldObject __instance, ref int __result)
+        public static bool Prefix(WorldObject __instance, ref PlanetTile __result)
         {
             if (__instance is MapParent_Vehicle mapParent_Vehicle)
             {
@@ -480,9 +483,9 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             var codes = instructions.ToList();
-            var m_DrawFieldEdges = AccessTools.Method(typeof(GenDraw), nameof(GenDraw.DrawFieldEdges), new Type[] { typeof(List<IntVec3>), typeof(Color), typeof(float?) });
-            var m_DrawFieldEdgesOnVehicle = AccessTools.Method(typeof(GenDrawOnVehicle), nameof(GenDrawOnVehicle.DrawFieldEdges), new Type[] { typeof(List<IntVec3>), typeof(Color), typeof(float?), typeof(Map) });
-            var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(m_DrawFieldEdges));
+            var m_DrawFieldEdges = AccessTools.Method(typeof(GenDraw), nameof(GenDraw.DrawFieldEdges), new Type[] { typeof(List<IntVec3>), typeof(Color), typeof(float?), typeof(HashSet<IntVec3>), typeof(int) });
+            var m_DrawFieldEdgesOnVehicle = AccessTools.Method(typeof(GenDrawOnVehicle), nameof(GenDrawOnVehicle.DrawFieldEdges), new Type[] { typeof(List<IntVec3>), typeof(Color), typeof(float?), typeof(HashSet<IntVec3>), typeof(int), typeof(Map) });
+            var pos = codes.FindIndex(c => c.Calls(m_DrawFieldEdges));
             codes[pos].operand = m_DrawFieldEdgesOnVehicle;
             codes.InsertRange(pos, new[]
             {
@@ -496,7 +499,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     [HarmonyPatch(typeof(WorldObjectsHolder), nameof(WorldObjectsHolder.MapParentAt))]
     public static class Patch_WorldObjectsHolder_MapParentAt
     {
-        public static void Postfix(ref MapParent __result, List<MapParent> ___mapParents, int tile)
+        public static void Postfix(ref MapParent __result, List<MapParent> ___mapParents, PlanetTile tile)
         {
             if (__result is MapParent_Vehicle)
             {
@@ -505,10 +508,10 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatch(typeof(Game), nameof(Game.FindMap), typeof(int))]
+    [HarmonyPatch(typeof(Game), nameof(Game.FindMap), typeof(PlanetTile))]
     public static class Patch_Game_FindMap
     {
-        public static void Postfix(ref Map __result, List<Map> ___maps, int tile)
+        public static void Postfix(ref Map __result, List<Map> ___maps, PlanetTile tile)
         {
             if (__result.IsVehicleMapOf(out _))
             {

@@ -135,7 +135,7 @@ namespace VehicleInteriors
             {
                 IAttackTarget attackTarget = tmpTargets[i];
                 var thingPosOnBaseMap = attackTarget.Thing.PositionOnBaseMap();
-                if (thingPosOnBaseMap.InHorDistOf(searcherPosOnBaseMap, maxDist) && innerValidator(attackTarget) && VehicleTurret.TryFindShootLineFromTo(searcherPosOnBaseMap, new LocalTargetInfo(attackTarget.Thing), out ShootLine resultingLine))
+                if (thingPosOnBaseMap.InHorDistOf(searcherPosOnBaseMap, maxDist) && innerValidator(attackTarget) && turret.TryFindShootLineFromTo(searcherPosOnBaseMap, new LocalTargetInfo(attackTarget.Thing), out ShootLine resultingLine))
                 {
                     flag = true;
                     break;
@@ -145,18 +145,18 @@ namespace VehicleInteriors
             if (flag)
             {
                 tmpTargets.RemoveAll((IAttackTarget x) => !x.Thing.PositionOnBaseMap().InHorDistOf(searcherPosOnBaseMap, maxDist) || !innerValidator(x));
-                result = TargetingHelper.GetRandomShootingTargetByScore(tmpTargets, searcherPawn);
+                result = GetRandomShootingTargetByScore(turret, tmpTargets, searcherPawn);
             }
             else
             {
                 Predicate<Thing> validator2;
                 if ((flags & TargetScanFlags.NeedReachableIfCantHitFromMyPos) != TargetScanFlags.None && (flags & TargetScanFlags.NeedReachable) == TargetScanFlags.None)
                 {
-                    validator2 = ((Thing t) => innerValidator((IAttackTarget)t) && VehicleTurret.TryFindShootLineFromTo(searcherPawn.PositionOnBaseMap(), new LocalTargetInfo(t), out ShootLine resultingLine));
+                    validator2 = t => innerValidator((IAttackTarget)t) && turret.TryFindShootLineFromTo(searcherPawn.PositionOnBaseMap(), new LocalTargetInfo(t), out ShootLine resultingLine);
                 }
                 else
                 {
-                    validator2 = ((Thing t) => innerValidator((IAttackTarget)t));
+                    validator2 = t => innerValidator((IAttackTarget)t);
                 }
                 result = (IAttackTarget)GenClosestOnVehicle.ClosestThing_Global(searcherPawn.PositionOnBaseMap(), tmpTargets, maxDist, validator2, null);
             }
@@ -164,18 +164,13 @@ namespace VehicleInteriors
             return result;
         }
 
-        /// <summary>
-        /// Get random target by weight
-        /// </summary>
-        /// <param name="targets"></param>
-        /// <param name="searcher"></param>
-        public static IAttackTarget GetRandomShootingTargetByScore(List<IAttackTarget> targets, VehiclePawn searcher)
+        private static IAttackTarget GetRandomShootingTargetByScore(VehicleTurret turret, List<IAttackTarget> targets, VehiclePawn searcher)
         {
-            if (GetAvailableShootingTargetsByScore(targets, searcher).TryRandomElementByWeight(
-                (Pair<IAttackTarget, float> x) => x.Second, out Pair<IAttackTarget, float> pair))
+            if (GetAvailableShootingTargetsByScore(turret, targets, searcher).TryRandomElementByWeight((Pair<IAttackTarget, float> x) => x.Second, out var result))
             {
-                return pair.First;
+                return result.First;
             }
+
             return null;
         }
 
@@ -185,7 +180,7 @@ namespace VehicleInteriors
         /// <param name="rawTargets"></param>
         /// <param name="searcher"></param>
         /// <returns></returns>
-        public static List<Pair<IAttackTarget, float>> GetAvailableShootingTargetsByScore(List<IAttackTarget> rawTargets, VehiclePawn searcher)
+        public static List<Pair<IAttackTarget, float>> GetAvailableShootingTargetsByScore(VehicleTurret turret, List<IAttackTarget> rawTargets, VehiclePawn searcher)
         {
             List<Pair<IAttackTarget, float>> availableShootingTargets = new List<Pair<IAttackTarget, float>>();
             List<float> tmpTargetScores = new List<float>();
@@ -204,7 +199,7 @@ namespace VehicleInteriors
                 tmpCanShootAtTarget.Add(false);
                 if (rawTargets[i] != searcher)
                 {
-                    bool flag = VehicleTurret.TryFindShootLineFromTo(searcher.PositionOnBaseMap(), new LocalTargetInfo(rawTargets[i].Thing.PositionOnBaseMap()), out ShootLine shootLine);
+                    bool flag = turret.TryFindShootLineFromTo(searcher.PositionOnBaseMap(), new LocalTargetInfo(rawTargets[i].Thing.PositionOnBaseMap()), out ShootLine shootLine);
                     tmpCanShootAtTarget[i] = flag;
                     if (flag)
                     {

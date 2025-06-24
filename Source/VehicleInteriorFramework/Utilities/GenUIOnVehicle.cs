@@ -1,5 +1,4 @@
 ﻿using RimWorld;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -12,7 +11,7 @@ namespace VehicleInteriors
     {
         public static List<Thing> ThingsUnderMouse(Vector3 clickPos, float pawnWideClickRadius, TargetingParameters clickParams, ITargetingSource source)
         {
-            return GenUIOnVehicle.ThingsUnderMouse(clickPos, pawnWideClickRadius, clickParams, source, GenUIOnVehicle.vehicleForSelector);
+            return GenUIOnVehicle.ThingsUnderMouse(clickPos, pawnWideClickRadius, clickParams, source, vehicleForSelector);
         }
 
         public static List<Thing> ThingsUnderMouse(Vector3 clickPos, float pawnWideClickRadius, TargetingParameters clickParams, ITargetingSource source, VehiclePawnWithMap vehicle)
@@ -31,7 +30,7 @@ namespace VehicleInteriors
                     tmpList.AddRange(ContainingSelectionUtility.SelectableContainedThings(pawn));
                 }
             }
-            tmpList.Sort(new Comparison<Thing>(CompareThingsByDistanceToMousePointer));
+            tmpList.Sort(CompareThingsByDistanceToMousePointer);
             cellThings.Clear();
             foreach (Thing thing4 in map.thingGrid.ThingsAt(intVec))
             {
@@ -65,19 +64,18 @@ namespace VehicleInteriors
                     cellThings.Add(thing3);
                 }
             }
-            cellThings.Sort(new Comparison<Thing>(CompareThingsByDrawAltitudeOrDistToItem));
+            cellThings.Sort(CompareThingsByDrawAltitudeOrDistToItem);
             tmpList.AddRange(cellThings);
             cellThings.Clear();
-            IReadOnlyList<Pawn> allPawnsSpawned2 = Find.CurrentMap.mapPawns.AllPawnsSpawned;
-            for (int l = 0; l < allPawnsSpawned2.Count; l++)
+            for (int l = 0; l < allPawnsSpawned.Count; l++)
             {
-                Pawn pawn2 = allPawnsSpawned2[l];
+                Pawn pawn2 = allPawnsSpawned[l];
                 if ((pawn2.DrawPos - mouseMapPosition).MagnitudeHorizontal() < pawnWideClickRadius && clickParams.CanTarget(pawn2, source))
                 {
                     cellThings.Add(pawn2);
                 }
             }
-            cellThings.Sort(new Comparison<Thing>(CompareThingsByDistanceToMousePointer));
+            cellThings.Sort(CompareThingsByDistanceToMousePointer);
             for (int m = 0; m < cellThings.Count; m++)
             {
                 if (!tmpList.Contains(cellThings[m]))
@@ -91,44 +89,43 @@ namespace VehicleInteriors
             {
                 return thing is Pawn pawn3 && pawn3.IsHiddenFromPlayer();
             });
+            tmpList.Remove(vehicleForSelector);
             return tmpList;
+
+            int CompareThingsByDistanceToMousePointer(Thing a, Thing b)
+            {
+                float num = (a.DrawPosHeld.Value - mouseMapPosition).MagnitudeHorizontalSquared();
+                float num2 = (b.DrawPosHeld.Value - mouseMapPosition).MagnitudeHorizontalSquared();
+                if (num < num2)
+                {
+                    return -1;
+                }
+                if (num == num2)
+                {
+                    return b.Spawned.CompareTo(a.Spawned);
+                }
+                return 1;
+            }
+
+            int CompareThingsByDrawAltitudeOrDistToItem(Thing A, Thing B)
+            {
+                if (A.def.category == ThingCategory.Item && B.def.category == ThingCategory.Item)
+                {
+                    return (A.TrueCenter() - mouseMapPosition).MagnitudeHorizontalSquared().CompareTo((B.TrueCenter() - mouseMapPosition).MagnitudeHorizontalSquared());
+                }
+                Thing spawnedParentOrMe = A.SpawnedParentOrMe;
+                Thing spawnedParentOrMe2 = B.SpawnedParentOrMe;
+                if (spawnedParentOrMe.def.Altitude != spawnedParentOrMe2.def.Altitude)
+                {
+                    return spawnedParentOrMe2.def.Altitude.CompareTo(spawnedParentOrMe.def.Altitude);
+                }
+                return B.Spawned.CompareTo(A.Spawned);
+            }
         }
 
         private static List<Thing> tmpList = new List<Thing>();
 
         private static List<Thing> cellThings = new List<Thing>(32);
-
-        private static int CompareThingsByDistanceToMousePointer(Thing a, Thing b)
-        {
-            var b2 = UI.MouseMapPosition();
-            float num = (a.DrawPosHeld.Value - b2).MagnitudeHorizontalSquared();
-            float num2 = (b.DrawPosHeld.Value - b2).MagnitudeHorizontalSquared();
-            if (num < num2)
-            {
-                return -1;
-            }
-            if (num == num2)
-            {
-                return b.Spawned.CompareTo(a.Spawned);
-            }
-            return 1;
-        }
-
-        private static int CompareThingsByDrawAltitudeOrDistToItem(Thing A, Thing B)
-        {
-            var mousePos = UI.MouseMapPosition();
-            if (A.def.category == ThingCategory.Item && B.def.category == ThingCategory.Item)
-            {
-                return (A.TrueCenter() - mousePos).MagnitudeHorizontalSquared().CompareTo((B.TrueCenter() - mousePos).MagnitudeHorizontalSquared());
-            }
-            Thing spawnedParentOrMe = A.SpawnedParentOrMe;
-            Thing spawnedParentOrMe2 = B.SpawnedParentOrMe;
-            if (spawnedParentOrMe.def.Altitude != spawnedParentOrMe2.def.Altitude)
-            {
-                return spawnedParentOrMe2.def.Altitude.CompareTo(spawnedParentOrMe.def.Altitude);
-            }
-            return B.Spawned.CompareTo(A.Spawned);
-        }
 
         public static IEnumerable<LocalTargetInfo> TargetsAtMouse(TargetingParameters clickParams, bool thingsOnly = false, ITargetingSource source = null)
         {

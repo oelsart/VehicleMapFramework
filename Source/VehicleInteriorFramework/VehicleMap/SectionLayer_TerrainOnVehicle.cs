@@ -64,10 +64,10 @@ namespace VehicleInteriors
             ValueTuple<TerrainDef, bool, ColorDef> key = new ValueTuple<TerrainDef, bool, ColorDef>(def, polluted, color);
             if (!terrainMatCache.ContainsKey(key))
             {
-                Graphic graphic = polluted ? def.graphicPolluted.GetCopy(def.graphicPolluted.drawSize, VMF_Shaders.terrainHardWithZ) : def.graphic.GetCopy(def.graphic.drawSize, VMF_Shaders.terrainHardWithZ);
+                Graphic graphic = polluted ? def.graphicPolluted.GetCopy(def.graphicPolluted.drawSize, VMF_DefOf.VMF_TerrainHardWithZ.Shader) : def.graphic.GetCopy(def.graphic.drawSize, VMF_DefOf.VMF_TerrainHardWithZ.Shader);
                 if (color != null)
                 {
-                    terrainMatCache[key] = new Material(graphic.GetColoredVersion(VMF_Shaders.terrainHardWithZ, color.color, Color.white).MatSingle);
+                    terrainMatCache[key] = new Material(graphic.GetColoredVersion(VMF_DefOf.VMF_TerrainHardWithZ.Shader, color.color, Color.white).MatSingle);
                 }
                 else
                 {

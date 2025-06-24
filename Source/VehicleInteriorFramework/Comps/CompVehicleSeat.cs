@@ -25,7 +25,7 @@ namespace VehicleInteriors
                         NamedArgument arg = vehicle.LabelShort;
                         NamedArgument arg2 = handler.role.label;
                         int slots = handler.role.Slots;
-                        int count = handler.handlers.Count;
+                        int count = handler.thingOwner.Count;
                         VehicleHandlerReservation reservation = cachedMapComponent?.GetReservation<VehicleHandlerReservation>(vehicle);
                         FloatMenuOption floatMenuOption2 = new FloatMenuOption(key.Translate(arg, arg2, (slots - (count + ((reservation != null) ? new int?(reservation.ClaimantsOnHandler(handler)) : null)).GetValueOrDefault()).ToString()), delegate ()
                         {
@@ -41,7 +41,7 @@ namespace VehicleInteriors
                             {
                                 return;
                             }
-                            vehicle.Map?.GetCachedMapComponent<VehicleReservationManager>().Reserve<VehicleHandler, VehicleHandlerReservation>(vehicle, selPawn, selPawn.CurJob, handler);
+                            vehicle.Map?.GetCachedMapComponent<VehicleReservationManager>().Reserve<VehicleRoleHandler, VehicleHandlerReservation>(vehicle, selPawn, selPawn.CurJob, handler);
                         }, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0);
                         yield return floatMenuOption2;
                     }
@@ -64,11 +64,11 @@ namespace VehicleInteriors
                     var handler = vehicle.handlers.FirstOrDefault(h => h.uniqueID == keyIDPair.id);
                     if (handler != null)
                     {
-                        foreach (var pawn in handler.handlers)
+                        foreach (var pawn in handler.thingOwner)
                         {
-                            if (vehicle.Drafted && handler.role.HandlingTypes.HasFlag(HandlingTypeFlags.Movement) && vehicle.Spawned) continue;
+                            if (vehicle.Drafted && handler.role.HandlingTypes.HasFlag(HandlingType.Movement) && vehicle.Spawned) continue;
 
-                            Command_Action_PawnDrawer command_Action_PawnDrawer = new Command_Action_PawnDrawer
+                            Command_ActionPawnDrawer command_Action_PawnDrawer = new Command_ActionPawnDrawer
                             {
                                 defaultLabel = "VF_DisembarkSinglePawn".Translate(pawn.LabelShort),
                                 groupable = false,
@@ -127,7 +127,7 @@ namespace VehicleInteriors
                 {
                     if (handler.Item1.role.PawnRenderer != null)
                     {
-                        foreach (Pawn pawn in handler.Item1.handlers)
+                        foreach (Pawn pawn in handler.Item1.thingOwner)
                         {
                             Vector3 drawLoc = this.parent.DrawPos + handler.Item2.pawnRenderer.DrawOffsetFor(this.parent.BaseRotation());
                             Rot4 value = handler.Item1.role.PawnRenderer.RotFor(this.parent.BaseRotation());
@@ -154,6 +154,6 @@ namespace VehicleInteriors
             return null;
         }
 
-        private IEnumerable<(VehicleHandler, VehicleUpgrade.RoleUpgrade)> handlersToDraw;
+        private IEnumerable<(VehicleRoleHandler, VehicleUpgrade.RoleUpgrade)> handlersToDraw;
     }
 }

@@ -100,7 +100,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ToBaseMapCoord2)
             });
 
-            var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalIndex == 6);
+            var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalIndex == 11);
             var label2 = codes[pos2].labels[0];
             var vehicle2 = generator.DeclareLocal(typeof(VehiclePawnWithMap));
 

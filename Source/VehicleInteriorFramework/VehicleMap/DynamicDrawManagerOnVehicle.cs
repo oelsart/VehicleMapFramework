@@ -192,7 +192,7 @@ namespace VehicleInteriors
                     inverseFovScale = Find.CameraDriver.InverseFovScale,
                     altitude = AltitudeLayer.Silhouettes.AltitudeFor(),
                     details = details
-                }.Schedule(details.Length, UnityData.GetIdealBatchCount(details.Length), default(JobHandle)).Complete();
+                }.Schedule(details.Length, UnityData.GetIdealBatchCount(details.Length), default).Complete();
             }
             using (new ProfilerBlock("Draw silhouettes"))
             {

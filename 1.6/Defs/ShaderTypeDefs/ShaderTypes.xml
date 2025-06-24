@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<Defs>
+	<ShaderTypeDef>
+		<defName>VMF_TerrainHardWithZ</defName>
+		<shaderPath>TerrainHardWithZ</shaderPath>
+	</ShaderTypeDef>
+	
+	<ShaderTypeDef>
+		<defName>VMF_CutoutComplexRGBOpacity</defName>
+		<shaderPath>ShaderRGBOpacity</shaderPath>
+	</ShaderTypeDef>
+
+	<ShaderTypeDef>
+		<defName>VMF_CutoutComplexPatternOpacity</defName>
+		<shaderPath>ShaderRGBPatternOpacity</shaderPath>
+	</ShaderTypeDef>
+
+	<ShaderTypeDef>
+		<defName>VMF_CutoutComplexSkinOpacity</defName>
+		<shaderPath>ShaderRGBSkinOpacity</shaderPath>
+	</ShaderTypeDef>
+
+</Defs>

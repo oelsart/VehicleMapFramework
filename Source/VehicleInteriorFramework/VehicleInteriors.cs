@@ -26,34 +26,13 @@ namespace VehicleInteriors
             {
                 if (bundleInt == null)
                 {
-                    bundleInt = AssetBundle.LoadFromFile($@"{VehicleInteriors.mod.Content.RootDir}\1.5\AssetBundles\{PlatformInfo}");
+                    bundleInt = mod.Content.assetBundles.loadedAssetBundles[0];
                 }
                 return bundleInt;
             }
         }
 
         private static AssetBundle bundleInt;
-
-        private static string PlatformInfo
-        {
-            get
-            {
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                {
-                    return "StandaloneWindows64";
-                }
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                {
-                    return "StandaloneLinux64";
-                }
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                {
-                    return "StandaloneOSX";
-                }
-                Log.Error($"[VehicleMapFramework] {RuntimeInformation.OSDescription} is not supported platform. Please let the mod author know the OS info.");
-                return null;
-            }
-        }
 
         public VehicleInteriors(ModContentPack content) : base(content)
         {

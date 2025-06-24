@@ -31,7 +31,7 @@ namespace VehicleInteriors
             Widgets.DrawMenuSection(rect);
 
             //まだ割り当てられてないタレットたち
-            var turrets = this.vehicle.CompVehicleTurrets?.turrets?.Where(t => this.vehicle.handlers?.All(h => (!h.role?.TurretIds?.Contains(t.key) ?? true) && (!h.role?.TurretIds?.Contains(t.groupKey) ?? true)) ?? true).ToList();
+            var turrets = this.vehicle.CompVehicleTurrets?.Turrets?.Where(t => this.vehicle.handlers?.All(h => (!h.role?.TurretIds?.Contains(t.key) ?? true) && (!h.role?.TurretIds?.Contains(t.groupKey) ?? true)) ?? true).ToList();
             var turretsByGroup = turrets.GroupBy(t => !t.groupKey.NullOrEmpty() ? t.groupKey : t.key);
             var viewRect = new Rect(0f, 0f, inRect.width, turrets.Count * Text.LineHeight);
             var outRect = rect;

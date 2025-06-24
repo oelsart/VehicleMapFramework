@@ -21,7 +21,7 @@ namespace VehicleInteriors
                 {
                     if (roleUpgrade is RoleUpgradeBuildable roleUpgradeBuildable)
                     {
-                        if (!unlockingPostLoad && roleUpgradeBuildable.handlingTypes.HasValue && roleUpgradeBuildable.handlingTypes.Value.HasFlag(HandlingTypeFlags.Turret))
+                        if (!unlockingPostLoad && roleUpgradeBuildable.handlingTypes.HasValue && roleUpgradeBuildable.handlingTypes.Value.HasFlag(HandlingType.Turret))
                         {
                             Find.WindowStack.Add(new Dialog_ChooseVehicleRoles(vehicle, roleUpgradeBuildable, this));
                         }
@@ -185,9 +185,9 @@ namespace VehicleInteriors
                 }
                 var handler = handlers[index];
                 handler.role.RemoveUpgrade(roleUpgrade);
-                for (var i = 0; i < handler.handlers.Count; i++)
+                for (var i = 0; i < handler.thingOwner.Count; i++)
                 {
-                    vehicle.DisembarkPawn(handler.handlers[i]);
+                    vehicle.DisembarkPawn(handler.thingOwner[i]);
                 }
                 vehicle.handlers.RemoveAt(index);
                 this.parent.handlerUniqueIDs.RemoveAll(h => h.id == handler.uniqueID);
@@ -201,7 +201,7 @@ namespace VehicleInteriors
                     var role = RoleUpgradeBuildable.RoleFromUpgrade(roleUpgrade, this.parent, out var roleUpgrade2, turretIds);
                     role.ResolveReferences(vehicle.VehicleDef);
                     role.AddUpgrade(roleUpgrade2);
-                    var handler = new VehicleHandlerBuildable(vehicle, role);
+                    var handler = new VehicleRoleHandlerBuildable(vehicle, role);
                     vehicle.handlers.Add(handler);
                     if (role.PawnRenderer != null)
                     {
@@ -217,7 +217,7 @@ namespace VehicleInteriors
                         Log.Error("[VehicleMapFramework] No uniqueID corresponding to this role upgrade found.");
                         return;
                     }
-                    VehicleHandler handler = vehicle.handlers.FirstOrDefault(h => h.uniqueID == uniqueID.id);
+                    VehicleRoleHandler handler = vehicle.handlers.FirstOrDefault(h => h.uniqueID == uniqueID.id);
                     if (handler == null)
                     {
                         Log.Error("Unable to edit " + roleUpgrade.editKey + ". Matching VehicleRole not found.");
@@ -255,7 +255,7 @@ namespace VehicleInteriors
                 chanceToHit = upgrade.chanceToHit,
                 pawnRenderer = upgrade.pawnRenderer,
             };
-            upgrade2.handlingTypes = (upgrade.handlingTypes == HandlingTypeFlags.Turret && upgrade2.turretIds.NullOrEmpty()) ? HandlingTypeFlags.None : upgrade.handlingTypes;
+            upgrade2.handlingTypes = (upgrade.handlingTypes == HandlingType.Turret && upgrade2.turretIds.NullOrEmpty()) ? HandlingType.None : upgrade.handlingTypes;
 
 
             if (!upgrade2.turretIds.NullOrEmpty())

@@ -37,7 +37,7 @@ namespace VehicleInteriors
             base.PostSpawnSetup(respawningAfterLoad);
 
             this.compFueledTravel = this.Vehicle?.CompFueledTravel;
-            if (compFueledTravel == null || compFueledTravel.Props.electricPowered) return;
+            if (compFueledTravel == null || compFueledTravel.Props.ElectricPowered) return;
 
             var fuelType = compFueledTravel.Props.fuelType;
             if (fuelType == null) return;
@@ -56,7 +56,7 @@ namespace VehicleInteriors
         public override void UpdateDesiredPowerOutput()
         {
             base.UpdateDesiredPowerOutput();
-            if (compFueledTravel == null || fuelProps == null || compFueledTravel.Props.electricPowered || compFueledTravel.Fuel < ConsumptionRatePerTick)
+            if (compFueledTravel == null || fuelProps == null || compFueledTravel.Props.ElectricPowered || compFueledTravel.Fuel < ConsumptionRatePerTick)
             {
                 base.PowerOutput = 0f;
             }

@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection.Emit;
 using UnityEngine;
 using Vehicles;
+using Vehicles.Rendering;
 using Verse;
 using Verse.AI;
 using static VehicleInteriors.MethodInfoCache;
@@ -189,7 +190,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
         {
             var codes = instructions.ToList();
-            var pos = codes.FindIndex(c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalIndex == 8);
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalIndex == 9);
             var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithMap));
             var rot = generator.DeclareLocal(typeof(Rot8));
             var label = generator.DefineLabel();
@@ -210,7 +211,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 new CodeInstruction(OpCodes.Add),
             });
 
-            var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Ldloc_S && ((LocalBuilder)c.operand).LocalIndex == 16);
+            var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Ldloc_S && ((LocalBuilder)c.operand).LocalIndex == 17);
             var label2 = generator.DefineLabel();
             var g_DrawPos = AccessTools.PropertyGetter(typeof(Thing), nameof(Thing.DrawPos));
 
@@ -641,7 +642,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             });
 
             var m_Widgets_DrawBox = AccessTools.Method(typeof(Widgets), nameof(Widgets.DrawBox));
-            var pos3 = codes.FindIndex(pos2, c => c.opcode == OpCodes.Call && c.OperandIs(m_Widgets_DrawBox));
+            var pos3 = codes.FindIndex(pos2, c => c.Calls(m_Widgets_DrawBox));
             var m_DrawBoxRotated = AccessTools.Method(typeof(VMF_Widgets), nameof(VMF_Widgets.DrawBoxRotated));
             var label = generator.DefineLabel();
             var label2 = generator.DefineLabel();
@@ -659,14 +660,14 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             });
 
             var m_Widgets_DrawNumberOnMap = AccessTools.Method(typeof(Widgets), nameof(Widgets.DrawNumberOnMap));
-            var m_ConvertToVehicleMap = AccessTools.Method(typeof(Patch_DesignationDragger_DraggerOnGUI), nameof(Patch_DesignationDragger_DraggerOnGUI.ConvertToVehicleMap));
-            var pos4 = codes.FindIndex(pos3, c => c.opcode == OpCodes.Call && c.OperandIs(m_Widgets_DrawNumberOnMap)) - 3;
+            var m_ConvertToVehicleMap = AccessTools.Method(typeof(Patch_DesignationDragger_DraggerOnGUI), nameof(ConvertToVehicleMap));
+            var pos4 = codes.FindIndex(pos3, c => c.Calls(m_Widgets_DrawNumberOnMap)) - 3;
             codes.Insert(pos4, new CodeInstruction(OpCodes.Call, m_ConvertToVehicleMap));
             
-            var pos5 = codes.FindIndex(pos4 + 5, c => c.opcode == OpCodes.Call && c.OperandIs(m_Widgets_DrawNumberOnMap)) - 3;
+            var pos5 = codes.FindIndex(pos4 + 5, c => c.Calls(m_Widgets_DrawNumberOnMap)) - 3;
             codes.Insert(pos5, new CodeInstruction(OpCodes.Call, m_ConvertToVehicleMap));
 
-            var pos6 = codes.FindIndex(pos5 + 5, c => c.opcode == OpCodes.Call && c.OperandIs(m_Widgets_DrawNumberOnMap)) - 3;
+            var pos6 = codes.FindIndex(pos5 + 5, c => c.Calls(m_Widgets_DrawNumberOnMap)) - 4;
             codes.Insert(pos6, new CodeInstruction(OpCodes.Call, m_ConvertToVehicleMap));
 
             return codes;

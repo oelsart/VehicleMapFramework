@@ -212,6 +212,7 @@
 		</graphicData>
 		<size>(1,1)</size>
 		<stuffCategories Inherit="False"/>
+		<costStuffCount Inherit="False"/>
 		<costList>
 			<Steel>70</Steel>
 			<ComponentIndustrial>4</ComponentIndustrial>

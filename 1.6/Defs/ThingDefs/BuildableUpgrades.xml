@@ -1,0 +1,450 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>		
+	<ThingDef Name="VehicleSeatBase" ParentName="FurnitureBase" Abstract="True">
+		<designationCategory>VF_Vehicles</designationCategory>
+		<minifiedDef>MinifiedThing</minifiedDef>
+		<drawerType>MapMeshAndRealTime</drawerType>
+		<altitudeLayer>Building</altitudeLayer>
+		<fillPercent>0.5</fillPercent>
+		<passability>PassThroughOnly</passability>
+		<pathCost>50</pathCost>
+		<researchPrerequisites>
+			<li>Fabrication</li>
+			<li MayRequire="OskarPotocki.VanillaVehiclesExpanded">VVE_BasicVehicles</li>
+		</researchPrerequisites>
+		<placeWorkers>
+			<li>VehicleInteriors.PlaceWorker_ForceOnVehicle</li>
+		</placeWorkers>
+	</ThingDef>
+	
+	<ThingDef ParentName="VehicleSeatBase">
+		<defName>VMF_DriverSeat</defName>
+		<label>driver seat</label>
+		<description>Driver's seat of a vehicle. When this is installed, the vehicle can be controlled.</description>
+		<graphicData>
+			<texPath>VehicleInteriors/Things/BuildableUpgrade/VehicleSeat/DriverSeat</texPath>
+			<graphicClass>Graphic_Multi</graphicClass>
+			<drawSize>(1.1,2)</drawSize>
+		</graphicData>
+		<rotatable>false</rotatable>
+		<statBases>
+			<MaxHitPoints>200</MaxHitPoints>
+			<Beauty>1</Beauty>
+			<WorkToBuild>500</WorkToBuild>
+			<Mass>15</Mass>
+		</statBases>
+		<size>(1,2)</size>
+		<stuffCategories>
+			<li>Fabric</li>
+			<li>Leathery</li>
+		</stuffCategories>
+		<costStuffCount>100</costStuffCount>
+		<costList>
+			<ComponentIndustrial>1</ComponentIndustrial>
+			<Steel>30</Steel>
+		</costList>
+		<uiOrder>1020</uiOrder>
+		<comps>
+			<li Class = "VehicleInteriors.CompProperties_BuildableUpgrades">
+				<compClass>VehicleInteriors.CompVehicleSeat</compClass>
+				<upgrades>
+					<li Class = "VehicleInteriors.VehicleUpgradeBuildable">
+						<roles>
+							<li Class = "VehicleInteriors.RoleUpgradeBuildable">
+								<key>driver</key>
+								<editKey>driver seat</editKey>
+								<label>Driver</label>
+								<handlingTypes>Movement</handlingTypes>
+								<slots>1</slots>
+								<slotsToOperate>1</slotsToOperate>
+								<exposed>true</exposed>
+								<pawnRenderer>
+									<showBody>true</showBody>
+									<drawOffsetNorth>(0,0,-0.15)</drawOffsetNorth>
+									<drawOffsetSouth>(0,0,0.3)</drawOffsetSouth>
+									<drawOffsetEast>(-0.3,0,0.15)</drawOffsetEast>
+								</pawnRenderer>
+							</li>
+						</roles>
+					</li>
+				</upgrades>
+			</li>
+		</comps>
+	</ThingDef>
+	
+	<ThingDef ParentName="VehicleSeatBase">
+		<defName>VMF_GunnerSeat</defName>
+		<label>gunner seat</label>
+		<description>Gunner's seat of a vehicle. When this is installed, the selected turret of the vehicle can be controlled.</description>
+		<graphicData>
+			<texPath>VehicleInteriors/Things/BuildableUpgrade/VehicleSeat/GunnerSeat</texPath>
+			<graphicClass>Graphic_Multi</graphicClass>
+			<drawSize>(1.1,2)</drawSize>
+		</graphicData>
+		<statBases>
+			<MaxHitPoints>200</MaxHitPoints>
+			<Beauty>1</Beauty>
+			<WorkToBuild>500</WorkToBuild>
+			<Mass>15</Mass>
+		</statBases>
+		<size>(1,2)</size>
+		<stuffCategories>
+			<li>Fabric</li>
+			<li>Leathery</li>
+		</stuffCategories>
+		<costStuffCount>100</costStuffCount>
+		<costList>
+			<ComponentIndustrial>1</ComponentIndustrial>
+			<Steel>30</Steel>
+		</costList>
+		<uiOrder>1021</uiOrder>
+		<comps>
+			<li Class = "VehicleInteriors.CompProperties_BuildableUpgrades">
+				<compClass>VehicleInteriors.CompVehicleSeat</compClass>
+				<upgrades>
+					<li Class = "VehicleInteriors.VehicleUpgradeBuildable">
+						<roles>
+							<li Class = "VehicleInteriors.RoleUpgradeBuildable">
+								<key>gunner</key>
+								<editKey>gunner seat</editKey>
+								<label>Gunner</label>
+								<handlingTypes>Turret</handlingTypes>
+								<slots>1</slots>
+								<slotsToOperate>1</slotsToOperate>
+								<exposed>true</exposed>
+								<pawnRenderer>
+									<showBody>true</showBody>
+									<drawOffsetNorth>(0,0,-0.15)</drawOffsetNorth>
+									<drawOffsetSouth>(0,0,0.3)</drawOffsetSouth>
+									<drawOffsetEast>(-0.3,0,0.15)</drawOffsetEast>
+								</pawnRenderer>
+							</li>
+						</roles>
+					</li>
+				</upgrades>
+			</li>
+		</comps>
+	</ThingDef>
+	
+	<ThingDef ParentName="VehicleSeatBase">
+		<defName>VMF_PassengerSeat</defName>
+		<label>passenger seat</label>
+		<description>Passenger's seat of a vehicle.</description>
+		<graphicData>
+			<texPath>VehicleInteriors/Things/BuildableUpgrade/VehicleSeat/PassengerSeat</texPath>
+			<graphicClass>Graphic_Multi</graphicClass>
+			<drawSize>(1.1,1.3417)</drawSize>
+		</graphicData>
+		<statBases>
+			<MaxHitPoints>200</MaxHitPoints>
+			<Beauty>1</Beauty>
+			<WorkToBuild>250</WorkToBuild>
+			<Mass>15</Mass>
+		</statBases>
+		<size>(1,1)</size>
+		<stuffCategories>
+			<li>Fabric</li>
+			<li>Leathery</li>
+		</stuffCategories>
+		<costStuffCount>100</costStuffCount>
+		<uiOrder>1022</uiOrder>
+		<comps>
+			<li Class = "VehicleInteriors.CompProperties_BuildableUpgrades">
+				<compClass>VehicleInteriors.CompVehicleSeat</compClass>
+				<upgrades>
+					<li Class = "VehicleInteriors.VehicleUpgradeBuildable">
+						<roles>
+							<li Class = "VehicleInteriors.RoleUpgradeBuildable">
+								<key>passenger</key>
+								<editKey>passenger seat</editKey>
+								<label>Passenger</label>
+								<handlingTypes>None</handlingTypes>
+								<slots>1</slots>
+								<exposed>true</exposed>
+								<pawnRenderer>
+									<showBody>true</showBody>
+									<drawOffsetNorth>(0,0,0.3)</drawOffsetNorth>
+									<drawOffsetSouth>(0,0,-0.15)</drawOffsetSouth>
+									<drawOffsetEast>(0.2,0,0.15)</drawOffsetEast>
+								</pawnRenderer>
+							</li>
+						</roles>
+					</li>
+				</upgrades>
+			</li>
+		</comps>
+	</ThingDef>
+
+	<ThingDef ParentName="FurnitureBase">
+		<defName>VMF_CargoContainer</defName>
+		<label>cargo container</label>
+		<description>Storage for additional vehicle cargo capacity.\n\n&lt;color=#bb8f04&gt;Cargo capacity:&lt;/color&gt; +150 kg</description>
+		<designationCategory>VF_Vehicles</designationCategory>
+		<rotatable>false</rotatable>
+		<pathCost>80</pathCost>
+		<fillPercent>0.55</fillPercent>
+		<graphicData>
+			<texPath>VehicleInteriors/Things/BuildableUpgrade/CargoContainer/CargoContainer_Atlas</texPath>
+			<graphicClass>Graphic_Single</graphicClass>
+			<linkType>56</linkType>
+			<linkFlags>Custom2</linkFlags>
+			<cornerOverlayPath>VehicleInteriors/Things/BuildableUpgrade/CargoContainer/CargoContainer_Filler</cornerOverlayPath>
+			<damageData>
+				<cornerTL>Damage/Corner</cornerTL>
+				<cornerTR>Damage/Corner</cornerTR>
+				<cornerBL>Damage/Corner</cornerBL>
+				<cornerBR>Damage/Corner</cornerBR>
+				<edgeTop>Damage/Edge</edgeTop>
+				<edgeBot>Damage/Edge</edgeBot>
+				<edgeLeft>Damage/Edge</edgeLeft>
+				<edgeRight>Damage/Edge</edgeRight>
+			</damageData>
+		</graphicData>
+		<uiIconPath>VehicleInteriors/Things/BuildableUpgrade/CargoContainer/CargoContainer_MenuIcon</uiIconPath>
+		<drawerType>MapMeshOnly</drawerType>
+		<tickerType>Normal</tickerType>
+		<statBases>
+			<MaxHitPoints>300</MaxHitPoints>
+			<Beauty>-1</Beauty>
+			<WorkToBuild>100</WorkToBuild>
+			<Mass>10</Mass>
+		</statBases>
+		<drawStyleCategory>Default2D</drawStyleCategory>
+		<size>(1,1)</size>
+		<stuffCategories>
+			<li>Metallic</li>
+			<li>Woody</li>
+		</stuffCategories>
+		<costStuffCount>100</costStuffCount>
+		<researchPrerequisites>
+			<li MayRequire="OELS.MapVehicles">MV_Cart</li>
+		</researchPrerequisites>
+		<building>
+			<maxItemsInCell>0</maxItemsInCell>
+			<blueprintGraphicData>
+				<texPath>VehicleInteriors/Things/BuildableUpgrade/CargoContainer/CargoContainer_Blueprint_Atlas</texPath>
+				<cornerOverlayPath>VehicleInteriors/Things/BuildableUpgrade/CargoContainer/CargoContainer_Blueprint_Filler</cornerOverlayPath>
+			</blueprintGraphicData>
+		</building>
+		<uiOrder>1023</uiOrder>
+		<inspectorTabs>
+			<li>ITab_ContentsTransporter</li>
+		</inspectorTabs>
+		<comps>
+			<li Class = "VehicleInteriors.CompProperties_BuildableUpgrades">
+				<upgrades>
+					<li Class = "Vehicles.StatUpgrade">
+						<vehicleStats>
+							<li>
+								<def>CargoCapacity</def>
+								<value>150</value>
+							</li>
+						</vehicleStats>
+					</li>
+				</upgrades>
+			</li>
+			<li Class = "CompProperties_Transporter">
+				<compClass>VehicleInteriors.CompBuildableContainer</compClass>
+				<max1PerGroup>true</max1PerGroup>
+				<canChangeAssignedThingsAfterStarting>true</canChangeAssignedThingsAfterStarting>
+				<showOverallStats>false</showOverallStats>
+			</li>
+		</comps>
+		<placeWorkers>
+			<li>VehicleInteriors.PlaceWorker_ForceOnVehicle</li>
+		</placeWorkers>
+	</ThingDef>
+
+	<ThingDef ParentName="FurnitureBase">
+		<defName>VMF_TurboCharger</defName>
+		<label>turbo charger</label>
+		<description>Engine components to enhance the vehicle's maximum payload.\n\n&lt;color=#bb8f04&gt;Maximum payload:&lt;/color&gt; +500 kg\n&lt;color=#bb8f04&gt;Fuel Consumption:&lt;/color&gt; +8 /day</description>
+		<designationCategory>VF_Vehicles</designationCategory>
+		<pathCost>80</pathCost>
+		<fillPercent>0.2</fillPercent>
+		<graphicData>
+			<texPath>VehicleInteriors/Things/BuildableUpgrade/TurboCharger/TurboCharger</texPath>
+			<graphicClass>Graphic_Multi</graphicClass>
+			<drawSize>(2,1)</drawSize>
+			<damageData>
+				<cornerTL>Damage/Corner</cornerTL>
+				<cornerTR>Damage/Corner</cornerTR>
+				<cornerBL>Damage/Corner</cornerBL>
+				<cornerBR>Damage/Corner</cornerBR>
+				<edgeTop>Damage/Edge</edgeTop>
+				<edgeBot>Damage/Edge</edgeBot>
+				<edgeLeft>Damage/Edge</edgeLeft>
+				<edgeRight>Damage/Edge</edgeRight>
+			</damageData>
+		</graphicData>
+		<drawerType>MapMeshOnly</drawerType>
+		<statBases>
+			<MaxHitPoints>600</MaxHitPoints>
+			<Beauty>-1</Beauty>
+			<WorkToBuild>300</WorkToBuild>
+			<Mass>25</Mass>
+		</statBases>
+		<size>(2,1)</size>
+		<costList>
+			<Steel>200</Steel>
+			<ComponentIndustrial>10</ComponentIndustrial>
+		</costList>
+		<researchPrerequisites>
+			<li>Fabrication</li>
+			<li MayRequire="OskarPotocki.VanillaVehiclesExpanded">VVE_BasicVehicles</li>
+		</researchPrerequisites>
+		<uiOrder>1025</uiOrder>
+		<comps>
+			<li Class = "VehicleInteriors.CompProperties_BuildableUpgrades">
+				<upgrades>
+					<li Class = "Vehicles.StatUpgrade">
+						<vehicleStats>
+							<li>
+								<def>MaximumPayload</def>
+								<value>500</value>
+							</li>
+						</vehicleStats>
+						<statCategories>
+							<li>
+								<def>FuelConsumptionRate</def>
+								<value>8</value>
+							</li>
+						</statCategories>
+					</li>
+				</upgrades>
+			</li>
+		</comps>
+		<placeWorkers>
+			<li>VehicleInteriors.PlaceWorker_ForbidOnHumanPoweredVehicle</li>
+		</placeWorkers>
+	</ThingDef>
+
+	<ThingDef ParentName="FurnitureBase">
+		<defName>VMF_LiftFan</defName>
+		<label>lift fan</label>
+		<description>A Lift fan to enhance the hover vehicle's maximum payload. Can only be installed on hover type vehicles.\n\n&lt;color=#bb8f04&gt;Maximum Payload:&lt;/color&gt; +250 kg\n&lt;color=#bb8f04&gt;Fuel Consumption:&lt;/color&gt; +4 /day</description>
+		<designationCategory>VF_Vehicles</designationCategory>
+		<graphicData>
+			<texPath>VehicleInteriors/Things/BuildableUpgrade/LiftFan</texPath>
+			<graphicClass>Graphic_Single</graphicClass>
+			<drawSize>(1,1.064453125)</drawSize>
+			<drawOffset>(0,0,0.0322265625)</drawOffset>
+			<damageData>
+				<cornerTL>Damage/Corner</cornerTL>
+				<cornerTR>Damage/Corner</cornerTR>
+				<cornerBL>Damage/Corner</cornerBL>
+				<cornerBR>Damage/Corner</cornerBR>
+				<edgeTop>Damage/Edge</edgeTop>
+				<edgeBot>Damage/Edge</edgeBot>
+				<edgeLeft>Damage/Edge</edgeLeft>
+				<edgeRight>Damage/Edge</edgeRight>
+			</damageData>
+		</graphicData>
+		<rotatable>false</rotatable>
+		<passability>Impassable</passability>
+		<disableImpassableShotOverConfigError>true</disableImpassableShotOverConfigError>
+		<drawerType>MapMeshOnly</drawerType>
+		<statBases>
+			<MaxHitPoints>200</MaxHitPoints>
+			<Beauty>-1</Beauty>
+			<WorkToBuild>300</WorkToBuild>
+			<Mass>5</Mass>
+		</statBases>
+		<size>(1,1)</size>
+		<costList>
+			<Steel>80</Steel>
+			<ComponentIndustrial>1</ComponentIndustrial>
+		</costList>
+		<researchPrerequisites>
+			<li>Fabrication</li>
+			<li MayRequire="OskarPotocki.VanillaVehiclesExpanded">VVE_BasicVehicles</li>
+		</researchPrerequisites>
+		<uiOrder>1026</uiOrder>
+		<comps>
+			<li Class = "VehicleInteriors.CompProperties_BuildableUpgrades">
+				<upgrades>
+					<li Class = "Vehicles.StatUpgrade">
+						<vehicleStats>
+							<li>
+								<def>MaximumPayload</def>
+								<value>250</value>
+							</li>
+						</vehicleStats>
+						<statCategories>
+							<li>
+								<def>FuelConsumptionRate</def>
+								<value>4</value>
+							</li>
+						</statCategories>
+					</li>
+				</upgrades>
+			</li>
+		</comps>
+		<placeWorkers>
+			<li>VehicleInteriors.PlaceWorker_ForceOnHoverVehicle</li>
+		</placeWorkers>
+	</ThingDef>
+		
+	<ThingDef ParentName="FurnitureBase">
+		<defName>VMF_FuelTank</defName>
+		<label>fuel tank</label>
+		<description>Tank for increase fuel capacity of the vehicle.\n\n&lt;color=#bb8f04&gt;Fuel capacity:&lt;/color&gt; +300</description>
+		<designationCategory>VF_Vehicles</designationCategory>
+		<rotatable>false</rotatable>
+		<fillPercent>0.60</fillPercent>
+		<graphicData>
+			<texPath>VehicleInteriors/Things/BuildableUpgrade/FuelTank/FuelTank</texPath>
+			<graphicClass>Graphic_Single</graphicClass>
+			<shaderType>CutoutComplex</shaderType>
+			<damageData>
+				<cornerTL>Damage/Corner</cornerTL>
+				<cornerTR>Damage/Corner</cornerTR>
+				<cornerBL>Damage/Corner</cornerBL>
+				<cornerBR>Damage/Corner</cornerBR>
+				<edgeTop>Damage/Edge</edgeTop>
+				<edgeBot>Damage/Edge</edgeBot>
+				<edgeLeft>Damage/Edge</edgeLeft>
+				<edgeRight>Damage/Edge</edgeRight>
+			</damageData>
+			<drawSize>(1,1.265625)</drawSize>
+			<drawOffset>(0,0,0.1328125)</drawOffset>
+		</graphicData>
+		<drawerType>MapMeshAndRealTime</drawerType>
+		<statBases>
+			<MaxHitPoints>300</MaxHitPoints>
+			<Beauty>-1</Beauty>
+			<WorkToBuild>500</WorkToBuild>
+			<Mass>80</Mass>
+		</statBases>
+		<size>(1,1)</size>
+		<stuffCategories>
+			<li>Metallic</li>
+		</stuffCategories>
+		<costStuffCount>150</costStuffCount>
+		<researchPrerequisites>
+			<li>Fabrication</li>
+			<li MayRequire="OskarPotocki.VanillaVehiclesExpanded">VVE_BasicVehicles</li>
+		</researchPrerequisites>
+		<uiOrder>1024</uiOrder>
+		<comps>
+			<li Class = "VehicleInteriors.CompProperties_BuildableUpgrades">
+				<upgrades>
+					<li Class = "Vehicles.StatUpgrade">
+						<statCategories>
+							<li>
+								<def>FuelCapacity</def>
+								<value>300</value>
+							</li>
+						</statCategories>
+					</li>
+				</upgrades>
+			</li>
+			<li>
+				<compClass>VehicleInteriors.CompFuelTank</compClass>
+			</li>
+		</comps>
+		<placeWorkers>
+			<li>VehicleInteriors.PlaceWorker_ForceOnVehicle</li>
+		</placeWorkers>
+	</ThingDef>
+</Defs>

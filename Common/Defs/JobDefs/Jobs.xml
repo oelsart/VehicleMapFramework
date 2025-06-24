@@ -254,14 +254,6 @@
 	</JobDef>
 
 	<JobDef>
-		<defName>VMF_DoBillAcrossMaps</defName>
-		<driverClass>VehicleInteriors.JobDriver_DoBillAcrossMaps</driverClass>
-		<reportString>doing bill at TargetA.</reportString>
-		<suspendable>false</suspendable>
-		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
-	</JobDef>
-
-	<JobDef>
 		<defName>VMF_RefuelVehicleTank</defName>
 		<driverClass>VehicleInteriors.JobDriver_RefuelVehicleTank</driverClass>
 		<reportString>Refueling TargetA</reportString>

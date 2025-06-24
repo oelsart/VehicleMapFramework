@@ -239,11 +239,14 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static void Postfix(TravellingTransporters __instance)
         {
-            if (__instance.arrivalAction is TransportersArrivalAction_LandInVehicleMap arrivalAction && arrivalAction.mapParent is MapParent_Vehicle mapParent)
+            if (__instance.arrivalAction is TransportersArrivalAction_LandInSpecificCell arrivalAction && mapParent(arrivalAction) is MapParent_Vehicle mapParent_Vehicle)
             {
-                __instance.destinationTile = mapParent.Tile;
+                __instance.destinationTile = mapParent_Vehicle.Tile;
             }
         }
+
+        private static AccessTools.FieldRef<TransportersArrivalAction_LandInSpecificCell, MapParent> mapParent
+            = AccessTools.FieldRefAccess<TransportersArrivalAction_LandInSpecificCell, MapParent>("mapParent");
     }
 
     //ワイヤーの行き先オフセットとFillableBarの回転

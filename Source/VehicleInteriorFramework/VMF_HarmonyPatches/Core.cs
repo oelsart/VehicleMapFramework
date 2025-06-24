@@ -25,7 +25,6 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
-    [LoadedEarly]
     [StaticConstructorOnModInit]
     public static class EarlyPatchCore
     {

@@ -48,7 +48,7 @@ namespace VehicleInteriors
                     vehiclePawn = vehiclePawnWithMap;
                 }
                 Lord lord = pawnBoarding.GetLord();
-                ValueTuple<VehiclePawn, VehicleHandler> vehicleAssigned;
+                ValueTuple<VehiclePawn, VehicleRoleHandler> vehicleAssigned;
                 if (lord?.LordJob is LordJob_FormAndSendVehicles lordJob_FormAndSendVehicles)
                 {
                     vehicleAssigned = lordJob_FormAndSendVehicles.GetVehicleAssigned(pawnBoarding);
@@ -56,7 +56,7 @@ namespace VehicleInteriors
                 else
                 {
                     Bill_BoardVehicle bill_BoardVehicle = vehiclePawn.bills.FirstOrDefault((Bill_BoardVehicle b) => b.pawnToBoard == pawnBoarding);
-                    VehicleHandler vehicleHandler = bill_BoardVehicle?.handler;
+                    VehicleRoleHandler vehicleHandler = bill_BoardVehicle?.handler;
                     if (vehicleHandler == null && vehiclePawn.Spawned)
                     {
                         VehicleHandlerReservation reservation = MapComponentCache<VehicleReservationManager>.GetComponent(vehiclePawn.Map).GetReservation<VehicleHandlerReservation>(vehiclePawn);
@@ -67,11 +67,11 @@ namespace VehicleInteriors
                             return;
                         }
                     }
-                    vehicleAssigned = new ValueTuple<VehiclePawn, VehicleHandler>(vehiclePawn, vehicleHandler);
+                    vehicleAssigned = new ValueTuple<VehiclePawn, VehicleRoleHandler>(vehiclePawn, vehicleHandler);
                 }
                 if (vehicleAssigned.Item2 == null)
                 {
-                    Log.Error("[VehicleMapFramework] VehicleHandler is null. This should never happen as assigned seating either handles arrangements or instructs pawns to follow rather than board.");
+                    Log.Error("[VehicleMapFramework] VehicleRoleHandler is null. This should never happen as assigned seating either handles arrangements or instructs pawns to follow rather than board.");
                 }
                 vehicleAssigned.Item1.GiveLoadJob(pawnBoarding, vehicleAssigned.Item2);
                 if (vehiclePawn.Spawned)
@@ -91,14 +91,14 @@ namespace VehicleInteriors
                     {
                         pawnBoarding.SetFaction(vehiclePawn.Faction);
                     }
-                    vehicleAssigned.Item1.Notify_BoardedCaravan(pawnBoarding, vehicleAssigned.Item2.handlers);
+                    vehicleAssigned.Item1.Notify_BoardedCaravan(pawnBoarding, vehicleAssigned.Item2.thingOwner);
                     var bill = vehicleAssigned.Item1.bills.FirstOrDefault(b => b.pawnToBoard == pawnBoarding);
                     if (bill != null)
                     {
                         vehicleAssigned.Item1.bills.Remove(bill);
                     }
                 }
-                this.ThrowAppropriateHistoryEvent(vehiclePawn.VehicleDef.vehicleType, toil.actor);
+                this.ThrowAppropriateHistoryEvent(vehiclePawn.VehicleDef.type, toil.actor);
             };
             toil.defaultCompleteMode = ToilCompleteMode.Instant;
             return toil;

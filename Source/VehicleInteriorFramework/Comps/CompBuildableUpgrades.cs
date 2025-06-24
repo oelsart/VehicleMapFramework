@@ -63,10 +63,10 @@ namespace VehicleInteriors
         {
             if (this.parent.IsOnVehicleMapOf(out var vehicle))
             {
-                var turretRoleUpgrades = this.Props.upgrades.Where(u => u is VehicleUpgrade u2 && (u2.roles?.Any(r => r.handlingTypes == HandlingTypeFlags.Turret) ?? false)).ToList();
+                var turretRoleUpgrades = this.Props.upgrades.Where(u => u is VehicleUpgrade u2 && (u2.roles?.Any(r => r.handlingTypes == HandlingType.Turret) ?? false)).ToList();
                 if (turretRoleUpgrades.Count != 0)
                 {
-                    var turret = vehicle.CompVehicleTurrets?.turrets.FirstOrDefault(t => this.handlerUniqueIDs.Any(h => (h.turretIds?.Contains(t.key) ?? false) || (h.turretIds?.Contains(t.groupKey) ?? false)));
+                    var turret = vehicle.CompVehicleTurrets?.Turrets.FirstOrDefault(t => this.handlerUniqueIDs.Any(h => (h.turretIds?.Contains(t.key) ?? false) || (h.turretIds?.Contains(t.groupKey) ?? false)));
                     Command_Action command_Action = new Command_Action
                     {
                         action = delegate ()

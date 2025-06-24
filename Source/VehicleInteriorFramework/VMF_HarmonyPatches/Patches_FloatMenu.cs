@@ -1,18 +1,54 @@
 ﻿using HarmonyLib;
 using RimWorld;
+using RimWorld.Planet;
 using SmashTools;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Emit;
 using UnityEngine;
+using Vehicles;
 using Verse;
+using Verse.AI;
+using Verse.Noise;
 using static VehicleInteriors.MethodInfoCache;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
 {
-    [HarmonyPatch(typeof(FloatMenuMakerMap), nameof(FloatMenuMakerMap.TryMakeFloatMenu))]
-    public static class Patch_FloatMenuMakerMap_TryMakeFloatMenu
+    [HarmonyPatch(typeof(FloatMenuContext), MethodType.Constructor, typeof(List<Pawn>), typeof(Vector3), typeof(Map))]
+    public static class Patch_FloatMenuContext_Constructor
+    {
+        public static void Prefix(List<Pawn> selectedPawns, ref Vector3 clickPosition, ref Map map)
+        {
+            if (clickPosition.TryGetVehicleMap(Find.CurrentMap, out var vehicle, false))
+            {
+                GenUIOnVehicle.vehicleForSelector = vehicle;
+                clickPosition = clickPosition.ToVehicleMapCoord(vehicle);
+                map = vehicle.VehicleMap;
+            }
+        }
+
+        public static void Finalizer(FloatMenuContext __instance)
+        {
+            Pawn pawn;
+            if (!__instance.IsMultiselect && (pawn = __instance.ValidSelectedPawns.FirstOrDefault()) != null)
+            {
+                TargetMapManager.TargetMap[pawn] = __instance.map;
+            }
+            GenUIOnVehicle.vehicleForSelector = null;
+        }
+
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var m_ThingsUnderMouse = AccessTools.Method(typeof(GenUI), nameof(GenUI.ThingsUnderMouse));
+            var m_ThingsUnderMouseOnVehicle = AccessTools.Method(typeof(GenUIOnVehicle), nameof(GenUIOnVehicle.ThingsUnderMouse), new[] { typeof(Vector3), typeof(float), typeof(TargetingParameters), typeof(ITargetingSource) });
+            return instructions.MethodReplacer(m_ThingsUnderMouse, m_ThingsUnderMouseOnVehicle);
+        }
+    }
+
+    [HarmonyPatch(typeof(FloatMenuMakerMap), nameof(FloatMenuMakerMap.ShouldGenerateFloatMenuForPawn))]
+    public static class Patch_FloatMenuMakerMap_ShouldGenerateFloatMenuForPawn
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
@@ -20,21 +56,23 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatch(typeof(FloatMenuMakerMap), nameof(FloatMenuMakerMap.ChoicesAtFor))]
-    public static class Patch_FloatMenuMakerMap_ChoicesAtFor
+    [HarmonyPatch(typeof(FloatMenuOptionProvider_ExtinguishFires), "GetSingleOption")]
+    public static class Patch_FloatMenuOptionProvider_ExtinguishFires_GetSingleOption
     {
-        public static bool Prefix(Vector3 clickPos, Pawn pawn, bool suppressAutoTakeableGoto, ref List<FloatMenuOption> __result)
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            if (clickPos.TryGetVehicleMap(Find.CurrentMap, out var vehicle, false) || pawn.IsOnNonFocusedVehicleMapOf(out _))
+            var codes = instructions.ToList();
+
+            var g_FirstSelectedPawn = AccessTools.PropertyGetter(typeof(FloatMenuContext), nameof(FloatMenuContext.FirstSelectedPawn));
+            for (var i = 0; i < codes.Count; i++)
             {
-                if (pawn != vehicle)
+                if (codes[i].Calls(g_FirstSelectedPawn) && codes[i + 1].Calls(CachedMethodInfo.g_Thing_Map))
                 {
-                    GenUIOnVehicle.vehicleForSelector = vehicle;
+                    codes.RemoveAt(i);
+                    codes[i] = CodeInstruction.LoadField(typeof(FloatMenuContext), nameof(FloatMenuContext.map));
                 }
-                __result = FloatMenuMakerOnVehicle.ChoicesAtFor(clickPos, pawn, suppressAutoTakeableGoto);
-                return false;
             }
-            return true;
+            return codes;
         }
     }
 
@@ -74,56 +112,57 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatch]
-    public static class Patch_EnterPortalUtility_GetFloatMenuOptFor
-    {
-        [HarmonyTranspiler]
-        [HarmonyPatch(typeof(EnterPortalUtility), nameof(EnterPortalUtility.GetFloatMenuOptFor), typeof(Pawn), typeof(IntVec3))]
-        public static IEnumerable<CodeInstruction> Transpiler1(IEnumerable<CodeInstruction> instructions)
-        {
-            return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
-        }
+    //[HarmonyPatch]
+    //public static class Patch_EnterPortalUtility_GetFloatMenuOptFor
+    //{
+    //    [HarmonyTranspiler]
+    //    [HarmonyPatch(typeof(EnterPortalUtility), nameof(EnterPortalUtility.GetFloatMenuOptFor), typeof(Pawn), typeof(IntVec3))]
+    //    public static IEnumerable<CodeInstruction> Transpiler1(IEnumerable<CodeInstruction> instructions)
+    //    {
+    //        return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing);
+    //    }
 
-        [HarmonyTranspiler]
-        [HarmonyPatch(typeof(EnterPortalUtility), nameof(EnterPortalUtility.GetFloatMenuOptFor), typeof(List<Pawn>), typeof(IntVec3))]
-        public static IEnumerable<CodeInstruction> Transpiler2(IEnumerable<CodeInstruction> instructions)
-        {
-            return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
-        }
-    }
-
-    //ValidateTakeToBedOptionの完全な置き換え(FindBedとReservation関係が置換してある)。こんなところはあまり触られてないことを祈る
-    [HarmonyPatch(typeof(FloatMenuMakerMap), "ValidateTakeToBedOption")]
-    public static class Patch_FloatMenuMakerMap_ValidateTakeToBedOption
-    {
-        public static bool Prefix(Pawn pawn, Pawn target, FloatMenuOption option, string cannot, GuestStatus? guestStatus)
-        {
-            FloatMenuMakerOnVehicle.ValidateTakeToBedOption(pawn, target, option, cannot, guestStatus);
-            return false;
-        }
-    }
+    //    [HarmonyTranspiler]
+    //    [HarmonyPatch(typeof(EnterPortalUtility), nameof(EnterPortalUtility.GetFloatMenuOptFor), typeof(List<Pawn>), typeof(IntVec3))]
+    //    public static IEnumerable<CodeInstruction> Transpiler2(IEnumerable<CodeInstruction> instructions)
+    //    {
+    //        return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing);
+    //    }
+    //}
 
     //ベースマップに居る時のFloatMenuにもHoldingPlatform検索を足しときます
-    [HarmonyPatch(typeof(FloatMenuMakerMap), "AddHumanlikeOrders")]
-    public static class Patch_FloatMenuMakerMap_AddHumanlikeOrders
-    {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
-            var m_AllBuildingsColonistOfClass = AccessTools.Method(typeof(ListerBuildings), nameof(ListerBuildings.AllBuildingsColonistOfClass)).MakeGenericMethod(typeof(Building_HoldingPlatform));
-            var m_AddHoldingPlatforms = AccessTools.Method(typeof(Patch_FloatMenuMakerMap_AddHumanlikeOrders), nameof(Patch_FloatMenuMakerMap_AddHumanlikeOrders.AddHoldingPlatforms));
-            foreach (var instruction in instructions)
-            {
-                yield return instruction;
-                if (instruction.opcode == OpCodes.Callvirt && instruction.OperandIs(m_AllBuildingsColonistOfClass))
-                {
-                    yield return new CodeInstruction(OpCodes.Call, m_AddHoldingPlatforms);
-                }
-            }
-        }
+    //[HarmonyPatch(typeof(FloatMenuMakerMap), "AddHumanlikeOrders")]
+    //public static class Patch_FloatMenuMakerMap_AddHumanlikeOrders
+    //{
+    //    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    //    {
+    //        var m_AllBuildingsColonistOfClass = AccessTools.Method(typeof(ListerBuildings), nameof(ListerBuildings.AllBuildingsColonistOfClass)).MakeGenericMethod(typeof(Building_HoldingPlatform));
+    //        var m_AddHoldingPlatforms = AccessTools.Method(typeof(Patch_FloatMenuMakerMap_AddHumanlikeOrders), nameof(Patch_FloatMenuMakerMap_AddHumanlikeOrders.AddHoldingPlatforms));
+    //        foreach (var instruction in instructions)
+    //        {
+    //            yield return instruction;
+    //            if (instruction.opcode == OpCodes.Callvirt && instruction.OperandIs(m_AllBuildingsColonistOfClass))
+    //            {
+    //                yield return new CodeInstruction(OpCodes.Call, m_AddHoldingPlatforms);
+    //            }
+    //        }
+    //    }
 
-        private static IEnumerable<Building_HoldingPlatform> AddHoldingPlatforms(IEnumerable<Building_HoldingPlatform> enumerable)
+    //    private static IEnumerable<Building_HoldingPlatform> AddHoldingPlatforms(IEnumerable<Building_HoldingPlatform> enumerable)
+    //    {
+    //        return enumerable.Concat(VehiclePawnWithMapCache.AllVehiclesOn(Find.CurrentMap).SelectMany(v => v.VehicleMap.listerBuildings.AllBuildingsColonistOfClass<Building_HoldingPlatform>()));
+    //    }
+    //}
+
+    [HarmonyPatch(typeof(MultiPawnGotoController), nameof(MultiPawnGotoController.StartInteraction))]
+    public static class Patch_MultiPawnGotoController_StartInteraction
+    {
+        public static void Prefix(ref IntVec3 mouseCell)
         {
-            return enumerable.Concat(VehiclePawnWithMapCache.AllVehiclesOn(Find.CurrentMap).SelectMany(v => v.VehicleMap.listerBuildings.AllBuildingsColonistOfClass<Building_HoldingPlatform>()));
+            if (UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out var vehicle, false))
+            {
+                mouseCell = mouseCell.ToBaseMapCoord(vehicle);
+            }
         }
     }
 
@@ -141,7 +180,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
         }
 
-        public static Dictionary<(Pawn pawn, IntVec3 dest), (TargetInfo exitSpot, TargetInfo enterSpot)> tmpEnterSpots = new Dictionary<(Pawn pawn, IntVec3 dest), (TargetInfo, TargetInfo)>();
+        public static Dictionary<Pawn, (TargetInfo exitSpot, TargetInfo enterSpot)> tmpEnterSpots = new Dictionary<Pawn, (TargetInfo, TargetInfo)>();
     }
 
     [HarmonyPatch(typeof(MultiPawnGotoController), nameof(MultiPawnGotoController.ProcessInputEvents))]
@@ -183,7 +222,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
 
         private static Vector3 ToVector3ShiftedOffsetWithAltitude(ref IntVec3 intVec, float AddedAltitude, Pawn pawn)
         {
-            if (Patch_MultiPawnGotoController_RecomputeDestinations.tmpEnterSpots.TryGetValue((pawn, intVec), out var spots))
+            if (Patch_MultiPawnGotoController_RecomputeDestinations.tmpEnterSpots.TryGetValue(pawn, out var spots))
             {
                 var destMap = spots.enterSpot.Map ?? spots.exitSpot.Map.BaseMap() ?? pawn.Map;
                 if (destMap.IsNonFocusedVehicleMapOf(out var vehicle))
@@ -196,7 +235,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
 
         private static bool FoggedOffset(IntVec3 intVec, Pawn pawn)
         {
-            if (Patch_MultiPawnGotoController_RecomputeDestinations.tmpEnterSpots.TryGetValue((pawn, intVec), out var spots))
+            if (Patch_MultiPawnGotoController_RecomputeDestinations.tmpEnterSpots.TryGetValue(pawn, out var spots))
             {
                 var destMap = spots.enterSpot.Map ?? spots.exitSpot.Map.BaseMap() ?? pawn.Map;
                 if (destMap.IsNonFocusedVehicleMapOf(out var vehicle))
@@ -244,7 +283,8 @@ namespace VehicleInteriors.VMF_HarmonyPatches
 
         private static Vector3 ToVector3Offset(IntVec3 intVec, Pawn pawn)
         {
-            if (Patch_MultiPawnGotoController_RecomputeDestinations.tmpEnterSpots.TryGetValue((pawn, intVec), out var spots))
+            new StackTrace().GetFrame(1);
+            if (Patch_MultiPawnGotoController_RecomputeDestinations.tmpEnterSpots.TryGetValue(pawn, out var spots))
             {
                 var destMap = spots.enterSpot.Map ?? spots.exitSpot.Map.BaseMap() ?? pawn.Map;
                 if (destMap.IsNonFocusedVehicleMapOf(out var vehicle))
@@ -253,6 +293,16 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 }
             }
             return intVec.ToVector3();
+        }
+    }
+
+    //終わったらキャッシュをクリア
+    [HarmonyPatch(typeof(MultiPawnGotoController), "IssueGotoJobs")]
+    public static class Patch_MultiPawnGotoController_IssueGotoJobs
+    {
+        public static void Postfix()
+        {
+            Patch_MultiPawnGotoController_RecomputeDestinations.tmpEnterSpots.Clear();
         }
     }
 
@@ -269,10 +319,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 __result = ReachabilityUtilityOnVehicle.BestOrderedGotoDestNear(root, searcher, cellValidator, map, out var exitSpot, out var enterSpot);
                 if (__result.IsValid)
                 {
-                    if (Find.Selector.gotoController.Active)
-                    {
-                        Patch_MultiPawnGotoController_RecomputeDestinations.tmpEnterSpots[(searcher, __result)] = (exitSpot, enterSpot);
-                    }
+                    Patch_MultiPawnGotoController_RecomputeDestinations.tmpEnterSpots[searcher] = (exitSpot, enterSpot);
                     return false;
                 }
             }
@@ -288,7 +335,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                     out var enterSpot);
                 if (__result.IsValid)
                 {
-                    Patch_MultiPawnGotoController_RecomputeDestinations.tmpEnterSpots[(searcher, __result)] = (exitSpot, enterSpot);
+                    Patch_MultiPawnGotoController_RecomputeDestinations.tmpEnterSpots[searcher] = (exitSpot, enterSpot);
                     return false;
                 }
             }
@@ -297,165 +344,65 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     }
 
     //行き先がVehicleMap上にあると登録されているかsearcherがVehicleMap上に居る時はBestOrderedGotoDestNearの置き換えで登録されたspotsを使ってGotoAcrossMapsに誘導
-    [HarmonyPatch(typeof(FloatMenuMakerMap), nameof(FloatMenuMakerMap.PawnGotoAction))]
-    public static class Patch_FloatMenuMakerMap_PawnGotoAction
+    [HarmonyPatch(typeof(FloatMenuOptionProvider_DraftedMove), nameof(FloatMenuOptionProvider_DraftedMove.PawnGotoAction))]
+    public static class Patch_FloatMenuOptionProvider_DraftedMove_PawnGotoAction
     {
         public static bool Prefix(IntVec3 clickCell, Pawn pawn, IntVec3 gotoLoc)
         {
-            if (Patch_MultiPawnGotoController_RecomputeDestinations.tmpEnterSpots.TryGetValue((pawn, gotoLoc), out var spots))
+            if (Patch_MultiPawnGotoController_RecomputeDestinations.tmpEnterSpots.TryGetValue(pawn, out var spots))
             {
+                Patch_MultiPawnGotoController_RecomputeDestinations.tmpEnterSpots.Remove(pawn);
                 var destMap = spots.enterSpot.Map ?? spots.exitSpot.Map.BaseMap() ?? pawn.Map;
                 if (destMap.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
                 {
                     clickCell = clickCell.ToVehicleMapCoord(vehicle);
                 }
-                FloatMenuMakerOnVehicle.PawnGotoAction(clickCell, pawn, destMap, spots.exitSpot, spots.enterSpot, gotoLoc);
-                return false;
-            }
-            return true;
-        }
-    }
-
-    //終わったらキャッシュをクリア
-    [HarmonyPatch(typeof(MultiPawnGotoController), "IssueGotoJobs")]
-    public static class Patch_MultiPawnGotoController_IssueGotoJobs
-    {
-        public static void Postfix()
-        {
-            Patch_MultiPawnGotoController_RecomputeDestinations.tmpEnterSpots.Clear();
-        }
-    }
-
-    //複数ポーンの行き先選択に使えるポーンの判定をBaseMap基準に
-    [HarmonyPatch(typeof(FloatMenuMakerMap), nameof(FloatMenuMakerMap.InvalidPawnForMultiSelectOption))]
-    public static class Patch_FloatMenuMakerMap_InvalidPawnForMultiSelectOption
-    {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
-            return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
-        }
-    }
-
-    [HarmonyPatch(typeof(RimWorld.Selector), "MassTakeFirstAutoTakeableOptionOrGoto")]
-    public static class Patch_Selector_MassTakeFirstAutoTakeableOptionOrGoto
-    {
-        public static bool Prefix(List<Pawn> ___tmpDraftedGotoPawns)
-        {
-            if (UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out var vehicle) || Find.Selector.SelectedPawns.Any(p => p.IsOnNonFocusedVehicleMapOf(out _)))
-            {
-                var focusedVehicle = Command_FocusVehicleMap.FocusedVehicle;
-                Command_FocusVehicleMap.FocusedVehicle = vehicle;
-                try
-                {
-                    MassTakeFirstAutoTakeableOptionOrGoto(___tmpDraftedGotoPawns);
-                }
-                finally
-                {
-                    Command_FocusVehicleMap.FocusedVehicle = focusedVehicle;
-                }
+                PawnGotoAction(clickCell, pawn, destMap, spots.exitSpot, spots.enterSpot, gotoLoc);
                 return false;
             }
             return true;
         }
 
-        private static void MassTakeFirstAutoTakeableOptionOrGoto(List<Pawn> tmpDraftedGotoPawns)
+        public static void PawnGotoAction(IntVec3 clickCell, Pawn pawn, Map map, TargetInfo dest1, TargetInfo dest2, LocalTargetInfo dest3)
         {
-            List<Pawn> selectedPawns = Find.Selector.SelectedPawns;
-            if (!selectedPawns.Any<Pawn>())
+            bool flag;
+            var baseMap = map.BaseMap();
+            if (!dest1.IsValid && !dest2.IsValid && pawn.Map == map && pawn.Position == dest3.Cell)
             {
-                return;
-            }
-            Map map = VehicleMapUtility.CurrentMap;
-            if (map == null)
-            {
-                return;
-            }
-            IntVec3 intVec = UI.MouseCell();
-            if (!intVec.InBounds(map))
-            {
-                return;
-            }
-            tmpDraftedGotoPawns.Clear();
-            foreach (Pawn pawn in selectedPawns)
-            {
-                if (!FloatMenuMakerMap.InvalidPawnForMultiSelectOption(pawn) && !TakeFirstAutoTakeableOption(pawn, true) && pawn.Drafted)
+                flag = true;
+                if (pawn.CurJobDef == VMF_DefOf.VMF_GotoAcrossMaps)
                 {
-                    tmpDraftedGotoPawns.Add(pawn);
+                    pawn.jobs.EndCurrentJob(JobCondition.Succeeded);
                 }
             }
-            if (tmpDraftedGotoPawns.Count == 1)
+            else if (pawn.CurJobDef == VMF_DefOf.VMF_GotoAcrossMaps && pawn.Map == map && pawn.CurJob.targetA == dest3)
             {
-                TakeFirstAutoTakeableOption(tmpDraftedGotoPawns[0], false);
+                flag = true;
             }
             else
             {
-                IntVec3 mouseCell = CellFinder.StandableCellNear(intVec, map, 2.9f, null);
-                if (mouseCell.IsValid)
+                Job job = JobMaker.MakeJob(VMF_DefOf.VMF_GotoAcrossMaps, dest3).SetSpotsToJobAcrossMaps(pawn, dest1, dest2);
+                if (pawn.Map == baseMap && baseMap.exitMapGrid.IsExitCell(clickCell))
                 {
-                    Find.Selector.gotoController.StartInteraction(Patch_UI_MouseCell.MouseCell());
-                    for (int i = 0; i < tmpDraftedGotoPawns.Count; i++)
+                    job.exitMapOnArrival = !pawn.IsColonyMech;
+                }
+                else if (!baseMap.IsPlayerHome && !baseMap.exitMapGrid.MapUsesExitGrid && pawn.Map == baseMap && CellRect.WholeMap(baseMap).IsOnEdge(clickCell, 3) && baseMap.Parent.GetComponent<FormCaravanComp>() != null && MessagesRepeatAvoider.MessageShowAllowed("MessagePlayerTriedToLeaveMapViaExitGrid-" + baseMap.uniqueID, 60f))
+                {
+                    if (baseMap.Parent.GetComponent<FormCaravanComp>().CanFormOrReformCaravanNow)
                     {
-                        Find.Selector.gotoController.AddPawn(tmpDraftedGotoPawns[i]);
+                        Messages.Message("MessagePlayerTriedToLeaveMapViaExitGrid_CanReform".Translate(), baseMap.Parent, MessageTypeDefOf.RejectInput, false);
+                    }
+                    else
+                    {
+                        Messages.Message("MessagePlayerTriedToLeaveMapViaExitGrid_CantReform".Translate(), baseMap.Parent, MessageTypeDefOf.RejectInput, false);
                     }
                 }
+                flag = pawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), false);
             }
-            tmpDraftedGotoPawns.Clear();
-        }
-
-        private static bool TakeFirstAutoTakeableOption(Pawn pawn, bool suppressAutoTakeableGoto = false)
-        {
-            FloatMenuOption floatMenuOption = null;
-            GenUIOnVehicle.vehicleForSelector = Command_FocusVehicleMap.FocusedVehicle;
-            foreach (FloatMenuOption floatMenuOption2 in FloatMenuMakerOnVehicle.ChoicesAtFor(UI.MouseMapPosition(), pawn, suppressAutoTakeableGoto))
+            if (flag)
             {
-                if (!floatMenuOption2.Disabled && floatMenuOption2.autoTakeable && (floatMenuOption == null || floatMenuOption2.autoTakeablePriority > floatMenuOption.autoTakeablePriority))
-                {
-                    floatMenuOption = floatMenuOption2;
-                }
-            }
-            if (floatMenuOption != null)
-            {
-                floatMenuOption.Chosen(true, null);
-                return true;
-            }
-            return false;
-        }
-    }
-
-    //複数ポーン選択時のフロートメニュー
-    [HarmonyPatch(typeof(FloatMenuMakerMap), nameof(FloatMenuMakerMap.ChoicesAtForMultiSelect))]
-    public static class Patch_FloatMenuMakerMap_ChoicesAtForMultiSelect
-    {
-        public static void Prefix(ref Vector3 clickPos, List<Pawn> pawns)
-        {
-            tmpVehicle = Command_FocusVehicleMap.FocusedVehicle;
-            if (clickPos.TryGetVehicleMap(Find.CurrentMap, out var vehicle, false))
-            {
-                clickPos = clickPos.ToVehicleMapCoord(vehicle);
-                tmpMap = vehicle.VehicleMap;
-                Command_FocusVehicleMap.FocusedVehicle = vehicle;
+                FleckMaker.Static(dest3.Cell, map, FleckDefOf.FeedbackGoto, 1f);
             }
         }
-
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
-            return instructions.MethodReplacer(CachedMethodInfo.g_Find_CurrentMap, CachedMethodInfo.g_VehicleMapUtility_CurrentMap)
-                .MethodReplacer(CachedMethodInfo.g_Thing_Map, AccessTools.Method(typeof(Patch_FloatMenuMakerMap_ChoicesAtForMultiSelect), nameof(GetMap)));
-        }
-
-        private static Map GetMap(Thing _)
-        {
-            return tmpMap ?? Find.CurrentMap;
-        }
-
-        public static void Finalizer()
-        {
-            Command_FocusVehicleMap.FocusedVehicle = tmpVehicle;
-            tmpMap = null;
-        }
-
-        private static VehiclePawnWithMap tmpVehicle;
-
-        private static Map tmpMap;
     }
 }

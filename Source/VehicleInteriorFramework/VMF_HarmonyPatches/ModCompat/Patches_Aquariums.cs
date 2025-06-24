@@ -34,7 +34,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static bool Prefix(List<IntVec3> ___netCells, Map ___map)
         {
-            GenDrawOnVehicle.DrawFieldEdges(___netCells, ColorLibrary.LightBlue, null, 2900, ___map);
+            GenDrawOnVehicle.DrawFieldEdges(___netCells, ColorLibrary.LightBlue, null, map: ___map);
             return false;
         }
     }

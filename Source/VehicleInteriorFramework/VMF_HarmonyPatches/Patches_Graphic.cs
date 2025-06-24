@@ -273,7 +273,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             {
                 corpse.TryGetDrawPos(ref __result);
             }
-            else if (___pawn.ParentHolder is VehicleHandlerBuildable)
+            else if (___pawn.ParentHolder is VehicleRoleHandlerBuildable)
             {
                 __result.y += VehicleMapUtility.altitudeOffsetFull;
             }

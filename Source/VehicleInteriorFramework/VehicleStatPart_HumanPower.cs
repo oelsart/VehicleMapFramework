@@ -11,13 +11,13 @@ namespace VehicleInteriors
     {
         protected float Modifier(VehiclePawn vehicle)
         {
-            var handlers = vehicle.handlers?.Where(h => h.Isnt<VehicleHandlerBuildable>() && h.RequiredForMovement);
+            var handlers = vehicle.handlers?.Where(h => h.Isnt<VehicleRoleHandlerBuildable>() && h.RequiredForMovement);
             if (!handlers.NullOrEmpty())
             {
                 return handlers.Average(h =>
                 {
                     var statValue = 0f;
-                    foreach (var pawn in h.handlers)
+                    foreach (var pawn in h.thingOwner)
                     {
                         if (!h.CanOperateRole(pawn)) continue;
                         var statFactor = 1f;

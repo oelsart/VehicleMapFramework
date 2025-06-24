@@ -135,7 +135,7 @@ namespace VehicleInteriors
         public static void DeSpawnWithoutJobClearVehicle(this VehiclePawn vehicle, DestroyMode mode = DestroyMode.Vanish)
         {
             vehicle.vehiclePather?.StopDead();
-            vehicle.Map.GetCachedMapComponent<VehiclePositionManager>().ReleaseClaimed(vehicle);
+            vehicle.Map.GetDetachedMapComponent<VehiclePositionManager>().ReleaseClaimed(vehicle);
             VehicleReservationManager cachedMapComponent = vehicle.Map.GetCachedMapComponent<VehicleReservationManager>();
             cachedMapComponent.ClearReservedFor(vehicle);
             cachedMapComponent.RemoveAllListerFor(vehicle);
