@@ -357,6 +357,10 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         public static void Prefix(Thing newThing, ref Map map, IntVec3 loc)
         {
+            if (map == null)
+            {
+                return;
+            }
             if (newThing is Projectile)
             {
                 map = map.BaseMap();
