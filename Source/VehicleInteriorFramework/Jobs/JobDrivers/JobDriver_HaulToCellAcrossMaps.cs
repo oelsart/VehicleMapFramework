@@ -45,19 +45,19 @@ namespace VehicleInteriors
             {
                 return "ReportHaulingUnknown".Translate();
             }
-            string text = null;
-            if (!cell.InBounds(DestMap))
+            var destMap = DestMap;
+            if (cell.InBounds(destMap))
             {
-                return null;
-            }
-            SlotGroup slotGroup = cell.GetSlotGroup(DestMap);
-            if (slotGroup != null)
-            {
-                text = slotGroup.parent.SlotYielderLabel();
-            }
-            if (text != null)
-            {
-                return "ReportHaulingTo".Translate(thing.Label, text.Named("DESTINATION"), thing.Named("THING"));
+                string text = null;
+                SlotGroup slotGroup = cell.GetSlotGroup(destMap);
+                if (slotGroup != null)
+                {
+                    text = slotGroup.parent.SlotYielderLabel();
+                }
+                if (text != null)
+                {
+                    return "ReportHaulingTo".Translate(thing.Label, text.Named("DESTINATION"), thing.Named("THING"));
+                }
             }
             return "ReportHauling".Translate(thing.Label, thing);
         }
