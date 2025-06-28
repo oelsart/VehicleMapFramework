@@ -10,59 +10,48 @@ using static VehicleInteriors.MethodInfoCache;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
 {
-    [StaticConstructorOnStartupPriority(Priority.Normal)]
+    [HarmonyPatch]
     public static class Patches_Designator_ZoneAdd_MakeNewZone
     {
-        static Patches_Designator_ZoneAdd_MakeNewZone()
+        private static IEnumerable<MethodBase> TargetMethods()
         {
-            var transpiler = AccessTools.Method(typeof(Patches_Designator_ZoneAdd_MakeNewZone), nameof(Patches_Designator_ZoneAdd_MakeNewZone.Transpiler));
             foreach (var type in typeof(Designator_ZoneAdd).AllSubclasses())
             {
-                var method = AccessTools.Method(type, "MakeNewZone");
-                if (method != null && method.IsDeclaredMember())
+                var method = AccessTools.DeclaredMethod(type, "MakeNewZone");
+                if (method != null && PatchProcessor.ReadMethodBody(method).Any(i => CachedMethodInfo.g_Find_CurrentMap.Equals(i.Value)))
                 {
-                    if (PatchProcessor.ReadMethodBody(method).Any(i => CachedMethodInfo.g_Find_CurrentMap.Equals(i.Value)))
-                    {
-                        VMF_Harmony.Instance.Patch(method, null, null, transpiler);
-                    }
+                     yield return method;
                 }
             }
         }
 
-        private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             return instructions.MethodReplacer(CachedMethodInfo.g_Find_CurrentMap, CachedMethodInfo.g_VehicleMapUtility_CurrentMap);
         }
     }
 
-    [StaticConstructorOnStartupPriority(Priority.Normal)]
+    [HarmonyPatch]
     public static class Patches_Designator_DesignateThing
     {
-        static Patches_Designator_DesignateThing()
+        private static IEnumerable<MethodBase> TargetMethods()
         {
-            var transpiler = AccessTools.Method(typeof(Patches_Designator_DesignateThing), nameof(Transpiler));
             foreach (var type in typeof(Designator).AllSubclasses())
             {
-                var method = AccessTools.Method(type, "DesignateThing");
-                if (method != null && method.IsDeclaredMember())
+                var method = AccessTools.DeclaredMethod(type, "DesignateThing");
+                if (method != null && PatchProcessor.ReadMethodBody(method).Any(i => CachedMethodInfo.g_Designator_Map.Equals(i.Value)))
                 {
-                    if (PatchProcessor.ReadMethodBody(method).Any(i => CachedMethodInfo.g_Designator_Map.Equals(i.Value)))
-                    {
-                        VMF_Harmony.Instance.Patch(method, null, null, transpiler);
-                    }
+                    yield return method;
                 }
-                var method2 = AccessTools.Method(type, "CanDesignateThing");
-                if (method2 != null && method2.IsDeclaredMember())
+                var method2 = AccessTools.DeclaredMethod(type, "CanDesignateThing");
+                if (method2 != null && PatchProcessor.ReadMethodBody(method2).Any(i => CachedMethodInfo.g_Designator_Map.Equals(i.Value)))
                 {
-                    if (PatchProcessor.ReadMethodBody(method2).Any(i => CachedMethodInfo.g_Designator_Map.Equals(i.Value)))
-                    {
-                        VMF_Harmony.Instance.Patch(method2, null, null, transpiler);
-                    }
+                    yield return method2;
                 }
             }
         }
 
-        private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
         {
             foreach (var instruction in instructions)
             {

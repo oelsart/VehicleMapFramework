@@ -39,7 +39,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
 
             if (!mouseVehicleMapPosition.InBounds(vehicle.VehicleMap)) yield break;
 
-            List<Thing> selectableList = GenUIOnVehicle.ThingsUnderMouse(mouseMapPosition, 1f, targetingParameters, null, vehicle);
+            List<Thing> selectableList = GenUIOnVehicle.ThingsUnderMouse(mouseVehicleMapPosition, 1f, targetingParameters, null, vehicle);
             if (selectableList.Count > 0)
             {
                 if (selectableList[0] is Pawn && (selectableList[0].DrawPos - mouseMapPosition).MagnitudeHorizontal() < 0.4f)

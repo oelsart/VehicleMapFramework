@@ -6,12 +6,12 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
 using Vehicles;
 using Verse;
 using Verse.AI;
-using Verse.Noise;
 using static VehicleInteriors.MethodInfoCache;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
@@ -112,47 +112,55 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
-    //[HarmonyPatch]
-    //public static class Patch_EnterPortalUtility_GetFloatMenuOptFor
-    //{
-    //    [HarmonyTranspiler]
-    //    [HarmonyPatch(typeof(EnterPortalUtility), nameof(EnterPortalUtility.GetFloatMenuOptFor), typeof(Pawn), typeof(IntVec3))]
-    //    public static IEnumerable<CodeInstruction> Transpiler1(IEnumerable<CodeInstruction> instructions)
-    //    {
-    //        return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing);
-    //    }
-
-    //    [HarmonyTranspiler]
-    //    [HarmonyPatch(typeof(EnterPortalUtility), nameof(EnterPortalUtility.GetFloatMenuOptFor), typeof(List<Pawn>), typeof(IntVec3))]
-    //    public static IEnumerable<CodeInstruction> Transpiler2(IEnumerable<CodeInstruction> instructions)
-    //    {
-    //        return instructions.MethodReplacer(MethodInfoCache.g_Thing_Map, MethodInfoCache.m_BaseMap_Thing);
-    //    }
-    //}
-
     //ベースマップに居る時のFloatMenuにもHoldingPlatform検索を足しときます
-    //[HarmonyPatch(typeof(FloatMenuMakerMap), "AddHumanlikeOrders")]
-    //public static class Patch_FloatMenuMakerMap_AddHumanlikeOrders
-    //{
-    //    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    //    {
-    //        var m_AllBuildingsColonistOfClass = AccessTools.Method(typeof(ListerBuildings), nameof(ListerBuildings.AllBuildingsColonistOfClass)).MakeGenericMethod(typeof(Building_HoldingPlatform));
-    //        var m_AddHoldingPlatforms = AccessTools.Method(typeof(Patch_FloatMenuMakerMap_AddHumanlikeOrders), nameof(Patch_FloatMenuMakerMap_AddHumanlikeOrders.AddHoldingPlatforms));
-    //        foreach (var instruction in instructions)
-    //        {
-    //            yield return instruction;
-    //            if (instruction.opcode == OpCodes.Callvirt && instruction.OperandIs(m_AllBuildingsColonistOfClass))
-    //            {
-    //                yield return new CodeInstruction(OpCodes.Call, m_AddHoldingPlatforms);
-    //            }
-    //        }
-    //    }
+    [HarmonyPatch]
+    public static class Patch_FloatMenuOptionProvider_Entity_GetOptionFor
+    {
+        private static IEnumerable<MethodBase> TargetMethods()
+        {
+            MethodBase GetOptionsFor_MoveNext(Type t)
+            {
+                if (!t.Name.Contains("<GetOptionsFor>")) return null;
+                return AccessTools.Method(t, "MoveNext");
+            }
 
-    //    private static IEnumerable<Building_HoldingPlatform> AddHoldingPlatforms(IEnumerable<Building_HoldingPlatform> enumerable)
-    //    {
-    //        return enumerable.Concat(VehiclePawnWithMapCache.AllVehiclesOn(Find.CurrentMap).SelectMany(v => v.VehicleMap.listerBuildings.AllBuildingsColonistOfClass<Building_HoldingPlatform>()));
-    //    }
-    //}
+            yield return AccessTools.FindIncludingInnerTypes(typeof(FloatMenuOptionProvider_CaptureEntity), GetOptionsFor_MoveNext);
+            yield return AccessTools.FindIncludingInnerTypes(typeof(FloatMenuOptionProvider_TransferEntity), GetOptionsFor_MoveNext);
+        }
+
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var codes = new CodeMatcher(instructions);
+            var m_AllBuildingsColonistOfClass = AccessTools.Method(typeof(ListerBuildings), nameof(ListerBuildings.AllBuildingsColonistOfClass)).MakeGenericMethod(typeof(Building_HoldingPlatform));
+            codes.MatchStartForward(CodeMatch.Calls(m_AllBuildingsColonistOfClass)).Advance(1);
+            codes.Insert(CodeInstruction.Call(typeof(Patch_FloatMenuOptionProvider_Entity_GetOptionFor), nameof(AddHoldingPlatforms)));
+            codes.MatchStartBackwards(CodeMatch.Calls(CachedMethodInfo.g_Thing_Map));
+            codes.Set(OpCodes.Call, CachedMethodInfo.m_BaseMap_Thing);
+
+            var m_ClosestThing_Global_Reachable = AccessTools.Method(typeof(GenClosest), nameof(GenClosest.ClosestThing_Global_Reachable));
+            var m_ClosestThing_Global_ReachableOnVehicle = AccessTools.Method(typeof(GenClosestOnVehicle), nameof(GenClosestOnVehicle.ClosestThing_Global_Reachable),
+                new[]
+                {
+                    typeof(IntVec3),
+                    typeof(Map),
+                    typeof(IEnumerable<Thing>),
+                    typeof(PathEndMode),
+                    typeof(TraverseParms),
+                    typeof(float),
+                    typeof(Predicate<Thing>),
+                    typeof(Func<Thing,float>),
+                    typeof(bool)
+                });
+            codes.MatchStartForward(CodeMatch.Calls(m_ClosestThing_Global_Reachable));
+            codes.Operand = m_ClosestThing_Global_ReachableOnVehicle;
+            return codes.Instructions();
+        }
+
+        private static IEnumerable<Building_HoldingPlatform> AddHoldingPlatforms(IEnumerable<Building_HoldingPlatform> enumerable)
+        {
+            return enumerable.Concat(VehiclePawnWithMapCache.AllVehiclesOn(Find.CurrentMap).SelectMany(v => v.VehicleMap.listerBuildings.AllBuildingsColonistOfClass<Building_HoldingPlatform>()));
+        }
+    }
 
     [HarmonyPatch(typeof(MultiPawnGotoController), nameof(MultiPawnGotoController.StartInteraction))]
     public static class Patch_MultiPawnGotoController_StartInteraction
@@ -403,6 +411,58 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             {
                 FleckMaker.Static(dest3.Cell, map, FleckDefOf.FeedbackGoto, 1f);
             }
+        }
+    }
+
+    [HarmonyPatch(typeof(FloatMenuOptionProvider_WorkGivers), "GetWorkGiversOptionsFor")]
+    public static class Patch_FloatMenuOptionProvider_WorkGivers_GetWorkGiversOptionsFor
+    {
+        public static void Prefix(Pawn pawn, LocalTargetInfo target, FloatMenuContext context, ref object[] __state)
+        {
+            __state = new object[3];
+            if (pawn.CanReach(target, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, context.map, out tmpExitSpot, out tmpEnterSpot))
+            {
+                __state[0] = true;
+                __state[1] = pawn.Map;
+                __state[2] = pawn.Position;
+                pawn.VirtualMapTransfer(context.map, target.Cell);
+                return;
+            }
+            __state[0] = false;
+        }   
+
+        public static void Finalizer(Pawn pawn, object[] __state)
+        {
+            if ((bool)__state[0])
+            {
+                pawn.VirtualMapTransfer((Map)__state[1], (IntVec3)__state[2]);
+            }
+        }
+
+        public static TargetInfo tmpExitSpot;
+
+        public static TargetInfo tmpEnterSpot;
+    }
+
+    [HarmonyPatch(typeof(FloatMenuOptionProvider_WorkGivers), "GetWorkGiverOption")]
+    public static class Patch_FloatMenuOptionProvider_WorkGivers_GetWorkGiverOption
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+        {
+            var codes = instructions.ToList();
+            var pos = codes.FindIndex(c => c.opcode == OpCodes.Stfld && ((FieldInfo)c.operand).Name == "localJob");
+            var job = generator.DeclareLocal(typeof(Job));
+
+            codes.InsertRange(pos, new[]
+            {
+                new CodeInstruction(OpCodes.Stloc_S, job),
+                CodeInstruction.LoadArgument(1),
+                CodeInstruction.LoadField(typeof(Patch_FloatMenuOptionProvider_WorkGivers_GetWorkGiversOptionsFor), nameof(Patch_FloatMenuOptionProvider_WorkGivers_GetWorkGiversOptionsFor.tmpExitSpot)),
+                CodeInstruction.LoadField(typeof(Patch_FloatMenuOptionProvider_WorkGivers_GetWorkGiversOptionsFor), nameof(Patch_FloatMenuOptionProvider_WorkGivers_GetWorkGiversOptionsFor.tmpEnterSpot)),
+                new CodeInstruction(OpCodes.Ldloc_S, job),
+                CodeInstruction.Call(typeof(JobAcrossMapsUtility), nameof(JobAcrossMapsUtility.GotoDestMapJob))
+            });
+            return codes;
         }
     }
 }

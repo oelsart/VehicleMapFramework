@@ -266,7 +266,6 @@
     <Compile Include="Utilities\ReachabilityUtilityOnVehicle.cs" />
     <Compile Include="Utilities\RestUtilityOnVehicle.cs" />
     <Compile Include="Utilities\GenUIOnVehicle.cs" />
-    <Compile Include="Utilities\StudyUtilityOnVehicle.cs" />
     <Compile Include="VehicleStatPart_HumanPower.cs" />
     <Compile Include="Utilities\VerbOnVehicleUtility.cs" />
     <Compile Include="MapComponents\VehiclePawnWithMapCache.cs" />

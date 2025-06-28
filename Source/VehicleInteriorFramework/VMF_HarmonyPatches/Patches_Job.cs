@@ -145,7 +145,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 pawn.Map.BaseMapAndVehicleMaps().ForEach(m =>
                 {
                     pawn.VirtualMapTransfer(m);
-                    var things = scanner.PotentialWorkThingsGlobal(pawn);
+                    var things = scanner.PotentialWorkThingsGlobal(pawn)?.ToArray();
                     if (enumerable == null)
                     {
                         enumerable = things;
@@ -429,13 +429,12 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             if (___pawn.CurJob == null) return true;
 
-            Thing thing = dest.Thing;
-            if (thing == null)
+            Map thingMap = dest.Thing?.MapHeld;
+            if (thingMap == null)
             {
                 return true;
             }
-            var parent = thing.SpawnedParentOrMe;
-            if (parent != null && ___pawn.Map != parent.Map && ___pawn.CanReach(dest, peMode, Danger.Deadly, false, false, TraverseMode.ByPawn, parent.Map, out var exitSpot, out var enterSpot))
+            if (___pawn.Map != thingMap && ___pawn.CanReach(dest, peMode, Danger.Deadly, false, false, TraverseMode.ByPawn, thingMap, out var exitSpot, out var enterSpot))
             {
                 JobAcrossMapsUtility.StartGotoDestMapJob(___pawn, exitSpot, enterSpot);
                 return false;
@@ -457,6 +456,25 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 var allTargets = new[] { curJob.targetA, curJob.targetB, curJob.targetC }.ConcatIfNotNull(curJob.targetQueueA).ConcatIfNotNull(curJob.targetQueueB);
                 var target = allTargets.FirstOrFallback(t => t.HasThing && (t.Cell == cell || (t.Thing.Spawned && t.Thing.InteractionCell == cell)), LocalTargetInfo.Invalid);
                 if (target.IsValid && actor.Map != target.Thing.MapHeld && actor.CanReach(target, peMode, Danger.Deadly, false, false, TraverseMode.ByPawn, target.Thing.MapHeld, out var exitSpot, out var enterSpot))
+                {
+                    JobAcrossMapsUtility.StartGotoDestMapJob(actor, exitSpot, enterSpot);
+                }
+            });
+        }
+    }
+
+    [HarmonyPatch(typeof(Toils_Goto), nameof(Toils_Goto.GotoBuild))]
+    public static class Patch_Toils_Goto_GotoBuild
+    {
+        public static void Postfix(TargetIndex ind, Toil __result)
+        {
+            __result.AddPreInitAction(() =>
+            {
+                var actor = __result.actor;
+                var curJob = actor.CurJob;
+                var target = curJob.GetTarget(ind);
+                var thingMap = target.Thing?.MapHeld;
+                if (thingMap != null && actor.Map != thingMap && actor.CanReach(target, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, thingMap, out var exitSpot, out var enterSpot))
                 {
                     JobAcrossMapsUtility.StartGotoDestMapJob(actor, exitSpot, enterSpot);
                 }
@@ -677,10 +695,10 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     [HarmonyPatch(typeof(ReservationManager), nameof(ReservationManager.Reserve))]
     public static class Patch_ReservationManager_Reserve
     {
-        public static bool Prefix(ReservationManager __instance, Pawn claimant, Job job, LocalTargetInfo target, int maxPawns, int stackCount, ReservationLayerDef layer, bool errorOnFailed, bool ignoreOtherReservations, bool canReserversStartJobs, ref bool __result)
+        public static bool Prefix(Map ___map, Pawn claimant, Job job, LocalTargetInfo target, int maxPawns, int stackCount, ReservationLayerDef layer, bool errorOnFailed, bool ignoreOtherReservations, bool canReserversStartJobs, ref bool __result)
         {
             Map map;
-            if (__instance == claimant.Map.reservationManager && target.HasThing && (map = target.Thing.MapHeld) != null && claimant.Map != map)
+            if ((map = target.Thing?.MapHeld) != null && ___map != map)
             {
                 __result = map.reservationManager.Reserve(claimant, job, target, maxPawns, stackCount, layer, errorOnFailed, ignoreOtherReservations, canReserversStartJobs);
                 return false;
@@ -693,7 +711,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             var m_ReservationManager_CanReserve = AccessTools.Method(typeof(ReservationManager), nameof(ReservationManager.CanReserve));
             var m_ReservationAcrossMapsUtility_CanReserve = AccessTools.Method(typeof(ReservationAcrossMapsUtility), nameof(ReservationAcrossMapsUtility.CanReserve),
-                new Type[] { typeof(ReservationManager), typeof(Pawn), typeof(LocalTargetInfo), typeof(int), typeof(int), typeof(ReservationLayerDef), typeof(bool), typeof(Map) });
+                new[] { typeof(ReservationManager), typeof(Pawn), typeof(LocalTargetInfo), typeof(int), typeof(int), typeof(ReservationLayerDef), typeof(bool), typeof(Map) });
             var f_ReservationManager_map = AccessTools.Field(typeof(ReservationManager), "map");
 
             foreach (var instruction in instructions)
@@ -731,18 +749,31 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     [HarmonyPatch(typeof(ReservationManager), nameof(ReservationManager.TryGetReserver))]
     public static class Patch_ReservationManager_TryGetReserver
     {
-        public static bool Prefix(ReservationManager __instance, LocalTargetInfo target, Faction faction, ref Pawn reserver, ref bool __result)
+        public static bool Prefix(Map ___map, LocalTargetInfo target, Faction faction, ref Pawn reserver, ref bool __result)
         {
             Map thingMap;
-            if ((thingMap = target.Thing?.MapHeld) != null && map(__instance) != thingMap)
+            if ((thingMap = target.Thing?.MapHeld) != null && ___map != thingMap)
             {
                 __result = thingMap.reservationManager.TryGetReserver(target, faction, out reserver);
                 return false;
             }
             return true;
         }
+    }
 
-        private static AccessTools.FieldRef<ReservationManager, Map> map = AccessTools.FieldRefAccess<ReservationManager, Map>("map");
+    [HarmonyPatch(typeof(ReservationManager), nameof(ReservationManager.FirstRespectedReserver))]
+    public static class Patch_ReservationManager_FirstRespectedReserver
+    {
+        public static bool Prefix(Map ___map, LocalTargetInfo target, Pawn claimant, ReservationLayerDef layer, ref Pawn __result)
+        {
+            Map thingMap;
+            if ((thingMap = target.Thing?.MapHeld) != null && ___map != thingMap)
+            {
+                __result = thingMap.reservationManager.FirstRespectedReserver(target, claimant, layer);
+                return false;
+            }
+            return true;
+        }
     }
 
     //FoodSourceの一覧に車上マップの物を含める
