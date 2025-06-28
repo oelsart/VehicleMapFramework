@@ -141,7 +141,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 pawn.Map.BaseMapAndVehicleMaps().ForEach(m =>
                 {
                     pawn.VirtualMapTransfer(m);
-                    var things = scanner.PotentialWorkThingsGlobal(pawn);
+                    var things = scanner.PotentialWorkThingsGlobal(pawn)?.ToArray();
                     if (enumerable == null)
                     {
                         enumerable = things;
