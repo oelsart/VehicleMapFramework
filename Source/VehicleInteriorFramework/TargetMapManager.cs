@@ -27,6 +27,11 @@ namespace VehicleInteriors
 
         public static bool HasTargetMap(Thing thing, out Map map)
         {
+            if (thing == null)
+            {
+                map = null;
+                return false;
+            }
             return TargetMap.TryGetValue(thing, out map) && map != null;
         }
 

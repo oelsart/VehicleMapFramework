@@ -4,6 +4,7 @@ using SmashTools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
 using Vehicles;
@@ -456,16 +457,30 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         public static bool offset;
     }
 
-    //主にSubEffector_Splayerで使用される
-    [HarmonyPatch(typeof(TargetInfo), nameof(TargetInfo.CenterVector3), MethodType.Getter)]
-    public static class Patch_TargetInfo_CenterVector3
+    [HarmonyPatch]
+    public static class Patch_SubEffecter_Sprayer
     {
-        public static void Postfix(Thing ___thingInt, Map ___mapInt, ref Vector3 __result)
+        private static IEnumerable<MethodBase> TargetMethods()
         {
-            if (___thingInt == null && ___mapInt.IsNonFocusedVehicleMapOf(out var vehicle))
+            yield return AccessTools.Method(typeof(SubEffecter_Sprayer), nameof(SubEffecter_Sprayer.GetAttachedSpawnLoc));
+            yield return AccessTools.Method(typeof(SubEffecter_Sprayer), "MakeMote");
+        }
+
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var g_CenterVector3 = AccessTools.PropertyGetter(typeof(TargetInfo), nameof(TargetInfo.CenterVector3));
+            var m_CenterVector3ToBaseMap = AccessTools.Method(typeof(Patch_SubEffecter_Sprayer), nameof(CenterVector3ToBaseMap));
+            return instructions.MethodReplacer(g_CenterVector3, m_CenterVector3ToBaseMap);
+        }
+
+        private static Vector3 CenterVector3ToBaseMap(ref TargetInfo targetInfo)
+        {
+            var result = targetInfo.CenterVector3;
+            if (!targetInfo.HasThing && targetInfo.Map.IsNonFocusedVehicleMapOf(out var vehicle))
             {
-                __result = __result.ToBaseMapCoord(vehicle);
+                result = result.ToBaseMapCoord(vehicle);
             }
+            return result;
         }
     }
 }
