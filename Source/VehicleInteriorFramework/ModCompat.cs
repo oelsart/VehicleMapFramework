@@ -2,6 +2,7 @@
 using RimWorld;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using Verse;
 
@@ -10,6 +11,11 @@ namespace VehicleInteriors
     [StaticConstructorOnStartup]
     public static class ModCompat
     {
+        private static bool AnyNull(params object[] args)
+        {
+            return args.Any(arg => arg == null);
+        }
+
         private static void LogIncompat(string modName)
         {
             Log.Error($"[VehicleMapFramework] {modName} compatibility is broken.");
@@ -33,11 +39,22 @@ namespace VehicleInteriors
             {
                 if (Active)
                 {
-                    TransformData = AccessTools.TypeByName("ITransformable.TransformData");
-                    RotationAngle = AccessTools.TypeByName("ITransformable.RotationAngle");
-                    ThingClass = AccessTools.TypeByName("AdaptiveStorage.ThingClass");
-                    Renderer = MethodInvoker.GetHandler(AccessTools.PropertyGetter(ThingClass, "Renderer"));
-                    SetAllPrintDatasDirty = MethodInvoker.GetHandler(AccessTools.Method("AdaptiveStorage.StorageRenderer:SetAllPrintDatasDirty"));
+                    try
+                    {
+                        TransformData = AccessTools.TypeByName("ITransformable.TransformData");
+                        RotationAngle = AccessTools.TypeByName("ITransformable.RotationAngle");
+                        ThingClass = AccessTools.TypeByName("AdaptiveStorage.ThingClass");
+                        Renderer = MethodInvoker.GetHandler(AccessTools.PropertyGetter(ThingClass, "Renderer"));
+                        SetAllPrintDatasDirty = MethodInvoker.GetHandler(AccessTools.Method("AdaptiveStorage.StorageRenderer:SetAllPrintDatasDirty"));
+                    }
+                    finally
+                    {
+                        if (AnyNull(TransformData, RotationAngle, ThingClass, Renderer, SetAllPrintDatasDirty))
+                        {
+                            LogIncompat("Adaptive Storage Framework");
+                            Active = false;
+                        }
+                    }
                 }
             }
         }
@@ -60,13 +77,19 @@ namespace VehicleInteriors
             {
                 if (Active)
                 {
-                    var method = AccessTools.Method("VMF_CEPatch.Patch_FloatMenuMakerMap_Modify_AddHumanlikeOrders_AddMenuItems:AddMenuItems");
-                    if (method == null)
+                    try
                     {
-                        LogIncompat("CombatExtended");
-                        return;
+                        var method = AccessTools.Method("VMF_CEPatch.Patch_FloatMenuMakerMap_Modify_AddHumanlikeOrders_AddMenuItems:AddMenuItems");
+                        AddMenuItems = AccessTools.MethodDelegate<Action<Vector3, Pawn, List<FloatMenuOption>, List<Thing>>>(method);
                     }
-                    AddMenuItems = AccessTools.MethodDelegate<Action<Vector3, Pawn, List<FloatMenuOption>, List<Thing>>>(method);
+                    finally
+                    {
+                        if (AnyNull(AddMenuItems))
+                        {
+                            LogIncompat("Combat Extended");
+                            Active = false;
+                        }
+                    }
                 }
             }
         }
@@ -83,7 +106,18 @@ namespace VehicleInteriors
             {
                 if (Active)
                 {
-                    ThingListToDisplay = MethodInvoker.GetHandler(AccessTools.Method("LWM.DeepStorage.PatchDisplay_SectionLayer_Things_Regenerate:ThingListToDisplay"));
+                    try
+                    {
+                        ThingListToDisplay = MethodInvoker.GetHandler(AccessTools.Method("LWM.DeepStorage.PatchDisplay_SectionLayer_Things_Regenerate:ThingListToDisplay"));
+                    }
+                    finally
+                    {
+                        if (AnyNull(ThingListToDisplay))
+                        {
+                            LogIncompat("Deep Storage");
+                            Active = false;
+                        }
+                    }
                 }
             }
         }
@@ -122,18 +156,38 @@ namespace VehicleInteriors
             {
                 if (Active)
                 {
-                    LiteMode = (bool)AccessTools.PropertyGetter("DubsBadHygiene.Settings:LiteMode").Invoke(null, null);
-                    if (LiteMode) return;
+                    try
+                    {
+                        LiteMode = (bool)AccessTools.PropertyGetter("DubsBadHygiene.Settings:LiteMode").Invoke(null, null);
+                        if (LiteMode) return;
 
-                    SectionLayer_SewagePipeOverlay = AccessTools.TypeByName("DubsBadHygiene.SectionLayer_SewagePipeOverlay");
-                    SectionLayer_AirDuctOverlay = AccessTools.TypeByName("DubsBadHygiene.SectionLayer_AirDuctOverlay");
-                    SectionLayer_Irrigation = AccessTools.TypeByName("DubsBadHygiene.SectionLayer_Irrigation");
-                    SectionLayer_FertilizerGrid = AccessTools.TypeByName("DubsBadHygiene.SectionLayer_FertilizerGrid");
-                    Building_Pipe = AccessTools.TypeByName("DubsBadHygiene.Building_Pipe");
-                    PrintForGrid = MethodInvoker.GetHandler(AccessTools.Method(Building_Pipe, "PrintForGrid"));
-                    CompProperties_Pipe = AccessTools.TypeByName("DubsBadHygiene.CompProperties_Pipe");
-                    CompProperties_Pipe_mode = AccessTools.FieldRefAccess<int>(CompProperties_Pipe, "mode");
-                    SectionLayer_PipeOverlay_mode = AccessTools.FieldRefAccess<int>("DubsBadHygiene.SectionLayer_PipeOverlay:mode");
+                        SectionLayer_SewagePipeOverlay = AccessTools.TypeByName("DubsBadHygiene.SectionLayer_SewagePipeOverlay");
+                        SectionLayer_AirDuctOverlay = AccessTools.TypeByName("DubsBadHygiene.SectionLayer_AirDuctOverlay");
+                        SectionLayer_Irrigation = AccessTools.TypeByName("DubsBadHygiene.SectionLayer_Irrigation");
+                        SectionLayer_FertilizerGrid = AccessTools.TypeByName("DubsBadHygiene.SectionLayer_FertilizerGrid");
+                        Building_Pipe = AccessTools.TypeByName("DubsBadHygiene.Building_Pipe");
+                        PrintForGrid = MethodInvoker.GetHandler(AccessTools.Method(Building_Pipe, "PrintForGrid"));
+                        CompProperties_Pipe = AccessTools.TypeByName("DubsBadHygiene.CompProperties_Pipe");
+                        CompProperties_Pipe_mode = AccessTools.FieldRefAccess<int>(CompProperties_Pipe, "mode");
+                        SectionLayer_PipeOverlay_mode = AccessTools.FieldRefAccess<int>("DubsBadHygiene.SectionLayer_PipeOverlay:mode");
+                    }
+                    finally
+                    {
+                        if (!LiteMode && AnyNull(
+                            SectionLayer_SewagePipeOverlay,
+                            SectionLayer_AirDuctOverlay,
+                            SectionLayer_Irrigation,
+                            SectionLayer_FertilizerGrid,
+                            Building_Pipe,
+                            PrintForGrid,
+                            CompProperties_Pipe,
+                            CompProperties_Pipe_mode,
+                            SectionLayer_PipeOverlay_mode))
+                        {
+                            LogIncompat("Dubs Bad Hygiene");
+                            Active = false;
+                        }
+                    }
                 }
             }
         }
@@ -164,15 +218,35 @@ namespace VehicleInteriors
             {
                 if (Active)
                 {
-                    SectionLayer_SewagePipe = AccessTools.TypeByName("Rimefeller.SectionLayer_SewagePipe");
-                    SectionLayer_ThingsPipe = AccessTools.TypeByName("Rimefeller.SectionLayer_ThingsPipe");
-                    XSectionLayer_Napalm = AccessTools.TypeByName("Rimefeller.XSectionLayer_Napalm");
-                    XSectionLayer_OilSpill = AccessTools.TypeByName("Rimefeller.XSectionLayer_OilSpill");
-                    Building_Pipe = AccessTools.TypeByName("Rimefeller.Building_Pipe");
-                    PrintForGrid = MethodInvoker.GetHandler(AccessTools.Method(Building_Pipe, "PrintForGrid"));
-                    CompProperties_Pipe = AccessTools.TypeByName("Rimefeller.CompProperties_Pipe");
-                    CompProperties_Pipe_mode = AccessTools.FieldRefAccess<int>(CompProperties_Pipe, "mode");
-                    SectionLayer_PipeOverlay_mode = AccessTools.FieldRefAccess<int>("Rimefeller.SectionLayer_PipeOverlay:mode");
+                    try
+                    {
+                        SectionLayer_SewagePipe = AccessTools.TypeByName("Rimefeller.SectionLayer_SewagePipe");
+                        SectionLayer_ThingsPipe = AccessTools.TypeByName("Rimefeller.SectionLayer_ThingsPipe");
+                        XSectionLayer_Napalm = AccessTools.TypeByName("Rimefeller.XSectionLayer_Napalm");
+                        XSectionLayer_OilSpill = AccessTools.TypeByName("Rimefeller.XSectionLayer_OilSpill");
+                        Building_Pipe = AccessTools.TypeByName("Rimefeller.Building_Pipe");
+                        PrintForGrid = MethodInvoker.GetHandler(AccessTools.Method(Building_Pipe, "PrintForGrid"));
+                        CompProperties_Pipe = AccessTools.TypeByName("Rimefeller.CompProperties_Pipe");
+                        CompProperties_Pipe_mode = AccessTools.FieldRefAccess<int>(CompProperties_Pipe, "mode");
+                        SectionLayer_PipeOverlay_mode = AccessTools.FieldRefAccess<int>("Rimefeller.SectionLayer_PipeOverlay:mode");
+                    }
+                    finally
+                    {
+                        if (AnyNull(
+                            SectionLayer_SewagePipe,
+                            SectionLayer_ThingsPipe,
+                            XSectionLayer_Napalm,
+                            XSectionLayer_OilSpill,
+                            Building_Pipe,
+                            PrintForGrid,
+                            CompProperties_Pipe,
+                            CompProperties_Pipe_mode,
+                            SectionLayer_PipeOverlay_mode))
+                        {
+                            LogIncompat("Rimefeller");
+                            Active = false;
+                        }
+                    }
                 }
             }
         }
@@ -191,9 +265,20 @@ namespace VehicleInteriors
             {
                 if (Active)
                 {
-                    SectionLayer_DefenseGridOverlay = AccessTools.TypeByName("EccentricDefenseGrid.SectionLayer_DefenseGridOverlay");
-                    CompDefenseConduit = AccessTools.TypeByName("EccentricDefenseGrid.CompDefenseConduit");
-                    Designator_DeconstructConduit = AccessTools.TypeByName("EccentricDefenseGrid.Designator_DeconstructConduit");
+                    try
+                    {
+                        SectionLayer_DefenseGridOverlay = AccessTools.TypeByName("EccentricDefenseGrid.SectionLayer_DefenseGridOverlay");
+                        CompDefenseConduit = AccessTools.TypeByName("EccentricDefenseGrid.CompDefenseConduit");
+                        Designator_DeconstructConduit = AccessTools.TypeByName("EccentricDefenseGrid.Designator_DeconstructConduit");
+                    }
+                    finally
+                    {
+                        if (AnyNull(SectionLayer_DefenseGridOverlay, CompDefenseConduit, Designator_DeconstructConduit))
+                        {
+                            LogIncompat("Defense Grid");
+                            Active = false;
+                        }
+                    }
                 }
             }
         }
@@ -216,13 +301,19 @@ namespace VehicleInteriors
             {
                 if (Active)
                 {
-                    var method = AccessTools.Method("AM.UI.DraftedFloatMenuOptionsUI:GenerateMenuOptions");
-                    if (method == null)
+                    try
                     {
-                        LogIncompat("MeleeAnimation");
-                        return;
+                        var method = AccessTools.Method("AM.UI.DraftedFloatMenuOptionsUI:GenerateMenuOptions");
+                        GenerateAMMenuOptions = AccessTools.MethodDelegate<Func<Vector3, Pawn, IEnumerable<FloatMenuOption>>>(method);
                     }
-                    GenerateAMMenuOptions = AccessTools.MethodDelegate<Func<Vector3, Pawn, IEnumerable<FloatMenuOption>>>(method);
+                    finally
+                    {
+                        if (AnyNull(GenerateAMMenuOptions))
+                        {
+                            LogIncompat("Melee Animation");
+                            Active = false;
+                        }
+                    }
                 }
             }
         }
@@ -251,8 +342,19 @@ namespace VehicleInteriors
             {
                 if (Active)
                 {
-                    SectionLayer_ResourceOnVehicle = AccessTools.TypeByName("VehicleInteriors.SectionLayer_ResourceOnVehicle");
-                    PipeNetDef = AccessTools.TypeByName("PipeSystem.PipeNetDef");
+                    try
+                    {
+                        SectionLayer_ResourceOnVehicle = AccessTools.TypeByName("VehicleInteriors.SectionLayer_ResourceOnVehicle");
+                        PipeNetDef = AccessTools.TypeByName("PipeSystem.PipeNetDef");
+                    }
+                    finally
+                    {
+                        if (AnyNull(SectionLayer_ResourceOnVehicle, PipeNetDef))
+                        {
+                            LogIncompat("VFE Core");
+                            Active = false;
+                        }
+                    }
                 }
             }
         }
@@ -285,13 +387,19 @@ namespace VehicleInteriors
             {
                 if (Active)
                 {
-                    var method = AccessTools.Method("HaulToBuilding.Toils_Recipe_Patches:FindCell");
-                    if (method == null)
+                    try
                     {
-                        LogIncompat("TakeItToStorage");
-                        return;
+                        var method = AccessTools.Method("HaulToBuilding.Toils_Recipe_Patches:FindCell");
+                        FindCell = AccessTools.MethodDelegate<FindCellGetter>(method);
                     }
-                    FindCell = AccessTools.MethodDelegate<FindCellGetter>(method);
+                    finally
+                    {
+                        if (AnyNull(FindCell))
+                        {
+                            LogIncompat("TakeItToStorage");
+                            Active = false;
+                        }
+                    }
                 }
             }
         }
@@ -310,14 +418,25 @@ namespace VehicleInteriors
             {
                 if (Active)
                 {
-                    HaulToInventory = DefDatabase<WorkGiverDef>.GetNamed("HaulToInventory");
-                    var method = AccessTools.Method("PickUpAndHaul.Settings:IsAllowedRace");
-                    if (method == null)
+                    try
                     {
-                        LogIncompat("PickUpAndHaul");
-                        return;
+                        HaulToInventory = DefDatabase<WorkGiverDef>.GetNamed("HaulToInventory");
+                        var method = AccessTools.Method("PickUpAndHaul.Settings:IsAllowedRace");
+                        if (method == null)
+                        {
+                            LogIncompat("PickUpAndHaul");
+                            return;
+                        }
+                        IsAllowedRace = AccessTools.MethodDelegate<Func<RaceProperties, bool>>(method);
                     }
-                    IsAllowedRace = AccessTools.MethodDelegate<Func<RaceProperties, bool>>(method);
+                    finally
+                    {
+                        if (AnyNull(HaulToInventory, IsAllowedRace))
+                        {
+                            LogIncompat("PickUpAndHaul");
+                            Active = false;
+                        }
+                    }
                 }
             }
         }
@@ -334,8 +453,19 @@ namespace VehicleInteriors
             {
                 if (Active)
                 {
-                    Building_Shield = AccessTools.TypeByName("zhuzi.AdvancedEnergy.Shields.Shields.Building_Shield");
-                    CECompat = ModsConfig.IsActive("cn.zhuzijun.EnergyShieldCECompat");
+                    try
+                    {
+                        Building_Shield = AccessTools.TypeByName("zhuzi.AdvancedEnergy.Shields.Shields.Building_Shield");
+                        CECompat = ModsConfig.IsActive("cn.zhuzijun.EnergyShieldCECompat");
+                    }
+                    finally
+                    {
+                        if (AnyNull(Building_Shield))
+                        {
+                            LogIncompat("Energy Shield");
+                            Active = false;
+                        }
+                    }
                 }
             }
         }
@@ -358,13 +488,19 @@ namespace VehicleInteriors
             {
                 if (Active)
                 {
-                    var method = AccessTools.Method("PawnStorages.MutantOrdersPatch:Postfix");
-                    if (method == null)
+                    try
                     {
-                        LogIncompat("PawnStorages");
-                        return;
+                        var method = AccessTools.Method("PawnStorages.MutantOrdersPatch:Postfix");
+                        MutantOrdersPatch = AccessTools.MethodDelegate<Action<Vector3, Pawn, List<FloatMenuOption>>>(method);
                     }
-                    MutantOrdersPatch = AccessTools.MethodDelegate<Action<Vector3, Pawn, List<FloatMenuOption>>>(method);
+                    finally
+                    {
+                        if (AnyNull(MutantOrdersPatch))
+                        {
+                            LogIncompat("PawnStorages");
+                            Active = false;
+                        }
+                    }
                 }
             }
         }
