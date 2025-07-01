@@ -504,5 +504,7 @@ namespace VehicleInteriors
                 }
             }
         }
+
+        public static readonly bool SmartFarming = ModsConfig.IsActive("Owlchemist.SmartFarming");
     }
 }

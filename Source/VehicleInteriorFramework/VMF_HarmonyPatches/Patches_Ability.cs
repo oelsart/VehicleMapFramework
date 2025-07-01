@@ -2,17 +2,17 @@
 using RimWorld;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Verse;
 using static VehicleInteriors.MethodInfoCache;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
 {
-    [StaticConstructorOnStartupPriority(Priority.Low)]
+    [HarmonyPatch]
     public static class Patches_AbilityComp
     {
-        static Patches_AbilityComp()
+        private static IEnumerable<MethodBase> TargetMethods()
         {
-            var transpiler = AccessTools.Method(typeof(Patches_AbilityComp), nameof(Transpiler));
             foreach (var type in typeof(AbilityComp).AllSubclasses().Concat(typeof(GenClamor)))
             {
                 foreach (var method in type.GetDeclaredMethods())
@@ -27,13 +27,13 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                         CachedMethodInfo.m_BreadthFirstTraverse.Equals(i.Value);
                     }))
                     {
-                        VMF_Harmony.Instance.Patch(method, null, null, transpiler);
+                        yield return method;
                     }
                 }
             }
         }
 
-        private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap)
                 .MethodReplacer(CachedMethodInfo.m_OccupiedRect, CachedMethodInfo.m_MovedOccupiedRect)

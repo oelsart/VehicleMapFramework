@@ -11,6 +11,7 @@ using Vehicles.Rendering;
 using Verse;
 using Verse.AI;
 using static VehicleInteriors.MethodInfoCache;
+using static VehicleInteriors.ModCompat;
 
 namespace VehicleInteriors.VMF_HarmonyPatches
 {
@@ -182,7 +183,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
-    //thingがIsOnVehicleMapだった場合回転の初期値num3にベースvehicleのAngleを与え、posはRotatePointで回転
+    //thingがIsOnVehicleMapだった場合回転の初期値num4にベースvehicleのAngleを与え、posはRotatePointで回転
     [HarmonyPatch(typeof(SelectionDrawer), nameof(SelectionDrawer.DrawSelectionBracketFor))]
     [HarmonyAfter("owlchemist.smartfarming")]
     public static class Patch_SelectionDrawer_DrawSelectionBracketFor
@@ -198,7 +199,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             codes[pos].labels.Add(label);
             codes.InsertRange(pos, new[]
             {
-                CodeInstruction.LoadLocal(1),
+                CodeInstruction.LoadLocal(2),
                 new CodeInstruction(OpCodes.Ldloca_S, vehicle),
                 new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf),
                 new CodeInstruction(OpCodes.Brfalse_S, label),
@@ -211,7 +212,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 new CodeInstruction(OpCodes.Add),
             });
 
-            var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Ldloc_S && ((LocalBuilder)c.operand).LocalIndex == 17);
+            var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalIndex == 18);
             var label2 = generator.DefineLabel();
             var g_DrawPos = AccessTools.PropertyGetter(typeof(Thing), nameof(Thing.DrawPos));
 
@@ -220,7 +221,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             {
                 new CodeInstruction(OpCodes.Ldloc_S, vehicle),
                 new CodeInstruction(OpCodes.Brfalse_S, label2),
-                CodeInstruction.LoadLocal(1),
+                CodeInstruction.LoadLocal(2),
                 new CodeInstruction(OpCodes.Callvirt, g_DrawPos),
                 new CodeInstruction(OpCodes.Ldloca_S, rot),
                 new CodeInstruction(OpCodes.Call, CachedMethodInfo.g_Rot8_AsAngle),
@@ -228,13 +229,21 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_RotatePoint)
             });
 
-            var smartFarmingActive = ModsConfig.IsActive("Owlchemist.SmartFarming");
-            var pos3 = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(smartFarmingActive ? AccessTools.Method("SmartFarming.MapComponent_SmartFarming:DrawFieldEdges") :CachedMethodInfo.m_GenDraw_DrawFieldEdges));
-            codes[pos3].operand = smartFarmingActive ? AccessTools.Method("VMF_SmartFarmingPatch.GenDrawOnVehicleSF:DrawFieldEdges") : CachedMethodInfo.m_GenDrawOnVehicle_DrawFieldEdges;
+            var m_DrawFieldEdges = SmartFarming ? AccessTools.Method("SmartFarming.MapComponent_SmartFarming:DrawFieldEdges") : CachedMethodInfo.m_GenDraw_DrawFieldEdges;
+            var m_DrawFieldEdgesOnVehicle = SmartFarming ? AccessTools.Method("VMF_SmartFarmingPatch.GenDrawOnVehicleSF:DrawFieldEdges") : CachedMethodInfo.m_GenDrawOnVehicle_DrawFieldEdges;
+            var pos3 = codes.FindIndex(c => c.Calls(m_DrawFieldEdges));
+            codes[pos3].operand = m_DrawFieldEdgesOnVehicle;
             codes.InsertRange(pos3, new[]
             {
                 CodeInstruction.LoadLocal(0),
                 new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_Zone_Map)
+            });
+            var pos4 = codes.FindIndex(pos3 + 3, c => c.Calls(CachedMethodInfo.m_GenDraw_DrawFieldEdges));
+            codes[pos4].operand = CachedMethodInfo.m_GenDrawOnVehicle_DrawFieldEdges;
+            codes.InsertRange(pos4, new[]
+            {
+                CodeInstruction.LoadLocal(1),
+                new CodeInstruction(OpCodes.Callvirt, AccessTools.PropertyGetter(typeof(Plan), nameof(Plan.Map)))
             });
             return codes;
         }
