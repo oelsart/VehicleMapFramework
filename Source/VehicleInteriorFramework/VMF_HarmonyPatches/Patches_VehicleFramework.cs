@@ -10,6 +10,7 @@ using System.Reflection.Emit;
 using UnityEngine;
 using Vehicles;
 using Vehicles.Rendering;
+using Vehicles.World;
 using Verse;
 using Verse.AI;
 using Verse.AI.Group;
@@ -83,7 +84,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 if (gizmo is Command_CooldownAction command_CooldownAction && __instance.Vehicle is VehiclePawnWithMap)
                 {
                     var turret = command_CooldownAction.turret;
-                    if (!VehicleMod.settings.debug.debugShootAnyTurret && !command_CooldownAction.Disabled && __instance.Vehicle.GetAllHandlersMatch(HandlingType.Turret, !turret.groupKey.NullOrEmpty() ? turret.groupKey : turret.key).Empty())
+                    if (!VehicleMod.settings.debug.debugShootAnyTurret && !command_CooldownAction.Disabled && !__instance.Vehicle.handlers.Any(h => h.role.handlingTypes == HandlingType.Turret || h.role.TurretIds.Contains(!turret.groupKey.NullOrEmpty() ? turret.groupKey : turret.key)))
                     {
                         command_CooldownAction.Disable("VMF_NoRoles".Translate(__instance.Vehicle.LabelShort));
                     }
@@ -176,40 +177,12 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 new CodeInstruction(OpCodes.Stloc_S, rot),
                 new CodeInstruction(OpCodes.Ldloca_S, rot),
                 new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_Rot8_AsAngle),
+                new CodeInstruction(OpCodes.Conv_I4),
                 new CodeInstruction(OpCodes.Add)
             });
             return codes;
         }
     }
-
-    //[HarmonyPatch(typeof(ShaderTypeDef), nameof(ShaderTypeDef.Shader), MethodType.Getter)]
-    //[HarmonyPatchCategory("VehicleInteriors.EarlyPatches")]
-    //public static class Patch_ShaderTypeDef_Shader
-    //{
-    //    public static void Prefix(ShaderTypeDef __instance, ref Shader ___shaderInt)
-    //    {
-
-    //        if (___shaderInt == null && __instance is RGBMaskShaderTypeDef && VehicleMod.settings.debug.debug)
-    //        {
-    //            ___shaderInt = VMF_Shaders.LoadShader(__instance.shaderPath);
-    //            if (___shaderInt == null)
-    //            {
-    //                Log.Error("[VehicleMapFramework] Failed to load Shader from path ${__instance.shaderPath}");
-    //            }
-    //        }
-    //    }
-    //}
-
-    //[HarmonyPatch(typeof(VehicleHarmonyOnMod), "ShaderFromAssetBundle")]
-    //[HarmonyPatchCategory("VehicleInteriors.EarlyPatches")]
-    //public static class Patch_VehicleHarmonyOnMod_ShaderFromAssetBundle
-    //{
-    //    //元メソッドが__instanceを引数として取っているのでこれを取得しようとすると元メソッドのインスタンス（存在しない）と混同してしまう
-    //    public static bool Prefix(object[] __args)
-    //    {
-    //        return !(__args[0] is RGBMaskShaderTypeDef);
-    //    }
-    //}
 
     [HarmonyPatch(typeof(AssetBundleDatabase), nameof(AssetBundleDatabase.SupportsRGBMaskTex))]
     public static class Patch_AssetBundleDatabase_SupportsRGBMaskTex
@@ -333,9 +306,9 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     [HarmonyPatch(typeof(GenGridVehicles), nameof(GenGridVehicles.ImpassableForVehicles))]
     public static class Patch_GenGridVehicles_ImpassableForVehicles
     {
-        public static void Postfix(Thing thing, ref bool __result)
+        public static void Postfix(ThingDef thingDef, ref bool __result)
         {
-            __result = __result && !(thing is Building_VehicleRamp && thing.def.passability != Traversability.Impassable && !thing.def.IsFence);
+            __result = __result && !thingDef.thingClass.SameOrSubclass(typeof(Building_VehicleRamp));
         }
     }
 
@@ -689,7 +662,8 @@ namespace VehicleInteriors.VMF_HarmonyPatches
 
         private static Thing TargetThing(VehiclePawn vehicle, Pawn pawn)
         {
-            if (CaravanHelper.assignedSeats.TryGetValue(pawn, out var assignedSeat) && assignedSeat.handler.role is VehicleRoleBuildable vehicleRoleBuildable)
+            AssignedSeat assignedSeat = CaravanHelper.assignedSeats.GetAssignment(pawn);
+            if (assignedSeat != null && assignedSeat.handler.role is VehicleRoleBuildable vehicleRoleBuildable)
             {
                 return vehicleRoleBuildable.upgradeComp.parent;
             }

@@ -1,4 +1,5 @@
-﻿using RimWorld.Planet;
+﻿using HarmonyLib;
+using RimWorld.Planet;
 using SmashTools;
 using System;
 using System.Collections.Generic;
@@ -86,7 +87,7 @@ namespace VehicleInteriors
                 }
                 else
                 {
-                    map.dynamicDrawManager.DrawThings.ForEach(t =>
+                    map.dynamicDrawManager.DrawThings.Do(t =>
                     {
                         cachedDrawPos[t] = t.DrawPos.ToBaseMapCoord(vehicle);
                     });

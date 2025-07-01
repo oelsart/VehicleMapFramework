@@ -214,7 +214,6 @@ namespace VehicleInteriors.VMF_HarmonyPatches
 
             var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalIndex == 18);
             var label2 = generator.DefineLabel();
-            var g_DrawPos = AccessTools.PropertyGetter(typeof(Thing), nameof(Thing.DrawPos));
 
             codes[pos2].labels.Add(label2);
             codes.InsertRange(pos2, new[]
@@ -222,7 +221,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 new CodeInstruction(OpCodes.Ldloc_S, vehicle),
                 new CodeInstruction(OpCodes.Brfalse_S, label2),
                 CodeInstruction.LoadLocal(2),
-                new CodeInstruction(OpCodes.Callvirt, g_DrawPos),
+                new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_Thing_DrawPos),
                 new CodeInstruction(OpCodes.Ldloca_S, rot),
                 new CodeInstruction(OpCodes.Call, CachedMethodInfo.g_Rot8_AsAngle),
                 new CodeInstruction(OpCodes.Neg),

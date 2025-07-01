@@ -10,6 +10,7 @@ using System.Reflection.Emit;
 using System.Threading.Tasks;
 using UnityEngine;
 using Vehicles;
+using Vehicles.World;
 using Verse;
 using Verse.AI;
 using Verse.Sound;

@@ -1,4 +1,5 @@
-﻿using RimWorld;
+﻿using HarmonyLib;
+using RimWorld;
 using SmashTools;
 using System.Collections.Generic;
 using System.Linq;
@@ -62,10 +63,10 @@ namespace VehicleInteriors
                 var baseMapComponent = baseMap.GetCachedMapComponent<CrossMapHaulDestinationManager>();
 
                 var baseMapDestinations = baseMapComponent.allHaulDestinationsInOrder;
-                allHaulDestinationsInOrder.Where(h => !baseMapDestinations.Contains(h)).ForEach(h => baseMapComponent.AddHaulDestination(h));
+                allHaulDestinationsInOrder.Where(h => !baseMapDestinations.Contains(h)).Do(h => baseMapComponent.AddHaulDestination(h));
 
                 var baseMapSources = baseMapComponent.allHaulSourcesInOrder;
-                allHaulSourcesInOrder.Where(s => !baseMapSources.Contains(s)).ForEach(s => baseMapComponent.AddHaulSource(s));
+                allHaulSourcesInOrder.Where(s => !baseMapSources.Contains(s)).Do(s => baseMapComponent.AddHaulSource(s));
             }
         }
 
