@@ -19,7 +19,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     [HarmonyPatch(typeof(FloatMenuContext), MethodType.Constructor, typeof(List<Pawn>), typeof(Vector3), typeof(Map))]
     public static class Patch_FloatMenuContext_Constructor
     {
-        public static void Prefix(List<Pawn> selectedPawns, ref Vector3 clickPosition, ref Map map)
+        public static void Prefix(ref Vector3 clickPosition, ref Map map)
         {
             if (clickPosition.TryGetVehicleMap(Find.CurrentMap, out var vehicle, false))
             {
@@ -414,12 +414,21 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatch(typeof(FloatMenuOptionProvider_WorkGivers), "GetWorkGiversOptionsFor")]
-    public static class Patch_FloatMenuOptionProvider_WorkGivers_GetWorkGiversOptionsFor
+    [HarmonyPatch(typeof(FloatMenuOptionProvider_WorkGivers), "GetWorkGiverOption")]
+    public static class Patch_FloatMenuOptionProvider_WorkGivers_GetWorkGiverOption
     {
-        public static void Prefix(Pawn pawn, LocalTargetInfo target, FloatMenuContext context, ref object[] __state)
+        private static TargetInfo tmpExitSpot;
+
+        private static TargetInfo tmpEnterSpot;
+
+        public static void Prefix(Pawn pawn, WorkGiverDef workGiver, LocalTargetInfo target, FloatMenuContext context, ref object[] __state)
         {
             __state = new object[3];
+            if (JobAcrossMapsUtility.NoNeedVirtualMapTransfer(pawn.Map, context.map, workGiver.Worker as WorkGiver_Scanner))
+            {
+                __state[0] = false;
+                return;
+            }
             if (pawn.CanReach(target, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, context.map, out tmpExitSpot, out tmpEnterSpot))
             {
                 __state[0] = true;
@@ -429,7 +438,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
                 return;
             }
             __state[0] = false;
-        }   
+        }
 
         public static void Finalizer(Pawn pawn, object[] __state)
         {
@@ -439,30 +448,30 @@ namespace VehicleInteriors.VMF_HarmonyPatches
             }
         }
 
-        public static TargetInfo tmpExitSpot;
-
-        public static TargetInfo tmpEnterSpot;
-    }
-
-    [HarmonyPatch(typeof(FloatMenuOptionProvider_WorkGivers), "GetWorkGiverOption")]
-    public static class Patch_FloatMenuOptionProvider_WorkGivers_GetWorkGiverOption
-    {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
         {
-            var codes = instructions.ToList();
-            var pos = codes.FindIndex(c => c.opcode == OpCodes.Stfld && ((FieldInfo)c.operand).Name == "localJob");
-            var job = generator.DeclareLocal(typeof(Job));
+            var codes = new CodeMatcher(instructions);
+            var m_IsForbidden = AccessTools.Method(typeof(ForbidUtility), nameof(ForbidUtility.IsForbidden), new[] { typeof(IntVec3), typeof(Pawn) });
+            codes.MatchStartForward(CodeMatch.Calls(m_IsForbidden));
+            codes.MatchStartBackwards(CodeMatch.Calls(CachedMethodInfo.g_LocalTargetInfo_Cell));
+            codes.Operand = CachedMethodInfo.m_TargetCellOnBaseMap;
+            codes.Insert(CodeInstruction.LoadArgument(1));
 
-            codes.InsertRange(pos, new[]
-            {
+            var m_InAllowedArea = AccessTools.Method(typeof(ForbidUtility), nameof(ForbidUtility.InAllowedArea));
+            codes.MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_LocalTargetInfo_Cell));
+            codes.Operand = CachedMethodInfo.m_TargetCellOnBaseMap;
+            codes.Insert(CodeInstruction.LoadArgument(1));
+
+            codes.MatchStartForward(new CodeMatch(c => c.opcode == OpCodes.Stfld && ((FieldInfo)c.operand).Name == "localJob"));
+            var job = generator.DeclareLocal(typeof(Job));
+            codes.Insert(
                 new CodeInstruction(OpCodes.Stloc_S, job),
                 CodeInstruction.LoadArgument(1),
-                CodeInstruction.LoadField(typeof(Patch_FloatMenuOptionProvider_WorkGivers_GetWorkGiversOptionsFor), nameof(Patch_FloatMenuOptionProvider_WorkGivers_GetWorkGiversOptionsFor.tmpExitSpot)),
-                CodeInstruction.LoadField(typeof(Patch_FloatMenuOptionProvider_WorkGivers_GetWorkGiversOptionsFor), nameof(Patch_FloatMenuOptionProvider_WorkGivers_GetWorkGiversOptionsFor.tmpEnterSpot)),
+                CodeInstruction.LoadField(typeof(Patch_FloatMenuOptionProvider_WorkGivers_GetWorkGiverOption), nameof(tmpExitSpot)),
+                CodeInstruction.LoadField(typeof(Patch_FloatMenuOptionProvider_WorkGivers_GetWorkGiverOption), nameof(tmpEnterSpot)),
                 new CodeInstruction(OpCodes.Ldloc_S, job),
-                CodeInstruction.Call(typeof(JobAcrossMapsUtility), nameof(JobAcrossMapsUtility.GotoDestMapJob))
-            });
-            return codes;
+                CodeInstruction.Call(typeof(JobAcrossMapsUtility), nameof(JobAcrossMapsUtility.GotoDestMapJob)));
+            return codes.Instructions().MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
         }
     }
 }
