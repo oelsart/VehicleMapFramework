@@ -1,41 +1,39 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <ModMetaData>
-	<name>Vehicle Map Framework</name>
-	<packageId>OELS.VehicleMapFramework</packageId>
-	<author>OELS</author>
-	<description>This mod is a framework mod for vehicles using Vehicle Framework to put a map on vehicle which floors and buildings can be constructed.
-このModはVehicle Frameworkを使用した車両に、床や建築物を建設可能なマップを載せるためのフレームワークMODです。
-這個模組是 **Vehicle Framework** 的擴展，讓車輛能夠變成一張可建造的地圖，你可以在上面蓋地板、建築，打造屬於自己的移動基地！
+  <name>Vehicle Map Framework</name>
+  <packageId>OELS.VehicleMapFramework</packageId>
+  <author>OELS</author>
+  <description>This mod is a framework mod for vehicles using Vehicle Framework to put a map on vehicle which floors and buildings can be constructed.
+縺薙・Mod縺ｯVehicle Framework繧剃ｽｿ逕ｨ縺励◆霆贋ｸ｡縺ｫ縲∝ｺ翫ｄ蟒ｺ遽臥黄繧貞ｻｺ險ｭ蜿ｯ閭ｽ縺ｪ繝槭ャ繝励ｒ霈峨○繧九◆繧√・繝輔Ξ繝ｼ繝繝ｯ繝ｼ繧ｯMOD縺ｧ縺吶・
+騾吝区ｨ｡邨・弍 **Vehicle Framework** 逧・洞螻包ｼ瑚ｮ楢ｻ願ｼ幄・螟隶頑・荳蠑ｵ蜿ｯ蟒ｺ騾逧・慍蝨厄ｼ御ｽ蜿ｯ莉･蝨ｨ荳企擇闢句慍譚ｿ縲∝ｻｺ遽会ｼ梧遠騾螻ｬ譁ｼ閾ｪ蟾ｱ逧・ｧｻ蜍募渕蝨ｰ・・
 	</description>
-	<modVersion IgnoreIfNoMatchingField="True">ver.0.9.63-beta</modVersion>
-	<url>https://github.com/oelsart/VehicleMapFramework</url>
-
-	<supportedVersions>
-		<li>1.5</li>
-		<li>1.6</li>
-	</supportedVersions>
-
-	<modDependencies>
-		<li>
-			<packageId>brrainz.harmony</packageId>
-			<displayName>Harmony</displayName>
-			<downloadUrl>https://github.com/pardeike/HarmonyRimWorld</downloadUrl>
-			<steamWorkshopUrl>steam://url/CommunityFilePage/2009463077</steamWorkshopUrl>
-		</li>
-		<li>
-			<packageId>SmashPhil.VehicleFramework</packageId>
-			<displayName>Vehicle Framework</displayName>
-			<downloadUrl>https://github.com/SmashPhil/Vehicles/releases/latest</downloadUrl>
-			<steamWorkshopUrl>steam://url/CommunityFilePage/3014915404</steamWorkshopUrl>
-		</li>
-	</modDependencies>
-	<loadAfter>
-		<li>SmashPhil.VehicleFramework</li>
-		<li>CETeam.CombatExtended</li>
-		<li>OskarPotocki.VanillaFactionsExpanded.Core</li>
-		<li>Mehni.PickUpAndHaul</li>
-		<li>Dubwise.DubsBadHygiene</li>
-		<li>Dubwise.DubsBadHygiene.Lite</li>
-		<li>Dubwise.Rimefeller</li>
-	</loadAfter>
+  <modVersion IgnoreIfNoMatchingField="True">1.6.0.0</modVersion>
+  <url>https://github.com/oelsart/VehicleMapFramework</url>
+  <supportedVersions>
+    <li>1.5</li>
+    <li>1.6</li>
+  </supportedVersions>
+  <modDependencies>
+    <li>
+      <packageId>brrainz.harmony</packageId>
+      <displayName>Harmony</displayName>
+      <downloadUrl>https://github.com/pardeike/HarmonyRimWorld</downloadUrl>
+      <steamWorkshopUrl>steam://url/CommunityFilePage/2009463077</steamWorkshopUrl>
+    </li>
+    <li>
+      <packageId>SmashPhil.VehicleFramework</packageId>
+      <displayName>Vehicle Framework</displayName>
+      <downloadUrl>https://github.com/SmashPhil/Vehicles/releases/latest</downloadUrl>
+      <steamWorkshopUrl>steam://url/CommunityFilePage/3014915404</steamWorkshopUrl>
+    </li>
+  </modDependencies>
+  <loadAfter>
+    <li>SmashPhil.VehicleFramework</li>
+    <li>CETeam.CombatExtended</li>
+    <li>OskarPotocki.VanillaFactionsExpanded.Core</li>
+    <li>Mehni.PickUpAndHaul</li>
+    <li>Dubwise.DubsBadHygiene</li>
+    <li>Dubwise.DubsBadHygiene.Lite</li>
+    <li>Dubwise.Rimefeller</li>
+  </loadAfter>
 </ModMetaData>
