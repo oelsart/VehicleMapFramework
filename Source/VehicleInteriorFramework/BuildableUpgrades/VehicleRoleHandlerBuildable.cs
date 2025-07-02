@@ -6,100 +6,96 @@ using System.Linq;
 using Vehicles;
 using Verse;
 
-namespace VehicleInteriors
+namespace VehicleInteriors;
+
+public class VehicleRoleHandlerBuildable : VehicleRoleHandler, IExposable, IThingHolderWithDrawnPawn
 {
-    public class VehicleRoleHandlerBuildable : VehicleRoleHandler, IExposable, IThingHolderWithDrawnPawn
+    float IThingHolderWithDrawnPawn.HeldPawnDrawPos_Y
     {
-        float IThingHolderWithDrawnPawn.HeldPawnDrawPos_Y
+        get
         {
-            get
+            Rot8 rot;
+            if (this.role is VehicleRoleBuildable role)
             {
-                Rot8 rot;
-                if (this.role is VehicleRoleBuildable role)
-                {
-                    rot = role.upgradeComp.parent.BaseFullRotation();
-                }
-                else
-                {
-                    rot = vehicle.FullRotation;
-                }
-                return vehicle.DrawPos.y + this.role.PawnRenderer.LayerFor(rot);
+                rot = role.upgradeComp.parent.BaseFullRotation();
             }
-        }
-
-        float IThingHolderWithDrawnPawn.HeldPawnBodyAngle
-        {
-            get
+            else
             {
-                Rot8 rot;
-                if (this.role is VehicleRoleBuildable role)
-                {
-                    rot = role.upgradeComp.parent.BaseFullRotation();
-                }
-                else
-                {
-                    rot = vehicle.FullRotation;
-                }
-                return this.role.PawnRenderer.AngleFor(rot);
+                rot = vehicle.FullRotation;
             }
+            return vehicle.DrawPos.y + this.role.PawnRenderer.LayerFor(rot);
         }
-
-        PawnPosture IThingHolderWithDrawnPawn.HeldPawnPosture
-        {
-            get
-            {
-                return PawnPosture.LayingInBedFaceUp;
-            }
-        }
-
-        public VehicleRoleHandlerBuildable()
-        {
-            if (thingOwner == null)
-            {
-                thingOwner = new ThingOwner<Pawn>(this, false, LookMode.Deep);
-            }
-        }
-
-        public VehicleRoleHandlerBuildable(VehiclePawn vehicle) : this()
-        {
-            uniqueID = VehicleIdManager.Instance.GetNextHandlerId();
-            this.vehicle = vehicle;
-        }
-
-        public VehicleRoleHandlerBuildable(VehiclePawn vehicle, VehicleRoleBuildable role) : this(vehicle)
-        {
-            this.role = role;
-            roleKey(this) = role.key;
-        }
-
-        new public void ExposeData()
-        {
-            Scribe_Values.Look<int>(ref uniqueID, "uniqueID", -1, false);
-            Scribe_References.Look<VehiclePawn>(ref vehicle, "vehicle", true);
-            Scribe_Values.Look<string>(ref roleKey(this), "role", null, true);
-            if (Scribe.mode == LoadSaveMode.Saving)
-            {
-                ThingOwner thingOwner = this.thingOwner;
-                Pawn pawn = this.thingOwner.InnerListForReading.FirstOrDefault<Pawn>();
-                thingOwner.contentsLookMode = (pawn != null && pawn.IsWorldPawn()) ? LookMode.Reference : LookMode.Deep;
-            }
-            Scribe_Deep.Look(ref thingOwner, "thingOwner", this);
-            if (Scribe.mode == LoadSaveMode.PostLoadInit)
-            {
-                role = new VehicleRole
-                {
-                    key = roleKey(this) + "_INVALID",
-                    label = roleKey(this) + " (INVALID)"
-                };
-                role.AddUpgrade(new VehicleUpgrade.RoleUpgrade()
-                {
-                    key = role.key,
-                    label = role.label,
-                    handlingTypes = HandlingType.Movement,
-                });
-            }
-        }
-
-        private static readonly AccessTools.FieldRef<VehicleRoleHandler, string> roleKey = AccessTools.FieldRefAccess<VehicleRoleHandler, string>("roleKey");
     }
+
+    float IThingHolderWithDrawnPawn.HeldPawnBodyAngle
+    {
+        get
+        {
+            Rot8 rot;
+            if (this.role is VehicleRoleBuildable role)
+            {
+                rot = role.upgradeComp.parent.BaseFullRotation();
+            }
+            else
+            {
+                rot = vehicle.FullRotation;
+            }
+            return this.role.PawnRenderer.AngleFor(rot);
+        }
+    }
+
+    PawnPosture IThingHolderWithDrawnPawn.HeldPawnPosture
+    {
+        get
+        {
+            return PawnPosture.LayingInBedFaceUp;
+        }
+    }
+
+    public VehicleRoleHandlerBuildable()
+    {
+        thingOwner ??= new ThingOwner<Pawn>(this, false, LookMode.Deep);
+    }
+
+    public VehicleRoleHandlerBuildable(VehiclePawn vehicle) : this()
+    {
+        uniqueID = VehicleIdManager.Instance.GetNextHandlerId();
+        this.vehicle = vehicle;
+    }
+
+    public VehicleRoleHandlerBuildable(VehiclePawn vehicle, VehicleRoleBuildable role) : this(vehicle)
+    {
+        this.role = role;
+        roleKey(this) = role.key;
+    }
+
+    new public void ExposeData()
+    {
+        Scribe_Values.Look<int>(ref uniqueID, "uniqueID", -1, false);
+        Scribe_References.Look<VehiclePawn>(ref vehicle, "vehicle", true);
+        Scribe_Values.Look<string>(ref roleKey(this), "role", null, true);
+        if (Scribe.mode == LoadSaveMode.Saving)
+        {
+            ThingOwner thingOwner = this.thingOwner;
+            Pawn pawn = this.thingOwner.InnerListForReading.FirstOrDefault<Pawn>();
+            thingOwner.contentsLookMode = (pawn != null && pawn.IsWorldPawn()) ? LookMode.Reference : LookMode.Deep;
+        }
+        Scribe_Deep.Look(ref thingOwner, "thingOwner", this);
+        if (Scribe.mode == LoadSaveMode.PostLoadInit)
+        {
+            role = new VehicleRole
+            {
+                key = roleKey(this) + "_INVALID",
+                label = roleKey(this) + " (INVALID)"
+            };
+            role.AddUpgrade(new VehicleUpgrade.RoleUpgrade()
+            {
+                key = role.key,
+                label = role.label,
+                handlingTypes = HandlingType.Movement,
+            });
+        }
+    }
+
+    private static readonly AccessTools.FieldRef<VehicleRoleHandler, string> roleKey = AccessTools.FieldRefAccess<VehicleRoleHandler, string>("roleKey");
 }

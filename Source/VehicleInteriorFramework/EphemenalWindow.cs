@@ -4,84 +4,83 @@ using UnityEngine;
 using Verse;
 using Verse.Sound;
 
-namespace VehicleInteriors
+namespace VehicleInteriors;
+
+public class EphemenalWindow : Window
 {
-    public class EphemenalWindow : Window
+    public override Vector2 InitialSize
     {
-        public override Vector2 InitialSize
+        get
         {
-            get
+            return windowRect.size;
+        }
+    }
+
+    protected override float Margin
+    {
+        get
+        {
+            return 0f;
+        }
+    }
+
+    public EphemenalWindow() : base(null)
+    {
+        layer = WindowLayer.Super;
+        closeOnClickedOutside = true;
+        doWindowBackground = false;
+        drawShadow = false;
+        doCloseButton = false;
+        doCloseX = false;
+        soundAppear = null;
+        soundClose = null;
+        closeOnAccept = false;
+        closeOnCancel = false;
+        focusWhenOpened = false;
+        preventCameraMotion = false;
+    }
+
+    protected override void SetInitialSizeAndPosition()
+    {
+    }
+
+    public override void DoWindowContents(Rect inRect)
+    {
+        UpdateBaseColor();
+        GUI.color = baseColor;
+        doWindowFunc();
+        GUI.color = Color.white;
+    }
+
+    private void UpdateBaseColor()
+    {
+        baseColor = Color.white;
+        if (vanishIfMouseDistant)
+        {
+            Rect r = windowRect.AtZero().ContractedBy(-5f);
+            if (!r.Contains(Event.current.mousePosition))
             {
-                return this.windowRect.size;
-            }
-        }
-
-        protected override float Margin
-        {
-            get
-            {
-                return 0f;
-            }
-        }
-
-        public EphemenalWindow() : base(null)
-        {
-            this.layer = WindowLayer.Super;
-            this.closeOnClickedOutside = true;
-            this.doWindowBackground = false;
-            this.drawShadow = false;
-            this.doCloseButton = false;
-            this.doCloseX = false;
-            this.soundAppear = null;
-            this.soundClose = null;
-            this.closeOnAccept = false;
-            this.closeOnCancel = false;
-            this.focusWhenOpened = false;
-            this.preventCameraMotion = false;
-        }
-
-        protected override void SetInitialSizeAndPosition()
-        {
-        }
-
-        public override void DoWindowContents(Rect inRect)
-        {
-            UpdateBaseColor();
-            GUI.color = this.baseColor;
-            this.doWindowFunc();
-            GUI.color = Color.white;
-        }
-
-        private void UpdateBaseColor()
-        {
-            this.baseColor = Color.white;
-            if (this.vanishIfMouseDistant)
-            {
-                Rect r = this.windowRect.AtZero().ContractedBy(-5f);
-                if (!r.Contains(Event.current.mousePosition))
+                float num = GenUI.DistFromRect(r, Event.current.mousePosition);
+                baseColor = new Color(1f, 1f, 1f, 1f - (num / 95f));
+                if (num > 95f)
                 {
-                    float num = GenUI.DistFromRect(r, Event.current.mousePosition);
-                    this.baseColor = new Color(1f, 1f, 1f, 1f - num / 95f);
-                    if (num > 95f)
-                    {
-                        this.Close(false);
-                        this.Cancel();
-                        return;
-                    }
+                    Close(false);
+                    Cancel();
+                    return;
                 }
             }
         }
-
-        public void Cancel()
-        {
-            SoundDefOf.FloatMenu_Cancel.PlayOneShotOnCamera(null);
-            Find.WindowStack.TryRemove(this, true);
-        }
-
-        public Action doWindowFunc;
-
-        public bool vanishIfMouseDistant = true;
-
-        private Color baseColor = Color.white;
     }
+
+    public void Cancel()
+    {
+        SoundDefOf.FloatMenu_Cancel.PlayOneShotOnCamera(null);
+        Find.WindowStack.TryRemove(this, true);
+    }
+
+    public Action doWindowFunc;
+
+    public bool vanishIfMouseDistant = true;
+
+    private Color baseColor = Color.white;
 }

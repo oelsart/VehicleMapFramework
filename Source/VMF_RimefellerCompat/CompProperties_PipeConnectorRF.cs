@@ -1,12 +1,11 @@
 ﻿using Rimefeller;
 
-namespace VehicleInteriors
+namespace VehicleInteriors;
+
+public class CompProperties_PipeConnectorRF : CompProperties_Pipe
 {
-    public class CompProperties_PipeConnectorRF : CompProperties_Pipe
+    public CompProperties_PipeConnectorRF()
     {
-        public CompProperties_PipeConnectorRF()
-        {
-            compClass = typeof(CompPipeConnectorRF);
-        }
+        compClass = typeof(CompPipeConnectorRF);
     }
 }

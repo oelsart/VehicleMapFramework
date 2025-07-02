@@ -1,30 +1,29 @@
 ﻿using Verse;
 
-namespace VehicleInteriors
+namespace VehicleInteriors;
+
+public class CompWirelessReceiver : CompToggleLitGraphic, IThingGlower
 {
-    public class CompWirelessReceiver : CompToggleLitGraphic, IThingGlower
+    new public CompProperties_WirelessCharger Props => (CompProperties_WirelessCharger)props;
+
+    public override void CompTick()
     {
-        new public CompProperties_WirelessCharger Props => (CompProperties_WirelessCharger)this.props;
+        base.CompTick();
+        if (Find.TickManager.TicksGame % CompWirelessTransmitter.ticksInterval != 0) return;
 
-        public override void CompTick()
+        if (PowerOutput != 0f && !shouldBeLitNow)
         {
-            base.CompTick();
-            if (Find.TickManager.TicksGame % CompWirelessTransmitter.ticksInterval != 0) return;
-
-            if (this.PowerOutput != 0f && !this.shouldBeLitNow)
+            PowerOutput = 0f;
+            if (parent.TryGetComp<CompGlower>(out var comp))
             {
-                this.PowerOutput = 0f;
-                if (this.parent.TryGetComp<CompGlower>(out var comp))
-                {
-                    comp.UpdateLit(this.parent.Map);
-                }
+                comp.UpdateLit(parent.Map);
             }
-            this.shouldBeLitNow = false;
         }
+        shouldBeLitNow = false;
+    }
 
-        new public bool ShouldBeLitNow()
-        {
-            return this.PowerOutput != 0f;
-        }
+    new public bool ShouldBeLitNow()
+    {
+        return PowerOutput != 0f;
     }
 }

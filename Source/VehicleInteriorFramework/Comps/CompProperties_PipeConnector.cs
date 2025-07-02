@@ -1,12 +1,11 @@
 ﻿using Verse;
 
-namespace VehicleInteriors
+namespace VehicleInteriors;
+
+public class CompProperties_PipeConnector : CompProperties
 {
-    public class CompProperties_PipeConnector : CompProperties
+    public CompProperties_PipeConnector()
     {
-        public CompProperties_PipeConnector()
-        {
-            compClass = typeof(CompPipeConnector);
-        }
+        compClass = typeof(CompPipeConnector);
     }
 }

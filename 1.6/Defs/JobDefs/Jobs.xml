@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+	<!-- Reportstrings are automatically overwritten and do not need to be translated -->
+	<JobDef>
+		<defName>VMF_GotoDestMap</defName>
+		<driverClass>VehicleInteriors.JobDriver_GotoDestMap</driverClass>
+		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
+		<carryThingAfterJob>true</carryThingAfterJob>
+		<dropThingBeforeJob>false</dropThingBeforeJob>
+	</JobDef>
+
+	<JobDef>
+		<defName>VMF_GotoAcrossMaps</defName>
+		<driverClass>VehicleInteriors.JobDriver_GotoAcrossMaps</driverClass>
+		<reportString>moving.</reportString>
+		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
+		<carryThingAfterJob>true</carryThingAfterJob>
+		<dropThingBeforeJob>false</dropThingBeforeJob>
+	</JobDef>
+	
+	<JobDef>
+		<defName>VMF_HaulToCellAcrossMaps</defName>
+		<driverClass>VehicleInteriors.JobDriver_HaulToCellAcrossMaps</driverClass>
+		<reportString>hauling TargetA.</reportString>
+		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
+	</JobDef>
+	
+	<JobDef>
+		<defName>VMF_HaulToContainerAcrossMaps</defName>
+		<driverClass>VehicleInteriors.JobDriver_HaulToContainerAcrossMaps</driverClass>
+		<reportString>hauling TargetA.</reportString>
+		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
+	</JobDef>
+	
+	<JobDef>
+		<defName>VMF_HaulToTransporterAcrossMaps</defName>
+		<driverClass>VehicleInteriors.JobDriver_HaulToTransporterAcrossMaps</driverClass>
+		<reportString>hauling TargetA.</reportString>
+		<suspendable>false</suspendable>
+		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
+		<dropThingBeforeJob>false</dropThingBeforeJob>
+	</JobDef>
+	
+	<JobDef>
+		<defName>VMF_BoardAcrossMaps</defName>
+		<driverClass>VehicleInteriors.JobDriver_BoardAcrossMaps</driverClass>
+		<reportString>Entering TargetA.</reportString>
+		<casualInterruptible>false</casualInterruptible>
+	</JobDef>
+
+	<JobDef>
+		<defName>VMF_RefuelVehicleTank</defName>
+		<driverClass>VehicleInteriors.JobDriver_RefuelVehicleTank</driverClass>
+		<reportString>Refueling TargetA</reportString>
+		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
+		<casualInterruptible>false</casualInterruptible>
+	</JobDef>
+
+	<!--<JobDef>
+		<defName>VMF_RefuelVehicleTankAtomic</defName>
+		<driverClass>VehicleInteriors.JobDriver_RefuelVehicleTankAtomic</driverClass>
+		<reportString>Refueling TargetA</reportString>
+		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
+		<casualInterruptible>false</casualInterruptible>
+	</JobDef>-->
+</Defs>

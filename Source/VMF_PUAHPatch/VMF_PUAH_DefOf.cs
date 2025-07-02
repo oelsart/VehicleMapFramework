@@ -1,16 +1,15 @@
 ﻿using RimWorld;
 using Verse;
 
-namespace VMF_PUAHPatch
-{
-    [DefOf]
-    public static class VMF_PUAH_DefOf
-    {
-        static VMF_PUAH_DefOf()
-        {
-            DefOfHelper.EnsureInitializedInCtor(typeof(VMF_PUAH_DefOf));
-        }
+namespace VMF_PUAHPatch;
 
-        public static JobDef VMF_HaulToInventoryAcrossMaps;
+[DefOf]
+public static class VMF_PUAH_DefOf
+{
+    static VMF_PUAH_DefOf()
+    {
+        DefOfHelper.EnsureInitializedInCtor(typeof(VMF_PUAH_DefOf));
     }
+
+    public static JobDef VMF_HaulToInventoryAcrossMaps;
 }

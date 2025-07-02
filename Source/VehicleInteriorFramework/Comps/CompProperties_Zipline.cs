@@ -1,10 +1,9 @@
-﻿namespace VehicleInteriors
+﻿namespace VehicleInteriors;
+
+public class CompProperties_Zipline : CompProperties_VehicleEnterSpot
 {
-    public class CompProperties_Zipline : CompProperties_VehicleEnterSpot
+    public CompProperties_Zipline()
     {
-        public CompProperties_Zipline()
-        {
-            compClass = typeof(CompZipline);
-        }
+        compClass = typeof(CompZipline);
     }
 }

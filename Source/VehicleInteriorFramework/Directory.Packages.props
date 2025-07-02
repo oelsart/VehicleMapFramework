@@ -1,0 +1,11 @@
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+    <NoWarn>$(NoWarn);NU1507</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageVersion Include="Krafs.Rimworld.Ref" Version="1.6.4507-beta" />
+    <PackageVersion Include="Lib.Harmony" Version="2.3.6" />
+  </ItemGroup>
+</Project>

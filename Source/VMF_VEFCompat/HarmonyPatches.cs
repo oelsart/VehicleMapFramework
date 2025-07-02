@@ -7,106 +7,105 @@ using UnityEngine;
 using Verse;
 using static VehicleInteriors.MethodInfoCache;
 
-namespace VehicleInteriors.VMF_HarmonyPatches
+namespace VehicleInteriors.VMF_HarmonyPatches;
+
+[StaticConstructorOnStartupPriority(Priority.Low)]
+public static class Patches_VEF
 {
-    [StaticConstructorOnStartupPriority(Priority.Low)]
-    public static class Patches_VEF
+    static Patches_VEF()
     {
-        static Patches_VEF()
+        VMF_Harmony.PatchCategory("VMF_Patches_VEF");
+    }
+}
+
+[HarmonyPatchCategory("VMF_Patches_VEF")]
+[HarmonyPatch(typeof(CompResource), nameof(CompResource.Props), MethodType.Getter)]
+public static class Patch_CompResource_Props
+{
+    public static void Postfix(CompResource __instance, ref CompProperties_Resource __result)
+    {
+        if (__instance is CompPipeConnectorVEF connector)
         {
-            VMF_Harmony.PatchCategory("VMF_Patches_VEF");
+            dummy.pipeNet = connector.pipeNet;
+            dummy.soundAmbient = __result.soundAmbient;
+            __result = dummy;
         }
     }
 
-    [HarmonyPatchCategory("VMF_Patches_VEF")]
-    [HarmonyPatch(typeof(CompResource), nameof(CompResource.Props), MethodType.Getter)]
-    public static class Patch_CompResource_Props
-    {
-        public static void Postfix(CompResource __instance, ref CompProperties_Resource __result)
-        {
-            if (__instance is CompPipeConnectorVEF connector)
-            {
-                dummy.pipeNet = connector.pipeNet;
-                dummy.soundAmbient = __result.soundAmbient;
-                __result = dummy;
-            }
-        }
+    private static readonly CompProperties_Resource dummy = new CompProperties_Resource();
+}
 
-        private static readonly CompProperties_Resource dummy = new CompProperties_Resource();
-    }
-
-    [HarmonyPatchCategory("VMF_Patches_VEF")]
-    [HarmonyPatch(typeof(PipeNetManager), nameof(PipeNetManager.UnregisterConnector))]
-    public static class Patch_PipeNetManager_UnregisterConnector
+[HarmonyPatchCategory("VMF_Patches_VEF")]
+[HarmonyPatch(typeof(PipeNetManager), nameof(PipeNetManager.UnregisterConnector))]
+public static class Patch_PipeNetManager_UnregisterConnector
+{
+    public static void Prefix(PipeNetManager __instance, CompResource comp)
     {
-        public static void Prefix(PipeNetManager __instance, CompResource comp)
+        var pipeNetMap = comp.PipeNet.map;
+        if (__instance.map != pipeNetMap)
         {
-            var pipeNetMap = comp.PipeNet.map;
-            if (__instance.map != pipeNetMap)
-            {
-                var component = MapComponentCache<PipeNetManager>.GetComponent(pipeNetMap);
-                var connectors = comp.PipeNet.connectors.Where(c => c.parent.Map == pipeNetMap);
-                var newNet = PipeNetMaker.MakePipeNet(connectors, pipeNetMap, comp.PipeNet.def);
-                component.pipeNets.Add(newNet);
-                CompPipeConnectorVEF.pipeNetCount(MapComponentCache<PipeNetManager>.GetComponent(__instance.map))++;
-            }
+            var component = MapComponentCache<PipeNetManager>.GetComponent(pipeNetMap);
+            var connectors = comp.PipeNet.connectors.Where(c => c.parent.Map == pipeNetMap);
+            var newNet = PipeNetMaker.MakePipeNet(connectors, pipeNetMap, comp.PipeNet.def);
+            component.pipeNets.Add(newNet);
+            CompPipeConnectorVEF.pipeNetCount(MapComponentCache<PipeNetManager>.GetComponent(__instance.map))++;
         }
     }
+}
 
-    [HarmonyPatchCategory("VMF_Patches_VEF")]
-    [HarmonyPatch(typeof(PipeNet), nameof(PipeNet.Merge))]
-    public static class Patch_PipeNet_Merge
+[HarmonyPatchCategory("VMF_Patches_VEF")]
+[HarmonyPatch(typeof(PipeNet), nameof(PipeNet.Merge))]
+public static class Patch_PipeNet_Merge
+{
+    public static bool Prefix(ref PipeNet __instance, ref PipeNet otherNet)
     {
-        public static bool Prefix(ref PipeNet __instance, ref PipeNet otherNet)
+        if (__instance.map.IsVehicleMapOf(out _) && otherNet.map != __instance.map)
         {
-            if (__instance.map.IsVehicleMapOf(out _) && otherNet.map != __instance.map)
-            {
-                otherNet.Merge(__instance);
-                return false;
-            }
-            return true;
+            otherNet.Merge(__instance);
+            return false;
         }
+        return true;
+    }
+}
+
+[HarmonyPatchCategory("VMF_Patches_VEF")]
+[HarmonyPatch(typeof(Graphic_LinkedPipe), nameof(Graphic_LinkedPipe.ShouldLinkWith))]
+public static class Patch_Graphic_LinkedPipeVEF_ShouldLinkWith
+{
+    public static void Prefix(ref IntVec3 c, Thing parent) => Patch_Graphic_Linked_ShouldLinkWith.Prefix(ref c, parent);
+
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, AccessTools.Method(typeof(Patch_Graphic_LinkedPipeVEF_ShouldLinkWith), nameof(MapModified)));
     }
 
-    [HarmonyPatchCategory("VMF_Patches_VEF")]
-    [HarmonyPatch(typeof(Graphic_LinkedPipe), nameof(Graphic_LinkedPipe.ShouldLinkWith))]
-    public static class Patch_Graphic_LinkedPipeVEF_ShouldLinkWith
+    private static Map MapModified(Thing thing)
     {
-        public static void Prefix(ref IntVec3 c, Thing parent) => Patch_Graphic_Linked_ShouldLinkWith.Prefix(ref c, parent);
-
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        if (thing.TryGetComp<CompResource>(out var comp) && thing.Map != comp.PipeNet.map)
         {
-            return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, AccessTools.Method(typeof(Patch_Graphic_LinkedPipeVEF_ShouldLinkWith), nameof(MapModified)));
+            return comp.PipeNet.map;
         }
+        return thing.Map;
+    }
+}
 
-        private static Map MapModified(Thing thing)
+
+[HarmonyPatchCategory("VMF_Patches_VEF")]
+[HarmonyPatch(typeof(CompResourceStorage), nameof(CompResourceStorage.PostDraw))]
+public static class Patch_CompResourceStorage_PostDraw
+{
+    public static void Prefix(CompResourceStorage __instance, ref GenDraw.FillableBarRequest ___request)
+    {
+        var fullRot = __instance.parent.BaseFullRotationAsRot4();
+        var offset = (__instance.Props.centerOffset + (Vector3.up * 0.1f)).RotatedBy(new Rot8(fullRot.AsInt).AsAngle);
+        if (__instance.parent.Graphic.WestFlipped && __instance.parent.BaseRotationVehicleDraw() == Rot4.West)
         {
-            if (thing.TryGetComp<CompResource>(out var comp) && thing.Map != comp.PipeNet.map)
-            {
-                return comp.PipeNet.map;
-            }
-            return thing.Map;
+            offset = offset.RotatedBy(180f);
         }
+        ___request.center = __instance.parent.DrawPos + offset;
+        Rot8Utility.Rotate(ref fullRot, RotationDirection.Clockwise);
+        rotInt(ref ___request.rotation) = fullRot.AsByte;
     }
 
-
-    [HarmonyPatchCategory("VMF_Patches_VEF")]
-    [HarmonyPatch(typeof(CompResourceStorage), nameof(CompResourceStorage.PostDraw))]
-    public static class Patch_CompResourceStorage_PostDraw
-    {
-        public static void Prefix(CompResourceStorage __instance, ref GenDraw.FillableBarRequest ___request)
-        {
-            var fullRot = __instance.parent.BaseFullRotationAsRot4();
-            var offset = (__instance.Props.centerOffset + Vector3.up * 0.1f).RotatedBy(new Rot8(fullRot.AsInt).AsAngle);
-            if (__instance.parent.Graphic.WestFlipped && __instance.parent.BaseRotationVehicleDraw() == Rot4.West)
-            {
-                offset = offset.RotatedBy(180f);
-            }
-            ___request.center = __instance.parent.DrawPos + offset;
-            Rot8Utility.Rotate(ref fullRot, RotationDirection.Clockwise);
-            rotInt(ref ___request.rotation) = fullRot.AsByte;
-        }
-
-        private static readonly AccessTools.StructFieldRef<Rot4, byte> rotInt = AccessTools.StructFieldRefAccess<Rot4, byte>("rotInt");
-    }
+    private static readonly AccessTools.StructFieldRef<Rot4, byte> rotInt = AccessTools.StructFieldRefAccess<Rot4, byte>("rotInt");
 }

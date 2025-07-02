@@ -5,103 +5,102 @@ using System.Linq;
 using Verse;
 using static VehicleInteriors.MethodInfoCache;
 
-namespace VehicleInteriors.VMF_HarmonyPatches
+namespace VehicleInteriors.VMF_HarmonyPatches;
+
+[StaticConstructorOnStartupPriority(Priority.Low)]
+public class Patches_TranderShips
 {
-    [StaticConstructorOnStartupPriority(Priority.Low)]
-    public class Patches_TranderShips
+    static Patches_TranderShips()
     {
-        static Patches_TranderShips()
+        if (ModCompat.TraderShips)
         {
-            if (ModCompat.TraderShips)
+            VMF_Harmony.PatchCategory("VMF_Patches_TraderShips");
+        }
+    }
+}
+
+[HarmonyPatchCategory("VMF_Patches_TraderShips")]
+[HarmonyPatch("TraderShips.CompShip", "PostDraw")]
+public static class Patch_CompShip_PostDraw
+{
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        foreach (var instruction in instructions)
+        {
+            if (instruction.LoadsConstant(0f))
             {
-                VMF_Harmony.PatchCategory("VMF_Patches_TraderShips");
+                yield return CodeInstruction.LoadArgument(0);
+                yield return CodeInstruction.Call(typeof(Patch_CompShip_PostDraw), nameof(Rotation));
+            }
+            else
+            {
+                yield return instruction;
             }
         }
     }
 
-    [HarmonyPatchCategory("VMF_Patches_TraderShips")]
-    [HarmonyPatch("TraderShips.CompShip", "PostDraw")]
-    public static class Patch_CompShip_PostDraw
+    private static float Rotation(ThingComp comp)
     {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
-            foreach (var instruction in instructions)
-            {
-                if (instruction.LoadsConstant(0f))
-                {
-                    yield return CodeInstruction.LoadArgument(0);
-                    yield return CodeInstruction.Call(typeof(Patch_CompShip_PostDraw), nameof(Rotation));
-                }
-                else
-                {
-                    yield return instruction;
-                }
-            }
-        }
+        return comp.parent.BaseFullRotationDoor().AsAngle;
+    }
+}
 
-        private static float Rotation(ThingComp comp)
-        {
-            return comp.parent.BaseFullRotationDoor().AsAngle;
-        }
+
+//車上マップにそれぞれVirtualMapTransferしてColonyThingsWillingToBuyを集める
+[HarmonyPatchCategory("VMF_Patches_TraderShips")]
+[HarmonyPatch("TraderShips.LandedShip", "ColonyThingsWillingToBuy")]
+public static class Patch_LandedShip_ColonyThingsWillingToBuy
+{
+    public static void Prefix(Pawn playerNegotiator)
+    {
+        if (working) return;
+
+        ReachabilityUtilityOnVehicle.tmpDepartMap = playerNegotiator.Map;
     }
 
-
-    //車上マップにそれぞれVirtualMapTransferしてColonyThingsWillingToBuyを集める
-    [HarmonyPatchCategory("VMF_Patches_TraderShips")]
-    [HarmonyPatch("TraderShips.LandedShip", "ColonyThingsWillingToBuy")]
-    public static class Patch_LandedShip_ColonyThingsWillingToBuy
+    public static IEnumerable<Thing> Postfix(IEnumerable<Thing> values, Pawn playerNegotiator, ITrader __instance)
     {
-        public static void Prefix(Pawn playerNegotiator)
+        if (values != null)
         {
-            if (working) return;
-
-            ReachabilityUtilityOnVehicle.tmpDepartMap = playerNegotiator.Map;
-        }
-
-        public static IEnumerable<Thing> Postfix(IEnumerable<Thing> values, Pawn playerNegotiator, ITrader __instance)
-        {
-            if (values != null)
+            foreach (var thing in values)
             {
-                foreach (var thing in values)
+                yield return thing;
+            }
+        }
+        if (working) yield break;
+
+        var maps = playerNegotiator.Map.BaseMapAndVehicleMaps().Except(playerNegotiator.Map);
+        if (!maps.Any()) yield break;
+        var departMap = playerNegotiator.Map;
+        try
+        {
+            working = true;
+            foreach (var map in maps)
+            {
+                playerNegotiator.VirtualMapTransfer(map);
+                foreach (var thing in __instance.ColonyThingsWillingToBuy(playerNegotiator))
                 {
                     yield return thing;
                 }
             }
-            if (working) yield break;
-
-            var maps = playerNegotiator.Map.BaseMapAndVehicleMaps().Except(playerNegotiator.Map);
-            if (!maps.Any()) yield break;
-            var departMap = playerNegotiator.Map;
-            try
-            {
-                working = true;
-                foreach (var map in maps)
-                {
-                    playerNegotiator.VirtualMapTransfer(map);
-                    foreach (var thing in __instance.ColonyThingsWillingToBuy(playerNegotiator))
-                    {
-                        yield return thing;
-                    }
-                }
-            }
-            finally
-            {
-                working = false;
-                playerNegotiator.VirtualMapTransfer(departMap);
-                ReachabilityUtilityOnVehicle.tmpDepartMap = null;
-            }
         }
-
-        private static bool working;
+        finally
+        {
+            working = false;
+            playerNegotiator.VirtualMapTransfer(departMap);
+            ReachabilityUtilityOnVehicle.tmpDepartMap = null;
+        }
     }
 
-    [HarmonyPatchCategory("VMF_Patches_TraderShips")]
-    [HarmonyPatch("TraderShips.LandedShip", "ReachableForTrade")]
-    public static class Patch_LandedShip_ReachableForTrade
+    private static bool working;
+}
+
+[HarmonyPatchCategory("VMF_Patches_TraderShips")]
+[HarmonyPatch("TraderShips.LandedShip", "ReachableForTrade")]
+public static class Patch_LandedShip_ReachableForTrade
+{
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
-            return instructions.MethodReplacer(CachedMethodInfo.m_Reachability_CanReach1, CachedMethodInfo.m_CanReachReaplaceable1);
-        }
+        return instructions.MethodReplacer(CachedMethodInfo.m_Reachability_CanReach1, CachedMethodInfo.m_CanReachReaplaceable1);
     }
 }

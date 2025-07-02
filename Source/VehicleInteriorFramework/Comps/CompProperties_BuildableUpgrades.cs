@@ -2,15 +2,14 @@
 using Vehicles;
 using Verse;
 
-namespace VehicleInteriors
-{
-    public class CompProperties_BuildableUpgrades : CompProperties
-    {
-        public CompProperties_BuildableUpgrades()
-        {
-            this.compClass = typeof(CompBuildableUpgrades);
-        }
+namespace VehicleInteriors;
 
-        public List<Upgrade> upgrades;
+public class CompProperties_BuildableUpgrades : CompProperties
+{
+    public CompProperties_BuildableUpgrades()
+    {
+        compClass = typeof(CompBuildableUpgrades);
     }
+
+    public List<Upgrade> upgrades;
 }

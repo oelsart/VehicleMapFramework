@@ -1,52 +1,29 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{C4A6CE84-01A1-4F92-B731-79416B9FA721}</ProjectGuid>
+    <TargetFramework>net48</TargetFramework>
     <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>VehicleInteriors</RootNamespace>
     <AssemblyName>VehicleMapFramework</AssemblyName>
-    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
+    <LangVersion>preview</LangVersion>
+	<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>pdbonly</DebugType>
-    <Optimize>false</Optimize>
     <OutputPath>..\..\1.6\Assemblies\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
     <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>none</DebugType>
-    <Optimize>true</Optimize>
     <OutputPath>..\..\1.6\Assemblies\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
+    <WarningLevel>5</WarningLevel>
     <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="0Harmony">
-      <HintPath>..\..\..\..\..\..\workshop\content\294100\2009463077\Current\Assemblies\0Harmony.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Assembly-CSharp, Version=1.6.9293.12164, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\RimWorldWin64_Data\Managed\1.6\Assembly-CSharp.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="SmashTools">
       <HintPath>..\..\..\Vehicle-Framework\1.6\Assemblies\SmashTools.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="System">
+    <Reference Update="System">
       <Private>False</Private>
     </Reference>
     <Reference Include="System.ComponentModel.Composition">
@@ -55,13 +32,13 @@
     <Reference Include="System.Configuration">
       <Private>False</Private>
     </Reference>
-    <Reference Include="System.Core">
+    <Reference Update="System.Core">
       <Private>False</Private>
     </Reference>
     <Reference Include="System.Runtime">
       <Private>False</Private>
     </Reference>
-    <Reference Include="System.Xml.Linq">
+    <Reference Update="System.Xml.Linq">
       <Private>False</Private>
     </Reference>
     <Reference Include="System.Data.DataSetExtensions">
@@ -70,13 +47,10 @@
     <Reference Include="Microsoft.CSharp">
       <Private>False</Private>
     </Reference>
-    <Reference Include="System.Data">
+    <Reference Update="System.Data">
       <Private>False</Private>
     </Reference>
-    <Reference Include="System.Net.Http">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System.Xml">
+    <Reference Update="System.Xml">
       <Private>False</Private>
     </Reference>
     <Reference Include="Unity.Burst">
@@ -124,221 +98,6 @@
       <Private>False</Private>
     </Reference>
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="BuildableUpgrades\Building_VehicleRamp.cs" />
-    <Compile Include="Combat\Building_TurretGunForcedTargetOnly.cs" />
-    <Compile Include="Combat\Bullet_ZiplineEnd.cs" />
-    <Compile Include="Combat\Bullet_ZiplineEndReturn.cs" />
-    <Compile Include="Combat\IZiplineEnd.cs" />
-    <Compile Include="Combat\ShotReportOnVehicle.cs" />
-    <Compile Include="Combat\TargetingHelperOnVehicle.cs" />
-    <Compile Include="Combat\Verb_LaunchZipline.cs" />
-    <Compile Include="Combat\ZiplineEnd.cs" />
-    <Compile Include="Command_ToggleIcon.cs" />
-    <Compile Include="Comps\CompAlternator.cs" />
-    <Compile Include="Comps\CompBuildableContainer.cs" />
-    <Compile Include="Comps\CompEngineLightOverlays.cs" />
-    <Compile Include="Comps\CompFuelTank.cs" />
-    <Compile Include="Comps\CompPipeConnector.cs" />
-    <Compile Include="Comps\CompProperties_Alternator.cs" />
-    <Compile Include="Comps\CompProperties_EngineLightOverlays.cs" />
-    <Compile Include="Comps\CompProperties_PipeConnector.cs" />
-    <Compile Include="Comps\CompProperties_TogglableOverlays.cs" />
-    <Compile Include="Comps\CompProperties_VehicleEnterSpot.cs" />
-    <Compile Include="Comps\CompProperties_VehicleLauncherWithMap.cs" />
-    <Compile Include="Comps\CompProperties_WirelessCharger.cs" />
-    <Compile Include="Comps\CompProperties_Zipline.cs" />
-    <Compile Include="Comps\CompTogglableOverlays.cs" />
-    <Compile Include="Comps\CompToggleLitGraphic.cs" />
-    <Compile Include="Comps\CompVehicleLauncherWithMap.cs" />
-    <Compile Include="Comps\CompWirelessReceiver.cs" />
-    <Compile Include="Comps\CompWirelessTransmitter.cs" />
-    <Compile Include="Combat\ExplosionAcrossMaps.cs" />
-    <Compile Include="BuildableUpgrades\Dialog_ChooseVehicleRoles.cs" />
-    <Compile Include="Comps\CompZipline.cs" />
-    <Compile Include="Comps\IPipeConnector.cs" />
-    <Compile Include="CrossMapReachabilityCache.cs" />
-    <Compile Include="Dialog_LoadCargoToBuildableContainer.cs" />
-    <Compile Include="Graphics\ExtraOverlayData.cs" />
-    <Compile Include="Jobs\JobDrivers\JobDriver_RefuelVehicleTank.cs" />
-    <Compile Include="Jobs\WorkGivers\IWorkGiverAcrossMaps.cs" />
-    <Compile Include="Jobs\WorkGivers\WorkGiver_HaulCorpsesAcrossMaps.cs" />
-    <Compile Include="Jobs\WorkGivers\WorkGiver_HaulGeneralAcrossMaps.cs" />
-    <Compile Include="Jobs\WorkGivers\WorkGiver_LoadBuildableContainer.cs" />
-    <Compile Include="Jobs\WorkGivers\WorkGiver_RefuelVehicleTank.cs" />
-    <Compile Include="MapComponents\CrossMapHaulDestinationManager.cs" />
-    <Compile Include="ModCompat.cs" />
-    <Compile Include="ModExtensions\VehicleHumanPowered.cs" />
-    <Compile Include="PlaceWorkers\PlaceWorker_ForbidOnHumanPoweredVehicle.cs" />
-    <Compile Include="PlaceWorkers\PlaceWorker_ForceOnHoverVehicle.cs" />
-    <Compile Include="Graphics\RGBMaskOpacityDef.cs" />
-    <Compile Include="Settings\SettingsTabDrawer.cs" />
-    <Compile Include="Settings\SettingsTab_Main.cs" />
-    <Compile Include="Settings\SettingsTab_VMF_PUAHPatch.cs" />
-    <Compile Include="TargetMapManager.cs" />
-    <Compile Include="Utilities\AnimalPenUtilityOnVehicle.cs" />
-    <Compile Include="Utilities\GenDrawOnVehicle.cs" />
-    <Compile Include="Graphics\Graphic_LinkedCornerOverlaySingle.cs" />
-    <Compile Include="Graphics\Graphic_VehicleOpacity.cs" />
-    <Compile Include="EphemenalWindow.cs" />
-    <Compile Include="Jobs\GenConstructOnVehicle.cs" />
-    <Compile Include="Jobs\JobDrivers\JobDriver_GotoDestMap.cs" />
-    <Compile Include="Jobs\JobDrivers\JobDriver_RefuelAcrossMaps.cs" />
-    <Compile Include="Jobs\JobDrivers\JobDriver_RefuelAtomicAcrossMaps.cs" />
-    <Compile Include="Jobs\RefuelWorkGiverUtilityOnVehicle.cs" />
-    <Compile Include="Jobs\ToilFailConditionsAcrossMaps.cs" />
-    <Compile Include="Jobs\WorkGivers\WorkGiverUtilityOnVehicle.cs" />
-    <Compile Include="Jobs\WorkGivers\WorkGiver_ConstructDeliverResourcesAcrossMaps.cs" />
-    <Compile Include="Jobs\WorkGivers\WorkGiver_ConstructDeliverResourcesToBlueprintsAcrossMaps.cs" />
-    <Compile Include="Jobs\WorkGivers\WorkGiver_ConstructDeliverResourcesToFramesAcrossMaps.cs" />
-    <Compile Include="Jobs\WorkGivers\WorkGiver_ConstructFinishFramesAcrossMaps.cs" />
-    <Compile Include="Jobs\WorkGivers\WorkGiver_DoBillAcrossMaps.cs" />
-    <Compile Include="Jobs\WorkGivers\WorkGiver_RefuelAcrossMaps.cs" />
-    <Compile Include="Jobs\WorkGivers\WorkGiver_RefuelTurretAcrossMaps.cs" />
-    <Compile Include="PlaceWorkers\PlaceWorker_ForbidOnVehicle.cs" />
-    <Compile Include="PlaceWorkers\PlaceWorker_ForceOnVehicle.cs" />
-    <Compile Include="PlaceWorkers\PlaceWorker_ForceOnVehicleMapEdge.cs" />
-    <Compile Include="BuildableUpgrades\VehicleRoleHandlerBuildable.cs" />
-    <Compile Include="Utilities\RegionTraverserAcrossMaps.cs" />
-    <Compile Include="VehicleMapSettings.cs" />
-    <Compile Include="VehicleMap\DynamicDrawManagerOnVehicle.cs" />
-    <Compile Include="Utilities\RegionUtility.cs" />
-    <Compile Include="VehicleMap\SectionLayer_ThingsGeneralOnVehicle.cs" />
-    <Compile Include="VehicleMap\SectionLayer_ThingsPipeOnVehicle.cs" />
-    <Compile Include="VehicleMap\SectionLayer_ThingsPowerGridOnVehicle.cs" />
-    <Compile Include="VehicleMap\SectionLayer_ThingsSewagePipeOnVehicle.cs" />
-    <Compile Include="MapComponents\VehicleMapGrid.cs" />
-    <Compile Include="VehicleMap\VehicleMapParentsComponent.cs" />
-    <Compile Include="VehicleMap\SectionLayer_LightingOnVehicle.cs" />
-    <Compile Include="VehicleMap\SectionLayer_TerrainOnVehicle.cs" />
-    <Compile Include="VehiclePawnWithMap_Hover.cs" />
-    <Compile Include="BuildableUpgrades\VehicleRoleBuildable.cs" />
-    <Compile Include="VehicleStatPart_WeightUsageWithMap.cs" />
-    <Compile Include="BuildableUpgrades\VehicleUpgradeBuildable.cs" />
-    <Compile Include="Combat\AttackTargetFinderOnVehicle.cs" />
-    <Compile Include="Combat\CastPositionFinderOnVehicle.cs" />
-    <Compile Include="Utilities\GenClosestOnVehicle.cs" />
-    <Compile Include="Utilities\GenSightOnVehicle.cs" />
-    <Compile Include="Comps\CompBuildableUpgrades.cs" />
-    <Compile Include="Comps\CompProperties_BuildableUpgrades.cs" />
-    <Compile Include="Comps\CompVehicleSeat.cs" />
-    <Compile Include="Jobs\JobDrivers\JobDriver_BoardAcrossMaps.cs" />
-    <Compile Include="Utilities\RespawnWithJobsUtility.cs" />
-    <Compile Include="Utilities\FindBuildingUtility.cs" />
-    <Compile Include="Utilities\GetHemogenUtilityOnVehicle.cs" />
-    <Compile Include="Utilities\HealthAIAcrossMapsUtility.cs" />
-    <Compile Include="Jobs\HaulAIAcrossMapsUtility.cs" />
-    <Compile Include="Jobs\JobAcrossMapsUtility.cs" />
-    <Compile Include="Jobs\JobDrivers\JobDriverAcrossMaps.cs" />
-    <Compile Include="Jobs\JobDrivers\JobDriver_BringBabyToSafetyAcrossMaps.cs" />
-    <Compile Include="Jobs\JobDrivers\JobDriver_CarryDownedPawnAcrossMaps.cs" />
-    <Compile Include="Jobs\JobDrivers\JobDriver_CarryToCryptosleepCasketAcrossMaps.cs" />
-    <Compile Include="Jobs\JobDrivers\JobDriver_CarryToEntityHolderAcrossMaps.cs" />
-    <Compile Include="Jobs\JobDrivers\JobDriver_CarryToEntityHolderAlreadyHoldingAcrossMaps.cs" />
-    <Compile Include="Jobs\JobDrivers\JobDriver_EmptyThingContainerAcrossMaps.cs" />
-    <Compile Include="Jobs\JobDrivers\JobDriver_EnterPortalAcrossMaps.cs" />
-    <Compile Include="Jobs\JobDrivers\JobDriver_GiveToPackAnimalAcrossMaps.cs" />
-    <Compile Include="Jobs\JobDrivers\JobDriver_AttackMeleeAcrossMaps.cs" />
-    <Compile Include="Jobs\JobDrivers\JobDriver_HaulMechToChargerAcrossMaps.cs" />
-    <Compile Include="Jobs\JobDrivers\JobDriver_HaulToCellAcrossMaps.cs" />
-    <Compile Include="Jobs\JobDrivers\JobDriver_HaulToContainerAcrossMaps.cs" />
-    <Compile Include="Jobs\JobDrivers\JobDriver_HaulToTransporterAcrossMaps.cs" />
-    <Compile Include="Jobs\JobDrivers\JobDriver_InstallRelicAcrossMaps.cs" />
-    <Compile Include="Jobs\JobDrivers\JobDriver_KidnapAcrossMaps.cs" />
-    <Compile Include="Jobs\JobDrivers\JobDriver_TakeAndEnterPortalAcrossMaps.cs" />
-    <Compile Include="Jobs\JobDrivers\JobDriver_TakeAndExitMapAcrossMaps.cs" />
-    <Compile Include="Jobs\JobDrivers\JobDriver_TakeToBedAcrossMaps.cs" />
-    <Compile Include="Jobs\JobDrivers\JobDriver_TendEntityAcrossMaps.cs" />
-    <Compile Include="Jobs\JobDrivers\JobDriver_TendPatientAcrossMaps.cs" />
-    <Compile Include="Jobs\JobDrivers\JobDriver_TransferBetweenEntityHoldersAcrossMaps.cs" />
-    <Compile Include="Utilities\ProjectileUtility.cs" />
-    <Compile Include="Combat\ShootLeanUtilityOnVehicle.cs" />
-    <Compile Include="Jobs\JobDrivers\JobDriver_GotoAcrossMaps.cs" />
-    <Compile Include="Jobs\JobGivers\JobGiver_GetOffVehicle.cs" />
-    <Compile Include="Jobs\JobGivers\JobGiver_HaulAcrossMaps.cs" />
-    <Compile Include="Jobs\ReservationAcrossMapsUtility.cs" />
-    <Compile Include="Utilities\StoreAcrossMapsUtility.cs" />
-    <Compile Include="Jobs\ToilsAcrossMaps.cs" />
-    <Compile Include="Jobs\WorkGivers\WorkGiver_HaulAcrossMaps.cs" />
-    <Compile Include="Utilities\LoadTransportersJobOnVehicleUtility.cs" />
-    <Compile Include="MethodInfoCache.cs" />
-    <Compile Include="Comps\CompVehicleEnterSpot.cs" />
-    <Compile Include="Utilities\ReachabilityUtilityOnVehicle.cs" />
-    <Compile Include="Utilities\RestUtilityOnVehicle.cs" />
-    <Compile Include="Utilities\GenUIOnVehicle.cs" />
-    <Compile Include="VehicleStatPart_HumanPower.cs" />
-    <Compile Include="Utilities\VerbOnVehicleUtility.cs" />
-    <Compile Include="MapComponents\VehiclePawnWithMapCache.cs" />
-    <Compile Include="VehicleMap\VehicleMapProps.cs" />
-    <Compile Include="VehicleMap\Command_FocusVehicleMap.cs" />
-    <Compile Include="VehicleMap\GenStep_VehicleInterior.cs" />
-    <Compile Include="VehicleMap\MapParent_Vehicle.cs" />
-    <Compile Include="Utilities\Rot8Utility.cs" />
-    <Compile Include="VehicleInteriors.cs" />
-    <Compile Include="VehicleMap\SectionLayer_ThingsOnVehicle.cs" />
-    <Compile Include="Utilities\VehicleMapUtility.cs" />
-    <Compile Include="VehiclePawnWithMap.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="VehicleStructure.cs" />
-    <Compile Include="VehicleMap\VehicleMapFollower.cs" />
-    <Compile Include="VMF_HarmonyPatches\ModCompat\Patches_AdaptiveStorage.cs" />
-    <Compile Include="VMF_HarmonyPatches\Patches_Ability.cs" />
-    <Compile Include="VMF_HarmonyPatches\Patches_Alert.cs" />
-    <Compile Include="VMF_HarmonyPatches\ModCompat\Patches_AllowTool.cs" />
-    <Compile Include="VMF_HarmonyPatches\Patches_AnimalPen.cs" />
-    <Compile Include="VMF_HarmonyPatches\ModCompat\Patches_Aquariums.cs" />
-    <Compile Include="VMF_HarmonyPatches\ModCompat\Patches_BillDoorsFramework.cs" />
-    <Compile Include="VMF_HarmonyPatches\ModCompat\Patches_BiomesCaverns.cs" />
-    <Compile Include="VMF_HarmonyPatches\ModCompat\Patches_CallTradeShips.cs" />
-    <Compile Include="VMF_HarmonyPatches\ModCompat\Patches_ColonyGroups.cs" />
-    <Compile Include="VMF_HarmonyPatches\ModCompat\Patches_DeepStorage.cs" />
-    <Compile Include="VMF_HarmonyPatches\ModCompat\Patches_DMS.cs" />
-    <Compile Include="VMF_HarmonyPatches\ModCompat\Patches_DrakkenLaserDrill.cs" />
-    <Compile Include="VMF_HarmonyPatches\ModCompat\Patches_DrillTurret.cs" />
-    <Compile Include="VMF_HarmonyPatches\ModCompat\Patches_DubsBadHygiene.cs" />
-    <Compile Include="VMF_HarmonyPatches\ModCompat\Patches_EccentricTech.cs" />
-    <Compile Include="VMF_HarmonyPatches\ModCompat\Patches_EnergyShield.cs" />
-    <Compile Include="VMF_HarmonyPatches\ModCompat\Patches_EnterHere.cs" />
-    <Compile Include="VMF_HarmonyPatches\ModCompat\Patches_ExosuitFramework.cs" />
-    <Compile Include="VMF_HarmonyPatches\ModCompat\Patches_GiantImperialTurret.cs" />
-    <Compile Include="VMF_HarmonyPatches\ModCompat\Patches_Gunplay.cs" />
-    <Compile Include="VMF_HarmonyPatches\ModCompat\Patches_MeleeAnimation.cs" />
-    <Compile Include="VMF_HarmonyPatches\ModCompat\Patches_MiscRobots.cs" />
-    <Compile Include="VMF_HarmonyPatches\ModCompat\Patches_MuzzleFlash.cs" />
-    <Compile Include="VMF_HarmonyPatches\ModCompat\Patches_NightmareCore.cs" />
-    <Compile Include="VMF_HarmonyPatches\ModCompat\Patches_PathfindingFramework.cs" />
-    <Compile Include="VMF_HarmonyPatches\ModCompat\Patches_PRF.cs" />
-    <Compile Include="VMF_HarmonyPatches\ModCompat\Patches_SmarterConstruction.cs" />
-    <Compile Include="VMF_HarmonyPatches\ModCompat\Patches_SmartPistol.cs" />
-    <Compile Include="VMF_HarmonyPatches\ModCompat\Patches_TabulaRasa.cs" />
-    <Compile Include="VMF_HarmonyPatches\ModCompat\Patches_TraderShips.cs" />
-    <Compile Include="VMF_HarmonyPatches\ModCompat\Patches_Vivi.cs" />
-    <Compile Include="VMF_DefOf.cs" />
-    <Compile Include="VMF_HarmonyPatches\Core.cs" />
-    <Compile Include="VMF_HarmonyPatches\Patches_Combat.cs" />
-    <Compile Include="VMF_HarmonyPatches\Patches_DebugMenu.cs" />
-    <Compile Include="VMF_HarmonyPatches\Patches_Def.cs" />
-    <Compile Include="VMF_HarmonyPatches\Patches_Designator.cs" />
-    <Compile Include="VMF_HarmonyPatches\Patches_FloatMenu.cs" />
-    <Compile Include="VMF_HarmonyPatches\Patches_Graphic.cs" />
-    <Compile Include="VMF_HarmonyPatches\Patches_GUI.cs" />
-    <Compile Include="VMF_HarmonyPatches\Patches_Job.cs" />
-    <Compile Include="VMF_HarmonyPatches\Patches_Map.cs" />
-    <Compile Include="VMF_HarmonyPatches\Patches_Selector.cs" />
-    <Compile Include="VMF_HarmonyPatches\Patches_Targeter.cs" />
-    <Compile Include="VMF_HarmonyPatches\Patches_Thing.cs" />
-    <Compile Include="VMF_HarmonyPatches\Patches_Trade.cs" />
-    <Compile Include="VMF_HarmonyPatches\ModCompat\Patches_VEF.cs" />
-    <Compile Include="VMF_HarmonyPatches\Patches_VehicleFramework.cs" />
-    <Compile Include="VMF_HarmonyPatches\Patches_VehicleMapOffset.cs" />
-    <Compile Include="VMF_HarmonyPatches\Patches_Verb.cs" />
-    <Compile Include="VMF_HarmonyPatches\ModCompat\Patches_WhileYoureUp.cs" />
-    <Compile Include="VMF_HarmonyPatches\ModCompat\Patches_YayosCombat3.cs" />
-    <Compile Include="VMF_Materials.cs" />
-    <Compile Include="VMF_PUAHPatch.cs" />
-    <Compile Include="Utilities\VIF_Widgets.cs" />
-  </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
     <Content Include="..\..\.git\ms-persist.xml">
       <Link>.git\ms-persist.xml</Link>
@@ -535,5 +294,30 @@
       <Link>Common\Patches\Patches_VVE_RTC_ReplaceCostList.xml</Link>
     </Content>
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <ItemGroup>
+    <PackageReference Include="Krafs.Rimworld.Ref" />
+	<PackageReference Include="Lib.Harmony">
+		<ExcludeAssets>runtime</ExcludeAssets>
+	</PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Update="System.Drawing">
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Update="System.IO.Compression.FileSystem">
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Update="System.Numerics">
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Update="System.Runtime.Serialization">
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
 </Project>

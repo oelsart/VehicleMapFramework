@@ -1,30 +1,29 @@
 ﻿using Verse;
 
-namespace VehicleInteriors
+namespace VehicleInteriors;
+
+public class CompVehicleEnterSpot : ThingComp
 {
-    public class CompVehicleEnterSpot : ThingComp
+    public CompProperties_VehicleEnterSpot Props => (CompProperties_VehicleEnterSpot)props;
+
+    public virtual float DistanceSquared(IntVec3 root)
     {
-        public CompProperties_VehicleEnterSpot Props => (CompProperties_VehicleEnterSpot)this.props;
-
-        public virtual float DistanceSquared(IntVec3 root)
+        return (parent.PositionOnBaseMap() - root).LengthHorizontalSquared;
+    }
+    public override void PostSpawnSetup(bool respawningAfterLoad)
+    {
+        if (parent.IsOnVehicleMapOf(out var vehicle))
         {
-            return (this.parent.PositionOnBaseMap() - root).LengthHorizontalSquared;
+            vehicle.EnterComps.Add(this);
         }
-        public override void PostSpawnSetup(bool respawningAfterLoad)
-        {
-            if (this.parent.IsOnVehicleMapOf(out var vehicle))
-            {
-                vehicle.EnterComps.Add(this);
-            }
-        }
+    }
 
-        public override void PostDeSpawn(Map map, DestroyMode mode = DestroyMode.Vanish)
+    public override void PostDeSpawn(Map map, DestroyMode mode = DestroyMode.Vanish)
+    {
+        base.PostDeSpawn(map);
+        if (map.IsVehicleMapOf(out var vehicle))
         {
-            base.PostDeSpawn(map);
-            if (map.IsVehicleMapOf(out var vehicle))
-            {
-                vehicle.EnterComps.Remove(this);
-            }
+            vehicle.EnterComps.Remove(this);
         }
     }
 }

@@ -2,55 +2,53 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Verse;
-using static VehicleInteriors.MethodInfoCache;
 
-namespace VehicleInteriors.VMF_HarmonyPatches
+namespace VehicleInteriors.VMF_HarmonyPatches;
+
+[StaticConstructorOnStartupPriority(Priority.Low)]
+public class Patches_Aquariums
 {
-    [StaticConstructorOnStartupPriority(Priority.Low)]
-    public class Patches_Aquariums
+    static Patches_Aquariums()
     {
-        static Patches_Aquariums()
+        if (ModCompat.Aquariums)
         {
-            if (ModCompat.Aquariums)
-            {
-                VMF_Harmony.PatchCategory("VMF_Patches_Aquariums");
-            }
+            VMF_Harmony.PatchCategory("VMF_Patches_Aquariums");
+        }
+    }
+}
+
+[HarmonyPatchCategory("VMF_Patches_Aquariums")]
+[HarmonyPatch("Aquariums.ThingComp_WaterGraphic", "PostPrintOnto")]
+public static class Patch_ThingComp_WaterGraphic_PostPrintOnto
+{
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        return Patch_ThingComp_AdditionalGraphics_PostPrintOnto.Transpiler(instructions);
+    }
+}
+
+[HarmonyPatchCategory("VMF_Patches_Aquariums")]
+[HarmonyPatch("Aquariums.TankNet", "DrawTankOutline")]
+public static class Patch_TankNet_DrawTankOutline
+{
+    public static bool Prefix(List<IntVec3> ___netCells, Map ___map)
+    {
+        GenDrawOnVehicle.DrawFieldEdges(___netCells, ColorLibrary.LightBlue, null, map: ___map);
+        return false;
+    }
+}
+
+[HarmonyPatchCategory("VMF_Patches_Aquariums")]
+[HarmonyPatch("Aquariums.FishMovementBehavior", "PositionWithOffsets", MethodType.Getter)]
+public static class Patch_FishMovementBehavior_PositionWithOffsets
+{
+    public static void Postfix(object ___aquariumFish, ref Vector3 __result)
+    {
+        if (((Thing)CurrentTank(___aquariumFish)).IsOnVehicleMapOf(out var vehicle))
+        {
+            __result = __result.ToBaseMapCoord(vehicle);
         }
     }
 
-    [HarmonyPatchCategory("VMF_Patches_Aquariums")]
-    [HarmonyPatch("Aquariums.ThingComp_WaterGraphic", "PostPrintOnto")]
-    public static class Patch_ThingComp_WaterGraphic_PostPrintOnto
-    {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
-            return Patch_ThingComp_AdditionalGraphics_PostPrintOnto.Transpiler(instructions);
-        }
-    }
-
-    [HarmonyPatchCategory("VMF_Patches_Aquariums")]
-    [HarmonyPatch("Aquariums.TankNet", "DrawTankOutline")]
-    public static class Patch_TankNet_DrawTankOutline
-    {
-        public static bool Prefix(List<IntVec3> ___netCells, Map ___map)
-        {
-            GenDrawOnVehicle.DrawFieldEdges(___netCells, ColorLibrary.LightBlue, null, map: ___map);
-            return false;
-        }
-    }
-
-    [HarmonyPatchCategory("VMF_Patches_Aquariums")]
-    [HarmonyPatch("Aquariums.FishMovementBehavior", "PositionWithOffsets", MethodType.Getter)]
-    public static class Patch_FishMovementBehavior_PositionWithOffsets
-    {
-        public static void Postfix(object ___aquariumFish, ref Vector3 __result)
-        {
-            if (((Thing)CurrentTank(___aquariumFish)).IsOnVehicleMapOf(out var vehicle))
-            {
-                __result = __result.ToBaseMapCoord(vehicle);
-            }
-        }
-
-        private static FastInvokeHandler CurrentTank = MethodInvoker.GetHandler(AccessTools.PropertyGetter("Aquariums.AquariumFish:CurrentTank"));
-    }
+    private static FastInvokeHandler CurrentTank = MethodInvoker.GetHandler(AccessTools.PropertyGetter("Aquariums.AquariumFish:CurrentTank"));
 }

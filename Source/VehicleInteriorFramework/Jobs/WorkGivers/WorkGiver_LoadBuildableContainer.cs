@@ -4,40 +4,39 @@ using System.Linq;
 using Verse;
 using Verse.AI;
 
-namespace VehicleInteriors
+namespace VehicleInteriors;
+
+public class WorkGiver_LoadBuildableContainer : WorkGiver_Scanner, IWorkGiverAcrossMaps
 {
-    public class WorkGiver_LoadBuildableContainer : WorkGiver_Scanner, IWorkGiverAcrossMaps
+    public bool NeedVirtualMapTransfer => false;
+
+    public override IEnumerable<Thing> PotentialWorkThingsGlobal(Pawn pawn)
     {
-        public bool NeedVirtualMapTransfer => false;
+        return pawn.Map.BaseMapAndVehicleMaps().SelectMany(m => m.listerBuildings.allBuildingsColonist.Where(b => b.HasComp<CompTransporter>()));
+    }
 
-        public override IEnumerable<Thing> PotentialWorkThingsGlobal(Pawn pawn)
+    public override PathEndMode PathEndMode
+    {
+        get
         {
-            return pawn.Map.BaseMapAndVehicleMaps().SelectMany(m => m.listerBuildings.allBuildingsColonist.Where(b => b.HasComp<CompTransporter>()));
+            return PathEndMode.Touch;
         }
+    }
 
-        public override PathEndMode PathEndMode
-        {
-            get
-            {
-                return PathEndMode.Touch;
-            }
-        }
+    public override Danger MaxPathDanger(Pawn pawn)
+    {
+        return Danger.Deadly;
+    }
 
-        public override Danger MaxPathDanger(Pawn pawn)
-        {
-            return Danger.Deadly;
-        }
+    public override bool HasJobOnThing(Pawn pawn, Thing t, bool forced = false)
+    {
+        CompTransporter transporter = t.TryGetComp<CompTransporter>();
+        return LoadTransportersJobOnVehicleUtility.HasJobOnTransporter(pawn, transporter);
+    }
 
-        public override bool HasJobOnThing(Pawn pawn, Thing t, bool forced = false)
-        {
-            CompTransporter transporter = t.TryGetComp<CompTransporter>();
-            return LoadTransportersJobOnVehicleUtility.HasJobOnTransporter(pawn, transporter);
-        }
-
-        public override Job JobOnThing(Pawn pawn, Thing t, bool forced = false)
-        {
-            CompTransporter transporter = t.TryGetComp<CompTransporter>();
-            return LoadTransportersJobOnVehicleUtility.JobOnTransporter(pawn, transporter);
-        }
+    public override Job JobOnThing(Pawn pawn, Thing t, bool forced = false)
+    {
+        CompTransporter transporter = t.TryGetComp<CompTransporter>();
+        return LoadTransportersJobOnVehicleUtility.JobOnTransporter(pawn, transporter);
     }
 }

@@ -1,7 +1,6 @@
-﻿namespace VehicleInteriors
+﻿namespace VehicleInteriors;
+
+public interface IWorkGiverAcrossMaps
 {
-    public interface IWorkGiverAcrossMaps
-    {
-        bool NeedVirtualMapTransfer { get; }
-    }
+    bool NeedVirtualMapTransfer { get; }
 }

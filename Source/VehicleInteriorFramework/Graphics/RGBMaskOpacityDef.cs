@@ -1,10 +1,9 @@
 ﻿using Vehicles;
 using Verse;
 
-namespace VehicleInteriors
+namespace VehicleInteriors;
+
+public class RGBMaskOpacityDef : PatternDef
 {
-    public class RGBMaskOpacityDef : PatternDef
-    {
-        public override ShaderTypeDef ShaderTypeDef => VMF_DefOf.VMF_CutoutComplexRGBOpacity;
-    }
+    public override ShaderTypeDef ShaderTypeDef => VMF_DefOf.VMF_CutoutComplexRGBOpacity;
 }

@@ -1,12 +1,11 @@
 ﻿using PipeSystem;
 
-namespace VehicleInteriors
+namespace VehicleInteriors;
+
+public class CompProperties_PipeConnectorVEF : CompProperties_Resource
 {
-    public class CompProperties_PipeConnectorVEF : CompProperties_Resource
+    public CompProperties_PipeConnectorVEF()
     {
-        public CompProperties_PipeConnectorVEF()
-        {
-            base.compClass = typeof(CompPipeConnectorVEF);
-        }
+        base.compClass = typeof(CompPipeConnectorVEF);
     }
 }

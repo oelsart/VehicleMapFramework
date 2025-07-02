@@ -1,9 +1,8 @@
 ﻿using UnityEngine;
 
-namespace VehicleInteriors
+namespace VehicleInteriors;
+
+public interface IZiplineEnd
 {
-    public interface IZiplineEnd
-    {
-        void DrawZipline(Vector3 drawLoc);
-    }
+    void DrawZipline(Vector3 drawLoc);
 }

@@ -1,8 +1,7 @@
 ﻿using Verse;
 
-namespace VehicleInteriors
+namespace VehicleInteriors;
+
+public class VehicleHumanPowered : DefModExtension
 {
-    public class VehicleHumanPowered : DefModExtension
-    {
-    }
 }

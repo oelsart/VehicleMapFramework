@@ -1,13 +1,12 @@
 ﻿using Vehicles;
 
-namespace VehicleInteriors
+namespace VehicleInteriors;
+
+public class ExtraOverlayData
 {
-    public class ExtraOverlayData
-    {
-        public GraphicDataOverlay graphicDataOverlay;
+    public GraphicDataOverlay graphicDataOverlay;
 
-        public string key;
+    public string key;
 
-        public string label;
-    }
+    public string label;
 }

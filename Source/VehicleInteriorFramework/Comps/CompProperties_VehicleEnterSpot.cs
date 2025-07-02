@@ -1,14 +1,13 @@
 ﻿using Verse;
 
-namespace VehicleInteriors
-{
-    public class CompProperties_VehicleEnterSpot : CompProperties
-    {
-        public CompProperties_VehicleEnterSpot()
-        {
-            this.compClass = typeof(CompVehicleEnterSpot);
-        }
+namespace VehicleInteriors;
 
-        public bool allowPassingVehicle;
+public class CompProperties_VehicleEnterSpot : CompProperties
+{
+    public CompProperties_VehicleEnterSpot()
+    {
+        compClass = typeof(CompVehicleEnterSpot);
     }
+
+    public bool allowPassingVehicle;
 }

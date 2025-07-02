@@ -1,12 +1,11 @@
 ﻿using DubsBadHygiene;
 
-namespace VehicleInteriors
+namespace VehicleInteriors;
+
+public class CompProperties_PipeConnectorDBH : CompProperties_Pipe
 {
-    public class CompProperties_PipeConnectorDBH : CompProperties_Pipe
+    public CompProperties_PipeConnectorDBH()
     {
-        public CompProperties_PipeConnectorDBH()
-        {
-            compClass = typeof(CompPipeConnectorDBH);
-        }
+        compClass = typeof(CompPipeConnectorDBH);
     }
 }

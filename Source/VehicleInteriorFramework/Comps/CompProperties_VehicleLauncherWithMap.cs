@@ -1,12 +1,11 @@
 ﻿using Vehicles;
 
-namespace VehicleInteriors
+namespace VehicleInteriors;
+
+public class CompProperties_VehicleLauncherWithMap : CompProperties_VehicleLauncher
 {
-    public class CompProperties_VehicleLauncherWithMap : CompProperties_VehicleLauncher
+    public CompProperties_VehicleLauncherWithMap()
     {
-        public CompProperties_VehicleLauncherWithMap()
-        {
-            compClass = typeof(CompVehicleLauncherWithMap);
-        }
+        compClass = typeof(CompVehicleLauncherWithMap);
     }
 }

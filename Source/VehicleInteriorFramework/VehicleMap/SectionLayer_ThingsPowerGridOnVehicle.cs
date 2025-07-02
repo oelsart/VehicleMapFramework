@@ -1,34 +1,33 @@
 ﻿using RimWorld;
 using Verse;
 
-namespace VehicleInteriors
+namespace VehicleInteriors;
+
+public class SectionLayer_ThingsPowerGridOnVehicle : SectionLayer_ThingsOnVehicle
 {
-    public class SectionLayer_ThingsPowerGridOnVehicle : SectionLayer_ThingsOnVehicle
+    public SectionLayer_ThingsPowerGridOnVehicle(Section section) : base(section)
     {
-        public SectionLayer_ThingsPowerGridOnVehicle(Section section) : base(section)
-        {
-            this.requireAddToMapMesh = false;
-            this.relevantChangeTypes = MapMeshFlagDefOf.PowerGrid;
-        }
+        requireAddToMapMesh = false;
+        relevantChangeTypes = MapMeshFlagDefOf.PowerGrid;
+    }
 
-        public override void DrawLayer()
+    public override void DrawLayer()
+    {
+        if (OverlayDrawHandler.ShouldDrawPowerGrid)
         {
-            if (OverlayDrawHandler.ShouldDrawPowerGrid)
-            {
-                base.DrawLayer();
-            }
+            base.DrawLayer();
         }
+    }
 
-        protected override void TakePrintFrom(Thing t)
+    protected override void TakePrintFrom(Thing t)
+    {
+        if (t.Faction != null && t.Faction != Faction.OfPlayer)
         {
-            if (t.Faction != null && t.Faction != Faction.OfPlayer)
-            {
-                return;
-            }
-            if (t is Building building)
-            {
-                building.PrintForPowerGrid(this);
-            }
+            return;
+        }
+        if (t is Building building)
+        {
+            building.PrintForPowerGrid(this);
         }
     }
 }
