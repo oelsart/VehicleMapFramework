@@ -1,6 +1,13 @@
 {
-  "version": "1.6.0",
+  "$schema": "https://raw.githubusercontent.com/dotnet/Nerdbank.GitVersioning/main/src/Nerdbank.GitVersioning/version.schema.json",
+  "version": "1.6.0", // ベースバージョン。Gitコミット数でビルド番号が自動的に決まる
+  "assemblyVersion": {
+    "precision": "build" // AssemblyVersionをmajor.minor.build.0の形式にする
+  },
+  "fileVersion": {
+    "precision": "revision" // FileVersionをmajor.minor.build.revisionの形式にする
+  },
   "publicReleaseRefSpec": [
-    "refs/heads/1.6",
+    "refs/heads/1.6" // このブランチではプレリリースサフィックス（-alphaなど）を付けない
   ]
 }
