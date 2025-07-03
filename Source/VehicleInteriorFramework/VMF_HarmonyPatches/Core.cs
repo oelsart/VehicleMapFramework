@@ -99,7 +99,7 @@ public static class HarmonyPatchReport
 {
     static HarmonyPatchReport()
     {
-        VMF_Log.Message($"{VehicleInteriors.mod.Content.ModMetaData.ModVersion} rev{Assembly.GetExecutingAssembly().GetName().Version.Revision}");
+        VMF_Log.Message($"{VehicleInteriors.mod.Content.ModMetaData.ModVersion} rev{FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).FilePrivatePart}");
         VMF_Log.Message($"{VMF_Harmony.Instance.GetPatchedMethods().Count()} patches applied.");
         //MethodInfoCache.CachedMethodInfo = null;
     }
