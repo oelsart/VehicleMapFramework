@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using VehicleInteriors.VMF_HarmonyPatches;
 using Vehicles;
 using Verse;
 using static VehicleInteriors.ModCompat;
@@ -379,6 +380,12 @@ public class VehiclePawnWithMap : VehiclePawn
         base.DeSpawn(mode);
     }
 
+    //非スポーン時DrawTrackerのDynamicDrawPhaseAtが直接呼ばれるのを回避
+    public override void DrawAt(in Vector3 drawLoc, Rot8 rot, float rotation)
+    {
+        DynamicDrawPhaseAt(DrawPhase.Draw, drawLoc, false);
+    }
+
     public override void DynamicDrawPhaseAt(DrawPhase phase, Vector3 drawLoc, bool flip = false)
     {
         if (phase == DrawPhase.Draw)
@@ -606,6 +613,28 @@ public class VehiclePawnWithMap : VehiclePawn
                 matrix.SetTRS(c.ToVector3Shifted().ToBaseMapCoord(), quat, s);
                 Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
             }
+        }
+
+        if (Find.CurrentMap == map && WorldRendererUtility.DrawingMap && VehicleInteriors.settings.drawPlanet)
+        {
+            Material material = MapEdgeClipDrawer.ClipMat;
+            Vector2 size = Patch_Map_MapUpdate.MeshSize;
+            var longSide = Mathf.Max(DrawSize.x / 2f, DrawSize.y / 2f);
+            Vector3 origin = new(-size.x / 2f + longSide, 0f, -size.y / 2f + longSide);
+            Vector3 s = new(500f, 1f, size.y);
+            Matrix4x4 matrix = default;
+            matrix.SetTRS(new Vector3(-250f, 0f, size.y / 2f) + origin, Quaternion.identity, s);
+            Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
+            matrix = default;
+            matrix.SetTRS(new Vector3(size.x + 250f, 0f, size.y / 2f) + origin, Quaternion.identity, s);
+            Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
+            s = new Vector3(1000f, 1f, 500f);
+            matrix = default;
+            matrix.SetTRS(new Vector3(size.x / 2f, 0f, size.y + 250f) + origin, Quaternion.identity, s);
+            Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
+            matrix = default;
+            matrix.SetTRS(new Vector3(size.x / 2f, 0f, -250f) + origin, Quaternion.identity, s);
+            Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
         }
     }
 

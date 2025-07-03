@@ -20,14 +20,11 @@ public class CompVehicleSeat : CompBuildableUpgrades
             {
                 if (handler.AreSlotsAvailable && handlerUniqueIDs.Any(h => h.id == handler.uniqueID))
                 {
-                    VehicleReservationManager cachedMapComponent = vehicle.Map?.GetCachedMapComponent<VehicleReservationManager>();
-                    string key = "VF_EnterVehicle";
-                    NamedArgument arg = vehicle.LabelShort;
-                    NamedArgument arg2 = handler.role.label;
-                    int slots = handler.role.Slots;
-                    int count = handler.thingOwner.Count;
-                    VehicleHandlerReservation reservation = cachedMapComponent?.GetReservation<VehicleHandlerReservation>(vehicle);
-                    FloatMenuOption floatMenuOption2 = new(key.Translate(arg, arg2, (slots - (count + ((reservation != null) ? new int?(reservation.ClaimantsOnHandler(handler)) : null)).GetValueOrDefault()).ToString()), delegate ()
+                    VehicleReservationManager reservationManager = vehicle.Map?.GetCachedMapComponent<VehicleReservationManager>();
+                    bool canOperate = handler.CanOperateRole(selPawn);
+                    int reservedCount = reservationManager?.GetReservation<VehicleHandlerReservation>(vehicle)?.ClaimantsOnHandler(handler) ?? 0;
+                    string label = (canOperate ? "VF_BoardVehicle".Translate(handler.role.label, (handler.role.Slots - (handler.thingOwner.Count + reservedCount)).ToString()) : "VF_BoardVehicleGroupFail".Translate(handler.role.label, "VF_BoardFailureNonCombatant".Translate(selPawn.LabelShort)));
+                    FloatMenuOption floatMenuOption = new(label, delegate
                     {
                         if (handler == null)
                         {
@@ -41,9 +38,12 @@ public class CompVehicleSeat : CompBuildableUpgrades
                         {
                             return;
                         }
-                        vehicle.Map?.GetCachedMapComponent<VehicleReservationManager>().Reserve<VehicleRoleHandler, VehicleHandlerReservation>(vehicle, selPawn, selPawn.CurJob, handler);
-                    }, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0);
-                    yield return floatMenuOption2;
+                        reservationManager?.Reserve<VehicleRoleHandler, VehicleHandlerReservation>(vehicle, selPawn, selPawn.CurJob, handler);
+                    })
+                    {
+                        Disabled = !canOperate
+                    };
+                    yield return floatMenuOption;
                 }
             }
         }

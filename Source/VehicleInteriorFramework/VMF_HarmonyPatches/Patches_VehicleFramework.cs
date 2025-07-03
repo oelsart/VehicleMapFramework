@@ -81,12 +81,15 @@ public static class Patch_CompVehicleTurrets_CompGetGizmosExtra
     {
         foreach (var gizmo in gizmos)
         {
-            if (gizmo is Command_CooldownAction command_CooldownAction && __instance.Vehicle is VehiclePawnWithMap)
+            if (gizmo is Command_Turret command_Turret && __instance.Vehicle is VehiclePawnWithMap)
             {
-                var turret = command_CooldownAction.turret;
-                if (!VehicleMod.settings.debug.debugShootAnyTurret && !command_CooldownAction.Disabled && !__instance.Vehicle.handlers.Any(h => h.role.handlingTypes == HandlingType.Turret || h.role.TurretIds.Contains(!turret.groupKey.NullOrEmpty() ? turret.groupKey : turret.key)))
+                var turret = command_Turret.turret;
+                if (turret != null &&
+                    !command_Turret.Disabled &&
+                    !VehicleMod.settings.debug.debugShootAnyTurret &&
+                    !__instance.Vehicle.handlers.Any(h => h.role.handlingTypes.HasFlag(HandlingType.Turret) && (h.role.TurretIds?.Contains(!turret.groupKey.NullOrEmpty() ? turret.groupKey : turret.key) ?? false)))
                 {
-                    command_CooldownAction.Disable("VMF_NoRoles".Translate(__instance.Vehicle.LabelShort));
+                    command_Turret.Disable("VMF_NoRoles".Translate(__instance.Vehicle.LabelShort));
                 }
             }
             yield return gizmo;
@@ -195,23 +198,6 @@ public static class Patch_AssetBundleDatabase_SupportsRGBMaskTex
             shader == VMF_DefOf.VMF_CutoutComplexSkinOpacity.Shader));
     }
 }
-
-//[HarmonyPatch(typeof(VehicleTurret), nameof(VehicleTurret.DrawAt))]
-//public static class Patch_VehicleTurret_DrawAt
-//{
-//    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-//    {
-//        var g_Rot8_North = AccessTools.PropertyGetter(typeof(Rot8), nameof(Rot8.North));
-//        foreach (var instruction in instructions)
-//        {
-//            if (instruction.opcode == OpCodes.Call && instruction.OperandIs(g_Rot8_North))
-//            {
-//                yield return CodeInstruction.LoadArgument(2);
-//            }
-//            else yield return instruction;
-//        }
-//    }
-//}
 
 [HarmonyPatch(typeof(VehicleTurret), nameof(VehicleTurret.AngleBetween))]
 public static class Patch_VehicleTurret_AngleBetween

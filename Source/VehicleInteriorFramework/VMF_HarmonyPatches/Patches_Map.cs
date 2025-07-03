@@ -153,6 +153,21 @@ public static class Patch_MapTemperature_OutdoorTemp
     }
 }
 
+//VehicleMapのバイオームは外側のタイルのバイオーム
+[HarmonyPatch(typeof(Map), nameof(Map.Biome), MethodType.Getter)]
+public static class  Patch_Map_Biome
+{
+    public static bool Prefix(Map __instance, ref  BiomeDef __result)
+    {
+        if (__instance.IsVehicleMapOf(out var vehicle))
+        {
+            __result = vehicle.Tile.Tile?.PrimaryBiome ?? __instance.TileInfo.PrimaryBiome;
+            return false;
+        }
+        return true;
+    }
+}
+
 //リソースカウンターに車上マップのリソースを追加
 [HarmonyPatch(typeof(ResourceCounter), nameof(ResourceCounter.UpdateResourceCounts))]
 public static class Patch_ResourceCounter_UpdateResourceCounts
@@ -198,7 +213,7 @@ public static class Patch_Map_MapUpdate
         }
 
         if (VehicleInteriors.settings.drawPlanet && Find.CurrentMap == __instance && __instance.IsVehicleMapOf(out var vehicle) &&
-            !WorldRendererUtility.WorldRendered)
+            WorldRendererUtility.DrawingMap)
         {
             if (Find.World.renderer.RegenerateLayersIfDirtyInLongEvent())
             {
@@ -239,11 +254,28 @@ public static class Patch_Map_MapUpdate
                 {
                     mat.SetTexture(0, renderTexture);
                 }
-                vehicle.FullRotation = worldObject is VehicleCaravan vehicleCaravan ?
-                    Rot8.FromAngle((Find.WorldGrid.GetTileCenter(vehicleCaravan.vehiclePather.nextTile != -1 ? vehicleCaravan.vehiclePather.nextTile : vehicleCaravan.Tile) - Find.WorldGrid.GetTileCenter(vehicleCaravan.Tile)).AngleFlat()) :
+
+                var planetLayer = __instance.Tile.Layer;
+                float AngleOnPlanetSurface(Vector3 root, Vector3 to)
+                {
+                    if (planetLayer == null)
+                    {
+                        return 0f;
+                    }
+                    var normal = root - planetLayer.Origin;
+                    var planeFrom = Vector3.ProjectOnPlane(planetLayer.NorthPolePos, normal);
+                    var planeTo = Vector3.ProjectOnPlane(to, normal);
+                    var signedAngle = Vector3.SignedAngle(planeFrom, planeTo, normal);
+                    return Mathf.Repeat(signedAngle + 180f, 360f);
+                }
+
+                vehicle.FullRotation =
+                    worldObject is VehicleCaravan vehicleCaravan ?
+                    Rot8.FromAngle(AngleOnPlanetSurface(Find.WorldGrid.GetTileCenter(vehicleCaravan.vehiclePather.nextTile.Valid ? vehicleCaravan.vehiclePather.nextTile : vehicleCaravan.Tile), Find.WorldGrid.GetTileCenter(vehicleCaravan.Tile))) :
                     worldObject is Caravan caravan ?
-                    Rot8.FromAngle((Find.WorldGrid.GetTileCenter(caravan.pather.nextTile != -1 ? caravan.pather.nextTile : caravan.Tile) - Find.WorldGrid.GetTileCenter(caravan.Tile)).AngleFlat()) :
-                    worldObject is AerialVehicleInFlight aerial ? Rot8.FromAngle((aerial.DrawPos - aerial.position).AngleFlat()) : Rot8.East;
+                    Rot8.FromAngle(AngleOnPlanetSurface(Find.WorldGrid.GetTileCenter(caravan.pather.nextTile.Valid ? caravan.pather.nextTile : caravan.Tile), Find.WorldGrid.GetTileCenter(caravan.Tile))) :
+                    worldObject is AerialVehicleInFlight aerial ?
+                    Rot8.FromAngle(AngleOnPlanetSurface(aerial.DrawPos, aerial.position)) : Rot8.East;
             }
             var longSide = Mathf.Max(vehicle.DrawSize.x / 2f, vehicle.DrawSize.y / 2f);
             var drawPos = new Vector3(longSide, 0f, longSide);
@@ -259,7 +291,7 @@ public static class Patch_Map_MapUpdate
     {
         var codes = instructions.ToList();
         var g_DrawingMap = AccessTools.PropertyGetter(typeof(WorldRendererUtility), nameof(WorldRendererUtility.DrawingMap));
-        var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(g_DrawingMap)) + 1;
+        var pos = codes.FindIndex(c => c.Calls(g_DrawingMap)) + 1;
         var label = generator.DefineLabel();
         var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithMap));
 
@@ -267,14 +299,16 @@ public static class Patch_Map_MapUpdate
         codes.InsertRange(pos,
         [
             new CodeInstruction(OpCodes.Dup),
-            new CodeInstruction(OpCodes.Brtrue_S, label),
-            new CodeInstruction(OpCodes.Pop),
+            new CodeInstruction(OpCodes.Brfalse_S, label),
             CodeInstruction.LoadField(typeof(VehicleInteriors), nameof(VehicleInteriors.settings)),
             CodeInstruction.LoadField(typeof(VehicleMapSettings), nameof(VehicleMapSettings.drawPlanet)),
             new CodeInstruction(OpCodes.Brfalse_S, label),
             CodeInstruction.LoadArgument(0),
             new CodeInstruction(OpCodes.Ldloca, vehicle),
             new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsVehicleMapOf),
+            new CodeInstruction(OpCodes.Brfalse_S, label),
+            new CodeInstruction(OpCodes.Pop),
+            new CodeInstruction(OpCodes.Ldc_I4_0),
         ]);
         return codes;
     }
@@ -283,7 +317,9 @@ public static class Patch_Map_MapUpdate
 
     private const int textureSize = 2048;
 
-    private static Mesh mesh200 = MeshPool.GridPlane(new Vector2(200f, 200f));
+    public readonly static Vector2 MeshSize = new(200f, 200f);
+
+    private static Mesh mesh200 = MeshPool.GridPlane(MeshSize);
 
     private static Material mat;
 

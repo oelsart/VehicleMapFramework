@@ -48,11 +48,11 @@ public class JobDriver_BoardAcrossMaps : JobDriverAcrossMaps
             if (lord?.LordJob is LordJob_FormAndSendVehicles lordJob_FormAndSendVehicles)
             {
                 var vehicleAssigned = lordJob_FormAndSendVehicles.GetVehicleAssigned(pawnBoarding);
-                vehicleAssigned.Vehicle.TryAddPawn(pawn, vehicleAssigned.handler);
+                vehicleAssigned.Vehicle.TryAddPawn(pawnBoarding, vehicleAssigned.handler);
             }
             else
             {
-                vehiclePawn.BoardPawn(pawn);
+                vehiclePawn.BoardPawn(pawnBoarding);
                 var caravan = vehiclePawn.GetCaravan() ?? vehiclePawn.GetVehicleCaravan();
                 caravan?.AddPawn(pawnBoarding, true);
                 Find.WorldPawns.PassToWorld(pawnBoarding, PawnDiscardDecideMode.Decide);
