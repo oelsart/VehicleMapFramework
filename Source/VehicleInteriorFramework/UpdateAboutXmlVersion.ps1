@@ -30,6 +30,11 @@ catch {
     exit 1
 }
 
+$versionParts = $newVersion.Split('.')
+if ($versionParts.Length -eq 4) {
+    $newVersion = "$($versionParts[0]).$($versionParts[1]).$($versionParts[2])"
+}
+
 Write-Host "Updating XML file: $AboutXmlPath"
 Write-Host "Setting modVersion to: $newVersion"
 
