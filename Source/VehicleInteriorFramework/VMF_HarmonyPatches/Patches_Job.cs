@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using LudeonTK;
 using RimWorld;
 using System;
 using System.Collections.Generic;
@@ -1076,21 +1077,30 @@ public static class Patch_JobDriver_Mine_MakeNewToils_Delegate
         return AccessTools.FindIncludingInnerTypes<MethodBase>(typeof(JobDriver_Mine), t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name == "<MakeNewToils>b__0"));
     }
 
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        foreach (var instruction in instructions)
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            if (instruction.Calls(CachedMethodInfo.g_Thing_Map))
+            //先にget_TargetAをstloc.0しとくぞ
+            var pos = instructions.FirstIndexOf(c => c.opcode == OpCodes.Stloc_0) - 3;
+            if (pos >= 0)
             {
-                yield return CodeInstruction.LoadLocal(0);
-                yield return CodeInstruction.Call(typeof(Patch_JobDriver_Mine_MakeNewToils_Delegate), nameof(Patch_JobDriver_Mine_MakeNewToils_Delegate.TargetMap));
+                foreach (var instruction in instructions.Skip(pos).Take(4))
+                {
+                    yield return instruction;
+                }
             }
-            else
+            foreach (var instruction in instructions)
             {
-                yield return instruction;
+                if (instruction.Calls(CachedMethodInfo.g_Thing_Map))
+                {
+                    yield return CodeInstruction.LoadLocal(0);
+                    yield return CodeInstruction.Call(typeof(Patch_JobDriver_Mine_MakeNewToils_Delegate), nameof(TargetMap));
+                }
+                else
+                {
+                    yield return instruction;
+                }
             }
         }
-    }
 
     private static Map TargetMap(Thing thing, LocalTargetInfo target)
     {
