@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using LudeonTK;
 using RimWorld;
 using SmashTools;
 using System;
@@ -1017,12 +1018,21 @@ namespace VehicleInteriors.VMF_HarmonyPatches
 
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
+            //先にget_TargetAをstloc.0しとくぞ
+            var pos = instructions.FirstIndexOf(c => c.opcode == OpCodes.Stloc_0) - 3;
+            if (pos >= 0)
+            {
+                foreach (var instruction in instructions.Skip(pos).Take(4))
+                {
+                    yield return instruction;
+                }
+            }
             foreach (var instruction in instructions)
             {
                 if (instruction.Calls(CachedMethodInfo.g_Thing_Map))
                 {
                     yield return CodeInstruction.LoadLocal(0);
-                    yield return CodeInstruction.Call(typeof(Patch_JobDriver_Mine_MakeNewToils_Delegate), nameof(Patch_JobDriver_Mine_MakeNewToils_Delegate.TargetMap));
+                    yield return CodeInstruction.Call(typeof(Patch_JobDriver_Mine_MakeNewToils_Delegate), nameof(TargetMap));
                 }
                 else
                 {
