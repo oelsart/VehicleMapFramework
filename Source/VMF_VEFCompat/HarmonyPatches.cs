@@ -8,6 +8,7 @@ using VehicleInteriors;
 using VehicleInteriors.VMF_HarmonyPatches;
 using Vehicles;
 using Verse;
+using VFECore;
 using static VehicleInteriors.MethodInfoCache;
 
 namespace VMF_VEFCompat
@@ -111,5 +112,15 @@ namespace VMF_VEFCompat
         }
 
         private static readonly AccessTools.StructFieldRef<Rot4, byte> rotInt = AccessTools.StructFieldRefAccess<Rot4, byte>("rotInt");
+    }
+
+    [HarmonyPatchCategory("VMF_Patches_VEF")]
+    [HarmonyPatch(typeof(ExpandableProjectile), nameof(ExpandableProjectile.StartingPosition), MethodType.Getter)]
+    public static class Patch_ExpandableProjectile_StartingPosition
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(CachedMethodInfo.m_OccupiedRect, CachedMethodInfo.m_MovedOccupiedRect);
+        }
     }
 }
