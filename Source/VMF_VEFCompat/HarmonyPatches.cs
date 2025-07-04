@@ -4,11 +4,13 @@ using SmashTools;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using VehicleInteriors;
+using VehicleInteriors.VMF_HarmonyPatches;
 using Vehicles;
 using Verse;
 using static VehicleInteriors.MethodInfoCache;
 
-namespace VehicleInteriors.VMF_HarmonyPatches
+namespace VMF_VEFCompat
 {
     [StaticConstructorOnStartupPriority(Priority.Low)]
     public static class Patches_VEF
