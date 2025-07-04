@@ -4,6 +4,7 @@ using SmashTools;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using VEF.Weapons;
 using Verse;
 using static VehicleInteriors.MethodInfoCache;
 
@@ -108,4 +109,14 @@ public static class Patch_CompResourceStorage_PostDraw
     }
 
     private static readonly AccessTools.StructFieldRef<Rot4, byte> rotInt = AccessTools.StructFieldRefAccess<Rot4, byte>("rotInt");
+}
+
+[HarmonyPatchCategory("VMF_Patches_VEF")]
+[HarmonyPatch(typeof(ExpandableProjectile), nameof(ExpandableProjectile.StartingPosition), MethodType.Getter)]
+public static class Patch_ExpandableProjectile_StartingPosition
+{
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        return instructions.MethodReplacer(CachedMethodInfo.m_OccupiedRect, CachedMethodInfo.m_MovedOccupiedRect);
+    }
 }
