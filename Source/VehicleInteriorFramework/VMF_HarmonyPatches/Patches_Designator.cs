@@ -255,18 +255,7 @@ public static class Patch_DesignationDragger_DraggerUpdate
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
-        var codes = instructions.ToList();
-        var pos = codes.FindIndex(c => c.opcode == OpCodes.Stloc_0);
-        var label = generator.DefineLabel();
-
-        codes[pos].labels.Add(label);
-        codes.InsertRange(pos,
-        [
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.g_FocusedVehicle),
-            new CodeInstruction(OpCodes.Brfalse_S, label),
-            new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.ToVehicleMapCoord), [typeof(CellRect)]))
-        ]);
-        return codes;
+        return instructions.MethodReplacer(CachedMethodInfo.m_CellRect_ClipInsideMap, CachedMethodInfo.m_ClipInsideVehicleMap);
     }
 }
 

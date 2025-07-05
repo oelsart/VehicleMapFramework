@@ -93,7 +93,7 @@ public class CompVehicleSeat : CompBuildableUpgrades
                 }
             }
 
-            foreach (var gizmo in vehicle.AllComps.Where(c => c is CompTogglableOverlays).SelectMany(c => c.CompGetGizmosExtra()))
+            foreach (var gizmo in vehicle.AllComps.Where(c => c is CompOpacityOverlay).SelectMany(c => c.CompGetGizmosExtra()))
             {
                 yield return gizmo;
             }

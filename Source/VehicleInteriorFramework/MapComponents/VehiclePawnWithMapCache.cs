@@ -33,7 +33,7 @@ public class VehiclePawnWithMapCache : MapComponent
         var hashSet = Find.Maps.Select(m => MapComponentCache<VehiclePawnWithMapCache>.GetComponent(m).allVehicles).FirstOrDefault(h => h.Contains(vehicle));
         if (hashSet == null)
         {
-            Log.Warning("[VehicleMapFramework] Tried to deregister an unregistered vehicle.");
+            VMF_Log.Warning("Tried to deregister an unregistered vehicle.");
             return;
         }
         hashSet.Remove(vehicle);

@@ -39,7 +39,7 @@ public class JobDriver_BoardAcrossMaps : JobDriverAcrossMaps
             {
                 if (!target.IsOnVehicleMapOf(out var vehiclePawnWithMap))
                 {
-                    Log.Error("[VehicleMapFramework] TargetA of JobDriver_BoardAcrossMaps must be VehiclePawn or on vehicle map.");
+                    VMF_Log.Error("TargetA of JobDriver_BoardAcrossMaps must be VehiclePawn or on vehicle map.");
                     return;
                 }
                 vehiclePawn = vehiclePawnWithMap;

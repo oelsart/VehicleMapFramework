@@ -17,7 +17,7 @@ public class CompAlternator : CompPowerPlant
             {
                 if (!parent.IsOnVehicleMapOf(out vehicle))
                 {
-                    Log.Error("[VehicleMapFramework] Alternator is not on vehicle map.");
+                    VMF_Log.Error("Alternator is not on vehicle map.");
                 }
             }
             return vehicle;

@@ -5,17 +5,19 @@ using Verse;
 
 namespace VehicleInteriors;
 
-public class CompEngineLightOverlays : CompTogglableOverlays
+public class CompEngineLightOverlay : CompOpacityOverlay
 {
-    new public CompProperties_EngineLightOverlays Props => (CompProperties_EngineLightOverlays)props;
+    new public CompProperties_EngineLightOverlay Props => (CompProperties_EngineLightOverlay)props;
 
     public override IEnumerable<Gizmo> CompGetGizmosExtra()
     {
-        return new List<Gizmo>();
+        yield break;
     }
 
     public override void CompTick()
     {
+        var overlay = Overlay;
+        var graphic = overlay?.Graphic as Graphic_VehicleOpacity;
         if (base.Vehicle.ignition.Drafted && !ignitionComplete)
         {
             if (ignitionTick == null)
@@ -29,13 +31,7 @@ public class CompEngineLightOverlays : CompTogglableOverlays
                 {
                     ignitionComplete = true;
                 }
-                foreach (var graphicOverlay in base.Overlays)
-                {
-                    if (graphicOverlay.Graphic is Graphic_VehicleOpacity graphic)
-                    {
-                        graphic.Opacity = opacity;
-                    }
-                }
+                graphic?.Opacity = opacity;
             }
         }
         if (!base.Vehicle.ignition.Drafted && ignitionTick != null)
@@ -47,15 +43,12 @@ public class CompEngineLightOverlays : CompTogglableOverlays
 
         if (!landingComplete)
         {
-            foreach (var graphicOverlay in base.Overlays)
+            if (graphic != null)
             {
-                if (graphicOverlay.Graphic is Graphic_VehicleOpacity graphic)
+                graphic.Opacity = Mathf.Max(0f, graphic.Opacity - 0.004f);
+                if (graphic.Opacity == 0f)
                 {
-                    graphic.Opacity = Mathf.Max(0f, graphic.Opacity - 0.004f);
-                    if (graphic.Opacity == 0f)
-                    {
-                        landingComplete = true;
-                    }
+                    landingComplete = true;
                 }
             }
         }
@@ -63,15 +56,12 @@ public class CompEngineLightOverlays : CompTogglableOverlays
         if (base.Vehicle.CompVehicleLauncher != null && base.Vehicle.CompVehicleLauncher.inFlight)
         {
             ignitionTick ??= Find.TickManager.TicksGame;
-            foreach (var graphicOverlay in base.Overlays)
+            if (graphic != null)
             {
-                if (graphicOverlay.Graphic is Graphic_VehicleOpacity graphic)
-                {
-                    var launchProtocol = base.Vehicle.CompVehicleLauncher.launchProtocol;
-                    var timeInAnimation = launchProtocol is VTOLTakeoff vtol ? vtol.TimeInAnimationVTOL : launchProtocol.TimeInAnimation;
-                    var opacity = Mathf.Min(graphic.Opacity + ((Props.inFlightOpacity - graphic.Opacity) * timeInAnimation * 0.1f), Props.inFlightOpacity);
-                    graphic.Opacity = opacity;
-                }
+                var launchProtocol = base.Vehicle.CompVehicleLauncher.launchProtocol;
+                var timeInAnimation = launchProtocol is VTOLTakeoff vtol ? vtol.TimeInAnimationVTOL : launchProtocol.TimeInAnimation;
+                var opacity = Mathf.Min(graphic.Opacity + ((Props.inFlightOpacity - graphic.Opacity) * timeInAnimation * 0.1f), Props.inFlightOpacity);
+                graphic.Opacity = opacity;
             }
         }
     }

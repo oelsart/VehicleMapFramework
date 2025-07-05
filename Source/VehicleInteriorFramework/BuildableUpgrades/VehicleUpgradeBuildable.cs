@@ -173,14 +173,14 @@ public class VehicleUpgradeBuildable : VehicleUpgrade
             var uniqueID = parent.handlerUniqueIDs.FirstOrDefault(h => h.key == roleUpgrade.key && h.editKey == roleUpgrade.editKey);
             if (uniqueID == default)
             {
-                Log.Error("[VehicleMapFramework] No uniqueID corresponding to this role upgrade found.");
+                VMF_Log.Error("No uniqueID corresponding to this role upgrade found.");
                 return;
             }
             var handlers = vehicle.handlers;
             var index = handlers.FindIndex(h => h.uniqueID == uniqueID.id); //indexで検索しないと後のvehicle.handlers.Remove(handler)で最初の要素が消去されてしまう
             if (index == -1)
             {
-                Log.Error("Unable to edit " + roleUpgrade.editKey + ". Matching VehicleRole not found.");
+                VMF_Log.Error("Unable to edit " + roleUpgrade.editKey + ". Matching VehicleRole not found.");
                 return;
             }
             var handler = handlers[index];
@@ -214,13 +214,13 @@ public class VehicleUpgradeBuildable : VehicleUpgrade
                 var uniqueID = parent.handlerUniqueIDs.FirstOrDefault(h => h.key == roleUpgrade.key && h.editKey == roleUpgrade.editKey);
                 if (uniqueID == default)
                 {
-                    Log.Error("[VehicleMapFramework] No uniqueID corresponding to this role upgrade found.");
+                    VMF_Log.Error("No uniqueID corresponding to this role upgrade found.");
                     return;
                 }
                 VehicleRoleHandler handler = vehicle.handlers.FirstOrDefault(h => h.uniqueID == uniqueID.id);
                 if (handler == null)
                 {
-                    Log.Error("Unable to edit " + roleUpgrade.editKey + ". Matching VehicleRole not found.");
+                    VMF_Log.Error("Unable to edit " + roleUpgrade.editKey + ". Matching VehicleRole not found.");
                     return;
                 }
                 var role = RoleUpgradeBuildable.RoleFromUpgrade(roleUpgrade, parent, out var roleUpgrade2, uniqueID.turretIds);

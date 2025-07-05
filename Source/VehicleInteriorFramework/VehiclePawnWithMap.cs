@@ -674,22 +674,8 @@ public class VehiclePawnWithMap : VehiclePawn
     protected override void PostLoad()
     {
         base.PostLoad();
-        if (!Spawned && !Destroyed)
-        {
-            CompVehicleTurrets?.RevalidateTurrets();
-            if (UnityData.IsInMainThread)
-            {
-                DrawTracker.overlayRenderer.Init();
-            }
-            else
-            {
-                LongEventHandler.ExecuteWhenFinished(() =>
-                {
-                    DrawTracker.overlayRenderer.Init();
-                });
-            }
-            base.ResetRenderStatus();
-        }
+        CompVehicleTurrets?.RevalidateTurrets();
+        base.ResetRenderStatus();
     }
 
     private Map interiorMap;

@@ -19,7 +19,7 @@ public class CompBuildableContainer : CompTransporter
             {
                 return vehicle;
             }
-            Log.Error("[VehicleMapFramework] Container is not on any vehicle map");
+            VMF_Log.Error("Container is not on any vehicle map");
             return null;
         }
     }

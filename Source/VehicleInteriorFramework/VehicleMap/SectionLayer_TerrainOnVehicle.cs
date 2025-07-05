@@ -22,7 +22,7 @@ public class SectionLayer_TerrainOnVehicle : SectionLayer
         relevantChangeTypes = MapMeshFlagDefOf.Terrain;
         if (base.Map.Parent is not MapParent_Vehicle parentVehicle)
         {
-            Log.Error("[VehicleMapFramework] Do not use SectionLayer_TerrainOnVehicle except for vehicle maps.");
+            VMF_Log.Error("Do not use SectionLayer_TerrainOnVehicle except for vehicle maps.");
             return;
         }
         baseTerrainMat = SolidColorMaterials.NewSolidColorMaterial(parentVehicle.vehicle.DrawColor, ShaderDatabase.TerrainHard);
@@ -49,7 +49,7 @@ public class SectionLayer_TerrainOnVehicle : SectionLayer
     {
         if (!base.Map.IsVehicleMapOf(out var vehicle))
         {
-            Log.Error("[VehicleMapFramework] Do not use SectionLayer_TerrainOnVehicle except for vehicle maps.");
+            VMF_Log.Error("Do not use SectionLayer_TerrainOnVehicle except for vehicle maps.");
             return;
         }
         var mapSize = new Vector3(vehicle.VehicleMap.Size.x, 0f, vehicle.VehicleMap.Size.z);

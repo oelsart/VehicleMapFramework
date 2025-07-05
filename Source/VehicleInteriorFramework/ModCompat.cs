@@ -19,7 +19,7 @@ public static class ModCompat
 
     private static void LogIncompat(string modName)
     {
-        Log.Error($"[VehicleMapFramework] {modName} compatibility is broken.");
+        VMF_Log.Error($"{modName} compatibility is broken.");
     }
 
     public static class AdaptiveStorage

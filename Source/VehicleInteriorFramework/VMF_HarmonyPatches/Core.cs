@@ -29,7 +29,7 @@ public class VMF_Harmony
                 }
                 catch (Exception ex)
                 {
-                    VMF_Log.Error($"Error while apply patching: {ex}");
+                    VMF_Log.Error($"Error while apply patching.\n{ex}");
                 }
             });
     }
@@ -88,7 +88,7 @@ public static class Core
                 }
                 catch (Exception ex)
                 {
-                    VMF_Log.Error($"Error while apply patching: {ex}");
+                    VMF_Log.Error($"Error while apply patching\n{ex}");
                 }
             });
     }

@@ -4,6 +4,7 @@ using SmashTools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
 using Vehicles;
@@ -627,18 +628,19 @@ public static class Patch_GenDraw_DrawTargetHighlightWithLayer
 [HarmonyPatch(typeof(DesignationDragger), nameof(DesignationDragger.DraggerOnGUI))]
 public static class Patch_DesignationDragger_DraggerOnGUI
 {
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator, MethodBase original)
     {
         var codes = instructions.ToList();
         var c_Vector3 = AccessTools.Constructor(typeof(Vector3), [typeof(float), typeof(float), typeof(float)]);
         var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(c_Vector3)) + 1;
+        var ind = original.GetMethodBody().LocalVariables.First(l => l.LocalType == typeof(Vector3)).LocalIndex;
         codes.InsertRange(pos,
         [
-            new CodeInstruction(OpCodes.Ldloc_2),
+            CodeInstruction.LoadLocal(ind),
             new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ToBaseMapCoord1),
             new CodeInstruction(OpCodes.Ldc_R4, 0f),
             new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_Vector3Utility_WithY),
-            new CodeInstruction(OpCodes.Stloc_2)
+            CodeInstruction.StoreLocal(ind)
         ]);
 
         var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Newobj && c.OperandIs(c_Vector3)) + 1;

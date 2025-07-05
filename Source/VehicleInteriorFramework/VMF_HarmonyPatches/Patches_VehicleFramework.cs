@@ -193,9 +193,7 @@ public static class Patch_AssetBundleDatabase_SupportsRGBMaskTex
     public static void Postfix(ref bool __result, Shader shader, bool ignoreSettings)
     {
         __result = __result || ((VehicleMod.settings.main.useCustomShaders || ignoreSettings) &&
-            (shader == VMF_DefOf.VMF_CutoutComplexRGBOpacity.Shader ||
-            shader == VMF_DefOf.VMF_CutoutComplexPatternOpacity.Shader ||
-            shader == VMF_DefOf.VMF_CutoutComplexSkinOpacity.Shader));
+            shader.SupportsOpacity());
     }
 }
 
@@ -210,84 +208,6 @@ public static class Patch_VehicleTurret_AngleBetween
         }
     }
 }
-
-[HarmonyPatch(typeof(VehicleGraphics), nameof(VehicleGraphics.RetrieveAllOverlaySettingsGraphicsProperties), typeof(Rect), typeof(VehicleDef), typeof(Rot8), typeof(PatternData), typeof(List<GraphicOverlay>))]
-public static class Patch_VehicleGraphics_RetrieveAllOverlaySettingsGraphicsProperties
-{
-    public static IEnumerable<VehicleGraphics.RenderData> Postfix(IEnumerable<VehicleGraphics.RenderData> values, Rect rect, VehicleDef vehicleDef, Rot8 rot, PatternData pattern)
-    {
-        foreach (var value in values)
-        {
-            yield return value;
-        }
-        foreach (CompProperties_TogglableOverlays compProperties in vehicleDef.comps.OfType<CompProperties_TogglableOverlays>())
-        {
-            foreach (var graphicOverlay in compProperties.overlays)
-            {
-                if (graphicOverlay.data.renderUI)
-                {
-                    yield return VehicleGraphics.RetrieveOverlaySettingsGraphicsProperties(rect, vehicleDef, rot, graphicOverlay, pattern);
-                }
-            }
-        }
-    }
-}
-
-//[HarmonyPatch(typeof(VehicleGui), nameof(VehicleGui.RetrieveAllOverlaySettingsGUIProperties), typeof(Rect), typeof(VehicleDef), typeof(Rot8), typeof(List<GraphicOverlay>))]
-//public static class Patch_VehicleGUI_RetrieveAllOverlaySettingsGUIProperties
-//{
-//    public static IEnumerable<VehicleGui.RenderData> Postfix(IEnumerable<VehicleGui.RenderData> values, Rect rect, VehicleDef vehicleDef, Rot8 rot)
-//    {
-//        foreach (var value in values)
-//        {
-//            yield return value;
-//        }
-//        foreach (CompProperties_TogglableOverlays compProperties in vehicleDef.comps.OfType<CompProperties_TogglableOverlays>())
-//        {
-//            foreach (var graphicOverlay in compProperties.overlays)
-//            {
-//                if (graphicOverlay.data.renderUI)
-//                {
-//                    yield return VehicleGUI.RetrieveOverlaySettingsGUIProperties(rect, vehicleDef, rot, graphicOverlay);
-//                }
-//            }
-//        }
-//    }
-//}
-
-//[HarmonyPatch(typeof(VehicleGhostUtility), nameof(VehicleGhostUtility.GhostGraphicOverlaysFor))]
-//public static class Patch_VehicleGhostUtility_GhostGraphicOverlaysFor
-//{
-//    public static IEnumerable<ValueTuple<Graphic, float>> Postfix(IEnumerable<ValueTuple<Graphic, float>> values, VehicleDef vehicleDef, Color ghostColor)
-//    {
-//        foreach (var value in values)
-//        {
-//            yield return value;
-//        }
-//        int num = 0;
-//        num = Gen.HashCombine<VehicleDef>(num, vehicleDef);
-//        num = Gen.HashCombineStruct<Color>(num, ghostColor);
-//        foreach (CompProperties_TogglableOverlays compProperties in vehicleDef.comps.OfType<CompProperties_TogglableOverlays>())
-//        {
-//            foreach (var graphicOverlay in compProperties.overlays)
-//            {
-//                int key = Gen.HashCombine<GraphicDataRGB>(num, graphicOverlay.data.graphicData);
-//                if (!VehicleGhostUtility.cachedGhostGraphics.TryGetValue(key, out Graphic graphic))
-//                {
-//                    graphic = graphicOverlay.Graphic;
-//                    GraphicData graphicData = new GraphicData();
-//                    graphicData.CopyFrom(graphic.data);
-//                    graphicData.drawOffsetWest = graphic.data.drawOffsetWest;
-//                    graphicData.shadowData = null;
-//                    //Graphic graphic2 = graphicData.Graphic;
-//                    graphic = GraphicDatabase.Get(typeof(Graphic_Vehicle), graphic.path, ShaderTypeDefOf.EdgeDetect.Shader, graphic.drawSize, ghostColor, Color.white, graphicData, null, null);
-//                    VehicleGhostUtility.cachedGhostGraphics.Add(key, graphic);
-//                }
-//                yield return new ValueTuple<Graphic, float>(graphic, graphicOverlay.data.rotation);
-//            }
-//        }
-//    }
-//}
 
 [HarmonyPatch(typeof(GenGridVehicles), nameof(GenGridVehicles.ImpassableForVehicles))]
 public static class Patch_GenGridVehicles_ImpassableForVehicles
@@ -633,14 +553,25 @@ public static class Patch_Dialog_FormVehicleCaravan_TryFindExitSpot
 [HarmonyPatch(typeof(Dialog_FormVehicleCaravan), "CheckForErrors")]
 public static class Patch_Dialog_FormVehicleCaravan_CheckForErrors
 {
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, MethodBase original)
     {
         var codes = instructions.ToList();
-        var pos = codes.FindIndex(c => c.opcode == OpCodes.Ldloc_3);
+
+        //コンパイルごとにインデックスがころころ変わるのでここだけ多少変更に強くしてます
+        var ind = original.GetMethodBody().LocalVariables.First(l => l.LocalType == typeof(VehiclePawn)).LocalIndex;
+        var pos = codes.FindIndex(c =>
+        {
+            if (ind == 0) return c.opcode == OpCodes.Ldloc_0;
+            if (ind == 1) return c.opcode == OpCodes.Ldloc_1;
+            if (ind == 2) return c.opcode == OpCodes.Ldloc_2;
+            if (ind == 3) return c.opcode == OpCodes.Ldloc_3;
+            var localBuilder = codes.Select(c => c.operand).OfType<LocalBuilder>().First(l => l.LocalIndex == ind);
+            return c.IsLdloc(localBuilder);
+        });
 
         codes.InsertRange(pos + 1,
         [
-            CodeInstruction.LoadLocal(5),
+            CodeInstruction.LoadLocal(ind + 2),
             CodeInstruction.Call(typeof(Patch_Dialog_FormVehicleCaravan_CheckForErrors), nameof(TargetThing))
         ]);
         return codes;

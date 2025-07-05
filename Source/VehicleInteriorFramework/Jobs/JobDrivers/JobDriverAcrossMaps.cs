@@ -57,7 +57,7 @@ public abstract class JobDriverAcrossMaps : JobDriver
             (this.exitSpot2.IsValid && this.exitSpot2.Map == null) ||
             (this.enterSpot2.IsValid && this.enterSpot2.Map == null))
         {
-            Log.Error("[VehicleMapFramework] SetSpots with null map.");
+            VMF_Log.Error("SetSpots with null map.");
         }
     }
 
@@ -71,7 +71,7 @@ public abstract class JobDriverAcrossMaps : JobDriver
         {
             return ToilsAcrossMaps.GotoTargetMap(this, exitSpot2, enterSpot2);
         }
-        Log.Error("[VehicleMapFramework] GotoTargetMap() does not support TargetIndex.C.");
+        VMF_Log.Error("GotoTargetMap() does not support TargetIndex.C.");
         return null;
     }
 

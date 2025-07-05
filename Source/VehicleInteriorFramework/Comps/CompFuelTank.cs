@@ -15,7 +15,7 @@ public class CompFuelTank : ThingComp
             {
                 if (!parent.IsOnVehicleMapOf(out vehicle))
                 {
-                    Log.Error("[VehicleMapFramework] Fuel tank is not on vehicle map.");
+                    VMF_Log.Error("Fuel tank is not on vehicle map.");
                 }
             }
             return vehicle;
