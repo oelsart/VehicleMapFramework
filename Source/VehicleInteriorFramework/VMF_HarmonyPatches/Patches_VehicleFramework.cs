@@ -163,7 +163,7 @@ public static class Patch_Rendering_DrawSelectionBracketsVehicles
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
         var codes = instructions.ToList();
-        var pos = codes.FindLastIndex(c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalIndex == 4);
+        var pos = codes.FindLastIndex(c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalType == typeof(int));
         var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithMap));
         var rot = generator.DeclareLocal(typeof(Rot8));
         var label = generator.DefineLabel();
@@ -636,11 +636,11 @@ public static class Patch_Dialog_FormVehicleCaravan_CheckForErrors
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();
-        var pos = codes.FindIndex(c => c.opcode == OpCodes.Ldloc_S && ((LocalBuilder)c.operand).LocalIndex == 11) + 1;
+        var pos = codes.FindIndex(c => c.opcode == OpCodes.Ldloc_3);
 
-        codes.InsertRange(pos,
+        codes.InsertRange(pos + 1,
         [
-            CodeInstruction.LoadLocal(13),
+            CodeInstruction.LoadLocal(5),
             CodeInstruction.Call(typeof(Patch_Dialog_FormVehicleCaravan_CheckForErrors), nameof(TargetThing))
         ]);
         return codes;

@@ -21,8 +21,8 @@ public class Patches_DrillTurret
 }
 
 [HarmonyPatchCategory("VMF_Patches_DrillTurret")]
-[HarmonyPatch("DrillTurret.Building_DrillTurret", "LookForNewTarget")]
-public static class Patch_Building_DrillTurret_LookForNewTarget
+[HarmonyPatch("DrillTurret.Building_DrillTurret", "lookForNewTarget")]
+public static class Patch_Building_DrillTurret_lookForNewTarget
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
@@ -31,8 +31,8 @@ public static class Patch_Building_DrillTurret_LookForNewTarget
 }
 
 [HarmonyPatchCategory("VMF_Patches_DrillTurret")]
-[HarmonyPatch("DrillTurret.Building_DrillTurret", "IsValidTargetAt")]
-public static class Patch_Building_DrillTurret_IsValidTargetAt
+[HarmonyPatch("DrillTurret.Building_DrillTurret", "isValidTargetAt")]
+public static class Patch_Building_DrillTurret_isValidTargetAt
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
@@ -43,8 +43,8 @@ public static class Patch_Building_DrillTurret_IsValidTargetAt
 }
 
 [HarmonyPatchCategory("VMF_Patches_DrillTurret")]
-[HarmonyPatch("DrillTurret.Building_DrillTurret", "IsValidTargetAtForGizmo")]
-public static class Patch_Building_DrillTurret_IsValidTargetAtForGizmo
+[HarmonyPatch("DrillTurret.Building_DrillTurret", "isValidTargetAtForGizmo")]
+public static class Patch_Building_DrillTurret_isValidTargetAtForGizmo
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
@@ -55,8 +55,8 @@ public static class Patch_Building_DrillTurret_IsValidTargetAtForGizmo
 }
 
 [HarmonyPatchCategory("VMF_Patches_DrillTurret")]
-[HarmonyPatch("DrillTurret.Building_DrillTurret", "DrillRock")]
-public static class Patch_Building_DrillTurret_DrillRock
+[HarmonyPatch("DrillTurret.Building_DrillTurret", "drillRock")]
+public static class Patch_Building_DrillTurret_drillRock
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
@@ -67,11 +67,11 @@ public static class Patch_Building_DrillTurret_DrillRock
 
 [HarmonyPatchCategory("VMF_Patches_DrillTurret")]
 [HarmonyPatch]
-public static class Patch_Building_DrillTurret_SelectTarget
+public static class Patch_Building_DrillTurret_selectTarget
 {
     private static MethodBase TargetMethod()
     {
-        return AccessTools.FindIncludingInnerTypes<MethodBase>(AccessTools.TypeByName("DrillTurret.Building_DrillTurret"), t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<SelectTarget>")));
+        return AccessTools.FindIncludingInnerTypes<MethodBase>(AccessTools.TypeByName("DrillTurret.Building_DrillTurret"), t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<selectTarget>")));
     }
 
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -81,8 +81,8 @@ public static class Patch_Building_DrillTurret_SelectTarget
 }
 
 [HarmonyPatchCategory("VMF_Patches_DrillTurret")]
-[HarmonyPatch("DrillTurret.Building_DrillTurret", "SetForcedTarget")]
-public static class Patch_Building_DrillTurret_SetForcedTarget
+[HarmonyPatch("DrillTurret.Building_DrillTurret", "setForcedTarget")]
+public static class Patch_Building_DrillTurret_setForcedTarget
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
@@ -91,10 +91,16 @@ public static class Patch_Building_DrillTurret_SetForcedTarget
 }
 
 [HarmonyPatchCategory("VMF_Patches_DrillTurret")]
-[HarmonyPatch("DrillTurret.Building_DrillTurret", "ComputeDrawingParameters")]
-public static class Patch_Building_DrillTurret_ComputeDrawingParameters
+[HarmonyPatch]
+public static class Patch_Building_DrillTurret_DrawAt
 {
     private static Vector3? overridePos;
+
+    private static IEnumerable<MethodBase> TargetMethods()
+    {
+        yield return AccessTools.Method("DrillTurret.Building_DrillTurret:DrawAt");
+        yield return AccessTools.Method("DrillTurret.Building_DrillTurret:computeDrawingParameters");
+    }
 
     public static void Prefix(Thing __instance)
     {
@@ -108,27 +114,12 @@ public static class Patch_Building_DrillTurret_ComputeDrawingParameters
 
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        var m_ToVector3Override = AccessTools.Method(typeof(Patch_Building_DrillTurret_ComputeDrawingParameters), nameof(ToVector3Override));
+        var m_ToVector3Override = AccessTools.Method(typeof(Patch_Building_DrillTurret_DrawAt), nameof(ToVector3Override));
         return instructions.MethodReplacer(CachedMethodInfo.m_IntVec3_ToVector3ShiftedWithAltitude2, m_ToVector3Override);
     }
 
     public static Vector3 ToVector3Override(ref IntVec3 c, float AddedAltitude)
     {
         return overridePos ?? c.ToVector3ShiftedWithAltitude(AddedAltitude);
-    }
-}
-
-[HarmonyPatchCategory("VMF_Patches_DrillTurret")]
-[HarmonyPatch("DrillTurret.Building_DrillTurret", "DrawAt")]
-public static class Patch_Building_DrillTurret_DrawAt
-{
-    public static void Prefix(Thing __instance)
-    {
-        Patch_Building_DrillTurret_ComputeDrawingParameters.Prefix(__instance);
-    }
-
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return Patch_Building_DrillTurret_ComputeDrawingParameters.Transpiler(instructions);
     }
 }

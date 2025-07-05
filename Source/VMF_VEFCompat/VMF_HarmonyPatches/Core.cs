@@ -16,6 +16,26 @@ public static class Patches_VEF
     static Patches_VEF()
     {
         VMF_Harmony.PatchCategory("VMF_Patches_VEF");
+        if (ModCompat.VFEArchitect)
+        {
+            VMF_Harmony.PatchCategory("VMF_Patches_VFE_Architect");
+        }
+        if (ModCompat.VFESecurity.Active)
+        {
+            VMF_Harmony.PatchCategory("VMF_Patches_VFE_Security");
+        }
+        if (ModCompat.VVE.Active)
+        {
+            VMF_Harmony.PatchCategory("VMF_Patches_VVE");
+        }
+        if (ModCompat.VFEPirates)
+        {
+            VMF_Harmony.PatchCategory("VMF_Patches_VFE_Pirates");
+        }
+        if (ModCompat.VFEMechanoid.Active)
+        {
+            VMF_Harmony.PatchCategory("VMF_Patches_VFE_Mechanoid");
+        }
     }
 }
 

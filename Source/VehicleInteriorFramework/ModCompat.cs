@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using RimWorld;
+using RimWorld.Planet;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -361,13 +362,88 @@ public static class ModCompat
 
     public static readonly bool VFEArchitect = ModsConfig.IsActive("VanillaExpanded.VFEArchitect");
 
-    public static readonly bool VFESecurity = ModsConfig.IsActive("VanillaExpanded.VFESecurity");
+    public static class VFESecurity
+    {
+        public static readonly bool Active = ModsConfig.IsActive("VanillaExpanded.VFESecurity");
 
-    public static readonly bool VVE = ModsConfig.IsActive("OskarPotocki.VanillaVehiclesExpanded");
+        public static readonly AccessTools.FieldRef<object, GlobalTargetInfo> targetedTile;
+
+        public static readonly AccessTools.FieldRef<object, int> worldTileRange;
+        
+        static VFESecurity()
+        {
+            if (Active)
+            {
+                try
+                {
+                    targetedTile = AccessTools.FieldRefAccess<GlobalTargetInfo>("VFESecurity.CompLongRangeArtillery:targetedTile");
+                    worldTileRange = AccessTools.FieldRefAccess<int>("VFESecurity.CompProperties_LongRangeArtillery:worldTileRange");
+                }
+                finally
+                {
+                    if (AnyNull(targetedTile, worldTileRange))
+                    {
+                        LogIncompat("VFE Security");
+                        Active = false;
+                    }
+                }
+            }
+        }
+    }
+
+    public static class VVE
+    {
+        public static readonly bool Active = ModsConfig.IsActive("OskarPotocki.VanillaVehiclesExpanded");
+
+        public static readonly AccessTools.FieldRef<CompProperties, float> refuelAmountPerTick;
+
+        static VVE()
+        {
+            if (Active)
+            {
+                try
+                {
+                    refuelAmountPerTick = AccessTools.FieldRefAccess<float>("VanillaVehiclesExpanded.CompProperties_RefuelingPump:refuelAmountPerTick");
+                }
+                finally
+                {
+                    if (AnyNull(refuelAmountPerTick))
+                    {
+                        LogIncompat("VVE");
+                        Active = false;
+                    }
+                }
+            }
+        }
+    }
 
     public static readonly bool VFEPirates = ModsConfig.IsActive("OskarPotocki.VFE.Pirates");
 
-    public static readonly bool VFEMechanoid = ModsConfig.IsActive("OskarPotocki.VFE.Mechanoid");
+    public static class VFEMechanoid
+    {
+        public static readonly bool Active = ModsConfig.IsActive("OskarPotocki.VFE.Mechanoid");
+
+        public static readonly FastInvokeHandler DoWorkOnCell;
+
+        static VFEMechanoid()
+        {
+            if (Active)
+            {
+                try
+                {
+                    DoWorkOnCell = MethodInvoker.GetHandler(AccessTools.Method("VFE.Mechanoids.Buildings.Building_AutoPlant:DoWorkOnCell"));
+                }
+                finally
+                {
+                    if (AnyNull(DoWorkOnCell))
+                    {
+                        LogIncompat("VFEPirates");
+                        Active = false;
+                    }
+                }
+            }
+        }
+    }
 
     public static readonly bool Vivi = ModsConfig.IsActive("gguake.race.vivi");
 
