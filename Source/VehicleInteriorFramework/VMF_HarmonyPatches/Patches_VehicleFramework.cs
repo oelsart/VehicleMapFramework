@@ -964,3 +964,186 @@ public static class Patch_VehicleTabHelper_Passenger_HandleDragEvent
         return false;
     }
 }
+
+//非MultiSelect時は既にターゲットマップある想定
+[HarmonyPatch(typeof(FloatMenuOptionProvider_OrderVehicle), "VehicleCanGoto")]
+public static class Patch_FloatMenuOptionProvider_OrderVehicle_VehicleCanGoto
+{
+    public static bool Prefix(VehiclePawn vehicle, IntVec3 gotoLoc, ref AcceptanceReport __result)
+    {
+        if (TargetMapManager.HasTargetMap(vehicle, out var map))
+        {
+            if (!vehicle.CanReachVehicle(gotoLoc, PathEndMode.OnCell, Danger.Deadly, TraverseMode.ByPawn, map, out _, out _))
+            {
+                __result = "VF_CannotMoveToCell".Translate(vehicle.LabelCap);
+            }
+            else
+            {
+                __result = true;
+            }
+            return false;
+        }
+        return true;
+    }
+}
+
+[HarmonyPatch(typeof(FloatMenuOptionProvider_OrderVehicle), "PawnGotoAction")]
+public static class Patch_FloatMenuOptionProvider_OrderVehicle_PawnGotoAction
+{
+    public static bool Prefix(IntVec3 clickCell, VehiclePawn vehicle, IntVec3 gotoLoc, Rot8 rot)
+    {
+        if (TargetMapManager.HasTargetMap(vehicle, out var map))
+        {
+            TargetMapManager.TargetMap.Remove(vehicle);
+            if (vehicle.CanReachVehicle(gotoLoc, PathEndMode.OnCell, Danger.Deadly, TraverseMode.ByPawn, map, out var exitSpot, out var enterSpot))
+            {
+                PawnGotoAction(clickCell, vehicle, map, gotoLoc, rot, exitSpot, enterSpot);
+            }
+            return false;
+        }
+        return true;
+    }
+
+    public static void PawnGotoAction(IntVec3 clickCell, VehiclePawn vehicle, Map map, IntVec3 gotoLoc, Rot8 rot, TargetInfo exitSpot, TargetInfo enterSpot)
+    {
+        bool jobSuccess;
+        if (vehicle.Map == map && vehicle.Position == gotoLoc)
+        {
+            jobSuccess = true;
+            vehicle.FullRotation = rot;
+            if (vehicle.CurJobDef == VMF_DefOf.VMF_GotoAcrossMaps)
+            {
+                vehicle.jobs.EndCurrentJob(JobCondition.Succeeded);
+            }
+        }
+        else
+        {
+            if (vehicle.CurJobDef == VMF_DefOf.VMF_GotoAcrossMaps &&
+                vehicle.jobs?.curDriver is JobDriverAcrossMaps driver && driver.DestMap == map &&
+                vehicle.CurJob.targetA.Cell == gotoLoc)
+            {
+                jobSuccess = true;
+            }
+            else
+            {
+                Job job = new(VMF_DefOf.VMF_GotoAcrossMaps, gotoLoc);
+                job.SetSpotsToJobAcrossMaps(vehicle, exitSpot, enterSpot);
+                var baseMap = map.BaseMap();
+                var isBaseMap = map == baseMap;
+                bool isOnEdge = isBaseMap && CellRect.WholeMap(baseMap).IsOnEdge(clickCell, 3);
+                bool exitCell = isBaseMap && baseMap.exitMapGrid.IsExitCell(clickCell);
+                bool vehicleCellsOverlapExit = isBaseMap && vehicle.InhabitedCellsProjected(clickCell, rot)
+                 .NotNullAndAny(cell => cell.InBounds(baseMap) &&
+                    baseMap.exitMapGrid.IsExitCell(cell));
+
+                if (exitCell || vehicleCellsOverlapExit)
+                {
+                    job.exitMapOnArrival = true;
+                }
+                else if (!baseMap.IsPlayerHome && !baseMap.exitMapGrid.MapUsesExitGrid &&
+                  isOnEdge &&
+                  baseMap.Parent.GetComponent<FormCaravanComp>() is { } formCaravanComp &&
+                  MessagesRepeatAvoider.MessageShowAllowed(
+                    $"MessagePlayerTriedToLeaveMapViaExitGrid-{baseMap.uniqueID}", 60f))
+                {
+                    string text = formCaravanComp.CanFormOrReformCaravanNow ?
+                      "MessagePlayerTriedToLeaveMapViaExitGrid_CanReform".Translate() :
+                      "MessagePlayerTriedToLeaveMapViaExitGrid_CantReform".Translate();
+                    Messages.Message(text, baseMap.Parent, MessageTypeDefOf.RejectInput, false);
+                }
+                jobSuccess = vehicle.jobs.TryTakeOrderedJob(job, JobTag.Misc);
+
+                if (jobSuccess)
+                    vehicle.vehiclePather.SetEndRotation(rot);
+            }
+        }
+        if (jobSuccess)
+            FleckMaker.Static(gotoLoc, map, FleckDefOf.FeedbackGoto);
+    }
+}
+
+[HarmonyPatch(typeof(PathingHelper), nameof(PathingHelper.TryFindNearestStandableCell))]
+public static class Patch_PathingHelper_TryFindNearestStandableCell
+{
+    public static bool Prefix(VehiclePawn vehicle, IntVec3 cell, ref IntVec3 result, float radius, ref bool __result)
+    {
+        VehiclePawnWithMap vehicle2 = null;
+        if (TargetMapManager.HasTargetMap(vehicle, out var map))
+        {
+            __result = CrossMapReachabilityUtility.TryFindNearestStandableCell(vehicle, cell, map, out result, radius);
+            if (result.IsValid)
+            {
+                return false;
+            }
+        }
+        else if ((cell.InBounds(Find.CurrentMap) && cell.TryGetVehicleMap(Find.CurrentMap, out vehicle2)) || vehicle.IsOnNonFocusedVehicleMapOf(out _))
+        {
+            var dest = vehicle2 != null ? cell.ToVehicleMapCoord(vehicle2) : cell;
+            map = vehicle2 != null ? vehicle2.VehicleMap : Find.CurrentMap;
+            __result = CrossMapReachabilityUtility.TryFindNearestStandableCell(
+                vehicle,
+                dest,
+                map,
+                out result,
+                radius);
+            if (result.IsValid)
+            {
+                TargetMapManager.TargetMap[vehicle] = map;
+                return false;
+            }
+        }
+        return true;
+    }
+}
+
+[HarmonyPatch(typeof(VehicleOrientationController), "Init")]
+public static class Patch_VehicleOrientationController_Init
+{
+    public static void Prefix(ref IntVec3 clickCell)
+    {
+        if (UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out var vehicle, false))
+        {
+            clickCell = clickCell.ToBaseMapCoord(vehicle);
+        }
+    }
+}
+
+[HarmonyPatch(typeof(VehicleOrientationController), "RecomputeDestinations")]
+public static class Patch_VehicleOrientationController_RecomputeDestinations
+{
+    public static void Prefix(List<VehiclePawn> ___vehicles)
+    {
+        ___vehicles.Do(v => TargetMapManager.TargetMap.Remove(v));
+    }
+
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
+            .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnTargetMap);
+    }
+}
+
+[HarmonyPatch(typeof(VehicleOrientationController), nameof(VehicleOrientationController.TargeterUpdate))]
+public static class Patch_VehicleOrientationController_TargeterUpdate
+{
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        var m_ToVector3ShiftedWithAltitude = AccessTools.Method(typeof(IntVec3), nameof(IntVec3.ToVector3ShiftedWithAltitude), [typeof(float)]);
+        var m_ToVector3ShiftedOffsetWithAltitude = AccessTools.Method(typeof(Patch_MultiPawnGotoController_Draw), "ToVector3ShiftedOffsetWithAltitude");
+        var num = 0;
+        var ind = instructions.Select(c => c.operand).OfType<LocalBuilder>().First(l => l.LocalType == typeof(VehiclePawn)).LocalIndex;
+        foreach (var instruction in instructions)
+        {
+            if (instruction.Calls(m_ToVector3ShiftedWithAltitude))
+            {
+                num++;
+                if (num > 2)
+                {
+                    yield return CodeInstruction.LoadLocal(ind);
+                    instruction.operand = m_ToVector3ShiftedOffsetWithAltitude;
+                }
+            }
+            yield return instruction;
+        }
+    }
+}

@@ -181,7 +181,7 @@ public static class AttackTargetFinderOnVehicle
             }
             if (flags.HasFlag(TargetScanFlags.NeedReachableIfCantHitFromMyPos) || flags.HasFlag(TargetScanFlags.NeedReachable))
             {
-                return (IAttackTarget)GenClosestOnVehicle.ClosestThing_Global(
+                return (IAttackTarget)GenClosestCrossMap.ClosestThing_Global(
                     searcher.Thing.PositionOnBaseMap(),
                     AttackTargetFinderOnVehicle.validTargets,
                     maxDist,
@@ -190,7 +190,7 @@ public static class AttackTargetFinderOnVehicle
                     false
                     );
             }
-            return (IAttackTarget)GenClosestOnVehicle.ClosestThing_Global(searcher.Thing.PositionOnBaseMap(), AttackTargetFinderOnVehicle.validTargets, maxDist, null, null, false);
+            return (IAttackTarget)GenClosestCrossMap.ClosestThing_Global(searcher.Thing.PositionOnBaseMap(), AttackTargetFinderOnVehicle.validTargets, maxDist, null, null, false);
         }
         if (searcherPawn != null && searcherPawn.mindState.duty != null && searcherPawn.mindState.duty.radius > 0f && !searcherPawn.InMentalState)
         {
@@ -207,7 +207,7 @@ public static class AttackTargetFinderOnVehicle
             //(!(t is VehiclePawnWithMap vehicle) || vehicle.VehicleMap.mapPawns.AllPawnsSpawned.CountWhere(p => p.HostileTo(searcherPawn)) == 0);
             //VehicleMap上に敵対ポーンが居る場合そっちをターゲットとして優先したい
         };
-        IAttackTarget attackTarget2 = (IAttackTarget)GenClosestOnVehicle.ClosestThingReachable(searcherThing.Position, searcherThing.Map, ThingRequest.ForGroup(ThingRequestGroup.AttackTarget), PathEndMode.Touch, TraverseParms.For(searcherPawn, Danger.Deadly, TraverseMode.ByPawn, canBashDoors, false, canBashFences), maxDist, x => innerValidator((IAttackTarget)x), null, 0, (maxDist > 800f) ? -1 : 40, false, RegionType.Set_Passable, false);
+        IAttackTarget attackTarget2 = (IAttackTarget)GenClosestCrossMap.ClosestThingReachable(searcherThing.Position, searcherThing.Map, ThingRequest.ForGroup(ThingRequestGroup.AttackTarget), PathEndMode.Touch, TraverseParms.For(searcherPawn, Danger.Deadly, TraverseMode.ByPawn, canBashDoors, false, canBashFences), maxDist, x => innerValidator((IAttackTarget)x), null, 0, (maxDist > 800f) ? -1 : 40, false, RegionType.Set_Passable, false);
         if (attackTarget2 != null && PawnUtility.ShouldCollideWithPawns(searcherPawn))
         {
             IAttackTarget attackTarget3 = AttackTargetFinderOnVehicle.FindBestReachableMeleeTarget(innerValidator, searcherPawn, maxDist, canBashDoors, canBashFences);
@@ -242,7 +242,7 @@ public static class AttackTargetFinderOnVehicle
         else
         {
             TraverseMode mode = canBashDoors ? TraverseMode.PassDoors : TraverseMode.NoPassClosedDoors;
-            if (!ReachabilityUtilityOnVehicle.CanReach(searcher.Map, searcher.Position, target, PathEndMode.Touch, TraverseParms.For(mode, Danger.Deadly, false, false, false), target.Map, out _, out _))
+            if (!CrossMapReachabilityUtility.CanReach(searcher.Map, searcher.Position, target, PathEndMode.Touch, TraverseParms.For(mode, Danger.Deadly, false, false, false), target.Map, out _, out _))
             {
                 return false;
             }

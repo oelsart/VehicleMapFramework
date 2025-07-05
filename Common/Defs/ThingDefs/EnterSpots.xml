@@ -82,6 +82,7 @@
 				<drawOffsetEast>(-0.5,0,-0.5)</drawOffsetEast>
 				<drawOffsetWest>(0.5,0,-0.5)</drawOffsetWest>
 			</blueprintGraphicData>
+			<isSupportDoor IgnoreIfNoMatchingField="True">true</isSupportDoor>
 		</building>
 		<useBlueprintGraphicAsGhost>true</useBlueprintGraphicAsGhost>
 		<comps>

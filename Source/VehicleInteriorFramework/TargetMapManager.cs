@@ -33,6 +33,24 @@ public class TargetMapManager(World world) : WorldComponent(world)
         return targ.HasThing ? targ.CellOnBaseMap() : HasTargetMap(thing, out var map) ? targ.Cell.ToBaseMapCoord(map) : targ.Cell;
     }
 
+    public static IntVec3 PositionOnTargetMap(Thing thing)
+    {
+        if (HasTargetMap(thing, out var map))
+        {
+            if (map == thing.Map)
+            {
+                return thing.Position;
+            }
+            var pos = thing.PositionOnBaseMap();
+            if (map.IsNonFocusedVehicleMapOf(out var vehicle))
+            {
+                pos = pos.ToVehicleMapCoord(vehicle);
+            }
+            return pos;
+        }
+        return thing.Position;
+    }
+
     public override void ExposeData()
     {
         Scribe_Collections.Look(ref targetMap, "TargetMap", LookMode.Reference, LookMode.Reference);

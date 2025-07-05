@@ -138,7 +138,7 @@ public static class Patch_FloatMenuOptionProvider_Entity_GetOptionFor
         codes.Set(OpCodes.Call, CachedMethodInfo.m_BaseMap_Thing);
 
         var m_ClosestThing_Global_Reachable = AccessTools.Method(typeof(GenClosest), nameof(GenClosest.ClosestThing_Global_Reachable));
-        var m_ClosestThing_Global_ReachableOnVehicle = AccessTools.Method(typeof(GenClosestOnVehicle), nameof(GenClosestOnVehicle.ClosestThing_Global_Reachable),
+        var m_ClosestThing_Global_ReachableCrossMap = AccessTools.Method(typeof(GenClosestCrossMap), nameof(GenClosestCrossMap.ClosestThing_Global_Reachable),
             [
                 typeof(IntVec3),
                 typeof(Map),
@@ -151,7 +151,7 @@ public static class Patch_FloatMenuOptionProvider_Entity_GetOptionFor
                 typeof(bool)
             ]);
         codes.MatchStartForward(CodeMatch.Calls(m_ClosestThing_Global_Reachable));
-        codes.Operand = m_ClosestThing_Global_ReachableOnVehicle;
+        codes.Operand = m_ClosestThing_Global_ReachableCrossMap;
         return codes.Instructions();
     }
 
@@ -177,17 +177,15 @@ public static class Patch_MultiPawnGotoController_StartInteraction
 [HarmonyPatch(typeof(MultiPawnGotoController), "RecomputeDestinations")]
 public static class Patch_MultiPawnGotoController_RecomputeDestinations
 {
-    public static void Prefix()
+    public static void Prefix(List<Pawn> ___pawns)
     {
-        tmpEnterSpots.Clear();
+        ___pawns.Do(p => TargetMapManager.TargetMap.Remove(p));
     }
 
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
     }
-
-    public static Dictionary<Pawn, (TargetInfo exitSpot, TargetInfo enterSpot)> tmpEnterSpots = [];
 }
 
 [HarmonyPatch(typeof(MultiPawnGotoController), nameof(MultiPawnGotoController.ProcessInputEvents))]
@@ -229,26 +227,18 @@ public static class Patch_MultiPawnGotoController_Draw
 
     private static Vector3 ToVector3ShiftedOffsetWithAltitude(ref IntVec3 intVec, float AddedAltitude, Pawn pawn)
     {
-        if (Patch_MultiPawnGotoController_RecomputeDestinations.tmpEnterSpots.TryGetValue(pawn, out var spots))
+        if (TargetMapManager.HasTargetMap(pawn, out var map))
         {
-            var destMap = spots.enterSpot.Map ?? spots.exitSpot.Map.BaseMap() ?? pawn.Map;
-            if (destMap.IsNonFocusedVehicleMapOf(out var vehicle))
-            {
-                return intVec.ToVector3Shifted().ToBaseMapCoord(vehicle).WithY(AddedAltitude);
-            }
+            return intVec.ToVector3Shifted().ToBaseMapCoord(map).WithY(AddedAltitude);
         }
         return intVec.ToVector3ShiftedWithAltitude(AddedAltitude);
     }
 
     private static bool FoggedOffset(IntVec3 intVec, Pawn pawn)
     {
-        if (Patch_MultiPawnGotoController_RecomputeDestinations.tmpEnterSpots.TryGetValue(pawn, out var spots))
+        if (TargetMapManager.HasTargetMap(pawn, out var map))
         {
-            var destMap = spots.enterSpot.Map ?? spots.exitSpot.Map.BaseMap() ?? pawn.Map;
-            if (destMap.IsNonFocusedVehicleMapOf(out var vehicle))
-            {
-                return intVec.ToBaseMapCoord(vehicle).Fogged(destMap);
-            }
+            return intVec.ToBaseMapCoord(map).Fogged(map.BaseMap());
         }
         return intVec.Fogged(pawn.Map);
     }
@@ -290,26 +280,14 @@ public static class Patch_MultiPawnGotoController_OnGUI
 
     private static Vector3 ToVector3Offset(IntVec3 intVec, Pawn pawn)
     {
-        new StackTrace().GetFrame(1);
-        if (Patch_MultiPawnGotoController_RecomputeDestinations.tmpEnterSpots.TryGetValue(pawn, out var spots))
+        if (TargetMapManager.HasTargetMap(pawn, out var map))
         {
-            var destMap = spots.enterSpot.Map ?? spots.exitSpot.Map.BaseMap() ?? pawn.Map;
-            if (destMap.IsNonFocusedVehicleMapOf(out var vehicle))
+            if (map.IsNonFocusedVehicleMapOf(out var vehicle))
             {
                 return Ext_Math.RotatePoint(intVec.ToVector3(), intVec.ToVector3Shifted(), vehicle.FullRotation.AsAngle).ToBaseMapCoord(vehicle);
             }
         }
         return intVec.ToVector3();
-    }
-}
-
-//終わったらキャッシュをクリア
-[HarmonyPatch(typeof(MultiPawnGotoController), "IssueGotoJobs")]
-public static class Patch_MultiPawnGotoController_IssueGotoJobs
-{
-    public static void Postfix()
-    {
-        Patch_MultiPawnGotoController_RecomputeDestinations.tmpEnterSpots.Clear();
     }
 }
 
@@ -323,26 +301,26 @@ public static class Patch_RCellFinder_BestOrderedGotoDestNear
         VehiclePawnWithMap vehicle = null;
         if (TargetMapManager.HasTargetMap(searcher, out var map))
         {
-            __result = ReachabilityUtilityOnVehicle.BestOrderedGotoDestNear(root, searcher, cellValidator, map, out var exitSpot, out var enterSpot);
+            __result = CrossMapReachabilityUtility.BestOrderedGotoDestNear(root, searcher, cellValidator, map, out _, out _);
             if (__result.IsValid)
             {
-                Patch_MultiPawnGotoController_RecomputeDestinations.tmpEnterSpots[searcher] = (exitSpot, enterSpot);
                 return false;
             }
         }
         else if ((root.InBounds(Find.CurrentMap) && root.TryGetVehicleMap(Find.CurrentMap, out vehicle)) || searcher.IsOnNonFocusedVehicleMapOf(out _))
         {
             var dest = vehicle != null ? root.ToVehicleMapCoord(vehicle) : root;
-            __result = ReachabilityUtilityOnVehicle.BestOrderedGotoDestNear(
+            map = vehicle != null ? vehicle.VehicleMap : Find.CurrentMap;
+            __result = CrossMapReachabilityUtility.BestOrderedGotoDestNear(
                 dest,
                 searcher,
                 cellValidator,
-                vehicle != null ? vehicle.VehicleMap : Find.CurrentMap,
-                out var exitSpot,
-                out var enterSpot);
+                map,
+                out _,
+                out _);
             if (__result.IsValid)
             {
-                Patch_MultiPawnGotoController_RecomputeDestinations.tmpEnterSpots[searcher] = (exitSpot, enterSpot);
+                TargetMapManager.TargetMap[searcher] = map;
                 return false;
             }
         }
@@ -356,25 +334,24 @@ public static class Patch_FloatMenuOptionProvider_DraftedMove_PawnGotoAction
 {
     public static bool Prefix(IntVec3 clickCell, Pawn pawn, IntVec3 gotoLoc)
     {
-        if (Patch_MultiPawnGotoController_RecomputeDestinations.tmpEnterSpots.TryGetValue(pawn, out var spots))
+        if (TargetMapManager.HasTargetMap(pawn, out var map))
         {
-            Patch_MultiPawnGotoController_RecomputeDestinations.tmpEnterSpots.Remove(pawn);
-            var destMap = spots.enterSpot.Map ?? spots.exitSpot.Map.BaseMap() ?? pawn.Map;
-            if (destMap.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
+            TargetMapManager.TargetMap.Remove(pawn);
+            //BestOrderedGotoDestNearが通ってるはずなのでキャッシュからexitSpotとenterSpotを取ってくるだけの最終確認CanReach
+            if (pawn.CanReach(gotoLoc, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, map, out var exitSpot, out var enterSpot))
             {
-                clickCell = clickCell.ToVehicleMapCoord(vehicle);
+                PawnGotoAction(clickCell, pawn, map, exitSpot, enterSpot, gotoLoc);
             }
-            PawnGotoAction(clickCell, pawn, destMap, spots.exitSpot, spots.enterSpot, gotoLoc);
             return false;
         }
         return true;
     }
 
-    public static void PawnGotoAction(IntVec3 clickCell, Pawn pawn, Map map, TargetInfo dest1, TargetInfo dest2, LocalTargetInfo dest3)
+    public static void PawnGotoAction(IntVec3 clickCell, Pawn pawn, Map map, TargetInfo exitSpot, TargetInfo enterSpot, LocalTargetInfo dest)
     {
         bool flag;
         var baseMap = map.BaseMap();
-        if (!dest1.IsValid && !dest2.IsValid && pawn.Map == map && pawn.Position == dest3.Cell)
+        if (!exitSpot.IsValid && !enterSpot.IsValid && pawn.Map == map && pawn.Position == dest.Cell)
         {
             flag = true;
             if (pawn.CurJobDef == VMF_DefOf.VMF_GotoAcrossMaps)
@@ -382,13 +359,13 @@ public static class Patch_FloatMenuOptionProvider_DraftedMove_PawnGotoAction
                 pawn.jobs.EndCurrentJob(JobCondition.Succeeded);
             }
         }
-        else if (pawn.CurJobDef == VMF_DefOf.VMF_GotoAcrossMaps && pawn.Map == map && pawn.CurJob.targetA == dest3)
+        else if (pawn.CurJobDef == VMF_DefOf.VMF_GotoAcrossMaps && pawn.Map == map && pawn.CurJob.targetA == dest)
         {
             flag = true;
         }
         else
         {
-            Job job = JobMaker.MakeJob(VMF_DefOf.VMF_GotoAcrossMaps, dest3).SetSpotsToJobAcrossMaps(pawn, dest1, dest2);
+            Job job = JobMaker.MakeJob(VMF_DefOf.VMF_GotoAcrossMaps, dest).SetSpotsToJobAcrossMaps(pawn, exitSpot, enterSpot);
             if (pawn.Map == baseMap && baseMap.exitMapGrid.IsExitCell(clickCell))
             {
                 job.exitMapOnArrival = !pawn.IsColonyMech;
@@ -408,7 +385,7 @@ public static class Patch_FloatMenuOptionProvider_DraftedMove_PawnGotoAction
         }
         if (flag)
         {
-            FleckMaker.Static(dest3.Cell, map, FleckDefOf.FeedbackGoto, 1f);
+            FleckMaker.Static(dest.Cell, map, FleckDefOf.FeedbackGoto, 1f);
         }
     }
 }

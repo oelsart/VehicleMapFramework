@@ -4,13 +4,15 @@ using SmashTools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 using Vehicles;
+using Vehicles.World;
 using Verse;
 using Verse.AI;
 
 namespace VehicleInteriors;
 
-public static class ReachabilityUtilityOnVehicle
+public static class CrossMapReachabilityUtility
 {
     public static bool working;
 
@@ -47,25 +49,29 @@ public static class ReachabilityUtilityOnVehicle
         var result = cell - (faceCell * dist);
         if (enterer != null)
         {
-            result -= faceCell * vehicle.HalfLength();
+            result -= faceCell * enterer.HalfLength();
         }
         return result;
     }
 
     public static bool CanReach(Map departMap, IntVec3 root, LocalTargetInfo dest, PathEndMode peMode, TraverseParms traverseParms, Map destMap, out TargetInfo exitSpot, out TargetInfo enterSpot)
     {
-        bool result = false;
         exitSpot = TargetInfo.Invalid;
         enterSpot = TargetInfo.Invalid;
+        if (working)
+        {
+            Log.ErrorOnce("Called CanReach() while working. This should never happen. Suppressing further errors.", 7312233);
+            return false;
+        }
+        working = true;
+        bool result = false;
+
         try
         {
-            if (working)
+            if (CrossMapReachabilityCache.TryGetCache(new TargetInfo(root, departMap), dest.ToTargetInfo(destMap), traverseParms, out result, out exitSpot, out enterSpot))
             {
-                Log.ErrorOnce("Called CanReach() while working. This should never happen. Suppressing further errors.", 7312233);
-                return false;
+                return result;
             }
-            working = true;
-
             if (traverseParms.pawn is VehiclePawn vehiclePawn)
             {
                 return vehiclePawn.CanReachVehicle(dest, peMode, traverseParms.maxDanger, traverseParms.mode, destMap, out exitSpot, out enterSpot);
@@ -77,12 +83,6 @@ public static class ReachabilityUtilityOnVehicle
             {
                 return destMap.reachability.CanReach(root, dest, peMode, traverseParms);
             }
-
-            if (CrossMapReachabilityCache.TryGetCache(new TargetInfo(root, departMap), dest.ToTargetInfo(destMap), traverseParms, out result, out exitSpot, out enterSpot))
-            {
-                return result;
-            }
-
             var destBaseMap = destMap.IsVehicleMapOf(out var vehicle) && vehicle.Spawned ? vehicle.Map : destMap;
             var departBaseMap = departMap.IsVehicleMapOf(out var vehicle2) && vehicle2.Spawned ? vehicle2.Map : departMap;
 
@@ -340,15 +340,15 @@ public static class ReachabilityUtilityOnVehicle
         var traverseParms = TraverseParms.For(pawn, maxDanger, mode, canBashDoors, false, canBashFences);
         dest1 = TargetInfo.Invalid;
         dest2 = TargetInfo.Invalid;
-        return pawn.Spawned && ReachabilityUtilityOnVehicle.CanReach(pawn.Map, traverseParms.pawn.Position, dest3, peMode, traverseParms, destMap, out dest1, out dest2);
+        return pawn.Spawned && CrossMapReachabilityUtility.CanReach(pawn.Map, traverseParms.pawn.Position, dest3, peMode, traverseParms, destMap, out dest1, out dest2);
     }
 
     //置き換え用
     public static bool CanReach(Pawn pawn, LocalTargetInfo dest3, PathEndMode peMode, Danger maxDanger, bool canBashDoors, bool canBashFences, TraverseMode mode)
     {
         var traverseParms = TraverseParms.For(pawn, maxDanger, mode, canBashDoors, false, canBashFences);
-        var destMap = ReachabilityUtilityOnVehicle.tmpDestMap ?? (dest3.HasThing ? dest3.Thing.MapHeld : pawn.BaseMap());
-        return pawn.Spawned && ReachabilityUtilityOnVehicle.CanReach(pawn.Map, pawn.Position, dest3, peMode, traverseParms, destMap, out _, out _);
+        var destMap = CrossMapReachabilityUtility.tmpDestMap ?? (dest3.HasThing ? dest3.Thing.MapHeld : pawn.BaseMap());
+        return pawn.Spawned && CrossMapReachabilityUtility.CanReach(pawn.Map, pawn.Position, dest3, peMode, traverseParms, destMap, out _, out _);
     }
 
     //Reachability.CanReachの代替にできるマップ間CanReach。departMapを先にtmpDepartMapにセットしておき、
@@ -360,9 +360,9 @@ public static class ReachabilityUtilityOnVehicle
 
     public static bool CanReachReplaceable(this Reachability reachability, IntVec3 start, LocalTargetInfo dest, PathEndMode peMode, TraverseParms traverseParms)
     {
-        var departMap = ReachabilityUtilityOnVehicle.tmpDepartMap ?? (traverseParms.pawn != null ? traverseParms.pawn.Map : map(reachability));
-        var destMap = ReachabilityUtilityOnVehicle.tmpDestMap ?? (dest.HasThing ? dest.Thing.MapHeld : map(reachability));
-        return ReachabilityUtilityOnVehicle.CanReach(departMap, start, dest, peMode, traverseParms, destMap, out _, out _);
+        var departMap = CrossMapReachabilityUtility.tmpDepartMap ?? (traverseParms.pawn != null ? traverseParms.pawn.Map : map(reachability));
+        var destMap = CrossMapReachabilityUtility.tmpDestMap ?? (dest.HasThing ? dest.Thing.MapHeld : map(reachability));
+        return CrossMapReachabilityUtility.CanReach(departMap, start, dest, peMode, traverseParms, destMap, out _, out _);
     }
 
     public static Map tmpDestMap;
@@ -375,30 +375,14 @@ public static class ReachabilityUtilityOnVehicle
     {
         var departMap = map(reachability);
         var destMap = dest.Map;
-        return ReachabilityUtilityOnVehicle.CanReach(departMap, start, (LocalTargetInfo)dest, peMode, traverseParms, destMap, out _, out _);
-    }
-
-    public static IntVec3 StandableCellNear(IntVec3 root, Map map, float radius, Predicate<IntVec3> validator, out Map destMap)
-    {
-        Map baseMap = map.BaseMap();
-        if (root.TryGetFirstThing<VehiclePawnWithMap>(baseMap, out var vehicle))
-        {
-            var cell = root.ToVehicleMapCoord(vehicle);
-            if (cell.InBounds(vehicle.VehicleMap))
-            {
-                destMap = vehicle.VehicleMap;
-                return CellFinder.StandableCellNear(cell, destMap, radius, validator);
-            }
-        }
-        destMap = baseMap;
-        return CellFinder.StandableCellNear(root, baseMap, radius, validator);
+        return CrossMapReachabilityUtility.CanReach(departMap, start, (LocalTargetInfo)dest, peMode, traverseParms, destMap, out _, out _);
     }
 
     public static IntVec3 BestOrderedGotoDestNear(IntVec3 root, Pawn searcher, Predicate<IntVec3> cellValidator, Map map, out TargetInfo exitSpot, out TargetInfo enterSpot)
     {
         exitSpot = TargetInfo.Invalid;
         enterSpot = TargetInfo.Invalid;
-        if (ReachabilityUtilityOnVehicle.IsGoodDest(root, searcher, cellValidator, map, out exitSpot, out enterSpot))
+        if (CrossMapReachabilityUtility.IsGoodDest(root, searcher, cellValidator, map, out exitSpot, out enterSpot))
         {
             return root;
         }
@@ -410,7 +394,7 @@ public static class ReachabilityUtilityOnVehicle
         do
         {
             IntVec3 intVec = root + GenRadial.RadialPattern[num];
-            if (ReachabilityUtilityOnVehicle.IsGoodDest(intVec, searcher, cellValidator, map, out exitSpot, out enterSpot))
+            if (CrossMapReachabilityUtility.IsGoodDest(intVec, searcher, cellValidator, map, out exitSpot, out enterSpot))
             {
                 float num4 = CoverUtility.TotalSurroundingCoverScore(intVec, map);
                 if (num4 > num2)
@@ -462,230 +446,199 @@ public static class ReachabilityUtilityOnVehicle
         return true;
     }
 
-    public static bool TryFindBestExitSpot(Pawn carrier, Pawn pawn, out IntVec3 spot, out TargetInfo v_exitSpot, TraverseMode mode = TraverseMode.ByPawn, bool canBash = true)
-    {
-        var baseMap = pawn.BaseMap();
-        if ((mode == TraverseMode.PassAllDestroyableThings || mode == TraverseMode.PassAllDestroyableThingsNotWater || mode == TraverseMode.PassAllDestroyablePlayerOwnedThings) && !carrier.CanReachMapEdge(pawn, out v_exitSpot))
-        {
-            TargetInfo exitSpot = TargetInfo.Invalid;
-            if (RCellFinder.TryFindRandomPawnEntryCell(out spot, baseMap, 0f, true, x => ReachabilityUtilityOnVehicle.CanReach(pawn.Map, pawn.Position, x, PathEndMode.OnCell, TraverseParms.For(carrier), baseMap, out exitSpot, out _)))
-            {
-                v_exitSpot = exitSpot;
-                return true;
-            }
-            return false;
-        }
-        int num = 0;
-        int num2 = 0;
-        IntVec3 intVec2;
-        var positionOnBaseMap = pawn.PositionOnBaseMap();
-        for (; ; )
-        {
-            num2++;
-            if (num2 > 30)
-            {
-                break;
-            }
-            bool flag = CellFinder.TryFindRandomCellNear(positionOnBaseMap, baseMap, num, null, out IntVec3 intVec, -1);
-            num += 4;
-            if (flag)
-            {
-                int num3 = intVec.x;
-                intVec2 = new IntVec3(0, 0, intVec.z);
-                if (baseMap.Size.z - intVec.z < num3)
-                {
-                    num3 = baseMap.Size.z - intVec.z;
-                    intVec2 = new IntVec3(intVec.x, 0, baseMap.Size.z - 1);
-                }
-                if (baseMap.Size.x - intVec.x < num3)
-                {
-                    num3 = baseMap.Size.x - intVec.x;
-                    intVec2 = new IntVec3(baseMap.Size.x - 1, 0, intVec.z);
-                }
-                if (intVec.z < num3)
-                {
-                    intVec2 = new IntVec3(intVec.x, 0, 0);
-                }
-                if (intVec2.Standable(baseMap) && ReachabilityUtilityOnVehicle.CanReach(pawn.Map, pawn.Position, intVec2, PathEndMode.OnCell, TraverseParms.For(carrier, Danger.Deadly, mode, canBash, false, canBash), baseMap, out v_exitSpot, out _))
-                {
-                    goto Block_10;
-                }
-            }
-        }
-        spot = pawn.Position;
-        v_exitSpot = TargetInfo.Invalid;
-        return false;
-    Block_10:
-        spot = intVec2;
-        return true;
-    }
-
-    public static bool CanReachMapEdge(this Pawn carrier, Pawn pawn, out TargetInfo exitSpot)
-    {
-        exitSpot = TargetInfo.Invalid;
-        if (!carrier.Spawned)
-        {
-            return false;
-        }
-        var traverseParms = TraverseParms.For(carrier);
-        if (pawn.IsOnVehicleMapOf(out var vehicle))
-        {
-            var departMap = vehicle.VehicleMap;
-            var destMap = pawn.BaseMap();
-            bool CanReach(IntVec3 cell, IntVec3 cell2)
-            {
-                return cell.Standable(departMap) &&
-                    cell2.Standable(destMap) &&
-                    departMap.reachability.CanReach(carrier.Position, cell, PathEndMode.OnCell, traverseParms) &&
-                    destMap.reachability.CanReachMapEdge(cell2, traverseParms);
-            }
-            foreach (var comp in vehicle.EnterComps.OrderBy(e => e.DistanceSquared(pawn.PositionOnBaseMap())))
-            {
-                IntVec3 cell;
-                if (comp is CompZipline compZipline)
-                {
-                    var pair = compZipline.Pair;
-                    if (pair == null || !pair.HasComp<CompZipline>() || pair.Map != destMap) return false;
-                    cell = pair.Position;
-                }
-                else
-                {
-                    cell = EnterVehiclePosition(comp.parent);
-                }
-                if (CanReach(comp.parent.Position, cell))
-                {
-                    exitSpot = comp.parent;
-                    return true;
-                }
-            }
-            foreach (var c in vehicle.CachedMapEdgeCells.OrderBy(c => (c - pawn.Position).LengthHorizontalSquared))
-            {
-                var targetInfo = new TargetInfo(c, departMap);
-                var cell = EnterVehiclePosition(targetInfo);
-                if (CanReach(c, cell))
-                {
-                    exitSpot = targetInfo;
-                    return true;
-                }
-            }
-            return false;
-        }
-        return pawn.Map.reachability.CanReachMapEdge(pawn.Position, traverseParms);
-    }
-
     public static bool CanReachVehicle(this VehiclePawn vehicle, LocalTargetInfo dest, PathEndMode peMode, Danger maxDanger, TraverseMode mode, Map destMap, out TargetInfo exitSpot, out TargetInfo enterSpot)
     {
         exitSpot = TargetInfo.Invalid;
         enterSpot = TargetInfo.Invalid;
-        if (dest.Cell == vehicle.Position && destMap == vehicle.Map)
-        {
-            return true;
-        }
+
         var traverseParms = TraverseParms.For(vehicle, maxDanger, mode, false, false, false);
-        if (!vehicle.Spawned) return false;
-
-        var departMap = vehicle.Map;
-        if (departMap == null || destMap == null) return false;
-        if (departMap == destMap)
+        bool result = false;
+        try
         {
-            return MapComponentCache<VehiclePathingSystem>.GetComponent(departMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(vehicle.Position, dest, peMode, traverseParms);
-        }
-        var destBaseMap = destMap.IsVehicleMapOf(out var vehicle2) && vehicle2.Spawned ? vehicle2.Map : destMap;
-        var departBaseMap = departMap.IsVehicleMapOf(out var vehicle3) && vehicle3.Spawned ? vehicle3.Map : departMap;
+            if (CrossMapReachabilityCache.TryGetCache(new TargetInfo(vehicle.Position, vehicle.Map), dest.ToTargetInfo(destMap), traverseParms, out result, out exitSpot, out enterSpot))
+            {
+                return result;
+            }
+            if (dest.Cell == vehicle.Position && destMap == vehicle.Map)
+            {
+                return true;
+            }
+            if (!vehicle.Spawned) return false;
 
-        if (departBaseMap == destBaseMap)
-        {
+            var departMap = vehicle.Map;
+            if (departMap == null || destMap == null) return false;
+            if (departMap == destMap)
+            {
+                return MapComponentCache<VehiclePathingSystem>.GetComponent(departMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(vehicle.Position, dest, peMode, traverseParms);
+            }
             if (vehicle is VehiclePawnWithMap)
             {
                 return false;
             }
-            var flag = departMap == departBaseMap;
-            var flag2 = departBaseMap == destMap;
-            bool AvailableEnterSpot(CompVehicleEnterSpot comp)
+            var destBaseMap = destMap.IsVehicleMapOf(out var vehicle2) && vehicle2.Spawned ? vehicle2.Map : destMap;
+            var departBaseMap = departMap.IsVehicleMapOf(out var vehicle3) && vehicle3.Spawned ? vehicle3.Map : departMap;
+
+            //行き先のマップでまだPathGridが作られてない場合構築をリクエストする処理を追加
+            var destMapPathing = MapComponentCache<VehiclePathingSystem>.GetComponent(destMap);
+            if (!destMapPathing[vehicle.VehicleDef].VehiclePathGrid.Enabled)
             {
-                return comp != null && comp.Props.allowPassingVehicle && comp.parent.def.size.x >= vehicle.VehicleDef.size.x;
+                destMapPathing.RequestGridsFor(vehicle.VehicleDef, DeferredGridGeneration.Urgency.Urgent);
             }
 
-            //vehicleが車上マップに居て目的地がベースマップ
-            if (!flag && flag2)
+            if (departBaseMap == destBaseMap)
             {
-                if (vehicle3 != null)
+                var flag = departMap == departBaseMap;
+                var flag2 = departBaseMap == destMap;
+                bool AvailableEnterSpot(CompVehicleEnterSpot comp)
                 {
-                    Thing tmpSpot = null;
-                    var result = vehicle3.EnterComps.Where(e => e.Isnt<CompZipline>()).OrderBy(e => e.DistanceSquared(dest.Cell)).Any(e =>
-                    {
-                        tmpSpot = e.parent;
-                        if (!AvailableEnterSpot(e) || tmpSpot.OccupiedRect().Any(c3 => !vehicle.Drivable(c3, departMap))) return false;
-
-                        var cell = EnterVehiclePosition(tmpSpot, vehicle);
-                        return vehicle.VehicleDef.CellRectStandable(destMap, cell, tmpSpot.BaseFullRotation().Opposite) &&
-                            MapComponentCache<VehiclePathingSystem>.GetComponent(departMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(vehicle.Position, tmpSpot, PathEndMode.OnCell, traverseParms) &&
-                            MapComponentCache<VehiclePathingSystem>.GetComponent(destMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(cell, dest, peMode, TraverseMode.PassDoors, traverseParms.maxDanger);
-                    });
-                    exitSpot = result ? tmpSpot : TargetInfo.Invalid;
-                    return result;
+                    return comp != null && comp.Props.allowPassingVehicle && comp.parent.def.size.x >= vehicle.VehicleDef.size.x;
                 }
-            }
-            //vehicleがベースマップに居て目的地が車上マップ
-            else if (flag && !flag2)
-            {
-                if (vehicle2 != null)
+
+                //vehicleが車上マップに居て目的地がベースマップ
+                if (!flag && flag2)
                 {
-                    Thing tmpSpot = null;
-                    var result = vehicle2.EnterComps.Where(e => e.Isnt<CompZipline>()).OrderBy(e => e.DistanceSquared(vehicle.Position)).Any(e =>
+                    if (vehicle3 != null)
                     {
-                        tmpSpot = e.parent;
-                        if (!AvailableEnterSpot(e) || tmpSpot.OccupiedRect().Any(c3 => !vehicle.Drivable(c3, destMap))) return false;
 
-                        var cell = EnterVehiclePosition(tmpSpot, vehicle);
-                        var cell2 = tmpSpot.Position + (tmpSpot.Rotation.FacingCell * vehicle.HalfLength());
-                        return vehicle.VehicleDef.CellRectStandable(destMap, cell2, tmpSpot.Rotation) &&
-                            MapComponentCache<VehiclePathingSystem>.GetComponent(departMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(vehicle.Position, cell, PathEndMode.OnCell, traverseParms) &&
-                            MapComponentCache<VehiclePathingSystem>.GetComponent(destMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(cell2, dest, peMode, TraverseMode.PassDoors, traverseParms.maxDanger);
-                    });
-                    enterSpot = result ? tmpSpot : TargetInfo.Invalid;
-                    return result;
+                        Thing tmpSpot = null;
+                        result = vehicle3.EnterComps.Where(e => e.Isnt<CompZipline>()).OrderBy(e => e.DistanceSquared(dest.Cell)).Any(e =>
+                        {
+                            tmpSpot = e.parent;
+                            if (!AvailableEnterSpot(e) || tmpSpot.OccupiedRect().Any(c3 => !vehicle.Drivable(c3, departMap))) return false;
+
+                            var cell = EnterVehiclePosition(tmpSpot, vehicle);
+                            return vehicle.VehicleDef.CellRectStandable(destMap, cell, tmpSpot.BaseFullRotation().Opposite) &&
+                                MapComponentCache<VehiclePathingSystem>.GetComponent(departMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(vehicle.Position, tmpSpot, PathEndMode.OnCell, traverseParms) &&
+                                destMapPathing[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(cell, dest, peMode, TraverseMode.PassDoors, traverseParms.maxDanger);
+                        });
+                        exitSpot = result ? tmpSpot : TargetInfo.Invalid;
+                        return result;
+                    }
                 }
-            }
-            //vehicleと目的地がそれぞれ別の車上マップ
-            else
-            {
-                if (vehicle3 != null)
+                //vehicleがベースマップに居て目的地が車上マップ
+                else if (flag && !flag2)
                 {
                     if (vehicle2 != null)
                     {
                         Thing tmpSpot = null;
-                        Thing tmpSpot2 = null;
-                        var result = vehicle3.EnterComps.Where(e => e.Isnt<CompZipline>()).OrderBy(e => e.DistanceSquared(dest.Cell.ToBaseMapCoord(vehicle2))).Any(e =>
+                        result = vehicle2.EnterComps.Where(e => e.Isnt<CompZipline>()).OrderBy(e => e.DistanceSquared(vehicle.Position)).Any(e =>
                         {
                             tmpSpot = e.parent;
-                            if (!AvailableEnterSpot(e) || tmpSpot.OccupiedRect().Any(c => !vehicle.Drivable(c, departMap))) return false;
+                            if (!AvailableEnterSpot(e) || tmpSpot.OccupiedRect().Any(c3 => !vehicle.Drivable(c3, destMap))) return false;
 
                             var cell = EnterVehiclePosition(tmpSpot, vehicle);
-
-                            return vehicle2.EnterComps.Where(e2 => e2.Isnt<CompZipline>()).OrderBy(e2 => e2.DistanceSquared(cell)).Any(e2 =>
-                            {
-                                tmpSpot2 = e2.parent;
-                                if (!AvailableEnterSpot(e2) || tmpSpot2.OccupiedRect().Any(c => !vehicle.Drivable(c, destMap))) return false;
-
-                                var cell2 = EnterVehiclePosition(tmpSpot2, vehicle);
-                                var cell3 = tmpSpot2.Position + (tmpSpot2.Rotation.FacingCell * vehicle.HalfLength());
-
-                                return vehicle.VehicleDef.CellRectStandable(departBaseMap, cell, tmpSpot.BaseFullRotation().Opposite) &&
-                                    vehicle.VehicleDef.CellRectStandable(destMap, cell3, tmpSpot2.Rotation) &&
-                                    MapComponentCache<VehiclePathingSystem>.GetComponent(departMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(vehicle.Position, tmpSpot, PathEndMode.OnCell, traverseParms) &&
-                                    MapComponentCache<VehiclePathingSystem>.GetComponent(departBaseMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(cell, cell2, PathEndMode.OnCell, TraverseMode.PassDoors, traverseParms.maxDanger) &&
-                                    MapComponentCache<VehiclePathingSystem>.GetComponent(destMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(cell3, dest, peMode, TraverseMode.PassDoors, traverseParms.maxDanger);
-                            });
+                            var cell2 = tmpSpot.Position + (tmpSpot.Rotation.FacingCell * vehicle.HalfLength());
+                            return vehicle.VehicleDef.CellRectStandable(destMap, cell2, tmpSpot.Rotation) &&
+                                MapComponentCache<VehiclePathingSystem>.GetComponent(departMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(vehicle.Position, cell, PathEndMode.OnCell, traverseParms) &&
+                                destMapPathing[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(cell2, dest, peMode, TraverseMode.PassDoors, traverseParms.maxDanger);
                         });
-                        exitSpot = result ? tmpSpot : TargetInfo.Invalid;
-                        enterSpot = result ? tmpSpot2 : TargetInfo.Invalid;
+                        enterSpot = result ? tmpSpot : TargetInfo.Invalid;
                         return result;
                     }
                 }
+                //vehicleと目的地がそれぞれ別の車上マップ
+                else
+                {
+                    if (vehicle3 != null)
+                    {
+                        if (vehicle2 != null)
+                        {
+                            //行き先のベースマップでまだPathGridが作られてない場合構築をリクエストする処理を追加
+                            var departBaseMapPathing = MapComponentCache<VehiclePathingSystem>.GetComponent(departBaseMap);
+                            if (!departBaseMapPathing[vehicle.VehicleDef].VehiclePathGrid.Enabled)
+                            {
+                                departBaseMapPathing.RequestGridsFor(vehicle.VehicleDef, DeferredGridGeneration.Urgency.Urgent);
+                            }
+
+                            Thing tmpSpot = null;
+                            Thing tmpSpot2 = null;
+                            result = vehicle3.EnterComps.Where(e => e.Isnt<CompZipline>()).OrderBy(e => e.DistanceSquared(dest.Cell.ToBaseMapCoord(vehicle2))).Any(e =>
+                            {
+                                tmpSpot = e.parent;
+                                if (!AvailableEnterSpot(e) || tmpSpot.OccupiedRect().Any(c => !vehicle.Drivable(c, departMap))) return false;
+
+                                var cell = EnterVehiclePosition(tmpSpot, vehicle);
+
+                                return vehicle2.EnterComps.Where(e2 => e2.Isnt<CompZipline>()).OrderBy(e2 => e2.DistanceSquared(cell)).Any(e2 =>
+                                {
+                                    tmpSpot2 = e2.parent;
+                                    if (!AvailableEnterSpot(e2) || tmpSpot2.OccupiedRect().Any(c => !vehicle.Drivable(c, destMap))) return false;
+
+                                    var cell2 = EnterVehiclePosition(tmpSpot2, vehicle);
+                                    var cell3 = tmpSpot2.Position + (tmpSpot2.Rotation.FacingCell * vehicle.HalfLength());
+
+                                    return vehicle.VehicleDef.CellRectStandable(departBaseMap, cell, tmpSpot.BaseFullRotation().Opposite) &&
+                                        vehicle.VehicleDef.CellRectStandable(destMap, cell3, tmpSpot2.Rotation) &&
+                                        MapComponentCache<VehiclePathingSystem>.GetComponent(departMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(vehicle.Position, tmpSpot, PathEndMode.OnCell, traverseParms) &&
+                                        departBaseMapPathing[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(cell, cell2, PathEndMode.OnCell, TraverseMode.PassDoors, traverseParms.maxDanger) &&
+                                        destMapPathing[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(cell3, dest, peMode, TraverseMode.PassDoors, traverseParms.maxDanger);
+                                });
+                            });
+                            exitSpot = result ? tmpSpot : TargetInfo.Invalid;
+                            enterSpot = result ? tmpSpot2 : TargetInfo.Invalid;
+                            return result;
+                        }
+                    }
+                }
+            }
+            result = false;
+            return false;
+        }
+        finally
+        {
+            CrossMapReachabilityCache.Cache(new TargetInfo(vehicle.Position, vehicle.Map), dest.ToTargetInfo(destMap), traverseParms, result, exitSpot, enterSpot);
+        }
+    }
+
+    public static bool TryFindNearestStandableCell(VehiclePawn vehicle, IntVec3 cell, Map map, out IntVec3 result, float radius = -1f)
+    {
+        if (radius < 0f)
+        {
+            radius = Mathf.Min(vehicle.VehicleDef.Size.x, vehicle.VehicleDef.Size.z) * 2;
+        }
+
+        int num = GenRadial.NumCellsInRadius(radius);
+        result = IntVec3.Invalid;
+        for (int i = 0; i < num; i++)
+        {
+            IntVec3 intVec = GenRadial.RadialPattern[i] + cell;
+            if (intVec.Standable(vehicle, map) && (!VehicleMod.settings.main.fullVehiclePathing || vehicle.DrivableRectOnCell(intVec, true, map)))
+            {
+                if (map == vehicle.Map && intVec == vehicle.Position || vehicle.beached)
+                {
+                    result = intVec;
+                    return true;
+                }
+
+                if (AnyVehicleBlockingPathAt(intVec, vehicle, map) == null && vehicle.CanReachVehicle(intVec, PathEndMode.OnCell, Danger.Deadly, TraverseMode.ByPawn, map, out _, out _))
+                {
+                    result = intVec;
+                    return true;
+                }
             }
         }
+
         return false;
+    }
+
+    public static VehiclePawn AnyVehicleBlockingPathAt(IntVec3 cell, VehiclePawn vehicle, Map map)
+    {
+        List<Thing> thingList = cell.GetThingList(map);
+        if (thingList.NullOrEmpty()) return null;
+
+        float euclideanDistance = Ext_Map.Distance(vehicle.PositionOnBaseMap(), cell.ToBaseMapCoord(map));
+        for (int i = 0; i < thingList.Count; i++)
+        {
+            if (thingList[i] is VehiclePawn otherVehicle && otherVehicle != vehicle)
+            {
+                if (euclideanDistance < 20 || !otherVehicle.vehiclePather.Moving)
+                {
+                    return otherVehicle;
+                }
+            }
+        }
+
+        return null;
     }
 
     public static bool DrivableRectOnCell(this VehiclePawn vehicle, IntVec3 cell, bool maxPossibleSize, Map map)

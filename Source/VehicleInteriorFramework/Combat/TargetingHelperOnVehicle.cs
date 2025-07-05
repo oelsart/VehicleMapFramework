@@ -158,7 +158,7 @@ public static class TargetingHelperOnVehicle
             {
                 validator2 = t => innerValidator((IAttackTarget)t);
             }
-            result = (IAttackTarget)GenClosestOnVehicle.ClosestThing_Global(searcherPawn.PositionOnBaseMap(), tmpTargets, maxDist, validator2, null);
+            result = (IAttackTarget)GenClosestCrossMap.ClosestThing_Global(searcherPawn.PositionOnBaseMap(), tmpTargets, maxDist, validator2, null);
         }
         tmpTargets.Clear();
         return result;

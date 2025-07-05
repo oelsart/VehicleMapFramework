@@ -8,6 +8,7 @@ public class VehicleMapGrid(Map map) : MapComponent(map)
     {
         return vehicleGrid[map.cellIndices.CellToIndex(c)];
     }
+
     public Map VehicleMapAt(IntVec3 c)
     {
         return vehicleGrid[map.cellIndices.CellToIndex(c)]?.VehicleMap;

@@ -21,7 +21,7 @@ public class JobGiver_HaulAcrossMaps : ThinkNode_JobGiver
         }
         var baseMap = pawn.BaseMap();
         var searchSet = baseMap.BaseMapAndVehicleMaps().SelectMany(m => m.listerHaulables.ThingsPotentiallyNeedingHauling());
-        Thing thing = GenClosestOnVehicle.ClosestThing_Global_Reachable(pawn.Position, pawn.Map, searchSet, PathEndMode.OnCell, TraverseParms.For(pawn, Danger.Deadly, TraverseMode.ByPawn, false, false, false), 9999f, Validator, null);
+        Thing thing = GenClosestCrossMap.ClosestThing_Global_Reachable(pawn.Position, pawn.Map, searchSet, PathEndMode.OnCell, TraverseParms.For(pawn, Danger.Deadly, TraverseMode.ByPawn, false, false, false), 9999f, Validator, null);
         if (thing != null)
         {
             if (ModCompat.PickUpAndHaul.Active && ModCompat.PickUpAndHaul.IsAllowedRace(pawn.RaceProps))

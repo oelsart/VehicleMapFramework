@@ -111,7 +111,7 @@ public static class Patch_Colonist_UpdateOrderPos
             }
         }
         else
-            bestCell = ReachabilityUtilityOnVehicle.BestOrderedGotoDestNear(destCell, colonist.pawn, null, destMap, out tmpExitSpot, out tmpEnterSpot);
+            bestCell = CrossMapReachabilityUtility.BestOrderedGotoDestNear(destCell, colonist.pawn, null, destMap, out tmpExitSpot, out tmpEnterSpot);
         if (bestCell.InBounds(destMap))
         {
             colonist.designation = bestCell;

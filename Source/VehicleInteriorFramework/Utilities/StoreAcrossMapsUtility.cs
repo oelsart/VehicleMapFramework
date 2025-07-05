@@ -164,7 +164,7 @@ public static class StoreAcrossMapsUtility
                 startMap = carrier.Map;
                 start = carrier.PositionHeld;
             }
-            if (!ReachabilityUtilityOnVehicle.CanReach(startMap, start, c, PathEndMode.ClosestTouch, TraverseParms.For(carrier, Danger.Deadly, TraverseMode.ByPawn, false, false, false), map, out dest1, out dest2))
+            if (!CrossMapReachabilityUtility.CanReach(startMap, start, c, PathEndMode.ClosestTouch, TraverseParms.For(carrier, Danger.Deadly, TraverseMode.ByPawn, false, false, false), map, out dest1, out dest2))
             {
                 return false;
             }
@@ -306,12 +306,12 @@ public static class StoreAcrossMapsUtility
                             TargetInfo enterSpot2;
                             if (thing != null)
                             {
-                                if (!ReachabilityUtilityOnVehicle.CanReach(thingMap, intVec, thing, PathEndMode.ClosestTouch, TraverseParms.For(carrier, Danger.Deadly, TraverseMode.ByPawn, false, false, false), thing.Map, out exitSpot2, out enterSpot2))
+                                if (!CrossMapReachabilityUtility.CanReach(thingMap, intVec, thing, PathEndMode.ClosestTouch, TraverseParms.For(carrier, Danger.Deadly, TraverseMode.ByPawn, false, false, false), thing.Map, out exitSpot2, out enterSpot2))
                                 {
                                     continue;
                                 }
                             }
-                            else if (!ReachabilityUtilityOnVehicle.CanReach(thingMap, intVec, allHaulDestinationsListInPriorityOrder[i].Position, PathEndMode.ClosestTouch, TraverseParms.For(carrier, Danger.Deadly, TraverseMode.ByPawn, false, false, false), allHaulDestinationsListInPriorityOrder[i].Map, out exitSpot2, out enterSpot2))
+                            else if (!CrossMapReachabilityUtility.CanReach(thingMap, intVec, allHaulDestinationsListInPriorityOrder[i].Position, PathEndMode.ClosestTouch, TraverseParms.For(carrier, Danger.Deadly, TraverseMode.ByPawn, false, false, false), allHaulDestinationsListInPriorityOrder[i].Map, out exitSpot2, out enterSpot2))
                             {
                                 continue;
                             }

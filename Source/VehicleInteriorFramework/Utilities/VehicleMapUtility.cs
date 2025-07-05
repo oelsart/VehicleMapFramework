@@ -166,7 +166,7 @@ public static class VehicleMapUtility
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector3 ToBaseMapCoord(this Vector3 original, Map map)
     {
-        if (map.IsVehicleMapOf(out var vehicle))
+        if (map.IsNonFocusedVehicleMapOf(out var vehicle))
         {
             return VehicleMapUtility.ToBaseMapCoord(original, vehicle);
         }

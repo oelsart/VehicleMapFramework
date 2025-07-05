@@ -35,12 +35,12 @@ public static class ToilsAcrossMaps
         {
             toil.initAction = delegate ()
             {
-                dest = ReachabilityUtilityOnVehicle.EnterVehiclePosition(enterSpot, toil.actor as VehiclePawn);
+                dest = CrossMapReachabilityUtility.EnterVehiclePosition(enterSpot, toil.actor as VehiclePawn);
             };
 
             toil.tickAction = () =>
             {
-                var curDest = ReachabilityUtilityOnVehicle.EnterVehiclePosition(enterSpot, toil.actor as VehiclePawn);
+                var curDest = CrossMapReachabilityUtility.EnterVehiclePosition(enterSpot, toil.actor as VehiclePawn);
                 if (dest != curDest)
                 {
                     dest = curDest;
@@ -101,7 +101,7 @@ public static class ToilsAcrossMaps
                 return;
             }
             bool validator(Thing t) => t.Spawned && t.def == actor.carryTracker.CarriedThing.def && t.CanStackWith(actor.carryTracker.CarriedThing) && !t.IsForbidden(actor) && t.IsSociallyProper(actor, false, true) && (takeFromValidStorage || !t.IsInValidStorage()) && (storeCellInd == TargetIndex.None || curJob.GetTarget(storeCellInd).Cell.IsValidStorageFor(destMap, t)) && actor.CanReserve(t, destMap, 1, -1, null, false) && (extraValidator == null || extraValidator(t));
-            Thing thing = GenClosestOnVehicle.ClosestThingReachable(actor.Position, actor.Map, ThingRequest.ForGroup(ThingRequestGroup.HaulableAlways), PathEndMode.ClosestTouch, TraverseParms.For(actor, Danger.Deadly, TraverseMode.ByPawn, false, false, false), 8f, validator, null, 0, -1, false, RegionType.Set_Passable, false);
+            Thing thing = GenClosestCrossMap.ClosestThingReachable(actor.Position, actor.Map, ThingRequest.ForGroup(ThingRequestGroup.HaulableAlways), PathEndMode.ClosestTouch, TraverseParms.For(actor, Danger.Deadly, TraverseMode.ByPawn, false, false, false), 8f, validator, null, 0, -1, false, RegionType.Set_Passable, false);
             if (thing != null)
             {
                 curJob.SetTarget(haulableInd, thing);
@@ -235,7 +235,7 @@ public static class ToilsAcrossMaps
                     var baseMap = exitSpot.Map.BaseMap();
                     initTick = GenTicks.TicksGame;
                     Rot4 baseRot = exitSpot.HasThing ? exitSpot.Thing.BaseFullRotation() : exitSpot.Cell.BaseFullDirectionToInsideMap(vehicle);
-                    pos = ReachabilityUtilityOnVehicle.EnterVehiclePosition(exitSpot, out var dist, vehiclePawn);
+                    pos = CrossMapReachabilityUtility.EnterVehiclePosition(exitSpot, out var dist, vehiclePawn);
                     ticks *= dist + vehicleOffset;
                     driver.ticksLeftThisToil = (int)ticks;
                     if (vehiclePawn != null)
@@ -358,7 +358,7 @@ public static class ToilsAcrossMaps
                     var baseMap = enterSpot.Map.BaseMap();
                     var baseRot8 = enterSpot.HasThing ? enterSpot.Thing.BaseFullRotation() : enterSpot.Cell.BaseFullDirectionToInsideMap(vehicle);
                     Rot4 baseRot4 = baseRot8;
-                    var cell = ReachabilityUtilityOnVehicle.EnterVehiclePosition(enterSpot, out var dist, vehiclePawn);
+                    var cell = CrossMapReachabilityUtility.EnterVehiclePosition(enterSpot, out var dist, vehiclePawn);
                     var vehicleOffset = vehiclePawn != null ? vehiclePawn.HalfLength() : 0;
                     ticks *= dist + vehicleOffset;
                     driver.ticksLeftThisToil = (int)ticks;
@@ -607,7 +607,7 @@ public static class ToilsAcrossMaps
             hasSpareItems = actor.carryTracker.CarriedThing.stackCount > spaceRemainingWithEnroute;
         }
 
-        target = GenClosestOnVehicle.ClosestThing_Global_Reachable(actor.Position, actor.Map, from x in job.GetTargetQueue(destIndex)
+        target = GenClosestCrossMap.ClosestThing_Global_Reachable(actor.Position, actor.Map, from x in job.GetTargetQueue(destIndex)
                                                                                               select x.Thing, PathEndMode.Touch, TraverseParms.For(actor), 99999f, Validator, null);
         return target != null;
         bool Validator(Thing th)

@@ -42,14 +42,7 @@ public static class Patch_MechanitorUtility_InMechanitorCommandRange
 {
     public static void Prefix(Pawn mech, ref LocalTargetInfo target)
     {
-        if (Patch_MultiPawnGotoController_RecomputeDestinations.tmpEnterSpots.TryGetValue(mech, out var spots))
-        {
-            var destMap = spots.enterSpot.Map ?? spots.exitSpot.Map.BaseMap() ?? mech.MapHeld;
-            if (destMap.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
-            {
-                target = target.Cell.ToBaseMapCoord(vehicle);
-            }
-        }
+        target = TargetMapManager.TargetCellOnBaseMap(ref target, mech);
     }
 
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -81,9 +74,9 @@ public static class Patch_Reachability_CanReach
         {
             destMap = map;
         }
-        if (!ReachabilityUtilityOnVehicle.working && traverseParams.pawn != null && destMap != null && traverseParams.pawn.Map != destMap)
+        if (!CrossMapReachabilityUtility.working && traverseParams.pawn != null && destMap != null && traverseParams.pawn.Map != destMap)
         {
-            __result = ReachabilityUtilityOnVehicle.CanReach(traverseParams.pawn.Map, start, dest, peMode, traverseParams, destMap, out _, out _);
+            __result = CrossMapReachabilityUtility.CanReach(traverseParams.pawn.Map, start, dest, peMode, traverseParams, destMap, out _, out _);
         }
     }
 

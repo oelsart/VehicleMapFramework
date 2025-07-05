@@ -272,7 +272,7 @@ public class WorkGiver_HaulToInventoryAcrossMaps : WorkGiver_HaulToInventory, IW
                     break;
                 }
 
-                if (ReachabilityUtilityOnVehicle.CanReach(map, center, thing, peMode, traverseParams, map, out _, out _) && (validator == null || validator(thing)))
+                if (CrossMapReachabilityUtility.CanReach(map, center, thing, peMode, traverseParams, map, out _, out _) && (validator == null || validator(thing)))
                 {
                     return thing;
                 }
@@ -520,7 +520,7 @@ public class WorkGiver_HaulToInventoryAcrossMaps : WorkGiver_HaulToInventory, IW
                 {
                     if (thing.IsForbidden(carrier)
                         || !carrier.CanReserveNew(thing)
-                        || !ReachabilityUtilityOnVehicle.CanReach(map, intVec, thing, PathEndMode.ClosestTouch, TraverseParms.For(carrier), thing.MapHeld, out _, out _))
+                        || !CrossMapReachabilityUtility.CanReach(map, intVec, thing, PathEndMode.ClosestTouch, TraverseParms.For(carrier), thing.MapHeld, out _, out _))
                     {
                         continue;
                     }

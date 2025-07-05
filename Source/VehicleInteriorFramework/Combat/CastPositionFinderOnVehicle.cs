@@ -177,7 +177,7 @@ public static class CastPositionFinderOnVehicle
             }
             return;
         }
-        if (!ReachabilityUtilityOnVehicle.CanReach(casterMap, CastPositionFinderOnVehicle.req.caster.Position, c, PathEndMode.OnCell, TraverseParms.For(CastPositionFinderOnVehicle.req.caster, Danger.Some, TraverseMode.ByPawn, false, false, false), CastPositionFinderOnVehicle.req.target.Map, out _, out _) &&
+        if (!CrossMapReachabilityUtility.CanReach(casterMap, CastPositionFinderOnVehicle.req.caster.Position, c, PathEndMode.OnCell, TraverseParms.For(CastPositionFinderOnVehicle.req.caster, Danger.Some, TraverseMode.ByPawn, false, false, false), CastPositionFinderOnVehicle.req.target.Map, out _, out _) &&
             !CastPositionFinderOnVehicle.req.caster.IsOnVehicleMapOf(out _) && !CastPositionFinderOnVehicle.req.target.IsOnVehicleMapOf(out _))
         {
             if (DebugViewSettings.drawCastPositionSearch)

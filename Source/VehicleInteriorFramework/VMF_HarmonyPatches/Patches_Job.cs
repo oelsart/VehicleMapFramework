@@ -101,10 +101,10 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
         //GenClosestの各メソッドを自作のものに置き換える
         //PotentialWorkThingsGlobalの各マップの結果を合計
         var m_GenClosest_ClosestThing_Global = AccessTools.Method(typeof(GenClosest), nameof(GenClosest.ClosestThing_Global));
-        var m_GenClosestOnVehicle_ClosestThing_Global = AccessTools.Method(typeof(GenClosestOnVehicle), nameof(GenClosestOnVehicle.ClosestThing_Global),
+        var m_GenClosestOnVehicle_ClosestThing_Global = AccessTools.Method(typeof(GenClosestCrossMap), nameof(GenClosestCrossMap.ClosestThing_Global),
             [typeof(IntVec3), typeof(IEnumerable<>), typeof(float), typeof(Predicate<Thing>), typeof(Func<Thing, float>), typeof(bool)]);
         var m_GenClosest_ClosestThing_Global_Reachable = AccessTools.Method(typeof(GenClosest), nameof(GenClosest.ClosestThing_Global_Reachable));
-        var m_GenClosestOnVehicle_ClosestThing_Global_Reachable = AccessTools.Method(typeof(GenClosestOnVehicle), nameof(GenClosestOnVehicle.ClosestThing_Global_Reachable),
+        var m_GenClosestOnVehicle_ClosestThing_Global_Reachable = AccessTools.Method(typeof(GenClosestCrossMap), nameof(GenClosestCrossMap.ClosestThing_Global_Reachable),
             [typeof(IntVec3), typeof(Map), typeof(IEnumerable<Thing>), typeof(PathEndMode), typeof(TraverseParms), typeof(float), typeof(Predicate<Thing>), typeof(Func<Thing, float>), typeof(bool)]);
         var m_Scanner_PotentialWorkThingsGlobal = AccessTools.Method(typeof(WorkGiver_Scanner), nameof(WorkGiver_Scanner.PotentialWorkThingsGlobal));
         var m_PotentialWorkThingsGlobalAll = AccessTools.Method(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(PotentialWorkThingsGlobalAll));
@@ -125,7 +125,7 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
         var maps = pawn.Map.BaseMapAndVehicleMaps().Except(pawn.Map);
         if (maps.Any())
         {
-            return maps.SelectMany(m => m.listerThings.ThingsMatching(scanner.PotentialWorkThingRequest)).ConcatIfNotNull(list);
+            return maps.SelectMany(m => m.listerThings.ThingsMatching(scanner.PotentialWorkThingRequest)).ConcatIfNotNull(list).Distinct();
         }
         return list;
     }
@@ -155,7 +155,7 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
                     enumerable = enumerable.Concat(things);
                 }
             });
-            return enumerable;
+            return enumerable?.Distinct();
         }
         finally
         {
@@ -246,7 +246,7 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
                 IEnumerable<IntVec3> enumerable2 = scanner.PotentialWorkCellsGlobal(pawn);
                 foreach (IntVec3 c in enumerable2)
                 {
-                    if (ReachabilityUtilityOnVehicle.CanReach(tmpMap, innerStruct.pawnPosition, c, scanner.PathEndMode, TraverseParms.For(pawn, innerStruct.maxPathDanger), map2, out _, out _))
+                    if (CrossMapReachabilityUtility.CanReach(tmpMap, innerStruct.pawnPosition, c, scanner.PathEndMode, TraverseParms.For(pawn, innerStruct.maxPathDanger), map2, out _, out _))
                     {
                         pawn.SetPositionDirect(c);
                     }
@@ -647,7 +647,7 @@ public static class Patch_GenClosest_ClosestThingReachable
         var maps = map.BaseMapAndVehicleMaps().Except(map);
         if (traverseParams.pawn != null && maps.Any())
         {
-            __result = GenClosestOnVehicle.ClosestThingReachable(root, map, thingReq, peMode, traverseParams, maxDistance, validator, customGlobalSearchSet, searchRegionsMin, searchRegionsMax, forceAllowGlobalSearch, traversableRegionTypes, ignoreEntirelyForbiddenRegions, lookInHaulSources);
+            __result = GenClosestCrossMap.ClosestThingReachable(root, map, thingReq, peMode, traverseParams, maxDistance, validator, customGlobalSearchSet, searchRegionsMin, searchRegionsMax, forceAllowGlobalSearch, traversableRegionTypes, ignoreEntirelyForbiddenRegions, lookInHaulSources);
             return false;
         }
         return true;
@@ -662,7 +662,7 @@ public static class Patch_GenClosest_ClosestThing_Regionwise_ReachablePrioritize
         var maps = map.BaseMapAndVehicleMaps().Except(map);
         if (traverseParams.pawn != null && maps.Any())
         {
-            __result = GenClosestOnVehicle.ClosestThing_Regionwise_ReachablePrioritized(root, map, thingReq, peMode, traverseParams, maxDistance, validator, priorityGetter, minRegions, maxRegions, lookInHaulSources);
+            __result = GenClosestCrossMap.ClosestThing_Regionwise_ReachablePrioritized(root, map, thingReq, peMode, traverseParams, maxDistance, validator, priorityGetter, minRegions, maxRegions, lookInHaulSources);
             return false;
         }
         return true;
@@ -793,7 +793,7 @@ public static class Patch_FoodUtility_BestFoodSourceOnMap
             CodeInstruction.Call(typeof(Patch_FoodUtility_BestFoodSourceOnMap), nameof(Patch_FoodUtility_BestFoodSourceOnMap.AddSearchSet))
         ]);
         var m_CanReachNonLocal = AccessTools.Method(typeof(Reachability), nameof(Reachability.CanReachNonLocal), [typeof(IntVec3), typeof(TargetInfo), typeof(PathEndMode), typeof(TraverseParms)]);
-        var m_CanReachNonLocalReaplaceable = AccessTools.Method(typeof(ReachabilityUtilityOnVehicle), nameof(ReachabilityUtilityOnVehicle.CanReachNonLocalReplaceable), [typeof(Reachability), typeof(IntVec3), typeof(TargetInfo), typeof(PathEndMode), typeof(TraverseParms)]);
+        var m_CanReachNonLocalReaplaceable = AccessTools.Method(typeof(CrossMapReachabilityUtility), nameof(CrossMapReachabilityUtility.CanReachNonLocalReplaceable), [typeof(Reachability), typeof(IntVec3), typeof(TargetInfo), typeof(PathEndMode), typeof(TraverseParms)]);
         return codes.MethodReplacer(m_CanReachNonLocal, m_CanReachNonLocalReaplaceable);
     }
 
@@ -829,7 +829,7 @@ public static class Patch_FoodUtility_BestFoodSourceOnMap_Predicate
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var m_CanReachNonLocal = AccessTools.Method(typeof(Reachability), nameof(Reachability.CanReachNonLocal), [typeof(IntVec3), typeof(TargetInfo), typeof(PathEndMode), typeof(TraverseParms)]);
-        var m_CanReachNonLocalReaplaceable = AccessTools.Method(typeof(ReachabilityUtilityOnVehicle), nameof(ReachabilityUtilityOnVehicle.CanReachNonLocalReplaceable), [typeof(Reachability), typeof(IntVec3), typeof(TargetInfo), typeof(PathEndMode), typeof(TraverseParms)]);
+        var m_CanReachNonLocalReaplaceable = AccessTools.Method(typeof(CrossMapReachabilityUtility), nameof(CrossMapReachabilityUtility.CanReachNonLocalReplaceable), [typeof(Reachability), typeof(IntVec3), typeof(TargetInfo), typeof(PathEndMode), typeof(TraverseParms)]);
         return instructions.MethodReplacer(m_CanReachNonLocal, m_CanReachNonLocalReaplaceable);
     }
 }

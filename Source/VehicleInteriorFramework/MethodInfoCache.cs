@@ -170,15 +170,15 @@ public class MethodInfoCache
 
     public readonly MethodInfo m_ReachabilityUtility_CanReach = AccessTools.Method(typeof(ReachabilityUtility), nameof(ReachabilityUtility.CanReach), [typeof(Pawn), typeof(LocalTargetInfo), typeof(PathEndMode), typeof(Danger), typeof(bool), typeof(bool), typeof(TraverseMode)]);
 
-    public readonly MethodInfo m_ReachabilityUtilityOnVehicle_CanReach = AccessTools.Method(typeof(ReachabilityUtilityOnVehicle), nameof(ReachabilityUtilityOnVehicle.CanReach), [typeof(Pawn), typeof(LocalTargetInfo), typeof(PathEndMode), typeof(Danger), typeof(bool), typeof(bool), typeof(TraverseMode)]);
+    public readonly MethodInfo m_ReachabilityUtilityOnVehicle_CanReach = AccessTools.Method(typeof(CrossMapReachabilityUtility), nameof(CrossMapReachabilityUtility.CanReach), [typeof(Pawn), typeof(LocalTargetInfo), typeof(PathEndMode), typeof(Danger), typeof(bool), typeof(bool), typeof(TraverseMode)]);
 
     public readonly MethodInfo m_Reachability_CanReach1 = AccessTools.Method(typeof(Reachability), nameof(Reachability.CanReach), [typeof(IntVec3), typeof(LocalTargetInfo), typeof(PathEndMode), typeof(TraverseMode), typeof(Danger)]);
 
     public readonly MethodInfo m_Reachability_CanReach2 = AccessTools.Method(typeof(Reachability), nameof(Reachability.CanReach), [typeof(IntVec3), typeof(LocalTargetInfo), typeof(PathEndMode), typeof(TraverseParms)]);
 
-    public readonly MethodInfo m_CanReachReaplaceable1 = AccessTools.Method(typeof(ReachabilityUtilityOnVehicle), nameof(ReachabilityUtilityOnVehicle.CanReachReplaceable), [typeof(Reachability), typeof(IntVec3), typeof(LocalTargetInfo), typeof(PathEndMode), typeof(TraverseMode), typeof(Danger)]);
+    public readonly MethodInfo m_CanReachReaplaceable1 = AccessTools.Method(typeof(CrossMapReachabilityUtility), nameof(CrossMapReachabilityUtility.CanReachReplaceable), [typeof(Reachability), typeof(IntVec3), typeof(LocalTargetInfo), typeof(PathEndMode), typeof(TraverseMode), typeof(Danger)]);
 
-    public readonly MethodInfo m_CanReachReaplaceable2 = AccessTools.Method(typeof(ReachabilityUtilityOnVehicle), nameof(ReachabilityUtilityOnVehicle.CanReachReplaceable), [typeof(Reachability), typeof(IntVec3), typeof(LocalTargetInfo), typeof(PathEndMode), typeof(TraverseParms)]);
+    public readonly MethodInfo m_CanReachReaplaceable2 = AccessTools.Method(typeof(CrossMapReachabilityUtility), nameof(CrossMapReachabilityUtility.CanReachReplaceable), [typeof(Reachability), typeof(IntVec3), typeof(LocalTargetInfo), typeof(PathEndMode), typeof(TraverseParms)]);
 
     public readonly MethodInfo g_Rot4_FacingCell = AccessTools.PropertyGetter(typeof(Rot4), nameof(Rot4.FacingCell));
 
@@ -245,6 +245,8 @@ public class MethodInfoCache
     public readonly MethodInfo m_TryFindCastPositionOnVehicle = AccessTools.Method(typeof(CastPositionFinderOnVehicle), nameof(CastPositionFinderOnVehicle.TryFindCastPosition));
 
     public readonly MethodInfo m_TargetCellOnBaseMap = AccessTools.Method(typeof(TargetMapManager), nameof(TargetMapManager.TargetCellOnBaseMap));
+
+    public readonly MethodInfo m_PositionOnTargetMap = AccessTools.Method(typeof(TargetMapManager), nameof(TargetMapManager.PositionOnTargetMap));
 
     public readonly MethodInfo m_BreadthFirstTraverse = AccessTools.Method(typeof(RegionTraverser), nameof(RegionTraverser.BreadthFirstTraverse), [typeof(Region), typeof(RegionEntryPredicate), typeof(RegionProcessor), typeof(int), typeof(RegionType)]);
 

@@ -123,9 +123,6 @@
     <Content Include="..\..\Common\Defs\TerrainDefs\Terrains.xml">
       <Link>Common\Defs\TerrainDefs\Terrains.xml</Link>
     </Content>
-    <Content Include="..\..\Common\Defs\ThingDefs\BuildableUpgrades.xml">
-      <Link>Common\Defs\ThingDefs\BuildableUpgrades.xml</Link>
-    </Content>
     <Content Include="..\..\Common\Defs\ThingDefs\EnterSpots.xml">
       <Link>Common\Defs\ThingDefs\EnterSpots.xml</Link>
     </Content>

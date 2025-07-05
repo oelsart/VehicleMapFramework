@@ -19,7 +19,7 @@ public static class Patch_Pawn_ColonyThingsWillingToBuy
 {
     public static void Prefix(Pawn playerNegotiator)
     {
-        ReachabilityUtilityOnVehicle.tmpDepartMap = playerNegotiator.Map;
+        CrossMapReachabilityUtility.tmpDepartMap = playerNegotiator.Map;
     }
 
     public static IEnumerable<Thing> Postfix(IEnumerable<Thing> values, Pawn playerNegotiator, Pawn __instance)
@@ -48,7 +48,7 @@ public static class Patch_Pawn_ColonyThingsWillingToBuy
         finally
         {
             __instance.VirtualMapTransfer(departMap);
-            ReachabilityUtilityOnVehicle.tmpDepartMap = null;
+            CrossMapReachabilityUtility.tmpDepartMap = null;
         }
     }
 }
