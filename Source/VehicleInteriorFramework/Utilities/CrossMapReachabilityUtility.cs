@@ -63,25 +63,26 @@ public static class CrossMapReachabilityUtility
             Log.ErrorOnce("Called CanReach() while working. This should never happen. Suppressing further errors.", 7312233);
             return false;
         }
-        working = true;
-        bool result = false;
 
+        if (traverseParms.pawn is VehiclePawn vehiclePawn)
+        {
+            return vehiclePawn.CanReachVehicle(dest, peMode, traverseParms.maxDanger, traverseParms.mode, destMap, out exitSpot, out enterSpot);
+        }
+
+        if (CrossMapReachabilityCache.TryGetCache(new TargetInfo(root, departMap), dest.ToTargetInfo(destMap), traverseParms, out var result, out exitSpot, out enterSpot))
+        {
+            return result;
+        }
+        working = true;
         try
         {
-            if (CrossMapReachabilityCache.TryGetCache(new TargetInfo(root, departMap), dest.ToTargetInfo(destMap), traverseParms, out result, out exitSpot, out enterSpot))
-            {
-                return result;
-            }
-            if (traverseParms.pawn is VehiclePawn vehiclePawn)
-            {
-                return vehiclePawn.CanReachVehicle(dest, peMode, traverseParms.maxDanger, traverseParms.mode, destMap, out exitSpot, out enterSpot);
-            }
 
             if (departMap == null || destMap == null) return false;
 
             if (departMap == destMap)
             {
-                return destMap.reachability.CanReach(root, dest, peMode, traverseParms);
+                result = destMap.reachability.CanReach(root, dest, peMode, traverseParms);
+                return result;
             }
             var destBaseMap = destMap.IsVehicleMapOf(out var vehicle) && vehicle.Spawned ? vehicle.Map : destMap;
             var departBaseMap = departMap.IsVehicleMapOf(out var vehicle2) && vehicle2.Spawned ? vehicle2.Map : departMap;
@@ -248,7 +249,7 @@ public static class CrossMapReachabilityUtility
                                     if (comp2 is CompZipline compZipline2)
                                     {
                                         var pair = compZipline2.Pair;
-                                        if (pair == null || pair.Isnt<ZiplineEnd>() || pair.Map != departBaseMap) return false;
+                                        if (pair == null || pair.Isnt<ZiplineEnd>() || pair.Map != departBaseMap) continue;
                                         cell2 = pair.Position;
                                     }
                                     else

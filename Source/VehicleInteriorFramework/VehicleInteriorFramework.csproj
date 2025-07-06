@@ -218,36 +218,6 @@
     <Content Include="..\..\..\MapVehicles\Common\Defs\SoundDefs\Sounds.xml">
       <Link>Common\Defs\SoundDefs\Sounds.xml</Link>
     </Content>
-    <Content Include="..\..\..\MapVehicles\Common\Defs\VehicleDefs\Cart\Cart_Buildable.xml">
-      <Link>Common\Defs\VehicleDefs\Cart\Cart_Buildable.xml</Link>
-    </Content>
-    <Content Include="..\..\..\MapVehicles\Common\Defs\VehicleDefs\Cart\Cart_VehiclePawn.xml">
-      <Link>Common\Defs\VehicleDefs\Cart\Cart_VehiclePawn.xml</Link>
-    </Content>
-    <Content Include="..\..\..\MapVehicles\Common\Defs\VehicleDefs\Crawler\Crawler_Buildable.xml">
-      <Link>Common\Defs\VehicleDefs\Crawler\Crawler_Buildable.xml</Link>
-    </Content>
-    <Content Include="..\..\..\MapVehicles\Common\Defs\VehicleDefs\Crawler\Crawler_VehiclePawn.xml">
-      <Link>Common\Defs\VehicleDefs\Crawler\Crawler_VehiclePawn.xml</Link>
-    </Content>
-    <Content Include="..\..\..\MapVehicles\Common\Defs\VehicleDefs\Glypto\Glypto_Buildable.xml">
-      <Link>Common\Defs\VehicleDefs\Glypto\Glypto_Buildable.xml</Link>
-    </Content>
-    <Content Include="..\..\..\MapVehicles\Common\Defs\VehicleDefs\Glypto\Glypto_MainTurret.xml">
-      <Link>Common\Defs\VehicleDefs\Glypto\Glypto_MainTurret.xml</Link>
-    </Content>
-    <Content Include="..\..\..\MapVehicles\Common\Defs\VehicleDefs\Glypto\Glypto_VehiclePawn.xml">
-      <Link>Common\Defs\VehicleDefs\Glypto\Glypto_VehiclePawn.xml</Link>
-    </Content>
-    <Content Include="..\..\..\MapVehicles\Common\Defs\VehicleDefs\Pantodon\Pantodon_Buildable.xml">
-      <Link>Common\Defs\VehicleDefs\Pantodon\Pantodon_Buildable.xml</Link>
-    </Content>
-    <Content Include="..\..\..\MapVehicles\Common\Defs\VehicleDefs\Pantodon\Pantodon_Turret.xml">
-      <Link>Common\Defs\VehicleDefs\Pantodon\Pantodon_Turret.xml</Link>
-    </Content>
-    <Content Include="..\..\..\MapVehicles\Common\Defs\VehicleDefs\Pantodon\Pantodon_VehiclePawn.xml">
-      <Link>Common\Defs\VehicleDefs\Pantodon\Pantodon_VehiclePawn.xml</Link>
-    </Content>
     <Content Include="..\..\..\MapVehicles\Common\Languages\Japanese\DefInjected\ResearchProjectDefs\ResearchProjects.xml">
       <Link>Common\Languages\Japanese\DefInjected\ResearchProjectDefs\ResearchProjects.xml</Link>
     </Content>

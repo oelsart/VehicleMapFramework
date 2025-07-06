@@ -13,7 +13,6 @@ public class WorkGiver_HaulAcrossMaps : WorkGiver_Haul, IWorkGiverAcrossMaps
     public override bool ShouldSkip(Pawn pawn, bool forced = false)
     {
         if (!pawn.Map.BaseMapAndVehicleMaps().Except(pawn.Map).Any()) return true;
-
         return base.ShouldSkip(pawn, forced);
     }
 

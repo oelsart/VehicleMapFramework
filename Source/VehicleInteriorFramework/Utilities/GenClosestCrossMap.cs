@@ -98,7 +98,7 @@ public static class GenClosestCrossMap
             var searchSet = customGlobalSearchSet ?? map.BaseMapAndVehicleMaps().SelectMany(m => m.listerThings.ThingsMatching(thingReq));
             bool Validator(Thing t)
             {
-                if (!CrossMapReachabilityUtility.CanReach(map, root, t, peMode, traverseParams, t.Map, out var exitSpot2, out var enterSpot2))
+                if (!CrossMapReachabilityUtility.CanReach(map, root, t, peMode, traverseParams, t.MapHeld, out var exitSpot2, out var enterSpot2))
                 {
                     return false;
                 }
@@ -398,7 +398,7 @@ public static class GenClosestCrossMap
 
         void ValidateThing(Thing t, float distSquared)
         {
-            if (!CrossMapReachabilityUtility.CanReach(map, center, t.SpawnedParentOrMe, peMode, traverseParams, t.MapHeld, out GenClosestCrossMap.tmpExitSpot, out GenClosestCrossMap.tmpEnterSpot))
+            if (!CrossMapReachabilityUtility.CanReach(map, center, t.SpawnedParentOrMe, peMode, traverseParams, t.MapHeld, out tmpExitSpot, out tmpEnterSpot))
             {
                 return;
             }

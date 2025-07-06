@@ -69,16 +69,16 @@ public class CrossMapReachabilityCache(World world) : WorldComponent(world)
             return !lhs.Equals(rhs);
         }
 
-        public override bool Equals(object obj)
+        public override readonly bool Equals(object obj)
         {
             return obj is CachedEntry entry && Equals(entry);
         }
 
-        public bool Equals(CachedEntry other)
+        public readonly bool Equals(CachedEntry other)
         {
             return Depart == other.Depart && Dest == other.Dest && TraverseParms == other.TraverseParms;
         }
-        public override int GetHashCode()
+        public override readonly int GetHashCode()
         {
             return Gen.HashCombineStruct(Gen.HashCombineInt(Depart.GetHashCode(), Dest.GetHashCode()), TraverseParms);
         }

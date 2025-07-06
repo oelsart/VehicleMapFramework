@@ -61,10 +61,10 @@ public class CrossMapHaulDestinationManager(Map map) : MapComponent(map)
             var baseMapComponent = baseMap.GetCachedMapComponent<CrossMapHaulDestinationManager>();
 
             var baseMapDestinations = baseMapComponent.allHaulDestinationsInOrder;
-            allHaulDestinationsInOrder.Where(h => !baseMapDestinations.Contains(h)).Do(h => baseMapComponent.AddHaulDestination(h));
+            allHaulDestinationsInOrder.Where(h => !baseMapDestinations.Contains(h)).Do(baseMapComponent.AddHaulDestination);
 
             var baseMapSources = baseMapComponent.allHaulSourcesInOrder;
-            allHaulSourcesInOrder.Where(s => !baseMapSources.Contains(s)).Do(s => baseMapComponent.AddHaulSource(s));
+            allHaulSourcesInOrder.Where(s => !baseMapSources.Contains(s)).Do(baseMapComponent.AddHaulSource);
         }
     }
 
@@ -72,7 +72,7 @@ public class CrossMapHaulDestinationManager(Map map) : MapComponent(map)
     {
         if (allHaulDestinationsInOrder.Contains(haulDestination))
         {
-            Log.Error("Double-added haul destination " + haulDestination.ToStringSafe());
+            VMF_Log.Error("Double-added haul destination " + haulDestination.ToStringSafe());
             return;
         }
 
@@ -86,7 +86,7 @@ public class CrossMapHaulDestinationManager(Map map) : MapComponent(map)
         SlotGroup slotGroup = slotGroupParent.GetSlotGroup();
         if (slotGroup == null)
         {
-            Log.Error("ISlotGroupParent gave null slot group: " + slotGroupParent.ToStringSafe());
+            VMF_Log.Error("ISlotGroupParent gave null slot group: " + slotGroupParent.ToStringSafe());
             return;
         }
 
@@ -98,7 +98,7 @@ public class CrossMapHaulDestinationManager(Map map) : MapComponent(map)
     {
         if (!allHaulDestinationsInOrder.Contains(haulDestination))
         {
-            Log.Error("Removing haul destination that isn't registered " + haulDestination.ToStringSafe());
+            VMF_Log.Error("Removing haul destination that isn't registered " + haulDestination.ToStringSafe());
             return;
         }
 
@@ -111,7 +111,7 @@ public class CrossMapHaulDestinationManager(Map map) : MapComponent(map)
         SlotGroup slotGroup = slotGroupParent.GetSlotGroup();
         if (slotGroup == null)
         {
-            Log.Error("ISlotGroupParent gave null slot group: " + slotGroupParent.ToStringSafe());
+            VMF_Log.Error("ISlotGroupParent gave null slot group: " + slotGroupParent.ToStringSafe());
             return;
         }
 
@@ -122,7 +122,7 @@ public class CrossMapHaulDestinationManager(Map map) : MapComponent(map)
     {
         if (allHaulSourcesInOrder.Contains(source))
         {
-            Log.Error("Double-added haul destination " + source.ToStringSafe());
+            VMF_Log.Error("Double-added haul destination " + source.ToStringSafe());
             return;
         }
 
@@ -134,7 +134,7 @@ public class CrossMapHaulDestinationManager(Map map) : MapComponent(map)
     {
         if (!allHaulSourcesInOrder.Remove(source))
         {
-            Log.Error("Removing haul source that isn't registered " + source.ToStringSafe());
+            VMF_Log.Error("Removing haul source that isn't registered " + source.ToStringSafe());
         }
     }
 

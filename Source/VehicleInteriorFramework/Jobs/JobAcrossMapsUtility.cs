@@ -72,7 +72,7 @@ public static class JobAcrossMapsUtility
     public static bool NoNeedVirtualMapTransfer(Map pawnMap, Map targetMap, WorkGiver_Scanner scanner)
     {
         return pawnMap == targetMap ||
-            (scanner is IWorkGiverAcrossMaps workGiverAcrossMaps && !workGiverAcrossMaps.NeedVirtualMapTransfer) ||
+            scanner is IWorkGiverAcrossMaps workGiverAcrossMaps && !workGiverAcrossMaps.NeedVirtualMapTransfer ||
             scanner is WorkGiver_Haul ||
             scanner is WorkGiver_DoBill ||
             scanner is WorkGiver_ConstructDeliverResources ||

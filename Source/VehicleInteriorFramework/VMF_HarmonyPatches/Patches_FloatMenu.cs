@@ -399,6 +399,9 @@ public static class Patch_FloatMenuOptionProvider_WorkGivers_GetWorkGiverOption
 
     public static void Prefix(Pawn pawn, WorkGiverDef workGiver, LocalTargetInfo target, FloatMenuContext context, ref object[] __state)
     {
+        tmpExitSpot = TargetInfo.Invalid;
+        tmpEnterSpot = TargetInfo.Invalid;
+
         __state = new object[3];
         if (JobAcrossMapsUtility.NoNeedVirtualMapTransfer(pawn.Map, context.map, workGiver.Worker as WorkGiver_Scanner))
         {
