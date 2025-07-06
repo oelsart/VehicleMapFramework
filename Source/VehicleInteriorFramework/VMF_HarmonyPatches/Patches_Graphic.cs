@@ -163,7 +163,7 @@ public static class Patch_Graphic_LinkedCornerFiller_Print
 
 //Graphic_LinkedCornerOverlaySingleを使うためのWrap。linkDrawerTypeは適当に被らなそうな数字にしました。
 [HarmonyPatch(typeof(GraphicUtility), nameof(GraphicUtility.WrapLinked))]
-[HarmonyPatchCategory("VehicleInteriors.EarlyPatches")]
+[HarmonyPatchCategory(EarlyPatchCore.Category)]
 public static class Patch_GraphicUtility_WrapLinked
 {
     public static bool Prefix(Graphic subGraphic, LinkDrawerType linkDrawerType, ref Graphic_Linked __result)
@@ -179,7 +179,7 @@ public static class Patch_GraphicUtility_WrapLinked
 
 //バニラのCopyFromがcornerOverlayPathをコピーしてないためにエラーがでてたので修正。
 [HarmonyPatch(typeof(GraphicData), nameof(GraphicData.CopyFrom))]
-[HarmonyPatchCategory("VehicleInteriors.EarlyPatches")]
+[HarmonyPatchCategory(EarlyPatchCore.Category)]
 public static class Patch_GraphicData_CopyFrom
 {
     public static void Postfix(GraphicData __instance, GraphicData other)

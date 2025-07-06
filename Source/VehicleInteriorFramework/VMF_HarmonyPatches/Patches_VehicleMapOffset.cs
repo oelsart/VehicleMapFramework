@@ -34,7 +34,7 @@ public static class Patch_UI_MouseCell
     }
 }
 
-[HarmonyBefore("SmashPhil.VehicleFramework")]
+[HarmonyBefore(VehicleFramework.HarmonyId)]
 [HarmonyPatch(typeof(GenThing), nameof(GenThing.TrueCenter), typeof(Thing))]
 public static class Patch_GenThing_TrueCenter
 {

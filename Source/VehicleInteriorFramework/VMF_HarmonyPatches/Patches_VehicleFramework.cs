@@ -545,7 +545,7 @@ public static class Patch_Dialog_FormVehicleCaravan_TryFindExitSpot
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, MethodBase method)
     {
         if (instructions.FirstOrDefault(c => c.OperandIs(CachedMethodInfo.m_ReachabilityUtility_CanReach)) == null) Log.Error(method.Name);
-        return instructions.MethodReplacer(CachedMethodInfo.m_ReachabilityUtility_CanReach, CachedMethodInfo.m_ReachabilityUtilityOnVehicle_CanReach);
+        return instructions.MethodReplacer(CachedMethodInfo.m_ReachabilityUtility_CanReach, CachedMethodInfo.m_CrossMapReachabilityUtility_CanReach);
     }
 }
 

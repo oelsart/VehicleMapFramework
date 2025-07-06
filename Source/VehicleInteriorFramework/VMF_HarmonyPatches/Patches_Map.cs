@@ -15,6 +15,7 @@ using Verse;
 using Verse.AI;
 using Verse.Sound;
 using static VehicleInteriors.MethodInfoCache;
+using static VehicleInteriors.ModCompat;
 
 namespace VehicleInteriors.VMF_HarmonyPatches;
 
@@ -340,6 +341,8 @@ public static class Patch_MapPawns_AllPawns
     private static List<Pawn> tmpList = [];
 }
 
+[HarmonyBefore(VehicleFramework.HarmonyId)]
+[HarmonyPatchCategory(EarlyPatchCore.Category)]
 [HarmonyPatch(typeof(MapPawns), nameof(MapPawns.AllPawnsSpawned), MethodType.Getter)]
 public static class Patch_MapPawns_AllPawnsSpawned
 {
@@ -387,7 +390,7 @@ public static class Patch_MapPawns_AnyPawnBlockingMapRemoval
 }
 
 [HarmonyBefore("SettlementQuestsMod")]
-[HarmonyPatchCategory("VehicleInteriors.EarlyPatches")]
+[HarmonyPatchCategory(EarlyPatchCore.Category)]
 [HarmonyPatch(typeof(WorldObject), nameof(WorldObject.Tile), MethodType.Getter)]
 public static class Patch_WorldObject_Tile
 {

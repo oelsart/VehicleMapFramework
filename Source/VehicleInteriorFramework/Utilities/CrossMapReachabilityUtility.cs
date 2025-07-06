@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using Vehicles;
-using Vehicles.World;
 using Verse;
 using Verse.AI;
 
@@ -349,6 +348,7 @@ public static class CrossMapReachabilityUtility
     {
         var traverseParms = TraverseParms.For(pawn, maxDanger, mode, canBashDoors, false, canBashFences);
         var destMap = CrossMapReachabilityUtility.tmpDestMap ?? (dest3.HasThing ? dest3.Thing.MapHeld : pawn.BaseMap());
+        Log.Message($"pawn={pawn} destMap={destMap}");
         return pawn.Spawned && CrossMapReachabilityUtility.CanReach(pawn.Map, pawn.Position, dest3, peMode, traverseParms, destMap, out _, out _);
     }
 

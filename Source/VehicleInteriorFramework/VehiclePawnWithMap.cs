@@ -396,6 +396,7 @@ public class VehiclePawnWithMap : VehiclePawn
             }
             cachedDrawPos = drawLoc;
         }
+
         base.DynamicDrawPhaseAt(phase, drawLoc, flip);
 
         if (phase == DrawPhase.Draw)

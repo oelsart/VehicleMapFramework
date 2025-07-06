@@ -1,5 +1,6 @@
 ﻿using RimWorld;
 using SmashTools;
+using SmashTools.Rendering;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;

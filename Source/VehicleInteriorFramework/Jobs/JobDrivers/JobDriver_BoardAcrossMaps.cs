@@ -1,6 +1,8 @@
 ﻿using RimWorld;
 using RimWorld.Planet;
+using SmashTools.Rendering;
 using System.Collections.Generic;
+using System.Linq;
 using Vehicles;
 using Verse;
 using Verse.AI;
@@ -34,8 +36,7 @@ public class JobDriver_BoardAcrossMaps : JobDriverAcrossMaps
         toil.initAction = delegate ()
         {
             var target = pawnBoarding.jobs.curJob.GetTarget(TargetIndex.A).Thing;
-            VehiclePawn vehiclePawn = target as VehiclePawn;
-            if (vehiclePawn == null)
+            if (target is not VehiclePawn vehiclePawn)
             {
                 if (!target.IsOnVehicleMapOf(out var vehiclePawnWithMap))
                 {
@@ -62,6 +63,10 @@ public class JobDriver_BoardAcrossMaps : JobDriverAcrossMaps
                 }
                 ThrowAppropriateHistoryEvent(vehiclePawn.VehicleDef.type, toil.actor);
             }
+
+            var targetHandler = vehiclePawn.handlers.OfType<VehicleRoleHandlerBuildable>()
+            .FirstOrDefault(h => h.role is VehicleRoleBuildable buildable && buildable.upgradeComp.parent == target);
+            targetHandler?.SetDirty();
         };
         toil.defaultCompleteMode = ToilCompleteMode.Instant;
         return toil;

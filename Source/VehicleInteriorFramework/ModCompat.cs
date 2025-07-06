@@ -22,6 +22,11 @@ public static class ModCompat
         VMF_Log.Error($"{modName} compatibility is broken.");
     }
 
+    public static class VehicleFramework
+    {
+        public const string HarmonyId = "SmashPhil.VehicleFramework";
+    }
+
     public static class AdaptiveStorage
     {
         public static readonly bool Active = ModsConfig.IsActive("adaptive.storage.framework");

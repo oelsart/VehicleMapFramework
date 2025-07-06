@@ -40,8 +40,10 @@ public static class EarlyPatchCore
 {
     static EarlyPatchCore()
     {
-        VMF_Harmony.PatchCategory("VehicleInteriors.EarlyPatches");
+        VMF_Harmony.PatchCategory(Category);
     }
+
+    public const string Category = "VehicleInteriors.EarlyPatches";
 }
 
 [AttributeUsage(AttributeTargets.Class, Inherited = false)]

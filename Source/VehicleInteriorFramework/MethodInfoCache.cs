@@ -170,7 +170,7 @@ public class MethodInfoCache
 
     public readonly MethodInfo m_ReachabilityUtility_CanReach = AccessTools.Method(typeof(ReachabilityUtility), nameof(ReachabilityUtility.CanReach), [typeof(Pawn), typeof(LocalTargetInfo), typeof(PathEndMode), typeof(Danger), typeof(bool), typeof(bool), typeof(TraverseMode)]);
 
-    public readonly MethodInfo m_ReachabilityUtilityOnVehicle_CanReach = AccessTools.Method(typeof(CrossMapReachabilityUtility), nameof(CrossMapReachabilityUtility.CanReach), [typeof(Pawn), typeof(LocalTargetInfo), typeof(PathEndMode), typeof(Danger), typeof(bool), typeof(bool), typeof(TraverseMode)]);
+    public readonly MethodInfo m_CrossMapReachabilityUtility_CanReach = AccessTools.Method(typeof(CrossMapReachabilityUtility), nameof(CrossMapReachabilityUtility.CanReach), [typeof(Pawn), typeof(LocalTargetInfo), typeof(PathEndMode), typeof(Danger), typeof(bool), typeof(bool), typeof(TraverseMode)]);
 
     public readonly MethodInfo m_Reachability_CanReach1 = AccessTools.Method(typeof(Reachability), nameof(Reachability.CanReach), [typeof(IntVec3), typeof(LocalTargetInfo), typeof(PathEndMode), typeof(TraverseMode), typeof(Danger)]);
 
