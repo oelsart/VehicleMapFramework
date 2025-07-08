@@ -18,7 +18,17 @@ namespace VehicleInteriors;
 [StaticConstructorOnStartup]
 public class VehiclePawnWithMap : VehiclePawn
 {
-    public Map VehicleMap => interiorMap;
+    public Map VehicleMap
+    {
+        get
+        {
+            if (interiorMap == null)
+            {
+                GenerateVehicleMap();
+            }
+            return interiorMap;
+        }
+    }
 
     public bool AllowHaulIn
     {
@@ -230,42 +240,47 @@ public class VehiclePawnWithMap : VehiclePawn
         }
     }
 
+    private void GenerateVehicleMap()
+    {
+        VehicleMapProps props;
+        if ((props = def.GetModExtension<VehicleMapProps>()) != null)
+        {
+            var mapParent = (MapParent_Vehicle)WorldObjectMaker.MakeWorldObject(VMF_DefOf.VMF_VehicleMap);
+            mapParent.vehicle = this;
+            mapParent.Tile = 0;
+            mapParent.SetFaction(base.Faction);
+            var mapSize = new IntVec3(props.size.x, 1, props.size.z);
+            mapSize.x += 2;
+            mapSize.z += 2;
+            interiorMap = MapGenerator.GenerateMap(mapSize, mapParent, mapParent.MapGeneratorDef, mapParent.ExtraGenStepDefs, null, true);
+            Find.World.GetComponent<VehicleMapParentsComponent>().vehicleMaps.Add(mapParent);
+
+            foreach (var c in props.EmptyStructureCells)
+            {
+                var c2 = c;
+                c2.x += 1;
+                c2.z += 1;
+                GenSpawn.Spawn(VMF_DefOf.VMF_VehicleStructureEmpty, c2.ToIntVec3, interiorMap).SetFaction(Faction.OfPlayer);
+            }
+            foreach (var c in props.FilledStructureCells)
+            {
+                var c2 = c;
+                c2.x += 1;
+                c2.z += 1;
+                GenSpawn.Spawn(VMF_DefOf.VMF_VehicleStructureFilled, c2.ToIntVec3, interiorMap).SetFaction(Faction.OfPlayer);
+            }
+            foreach (var c in CachedOutOfBoundsCells)
+            {
+                GenSpawn.Spawn(VMF_DefOf.VMF_VehicleStructureEmpty, c, interiorMap).SetFaction(Faction.OfPlayer);
+            }
+        }
+    }
+
     public override void SpawnSetup(Map map, bool respawningAfterLoad)
     {
         if (interiorMap == null)
         {
-            VehicleMapProps props;
-            if ((props = def.GetModExtension<VehicleMapProps>()) != null)
-            {
-                var mapParent = (MapParent_Vehicle)WorldObjectMaker.MakeWorldObject(VMF_DefOf.VMF_VehicleMap);
-                mapParent.vehicle = this;
-                mapParent.Tile = 0;
-                mapParent.SetFaction(base.Faction);
-                var mapSize = new IntVec3(props.size.x, 1, props.size.z);
-                mapSize.x += 2;
-                mapSize.z += 2;
-                interiorMap = MapGenerator.GenerateMap(mapSize, mapParent, mapParent.MapGeneratorDef, mapParent.ExtraGenStepDefs, null, true);
-                Find.World.GetComponent<VehicleMapParentsComponent>().vehicleMaps.Add(mapParent);
-
-                foreach (var c in props.EmptyStructureCells)
-                {
-                    var c2 = c;
-                    c2.x += 1;
-                    c2.z += 1;
-                    GenSpawn.Spawn(VMF_DefOf.VMF_VehicleStructureEmpty, c2.ToIntVec3, interiorMap).SetFaction(Faction.OfPlayer);
-                }
-                foreach (var c in props.FilledStructureCells)
-                {
-                    var c2 = c;
-                    c2.x += 1;
-                    c2.z += 1;
-                    GenSpawn.Spawn(VMF_DefOf.VMF_VehicleStructureFilled, c2.ToIntVec3, interiorMap).SetFaction(Faction.OfPlayer);
-                }
-                foreach (var c in CachedOutOfBoundsCells)
-                {
-                    GenSpawn.Spawn(VMF_DefOf.VMF_VehicleStructureEmpty, c, interiorMap).SetFaction(Faction.OfPlayer);
-                }
-            }
+            GenerateVehicleMap();
         }
         base.SpawnSetup(map, respawningAfterLoad);
         VehiclePawnWithMapCache.RegisterVehicle(this);
