@@ -73,6 +73,8 @@ namespace VehicleInteriors
 
         public static readonly bool ColonyGroups = ModsConfig.IsActive("DerekBickley.LTOColonyGroupsFinal");
 
+        public static readonly bool SlaveBar = ModsConfig.IsActive("temmie3754.slavebar");
+
         public static class DeepStorage
         {
             public static readonly bool Active = ModsConfig.IsActive("LWM.DeepStorage");

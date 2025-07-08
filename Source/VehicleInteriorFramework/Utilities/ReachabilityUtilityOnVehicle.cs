@@ -47,7 +47,7 @@ namespace VehicleInteriors
             var result = cell - faceCell * dist;
             if (enterer != null)
             {
-                result -= faceCell * vehicle.HalfLength();
+                result -= faceCell * enterer.HalfLength();
             }
             return result;
         }
