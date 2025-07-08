@@ -15,6 +15,7 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         }
     }
 
+    [HarmonyPatchCategory("VMF_Patches_SlaveBar")]
     [HarmonyPatch("SlaveBar.Patches", "Patch_CheckRecacheEntries")]
     public static class Patch_Patches_Patch_CheckRecacheEntries
     {
