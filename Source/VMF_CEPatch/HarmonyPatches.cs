@@ -3,19 +3,17 @@ using CombatExtended.Compatibility;
 using HarmonyLib;
 using RimWorld;
 using RimWorld.Planet;
-using SmashTools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
-using VehicleInteriors;
-using VehicleInteriors.VMF_HarmonyPatches;
 using Verse;
-using static VehicleInteriors.MethodInfoCache;
+using VMF_CEPatch;
+using static VehicleMapFramework.MethodInfoCache;
 
-namespace VMF_CEPatch;
+namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 [StaticConstructorOnStartupPriority(Priority.Low)]
 public static class Patches_CE
@@ -40,7 +38,7 @@ public static class Patches_CE
 
         VMF_Harmony.PatchCategory("VMF_Patches_CE");
 
-        if (ModCompat.VFESecurity)
+        if (ModCompat.VFESecurity.Active)
         {
             VMF_Harmony.PatchCategory("VMF_Patches_CE_VFESecurity");
         }
@@ -200,7 +198,7 @@ public static class Patch_Verb_LaunchProjectileCE_TryFindCEShootLineFromTo
 
     public static bool Prefix(Verb_LaunchProjectileCE __instance, IntVec3 root, LocalTargetInfo targ, ref ShootLine resultingLine, ref bool __result)
     {
-        if (__instance.caster.IsOnVehicleMapOf(out _) || (targ.HasThing && targ.Thing.Map != __instance.caster.Map))
+        if (__instance.caster.IsOnVehicleMapOf(out _) || targ.HasThing && targ.Thing.Map != __instance.caster.Map)
         {
             __result = __instance.TryFindCEShootLineFromToOnVehicle(root, targ, out resultingLine);
             return false;
@@ -227,7 +225,7 @@ public static class Patch_Verb_LaunchProjectileCE_TryFindCEShootLineFromTo_NewTe
 
     public static bool Prefix(Verb_LaunchProjectileCE __instance, IntVec3 root, LocalTargetInfo targ, ref ShootLine resultingLine, ref Vector3 targetPos, ref bool __result)
     {
-        if (__instance.caster.IsOnVehicleMapOf(out _) || (targ.HasThing && targ.Thing.Map != __instance.caster.Map))
+        if (__instance.caster.IsOnVehicleMapOf(out _) || targ.HasThing && targ.Thing.Map != __instance.caster.Map)
         {
             __result = __instance.TryFindCEShootLineFromToOnVehicle_NewTemp(root, targ, out resultingLine, out targetPos);
             return false;
@@ -315,7 +313,7 @@ public static class Patch_ProjectileCE_RayCast
             CodeInstruction.LoadArgument(0),
             new CodeInstruction(OpCodes.Call, CachedMethodInfo.g_Thing_Map),
             CodeInstruction.LoadLocal(16),
-            CodeInstruction.Call(typeof(Patch_ProjectileCE_RayCast), nameof(Patch_ProjectileCE_RayCast.AddThingList))
+            CodeInstruction.Call(typeof(Patch_ProjectileCE_RayCast), nameof(AddThingList))
         ]);
         return codes;
     }
@@ -365,7 +363,7 @@ public static class Patch_ProjectileCE_CheckForCollisionBetween
         [
             CodeInstruction.LoadArgument(0),
             new CodeInstruction(OpCodes.Call, CachedMethodInfo.g_Thing_Map),
-            CodeInstruction.Call(typeof(Patch_ProjectileCE_CheckForCollisionBetween), nameof(Patch_ProjectileCE_CheckForCollisionBetween.AddThingList))
+            CodeInstruction.Call(typeof(Patch_ProjectileCE_CheckForCollisionBetween), nameof(AddThingList))
         ]);
         return codes;
     }
@@ -451,7 +449,7 @@ public static class Patch_Building_TurretGunCE_TryFindNewTarget
         [
             CodeInstruction.LoadArgument(0),
             new CodeInstruction(OpCodes.Call, CachedMethodInfo.g_Thing_Map),
-            CodeInstruction.Call(typeof(Patch_Building_TurretGunCE_TryFindNewTarget), nameof(Patch_Building_TurretGunCE_TryFindNewTarget.AddBuildingList))
+            CodeInstruction.Call(typeof(Patch_Building_TurretGunCE_TryFindNewTarget), nameof(AddBuildingList))
         ]);
         return codes;
     }
@@ -474,7 +472,7 @@ public static class Patch_Building_TurretGunCE_TryFindNewTarget_Predicate
 {
     private static MethodInfo TargetMethod()
     {
-        return AccessTools.FindIncludingInnerTypes<MethodInfo>(typeof(Building_TurretGunCE), t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("TryFindNewTarget")));
+        return AccessTools.FindIncludingInnerTypes(typeof(Building_TurretGunCE), t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("TryFindNewTarget")));
     }
 
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)

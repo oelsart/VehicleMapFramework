@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+
+    <MapGeneratorDef>
+        <defName>VMF_VehicleMapGenerator</defName>
+        <label>generator</label>
+        <pocketMapProperties>
+            <biome>VMF_VehicleMapBiome</biome>
+            <temperature>21</temperature>
+        </pocketMapProperties>
+        <disableShadows>true</disableShadows>
+        <genSteps>
+			<li>VMF_VehicleMap</li>
+        </genSteps>
+    </MapGeneratorDef>
+
+	<GenStepDef>
+		<defName>VMF_VehicleMap</defName>
+		<order>10</order>
+		<genStep Class="VehicleInteriors.GenStep_VehicleInterior"/>
+	</GenStepDef>
+</Defs>

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Verse;
 
-namespace VehicleInteriors;
+namespace VehicleMapFramework;
 
 public class SectionLayer_ResourceOnVehicle : SectionLayer_ThingsOnVehicle
 {

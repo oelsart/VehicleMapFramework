@@ -5,11 +5,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
-using VehicleInteriors;
-using VehicleInteriors.VMF_HarmonyPatches;
+using VehicleMapFramework;
+using VehicleMapFramework.VMF_HarmonyPatches;
 using Verse;
 using Verse.AI;
-using static VehicleInteriors.MethodInfoCache;
+using static VehicleMapFramework.MethodInfoCache;
 
 namespace VMF_AchtungPatch;
 

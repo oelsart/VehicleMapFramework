@@ -1,6 +1,6 @@
 ﻿using PipeSystem;
 
-namespace VehicleInteriors;
+namespace VehicleMapFramework;
 
 public class CompProperties_PipeConnectorVEF : CompProperties_Resource
 {

@@ -3,7 +3,7 @@ using RimWorld;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using VehicleInteriors;
+using VehicleMapFramework;
 using Verse;
 using Verse.AI;
 

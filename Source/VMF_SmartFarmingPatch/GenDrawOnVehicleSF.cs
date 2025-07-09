@@ -1,7 +1,7 @@
 ﻿using RimWorld;
 using SmartFarming;
 using System.Collections.Generic;
-using VehicleInteriors;
+using VehicleMapFramework;
 using Verse;
 
 namespace VMF_SmartFarmingPatch;

@@ -7,10 +7,10 @@ using System.Reflection.Emit;
 using UnityEngine;
 using Vehicles;
 using Verse;
-using static VehicleInteriors.MethodInfoCache;
-using static VehicleInteriors.ModCompat.VVE;
+using static VehicleMapFramework.MethodInfoCache;
+using static VehicleMapFramework.ModCompat.VVE;
 
-namespace VehicleInteriors.VMF_HarmonyPatches
+namespace VehicleMapFramework.VMF_HarmonyPatches
 {
     [HarmonyPatchCategory("VMF_Patches_VVE")]
     [HarmonyPatch("VanillaVehiclesExpanded.GarageDoor", "DrawAt")]

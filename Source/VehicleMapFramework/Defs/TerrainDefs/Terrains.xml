@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+
+	<TerrainDef>
+		<defName>VMF_VehicleFloor</defName>
+		<label>vehicle floor</label>
+		<texturePath>PlaceholderImage</texturePath>
+		<edgeType>Hard</edgeType>
+		<categoryType>Misc</categoryType>
+		<renderPrecedence>0</renderPrecedence>
+		<statBases>
+			<Beauty>-3</Beauty>
+			<BeautyOutdoors>0</BeautyOutdoors>
+			<Cleanliness>-1</Cleanliness>
+		</statBases>
+		<fertility>0.0</fertility>
+		<affordances>
+			<li>Light</li>
+			<li>Medium</li>
+			<li>Heavy</li>
+			<li>Diggable</li>
+		</affordances>
+		<filthAcceptanceMask>
+			<li>Unnatural</li>
+		</filthAcceptanceMask>
+	</TerrainDef>
+
+</Defs>

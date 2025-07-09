@@ -4,7 +4,7 @@
     <OutputType>Library</OutputType>
 	<LangVersion>preview</LangVersion>
 	<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-	<RootNamespace>VehicleInteriors</RootNamespace>
+	<RootNamespace>VehicleMapFramework</RootNamespace>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>false</DebugSymbols>
@@ -84,7 +84,7 @@
 	</PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\VehicleInteriorFramework\VehicleInteriorFramework.csproj">
+    <ProjectReference Include="..\VehicleMapFramework\VehicleMapFramework.csproj">
       <Private>False</Private>
     </ProjectReference>
   </ItemGroup>

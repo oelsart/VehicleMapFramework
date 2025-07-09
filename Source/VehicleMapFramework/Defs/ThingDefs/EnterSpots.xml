@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+	<ThingDef Name="VehicleEnterSpotBase" ParentName="BuildingBase" Abstract="True">
+		<designationCategory>VF_Vehicles</designationCategory>
+		<passability>Standable</passability>
+		<placeWorkers>
+			<li>VehicleInteriors.PlaceWorker_ForceOnVehicleMapEdge</li>
+		</placeWorkers>
+	</ThingDef>
+	
+	<ThingDef ParentName="VehicleEnterSpotBase">
+		<defName>VMF_Ladder</defName>
+		<label>ladder</label>
+		<description>A ladder for humans to ascend and descend on a vehicle. Pawns get priority to ascend and descend from the location where this is placed.</description>
+		<category>Building</category>
+		<minifiedDef>MinifiedThing</minifiedDef>
+		<thingCategories>
+			<li>BuildingsFurniture</li>
+		</thingCategories>
+		<graphicData>
+			<texPath>VehicleInteriors/Things/EnterSpot/Laddar</texPath>
+			<graphicClass>Graphic_Multi</graphicClass>
+			<drawSize>(1.84765625,1.84765625)</drawSize>
+			<drawOffsetNorth>(0,0,-1)</drawOffsetNorth>
+			<drawOffsetSouth>(0,0,1)</drawOffsetSouth>
+			<drawOffsetEast>(-1,0,-0.5)</drawOffsetEast>
+			<drawOffsetWest>(1,0,-0.5)</drawOffsetWest>
+		</graphicData>
+		<researchPrerequisites>
+			<li MayRequire="OELS.MapVehicles">MV_Cart</li>
+		</researchPrerequisites>
+		<building>
+			<paintable>true</paintable>
+			<isEdifice>false</isEdifice>
+		</building>
+		<statBases>
+			<MaxHitPoints>300</MaxHitPoints>
+			<Beauty>1</Beauty>
+			<WorkToBuild>100</WorkToBuild>
+			<Mass>5</Mass>
+		</statBases>
+		<size>(1,1)</size>
+		<costList>
+			<Steel>5</Steel>
+		</costList>
+		<uiOrder>1000</uiOrder>
+		<comps>
+			<li Class="VehicleInteriors.CompProperties_VehicleEnterSpot"/>
+			<li>
+				<compClass>CompColorable</compClass>
+			</li>
+		</comps>
+	</ThingDef>
+
+	<DesignatorDropdownGroupDef>
+		<defName>VMF_VehicleRampGroup</defName>
+	</DesignatorDropdownGroupDef>
+
+	<ThingDef Name="VehicleRampBase" ParentName="VehicleEnterSpotBase" Abstract="True">
+		<designatorDropdown>VMF_VehicleRampGroup</designatorDropdown>
+		<thingClass>VehicleInteriors.Building_VehicleRamp</thingClass>
+		<drawerType>MapMeshAndRealTime</drawerType>
+		<altitudeLayer>FloorEmplacement</altitudeLayer>
+		<tickerType>Normal</tickerType>
+		<graphicData>
+			<graphicClass>Graphic_Terrain</graphicClass>
+		</graphicData>
+		<researchPrerequisites>
+			<li>Fabrication</li>
+			<li MayRequire="OskarPotocki.VanillaVehiclesExpanded">VVE_BasicVehicles</li>
+		</researchPrerequisites>
+		<building>
+			<isEdifice>false</isEdifice>
+			<upperMoverGraphic>
+				<graphicClass>Graphic_Multi</graphicClass>
+			</upperMoverGraphic>
+			<blueprintGraphicData>
+				<graphicClass>Graphic_Multi</graphicClass>
+				<shaderType>EdgeDetect</shaderType>
+				<drawOffsetNorth>(0,0,-0.5)</drawOffsetNorth>
+				<drawOffsetSouth>(0,0,0.5)</drawOffsetSouth>
+				<drawOffsetEast>(-0.5,0,-0.5)</drawOffsetEast>
+				<drawOffsetWest>(0.5,0,-0.5)</drawOffsetWest>
+			</blueprintGraphicData>
+		</building>
+		<useBlueprintGraphicAsGhost>true</useBlueprintGraphicAsGhost>
+		<comps>
+			<li Class="VehicleInteriors.CompProperties_VehicleEnterSpot">
+				<allowPassingVehicle>true</allowPassingVehicle>
+			</li>
+			<li>
+				<compClass>CompColorable</compClass>
+			</li>
+		</comps>
+	</ThingDef>
+	
+	<!--<ThingDef ParentName="VehicleRampBase">
+		<defName>VMF_RampSmall</defName>
+		<label>ramp (1x1)</label>
+		<description>test</description>
+		<graphicData>
+			<texPath>VehicleInteriors/Things/EnterSpot/RampSmall</texPath>
+			<drawSize>(2,1)</drawSize>
+		</graphicData>
+		<statBases>
+			<MaxHitPoints>500</MaxHitPoints>
+			<Beauty>0</Beauty>
+			<WorkToBuild>300</WorkToBuild>
+			<Mass>15</Mass>
+		</statBases>
+		<size>(1,1)</size>
+		<costList>
+			<Steel>50</Steel>
+			<ComponentIndustrial>2</ComponentIndustrial>
+		</costList>
+		<uiOrder>1010</uiOrder>
+	</ThingDef>-->
+	
+	<ThingDef ParentName="VehicleRampBase">
+		<defName>VMF_RampMedium</defName>
+		<label>ramp (1x3)</label>
+		<description>A ramp for vehicles to ascend and descend to a vehicle map. Vehicles up to 3 squares wide can ascend and descend from here.</description>
+		<graphicData>
+			<texPath>VehicleInteriors/Things/EnterSpot/RampMedium</texPath>
+			<drawSize>(3,1)</drawSize>
+		</graphicData>
+		<statBases>
+			<MaxHitPoints>500</MaxHitPoints>
+			<WorkToBuild>900</WorkToBuild>
+			<Mass>45</Mass>
+		</statBases>
+		<size>(3,1)</size>
+		<costList>
+			<Steel>150</Steel>
+			<ComponentIndustrial>4</ComponentIndustrial>
+		</costList>
+		<uiOrder>1011</uiOrder>
+		<building>
+			<upperMoverGraphic>
+				<texPath>VehicleInteriors/Things/EnterSpot/RampMedium</texPath>
+				<drawSize>(4,1)</drawSize>
+			</upperMoverGraphic>
+			<blueprintGraphicData>
+				<texPath>VehicleInteriors/Things/EnterSpot/RampMediumBlueprint</texPath>
+				<drawSize>(4,2)</drawSize>
+			</blueprintGraphicData>
+		</building>
+	</ThingDef>
+
+	<ThingDef ParentName="VehicleRampBase">
+		<defName>VMF_RampLarge</defName>
+		<label>ramp (1x5)</label>
+		<description>A ramp for vehicles to ascend and descend to a vehicle map. Vehicles up to 5 squares wide can ascend and descend from here.</description>
+		<graphicData>
+			<texPath>VehicleInteriors/Things/EnterSpot/RampLarge</texPath>
+			<drawSize>(5,1)</drawSize>
+		</graphicData>
+		<statBases>
+			<MaxHitPoints>800</MaxHitPoints>
+			<WorkToBuild>1500</WorkToBuild>
+			<Mass>75</Mass>
+		</statBases>
+		<size>(5,1)</size>
+		<costList>
+			<Steel>250</Steel>
+			<ComponentIndustrial>6</ComponentIndustrial>
+		</costList>
+		<uiOrder>1012</uiOrder>
+		<building>
+			<upperMoverGraphic>
+				<texPath>VehicleInteriors/Things/EnterSpot/RampLarge</texPath>
+				<drawSize>(6,1)</drawSize>
+			</upperMoverGraphic>
+			<blueprintGraphicData>
+				<texPath>VehicleInteriors/Things/EnterSpot/RampLargeBlueprint</texPath>
+				<drawSize>(6,2)</drawSize>
+			</blueprintGraphicData>
+		</building>
+	</ThingDef>
+</Defs>

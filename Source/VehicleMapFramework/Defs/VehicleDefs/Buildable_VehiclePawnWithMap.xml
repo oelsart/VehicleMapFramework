@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<Defs>
+	<Vehicles.VehicleBuildDef Name="VehicleWithMapBaseBuildable" ParentName="VehicleBaseBuildable" Abstract="True">
+		<placeWorkers>
+			<li>VehicleInteriors.PlaceWorker_ForbidOnVehicle</li>
+		</placeWorkers>
+	</Vehicles.VehicleBuildDef>
+	
+	<Vehicles.VehicleBuildDef Name="VehicleBoatWithMapBaseBuildable" ParentName="VehicleBoatBaseBuildable" Abstract="True">
+		<placeWorkers>
+			<li>VehicleInteriors.PlaceWorker_ForbidOnVehicle</li>
+		</placeWorkers>
+	</Vehicles.VehicleBuildDef>
+</Defs>

@@ -1,8 +1,8 @@
 ﻿using HarmonyLib;
 using System.Collections.Generic;
-using static VehicleInteriors.MethodInfoCache;
+using static VehicleMapFramework.MethodInfoCache;
 
-namespace VehicleInteriors.VMF_HarmonyPatches
+namespace VehicleMapFramework.VMF_HarmonyPatches
 {
     [HarmonyPatchCategory("VMF_Patches_VFE_Pirates")]
     [HarmonyPatch("VFEPirates.Verb_ShootCone", "DrawLines")]

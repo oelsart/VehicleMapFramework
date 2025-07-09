@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<Defs>
+	<VehicleInteriors.RGBMaskShaderTypeDef>
+		<defName>VMF_CutoutComplexRGBOpacity</defName>
+		<shaderPath>ShaderRGBOpacity</shaderPath>
+	</VehicleInteriors.RGBMaskShaderTypeDef>
+
+		<VehicleInteriors.RGBMaskShaderTypeDef>
+		<defName>VMF_CutoutComplexPatternOpacity</defName>
+		<shaderPath>ShaderRGBPatternOpacity</shaderPath>
+	</VehicleInteriors.RGBMaskShaderTypeDef>
+
+		<VehicleInteriors.RGBMaskShaderTypeDef>
+		<defName>VMF_CutoutComplexSkinOpacity</defName>
+		<shaderPath>ShaderRGBSkinOpacity</shaderPath>
+	</VehicleInteriors.RGBMaskShaderTypeDef>
+
+</Defs>

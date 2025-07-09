@@ -7,10 +7,10 @@ using System.Linq;
 using System.Reflection.Emit;
 using UnityEngine;
 using Verse;
-using static VehicleInteriors.MethodInfoCache;
-using static VehicleInteriors.ModCompat.VFEMechanoid;
+using static VehicleMapFramework.MethodInfoCache;
+using static VehicleMapFramework.ModCompat.VFEMechanoid;
 
-namespace VehicleInteriors.VMF_HarmonyPatches
+namespace VehicleMapFramework.VMF_HarmonyPatches
 {
     [HarmonyPatchCategory("VMF_Patches_VFE_Mechanoid")]
     [HarmonyPatch("VFEMech.Building_Autocrane", "GetStartingEndCranePosition")]

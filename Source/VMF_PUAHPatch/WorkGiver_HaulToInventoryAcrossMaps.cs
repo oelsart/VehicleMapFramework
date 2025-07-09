@@ -3,7 +3,7 @@ using RimWorld;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using VehicleInteriors;
+using VehicleMapFramework;
 using Verse;
 using Verse.AI;
 
@@ -37,7 +37,7 @@ public class WorkGiver_HaulToInventoryAcrossMaps : WorkGiver_HaulToInventory, IW
     public override bool HasJobOnThing(Pawn pawn, Thing thing, bool forced = false)
         => OkThingToHaul(thing, pawn)
         && IsNotCorpseOrAllowed(thing)
-        && HaulAIAcrossMapsUtility.PawnCanAutomaticallyHaulFast(pawn, thing, forced, out _, out _)
+        && CrossMapHaulAIUtility.PawnCanAutomaticallyHaulFast(pawn, thing, forced, out _, out _)
         && StoreAcrossMapsUtility.TryFindBestBetterStorageFor(thing, pawn, pawn.Map, StoreUtility.CurrentStoragePriorityOf(thing), pawn.Faction, out _, out _, false, out _, out _);
 
     //pick up stuff until you can't anymore,
@@ -45,7 +45,7 @@ public class WorkGiver_HaulToInventoryAcrossMaps : WorkGiver_HaulToInventory, IW
     //before you go out, empty your pockets
     public override Job JobOnThing(Pawn pawn, Thing thing, bool forced = false)
     {
-        if (!OkThingToHaul(thing, pawn) || !HaulAIAcrossMapsUtility.PawnCanAutomaticallyHaulFast(pawn, thing, forced, out var exitSpot, out var enterSpot))
+        if (!OkThingToHaul(thing, pawn) || !CrossMapHaulAIUtility.PawnCanAutomaticallyHaulFast(pawn, thing, forced, out var exitSpot, out var enterSpot))
         {
             return null;
         }
@@ -56,7 +56,7 @@ public class WorkGiver_HaulToInventoryAcrossMaps : WorkGiver_HaulToInventory, IW
             || !IsNotCorpseOrAllowed(thing) //This WorkGiver gets hijacked by AllowTool and expects us to urgently haul corpses.
             || MassUtility.WillBeOverEncumberedAfterPickingUp(pawn, thing, 1)) //https://github.com/Mehni/PickUpAndHaul/pull/18
         {
-            return HaulAIAcrossMapsUtility.HaulToStorageJob(pawn, thing, false, exitSpot, enterSpot);
+            return CrossMapHaulAIUtility.HaulToStorageJob(pawn, thing, false, exitSpot, enterSpot);
         }
 
         var map = pawn.Map;
@@ -75,7 +75,7 @@ public class WorkGiver_HaulToInventoryAcrossMaps : WorkGiver_HaulToInventory, IW
                 //Don't multi-haul food to hoppers.
                 if (HaulToHopperJob(thing, targetCell, destMap))
                 {
-                    return HaulAIAcrossMapsUtility.HaulToStorageJob(pawn, thing, false, exitSpot, enterSpot);
+                    return CrossMapHaulAIUtility.HaulToStorageJob(pawn, thing, false, exitSpot, enterSpot);
                 }
                 else
                 {
@@ -105,7 +105,7 @@ public class WorkGiver_HaulToInventoryAcrossMaps : WorkGiver_HaulToInventory, IW
 
         if (capacityStoreCell == 0)
         {
-            return HaulAIAcrossMapsUtility.HaulToStorageJob(pawn, thing, false, exitSpot, enterSpot);
+            return CrossMapHaulAIUtility.HaulToStorageJob(pawn, thing, false, exitSpot, enterSpot);
         }
 
         var job = JobMaker.MakeJob(VMF_PUAH_DefOf.VMF_HaulToInventoryAcrossMaps, null, storeTarget);   //Things will be in queues
@@ -160,7 +160,7 @@ public class WorkGiver_HaulToInventoryAcrossMaps : WorkGiver_HaulToInventory, IW
 
         bool Validator(Thing t)
             => (!isUrgent || designationManager.DesignationOn(t)?.def == haulUrgentlyDesignation)
-            && GoodThingToHaul(t, pawn) && HaulAIAcrossMapsUtility.PawnCanAutomaticallyHaulFast(pawn, t, false, out _, out _); //forced is false, may differ from first thing
+            && GoodThingToHaul(t, pawn) && CrossMapHaulAIUtility.PawnCanAutomaticallyHaulFast(pawn, t, false, out _, out _); //forced is false, may differ from first thing
 
         haulables.Remove(thing);
 

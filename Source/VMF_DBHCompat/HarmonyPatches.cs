@@ -6,9 +6,9 @@ using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
 using Verse;
-using static VehicleInteriors.MethodInfoCache;
+using static VehicleMapFramework.MethodInfoCache;
 
-namespace VehicleInteriors.VMF_HarmonyPatches;
+namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 [StaticConstructorOnStartupPriority(Priority.Low)]
 public static class Patches_VEF

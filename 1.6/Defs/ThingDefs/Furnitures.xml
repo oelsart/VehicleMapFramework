@@ -1,0 +1,340 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+	<DesignatorDropdownGroupDef>
+		<defName>VMF_WirelessChargerGroup</defName>
+	</DesignatorDropdownGroupDef>
+		
+	<ThingDef Name="VMF_WirelessCharger" ParentName="FurnitureBase">
+		<defName>VMF_WirelessTransmitter</defName>
+		<label>wireless power transmitter</label>
+		<description>A device for transmitting power between a normal map and a vehicle map. Can be placed on a normal map.</description>
+		<designationCategory>VF_Vehicles</designationCategory>
+		<designatorDropdown>VMF_WirelessChargerGroup</designatorDropdown>
+		<passability>PassThroughOnly</passability>
+		<drawerType>MapMeshAndRealTime</drawerType>
+		<tickerType>Normal</tickerType>
+		<graphicData>
+			<texPath>VehicleMapFramework/Things/WirelessCharger/WirelessTransmitter</texPath>
+			<graphicClass>Graphic_Single</graphicClass>
+		</graphicData>
+		<rotatable>false</rotatable>
+		<statBases>
+			<MaxHitPoints>100</MaxHitPoints>
+			<Beauty>-1</Beauty>
+			<WorkToBuild>1000</WorkToBuild>
+			<Mass>5</Mass>
+		</statBases>
+		<size>(1,1)</size>
+		<costList>
+			<Steel>50</Steel>
+			<ComponentIndustrial>4</ComponentIndustrial>
+			<ComponentSpacer>1</ComponentSpacer>
+		</costList>
+		<researchPrerequisites>
+			<li>Electricity</li>
+			<li>Fabrication</li>
+			<li MayRequire="OskarPotocki.VanillaVehiclesExpanded">VVE_BasicVehicles</li>
+		</researchPrerequisites>
+		<uiOrder>1060</uiOrder>
+		<comps>
+			<li Class="VehicleMapFramework.CompProperties_WirelessCharger">
+				<compClass>VehicleMapFramework.CompWirelessTransmitter</compClass>
+				<transmitsPower>true</transmitsPower>
+				<powerLossFactor>0.75</powerLossFactor>
+				<lightGraphic>
+					<texPath>VehicleMapFramework/Things/WirelessCharger/WirelessTransmitterLight</texPath>
+					<graphicClass>Graphic_Single</graphicClass>
+					<shaderType>TransparentPostLight</shaderType>
+				</lightGraphic>
+			</li>
+			<li Class="CompProperties_Flickable"/>
+			<li Class="CompProperties_Breakdownable"/>
+		</comps>
+		<placeWorkers>
+			<li>VehicleMapFramework.PlaceWorker_ForbidOnVehicle</li>
+		</placeWorkers>
+	</ThingDef>
+
+	<ThingDef ParentName="VMF_WirelessCharger">
+		<defName>VMF_WirelessReceiver</defName>
+		<label>wireless power receiver</label>
+		<description>A device that receives power from a normal map. It can be placed on a vehicle map and receive power by aligning with a transmitter.</description>
+		<graphicData>
+			<texPath>VehicleMapFramework/Things/WirelessCharger/WirelessReceiver</texPath>
+		</graphicData>
+		<rotatable>false</rotatable>
+		<uiOrder>1061</uiOrder>
+		<comps Inherit="False">
+			<li Class="VehicleMapFramework.CompProperties_WirelessCharger">
+				<compClass>VehicleMapFramework.CompWirelessReceiver</compClass>
+				<transmitsPower>true</transmitsPower>
+				<lightGraphic>
+					<texPath>VehicleMapFramework/Things/WirelessCharger/WirelessReceiverLight</texPath>
+					<graphicClass>Graphic_Single</graphicClass>
+					<shaderType>TransparentPostLight</shaderType>
+				</lightGraphic>
+			</li>
+			<li Class="CompProperties_Glower">
+				<glowRadius>5</glowRadius>
+				<glowColor>(164,231,255)</glowColor>
+			</li>
+			<li Class="CompProperties_Flickable"/>
+			<li Class="CompProperties_Breakdownable"/>
+		</comps>
+		<placeWorkers Inherit="False">
+			<li>VehicleMapFramework.PlaceWorker_ForceOnVehicle</li>
+		</placeWorkers>
+	</ThingDef>
+
+	<ThingDef ParentName="FurnitureBase">
+		<defName>VMF_Alternator</defName>
+		<label>alternator</label>
+		<description>Component that uses vehicle fuel to generate electricity.</description>
+		<designationCategory>VF_Vehicles</designationCategory>
+		<fillPercent>0.60</fillPercent>
+		<graphicData>
+			<texPath>VehicleMapFramework/Things/Alternator/Alternator</texPath>
+			<graphicClass>Graphic_Multi</graphicClass>
+			<damageData>
+				<cornerTL>Damage/Corner</cornerTL>
+				<cornerTR>Damage/Corner</cornerTR>
+				<cornerBL>Damage/Corner</cornerBL>
+				<cornerBR>Damage/Corner</cornerBR>
+				<edgeTop>Damage/Edge</edgeTop>
+				<edgeBot>Damage/Edge</edgeBot>
+				<edgeLeft>Damage/Edge</edgeLeft>
+				<edgeRight>Damage/Edge</edgeRight>
+			</damageData>
+		</graphicData>
+		<drawerType>MapMeshOnly</drawerType>
+		<tickerType>Normal</tickerType>
+		<statBases>
+			<MaxHitPoints>200</MaxHitPoints>
+			<Beauty>-1</Beauty>
+			<WorkToBuild>1500</WorkToBuild>
+			<Mass>20</Mass>
+		</statBases>
+		<size>(1,1)</size>
+		<costList>
+			<Steel>50</Steel>
+			<ComponentIndustrial>8</ComponentIndustrial>
+		</costList>
+		<researchPrerequisites>
+			<li>Fabrication</li>
+			<li MayRequire="OskarPotocki.VanillaVehiclesExpanded">VVE_BasicVehicles</li>
+		</researchPrerequisites>
+		<uiOrder>1025</uiOrder>
+		<comps>
+			<li Class="CompProperties_Flickable"/>
+			<li Class="VehicleMapFramework.CompProperties_Alternator">
+				<basePowerConsumption>-1000</basePowerConsumption>
+				<transmitsPower>true</transmitsPower>
+				<soundAmbientProducingPower>ChemfuelFiredGenerator_Ambience</soundAmbientProducingPower>
+				<fuelConsumptionRates>
+					<Chemfuel>4.5</Chemfuel>
+					<WoodLog>22.0</WoodLog>
+					<Hay>55.0</Hay>
+					<Uranium>0.75</Uranium>
+					<Bioferrite MayRequire="Ludeon.RimWorld.Anomaly">6</Bioferrite>
+				</fuelConsumptionRates>
+			</li>
+			<li Class="CompProperties_HeatPusher">
+				<compClass>CompHeatPusherPowered</compClass>
+				<heatPerSecond>2</heatPerSecond>
+			</li>
+			<li Class="CompProperties_Breakdownable"/>
+			<li Class="CompProperties_Stunnable">
+				<useLargeEMPEffecter>true</useLargeEMPEffecter>
+				<affectedDamageDefs>
+					<li>EMP</li>
+				</affectedDamageDefs>
+			</li>
+		</comps>
+		<placeWorkers>
+			<li>VehicleMapFramework.PlaceWorker_ForceOnVehicle</li>
+		</placeWorkers>
+	</ThingDef>
+
+	<ThingDef ParentName="FurnitureBase">
+		<defName>VMF_PipeConnector</defName>
+		<label>pipe connector</label>
+		<description>Connection to pipe between the normal map and the vehicle map.\nPlaced on the normal map and the vehicle map, they are connected by aligning their positions.</description>
+		<designationCategory>VF_Vehicles</designationCategory>
+		<passability>PassThroughOnly</passability>
+		<drawerType>MapMeshAndRealTime</drawerType>
+		<tickerType>Normal</tickerType>
+		<graphicData>
+			<texPath>VehicleMapFramework/Things/PipeConnector/PipeConnector</texPath>
+			<graphicClass>Graphic_Single</graphicClass>
+			<shaderType>CutoutComplex</shaderType>
+		</graphicData>
+		<rotatable>false</rotatable>
+		<statBases>
+			<MaxHitPoints>100</MaxHitPoints>
+			<Beauty>-1</Beauty>
+			<WorkToBuild>1000</WorkToBuild>
+			<Mass>1</Mass>
+		</statBases>
+		<size>(1,1)</size>
+		<costList>
+			<Steel>50</Steel>
+			<ComponentIndustrial>1</ComponentIndustrial>
+		</costList>
+		<researchPrerequisites>
+			<li>Fabrication</li>
+			<li MayRequire="OskarPotocki.VanillaVehiclesExpanded">VVE_BasicVehicles</li>
+		</researchPrerequisites>
+		<uiOrder>1062</uiOrder>
+		<comps>
+			<li Class="VehicleMapFramework.CompProperties_PipeConnector"/>
+			<li Class="VehicleMapFramework.CompProperties_PipeConnectorVEF" MayRequire="OskarPotocki.VanillaFactionsExpanded.Core">
+				<pipeNet>VMF_UnassignedNet</pipeNet>
+			</li>
+			<li Class="VehicleMapFramework.CompProperties_PipeConnectorDBH" MayRequire="Dubwise.DubsBadHygiene"/>
+			<li Class="VehicleMapFramework.CompProperties_PipeConnectorRF" MayRequire="Dubwise.Rimefeller"/>
+			<li>
+				<compClass>CompColorable</compClass>
+			</li>
+		</comps>
+	</ThingDef>
+
+	<ThingDef ParentName="BaseArtilleryBuilding">
+		<defName>VMF_Turret_ZiplineTurret</defName>
+		<label>zipline turret</label>
+		<description>A turret that sets up a zipline at the location where it pierces. Used for direct access between vehicles.</description>
+		<thingClass>VehicleMapFramework.Building_TurretGunForcedTargetOnly</thingClass>
+		<designationCategory>VF_Vehicles</designationCategory>
+		<graphicData>
+			<texPath>VehicleMapFramework/Things/ZiplineTurret/ZiplineTurret_Base</texPath>
+			<drawSize>(2,2)</drawSize>
+			<drawOffset>(0,0,0.05)</drawOffset>
+			<drawRotated>false</drawRotated>
+		</graphicData>
+		<size>(1,1)</size>
+		<stuffCategories Inherit="False"/>
+		<costStuffCount Inherit="False"/>
+		<costList>
+			<Steel>70</Steel>
+			<ComponentIndustrial>4</ComponentIndustrial>
+		</costList>
+		<inspectorTabs Inherit="False"/>
+		<building>
+			<turretGunDef>VMF_Gun_ZiplineTurret</turretGunDef>
+			<turretBurstWarmupTime>0</turretBurstWarmupTime>
+			<turretBurstCooldownTime>0</turretBurstCooldownTime>
+		</building>
+		<passability>Standable</passability>
+		<hasInteractionCell>false</hasInteractionCell>
+		<statBases>
+			<MaxHitPoints>120</MaxHitPoints>
+			<Flammability>0.01</Flammability>
+			<WorkToBuild>1500</WorkToBuild>
+			<Mass>20</Mass>
+			<Beauty>-20</Beauty>
+			<ShootingAccuracyTurret>1</ShootingAccuracyTurret>
+		</statBases>
+		<comps Inherit="False">
+			<li Class="CompProperties_Forbiddable"/>
+			<li Class="CompProperties_Power">
+				<compClass>CompPowerTrader</compClass>
+				<basePowerConsumption>80</basePowerConsumption>
+			</li>
+			<li Class="CompProperties_Breakdownable"/>
+			<li Class="CompProperties_Stunnable">
+				<affectedDamageDefs>
+					<li>Stun</li>
+					<li>EMP</li>
+				</affectedDamageDefs>
+			</li>
+			<li Class="VehicleMapFramework.CompProperties_Zipline"/>
+		</comps>
+		<researchPrerequisites>
+			<li>Fabrication</li>
+			<li MayRequire="OskarPotocki.VanillaVehiclesExpanded">VVE_BasicVehicles</li>
+		</researchPrerequisites>
+		<uiOrder>1063</uiOrder>
+		<uiIconPath>VehicleMapFramework/Things/ZiplineTurret/ZiplineTurret_MenuIcon</uiIconPath>
+		<placeWorkers Inherit="False">
+			<li>PlaceWorker_TurretTop</li>
+		</placeWorkers>
+	</ThingDef>
+
+	<ThingDef ParentName="BaseWeaponTurret">
+		<defName>VMF_Gun_ZiplineTurret</defName>
+		<label>zipline turret gun</label>
+		<description>A gun made to be mounted on a zipline turret.</description>
+		<graphicData>
+			<texPath>VehicleMapFramework/Things/ZiplineTurret/ZiplineTurret_Top</texPath>
+			<graphicClass>Graphic_Single</graphicClass>
+		</graphicData>
+		<statBases>
+			<Mass>5</Mass>
+			<Flammability>0</Flammability>
+		</statBases>
+		<verbs>
+			<li>
+				<verbClass>VehicleMapFramework.Verb_LaunchZipline</verbClass>
+				<defaultProjectile>VMF_Bullet_ZiplineTurret</defaultProjectile>
+				<range>11.9</range>
+				<targetParams>
+					<canTargetLocations>true</canTargetLocations>
+					<canTargetBuildings>false</canTargetBuildings>
+					<canTargetHumans>false</canTargetHumans>
+					<canTargetMechs>false</canTargetMechs>
+					<canTargetAnimals>false</canTargetAnimals>
+					<onlyTargetColonists>false</onlyTargetColonists>
+				</targetParams>
+				<soundCast>Shot_Autocannon</soundCast>
+				<soundCastTail>GunTail_Heavy</soundCastTail>
+			</li>
+		</verbs>
+	</ThingDef>
+
+	<ThingDef ParentName="BaseBullet">
+		<defName>VMF_Bullet_ZiplineTurret</defName>
+		<label>zipline turret bullet</label>
+		<thingClass>VehicleMapFramework.Bullet_ZiplineEnd</thingClass>
+		<graphicData>
+			<graphicClass>Graphic_Single</graphicClass>
+			<texPath>VehicleMapFramework/Things/ZiplineTurret/Bullet_ZiplineEnd</texPath>
+		</graphicData>
+		<projectile>
+			<speed>120</speed>
+			<damageDef>Stab</damageDef>
+			<damageAmountBase>0</damageAmountBase>
+		</projectile>
+	</ThingDef>
+
+	<ThingDef ParentName="BaseBullet">
+		<defName>VMF_Bullet_ZiplineTurretReturn</defName>
+		<label>zipline turret bullet</label>
+		<thingClass>VehicleMapFramework.Bullet_ZiplineEndReturn</thingClass>
+		<graphicData>
+			<graphicClass>Graphic_Single</graphicClass>
+			<texPath>VehicleMapFramework/Things/ZiplineTurret/Bullet_ZiplineEnd</texPath>
+		</graphicData>
+		<projectile>
+			<speed>45</speed>
+			<damageDef>Stab</damageDef>
+			<damageAmountBase>0</damageAmountBase>
+		</projectile>
+	</ThingDef>
+
+	<ThingDef ParentName="BaseBullet">
+		<defName>VMF_ZiplineEnd</defName>
+		<label>zipline end</label>
+		<thingClass>VehicleMapFramework.ZiplineEnd</thingClass>
+		<category>Attachment</category>
+		<drawerType>MapMeshAndRealTime</drawerType>
+		<graphicData>
+			<graphicClass>Graphic_Single</graphicClass>
+			<texPath>VehicleMapFramework/Things/ZiplineTurret/ZiplineEnd</texPath>
+		</graphicData>
+		<statBases>
+			<Mass>0.1</Mass>
+		</statBases>
+		<comps>
+			<li Class="VehicleMapFramework.CompProperties_Zipline"/>
+		</comps>
+	</ThingDef>
+</Defs>

@@ -7,7 +7,7 @@
 			<xpath>Defs/ThingDef[defName="OilWell" or
 								defName="DeepOilWell"]/placeWorkers</xpath>
 			<value>
-				<li>VehicleInteriors.PlaceWorker_ForbidOnVehicle</li>
+				<li>VehicleMapFramework.PlaceWorker_ForbidOnVehicle</li>
 			</value>
 		</match>
 		<nomatch Class="PatchOperationAdd">
@@ -15,7 +15,7 @@
 								defName="DeepOilWell"]</xpath>
 			<value>
 				<placeWorkers>
-					<li>VehicleInteriors.PlaceWorker_ForbidOnVehicle</li>
+					<li>VehicleMapFramework.PlaceWorker_ForbidOnVehicle</li>
 				</placeWorkers>
 			</value>
 		</nomatch>

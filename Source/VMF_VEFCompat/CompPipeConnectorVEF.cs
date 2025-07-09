@@ -6,7 +6,7 @@ using System.Linq;
 using UnityEngine;
 using Verse;
 
-namespace VehicleInteriors;
+namespace VehicleMapFramework;
 
 public class CompPipeConnectorVEF : CompResource, IPipeConnector
 {

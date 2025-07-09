@@ -1,6 +1,6 @@
 ﻿using Rimefeller;
 
-namespace VehicleInteriors;
+namespace VehicleMapFramework;
 
 public class CompProperties_PipeConnectorRF : CompProperties_Pipe
 {

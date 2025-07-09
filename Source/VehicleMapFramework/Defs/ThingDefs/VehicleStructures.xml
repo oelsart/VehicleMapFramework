@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+	<ThingDef Name="VMF_VehicleStructure">
+		<defName>VMF_VehicleStructureFilled</defName>
+		<label>vehicle structure</label>
+		<description>Structure of a vehicle.</description>
+		<thingClass>VehicleInteriors.VehicleStructure</thingClass>
+		<category>Building</category>
+		<drawerType>None</drawerType>
+		<statBases>
+			<MaxHitPoints>1</MaxHitPoints>
+			<WorkToBuild>0</WorkToBuild>
+			<Flammability>0</Flammability>
+		</statBases>
+		<leaveResourcesWhenKilled>false</leaveResourcesWhenKilled>
+		<altitudeLayer>Building</altitudeLayer>
+		<passability>Impassable</passability>
+		<blockWind>true</blockWind>
+		<fillPercent>1</fillPercent>
+		<coversFloor>true</coversFloor>
+		<tickerType>Never</tickerType>
+		<rotatable>false</rotatable>
+		<selectable>false</selectable>
+		<neverMultiSelect>true</neverMultiSelect>
+		<neverOverlapFloors>true</neverOverlapFloors>
+		<blockLight>true</blockLight>
+		<canOverlapZones>false</canOverlapZones>
+		<fertility>0</fertility>
+		<destroyable>false</destroyable>
+		<building>
+			<canBeDamagedByAttacks>false</canBeDamagedByAttacks>
+			<isTargetable>false</isTargetable>
+			<deconstructible>false</deconstructible>
+			<claimable>false</claimable>
+			<expandHomeArea>false</expandHomeArea>
+			<neverBuildable>true</neverBuildable>
+			<allowWireConnection>false</allowWireConnection>
+			<canPlaceOverImpassablePlant>false</canPlaceOverImpassablePlant>
+			<canBuildNonEdificesUnder>false</canBuildNonEdificesUnder>
+			<allowAutoroof>false</allowAutoroof>
+		</building>
+	</ThingDef>
+
+	<ThingDef ParentName="VMF_VehicleStructure">
+		<defName>VMF_VehicleStructureEmpty</defName>
+		<fillPercent>0</fillPercent>
+		<blockLight>false</blockLight>
+	</ThingDef>
+</Defs>

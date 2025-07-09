@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+
+	<!-- ============= Hauling ============= -->
+	<WorkGiverDef>
+		<defName>VMF_LoadBuildableContainer</defName>
+		<label>load buildable container</label>
+		<giverClass>VehicleInteriors.WorkGiver_LoadBuildableContainer</giverClass>
+		<workType>Hauling</workType>
+		<verb>load</verb>
+		<gerund>loading</gerund>
+		<priorityInType>110</priorityInType>
+		<requiredCapacities>
+			<li>Manipulation</li>
+		</requiredCapacities>
+	</WorkGiverDef>
+
+	<WorkGiverDef>
+		<defName>VMF_HaulGeneralAcrossMaps</defName>
+		<label>haul general things</label>
+		<giverClass>VehicleInteriors.WorkGiver_HaulGeneralAcrossMaps</giverClass>
+		<workType>Hauling</workType>
+		<verb>haul</verb>
+		<gerund>hauling</gerund>
+		<priorityInType>14</priorityInType>
+		<requiredCapacities>
+			<li>Manipulation</li>
+		</requiredCapacities>
+	</WorkGiverDef>
+
+	<WorkGiverDef>
+		<defName>VMF_HaulCorpsesAcrossMaps</defName>
+		<label>haul corpses</label>
+		<giverClass>VehicleInteriors.WorkGiver_HaulCorpsesAcrossMaps</giverClass>
+		<workType>Hauling</workType>
+		<verb>haul</verb>
+		<gerund>hauling</gerund>
+		<priorityInType>89</priorityInType>
+		<requiredCapacities>
+			<li>Manipulation</li>
+		</requiredCapacities>
+	</WorkGiverDef>
+
+	<WorkGiverDef>
+		<defName>VMF_RefuelVehicleTank</defName>
+		<label>refuel vehicle tank</label>
+		<giverClass>VehicleInteriors.WorkGiver_RefuelVehicleTank</giverClass>
+		<workType>Hauling</workType>
+		<verb>refuel</verb>
+		<gerund>refueling</gerund>
+		<priorityInType>89</priorityInType>
+		<requiredCapacities>
+			<li>Manipulation</li>
+		</requiredCapacities>
+	</WorkGiverDef>
+</Defs>

@@ -1,14 +1,16 @@
 ﻿using HarmonyLib;
 using PipeSystem;
 using SmashTools;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using VEF.Hediffs;
 using VEF.Weapons;
 using Verse;
-using static VehicleInteriors.MethodInfoCache;
+using static VehicleMapFramework.MethodInfoCache;
 
-namespace VehicleInteriors.VMF_HarmonyPatches;
+namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 [StaticConstructorOnStartupPriority(Priority.Low)]
 public static class Patches_VEF
@@ -138,5 +140,53 @@ public static class Patch_ExpandableProjectile_StartingPosition
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.m_OccupiedRect, CachedMethodInfo.m_MovedOccupiedRect);
+    }
+}
+
+[HarmonyPatchCategory("VMF_Patches_VEF")]
+[HarmonyPatch(typeof(ShieldsSystem), nameof(ShieldsSystem.OnPawnSpawn))]
+public static class Patch_ShieldsSystem_OnPawnSpawn
+{
+    private static Dictionary<string, HashSet<int>> trackedPawns = [];
+
+    public static bool Prefix(Pawn __instance)
+    {
+        if (__instance == null) return false;
+
+        try
+        {
+            // Simple tracking to prevent duplicate key errors
+            string pawnKey = __instance.ThingID;
+            int pawnID = __instance.thingIDNumber;
+
+            // Use our own tracking system to prevent duplicates
+            if (!trackedPawns.ContainsKey(pawnKey))
+            {
+                trackedPawns[pawnKey] = [];
+            }
+
+            if (trackedPawns[pawnKey].Contains(pawnID))
+            {
+                // We've seen this pawn before, skip the original method
+                return false;
+            }
+
+            // First time seeing this pawn, add it to our tracker
+            trackedPawns[pawnKey].Add(pawnID);
+
+            // Clean up if we're tracking too many versions of this pawn
+            if (trackedPawns[pawnKey].Count > 10)
+            {
+                trackedPawns[pawnKey].Clear();
+                trackedPawns[pawnKey].Add(pawnID);
+            }
+
+            return true; // Let the original method run for new pawns
+        }
+        catch (Exception ex)
+        {
+            Log.Error($"Exception in shield system: {ex.Message}");
+            return true; // If anything goes wrong, let the original method run
+        }
     }
 }

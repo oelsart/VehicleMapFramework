@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Patch>
+	<Operation Class="PatchOperationConditional">
+		<xpath>Defs/TerrainDef[defName="WaterDeep" or
+								defName="WaterOceanDeep" or
+								defName="WaterShallow" or
+								defName="WaterOceanShallow" or
+								defName="Marsh"]/affordances</xpath>
+		<match Class="PatchOperationAdd">
+			<xpath>Defs/TerrainDef[defName="WaterDeep" or
+								defName="WaterOceanDeep" or
+								defName="WaterShallow" or
+								defName="WaterOceanShallow" or
+								defName="Marsh"]/affordances</xpath>
+			<value>
+				<li>VMF_DeepWater</li>
+			</value>
+		</match>
+		<nomatch Class="PatchOperationAdd">
+			<xpath>Defs/TerrainDef[defName="WaterDeep" or
+								defName="WaterOceanDeep" or
+								defName="WaterShallow" or
+								defName="WaterOceanShallow" or
+								defName="Marsh"]</xpath>
+			<value>
+				<affordances>
+					<li>VMF_DeepWater</li>
+				</affordances>
+			</value>
+		</nomatch>
+	</Operation>
+</Patch>

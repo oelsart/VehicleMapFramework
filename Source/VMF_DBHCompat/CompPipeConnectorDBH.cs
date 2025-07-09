@@ -5,7 +5,7 @@ using System.Linq;
 using UnityEngine;
 using Verse;
 
-namespace VehicleInteriors;
+namespace VehicleMapFramework;
 
 public class CompPipeConnectorDBH : CompPipe, IPipeConnector
 {
@@ -118,8 +118,8 @@ public class CompPipeConnectorDBH : CompPipe, IPipeConnector
             {
                 defaultLabel = "VMF_PumpUp".Translate(),
                 labelTwo = "VMF_Drain".Translate(),
-                icon = ContentFinder<Texture2D>.Get("VehicleInteriors/UI/PumpUp"),
-                iconTwo = ContentFinder<Texture2D>.Get("VehicleInteriors/UI/Drain"),
+                icon = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/PumpUp"),
+                iconTwo = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/Drain"),
                 isActive = () => pumpUp,
                 toggleSound = SoundDefOf.Checkbox_TurnedOn,
                 toggleAction = () =>

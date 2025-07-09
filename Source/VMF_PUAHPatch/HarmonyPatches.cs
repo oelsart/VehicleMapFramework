@@ -1,8 +1,8 @@
 ﻿using HarmonyLib;
 using PickUpAndHaul;
 using RimWorld;
-using VehicleInteriors;
-using VehicleInteriors.VMF_HarmonyPatches;
+using VehicleMapFramework;
+using VehicleMapFramework.VMF_HarmonyPatches;
 
 namespace VMF_PUAHPatch;
 

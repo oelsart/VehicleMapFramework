@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
     <OutputType>Library</OutputType>
-    <RootNamespace>VehicleInteriors</RootNamespace>
+    <RootNamespace>VehicleMapFramework</RootNamespace>
 	<LangVersion>preview</LangVersion>
 	<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
   </PropertyGroup>
@@ -68,7 +68,7 @@
 	</PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\VehicleInteriorFramework\VehicleInteriorFramework.csproj">
+    <ProjectReference Include="..\VehicleMapFramework\VehicleMapFramework.csproj">
       <Private>False</Private>
     </ProjectReference>
   </ItemGroup>

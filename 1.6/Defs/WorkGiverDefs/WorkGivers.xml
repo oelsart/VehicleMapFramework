@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+
+	<!-- ============= Hauling ============= -->
+	<WorkGiverDef>
+		<defName>VMF_LoadBuildableContainer</defName>
+		<label>load buildable container</label>
+		<giverClass>VehicleMapFramework.WorkGiver_LoadBuildableContainer</giverClass>
+		<workType>Hauling</workType>
+		<verb>load</verb>
+		<gerund>loading</gerund>
+		<priorityInType>110</priorityInType>
+		<requiredCapacities>
+			<li>Manipulation</li>
+		</requiredCapacities>
+	</WorkGiverDef>
+
+	<WorkGiverDef>
+		<defName>VMF_RefuelVehicleTank</defName>
+		<label>refuel vehicle tank</label>
+		<giverClass>VehicleMapFramework.WorkGiver_RefuelVehicleTank</giverClass>
+		<workType>Hauling</workType>
+		<verb>refuel</verb>
+		<gerund>refueling</gerund>
+		<priorityInType>89</priorityInType>
+		<requiredCapacities>
+			<li>Manipulation</li>
+		</requiredCapacities>
+	</WorkGiverDef>
+</Defs>

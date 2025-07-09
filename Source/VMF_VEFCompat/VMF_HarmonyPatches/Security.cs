@@ -5,10 +5,10 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using Verse;
-using static VehicleInteriors.MethodInfoCache;
-using static VehicleInteriors.ModCompat.VFESecurity;
+using static VehicleMapFramework.MethodInfoCache;
+using static VehicleMapFramework.ModCompat.VFESecurity;
 
-namespace VehicleInteriors.VMF_HarmonyPatches
+namespace VehicleMapFramework.VMF_HarmonyPatches
 {
     [HarmonyPatchCategory("VMF_Patches_VFE_Security")]
     [HarmonyPatch]

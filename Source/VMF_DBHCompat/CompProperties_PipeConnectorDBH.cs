@@ -1,6 +1,6 @@
 ﻿using DubsBadHygiene;
 
-namespace VehicleInteriors;
+namespace VehicleMapFramework;
 
 public class CompProperties_PipeConnectorDBH : CompProperties_Pipe
 {

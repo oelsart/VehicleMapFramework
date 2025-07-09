@@ -1,7 +1,7 @@
 ﻿using HarmonyLib;
 using System.Collections.Generic;
 
-namespace VehicleInteriors.VMF_HarmonyPatches
+namespace VehicleMapFramework.VMF_HarmonyPatches
 {
     [HarmonyPatchCategory("VMF_Patches_VFE_Architect")]
     [HarmonyPatch("VFEArchitect.Building_DoorSingle", "DrawAt")]
