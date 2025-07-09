@@ -16,16 +16,32 @@ namespace VehicleInteriors
     [StaticConstructorOnStartup]
     public class VehiclePawnWithMap : VehiclePawn
     {
-        public Map VehicleMap => this.interiorMap;
-
-        public bool AllowHaulIn {
+        public Map VehicleMap
+        {
             get
             {
-                return this.allowHaulIn;
+                if (interiorMap is null)
+                {
+                    if (!Destroyed)
+                    {
+                        GenerateVehicleMap();
+                        return interiorMap;
+                    }
+                    VehiclePawnWithMapCache.DeRegisterVehicle(this);
+                }
+                return interiorMap;
+            }
+        }
+
+        public bool AllowHaulIn
+        {
+            get
+            {
+                return allowHaulIn;
             }
             set
             {
-                this.allowHaulIn = value;
+                allowHaulIn = value;
             }
         }
 
@@ -33,11 +49,11 @@ namespace VehicleInteriors
         {
             get
             {
-                return this.allowHaulOut;
+                return allowHaulOut;
             }
             set
             {
-                this.allowHaulOut = value;
+                allowHaulOut = value;
             }
         }
 
@@ -45,7 +61,7 @@ namespace VehicleInteriors
         {
             get
             {
-                return this.allowEnter;
+                return allowEnter;
             }
         }
 
@@ -53,7 +69,7 @@ namespace VehicleInteriors
         {
             get
             {
-                return this.allowExit;
+                return allowExit;
             }
         }
 
@@ -61,12 +77,12 @@ namespace VehicleInteriors
         {
             get
             {
-                if (this.structureCellsCache == null || this.structureCellsDirty)
+                if (structureCellsCache == null || structureCellsDirty)
                 {
-                    this.structureCellsCache = this.interiorMap.listerThings.ThingsOfDef(VMF_DefOf.VMF_VehicleStructureFilled)
-                            .Concat(this.interiorMap.listerThings.ThingsOfDef(VMF_DefOf.VMF_VehicleStructureEmpty)).Select(b => b.Position).ToHashSet();
+                    structureCellsCache = interiorMap.listerThings.ThingsOfDef(VMF_DefOf.VMF_VehicleStructureFilled)
+                            .Concat(interiorMap.listerThings.ThingsOfDef(VMF_DefOf.VMF_VehicleStructureEmpty)).Select(b => b.Position).ToHashSet();
                 }
-                return this.structureCellsCache;
+                return structureCellsCache;
             }
         }
 
@@ -74,19 +90,20 @@ namespace VehicleInteriors
         {
             get
             {
-                if (this.outOfBoundsCellsCache == null)
+                if (outOfBoundsCellsCache == null)
                 {
-                    var props = this.VehicleDef.GetModExtension<VehicleMapProps>();
+                    var props = VehicleDef.GetModExtension<VehicleMapProps>();
                     if (props != null)
                     {
-                        this.outOfBoundsCellsCache = props.OutOfBoundsCells.Select(c => c.ToIntVec3).ToHashSet();
+                        outOfBoundsCellsCache = props.OutOfBoundsCells.Select(c => c.ToIntVec3).ToHashSet();
                     }
                     else
                     {
-                        this.outOfBoundsCellsCache = new HashSet<IntVec3>();
-                    };
+                        outOfBoundsCellsCache = new HashSet<IntVec3>();
+                    }
+                    ;
                 }
-                return this.outOfBoundsCellsCache;
+                return outOfBoundsCellsCache;
             }
         }
 
@@ -94,24 +111,24 @@ namespace VehicleInteriors
         {
             get
             {
-                if (this.mapEdgeCellsCache == null)
+                if (mapEdgeCellsCache == null)
                 {
-                    this.mapEdgeCellsCache = new HashSet<IntVec3>();
-                    foreach (var c in CellRect.WholeMap(this.interiorMap).EdgeCells)
+                    mapEdgeCellsCache = new HashSet<IntVec3>();
+                    foreach (var c in CellRect.WholeMap(interiorMap).EdgeCells)
                     {
-                        var facingInside = c.FullDirectionToInsideMap(this.interiorMap).FacingCell;
+                        var facingInside = c.FullDirectionToInsideMap(interiorMap).FacingCell;
                         var c2 = c;
-                        while (this.CachedOutOfBoundsCells.Contains(c2))
+                        while (CachedOutOfBoundsCells.Contains(c2))
                         {
                             c2 += facingInside;
                         }
-                        if (c2.InBounds(this.interiorMap))
+                        if (c2.InBounds(interiorMap))
                         {
-                            this.mapEdgeCellsCache.Add(c2);
+                            mapEdgeCellsCache.Add(c2);
                         }
                     }
                 }
-                return this.mapEdgeCellsCache;
+                return mapEdgeCellsCache;
             }
         }
 
@@ -119,17 +136,17 @@ namespace VehicleInteriors
         {
             get
             {
-                if (this.standableCellsCachedTick != Find.TickManager.TicksGame || Find.TickManager.Paused)
+                if (standableCellsCachedTick != Find.TickManager.TicksGame || Find.TickManager.Paused)
                 {
-                    this.standableCellsCachedTick = Find.TickManager.TicksGame;
-                    this.standableMapEdgeCellsCache.Clear();
-                    this.standableMapEdgeCellsCache.AddRange(CachedMapEdgeCells.Where(c => c.Standable(this.interiorMap)));
+                    standableCellsCachedTick = Find.TickManager.TicksGame;
+                    standableMapEdgeCellsCache.Clear();
+                    standableMapEdgeCellsCache.AddRange(CachedMapEdgeCells.Where(c => c.Standable(interiorMap)));
                 }
-                return this.standableMapEdgeCellsCache;
+                return standableMapEdgeCellsCache;
             }
         }
 
-        public List<CompVehicleEnterSpot> EnterComps => this.enterCompsInt;
+        public List<CompVehicleEnterSpot> EnterComps => enterCompsInt;
 
         public IEnumerable<CompVehicleEnterSpot> StandableEnterComps => EnterComps.Where(c => c.parent.Position.Standable(interiorMap));
 
@@ -137,11 +154,11 @@ namespace VehicleInteriors
         {
             get
             {
-                if (this.Spawned)
+                if (Spawned)
                 {
                     return base.DrawPos;
                 }
-                return this.cachedDrawPos;
+                return cachedDrawPos;
             }
         }
 
@@ -154,12 +171,12 @@ namespace VehicleInteriors
                 action = () =>
                 {
                     //リンクされたストレージの優先度が変わりすぎてしまうのを防ぎかつ全てのストレージにMoteを出したいので、一度優先度をキャッシュしておく
-                    var allGroups = this.interiorMap.haulDestinationManager.AllGroups;
+                    var allGroups = interiorMap.haulDestinationManager.AllGroups;
                     var priorityList = allGroups.Select(g => g.Settings.Priority).ToList();
                     for (var i = 0; i < allGroups.Count(); i++)
                     {
                         allGroups.ElementAt(i).Settings.Priority = (StoragePriority)Math.Min((sbyte)(priorityList[i] + 1), (sbyte)StoragePriority.Critical);
-                        MoteMaker.ThrowText(allGroups.ElementAt(i).CellsList[0].ToVector3Shifted().ToBaseMapCoord(this), this.Map, allGroups.ElementAt(i).Settings.Priority.ToString(), Color.white, -1f);
+                        MoteMaker.ThrowText(allGroups.ElementAt(i).CellsList[0].ToVector3Shifted().ToBaseMapCoord(this), Map, allGroups.ElementAt(i).Settings.Priority.ToString(), Color.white, -1f);
                     }
                 },
                 defaultLabel = "VMF_IncreasePriority".Translate(),
@@ -171,12 +188,12 @@ namespace VehicleInteriors
             {
                 action = () =>
                 {
-                    var allGroups = this.interiorMap.haulDestinationManager.AllGroups;
+                    var allGroups = interiorMap.haulDestinationManager.AllGroups;
                     var priorityList = allGroups.Select(g => g.Settings.Priority).ToList();
                     for (var i = 0; i < allGroups.Count(); i++)
                     {
                         allGroups.ElementAt(i).Settings.Priority = (StoragePriority)Math.Max((sbyte)(priorityList[i] - 1), (sbyte)StoragePriority.Low);
-                        MoteMaker.ThrowText(allGroups.ElementAt(i).CellsList[0].ToVector3Shifted().ToBaseMapCoord(this), this.Map, allGroups.ElementAt(i).Settings.Priority.ToString(), Color.white, -1f);
+                        MoteMaker.ThrowText(allGroups.ElementAt(i).CellsList[0].ToVector3Shifted().ToBaseMapCoord(this), Map, allGroups.ElementAt(i).Settings.Priority.ToString(), Color.white, -1f);
                     }
                 },
                 defaultLabel = "VMF_DecreasePriority".Translate(),
@@ -186,8 +203,8 @@ namespace VehicleInteriors
 
             yield return new Command_Toggle()
             {
-                isActive = () => this.allowHaulIn,
-                toggleAction = () => this.allowHaulIn = !this.allowHaulIn,
+                isActive = () => allowHaulIn,
+                toggleAction = () => allowHaulIn = !allowHaulIn,
                 defaultLabel = "VMF_AllowsHaulIn".Translate(),
                 defaultDesc = "VMF_AllowsHaulInDesc".Translate(),
                 icon = iconAllowHaulIn,
@@ -195,8 +212,8 @@ namespace VehicleInteriors
 
             yield return new Command_Toggle()
             {
-                isActive = () => this.allowHaulOut,
-                toggleAction = () => this.allowHaulOut = !this.allowHaulOut,
+                isActive = () => allowHaulOut,
+                toggleAction = () => allowHaulOut = !allowHaulOut,
                 defaultLabel = "VMF_AllowsHaulOut".Translate(),
                 defaultDesc = "VMF_AllowsHaulOutDesc".Translate(),
                 icon = iconAllowHaulOut,
@@ -204,8 +221,8 @@ namespace VehicleInteriors
 
             yield return new Command_Toggle()
             {
-                isActive = () => this.allowEnter,
-                toggleAction = () => this.allowEnter = !this.allowEnter,
+                isActive = () => allowEnter,
+                toggleAction = () => allowEnter = !allowEnter,
                 defaultLabel = "VMF_AllowEnter".Translate(),
                 defaultDesc = "VMF_AllowEnterDesc".Translate(),
                 icon = iconAllowEnter,
@@ -213,8 +230,8 @@ namespace VehicleInteriors
 
             yield return new Command_Toggle()
             {
-                isActive = () => this.allowExit,
-                toggleAction = () => this.allowExit = !this.allowExit,
+                isActive = () => allowExit,
+                toggleAction = () => allowExit = !allowExit,
                 defaultLabel = "VMF_AllowsGetOff".Translate(),
                 defaultDesc = "VMF_AllowsGetOffDesc".Translate(),
                 icon = iconAllowExit,
@@ -226,59 +243,64 @@ namespace VehicleInteriors
             }
         }
 
+        private void GenerateVehicleMap()
+        {
+            VehicleMapProps props;
+            if ((props = def.GetModExtension<VehicleMapProps>()) != null)
+            {
+                var mapParent = (MapParent_Vehicle)WorldObjectMaker.MakeWorldObject(VMF_DefOf.VMF_VehicleMap);
+                mapParent.vehicle = this;
+                mapParent.Tile = 0;
+                mapParent.SetFaction(base.Faction);
+                var mapSize = new IntVec3(props.size.x, 1, props.size.z);
+                mapSize.x += 2;
+                mapSize.z += 2;
+                interiorMap = MapGenerator.GenerateMap(mapSize, mapParent, mapParent.MapGeneratorDef, mapParent.ExtraGenStepDefs, null, true);
+                Find.World.GetComponent<VehicleMapParentsComponent>().vehicleMaps.Add(mapParent);
+
+                foreach (var c in props.EmptyStructureCells)
+                {
+                    var c2 = c;
+                    c2.x += 1;
+                    c2.z += 1;
+                    GenSpawn.Spawn(VMF_DefOf.VMF_VehicleStructureEmpty, c2.ToIntVec3, interiorMap).SetFaction(Faction.OfPlayer);
+                }
+                foreach (var c in props.FilledStructureCells)
+                {
+                    var c2 = c;
+                    c2.x += 1;
+                    c2.z += 1;
+                    GenSpawn.Spawn(VMF_DefOf.VMF_VehicleStructureFilled, c2.ToIntVec3, interiorMap).SetFaction(Faction.OfPlayer);
+                }
+                foreach (var c in CachedOutOfBoundsCells)
+                {
+                    GenSpawn.Spawn(VMF_DefOf.VMF_VehicleStructureEmpty, c, interiorMap).SetFaction(Faction.OfPlayer);
+                }
+            }
+        }
+
         public override void SpawnSetup(Map map, bool respawningAfterLoad)
         {
-            if (this.interiorMap == null)
+            if (interiorMap == null)
             {
-                VehicleMapProps props;
-                if ((props = this.def.GetModExtension<VehicleMapProps>()) != null)
-                {
-                    var mapParent = (MapParent_Vehicle)WorldObjectMaker.MakeWorldObject(VMF_DefOf.VMF_VehicleMap);
-                    mapParent.vehicle = this;
-                    mapParent.Tile = 0;
-                    mapParent.SetFaction(base.Faction);
-                    var mapSize = new IntVec3(props.size.x, 1, props.size.z);
-                    mapSize.x += 2;
-                    mapSize.z += 2;
-                    this.interiorMap = MapGenerator.GenerateMap(mapSize, mapParent, mapParent.MapGeneratorDef, mapParent.ExtraGenStepDefs, null, true);
-                    Find.World.GetComponent<VehicleMapParentsComponent>().vehicleMaps.Add(mapParent);
-
-                    foreach (var c in props.EmptyStructureCells)
-                    {
-                        var c2 = c;
-                        c2.x += 1;
-                        c2.z += 1;
-                        GenSpawn.Spawn(VMF_DefOf.VMF_VehicleStructureEmpty, c2.ToIntVec3, this.interiorMap).SetFaction(Faction.OfPlayer);
-                    }
-                    foreach (var c in props.FilledStructureCells)
-                    {
-                        var c2 = c;
-                        c2.x += 1;
-                        c2.z += 1;
-                        GenSpawn.Spawn(VMF_DefOf.VMF_VehicleStructureFilled, c2.ToIntVec3, this.interiorMap).SetFaction(Faction.OfPlayer);
-                    }
-                    foreach (var c in this.CachedOutOfBoundsCells)
-                    {
-                        GenSpawn.Spawn(VMF_DefOf.VMF_VehicleStructureEmpty, c, this.interiorMap).SetFaction(Faction.OfPlayer);
-                    }
-                }
+                GenerateVehicleMap();
             }
             base.SpawnSetup(map, respawningAfterLoad);
             VehiclePawnWithMapCache.RegisterVehicle(this);
-            this.mapFollower = new Vehicle_MapFollower(this);
+            mapFollower = new Vehicle_MapFollower(this);
 
-            this.interiorMap.skyManager = this.Map.skyManager;
-            this.interiorMap.weatherDecider = this.Map.weatherDecider;
-            this.interiorMap.weatherManager = this.Map.weatherManager;
+            interiorMap.skyManager = Map.skyManager;
+            interiorMap.weatherDecider = Map.weatherDecider;
+            interiorMap.weatherManager = Map.weatherManager;
         }
 
         public override void Tick()
         {
-            if (this.Spawned)
+            if (Spawned)
             {
-                this.cachedDrawPos = this.DrawPos;
+                cachedDrawPos = DrawPos;
 
-                this.mapFollower.MapFollowerTick();
+                mapFollower.MapFollowerTick();
             }
 
             base.Tick();
@@ -288,11 +310,11 @@ namespace VehicleInteriors
         {
             if (base.Spawned)
             {
-                this.DisembarkAll();
+                DisembarkAll();
             }
             StringBuilder stringBuilder = new StringBuilder();
             bool flag = false;
-            foreach (var thing in this.interiorMap.listerThings.AllThings.Where(t => t.def.drawerType != DrawerType.None).ToArray())
+            foreach (var thing in interiorMap.listerThings.AllThings.Where(t => t.def.drawerType != DrawerType.None).ToArray())
             {
                 if (mode != DestroyMode.Vanish)
                 {
@@ -301,7 +323,7 @@ namespace VehicleInteriors
                     {
                         thing.Destroy();
                         thing.Position = positionOnBaseMap;
-                        GenLeaving.DoLeavingsFor(thing, this.Map, DestroyMode.Deconstruct);
+                        GenLeaving.DoLeavingsFor(thing, Map, DestroyMode.Deconstruct);
                     }
                     else if (thing.Isnt<Explosion>())
                     {
@@ -326,46 +348,48 @@ namespace VehicleInteriors
                 string text = "VF_BoatSunkWithPawnsDesc".Translate(LabelShort, stringBuilder.ToString());
                 Find.LetterStack.ReceiveLetter("VF_BoatSunk".Translate(), text, LetterDefOf.NegativeEvent, new TargetInfo(base.Position, base.Map));
             }
-            if (Find.Maps.Contains(this.interiorMap))
-            {
-                Current.Game.DeinitAndRemoveMap(this.interiorMap, false);
-            }
-            Find.World.GetComponent<VehicleMapParentsComponent>().vehicleMaps.Remove(this.interiorMap.Parent as MapParent_Vehicle);
             base.Destroy(mode);
-            this.interiorMap = null;
+
+            if (Find.Maps.Contains(interiorMap))
+            {
+                Current.Game.DeinitAndRemoveMap(interiorMap, false);
+            }
+            Find.World.GetComponent<VehicleMapParentsComponent>().vehicleMaps.Remove(interiorMap.Parent as MapParent_Vehicle);
+
+            interiorMap = null;
         }
 
         public override void DeSpawn(DestroyMode mode = DestroyMode.Vanish)
         {
             VehiclePawnWithMapCache.DeRegisterVehicle(this);
-            this.mapFollower.DeRegisterVehicle();
+            mapFollower.DeRegisterVehicle();
             if (mode != DestroyMode.KillFinalize)
             {
-                this.interiorMap.skyManager = new SkyManager(this.interiorMap);
-                this.interiorMap.skyManager.ForceSetCurSkyGlow(this.Map.skyManager.CurSkyGlow);
-                this.interiorMap.weatherManager = new WeatherManager(this.interiorMap);
-                this.interiorMap.weatherManager.curWeather = this.Map.weatherManager.curWeather;
-                this.interiorMap.weatherManager.lastWeather = this.Map.weatherManager.lastWeather;
-                this.interiorMap.weatherManager.prevSkyTargetLerp = this.Map.weatherManager.prevSkyTargetLerp;
-                this.interiorMap.weatherManager.currSkyTargetLerp = this.Map.weatherManager.currSkyTargetLerp;
-                this.interiorMap.weatherManager.curWeatherAge = this.Map.weatherManager.curWeatherAge;
-                this.interiorMap.weatherManager.growthSeasonMemory = this.Map.weatherManager.growthSeasonMemory;
-                this.interiorMap.weatherDecider = new WeatherDecider(this.interiorMap);
+                interiorMap.skyManager = new SkyManager(interiorMap);
+                interiorMap.skyManager.ForceSetCurSkyGlow(Map.skyManager.CurSkyGlow);
+                interiorMap.weatherManager = new WeatherManager(interiorMap);
+                interiorMap.weatherManager.curWeather = Map.weatherManager.curWeather;
+                interiorMap.weatherManager.lastWeather = Map.weatherManager.lastWeather;
+                interiorMap.weatherManager.prevSkyTargetLerp = Map.weatherManager.prevSkyTargetLerp;
+                interiorMap.weatherManager.currSkyTargetLerp = Map.weatherManager.currSkyTargetLerp;
+                interiorMap.weatherManager.curWeatherAge = Map.weatherManager.curWeatherAge;
+                interiorMap.weatherManager.growthSeasonMemory = Map.weatherManager.growthSeasonMemory;
+                interiorMap.weatherDecider = new WeatherDecider(interiorMap);
             }
-            foreach (var thing in this.interiorMap.listerThings.AllThings.Intersect(Find.Selector.SelectedObjects))
+            foreach (var thing in interiorMap.listerThings.AllThings.Intersect(Find.Selector.SelectedObjects))
             {
                 Find.Selector.Deselect(thing);
             }
-            foreach (var zone in this.interiorMap.zoneManager.AllZones.Intersect(Find.Selector.SelectedObjects))
+            foreach (var zone in interiorMap.zoneManager.AllZones.Intersect(Find.Selector.SelectedObjects))
             {
                 Find.Selector.Deselect(zone);
             }
-            var crossMapHaulDestinationManager = this.Map.GetCachedMapComponent<CrossMapHaulDestinationManager>();
-            foreach (var haulSource in this.interiorMap.haulDestinationManager.AllHaulSourcesListForReading)
+            var crossMapHaulDestinationManager = Map.GetCachedMapComponent<CrossMapHaulDestinationManager>();
+            foreach (var haulSource in interiorMap.haulDestinationManager.AllHaulSourcesListForReading)
             {
                 crossMapHaulDestinationManager.RemoveHaulSource(haulSource);
             }
-            foreach (var haulDestination in this.interiorMap.haulDestinationManager.AllHaulDestinations)
+            foreach (var haulDestination in interiorMap.haulDestinationManager.AllHaulDestinations)
             {
                 crossMapHaulDestinationManager.RemoveHaulDestination(haulDestination);
             }
@@ -378,18 +402,18 @@ namespace VehicleInteriors
             {
                 drawLoc.y = AltitudeLayer.PawnState.AltitudeFor();
             }
-            this.cachedDrawPos = drawLoc;
+            cachedDrawPos = drawLoc;
             base.DrawAt(drawLoc, rot, extraRotation, flip, compDraw);
-            
+
             if (base.vehiclePather?.Moving ?? false)
             {
-                this.CellDesignationsDirty();
+                CellDesignationsDirty();
             }
-            this.DrawVehicleMap(extraRotation);
+            DrawVehicleMap(extraRotation);
             var focused = Command_FocusVehicleMap.FocusedVehicle;
             Command_FocusVehicleMap.FocusedVehicle = this;
-            this.interiorMap.roofGrid.RoofGridUpdate();
-            this.interiorMap.mapTemperature.TemperatureUpdate();
+            interiorMap.roofGrid.RoofGridUpdate();
+            interiorMap.mapTemperature.TemperatureUpdate();
             Command_FocusVehicleMap.FocusedVehicle = focused;
         }
 
@@ -397,13 +421,13 @@ namespace VehicleInteriors
         {
             foreach (var def in DefDatabase<DesignationDef>.AllDefs.Where(d => d.targetType == TargetType.Cell))
             {
-                DirtyCellDesignationsCache(this.interiorMap.designationManager, def);
+                DirtyCellDesignationsCache(interiorMap.designationManager, def);
             }
         }
 
         public virtual void DrawVehicleMap(float extraRotation)
         {
-            var map = this.interiorMap;
+            var map = interiorMap;
             //PlantFallColors.SetFallShaderGlobals(map);
             //map.waterInfo.SetTextures();
             //map.avoidGrid.DebugDrawOnMap();
@@ -413,12 +437,12 @@ namespace VehicleInteriors
             //DoorsDebugDrawer.DrawDebug();
             //map.mapDrawer.DrawMapMesh();
             var drawPos = Vector3.zero.ToBaseMapCoord(this, extraRotation);
-            this.DrawVehicleMapMesh(map, drawPos, extraRotation);
+            DrawVehicleMapMesh(map, drawPos, extraRotation);
             LongEventHandler.ExecuteWhenFinished(() =>
             {
                 DynamicDrawManagerOnVehicle.DrawDynamicThings(map);
             });
-            this.DrawClippers(map);
+            DrawClippers(map);
             map.designationManager.DrawDesignations();
             map.overlayDrawer.DrawAllOverlays();
             map.temporaryThingDrawer.Draw();
@@ -435,30 +459,30 @@ namespace VehicleInteriors
                 for (int j = 0; j < map.Size.z; j += 17)
                 {
                     var section = mapDrawer.SectionAt(new IntVec3(i, 0, j));
-                    this.DrawSection(section, drawPos, extraRotation);
+                    DrawSection(section, drawPos, extraRotation);
                 }
             }
         }
 
         protected virtual void DrawSection(Section section, Vector3 drawPos, float extraRotation)
         {
-            var rot = this.FullRotation;
+            var rot = FullRotation;
             ((SectionLayer_TerrainOnVehicle)section.GetLayer(typeof(SectionLayer_TerrainOnVehicle))).DrawLayer(rot, drawPos, extraRotation);
             ((SectionLayer_ThingsGeneralOnVehicle)section.GetLayer(typeof(SectionLayer_ThingsGeneralOnVehicle))).DrawLayer(rot, drawPos, extraRotation);
-            this.DrawLayer(section, typeof(SectionLayer_BuildingsDamage), drawPos, extraRotation);
-            if (Find.WindowStack.TryGetWindow<MainTabWindow_Architect>(out var window) && (window.selectedDesPanel?.def.showPowerGrid ?? false) ||
-                Find.DesignatorManager.SelectedDesignator is Designator_Build designator && designator.PlacingDef is ThingDef tDef && tDef.HasComp<CompPower>())
+            DrawLayer(section, typeof(SectionLayer_BuildingsDamage), drawPos, extraRotation);
+            if ((Find.WindowStack.TryGetWindow<MainTabWindow_Architect>(out var window) && (window.selectedDesPanel?.def.showPowerGrid ?? false)) ||
+                (Find.DesignatorManager.SelectedDesignator is Designator_Build designator && designator.PlacingDef is ThingDef tDef && tDef.HasComp<CompPower>()))
             {
                 ((SectionLayer_ThingsPowerGridOnVehicle)section.GetLayer(typeof(SectionLayer_ThingsPowerGridOnVehicle))).DrawLayer(rot, drawPos.WithY(0f), extraRotation);
             }
-            this.DrawLayer(section, t_SectionLayer_Zones, drawPos, extraRotation);
+            DrawLayer(section, t_SectionLayer_Zones, drawPos, extraRotation);
             ((SectionLayer_LightingOnVehicle)section.GetLayer(typeof(SectionLayer_LightingOnVehicle))).DrawLayer(this, drawPos, extraRotation);
-            if (Find.CurrentMap == this.interiorMap)
+            if (Find.CurrentMap == interiorMap)
             {
-                this.DrawLayer(section, typeof(SectionLayer_IndoorMask), drawPos, extraRotation);
+                DrawLayer(section, typeof(SectionLayer_IndoorMask), drawPos, extraRotation);
                 //this.DrawLayer(section, typeof(SectionLayer_LightingOverlay), drawPos, extraRotation);
             }
-            this.DrawModLayers(section, drawPos, extraRotation);
+            DrawModLayers(section, drawPos, extraRotation);
             //if (DebugViewSettings.drawSectionEdges)
             //{
             //    Vector3 a = section.botLeft.ToVector3();
@@ -481,18 +505,18 @@ namespace VehicleInteriors
         {
             if (VFECore.Active)
             {
-                ((SectionLayer_ThingsOnVehicle)section.GetLayer(VFECore.SectionLayer_ResourceOnVehicle))?.DrawLayer(this.FullRotation, drawPos, extraRotation);
+                ((SectionLayer_ThingsOnVehicle)section.GetLayer(VFECore.SectionLayer_ResourceOnVehicle))?.DrawLayer(FullRotation, drawPos, extraRotation);
             }
             if (DefenseGrid.Active)
             {
                 var selDesignator = Find.DesignatorManager.SelectedDesignator;
                 if (selDesignator is Designator_Build designator_Build && designator_Build.PlacingDef is ThingDef thingDef && thingDef.HasComp(DefenseGrid.CompDefenseConduit))
                 {
-                    this.DrawLayer(section, DefenseGrid.SectionLayer_DefenseGridOverlay, drawPos.Yto0(), extraRotation);
+                    DrawLayer(section, DefenseGrid.SectionLayer_DefenseGridOverlay, drawPos.Yto0(), extraRotation);
                 }
                 else if (DefenseGrid.Designator_DeconstructConduit.IsAssignableFrom(selDesignator?.GetType()))
                 {
-                    this.DrawLayer(section, DefenseGrid.SectionLayer_DefenseGridOverlay, drawPos.Yto0(), extraRotation);
+                    DrawLayer(section, DefenseGrid.SectionLayer_DefenseGridOverlay, drawPos.Yto0(), extraRotation);
                 }
             }
             if (DubsBadHygiene.Active && !DubsBadHygiene.LiteMode)
@@ -507,11 +531,11 @@ namespace VehicleInteriors
                     var mode = DubsBadHygiene.CompProperties_Pipe_mode(compProperties);
                     if (sewagePipeOverlay != null & DubsBadHygiene.SectionLayer_PipeOverlay_mode(sewagePipeOverlay) == mode)
                     {
-                        this.DrawLayer(section, DubsBadHygiene.SectionLayer_SewagePipeOverlay, drawPos.Yto0(), extraRotation);
+                        DrawLayer(section, DubsBadHygiene.SectionLayer_SewagePipeOverlay, drawPos.Yto0(), extraRotation);
                     }
                     if (airDuctOverlay != null && DubsBadHygiene.SectionLayer_PipeOverlay_mode(airDuctOverlay) == mode)
                     {
-                        this.DrawLayer(section, DubsBadHygiene.SectionLayer_AirDuctOverlay, drawPos.Yto0(), extraRotation);
+                        DrawLayer(section, DubsBadHygiene.SectionLayer_AirDuctOverlay, drawPos.Yto0(), extraRotation);
                     }
                     if (Time.frameCount % 120 == 0)
                     {
@@ -519,9 +543,9 @@ namespace VehicleInteriors
                         section.GetLayer(DubsBadHygiene.SectionLayer_AirDuctOverlay)?.Regenerate();
                     }
                 }
-                this.DrawLayer(section, DubsBadHygiene.SectionLayer_Irrigation, drawPos, extraRotation);
-                this.DrawLayer(section, DubsBadHygiene.SectionLayer_FertilizerGrid, drawPos, extraRotation);
-                ((SectionLayer_ThingsSewagePipeOnVehicle)section.GetLayer(typeof(SectionLayer_ThingsSewagePipeOnVehicle)))?.DrawLayer(this.FullRotation, drawPos, extraRotation);
+                DrawLayer(section, DubsBadHygiene.SectionLayer_Irrigation, drawPos, extraRotation);
+                DrawLayer(section, DubsBadHygiene.SectionLayer_FertilizerGrid, drawPos, extraRotation);
+                ((SectionLayer_ThingsSewagePipeOnVehicle)section.GetLayer(typeof(SectionLayer_ThingsSewagePipeOnVehicle)))?.DrawLayer(FullRotation, drawPos, extraRotation);
             }
             if (Rimefeller.Active)
             {
@@ -534,16 +558,16 @@ namespace VehicleInteriors
                     var mode = Rimefeller.CompProperties_Pipe_mode(compProperties);
                     if (sewagePipeOverlay != null & Rimefeller.SectionLayer_PipeOverlay_mode(sewagePipeOverlay) == mode)
                     {
-                        this.DrawLayer(section, Rimefeller.SectionLayer_SewagePipe, drawPos.Yto0(), extraRotation);
+                        DrawLayer(section, Rimefeller.SectionLayer_SewagePipe, drawPos.Yto0(), extraRotation);
                     }
                     if (Time.frameCount % 120 == 0)
                     {
                         section.GetLayer(Rimefeller.SectionLayer_SewagePipe)?.Regenerate();
                     }
                 }
-                this.DrawLayer(section, Rimefeller.XSectionLayer_Napalm, drawPos, extraRotation);
-                this.DrawLayer(section, Rimefeller.XSectionLayer_OilSpill, drawPos, extraRotation);
-                ((SectionLayer_ThingsPipeOnVehicle)section.GetLayer(typeof(SectionLayer_ThingsPipeOnVehicle)))?.DrawLayer(this.FullRotation, drawPos, extraRotation);
+                DrawLayer(section, Rimefeller.XSectionLayer_Napalm, drawPos, extraRotation);
+                DrawLayer(section, Rimefeller.XSectionLayer_OilSpill, drawPos, extraRotation);
+                ((SectionLayer_ThingsPipeOnVehicle)section.GetLayer(typeof(SectionLayer_ThingsPipeOnVehicle)))?.DrawLayer(FullRotation, drawPos, extraRotation);
             }
         }
 
@@ -558,7 +582,7 @@ namespace VehicleInteriors
             {
                 return;
             }
-            var angle = Ext_Math.RotateAngle(this.FullRotation.AsAngle, extraRotation);
+            var angle = Ext_Math.RotateAngle(FullRotation.AsAngle, extraRotation);
             foreach (var subMesh in layer.subMeshes)
             {
                 if (subMesh.finalized && !subMesh.disabled)
@@ -573,7 +597,7 @@ namespace VehicleInteriors
             if (Command_FocusVehicleMap.FocuseLockedVehicle == this || Command_FocusVehicleMap.FocusedVehicle == this)
             {
                 Material material = VehiclePawnWithMap.ClipMat;
-                var quat = this.FullRotation.AsQuat();
+                var quat = FullRotation.AsQuat();
                 IntVec3 size = map.Size;
                 Vector3 s = new Vector3(500f, 1f, size.z);
                 Matrix4x4 matrix = default;
@@ -591,7 +615,7 @@ namespace VehicleInteriors
                 Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
 
                 s = Vector3.one;
-                foreach (var c in this.CachedStructureCells)
+                foreach (var c in CachedStructureCells)
                 {
                     matrix.SetTRS(c.ToVector3Shifted().ToBaseMapCoord(), quat, s);
                     Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
@@ -604,7 +628,7 @@ namespace VehicleInteriors
             if (VehicleInteriors.settings.weightFactor == 0f) return null;
 
             var str = base.GetInspectString();
-            var stat = this.GetStatValue(VMF_DefOf.MaximumPayload);
+            var stat = GetStatValue(VMF_DefOf.MaximumPayload);
 
             str += $"\n{VMF_DefOf.MaximumPayload.LabelCap}:" +
                 $" {(VehicleMapUtility.VehicleMapMass(this) * VehicleInteriors.settings.weightFactor).ToStringEnsureThreshold(2, 0)} /" +
@@ -625,28 +649,28 @@ namespace VehicleInteriors
         public override void ExposeData()
         {
             base.ExposeData();
-            Scribe_References.Look(ref this.interiorMap, "interiorMap");
-            Scribe_Values.Look(ref this.allowHaulIn, "allowsHaulIn");
-            Scribe_Values.Look(ref this.allowHaulOut, "allowsHaulOut");
-            Scribe_Values.Look(ref this.allowEnter, "allowEnter");
-            Scribe_Values.Look(ref this.allowExit, "autoGetOff");
+            Scribe_References.Look(ref interiorMap, "interiorMap");
+            Scribe_Values.Look(ref allowHaulIn, "allowsHaulIn");
+            Scribe_Values.Look(ref allowHaulOut, "allowsHaulOut");
+            Scribe_Values.Look(ref allowEnter, "allowEnter");
+            Scribe_Values.Look(ref allowExit, "autoGetOff");
         }
 
         protected override void PostLoad()
         {
             base.PostLoad();
-            if (!this.Spawned && !this.Destroyed)
+            if (!Spawned && !Destroyed)
             {
-                this.CompVehicleTurrets?.InitTurrets();
+                CompVehicleTurrets?.InitTurrets();
                 if (UnityData.IsInMainThread)
                 {
-                    this.graphicOverlay.Init();
+                    graphicOverlay.Init();
                 }
                 else
                 {
                     LongEventHandler.ExecuteWhenFinished(() =>
                     {
-                        this.graphicOverlay.Init();
+                        graphicOverlay.Init();
                     });
                 }
                 base.ResetRenderStatus();
@@ -658,7 +682,7 @@ namespace VehicleInteriors
         public Vehicle_MapFollower mapFollower;
 
         public Vector3 cachedDrawPos;
-        
+
         private readonly List<CompVehicleEnterSpot> enterCompsInt = new List<CompVehicleEnterSpot>();
 
         private bool allowHaulIn = true;

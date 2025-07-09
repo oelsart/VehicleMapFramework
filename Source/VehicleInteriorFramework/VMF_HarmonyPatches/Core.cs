@@ -17,11 +17,21 @@ namespace VehicleInteriors.VMF_HarmonyPatches
         {
             var method = new StackTrace().GetFrame(1).GetMethod();
             var assembly = method.ReflectedType.Assembly;
-            AccessTools.GetTypesFromAssembly(assembly)
+            GenTypes.AllTypes.Where(t => t.Assembly == assembly)
                 .Where(t => t.CustomAttributes.Any(a => a.AttributeType == typeof(HarmonyPatch)) &&
                 t.CustomAttributes.Any(a => a.AttributeType == typeof(HarmonyPatchCategory) && a.ConstructorArguments.Any(c => c.Value.Equals(category))))
                 .Select(Instance.CreateClassProcessor)
-                .Do(p => p.Patch());
+                .Do(p =>
+                {
+                    try
+                    {
+                        p.Patch();
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error($"[VehicleMapFramework] Error while apply patching.\n{ex}");
+                    }
+                });
         }
     }
 
@@ -78,10 +88,21 @@ namespace VehicleInteriors.VMF_HarmonyPatches
     {
         static Core()
         {
-            AccessTools.GetTypesFromAssembly(Assembly.GetExecutingAssembly())
+            var assembly = Assembly.GetExecutingAssembly();
+            GenTypes.AllTypes.Where(t => t.Assembly == assembly)
                 .Where(t => t.CustomAttributes.Any(a => a.AttributeType == typeof(HarmonyPatch)) && t.CustomAttributes.All(a => a.AttributeType != typeof(HarmonyPatchCategory)))
                 .Select(VMF_Harmony.Instance.CreateClassProcessor)
-                .DoIf(p => p.Category.NullOrEmpty(), p => p.Patch());
+                .DoIf(p => p.Category.NullOrEmpty(), p =>
+                {
+                    try
+                    {
+                        p.Patch();
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error($"[VehicleMapFramework] Error while apply patching\n{ex}");
+                    }
+                });
         }
     }
 
