@@ -47,4 +47,6 @@ public static class VMF_DefOf
     public static WorkGiverDef VMF_LoadBuildableContainer;
 
     public static VehicleStatDef MaximumPayload;
+
+    public static VehicleDef VMF_GravshipVehicleBase;
 }

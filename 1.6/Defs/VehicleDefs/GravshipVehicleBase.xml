@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<Defs>
+	<Vehicles.VehicleDef ParentName="BaseVehiclePawnWithMap">
+		<defName>VMF_GravshipVehicleBase</defName>
+		<enabled>None</enabled>
+
+		<graphicData>
+			<texPath>VehicleMapFramework/ClearTex</texPath>
+			<graphicClass>Vehicles.Graphic_Vehicle</graphicClass>
+			<shaderType>CutoutComplexPattern</shaderType>
+		</graphicData>
+
+		<fillPercent>0</fillPercent>
+		<vehicleCategory>Transport</vehicleCategory>
+		<techLevel>Archotech</techLevel>
+		<vehicleType>Air</vehicleType>
+		
+		<vehicleStats>
+			<MoveSpeed>2</MoveSpeed>
+			<CargoCapacity>0</CargoCapacity>
+			<RepairRate>1.5</RepairRate>
+			<MaximumPayload>0</MaximumPayload>
+		</vehicleStats>
+
+		<properties>
+			<generateThingIcon>false</generateThingIcon>
+		</properties>
+
+		<components>
+			<li>
+				<key>Hull</key>
+				<label>Hull</label>
+				<health>10000</health>
+				<depth>External</depth>
+				<hitbox>
+					<side>Body</side>
+				</hitbox>
+			</li>
+		</components>
+	</Vehicles.VehicleDef>
+</Defs>

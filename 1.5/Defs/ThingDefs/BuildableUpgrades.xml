@@ -223,7 +223,7 @@
 			<maxItemsInCell>0</maxItemsInCell>
 			<blueprintGraphicData>
 				<texPath>VehicleMapFramework/Things/BuildableUpgrade/CargoContainer/CargoContainer_Blueprint_Atlas</texPath>
-				<cornerOverlayPath>VehicleMapFramework/Things/BuildableUpgrade/CargoContainer/CargoContainer_Blueprint_Filler</cornerOverlayPath>
+				<cornerOverlayPath>VehicleMapFramework/ClearTex</cornerOverlayPath>
 			</blueprintGraphicData>
 		</building>
 		<uiOrder>1023</uiOrder>

@@ -64,21 +64,21 @@ public class VehicleMapProps : DefModExtension
 
     public EdgeSpace? edgeSpaceNorthWest;
 
-    public IEnumerable<IntVec2> FilledStructureCells => filledStructureCells.Union(filledStructureCellRects.SelectMany(r => r.Cells2D));
+    public IEnumerable<IntVec2> FilledStructureCells => filledStructureCells.Union(filledStructureCellRects.SelectMany(r => r.Cells2D)).Select(c => c + IntVec2.North + IntVec2.East);
 
-    public IEnumerable<IntVec2> EmptyStructureCells => emptyStructureCells.Union(emptyStructureCellRects.SelectMany(r => r.Cells2D));
+    public IEnumerable<IntVec2> EmptyStructureCells => emptyStructureCells.Union(emptyStructureCellRects.SelectMany(r => r.Cells2D)).Select(c => c + IntVec2.North + IntVec2.East);
 
     public IEnumerable<IntVec2> OutOfBoundsCells
     {
         get
         {
-            return new CellRect(0, 0, size.x + 2, size.z + 2).EdgeCells.Select(c => c.ToIntVec2).Union(outOfBoundsCells.Union(outOfBoundsCellRects.SelectMany(r => r.Cells2D)));
+            return new CellRect(0, 0, size.x + 2, size.z + 2).EdgeCells.Select(c => c.ToIntVec2).Union(outOfBoundsCells.Union(outOfBoundsCellRects.SelectMany(r => r.Cells2D)).Select(c => c + IntVec2.North + IntVec2.East));
         }
     }
 
     public override IEnumerable<string> ConfigErrors()
     {
-        var mapRect = new CellRect(0, 0, size.x, size.z);
+        var mapRect = new CellRect(0, 0, size.x + 2, size.z + 2);
         foreach (var c in FilledStructureCells.Union(EmptyStructureCells))
         {
             if (!mapRect.Contains(c.ToIntVec3))

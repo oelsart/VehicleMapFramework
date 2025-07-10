@@ -293,10 +293,17 @@ public static class VehicleMapUtility
 
     public static List<Type> SelectSectionLayers(List<Type> subClasses, Map map)
     {
-        var excepts = new HashSet<Type>();
-        if (map?.Parent is MapParent_Vehicle)
+        var excepts = new List<Type>();
+        if (map.IsVehicleMapOf(out _))
         {
-            excepts.AddRange(new Type[] { typeof(SectionLayer_ThingsGeneral), t_SectionLayer_Terrain, typeof(SectionLayer_ThingsPowerGrid) });
+            excepts.AddRange(
+                [
+                typeof(SectionLayer_ThingsGeneral),
+                typeof(SectionLayer_Terrain),
+                typeof(SectionLayer_ThingsPowerGrid),
+                typeof(SectionLayer_SubstructureProps),
+                typeof(SectionLayer_GravshipHull)
+                ]);
             if (VFECore.Active)
             {
                 excepts.Add(AccessTools.TypeByName("PipeSystem.SectionLayer_Resource"));
@@ -311,7 +318,13 @@ public static class VehicleMapUtility
             }
             return [.. subClasses.Except(excepts)];
         }
-        excepts.AddRange(new Type[] { typeof(SectionLayer_ThingsGeneralOnVehicle), typeof(SectionLayer_TerrainOnVehicle), typeof(SectionLayer_LightingOnVehicle), typeof(SectionLayer_ThingsPowerGridOnVehicle) });
+        excepts.AddRange(
+            [
+            typeof(SectionLayer_ThingsGeneralOnVehicle),
+            typeof(SectionLayer_TerrainOnVehicle),
+            typeof(SectionLayer_LightingOnVehicle),
+            typeof(SectionLayer_ThingsPowerGridOnVehicle)
+            ]);
         if (VFECore.Active)
         {
             excepts.Add(AccessTools.TypeByName("VehicleMapFramework.SectionLayer_ResourceOnVehicle"));
@@ -320,8 +333,6 @@ public static class VehicleMapUtility
         excepts.Add(typeof(SectionLayer_ThingsPipeOnVehicle));
         return [.. subClasses.Except(excepts)];
     }
-
-    private static readonly Type t_SectionLayer_Terrain = AccessTools.TypeByName("Verse.SectionLayer_Terrain");
 
     public static Rot4 RotationForPrint(this Thing thing)
     {
