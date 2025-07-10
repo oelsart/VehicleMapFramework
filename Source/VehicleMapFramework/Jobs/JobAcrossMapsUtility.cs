@@ -8,6 +8,8 @@ namespace VehicleMapFramework;
 
 public static class JobAcrossMapsUtility
 {
+    private static AccessTools.FieldRef<JobDriver, int> curToilIndex = AccessTools.FieldRefAccess<JobDriver, int>("curToilIndex");
+
     public static void StartGotoDestMapJob(Pawn pawn, TargetInfo? exitSpot = null, TargetInfo? enterSpot = null)
     {
         var nextJob = pawn.CurJob.Clone();
@@ -25,8 +27,6 @@ public static class JobAcrossMapsUtility
         job.playerForced = nextJob.playerForced;
         pawn.jobs.StartJob(job, JobCondition.InterruptForced, keepCarryingThingOverride: true);
     }
-
-    private static AccessTools.FieldRef<JobDriver, int> curToilIndex = AccessTools.FieldRefAccess<JobDriver, int>("curToilIndex");
 
     public static Job GotoDestMapJob(Pawn pawn, TargetInfo? exitSpot = null, TargetInfo? enterSpot = null, Job nextJob = null)
     {

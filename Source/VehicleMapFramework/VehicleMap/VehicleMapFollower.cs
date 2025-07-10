@@ -88,7 +88,7 @@ public class VehicleMapFollower(VehiclePawnWithMap vehicle)
         var cellRect = CellRect.FromLimits(Mathf.Min(c1.x, c2.x, c3.x, c4.x), Mathf.Min(c1.z, c2.z, c3.z, c4.z), Mathf.Max(c1.x, c2.x, c3.x, c4.x), Mathf.Max(c1.z, c2.z, c3.z, c4.z));
         var mapRect = new Rect(0f, 0f, mapSize.x, mapSize.z);
 
-        if (cellRect.EnumerableCount() > 40)
+        if (cellRect.Area > 100)
         {
             Parallel.ForEach(cellRect, cell =>
             {

@@ -1,8 +1,11 @@
 ﻿using HarmonyLib;
+using SmashTools;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
 using Verse;
+using Verse.AI;
 using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
@@ -103,4 +106,28 @@ public static class Patch_WorkGiver_HaulToInventory_AllocateThingAtCell
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);
     }
+}
+
+[HarmonyPatchCategory("VMF_Patches_PUAH")]
+[HarmonyPatch("PickUpAndHaul.JobDriver_HaulToInventory", "TryMakePreToilReservations")]
+public static class Patch_JobDriver_HaulToInventory_TryMakePreToilReservations
+{
+    public static bool Prefix(Job ___job, Pawn ___pawn)
+    {
+        if (___job.targetQueueB.NotNullAndAny()) return true;
+
+        var message = $"{___pawn} starting HaulToInventory job: {___job.targetQueueA.ToStringSafeEnumerable()}:{___job.countQueue.ToStringSafeEnumerable()}";
+        if (Message != null)
+        {
+            Message(message);
+        }
+        else
+        {
+            Log.Message(message);
+        }
+        ___pawn.ReserveAsManyAsPossible(___job.targetQueueB, ___job);
+        return ___pawn.Reserve(___job.targetB, ___job);
+    }
+
+    private static Action<string> Message = (Action<string>)AccessTools.Method("PickUpAndHaul.Log:Message")?.CreateDelegate(typeof(Action<string>));
 }
