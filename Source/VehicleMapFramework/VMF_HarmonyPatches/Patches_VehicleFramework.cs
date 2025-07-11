@@ -20,6 +20,124 @@ using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
+[HarmonyPatch(typeof(AssetBundleDatabase), nameof(AssetBundleDatabase.SupportsRGBMaskTex))]
+public static class Patch_AssetBundleDatabase_SupportsRGBMaskTex
+{
+    public static void Postfix(ref bool __result, Shader shader, bool ignoreSettings)
+    {
+        __result = __result || ((VehicleMod.settings.main.useCustomShaders || ignoreSettings) &&
+            shader.SupportsOpacity());
+    }
+}
+
+[HarmonyPatch(typeof(RGBMaterialPool), nameof(RGBMaterialPool.SetProperties), typeof(IMaterialCacheTarget), typeof(PatternData), typeof(Func<Rot8, Texture2D>), typeof(Func<Rot8, Texture2D>))]
+public static class Patch_RGBMaterialPool_SetProperties
+{
+    public static bool Prefix(IMaterialCacheTarget target, PatternData patternData,
+    Func<Rot8, Texture2D> mainTexGetter, Func<Rot8, Texture2D> maskTexGetter, Dictionary<IMaterialCacheTarget, Material[]> ___cache)
+    {
+        if (target is GraphicOverlay graphicOverlay)
+        {
+            var vehiclePawn = vehicle(graphicOverlay);
+            if (vehiclePawn != null && vehiclePawn.AllComps.OfType<CompOpacityOverlay>().Any(c => c.Props.identifier == graphicOverlay.data?.identifier))
+            {
+                if (___cache.TryGetValue(target, out var materials))
+                {
+
+                    for (int i = 0; i < materials.Length; i++)
+                    {
+                        Material material = materials[i];
+
+                        material.SetColor(AdditionalShaderPropertyIDs.ColorOne, patternData.color);
+                        material.SetColor(ShaderPropertyIDs.ColorTwo, patternData.colorTwo);
+                        material.SetColor(AdditionalShaderPropertyIDs.ColorThree, patternData.colorThree);
+
+                        Rot8 rot = new(i);
+                        Texture2D mainTex = material.mainTexture as Texture2D;
+                        if (mainTexGetter != null)
+                        {
+                            mainTex = mainTexGetter(rot);
+                        }
+
+                        Texture2D maskTex = maskTexGetter?.Invoke(rot);
+                        if (patternData.patternDef != PatternDefOf.Default)
+                        {
+                            float tiles = patternData.tiles;
+                            if (patternData.patternDef.properties.tiles.TryGetValue("All", out float allTiles))
+                            {
+                                tiles *= allTiles;
+                            }
+
+                            if (!Mathf.Approximately(tiles, 0))
+                            {
+                                material.SetFloat(AdditionalShaderPropertyIDs.TileNum, tiles);
+                            }
+
+                            if (patternData.patternDef.properties.equalize)
+                            {
+                                float scaleX = 1;
+                                float scaleY = 1;
+                                if (mainTex.width > mainTex.height)
+                                {
+                                    scaleY = (float)mainTex.height / mainTex.width;
+                                }
+                                else
+                                {
+                                    scaleX = (float)mainTex.width / mainTex.height;
+                                }
+
+                                material.SetFloat(AdditionalShaderPropertyIDs.ScaleX, scaleX);
+                                material.SetFloat(AdditionalShaderPropertyIDs.ScaleY, scaleY);
+                            }
+
+                            if (patternData.patternDef.properties.dynamicTiling)
+                            {
+                                material.SetFloat(AdditionalShaderPropertyIDs.DisplacementX,
+                                  patternData.displacement.x);
+                                material.SetFloat(AdditionalShaderPropertyIDs.DisplacementY,
+                                  patternData.displacement.y);
+                            }
+                        }
+
+                        Shader opacityShader = patternData.patternDef.ShaderTypeDef.Shader.OpacityShaderCorrespond();
+                        if (opacityShader != material.shader)
+                        {
+                            material.shader = opacityShader;
+                        }
+
+                        Texture2D patternTex = patternData.patternDef[rot];
+                        if (patternData.patternDef.ShaderTypeDef == VehicleShaderTypeDefOf.CutoutComplexSkin)
+                        {
+                            //Null reverts to original tex. Default would calculate to red
+                            material.SetTexture(AdditionalShaderPropertyIDs.SkinTex, patternTex);
+                        }
+                        else if (patternData.patternDef.ShaderTypeDef ==
+                          VehicleShaderTypeDefOf.CutoutComplexPattern)
+                        {
+                            //Default to full red mask for full ColorOne pattern
+                            material.SetTexture(AdditionalShaderPropertyIDs.PatternTex, patternTex);
+                        }
+
+                        material.mainTexture = mainTex;
+                        if (maskTex != null)
+                        {
+                            material.SetTexture(ShaderPropertyIDs.MaskTex, maskTex);
+                        }
+
+                        material.SetColor(AdditionalShaderPropertyIDs.ColorOne, patternData.color);
+                        material.SetColor(ShaderPropertyIDs.ColorTwo, patternData.colorTwo);
+                        material.SetColor(AdditionalShaderPropertyIDs.ColorThree, patternData.colorThree);
+                    }
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private static AccessTools.FieldRef<GraphicOverlay, VehiclePawn> vehicle = AccessTools.FieldRefAccess<GraphicOverlay, VehiclePawn>("vehicle");
+}
+
 //VehiclePawnWithMapの場合Movementフラグを持つハンドラーが存在しない場合コントロールできないようにする
 [HarmonyPatch(typeof(VehiclePawn), nameof(VehiclePawn.CanMoveWithOperators), MethodType.Getter)]
 public static class Patch_VehiclePawn_CanMoveWithOperators
@@ -185,16 +303,6 @@ public static class Patch_Rendering_DrawSelectionBracketsVehicles
             new CodeInstruction(OpCodes.Add)
         ]);
         return codes;
-    }
-}
-
-[HarmonyPatch(typeof(AssetBundleDatabase), nameof(AssetBundleDatabase.SupportsRGBMaskTex))]
-public static class Patch_AssetBundleDatabase_SupportsRGBMaskTex
-{
-    public static void Postfix(ref bool __result, Shader shader, bool ignoreSettings)
-    {
-        __result = __result || ((VehicleMod.settings.main.useCustomShaders || ignoreSettings) &&
-            shader.SupportsOpacity());
     }
 }
 
