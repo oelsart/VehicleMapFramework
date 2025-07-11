@@ -1,4 +1,5 @@
-﻿using Verse;
+﻿using System.Diagnostics;
+using Verse;
 
 namespace VehicleMapFramework;
 
@@ -22,6 +23,12 @@ internal class VMF_Log
     public static void Message(object obj)
     {
         Log.Message($"{LogLabel} {obj}");
+    }
+
+    [Conditional("DEBUG")]
+    public static void Debug(string message)
+    {
+        Log.Message(message);
     }
 
     internal const string LogLabel = "[VehicleMapFramework]";

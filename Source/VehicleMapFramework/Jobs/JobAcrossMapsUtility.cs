@@ -12,6 +12,8 @@ public static class JobAcrossMapsUtility
 
     public static void StartGotoDestMapJob(Pawn pawn, TargetInfo? exitSpot = null, TargetInfo? enterSpot = null)
     {
+        if (pawn.CurJobDef == VMF_DefOf.VMF_GotoDestMap) return;
+
         var nextJob = pawn.CurJob.Clone();
         var driver = nextJob.GetCachedDriver(pawn);
 

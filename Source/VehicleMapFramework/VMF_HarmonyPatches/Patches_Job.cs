@@ -23,12 +23,13 @@ public static class Patch_Pawn_JobTracker_StartJob
     }
 }
 
-[HarmonyPatch(typeof(Pawn_JobTracker), "TryFindAndStartJob")]
-public static class Patch_Pawn_JobTracker_TryFindAndStartJob
+[HarmonyPatch(typeof(Pawn_JobTracker), "DetermineNextJob")]
+public static class Patch_Pawn_JobTracker_DetermineNextJob
 {
-    public static void Prefix(Pawn ___pawn)
+    public static void Prefix(Pawn ___pawn, bool ignoreQueue)
     {
-        TargetMapManager.TargetMap.Remove(___pawn);
+        if (!ignoreQueue && ___pawn.jobs.jobQueue.Any()) return;
+        TargetMapManager.RemoveTargetInfo(___pawn);
     }
 }
 
@@ -118,7 +119,7 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
         {
             return scanner.PotentialWorkThingsGlobal(pawn);
         }
-        CrossMapReachabilityUtility.tmpDepartMap = pawn.Map;
+        CrossMapReachabilityUtility.DepartMap = pawn.Map;
         var pos = pawn.Position;
         try
         {
@@ -140,8 +141,8 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
         }
         finally
         {
-            pawn.VirtualMapTransfer(CrossMapReachabilityUtility.tmpDepartMap, pos);
-            CrossMapReachabilityUtility.tmpDepartMap = null;
+            pawn.VirtualMapTransfer(CrossMapReachabilityUtility.DepartMap, pos);
+            CrossMapReachabilityUtility.DepartMap = null;
         }
     }
 
@@ -191,7 +192,7 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
     {
         var map = pawn.Map;
         var targetMap = target.Map;
-        if (map == targetMap || (scanner is IWorkGiverAcrossMaps workGiverAcrossMaps && !workGiverAcrossMaps.NeedVirtualMapTransfer))
+        if (map == targetMap || scanner is IWorkGiverAcrossMaps workGiverAcrossMaps && !workGiverAcrossMaps.NeedVirtualMapTransfer)
         {
             return scanner.JobOnCell(pawn, target.Cell, forced);
         }
@@ -199,15 +200,26 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
         if (pawn.CanReach(target.Cell, scanner.PathEndMode, scanner.MaxPathDanger(pawn), false, false, TraverseMode.ByPawn, targetMap, out var exitSpot, out var enterSpot))
         {
             var pos = pawn.Position;
-            var dest = target.Cell;
-            pawn.VirtualMapTransfer(targetMap, dest);
+            pawn.VirtualMapTransfer(targetMap, enterSpot.Cell);
             try
             {
-                return JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, scanner.JobOnCell(pawn, dest, forced));
+                return JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, scanner.JobOnCell(pawn, target.Cell, forced));
             }
             finally
             {
                 pawn.VirtualMapTransfer(map, pos);
+            }
+        }
+        if (!scanner.AllowUnreachable)
+        {
+            try
+            {
+                CrossMapReachabilityUtility.DestMap = targetMap;
+                return scanner.JobOnCell(pawn, target.Cell, forced);
+            }
+            finally
+            {
+                CrossMapReachabilityUtility.DestMap = null;
             }
         }
         return null;
@@ -217,7 +229,7 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
     {
         var pawn = innerClass.pawn;
         var basePos = pawn.PositionOnBaseMap();
-        var map = CrossMapReachabilityUtility.tmpDepartMap = pawn.Map;
+        var map = CrossMapReachabilityUtility.DepartMap = pawn.Map;
         var maps = map.BaseMapAndVehicleMaps().Except(map);
         try
         {
@@ -271,8 +283,8 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
         }
         finally
         {
-            pawn.VirtualMapTransfer(CrossMapReachabilityUtility.tmpDepartMap, innerStruct.pawnPosition);
-            CrossMapReachabilityUtility.tmpDepartMap = null;
+            pawn.VirtualMapTransfer(map, innerStruct.pawnPosition);
+            CrossMapReachabilityUtility.DepartMap = null;
         }
     }
 
@@ -440,27 +452,6 @@ public static class Patch_Toils_Goto_GotoCell
             if (target.IsValid && actor.Map != target.Thing.MapHeld && actor.CanReach(target, peMode, Danger.Deadly, false, false, TraverseMode.ByPawn, target.Thing.MapHeld, out var exitSpot, out var enterSpot))
             {
                 JobAcrossMapsUtility.StartGotoDestMapJob(actor, exitSpot, enterSpot);
-            }
-        });
-    }
-
-    //PUAHのJobDriver_HaulToInventoryなど
-    [HarmonyPatch([typeof(TargetIndex), typeof(PathEndMode)])]
-    [HarmonyPostfix]
-    public static void Postfix2(TargetIndex ind, PathEndMode peMode, Toil __result)
-    {
-        __result.AddPreInitAction(() =>
-        {
-            var actor = __result.actor;
-            if (!TargetMapManager.HasTargetMap(actor, out var map))
-            {
-                return;
-            }
-            var target = actor.jobs.curJob.GetTarget(ind);
-            if (actor.CanReach(target, peMode, Danger.Deadly, false, false, TraverseMode.ByPawn, map, out var exitSpot, out var enterSpot))
-            {
-                JobAcrossMapsUtility.StartGotoDestMapJob(actor, exitSpot, enterSpot);
-                TargetMapManager.TargetMap.Remove(actor);
             }
         });
     }
@@ -696,15 +687,12 @@ public static class Patch_ReservationManager_Reserve
 
     public static bool ShouldReplace(Map ___map, Pawn claimant, LocalTargetInfo target, bool allowSameMap, out Map map)
     {
-        if (target.HasThing)
+        map = target.Thing?.MapHeld;
+        if (map is null && !TargetMapManager.HasTargetMap(claimant, out map))
         {
-            map = target.Thing.MapHeld;
+            return false;
         }
-        else
-        {
-            TargetMapManager.TargetMap.TryGetValue(claimant, out map);
-        }
-        return map is not null && (allowSameMap || ___map != map);
+        return allowSameMap || ___map != map;
     }
 }
 

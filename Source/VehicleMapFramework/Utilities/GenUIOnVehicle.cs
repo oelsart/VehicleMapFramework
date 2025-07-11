@@ -127,11 +127,7 @@ public static class GenUIOnVehicle
     public static IEnumerable<LocalTargetInfo> TargetsAtMouse(TargetingParameters clickParams, bool thingsOnly = false, ITargetingSource source = null)
     {
         var clickPos = UI.MouseMapPosition();
-        Thing caster;
-        if ((caster = source?.Caster) != null)
-        {
-            TargetMapManager.TargetMap[caster] = Find.CurrentMap;
-        }
+        TargetMapManager.SetTargetMap(source?.Caster, Find.CurrentMap);
         bool convToVehicleMap;
         if (!(convToVehicleMap = Find.CurrentMap.IsVehicleMapOf(out var vehicle)))
         {
@@ -140,10 +136,7 @@ public static class GenUIOnVehicle
                 if (source is Verb_Jump || source is Verb_CastAbilityJump || source is Verb_LaunchZipline)
                 {
                     convToVehicleMap = true;
-                    if (caster != null)
-                    {
-                        TargetMapManager.TargetMap[caster] = vehicle.VehicleMap;
-                    }
+                     TargetMapManager.SetTargetMap(source?.Caster, vehicle.VehicleMap);
                 }
             }
         }

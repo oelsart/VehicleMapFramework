@@ -3,6 +3,7 @@
 <Defs>
 	<Vehicles.VehicleDef ParentName="BaseVehiclePawnWithMap">
 		<defName>VMF_GravshipVehicleBase</defName>
+		<label>Gravship vehicle</label>
 		<enabled>None</enabled>
 
 		<graphicData>

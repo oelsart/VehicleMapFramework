@@ -69,7 +69,7 @@ public class Bullet_ZiplineEnd : Bullet, IZiplineEnd
             SoundDefOf.BulletImpact_Ground.PlayOneShot(intendedTarget.ToTargetInfo(Map));
             GenSpawn.Spawn(ziplineEnd, intendedTarget.Cell, Map);
         }
-        TargetMapManager.TargetMap.Remove(launchVerb.caster);
+        TargetMapManager.RemoveTargetInfo(launchVerb.caster);
 
         base.Destroy(DestroyMode.Vanish);
 

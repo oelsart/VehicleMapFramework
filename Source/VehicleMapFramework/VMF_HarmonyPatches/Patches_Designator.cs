@@ -136,65 +136,6 @@ public static class Patch_Designator_Build_Deselected
     }
 }
 
-//drawPosを移動してQuaternionに車の回転をかける。ほぼ同じなので3つまとめました
-[HarmonyPatch(typeof(GenUI), nameof(GenUI.RenderMouseoverBracket))]
-public static class Patch_GenUI_RenderMouseoverBracket
-{
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
-    {
-        var f_GenUIMouseoverBracketMaterial = AccessTools.Field(typeof(GenUI), "MouseoverBracketMaterial");
-        return Patch_GenUI_RenderMouseoverBracket.TranspilerCommon(instructions, generator, f_GenUIMouseoverBracketMaterial);
-    }
-
-    public static IEnumerable<CodeInstruction> TranspilerCommon(IEnumerable<CodeInstruction> instructions, ILGenerator generator, FieldInfo field)
-    {
-        var codes = instructions.ToList();
-        var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(CachedMethodInfo.g_Quaternion_identity));
-        codes.InsertRange(pos,
-        [
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ToBaseMapCoord1),
-            new CodeInstruction(OpCodes.Ldc_R4, AltitudeLayer.MetaOverlays.AltitudeFor()),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_Vector3Utility_WithY)
-        ]);
-
-        var label = generator.DefineLabel();
-        var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Ldsfld && c.OperandIs(field));
-        codes[pos2].labels.Add(label);
-        codes.InsertRange(pos2,
-        [
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.g_FocusedVehicle),
-            new CodeInstruction(OpCodes.Brfalse_S, label),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.g_FocusedVehicle),
-            new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_FullRotation),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_Rot8_AsQuat),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.o_Quaternion_Multiply),
-        ]);
-        return codes;
-    }
-}
-
-
-[HarmonyPatch(typeof(DesignatorUtility), nameof(DesignatorUtility.RenderHighlightOverSelectableCells))]
-public static class Patch_DesignatorUtility_RenderHighlightOverSelectableCells
-{
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
-    {
-        var f_DesignatorUtility_DragHighlightCellMat = AccessTools.Field(typeof(DesignatorUtility), nameof(DesignatorUtility.DragHighlightCellMat));
-        return Patch_GenUI_RenderMouseoverBracket.TranspilerCommon(instructions, generator, f_DesignatorUtility_DragHighlightCellMat);
-    }
-}
-
-[HarmonyPatch(typeof(Designator_Cancel), nameof(Designator_Cancel.RenderHighlight))]
-public static class Patch_Designator_Cancel_RenderHighlight
-{
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
-    {
-        var f_DesignatorUtility_DragHighlightCellMat = AccessTools.Field(typeof(DesignatorUtility), nameof(DesignatorUtility.DragHighlightCellMat));
-        return Patch_GenUI_RenderMouseoverBracket.TranspilerCommon(instructions, generator, f_DesignatorUtility_DragHighlightCellMat);
-    }
-}
-
-
 [HarmonyPatch(typeof(DesignationManager), nameof(DesignationManager.DrawDesignations))]
 public static class Patch_DesignationManager_DrawDesignations
 {
@@ -265,43 +206,6 @@ public static class Patch_Area_MarkForDraw
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Find_CurrentMap, CachedMethodInfo.g_VehicleMapUtility_CurrentMap);
-    }
-}
-
-[HarmonyPatch(typeof(CellBoolDrawer), "ActuallyDraw")]
-public static class Patch_CellBoolDrawer_ActuallyDraw
-{
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
-    {
-        var codes = instructions.ToList();
-        var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(CachedMethodInfo.g_Quaternion_identity));
-        var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithMap));
-        var label = generator.DefineLabel();
-
-        codes[pos].labels.Add(label);
-        codes.InsertRange(pos, [
-            new CodeInstruction(OpCodes.Ldloca_S, vehicle),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_FocusedOnVehicleMap),
-            new CodeInstruction(OpCodes.Brfalse_S, label),
-            new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ToBaseMapCoord2),
-            new CodeInstruction(OpCodes.Ldc_R4, 0f),
-            CodeInstruction.Call(typeof(Vector3Utility), nameof(Vector3Utility.WithY))
-        ]);
-
-        pos = codes.FindIndex(pos, c => c.opcode == OpCodes.Call && c.OperandIs(CachedMethodInfo.g_Quaternion_identity)) + 1;
-        var label2 = generator.DefineLabel();
-        codes[pos].labels.Add(label2);
-        codes.InsertRange(pos,
-        [
-            new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-            new CodeInstruction(OpCodes.Brfalse_S, label2),
-            new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.g_FullRotation),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_Rot8_AsQuat),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.o_Quaternion_Multiply)
-        ]);
-        return codes;
     }
 }
 

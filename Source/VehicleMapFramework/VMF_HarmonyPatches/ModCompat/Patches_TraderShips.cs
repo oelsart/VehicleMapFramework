@@ -55,7 +55,7 @@ public static class Patch_LandedShip_ColonyThingsWillingToBuy
     {
         if (working) return;
 
-        CrossMapReachabilityUtility.tmpDepartMap = playerNegotiator.Map;
+        CrossMapReachabilityUtility.DepartMap = playerNegotiator.Map;
     }
 
     public static IEnumerable<Thing> Postfix(IEnumerable<Thing> values, Pawn playerNegotiator, ITrader __instance)
@@ -88,7 +88,7 @@ public static class Patch_LandedShip_ColonyThingsWillingToBuy
         {
             working = false;
             playerNegotiator.VirtualMapTransfer(departMap);
-            CrossMapReachabilityUtility.tmpDepartMap = null;
+            CrossMapReachabilityUtility.DepartMap = null;
         }
     }
 

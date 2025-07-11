@@ -124,7 +124,7 @@ public static class Patch_Selector_Deselect
     {
         if (obj is Thing thing)
         {
-            TargetMapManager.TargetMap.Remove(thing);
+            TargetMapManager.RemoveTargetInfo(thing);
         }
     }
 }

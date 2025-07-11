@@ -3,6 +3,7 @@ using RimWorld;
 using SmashTools;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using UnityEngine;
 using Vehicles;
@@ -15,9 +16,22 @@ public static class CrossMapReachabilityUtility
 {
     public static bool working;
 
-    public static Map tmpDestMap;
+    public static Map DestMap;
 
-    public static Map tmpDepartMap;
+    public static Map DepartMap;
+
+#if DEBUG
+    public static bool enableDebugLog;
+#endif
+
+    [Conditional("DEBUG")]
+    internal static void DebugLog(string message)
+    {
+#if DEBUG
+        if (!enableDebugLog) return;
+#endif
+        Log.Message($"[CrossMapReachability] {message}");
+    }
 
     public static IntVec3 EnterVehiclePosition(TargetInfo enterSpot, VehiclePawn enterer = null)
     {
@@ -79,6 +93,7 @@ public static class CrossMapReachabilityUtility
 
         if (CrossMapReachabilityCache.TryGetCache(new TargetInfo(root, departMap), dest.ToTargetInfo(destMap), traverseParms, out var result, out exitSpot, out enterSpot))
         {
+            DebugLog($"Result from cache: {root}, {departMap}, {dest}, {destMap}, {traverseParms}: {result}, {exitSpot}, {enterSpot}");
             return result;
         }
         working = true;
@@ -90,6 +105,7 @@ public static class CrossMapReachabilityUtility
             if (departMap == destMap)
             {
                 result = destMap.reachability.CanReach(root, dest, peMode, traverseParms);
+                DebugLog($"departMap == destMap: {result}");
                 return result;
             }
             var destBaseMap = destMap.IsVehicleMapOf(out var vehicle) && vehicle.Spawned ? vehicle.Map : destMap;
@@ -100,13 +116,13 @@ public static class CrossMapReachabilityUtility
                 var flag = departMap == departBaseMap;
                 var flag2 = departBaseMap == destMap;
                 var traverseParms2 = traverseParms.pawn != null ?
-                    TraverseParms.For(traverseParms.pawn, traverseParms.maxDanger, TraverseMode.PassDoors, traverseParms.canBashDoors, traverseParms.alwaysUseAvoidGrid, traverseParms.canBashFences) :
-                    TraverseParms.For(TraverseMode.PassDoors, traverseParms.maxDanger, traverseParms.canBashDoors, traverseParms.alwaysUseAvoidGrid, traverseParms.canBashFences);
+                    TraverseParms.For(traverseParms.pawn, traverseParms.maxDanger, TraverseMode.PassDoors, traverseParms.canBashDoors, traverseParms.alwaysUseAvoidGrid, traverseParms.canBashFences, traverseParms.avoidPersistentDanger) :
+                    TraverseParms.For(TraverseMode.PassDoors, traverseParms.maxDanger, traverseParms.canBashDoors, traverseParms.alwaysUseAvoidGrid, traverseParms.canBashFences, traverseParms.avoidPersistentDanger);
 
                 bool CanReach(IntVec3 cell, IntVec3 cell2)
                 {
                     return departMap.reachability.CanReach(root, cell, PathEndMode.OnCell, traverseParms) &&
-                        destMap.reachability.CanReach(cell2, dest, peMode, traverseParms2);
+                        destMap.reachability.CanReach(cell2, dest, peMode, traverseParms);
                 }
                 //出発地が車上マップで目的地がベースマップ
                 if (!flag && flag2)
@@ -132,10 +148,11 @@ public static class CrossMapReachabilityUtility
                             {
                                 cell = EnterVehiclePosition(comp.parent);
                             }
-                            if (cell.Standable(destMap) && CanReach(comp.parent.Position, cell))
+                            result = cell.Standable(destMap) && CanReach(comp.parent.Position, cell);
+                            DebugLog($"VehicleMap => BaseMap: {root}, {cell}, {comp}, {traverseParms} :{result} {comp.parent}");
+                            if (result)
                             {
                                 exitSpot = comp.parent;
-                                result = true;
                                 return result;
                             }
                         }
@@ -143,10 +160,11 @@ public static class CrossMapReachabilityUtility
                         {
                             var targetInfo = new TargetInfo(c, departMap);
                             var cell = EnterVehiclePosition(targetInfo);
-                            if (cell.Standable(destMap) && CanReach(c, cell))
+                            result = cell.Standable(destMap) && CanReach(c, cell);
+                            DebugLog($"VehicleMap => BaseMap: {root}, {cell}, {c}, {traverseParms} :{result} {targetInfo}");
+                            if (result)
                             {
                                 exitSpot = targetInfo;
-                                result = true;
                                 return result;
                             }
                         }
@@ -176,10 +194,12 @@ public static class CrossMapReachabilityUtility
                             {
                                 cell = EnterVehiclePosition(comp.parent);
                             }
-                            if (cell.Standable(departMap) && CanReach(cell, comp.parent.Position))
+
+                            result = cell.Standable(departMap) && CanReach(cell, comp.parent.Position);
+                            DebugLog($"BaseMap => VehicleMap: {root}, {cell}, {comp}, {traverseParms} :{result}");
+                            if (result)
                             {
                                 enterSpot = comp.parent;
-                                result = true;
                                 return result;
                             }
                         }
@@ -187,10 +207,11 @@ public static class CrossMapReachabilityUtility
                         {
                             var targetInfo = new TargetInfo(c, destMap);
                             var cell = EnterVehiclePosition(targetInfo);
-                            if (cell.Standable(departMap) && CanReach(cell, c))
+                            result = cell.Standable(departMap) && CanReach(cell, c);
+                            DebugLog($"BaseMap => VehicleMap: {new TargetInfo(root, departMap)}, {cell}, {c}, {dest.ToTargetInfo(destMap)}, {traverseParms} :{result}");
+                            if (result)
                             {
                                 enterSpot = targetInfo;
-                                result = true;
                                 return result;
                             }
                         }
@@ -335,13 +356,16 @@ public static class CrossMapReachabilityUtility
         {
             CrossMapReachabilityCache.Cache(new TargetInfo(root, departMap), dest.ToTargetInfo(destMap), traverseParms, result, exitSpot, enterSpot);
             working = false;
+#if DEBUG
+            enableDebugLog = false;
+#endif
         }
 
     }
 
     public static bool CanReach(this Pawn pawn, LocalTargetInfo dest3, PathEndMode peMode, Danger maxDanger, bool canBashDoors, bool canBashFences, TraverseMode mode, Map destMap, out TargetInfo dest1, out TargetInfo dest2)
     {
-        var traverseParms = TraverseParms.For(pawn, maxDanger, mode, canBashDoors, false, canBashFences);
+        var traverseParms = TraverseParms.For(pawn, maxDanger: maxDanger, mode: mode, canBashDoors: canBashDoors, canBashFences: canBashFences);
         dest1 = TargetInfo.Invalid;
         dest2 = TargetInfo.Invalid;
         return pawn.Spawned && CrossMapReachabilityUtility.CanReach(pawn.Map, traverseParms.pawn.Position, dest3, peMode, traverseParms, destMap, out dest1, out dest2);

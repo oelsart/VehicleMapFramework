@@ -4,7 +4,6 @@ using RimWorld.Planet;
 using SmashTools;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -34,7 +33,7 @@ public static class Patch_FloatMenuContext_Constructor
         Pawn pawn;
         if (!__instance.IsMultiselect && (pawn = __instance.ValidSelectedPawns.FirstOrDefault()) != null)
         {
-            TargetMapManager.TargetMap[pawn] = __instance.map;
+            TargetMapManager.SetTargetInfo(pawn, new TargetInfo(__instance.ClickedCell, __instance.map));
         }
         GenUIOnVehicle.vehicleForSelector = null;
     }
@@ -179,7 +178,7 @@ public static class Patch_MultiPawnGotoController_RecomputeDestinations
 {
     public static void Prefix(List<Pawn> ___pawns)
     {
-        ___pawns.Do(p => TargetMapManager.TargetMap.Remove(p));
+        ___pawns.Do(p => TargetMapManager.RemoveTargetInfo(p));
     }
 
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -304,6 +303,7 @@ public static class Patch_RCellFinder_BestOrderedGotoDestNear
             __result = CrossMapReachabilityUtility.BestOrderedGotoDestNear(root, searcher, cellValidator, map, out _, out _);
             if (__result.IsValid)
             {
+                TargetMapManager.SetTargetInfo(searcher, new TargetInfo(__result, map));
                 return false;
             }
         }
@@ -320,7 +320,7 @@ public static class Patch_RCellFinder_BestOrderedGotoDestNear
                 out _);
             if (__result.IsValid)
             {
-                TargetMapManager.TargetMap[searcher] = map;
+                TargetMapManager.SetTargetInfo(searcher, new TargetInfo(__result, map));
                 return false;
             }
         }
@@ -328,15 +328,13 @@ public static class Patch_RCellFinder_BestOrderedGotoDestNear
     }
 }
 
-//行き先がVehicleMap上にあると登録されているかsearcherがVehicleMap上に居る時はBestOrderedGotoDestNearの置き換えで登録されたspotsを使ってGotoAcrossMapsに誘導
 [HarmonyPatch(typeof(FloatMenuOptionProvider_DraftedMove), nameof(FloatMenuOptionProvider_DraftedMove.PawnGotoAction))]
 public static class Patch_FloatMenuOptionProvider_DraftedMove_PawnGotoAction
 {
     public static bool Prefix(IntVec3 clickCell, Pawn pawn, IntVec3 gotoLoc)
     {
-        if (TargetMapManager.HasTargetMap(pawn, out var map))
+        if (TargetMapManager.HasTargetMap(pawn, out var map) && pawn.Map != map)
         {
-            TargetMapManager.TargetMap.Remove(pawn);
             //BestOrderedGotoDestNearが通ってるはずなのでキャッシュからexitSpotとenterSpotを取ってくるだけの最終確認CanReach
             if (pawn.CanReach(gotoLoc, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, map, out var exitSpot, out var enterSpot))
             {

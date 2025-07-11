@@ -2,6 +2,7 @@
 using RimWorld;
 using RimWorld.Planet;
 using SmashTools;
+using SmashTools.Targeting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +15,6 @@ using Vehicles.World;
 using Verse;
 using Verse.AI;
 using Verse.AI.Group;
-using Verse.Noise;
 using Verse.Sound;
 using static VehicleMapFramework.MethodInfoCache;
 
@@ -376,14 +376,14 @@ public static class Patch_Command_CooldownAction_DrawBottomBar
     }
 }
 
-[HarmonyPatch(typeof(LaunchProtocol), nameof(LaunchProtocol.GetFloatMenuOptionsAt))]
-public static class Patch_LaunchProtocol_GetFloatMenuOptionsAt
+[HarmonyPatch(typeof(LaunchProtocol), nameof(LaunchProtocol.GetArrivalOptions))]
+public static class Patch_LaunchProtocol_GetArrivalOptions
 {
-    public static IEnumerable<FloatMenuOption> Postfix(IEnumerable<FloatMenuOption> __result, int tile, LaunchProtocol __instance)
+    public static IEnumerable<ArrivalOption> Postfix(IEnumerable<ArrivalOption> __result, GlobalTargetInfo target, LaunchProtocol __instance)
     {
-        foreach (var floatMenu in __result)
+        foreach (var arrivalOption in __result)
         {
-            yield return floatMenu;
+            yield return arrivalOption;
         }
 
         if (__instance.Vehicle is VehiclePawnWithMap)
@@ -392,14 +392,11 @@ public static class Patch_LaunchProtocol_GetFloatMenuOptionsAt
         }
 
         IEnumerable<VehiclePawnWithMap> vehicles = null;
-        MapParent mapParent;
-        Caravan caravan;
-        AerialVehicleInFlight aerial;
-        if ((mapParent = Find.WorldObjects.MapParentAt(tile)) != null && mapParent.HasMap)
+        if (target.WorldObject is MapParent mapParent && mapParent.HasMap)
         {
             vehicles = VehiclePawnWithMapCache.AllVehiclesOn(mapParent.Map);
         }
-        else if ((caravan = Find.WorldObjects.PlayerControlledCaravanAt(tile)) != null)
+        else if (target.WorldObject is Caravan caravan)
         {
             if (caravan is VehicleCaravan vehicleCaravan)
             {
@@ -410,38 +407,46 @@ public static class Patch_LaunchProtocol_GetFloatMenuOptionsAt
                 vehicles = caravan.pawns.OfType<VehiclePawnWithMap>();
             }
         }
-        else if ((aerial = VehicleWorldObjectsHolder.Instance.AerialVehicles.FirstOrDefault(a => a.Tile == tile)) != null)
+        else if (target.WorldObject is AerialVehicleInFlight aerial)
         {
             vehicles = aerial.Vehicles.OfType<VehiclePawnWithMap>();
         }
 
-        if (vehicles.NullOrEmpty()) yield break;
+        if (vehicles is null) yield break;
 
-        foreach (var vehicle in vehicles)
+        foreach (var vehiclePawnWithMap in vehicles)
         {
-            mapParent = vehicle.VehicleMap.Parent;
+            mapParent = vehiclePawnWithMap.VehicleMap.Parent;
 
-            bool CanLandInSpecificCell()
+            var vehicle = __instance.Vehicle;
+            if (mapParent is { Spawned: true, HasMap: true } && !mapParent.EnterCooldownBlocksEntering())
             {
-                if (mapParent != null && mapParent.HasMap)
-                {
-                    if (mapParent.EnterCooldownBlocksEntering())
-                    {
-                        return FloatMenuAcceptanceReport.WithFailMessage("MessageEnterCooldownBlocksEntering".Translate(mapParent.EnterCooldownTicksLeft().ToStringTicksToPeriod()));
-                    }
-
-                    return true;
-                }
-
-                return false;
-            }
-
-            if (CanLandInSpecificCell())
-            {
-                var floatMenu = (FloatMenuOption)AccessTools.Method(__instance.GetType(), "FloatMenuOption_LandInsideMap").Invoke(__instance, [mapParent, tile]);
-                floatMenu.action += MapComponentCache<VehiclePawnWithMapCache>.GetComponent(vehicle.VehicleMap).ForceResetCache;
-                floatMenu.Label = "VMF_LandInSpecificMap".Translate(vehicle.VehicleMap.Parent.Label, __instance.Vehicle.Label);
-                yield return floatMenu;
+                yield return new ArrivalOption("LandInExistingMap".Translate(vehicle.Label),
+                  continueWith: delegate (TargetData<GlobalTargetInfo> targetData)
+                  {
+                      Current.Game.CurrentMap = mapParent.Map;
+                      CameraJumper.TryHideWorld();
+                      LandingTargeter.Instance.BeginTargeting(vehicle,
+                action: delegate (LocalTargetInfo landingCell, Rot4 rot)
+                      {
+                          if (vehicle.Spawned)
+                          {
+                              vehicle.CompVehicleLauncher.Launch(targetData,
+                        new ArrivalAction_LandToCell(vehicle, mapParent, landingCell.Cell, rot));
+                          }
+                          else
+                          {
+                              AerialVehicleInFlight aerialVehicle = vehicle.GetOrMakeAerialVehicle();
+                              List<FlightNode> nodes = targetData.targets.Select(target => new FlightNode(target)).ToList();
+                              aerialVehicle.OrderFlyToTiles(nodes,
+                        new ArrivalAction_LandToCell(vehicle, mapParent, landingCell.Cell, rot));
+                              vehicle.CompVehicleLauncher.inFlight = true;
+                              CameraJumper.TryShowWorld();
+                          }
+                      }, allowRotating: vehicle.VehicleDef.rotatable,
+                targetValidator: targetInfo =>
+                  !Ext_Vehicles.IsRoofRestricted(vehicle.VehicleDef, targetInfo.Cell, mapParent.Map));
+                  });
             }
         }
     }
@@ -540,12 +545,12 @@ public static class Patch_CaravanFormation_TryFindExitSpot
 {
     public static void Prefix(Map map)
     {
-        CrossMapReachabilityUtility.tmpDestMap = map;
+        CrossMapReachabilityUtility.DestMap = map;
     }
 
     public static void Finalizer()
     {
-        CrossMapReachabilityUtility.tmpDestMap = null;
+        CrossMapReachabilityUtility.DestMap = null;
     }
 }
 
@@ -685,7 +690,7 @@ public static class Patch_EnterMapUtilityVehicles_EnterAndSpawn
 }
 
 //車両マップ上からLoadVehicleをしようとした時など
-[HarmonyPatch(typeof(JobDriver_LoadVehicle), nameof(JobDriver_LoadVehicle.FailJob))]
+[HarmonyPatch(typeof(JobDriver_LoadVehicle), "FailJob")]
 public static class Patch_JobDriver_LoadVehicle_FailJob
 {
     public static void Postfix(JobDriver_LoadVehicle __instance, ref bool __result)
@@ -694,12 +699,15 @@ public static class Patch_JobDriver_LoadVehicle_FailJob
         {
             var map = __instance.pawn.MapHeld;
             var maps = map.BaseMapAndVehicleMaps().Except(map);
-            if (maps.Any(m => MapComponentCache<VehicleReservationManager>.GetComponent(m).VehicleListed(__instance.Vehicle, __instance.ListerTag)))
+            var vehicle = __instance.job.GetTarget(TargetIndex.B).Thing as VehiclePawn;
+            if (maps.Any(m => MapComponentCache<VehicleReservationManager>.GetComponent(m).VehicleListed(vehicle, ListerTag(__instance))))
             {
                 __result = false;
             }
         }
     }
+
+    private static readonly Func<JobDriver_LoadVehicle, string> ListerTag = (Func<JobDriver_LoadVehicle, string>)AccessTools.PropertyGetter(typeof(JobDriver_LoadVehicle), "ListerTag").CreateDelegate(typeof(Func<JobDriver_LoadVehicle, string>));
 }
 
 [HarmonyPatch(typeof(VehicleTabHelper_Passenger), nameof(VehicleTabHelper_Passenger.DrawPassengersFor))]
@@ -925,7 +933,6 @@ public static class Patch_FloatMenuOptionProvider_OrderVehicle_PawnGotoAction
     {
         if (TargetMapManager.HasTargetMap(vehicle, out var map))
         {
-            TargetMapManager.TargetMap.Remove(vehicle);
             if (vehicle.CanReachVehicle(gotoLoc, PathEndMode.OnCell, Danger.Deadly, TraverseMode.ByPawn, map, out var exitSpot, out var enterSpot))
             {
                 PawnGotoAction(clickCell, vehicle, map, gotoLoc, rot, exitSpot, enterSpot);
@@ -1019,7 +1026,7 @@ public static class Patch_PathingHelper_TryFindNearestStandableCell
                 radius);
             if (result.IsValid)
             {
-                TargetMapManager.TargetMap[vehicle] = map;
+                TargetMapManager.SetTargetMap(vehicle, map);
                 return false;
             }
         }
@@ -1044,7 +1051,7 @@ public static class Patch_VehicleOrientationController_RecomputeDestinations
 {
     public static void Prefix(List<VehiclePawn> ___vehicles)
     {
-        ___vehicles.Do(v => TargetMapManager.TargetMap.Remove(v));
+        ___vehicles.Do(v => TargetMapManager.RemoveTargetInfo(v));
     }
 
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)

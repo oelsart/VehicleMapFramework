@@ -11,19 +11,16 @@ public class CompVehicleLauncherWithMap : CompVehicleLauncher
     {
         foreach (Gizmo gizmo in base.CompGetGizmosExtra())
         {
+            if (gizmo is Command_ActionHighlighter takeoffCommand)
+            {
+                takeoffCommand.Disabled = false;
+                if (!CanLaunchWithCargoCapacityWithMap(out string reason))
+                {
+                    takeoffCommand.Disable(reason);
+                }
+            }
             yield return gizmo;
         }
-        if (launchProtocol == null)
-        {
-            Log.ErrorOnce(string.Format("No launch protocols for {0}. At least 1 must be included in order to initiate takeoff.", base.Vehicle), base.Vehicle.thingIDNumber);
-            yield break;
-        }
-        Command_ActionHighlighter launchCommand = launchProtocol.LaunchCommand;
-        if (!CanLaunchWithCargoCapacityWithMap(out string reason))
-        {
-            launchCommand.Disable(reason);
-        }
-        yield return launchCommand;
     }
 
     public bool CanLaunchWithCargoCapacityWithMap(out string disableReason)

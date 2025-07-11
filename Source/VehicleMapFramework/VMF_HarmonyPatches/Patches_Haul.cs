@@ -57,7 +57,7 @@ public static class Patch_StoreUtility_TryFindBestBetterStorageFor
     {
         if (haulDestination?.Map != null && carrier != null)
         {
-            TargetMapManager.TargetMap[carrier] = haulDestination.Map;
+            TargetMapManager.SetTargetMap(carrier, haulDestination.Map);
         }
     }
 }
@@ -176,7 +176,7 @@ public static class Patch_Toils_Haul_CarryHauledThingToCell
             if (actor.CanReach(target, pathEndMode, Danger.Deadly, false, false, TraverseMode.ByPawn, map, out var exitSpot, out var enterSpot))
             {
                 JobAcrossMapsUtility.StartGotoDestMapJob(actor, exitSpot, enterSpot);
-                TargetMapManager.TargetMap.Remove(actor);
+                TargetMapManager.RemoveTargetInfo(actor);
             }
         });
     }

@@ -45,7 +45,7 @@ public static class Patch_Colonist_UpdateOrderPos
 {
     public static bool Prefix(Colonist __instance, ref Vector3 pos, ref IntVec3 __result)
     {
-        TargetMapManager.TargetMap[__instance.pawn] = __instance.pawn.Map;
+        TargetMapManager.SetTargetMap(__instance.pawn, __instance.pawn.Map);
         if (Find.TickManager.TicksGame != lastCachedTick)
         {
             tmpDestMaps.Clear();
@@ -75,7 +75,7 @@ public static class Patch_Colonist_UpdateOrderPos
             destCell = destCellOnBaseMap = pos.ToIntVec3();
             destMap = colonist.pawn.MapHeldBaseMap();
         }
-        TargetMapManager.TargetMap[colonist.pawn] = destMap;
+        TargetMapManager.SetTargetMap(colonist.pawn, destMap);
         tmpExitSpot = TargetInfo.Invalid;
         tmpEnterSpot = TargetInfo.Invalid;
 
@@ -136,7 +136,7 @@ public static class Patch_Tools_OrderTo
 {
     public static bool Prefix(Pawn pawn, int x, int z)
     {
-        TargetMapManager.TargetMap.Remove(pawn);
+        TargetMapManager.RemoveTargetInfo(pawn);
         if (Patch_Colonist_UpdateOrderPos.tmpDestMaps.TryGetValue(new IntVec3(x, 0, z), out var map) && map != null)
         {
             OrderTo(pawn, x, z);

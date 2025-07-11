@@ -7,7 +7,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
-using System.Security.Cryptography;
 using System.Threading.Tasks;
 using UnityEngine;
 using Vehicles;
@@ -69,17 +68,21 @@ public static class Patch_Reachability_CanReach
 {
     public static bool Prefix(IntVec3 start, LocalTargetInfo dest, PathEndMode peMode, TraverseParms traverseParams, ref bool __result)
     {
-        Map destMap = CrossMapReachabilityUtility.tmpDestMap ?? dest.Thing?.MapHeld;
+        if (CrossMapReachabilityUtility.working) return true;
+
+        Map destMap = CrossMapReachabilityUtility.DestMap ??
+            dest.Thing?.MapHeld ??
+            (TargetMapManager.HasTargetInfo(traverseParams.pawn, out var target) && (LocalTargetInfo)target == dest ? target.Map : traverseParams.pawn?.Map);
         if (destMap == null)
         {
             return true;
         }
-        Map departMap = CrossMapReachabilityUtility.tmpDepartMap ?? traverseParams.pawn?.Map;
+        Map departMap = CrossMapReachabilityUtility.DepartMap ?? traverseParams.pawn?.Map;
         if (departMap == null)
         {
             return true;
         }
-        if (!CrossMapReachabilityUtility.working && departMap != destMap)
+        if (departMap != destMap)
         {
             __result = CrossMapReachabilityUtility.CanReach(departMap, start, dest, peMode, traverseParams, destMap);
             return false;

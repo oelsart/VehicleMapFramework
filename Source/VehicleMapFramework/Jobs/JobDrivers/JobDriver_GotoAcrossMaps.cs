@@ -14,7 +14,7 @@ public class JobDriver_GotoAcrossMaps : JobDriverAcrossMaps
 {
     public override bool TryMakePreToilReservations(bool errorOnFailed)
     {
-        return !job.targetA.IsValid || pawn.Reserve(DestMap, job.targetA.Cell, job);
+        return !job.targetA.IsValid || pawn.Reserve(job.targetA.Cell, job);
     }
 
     protected override IEnumerable<Toil> MakeNewToils()

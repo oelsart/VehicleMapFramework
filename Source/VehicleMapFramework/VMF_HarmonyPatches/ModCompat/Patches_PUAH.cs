@@ -37,7 +37,7 @@ public static class Patch_WorkGiver_HaulToInventory_PotentialWorkThingsGlobal
 
     public static IntVec3 ToBaseMapCoord(IntVec3 c)
     {
-        return c.ToBaseMapCoord(CrossMapReachabilityUtility.tmpDepartMap);
+        return c.ToBaseMapCoord(CrossMapReachabilityUtility.DepartMap);
     }
 }
 

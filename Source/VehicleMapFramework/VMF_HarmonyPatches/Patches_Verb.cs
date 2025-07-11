@@ -287,7 +287,7 @@ public static class Patch_JumpUtility_DoJump
     public static void Finalizer(Pawn pawn, bool __result)
     {
         if (!__result) return;
-        TargetMapManager.TargetMap.Remove(pawn);
+        TargetMapManager.RemoveTargetInfo(pawn);
     }
 }
 
@@ -335,14 +335,9 @@ public static class Patch_Verb_Jump_DrawHighlight
     public static Vector3 CenterVector3Offset(ref LocalTargetInfo target, Verb verb)
     {
         var caster = verb.caster;
-        Map map;
-        bool HasTargetMap()
-        {
-            map = null;
-            return caster != null && TargetMapManager.HasTargetMap(caster, out map);
-        }
 
         var thing = target.Thing;
+        Map map;
         if (thing != null)
         {
             if (thing.Spawned)
@@ -351,7 +346,7 @@ public static class Patch_Verb_Jump_DrawHighlight
             }
             if (thing.SpawnedOrAnyParentSpawned)
             {
-                if (HasTargetMap())
+                if (TargetMapManager.HasTargetMap(caster, out map))
                 {
                     return thing.PositionHeld.ToVector3Shifted().ToBaseMapCoord(map);
                 }
@@ -360,7 +355,7 @@ public static class Patch_Verb_Jump_DrawHighlight
                     return thing.PositionHeld.ToVector3Shifted();
                 }
             }
-            if (HasTargetMap())
+            if (TargetMapManager.HasTargetMap(caster, out map))
             {
                 return thing.Position.ToVector3Shifted().ToBaseMapCoord(map);
             }
@@ -374,7 +369,7 @@ public static class Patch_Verb_Jump_DrawHighlight
             var cell = target.Cell;
             if (cell.IsValid)
             {
-                if (HasTargetMap())
+                if (TargetMapManager.HasTargetMap(caster, out map))
                 {
                     return cell.ToVector3Shifted().ToBaseMapCoord(map);
                 }
