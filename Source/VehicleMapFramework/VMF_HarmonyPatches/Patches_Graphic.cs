@@ -161,8 +161,8 @@ public static class Patch_Graphic_LinkedCornerFiller_Print
 }
 
 //Graphic_LinkedCornerOverlaySingleを使うためのWrap。linkDrawerTypeは適当に被らなそうな数字にしました。
-[HarmonyPatch(typeof(GraphicUtility), nameof(GraphicUtility.WrapLinked))]
 [HarmonyPatchCategory(EarlyPatchCore.Category)]
+[HarmonyPatch(typeof(GraphicUtility), nameof(GraphicUtility.WrapLinked))]
 public static class Patch_GraphicUtility_WrapLinked
 {
     public static bool Prefix(Graphic subGraphic, LinkDrawerType linkDrawerType, ref Graphic_Linked __result)
@@ -177,28 +177,13 @@ public static class Patch_GraphicUtility_WrapLinked
 }
 
 //バニラのCopyFromがcornerOverlayPathをコピーしてないためにエラーがでてたので修正。
-[HarmonyPatch(typeof(GraphicData), nameof(GraphicData.CopyFrom))]
 [HarmonyPatchCategory(EarlyPatchCore.Category)]
+[HarmonyPatch(typeof(GraphicData), nameof(GraphicData.CopyFrom))]
 public static class Patch_GraphicData_CopyFrom
 {
     public static void Postfix(GraphicData __instance, GraphicData other)
     {
         __instance.cornerOverlayPath = other.cornerOverlayPath;
-    }
-}
-
-//ズームしすぎて車上オブジェクトがカメラの手前に来ないようにする
-[HarmonyPatch(typeof(CameraDriver), "ApplyPositionToGameObject")]
-public static class Patch_CameraDriver_ApplyPositionToGameObject
-{
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        var codes = instructions.ToList();
-        var pos = codes.FindIndex(c => c.opcode == OpCodes.Ldc_R4 && (float)c.operand == 15f);
-        codes[pos].operand = 25f;
-        var pos2 = codes.FindIndex(c => c.opcode == OpCodes.Ldc_R4 && (float)c.operand == 50f);
-        codes[pos2].operand = 40f;
-        return codes;
     }
 }
 
@@ -275,7 +260,7 @@ public static class Patch_PawnRenderer_GetBodyPos
         }
         else if (___pawn.ParentHolder is VehicleRoleHandlerBuildable)
         {
-            __result.y += VehicleMapUtility.altitudeOffsetFull;
+            __result = __result.YOffsetFull();
         }
         else if (___pawn.IsOnNonFocusedVehicleMapOf(out var vehicle))
         {
@@ -335,7 +320,7 @@ public static class Patch_Projectile_ExactPosition
 {
     public static void Postfix(ref Vector3 __result)
     {
-        __result = __result.WithYOffset(VehicleMapUtility.altitudeOffsetFull);
+        __result = __result.YOffsetFull();
     }
 }
 

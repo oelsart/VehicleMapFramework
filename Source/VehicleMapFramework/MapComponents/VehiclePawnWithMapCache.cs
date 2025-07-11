@@ -111,4 +111,6 @@ public class VehiclePawnWithMapCache : MapComponent
     public bool cacheMode;
 
     private HashSet<VehiclePawnWithMap> allVehicles = [];
+
+    public static bool cacheModeGlobal;
 }

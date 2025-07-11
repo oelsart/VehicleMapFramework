@@ -47,7 +47,7 @@ public static class Patch_Building_Door_DrawMovers
     {
         if (__instance.IsOnNonFocusedVehicleMapOf(out var vehicle))
         {
-            altitude += vehicle.DrawPos.y;
+            altitude = altitude.YOffsetFull(vehicle);
         }
     }
 

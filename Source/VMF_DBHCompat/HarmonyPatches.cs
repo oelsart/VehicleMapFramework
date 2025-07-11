@@ -196,8 +196,8 @@ public static class Patch_Building_StallDoor_DrawAt
             new CodeInstruction(OpCodes.Ldloca_S, vehicle),
             new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf),
             new CodeInstruction(OpCodes.Brfalse_S, label),
-            new CodeInstruction(OpCodes.Ldc_R4, VehicleMapUtility.altitudeOffsetFull),
-            new CodeInstruction(OpCodes.Add)
+            new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+        new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_YOffsetFull2)
         ]);
         return codes;
     }

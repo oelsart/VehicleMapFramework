@@ -43,6 +43,10 @@ public class MethodInfoCache
 
     public readonly MethodInfo m_IsOnNonFocusedVehicleMapOf = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.IsOnNonFocusedVehicleMapOf));
 
+    public readonly MethodInfo m_YOffsetFull1 = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.YOffsetFull), [typeof(float)]);
+
+    public readonly MethodInfo m_YOffsetFull2 = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.YOffsetFull), [typeof(float), typeof(VehiclePawnWithMap)]);
+
     public readonly MethodInfo m_ToBaseMapCoord1 = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.ToBaseMapCoord), [typeof(Vector3)]);
 
     public readonly MethodInfo m_ToBaseMapCoord2 = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.ToBaseMapCoord), [typeof(Vector3), typeof(VehiclePawnWithMap)]);

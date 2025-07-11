@@ -1,5 +1,4 @@
-﻿using HarmonyLib;
-using RimWorld;
+﻿using RimWorld;
 using SmashTools;
 using System;
 using System.Linq;
@@ -9,18 +8,8 @@ using Verse;
 
 namespace VehicleMapFramework;
 
-[StaticConstructorOnStartup]
 public class SectionLayer_LightingOnVehicle : SectionLayer
 {
-    static SectionLayer_LightingOnVehicle()
-    {
-        var offset = Altitudes.AltInc * 230;
-        for (int i = 30; i < 38; i++)
-        {
-            Alts[i] += offset;
-        }
-    }
-
     public override bool Visible
     {
         get
@@ -310,7 +299,7 @@ public class SectionLayer_LightingOnVehicle : SectionLayer
             sectRect.maxZ += ExpandSize;
         }
         int capacity = ((sectRect.Width + 1) * (sectRect.Height + 1)) + sectRect.Area;
-        float y = AltitudeLayer.PawnState.AltitudeFor();
+        float y = AltitudeLayer.Shadows.AltitudeFor();
         sm.verts.Capacity = capacity;
         for (int i = sectRect.minZ; i <= sectRect.maxZ + 1; i++)
         {
@@ -378,6 +367,4 @@ public class SectionLayer_LightingOnVehicle : SectionLayer
     private bool expandNorth;
 
     private const int ExpandSize = 5;
-
-    private static readonly float[] Alts = AccessTools.StaticFieldRefAccess<float[]>(typeof(Altitudes), "Alts");
 }

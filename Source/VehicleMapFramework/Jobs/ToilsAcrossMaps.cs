@@ -119,7 +119,7 @@ public static class ToilsAcrossMaps
             driver.drawOffset = normalized * moveDistance * (GenTicks.TicksGame - initTick);
             if (vehicle == null)
             {
-                driver.drawOffset.y += VehicleMapUtility.altitudeOffsetFull;
+                driver.drawOffset = driver.drawOffset.YOffsetFull();
             }
 
             if (distanceSquared < 0.2f)
@@ -342,7 +342,8 @@ public static class ToilsAcrossMaps
 
                 toil2.tickAction = () =>
                 {
-                    driver.drawOffset = (offset * ((GenTicks.TicksGame - initTick) / ticks)) + enterSpot.Cell.ToBaseMapCoord(vehicle).ToVector3().WithY(VehicleMapUtility.altitudeOffsetFull) - initPos3;
+                    var drawPos = driver.pawn.DrawPos;
+                    driver.drawOffset = (offset * ((GenTicks.TicksGame - initTick) / ticks)) + enterSpot.Cell.ToBaseMapCoord(vehicle).ToVector3().WithY(drawPos.YOffsetFull(vehicle).y - drawPos.y) - initPos3;
                     door?.StartManualOpenBy(toil2.actor);
                     ramp?.StartManualOpenBy(toil2.actor);
                 };

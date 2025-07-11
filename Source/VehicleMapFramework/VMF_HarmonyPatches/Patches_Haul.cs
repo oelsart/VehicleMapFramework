@@ -53,11 +53,11 @@ public static class Patch_StoreUtility_TryFindBestBetterStorageFor
         }
     }
 
-    public static void Postfix(Pawn carrier, IHaulDestination haulDestination)
+    public static void Postfix(Pawn carrier, IHaulDestination haulDestination, IntVec3 foundCell)
     {
-        if (haulDestination?.Map != null && carrier != null)
+        if (haulDestination?.Map != null)
         {
-            TargetMapManager.SetTargetMap(carrier, haulDestination.Map);
+            TargetMapManager.SetTargetInfo(carrier, new TargetInfo(foundCell, haulDestination.Map));
         }
     }
 }
@@ -157,28 +157,6 @@ public static class Patch_JobDriver_HaulToCell
             return map;
         }
         return instance.pawn.MapHeld;
-    }
-}
-
-[HarmonyPatch(typeof(Toils_Haul), nameof(Toils_Haul.CarryHauledThingToCell))]
-public static class Patch_Toils_Haul_CarryHauledThingToCell
-{
-    public static void Postfix(Toil __result, TargetIndex squareIndex, PathEndMode pathEndMode)
-    {
-        __result.AddPreInitAction(() =>
-        {
-            var actor = __result.actor;
-            if (!TargetMapManager.HasTargetMap(actor, out var map) || actor.Map == map)
-            {
-                return;
-            }
-            var target = actor.jobs.curJob.GetTarget(squareIndex);
-            if (actor.CanReach(target, pathEndMode, Danger.Deadly, false, false, TraverseMode.ByPawn, map, out var exitSpot, out var enterSpot))
-            {
-                JobAcrossMapsUtility.StartGotoDestMapJob(actor, exitSpot, enterSpot);
-                TargetMapManager.RemoveTargetInfo(actor);
-            }
-        });
     }
 }
 

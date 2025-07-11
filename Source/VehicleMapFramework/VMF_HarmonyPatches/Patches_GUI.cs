@@ -70,41 +70,88 @@ public static class Patch_ColonistBar_CheckRecacheEntries
     }
 }
 
-[HarmonyPatch]
-public static class Patch_GUI_FocusVehicleMap
+//左下のセル情報の表示。車両マップ上にマウスオーバーされている時はその車両マップの情報を表示する
+[HarmonyPatch(typeof(MouseoverReadout), nameof(MouseoverReadout.MouseoverReadoutOnGUI))]
+public static class Patch_MouseoverReadout_MouseoverReadoutOnGUI
 {
-    private static IEnumerable<MethodBase> TargetMethods()
+    public static void PrefixCommon(ref object[] __state)
     {
-        yield return AccessTools.Method(typeof(MouseoverReadout), nameof(MouseoverReadout.MouseoverReadoutOnGUI));
-        yield return AccessTools.Method(typeof(CellInspectorDrawer), "DrawMapInspector");
-        yield return AccessTools.Method(typeof(BeautyDrawer), "DrawBeautyAroundMouse");
-        yield return AccessTools.Method(typeof(GlobalControls), "TemperatureString");
-    }
-
-    //車両マップにマウスオーバーしていたらCurrentMapに入れておく。これでMouseCellが勝手にオフセットされる
-    public static bool Prefix(ref sbyte __state)
-    {
-        __state = (sbyte)Find.CurrentMap.Index;
-        if (Event.current.type != EventType.Repaint || Find.MainTabsRoot.OpenTab != null)
-        {
-            return false;
-        }
-
         if (UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out var vehicle))
         {
+            sbyte index;
+            VehiclePawnWithMap vehicle2;
+            __state = [index = Current.Game.currentMapIndex, vehicle2 = Command_FocusVehicleMap.FocusedVehicle];
             Current.Game.currentMapIndex = (sbyte)vehicle.VehicleMap.Index;
+            Command_FocusVehicleMap.FocusedVehicle = vehicle;
             if (!UI.MouseCell().InBounds(vehicle.VehicleMap))
             {
-                Current.Game.currentMapIndex = __state;
+                Current.Game.currentMapIndex = index;
+                Command_FocusVehicleMap.FocusedVehicle = vehicle2;
+                __state = null;
             }
         }
-        return true;
     }
 
-    //CurrentMapをもとに戻しておく
-    public static void Finalizer(sbyte __state)
+    //車両マップにマウスオーバーしていたらFocusedVehicleに入れておく。これでMouseCellが勝手にオフセットされる
+    public static void Prefix(ref object[] __state)
     {
-        Current.Game.currentMapIndex = (sbyte)__state;
+        if (Event.current.type != EventType.Repaint || Find.MainTabsRoot.OpenTab != null)
+        {
+            return;
+        }
+        PrefixCommon(ref __state);
+    }
+
+    //FocusedVehicleをもとに戻しておく
+    public static void Finalizer(object[] __state)
+    {
+        if (__state is not null)
+        {
+            Current.Game.currentMapIndex = (sbyte)__state[0];
+            Command_FocusVehicleMap.FocusedVehicle = (VehiclePawnWithMap)__state[1];
+        }
+    }
+}
+
+//Alt押した時のセル情報表示。MouseoverReadoutOnGUIと全く同じ
+[HarmonyPatch(typeof(CellInspectorDrawer), "DrawMapInspector")]
+public static class Patch_CellInspectorDrawer_DrawMapInspector
+{
+    //車両マップにマウスオーバーしていたらFocusedVehicleに入れておく。これでMouseCellが勝手にオフセットされる
+    public static void Prefix(ref object[] __state)
+    {
+        Patch_MouseoverReadout_MouseoverReadoutOnGUI.PrefixCommon(ref __state);
+    }
+
+    //FocusedVehicleをもとに戻しておく
+    public static void Finalizer(object[] __state)
+    {
+        if (__state is not null)
+        {
+            Current.Game.currentMapIndex = (sbyte)__state[0];
+            Command_FocusVehicleMap.FocusedVehicle = (VehiclePawnWithMap)__state[1];
+        }
+    }
+}
+
+[HarmonyPatch(typeof(CellInspectorDrawer), nameof(CellInspectorDrawer.Update))]
+public static class Patch_CellInspectorDrawer_Update
+{   
+    //車両マップにマウスオーバーしていたらFocusedVehicleに入れておく。これでMouseCellが勝手にオフセットされる
+    public static void Prefix(ref object[] __state)
+    {
+        if (!KeyBindingDefOf.ShowCellInspector.IsDown) return;
+        Patch_MouseoverReadout_MouseoverReadoutOnGUI.PrefixCommon(ref __state);
+    }
+
+    //FocusedVehicleをもとに戻しておく
+    public static void Finalizer(object[] __state)
+    {
+        if (__state is not null)
+        {
+            Current.Game.currentMapIndex = (sbyte)__state[0];
+            Command_FocusVehicleMap.FocusedVehicle = (VehiclePawnWithMap)__state[1];
+        }
     }
 }
 
@@ -112,6 +159,12 @@ public static class Patch_GUI_FocusVehicleMap
 [HarmonyPatch(typeof(BeautyDrawer), "DrawBeautyAroundMouse")]
 public static class Patch_BeautyDrawer_DrawBeautyAroundMouse
 {
+    //車両マップにマウスオーバーしていたらFocusedVehicleに入れておく。これでMouseCellが勝手にオフセットされる
+    public static void Prefix(ref object[] __state)
+    {
+        Patch_MouseoverReadout_MouseoverReadoutOnGUI.PrefixCommon(ref __state);
+    }
+
     //FocusedVehicleがあればそのマップをFind.CurrentMapの代わりに使う
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
@@ -127,6 +180,37 @@ public static class Patch_BeautyDrawer_DrawBeautyAroundMouse
         vector.y = UI.screenHeight - vector.y;
         vector.y -= 1f;
         return vector;
+    }
+
+    //FocusedVehicleをもとに戻しておく
+    public static void Finalizer(object[] __state)
+    {
+        if (__state is not null)
+        {
+            Current.Game.currentMapIndex = (sbyte)__state[0];
+            Command_FocusVehicleMap.FocusedVehicle = (VehiclePawnWithMap)__state[1];
+        }
+    }
+}
+
+//右下の温度表示
+[HarmonyPatch(typeof(GlobalControls), "TemperatureString")]
+public static class Patch_GlobalControls_TemperatureString
+{
+    //車両マップにマウスオーバーしていたらFocusedVehicleに入れておく。これでMouseCellが勝手にオフセットされる
+    public static void Prefix(ref object[] __state)
+    {
+        Patch_MouseoverReadout_MouseoverReadoutOnGUI.PrefixCommon(ref __state);
+    }
+
+    //FocusedVehicleをもとに戻しておく
+    public static void Finalizer(object[] __state)
+    {
+        if (__state is not null)
+        {
+            Current.Game.currentMapIndex = (sbyte)__state[0];
+            Command_FocusVehicleMap.FocusedVehicle = (VehiclePawnWithMap)__state[1];
+        }
     }
 }
 
@@ -146,25 +230,16 @@ public static class Patch_GUI_VehicleMapOffset
     {
         var codes = new CodeMatcher(instructions, generator);
         codes.MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Quaternion_identity));
-        codes.InsertAndAdvance(
-            [
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ToBaseMapCoord1),
-            new CodeInstruction(OpCodes.Ldc_R4, AltitudeLayer.MetaOverlays.AltitudeFor()),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_Vector3Utility_WithY)
-            ]);
+        codes.InsertAndAdvance(new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ToBaseMapCoord1));
 
         codes.CreateLabelWithOffsets(1, out var label);
-        codes.DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle);
         codes.InsertAfter(
-            [
-            new CodeInstruction(OpCodes.Ldloca_S, vehicle),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_FocusedOnVehicleMap),
-            new CodeInstruction(OpCodes.Brfalse_S, label),
-            new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-            new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_FullRotation),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_Rot8_AsQuat),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.o_Quaternion_Multiply),
-            ]);
+                new CodeInstruction(OpCodes.Call, CachedMethodInfo.g_FocusedVehicle),
+                new CodeInstruction(OpCodes.Brfalse_S, label),
+                new CodeInstruction(OpCodes.Call, CachedMethodInfo.g_FocusedVehicle),
+                new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_FullRotation),
+                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_Rot8_AsQuat),
+                new CodeInstruction(OpCodes.Call, CachedMethodInfo.o_Quaternion_Multiply));
         return codes.Instructions();
     }
 }

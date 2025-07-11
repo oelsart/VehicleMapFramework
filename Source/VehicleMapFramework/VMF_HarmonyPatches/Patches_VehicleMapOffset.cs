@@ -177,8 +177,8 @@ public static class Patch_LaunchProtocol_Draw
             new CodeInstruction(OpCodes.Ldloca_S, vehicle),
             new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsNonFocusedVehicleMapOf),
             new CodeInstruction(OpCodes.Brfalse_S, label),
-            new CodeInstruction(OpCodes.Ldc_R4, VehicleMapUtility.altitudeOffsetFull),
-            new CodeInstruction(OpCodes.Add)
+            new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+        new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_YOffsetFull2)
         ]);
         return codes;
     }
@@ -358,8 +358,8 @@ public static class Patch_PawnPath_DrawPath
             new CodeInstruction(OpCodes.Ldloca_S, vehicle),
             new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf),
             new CodeInstruction(OpCodes.Brfalse_S, label),
-            new CodeInstruction(OpCodes.Ldc_R4, VehicleMapUtility.altitudeOffsetFull),
-            new CodeInstruction(OpCodes.Add)
+            new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+        new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_YOffsetFull2)
         ]);
 
         var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Stloc_2);

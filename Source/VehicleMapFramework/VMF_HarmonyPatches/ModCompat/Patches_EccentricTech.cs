@@ -59,28 +59,26 @@ public static class Patch_CompProjectorOverlay_PostDraw
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
-        var YOffset = generator.DeclareLocal(typeof(float));
-        var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithMap));
-        var label = generator.DefineLabel();
-        instructions.ElementAt(0).labels.Add(label);
-
-        yield return CodeInstruction.LoadArgument(0);
-        yield return CodeInstruction.LoadField(typeof(ThingComp), nameof(ThingComp.parent));
-        yield return new CodeInstruction(OpCodes.Ldloca_S, vehicle);
-        yield return new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf);
-        yield return new CodeInstruction(OpCodes.Brfalse_S, label);
-        yield return new CodeInstruction(OpCodes.Ldc_R4, VehicleMapUtility.altitudeOffsetFull);
-        yield return new CodeInstruction(OpCodes.Stloc_S, YOffset);
-
         var f_Vector3_y = AccessTools.Field(typeof(Vector3), nameof(Vector3.y));
         foreach (var instruction in instructions)
         {
-            if (instruction.opcode == OpCodes.Stfld && instruction.OperandIs(f_Vector3_y))
+            if (instruction.StoresField(f_Vector3_y))
             {
-                yield return new CodeInstruction(OpCodes.Ldloc_S, YOffset);
-                yield return new CodeInstruction(OpCodes.Add);
+                var label = generator.DefineLabel();
+                var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithMap));
+                yield return CodeInstruction.LoadArgument(0);
+                yield return CodeInstruction.LoadField(typeof(ThingComp), nameof(ThingComp.parent));
+                yield return new CodeInstruction(OpCodes.Ldloca_S, vehicle);
+                yield return new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf);
+                yield return new CodeInstruction(OpCodes.Brfalse_S, label);
+                yield return new CodeInstruction(OpCodes.Ldloc_S, vehicle);
+                yield return new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_YOffsetFull2);
+                yield return instruction.WithLabels(label);
             }
-            yield return instruction;
+            else
+            {
+                yield return instruction;
+            }
         }
     }
 }

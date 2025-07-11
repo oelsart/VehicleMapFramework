@@ -421,7 +421,7 @@ public static class Patch_Pawn_PathFollower_StartPath
     {
         if (___pawn.CurJob == null) return true;
 
-        Map destMap = dest.Thing?.MapHeld;
+        Map destMap = dest.Thing?.MapHeld ?? (TargetMapManager.HasTargetInfo(___pawn, out var target) && (LocalTargetInfo)target == dest ? target.Map : null);
         if (destMap == null)
         {
             return true;
