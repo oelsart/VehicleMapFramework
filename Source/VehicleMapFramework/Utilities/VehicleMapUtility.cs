@@ -284,13 +284,16 @@ public static class VehicleMapUtility
     public static Vector3 OffsetFor(VehiclePawnWithMap vehicle, Rot8 rot)
     {
         var offset = Vector3.zero;
-        VehicleMapProps vehicleMap;
+        VehicleMapProps vehicleMap = vehicle.def.GetModExtension<VehicleMapProps>();
         if ((vehicleMap = vehicle.def.GetModExtension<VehicleMapProps>()) != null)
         {
+            Vector3 OffsetNorth() => vehicleMap.offsetNorth ?? (vehicleMap.offsetSouth == null ? vehicleMap.offsetNorth = vehicleMap.offsetSouth = vehicleMap.offset : vehicleMap.offsetNorth = vehicleMap.offsetSouth.Value.MirrorVertical()).Value;
+            Vector3 OffsetSouth() => vehicleMap.offsetSouth ?? (vehicleMap.offsetNorth == null ? vehicleMap.offsetSouth = vehicleMap.offsetNorth = vehicleMap.offset : vehicleMap.offsetNorth = vehicleMap.offsetSouth.Value.MirrorVertical()).Value;
+
             switch (rot.AsByte)
             {
                 case Rot8.NorthInt:
-                    offset = vehicleMap.offsetNorth ?? (vehicleMap.offsetSouth == null ? vehicleMap.offsetNorth = vehicleMap.offsetSouth = vehicleMap.offset : vehicleMap.offsetNorth = vehicleMap.offsetSouth.Value.MirrorVertical()).Value;
+                    offset = OffsetNorth();
                     break;
 
                 case Rot8.EastInt:
@@ -298,7 +301,7 @@ public static class VehicleMapUtility
                     break;
 
                 case Rot8.SouthInt:
-                    offset = vehicleMap.offsetSouth ?? (vehicleMap.offsetNorth == null ? vehicleMap.offsetSouth = vehicleMap.offsetNorth = vehicleMap.offset : vehicleMap.offsetNorth = vehicleMap.offsetSouth.Value.MirrorVertical()).Value;
+                    offset = OffsetSouth();
                     break;
 
                 case Rot8.WestInt:
@@ -306,19 +309,19 @@ public static class VehicleMapUtility
                     break;
 
                 case Rot8.NorthEastInt:
-                    offset = vehicleMap.offsetNorthEast ?? (vehicleMap.offsetNorthEast = ((Vector3?)(vehicleMap.offsetNorthWest ??= ((Vector3?)(vehicleMap.offsetNorth ??= vehicleMap.offset.RotatedBy(rot.AsAngle))).Value.RotatedBy(-45f))).Value.MirrorHorizontal()).Value;
+                    offset = vehicleMap.offsetNorthEast ??= (vehicleMap.offsetNorthWest ??= OffsetNorth().RotatedBy(-45f)).MirrorHorizontal();
                     break;
 
                 case Rot8.SouthEastInt:
-                    offset = vehicleMap.offsetSouthEast ?? (vehicleMap.offsetSouthEast = ((Vector3?)(vehicleMap.offsetSouthWest ??= ((Vector3?)(vehicleMap.offsetSouth ??= vehicleMap.offset.RotatedBy(rot.AsAngle))).Value.RotatedBy(45f))).Value.MirrorHorizontal()).Value;
+                    offset = vehicleMap.offsetSouthEast ??= (vehicleMap.offsetSouthWest ??= OffsetSouth().RotatedBy(45f)).MirrorHorizontal();
                     break;
 
                 case Rot8.SouthWestInt:
-                    offset = vehicleMap.offsetSouthWest ?? (vehicleMap.offsetSouthWest = ((Vector3?)(vehicleMap.offsetSouthEast ??= ((Vector3?)(vehicleMap.offsetSouth ??= vehicleMap.offset.RotatedBy(rot.AsAngle))).Value.RotatedBy(-45f))).Value.MirrorHorizontal()).Value;
+                    offset = vehicleMap.offsetSouthWest ??= (vehicleMap.offsetSouthEast ??= OffsetSouth().RotatedBy(-45f)).MirrorHorizontal();
                     break;
 
                 case Rot8.NorthWestInt:
-                    offset = vehicleMap.offsetNorthWest ?? (vehicleMap.offsetNorthWest = ((Vector3?)(vehicleMap.offsetNorthEast ??= ((Vector3?)(vehicleMap.offsetNorth ??= vehicleMap.offset.RotatedBy(rot.AsAngle))).Value.RotatedBy(45f))).Value.MirrorHorizontal()).Value;
+                    offset = vehicleMap.offsetNorthWest ??= (vehicleMap.offsetNorthEast ??= OffsetNorth().RotatedBy(45f)).MirrorHorizontal();
                     break;
 
                 default: break;

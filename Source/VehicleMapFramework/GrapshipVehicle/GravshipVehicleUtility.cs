@@ -66,7 +66,7 @@ namespace VehicleMapFramework
                 engine = engine,
                 size = rot.IsHorizontal ? cellRect.Size.Rotated() : cellRect.Size,
                 offset = new(0f, 0f, 0.25f),
-                outOfBoundsCells = [.. cellRect.Cells.Where(c => !cells.Contains(c)).Select(c => (c - min).RotatedBy(rot).ToIntVec2)]
+                outOfBoundsCells = [.. cellRect.Cells.Where(c => !cells.Contains(c)).Select(c => (c - min).RotatedBy(rotCounter).ToIntVec2)]
             };
             VMF_Log.Debug($"Create or get VehicleDef: {props.DefName}");
             var vehicleDef = DefDatabase<VehicleDef>.GetNamedSilentFail(props.DefName);

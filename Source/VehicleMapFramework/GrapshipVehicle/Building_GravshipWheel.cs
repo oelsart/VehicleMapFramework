@@ -1,6 +1,7 @@
 ﻿using RimWorld;
 using SmashTools;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using Vehicles;
 using Verse;
@@ -24,6 +25,8 @@ namespace VehicleMapFramework
                     var drawPos = base.DrawPos;
                     var engine = GravshipUtility.GetPlayerGravEngine(Map);
                     if (engine == null || engine is not Building_GravEngine building_gravEngine) return drawPos;
+                    if (this.OccupiedRect().Any(building_gravEngine.ValidSubstructureAt)) return drawPos;
+
                     var cell = CompGravshipWheel.AdjacentCells.FirstOrFallback(building_gravEngine.ValidSubstructureAt, IntVec3.Invalid);
                     if (!cell.IsValid) return drawPos;
                     drawPos += new Vector3(0f, 0f, -0.2f).RotatedBy(VehicleMapUtility.RotForPrintCounter);
