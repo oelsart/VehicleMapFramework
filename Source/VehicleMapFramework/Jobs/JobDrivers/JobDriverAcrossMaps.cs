@@ -43,6 +43,12 @@ public abstract class JobDriverAcrossMaps : JobDriver
         }
     }
 
+    protected override IEnumerable<Toil> MakeNewToils()
+    {
+        this.FailOn(() => TargetAMap.Disposed || DestMap.Disposed);
+        yield break;
+    }
+
     public void SetSpots(TargetInfo? exitSpot1 = null, TargetInfo? enterSpot1 = null, TargetInfo? exitSpot2 = null, TargetInfo? enterSpot2 = null)
     {
         this.exitSpot1 = exitSpot1 ?? TargetInfo.Invalid;

@@ -1,4 +1,6 @@
-﻿using Verse;
+﻿using RimWorld;
+using System.Linq;
+using Verse;
 
 namespace VehicleMapFramework;
 
@@ -10,9 +12,14 @@ public class PlaceWorker_ForceOnVehicle : PlaceWorker
         {
             return true;
         }
-        else
+        if (ModsConfig.OdysseyActive)
         {
-            return "VMF_ForceOnVehicle".Translate();
+            var occupied = GenAdj.OccupiedRect(loc, rot, checkingDef is ThingDef tDef ? tDef.Size : IntVec2.One);
+            if (GravshipUtility.GetPlayerGravEngine(map) is Building_GravEngine engine && occupied.All(engine.ValidSubstructureAt))
+            {
+                return true;
+            }
         }
+        return "VMF_ForceOnVehicle".Translate();
     }
 }

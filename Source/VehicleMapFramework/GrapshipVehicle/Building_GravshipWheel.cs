@@ -66,12 +66,20 @@ namespace VehicleMapFramework
         {
             foreach (var gizmo in base.GetGizmos()) yield return gizmo;
 
-            if (!this.IsOnVehicleMapOf(out _))
+            if (!this.IsOnVehicleMapOf(out var vehicle))
             {
                 yield return new Command_Action()
                 {
                     defaultLabel = "VMF_JackUp".Translate(),
                     action = GenerateGravshipVehicle
+                };
+            }
+            else if (vehicle.Spawned)
+            {
+                yield return new Command_Action()
+                {
+                    defaultLabel = "VMF_PlaceOn".Translate(),
+                    action = () => PlaceGravship(vehicle)
                 };
             }
         }
@@ -85,6 +93,17 @@ namespace VehicleMapFramework
         {
             var curretGravship = Current.Game.Gravship;
             var report = GravshipVehicleUtility.GenerateGravshipVehicle(CompGravshipWheel?.engine, Map);
+            if (!report.Accepted)
+            {
+                Messages.Message(report.Reason, MessageTypeDefOf.RejectInput, false);
+            }
+            Current.Game.Gravship = curretGravship;
+        }
+
+        public void PlaceGravship(VehiclePawnWithMap vehicle)
+        {
+            var curretGravship = Current.Game.Gravship;
+            var report = GravshipVehicleUtility.PlaceGravshipVehicle(CompGravshipWheel?.engine, vehicle);
             if (!report.Accepted)
             {
                 Messages.Message(report.Reason, MessageTypeDefOf.RejectInput, false);
