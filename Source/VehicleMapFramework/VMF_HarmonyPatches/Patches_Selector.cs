@@ -16,13 +16,12 @@ public static class Patch_Selector_SelectableObjectsUnderMouse
     public static bool Prefix(ref IEnumerable<object> __result)
     {
         var mouseMapPosition = UI.MouseMapPosition();
-        if (!mouseMapPosition.TryGetVehicleMap(Find.CurrentMap, out var vehicle, false))
+        if (!mouseMapPosition.TryGetVehicleMap(Find.CurrentMap, out var vehicle, true, true))
         {
             return true;
         }
-
-        __result = SelectableObjects(vehicle, mouseMapPosition);
-        return false;
+        __result = [.. SelectableObjects(vehicle, mouseMapPosition)];
+        return !__result.Any();
     }
 
     private static IEnumerable<object> SelectableObjects(VehiclePawnWithMap vehicle, Vector3 mouseMapPosition)
@@ -64,10 +63,6 @@ public static class Patch_Selector_SelectableObjectsUnderMouse
         if (zone != null)
         {
             yield return zone;
-        }
-        else if (selectableList.Empty() && vehicle.Spawned)
-        {
-            yield return vehicle;
         }
     }
 }

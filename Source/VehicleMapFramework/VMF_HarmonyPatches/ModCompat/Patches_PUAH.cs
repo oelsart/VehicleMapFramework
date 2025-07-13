@@ -15,7 +15,7 @@ public class Patches_PUAH
 {
     static Patches_PUAH()
     {
-        if (ModCompat.PickUpAndHaul.Active)
+        if (ModCompat.PickUpAndHaul)
         {
             VMF_Harmony.PatchCategory("VMF_Patches_PUAH");
         }

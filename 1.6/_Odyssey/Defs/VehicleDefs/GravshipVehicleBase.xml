@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 
 <Defs>
-	<Vehicles.VehicleDef ParentName="BaseVehiclePawnWithMap">
+	<Vehicles.VehicleDef ParentName="BaseVehiclePawnWithMap" MayRequire="Ludeon.RimWorld.Odyssey">
 		<defName>VMF_GravshipVehicleBase</defName>
 		<label>Gravship vehicle</label>
 		<enabled>None</enabled>
@@ -13,6 +13,9 @@
 		</graphicData>
 
 		<fillPercent>0</fillPercent>
+
+		<buildDef>VMF_GravshipVehicleBase_Blueprint</buildDef>
+		
 		<vehicleCategory>Transport</vehicleCategory>
 		<techLevel>Archotech</techLevel>
 		<vehicleType>Air</vehicleType>
@@ -40,4 +43,21 @@
 			</li>
 		</components>
 	</Vehicles.VehicleDef>
+	
+	<Vehicles.VehicleBuildDef ParentName="VehicleWithMapBaseBuildable" MayRequire="Ludeon.RimWorld.Odyssey">
+		<defName>VMF_GravshipVehicleBase_Blueprint</defName>
+		<label>Gravship vehicle</label>
+		<graphicData>
+			<texPath>VehicleMapFramework/ClearTex</texPath>
+			<graphicClass>Vehicles.Graphic_Vehicle</graphicClass>
+		</graphicData>
+
+		<statBases>
+			<MaxHitPoints>99999</MaxHitPoints>
+			<WorkToBuild>99999</WorkToBuild>
+			<Flammability>0</Flammability>
+		</statBases>
+
+		<thingToSpawn>VMF_GravshipVehicleBase</thingToSpawn>
+	</Vehicles.VehicleBuildDef>
 </Defs>

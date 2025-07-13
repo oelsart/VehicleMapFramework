@@ -485,45 +485,7 @@ public static class ModCompat
         }
     }
 
-    public static readonly bool NoJobAuthors = ModsConfig.IsActive("Doug.NoJobAuthors");
-
-    public static class PickUpAndHaul
-    {
-        public static readonly bool Active = ModsConfig.IsActive("Mehni.PickUpAndHaul");
-
-        public static readonly Func<RaceProperties, bool> IsAllowedRace;
-
-        public static readonly WorkGiverDef HaulToInventory_WorkGiver;
-
-        public static readonly JobDef HaulToInventory_Job;
-
-        static PickUpAndHaul()
-        {
-            if (Active)
-            {
-                try
-                {
-                    HaulToInventory_WorkGiver = DefDatabase<WorkGiverDef>.GetNamed("HaulToInventory");
-                    HaulToInventory_Job = DefDatabase<JobDef>.GetNamed("HaulToInventory");
-                    var method = AccessTools.Method("PickUpAndHaul.Settings:IsAllowedRace");
-                    if (method == null)
-                    {
-                        LogIncompat("PickUpAndHaul");
-                        return;
-                    }
-                    IsAllowedRace = AccessTools.MethodDelegate<Func<RaceProperties, bool>>(method);
-                }
-                finally
-                {
-                    if (AnyNull(HaulToInventory_WorkGiver, IsAllowedRace))
-                    {
-                        LogIncompat("PickUpAndHaul");
-                        Active = false;
-                    }
-                }
-            }
-        }
-    }
+    public static readonly bool PickUpAndHaul = ModsConfig.IsActive("Mehni.PickUpAndHaul");
 
     public static class EnergyShield
     {

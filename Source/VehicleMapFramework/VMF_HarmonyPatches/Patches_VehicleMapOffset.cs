@@ -414,9 +414,9 @@ public static class Patch_Graphic_Draw
                 return graphic != null && graphic.MatAt(rot2, thing) == graphic.MatAt(rotation, thing) && graphic.DrawOffset(rot2) == graphic.DrawOffset(rotation);
             }
 
-            if (thing.Isnt<Building_Bookcase>() || thing.Graphic == __instance)
+            if (thing is not Building_Bookcase || thing.Graphic == __instance)
             {
-                if (def.size.x != def.size.z || ((((def.graphicData?.drawRotated ?? false) && (!def.graphicData?.Linked ?? true)) || def.rotatable) && !SameMaterialByRot()))
+                if (def.size.x != def.size.z || thing is Building_SupportedDoor || ((((def.graphicData?.drawRotated ?? false) && (!def.graphicData?.Linked ?? true)) || def.rotatable) && !SameMaterialByRot()))
                 {
                     rot.AsInt += baseRotInt;
                 }

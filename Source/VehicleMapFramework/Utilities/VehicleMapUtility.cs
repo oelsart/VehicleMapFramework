@@ -87,21 +87,27 @@ public static class VehicleMapUtility
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static float YOffset(this float original)
+    {
+        return original / YCompress + AltitudeOffset;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector3 YOffset(this Vector3 original)
     {
-        return original.WithY(original.y / yCompress + altitudeOffset);
+        return original.WithY(original.y.YOffset());
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static float YOffsetFull(this float original)
     {
-        return original / yCompress + altitudeOffsetFull;
+        return original / YCompress + AltitudeOffsetFull;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static float YOffsetFull(this float original, VehiclePawnWithMap vehicle)
     {
-        return original / yCompress + vehicle.cachedDrawPos.y;
+        return original / YCompress + vehicle.cachedDrawPos.y;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -284,19 +290,19 @@ public static class VehicleMapUtility
             switch (rot.AsByte)
             {
                 case Rot8.NorthInt:
-                    offset = vehicleMap.offsetNorth ?? (vehicleMap.offsetNorth = ((Vector3?)(vehicleMap.offsetSouth ??= vehicleMap.offset)).Value.MirrorVertical()).Value;
+                    offset = vehicleMap.offsetNorth ?? (vehicleMap.offsetSouth == null ? vehicleMap.offsetNorth = vehicleMap.offsetSouth = vehicleMap.offset : vehicleMap.offsetNorth = vehicleMap.offsetSouth.Value.MirrorVertical()).Value;
                     break;
 
                 case Rot8.EastInt:
-                    offset = vehicleMap.offsetEast ?? (vehicleMap.offsetEast = ((Vector3?)(vehicleMap.offsetWest ??= vehicleMap.offset)).Value.MirrorHorizontal()).Value;
+                    offset = vehicleMap.offsetEast ?? (vehicleMap.offsetWest == null ? vehicleMap.offsetEast = vehicleMap.offsetWest = vehicleMap.offset : vehicleMap.offsetEast = vehicleMap.offsetWest.Value.MirrorHorizontal()).Value;
                     break;
 
                 case Rot8.SouthInt:
-                    offset = vehicleMap.offsetSouth ?? (vehicleMap.offsetSouth = ((Vector3?)(vehicleMap.offsetNorth ??= vehicleMap.offset)).Value.MirrorVertical()).Value;
+                    offset = vehicleMap.offsetSouth ?? (vehicleMap.offsetNorth == null ? vehicleMap.offsetSouth = vehicleMap.offsetNorth = vehicleMap.offset : vehicleMap.offsetNorth = vehicleMap.offsetSouth.Value.MirrorVertical()).Value;
                     break;
 
                 case Rot8.WestInt:
-                    offset = vehicleMap.offsetWest ?? (vehicleMap.offsetWest = ((Vector3?)(vehicleMap.offsetEast ??= vehicleMap.offset)).Value.MirrorHorizontal()).Value;
+                    offset = vehicleMap.offsetWest ?? (vehicleMap.offsetEast == null ? vehicleMap.offsetWest = vehicleMap.offsetEast = vehicleMap.offset : vehicleMap.offsetWest = vehicleMap.offsetEast.Value.MirrorHorizontal()).Value;
                     break;
 
                 case Rot8.NorthEastInt:
@@ -323,7 +329,7 @@ public static class VehicleMapUtility
 
     public static List<Type> SelectSectionLayers(List<Type> subClasses, Map map)
     {
-        var excepts = new List<Type>();
+        List<Type> excepts = [];
         if (map.IsVehicleMapOf(out _))
         {
             excepts.AddRange(
@@ -353,7 +359,9 @@ public static class VehicleMapUtility
             typeof(SectionLayer_ThingsGeneralOnVehicle),
             typeof(SectionLayer_TerrainOnVehicle),
             typeof(SectionLayer_LightingOnVehicle),
-            typeof(SectionLayer_ThingsPowerGridOnVehicle)
+            typeof(SectionLayer_ThingsPowerGridOnVehicle),
+            typeof(SectionLayer_SubstructurePropsOnVehicle),
+            typeof(SectionLayer_GravshipHullOnVehicle)
             ]);
         if (VFECore.Active)
         {
@@ -751,7 +759,7 @@ public static class VehicleMapUtility
             VehiclePawnWithMapCache.cacheModeGlobal = true;
             try
             {
-                result = thing.DrawPos.YOffset();
+                result = thing.DrawPos;
             }
             finally
             {
@@ -804,7 +812,7 @@ public static class VehicleMapUtility
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool TryGetVehicleMap(this Vector3 point, Map map, out VehiclePawnWithMap vehicle, bool getStructureCell = true)
+    public static bool TryGetVehicleMap(this Vector3 point, Map map, out VehiclePawnWithMap vehicle, bool getStructureCell = true, bool getOutOfBoundsCell = false)
     {
         if (VehicleMapFramework.settings.drawPlanet && Find.CurrentMap.IsVehicleMapOf(out vehicle))
         {
@@ -820,10 +828,11 @@ public static class VehicleMapUtility
         var vehicles = VehiclePawnWithMapCache.AllVehiclesOn(map);
         vehicle = vehicles.FirstOrDefault(v =>
         {
-            var rect = new Rect(0f, 0f, v.VehicleMap.Size.x, v.VehicleMap.Size.z).ContractedBy(0.9f);
+            var rect = new Rect(0f, 0f, v.VehicleMap.Size.x, v.VehicleMap.Size.z);
+            if (!getOutOfBoundsCell) rect = rect.ContractedBy(0.9f);
             var vector = point.ToVehicleMapCoord(v);
             var intVec = vector.ToIntVec3();
-            return rect.Contains(new Vector2(vector.x, vector.z)) && !v.CachedOutOfBoundsCells.Contains(intVec) && (getStructureCell || !v.CachedStructureCells.Contains(intVec));
+            return rect.Contains(new Vector2(vector.x, vector.z)) && (getOutOfBoundsCell || !v.CachedOutOfBoundsCells.Contains(intVec)) && (getStructureCell || !v.CachedStructureCells.Contains(intVec));
         });
         return vehicle != null;
     }
@@ -1019,11 +1028,13 @@ public static class VehicleMapUtility
         return c.GetCover(map);
     }
 
+    public static Rot4 RotForPrintCounter => rotForPrint.IsHorizontal ? rotForPrint.Opposite : rotForPrint;
+
     public static Rot4 rotForPrint = Rot4.North;
 
-    private const float yCompress = 40f;
+    public const float YCompress = 40f;
 
-    private const float altitudeOffset = 0.09615385f;
+    private const float AltitudeOffset = 0.09615385f;
 
-    private const float altitudeOffsetFull = 7.692308f;
+    private const float AltitudeOffsetFull = 7.692308f;
 }

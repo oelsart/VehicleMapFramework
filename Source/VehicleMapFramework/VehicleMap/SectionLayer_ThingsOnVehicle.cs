@@ -1,5 +1,7 @@
-﻿using SmashTools;
+﻿using HarmonyLib;
+using SmashTools;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using Verse;
 using static VehicleMapFramework.ModCompat;
@@ -29,15 +31,15 @@ public abstract class SectionLayer_ThingsOnVehicle : SectionLayer_Things
 
     public void DrawLayer(Rot8 rot, Vector3 drawPos, float extraRotation)
     {
+        if (!DebugViewSettings.drawThingsPrinted)
+        {
+            return;
+        }
         //タイミングによってスポーン前にRegenerateされてる気がするので遅延してRegenerateさせるための仕組み
         if (dirty && Time.frameCount != dirtyFrame)
         {
             RegenerateActually();
             dirty = false;
-        }
-        if (!DebugViewSettings.drawThingsPrinted)
-        {
-            return;
         }
         var angle = Ext_Math.RotateAngle(rot.AsAngle, extraRotation);
         switch (rot.AsByte)
@@ -108,6 +110,15 @@ public abstract class SectionLayer_ThingsOnVehicle : SectionLayer_Things
                             TakePrintFrom(thing);
                             bounds.Encapsulate(thing.OccupiedDrawRect());
                         }
+                    }
+                }
+                foreach (var subMesh in subMeshes)
+                {
+                    for (var j = 0; j < subMesh.verts.Count; j++)
+                    {
+                        var vert = subMesh.verts[j];
+                        vert.y /= VehicleMapUtility.YCompress;
+                        subMesh.verts[j] = vert;
                     }
                 }
                 FinalizeMesh(MeshParts.All);

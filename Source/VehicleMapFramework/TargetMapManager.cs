@@ -34,10 +34,12 @@ public class TargetMapManager(World world) : WorldComponent(world)
 
     public static bool RemoveTargetInfo(Thing thing)
     {
-#if DEBUG
-        VMF_Log.Debug($"[TargetMapManager] Remove target map for {thing}");
-#endif
-        return TargetInfoDic.Remove(thing);
+        var result = TargetInfoDic.Remove(thing);
+        if (result)
+        {
+            VMF_Log.Debug($"[TargetMapManager] Remove target map for {thing}");
+        }
+        return result;
     }
 
     public static bool HasTargetInfo(Thing thing, out TargetInfo target)
@@ -105,8 +107,12 @@ public class TargetMapManager(World world) : WorldComponent(world)
 
     public override void ExposeData()
     {
-        Scribe_Collections.Look(ref targetInfoDic, "TargetInfo", LookMode.Reference, LookMode.TargetInfo);
+        Scribe_Collections.Look(ref targetInfoDic, "TargetInfo", LookMode.Reference, LookMode.TargetInfo, ref tmpKeys, ref tmpValues);
     }
 
     private Dictionary<Thing, TargetInfo> targetInfoDic;
+
+    private List<Thing> tmpKeys = [];
+
+    private List<TargetInfo> tmpValues = [];
 }

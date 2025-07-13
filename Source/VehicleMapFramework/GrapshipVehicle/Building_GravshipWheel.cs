@@ -1,8 +1,6 @@
-﻿using HarmonyLib;
-using RimWorld;
-using RimWorld.Planet;
+﻿using RimWorld;
+using SmashTools;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using Vehicles;
 using Verse;
@@ -11,7 +9,55 @@ namespace VehicleMapFramework
 {
     public class Building_GravshipWheel : Building
     {
-        public override Vector3 DrawPos => base.DrawPos;
+        [Unsaved(false)]
+        private CompGravshipWheel gravshipWheel;
+
+        public override bool TransmitsPowerNow => this.IsOnVehicleMapOf(out var vehicle) && (vehicle.ignition?.Drafted ?? false);
+
+        //車上でPrintする時しか呼ばれないはず
+        public override Vector3 DrawPos
+        {
+            get
+            {
+                if (Map?.GetCachedMapComponent<VehiclePawnWithMapCache>()?.cacheMode ?? false)
+                {
+                    var drawPos = base.DrawPos;
+                    var engine = GravshipUtility.GetPlayerGravEngine(Map);
+                    if (engine == null || engine is not Building_GravEngine building_gravEngine) return drawPos;
+                    var cell = CompGravshipWheel.AdjacentCells.FirstOrFallback(building_gravEngine.ValidSubstructureAt, IntVec3.Invalid);
+                    if (!cell.IsValid) return drawPos;
+                    drawPos += new Vector3(0f, 0f, -0.2f).RotatedBy(VehicleMapUtility.RotForPrintCounter);
+                    var offset = new Vector3(DrawSize.x * 0.12f, 0f, 0f);
+                    if (cell.x > Position.x)
+                    {
+                        if (VehicleMapUtility.rotForPrint == Rot4.East)
+                        {
+                            offset.y -= Altitudes.AltInc * 250f;
+                        }
+                    }
+                    else
+                    {
+                        if (VehicleMapUtility.rotForPrint == Rot4.West)
+                        {
+                            offset.y -= Altitudes.AltInc * 250f;
+                        }
+                        offset.x = -offset.x;
+                    }
+                    drawPos += offset;
+                    return drawPos;
+                }
+                return base.DrawPos;
+            }
+        }
+
+        public CompGravshipWheel CompGravshipWheel
+        {
+            get
+            {
+                gravshipWheel ??= GetComp<CompGravshipWheel>();
+                return gravshipWheel;
+            }
+        }
 
         public override IEnumerable<Gizmo> GetGizmos()
         {
@@ -34,66 +80,13 @@ namespace VehicleMapFramework
 
         public void GenerateGravshipVehicle()
         {
-            //if (!ModsConfig.OdysseyActive) return;
-
-            bool ExistSubstructure(IntVec3 x)
+            var curretGravship = Current.Game.Gravship;
+            var report = GravshipVehicleUtility.GenerateGravshipVehicle(CompGravshipWheel?.engine, Map);
+            if (!report.Accepted)
             {
-                if (x.InBounds(Map))
-                {
-                    TerrainDef terrainDef = Map.terrainGrid.FoundationAt(x);
-                    return terrainDef != null;// && terrainDef.IsSubstructure;
-                }
-                return false;
+                Messages.Message(report.Reason, MessageTypeDefOf.RejectInput, false);
             }
-
-            var firstCell = Position + Rotation.RighthandCell;
-            if (!ExistSubstructure(firstCell))
-            {
-                firstCell = Position - Rotation.RighthandCell;
-                if (!ExistSubstructure(firstCell)) return;
-            }
-
-            HashSet<IntVec3> cells = [];
-            Map.floodFiller.FloodFill(firstCell, x =>
-            {
-                return x.TryGetFirstThing<Building_GravshipWheel>(Map, out _) || ExistSubstructure(x);
-            }, x =>
-            {
-                cells.Add(x);
-            });
-
-            var cellRect = CellRect.FromCellList(cells);
-            var min = cellRect.Min;
-            VehicleMapProps_Gravship props = new()
-            {
-                size = cellRect.Size,
-                outOfBoundsCells = [.. cellRect.Cells.Where(c => !cells.Contains(c)).Select(c => (c - min).ToIntVec2)]
-            };
-            var vehicleDef = GravshipVehicleUtility.GenerateGravshipVehicleDef(props);
-            var vehiclePawn = (VehiclePawnWithMap)VehicleSpawner.GenerateVehicle(vehicleDef, Faction.OfPlayer);
-            if (vehiclePawn.VehicleMap is null) return;
-            //var gravship = GravshipUtility.GenerateGravship(engine);
-
-            var map = Map;
-            foreach (var c in cells)
-            {
-                var pos = c - min + IntVec3.NorthEast;
-                var things = c.GetThingList(map);
-                for (var i = 0; i < things.Count; i++)
-                {
-                    var thing = things[i];
-                    thing.DeSpawn(DestroyMode.WillReplace);
-                    GenSpawn.Spawn(thing, pos, vehiclePawn.VehicleMap);
-                }
-                var terrainDef = map.terrainGrid.FoundationAt(c);
-                if (terrainDef != null)
-                {
-                    map.terrainGrid.RemoveFoundation(c);
-                    vehiclePawn.VehicleMap.terrainGrid.SetFoundation(pos, terrainDef);
-                }
-            }
-            GenSpawn.Spawn(vehiclePawn, cellRect.CenterCell, map);
-            //GravshipPlacementUtility.PlaceGravshipInMap(gravship, vehiclePawnWithMap.VehicleMap.Center, vehiclePawnWithMap.VehicleMap, out _);
+            Current.Game.Gravship = curretGravship;
         }
     }
 }

@@ -6,10 +6,10 @@ using Verse;
 
 namespace VehicleMapFramework
 {
-    public class GravshipVehicleManager : GameComponent
+#pragma warning disable CS9113 // パラメーターが未読です。
+    public class GravshipVehicleManager(Game game) : GameComponent
+#pragma warning restore CS9113 // パラメーターが未読です。
     {
-        public GravshipVehicleManager(Game game) { }
-
         public override void ExposeData()
         {
             HashSet<VehicleMapProps_Gravship> hashSet = null;
@@ -18,7 +18,7 @@ namespace VehicleMapFramework
                 hashSet = [];
                 hashSet.AddRange(DefDatabase<VehicleDef>.AllDefs
                     .Where(d => d.HasModExtension<VehicleMapProps_Gravship>())
-                    .Where(d => PawnsFinder.AllMapsAndWorld_Alive.Any(p => p.def == d))
+                    .Where(d => PawnsFinder.AllMapsWorldAndTemporary_AliveOrDead.Any(p => p.def == d))
                     .Select(d => d.GetModExtension<VehicleMapProps_Gravship>()));
             }
             Scribe_Collections.Look(ref hashSet, "GravshipVehicleMapProps", LookMode.Deep);
@@ -27,6 +27,7 @@ namespace VehicleMapFramework
             {
                 foreach (var props in hashSet)
                 {
+                    VMF_Log.Debug($"Scribe VehicleDef: {props.DefName}");
                     if (DefDatabase<VehicleDef>.GetNamedSilentFail(props.DefName) == null)
                     {
                         GravshipVehicleUtility.GenerateGravshipVehicleDef(props);

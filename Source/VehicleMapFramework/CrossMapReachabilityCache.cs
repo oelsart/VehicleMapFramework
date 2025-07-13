@@ -11,9 +11,9 @@ public class CrossMapReachabilityCache(World world) : WorldComponent(world)
 
     public override void WorldComponentUpdate()
     {
-        if (lastCachedTick != Find.TickManager.TicksGame || Find.TickManager.Paused)
+        if (Find.TickManager.TicksAbs - lastCachedTick > 20 || Find.TickManager.Paused)
         {
-            lastCachedTick = Find.TickManager.TicksGame;
+            lastCachedTick = Find.TickManager.TicksAbs;
             cache.Clear();
         }
     }

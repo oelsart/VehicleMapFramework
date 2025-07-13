@@ -1,4 +1,5 @@
-﻿using Verse;
+﻿using RimWorld;
+using Verse;
 
 namespace VehicleMapFramework
 {
@@ -6,11 +7,18 @@ namespace VehicleMapFramework
     {
         public VehicleMapProps_Gravship() { }
 
-        public string DefName => "GravshipVehicle" + size.GetHashCode();
+        public string defName;
+
+        public Building_GravEngine engine;
+
+        public string DefName => defName ??= $"GravshipVehicle{engine.GetHashCode()}_";
         
         public void ExposeData()
         {
+            Scribe_Values.Look(ref defName, "defName");
             Scribe_Values.Look(ref size, "size");
+            Scribe_Values.Look(ref offset, "offset");
+            Scribe_Collections.Look(ref outOfBoundsCells, "outOfBoundsCells");
         }
     }
 }

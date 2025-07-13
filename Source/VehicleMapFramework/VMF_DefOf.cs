@@ -48,5 +48,6 @@ public static class VMF_DefOf
 
     public static VehicleStatDef MaximumPayload;
 
+    [MayRequireOdyssey]
     public static VehicleDef VMF_GravshipVehicleBase;
 }

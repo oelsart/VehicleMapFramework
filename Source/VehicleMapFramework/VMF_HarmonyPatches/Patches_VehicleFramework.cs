@@ -20,15 +20,15 @@ using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
-[HarmonyPatch(typeof(AssetBundleDatabase), nameof(AssetBundleDatabase.SupportsRGBMaskTex))]
-public static class Patch_AssetBundleDatabase_SupportsRGBMaskTex
-{
-    public static void Postfix(ref bool __result, Shader shader, bool ignoreSettings)
-    {
-        __result = __result || ((VehicleMod.settings.main.useCustomShaders || ignoreSettings) &&
-            shader.SupportsOpacity());
-    }
-}
+//[HarmonyPatch(typeof(AssetBundleDatabase), nameof(AssetBundleDatabase.SupportsRGBMaskTex))]
+//public static class Patch_AssetBundleDatabase_SupportsRGBMaskTex
+//{
+//    public static void Postfix(ref bool __result, Shader shader, bool ignoreSettings)
+//    {
+//        __result = __result || ((VehicleMod.settings.main.useCustomShaders || ignoreSettings) &&
+//            shader.SupportsOpacity());
+//    }
+//}
 
 [HarmonyPatch(typeof(RGBMaterialPool), nameof(RGBMaterialPool.SetProperties), typeof(IMaterialCacheTarget), typeof(PatternData), typeof(Func<Rot8, Texture2D>), typeof(Func<Rot8, Texture2D>))]
 public static class Patch_RGBMaterialPool_SetProperties
@@ -43,7 +43,6 @@ public static class Patch_RGBMaterialPool_SetProperties
             {
                 if (___cache.TryGetValue(target, out var materials))
                 {
-
                     for (int i = 0; i < materials.Length; i++)
                     {
                         Material material = materials[i];
@@ -1190,6 +1189,35 @@ public static class Patch_VehicleOrientationController_TargeterUpdate
                 }
             }
             yield return instruction;
+        }
+    }
+}
+
+[HarmonyPatch]
+public static class Patch_SettingsCache_TryGetValue
+{
+    private static bool Prepare()
+    {
+        return ModsConfig.OdysseyActive;
+    }
+
+    private static IEnumerable<MethodBase> TargetMethods()
+    {
+        return AccessTools.GetDeclaredMethods(typeof(SettingsCache)).Where(m => m.Name == "TryGetValue").Select(m =>
+        {
+            if (m.IsGenericMethodDefinition)
+            {
+                return m.MakeGenericMethod(typeof(bool));
+            }
+            return m;
+        });
+    }
+
+    public static void Prefix(ref VehicleDef def)
+    {
+        if (def.HasModExtension<VehicleMapProps_Gravship>())
+        {
+            def = VMF_DefOf.VMF_GravshipVehicleBase;
         }
     }
 }

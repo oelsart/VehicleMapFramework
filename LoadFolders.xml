@@ -38,5 +38,6 @@
     <li IfModActive="Cain.Mineshaft">Common/_Mines</li>
     <li IfModActive="OskarPotocki.VFE.Mechanoid">Common/_VFEMechanoids</li>
     <li IfModActive="VanillaExpanded.VFESecurity">Common/_VFESecurity</li>
+    <li IfModActive="Ludeon.RimWorld.Odyssey">1.6/_Odyssey</li>
   </v1.6>
 </loadFolders>

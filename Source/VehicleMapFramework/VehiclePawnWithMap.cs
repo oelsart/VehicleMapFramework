@@ -76,6 +76,7 @@ public class VehiclePawnWithMap : VehiclePawn
         {
             if (structureCellsCache == null || structureCellsDirty)
             {
+                structureCellsDirty = false;
                 structureCellsCache = [.. interiorMap.listerThings.ThingsOfDef(VMF_DefOf.VMF_VehicleStructureFilled)
                         .Concat(interiorMap.listerThings.ThingsOfDef(VMF_DefOf.VMF_VehicleStructureEmpty)).Select(b => b.Position)];
             }
@@ -87,7 +88,7 @@ public class VehiclePawnWithMap : VehiclePawn
     {
         get
         {
-            if (outOfBoundsCellsCache == null)
+            if (outOfBoundsCellsCache == null || outOfBoundsCellsDirty)
             {
                 var props = VehicleDef.GetModExtension<VehicleMapProps>();
                 if (props != null)
@@ -579,6 +580,12 @@ public class VehiclePawnWithMap : VehiclePawn
             DrawLayer(section, Rimefeller.XSectionLayer_OilSpill, drawPos, extraRotation);
             ((SectionLayer_ThingsPipeOnVehicle)section.GetLayer(typeof(SectionLayer_ThingsPipeOnVehicle)))?.DrawLayer(FullRotation, drawPos, extraRotation);
         }
+        if (ModsConfig.OdysseyActive)
+        {
+            DrawLayer(section, typeof(SectionLayer_GravshipMask), drawPos, extraRotation);
+            ((SectionLayer_SubstructurePropsOnVehicle)section.GetLayer(typeof(SectionLayer_SubstructurePropsOnVehicle)))?.DrawLayer(FullRotation, drawPos, extraRotation);
+            ((SectionLayer_GravshipHullOnVehicle)section.GetLayer(typeof(SectionLayer_GravshipHullOnVehicle)))?.DrawLayer(FullRotation, drawPos, extraRotation);
+        }
     }
 
     private List<Matrix4x4> matrices = [];
@@ -720,6 +727,8 @@ public class VehiclePawnWithMap : VehiclePawn
     private HashSet<IntVec3> standableMapEdgeCellsCache = [];
 
     public bool structureCellsDirty;
+
+    public bool outOfBoundsCellsDirty;
 
     private int standableCellsCachedTick;
 

@@ -63,25 +63,32 @@ public static class Patch_Building_Door_DrawMovers
     }
 }
 
-[HarmonyPatch(typeof(Building_MultiTileDoor), "DrawAt")]
-public static class Patch_Building_MultiTileDoor_DrawAt
+[HarmonyPatch(typeof(Building_SupportedDoor), "DrawAt")]
+public static class Patch_Building_SupportedDoor_DrawAt
 {
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
         var f_Vector3_y = AccessTools.Field(typeof(Vector3), nameof(Vector3.y));
+
         var num = 0;
         foreach (var instruction in instructions)
         {
-            if (instruction.opcode == OpCodes.Stfld && instruction.OperandIs(f_Vector3_y))
+            if (instruction.StoresField(f_Vector3_y))
             {
-                yield return new CodeInstruction(OpCodes.Ldc_R4, 7.3076926f);
-                yield return new CodeInstruction(OpCodes.Add);
+                var label = generator.DefineLabel();
+                var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithMap));
+                yield return CodeInstruction.LoadArgument(0);
+                yield return new CodeInstruction(OpCodes.Ldloca_S, vehicle);
+                yield return new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf);
+                yield return new CodeInstruction(OpCodes.Brfalse_S, label);
+                yield return new CodeInstruction(OpCodes.Ldloc_S, vehicle);
+                yield return new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_YOffsetFull2);
+                yield return instruction.WithLabels(label);
             }
-            if (instruction.opcode == OpCodes.Call && instruction.OperandIs(CachedMethodInfo.g_Thing_Rotation) && num < 2)
+            else if (instruction.Calls(CachedMethodInfo.g_Thing_Rotation) && num < 2)
             {
-                yield return new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseFullRotation_Thing);
-                yield return CodeInstruction.Call(typeof(VehicleMapUtility), nameof(VehicleMapUtility.RotForVehicleDraw));
                 num++;
+                yield return new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseRotationVehicleDraw);
             }
             else
             {
