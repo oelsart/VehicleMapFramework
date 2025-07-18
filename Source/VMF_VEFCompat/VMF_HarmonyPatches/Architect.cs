@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using System.Collections.Generic;
+using System.Reflection.Emit;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches
 {
@@ -7,9 +8,9 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
     [HarmonyPatch("VFEArchitect.Building_DoorSingle", "DrawAt")]
     public static class Patch_Building_DoorSingle_DrawAt
     {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
         {
-            return Patch_Building_MultiTileDoor_DrawAt.Transpiler(Patch_Building_Door_DrawMovers.Transpiler(instructions));
+            return Patch_Building_SupportedDoor_DrawAt.Transpiler(Patch_Building_Door_DrawMovers.Transpiler(instructions, generator), generator);
         }
     }
 }

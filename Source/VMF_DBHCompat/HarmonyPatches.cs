@@ -183,7 +183,7 @@ public static class Patch_Building_StallDoor_DrawAt
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
-        var codes = Patch_Building_Door_DrawMovers.Transpiler(instructions).ToList();
+        var codes = Patch_Building_Door_DrawMovers.Transpiler(instructions, generator).ToList();
         var f_Vector3_y = AccessTools.Field(typeof(Vector3), nameof(Vector3.y));
         var label = generator.DefineLabel();
         var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithMap));

@@ -28,7 +28,6 @@
     <li IfModActive="Dubwise.Rimefeller">1.6/_Rimefeller</li>
     <li IfModActive="Owlchemist.SmartFarming">1.6/_SmartFarming</li>
     <li IfModActive="OskarPotocki.VanillaFactionsExpanded.Core">1.6/_VanillaExpandedFramework</li>
-    <li IfModActive="Mehni.PickUpAndHaul">1.6/_PickUpAndHaul</li>
     <li IfModActive="telardo.MultiFloors">1.6/_MultiFloors</li>
     <li IfModActive="XMB.AncientUrbanrUins.MO">1.6/_AncientUrbanRuins</li>
     <li IfModActive="daylight.RLEsExpansionProductPS">1.6/_RimLifeExpansionProductionPlus</li>
