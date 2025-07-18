@@ -13,7 +13,7 @@ public class Command_FocusVehicleMap : Command
     {
         get
         {
-            if (Find.Selector.SingleSelectedObject is not VehiclePawnWithMap vehicle || vehicle == Command_FocusVehicleMap.FocuseLockedVehicle)
+            if (Find.Selector.SingleSelectedObject is not VehiclePawnWithMap vehicle || vehicle == FocuseLockedVehicle)
             {
                 return "VMF_UnfocusVehicleMap".Translate();
             }
@@ -28,15 +28,15 @@ public class Command_FocusVehicleMap : Command
 
     public override void ProcessInput(Event ev)
     {
-        if (Find.Selector.SingleSelectedObject is VehiclePawnWithMap vehicle && Command_FocusVehicleMap.FocuseLockedVehicle != vehicle)
+        if (Find.Selector.SingleSelectedObject is VehiclePawnWithMap vehicle && FocuseLockedVehicle != vehicle)
         {
-            Command_FocusVehicleMap.FocuseLockedVehicle = vehicle;
-            Command_FocusVehicleMap.FocusedVehicle = vehicle;
+            FocuseLockedVehicle = vehicle;
+            FocusedVehicle = vehicle;
         }
         else
         {
-            Command_FocusVehicleMap.FocuseLockedVehicle = null;
-            Command_FocusVehicleMap.FocusedVehicle = null;
+            FocuseLockedVehicle = null;
+            FocusedVehicle = null;
         }
     }
 }

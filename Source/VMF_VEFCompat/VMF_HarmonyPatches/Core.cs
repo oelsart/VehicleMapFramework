@@ -127,10 +127,8 @@ public static class Patch_CompResourceStorage_PostDraw
         }
         ___request.center = __instance.parent.DrawPos + offset;
         Rot8Utility.Rotate(ref fullRot, RotationDirection.Clockwise);
-        rotInt(ref ___request.rotation) = fullRot.AsByte;
+        Rot8Utility.rot4Int(ref ___request.rotation) = fullRot.AsByte;
     }
-
-    private static readonly AccessTools.StructFieldRef<Rot4, byte> rotInt = AccessTools.StructFieldRefAccess<Rot4, byte>("rotInt");
 }
 
 [HarmonyPatchCategory("VMF_Patches_VEF")]

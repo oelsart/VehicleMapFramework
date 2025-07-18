@@ -10,7 +10,7 @@ public static class GenUIOnVehicle
 {
     public static List<Thing> ThingsUnderMouse(Vector3 clickPos, float pawnWideClickRadius, TargetingParameters clickParams, ITargetingSource source)
     {
-        return GenUIOnVehicle.ThingsUnderMouse(clickPos, pawnWideClickRadius, clickParams, source, vehicleForSelector);
+        return ThingsUnderMouse(clickPos, pawnWideClickRadius, clickParams, source, vehicleForSelector);
     }
 
     public static List<Thing> ThingsUnderMouse(Vector3 clickPos, float pawnWideClickRadius, TargetingParameters clickParams, ITargetingSource source, VehiclePawnWithMap vehicle)
@@ -140,12 +140,12 @@ public static class GenUIOnVehicle
                 }
             }
         }
-        return [.. GenUIOnVehicle.TargetsAt(clickPos, clickParams, thingsOnly, source, vehicle, convToVehicleMap)];
+        return [.. TargetsAt(clickPos, clickParams, thingsOnly, source, vehicle, convToVehicleMap)];
     }
 
     public static IEnumerable<LocalTargetInfo> TargetsAt(Vector3 clickPos, TargetingParameters clickParams, bool thingsOnly, ITargetingSource source = null, bool convToVehicleMap = true)
     {
-        return GenUIOnVehicle.TargetsAt(clickPos, clickParams, thingsOnly, source, GenUIOnVehicle.vehicleForSelector, convToVehicleMap);
+        return TargetsAt(clickPos, clickParams, thingsOnly, source, vehicleForSelector, convToVehicleMap);
     }
 
     public static IEnumerable<LocalTargetInfo> TargetsAt(Vector3 clickPos, TargetingParameters clickParams, bool thingsOnly, ITargetingSource source, VehiclePawnWithMap vehicle, bool convToVehicleMap = true)
@@ -153,7 +153,7 @@ public static class GenUIOnVehicle
         List<Thing> clickableList;
         if (vehicle != null)
         {
-            clickableList = GenUIOnVehicle.ThingsUnderMouse(clickPos, 0.8f, clickParams, source, vehicle);
+            clickableList = ThingsUnderMouse(clickPos, 0.8f, clickParams, source, vehicle);
         }
         else
         {

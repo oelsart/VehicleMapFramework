@@ -20,7 +20,7 @@ public abstract class JobDriverAcrossMaps : JobDriver
             if (exitSpot2.Map != null) return exitSpot2.Map.BaseMap();
             if (enterSpot1.Map != null) return enterSpot1.Map;
             if (exitSpot1.Map != null) return exitSpot1.Map.BaseMap();
-            return base.Map;
+            return Map;
         }
     }
 
@@ -31,7 +31,7 @@ public abstract class JobDriverAcrossMaps : JobDriver
             if (targetAMap != null) return targetAMap;
             if (enterSpot1.Map != null) return enterSpot1.Map;
             if (exitSpot1.Map != null) return exitSpot1.Map.BaseMap();
-            return base.Map;
+            return Map;
         }
     }
 
@@ -45,7 +45,14 @@ public abstract class JobDriverAcrossMaps : JobDriver
 
     protected override IEnumerable<Toil> MakeNewToils()
     {
-        this.FailOn(() => TargetAMap.Disposed || DestMap.Disposed);
+        static bool MapNullOrDisposed(TargetInfo? spot)
+        {
+            return spot.HasValue && (spot.Value.Map == null || spot.Value.Map.Disposed);
+        }
+        this.FailOn(() =>
+        {
+            return MapNullOrDisposed(exitSpot1) || MapNullOrDisposed(enterSpot1) || MapNullOrDisposed(exitSpot2) || MapNullOrDisposed(enterSpot2);
+        });
         yield break;
     }
 

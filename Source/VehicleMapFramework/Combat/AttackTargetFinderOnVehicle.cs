@@ -107,7 +107,7 @@ public static class AttackTargetFinderOnVehicle
             {
                 return false;
             }
-            if ((flags & TargetScanFlags.NeedAutoTargetable) != TargetScanFlags.None && !AttackTargetFinderOnVehicle.IsAutoTargetable(t))
+            if ((flags & TargetScanFlags.NeedAutoTargetable) != TargetScanFlags.None && !IsAutoTargetable(t))
             {
                 return false;
             }
@@ -156,25 +156,25 @@ public static class AttackTargetFinderOnVehicle
             }
             return true;
         };
-        if ((AttackTargetFinderOnVehicle.HasRangedAttack(searcher) || onlyRanged) && (searcherPawn == null || !searcherPawn.InAggroMentalState))
+        if ((HasRangedAttack(searcher) || onlyRanged) && (searcherPawn == null || !searcherPawn.InAggroMentalState))
         {
-            AttackTargetFinderOnVehicle.tmpTargets.Clear();
-            AttackTargetFinderOnVehicle.tmpTargets.AddRange(searcherThing.Map.BaseMapAndVehicleMaps().Except(searcherThing.Map).SelectMany(m => m.attackTargetsCache.GetPotentialTargetsFor(searcher)));
-            AttackTargetFinderOnVehicle.validTargets.Clear();
-            for (int i = 0; i < AttackTargetFinderOnVehicle.tmpTargets.Count; i++)
+            tmpTargets.Clear();
+            tmpTargets.AddRange(searcherThing.Map.BaseMapAndVehicleMaps().Except(searcherThing.Map).SelectMany(m => m.attackTargetsCache.GetPotentialTargetsFor(searcher)));
+            validTargets.Clear();
+            for (int i = 0; i < tmpTargets.Count; i++)
             {
-                IAttackTarget attackTarget = AttackTargetFinderOnVehicle.tmpTargets[i];
+                IAttackTarget attackTarget = tmpTargets[i];
                 if (attackTarget.Thing.PositionOnBaseMap().InHorDistOf(searcherThing.PositionOnBaseMap(), maxDist) && innerValidator(attackTarget))
                 {
-                    AttackTargetFinderOnVehicle.validTargets.Add(attackTarget);
+                    validTargets.Add(attackTarget);
                 }
             }
-            if (AttackTargetFinderOnVehicle.validTargets.Count == 0)
+            if (validTargets.Count == 0)
             {
                 return null;
             }
 
-            var targetToHit = AttackTargetFinderOnVehicle.GetRandomShootingTargetByScore(AttackTargetFinderOnVehicle.validTargets, searcher, verb);
+            var targetToHit = GetRandomShootingTargetByScore(validTargets, searcher, verb);
             if (targetToHit != null || searcher is Building_Turret || (searcher is Pawn sercherPawn && searcherPawn.CurJobDef == JobDefOf.ManTurret))
             {
                 return targetToHit;
@@ -183,14 +183,14 @@ public static class AttackTargetFinderOnVehicle
             {
                 return (IAttackTarget)GenClosestCrossMap.ClosestThing_Global(
                     searcher.Thing.PositionOnBaseMap(),
-                    AttackTargetFinderOnVehicle.validTargets,
+                    validTargets,
                     maxDist,
-                    t => AttackTargetFinderOnVehicle.CanReach(searcher.Thing, t, canBashDoors, canBashFences),
+                    t => CanReach(searcher.Thing, t, canBashDoors, canBashFences),
                     null,
                     false
                     );
             }
-            return (IAttackTarget)GenClosestCrossMap.ClosestThing_Global(searcher.Thing.PositionOnBaseMap(), AttackTargetFinderOnVehicle.validTargets, maxDist, null, null, false);
+            return (IAttackTarget)GenClosestCrossMap.ClosestThing_Global(searcher.Thing.PositionOnBaseMap(), validTargets, maxDist, null, null, false);
         }
         if (searcherPawn != null && searcherPawn.mindState.duty != null && searcherPawn.mindState.duty.radius > 0f && !searcherPawn.InMentalState)
         {
@@ -203,14 +203,14 @@ public static class AttackTargetFinderOnVehicle
         Predicate<IAttackTarget> oldValidator2 = innerValidator;
         innerValidator = t =>
         {
-            return oldValidator2(t) && !AttackTargetFinderOnVehicle.ShouldIgnoreNoncombatant(searcherThing, t, flags);// &&
+            return oldValidator2(t) && !ShouldIgnoreNoncombatant(searcherThing, t, flags);// &&
             //(!(t is VehiclePawnWithMap vehicle) || vehicle.VehicleMap.mapPawns.AllPawnsSpawned.CountWhere(p => p.HostileTo(searcherPawn)) == 0);
             //VehicleMap上に敵対ポーンが居る場合そっちをターゲットとして優先したい
         };
         IAttackTarget attackTarget2 = (IAttackTarget)GenClosestCrossMap.ClosestThingReachable(searcherThing.Position, searcherThing.Map, ThingRequest.ForGroup(ThingRequestGroup.AttackTarget), PathEndMode.Touch, TraverseParms.For(searcherPawn, Danger.Deadly, TraverseMode.ByPawn, canBashDoors, false, canBashFences), maxDist, x => innerValidator((IAttackTarget)x), null, 0, (maxDist > 800f) ? -1 : 40, false, RegionType.Set_Passable, false);
         if (attackTarget2 != null && PawnUtility.ShouldCollideWithPawns(searcherPawn))
         {
-            IAttackTarget attackTarget3 = AttackTargetFinderOnVehicle.FindBestReachableMeleeTarget(innerValidator, searcherPawn, maxDist, canBashDoors, canBashFences);
+            IAttackTarget attackTarget3 = FindBestReachableMeleeTarget(innerValidator, searcherPawn, maxDist, canBashDoors, canBashFences);
             if (attackTarget3 != null)
             {
                 float lengthHorizontal = (searcherPawn.PositionOnBaseMap() - attackTarget2.Thing.PositionOnBaseMap()).LengthHorizontal;
@@ -323,7 +323,7 @@ public static class AttackTargetFinderOnVehicle
 
     private static IAttackTarget GetRandomShootingTargetByScore(List<IAttackTarget> targets, IAttackTargetSearcher searcher, Verb verb)
     {
-        if (AttackTargetFinderOnVehicle.GetAvailableShootingTargetsByScore(targets, searcher, verb).TryRandomElementByWeight(x => x.Second, out Pair<IAttackTarget, float> pair))
+        if (GetAvailableShootingTargetsByScore(targets, searcher, verb).TryRandomElementByWeight(x => x.Second, out Pair<IAttackTarget, float> pair))
         {
             return pair.First;
         }
@@ -332,27 +332,27 @@ public static class AttackTargetFinderOnVehicle
 
     private static List<Pair<IAttackTarget, float>> GetAvailableShootingTargetsByScore(List<IAttackTarget> rawTargets, IAttackTargetSearcher searcher, Verb verb)
     {
-        AttackTargetFinderOnVehicle.availableShootingTargets.Clear();
+        availableShootingTargets.Clear();
         if (rawTargets.Count == 0)
         {
-            return AttackTargetFinderOnVehicle.availableShootingTargets;
+            return availableShootingTargets;
         }
-        AttackTargetFinderOnVehicle.tmpTargetScores.Clear();
-        AttackTargetFinderOnVehicle.tmpCanShootAtTarget.Clear();
+        tmpTargetScores.Clear();
+        tmpCanShootAtTarget.Clear();
         float num = 0f;
         IAttackTarget attackTarget = null;
         for (int i = 0; i < rawTargets.Count; i++)
         {
-            AttackTargetFinderOnVehicle.tmpTargetScores.Add(float.MinValue);
-            AttackTargetFinderOnVehicle.tmpCanShootAtTarget.Add(false);
+            tmpTargetScores.Add(float.MinValue);
+            tmpCanShootAtTarget.Add(false);
             if (rawTargets[i] != searcher)
             {
-                bool flag = AttackTargetFinderOnVehicle.CanShootAtFromCurrentPosition(rawTargets[i], searcher, verb);
-                AttackTargetFinderOnVehicle.tmpCanShootAtTarget[i] = flag;
+                bool flag = CanShootAtFromCurrentPosition(rawTargets[i], searcher, verb);
+                tmpCanShootAtTarget[i] = flag;
                 if (flag)
                 {
-                    float shootingTargetScore = AttackTargetFinderOnVehicle.GetShootingTargetScore(rawTargets[i], searcher, verb);
-                    AttackTargetFinderOnVehicle.tmpTargetScores[i] = shootingTargetScore;
+                    float shootingTargetScore = GetShootingTargetScore(rawTargets[i], searcher, verb);
+                    tmpTargetScores[i] = shootingTargetScore;
                     if (attackTarget == null || shootingTargetScore > num)
                     {
                         attackTarget = rawTargets[i];
@@ -365,7 +365,7 @@ public static class AttackTargetFinderOnVehicle
         {
             if (attackTarget != null)
             {
-                AttackTargetFinderOnVehicle.availableShootingTargets.Add(new Pair<IAttackTarget, float>(attackTarget, 1f));
+                availableShootingTargets.Add(new Pair<IAttackTarget, float>(attackTarget, 1f));
             }
         }
         else
@@ -373,18 +373,18 @@ public static class AttackTargetFinderOnVehicle
             float num2 = num - 30f;
             for (int j = 0; j < rawTargets.Count; j++)
             {
-                if (rawTargets[j] != searcher && AttackTargetFinderOnVehicle.tmpCanShootAtTarget[j])
+                if (rawTargets[j] != searcher && tmpCanShootAtTarget[j])
                 {
-                    float num3 = AttackTargetFinderOnVehicle.tmpTargetScores[j];
+                    float num3 = tmpTargetScores[j];
                     if (num3 >= num2)
                     {
                         float second = Mathf.InverseLerp(num - 30f, num, num3);
-                        AttackTargetFinderOnVehicle.availableShootingTargets.Add(new Pair<IAttackTarget, float>(rawTargets[j], second));
+                        availableShootingTargets.Add(new Pair<IAttackTarget, float>(rawTargets[j], second));
                     }
                 }
             }
         }
-        return AttackTargetFinderOnVehicle.availableShootingTargets;
+        return availableShootingTargets;
     }
 
     private static float GetShootingTargetScore(IAttackTarget target, IAttackTargetSearcher searcher, Verb verb)
@@ -402,7 +402,7 @@ public static class AttackTargetFinderOnVehicle
         num -= CoverUtility.CalculateOverallBlockChance(target.Thing.Position, searcher.Thing.PositionOnAnotherThingMap(target.Thing), target.Thing.Map) * 10f;
         if (target is Pawn pawn)
         {
-            num -= AttackTargetFinderOnVehicle.NonCombatantScore(pawn);
+            num -= NonCombatantScore(pawn);
             if (verb.verbProps.ai_TargetHasRangedAttackScoreOffset != 0f && pawn.CurrentEffectiveVerb != null && pawn.CurrentEffectiveVerb.verbProps.Ranged)
             {
                 num += verb.verbProps.ai_TargetHasRangedAttackScoreOffset;
@@ -412,8 +412,8 @@ public static class AttackTargetFinderOnVehicle
                 num -= 50f;
             }
         }
-        num += AttackTargetFinderOnVehicle.FriendlyFireBlastRadiusTargetScoreOffset(target, searcher, verb);
-        num += AttackTargetFinderOnVehicle.FriendlyFireConeTargetScoreOffset(target, searcher, verb);
+        num += FriendlyFireBlastRadiusTargetScoreOffset(target, searcher, verb);
+        num += FriendlyFireConeTargetScoreOffset(target, searcher, verb);
         return num * target.TargetPriorityFactor;
     }
 
@@ -436,10 +436,10 @@ public static class AttackTargetFinderOnVehicle
 
     private static float FriendlyFireBlastRadiusTargetScoreOffset(IAttackTarget target, IAttackTargetSearcher searcher, Verb verb)
     {
-        var score = AttackTargetFinderOnVehicle.FriendlyFireBlastRadiusTargetScoreOffset(target, searcher, target.Thing.Map, verb);
+        var score = FriendlyFireBlastRadiusTargetScoreOffset(target, searcher, target.Thing.Map, verb);
         if (target.Thing.Map != searcher.Thing.Map)
         {
-            score += AttackTargetFinderOnVehicle.FriendlyFireBlastRadiusTargetScoreOffset(target, searcher, searcher.Thing.Map, verb);
+            score += FriendlyFireBlastRadiusTargetScoreOffset(target, searcher, searcher.Thing.Map, verb);
         }
         return score;
     }
@@ -594,22 +594,22 @@ public static class AttackTargetFinderOnVehicle
         var seerPosOnBaseMap = seer.PositionOnBaseMap();
         var targPosOnBaseMap = target.PositionOnBaseMap();
         var baseMap = seer.BaseMap();
-        AttackTargetFinderOnVehicle.tempDestList.Clear();
-        ShootLeanUtilityOnVehicle.CalcShootableCellsOf(AttackTargetFinderOnVehicle.tempDestList, target, seerPosOnBaseMap);
-        for (int i = 0; i < AttackTargetFinderOnVehicle.tempDestList.Count; i++)
+        tempDestList.Clear();
+        ShootLeanUtilityOnVehicle.CalcShootableCellsOf(tempDestList, target, seerPosOnBaseMap);
+        for (int i = 0; i < tempDestList.Count; i++)
         {
-            if (GenSightOnVehicle.LineOfSight(seerPosOnBaseMap, AttackTargetFinderOnVehicle.tempDestList[i].ToThingBaseMapCoord(target), baseMap, true, validator, 0, 0))
+            if (GenSightOnVehicle.LineOfSight(seerPosOnBaseMap, tempDestList[i].ToThingBaseMapCoord(target), baseMap, true, validator, 0, 0))
             {
                 return true;
             }
         }
 
-        ShootLeanUtilityOnVehicle.LeanShootingSourcesFromTo(seer.Position, targPosOnBaseMap, seer.Map, AttackTargetFinderOnVehicle.tempSourceList);
-        for (int j = 0; j < AttackTargetFinderOnVehicle.tempSourceList.Count; j++)
+        ShootLeanUtilityOnVehicle.LeanShootingSourcesFromTo(seer.Position, targPosOnBaseMap, seer.Map, tempSourceList);
+        for (int j = 0; j < tempSourceList.Count; j++)
         {
-            for (int k = 0; k < AttackTargetFinderOnVehicle.tempDestList.Count; k++)
+            for (int k = 0; k < tempDestList.Count; k++)
             {
-                if (GenSightOnVehicle.LineOfSight(AttackTargetFinderOnVehicle.tempSourceList[j].ToThingBaseMapCoord(seer), AttackTargetFinderOnVehicle.tempDestList[k].ToThingBaseMapCoord(target), baseMap, true, validator, 0, 0))
+                if (GenSightOnVehicle.LineOfSight(tempSourceList[j].ToThingBaseMapCoord(seer), tempDestList[k].ToThingBaseMapCoord(target), baseMap, true, validator, 0, 0))
                 {
                     return true;
                 }
@@ -633,13 +633,13 @@ public static class AttackTargetFinderOnVehicle
         {
             return;
         }
-        AttackTargetFinderOnVehicle.tmpTargets.Clear();
+        tmpTargets.Clear();
         List<Thing> list = attackTargetSearcher.Thing.Map.listerThings.ThingsInGroup(ThingRequestGroup.AttackTarget);
         for (int i = 0; i < list.Count; i++)
         {
-            AttackTargetFinderOnVehicle.tmpTargets.Add((IAttackTarget)list[i]);
+            tmpTargets.Add((IAttackTarget)list[i]);
         }
-        List<Pair<IAttackTarget, float>> availableShootingTargetsByScore = AttackTargetFinderOnVehicle.GetAvailableShootingTargetsByScore(AttackTargetFinderOnVehicle.tmpTargets, attackTargetSearcher, currentEffectiveVerb);
+        List<Pair<IAttackTarget, float>> availableShootingTargetsByScore = GetAvailableShootingTargetsByScore(tmpTargets, attackTargetSearcher, currentEffectiveVerb);
         for (int j = 0; j < availableShootingTargetsByScore.Count; j++)
         {
             GenDraw.DrawLineBetween(attackTargetSearcher.Thing.DrawPos, availableShootingTargetsByScore[j].First.Thing.DrawPos);
@@ -671,14 +671,14 @@ public static class AttackTargetFinderOnVehicle
             {
                 string text;
                 Color red;
-                if (!AttackTargetFinderOnVehicle.CanShootAtFromCurrentPosition((IAttackTarget)thing, attackTargetSearcher, currentEffectiveVerb))
+                if (!CanShootAtFromCurrentPosition((IAttackTarget)thing, attackTargetSearcher, currentEffectiveVerb))
                 {
                     text = "out of range";
                     red = Color.red;
                 }
                 else
                 {
-                    text = AttackTargetFinderOnVehicle.GetShootingTargetScore((IAttackTarget)thing, attackTargetSearcher, currentEffectiveVerb).ToString("F0");
+                    text = GetShootingTargetScore((IAttackTarget)thing, attackTargetSearcher, currentEffectiveVerb).ToString("F0");
                     red = new Color(0.25f, 1f, 0.25f);
                 }
                 GenMapUI.DrawThingLabel(thing.DrawPos.MapToUIPosition(), text, red);

@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Text;
 using UnityEngine;
 using Vehicles;
 using Vehicles.Rendering;
@@ -15,6 +16,7 @@ using Vehicles.World;
 using Verse;
 using Verse.AI;
 using Verse.AI.Group;
+using Verse.Noise;
 using Verse.Sound;
 using static VehicleMapFramework.MethodInfoCache;
 
@@ -283,7 +285,6 @@ public static class Patch_Rendering_DrawSelectionBracketsVehicles
         var codes = instructions.ToList();
         var pos = codes.FindLastIndex(c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalType == typeof(int));
         var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithMap));
-        var rot = generator.DeclareLocal(typeof(Rot8));
         var label = generator.DefineLabel();
 
         codes[pos].labels.Add(label);
@@ -294,10 +295,7 @@ public static class Patch_Rendering_DrawSelectionBracketsVehicles
             new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf),
             new CodeInstruction(OpCodes.Brfalse_S, label),
             new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-            new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_FullRotation),
-            new CodeInstruction(OpCodes.Stloc_S, rot),
-            new CodeInstruction(OpCodes.Ldloca_S, rot),
-            new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_Rot8_AsAngle),
+            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_FullAngle),
             new CodeInstruction(OpCodes.Conv_I4),
             new CodeInstruction(OpCodes.Add)
         ]);
@@ -322,7 +320,7 @@ public static class Patch_GenGridVehicles_ImpassableForVehicles
 {
     public static void Postfix(ThingDef thingDef, ref bool __result)
     {
-        __result = __result && !thingDef.thingClass.SameOrSubclass(typeof(Building_VehicleRamp));
+        __result &= !thingDef.thingClass.SameOrSubclass(typeof(Building_VehicleRamp));
     }
 }
 
@@ -1110,10 +1108,11 @@ public static class Patch_FloatMenuOptionProvider_OrderVehicle_PawnGotoAction
 [HarmonyPatch(typeof(PathingHelper), nameof(PathingHelper.TryFindNearestStandableCell))]
 public static class Patch_PathingHelper_TryFindNearestStandableCell
 {
-    public static bool Prefix(VehiclePawn vehicle, IntVec3 cell, ref IntVec3 result, float radius, ref bool __result)
+    public static bool Prefix(VehiclePawn vehicle, IntVec3 cell, ref IntVec3 result, ref float radius, ref bool __result)
     {
+        radius = Mathf.Min(radius, 56.4f);
         VehiclePawnWithMap vehicle2 = null;
-        if (TargetMapManager.HasTargetMap(vehicle, out var map))
+        if (TargetMapManager.HasTargetMap(vehicle, out var map) && vehicle.Map != map)
         {
             __result = CrossMapReachabilityUtility.TryFindNearestStandableCell(vehicle, cell, map, out result, radius);
             if (result.IsValid)
@@ -1193,6 +1192,33 @@ public static class Patch_VehicleOrientationController_TargeterUpdate
     }
 }
 
+//VehicleSkyfallerのyが上書きされてたので車上のVehicleSkyfallerはy足しときなね
+[HarmonyPatch(typeof(LaunchProtocol), nameof(LaunchProtocol.Draw))]
+public static class Patch_LaunchProtocol_Draw
+{
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+    {
+        var codes = instructions.ToList();
+        var m_AltitudeFor = AccessTools.Method(typeof(Altitudes), nameof(Altitudes.AltitudeFor), [typeof(AltitudeLayer)]);
+        var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(m_AltitudeFor)) + 1;
+        var label = generator.DefineLabel();
+        var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithMap));
+
+        codes[pos].labels.Add(label);
+        codes.InsertRange(pos,
+        [
+            CodeInstruction.LoadArgument(0),
+            CodeInstruction.LoadField(typeof(LaunchProtocol), "map"),
+            new CodeInstruction(OpCodes.Ldloca_S, vehicle),
+            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsNonFocusedVehicleMapOf),
+            new CodeInstruction(OpCodes.Brfalse_S, label),
+            new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+        new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_YOffsetFull2)
+        ]);
+        return codes;
+    }
+}
+
 [HarmonyPatch]
 public static class Patch_SettingsCache_TryGetValue
 {
@@ -1219,5 +1245,19 @@ public static class Patch_SettingsCache_TryGetValue
         {
             def = VMF_DefOf.VMF_GravshipVehicleBase;
         }
+    }
+}
+
+[HarmonyPatch("Vehicles.SectionDrawer", "RecacheVehicleFilter")]
+public static class Patch_SectionDrawer_RecacheVehicleFilter
+{
+    private static bool Prepare()
+    {
+        return ModsConfig.OdysseyActive;
+    }
+
+    public static void Postfix(List<VehicleDef> ___filteredVehicleDefs)
+    {
+        ___filteredVehicleDefs.RemoveAll(d => d.HasModExtension<VehicleMapProps_Gravship>());
     }
 }

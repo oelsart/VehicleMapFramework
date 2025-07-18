@@ -45,7 +45,7 @@ public static class Patch_PawnLeaner_LeanOffset
     {
         if (___pawn.IsOnVehicleMapOf(out var vehicle))
         {
-            __result = __result.RotatedBy(-vehicle.FullRotation.AsAngle);
+            __result = __result.RotatedBy(-vehicle.FullAngle());
         }
     }
 }
@@ -90,7 +90,7 @@ public static class Patch_Projectile_CheckForFreeInterceptBetween
             CodeInstruction.LoadArgument(0),
             CodeInstruction.LoadField(typeof(Projectile), "launcher"),
             CodeInstruction.LoadArgument(0),
-            CodeInstruction.Call(typeof(Patch_Projectile_CheckForFreeInterceptBetween), nameof(Patch_Projectile_CheckForFreeInterceptBetween.IncludeVehicleMapIntercepters))
+            CodeInstruction.Call(typeof(Patch_Projectile_CheckForFreeInterceptBetween), nameof(IncludeVehicleMapIntercepters))
         ]);
         return codes;
     }

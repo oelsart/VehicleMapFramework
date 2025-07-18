@@ -1,21 +1,34 @@
-﻿using RimWorld;
+﻿using HarmonyLib;
+using RimWorld;
 using SmashTools;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using Vehicles;
 using Verse;
+using Verse.AI;
 
 namespace VehicleMapFramework
 {
-    public class Building_GravshipWheel : Building
+    public class Building_GravshipWheel : Building, IAttackTarget
     {
         [Unsaved(false)]
-        private CompGravshipWheel gravshipWheel;
+        private CompGravshipFacility gravshipGravshipFacility;
 
-        public override bool TransmitsPowerNow => this.IsOnVehicleMapOf(out var vehicle) && (vehicle.ignition?.Drafted ?? false);
+        private bool flipped;
 
-        //車上でPrintする時しか呼ばれないはず
+        private Rot4? tmpRot;
+
+        private static readonly AccessTools.FieldRef<Thing, Rot4> rotationInt = AccessTools.FieldRefAccess<Rot4>(typeof(Thing), "rotationInt");
+
+        public Thing Thing => this;
+
+        public LocalTargetInfo TargetCurrentlyAimingAt => LocalTargetInfo.Invalid;
+
+        public float TargetPriorityFactor => 0.2f;
+
+        public bool ThreatDisabled(IAttackTargetSearcher disabledFor) => !this.IsOnVehicleMapOf(out _) || !ValidFor(Rot4.North);
+
+        //車上でPrintする時のオフセット
         public override Vector3 DrawPos
         {
             get
@@ -23,27 +36,17 @@ namespace VehicleMapFramework
                 if (Map?.GetCachedMapComponent<VehiclePawnWithMapCache>()?.cacheMode ?? false)
                 {
                     var drawPos = base.DrawPos;
-                    var engine = GravshipUtility.GetPlayerGravEngine(Map);
-                    if (engine == null || engine is not Building_GravEngine building_gravEngine) return drawPos;
-                    if (this.OccupiedRect().Any(building_gravEngine.ValidSubstructureAt)) return drawPos;
+                    if (tmpRot is null) return drawPos;
+                    if (!ValidFor(Rot4.North)) return drawPos;
 
-                    var cell = CompGravshipWheel.AdjacentCells.FirstOrFallback(building_gravEngine.ValidSubstructureAt, IntVec3.Invalid);
-                    if (!cell.IsValid) return drawPos;
                     drawPos += new Vector3(0f, 0f, -0.2f).RotatedBy(VehicleMapUtility.RotForPrintCounter);
-                    var offset = new Vector3(DrawSize.x * 0.12f, 0f, 0f);
-                    if (cell.x > Position.x)
+                    var offset = new Vector3(DrawSize.x * 0.07f, 0f, 0f);
+                    if (VehicleMapUtility.RotForPrint.IsVertical || tmpRot == VehicleMapUtility.RotForPrint)
                     {
-                        if (VehicleMapUtility.rotForPrint == Rot4.East)
-                        {
-                            offset.y -= Altitudes.AltInc * 250f;
-                        }
+                        offset.y -= Altitudes.AltInc * 250f;
                     }
-                    else
+                    if (tmpRot == Rot4.West)
                     {
-                        if (VehicleMapUtility.rotForPrint == Rot4.West)
-                        {
-                            offset.y -= Altitudes.AltInc * 250f;
-                        }
                         offset.x = -offset.x;
                     }
                     drawPos += offset;
@@ -53,12 +56,12 @@ namespace VehicleMapFramework
             }
         }
 
-        public CompGravshipWheel CompGravshipWheel
+        public CompGravshipFacility CompGravshipFacility
         {
             get
             {
-                gravshipWheel ??= GetComp<CompGravshipWheel>();
-                return gravshipWheel;
+                gravshipGravshipFacility ??= GetComp<CompGravshipFacility>();
+                return gravshipGravshipFacility;
             }
         }
 
@@ -74,7 +77,7 @@ namespace VehicleMapFramework
                     action = GenerateGravshipVehicle
                 };
             }
-            else if (vehicle.Spawned)
+            else if (vehicle.Spawned && vehicle.def.HasModExtension<VehicleMapProps_Gravship>())
             {
                 yield return new Command_Action()
                 {
@@ -82,33 +85,98 @@ namespace VehicleMapFramework
                     action = () => PlaceGravship(vehicle)
                 };
             }
-        }
 
-        public override void Print(SectionLayer layer)
-        {
-            base.Print(layer);
+            if (vehicle == null || !ValidFor(Rot4.North))
+            {
+                yield return new Command_Action()
+                {
+                    defaultLabel = "VMF_FlipWheel".Translate(),
+                    action = () =>
+                    {
+                        flipped = !flipped;
+                        DirtyMapMesh(Map);
+                    }
+                };
+            }
         }
 
         public void GenerateGravshipVehicle()
         {
-            var curretGravship = Current.Game.Gravship;
-            var report = GravshipVehicleUtility.GenerateGravshipVehicle(CompGravshipWheel?.engine, Map);
+            var report = GravshipVehicleUtility.GenerateGravshipVehicle(CompGravshipFacility?.engine);
             if (!report.Accepted)
             {
                 Messages.Message(report.Reason, MessageTypeDefOf.RejectInput, false);
             }
-            Current.Game.Gravship = curretGravship;
         }
 
         public void PlaceGravship(VehiclePawnWithMap vehicle)
         {
-            var curretGravship = Current.Game.Gravship;
-            var report = GravshipVehicleUtility.PlaceGravshipVehicle(CompGravshipWheel?.engine, vehicle);
+            var report = GravshipVehicleUtility.PlaceGravshipVehicle(CompGravshipFacility?.engine, vehicle);
             if (!report.Accepted)
             {
                 Messages.Message(report.Reason, MessageTypeDefOf.RejectInput, false);
             }
-            Current.Game.Gravship = curretGravship;
+        }
+
+        public override void DeSpawn(DestroyMode mode = DestroyMode.Vanish)
+        {
+            var engine = CompGravshipFacility?.engine;
+            var onVehicle = this.IsOnVehicleMapOf(out var vehicle) && vehicle.Spawned;
+            base.DeSpawn(mode);
+            AcceptanceReport report;
+            if (onVehicle && engine is not null && !GravshipVehicleUtility.GravshipProcessInProgress && !(report = GravshipVehicleUtility.CheckGravshipVehicleStability(engine, Rot4.North, out _)).Accepted)
+            {
+                Messages.Message(report.Reason, MessageTypeDefOf.NegativeEvent);
+                var loc = engine.Position;
+                var rot = engine.Rotation;
+                Delay.AfterNTicks(0, () =>
+                {
+                    GravshipVehicleUtility.PlaceGravshipVehicleUnSpawned(engine, loc, rot, vehicle, true);
+                });
+            }
+        }
+
+        public override void Print(SectionLayer layer)
+        {
+            var pos = Position;
+            tmpRot = Rotation;
+            if (flipped)
+            {
+                rotationInt(this) = tmpRot.Value.Opposite;
+                SetPositionDirect(pos + new IntVec3(def.Size.x / 2, 0, def.Size.z / 2).RotatedBy(tmpRot.Value));
+            }
+            base.Print(layer);
+            if (flipped)
+            {
+                rotationInt(this) = tmpRot.Value;
+                SetPositionDirect(pos);
+            }
+            tmpRot = null;
+        }
+
+        public bool ValidFor(Rot4 rot)
+        {
+            return (tmpRot ?? Rotation) == rot.Rotated(flipped ? RotationDirection.Clockwise : RotationDirection.Counterclockwise);
+        }
+
+//#if DEBUG
+//        public override void DrawExtraSelectionOverlays()
+//        {
+//            base.DrawExtraSelectionOverlays();
+//            if (CompGravshipFacility.engine is null) return;
+//            var engine = CompGravshipFacility.engine;
+//            var console = engine.GravshipComponents.FirstOrDefault(c => c is CompPilotConsole);
+//            if (console is null) return;
+//            _ = GravshipVehicleUtility.CheckGravshipVehicleStability(engine, console.parent.Rotation, out var wheelsRect);
+//            GenDraw.DrawCellRect(CellRect.FromCellList(engine.ValidSubstructure), Vector3.zero, SolidColorMaterials.SimpleSolidColorMaterial(Color.red.WithAlpha(0.25f)));
+//            GenDraw.DrawCellRect(wheelsRect, Vector3.zero, SolidColorMaterials.SimpleSolidColorMaterial(Color.blue.WithAlpha(0.25f)));
+//        }
+//#endif
+
+        public override void ExposeData()
+        {
+            base.ExposeData();
+            Scribe_Values.Look(ref flipped, "flipped");
         }
     }
 }

@@ -54,14 +54,14 @@ public static class Patch_ItemGraphicWorker_DrawOffsetForItem
             //stackBehaviourがCircleの時
             if (building == null || stackBehaviour(graphic(__instance)) == 1) return;
 
-            var angle = VehicleMapUtility.rotForPrint.AsAngle;
+            var angle = VehicleMapUtility.RotForPrint.AsAngle;
             Vector3 origin;
             var parentDrawLoc = building.DrawPos;
-            if (VehicleMapUtility.rotForPrint == Rot4.East)
+            if (VehicleMapUtility.RotForPrint == Rot4.East)
             {
                 origin = (item.Position.ToVector3Shifted() - parentDrawLoc).RotatedBy(angle);
             }
-            else if (VehicleMapUtility.rotForPrint == Rot4.West)
+            else if (VehicleMapUtility.RotForPrint == Rot4.West)
             {
                 origin = item.Position.ToVector3Shifted() - parentDrawLoc;
             }
@@ -71,11 +71,11 @@ public static class Patch_ItemGraphicWorker_DrawOffsetForItem
             }
             if (!building.RotationForPrint().IsHorizontal)
             {
-                if (VehicleMapUtility.rotForPrint == Rot4.East)
+                if (VehicleMapUtility.RotForPrint == Rot4.East)
                 {
                     origin = origin.RotatedBy(-angle);
                 }
-                if (VehicleMapUtility.rotForPrint == Rot4.West)
+                if (VehicleMapUtility.RotForPrint == Rot4.West)
                 {
                     origin = origin.RotatedBy(angle);
                 }
@@ -101,6 +101,6 @@ public static class Patch_ItemGraphicWorker_ItemOffsetAt
 {
     public static void Postfix(ref float stackRotation)
     {
-        stackRotation -= VehicleMapUtility.rotForPrint.AsAngle;
+        stackRotation -= VehicleMapUtility.RotForPrint.AsAngle;
     }
 }

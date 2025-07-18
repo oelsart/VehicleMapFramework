@@ -30,19 +30,19 @@ public static class VMF_Widgets
         Rect rect2 = rect;
         rect2.xMin += 6f;
         rect2.xMax -= 6f;
-        GUI.color = VMF_Widgets.RangeControlTextColor * colorFactor;
+        GUI.color = RangeControlTextColor * colorFactor;
         Rect rect3 = new(rect2.x, rect2.y + 2f, rect2.width, 8f);
-        Widgets.DrawAtlas(rect3, VMF_Widgets.SliderRailAtlas);
+        Widgets.DrawAtlas(rect3, SliderRailAtlas);
         GUI.color = colorFactor;
         float x = Mathf.Clamp(rect2.x - 6f + (rect2.width * Mathf.InverseLerp(min, max, num)), rect2.xMin - 6f, rect2.xMax - 6f);
-        GUI.DrawTexture(new Rect(x, rect3.center.y - 6f, 12f, 12f), VMF_Widgets.SliderHandle);
-        if (Event.current.type == EventType.MouseDown && Mouse.IsOver(rect) && VMF_Widgets.sliderDraggingID != num2)
+        GUI.DrawTexture(new Rect(x, rect3.center.y - 6f, 12f, 12f), SliderHandle);
+        if (Event.current.type == EventType.MouseDown && Mouse.IsOver(rect) && sliderDraggingID != num2)
         {
-            VMF_Widgets.sliderDraggingID = num2;
+            sliderDraggingID = num2;
             SoundDefOf.DragSlider.PlayOneShotOnCamera(null);
             Event.current.Use();
         }
-        if (VMF_Widgets.sliderDraggingID == num2 && UnityGUIBugsFixer.MouseDrag(0))
+        if (sliderDraggingID == num2 && UnityGUIBugsFixer.MouseDrag(0))
         {
             num = Mathf.Clamp(((Event.current.mousePosition.x - rect2.x) / rect2.width * (max - min)) + min, min, max);
             if (Event.current.type == EventType.MouseDrag)
@@ -81,10 +81,10 @@ public static class VMF_Widgets
         }
         if (value != num)
         {
-            if (Time.realtimeSinceStartup > VMF_Widgets.lastDragSliderSoundTime + 0.075f)
+            if (Time.realtimeSinceStartup > lastDragSliderSoundTime + 0.075f)
             {
                 SoundDefOf.DragSlider.PlayOneShotOnCamera(null);
-                VMF_Widgets.lastDragSliderSoundTime = Time.realtimeSinceStartup;
+                lastDragSliderSoundTime = Time.realtimeSinceStartup;
             }
         }
         GUI.color = color;

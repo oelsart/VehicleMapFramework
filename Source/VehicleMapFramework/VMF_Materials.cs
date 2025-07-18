@@ -17,5 +17,5 @@ public static class VMF_Materials
         return mat;
     }
 
-    public static readonly Material LightOverlayColorDodge = VMF_Materials.LoadMat("LightOverlayColorDodge");
+    public static readonly Material LightOverlayColorDodge = LoadMat("LightOverlayColorDodge");
 }

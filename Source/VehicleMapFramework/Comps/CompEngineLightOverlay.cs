@@ -18,7 +18,7 @@ public class CompEngineLightOverlay : CompOpacityOverlay
     {
         var overlay = Overlay;
         var graphic = overlay?.Graphic as Graphic_VehicleOpacity;
-        if (base.Vehicle.ignition.Drafted && !ignitionComplete)
+        if (Vehicle.ignition.Drafted && !ignitionComplete)
         {
             if (ignitionTick == null)
             {
@@ -34,7 +34,7 @@ public class CompEngineLightOverlay : CompOpacityOverlay
                 graphic?.Opacity = opacity;
             }
         }
-        if (!base.Vehicle.ignition.Drafted && ignitionTick != null)
+        if (!Vehicle.ignition.Drafted && ignitionTick != null)
         {
             ignitionTick = null;
             ignitionComplete = false;
@@ -53,12 +53,12 @@ public class CompEngineLightOverlay : CompOpacityOverlay
             }
         }
 
-        if (base.Vehicle.CompVehicleLauncher != null && base.Vehicle.CompVehicleLauncher.inFlight)
+        if (Vehicle.CompVehicleLauncher != null && Vehicle.CompVehicleLauncher.inFlight)
         {
             ignitionTick ??= Find.TickManager.TicksGame;
             if (graphic != null)
             {
-                var launchProtocol = base.Vehicle.CompVehicleLauncher.launchProtocol;
+                var launchProtocol = Vehicle.CompVehicleLauncher.launchProtocol;
                 var timeInAnimation = launchProtocol is VTOLTakeoff vtol ? vtol.TimeInAnimationVTOL : launchProtocol.TimeInAnimation;
                 var opacity = Mathf.Min(graphic.Opacity + ((Props.inFlightOpacity - graphic.Opacity) * timeInAnimation * 0.1f), Props.inFlightOpacity);
                 graphic.Opacity = opacity;

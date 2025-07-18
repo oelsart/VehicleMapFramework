@@ -7,9 +7,11 @@ namespace VehicleMapFramework;
 
 public static class Rot8Utility
 {
+    public static readonly AccessTools.StructFieldRef<Rot4, byte> rot4Int = AccessTools.StructFieldRefAccess<Rot4, byte>("rotInt");
+
     public static IntVec3 RighthandCell(ref Rot4 rot)
     {
-        Rot8Utility.Rotate(ref rot, RotationDirection.Clockwise);
+        Rotate(ref rot, RotationDirection.Clockwise);
         return rot.FacingCell;
     }
 
@@ -67,10 +69,8 @@ public static class Rot8Utility
         }
 
         rot2.AsInt = Rot8.FromIntClockwise(GenMath.PositiveMod(num, 8));
-        rotInt(ref rot) = rot2.AsByte;
+        rot4Int(ref rot) = rot2.AsByte;
     }
-
-    public static readonly AccessTools.StructFieldRef<Rot4, byte> rotInt = AccessTools.StructFieldRefAccess<Rot4, byte>("rotInt");
 
     public static Vector3 ToFundVector3(ref IntVec3 intVec)
     {

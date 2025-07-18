@@ -60,7 +60,7 @@ public static class Patches_TabulaRasa
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map,
-                AccessTools.Method(typeof(Patch_Patch_Projectile_CheckForFreeInterceptBetween_Postfix), nameof(Patch_Patch_Projectile_CheckForFreeInterceptBetween_Postfix.ReplaceMap)));
+                AccessTools.Method(typeof(Patch_Patch_Projectile_CheckForFreeInterceptBetween_Postfix), nameof(ReplaceMap)));
         }
 
         private static Map ReplaceMap(Projectile instance)
@@ -108,7 +108,7 @@ public static class Patches_TabulaRasa
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map,
-                AccessTools.Method(typeof(Patch_Patch_Skyfaller_Tick_Prefix), nameof(Patch_Patch_Skyfaller_Tick_Prefix.ReplaceMap)));
+                AccessTools.Method(typeof(Patch_Patch_Skyfaller_Tick_Prefix), nameof(ReplaceMap)));
         }
 
         private static Map ReplaceMap(Skyfaller instance)

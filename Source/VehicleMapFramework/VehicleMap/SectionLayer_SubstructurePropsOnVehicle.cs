@@ -168,13 +168,14 @@ namespace VehicleMapFramework
                 return;
             }
 
+            VehicleMapUtility.RotForPrint = Rot4.North;
             for (var i = 0; i < 4; i++)
             {
                 try
                 {
                     subMeshes = subMeshesByRot[i];
                     ClearSubMeshes(MeshParts.All);
-                    Map map = base.Map;
+                    Map map = Map;
                     TerrainGrid terrainGrid = map.terrainGrid;
                     CellRect cellRect = section.CellRect;
                     float altitude = AltitudeLayer.TerrainScatter.AltitudeFor() / VehicleMapUtility.YCompress;
@@ -198,9 +199,10 @@ namespace VehicleMapFramework
                 }
                 finally
                 {
-                    VehicleMapUtility.rotForPrint.Rotate(RotationDirection.Clockwise);
+                    VehicleMapUtility.RotForPrint = VehicleMapUtility.RotForPrint.Rotated(RotationDirection.Clockwise);
                 }
             }
+            VehicleMapUtility.RotForPrint = Rot4.North;
         }
 
         private void DrawEdges(IntVec3 c, EdgeDirections edgeDirs, float altitude)
@@ -237,8 +239,8 @@ namespace VehicleMapFramework
 
         private void AddQuad(LayerSubMesh sm, IntVec3 c, float altitude, Rot4 rotation, bool addGravshipMask)
         {
-            c = c.RotatedBy(VehicleMapUtility.rotForPrint);
-            var offset = -UVs[VehicleMapUtility.rotForPrint.AsInt];
+            c = c.RotatedBy(VehicleMapUtility.RotForPrint);
+            var offset = -UVs[VehicleMapUtility.RotForPrint.AsInt];
 
             int count = sm.verts.Count;
             int num = Mathf.Abs(4 - rotation.AsInt);
@@ -272,8 +274,8 @@ namespace VehicleMapFramework
             }
             for (int i = 0; i < GenAdj.CardinalDirections.Length; i++)
             {
-                IntVec3 c2 = c + GenAdj.CardinalDirections[GenMath.PositiveMod(i - VehicleMapUtility.rotForPrint.AsInt, 4)];
-                if (!c2.InBounds(base.Map))
+                IntVec3 c2 = c + GenAdj.CardinalDirections[GenMath.PositiveMod(i - VehicleMapUtility.RotForPrint.AsInt, 4)];
+                if (!c2.InBounds(Map))
                 {
                     edgeEdgeDirections |= (EdgeDirections)(1 << i);
                     continue;
@@ -286,8 +288,8 @@ namespace VehicleMapFramework
             }
             for (int j = 0; j < GenAdj.DiagonalDirections.Length; j++)
             {
-                IntVec3 c3 = c + GenAdj.DiagonalDirections[GenMath.PositiveMod(j - VehicleMapUtility.rotForPrint.AsInt, 4)];
-                if (!c3.InBounds(base.Map))
+                IntVec3 c3 = c + GenAdj.DiagonalDirections[GenMath.PositiveMod(j - VehicleMapUtility.RotForPrint.AsInt, 4)];
+                if (!c3.InBounds(Map))
                 {
                     cornerDirections |= (CornerDirections)(1 << j);
                     continue;

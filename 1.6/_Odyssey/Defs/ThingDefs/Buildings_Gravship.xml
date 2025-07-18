@@ -7,44 +7,42 @@
 		<thingClass>VehicleMapFramework.Building_GravshipWheel</thingClass>
 		<designationCategory>VF_Vehicles</designationCategory>
 		<rotatable>true</rotatable>
-		<passability>Impassable</passability>
-		<tickerType>Rare</tickerType>
 		<blockWind>true</blockWind>
 		<canOverlapZones>false</canOverlapZones>
 		<graphicData>
 			<texPath>VehicleMapFramework/Things/GravshipWheel/GravshipWheel</texPath>
 			<graphicClass>Graphic_Multi</graphicClass>
 			<shaderType>CutoutComplex</shaderType>
-			<drawSize>(1,2)</drawSize>
+			<drawSize>(2,1)</drawSize>
 		</graphicData>
 		<statBases>
 			<MaxHitPoints>100</MaxHitPoints>
-			<Beauty>-1</Beauty>
-			<WorkToBuild>1000</WorkToBuild>
+			<Beauty>-3</Beauty>
+			<WorkToBuild>1500</WorkToBuild>
 			<Mass>1</Mass>
 		</statBases>
-		<size>(1,2)</size>
+		<size>(2,1)</size>
+		<fillPercent>0.8</fillPercent>
 		<costList>
-			<Steel>50</Steel>
+			<Steel>160</Steel>
 		</costList>
 		<building>
+			<isEdifice>false</isEdifice>
+			<isAttachment>true</isAttachment>
 			<destroySound>BuildingDestroyed_Metal_Big</destroySound>
 		</building>
-		<uiOrder>1050</uiOrder>
-		<disableImpassableShotOverConfigError>true</disableImpassableShotOverConfigError>
+		<placeWorkers>
+			<li>VehicleMapFramework.PlaceWorker_AttachedWallPreventOverlap</li>
+		</placeWorkers>
+		<uiOrder>1030</uiOrder>
 		<researchPrerequisites>
 			<li>BasicGravtech</li>
 		</researchPrerequisites>
 		<comps>
 			<li Class="CompProperties_GravshipFacility">
-				<compClass>VehicleMapFramework.CompGravshipWheel</compClass>
 				<requiresLOS>false</requiresLOS>
 				<maxSimultaneous>200</maxSimultaneous>
 				<maxDistance>200</maxDistance>
-			</li>
-			<li Class="CompProperties_Power">
-				<compClass>CompPowerTrader</compClass>
-				<basePowerConsumption>250</basePowerConsumption>
 			</li>
 			<li Class = "VehicleMapFramework.CompProperties_BuildableUpgrades">
 				<upgrades>
@@ -52,7 +50,11 @@
 						<vehicleStats>
 							<li>
 								<def>MaximumPayload</def>
-								<value>1500</value>
+								<value>1200</value>
+							</li>
+							<li>
+								<def>MoveSpeed</def>
+								<value>0.5</value>
 							</li>
 						</vehicleStats>
 					</li>

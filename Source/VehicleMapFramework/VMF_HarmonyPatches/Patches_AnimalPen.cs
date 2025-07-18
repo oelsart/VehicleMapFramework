@@ -110,7 +110,7 @@ public static class Patch_AnimalPenUtility_GetPenAnimalShouldBeTakenTo
         codes.InsertRange(pos,
         [
             CodeInstruction.LoadLocal(1),
-            CodeInstruction.Call(typeof(Patch_AnimalPenUtility_GetPenAnimalShouldBeTakenTo), nameof(Patch_AnimalPenUtility_GetPenAnimalShouldBeTakenTo.AddPenMarkers))
+            CodeInstruction.Call(typeof(Patch_AnimalPenUtility_GetPenAnimalShouldBeTakenTo), nameof(AddPenMarkers))
         ]);
 
         return codes.MethodReplacer(AccessTools.Method(typeof(AnimalPenUtility), "CheckUseAndReach"),
@@ -142,7 +142,7 @@ public static class Patch_AnimalPenUtility_GetHitchingPostAnimalShouldBeTakenTo
         [
             CodeInstruction.LoadArgument(1),
             new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_Thing_Map),
-            CodeInstruction.Call(typeof(Patch_AnimalPenUtility_GetHitchingPostAnimalShouldBeTakenTo), nameof(Patch_AnimalPenUtility_GetHitchingPostAnimalShouldBeTakenTo.AddHitchingPosts))
+            CodeInstruction.Call(typeof(Patch_AnimalPenUtility_GetHitchingPostAnimalShouldBeTakenTo), nameof(AddHitchingPosts))
         ]);
 
         var count = 0;

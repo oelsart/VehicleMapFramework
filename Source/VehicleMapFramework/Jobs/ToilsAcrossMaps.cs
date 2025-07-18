@@ -279,7 +279,7 @@ public static class ToilsAcrossMaps
 
             //enterSpotの手前の場所まで行く。vehicleの長さ分のオフセットはメソッド内でやっている
             var vehiclePawn = driver.pawn as VehiclePawn;
-            var toil = ToilsAcrossMaps.GotoVehicleEnterSpot(enterSpot);
+            var toil = GotoVehicleEnterSpot(enterSpot);
             yield return toil;
 
             //ドアがあれば開ける

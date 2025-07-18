@@ -58,10 +58,10 @@ public class CompAlternator : CompPowerPlant
         base.UpdateDesiredPowerOutput();
         if (compFueledTravel == null || fuelProps == null || compFueledTravel.Props.ElectricPowered || compFueledTravel.Fuel < ConsumptionRatePerTick)
         {
-            base.PowerOutput = 0f;
+            PowerOutput = 0f;
         }
 
-        if (base.PowerOutput > 0f)
+        if (PowerOutput > 0f)
         {
             compFueledTravel.ConsumeFuel(ConsumptionRatePerTick);
         }

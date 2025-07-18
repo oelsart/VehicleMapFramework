@@ -1,9 +1,10 @@
 ﻿using HarmonyLib;
 using RimWorld;
-using RimWorld.Planet;
 using SmashTools;
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 using Vehicles;
 using Verse;
 
@@ -11,11 +12,42 @@ namespace VehicleMapFramework
 {
     public static class GravshipVehicleUtility
     {
+        public static bool placingGravshipVehicle;
+
         private static Func<IntVec3, Map, AcceptanceReport> IsValidCell = (Func<IntVec3, Map, AcceptanceReport>)AccessTools.Method(typeof(Designator_MoveGravship), "IsValidCell").CreateDelegate(typeof(Func<IntVec3, Map, AcceptanceReport>));
+
+        private static Action<Def, Type, HashSet<ushort>> GiveShortHash = (Action<Def, Type, HashSet<ushort>>)AccessTools.Method(typeof(ShortHashGiver), "GiveShortHash").CreateDelegate(typeof(Action<Def, Type, HashSet<ushort>>));
+
+        private static Dictionary<Type, HashSet<ushort>> takenHashesPerDeftype = AccessTools.StaticFieldRefAccess<Dictionary<Type, HashSet<ushort>>>(typeof(ShortHashGiver), "takenHashesPerDeftype");
+
+        public static bool GravshipProcessInProgress => GravshipUtility.generatingGravship || GravshipPlacementUtility.placingGravship || placingGravshipVehicle;
+
+        public static void PlaceGravshipVehicleUnSpawned(Building_GravEngine engine, IntVec3 loc, Rot4 rot, VehiclePawnWithMap vehicle, bool forced = false)
+        {
+            if (!ModsConfig.OdysseyActive || GravshipProcessInProgress) return;
+
+            var spawned = engine.Spawned;
+            var destroyed = engine.Destroyed;
+            var minified = engine.SpawnedParentOrMe as MinifiedThing;
+            if (!spawned)
+            {
+                GenSpawn.Spawn(engine, loc, vehicle.VehicleMap, rot);
+            }
+            PlaceGravshipVehicle(engine, vehicle, forced);
+            if (destroyed)
+            {
+                engine.Destroy();
+            }
+            else if (!spawned)
+            {
+                engine.DeSpawn();
+            }
+            minified?.InnerThing = engine;
+        }
 
         public static AcceptanceReport PlaceGravshipVehicle(Building_GravEngine engine, VehiclePawnWithMap vehicle, bool forced = false)
         {
-            if (!ModsConfig.OdysseyActive) return false;
+            if (!ModsConfig.OdysseyActive || GravshipProcessInProgress) return false;
 
             if (engine is null)
             {
@@ -26,64 +58,79 @@ namespace VehicleMapFramework
                 return "VMF_VehicleDiagonal".Translate();
             }
 
-            var wheels = engine.GravshipComponents.OfType<CompGravshipWheel>()
-                .Where(w => w.parent.Rotation == Rot4.North)
-                .Where(w => w.AdjacentCells.Any(engine.ValidSubstructure.Contains) && !w.parent.OccupiedRect().Any(engine.ValidSubstructure.Contains))
-                .ToDictionary(c => c.parent, c => new PositionData(c.parent.Position.ToBaseMapCoord(vehicle), Rot4.North));
-            var substructureCells = engine.ValidSubstructure;
-            foreach (var c in wheels.SelectMany(w => w.Key.OccupiedRect().Cells).Union(substructureCells))
+            placingGravshipVehicle = true;
+            var curretGravship = Current.Game.Gravship;
+            try
             {
-                var report = IsValidCell(c.ToBaseMapCoord(vehicle), vehicle.Map);
-                if (!report.Accepted)
+                foreach (var c in engine.AllConnectedSubstructure)
                 {
-                    if (!forced)
+                    var report = IsValidCell(c.ToBaseMapCoord(vehicle), vehicle.Map);
+                    if (!report.Accepted)
                     {
-                        return report;
+                        if (!forced)
+                        {
+                            return report;
+                        }
+                        var terrainGrid = vehicle.VehicleMap.terrainGrid;
+                        if (terrainGrid.CanRemoveFoundationAt(c))
+                        {
+                            terrainGrid.RemoveFoundation(c);
+                        }
+                        c.GetThingList(vehicle.VehicleMap)
+                            .SelectMany(t => t.OccupiedRect().Cells)
+                            .Distinct()
+                            .DoIf(terrainGrid.CanRemoveFoundationAt, c => terrainGrid.RemoveFoundation(c));
                     }
-                    vehicle.VehicleMap.terrainGrid.RemoveFoundation(c);
-                    var wheel = wheels.FirstOrDefault(w => w.Key.OccupiedRect().Contains(c));
-                    wheels.Remove(wheel.Key);
+                }
+                vehicle.DisembarkAll();
+
+                var map = vehicle.Map;
+                var rot = vehicle.Rotation;
+
+                var roomStats = vehicle.VehicleMap.regionGrid.AllRooms
+                    .Where(r => !r.ExposedToSpace && r.AnyPassable)
+                    .Select(r => (r.Cells.FirstOrDefault().ToBaseMapCoord(vehicle), r.Temperature, r.Vacuum)).ToList();
+                var gravship = GravshipUtility.GenerateGravship(engine);
+                gravship.Rotation = rot;
+                var root = gravship.originalPosition.ToBaseMapCoord(vehicle);
+
+                //先にPlaceしないとvehicleがDestroyした瞬間にマップが閉じてしまう可能性がある
+                GravshipPlacementUtility.PlaceGravshipInMap(gravship, root, map, out _);
+                //通常はGravshipに潰されてDestroyしているはず
+                if (!vehicle.Destroyed)
+                {
+                    vehicle.Destroy();
+                }
+                foreach (var r in roomStats)
+                {
+                    var room = r.Item1.GetRoom(map);
+                    if (room != null && !room.ExposedToSpace && room.AnyPassable)
+                    {
+                        room.Temperature = r.Temperature;
+                        room.Vacuum = r.Vacuum;
+                    }
+                }
+                if (forced)
+                {
+                    FleckMaker.ThrowDustPuff(gravship.originalPosition, map, Mathf.Max(vehicle.def.size.x, vehicle.def.size.z) + 2f);
                 }
             }
-            foreach (Thing thing in wheels.Keys)
+            finally
             {
-                thing.PreSwapMap();
-                if (thing.Spawned)
-                {
-                    thing.DeSpawn(DestroyMode.WillReplace);
-                }
-            }
-
-            var gravship = GravshipUtility.GenerateGravship(engine);
-            var rot = vehicle.Rotation;
-            gravship.Rotation = rot;
-            var map = vehicle.Map;
-            var root = gravship.originalPosition.ToBaseMapCoord(vehicle);
-
-            vehicle.Destroy();
-            GravshipPlacementUtility.PlaceGravshipInMap(gravship, root, map, out _);
-            foreach (var wheel in wheels)
-            {
-                var thing = wheel.Key;
-                if (!thing.Destroyed)
-                {
-                    var pos = wheel.Value.position;
-                    var size = thing.def.Size;
-                    //GenAdj.AdjustForRotation(ref pos, ref size, rot);
-                    GenSpawn.Spawn(thing, pos, map, rot);
-                }
+                Current.Game.Gravship = curretGravship;
+                placingGravshipVehicle = false;
             }
             return true;
         }
 
-        public static AcceptanceReport GenerateGravshipVehicle(Building_GravEngine engine, Map map)
+        public static AcceptanceReport GenerateGravshipVehicle(Building_GravEngine engine)
         {
-            if (!ModsConfig.OdysseyActive) return false;
-
-            if (engine is null)
+            if (!ModsConfig.OdysseyActive || GravshipProcessInProgress) return false;
+            if (engine is null || !engine.Spawned)
             {
                 return "VMF_NoConnectedEngine".Translate();
             }
+            var map = engine.Map;
             var console = engine.GravshipComponents.FirstOrDefault(c => c is CompPilotConsole);
             if (console is null)
             {
@@ -92,38 +139,22 @@ namespace VehicleMapFramework
             var rot = console.parent.Rotation;
             var rotCounter = rot.IsHorizontal ? rot.Opposite : rot;
 
-            var wheels = engine.GravshipComponents.OfType<CompGravshipWheel>()
-                .Where(w => w.parent.Rotation == rot)
-                .Where(w => w.AdjacentCells.Any(engine.ValidSubstructure.Contains) && !w.parent.OccupiedRect().Any(engine.ValidSubstructure.Contains))
-                .ToDictionary(c => c.parent, c => new PositionData(c.parent.Position, Rot4.North));
-            var wheelCells = wheels.Keys.SelectMany(w => w.OccupiedRect()).ToList();
-            var wheelsRect = CellRect.FromCellList(wheelCells);
-            var gravship = GravshipUtility.GenerateGravship(engine);
-            var bounds = gravship.Bounds;
-            wheelsRect = wheelsRect.MovedBy(-gravship.originalPosition);
-
-            if (wheels.Count < 3 || (float)wheelsRect.ClipInsideRect(bounds).Area / bounds.Area < 0.5f)
+            var stability = CheckGravshipVehicleStability(engine, rot, out var wheelsRect);
+            if (!stability.Accepted)
             {
-                GravshipPlacementUtility.PlaceGravshipInMap(gravship, gravship.originalPosition, map, out _);
-                return "VMF_WheelsUnstable".Translate();
+                return stability.Reason;
             }
+
+            var cells = engine.ValidSubstructure;
+            var bounds = CellRect.FromCellList(cells);
             var cellRect = bounds.Encapsulate(wheelsRect);
-            var cells = gravship.Foundations.Keys;
-            var outOfBoundsCells = cellRect.Except(cells).Select(c => c + gravship.originalPosition).Except(wheelCells).Select(map.cellIndices.CellToIndex);
+            var outOfBoundsCells = cellRect.Except(cells);
             var pathGrid = ComponentCache.GetCachedMapComponent<VehiclePathingSystem>(map)[VMF_DefOf.VMF_GravshipVehicleBase].VehiclePathGrid;
-            if (!outOfBoundsCells.All(pathGrid.WalkableFast))
+            var unwalkableCells = outOfBoundsCells.Where(c => !pathGrid.WalkableFast(c)).ToList();
+            if (unwalkableCells.Any())
             {
-                GravshipPlacementUtility.PlaceGravshipInMap(gravship, gravship.originalPosition, map, out _);
+                unwalkableCells.Do(c => map.debugDrawer.FlashCell(c, 0.5f));
                 return "VMF_RectContainsImpassable".Translate();
-            }
-
-            foreach (Thing thing in wheels.Keys)
-            {
-                thing.PreSwapMap();
-                if (thing.Spawned)
-                {
-                    thing.DeSpawn(DestroyMode.WillReplace);
-                }
             }
             var min = cellRect.GetCorner(rot.Opposite);
 
@@ -134,45 +165,69 @@ namespace VehicleMapFramework
                 offset = new(0f, 0f, 0.25f),
                 outOfBoundsCells = [.. cellRect.Except(cells).Select(c => (c - min).RotatedBy(rotCounter).ToIntVec2)]
             };
-            VMF_Log.Debug($"Create or get VehicleDef: {props.DefName}");
-            var vehicleDef = DefDatabase<VehicleDef>.GetNamedSilentFail(props.DefName);
-            vehicleDef ??= GenerateGravshipVehicleDef(props);
-            vehicleDef.size = props.size;
 
-            var vehiclePawn = (VehiclePawnWithMap)VehicleSpawner.GenerateVehicle(vehicleDef, Faction.OfPlayer);
-            if (vehiclePawn?.VehicleMap is null) return false;
-
-            map.GetCachedMapComponent<VehiclePathingSystem>().RequestGridsFor(vehiclePawn);
-
-            var root = cellRect.MovedBy(gravship.originalPosition).CenterCell;
-            Thing spawnedVehicle = null;
+            var curretGravship = Current.Game.Gravship;
             try
             {
-                spawnedVehicle = GenSpawn.Spawn(vehiclePawn, root, map, rot);
-            }
-            catch (Exception ex)
-            {
-                VMF_Log.Error($"Error while spawning gravship vehicle.\n{ex.Message}");
-            }
-            if (spawnedVehicle is null)
-            {
-                GravshipPlacementUtility.PlaceGravshipInMap(gravship, gravship.originalPosition, map, out _);
-                return false;
-            }
+                VMF_Log.Debug($"Create or get VehicleDef: {props.DefName}");
+                var vehicleDef = DefDatabase<VehicleDef>.GetNamedSilentFail(props.DefName);
+                vehicleDef ??= GenerateGravshipVehicleDef(props);
+                vehicleDef.size = props.size;
+                vehicleDef.modExtensions = [props];
 
-            gravship.Rotation = rotCounter;
-            var minOffset = min + gravship.originalPosition;
-            VMF_Log.Debug($"Place gravship to {(gravship.originalPosition - minOffset).RotatedBy(rotCounter) + IntVec3.NorthEast}");
-            GravshipPlacementUtility.PlaceGravshipInMap(gravship, (gravship.originalPosition - minOffset).RotatedBy(rotCounter) + IntVec3.NorthEast, vehiclePawn.VehicleMap, out _);
+                var vehiclePawn = (VehiclePawnWithMap)VehicleSpawner.GenerateVehicle(vehicleDef, Faction.OfPlayer);
+                if (vehiclePawn?.VehicleMap is null) return false;
 
-            foreach (var wheel in wheels)
-            {
-                Thing thing = wheel.Key;
-                if (!thing.Destroyed)
+                var roomStats = map.regionGrid.AllRooms
+                .Where(r => r.Cells.Any(cells.Contains))
+                .Where(r => !r.ExposedToSpace && r.AnyPassable)
+                .Select(r => (r.Cells.FirstOrDefault(), r.Temperature, r.Vacuum)).ToList();
+                var gravship = GravshipUtility.GenerateGravship(engine);
+
+                map.GetCachedMapComponent<VehiclePathingSystem>().RequestGridsFor(vehiclePawn);
+                Thing spawnedVehicle = null;
+                try
                 {
-                    GenSpawn.Spawn(thing, (wheel.Value.position - minOffset).RotatedBy(rotCounter) + IntVec3.NorthEast, vehiclePawn.VehicleMap, Rot4.North);
+                    spawnedVehicle = GenSpawn.Spawn(vehiclePawn, cellRect.CenterCell, map, rot);
+                }
+                catch (Exception ex)
+                {
+                    VMF_Log.Error($"Error while spawning gravship vehicle.\n{ex.Message}");
+                }
+                if (spawnedVehicle is null)
+                {
+                    GravshipPlacementUtility.PlaceGravshipInMap(gravship, gravship.originalPosition, map, out _);
+                }
+
+                gravship.Rotation = rotCounter;
+                var minOffset = gravship.originalPosition - min;
+                VMF_Log.Debug($"Place gravship to {minOffset.RotatedBy(rotCounter) + IntVec3.NorthEast}");
+                GravshipPlacementUtility.PlaceGravshipInMap(gravship, minOffset.RotatedBy(rotCounter) + IntVec3.NorthEast, vehiclePawn.VehicleMap, out _);
+
+                var buildRoof = map.areaManager.BuildRoof;
+                var buildRoofCells = buildRoof.ActiveCells;
+                var buildRoofOnVehicle = vehiclePawn.VehicleMap.areaManager.BuildRoof;
+                foreach (var c in buildRoofCells.Intersect(cells))
+                {
+                    buildRoof[c] = false;
+                    buildRoofOnVehicle[(c - min).RotatedBy(rotCounter) + IntVec3.NorthEast] = true;
+                }
+                foreach (var r in roomStats)
+                {
+                    var c = (r.Item1 - min).RotatedBy(rotCounter) + IntVec3.NorthEast;
+                    var room = c.GetRoom(vehiclePawn.VehicleMap);
+                    if (room != null && !room.ExposedToSpace && room.AnyPassable)
+                    {
+                        room.Temperature = r.Temperature;
+                        room.Vacuum = r.Vacuum;
+                    }
                 }
             }
+            finally
+            {
+                Current.Game.Gravship = curretGravship;
+            }
+
             return true;
         }
 
@@ -185,7 +240,41 @@ namespace VehicleMapFramework
             VehicleMod.GenerateImpliedDefs(vehicleDef, false);
             DefGenerator.AddImpliedDef(vehicleDef);
             DefDatabase<ThingDef>.Add(vehicleDef);
+            LongEventHandler.ExecuteWhenFinished(() =>
+            {
+                VehicleTex.CachedTextureIconPaths[vehicleDef] = WorldObjectDefOf.Gravship.expandingIconTexture;
+                VehicleTex.CachedTextureIcons[vehicleDef] = WorldObjectDefOf.Gravship.ExpandingIconTexture;
+                AccessTools.StaticFieldRefAccess<Dictionary<(VehicleDef, Rot4), Texture2D>>(typeof(VehicleTex), "CachedVehicleTextures")[(vehicleDef, Rot4.North)]
+                = VehicleTex.VehicleTexture(VMF_DefOf.VMF_GravshipVehicleBase, Rot4.North, out _);
+            });
             return vehicleDef;
+        }
+
+
+
+        public static AcceptanceReport CheckGravshipVehicleStability(Building_GravEngine engine, Rot4 rot, out CellRect wheelsRect)
+        {
+            var cells = engine.ValidSubstructure;
+            var wheels = engine.GravshipComponents.Select(c => c.parent).OfType<Building_GravshipWheel>()
+                .Where(w => w.ValidFor(rot))
+                .Where(w =>
+                {
+                    var wall = GenConstruct.GetWallAttachedTo(w);
+                    return wall?.OccupiedRect().Any(cells.Contains) ?? false;
+                })
+                .Where(w => !w.OccupiedRect().Intersect(cells).Any()).ToList();
+            var wheelCells = wheels.SelectMany(w => w.OccupiedRect());
+            wheelsRect = CellRect.FromCellList(wheelCells);
+            var bounds = CellRect.FromCellList(cells);
+
+            var wheelsRect2 = wheelsRect;
+            wheelsRect2.ClipInsideRect(bounds);
+            if (wheels.Count < 3 || (float)wheelsRect2.Area / bounds.Area < 0.5f)
+            {
+                wheelsRect2.Do(c => engine.Map.debugDrawer.FlashCell(c, 0.25f, null, 5));
+                return "VMF_WheelsUnstable".Translate();
+            }
+            return true;
         }
 
         private static VehicleDef GenerateInner(VehicleMapProps_Gravship props)
@@ -200,12 +289,13 @@ namespace VehicleMapFramework
             def.defName = props.DefName;
             def.label = "Gravship".Translate();
             def.size = props.size;
-            def.shortHash = (ushort)(GenText.StableStringHash(def.defName) % 65535);
             def.graphicData = new GraphicDataRGB();
             def.graphicData.CopyFrom(baseDef.graphicData);
             def.graphicData.drawSize = props.size.ToVector2();
             def.modContentPack = VehicleMapFramework.mod.Content;
             def.modExtensions = [props];
+            def.shortHash = 0;
+            GiveShortHash(def, typeof(ThingDef), takenHashesPerDeftype[typeof(ThingDef)]);
             return def;
         }
     }

@@ -32,7 +32,7 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
             codes.InsertRange(pos,
             [
                 CodeInstruction.LoadArgument(0),
-            CodeInstruction.Call(typeof(Patch_GarageDoor_DrawAt), nameof(Patch_GarageDoor_DrawAt.RotateOffset))
+            CodeInstruction.Call(typeof(Patch_GarageDoor_DrawAt), nameof(RotateOffset))
             ]);
             pos = codes.FindIndex(pos, c => c.opcode == OpCodes.Call && c.OperandIs(CachedMethodInfo.g_Thing_Rotation));
             codes[pos].operand = CachedMethodInfo.m_BaseRotation;

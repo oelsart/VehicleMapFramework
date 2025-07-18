@@ -72,7 +72,8 @@ public class CrossMapHaulDestinationManager(Map map) : MapComponent(map)
     {
         if (allHaulDestinationsInOrder.Contains(haulDestination))
         {
-            VMF_Log.Error("Double-added haul destination " + haulDestination.ToStringSafe());
+            //車両マップから下のマップに転写するので、GravshipVehicleでHaulDestinationが再び下のマップに登録されてしまうこともあるわなと思ってエラーを無効化
+            //VMF_Log.Error("Double-added haul destination " + haulDestination.ToStringSafe());
             return;
         }
 
@@ -96,11 +97,11 @@ public class CrossMapHaulDestinationManager(Map map) : MapComponent(map)
 
     public void RemoveHaulDestination(IHaulDestination haulDestination)
     {
-        if (!allHaulDestinationsInOrder.Contains(haulDestination))
-        {
-            VMF_Log.Error("Removing haul destination that isn't registered " + haulDestination.ToStringSafe());
-            return;
-        }
+        //if (!allHaulDestinationsInOrder.Contains(haulDestination))
+        //{
+        //    VMF_Log.Error("Removing haul destination that isn't registered " + haulDestination.ToStringSafe());
+        //    return;
+        //}
 
         allHaulDestinationsInOrder.Remove(haulDestination);
         if (haulDestination is not ISlotGroupParent slotGroupParent)
@@ -122,7 +123,8 @@ public class CrossMapHaulDestinationManager(Map map) : MapComponent(map)
     {
         if (allHaulSourcesInOrder.Contains(source))
         {
-            VMF_Log.Error("Double-added haul destination " + source.ToStringSafe());
+            //車両マップから下のマップに転写するので、GravshipVehicleでHaulDestinationが再び下のマップに登録されてしまうこともあるわなと思ってエラーを無効化
+            //VMF_Log.Error("Double-added haul destination " + source.ToStringSafe());
             return;
         }
 
@@ -134,7 +136,7 @@ public class CrossMapHaulDestinationManager(Map map) : MapComponent(map)
     {
         if (!allHaulSourcesInOrder.Remove(source))
         {
-            VMF_Log.Error("Removing haul source that isn't registered " + source.ToStringSafe());
+            //VMF_Log.Error("Removing haul source that isn't registered " + source.ToStringSafe());
         }
     }
 

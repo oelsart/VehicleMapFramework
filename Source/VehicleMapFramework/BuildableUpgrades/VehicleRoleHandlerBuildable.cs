@@ -2,13 +2,15 @@
 using RimWorld;
 using RimWorld.Planet;
 using SmashTools;
+using SmashTools.Rendering;
 using System.Linq;
+using UnityEngine;
 using Vehicles;
 using Verse;
 
 namespace VehicleMapFramework;
 
-public class VehicleRoleHandlerBuildable : VehicleRoleHandler, IExposable, IThingHolderWithDrawnPawn
+public class VehicleRoleHandlerBuildable : VehicleRoleHandler, IExposable, IThingHolderWithDrawnPawn, IParallelRenderer
 {
     float IThingHolderWithDrawnPawn.HeldPawnDrawPos_Y
     {
@@ -23,7 +25,7 @@ public class VehicleRoleHandlerBuildable : VehicleRoleHandler, IExposable, IThin
             {
                 rot = vehicle.FullRotation;
             }
-            return vehicle.DrawPos.y + this.role.PawnRenderer.LayerFor(rot);
+            return vehicle.DrawPos.y + this.role.PawnRenderer.LayerFor(rot).YOffset();
         }
     }
 
@@ -40,7 +42,7 @@ public class VehicleRoleHandlerBuildable : VehicleRoleHandler, IExposable, IThin
             {
                 rot = vehicle.FullRotation;
             }
-            return this.role.PawnRenderer.AngleFor(rot);
+            return this.role.PawnRenderer.AngleFor(rot) + vehicle.Transform.rotation;
         }
     }
 
@@ -51,6 +53,24 @@ public class VehicleRoleHandlerBuildable : VehicleRoleHandler, IExposable, IThin
             return PawnPosture.LayingInBedFaceUp;
         }
     }
+
+    void IParallelRenderer.DynamicDrawPhaseAt(DrawPhase phase, in TransformData transformData, bool forceDraw)
+    {
+        DynamicDrawPhaseAt(phase, in transformData, forceDraw);
+    }
+
+#pragma warning disable IDE0060 // 未使用のパラメーターを削除します
+    new public void DynamicDrawPhaseAt(DrawPhase phase, in TransformData transformData, bool forceDraw = false)
+#pragma warning restore IDE0060 // 未使用のパラメーターを削除します
+    {
+        foreach (Pawn item in thingOwner)
+        {
+            Rot4 value = role.PawnRenderer.RotFor(transformData.orientation);
+            Vector3 vector = role.PawnRenderer.DrawOffsetFor(transformData.orientation).RotatedBy(vehicle.Transform.rotation);
+            item.Drawer.renderer.DynamicDrawPhaseAt(phase, transformData.position + vector, value, neverAimWeapon: true);
+        }
+    }
+
 
     public VehicleRoleHandlerBuildable()
     {

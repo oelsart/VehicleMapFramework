@@ -165,7 +165,7 @@ public class Dialog_LoadCargoToBuildableContainer : Window
         }
         else
         {
-            color = GenUI.LerpColor(Dialog_LoadCargoToBuildableContainer.MassColor, MassUsage / MassCapacity);
+            color = GenUI.LerpColor(MassColor, MassUsage / MassCapacity);
         }
         Color color2 = GUI.color;
         GUI.color = color;

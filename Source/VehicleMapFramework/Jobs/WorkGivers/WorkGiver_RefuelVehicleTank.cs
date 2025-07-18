@@ -21,7 +21,7 @@ public class WorkGiver_RefuelVehicleTank : WorkGiver_RefuelVehicle
     {
         var compFuelTank = t.TryGetComp<CompFuelTank>();
         var vehiclePawn = compFuelTank.Vehicle;
-        return vehiclePawn != null && vehiclePawn.CompFueledTravel != null && WorkGiver_RefuelVehicleTank.CanRefuel(pawn, t, forced);
+        return vehiclePawn != null && vehiclePawn.CompFueledTravel != null && CanRefuel(pawn, t, forced);
     }
 
     public override Job JobOnThing(Pawn pawn, Thing t, bool forced = false)

@@ -20,7 +20,7 @@ public class SectionLayer_TerrainOnVehicle : SectionLayer
     public SectionLayer_TerrainOnVehicle(Section section) : base(section)
     {
         relevantChangeTypes = MapMeshFlagDefOf.Terrain;
-        if (base.Map.Parent is not MapParent_Vehicle parentVehicle)
+        if (Map.Parent is not MapParent_Vehicle parentVehicle)
         {
             VMF_Log.Error("Do not use SectionLayer_TerrainOnVehicle except for vehicle maps.");
             return;
@@ -47,7 +47,7 @@ public class SectionLayer_TerrainOnVehicle : SectionLayer
     //drawPlanetがオフでVehicleMapにフォーカスした時しか呼ばれないよ
     public override void DrawLayer()
     {
-        if (!base.Map.IsVehicleMapOf(out var vehicle))
+        if (!Map.IsVehicleMapOf(out var vehicle))
         {
             VMF_Log.Error("Do not use SectionLayer_TerrainOnVehicle except for vehicle maps.");
             return;
@@ -84,8 +84,8 @@ public class SectionLayer_TerrainOnVehicle : SectionLayer
 
     public override void Regenerate()
     {
-        base.ClearSubMeshes(MeshParts.All);
-        TerrainGrid terrainGrid = base.Map.terrainGrid;
+        ClearSubMeshes(MeshParts.All);
+        TerrainGrid terrainGrid = Map.terrainGrid;
         CellRect cellRect = section.CellRect;
         CellTerrain[] array = new CellTerrain[8];
         HashSet<CellTerrain> hashSet = [];
@@ -93,11 +93,11 @@ public class SectionLayer_TerrainOnVehicle : SectionLayer
         foreach (IntVec3 intVec in cellRect)
         {
             hashSet.Clear();
-            CellTerrain cellTerrain = new(terrainGrid.TerrainAt(intVec), intVec.IsPolluted(base.Map), base.Map.snowGrid.GetDepth(intVec), intVec.GetSandDepth(Map), terrainGrid.ColorAt(intVec));
+            CellTerrain cellTerrain = new(terrainGrid.TerrainAt(intVec), intVec.IsPolluted(Map), Map.snowGrid.GetDepth(intVec), intVec.GetSandDepth(Map), terrainGrid.ColorAt(intVec));
 
             if (cellTerrain.def == VMF_DefOf.VMF_VehicleFloor) continue; //デフォルトのVehicleFloorの場合は描画しない
 
-            LayerSubMesh subMesh = base.GetSubMesh(GetMaterialFor(cellTerrain));
+            LayerSubMesh subMesh = GetSubMesh(GetMaterialFor(cellTerrain));
             if (subMesh != null && AllowRenderingFor(cellTerrain.def))
             {
                 int count = subMesh.verts.Count;
@@ -105,10 +105,10 @@ public class SectionLayer_TerrainOnVehicle : SectionLayer
                 subMesh.verts.Add(new Vector3(intVec.x, 0f, intVec.z + 1));
                 subMesh.verts.Add(new Vector3(intVec.x + 1, 0f, intVec.z + 1));
                 subMesh.verts.Add(new Vector3(intVec.x + 1, 0f, intVec.z));
-                subMesh.colors.Add(SectionLayer_TerrainOnVehicle.ColorWhite);
-                subMesh.colors.Add(SectionLayer_TerrainOnVehicle.ColorWhite);
-                subMesh.colors.Add(SectionLayer_TerrainOnVehicle.ColorWhite);
-                subMesh.colors.Add(SectionLayer_TerrainOnVehicle.ColorWhite);
+                subMesh.colors.Add(ColorWhite);
+                subMesh.colors.Add(ColorWhite);
+                subMesh.colors.Add(ColorWhite);
+                subMesh.colors.Add(ColorWhite);
                 subMesh.tris.Add(count);
                 subMesh.tris.Add(count + 1);
                 subMesh.tris.Add(count + 2);
@@ -119,14 +119,14 @@ public class SectionLayer_TerrainOnVehicle : SectionLayer
             for (int i = 0; i < 8; i++)
             {
                 IntVec3 c = intVec + GenAdj.AdjacentCellsAroundBottom[i];
-                if (!c.InBounds(base.Map))
+                if (!c.InBounds(Map))
                 {
                     array[i] = cellTerrain;
                 }
                 else
                 {
-                    CellTerrain cellTerrain2 = new(terrainGrid.TerrainAt(c), c.IsPolluted(base.Map), base.Map.snowGrid.GetDepth(c), c.GetSandDepth(Map), terrainGrid.ColorAt(c));
-                    Thing edifice = c.GetEdifice(base.Map);
+                    CellTerrain cellTerrain2 = new(terrainGrid.TerrainAt(c), c.IsPolluted(Map), Map.snowGrid.GetDepth(c), c.GetSandDepth(Map), terrainGrid.ColorAt(c));
+                    Thing edifice = c.GetEdifice(Map);
                     if (edifice != null && edifice.def.coversFloor)
                     {
                         cellTerrain2.def = TerrainDefOf.Underwall;
@@ -140,7 +140,7 @@ public class SectionLayer_TerrainOnVehicle : SectionLayer
             }
             foreach (CellTerrain cellTerrain3 in hashSet)
             {
-                LayerSubMesh subMesh2 = base.GetSubMesh(GetMaterialFor(cellTerrain3));
+                LayerSubMesh subMesh2 = GetSubMesh(GetMaterialFor(cellTerrain3));
                 if (subMesh2 != null && AllowRenderingFor(cellTerrain3.def))
                 {
                     int count = subMesh2.verts.Count;
@@ -177,14 +177,14 @@ public class SectionLayer_TerrainOnVehicle : SectionLayer
                     {
                         if (array2[l])
                         {
-                            subMesh2.colors.Add(SectionLayer_TerrainOnVehicle.ColorWhite);
+                            subMesh2.colors.Add(ColorWhite);
                         }
                         else
                         {
-                            subMesh2.colors.Add(SectionLayer_TerrainOnVehicle.ColorClear);
+                            subMesh2.colors.Add(ColorClear);
                         }
                     }
-                    subMesh2.colors.Add(SectionLayer_TerrainOnVehicle.ColorClear);
+                    subMesh2.colors.Add(ColorClear);
                     for (int m = 0; m < 8; m++)
                     {
                         subMesh2.tris.Add(count + m);
@@ -194,7 +194,7 @@ public class SectionLayer_TerrainOnVehicle : SectionLayer
                 }
             }
         }
-        base.FinalizeMesh(MeshParts.All);
+        FinalizeMesh(MeshParts.All);
     }
 
     private readonly Material baseTerrainMat;

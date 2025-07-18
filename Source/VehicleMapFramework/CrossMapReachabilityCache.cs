@@ -7,6 +7,10 @@ namespace VehicleMapFramework;
 
 public class CrossMapReachabilityCache(World world) : WorldComponent(world)
 {
+    private int lastCachedTick;
+
+    private Dictionary<CachedEntry, (bool result, TargetInfo exitSpot, TargetInfo enterSpot)> cache = [];
+
     public static CrossMapReachabilityCache Instance => Find.World.GetComponent<CrossMapReachabilityCache>();
 
     public override void WorldComponentUpdate()
@@ -16,6 +20,11 @@ public class CrossMapReachabilityCache(World world) : WorldComponent(world)
             lastCachedTick = Find.TickManager.TicksAbs;
             cache.Clear();
         }
+    }
+
+    public static void ClearCache()
+    {
+        Instance.cache.Clear();
     }
 
     public static bool TryGetCache(TargetInfo depart, TargetInfo dest, TraverseParms traverseParms, out bool result, out TargetInfo exitSpot, out TargetInfo enterSpot)
@@ -38,10 +47,6 @@ public class CrossMapReachabilityCache(World world) : WorldComponent(world)
         var key = new CachedEntry(depart, dest, traverseParms);
         Instance.cache[key] = (result, exitSpot, enterSpot);
     }
-
-    private int lastCachedTick;
-
-    private Dictionary<CachedEntry, (bool result, TargetInfo exitSpot, TargetInfo enterSpot)> cache = [];
 
     private struct CachedEntry : IEquatable<CachedEntry>
     {

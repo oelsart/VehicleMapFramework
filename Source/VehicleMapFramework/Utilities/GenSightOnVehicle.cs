@@ -106,12 +106,12 @@ public static class GenSightOnVehicle
 
     public static bool LineOfSightThingToTarget(Thing thing, LocalTargetInfo target, bool skipFirstCell = false, Func<IntVec3, bool> validator = null)
     {
-        return GenSightOnVehicle.LineOfSight(thing.PositionOnBaseMap(), target.CellOnBaseMap(), thing.BaseMap(), skipFirstCell, validator);
+        return LineOfSight(thing.PositionOnBaseMap(), target.CellOnBaseMap(), thing.BaseMap(), skipFirstCell, validator);
     }
 
     public static bool LineOfSightThingToThing(Thing start, Thing end, bool skipFirstCell = false, Func<IntVec3, bool> validator = null)
     {
-        return GenSightOnVehicle.LineOfSight(start.PositionOnBaseMap(), end.PositionOnBaseMap(), start.BaseMap(), skipFirstCell, validator);
+        return LineOfSight(start.PositionOnBaseMap(), end.PositionOnBaseMap(), start.BaseMap(), skipFirstCell, validator);
     }
 
     public static bool LineOfSightToThing(IntVec3 start, Thing t, Map map, bool skipFirstCell = false, Func<IntVec3, bool> validator = null)
@@ -125,12 +125,12 @@ public static class GenSightOnVehicle
         }
         if (t.def.size == IntVec2.One)
         {
-            return GenSightOnVehicle.LineOfSight(start, t.PositionOnBaseMap(), map, skipFirstCell, validator);
+            return LineOfSight(start, t.PositionOnBaseMap(), map, skipFirstCell, validator);
         }
         foreach (IntVec3 end in t.OccupiedRect())
         {
             var end2 = flag ? end.ToBaseMapCoord(vehicle) : end;
-            if (GenSightOnVehicle.LineOfSight(start, end2, map, skipFirstCell, validator))
+            if (LineOfSight(start, end2, map, skipFirstCell, validator))
             {
                 return true;
             }
@@ -140,7 +140,7 @@ public static class GenSightOnVehicle
 
     public static bool LineOfSight(IntVec3 start, IntVec3 end, Map map)
     {
-        return GenSightOnVehicle.LineOfSight(start, end, map, CellRect.SingleCell(start), CellRect.SingleCell(end), null);
+        return LineOfSight(start, end, map, CellRect.SingleCell(start), CellRect.SingleCell(end), null);
     }
 
     public static bool LineOfSight(IntVec3 start, IntVec3 end, Map map, CellRect startRect, CellRect endRect, Func<IntVec3, bool> validator = null)
@@ -209,14 +209,14 @@ public static class GenSightOnVehicle
 
     public static bool LineOfSightToEdges(IntVec3 start, IntVec3 end, Map map, bool skipFirstCell = false, Func<IntVec3, bool> validator = null)
     {
-        if (GenSightOnVehicle.LineOfSight(start, end, map, skipFirstCell, validator, 0, 0))
+        if (LineOfSight(start, end, map, skipFirstCell, validator, 0, 0))
         {
             return true;
         }
         int num = (start * 2).DistanceToSquared(end * 2);
         for (int i = 0; i < 4; i++)
         {
-            if ((start * 2).DistanceToSquared((end * 2) + GenAdj.CardinalDirections[i]) <= num && GenSightOnVehicle.LineOfSight(start, end, map, skipFirstCell, validator, GenAdj.CardinalDirections[i].x, GenAdj.CardinalDirections[i].z))
+            if ((start * 2).DistanceToSquared((end * 2) + GenAdj.CardinalDirections[i]) <= num && LineOfSight(start, end, map, skipFirstCell, validator, GenAdj.CardinalDirections[i].x, GenAdj.CardinalDirections[i].z))
             {
                 return true;
             }

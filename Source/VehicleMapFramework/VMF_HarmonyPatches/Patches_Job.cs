@@ -210,17 +210,21 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
                 pawn.VirtualMapTransfer(map, pos);
             }
         }
-        if (!scanner.AllowUnreachable)
+        if (CrossMapReachabilityUtility.GetClosestExitEnterSpot(map, pawn.Position, TraverseParms.For(pawn), targetMap, out var exitSpot2, out var enterSpot2))
         {
+            Job job = null;
             try
             {
+                CrossMapReachabilityUtility.DepartMap = map;
                 CrossMapReachabilityUtility.DestMap = targetMap;
-                return scanner.JobOnCell(pawn, target.Cell, forced);
+                job = scanner.JobOnCell(pawn, target.Cell, forced);
             }
             finally
             {
+                CrossMapReachabilityUtility.DepartMap = null;
                 CrossMapReachabilityUtility.DestMap = null;
             }
+            return JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot2, enterSpot2, job);
         }
         return null;
     }
@@ -611,7 +615,7 @@ public static class Patch_ItemAvailability_ThingsAvailableAnywhere
             CodeInstruction.LoadArgument(0),
             CodeInstruction.LoadField(typeof(ItemAvailability), "map"),
             CodeInstruction.LoadArgument(1),
-            CodeInstruction.Call(typeof(Patch_ItemAvailability_ThingsAvailableAnywhere), nameof(Patch_ItemAvailability_ThingsAvailableAnywhere.AddThingList))
+            CodeInstruction.Call(typeof(Patch_ItemAvailability_ThingsAvailableAnywhere), nameof(AddThingList))
         ]);
         return code;
     }

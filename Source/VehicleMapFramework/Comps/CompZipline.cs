@@ -37,9 +37,13 @@ public class CompZipline : CompVehicleEnterSpot
 
     public bool IsZiplineEnd => cachedIsZiplineEnd;
 
+    public override bool Available => Pair?.Spawned ?? false;
+
+    public override IntVec3 EnterVehiclePosition => Pair?.Position ?? IntVec3.Invalid;
+
     public override float DistanceSquared(IntVec3 root)
     {
-        return (Pair?.PositionOnBaseMap() - root)?.LengthHorizontalSquared ?? float.MaxValue;
+        return (Pair.PositionOnBaseMap() - root).LengthHorizontalSquared;
     }
 
     public override void PostSpawnSetup(bool respawningAfterLoad)

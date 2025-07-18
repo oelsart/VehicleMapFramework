@@ -36,10 +36,10 @@ public static class Patch_Graphic_Linked_ShouldLinkWith
     [HarmonyPriority(Priority.Low)]
     public static void Prefix(ref IntVec3 c, Thing parent)
     {
-        if (VehicleMapUtility.rotForPrint != Rot4.North)
+        if (VehicleMapUtility.RotForPrint != Rot4.North)
         {
             var offset = c - parent.Position;
-            var rotated = offset.RotatedBy(VehicleMapUtility.rotForPrint.IsHorizontal ? VehicleMapUtility.rotForPrint.Opposite : VehicleMapUtility.rotForPrint);
+            var rotated = offset.RotatedBy(VehicleMapUtility.RotForPrint.IsHorizontal ? VehicleMapUtility.RotForPrint.Opposite : VehicleMapUtility.RotForPrint);
             c = rotated + parent.Position;
         }
     }
@@ -80,19 +80,21 @@ public static class Patch_MinifiedThing_Print
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        var codes = instructions.ToList();
+        var codes = new CodeMatcher(instructions);
         var m_PrintPlane = AccessTools.Method(typeof(Printer_Plane), nameof(Printer_Plane.PrintPlane));
+        codes.MatchStartForward(CodeMatch.Calls(m_PrintPlane));
+        codes.MatchStartBackwards(new CodeMatch(c => c.opcode == OpCodes.Ldloc_1));
+        codes.InsertAfterAndAdvance(CodeInstruction.LoadArgument(0));
+        codes.Advance(1);
+        codes.SetInstruction(new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_PrintExtraRotation));
 
-        var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(m_PrintPlane));
-        var pos2 = codes.FindLastIndex(pos, c => c.opcode == OpCodes.Ldloc_1) + 1;
-        codes.Replace(codes[pos2], new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_PrintExtraRotation));
-        codes.Insert(pos2, CodeInstruction.LoadArgument(0));
-
-        pos = codes.FindIndex(pos + 1, c => c.opcode == OpCodes.Call && c.OperandIs(m_PrintPlane));
-        pos2 = codes.FindLastIndex(c => c.opcode == OpCodes.Ldloc_S && (c.operand as LocalBuilder).LocalIndex == 4) + 1;
-        codes.Replace(codes[pos2], new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_PrintExtraRotation));
-        codes.Insert(pos2, CodeInstruction.LoadArgument(0));
-        return codes;
+        codes.End();
+        codes.MatchStartBackwards(CodeMatch.Calls(m_PrintPlane));
+        codes.MatchStartBackwards(new CodeMatch(c => c.opcode == OpCodes.Ldloc_S && ((LocalBuilder)c.operand).LocalType == typeof(Material)));
+        codes.InsertAfterAndAdvance(CodeInstruction.LoadArgument(0));
+        codes.Advance(1);
+        codes.SetInstruction(new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_PrintExtraRotation));
+        return codes.Instructions();
     }
 }
 
@@ -121,7 +123,7 @@ public static class Patch_Graphic_Print
         if (thing.HasComp<CompVehicleEnterSpot>() && thing.IsOnVehicleMapOf(out var vehicle) && (mapProps = vehicle.VehicleDef.GetModExtension<VehicleMapProps>()) != null)
         {
             var opposite = thing.Rotation.Opposite;
-            return vector + (opposite.AsVector2.ToVector3() * mapProps.EdgeSpaceValue(VehicleMapUtility.rotForPrint, opposite));
+            return vector + (opposite.AsVector2.ToVector3() * mapProps.EdgeSpaceValue(VehicleMapUtility.RotForPrint, opposite));
         }
         return vector;
     }
@@ -266,11 +268,11 @@ public static class Patch_PawnRenderer_GetBodyPos
         {
             if (___pawn.CurrentBed() != null)
             {
-                __result = __result.ToBaseMapCoord(vehicle).WithYOffset(-0.9615385f);
+                __result = __result.ToBaseMapCoord(vehicle).WithYOffset(-0.9615385f / VehicleMapUtility.YCompress);
             }
             else if (posture != PawnPosture.Standing)
             {
-                __result.y += vehicle.DrawPos.y;
+                __result = __result.YOffsetFull(vehicle);
             }
         }
     }

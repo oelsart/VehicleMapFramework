@@ -10,11 +10,11 @@ public class JobDriver_HaulToTransporterAcrossMaps : JobDriver_HaulToContainer
     {
         get
         {
-            if (base.Container == null)
+            if (Container == null)
             {
                 return null;
             }
-            return base.Container.TryGetComp<CompTransporter>();
+            return Container.TryGetComp<CompTransporter>();
         }
     }
 
@@ -41,7 +41,7 @@ public class JobDriver_HaulToTransporterAcrossMaps : JobDriver_HaulToContainer
         }
         else
         {
-            var transporter = base.Container.TryGetComp<CompTransporter>();
+            var transporter = Container.TryGetComp<CompTransporter>();
             var gatherFromBaseMap = transporter is not CompBuildableContainer container || container.GatherFromBaseMap;
             thingCount = LoadTransportersJobOnVehicleUtility.FindThingToLoad(pawn, transporter, gatherFromBaseMap);
         }

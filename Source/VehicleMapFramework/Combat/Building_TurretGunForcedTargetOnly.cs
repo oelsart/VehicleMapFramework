@@ -6,7 +6,7 @@ namespace VehicleMapFramework;
 
 public class Building_TurretGunForcedTargetOnly : Building_TurretGun
 {
-    public override Vector3 DrawPos => base.DrawPos + base.def.graphicData.DrawOffsetForRot(this.BaseRotationVehicleDraw());
+    public override Vector3 DrawPos => base.DrawPos + def.graphicData.DrawOffsetForRot(this.BaseRotationVehicleDraw());
 
     protected override bool CanSetForcedTarget => true;
 

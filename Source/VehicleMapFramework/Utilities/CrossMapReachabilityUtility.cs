@@ -40,9 +40,10 @@ public static class CrossMapReachabilityUtility
 
     public static IntVec3 EnterVehiclePosition(TargetInfo enterSpot, out int dist, VehiclePawn enterer = null)
     {
-        if (!enterSpot.Map.IsVehicleMapOf(out var vehicle))
+        if (!enterSpot.Map.IsVehicleMapOf(out var vehicle) || (!vehicle?.Spawned ?? true))
         {
-            Log.ErrorOnce($"[VehicleMapFramework] Invalid TargetInfo: {enterSpot}.", 3516351);
+            dist = 0;
+            return IntVec3.Invalid;
         }
 
         var cell = enterSpot.Cell.ToBaseMapCoord(vehicle);
@@ -134,7 +135,7 @@ public static class CrossMapReachabilityUtility
                             result = false;
                             return result;
                         }
-                        foreach (var comp in vehicle2.StandableEnterComps.OrderBy(e => e.DistanceSquared(dest.Cell)))
+                        foreach (var comp in vehicle2.AvailableEnterComps.OrderBy(e => e.DistanceSquared(dest.Cell)))
                         {
                             IntVec3 cell;
                             if (comp is CompZipline compZipline)
@@ -245,7 +246,7 @@ public static class CrossMapReachabilityUtility
                                     destMap.reachability.CanReach(cell4, dest, peMode, traverseParms2);
                             }
 
-                            foreach (var comp in vehicle2.StandableEnterComps.OrderBy(e => e.DistanceSquared(dest.Cell.ToBaseMapCoord(vehicle))))
+                            foreach (var comp in vehicle2.AvailableEnterComps.OrderBy(e => e.DistanceSquared(dest.Cell.ToBaseMapCoord(vehicle))))
                             {
                                 IntVec3 cell;
                                 if (comp is CompZipline compZipline)
@@ -272,7 +273,7 @@ public static class CrossMapReachabilityUtility
                                 {
                                     cell = EnterVehiclePosition(comp.parent);
                                 }
-                                foreach (var comp2 in vehicle.StandableEnterComps.OrderBy(e => e.DistanceSquared(cell)))
+                                foreach (var comp2 in vehicle.AvailableEnterComps.OrderBy(e => e.DistanceSquared(cell)))
                                 {
                                     IntVec3 cell2;
                                     if (comp2 is CompZipline compZipline2)
@@ -311,7 +312,7 @@ public static class CrossMapReachabilityUtility
                                 var targetInfo = new TargetInfo(c, departMap);
                                 var cell = EnterVehiclePosition(targetInfo);
 
-                                foreach (var comp2 in vehicle.StandableEnterComps.OrderBy(e => e.DistanceSquared(cell)))
+                                foreach (var comp2 in vehicle.AvailableEnterComps.OrderBy(e => e.DistanceSquared(cell)))
                                 {
                                     IntVec3 cell2;
                                     if (comp2 is CompZipline compZipline)
@@ -368,14 +369,64 @@ public static class CrossMapReachabilityUtility
         var traverseParms = TraverseParms.For(pawn, maxDanger: maxDanger, mode: mode, canBashDoors: canBashDoors, canBashFences: canBashFences);
         dest1 = TargetInfo.Invalid;
         dest2 = TargetInfo.Invalid;
-        return pawn.Spawned && CrossMapReachabilityUtility.CanReach(pawn.Map, traverseParms.pawn.Position, dest3, peMode, traverseParms, destMap, out dest1, out dest2);
+        return pawn.Spawned && CanReach(pawn.Map, traverseParms.pawn.Position, dest3, peMode, traverseParms, destMap, out dest1, out dest2);
+    }
+
+    public static bool GetClosestExitEnterSpot(Map departMap, IntVec3 root, TraverseParms traverseParms, Map destMap, out TargetInfo exitSpot, out TargetInfo enterSpot)
+    {
+        exitSpot = TargetInfo.Invalid;
+        enterSpot = TargetInfo.Invalid;
+        var flag = departMap.IsVehicleMapOf(out var vehicle);
+        var flag2 = destMap.IsVehicleMapOf(out var vehicle2);
+        if (!flag && !flag2 && departMap != destMap)
+        {
+            return false;
+        }
+        if (departMap.BaseMap() != destMap.BaseMap())
+        {
+            return false;
+        }
+
+        var tmpExitSpot = TargetInfo.Invalid;
+        var tmpEnterSpot = TargetInfo.Invalid;
+        if (flag2)
+        {
+            if (vehicle2.EnterComps.Any(c => CanReach(departMap, root, c.parent, PathEndMode.OnCell, traverseParms, destMap, out tmpExitSpot, out tmpEnterSpot)))
+            {
+                exitSpot = tmpExitSpot;
+                enterSpot = tmpEnterSpot;
+                return true;
+            }
+            if (vehicle2.CachedStandableMapEdgeCells.Any(c => CanReach(departMap, root, c, PathEndMode.OnCell, traverseParms, destMap, out tmpExitSpot, out tmpEnterSpot)))
+            {
+                exitSpot = tmpExitSpot;
+                enterSpot = tmpEnterSpot;
+                return true;
+            }
+        }
+        else if (flag)
+        {
+            if (vehicle.EnterComps.Any(c => CanReach(departMap, root, c.EnterVehiclePosition, PathEndMode.OnCell, traverseParms, destMap, out tmpExitSpot, out tmpEnterSpot)))
+            {
+                exitSpot = tmpExitSpot;
+                enterSpot = tmpEnterSpot;
+                return true;
+            }
+            if (vehicle.CachedStandableMapEdgeCells.Any(c => CanReach(departMap, root, EnterVehiclePosition(new TargetInfo(c, departMap)), PathEndMode.OnCell, traverseParms, destMap, out tmpExitSpot, out tmpEnterSpot)))
+            {
+                exitSpot = tmpExitSpot;
+                enterSpot = tmpEnterSpot;
+                return true;
+            }
+        }
+        return false;
     }
 
     public static IntVec3 BestOrderedGotoDestNear(IntVec3 root, Pawn searcher, Predicate<IntVec3> cellValidator, Map map, out TargetInfo exitSpot, out TargetInfo enterSpot)
     {
         exitSpot = TargetInfo.Invalid;
         enterSpot = TargetInfo.Invalid;
-        if (CrossMapReachabilityUtility.IsGoodDest(root, searcher, cellValidator, map, out exitSpot, out enterSpot))
+        if (IsGoodDest(root, searcher, cellValidator, map, out exitSpot, out enterSpot))
         {
             return root;
         }
@@ -387,7 +438,7 @@ public static class CrossMapReachabilityUtility
         do
         {
             IntVec3 intVec = root + GenRadial.RadialPattern[num];
-            if (CrossMapReachabilityUtility.IsGoodDest(intVec, searcher, cellValidator, map, out exitSpot, out enterSpot))
+            if (IsGoodDest(intVec, searcher, cellValidator, map, out exitSpot, out enterSpot))
             {
                 float num4 = CoverUtility.TotalSurroundingCoverScore(intVec, map);
                 if (num4 > num2)

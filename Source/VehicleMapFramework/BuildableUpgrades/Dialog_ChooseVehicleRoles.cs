@@ -27,7 +27,7 @@ public class Dialog_ChooseVehicleRoles : Window
         var font = Text.Font;
         Text.Font = GameFont.Small;
         var rect = inRect;
-        rect.height -= Window.CloseButSize.y + 10f;
+        rect.height -= CloseButSize.y + 10f;
         Widgets.DrawMenuSection(rect);
 
         //まだ割り当てられてないタレットたち

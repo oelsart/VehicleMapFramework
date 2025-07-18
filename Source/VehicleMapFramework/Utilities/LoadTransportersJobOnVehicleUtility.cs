@@ -12,9 +12,9 @@ public static class LoadTransportersJobOnVehicleUtility
 {
     public static ThingCount FindThingToLoad(Pawn p, CompTransporter transporter, bool gatherFromBaseMap)
     {
-        LoadTransportersJobOnVehicleUtility.neededThings.Clear();
+        neededThings.Clear();
         List<TransferableOneWay> leftToLoad = transporter.leftToLoad;
-        LoadTransportersJobOnVehicleUtility.tmpAlreadyLoading.Clear();
+        tmpAlreadyLoading.Clear();
         if (leftToLoad != null)
         {
             IReadOnlyList<Pawn> allPawnsSpawned = transporter.Map.BaseMap().mapPawns.AllPawnsSpawned;
@@ -28,13 +28,13 @@ public static class LoadTransportersJobOnVehicleUtility
                         TransferableOneWay transferableOneWay = TransferableUtility.TransferableMatchingDesperate(jobDriver_HaulToTransporter.ThingToCarry, leftToLoad, TransferAsOneMode.PodsOrCaravanPacking);
                         if (transferableOneWay != null)
                         {
-                            if (LoadTransportersJobOnVehicleUtility.tmpAlreadyLoading.TryGetValue(transferableOneWay, out int num))
+                            if (tmpAlreadyLoading.TryGetValue(transferableOneWay, out int num))
                             {
-                                LoadTransportersJobOnVehicleUtility.tmpAlreadyLoading[transferableOneWay] = num + jobDriver_HaulToTransporter.initialCount;
+                                tmpAlreadyLoading[transferableOneWay] = num + jobDriver_HaulToTransporter.initialCount;
                             }
                             else
                             {
-                                LoadTransportersJobOnVehicleUtility.tmpAlreadyLoading.Add(transferableOneWay, jobDriver_HaulToTransporter.initialCount);
+                                tmpAlreadyLoading.Add(transferableOneWay, jobDriver_HaulToTransporter.initialCount);
                             }
                         }
                     }
@@ -43,7 +43,7 @@ public static class LoadTransportersJobOnVehicleUtility
             for (int j = 0; j < leftToLoad.Count; j++)
             {
                 TransferableOneWay transferableOneWay2 = leftToLoad[j];
-                if (!LoadTransportersJobOnVehicleUtility.tmpAlreadyLoading.TryGetValue(leftToLoad[j], out int num2))
+                if (!tmpAlreadyLoading.TryGetValue(leftToLoad[j], out int num2))
                 {
                     num2 = 0;
                 }
@@ -51,40 +51,40 @@ public static class LoadTransportersJobOnVehicleUtility
                 {
                     for (int k = 0; k < transferableOneWay2.things.Count; k++)
                     {
-                        LoadTransportersJobOnVehicleUtility.neededThings.Add(transferableOneWay2.things[k]);
+                        neededThings.Add(transferableOneWay2.things[k]);
                     }
                 }
             }
         }
-        if (!LoadTransportersJobOnVehicleUtility.neededThings.Any<Thing>())
+        if (!neededThings.Any<Thing>())
         {
-            LoadTransportersJobOnVehicleUtility.tmpAlreadyLoading.Clear();
+            tmpAlreadyLoading.Clear();
             return default;
         }
         Thing thing;
         if (gatherFromBaseMap)
         {
-            thing = GenClosestCrossMap.ClosestThingReachable(p.Position, p.Map, ThingRequest.ForGroup(ThingRequestGroup.HaulableEver), PathEndMode.Touch, TraverseParms.For(p, Danger.Deadly, TraverseMode.ByPawn, false, false, false), 9999f, x => LoadTransportersJobOnVehicleUtility.neededThings.Contains(x) && p.CanReserve(x, 1, -1, null, false) && !x.IsForbidden(p) && p.carryTracker.AvailableStackSpace(x.def) > 0, null, 0, -1, false, RegionType.Set_Passable, false, false, out _, out _);
+            thing = GenClosestCrossMap.ClosestThingReachable(p.Position, p.Map, ThingRequest.ForGroup(ThingRequestGroup.HaulableEver), PathEndMode.Touch, TraverseParms.For(p, Danger.Deadly, TraverseMode.ByPawn, false, false, false), 9999f, x => neededThings.Contains(x) && p.CanReserve(x, 1, -1, null, false) && !x.IsForbidden(p) && p.carryTracker.AvailableStackSpace(x.def) > 0, null, 0, -1, false, RegionType.Set_Passable, false, false, out _, out _);
         }
         else
         {
             TargetInfo exitSpot2 = TargetInfo.Invalid;
             TargetInfo enterSpot2 = TargetInfo.Invalid;
-            thing = Patch_GenClosest_ClosestThingReachable.ClosestThingReachableOriginal(transporter.parent.Position, transporter.parent.Map, ThingRequest.ForGroup(ThingRequestGroup.HaulableEver), PathEndMode.Touch, TraverseParms.For(p, Danger.Deadly, TraverseMode.ByPawn, false, false, false), 9999f, x => LoadTransportersJobOnVehicleUtility.neededThings.Contains(x) && p.CanReserve(x, 1, -1, null, false) && !x.IsForbidden(p) && p.carryTracker.AvailableStackSpace(x.def) > 0 && p.CanReach(x, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, x.Map, out exitSpot2, out enterSpot2), null, 0, -1, false, RegionType.Set_Passable, false, false);
+            thing = Patch_GenClosest_ClosestThingReachable.ClosestThingReachableOriginal(transporter.parent.Position, transporter.parent.Map, ThingRequest.ForGroup(ThingRequestGroup.HaulableEver), PathEndMode.Touch, TraverseParms.For(p, Danger.Deadly, TraverseMode.ByPawn, false, false, false), 9999f, x => neededThings.Contains(x) && p.CanReserve(x, 1, -1, null, false) && !x.IsForbidden(p) && p.carryTracker.AvailableStackSpace(x.def) > 0 && p.CanReach(x, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, x.Map, out exitSpot2, out enterSpot2), null, 0, -1, false, RegionType.Set_Passable, false, false);
         }
         if (thing == null)
         {
-            foreach (Thing thing2 in LoadTransportersJobOnVehicleUtility.neededThings)
+            foreach (Thing thing2 in neededThings)
             {
                 if (thing2 is Pawn pawn && pawn.Spawned && ((!pawn.IsFreeColonist && !pawn.IsColonyMech) || pawn.Downed) && !pawn.inventory.UnloadEverything && p.CanReserveAndReach(thing.Map, pawn, PathEndMode.Touch, Danger.Deadly, 1, -1, null, false, out _, out _))
                 {
-                    LoadTransportersJobOnVehicleUtility.neededThings.Clear();
-                    LoadTransportersJobOnVehicleUtility.tmpAlreadyLoading.Clear();
+                    neededThings.Clear();
+                    tmpAlreadyLoading.Clear();
                     return new ThingCount(pawn, 1, false);
                 }
             }
         }
-        LoadTransportersJobOnVehicleUtility.neededThings.Clear();
+        neededThings.Clear();
         if (thing != null)
         {
             TransferableOneWay transferableOneWay3 = null;
@@ -96,14 +96,14 @@ public static class LoadTransportersJobOnVehicleUtility
                     break;
                 }
             }
-            if (!LoadTransportersJobOnVehicleUtility.tmpAlreadyLoading.TryGetValue(transferableOneWay3, out int num3))
+            if (!tmpAlreadyLoading.TryGetValue(transferableOneWay3, out int num3))
             {
                 num3 = 0;
             }
-            LoadTransportersJobOnVehicleUtility.tmpAlreadyLoading.Clear();
+            tmpAlreadyLoading.Clear();
             return new ThingCount(thing, Mathf.Min(transferableOneWay3.CountToTransfer - num3, thing.stackCount), false);
         }
-        LoadTransportersJobOnVehicleUtility.tmpAlreadyLoading.Clear();
+        tmpAlreadyLoading.Clear();
         return default;
     }
 

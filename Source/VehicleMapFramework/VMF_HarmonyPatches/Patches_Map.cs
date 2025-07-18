@@ -2,14 +2,12 @@
 using RimWorld;
 using RimWorld.Planet;
 using SmashTools;
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
 using System.Threading.Tasks;
 using UnityEngine;
-using Vehicles;
 using Vehicles.World;
 using Verse;
 using Verse.AI;
@@ -147,27 +145,11 @@ public static class Patch_MapTemperature_OutdoorTemp
             if (vehicle.Spawned)
             {
                 __result = vehicle.Position.GetTemperature(vehicle.Map);
-                return false;
             }
             else if (vehicle.Tile != -1)
             {
                 __result = Find.World.tileTemperatures.GetOutdoorTemp(vehicle.Tile);
-                return false;
             }
-        }
-        return true;
-    }
-}
-
-//VehicleMapのバイオームは外側のタイルのバイオーム
-[HarmonyPatch(typeof(Map), nameof(Map.Biome), MethodType.Getter)]
-public static class  Patch_Map_Biome
-{
-    public static bool Prefix(Map __instance, ref  BiomeDef __result)
-    {
-        if (__instance.IsVehicleMapOf(out var vehicle))
-        {
-            __result = vehicle.Tile.Tile?.PrimaryBiome ?? __instance.TileInfo.PrimaryBiome;
             return false;
         }
         return true;
@@ -226,6 +208,7 @@ public static class Patch_Map_MapUpdate
                 return;
             }
 
+            float angle = vehicle.Transform.rotation + vehicle.FullRotation.AsAngle;
             if (Find.TickManager.TicksGame != lastRenderedTick && Time.frameCount % 2 == 0)
             {
                 var worldObject = GetWorldObject(vehicle);
@@ -264,7 +247,7 @@ public static class Patch_Map_MapUpdate
                 var planetLayer = __instance.Tile.Layer;
                 float AngleOnPlanetSurface(Vector3 root, Vector3 to)
                 {
-                    if (planetLayer == null)
+                    if (planetLayer == null || (to - root).magnitude <= Mathf.Epsilon)
                     {
                         return 0f;
                     }
@@ -275,13 +258,17 @@ public static class Patch_Map_MapUpdate
                     return Mathf.Repeat(signedAngle + 180f, 360f);
                 }
 
-                vehicle.FullRotation =
-                    worldObject is VehicleCaravan vehicleCaravan ?
-                    Rot8.FromAngle(AngleOnPlanetSurface(Find.WorldGrid.GetTileCenter(vehicleCaravan.vehiclePather.nextTile.Valid ? vehicleCaravan.vehiclePather.nextTile : vehicleCaravan.Tile), Find.WorldGrid.GetTileCenter(vehicleCaravan.Tile))) :
-                    worldObject is Caravan caravan ?
-                    Rot8.FromAngle(AngleOnPlanetSurface(Find.WorldGrid.GetTileCenter(caravan.pather.nextTile.Valid ? caravan.pather.nextTile : caravan.Tile), Find.WorldGrid.GetTileCenter(caravan.Tile))) :
-                    worldObject is AerialVehicleInFlight aerial ?
-                    Rot8.FromAngle(AngleOnPlanetSurface(aerial.DrawPos, aerial.position)) : Rot8.East;
+                if (Find.TickManager.TicksGame % 10 == 0)
+                {
+                    angle =
+                        worldObject is VehicleCaravan vehicleCaravan ?
+                        AngleOnPlanetSurface(Find.WorldGrid.GetTileCenter(vehicleCaravan.vehiclePather.nextTile.Valid ? vehicleCaravan.vehiclePather.nextTile : vehicleCaravan.Tile), Find.WorldGrid.GetTileCenter(vehicleCaravan.Tile)) :
+                        worldObject is Caravan caravan ?
+                        AngleOnPlanetSurface(Find.WorldGrid.GetTileCenter(caravan.pather.nextTile.Valid ? caravan.pather.nextTile : caravan.Tile), Find.WorldGrid.GetTileCenter(caravan.Tile)) :
+                        worldObject is AerialVehicleInFlight aerial ?
+                        AngleOnPlanetSurface(aerial.DrawPos, aerial.position) : 90f;
+                    vehicle.FullRotation = Rot8.FromAngle(angle);
+                }
             }
             var longSide = Mathf.Max(vehicle.DrawSize.x / 2f, vehicle.DrawSize.y / 2f);
             var drawPos = new Vector3(longSide, 0f, longSide);
@@ -289,7 +276,12 @@ public static class Patch_Map_MapUpdate
             {
                 Graphics.DrawMesh(mesh200, drawPos, Quaternion.identity, mat, 0);
             }
-            vehicle.DynamicDrawPhaseAt(DrawPhase.Draw, drawPos);
+            
+            skyMat.color = Color.black.WithAlpha((1f - vehicle.VehicleMap.skyManager.CurSkyGlow) * 0.2f);
+            skyMat.renderQueue = 3100;
+            Graphics.DrawMesh(mesh200, drawPos.WithY(AltitudeLayer.LightingOverlay.AltitudeFor()), Quaternion.identity, skyMat, 0);
+            drawPos = drawPos.SetToAltitude(AltitudeLayer.LayingPawn);
+            vehicle.DrawAt(in drawPos, vehicle.FullRotation, angle - vehicle.FullRotation.AsAngle);
         }
     }
 
@@ -328,6 +320,8 @@ public static class Patch_Map_MapUpdate
     private static Mesh mesh200 = MeshPool.GridPlane(MeshSize);
 
     private static Material mat;
+
+    private static Material skyMat = SolidColorMaterials.NewSolidColorMaterial(Color.black, ShaderDatabase.SolidColor);
 
     public static int lastRenderedTick = -1;
 
@@ -401,79 +395,12 @@ public static class Patch_MapPawns_AnyPawnBlockingMapRemoval
     }
 }
 
-[HarmonyBefore("SettlementQuestsMod")]
-[HarmonyPatchCategory(EarlyPatchCore.Category)]
-[HarmonyPatch(typeof(WorldObject), nameof(WorldObject.Tile), MethodType.Getter)]
-public static class Patch_WorldObject_Tile
-{
-    public static bool Prefix(WorldObject __instance, ref PlanetTile __result)
-    {
-        if (__instance is MapParent_Vehicle mapParent_Vehicle)
-        {
-            if (mapParent_Vehicle.vehicle.Spawned)
-            {
-                __result = mapParent_Vehicle.vehicle.Map.Tile;
-                return false;
-            }
-
-            static WorldObject GetWorldObject(IThingHolder holder)
-            {
-                while (holder != null)
-                {
-                    if (holder is WorldObject worldObject)
-                    {
-                        return worldObject;
-                    }
-                    holder = holder.ParentHolder;
-                }
-                return null;
-            }
-            var worldObject2 = GetWorldObject(mapParent_Vehicle.vehicle);
-            if (worldObject2 is AerialVehicleInFlight aerial)
-            {
-                __result = GetTile(aerial);
-                return false;
-            }
-            if (worldObject2 == null || worldObject2 is MapParent_Vehicle)
-            {
-                return true;
-            }
-            __result = worldObject2.Tile;
-            return false;
-        }
-        return true;
-    }
-
-    private static ConcurrentDictionary<AerialVehicleInFlight, int> tileCache = new();
-
-    private static int lastCachedTick = -1;
-
-    public static PlanetTile GetTile(AerialVehicleInFlight aerial)
-    {
-        if (tileCache.TryGetValue(aerial, out var tile))
-        {
-            if (Find.TickManager.TicksAbs - lastCachedTick > 30)
-            {
-                lastCachedTick = Find.TickManager.TicksAbs;
-                Task.Run(() =>
-                {
-                    tileCache.RemoveRange([.. tileCache.Keys.Where(a => !Find.WorldObjects.Contains(a))]);
-                    tileCache[aerial] = WorldHelper.GetNearestTile(aerial.DrawPos);
-                });
-            }
-            return tileCache[aerial];
-        }
-        tileCache[aerial] = WorldHelper.GetNearestTile(aerial.DrawPos);
-        return tileCache[aerial];
-    }
-}
-
 [HarmonyPatch(typeof(CameraJumper), nameof(CameraJumper.GetWorldTarget))]
 public static class Patch_CameraJumper_GetWorldTarget
 {
     public static void Prefix(ref GlobalTargetInfo target)
     {
-        if (target.Thing?.IsOnVehicleMapOf(out var vehicle) ?? false)
+        if (target.Thing.IsOnVehicleMapOf(out var vehicle))
         {
             target = vehicle;
         }
@@ -548,7 +475,7 @@ public static class Patch_WorldObjectsHolder_MapParentAt
     {
         if (__result is MapParent_Vehicle)
         {
-            __result = ___mapParents.FirstOrDefault(p => p.Tile == tile && p.Isnt<MapParent_Vehicle>());
+            __result = ___mapParents.FirstOrDefault(p => p.Tile == tile && p is not MapParent_Vehicle);
         }
     }
 }
@@ -562,23 +489,6 @@ public static class Patch_Game_FindMap
         {
             __result = ___maps.FirstOrDefault(m => m.Tile == tile && !m.IsVehicleMapOf(out _));
         }
-    }
-}
-
-[HarmonyPatch(typeof(WealthWatcher), nameof(WealthWatcher.ForceRecount))]
-public static class Patch_WealthWatcher_ForceRecount
-{
-    public static void Postfix(Map ___map, ref float ___wealthItems, ref float ___wealthBuildings, ref float ___wealthFloorsOnly)
-    {
-        var state = Current.ProgramState;
-        Current.ProgramState = ProgramState.Playing;
-        foreach (var vehicle in VehiclePawnWithMapCache.AllVehiclesOn(___map))
-        {
-            ___wealthItems += vehicle.VehicleMap.wealthWatcher.WealthItems;
-            ___wealthBuildings += vehicle.VehicleMap.wealthWatcher.WealthBuildings;
-            ___wealthFloorsOnly += vehicle.VehicleMap.wealthWatcher.WealthFloorsOnly;
-        }
-        Current.ProgramState = state;
     }
 }
 
@@ -673,58 +583,58 @@ public static class Patch_SteadyEnvironmentEffects_SteadyEnvironmentEffectsTick
     }
 }
 
-[HarmonyPatch(typeof(MapParent), nameof(MapParent.GetTransportersFloatMenuOptions))]
-public static class Patch_MapParent_GetTransportersFloatMenuOptions
-{
-    public static IEnumerable<FloatMenuOption> Postfix(IEnumerable<FloatMenuOption> values, MapParent __instance, Action<PlanetTile, TransportersArrivalAction> launchAction)
-    {
-        foreach (var value in values)
-        {
-            yield return value;
-        }
+//[HarmonyPatch(typeof(MapParent), nameof(MapParent.GetTransportersFloatMenuOptions))]
+//public static class Patch_MapParent_GetTransportersFloatMenuOptions
+//{
+//    public static IEnumerable<FloatMenuOption> Postfix(IEnumerable<FloatMenuOption> values, MapParent __instance, Action<PlanetTile, TransportersArrivalAction> launchAction)
+//    {
+//        foreach (var value in values)
+//        {
+//            yield return value;
+//        }
 
-        IEnumerable<VehiclePawnWithMap> vehicles = null;
-        if (__instance.HasMap)
-        {
-            vehicles = VehiclePawnWithMapCache.AllVehiclesOn(__instance.Map);
-        }
+//        IEnumerable<VehiclePawnWithMap> vehicles = null;
+//        if (__instance.HasMap)
+//        {
+//            vehicles = VehiclePawnWithMapCache.AllVehiclesOn(__instance.Map);
+//        }
 
-        if (vehicles.NullOrEmpty()) yield break;
+//        if (vehicles.NullOrEmpty()) yield break;
 
-        foreach (var vehicle in vehicles)
-        {
-            var mapParent = vehicle.VehicleMap.Parent;
-            var aerial = vehicle.GetAerialVehicle();
-            var tile = aerial != null ? Patch_WorldObject_Tile.GetTile(aerial) : vehicle.GetRootTile();
+//        foreach (var vehicle in vehicles)
+//        {
+//            var mapParent = vehicle.VehicleMap.Parent;
+//            var aerial = vehicle.GetAerialVehicle();
+//            var tile = aerial != null ? Patch_WorldObject_Tile.GetTile(aerial) : vehicle.GetRootTile();
 
-            bool CanLandInSpecificCell()
-            {
-                if (mapParent == null || !mapParent.HasMap)
-                {
-                    return false;
-                }
-                if (mapParent.EnterCooldownBlocksEntering())
-                {
-                    return FloatMenuAcceptanceReport.WithFailMessage("MessageEnterCooldownBlocksEntering".Translate(mapParent.EnterCooldownTicksLeft().ToStringTicksToPeriod()));
-                }
-                return true;
-            }
+//            bool CanLandInSpecificCell()
+//            {
+//                if (mapParent == null || !mapParent.HasMap)
+//                {
+//                    return false;
+//                }
+//                if (mapParent.EnterCooldownBlocksEntering())
+//                {
+//                    return FloatMenuAcceptanceReport.WithFailMessage("MessageEnterCooldownBlocksEntering".Translate(mapParent.EnterCooldownTicksLeft().ToStringTicksToPeriod()));
+//                }
+//                return true;
+//            }
 
-            if (!CanLandInSpecificCell())
-            {
-                continue;
-            }
-            yield return new FloatMenuOption("VMF_LandInSpecificMap".Translate(vehicle.VehicleMap.Parent.Label, __instance.Label), delegate
-            {
-                Map map = vehicle.VehicleMap;
-                Current.Game.CurrentMap = map;
-                CameraJumper.TryHideWorld();
-                MapComponentCache<VehiclePawnWithMapCache>.GetComponent(map).ForceResetCache();
-                Find.Targeter.BeginTargeting(TargetingParameters.ForDropPodsDestination(), x =>
-                {
-                    launchAction(__instance.Tile, new TransportersArrivalAction_LandInSpecificCell(mapParent, x.Cell, Rot4.North, landInShuttle: false));
-                }, null, null, CompLaunchable.TargeterMouseAttachment);
-            });
-        }
-    }
-}
+//            if (!CanLandInSpecificCell())
+//            {
+//                continue;
+//            }
+//            yield return new FloatMenuOption("VMF_LandInSpecificMap".Translate(vehicle.VehicleMap.Parent.Label, __instance.Label), delegate
+//            {
+//                Map map = vehicle.VehicleMap;
+//                Current.Game.CurrentMap = map;
+//                CameraJumper.TryHideWorld();
+//                MapComponentCache<VehiclePawnWithMapCache>.GetComponent(map).ForceResetCache();
+//                Find.Targeter.BeginTargeting(TargetingParameters.ForDropPodsDestination(), x =>
+//                {
+//                    launchAction(__instance.Tile, new TransportersArrivalAction_LandInSpecificCell(mapParent, x.Cell, Rot4.North, landInShuttle: false));
+//                }, null, null, CompLaunchable.TargeterMouseAttachment);
+//            });
+//        }
+//    }
+//}

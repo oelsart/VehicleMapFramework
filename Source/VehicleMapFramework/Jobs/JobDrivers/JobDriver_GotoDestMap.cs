@@ -27,6 +27,7 @@ public class JobDriver_GotoDestMap : JobDriverAcrossMaps
 
     protected override IEnumerable<Toil> MakeNewToils()
     {
+        base.MakeNewToils();
         if (ShouldEnterTargetAMap)
         {
             foreach (var toil in GotoTargetMap(TargetIndex.A)) yield return toil;

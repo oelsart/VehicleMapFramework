@@ -14,6 +14,8 @@ public static class VMF_DefOf
 
     public static WorldObjectDef VMF_VehicleMap;
 
+    public static MapGeneratorDef VMF_VehicleMapGenerator;
+
     public static ThingDef VMF_VehicleStructureFilled;
 
     public static ThingDef VMF_VehicleStructureEmpty;

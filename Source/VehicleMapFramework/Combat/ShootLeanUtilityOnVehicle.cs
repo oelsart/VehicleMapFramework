@@ -7,17 +7,17 @@ public static class ShootLeanUtilityOnVehicle
 {
     private static bool[] GetWorkingBlockedArray()
     {
-        if (ShootLeanUtilityOnVehicle.blockedArrays.Count > 0)
+        if (blockedArrays.Count > 0)
         {
-            return ShootLeanUtilityOnVehicle.blockedArrays.Dequeue();
+            return blockedArrays.Dequeue();
         }
         return new bool[8];
     }
 
     private static void ReturnWorkingBlockedArray(bool[] ar)
     {
-        ShootLeanUtilityOnVehicle.blockedArrays.Enqueue(ar);
-        if (ShootLeanUtilityOnVehicle.blockedArrays.Count > 128)
+        blockedArrays.Enqueue(ar);
+        if (blockedArrays.Count > 128)
         {
             Log.ErrorOnce("Too many blocked arrays to be feasible. >128", 388121);
         }
@@ -28,7 +28,7 @@ public static class ShootLeanUtilityOnVehicle
         outCells.Clear();
         if (t is Pawn)
         {
-            ShootLeanUtilityOnVehicle.LeanShootingSourcesFromTo(t.Position, shooterPosOnBaseMap, t.Map, outCells);
+            LeanShootingSourcesFromTo(t.Position, shooterPosOnBaseMap, t.Map, outCells);
             return;
         }
         outCells.Add(t.Position);
@@ -58,7 +58,7 @@ public static class ShootLeanUtilityOnVehicle
         bool flag2 = angleFlat > 90f && angleFlat < 270f;
         bool flag3 = angleFlat > 180f;
         bool flag4 = angleFlat < 180f;
-        bool[] workingBlockedArray = ShootLeanUtilityOnVehicle.GetWorkingBlockedArray();
+        bool[] workingBlockedArray = GetWorkingBlockedArray();
         for (int i = 0; i < 8; i++)
         {
             workingBlockedArray[i] = !(shooterLocBaseCol + GenAdj.AdjacentCells[i]).CanBeSeenOverOnVehicle(baseMap);
@@ -91,7 +91,7 @@ public static class ShootLeanUtilityOnVehicle
                 listToFill.Add(shooterLoc + GenAdj.AdjacentCells[j]);
             }
         }
-        ShootLeanUtilityOnVehicle.ReturnWorkingBlockedArray(workingBlockedArray);
+        ReturnWorkingBlockedArray(workingBlockedArray);
     }
 
     private static Queue<bool[]> blockedArrays = new();

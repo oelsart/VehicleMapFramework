@@ -26,36 +26,36 @@ public class CompVehicleLauncherWithMap : CompVehicleLauncher
     public bool CanLaunchWithCargoCapacityWithMap(out string disableReason)
     {
         disableReason = null;
-        if (base.Vehicle.Spawned)
+        if (Vehicle.Spawned)
         {
-            if (base.Vehicle.vehiclePather.Moving)
+            if (Vehicle.vehiclePather.Moving)
             {
-                disableReason = "VF_CannotLaunchWhileMoving".Translate(base.Vehicle.LabelShort);
+                disableReason = "VF_CannotLaunchWhileMoving".Translate(Vehicle.LabelShort);
             }
-            else if (Ext_Vehicles.IsRoofed(base.Vehicle.Position, base.Vehicle.Map))
+            else if (Ext_Vehicles.IsRoofed(Vehicle.Position, Vehicle.Map))
             {
                 disableReason = "CommandLaunchGroupFailUnderRoof".Translate();
             }
         }
-        if (base.Vehicle.MovementPermissions.HasFlag(VehiclePermissions.Mobile))
+        if (Vehicle.MovementPermissions.HasFlag(VehiclePermissions.Mobile))
         {
-            if (!base.Vehicle.CanMoveFinal)
+            if (!Vehicle.CanMoveFinal)
             {
-                disableReason = "VF_CannotLaunchImmobile".Translate(base.Vehicle.LabelShort);
+                disableReason = "VF_CannotLaunchImmobile".Translate(Vehicle.LabelShort);
             }
-            else if (base.Vehicle.Angle != 0f)
+            else if (Vehicle.Angle != 0f)
             {
-                disableReason = "VF_CannotLaunchRotated".Translate(base.Vehicle.LabelShort);
+                disableReason = "VF_CannotLaunchRotated".Translate(Vehicle.LabelShort);
             }
         }
         else
         {
-            float cargoCapacity = base.Vehicle.GetStatValue(VehicleStatDefOf.CargoCapacity);
-            var mass = MassUtility.InventoryMass(base.Vehicle);
+            float cargoCapacity = Vehicle.GetStatValue(VehicleStatDefOf.CargoCapacity);
+            var mass = MassUtility.InventoryMass(Vehicle);
             var flag = true;
-            if (base.Vehicle is VehiclePawnWithMap vehicleWithMap)
+            if (Vehicle is VehiclePawnWithMap vehicleWithMap)
             {
-                float maximumPayload = base.Vehicle.GetStatValue(VMF_DefOf.MaximumPayload);
+                float maximumPayload = Vehicle.GetStatValue(VMF_DefOf.MaximumPayload);
                 var mass2 = CollectionsMassCalculator.MassUsage(vehicleWithMap.VehicleMap.listerThings.AllThings, IgnorePawnsInventoryMode.DontIgnore, true);
                 if (mass2 > maximumPayload)
                 {
@@ -64,14 +64,14 @@ public class CompVehicleLauncherWithMap : CompVehicleLauncher
             }
             if (mass > cargoCapacity && flag)
             {
-                disableReason = "VF_CannotLaunchOverEncumbered".Translate(base.Vehicle.LabelShort);
+                disableReason = "VF_CannotLaunchOverEncumbered".Translate(Vehicle.LabelShort);
             }
         }
-        if (!VehicleMod.settings.debug.debugDraftAnyVehicle && !base.Vehicle.CanMoveWithOperators)
+        if (!VehicleMod.settings.debug.debugDraftAnyVehicle && !Vehicle.CanMoveWithOperators)
         {
             disableReason = "VF_NotEnoughToOperate".Translate();
         }
-        else if (base.Vehicle.CompFueledTravel != null && base.Vehicle.CompFueledTravel.EmptyTank)
+        else if (Vehicle.CompFueledTravel != null && Vehicle.CompFueledTravel.EmptyTank)
         {
             disableReason = "VF_LaunchOutOfFuel".Translate();
         }

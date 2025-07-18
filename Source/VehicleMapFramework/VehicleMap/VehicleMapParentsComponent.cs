@@ -20,12 +20,5 @@ public class VehicleMapParentsComponent : WorldComponent
         cachedParentVehicle.Clear();
     }
 
-    public override void ExposeData()
-    {
-        Scribe_Collections.Look(ref vehicleMaps, "vehicleMaps", LookMode.Deep);
-    }
-
-    public List<MapParent_Vehicle> vehicleMaps = [];
-
     private static Dictionary<Map, Lazy<VehiclePawnWithMap>> cachedParentVehicle = [];
 }

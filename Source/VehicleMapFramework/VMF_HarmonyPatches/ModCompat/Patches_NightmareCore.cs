@@ -35,7 +35,7 @@ public static class Patch_Graphic_LinkedStitched_Print
 
     private static Vector3 RotateVector(Vector3 vector)
     {
-        var rot = VehicleMapUtility.rotForPrint;
+        var rot = VehicleMapUtility.RotForPrint;
         if (rot.IsHorizontal) rot = rot.Opposite;
         return vector.RotatedBy(rot);
     }

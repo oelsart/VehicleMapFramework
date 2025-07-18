@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Patch>
+	<Operation Class="PatchOperationAdd">
+		<xpath>Defs/ThingDef[defName="GravEngine"]/comps/li[@Class="CompProperties_AffectedByFacilities"]/linkableFacilities</xpath>
+		<value>
+			<li>VMF_GravshipWheel</li>
+		</value>
+	</Operation>
+	
+	<Operation Class="PatchOperationAdd">
+		<xpath>Defs/ThingDef[defName="PilotConsole"]/comps</xpath>
+		<value>
+			<li Class="VehicleMapFramework.CompProperties_BuildableUpgrades">
+				<compClass>VehicleMapFramework.CompVehicleSeat</compClass>
+				<upgrades>
+					<li Class = "VehicleMapFramework.VehicleUpgradeBuildable">
+						<roles>
+							<li Class = "VehicleMapFramework.RoleUpgradeBuildable">
+								<key>pilot</key>
+								<editKey>pilot</editKey>
+								<label>Pilot</label>
+								<handlingTypes>Movement</handlingTypes>
+								<slots>1</slots>
+								<slotsToOperate>1</slotsToOperate>
+								<pawnRenderer>
+									<showBody>true</showBody>
+									<drawOffsetNorth>(0,0,-1.5)</drawOffsetNorth>
+									<drawOffsetSouth>(0,0,1.5)</drawOffsetSouth>
+									<drawOffsetEast>(-1.5,0,0)</drawOffsetEast>
+								</pawnRenderer>
+							</li>
+							<li Class = "VehicleMapFramework.RoleUpgradeBuildable">
+								<key>copilot</key>
+								<editKey>copilot</editKey>
+								<label>Copilot</label>
+								<handlingTypes>None</handlingTypes>
+								<slots>1</slots>
+								<pawnRenderer>
+									<showBody>true</showBody>
+									<drawOffsetNorth>(1,0,-1.5)</drawOffsetNorth>
+									<drawOffsetSouth>(-1,0,1.5)</drawOffsetSouth>
+									<drawOffsetEast>(-1.5,0,-1)</drawOffsetEast>
+									<drawOffsetWest>(1.5,0,1)</drawOffsetWest>
+								</pawnRenderer>
+							</li>
+						</roles>
+					</li>
+				</upgrades>
+			</li>
+		</value>
+	</Operation>
+</Patch>

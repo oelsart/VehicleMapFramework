@@ -181,13 +181,14 @@ namespace VehicleMapFramework
                 return;
             }
 
+            VehicleMapUtility.RotForPrint = Rot4.North;
             for (var i = 0; i < 4; i++)
             {
                 try
                 {
                     subMeshes = subMeshesByRot[i];
                     ClearSubMeshes(MeshParts.All);
-                    Map map = base.Map;
+                    Map map = Map;
                     TerrainGrid terrainGrid = map.terrainGrid;
                     var south = IntVec3.South.RotatedBy(VehicleMapUtility.RotForPrintCounter);
                     foreach (IntVec3 item in section.CellRect)
@@ -207,9 +208,10 @@ namespace VehicleMapFramework
                 }
                 finally
                 {
-                    VehicleMapUtility.rotForPrint.Rotate(RotationDirection.Clockwise);
+                    VehicleMapUtility.RotForPrint = VehicleMapUtility.RotForPrint.Rotated(RotationDirection.Clockwise);
                 }
             }
+            VehicleMapUtility.RotForPrint = Rot4.North;
         }
 
         private static void EnsureInitialized()
@@ -356,8 +358,8 @@ namespace VehicleMapFramework
 
         private static void AddQuad(LayerSubMesh sm, Vector3 c, float scale, float altitude, Color color)
         {
-            c = c.RotatedBy(VehicleMapUtility.rotForPrint);
-            var offset = -UVs[VehicleMapUtility.rotForPrint.AsInt];
+            c = c.RotatedBy(VehicleMapUtility.RotForPrint);
+            var offset = -UVs[VehicleMapUtility.RotForPrint.AsInt];
             int count = sm.verts.Count;
             for (int i = 0; i < 4; i++)
             {

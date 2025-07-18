@@ -107,7 +107,7 @@ public class TargetMapManager(World world) : WorldComponent(world)
 
     public override void ExposeData()
     {
-        Scribe_Collections.Look(ref targetInfoDic, "TargetInfo", LookMode.Reference, LookMode.TargetInfo, ref tmpKeys, ref tmpValues);
+        Scribe_Collections.Look(ref targetInfoDic, "TargetInfo", LookMode.Reference, LookMode.TargetInfo, ref tmpKeys, ref tmpValues, false, true, true);
     }
 
     private Dictionary<Thing, TargetInfo> targetInfoDic;

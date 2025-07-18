@@ -2,10 +2,12 @@
 using RimWorld;
 using RimWorld.Planet;
 using SmashTools;
+using SmashTools.Rendering;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
 using UnityEngine;
+using Vehicles;
 using Verse;
 using static VehicleMapFramework.MethodInfoCache;
 
@@ -36,7 +38,7 @@ public static class Patch_Building_Door_StuckOpen
 {
     public static void Postfix(Building_Door __instance, ref bool __result)
     {
-        __result = __result && __instance is not Building_VehicleRamp;
+        __result &= __instance is not Building_VehicleRamp;
     }
 }
 
@@ -51,15 +53,36 @@ public static class Patch_Building_Door_DrawMovers
         }
     }
 
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
-        var codes = instructions.ToList();
-        var m_MatAt = AccessTools.Method(typeof(Graphic), nameof(Graphic.MatAt));
-        var pos = codes.FindIndex(c => c.opcode == OpCodes.Callvirt && c.OperandIs(m_MatAt));
-        codes.Insert(pos - 1, CodeInstruction.Call(typeof(VehicleMapUtility), nameof(VehicleMapUtility.RotForVehicleDraw)));
-        return codes.MethodReplacer(CachedMethodInfo.g_Thing_Rotation, AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.BaseFullRotationDoor)))
+        var replaced = instructions.MethodReplacer(CachedMethodInfo.g_Thing_Rotation, AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.BaseFullRotationDoor)))
             .MethodReplacer(CachedMethodInfo.g_Rot4_AsQuat, CachedMethodInfo.m_Rot8_AsQuatRef)
             .MethodReplacer(CachedMethodInfo.m_Rot4_Rotate, CachedMethodInfo.m_Rot8_Rotate);
+        var codes = new CodeMatcher(replaced, generator);
+        codes.MatchStartForward(CodeMatch.Calls(AccessTools.Method(typeof(Graphic), nameof(Graphic.MatAt))));
+        codes.Advance(-1);
+        codes.Insert(CodeInstruction.Call(typeof(VehicleMapUtility), nameof(VehicleMapUtility.RotForVehicleDraw)));
+
+        codes.Start();
+        codes.MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_Rot8_AsQuatRef));
+        codes.Repeat(c =>
+        {
+            c.DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle);
+            c.CreateLabelWithOffsets(1, out var label);
+            c.InsertAfterAndAdvance(
+                CodeInstruction.LoadArgument(0),
+                new CodeInstruction(OpCodes.Ldloca_S, vehicle),
+                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf),
+                new CodeInstruction(OpCodes.Brfalse_S, label),
+                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+                new CodeInstruction(OpCodes.Callvirt, AccessTools.PropertyGetter(typeof(VehiclePawn), nameof(VehiclePawn.Transform))),
+                CodeInstruction.LoadField(typeof(SmashTools.Rendering.Transform), nameof(SmashTools.Rendering.Transform.rotation)),
+                new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(Vector3), nameof(Vector3.up))),
+                CodeInstruction.Call(typeof(Quaternion), nameof(Quaternion.AngleAxis)),
+                new CodeInstruction(OpCodes.Call, CachedMethodInfo.o_Quaternion_Multiply));
+            ;
+        });
+        return codes.Instructions();
     }
 }
 
@@ -159,7 +182,7 @@ public static class Patch_CompPowerPlantWind_RecalculateBlockages
             CodeInstruction.LoadArgument(0),
             CodeInstruction.LoadField(typeof(CompPowerPlantWind), nameof(CompPowerPlantWind.parent)),
             new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMap_Thing),
-            CodeInstruction.Call(typeof(Patch_CompPowerPlantWind_RecalculateBlockages), nameof(Patch_CompPowerPlantWind_RecalculateBlockages.Restrict))
+            CodeInstruction.Call(typeof(Patch_CompPowerPlantWind_RecalculateBlockages), nameof(Restrict))
         ]);
 
         return codes.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap)

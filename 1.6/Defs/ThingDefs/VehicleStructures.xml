@@ -45,5 +45,6 @@
 		<defName>VMF_VehicleStructureEmpty</defName>
 		<fillPercent>0</fillPercent>
 		<blockLight>false</blockLight>
+		<blockWind>false</blockWind>
 	</ThingDef>
 </Defs>

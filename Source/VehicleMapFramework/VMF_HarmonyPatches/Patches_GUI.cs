@@ -231,15 +231,16 @@ public static class Patch_GUI_VehicleMapOffset
         var codes = new CodeMatcher(instructions, generator);
         codes.MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Quaternion_identity));
         codes.InsertAndAdvance(new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ToBaseMapCoord1));
-
+        codes.DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle);
         codes.CreateLabelWithOffsets(1, out var label);
         codes.InsertAfter(
-                new CodeInstruction(OpCodes.Call, CachedMethodInfo.g_FocusedVehicle),
+                new CodeInstruction(OpCodes.Ldloca_S, vehicle),
+                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_FocusedOnVehicleMap),
                 new CodeInstruction(OpCodes.Brfalse_S, label),
-                new CodeInstruction(OpCodes.Call, CachedMethodInfo.g_FocusedVehicle),
-                new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_FullRotation),
-                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_Rot8_AsQuat),
-                new CodeInstruction(OpCodes.Call, CachedMethodInfo.o_Quaternion_Multiply));
+                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_FullAngle),
+                CodeInstruction.Call(typeof(Vector3Utility), nameof(Vector3Utility.FromAngleFlat)),
+                CodeInstruction.Call(typeof(Quaternion), "op_Multiply", [typeof(Quaternion), typeof(Vector3)]));
         return codes.Instructions();
     }
 }

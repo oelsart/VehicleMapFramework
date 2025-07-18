@@ -157,33 +157,6 @@ public static class Patch_FleckStatic_Draw
     }
 }
 
-//VehicleSkyfallerのyが上書きされてたので車上のVehicleSkyfallerはy足しときなね
-[HarmonyPatch(typeof(LaunchProtocol), nameof(LaunchProtocol.Draw))]
-public static class Patch_LaunchProtocol_Draw
-{
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
-    {
-        var codes = instructions.ToList();
-        var m_AltitudeFor = AccessTools.Method(typeof(Altitudes), nameof(Altitudes.AltitudeFor), [typeof(AltitudeLayer)]);
-        var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(m_AltitudeFor)) + 1;
-        var label = generator.DefineLabel();
-        var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithMap));
-
-        codes[pos].labels.Add(label);
-        codes.InsertRange(pos,
-        [
-            CodeInstruction.LoadArgument(0),
-            CodeInstruction.LoadField(typeof(LaunchProtocol), "map"),
-            new CodeInstruction(OpCodes.Ldloca_S, vehicle),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsNonFocusedVehicleMapOf),
-            new CodeInstruction(OpCodes.Brfalse_S, label),
-            new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-        new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_YOffsetFull2)
-        ]);
-        return codes;
-    }
-}
-
 //thingがIsOnVehicleMapだった場合回転の初期値num4にベースvehicleのAngleを与え、posはRotatePointで回転
 [HarmonyPatch(typeof(SelectionDrawer), nameof(SelectionDrawer.DrawSelectionBracketFor))]
 [HarmonyAfter("owlchemist.smartfarming")]
@@ -194,7 +167,6 @@ public static class Patch_SelectionDrawer_DrawSelectionBracketFor
         var codes = instructions.ToList();
         var pos = codes.FindIndex(c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalIndex == 9);
         var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithMap));
-        var rot = generator.DeclareLocal(typeof(Rot8));
         var label = generator.DefineLabel();
 
         codes[pos].labels.Add(label);
@@ -205,10 +177,7 @@ public static class Patch_SelectionDrawer_DrawSelectionBracketFor
             new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf),
             new CodeInstruction(OpCodes.Brfalse_S, label),
             new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-            new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_FullRotation),
-            new CodeInstruction(OpCodes.Stloc_S, rot),
-            new CodeInstruction(OpCodes.Ldloca_S, rot),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.g_Rot8_AsAngle),
+            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_FullAngle),
             new CodeInstruction(OpCodes.Conv_I4),
             new CodeInstruction(OpCodes.Add),
         ]);
@@ -223,8 +192,8 @@ public static class Patch_SelectionDrawer_DrawSelectionBracketFor
             new CodeInstruction(OpCodes.Brfalse_S, label2),
             CodeInstruction.LoadLocal(2),
             new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_Thing_DrawPos),
-            new CodeInstruction(OpCodes.Ldloca_S, rot),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.g_Rot8_AsAngle),
+            new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_FullAngle),
             new CodeInstruction(OpCodes.Neg),
             new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_RotatePoint)
         ]);
@@ -261,7 +230,7 @@ public static class Patch_Pawn_JobTracker_DrawLinesBetweenTargets
         codes.Insert(pos, new CodeInstruction(OpCodes.Callvirt, g_Pawn_DrawPos));
 
         var g_CenterVector3 = AccessTools.PropertyGetter(typeof(LocalTargetInfo), nameof(LocalTargetInfo.CenterVector3));
-        var m_CenterVector3VehicleOffset = AccessTools.Method(typeof(Patch_Pawn_JobTracker_DrawLinesBetweenTargets), nameof(Patch_Pawn_JobTracker_DrawLinesBetweenTargets.CenterVector3VehicleOffset));
+        var m_CenterVector3VehicleOffset = AccessTools.Method(typeof(Patch_Pawn_JobTracker_DrawLinesBetweenTargets), nameof(CenterVector3VehicleOffset));
         foreach (var code in codes)
         {
             if (code.opcode == OpCodes.Call && code.OperandIs(g_CenterVector3))
@@ -433,6 +402,7 @@ public static class Patch_Graphic_Draw
                 var offset2 = offset.RotatedBy(-angle);
                 loc += new Vector3(offset2.x - offset.x, 0f, offset2.z - offset.z);
             }
+            extraRotation += vehicle.Transform.rotation;
 
             ////はしごとかのマップ端オフセット
             //VehicleMapProps mapProps;
@@ -695,7 +665,7 @@ public static class Patch_DesignationDragger_DraggerOnGUI
 [HarmonyPatch(typeof(MeditationUtility), nameof(MeditationUtility.DrawArtificialBuildingOverlay))]
 public static class Patch_MeditationUtility_DrawArtificialBuildingOverlay
 {
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) => Patch_MeditationUtility_DrawArtificialBuildingOverlay.TranspilerCommon(instructions);
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) => TranspilerCommon(instructions);
 
     public static IEnumerable<CodeInstruction> TranspilerCommon(IEnumerable<CodeInstruction> instructions, int ArgumentNum = 0)
     {

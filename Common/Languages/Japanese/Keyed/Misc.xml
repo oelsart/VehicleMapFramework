@@ -7,7 +7,7 @@
 
 	<VMF_StatsReport_MaximumPayload>最大積載重量: {0}</VMF_StatsReport_MaximumPayload>
 
-	<VMF_StatsReport_HumanPowerAverage>乗り物を動かす人たちの体力ファクター: {0}</VMF_StatsReport_HumanPowerAverage>
+	<VMF_StatsReport_HumanPowerAverage>車両を動かす人たちの体力ファクター: {0}</VMF_StatsReport_HumanPowerAverage>
 
 	<VMF_LandInSpecificMap>{0}にズームインして,{1}の着陸地点を選択する</VMF_LandInSpecificMap>
 

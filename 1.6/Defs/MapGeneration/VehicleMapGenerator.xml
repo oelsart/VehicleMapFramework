@@ -3,7 +3,7 @@
 
     <MapGeneratorDef>
         <defName>VMF_VehicleMapGenerator</defName>
-        <label>generator</label>
+        <label>vehicle map</label>
         <pocketMapProperties>
             <biome>VMF_VehicleMapBiome</biome>
             <temperature>21</temperature>

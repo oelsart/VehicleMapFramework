@@ -13,11 +13,11 @@ public class ExplosionAcrossMaps : Explosion
     {
         base.StartExplosion(explosionSound, ignoredThings);
 
-        var vehicles = base.Position.GetRoom(base.Map)?.ContainedThings<VehiclePawnWithMap>();
+        var vehicles = Position.GetRoom(Map)?.ContainedThings<VehiclePawnWithMap>();
         if (vehicles.NullOrEmpty()) return;
 
-        var map = base.Map;
-        var pos = base.Position;
+        var map = Map;
+        var pos = Position;
         try
         {
             foreach (var vehicle in vehicles)
@@ -25,9 +25,9 @@ public class ExplosionAcrossMaps : Explosion
                 cellsToAffectOnVehicles[vehicle] = SimplePool<List<IntVec3>>.Get();
                 cellsToAffectOnVehicles[vehicle].Clear();
                 this.VirtualMapTransfer(vehicle.VehicleMap, pos.ToVehicleMapCoord(vehicle));
-                if (!base.overrideCells.NullOrEmpty())
+                if (!overrideCells.NullOrEmpty())
                 {
-                    foreach (var c in base.overrideCells)
+                    foreach (var c in overrideCells)
                     {
                         cellsToAffectOnVehicles[vehicle].Add(c.ToVehicleMapCoord(vehicle));
                     }
@@ -75,8 +75,8 @@ public class ExplosionAcrossMaps : Explosion
             num--;
         }
 
-        var map = base.Map;
-        var pos = base.Position;
+        var map = Map;
+        var pos = Position;
         try
         {
             foreach (var vehicle in cellsToAffectOnVehicles.Keys)

@@ -34,15 +34,15 @@ public class VehicleMapFramework : Mod
 
     public VehicleMapFramework(ModContentPack content) : base(content)
     {
-        VehicleMapFramework.mod = this;
-        VehicleMapFramework.settings = base.GetSettings<VehicleMapSettings>();
+        mod = this;
+        settings = GetSettings<VehicleMapSettings>();
     }
 
     public void InitializeTabs()
     {
-        VehicleMapFramework.tabs.Clear();
+        tabs.Clear();
         var mainTab = new SettingsTab_Main();
-        VehicleMapFramework.tabs.Add(new TabRecord("VMF_Settings.Tab.Main".Translate(), () =>
+        tabs.Add(new TabRecord("VMF_Settings.Tab.Main".Translate(), () =>
         {
             CurrentTab = mainTab;
         }, () => CurrentTab == mainTab));
@@ -62,7 +62,7 @@ public class VehicleMapFramework : Mod
         base.DoSettingsWindowContents(inRect);
         var rect = new Rect(inRect.x, inRect.y + TabDrawer.TabHeight, inRect.width, inRect.height - TabDrawer.TabHeight);
         Widgets.DrawMenuSection(rect);
-        TabDrawer.DrawTabs(rect, VehicleMapFramework.tabs);
+        TabDrawer.DrawTabs(rect, tabs);
         CurrentTab.Draw(rect.ContractedBy(10f));
     }
 

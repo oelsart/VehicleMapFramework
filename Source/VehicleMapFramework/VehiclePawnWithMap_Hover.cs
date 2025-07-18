@@ -29,7 +29,7 @@ public class VehiclePawnWithMap_Hover : VehiclePawnWithMap
     protected override void Tick()
     {
         prevOffset = drawOffset;
-        if (base.ignition.Drafted)
+        if (ignition.Drafted)
         {
             if (!ignitionComplete)
             {

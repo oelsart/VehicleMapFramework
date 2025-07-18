@@ -1,7 +1,5 @@
-﻿using HarmonyLib;
-using SmashTools;
+﻿using SmashTools;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using Verse;
 using static VehicleMapFramework.ModCompat;
@@ -91,21 +89,23 @@ public abstract class SectionLayer_ThingsOnVehicle : SectionLayer_Things
 
     public void RegenerateActually()
     {
+        VehicleMapUtility.RotForPrint = Rot4.North;
         bounds = section.CellRect;
         for (var i = 0; i < 4; i++)
         {
-            var component = MapComponentCache<VehiclePawnWithMapCache>.GetComponent(base.Map);
-            component.cacheMode = true;
+            var component = MapComponentCache<VehiclePawnWithMapCache>.GetComponent(Map);
+            component?.cacheMode = true;
             try
             {
                 subMeshes = subMeshesByRot[i];
                 subMeshes.Clear();
                 foreach (IntVec3 intVec in section.CellRect)
                 {
-                    var list = DeepStorage.Active ? (List<Thing>)DeepStorage.ThingListToDisplay(null, base.Map, intVec) : intVec.GetThingList(base.Map);
-                    foreach (var thing in list)
+                    var list = DeepStorage.Active ? (List<Thing>)DeepStorage.ThingListToDisplay(null, Map, intVec) : intVec.GetThingList(Map);
+                    for (var j = 0; j < list.Count; j++)
                     {
-                        if ((thing.def.seeThroughFog || !base.Map.fogGrid.IsFogged(thing.Position)) && thing.def.drawerType != DrawerType.None && (thing.def.drawerType != DrawerType.RealtimeOnly || !requireAddToMapMesh) && (thing.def.hideAtSnowOrSandDepth >= 1f || base.Map.snowGrid.GetDepth(thing.Position) <= thing.def.hideAtSnowOrSandDepth) && thing.Position.x == intVec.x && thing.Position.z == intVec.z)
+                        var thing = list[j];
+                        if ((thing.def.seeThroughFog || !Map.fogGrid.IsFogged(thing.Position)) && thing.def.drawerType != DrawerType.None && (thing.def.drawerType != DrawerType.RealtimeOnly || !requireAddToMapMesh) && (thing.def.hideAtSnowOrSandDepth >= 1f || Map.snowGrid.GetDepth(thing.Position) <= thing.def.hideAtSnowOrSandDepth) && thing.Position.x == intVec.x && thing.Position.z == intVec.z)
                         {
                             TakePrintFrom(thing);
                             bounds.Encapsulate(thing.OccupiedDrawRect());
@@ -125,10 +125,11 @@ public abstract class SectionLayer_ThingsOnVehicle : SectionLayer_Things
             }
             finally
             {
-                component.cacheMode = false;
-                VehicleMapUtility.rotForPrint.Rotate(RotationDirection.Clockwise);
+                component?.cacheMode = false;
+                VehicleMapUtility.RotForPrint = VehicleMapUtility.RotForPrint.Rotated(RotationDirection.Clockwise);
             }
         }
+        VehicleMapUtility.RotForPrint = Rot4.North;
     }
 
     private bool dirty;

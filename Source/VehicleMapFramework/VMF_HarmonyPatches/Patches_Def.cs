@@ -94,7 +94,7 @@ public static class CheckEnablePipeConnector
 
         if (VFECore.Active)
         {
-            var allDefs = (IEnumerable<object>)AccessTools.PropertyGetter(typeof(DefDatabase<>).MakeGenericType(ModCompat.VFECore.PipeNetDef), "AllDefs").Invoke(null, null);
+            var allDefs = (IEnumerable<object>)AccessTools.PropertyGetter(typeof(DefDatabase<>).MakeGenericType(VFECore.PipeNetDef), "AllDefs").Invoke(null, null);
             if (allDefs.Count() > 1)
             {
                 return true;

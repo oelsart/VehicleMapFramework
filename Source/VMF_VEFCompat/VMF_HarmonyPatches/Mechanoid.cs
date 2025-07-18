@@ -73,7 +73,7 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
                 });
 
                 __result = (from x in things.OfType<Frame>()
-                            where x.IsCompleted() && Patch_Building_Autocrane_NextFrameTarget.Validator(x, __instance)
+                            where x.IsCompleted() && Validator(x, __instance)
                             orderby x.PositionOnBaseMap().DistanceTo(___endCranePosition)
                             select x).FirstOrDefault();
             }
@@ -248,7 +248,7 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
         {
             if (__instance.IsOnNonFocusedVehicleMapOf(out var vehicle) && vehicle.Spawned)
             {
-                foreach (var c in Patch_Building_AutoPlant_DoWorkOnCells.GetCells(__instance, vehicle, ___offset))
+                foreach (var c in GetCells(__instance, vehicle, ___offset))
                 {
                     DoWorkOnCell(__instance, c);
                 }

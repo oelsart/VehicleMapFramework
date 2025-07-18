@@ -9,9 +9,9 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [HarmonyPatch(typeof(Alert_NeedMealSource), "NeedMealSource")]
 public static class Patch_Alert_NeedMealSource_NeedMealSource
 {
-    public static void Postfix(Alert_NeedMealSource __instance, Map map, bool __result)
+    public static void Postfix(Alert_NeedMealSource __instance, Map map, ref bool __result)
     {
-        __result = __result && VehiclePawnWithMapCache.AllVehiclesOn(map).All(v => (bool)NeedMealSource(__instance, v.VehicleMap));
+        __result &= VehiclePawnWithMapCache.AllVehiclesOn(map).All(v => (bool)NeedMealSource(__instance, v.VehicleMap));
     }
 
     private static FastInvokeHandler NeedMealSource = MethodInvoker.GetHandler(AccessTools.Method(typeof(Alert_NeedMealSource), "NeedMealSource"));

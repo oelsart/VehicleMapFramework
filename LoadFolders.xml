@@ -9,15 +9,15 @@
     <li IfModActive="Owlchemist.SmartFarming">1.5/_SmartFarming</li>
     <li IfModActive="OskarPotocki.VanillaFactionsExpanded.Core">1.5/_VanillaExpandedFramework</li>
     <li IfModActive="Mehni.PickUpAndHaul">1.5/_PickUpAndHaul</li>
-    <li IfModActive="telardo.MultiFloors">Common/_MultiFloors</li>
-    <li IfModActive="XMB.AncientUrbanrUins.MO">Common/_AncientUrbanRuins</li>
-    <li IfModActive="daylight.RLEsExpansionProductPS">Common/_RimLifeExpansionProductionPlus</li>
-    <li IfModActive="kentington.saveourship2">Common/_SaveOurShip2</li>
-    <li IfModActive="glasses.sos2srtsZone">Common/_RooflessHull</li>
-    <li IfModActive="DankPyon.Medieval.Overhaul">Common/_MedievalOverhaul</li>
-    <li IfModActive="Cain.Mineshaft">Common/_Mines</li>
-    <li IfModActive="OskarPotocki.VFE.Mechanoid">Common/_VFEMechanoids</li>
-    <li IfModActive="VanillaExpanded.VFESecurity">Common/_VFESecurity</li>
+    <li IfModActive="telardo.MultiFloors">1.5/_MultiFloors</li>
+    <li IfModActive="XMB.AncientUrbanrUins.MO">1.5/_AncientUrbanRuins</li>
+    <li IfModActive="daylight.RLEsExpansionProductPS">1.5/_RimLifeExpansionProductionPlus</li>
+    <li IfModActive="kentington.saveourship2">1.5/_SaveOurShip2</li>
+    <li IfModActive="glasses.sos2srtsZone">1.5/_RooflessHull</li>
+    <li IfModActive="DankPyon.Medieval.Overhaul">1.5/_MedievalOverhaul</li>
+    <li IfModActive="Cain.Mineshaft">1.5/_Mines</li>
+    <li IfModActive="OskarPotocki.VFE.Mechanoid">1.5/_VFEMechanoids</li>
+    <li IfModActive="VanillaExpanded.VFESecurity">1.5/_VFESecurity</li>
   </v1.5>
   <v1.6>
     <li>1.6</li>
@@ -29,15 +29,15 @@
     <li IfModActive="Owlchemist.SmartFarming">1.6/_SmartFarming</li>
     <li IfModActive="OskarPotocki.VanillaFactionsExpanded.Core">1.6/_VanillaExpandedFramework</li>
     <li IfModActive="Mehni.PickUpAndHaul">1.6/_PickUpAndHaul</li>
-    <li IfModActive="telardo.MultiFloors">Common/_MultiFloors</li>
-    <li IfModActive="XMB.AncientUrbanrUins.MO">Common/_AncientUrbanRuins</li>
-    <li IfModActive="daylight.RLEsExpansionProductPS">Common/_RimLifeExpansionProductionPlus</li>
-    <li IfModActive="kentington.saveourship2">Common/_SaveOurShip2</li>
-    <li IfModActive="glasses.sos2srtsZone">Common/_RooflessHull</li>
-    <li IfModActive="DankPyon.Medieval.Overhaul">Common/_MedievalOverhaul</li>
-    <li IfModActive="Cain.Mineshaft">Common/_Mines</li>
-    <li IfModActive="OskarPotocki.VFE.Mechanoid">Common/_VFEMechanoids</li>
-    <li IfModActive="VanillaExpanded.VFESecurity">Common/_VFESecurity</li>
+    <li IfModActive="telardo.MultiFloors">1.6/_MultiFloors</li>
+    <li IfModActive="XMB.AncientUrbanrUins.MO">1.6/_AncientUrbanRuins</li>
+    <li IfModActive="daylight.RLEsExpansionProductPS">1.6/_RimLifeExpansionProductionPlus</li>
+    <li IfModActive="kentington.saveourship2">1.6/_SaveOurShip2</li>
+    <li IfModActive="glasses.sos2srtsZone">1.6/_RooflessHull</li>
+    <li IfModActive="DankPyon.Medieval.Overhaul">1.6/_MedievalOverhaul</li>
+    <li IfModActive="Cain.Mineshaft">1.6/_Mines</li>
+    <li IfModActive="OskarPotocki.VFE.Mechanoid">1.6/_VFEMechanoids</li>
+    <li IfModActive="VanillaExpanded.VFESecurity">1.6/_VFESecurity</li>
     <li IfModActive="Ludeon.RimWorld.Odyssey">1.6/_Odyssey</li>
   </v1.6>
 </loadFolders>

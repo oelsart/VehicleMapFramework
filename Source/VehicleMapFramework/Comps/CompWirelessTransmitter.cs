@@ -43,7 +43,7 @@ public class CompWirelessTransmitter : CompToggleLitGraphic
                     else
                     {
                         var sumBatteriesDiscarge = powerNet.batteryComps.Count * 5f;
-                        var needs = ((powerNet.batteryComps.Sum(b => b.AmountCanAccept) - powerComps.Sum(p => p.EnergyOutputPerTick)) / CompPower.WattsToWattDaysPerTick) + sumBatteriesDiscarge;
+                        var needs = ((powerNet.batteryComps.Sum(b => b.AmountCanAccept) - powerComps.Sum(p => p.EnergyOutputPerTick)) / WattsToWattDaysPerTick) + sumBatteriesDiscarge;
                         PowerOutput = -Mathf.Clamp((needs / Props.powerLossFactor) + 1E-07f, sumBatteriesDiscarge, powerOutputSetting);
                     }
                     compReceiver.shouldBeLitNow = true;

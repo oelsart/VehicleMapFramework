@@ -145,11 +145,11 @@ public static class Patch_AnimRenderer_Draw
         return instructions.Manipulator(c => c.opcode == OpCodes.Ldfld && c.OperandIs(f_AnimRenderer_Map), c =>
         {
             c.opcode = OpCodes.Call;
-            c.operand = AccessTools.Method(typeof(Patch_AnimRenderer_Draw), nameof(Patch_AnimRenderer_Draw.BaseMap));
+            c.operand = AccessTools.Method(typeof(Patch_AnimRenderer_Draw), nameof(BaseMap));
         }).Manipulator(c => c.opcode == OpCodes.Ldfld && c.OperandIs(f_RootTransform), c =>
         {
             c.opcode = OpCodes.Call;
-            c.operand = AccessTools.Method(typeof(Patch_AnimRenderer_Draw), nameof(Patch_AnimRenderer_Draw.RootTransformOffset));
+            c.operand = AccessTools.Method(typeof(Patch_AnimRenderer_Draw), nameof(RootTransformOffset));
         });
     }
 
@@ -190,7 +190,7 @@ public static class Patch_AnimRenderer_DrawPawns
 
     public static MethodInfo m_GetWorldPosition = AccessTools.Method("AnimPartSnapshot:GetWorldPosition");
 
-    public static MethodInfo m_GetWorldPositionOffset = AccessTools.Method(typeof(Patch_AnimRenderer_DrawPawns), nameof(Patch_AnimRenderer_DrawPawns.GetWorldPositionOffset));
+    public static MethodInfo m_GetWorldPositionOffset = AccessTools.Method(typeof(Patch_AnimRenderer_DrawPawns), nameof(GetWorldPositionOffset));
 
     [HarmonyPatch("AnimPartSnapshot", "GetWorldPosition")]
     [HarmonyReversePatch]
@@ -242,7 +242,7 @@ public static class Patch_AnimRenderer_DrawSingle
             }
             return result;
         };
-        var m_RootPositionOffset = AccessTools.Method(typeof(Patch_AnimRenderer_DrawSingle), nameof(Patch_AnimRenderer_DrawSingle.RootPositionOffset));
+        var m_RootPositionOffset = AccessTools.Method(typeof(Patch_AnimRenderer_DrawSingle), nameof(RootPositionOffset));
         return instructions.MethodReplacer(g_RootPosition, m_RootPositionOffset);
     }
 

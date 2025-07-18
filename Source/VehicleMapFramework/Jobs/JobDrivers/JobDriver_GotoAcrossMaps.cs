@@ -114,6 +114,6 @@ public class JobDriver_GotoAcrossMaps : JobDriverAcrossMaps
         {
             return;
         }
-        pawn.ExitMap(true, CellRect.WholeMap(base.Map.BaseMap()).GetClosestEdge(pawn.Position));
+        pawn.ExitMap(true, CellRect.WholeMap(Map.BaseMap()).GetClosestEdge(pawn.Position));
     }
 }

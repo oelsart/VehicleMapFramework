@@ -52,10 +52,10 @@ public static class VerbOnVehicleUtility
                     resultingLine = new ShootLine(root, dest);
                     return true;
                 }
-                ShootLeanUtilityOnVehicle.LeanShootingSourcesFromTo(verb.caster.Position, occupiedRect.ClosestCellTo(root), verb.caster.Map, VerbOnVehicleUtility.tempLeanShootSources);
-                for (int i = 0; i < VerbOnVehicleUtility.tempLeanShootSources.Count; i++)
+                ShootLeanUtilityOnVehicle.LeanShootingSourcesFromTo(verb.caster.Position, occupiedRect.ClosestCellTo(root), verb.caster.Map, tempLeanShootSources);
+                for (int i = 0; i < tempLeanShootSources.Count; i++)
                 {
-                    IntVec3 intVec = VerbOnVehicleUtility.tempLeanShootSources[i].ToThingBaseMapCoord(verb.caster);
+                    IntVec3 intVec = tempLeanShootSources[i].ToThingBaseMapCoord(verb.caster);
                     if (verb.CanHitFromCellIgnoringRange(intVec, targ, out dest))
                     {
                         resultingLine = new ShootLine(intVec, dest);
@@ -96,13 +96,13 @@ public static class VerbOnVehicleUtility
                 goodDest = IntVec3.Invalid;
                 return false;
             }
-            ShootLeanUtilityOnVehicle.CalcShootableCellsOf(VerbOnVehicleUtility.tempDestList, targ.Thing, sourceCellBaseCol);
+            ShootLeanUtilityOnVehicle.CalcShootableCellsOf(tempDestList, targ.Thing, sourceCellBaseCol);
             var intVec = sourceCellBaseCol.ToThingMapCoord(targ.Thing);
-            for (int i = 0; i < VerbOnVehicleUtility.tempDestList.Count; i++)
+            for (int i = 0; i < tempDestList.Count; i++)
             {
-                if (verb.CanHitCellFromCellIgnoringRange(intVec, VerbOnVehicleUtility.tempDestList[i], targ.Thing.Map, targ.Thing.def.Fillage == FillCategory.Full))
+                if (verb.CanHitCellFromCellIgnoringRange(intVec, tempDestList[i], targ.Thing.Map, targ.Thing.def.Fillage == FillCategory.Full))
                 {
-                    goodDest = VerbOnVehicleUtility.tempDestList[i].ToThingBaseMapCoord(targ.Thing);
+                    goodDest = tempDestList[i].ToThingBaseMapCoord(targ.Thing);
                     return true;
                 }
             }

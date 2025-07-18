@@ -2,27 +2,27 @@
 <LanguageData>
 
 	<VMF_DriverSeat.label>運転席</VMF_DriverSeat.label>
-	<VMF_DriverSeat.description>乗り物の運転席です. これが設置されていると, 乗り物が動かせるようになります.</VMF_DriverSeat.description>
+	<VMF_DriverSeat.description>車両の運転席です. これが設置されていると, 車両が動かせるようになります.</VMF_DriverSeat.description>
 	<VMF_DriverSeat.comps.0.upgrades.0.roles.0.label>運転手</VMF_DriverSeat.comps.0.upgrades.0.roles.0.label>
 	
 	<VMF_GunnerSeat.label>砲手席</VMF_GunnerSeat.label>
-	<VMF_GunnerSeat.description>乗り物の砲手席です. これが設置されていると, 選択したタレットを操作できるようになります.</VMF_GunnerSeat.description>
+	<VMF_GunnerSeat.description>車両の砲手席です. これが設置されていると, 選択したタレットを操作できるようになります.</VMF_GunnerSeat.description>
 	<VMF_GunnerSeat.comps.0.upgrades.0.roles.0.label>砲手</VMF_GunnerSeat.comps.0.upgrades.0.roles.0.label>
 	
 	<VMF_PassengerSeat.label>搭乗者席</VMF_PassengerSeat.label>
-	<VMF_PassengerSeat.description>乗り物の搭乗者席です.</VMF_PassengerSeat.description>
+	<VMF_PassengerSeat.description>車両の搭乗者席です.</VMF_PassengerSeat.description>
 	<VMF_PassengerSeat.comps.0.upgrades.0.roles.0.label>搭乗者</VMF_PassengerSeat.comps.0.upgrades.0.roles.0.label>
 	
 	<VMF_CargoContainer.label>コンテナ</VMF_CargoContainer.label>
-	<VMF_CargoContainer.description>乗り物の積載容量を増加させるコンテナです.\n\n&lt;color=#bb8f04&gt;積載容量:&lt;/color&gt; +150 kg</VMF_CargoContainer.description>
+	<VMF_CargoContainer.description>車両の積載容量を増加させるコンテナです.\n\n&lt;color=#bb8f04&gt;積載容量:&lt;/color&gt; +150 kg</VMF_CargoContainer.description>
 	
 	<VMF_TurboCharger.label>ターボチャージャー</VMF_TurboCharger.label>
-	<VMF_TurboCharger.description>乗り物が運ぶことのできる最大重量を増加させるエンジンパーツです.\n\n&lt;color=#bb8f04&gt;最大積載重量:&lt;/color&gt; +500 kg</VMF_TurboCharger.description>
+	<VMF_TurboCharger.description>車両が運ぶことのできる最大重量を増加させるエンジンパーツです.\n\n&lt;color=#bb8f04&gt;最大積載重量:&lt;/color&gt; +500 kg</VMF_TurboCharger.description>
 	
 	<VMF_LiftFan.label>リフトファン</VMF_LiftFan.label>
-	<VMF_LiftFan.description>乗り物が運ぶことのできる最大重量を増加させるリフトファンです. ホバータイプの乗り物にのみ設置できます.\n\n&lt;color=#bb8f04&gt;最大積載重量:&lt;/color&gt; +250 kg</VMF_LiftFan.description>
+	<VMF_LiftFan.description>車両が運ぶことのできる最大重量を増加させるリフトファンです. ホバータイプの車両にのみ設置できます.\n\n&lt;color=#bb8f04&gt;最大積載重量:&lt;/color&gt; +250 kg</VMF_LiftFan.description>
 
 	<VMF_FuelTank.label>燃料タンク</VMF_FuelTank.label>
-	<VMF_FuelTank.description>乗り物の燃料搭載量を増加させる追加タンクです.\n\n&lt;color=#bb8f04&gt;燃料搭載量:&lt;/color&gt; +300</VMF_FuelTank.description>
+	<VMF_FuelTank.description>車両の燃料搭載量を増加させる追加タンクです.\n\n&lt;color=#bb8f04&gt;燃料搭載量:&lt;/color&gt; +300</VMF_FuelTank.description>
 
 </LanguageData>

@@ -2,19 +2,19 @@
 <LanguageData>
 
 	<VMF_WirelessTransmitter.label>ワイヤレス送信機</VMF_WirelessTransmitter.label>
-	<VMF_WirelessTransmitter.description>通常マップと乗り物マップ間で電力を送信する装置です. 通常マップにのみ設置できます.</VMF_WirelessTransmitter.description>
+	<VMF_WirelessTransmitter.description>通常マップと車両マップ間で電力を送信する装置です. 通常マップにのみ設置できます.</VMF_WirelessTransmitter.description>
 	
 	<VMF_WirelessReceiver.label>ワイヤレス受信機</VMF_WirelessReceiver.label>
-	<VMF_WirelessReceiver.description>通常マップから電力を受信する装置です. 乗り物マップに設置し, 送信機と位置を合わせることで電力を受信します.</VMF_WirelessReceiver.description>
+	<VMF_WirelessReceiver.description>通常マップから電力を受信する装置です. 車両マップに設置し, 送信機と位置を合わせることで電力を受信します.</VMF_WirelessReceiver.description>
 
 	<VMF_Alternator.label>オルタネーター</VMF_Alternator.label>
 	<VMF_Alternator.description>車両の燃料を使って電力を生み出す部品です.</VMF_Alternator.description>
 
 	<VMF_PipeConnector.label>パイプコネクター</VMF_PipeConnector.label>
-	<VMF_PipeConnector.description>通常マップと乗り物マップのパイプを繋ぐコネクターです.\n通常マップと乗り物マップに置き, 位置を合わせると接続します.</VMF_PipeConnector.description>
+	<VMF_PipeConnector.description>通常マップと車両マップのパイプを繋ぐコネクターです.\n通常マップと車両マップに置き, 位置を合わせると接続します.</VMF_PipeConnector.description>
 
 	<VMF_Turret_ZiplineTurret.label>ジップラインタレット</VMF_Turret_ZiplineTurret.label>
-	<VMF_Turret_ZiplineTurret.description>突き刺した場所に向けてジップラインを張る射出機です. 異なる乗り物間マップ間で直接行き来する時などに使用します.</VMF_Turret_ZiplineTurret.description>
+	<VMF_Turret_ZiplineTurret.description>突き刺した場所に向けてジップラインを張る射出機です. 異なる車両間マップ間で直接行き来する時などに使用します.</VMF_Turret_ZiplineTurret.description>
 
 	<VMF_Gun_ZiplineTurret.label>ジップラインタレット砲塔</VMF_Gun_ZiplineTurret.label>
 	<VMF_Gun_ZiplineTurret.description>ジップラインタレットに取り付けられる砲塔です.</VMF_Gun_ZiplineTurret.description>

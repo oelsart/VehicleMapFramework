@@ -55,8 +55,11 @@ public class JobDriver_BoardAcrossMaps : JobDriverAcrossMaps
             {
                 vehiclePawn.BoardPawn(pawnBoarding);
                 var caravan = vehiclePawn.GetCaravan() ?? vehiclePawn.GetVehicleCaravan();
-                caravan?.AddPawn(pawnBoarding, true);
-                Find.WorldPawns.PassToWorld(pawnBoarding, PawnDiscardDecideMode.Decide);
+                if (caravan is not null)
+                {
+                    caravan.AddPawn(pawnBoarding, true);
+                    Find.WorldPawns.PassToWorld(pawnBoarding, PawnDiscardDecideMode.Decide);
+                }
                 if (pawnBoarding.Faction != vehiclePawn.Faction)
                 {
                     pawnBoarding.SetFaction(vehiclePawn.Faction);

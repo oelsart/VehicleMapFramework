@@ -40,7 +40,7 @@ public class JobDriver_RefuelVehicleTank : JobDriver
     protected override IEnumerable<Toil> MakeNewToils()
     {
         this.FailOnDespawnedNullOrForbidden(TargetIndex.A);
-        base.AddEndCondition(delegate
+        AddEndCondition(delegate
         {
             if (!Vehicle.CompFueledTravel.FullTank)
             {
@@ -59,7 +59,7 @@ public class JobDriver_RefuelVehicleTank : JobDriver
         yield return Toils_Haul.CheckForGetOpportunityDuplicate(reserveFuel, TargetIndex.B, TargetIndex.None, true, null);
         yield return Toils_Goto.GotoThing(TargetIndex.A, PathEndMode.Touch, false);
         yield return Toils_General.Wait(RefuelingDuration, TargetIndex.None).FailOnDestroyedNullOrForbidden(TargetIndex.B).FailOnDestroyedNullOrForbidden(TargetIndex.A).FailOnCannotTouch(TargetIndex.A, PathEndMode.Touch).WithProgressBarToilDelay(TargetIndex.A, false, -0.5f);
-        yield return JobDriver_RefuelVehicleTank.FinalizeRefueling(TargetIndex.A, TargetIndex.B);
+        yield return FinalizeRefueling(TargetIndex.A, TargetIndex.B);
     }
 
     public static Toil FinalizeRefueling(TargetIndex refuelableInd, TargetIndex fuelInd)

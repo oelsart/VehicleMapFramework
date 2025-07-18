@@ -108,7 +108,7 @@ public class CompVehicleSeat : CompBuildableUpgrades
             vehicle.CompVehicleTurrets?.RecacheTurretPermissions();
             vehicle.RecachePawnCount();
             handlersToDraw = vehicle.handlers.Where(h => handlerUniqueIDs.Any(i => h.uniqueID == i.id))
-                .Select(h => (h, base.Props.upgrades.SelectMany(u => (u as VehicleUpgrade).roles).FirstOrDefault(r => r?.key == h.role.key)));
+                .Select(h => (h, Props.upgrades.SelectMany(u => (u as VehicleUpgrade).roles).FirstOrDefault(r => r?.key == h.role.key)));
         }
     }
 

@@ -20,8 +20,8 @@ public class Graphic_LinkedCornerOverlaySingle : Graphic_Linked
         if (ShouldLinkWith(position + IntVec3.East, thing) && ShouldLinkWith(position + IntVec3.North, thing) && ShouldLinkWith(position + IntVec3.NorthEast, thing))
         {
             Material mat = overlayGraphic.MatSingleFor(thing);
-            Graphic.TryGetTextureAtlasReplacementInfo(mat, TextureAtlasGroup.Building, false, false, out mat, out Vector2[] uvs, out _);
-            var rot = -VehicleMapUtility.rotForPrint.AsAngle;
+            TryGetTextureAtlasReplacementInfo(mat, TextureAtlasGroup.Building, false, false, out mat, out Vector2[] uvs, out _);
+            var rot = -VehicleMapUtility.RotForPrint.AsAngle;
             Printer_Plane.PrintPlane(layer, thing.TrueCenter() + VehicleMapUtility.RotateForPrintNegate(new Vector3(0.5f, 0.1f, 0.5f)), Vector3.one, mat, rot, false, uvs, null, 0.01f, 0f);
         }
     }

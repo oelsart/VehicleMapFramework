@@ -7,9 +7,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using UnityEngine;
 using VehicleMapFramework.VMF_HarmonyPatches;
 using Vehicles;
+using Vehicles.World;
 using Verse;
 using static VehicleMapFramework.ModCompat;
 
@@ -114,7 +116,7 @@ public class VehiclePawnWithMap : VehiclePawn
                 mapEdgeCellsCache = [];
                 foreach (var c in CellRect.WholeMap(interiorMap).EdgeCells)
                 {
-                    var facingInside = c.FullDirectionToInsideMap(interiorMap).FacingCell;
+                    var facingInside = c.DirectionToInsideMap(this).FacingCell;
                     var c2 = c;
                     while (CachedOutOfBoundsCells.Contains(c2))
                     {
@@ -146,7 +148,7 @@ public class VehiclePawnWithMap : VehiclePawn
 
     public List<CompVehicleEnterSpot> EnterComps => enterCompsInt;
 
-    public IEnumerable<CompVehicleEnterSpot> StandableEnterComps => EnterComps.Where(c => c.parent.Position.Standable(interiorMap));
+    public IEnumerable<CompVehicleEnterSpot> AvailableEnterComps => EnterComps.Where(c => c.parent.Position.Standable(interiorMap) && c.Available);
 
     public override Vector3 DrawPos
     {
@@ -157,6 +159,18 @@ public class VehiclePawnWithMap : VehiclePawn
                 return base.DrawPos;
             }
             return cachedDrawPos;
+        }
+    }
+
+    public override int UpdateRateTicks
+    {
+        get
+        {
+            if (Spawned)
+            {
+                return 250;
+            }
+            return base.UpdateRateTicks;
         }
     }
 
@@ -246,17 +260,18 @@ public class VehiclePawnWithMap : VehiclePawn
         try
         {
             VehicleMapProps props;
-            if ((props = def.GetModExtension<VehicleMapProps>()) != null)
+            if ((props = def.GetModExtension<VehicleMapProps>() ?? def.GetModExtension<VehicleInteriors.VehicleMapProps>()) != null)
             {
                 var mapParent = (MapParent_Vehicle)WorldObjectMaker.MakeWorldObject(VMF_DefOf.VMF_VehicleMap);
+                mapParent.mapGenerator = VMF_DefOf.VMF_VehicleMapGenerator;
                 mapParent.vehicle = this;
                 mapParent.Tile = 0;
-                mapParent.SetFaction(base.Faction);
+                mapParent.SetFaction(Faction);
                 var mapSize = new IntVec3(props.size.x, 1, props.size.z);
                 mapSize.x += 2;
                 mapSize.z += 2;
-                interiorMap = MapGenerator.GenerateMap(mapSize, mapParent, mapParent.MapGeneratorDef, mapParent.ExtraGenStepDefs, null, true);
-                Find.World.GetComponent<VehicleMapParentsComponent>().vehicleMaps.Add(mapParent);
+                interiorMap = MapGenerator.GenerateMap(mapSize, mapParent, mapParent.MapGeneratorDef, mapParent.ExtraGenStepDefs, isPocketMap: true);
+                Find.World.pocketMaps.Add(mapParent);
 
                 foreach (var c in props.EmptyStructureCells)
                 {
@@ -272,7 +287,7 @@ public class VehiclePawnWithMap : VehiclePawn
                 }
             }
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             VMF_Log.Error($"Error while generating vehicle map.\n{ex}");
         }
@@ -284,6 +299,25 @@ public class VehiclePawnWithMap : VehiclePawn
         {
             GenerateVehicleMap();
         }
+        interiorMap.PocketMapParent.sourceMap = map;
+        SetPocketTileInfo();
+
+        if (def.HasModExtension<VehicleMapProps_Gravship>())
+        {
+            if (GravshipUtility.GetPlayerGravEngine(interiorMap) is Building_GravEngine engine && (engine.launchInfo?.doNegativeOutcome ?? false))
+            {
+                var list = handlers.OfType<VehicleRoleHandlerBuildable>().SelectMany<VehicleRoleHandlerBuildable, Pawn>(h => h.thingOwner).ToList();
+                for (var i = 0; i < list.Count; i++)
+                {
+                    DisembarkPawn(list[i]);
+                }
+                var gravship = GravshipUtility.GenerateGravship(engine);
+                GravshipPlacementUtility.PlaceGravshipInMap(gravship, gravship.originalPosition, interiorMap, out _);
+                DefDatabase<LandingOutcomeDef>.AllDefsListForReading.RandomElementByWeight(d => d.weight).Worker.ApplyOutcome(gravship);
+                engine.launchInfo = null;
+            }
+        }
+
         base.SpawnSetup(map, respawningAfterLoad);
         VehiclePawnWithMapCache.RegisterVehicle(this);
         mapFollower = new VehicleMapFollower(this);
@@ -291,6 +325,12 @@ public class VehiclePawnWithMap : VehiclePawn
         interiorMap.skyManager = Map.skyManager;
         interiorMap.weatherDecider = Map.weatherDecider;
         interiorMap.weatherManager = Map.weatherManager;
+
+        if (Find.CurrentMap == interiorMap)
+        {
+            Current.Game.CurrentMap = map;
+        }
+        Transform.rotation = 0f;
     }
 
     protected override void Tick()
@@ -298,20 +338,76 @@ public class VehiclePawnWithMap : VehiclePawn
         if (Spawned)
         {
             cachedDrawPos = DrawPos;
-
             mapFollower.MapFollowerTick();
         }
-
         base.Tick();
     }
 
-    public override void Notify_MyMapRemoved()
+    protected override void TickInterval(int delta)
     {
-        Destroy();
+        base.TickInterval(delta);
+        SetPocketTileInfo();
     }
+
+    private void SetPocketTileInfo()
+    {
+        try
+        {
+            if (Spawned)
+            {
+                interiorMap.Parent.Tile = Map.Tile;
+                interiorMap.pocketTileInfo = Map.TileInfo;
+                return;
+            }
+
+            static WorldObject GetWorldObject(IThingHolder holder)
+            {
+                while (holder != null)
+                {
+                    if (holder is WorldObject worldObject)
+                    {
+                        return worldObject;
+                    }
+                    holder = holder.ParentHolder;
+                }
+                return null;
+            }
+            var worldObject2 = GetWorldObject(this);
+            if (worldObject2 is AerialVehicleInFlight aerial)
+            {
+                Task.Run(() =>
+                {
+                    interiorMap.Parent.Tile = WorldHelper.GetNearestTile(aerial.DrawPos);
+                    interiorMap.pocketTileInfo = Find.WorldGrid[interiorMap.Parent.Tile];
+                });
+                return;
+            }
+            if (worldObject2 == null || worldObject2 is MapParent_Vehicle)
+            {
+                return;
+            }
+            interiorMap.Parent.Tile = worldObject2.Tile;
+            interiorMap.pocketTileInfo = Find.WorldGrid[interiorMap.Parent.Tile];
+        }
+        finally
+        {
+            interiorMap.pocketTileInfo ??= new Tile
+            {
+                PrimaryBiome = VMF_DefOf.VMF_VehicleMapGenerator.pocketMapProperties.biome
+            };
+        }
+    }
+
+    //PocketMapとしての管理に変更になったんでマップが破壊されたら車両マップも破壊されるはず
+    //public override void Notify_MyMapRemoved()
+    //{
+    //    Destroy();
+    //}
 
     public override void Destroy(DestroyMode mode = DestroyMode.Vanish)
     {
+        VMF_Log.Debug($"{this} is destroyed.");
+
         if (Spawned)
         {
             DisembarkAll();
@@ -332,16 +428,16 @@ public class VehiclePawnWithMap : VehiclePawn
                 else if (thing.Isnt<Explosion>())
                 {
                     thing.DeSpawn();
-                    var terrain = positionOnBaseMap.GetTerrain(base.Map);
+                    var terrain = positionOnBaseMap.GetTerrain(Map);
                     if (thing is Pawn pawn && (terrain == TerrainDefOf.WaterDeep || terrain == TerrainDefOf.WaterOceanDeep) &&
                         HealthHelper.AttemptToDrown(pawn))
                     {
                         flag = true;
                         stringBuilder.AppendLine(pawn.LabelCap);
                     }
-                    if (!GenPlace.TryPlaceThing(thing, positionOnBaseMap, base.Map, ThingPlaceMode.Near))
+                    if (!GenPlace.TryPlaceThing(thing, positionOnBaseMap, Map, ThingPlaceMode.Near))
                     {
-                        CellFinder.TryFindRandomCellNear(positionOnBaseMap, base.Map, 50, c => GenPlace.TryPlaceThing(thing, c, base.Map, ThingPlaceMode.Near), out _);
+                        CellFinder.TryFindRandomCellNear(positionOnBaseMap, Map, 50, c => GenPlace.TryPlaceThing(thing, c, Map, ThingPlaceMode.Near), out _);
                     }
                 }
             }
@@ -350,19 +446,32 @@ public class VehiclePawnWithMap : VehiclePawn
         if (flag)
         {
             string text = "VF_BoatSunkWithPawnsDesc".Translate(LabelShort, stringBuilder.ToString());
-            Find.LetterStack.ReceiveLetter("VF_BoatSunk".Translate(), text, LetterDefOf.NegativeEvent, new TargetInfo(base.Position, base.Map));
+            Find.LetterStack.ReceiveLetter("VF_BoatSunk".Translate(), text, LetterDefOf.NegativeEvent, new TargetInfo(Position, Map));
         }
+        base.Destroy(mode);
+
         if (Find.Maps.Contains(interiorMap))
         {
             Current.Game.DeinitAndRemoveMap(interiorMap, false);
         }
-        Find.World.GetComponent<VehicleMapParentsComponent>().vehicleMaps.Remove(interiorMap.Parent as MapParent_Vehicle);
-        base.Destroy(mode);
+
+        //基本的にはDeinitの時にすべてキャッシュは破棄されるはずだが……
+        //しかし細かなマップ除去や追加操作が行われるとバグりやすい気がするので、もう全部クリアしちゃう
+        foreach (var component in typeof(MapComponent).AllSubclassesNonAbstract())
+        {
+            GenGeneric.InvokeStaticMethodOnGenericType(typeof(MapComponentCache<>), component, "ClearAll");
+        }
+        //foreach (var component in typeof(DetachedMapComponent).AllSubclassesNonAbstract())
+        //{
+        //    GenGeneric.InvokeStaticMethodOnGenericType(typeof(DetachedMapComponentCache<>), component, "ClearAll");
+        //}
+
         interiorMap = null;
     }
 
     public override void DeSpawn(DestroyMode mode = DestroyMode.Vanish)
     {
+        interiorMap.PocketMapParent.sourceMap = null;
         VehiclePawnWithMapCache.DeRegisterVehicle(this);
         mapFollower.DeRegisterVehicle();
         if (mode != DestroyMode.KillFinalize)
@@ -394,26 +503,33 @@ public class VehiclePawnWithMap : VehiclePawn
         {
             crossMapHaulDestinationManager.RemoveHaulDestination(haulDestination);
         }
+        CrossMapReachabilityCache.ClearCache();
+        var map = Map;
         base.DeSpawn(mode);
+
+        Delay.AfterNTicks(5, () => map.regionGrid.AllRegions.Do(r => r.ListerThings.Remove(this)));
     }
 
-    //非スポーン時DrawTrackerのDynamicDrawPhaseAtが直接呼ばれるのを回避
     public override void DrawAt(in Vector3 drawLoc, Rot8 rot, float rotation)
     {
-        DynamicDrawPhaseAt(DrawPhase.Draw, drawLoc, false);
+        cachedDrawPos = drawLoc.WithYOffset(-Altitudes.AltInc * 100f);
+        if (Transform.rotation != rotation)
+        {
+            Transform.rotation = rotation;
+            CellDesignationsDirty();
+        }
+        DrawTracker.DynamicDrawPhaseAt(DrawPhase.Draw, in drawLoc, rot, rotation);
+        DrawVehicleMap(Transform.rotation);
+        var focused = Command_FocusVehicleMap.FocusedVehicle;
+        Command_FocusVehicleMap.FocusedVehicle = this;
+        interiorMap.roofGrid.RoofGridUpdate();
+        interiorMap.mapTemperature.TemperatureUpdate();
+        Command_FocusVehicleMap.FocusedVehicle = focused;
     }
 
     public override void DynamicDrawPhaseAt(DrawPhase phase, Vector3 drawLoc, bool flip = false)
     {
-        if (phase == DrawPhase.Draw)
-        {
-            if (base.CompVehicleLauncher?.inFlight ?? false)
-            {
-                drawLoc.y = AltitudeLayer.PawnState.AltitudeFor();
-            }
-            cachedDrawPos = drawLoc;
-        }
-
+        cachedDrawPos = drawLoc;
         base.DynamicDrawPhaseAt(phase, drawLoc, flip);
 
         if (phase == DrawPhase.Draw)
@@ -487,11 +603,13 @@ public class VehiclePawnWithMap : VehiclePawn
             ((SectionLayer_ThingsPowerGridOnVehicle)section.GetLayer(typeof(SectionLayer_ThingsPowerGridOnVehicle))).DrawLayer(rot, drawPos.WithY(0f), extraRotation);
         }
         DrawLayer(section, t_SectionLayer_Zones, drawPos, extraRotation);
-        ((SectionLayer_LightingOnVehicle)section.GetLayer(typeof(SectionLayer_LightingOnVehicle))).DrawLayer(this, drawPos, extraRotation);
-        if (Find.CurrentMap == interiorMap)
+        if (Find.CurrentMap == interiorMap && !VehicleMapFramework.settings.drawPlanet)
         {
-            DrawLayer(section, typeof(SectionLayer_IndoorMask), drawPos, extraRotation);
-            //this.DrawLayer(section, typeof(SectionLayer_LightingOverlay), drawPos, extraRotation);
+            DrawLayer(section, typeof(SectionLayer_LightingOverlay), drawPos, extraRotation);
+        }
+        else
+        {
+            ((SectionLayer_LightingOnVehicle)section.GetLayer(typeof(SectionLayer_LightingOnVehicle))).DrawLayer(this, drawPos, extraRotation);
         }
         DrawModLayers(section, drawPos, extraRotation);
         //if (DebugViewSettings.drawSectionEdges)
@@ -588,8 +706,6 @@ public class VehiclePawnWithMap : VehiclePawn
         }
     }
 
-    private List<Matrix4x4> matrices = [];
-
     private void DrawLayer(Section section, Type layerType, Vector3 drawPos, float extraRotation)
     {
         if (layerType == null) return;
@@ -644,7 +760,7 @@ public class VehiclePawnWithMap : VehiclePawn
             Material material = MapEdgeClipDrawer.ClipMat;
             Vector2 size = Patch_Map_MapUpdate.MeshSize;
             var longSide = Mathf.Max(DrawSize.x / 2f, DrawSize.y / 2f);
-            Vector3 origin = new(-size.x / 2f + longSide, 0f, -size.y / 2f + longSide);
+            Vector3 origin = new((-size.x / 2f) + longSide, 0f, (-size.y / 2f) + longSide);
             Vector3 s = new(500f, 1f, size.y);
             Matrix4x4 matrix = default;
             matrix.SetTRS(new Vector3(-250f, 0f, size.y / 2f) + origin, Quaternion.identity, s);
@@ -699,7 +815,7 @@ public class VehiclePawnWithMap : VehiclePawn
     {
         base.PostLoad();
         CompVehicleTurrets?.RevalidateTurrets();
-        base.ResetRenderStatus();
+        ResetRenderStatus();
     }
 
     private Map interiorMap;

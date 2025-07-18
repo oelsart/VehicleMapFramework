@@ -25,10 +25,12 @@
 			<CargoCapacity>0</CargoCapacity>
 			<RepairRate>1.5</RepairRate>
 			<MaximumPayload>0</MaximumPayload>
+			<FlightSpeed>25</FlightSpeed>
 		</vehicleStats>
 
 		<properties>
 			<generateThingIcon>false</generateThingIcon>
+			<customTerrainCosts AllowTerrainWithTag="Space" PathCost="1"/>
 		</properties>
 
 		<components>
@@ -42,6 +44,298 @@
 				</hitbox>
 			</li>
 		</components>
+		
+		<comps>
+			<li Class="Vehicles.CompProperties_VehicleLauncher">
+				<compClass>VehicleMapFramework.CompVehicleLauncherGravshipVehicle</compClass>
+				<spaceFlight>true</spaceFlight>
+				<launchProtocol Class="VehicleMapFramework.VTOLTakeoff_Gravship">
+					<launchProperties Class="VehicleMapFramework.VerticalProtocolProperties_Gravship">
+						<maxTicks>200</maxTicks>
+						<maxTicksVertical>600</maxTicksVertical>
+						<renderShadow>false</renderShadow>
+
+						<rotationVerticalCurve Class="SmashTools.BezierCurve">
+							<points>
+								<li>(0, 0)</li>
+								<li>(0.2, 1)</li>
+								<li>(0.4, 8)</li>
+								<li>(0.6, 10)</li>
+								<li>(0.8, 12)</li>
+								<li>(0.9, 11)</li>
+								<li>(1, 10)</li>
+							</points>
+						</rotationVerticalCurve>
+
+						<xPositionCurve Class="SmashTools.BezierCurve">
+							<points>
+								<li>(0, 0)</li>
+								<li>(0.5, 3.5)</li>
+								<li>(1, 14)</li>
+							</points>
+						</xPositionCurve>
+
+						<xPositionVerticalCurve Class="SmashTools.BezierCurve">
+							<points>
+								<li>0, 0</li>
+								<li>0.2, 0.25</li>
+								<li>0.4, 0.75</li>
+								<li>0.6, -0.8</li>
+								<li>0.8, -0.5</li>
+								<li>1, 0</li>
+							</points>
+						</xPositionVerticalCurve>
+
+						<zPositionCurve Class="SmashTools.BezierCurve">
+							<points>
+								<li>(0, 0)</li>
+								<li>(0.5, 35)</li>
+								<li>(1, 140)</li>
+							</points>
+						</zPositionCurve>
+
+						<zPositionVerticalCurve Class="SmashTools.BezierCurve">
+							<points>
+								<li>(0, 0)</li>
+								<li>(0.2, 1)</li>
+								<li>(0.4, 4)</li>
+								<li>(0.6, 8)</li>
+								<li>(0.8, 12)</li>
+								<li>(0.9, 14)</li>
+								<li>(1, 15)</li>
+							</points>
+						</zPositionVerticalCurve>
+
+						<thrusterFlameVerticalCurve Class="SmashTools.BezierCurve">
+							<points>
+								<li>(0, 0)</li>
+								<li>(0.2, 0)</li>
+								<li>(0.4, 0.05)</li>
+								<li>(0.6, 0.15)</li>
+								<li>(0.8, 0.3)</li>
+								<li>(0.95, 0.95)</li>
+								<li>(1, 1)</li>
+							</points>
+						</thrusterFlameVerticalCurve>
+
+						<engineGlowVerticalCurve Class="SmashTools.BezierCurve">
+							<points>
+								<li>(0, 0)</li>
+								<li>(0.25, 0.8)</li>
+								<li>(0.5, 0.6)</li>
+								<li>(1, 1)</li>
+							</points>
+						</engineGlowVerticalCurve>
+
+						<fleckDataVertical>
+							<def>VMF_DustPuffLow</def>
+							<angle>0~360</angle>
+							<runOutOfStep>false</runOutOfStep>
+							<lockFleckX>false</lockFleckX>
+
+							<airTime>
+								<points>
+									<li>(1, 0.5)</li>
+								</points>
+							</airTime>
+
+							<drawOffset Class="SmashTools.BezierCurve">
+								<points>
+									<li>(0, 3)</li>
+									<li>(0.25, 3)</li>
+									<li>(0.5, 3)</li>
+									<li>(0.75, 4)</li>
+									<li>(0.75, 6)</li>
+								</points>
+							</drawOffset>
+
+							<frequency Class="SmashTools.BezierCurve">
+								<points>
+									<li>(0, 160)</li>
+									<li>(0.25, 160)</li>
+									<li>(0.5, 160)</li>
+									<li>(0.75, 130)</li>
+									<li>(0.75, 0)</li>
+								</points>
+							</frequency>
+
+							<rotationRate>
+								<points>
+									<li>(0, 3)</li>
+									<li>(1, 1)</li>
+								</points>
+							</rotationRate>
+
+							<size Class="SmashTools.BezierCurve">
+								<points>
+									<li>(0, 2.5)</li>
+									<li>(0.25, 1.64)</li>
+									<li>(0.75, 1.56)</li>
+									<li>(1, 1)</li>
+								</points>
+							</size>
+
+							<speed>
+								<points>
+									<li>(0, 6)</li>
+									<li>(1, 3)</li>
+								</points>
+							</speed>
+						</fleckDataVertical>
+					</launchProperties>
+
+					<landingProperties Class="VehicleMapFramework.VerticalProtocolProperties_Gravship">
+						<maxTicks>200</maxTicks>
+						<maxTicksVertical>600</maxTicksVertical>
+						<renderShadow>false</renderShadow>
+
+						<rotationCurve Class="SmashTools.BezierCurve">
+							<points>
+								<li>(0, 10)</li>
+								<li>(0.2, 9)</li>
+								<li>(0.4, 5)</li>
+								<li>(0.6, 4)</li>
+								<li>(0.8, -3)</li>
+								<li>(0.9, -0.7)</li>
+								<li>(0.97, -0.05)</li>
+								<li>(1, 0)</li>
+							</points>
+						</rotationCurve>
+
+						<xPositionCurve Class="SmashTools.BezierCurve">
+							<points>
+								<li>(0, -14)</li>
+								<li>(0.5, -3.5)</li>
+								<li>(0.75, -0.35</li>
+								<li>(1, 0)</li>
+							</points>
+						</xPositionCurve>
+
+						<xPositionVerticalCurve Class="SmashTools.BezierCurve">
+							<points>
+								<li>0, 0</li>
+								<li>0.2, -1</li>
+								<li>0.4, 0</li>
+								<li>0.6, 0.2</li>
+								<li>0.8, 0.1</li>
+								<li>1, 0</li>
+							</points>
+						</xPositionVerticalCurve>
+
+						<zPositionCurve Class="SmashTools.BezierCurve">
+							<points>
+								<li>(0, -140)</li>
+								<li>(0.5, -0.35)</li>
+								<li>(0.75, -0.035)</li>
+								<li>(1, 0)</li>
+							</points>
+						</zPositionCurve>
+
+						<zPositionVerticalCurve Class="SmashTools.BezierCurve">
+							<points>
+								<li>(0, 15)</li>
+								<li>(0.15, 11)</li>
+								<li>(0.3, 9)</li>
+								<li>(0.45, 5)</li>
+								<li>(0.6, 3)</li>
+								<li>(0.8, 1)</li>
+								<li>(0.9, 0.1)</li>
+								<li>(1, 0)</li>
+							</points>
+						</zPositionVerticalCurve>
+
+						<thrusterFlameVerticalCurve Class="SmashTools.LinearCurve">
+							<points>
+								<li>(0, 1)</li>
+								<li>(0.4, 0)</li>
+							</points>
+						</thrusterFlameVerticalCurve>
+
+						<engineGlowCurve Class="SmashTools.BezierCurve">
+							<points>
+								<li>(0, 1)</li>
+								<li>(0.25, 0.8)</li>
+								<li>(0.5, 1)</li>
+								<li>(0.75, 0.8)</li>
+								<li>(1, 1)</li>
+							</points>
+						</engineGlowCurve>
+
+						<engineGlowVerticalCurve Class="SmashTools.BezierCurve">
+							<points>
+								<li>(0, 0)</li>
+								<li>(0.8, 0.1)</li>
+								<li>(1, -1)</li>
+							</points>
+						</engineGlowVerticalCurve>
+
+						<fleckDataVertical>
+							<def>VMF_DustPuffLow</def>
+							<angle>0~360</angle>
+							<runOutOfStep>false</runOutOfStep>
+							<lockFleckX>false</lockFleckX>
+
+							<airTime>
+								<points>
+									<li>(1, 0.5)</li>
+								</points>
+							</airTime>
+
+							<drawOffset Class="SmashTools.BezierCurve">
+								<points>
+									<li>(0, 6)</li>
+									<li>(0.25, 4)</li>
+									<li>(0.5, 3)</li>
+									<li>(0.75, 3)</li>
+									<li>(0.75, 3)</li>
+								</points>
+							</drawOffset>
+
+							<frequency Class="SmashTools.BezierCurve">
+								<points>
+									<li>(0.65, 0)</li>
+									<li>(0.65, 130)</li>
+									<li>(0.75, 160)</li>
+									<li>(0.75, 160)</li>
+									<li>(1, 160)</li>
+								</points>
+							</frequency>
+
+							<rotationRate>
+								<points>
+									<li>(0, 3)</li>
+									<li>(1, 1)</li>
+								</points>
+							</rotationRate>
+
+							<size Class="SmashTools.BezierCurve">
+								<points>
+									<li>(0, 1)</li>
+									<li>(0.25, 1.56)</li>
+									<li>(0.75, 1.64)</li>
+									<li>(1, 2.5)</li>
+								</points>
+							</size>
+
+							<speed>
+								<points>
+									<li>(0, 3)</li>
+									<li>(1, 6)</li>
+								</points>
+							</speed>
+						</fleckDataVertical>
+					</landingProperties>
+				</launchProtocol>
+			</li>
+			<li Class="Vehicles.CompProperties_FueledTravel">
+				<compClass>VehicleMapFramework.CompFueledTravelGravship</compClass>
+				<fuelType>Chemfuel</fuelType>
+				<leakDef>Filth_Fuel</leakDef>
+				<fuelConsumptionCondition>Moving,Flying</fuelConsumptionCondition>
+				<fuelConsumptionRate>1000</fuelConsumptionRate>
+				<fuelConsumptionWorldMultiplier>15</fuelConsumptionWorldMultiplier>
+			</li>
+		</comps>
 	</Vehicles.VehicleDef>
 	
 	<Vehicles.VehicleBuildDef ParentName="VehicleWithMapBaseBuildable" MayRequire="Ludeon.RimWorld.Odyssey">

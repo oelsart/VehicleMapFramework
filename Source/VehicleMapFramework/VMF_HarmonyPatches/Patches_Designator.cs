@@ -150,7 +150,7 @@ public static class Patch_GenGrid_InNoZoneEdgeArea
 {
     public static void Postfix(ref bool __result, Map map)
     {
-        __result = __result && !map.IsVehicleMapOf(out _);
+        __result &= !map.IsVehicleMapOf(out _);
     }
 }
 

@@ -41,15 +41,15 @@ public class Verb_LaunchZipline : Verb_LaunchProjectile
             return false;
         }
 
-        if (base.EquipmentSource != null)
+        if (EquipmentSource != null)
         {
-            base.EquipmentSource.GetComp<CompChangeableProjectile>()?.Notify_ProjectileLaunched();
-            base.EquipmentSource.GetComp<CompApparelVerbOwner_Charged>()?.UsedOnce();
+            EquipmentSource.GetComp<CompChangeableProjectile>()?.Notify_ProjectileLaunched();
+            EquipmentSource.GetComp<CompApparelVerbOwner_Charged>()?.UsedOnce();
         }
 
         lastShotTick = Find.TickManager.TicksGame;
         Thing manningPawn = caster;
-        Thing equipmentSource = base.EquipmentSource;
+        Thing equipmentSource = EquipmentSource;
         CompMannable compMannable = caster.TryGetComp<CompMannable>();
         if (compMannable?.ManningPawn != null)
         {
