@@ -2,11 +2,9 @@
 using RimWorld;
 using RimWorld.Planet;
 using SmashTools;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
-using System.Threading.Tasks;
 using UnityEngine;
 using Vehicles.World;
 using Verse;
@@ -21,6 +19,7 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [HarmonyPatch(typeof(Section), MethodType.Constructor, typeof(IntVec3), typeof(Map))]
 public static class Patch_Section_Constructor
 {
+    [PatchLevel(Level.Mandatory)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();
@@ -39,11 +38,13 @@ public static class Patch_Section_Constructor
 [HarmonyPatch(typeof(MechanitorUtility), nameof(MechanitorUtility.InMechanitorCommandRange))]
 public static class Patch_MechanitorUtility_InMechanitorCommandRange
 {
+    [PatchLevel(Level.Safe)]
     public static void Prefix(Pawn mech, ref LocalTargetInfo target)
     {
         target = TargetMapManager.TargetCellOnBaseMap(ref target, mech);
     }
 
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_MapHeld, CachedMethodInfo.m_MapHeldBaseMap);
@@ -53,6 +54,7 @@ public static class Patch_MechanitorUtility_InMechanitorCommandRange
 [HarmonyPatch(typeof(Pawn_MechanitorTracker), nameof(Pawn_MechanitorTracker.CanCommandTo))]
 public static class Patch_Pawn_MechanitorTracker_CanCommandTo
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_MapHeld, CachedMethodInfo.m_MapHeldBaseMap)
@@ -64,6 +66,7 @@ public static class Patch_Pawn_MechanitorTracker_CanCommandTo
 [HarmonyPatch(typeof(Reachability), nameof(Reachability.CanReach), typeof(IntVec3), typeof(LocalTargetInfo), typeof(PathEndMode), typeof(TraverseParms))]
 public static class Patch_Reachability_CanReach
 {
+    [PatchLevel(Level.Safe)]
     public static bool Prefix(IntVec3 start, LocalTargetInfo dest, PathEndMode peMode, TraverseParms traverseParams, ref bool __result)
     {
         if (CrossMapReachabilityUtility.working) return true;
@@ -88,6 +91,7 @@ public static class Patch_Reachability_CanReach
         return true;
     }
 
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();
@@ -104,6 +108,7 @@ public static class Patch_Reachability_CanReach
 [HarmonyPatch(typeof(Reachability), nameof(Reachability.CanReachNonLocal), typeof(IntVec3), typeof(TargetInfo), typeof(PathEndMode), typeof(TraverseParms))]
 public static class Patch_Reachability_CanReachNonLocal
 {
+    [PatchLevel(Level.Safe)]
     public static bool Prefix(IntVec3 start, TargetInfo dest, PathEndMode peMode, TraverseParms traverseParams, Map ___map, ref bool __result)
     {
         var destMap = dest.Map;
@@ -119,6 +124,7 @@ public static class Patch_Reachability_CanReachNonLocal
 [HarmonyPatch(typeof(Reachability), nameof(Reachability.CanReachMapEdge), typeof(IntVec3), typeof(TraverseParms))]
 public static class Patch_Reachability_CanReachMapEdge
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return Patch_Reachability_CanReach.Transpiler(instructions);
@@ -128,6 +134,7 @@ public static class Patch_Reachability_CanReachMapEdge
 [HarmonyPatch(typeof(Pawn_PlayerSettings), nameof(Pawn_PlayerSettings.EffectiveAreaRestrictionInPawnCurrentMap), MethodType.Getter)]
 public static class Patch_Pawn_PlayerSettings_EffectiveAreaRestrictionInPawnCurrentMap
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_MapHeld, CachedMethodInfo.m_MapHeldBaseMap);
@@ -138,6 +145,7 @@ public static class Patch_Pawn_PlayerSettings_EffectiveAreaRestrictionInPawnCurr
 [HarmonyPatch(typeof(MapTemperature), nameof(MapTemperature.OutdoorTemp), MethodType.Getter)]
 public static class Patch_MapTemperature_OutdoorTemp
 {
+    [PatchLevel(Level.Safe)]
     public static bool Prefix(Map ___map, ref float __result)
     {
         if (___map.IsVehicleMapOf(out var vehicle))
@@ -160,6 +168,7 @@ public static class Patch_MapTemperature_OutdoorTemp
 [HarmonyPatch(typeof(ResourceCounter), nameof(ResourceCounter.UpdateResourceCounts))]
 public static class Patch_ResourceCounter_UpdateResourceCounts
 {
+    [PatchLevel(Level.Safe)]
     public static void Postfix(Map ___map, Dictionary<ThingDef, int> ___countedAmounts)
     {
         foreach (var vehicle in VehiclePawnWithMapCache.AllVehiclesOn(___map))
@@ -185,6 +194,7 @@ public static class Patch_ResourceCounter_UpdateResourceCounts
 [HarmonyPatch(typeof(Map), nameof(Map.MapUpdate))]
 public static class Patch_Map_MapUpdate
 {
+    [PatchLevel(Level.Safe)]
     public static void Postfix(Map __instance)
     {
         static WorldObject GetWorldObject(IThingHolder holder)
@@ -285,6 +295,7 @@ public static class Patch_Map_MapUpdate
         }
     }
 
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
         var codes = instructions.ToList();
@@ -331,6 +342,7 @@ public static class Patch_Map_MapUpdate
 [HarmonyPatch(typeof(MapPawns), nameof(MapPawns.AllPawns), MethodType.Getter)]
 public static class Patch_MapPawns_AllPawns
 {
+    [PatchLevel(Level.Sensitive)]
     public static List<Pawn> Postfix(List<Pawn> __result, Map ___map)
     {
         if (___map.IsVehicleMapOf(out _)) return __result;
@@ -352,6 +364,7 @@ public static class Patch_MapPawns_AllPawns
 [HarmonyPatch(typeof(MapPawns), nameof(MapPawns.AllPawnsSpawned), MethodType.Getter)]
 public static class Patch_MapPawns_AllPawnsSpawned
 {
+    [PatchLevel(Level.Mandatory)]
     public static IReadOnlyList<Pawn> Postfix(IReadOnlyList<Pawn> __result, Map ___map)
     {
         if (___map.IsVehicleMapOf(out _)) return __result;
@@ -371,6 +384,7 @@ public static class Patch_MapPawns_AllPawnsSpawned
 [HarmonyPatch(typeof(MapPawns), nameof(MapPawns.FreeHumanlikesSpawnedOfFaction))]
 public static class Patch_MapPawns_FreeHumanlikesSpawnedOfFaction
 {
+    [PatchLevel(Level.Sensitive)]
     public static void Postfix(List<Pawn> __result, Map ___map, Faction faction)
     {
         __result.AddRange(VehiclePawnWithMapCache.TryGetAllVehiclesOn(___map).SelectMany(v => v.VehicleMap.mapPawns.FreeHumanlikesSpawnedOfFaction(faction)));
@@ -380,6 +394,7 @@ public static class Patch_MapPawns_FreeHumanlikesSpawnedOfFaction
 [HarmonyPatch(typeof(MapPawns), nameof(MapPawns.SpawnedBabiesInFaction))]
 public static class Patch_MapPawns_SpawnedBabiesInFaction
 {
+    [PatchLevel(Level.Safe)]
     public static void Postfix(List<Pawn> __result, Map ___map, Faction faction)
     {
         __result.AddRange(VehiclePawnWithMapCache.TryGetAllVehiclesOn(___map).SelectMany(v => v.VehicleMap.mapPawns.SpawnedBabiesInFaction(faction)));
@@ -389,6 +404,7 @@ public static class Patch_MapPawns_SpawnedBabiesInFaction
 [HarmonyPatch(typeof(MapPawns), nameof(MapPawns.AnyPawnBlockingMapRemoval), MethodType.Getter)]
 public static class Patch_MapPawns_AnyPawnBlockingMapRemoval
 {
+    [PatchLevel(Level.Safe)]
     public static void Postfix(ref bool __result, Map ___map)
     {
         __result = __result || VehiclePawnWithMapCache.TryGetAllVehiclesOn(___map).Any(v => v.VehicleMap.mapPawns.AnyPawnBlockingMapRemoval);
@@ -398,6 +414,7 @@ public static class Patch_MapPawns_AnyPawnBlockingMapRemoval
 [HarmonyPatch(typeof(CameraJumper), nameof(CameraJumper.GetWorldTarget))]
 public static class Patch_CameraJumper_GetWorldTarget
 {
+    [PatchLevel(Level.Safe)]
     public static void Prefix(ref GlobalTargetInfo target)
     {
         if (target.Thing.IsOnVehicleMapOf(out var vehicle))
@@ -410,6 +427,7 @@ public static class Patch_CameraJumper_GetWorldTarget
 [HarmonyPatch(typeof(DesignationManager), nameof(DesignationManager.DesignationOn))]
 public static class Patch_DesignationManager_DesignationOn
 {
+    [PatchLevel(Level.Safe)]
     [HarmonyPatch([typeof(Thing)])]
     [HarmonyPrefix]
     public static bool Prefix1(Thing t, DesignationManager __instance, ref Designation __result)
@@ -423,6 +441,7 @@ public static class Patch_DesignationManager_DesignationOn
         return true;
     }
 
+    [PatchLevel(Level.Safe)]
     [HarmonyPatch([typeof(Thing), typeof(DesignationDef)])]
     [HarmonyPrefix]
     public static bool Prefix2(Thing t, DesignationDef def, DesignationManager __instance, ref Designation __result)
@@ -440,6 +459,7 @@ public static class Patch_DesignationManager_DesignationOn
 [HarmonyPatch(typeof(SoundStarter), nameof(SoundStarter.PlayOneShot))]
 public static class Patch_SoundStarter_PlayOneShot
 {
+    [PatchLevel(Level.Safe)]
     public static void Prefix(ref SoundInfo info)
     {
         if (info.Maker.IsValid && info.Maker.Map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
@@ -452,6 +472,7 @@ public static class Patch_SoundStarter_PlayOneShot
 [HarmonyPatch(typeof(Room), nameof(Room.DrawFieldEdges))]
 public static class Patch_Room_DrawFieldEdges
 {
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();
@@ -471,6 +492,7 @@ public static class Patch_Room_DrawFieldEdges
 [HarmonyPatch(typeof(WorldObjectsHolder), nameof(WorldObjectsHolder.MapParentAt))]
 public static class Patch_WorldObjectsHolder_MapParentAt
 {
+    [PatchLevel(Level.Sensitive)]
     public static void Postfix(ref MapParent __result, List<MapParent> ___mapParents, PlanetTile tile)
     {
         if (__result is MapParent_Vehicle)
@@ -483,6 +505,7 @@ public static class Patch_WorldObjectsHolder_MapParentAt
 [HarmonyPatch(typeof(Game), nameof(Game.FindMap), typeof(PlanetTile))]
 public static class Patch_Game_FindMap
 {
+    [PatchLevel(Level.Sensitive)]
     public static void Postfix(ref Map __result, List<Map> ___maps, PlanetTile tile)
     {
         if (__result.IsVehicleMapOf(out _))
@@ -500,6 +523,7 @@ public static class Patch_Hediff_MetalhorrorImplant_Emerge
         return ModsConfig.AnomalyActive;
     }
 
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_MapHeld, CachedMethodInfo.m_MapHeldBaseMap);
@@ -509,6 +533,7 @@ public static class Patch_Hediff_MetalhorrorImplant_Emerge
 [HarmonyPatch(typeof(HaulDestinationManager), nameof(HaulDestinationManager.AddHaulSource))]
 public static class Patch_HaulDestinationManager_AddHaulSource
 {
+    [PatchLevel(Level.Safe)]
     public static void Postfix(Map ___map, IHaulSource source)
     {
         ___map.GetCachedMapComponent<CrossMapHaulDestinationManager>().AddHaulSource(source);
@@ -518,6 +543,7 @@ public static class Patch_HaulDestinationManager_AddHaulSource
 [HarmonyPatch(typeof(HaulDestinationManager), nameof(HaulDestinationManager.AddHaulDestination))]
 public static class Patch_HaulDestinationManager_AddHaulDestination
 {
+    [PatchLevel(Level.Safe)]
     public static void Postfix(Map ___map, IHaulDestination haulDestination)
     {
         ___map.GetCachedMapComponent<CrossMapHaulDestinationManager>().AddHaulDestination(haulDestination);
@@ -527,6 +553,7 @@ public static class Patch_HaulDestinationManager_AddHaulDestination
 [HarmonyPatch(typeof(HaulDestinationManager), nameof(HaulDestinationManager.RemoveHaulSource))]
 public static class Patch_HaulDestinationManager_RemoveHaulSource
 {
+    [PatchLevel(Level.Safe)]
     public static void Postfix(Map ___map, IHaulSource source)
     {
         ___map.GetCachedMapComponent<CrossMapHaulDestinationManager>().RemoveHaulSource(source);
@@ -536,6 +563,7 @@ public static class Patch_HaulDestinationManager_RemoveHaulSource
 [HarmonyPatch(typeof(HaulDestinationManager), nameof(HaulDestinationManager.RemoveHaulDestination))]
 public static class Patch_HaulDestinationManager_RemoveHaulDestination
 {
+    [PatchLevel(Level.Safe)]
     public static void Postfix(Map ___map, IHaulDestination haulDestination)
     {
         ___map.GetCachedMapComponent<CrossMapHaulDestinationManager>().RemoveHaulDestination(haulDestination);
@@ -545,6 +573,7 @@ public static class Patch_HaulDestinationManager_RemoveHaulDestination
 [HarmonyPatch(typeof(HaulDestinationManager), nameof(HaulDestinationManager.Notify_HaulDestinationChangedPriority))]
 public static class Patch_HaulDestinationManager_Notify_HaulDestinationChangedPriority
 {
+    [PatchLevel(Level.Safe)]
     public static void Postfix(Map ___map)
     {
         ___map.GetCachedMapComponent<CrossMapHaulDestinationManager>().Notify_HaulDestinationChangedPriority();
@@ -555,6 +584,7 @@ public static class Patch_HaulDestinationManager_Notify_HaulDestinationChangedPr
 [HarmonyPatch(typeof(SteadyEnvironmentEffects), nameof(SteadyEnvironmentEffects.SteadyEnvironmentEffectsTick))]
 public static class Patch_SteadyEnvironmentEffects_SteadyEnvironmentEffectsTick
 {
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();
@@ -582,59 +612,3 @@ public static class Patch_SteadyEnvironmentEffects_SteadyEnvironmentEffectsTick
         return Mathf.CeilToInt(chance);
     }
 }
-
-//[HarmonyPatch(typeof(MapParent), nameof(MapParent.GetTransportersFloatMenuOptions))]
-//public static class Patch_MapParent_GetTransportersFloatMenuOptions
-//{
-//    public static IEnumerable<FloatMenuOption> Postfix(IEnumerable<FloatMenuOption> values, MapParent __instance, Action<PlanetTile, TransportersArrivalAction> launchAction)
-//    {
-//        foreach (var value in values)
-//        {
-//            yield return value;
-//        }
-
-//        IEnumerable<VehiclePawnWithMap> vehicles = null;
-//        if (__instance.HasMap)
-//        {
-//            vehicles = VehiclePawnWithMapCache.AllVehiclesOn(__instance.Map);
-//        }
-
-//        if (vehicles.NullOrEmpty()) yield break;
-
-//        foreach (var vehicle in vehicles)
-//        {
-//            var mapParent = vehicle.VehicleMap.Parent;
-//            var aerial = vehicle.GetAerialVehicle();
-//            var tile = aerial != null ? Patch_WorldObject_Tile.GetTile(aerial) : vehicle.GetRootTile();
-
-//            bool CanLandInSpecificCell()
-//            {
-//                if (mapParent == null || !mapParent.HasMap)
-//                {
-//                    return false;
-//                }
-//                if (mapParent.EnterCooldownBlocksEntering())
-//                {
-//                    return FloatMenuAcceptanceReport.WithFailMessage("MessageEnterCooldownBlocksEntering".Translate(mapParent.EnterCooldownTicksLeft().ToStringTicksToPeriod()));
-//                }
-//                return true;
-//            }
-
-//            if (!CanLandInSpecificCell())
-//            {
-//                continue;
-//            }
-//            yield return new FloatMenuOption("VMF_LandInSpecificMap".Translate(vehicle.VehicleMap.Parent.Label, __instance.Label), delegate
-//            {
-//                Map map = vehicle.VehicleMap;
-//                Current.Game.CurrentMap = map;
-//                CameraJumper.TryHideWorld();
-//                MapComponentCache<VehiclePawnWithMapCache>.GetComponent(map).ForceResetCache();
-//                Find.Targeter.BeginTargeting(TargetingParameters.ForDropPodsDestination(), x =>
-//                {
-//                    launchAction(__instance.Tile, new TransportersArrivalAction_LandInSpecificCell(mapParent, x.Cell, Rot4.North, landInShuttle: false));
-//                }, null, null, CompLaunchable.TargeterMouseAttachment);
-//            });
-//        }
-//    }
-//}

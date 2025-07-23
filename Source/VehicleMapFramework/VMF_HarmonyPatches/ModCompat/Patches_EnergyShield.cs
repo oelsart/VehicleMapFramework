@@ -10,15 +10,19 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 public class Patches_EnergyShield
 {
+    public const string Category = "VMF_Patches_EnergyShield";
+
+    public const string CategoryCE = "VMF_Patches_EnergyShieldCECompat";
+
     static Patches_EnergyShield()
     {
         if (ModCompat.EnergyShield.Active)
         {
-            VMF_Harmony.PatchCategory("VMF_Patches_EnergyShield");
+            VMF_Harmony.PatchCategory(Category);
 
             if (ModCompat.EnergyShield.CECompat)
             {
-                VMF_Harmony.PatchCategory("VMF_Patches_EnergyShieldCECompat");
+                VMF_Harmony.PatchCategory(CategoryCE);
             }
         }
     }

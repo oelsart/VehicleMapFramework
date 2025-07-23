@@ -2,14 +2,27 @@
 <LanguageData>
 
 	<VMF_Settings.Tab.Main>メイン</VMF_Settings.Tab.Main>
-	<VMF_Settings.Tab.PUAHPatch>PUAHパッチ</VMF_Settings.Tab.PUAHPatch>
-
 	<VMF_Settings.DrawPlanet>キャラバン中にワールドマップを描画する.</VMF_Settings.DrawPlanet>
-	<VMF_Settings.RoofedPatch>車両マップの屋根判定にベースマップの屋根も参照する.\n(パフォーマンスに影響します)</VMF_Settings.RoofedPatch>
 	<VMF_Settings.WeightFactor>車両マップの上の物の重さ係数.</VMF_Settings.WeightFactor>
 	<VMF_Settings.ThreadingPathCost>大きな車両における経路コスト計算のマルチスレッド化.</VMF_Settings.ThreadingPathCost>
 	<VMF_Settings.MinAreaForThreading>マルチスレッドで計算される車両の最小面積.</VMF_Settings.MinAreaForThreading>
 	<VMF_Settings.AsyncClosestThing>到達可能な最も近い物を取得する計算のマルチスレッド化.</VMF_Settings.AsyncClosestThing>
 	<VMF_Settings.MinSearchSetCount>マルチスレッドで計算されるサーチセットの最小数.</VMF_Settings.MinSearchSetCount>
-
+	
+	<VMF_Settings.Tab.PUAHPatch>PUAHパッチ</VMF_Settings.Tab.PUAHPatch>
+	
+	<VMF_Settings.Tab.DynamicPatches>動的パッチ</VMF_Settings.Tab.DynamicPatches>
+	<VMF_Settings.EnableDynamicPatches>動的パッチを有効化する.</VMF_Settings.EnableDynamicPatches>
+	<VMF_Settings.EnableDynamicPatches.Tooltip>ワールド中にマップ付き車両が有る時にハーモニーパッチを適用します.</VMF_Settings.EnableDynamicPatches.Tooltip>
+	<VMF_Settings.EnableDynamicUnpatches>動的アンパッチを有効化する.</VMF_Settings.EnableDynamicUnpatches>
+	<VMF_Settings.EnableDynamicUnpatches.Tooltip>ワールド中にマップ付き車両が無い時にハーモニーパッチを解除します.</VMF_Settings.EnableDynamicUnpatches.Tooltip>
+	<VMF_Settings.DynamicPatchLevel>動的パッチの切り替えレベル</VMF_Settings.DynamicPatchLevel>
+	<VMF_PatchLevel.Sensitive>要注意</VMF_PatchLevel.Sensitive>
+	<VMF_PatchLevel.Cautious>慎重</VMF_PatchLevel.Cautious>
+	<VMF_PatchLevel.Safe>安全</VMF_PatchLevel.Safe>
+	<VMF_PatchLevel.Sensitive.Tooltip>ILのインデックス検索などを行うやや複雑で重い処理のTranspilerなどを含めてパッチの適用を切り替えます.</VMF_PatchLevel.Sensitive.Tooltip>
+	<VMF_PatchLevel.Cautious.Tooltip>単純な関数の置き換えなど, Transpilerであっても比較的安全そうなパッチの適用を切り替えます.</VMF_PatchLevel.Cautious.Tooltip>
+	<VMF_PatchLevel.Safe.Tooltip>Prefix, Postfixなど, 安全かつ高速に行えるパッチの適用を切り替えます.</VMF_PatchLevel.Safe.Tooltip>
+	<VMF_Settings.RoofedPatch>車両マップの屋根判定にベースマップの屋根も参照する.\n(パフォーマンスに影響します)</VMF_Settings.RoofedPatch>
+	
 </LanguageData>

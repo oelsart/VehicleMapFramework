@@ -11,19 +11,22 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 public class Patches_EccentricTech
 {
+    public const string Category = "VMF_Patches_EccentricTech_DefenseGrid";
+
     static Patches_EccentricTech()
     {
         if (ModCompat.DefenseGrid.Active)
         {
-            VMF_Harmony.PatchCategory("VMF_Patches_EccentricTech_DefenseGrid");
+            VMF_Harmony.PatchCategory(Category);
         }
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_EccentricTech_DefenseGrid")]
+[HarmonyPatchCategory(Patches_EccentricTech.Category)]
 [HarmonyPatch("EccentricDefenseGrid.PlaceWorker_DefenseProjector", "DrawGhost")]
 public static class Patch_PlaceWorker_DefenseProjector_DrawGhost
 {
+    [PatchLevel(Level.Safe)]
     public static void Prefix(ref IntVec3 center, Thing thing)
     {
         if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle) || (vehicle = Command_FocusVehicleMap.FocusedVehicle) != null)
@@ -33,10 +36,11 @@ public static class Patch_PlaceWorker_DefenseProjector_DrawGhost
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_EccentricTech_DefenseGrid")]
+[HarmonyPatchCategory(Patches_EccentricTech.Category)]
 [HarmonyPatch("EccentricDefenseGrid.PlaceWorker_ArtillerySensor", "DrawGhost")]
 public static class Patch_PlaceWorker_ArtillerySensor_DrawGhost
 {
+    [PatchLevel(Level.Safe)]
     public static void Prefix(ref IntVec3 center, Thing thing)
     {
         if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle) || (vehicle = Command_FocusVehicleMap.FocusedVehicle) != null)
@@ -46,17 +50,19 @@ public static class Patch_PlaceWorker_ArtillerySensor_DrawGhost
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_EccentricTech_DefenseGrid")]
+[HarmonyPatchCategory(Patches_EccentricTech.Category)]
 [HarmonyPatch("EccentricDefenseGrid.Graphic_DefenseConduit", "ShouldLinkWith")]
 public static class Patch_Graphic_DefenseConduit_ShouldLinkWith
 {
+    [PatchLevel(Level.Safe)]
     public static void Prefix(ref IntVec3 cell, Thing parent) => Patch_Graphic_Linked_ShouldLinkWith.Prefix(ref cell, parent);
 }
 
-[HarmonyPatchCategory("VMF_Patches_EccentricTech_DefenseGrid")]
+[HarmonyPatchCategory(Patches_EccentricTech.Category)]
 [HarmonyPatch("EccentricDefenseGrid.CompProjectorOverlay", "PostDraw")]
 public static class Patch_CompProjectorOverlay_PostDraw
 {
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
         var f_Vector3_y = AccessTools.Field(typeof(Vector3), nameof(Vector3.y));
@@ -83,10 +89,11 @@ public static class Patch_CompProjectorOverlay_PostDraw
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_EccentricTech_DefenseGrid")]
+[HarmonyPatchCategory(Patches_EccentricTech.Category)]
 [HarmonyPatch("EccentricProjectiles.InterceptorMapComponent", "MapComponentUpdate")]
 public static class Patch_InterceptorMapComponent_MapComponentUpdate
 {
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();
@@ -97,17 +104,19 @@ public static class Patch_InterceptorMapComponent_MapComponentUpdate
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_EccentricTech_DefenseGrid")]
+[HarmonyPatchCategory(Patches_EccentricTech.Category)]
 [HarmonyPatch("EccentricProjectiles.InterceptorMapComponent", "Draw")]
 public static class Patch_InterceptorMapComponent_Draw
 {
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) => Patch_InterceptorMapComponent_MapComponentUpdate.Transpiler(instructions);
 }
 
-[HarmonyPatchCategory("VMF_Patches_EccentricTech_DefenseGrid")]
+[HarmonyPatchCategory(Patches_EccentricTech.Category)]
 [HarmonyPatch("EccentricProjectiles.CompProjectileInterceptor", "ShouldDrawField")]
 public static class Patch_CompProjectileInterceptor_ShouldDrawField
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);

@@ -51,11 +51,11 @@ namespace VehicleMapFramework
 
             if (engine is null)
             {
-                return "VMF_NoConnectedEngine".Translate();
+                return "CannotLaunchNoEngine".Translate();
             }
             if (vehicle.FullRotation.IsDiagonal && !forced)
             {
-                return "VMF_VehicleDiagonal".Translate();
+                return "VMF_CannotSetDownDiagonal".Translate(vehicle);
             }
 
             placingGravshipVehicle = true;
@@ -128,13 +128,13 @@ namespace VehicleMapFramework
             if (!ModsConfig.OdysseyActive || GravshipProcessInProgress) return false;
             if (engine is null || !engine.Spawned)
             {
-                return "VMF_NoConnectedEngine".Translate();
+                return "CannotLaunchNoEngine".Translate();
             }
             var map = engine.Map;
             var console = engine.GravshipComponents.FirstOrDefault(c => c is CompPilotConsole);
             if (console is null)
             {
-                return "VMF_NoPilotConsole".Translate();
+                return "PilotConsoleInaccessible".Translate();
             }
             var rot = console.parent.Rotation;
             var rotCounter = rot.IsHorizontal ? rot.Opposite : rot;

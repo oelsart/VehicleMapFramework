@@ -227,10 +227,6 @@ public class MethodInfoCache
 
     public readonly MethodInfo m_Vector3Utility_WithY = AccessTools.Method(typeof(Vector3Utility), nameof(Vector3Utility.WithY));
 
-    public readonly MethodInfo m_TryFindCastPosition = AccessTools.Method(typeof(CastPositionFinder), nameof(CastPositionFinder.TryFindCastPosition));
-
-    public readonly MethodInfo m_TryFindCastPositionOnVehicle = AccessTools.Method(typeof(CastPositionFinderOnVehicle), nameof(CastPositionFinderOnVehicle.TryFindCastPosition));
-
     public readonly MethodInfo m_TargetCellOnBaseMap = AccessTools.Method(typeof(TargetMapManager), nameof(TargetMapManager.TargetCellOnBaseMap));
 
     public readonly MethodInfo m_PositionOnTargetMap = AccessTools.Method(typeof(TargetMapManager), nameof(TargetMapManager.PositionOnTargetMap));

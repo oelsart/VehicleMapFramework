@@ -30,5 +30,7 @@
 	<VMF_AssignPipeNet>割り当て</VMF_AssignPipeNet>
 	<VMF_PumpUp>汲み上げ</VMF_PumpUp>
 	<VMF_Drain>排水</VMF_Drain>
+	
+	<VMF_VehicleMode>車両モード</VMF_VehicleMode>
 
 </LanguageData>

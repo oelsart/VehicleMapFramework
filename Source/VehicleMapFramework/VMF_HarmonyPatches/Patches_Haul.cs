@@ -13,6 +13,7 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [HarmonyPatch(typeof(HaulAIUtility), nameof(HaulAIUtility.PawnCanAutomaticallyHaul))]
 public static class Patch_HaulAIUtility_PawnCanAutomaticallyHaul
 {
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var num = 0;
@@ -31,6 +32,7 @@ public static class Patch_HaulAIUtility_PawnCanAutomaticallyHaul
 [HarmonyPatch(typeof(StoreUtility), nameof(StoreUtility.TryFindBestBetterStorageFor))]
 public static class Patch_StoreUtility_TryFindBestBetterStorageFor
 {
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
         var m_GetSlotGroup = AccessTools.Method(typeof(StoreUtility), nameof(StoreUtility.GetSlotGroup), [typeof(IntVec3), typeof(Map)]);
@@ -53,6 +55,7 @@ public static class Patch_StoreUtility_TryFindBestBetterStorageFor
         }
     }
 
+    [PatchLevel(Level.Safe)]
     public static void Postfix(Pawn carrier, IHaulDestination haulDestination, IntVec3 foundCell)
     {
         if (haulDestination?.Map != null)
@@ -65,6 +68,7 @@ public static class Patch_StoreUtility_TryFindBestBetterStorageFor
 [HarmonyPatch(typeof(StoreUtility), nameof(StoreUtility.TryFindBestBetterStoreCellFor))]
 public static class Patch_StoreUtility_TryFindBestBetterStoreCellFor
 {
+    [PatchLevel(Level.Safe)]
     public static void Postfix(Thing t, Pawn carrier, Map map, StoragePriority currentPriority, Faction faction, ref IntVec3 foundCell, bool needAccurateResult, ref bool __result)
     {
         var priority = foundCell.IsValid ? foundCell.GetSlotGroup(map)?.Settings?.Priority ?? currentPriority : currentPriority;
@@ -75,6 +79,7 @@ public static class Patch_StoreUtility_TryFindBestBetterStoreCellFor
 [HarmonyPatch(typeof(StoreUtility), "TryFindBestBetterStoreCellForWorker")]
 public static class Patch_StoreUtility_TryFindBestBetterStoreCellForWorker
 {
+    [PatchLevel(Level.Safe)]
     public static bool Prefix(Thing t, Pawn carrier, Map map, Faction faction, ISlotGroup slotGroup, bool needAccurateResult, ref IntVec3 closestSlot, ref float closestDistSquared, ref StoragePriority foundPriority)
     {
         Map destMap = null;
@@ -96,6 +101,7 @@ public static class Patch_StoreUtility_TryFindBestBetterStoreCellForWorker
 [HarmonyPatch(typeof(StoreUtility), nameof(StoreUtility.TryFindBestBetterNonSlotGroupStorageFor))]
 public static class Patch_StoreUtility_TryFindBestBetterNonSlotGroupStorageFor
 {
+    [PatchLevel(Level.Safe)]
     public static void Postfix(Thing t, Pawn carrier, Map map, StoragePriority currentPriority, Faction faction, ref IHaulDestination haulDestination, bool acceptSamePriority, bool requiresDestReservation, ref bool __result)
     {
         var priority = haulDestination is not null ? haulDestination.GetParentStoreSettings()?.Priority ?? currentPriority : currentPriority;
@@ -106,6 +112,7 @@ public static class Patch_StoreUtility_TryFindBestBetterNonSlotGroupStorageFor
 [HarmonyPatch(typeof(StoreUtility), nameof(StoreUtility.IsGoodStoreCell))]
 public static class Patch_StoreUtility_IsGoodStoreCell
 {
+    [PatchLevel(Level.Safe)]
     public static bool Prefix(IntVec3 c, Map map, Thing t, Pawn carrier, Faction faction, ref bool __result)
     {
         if (map.IsVehicleMapOf(out _))
@@ -117,10 +124,10 @@ public static class Patch_StoreUtility_IsGoodStoreCell
     }
 }
 
-
 [HarmonyPatch(typeof(HaulAIUtility), nameof(HaulAIUtility.HaulToCellStorageJob))]
 public static class Patch_HaulAIUtility_HaulToCellStorageJob
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);
@@ -143,6 +150,7 @@ public static class Patch_JobDriver_HaulToCell
         });
     }
 
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var g_JobDriver_Map = AccessTools.PropertyGetter(typeof(JobDriver), "Map");
@@ -181,6 +189,7 @@ public static class Patch_Toils_Haul_IsValidStorageFor
         }
     }
 
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);

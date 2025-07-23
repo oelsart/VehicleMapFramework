@@ -4,7 +4,7 @@ namespace VehicleMapFramework;
 
 public class GenStep_VehicleInterior : GenStep
 {
-    public override int SeedPart => 654618698;
+    public override int SeedPart => 6546854;
 
     public override void Generate(Map map, GenStepParams parms)
     {

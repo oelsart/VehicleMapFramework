@@ -21,7 +21,7 @@
 		<vehicleType>Air</vehicleType>
 		
 		<vehicleStats>
-			<MoveSpeed>2</MoveSpeed>
+			<MoveSpeed>0.5</MoveSpeed>
 			<CargoCapacity>0</CargoCapacity>
 			<RepairRate>1.5</RepairRate>
 			<MaximumPayload>0</MaximumPayload>

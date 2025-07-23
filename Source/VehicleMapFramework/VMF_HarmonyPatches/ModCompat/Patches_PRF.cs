@@ -9,19 +9,22 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 public static class Patches_PRF
 {
+    public const string Category = "VMF_Patches_PRF";
+
     static Patches_PRF()
     {
         if (ModCompat.ProjectRimFactory)
         {
-            VMF_Harmony.PatchCategory("VMF_Patches_PRF");
+            VMF_Harmony.PatchCategory(Category);
         }
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_PRF")]
+[HarmonyPatchCategory(Patches_PRF.Category)]
 [HarmonyPatch("ProjectRimFactory.Common.HarmonyPatches.Patch_CanReserve_SAL", "Postfix")]
 public static class Patch_Patch_CanReserve_SAL_Postfix
 {
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();

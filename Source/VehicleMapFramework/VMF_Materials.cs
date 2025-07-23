@@ -8,7 +8,7 @@ public static class VMF_Materials
 {
     public static Material LoadMat(string matPath)
     {
-        var mat = VehicleMapFramework.Bundle.LoadAsset<Material>($"Assets/Data/OELS.VehicleMapFramework/Materials/{matPath}.mat");
+        var mat = VehicleMapFramework.Bundle.LoadAsset<Material>($"Assets/Data/{VehicleMapFramework.mod.Content.PackageIdPlayerFacing}/Materials/{matPath}.mat");
         if (mat == null)
         {
             Log.Warning("Could not load material " + mat);

@@ -9,19 +9,22 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 public static class Patches_MuzzleFlash
 {
+    public const string Category = "VMF_Patches_MuzzleFlash";
+
     static Patches_MuzzleFlash()
     {
         if (ModCompat.MuzzleFlash)
         {
-            VMF_Harmony.PatchCategory("VMF_Patches_MuzzleFlash");
+            VMF_Harmony.PatchCategory(Category);
         }
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_MuzzleFlash")]
+[HarmonyPatchCategory(Patches_MuzzleFlash.Category)]
 [HarmonyPatch("MuzzleFlash.MapComponent_MuzzleFlashManager", "MapComponentUpdate")]
 public static class Patch_MapComponent_MuzzleFlashManager_MapComponentUpdate
 {
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var f_map = AccessTools.Field(typeof(MapComponent), nameof(MapComponent.map));

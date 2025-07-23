@@ -11,16 +11,18 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 public static class Patches_Vivi
 {
+    public const string Category = "VMF_Patches_Vivi";
+
     static Patches_Vivi()
     {
         if (ModCompat.Vivi)
         {
-            VMF_Harmony.PatchCategory("VMF_Patches_Vivi");
+            VMF_Harmony.PatchCategory(Category);
         }
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_Vivi")]
+[HarmonyPatchCategory(Patches_Vivi.Category)]
 [HarmonyPatch]
 public static class Patch_ArcanePlant_Turret_TryFindNewTarget_Delegate
 {
@@ -30,16 +32,18 @@ public static class Patch_ArcanePlant_Turret_TryFindNewTarget_Delegate
             t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<TryFindNewTarget>")));
     }
 
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_Vivi")]
+[HarmonyPatchCategory(Patches_Vivi.Category)]
 [HarmonyPatch("VVRace.ArcanePlant_Turret", "TryFindNewTarget")]
 public static class Patch_ArcanePlant_Turret_TryFindNewTarget
 {
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();

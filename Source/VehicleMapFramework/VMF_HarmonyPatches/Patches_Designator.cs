@@ -24,6 +24,7 @@ public static class Patches_Designator_ZoneAdd_MakeNewZone
         }
     }
 
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Find_CurrentMap, CachedMethodInfo.g_VehicleMapUtility_CurrentMap);
@@ -50,6 +51,7 @@ public static class Patches_Designator_DesignateThing
         }
     }
 
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
         foreach (var instruction in instructions)
@@ -78,6 +80,7 @@ public static class Patches_Designator_DesignateThing
 [HarmonyPatch(typeof(DesignatorManager), nameof(DesignatorManager.DesignatorManagerUpdate))]
 public static class Patch_Designator_SelectedUpdate
 {
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var m_SelectedUpdate = AccessTools.Method(typeof(Designator), nameof(Designator.SelectedUpdate));
@@ -109,15 +112,17 @@ public static class Patch_Designator_SelectedUpdate
 [HarmonyPatch(typeof(Designator), nameof(Designator.Map), MethodType.Getter)]
 public static class Patch_Designator_Map
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Find_CurrentMap, CachedMethodInfo.g_VehicleMapUtility_CurrentMap);
     }
 }
 
-[HarmonyPatch(typeof(Designator), nameof(Designator.Deselected))]
-public static class Patch_Designator_Deselected
+[HarmonyPatch(typeof(DesignatorManager), nameof(DesignatorManager.Deselect))]
+public static class Patch_DesignatorManager_Deselect
 {
+    [PatchLevel(Level.Safe)]
     public static void Postfix()
     {
         if (Command_FocusVehicleMap.FocuseLockedVehicle == null)
@@ -127,18 +132,10 @@ public static class Patch_Designator_Deselected
     }
 }
 
-[HarmonyPatch(typeof(Designator_Build), nameof(Designator_Build.Deselected))]
-public static class Patch_Designator_Build_Deselected
-{
-    public static void Postfix()
-    {
-        Patch_Designator_Deselected.Postfix();
-    }
-}
-
 [HarmonyPatch(typeof(DesignationManager), nameof(DesignationManager.DrawDesignations))]
 public static class Patch_DesignationManager_DrawDesignations
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap);
@@ -148,6 +145,7 @@ public static class Patch_DesignationManager_DrawDesignations
 [HarmonyPatch(typeof(GenGrid), nameof(GenGrid.InNoZoneEdgeArea))]
 public static class Patch_GenGrid_InNoZoneEdgeArea
 {
+    [PatchLevel(Level.Safe)]
     public static void Postfix(ref bool __result, Map map)
     {
         __result &= !map.IsVehicleMapOf(out _);
@@ -157,6 +155,7 @@ public static class Patch_GenGrid_InNoZoneEdgeArea
 [HarmonyPatch(typeof(Designator_Zone), nameof(Designator_Zone.SelectedUpdate))]
 public static class Patch_Designator_Zone_SelectedUpdate
 {
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();
@@ -175,6 +174,7 @@ public static class Patch_Designator_Zone_SelectedUpdate
 [HarmonyPatch(typeof(Designator_Build), nameof(Designator_Build.ProcessInput))]
 public static class Patch_Designator_Build_ProcessInput
 {
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var code = instructions.ToList();
@@ -194,6 +194,7 @@ public static class Patch_Designator_Build_ProcessInput
 [HarmonyPatch(typeof(DesignationDragger), nameof(DesignationDragger.DraggerUpdate))]
 public static class Patch_DesignationDragger_DraggerUpdate
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
         return instructions.MethodReplacer(CachedMethodInfo.m_CellRect_ClipInsideMap, CachedMethodInfo.m_ClipInsideVehicleMap);
@@ -203,6 +204,7 @@ public static class Patch_DesignationDragger_DraggerUpdate
 [HarmonyPatch(typeof(Area), nameof(Area.MarkForDraw))]
 public static class Patch_Area_MarkForDraw
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Find_CurrentMap, CachedMethodInfo.g_VehicleMapUtility_CurrentMap);
@@ -213,6 +215,7 @@ public static class Patch_Area_MarkForDraw
 [HarmonyPatch(typeof(GenDraw), "DrawMapEdgeLines")]
 public static class Patch_GenDraw_DrawMapEdgeLines
 {
+    [PatchLevel(Level.Safe)]
     public static bool Prefix()
     {
         return !Find.CurrentMap.IsVehicleMapOf(out _);

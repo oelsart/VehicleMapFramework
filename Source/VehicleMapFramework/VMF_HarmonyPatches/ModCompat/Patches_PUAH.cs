@@ -13,19 +13,22 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.VeryLow)]
 public class Patches_PUAH
 {
+    public const string Category = "VMF_Patches_PUAH";
+
     static Patches_PUAH()
     {
         if (ModCompat.PickUpAndHaul)
         {
-            VMF_Harmony.PatchCategory("VMF_Patches_PUAH");
+            VMF_Harmony.PatchCategory(Category);
         }
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_PUAH")]
+[HarmonyPatchCategory(Patches_PUAH.Category)]
 [HarmonyPatch("PickUpAndHaul.WorkGiver_HaulToInventory", "PotentialWorkThingsGlobal")]
 public static class Patch_WorkGiver_HaulToInventory_PotentialWorkThingsGlobal
 {
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();
@@ -41,20 +44,22 @@ public static class Patch_WorkGiver_HaulToInventory_PotentialWorkThingsGlobal
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_PUAH")]
+[HarmonyPatchCategory(Patches_PUAH.Category)]
 [HarmonyPatch("PickUpAndHaul.WorkGiver_HaulToInventory+ThingPositionComparer", "Compare")]
 public static class Patch_ThingPositionComparer_Compare
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_PUAH")]
+[HarmonyPatchCategory(Patches_PUAH.Category)]
 [HarmonyPatch("PickUpAndHaul.WorkGiver_HaulToInventory", "JobOnThing")]
 public static class Patch_WorkGiver_HaulToInventory_JobOnThing
 {
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
         var codes = new CodeMatcher(instructions, generator);
@@ -98,20 +103,24 @@ public static class Patch_WorkGiver_HaulToInventory_JobOnThing
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_PUAH")]
+[HarmonyPatchCategory(Patches_PUAH.Category)]
 [HarmonyPatch("PickUpAndHaul.WorkGiver_HaulToInventory", "AllocateThingAtCell")]
 public static class Patch_WorkGiver_HaulToInventory_AllocateThingAtCell
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_PUAH")]
+[HarmonyPatchCategory(Patches_PUAH.Category)]
 [HarmonyPatch("PickUpAndHaul.JobDriver_HaulToInventory", "TryMakePreToilReservations")]
 public static class Patch_JobDriver_HaulToInventory_TryMakePreToilReservations
 {
+    private static Action<string> Message = (Action<string>)AccessTools.Method("PickUpAndHaul.Log:Message")?.CreateDelegate(typeof(Action<string>));
+
+    [PatchLevel(Level.Safe)]
     public static bool Prefix(Job ___job, Pawn ___pawn)
     {
         if (___job.targetQueueB.NotNullAndAny()) return true;
@@ -128,6 +137,4 @@ public static class Patch_JobDriver_HaulToInventory_TryMakePreToilReservations
         ___pawn.ReserveAsManyAsPossible(___job.targetQueueB, ___job);
         return ___pawn.Reserve(___job.targetB, ___job);
     }
-
-    private static Action<string> Message = (Action<string>)AccessTools.Method("PickUpAndHaul.Log:Message")?.CreateDelegate(typeof(Action<string>));
 }

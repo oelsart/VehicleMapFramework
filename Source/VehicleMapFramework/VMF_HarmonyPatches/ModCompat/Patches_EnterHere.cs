@@ -10,16 +10,18 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 public class Patches_EnterHere
 {
+    public const string Category = "VMF_Patches_EnterHere";
+
     static Patches_EnterHere()
     {
         if (ModCompat.EnterHere)
         {
-            VMF_Harmony.Instance.PatchCategory("VMF_Patches_EnterHere");
+            VMF_Harmony.PatchCategory(Category);
         }
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_EnterHere")]
+[HarmonyPatchCategory(Patches_EnterHere.Category)]
 [HarmonyPatch]
 public static class Patch_VehicleCaravanFormingUtility_StartFormingCaravan_Prefix_Func
 {
@@ -29,6 +31,7 @@ public static class Patch_VehicleCaravanFormingUtility_StartFormingCaravan_Prefi
             t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<Prefix>b__0")));
     }
 
+    [PatchLevel(Level.Sensitive)]
     public static bool Prefix(Pawn pawnObject, Type ___vehiclePawnType, ref bool __result)
     {
         __result = ___vehiclePawnType.IsAssignableFrom(pawnObject.GetType());
@@ -36,10 +39,11 @@ public static class Patch_VehicleCaravanFormingUtility_StartFormingCaravan_Prefi
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_EnterHere")]
+[HarmonyPatchCategory(Patches_EnterHere.Category)]
 [HarmonyPatch("EnterHere.VehicleCaravanFormingUtility_StartFormingCaravan", "Prefix")]
 public static class Patch_VehicleCaravanFormingUtility_StartFormingCaravan_Prefix
 {
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();

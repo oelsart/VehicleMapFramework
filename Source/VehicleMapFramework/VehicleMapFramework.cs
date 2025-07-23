@@ -5,7 +5,6 @@ using System.Linq;
 using UnityEngine;
 using VehicleMapFramework.Settings;
 using VehicleMapFramework.VMF_HarmonyPatches;
-using Vehicles;
 using Verse;
 
 namespace VehicleMapFramework;
@@ -36,18 +35,17 @@ public class VehicleMapFramework : Mod
     {
         mod = this;
         settings = GetSettings<VehicleMapSettings>();
+        EarlyPatchCore.EarlyPatch();
     }
 
     public void InitializeTabs()
     {
         tabs.Clear();
-        var mainTab = new SettingsTab_Main();
-        tabs.Add(new TabRecord("VMF_Settings.Tab.Main".Translate(), () =>
-        {
-            CurrentTab = mainTab;
-        }, () => CurrentTab == mainTab));
-
-        CurrentTab = mainTab;
+        var tabDrawers = typeof(SettingsTabDrawer).AllSubclassesNonAbstract()
+            .Select(Activator.CreateInstance).Cast<SettingsTabDrawer>()
+            .OrderBy(tab => tab.Index).ToList();
+        CurrentTab = tabDrawers[0];
+        tabs.AddRange(tabDrawers.Select(tab => new TabRecord(tab.Label, () => CurrentTab = tab, () => CurrentTab == tab)));
     }
 
     internal static SettingsTabDrawer CurrentTab { get; set; }
@@ -69,6 +67,20 @@ public class VehicleMapFramework : Mod
     public override void WriteSettings()
     {
         base.WriteSettings();
+
+        Level level;
+        if (settings.dynamicPatchEnabled && !VehicleMapParentsComponent.CachedParentVehicle.Any(p => p.Value != null))
+        {
+            level = settings.dynamicPatchLevel;
+        }
+        else
+        {
+            level = Level.All;
+        }
+        if (VMF_Harmony.CurrentPatchLevel != level)
+        {
+            VMF_Harmony.DynamicPatchAll(level);
+        }
 
         var m_Roofed = AccessTools.Method(typeof(RoofGrid), nameof(RoofGrid.Roofed), [typeof(IntVec3)]);
         if (VMF_Harmony.Instance.GetPatchedMethods().Contains(m_Roofed))

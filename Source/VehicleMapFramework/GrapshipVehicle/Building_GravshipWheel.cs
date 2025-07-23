@@ -71,18 +71,20 @@ namespace VehicleMapFramework
 
             if (!this.IsOnVehicleMapOf(out var vehicle))
             {
-                yield return new Command_Action()
+                yield return new Command_Toggle()
                 {
-                    defaultLabel = "VMF_JackUp".Translate(),
-                    action = GenerateGravshipVehicle
+                    defaultLabel = "VMF_VehicleMode".Translate(),
+                    toggleAction = GenerateGravshipVehicle,
+                    isActive = () => false,
                 };
             }
             else if (vehicle.Spawned && vehicle.def.HasModExtension<VehicleMapProps_Gravship>())
             {
-                yield return new Command_Action()
+                yield return new Command_Toggle()
                 {
-                    defaultLabel = "VMF_PlaceOn".Translate(),
-                    action = () => PlaceGravship(vehicle)
+                    defaultLabel = "VMF_VehicleMode".Translate(),
+                    toggleAction = () => PlaceGravship(vehicle),
+                    isActive = () => true
                 };
             }
 
@@ -90,7 +92,7 @@ namespace VehicleMapFramework
             {
                 yield return new Command_Action()
                 {
-                    defaultLabel = "VMF_FlipWheel".Translate(),
+                    defaultLabel = "Flip".Translate(),
                     action = () =>
                     {
                         flipped = !flipped;
@@ -127,12 +129,10 @@ namespace VehicleMapFramework
             if (onVehicle && engine is not null && !GravshipVehicleUtility.GravshipProcessInProgress && !(report = GravshipVehicleUtility.CheckGravshipVehicleStability(engine, Rot4.North, out _)).Accepted)
             {
                 Messages.Message(report.Reason, MessageTypeDefOf.NegativeEvent);
-                var loc = engine.Position;
-                var rot = engine.Rotation;
-                Delay.AfterNTicks(0, () =>
+                LongEventHandler.QueueLongEvent(() =>
                 {
-                    GravshipVehicleUtility.PlaceGravshipVehicleUnSpawned(engine, loc, rot, vehicle, true);
-                });
+                    GravshipVehicleUtility.PlaceGravshipVehicle(engine, vehicle, true);
+                }, "VMF_GravshipVehicleDestroyed".Translate(), false, null, false);
             }
         }
 

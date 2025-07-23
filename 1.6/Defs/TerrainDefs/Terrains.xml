@@ -8,6 +8,7 @@
 		<edgeType>Hard</edgeType>
 		<categoryType>Misc</categoryType>
 		<renderPrecedence>0</renderPrecedence>
+		<dontRender>true</dontRender>
 		<statBases>
 			<Beauty>-3</Beauty>
 			<BeautyOutdoors>0</BeautyOutdoors>

@@ -14,19 +14,22 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 public static class Patches_AdaptiveStorage
 {
+    public const string Category = "VMF_Patches_AdaptiveStorage";
+
     static Patches_AdaptiveStorage()
     {
         if (Active)
         {
-            VMF_Harmony.PatchCategory("VMF_Patches_AdaptiveStorage");
+            VMF_Harmony.PatchCategory(Category);
         }
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_AdaptiveStorage")]
+[HarmonyPatchCategory(Patches_AdaptiveStorage.Category)]
 [HarmonyPatch("AdaptiveStorage.StorageGraphicWorker", "UpdatePrintData")]
 public static class Patch_StorageGraphicWorker_UpdatePrintData
 {
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();
@@ -43,10 +46,11 @@ public static class Patch_StorageGraphicWorker_UpdatePrintData
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_AdaptiveStorage")]
+[HarmonyPatchCategory(Patches_AdaptiveStorage.Category)]
 [HarmonyPatch("AdaptiveStorage.ItemGraphicWorker", "DrawOffsetForItem")]
 public static class Patch_ItemGraphicWorker_DrawOffsetForItem
 {
+    [PatchLevel(Level.Safe)]
     public static void Postfix(object __instance, Building_Storage building, Thing item, ref Vector3 __result)
     {
         if (item.IsOnVehicleMapOf(out _))
@@ -85,6 +89,7 @@ public static class Patch_ItemGraphicWorker_DrawOffsetForItem
         }
     }
 
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_RotationForPrint);
@@ -95,10 +100,11 @@ public static class Patch_ItemGraphicWorker_DrawOffsetForItem
     private static AccessTools.FieldRef<object, object> graphic = AccessTools.FieldRefAccess<object>("AdaptiveStorage.ItemGraphicWorker:<graphic>P");
 }
 
-[HarmonyPatchCategory("VMF_Patches_AdaptiveStorage")]
+[HarmonyPatchCategory(Patches_AdaptiveStorage.Category)]
 [HarmonyPatch("AdaptiveStorage.ItemGraphicWorker", "ItemOffsetAt")]
 public static class Patch_ItemGraphicWorker_ItemOffsetAt
 {
+    [PatchLevel(Level.Safe)]
     public static void Postfix(ref float stackRotation)
     {
         stackRotation -= VehicleMapUtility.RotForPrint.AsAngle;

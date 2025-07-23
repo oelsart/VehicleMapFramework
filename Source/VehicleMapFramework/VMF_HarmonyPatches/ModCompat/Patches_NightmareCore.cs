@@ -11,19 +11,22 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 public class Patches_NightmareCore
 {
+    public const string Category = "VMF_Patches_NightmareCore";
+
     static Patches_NightmareCore()
     {
         if (ModCompat.NightmareCore)
         {
-            VMF_Harmony.PatchCategory("VMF_Patches_NightmareCore");
+            VMF_Harmony.PatchCategory(Category);
         }
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_NightmareCore")]
+[HarmonyPatchCategory(Patches_NightmareCore.Category)]
 [HarmonyPatch("NightmareCore.DiagonalAtlasGraphics.Graphic_LinkedStitched", "Print")]
 public static class Patch_Graphic_LinkedStitched_Print
 {
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_RotationForPrint).ToList();
@@ -41,10 +44,11 @@ public static class Patch_Graphic_LinkedStitched_Print
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_NightmareCore")]
+[HarmonyPatchCategory(Patches_NightmareCore.Category)]
 [HarmonyPatch("NightmareCore.ThingComp_AdditionalGraphics", "PostPrintOnto")]
 public static class Patch_ThingComp_AdditionalGraphics_PostPrintOnto
 {
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();

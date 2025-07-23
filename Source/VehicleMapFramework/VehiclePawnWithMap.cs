@@ -454,19 +454,11 @@ public class VehiclePawnWithMap : VehiclePawn
         {
             Current.Game.DeinitAndRemoveMap(interiorMap, false);
         }
-
-        //基本的にはDeinitの時にすべてキャッシュは破棄されるはずだが……
-        //しかし細かなマップ除去や追加操作が行われるとバグりやすい気がするので、もう全部クリアしちゃう
-        foreach (var component in typeof(MapComponent).AllSubclassesNonAbstract())
-        {
-            GenGeneric.InvokeStaticMethodOnGenericType(typeof(MapComponentCache<>), component, "ClearAll");
-        }
-        //foreach (var component in typeof(DetachedMapComponent).AllSubclassesNonAbstract())
-        //{
-        //    GenGeneric.InvokeStaticMethodOnGenericType(typeof(DetachedMapComponentCache<>), component, "ClearAll");
-        //}
-
         interiorMap = null;
+
+        if (!VehicleMapFramework.settings.dynamicUnpatchEnabled) return;
+        if (!VehicleMapParentsComponent.CachedParentVehicle.Any(p => p.Value != null)) return;
+        VMF_Harmony.DynamicPatchAll(VehicleMapFramework.settings.dynamicPatchLevel);
     }
 
     public override void DeSpawn(DestroyMode mode = DestroyMode.Vanish)
@@ -813,9 +805,16 @@ public class VehiclePawnWithMap : VehiclePawn
 
     protected override void PostLoad()
     {
+        VMF_Harmony.DynamicPatchAll(Level.All);
         base.PostLoad();
         CompVehicleTurrets?.RevalidateTurrets();
         ResetRenderStatus();
+    }
+
+    public override void PostGenerationSetup()
+    {
+        VMF_Harmony.DynamicPatchAll(Level.All);
+        base.PostGenerationSetup();
     }
 
     private Map interiorMap;

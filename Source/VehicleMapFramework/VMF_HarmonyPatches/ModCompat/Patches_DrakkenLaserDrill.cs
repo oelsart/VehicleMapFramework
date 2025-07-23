@@ -10,19 +10,22 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 public class Patches_DrakkenLaserDrill
 {
+    public const string Category = "VMF_Patches_DrakkenLaserDrill";
+
     static Patches_DrakkenLaserDrill()
     {
         if (ModCompat.DrakkenLaserDrill)
         {
-            VMF_Harmony.PatchCategory("VMF_Patches_DrakkenLaserDrill");
+            VMF_Harmony.PatchCategory(Category);
         }
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_DrakkenLaserDrill")]
+[HarmonyPatchCategory(Patches_DrakkenLaserDrill.Category)]
 [HarmonyPatch("MYDE_DrakkenLaserDrill.Building_DrakkenLaserDrill", "DrawAt")]
 public static class Patch_Building_DrakkenLaserDrill_DrawAt
 {
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
         var codes = instructions.ToList();
@@ -57,30 +60,33 @@ public static class Patch_Building_DrakkenLaserDrill_DrawAt
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_DrakkenLaserDrill")]
+[HarmonyPatchCategory(Patches_DrakkenLaserDrill.Category)]
 [HarmonyPatch("MYDE_DrakkenLaserDrill.Comp_DrakkenLaserDrill_MouseAttack", "DoSomething")]
 public static class Patch_Comp_DrakkenLaserDrill_MouseAttack_DoSomething
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_DrakkenLaserDrill")]
+[HarmonyPatchCategory(Patches_DrakkenLaserDrill.Category)]
 [HarmonyPatch("MYDE_DrakkenLaserDrill.Comp_DrakkenLaserDrill_MouseAttack", "DoSomething_Move")]
 public static class Patch_Comp_DrakkenLaserDrill_MouseAttack_DoSomething_Move
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_DrakkenLaserDrill")]
+[HarmonyPatchCategory(Patches_DrakkenLaserDrill.Category)]
 [HarmonyPatch("MYDE_DrakkenLaserDrill.Comp_DrakkenLaserDrill_AutoAttack", "DoSomething_AttackAllPawn")]
 public static class Patch_Comp_DrakkenLaserDrill_AutoAttack_DoSomething_AttackAllPawn
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
@@ -88,10 +94,11 @@ public static class Patch_Comp_DrakkenLaserDrill_AutoAttack_DoSomething_AttackAl
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_DrakkenLaserDrill")]
+[HarmonyPatchCategory(Patches_DrakkenLaserDrill.Category)]
 [HarmonyPatch("MYDE_DrakkenLaserDrill.Comp_DrakkenLaserDrill_AutoAttack", "PrepareToAttack")]
 public static class Patch_Comp_DrakkenLaserDrill_AutoAttack_PrepareToAttack
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
@@ -99,20 +106,22 @@ public static class Patch_Comp_DrakkenLaserDrill_AutoAttack_PrepareToAttack
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_DrakkenLaserDrill")]
+[HarmonyPatchCategory(Patches_DrakkenLaserDrill.Category)]
 [HarmonyPatch("MYDE_DrakkenLaserDrill.Comp_DrakkenLaserDrill_Attack", "DoSomething_I")]
 public static class Patch_Comp_DrakkenLaserDrill_Attack_DoSomething_I
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_DrakkenLaserDrill")]
+[HarmonyPatchCategory(Patches_DrakkenLaserDrill.Category)]
 [HarmonyPatch("MYDE_DrakkenLaserDrill.Comp_DrakkenLaserDrill_Attack", "DoSomething_II")]
 public static class Patch_Comp_DrakkenLaserDrill_Attack_DoSomething_II
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)

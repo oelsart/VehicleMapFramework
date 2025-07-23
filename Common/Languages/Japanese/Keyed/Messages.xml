@@ -13,4 +13,12 @@
 	<VMF_CannotSpawn>{0} がスポーンできません.</VMF_CannotSpawn>
 
 	<VMF_MustShotAtAnotherMap>ジップラインは別のマップに発射される必要があります.</VMF_MustShotAtAnotherMap>
+	
+	<VMF_ApplyingDynamicPatches>動的パッチ適用中</VMF_ApplyingDynamicPatches>
+	<VMF_UnpatchingDynamicPatches>動的アンパッチ適用中</VMF_UnpatchingDynamicPatches>
+	
+	<VMF_RectContainsImpassable>車両の長方形が通れないセルを含んでいます.</VMF_RectContainsImpassable>
+	<VMF_WheelsUnstable>車両が不安定です.</VMF_WheelsUnstable>
+	<VMF_CannotSetDownDiagonal>{0}はこの角度で地面に置けません.</VMF_CannotSetDownDiagonal>
+	
 </LanguageData>

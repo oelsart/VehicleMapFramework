@@ -7,6 +7,10 @@ namespace VehicleMapFramework.Settings;
 
 internal abstract class SettingsTabDrawer
 {
+    public abstract int Index { get; }
+
+    public abstract string Label { get; }
+
     public virtual void ResetSettings()
     {
         SoundDefOf.Click.PlayOneShotOnCamera(null);

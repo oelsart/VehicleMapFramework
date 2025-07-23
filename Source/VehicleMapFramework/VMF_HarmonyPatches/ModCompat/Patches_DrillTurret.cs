@@ -11,29 +11,33 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 public class Patches_DrillTurret
 {
+    public const string Category = "VMF_Patches_DrillTurret";
+
     static Patches_DrillTurret()
     {
         if (ModCompat.DrillTurret)
         {
-            VMF_Harmony.PatchCategory("VMF_Patches_DrillTurret");
+            VMF_Harmony.PatchCategory(Category);
         }
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_DrillTurret")]
+[HarmonyPatchCategory(Patches_DrillTurret.Category)]
 [HarmonyPatch("DrillTurret.Building_DrillTurret", "lookForNewTarget")]
 public static class Patch_Building_DrillTurret_lookForNewTarget
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_DrillTurret")]
+[HarmonyPatchCategory(Patches_DrillTurret.Category)]
 [HarmonyPatch("DrillTurret.Building_DrillTurret", "isValidTargetAt")]
 public static class Patch_Building_DrillTurret_isValidTargetAt
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap)
@@ -42,10 +46,11 @@ public static class Patch_Building_DrillTurret_isValidTargetAt
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_DrillTurret")]
+[HarmonyPatchCategory(Patches_DrillTurret.Category)]
 [HarmonyPatch("DrillTurret.Building_DrillTurret", "isValidTargetAtForGizmo")]
 public static class Patch_Building_DrillTurret_isValidTargetAtForGizmo
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap)
@@ -54,10 +59,11 @@ public static class Patch_Building_DrillTurret_isValidTargetAtForGizmo
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_DrillTurret")]
+[HarmonyPatchCategory(Patches_DrillTurret.Category)]
 [HarmonyPatch("DrillTurret.Building_DrillTurret", "drillRock")]
 public static class Patch_Building_DrillTurret_drillRock
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap)
@@ -65,7 +71,7 @@ public static class Patch_Building_DrillTurret_drillRock
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_DrillTurret")]
+[HarmonyPatchCategory(Patches_DrillTurret.Category)]
 [HarmonyPatch]
 public static class Patch_Building_DrillTurret_selectTarget
 {
@@ -74,23 +80,25 @@ public static class Patch_Building_DrillTurret_selectTarget
         return AccessTools.FindIncludingInnerTypes<MethodBase>(AccessTools.TypeByName("DrillTurret.Building_DrillTurret"), t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<selectTarget>")));
     }
 
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_DrillTurret")]
+[HarmonyPatchCategory(Patches_DrillTurret.Category)]
 [HarmonyPatch("DrillTurret.Building_DrillTurret", "setForcedTarget")]
 public static class Patch_Building_DrillTurret_setForcedTarget
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_DrillTurret")]
+[HarmonyPatchCategory(Patches_DrillTurret.Category)]
 [HarmonyPatch]
 public static class Patch_Building_DrillTurret_DrawAt
 {
@@ -102,6 +110,7 @@ public static class Patch_Building_DrillTurret_DrawAt
         yield return AccessTools.Method("DrillTurret.Building_DrillTurret:computeDrawingParameters");
     }
 
+    [PatchLevel(Level.Safe)]
     public static void Prefix(Thing __instance)
     {
         if (__instance.IsOnVehicleMapOf(out var vehicle))
@@ -112,6 +121,7 @@ public static class Patch_Building_DrillTurret_DrawAt
         overridePos = null;
     }
 
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var m_ToVector3Override = AccessTools.Method(typeof(Patch_Building_DrillTurret_DrawAt), nameof(ToVector3Override));

@@ -2,14 +2,28 @@
 <LanguageData>
 
 	<VMF_Settings.Tab.Main>Main</VMF_Settings.Tab.Main>
-	<VMF_Settings.Tab.PUAHPatch>PUAH Patch</VMF_Settings.Tab.PUAHPatch>
 	
 	<VMF_Settings.DrawPlanet>Draw the world map during caravan.</VMF_Settings.DrawPlanet>
-	<VMF_Settings.RoofedPatch>Refer also to roofed on base map for roofed on vehicle map.\n(Impact to performance)</VMF_Settings.RoofedPatch>
 	<VMF_Settings.WeightFactor>Weight factor of things on the vehicle map.</VMF_Settings.WeightFactor>
 	<VMF_Settings.ThreadingPathCost>Multi-threading for path cost calculations on large vehicles.</VMF_Settings.ThreadingPathCost>
 	<VMF_Settings.MinAreaForThreading>Minimum area of vehicle calculated in multi-threading.</VMF_Settings.MinAreaForThreading>
 	<VMF_Settings.AsyncClosestThing>Multi-threading of calculations to get closest reachable thing.</VMF_Settings.AsyncClosestThing>
 	<VMF_Settings.MinSearchSetCount>Minimum search set count calculated in multi-threading.</VMF_Settings.MinSearchSetCount>
-
+	
+	<VMF_Settings.Tab.PUAHPatch>PUAH Patch</VMF_Settings.Tab.PUAHPatch>
+	
+	<VMF_Settings.Tab.DynamicPatches>Dynamic Patches</VMF_Settings.Tab.DynamicPatches>
+	<VMF_Settings.EnableDynamicPatches>Enable dynamic patching.</VMF_Settings.EnableDynamicPatches>
+	<VMF_Settings.EnableDynamicPatches.Tooltip>Apply Harmony patches when map-enabled vehicles are present in the world.</VMF_Settings.EnableDynamicPatches.Tooltip>
+	<VMF_Settings.EnableDynamicUnpatches>Enable dynamic unpatching.</VMF_Settings.EnableDynamicUnpatches>
+	<VMF_Settings.EnableDynamicUnpatches.Tooltip>Unapply Harmony patches when map-enabled vehicles are not present in the world.</VMF_Settings.EnableDynamicUnpatches.Tooltip>
+	<VMF_Settings.DynamicPatchLevel>Dynamic patching level</VMF_Settings.DynamicPatchLevel>
+	<VMF_PatchLevel.Sensitive>Sensitive</VMF_PatchLevel.Sensitive>
+	<VMF_PatchLevel.Cautious>Cautious</VMF_PatchLevel.Cautious>
+	<VMF_PatchLevel.Safe>Safe</VMF_PatchLevel.Safe>
+	<VMF_PatchLevel.Sensitive.Tooltip>Toggles the application of patches, including Transpilers that perform somewhat complex operations like IL index searching, and are heavy-processing.</VMF_PatchLevel.Sensitive.Tooltip>
+	<VMF_PatchLevel.Cautious.Tooltip>Toggles the application of patches, including Transpilers that are considered relatively safe, such as simple function replacements.</VMF_PatchLevel.Cautious.Tooltip>
+	<VMF_PatchLevel.Safe.Tooltip>Toggles the application of patches that can be performed safely and quickly, such as Prefixes and Postfixes.</VMF_PatchLevel.Safe.Tooltip>
+	<VMF_Settings.RoofedPatch>Refer also to roofed on base map for roofed on vehicle map.\n(Impact to performance)</VMF_Settings.RoofedPatch>
+	
 </LanguageData>

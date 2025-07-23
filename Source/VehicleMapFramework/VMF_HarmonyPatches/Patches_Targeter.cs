@@ -8,6 +8,7 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [HarmonyPatch(typeof(Targeter), "ConfirmStillValid")]
 public static class Patch_Targeter_ConfirmStillValid
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
@@ -18,6 +19,7 @@ public static class Patch_Targeter_ConfirmStillValid
 [HarmonyPatch(typeof(Targeter), "OrderVerbForceTarget")]
 public static class Patch_Targeter_OrderVerbForceTarget
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
@@ -27,6 +29,7 @@ public static class Patch_Targeter_OrderVerbForceTarget
 [HarmonyPatch(typeof(Targeter), "CurrentTargetUnderMouse")]
 public static class Patch_Targeter_CurrentTargetUnderMouse
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.m_GenUI_TargetsAtMouse, CachedMethodInfo.m_GenUIOnVehicle_TargetsAtMouse);

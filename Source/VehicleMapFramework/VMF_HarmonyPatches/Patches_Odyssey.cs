@@ -1,7 +1,5 @@
 ﻿using HarmonyLib;
 using RimWorld;
-using SmashTools;
-using SmashTools.Performance;
 using System;
 using System.Collections.Generic;
 using System.Reflection.Emit;
@@ -14,19 +12,22 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 public static class Patches_Odyssey
 {
+    public const string Category = "VMF_Patches_Odyssey";
+
     static Patches_Odyssey()
     {
         if (ModsConfig.OdysseyActive)
         {
-            VMF_Harmony.PatchCategory("VMF_Patches_Odyssey");
+            VMF_Harmony.PatchCategory(Category);
         }
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_Odyssey")]
+[HarmonyPatchCategory(Patches_Odyssey.Category)]
 [HarmonyPatch(typeof(Building_GravEngine), "UpdateSubstructureIfNeeded")]
 public static class Patch_Building_GravEngine_UpdateSubstructureIfNeeded
 {
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
         var codes = new CodeMatcher(instructions, generator);
@@ -50,53 +51,57 @@ public static class Patch_Building_GravEngine_UpdateSubstructureIfNeeded
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_Odyssey")]
+[HarmonyPatchCategory(Patches_Odyssey.Category)]
 [HarmonyPatch(typeof(Building_GravEngine), nameof(Building_GravEngine.DeSpawn))]
 public static class Patch_Building_GravEngine_DeSpawn
 {
+    [PatchLevel(Level.Safe)]
     public static void Prefix(Building_GravEngine __instance)
     {
         if (__instance.IsOnVehicleMapOf(out var vehicle) && vehicle.Spawned && !GravshipVehicleUtility.GravshipProcessInProgress)
         {
             var loc = __instance.Position;
             var rot = __instance.Rotation;
-            Delay.AfterNTicks(0, () =>
+            LongEventHandler.QueueLongEvent(() =>
             {
                 GravshipVehicleUtility.PlaceGravshipVehicleUnSpawned(__instance, loc, rot, vehicle, true);
-            });
+            }, "VMF_GravshipVehicleDestroyed".Translate(), false, null, false);
         }
     }
 }
 
-//[HarmonyPatchCategory("VMF_Patches_Odyssey")]
-//[HarmonyPatch(typeof(Building_VacBarrier), "DrawAt")]
-//public static class Patch_Building_VacBarrier_DrawAt
-//{
-//    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
-//    {
-//        var codes = new CodeMatcher(instructions, generator);
-//        codes.DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle);
-//        codes.MatchStartForward(CodeMatch.LoadsConstant(0f));
-//        codes.CreateLabelWithOffsets(1, out var label);
-//        codes.InsertAfter(
-//            CodeInstruction.LoadArgument(0),
-//            new CodeInstruction(OpCodes.Ldloca_S, vehicle),
-//            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf),
-//            new CodeInstruction(OpCodes.Brfalse_S, label),
-//            new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-//            new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_Angle),
-//            new CodeInstruction(OpCodes.Neg),
-//            new CodeInstruction(OpCodes.Add));
-//        return codes.Instructions().MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseRotationVehicleDraw);
-//    }
-//}
-
-[HarmonyPatchCategory("VMF_Patches_Odyssey")]
+[HarmonyPatchCategory(Patches_Odyssey.Category)]
 [HarmonyPatch(typeof(TerrainGrid), nameof(TerrainGrid.CanRemoveFoundationAt))]
 public static class Patch_TerrainGrid_CanRemoveFoundationAt
 {
+    [PatchLevel(Level.Safe)]
     public static void Postfix(ref bool __result, Map ___map)
     {
         __result &= !___map.IsVehicleMapOf(out var vehicle) || !vehicle.def.HasModExtension<VehicleMapProps_Gravship>();
+    }
+}
+
+//ThingがあればThing.Map、なければFocusedVehicle.VehicleMap、それもなければFind.CurrentMapを参照するようにする
+[HarmonyPatchCategory(Patches_Odyssey.Category)]
+[HarmonyPatch(typeof(PlaceWorker_GravshipThruster), nameof(PlaceWorker_GravshipThruster.DrawGhost))]
+public static class Patch_PlaceWorker_GravshipThruster_DrawGhost
+{
+    [PatchLevel(Level.Sensitive)]
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+    {
+        var codes = new CodeMatcher(instructions, generator);
+        codes.MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_GenDraw_DrawFieldEdges));
+        codes.CreateLabel(out var label);
+        codes.DefineLabel(out var label2);
+        codes.InsertAndAdvance(
+            CodeInstruction.LoadArgument(5),
+            new CodeInstruction(OpCodes.Brfalse_S, label2),
+            CodeInstruction.LoadArgument(5),
+            new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_Thing_Map),
+            new CodeInstruction(OpCodes.Br_S, label),
+            new CodeInstruction(OpCodes.Call, CachedMethodInfo.g_VehicleMapUtility_CurrentMap).WithLabels(label2)
+            );
+        codes.Operand = CachedMethodInfo.m_GenDrawOnVehicle_DrawFieldEdges;
+        return codes.Instructions();
     }
 }

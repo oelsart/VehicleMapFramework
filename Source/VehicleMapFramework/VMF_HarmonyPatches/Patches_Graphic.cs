@@ -17,6 +17,7 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [HarmonyPatch(typeof(Graphic_Linked), nameof(Graphic_Linked.ShouldLinkWith))]
 public static class Patch_Graphic_Linked_ShouldLinkWith
 {
+    [PatchLevel(Level.Mandatory)]
     [HarmonyReversePatch(HarmonyReversePatchType.Original)]
     [HarmonyPriority(Priority.Normal)]
     //なんでReversePatchしてるのにオリジナルのメソッドをコピーしてるのかって？Performance AnalyzerがReversePatchに対応してないからだよ！
@@ -33,6 +34,7 @@ public static class Patch_Graphic_Linked_ShouldLinkWith
         return (parent.Map.linkGrid.LinkFlagsAt(c) & parent.def.graphicData.linkFlags) > LinkFlags.None;
     }
 
+    [PatchLevel(Level.Safe)]
     [HarmonyPriority(Priority.Low)]
     public static void Prefix(ref IntVec3 c, Thing parent)
     {
@@ -48,22 +50,27 @@ public static class Patch_Graphic_Linked_ShouldLinkWith
 [HarmonyPatch(typeof(Graphic_LinkedAsymmetric), nameof(Graphic_LinkedAsymmetric.ShouldLinkWith))]
 public static class Patch_Graphic_LinkedAsymmetric_ShouldLinkWith
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) => instructions.MethodReplacer(CachedMethodInfo.m_ShouldLinkWith, CachedMethodInfo.m_ShouldLinkWithOrig);
 
+    [PatchLevel(Level.Safe)]
     public static void Prefix(ref IntVec3 c, Thing parent) => Patch_Graphic_Linked_ShouldLinkWith.Prefix(ref c, parent);
 }
 
 [HarmonyPatch(typeof(Graphic_LinkedTransmitter), nameof(Graphic_LinkedTransmitter.ShouldLinkWith))]
 public static class Patch_Graphic_LinkedTransmitter_ShouldLinkWith
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) => instructions.MethodReplacer(CachedMethodInfo.m_ShouldLinkWith, CachedMethodInfo.m_ShouldLinkWithOrig);
 
+    [PatchLevel(Level.Safe)]
     public static void Prefix(ref IntVec3 c, Thing parent) => Patch_Graphic_Linked_ShouldLinkWith.Prefix(ref c, parent);
 }
 
 [HarmonyPatch(typeof(Thing), nameof(Thing.Print))]
 public static class Patch_Thing_Print
 {
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();
@@ -78,6 +85,7 @@ public static class Patch_Thing_Print
 [HarmonyPatch(typeof(MinifiedThing), nameof(MinifiedThing.Print))]
 public static class Patch_MinifiedThing_Print
 {
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = new CodeMatcher(instructions);
@@ -101,6 +109,7 @@ public static class Patch_MinifiedThing_Print
 [HarmonyPatch(typeof(Graphic), nameof(Graphic.Print))]
 public static class Patch_Graphic_Print
 {
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();
@@ -134,6 +143,7 @@ public static class Patch_Graphic_Print
 [HarmonyPatch(typeof(Graphic_LinkedCornerFiller), nameof(Graphic_LinkedCornerFiller.Print))]
 public static class Patch_Graphic_LinkedCornerFiller_Print
 {
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
         var codes = instructions.ToList();
@@ -167,6 +177,7 @@ public static class Patch_Graphic_LinkedCornerFiller_Print
 [HarmonyPatch(typeof(GraphicUtility), nameof(GraphicUtility.WrapLinked))]
 public static class Patch_GraphicUtility_WrapLinked
 {
+    [PatchLevel(Level.Mandatory)]
     public static bool Prefix(Graphic subGraphic, LinkDrawerType linkDrawerType, ref Graphic_Linked __result)
     {
         if ((byte)linkDrawerType == 56)
@@ -183,6 +194,7 @@ public static class Patch_GraphicUtility_WrapLinked
 [HarmonyPatch(typeof(GraphicData), nameof(GraphicData.CopyFrom))]
 public static class Patch_GraphicData_CopyFrom
 {
+    [PatchLevel(Level.Mandatory)]
     public static void Postfix(GraphicData __instance, GraphicData other)
     {
         __instance.cornerOverlayPath = other.cornerOverlayPath;
@@ -193,6 +205,7 @@ public static class Patch_GraphicData_CopyFrom
 [HarmonyPatch(typeof(CameraDriver), nameof(CameraDriver.Update))]
 public static class Patch_CameraDriver_Update
 {
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
         var codes = instructions.ToList();
@@ -253,6 +266,7 @@ public static class Patch_CameraDriver_Update
 [HarmonyPatch(typeof(PawnRenderer), "GetBodyPos")]
 public static class Patch_PawnRenderer_GetBodyPos
 {
+    [PatchLevel(Level.Safe)]
     public static void Postfix(PawnPosture posture, Pawn ___pawn, ref Vector3 __result)
     {
         var corpse = ___pawn.Corpse;
@@ -281,6 +295,7 @@ public static class Patch_PawnRenderer_GetBodyPos
 [HarmonyPatch(typeof(PawnRenderer), nameof(PawnRenderer.BodyAngle))]
 public static class Patch_PawnRenderer_BodyAngle
 {
+    [PatchLevel(Level.Safe)]
     public static void Postfix(Pawn ___pawn, ref float __result)
     {
         if (___pawn.IsOnNonFocusedVehicleMapOf(out var vehicle))
@@ -293,6 +308,7 @@ public static class Patch_PawnRenderer_BodyAngle
 [HarmonyPatch(typeof(GenDraw), nameof(GenDraw.DrawAimPie))]
 public static class Patch_GenDraw_DrawAimPie
 {
+    [PatchLevel(Level.Safe)]
     public static void Prefix(Thing shooter, ref LocalTargetInfo target)
     {
         if (!target.HasThing && TargetMapManager.HasTargetMap(shooter, out var map))
@@ -301,6 +317,7 @@ public static class Patch_GenDraw_DrawAimPie
         }
     }
 
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap)
@@ -311,6 +328,7 @@ public static class Patch_GenDraw_DrawAimPie
 [HarmonyPatch(typeof(Pawn), nameof(Pawn.ProcessPostTickVisuals))]
 public static class Patch_Pawn_ProcessPostTickVisuals
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
@@ -320,6 +338,7 @@ public static class Patch_Pawn_ProcessPostTickVisuals
 [HarmonyPatch(typeof(Projectile), nameof(Projectile.ExactPosition), MethodType.Getter)]
 public static class Patch_Projectile_ExactPosition
 {
+    [PatchLevel(Level.Safe)]
     public static void Postfix(ref Vector3 __result)
     {
         __result = __result.YOffsetFull();
@@ -329,6 +348,7 @@ public static class Patch_Projectile_ExactPosition
 [HarmonyPatch(typeof(Graphic_Shadow), nameof(Graphic_Shadow.DrawWorker))]
 public static class Patch_Graphic_Shadow_DrawWorker
 {
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
         var codes = instructions.ToList();
@@ -356,6 +376,7 @@ public static class Patch_Graphic_Shadow_DrawWorker
 [HarmonyPatch(typeof(Frame), "DrawAt")]
 public static class Patch_Frame_DrawAt
 {
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         foreach (var instruction in instructions)
@@ -373,6 +394,7 @@ public static class Patch_Frame_DrawAt
 [HarmonyPatch(typeof(GenDraw), nameof(GenDraw.DrawFillableBar))]
 public static class Patch_GenDraw_DrawFillableBar
 {
+    [PatchLevel(Level.Safe)]
     public static bool Prefix(GenDraw.FillableBarRequest r)
     {
         if (r.rotation.AsInt >= 4)
@@ -410,6 +432,7 @@ public static class Patch_GenDraw_DrawFillableBar
 [HarmonyPatch(typeof(MapDrawer), "ViewRect", MethodType.Getter)]
 public static class Patch_MapDrawer_ViewRect
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.m_CellRect_ClipInsideMap, CachedMethodInfo.m_ClipInsideVehicleMap);
@@ -419,6 +442,7 @@ public static class Patch_MapDrawer_ViewRect
 [HarmonyPatch(typeof(GenView), nameof(GenView.ShouldSpawnMotesAt))]
 public static class Patch_GenView_ShouldSpawnMotesAt
 {
+    [PatchLevel(Level.Safe)]
     [HarmonyPatch([typeof(Vector3), typeof(Map), typeof(bool)])]
     public static void Prefix(ref Map map)
     {
@@ -430,6 +454,7 @@ public static class Patch_GenView_ShouldSpawnMotesAt
         }
     }
 
+    [PatchLevel(Level.Safe)]
     [HarmonyPatch([typeof(IntVec3), typeof(Map), typeof(bool)])]
     public static void Prefix(ref IntVec3 loc, ref Map map)
     {
@@ -452,6 +477,7 @@ public static class Patch_SubEffecter_Sprayer
         yield return AccessTools.Method(typeof(SubEffecter_Sprayer), "MakeMote");
     }
 
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var g_CenterVector3 = AccessTools.PropertyGetter(typeof(TargetInfo), nameof(TargetInfo.CenterVector3));

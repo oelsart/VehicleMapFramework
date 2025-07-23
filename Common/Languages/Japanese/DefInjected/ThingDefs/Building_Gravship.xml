@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+	<VMF_GravshipWheel.label>グラヴシップ用タイヤ</VMF_GravshipWheel.label>
+	<VMF_GravshipWheel.description>グラヴシップが地上を移動するための装備で, 宇宙空間で動くためのスラスターも兼ね備えています. タイヤの数が最大積載重量と移動速度に影響します.\n\n&lt;color=#bb8f04&gt;最大積載重量:&lt;/color&gt; +1500 kg\n&lt;color=#bb8f04&gt;移動速度:&lt;/color&gt; +0.75</VMF_GravshipWheel.description>
+
+</LanguageData>

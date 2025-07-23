@@ -3,26 +3,28 @@ using RimWorld;
 using System.Collections.Generic;
 using System.Linq;
 using Verse;
-using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 [StaticConstructorOnStartupPriority(Priority.Low)]
 public class Patches_TranderShips
 {
+    public const string Category = "VMF_Patches_TraderShips";
+
     static Patches_TranderShips()
     {
         if (ModCompat.TraderShips)
         {
-            VMF_Harmony.PatchCategory("VMF_Patches_TraderShips");
+            VMF_Harmony.PatchCategory(Category);
         }
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_TraderShips")]
+[HarmonyPatchCategory(Patches_TranderShips.Category)]
 [HarmonyPatch("TraderShips.CompShip", "PostDraw")]
 public static class Patch_CompShip_PostDraw
 {
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         foreach (var instruction in instructions)
@@ -47,10 +49,11 @@ public static class Patch_CompShip_PostDraw
 
 
 //車上マップにそれぞれVirtualMapTransferしてColonyThingsWillingToBuyを集める
-[HarmonyPatchCategory("VMF_Patches_TraderShips")]
+[HarmonyPatchCategory(Patches_TranderShips.Category)]
 [HarmonyPatch("TraderShips.LandedShip", "ColonyThingsWillingToBuy")]
 public static class Patch_LandedShip_ColonyThingsWillingToBuy
 {
+    [PatchLevel(Level.Safe)]
     public static void Prefix(Pawn playerNegotiator)
     {
         if (working) return;
@@ -58,6 +61,7 @@ public static class Patch_LandedShip_ColonyThingsWillingToBuy
         CrossMapReachabilityUtility.DepartMap = playerNegotiator.Map;
     }
 
+    [PatchLevel(Level.Safe)]
     public static IEnumerable<Thing> Postfix(IEnumerable<Thing> values, Pawn playerNegotiator, ITrader __instance)
     {
         if (values != null)

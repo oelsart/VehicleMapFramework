@@ -11,20 +11,23 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 public static class Patches_BillDoorsFramework
 {
+    public const string Category = "VMF_Patches_BillDoorsFramework";
+
     static Patches_BillDoorsFramework()
     {
         if (ModCompat.BillDoorsFramework)
         {
-            VMF_Harmony.PatchCategory("VMF_Patches_BillDoorsFramework");
+            VMF_Harmony.PatchCategory(Category);
         }
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_BillDoorsFramework")]
+[HarmonyPatchCategory(Patches_BillDoorsFramework.Category)]
 [HarmonyPatch("BillDoorsFramework.PlaceWorker_ShowVerbRadiusBySight", "AllowsPlacing")]
 [StaticConstructorOnStartup]
 public static class Patch_PlaceWorker_ShowVerbRadiusBySight_AllowsPlacing
 {
+    [PatchLevel(Level.Safe)]
     public static bool Prefix(BuildableDef checkingDef, IntVec3 loc, Map map, ref AcceptanceReport __result)
     {
         __result = true;

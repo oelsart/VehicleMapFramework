@@ -14,10 +14,14 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [HarmonyPatch(typeof(Verb), nameof(Verb.TryFindShootLineFromTo))]
 public static class Patch_Verb_TryFindShootLineFromTo
 {
+    private static bool Prepare()
+    {
+        return !ModCompat.CombatExtended.Active;
+    }
+
+    [PatchLevel(Level.Safe)]
     public static bool Prefix(Verb __instance, IntVec3 root, LocalTargetInfo targ, ref ShootLine resultingLine, bool ignoreRange, ref bool __result)
     {
-        if (ModCompat.CombatExtended.Active) return true;
-
         if ((__instance.caster.IsOnVehicleMapOf(out _) ||
             targ.Thing.IsOnVehicleMapOf(out _) ||
             (TargetMapManager.HasTargetMap(__instance.caster, out var map) && map.IsVehicleMapOf(out _))) && !VerbOnVehicleUtility.working)
@@ -33,6 +37,7 @@ public static class Patch_Verb_TryFindShootLineFromTo
 [HarmonyPatch(typeof(Verb), nameof(Verb.CanHitTarget))]
 public static class Patch_Verb_CanHitTarget
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
@@ -42,6 +47,7 @@ public static class Patch_Verb_CanHitTarget
 [HarmonyPatch(typeof(Verb_LaunchProjectile), "GetForcedMissTarget")]
 public static class Patch_Verb_LaunchProjectile_GetForcedMissTarget
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap);
@@ -56,6 +62,7 @@ public static class Patch_Verb_LaunchProjectile_GetForcedMissTarget_Delegate
         return typeof(Verb_LaunchProjectile).GetDeclaredMethods().First(m => m.Name.Contains("<GetForcedMissTarget>"));
     }
 
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
@@ -65,6 +72,7 @@ public static class Patch_Verb_LaunchProjectile_GetForcedMissTarget_Delegate
 [HarmonyPatch(typeof(Verb_LaunchProjectile), "TryCastShot")]
 public static class Patch_Verb_LaunchProjectile_TryCastShot
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
@@ -76,6 +84,7 @@ public static class Patch_Verb_LaunchProjectile_TryCastShot
 [HarmonyPatch(typeof(Verb), nameof(Verb.TryStartCastOn), typeof(LocalTargetInfo), typeof(LocalTargetInfo), typeof(bool), typeof(bool), typeof(bool), typeof(bool))]
 public static class Patch_Verb_TryStartCastOn
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
@@ -85,6 +94,7 @@ public static class Patch_Verb_TryStartCastOn
 [HarmonyPatch(typeof(Verb_ShootBeam), "TryCastShot")]
 public static class Patch_Verb_ShootBeam_TryCastShot
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
@@ -95,6 +105,7 @@ public static class Patch_Verb_ShootBeam_TryCastShot
 [HarmonyPatch(typeof(Verb_ShootBeam), nameof(Verb_ShootBeam.DrawHighlight))]
 public static class Patch_Verb_ShootBeam_DrawHighlight
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseFullRotation_Thing)
@@ -106,6 +117,7 @@ public static class Patch_Verb_ShootBeam_DrawHighlight
 [HarmonyPatch(typeof(Verb_ShootBeam), "TryGetHitCell")]
 public static class Patch_Verb_ShootBeam_TryGetHitCell
 {
+    [PatchLevel(Level.Safe)]
     public static bool Prefix(IntVec3 source, IntVec3 targetCell, out IntVec3 hitCell, Thing ___caster, VerbProperties ___verbProps, out bool __result)
     {
         IntVec3 intVec = GenSight.LastPointOnLineOfSight(source, targetCell, c => c.CanBeSeenOverOnVehicle(___caster.BaseMap()), true);
@@ -124,6 +136,7 @@ public static class Patch_Verb_ShootBeam_TryGetHitCell
 [HarmonyPatch(typeof(Verb_ShootBeam), "GetBeamHitNeighbourCells")]
 public static class Patch_Verb_ShootBeam_GetBeamHitNeighbourCells
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
@@ -134,6 +147,7 @@ public static class Patch_Verb_ShootBeam_GetBeamHitNeighbourCells
 [HarmonyPatch(typeof(Verb_ShootBeam), nameof(Verb_ShootBeam.BurstingTick))]
 public static class Patch_Verb_ShootBeam_BurstingTick
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
@@ -149,6 +163,7 @@ public static class Patch_Verb_ShootBeam_BurstingTick_Delegate
         return typeof(Verb_ShootBeam).GetDeclaredMethods().First(m => m.Name.Contains("<BurstingTick>"));
     }
 
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
@@ -159,6 +174,7 @@ public static class Patch_Verb_ShootBeam_BurstingTick_Delegate
 [HarmonyPatch(typeof(Verb_ShootBeam), "CalculatePath")]
 public static class Patch_Verb_ShootBeam_CalculatePath
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
@@ -168,6 +184,7 @@ public static class Patch_Verb_ShootBeam_CalculatePath
 [HarmonyPatch(typeof(Verb_ShootBeam), "HitCell")]
 public static class Patch_Verb_ShootBeam_HitCell
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
@@ -177,6 +194,7 @@ public static class Patch_Verb_ShootBeam_HitCell
 [HarmonyPatch(typeof(Verb_ShootBeam), "ApplyDamage")]
 public static class Patch_Verb_ShootBeam_ApplyDamage
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
@@ -193,6 +211,7 @@ public static class Patch_Verb_ShootBeam_ApplyDamage_Delegate
         return typeof(Verb_ShootBeam).GetDeclaredMethods().First(m => m.Name.Contains("<ApplyDamage>"));
     }
 
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
@@ -203,6 +222,7 @@ public static class Patch_Verb_ShootBeam_ApplyDamage_Delegate
 [HarmonyPatch(typeof(Verb_Spray), "TryCastShot")]
 public static class Patch_Verb_Spray_TryCastShot
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
@@ -212,6 +232,7 @@ public static class Patch_Verb_Spray_TryCastShot
 [HarmonyPatch(typeof(Verb_ArcSpray), "PreparePath")]
 public static class Patch_Verb_ArcSpray_PreparePath
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap)
@@ -222,6 +243,7 @@ public static class Patch_Verb_ArcSpray_PreparePath
 [HarmonyPatch(typeof(Verb_ArcSprayProjectile), "HitCell")]
 public static class Patch_Verb_ArcSprayProjectile_HitCell
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
@@ -233,6 +255,7 @@ public static class Patch_Verb_ArcSprayProjectile_HitCell
 [HarmonyPatch(typeof(JumpUtility), nameof(JumpUtility.CanHitTargetFrom))]
 public static class Patch_JumpUtility_CanHitTargetFrom
 {
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
@@ -249,6 +272,7 @@ public static class Patch_JumpUtility_CanHitTargetFrom
 [HarmonyPatch(typeof(JumpUtility), nameof(JumpUtility.OrderJump))]
 public static class Patch_JumpUtility_OrderJump
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, m_TargetMap);
@@ -270,6 +294,7 @@ public static class Patch_JumpUtility_OrderJump_Delegate
         return AccessTools.FindIncludingInnerTypes<MethodBase>(typeof(JumpUtility), t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<OrderJump>")));
     }
 
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
@@ -279,11 +304,13 @@ public static class Patch_JumpUtility_OrderJump_Delegate
 [HarmonyPatch(typeof(JumpUtility), nameof(JumpUtility.DoJump))]
 public static class Patch_JumpUtility_DoJump
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, Patch_JumpUtility_OrderJump.m_TargetMap);
     }
 
+    [PatchLevel(Level.Safe)]
     public static void Finalizer(Pawn pawn, bool __result)
     {
         if (!__result) return;
@@ -294,6 +321,7 @@ public static class Patch_JumpUtility_DoJump
 [HarmonyPatch(typeof(JobDriver_CastJump), nameof(JobDriver_CastJump.TryMakePreToilReservations))]
 public static class Patch_JobDriver_CastJump_TryMakePreToilReservations
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, Patch_JumpUtility_OrderJump.m_TargetMap);
@@ -303,6 +331,7 @@ public static class Patch_JobDriver_CastJump_TryMakePreToilReservations
 [HarmonyPatch(typeof(PawnFlyer), nameof(PawnFlyer.SpawnSetup))]
 public static class Patch_PawnFlyer_SpawnSetup
 {
+    [PatchLevel(Level.Safe)]
     public static void Prefix(Map map, Vector3 ___startVec, IntVec3 ___destCell, ref float ___flightDistance)
     {
         ___flightDistance = ___destCell.ToBaseMapCoord(map).DistanceTo(___startVec.ToIntVec3());
@@ -312,6 +341,7 @@ public static class Patch_PawnFlyer_SpawnSetup
 [HarmonyPatch(typeof(Verb_Jump), nameof(Verb_Jump.DrawHighlight))]
 public static class Patch_Verb_Jump_DrawHighlight
 {
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         instructions = instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, Patch_JumpUtility_OrderJump.m_TargetMap);
@@ -386,12 +416,14 @@ public static class Patch_Verb_Jump_DrawHighlight
 [HarmonyPatch(typeof(Verb_CastAbilityJump), nameof(Verb_CastAbilityJump.DrawHighlight))]
 public static class Patch_Verb_CastAbilityJump_DrawHighlight
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) => Patch_Verb_Jump_DrawHighlight.Transpiler(instructions);
 }
 
 [HarmonyPatch(typeof(Verb_Jump), nameof(Verb_Jump.OnGUI))]
 public static class Patch_Verb_Jump_OnGUI
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, Patch_JumpUtility_OrderJump.m_TargetMap);
@@ -401,12 +433,14 @@ public static class Patch_Verb_Jump_OnGUI
 [HarmonyPatch(typeof(Verb_CastAbilityJump), nameof(Verb_CastAbilityJump.OnGUI))]
 public static class Patch_Verb_CastAbilityJump_OnGUI
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) => Patch_Verb_Jump_OnGUI.Transpiler(instructions);
 }
 
 [HarmonyPatch(typeof(Verb_Jump), nameof(Verb_Jump.ValidateTarget))]
 public static class Patch_Verb_Jump_ValidateTarget
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, Patch_JumpUtility_OrderJump.m_TargetMap);
@@ -416,6 +450,7 @@ public static class Patch_Verb_Jump_ValidateTarget
 [HarmonyPatch(typeof(Verb_CastAbilityJump), nameof(Verb_CastAbilityJump.ValidateTarget))]
 public static class Patch_Verb_CastAbilityJump_ValidateTarget
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) => Patch_Verb_Jump_ValidateTarget.Transpiler(instructions);
 }
 
@@ -428,6 +463,7 @@ public static class Patch_Verb_Jump_DrawHighlight_Delegate
         yield return typeof(Verb_CastAbilityJump).GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<DrawHighlight>"));
     }
 
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap)

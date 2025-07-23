@@ -7,19 +7,22 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 public class Patches_YayosCombat3
 {
+    public const string Category = "VMF_Patches_YayosCombat3";
+
     static Patches_YayosCombat3()
     {
         if (ModCompat.YayosCombat3)
         {
-            VMF_Harmony.PatchCategory("VMF_Patches_YayosCombat3");
+            VMF_Harmony.PatchCategory(Category);
         }
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_YayosCombat3")]
+[HarmonyPatchCategory(Patches_YayosCombat3.Category)]
 [HarmonyPatch("yayoCombat.HarmonyPatches.Verb_LaunchProjectile_TryCastShot", "Prefix")]
 public static class Patch_Verb_LaunchProjectile_TryCastShot_Prefix
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)

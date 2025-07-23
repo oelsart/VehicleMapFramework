@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
 using Verse;
-using Verse.AI;
 using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
@@ -11,19 +10,22 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 public static class Patches_SmarterConstruction
 {
+    public const string Category = "VMF_Patches_SmarterConstruction";
+
     static Patches_SmarterConstruction()
     {
         if (ModCompat.SmarterConstruction)
         {
-            VMF_Harmony.PatchCategory("VMF_Patches_SmarterConstruction");
+            VMF_Harmony.PatchCategory(Category);
         }
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_SmarterConstruction")]
+[HarmonyPatchCategory(Patches_SmarterConstruction.Category)]
 [HarmonyPatch("SmarterConstruction.Patches.Patch_WorkGiver_Scanner_GetPriority", "PriorityPostfix")]
 public static class Patch_Patch_WorkGiver_Scanner_GetPriority_PriorityPostfix
 {
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();
@@ -36,32 +38,31 @@ public static class Patch_Patch_WorkGiver_Scanner_GetPriority_PriorityPostfix
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_SmarterConstruction")]
+[HarmonyPatchCategory(Patches_SmarterConstruction.Category)]
 [HarmonyPatch("SmarterConstruction.Patches.CustomGenClosest", "ClosestThing_Global_Reachable_Custom")]
 public static class Patch_CustomGenClosest_ClosestThing_Global_Reachable_Custom
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_SmarterConstruction")]
-[HarmonyPatch("SmarterConstruction.Core.PathGridWrapper", "Walkable")]
-public static class Patch_PathGridWrapper_Walkable
+[HarmonyPatchCategory(Patches_SmarterConstruction.Category)]
+[HarmonyPatch("SmarterConstruction.Core.WalkabilityHandler", "Walkable")]
+public static class Patch_WalkabilityHandler_Walkable
 {
-    public static void Postfix(IntVec3 loc, PathGrid ____pathGrid, ref bool __result)
+    [PatchLevel(Level.Safe)]
+    public static void Postfix(IntVec3 loc, Map ____map, ref bool __result)
     {
         if (!__result)
         {
-            var map2 = map(____pathGrid);
-            var inBounds = loc.InBounds(map2);
-            if ((inBounds && loc.GetEdifice(map(____pathGrid)) is VehicleStructure) || !inBounds)
+            var inBounds = loc.InBounds(____map);
+            if ((inBounds && loc.GetEdifice(____map) is VehicleStructure) || !inBounds)
             {
                 __result = true;
             }
         }
     }
-
-    private static AccessTools.FieldRef<PathGrid, Map> map = AccessTools.FieldRefAccess<PathGrid, Map>("map");
 }

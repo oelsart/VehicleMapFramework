@@ -3,7 +3,7 @@
 	<ThingDef ParentName="GravshipComponentBase" MayRequire="Ludeon.RimWorld.Odyssey">
 		<defName>VMF_GravshipWheel</defName>
 		<label>gravship wheel</label>
-		<description>Connection to pipe between the normal map and the vehicle map.\nPlaced on the normal map and the vehicle map, they are connected by aligning their positions.</description>
+		<description>Equipment for the gravship to travel on the ground. It also serves as a thruster for movement in space, and the number of wheels affects the maximum payload and travel speed.\n\n&lt;color=#bb8f04&gt;Maximum payload:&lt;/color&gt; +1500 kg\n&lt;color=#bb8f04&gt;Move speed:&lt;/color&gt; +0.75</description>
 		<thingClass>VehicleMapFramework.Building_GravshipWheel</thingClass>
 		<designationCategory>VF_Vehicles</designationCategory>
 		<rotatable>true</rotatable>
@@ -16,15 +16,17 @@
 			<drawSize>(2,1)</drawSize>
 		</graphicData>
 		<statBases>
-			<MaxHitPoints>100</MaxHitPoints>
+			<MaxHitPoints>250</MaxHitPoints>
 			<Beauty>-3</Beauty>
 			<WorkToBuild>1500</WorkToBuild>
-			<Mass>1</Mass>
+			<Mass>20</Mass>
 		</statBases>
 		<size>(2,1)</size>
 		<fillPercent>0.8</fillPercent>
 		<costList>
-			<Steel>160</Steel>
+			<Steel>150</Steel>
+			<Chemfuel>50</Chemfuel>
+			<ComponentIndustrial>1</ComponentIndustrial>
 		</costList>
 		<building>
 			<isEdifice>false</isEdifice>
@@ -50,11 +52,11 @@
 						<vehicleStats>
 							<li>
 								<def>MaximumPayload</def>
-								<value>1200</value>
+								<value>1500</value>
 							</li>
 							<li>
 								<def>MoveSpeed</def>
-								<value>0.5</value>
+								<value>0.75</value>
 							</li>
 						</vehicleStats>
 					</li>

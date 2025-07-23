@@ -11,6 +11,8 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 public static class Patches_MiscRobots
 {
+    public const string Category = "VMF_Patches_MiscRobots";
+
     static Patches_MiscRobots()
     {
         if (ModCompat.MiscRobots)
@@ -20,10 +22,15 @@ public static class Patches_MiscRobots
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_MiscRobots")]
+[HarmonyPatchCategory(Patches_MiscRobots.Category)]
 [HarmonyPatch("X2_JobGiver_Return2BaseRoom", "TryIssueJobPackage")]
 public static class Patch_X2_JobGiver_Return2BaseRoom_TryIssueJobPackage
 {
+    private static Type t_X2_AIRobot = AccessTools.TypeByName("AIRobot.X2_AIRobot");
+
+    private static AccessTools.FieldRef<Pawn, Building> rechargeStation = AccessTools.FieldRefAccess<Building>("AIRobot.X2_AIRobot:rechargeStation");
+
+    [PatchLevel(Level.Safe)]
     public static bool Prefix(ThinkNode __instance, Pawn pawn, ref ThinkResult __result)
     {
         if (!t_X2_AIRobot?.IsAssignableFrom(pawn.GetType()) ?? true) return true;
@@ -34,63 +41,46 @@ public static class Patch_X2_JobGiver_Return2BaseRoom_TryIssueJobPackage
         if (pawn.DestroyedOrNull())
         {
             __result = ThinkResult.NoJob;
+            return false;
         }
-        else
+        if (!pawn.Spawned)
         {
-            if (!pawn.Spawned)
-            {
-                __result = ThinkResult.NoJob;
-            }
-            else
-            {
-                if (rechargeStation.DestroyedOrNull())
-                {
-                    __result = ThinkResult.NoJob;
-                }
-                else
-                {
-                    if (!rechargeStation.Spawned)
-                    {
-                        __result = ThinkResult.NoJob;
-                    }
-                    else
-                    {
-                        Room roomRecharge = rechargeStation.Position.GetRoom(rechargeStation.Map);
-                        Room roomRobot = pawn.Position.GetRoom(pawn.Map);
-                        bool flag5 = roomRecharge == roomRobot;
-                        if (flag5)
-                        {
-                            __result = ThinkResult.NoJob;
-                        }
-                        else
-                        {
-                            Map mapRecharge = rechargeStation.Map;
-                            IntVec3 posRecharge = rechargeStation.Position;
-                            TargetInfo exitSpot = TargetInfo.Invalid;
-                            TargetInfo enterSpot = TargetInfo.Invalid;
-                            IntVec3 cell = (from c in roomRecharge.Cells
-                                            where c.Standable(mapRecharge) && !c.IsForbidden(pawn) && c.InHorDistOf(posRecharge, 5f) && pawn.CanReach(c, PathEndMode.OnCell, Danger.Some, false, false, TraverseMode.ByPawn, rechargeStation.Map, out exitSpot, out enterSpot)
-                                            select c).FirstOrDefault<IntVec3>();
-                            if (cell == IntVec3.Invalid)
-                            {
-                                __result = ThinkResult.NoJob;
-                            }
-                            else
-                            {
-                                var job = JobMaker.MakeJob(VMF_DefOf.VMF_GotoAcrossMaps, cell);
-                                job.locomotionUrgency = LocomotionUrgency.Amble;
-                                job.SetSpotsToJobAcrossMaps(pawn, exitSpot, enterSpot);
-                                __result = new ThinkResult(job, __instance, new JobTag?(JobTag.Misc), false);
-                            }
-                        }
-                    }
-                }
-            }
+            __result = ThinkResult.NoJob;
+            return false;
         }
+        if (rechargeStation.DestroyedOrNull())
+        {
+            __result = ThinkResult.NoJob;
+            return false;
+        }
+        if (!rechargeStation.Spawned)
+        {
+            __result = ThinkResult.NoJob;
+            return false;
+        }
+        Room roomRecharge = rechargeStation.Position.GetRoom(rechargeStation.Map);
+        Room roomRobot = pawn.Position.GetRoom(pawn.Map);
+        if (roomRecharge == roomRobot)
+        {
+            __result = ThinkResult.NoJob;
+            return false;
+        }
+        Map mapRecharge = rechargeStation.Map;
+        IntVec3 posRecharge = rechargeStation.Position;
+        TargetInfo exitSpot = TargetInfo.Invalid;
+        TargetInfo enterSpot = TargetInfo.Invalid;
+        IntVec3 cell = (from c in roomRecharge.Cells
+                        where c.Standable(mapRecharge) && !c.IsForbidden(pawn) && c.InHorDistOf(posRecharge, 5f) && pawn.CanReach(c, PathEndMode.OnCell, Danger.Some, false, false, TraverseMode.ByPawn, rechargeStation.Map, out exitSpot, out enterSpot)
+                        select c).FirstOrDefault();
+        if (cell == IntVec3.Invalid)
+        {
+            __result = ThinkResult.NoJob;
+            return false;
+        }
+        var job = JobMaker.MakeJob(VMF_DefOf.VMF_GotoAcrossMaps, cell);
+        job.locomotionUrgency = LocomotionUrgency.Amble;
+        job.SetSpotsToJobAcrossMaps(pawn, exitSpot, enterSpot);
+        __result = new ThinkResult(job, __instance, new JobTag?(JobTag.Misc), false);
         return false;
     }
-
-    private static Type t_X2_AIRobot = AccessTools.TypeByName("AIRobot.X2_AIRobot");
-
-    private static AccessTools.FieldRef<Pawn, Building> rechargeStation = AccessTools.FieldRefAccess<Building>("AIRobot.X2_AIRobot:rechargeStation");
 }

@@ -1,5 +1,4 @@
 ﻿using HarmonyLib;
-using System.Reflection;
 using Verse;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
@@ -7,6 +6,8 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 public static class Patches_WhileYoureUp
 {
+    public const string Category = "VMF_Patches_WhileYoureUp";
+
     static Patches_WhileYoureUp()
     {
         if (ModCompat.WhileYoureUp)
@@ -30,15 +31,16 @@ public static class Patches_WhileYoureUp
             //harmony.UnpatchAll("CodeOptimist.WhileYoureUp");
             //harmony.PatchAll(AccessTools.TypeByName("WhileYoureUp.Mod").Assembly);
             //}
-            VMF_Harmony.PatchCategory("VMF_Patches_WhileYoureUp");
+            VMF_Harmony.PatchCategory(Category);
         }
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_WhileYoureUp")]
+[HarmonyPatchCategory(Patches_WhileYoureUp.Category)]
 [HarmonyPatch("WhileYoureUp.Mod", "TryFindBestBetterStoreCellFor_MidwayToTarget")]
 public static class Patch_WhileYoureUp_Mod_TryFindBestBetterStoreCellFor_MidwayToTarget
 {
+    [PatchLevel(Level.Safe)]
     public static void Prefix(Thing thing, ref Map map)
     {
         map = thing.MapHeld ?? map;

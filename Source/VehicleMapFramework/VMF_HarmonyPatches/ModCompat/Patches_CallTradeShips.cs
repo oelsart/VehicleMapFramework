@@ -1,17 +1,15 @@
 ﻿using HarmonyLib;
 using RimWorld;
 using System;
-using System.Collections.Generic;
-using UnityEngine;
-using Verse;
 using Verse.AI;
-using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 [StaticConstructorOnStartupPriority(Priority.Low)]
 public static class Patches_CallTradeShips
 {
+    public const string Category = "VMF_Patches_CallTradeShips";
+
     static Patches_CallTradeShips()
     {
         if (ModCompat.CallTradeShips)
@@ -22,25 +20,26 @@ public static class Patches_CallTradeShips
             //VMF_Harmony.Instance.CreateReversePatcher(patchOrig, patch).Patch();
             //VMF_Harmony.Instance.Patch(method, postfix: patch);
 
-            VMF_Harmony.Instance.PatchCategory("VMF_Patches_CallTradeShips");
+            VMF_Harmony.Instance.PatchCategory(Category);
         }
     }
 
-    private static void Postfix(Vector3 clickPos, Pawn pawn, List<FloatMenuOption> opts)
-    {
-        static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
-            return instructions.MethodReplacer(CachedMethodInfo.m_GetThingList, CachedMethodInfo.m_GetThingListAcrossMaps)
-                .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
-        }
-        _ = Transpiler(null);
-    }
+    //private static void Postfix(Vector3 clickPos, Pawn pawn, List<FloatMenuOption> opts)
+    //{
+    //    static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    //    {
+    //        return instructions.MethodReplacer(CachedMethodInfo.m_GetThingList, CachedMethodInfo.m_GetThingListAcrossMaps)
+    //            .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
+    //    }
+    //    _ = Transpiler(null);
+    //}
 }
 
-[HarmonyPatchCategory("VMF_Patches_CallTradeShips")]
+[HarmonyPatchCategory(Patches_CallTradeShips.Category)]
 [HarmonyPatch(typeof(Job), nameof(Job.Clone))]
 public static class Patch_Job_Clone
 {
+    [PatchLevel(Level.Safe)]
     public static bool Prefix(Job __instance, ref Job __result)
     {
         if (__instance.GetType() == t_Job_CallTradeShip)

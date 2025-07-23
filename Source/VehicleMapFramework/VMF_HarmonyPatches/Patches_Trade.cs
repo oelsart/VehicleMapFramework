@@ -17,11 +17,13 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [HarmonyPatch(typeof(Pawn), nameof(Pawn.ColonyThingsWillingToBuy))]
 public static class Patch_Pawn_ColonyThingsWillingToBuy
 {
+    [PatchLevel(Level.Safe)]
     public static void Prefix(Pawn playerNegotiator)
     {
         CrossMapReachabilityUtility.DepartMap = playerNegotiator.Map;
     }
 
+    [PatchLevel(Level.Safe)]
     public static IEnumerable<Thing> Postfix(IEnumerable<Thing> values, Pawn playerNegotiator, Pawn __instance)
     {
         if (values != null)
@@ -57,6 +59,7 @@ public static class Patch_Pawn_ColonyThingsWillingToBuy
 [HarmonyPatch(typeof(Caravan), nameof(Caravan.ColonyThingsWillingToBuy))]
 public static class Patch_Caravan_ColonyThingsWillingToBuy
 {
+    [PatchLevel(Level.Safe)]
     public static IEnumerable<Thing> Postfix(IEnumerable<Thing> values, Pawn playerNegotiator)
     {
         var vehicles = playerNegotiator.GetCaravan()?.PawnsListForReading?.OfType<VehiclePawnWithMap>() ?? playerNegotiator.GetVehicleCaravan()?.Vehicles?.OfType<VehiclePawnWithMap>();
@@ -91,6 +94,7 @@ public static class Patch_Caravan_ColonyThingsWillingToBuy
 [HarmonyPatch(typeof(Settlement), nameof(Settlement.ColonyThingsWillingToBuy))]
 public static class Patch_Settlement_ColonyThingsWillingToBuy
 {
+    [PatchLevel(Level.Safe)]
     public static IEnumerable<Thing> Postfix(IEnumerable<Thing> values, Pawn playerNegotiator) => Patch_Caravan_ColonyThingsWillingToBuy.Postfix(values, playerNegotiator);
 }
 
@@ -98,6 +102,7 @@ public static class Patch_Settlement_ColonyThingsWillingToBuy
 [HarmonyPatch(typeof(Building_OrbitalTradeBeacon), nameof(Building_OrbitalTradeBeacon.AllPowered))]
 public static class Patch_Building_OrbitalTradeBeacon_AllPowered
 {
+    [PatchLevel(Level.Safe)]
     public static IEnumerable<Building_OrbitalTradeBeacon> Postfix(IEnumerable<Building_OrbitalTradeBeacon> values, Map map)
     {
         foreach (var b in values) yield return b;
@@ -117,6 +122,7 @@ public static class Patch_Building_OrbitalTradeBeacon_AllPowered
 [HarmonyPatch(typeof(TradeShip), nameof(TradeShip.ColonyThingsWillingToBuy))]
 public static class Patch_TradeShip_ColonyThingsWillingToBuy
 {
+    [PatchLevel(Level.Safe)]
     public static IEnumerable<Thing> Postfix(IEnumerable<Thing> values, Pawn playerNegotiator)
     {
         var result = values.ToList();
@@ -142,6 +148,7 @@ public static class Patch_TradeUtility_AllLaunchableThingsForTrade
     }
 
     //ローカル変数からビーコンを取ろうとするとforeachのMoveNextタイミングによってなんかがなんかしてたまにnullになるのでstaticフィールドでやりとりします
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var m_GetThingList = AccessTools.Method(typeof(GridsUtility), nameof(GridsUtility.GetThingList));
@@ -174,6 +181,7 @@ public static class Patch_TradeUtility_AllLaunchableThingsForTrade
 [HarmonyPatch(typeof(Building_OrbitalTradeBeacon), nameof(Building_OrbitalTradeBeacon.TradeableCellsAround))]
 public static class Patch_Building_OrbitalTradeBeacon_TradeableCellsAround
 {
+    [PatchLevel(Level.Safe)]
     public static void Postfix(Map map, List<IntVec3> __result)
     {
         __result.RemoveAll(c => !c.InBounds(map));
@@ -184,6 +192,7 @@ public static class Patch_Building_OrbitalTradeBeacon_TradeableCellsAround
 [HarmonyPatch(typeof(TradeUtility), nameof(TradeUtility.LaunchThingsOfType))]
 public static class Patch_TradeUtility_LaunchThingsOfType
 {
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();
@@ -205,6 +214,7 @@ public static class Patch_TradeUtility_LaunchThingsOfType
 [HarmonyPatch(typeof(IncidentWorker_OrbitalTraderArrival), "TryExecuteWorker")]
 public static class Patch_IncidentWorker_OrbitalTraderArrival_TryExecuteWorker
 {
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         foreach (var instruction in instructions)

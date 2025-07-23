@@ -14,33 +14,43 @@ namespace VehicleMapFramework.VMF_HarmonyPatches.AM;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 public static class Patches_MeleeAnimation
 {
+    public const string Category = "VMF_Patches_MeleeAnimation";
+
     static Patches_MeleeAnimation()
     {
         if (ModCompat.MeleeAnimation.Active)
         {
-            VMF_Harmony.PatchCategory("VMF_Patches_MeleeAnimation");
+            VMF_Harmony.PatchCategory(Category);
         }
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_MeleeAnimation")]
-[HarmonyPatch(typeof(Pawn_JobTracker), nameof(Pawn_JobTracker.StartJob))]
-public static class Patch_Pawn_JobTracker_StartJob
+[HarmonyPatchCategory(Patches_MeleeAnimation.Category)]
+[HarmonyPatch("AM.Jobs.JobDriver_GoToAnimationSpot", "MakeGoToToil")]
+public static class Patch_JobDriver_GoToAnimationSpot_MakeGoToToil
 {
-    public static void Prefix(Pawn ___pawn, ref Job newJob)
+    [PatchLevel(Level.Safe)]
+    public static void Postfix(Toil __result)
     {
-        if (newJob.def == DefDatabase<JobDef>.GetNamedSilentFail("AM_WalkToExecution") && newJob.targetA.HasThing && newJob.targetA.Thing.MapHeld != ___pawn.Map &&
-            ___pawn.CanReach(newJob.targetA, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, newJob.targetA.Thing.MapHeld, out var exitSpot, out var enterSpot))
+        __result.AddPreInitAction(() =>
         {
-            newJob = JobAcrossMapsUtility.GotoDestMapJob(___pawn, exitSpot, enterSpot, newJob);
-        }
+            var actor = __result.actor;
+            var curJob = actor.CurJob;
+            var target = curJob.GetTarget(TargetIndex.A);
+            var thingMap = target.Thing?.MapHeld;
+            if (thingMap != null && actor.Map != thingMap && actor.CanReach(target, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, thingMap, out var exitSpot, out var enterSpot))
+            {
+                JobAcrossMapsUtility.StartGotoDestMapJob(actor, exitSpot, enterSpot);
+            }
+        });
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_MeleeAnimation")]
+[HarmonyPatchCategory(Patches_MeleeAnimation.Category)]
 [HarmonyPatch("AM.Controller.ActionController", "GetGrappleReport")]
 public static class Patch_ActionController_GetGrappleReport
 {
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap)
@@ -59,27 +69,11 @@ public static class Patch_ActionController_GetGrappleReport
     }
 }
 
-//[HarmonyPatchCategory("VMF_Patches_MeleeAnimation")]
-//[HarmonyPatch("AM.Grappling.GrappleFlyer", "SpawnSetup")]
-//public static class Patch_GrappleFlyer_SpawnSetup
-//{
-//    public static void Postfix(PawnFlyer __instance, Pawn ___Grappler, IntVec3 ___destCell, ref int ___ticksFlightTime)
-//    {
-//        var flyingThing = (Thing)FlyingThing(__instance);
-//        if (flyingThing != null && ___Grappler != null)
-//        {
-//            float num = Mathf.Max(flyingThing.PositionOnAnotherThingMap(___Grappler).DistanceTo(___destCell), 1f) / Mathf.Max(__instance.FlyingPawn.Position.DistanceTo(___destCell), 1f);
-//            ___ticksFlightTime = (int)(___ticksFlightTime * num);
-//        }
-//    }
-
-//    private static FastInvokeHandler FlyingThing = MethodInvoker.GetHandler(AccessTools.PropertyGetter(typeof(PawnFlyer), "FlyingThing"));
-//}
-
-[HarmonyPatchCategory("VMF_Patches_MeleeAnimation")]
+[HarmonyPatchCategory(Patches_MeleeAnimation.Category)]
 [HarmonyPatch("AM.Grappling.JobDriver_GrapplePawn", "TickPreEnsnare")]
 public static class Patch_JobDriver_GrapplePawn_TickPreEnsnare
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap)
@@ -87,10 +81,11 @@ public static class Patch_JobDriver_GrapplePawn_TickPreEnsnare
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_MeleeAnimation")]
+[HarmonyPatchCategory(Patches_MeleeAnimation.Category)]
 [HarmonyPatch("AM.Controller.ActionController", "CheckCell")]
 public static class Patch_ActionController_CheckCell
 {
+    [PatchLevel(Level.Safe)]
     public static bool Prefix(ref IntVec3 cell, Map map, ref bool __result)
     {
         if (map.IsVehicleMapOf(out var vehicle))
@@ -106,7 +101,7 @@ public static class Patch_ActionController_CheckCell
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_MeleeAnimation")]
+[HarmonyPatchCategory(Patches_MeleeAnimation.Category)]
 [HarmonyPatch]
 public static class Patch_ActionController_UpdateClosestCells
 {
@@ -116,6 +111,7 @@ public static class Patch_ActionController_UpdateClosestCells
     }
 
     //req.Target.Position -> req.Target.PositionOnAnotherThingMap(req.Grappler)
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();
@@ -134,10 +130,19 @@ public static class Patch_ActionController_UpdateClosestCells
 }
 
 //Find.CurrentMap != this.Map -> Find.CurrentMap != this.Map.BaseMap()
-[HarmonyPatchCategory("VMF_Patches_MeleeAnimation")]
+[HarmonyPatchCategory(Patches_MeleeAnimation.Category)]
 [HarmonyPatch("AM.AnimRenderer", "Draw")]
 public static class Patch_AnimRenderer_Draw
 {
+    public static AccessTools.FieldRef<object, Map> f_Map = AccessTools.FieldRefAccess<Map>("AM.AnimRenderer:Map");
+
+    public static AccessTools.FieldRef<object, Matrix4x4> f_RootTransform = AccessTools.FieldRefAccess<Matrix4x4>("AM.AnimRenderer:RootTransform");
+
+    public static AccessTools.FieldRef<object, Def> f_Def = AccessTools.FieldRefAccess<Def>("AM.AnimRenderer:Def");
+
+    public static AccessTools.FieldRef<Def, IReadOnlyList<object>> f_cellData = AccessTools.FieldRefAccess<IReadOnlyList<object>>("AM.AnimDef:cellData");
+
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var f_AnimRenderer_Map = AccessTools.Field("AM.AnimRenderer:Map");
@@ -169,29 +174,17 @@ public static class Patch_AnimRenderer_Draw
         }
         return root;
     }
-
-    public static AccessTools.FieldRef<object, Map> f_Map = AccessTools.FieldRefAccess<Map>("AM.AnimRenderer:Map");
-
-    public static AccessTools.FieldRef<object, Matrix4x4> f_RootTransform = AccessTools.FieldRefAccess<Matrix4x4>("AM.AnimRenderer:RootTransform");
-
-    public static AccessTools.FieldRef<object, Def> f_Def = AccessTools.FieldRefAccess<Def>("AM.AnimRenderer:Def");
-
-    public static AccessTools.FieldRef<Def, IReadOnlyList<object>> f_cellData = AccessTools.FieldRefAccess<IReadOnlyList<object>>("AM.AnimDef:cellData");
 }
 
-[HarmonyPatchCategory("VMF_Patches_MeleeAnimation")]
+[HarmonyPatchCategory(Patches_MeleeAnimation.Category)]
 [HarmonyPatch("AM.AnimRenderer", "DrawPawns")]
 public static class Patch_AnimRenderer_DrawPawns
 {
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return instructions.MethodReplacer(m_GetWorldPosition, m_GetWorldPositionOffset);
-    }
-
     public static MethodInfo m_GetWorldPosition = AccessTools.Method("AnimPartSnapshot:GetWorldPosition");
 
     public static MethodInfo m_GetWorldPositionOffset = AccessTools.Method(typeof(Patch_AnimRenderer_DrawPawns), nameof(GetWorldPositionOffset));
 
+    [PatchLevel(Level.Mandatory)]
     [HarmonyPatch("AnimPartSnapshot", "GetWorldPosition")]
     [HarmonyReversePatch]
     private static Vector3 GetWorldPositionOriginal(ref object instance, Vector3 vector) => throw new NotImplementedException();
@@ -205,12 +198,19 @@ public static class Patch_AnimRenderer_DrawPawns
         }
         return result;
     }
+
+    [PatchLevel(Level.Cautious)]
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        return instructions.MethodReplacer(m_GetWorldPosition, m_GetWorldPositionOffset);
+    }
 }
 
-[HarmonyPatchCategory("VMF_Patches_MeleeAnimation")]
+[HarmonyPatchCategory(Patches_MeleeAnimation.Category)]
 [HarmonyPatch("AM.Sweep.PartWithSweep", "Draw")]
 public static class Patch_PartWithSweep_Draw
 {
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var f_RootTransform = AccessTools.Field("AM.AnimRenderer:RootTransform");
@@ -223,10 +223,15 @@ public static class Patch_PartWithSweep_Draw
 }
 
 //カリング範囲に入るようにRootPositionにオフセットをかける
-[HarmonyPatchCategory("VMF_Patches_MeleeAnimation")]
+[HarmonyPatchCategory(Patches_MeleeAnimation.Category)]
 [HarmonyPatch("AM.AnimRenderer", "DrawSingle")]
 public static class Patch_AnimRenderer_DrawSingle
 {
+    public static Func<object, Vector3> f_RootPositionOffset;
+
+    public static Vector3 RootPositionOffset(object instance) => f_RootPositionOffset(instance);
+
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var t_AnimRenderer = AccessTools.TypeByName("AM.AnimRenderer");
@@ -245,47 +250,47 @@ public static class Patch_AnimRenderer_DrawSingle
         var m_RootPositionOffset = AccessTools.Method(typeof(Patch_AnimRenderer_DrawSingle), nameof(RootPositionOffset));
         return instructions.MethodReplacer(g_RootPosition, m_RootPositionOffset);
     }
-
-    public static Func<object, Vector3> f_RootPositionOffset;
-
-    public static Vector3 RootPositionOffset(object instance) => f_RootPositionOffset(instance);
 }
 
 //実際の描画位置のオフセット
-[HarmonyPatchCategory("VMF_Patches_MeleeAnimation")]
+[HarmonyPatchCategory(Patches_MeleeAnimation.Category)]
 [HarmonyPatch("AM.Patches.Patch_PawnRenderer_RenderPawnAt", "MakeDrawArgs")]
 public static class Patch_Patch_PawnRenderer_RenderPawnAt_MakeDrawArgs
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(Patch_AnimRenderer_DrawPawns.m_GetWorldPosition, Patch_AnimRenderer_DrawPawns.m_GetWorldPositionOffset);
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_MeleeAnimation")]
+[HarmonyPatchCategory(Patches_MeleeAnimation.Category)]
 [HarmonyPatch("AM.Events.Workers.MoteWorker", "Run")]
 public static class Patch_MoteWorker_Run
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(Patch_AnimRenderer_DrawPawns.m_GetWorldPosition, Patch_AnimRenderer_DrawPawns.m_GetWorldPositionOffset);
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_MeleeAnimation")]
+[HarmonyPatchCategory(Patches_MeleeAnimation.Category)]
 [HarmonyPatch("AM.Events.Workers.TextMoteWorker", "Run")]
 public static class Patch_TextMoteWorker_Run
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(Patch_AnimRenderer_DrawPawns.m_GetWorldPosition, Patch_AnimRenderer_DrawPawns.m_GetWorldPositionOffset);
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_MeleeAnimation")]
+[HarmonyPatchCategory(Patches_MeleeAnimation.Category)]
 [HarmonyPatch("AnimPartSnapshot", "GetWorldDirection")]
 public static class Patch_AnimPartSnapshot_GetWorldDirection
 {
+    [PatchLevel(Level.Safe)]
     public static void Postfix(object ___Renderer, ref Rot4 __result)
     {
         if (Patch_AnimRenderer_Draw.f_Map(___Renderer).IsNonFocusedVehicleMapOf(out var vehicle))
@@ -296,10 +301,11 @@ public static class Patch_AnimPartSnapshot_GetWorldDirection
 }
 
 //Jobをすり替えたらエラーを出す処理をしていたので回避する。一応GotoDestMapJobのnextJobはちゃんとチェックするよ
-[HarmonyPatchCategory("VMF_Patches_MeleeAnimation")]
+[HarmonyPatchCategory(Patches_MeleeAnimation.Category)]
 [HarmonyPatch("AM.UI.DraftedFloatMenuOptionsUI", "ExecutionEnabledOnClick")]
 public static class Patch_DraftedFloatMenuOptionsUI_ExecutionEnabledOnClick
 {
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
         var codes = instructions.ToList();

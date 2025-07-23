@@ -100,6 +100,11 @@ public class VehiclePawnWithMapCache : MapComponent
         ResetCache();
     }
 
+    public override void MapRemoved()
+    {
+        VehicleMapParentsComponent.CachedParentVehicle.Remove(map);
+    }
+
     public Dictionary<Thing, Vector3> cachedDrawPos = [];
 
     public Dictionary<Thing, IntVec3> cachedPosOnBaseMap = [];

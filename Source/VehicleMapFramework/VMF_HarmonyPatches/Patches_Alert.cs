@@ -9,6 +9,7 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [HarmonyPatch(typeof(Alert_NeedMealSource), "NeedMealSource")]
 public static class Patch_Alert_NeedMealSource_NeedMealSource
 {
+    [PatchLevel(Level.Safe)]
     public static void Postfix(Alert_NeedMealSource __instance, Map map, ref bool __result)
     {
         __result &= VehiclePawnWithMapCache.AllVehiclesOn(map).All(v => (bool)NeedMealSource(__instance, v.VehicleMap));
@@ -20,6 +21,7 @@ public static class Patch_Alert_NeedMealSource_NeedMealSource
 [HarmonyPatch(typeof(Alert_NeedColonistBeds), nameof(Alert_NeedColonistBeds.AvailableColonistBeds))]
 public static class Patch_Alert_NeedColonistBeds_AvailableColonistBeds
 {
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         foreach (var instruction in instructions)

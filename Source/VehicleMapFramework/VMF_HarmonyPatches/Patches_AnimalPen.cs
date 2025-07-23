@@ -12,6 +12,7 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [HarmonyPatch(typeof(AnimalPenUtility), nameof(AnimalPenUtility.NeedsToBeManagedByRope))]
 public static class Patch_AnimalPenUtility_NeedsToBeManagedByRope
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
@@ -21,6 +22,7 @@ public static class Patch_AnimalPenUtility_NeedsToBeManagedByRope
 [HarmonyPatch(typeof(AnimalPenUtility), nameof(AnimalPenUtility.AnySuitablePens))]
 public static class Patch_AnimalPenUtility_AnySuitablePens
 {
+    [PatchLevel(Level.Safe)]
     public static void Postfix(Pawn animal, bool allowUnenclosedPens, ref bool __result)
     {
         if (!__result)
@@ -47,6 +49,7 @@ public static class Patch_AnimalPenUtility_AnySuitablePens
 [HarmonyPatch(typeof(AnimalPenUtility), nameof(AnimalPenUtility.AnySuitableHitch))]
 public static class Patch_AnimalPenUtility_AnySuitableHitch
 {
+    [PatchLevel(Level.Safe)]
     public static void Postfix(Pawn animal, ref bool __result)
     {
         if (!__result)
@@ -71,6 +74,7 @@ public static class Patch_AnimalPenUtility_AnySuitableHitch
 [HarmonyPatch(typeof(AnimalPenUtility), nameof(AnimalPenUtility.ClosestSuitablePen))]
 public static class Patch_AnimalPenUtility_ClosestSuitablePen
 {
+    [PatchLevel(Level.Safe)]
     public static void Postfix(Pawn animal, bool allowUnenclosedPens, ref CompAnimalPenMarker __result)
     {
         if (__result == null)
@@ -101,6 +105,7 @@ public static class Patch_AnimalPenUtility_ClosestSuitablePen
 [HarmonyPatch(typeof(AnimalPenUtility), nameof(AnimalPenUtility.GetPenAnimalShouldBeTakenTo))]
 public static class Patch_AnimalPenUtility_GetPenAnimalShouldBeTakenTo
 {
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();
@@ -132,6 +137,7 @@ public static class Patch_AnimalPenUtility_GetPenAnimalShouldBeTakenTo
 [HarmonyPatch(typeof(AnimalPenUtility), nameof(AnimalPenUtility.GetHitchingPostAnimalShouldBeTakenTo))]
 public static class Patch_AnimalPenUtility_GetHitchingPostAnimalShouldBeTakenTo
 {
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();
@@ -172,6 +178,7 @@ public static class Patch_AnimalPenUtility_GetHitchingPostAnimalShouldBeTakenTo
 [HarmonyPatch(typeof(AnimalPenUtility), "PenIsCloser")]
 public static class Patch_AnimalPenUtility_PenIsCloser
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
@@ -181,6 +188,7 @@ public static class Patch_AnimalPenUtility_PenIsCloser
 [HarmonyPatch(typeof(JobDriver_RopeToDestination), "MakeNewToils")]
 public static class Patch_JobDriver_RopeToDestination_MakeNewToils
 {
+    [PatchLevel(Level.Safe)]
     public static IEnumerable<Toil> Postfix(IEnumerable<Toil> values)
     {
         foreach (var toil in values)
@@ -206,6 +214,7 @@ public static class Patch_JobDriver_RopeToDestination_MakeNewToils
 [HarmonyPatch(typeof(Toils_Rope), nameof(Toils_Rope.GotoRopeAttachmentInteractionCell))]
 public static class Patch_Toils_Rope_GotoRopeAttachmentInteractionCell
 {
+    [PatchLevel(Level.Safe)]
     public static void Postfix(Toil __result, TargetIndex ropeeIndex)
     {
         __result.AddPreInitAction(() =>
@@ -223,6 +232,7 @@ public static class Patch_Toils_Rope_GotoRopeAttachmentInteractionCell
 [HarmonyPatch(typeof(Pawn_RopeTracker), "IsStillDoingRopingJob")]
 public static class Patch_Pawn_RopeTracker_IsStillDoingRopingJob
 {
+    [PatchLevel(Level.Safe)]
     public static void Postfix(Pawn roper, ref bool __result)
     {
         __result = __result || (roper.jobs.curDriver is JobDriver_GotoDestMap gotoDestMap && gotoDestMap.nextJob.GetCachedDriver(roper) is JobDriver_RopeToDestination);
@@ -232,6 +242,7 @@ public static class Patch_Pawn_RopeTracker_IsStillDoingRopingJob
 [HarmonyPatch(typeof(JobGiver_FollowRoper), "TryGiveJob")]
 public static class Patch_JobGiver_FollowRoper_TryGiveJob
 {
+    [PatchLevel(Level.Safe)]
     public static void Postfix(Pawn pawn, ref Job __result)
     {
         if (__result == null)
@@ -253,6 +264,7 @@ public static class Patch_JobGiver_FollowRoper_TryGiveJob
 [HarmonyPatch(typeof(AnimalPenUtility), nameof(AnimalPenUtility.FindPlaceInPenToStand))]
 public static class Patch_AnimalPenUtility_FindPlaceInPenToStand
 {
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();
