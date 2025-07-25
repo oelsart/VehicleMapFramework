@@ -1,5 +1,4 @@
-﻿using RimWorld;
-using System.Linq;
+﻿using System.Linq;
 using Vehicles;
 using Verse;
 using Verse.AI;
@@ -12,13 +11,17 @@ public class JobGiver_GetOffVehicle : ThinkNode_JobGiver
 
     protected override Job TryGiveJob(Pawn pawn)
     {
+        if (pawn.Faction.IsPlayer)
+        {
+            if (!VehicleMapFramework.settings.autoGetOffPlayer) return null;
+        }
+        else if (!VehicleMapFramework.settings.autoGetOffNonPlayer) return null;
         if (pawn.IsOnVehicleMapOf(out var vehicle) && vehicle.Spawned)
         {
-            var hostile = pawn.HostileTo(Faction.OfPlayer);
             var cells = vehicle.VehicleRect().ExpandedBy(1).EdgeCells;
 
             TargetInfo exitSpot = TargetInfo.Invalid;
-            if (cells.Any(c => pawn.CanReach(c, PathEndMode.OnCell, Danger.Deadly, hostile, hostile, TraverseMode.ByPawn, vehicle.Map, out exitSpot, out _)))
+            if (cells.Any(c => pawn.CanReach(c, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, vehicle.Map, out exitSpot, out _)))
             {
                 var job = JobMaker.MakeJob(VMF_DefOf.VMF_GotoAcrossMaps).SetSpotsToJobAcrossMaps(pawn, exitSpot);
                 return job;

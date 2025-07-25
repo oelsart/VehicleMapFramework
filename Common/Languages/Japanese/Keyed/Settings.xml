@@ -4,6 +4,8 @@
 	<VMF_Settings.Tab.Main>メイン</VMF_Settings.Tab.Main>
 	<VMF_Settings.DrawPlanet>キャラバン中にワールドマップを描画する.</VMF_Settings.DrawPlanet>
 	<VMF_Settings.WeightFactor>車両マップの上の物の重さ係数.</VMF_Settings.WeightFactor>
+	<VMF_Settings.AutoGetOffPlayer>プレイヤー派閥のポーンが自動で車両マップから降りる.</VMF_Settings.AutoGetOffPlayer>
+	<VMF_Settings.AutoGetOffNonPlayer>非プレイヤー派閥のポーンが自動で車両マップから降りる.</VMF_Settings.AutoGetOffNonPlayer>
 	<VMF_Settings.ThreadingPathCost>大きな車両における経路コスト計算のマルチスレッド化.</VMF_Settings.ThreadingPathCost>
 	<VMF_Settings.MinAreaForThreading>マルチスレッドで計算される車両の最小面積.</VMF_Settings.MinAreaForThreading>
 	<VMF_Settings.AsyncClosestThing>到達可能な最も近い物を取得する計算のマルチスレッド化.</VMF_Settings.AsyncClosestThing>

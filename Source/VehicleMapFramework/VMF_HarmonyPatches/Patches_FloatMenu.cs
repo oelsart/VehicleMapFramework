@@ -50,9 +50,9 @@ public static class Patch_FloatMenuContext_Constructor
 }
 
 [HarmonyPatch(typeof(FloatMenuMakerMap), nameof(FloatMenuMakerMap.ShouldGenerateFloatMenuForPawn))]
+[PatchLevel(Level.Cautious)]
 public static class Patch_FloatMenuMakerMap_ShouldGenerateFloatMenuForPawn
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
@@ -60,9 +60,9 @@ public static class Patch_FloatMenuMakerMap_ShouldGenerateFloatMenuForPawn
 }
 
 [HarmonyPatch(typeof(FloatMenuOptionProvider_ExtinguishFires), "GetSingleOption")]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_FloatMenuOptionProvider_ExtinguishFires_GetSingleOption
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();
@@ -81,9 +81,9 @@ public static class Patch_FloatMenuOptionProvider_ExtinguishFires_GetSingleOptio
 }
 
 [HarmonyPatch(typeof(GenUI), nameof(GenUI.TargetsAt))]
+[PatchLevel(Level.Safe)]
 public static class Patch_GenUI_TargetsAt
 {
-    [PatchLevel(Level.Safe)]
     public static bool Prefix(Vector3 clickPos, TargetingParameters clickParams, bool thingsOnly, ITargetingSource source, ref IEnumerable<LocalTargetInfo> __result)
     {
         bool convToVehicleMap;
@@ -101,9 +101,9 @@ public static class Patch_GenUI_TargetsAt
 }
 
 [HarmonyPatch(typeof(FloatMenuMap), "StillValid")]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_FloatMenuMap_StillValid
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();
@@ -120,6 +120,7 @@ public static class Patch_FloatMenuMap_StillValid
 
 //ベースマップに居る時のFloatMenuにもHoldingPlatform検索を足しときます
 [HarmonyPatch]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_FloatMenuOptionProvider_Entity_GetOptionFor
 {
     private static IEnumerable<MethodBase> TargetMethods()
@@ -134,7 +135,6 @@ public static class Patch_FloatMenuOptionProvider_Entity_GetOptionFor
         yield return AccessTools.FindIncludingInnerTypes(typeof(FloatMenuOptionProvider_TransferEntity), GetOptionsFor_MoveNext);
     }
 
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = new CodeMatcher(instructions);
@@ -169,9 +169,9 @@ public static class Patch_FloatMenuOptionProvider_Entity_GetOptionFor
 }
 
 [HarmonyPatch(typeof(MultiPawnGotoController), nameof(MultiPawnGotoController.StartInteraction))]
+[PatchLevel(Level.Safe)]
 public static class Patch_MultiPawnGotoController_StartInteraction
 {
-    [PatchLevel(Level.Safe)]
     public static void Prefix(ref IntVec3 mouseCell)
     {
         if (UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out var vehicle, false))
@@ -199,9 +199,9 @@ public static class Patch_MultiPawnGotoController_RecomputeDestinations
 }
 
 [HarmonyPatch(typeof(MultiPawnGotoController), nameof(MultiPawnGotoController.ProcessInputEvents))]
+[PatchLevel(Level.Cautious)]
 public static class Patch_MultiPawnGotoController_ProcessInputEvents
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
@@ -209,9 +209,9 @@ public static class Patch_MultiPawnGotoController_ProcessInputEvents
 }
 
 [HarmonyPatch(typeof(MultiPawnGotoController), nameof(MultiPawnGotoController.Draw))]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_MultiPawnGotoController_Draw
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var m_ToVector3ShiftedWithAltitude = AccessTools.Method(typeof(IntVec3), nameof(IntVec3.ToVector3ShiftedWithAltitude), [typeof(float)]);
@@ -257,9 +257,9 @@ public static class Patch_MultiPawnGotoController_Draw
 }
 
 [HarmonyPatch(typeof(MultiPawnGotoController), nameof(MultiPawnGotoController.OnGUI))]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_MultiPawnGotoController_OnGUI
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var m_ToUIRect = AccessTools.Method(typeof(IntVec3), nameof(IntVec3.ToUIRect));
@@ -307,9 +307,9 @@ public static class Patch_MultiPawnGotoController_OnGUI
 //行き先がVehicleMap上にあると登録されているかsearcherがVehicleMap上に居る時はBestOrderedGotoDestNearを置き換え
 //ジャンプ時のTargetVehicleも考慮にいれるよう変更
 [HarmonyPatch(typeof(RCellFinder), nameof(RCellFinder.BestOrderedGotoDestNear))]
+[PatchLevel(Level.Safe)]
 public static class Patch_RCellFinder_BestOrderedGotoDestNear
 {
-    [PatchLevel(Level.Safe)]
     public static bool Prefix(IntVec3 root, Pawn searcher, Predicate<IntVec3> cellValidator, ref IntVec3 __result)
     {
         VehiclePawnWithMap vehicle = null;
@@ -344,9 +344,9 @@ public static class Patch_RCellFinder_BestOrderedGotoDestNear
 }
 
 [HarmonyPatch(typeof(FloatMenuOptionProvider_DraftedMove), nameof(FloatMenuOptionProvider_DraftedMove.PawnGotoAction))]
+[PatchLevel(Level.Safe)]
 public static class Patch_FloatMenuOptionProvider_DraftedMove_PawnGotoAction
 {
-    [PatchLevel(Level.Safe)]
     public static bool Prefix(IntVec3 clickCell, Pawn pawn, IntVec3 gotoLoc)
     {
         if (TargetMapManager.HasTargetMap(pawn, out var map) && pawn.Map != map)

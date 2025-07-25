@@ -27,10 +27,6 @@
       <HintPath>..\..\..\..\..\..\workshop\content\294100\1321849735\1.6\Assemblies\Rimefeller.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="SmashTools">
-      <HintPath>..\..\..\Vehicle-Framework\1.6\Assemblies\SmashTools.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="System.Data.DataSetExtensions">
       <Private>False</Private>
     </Reference>
@@ -55,7 +51,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.4507-beta" />
+    <PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.4528" />
 	<PackageReference Include="Lib.Harmony" Version="2.3.6">
 		<ExcludeAssets>runtime</ExcludeAssets>
 	</PackageReference>

@@ -183,12 +183,12 @@ public class VehiclePawnWithMap : VehiclePawn
             action = () =>
             {
                 //リンクされたストレージの優先度が変わりすぎてしまうのを防ぎかつ全てのストレージにMoteを出したいので、一度優先度をキャッシュしておく
-                var allGroups = interiorMap.haulDestinationManager.AllGroups;
+                var allGroups = interiorMap.haulDestinationManager.AllGroupsListForReading;
                 var priorityList = allGroups.Select(g => g.Settings.Priority).ToList();
-                for (var i = 0; i < allGroups.Count(); i++)
+                for (var i = 0; i < allGroups.Count; i++)
                 {
-                    allGroups.ElementAt(i).Settings.Priority = (StoragePriority)Math.Min((sbyte)(priorityList[i] + 1), (sbyte)StoragePriority.Critical);
-                    MoteMaker.ThrowText(allGroups.ElementAt(i).CellsList[0].ToVector3Shifted().ToBaseMapCoord(this), Map, allGroups.ElementAt(i).Settings.Priority.ToString(), Color.white, -1f);
+                    allGroups[i].Settings.Priority = (StoragePriority)Math.Min((sbyte)(priorityList[i] + 1), (sbyte)StoragePriority.Critical);
+                    MoteMaker.ThrowText(allGroups[i].CellsList[0].ToVector3Shifted().ToBaseMapCoord(this), Map, allGroups[i].Settings.Priority.ToString(), Color.white, -1f);
                 }
             },
             defaultLabel = "VMF_IncreasePriority".Translate(),
@@ -200,12 +200,12 @@ public class VehiclePawnWithMap : VehiclePawn
         {
             action = () =>
             {
-                var allGroups = interiorMap.haulDestinationManager.AllGroups;
+                var allGroups = interiorMap.haulDestinationManager.AllGroupsListForReading;
                 var priorityList = allGroups.Select(g => g.Settings.Priority).ToList();
-                for (var i = 0; i < allGroups.Count(); i++)
+                for (var i = 0; i < allGroups.Count; i++)
                 {
-                    allGroups.ElementAt(i).Settings.Priority = (StoragePriority)Math.Max((sbyte)(priorityList[i] - 1), (sbyte)StoragePriority.Low);
-                    MoteMaker.ThrowText(allGroups.ElementAt(i).CellsList[0].ToVector3Shifted().ToBaseMapCoord(this), Map, allGroups.ElementAt(i).Settings.Priority.ToString(), Color.white, -1f);
+                    allGroups[i].Settings.Priority = (StoragePriority)Math.Max((sbyte)(priorityList[i] - 1), (sbyte)StoragePriority.Low);
+                    MoteMaker.ThrowText(allGroups[i].CellsList[0].ToVector3Shifted().ToBaseMapCoord(this), Map, allGroups[i].Settings.Priority.ToString(), Color.white, -1f);
                 }
             },
             defaultLabel = "VMF_DecreasePriority".Translate(),
@@ -275,15 +275,16 @@ public class VehiclePawnWithMap : VehiclePawn
 
                 foreach (var c in props.EmptyStructureCells)
                 {
-                    GenSpawn.Spawn(VMF_DefOf.VMF_VehicleStructureEmpty, c.ToIntVec3, interiorMap).SetFaction(Faction.OfPlayer);
+                    GenSpawn.Spawn(VMF_DefOf.VMF_VehicleStructureEmpty, c.ToIntVec3, interiorMap).SetFaction(Faction);
                 }
                 foreach (var c in props.FilledStructureCells)
                 {
-                    GenSpawn.Spawn(VMF_DefOf.VMF_VehicleStructureFilled, c.ToIntVec3, interiorMap).SetFaction(Faction.OfPlayer);
+                    GenSpawn.Spawn(VMF_DefOf.VMF_VehicleStructureFilled, c.ToIntVec3, interiorMap).SetFaction(Faction);
                 }
                 foreach (var c in CachedOutOfBoundsCells)
                 {
-                    GenSpawn.Spawn(VMF_DefOf.VMF_VehicleStructureEmpty, c, interiorMap).SetFaction(Faction.OfPlayer);
+                    GenSpawn.Spawn(VMF_DefOf.VMF_VehicleStructureEmpty, c, interiorMap).SetFaction(Faction);
+                    interiorMap.areaManager.NoRoof[c] = true;
                 }
             }
         }
@@ -406,8 +407,6 @@ public class VehiclePawnWithMap : VehiclePawn
 
     public override void Destroy(DestroyMode mode = DestroyMode.Vanish)
     {
-        VMF_Log.Debug($"{this} is destroyed.");
-
         if (Spawned)
         {
             DisembarkAll();
@@ -442,7 +441,6 @@ public class VehiclePawnWithMap : VehiclePawn
                 }
             }
         }
-
         if (flag)
         {
             string text = "VF_BoatSunkWithPawnsDesc".Translate(LabelShort, stringBuilder.ToString());
@@ -496,10 +494,8 @@ public class VehiclePawnWithMap : VehiclePawn
             crossMapHaulDestinationManager.RemoveHaulDestination(haulDestination);
         }
         CrossMapReachabilityCache.ClearCache();
-        var map = Map;
+        Map.regionGrid.AllRegions.Where(r => r.ListerThings.Contains(this)).Do(r => r.ListerThings.Remove(this));
         base.DeSpawn(mode);
-
-        Delay.AfterNTicks(5, () => map.regionGrid.AllRegions.Do(r => r.ListerThings.Remove(this)));
     }
 
     public override void DrawAt(in Vector3 drawLoc, Rot8 rot, float rotation)

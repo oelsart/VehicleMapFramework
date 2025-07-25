@@ -10,6 +10,7 @@ using static VehicleMapFramework.MethodInfoCache;
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 [HarmonyPatch]
+[PatchLevel(Level.Sensitive)]
 public static class Patches_AbilityComp
 {
     private static IEnumerable<MethodBase> TargetMethods()
@@ -18,7 +19,7 @@ public static class Patches_AbilityComp
         {
             foreach (var method in type.GetDeclaredMethods())
             {
-                if (PatchProcessor.ReadMethodBody(method).Any(i =>
+                if (VMF_Harmony.ReadMethodBodyWrapper(method).Any(i =>
                 {
                     return CachedMethodInfo.g_Thing_Position.Equals(i.Value) ||
                     CachedMethodInfo.g_LocalTargetInfo_Cell.Equals(i.Value) ||
@@ -34,7 +35,6 @@ public static class Patches_AbilityComp
         }
     }
 
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap)

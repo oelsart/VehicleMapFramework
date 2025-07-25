@@ -1,5 +1,4 @@
 ﻿using RimWorld;
-using RimWorld.Planet;
 using SmashTools.Rendering;
 using System.Collections.Generic;
 using System.Linq;
@@ -54,16 +53,6 @@ public class JobDriver_BoardAcrossMaps : JobDriverAcrossMaps
             else
             {
                 vehiclePawn.BoardPawn(pawnBoarding);
-                var caravan = vehiclePawn.GetCaravan() ?? vehiclePawn.GetVehicleCaravan();
-                if (caravan is not null)
-                {
-                    caravan.AddPawn(pawnBoarding, true);
-                    Find.WorldPawns.PassToWorld(pawnBoarding, PawnDiscardDecideMode.Decide);
-                }
-                if (pawnBoarding.Faction != vehiclePawn.Faction)
-                {
-                    pawnBoarding.SetFaction(vehiclePawn.Faction);
-                }
                 ThrowAppropriateHistoryEvent(vehiclePawn.VehicleDef.type, toil.actor);
             }
 

@@ -24,10 +24,10 @@ public static class Patches_BillDoorsFramework
 
 [HarmonyPatchCategory(Patches_BillDoorsFramework.Category)]
 [HarmonyPatch("BillDoorsFramework.PlaceWorker_ShowVerbRadiusBySight", "AllowsPlacing")]
+[PatchLevel(Level.Safe)]
 [StaticConstructorOnStartup]
 public static class Patch_PlaceWorker_ShowVerbRadiusBySight_AllowsPlacing
 {
-    [PatchLevel(Level.Safe)]
     public static bool Prefix(BuildableDef checkingDef, IntVec3 loc, Map map, ref AcceptanceReport __result)
     {
         __result = true;

@@ -5,6 +5,8 @@
 	
 	<VMF_Settings.DrawPlanet>Draw the world map during caravan.</VMF_Settings.DrawPlanet>
 	<VMF_Settings.WeightFactor>Weight factor of things on the vehicle map.</VMF_Settings.WeightFactor>
+	<VMF_Settings.AutoGetOffPlayer>Player pawns automatically exit vehicle map.</VMF_Settings.AutoGetOffPlayer>
+	<VMF_Settings.AutoGetOffNonPlayer>Non-Player pawns automatically exit vehicle map.</VMF_Settings.AutoGetOffNonPlayer>
 	<VMF_Settings.ThreadingPathCost>Multi-threading for path cost calculations on large vehicles.</VMF_Settings.ThreadingPathCost>
 	<VMF_Settings.MinAreaForThreading>Minimum area of vehicle calculated in multi-threading.</VMF_Settings.MinAreaForThreading>
 	<VMF_Settings.AsyncClosestThing>Multi-threading of calculations to get closest reachable thing.</VMF_Settings.AsyncClosestThing>

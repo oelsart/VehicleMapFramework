@@ -38,9 +38,9 @@ public static class Patches_WhileYoureUp
 
 [HarmonyPatchCategory(Patches_WhileYoureUp.Category)]
 [HarmonyPatch("WhileYoureUp.Mod", "TryFindBestBetterStoreCellFor_MidwayToTarget")]
+[PatchLevel(Level.Safe)]
 public static class Patch_WhileYoureUp_Mod_TryFindBestBetterStoreCellFor_MidwayToTarget
 {
-    [PatchLevel(Level.Safe)]
     public static void Prefix(Thing thing, ref Map map)
     {
         map = thing.MapHeld ?? map;

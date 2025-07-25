@@ -14,9 +14,9 @@ using static VehicleMapFramework.MethodInfoCache;
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 [HarmonyPatch(typeof(ThingOverlays), nameof(ThingOverlays.ThingOverlaysOnGUI))]
+[PatchLevel(Level.Safe)]
 public static class Patch_ThingOverlays_ThingOverlaysOnGUI
 {
-    [PatchLevel(Level.Safe)]
     public static void Postfix()
     {
         if (Event.current.type != EventType.Repaint)
@@ -54,9 +54,9 @@ public static class Patch_ThingOverlays_ThingOverlaysOnGUI
 
 //VehicleMapはコロニストバーに表示させない
 [HarmonyPatch(typeof(ColonistBar), "CheckRecacheEntries")]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_ColonistBar_CheckRecacheEntries
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();
@@ -74,6 +74,7 @@ public static class Patch_ColonistBar_CheckRecacheEntries
 
 //左下のセル情報の表示。車両マップ上にマウスオーバーされている時はその車両マップの情報を表示する
 [HarmonyPatch(typeof(MouseoverReadout), nameof(MouseoverReadout.MouseoverReadoutOnGUI))]
+[PatchLevel(Level.Safe)]
 public static class Patch_MouseoverReadout_MouseoverReadoutOnGUI
 {
     public static void PrefixCommon(ref object[] __state)
@@ -95,7 +96,6 @@ public static class Patch_MouseoverReadout_MouseoverReadoutOnGUI
     }
 
     //車両マップにマウスオーバーしていたらFocusedVehicleに入れておく。これでMouseCellが勝手にオフセットされる
-    [PatchLevel(Level.Safe)]
     public static void Prefix(ref object[] __state)
     {
         if (Event.current.type != EventType.Repaint || Find.MainTabsRoot.OpenTab != null)
@@ -106,7 +106,6 @@ public static class Patch_MouseoverReadout_MouseoverReadoutOnGUI
     }
 
     //FocusedVehicleをもとに戻しておく
-    [PatchLevel(Level.Safe)]
     public static void Finalizer(object[] __state)
     {
         if (__state is not null)
@@ -119,17 +118,16 @@ public static class Patch_MouseoverReadout_MouseoverReadoutOnGUI
 
 //Alt押した時のセル情報表示。MouseoverReadoutOnGUIと全く同じ
 [HarmonyPatch(typeof(CellInspectorDrawer), "DrawMapInspector")]
+[PatchLevel(Level.Safe)]
 public static class Patch_CellInspectorDrawer_DrawMapInspector
 {
     //車両マップにマウスオーバーしていたらFocusedVehicleに入れておく。これでMouseCellが勝手にオフセットされる
-    [PatchLevel(Level.Safe)]
     public static void Prefix(ref object[] __state)
     {
         Patch_MouseoverReadout_MouseoverReadoutOnGUI.PrefixCommon(ref __state);
     }
 
     //FocusedVehicleをもとに戻しておく
-    [PatchLevel(Level.Safe)]
     public static void Finalizer(object[] __state)
     {
         if (__state is not null)
@@ -141,10 +139,10 @@ public static class Patch_CellInspectorDrawer_DrawMapInspector
 }
 
 [HarmonyPatch(typeof(CellInspectorDrawer), nameof(CellInspectorDrawer.Update))]
+[PatchLevel(Level.Safe)]
 public static class Patch_CellInspectorDrawer_Update
 {
     //車両マップにマウスオーバーしていたらFocusedVehicleに入れておく。これでMouseCellが勝手にオフセットされる
-    [PatchLevel(Level.Safe)]
     public static void Prefix(ref object[] __state)
     {
         if (!KeyBindingDefOf.ShowCellInspector.IsDown) return;
@@ -152,7 +150,6 @@ public static class Patch_CellInspectorDrawer_Update
     }
 
     //FocusedVehicleをもとに戻しておく
-    [PatchLevel(Level.Safe)]
     public static void Finalizer(object[] __state)
     {
         if (__state is not null)
@@ -206,17 +203,16 @@ public static class Patch_BeautyDrawer_DrawBeautyAroundMouse
 
 //右下の温度表示
 [HarmonyPatch(typeof(GlobalControls), "TemperatureString")]
+[PatchLevel(Level.Safe)]
 public static class Patch_GlobalControls_TemperatureString
 {
     //車両マップにマウスオーバーしていたらFocusedVehicleに入れておく。これでMouseCellが勝手にオフセットされる
-    [PatchLevel(Level.Safe)]
     public static void Prefix(ref object[] __state)
     {
         Patch_MouseoverReadout_MouseoverReadoutOnGUI.PrefixCommon(ref __state);
     }
 
     //FocusedVehicleをもとに戻しておく
-    [PatchLevel(Level.Safe)]
     public static void Finalizer(object[] __state)
     {
         if (__state is not null)
@@ -229,6 +225,7 @@ public static class Patch_GlobalControls_TemperatureString
 
 //drawPosを移動してQuaternionに車の回転をかける
 [HarmonyPatch]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_GUI_VehicleMapOffset
 {
     private static IEnumerable<MethodBase> TargetMethods()
@@ -239,7 +236,6 @@ public static class Patch_GUI_VehicleMapOffset
         yield return AccessTools.Method(typeof(CellBoolDrawer), "ActuallyDraw");
     }
 
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
         var codes = new CodeMatcher(instructions, generator);

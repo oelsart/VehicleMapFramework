@@ -71,10 +71,7 @@ public class VehicleMapFollower(VehiclePawnWithMap vehicle)
             component.DeRegister(c, vehicle);
         }
         prevOccupiedCells.Clear();
-        foreach (var c in tmpOccupiedCells.Keys)
-        {
-            prevOccupiedCells.Add(c);
-        }
+        prevOccupiedCells.AddRange(tmpOccupiedCells);
     }
 
     private void CalculateMapCells()
@@ -88,28 +85,14 @@ public class VehicleMapFollower(VehiclePawnWithMap vehicle)
         var cellRect = CellRect.FromLimits(Mathf.Min(c1.x, c2.x, c3.x, c4.x), Mathf.Min(c1.z, c2.z, c3.z, c4.z), Mathf.Max(c1.x, c2.x, c3.x, c4.x), Mathf.Max(c1.z, c2.z, c3.z, c4.z));
         var mapRect = new Rect(0f, 0f, mapSize.x, mapSize.z);
 
-        if (cellRect.Area > 100)
+        Parallel.ForEach(cellRect, cell =>
         {
-            Parallel.ForEach(cellRect, cell =>
+            var point = cell.ToVector3Shifted().ToVehicleMapCoord(vehicle);
+            if (mapRect.Contains(new Vector2(point.x, point.z)) && cell.InBounds(vehicle.Map))
             {
-                var point = cell.ToVector3Shifted().ToVehicleMapCoord(vehicle);
-                if (mapRect.Contains(new Vector2(point.x, point.z)) && cell.InBounds(vehicle.Map))
-                {
-                    tmpOccupiedCells.Add(cell);
-                }
-            });
-        }
-        else
-        {
-            foreach (var cell in cellRect)
-            {
-                var point = cell.ToVector3Shifted().ToVehicleMapCoord(vehicle);
-                if (mapRect.Contains(new Vector2(point.x, point.z)) && cell.InBounds(vehicle.Map))
-                {
-                    tmpOccupiedCells.Add(cell);
-                }
+                tmpOccupiedCells.Add(cell);
             }
-        }
+        });
     }
 
     public VehiclePawnWithMap vehicle = vehicle;

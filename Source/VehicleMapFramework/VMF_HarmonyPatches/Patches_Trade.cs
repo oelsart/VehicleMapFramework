@@ -15,15 +15,14 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 //車上マップにそれぞれVirtualMapTransferしてColonyThingsWillingToBuyを集める
 [HarmonyPatch(typeof(Pawn), nameof(Pawn.ColonyThingsWillingToBuy))]
+[PatchLevel(Level.Safe)]
 public static class Patch_Pawn_ColonyThingsWillingToBuy
 {
-    [PatchLevel(Level.Safe)]
     public static void Prefix(Pawn playerNegotiator)
     {
         CrossMapReachabilityUtility.DepartMap = playerNegotiator.Map;
     }
 
-    [PatchLevel(Level.Safe)]
     public static IEnumerable<Thing> Postfix(IEnumerable<Thing> values, Pawn playerNegotiator, Pawn __instance)
     {
         if (values != null)
@@ -57,9 +56,9 @@ public static class Patch_Pawn_ColonyThingsWillingToBuy
 
 //キャラバンのメンバーにVehiclePawnWithMapが含まれる場合そのVehicleMap上の物も取引できるようにする
 [HarmonyPatch(typeof(Caravan), nameof(Caravan.ColonyThingsWillingToBuy))]
+[PatchLevel(Level.Safe)]
 public static class Patch_Caravan_ColonyThingsWillingToBuy
 {
-    [PatchLevel(Level.Safe)]
     public static IEnumerable<Thing> Postfix(IEnumerable<Thing> values, Pawn playerNegotiator)
     {
         var vehicles = playerNegotiator.GetCaravan()?.PawnsListForReading?.OfType<VehiclePawnWithMap>() ?? playerNegotiator.GetVehicleCaravan()?.Vehicles?.OfType<VehiclePawnWithMap>();
@@ -92,17 +91,17 @@ public static class Patch_Caravan_ColonyThingsWillingToBuy
 }
 
 [HarmonyPatch(typeof(Settlement), nameof(Settlement.ColonyThingsWillingToBuy))]
+[PatchLevel(Level.Safe)]
 public static class Patch_Settlement_ColonyThingsWillingToBuy
 {
-    [PatchLevel(Level.Safe)]
     public static IEnumerable<Thing> Postfix(IEnumerable<Thing> values, Pawn playerNegotiator) => Patch_Caravan_ColonyThingsWillingToBuy.Postfix(values, playerNegotiator);
 }
 
 //トレードビーコンの検索時車上マップのビーコンを含める
 [HarmonyPatch(typeof(Building_OrbitalTradeBeacon), nameof(Building_OrbitalTradeBeacon.AllPowered))]
+[PatchLevel(Level.Safe)]
 public static class Patch_Building_OrbitalTradeBeacon_AllPowered
 {
-    [PatchLevel(Level.Safe)]
     public static IEnumerable<Building_OrbitalTradeBeacon> Postfix(IEnumerable<Building_OrbitalTradeBeacon> values, Map map)
     {
         foreach (var b in values) yield return b;
@@ -120,9 +119,9 @@ public static class Patch_Building_OrbitalTradeBeacon_AllPowered
 
 //ビーコンを含めただけでは売却可能なポーンが追加されないのでこれも追加する
 [HarmonyPatch(typeof(TradeShip), nameof(TradeShip.ColonyThingsWillingToBuy))]
+[PatchLevel(Level.Safe)]
 public static class Patch_TradeShip_ColonyThingsWillingToBuy
 {
-    [PatchLevel(Level.Safe)]
     public static IEnumerable<Thing> Postfix(IEnumerable<Thing> values, Pawn playerNegotiator)
     {
         var result = values.ToList();
@@ -139,6 +138,7 @@ public static class Patch_TradeShip_ColonyThingsWillingToBuy
 //車上マップのビーコンが含まれているのでMapは引数じゃなくそこから取る
 //c.GetThingList(map) -> c.GetThingList(building_OrbitalTradeBeacon.Map)
 [HarmonyPatch]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_TradeUtility_AllLaunchableThingsForTrade
 {
     private static MethodInfo TargetMethod()
@@ -148,7 +148,6 @@ public static class Patch_TradeUtility_AllLaunchableThingsForTrade
     }
 
     //ローカル変数からビーコンを取ろうとするとforeachのMoveNextタイミングによってなんかがなんかしてたまにnullになるのでstaticフィールドでやりとりします
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var m_GetThingList = AccessTools.Method(typeof(GridsUtility), nameof(GridsUtility.GetThingList));
@@ -179,9 +178,9 @@ public static class Patch_TradeUtility_AllLaunchableThingsForTrade
 
 //posのInBoundsチェックはやってるのに範囲内のセルのInBoundsはチェックしてないのぉ？なんでよ……まあ建築限界線があるからだろうけども。チェックを追加します。
 [HarmonyPatch(typeof(Building_OrbitalTradeBeacon), nameof(Building_OrbitalTradeBeacon.TradeableCellsAround))]
+[PatchLevel(Level.Safe)]
 public static class Patch_Building_OrbitalTradeBeacon_TradeableCellsAround
 {
-    [PatchLevel(Level.Safe)]
     public static void Postfix(Map map, List<IntVec3> __result)
     {
         __result.RemoveAll(c => !c.InBounds(map));
@@ -190,9 +189,9 @@ public static class Patch_Building_OrbitalTradeBeacon_TradeableCellsAround
 
 //map.thingGrid.ThingsAt(c) -> building_OrbitalTradeBeacon.Map.thingGrid.ThingsAt(c)
 [HarmonyPatch(typeof(TradeUtility), nameof(TradeUtility.LaunchThingsOfType))]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_TradeUtility_LaunchThingsOfType
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();
@@ -212,9 +211,9 @@ public static class Patch_TradeUtility_LaunchThingsOfType
 
 //CommsConsoleを車両マップに建てている場合でもトレーダー船が現れるようにする
 [HarmonyPatch(typeof(IncidentWorker_OrbitalTraderArrival), "TryExecuteWorker")]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_IncidentWorker_OrbitalTraderArrival_TryExecuteWorker
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         foreach (var instruction in instructions)

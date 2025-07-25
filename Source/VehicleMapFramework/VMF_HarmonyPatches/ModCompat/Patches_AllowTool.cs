@@ -24,9 +24,9 @@ public class Patches_AllowTool
 
 [HarmonyPatchCategory(Patches_AllowTool.Category)]
 [HarmonyPatch("AllowTool.Designator_SelectSimilar", "ProcessSingleCellClick")]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Designator_SelectSimilar_ProcessSingleCellClick
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Find_CurrentMap, CachedMethodInfo.g_VehicleMapUtility_CurrentMap);
@@ -35,9 +35,9 @@ public static class Patch_Designator_SelectSimilar_ProcessSingleCellClick
 
 [HarmonyPatchCategory(Patches_AllowTool.Category)]
 [HarmonyPatch("AllowTool.Designator_SelectableThings", "DesignateMultiCell")]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Designator_SelectableThings_DesignateMultiCell
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Find_CurrentMap, CachedMethodInfo.g_VehicleMapUtility_CurrentMap);
@@ -46,9 +46,9 @@ public static class Patch_Designator_SelectableThings_DesignateMultiCell
 
 [HarmonyPatchCategory(Patches_AllowTool.Category)]
 [HarmonyPatch("AllowTool.UnlimitedAreaDragger", "OnSelectionStarted")]
+[PatchLevel(Level.Cautious)]
 public static class Patch_UnlimitedAreaDragger_OnSelectionStarted
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Find_CurrentMap, CachedMethodInfo.g_VehicleMapUtility_CurrentMap);
@@ -57,9 +57,9 @@ public static class Patch_UnlimitedAreaDragger_OnSelectionStarted
 
 [HarmonyPatchCategory(Patches_AllowTool.Category)]
 [HarmonyPatch("AllowTool.UnlimitedAreaDragger", "Update")]
+[PatchLevel(Level.Cautious)]
 public static class Patch_UnlimitedAreaDragger_Update
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Find_CurrentMap, CachedMethodInfo.g_VehicleMapUtility_CurrentMap);
@@ -68,6 +68,7 @@ public static class Patch_UnlimitedAreaDragger_Update
 
 [HarmonyPatchCategory(Patches_AllowTool.Category)]
 [HarmonyPatch]
+[PatchLevel(Level.Safe)]
 public static class Patch_MapCellHighlighter_CachedHighlight
 {
     private static MethodBase TargetMethod()
@@ -75,7 +76,6 @@ public static class Patch_MapCellHighlighter_CachedHighlight
         return AccessTools.TypeByName("AllowTool.MapCellHighlighter+CachedHighlight").Constructor([typeof(Vector3), typeof(Material)]);
     }
 
-    [PatchLevel(Level.Safe)]
     public static void Prefix(ref Vector3 drawPosition)
     {
         if (Find.CurrentMap.IsVehicleMapOf(out var vehicle) || (vehicle = Command_FocusVehicleMap.FocusedVehicle) != null)

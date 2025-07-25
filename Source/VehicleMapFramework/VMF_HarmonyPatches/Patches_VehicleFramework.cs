@@ -21,9 +21,9 @@ using static VehicleMapFramework.MethodInfoCache;
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 [HarmonyPatch(typeof(RGBMaterialPool), nameof(RGBMaterialPool.SetProperties), typeof(IMaterialCacheTarget), typeof(PatternData), typeof(Func<Rot8, Texture2D>), typeof(Func<Rot8, Texture2D>))]
+[PatchLevel(Level.Safe)]
 public static class Patch_RGBMaterialPool_SetProperties
 {
-    [PatchLevel(Level.Safe)]
     public static bool Prefix(IMaterialCacheTarget target, PatternData patternData,
     Func<Rot8, Texture2D> mainTexGetter, Func<Rot8, Texture2D> maskTexGetter, Dictionary<IMaterialCacheTarget, Material[]> ___cache)
     {
@@ -129,15 +129,15 @@ public static class Patch_RGBMaterialPool_SetProperties
 }
 
 //VehiclePawnWithMapの場合Movementフラグを持つハンドラーが存在しない場合コントロールできないようにする
-[HarmonyPatch(typeof(VehiclePawn), nameof(VehiclePawn.CanMoveWithOperators), MethodType.Getter)]
-public static class Patch_VehiclePawn_CanMoveWithOperators
+[HarmonyPatch(typeof(VehiclePawn), nameof(VehiclePawn.HasEnoughOperators), MethodType.Getter)]
+[PatchLevel(Level.Safe)]
+public static class Patch_VehiclePawn_HasEnoughOperators
 {
-    [PatchLevel(Level.Safe)]
     public static bool Prefix(VehiclePawn __instance, ref bool __result)
     {
         if (__instance is VehiclePawnWithMap)
         {
-            if (__instance.MovementPermissions == VehiclePermissions.None)
+            if (__instance.MovementPermissions.HasFlag(VehiclePermissions.Autonomous))
             {
                 __result = true;
                 return false;
@@ -157,9 +157,9 @@ public static class Patch_VehiclePawn_CanMoveWithOperators
 
 //VehiclePawnWithMapの場合タレットに対応するハンドラーが存在しない場合コントロールできないようにする
 [HarmonyPatch(typeof(VehicleTurret), nameof(VehicleTurret.RecacheMannedStatus))]
+[PatchLevel(Level.Safe)]
 public static class Patch_VehicleTurret_RecacheMannedStatus
 {
-    [PatchLevel(Level.Safe)]
     public static bool Prefix(VehicleTurret __instance)
     {
         if (__instance.vehicle is VehiclePawnWithMap)
@@ -186,9 +186,9 @@ public static class Patch_VehicleTurret_RecacheMannedStatus
 
 //VehiclePawnWithMapの場合タレットに対応するハンドラーが存在しない場合ギズモを操作不能にする
 [HarmonyPatch(typeof(CompVehicleTurrets), nameof(CompVehicleTurrets.CompGetGizmosExtra))]
+[PatchLevel(Level.Safe)]
 public static class Patch_CompVehicleTurrets_CompGetGizmosExtra
 {
-    [PatchLevel(Level.Safe)]
     public static IEnumerable<Gizmo> Postfix(IEnumerable<Gizmo> gizmos, CompVehicleTurrets __instance)
     {
         foreach (var gizmo in gizmos)
@@ -210,9 +210,9 @@ public static class Patch_CompVehicleTurrets_CompGetGizmosExtra
 }
 
 [HarmonyPatch(typeof(VehiclePawn), nameof(VehiclePawn.DisembarkPawn))]
+[PatchLevel(Level.Safe)]
 public static class Patch_VehiclePawn_DisembarkPawn
 {
-    [PatchLevel(Level.Safe)]
     public static bool Prefix(Pawn pawn, VehiclePawn __instance)
     {
         var handler = __instance.handlers.First(h => h.thingOwner.Contains(pawn));
@@ -262,9 +262,9 @@ public static class Patch_VehiclePawn_DisembarkPawn
 }
 
 [HarmonyPatch(typeof(VehiclePawn), nameof(VehiclePawn.FullRotation), MethodType.Getter)]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_VehiclePawn_FullRotation
 {
-    [PatchLevel(Level.Sensitive)]
     public static bool Prefix(VehiclePawn __instance, ref Rot8 __result)
     {
         return !__instance.TryGetFullRotation(ref __result);
@@ -272,9 +272,9 @@ public static class Patch_VehiclePawn_FullRotation
 }
 
 [HarmonyPatch("Vehicles.Patch_Rendering", "DrawSelectionBracketsVehicles")]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_Rendering_DrawSelectionBracketsVehicles
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
         var codes = instructions.ToList();
@@ -299,9 +299,9 @@ public static class Patch_Rendering_DrawSelectionBracketsVehicles
 }
 
 [HarmonyPatch(typeof(VehicleTurret), nameof(VehicleTurret.AngleBetween))]
+[PatchLevel(Level.Safe)]
 public static class Patch_VehicleTurret_AngleBetween
 {
-    [PatchLevel(Level.Safe)]
     public static void Prefix(VehicleTurret __instance, ref Vector3 position)
     {
         if (__instance.vehicle.IsOnNonFocusedVehicleMapOf(out var vehicle))
@@ -312,9 +312,9 @@ public static class Patch_VehicleTurret_AngleBetween
 }
 
 [HarmonyPatch(typeof(GenGridVehicles), nameof(GenGridVehicles.ImpassableForVehicles))]
+[PatchLevel(Level.Safe)]
 public static class Patch_GenGridVehicles_ImpassableForVehicles
 {
-    [PatchLevel(Level.Safe)]
     public static void Postfix(ThingDef thingDef, ref bool __result)
     {
         __result &= !thingDef.thingClass.SameOrSubclass(typeof(Building_VehicleRamp));
@@ -322,9 +322,9 @@ public static class Patch_GenGridVehicles_ImpassableForVehicles
 }
 
 [HarmonyPatch(typeof(TargetingHelper), "BestAttackTarget")]
+[PatchLevel(Level.Safe)]
 public static class Patch_TargetingHelper_BestAttackTarget
 {
-    [PatchLevel(Level.Safe)]
     public static void Postfix(VehicleTurret turret, TargetScanFlags flags, Predicate<Thing> validator, float minDist, float maxDist, IntVec3 locus, float maxTravelRadiusFromLocus, bool canTakeTargetsCloserThanEffectiveMinRange, ref IAttackTarget __result)
     {
         var searcher = turret.vehicle;
@@ -340,9 +340,9 @@ public static class Patch_TargetingHelper_BestAttackTarget
 }
 
 [HarmonyPatch(typeof(VehicleTurret), nameof(VehicleTurret.InRange))]
+[PatchLevel(Level.Cautious)]
 public static class Patch_VehicleTurret_InRange
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap);
@@ -350,9 +350,9 @@ public static class Patch_VehicleTurret_InRange
 }
 
 [HarmonyPatch(typeof(VehicleTurret), nameof(VehicleTurret.TryFindShootLineFromTo))]
+[PatchLevel(Level.Cautious)]
 public static class Patch_VehicleTurret_TryFindShootLineFromTo
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap);
@@ -360,9 +360,9 @@ public static class Patch_VehicleTurret_TryFindShootLineFromTo
 }
 
 [HarmonyPatch(typeof(VehicleTurret), nameof(VehicleTurret.FireTurret))]
+[PatchLevel(Level.Cautious)]
 public static class Patch_VehicleTurret_FireTurret
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap)
@@ -372,9 +372,9 @@ public static class Patch_VehicleTurret_FireTurret
 }
 
 [HarmonyPatch(typeof(VehicleTurret), nameof(VehicleTurret.TurretRotation), MethodType.Getter)]
+[PatchLevel(Level.Safe)]
 public static class Patch_VehicleTurret_TurretRotation
 {
-    [PatchLevel(Level.Safe)]
     public static void Postfix(ref float __result, VehiclePawn ___vehicle)
     {
         if (___vehicle.IsOnNonFocusedVehicleMapOf(out var vehicle2))
@@ -385,9 +385,9 @@ public static class Patch_VehicleTurret_TurretRotation
 }
 
 [HarmonyPatch(typeof(VehicleTurret), nameof(VehicleTurret.TurretRotationTargeted), MethodType.Setter)]
+[PatchLevel(Level.Safe)]
 public static class Patch_VehicleTurret_TurretRotationTargeted
 {
-    [PatchLevel(Level.Safe)]
     public static void Prefix(ref float value, VehicleTurret __instance)
     {
         if (__instance.vehicle.IsOnNonFocusedVehicleMapOf(out var vehicle2) && (__instance.TargetLocked || TurretTargeter.Turret == __instance))
@@ -398,9 +398,9 @@ public static class Patch_VehicleTurret_TurretRotationTargeted
 }
 
 [HarmonyPatch(typeof(VehicleTurret), nameof(VehicleTurret.RotationAligned), MethodType.Getter)]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_VehicleTurret_RotationAligned
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var f_rotationTargeted = AccessTools.Field(typeof(VehicleTurret), "rotationTargeted");
@@ -414,9 +414,9 @@ public static class Patch_VehicleTurret_RotationAligned
 }
 
 [HarmonyPatch(typeof(TurretTargeter), nameof(TurretTargeter.BeginTargeting))]
+[PatchLevel(Level.Cautious)]
 public static class Patch_TurretTargeter_BeginTargeting
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
@@ -424,9 +424,9 @@ public static class Patch_TurretTargeter_BeginTargeting
 }
 
 [HarmonyPatch(typeof(TurretTargeter), "CurrentTargetUnderMouse")]
+[PatchLevel(Level.Cautious)]
 public static class Patch_TurretTargeter_CurrentTargetUnderMouse
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.m_GenUI_TargetsAtMouse, CachedMethodInfo.m_GenUIOnVehicle_TargetsAtMouse);
@@ -434,9 +434,9 @@ public static class Patch_TurretTargeter_CurrentTargetUnderMouse
 }
 
 [HarmonyPatch(typeof(TurretTargeter), nameof(TurretTargeter.TargeterUpdate))]
+[PatchLevel(Level.Cautious)]
 public static class Patch_TurretTargeter_TargeterUpdate
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap);
@@ -444,9 +444,9 @@ public static class Patch_TurretTargeter_TargeterUpdate
 }
 
 [HarmonyPatch(typeof(TurretTargeter), nameof(TurretTargeter.ProcessInputEvents))]
+[PatchLevel(Level.Cautious)]
 public static class Patch_TurretTargeter_ProcessInputEvents
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap);
@@ -454,9 +454,9 @@ public static class Patch_TurretTargeter_ProcessInputEvents
 }
 
 [HarmonyPatch(typeof(TurretTargeter), "TargeterValid", MethodType.Getter)]
+[PatchLevel(Level.Cautious)]
 public static class Patch_TurretTargeter_TargeterValid
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
@@ -465,9 +465,9 @@ public static class Patch_TurretTargeter_TargeterValid
 
 //タレットの自動ロードがVehicleDefのCargoCapacityを参照してたので、これをVehiclePawnのインスタンスからステータスを参照させる
 [HarmonyPatch(typeof(Command_CooldownAction), "DrawBottomBar")]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_Command_CooldownAction_DrawBottomBar
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();
@@ -492,9 +492,9 @@ public static class Patch_Command_CooldownAction_DrawBottomBar
 }
 
 [HarmonyPatch(typeof(LaunchProtocol), nameof(LaunchProtocol.GetArrivalOptions))]
+[PatchLevel(Level.Safe)]
 public static class Patch_LaunchProtocol_GetArrivalOptions
 {
-    [PatchLevel(Level.Safe)]
     public static IEnumerable<ArrivalOption> Postfix(IEnumerable<ArrivalOption> __result, GlobalTargetInfo target, LaunchProtocol __instance)
     {
         foreach (var arrivalOption in __result)
@@ -570,9 +570,9 @@ public static class Patch_LaunchProtocol_GetArrivalOptions
 
 //カーソルが画面からマップの表示範囲から大きく外れた時に範囲外でGetRoofしようとしてしまう、おそらくVF本体のバグ修正
 [HarmonyPatch(typeof(Ext_Vehicles), nameof(Ext_Vehicles.IsRoofRestricted), typeof(IntVec3), typeof(Map), typeof(bool))]
+[PatchLevel(Level.Safe)]
 public static class Patch_Ext_Vehicles_IsRoofRestricted
 {
-    [PatchLevel(Level.Safe)]
     public static bool Prefix(IntVec3 cell, Map map, ref bool __result)
     {
         if (!cell.InBounds(map))
@@ -586,9 +586,9 @@ public static class Patch_Ext_Vehicles_IsRoofRestricted
 
 //VehicleMap上を右クリックしている時は複数ポーンのVehicle乗り込みフロートメニューをオフにする
 [HarmonyPatch(typeof(SelectionHelper), nameof(SelectionHelper.MultiSelectClicker))]
+[PatchLevel(Level.Safe)]
 public static class Patch_SelectionHelper_MultiSelectClicker
 {
-    [PatchLevel(Level.Safe)]
     public static bool Prefix(ref bool __result)
     {
         if (UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out _, false))
@@ -602,9 +602,9 @@ public static class Patch_SelectionHelper_MultiSelectClicker
 
 //aerialVehicleInFlight.vehicle.AllPawnsAboardのとこにnullチェックを追加
 [HarmonyPatch(typeof(Ext_Vehicles), nameof(Ext_Vehicles.GetAerialVehicle))]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_Ext_Vehicles_GetAerialVehicle
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
         var codes = instructions.ToList();
@@ -628,9 +628,9 @@ public static class Patch_Ext_Vehicles_GetAerialVehicle
 
 //主にRepairVehicleに使用される。ターゲットAをVehicleとしてターゲットB(=直す場所)に先に向かうため、StartGotoDestMapJobを挟む
 [HarmonyPatch(typeof(JobDriver_WorkVehicle), "MakeNewToils")]
+[PatchLevel(Level.Safe)]
 public static class Patch_JobDriver_WorkVehicle_MakeNewToils
 {
-    [PatchLevel(Level.Safe)]
     public static IEnumerable<Toil> Postfix(IEnumerable<Toil> values, Pawn ___pawn, Job ___job)
     {
         var thingMap = ___job.targetA.Thing?.Map;
@@ -650,9 +650,9 @@ public static class Patch_JobDriver_WorkVehicle_MakeNewToils
 
 //WorkGiver_RefuelVehicleTurretでVehicleが海上に居た場合Regionがnullでエラーを吐いていた問題の修正
 [HarmonyPatch(typeof(WorkGiver_RefuelVehicleTurret), nameof(WorkGiver_RefuelVehicleTurret.JobOnThing))]
+[PatchLevel(Level.Safe)]
 public static class Patch_WorkGiver_RefuelVehicleTurret_JobOnThing
 {
-    [PatchLevel(Level.Safe)]
     public static bool Prefix(Thing thing)
     {
         return thing.Position.GetRegion(thing.Map) != null;
@@ -662,15 +662,14 @@ public static class Patch_WorkGiver_RefuelVehicleTurret_JobOnThing
 [HarmonyPatch(typeof(CaravanFormation), "TryFindExitSpot",
     [typeof(Map), typeof(List<Pawn>), typeof(bool), typeof(Rot4), typeof(IntVec3), typeof(bool)],
     [ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Out, ArgumentType.Normal])]
+[PatchLevel(Level.Safe)]
 public static class Patch_CaravanFormation_TryFindExitSpot
 {
-    [PatchLevel(Level.Safe)]
     public static void Prefix(Map map)
     {
         CrossMapReachabilityUtility.DestMap = map;
     }
 
-    [PatchLevel(Level.Safe)]
     public static void Finalizer()
     {
         CrossMapReachabilityUtility.DestMap = null;
@@ -679,9 +678,9 @@ public static class Patch_CaravanFormation_TryFindExitSpot
 
 //ポーンがVehicleRoleBuildableに割り当てられている時はその席へのCanReachにすり替える
 [HarmonyPatch(typeof(CaravanFormation), "CheckForErrors")]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_CaravanFormation_CheckForErrors
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, MethodBase original)
     {
         var codes = instructions.ToList();
@@ -719,9 +718,9 @@ public static class Patch_CaravanFormation_CheckForErrors
 
 //キャラバン編成画面でVehicleRoleBuildableに割り当てられているポーンはその席へ行くようにする
 [HarmonyPatch(typeof(JobDriver_Board), "MakeNewToils")]
+[PatchLevel(Level.Safe)]
 public static class Patch_JobDriver_Board_MakeNewToils
 {
-    [PatchLevel(Level.Safe)]
     public static IEnumerable<Toil> Postfix(IEnumerable<Toil> values)
     {
         foreach (Toil toil in values)
@@ -752,59 +751,10 @@ public static class Patch_JobDriver_Board_MakeNewToils
     }
 }
 
-//サイズの大きなVehicleの場合はVF本体のスレッド管理を回避しつつ独自にマルチスレッド化
-//最新版では本体で直ってるからたぶん要らない
-//[HarmonyPatch]
-//public static class Patch_VehiclePathing_SetRotationAndUpdateVehicleRegionsClipping
-//{
-//    private static MethodBase TargetMethod()
-//    {
-//        return AccessTools.Method("Vehicles.VehiclePathing:SetRotationAndUpdateVehicleRegionsClipping");
-//    }
-
-//    public static bool Prefix(ref bool __result, object[] __args, HashSet<IntVec3> ___hitboxUpdateCells)
-//    {
-//        if (VehicleMapFramework.settings.threadingPathCost && __args[0] is VehiclePawnWithMap vehicle && vehicle.Spawned && vehicle.def.size.x * vehicle.def.size.z > VehicleMapFramework.settings.minAreaForThreading)
-//        {
-//            __result = SetRotationAndUpdateVehicleRegionsClipping(vehicle, (Rot4)__args[1], ___hitboxUpdateCells);
-//            return false;
-//        }
-//        return true;
-//    }
-
-//    private static bool SetRotationAndUpdateVehicleRegionsClipping(VehiclePawn vehicle, Rot4 value, HashSet<IntVec3> hitboxUpdateCells)
-//    {
-//        var map = vehicle.Map;
-//        if (!vehicle.OccupiedRectShifted(IntVec2.Zero, new Rot4?(value)).InBounds(map))
-//        {
-//            return false;
-//        }
-//        hitboxUpdateCells.Clear();
-//        hitboxUpdateCells.AddRange(vehicle.OccupiedRectShifted(IntVec2.Zero, new Rot4?(Rot4.East)));
-//        hitboxUpdateCells.AddRange(vehicle.OccupiedRectShifted(IntVec2.Zero, new Rot4?(Rot4.North)));
-//        var mapping = MapComponentCache<VehicleMapping>.GetComponent(map);
-//        var allMoveableVehicleDefs = (List<VehicleDef>)AllMoveableVehicleDefs(null);
-//        Parallel.ForEach(hitboxUpdateCells, c =>
-//        {
-//            foreach (VehicleDef vehicleDef in allMoveableVehicleDefs)
-//            {
-//                if (c.InBounds(map))
-//                {
-//                    mapping[vehicleDef].VehiclePathGrid.RecalculatePerceivedPathCostAt(c);
-//                }
-//            }
-//        });
-//        hitboxUpdateCells.Clear();
-//        return true;
-//    }
-
-//    private static FastInvokeHandler AllMoveableVehicleDefs = MethodInvoker.GetHandler(AccessTools.PropertyGetter("Vehicles.VehicleHarmony:AllMoveableVehicleDefs"));
-//}
-
 [HarmonyPatch(typeof(EnterMapUtilityVehicles), nameof(EnterMapUtilityVehicles.EnterAndSpawn))]
+[PatchLevel(Level.Safe)]
 public static class Patch_EnterMapUtilityVehicles_EnterAndSpawn
 {
-    [PatchLevel(Level.Safe)]
     public static Exception Finalizer(Exception __exception)
     {
         if (__exception != null)
@@ -817,9 +767,9 @@ public static class Patch_EnterMapUtilityVehicles_EnterAndSpawn
 
 //車両マップ上からLoadVehicleをしようとした時など
 [HarmonyPatch(typeof(JobDriver_LoadVehicle), "FailJob")]
+[PatchLevel(Level.Safe)]
 public static class Patch_JobDriver_LoadVehicle_FailJob
 {
-    [PatchLevel(Level.Safe)]
     public static void Postfix(JobDriver_LoadVehicle __instance, ref bool __result)
     {
         if (__result)
@@ -838,9 +788,9 @@ public static class Patch_JobDriver_LoadVehicle_FailJob
 }
 
 [HarmonyPatch(typeof(VehicleTabHelper_Passenger), nameof(VehicleTabHelper_Passenger.DrawPassengersFor))]
+[PatchLevel(Level.Safe)]
 public static class Patch_VehicleTabHelper_Passenger_DrawPassengersFor
 {
-    [PatchLevel(Level.Safe)]
     public static void Postfix(ref float curY, Rect viewRect, Vector2 scrollPos, VehiclePawn vehicle, ref Pawn moreDetailsForPawn)
     {
         if (vehicle is VehiclePawnWithMap mapVehicle)
@@ -884,9 +834,9 @@ public static class Patch_VehicleTabHelper_Passenger_DrawPassengersFor
 }
 
 [HarmonyPatch(typeof(VehicleTabHelper_Passenger), nameof(VehicleTabHelper_Passenger.HandleDragEvent))]
+[PatchLevel(Level.Safe)]
 public static class Patch_VehicleTabHelper_Passenger_HandleDragEvent
 {
-    [PatchLevel(Level.Safe)]
     public static bool Prefix()
     {
         if (Event.current.type == EventType.MouseUp && Event.current.button == 0)
@@ -1035,9 +985,9 @@ public static class Patch_VehicleTabHelper_Passenger_HandleDragEvent
 
 //非MultiSelect時は既にターゲットマップある想定
 [HarmonyPatch(typeof(FloatMenuOptionProvider_OrderVehicle), "VehicleCanGoto")]
+[PatchLevel(Level.Safe)]
 public static class Patch_FloatMenuOptionProvider_OrderVehicle_VehicleCanGoto
 {
-    [PatchLevel(Level.Safe)]
     public static bool Prefix(VehiclePawn vehicle, IntVec3 gotoLoc, ref AcceptanceReport __result)
     {
         if (TargetMapManager.HasTargetMap(vehicle, out var map))
@@ -1057,9 +1007,9 @@ public static class Patch_FloatMenuOptionProvider_OrderVehicle_VehicleCanGoto
 }
 
 [HarmonyPatch(typeof(FloatMenuOptionProvider_OrderVehicle), "PawnGotoAction")]
+[PatchLevel(Level.Safe)]
 public static class Patch_FloatMenuOptionProvider_OrderVehicle_PawnGotoAction
 {
-    [PatchLevel(Level.Safe)]
     public static bool Prefix(IntVec3 clickCell, VehiclePawn vehicle, IntVec3 gotoLoc, Rot8 rot)
     {
         if (TargetMapManager.HasTargetMap(vehicle, out var map))
@@ -1132,9 +1082,9 @@ public static class Patch_FloatMenuOptionProvider_OrderVehicle_PawnGotoAction
 }
 
 [HarmonyPatch(typeof(PathingHelper), nameof(PathingHelper.TryFindNearestStandableCell))]
+[PatchLevel(Level.Safe)]
 public static class Patch_PathingHelper_TryFindNearestStandableCell
 {
-    [PatchLevel(Level.Safe)]
     public static bool Prefix(VehiclePawn vehicle, IntVec3 cell, ref IntVec3 result, ref float radius, ref bool __result)
     {
         if (radius < 0f)
@@ -1172,9 +1122,9 @@ public static class Patch_PathingHelper_TryFindNearestStandableCell
 }
 
 [HarmonyPatch(typeof(VehicleOrientationController), "Init")]
+[PatchLevel(Level.Safe)]
 public static class Patch_VehicleOrientationController_Init
 {
-    [PatchLevel(Level.Safe)]
     public static void Prefix(ref IntVec3 clickCell)
     {
         if (UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out var vehicle, false))
@@ -1202,9 +1152,9 @@ public static class Patch_VehicleOrientationController_RecomputeDestinations
 }
 
 [HarmonyPatch(typeof(VehicleOrientationController), nameof(VehicleOrientationController.TargeterUpdate))]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_VehicleOrientationController_TargeterUpdate
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var m_ToVector3ShiftedWithAltitude = AccessTools.Method(typeof(IntVec3), nameof(IntVec3.ToVector3ShiftedWithAltitude), [typeof(float)]);
@@ -1229,9 +1179,9 @@ public static class Patch_VehicleOrientationController_TargeterUpdate
 
 //VehicleSkyfallerのyが上書きされてたので車上のVehicleSkyfallerはy足しときなね
 [HarmonyPatch(typeof(LaunchProtocol), nameof(LaunchProtocol.Draw))]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_LaunchProtocol_Draw
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
         var codes = instructions.ToList();
@@ -1256,6 +1206,7 @@ public static class Patch_LaunchProtocol_Draw
 }
 
 [HarmonyPatch]
+[PatchLevel(Level.Safe)]
 public static class Patch_SettingsCache_TryGetValue
 {
     private static bool Prepare()
@@ -1275,7 +1226,6 @@ public static class Patch_SettingsCache_TryGetValue
         });
     }
 
-    [PatchLevel(Level.Safe)]
     public static void Prefix(ref VehicleDef def)
     {
         if (def.HasModExtension<VehicleMapProps_Gravship>())
@@ -1286,6 +1236,7 @@ public static class Patch_SettingsCache_TryGetValue
 }
 
 [HarmonyPatch("Vehicles.SectionDrawer", "RecacheVehicleFilter")]
+[PatchLevel(Level.Safe)]
 public static class Patch_SectionDrawer_RecacheVehicleFilter
 {
     private static bool Prepare()
@@ -1293,7 +1244,6 @@ public static class Patch_SectionDrawer_RecacheVehicleFilter
         return ModsConfig.OdysseyActive;
     }
 
-    [PatchLevel(Level.Safe)]
     public static void Postfix(List<VehicleDef> ___filteredVehicleDefs)
     {
         ___filteredVehicleDefs.RemoveAll(d => d.HasModExtension<VehicleMapProps_Gravship>());

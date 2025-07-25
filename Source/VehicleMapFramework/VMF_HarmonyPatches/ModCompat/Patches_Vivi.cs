@@ -24,6 +24,7 @@ public static class Patches_Vivi
 
 [HarmonyPatchCategory(Patches_Vivi.Category)]
 [HarmonyPatch]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_ArcanePlant_Turret_TryFindNewTarget_Delegate
 {
     private static MethodBase TargetMethod()
@@ -32,7 +33,6 @@ public static class Patch_ArcanePlant_Turret_TryFindNewTarget_Delegate
             t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<TryFindNewTarget>")));
     }
 
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
@@ -41,9 +41,9 @@ public static class Patch_ArcanePlant_Turret_TryFindNewTarget_Delegate
 
 [HarmonyPatchCategory(Patches_Vivi.Category)]
 [HarmonyPatch("VVRace.ArcanePlant_Turret", "TryFindNewTarget")]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_ArcanePlant_Turret_TryFindNewTarget
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();

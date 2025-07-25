@@ -27,9 +27,9 @@ public static class Patches_AdaptiveStorage
 
 [HarmonyPatchCategory(Patches_AdaptiveStorage.Category)]
 [HarmonyPatch("AdaptiveStorage.StorageGraphicWorker", "UpdatePrintData")]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_StorageGraphicWorker_UpdatePrintData
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();
@@ -102,9 +102,9 @@ public static class Patch_ItemGraphicWorker_DrawOffsetForItem
 
 [HarmonyPatchCategory(Patches_AdaptiveStorage.Category)]
 [HarmonyPatch("AdaptiveStorage.ItemGraphicWorker", "ItemOffsetAt")]
+[PatchLevel(Level.Safe)]
 public static class Patch_ItemGraphicWorker_ItemOffsetAt
 {
-    [PatchLevel(Level.Safe)]
     public static void Postfix(ref float stackRotation)
     {
         stackRotation -= VehicleMapUtility.RotForPrint.AsAngle;

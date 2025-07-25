@@ -13,9 +13,9 @@ using static VehicleMapFramework.MethodInfoCache;
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 [HarmonyPatch(typeof(Pawn_JobTracker), nameof(Pawn_JobTracker.StartJob))]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_Pawn_JobTracker_StartJob
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var m_MakeDriver = AccessTools.Method(typeof(Job), nameof(Job.MakeDriver));
@@ -25,9 +25,9 @@ public static class Patch_Pawn_JobTracker_StartJob
 }
 
 [HarmonyPatch(typeof(Pawn_JobTracker), "DetermineNextJob")]
+[PatchLevel(Level.Mandatory)]
 public static class Patch_Pawn_JobTracker_DetermineNextJob
 {
-    [PatchLevel(Level.Mandatory)]
     public static void Prefix(Pawn ___pawn, bool ignoreQueue)
     {
         if (!ignoreQueue && ___pawn.jobs.jobQueue.Any()) return;
@@ -37,9 +37,9 @@ public static class Patch_Pawn_JobTracker_DetermineNextJob
 
 [HarmonyAfter("SmarterConstruction")]
 [HarmonyPatch(typeof(JobGiver_Work), nameof(JobGiver_Work.TryIssueJobPackage))]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_JobGiver_Work_TryIssueJobPackage
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
         var codes = instructions.ToList();
@@ -322,9 +322,9 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
 
 //ShouldSkipはvehicleMapを含めた全てのマップでスキップするかチェックする
 [HarmonyPatch(typeof(JobGiver_Work), "PawnCanUseWorkGiver")]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_JobGiver_Work_PawnCanUseWorkGiver
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var m_WorkGiver_ShouldSkip = AccessTools.Method(typeof(WorkGiver), nameof(WorkGiver.ShouldSkip));
@@ -351,6 +351,7 @@ public static class Patch_JobGiver_Work_PawnCanUseWorkGiver
 }
 
 [HarmonyPatch]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_JobGiver_Work_Validator
 {
     public static MethodInfo TargetMethod()
@@ -358,7 +359,6 @@ public static class Patch_JobGiver_Work_Validator
         return AccessTools.InnerTypes(typeof(JobGiver_Work)).SelectMany(t => t.GetDeclaredMethods()).First(m => m.Name.Contains("Validator"));
     }
 
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var m_Scanner_HasJobOnThing = AccessTools.Method(typeof(WorkGiver_Scanner), nameof(WorkGiver_Scanner.HasJobOnThing));
@@ -413,6 +413,7 @@ public static class Patch_JobGiver_Work_Validator
 }
 
 [HarmonyPatch]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_JobGiver_Work_GiverTryGiveJobPrioritized
 {
     public static MethodInfo TargetMethod()
@@ -420,14 +421,13 @@ public static class Patch_JobGiver_Work_GiverTryGiveJobPrioritized
         return AccessTools.FindIncludingInnerTypes(typeof(JobGiver_Work), t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<GiverTryGiveJobPrioritized>")));
     }
 
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) => Patch_JobGiver_Work_Validator.Transpiler(instructions);
 }
 
 [HarmonyPatch(typeof(Pawn_PathFollower), nameof(Pawn_PathFollower.StartPath))]
+[PatchLevel(Level.Safe)]
 public static class Patch_Pawn_PathFollower_StartPath
 {
-    [PatchLevel(Level.Safe)]
     public static bool Prefix(LocalTargetInfo dest, PathEndMode peMode, Pawn ___pawn)
     {
         if (___pawn.CurJob == null) return true;
@@ -448,9 +448,9 @@ public static class Patch_Pawn_PathFollower_StartPath
 
 //targetにThingが入ってるのにGotoCellを使ってるようなケースでは先にマップが違うかどうかチェックする
 [HarmonyPatch(typeof(Toils_Goto), nameof(Toils_Goto.GotoCell), typeof(IntVec3), typeof(PathEndMode))]
+[PatchLevel(Level.Safe)]
 public static class Patch_Toils_Goto_GotoCell
 {
-    [PatchLevel(Level.Safe)]
     public static void Postfix(IntVec3 cell, PathEndMode peMode, Toil __result)
     {
         __result.AddPreInitAction(() =>
@@ -468,9 +468,9 @@ public static class Patch_Toils_Goto_GotoCell
 }
 
 [HarmonyPatch(typeof(Toils_Goto), nameof(Toils_Goto.GotoBuild))]
+[PatchLevel(Level.Safe)]
 public static class Patch_Toils_Goto_GotoBuild
 {
-    [PatchLevel(Level.Safe)]
     public static void Postfix(TargetIndex ind, Toil __result)
     {
         __result.AddPreInitAction(() =>
@@ -489,9 +489,9 @@ public static class Patch_Toils_Goto_GotoBuild
 
 //GotoCellと同じやり方でSittableOrSpotのチェック
 [HarmonyPatch(typeof(ReservationUtility), nameof(ReservationUtility.ReserveSittableOrSpot))]
+[PatchLevel(Level.Safe)]
 public static class Patch_ReservationUtility_ReserveSittableOrSpot
 {
-    [PatchLevel(Level.Safe)]
     public static void Prefix(Pawn pawn, IntVec3 exactSittingPos, Job job, ref Map __state)
     {
         var allTargets = new[] { job.targetA, job.targetB, job.targetC }.ConcatIfNotNull(job.targetQueueA).ConcatIfNotNull(job.targetQueueB);
@@ -503,7 +503,6 @@ public static class Patch_ReservationUtility_ReserveSittableOrSpot
         }
     }
 
-    [PatchLevel(Level.Safe)]
     public static void Finalizer(Pawn pawn, Map __state)
     {
         if (__state != null)
@@ -515,9 +514,9 @@ public static class Patch_ReservationUtility_ReserveSittableOrSpot
 
 //GotoCellと同じやり方でSittableOrSpotのチェック
 [HarmonyPatch(typeof(ReservationUtility), nameof(ReservationUtility.CanReserveSittableOrSpot), [typeof(Pawn), typeof(IntVec3), typeof(Thing), typeof(bool)])]
+[PatchLevel(Level.Safe)]
 public static class Patch_ReservationUtility_CanReserveSittableOrSpot
 {
-    [PatchLevel(Level.Safe)]
     public static bool Prefix(Pawn pawn, IntVec3 exactSittingPos, Thing ignoreThing, ref Map __state, ref bool __result)
     {
         Patch_ForbidUtility_IsForbidden.Map = ignoreThing?.Map;
@@ -538,7 +537,6 @@ public static class Patch_ReservationUtility_CanReserveSittableOrSpot
         return true;
     }
 
-    [PatchLevel(Level.Safe)]
     public static void Finalizer(Pawn pawn, Map __state)
     {
         Patch_ForbidUtility_IsForbidden.Map = null;
@@ -552,6 +550,7 @@ public static class Patch_ReservationUtility_CanReserveSittableOrSpot
 
 //ChewSpotのThingが見つかった場合にGotoTargetMapを挟む
 [HarmonyPatch]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_Toils_Ingest_CarryIngestibleToChewSpot_Delegate
 {
     private static MethodBase TargetMethod()
@@ -559,7 +558,6 @@ public static class Patch_Toils_Ingest_CarryIngestibleToChewSpot_Delegate
         return AccessTools.FindIncludingInnerTypes(typeof(Toils_Ingest), t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<CarryIngestibleToChewSpot>")));
     }
 
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
         foreach (var instruction in instructions)
@@ -595,9 +593,9 @@ public static class Patch_Toils_Ingest_CarryIngestibleToChewSpot_Delegate
 }
 
 [HarmonyPatch(typeof(Toils_Bed), nameof(Toils_Bed.GotoBed))]
+[PatchLevel(Level.Safe)]
 public static class Patch_Toils_Bed_GotoBed
 {
-    [PatchLevel(Level.Safe)]
     public static void Postfix(TargetIndex bedIndex, Toil __result)
     {
         __result.AddPreInitAction(() =>
@@ -616,9 +614,9 @@ public static class Patch_Toils_Bed_GotoBed
 
 //利用可能なthingに車上マップ上のthingを含める
 [HarmonyPatch(typeof(ItemAvailability), nameof(ItemAvailability.ThingsAvailableAnywhere))]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_ItemAvailability_ThingsAvailableAnywhere
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var code = instructions.ToList();
@@ -651,6 +649,7 @@ public static class Patch_ItemAvailability_ThingsAvailableAnywhere
 public static class Patch_GenClosest_ClosestThingReachable
 {
     [HarmonyReversePatch(HarmonyReversePatchType.Original)]
+    [PatchLevel(Level.Mandatory)]
     public static Thing ClosestThingReachableOriginal(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance, Predicate<Thing> validator, IEnumerable<Thing> customGlobalSearchSet, int searchRegionsMin, int searchRegionsMax, bool forceAllowGlobalSearch, RegionType traversableRegionTypes, bool ignoreEntirelyForbiddenRegions, bool lookInHaulSources) => throw new NotImplementedException();
 
     [PatchLevel(Level.Safe)]
@@ -667,9 +666,9 @@ public static class Patch_GenClosest_ClosestThingReachable
 }
 
 [HarmonyPatch(typeof(GenClosest), nameof(GenClosest.ClosestThing_Regionwise_ReachablePrioritized))]
+[PatchLevel(Level.Safe)]
 public static class Patch_GenClosest_ClosestThing_Regionwise_ReachablePrioritized
 {
-    [PatchLevel(Level.Safe)]
     public static bool Prefix(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance, Predicate<Thing> validator, Func<Thing, float> priorityGetter, int minRegions, int maxRegions, bool lookInHaulSources, ref Thing __result)
     {
         var maps = map.BaseMapAndVehicleMaps().Except(map);
@@ -683,9 +682,9 @@ public static class Patch_GenClosest_ClosestThing_Regionwise_ReachablePrioritize
 }
 
 [HarmonyPatch(typeof(RegionProcessorClosestThingReachable), "ProcessThing")]
+[PatchLevel(Level.Cautious)]
 public static class Patch_RegionProcessorClosestThingReachable_ProcessThing
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_PositionHeld, CachedMethodInfo.m_PositionHeldOnBaseMap);
@@ -693,9 +692,9 @@ public static class Patch_RegionProcessorClosestThingReachable_ProcessThing
 }
 
 [HarmonyPatch(typeof(ReservationManager), nameof(ReservationManager.Reserve))]
+[PatchLevel(Level.Safe)]
 public static class Patch_ReservationManager_Reserve
 {
-    [PatchLevel(Level.Safe)]
     public static bool Prefix(Map ___map, Pawn claimant, Job job, LocalTargetInfo target, int maxPawns, int stackCount, ReservationLayerDef layer, bool errorOnFailed, bool ignoreOtherReservations, bool canReserversStartJobs, ref bool __result)
     {
         if (ShouldReplace(___map, claimant, target, false, out var map))
@@ -718,9 +717,9 @@ public static class Patch_ReservationManager_Reserve
 }
 
 [HarmonyPatch(typeof(ReservationManager), nameof(ReservationManager.ReservedBy), [typeof(LocalTargetInfo), typeof(Pawn), typeof(Job)])]
+[PatchLevel(Level.Safe)]
 public static class Patch_ReservationManager_ReservedBy
 {
-    [PatchLevel(Level.Safe)]
     public static bool Prefix(Map ___map, Pawn claimant, LocalTargetInfo target, Job job, ref bool __result)
     {
         if (Patch_ReservationManager_Reserve.ShouldReplace(___map, claimant, target, false, out var map))
@@ -733,9 +732,9 @@ public static class Patch_ReservationManager_ReservedBy
 }
 
 [HarmonyPatch(typeof(ReservationManager), nameof(ReservationManager.CanReserve))]
+[PatchLevel(Level.Safe)]
 public static class Patch_ReservationManager_CanReserve
 {
-    [PatchLevel(Level.Safe)]
     public static bool Prefix(Map ___map, Pawn claimant, LocalTargetInfo target, int maxPawns, int stackCount, ReservationLayerDef layer, bool ignoreOtherReservations, ref bool __result)
     {
         if (Patch_ReservationManager_Reserve.ShouldReplace(___map, claimant, target, true, out var map))
@@ -748,9 +747,9 @@ public static class Patch_ReservationManager_CanReserve
 }
 
 [HarmonyPatch(typeof(ReservationManager), nameof(ReservationManager.CanReserveStack))]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_ReservationManager_CanReserveStack
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();
@@ -765,9 +764,9 @@ public static class Patch_ReservationManager_CanReserveStack
 }
 
 [HarmonyPatch(typeof(ReservationManager), nameof(ReservationManager.TryGetReserver))]
+[PatchLevel(Level.Safe)]
 public static class Patch_ReservationManager_TryGetReserver
 {
-    [PatchLevel(Level.Safe)]
     public static bool Prefix(Map ___map, LocalTargetInfo target, Faction faction, ref Pawn reserver, ref bool __result)
     {
         Map thingMap;
@@ -781,9 +780,9 @@ public static class Patch_ReservationManager_TryGetReserver
 }
 
 [HarmonyPatch(typeof(ReservationManager), nameof(ReservationManager.FirstRespectedReserver))]
+[PatchLevel(Level.Safe)]
 public static class Patch_ReservationManager_FirstRespectedReserver
 {
-    [PatchLevel(Level.Safe)]
     public static bool Prefix(Map ___map, LocalTargetInfo target, Pawn claimant, ReservationLayerDef layer, ref Pawn __result)
     {
         if (Patch_ReservationManager_Reserve.ShouldReplace(___map, claimant, target, false, out var map))
@@ -797,9 +796,9 @@ public static class Patch_ReservationManager_FirstRespectedReserver
 
 //FoodSourceの一覧に車上マップの物を含める
 [HarmonyPatch(typeof(FoodUtility), nameof(FoodUtility.BestFoodSourceOnMap))]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_FoodUtility_BestFoodSourceOnMap
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();
@@ -835,9 +834,9 @@ public static class Patch_FoodUtility_BestFoodSourceOnMap
 }
 
 [HarmonyPatch(typeof(RestUtility), nameof(RestUtility.CanUseBedNow))]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_RestUtility_CanUseBedNow
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         //!building_Bed.Position.IsInPrisonCell(building_Bed.Map)があるので置き換えるのは最初のMapのみ
@@ -848,9 +847,9 @@ public static class Patch_RestUtility_CanUseBedNow
 }
 
 [HarmonyPatch(typeof(ToilFailConditions), nameof(ToilFailConditions.DespawnedOrNull))]
+[PatchLevel(Level.Cautious)]
 public static class Patch_ToilFailConditions_DespawnedOrNull
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_MapHeld, CachedMethodInfo.m_MapHeldBaseMap)
@@ -859,9 +858,9 @@ public static class Patch_ToilFailConditions_DespawnedOrNull
 }
 
 [HarmonyPatch(typeof(ToilFailConditions), nameof(ToilFailConditions.SelfAndParentsDespawnedOrNull))]
+[PatchLevel(Level.Cautious)]
 public static class Patch_ToilFailConditions_SelfAndParentsDespawnedOrNull
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_MapHeld, CachedMethodInfo.m_MapHeldBaseMap)
@@ -898,9 +897,9 @@ public static class Patch_ForbidUtility_IsForbidden
 }
 
 [HarmonyPatch(typeof(PawnUtility), nameof(PawnUtility.DutyLocation))]
+[PatchLevel(Level.Cautious)]
 public static class Patch_PawnUtility_DutyLocation
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap)
@@ -909,6 +908,7 @@ public static class Patch_PawnUtility_DutyLocation
 }
 
 [HarmonyPatch]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_ToilFailConditions_FailOnSomeonePhysicallyInteracting
 {
     private static MethodInfo TargetMethod()
@@ -920,7 +920,6 @@ public static class Patch_ToilFailConditions_FailOnSomeonePhysicallyInteracting
         }).First(m => m.Name.Contains("<FailOnSomeonePhysicallyInteracting>"));
     }
 
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();
@@ -938,6 +937,7 @@ public static class Patch_ToilFailConditions_FailOnSomeonePhysicallyInteracting
 }
 
 [HarmonyPatch]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_ToilFailConditions_FailOnBurningImmobile
 {
     private static MethodInfo TargetMethod()
@@ -949,7 +949,6 @@ public static class Patch_ToilFailConditions_FailOnBurningImmobile
         }).First(m => m.Name.Contains("<FailOnBurningImmobile>"));
     }
 
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);
@@ -958,9 +957,9 @@ public static class Patch_ToilFailConditions_FailOnBurningImmobile
 
 //JobDriver_GotoDestMapはnextJobを使ってReservationを行っているので、それを使って解放しなければならない
 [HarmonyPatch(typeof(Pawn), nameof(Pawn.ClearReservationsForJob))]
+[PatchLevel(Level.Mandatory)]
 public static class Patch_Pawn_ClearReservationsForJob
 {
-    [PatchLevel(Level.Mandatory)]
     public static void Prefix(ref Job job, Pawn __instance)
     {
         if (job?.def != null && job.GetCachedDriver(__instance) is JobDriver_GotoDestMap gotoDestMap)
@@ -971,9 +970,9 @@ public static class Patch_Pawn_ClearReservationsForJob
 }
 
 [HarmonyPatch(typeof(TransporterUtility), nameof(TransporterUtility.GetTransportersInGroup))]
+[PatchLevel(Level.Safe)]
 public static class Patch_TransporterUtility_GetTransportersInGroup
 {
-    [PatchLevel(Level.Safe)]
     public static void Postfix(int transportersGroup, Map map, List<CompTransporter> outTransporters)
     {
         if (transportersGroup < 0)
@@ -997,9 +996,9 @@ public static class Patch_TransporterUtility_GetTransportersInGroup
 }
 
 [HarmonyPatch(typeof(ThingOwner), "NotifyAdded")]
+[PatchLevel(Level.Safe)]
 public static class Patch_ThingOwner_NotifyAdded
 {
-    [PatchLevel(Level.Safe)]
     public static void Postfix(Thing item, IThingHolder ___owner)
     {
         if (___owner is Pawn_InventoryTracker inventory && inventory.pawn is VehiclePawnWithMap vehicle)
@@ -1014,9 +1013,9 @@ public static class Patch_ThingOwner_NotifyAdded
 }
 
 [HarmonyPatch(typeof(ThingOwner), "NotifyAddedAndMergedWith")]
+[PatchLevel(Level.Safe)]
 public static class Patch_ThingOwner_NotifyAddedAndMergedWith
 {
-    [PatchLevel(Level.Safe)]
     public static void Postfix(Thing item, IThingHolder ___owner, int mergedCount)
     {
         if (___owner is Pawn_InventoryTracker inventory && inventory.pawn is VehiclePawnWithMap vehicle)
@@ -1031,9 +1030,9 @@ public static class Patch_ThingOwner_NotifyAddedAndMergedWith
 }
 
 [HarmonyPatch(typeof(JobDriver_Ingest), nameof(JobDriver_Ingest.ModifyCarriedThingDrawPosWorker))]
+[PatchLevel(Level.Safe)]
 public static class Patch_JobDriver_Ingest_ModifyCarriedThingDrawPosWorker
 {
-    [PatchLevel(Level.Safe)]
     public static void Postfix(ref Vector3 drawPos, Pawn pawn, bool __result)
     {
         if (__result && pawn.IsOnNonFocusedVehicleMapOf(out var vehicle))
@@ -1045,9 +1044,9 @@ public static class Patch_JobDriver_Ingest_ModifyCarriedThingDrawPosWorker
 
 //FoodDeliverはtargetCのセルに向かってStartPathしてるのでtargetB（囚人）とのマップの違いをチェックしてそのマップに行く必要がある
 [HarmonyPatch(typeof(JobDriver_FoodDeliver), "MakeNewToils")]
+[PatchLevel(Level.Safe)]
 public static class Patch_JobDriver_FoodDeliver_MakeNewToils
 {
-    [PatchLevel(Level.Safe)]
     public static IEnumerable<Toil> Postfix(IEnumerable<Toil> values, Job ___job)
     {
         var found = false;
@@ -1070,9 +1069,9 @@ public static class Patch_JobDriver_FoodDeliver_MakeNewToils
 
 //billGiverRootCell.GetRegion(pawn.Map, RegionType.Set_Passable); -> billGiverRootCell.GetRegion(billGiver.Map, RegionType.Set_Passable);
 [HarmonyPatch(typeof(WorkGiver_DoBill), "TryFindBestIngredientsHelper")]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_WorkGiver_DoBill_TryFindBestIngredientsHelper
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();
@@ -1090,6 +1089,7 @@ public static class Patch_WorkGiver_DoBill_TryFindBestIngredientsHelper
 }
 
 [HarmonyPatch]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_WorkGiver_DoBill_TryFindBestIngredientsHelper_Predicate
 {
     private static MethodBase TargetMethod()
@@ -1097,7 +1097,6 @@ public static class Patch_WorkGiver_DoBill_TryFindBestIngredientsHelper_Predicat
         return AccessTools.FindIncludingInnerTypes<MethodBase>(typeof(WorkGiver_DoBill), t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name == "<TryFindBestIngredientsHelper>b__0"));
     }
 
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
@@ -1105,6 +1104,7 @@ public static class Patch_WorkGiver_DoBill_TryFindBestIngredientsHelper_Predicat
 }
 
 [HarmonyPatch]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_JobDriver_Mine_MakeNewToils_Delegate
 {
     private static MethodBase TargetMethod()
@@ -1112,7 +1112,6 @@ public static class Patch_JobDriver_Mine_MakeNewToils_Delegate
         return AccessTools.FindIncludingInnerTypes<MethodBase>(typeof(JobDriver_Mine), t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name == "<MakeNewToils>b__0"));
     }
 
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         //先にget_TargetAをstloc.0しとくぞ

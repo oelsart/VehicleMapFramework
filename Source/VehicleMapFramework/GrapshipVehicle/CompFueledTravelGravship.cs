@@ -152,5 +152,26 @@ namespace VehicleMapFramework
                 base.ConsumeFuel(diff);
             }
         }
+
+        public override void PostSpawnSetup(bool respawningAfterLoad)
+        {
+            base.PostSpawnSetup(respawningAfterLoad);
+            if (respawningAfterLoad) return;
+
+            Delay.AfterNSeconds(0, () =>
+            {
+                var diff = (Engine?.TotalFuel - Fuel) ?? 0f;
+                if (diff < Mathf.Epsilon) return;
+
+                if (diff > 0f)
+                {
+                    base.Refuel(diff);
+                }
+                else
+                {
+                    base.ConsumeFuel(diff);
+                }
+            });
+        }
     }
 }

@@ -23,9 +23,9 @@ public class Patches_DrakkenLaserDrill
 
 [HarmonyPatchCategory(Patches_DrakkenLaserDrill.Category)]
 [HarmonyPatch("MYDE_DrakkenLaserDrill.Building_DrakkenLaserDrill", "DrawAt")]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_Building_DrakkenLaserDrill_DrawAt
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
         var codes = instructions.ToList();
@@ -62,9 +62,9 @@ public static class Patch_Building_DrakkenLaserDrill_DrawAt
 
 [HarmonyPatchCategory(Patches_DrakkenLaserDrill.Category)]
 [HarmonyPatch("MYDE_DrakkenLaserDrill.Comp_DrakkenLaserDrill_MouseAttack", "DoSomething")]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Comp_DrakkenLaserDrill_MouseAttack_DoSomething
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
@@ -73,9 +73,9 @@ public static class Patch_Comp_DrakkenLaserDrill_MouseAttack_DoSomething
 
 [HarmonyPatchCategory(Patches_DrakkenLaserDrill.Category)]
 [HarmonyPatch("MYDE_DrakkenLaserDrill.Comp_DrakkenLaserDrill_MouseAttack", "DoSomething_Move")]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Comp_DrakkenLaserDrill_MouseAttack_DoSomething_Move
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
@@ -84,9 +84,9 @@ public static class Patch_Comp_DrakkenLaserDrill_MouseAttack_DoSomething_Move
 
 [HarmonyPatchCategory(Patches_DrakkenLaserDrill.Category)]
 [HarmonyPatch("MYDE_DrakkenLaserDrill.Comp_DrakkenLaserDrill_AutoAttack", "DoSomething_AttackAllPawn")]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Comp_DrakkenLaserDrill_AutoAttack_DoSomething_AttackAllPawn
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
@@ -96,9 +96,9 @@ public static class Patch_Comp_DrakkenLaserDrill_AutoAttack_DoSomething_AttackAl
 
 [HarmonyPatchCategory(Patches_DrakkenLaserDrill.Category)]
 [HarmonyPatch("MYDE_DrakkenLaserDrill.Comp_DrakkenLaserDrill_AutoAttack", "PrepareToAttack")]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Comp_DrakkenLaserDrill_AutoAttack_PrepareToAttack
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
@@ -108,9 +108,9 @@ public static class Patch_Comp_DrakkenLaserDrill_AutoAttack_PrepareToAttack
 
 [HarmonyPatchCategory(Patches_DrakkenLaserDrill.Category)]
 [HarmonyPatch("MYDE_DrakkenLaserDrill.Comp_DrakkenLaserDrill_Attack", "DoSomething_I")]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Comp_DrakkenLaserDrill_Attack_DoSomething_I
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
@@ -119,9 +119,9 @@ public static class Patch_Comp_DrakkenLaserDrill_Attack_DoSomething_I
 
 [HarmonyPatchCategory(Patches_DrakkenLaserDrill.Category)]
 [HarmonyPatch("MYDE_DrakkenLaserDrill.Comp_DrakkenLaserDrill_Attack", "DoSomething_II")]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Comp_DrakkenLaserDrill_Attack_DoSomething_II
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)

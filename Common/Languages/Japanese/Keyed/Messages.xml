@@ -21,4 +21,6 @@
 	<VMF_WheelsUnstable>車両が不安定です.</VMF_WheelsUnstable>
 	<VMF_CannotSetDownDiagonal>{0}はこの角度で地面に置けません.</VMF_CannotSetDownDiagonal>
 	
+	<VMF_GravshipVehicleDestroyed>グラヴシップ車両は破壊されました</VMF_GravshipVehicleDestroyed>
+	
 </LanguageData>

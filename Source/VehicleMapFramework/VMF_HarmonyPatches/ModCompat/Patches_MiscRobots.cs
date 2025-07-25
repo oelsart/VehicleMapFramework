@@ -24,13 +24,13 @@ public static class Patches_MiscRobots
 
 [HarmonyPatchCategory(Patches_MiscRobots.Category)]
 [HarmonyPatch("X2_JobGiver_Return2BaseRoom", "TryIssueJobPackage")]
+[PatchLevel(Level.Safe)]
 public static class Patch_X2_JobGiver_Return2BaseRoom_TryIssueJobPackage
 {
     private static Type t_X2_AIRobot = AccessTools.TypeByName("AIRobot.X2_AIRobot");
 
     private static AccessTools.FieldRef<Pawn, Building> rechargeStation = AccessTools.FieldRefAccess<Building>("AIRobot.X2_AIRobot:rechargeStation");
 
-    [PatchLevel(Level.Safe)]
     public static bool Prefix(ThinkNode __instance, Pawn pawn, ref ThinkResult __result)
     {
         if (!t_X2_AIRobot?.IsAssignableFrom(pawn.GetType()) ?? true) return true;

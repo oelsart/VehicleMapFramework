@@ -1,6 +1,5 @@
 ﻿using AchtungMod;
 using HarmonyLib;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -18,7 +17,7 @@ public static class Patches_Achtung
 {
     static Patches_Achtung()
     {
-        VMF_Harmony.PatchCategory("VMF_Patches_Achtung");
+        VMF_Harmony.PatchCategory(Category);
 
         //var type = AccessTools.TypeByName("AchtungMod.FloatMenuMakerMap_AddJobGiverWorkOrders_Patch");
         //var prefix = AccessTools.Method(type, "Prefix");
@@ -37,9 +36,11 @@ public static class Patches_Achtung
         //original = AccessTools.Method(typeof(FloatMenuMakerOnVehicle), "ScannerShouldSkip");
         //VMF_Harmony.Instance.Patch(original, prefix: prefix);
     }
+
+    public const string Category = "VMF_Patches_Achtung";
 }
 
-[HarmonyPatchCategory("VMF_Patches_Achtung")]
+[HarmonyPatchCategory(Patches_Achtung.Category)]
 [HarmonyPatch(typeof(Colonist), nameof(Colonist.UpdateOrderPos))]
 public static class Patch_Colonist_UpdateOrderPos
 {
@@ -130,7 +131,7 @@ public static class Patch_Colonist_UpdateOrderPos
     private static int lastCachedTick;
 }
 
-[HarmonyPatchCategory("VMF_Patches_Achtung")]
+[HarmonyPatchCategory(Patches_Achtung.Category)]
 [HarmonyPatch("AchtungMod.Tools", "OrderTo")]
 public static class Patch_Tools_OrderTo
 {
@@ -160,7 +161,7 @@ public static class Patch_Tools_OrderTo
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_Achtung")]
+[HarmonyPatchCategory(Patches_Achtung.Category)]
 [HarmonyPatch("AchtungMod.Tools", "LabelDrawPosFor")]
 public static class Patch_Tools_LabelDrawPosFor
 {
@@ -182,7 +183,7 @@ public static class Patch_Tools_LabelDrawPosFor
     public static MethodInfo m_ToVector3ShiftedOffset = AccessTools.Method(typeof(Patch_Tools_LabelDrawPosFor), nameof(ToVector3ShiftedOffset));
 }
 
-[HarmonyPatchCategory("VMF_Patches_Achtung")]
+[HarmonyPatchCategory(Patches_Achtung.Category)]
 [HarmonyPatch]
 public static class Patch_Controller_HandleDrawing
 {
@@ -197,7 +198,7 @@ public static class Patch_Controller_HandleDrawing
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_Achtung")]
+[HarmonyPatchCategory(Patches_Achtung.Category)]
 [HarmonyPatch(typeof(Controller), nameof(Controller.MouseDown))]
 public static class Patch_Controller_MouseDown
 {

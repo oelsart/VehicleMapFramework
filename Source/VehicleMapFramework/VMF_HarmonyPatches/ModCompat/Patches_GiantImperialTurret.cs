@@ -28,6 +28,7 @@ public static class Patches_GiantImperialTurret
 
 [HarmonyPatchCategory(Patches_GiantImperialTurret.Category)]
 [HarmonyPatch]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_Building_TurretGunNonSnap_TryFindNewTarget
 {
     private static IEnumerable<MethodBase> TargetMethods()
@@ -37,7 +38,6 @@ public static class Patch_Building_TurretGunNonSnap_TryFindNewTarget
         return methods.Where(m => m.Name.Contains("<TryFindNewTarget>") || m.Name.Contains("<>"));
     }
 
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
@@ -46,9 +46,9 @@ public static class Patch_Building_TurretGunNonSnap_TryFindNewTarget
 
 [HarmonyPatchCategory(Patches_GiantImperialTurret.Category)]
 [HarmonyPatch("BreadMoProjOffset.Building_TurretGunNonSnap", "IsValidTarget")]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Building_TurretGunNonSnap_IsValidTarget
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap)
@@ -58,9 +58,9 @@ public static class Patch_Building_TurretGunNonSnap_IsValidTarget
 
 [HarmonyPatchCategory(Patches_GiantImperialTurret.Category)]
 [HarmonyPatch("BreadMoProjOffset.Building_TurretGunNonSnap", "TryFindNewTarget")]
+[PatchLevel(Level.Safe)]
 public static class Patch_Building_TurretGunNonSnap_TryFindNewTarget2
 {
-    [PatchLevel(Level.Safe)]
     public static void Postfix(Building_TurretGun __instance, ref float ___curAngle, LocalTargetInfo ___currentTargetInt, LocalTargetInfo __result)
     {
         if (!___currentTargetInt.IsValid && __result.IsValid && __instance.IsOnNonFocusedVehicleMapOf(out var vehicle))
@@ -72,15 +72,14 @@ public static class Patch_Building_TurretGunNonSnap_TryFindNewTarget2
 
 [HarmonyPatchCategory(Patches_GiantImperialTurret.Category)]
 [HarmonyPatch("BreadMoProjOffset.Building_TurretGunNonSnap", "Tick")]
+[PatchLevel(Level.Safe)]
 public static class Patch_Building_TurretGunNonSnap_Tick
 {
-    [PatchLevel(Level.Safe)]
     public static void Prefix(ref bool __state, LocalTargetInfo ___currentTargetInt)
     {
         __state = ___currentTargetInt.IsValid;
     }
 
-    [PatchLevel(Level.Safe)]
     public static void Postfix(Building_TurretGun __instance, ref float ___curAngle, bool __state, LocalTargetInfo ___currentTargetInt)
     {
         if (!___currentTargetInt.IsValid && __state && __instance.IsOnNonFocusedVehicleMapOf(out var vehicle))
@@ -92,13 +91,13 @@ public static class Patch_Building_TurretGunNonSnap_Tick
 
 [HarmonyPatchCategory(Patches_GiantImperialTurret.Category)]
 [HarmonyPatch("BreadMoProjOffset.AttackTargetFinderAngle", "BestAttackTarget")]
+[PatchLevel(Level.Safe)]
 public static class Patch_AttackTargetFinderAngle_BestAttackTarget
 {
     private static bool working;
 
     private static FastInvokeHandler BestAttackTarget = MethodInvoker.GetHandler(AccessTools.Method("BreadMoProjOffset.AttackTargetFinderAngle:BestAttackTarget"));
 
-    [PatchLevel(Level.Safe)]
     public static void Postfix(IAttackTargetSearcher searcher, TargetScanFlags flags, Vector3 angle, Predicate<Thing> validator, float minDist, float maxDist, IntVec3 locus, float maxTravelRadiusFromLocus, bool canTakeTargetsCloserThanEffectiveMinRange, ref IAttackTarget __result)
     {
         if (working) return;

@@ -21,6 +21,10 @@ public class VehiclePawnWithMapCache : MapComponent
             }
             return null;
         }, false);
+        map.events.ThingDespawned += thing =>
+        {
+            TargetMapManager.RemoveTargetInfo(thing);
+        };
     }
 
     public static void RegisterVehicle(VehiclePawnWithMap vehicle)

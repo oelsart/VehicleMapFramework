@@ -21,9 +21,9 @@ public class Patches_Aquariums
 
 [HarmonyPatchCategory(Patches_Aquariums.Category)]
 [HarmonyPatch("Aquariums.ThingComp_WaterGraphic", "PostPrintOnto")]
+[PatchLevel(Level.Cautious)]
 public static class Patch_ThingComp_WaterGraphic_PostPrintOnto
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return Patch_ThingComp_AdditionalGraphics_PostPrintOnto.Transpiler(instructions);
@@ -32,9 +32,9 @@ public static class Patch_ThingComp_WaterGraphic_PostPrintOnto
 
 [HarmonyPatchCategory("Patches_Aquariums.Category")]
 [HarmonyPatch("Aquariums.TankNet", "DrawTankOutline")]
+[PatchLevel(Level.Safe)]
 public static class Patch_TankNet_DrawTankOutline
 {
-    [PatchLevel(Level.Safe)]
     public static bool Prefix(List<IntVec3> ___netCells, Map ___map)
     {
         GenDrawOnVehicle.DrawFieldEdges(___netCells, ColorLibrary.LightBlue, null, map: ___map);
@@ -44,9 +44,9 @@ public static class Patch_TankNet_DrawTankOutline
 
 [HarmonyPatchCategory("Patches_Aquariums.Category")]
 [HarmonyPatch("Aquariums.FishMovementBehavior", "PositionWithOffsets", MethodType.Getter)]
+[PatchLevel(Level.Safe)]
 public static class Patch_FishMovementBehavior_PositionWithOffsets
 {
-    [PatchLevel(Level.Safe)]
     public static void Postfix(object ___aquariumFish, ref Vector3 __result)
     {
         if (((Thing)CurrentTank(___aquariumFish)).IsOnVehicleMapOf(out var vehicle))

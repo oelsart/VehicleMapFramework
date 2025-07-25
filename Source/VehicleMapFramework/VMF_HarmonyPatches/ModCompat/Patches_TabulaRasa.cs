@@ -25,9 +25,9 @@ public static class Patches_TabulaRasa
 
 [HarmonyPatchCategory(Patches_TabulaRasa.Category)]
 [HarmonyPatch("TabulaRasa.Comp_Shield", "CurShieldPosition", MethodType.Getter)]
+[PatchLevel(Level.Safe)]
 public static class Patch_Comp_Shield_CurShieldPosition
 {
-    [PatchLevel(Level.Safe)]
     public static void Postfix(ThingWithComps ___parent, ref Vector3 __result)
     {
         if (___parent.IsOnNonFocusedVehicleMapOf(out var vehicle))
@@ -39,9 +39,9 @@ public static class Patch_Comp_Shield_CurShieldPosition
 
 [HarmonyPatchCategory(Patches_TabulaRasa.Category)]
 [HarmonyPatch("TabulaRasa.Comp_Shield", "ShouldBeBlocked")]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Comp_Shield_ShouldBeBlocked
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
@@ -50,9 +50,9 @@ public static class Patch_Comp_Shield_ShouldBeBlocked
 
 [HarmonyPatchCategory(Patches_TabulaRasa.Category)]
 [HarmonyPatch("TabulaRasa.Comp_Shield", "BombardmentCanStartFireAt")]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Comp_Shield_BombardmentCanStartFireAt
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
@@ -61,9 +61,9 @@ public static class Patch_Comp_Shield_BombardmentCanStartFireAt
 
 [HarmonyPatchCategory(Patches_TabulaRasa.Category)]
 [HarmonyPatch("TabulaRasa.Patch_Projectile_CheckForFreeInterceptBetween", "Postfix")]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Patch_Projectile_CheckForFreeInterceptBetween_Postfix
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map,
@@ -79,9 +79,9 @@ public static class Patch_Patch_Projectile_CheckForFreeInterceptBetween_Postfix
 [HarmonyAfter("Neronix17.TabulaRasa.RimWorld")]
 [HarmonyPatchCategory(Patches_TabulaRasa.Category)]
 [HarmonyPatch(typeof(Projectile), "CheckForFreeInterceptBetween")]
+[PatchLevel(Level.Safe)]
 public static class Patch_Projectile_CheckForFreeInterceptBetween
 {
-    [PatchLevel(Level.Safe)]
     public static void Postfix(Projectile __instance, ref bool __result, Vector3 lastExactPos, Vector3 newExactPos)
     {
         if (!__result)
@@ -111,9 +111,9 @@ public static class Patch_Projectile_CheckForFreeInterceptBetween
 
 [HarmonyPatchCategory(Patches_TabulaRasa.Category)]
 [HarmonyPatch("TabulaRasa.Patch_Skyfaller_Tick", "Prefix")]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Patch_Skyfaller_Tick_Prefix
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map,
@@ -129,9 +129,9 @@ public static class Patch_Patch_Skyfaller_Tick_Prefix
 [HarmonyAfter("Neronix17.TabulaRasa.RimWorld")]
 [HarmonyPatchCategory(Patches_TabulaRasa.Category)]
 [HarmonyPatch(typeof(Skyfaller), "Tick")]
+[PatchLevel(Level.Safe)]
 public static class Patch_Skyfaller_Tick
 {
-    [PatchLevel(Level.Safe)]
     public static bool Prefix(Projectile __instance)
     {
         try
@@ -158,9 +158,9 @@ public static class Patch_Skyfaller_Tick
 
 [HarmonyPatchCategory(Patches_TabulaRasa.Category)]
 [HarmonyPatch("TabulaRasa.PlaceWorker_ShowShieldRadius", "DrawGhost")]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_PlaceWorker_ShowShieldRadius_DrawGhost
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         foreach (var instruction in instructions)

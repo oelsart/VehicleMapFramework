@@ -23,6 +23,7 @@ public class Patches_EnterHere
 
 [HarmonyPatchCategory(Patches_EnterHere.Category)]
 [HarmonyPatch]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_VehicleCaravanFormingUtility_StartFormingCaravan_Prefix_Func
 {
     private static MethodBase TargetMethod()
@@ -31,7 +32,6 @@ public static class Patch_VehicleCaravanFormingUtility_StartFormingCaravan_Prefi
             t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<Prefix>b__0")));
     }
 
-    [PatchLevel(Level.Sensitive)]
     public static bool Prefix(Pawn pawnObject, Type ___vehiclePawnType, ref bool __result)
     {
         __result = ___vehiclePawnType.IsAssignableFrom(pawnObject.GetType());
@@ -41,9 +41,9 @@ public static class Patch_VehicleCaravanFormingUtility_StartFormingCaravan_Prefi
 
 [HarmonyPatchCategory(Patches_EnterHere.Category)]
 [HarmonyPatch("EnterHere.VehicleCaravanFormingUtility_StartFormingCaravan", "Prefix")]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_VehicleCaravanFormingUtility_StartFormingCaravan_Prefix
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();

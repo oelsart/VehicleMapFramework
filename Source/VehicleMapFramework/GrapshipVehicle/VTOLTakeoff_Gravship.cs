@@ -211,18 +211,16 @@ namespace VehicleMapFramework
 
         public override IEnumerable<ArrivalOption> GetArrivalOptions(GlobalTargetInfo target)
         {
-            if (ModsConfig.OdysseyActive)
+            List<ArrivalOption> options = [.. base.GetArrivalOptions(target)];
+            if (!options.NullOrEmpty())
             {
-                if (target.WorldObject is MapParent mapParent && mapParent.Spawned && !mapParent.HasMap && !mapParent.EnterCooldownBlocksEntering())
-                {
-                    yield return new ArrivalOption("VF_LandVehicleTargetedLanding".Translate(mapParent.Label), new ArrivalAction_LoadMap(vehicle, AerialVehicleArrivalModeDefOf.TargetedLanding));
-                }
+                return options;
             }
-
-            foreach (var option in base.GetArrivalOptions(target))
+            if (target.WorldObject is MapParent mapParent && mapParent.Spawned && !mapParent.HasMap && !mapParent.EnterCooldownBlocksEntering())
             {
-                yield return option;
+                return [new ArrivalOption("VF_LandVehicleTargetedLanding".Translate(mapParent.Label), new ArrivalAction_LoadMap(vehicle, AerialVehicleArrivalModeDefOf.TargetedLanding))];
             }
+            return Enumerable.Empty<ArrivalOption>();
         }
     }
 }

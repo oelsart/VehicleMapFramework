@@ -22,9 +22,9 @@ public static class Patches_MuzzleFlash
 
 [HarmonyPatchCategory(Patches_MuzzleFlash.Category)]
 [HarmonyPatch("MuzzleFlash.MapComponent_MuzzleFlashManager", "MapComponentUpdate")]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_MapComponent_MuzzleFlashManager_MapComponentUpdate
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var f_map = AccessTools.Field(typeof(MapComponent), nameof(MapComponent.map));

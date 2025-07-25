@@ -11,9 +11,9 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 //車上オブジェクトを選択
 [HarmonyPatch(typeof(Selector), "SelectableObjectsUnderMouse")]
+[PatchLevel(Level.Safe)]
 public static class Patch_Selector_SelectableObjectsUnderMouse
 {
-    [PatchLevel(Level.Safe)]
     public static bool Prefix(ref IEnumerable<object> __result)
     {
         var mouseMapPosition = UI.MouseMapPosition();
@@ -71,9 +71,9 @@ public static class Patch_Selector_SelectableObjectsUnderMouse
 //選択したオブジェクトへのジャンプ時マップをVehicleMapからそのBaseMapに、cellはBaseMapの系に変換する
 //Deselectの条件文のマップもBaseMapに変換
 [HarmonyPatch(typeof(Selector), "SelectInternal")]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_Selector_SelectInternal
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
         var codes = instructions.MethodReplacer(CachedMethodInfo.g_Thing_MapHeld, CachedMethodInfo.m_MapHeldBaseMap)
@@ -114,23 +114,10 @@ public static class Patch_Selector_SelectInternal
     }
 }
 
-//[PatchLevel(Level.Safe)]
-//[HarmonyPatch(typeof(Selector), nameof(Selector.Deselect))]
-//public static class Patch_Selector_Deselect
-//{
-//    public static void Postfix(object obj)
-//    {
-//        if (obj is Thing thing)
-//        {
-//            TargetMapManager.RemoveTargetInfo(thing);
-//        }
-//    }
-//}
-
 [HarmonyPatch(typeof(CameraJumper), "TryJumpInternal", typeof(IntVec3), typeof(Map), typeof(CameraJumper.MovementMode))]
+[PatchLevel(Level.Safe)]
 public static class Patch_CameraJumper_TryJumpInternal
 {
-    [PatchLevel(Level.Safe)]
     public static void Prefix(ref IntVec3 cell, ref Map map)
     {
         if (map.IsVehicleMapOf(out var vehicle))
@@ -151,9 +138,9 @@ public static class Patch_CameraJumper_TryJumpInternal
 
 //フォーカスしたVehicleがある場合それ用の改変メソッドを呼んでオリジナルをスキップ
 [HarmonyPatch(typeof(ThingSelectionUtility), "MultiSelectableThingsInScreenRectDistinct")]
+[PatchLevel(Level.Safe)]
 public static class Patch_ThingSelectionUtility_MultiSelectableThingsInScreenRectDistinct
 {
-    [PatchLevel(Level.Safe)]
     public static bool Prefix(ref IEnumerable<object> __result, Rect rect)
     {
         var mouseMapPosition = UI.MouseMapPosition();

@@ -22,9 +22,9 @@ public class Patches_BiomesCaverns
 
 [HarmonyPatchCategory(Patches_BiomesCaverns.Category)]
 [HarmonyPatch("Caveworld_Flora_Unleashed.MapComponent_CaveFungus", "MapComponentTick")]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_MapComponent_CaveFungus_MapComponentTick
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var instruction = instructions.FirstOrDefault(c => c.opcode == OpCodes.Ldc_I4_1);

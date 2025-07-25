@@ -37,9 +37,9 @@ public static class Patches_CallTradeShips
 
 [HarmonyPatchCategory(Patches_CallTradeShips.Category)]
 [HarmonyPatch(typeof(Job), nameof(Job.Clone))]
+[PatchLevel(Level.Safe)]
 public static class Patch_Job_Clone
 {
-    [PatchLevel(Level.Safe)]
     public static bool Prefix(Job __instance, ref Job __result)
     {
         if (__instance.GetType() == t_Job_CallTradeShip)

@@ -169,74 +169,58 @@ namespace VehicleMapFramework
                             Messages.Message("CannotLandOnSameTile".Translate(), MessageTypeDefOf.RejectInput, historical: false);
                             return false;
                         }
-                        MapParent mapParent = Find.World.worldObjects.MapParentAt(tile);
-                        if (mapParent != null && mapParent.HasMap)
-                        {
-                            return true;
-                        }
-                        if (!TileFinder.IsValidTileForNewSettlement(tile, cannotPlaceTileReason, forGravship: true))
-                        {
-                            Messages.Message(cannotPlaceTileReason.ToString(), MessageTypeDefOf.RejectInput, historical: false);
-                            return false;
-                        }
                         return true;
                     }, tile =>
                     {
-                        SettlementProximityGoodwillUtility.CheckConfirmSettle(tile, () =>
+                        var target = Find.World.worldObjects.MapParentAt(tile) ?? new GlobalTargetInfo(tile);
+                        var result = Select(target);
+                        var data = new TargetData<GlobalTargetInfo>();
+                        data.targets.Add(target);
+                        switch (result.action)
                         {
-                            var target = Find.World.worldObjects.MapParentAt(tile);
-                            if (target is null) return;
-
-                            var result = Select(target);
-                            var data = new TargetData<GlobalTargetInfo>();
-                            data.targets.Add(target);
-                            switch (result.action)
-                            {
-                                case TargeterAction.Cancel:
-                                    SoundDefOf.CancelMode.PlayOneShotOnCamera(null);
-                                    break;
-                                case TargeterAction.Reject:
-                                    SoundDefOf.ClickReject.PlayOneShotOnCamera(null);
-                                    break;
-                                case TargeterAction.Accept:
-                                case TargeterAction.Submit:
-                                    Assert.IsFalse(result.options.NullOrEmpty());
-                                    if (result.options.NullOrEmpty())
+                            case TargeterAction.Cancel:
+                                SoundDefOf.CancelMode.PlayOneShotOnCamera(null);
+                                break;
+                            case TargeterAction.Reject:
+                                SoundDefOf.ClickReject.PlayOneShotOnCamera(null);
+                                break;
+                            case TargeterAction.Accept:
+                            case TargeterAction.Submit:
+                                if (result.options.NullOrEmpty())
+                                {
+                                    Trace.Fail("Finalizing results with no options to choose.");
+                                    return;
+                                }
+                                if (result.options.Count == 1)
+                                {
+                                    ChooseOption(result.options[0]);
+                                    return;
+                                }
+                                List<FloatMenuOption> list = [];
+                                foreach (ITargetOption option in result.options)
+                                {
+                                    list.Add(new FloatMenuOption(option.Label, delegate
                                     {
-                                        Trace.Fail("Finalizing results with no options to choose.");
-                                        return;
-                                    }
-                                    if (result.options.Count == 1)
+                                        ChooseOption(option);
+                                    }));
+                                }
+                                Find.WindowStack.Add(new FloatMenu(list));
+                                void ChooseOption(ITargetOption option2)
+                                {
+                                    var arrivalOption = option2 as ArrivalOption;
+                                    SoundDefOf.Tick_High.PlayOneShotOnCamera();
+                                    if (arrivalOption?.continueWith != null)
                                     {
-                                        ChooseOption(result.options[0]);
-                                        return;
+                                        arrivalOption.continueWith(data);
                                     }
-                                    List<FloatMenuOption> list = [];
-                                    foreach (ITargetOption option in result.options)
+                                    else
                                     {
-                                        list.Add(new FloatMenuOption(option.Label, delegate
-                                        {
-                                            ChooseOption(option);
-                                        }));
+                                        Launch(data, arrivalOption?.arrivalAction);
+                                        SoundDefOf.Gravship_Launch.PlayOneShotOnCamera();
                                     }
-                                    Find.WindowStack.Add(new FloatMenu(list));
-                                    void ChooseOption(ITargetOption option2)
-                                    {
-                                        var arrivalOption = option2 as ArrivalOption;
-                                        SoundDefOf.Tick_High.PlayOneShotOnCamera();
-                                        if (arrivalOption?.continueWith != null)
-                                        {
-                                            arrivalOption.continueWith(data);
-                                        }
-                                        else
-                                        {
-                                            Launch(data, arrivalOption?.arrivalAction);
-                                            SoundDefOf.Gravship_Launch.PlayOneShotOnCamera();
-                                        }
-                                    }
-                                    break;
-                            }
-                        }, () => ChoosingDestination(assignment), engine);
+                                }
+                                break;
+                        }
                     }, () =>
                     {
                         WorldObject singleSelectedObject = Find.WorldSelector.SingleSelectedObject;

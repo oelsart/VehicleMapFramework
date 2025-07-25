@@ -17,9 +17,9 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 //VehicleMapの時はいくつかを専用のSectionLayerに置き換え、そうでなければそれらは除外する
 [HarmonyPatch(typeof(Section), MethodType.Constructor, typeof(IntVec3), typeof(Map))]
+[PatchLevel(Level.Mandatory)]
 public static class Patch_Section_Constructor
 {
-    [PatchLevel(Level.Mandatory)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();
@@ -52,9 +52,9 @@ public static class Patch_MechanitorUtility_InMechanitorCommandRange
 }
 
 [HarmonyPatch(typeof(Pawn_MechanitorTracker), nameof(Pawn_MechanitorTracker.CanCommandTo))]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Pawn_MechanitorTracker_CanCommandTo
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_MapHeld, CachedMethodInfo.m_MapHeldBaseMap)
@@ -106,9 +106,9 @@ public static class Patch_Reachability_CanReach
 }
 
 [HarmonyPatch(typeof(Reachability), nameof(Reachability.CanReachNonLocal), typeof(IntVec3), typeof(TargetInfo), typeof(PathEndMode), typeof(TraverseParms))]
+[PatchLevel(Level.Safe)]
 public static class Patch_Reachability_CanReachNonLocal
 {
-    [PatchLevel(Level.Safe)]
     public static bool Prefix(IntVec3 start, TargetInfo dest, PathEndMode peMode, TraverseParms traverseParams, Map ___map, ref bool __result)
     {
         var destMap = dest.Map;
@@ -122,9 +122,9 @@ public static class Patch_Reachability_CanReachNonLocal
 }
 
 [HarmonyPatch(typeof(Reachability), nameof(Reachability.CanReachMapEdge), typeof(IntVec3), typeof(TraverseParms))]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Reachability_CanReachMapEdge
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return Patch_Reachability_CanReach.Transpiler(instructions);
@@ -132,9 +132,9 @@ public static class Patch_Reachability_CanReachMapEdge
 }
 
 [HarmonyPatch(typeof(Pawn_PlayerSettings), nameof(Pawn_PlayerSettings.EffectiveAreaRestrictionInPawnCurrentMap), MethodType.Getter)]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Pawn_PlayerSettings_EffectiveAreaRestrictionInPawnCurrentMap
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_MapHeld, CachedMethodInfo.m_MapHeldBaseMap);
@@ -143,9 +143,9 @@ public static class Patch_Pawn_PlayerSettings_EffectiveAreaRestrictionInPawnCurr
 
 //VehicleMapの外気温はマップ上のその位置の気温、スポーンしてないなら今いるタイルの外気温
 [HarmonyPatch(typeof(MapTemperature), nameof(MapTemperature.OutdoorTemp), MethodType.Getter)]
+[PatchLevel(Level.Safe)]
 public static class Patch_MapTemperature_OutdoorTemp
 {
-    [PatchLevel(Level.Safe)]
     public static bool Prefix(Map ___map, ref float __result)
     {
         if (___map.IsVehicleMapOf(out var vehicle))
@@ -166,9 +166,9 @@ public static class Patch_MapTemperature_OutdoorTemp
 
 //リソースカウンターに車上マップのリソースを追加
 [HarmonyPatch(typeof(ResourceCounter), nameof(ResourceCounter.UpdateResourceCounts))]
+[PatchLevel(Level.Safe)]
 public static class Patch_ResourceCounter_UpdateResourceCounts
 {
-    [PatchLevel(Level.Safe)]
     public static void Postfix(Map ___map, Dictionary<ThingDef, int> ___countedAmounts)
     {
         foreach (var vehicle in VehiclePawnWithMapCache.AllVehiclesOn(___map))
@@ -340,9 +340,9 @@ public static class Patch_Map_MapUpdate
 }
 
 [HarmonyPatch(typeof(MapPawns), nameof(MapPawns.AllPawns), MethodType.Getter)]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_MapPawns_AllPawns
 {
-    [PatchLevel(Level.Sensitive)]
     public static List<Pawn> Postfix(List<Pawn> __result, Map ___map)
     {
         if (___map.IsVehicleMapOf(out _)) return __result;
@@ -362,9 +362,9 @@ public static class Patch_MapPawns_AllPawns
 [HarmonyBefore(VehicleFramework.HarmonyId)]
 [HarmonyPatchCategory(EarlyPatchCore.Category)]
 [HarmonyPatch(typeof(MapPawns), nameof(MapPawns.AllPawnsSpawned), MethodType.Getter)]
+[PatchLevel(Level.Mandatory)]
 public static class Patch_MapPawns_AllPawnsSpawned
 {
-    [PatchLevel(Level.Mandatory)]
     public static IReadOnlyList<Pawn> Postfix(IReadOnlyList<Pawn> __result, Map ___map)
     {
         if (___map.IsVehicleMapOf(out _)) return __result;
@@ -382,9 +382,9 @@ public static class Patch_MapPawns_AllPawnsSpawned
 }
 
 [HarmonyPatch(typeof(MapPawns), nameof(MapPawns.FreeHumanlikesSpawnedOfFaction))]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_MapPawns_FreeHumanlikesSpawnedOfFaction
 {
-    [PatchLevel(Level.Sensitive)]
     public static void Postfix(List<Pawn> __result, Map ___map, Faction faction)
     {
         __result.AddRange(VehiclePawnWithMapCache.TryGetAllVehiclesOn(___map).SelectMany(v => v.VehicleMap.mapPawns.FreeHumanlikesSpawnedOfFaction(faction)));
@@ -392,9 +392,9 @@ public static class Patch_MapPawns_FreeHumanlikesSpawnedOfFaction
 }
 
 [HarmonyPatch(typeof(MapPawns), nameof(MapPawns.SpawnedBabiesInFaction))]
+[PatchLevel(Level.Safe)]
 public static class Patch_MapPawns_SpawnedBabiesInFaction
 {
-    [PatchLevel(Level.Safe)]
     public static void Postfix(List<Pawn> __result, Map ___map, Faction faction)
     {
         __result.AddRange(VehiclePawnWithMapCache.TryGetAllVehiclesOn(___map).SelectMany(v => v.VehicleMap.mapPawns.SpawnedBabiesInFaction(faction)));
@@ -402,9 +402,9 @@ public static class Patch_MapPawns_SpawnedBabiesInFaction
 }
 
 [HarmonyPatch(typeof(MapPawns), nameof(MapPawns.AnyPawnBlockingMapRemoval), MethodType.Getter)]
+[PatchLevel(Level.Safe)]
 public static class Patch_MapPawns_AnyPawnBlockingMapRemoval
 {
-    [PatchLevel(Level.Safe)]
     public static void Postfix(ref bool __result, Map ___map)
     {
         __result = __result || VehiclePawnWithMapCache.TryGetAllVehiclesOn(___map).Any(v => v.VehicleMap.mapPawns.AnyPawnBlockingMapRemoval);
@@ -412,9 +412,9 @@ public static class Patch_MapPawns_AnyPawnBlockingMapRemoval
 }
 
 [HarmonyPatch(typeof(CameraJumper), nameof(CameraJumper.GetWorldTarget))]
+[PatchLevel(Level.Safe)]
 public static class Patch_CameraJumper_GetWorldTarget
 {
-    [PatchLevel(Level.Safe)]
     public static void Prefix(ref GlobalTargetInfo target)
     {
         if (target.Thing.IsOnVehicleMapOf(out var vehicle))
@@ -425,9 +425,9 @@ public static class Patch_CameraJumper_GetWorldTarget
 }
 
 [HarmonyPatch(typeof(DesignationManager), nameof(DesignationManager.DesignationOn))]
+[PatchLevel(Level.Safe)]
 public static class Patch_DesignationManager_DesignationOn
 {
-    [PatchLevel(Level.Safe)]
     [HarmonyPatch([typeof(Thing)])]
     [HarmonyPrefix]
     public static bool Prefix1(Thing t, DesignationManager __instance, ref Designation __result)
@@ -441,7 +441,6 @@ public static class Patch_DesignationManager_DesignationOn
         return true;
     }
 
-    [PatchLevel(Level.Safe)]
     [HarmonyPatch([typeof(Thing), typeof(DesignationDef)])]
     [HarmonyPrefix]
     public static bool Prefix2(Thing t, DesignationDef def, DesignationManager __instance, ref Designation __result)
@@ -457,9 +456,9 @@ public static class Patch_DesignationManager_DesignationOn
 }
 
 [HarmonyPatch(typeof(SoundStarter), nameof(SoundStarter.PlayOneShot))]
+[PatchLevel(Level.Safe)]
 public static class Patch_SoundStarter_PlayOneShot
 {
-    [PatchLevel(Level.Safe)]
     public static void Prefix(ref SoundInfo info)
     {
         if (info.Maker.IsValid && info.Maker.Map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
@@ -470,9 +469,9 @@ public static class Patch_SoundStarter_PlayOneShot
 }
 
 [HarmonyPatch(typeof(Room), nameof(Room.DrawFieldEdges))]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_Room_DrawFieldEdges
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();
@@ -490,9 +489,9 @@ public static class Patch_Room_DrawFieldEdges
 }
 
 [HarmonyPatch(typeof(WorldObjectsHolder), nameof(WorldObjectsHolder.MapParentAt))]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_WorldObjectsHolder_MapParentAt
 {
-    [PatchLevel(Level.Sensitive)]
     public static void Postfix(ref MapParent __result, List<MapParent> ___mapParents, PlanetTile tile)
     {
         if (__result is MapParent_Vehicle)
@@ -503,9 +502,9 @@ public static class Patch_WorldObjectsHolder_MapParentAt
 }
 
 [HarmonyPatch(typeof(Game), nameof(Game.FindMap), typeof(PlanetTile))]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_Game_FindMap
 {
-    [PatchLevel(Level.Sensitive)]
     public static void Postfix(ref Map __result, List<Map> ___maps, PlanetTile tile)
     {
         if (__result.IsVehicleMapOf(out _))
@@ -516,6 +515,7 @@ public static class Patch_Game_FindMap
 }
 
 [HarmonyPatch(typeof(Hediff_MetalhorrorImplant), nameof(Hediff_MetalhorrorImplant.Emerge))]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Hediff_MetalhorrorImplant_Emerge
 {
     private static bool Prepare()
@@ -523,7 +523,6 @@ public static class Patch_Hediff_MetalhorrorImplant_Emerge
         return ModsConfig.AnomalyActive;
     }
 
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_MapHeld, CachedMethodInfo.m_MapHeldBaseMap);
@@ -531,9 +530,9 @@ public static class Patch_Hediff_MetalhorrorImplant_Emerge
 }
 
 [HarmonyPatch(typeof(HaulDestinationManager), nameof(HaulDestinationManager.AddHaulSource))]
+[PatchLevel(Level.Safe)]
 public static class Patch_HaulDestinationManager_AddHaulSource
 {
-    [PatchLevel(Level.Safe)]
     public static void Postfix(Map ___map, IHaulSource source)
     {
         ___map.GetCachedMapComponent<CrossMapHaulDestinationManager>().AddHaulSource(source);
@@ -541,9 +540,9 @@ public static class Patch_HaulDestinationManager_AddHaulSource
 }
 
 [HarmonyPatch(typeof(HaulDestinationManager), nameof(HaulDestinationManager.AddHaulDestination))]
+[PatchLevel(Level.Safe)]
 public static class Patch_HaulDestinationManager_AddHaulDestination
 {
-    [PatchLevel(Level.Safe)]
     public static void Postfix(Map ___map, IHaulDestination haulDestination)
     {
         ___map.GetCachedMapComponent<CrossMapHaulDestinationManager>().AddHaulDestination(haulDestination);
@@ -551,9 +550,9 @@ public static class Patch_HaulDestinationManager_AddHaulDestination
 }
 
 [HarmonyPatch(typeof(HaulDestinationManager), nameof(HaulDestinationManager.RemoveHaulSource))]
+[PatchLevel(Level.Safe)]
 public static class Patch_HaulDestinationManager_RemoveHaulSource
 {
-    [PatchLevel(Level.Safe)]
     public static void Postfix(Map ___map, IHaulSource source)
     {
         ___map.GetCachedMapComponent<CrossMapHaulDestinationManager>().RemoveHaulSource(source);
@@ -561,9 +560,9 @@ public static class Patch_HaulDestinationManager_RemoveHaulSource
 }
 
 [HarmonyPatch(typeof(HaulDestinationManager), nameof(HaulDestinationManager.RemoveHaulDestination))]
+[PatchLevel(Level.Safe)]
 public static class Patch_HaulDestinationManager_RemoveHaulDestination
 {
-    [PatchLevel(Level.Safe)]
     public static void Postfix(Map ___map, IHaulDestination haulDestination)
     {
         ___map.GetCachedMapComponent<CrossMapHaulDestinationManager>().RemoveHaulDestination(haulDestination);
@@ -571,9 +570,9 @@ public static class Patch_HaulDestinationManager_RemoveHaulDestination
 }
 
 [HarmonyPatch(typeof(HaulDestinationManager), nameof(HaulDestinationManager.Notify_HaulDestinationChangedPriority))]
+[PatchLevel(Level.Safe)]
 public static class Patch_HaulDestinationManager_Notify_HaulDestinationChangedPriority
 {
-    [PatchLevel(Level.Safe)]
     public static void Postfix(Map ___map)
     {
         ___map.GetCachedMapComponent<CrossMapHaulDestinationManager>().Notify_HaulDestinationChangedPriority();
@@ -582,9 +581,9 @@ public static class Patch_HaulDestinationManager_Notify_HaulDestinationChangedPr
 
 //極端に小さいマップではCeilToIntのせいで毎tick必ずどこかのセルの物が劣化する処理だったんでこれを車両マップ上では緩和
 [HarmonyPatch(typeof(SteadyEnvironmentEffects), nameof(SteadyEnvironmentEffects.SteadyEnvironmentEffectsTick))]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_SteadyEnvironmentEffects_SteadyEnvironmentEffectsTick
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();

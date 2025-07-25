@@ -26,9 +26,9 @@ public class Patches_PUAH
 
 [HarmonyPatchCategory(Patches_PUAH.Category)]
 [HarmonyPatch("PickUpAndHaul.WorkGiver_HaulToInventory", "PotentialWorkThingsGlobal")]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_WorkGiver_HaulToInventory_PotentialWorkThingsGlobal
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();
@@ -46,9 +46,9 @@ public static class Patch_WorkGiver_HaulToInventory_PotentialWorkThingsGlobal
 
 [HarmonyPatchCategory(Patches_PUAH.Category)]
 [HarmonyPatch("PickUpAndHaul.WorkGiver_HaulToInventory+ThingPositionComparer", "Compare")]
+[PatchLevel(Level.Cautious)]
 public static class Patch_ThingPositionComparer_Compare
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
@@ -57,9 +57,9 @@ public static class Patch_ThingPositionComparer_Compare
 
 [HarmonyPatchCategory(Patches_PUAH.Category)]
 [HarmonyPatch("PickUpAndHaul.WorkGiver_HaulToInventory", "JobOnThing")]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_WorkGiver_HaulToInventory_JobOnThing
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
         var codes = new CodeMatcher(instructions, generator);
@@ -105,9 +105,9 @@ public static class Patch_WorkGiver_HaulToInventory_JobOnThing
 
 [HarmonyPatchCategory(Patches_PUAH.Category)]
 [HarmonyPatch("PickUpAndHaul.WorkGiver_HaulToInventory", "AllocateThingAtCell")]
+[PatchLevel(Level.Cautious)]
 public static class Patch_WorkGiver_HaulToInventory_AllocateThingAtCell
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);
@@ -116,12 +116,12 @@ public static class Patch_WorkGiver_HaulToInventory_AllocateThingAtCell
 
 [HarmonyPatchCategory(Patches_PUAH.Category)]
 [HarmonyPatch("PickUpAndHaul.JobDriver_HaulToInventory", "TryMakePreToilReservations")]
+[PatchLevel(Level.Safe)]
 public static class Patch_JobDriver_HaulToInventory_TryMakePreToilReservations
 {
     private static Action<string> Message = (Action<string>)AccessTools.Method("PickUpAndHaul.Log:Message")?.CreateDelegate(typeof(Action<string>));
 
-    [PatchLevel(Level.Safe)]
-    public static bool Prefix(Job ___job, Pawn ___pawn)
+    public static bool Prefix(Job ___job, Pawn ___pawn, ref bool __result)
     {
         if (___job.targetQueueB.NotNullAndAny()) return true;
 
@@ -135,6 +135,7 @@ public static class Patch_JobDriver_HaulToInventory_TryMakePreToilReservations
             Log.Message(message);
         }
         ___pawn.ReserveAsManyAsPossible(___job.targetQueueB, ___job);
-        return ___pawn.Reserve(___job.targetB, ___job);
+        __result = ___pawn.Reserve(___job.targetB, ___job);
+        return false;
     }
 }

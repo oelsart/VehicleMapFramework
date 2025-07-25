@@ -17,9 +17,9 @@ using static VehicleMapFramework.ModCompat;
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 [HarmonyPatch(typeof(UI), nameof(UI.MouseCell))]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_UI_MouseCell
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();
@@ -37,9 +37,9 @@ public static class Patch_UI_MouseCell
 
 [HarmonyBefore(VehicleFramework.HarmonyId)]
 [HarmonyPatch(typeof(GenThing), nameof(GenThing.TrueCenter), typeof(Thing))]
+[PatchLevel(Level.Mandatory)]
 public static class Patch_GenThing_TrueCenter
 {
-    [PatchLevel(Level.Sensitive)]
     public static bool Prefix(Thing t, ref Vector3 __result)
     {
         return !t.TryGetDrawPos(ref __result);
@@ -47,15 +47,14 @@ public static class Patch_GenThing_TrueCenter
 }
 
 [HarmonyPatch(typeof(Pawn_DrawTracker), nameof(Pawn_DrawTracker.DrawPos), MethodType.Getter)]
+[PatchLevel(Level.Safe)]
 public static class Patch_Pawn_DrawTracker_DrawPos
 {
-    [PatchLevel(Level.Sensitive)]
     public static bool Prefix(Pawn ___pawn, ref Vector3 __result)
     {
         return !___pawn.TryGetDrawPos(ref __result);
     }
 
-    [PatchLevel(Level.Sensitive)]
     public static void Postfix(Pawn ___pawn, ref Vector3 __result)
     {
         __result.y += ___pawn.jobs?.curDriver is JobDriverAcrossMaps driver ? driver.ForcedBodyOffset.y : 0f;
@@ -63,16 +62,15 @@ public static class Patch_Pawn_DrawTracker_DrawPos
 }
 
 [HarmonyPatch(typeof(VehicleDrawTracker), nameof(VehicleDrawTracker.DrawPos), MethodType.Getter)]
+[PatchLevel(Level.Safe)]
 public static class Patch_VehiclePawn_DrawPos
 {
-    [PatchLevel(Level.Sensitive)]
     public static bool Prefix(VehiclePawn ___vehicle, ref Vector3 __result, out bool __state)
     {
         __state = !___vehicle.TryGetDrawPos(ref __result);
         return __state;
     }
 
-    [PatchLevel(Level.Sensitive)]
     public static void Postfix(VehiclePawn ___vehicle, ref Vector3 __result, bool __state)
     {
         if (__state)
@@ -83,9 +81,9 @@ public static class Patch_VehiclePawn_DrawPos
 }
 
 [HarmonyPatch(typeof(Mote), nameof(Mote.DrawPos), MethodType.Getter)]
+[PatchLevel(Level.Safe)]
 public static class Patch_Mote_DrawPos
 {
-    [PatchLevel(Level.Sensitive)]
     public static bool Prefix(Mote __instance, ref Vector3 __result)
     {
         if (__instance.link1.Target.HasThing) return true;
@@ -95,9 +93,9 @@ public static class Patch_Mote_DrawPos
 }
 
 [HarmonyPatch(typeof(VehicleSkyfaller), "RootPos", MethodType.Getter)]
+[PatchLevel(Level.Safe)]
 public static class Patch_VehicleSkyfaller_RootPos
 {
-    [PatchLevel(Level.Safe)]
     public static void Postfix(VehicleSkyfaller __instance, ref Vector3 __result)
     {
         if (__instance.IsOnNonFocusedVehicleMapOf(out var vehicle))
@@ -108,9 +106,9 @@ public static class Patch_VehicleSkyfaller_RootPos
 }
 
 [HarmonyPatch(typeof(FleckSystemBase<FleckStatic>), nameof(FleckSystemBase<>.CreateFleck))]
+[PatchLevel(Level.Safe)]
 public static class Patch_FleckSystemBase_FleckStatic_CreateFleck
 {
-    [PatchLevel(Level.Safe)]
     public static void Prefix(FleckSystemBase<FleckStatic> __instance, ref FleckCreationData creationData)
     {
         if (__instance.parent.parent.IsNonFocusedVehicleMapOf(out var vehicle))
@@ -134,9 +132,9 @@ public static class Patch_FleckSystemBase_FleckStatic_CreateFleck
 }
 
 [HarmonyPatch(typeof(FleckSystemBase<FleckThrown>), nameof(FleckSystemBase<>.CreateFleck))]
+[PatchLevel(Level.Safe)]
 public static class Patch_FleckSystemBase_FleckThrown_CreateFleck
 {
-    [PatchLevel(Level.Safe)]
     public static void Prefix(FleckSystemBase<FleckThrown> __instance, ref FleckCreationData creationData)
     {
         if (__instance.parent.parent.IsNonFocusedVehicleMapOf(out var vehicle))
@@ -147,9 +145,9 @@ public static class Patch_FleckSystemBase_FleckThrown_CreateFleck
 }
 
 [HarmonyPatch(typeof(FleckSystemBase<FleckSplash>), nameof(FleckSystemBase<>.CreateFleck))]
+[PatchLevel(Level.Safe)]
 public static class Patch_FleckSystemBase_FleckSplash_CreateFleck
 {
-    [PatchLevel(Level.Safe)]
     public static void Prefix(FleckSystemBase<FleckSplash> __instance, ref FleckCreationData creationData)
     {
         if (__instance.parent.parent.IsNonFocusedVehicleMapOf(out var vehicle))
@@ -160,9 +158,9 @@ public static class Patch_FleckSystemBase_FleckSplash_CreateFleck
 }
 
 [HarmonyPatch(typeof(FleckStatic), nameof(FleckStatic.Draw), [typeof(float), typeof(DrawBatch)])]
+[PatchLevel(Level.Safe)]
 public static class Patch_FleckStatic_Draw
 {
-    [PatchLevel(Level.Safe)]
     public static void Prefix(FleckStatic __instance, ref float altitude)
     {
         altitude = __instance.DrawPos.y;
@@ -172,9 +170,9 @@ public static class Patch_FleckStatic_Draw
 //thingがIsOnVehicleMapだった場合回転の初期値num4にベースvehicleのAngleを与え、posはRotatePointで回転
 [HarmonyPatch(typeof(SelectionDrawer), nameof(SelectionDrawer.DrawSelectionBracketFor))]
 [HarmonyAfter("owlchemist.smartfarming")]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_SelectionDrawer_DrawSelectionBracketFor
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
         var codes = instructions.ToList();
@@ -232,9 +230,9 @@ public static class Patch_SelectionDrawer_DrawSelectionBracketFor
 }
 
 [HarmonyPatch(typeof(Pawn_JobTracker), nameof(Pawn_JobTracker.DrawLinesBetweenTargets))]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_Pawn_JobTracker_DrawLinesBetweenTargets
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();
@@ -300,9 +298,9 @@ public static class Patch_Pawn_JobTracker_DrawLinesBetweenTargets
 }
 
 [HarmonyPatch(typeof(RenderHelper), nameof(RenderHelper.DrawLinesBetweenTargets))]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_RenderHelper_DrawLinesBetweenTargets
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();
@@ -326,9 +324,9 @@ public static class Patch_RenderHelper_DrawLinesBetweenTargets
 }
 
 [HarmonyPatch(typeof(PawnPath), nameof(PawnPath.DrawPath))]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_PawnPath_DrawPath
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
         var codes = instructions.ToList();
@@ -382,9 +380,9 @@ public static class Patch_PawnPath_DrawPath
 }
 
 [HarmonyPatch(typeof(Graphic), nameof(Graphic.Draw))]
+[PatchLevel(Level.Safe)]
 public static class Patch_Graphic_Draw
 {
-    [PatchLevel(Level.Safe)]
     public static void Prefix(ref Vector3 loc, ref Rot4 rot, Thing thing, ref float extraRotation, Graphic __instance)
     {
         if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle) && thing.def.drawerType == DrawerType.RealtimeOnly && thing.def.category != ThingCategory.Item)
@@ -437,9 +435,9 @@ public static class Patch_Graphic_Draw
 }
 
 [HarmonyPatch(typeof(Graphic), nameof(Graphic.DrawFromDef))]
+[PatchLevel(Level.Safe)]
 public static class Patch_Graphic_DrawFromDef
 {
-    [PatchLevel(Level.Safe)]
     public static void Prefix(ref Vector3 loc, ref Rot4 rot, ThingDef thingDef, ref float extraRotation, Graphic __instance)
     {
         if (VehicleMapUtility.FocusedOnVehicleMap(out var vehicle) && thingDef != null)
@@ -545,9 +543,9 @@ public static class Patch_VerbProperties_DrawRadiusRing
 }
 
 [HarmonyPatch(typeof(GenDraw), nameof(GenDraw.DrawRadiusRing), typeof(IntVec3), typeof(float), typeof(Color), typeof(Func<IntVec3, bool>))]
+[PatchLevel(Level.Safe)]
 public static class Patch_GenDraw_DrawRadiusRing
 {
-    [PatchLevel(Level.Safe)]
     public static void Prefix(ref IntVec3 center)
     {
         var tmp = center;
@@ -572,9 +570,9 @@ public static class Patch_GenDraw_DrawRadiusRing
 //Graphics.DrawMesh(MeshPool.plane10, SelectedDrawPosOffset(vector, center), Quaternion.identity, GenDraw.InteractionCellMaterial, 0) ->
 //Graphics.DrawMesh(MeshPool.plane10, FocusedDrawPosOffset(vector, center), Quaternion.identity, GenDraw.InteractionCellMaterial, 0)
 [HarmonyPatch(typeof(GenDraw), "DrawInteractionCell")]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_GenDraw_DrawInteractionCell
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();
@@ -622,9 +620,9 @@ public static class Patch_GenDraw_DrawTargetHighlightWithLayer
 //Widgets.DrawNumberOnMap(screenPos, intVec.x, Color.white) ->
 //Widgets.DrawNumberOnMap(ConvertToVehicleMap(screenPos), intVec.x, Color.white)を3回
 [HarmonyPatch(typeof(DesignationDragger), nameof(DesignationDragger.DraggerOnGUI))]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_DesignationDragger_DraggerOnGUI
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator, MethodBase original)
     {
         var codes = instructions.ToList();
@@ -690,9 +688,9 @@ public static class Patch_DesignationDragger_DraggerOnGUI
 //GenDraw.DrawLineBetween(GenThing.TrueCenter(pos, Rot4.North, def.size, def.Altitude), t.TrueCenter(), SimpleColor.Red, 0.2f) ->
 //GenDraw.DrawLineBetween(FocusedDrawPosOffset(GenThing.TrueCenter(pos, Rot4.North, def.size, def.Altitude), pos), t.TrueCenter(), SimpleColor.Red, 0.2f)
 [HarmonyPatch(typeof(MeditationUtility), nameof(MeditationUtility.DrawArtificialBuildingOverlay))]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_MeditationUtility_DrawArtificialBuildingOverlay
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) => TranspilerCommon(instructions);
 
     public static IEnumerable<CodeInstruction> TranspilerCommon(IEnumerable<CodeInstruction> instructions, int ArgumentNum = 0)
@@ -709,23 +707,23 @@ public static class Patch_MeditationUtility_DrawArtificialBuildingOverlay
 }
 
 [HarmonyPatch(typeof(MeditationUtility), nameof(MeditationUtility.DrawMeditationSpotOverlay))]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_MeditationUtility_DrawMeditationSpotOverlay
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) => Patch_MeditationUtility_DrawArtificialBuildingOverlay.TranspilerCommon(instructions);
 }
 
 [HarmonyPatch(typeof(MeditationUtility), nameof(MeditationUtility.DrawMeditationFociAffectedByBuildingOverlay))]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_MeditationUtility_DrawMeditationFociAffectedByBuildingOverlay
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) => Patch_MeditationUtility_DrawArtificialBuildingOverlay.TranspilerCommon(instructions, 3);
 }
 
 [HarmonyPatch(typeof(PlaceWorker_ShowTradeBeaconRadius), nameof(PlaceWorker_ShowTradeBeaconRadius.DrawGhost))]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_PlaceWorker_ShowTradeBeaconRadius_DrawGhost
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
         var codes = instructions.ToList();
@@ -748,9 +746,9 @@ public static class Patch_PlaceWorker_ShowTradeBeaconRadius_DrawGhost
 
 //CellがターゲットのMoteにオフセットをかける
 [HarmonyPatch(typeof(MoteAttachLink), nameof(MoteAttachLink.UpdateDrawPos))]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_MoteAttachLink_UpdateDrawPos
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
         var codes = instructions.ToList();

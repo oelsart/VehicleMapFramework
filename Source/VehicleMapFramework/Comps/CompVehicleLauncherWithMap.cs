@@ -67,7 +67,7 @@ public class CompVehicleLauncherWithMap : CompVehicleLauncher
                 disableReason = "VF_CannotLaunchOverEncumbered".Translate(Vehicle.LabelShort);
             }
         }
-        if (!VehicleMod.settings.debug.debugDraftAnyVehicle && !Vehicle.CanMoveWithOperators)
+        if (!VehicleMod.settings.debug.debugDraftAnyVehicle && !Vehicle.HasEnoughOperators)
         {
             disableReason = "VF_NotEnoughToOperate".Translate();
         }

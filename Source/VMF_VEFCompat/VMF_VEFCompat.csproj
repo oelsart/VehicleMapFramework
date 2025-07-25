@@ -27,22 +27,6 @@
     <IntermediateOutputPath>C:\Users\ppss2\AppData\Local\Temp\vs8B2B.tmp\Release\</IntermediateOutputPath>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="PipeSystem">
-      <HintPath>..\..\..\..\..\..\workshop\content\294100\2023507013\1.6\Assemblies\PipeSystem.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="SmashTools">
-      <HintPath>..\..\..\Vehicle-Framework\1.6\Assemblies\SmashTools.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="VEF">
-      <HintPath>..\..\..\..\..\..\workshop\content\294100\2023507013\1.6\Assemblies\VEF.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Vehicles">
-      <HintPath>..\..\..\Vehicle-Framework\1.6\Assemblies\Vehicles.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Update="System">
       <Private>False</Private>
     </Reference>
@@ -52,10 +36,26 @@
     <Reference Update="System.Xml.Linq">
       <Private>False</Private>
     </Reference>
+    <Reference Include="PipeSystem">
+      <HintPath>..\..\..\..\..\..\workshop\content\294100\2023507013\1.6\Assemblies\PipeSystem.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="SmashTools">
+      <HintPath>..\..\..\..\..\..\workshop\content\294100\3014915404\1.6\Assemblies\SmashTools.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="System.Data.DataSetExtensions">
       <Private>False</Private>
     </Reference>
     <Reference Include="Microsoft.CSharp">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="VEF">
+      <HintPath>..\..\..\..\..\..\workshop\content\294100\2023507013\1.6\Assemblies\VEF.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Vehicles">
+      <HintPath>..\..\..\..\..\..\workshop\content\294100\3014915404\1.6\Assemblies\Vehicles.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Update="System.Data">
@@ -70,7 +70,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.4507-beta" />
+    <PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.4528" />
 	<PackageReference Include="Lib.Harmony" Version="2.3.6">
 		<ExcludeAssets>runtime</ExcludeAssets>
 	</PackageReference>

@@ -55,7 +55,7 @@ namespace VehicleMapFramework
             }
             if (vehicle.FullRotation.IsDiagonal && !forced)
             {
-                return "VMF_CannotSetDownDiagonal".Translate(vehicle);
+                return "VMF_CannotSetDownDiagonal".Translate(vehicle.LabelCap);
             }
 
             placingGravshipVehicle = true;
@@ -112,7 +112,7 @@ namespace VehicleMapFramework
                 }
                 if (forced)
                 {
-                    FleckMaker.ThrowDustPuff(gravship.originalPosition, map, Mathf.Max(vehicle.def.size.x, vehicle.def.size.z) + 2f);
+                    FleckMaker.ThrowDustPuff(root, map, Mathf.Max(vehicle.def.size.x, vehicle.def.size.z) + 2f);
                 }
             }
             finally
@@ -146,6 +146,10 @@ namespace VehicleMapFramework
             }
 
             var cells = engine.ValidSubstructure;
+            if (!engine.OccupiedRect().All(cells.Contains))
+            {
+                return "CannotLaunchNoEngine".Translate();
+            }
             var bounds = CellRect.FromCellList(cells);
             var cellRect = bounds.Encapsulate(wheelsRect);
             var outOfBoundsCells = cellRect.Except(cells);

@@ -20,9 +20,9 @@ public static class Patches_DMS
 
 [HarmonyPatchCategory(Patches_DMS.Category)]
 [HarmonyPatch("DMS.Verb_CastAbilityArcSprayProjectile", "TryCastShot")]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Verb_CastAbilityArcSprayProjectile_TryCastShot
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
@@ -31,9 +31,9 @@ public static class Patch_Verb_CastAbilityArcSprayProjectile_TryCastShot
 
 [HarmonyPatchCategory(Patches_DMS.Category)]
 [HarmonyPatch("DMS.Verb_CastAbilityArcSprayProjectile", "PreparePath")]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Verb_CastAbilityArcSprayProjectile_PreparePath
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return Patch_Verb_ArcSpray_PreparePath.Transpiler(instructions);

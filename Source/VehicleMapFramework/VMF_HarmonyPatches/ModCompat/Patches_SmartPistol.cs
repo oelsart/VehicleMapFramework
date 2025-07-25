@@ -20,9 +20,9 @@ public class Patches_SmartPistol
 
 [HarmonyPatchCategory(Patches_SmartPistol.Category)]
 [HarmonyPatch("RB_SmartPistol.TargetCandidateUtil", "GetSubTargets")]
+[PatchLevel(Level.Cautious)]
 public static class Patch_TargetCandidateUtil_GetSubTargets
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
@@ -31,9 +31,9 @@ public static class Patch_TargetCandidateUtil_GetSubTargets
 
 [HarmonyPatchCategory(Patches_SmartPistol.Category)]
 [HarmonyPatch("RB_SmartPistol.Mote_LockedCurve", "Tick")]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Mote_LockedCurve_Tick
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
@@ -42,9 +42,9 @@ public static class Patch_Mote_LockedCurve_Tick
 
 [HarmonyPatchCategory(Patches_SmartPistol.Category)]
 [HarmonyPatch("RB_SmartPistol.Mote_LockedCurve", "DrawAt")]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Mote_LockedCurve_DrawAt
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);

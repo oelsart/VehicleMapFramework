@@ -13,9 +13,9 @@ using static VehicleMapFramework.MethodInfoCache;
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 [HarmonyPatch(typeof(Thing), nameof(Thing.Rotation), MethodType.Setter)]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_Thing_Rotation
 {
-    [PatchLevel(Level.Sensitive)]
     public static void Prefix(Thing __instance, ref Rot4 value)
     {
         if (__instance is Pawn pawn && pawn.IsOnNonFocusedVehicleMapOf(out var vehicle))
@@ -34,9 +34,9 @@ public static class Patch_Thing_Rotation
 }
 
 [HarmonyPatch(typeof(Building_Door), "StuckOpen", MethodType.Getter)]
+[PatchLevel(Level.Safe)]
 public static class Patch_Building_Door_StuckOpen
 {
-    [PatchLevel(Level.Safe)]
     public static void Postfix(Building_Door __instance, ref bool __result)
     {
         __result &= __instance is not Building_VehicleRamp;
@@ -90,9 +90,9 @@ public static class Patch_Building_Door_DrawMovers
 }
 
 [HarmonyPatch(typeof(Building_SupportedDoor), "DrawAt")]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_Building_SupportedDoor_DrawAt
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
         var f_Vector3_y = AccessTools.Field(typeof(Vector3), nameof(Vector3.y));
@@ -127,9 +127,9 @@ public static class Patch_Building_SupportedDoor_DrawAt
 
 //ソーラーパネルはGraphic_Singleで見た目上回転しないのでFullRotationがHorizontalだったら回転しない
 [HarmonyPatch(typeof(CompPowerPlantSolar), nameof(CompPowerPlantSolar.PostDraw))]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_CompPowerPlantSolar_PostDraw
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
         var codes = instructions.MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseFullRotation_Thing)
@@ -153,9 +153,9 @@ public static class Patch_CompPowerPlantSolar_PostDraw
 }
 
 [HarmonyPatch(typeof(CompPowerPlantWind), nameof(CompPowerPlantWind.PostDraw))]
+[PatchLevel(Level.Cautious)]
 public static class Patch_CompPowerPlantWind_PostDraw
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseFullRotation_Thing)
@@ -168,9 +168,9 @@ public static class Patch_CompPowerPlantWind_PostDraw
 }
 
 [HarmonyPatch(typeof(CompPowerPlantWind), nameof(CompPowerPlantWind.CompTick))]
+[PatchLevel(Level.Cautious)]
 public static class Patch_CompPowerPlantWind_CompTick
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
@@ -178,9 +178,9 @@ public static class Patch_CompPowerPlantWind_CompTick
 }
 
 [HarmonyPatch(typeof(CompPowerPlantWind), "RecalculateBlockages")]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_CompPowerPlantWind_RecalculateBlockages
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();
@@ -205,9 +205,9 @@ public static class Patch_CompPowerPlantWind_RecalculateBlockages
 }
 
 [HarmonyPatch(typeof(Building_Battery), "DrawAt")]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_Building_Battery_DrawAt
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var ldcr4 = instructions.FirstOrDefault(c => c.opcode == OpCodes.Ldc_R4 && c.OperandIs(0.1f));
@@ -218,9 +218,9 @@ public static class Patch_Building_Battery_DrawAt
 }
 
 [HarmonyPatch(typeof(PlaceWorker_WindTurbine), nameof(PlaceWorker_WindTurbine.DrawGhost))]
+[PatchLevel(Level.Safe)]
 public static class Patch_PlaceWorker_WindTurbine_DrawGhost
 {
-    [PatchLevel(Level.Safe)]
     public static void Prefix(ref IntVec3 center, ref Rot4 rot, Thing thing)
     {
         if (Command_FocusVehicleMap.FocusedVehicle != null)
@@ -237,9 +237,9 @@ public static class Patch_PlaceWorker_WindTurbine_DrawGhost
 }
 
 [HarmonyPatch(typeof(CompRefuelable), nameof(CompRefuelable.PostDraw))]
+[PatchLevel(Level.Cautious)]
 public static class Patch_CompRefuelable_PostDraw
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseFullRotation_Thing)
@@ -248,9 +248,9 @@ public static class Patch_CompRefuelable_PostDraw
 }
 
 [HarmonyPatch(typeof(PlaceWorker_FuelingPort), nameof(PlaceWorker_FuelingPort.DrawFuelingPortCell))]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_PlaceWorker_FuelingPort_DrawFuelingPortCell
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();
@@ -266,9 +266,9 @@ public static class Patch_PlaceWorker_FuelingPort_DrawFuelingPortCell
 
 //Vehicleは移動するからTickごとにTileを取得し直す
 [HarmonyPatch(typeof(TravellingTransporters), "TickInterval")]
+[PatchLevel(Level.Safe)]
 public static class Patch_TravellingTransporters_Tick
 {
-    [PatchLevel(Level.Safe)]
     public static void Postfix(TravellingTransporters __instance)
     {
         if (__instance.arrivalAction is TransportersArrivalAction_LandInSpecificCell arrivalAction && mapParent(arrivalAction) is MapParent_Vehicle mapParent_Vehicle)
@@ -283,9 +283,9 @@ public static class Patch_TravellingTransporters_Tick
 
 //ワイヤーの行き先オフセットとFillableBarの回転
 [HarmonyPatch(typeof(Building_MechCharger), "DrawAt")]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_Building_MechCharger_DrawAt
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
         var codes = instructions.ToList();
@@ -319,9 +319,9 @@ public static class Patch_Building_MechCharger_DrawAt
 
 //ThingがあればThing.Map、なければFocusedVehicle.VehicleMap、それもなければFind.CurrentMapを参照するようにする
 [HarmonyPatch(typeof(PlaceWorker_WatchArea), nameof(PlaceWorker_WatchArea.DrawGhost))]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_PlaceWorker_WatchArea_DrawGhost
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
         var codes = instructions.ToList();
@@ -350,9 +350,9 @@ public static class Patch_PlaceWorker_WatchArea_DrawGhost
 
 //マップ外からPawnFlyerが飛んでくることが起こりうるので(MeleeAnimationのLassoなど)領域外の時はPositionのセットをスキップする
 [HarmonyPatch(typeof(PawnFlyer), "RecomputePosition")]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_PawnFlyer_RecomputePosition
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
         var codes = instructions.ToList();
@@ -379,9 +379,9 @@ public static class Patch_PawnFlyer_RecomputePosition
 }
 
 [HarmonyPatch(typeof(PawnFlyer), nameof(PawnFlyer.DestinationPos), MethodType.Getter)]
+[PatchLevel(Level.Safe)]
 public static class Patch_PawnFlyer_DestinationPos
 {
-    [PatchLevel(Level.Safe)]
     public static void Postfix(PawnFlyer __instance, ref Vector3 __result)
     {
         if (__instance.Map.IsNonFocusedVehicleMapOf(out var vehicle))
@@ -392,9 +392,9 @@ public static class Patch_PawnFlyer_DestinationPos
 }
 
 [HarmonyPatch(typeof(GenSpawn), nameof(GenSpawn.Spawn), typeof(Thing), typeof(IntVec3), typeof(Map), typeof(Rot4), typeof(WipeMode), typeof(bool), typeof(bool))]
+[PatchLevel(Level.Safe)]
 public static class Patch_GenSpawn_Spawn
 {
-    [PatchLevel(Level.Safe)]
     public static void Prefix(Thing newThing, ref Map map, IntVec3 loc)
     {
         if (map == null)
@@ -413,9 +413,9 @@ public static class Patch_GenSpawn_Spawn
 }
 
 [HarmonyPatch(typeof(GenConstruct), nameof(GenConstruct.CanConstruct), typeof(Thing), typeof(Pawn), typeof(bool), typeof(bool), typeof(JobDef))]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_GenConstruct_CanConstruct
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();
@@ -427,9 +427,9 @@ public static class Patch_GenConstruct_CanConstruct
 }
 
 [HarmonyPatch(typeof(Building_Bookcase), "DrawAt")]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_Building_Bookcase_DrawAt
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
         instructions = instructions.MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseRotationVehicleDraw);

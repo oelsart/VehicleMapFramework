@@ -25,9 +25,9 @@ public static class Patches_Odyssey
 
 [HarmonyPatchCategory(Patches_Odyssey.Category)]
 [HarmonyPatch(typeof(Building_GravEngine), "UpdateSubstructureIfNeeded")]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_Building_GravEngine_UpdateSubstructureIfNeeded
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
         var codes = new CodeMatcher(instructions, generator);
@@ -53,9 +53,9 @@ public static class Patch_Building_GravEngine_UpdateSubstructureIfNeeded
 
 [HarmonyPatchCategory(Patches_Odyssey.Category)]
 [HarmonyPatch(typeof(Building_GravEngine), nameof(Building_GravEngine.DeSpawn))]
+[PatchLevel(Level.Safe)]
 public static class Patch_Building_GravEngine_DeSpawn
 {
-    [PatchLevel(Level.Safe)]
     public static void Prefix(Building_GravEngine __instance)
     {
         if (__instance.IsOnVehicleMapOf(out var vehicle) && vehicle.Spawned && !GravshipVehicleUtility.GravshipProcessInProgress)
@@ -72,9 +72,9 @@ public static class Patch_Building_GravEngine_DeSpawn
 
 [HarmonyPatchCategory(Patches_Odyssey.Category)]
 [HarmonyPatch(typeof(TerrainGrid), nameof(TerrainGrid.CanRemoveFoundationAt))]
+[PatchLevel(Level.Safe)]
 public static class Patch_TerrainGrid_CanRemoveFoundationAt
 {
-    [PatchLevel(Level.Safe)]
     public static void Postfix(ref bool __result, Map ___map)
     {
         __result &= !___map.IsVehicleMapOf(out var vehicle) || !vehicle.def.HasModExtension<VehicleMapProps_Gravship>();
@@ -84,9 +84,9 @@ public static class Patch_TerrainGrid_CanRemoveFoundationAt
 //ThingがあればThing.Map、なければFocusedVehicle.VehicleMap、それもなければFind.CurrentMapを参照するようにする
 [HarmonyPatchCategory(Patches_Odyssey.Category)]
 [HarmonyPatch(typeof(PlaceWorker_GravshipThruster), nameof(PlaceWorker_GravshipThruster.DrawGhost))]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_PlaceWorker_GravshipThruster_DrawGhost
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
         var codes = new CodeMatcher(instructions, generator);

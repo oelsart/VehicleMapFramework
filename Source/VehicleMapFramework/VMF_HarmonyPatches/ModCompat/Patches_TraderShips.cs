@@ -22,9 +22,9 @@ public class Patches_TranderShips
 
 [HarmonyPatchCategory(Patches_TranderShips.Category)]
 [HarmonyPatch("TraderShips.CompShip", "PostDraw")]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_CompShip_PostDraw
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         foreach (var instruction in instructions)
@@ -51,9 +51,9 @@ public static class Patch_CompShip_PostDraw
 //車上マップにそれぞれVirtualMapTransferしてColonyThingsWillingToBuyを集める
 [HarmonyPatchCategory(Patches_TranderShips.Category)]
 [HarmonyPatch("TraderShips.LandedShip", "ColonyThingsWillingToBuy")]
+[PatchLevel(Level.Safe)]
 public static class Patch_LandedShip_ColonyThingsWillingToBuy
 {
-    [PatchLevel(Level.Safe)]
     public static void Prefix(Pawn playerNegotiator)
     {
         if (working) return;
@@ -61,7 +61,6 @@ public static class Patch_LandedShip_ColonyThingsWillingToBuy
         CrossMapReachabilityUtility.DepartMap = playerNegotiator.Map;
     }
 
-    [PatchLevel(Level.Safe)]
     public static IEnumerable<Thing> Postfix(IEnumerable<Thing> values, Pawn playerNegotiator, ITrader __instance)
     {
         if (values != null)

@@ -24,9 +24,9 @@ public class Patches_DrillTurret
 
 [HarmonyPatchCategory(Patches_DrillTurret.Category)]
 [HarmonyPatch("DrillTurret.Building_DrillTurret", "lookForNewTarget")]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Building_DrillTurret_lookForNewTarget
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
@@ -35,9 +35,9 @@ public static class Patch_Building_DrillTurret_lookForNewTarget
 
 [HarmonyPatchCategory(Patches_DrillTurret.Category)]
 [HarmonyPatch("DrillTurret.Building_DrillTurret", "isValidTargetAt")]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Building_DrillTurret_isValidTargetAt
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap)
@@ -48,9 +48,9 @@ public static class Patch_Building_DrillTurret_isValidTargetAt
 
 [HarmonyPatchCategory(Patches_DrillTurret.Category)]
 [HarmonyPatch("DrillTurret.Building_DrillTurret", "isValidTargetAtForGizmo")]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Building_DrillTurret_isValidTargetAtForGizmo
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap)
@@ -61,9 +61,9 @@ public static class Patch_Building_DrillTurret_isValidTargetAtForGizmo
 
 [HarmonyPatchCategory(Patches_DrillTurret.Category)]
 [HarmonyPatch("DrillTurret.Building_DrillTurret", "drillRock")]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Building_DrillTurret_drillRock
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap)
@@ -73,6 +73,7 @@ public static class Patch_Building_DrillTurret_drillRock
 
 [HarmonyPatchCategory(Patches_DrillTurret.Category)]
 [HarmonyPatch]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_Building_DrillTurret_selectTarget
 {
     private static MethodBase TargetMethod()
@@ -80,7 +81,6 @@ public static class Patch_Building_DrillTurret_selectTarget
         return AccessTools.FindIncludingInnerTypes<MethodBase>(AccessTools.TypeByName("DrillTurret.Building_DrillTurret"), t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<selectTarget>")));
     }
 
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
@@ -89,9 +89,9 @@ public static class Patch_Building_DrillTurret_selectTarget
 
 [HarmonyPatchCategory(Patches_DrillTurret.Category)]
 [HarmonyPatch("DrillTurret.Building_DrillTurret", "setForcedTarget")]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Building_DrillTurret_setForcedTarget
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);

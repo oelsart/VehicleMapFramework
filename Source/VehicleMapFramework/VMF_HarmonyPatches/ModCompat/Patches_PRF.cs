@@ -22,9 +22,9 @@ public static class Patches_PRF
 
 [HarmonyPatchCategory(Patches_PRF.Category)]
 [HarmonyPatch("ProjectRimFactory.Common.HarmonyPatches.Patch_CanReserve_SAL", "Postfix")]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_Patch_CanReserve_SAL_Postfix
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();

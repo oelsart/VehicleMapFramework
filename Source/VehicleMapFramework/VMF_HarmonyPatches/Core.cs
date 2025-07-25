@@ -1,11 +1,16 @@
 ﻿using HarmonyLib;
+using RimWorld.Planet;
 using SmashTools;
+using SmashTools.Targeting;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
+using Vehicles;
+using Vehicles.World;
 using Verse;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
@@ -19,7 +24,7 @@ public enum Level
     All
 }
 
-[AttributeUsage(AttributeTargets.Method, Inherited = false)]
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, Inherited = false)]
 public sealed class PatchLevelAttribute(Level level) : Attribute
 {
     public Level level = level;
@@ -43,18 +48,31 @@ public class VMF_Harmony
 
     private readonly static MethodInfo m_RemoveAll = AccessTools.Method(typeof(List<>).MakeGenericType(GenTypes.GetTypeInAnyAssembly("HarmonyLib.AttributePatch", "HarmonyLib")), nameof(List<>.RemoveAll));
 
-    internal readonly static Predicate<object> OutOfRange = attributePatch =>
+    internal static bool OutOfRange(Level level)
     {
-        var level = infoRef(attributePatch).method.GetCustomAttribute<PatchLevelAttribute>()?.level ?? Level.Mandatory;
         if (level.CompareTo(PrevPatchLevel) * level.CompareTo(CurrentPatchLevel) > 0) return true;
         var max = PrevPatchLevel.CompareTo(CurrentPatchLevel) > 0 ? PrevPatchLevel : CurrentPatchLevel;
         return level == max;
-    };
+    }
 
     internal static PatchClassProcessor AdjustPatchLevel(PatchClassProcessor patchClassProcessor)
     {
-        m_RemoveAll.Invoke(patchMethodsRef(patchClassProcessor), [OutOfRange]);
+        Predicate<object> predicate = static attributePatch =>
+        {
+            var attribute = infoRef(attributePatch).method.GetCustomAttribute<PatchLevelAttribute>();
+            if (attribute is null) return false;
+            return OutOfRange(attribute.level);
+        };
+
+        m_RemoveAll.Invoke(patchMethodsRef(patchClassProcessor), [predicate]);
         return patchClassProcessor;
+    }
+
+    internal static bool CheckClassPatchLevel(Type type)
+    {
+        var attribute = type.GetCustomAttribute<PatchLevelAttribute>();
+        if (attribute is null) return true;
+        return !OutOfRange(attribute.level);
     }
 
     public static void DynamicPatchAll(Level patchLevel)
@@ -117,6 +135,7 @@ public class VMF_Harmony
         TypesInAssembly()
             .Where(t => t.CustomAttributes.Any(a => a.AttributeType == typeof(HarmonyPatch)) &&
             t.CustomAttributes.Any(a => a.AttributeType == typeof(HarmonyPatchCategory) && a.ConstructorArguments.Any(c => c.Value.Equals(category))))
+            .Where(CheckClassPatchLevel)
             .Select(Instance.CreateClassProcessor)
             .Do(patchClass =>
             {
@@ -137,6 +156,7 @@ public class VMF_Harmony
         TypesInAssembly()
             .Where(t => t.CustomAttributes.Any(a => a.AttributeType == typeof(HarmonyPatch)) &&
             t.CustomAttributes.Any(a => a.AttributeType == typeof(HarmonyPatchCategory) && a.ConstructorArguments.Any(c => c.Value.Equals(category))))
+            .Where(CheckClassPatchLevel)
             .Select(Instance.CreateClassProcessor)
             .Do(patchClass =>
             {
@@ -156,6 +176,7 @@ public class VMF_Harmony
     {
         TypesInAssembly()
             .Where(t => t.CustomAttributes.Any(a => a.AttributeType == typeof(HarmonyPatch)) && t.CustomAttributes.All(a => a.AttributeType != typeof(HarmonyPatchCategory)))
+            .Where(CheckClassPatchLevel)
             .Select(Instance.CreateClassProcessor)
             .DoIf(p => p.Category.NullOrEmpty(), patchClass =>
             {
@@ -175,6 +196,7 @@ public class VMF_Harmony
     {
         TypesInAssembly()
             .Where(t => t.CustomAttributes.Any(a => a.AttributeType == typeof(HarmonyPatch)) && t.CustomAttributes.All(a => a.AttributeType != typeof(HarmonyPatchCategory)))
+            .Where(CheckClassPatchLevel)
             .Select(Instance.CreateClassProcessor)
             .DoIf(p => p.Category.NullOrEmpty(), patchClass =>
             {
@@ -188,6 +210,19 @@ public class VMF_Harmony
                     VMF_Log.Error($"Error while apply unpatching\n{ex}");
                 }
             });
+    }
+
+    public static IEnumerable<KeyValuePair<OpCode, object>> ReadMethodBodyWrapper(MethodBase method)
+    {
+        try
+        {
+            return PatchProcessor.ReadMethodBody(method);
+        }
+        catch(Exception ex)
+        {
+            VMF_Log.Error($"Error within ReadMethodBody(). {method.FullDescription()} is likely referencing an old signature.\n{ex}");
+            return [];
+        }
     }
 }
 

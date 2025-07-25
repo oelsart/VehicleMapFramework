@@ -5,7 +5,7 @@
     <NoWarn>$(NoWarn);NU1507</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="Krafs.Rimworld.Ref" Version="1.6.4507-beta" />
+    <PackageVersion Include="Krafs.Rimworld.Ref" Version="1.6.4528" />
     <PackageVersion Include="Lib.Harmony" Version="2.3.6" />
     <PackageVersion Include="Nerdbank.GitVersioning" Version="3.7.115" />
   </ItemGroup>

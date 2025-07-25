@@ -24,9 +24,9 @@ public static class Patches_ExosuitFramework
 
 [HarmonyPatchCategory(Patches_ExosuitFramework.Category)]
 [HarmonyPatch("WalkerGear.CompBuildingExtraRenderer", "PostPrintOnto")]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_CompBuildingExtraRenderer_PostPrintOnto
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();
@@ -64,9 +64,9 @@ public static class Patch_WG_AbilityVerb_QuickJump_DoJump
 
 [HarmonyPatchCategory(Patches_ExosuitFramework.Category)]
 [HarmonyPatch("WalkerGear.WG_PawnFlyer", "RespawnPawn")]
+[PatchLevel(Level.Cautious)]
 public static class Patch_WG_PawnFlyer_RespawnPawn
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap);
@@ -75,9 +75,9 @@ public static class Patch_WG_PawnFlyer_RespawnPawn
 
 [HarmonyPatchCategory(Patches_ExosuitFramework.Category)]
 [HarmonyPatch("WalkerGear.WG_PawnFlyer", "SpawnSetup")]
+[PatchLevel(Level.Safe)]
 public static class Patch_WG_PawnFlyer_SpawnSetup
 {
-    [PatchLevel(Level.Safe)]
     public static void Postfix(ref Thing ___eBay, Map map)
     {
         if (___eBay == null)
@@ -92,9 +92,9 @@ public static class Patch_WG_PawnFlyer_SpawnSetup
 
 [HarmonyPatchCategory(Patches_ExosuitFramework.Category)]
 [HarmonyPatch("WalkerGear.Building_EjectorBay", "DynamicDrawPhaseAt")]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Building_EjectorBay_DynamicDrawPhaseAt
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseRotation);
@@ -103,9 +103,9 @@ public static class Patch_Building_EjectorBay_DynamicDrawPhaseAt
 
 [HarmonyPatchCategory(Patches_ExosuitFramework.Category)]
 [HarmonyPatch("WalkerGear.Building_MaintenanceBay", "DynamicDrawPhaseAt")]
+[PatchLevel(Level.Safe)]
 public static class Patch_Building_MaintenanceBay_DynamicDrawPhaseAt
 {
-    [PatchLevel(Level.Safe)]
     public static void Prefix(Building __instance, Pawn ___cachePawn)
     {
         ___cachePawn?.Rotation = __instance.BaseRotation().Opposite;

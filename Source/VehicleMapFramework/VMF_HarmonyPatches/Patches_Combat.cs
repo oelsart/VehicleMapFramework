@@ -14,9 +14,9 @@ using static VehicleMapFramework.MethodInfoCache;
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 [HarmonyPatch(typeof(AttackTargetFinder), nameof(AttackTargetFinder.BestAttackTarget))]
+[PatchLevel(Level.Safe)]
 public static class Patch_AttackTargetFinder_BestAttackTarget
 {
-    [PatchLevel(Level.Safe)]
     public static void Postfix(IAttackTargetSearcher searcher, TargetScanFlags flags, Predicate<Thing> validator, float minDist, float maxDist, IntVec3 locus, float maxTravelRadiusFromLocus, bool canBashDoors, bool canTakeTargetsCloserThanEffectiveMinRange, bool canBashFences, bool onlyRanged, ref IAttackTarget __result)
     {
         var map = searcher.Thing.Map;
@@ -31,9 +31,9 @@ public static class Patch_AttackTargetFinder_BestAttackTarget
 }
 
 [HarmonyPatch(typeof(PawnLeaner), nameof(PawnLeaner.Notify_WarmingCastAlongLine))]
+[PatchLevel(Level.Cautious)]
 public static class Patch_PawnLeaner_Notify_WarmingCastAlongLine
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
@@ -41,9 +41,9 @@ public static class Patch_PawnLeaner_Notify_WarmingCastAlongLine
 }
 
 [HarmonyPatch(typeof(PawnLeaner), nameof(PawnLeaner.LeanOffset), MethodType.Getter)]
+[PatchLevel(Level.Safe)]
 public static class Patch_PawnLeaner_LeanOffset
 {
-    [PatchLevel(Level.Safe)]
     public static void Postfix(Pawn ___pawn, ref Vector3 __result)
     {
         if (___pawn.IsOnVehicleMapOf(out var vehicle))
@@ -54,9 +54,9 @@ public static class Patch_PawnLeaner_LeanOffset
 }
 
 [HarmonyPatch(typeof(Projectile), nameof(Projectile.Launch), typeof(Thing), typeof(Vector3), typeof(LocalTargetInfo), typeof(LocalTargetInfo), typeof(ProjectileHitFlags), typeof(bool), typeof(Thing), typeof(ThingDef))]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Projectile_Launch
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap);
@@ -65,9 +65,9 @@ public static class Patch_Projectile_Launch
 
 //最初のthing.MapをBaseMapに変更し、ThingCoveredには逆にthing.Mapを渡す
 [HarmonyPatch(typeof(Projectile), "CanHit")]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_Projectile_CanHit
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();
@@ -83,9 +83,9 @@ public static class Patch_Projectile_CanHit
 }
 
 [HarmonyPatch(typeof(Projectile), "CheckForFreeInterceptBetween")]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_Projectile_CheckForFreeInterceptBetween
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();
@@ -120,9 +120,9 @@ public static class Patch_Projectile_CheckForFreeInterceptBetween
 }
 
 [HarmonyPatch(typeof(Projectile), "CheckForFreeIntercept")]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_Projectile_CheckForFreeIntercept
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();
@@ -141,9 +141,9 @@ public static class Patch_Projectile_CheckForFreeIntercept
 
 //変更点はShotReportOnVehicle.HitReportForを参照のこと。このTranspilerは元メソッドをOnVehicleに変換するもの
 [HarmonyPatch(typeof(ShotReport), nameof(ShotReport.HitReportFor))]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_ShotReport_HitReportFor
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
         var codes = instructions.ToList();
@@ -208,9 +208,9 @@ public static class Patch_ShotReport_HitReportFor
 }
 
 [HarmonyPatch(typeof(CompProjectileInterceptor), nameof(CompProjectileInterceptor.CheckIntercept))]
+[PatchLevel(Level.Cautious)]
 public static class Patch_CompProjectileInterceptor_CheckIntercept
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
@@ -218,9 +218,9 @@ public static class Patch_CompProjectileInterceptor_CheckIntercept
 }
 
 [HarmonyPatch(typeof(VerbUtility), nameof(VerbUtility.ThingsToHit))]
+[PatchLevel(Level.Cautious)]
 public static class Patch_VerbUtility_ThingsToHit
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.m_GetThingList, CachedMethodInfo.m_GetThingListAcrossMaps);
@@ -228,9 +228,9 @@ public static class Patch_VerbUtility_ThingsToHit
 }
 
 [HarmonyPatch(typeof(Stance_Warmup), nameof(Stance_Warmup.InitEffects))]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Stance_Warmup_InitEffects
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
@@ -239,9 +239,9 @@ public static class Patch_Stance_Warmup_InitEffects
 }
 
 [HarmonyPatch(typeof(Stance_Warmup), nameof(Stance_Warmup.StanceTick))]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Stance_Warmup_StanceTick
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
@@ -250,9 +250,9 @@ public static class Patch_Stance_Warmup_StanceTick
 }
 
 [HarmonyPatch(typeof(Pawn), nameof(Pawn.TryStartAttack))]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Pawn_TryStartAttack
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap);
@@ -260,9 +260,9 @@ public static class Patch_Pawn_TryStartAttack
 }
 
 [HarmonyPatch(typeof(Building_Turret), "Tick")]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Building_Turret_Tick
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
@@ -270,9 +270,9 @@ public static class Patch_Building_Turret_Tick
 }
 
 [HarmonyPatch(typeof(Building_TurretGun), nameof(Building_TurretGun.TryFindNewTarget))]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Building_Turret_TryFindNewTarget
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
@@ -280,9 +280,9 @@ public static class Patch_Building_Turret_TryFindNewTarget
 }
 
 [HarmonyPatch(typeof(Building_TurretFoam), nameof(Building_TurretFoam.TryFindNewTarget))]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Building_TurretFoam_TryFindNewTarget
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap)
@@ -293,9 +293,9 @@ public static class Patch_Building_TurretFoam_TryFindNewTarget
 }
 
 [HarmonyPatch(typeof(Building_TurretGun), nameof(Building_TurretGun.OrderAttack))]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_Building_Turret_OrderAttack
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         instructions = instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
@@ -315,9 +315,9 @@ public static class Patch_Building_Turret_OrderAttack
 }
 
 [HarmonyPatch(typeof(Building_TurretGun), "IsValidTarget")]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Building_TurretGun_IsValidTarget
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap)
@@ -326,9 +326,9 @@ public static class Patch_Building_TurretGun_IsValidTarget
 }
 
 [HarmonyPatch(typeof(Building_TurretGun), nameof(Building_TurretGun.DrawExtraSelectionOverlays))]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_Building_TurretGun_DrawExtraSelectionOverlays
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         foreach (var instruction in instructions)
@@ -347,9 +347,9 @@ public static class Patch_Building_TurretGun_DrawExtraSelectionOverlays
 }
 
 [HarmonyPatch(typeof(TurretTop), nameof(TurretTop.TurretTopTick))]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_TurretTop_TurretTopTick
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         foreach (var instruction in instructions)
@@ -370,9 +370,9 @@ public static class Patch_TurretTop_TurretTopTick
 
 //Turretがターゲットに向いていない時タレットの見た目上の回転に車の回転を加える。無きゃないでいい
 [HarmonyPatch(typeof(TurretTop), nameof(TurretTop.DrawTurret))]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_TurretTop_DrawTurret
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
         var codes = instructions.ToList();
@@ -421,9 +421,9 @@ public static class Patch_TurretTop_DrawTurret
 }
 
 [HarmonyPatch(typeof(DamageWorker), nameof(DamageWorker.ExplosionCellsToHit), typeof(IntVec3), typeof(Map), typeof(float), typeof(IntVec3?), typeof(IntVec3?), typeof(FloatRange?))]
+[PatchLevel(Level.Cautious)]
 public static class Patch_DamageWorker_ExplosionCellsToHit
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.m_GenSight_LineOfSight1, CachedMethodInfo.m_GenSightOnVehicle_LineOfSight1)
@@ -432,9 +432,9 @@ public static class Patch_DamageWorker_ExplosionCellsToHit
 }
 
 [HarmonyPatch(typeof(Projectile_Liquid), "DoImpact")]
+[PatchLevel(Level.Safe)]
 public static class Patch_Projectile_Liquid_DoImpact
 {
-    [PatchLevel(Level.Safe)]
     public static bool Prefix(Projectile_Liquid __instance, Thing hitThing, IntVec3 cell, ThingDef ___targetCoverDef)
     {
         if (cell.TryGetVehicleMap(__instance.Map, out var vehicle))
@@ -462,6 +462,7 @@ public static class Patch_Projectile_Liquid_DoImpact
 }
 
 [HarmonyPatch(typeof(RoofGrid), nameof(RoofGrid.Roofed), [typeof(IntVec3)])]
+[PatchLevel(Level.Safe)]
 public static class Patch_RoofGrid_Roofed
 {
     private static bool Prepare()
@@ -469,7 +470,6 @@ public static class Patch_RoofGrid_Roofed
         return VehicleMapFramework.settings.roofedPatch;
     }
 
-    [PatchLevel(Level.Safe)]
     public static void Postfix(IntVec3 c, Map ___map, ref bool __result)
     {
         if (___map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
@@ -481,9 +481,9 @@ public static class Patch_RoofGrid_Roofed
 }
 
 [HarmonyPatch(typeof(JobGiver_AIFightEnemy), "TryGiveJob")]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_JobGiver_AIFightEnemy_TryGiveJob
 {
-    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();
@@ -501,9 +501,9 @@ public static class Patch_JobGiver_AIFightEnemy_TryGiveJob
 }
 
 [HarmonyPatch(typeof(JobGiver_AIFightEnemy), "UpdateEnemyTarget")]
+[PatchLevel(Level.Cautious)]
 public static class Patch_JobGiver_AIFightEnemy_UpdateEnemyTarget
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
@@ -511,9 +511,9 @@ public static class Patch_JobGiver_AIFightEnemy_UpdateEnemyTarget
 }
 
 [HarmonyPatch(typeof(JobGiver_AIFightEnemy), "ShouldLoseTarget")]
+[PatchLevel(Level.Cautious)]
 public static class Patch_JobGiver_AIFightEnemy_ShouldLoseTarget
 {
-    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
@@ -521,9 +521,9 @@ public static class Patch_JobGiver_AIFightEnemy_ShouldLoseTarget
 }
 
 [HarmonyPatch(typeof(CastPositionFinder), nameof(CastPositionFinder.TryFindCastPosition))]
+[PatchLevel(Level.Safe)]
 public static class Patch_CastPositionFinder_TryFindCastPosition
 {
-    [PatchLevel(Level.Safe)]
     public static bool Prefix(Verse.AI.CastPositionRequest newReq, ref IntVec3 dest, ref bool __result)
     {
         if (newReq.caster.Map != newReq.target.MapHeld && newReq.caster.BaseMap() == newReq.target.MapHeldBaseMap())

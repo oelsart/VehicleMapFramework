@@ -43,7 +43,11 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Achtung">
-      <HintPath>..\..\..\..\..\..\workshop\content\294100\730936602\1.5\Assemblies\Achtung.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\workshop\content\294100\730936602\1.6\Assemblies\Achtung.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="SmashTools">
+      <HintPath>..\..\..\..\..\..\workshop\content\294100\3014915404\1.6\Assemblies\SmashTools.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System.Data.DataSetExtensions">
@@ -93,12 +97,12 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="Vehicles">
-      <HintPath>..\..\..\Vehicle-Framework\1.5\Assemblies\Vehicles.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\workshop\content\294100\3014915404\1.6\Assemblies\Vehicles.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.4507-beta" />
+    <PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.4528" />
 	<PackageReference Include="Lib.Harmony" Version="2.3.6">
 		<ExcludeAssets>runtime</ExcludeAssets>
 	</PackageReference>
