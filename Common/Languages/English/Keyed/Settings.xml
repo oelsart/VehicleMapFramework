@@ -24,7 +24,7 @@
 	<VMF_PatchLevel.Cautious>Cautious</VMF_PatchLevel.Cautious>
 	<VMF_PatchLevel.Safe>Safe</VMF_PatchLevel.Safe>
 	<VMF_PatchLevel.Sensitive.Tooltip>Toggles the application of patches, including Transpilers that perform somewhat complex operations like IL index searching, and are heavy-processing.</VMF_PatchLevel.Sensitive.Tooltip>
-	<VMF_PatchLevel.Cautious.Tooltip>Toggles the application of patches, including Transpilers that are considered relatively safe, such as simple function replacements.</VMF_PatchLevel.Cautious.Tooltip>
+	<VMF_PatchLevel.Cautious.Tooltip>Toggles the application of patches, including Transpilers that are considered relatively safe, such as simple method replacements.</VMF_PatchLevel.Cautious.Tooltip>
 	<VMF_PatchLevel.Safe.Tooltip>Toggles the application of patches that can be performed safely and quickly, such as Prefixes and Postfixes.</VMF_PatchLevel.Safe.Tooltip>
 	<VMF_Settings.RoofedPatch>Refer also to roofed on base map for roofed on vehicle map.\n(Impact to performance)</VMF_Settings.RoofedPatch>
 	

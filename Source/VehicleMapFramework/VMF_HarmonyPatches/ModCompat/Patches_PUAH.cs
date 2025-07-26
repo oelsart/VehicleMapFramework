@@ -119,23 +119,12 @@ public static class Patch_WorkGiver_HaulToInventory_AllocateThingAtCell
 [PatchLevel(Level.Safe)]
 public static class Patch_JobDriver_HaulToInventory_TryMakePreToilReservations
 {
-    private static Action<string> Message = (Action<string>)AccessTools.Method("PickUpAndHaul.Log:Message")?.CreateDelegate(typeof(Action<string>));
-
     public static bool Prefix(Job ___job, Pawn ___pawn, ref bool __result)
     {
-        if (___job.targetQueueB.NotNullAndAny()) return true;
-
-        var message = $"{___pawn} starting HaulToInventory job: {___job.targetQueueA.ToStringSafeEnumerable()}:{___job.countQueue.ToStringSafeEnumerable()}";
-        if (Message != null)
-        {
-            Message(message);
-        }
-        else
-        {
-            Log.Message(message);
-        }
-        ___pawn.ReserveAsManyAsPossible(___job.targetQueueB, ___job);
-        __result = ___pawn.Reserve(___job.targetB, ___job);
+        if (___job.targetQueueA.NotNullAndAny()) return true;
+            ___pawn.ReserveAsManyAsPossible(___job.targetQueueA, ___job);
+            ___pawn.ReserveAsManyAsPossible(___job.targetQueueB, ___job);
+            __result = ___pawn.Reserve(___job.targetB, ___job);
         return false;
     }
 }

@@ -85,7 +85,7 @@ namespace VehicleMapFramework
                             var num = thing.def.size.x * props.flameSize;
                             var rot = thing.BaseRotation();
                             var vector = rot.AsQuat * props.flameOffsetsPerDirection[rot.AsInt];
-                            var vector2 = thing.DrawPos - ((rot.AsIntVec3.ToVector3() * ((thing.def.size.z * 0.5f) + (num * 0.5f)) * 0.5f) + vector).RotatedBy(rotation);
+                            var vector2 = thing.DrawPos - (rot.AsIntVec3.ToVector3() * num * 0.5f + vector).RotatedBy(rotation);
                             Material material = MaterialPool.MatFrom(new MaterialRequest(props.FlameShaderType.Shader)
                             {
                                 renderQueue = 3201
@@ -165,7 +165,7 @@ namespace VehicleMapFramework
                             var num = thing.def.size.x * props.flameSize;
                             var rot = thing.BaseRotation();
                             var vector = rot.AsQuat * props.flameOffsetsPerDirection[rot.AsInt];
-                            var vector2 = thing.DrawPos - ((rot.AsIntVec3.ToVector3() * ((thing.def.size.z * 0.5f) + (num * 0.5f)) * 0.5f) + vector).RotatedBy(rotation);
+                            var vector2 = thing.DrawPos - (rot.AsIntVec3.ToVector3() * num * 0.5f + vector).RotatedBy(rotation);
                             Material material = MaterialPool.MatFrom(new MaterialRequest(props.FlameShaderType.Shader)
                             {
                                 renderQueue = 3201
@@ -211,16 +211,14 @@ namespace VehicleMapFramework
 
         public override IEnumerable<ArrivalOption> GetArrivalOptions(GlobalTargetInfo target)
         {
-            List<ArrivalOption> options = [.. base.GetArrivalOptions(target)];
-            if (!options.NullOrEmpty())
+            foreach (var option in base.GetArrivalOptions(target))
             {
-                return options;
+                yield return option;
             }
             if (target.WorldObject is MapParent mapParent && mapParent.Spawned && !mapParent.HasMap && !mapParent.EnterCooldownBlocksEntering())
             {
-                return [new ArrivalOption("VF_LandVehicleTargetedLanding".Translate(mapParent.Label), new ArrivalAction_LoadMap(vehicle, AerialVehicleArrivalModeDefOf.TargetedLanding))];
+                yield return new ArrivalOption("VF_LandVehicleTargetedLanding".Translate(mapParent.Label), new ArrivalAction_LoadMap(vehicle, AerialVehicleArrivalModeDefOf.TargetedLanding));
             }
-            return Enumerable.Empty<ArrivalOption>();
         }
     }
 }

@@ -32,6 +32,30 @@
 			<generateThingIcon>false</generateThingIcon>
 			<customTerrainCosts AllowTerrainWithTag="Space" PathCost="1"/>
 		</properties>
+		
+		<soundSustainersOnEvent>
+			<li>
+				<start>AerialVehicleLaunch</start>
+				<stop>AerialVehicleLeftMap</stop>
+				<value>Gravship_Engine_Loop</value>
+			</li>
+			<li>
+				<start>AerialVehicleLanding</start>
+				<stop>Spawned</stop>
+				<value>Gravship_Engine_Loop</value>
+			</li>
+		</soundSustainersOnEvent>
+		
+		<soundOneShotsOnEvent Inherit="False">
+			<li>
+				<key>IgnitionOn</key>
+				<value>Gravship_Engine_Start</value>
+			</li>
+			<li>
+				<key>IgnitionOff</key>
+				<value>Gravship_Engine_Stop</value>
+			</li>
+		</soundOneShotsOnEvent>
 
 		<components>
 			<li>

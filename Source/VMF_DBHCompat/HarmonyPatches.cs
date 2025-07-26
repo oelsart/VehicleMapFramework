@@ -142,28 +142,6 @@ public static class Patch_MapComponent_Hygiene_MapComponentUpdate
 }
 
 [HarmonyPatchCategory(Patches_DBH.Category)]
-[HarmonyPatch("DubsBadHygiene.SectionLayer_PipeOverlay", "DrawAllTileOverlays")]
-[PatchLevel(Level.Sensitive)]
-public static class Patch_SectionLayer_PipeOverlay_DrawAllTileOverlays
-{
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
-    {
-        var codes = instructions.ToList();
-        var pos = codes.FindIndex(c => c.opcode == OpCodes.Beq_S);
-        var label = codes[pos].operand;
-        var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithMap));
-        codes.InsertRange(pos + 1,
-        [
-            CodeInstruction.LoadLocal(2),
-            new CodeInstruction(OpCodes.Ldloca_S, vehicle),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsNonFocusedVehicleMapOf),
-            new CodeInstruction(OpCodes.Brtrue_S, label)
-        ]);
-        return codes;
-    }
-}
-
-[HarmonyPatchCategory(Patches_DBH.Category)]
 [HarmonyPatch(typeof(Graphic_LinkedPipe), nameof(Graphic_LinkedPipe.ShouldLinkWith))]
 [PatchLevel(Level.Safe)]
 public static class Patch_Graphic_LinkedPipeDBH_ShouldLinkWith
