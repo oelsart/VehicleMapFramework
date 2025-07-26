@@ -12,8 +12,9 @@ using static VehicleMapFramework.ModCompat.VFEMechanoid;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches
 {
-    [HarmonyPatchCategory("VMF_Patches_VFE_Mechanoid")]
+    [HarmonyPatchCategory(Patches_VEF.CategoryMechanoid)]
     [HarmonyPatch("VFEMech.Building_Autocrane", "GetStartingEndCranePosition")]
+    [PatchLevel(Level.Cautious)]
     public static class Patch_Building_Autocrane_GetStartingEndCranePosition
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -22,8 +23,9 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory("VMF_Patches_VFE_Mechanoid")]
+    [HarmonyPatchCategory(Patches_VEF.CategoryMechanoid)]
     [HarmonyPatch("VFEMech.Building_Autocrane", "CurRotation")]
+    [PatchLevel(Level.Safe)]
     public static class Patch_Building_Autocrane_CurRotation
     {
         [HarmonyPatch(MethodType.Setter)]
@@ -45,8 +47,9 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory("VMF_Patches_VFE_Mechanoid")]
+    [HarmonyPatchCategory(Patches_VEF.CategoryMechanoid)]
     [HarmonyPatch("VFEMech.Building_Autocrane", "CraneDrawPos", MethodType.Getter)]
+    [PatchLevel(Level.Safe)]
     public static class Patch_Building_Autocrane_CraneDrawPos
     {
         public static void Postfix(Building __instance, ref Vector3 __result)
@@ -58,8 +61,9 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory("VMF_Patches_VFE_Mechanoid")]
+    [HarmonyPatchCategory(Patches_VEF.CategoryMechanoid)]
     [HarmonyPatch("VFEMech.Building_Autocrane", "NextFrameTarget")]
+    [PatchLevel(Level.Safe)]
     public static class Patch_Building_Autocrane_NextFrameTarget
     {
         public static void Postfix(Building __instance, IntVec3 ___endCranePosition, ref Frame __result)
@@ -85,8 +89,9 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory("VMF_Patches_VFE_Mechanoid")]
+    [HarmonyPatchCategory(Patches_VEF.CategoryMechanoid)]
     [HarmonyPatch("VFEMech.Building_Autocrane", "NextDamagedBuildingTarget")]
+    [PatchLevel(Level.Safe)]
     public static class Patch_Building_Autocrane_NextDamagedBuildingTarget
     {
         public static void Postfix(Building __instance, IntVec3 ___endCranePosition, ref Building __result)
@@ -107,8 +112,9 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory("VMF_Patches_VFE_Mechanoid")]
+    [HarmonyPatchCategory(Patches_VEF.CategoryMechanoid)]
     [HarmonyPatch("VFEMech.Building_Autocrane", "DoConstruction")]
+    [PatchLevel(Level.Sensitive)]
     public static class Patch_Building_Autocrane_DoConstruction
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -119,8 +125,9 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory("VMF_Patches_VFE_Mechanoid")]
+    [HarmonyPatchCategory(Patches_VEF.CategoryMechanoid)]
     [HarmonyPatch("VFEMech.Building_Autocrane", "DoRepairing")]
+    [PatchLevel(Level.Sensitive)]
     public static class Patch_Building_Autocrane_DoRepairing
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -131,10 +138,11 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory("VMF_Patches_VFE_Mechanoid")]
+    [HarmonyPatchCategory(Patches_VEF.CategoryMechanoid)]
     [HarmonyPatch("VFEMech.Building_Autocrane", "TryMoveTo")]
     public static class Patch_Building_Autocrane_TryMoveTo
     {
+        [PatchLevel(Level.Safe)]
         public static bool Prefix(Building __instance, Frame ___curFrameTarget, Building ___curBuildingTarget, LocalTargetInfo target, ref float ___curCraneSize, float ___distanceRate, ref IntVec3 ___endCranePosition, float ___craneErectionSpeed, ref bool __result)
         {
             if (__instance.IsOnVehicleMapOf(out _) && ___curFrameTarget == null && ___curBuildingTarget == null)
@@ -171,6 +179,7 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
             return true;
         }
 
+        [PatchLevel(Level.Sensitive)]
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             var m_Distance = AccessTools.Method(typeof(Vector3), nameof(Vector3.Distance));
@@ -197,8 +206,9 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory("VMF_Patches_VFE_Mechanoid")]
+    [HarmonyPatchCategory(Patches_VEF.CategoryMechanoid)]
     [HarmonyPatch("VFE.Mechanoids.PlaceWorkers.PlaceWorker_AutoCrane", "DrawGhost")]
+    [PatchLevel(Level.Safe)]
     public static class Patch_PlaceWorker_AutoCrane_DrawGhost
     {
         public static bool Prefix(IntVec3 center, Thing thing)
@@ -213,8 +223,9 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory("VMF_Patches_VFE_Mechanoid")]
+    [HarmonyPatchCategory(Patches_VEF.CategoryMechanoid)]
     [HarmonyPatch("VFE.Mechanoids.PlaceWorkers.PlaceWorker_AutoPlant", "GetCells")]
+    [PatchLevel(Level.Safe)]
     public static class Patch_PlaceWorker_AutoPlant_GetCells
     {
         public static void Postfix(Thing thing, List<IntVec3> __result)
@@ -240,8 +251,9 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory("VMF_Patches_VFE_Mechanoid")]
+    [HarmonyPatchCategory(Patches_VEF.CategoryMechanoid)]
     [HarmonyPatch("VFE.Mechanoids.Buildings.Building_AutoPlant", "DoWorkOnCells")]
+    [PatchLevel(Level.Safe)]
     public static class Patch_Building_AutoPlant_DoWorkOnCells
     {
         public static bool Prefix(Building __instance, float ___offset)
@@ -265,8 +277,9 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory("VMF_Patches_VFE_Mechanoid")]
+    [HarmonyPatchCategory(Patches_VEF.CategoryMechanoid)]
     [HarmonyPatch("VFE.Mechanoids.Buildings.Building_AutoPlant", "CheckCellsClear")]
+    [PatchLevel(Level.Safe)]
     public static class Patch_Building_AutoPlant_CheckCellsClear
     {
         public static bool Prefix(Building __instance, float ___offset, bool ___blockedByTree, ref bool __result)
@@ -295,8 +308,9 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory("VMF_Patches_VFE_Mechanoid")]
+    [HarmonyPatchCategory(Patches_VEF.CategoryMechanoid)]
     [HarmonyPatch("VFE.Mechanoids.Buildings.Building_AutoPlant", "DrawPos", MethodType.Getter)]
+    [PatchLevel(Level.Safe)]
     public static class Patch_Building_AutoPlant_DrawPos
     {
         public static bool Prefix(Building __instance, ref Vector3 __result)
@@ -310,8 +324,9 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory("VMF_Patches_VFE_Mechanoid")]
+    [HarmonyPatchCategory(Patches_VEF.CategoryMechanoid)]
     [HarmonyPatch("VFE.Mechanoids.Buildings.Building_AutoPlant", "DrawAt")]
+    [PatchLevel(Level.Safe)]
     public static class Patch_Building_AutoPlant_DrawAt
     {
         public static bool Prefix(Building __instance, Vector3 drawLoc, bool flip, Graphic ___baseGraphic, float ___offset)
@@ -338,8 +353,9 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory("VMF_Patches_VFE_Mechanoid")]
+    [HarmonyPatchCategory(Patches_VEF.CategoryMechanoid)]
     [HarmonyPatch("VFE.Mechanoids.Buildings.Building_AutoSower", "DoWorkOnCell")]
+    [PatchLevel(Level.Cautious)]
     public static class Patch_Building_AutoSower_DoWorkOnCell
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -348,8 +364,9 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory("VMF_Patches_VFE_Mechanoid")]
+    [HarmonyPatchCategory(Patches_VEF.CategoryMechanoid)]
     [HarmonyPatch("VFE.Mechanoids.Buildings.Building_AutoHarvester", "DoWorkOnCell")]
+    [PatchLevel(Level.Cautious)]
     public static class Patch_Building_AutoHarvester_DoWorkOnCell
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -358,8 +375,9 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory("VMF_Patches_VFE_Mechanoid")]
+    [HarmonyPatchCategory(Patches_VEF.CategoryMechanoid)]
     [HarmonyPatch("VFE.Mechanoids.Buildings.Building_AutoHarvester", "PlantCollected")]
+    [PatchLevel(Level.Cautious)]
     public static class Patch_Building_AutoHarvester_PlantCollected
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)

@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-using UnityEngine.Assertions;
 using Vehicles;
 using Vehicles.World;
 using Verse;
@@ -49,7 +48,7 @@ namespace VehicleMapFramework
                         var pilot = vehicle.handlers.FirstOrDefault(h => h.role.key == "pilot").thingOwner.InnerListForReading.FirstOrDefault();
                         if (pilot is null)
                         {
-                            takeoffCommand.Disable("VMF_CannotLaunchNoPilot".Translate());
+                            takeoffCommand.Disable("VMF_CannotLaunchNoPilot".Translate().CapitalizeFirst());
                             continue;
                         }
                         var copilot = vehicle.handlers.FirstOrDefault(h => h.role.key == "copilot").thingOwner.InnerListForReading.FirstOrDefault();

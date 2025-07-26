@@ -20,6 +20,7 @@
 	<VMF_RectContainsImpassable>車両の長方形が通れないセルを含んでいます.</VMF_RectContainsImpassable>
 	<VMF_WheelsUnstable>車両が不安定です.</VMF_WheelsUnstable>
 	<VMF_CannotSetDownDiagonal>{0}はこの角度で地面に置けません.</VMF_CannotSetDownDiagonal>
+	<VMF_CannotLaunchNoPilot>パイロットが居ない</VMF_CannotLaunchNoPilot>
 	
 	<VMF_GravshipVehicleDestroyed>グラヴシップ車両は破壊されました</VMF_GravshipVehicleDestroyed>
 	

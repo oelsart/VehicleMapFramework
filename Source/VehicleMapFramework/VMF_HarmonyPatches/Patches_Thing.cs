@@ -457,3 +457,27 @@ public static class Patch_Building_Bookcase_DrawAt
         }
     }
 }
+
+[HarmonyPatch(typeof(GenConstruct), nameof(GenConstruct.GetWallAttachedTo), typeof(Thing))]
+[PatchLevel(Level.Mandatory)]
+public static class Patch_GenConstruct_GetWallAttachedTo
+{
+    public static void Postfix(Thing thing, ref Thing __result)
+    {
+        if (__result is not null) return;
+        if (thing.def.PlaceWorkers.All(p => p is not PlaceWorker_AttachedWallMultiCell)) return;
+
+        ThingDef thingDef = GenConstruct.BuiltDefOf(thing.def) as ThingDef;
+        if (thingDef?.building == null || !thingDef.building.isAttachment)
+        {
+            return;
+        }
+
+        var rot = thing.Rotation;
+        var occupiedRect = thing.OccupiedRect();
+        __result = GenConstruct.GetWallAttachedTo(occupiedRect.GetCenterCellOnEdge(rot), rot, thing.Map);
+        if (__result is not null) return;
+        if (occupiedRect.GetSideLength(thing.Rotation) % 2 == 1) return;
+        __result = GenConstruct.GetWallAttachedTo(occupiedRect.GetCenterCellOnEdge(rot, -1), rot, thing.Map);
+    }
+}

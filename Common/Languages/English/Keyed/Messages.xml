@@ -20,6 +20,7 @@
 	<VMF_RectContainsImpassable>Vehicle rectangle contains impassable cells.</VMF_RectContainsImpassable>
 	<VMF_WheelsUnstable>Vehicle would be unstable.</VMF_WheelsUnstable>
 	<VMF_CannotSetDownDiagonal>{0} cannot set down at an angle.</VMF_CannotSetDownDiagonal>
+	<VMF_CannotLaunchNoPilot>no pilot</VMF_CannotLaunchNoPilot>
 	
 	<VMF_GravshipVehicleDestroyed>The gravship vehicle has been destroyed</VMF_GravshipVehicleDestroyed>
 

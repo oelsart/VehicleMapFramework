@@ -54,12 +54,12 @@ public static class Patch_CustomGenClosest_ClosestThing_Global_Reachable_Custom
 [PatchLevel(Level.Safe)]
 public static class Patch_WalkabilityHandler_Walkable
 {
-    public static void Postfix(IntVec3 loc, Map ____map, ref bool __result)
+    public static void Postfix(IntVec3 loc, Map ___map, ref bool __result)
     {
         if (!__result)
         {
-            var inBounds = loc.InBounds(____map);
-            if ((inBounds && loc.GetEdifice(____map) is VehicleStructure) || !inBounds)
+            var inBounds = loc.InBounds(___map);
+            if ((inBounds && loc.GetEdifice(___map) is VehicleStructure) || !inBounds)
             {
                 __result = true;
             }

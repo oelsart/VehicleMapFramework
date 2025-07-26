@@ -18,23 +18,6 @@ public static class Patches_Achtung
     static Patches_Achtung()
     {
         VMF_Harmony.PatchCategory(Category);
-
-        //var type = AccessTools.TypeByName("AchtungMod.FloatMenuMakerMap_AddJobGiverWorkOrders_Patch");
-        //var prefix = AccessTools.Method(type, "Prefix");
-        //var postfix = AccessTools.Method(type, "Postfix");
-        //var transpiler = AccessTools.Method(type, "Transpiler");
-        //var original = AccessTools.Method(typeof(FloatMenuMakerOnVehicle), "AddJobGiverWorkOrders");
-        //VMF_Harmony.Instance.Patch(original, prefix, postfix, transpiler);
-
-        //type = AccessTools.TypeByName("AchtungMod.FloatMenuMakerMap_ChoicesAtFor_Postfix");
-        //postfix = AccessTools.Method(type, "Postfix");
-        //original = AccessTools.Method(typeof(FloatMenuMakerOnVehicle), nameof(FloatMenuMakerOnVehicle.ChoicesAtFor));
-        //VMF_Harmony.Instance.Patch(original, postfix: postfix);
-
-        //type = AccessTools.TypeByName("AchtungMod.FloatMenuMakerMap_ScannerShouldSkip_Patch");
-        //prefix = AccessTools.Method(type, "Prefix");
-        //original = AccessTools.Method(typeof(FloatMenuMakerOnVehicle), "ScannerShouldSkip");
-        //VMF_Harmony.Instance.Patch(original, prefix: prefix);
     }
 
     public const string Category = "VMF_Patches_Achtung";
@@ -42,6 +25,7 @@ public static class Patches_Achtung
 
 [HarmonyPatchCategory(Patches_Achtung.Category)]
 [HarmonyPatch(typeof(Colonist), nameof(Colonist.UpdateOrderPos))]
+[PatchLevel(Level.Safe)]
 public static class Patch_Colonist_UpdateOrderPos
 {
     public static bool Prefix(Colonist __instance, ref Vector3 pos, ref IntVec3 __result)
@@ -77,12 +61,10 @@ public static class Patch_Colonist_UpdateOrderPos
             destMap = colonist.pawn.MapHeldBaseMap();
         }
         TargetMapManager.SetTargetMap(colonist.pawn, destMap);
-        tmpExitSpot = TargetInfo.Invalid;
-        tmpEnterSpot = TargetInfo.Invalid;
 
         if (AchtungLoader.IsSameSpotInstalled)
         {
-            if (destCell.Standable(destMap) && colonist.pawn.CanReach(destCell, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, destMap, out tmpExitSpot, out tmpEnterSpot))
+            if (destCell.Standable(destMap) && colonist.pawn.CanReach(destCell, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, destMap, out _, out _))
             {
                 colonist.designation = destCell;
                 tmpDestMaps[destCell] = destMap;
@@ -102,17 +84,17 @@ public static class Patch_Colonist_UpdateOrderPos
                     if (mechanitor.CanCommandTo(newPos))
                         if (destMap.pawnDestinationReservationManager.CanReserve(newPos, colonist.pawn, true)
                             && newPos.Standable(destMap)
-                            && colonist.pawn.CanReach(newPos, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, destMap, out tmpExitSpot, out tmpEnterSpot)
+                            && colonist.pawn.CanReach(newPos, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, destMap, out _, out _)
                         )
                         {
                             bestCell = newPos;
-                            tmpDestMaps[newPos] = destMap;
+                            tmpDestMaps[bestCell] = destMap;
                             break;
                         }
             }
         }
         else
-            bestCell = CrossMapReachabilityUtility.BestOrderedGotoDestNear(destCell, colonist.pawn, null, destMap, out tmpExitSpot, out tmpEnterSpot);
+            bestCell = CrossMapReachabilityUtility.BestOrderedGotoDestNear(destCell, colonist.pawn, null, destMap, out _, out _);
         if (bestCell.InBounds(destMap))
         {
             colonist.designation = bestCell;
@@ -122,38 +104,34 @@ public static class Patch_Colonist_UpdateOrderPos
         return IntVec3.Invalid;
     }
 
-    public static TargetInfo tmpExitSpot;
-
-    public static TargetInfo tmpEnterSpot;
-
-    public static Dictionary<IntVec3, Map> tmpDestMaps = new Dictionary<IntVec3, Map>();
+    public static Dictionary<IntVec3, Map> tmpDestMaps = [];
 
     private static int lastCachedTick;
 }
 
 [HarmonyPatchCategory(Patches_Achtung.Category)]
 [HarmonyPatch("AchtungMod.Tools", "OrderTo")]
+[PatchLevel(Level.Safe)]
 public static class Patch_Tools_OrderTo
 {
     public static bool Prefix(Pawn pawn, int x, int z)
     {
-        TargetMapManager.RemoveTargetInfo(pawn);
-        if (Patch_Colonist_UpdateOrderPos.tmpDestMaps.TryGetValue(new IntVec3(x, 0, z), out var map) && map != null)
+        var cell = new IntVec3(x, 0, z);
+        if (TargetMapManager.HasTargetMap(pawn, out var map) && pawn.CanReach(cell, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, map, out var exitSpot, out var enterSpot))
         {
-            OrderTo(pawn, x, z);
+            OrderTo(pawn, cell, map, exitSpot, enterSpot);
             return false;
         }
         return true;
     }
 
-    public static void OrderTo(Pawn pawn, int x, int z)
+    public static void OrderTo(Pawn pawn, IntVec3 cell, Map map, TargetInfo exitSpot, TargetInfo enterSpot)
     {
-        var bestCell = new IntVec3(x, 0, z);
-        var job = JobMaker.MakeJob(VMF_DefOf.VMF_GotoAcrossMaps, bestCell).SetSpotsToJobAcrossMaps(pawn, Patch_Colonist_UpdateOrderPos.tmpExitSpot, Patch_Colonist_UpdateOrderPos.tmpEnterSpot);
+        var job = JobMaker.MakeJob(VMF_DefOf.VMF_GotoAcrossMaps, cell).SetSpotsToJobAcrossMaps(pawn, exitSpot, enterSpot);
         job.playerForced = true;
         job.collideWithPawns = false;
         var baseMap = pawn.BaseMap();
-        if (Patch_Colonist_UpdateOrderPos.tmpDestMaps[bestCell] == baseMap && baseMap.exitMapGrid.IsExitCell(bestCell))
+        if (map == baseMap && baseMap.exitMapGrid.IsExitCell(cell))
             job.exitMapOnArrival = true;
 
         if (pawn.jobs?.IsCurrentJobPlayerInterruptible() ?? false)
@@ -163,6 +141,7 @@ public static class Patch_Tools_OrderTo
 
 [HarmonyPatchCategory(Patches_Achtung.Category)]
 [HarmonyPatch("AchtungMod.Tools", "LabelDrawPosFor")]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Tools_LabelDrawPosFor
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -185,6 +164,7 @@ public static class Patch_Tools_LabelDrawPosFor
 
 [HarmonyPatchCategory(Patches_Achtung.Category)]
 [HarmonyPatch]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_Controller_HandleDrawing
 {
     private static MethodBase TargetMethod()
@@ -200,6 +180,7 @@ public static class Patch_Controller_HandleDrawing
 
 [HarmonyPatchCategory(Patches_Achtung.Category)]
 [HarmonyPatch(typeof(Controller), nameof(Controller.MouseDown))]
+[PatchLevel(Level.Safe)]
 public static class Patch_Controller_MouseDown
 {
     public static void Prefix(Vector3 pos)

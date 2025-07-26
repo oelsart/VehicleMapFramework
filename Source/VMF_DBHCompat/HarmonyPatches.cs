@@ -11,11 +11,13 @@ using static VehicleMapFramework.MethodInfoCache;
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 [StaticConstructorOnStartupPriority(Priority.Low)]
-public static class Patches_VEF
+public static class Patches_DBH
 {
-    static Patches_VEF()
+    public const string Category = "VMF_Patches_DBH";
+
+    static Patches_DBH()
     {
-        VMF_Harmony.PatchCategory("VMF_Patches_DBH");
+        VMF_Harmony.PatchCategory(Category);
         if (DubsBadHygiene.Settings.LiteMode)
         {
             DefDatabase<ThingDef>.GetNamed("VMF_PipeConnector").comps.RemoveAll(c => c is CompProperties_PipeConnectorDBH);
@@ -23,8 +25,9 @@ public static class Patches_VEF
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_DBH")]
+[HarmonyPatchCategory(Patches_DBH.Category)]
 [HarmonyPatch(typeof(CompPipe), nameof(CompPipe.Props), MethodType.Getter)]
+[PatchLevel(Level.Safe)]
 public static class Patch_CompResource_Props
 {
     public static void Postfix(CompPipe __instance, ref CompProperties_Pipe __result)
@@ -38,11 +41,12 @@ public static class Patch_CompResource_Props
         }
     }
 
-    private static readonly CompProperties_Pipe dummy = new CompProperties_Pipe();
+    private static readonly CompProperties_Pipe dummy = new();
 }
 
-[HarmonyPatchCategory("VMF_Patches_DBH")]
+[HarmonyPatchCategory(Patches_DBH.Category)]
 [HarmonyPatch(typeof(PlaceWorker_SewageArea), nameof(PlaceWorker_SewageArea.DrawGhost))]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_PlaceWorker_SewageArea_DrawGhost
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
@@ -76,8 +80,9 @@ public static class Patch_PlaceWorker_SewageArea_DrawGhost
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_DBH")]
+[HarmonyPatchCategory(Patches_DBH.Category)]
 [HarmonyPatch]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_PlaceWorker_SewageArea_DrawGhost_Predicate
 {
     private static MethodBase TargetMethod()
@@ -109,8 +114,9 @@ public static class Patch_PlaceWorker_SewageArea_DrawGhost_Predicate
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_DBH")]
+[HarmonyPatchCategory(Patches_DBH.Category)]
 [HarmonyPatch(typeof(MapComponent_Hygiene), nameof(MapComponent_Hygiene.CanHaveSewage))]
+[PatchLevel(Level.Safe)]
 public static class Patch_MapComponent_Hygiene_CanHaveSewage
 {
     public static bool Prefix(IntVec3 c, Map ___map, ref bool __result)
@@ -124,8 +130,9 @@ public static class Patch_MapComponent_Hygiene_CanHaveSewage
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_DBH")]
+[HarmonyPatchCategory(Patches_DBH.Category)]
 [HarmonyPatch(typeof(MapComponent_Hygiene), nameof(MapComponent_Hygiene.MapComponentUpdate))]
+[PatchLevel(Level.Cautious)]
 public static class Patch_MapComponent_Hygiene_MapComponentUpdate
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -134,8 +141,9 @@ public static class Patch_MapComponent_Hygiene_MapComponentUpdate
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_DBH")]
+[HarmonyPatchCategory(Patches_DBH.Category)]
 [HarmonyPatch("DubsBadHygiene.SectionLayer_PipeOverlay", "DrawAllTileOverlays")]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_SectionLayer_PipeOverlay_DrawAllTileOverlays
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
@@ -155,15 +163,17 @@ public static class Patch_SectionLayer_PipeOverlay_DrawAllTileOverlays
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_DBH")]
+[HarmonyPatchCategory(Patches_DBH.Category)]
 [HarmonyPatch(typeof(Graphic_LinkedPipe), nameof(Graphic_LinkedPipe.ShouldLinkWith))]
+[PatchLevel(Level.Safe)]
 public static class Patch_Graphic_LinkedPipeDBH_ShouldLinkWith
 {
     public static void Prefix(IntVec3 c, Thing parent) => Patch_Graphic_Linked_ShouldLinkWith.Prefix(ref c, parent);
 }
 
-[HarmonyPatchCategory("VMF_Patches_DBH")]
+[HarmonyPatchCategory(Patches_DBH.Category)]
 [HarmonyPatch(typeof(Building_AssignableFixture), nameof(Building_AssignableFixture.Print))]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_Building_AssignableFixture_Print
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -177,8 +187,9 @@ public static class Patch_Building_AssignableFixture_Print
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_DBH")]
+[HarmonyPatchCategory(Patches_DBH.Category)]
 [HarmonyPatch("DubsBadHygiene.Building_StallDoor", "DrawAt")]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_Building_StallDoor_DrawAt
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)

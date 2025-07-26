@@ -31,6 +31,7 @@
 	<VMF_PumpUp>Pump Up</VMF_PumpUp>
 	<VMF_Drain>Drain</VMF_Drain>
 	
+	<VMF_Flip>Flip</VMF_Flip>
 	<VMF_VehicleMode>Vehicle Mode</VMF_VehicleMode>
 
 </LanguageData>

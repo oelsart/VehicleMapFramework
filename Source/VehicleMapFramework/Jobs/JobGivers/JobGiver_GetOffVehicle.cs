@@ -11,7 +11,7 @@ public class JobGiver_GetOffVehicle : ThinkNode_JobGiver
 
     protected override Job TryGiveJob(Pawn pawn)
     {
-        if (pawn.Faction.IsPlayer)
+        if (pawn.Faction?.IsPlayer ?? false)
         {
             if (!VehicleMapFramework.settings.autoGetOffPlayer) return null;
         }

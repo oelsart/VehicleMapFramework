@@ -32,11 +32,13 @@ public sealed class PatchLevelAttribute(Level level) : Attribute
 
 public class VMF_Harmony
 {
-    public static Harmony Instance = new("OELS.VehicleMapFramework");
+    internal static Harmony Instance = new("OELS.VehicleMapFramework");
 
-    public static List<string> Categories = [];
+    internal static List<string> Categories = [];
 
-    internal static Dictionary<Assembly, List<Type>> AllTypesInAssembly = [];
+    internal static List<Assembly> Assemblies = [];
+
+    internal static List<Type> AllTypesInMod = [];
 
     public static Level CurrentPatchLevel { get; private set; } = VehicleMapFramework.settings.dynamicPatchEnabled ? VehicleMapFramework.settings.dynamicPatchLevel : Level.All;
 
@@ -113,26 +115,25 @@ public class VMF_Harmony
         }
     }
 
-    public static List<Type> TypesInAssembly()
+    private static List<Type> TypesInAssembly(Assembly assembly)
+    {
+        if (!Assemblies.Contains(assembly))
+        {
+            Assemblies.Add(assembly);
+            AllTypesInMod.AddRange(GenTypes.AllTypes.Where(t => t.Assembly == assembly));
+        }
+        return AllTypesInMod;
+    }
+
+    internal static void PatchCategory(string category)
     {
         var method = new StackTrace().GetFrame(1).GetMethod();
         var assembly = method.ReflectedType.Assembly;
-        if (!AllTypesInAssembly.TryGetValue(assembly, out var types))
-        {
-            types = [.. GenTypes.AllTypes.Where(t => t.Assembly == assembly)];
-            AllTypesInAssembly[assembly] = types;
-        }
-        return types;
-    }
-
-    public static void PatchCategory(string category)
-    {
         if (!Categories.Contains(category))
         {
             Categories.Add(category);
         }
-
-        TypesInAssembly()
+        TypesInAssembly(assembly)
             .Where(t => t.CustomAttributes.Any(a => a.AttributeType == typeof(HarmonyPatch)) &&
             t.CustomAttributes.Any(a => a.AttributeType == typeof(HarmonyPatchCategory) && a.ConstructorArguments.Any(c => c.Value.Equals(category))))
             .Where(CheckClassPatchLevel)
@@ -151,9 +152,11 @@ public class VMF_Harmony
             });
     }
 
-    public static void UnpatchCategory(string category)
+    internal static void UnpatchCategory(string category)
     {
-        TypesInAssembly()
+        var method = new StackTrace().GetFrame(1).GetMethod();
+        var assembly = method.ReflectedType.Assembly;
+        TypesInAssembly(assembly)
             .Where(t => t.CustomAttributes.Any(a => a.AttributeType == typeof(HarmonyPatch)) &&
             t.CustomAttributes.Any(a => a.AttributeType == typeof(HarmonyPatchCategory) && a.ConstructorArguments.Any(c => c.Value.Equals(category))))
             .Where(CheckClassPatchLevel)
@@ -172,9 +175,11 @@ public class VMF_Harmony
             });
     }
 
-    public static void PatchAllUncategorized()
+    internal static void PatchAllUncategorized()
     {
-        TypesInAssembly()
+        var method = new StackTrace().GetFrame(1).GetMethod();
+        var assembly = method.ReflectedType.Assembly;
+        TypesInAssembly(assembly)
             .Where(t => t.CustomAttributes.Any(a => a.AttributeType == typeof(HarmonyPatch)) && t.CustomAttributes.All(a => a.AttributeType != typeof(HarmonyPatchCategory)))
             .Where(CheckClassPatchLevel)
             .Select(Instance.CreateClassProcessor)
@@ -192,9 +197,11 @@ public class VMF_Harmony
             });
     }
 
-    public static void UnpatchAllUncategorized()
+    internal static void UnpatchAllUncategorized()
     {
-        TypesInAssembly()
+        var method = new StackTrace().GetFrame(1).GetMethod();
+        var assembly = method.ReflectedType.Assembly;
+        TypesInAssembly(assembly)
             .Where(t => t.CustomAttributes.Any(a => a.AttributeType == typeof(HarmonyPatch)) && t.CustomAttributes.All(a => a.AttributeType != typeof(HarmonyPatchCategory)))
             .Where(CheckClassPatchLevel)
             .Select(Instance.CreateClassProcessor)

@@ -4,8 +4,9 @@ using System.Reflection.Emit;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches
 {
-    [HarmonyPatchCategory("VMF_Patches_VFE_Architect")]
+    [HarmonyPatchCategory(Patches_VEF.CategoryArchitect)]
     [HarmonyPatch("VFEArchitect.Building_DoorSingle", "DrawAt")]
+    [PatchLevel(Level.Sensitive)]
     public static class Patch_Building_DoorSingle_DrawAt
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)

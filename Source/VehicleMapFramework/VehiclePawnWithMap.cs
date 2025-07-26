@@ -508,18 +508,12 @@ public class VehiclePawnWithMap : VehiclePawn
         }
         DrawTracker.DynamicDrawPhaseAt(DrawPhase.Draw, in drawLoc, rot, rotation);
         DrawVehicleMap(Transform.rotation);
-        var focused = Command_FocusVehicleMap.FocusedVehicle;
-        Command_FocusVehicleMap.FocusedVehicle = this;
-        interiorMap.roofGrid.RoofGridUpdate();
-        interiorMap.mapTemperature.TemperatureUpdate();
-        Command_FocusVehicleMap.FocusedVehicle = focused;
     }
 
     public override void DynamicDrawPhaseAt(DrawPhase phase, Vector3 drawLoc, bool flip = false)
     {
         cachedDrawPos = drawLoc;
         base.DynamicDrawPhaseAt(phase, drawLoc, flip);
-
         if (phase == DrawPhase.Draw)
         {
             if (vehiclePather?.Moving ?? false)
@@ -527,11 +521,6 @@ public class VehiclePawnWithMap : VehiclePawn
                 CellDesignationsDirty();
             }
             DrawVehicleMap(Transform.rotation);
-            var focused = Command_FocusVehicleMap.FocusedVehicle;
-            Command_FocusVehicleMap.FocusedVehicle = this;
-            interiorMap.roofGrid.RoofGridUpdate();
-            interiorMap.mapTemperature.TemperatureUpdate();
-            Command_FocusVehicleMap.FocusedVehicle = focused;
         }
     }
 
@@ -562,6 +551,13 @@ public class VehiclePawnWithMap : VehiclePawn
         map.overlayDrawer.DrawAllOverlays();
         map.temporaryThingDrawer.Draw();
         map.flecks.FleckManagerDraw();
+
+        var focused = Command_FocusVehicleMap.FocusedVehicle;
+        Command_FocusVehicleMap.FocusedVehicle = this;
+        interiorMap.roofGrid.RoofGridUpdate();
+        interiorMap.mapTemperature.TemperatureUpdate();
+        MapComponentUtility.MapComponentOnDraw(interiorMap);
+        Command_FocusVehicleMap.FocusedVehicle = focused;
         //map.gameConditionManager.GameConditionManagerDraw(map);
         //MapEdgeClipDrawer.DrawClippers(__instance);
     }

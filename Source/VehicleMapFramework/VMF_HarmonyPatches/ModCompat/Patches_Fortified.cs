@@ -5,21 +5,21 @@ using static VehicleMapFramework.MethodInfoCache;
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 [StaticConstructorOnStartupPriority(Priority.Low)]
-public static class Patches_DMS
+public static class Patches_Fortified
 {
     public const string Category = "VMF_Patches_DMS";
 
-    static Patches_DMS()
+    static Patches_Fortified()
     {
-        if (ModCompat.DeadMansSwitch)
+        if (ModCompat.Fortified)
         {
             VMF_Harmony.PatchCategory(Category);
         }
     }
 }
 
-[HarmonyPatchCategory(Patches_DMS.Category)]
-[HarmonyPatch("DMS.Verb_CastAbilityArcSprayProjectile", "TryCastShot")]
+[HarmonyPatchCategory(Patches_Fortified.Category)]
+[HarmonyPatch("Fortified.Verb_CastAbilityArcSprayProjectile", "TryCastShot")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Verb_CastAbilityArcSprayProjectile_TryCastShot
 {
@@ -29,8 +29,8 @@ public static class Patch_Verb_CastAbilityArcSprayProjectile_TryCastShot
     }
 }
 
-[HarmonyPatchCategory(Patches_DMS.Category)]
-[HarmonyPatch("DMS.Verb_CastAbilityArcSprayProjectile", "PreparePath")]
+[HarmonyPatchCategory(Patches_Fortified.Category)]
+[HarmonyPatch("Fortified.Verb_CastAbilityArcSprayProjectile", "PreparePath")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Verb_CastAbilityArcSprayProjectile_PreparePath
 {

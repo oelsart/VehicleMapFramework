@@ -92,7 +92,7 @@ namespace VehicleMapFramework
             {
                 yield return new Command_Action()
                 {
-                    defaultLabel = "Flip".Translate(),
+                    defaultLabel = "VMF_Flip".Translate(),
                     action = () =>
                     {
                         flipped = !flipped;
@@ -143,7 +143,7 @@ namespace VehicleMapFramework
             if (flipped)
             {
                 rotationInt(this) = tmpRot.Value.Opposite;
-                SetPositionDirect(pos + new IntVec3(def.Size.x / 2, 0, def.Size.z / 2).RotatedBy(tmpRot.Value));
+                SetPositionDirect(pos + new IntVec3(1 - def.Size.x % 2, 0, 1 - def.Size.z % 2).RotatedBy(tmpRot.Value));
             }
             base.Print(layer);
             if (flipped)
@@ -158,20 +158,6 @@ namespace VehicleMapFramework
         {
             return (tmpRot ?? Rotation) == rot.Rotated(flipped ? RotationDirection.Clockwise : RotationDirection.Counterclockwise);
         }
-
-//#if DEBUG
-//        public override void DrawExtraSelectionOverlays()
-//        {
-//            base.DrawExtraSelectionOverlays();
-//            if (CompGravshipFacility.engine is null) return;
-//            var engine = CompGravshipFacility.engine;
-//            var console = engine.GravshipComponents.FirstOrDefault(c => c is CompPilotConsole);
-//            if (console is null) return;
-//            _ = GravshipVehicleUtility.CheckGravshipVehicleStability(engine, console.parent.Rotation, out var wheelsRect);
-//            GenDraw.DrawCellRect(CellRect.FromCellList(engine.ValidSubstructure), Vector3.zero, SolidColorMaterials.SimpleSolidColorMaterial(Color.red.WithAlpha(0.25f)));
-//            GenDraw.DrawCellRect(wheelsRect, Vector3.zero, SolidColorMaterials.SimpleSolidColorMaterial(Color.blue.WithAlpha(0.25f)));
-//        }
-//#endif
 
         public override void ExposeData()
         {

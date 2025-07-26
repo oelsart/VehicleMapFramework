@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Defs>
-	<ThingDef ParentName="GravshipComponentBase" MayRequire="Ludeon.RimWorld.Odyssey">
-		<defName>VMF_GravshipWheel</defName>
-		<label>gravship wheel</label>
-		<description>Equipment for the gravship to travel on the ground. It also serves as a thruster for movement in space, and the number of wheels affects the maximum payload and travel speed.\n\n&lt;color=#bb8f04&gt;Maximum payload:&lt;/color&gt; +1500 kg\n&lt;color=#bb8f04&gt;Move speed:&lt;/color&gt; +0.75</description>
+	<DesignatorDropdownGroupDef>
+		<defName>VMF_GravshipWheelGroup</defName>
+	</DesignatorDropdownGroupDef>
+	
+	<ThingDef Name="VMF_GravshipWheelBase" ParentName="GravshipComponentBase" Abstract="True" MayRequire="Ludeon.RimWorld.Odyssey">
+		<designatorDropdown>VMF_GravshipWheelGroup</designatorDropdown>
 		<thingClass>VehicleMapFramework.Building_GravshipWheel</thingClass>
 		<designationCategory>VF_Vehicles</designationCategory>
 		<rotatable>true</rotatable>
@@ -13,30 +15,17 @@
 			<texPath>VehicleMapFramework/Things/GravshipWheel/GravshipWheel</texPath>
 			<graphicClass>Graphic_Multi</graphicClass>
 			<shaderType>CutoutComplex</shaderType>
-			<drawSize>(2,1)</drawSize>
 		</graphicData>
-		<statBases>
-			<MaxHitPoints>250</MaxHitPoints>
-			<Beauty>-3</Beauty>
-			<WorkToBuild>1500</WorkToBuild>
-			<Mass>20</Mass>
-		</statBases>
-		<size>(2,1)</size>
 		<fillPercent>0.8</fillPercent>
-		<costList>
-			<Steel>150</Steel>
-			<Chemfuel>50</Chemfuel>
-			<ComponentIndustrial>1</ComponentIndustrial>
-		</costList>
 		<building>
 			<isEdifice>false</isEdifice>
+			<paintable>true</paintable>
 			<isAttachment>true</isAttachment>
 			<destroySound>BuildingDestroyed_Metal_Big</destroySound>
 		</building>
 		<placeWorkers>
-			<li>VehicleMapFramework.PlaceWorker_AttachedWallPreventOverlap</li>
+			<li>VehicleMapFramework.PlaceWorker_AttachedWallMultiCell</li>
 		</placeWorkers>
-		<uiOrder>1030</uiOrder>
 		<researchPrerequisites>
 			<li>BasicGravtech</li>
 		</researchPrerequisites>
@@ -46,17 +35,84 @@
 				<maxSimultaneous>200</maxSimultaneous>
 				<maxDistance>200</maxDistance>
 			</li>
+			<li>
+				<compClass>CompColorable</compClass>
+			</li>
+		</comps>
+	</ThingDef>
+	
+	<ThingDef ParentName="VMF_GravshipWheelBase">
+		<defName>VMF_GravshipWheelSmall</defName>
+		<label>gravship wheel (1x2)</label>
+		<description>Equipment for the gravship to travel on the ground. It also serves as a thruster for movement in space, and the number of wheels affects the maximum payload and travel speed.\n\n&lt;color=#bb8f04&gt;Maximum payload:&lt;/color&gt; +500 kg\n&lt;color=#bb8f04&gt;Move speed:&lt;/color&gt; +0.75</description>
+		<graphicData>
+			<drawSize>(2,1)</drawSize>
+		</graphicData>
+		<statBases>
+			<MaxHitPoints>250</MaxHitPoints>
+			<Beauty>-3</Beauty>
+			<WorkToBuild>1500</WorkToBuild>
+			<Mass>20</Mass>
+		</statBases>
+		<size>(2,1)</size>
+		<costList>
+			<Steel>150</Steel>
+			<Chemfuel>50</Chemfuel>
+			<ComponentIndustrial>1</ComponentIndustrial>
+		</costList>
+		<uiOrder>1012</uiOrder>
+		<comps>
 			<li Class = "VehicleMapFramework.CompProperties_BuildableUpgrades">
 				<upgrades>
 					<li Class = "Vehicles.StatUpgrade">
 						<vehicleStats>
 							<li>
 								<def>MaximumPayload</def>
-								<value>1500</value>
+								<value>500</value>
 							</li>
 							<li>
 								<def>MoveSpeed</def>
 								<value>0.75</value>
+							</li>
+						</vehicleStats>
+					</li>
+				</upgrades>
+			</li>
+		</comps>
+	</ThingDef>
+	
+	<ThingDef ParentName="VMF_GravshipWheelBase">
+		<defName>VMF_GravshipWheelLarge</defName>
+		<label>gravship wheel (2x4)</label>
+		<description>Equipment for the gravship to travel on the ground. It also serves as a thruster for movement in space, and the number of wheels affects the maximum payload and travel speed.\n\n&lt;color=#bb8f04&gt;Maximum payload:&lt;/color&gt; +2000 kg\n&lt;color=#bb8f04&gt;Move speed:&lt;/color&gt; +1.5</description>
+		<graphicData>
+			<drawSize>(4,2)</drawSize>
+		</graphicData>
+		<statBases>
+			<MaxHitPoints>1000</MaxHitPoints>
+			<Beauty>-3</Beauty>
+			<WorkToBuild>6000</WorkToBuild>
+			<Mass>80</Mass>
+		</statBases>
+		<size>(4,2)</size>
+		<costList>
+			<Steel>600</Steel>
+			<Chemfuel>200</Chemfuel>
+			<ComponentIndustrial>4</ComponentIndustrial>
+		</costList>
+		<uiOrder>1012</uiOrder>
+		<comps>
+			<li Class = "VehicleMapFramework.CompProperties_BuildableUpgrades">
+				<upgrades>
+					<li Class = "Vehicles.StatUpgrade">
+						<vehicleStats>
+							<li>
+								<def>MaximumPayload</def>
+								<value>2000</value>
+							</li>
+							<li>
+								<def>MoveSpeed</def>
+								<value>1.5</value>
 							</li>
 						</vehicleStats>
 					</li>

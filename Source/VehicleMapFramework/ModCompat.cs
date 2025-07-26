@@ -128,7 +128,7 @@ public static class ModCompat
         }
     }
 
-    public static readonly bool DeadMansSwitch = ModsConfig.IsActive("Aoba.DeadManSwitch.Core");
+    public static readonly bool Fortified = ModsConfig.IsActive("AOBA.Framework");
 
     public static readonly bool DrakkenLaserDrill = ModsConfig.IsActive("MYDE.DrakkenLaserDrill");
 

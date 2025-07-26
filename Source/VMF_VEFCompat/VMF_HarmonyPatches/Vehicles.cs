@@ -12,8 +12,9 @@ using static VehicleMapFramework.ModCompat.VVE;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches
 {
-    [HarmonyPatchCategory("VMF_Patches_VVE")]
+    [HarmonyPatchCategory(Patches_VEF.CategoryVVE)]
     [HarmonyPatch("VanillaVehiclesExpanded.GarageDoor", "DrawAt")]
+    [PatchLevel(Level.Sensitive)]
     public static class Patch_GarageDoor_DrawAt
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -51,8 +52,9 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory("VMF_Patches_VVE")]
+    [HarmonyPatchCategory(Patches_VEF.CategoryVVE)]
     [HarmonyPatch("VanillaVehiclesExpanded.CompRefuelingPump", "CompTick")]
+    [PatchLevel(Level.Safe)]
     public static class Patch_CompRefuelingPump_CompTick
     {
         public static void Postfix(ThingWithComps ___parent, CompRefuelable ___compRefuelable, CompProperties ___props)

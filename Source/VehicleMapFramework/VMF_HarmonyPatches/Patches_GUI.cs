@@ -226,6 +226,7 @@ public static class Patch_GlobalControls_TemperatureString
 //drawPosを移動してQuaternionに車の回転をかける
 [HarmonyPatch]
 [PatchLevel(Level.Sensitive)]
+[HarmonyDebug]
 public static class Patch_GUI_VehicleMapOffset
 {
     private static IEnumerable<MethodBase> TargetMethods()
@@ -249,8 +250,9 @@ public static class Patch_GUI_VehicleMapOffset
                 new CodeInstruction(OpCodes.Brfalse_S, label),
                 new CodeInstruction(OpCodes.Ldloc_S, vehicle),
                 new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_FullAngle),
-                CodeInstruction.Call(typeof(Vector3Utility), nameof(Vector3Utility.FromAngleFlat)),
-                CodeInstruction.Call(typeof(Quaternion), "op_Multiply", [typeof(Quaternion), typeof(Vector3)]));
+                new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(Vector3), nameof(Vector3.up))),
+                CodeInstruction.Call(typeof(Quaternion), nameof(Quaternion.AngleAxis)),
+                new CodeInstruction(OpCodes.Call, CachedMethodInfo.o_Quaternion_Multiply));
         return codes.Instructions();
     }
 }

@@ -3,7 +3,8 @@
 	<Operation Class="PatchOperationAdd">
 		<xpath>Defs/ThingDef[defName="GravEngine"]/comps/li[@Class="CompProperties_AffectedByFacilities"]/linkableFacilities</xpath>
 		<value>
-			<li>VMF_GravshipWheel</li>
+			<li>VMF_GravshipWheelSmall</li>
+			<li>VMF_GravshipWheelLarge</li>
 		</value>
 	</Operation>
 	

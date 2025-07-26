@@ -10,8 +10,9 @@ using static VehicleMapFramework.ModCompat.VFESecurity;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches
 {
-    [HarmonyPatchCategory("VMF_Patches_VFE_Security")]
+    [HarmonyPatchCategory(Patches_VEF.CategorySecurity)]
     [HarmonyPatch]
+    [PatchLevel(Level.Sensitive)]
     public static class Patch_Building_Shield_ThingsWithinRadius
     {
         private static MethodInfo TargetMethod()
@@ -25,8 +26,9 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory("VMF_Patches_VFE_Security")]
+    [HarmonyPatchCategory(Patches_VEF.CategorySecurity)]
     [HarmonyPatch]
+    [PatchLevel(Level.Sensitive)]
     public static class Patch_Building_Shield_ThingsWithinScanArea
     {
         private static MethodInfo TargetMethod()
@@ -40,9 +42,10 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory("VMF_Patches_VFE_Security")]
+    [HarmonyPatchCategory(Patches_VEF.CategorySecurity)]
     [HarmonyPatch("VFESecurity.Building_Shield", "AbsorbDamage")]
     [HarmonyPatch([typeof(float), typeof(DamageDef), typeof(float)])]
+    [PatchLevel(Level.Sensitive)]
     public static class Patch_Building_Shield_AbsorbDamage
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -55,8 +58,9 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory("VMF_Patches_VFE_Security")]
+    [HarmonyPatchCategory(Patches_VEF.CategorySecurity)]
     [HarmonyPatch("VFESecurity.Building_Shield", "DrawAt")]
+    [PatchLevel(Level.Sensitive)]
     public static class Patch_Building_Shield_DrawAt
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
@@ -80,8 +84,9 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory("VMF_Patches_VFE_Security")]
+    [HarmonyPatchCategory(Patches_VEF.CategorySecurity)]
     [HarmonyPatch("VFESecurity.Building_Shield", "EnergyShieldTick")]
+    [PatchLevel(Level.Sensitive)]
     public static class Patch_Building_Shield_EnergyShieldTick
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -98,8 +103,9 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory("VMF_Patches_VFE_Security")]
+    [HarmonyPatchCategory(Patches_VEF.CategorySecurity)]
     [HarmonyPatch("VFESecurity.Building_Shield", "UpdateCache")]
+    [PatchLevel(Level.Cautious)]
     public static class Patch_Building_Shield_UpdateCache
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -109,8 +115,9 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory("VMF_Patches_VFE_Security")]
+    [HarmonyPatchCategory(Patches_VEF.CategorySecurity)]
     [HarmonyPatch("VFESecurity.CompLongRangeArtillery", "CompTick")]
+    [PatchLevel(Level.Safe)]
     public static class Patch_CompLongRangeArtillery_CompTick
     {
         public static void Postfix(ThingComp __instance)
