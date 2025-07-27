@@ -530,7 +530,7 @@ public static class Patch_Hediff_MetalhorrorImplant_Emerge
 }
 
 [HarmonyPatch(typeof(HaulDestinationManager), nameof(HaulDestinationManager.AddHaulSource))]
-[PatchLevel(Level.Safe)]
+[PatchLevel(Level.Mandatory)]
 public static class Patch_HaulDestinationManager_AddHaulSource
 {
     public static void Postfix(Map ___map, IHaulSource source)
@@ -540,7 +540,7 @@ public static class Patch_HaulDestinationManager_AddHaulSource
 }
 
 [HarmonyPatch(typeof(HaulDestinationManager), nameof(HaulDestinationManager.AddHaulDestination))]
-[PatchLevel(Level.Safe)]
+[PatchLevel(Level.Mandatory)]
 public static class Patch_HaulDestinationManager_AddHaulDestination
 {
     public static void Postfix(Map ___map, IHaulDestination haulDestination)
@@ -550,7 +550,7 @@ public static class Patch_HaulDestinationManager_AddHaulDestination
 }
 
 [HarmonyPatch(typeof(HaulDestinationManager), nameof(HaulDestinationManager.RemoveHaulSource))]
-[PatchLevel(Level.Safe)]
+[PatchLevel(Level.Mandatory)]
 public static class Patch_HaulDestinationManager_RemoveHaulSource
 {
     public static void Postfix(Map ___map, IHaulSource source)
@@ -560,7 +560,7 @@ public static class Patch_HaulDestinationManager_RemoveHaulSource
 }
 
 [HarmonyPatch(typeof(HaulDestinationManager), nameof(HaulDestinationManager.RemoveHaulDestination))]
-[PatchLevel(Level.Safe)]
+[PatchLevel(Level.Mandatory)]
 public static class Patch_HaulDestinationManager_RemoveHaulDestination
 {
     public static void Postfix(Map ___map, IHaulDestination haulDestination)
@@ -570,7 +570,7 @@ public static class Patch_HaulDestinationManager_RemoveHaulDestination
 }
 
 [HarmonyPatch(typeof(HaulDestinationManager), nameof(HaulDestinationManager.Notify_HaulDestinationChangedPriority))]
-[PatchLevel(Level.Safe)]
+[PatchLevel(Level.Mandatory)]
 public static class Patch_HaulDestinationManager_Notify_HaulDestinationChangedPriority
 {
     public static void Postfix(Map ___map)
