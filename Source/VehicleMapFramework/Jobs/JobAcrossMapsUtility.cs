@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using RimWorld;
 using System;
+using System.Linq;
 using Verse;
 using Verse.AI;
 
@@ -18,10 +19,11 @@ public static class JobAcrossMapsUtility
         var driver = nextJob.GetCachedDriver(pawn);
 
         //QueueBを使い果たした後でDoBillを再開するといらんとこまでJumpIfしてしまうためその対策
-        if (driver is JobDriver_DoBill && pawn.CurJob.targetQueueB.NullOrEmpty() && (pawn.IsCarrying() || pawn.CurJob.targetB.HasThing))
-        {
-            nextJob.AddQueuedTarget(TargetIndex.B, pawn.carryTracker.CarriedThing ?? pawn.CurJob.targetB.Thing);
-        }
+        //if (driver is JobDriver_DoBill && pawn.CurJob.targetQueueB.NullOrEmpty() && (pawn.IsCarrying() || pawn.CurJob.targetB.HasThing))
+        //{
+        //    nextJob.AddQueuedTarget(TargetIndex.B, pawn.carryTracker.CarriedThing ?? pawn.CurJob.targetB.Thing);
+        //    (nextJob.countQueue ??= []).Add((nextJob.targetQueueB.FirstOrDefault().Thing ?? pawn.CurJob.targetB.Thing).stackCount);
+        //}
 
         curToilIndex(driver) = pawn.jobs.curDriver.CurToilIndex - 1;
         pawn.jobs.curDriver.globalFinishActions.Clear(); //Jobはまだ終わっちゃいねえためFinishActionはさせない。TryDropThingなどをしていることもあるし

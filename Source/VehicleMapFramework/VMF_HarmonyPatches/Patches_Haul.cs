@@ -73,6 +73,10 @@ public static class Patch_StoreUtility_TryFindBestBetterStoreCellFor
     {
         var priority = foundCell.IsValid ? foundCell.GetSlotGroup(map)?.Settings?.Priority ?? currentPriority : currentPriority;
         __result |= StoreAcrossMapsUtility.TryFindBestBetterStoreCellFor(t, carrier, map, priority, faction, ref foundCell, needAccurateResult);
+        if (StoreAcrossMapsUtility.tmpDestMap != null)
+        {
+            TargetMapManager.SetTargetInfo(carrier, new TargetInfo(foundCell, StoreAcrossMapsUtility.tmpDestMap));
+        }
     }
 }
 
@@ -160,7 +164,7 @@ public static class Patch_JobDriver_HaulToCell
 
     public static Map TargetMapOrPawnMap(JobDriver instance)
     {
-        if (TargetMapManager.HasTargetMap(instance.pawn, out var map))
+        if (TargetMapManager.HasTargetMap(instance.pawn, out var map) || (map = instance.job.targetA.Thing?.MapHeld) != null)
         {
             return map;
         }
