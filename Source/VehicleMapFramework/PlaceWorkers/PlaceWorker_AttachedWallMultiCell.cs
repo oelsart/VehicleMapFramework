@@ -10,7 +10,7 @@ namespace VehicleMapFramework
         {
             if (GenAdj.OccupiedRect(loc, rot, checkingDef.Size).Any(c => c.GetThingList(map).Any(t => t.def?.PlaceWorkers?.Any(p => p is PlaceWorker_AttachedWallMultiCell) ?? false)))
             {
-                return "Occupied".Translate();
+                return "SpaceAlreadyOccupied".Translate();
             }
 
             var occupiedRect = GenAdj.OccupiedRect(loc, rot, checkingDef.Size);

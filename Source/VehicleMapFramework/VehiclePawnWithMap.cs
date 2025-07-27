@@ -284,7 +284,6 @@ public class VehiclePawnWithMap : VehiclePawn
                 foreach (var c in CachedOutOfBoundsCells)
                 {
                     GenSpawn.Spawn(VMF_DefOf.VMF_VehicleStructureEmpty, c, interiorMap).SetFaction(Faction);
-                    interiorMap.areaManager.NoRoof[c] = true;
                 }
             }
         }
