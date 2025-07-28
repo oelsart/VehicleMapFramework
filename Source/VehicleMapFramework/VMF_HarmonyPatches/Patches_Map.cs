@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using RimWorld;
 using RimWorld.Planet;
+using RimWorld.QuestGen;
 using SmashTools;
 using System.Collections.Generic;
 using System.Linq;
@@ -622,5 +623,15 @@ public static class Patch_Map_TileInfo
         {
             __result = Find.WorldGrid[__instance.Tile];
         }
+    }
+}
+
+[HarmonyPatch(typeof(QuestPart_SpawnThing), nameof(QuestPart_SpawnThing.MapParent), MethodType.Getter)]
+[PatchLevel(Level.Cautious)]
+public static class Patch_QuestPart_SpawnThing_MapParent
+{
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_MapHeld, CachedMethodInfo.m_MapHeldBaseMap);
     }
 }
