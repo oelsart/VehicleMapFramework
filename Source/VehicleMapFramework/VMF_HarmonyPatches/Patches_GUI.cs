@@ -226,7 +226,6 @@ public static class Patch_GlobalControls_TemperatureString
 //drawPosを移動してQuaternionに車の回転をかける
 [HarmonyPatch]
 [PatchLevel(Level.Sensitive)]
-[HarmonyDebug]
 public static class Patch_GUI_VehicleMapOffset
 {
     private static IEnumerable<MethodBase> TargetMethods()

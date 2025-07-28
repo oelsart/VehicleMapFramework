@@ -300,7 +300,7 @@ public class VehiclePawnWithMap : VehiclePawn
             GenerateVehicleMap();
         }
         interiorMap.PocketMapParent.sourceMap = map;
-        SetPocketTileInfo();
+        SetTile();
 
         if (def.HasModExtension<VehicleMapProps_Gravship>())
         {
@@ -346,56 +346,43 @@ public class VehiclePawnWithMap : VehiclePawn
     protected override void TickInterval(int delta)
     {
         base.TickInterval(delta);
-        SetPocketTileInfo();
+        SetTile();
     }
 
-    private void SetPocketTileInfo()
+    private void SetTile()
     {
-        try
+        if (Spawned)
         {
-            if (Spawned)
-            {
-                interiorMap.Parent.Tile = Map.Tile;
-                interiorMap.pocketTileInfo = Map.TileInfo;
-                return;
-            }
+            interiorMap.Parent.Tile = Map.Tile;
+            return;
+        }
 
-            static WorldObject GetWorldObject(IThingHolder holder)
-            {
-                while (holder != null)
-                {
-                    if (holder is WorldObject worldObject)
-                    {
-                        return worldObject;
-                    }
-                    holder = holder.ParentHolder;
-                }
-                return null;
-            }
-            var worldObject2 = GetWorldObject(this);
-            if (worldObject2 is AerialVehicleInFlight aerial)
-            {
-                Task.Run(() =>
-                {
-                    interiorMap.Parent.Tile = WorldHelper.GetNearestTile(aerial.DrawPos);
-                    interiorMap.pocketTileInfo = Find.WorldGrid[interiorMap.Parent.Tile];
-                });
-                return;
-            }
-            if (worldObject2 == null || worldObject2 is MapParent_Vehicle)
-            {
-                return;
-            }
-            interiorMap.Parent.Tile = worldObject2.Tile;
-            interiorMap.pocketTileInfo = Find.WorldGrid[interiorMap.Parent.Tile];
-        }
-        finally
+        static WorldObject GetWorldObject(IThingHolder holder)
         {
-            interiorMap.pocketTileInfo ??= new Tile
+            while (holder != null)
             {
-                PrimaryBiome = VMF_DefOf.VMF_VehicleMapGenerator.pocketMapProperties.biome
-            };
+                if (holder is WorldObject worldObject)
+                {
+                    return worldObject;
+                }
+                holder = holder.ParentHolder;
+            }
+            return null;
         }
+        var worldObject2 = GetWorldObject(this);
+        if (worldObject2 is AerialVehicleInFlight aerial)
+        {
+            Task.Run(() =>
+            {
+                interiorMap.Parent.Tile = WorldHelper.GetNearestTile(aerial.DrawPos);
+            });
+            return;
+        }
+        if (worldObject2 == null || worldObject2 is MapParent_Vehicle)
+        {
+            return;
+        }
+        interiorMap.Parent.Tile = worldObject2.Tile;
     }
 
     //PocketMapとしての管理に変更になったんでマップが破壊されたら車両マップも破壊されるはず

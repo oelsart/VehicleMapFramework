@@ -8,7 +8,7 @@ namespace VehicleMapFramework
     {
         public override AcceptanceReport AllowsPlacing(BuildableDef checkingDef, IntVec3 loc, Rot4 rot, Map map, Thing thingToIgnore = null, Thing thing = null)
         {
-            if (GenAdj.OccupiedRect(loc, rot, checkingDef.Size).Any(c => c.GetThingList(map).Any(t => t.def?.PlaceWorkers?.Any(p => p is PlaceWorker_AttachedWallMultiCell) ?? false)))
+            if (GenAdj.OccupiedRect(loc, rot, checkingDef.Size).Any(c => c.GetThingList(map).Any(t => t != thingToIgnore && (t.def?.PlaceWorkers?.Any(p => p is PlaceWorker_AttachedWallMultiCell) ?? false))))
             {
                 return "SpaceAlreadyOccupied".Translate();
             }

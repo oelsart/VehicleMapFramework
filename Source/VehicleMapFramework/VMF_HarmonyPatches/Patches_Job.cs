@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
+using UnityEngine.UIElements;
 using Verse;
 using Verse.AI;
 using static VehicleMapFramework.MethodInfoCache;
@@ -160,7 +161,7 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
         var map = pawn.Map;
         if (!scanner.AllowUnreachable)
         {
-            if (pawn.CanReach(t, scanner.PathEndMode, scanner.MaxPathDanger(pawn), false, false, TraverseMode.ByPawn, thingMap, out _, out _))
+            if (pawn.CanReach(t, scanner.PathEndMode, scanner.MaxPathDanger(pawn), false, false, TraverseMode.ByPawn, thingMap, out var exitSpot, out var enterSpot))
             {
                 var pos = pawn.Position;
                 var dest = t.PositionHeld;
@@ -173,6 +174,10 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
                 finally
                 {
                     pawn.VirtualMapTransfer(map, pos);
+                }
+                if (JobAcrossMapsUtility.NeedWrapGotoDestMapJob(scanner))
+                {
+                    job = JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, job);
                 }
                 return job;
             }
@@ -1100,45 +1105,5 @@ public static class Patch_WorkGiver_DoBill_TryFindBestIngredientsHelper_Predicat
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
-    }
-}
-
-[HarmonyPatch]
-[PatchLevel(Level.Sensitive)]
-public static class Patch_JobDriver_Mine_MakeNewToils_Delegate
-{
-    private static MethodBase TargetMethod()
-    {
-        return AccessTools.FindIncludingInnerTypes<MethodBase>(typeof(JobDriver_Mine), t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name == "<MakeNewToils>b__0"));
-    }
-
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        //先にget_TargetAをstloc.0しとくぞ
-        var pos = instructions.FirstIndexOf(c => c.opcode == OpCodes.Stloc_0) - 3;
-        if (pos >= 0)
-        {
-            foreach (var instruction in instructions.Skip(pos).Take(4))
-            {
-                yield return instruction;
-            }
-        }
-        foreach (var instruction in instructions)
-        {
-            if (instruction.Calls(CachedMethodInfo.g_Thing_Map))
-            {
-                yield return CodeInstruction.LoadLocal(0);
-                yield return CodeInstruction.Call(typeof(Patch_JobDriver_Mine_MakeNewToils_Delegate), nameof(TargetMap));
-            }
-            else
-            {
-                yield return instruction;
-            }
-        }
-    }
-
-    private static Map TargetMap(Thing thing, LocalTargetInfo target)
-    {
-        return target.Thing?.Map ?? thing.Map;
     }
 }

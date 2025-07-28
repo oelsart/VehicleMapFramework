@@ -405,46 +405,47 @@ public static class Patch_FloatMenuOptionProvider_DraftedMove_PawnGotoAction
 }
 
 [HarmonyPatch(typeof(FloatMenuOptionProvider_WorkGivers), "GetWorkGiverOption")]
+[PatchLevel(Level.Sensitive)]
+
 public static class Patch_FloatMenuOptionProvider_WorkGivers_GetWorkGiverOption
 {
-    private static TargetInfo tmpExitSpot;
-
-    private static TargetInfo tmpEnterSpot;
-
-    [PatchLevel(Level.Safe)]
     public static void Prefix(Pawn pawn, WorkGiverDef workGiver, LocalTargetInfo target, FloatMenuContext context, ref object[] __state)
     {
-        tmpExitSpot = TargetInfo.Invalid;
-        tmpEnterSpot = TargetInfo.Invalid;
-
-        __state = new object[3];
+        __state = new object[5];
         if (JobAcrossMapsUtility.NoNeedVirtualMapTransfer(pawn.Map, context.map, workGiver.Worker as WorkGiver_Scanner))
         {
             __state[0] = false;
             return;
         }
-        if (pawn.CanReach(target, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, context.map, out tmpExitSpot, out tmpEnterSpot))
+        if (pawn.CanReach(target, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, context.map, out var tmpExitSpot, out var tmpEnterSpot))
         {
             __state[0] = true;
             __state[1] = pawn.Map;
             __state[2] = pawn.Position;
+            __state[3] = tmpExitSpot;
+            __state[4] = tmpEnterSpot;
             pawn.VirtualMapTransfer(context.map, target.Cell);
             return;
         }
         __state[0] = false;
     }
 
-    [PatchLevel(Level.Safe)]
-    public static void Finalizer(Pawn pawn, object[] __state)
+    public static void Finalizer(Pawn pawn, WorkGiverDef workGiver, object[] __state, FloatMenuOption __result)
     {
         if ((bool)__state[0])
         {
             pawn.VirtualMapTransfer((Map)__state[1], (IntVec3)__state[2]);
         }
+        if ((!__result?.Disabled ?? false) && __result.action != null && JobAcrossMapsUtility.NeedWrapGotoDestMapJob(workGiver.Worker as WorkGiver_Scanner))
+        {
+            __result.action = (() =>
+            {
+                JobAcrossMapsUtility.StartGotoDestMapJob(pawn, (TargetInfo)__state[3], (TargetInfo)__state[4]);
+            }) + __result.action;
+        }
     }
 
-    [PatchLevel(Level.Sensitive)]
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = new CodeMatcher(instructions);
         var m_IsForbidden = AccessTools.Method(typeof(ForbidUtility), nameof(ForbidUtility.IsForbidden), [typeof(IntVec3), typeof(Pawn)]);
@@ -457,16 +458,6 @@ public static class Patch_FloatMenuOptionProvider_WorkGivers_GetWorkGiverOption
         codes.MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_LocalTargetInfo_Cell));
         codes.Operand = CachedMethodInfo.m_TargetCellOnBaseMap;
         codes.Insert(CodeInstruction.LoadArgument(1));
-
-        codes.MatchStartForward(new CodeMatch(c => c.opcode == OpCodes.Stfld && ((FieldInfo)c.operand).Name == "localJob"));
-        var job = generator.DeclareLocal(typeof(Job));
-        codes.Insert(
-            new CodeInstruction(OpCodes.Stloc_S, job),
-            CodeInstruction.LoadArgument(1),
-            CodeInstruction.LoadField(typeof(Patch_FloatMenuOptionProvider_WorkGivers_GetWorkGiverOption), nameof(tmpExitSpot)),
-            CodeInstruction.LoadField(typeof(Patch_FloatMenuOptionProvider_WorkGivers_GetWorkGiverOption), nameof(tmpEnterSpot)),
-            new CodeInstruction(OpCodes.Ldloc_S, job),
-            CodeInstruction.Call(typeof(JobAcrossMapsUtility), nameof(JobAcrossMapsUtility.GotoDestMapJob)));
         return codes.Instructions().MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
     }
 }

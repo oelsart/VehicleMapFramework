@@ -187,6 +187,6 @@
     </Reference>
   </ItemGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="powershell.exe -ExecutionPolicy Bypass -File &quot;$(ProjectDir)UpdateAboutXmlVersion.ps1&quot; -AboutXmlPath &quot;$(ProjectDir)..\..\About\About.xml&quot; -BuiltDllPath &quot;$(TargetPath)&quot;" />
+    <Exec Command="powershell.exe -ExecutionPolicy Bypass -File &quot;$(ProjectDir)UpdateAboutXmlVersion.ps1&quot; -AboutXmlPath &quot;$(TargetPath)\..\..\..\About\About.xml&quot; -BuiltDllPath &quot;$(TargetPath)&quot;" />
   </Target>
 </Project>

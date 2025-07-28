@@ -611,3 +611,16 @@ public static class Patch_SteadyEnvironmentEffects_SteadyEnvironmentEffectsTick
         return Mathf.CeilToInt(chance);
     }
 }
+
+[HarmonyPatch(typeof(Map), nameof(Map.TileInfo), MethodType.Getter)]
+[PatchLevel(Level.Safe)]
+public static class Patch_Map_TileInfo
+{
+    public static void Postfix(Map __instance, ref Tile __result)
+    {
+        if (__instance.IsVehicleMapOf(out _))
+        {
+            __result = Find.WorldGrid[__instance.Tile];
+        }
+    }
+}
