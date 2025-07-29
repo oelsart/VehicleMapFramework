@@ -7,6 +7,18 @@ namespace VehicleMapFramework;
 
 public class CompPipeConnector : ThingComp
 {
+    public IPipeConnector selectedComp;
+
+    private Material pipeMat;
+
+    private Graphic pipeEndGraphic;
+
+    protected bool connectReq;
+
+    private List<IPipeConnector> connectorComps;
+
+    public const int ticksInterval = 30;
+
     public CompPipeConnector Pair { get; set; }
 
     public List<IPipeConnector> ConnectorComps
@@ -42,6 +54,7 @@ public class CompPipeConnector : ThingComp
     public override void CompTick()
     {
         base.CompTick();
+        if (!parent.Spawned) return;
         if (Find.TickManager.TicksGame % ticksInterval != 0 || selectedComp == null) return;
 
         if (parent.IsOnVehicleMapOf(out _))
@@ -140,18 +153,6 @@ public class CompPipeConnector : ThingComp
         Scribe_Values.Look(ref mod, "selectedComp");
         selectedComp = ConnectorComps.FirstOrDefault(c => c.Mod == mod);
     }
-
-    public IPipeConnector selectedComp;
-
-    private Material pipeMat;
-
-    private Graphic pipeEndGraphic;
-
-    protected bool connectReq;
-
-    private List<IPipeConnector> connectorComps;
-
-    public const int ticksInterval = 30;
 
     public enum PipeMod
     {

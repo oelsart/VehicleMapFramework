@@ -328,14 +328,8 @@ public static class Patch_TargetingHelper_BestAttackTarget
     public static void Postfix(VehicleTurret turret, TargetScanFlags flags, Predicate<Thing> validator, float minDist, float maxDist, IntVec3 locus, float maxTravelRadiusFromLocus, bool canTakeTargetsCloserThanEffectiveMinRange, ref IAttackTarget __result)
     {
         var searcher = turret.vehicle;
-        var map = searcher.Thing.Map;
-        if (!searcher.IsHashIntervalTick(10) || !map.BaseMapAndVehicleMaps().Except(map).Any()) return;
-
         var target = TargetingHelperOnVehicle.BestAttackTarget(turret, flags, validator, minDist, maxDist, locus, maxTravelRadiusFromLocus, canTakeTargetsCloserThanEffectiveMinRange);
-        if (__result == null || (target != null && (__result.Thing.Position - searcher.Thing.Position).LengthHorizontalSquared > (target.Thing.PositionOnBaseMap() - searcher.Thing.PositionOnBaseMap()).LengthHorizontalSquared))
-        {
-            __result = target;
-        }
+        __result = AttackTargetFinderOnVehicle.CompareTarget(__result, target, searcher);
     }
 }
 

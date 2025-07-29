@@ -672,7 +672,8 @@ public static class Patch_DesignationDragger_DraggerOnGUI
         var pos5 = codes.FindIndex(pos4 + 5, c => c.Calls(m_Widgets_DrawNumberOnMap)) - 3;
         codes.Insert(pos5, new CodeInstruction(OpCodes.Call, m_ConvertToVehicleMap));
 
-        var pos6 = codes.FindIndex(pos5 + 5, c => c.Calls(m_Widgets_DrawNumberOnMap)) - 4;
+        var pos6 = codes.FindIndex(pos5 + 5, c => c.Calls(m_Widgets_DrawNumberOnMap));
+        pos6 = codes.FindLastIndex(pos6, c => c.opcode == OpCodes.Ldarg_0);
         codes.Insert(pos6, new CodeInstruction(OpCodes.Call, m_ConvertToVehicleMap));
 
         return codes;

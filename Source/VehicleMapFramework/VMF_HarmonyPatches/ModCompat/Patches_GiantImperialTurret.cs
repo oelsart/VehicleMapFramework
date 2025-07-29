@@ -8,6 +8,7 @@ using System.Reflection;
 using UnityEngine;
 using Verse;
 using Verse.AI;
+using static UnityEngine.GraphicsBuffer;
 using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
@@ -108,24 +109,22 @@ public static class Patch_AttackTargetFinderAngle_BestAttackTarget
 
         if (maps.Any())
         {
-            try
+            var basePos = searcher.Thing.PositionOnBaseMap();
+            foreach (var map2 in maps)
             {
-                working = true;
-                var basePos = searcher.Thing.PositionOnBaseMap();
-                foreach (var map2 in maps)
+                IAttackTarget target = null;
+                try
                 {
+                    working = true;
                     searcher.Thing.VirtualMapTransfer(map2, map2.IsVehicleMapOf(out var vehicle) ? basePos.ToVehicleMapCoord(vehicle) : basePos);
-                    var target = (IAttackTarget)BestAttackTarget(null, searcher, flags, angle, validator, minDist, maxDist, locus, maxTravelRadiusFromLocus, canTakeTargetsCloserThanEffectiveMinRange);
-                    if (__result == null || (target != null && (__result.Thing.Position - searcher.Thing.Position).LengthHorizontalSquared > (target.Thing.PositionOnBaseMap() - searcher.Thing.PositionOnBaseMap()).LengthHorizontalSquared))
-                    {
-                        __result = target;
-                    }
+                    target = (IAttackTarget)BestAttackTarget(null, searcher, flags, angle, validator, minDist, maxDist, locus, maxTravelRadiusFromLocus, canTakeTargetsCloserThanEffectiveMinRange);
                 }
-            }
-            finally
-            {
-                working = false;
-                searcher.Thing.VirtualMapTransfer(map, pos);
+                finally
+                {
+                    working = false;
+                    searcher.Thing.VirtualMapTransfer(map, pos);
+                    __result = AttackTargetFinderOnVehicle.CompareTarget(__result, target, searcher);
+                }
             }
         }
     }

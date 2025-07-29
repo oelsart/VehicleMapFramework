@@ -13,12 +13,13 @@ using VehicleMapFramework.VMF_HarmonyPatches;
 using Vehicles;
 using Vehicles.World;
 using Verse;
+using Verse.AI;
 using static VehicleMapFramework.ModCompat;
 
 namespace VehicleMapFramework;
 
 [StaticConstructorOnStartup]
-public class VehiclePawnWithMap : VehiclePawn
+public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
 {
     public Map VehicleMap
     {
@@ -173,6 +174,10 @@ public class VehiclePawnWithMap : VehiclePawn
             return base.UpdateRateTicks;
         }
     }
+
+    new public bool ThreatDisabled(IAttackTargetSearcher disabledFor) => VehicleMap.mapPawns.FreeHumanlikesSpawnedOfFaction(Faction).Empty() && base.ThreatDisabled(disabledFor);
+
+    new public float TargetPriorityFactor => 0.8f;
 
     public override IEnumerable<Gizmo> GetGizmos()
     {

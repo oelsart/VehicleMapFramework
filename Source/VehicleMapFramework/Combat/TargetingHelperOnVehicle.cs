@@ -11,6 +11,8 @@ namespace VehicleMapFramework;
 
 public static class TargetingHelperOnVehicle
 {
+    private static List<IAttackTarget> tmpTargets = [];
+
     /// <summary>
     /// Best attack target for VehicleTurret
     /// </summary>
@@ -126,7 +128,7 @@ public static class TargetingHelperOnVehicle
             return true;
         }
 
-        List<IAttackTarget> tmpTargets = [];
+        tmpTargets.Clear();
         var maps = searcherPawn.Map.BaseMapAndVehicleMaps().Except(searcherPawn.Map);
         tmpTargets.AddRange(maps.SelectMany(m => m.attackTargetsCache.GetPotentialTargetsFor(searcherPawn)));
 

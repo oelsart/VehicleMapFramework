@@ -189,6 +189,7 @@ public static class Patch_GraphicUtility_WrapLinked
     }
 }
 
+//削除予定。現在RimWorldUnstable版にこの修正を行うアップデートが来ている
 //バニラのCopyFromがcornerOverlayPathをコピーしてないためにエラーがでてたので修正。
 [HarmonyPatchCategory(EarlyPatchCore.Category)]
 [HarmonyPatch(typeof(GraphicData), nameof(GraphicData.CopyFrom))]

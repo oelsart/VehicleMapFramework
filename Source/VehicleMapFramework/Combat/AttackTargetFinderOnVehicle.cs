@@ -12,6 +12,30 @@ namespace VehicleMapFramework;
 
 public static class AttackTargetFinderOnVehicle
 {
+    private const float FriendlyFireScoreOffsetPerHumanlikeOrMechanoid = 18f;
+
+    private const float FriendlyFireScoreOffsetPerAnimal = 7f;
+
+    private const float FriendlyFireScoreOffsetPerNonPawn = 10f;
+
+    private const float FriendlyFireScoreOffsetSelf = 40f;
+
+    private static List<IAttackTarget> tmpTargets = new(128);
+
+    private static List<IAttackTarget> validTargets = [];
+
+    //private static List<CompProjectileInterceptor> interceptors;
+
+    private static List<Pair<IAttackTarget, float>> availableShootingTargets = [];
+
+    private static List<float> tmpTargetScores = [];
+
+    private static List<bool> tmpCanShootAtTarget = [];
+
+    private static List<IntVec3> tempDestList = [];
+
+    private static List<IntVec3> tempSourceList = [];
+
     public static IAttackTarget BestAttackTarget(IAttackTargetSearcher searcher, TargetScanFlags flags, Predicate<Thing> validator = null, float minDist = 0f, float maxDist = 9999f, IntVec3 locus = default, float maxTravelRadiusFromLocus = 3.4028235E+38f, bool canBashDoors = false, bool canTakeTargetsCloserThanEffectiveMinRange = true, bool canBashFences = false, bool onlyRanged = false)
     {
         //AttackTargetFinderOnVehicle.interceptors = searcher.Thing?.Map.BaseMapAndVehicleMaps()
@@ -22,7 +46,7 @@ public static class AttackTargetFinderOnVehicle
         var verb = searcher.CurrentEffectiveVerb;
         if (verb == null)
         {
-            Log.Error("BestAttackTarget with " + searcher.ToStringSafe<IAttackTargetSearcher>() + " who has no attack verb.");
+            Log.Error("BestAttackTarget with " + searcher.ToStringSafe() + " who has no attack verb.");
             return null;
         }
         var onlyTargetMachines = !CombatExtended.Active && verb.IsEMP();
@@ -203,24 +227,22 @@ public static class AttackTargetFinderOnVehicle
         Predicate<IAttackTarget> oldValidator2 = innerValidator;
         innerValidator = t =>
         {
-            return oldValidator2(t) && !ShouldIgnoreNoncombatant(searcherThing, t, flags);// &&
-            //(!(t is VehiclePawnWithMap vehicle) || vehicle.VehicleMap.mapPawns.AllPawnsSpawned.CountWhere(p => p.HostileTo(searcherPawn)) == 0);
-            //VehicleMap上に敵対ポーンが居る場合そっちをターゲットとして優先したい
+            return t.Thing.Map != searcherThing.Map && oldValidator2(t) && !ShouldIgnoreNoncombatant(searcherThing, t, flags);
         };
         IAttackTarget attackTarget2 = (IAttackTarget)GenClosestCrossMap.ClosestThingReachable(searcherThing.Position, searcherThing.Map, ThingRequest.ForGroup(ThingRequestGroup.AttackTarget), PathEndMode.Touch, TraverseParms.For(searcherPawn, Danger.Deadly, TraverseMode.ByPawn, canBashDoors, false, canBashFences), maxDist, x => innerValidator((IAttackTarget)x), null, 0, (maxDist > 800f) ? -1 : 40, false, RegionType.Set_Passable, false);
-        if (attackTarget2 != null && PawnUtility.ShouldCollideWithPawns(searcherPawn))
-        {
-            IAttackTarget attackTarget3 = FindBestReachableMeleeTarget(innerValidator, searcherPawn, maxDist, canBashDoors, canBashFences);
-            if (attackTarget3 != null)
-            {
-                float lengthHorizontal = (searcherPawn.PositionOnBaseMap() - attackTarget2.Thing.PositionOnBaseMap()).LengthHorizontal;
-                float lengthHorizontal2 = (searcherPawn.PositionOnBaseMap() - attackTarget3.Thing.PositionOnBaseMap()).LengthHorizontal;
-                if (Mathf.Abs(lengthHorizontal - lengthHorizontal2) < 50f)
-                {
-                    attackTarget2 = attackTarget3;
-                }
-            }
-        }
+        //if (attackTarget2 != null && PawnUtility.ShouldCollideWithPawns(searcherPawn))
+        //{
+        //    IAttackTarget attackTarget3 = FindBestReachableMeleeTarget(innerValidator, searcherPawn, maxDist, canBashDoors, canBashFences);
+        //    if (attackTarget3 != null)
+        //    {
+        //        float lengthHorizontal = (searcherPawn.PositionOnBaseMap() - attackTarget2.Thing.PositionOnBaseMap()).LengthHorizontal;
+        //        float lengthHorizontal2 = (searcherPawn.PositionOnBaseMap() - attackTarget3.Thing.PositionOnBaseMap()).LengthHorizontal;
+        //        if (Mathf.Abs(lengthHorizontal - lengthHorizontal2) < 50f)
+        //        {
+        //            attackTarget2 = attackTarget3;
+        //        }
+        //    }
+        //}
 
         return attackTarget2;
     }
@@ -732,28 +754,31 @@ public static class AttackTargetFinderOnVehicle
         return compInitiatable == null || compInitiatable.Initiated;
     }
 
-    private const float FriendlyFireScoreOffsetPerHumanlikeOrMechanoid = 18f;
-
-    private const float FriendlyFireScoreOffsetPerAnimal = 7f;
-
-    private const float FriendlyFireScoreOffsetPerNonPawn = 10f;
-
-    private const float FriendlyFireScoreOffsetSelf = 40f;
-
-    private static List<IAttackTarget> tmpTargets = new(128);
-
-    private static List<IAttackTarget> validTargets = [];
-
-    //private static List<CompProjectileInterceptor> interceptors;
-
-    private static List<Pair<IAttackTarget, float>> availableShootingTargets = [];
-
-    private static List<float> tmpTargetScores = [];
-
-    private static List<bool> tmpCanShootAtTarget = [];
-
-    private static List<IntVec3> tempDestList = [];
-
-    private static List<IntVec3> tempSourceList = [];
+    public static IAttackTarget CompareTarget(IAttackTarget target1, IAttackTarget target2, IAttackTargetSearcher searcher)
+    {
+        if (target1 is null)
+        {
+            return target2;
+        }
+        if (target2 is null)
+        {
+            return target1;
+        }
+        var priority1 = target1.TargetPriorityFactor;
+        var priority2 = target2.TargetPriorityFactor;
+        if (priority1 < priority2)
+        {
+            return target2;
+        }
+        if (priority1 > priority2)
+        {
+            return target1;
+        }
+        if ((target1.Thing.Position - searcher.Thing.Position).LengthHorizontalSquared > (target2.Thing.PositionOnBaseMap() - searcher.Thing.PositionOnBaseMap()).LengthHorizontalSquared)
+        {
+            return target2;
+        }
+        return target1;
+    }
 }
 
