@@ -497,7 +497,7 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
             Transform.rotation = rotation;
             CellDesignationsDirty();
         }
-        DrawTracker.DynamicDrawPhaseAt(DrawPhase.Draw, in drawLoc, rot, rotation);
+        DrawTracker.DynamicDrawPhaseAt(DrawPhase.Draw, in cachedDrawPos, rot, Rotation == Rot4.West ? -Transform.rotation : Transform.rotation);
         DrawVehicleMap(Transform.rotation);
     }
 

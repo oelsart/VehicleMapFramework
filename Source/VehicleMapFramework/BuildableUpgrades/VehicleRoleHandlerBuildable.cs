@@ -66,7 +66,7 @@ public class VehicleRoleHandlerBuildable : VehicleRoleHandler, IExposable, IThin
         foreach (Pawn item in thingOwner)
         {
             Rot4 value = role.PawnRenderer.RotFor(transformData.orientation);
-            Vector3 vector = role.PawnRenderer.DrawOffsetFor(transformData.orientation).RotatedBy(vehicle.Transform.rotation);
+            Vector3 vector = role.PawnRenderer.DrawOffsetFor(transformData.orientation).RotatedBy(transformData.orientation == Rot8.West ? -transformData.rotation : transformData.rotation);
             item.Drawer.renderer.DynamicDrawPhaseAt(phase, transformData.position + vector, value, neverAimWeapon: true);
         }
     }

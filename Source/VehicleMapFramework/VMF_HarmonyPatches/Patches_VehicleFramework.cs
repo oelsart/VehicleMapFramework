@@ -2,6 +2,7 @@
 using RimWorld;
 using RimWorld.Planet;
 using SmashTools;
+using SmashTools.Rendering;
 using SmashTools.Targeting;
 using System;
 using System.Collections.Generic;
@@ -1196,6 +1197,27 @@ public static class Patch_LaunchProtocol_Draw
         new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_YOffsetFull2)
         ]);
         return codes;
+    }
+}
+
+[HarmonyPatch(typeof(VehicleTurret), "ParallelPreRenderResults")]
+[PatchLevel(Level.Cautious)]
+public static class Patch_VehicleTurret_ParallelPreRenderResults
+{
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        var f_rotation = AccessTools.Field(typeof(TransformData), nameof(TransformData.rotation));
+        var m_Rotation = AccessTools.Method(typeof(Patch_VehicleTurret_ParallelPreRenderResults), nameof(Rotation));
+        return instructions.Manipulator(c => c.LoadsField(f_rotation), c =>
+        {
+            c.opcode = OpCodes.Call;
+            c.operand = m_Rotation;
+        });
+    }
+
+    private static float Rotation(in TransformData transformData)
+    {
+        return transformData.orientation == Rot8.West ? -transformData.rotation : transformData.rotation;
     }
 }
 

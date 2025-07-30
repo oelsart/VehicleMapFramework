@@ -230,7 +230,7 @@ public static class VehicleMapUtility
         var map = vehicle.VehicleMap;
         var pivot = new Vector3(map.Size.x / 2f, 0f, map.Size.z / 2f);
         var drawPos = (original.YOffset() - pivot).RotatedBy(vehicle.FullRotation.AsAngle + extraRotation) + vehiclePos;
-        drawPos += OffsetFor(vehicle);
+        drawPos += OffsetFor(vehicle).RotatedBy(extraRotation);
         return drawPos;
     }
 
@@ -288,8 +288,8 @@ public static class VehicleMapUtility
     public static Vector3 OffsetFor(VehiclePawnWithMap vehicle, Rot8 rot)
     {
         var offset = Vector3.zero;
-        VehicleMapProps vehicleMap = vehicle.def.GetModExtension<VehicleMapProps>();
-        if ((vehicleMap = vehicle.def.GetModExtension<VehicleMapProps>()) != null)
+        VehicleMapProps vehicleMap = vehicle.def.GetModExtension<VehicleMapProps>() ?? vehicle.def.GetModExtension<VehicleInteriors.VehicleMapProps>();
+        if (vehicleMap != null)
         {
             Vector3 OffsetNorth() => vehicleMap.offsetNorth ?? (vehicleMap.offsetSouth == null ? vehicleMap.offsetNorth = vehicleMap.offsetSouth = vehicleMap.offset : vehicleMap.offsetNorth = vehicleMap.offsetSouth.Value.MirrorVertical()).Value;
             Vector3 OffsetSouth() => vehicleMap.offsetSouth ?? (vehicleMap.offsetNorth == null ? vehicleMap.offsetSouth = vehicleMap.offsetNorth = vehicleMap.offset : vehicleMap.offsetNorth = vehicleMap.offsetSouth.Value.MirrorVertical()).Value;

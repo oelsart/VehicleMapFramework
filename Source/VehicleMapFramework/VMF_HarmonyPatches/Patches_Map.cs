@@ -219,12 +219,12 @@ public static class Patch_Map_MapUpdate
                 return;
             }
 
-            float angle = vehicle.Transform.rotation + vehicle.FullRotation.AsAngle;
-            if (Find.TickManager.TicksGame != lastRenderedTick && Time.frameCount % 2 == 0)
+            float angle = vehicle.Transform.rotation + vehicle.Rotation.AsAngle;
+            if (GenTicks.TicksGame != lastRenderedTick && Time.frameCount % 2 == 0)
             {
                 var worldObject = GetWorldObject(vehicle);
                 if (worldObject == null) return;
-                lastRenderedTick = Find.TickManager.TicksGame;
+                lastRenderedTick = GenTicks.TicksGame;
                 var targetTexture = Find.WorldCamera.targetTexture;
                 Find.World.renderer.wantedMode = WorldRenderMode.Planet;
                 Find.WorldCameraDriver.JumpTo(worldObject.DrawPos);
@@ -269,7 +269,7 @@ public static class Patch_Map_MapUpdate
                     return Mathf.Repeat(signedAngle + 180f, 360f);
                 }
 
-                if (Find.TickManager.TicksGame % 10 == 0)
+                if (GenTicks.TicksGame % 4 == 0)
                 {
                     angle =
                         worldObject is VehicleCaravan vehicleCaravan ?
@@ -278,7 +278,7 @@ public static class Patch_Map_MapUpdate
                         AngleOnPlanetSurface(Find.WorldGrid.GetTileCenter(caravan.pather.nextTile.Valid ? caravan.pather.nextTile : caravan.Tile), Find.WorldGrid.GetTileCenter(caravan.Tile)) :
                         worldObject is AerialVehicleInFlight aerial ?
                         AngleOnPlanetSurface(aerial.DrawPos, aerial.position) : 90f;
-                    vehicle.FullRotation = Rot8.FromAngle(angle);
+                    vehicle.FullRotation = Rot4.FromAngleFlat(angle);
                 }
             }
             var longSide = Mathf.Max(vehicle.DrawSize.x / 2f, vehicle.DrawSize.y / 2f);
@@ -292,7 +292,7 @@ public static class Patch_Map_MapUpdate
             skyMat.renderQueue = 3100;
             Graphics.DrawMesh(mesh200, drawPos.WithY(AltitudeLayer.LightingOverlay.AltitudeFor()), Quaternion.identity, skyMat, 0);
             drawPos = drawPos.SetToAltitude(AltitudeLayer.LayingPawn);
-            vehicle.DrawAt(in drawPos, vehicle.FullRotation, angle - vehicle.FullRotation.AsAngle);
+            vehicle.DrawAt(in drawPos, vehicle.FullRotation, angle - vehicle.Rotation.AsAngle);
         }
     }
 
