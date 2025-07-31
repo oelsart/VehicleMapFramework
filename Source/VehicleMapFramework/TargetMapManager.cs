@@ -73,13 +73,13 @@ public class TargetMapManager(World world) : WorldComponent(world)
         return map;
     }
 
-    public static Map TargetMapOrThingMap(Thing thing)
+    public static Map TargetMapOrPawnMap(Pawn pawn)
     {
-        if (HasTargetMap(thing, out var map))
+        if (HasTargetMap(pawn, out var map) || (map = pawn.CurJob?.globalTarget.Map) != null)
         {
             return map;
         }
-        return thing.Map;
+        return pawn.Map;
     }
 
     public static IntVec3 TargetCellOnBaseMap(ref LocalTargetInfo targ, Thing thing)

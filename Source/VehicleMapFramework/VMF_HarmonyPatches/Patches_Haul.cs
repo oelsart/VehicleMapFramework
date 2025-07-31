@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using RimWorld;
+using RimWorld.Planet;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -134,7 +135,15 @@ public static class Patch_HaulAIUtility_HaulToCellStorageJob
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrPawnMap);
+    }
+
+    public static void Postfix(Pawn p, IntVec3 storeCell, Job __result)
+    {
+        if (TargetMapManager.HasTargetMap(p, out var map))
+        {
+            __result?.globalTarget = new GlobalTargetInfo(storeCell, map);
+        }
     }
 }
 
@@ -164,7 +173,7 @@ public static class Patch_JobDriver_HaulToCell
 
     public static Map TargetMapOrPawnMap(JobDriver instance)
     {
-        if (TargetMapManager.HasTargetMap(instance.pawn, out var map) || (map = instance.job.targetA.Thing?.MapHeld) != null)
+        if (TargetMapManager.HasTargetMap(instance.pawn, out var map) || (map = instance.job.globalTarget.Map) != null || (map = instance.job.targetA.Thing?.MapHeld) != null)
         {
             return map;
         }
@@ -196,6 +205,6 @@ public static class Patch_Toils_Haul_IsValidStorageFor
 
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrPawnMap);
     }
 }

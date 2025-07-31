@@ -51,6 +51,8 @@ public class MethodInfoCache
 
     public readonly MethodInfo m_ToBaseMapCoord2 = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.ToBaseMapCoord), [typeof(Vector3), typeof(VehiclePawnWithMap)]);
 
+    public readonly MethodInfo m_ToThingMapCoord = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.ToThingMapCoord));
+
     public readonly MethodInfo m_ToThingBaseMapCoord1 = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.ToThingBaseMapCoord), [typeof(IntVec3), typeof(Thing)]);
 
     public readonly MethodInfo m_ToThingBaseMapCoord2 = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.ToThingBaseMapCoord), [typeof(Vector3), typeof(Thing)]);
@@ -65,7 +67,7 @@ public class MethodInfoCache
 
     public readonly MethodInfo m_TargetMapOrMap = AccessTools.Method(typeof(TargetMapManager), nameof(TargetMapManager.TargetMapOrMap));
 
-    public readonly MethodInfo m_TargetMapOrThingMap = AccessTools.Method(typeof(TargetMapManager), nameof(TargetMapManager.TargetMapOrThingMap));
+    public readonly MethodInfo m_TargetMapOrPawnMap = AccessTools.Method(typeof(TargetMapManager), nameof(TargetMapManager.TargetMapOrPawnMap));
 
     public readonly MethodInfo g_Zone_Map = AccessTools.PropertyGetter(typeof(Zone), nameof(Zone.Map));
 

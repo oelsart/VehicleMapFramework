@@ -1,14 +1,15 @@
 ﻿using HarmonyLib;
 using RimWorld;
+using RimWorld.Planet;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
-using UnityEngine.UIElements;
 using Verse;
 using Verse.AI;
+using static UnityEngine.GraphicsBuffer;
 using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
@@ -435,15 +436,26 @@ public static class Patch_Pawn_PathFollower_StartPath
 {
     public static bool Prefix(LocalTargetInfo dest, PathEndMode peMode, Pawn ___pawn)
     {
-        if (___pawn.CurJob == null) return true;
+        if (___pawn.CurJob is null) return true;
 
-        Map destMap = dest.Thing?.MapHeld ?? (TargetMapManager.HasTargetInfo(___pawn, out var target) && (LocalTargetInfo)target == dest ? target.Map : null);
-        if (destMap == null)
+        bool flag = false;
+        Map destMap = dest.Thing?.MapHeld;
+        if (destMap is null)
+        {
+            flag = true;
+            destMap = (TargetMapManager.HasTargetInfo(___pawn, out var target) || (target = (TargetInfo)___pawn.CurJob.globalTarget).IsValid) && (LocalTargetInfo)target == dest ? target.Map : null;
+        }
+        if (destMap is null)
         {
             return true;
         }
         if (___pawn.Map != destMap && ___pawn.CanReach(dest, peMode, Danger.Deadly, false, false, TraverseMode.ByPawn, destMap, out var exitSpot, out var enterSpot))
         {
+            if (flag)
+            {
+                TargetMapManager.RemoveTargetInfo(___pawn);
+                ___pawn.CurJob.globalTarget = GlobalTargetInfo.Invalid;
+            }
             JobAcrossMapsUtility.StartGotoDestMapJob(___pawn, exitSpot, enterSpot);
             return false;
         }
@@ -956,7 +968,7 @@ public static class Patch_ToilFailConditions_FailOnBurningImmobile
 
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrPawnMap);
     }
 }
 

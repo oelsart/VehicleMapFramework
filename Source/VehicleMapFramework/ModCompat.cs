@@ -552,4 +552,6 @@ public static class ModCompat
     }
 
     public static readonly bool SmartFarming = ModsConfig.IsActive("Owlchemist.SmartFarming");
+
+    public static readonly bool RimWorldOfMagic = ModsConfig.IsActive("Torann.ARimworldOfMagic");
 }

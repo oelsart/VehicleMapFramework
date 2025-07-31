@@ -1,11 +1,12 @@
 ﻿using HarmonyLib;
 using RimWorld;
 using RimWorld.Planet;
-using RimWorld.QuestGen;
 using SmashTools;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
+using Unity.Collections;
 using UnityEngine;
 using Vehicles.World;
 using Verse;
@@ -341,9 +342,11 @@ public static class Patch_Map_MapUpdate
 }
 
 [HarmonyPatch(typeof(MapPawns), nameof(MapPawns.AllPawns), MethodType.Getter)]
-[PatchLevel(Level.Sensitive)]
 public static class Patch_MapPawns_AllPawns
 {
+    private static List<Pawn> tmpList = [];
+
+    [PatchLevel(Level.Safe)]
     public static List<Pawn> Postfix(List<Pawn> __result, Map ___map)
     {
         if (___map.IsVehicleMapOf(out _)) return __result;
@@ -357,7 +360,9 @@ public static class Patch_MapPawns_AllPawns
         return tmpList;
     }
 
-    private static List<Pawn> tmpList = [];
+    [PatchLevel(Level.Mandatory)]
+    [HarmonyReversePatch]
+    public static List<Pawn> AllPawns(MapPawns instance) => throw new NotImplementedException();
 }
 
 [HarmonyBefore(VehicleFramework.HarmonyId)]
@@ -366,6 +371,8 @@ public static class Patch_MapPawns_AllPawns
 [PatchLevel(Level.Mandatory)]
 public static class Patch_MapPawns_AllPawnsSpawned
 {
+    private static List<Pawn> tmpList = [];
+
     public static IReadOnlyList<Pawn> Postfix(IReadOnlyList<Pawn> __result, Map ___map)
     {
         if (___map.IsVehicleMapOf(out _)) return __result;
@@ -379,7 +386,8 @@ public static class Patch_MapPawns_AllPawnsSpawned
         return tmpList;
     }
 
-    private static List<Pawn> tmpList = [];
+    [HarmonyReversePatch]
+    public static List<Pawn> AllPawnsSpawned(MapPawns instance) => throw new NotImplementedException();
 }
 
 [HarmonyPatch(typeof(MapPawns), nameof(MapPawns.FreeHumanlikesSpawnedOfFaction))]
@@ -409,6 +417,30 @@ public static class Patch_MapPawns_AnyPawnBlockingMapRemoval
     public static void Postfix(ref bool __result, Map ___map)
     {
         __result = __result || VehiclePawnWithMapCache.TryGetAllVehiclesOn(___map).Any(v => v.VehicleMap.mapPawns.AnyPawnBlockingMapRemoval);
+    }
+}
+
+[HarmonyPatch(typeof(PawnsFinder), nameof(PawnsFinder.AllMaps), MethodType.Getter)]
+[PatchLevel(Level.Cautious)]
+public static class Patch_PawnsFinder_AllMaps
+{
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        var g_AllPawns = AccessTools.PropertyGetter(typeof(MapPawns), nameof(MapPawns.AllPawns));
+        var m_AllPawns_Reverse = AccessTools.Method(typeof(Patch_MapPawns_AllPawns), nameof(Patch_MapPawns_AllPawns.AllPawns));
+        return instructions.MethodReplacer(g_AllPawns, m_AllPawns_Reverse);
+    }
+}
+
+[HarmonyPatch(typeof(PawnsFinder), nameof(PawnsFinder.AllMaps_Spawned), MethodType.Getter)]
+[PatchLevel(Level.Cautious)]
+public static class Patch_PawnsFinder_AllMaps_Spawned
+{
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        var g_AllPawnsSpawned = AccessTools.PropertyGetter(typeof(MapPawns), nameof(MapPawns.AllPawnsSpawned));
+        var m_AllPawnsSpawned_Reverse = AccessTools.Method(typeof(Patch_MapPawns_AllPawnsSpawned), nameof(Patch_MapPawns_AllPawnsSpawned.AllPawnsSpawned));
+        return instructions.MethodReplacer(g_AllPawnsSpawned, m_AllPawnsSpawned_Reverse);
     }
 }
 
@@ -634,4 +666,22 @@ public static class Patch_QuestPart_SpawnThing_MapParent
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_MapHeld, CachedMethodInfo.m_MapHeldBaseMap);
     }
+}
+
+[HarmonyPatch(typeof(AreaSource), nameof(AreaSource.DataForArea))]
+[PatchLevel(Level.Safe)]
+public static class Patch_AreaSource_DataForArea
+{
+    public static bool Prefix(Area area, Map ___map, ref NativeBitArray __result)
+    {
+        Map baseMap;
+        if (area.Map != ___map && area.Map == (baseMap = ___map.BaseMap()))
+        {
+            __result = areas(baseMap.pathFinder.MapData).DataForArea(area);
+            return false;
+        }
+        return true;
+    }
+
+    private static readonly AccessTools.FieldRef<PathFinderMapData, AreaSource> areas = AccessTools.FieldRefAccess<PathFinderMapData, AreaSource>("areas");
 }

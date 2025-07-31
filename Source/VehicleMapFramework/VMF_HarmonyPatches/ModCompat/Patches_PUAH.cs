@@ -1,6 +1,5 @@
 ﻿using HarmonyLib;
 using SmashTools;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
@@ -10,7 +9,7 @@ using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
-[StaticConstructorOnStartupPriority(Priority.VeryLow)]
+[StaticConstructorOnStartupPriority(Priority.Low)]
 public class Patches_PUAH
 {
     public const string Category = "VMF_Patches_PUAH";
@@ -87,7 +86,7 @@ public static class Patch_WorkGiver_HaulToInventory_JobOnThing
         codes.MatchStartForward(CodeMatch.Calls(g_Position));
         codes.InsertAfter(
             CodeInstruction.LoadArgument(1),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_TargetMapOrThingMap),
+            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_TargetMapOrPawnMap),
             CodeInstruction.Call(typeof(VehicleMapUtility), nameof(VehicleMapUtility.ToBaseMapCoord), [typeof(IntVec3), typeof(Map)]));
 
         var num = 0;
@@ -101,6 +100,15 @@ public static class Patch_WorkGiver_HaulToInventory_JobOnThing
             }
         });
     }
+
+    public static void Postfix(Pawn pawn, Job __result)
+    {
+        if (__result is null) return;
+        if (TargetMapManager.HasTargetMap(pawn, out var map) && __result.def?.defName == "HaulToInventory" && __result.targetB.IsValid)
+        {
+            __result.globalTarget = __result.targetB.ToGlobalTargetInfo(map);
+        }
+    }
 }
 
 [HarmonyPatchCategory(Patches_PUAH.Category)]
@@ -110,7 +118,7 @@ public static class Patch_WorkGiver_HaulToInventory_AllocateThingAtCell
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrPawnMap);
     }
 }
 
