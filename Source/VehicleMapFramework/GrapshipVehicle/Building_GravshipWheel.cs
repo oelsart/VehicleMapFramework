@@ -74,6 +74,7 @@ namespace VehicleMapFramework
                 yield return new Command_Toggle()
                 {
                     defaultLabel = "VMF_VehicleMode".Translate(),
+                    icon = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/GravshipVehicleMode"),
                     toggleAction = GenerateGravshipVehicle,
                     isActive = () => false,
                 };
@@ -83,6 +84,7 @@ namespace VehicleMapFramework
                 yield return new Command_Toggle()
                 {
                     defaultLabel = "VMF_VehicleMode".Translate(),
+                    icon = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/GravshipVehicleMode"),
                     toggleAction = () => PlaceGravship(vehicle),
                     isActive = () => true
                 };
@@ -90,14 +92,22 @@ namespace VehicleMapFramework
 
             if (vehicle == null || !ValidFor(Rot4.North))
             {
-                yield return new Command_Action()
+                var des = BuildCopyCommandUtility.FindAllowedDesignator(def);
+                yield return new Command_FlipBuilding()
                 {
                     defaultLabel = "VMF_Flip".Translate(),
                     action = () =>
                     {
                         flipped = !flipped;
                         DirtyMapMesh(Map);
-                    }
+                    },
+                    icon = des?.ResolvedIcon(StyleDef),
+                    iconProportions = des?.iconProportions ?? default,
+                    iconDrawScale = des?.iconDrawScale ?? default,
+                    iconTexCoords = des?.iconTexCoords ?? default,
+                    iconAngle = des?.iconAngle ?? default,
+                    iconOffset = des?.iconOffset ?? default,
+                    commandIcon = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/FlipIcon")
                 };
             }
         }

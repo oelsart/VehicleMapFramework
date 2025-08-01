@@ -446,7 +446,7 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         interiorMap = null;
 
         if (!VehicleMapFramework.settings.dynamicUnpatchEnabled) return;
-        if (!VehicleMapParentsComponent.CachedParentVehicle.Any(p => p.Value != null)) return;
+        if (VehicleMapParentsComponent.CachedParentVehicle.Any(p => p.Value.Value != null)) return;
         VMF_Harmony.DynamicPatchAll(VehicleMapFramework.settings.dynamicPatchLevel);
     }
 

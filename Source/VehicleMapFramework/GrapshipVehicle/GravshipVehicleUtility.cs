@@ -150,6 +150,10 @@ namespace VehicleMapFramework
             {
                 return "CannotLaunchNoEngine".Translate();
             }
+            if (cells.Any(c => c.TryGetFirstThing<VehiclePawnWithMap>(map, out _)))
+            {
+                return "VMF_ContainsMapVehicle".Translate();
+            }
             var bounds = CellRect.FromCellList(cells);
             var cellRect = bounds.Encapsulate(wheelsRect);
             var outOfBoundsCells = cellRect.Except(cells);

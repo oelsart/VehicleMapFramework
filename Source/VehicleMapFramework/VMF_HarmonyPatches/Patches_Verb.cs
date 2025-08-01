@@ -44,6 +44,26 @@ public static class Patch_Verb_CanHitTarget
     }
 }
 
+[HarmonyPatch(typeof(Verb), nameof(Verb.DrawHighlight))]
+[PatchLevel(Level.Cautious)]
+public static class Patch_Verb_DrawHighlight
+{
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
+    }
+}
+
+[HarmonyPatch(typeof(Verb), "DrawHighlightFieldRadiusAroundTarget")]
+[PatchLevel(Level.Cautious)]
+public static class Patch_Verb_DrawHighlightFieldRadiusAroundTarget
+{
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
+    }
+}
+
 [HarmonyPatch(typeof(Verb_LaunchProjectile), "GetForcedMissTarget")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Verb_LaunchProjectile_GetForcedMissTarget
