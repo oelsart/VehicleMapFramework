@@ -62,9 +62,10 @@ namespace VehicleMapFramework
             var curretGravship = Current.Game.Gravship;
             try
             {
+                var map = vehicle.Map;
                 foreach (var c in engine.AllConnectedSubstructure)
                 {
-                    var report = IsValidCell(c.ToBaseMapCoord(vehicle), vehicle.Map);
+                    var report = IsValidCell(c.ToBaseMapCoord(vehicle), map);
                     if (!report.Accepted)
                     {
                         if (!forced)
@@ -84,7 +85,6 @@ namespace VehicleMapFramework
                 }
                 vehicle.DisembarkAll();
 
-                var map = vehicle.Map;
                 var rot = vehicle.Rotation;
 
                 var roomStats = vehicle.VehicleMap.regionGrid.AllRooms
@@ -109,10 +109,6 @@ namespace VehicleMapFramework
                         room.Temperature = r.Temperature;
                         room.Vacuum = r.Vacuum;
                     }
-                }
-                if (forced)
-                {
-                    FleckMaker.ThrowDustPuff(root, map, Mathf.Max(vehicle.def.size.x, vehicle.def.size.z) + 2f);
                 }
             }
             finally
@@ -210,7 +206,16 @@ namespace VehicleMapFramework
                 gravship.Rotation = rotCounter;
                 var minOffset = gravship.originalPosition - min;
                 VMF_Log.Debug($"Place gravship to {minOffset.RotatedBy(rotCounter) + IntVec3.NorthEast}");
-                GravshipPlacementUtility.PlaceGravshipInMap(gravship, minOffset.RotatedBy(rotCounter) + IntVec3.NorthEast, vehiclePawn.VehicleMap, out _);
+                Delay.AfterNTicks(0, () =>
+                {
+                    GravshipPlacementUtility.PlaceGravshipInMap(gravship, minOffset.RotatedBy(rotCounter) + IntVec3.NorthEast, vehiclePawn.VehicleMap, out _);
+                    var compFueledTravel = vehiclePawn.CompFueledTravel;
+                    compFueledTravel?.CompTick();
+                    Delay.AfterNTicks(0, () =>
+                    {
+                        vehiclePawn.VehicleMap.mapDrawer.RegenerateLayerNow(typeof(SectionLayer_LightingOnVehicle));
+                    });
+                });
 
                 var buildRoof = map.areaManager.BuildRoof;
                 var buildRoofCells = buildRoof.ActiveCells;

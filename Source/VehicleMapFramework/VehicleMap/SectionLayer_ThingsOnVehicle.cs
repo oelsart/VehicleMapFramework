@@ -8,6 +8,14 @@ namespace VehicleMapFramework;
 
 public abstract class SectionLayer_ThingsOnVehicle : SectionLayer_Things
 {
+    private bool dirty;
+
+    private int dirtyFrame;
+
+    private CellRect bounds;
+
+    public List<LayerSubMesh>[] subMeshesByRot = new List<LayerSubMesh>[4];
+
     public SectionLayer_ThingsOnVehicle(Section section) : base(section)
     {
         for (var i = 0; i < 4; i++)
@@ -131,12 +139,4 @@ public abstract class SectionLayer_ThingsOnVehicle : SectionLayer_Things
         }
         VehicleMapUtility.RotForPrint = Rot4.North;
     }
-
-    private bool dirty;
-
-    private int dirtyFrame;
-
-    private CellRect bounds;
-
-    public List<LayerSubMesh>[] subMeshesByRot = new List<LayerSubMesh>[4];
 }

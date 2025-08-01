@@ -140,7 +140,7 @@ namespace VehicleMapFramework
             {
                 base.CompTick();
             }
-            var diff = Engine.TotalFuel - Fuel;
+            var diff = Engine?.TotalFuel - Fuel ?? 0f;
             if (diff < Mathf.Epsilon) return;
 
             if (diff > 0f)

@@ -82,11 +82,11 @@ namespace VehicleMapFramework
 
         private static CachedMaterial mat_SubStructureExtra_E;
 
-        private static readonly float cornerAltitude = AltitudeLayer.BuildingOnTop.AltitudeFor().YOffset();
+        private static readonly float cornerAltitude = AltitudeLayer.BuildingOnTop.AltitudeFor() / VehicleMapUtility.YCompress;
 
-        private static readonly float substructureAltitude = AltitudeLayer.TerrainEdges.AltitudeFor().YOffset();
+        private static readonly float substructureAltitude = AltitudeLayer.TerrainEdges.AltitudeFor() / VehicleMapUtility.YCompress;
 
-        private static readonly float bakedAltitude = AltitudeLayer.MetaOverlays.AltitudeFor().YOffset();
+        private static readonly float bakedAltitude = AltitudeLayer.MetaOverlays.AltitudeFor() / VehicleMapUtility.YCompress;
 
         private static bool initalized;
 
@@ -118,6 +118,17 @@ namespace VehicleMapFramework
 
         public override bool Visible => ModsConfig.OdysseyActive;
 
+        public override CellRect GetBoundaryRect()
+        {
+            var rect = base.GetBoundaryRect();
+            if (section.map.IsVehicleMapOf(out var vehicle))
+            {
+                var longside = Mathf.Max(vehicle.def.size.x, vehicle.def.size.z);
+                rect = rect.ExpandedBy(longside);
+            }
+            return rect;
+        }
+
         //drawPlanetがオフでVehicleMapにフォーカスした時しか呼ばれないよ
         public override void DrawLayer()
         {
@@ -142,7 +153,7 @@ namespace VehicleMapFramework
                 LayerSubMesh layerSubMesh = subMeshes[i];
                 if (layerSubMesh.finalized && !layerSubMesh.disabled)
                 {
-                    Graphics.DrawMesh(layerSubMesh.mesh, drawPos, Quaternion.AngleAxis(extraRotation, Vector3.up), layerSubMesh.material, 0);
+                    Graphics.DrawMesh(layerSubMesh.mesh, drawPos, Quaternion.AngleAxis(extraRotation, Vector3.up), layerSubMesh.material, layerSubMesh.renderLayer);
                 }
             }
         }

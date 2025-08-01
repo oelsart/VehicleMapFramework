@@ -682,7 +682,7 @@ public static class Patch_DesignationDragger_DraggerOnGUI
     private static Vector2 ConvertToVehicleMap(Vector2 screenPos)
     {
         screenPos.y = UI.screenHeight - screenPos.y;
-        return UI.UIToMapPosition(screenPos).ToBaseMapCoord().WithY(0f).MapToUIPosition();
+        return UI.UIToMapPosition(screenPos).ToBaseMapCoord().Yto0().MapToUIPosition();
     }
 }
 

@@ -208,7 +208,7 @@ public static class ToilsAcrossMaps
                     {
                         initPos += baseRot.IsHorizontal ? Vector3.back : Vector3.right;
                     }
-                    var initPos2 = GenThing.TrueCenter(cell, rot.Opposite, driver.pawn.def.size, 0f).ToBaseMapCoord(vehicle).WithY(0f);
+                    var initPos2 = GenThing.TrueCenter(cell, rot.Opposite, driver.pawn.def.size, 0f).ToBaseMapCoord(vehicle).Yto0();
                     offset = initPos - initPos2;
                 };
 
@@ -325,7 +325,7 @@ public static class ToilsAcrossMaps
                     }
                     var rot = enterSpot.HasThing ? enterSpot.Thing.Rotation : enterSpot.Cell.DirectionToInsideMap(vehicle);
                     var faceCell2 = rot.FacingCell;
-                    var initPos = GenThing.TrueCenter(enterSpot.Cell + (faceCell2 * vehicleOffset), rot, driver.pawn.def.size, 0f).ToBaseMapCoord(vehicle).WithY(0f);
+                    var initPos = GenThing.TrueCenter(enterSpot.Cell + (faceCell2 * vehicleOffset), rot, driver.pawn.def.size, 0f).ToBaseMapCoord(vehicle).Yto0();
                     if (driver.pawn.def.size.x % 2 == 0 &&
                     ((vehicle.Rotation == Rot4.East && rot.IsHorizontal) ||
                     (vehicle.Rotation == Rot4.West && !rot.IsHorizontal) ||
@@ -335,7 +335,7 @@ public static class ToilsAcrossMaps
                         initPos += baseRot4.IsHorizontal ? Vector3.forward : Vector3.left;
                     }
                     var initPos2 = GenThing.TrueCenter(cell, baseRot8, driver.pawn.def.size, 0f);
-                    initPos3 = enterSpot.Cell.ToBaseMapCoord(vehicle).ToVector3().WithY(0f);
+                    initPos3 = enterSpot.Cell.ToBaseMapCoord(vehicle).ToVector3().Yto0();
                     offset = initPos - initPos2;
                     initTick = GenTicks.TicksGame;
                 };

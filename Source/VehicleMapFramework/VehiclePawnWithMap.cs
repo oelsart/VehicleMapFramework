@@ -575,7 +575,7 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         if ((Find.WindowStack.TryGetWindow<MainTabWindow_Architect>(out var window) && (window.selectedDesPanel?.def.showPowerGrid ?? false)) ||
             (Find.DesignatorManager.SelectedDesignator is Designator_Build designator && designator.PlacingDef is ThingDef tDef && tDef.HasComp<CompPower>()))
         {
-            ((SectionLayer_ThingsPowerGridOnVehicle)section.GetLayer(typeof(SectionLayer_ThingsPowerGridOnVehicle))).DrawLayer(rot, drawPos.WithY(0f), extraRotation);
+            ((SectionLayer_ThingsPowerGridOnVehicle)section.GetLayer(typeof(SectionLayer_ThingsPowerGridOnVehicle))).DrawLayer(rot, drawPos.Yto0(), extraRotation);
         }
         DrawLayer(section, t_SectionLayer_Zones, drawPos, extraRotation);
         if (Find.CurrentMap == interiorMap && !VehicleMapFramework.settings.drawPlanet)
@@ -675,7 +675,6 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         }
         if (ModsConfig.OdysseyActive)
         {
-            DrawLayer(section, typeof(SectionLayer_GravshipMask), drawPos, extraRotation);
             ((SectionLayer_SubstructurePropsOnVehicle)section.GetLayer(typeof(SectionLayer_SubstructurePropsOnVehicle)))?.DrawLayer(FullRotation, drawPos, extraRotation);
             ((SectionLayer_GravshipHullOnVehicle)section.GetLayer(typeof(SectionLayer_GravshipHullOnVehicle)))?.DrawLayer(FullRotation, drawPos, extraRotation);
         }
