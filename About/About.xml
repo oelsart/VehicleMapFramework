@@ -7,7 +7,7 @@
 このModはVehicle Frameworkを使用した車両に、床や建築物を建設可能なマップを載せるためのフレームワークMODです。
 這個模組是 **Vehicle Framework** 的擴展，讓車輛能夠變成一張可建造的地圖，你可以在上面蓋地板、建築，打造屬於自己的移動基地！
 	</description>
-  <modVersion IgnoreIfNoMatchingField="True">1.6.25</modVersion>
+  <modVersion IgnoreIfNoMatchingField="True">1.6.27</modVersion>
   <url>https://github.com/oelsart/VehicleMapFramework</url>
   <supportedVersions>
     <li>1.5</li>

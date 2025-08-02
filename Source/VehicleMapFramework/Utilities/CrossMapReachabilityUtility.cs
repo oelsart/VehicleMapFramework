@@ -181,7 +181,7 @@ public static class CrossMapReachabilityUtility
                             result = false;
                             return result;
                         }
-                        foreach (var comp in vehicle.EnterComps.OrderBy(e => e.DistanceSquared(root)))
+                        foreach (var comp in vehicle.AvailableEnterComps.OrderBy(e => e.DistanceSquared(root)))
                         {
                             IntVec3 cell;
                             if (comp is CompZipline compZipline)
@@ -391,7 +391,7 @@ public static class CrossMapReachabilityUtility
         var tmpEnterSpot = TargetInfo.Invalid;
         if (flag2)
         {
-            if (vehicle2.EnterComps.Any(c => CanReach(departMap, root, c.parent, PathEndMode.OnCell, traverseParms, destMap, out tmpExitSpot, out tmpEnterSpot)))
+            if (vehicle2.AvailableEnterComps.Any(c => CanReach(departMap, root, c.parent, PathEndMode.OnCell, traverseParms, destMap, out tmpExitSpot, out tmpEnterSpot)))
             {
                 exitSpot = tmpExitSpot;
                 enterSpot = tmpEnterSpot;
@@ -406,7 +406,7 @@ public static class CrossMapReachabilityUtility
         }
         else if (flag)
         {
-            if (vehicle.EnterComps.Any(c => CanReach(departMap, root, c.EnterVehiclePosition, PathEndMode.OnCell, traverseParms, destMap, out tmpExitSpot, out tmpEnterSpot)))
+            if (vehicle.AvailableEnterComps.Any(c => CanReach(departMap, root, c.EnterVehiclePosition, PathEndMode.OnCell, traverseParms, destMap, out tmpExitSpot, out tmpEnterSpot)))
             {
                 exitSpot = tmpExitSpot;
                 enterSpot = tmpEnterSpot;
@@ -545,7 +545,7 @@ public static class CrossMapReachabilityUtility
                     {
 
                         Thing tmpSpot = null;
-                        result = vehicle3.EnterComps.Where(e => e.Isnt<CompZipline>()).OrderBy(e => e.DistanceSquared(dest.Cell)).Any(e =>
+                        result = vehicle3.AvailableEnterComps.Where(e => e.Isnt<CompZipline>()).OrderBy(e => e.DistanceSquared(dest.Cell)).Any(e =>
                         {
                             tmpSpot = e.parent;
                             if (!AvailableEnterSpot(e) || tmpSpot.OccupiedRect().Any(c3 => !vehicle.Drivable(c3, departMap))) return false;
@@ -565,7 +565,7 @@ public static class CrossMapReachabilityUtility
                     if (vehicle2 != null)
                     {
                         Thing tmpSpot = null;
-                        result = vehicle2.EnterComps.Where(e => e.Isnt<CompZipline>()).OrderBy(e => e.DistanceSquared(vehicle.Position)).Any(e =>
+                        result = vehicle2.AvailableEnterComps.Where(e => e.Isnt<CompZipline>()).OrderBy(e => e.DistanceSquared(vehicle.Position)).Any(e =>
                         {
                             tmpSpot = e.parent;
                             if (!AvailableEnterSpot(e) || tmpSpot.OccupiedRect().Any(c3 => !vehicle.Drivable(c3, destMap))) return false;
@@ -596,14 +596,14 @@ public static class CrossMapReachabilityUtility
 
                             Thing tmpSpot = null;
                             Thing tmpSpot2 = null;
-                            result = vehicle3.EnterComps.Where(e => e.Isnt<CompZipline>()).OrderBy(e => e.DistanceSquared(dest.Cell.ToBaseMapCoord(vehicle2))).Any(e =>
+                            result = vehicle3.AvailableEnterComps.Where(e => e.Isnt<CompZipline>()).OrderBy(e => e.DistanceSquared(dest.Cell.ToBaseMapCoord(vehicle2))).Any(e =>
                             {
                                 tmpSpot = e.parent;
                                 if (!AvailableEnterSpot(e) || tmpSpot.OccupiedRect().Any(c => !vehicle.Drivable(c, departMap))) return false;
 
                                 var cell = EnterVehiclePosition(tmpSpot, vehicle);
 
-                                return vehicle2.EnterComps.Where(e2 => e2.Isnt<CompZipline>()).OrderBy(e2 => e2.DistanceSquared(cell)).Any(e2 =>
+                                return vehicle2.AvailableEnterComps.Where(e2 => e2.Isnt<CompZipline>()).OrderBy(e2 => e2.DistanceSquared(cell)).Any(e2 =>
                                 {
                                     tmpSpot2 = e2.parent;
                                     if (!AvailableEnterSpot(e2) || tmpSpot2.OccupiedRect().Any(c => !vehicle.Drivable(c, destMap))) return false;

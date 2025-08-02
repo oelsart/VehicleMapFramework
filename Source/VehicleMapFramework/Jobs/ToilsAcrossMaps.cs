@@ -342,8 +342,7 @@ public static class ToilsAcrossMaps
 
                 toil2.tickAction = () =>
                 {
-                    var drawPos = driver.pawn.DrawPos;
-                    driver.drawOffset = (offset * ((GenTicks.TicksGame - initTick) / ticks)) + enterSpot.Cell.ToBaseMapCoord(vehicle).ToVector3().WithY(drawPos.YOffsetFull(vehicle).y - drawPos.y) - initPos3;
+                    driver.drawOffset = (offset * ((GenTicks.TicksGame - initTick) / ticks)) + enterSpot.Cell.ToBaseMapCoord(vehicle).ToVector3().WithY(Altitudes.AltInc * 50f) - initPos3;
                     door?.StartManualOpenBy(toil2.actor);
                     ramp?.StartManualOpenBy(toil2.actor);
                 };

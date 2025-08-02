@@ -279,7 +279,7 @@ public static class Patch_Rendering_DrawSelectionBracketsVehicles
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
         var codes = instructions.ToList();
-        var pos = codes.FindLastIndex(c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalType == typeof(int));
+        var pos = codes.FindIndex(c => c.opcode == OpCodes.Stloc_3);
         var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithMap));
         var label = generator.DefineLabel();
 
@@ -291,7 +291,7 @@ public static class Patch_Rendering_DrawSelectionBracketsVehicles
             new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf),
             new CodeInstruction(OpCodes.Brfalse_S, label),
             new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_FullAngle),
+            new CodeInstruction(OpCodes.Call, CachedMethodInfo.g_Angle),
             new CodeInstruction(OpCodes.Conv_I4),
             new CodeInstruction(OpCodes.Add)
         ]);
@@ -313,7 +313,7 @@ public static class Patch_VehicleTurret_AngleBetween
 }
 
 [HarmonyPatch(typeof(GenGridVehicles), nameof(GenGridVehicles.ImpassableForVehicles))]
-[PatchLevel(Level.Safe)]
+[PatchLevel(Level.Mandatory)]
 public static class Patch_GenGridVehicles_ImpassableForVehicles
 {
     public static void Postfix(ThingDef thingDef, ref bool __result)
@@ -1012,6 +1012,7 @@ public static class Patch_FloatMenuOptionProvider_OrderVehicle_PawnGotoAction
             if (vehicle.CanReachVehicle(gotoLoc, PathEndMode.OnCell, Danger.Deadly, TraverseMode.ByPawn, map, out var exitSpot, out var enterSpot))
             {
                 PawnGotoAction(clickCell, vehicle, map, gotoLoc, rot, exitSpot, enterSpot);
+                TargetMapManager.RemoveTargetInfo(vehicle);
             }
             return false;
         }
@@ -1042,6 +1043,7 @@ public static class Patch_FloatMenuOptionProvider_OrderVehicle_PawnGotoAction
             {
                 Job job = new(VMF_DefOf.VMF_GotoAcrossMaps, gotoLoc);
                 job.SetSpotsToJobAcrossMaps(vehicle, exitSpot, enterSpot);
+                job.globalTarget = new GlobalTargetInfo(gotoLoc, map);
                 var baseMap = map.BaseMap();
                 var isBaseMap = map == baseMap;
                 bool isOnEdge = isBaseMap && CellRect.WholeMap(baseMap).IsOnEdge(clickCell, 3);
@@ -1088,7 +1090,7 @@ public static class Patch_PathingHelper_TryFindNearestStandableCell
         }
         radius = Mathf.Min(radius, 56.4f);
         VehiclePawnWithMap vehicle2 = null;
-        if (TargetMapManager.HasTargetMap(vehicle, out var map) && vehicle.Map != map)
+        if (TargetMapManager.HasTargetMap(vehicle, out var map))
         {
             __result = CrossMapReachabilityUtility.TryFindNearestStandableCell(vehicle, cell, map, out result, radius);
             if (result.IsValid)
@@ -1116,17 +1118,26 @@ public static class Patch_PathingHelper_TryFindNearestStandableCell
     }
 }
 
+[HarmonyPatch(typeof(VehiclePath), nameof(VehiclePath.DrawPath))]
+public static class Patch_VehiclePath_DrawPath
+{
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator) => Patch_PawnPath_DrawPath.Transpiler(instructions, generator);
+}
+
 [HarmonyPatch(typeof(VehicleOrientationController), "Init")]
 [PatchLevel(Level.Safe)]
 public static class Patch_VehicleOrientationController_Init
 {
-    public static void Prefix(ref IntVec3 clickCell)
+    public static void Postfix(ref IntVec3 ___start, ref IntVec3 ___end)
     {
         if (UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out var vehicle, false))
         {
-            clickCell = clickCell.ToBaseMapCoord(vehicle);
+            ___start = ___start.ToBaseMapCoord(vehicle);
+            ___end = ___end.ToBaseMapCoord(vehicle);
         }
     }
+
+
 }
 
 [HarmonyPatch(typeof(VehicleOrientationController), "RecomputeDestinations")]
@@ -1135,7 +1146,10 @@ public static class Patch_VehicleOrientationController_RecomputeDestinations
     [PatchLevel(Level.Safe)]
     public static void Prefix(List<VehiclePawn> ___vehicles)
     {
-        ___vehicles.Do(v => TargetMapManager.RemoveTargetInfo(v));
+        if (___vehicles.Count > 1)
+        {
+            ___vehicles.Do(v => TargetMapManager.RemoveTargetInfo(v));
+        }
     }
 
     [PatchLevel(Level.Cautious)]
@@ -1169,6 +1183,45 @@ public static class Patch_VehicleOrientationController_TargeterUpdate
             }
             yield return instruction;
         }
+    }
+}
+
+[HarmonyPatch(typeof(VehicleGhostUtility), nameof(VehicleGhostUtility.DrawGhostVehicleDef))]
+[PatchLevel(Level.Sensitive)]
+public static class Patch_VehicleGhostUtility_DrawGhostVehicleDef
+{
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        var codes = new CodeMatcher(instructions);
+        codes.MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_GenThing_TrueCenter2));
+        codes.InsertAfter(
+            CodeInstruction.LoadArgument(5),
+            CodeInstruction.Call(typeof(Patch_VehicleGhostUtility_DrawGhostVehicleDef), nameof(ToTargetMapCoord)));
+        return codes.Instructions();
+    }
+
+    public static Vector3 ToTargetMapCoord(Vector3 original, Thing thing)
+    {
+        if (TargetMapManager.HasTargetMap(thing, out var map))
+        {
+            return original.ToBaseMapCoord(map).WithY(original.y);
+        }
+        return original;
+    }
+}
+
+[HarmonyPatch(typeof(VehicleGhostUtility), nameof(VehicleGhostUtility.DrawGhostOverlays))]
+[PatchLevel(Level.Sensitive)]
+public static class Patch_VehicleGhostUtility_DrawGhostOverlays
+{
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        var codes = new CodeMatcher(instructions);
+        codes.MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_GenThing_TrueCenter2));
+        codes.InsertAfter(
+            CodeInstruction.LoadArgument(6),
+            CodeInstruction.Call(typeof(Patch_VehicleGhostUtility_DrawGhostVehicleDef), nameof(Patch_VehicleGhostUtility_DrawGhostVehicleDef.ToTargetMapCoord)));
+        return codes.Instructions();
     }
 }
 

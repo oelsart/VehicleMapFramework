@@ -61,9 +61,10 @@ public class VMF_Harmony
     {
         Predicate<object> predicate = static attributePatch =>
         {
-            var attribute = infoRef(attributePatch).method.GetCustomAttribute<PatchLevelAttribute>();
-            if (attribute is null) return false;
-            return OutOfRange(attribute.level);
+            var method = infoRef(attributePatch).method;
+            var attribute = method.GetCustomAttribute<PatchLevelAttribute>();
+            var level = attribute?.level ?? method.DeclaringType.GetCustomAttribute<PatchLevelAttribute>()?.level ?? Level.Mandatory;
+            return OutOfRange(level);
         };
 
         m_RemoveAll.Invoke(patchMethodsRef(patchClassProcessor), [predicate]);

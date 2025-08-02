@@ -8,7 +8,6 @@ using UnityEngine;
 using VehicleMapFramework.VMF_HarmonyPatches;
 using Vehicles;
 using Verse;
-using Verse.AI;
 
 namespace VehicleMapFramework;
 
@@ -153,7 +152,9 @@ public class MethodInfoCache
 
     public readonly MethodInfo g_Thing_DrawPos = AccessTools.PropertyGetter(typeof(Thing), nameof(Thing.DrawPos));
 
-    public readonly MethodInfo m_GenThing_TrueCenter = AccessTools.Method(typeof(GenThing), nameof(GenThing.TrueCenter), [typeof(Thing)]);
+    public readonly MethodInfo m_GenThing_TrueCenter1 = AccessTools.Method(typeof(GenThing), nameof(GenThing.TrueCenter), [typeof(Thing)]);
+
+    public readonly MethodInfo m_GenThing_TrueCenter2 = AccessTools.Method(typeof(GenThing), nameof(GenThing.TrueCenter), [typeof(IntVec3), typeof(Rot4), typeof(IntVec2), typeof(float)]);
 
     public readonly MethodInfo m_RotateForPrintNegate = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.RotateForPrintNegate));
 

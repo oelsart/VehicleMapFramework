@@ -36,7 +36,7 @@ public static class Patch_MeditationUtility_DrawArtificialBuildingOverlay
     public static IEnumerable<CodeInstruction> TranspilerCommon(IEnumerable<CodeInstruction> instructions, int ArgumentNum = 0)
     {
         var codes = instructions.ToList();
-        var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(CachedMethodInfo.m_GenThing_TrueCenter)) - 1;
+        var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(CachedMethodInfo.m_GenThing_TrueCenter1)) - 1;
         codes.InsertRange(pos,
         [
             CodeInstruction.LoadArgument(ArgumentNum),
