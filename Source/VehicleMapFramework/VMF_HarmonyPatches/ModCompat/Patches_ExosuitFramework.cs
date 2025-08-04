@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Emit;
 using Verse;
 using static VehicleMapFramework.MethodInfoCache;
@@ -23,10 +24,18 @@ public static class Patches_ExosuitFramework
 }
 
 [HarmonyPatchCategory(Patches_ExosuitFramework.Category)]
-[HarmonyPatch("WalkerGear.CompBuildingExtraRenderer", "PostPrintOnto")]
+[HarmonyPatch]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_CompBuildingExtraRenderer_PostPrintOnto
 {
+    private static MethodBase TargetMethod()
+    {
+        return AccessTools.FindIncludingInnerTypes(GenTypes.GetTypeInAnyAssembly("Exosuit.CompBuildingExtraRenderer", "Exosuit"), t =>
+        {
+            return t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<PostPrintOnto>"));
+        });
+    }
+
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();
@@ -39,7 +48,7 @@ public static class Patch_CompBuildingExtraRenderer_PostPrintOnto
 }
 
 [HarmonyPatchCategory(Patches_ExosuitFramework.Category)]
-[HarmonyPatch("WalkerGear.WG_AbilityVerb_QuickJump", "DoJump")]
+[HarmonyPatch("Exosuit.WG_AbilityVerb_QuickJump", "DoJump")]
 [HarmonyPatch([typeof(Pawn), typeof(Map), typeof(LocalTargetInfo), typeof(LocalTargetInfo), typeof(bool), typeof(bool)])]
 public static class Patch_WG_AbilityVerb_QuickJump_DoJump
 {
@@ -63,7 +72,7 @@ public static class Patch_WG_AbilityVerb_QuickJump_DoJump
 }
 
 [HarmonyPatchCategory(Patches_ExosuitFramework.Category)]
-[HarmonyPatch("WalkerGear.WG_PawnFlyer", "RespawnPawn")]
+[HarmonyPatch("Exosuit.WG_PawnFlyer", "RespawnPawn")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_WG_PawnFlyer_RespawnPawn
 {
@@ -74,24 +83,25 @@ public static class Patch_WG_PawnFlyer_RespawnPawn
 }
 
 [HarmonyPatchCategory(Patches_ExosuitFramework.Category)]
-[HarmonyPatch("WalkerGear.WG_PawnFlyer", "SpawnSetup")]
+[HarmonyPatch("Exosuit.WG_PawnFlyer", "ToDiffMapTarget")]
 [PatchLevel(Level.Safe)]
-public static class Patch_WG_PawnFlyer_SpawnSetup
+public static class Patch_WG_PawnFlyer_ToDiffMapTarget
 {
-    public static void Postfix(ref Thing ___eBay, Map map)
+    private static Type t_Building_EjectorBay = GenTypes.GetTypeInAnyAssembly("Exosuit.Building_EjectorBay", "Exosuit");
+
+    public static void Prefix(ref Thing ___eBay, Pawn pawn)
     {
         if (___eBay == null)
         {
-            var maps = map.BaseMapAndVehicleMaps().Except(map);
+            var mapHeld = pawn.MapHeld;
+            var maps = mapHeld.BaseMapAndVehicleMaps().Except(mapHeld);
             ___eBay = maps.SelectMany(m => m.listerBuildings.allBuildingsColonist).FirstOrDefault(b => b.GetType() == t_Building_EjectorBay);
         }
     }
-
-    private static Type t_Building_EjectorBay = AccessTools.TypeByName("WalkerGear.Building_EjectorBay");
 }
 
 [HarmonyPatchCategory(Patches_ExosuitFramework.Category)]
-[HarmonyPatch("WalkerGear.Building_EjectorBay", "DynamicDrawPhaseAt")]
+[HarmonyPatch("Exosuit.Building_EjectorBay", "DynamicDrawPhaseAt")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Building_EjectorBay_DynamicDrawPhaseAt
 {
@@ -102,7 +112,7 @@ public static class Patch_Building_EjectorBay_DynamicDrawPhaseAt
 }
 
 [HarmonyPatchCategory(Patches_ExosuitFramework.Category)]
-[HarmonyPatch("WalkerGear.Building_MaintenanceBay", "DynamicDrawPhaseAt")]
+[HarmonyPatch("Exosuit.Building_MaintenanceBay", "DynamicDrawPhaseAt")]
 [PatchLevel(Level.Safe)]
 public static class Patch_Building_MaintenanceBay_DynamicDrawPhaseAt
 {
