@@ -15,6 +15,7 @@
 			<texPath>VehicleMapFramework/Things/GravshipWheel/GravshipWheel</texPath>
 			<graphicClass>Graphic_Multi</graphicClass>
 			<shaderType>CutoutComplex</shaderType>
+			<renderQueue>2901</renderQueue>
 		</graphicData>
 		<fillPercent>0.8</fillPercent>
 		<building>

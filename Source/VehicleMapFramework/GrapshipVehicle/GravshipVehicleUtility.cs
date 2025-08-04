@@ -304,6 +304,7 @@ namespace VehicleMapFramework
             def.size = props.size;
             def.graphicData = new GraphicDataRGB();
             def.graphicData.CopyFrom(baseDef.graphicData);
+            def.graphicData.texPath = "VehicleMapFramework/ClearTex";
             def.graphicData.drawSize = props.size.ToVector2();
             def.modContentPack = VehicleMapFramework.mod.Content;
             def.modExtensions = [props];

@@ -435,13 +435,14 @@ public static class Patch_FloatMenuOptionProvider_WorkGivers_GetWorkGiverOption
         if ((bool)__state[0])
         {
             pawn.VirtualMapTransfer((Map)__state[1], (IntVec3)__state[2]);
-        }
-        if ((!__result?.Disabled ?? false) && __result.action != null && JobAcrossMapsUtility.NeedWrapGotoDestMapJob(workGiver.Worker as WorkGiver_Scanner))
-        {
-            __result.action = (() =>
+
+            if ((!__result?.Disabled ?? false) && __result.action != null && JobAcrossMapsUtility.NeedWrapGotoDestMapJob(workGiver.Worker as WorkGiver_Scanner))
             {
-                JobAcrossMapsUtility.StartGotoDestMapJob(pawn, (TargetInfo)__state[3], (TargetInfo)__state[4]);
-            }) + __result.action;
+                __result.action = (() =>
+                {
+                    JobAcrossMapsUtility.StartGotoDestMapJob(pawn, (TargetInfo)__state[3], (TargetInfo)__state[4]);
+                }) + __result.action;
+            }
         }
     }
 

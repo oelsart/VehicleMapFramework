@@ -24,18 +24,6 @@ public static class Patches_CE
         var patch = AccessTools.Method("CombatExtended.HarmonyCE.Harmony_AttackTargetFinder+Harmony_AttackTargetFinder_GetShootingTargetScore:Postfix");
         VMF_Harmony.Instance.Patch(method, postfix: patch);
 
-        //method = AccessTools.FindIncludingInnerTypes(typeof(FloatMenuMakerOnVehicle), t =>
-        //{
-        //    var field = AccessTools.Field(t, "equipment");
-        //    if (field != null && field.FieldType == typeof(ThingWithComps))
-        //    {
-        //        return t.GetMethods(AccessTools.all).FirstOrDefault(m => m.Name.Contains("Equip"));
-        //    }
-        //    return null;
-        //});
-        //patch = AccessTools.Method("CombatExtended.HarmonyCE.FloatMenuMakerMap_PatchKnowledge:Transpiler");
-        //VMF_Harmony.Instance.Patch(method, transpiler: patch);
-
         VMF_Harmony.PatchCategory("VMF_Patches_CE");
 
         if (ModCompat.VFESecurity.Active)
@@ -47,6 +35,7 @@ public static class Patches_CE
 
 [HarmonyPatchCategory("VMF_Patches_CE")]
 [HarmonyPatch(typeof(GenSpawn), nameof(GenSpawn.Spawn), typeof(Thing), typeof(IntVec3), typeof(Map), typeof(Rot4), typeof(WipeMode), typeof(bool), typeof(bool))]
+[PatchLevel(Level.Safe)]
 public static class Patch_GenSpawn_Spawn
 {
     public static void Prefix(Thing newThing, ref Map map)
@@ -60,6 +49,7 @@ public static class Patch_GenSpawn_Spawn
 
 [HarmonyPatchCategory("VMF_Patches_CE")]
 [HarmonyPatch(typeof(Verb_LaunchProjectileCE), "ShotSpeed", MethodType.Getter)]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Verb_LaunchProjectileCE_ShotSpeed
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -71,6 +61,7 @@ public static class Patch_Verb_LaunchProjectileCE_ShotSpeed
 
 [HarmonyPatchCategory("VMF_Patches_CE")]
 [HarmonyPatch(typeof(Verb_LaunchProjectileCE), "LightingTracker", MethodType.Getter)]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Verb_LaunchProjectileCE_LightingTracker
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -81,6 +72,7 @@ public static class Patch_Verb_LaunchProjectileCE_LightingTracker
 
 [HarmonyPatchCategory("VMF_Patches_CE")]
 [HarmonyPatch(typeof(Verb_LaunchProjectileCE), nameof(Verb_LaunchProjectileCE.ShiftVecReportFor), typeof(LocalTargetInfo))]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Verb_LaunchProjectileCE_ShiftVecReportFor1
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -91,6 +83,7 @@ public static class Patch_Verb_LaunchProjectileCE_ShiftVecReportFor1
 
 [HarmonyPatchCategory("VMF_Patches_CE")]
 [HarmonyPatch(typeof(Verb_LaunchProjectileCE), nameof(Verb_LaunchProjectileCE.ShiftVecReportFor), typeof(LocalTargetInfo), typeof(IntVec3))]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Verb_LaunchProjectileCE_ShiftVecReportFor2
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -102,6 +95,7 @@ public static class Patch_Verb_LaunchProjectileCE_ShiftVecReportFor2
 
 [HarmonyPatchCategory("VMF_Patches_CE")]
 [HarmonyPatch(typeof(Verb_LaunchProjectileCE), nameof(Verb_LaunchProjectileCE.AdjustShotHeight))]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Verb_LaunchProjectileCE_AdjustShotHeight
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -112,6 +106,7 @@ public static class Patch_Verb_LaunchProjectileCE_AdjustShotHeight
 
 [HarmonyPatchCategory("VMF_Patches_CE")]
 [HarmonyPatch(typeof(Verb_LaunchProjectileCE), "GetHighestCoverAndSmokeForTarget")]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_Verb_LaunchProjectileCE_GetHighestCoverAndSmokeForTarget
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -133,6 +128,7 @@ public static class Patch_Verb_LaunchProjectileCE_GetHighestCoverAndSmokeForTarg
 
 [HarmonyPatchCategory("VMF_Patches_CE")]
 [HarmonyPatch(typeof(Verb_LaunchProjectileCE), nameof(Verb_LaunchProjectileCE.CanHitTarget))]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Verb_LaunchProjectileCE_CanHitTarget
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -144,6 +140,7 @@ public static class Patch_Verb_LaunchProjectileCE_CanHitTarget
 [HarmonyPatchCategory("VMF_Patches_CE")]
 [HarmonyPatch(typeof(Verb_LaunchProjectileCE), nameof(Verb_LaunchProjectileCE.CanHitTargetFrom))]
 [HarmonyPatch([typeof(IntVec3), typeof(LocalTargetInfo), typeof(string)], [ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Out])]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Verb_LaunchProjectileCE_CanHitTargetFrom
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -155,6 +152,7 @@ public static class Patch_Verb_LaunchProjectileCE_CanHitTargetFrom
 
 [HarmonyPatchCategory("VMF_Patches_CE")]
 [HarmonyPatch(typeof(Verb_LaunchProjectileCE), "Retarget")]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Verb_LaunchProjectileCE_Retarget
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -169,6 +167,7 @@ public static class Patch_Verb_LaunchProjectileCE_Retarget
 
 [HarmonyPatchCategory("VMF_Patches_CE")]
 [HarmonyPatch(typeof(Verb_LaunchProjectileCE), nameof(Verb_LaunchProjectileCE.TryCastShot))]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Verb_LaunchProjectileCE_TryCastShot
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -181,53 +180,15 @@ public static class Patch_Verb_LaunchProjectileCE_TryCastShot
 }
 
 [HarmonyPatchCategory("VMF_Patches_CE")]
-[HarmonyPatch]
+[HarmonyPatch(typeof(Verb_LaunchProjectileCE), "TryFindCEShootLineFromTo", [typeof(IntVec3), typeof(LocalTargetInfo), typeof(ShootLine), typeof(Vector3)], [ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Out, ArgumentType.Out])]
+[PatchLevel(Level.Safe)]
 public static class Patch_Verb_LaunchProjectileCE_TryFindCEShootLineFromTo
 {
-    private static readonly MethodBase m_TryFindCEShootLineFromTo = AccessTools.Method(typeof(Verb_LaunchProjectileCE), "TryFindCEShootLineFromTo", [typeof(IntVec3), typeof(LocalTargetInfo), typeof(ShootLine).MakeByRefType()]);
-
-    private static bool Prepare()
-    {
-        return m_TryFindCEShootLineFromTo != null;
-    }
-
-    private static MethodBase TargetMethod()
-    {
-        return m_TryFindCEShootLineFromTo;
-    }
-
-    public static bool Prefix(Verb_LaunchProjectileCE __instance, IntVec3 root, LocalTargetInfo targ, ref ShootLine resultingLine, ref bool __result)
-    {
-        if (__instance.caster.IsOnVehicleMapOf(out _) || targ.HasThing && targ.Thing.Map != __instance.caster.Map)
-        {
-            __result = __instance.TryFindCEShootLineFromToOnVehicle(root, targ, out resultingLine);
-            return false;
-        }
-        return true;
-    }
-}
-
-[HarmonyPatchCategory("VMF_Patches_CE")]
-[HarmonyPatch]
-public static class Patch_Verb_LaunchProjectileCE_TryFindCEShootLineFromTo_NewTemp
-{
-    private static readonly MethodBase m_TryFindCEShootLineFromTo = AccessTools.Method(typeof(Verb_LaunchProjectileCE), "TryFindCEShootLineFromTo", [typeof(IntVec3), typeof(LocalTargetInfo), typeof(ShootLine).MakeByRefType(), typeof(Vector3).MakeByRefType()]);
-
-    private static bool Prepare()
-    {
-        return m_TryFindCEShootLineFromTo != null;
-    }
-
-    private static MethodBase TargetMethod()
-    {
-        return m_TryFindCEShootLineFromTo;
-    }
-
     public static bool Prefix(Verb_LaunchProjectileCE __instance, IntVec3 root, LocalTargetInfo targ, ref ShootLine resultingLine, ref Vector3 targetPos, ref bool __result)
     {
         if (__instance.caster.IsOnVehicleMapOf(out _) || targ.HasThing && targ.Thing.Map != __instance.caster.Map)
         {
-            __result = __instance.TryFindCEShootLineFromToOnVehicle_NewTemp(root, targ, out resultingLine, out targetPos);
+            __result = __instance.TryFindCEShootLineFromToOnVehicle(root, targ, out resultingLine, out targetPos);
             return false;
         }
         return true;
@@ -236,6 +197,7 @@ public static class Patch_Verb_LaunchProjectileCE_TryFindCEShootLineFromTo_NewTe
 
 [HarmonyPatchCategory("VMF_Patches_CE")]
 [HarmonyPatch(typeof(Verb_ShootCE), nameof(Verb_ShootCE.AimAngle), MethodType.Getter)]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Verb_ShootCE_AimAngle
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -246,6 +208,7 @@ public static class Patch_Verb_ShootCE_AimAngle
 
 [HarmonyPatchCategory("VMF_Patches_CE")]
 [HarmonyPatch(typeof(Verb_ShootCE), nameof(Verb_ShootCE.WarmupComplete))]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Verb_ShootCE_WarmupComplete
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -257,6 +220,7 @@ public static class Patch_Verb_ShootCE_WarmupComplete
 
 [HarmonyPatchCategory("VMF_Patches_CE")]
 [HarmonyPatch(typeof(Verb_ShootCE), nameof(Verb_ShootCE.CanHitTargetFrom))]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Verb_ShootCE_CanHitTargetFrom
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -268,6 +232,7 @@ public static class Patch_Verb_ShootCE_CanHitTargetFrom
 
 [HarmonyPatchCategory("VMF_Patches_CE")]
 [HarmonyPatch(typeof(Verb_ShootCE), nameof(Verb_ShootCE.RecalculateWarmupTicks))]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Verb_ShootCE_RecalculateWarmupTicks
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -278,6 +243,7 @@ public static class Patch_Verb_ShootCE_RecalculateWarmupTicks
 
 [HarmonyPatchCategory("VMF_Patches_CE")]
 [HarmonyPatch(typeof(Verb_ShootMortarCE), nameof(Verb_ShootMortarCE.ShiftVecReportFor))]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Verb_ShootMortarCE_ShiftVecReportFor
 {
     [HarmonyPatch([typeof(LocalTargetInfo)])]
@@ -301,8 +267,11 @@ public static class Patch_Verb_ShootMortarCE_ShiftVecReportFor
 
 [HarmonyPatchCategory("VMF_Patches_CE")]
 [HarmonyPatch(typeof(ProjectileCE), nameof(ProjectileCE.RayCast))]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_ProjectileCE_RayCast
 {
+    private static readonly List<Thing> tmpList = [];
+
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing).ToList();
@@ -337,12 +306,11 @@ public static class Patch_ProjectileCE_RayCast
         }
         return tmpList;
     }
-
-    private static readonly List<Thing> tmpList = new List<Thing>();
 }
 
 [HarmonyPatchCategory("VMF_Patches_CE")]
 [HarmonyPatch(typeof(ProjectileCE), "CheckIntercept")]
+[PatchLevel(Level.Cautious)]
 public static class Patch_ProjectileCE_CheckIntercept
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -353,8 +321,11 @@ public static class Patch_ProjectileCE_CheckIntercept
 
 [HarmonyPatchCategory("VMF_Patches_CE")]
 [HarmonyPatch(typeof(ProjectileCE), "CheckForCollisionBetween")]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_ProjectileCE_CheckForCollisionBetween
 {
+    private static readonly List<Thing> tmpList = [];
+
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();
@@ -376,12 +347,11 @@ public static class Patch_ProjectileCE_CheckForCollisionBetween
         tmpList.AddRange(maps.SelectMany(m => m.listerThings.ThingsInGroup(ThingRequestGroup.ProjectileInterceptor)));
         return tmpList;
     }
-
-    private static readonly List<Thing> tmpList = new List<Thing>();
 }
 
 [HarmonyPatchCategory("VMF_Patches_CE")]
 [HarmonyPatch(typeof(ProjectileCE), "CheckCellForCollision")]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_ProjectileCE_CheckCellForCollision
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -406,6 +376,7 @@ public static class Patch_ProjectileCE_CheckCellForCollision
 
 [HarmonyPatchCategory("VMF_Patches_CE")]
 [HarmonyPatch(typeof(ProjectileCE), nameof(ProjectileCE.Launch), typeof(Thing), typeof(Vector2), typeof(float), typeof(float), typeof(float), typeof(float), typeof(Thing), typeof(float))]
+[PatchLevel(Level.Cautious)]
 public static class Patch_ProjectileCE_Launch
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -416,6 +387,7 @@ public static class Patch_ProjectileCE_Launch
 
 [HarmonyPatchCategory("VMF_Patches_CE")]
 [HarmonyPatch(typeof(ProjectileCE), nameof(ProjectileCE.ImpactSomething))]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_ProjectileCE_ImpactSomething
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -438,8 +410,11 @@ public static class Patch_ProjectileCE_ImpactSomething
 
 [HarmonyPatchCategory("VMF_Patches_CE")]
 [HarmonyPatch(typeof(Building_TurretGunCE), nameof(Building_TurretGunCE.TryFindNewTarget))]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_Building_TurretGunCE_TryFindNewTarget
 {
+    private static readonly List<Building> tmpList = [];
+
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();
@@ -462,12 +437,11 @@ public static class Patch_Building_TurretGunCE_TryFindNewTarget
         tmpList.AddRange(maps.SelectMany(m => m.listerBuildings.allBuildingsColonist));
         return tmpList;
     }
-
-    private static readonly List<Building> tmpList = new List<Building>();
 }
 
 [HarmonyPatchCategory("VMF_Patches_CE")]
 [HarmonyPatch]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_Building_TurretGunCE_TryFindNewTarget_Predicate
 {
     private static MethodInfo TargetMethod()
@@ -483,6 +457,7 @@ public static class Patch_Building_TurretGunCE_TryFindNewTarget_Predicate
 
 [HarmonyPatchCategory("VMF_Patches_CE")]
 [HarmonyPatch(typeof(Building_TurretGunCE), nameof(Building_TurretGunCE.OrderAttack))]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Building_TurretGunCE_OrderAttack
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -494,6 +469,7 @@ public static class Patch_Building_TurretGunCE_OrderAttack
 
 [HarmonyPatchCategory("VMF_Patches_CE")]
 [HarmonyPatch(typeof(ExplosionCE), nameof(ExplosionCE.StartExplosionCE))]
+[PatchLevel(Level.Safe)]
 public static class Patch_ExplosionCE_StartExplosionCE
 {
     public static void Postfix(ExplosionCE __instance)
@@ -506,21 +482,10 @@ public static class Patch_ExplosionCE_StartExplosionCE
 }
 
 [HarmonyPatchCategory("VMF_Patches_CE")]
-[HarmonyPatch]
+[HarmonyPatch(typeof(Verb_LaunchProjectileCE), nameof(Verb_LaunchProjectileCE.ShiftTarget), typeof(ShiftVecReport), typeof(bool), typeof(bool))]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Verb_LaunchProjectileCE_ShiftTarget
 {
-    private static readonly MethodBase m_ShiftTarget = AccessTools.Method(typeof(Verb_LaunchProjectileCE), nameof(Verb_LaunchProjectileCE.ShiftTarget), [typeof(ShiftVecReport), typeof(bool), typeof(bool)]);
-
-    private static bool Prepare()
-    {
-        return m_ShiftTarget != null;
-    }
-
-    private static MethodBase TargetMethod()
-    {
-        return m_ShiftTarget;
-    }
-
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap);
@@ -529,6 +494,7 @@ public static class Patch_Verb_LaunchProjectileCE_ShiftTarget
 
 [HarmonyPatchCategory("VMF_Patches_CE")]
 [HarmonyPatch(typeof(ProjectileCE), "DistanceTraveled", MethodType.Getter)]
+[PatchLevel(Level.Safe)]
 public static class Patch_ProjectileCE_DistanceTraveled
 {
     public static bool Prefix(ProjectileCE __instance, Vector2 ___origin, LocalTargetInfo ___intendedTarget, ref float __result)
@@ -543,38 +509,15 @@ public static class Patch_ProjectileCE_DistanceTraveled
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_CE")]
-[HarmonyPatch("CombatExtended.HarmonyCE.FloatMenuMakerMap_Modify_AddHumanlikeOrders", "AddMenuItems")]
-public static class Patch_FloatMenuMakerMap_Modify_AddHumanlikeOrders_AddMenuItems
-{
-    [HarmonyReversePatch]
-    public static void AddMenuItems(Vector3 clickPos, Pawn pawn, List<FloatMenuOption> opts, List<Thing> thingList)
-    {
-        IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
-            var codes = instructions.ToList();
-            var m_TargetsAt = AccessTools.Method(typeof(GenUI), nameof(GenUI.TargetsAt));
-            var m_TargetsAtOnVehicle = AccessTools.Method(typeof(GenUIOnVehicle), nameof(GenUIOnVehicle.TargetsAt), [typeof(Vector3), typeof(TargetingParameters), typeof(bool), typeof(ITargetingSource), typeof(bool)]);
-            var pos = codes.FindIndex(c => c.Calls(m_TargetsAt));
-            codes[pos].operand = m_TargetsAtOnVehicle;
-            codes.Insert(pos, new CodeInstruction(OpCodes.Ldc_I4_1));
-
-            pos = codes.FindIndex(c => c.Calls(CachedMethodInfo.m_GetThingList));
-            codes[pos] = CodeInstruction.LoadArgument(3);
-            codes.RemoveRange(pos - 4, 4);
-
-            return codes;
-        }
-        _ = Transpiler(null);
-
-        throw new NotImplementedException();
-    }
-}
-
 [HarmonyPatchCategory("VMF_Patches_CE_VFESecurity")]
 [HarmonyPatch(typeof(VanillaFurnitureExpandedSecurity), "refreshShields")]
+[PatchLevel(Level.Safe)]
 public static class Patch_VanillaFurnitureExpandedSecurity_refreshShields
 {
+    private static readonly Type t_ListerThingsExtended = AccessTools.TypeByName("VFESecurity.ListerThingsExtended");
+
+    private static readonly AccessTools.FieldRef<MapComponent, IEnumerable<Building>> listerShieldGens = AccessTools.FieldRefAccess<IEnumerable<Building>>(t_ListerThingsExtended, "listerShieldGens");
+
     public static void Postfix(Map map, HashSet<Building> ___shields)
     {
         VehiclePawnWithMapCache.AllVehiclesOn(map).Do(v =>
@@ -582,14 +525,11 @@ public static class Patch_VanillaFurnitureExpandedSecurity_refreshShields
             ___shields.AddRange(listerShieldGens(v.VehicleMap.GetComponent(t_ListerThingsExtended)));
         });
     }
-
-    private static readonly Type t_ListerThingsExtended = AccessTools.TypeByName("VFESecurity.ListerThingsExtended");
-
-    private static readonly AccessTools.FieldRef<MapComponent, IEnumerable<Building>> listerShieldGens = AccessTools.FieldRefAccess<IEnumerable<Building>>(t_ListerThingsExtended, "listerShieldGens");
 }
 
 [HarmonyPatchCategory("VMF_Patches_CE_VFESecurity")]
 [HarmonyPatch(typeof(VanillaFurnitureExpandedSecurity), "ShieldInterceptsProjectile")]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_VanillaFurnitureExpandedSecurity_ShieldInterceptsProjectile
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)

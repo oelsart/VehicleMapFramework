@@ -76,28 +76,6 @@ public static class ModCompat
     public static class CombatExtended
     {
         public static readonly bool Active = ModsConfig.IsActive("CETeam.CombatExtended") || ModsConfig.IsActive("CETeam.CombatExtended_steam");
-
-        public static readonly Action<Vector3, Pawn, List<FloatMenuOption>, List<Thing>> AddMenuItems;
-
-        static CombatExtended()
-        {
-            if (Active)
-            {
-                try
-                {
-                    var method = AccessTools.Method("VMF_CEPatch.Patch_FloatMenuMakerMap_Modify_AddHumanlikeOrders_AddMenuItems:AddMenuItems");
-                    AddMenuItems = AccessTools.MethodDelegate<Action<Vector3, Pawn, List<FloatMenuOption>, List<Thing>>>(method);
-                }
-                finally
-                {
-                    if (AnyNull(AddMenuItems))
-                    {
-                        LogIncompat("Combat Extended");
-                        Active = false;
-                    }
-                }
-            }
-        }
     }
 
     public static readonly bool ColonyGroups = ModsConfig.IsActive("DerekBickley.LTOColonyGroupsFinal");

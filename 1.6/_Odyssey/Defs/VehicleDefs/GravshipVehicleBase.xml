@@ -7,9 +7,10 @@
 		<enabled>None</enabled>
 
 		<graphicData>
-			<texPath>VehicleMapFramework/ClearTex</texPath>
+			<texPath>VehicleMapFramework/UI/GravshipVehicleMode</texPath>
 			<graphicClass>Vehicles.Graphic_Vehicle</graphicClass>
 			<shaderType>CutoutComplexPattern</shaderType>
+			<drawSize>0.0000001</drawSize>
 		</graphicData>
 
 		<fillPercent>0</fillPercent>

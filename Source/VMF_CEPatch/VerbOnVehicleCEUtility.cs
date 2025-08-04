@@ -17,70 +17,7 @@ public static class VerbOnVehicleCEUtility
         return new Vector3(drawPos.x, verb.ShotHeight, drawPos.z);
     }
 
-    public static bool TryFindCEShootLineFromToOnVehicle(this Verb_LaunchProjectileCE verb, IntVec3 root, LocalTargetInfo targ, out ShootLine resultingLine)
-    {
-        var casterBaseMap = verb.caster.BaseMap();
-        var targCellOnBaseMap = targ.CellOnBaseMap();
-        if (targ.HasThing && targ.Thing.BaseMap() != casterBaseMap)
-        {
-            resultingLine = default;
-            return false;
-        }
-        if (verb.EffectiveRange <= ShootTuning.MeleeRange)
-        {
-            resultingLine = new ShootLine(root, targCellOnBaseMap);
-            return ReachabilityImmediate.CanReachImmediate(verb.caster.Position, targ, verb.caster.Map, PathEndMode.Touch, null);
-        }
-        CellRect cellRect = (!targ.HasThing) ? CellRect.SingleCell(targ.Cell) : targ.Thing.MovedOccupiedRect();
-        float num = cellRect.ClosestDistSquaredTo(root);
-        if (num > verb.EffectiveRange * verb.EffectiveRange || num < verb.verbProps.minRange * verb.verbProps.minRange)
-        {
-            resultingLine = new ShootLine(root, targCellOnBaseMap);
-            return false;
-        }
-        if (verb.Projectile.projectile.flyOverhead)
-        {
-            resultingLine = new ShootLine(root, targCellOnBaseMap);
-            return true;
-        }
-
-        var shotSource = root.ToVector3Shifted();
-        shotSource.y = verb.ShotHeight;
-
-        // Adjust for multi-tile turrets
-        if (verb.caster.def.building?.IsTurret ?? false)
-        {
-            shotSource = verb.ShotSource();
-        }
-
-        if (verb.CanHitFromCellIgnoringRange(shotSource, targ, out IntVec3 dest))
-        {
-            resultingLine = new ShootLine(root, dest);
-            return true;
-        }
-
-        if (verb.CasterIsPawn)
-        {
-            ShootLeanUtilityOnVehicle.LeanShootingSourcesFromTo(verb.caster.Position, cellRect.ClosestCellTo(root), verb.caster.Map, tempLeanShootSources);
-            var targCellOnCasterMap = targ.CellOnAnotherThingMap(verb.caster);
-            foreach (var leanLoc in tempLeanShootSources.OrderBy(c => c.DistanceTo(targCellOnCasterMap)))
-            {
-                var leanOffset = 0.5f - 0.001f;
-                var leanLocOnBaseMap = leanLoc.ToThingBaseMapCoord(verb.caster);
-                var leanPosOffset = (leanLocOnBaseMap - root).ToVector3() * leanOffset;
-                if (verb.CanHitFromCellIgnoringRange(shotSource + leanPosOffset, targ, out dest))
-                {
-                    resultingLine = new ShootLine(leanLocOnBaseMap, dest);
-                    return true;
-                }
-            }
-        }
-
-        resultingLine = new ShootLine(root, targCellOnBaseMap);
-        return false;
-    }
-
-    public static bool TryFindCEShootLineFromToOnVehicle_NewTemp(this Verb_LaunchProjectileCE verb, IntVec3 root, LocalTargetInfo targ, out ShootLine resultingLine, out Vector3 targetPos)
+    public static bool TryFindCEShootLineFromToOnVehicle(this Verb_LaunchProjectileCE verb, IntVec3 root, LocalTargetInfo targ, out ShootLine resultingLine, out Vector3 targetPos)
     {
         targetPos = targ.Thing is Pawn ? targ.Thing.TrueCenter() : targ.CellOnBaseMap().ToVector3Shifted();
         var casterBaseMap = verb.caster.BaseMap();

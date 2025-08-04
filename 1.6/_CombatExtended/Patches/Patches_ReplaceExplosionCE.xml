@@ -4,7 +4,7 @@
 	<Operation Class = "PatchOperationReplace">
 		<xpath>Defs/ThingDef[defName = "ExplosionCE"]/thingClass</xpath>
 		<value>
-			<thingClass>VMF_CEPatch.ExplosionCEAcrossMaps</thingClass>
+			<thingClass>VehicleMapFramework.ExplosionCEAcrossMaps</thingClass>
 		</value>
 	</Operation>
 </Patch>
