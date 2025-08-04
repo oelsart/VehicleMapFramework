@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Verse;
-using static RimWorld.FleshTypeDef;
 
 namespace VehicleMapFramework
 {
@@ -16,7 +15,15 @@ namespace VehicleMapFramework
             {
                 subMeshesByRot[i] = [];
             }
-            Bottom.Material.mainTexture.wrapMode = TextureWrapMode.Clamp;
+            LongEventHandler.ExecuteWhenFinished(() =>
+            {
+                _ = OShape.Material;
+                _ = UShape.Material;
+                _ = CornerInner.Material;
+                _ = CornerOuter.Material;
+                _ = Flat.Material;
+                Bottom.Material.mainTexture.wrapMode = TextureWrapMode.Clamp;
+            });
         }
 
         public List<LayerSubMesh>[] subMeshesByRot = new List<LayerSubMesh>[4];

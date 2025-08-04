@@ -17,16 +17,17 @@ namespace VehicleMapFramework
             {
                 subMeshesByRot[i] = [];
             }
+            EnsureInitialized();
         }
 
         public List<LayerSubMesh>[] subMeshesByRot = new List<LayerSubMesh>[4];
 
         private static readonly Vector2[] UVs =
         [
-        new(0f, 0f),
-        new(0f, 1f),
-        new(1f, 1f),
-        new(1f, 0f)
+            new(0f, 0f),
+            new(0f, 1f),
+            new(1f, 1f),
+            new(1f, 0f)
         ];
 
         [TweakValue("HullCorners", 0f, 2f)]
@@ -242,11 +243,25 @@ namespace VehicleMapFramework
                 mat_SubStructure_E = new CachedMaterial(TexPath_SubStructure_E, SubstructureShader);
                 mat_SubStructureExtra_W = new CachedMaterial(TexPath_SubStructureExtra_W, SubstructureShader);
                 mat_SubStructureExtra_E = new CachedMaterial(TexPath_SubStructureExtra_E, SubstructureShader);
-
-                mat_SubStructure_W.Material.mainTexture.wrapMode = TextureWrapMode.Clamp;
-                mat_SubStructure_E.Material.mainTexture.wrapMode = TextureWrapMode.Clamp;
-                mat_SubStructureExtra_W.Material.mainTexture.wrapMode = TextureWrapMode.Clamp;
-                mat_SubStructureExtra_E.Material.mainTexture.wrapMode = TextureWrapMode.Clamp;
+                LongEventHandler.ExecuteWhenFinished(() =>
+                {
+                    _ = mat_Corner_NW.Material;
+                    _ = mat_Corner_NE.Material;
+                    _ = mat_Corner_SW.Material;
+                    _ = mat_Corner_SE.Material;
+                    _ = mat_Diagonal_NW.Material;
+                    _ = mat_Diagonal_NE.Material;
+                    _ = mat_Diagonal_SW.Material;
+                    _ = mat_Diagonal_SE.Material;
+                    _ = mat_SubStructure_W.Material;
+                    _ = mat_SubStructure_E.Material;
+                    _ = mat_SubStructureExtra_W.Material;
+                    _ = mat_SubStructureExtra_E.Material;
+                    mat_SubStructure_W.Material.mainTexture.wrapMode = TextureWrapMode.Clamp;
+                    mat_SubStructure_E.Material.mainTexture.wrapMode = TextureWrapMode.Clamp;
+                    mat_SubStructureExtra_W.Material.mainTexture.wrapMode = TextureWrapMode.Clamp;
+                    mat_SubStructureExtra_E.Material.mainTexture.wrapMode = TextureWrapMode.Clamp;
+                });
             }
         }
 
