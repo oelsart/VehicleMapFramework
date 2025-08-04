@@ -1274,6 +1274,39 @@ public static class Patch_VehicleTurret_ParallelPreRenderResults
     }
 }
 
+[HarmonyPatch(typeof(VehicleCaravan), nameof(VehicleCaravan.GetGizmos))]
+[PatchLevel(Level.Safe)]
+public static class Patch_VehicleCaravan_GetGizmos
+{
+    public static IEnumerable<Gizmo> Postfix(IEnumerable<Gizmo> values, List<VehiclePawn> ___vehicles)
+    {
+        foreach (var gizmo in values)
+        {
+            VehiclePawn vehicle;
+            if (gizmo is Command_Action action && action.defaultLabel == "CommandLaunchGroup".Translate() && (vehicle = ___vehicles.FirstOrDefault()) != null)
+            {
+                if (vehicle.CompVehicleLauncher is CompVehicleLauncherWithMap compLauncherWithmap)
+                {
+                    gizmo.Disabled = false;
+                    if (!compLauncherWithmap.CanLaunchWithCargoCapacityWithMap(out var disableReason))
+                    {
+                        gizmo.Disable(disableReason);
+                    }
+                }
+                if (!gizmo.Disabled && vehicle.CompVehicleLauncher is CompVehicleLauncherGravshipVehicle compLauncherGravship)
+                {
+                    if (!compLauncherGravship.CanLaunchGravship(out var disableReason, out _, out _, out _, out _))
+                    {
+                        gizmo.Disable(disableReason);
+                    }
+                }
+            }
+            yield return gizmo;
+        }
+    }
+}
+
+
 [HarmonyPatch]
 [PatchLevel(Level.Safe)]
 public static class Patch_SettingsCache_TryGetValue

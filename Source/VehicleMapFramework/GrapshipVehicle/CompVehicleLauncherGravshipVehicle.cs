@@ -22,40 +22,62 @@ namespace VehicleMapFramework
             foreach (var gizmo in base.CompGetGizmosExtra())
             {
                 yield return gizmo;
-                if (gizmo is Command_ActionHighlighter takeoffCommand)
+                if (gizmo is Command_ActionHighlighter takeoffCommand && !takeoffCommand.Disabled)
                 {
-                    if (Vehicle is VehiclePawnWithMap vehicle && Vehicle.def.HasModExtension<VehicleMapProps_Gravship>())
+                    if (!CanLaunchGravship(out string reason, out var engine, out var console, out var pilot, out var copilot))
                     {
-                        AcceptanceReport? report = null;
-
-                        if (GravshipUtility.GetPlayerGravEngine(vehicle.VehicleMap) is not Building_GravEngine engine)
-                        {
-                            takeoffCommand.Disable("CannotLaunchNoEngine".Translate().CapitalizeFirst());
-                            continue;
-                        }
-                        var pocketMapProperties = vehicle.VehicleMap.generatorDef?.pocketMapProperties;
-                        var flag = pocketMapProperties?.canLaunchGravship ?? false;
-                        pocketMapProperties?.canLaunchGravship = true;
-                        CompPilotConsole console = null;
-                        if ((console = engine.GravshipComponents.OfType<CompPilotConsole>().FirstOrDefault(c => (report = c.CanUseNow()).Value.Accepted)) is null)
-                        {
-                            takeoffCommand.Disable(report?.Reason ?? "PilotConsoleInaccessible".Translate().CapitalizeFirst());
-                            pocketMapProperties?.canLaunchGravship = flag;
-                            continue;
-                        }
-                        pocketMapProperties?.canLaunchGravship = flag;
-
-                        var pilot = vehicle.handlers.FirstOrDefault(h => h.role.key == "pilot").thingOwner.InnerListForReading.FirstOrDefault();
-                        if (pilot is null)
-                        {
-                            takeoffCommand.Disable("VMF_CannotLaunchNoPilot".Translate().CapitalizeFirst());
-                            continue;
-                        }
-                        var copilot = vehicle.handlers.FirstOrDefault(h => h.role.key == "copilot").thingOwner.InnerListForReading.FirstOrDefault();
-                        takeoffCommand.action = () => StartChoosingDestination(vehicle, engine, console, pilot, copilot);
+                        takeoffCommand.Disable(reason);
+                    }
+                    else
+                    {
+                        takeoffCommand.action = () => StartChoosingDestination(Vehicle, engine, console, pilot, copilot);
                     }
                 }
             }
+        }
+
+        public bool CanLaunchGravship(out string disableReason, out Building_GravEngine engine, out CompPilotConsole console, out Pawn pilot, out Pawn copilot)
+        {
+            disableReason = null;
+            engine = null;
+            console = null;
+            pilot = null;
+            copilot = null;
+            if (Vehicle is VehiclePawnWithMap vehicle && Vehicle.def.HasModExtension<VehicleMapProps_Gravship>())
+            {
+                if (GravshipUtility.GetPlayerGravEngine(vehicle.VehicleMap) is not Building_GravEngine engine2)
+                {
+                    disableReason = "CannotLaunchNoEngine".Translate().CapitalizeFirst();
+                    return false;
+                }
+                engine = engine2;
+                var pocketMapProperties = vehicle.VehicleMap.generatorDef?.pocketMapProperties;
+                var flag = pocketMapProperties?.canLaunchGravship ?? false;
+                try
+                {
+                    pocketMapProperties?.canLaunchGravship = true;
+                    AcceptanceReport? report = null;
+                    if ((console = engine.GravshipComponents.OfType<CompPilotConsole>().FirstOrDefault(c => (report = c.CanUseNow()).Value.Accepted)) is null)
+                    {
+                        disableReason = report?.Reason ?? "PilotConsoleInaccessible".Translate().CapitalizeFirst();
+                        return false;
+                    }
+                }
+                finally
+                {
+                    pocketMapProperties?.canLaunchGravship = flag;
+                }
+
+                pilot = vehicle.handlers.FirstOrDefault(h => h.role.key == "pilot").thingOwner.InnerListForReading.FirstOrDefault();
+                if (pilot is null)
+                {
+                    disableReason = "VMF_CannotLaunchNoPilot".Translate().CapitalizeFirst();
+                    return false;
+                }
+                copilot = vehicle.handlers.FirstOrDefault(h => h.role.key == "copilot").thingOwner.InnerListForReading.FirstOrDefault();
+                return true;
+            }
+            return false;
         }
 
         private void StartChoosingDestination(VehiclePawn vehicle, Building_GravEngine engine, CompPilotConsole console, Pawn pilot, Pawn copilot)

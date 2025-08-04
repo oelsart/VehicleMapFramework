@@ -15,15 +15,7 @@ namespace VehicleMapFramework
             {
                 subMeshesByRot[i] = [];
             }
-            LongEventHandler.ExecuteWhenFinished(() =>
-            {
-                _ = OShape.Material;
-                _ = UShape.Material;
-                _ = CornerInner.Material;
-                _ = CornerOuter.Material;
-                _ = Flat.Material;
-                Bottom.Material.mainTexture.wrapMode = TextureWrapMode.Clamp;
-            });
+            Bottom.Material.mainTexture.wrapMode = TextureWrapMode.Clamp;
         }
 
         public List<LayerSubMesh>[] subMeshesByRot = new List<LayerSubMesh>[4];
@@ -210,7 +202,7 @@ namespace VehicleMapFramework
                             bool flag = cornerType == SectionLayer_GravshipHull.CornerType.Corner_NW || cornerType == SectionLayer_GravshipHull.CornerType.Diagonal_NW || cornerType == SectionLayer_GravshipHull.CornerType.Corner_NE || cornerType == SectionLayer_GravshipHull.CornerType.Diagonal_NE;
                             if (edgeEdgeDirections.HasFlag(EdgeDirections.South) && !flag)
                             {
-                                AddQuad(subMesh, item + south, altitude, Rot4.North, SectionLayer_GravshipMask.IsValidSubstructure(item));
+                                AddQuad(subMesh, item + south, altitude, Rot4.North);
                             }
                         }
                     }
@@ -231,7 +223,7 @@ namespace VehicleMapFramework
                 for (int i = 0; i < value.Length; i++)
                 {
                     var (cachedMaterial, rotation) = value[i];
-                    AddQuad(GetSubMesh(cachedMaterial.Material), c, altitude, rotation, addGravshipMask: false);
+                    AddQuad(GetSubMesh(cachedMaterial.Material), c, altitude, rotation);
                 }
             }
         }
@@ -240,23 +232,23 @@ namespace VehicleMapFramework
         {
             if (cornerDirections.HasFlag(CornerDirections.NorthWest) && !edgeDirs.HasFlag(EdgeDirections.North) && !edgeDirs.HasFlag(EdgeDirections.West))
             {
-                AddQuad(GetSubMesh(CornerInner.Material), c, altitude, Rot4.South, addGravshipMask: false);
+                AddQuad(GetSubMesh(CornerInner.Material), c, altitude, Rot4.South);
             }
             if (cornerDirections.HasFlag(CornerDirections.NorthEast) && !edgeDirs.HasFlag(EdgeDirections.North) && !edgeDirs.HasFlag(EdgeDirections.East))
             {
-                AddQuad(GetSubMesh(CornerInner.Material), c, altitude, Rot4.West, addGravshipMask: false);
+                AddQuad(GetSubMesh(CornerInner.Material), c, altitude, Rot4.West);
             }
             if (cornerDirections.HasFlag(CornerDirections.SouthEast) && !edgeDirs.HasFlag(EdgeDirections.South) && !edgeDirs.HasFlag(EdgeDirections.East))
             {
-                AddQuad(GetSubMesh(CornerInner.Material), c, altitude, Rot4.North, addGravshipMask: false);
+                AddQuad(GetSubMesh(CornerInner.Material), c, altitude, Rot4.North);
             }
             if (cornerDirections.HasFlag(CornerDirections.SouthWest) && !edgeDirs.HasFlag(EdgeDirections.South) && !edgeDirs.HasFlag(EdgeDirections.West))
             {
-                AddQuad(GetSubMesh(CornerInner.Material), c, altitude, Rot4.East, addGravshipMask: false);
+                AddQuad(GetSubMesh(CornerInner.Material), c, altitude, Rot4.East);
             }
         }
 
-        private void AddQuad(LayerSubMesh sm, IntVec3 c, float altitude, Rot4 rotation, bool addGravshipMask)
+        private void AddQuad(LayerSubMesh sm, IntVec3 c, float altitude, Rot4 rotation)
         {
             c = c.RotatedBy(VehicleMapUtility.RotForPrint);
             var offset = -UVs[VehicleMapUtility.RotForPrint.AsInt];
@@ -274,12 +266,6 @@ namespace VehicleMapFramework
             sm.tris.Add(count);
             sm.tris.Add(count + 2);
             sm.tris.Add(count + 3);
-
-            if (addGravshipMask)
-            {
-                Material material = MaterialPool.MatFrom(sm.material.mainTexture as Texture2D, color: sm.material.color, shader: ShaderDatabase.GravshipMaskMasked);
-                AddQuad(GetSubMesh(material), c, altitude, rotation, addGravshipMask: false);
-            }
         }
 
         private bool ShouldDrawPropsOn(IntVec3 c, TerrainGrid terrGrid, out EdgeDirections edgeEdgeDirections, out CornerDirections cornerDirections)

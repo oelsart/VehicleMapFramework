@@ -17,7 +17,6 @@ namespace VehicleMapFramework
             {
                 subMeshesByRot[i] = [];
             }
-            EnsureInitialized();
         }
 
         public List<LayerSubMesh>[] subMeshesByRot = new List<LayerSubMesh>[4];
@@ -209,11 +208,9 @@ namespace VehicleMapFramework
                         {
                             CachedMaterial material = GetMaterial(cornerType);
                             IntVec3 offset = GetOffset(cornerType).RotatedBy(VehicleMapUtility.RotForPrintCounter);
-                            bool addGravshipMask = IsCornerSubstructure(item, cornerType);
-                            bool addIndoorMask = IsCornerIndoorMasked(item, cornerType, map);
-                            AddQuad(material.Material, item + offset, HullCornerScale, cornerAltitude, color, addGravshipMask, addIndoorMask);
+                            AddQuad(material.Material, item + offset, HullCornerScale, cornerAltitude, color);
                             bool substructureToSouth = terrainGrid.FoundationAt(item + south)?.IsSubstructure ?? false;
-                            AddSubstructure(cornerType, item, substructureToSouth, addGravshipMask, addIndoorMask);
+                            AddSubstructure(cornerType, item, substructureToSouth);
                         }
                     }
                     FinalizeMesh(MeshParts.All);
@@ -243,25 +240,10 @@ namespace VehicleMapFramework
                 mat_SubStructure_E = new CachedMaterial(TexPath_SubStructure_E, SubstructureShader);
                 mat_SubStructureExtra_W = new CachedMaterial(TexPath_SubStructureExtra_W, SubstructureShader);
                 mat_SubStructureExtra_E = new CachedMaterial(TexPath_SubStructureExtra_E, SubstructureShader);
-                LongEventHandler.ExecuteWhenFinished(() =>
-                {
-                    _ = mat_Corner_NW.Material;
-                    _ = mat_Corner_NE.Material;
-                    _ = mat_Corner_SW.Material;
-                    _ = mat_Corner_SE.Material;
-                    _ = mat_Diagonal_NW.Material;
-                    _ = mat_Diagonal_NE.Material;
-                    _ = mat_Diagonal_SW.Material;
-                    _ = mat_Diagonal_SE.Material;
-                    _ = mat_SubStructure_W.Material;
-                    _ = mat_SubStructure_E.Material;
-                    _ = mat_SubStructureExtra_W.Material;
-                    _ = mat_SubStructureExtra_E.Material;
-                    mat_SubStructure_W.Material.mainTexture.wrapMode = TextureWrapMode.Clamp;
-                    mat_SubStructure_E.Material.mainTexture.wrapMode = TextureWrapMode.Clamp;
-                    mat_SubStructureExtra_W.Material.mainTexture.wrapMode = TextureWrapMode.Clamp;
-                    mat_SubStructureExtra_E.Material.mainTexture.wrapMode = TextureWrapMode.Clamp;
-                });
+                mat_SubStructure_W.Material.mainTexture.wrapMode = TextureWrapMode.Clamp;
+                mat_SubStructure_E.Material.mainTexture.wrapMode = TextureWrapMode.Clamp;
+                mat_SubStructureExtra_W.Material.mainTexture.wrapMode = TextureWrapMode.Clamp;
+                mat_SubStructureExtra_E.Material.mainTexture.wrapMode = TextureWrapMode.Clamp;
             }
         }
 
@@ -401,42 +383,28 @@ namespace VehicleMapFramework
             sm.tris.Add(count + 3);
         }
 
-        private void AddQuad(Material mat, IntVec3 c, float scale, float altitude, Color color, bool addGravshipMask, bool addIndoorMask)
+        private void AddQuad(Material mat, IntVec3 c, float scale, float altitude, Color color)
         {
             LayerSubMesh subMesh = GetSubMesh(mat);
             AddQuad(subMesh, c.ToVector3(), scale, altitude, color);
-            if (addGravshipMask)
-            {
-                Texture2D srcTex = subMesh.material.mainTexture as Texture2D;
-                Color color2 = subMesh.material.color;
-                Material material = MaterialPool.MatFrom(srcTex, ShaderDatabase.GravshipMaskMasked, color2);
-                AddQuad(GetSubMesh(material), c.ToVector3(), scale, altitude, color);
-            }
-            if (addIndoorMask)
-            {
-                Texture2D srcTex2 = subMesh.material.mainTexture as Texture2D;
-                Color color3 = subMesh.material.color;
-                Material material2 = MaterialPool.MatFrom(srcTex2, ShaderDatabase.IndoorMaskMasked, color3);
-                AddQuad(GetSubMesh(material2), c.ToVector3(), scale, altitude, color);
-            }
         }
 
-        private void AddSubstructure(CornerType cornerType, IntVec3 c, bool substructureToSouth, bool addGravshipMask, bool addIndoorMask)
+        private void AddSubstructure(CornerType cornerType, IntVec3 c, bool substructureToSouth)
         {
             if (cornerType == CornerType.Corner_NW || cornerType == CornerType.Diagonal_NW)
             {
-                AddQuad(mat_SubStructure_W.Material, c, 1f, substructureAltitude, Color.white, addGravshipMask, addIndoorMask);
+                AddQuad(mat_SubStructure_W.Material, c, 1f, substructureAltitude, Color.white);
                 if (!substructureToSouth)
                 {
-                    AddQuad(mat_SubStructureExtra_W.Material, c + IntVec3.South.RotatedBy(VehicleMapUtility.RotForPrintCounter), 1f, substructureAltitude, Color.white, addGravshipMask, addIndoorMask);
+                    AddQuad(mat_SubStructureExtra_W.Material, c + IntVec3.South.RotatedBy(VehicleMapUtility.RotForPrintCounter), 1f, substructureAltitude, Color.white);
                 }
             }
             if (cornerType == CornerType.Corner_NE || cornerType == CornerType.Diagonal_NE)
             {
-                AddQuad(mat_SubStructure_E.Material, c, 1f, substructureAltitude, Color.white, addGravshipMask, addIndoorMask);
+                AddQuad(mat_SubStructure_E.Material, c, 1f, substructureAltitude, Color.white);
                 if (!substructureToSouth)
                 {
-                    AddQuad(mat_SubStructureExtra_E.Material, c + IntVec3.South.RotatedBy(VehicleMapUtility.RotForPrintCounter), 1f, substructureAltitude, Color.white, addGravshipMask, addIndoorMask);
+                    AddQuad(mat_SubStructureExtra_E.Material, c + IntVec3.South.RotatedBy(VehicleMapUtility.RotForPrintCounter), 1f, substructureAltitude, Color.white);
                 }
             }
         }
