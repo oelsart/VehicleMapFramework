@@ -13,6 +13,7 @@
     <OutputPath>..\..\1.6\Assemblies\</OutputPath>
     <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DebugType>full</DebugType>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>none</DebugType>
@@ -144,9 +145,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Krafs.Rimworld.Ref" />
-	<PackageReference Include="Lib.Harmony">
-		<ExcludeAssets>runtime</ExcludeAssets>
-	</PackageReference>
+    <PackageReference Include="Lib.Harmony.Ref" />
 	<PackageReference Include="Nerdbank.GitVersioning">
 	  <PrivateAssets>all</PrivateAssets>
 	  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

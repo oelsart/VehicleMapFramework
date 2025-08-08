@@ -276,6 +276,11 @@ namespace VehicleMapFramework
                     return wall?.OccupiedRect().Any(cells.Contains) ?? false;
                 })
                 .Where(w => !w.OccupiedRect().Intersect(cells).Any()).ToList();
+            if (wheels.Empty())
+            {
+                wheelsRect = CellRect.Empty;
+                return "VMF_WheelsUnstable".Translate();
+            }
             var wheelCells = wheels.SelectMany(w => w.OccupiedRect());
             wheelsRect = CellRect.FromCellList(wheelCells);
             var bounds = CellRect.FromCellList(cells);
