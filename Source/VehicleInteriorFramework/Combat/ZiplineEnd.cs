@@ -79,7 +79,7 @@ namespace VehicleInteriors
 
         public float rotation;
 
-        public static Material ZiplineMat = MaterialPool.MatFrom("VehicleInteriors/Things/ZiplineTurret/Zipline");
+        public static Material ZiplineMat = MaterialPool.MatFrom("VehicleMapFramework/Things/ZiplineTurret/Zipline");
 
         public const float ZiplineWidth = 0.135f;
 

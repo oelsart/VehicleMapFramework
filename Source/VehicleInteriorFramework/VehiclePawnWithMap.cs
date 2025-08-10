@@ -707,17 +707,17 @@ namespace VehicleInteriors
 
         private static readonly Material ClipMat = SolidColorMaterials.NewSolidColorMaterial(new Color(0.3f, 0.1f, 0.1f, 0.5f), ShaderDatabase.MetaOverlay);
 
-        private static readonly Texture2D iconAllowHaulIn = ContentFinder<Texture2D>.Get("VehicleInteriors/UI/AllowHaulIn");
+        private static readonly Texture2D iconAllowHaulIn = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/AllowHaulIn");
 
-        private static readonly Texture2D iconAllowHaulOut = ContentFinder<Texture2D>.Get("VehicleInteriors/UI/AllowHaulOut");
+        private static readonly Texture2D iconAllowHaulOut = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/AllowHaulOut");
 
-        private static readonly Texture2D iconIncreasePriority = ContentFinder<Texture2D>.Get("VehicleInteriors/UI/IncreasePriority");
+        private static readonly Texture2D iconIncreasePriority = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/IncreasePriority");
 
-        private static readonly Texture2D iconDecreasePriority = ContentFinder<Texture2D>.Get("VehicleInteriors/UI/DecreasePriority");
+        private static readonly Texture2D iconDecreasePriority = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/DecreasePriority");
 
-        private static readonly Texture2D iconAllowEnter = ContentFinder<Texture2D>.Get("VehicleInteriors/UI/AllowEnter");
+        private static readonly Texture2D iconAllowEnter = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/AllowEnter");
 
-        private static readonly Texture2D iconAllowExit = ContentFinder<Texture2D>.Get("VehicleInteriors/UI/AllowExit");
+        private static readonly Texture2D iconAllowExit = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/AllowExit");
 
         private static readonly Type t_SectionLayer_Zones = AccessTools.TypeByName("Verse.SectionLayer_Zones");
 
