@@ -94,7 +94,7 @@ public static class Patch_Colonist_UpdateOrderPos
             }
         }
         else
-            bestCell = CrossMapReachabilityUtility.BestOrderedGotoDestNear(destCell, colonist.pawn, null, destMap, out _, out _);
+            bestCell = CrossMapReachabilityUtility.BestOrderedGotoDestNear(destCell, colonist.pawn, null, true, destMap, out _, out _);
         if (bestCell.InBounds(destMap))
         {
             colonist.designation = bestCell;
@@ -117,7 +117,7 @@ public static class Patch_Tools_OrderTo
     public static bool Prefix(Pawn pawn, int x, int z)
     {
         var cell = new IntVec3(x, 0, z);
-        if (TargetMapManager.HasTargetMap(pawn, out var map) && pawn.CanReach(cell, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, map, out var exitSpot, out var enterSpot))
+        if (TargetMapManager.HasTargetMap(pawn, out var map) && pawn.MapHeld != map && pawn.CanReach(cell, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, map, out var exitSpot, out var enterSpot))
         {
             OrderTo(pawn, cell, map, exitSpot, enterSpot);
             return false;

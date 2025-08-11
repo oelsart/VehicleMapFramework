@@ -121,7 +121,7 @@ public static class Patch_FleckSystemBase_FleckStatic_CreateFleck
     {
         if (creationData.link.Target.HasThing || Patch_GenView_ShouldSpawnMotesAt.offset)
         {
-            creationData.spawnPosition.y += vehicle.DrawPos.y;
+            creationData.spawnPosition = creationData.spawnPosition.YOffsetFull(vehicle);
             Patch_GenView_ShouldSpawnMotesAt.offset = false;
         }
         else
@@ -154,16 +154,6 @@ public static class Patch_FleckSystemBase_FleckSplash_CreateFleck
         {
             creationData.Offset(vehicle);
         }
-    }
-}
-
-[HarmonyPatch(typeof(FleckStatic), nameof(FleckStatic.Draw), [typeof(float), typeof(DrawBatch)])]
-[PatchLevel(Level.Safe)]
-public static class Patch_FleckStatic_Draw
-{
-    public static void Prefix(FleckStatic __instance, ref float altitude)
-    {
-        altitude = __instance.DrawPos.y;
     }
 }
 

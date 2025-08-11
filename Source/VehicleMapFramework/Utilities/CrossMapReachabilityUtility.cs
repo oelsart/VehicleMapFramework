@@ -422,11 +422,46 @@ public static class CrossMapReachabilityUtility
         return false;
     }
 
-    public static IntVec3 BestOrderedGotoDestNear(IntVec3 root, Pawn searcher, Predicate<IntVec3> cellValidator, Map map, out TargetInfo exitSpot, out TargetInfo enterSpot)
+    public static IntVec3 BestOrderedGotoDestNear(IntVec3 root, Pawn searcher, Predicate<IntVec3> cellValidator, bool reachable, Map map, out TargetInfo exitSpot, out TargetInfo enterSpot)
     {
+        bool IsGoodDest(IntVec3 c, out TargetInfo exitSpot, out TargetInfo enterSpot)
+        {
+            exitSpot = TargetInfo.Invalid;
+            enterSpot = TargetInfo.Invalid;
+            if (!IsGoodDestinationFor(c, searcher, map, false))
+            {
+                return false;
+            }
+            if (cellValidator != null && !cellValidator(c))
+            {
+                return false;
+            }
+            if (!map.pawnDestinationReservationManager.CanReserve(c, searcher, true))
+            {
+                return false;
+            }
+            if (reachable && !searcher.CanReach(c, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, map, out exitSpot, out enterSpot))
+            {
+                return false;
+            }
+            List<Thing> thingList = c.GetThingList(map);
+            for (int i = 0; i < thingList.Count; i++)
+            {
+                if (thingList[i] is Pawn pawn && pawn != searcher && pawn.RaceProps.Humanlike && ((searcher.Faction == Faction.OfPlayer && pawn.Faction == searcher.Faction) || (searcher.Faction != Faction.OfPlayer && pawn.Faction != Faction.OfPlayer)))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
         exitSpot = TargetInfo.Invalid;
         enterSpot = TargetInfo.Invalid;
-        if (IsGoodDest(root, searcher, cellValidator, map, out exitSpot, out enterSpot))
+        if (map is null)
+        {
+            return IntVec3.Invalid;
+        }
+        if (IsGoodDest(root, out exitSpot, out enterSpot))
         {
             return root;
         }
@@ -438,7 +473,7 @@ public static class CrossMapReachabilityUtility
         do
         {
             IntVec3 intVec = root + GenRadial.RadialPattern[num];
-            if (IsGoodDest(intVec, searcher, cellValidator, map, out exitSpot, out enterSpot))
+            if (IsGoodDest(intVec, out exitSpot, out enterSpot))
             {
                 float num4 = CoverUtility.TotalSurroundingCoverScore(intVec, map);
                 if (num4 > num2)
@@ -458,36 +493,35 @@ public static class CrossMapReachabilityUtility
         return searcher.Position;
     }
 
-    public static bool IsGoodDest(IntVec3 c, Pawn searcher, Predicate<IntVec3> cellValidator, Map map, out TargetInfo exitSpot, out TargetInfo enterSpot)
+    private static bool IsGoodDestination(IntVec3 c, Map map, bool careAboutDanger)
     {
-        exitSpot = TargetInfo.Invalid;
-        enterSpot = TargetInfo.Invalid;
-        if (cellValidator != null && !cellValidator(c))
+        return c.Standable(map) && (!careAboutDanger || !c.GetTerrain(map).dangerous);
+    }
+
+    private static bool IsGoodDestinationFor(IntVec3 c, Pawn pawn, Map map, bool careAboutDanger)
+    {
+        bool VacuumConcernTo(IntVec3 cell, Pawn pawn)
+        {
+            return pawn.ConcernedByVacuum && cell.GetVacuum(map) >= 0.5f;
+        }
+
+        if (!IsGoodDestination(c, map, careAboutDanger))
         {
             return false;
         }
-
-        if (!map.pawnDestinationReservationManager.CanReserve(c, searcher, true) || !searcher.CanReach(c, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, map, out exitSpot, out enterSpot))
+        if (!c.WalkableBy(map, pawn))
         {
             return false;
         }
         if (!c.Standable(map))
         {
             Building_Door door = c.GetDoor(map);
-            if (door == null || !door.CanPhysicallyPass(searcher))
+            if (door == null || !door.CanPhysicallyPass(pawn))
             {
                 return false;
             }
         }
-        List<Thing> thingList = c.GetThingList(map);
-        for (int i = 0; i < thingList.Count; i++)
-        {
-            if (thingList[i] is Pawn pawn && pawn != searcher && pawn.RaceProps.Humanlike && ((searcher.Faction == Faction.OfPlayer && pawn.Faction == searcher.Faction) || (searcher.Faction != Faction.OfPlayer && pawn.Faction != Faction.OfPlayer)))
-            {
-                return false;
-            }
-        }
-        return true;
+        return !c.IsForbidden(pawn) && (!careAboutDanger || c.GetDangerFor(pawn, map) != Danger.Deadly) && (!careAboutDanger || !PawnUtility.KnownDangerAt(c, map, pawn)) && (!careAboutDanger || !VacuumConcernTo(c, pawn));
     }
 
     public static bool CanReachVehicle(this VehiclePawn vehicle, LocalTargetInfo dest, PathEndMode peMode, Danger maxDanger, TraverseMode mode, Map destMap, out TargetInfo exitSpot, out TargetInfo enterSpot)

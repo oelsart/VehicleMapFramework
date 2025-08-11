@@ -9,7 +9,6 @@ using System.Reflection.Emit;
 using UnityEngine;
 using Verse;
 using Verse.AI;
-using static UnityEngine.GraphicsBuffer;
 using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
@@ -709,9 +708,9 @@ public static class Patch_RegionProcessorClosestThingReachable_ProcessThing
 }
 
 [HarmonyPatch(typeof(ReservationManager), nameof(ReservationManager.Reserve))]
-[PatchLevel(Level.Safe)]
 public static class Patch_ReservationManager_Reserve
 {
+    [PatchLevel(Level.Safe)]
     public static bool Prefix(Map ___map, Pawn claimant, Job job, LocalTargetInfo target, int maxPawns, int stackCount, ReservationLayerDef layer, bool errorOnFailed, bool ignoreOtherReservations, bool canReserversStartJobs, ref bool __result)
     {
         if (ShouldReplace(___map, claimant, target, false, out var map))
@@ -730,6 +729,20 @@ public static class Patch_ReservationManager_Reserve
             return false;
         }
         return allowSameMap || ___map != map;
+    }
+
+    [PatchLevel(Level.Sensitive)]
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        var codes = new CodeMatcher(instructions);
+        codes.MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Map));
+        codes.Repeat(c =>
+        {
+            c.InstructionAt(-1).opcode = OpCodes.Ldarg_0;
+            c.Opcode = OpCodes.Ldfld;
+            c.Operand = AccessTools.Field(typeof(ReservationManager), "map");
+        });
+        return codes.Instructions();
     }
 }
 

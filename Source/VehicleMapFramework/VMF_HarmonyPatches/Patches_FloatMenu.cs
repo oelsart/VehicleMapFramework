@@ -310,12 +310,12 @@ public static class Patch_MultiPawnGotoController_OnGUI
 [PatchLevel(Level.Safe)]
 public static class Patch_RCellFinder_BestOrderedGotoDestNear
 {
-    public static bool Prefix(IntVec3 root, Pawn searcher, Predicate<IntVec3> cellValidator, ref IntVec3 __result)
+    public static bool Prefix(IntVec3 root, Pawn searcher, Predicate<IntVec3> cellValidator, bool reachable, ref IntVec3 __result)
     {
         VehiclePawnWithMap vehicle = null;
         if (TargetMapManager.HasTargetMap(searcher, out var map))
         {
-            __result = CrossMapReachabilityUtility.BestOrderedGotoDestNear(root, searcher, cellValidator, map, out _, out _);
+            __result = CrossMapReachabilityUtility.BestOrderedGotoDestNear(root, searcher, cellValidator, reachable, map, out _, out _);
             if (__result.IsValid)
             {
                 TargetMapManager.SetTargetInfo(searcher, new TargetInfo(__result, map));
@@ -330,6 +330,7 @@ public static class Patch_RCellFinder_BestOrderedGotoDestNear
                 dest,
                 searcher,
                 cellValidator,
+                reachable,
                 map,
                 out _,
                 out _);
@@ -432,6 +433,10 @@ public static class Patch_FloatMenuOptionProvider_WorkGivers_GetWorkGiverOption
 
     public static void Finalizer(Pawn pawn, WorkGiverDef workGiver, object[] __state, FloatMenuOption __result)
     {
+        if (__state is null)
+        {
+            return;
+        }
         if ((bool)__state[0])
         {
             pawn.VirtualMapTransfer((Map)__state[1], (IntVec3)__state[2]);
