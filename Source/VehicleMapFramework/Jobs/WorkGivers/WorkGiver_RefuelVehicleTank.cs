@@ -43,6 +43,7 @@ public class WorkGiver_RefuelVehicleTank : WorkGiver_RefuelVehicle
 
     public static bool CanRefuel(Pawn pawn, Thing t, bool forced = false)
     {
+
         var compFuelTank = t.TryGetComp<CompFuelTank>();
         var vehicle = compFuelTank.Vehicle;
         CompFueledTravel compFueledTravel = vehicle?.CompFueledTravel;
@@ -51,7 +52,23 @@ public class WorkGiver_RefuelVehicleTank : WorkGiver_RefuelVehicle
             return false;
         }
 
-        if (!forced && !compFueledTravel.ShouldAutoRefuelNow)
+        bool ShouldAutoRefuelNow()
+        {
+            return FuelPercentOfTarget() <= compFueledTravel.Props.autoRefuelPercent && !compFueledTravel.FullTank && compFueledTravel.TargetFuelLevel > 0f && ShouldAutoRefuelNowIgnoringFuelPct();
+        }
+        bool ShouldAutoRefuelNowIgnoringFuelPct()
+        {
+            return compFueledTravel.allowAutoRefuel && (!vehicle.Spawned || (!vehicle.Drafted && !vehicle.IsBurning() && vehicle.Map.designationManager.DesignationOn(vehicle, DesignationDefOf_Vehicles.DisassembleVehicle) == null));
+        }
+        float FuelPercentOfTarget()
+        {
+            if (compFueledTravel.TargetFuelLevel != 0f)
+            {
+                return compFueledTravel.Fuel / compFueledTravel.TargetFuelLevel;
+            }
+            return 0f;
+        }
+        if (!forced && !ShouldAutoRefuelNow())
         {
             return false;
         }
