@@ -8,6 +8,7 @@ using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
+[StaticConstructorOnStartupPriority(Priority.Low)]
 internal class Patches_CeleTech
 {
     public const string Category = "VMF_Patches_CeleTech";

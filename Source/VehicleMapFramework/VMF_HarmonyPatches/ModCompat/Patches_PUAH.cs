@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using NAudio.SoundFont;
 using SmashTools;
 using System.Collections.Generic;
 using System.Linq;
@@ -63,20 +64,27 @@ public static class Patch_WorkGiver_HaulToInventory_JobOnThing
     {
         var codes = new CodeMatcher(instructions, generator);
 
-        //pawn.Map -> thing.MapHeld ?? pawn.Map
-        codes.MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Map));
-        codes.CreateLabelWithOffsets(1, out var label);
-        codes.MatchStartBackwards(new CodeMatch(OpCodes.Ldloc_0));
-        codes.Insert(
-            CodeInstruction.LoadArgument(1),
-            new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_Thing_MapHeld),
-            new CodeInstruction(OpCodes.Dup),
-            new CodeInstruction(OpCodes.Brtrue_S, label),
-            new CodeInstruction(OpCodes.Pop));
+        ////pawn.Map -> thing.MapHeld ?? pawn.Map
+        //codes.MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Map));
+        //codes.CreateLabelWithOffsets(1, out var label);
+        //codes.MatchStartBackwards(new CodeMatch(OpCodes.Ldloc_0));
+        //codes.Insert(
+        //    CodeInstruction.LoadArgument(1),
+        //    new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_Thing_MapHeld),
+        //    new CodeInstruction(OpCodes.Dup),
+        //    new CodeInstruction(OpCodes.Brtrue_S, label),
+        //    new CodeInstruction(OpCodes.Pop));
 
         //HaulToHopperJob(thing, intVec, map) -> HaulToHopperJob(thing, intVec, TargetMapManager.TargetMapOrMap(map, pawn))
         var m_HaulToHopperJob = AccessTools.Method("PickUpAndHaul.WorkGiver_HaulToInventory:HaulToHopperJob");
         codes.MatchStartForward(CodeMatch.Calls(m_HaulToHopperJob));
+        codes.Insert(
+            CodeInstruction.LoadArgument(1),
+            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_TargetMapOrMap));
+
+        //CapacityAt(thing, storeTarget.cell, map) -> CapacityAt(thing, storeTarget.cell, TargetMapManager.TargetMapOrMap(map, pawn))
+        var m_CapacityAt = AccessTools.Method("PickUpAndHaul.WorkGiver_HaulToInventory:CapacityAt");
+        codes.MatchStartForward(CodeMatch.Calls(m_CapacityAt));
         codes.Insert(
             CodeInstruction.LoadArgument(1),
             new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_TargetMapOrMap));
@@ -113,12 +121,38 @@ public static class Patch_WorkGiver_HaulToInventory_JobOnThing
 
 [HarmonyPatchCategory(Patches_PUAH.Category)]
 [HarmonyPatch("PickUpAndHaul.WorkGiver_HaulToInventory", "AllocateThingAtCell")]
-[PatchLevel(Level.Cautious)]
 public static class Patch_WorkGiver_HaulToInventory_AllocateThingAtCell
 {
+    [PatchLevel(Level.Safe)]
+    public static void Prefix(Pawn pawn, Thing nextThing)
+    {
+        if (TargetMapManager.HasTargetMap(pawn, out var map))
+        {
+            TargetMapManager.SetTargetMap(nextThing, map);
+        }
+    }
+
+    [PatchLevel(Level.Safe)]
+    public static void Finaliner(Thing nextThing)
+    {
+        TargetMapManager.RemoveTargetInfo(nextThing);
+    }
+
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrPawnMap);
+    }
+}
+
+[HarmonyPatchCategory(Patches_PUAH.Category)]
+[HarmonyPatch("PickUpAndHaul.WorkGiver_HaulToInventory", "Stackable")]
+[PatchLevel(Level.Cautious)]
+public static class Patch_WorkGiver_HaulToInventory_Stackable
+{
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);
     }
 }
 

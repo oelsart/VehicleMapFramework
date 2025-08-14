@@ -66,6 +66,8 @@ public class MethodInfoCache
 
     public readonly MethodInfo m_TargetMapOrMap = AccessTools.Method(typeof(TargetMapManager), nameof(TargetMapManager.TargetMapOrMap));
 
+    public readonly MethodInfo m_TargetMapOrThingMap = AccessTools.Method(typeof(TargetMapManager), nameof(TargetMapManager.TargetMapOrThingMap));
+
     public readonly MethodInfo m_TargetMapOrPawnMap = AccessTools.Method(typeof(TargetMapManager), nameof(TargetMapManager.TargetMapOrPawnMap));
 
     public readonly MethodInfo g_Zone_Map = AccessTools.PropertyGetter(typeof(Zone), nameof(Zone.Map));

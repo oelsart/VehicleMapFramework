@@ -651,10 +651,7 @@ public static class Patch_ItemAvailability_ThingsAvailableAnywhere
     {
         tmpList.Clear();
         tmpList.AddRange(list);
-        foreach (var vehicle in VehiclePawnWithMapCache.AllVehiclesOn(map))
-        {
-            tmpList.AddRange(vehicle.VehicleMap.listerThings.ThingsOfDef(need));
-        }
+        tmpList.AddRange(map.BaseMapAndVehicleMaps().Except(map).SelectMany(m => m.listerThings.ThingsOfDef(need)));
         return tmpList;
     }
 
@@ -1124,7 +1121,32 @@ public static class Patch_WorkGiver_DoBill_TryFindBestIngredientsHelper_Predicat
 {
     private static MethodBase TargetMethod()
     {
-        return AccessTools.FindIncludingInnerTypes<MethodBase>(typeof(WorkGiver_DoBill), t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name == "<TryFindBestIngredientsHelper>b__0"));
+        return AccessTools.FindIncludingInnerTypes(typeof(WorkGiver_DoBill), t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name == "<TryFindBestIngredientsHelper>b__0"));
+    }
+
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
+    }
+}
+
+[HarmonyPatch]
+[PatchLevel(Level.Sensitive)]
+public static class Patch_WorkGiver_ConstructDeliverResources_ResourceDeliverJobFor_Delegate
+{
+    private static MethodBase TargetMethod()
+    {
+        Type[] fields = [typeof(Thing)];
+        Type[] args = [typeof(Thing)];
+        return AccessTools.FindIncludingInnerTypes(typeof(WorkGiver_ConstructDeliverResources), t =>
+        {
+            if (!t.GetDeclaredFields().Select(f => f.FieldType).SequenceEqual(fields)) return null;
+            return t.GetDeclaredMethods().FirstOrDefault(m =>
+            {
+                if (!m.GetParameters().Select(p => p.ParameterType).SequenceEqual(args)) return false;
+                return m.Name.Contains("<ResourceDeliverJobFor>");
+            });
+        });
     }
 
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)

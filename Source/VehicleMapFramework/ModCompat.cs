@@ -463,7 +463,7 @@ public static class ModCompat
         }
     }
 
-    public static readonly bool PickUpAndHaul = ModsConfig.IsActive("Mehni.PickUpAndHaul");
+    public static readonly bool PickUpAndHaul = ModsConfig.IsActive("Mehni.PickUpAndHaul") || ModsConfig.IsActive("Teemo.PickUpAndHaulForked");
 
     public static class EnergyShield
     {

@@ -73,6 +73,15 @@ public class TargetMapManager(World world) : WorldComponent(world)
         return map;
     }
 
+    public static Map TargetMapOrThingMap(Thing thing)
+    {
+        if (HasTargetMap(thing, out var map))
+        {
+            return map;
+        }
+        return thing.Map;
+    }
+
     public static Map TargetMapOrPawnMap(Pawn pawn)
     {
         if (HasTargetMap(pawn, out var map) || (map = pawn.CurJob?.globalTarget.Map) != null)
