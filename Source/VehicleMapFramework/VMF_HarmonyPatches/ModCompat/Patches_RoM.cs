@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
-using Unity.Jobs;
 using Verse;
 using Verse.AI;
 using static VehicleMapFramework.MethodInfoCache;
@@ -11,7 +10,7 @@ using static VehicleMapFramework.MethodInfoCache;
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 [StaticConstructorOnStartupPriority(Priority.Low)]
-public class Patches_RoM
+internal class Patches_RoM
 {
     public const string Category = "VMF_Patches_RoM";
 

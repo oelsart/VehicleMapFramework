@@ -9,7 +9,7 @@ using static VehicleMapFramework.MethodInfoCache;
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 [StaticConstructorOnStartupPriority(Priority.Low)]
-public class Patches_EccentricTech
+internal class Patches_EccentricTech
 {
     public const string Category = "VMF_Patches_EccentricTech_DefenseGrid";
 

@@ -8,7 +8,7 @@ using static VehicleMapFramework.MethodInfoCache;
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 [StaticConstructorOnStartupPriority(Priority.Low)]
-public static class Patches_SmarterConstruction
+internal static class Patches_SmarterConstruction
 {
     public const string Category = "VMF_Patches_SmarterConstruction";
 

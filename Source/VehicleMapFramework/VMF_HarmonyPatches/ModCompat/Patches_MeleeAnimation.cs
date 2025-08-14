@@ -12,7 +12,7 @@ using static VehicleMapFramework.MethodInfoCache;
 namespace VehicleMapFramework.VMF_HarmonyPatches.AM;
 
 [StaticConstructorOnStartupPriority(Priority.Low)]
-public static class Patches_MeleeAnimation
+internal static class Patches_MeleeAnimation
 {
     public const string Category = "VMF_Patches_MeleeAnimation";
 

@@ -6,7 +6,7 @@ using Verse.AI;
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 [StaticConstructorOnStartupPriority(Priority.Low)]
-public static class Patches_CallTradeShips
+internal static class Patches_CallTradeShips
 {
     public const string Category = "VMF_Patches_CallTradeShips";
 
@@ -14,25 +14,9 @@ public static class Patches_CallTradeShips
     {
         if (ModCompat.CallTradeShips)
         {
-            //var method = AccessTools.Method(typeof(FloatMenuMakerOnVehicle), "AddHumanlikeOrders");
-            //var patch = AccessTools.Method(typeof(Patches_CallTradeShips), nameof(Postfix));
-            //var patchOrig = AccessTools.Method("CallTradeShips.Patch_FloatMenuMakerMap_AddHumanlikeOrders:Postfix");
-            //VMF_Harmony.Instance.CreateReversePatcher(patchOrig, patch).Patch();
-            //VMF_Harmony.Instance.Patch(method, postfix: patch);
-
             VMF_Harmony.Instance.PatchCategory(Category);
         }
     }
-
-    //private static void Postfix(Vector3 clickPos, Pawn pawn, List<FloatMenuOption> opts)
-    //{
-    //    static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    //    {
-    //        return instructions.MethodReplacer(CachedMethodInfo.m_GetThingList, CachedMethodInfo.m_GetThingListAcrossMaps)
-    //            .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
-    //    }
-    //    _ = Transpiler(null);
-    //}
 }
 
 [HarmonyPatchCategory(Patches_CallTradeShips.Category)]

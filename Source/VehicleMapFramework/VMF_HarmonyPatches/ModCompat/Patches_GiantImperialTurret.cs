@@ -8,13 +8,12 @@ using System.Reflection;
 using UnityEngine;
 using Verse;
 using Verse.AI;
-using static UnityEngine.GraphicsBuffer;
 using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 [StaticConstructorOnStartupPriority(Priority.Low)]
-public static class Patches_GiantImperialTurret
+internal static class Patches_GiantImperialTurret
 {
     public const string Category = "VMF_Patches_GiantImperialTurret";
 

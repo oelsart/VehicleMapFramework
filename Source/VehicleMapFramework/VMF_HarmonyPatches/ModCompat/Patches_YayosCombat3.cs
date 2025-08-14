@@ -5,7 +5,7 @@ using static VehicleMapFramework.MethodInfoCache;
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 [StaticConstructorOnStartupPriority(Priority.Low)]
-public class Patches_YayosCombat3
+internal class Patches_YayosCombat3
 {
     public const string Category = "VMF_Patches_YayosCombat3";
 

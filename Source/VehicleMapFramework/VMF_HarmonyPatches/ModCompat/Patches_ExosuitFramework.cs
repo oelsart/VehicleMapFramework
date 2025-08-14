@@ -10,7 +10,7 @@ using static VehicleMapFramework.MethodInfoCache;
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 [StaticConstructorOnStartupPriority(Priority.Low)]
-public static class Patches_ExosuitFramework
+internal static class Patches_ExosuitFramework
 {
     public const string Category = "VMF_Patches_ExosuitFramework";
 

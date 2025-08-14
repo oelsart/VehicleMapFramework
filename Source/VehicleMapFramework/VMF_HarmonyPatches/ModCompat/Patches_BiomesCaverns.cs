@@ -7,7 +7,7 @@ using Verse;
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 [StaticConstructorOnStartupPriority(Priority.Low)]
-public class Patches_BiomesCaverns
+internal class Patches_BiomesCaverns
 {
     public const string Category = "VMF_Patches_BiomesCaverns";
 

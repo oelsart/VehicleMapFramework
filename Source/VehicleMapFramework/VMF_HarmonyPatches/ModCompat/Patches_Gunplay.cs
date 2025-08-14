@@ -5,7 +5,7 @@ using static VehicleMapFramework.MethodInfoCache;
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 [StaticConstructorOnStartupPriority(Priority.Low)]
-public static class Patches_Gunplay
+internal static class Patches_Gunplay
 {
     public const string Category = "VMF_Patches_Gunplay";
 

@@ -3,13 +3,12 @@ using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 using Verse;
-using Verse.AI;
 using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 [StaticConstructorOnStartupPriority(Priority.Low)]
-public class Patches_AllowTool
+internal class Patches_AllowTool
 {
     public const string Category = "VMF_Patches_AllowTool";
 

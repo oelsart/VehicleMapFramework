@@ -9,7 +9,7 @@ using Verse.AI;
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 [StaticConstructorOnStartupPriority(Priority.Low)]
-public static class Patches_MiscRobots
+internal static class Patches_MiscRobots
 {
     public const string Category = "VMF_Patches_MiscRobots";
 

@@ -9,7 +9,7 @@ using static VehicleMapFramework.MethodInfoCache;
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 [StaticConstructorOnStartupPriority(Priority.Low)]
-public static class Patches_Vivi
+internal static class Patches_Vivi
 {
     public const string Category = "VMF_Patches_Vivi";
 
@@ -44,6 +44,8 @@ public static class Patch_ArcanePlant_Turret_TryFindNewTarget_Delegate
 [PatchLevel(Level.Sensitive)]
 public static class Patch_ArcanePlant_Turret_TryFindNewTarget
 {
+    private static List<Building> tmpList = [];
+
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();
@@ -65,6 +67,4 @@ public static class Patch_ArcanePlant_Turret_TryFindNewTarget
         tmpList.AddRange(maps.SelectMany(m => m.listerBuildings.allBuildingsColonist));
         return tmpList;
     }
-
-    private static List<Building> tmpList = [];
 }

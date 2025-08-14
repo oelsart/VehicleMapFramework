@@ -7,7 +7,7 @@ using Verse;
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 [StaticConstructorOnStartupPriority(Priority.Low)]
-public class Patches_TranderShips
+internal class Patches_TranderShips
 {
     public const string Category = "VMF_Patches_TraderShips";
 

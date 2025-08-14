@@ -9,7 +9,7 @@ using static VehicleMapFramework.MethodInfoCache;
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 [StaticConstructorOnStartupPriority(Priority.Low)]
-public class Patches_NightmareCore
+internal class Patches_NightmareCore
 {
     public const string Category = "VMF_Patches_NightmareCore";
 

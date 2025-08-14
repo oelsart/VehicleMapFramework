@@ -12,7 +12,7 @@ using static VehicleMapFramework.ModCompat.AdaptiveStorage;
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 [StaticConstructorOnStartupPriority(Priority.Low)]
-public static class Patches_AdaptiveStorage
+internal static class Patches_AdaptiveStorage
 {
     public const string Category = "VMF_Patches_AdaptiveStorage";
 

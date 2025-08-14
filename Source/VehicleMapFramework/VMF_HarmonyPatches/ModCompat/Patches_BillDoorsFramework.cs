@@ -9,7 +9,7 @@ using Verse;
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 [StaticConstructorOnStartupPriority(Priority.Low)]
-public static class Patches_BillDoorsFramework
+internal static class Patches_BillDoorsFramework
 {
     public const string Category = "VMF_Patches_BillDoorsFramework";
 

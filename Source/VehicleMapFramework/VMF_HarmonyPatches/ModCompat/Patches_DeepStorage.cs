@@ -3,7 +3,7 @@
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 [StaticConstructorOnStartupPriority(Priority.Low)]
-public static class Patches_DeepStorage
+internal static class Patches_DeepStorage
 {
     static Patches_DeepStorage()
     {

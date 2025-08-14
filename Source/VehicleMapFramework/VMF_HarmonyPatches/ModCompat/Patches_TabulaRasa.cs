@@ -10,7 +10,7 @@ using static VehicleMapFramework.MethodInfoCache;
 namespace VehicleMapFramework.VMF_HarmonyPatches.TR;
 
 [StaticConstructorOnStartupPriority(Priority.Low)]
-public static class Patches_TabulaRasa
+internal static class Patches_TabulaRasa
 {
     public const string Category = "VMF_Patches_TabulaRasa";
 

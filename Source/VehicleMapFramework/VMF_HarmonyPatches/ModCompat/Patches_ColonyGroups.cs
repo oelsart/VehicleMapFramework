@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 [StaticConstructorOnStartupPriority(Priority.Low)]
-public static class Patches_ColonyGroups
+internal static class Patches_ColonyGroups
 {
     public const string Category = "VMF_Patches_ColonyGroups";
 

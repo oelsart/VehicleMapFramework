@@ -6,7 +6,7 @@ using Verse;
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 [StaticConstructorOnStartupPriority(Priority.Low)]
-public class Patches_Aquariums
+internal class Patches_Aquariums
 {
     public const string Category = "VMF_Patches_Aquariums";
 

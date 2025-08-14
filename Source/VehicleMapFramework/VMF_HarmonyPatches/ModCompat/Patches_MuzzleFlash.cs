@@ -7,7 +7,7 @@ using static VehicleMapFramework.MethodInfoCache;
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 [StaticConstructorOnStartupPriority(Priority.Low)]
-public static class Patches_MuzzleFlash
+internal static class Patches_MuzzleFlash
 {
     public const string Category = "VMF_Patches_MuzzleFlash";
 
