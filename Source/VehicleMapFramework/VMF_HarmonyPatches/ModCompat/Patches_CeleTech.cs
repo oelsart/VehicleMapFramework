@@ -14,7 +14,10 @@ internal class Patches_CeleTech
 
     static Patches_CeleTech()
     {
-        VMF_Harmony.PatchCategory(Category);
+        if (ModCompat.CeleTech)
+        {
+            VMF_Harmony.PatchCategory(Category);
+        }
     }
 }
 
