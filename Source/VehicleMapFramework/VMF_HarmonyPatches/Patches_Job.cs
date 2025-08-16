@@ -20,8 +20,17 @@ public static class Patch_Pawn_JobTracker_StartJob
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var m_MakeDriver = AccessTools.Method(typeof(Job), nameof(Job.MakeDriver));
-        var m_GetCachedDriver = AccessTools.Method(typeof(Job), nameof(Job.GetCachedDriver));
-        return instructions.MethodReplacer(m_MakeDriver, m_GetCachedDriver);
+        var m_MakeOrGetDriver = AccessTools.Method(typeof(Patch_Pawn_JobTracker_StartJob), nameof(MakeOrGetDriver));
+        return instructions.MethodReplacer(m_MakeDriver, m_MakeOrGetDriver);
+    }
+
+    private static JobDriver MakeOrGetDriver(Job curJob, Pawn driverPawn)
+    {
+        if (typeof(JobDriverAcrossMaps).IsAssignableFrom(curJob.def.driverClass) || curJob.jobGiver == JobDriver_GotoDestMap.thinkNode)
+        {
+            return curJob.GetCachedDriver(driverPawn);
+        }
+        return curJob.MakeDriver(driverPawn);
     }
 }
 

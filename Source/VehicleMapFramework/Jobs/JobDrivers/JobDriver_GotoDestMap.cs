@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Verse;
 using Verse.AI;
 
@@ -6,6 +7,10 @@ namespace VehicleMapFramework;
 
 public class JobDriver_GotoDestMap : JobDriverAcrossMaps
 {
+    public static readonly ThinkNode_JobFromGotoDestMap thinkNode = new();
+
+    public Job nextJob;
+
     protected override string ReportStringProcessed(string str)
     {
         return nextJob?.GetReport(pawn);
@@ -38,7 +43,7 @@ public class JobDriver_GotoDestMap : JobDriverAcrossMaps
             toil.defaultCompleteMode = ToilCompleteMode.Instant;
             toil.initAction = () =>
             {
-                pawn.jobs.StartJob(nextJob, JobCondition.InterruptForced, keepCarryingThingOverride: true);
+                pawn.jobs.StartJob(nextJob, JobCondition.InterruptForced, thinkNode, keepCarryingThingOverride: true);
             };
             yield return toil;
         }
@@ -50,5 +55,8 @@ public class JobDriver_GotoDestMap : JobDriverAcrossMaps
         base.ExposeData();
     }
 
-    public Job nextJob;
+    public class ThinkNode_JobFromGotoDestMap : ThinkNode
+    {
+        public override ThinkResult TryIssueJobPackage(Pawn pawn, JobIssueParams jobParams) => throw new NotImplementedException();
+    }
 }
