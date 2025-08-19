@@ -786,17 +786,17 @@ public static class Patch_JobDriver_LoadVehicle_FailJob
 [PatchLevel(Level.Safe)]
 public static class Patch_VehicleTabHelper_Passenger_DrawPassengersFor
 {
-    public static void Postfix(ref float curY, Rect viewRect, Vector2 scrollPos, VehiclePawn vehicle, ref Pawn moreDetailsForPawn)
+    public static void Postfix(ref float curY, Rect viewRect, Vector2 scrollPos, VehiclePawn vehicle, ref Pawn moreDetailsForPawn
+        , Pawn ___draggedPawn, ref IThingHolder ___transferToHolder, ref bool ___overDropSpot, ref Pawn ___hoveringOverPawn)
     {
         if (vehicle is VehiclePawnWithMap mapVehicle)
         {
-            var draggedPawn = Patch_VehicleTabHelper_Passenger_DrawPassengersFor.draggedPawn();
             var pawns = mapVehicle.VehicleMap.mapPawns.AllPawnsSpawned;
             var rect = new Rect(0f, curY, viewRect.width - 48f, 25f + (PawnRowHeight * pawns.Count));
-            if (draggedPawn != null && Mouse.IsOver(rect) && draggedPawn.Map != mapVehicle.VehicleMap)
+            if (___draggedPawn != null && Mouse.IsOver(rect) && ___draggedPawn.Map != mapVehicle.VehicleMap)
             {
-                transferToHolder() = mapVehicle.VehicleMap;
-                overDropSpot() = true;
+                ___transferToHolder = mapVehicle.VehicleMap;
+                ___overDropSpot = true;
                 Widgets.DrawHighlight(rect);
             }
             Widgets.ListSeparator(ref curY, viewRect.width, mapVehicle.LabelCap + "VMF_VehicleMap".Translate());
@@ -806,20 +806,12 @@ public static class Patch_VehicleTabHelper_Passenger_DrawPassengersFor
             {
                 if (DoRow(curY, viewRect, scrollPos, pawn, ref moreDetailsForPawn, true))
                 {
-                    hoveringOverPawn() = pawn;
+                    ___hoveringOverPawn = pawn;
                 }
                 curY += PawnRowHeight;
             }
         }
     }
-
-    public static AccessTools.FieldRef<Pawn> draggedPawn = AccessTools.StaticFieldRefAccess<Pawn>(AccessTools.Field(typeof(VehicleTabHelper_Passenger), "draggedPawn"));
-
-    public static AccessTools.FieldRef<IThingHolder> transferToHolder = AccessTools.StaticFieldRefAccess<IThingHolder>(AccessTools.Field(typeof(VehicleTabHelper_Passenger), "transferToHolder"));
-
-    public static AccessTools.FieldRef<bool> overDropSpot = AccessTools.StaticFieldRefAccess<bool>(AccessTools.Field(typeof(VehicleTabHelper_Passenger), "overDropSpot"));
-
-    public static AccessTools.FieldRef<Pawn> hoveringOverPawn = AccessTools.StaticFieldRefAccess<Pawn>(AccessTools.Field(typeof(VehicleTabHelper_Passenger), "hoveringOverPawn"));
 
     private delegate bool DoRowGetter(float curY, Rect viewRect, Vector2 scrollPos, Pawn pawn, ref Pawn moreDetailsForPawn, bool highlight);
 
@@ -832,101 +824,106 @@ public static class Patch_VehicleTabHelper_Passenger_DrawPassengersFor
 [PatchLevel(Level.Safe)]
 public static class Patch_VehicleTabHelper_Passenger_HandleDragEvent
 {
-    public static bool Prefix()
+    public static bool Prefix(ref Pawn ___draggedPawn, IThingHolder ___transferToHolder, Pawn ___hoveringOverPawn)
     {
         if (Event.current.type == EventType.MouseUp && Event.current.button == 0)
         {
-            var draggedPawn = Patch_VehicleTabHelper_Passenger_DrawPassengersFor.draggedPawn();
-            var transferToHolder = Patch_VehicleTabHelper_Passenger_DrawPassengersFor.transferToHolder();
-            if (draggedPawn != null && transferToHolder != null)
+            if (___draggedPawn != null && ___transferToHolder != null)
             {
-                if (transferToHolder is Map map && map.IsVehicleMapOf(out var vehicle))
+                if (___transferToHolder is Map map && map.IsVehicleMapOf(out var vehicle))
                 {
-                    if (draggedPawn.ParentHolder is VehicleRoleHandler vehicleHandler)
+                    if (___draggedPawn.ParentHolder is VehicleRoleHandler vehicleHandler)
                     {
-                        if (!draggedPawn.Spawned && TryFindSpawnSpot(vehicle, vehicleHandler, out var intVec))
+                        if (!___draggedPawn.Spawned && TryFindSpawnSpot(vehicle, vehicleHandler, out var intVec))
                         {
-                            vehicle.RemovePawn(draggedPawn);
-                            GenSpawn.Spawn(draggedPawn, intVec, vehicle.VehicleMap, WipeMode.Vanish);
+                            vehicle.RemovePawn(___draggedPawn);
+                            GenSpawn.Spawn(___draggedPawn, intVec, vehicle.VehicleMap, WipeMode.Vanish);
                             vehicleHandler.vehicle.EventRegistry[VehicleEventDefOf.PawnExited].ExecuteEvents();
                             SoundDefOf.Click.PlayOneShotOnCamera();
                         }
                     }
-                    else if (!draggedPawn.Spawned && draggedPawn.IsWorldPawn() && TryFindSpawnSpot(vehicle, null, out var intVec))
+                    else if (!___draggedPawn.Spawned && ___draggedPawn.IsWorldPawn() && TryFindSpawnSpot(vehicle, null, out var intVec))
                     {
-                        Find.WorldPawns.RemovePawn(draggedPawn);
-                        GenSpawn.Spawn(draggedPawn, intVec, vehicle.VehicleMap, WipeMode.Vanish);
+                        if (___draggedPawn.ParentHolder is Caravan caravan)
+                        {
+                            caravan.RemovePawn(___draggedPawn);
+                        }
+                        Find.WorldPawns.RemovePawn(___draggedPawn);
+                        GenSpawn.Spawn(___draggedPawn, intVec, vehicle.VehicleMap, WipeMode.Vanish);
                         SoundDefOf.Click.PlayOneShotOnCamera();
                     }
-                    else if (draggedPawn.IsOnVehicleMapOf(out var vehicle2) && vehicle != vehicle2 && TryFindSpawnSpot(vehicle2, null, out intVec))
+                    else if (___draggedPawn.IsOnVehicleMapOf(out var vehicle2) && vehicle != vehicle2 && TryFindSpawnSpot(vehicle2, null, out intVec))
                     {
-                        draggedPawn.DeSpawn();
-                        GenSpawn.Spawn(draggedPawn, intVec, vehicle.VehicleMap, WipeMode.Vanish);
+                        ___draggedPawn.DeSpawn();
+                        GenSpawn.Spawn(___draggedPawn, intVec, vehicle.VehicleMap, WipeMode.Vanish);
                         SoundDefOf.Click.PlayOneShotOnCamera();
                     }
                     else
                     {
-                        Messages.Message("VMF_CannotSpawn".Translate(draggedPawn), MessageTypeDefOf.RejectInput, true);
+                        Messages.Message("VMF_CannotSpawn".Translate(___draggedPawn), MessageTypeDefOf.RejectInput, true);
                     }
-                    Patch_VehicleTabHelper_Passenger_DrawPassengersFor.draggedPawn() = null;
+                    ___draggedPawn = null;
                     return false;
                 }
-                else if (draggedPawn.IsOnVehicleMapOf(out vehicle))
+                else if (___draggedPawn.IsOnVehicleMapOf(out vehicle))
                 {
-                    if (transferToHolder is VehicleRoleHandler vehicleHandler)
+                    if (___transferToHolder is VehicleRoleHandler vehicleHandler)
                     {
-                        if (!vehicleHandler.CanOperateRole(draggedPawn))
+                        if (!vehicleHandler.CanOperateRole(___draggedPawn))
                         {
-                            Messages.Message("VF_HandlerNotEnoughRoom".Translate(draggedPawn, vehicleHandler.role.label), MessageTypeDefOf.RejectInput, true);
-                            Patch_VehicleTabHelper_Passenger_DrawPassengersFor.draggedPawn() = null;
+                            Messages.Message("VF_HandlerNotEnoughRoom".Translate(___draggedPawn, vehicleHandler.role.label), MessageTypeDefOf.RejectInput, true);
+                            ___draggedPawn = null;
                             return false;
                         }
                         if (!vehicleHandler.AreSlotsAvailable)
                         {
-                            var hoveringOverPawn = Patch_VehicleTabHelper_Passenger_DrawPassengersFor.hoveringOverPawn();
-                            if (hoveringOverPawn != null)
+                            if (___hoveringOverPawn != null)
                             {
                                 if (TryFindSpawnSpot(vehicle, vehicleHandler, out var intVec))
                                 {
-                                    vehicle.RemovePawn(hoveringOverPawn);
-                                    GenSpawn.Spawn(hoveringOverPawn, intVec, vehicle.VehicleMap, WipeMode.Vanish);
+                                    vehicle.RemovePawn(___hoveringOverPawn);
+                                    GenSpawn.Spawn(___hoveringOverPawn, intVec, vehicle.VehicleMap, WipeMode.Vanish);
                                     vehicleHandler.vehicle.EventRegistry[VehicleEventDefOf.PawnExited].ExecuteEvents();
                                 }
                                 else
                                 {
-                                    Messages.Message("VMF_CannotSpawn".Translate(hoveringOverPawn), MessageTypeDefOf.RejectInput, true);
-                                    Patch_VehicleTabHelper_Passenger_DrawPassengersFor.draggedPawn() = null;
+                                    Messages.Message("VMF_CannotSpawn".Translate(___hoveringOverPawn), MessageTypeDefOf.RejectInput, true);
+                                    ___draggedPawn = null;
                                     return false;
                                 }
                             }
                             else
                             {
-                                Messages.Message("VF_HandlerNotEnoughRoom".Translate(draggedPawn, vehicleHandler.role.label), MessageTypeDefOf.RejectInput, true);
-                                Patch_VehicleTabHelper_Passenger_DrawPassengersFor.draggedPawn() = null;
+                                Messages.Message("VF_HandlerNotEnoughRoom".Translate(___draggedPawn, vehicleHandler.role.label), MessageTypeDefOf.RejectInput, true);
+                                ___draggedPawn = null;
                                 return false;
                             }
                         }
                     }
 
-                    var pos = draggedPawn.Position;
-                    draggedPawn.DeSpawn();
-                    if (transferToHolder.GetDirectlyHeldThings().TryAddOrTransfer(draggedPawn, false))
+                    var pos = ___draggedPawn.Position;
+                    ___draggedPawn.DeSpawn();
+                    if (___transferToHolder.GetDirectlyHeldThings().TryAddOrTransfer(___draggedPawn, false))
                     {
                         SoundDefOf.Click.PlayOneShotOnCamera();
-                        if (transferToHolder is VehicleRoleHandler vehicleHandler2)
+                        if (___transferToHolder is VehicleRoleHandler vehicleHandler2)
                         {
                             vehicleHandler2.vehicle.EventRegistry[VehicleEventDefOf.PawnEntered].ExecuteEvents();
                         }
-                        else if (!draggedPawn.IsWorldPawn())
+                        else if (!___draggedPawn.IsWorldPawn())
                         {
-                            Find.WorldPawns.PassToWorld(draggedPawn);
+                            Find.WorldPawns.PassToWorld(___draggedPawn);
+                        }
+                        if (___transferToHolder is VehicleCaravan caravan)
+                        {
+                            caravan.RecacheVehicles();
                         }
                     }
                     else
                     {
-                        GenSpawn.Spawn(draggedPawn, pos, vehicle.VehicleMap);
+                        GenSpawn.Spawn(___draggedPawn, pos, vehicle.VehicleMap);
                     }
-                    Patch_VehicleTabHelper_Passenger_DrawPassengersFor.draggedPawn() = null;
+                    ___draggedPawn = null;
                     return false;
                 }
             }
@@ -1306,6 +1303,23 @@ public static class Patch_VehicleCaravan_GetGizmos
     }
 }
 
+[HarmonyPatch]
+[PatchLevel(Level.Sensitive)]
+public static class Patch_VehicleCaravan_Notify_MemberDied_Predicate
+{
+    private static MethodBase TargetMethod()
+    {
+        return AccessTools.FindIncludingInnerTypes(typeof(VehicleCaravan), t =>
+        {
+            return t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<Notify_MemberDied>"));
+        });
+    }
+
+    public static void Postfix(Pawn x, ref bool __result)
+    {
+        __result = __result || x is VehiclePawnWithMap vehicle && vehicle.VehicleMap.mapPawns.AnyPawnBlockingMapRemoval;
+    }
+}
 
 [HarmonyPatch]
 [PatchLevel(Level.Safe)]

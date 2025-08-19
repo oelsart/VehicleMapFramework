@@ -163,18 +163,6 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         }
     }
 
-    public override int UpdateRateTicks
-    {
-        get
-        {
-            if (Spawned)
-            {
-                return 250;
-            }
-            return base.UpdateRateTicks;
-        }
-    }
-
     new public bool ThreatDisabled(IAttackTargetSearcher disabledFor) => VehicleMap.mapPawns.FreeHumanlikesSpawnedOfFaction(Faction).Empty() && base.ThreatDisabled(disabledFor);
 
     new public float TargetPriorityFactor => 0.8f;
@@ -298,6 +286,19 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         }
     }
 
+    internal void RemoveVehicleMap()
+    {
+        if (Find.Maps.Contains(interiorMap))
+        {
+            Current.Game.DeinitAndRemoveMap(interiorMap, false);
+        }
+        interiorMap = null;
+
+        if (!VehicleMapFramework.settings.dynamicUnpatchEnabled) return;
+        if (VehicleMapParentsComponent.CachedParentVehicle.Any(p => p.Value.Value != null)) return;
+        VMF_Harmony.DynamicPatchAll(VehicleMapFramework.settings.dynamicPatchLevel);
+    }
+
     public override void SpawnSetup(Map map, bool respawningAfterLoad)
     {
         if (interiorMap == null)
@@ -345,13 +346,11 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
             cachedDrawPos = DrawPos;
             mapFollower.MapFollowerTick();
         }
+        else if (this.IsHashIntervalTick(15))
+        {
+            SetTile();
+        }
         base.Tick();
-    }
-
-    protected override void TickInterval(int delta)
-    {
-        base.TickInterval(delta);
-        SetTile();
     }
 
     private void SetTile()
@@ -438,16 +437,7 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
             Find.LetterStack.ReceiveLetter("VF_BoatSunk".Translate(), text, LetterDefOf.NegativeEvent, new TargetInfo(Position, Map));
         }
         base.Destroy(mode);
-
-        if (Find.Maps.Contains(interiorMap))
-        {
-            Current.Game.DeinitAndRemoveMap(interiorMap, false);
-        }
-        interiorMap = null;
-
-        if (!VehicleMapFramework.settings.dynamicUnpatchEnabled) return;
-        if (VehicleMapParentsComponent.CachedParentVehicle.Any(p => p.Value.Value != null)) return;
-        VMF_Harmony.DynamicPatchAll(VehicleMapFramework.settings.dynamicPatchLevel);
+        RemoveVehicleMap();
     }
 
     public override void DeSpawn(DestroyMode mode = DestroyMode.Vanish)
@@ -704,7 +694,7 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         if (Command_FocusVehicleMap.FocuseLockedVehicle == this || Command_FocusVehicleMap.FocusedVehicle == this)
         {
             Material material = ClipMat;
-            var quat = FullRotation.AsQuat();
+            var quat = Quaternion.AngleAxis(this.FullAngle(), Vector3.up);
             IntVec3 size = map.Size;
             Vector3 s = new(500f, 1f, size.z);
             Matrix4x4 matrix = default;

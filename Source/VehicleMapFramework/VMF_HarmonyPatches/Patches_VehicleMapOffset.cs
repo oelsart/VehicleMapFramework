@@ -441,7 +441,7 @@ public static class Patch_Graphic_DrawFromDef
                 loc -= (def.graphicData?.DrawOffsetForRot(rot) ?? Vector3.zero) + compProperties.DrawOffsetForRot(rot);
             }
 
-            var angle = vehicle.Angle;
+            var angle = vehicle.Angle - vehicle.Transform.rotation;
             var loc2 = loc.ToBaseMapCoord(vehicle);
             loc = loc2.WithY(Mathf.Min(loc2.y, AltitudeLayer.MetaOverlays.AltitudeFor()));
             var rot2 = rot;

@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
 using Vehicles;
+using Vehicles.World;
 using Verse;
 using static VehicleMapFramework.MethodInfoCache;
 
@@ -68,7 +69,7 @@ public static class Patch_ColonistBar_CheckRecacheEntries
 
     private static IEnumerable<Map> ExcludeVehicleMaps(this IEnumerable<Map> maps)
     {
-        return maps?.Where(m => !m.IsVehicleMapOf(out var vehicle) || vehicle.GetAerialVehicle() != null || vehicle.GetVehicleCaravan() != null || vehicle.GetCaravan() != null);
+        return maps?.Where(m => !m.IsVehicleMapOf(out var vehicle) || !vehicle.Spawned);
     }
 }
 

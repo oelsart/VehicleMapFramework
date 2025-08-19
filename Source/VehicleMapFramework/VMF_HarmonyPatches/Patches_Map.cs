@@ -235,7 +235,7 @@ public static class Patch_Map_MapUpdate
                 Find.WorldCamera.gameObject.SetActive(true);
                 WorldRendererUtility.UpdateGlobalShadersParams();
                 ExpandableWorldObjectsUtility.ExpandableWorldObjectsUpdate();
-                foreach (var layer in Find.World.renderer.AllVisibleDrawLayers.Where(l => l.Isnt<WorldDrawLayer_SingleTile>() && l.Isnt<WorldDrawLayer_Satellites>()))
+                foreach (var layer in Find.World.renderer.AllVisibleDrawLayers.Where(l => l is not WorldDrawLayer_SingleTile && l is not WorldDrawLayer_Satellites))
                 {
                     layer.Render();
                 }
@@ -684,4 +684,21 @@ public static class Patch_AreaSource_DataForArea
     }
 
     private static readonly AccessTools.FieldRef<PathFinderMapData, AreaSource> areas = AccessTools.FieldRefAccess<PathFinderMapData, AreaSource>("areas");
+}
+
+//キャラバン壊滅時
+[HarmonyPatch(typeof(Caravan), nameof(Caravan.Notify_PawnRemoved))]
+[PatchLevel(Level.Safe)]
+public static class Patch_Caravan_Notify_PawnRemoved
+{
+    public static void Postfix(Pawn p)
+    {
+        if (p is VehiclePawnWithMap vehicle)
+        {
+            Delay.AfterNTicks(0, () =>
+            {
+                if (vehicle.IsWorldPawn() && vehicle.ParentHolder is null) vehicle.RemoveVehicleMap();
+            });
+        }
+    }
 }
