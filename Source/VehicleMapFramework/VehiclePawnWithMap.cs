@@ -336,7 +336,12 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         {
             Current.Game.CurrentMap = map;
         }
+        var diff = -Transform.rotation;
         Transform.rotation = 0f;
+        interiorMap.mapPawns.AllPawns.OfType<VehiclePawn>().Do(v =>
+        {
+            v.Transform.rotation = 0f;
+        });
     }
 
     protected override void Tick()
@@ -482,12 +487,16 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
     public override void DrawAt(in Vector3 drawLoc, Rot8 rot, float rotation)
     {
         cachedDrawPos = drawLoc.WithYOffset(-Altitudes.AltInc * 100f);
+        interiorMap?.GetDetachedMapComponent<VehiclePositionManager>().AllClaimants.Do(v =>
+        {
+            v.Transform.rotation = rotation.FlipAngle(v);
+        });
         if (Transform.rotation != rotation)
         {
             Transform.rotation = rotation;
             CellDesignationsDirty();
         }
-        DrawTracker.DynamicDrawPhaseAt(DrawPhase.Draw, in cachedDrawPos, rot, Rotation == Rot4.West ? -Transform.rotation : Transform.rotation);
+        DrawTracker.DynamicDrawPhaseAt(DrawPhase.Draw, in cachedDrawPos, rot, rotation.FlipAngle(this));
         DrawVehicleMap(Transform.rotation);
     }
 

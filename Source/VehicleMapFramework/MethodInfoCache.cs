@@ -122,6 +122,8 @@ public class MethodInfoCache
 
     public readonly MethodInfo m_FullAngle = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.FullAngle));
 
+    public readonly MethodInfo m_FlipAngle = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.FlipAngle));
+
     public readonly MethodInfo m_BaseMap_Map = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.BaseMap), [typeof(Map)]);
 
     public readonly MethodInfo m_RotatePoint = AccessTools.Method(typeof(Ext_Math), nameof(Ext_Math.RotatePoint));

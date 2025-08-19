@@ -795,6 +795,20 @@ public static class VehicleMapUtility
         return rot;
     }
 
+    public static IntVec2 BaseRotatedSize(Thing thing)
+    {
+        if (!thing.BaseRotation().IsHorizontal)
+        {
+            return thing.def.size;
+        }
+        return new IntVec2(thing.def.size.z, thing.def.size.x);
+    }
+
+    public static float FlipAngle(this float angle, VehiclePawn vehicle)
+    {
+        return vehicle.Graphic.WestFlipped && vehicle.BaseRotation() == Rot4.West ? -angle : angle;
+    }
+
     public static float VehicleMapMass(VehiclePawnWithMap vehicle)
     {
         return CollectionsMassCalculator.MassUsage(vehicle.VehicleMap.listerThings.AllThings, IgnorePawnsInventoryMode.DontIgnore, true);

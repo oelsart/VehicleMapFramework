@@ -278,24 +278,32 @@ public static class Patch_Rendering_DrawSelectionBracketsVehicles
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
-        var codes = instructions.ToList();
-        var pos = codes.FindIndex(c => c.opcode == OpCodes.Stloc_3);
-        var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithMap));
-        var label = generator.DefineLabel();
-
-        codes[pos].labels.Add(label);
-        codes.InsertRange(pos,
-        [
+        var codes = new CodeMatcher(instructions, generator);
+        codes.MatchStartForward(new CodeMatch(OpCodes.Add), new CodeMatch(OpCodes.Stloc_2));
+        codes.DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle);
+        codes.CreateLabel(out var label);
+        codes.InsertAndAdvance(
             CodeInstruction.LoadLocal(0),
             new CodeInstruction(OpCodes.Ldloca_S, vehicle),
             new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf),
             new CodeInstruction(OpCodes.Brfalse_S, label),
+            CodeInstruction.LoadLocal(0),
+            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_FlipAngle));
+
+        codes.CreateLabelWithOffsets(1, out var label2);
+        codes.InsertAfter(
+            new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+            new CodeInstruction(OpCodes.Brfalse_S, label2),
             new CodeInstruction(OpCodes.Ldloc_S, vehicle),
             new CodeInstruction(OpCodes.Call, CachedMethodInfo.g_Angle),
-            new CodeInstruction(OpCodes.Conv_I4),
-            new CodeInstruction(OpCodes.Add)
-        ]);
-        return codes;
+            new CodeInstruction(OpCodes.Add));
+
+        var g_RotatedSize = AccessTools.PropertyGetter(typeof(Thing), nameof(Thing.RotatedSize));
+        var m_BaseRotatedSize = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.BaseRotatedSize));
+        codes.MatchStartForward(CodeMatch.Calls(g_RotatedSize));
+        codes.Opcode = OpCodes.Call;
+        codes.Operand = m_BaseRotatedSize;
+        return codes.Instructions();
     }
 }
 
