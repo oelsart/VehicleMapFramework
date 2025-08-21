@@ -24,6 +24,21 @@ public static class Patch_AttackTargetFinder_BestAttackTarget
     }
 }
 
+[HarmonyPatch(typeof(AttackTargetFinder), nameof(AttackTargetFinder.CanSee))]
+[PatchLevel(Level.Safe)]
+public static class Patch_AttackTargetFinder_CanSee
+{
+    public static bool Prefix(Thing seer, Thing target, Func<IntVec3, bool> validator, ref bool __result)
+    {
+        if (seer.Map != target.Map && seer.BaseMap() == target.BaseMap())
+        {
+            __result = AttackTargetFinderOnVehicle.CanSee(seer, target, validator);
+            return false;
+        }
+        return true;
+    }
+}
+
 [HarmonyPatch(typeof(PawnLeaner), nameof(PawnLeaner.Notify_WarmingCastAlongLine))]
 [PatchLevel(Level.Cautious)]
 public static class Patch_PawnLeaner_Notify_WarmingCastAlongLine

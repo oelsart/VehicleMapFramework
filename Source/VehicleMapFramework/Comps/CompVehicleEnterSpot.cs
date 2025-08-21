@@ -6,7 +6,19 @@ public class CompVehicleEnterSpot : ThingComp
 {
     public CompProperties_VehicleEnterSpot Props => (CompProperties_VehicleEnterSpot)props;
 
-    public virtual bool Available => parent.IsOnVehicleMapOf(out var vehicle) && vehicle.CachedOutOfBoundsCells.Contains(parent.Position + parent.Rotation.Opposite.AsIntVec3);
+    public virtual bool Available
+    {
+        get
+        {
+            if (!parent.IsOnVehicleMapOf(out var vehicle))
+            {
+                return false;
+            }
+            var opposite = parent.Position + parent.Rotation.Opposite.AsIntVec3;
+            return vehicle.CachedOutOfBoundsCells.Contains(opposite) ||
+                   vehicle.CachedExpandableCells.Contains(opposite) && vehicle.CachedStructureCells.Contains(opposite);
+        }
+     }
 
     public virtual IntVec3 EnterVehiclePosition => CrossMapReachabilityUtility.EnterVehiclePosition(parent);
 

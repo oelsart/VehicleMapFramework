@@ -6,24 +6,24 @@ using Verse;
 namespace VehicleMapFramework
 {
 #pragma warning disable CS9113 // パラメーターが未読です。
-    public class GravshipVehicleManager(Game game) : GameComponent
+    public class UniqueVehicleManager(Game game) : GameComponent
 #pragma warning restore CS9113 // パラメーターが未読です。
     {
         public override void ExposeData()
         {
-            HashSet<VehicleMapProps_Gravship> hashSet = null;
+            HashSet<VehicleMapProps_Unique> hashSet = null;
             if (Scribe.mode == LoadSaveMode.Saving)
             {
                 hashSet = [];
                 var allGravshipVehicles = Find.Maps.SelectMany(m => m.mapPawns.AllPawns);
                 allGravshipVehicles = allGravshipVehicles.Concat(Find.WorldPawns.AllPawnsAliveOrDead);
                 allGravshipVehicles = allGravshipVehicles.Concat(Find.Maps.SelectMany(m => m.listerThings.AllThings.OfType<VehicleSkyfaller>().Select(v => (Pawn)v.vehicle)));
-                allGravshipVehicles = allGravshipVehicles.ToList();
+                allGravshipVehicles = [.. allGravshipVehicles];
 
                 hashSet.AddRange(DefDatabase<VehicleDef>.AllDefs
-                    .Where(d => d.HasModExtension<VehicleMapProps_Gravship>())
+                    .Where(d => d.HasModExtension<VehicleMapProps_Unique>())
                     .Where(d => allGravshipVehicles.Any(p => p.def == d))
-                    .Select(d => d.GetModExtension<VehicleMapProps_Gravship>()));
+                    .Select(d => d.GetModExtension<VehicleMapProps_Unique>()));
             }
             Scribe_Collections.Look(ref hashSet, "GravshipVehicleMapProps", LookMode.Deep);
 
@@ -31,10 +31,17 @@ namespace VehicleMapFramework
             {
                 foreach (var props in hashSet)
                 {
-                    VMF_Log.Debug($"Loading VehicleDef: {props.DefName}");
-                    if (DefDatabase<VehicleDef>.GetNamedSilentFail(props.DefName) == null)
+                    VMF_Log.Debug($"Loading VehicleDef: {props.defName}");
+                    if (DefDatabase<VehicleDef>.GetNamedSilentFail(props.defName) == null)
                     {
-                        GravshipVehicleUtility.GenerateGravshipVehicleDef(props);
+                        if (props is VehicleMapProps_Gravship gravshipProps)
+                        {
+                            GravshipVehicleUtility.GenerateGravshipVehicleDef(gravshipProps);
+                        }
+                        else
+                        {
+                            UniqueVehicleUtility.GenerateUniqueVehicleDef(props);
+                        }
                     }
                 }
             }

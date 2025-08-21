@@ -66,11 +66,11 @@ public static class Patch_Building_Door_DrawMovers
         codes.Advance(-1);
         codes.Insert(CodeInstruction.Call(typeof(VehicleMapUtility), nameof(VehicleMapUtility.RotForVehicleDraw)));
 
+        codes.DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle);
         codes.Start();
         codes.MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_Rot8_AsQuatRef));
         codes.Repeat(c =>
         {
-            c.DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle);
             c.CreateLabelWithOffsets(1, out var label);
             c.InsertAfterAndAdvance(
                 CodeInstruction.LoadArgument(0),

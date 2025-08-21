@@ -172,12 +172,12 @@ public static class VehicleMapUtility
     {
         if (map.IsVehicleMapOf(out var vehicle))
         {
-            if (vehicle.Spawned)
-            {
-                var vehicleRect = vehicle.VehicleRect(true);
-                cellRect = cellRect.MovedBy(-vehicleRect.Min);
-                return cellRect.ClipInsideMap(vehicle.VehicleMap);
-            }
+            //if (vehicle.Spawned)
+            //{
+            //    var vehicleRect = vehicle.VehicleRect(true);
+            //    cellRect = cellRect.MovedBy(-vehicleRect.Min);
+            //    return cellRect.ClipInsideMap(vehicle.VehicleMap);
+            //}
             return cellRect = vehicle.VehicleMap.BoundsRect();
         }
         return cellRect.ClipInsideMap(map);
@@ -288,7 +288,7 @@ public static class VehicleMapUtility
     public static Vector3 OffsetFor(VehiclePawnWithMap vehicle, Rot8 rot)
     {
         var offset = Vector3.zero;
-        VehicleMapProps vehicleMap = vehicle.def.GetModExtension<VehicleMapProps>() ?? vehicle.def.GetModExtension<VehicleInteriors.VehicleMapProps>();
+        VehicleMapProps vehicleMap = vehicle.def.GetModExtension<VehicleMapProps>();
         if (vehicleMap != null)
         {
             Vector3 OffsetNorth() => vehicleMap.offsetNorth ?? (vehicleMap.offsetSouth == null ? vehicleMap.offsetNorth = vehicleMap.offsetSouth = vehicleMap.offset : vehicleMap.offsetNorth = vehicleMap.offsetSouth.Value.MirrorVertical()).Value;
@@ -819,8 +819,7 @@ public static class VehicleMapUtility
         return vector.RotatedBy(-RotForPrint.AsAngle);
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool TryGetVehicleMap(this Vector3 point, Map map, out VehiclePawnWithMap vehicle, bool getStructureCell = true, bool getOutOfBoundsCell = false)
+    public static bool TryGetVehicleMap(this Vector3 point, Map map, out VehiclePawnWithMap vehicle, VehicleMapFlag flag = VehicleMapFlag.StructureCells)
     {
         if (VehicleMapFramework.settings.drawPlanet && Find.CurrentMap.IsVehicleMapOf(out vehicle))
         {
@@ -837,10 +836,25 @@ public static class VehicleMapUtility
         vehicle = vehicles.FirstOrDefault(v =>
         {
             var rect = new Rect(0f, 0f, v.VehicleMap.Size.x, v.VehicleMap.Size.z);
-            if (!getOutOfBoundsCell) rect = rect.ContractedBy(0.9f);
             var vector = point.ToVehicleMapCoord(v);
             var intVec = vector.ToIntVec3();
-            return rect.Contains(new Vector2(vector.x, vector.z)) && (getOutOfBoundsCell || !v.CachedOutOfBoundsCells.Contains(intVec)) && (getStructureCell || !v.CachedStructureCells.Contains(intVec));
+            if (!rect.Contains(new Vector2(vector.x, vector.z)))
+            {
+                return false;
+            }
+            if (intVec.GetEdificeSafe(v.VehicleMap) is not VehicleStructure)
+            {
+                return true;
+            }
+            if (flag.HasFlag(VehicleMapFlag.ExpandableCells) && v.CachedExpandableCells.Contains(intVec))
+            {
+                return true;
+            }
+            if (flag.HasFlag(VehicleMapFlag.StructureCells) && v.CachedStructureCells.Contains(intVec) && !v.CachedExpandableCells.Contains(intVec))
+            {
+                return true;
+            }
+            return flag.HasFlag(VehicleMapFlag.OutOfBoundsCells) && v.CachedOutOfBoundsCells.Contains(intVec);
         });
         return vehicle != null;
     }
@@ -1041,6 +1055,24 @@ public static class VehicleMapUtility
         return c.GetCover(map);
     }
 
+    public static bool RoofedAcrossMaps(this IntVec3 c, Map map)
+    {
+        if (c.Roofed(map))
+        {
+            return true;
+        }
+        if (map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
+        {
+            return c.ToBaseMapCoord(vehicle).Roofed(vehicle.Map);
+        }
+        var vehicle2 = map.GetCachedMapComponent<VehicleMapGrid>().VehicleAt(c);
+        if (vehicle2 != null)
+        {
+            return c.ToVehicleMapCoord(vehicle2).Roofed(vehicle2.VehicleMap);
+        }
+        return false;
+    }
+
     public static Rot4 RotForPrintCounter => RotForPrint.IsHorizontal ? RotForPrint.Opposite : RotForPrint;
 
     public static Rot4 RotForPrint { get; set; }
@@ -1050,4 +1082,13 @@ public static class VehicleMapUtility
     private const float AltitudeOffset = 0.09615385f;
 
     private const float AltitudeOffsetFull = 7.692308f;
+}
+
+[Flags]
+public enum VehicleMapFlag
+{
+    None = 0,
+    StructureCells = 1 << 0,
+    ExpandableCells = 1 << 1,
+    OutOfBoundsCells = 1 << 2
 }

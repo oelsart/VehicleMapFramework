@@ -504,7 +504,7 @@ public static class Patch_Toils_Goto_GotoBuild
             var curJob = actor.CurJob;
             var target = curJob.GetTarget(ind);
             var thingMap = target.Thing?.MapHeld;
-            if (thingMap != null && actor.Map != thingMap && actor.CanReach(target, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, thingMap, out var exitSpot, out var enterSpot))
+            if (thingMap != null && actor.Map != thingMap && actor.CanReach(target, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, thingMap, out var exitSpot, out var enterSpot))
             {
                 JobAcrossMapsUtility.StartGotoDestMapJob(actor, exitSpot, enterSpot);
             }

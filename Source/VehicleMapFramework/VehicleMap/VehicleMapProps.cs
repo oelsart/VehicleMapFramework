@@ -40,6 +40,11 @@ public class VehicleMapProps : DefModExtension
 
     public List<CellRect> emptyStructureCellRects = [];
 
+    //Specify the expandable cells of the map.
+    public List<IntVec2> expandableCells = [];
+
+    public List<CellRect> expandableCellRects = [];
+
     //Specify cells to be designated as OutOfBounds.
     public List<IntVec2> outOfBoundsCells = [];
 
@@ -64,15 +69,17 @@ public class VehicleMapProps : DefModExtension
 
     public EdgeSpace? edgeSpaceNorthWest;
 
-    public IEnumerable<IntVec2> FilledStructureCells => filledStructureCells.Union(filledStructureCellRects.SelectMany(r => r.Cells2D)).Select(c => c + IntVec2.North + IntVec2.East);
+    public IEnumerable<IntVec2> FilledStructureCells => filledStructureCells.Union(filledStructureCellRects.SelectMany(r => r.Cells2D)).Select(c => c + IntVec2.One);
 
-    public IEnumerable<IntVec2> EmptyStructureCells => emptyStructureCells.Union(emptyStructureCellRects.SelectMany(r => r.Cells2D)).Select(c => c + IntVec2.North + IntVec2.East);
+    public IEnumerable<IntVec2> EmptyStructureCells => emptyStructureCells.Union(emptyStructureCellRects.SelectMany(r => r.Cells2D)).Select(c => c + IntVec2.One);
+
+    public IEnumerable<IntVec2> ExpandableCells => expandableCells.Union(expandableCellRects.SelectMany(r => r.Cells2D)).Select(c => c + IntVec2.One);
 
     public IEnumerable<IntVec2> OutOfBoundsCells
     {
         get
         {
-            return new CellRect(0, 0, size.x + 2, size.z + 2).EdgeCells.Select(c => c.ToIntVec2).Union(outOfBoundsCells.Union(outOfBoundsCellRects.SelectMany(r => r.Cells2D)).Select(c => c + IntVec2.North + IntVec2.East));
+            return new CellRect(0, 0, size.x + 2, size.z + 2).EdgeCells.Select(c => c.ToIntVec2).Union(outOfBoundsCells.Union(outOfBoundsCellRects.SelectMany(r => r.Cells2D)).Select(c => c + IntVec2.One));
         }
     }
 

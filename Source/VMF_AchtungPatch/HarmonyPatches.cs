@@ -36,7 +36,7 @@ public static class Patch_Colonist_UpdateOrderPos
             tmpDestMaps.Clear();
             lastCachedTick = Find.TickManager.TicksGame;
         }
-        if (pos.TryGetVehicleMap(Find.CurrentMap, out var vehicle, false) || __instance.pawn.MapHeld.IsNonFocusedVehicleMapOf(out _))
+        if (pos.TryGetVehicleMap(Find.CurrentMap, out var vehicle, VehicleMapFlag.None) || __instance.pawn.MapHeld.IsNonFocusedVehicleMapOf(out _))
         {
             __result = UpdateOrderPos(__instance, pos, vehicle);
             return false;
@@ -94,7 +94,7 @@ public static class Patch_Colonist_UpdateOrderPos
             }
         }
         else
-            bestCell = CrossMapReachabilityUtility.BestOrderedGotoDestNear(destCell, colonist.pawn, null, true, destMap, out _, out _);
+            bestCell = CrossMapRCellFinder.BestOrderedGotoDestNear(destCell, colonist.pawn, null, true, destMap, out _, out _);
         if (bestCell.InBounds(destMap))
         {
             colonist.designation = bestCell;
@@ -186,7 +186,7 @@ public static class Patch_Controller_MouseDown
     public static void Prefix(Vector3 pos)
     {
         tmpFocusedMap = Command_FocusVehicleMap.FocusedVehicle;
-        if (pos.TryGetVehicleMap(Find.CurrentMap, out var vehicle, false))
+        if (pos.TryGetVehicleMap(Find.CurrentMap, out var vehicle, VehicleMapFlag.None))
         {
             Command_FocusVehicleMap.FocusedVehicle = vehicle;
         }

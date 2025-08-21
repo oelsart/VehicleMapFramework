@@ -342,6 +342,31 @@ public static class Patch_TargetingHelper_BestAttackTarget
     }
 }
 
+[HarmonyPatch(typeof(TargetingHelper), nameof(TargetingHelper.TargetMeetsRequirements), [typeof(VehicleTurret), typeof(LocalTargetInfo), typeof(IntVec3)], [ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Out])]
+[PatchLevel(Level.Cautious)]
+public static class Patch_TargetingHelper_TargetMeetsRequirements1
+{
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
+    }
+}
+
+[HarmonyPatch(typeof(TargetingHelper), nameof(TargetingHelper.TargetMeetsRequirements), [typeof(VehicleTurret), typeof(IntVec3), typeof(LocalTargetInfo), typeof(IntVec3)], [ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Out])]
+[PatchLevel(Level.Cautious)]
+public static class Patch_TargetingHelper_TargetMeetsRequirements2
+{
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap)
+            .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap)
+            .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
+            .MethodReplacer(CachedMethodInfo.m_GenSight_LineOfSight1, CachedMethodInfo.m_GenSightOnVehicle_LineOfSight1)
+            .MethodReplacer(CachedMethodInfo.m_OccupiedRect, CachedMethodInfo.m_MovedOccupiedRect)
+            .MethodReplacer(CachedMethodInfo.m_GenSight_LineOfSightToEdges, CachedMethodInfo.m_GenSightOnVehicle_LineOfSightToEdges);
+    }
+}
+
 [HarmonyPatch(typeof(VehicleTurret), nameof(VehicleTurret.InRange))]
 [PatchLevel(Level.Cautious)]
 public static class Patch_VehicleTurret_InRange
@@ -594,7 +619,7 @@ public static class Patch_SelectionHelper_MultiSelectClicker
 {
     public static bool Prefix(ref bool __result)
     {
-        if (UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out _, false))
+        if (UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out _, VehicleMapFlag.None))
         {
             __result = false;
             return false;
@@ -1135,7 +1160,7 @@ public static class Patch_VehicleOrientationController_Init
 {
     public static void Postfix(ref IntVec3 ___start, ref IntVec3 ___end)
     {
-        if (UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out var vehicle, false))
+        if (UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out var vehicle, VehicleMapFlag.None))
         {
             ___start = ___start.ToBaseMapCoord(vehicle);
             ___end = ___end.ToBaseMapCoord(vehicle);
@@ -1333,11 +1358,6 @@ public static class Patch_VehicleCaravan_Notify_MemberDied_Predicate
 [PatchLevel(Level.Safe)]
 public static class Patch_SettingsCache_TryGetValue
 {
-    private static bool Prepare()
-    {
-        return ModsConfig.OdysseyActive;
-    }
-
     private static IEnumerable<MethodBase> TargetMethods()
     {
         return AccessTools.GetDeclaredMethods(typeof(SettingsCache)).Where(m => m.Name == "TryGetValue").Select(m =>
@@ -1352,9 +1372,10 @@ public static class Patch_SettingsCache_TryGetValue
 
     public static void Prefix(ref VehicleDef def)
     {
-        if (def.HasModExtension<VehicleMapProps_Gravship>())
+        var props = def.GetModExtension<VehicleMapProps_Unique>();
+        if (props != null && props.baseDef != null)
         {
-            def = VMF_DefOf.VMF_GravshipVehicleBase;
+            def = props.baseDef;
         }
     }
 }
@@ -1363,13 +1384,12 @@ public static class Patch_SettingsCache_TryGetValue
 [PatchLevel(Level.Safe)]
 public static class Patch_SectionDrawer_RecacheVehicleFilter
 {
-    private static bool Prepare()
-    {
-        return ModsConfig.OdysseyActive;
-    }
-
     public static void Postfix(List<VehicleDef> ___filteredVehicleDefs)
     {
-        ___filteredVehicleDefs.RemoveAll(d => d.HasModExtension<VehicleMapProps_Gravship>());
+        ___filteredVehicleDefs.RemoveAll(d =>
+        {
+            var props = d.GetModExtension<VehicleMapProps_Unique>();
+            return props != null && props.baseDef != null;
+        });
     }
 }

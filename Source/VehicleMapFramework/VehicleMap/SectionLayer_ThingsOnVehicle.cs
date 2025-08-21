@@ -48,28 +48,7 @@ public abstract class SectionLayer_ThingsOnVehicle : SectionLayer_Things
             dirty = false;
         }
         var angle = Ext_Math.RotateAngle(rot.AsAngle, extraRotation);
-        switch (rot.AsByte)
-        {
-            case Rot8.NorthInt:
-            case Rot8.NorthEastInt:
-            case Rot8.NorthWestInt:
-                DrawMeshes(subMeshesByRot[Rot4.NorthInt], drawPos, angle);
-                break;
-
-            case Rot8.SouthInt:
-            case Rot8.SouthEastInt:
-            case Rot8.SouthWestInt:
-                DrawMeshes(subMeshesByRot[Rot4.SouthInt], drawPos, angle);
-                break;
-
-            case Rot8.EastInt:
-                DrawMeshes(subMeshesByRot[Rot4.EastInt], drawPos, angle);
-                break;
-
-            case Rot8.WestInt:
-                DrawMeshes(subMeshesByRot[Rot4.WestInt], drawPos, angle);
-                break;
-        }
+        DrawMeshes(subMeshesByRot[rot.RotForVehicleDraw().AsInt], drawPos, angle);
     }
 
     public void DrawMeshes(List<LayerSubMesh> subMeshes, Vector3 drawPos, float extraRotation)

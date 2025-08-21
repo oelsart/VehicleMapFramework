@@ -20,6 +20,7 @@ public class VehicleStructure : Building
         base.SpawnSetup(map, respawningAfterLoad);
         if (this.IsOnVehicleMapOf(out var vehicle))
         {
+            vehicle.mapEdgeCellsDirty = true;
             vehicle.structureCellsDirty = true;
         }
     }
@@ -28,6 +29,7 @@ public class VehicleStructure : Building
     {
         if (this.IsOnVehicleMapOf(out var vehicle))
         {
+            vehicle.mapEdgeCellsDirty = true;
             vehicle.structureCellsDirty = true;
         }
         base.DeSpawn(mode);

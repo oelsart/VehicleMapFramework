@@ -21,7 +21,7 @@ public static class Patch_FloatMenuContext_Constructor
     [PatchLevel(Level.Safe)]
     public static void Prefix(ref Vector3 clickPosition, ref Map map)
     {
-        if (clickPosition.TryGetVehicleMap(Find.CurrentMap, out var vehicle, false))
+        if (clickPosition.TryGetVehicleMap(Find.CurrentMap, out var vehicle, VehicleMapFlag.None))
         {
             GenUIOnVehicle.vehicleForSelector = vehicle;
             clickPosition = clickPosition.ToVehicleMapCoord(vehicle);
@@ -89,7 +89,7 @@ public static class Patch_GenUI_TargetsAt
         bool convToVehicleMap;
         if (!(convToVehicleMap = Find.CurrentMap.IsVehicleMapOf(out var vehicle)))
         {
-            clickPos.TryGetVehicleMap(Find.CurrentMap, out vehicle, false);
+            clickPos.TryGetVehicleMap(Find.CurrentMap, out vehicle, VehicleMapFlag.None);
         }
         if (vehicle != null)
         {
@@ -174,7 +174,7 @@ public static class Patch_MultiPawnGotoController_StartInteraction
 {
     public static void Prefix(ref IntVec3 mouseCell)
     {
-        if (UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out var vehicle, false))
+        if (UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out var vehicle, VehicleMapFlag.None))
         {
             mouseCell = mouseCell.ToBaseMapCoord(vehicle);
         }
@@ -315,7 +315,7 @@ public static class Patch_RCellFinder_BestOrderedGotoDestNear
         VehiclePawnWithMap vehicle = null;
         if (TargetMapManager.HasTargetMap(searcher, out var map))
         {
-            __result = CrossMapReachabilityUtility.BestOrderedGotoDestNear(root, searcher, cellValidator, reachable, map, out _, out _);
+            __result = CrossMapRCellFinder.BestOrderedGotoDestNear(root, searcher, cellValidator, reachable, map, out _, out _);
             if (__result.IsValid)
             {
                 TargetMapManager.SetTargetInfo(searcher, new TargetInfo(__result, map));
@@ -326,7 +326,7 @@ public static class Patch_RCellFinder_BestOrderedGotoDestNear
         {
             var dest = vehicle != null ? root.ToVehicleMapCoord(vehicle) : root;
             map = vehicle != null ? vehicle.VehicleMap : Find.CurrentMap;
-            __result = CrossMapReachabilityUtility.BestOrderedGotoDestNear(
+            __result = CrossMapRCellFinder.BestOrderedGotoDestNear(
                 dest,
                 searcher,
                 cellValidator,
@@ -339,6 +339,22 @@ public static class Patch_RCellFinder_BestOrderedGotoDestNear
                 TargetMapManager.SetTargetInfo(searcher, new TargetInfo(__result, map));
                 return false;
             }
+        }
+        return true;
+    }
+}
+
+[HarmonyPatch(typeof(RCellFinder), nameof(RCellFinder.TryFindGoodAdjacentSpotToTouch))]
+[PatchLevel(Level.Safe)]
+public static class Patch_RCellFinder_TryFindGoodAdjacentSpotToTouch
+{
+    public static bool Prefix(Pawn toucher, Thing touchee, ref IntVec3 result, ref bool __result)
+    {
+        var thingMap = touchee.MapHeld;
+        if (thingMap != null && toucher.Map != thingMap && thingMap.BaseMap() == toucher.BaseMap())
+        {
+            __result = CrossMapRCellFinder.TryFindGoodAdjacentSpotToTouch(toucher, touchee, out result);
+            return false;
         }
         return true;
     }

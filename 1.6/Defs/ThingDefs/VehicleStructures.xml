@@ -11,6 +11,7 @@
 			<MaxHitPoints>1</MaxHitPoints>
 			<WorkToBuild>0</WorkToBuild>
 			<Flammability>0</Flammability>
+			<Mass>0</Mass>
 		</statBases>
 		<leaveResourcesWhenKilled>false</leaveResourcesWhenKilled>
 		<altitudeLayer>Building</altitudeLayer>

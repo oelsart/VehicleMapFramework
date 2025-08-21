@@ -17,7 +17,7 @@ public static class Patch_Selector_SelectableObjectsUnderMouse
     public static bool Prefix(ref IEnumerable<object> __result)
     {
         var mouseMapPosition = UI.MouseMapPosition();
-        if (!mouseMapPosition.TryGetVehicleMap(Find.CurrentMap, out var vehicle, true, true))
+        if (!mouseMapPosition.TryGetVehicleMap(Find.CurrentMap, out var vehicle, VehicleMapFlag.StructureCells | VehicleMapFlag.OutOfBoundsCells))
         {
             return true;
         }
@@ -144,7 +144,7 @@ public static class Patch_ThingSelectionUtility_MultiSelectableThingsInScreenRec
     public static bool Prefix(ref IEnumerable<object> __result, Rect rect)
     {
         var mouseMapPosition = UI.MouseMapPosition();
-        if (!mouseMapPosition.TryGetVehicleMap(Find.CurrentMap, out var vehicle, false))
+        if (!mouseMapPosition.TryGetVehicleMap(Find.CurrentMap, out var vehicle, VehicleMapFlag.None))
         {
             return true;
         }

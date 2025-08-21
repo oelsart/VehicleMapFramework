@@ -102,7 +102,12 @@ public static class Patch_Designator_SelectedUpdate
 
         Command_FocusVehicleMap.FocusedVehicle = null;
         var mousePos = UI.MouseMapPosition();
-        if (mousePos.TryGetVehicleMap(Find.CurrentMap, out var vehicle, false))
+        var flag = VehicleMapFlag.None;
+        if (___selectedDesignator is Designator_Build designator_Build && designator_Build.PlacingDef is ThingDef thingDef && thingDef.HasComp<CompMapExpander>())
+        {
+            flag |= VehicleMapFlag.ExpandableCells;
+        }
+        if (mousePos.TryGetVehicleMap(Find.CurrentMap, out var vehicle, flag))
         {
             Command_FocusVehicleMap.FocusedVehicle = vehicle;
         }

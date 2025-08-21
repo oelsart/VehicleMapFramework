@@ -164,7 +164,8 @@ namespace VehicleMapFramework
 
             VehicleMapProps_Gravship props = new()
             {
-                engine = engine,
+                defName = $"GravshipVehicle{engine.GetHashCode()}_",
+                baseDef = VMF_DefOf.VMF_GravshipVehicleBase,
                 size = rot.IsHorizontal ? cellRect.Size.Rotated() : cellRect.Size,
                 offset = new(0f, 0f, 0.25f),
                 outOfBoundsCells = [.. cellRect.Except(cells).Select(c => (c - min).RotatedBy(rotCounter).ToIntVec2)]
@@ -173,8 +174,8 @@ namespace VehicleMapFramework
             var curretGravship = Current.Game.Gravship;
             try
             {
-                VMF_Log.Debug($"Create or get VehicleDef: {props.DefName}");
-                var vehicleDef = DefDatabase<VehicleDef>.GetNamedSilentFail(props.DefName);
+                VMF_Log.Debug($"Create or get VehicleDef: {props.defName}");
+                var vehicleDef = DefDatabase<VehicleDef>.GetNamedSilentFail(props.defName);
                 vehicleDef ??= GenerateGravshipVehicleDef(props);
                 vehicleDef.size = props.size;
                 vehicleDef.modExtensions = [props];
@@ -248,7 +249,7 @@ namespace VehicleMapFramework
         {
             if (!ModsConfig.OdysseyActive) return null;
 
-            VMF_Log.Debug($"Generate VehicleDef: {props.DefName}");
+            VMF_Log.Debug($"Generate VehicleDef: {props.defName}");
             var vehicleDef = GenerateInner(props);
             VehicleMod.GenerateImpliedDefs(vehicleDef, false);
             DefGenerator.AddImpliedDef(vehicleDef);
@@ -258,12 +259,10 @@ namespace VehicleMapFramework
                 VehicleTex.CachedTextureIconPaths[vehicleDef] = WorldObjectDefOf.Gravship.expandingIconTexture;
                 VehicleTex.CachedTextureIcons[vehicleDef] = WorldObjectDefOf.Gravship.ExpandingIconTexture;
                 AccessTools.StaticFieldRefAccess<Dictionary<(VehicleDef, Rot4), Texture2D>>(typeof(VehicleTex), "CachedVehicleTextures")[(vehicleDef, Rot4.North)]
-                = VehicleTex.VehicleTexture(VMF_DefOf.VMF_GravshipVehicleBase, Rot4.North, out _);
+                = VehicleTex.VehicleTexture(props.baseDef, Rot4.North, out _);
             });
             return vehicleDef;
         }
-
-
 
         public static AcceptanceReport CheckGravshipVehicleStability(Building_GravEngine engine, Rot4 rot, out CellRect wheelsRect)
         {
@@ -298,17 +297,16 @@ namespace VehicleMapFramework
         private static VehicleDef GenerateInner(VehicleMapProps_Gravship props)
         {
             var def = new VehicleDef();
-            var baseDef = VMF_DefOf.VMF_GravshipVehicleBase;
             foreach (var field in typeof(VehicleDef).GetFields())
             {
-                if (!field.IsLiteral) field.SetValue(def, field.GetValue(baseDef));
+                if (!field.IsLiteral) field.SetValue(def, field.GetValue(props.baseDef));
             }
 
-            def.defName = props.DefName;
+            def.defName = props.defName;
             def.label = "Gravship".Translate();
             def.size = props.size;
             def.graphicData = new GraphicDataRGB();
-            def.graphicData.CopyFrom(baseDef.graphicData);
+            def.graphicData.CopyFrom(props.baseDef.graphicData);
             def.graphicData.texPath = "VehicleMapFramework/ClearTex";
             def.graphicData.drawSize = props.size.ToVector2();
             def.modContentPack = VehicleMapFramework.mod.Content;

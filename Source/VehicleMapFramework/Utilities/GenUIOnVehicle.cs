@@ -131,7 +131,7 @@ public static class GenUIOnVehicle
         bool convToVehicleMap;
         if (!(convToVehicleMap = Find.CurrentMap.IsVehicleMapOf(out var vehicle)))
         {
-            if (clickPos.TryGetVehicleMap(Find.CurrentMap, out vehicle, false))
+            if (clickPos.TryGetVehicleMap(Find.CurrentMap, out vehicle, VehicleMapFlag.None))
             {
                 if (source is Verb_Jump || source is Verb_CastAbilityJump || source is Verb_LaunchZipline)
                 {
