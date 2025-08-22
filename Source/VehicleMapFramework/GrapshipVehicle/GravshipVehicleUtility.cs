@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using RimWorld;
 using SmashTools;
+using SmashTools.Rendering;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,6 +32,8 @@ namespace VehicleMapFramework
             var minified = engine.SpawnedParentOrMe as MinifiedThing;
             if (!spawned)
             {
+                engine.ForceSetStateToUnspawned();
+                engine.stackCount = 1;
                 GenSpawn.Spawn(engine, loc, vehicle.VehicleMap, rot);
             }
             PlaceGravshipVehicle(engine, vehicle, forced);
@@ -207,12 +210,18 @@ namespace VehicleMapFramework
                 gravship.Rotation = rotCounter;
                 var minOffset = gravship.originalPosition - min;
                 VMF_Log.Debug($"Place gravship to {minOffset.RotatedBy(rotCounter) + IntVec3.NorthEast}");
-                Delay.AfterNTicks(0, () =>
+                LongEventHandler.ExecuteWhenFinished(() =>
+                {
+                    var transform = new TransformData(vehiclePawn.DrawPos, vehiclePawn.FullRotation, vehiclePawn.Transform.rotation);
+                    var result = vehiclePawn.VehicleGraphic.ParallelGetPreRenderResults(ref transform, false, vehiclePawn);
+                    vehiclePawn.cachedDrawPos = result.position;
+                });
+                Delay.AfterNSeconds(0, () =>
                 {
                     GravshipPlacementUtility.PlaceGravshipInMap(gravship, minOffset.RotatedBy(rotCounter) + IntVec3.NorthEast, vehiclePawn.VehicleMap, out _);
                     var compFueledTravel = vehiclePawn.CompFueledTravel;
                     compFueledTravel?.CompTick();
-                    Delay.AfterNTicks(0, () =>
+                    Delay.AfterNSeconds(0, () =>
                     {
                         vehiclePawn.VehicleMap.mapDrawer.RegenerateLayerNow(typeof(SectionLayer_LightingOnVehicle));
                     });

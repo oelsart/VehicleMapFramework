@@ -1,7 +1,5 @@
 ﻿using HarmonyLib;
-using RimWorld.Planet;
 using SmashTools;
-using SmashTools.Targeting;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -9,8 +7,6 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
-using Vehicles;
-using Vehicles.World;
 using Verse;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
@@ -285,7 +281,13 @@ public static class HarmonyPatchReport
 {
     static HarmonyPatchReport()
     {
-        VMF_Log.Message($"{VehicleMapFramework.mod.Content.ModMetaData.ModVersion} rev{FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).FilePrivatePart}");
+        var privatePart = 0;
+        var fileName = Assembly.GetExecutingAssembly().Location;
+        if (fileName != null)
+        {
+            privatePart = FileVersionInfo.GetVersionInfo(fileName)?.FilePrivatePart ?? 0;
+        }
+        VMF_Log.Message($"{VehicleMapFramework.mod.Content.ModMetaData.ModVersion} rev{privatePart}");
         VMF_Log.Message($"{VMF_Harmony.Instance.GetPatchedMethods().Count()} patches applied.");
     }
 }

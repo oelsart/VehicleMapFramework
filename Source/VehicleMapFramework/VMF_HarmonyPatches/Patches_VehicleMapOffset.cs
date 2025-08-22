@@ -566,7 +566,7 @@ public static class Patch_GenDraw_DrawInteractionCell
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();
-        var pos = codes.FindIndex(c => c.opcode == OpCodes.Ldloc_S && (c.operand as LocalBuilder).LocalIndex == 4);
+        var pos = codes.FindIndex(c => c.opcode == OpCodes.Ldloc_S && ((LocalBuilder)c.operand).LocalIndex == 4);
         codes.InsertRange(pos,
         [
             CodeInstruction.LoadArgument(2),
@@ -577,6 +577,22 @@ public static class Patch_GenDraw_DrawInteractionCell
         codes.InsertRange(pos2,
         [
             CodeInstruction.LoadArgument(2),
+            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_FocusedOrSelectedDrawPosOffset)
+        ]);
+        return codes;
+    }
+}
+
+[HarmonyPatch(typeof(RoyalTitlePermitWorker_CallShuttle), nameof(RoyalTitlePermitWorker_CallShuttle.DrawShuttleGhost))]
+[PatchLevel(Level.Sensitive)]
+public static class Patch_RoyalTitlePermitWorker_CallShuttle_DrawShuttleGhost
+{
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        var codes = instructions.ToList();
+        var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(CachedMethodInfo.g_Quaternion_identity));
+        codes.InsertRange(pos,
+        [
             new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_FocusedDrawPosOffset)
         ]);
         return codes;

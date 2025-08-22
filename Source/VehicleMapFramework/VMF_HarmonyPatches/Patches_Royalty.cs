@@ -40,7 +40,7 @@ public static class Patch_MeditationUtility_DrawArtificialBuildingOverlay
         codes.InsertRange(pos,
         [
             CodeInstruction.LoadArgument(ArgumentNum),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_FocusedDrawPosOffset)
+            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_FocusedOrSelectedDrawPosOffset)
         ]);
         return codes;
     }

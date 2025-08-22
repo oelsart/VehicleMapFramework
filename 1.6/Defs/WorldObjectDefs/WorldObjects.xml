@@ -6,7 +6,8 @@
 		<label>vehicle map</label> <!-- hidden -->
 		<worldObjectClass>VehicleMapFramework.MapParent_Vehicle</worldObjectClass>
 		<mapGenerator>VMF_VehicleMapGenerator</mapGenerator>
-		<useDynamicDrawer>false</useDynamicDrawer>
+		<selectable>false</selectable>
+		<saved>false</saved>
 	</WorldObjectDef>
 
 </Defs>

@@ -186,7 +186,7 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
 
     new public bool ThreatDisabled(IAttackTargetSearcher disabledFor) => VehicleMap.mapPawns.FreeHumanlikesSpawnedOfFaction(Faction).Empty() && base.ThreatDisabled(disabledFor);
 
-    new public float TargetPriorityFactor => 0.8f;
+    new public float TargetPriorityFactor => 0.15f;
 
     public override IEnumerable<Gizmo> GetGizmos()
     {
@@ -330,8 +330,11 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         {
             GenerateVehicleMap();
         }
+        if (!Find.World.worldObjects.Contains(interiorMap.Parent))
+        {
+            Find.World.worldObjects.Add(interiorMap.Parent);
+        }
         interiorMap.PocketMapParent.sourceMap = map;
-        SetTile();
 
         if (def.HasModExtension<VehicleMapProps_Gravship>())
         {
@@ -356,6 +359,7 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         interiorMap.skyManager = Map.skyManager;
         interiorMap.weatherDecider = Map.weatherDecider;
         interiorMap.weatherManager = Map.weatherManager;
+        SetTile();
 
         if (Find.CurrentMap == interiorMap)
         {

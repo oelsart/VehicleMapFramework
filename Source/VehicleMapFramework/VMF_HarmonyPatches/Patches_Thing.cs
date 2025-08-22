@@ -258,7 +258,7 @@ public static class Patch_PlaceWorker_FuelingPort_DrawFuelingPortCell
         codes.InsertRange(pos,
         [
             CodeInstruction.LoadArgument(0),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_FocusedDrawPosOffset)
+            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_FocusedOrSelectedDrawPosOffset)
         ]);
         return codes;
     }

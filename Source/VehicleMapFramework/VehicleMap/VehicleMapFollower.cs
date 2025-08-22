@@ -9,6 +9,20 @@ namespace VehicleMapFramework;
 
 public class VehicleMapFollower(VehiclePawnWithMap vehicle)
 {
+    public VehiclePawnWithMap vehicle = vehicle;
+
+    private ConcurrentSet<IntVec3> prevOccupiedCells = [];
+
+    private ConcurrentSet<IntVec3> tmpOccupiedCells = [];
+
+    private IntVec3 prevCell = IntVec3.Invalid;
+
+    private Rot8 prevRot = Rot8.Invalid;
+
+    private float ticksToMove;
+
+    private bool updated;
+
     public void MapFollowerTick()
     {
         if (!vehicle.Spawned) return;
@@ -83,29 +97,19 @@ public class VehicleMapFollower(VehiclePawnWithMap vehicle)
         var c3 = new IntVec3(0, 0, mapSize.z - 1).ToBaseMapCoord(vehicle);
         var c4 = new IntVec3(mapSize.x - 1, 0, mapSize.z - 1).ToBaseMapCoord(vehicle);
         var cellRect = CellRect.FromLimits(Mathf.Min(c1.x, c2.x, c3.x, c4.x), Mathf.Min(c1.z, c2.z, c3.z, c4.z), Mathf.Max(c1.x, c2.x, c3.x, c4.x), Mathf.Max(c1.z, c2.z, c3.z, c4.z));
-        var mapRect = new Rect(0f, 0f, mapSize.x, mapSize.z);
 
         Parallel.ForEach(cellRect, cell =>
         {
-            var point = cell.ToVector3Shifted().ToVehicleMapCoord(vehicle);
-            if (mapRect.Contains(new Vector2(point.x, point.z)) && cell.InBounds(vehicle.Map))
+            if (cell.ToVector3Shifted().TryGetVehicleMap(vehicle.Map, out var vehicle2) && vehicle == vehicle2)
             {
-                tmpOccupiedCells.Add(cell);
+                foreach (var c in cell.AdjacentCellsCardinal(vehicle.Map))
+                {
+                    if (!tmpOccupiedCells.Contains(c))
+                    {
+                        tmpOccupiedCells.Add(c);
+                    }
+                }
             }
         });
     }
-
-    public VehiclePawnWithMap vehicle = vehicle;
-
-    private ConcurrentSet<IntVec3> prevOccupiedCells = [];
-
-    private ConcurrentSet<IntVec3> tmpOccupiedCells = [];
-
-    private IntVec3 prevCell = IntVec3.Invalid;
-
-    private Rot8 prevRot = Rot8.Invalid;
-
-    private float ticksToMove;
-
-    private bool updated;
 }

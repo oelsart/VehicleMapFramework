@@ -26,6 +26,29 @@ public static class ShootLeanUtilityOnVehicle
     public static void CalcShootableCellsOf(List<IntVec3> outCells, Thing t, IntVec3 shooterPosOnBaseMap)
     {
         outCells.Clear();
+        if (t is VehiclePawnWithMap vehicle)
+        {
+            //VehiclePawnWithMapへの射撃は壁がある場合その壁の場所を目標とする
+            var cell = GenSight.LastPointOnLineOfSight(shooterPosOnBaseMap, t.Position, c =>
+            {
+                if (c.TryGetVehicleMap(t.Map, out var vehicle2) && vehicle == vehicle2)
+                {
+                    var c2 = c.ToVehicleMapCoord(vehicle);
+                    Building edifice = c2.GetEdificeSafe(vehicle.VehicleMap);
+                    if (edifice != null && !edifice.CanBeSeenOver())
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            });
+            if (cell == IntVec3.Invalid)
+            {
+                cell = t.Position;
+            }
+            LeanShootingSourcesFromTo(cell, shooterPosOnBaseMap, t.Map, outCells);
+            return;
+        }
         if (t is Pawn)
         {
             LeanShootingSourcesFromTo(t.Position, shooterPosOnBaseMap, t.Map, outCells);

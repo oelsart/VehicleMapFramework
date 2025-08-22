@@ -95,6 +95,8 @@ public static class Patch_Projectile_CanHit
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Projectile_CheckForFreeInterceptBetween
 {
+    private static readonly List<Thing> tmpList = [];
+
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();
@@ -124,27 +126,15 @@ public static class Patch_Projectile_CheckForFreeInterceptBetween
         }
         return tmpList;
     }
-
-    private static readonly List<Thing> tmpList = [];
 }
 
 [HarmonyPatch(typeof(Projectile), "CheckForFreeIntercept")]
-[PatchLevel(Level.Sensitive)]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Projectile_CheckForFreeIntercept
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        var codes = instructions.ToList();
-        var pos = codes.FindIndex(c => c.opcode == OpCodes.Stloc_2);
-
-        codes.InsertRange(pos,
-        [
-            CodeInstruction.LoadArgument(0),
-            CodeInstruction.LoadField(typeof(Projectile), "launcher"),
-            CodeInstruction.LoadArgument(0),
-            CodeInstruction.Call(typeof(Patch_Projectile_CheckForFreeInterceptBetween), nameof(Patch_Projectile_CheckForFreeInterceptBetween.IncludeVehicleMapIntercepters))
-        ]);
-        return codes;
+        return instructions.MethodReplacer(CachedMethodInfo.m_GetThingList, CachedMethodInfo.m_GetThingListAcrossMaps);
     }
 }
 

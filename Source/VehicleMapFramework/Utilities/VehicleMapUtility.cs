@@ -842,15 +842,15 @@ public static class VehicleMapUtility
             {
                 return false;
             }
-            if (intVec.GetEdificeSafe(v.VehicleMap) is not VehicleStructure)
+            if (!v.CachedStructureCells.Contains(intVec))
+            {
+                return true;
+            }
+            if (flag.HasFlag(VehicleMapFlag.StructureCells) && !v.CachedExpandableCells.Contains(intVec) && !v.CachedOutOfBoundsCells.Contains(intVec))
             {
                 return true;
             }
             if (flag.HasFlag(VehicleMapFlag.ExpandableCells) && v.CachedExpandableCells.Contains(intVec))
-            {
-                return true;
-            }
-            if (flag.HasFlag(VehicleMapFlag.StructureCells) && v.CachedStructureCells.Contains(intVec) && !v.CachedExpandableCells.Contains(intVec))
             {
                 return true;
             }
@@ -911,7 +911,26 @@ public static class VehicleMapUtility
         matrix = Matrix4x4.TRS(pos, q, s);
     }
 
-    public static Vector3 FocusedDrawPosOffset(Vector3 original, IntVec3 center)
+    public static Vector3 SelectedDrawPosOffset(Vector3 original, IntVec3 center)
+    {
+        VehiclePawnWithMap vehicle = null;
+        if (Find.Selector.SelectedObjects.Any(o => o is Thing thing && thing.Position == center && thing.IsOnNonFocusedVehicleMapOf(out vehicle)))
+        {
+            return original.ToBaseMapCoord(vehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor());
+        }
+        return original;
+    }
+
+    public static Vector3 FocusedDrawPosOffset(Vector3 original)
+    {
+        if (FocusedOnVehicleMap(out var vehicle))
+        {
+            return original.ToBaseMapCoord(vehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor());
+        }
+        return original;
+    }
+
+    public static Vector3 FocusedOrSelectedDrawPosOffset(Vector3 original, IntVec3 center)
     {
         Thing thing;
         if ((thing = Find.Selector.SelectedObjects.OfType<Thing>().FirstOrDefault(t => t.Position == center)) != null)
@@ -922,16 +941,6 @@ public static class VehicleMapUtility
             }
         }
         else if (FocusedOnVehicleMap(out var vehicle))
-        {
-            return original.ToBaseMapCoord(vehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor());
-        }
-        return original;
-    }
-
-    public static Vector3 SelectedDrawPosOffset(Vector3 original, IntVec3 center)
-    {
-        VehiclePawnWithMap vehicle = null;
-        if (Find.Selector.SelectedObjects.Any(o => o is Thing thing && thing.Position == center && thing.IsOnNonFocusedVehicleMapOf(out vehicle)))
         {
             return original.ToBaseMapCoord(vehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor());
         }
