@@ -27,7 +27,7 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         {
             if (interiorMap == null)
             {
-                GenerateVehicleMap();
+                GenerateVehicleMap(Map);
             }
             return interiorMap;
         }
@@ -269,7 +269,7 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         }
     }
 
-    private void GenerateVehicleMap()
+    private void GenerateVehicleMap(Map sourceMap)
     {
         try
         {
@@ -284,6 +284,7 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
                 var mapSize = new IntVec3(props.size.x, 1, props.size.z);
                 mapSize.x += 2;
                 mapSize.z += 2;
+                mapParent.sourceMap = sourceMap;
                 interiorMap = MapGenerator.GenerateMap(mapSize, mapParent, mapParent.MapGeneratorDef, mapParent.ExtraGenStepDefs, isPocketMap: true);
                 Find.World.pocketMaps.Add(mapParent);
 
@@ -328,13 +329,16 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
     {
         if (interiorMap == null)
         {
-            GenerateVehicleMap();
+            GenerateVehicleMap(map);
+        }
+        else
+        {
+            interiorMap.PocketMapParent.sourceMap = map;
         }
         if (!Find.World.worldObjects.Contains(interiorMap.Parent))
         {
             Find.World.worldObjects.Add(interiorMap.Parent);
         }
-        interiorMap.PocketMapParent.sourceMap = map;
 
         if (def.HasModExtension<VehicleMapProps_Gravship>())
         {
@@ -478,7 +482,7 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
 
     public override void DeSpawn(DestroyMode mode = DestroyMode.Vanish)
     {
-        interiorMap.PocketMapParent.sourceMap = null;
+        interiorMap.PocketMapParent.sourceMap = interiorMap;
         VehiclePawnWithMapCache.DeRegisterVehicle(this);
         mapFollower.DeRegisterVehicle();
         if (mode != DestroyMode.KillFinalize)

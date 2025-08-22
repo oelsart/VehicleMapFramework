@@ -12,6 +12,8 @@ namespace VehicleMapFramework;
 
 public class VehicleRoleHandlerBuildable : VehicleRoleHandler, IExposable, IThingHolderWithDrawnPawn, IParallelRenderer
 {
+    private static readonly AccessTools.FieldRef<VehicleRoleHandler, string> roleKey = AccessTools.FieldRefAccess<VehicleRoleHandler, string>("roleKey");
+
     float IThingHolderWithDrawnPawn.HeldPawnDrawPos_Y
     {
         get
@@ -25,7 +27,7 @@ public class VehicleRoleHandlerBuildable : VehicleRoleHandler, IExposable, IThin
             {
                 rot = vehicle.FullRotation;
             }
-            return vehicle.DrawPos.y + this.role.PawnRenderer.LayerFor(rot).YOffset();
+            return vehicle.DrawPos.y + AltitudeLayer.BuildingOnTop.AltitudeFor().YOffset() + this.role.PawnRenderer.LayerFor(rot);
         }
     }
 
@@ -116,6 +118,4 @@ public class VehicleRoleHandlerBuildable : VehicleRoleHandler, IExposable, IThin
             });
         }
     }
-
-    private static readonly AccessTools.FieldRef<VehicleRoleHandler, string> roleKey = AccessTools.FieldRefAccess<VehicleRoleHandler, string>("roleKey");
 }

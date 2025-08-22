@@ -232,12 +232,44 @@ public class VMF_Harmony
 
 public static class EarlyPatchCore
 {
+    public const string Category = "VehicleMapFramework.EarlyPatches";
+
     public static void EarlyPatch()
     {
         VMF_Harmony.PatchCategory(Category);
     }
+}
 
-    public const string Category = "VehicleMapFramework.EarlyPatches";
+[StaticConstructorOnStartupPriority(Priority.Normal)]
+public static class Core
+{
+    static Core()
+    {
+        VMF_Harmony.PatchAllUncategorized();
+    }
+}
+
+[StaticConstructorOnStartupPriority(Priority.Last)]
+public static class LatePatchCore
+{
+    public const string Category = "VehicleMapFramework.LatePatches";
+
+    static LatePatchCore()
+    {
+        LongEventHandler.ExecuteWhenFinished(() =>
+        {
+            VMF_Harmony.PatchCategory(Category);
+
+            var privatePart = 0;
+            var fileName = Assembly.GetExecutingAssembly().Location;
+            if (!fileName.NullOrEmpty())
+            {
+                privatePart = FileVersionInfo.GetVersionInfo(fileName)?.FilePrivatePart ?? 0;
+            }
+            VMF_Log.Message($"{VehicleMapFramework.mod.Content.ModMetaData.ModVersion} rev{privatePart}");
+            VMF_Log.Message($"{VMF_Harmony.Instance.GetPatchedMethods().Count()} patches applied.");
+        });
+    }
 }
 
 [AttributeUsage(AttributeTargets.Class, Inherited = false)]
@@ -264,30 +296,5 @@ public static class StaticConstructorOnStartupPriorityUtility
                 Log.Error($"Error in static constructor of {type}: {ex}");
             }
         }
-    }
-}
-
-[StaticConstructorOnStartupPriority(Priority.Normal)]
-public static class Core
-{
-    static Core()
-    {
-        VMF_Harmony.PatchAllUncategorized();
-    }
-}
-
-[StaticConstructorOnStartupPriority(Priority.Last)]
-public static class HarmonyPatchReport
-{
-    static HarmonyPatchReport()
-    {
-        var privatePart = 0;
-        var fileName = Assembly.GetExecutingAssembly().Location;
-        if (fileName != null)
-        {
-            privatePart = FileVersionInfo.GetVersionInfo(fileName)?.FilePrivatePart ?? 0;
-        }
-        VMF_Log.Message($"{VehicleMapFramework.mod.Content.ModMetaData.ModVersion} rev{privatePart}");
-        VMF_Log.Message($"{VMF_Harmony.Instance.GetPatchedMethods().Count()} patches applied.");
     }
 }

@@ -2,8 +2,10 @@
 using RimWorld;
 using RimWorld.Planet;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using UnityEngine;
 using Verse;
 
@@ -529,9 +531,55 @@ public static class ModCompat
         }
     }
 
-    public static readonly bool SmartFarming = ModsConfig.IsActive("Owlchemist.SmartFarming");
+    public static class SmartFarming
+    {
+        public static readonly bool SmartFarmingActive = ModsConfig.IsActive("Owlchemist.SmartFarming");
+
+        public static readonly bool ReGrowthActive = ModsConfig.IsActive("ReGrowth.BOTR.Core");
+
+        public static readonly bool Active = SmartFarmingActive || ReGrowthActive;
+
+        public static readonly Type MapComponent_SmartFarming;
+
+        public static readonly AccessTools.FieldRef<MapComponent, IDictionary> growZoneRegistry;
+
+        public static readonly AccessTools.FieldRef<object, int> priority;
+
+        static SmartFarming()
+        {
+            if (Active)
+            {
+                try
+                {
+                    Type t_ZoneData;
+                    if (SmartFarmingActive)
+                    {
+                        MapComponent_SmartFarming = GenTypes.GetTypeInAnyAssembly("SmartFarming.MapComponent_SmartFarming", "SmartFarming");
+                        t_ZoneData = GenTypes.GetTypeInAnyAssembly("SmartFarming.ZoneData", "SmartFarming");
+                    }
+                    else
+                    {
+                        MapComponent_SmartFarming = GenTypes.GetTypeInAnyAssembly("ReGrowthCore.MapComponent_SmartFarming", "ReGrowthCore");
+                        t_ZoneData = GenTypes.GetTypeInAnyAssembly("ReGrowthCore.ZoneData", "ReGrowthCore");
+                    }
+                    growZoneRegistry = AccessTools.FieldRefAccess<IDictionary>(MapComponent_SmartFarming, "growZoneRegistry");
+                    priority = AccessTools.FieldRefAccess<int>(t_ZoneData, "priority");
+                }
+                finally
+                {
+                    if (AnyNull(MapComponent_SmartFarming, growZoneRegistry, priority))
+                    {
+                        LogIncompat("Smart Farming");
+                        Active = false;
+                    }
+                }
+            }
+        }
+    }
 
     public static readonly bool RimWorldOfMagic = ModsConfig.IsActive("Torann.ARimworldOfMagic");
 
     public static readonly bool CeleTech = ModsConfig.IsActive("TOT.CeleTech.MKIII");
+
+    public static readonly bool PauseOtherSettlements = ModsConfig.IsActive("esvn.PauseOtherSettlementsSimulation");
 }

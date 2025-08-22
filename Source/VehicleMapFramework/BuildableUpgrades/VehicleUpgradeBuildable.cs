@@ -15,9 +15,9 @@ public class VehicleUpgradeBuildable : VehicleUpgrade
 
     public override void Unlock(VehiclePawn vehicle, bool unlockingPostLoad)
     {
-        if (!roles.NullOrEmpty<VehicleUpgrade.RoleUpgrade>())
+        if (!roles.NullOrEmpty())
         {
-            foreach (VehicleUpgrade.RoleUpgrade roleUpgrade in roles)
+            foreach (RoleUpgrade roleUpgrade in roles)
             {
                 if (roleUpgrade is RoleUpgradeBuildable roleUpgradeBuildable)
                 {
@@ -40,11 +40,11 @@ public class VehicleUpgradeBuildable : VehicleUpgrade
         {
             vehicle.SetRetexture(retextureDef);
         }
-        if (!armor.NullOrEmpty<VehicleUpgrade.ArmorUpgrade>())
+        if (!armor.NullOrEmpty())
         {
-            foreach (VehicleUpgrade.ArmorUpgrade armorUpgrade in armor)
+            foreach (ArmorUpgrade armorUpgrade in armor)
             {
-                if (!armorUpgrade.key.NullOrEmpty() && !armorUpgrade.statModifiers.NullOrEmpty<StatModifier>())
+                if (!armorUpgrade.key.NullOrEmpty() && !armorUpgrade.statModifiers.NullOrEmpty())
                 {
                     VehicleComponent component = vehicle.statHandler.GetComponent(armorUpgrade.key);
                     UpgradeType type = armorUpgrade.type;
@@ -62,9 +62,9 @@ public class VehicleUpgradeBuildable : VehicleUpgrade
                 }
             }
         }
-        if (!health.NullOrEmpty<VehicleUpgrade.HealthUpgrade>())
+        if (!health.NullOrEmpty())
         {
-            foreach (VehicleUpgrade.HealthUpgrade healthUpgrade in health)
+            foreach (HealthUpgrade healthUpgrade in health)
             {
                 if (!healthUpgrade.key.NullOrEmpty())
                 {
@@ -95,7 +95,7 @@ public class VehicleUpgradeBuildable : VehicleUpgrade
 
     public override void Refund(VehiclePawn vehicle)
     {
-        if (!roles.NullOrEmpty<VehicleUpgrade.RoleUpgrade>())
+        if (!roles.NullOrEmpty())
         {
             for (var i = 0; i < roles.Count; i++)
             {
@@ -113,9 +113,9 @@ public class VehicleUpgradeBuildable : VehicleUpgrade
         {
             vehicle.SetRetexture(null);
         }
-        if (!armor.NullOrEmpty<VehicleUpgrade.ArmorUpgrade>())
+        if (!armor.NullOrEmpty())
         {
-            foreach (VehicleUpgrade.ArmorUpgrade armorUpgrade in armor)
+            foreach (ArmorUpgrade armorUpgrade in armor)
             {
                 if (!armorUpgrade.key.NullOrEmpty() && !armorUpgrade.statModifiers.NullOrEmpty<StatModifier>())
                 {
@@ -135,9 +135,9 @@ public class VehicleUpgradeBuildable : VehicleUpgrade
                 }
             }
         }
-        if (!health.NullOrEmpty<VehicleUpgrade.HealthUpgrade>())
+        if (!health.NullOrEmpty())
         {
-            foreach (VehicleUpgrade.HealthUpgrade healthUpgrade in health)
+            foreach (HealthUpgrade healthUpgrade in health)
             {
                 if (!healthUpgrade.key.NullOrEmpty())
                 {
@@ -277,7 +277,7 @@ public class RoleUpgradeBuildable : RoleUpgrade
                 var thing = compBuildableUpgrades.parent;
                 var position = GenThing.TrueCenter(thing.Position, thing.Rotation, thing.def.Size, 0f);
                 var pivot = new Vector3(vehicle.VehicleMap.Size.x / 2f, 0f, vehicle.VehicleMap.Size.z / 2f);
-                var vehiclePos = vehicle.cachedDrawPos.Yto0();
+                var vehiclePos = vehicle.cachedDrawPos;
                 var rot = thing.Rotation;
                 var angle = rot.AsAngle;
                 var intClockwise = new Rot8(rot).AsIntClockwise;
@@ -302,15 +302,15 @@ public class RoleUpgradeBuildable : RoleUpgrade
                     layerSouthEast = pawnRenderer.layerSouthEast,
                     layerSouthWest = pawnRenderer.layerSouthWest,
                     layerNorthWest = pawnRenderer.layerNorthWest,
-                    drawOffset = position.ToBaseMapCoord(vehicle, Rot8.North).YOffset() - vehiclePos + pawnRenderer.drawOffset,
-                    drawOffsetNorth = position.ToBaseMapCoord(vehicle, Rot8.North).YOffset() - vehiclePos + pawnRenderer.DrawOffsetFor(new Rot4(Rot4.NorthInt + rot.AsInt)),
-                    drawOffsetSouth = position.ToBaseMapCoord(vehicle, Rot8.South).YOffset() - vehiclePos + pawnRenderer.DrawOffsetFor(new Rot4(Rot4.SouthInt + rot.AsInt)),
-                    drawOffsetEast = position.ToBaseMapCoord(vehicle, Rot8.East).YOffset() - vehiclePos + pawnRenderer.DrawOffsetFor(new Rot4(Rot4.EastInt + rot.AsInt)),
-                    drawOffsetWest = position.ToBaseMapCoord(vehicle, Rot8.West).YOffset() - vehiclePos + pawnRenderer.DrawOffsetFor(new Rot4(Rot4.WestInt + rot.AsInt)),
-                    drawOffsetNorthEast = position.ToBaseMapCoord(vehicle, Rot8.NorthEast).YOffset() - vehiclePos + (rot.IsHorizontal ? pawnRenderer.DrawOffsetFor(rot).RotatedBy(45f) : pawnRenderer.DrawOffsetFor(new Rot8(Rot8.FromIntClockwise((intClockwise + Rot8.NorthEast.AsIntClockwise) % 8)))),
-                    drawOffsetNorthWest = position.ToBaseMapCoord(vehicle, Rot8.NorthWest).YOffset() - vehiclePos + (rot.IsHorizontal ? pawnRenderer.DrawOffsetFor(rot).RotatedBy(-45f) : pawnRenderer.DrawOffsetFor(new Rot8(Rot8.FromIntClockwise((intClockwise + Rot8.NorthWest.AsIntClockwise) % 8)))),
-                    drawOffsetSouthEast = position.ToBaseMapCoord(vehicle, Rot8.SouthEast).YOffset() - vehiclePos + (rot.IsHorizontal ? pawnRenderer.DrawOffsetFor(rot.Opposite).RotatedBy(-45f) : pawnRenderer.DrawOffsetFor(new Rot8(Rot8.FromIntClockwise((intClockwise + Rot8.SouthEast.AsIntClockwise) % 8)))),
-                    drawOffsetSouthWest = position.ToBaseMapCoord(vehicle, Rot8.SouthWest).YOffset() - vehiclePos + (rot.IsHorizontal ? pawnRenderer.DrawOffsetFor(rot.Opposite).RotatedBy(45f) : pawnRenderer.DrawOffsetFor(new Rot8(Rot8.FromIntClockwise((intClockwise + Rot8.SouthWest.AsIntClockwise) % 8)))),
+                    drawOffset = position.ToBaseMapCoord(vehicle, Rot8.North) - vehiclePos + pawnRenderer.drawOffset,
+                    drawOffsetNorth = position.ToBaseMapCoord(vehicle, Rot8.North) - vehiclePos + pawnRenderer.DrawOffsetFor(new Rot4(Rot4.NorthInt + rot.AsInt)),
+                    drawOffsetSouth = position.ToBaseMapCoord(vehicle, Rot8.South) - vehiclePos + pawnRenderer.DrawOffsetFor(new Rot4(Rot4.SouthInt + rot.AsInt)),
+                    drawOffsetEast = position.ToBaseMapCoord(vehicle, Rot8.East) - vehiclePos + pawnRenderer.DrawOffsetFor(new Rot4(Rot4.EastInt + rot.AsInt)),
+                    drawOffsetWest = position.ToBaseMapCoord(vehicle, Rot8.West) - vehiclePos + pawnRenderer.DrawOffsetFor(new Rot4(Rot4.WestInt + rot.AsInt)),
+                    drawOffsetNorthEast = position.ToBaseMapCoord(vehicle, Rot8.NorthEast) - vehiclePos + (rot.IsHorizontal ? pawnRenderer.DrawOffsetFor(rot).RotatedBy(45f) : pawnRenderer.DrawOffsetFor(new Rot8(Rot8.FromIntClockwise((intClockwise + Rot8.NorthEast.AsIntClockwise) % 8)))),
+                    drawOffsetNorthWest = position.ToBaseMapCoord(vehicle, Rot8.NorthWest) - vehiclePos + (rot.IsHorizontal ? pawnRenderer.DrawOffsetFor(rot).RotatedBy(-45f) : pawnRenderer.DrawOffsetFor(new Rot8(Rot8.FromIntClockwise((intClockwise + Rot8.NorthWest.AsIntClockwise) % 8)))),
+                    drawOffsetSouthEast = position.ToBaseMapCoord(vehicle, Rot8.SouthEast) - vehiclePos + (rot.IsHorizontal ? pawnRenderer.DrawOffsetFor(rot.Opposite).RotatedBy(-45f) : pawnRenderer.DrawOffsetFor(new Rot8(Rot8.FromIntClockwise((intClockwise + Rot8.SouthEast.AsIntClockwise) % 8)))),
+                    drawOffsetSouthWest = position.ToBaseMapCoord(vehicle, Rot8.SouthWest) - vehiclePos + (rot.IsHorizontal ? pawnRenderer.DrawOffsetFor(rot.Opposite).RotatedBy(45f) : pawnRenderer.DrawOffsetFor(new Rot8(Rot8.FromIntClockwise((intClockwise + Rot8.SouthWest.AsIntClockwise) % 8)))),
                     angle = pawnRenderer.angle,
                     angleNorth = pawnRenderer.angleNorth ?? (pawnRenderer.angleSouth + 180f) ?? pawnRenderer.angle,
                     angleEast = pawnRenderer.angleEast ?? -pawnRenderer.angleWest ?? pawnRenderer.angle,

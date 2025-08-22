@@ -26,7 +26,6 @@
     <li IfModActive="brrainz.achtung">1.6/_Achtung</li>
     <li IfModActive="Dubwise.DubsBadHygiene,Dubwise.DubsBadHygiene.Lite">1.6/_DubsBadHygiene</li>
     <li IfModActive="Dubwise.Rimefeller">1.6/_Rimefeller</li>
-    <li IfModActive="Owlchemist.SmartFarming">1.6/_SmartFarming</li>
     <li IfModActive="OskarPotocki.VanillaFactionsExpanded.Core">1.6/_VanillaExpandedFramework</li>
     <li IfModActive="telardo.MultiFloors">1.6/_MultiFloors</li>
     <li IfModActive="XMB.AncientUrbanrUins.MO">1.6/_AncientUrbanRuins</li>

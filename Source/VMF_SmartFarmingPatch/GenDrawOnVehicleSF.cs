@@ -10,7 +10,7 @@ public static class GenDrawOnVehicleSF
 {
     public static void DrawFieldEdges(List<IntVec3> cells, Zone zone, Map map)
     {
-        if (zone is Zone_Growing gZone && Mod_SmartFarming.compCache.TryGetValue(Find.CurrentMap?.uniqueID ?? (-1), out var mapComp) && mapComp.growZoneRegistry.TryGetValue(gZone.ID, out var zoneData))
+        if (zone is Zone_Growing gZone && Mod_SmartFarming.compCache.TryGetValue(map?.uniqueID ?? (-1), out var mapComp) && mapComp.growZoneRegistry.TryGetValue(gZone.ID, out var zoneData))
         {
             GenDrawOnVehicle.DrawFieldEdges(cells, zoneData.priority switch
             {

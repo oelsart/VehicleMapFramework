@@ -1,11 +1,17 @@
-﻿using System.Collections.Generic;
+﻿using RimWorld;
+using System.Collections.Generic;
 using UnityEngine;
 using Verse;
+using static VehicleMapFramework.ModCompat.SmartFarming;
 
 namespace VehicleMapFramework;
 
 public static class GenDrawOnVehicle
 {
+    private static BoolGrid fieldGrid;
+
+    private static bool[] rotNeeded = new bool[4];
+
     public static void DrawFieldEdges(List<IntVec3> cells, int renderQueue = 2900, Map map = null)
     {
         DrawFieldEdges(cells, Color.white, null, null, renderQueue, map);
@@ -81,7 +87,65 @@ public static class GenDrawOnVehicle
         }
     }
 
-    private static BoolGrid fieldGrid;
+    public static void DrawFieldEdgesSF(List<IntVec3> cells, Zone zone, Map map)
+    {
+        if (zone is Zone_Growing gZone)
+        {
+            var component = map.GetComponent(MapComponent_SmartFarming);
+            if (component is null)
+            {
+                DrawFieldEdges(cells, map: map);
+                return;
+            }
+            var dict = growZoneRegistry(component);
+            if (dict is null)
+            {
+                DrawFieldEdges(cells, map: map);
+                return;
+            }
+            if (dict.Contains(gZone.ID))
+            {
+                DrawFieldEdges(cells, priority(dict[gZone.ID]) switch
+                {
+                    1 => Color.grey,
+                    3 => Color.green,
+                    4 => Color.yellow,
+                    5 => Color.red,
+                    _ => Color.white,
+                }, map: map);
+            }
+        }
+        DrawFieldEdges(cells, map: map);
+    }
 
-    private static bool[] rotNeeded = new bool[4];
+    public static void DrawFieldEdgesRG(List<IntVec3> cells, int renderQueue, Zone zone, Map map)
+    {
+        if (zone is Zone_Growing gZone)
+        {
+            var component = map.GetComponent(MapComponent_SmartFarming);
+            if (component is null)
+            {
+                DrawFieldEdges(cells, renderQueue, map);
+                return;
+            }
+            var dict = growZoneRegistry(component);
+            if (dict is null)
+            {
+                DrawFieldEdges(cells, renderQueue, map);
+                return;
+            }
+            if (dict.Contains(gZone.ID))
+            {
+                DrawFieldEdges(cells, priority(dict[gZone.ID]) switch
+                {
+                    1 => Color.grey,
+                    3 => Color.green,
+                    4 => Color.yellow,
+                    5 => Color.red,
+                    _ => Color.white,
+                }, renderQueue: renderQueue, map: map);
+            }
+        }
+        DrawFieldEdges(cells, renderQueue, map);
+    }
 }

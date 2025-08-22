@@ -1,14 +1,11 @@
 ﻿using HarmonyLib;
 using RimWorld;
-using RimWorld.Planet;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
-using Vehicles;
-using Vehicles.World;
 using Verse;
 using static VehicleMapFramework.MethodInfoCache;
 

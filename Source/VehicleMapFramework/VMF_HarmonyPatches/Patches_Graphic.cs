@@ -275,10 +275,6 @@ public static class Patch_PawnRenderer_GetBodyPos
         {
             corpse.TryGetDrawPos(ref __result);
         }
-        else if (___pawn.ParentHolder is VehicleRoleHandlerBuildable)
-        {
-            __result = __result.YOffsetFull();
-        }
         else if (___pawn.IsOnNonFocusedVehicleMapOf(out var vehicle))
         {
             if (___pawn.CurrentBed() != null)

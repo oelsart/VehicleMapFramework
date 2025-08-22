@@ -158,8 +158,9 @@ public static class Patch_FleckSystemBase_FleckSplash_CreateFleck
 }
 
 //thingがIsOnVehicleMapだった場合回転の初期値num4にベースvehicleのAngleを与え、posはRotatePointで回転
+[HarmonyPatchCategory(LatePatchCore.Category)]
 [HarmonyPatch(typeof(SelectionDrawer), nameof(SelectionDrawer.DrawSelectionBracketFor))]
-[HarmonyAfter("owlchemist.smartfarming")]
+[HarmonyAfter("owlchemist.smartfarming", "Helixien.ReGrowthCore")]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_SelectionDrawer_DrawSelectionBracketFor
 {
@@ -199,8 +200,10 @@ public static class Patch_SelectionDrawer_DrawSelectionBracketFor
             new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_RotatePoint)
         ]);
 
-        var m_DrawFieldEdges = SmartFarming ? AccessTools.Method("SmartFarming.MapComponent_SmartFarming:DrawFieldEdges") : CachedMethodInfo.m_GenDraw_DrawFieldEdges;
-        var m_DrawFieldEdgesOnVehicle = SmartFarming ? AccessTools.Method("VMF_SmartFarmingPatch.GenDrawOnVehicleSF:DrawFieldEdges") : CachedMethodInfo.m_GenDrawOnVehicle_DrawFieldEdges;
+        var m_DrawFieldEdges = SmartFarming.Active ? AccessTools.Method(SmartFarming.MapComponent_SmartFarming, "DrawFieldEdges") : CachedMethodInfo.m_GenDraw_DrawFieldEdges;
+        var m_DrawFieldEdgesOnVehicle =
+            SmartFarming.SmartFarmingActive ? AccessTools.Method(typeof(GenDrawOnVehicle), nameof(GenDrawOnVehicle.DrawFieldEdgesSF)) :
+            SmartFarming.ReGrowthActive ? AccessTools.Method(typeof(GenDrawOnVehicle), nameof(GenDrawOnVehicle.DrawFieldEdgesRG)) : CachedMethodInfo.m_GenDrawOnVehicle_DrawFieldEdges;
         var pos3 = codes.FindIndex(c => c.Calls(m_DrawFieldEdges));
         codes[pos3].operand = m_DrawFieldEdgesOnVehicle;
         codes.InsertRange(pos3,
