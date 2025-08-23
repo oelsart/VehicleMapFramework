@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using Verse;
 using Verse.AI;
@@ -50,69 +51,73 @@ public static class Patch_Pawn_JobTracker_DetermineNextJob
 [PatchLevel(Level.Sensitive)]
 public static class Patch_JobGiver_Work_TryIssueJobPackage
 {
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator, MethodBase original)
     {
-        var codes = instructions.ToList();
+        var codes = new CodeMatcher(instructions, generator);
         //scanner変数をローカルに保存しておく
-        var pos = codes.FindIndex(c => c.opcode == OpCodes.Isinst && c.operand.Equals(typeof(WorkGiver_Scanner))) + 1;
-        var scanner = generator.DeclareLocal(typeof(WorkGiver_Scanner));
-        codes.InsertRange(pos,
-        [
+        codes.MatchStartForward(new CodeMatch(c => c.opcode == OpCodes.Isinst && c.operand.Equals(typeof(WorkGiver_Scanner))));
+        codes.DeclareLocal(typeof(WorkGiver_Scanner), out var scanner);
+        codes.InsertAfterAndAdvance(
             new CodeInstruction(OpCodes.Dup),
-            new CodeInstruction(OpCodes.Stloc_S, scanner)
-        ]);
+            new CodeInstruction(OpCodes.Stloc_S, scanner));
 
-        //サーチセットに複数マップのthingリストを足す
-        pos = codes.FindIndex(c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalIndex == 16);
-
+        object local = null;
+        var matchStloc = new CodeMatch(c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalType == typeof(IEnumerable<Thing>) && c.operand != local);
         var addedCodes = new[]
         {
             CodeInstruction.LoadArgument(1),
             new CodeInstruction(OpCodes.Ldloc_S, scanner),
             CodeInstruction.Call(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(AddSearchSet))
         };
-        codes.InsertRange(pos, addedCodes);
+        codes.MatchStartForward(matchStloc);
+        local = codes.Operand;
 
-        var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalIndex == 18);
-        codes.InsertRange(pos2, addedCodes);
+        //サーチセットに複数マップのthingリストを足す
+        codes.MatchStartForward(matchStloc);
+        local = codes.Operand;
+        codes.InsertAndAdvance(addedCodes);
 
-        var pos3 = codes.FindIndex(pos2, c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalIndex == 20) + 1;
-        codes.InsertRange(pos3,
-        [
+        codes.MatchStartForward(matchStloc);
+        codes.InsertAndAdvance(addedCodes);
+
+        //複数マップのセルをスキャンする
+        codes.MatchStartForward(new CodeMatch(c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalType == typeof(IEnumerable<IntVec3>)));
+        var locals = original.GetMethodBody().LocalVariables;
+        var innerTypeIndex = locals.FirstIndexOf(l => l.LocalType.GetCustomAttribute<CompilerGeneratedAttribute>() != null); //たぶん0のはずだけど一応
+        var innerStructIndex = locals.FirstIndexOf(l => l.LocalType.GetCustomAttribute<CompilerGeneratedAttribute>() != null && l.LocalType.IsStruct());
+        codes.InsertAfterAndAdvance(
             new CodeInstruction(OpCodes.Ldloc_S, scanner),
-            CodeInstruction.LoadLocal(0, true),
-            CodeInstruction.LoadLocal(19, true),
-            CodeInstruction.Call(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(ScanCellsAcrossMaps))
-        ]);
-
-        var m_JobOnCell = AccessTools.Method(typeof(WorkGiver_Scanner), nameof(WorkGiver_Scanner.JobOnCell));
-        var pos4 = codes.FindIndex(pos3, c => c.Calls(m_JobOnCell));
-        codes[pos4].opcode = OpCodes.Call;
-        codes[pos4].operand = AccessTools.Method(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(JobOnCellMap));
+            CodeInstruction.LoadLocal(innerTypeIndex, true),
+            CodeInstruction.LoadLocal(innerStructIndex, true),
+            CodeInstruction.Call(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(ScanCellsAcrossMaps)));
 
         var g_TargetInfo_Cell = AccessTools.PropertyGetter(typeof(TargetInfo), nameof(TargetInfo.Cell));
-        var pos5 = codes.FindLastIndex(pos4, c => c.Calls(g_TargetInfo_Cell));
-        codes.RemoveAt(pos5);
+        codes.MatchStartForward(CodeMatch.Calls(g_TargetInfo_Cell));
+        codes.RemoveInstruction();
+
+        var m_JobOnCell = AccessTools.Method(typeof(WorkGiver_Scanner), nameof(WorkGiver_Scanner.JobOnCell));
+        codes.MatchStartForward(CodeMatch.Calls(m_JobOnCell));
+        codes.SetInstruction(CodeInstruction.Call(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(JobOnCellMap)));
 
         //GenClosestの各メソッドを自作のものに置き換える
         //PotentialWorkThingsGlobalの各マップの結果を合計
         var m_GenClosest_ClosestThing_Global = AccessTools.Method(typeof(GenClosest), nameof(GenClosest.ClosestThing_Global));
-        var m_GenClosestOnVehicle_ClosestThing_Global = AccessTools.Method(typeof(GenClosestCrossMap), nameof(GenClosestCrossMap.ClosestThing_Global),
+        var m_GenClosestCrossMap_ClosestThing_Global = AccessTools.Method(typeof(GenClosestCrossMap), nameof(GenClosestCrossMap.ClosestThing_Global),
             [typeof(IntVec3), typeof(IEnumerable<>), typeof(float), typeof(Predicate<Thing>), typeof(Func<Thing, float>), typeof(bool)]);
         var m_GenClosest_ClosestThing_Global_Reachable = AccessTools.Method(typeof(GenClosest), nameof(GenClosest.ClosestThing_Global_Reachable));
-        var m_GenClosestOnVehicle_ClosestThing_Global_Reachable = AccessTools.Method(typeof(GenClosestCrossMap), nameof(GenClosestCrossMap.ClosestThing_Global_Reachable),
+        var m_GenClosestCrossMap_ClosestThing_Global_Reachable = AccessTools.Method(typeof(GenClosestCrossMap), nameof(GenClosestCrossMap.ClosestThing_Global_Reachable),
             [typeof(IntVec3), typeof(Map), typeof(IEnumerable<Thing>), typeof(PathEndMode), typeof(TraverseParms), typeof(float), typeof(Predicate<Thing>), typeof(Func<Thing, float>), typeof(bool)]);
         var m_Scanner_PotentialWorkThingsGlobal = AccessTools.Method(typeof(WorkGiver_Scanner), nameof(WorkGiver_Scanner.PotentialWorkThingsGlobal));
         var m_PotentialWorkThingsGlobalAll = AccessTools.Method(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(PotentialWorkThingsGlobalAll));
         var m_Scanner_JobOnThing = AccessTools.Method(typeof(WorkGiver_Scanner), nameof(WorkGiver_Scanner.JobOnThing));
         var m_JobOnThingMap = AccessTools.Method(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(JobOnThingMap));
-        return codes.MethodReplacer(m_GenClosest_ClosestThing_Global, m_GenClosestOnVehicle_ClosestThing_Global)
-            .MethodReplacer(m_GenClosest_ClosestThing_Global_Reachable, m_GenClosestOnVehicle_ClosestThing_Global_Reachable)
+        return codes.Instructions().MethodReplacer(m_GenClosest_ClosestThing_Global, m_GenClosestCrossMap_ClosestThing_Global)
+            .MethodReplacer(m_GenClosest_ClosestThing_Global_Reachable, m_GenClosestCrossMap_ClosestThing_Global_Reachable)
             .MethodReplacer(m_Scanner_PotentialWorkThingsGlobal, m_PotentialWorkThingsGlobalAll)
             .MethodReplacer(m_Scanner_JobOnThing, m_JobOnThingMap);
     }
 
-    private static IEnumerable<Thing> AddSearchSet(List<Thing> list, Pawn pawn, WorkGiver_Scanner scanner)
+    internal static IEnumerable<Thing> AddSearchSet(List<Thing> list, Pawn pawn, WorkGiver_Scanner scanner)
     {
         if (JobAcrossMapsUtility.NoNeedVirtualMapTransfer(pawn.Map, null, scanner))
         {
@@ -126,7 +131,7 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
         return list;
     }
 
-    private static IEnumerable<Thing> PotentialWorkThingsGlobalAll(WorkGiver_Scanner scanner, Pawn pawn)
+    internal static IEnumerable<Thing> PotentialWorkThingsGlobalAll(WorkGiver_Scanner scanner, Pawn pawn)
     {
         if (JobAcrossMapsUtility.NoNeedVirtualMapTransfer(pawn.Map, null, scanner))
         {
@@ -159,7 +164,7 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
         }
     }
 
-    private static Job JobOnThingMap(WorkGiver_Scanner scanner, Pawn pawn, Thing t, bool forced)
+    internal static Job JobOnThingMap(WorkGiver_Scanner scanner, Pawn pawn, Thing t, bool forced)
     {
         var thingMap = t.MapHeld;
         if (JobAcrossMapsUtility.NoNeedVirtualMapTransfer(pawn.Map, thingMap, scanner))
@@ -205,7 +210,7 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
         }
     }
 
-    private static Job JobOnCellMap(WorkGiver_Scanner scanner, Pawn pawn, in TargetInfo target, bool forced)
+    internal static Job JobOnCellMap(WorkGiver_Scanner scanner, Pawn pawn, in TargetInfo target, bool forced)
     {
         var map = pawn.Map;
         var targetMap = target.Map;
@@ -246,7 +251,7 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
         return null;
     }
 
-    private static void ScanCellsAcrossMaps(WorkGiver_Scanner scanner, ref InnerClass innerClass, ref InnerStruct innerStruct)
+    internal static void ScanCellsAcrossMaps(WorkGiver_Scanner scanner, ref InnerClass innerClass, ref InnerStruct innerStruct)
     {
         var pawn = innerClass.pawn;
         var basePos = pawn.PositionOnBaseMap();
