@@ -304,7 +304,34 @@ public static class ModCompat
         }
     }
 
-    public static readonly bool MiscRobots = ModsConfig.IsActive("Haplo.Miscellaneous.Robots");
+    public static class MiscRobots
+    {
+        public static readonly bool Active = ModsConfig.IsActive("Haplo.Miscellaneous.Robots");
+
+        public static Type X2_AIRobot;
+
+        public static AccessTools.FieldRef<Pawn, Building> rechargeStation;
+
+        static MiscRobots()
+        {
+            if (Active)
+            {
+                try
+                {
+                    X2_AIRobot = GenTypes.GetTypeInAnyAssembly("AIRobot.X2_AIRobot", "AIRobot");
+                    rechargeStation = AccessTools.FieldRefAccess<Building>("AIRobot.X2_AIRobot:rechargeStation");
+                }
+                finally
+                {
+                    if (AnyNull(X2_AIRobot, rechargeStation))
+                    {
+                        LogIncompat("MiscRobots");
+                        Active = false;
+                    }
+                }
+            }
+        }
+    }
 
     public static readonly bool MuzzleFlash = ModsConfig.IsActive("IssacZhuang.MuzzleFlash");
 
