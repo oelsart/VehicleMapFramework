@@ -316,6 +316,7 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
     {
         if (Find.Maps.Contains(interiorMap))
         {
+            interiorMap.PocketMapParent?.sourceMap = null;
             Current.Game.DeinitAndRemoveMap(interiorMap, false);
         }
         interiorMap = null;
@@ -333,7 +334,7 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         }
         else
         {
-            interiorMap.PocketMapParent.sourceMap = map;
+            interiorMap.PocketMapParent?.sourceMap = map;
         }
         if (!Find.World.worldObjects.Contains(interiorMap.Parent))
         {
