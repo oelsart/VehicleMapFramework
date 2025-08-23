@@ -26,14 +26,14 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 public static class Patch_RGBMaterialPool_SetProperties
 {
     public static bool Prefix(IMaterialCacheTarget target, PatternData patternData,
-    Func<Rot8, Texture2D> mainTexGetter, Func<Rot8, Texture2D> maskTexGetter, Dictionary<IMaterialCacheTarget, Material[]> ___cache)
+    Func<Rot8, Texture2D> mainTexGetter, Func<Rot8, Texture2D> maskTexGetter, Dictionary<IMaterialCacheTarget, Material[]> ___Cache)
     {
         if (target is GraphicOverlay graphicOverlay)
         {
             var vehiclePawn = vehicle(graphicOverlay);
             if (vehiclePawn != null && vehiclePawn.AllComps.OfType<CompOpacityOverlay>().Any(c => c.Props.identifier == graphicOverlay.data?.identifier))
             {
-                if (___cache.TryGetValue(target, out var materials))
+                if (___Cache.TryGetValue(target, out var materials))
                 {
                     for (int i = 0; i < materials.Length; i++)
                     {
@@ -326,7 +326,7 @@ public static class Patch_GenGridVehicles_ImpassableForVehicles
 {
     public static void Postfix(ThingDef thingDef, ref bool __result)
     {
-        __result &= !thingDef.thingClass.SameOrSubclass(typeof(Building_VehicleRamp));
+        __result &= !thingDef.thingClass.SameOrSubclassOf(typeof(Building_VehicleRamp));
     }
 }
 

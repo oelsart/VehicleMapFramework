@@ -68,7 +68,7 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="SmashTools">
-      <HintPath>..\..\..\Vehicle Framework\1.6\Assemblies\SmashTools.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\workshop\content\294100\3522907382\1.6\Assemblies\SmashTools.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System.ComponentModel.Composition">
@@ -78,7 +78,7 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="Vehicles">
-      <HintPath>..\..\..\Vehicle Framework\1.6\Assemblies\Vehicles.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\workshop\content\294100\3522907382\1.6\Assemblies\Vehicles.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Update="System.Core">

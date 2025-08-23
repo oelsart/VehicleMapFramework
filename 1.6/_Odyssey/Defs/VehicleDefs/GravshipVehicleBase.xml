@@ -30,7 +30,6 @@
 		</vehicleStats>
 
 		<properties>
-			<generateThingIcon>false</generateThingIcon>
 			<customTerrainCosts AllowTerrainWithTag="Space" PathCost="1"/>
 		</properties>
 		
