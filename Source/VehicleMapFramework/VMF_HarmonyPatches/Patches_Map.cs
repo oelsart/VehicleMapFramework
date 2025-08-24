@@ -284,7 +284,7 @@ public static class Patch_Map_MapUpdate
             }
             var longSide = Mathf.Max(vehicle.DrawSize.x / 2f, vehicle.DrawSize.y / 2f);
             var drawPos = new Vector3(longSide, 0f, longSide);
-            if (mat != null)
+            if (mat != null) 
             {
                 Graphics.DrawMesh(mesh200, drawPos, Quaternion.identity, mat, 0);
             }

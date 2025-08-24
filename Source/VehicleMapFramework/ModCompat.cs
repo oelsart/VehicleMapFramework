@@ -558,13 +558,13 @@ public static class ModCompat
         }
     }
 
+    public static readonly bool ReGrowth = ModsConfig.IsActive("ReGrowth.BOTR.Core");
+
     public static class SmartFarming
     {
         public static readonly bool SmartFarmingActive = ModsConfig.IsActive("Owlchemist.SmartFarming");
 
-        public static readonly bool ReGrowthActive = ModsConfig.IsActive("ReGrowth.BOTR.Core");
-
-        public static readonly bool Active = SmartFarmingActive || ReGrowthActive;
+        public static readonly bool Active = SmartFarmingActive || ReGrowth;
 
         public static readonly Type MapComponent_SmartFarming;
 

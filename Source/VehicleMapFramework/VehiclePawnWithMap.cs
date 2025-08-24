@@ -483,7 +483,8 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
 
     public override void DeSpawn(DestroyMode mode = DestroyMode.Vanish)
     {
-        interiorMap.PocketMapParent.sourceMap = interiorMap;
+        //sourceMapをinteriorMap自身にすると無限ループの危険がある
+        interiorMap.PocketMapParent.sourceMap = null;
         VehiclePawnWithMapCache.DeRegisterVehicle(this);
         mapFollower.DeRegisterVehicle();
         if (mode != DestroyMode.KillFinalize)

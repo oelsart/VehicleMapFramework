@@ -14,16 +14,29 @@ namespace VehicleMapFramework
     [StaticConstructorOnStartup]
     public class VTOLTakeoff_Gravship : VTOLTakeoff
     {
-        private MaterialPropertyBlock thrusterFlameBlock = new();
+        private MaterialPropertyBlock thrusterFlameBlock;
 
-        private MaterialPropertyBlock engineGlowBlock = new();
+        private MaterialPropertyBlock engineGlowBlock;
 
-        private static readonly Material MatGravEngineGlow = MatLoader.LoadMat("Map/Gravship/GravEngineGlow", -1);
+        private static Material MatGravEngineGlow;
 
-        private static readonly int ShaderPropertyColor2 = Shader.PropertyToID("_Color2");
+        private readonly static int ShaderPropertyColor2 = Shader.PropertyToID("_Color2");
+
+        static VTOLTakeoff_Gravship()
+        {
+            LongEventHandler.ExecuteWhenFinished(() =>
+            {
+                MatGravEngineGlow = MatLoader.LoadMat("Map/Gravship/GravEngineGlow", -1);
+            });
+        }
 
         public VTOLTakeoff_Gravship()
         {
+            LongEventHandler.ExecuteWhenFinished(() =>
+            {
+                thrusterFlameBlock = new();
+                engineGlowBlock = new();
+            });
         }
 
         public VTOLTakeoff_Gravship(VTOLTakeoff_Gravship reference, VehiclePawn vehicle) : base(reference, vehicle)
