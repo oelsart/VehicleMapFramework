@@ -47,7 +47,7 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="SmashTools">
-      <HintPath>..\..\..\Vehicle Framework\1.6\Assemblies\SmashTools.dll</HintPath>
+      <HintPath>..\..\..\3014915404\1.6\Assemblies\SmashTools.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System.Data.DataSetExtensions">
@@ -97,13 +97,13 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="Vehicles">
-      <HintPath>..\..\..\Vehicle Framework\1.6\Assemblies\Vehicles.dll</HintPath>
+      <HintPath>..\..\..\3014915404\1.6\Assemblies\Vehicles.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.4543" />
-    <PackageReference Include="Lib.Harmony.Ref" Version="2.4.0" />
+    <PackageReference Include="Lib.Harmony.Ref" Version="2.4.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\VehicleMapFramework\VehicleMapFramework.csproj">

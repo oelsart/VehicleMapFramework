@@ -203,7 +203,7 @@ public static class Patch_SelectionDrawer_DrawSelectionBracketFor
         var m_DrawFieldEdges = SmartFarming.Active ? AccessTools.Method(SmartFarming.MapComponent_SmartFarming, "DrawFieldEdges") : CachedMethodInfo.m_GenDraw_DrawFieldEdges;
         var m_DrawFieldEdgesOnVehicle =
             SmartFarming.SmartFarmingActive ? AccessTools.Method(typeof(GenDrawOnVehicle), nameof(GenDrawOnVehicle.DrawFieldEdgesSF)) :
-            SmartFarming.ReGrowthActive ? AccessTools.Method(typeof(GenDrawOnVehicle), nameof(GenDrawOnVehicle.DrawFieldEdgesRG)) : CachedMethodInfo.m_GenDrawOnVehicle_DrawFieldEdges;
+            ReGrowth ? AccessTools.Method(typeof(GenDrawOnVehicle), nameof(GenDrawOnVehicle.DrawFieldEdgesRG)) : CachedMethodInfo.m_GenDrawOnVehicle_DrawFieldEdges;
         var pos3 = codes.FindIndex(c => c.Calls(m_DrawFieldEdges));
         codes[pos3].operand = m_DrawFieldEdgesOnVehicle;
         codes.InsertRange(pos3,
