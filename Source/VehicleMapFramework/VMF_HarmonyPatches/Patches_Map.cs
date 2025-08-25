@@ -274,7 +274,7 @@ public static class Patch_Map_MapUpdate
                 {
                     angle =
                         worldObject is VehicleCaravan vehicleCaravan ?
-                        AngleOnPlanetSurface(Find.WorldGrid.GetTileCenter(vehicleCaravan.vehiclePather.nextTile.Valid ? vehicleCaravan.vehiclePather.nextTile : vehicleCaravan.Tile), Find.WorldGrid.GetTileCenter(vehicleCaravan.Tile)) :
+                        AngleOnPlanetSurface(Find.WorldGrid.GetTileCenter(vehicleCaravan.vehiclePather.NextTile.Valid ? vehicleCaravan.vehiclePather.NextTile : vehicleCaravan.Tile), Find.WorldGrid.GetTileCenter(vehicleCaravan.Tile)) :
                         worldObject is Caravan caravan ?
                         AngleOnPlanetSurface(Find.WorldGrid.GetTileCenter(caravan.pather.nextTile.Valid ? caravan.pather.nextTile : caravan.Tile), Find.WorldGrid.GetTileCenter(caravan.Tile)) :
                         worldObject is AerialVehicleInFlight aerial ?
