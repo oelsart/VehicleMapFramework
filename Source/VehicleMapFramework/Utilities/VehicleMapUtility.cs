@@ -147,16 +147,6 @@ public static class VehicleMapUtility
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector3 ToVehicleMapCoord(this Vector3 original, VehiclePawnWithMap vehicle, float extraRotation = 0f)
-    {
-        var vehicleMapPos = vehicle.cachedDrawPos + OffsetFor(vehicle);
-        var map = vehicle.VehicleMap;
-        var pivot = new Vector3(map.Size.x / 2f, 0f, map.Size.z / 2f);
-        var drawPos = (original - vehicleMapPos).RotatedBy(-vehicle.FullRotation.AsAngle - extraRotation) + pivot;
-        return drawPos;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static IntVec3 ToVehicleMapCoord(this IntVec3 original, VehiclePawnWithMap vehicle)
     {
         return original.ToVector3Shifted().ToVehicleMapCoord(vehicle).ToIntVec3();
@@ -221,16 +211,6 @@ public static class VehicleMapUtility
         var pivot = new Vector3(map.Size.x / 2f, 0f, map.Size.z / 2f);
         var drawPos = (original.YOffset() - pivot).RotatedBy(vehicle.FullAngle()) + vehiclePos;
         drawPos += OffsetFor(vehicle);
-        return drawPos;
-    }
-
-    public static Vector3 ToBaseMapCoord(this Vector3 original, VehiclePawnWithMap vehicle, float extraRotation = 0f)
-    {
-        var vehiclePos = vehicle.cachedDrawPos;
-        var map = vehicle.VehicleMap;
-        var pivot = new Vector3(map.Size.x / 2f, 0f, map.Size.z / 2f);
-        var drawPos = (original.YOffset() - pivot).RotatedBy(vehicle.FullRotation.AsAngle + extraRotation) + vehiclePos;
-        drawPos += OffsetFor(vehicle).RotatedBy(extraRotation);
         return drawPos;
     }
 
@@ -904,7 +884,7 @@ public static class VehicleMapUtility
         if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle))
         {
             var rot = vehicle.FullRotation;
-            var angle = rot.AsAngle;
+            var angle = rot.AsAngle + vehicle.Transform.rotation;
             matrix = Matrix4x4.TRS(Ext_Math.RotatePoint(pos, thing.TrueCenter(), -angle), q * rot.AsQuat(), s);
             return;
         }
@@ -945,6 +925,11 @@ public static class VehicleMapUtility
             return original.ToBaseMapCoord(vehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor());
         }
         return original;
+    }
+
+    public static float AngleRotated(this VehiclePawn vehicle)
+    {
+        return Ext_Math.RotateAngle(vehicle.Angle, vehicle.Transform.rotation);
     }
 
     public static float FullAngle(this VehiclePawn vehicle)

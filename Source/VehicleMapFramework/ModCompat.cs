@@ -1,12 +1,11 @@
 ﻿using HarmonyLib;
-using RimWorld;
 using RimWorld.Planet;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using UnityEngine;
+using Vehicles;
 using Verse;
 
 namespace VehicleMapFramework;
@@ -24,9 +23,26 @@ public static class ModCompat
         VMF_Log.Error($"{modName} compatibility is broken.");
     }
 
+    [StaticConstructorOnStartup]
     public static class VehicleFramework
     {
         public const string HarmonyId = "SmashPhil.VehicleFramework";
+
+        public delegate bool DoRowGetter(float curY, Rect viewRect, Vector2 scrollPos, Pawn pawn, ref Pawn moreDetailsForPawn, bool highlight);
+
+        public static readonly DoRowGetter VehicleTabHelper_Passenger_DoRow = AccessTools.MethodDelegate<DoRowGetter>(AccessTools.Method(typeof(VehicleTabHelper_Passenger), "DoRow"));
+
+        public static readonly AccessTools.FieldRef<GraphicOverlay, VehiclePawn> GraphicOverlay_vehicle = AccessTools.FieldRefAccess<GraphicOverlay, VehiclePawn>("vehicle");
+
+        public static readonly FastInvokeHandler VehicleTurret_IsManned = MethodInvoker.GetHandler(AccessTools.PropertySetter(typeof(VehicleTurret), nameof(VehicleTurret.IsManned)));
+
+        static VehicleFramework()
+        {
+            if (AnyNull(VehicleTabHelper_Passenger_DoRow, GraphicOverlay_vehicle, VehicleTurret_IsManned))
+            {
+                LogIncompat("Vehicle Framework");
+            }
+        }
     }
 
     public static class AdaptiveStorage

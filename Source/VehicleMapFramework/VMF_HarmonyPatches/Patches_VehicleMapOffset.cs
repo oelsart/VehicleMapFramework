@@ -400,7 +400,7 @@ public static class Patch_Graphic_Draw
             }
             if (def.ShouldRotatedOnVehicle())
             {
-                var angle = vehicle.Angle;
+                var angle = vehicle.Angle + vehicle.Transform.rotation;
                 extraRotation -= angle;
                 var offset = thing.Graphic.DrawOffset(rot);
                 if (__instance is Graphic_Flicker && thing.Graphic is not Graphic_Single && thing.TryGetComp<CompFireOverlay>(out var comp))
@@ -410,7 +410,6 @@ public static class Patch_Graphic_Draw
                 var offset2 = offset.RotatedBy(-angle);
                 loc += new Vector3(offset2.x - offset.x, 0f, offset2.z - offset.z);
             }
-            extraRotation += vehicle.Transform.rotation;
 
             ////はしごとかのマップ端オフセット
             //VehicleMapProps mapProps;
@@ -420,9 +419,9 @@ public static class Patch_Graphic_Draw
             //    loc += baseRot.Opposite.AsVector2.ToVector3() * mapProps.EdgeSpaceValue(vehicle.FullRotation, thing.Rotation.Opposite);
             //}
         }
-        else if (!thing.Spawned && thing.SpawnedParentOrMe.IsOnNonFocusedVehicleMapOf(out vehicle))
+        else if (thing != null && !thing.Spawned && thing.SpawnedParentOrMe.IsOnNonFocusedVehicleMapOf(out vehicle))
         {
-            extraRotation += vehicle.FullRotation.AsAngle;
+            extraRotation += vehicle.FullAngle();
         }
     }
 }
@@ -668,7 +667,7 @@ public static class Patch_DesignationDragger_DraggerOnGUI
             new CodeInstruction(OpCodes.Call, CachedMethodInfo.g_FocusedVehicle),
             new CodeInstruction(OpCodes.Brfalse_S, label),
             new CodeInstruction(OpCodes.Call, CachedMethodInfo.g_FocusedVehicle),
-            new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_Angle),
+            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_AngleRotated),
             new CodeInstruction(OpCodes.Br_S, label2),
             new CodeInstruction(OpCodes.Ldc_R4, 0f).WithLabels(label),
         ]);

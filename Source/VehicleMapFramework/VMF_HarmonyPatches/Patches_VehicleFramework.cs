@@ -18,6 +18,7 @@ using Verse.AI;
 using Verse.AI.Group;
 using Verse.Sound;
 using static VehicleMapFramework.MethodInfoCache;
+using static VehicleMapFramework.ModCompat.VehicleFramework;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
@@ -30,7 +31,7 @@ public static class Patch_RGBMaterialPool_SetProperties
     {
         if (target is GraphicOverlay graphicOverlay)
         {
-            var vehiclePawn = vehicle(graphicOverlay);
+            var vehiclePawn = GraphicOverlay_vehicle(graphicOverlay);
             if (vehiclePawn != null && vehiclePawn.AllComps.OfType<CompOpacityOverlay>().Any(c => c.Props.identifier == graphicOverlay.data?.identifier))
             {
                 if (___Cache.TryGetValue(target, out var materials))
@@ -125,8 +126,6 @@ public static class Patch_RGBMaterialPool_SetProperties
         }
         return true;
     }
-
-    private static AccessTools.FieldRef<GraphicOverlay, VehiclePawn> vehicle = AccessTools.FieldRefAccess<GraphicOverlay, VehiclePawn>("vehicle");
 }
 
 //VehiclePawnWithMapの場合Movementフラグを持つハンドラーが存在しない場合コントロールできないようにする
@@ -167,22 +166,20 @@ public static class Patch_VehicleTurret_RecacheMannedStatus
         {
             if (VehicleMod.settings.debug.debugShootAnyTurret)
             {
-                IsManned(__instance, true);
+                VehicleTurret_IsManned(__instance, true);
                 return false;
             }
             var matchHandlers = __instance.vehicle.handlers.FindAll(h => h.role.HandlingTypes.HasFlag(HandlingType.Turret) && (h.role.TurretIds.Contains(__instance.key) || h.role.TurretIds.Contains(__instance.groupKey)));
             if (matchHandlers.Empty())
             {
-                IsManned(__instance, false);
+                VehicleTurret_IsManned(__instance, false);
                 return false;
             }
-            IsManned(__instance, matchHandlers.All(h => h.RoleFulfilled));
+            VehicleTurret_IsManned(__instance, matchHandlers.All(h => h.RoleFulfilled));
             return false;
         }
         return true;
     }
-
-    private static readonly FastInvokeHandler IsManned = MethodInvoker.GetHandler(AccessTools.PropertySetter(typeof(VehicleTurret), nameof(IsManned)));
 }
 
 //VehiclePawnWithMapの場合タレットに対応するハンドラーが存在しない場合ギズモを操作不能にする
@@ -250,16 +247,10 @@ public static class Patch_VehiclePawn_DisembarkPawn
             }
             __instance.RemovePawn(pawn);
             __instance.EventRegistry[VehicleEventDefOf.PawnExited].ExecuteEvents();
-            if (!__instance.AllPawnsAboard.NotNullAndAny(null) && outOfFoodNotified(__instance))
-            {
-                outOfFoodNotified(__instance) = false;
-            }
             return false;
         }
         return true;
     }
-
-    private static readonly AccessTools.FieldRef<VehiclePawn, bool> outOfFoodNotified = AccessTools.FieldRefAccess<VehiclePawn, bool>("outOfFoodNotified");
 }
 
 [HarmonyPatch(typeof(VehiclePawn), nameof(VehiclePawn.FullRotation), MethodType.Getter)]
@@ -628,31 +619,6 @@ public static class Patch_SelectionHelper_MultiSelectClicker
     }
 }
 
-//aerialVehicleInFlight.vehicle.AllPawnsAboardのとこにnullチェックを追加
-[HarmonyPatch(typeof(Ext_Vehicles), nameof(Ext_Vehicles.GetAerialVehicle))]
-[PatchLevel(Level.Sensitive)]
-public static class Patch_Ext_Vehicles_GetAerialVehicle
-{
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
-    {
-        var codes = instructions.ToList();
-        var g_AllPawnsAboard = AccessTools.PropertyGetter(typeof(VehiclePawn), nameof(VehiclePawn.AllPawnsAboard));
-        var pos = codes.FindIndex(c => c.opcode == OpCodes.Callvirt && c.OperandIs(g_AllPawnsAboard));
-        var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Brfalse_S);
-        var label = codes[pos2].operand;
-        var label2 = generator.DefineLabel();
-
-        codes[pos].labels.Add(label2);
-        codes.InsertRange(pos,
-        [
-            new CodeInstruction(OpCodes.Dup),
-            new CodeInstruction(OpCodes.Brtrue_S, label2),
-            new CodeInstruction(OpCodes.Pop),
-            new CodeInstruction(OpCodes.Br_S, label)
-        ]);
-        return codes;
-    }
-}
 
 //主にRepairVehicleに使用される。ターゲットAをVehicleとしてターゲットB(=直す場所)に先に向かうため、StartGotoDestMapJobを挟む
 [HarmonyPatch(typeof(JobDriver_WorkVehicle), "MakeNewToils")]
@@ -805,20 +771,20 @@ public static class Patch_JobDriver_LoadVehicle_FailJob
             var map = __instance.pawn.MapHeld;
             var maps = map.BaseMapAndVehicleMaps().Except(map);
             var vehicle = __instance.job.GetTarget(TargetIndex.B).Thing as VehiclePawn;
-            if (maps.Any(m => MapComponentCache<VehicleReservationManager>.GetComponent(m).VehicleListed(vehicle, ListerTag(__instance))))
+            if (maps.Any(m => MapComponentCache<VehicleReservationManager>.GetComponent(m).VehicleListed(vehicle, ReservationType.LoadVehicle)))
             {
                 __result = false;
             }
         }
     }
-
-    private static readonly Func<JobDriver_LoadVehicle, string> ListerTag = (Func<JobDriver_LoadVehicle, string>)AccessTools.PropertyGetter(typeof(JobDriver_LoadVehicle), "ListerTag").CreateDelegate(typeof(Func<JobDriver_LoadVehicle, string>));
 }
 
 [HarmonyPatch(typeof(VehicleTabHelper_Passenger), nameof(VehicleTabHelper_Passenger.DrawPassengersFor))]
 [PatchLevel(Level.Safe)]
 public static class Patch_VehicleTabHelper_Passenger_DrawPassengersFor
 {
+    private const float PawnRowHeight = 50f;
+
     public static void Postfix(ref float curY, Rect viewRect, Vector2 scrollPos, VehiclePawn vehicle, ref Pawn moreDetailsForPawn
         , Pawn ___draggedPawn, ref IThingHolder ___transferToHolder, ref bool ___overDropSpot, ref Pawn ___hoveringOverPawn)
     {
@@ -834,10 +800,10 @@ public static class Patch_VehicleTabHelper_Passenger_DrawPassengersFor
             }
             Widgets.ListSeparator(ref curY, viewRect.width, mapVehicle.LabelCap + "VMF_VehicleMap".Translate());
 
-            if (DoRow == null) return;
+            if (VehicleTabHelper_Passenger_DoRow == null) return;
             foreach (var pawn in pawns)
             {
-                if (DoRow(curY, viewRect, scrollPos, pawn, ref moreDetailsForPawn, true))
+                if (VehicleTabHelper_Passenger_DoRow(curY, viewRect, scrollPos, pawn, ref moreDetailsForPawn, true))
                 {
                     ___hoveringOverPawn = pawn;
                 }
@@ -845,12 +811,6 @@ public static class Patch_VehicleTabHelper_Passenger_DrawPassengersFor
             }
         }
     }
-
-    private delegate bool DoRowGetter(float curY, Rect viewRect, Vector2 scrollPos, Pawn pawn, ref Pawn moreDetailsForPawn, bool highlight);
-
-    private static DoRowGetter DoRow = AccessTools.MethodDelegate<DoRowGetter>(AccessTools.Method(typeof(VehicleTabHelper_Passenger), "DoRow"));
-
-    private const float PawnRowHeight = 50f;
 }
 
 [HarmonyPatch(typeof(VehicleTabHelper_Passenger), nameof(VehicleTabHelper_Passenger.HandleDragEvent))]
@@ -1015,7 +975,7 @@ public static class Patch_FloatMenuOptionProvider_OrderVehicle_VehicleCanGoto
 {
     public static bool Prefix(VehiclePawn vehicle, IntVec3 gotoLoc, ref AcceptanceReport __result)
     {
-        if (TargetMapManager.HasTargetMap(vehicle, out var map))
+        if (TargetMapManager.HasTargetMap(vehicle, out var map) && vehicle.Map != map)
         {
             if (!vehicle.CanReachVehicle(gotoLoc, PathEndMode.OnCell, Danger.Deadly, TraverseMode.ByPawn, map, out _, out _))
             {
@@ -1037,7 +997,7 @@ public static class Patch_FloatMenuOptionProvider_OrderVehicle_PawnGotoAction
 {
     public static bool Prefix(IntVec3 clickCell, VehiclePawn vehicle, IntVec3 gotoLoc, Rot8 rot)
     {
-        if (TargetMapManager.HasTargetMap(vehicle, out var map))
+        if (TargetMapManager.HasTargetMap(vehicle, out var map) && vehicle.Map != map)
         {
             if (vehicle.CanReachVehicle(gotoLoc, PathEndMode.OnCell, Danger.Deadly, TraverseMode.ByPawn, map, out var exitSpot, out var enterSpot))
             {
@@ -1118,9 +1078,9 @@ public static class Patch_PathingHelper_TryFindNearestStandableCell
         {
             radius = Mathf.Min(vehicle.VehicleDef.Size.x, vehicle.VehicleDef.Size.z) * 2;
         }
-        radius = Mathf.Min(radius, 56.4f);
+        radius = Mathf.Min(radius, GenRadial.MaxRadialPatternRadius);
         VehiclePawnWithMap vehicle2 = null;
-        if (TargetMapManager.HasTargetMap(vehicle, out var map))
+        if (TargetMapManager.HasTargetMap(vehicle, out var map) && vehicle.Map != map)
         {
             __result = CrossMapReachabilityUtility.TryFindNearestStandableCell(vehicle, cell, map, out result, radius);
             if (result.IsValid)

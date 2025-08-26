@@ -297,7 +297,7 @@ public static class Patch_PawnRenderer_BodyAngle
     {
         if (___pawn.IsOnNonFocusedVehicleMapOf(out var vehicle))
         {
-            __result = Ext_Math.RotateAngle(__result, vehicle.FullRotation.AsAngle);
+            __result = Ext_Math.RotateAngle(__result, vehicle.FullAngle());
         }
     }
 }

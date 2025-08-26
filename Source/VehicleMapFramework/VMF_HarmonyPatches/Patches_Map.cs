@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using RimWorld;
 using RimWorld.Planet;
+using RimWorld.QuestGen;
 using SmashTools;
 using System;
 using System.Collections.Generic;
@@ -156,7 +157,7 @@ public static class Patch_MapTemperature_OutdoorTemp
             {
                 __result = vehicle.Position.GetTemperature(vehicle.Map);
             }
-            else if (vehicle.Tile != -1)
+            else if (vehicle.Tile.Valid)
             {
                 __result = Find.World.tileTemperatures.GetOutdoorTemp(vehicle.Tile);
             }
@@ -165,6 +166,29 @@ public static class Patch_MapTemperature_OutdoorTemp
         return true;
     }
 }
+
+[HarmonyPatch(typeof(MapTemperature), nameof(MapTemperature.SeasonalTemp), MethodType.Getter)]
+[PatchLevel(Level.Safe)]
+public static class Patch_MapTemperature_SeasonalTemp
+{
+    public static bool Prefix(Map ___map, ref float __result)
+    {
+        if (___map.IsVehicleMapOf(out var vehicle))
+        {
+            if (vehicle.Spawned)
+            {
+                __result = vehicle.Position.GetTemperature(vehicle.Map);
+            }
+            else if (vehicle.Tile != -1)
+            {
+                __result = Find.World.tileTemperatures.GetSeasonalTemp(vehicle.Tile);
+            }
+            return false;
+        }
+        return true;
+    }
+}
+
 
 //リソースカウンターに車上マップのリソースを追加
 [HarmonyPatch(typeof(ResourceCounter), nameof(ResourceCounter.UpdateResourceCounts))]
@@ -700,5 +724,42 @@ public static class Patch_Caravan_Notify_PawnRemoved
                 if (vehicle.IsWorldPawn() && vehicle.ParentHolder is null) vehicle.RemoveVehicleMap();
             });
         }
+    }
+}
+
+[HarmonyPatch(typeof(StorytellerUtility), nameof(StorytellerUtility.DefaultThreatPointsNow))]
+[PatchLevel(Level.Cautious)]
+public static class Patch_StorytellerUtility_DefaultThreatPointsNow
+{
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        var g_IsPocketMap = AccessTools.PropertyGetter(typeof(Map), nameof(Map.IsPocketMap));
+        var m_IsPocketMapReplace = AccessTools.Method(typeof(Patch_StorytellerUtility_DefaultThreatPointsNow), nameof(IsPocketMapReplace));
+        return instructions.MethodReplacer(g_IsPocketMap, m_IsPocketMapReplace);
+    }
+
+    private static bool IsPocketMapReplace(Map map)
+    {
+        if (!map.IsPocketMap) return false;
+        if (map.PocketMapParent?.sourceMap is null) return false;
+        return true;
+    }
+}
+
+[HarmonyPatch(typeof(QuestGen_TransportShip), nameof(QuestGen_TransportShip.AddShipJob_Arrive))]
+[PatchLevel(Level.Cautious)]
+public static class Patch_QuestGen_TransportShip_AddShipJob_Arrive
+{
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        var codes = new CodeMatcher(instructions);
+        codes.MatchStartForward(new CodeMatch(OpCodes.Isinst, typeof(PocketMapParent)));
+        codes.MatchStartForward(new CodeMatch(OpCodes.Brfalse_S));
+        var label = codes.Operand;
+        codes.InsertAfter(
+            CodeInstruction.LoadLocal(0),
+            CodeInstruction.LoadField(typeof(PocketMapParent), nameof(PocketMapParent.sourceMap)),
+            new CodeInstruction(OpCodes.Brfalse_S, label));
+        return codes.Instructions();
     }
 }

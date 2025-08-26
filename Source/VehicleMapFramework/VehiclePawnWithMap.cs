@@ -316,7 +316,13 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
     {
         if (Find.Maps.Contains(interiorMap))
         {
-            interiorMap.PocketMapParent?.sourceMap = null;
+            var pocketMapParent = interiorMap.PocketMapParent;
+            if (pocketMapParent != null)
+            {
+                pocketMapParent.sourceMap = null;
+                Find.World.pocketMaps.Remove(pocketMapParent);
+                Find.World.renderer.wantedMode = WorldRenderMode.None;
+            }
             Current.Game.DeinitAndRemoveMap(interiorMap, false);
         }
         interiorMap = null;
@@ -324,6 +330,16 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         if (!VehicleMapFramework.settings.dynamicUnpatchEnabled) return;
         if (VehicleMapParentsComponent.CachedParentVehicle.Any(p => p.Value.Value != null)) return;
         VMF_Harmony.DynamicPatchAll(VehicleMapFramework.settings.dynamicPatchLevel);
+    }
+
+    private void CacheDrawPos(Vector3 drawLoc)
+    {
+        LongEventHandler.ExecuteWhenFinished(() =>
+        {
+            var transform = new TransformData(drawLoc + Transform.position, FullRotation, Transform.rotation);
+            var result = VehicleGraphic.ParallelGetPreRenderResults(ref transform, false, this, 0f);
+            cachedDrawPos = result.position;
+        });
     }
 
     public override void SpawnSetup(Map map, bool respawningAfterLoad)
@@ -358,6 +374,7 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         }
 
         base.SpawnSetup(map, respawningAfterLoad);
+        CacheDrawPos(DrawPos);
         VehiclePawnWithMapCache.RegisterVehicle(this);
         mapFollower = new VehicleMapFollower(this);
 
@@ -382,9 +399,7 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
     {
         if (Spawned)
         {
-            var transform = new TransformData(DrawPos, FullRotation, Transform.rotation);
-            var result = VehicleGraphic.ParallelGetPreRenderResults(ref transform, false, this, 0f);
-            cachedDrawPos = result.position;
+            CacheDrawPos(DrawPos);
             mapFollower.MapFollowerTick();
         }
         else if (this.IsHashIntervalTick(15))
@@ -534,10 +549,8 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         }
         DrawTracker.DynamicDrawPhaseAt(DrawPhase.Draw, in cachedDrawPos, rot, rotation.FlipAngle(this));
 
-        var transform = new TransformData(drawLoc.WithYOffset(-Altitudes.AltInc * 100f) + Transform.position, FullRotation, Transform.rotation);
-        var result = VehicleGraphic.ParallelGetPreRenderResults(ref transform, false, this, 0f);
-        cachedDrawPos = result.position;
-        DrawVehicleMap(Transform.rotation);
+        CacheDrawPos(drawLoc.WithYOffset(-Altitudes.AltInc * 100f));
+        DrawVehicleMap();
     }
 
     public override void DynamicDrawPhaseAt(DrawPhase phase, Vector3 drawLoc, bool flip = false)
@@ -549,7 +562,7 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
             {
                 CellDesignationsDirty();
             }
-            DrawVehicleMap(Transform.rotation);
+            DrawVehicleMap();
         }
     }
 
@@ -561,7 +574,7 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         }
     }
 
-    public virtual void DrawVehicleMap(float extraRotation)
+    public virtual void DrawVehicleMap()
     {
         var map = interiorMap;
         //PlantFallColors.SetFallShaderGlobals(map);
@@ -572,8 +585,8 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         //map.powerNetGrid.DrawDebugPowerNetGrid();
         //DoorsDebugDrawer.DrawDebug();
         //map.mapDrawer.DrawMapMesh();
-        var drawPos = Vector3.zero.ToBaseMapCoord(this, extraRotation);
-        DrawVehicleMapMesh(map, drawPos, extraRotation);
+        var drawPos = Vector3.zero.ToBaseMapCoord(this);
+        DrawVehicleMapMesh(map, drawPos);
         DynamicDrawManagerOnVehicle.DrawDynamicThings(map);
         DrawClippers(map);
         map.designationManager.DrawDesignations();
@@ -591,7 +604,7 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         //MapEdgeClipDrawer.DrawClippers(__instance);
     }
 
-    private void DrawVehicleMapMesh(Map map, Vector3 drawPos, float extraRotation)
+    private void DrawVehicleMapMesh(Map map, Vector3 drawPos)
     {
         var mapDrawer = map.mapDrawer;
         for (int i = 0; i < map.Size.x; i += 17)
@@ -599,32 +612,32 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
             for (int j = 0; j < map.Size.z; j += 17)
             {
                 var section = mapDrawer.SectionAt(new IntVec3(i, 0, j));
-                DrawSection(section, drawPos, extraRotation);
+                DrawSection(section, drawPos);
             }
         }
     }
 
-    protected virtual void DrawSection(Section section, Vector3 drawPos, float extraRotation)
+    protected virtual void DrawSection(Section section, Vector3 drawPos)
     {
         var rot = FullRotation;
-        ((SectionLayer_TerrainOnVehicle)section.GetLayer(typeof(SectionLayer_TerrainOnVehicle))).DrawLayer(rot, drawPos, extraRotation);
-        ((SectionLayer_ThingsGeneralOnVehicle)section.GetLayer(typeof(SectionLayer_ThingsGeneralOnVehicle))).DrawLayer(rot, drawPos, extraRotation);
-        DrawLayer(section, typeof(SectionLayer_BuildingsDamage), drawPos, extraRotation);
+        ((SectionLayer_TerrainOnVehicle)section.GetLayer(typeof(SectionLayer_TerrainOnVehicle))).DrawLayer(rot, drawPos, Transform.rotation);
+        ((SectionLayer_ThingsGeneralOnVehicle)section.GetLayer(typeof(SectionLayer_ThingsGeneralOnVehicle))).DrawLayer(rot, drawPos, Transform.rotation);
+        DrawLayer(section, typeof(SectionLayer_BuildingsDamage), drawPos);
         if ((Find.WindowStack.TryGetWindow<MainTabWindow_Architect>(out var window) && (window.selectedDesPanel?.def.showPowerGrid ?? false)) ||
             (Find.DesignatorManager.SelectedDesignator is Designator_Build designator && designator.PlacingDef is ThingDef tDef && tDef.HasComp<CompPower>()))
         {
-            ((SectionLayer_ThingsPowerGridOnVehicle)section.GetLayer(typeof(SectionLayer_ThingsPowerGridOnVehicle))).DrawLayer(rot, drawPos.Yto0(), extraRotation);
+            ((SectionLayer_ThingsPowerGridOnVehicle)section.GetLayer(typeof(SectionLayer_ThingsPowerGridOnVehicle))).DrawLayer(rot, drawPos.Yto0(), Transform.rotation);
         }
-        DrawLayer(section, t_SectionLayer_Zones, drawPos, extraRotation);
+        DrawLayer(section, t_SectionLayer_Zones, drawPos);
         if (Find.CurrentMap == interiorMap && !VehicleMapFramework.settings.drawPlanet)
         {
-            DrawLayer(section, typeof(SectionLayer_LightingOverlay), drawPos, extraRotation);
+            DrawLayer(section, typeof(SectionLayer_LightingOverlay), drawPos);
         }
         else
         {
-            ((SectionLayer_LightingOnVehicle)section.GetLayer(typeof(SectionLayer_LightingOnVehicle))).DrawLayer(this, drawPos, extraRotation);
+            ((SectionLayer_LightingOnVehicle)section.GetLayer(typeof(SectionLayer_LightingOnVehicle))).DrawLayer(this, drawPos, Transform.rotation);
         }
-        DrawModLayers(section, drawPos, extraRotation);
+        DrawModLayers(section, drawPos);
         //if (DebugViewSettings.drawSectionEdges)
         //{
         //    Vector3 a = section.botLeft.ToVector3();
@@ -643,22 +656,22 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         //}
     }
 
-    protected virtual void DrawModLayers(Section section, Vector3 drawPos, float extraRotation)
+    protected virtual void DrawModLayers(Section section, Vector3 drawPos)
     {
         if (VFECore.Active)
         {
-            ((SectionLayer_ThingsOnVehicle)section.GetLayer(VFECore.SectionLayer_ResourceOnVehicle))?.DrawLayer(FullRotation, drawPos, extraRotation);
+            ((SectionLayer_ThingsOnVehicle)section.GetLayer(VFECore.SectionLayer_ResourceOnVehicle))?.DrawLayer(FullRotation, drawPos, Transform.rotation);
         }
         if (DefenseGrid.Active)
         {
             var selDesignator = Find.DesignatorManager.SelectedDesignator;
             if (selDesignator is Designator_Build designator_Build && designator_Build.PlacingDef is ThingDef thingDef && thingDef.HasComp(DefenseGrid.CompDefenseConduit))
             {
-                DrawLayer(section, DefenseGrid.SectionLayer_DefenseGridOverlay, drawPos.Yto0(), extraRotation);
+                DrawLayer(section, DefenseGrid.SectionLayer_DefenseGridOverlay, drawPos.Yto0());
             }
             else if (DefenseGrid.Designator_DeconstructConduit.IsAssignableFrom(selDesignator?.GetType()))
             {
-                DrawLayer(section, DefenseGrid.SectionLayer_DefenseGridOverlay, drawPos.Yto0(), extraRotation);
+                DrawLayer(section, DefenseGrid.SectionLayer_DefenseGridOverlay, drawPos.Yto0());
             }
         }
         if (DubsBadHygiene.Active && !DubsBadHygiene.LiteMode)
@@ -673,11 +686,11 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
                 var mode = DubsBadHygiene.CompProperties_Pipe_mode(compProperties);
                 if (sewagePipeOverlay != null & DubsBadHygiene.SectionLayer_PipeOverlay_mode(sewagePipeOverlay) == mode)
                 {
-                    DrawLayer(section, DubsBadHygiene.SectionLayer_SewagePipeOverlay, drawPos.Yto0(), extraRotation);
+                    DrawLayer(section, DubsBadHygiene.SectionLayer_SewagePipeOverlay, drawPos.Yto0());
                 }
                 if (airDuctOverlay != null && DubsBadHygiene.SectionLayer_PipeOverlay_mode(airDuctOverlay) == mode)
                 {
-                    DrawLayer(section, DubsBadHygiene.SectionLayer_AirDuctOverlay, drawPos.Yto0(), extraRotation);
+                    DrawLayer(section, DubsBadHygiene.SectionLayer_AirDuctOverlay, drawPos.Yto0());
                 }
                 if (Time.frameCount % 120 == 0)
                 {
@@ -685,9 +698,9 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
                     section.GetLayer(DubsBadHygiene.SectionLayer_AirDuctOverlay)?.Regenerate();
                 }
             }
-            DrawLayer(section, DubsBadHygiene.SectionLayer_Irrigation, drawPos, extraRotation);
-            DrawLayer(section, DubsBadHygiene.SectionLayer_FertilizerGrid, drawPos, extraRotation);
-            ((SectionLayer_ThingsSewagePipeOnVehicle)section.GetLayer(typeof(SectionLayer_ThingsSewagePipeOnVehicle)))?.DrawLayer(FullRotation, drawPos, extraRotation);
+            DrawLayer(section, DubsBadHygiene.SectionLayer_Irrigation, drawPos);
+            DrawLayer(section, DubsBadHygiene.SectionLayer_FertilizerGrid, drawPos);
+            ((SectionLayer_ThingsSewagePipeOnVehicle)section.GetLayer(typeof(SectionLayer_ThingsSewagePipeOnVehicle)))?.DrawLayer(FullRotation, drawPos, Transform.rotation);
         }
         if (Rimefeller.Active)
         {
@@ -700,25 +713,25 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
                 var mode = Rimefeller.CompProperties_Pipe_mode(compProperties);
                 if (sewagePipeOverlay != null & Rimefeller.SectionLayer_PipeOverlay_mode(sewagePipeOverlay) == mode)
                 {
-                    DrawLayer(section, Rimefeller.SectionLayer_SewagePipe, drawPos.Yto0(), extraRotation);
+                    DrawLayer(section, Rimefeller.SectionLayer_SewagePipe, drawPos.Yto0());
                 }
                 if (Time.frameCount % 120 == 0)
                 {
                     section.GetLayer(Rimefeller.SectionLayer_SewagePipe)?.Regenerate();
                 }
             }
-            DrawLayer(section, Rimefeller.XSectionLayer_Napalm, drawPos, extraRotation);
-            DrawLayer(section, Rimefeller.XSectionLayer_OilSpill, drawPos, extraRotation);
-            ((SectionLayer_ThingsPipeOnVehicle)section.GetLayer(typeof(SectionLayer_ThingsPipeOnVehicle)))?.DrawLayer(FullRotation, drawPos, extraRotation);
+            DrawLayer(section, Rimefeller.XSectionLayer_Napalm, drawPos);
+            DrawLayer(section, Rimefeller.XSectionLayer_OilSpill, drawPos);
+            ((SectionLayer_ThingsPipeOnVehicle)section.GetLayer(typeof(SectionLayer_ThingsPipeOnVehicle)))?.DrawLayer(FullRotation, drawPos, Transform.rotation);
         }
         if (ModsConfig.OdysseyActive)
         {
-            ((SectionLayer_SubstructurePropsOnVehicle)section.GetLayer(typeof(SectionLayer_SubstructurePropsOnVehicle)))?.DrawLayer(FullRotation, drawPos, extraRotation);
-            ((SectionLayer_GravshipHullOnVehicle)section.GetLayer(typeof(SectionLayer_GravshipHullOnVehicle)))?.DrawLayer(FullRotation, drawPos, extraRotation);
+            ((SectionLayer_SubstructurePropsOnVehicle)section.GetLayer(typeof(SectionLayer_SubstructurePropsOnVehicle)))?.DrawLayer(FullRotation, drawPos, Transform.rotation);
+            ((SectionLayer_GravshipHullOnVehicle)section.GetLayer(typeof(SectionLayer_GravshipHullOnVehicle)))?.DrawLayer(FullRotation, drawPos, Transform.rotation);
         }
     }
 
-    private void DrawLayer(Section section, Type layerType, Vector3 drawPos, float extraRotation)
+    private void DrawLayer(Section section, Type layerType, Vector3 drawPos)
     {
         if (layerType == null) return;
 
@@ -727,12 +740,12 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         {
             return;
         }
-        var angle = Ext_Math.RotateAngle(FullRotation.AsAngle, extraRotation);
+        var fullAngle = this.FullAngle();
         foreach (var subMesh in layer.subMeshes)
         {
             if (subMesh.finalized && !subMesh.disabled)
             {
-                Graphics.DrawMesh(subMesh.mesh, drawPos, Quaternion.AngleAxis(angle, Vector3.up), subMesh.material, 0);
+                Graphics.DrawMesh(subMesh.mesh, drawPos, Quaternion.AngleAxis(fullAngle, Vector3.up), subMesh.material, 0);
             }
         }
     }

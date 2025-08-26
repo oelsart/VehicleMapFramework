@@ -120,6 +120,8 @@ public class MethodInfoCache
 
     public readonly MethodInfo g_Rot8_AsAngle = AccessTools.PropertyGetter(typeof(Rot8), nameof(Rot8.AsAngle));
 
+    public readonly MethodInfo m_AngleRotated = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.AngleRotated));
+
     public readonly MethodInfo m_FullAngle = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.FullAngle));
 
     public readonly MethodInfo m_FlipAngle = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.FlipAngle));
