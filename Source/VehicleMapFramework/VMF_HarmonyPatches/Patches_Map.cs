@@ -220,6 +220,21 @@ public static class Patch_ResourceCounter_UpdateResourceCounts
 [HarmonyPatch(typeof(Map), nameof(Map.MapUpdate))]
 public static class Patch_Map_MapUpdate
 {
+    private static RenderTexture tmpRenderTex;
+
+    private const int textureSize = 2048;
+
+    public readonly static Vector2 MeshSize = new(200f, 200f);
+
+    private static Mesh mesh200 = MeshPool.GridPlane(MeshSize);
+
+    private static Material mat;
+
+    private static Material skyMat = SolidColorMaterials.NewSolidColorMaterial(Color.black, ShaderDatabase.SolidColor);
+
+    public static int lastRenderedTick = -1;
+
+    private static AccessTools.FieldRef<WorldCameraDriver, float> desiredAltitude = AccessTools.FieldRefAccess<WorldCameraDriver, float>("desiredAltitude");
     [PatchLevel(Level.Safe)]
     public static void Postfix(Map __instance)
     {
@@ -235,22 +250,15 @@ public static class Patch_Map_MapUpdate
             }
             return null;
         }
-
-        if (VehicleMapFramework.settings.drawPlanet && Find.CurrentMap == __instance && __instance.IsVehicleMapOf(out var vehicle) &&
-            WorldRendererUtility.DrawingMap)
+        var focused = Find.CurrentMap == __instance;
+        if (VehicleMapFramework.settings.drawPlanet && focused && __instance.IsVehicleMapOf(out var vehicle) && WorldRendererUtility.DrawingMap && !Find.World.renderer.RegenerateLayersIfDirtyInLongEvent())
         {
-            if (Find.World.renderer.RegenerateLayersIfDirtyInLongEvent())
-            {
-                return;
-            }
-
             float angle = vehicle.Transform.rotation + vehicle.Rotation.AsAngle;
-            if (GenTicks.TicksGame != lastRenderedTick && Time.frameCount % 2 == 0)
+            if (GenTicks.TicksGame != lastRenderedTick && Time.frameCount % 2 == 0 || mat != null && tmpRenderTex == null)
             {
                 var worldObject = GetWorldObject(vehicle);
                 if (worldObject == null) return;
                 lastRenderedTick = GenTicks.TicksGame;
-                var targetTexture = Find.WorldCamera.targetTexture;
                 Find.World.renderer.wantedMode = WorldRenderMode.Planet;
                 Find.WorldCameraDriver.JumpTo(worldObject.DrawPos);
                 Find.WorldCameraDriver.altitude = 140f;
@@ -264,7 +272,14 @@ public static class Patch_Map_MapUpdate
                     layer.Render();
                 }
                 Find.World.dynamicDrawManager.DrawDynamicWorldObjects();
-                Find.WorldCamera.targetTexture = renderTexture;
+
+                if (tmpRenderTex != null)
+                {
+                    RenderTexture.ReleaseTemporary(tmpRenderTex);
+                }
+                tmpRenderTex = RenderTexture.GetTemporary(textureSize, textureSize);
+                var targetTexture = Find.WorldCamera.targetTexture;
+                Find.WorldCamera.targetTexture = tmpRenderTex;
                 Find.WorldCamera.Render();
                 Find.WorldCamera.targetTexture = targetTexture;
                 Find.World.renderer.wantedMode = WorldRenderMode.None;
@@ -273,11 +288,11 @@ public static class Patch_Map_MapUpdate
                 Find.CameraDriver.Update();
                 if (mat == null)
                 {
-                    mat = MaterialPool.MatFrom(new MaterialRequest(renderTexture));
+                    mat = MaterialPool.MatFrom(new MaterialRequest(tmpRenderTex));
                 }
                 else
                 {
-                    mat.SetTexture(0, renderTexture);
+                    mat.mainTexture = tmpRenderTex;
                 }
 
                 var planetLayer = __instance.Tile.Layer;
@@ -308,16 +323,21 @@ public static class Patch_Map_MapUpdate
             }
             var longSide = Mathf.Max(vehicle.DrawSize.x / 2f, vehicle.DrawSize.y / 2f);
             var drawPos = new Vector3(longSide, 0f, longSide);
-            if (mat != null) 
+            if (mat != null)
             {
                 Graphics.DrawMesh(mesh200, drawPos, Quaternion.identity, mat, 0);
             }
-            
+
             skyMat.color = Color.black.WithAlpha((1f - vehicle.VehicleMap.skyManager.CurSkyGlow) * 0.2f);
             skyMat.renderQueue = 3100;
             Graphics.DrawMesh(mesh200, drawPos.WithY(AltitudeLayer.LightingOverlay.AltitudeFor()), Quaternion.identity, skyMat, 0);
             drawPos = drawPos.SetToAltitude(AltitudeLayer.LayingPawn);
             vehicle.DrawAt(in drawPos, vehicle.FullRotation, angle - vehicle.FullRotation.AsAngle);
+        }
+        else if(tmpRenderTex != null && focused)
+        {
+            RenderTexture.ReleaseTemporary(tmpRenderTex);
+            tmpRenderTex = null;
         }
     }
 
@@ -347,22 +367,6 @@ public static class Patch_Map_MapUpdate
         ]);
         return codes;
     }
-
-    private static RenderTexture renderTexture = RenderTexture.GetTemporary(textureSize, textureSize);
-
-    private const int textureSize = 2048;
-
-    public readonly static Vector2 MeshSize = new(200f, 200f);
-
-    private static Mesh mesh200 = MeshPool.GridPlane(MeshSize);
-
-    private static Material mat;
-
-    private static Material skyMat = SolidColorMaterials.NewSolidColorMaterial(Color.black, ShaderDatabase.SolidColor);
-
-    public static int lastRenderedTick = -1;
-
-    private static AccessTools.FieldRef<WorldCameraDriver, float> desiredAltitude = AccessTools.FieldRefAccess<WorldCameraDriver, float>("desiredAltitude");
 }
 
 [HarmonyPatch(typeof(MapPawns), nameof(MapPawns.AllPawns), MethodType.Getter)]

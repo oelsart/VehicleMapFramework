@@ -55,7 +55,7 @@
 	<ThingDef ParentName="VMF_GravshipWheelBase">
 		<defName>VMF_GravshipWheelSmall</defName>
 		<label>gravship wheel (1x2)</label>
-		<description>Equipment for the gravship to travel on the ground. It also serves as a thruster for movement in space, and the number of wheels affects the maximum payload and travel speed.\n\n&lt;color=#bb8f04&gt;Maximum payload:&lt;/color&gt; +500 kg\n&lt;color=#bb8f04&gt;Move speed:&lt;/color&gt; +0.75</description>
+		<description>Equipment for the gravship to travel on the ground. It also serves as a thruster for movement in space, and the number of wheels affects the maximum payload and travel speed.\nOnly tires facing the same direction as the pilot console will be recognized.\n\n&lt;color=#bb8f04&gt;Maximum payload:&lt;/color&gt; +500 kg\n&lt;color=#bb8f04&gt;Move speed:&lt;/color&gt; +0.75</description>
 		<graphicData>
 			<drawSize>(2,1)</drawSize>
 		</graphicData>
@@ -95,7 +95,7 @@
 	<ThingDef ParentName="VMF_GravshipWheelBase">
 		<defName>VMF_GravshipWheelLarge</defName>
 		<label>gravship wheel (2x4)</label>
-		<description>Equipment for the gravship to travel on the ground. It also serves as a thruster for movement in space, and the number of wheels affects the maximum payload and travel speed.\n\n&lt;color=#bb8f04&gt;Maximum payload:&lt;/color&gt; +2000 kg\n&lt;color=#bb8f04&gt;Move speed:&lt;/color&gt; +1.5</description>
+		<description>Equipment for the gravship to travel on the ground. It also serves as a thruster for movement in space, and the number of wheels affects the maximum payload and travel speed.\nOnly tires facing the same direction as the pilot console will be recognized.\n\n&lt;color=#bb8f04&gt;Maximum payload:&lt;/color&gt; +2000 kg\n&lt;color=#bb8f04&gt;Move speed:&lt;/color&gt; +1.5</description>
 		<graphicData>
 			<drawSize>(4,2)</drawSize>
 		</graphicData>
