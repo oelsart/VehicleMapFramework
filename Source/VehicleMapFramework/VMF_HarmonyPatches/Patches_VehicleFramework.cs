@@ -514,9 +514,9 @@ public static class Patch_Command_CooldownAction_DrawBottomBar
 [PatchLevel(Level.Safe)]
 public static class Patch_LaunchProtocol_GetArrivalOptions
 {
-    public static IEnumerable<ArrivalOption> Postfix(IEnumerable<ArrivalOption> __result, GlobalTargetInfo target, LaunchProtocol __instance)
+    public static IEnumerable<ArrivalOption> Postfix(IEnumerable<ArrivalOption> values, GlobalTargetInfo target, LaunchProtocol __instance)
     {
-        foreach (var arrivalOption in __result)
+        foreach (var arrivalOption in values)
         {
             yield return arrivalOption;
         }
@@ -526,35 +526,11 @@ public static class Patch_LaunchProtocol_GetArrivalOptions
             yield break;
         }
 
-        IEnumerable<VehiclePawnWithMap> vehicles = null;
-        if (target.WorldObject is MapParent mapParent && mapParent.HasMap)
+        var mapParents = Find.World.pocketMaps.Where(p => p.Tile == target.Tile).OfType<MapParent_Vehicle>();
+        foreach (var mapParent in mapParents)
         {
-            vehicles = VehiclePawnWithMapCache.AllVehiclesOn(mapParent.Map);
-        }
-        else if (target.WorldObject is Caravan caravan)
-        {
-            if (caravan is VehicleCaravan vehicleCaravan)
-            {
-                vehicles = vehicleCaravan.Vehicles.OfType<VehiclePawnWithMap>();
-            }
-            else
-            {
-                vehicles = caravan.pawns.OfType<VehiclePawnWithMap>();
-            }
-        }
-        else if (target.WorldObject is AerialVehicleInFlight aerial)
-        {
-            vehicles = aerial.Vehicles.OfType<VehiclePawnWithMap>();
-        }
-
-        if (vehicles is null) yield break;
-
-        foreach (var vehiclePawnWithMap in vehicles)
-        {
-            mapParent = vehiclePawnWithMap.VehicleMap.Parent;
-
             var vehicle = __instance.Vehicle;
-            if (mapParent is { Spawned: true, HasMap: true } && !mapParent.EnterCooldownBlocksEntering())
+            if (mapParent.HasMap && !mapParent.EnterCooldownBlocksEntering())
             {
                 yield return new ArrivalOption("LandInExistingMap".Translate(vehicle.Label),
                   continueWith: delegate (TargetData<GlobalTargetInfo> targetData)
@@ -579,27 +555,11 @@ public static class Patch_LaunchProtocol_GetArrivalOptions
                               CameraJumper.TryShowWorld();
                           }
                       }, allowRotating: vehicle.VehicleDef.rotatable,
-                targetValidator: targetInfo =>
+                targetValidator: targetInfo => targetInfo.Cell.InBounds(mapParent.Map) &&
                   !Ext_Vehicles.IsRoofRestricted(vehicle.VehicleDef, targetInfo.Cell, mapParent.Map));
                   });
             }
         }
-    }
-}
-
-//カーソルが画面からマップの表示範囲から大きく外れた時に範囲外でGetRoofしようとしてしまう、おそらくVF本体のバグ修正
-[HarmonyPatch(typeof(Ext_Vehicles), nameof(Ext_Vehicles.IsRoofRestricted), typeof(IntVec3), typeof(Map), typeof(bool))]
-[PatchLevel(Level.Safe)]
-public static class Patch_Ext_Vehicles_IsRoofRestricted
-{
-    public static bool Prefix(IntVec3 cell, Map map, ref bool __result)
-    {
-        if (!cell.InBounds(map))
-        {
-            __result = false;
-            return false;
-        }
-        return true;
     }
 }
 
@@ -1215,52 +1175,20 @@ public static class Patch_VehicleGhostUtility_DrawGhostOverlays
     }
 }
 
-//VehicleSkyfallerのyが上書きされてたので車上のVehicleSkyfallerはy足しときなね
-[HarmonyPatch(typeof(LaunchProtocol), nameof(LaunchProtocol.Draw))]
-[PatchLevel(Level.Sensitive)]
-public static class Patch_LaunchProtocol_Draw
-{
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
-    {
-        var codes = instructions.ToList();
-        var m_AltitudeFor = AccessTools.Method(typeof(Altitudes), nameof(Altitudes.AltitudeFor), [typeof(AltitudeLayer)]);
-        var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(m_AltitudeFor)) + 1;
-        var label = generator.DefineLabel();
-        var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithMap));
-
-        codes[pos].labels.Add(label);
-        codes.InsertRange(pos,
-        [
-            CodeInstruction.LoadArgument(0),
-            CodeInstruction.LoadField(typeof(LaunchProtocol), "map"),
-            new CodeInstruction(OpCodes.Ldloca_S, vehicle),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsNonFocusedVehicleMapOf),
-            new CodeInstruction(OpCodes.Brfalse_S, label),
-            new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-        new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_YOffsetFull2)
-        ]);
-        return codes;
-    }
-}
-
+//ここでのTransformData.rotationは西向き時反転する前提の数値なので、車両マップキャラバン描画のユースケースでは正しく描画されるように補正する
 [HarmonyPatch(typeof(VehicleTurret), "ParallelPreRenderResults")]
-[PatchLevel(Level.Cautious)]
+[PatchLevel(Level.Safe)]
 public static class Patch_VehicleTurret_ParallelPreRenderResults
 {
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    public static void Prefix(VehicleTurret __instance, ref TransformData transformData, ref float rotation, ref float parentRotation)
     {
-        var f_rotation = AccessTools.Field(typeof(TransformData), nameof(TransformData.rotation));
-        var m_Rotation = AccessTools.Method(typeof(Patch_VehicleTurret_ParallelPreRenderResults), nameof(Rotation));
-        return instructions.Manipulator(c => c.LoadsField(f_rotation), c =>
+        //車両マップキャラバン画面で複数車両を描画する機能の実装を想定した条件
+        if (__instance.vehicle is VehiclePawnWithMap && Find.CurrentMap.IsVehicleMapOf(out _) && (Rot4)transformData.orientation == Rot4.West)
         {
-            c.opcode = OpCodes.Call;
-            c.operand = m_Rotation;
-        });
-    }
-
-    private static float Rotation(in TransformData transformData)
-    {
-        return transformData.orientation == Rot8.West ? -transformData.rotation : transformData.rotation;
+            var offset = transformData.rotation * 2f;
+            rotation -= offset;
+            parentRotation -= offset;
+        }
     }
 }
 

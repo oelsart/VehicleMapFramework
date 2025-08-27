@@ -317,7 +317,7 @@ public static class Patch_Map_MapUpdate
             skyMat.renderQueue = 3100;
             Graphics.DrawMesh(mesh200, drawPos.WithY(AltitudeLayer.LightingOverlay.AltitudeFor()), Quaternion.identity, skyMat, 0);
             drawPos = drawPos.SetToAltitude(AltitudeLayer.LayingPawn);
-            vehicle.DrawAt(in drawPos, vehicle.FullRotation, angle - vehicle.Rotation.AsAngle);
+            vehicle.DrawAt(in drawPos, vehicle.FullRotation, angle - vehicle.FullRotation.AsAngle);
         }
     }
 
