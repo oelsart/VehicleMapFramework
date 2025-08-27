@@ -8,6 +8,12 @@ namespace VehicleMapFramework;
 
 public static class VerbOnVehicleUtility
 {
+    private static readonly List<Thing> cellThingsFiltered = [];
+
+    private static List<IntVec3> tempLeanShootSources = [];
+
+    private static List<IntVec3> tempDestList = [];
+
     public static bool TryFindShootLineFromToOnVehicle(this Verb verb, IntVec3 root, LocalTargetInfo targ, out ShootLine resultingLine, bool ignoreRange = false)
     {
         var flag = verb.caster.IsOnVehicleMapOf(out var vehicle);
@@ -32,7 +38,7 @@ public static class VerbOnVehicleUtility
         }
 
         // 車両マップの下から上や上から下への射線は通らないものとする
-        if (flag && !flag2 && targ.Thing.Position.TryGetVehicleMap(casterBaseMap, out var vehicle4) && vehicle4 == vehicle2 ||
+        if (flag && !flag2 && targ.Cell.InBounds(casterBaseMap) && targ.Cell.TryGetVehicleMap(casterBaseMap, out var vehicle4) && vehicle4 == vehicle2 ||
             !flag && flag2 && verb.caster.Position.TryGetVehicleMap(casterBaseMap, out vehicle4) && vehicle4 == vehicle ||
             !flag && flag3 && verb.caster.Position.TryGetVehicleMap(casterBaseMap, out vehicle4) && vehicle4 == vehicle3)
         {
@@ -160,10 +166,4 @@ public static class VerbOnVehicleUtility
         bool flag = pawn != null && pawn.Downed;
         return (verb.CasterPawn == null || verb.CasterPawn.Faction != Faction.OfPlayer || !verb.CasterPawn.IsShambler) && (pawn == null || pawn.Faction != Faction.OfPlayer || !pawn.IsShambler) && ((thing.Faction == Faction.OfPlayer && verb.caster.HostileTo(Faction.OfPlayer)) || (verb.caster.Faction == Faction.OfPlayer && thing.HostileTo(Faction.OfPlayer) && !flag));
     }
-
-    private static readonly List<Thing> cellThingsFiltered = [];
-
-    private static List<IntVec3> tempLeanShootSources = [];
-
-    private static List<IntVec3> tempDestList = [];
 }

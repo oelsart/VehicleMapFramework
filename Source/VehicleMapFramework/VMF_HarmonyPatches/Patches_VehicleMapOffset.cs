@@ -615,12 +615,20 @@ public static class Patch_GenDraw_DrawTargetHighlightWithLayer
         codes.Insert(pos, new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ToBaseMapCoord1));
         return codes;
     }
+}
 
-    [PatchLevel(Level.Safe)]
-    [HarmonyPatch([typeof(Vector3), typeof(AltitudeLayer)])]
-    public static void Prefix(ref Vector3 c)
+[HarmonyPatch(typeof(GenDraw), nameof(GenDraw.DrawFieldEdges), typeof(List<IntVec3>), typeof(Color), typeof(float?), typeof(HashSet<IntVec3>), typeof(int))]
+[PatchLevel(Level.Safe)]
+public static class Patch_GenDraw_DrawFieldEdges
+{
+    public static bool Prefix(List<IntVec3> cells, Color color, float? altOffset, HashSet<IntVec3> ignoreBorderCells, int renderQueue)
     {
-        c = c.ToBaseMapCoord();
+        if (Find.CurrentMap.IsVehicleMapOf(out var vehicle))
+        {
+            GenDrawOnVehicle.DrawFieldEdges(cells, color, altOffset, ignoreBorderCells, renderQueue, vehicle.VehicleMap);
+            return false;
+        }
+        return true;
     }
 }
 
