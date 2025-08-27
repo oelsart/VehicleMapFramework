@@ -25,7 +25,7 @@ public static class Patch_Verb_TryFindShootLineFromTo
         if ((__instance.caster.IsOnVehicleMapOf(out _) ||
             targ.Thing.IsOnVehicleMapOf(out _) ||
             (TargetMapManager.HasTargetMap(__instance.caster, out var map) && map.IsVehicleMapOf(out _)) ||
-            GenSight.PointsOnLineOfSight(root, targ.Cell).Any(c => c.TryGetVehicleMap(__instance.caster.Map, out _))))
+            root.IsValid && GenSight.PointsOnLineOfSight(root, targ.Cell).Any(c => c.InBounds(__instance.caster.Map) && c.TryGetVehicleMap(__instance.caster.Map, out _))))
         {
             __result = __instance.TryFindShootLineFromToOnVehicle(root, targ, out resultingLine, ignoreRange);
             return false;
