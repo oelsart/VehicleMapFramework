@@ -14,7 +14,7 @@
 		<drawerType>MapMeshAndRealTime</drawerType>
 		<tickerType>Normal</tickerType>
 		<graphicData>
-			<texPath>VehicleInteriors/Things/WirelessCharger/WirelessTransmitter</texPath>
+			<texPath>VehicleMapFramework/Things/WirelessCharger/WirelessTransmitter</texPath>
 			<graphicClass>Graphic_Single</graphicClass>
 		</graphicData>
 		<rotatable>false</rotatable>
@@ -42,7 +42,7 @@
 				<transmitsPower>true</transmitsPower>
 				<powerLossFactor>0.75</powerLossFactor>
 				<lightGraphic>
-					<texPath>VehicleInteriors/Things/WirelessCharger/WirelessTransmitterLight</texPath>
+					<texPath>VehicleMapFramework/Things/WirelessCharger/WirelessTransmitterLight</texPath>
 					<graphicClass>Graphic_Single</graphicClass>
 					<shaderType>TransparentPostLight</shaderType>
 				</lightGraphic>
@@ -60,7 +60,7 @@
 		<label>wireless power receiver</label>
 		<description>A device that receives power from a normal map. It can be placed on a vehicle map and receive power by aligning with a transmitter.</description>
 		<graphicData>
-			<texPath>VehicleInteriors/Things/WirelessCharger/WirelessReceiver</texPath>
+			<texPath>VehicleMapFramework/Things/WirelessCharger/WirelessReceiver</texPath>
 		</graphicData>
 		<rotatable>false</rotatable>
 		<uiOrder>1061</uiOrder>
@@ -69,7 +69,7 @@
 				<compClass>VehicleInteriors.CompWirelessReceiver</compClass>
 				<transmitsPower>true</transmitsPower>
 				<lightGraphic>
-					<texPath>VehicleInteriors/Things/WirelessCharger/WirelessReceiverLight</texPath>
+					<texPath>VehicleMapFramework/Things/WirelessCharger/WirelessReceiverLight</texPath>
 					<graphicClass>Graphic_Single</graphicClass>
 					<shaderType>TransparentPostLight</shaderType>
 				</lightGraphic>
@@ -93,7 +93,7 @@
 		<designationCategory>VF_Vehicles</designationCategory>
 		<fillPercent>0.60</fillPercent>
 		<graphicData>
-			<texPath>VehicleInteriors/Things/Alternator/Alternator</texPath>
+			<texPath>VehicleMapFramework/Things/Alternator/Alternator</texPath>
 			<graphicClass>Graphic_Multi</graphicClass>
 			<damageData>
 				<cornerTL>Damage/Corner</cornerTL>
@@ -164,7 +164,7 @@
 		<drawerType>MapMeshAndRealTime</drawerType>
 		<tickerType>Normal</tickerType>
 		<graphicData>
-			<texPath>VehicleInteriors/Things/PipeConnector/PipeConnector</texPath>
+			<texPath>VehicleMapFramework/Things/PipeConnector/PipeConnector</texPath>
 			<graphicClass>Graphic_Single</graphicClass>
 			<shaderType>CutoutComplex</shaderType>
 		</graphicData>
@@ -205,7 +205,7 @@
 		<thingClass>VehicleInteriors.Building_TurretGunForcedTargetOnly</thingClass>
 		<designationCategory>VF_Vehicles</designationCategory>
 		<graphicData>
-			<texPath>VehicleInteriors/Things/ZiplineTurret/ZiplineTurret_Base</texPath>
+			<texPath>VehicleMapFramework/Things/ZiplineTurret/ZiplineTurret_Base</texPath>
 			<drawSize>(2,2)</drawSize>
 			<drawOffset>(0,0,0.05)</drawOffset>
 			<drawRotated>false</drawRotated>
@@ -252,7 +252,7 @@
 			<li MayRequire="OskarPotocki.VanillaVehiclesExpanded">VVE_BasicVehicles</li>
 		</researchPrerequisites>
 		<uiOrder>1063</uiOrder>
-		<uiIconPath>VehicleInteriors/Things/ZiplineTurret/ZiplineTurret_MenuIcon</uiIconPath>
+		<uiIconPath>VehicleMapFramework/Things/ZiplineTurret/ZiplineTurret_MenuIcon</uiIconPath>
 		<placeWorkers Inherit="False">
 			<li>PlaceWorker_TurretTop</li>
 		</placeWorkers>
@@ -263,7 +263,7 @@
 		<label>zipline turret gun</label>
 		<description>A gun made to be mounted on a zipline turret.</description>
 		<graphicData>
-			<texPath>VehicleInteriors/Things/ZiplineTurret/ZiplineTurret_Top</texPath>
+			<texPath>VehicleMapFramework/Things/ZiplineTurret/ZiplineTurret_Top</texPath>
 			<graphicClass>Graphic_Single</graphicClass>
 		</graphicData>
 		<statBases>
@@ -295,7 +295,7 @@
 		<thingClass>VehicleInteriors.Bullet_ZiplineEnd</thingClass>
 		<graphicData>
 			<graphicClass>Graphic_Single</graphicClass>
-			<texPath>VehicleInteriors/Things/ZiplineTurret/Bullet_ZiplineEnd</texPath>
+			<texPath>VehicleMapFramework/Things/ZiplineTurret/Bullet_ZiplineEnd</texPath>
 		</graphicData>
 		<projectile>
 			<speed>120</speed>
@@ -310,7 +310,7 @@
 		<thingClass>VehicleInteriors.Bullet_ZiplineEndReturn</thingClass>
 		<graphicData>
 			<graphicClass>Graphic_Single</graphicClass>
-			<texPath>VehicleInteriors/Things/ZiplineTurret/Bullet_ZiplineEnd</texPath>
+			<texPath>VehicleMapFramework/Things/ZiplineTurret/Bullet_ZiplineEnd</texPath>
 		</graphicData>
 		<projectile>
 			<speed>45</speed>
@@ -327,7 +327,7 @@
 		<drawerType>MapMeshAndRealTime</drawerType>
 		<graphicData>
 			<graphicClass>Graphic_Single</graphicClass>
-			<texPath>VehicleInteriors/Things/ZiplineTurret/ZiplineEnd</texPath>
+			<texPath>VehicleMapFramework/Things/ZiplineTurret/ZiplineEnd</texPath>
 		</graphicData>
 		<statBases>
 			<Mass>0.1</Mass>

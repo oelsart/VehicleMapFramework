@@ -18,7 +18,7 @@
 			<li>BuildingsFurniture</li>
 		</thingCategories>
 		<graphicData>
-			<texPath>VehicleInteriors/Things/EnterSpot/Laddar</texPath>
+			<texPath>VehicleMapFramework/Things/EnterSpot/Laddar</texPath>
 			<graphicClass>Graphic_Multi</graphicClass>
 			<drawSize>(1.84765625,1.84765625)</drawSize>
 			<drawOffsetNorth>(0,0,-1)</drawOffsetNorth>
@@ -99,7 +99,7 @@
 		<label>ramp (1x1)</label>
 		<description>test</description>
 		<graphicData>
-			<texPath>VehicleInteriors/Things/EnterSpot/RampSmall</texPath>
+			<texPath>VehicleMapFramework/Things/EnterSpot/RampSmall</texPath>
 			<drawSize>(2,1)</drawSize>
 		</graphicData>
 		<statBases>
@@ -121,7 +121,7 @@
 		<label>ramp (1x3)</label>
 		<description>A ramp for vehicles to ascend and descend to a vehicle map. Vehicles up to 3 squares wide can ascend and descend from here.</description>
 		<graphicData>
-			<texPath>VehicleInteriors/Things/EnterSpot/RampMedium</texPath>
+			<texPath>VehicleMapFramework/Things/EnterSpot/RampMedium</texPath>
 			<drawSize>(3,1)</drawSize>
 		</graphicData>
 		<statBases>
@@ -137,11 +137,11 @@
 		<uiOrder>1011</uiOrder>
 		<building>
 			<upperMoverGraphic>
-				<texPath>VehicleInteriors/Things/EnterSpot/RampMedium</texPath>
+				<texPath>VehicleMapFramework/Things/EnterSpot/RampMedium</texPath>
 				<drawSize>(4,1)</drawSize>
 			</upperMoverGraphic>
 			<blueprintGraphicData>
-				<texPath>VehicleInteriors/Things/EnterSpot/RampMediumBlueprint</texPath>
+				<texPath>VehicleMapFramework/Things/EnterSpot/RampMediumBlueprint</texPath>
 				<drawSize>(4,2)</drawSize>
 			</blueprintGraphicData>
 		</building>
@@ -152,7 +152,7 @@
 		<label>ramp (1x5)</label>
 		<description>A ramp for vehicles to ascend and descend to a vehicle map. Vehicles up to 5 squares wide can ascend and descend from here.</description>
 		<graphicData>
-			<texPath>VehicleInteriors/Things/EnterSpot/RampLarge</texPath>
+			<texPath>VehicleMapFramework/Things/EnterSpot/RampLarge</texPath>
 			<drawSize>(5,1)</drawSize>
 		</graphicData>
 		<statBases>
@@ -168,11 +168,11 @@
 		<uiOrder>1012</uiOrder>
 		<building>
 			<upperMoverGraphic>
-				<texPath>VehicleInteriors/Things/EnterSpot/RampLarge</texPath>
+				<texPath>VehicleMapFramework/Things/EnterSpot/RampLarge</texPath>
 				<drawSize>(6,1)</drawSize>
 			</upperMoverGraphic>
 			<blueprintGraphicData>
-				<texPath>VehicleInteriors/Things/EnterSpot/RampLargeBlueprint</texPath>
+				<texPath>VehicleMapFramework/Things/EnterSpot/RampLargeBlueprint</texPath>
 				<drawSize>(6,2)</drawSize>
 			</blueprintGraphicData>
 		</building>

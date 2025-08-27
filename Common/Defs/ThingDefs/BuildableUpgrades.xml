@@ -22,7 +22,7 @@
 		<label>driver seat</label>
 		<description>Driver's seat of a vehicle. When this is installed, the vehicle can be controlled.</description>
 		<graphicData>
-			<texPath>VehicleInteriors/Things/BuildableUpgrade/VehicleSeat/DriverSeat</texPath>
+			<texPath>VehicleMapFramework/Things/BuildableUpgrade/VehicleSeat/DriverSeat</texPath>
 			<graphicClass>Graphic_Multi</graphicClass>
 			<drawSize>(1.1,2)</drawSize>
 		</graphicData>
@@ -77,7 +77,7 @@
 		<label>gunner seat</label>
 		<description>Gunner's seat of a vehicle. When this is installed, the selected turret of the vehicle can be controlled.</description>
 		<graphicData>
-			<texPath>VehicleInteriors/Things/BuildableUpgrade/VehicleSeat/GunnerSeat</texPath>
+			<texPath>VehicleMapFramework/Things/BuildableUpgrade/VehicleSeat/GunnerSeat</texPath>
 			<graphicClass>Graphic_Multi</graphicClass>
 			<drawSize>(1.1,2)</drawSize>
 		</graphicData>
@@ -131,7 +131,7 @@
 		<label>passenger seat</label>
 		<description>Passenger's seat of a vehicle.</description>
 		<graphicData>
-			<texPath>VehicleInteriors/Things/BuildableUpgrade/VehicleSeat/PassengerSeat</texPath>
+			<texPath>VehicleMapFramework/Things/BuildableUpgrade/VehicleSeat/PassengerSeat</texPath>
 			<graphicClass>Graphic_Multi</graphicClass>
 			<drawSize>(1.1,1.3417)</drawSize>
 		</graphicData>
@@ -184,11 +184,11 @@
 		<pathCost>80</pathCost>
 		<fillPercent>0.55</fillPercent>
 		<graphicData>
-			<texPath>VehicleInteriors/Things/BuildableUpgrade/CargoContainer/CargoContainer_Atlas</texPath>
+			<texPath>VehicleMapFramework/Things/BuildableUpgrade/CargoContainer/CargoContainer_Atlas</texPath>
 			<graphicClass>Graphic_Single</graphicClass>
 			<linkType>56</linkType>
 			<linkFlags>Custom2</linkFlags>
-			<cornerOverlayPath>VehicleInteriors/Things/BuildableUpgrade/CargoContainer/CargoContainer_Filler</cornerOverlayPath>
+			<cornerOverlayPath>VehicleMapFramework/Things/BuildableUpgrade/CargoContainer/CargoContainer_Filler</cornerOverlayPath>
 			<damageData>
 				<cornerTL>Damage/Corner</cornerTL>
 				<cornerTR>Damage/Corner</cornerTR>
@@ -200,7 +200,7 @@
 				<edgeRight>Damage/Edge</edgeRight>
 			</damageData>
 		</graphicData>
-		<uiIconPath>VehicleInteriors/Things/BuildableUpgrade/CargoContainer/CargoContainer_MenuIcon</uiIconPath>
+		<uiIconPath>VehicleMapFramework/Things/BuildableUpgrade/CargoContainer/CargoContainer_MenuIcon</uiIconPath>
 		<drawerType>MapMeshOnly</drawerType>
 		<tickerType>Normal</tickerType>
 		<statBases>
@@ -222,8 +222,8 @@
 		<building>
 			<maxItemsInCell>0</maxItemsInCell>
 			<blueprintGraphicData>
-				<texPath>VehicleInteriors/Things/BuildableUpgrade/CargoContainer/CargoContainer_Blueprint_Atlas</texPath>
-				<cornerOverlayPath>VehicleInteriors/Things/BuildableUpgrade/CargoContainer/CargoContainer_Blueprint_Filler</cornerOverlayPath>
+				<texPath>VehicleMapFramework/Things/BuildableUpgrade/CargoContainer/CargoContainer_Blueprint_Atlas</texPath>
+				<cornerOverlayPath>VehicleMapFramework/Things/BuildableUpgrade/CargoContainer/CargoContainer_Blueprint_Filler</cornerOverlayPath>
 			</blueprintGraphicData>
 		</building>
 		<uiOrder>1023</uiOrder>
@@ -263,7 +263,7 @@
 		<pathCost>80</pathCost>
 		<fillPercent>0.2</fillPercent>
 		<graphicData>
-			<texPath>VehicleInteriors/Things/BuildableUpgrade/TurboCharger/TurboCharger</texPath>
+			<texPath>VehicleMapFramework/Things/BuildableUpgrade/TurboCharger/TurboCharger</texPath>
 			<graphicClass>Graphic_Multi</graphicClass>
 			<drawSize>(2,1)</drawSize>
 			<damageData>
@@ -325,7 +325,7 @@
 		<description>A Lift fan to enhance the hover vehicle's maximum payload. Can only be installed on hover type vehicles.\n\n&lt;color=#bb8f04&gt;Maximum Payload:&lt;/color&gt; +250 kg\n&lt;color=#bb8f04&gt;Fuel Consumption:&lt;/color&gt; +4 /day</description>
 		<designationCategory>VF_Vehicles</designationCategory>
 		<graphicData>
-			<texPath>VehicleInteriors/Things/BuildableUpgrade/LiftFan</texPath>
+			<texPath>VehicleMapFramework/Things/BuildableUpgrade/LiftFan</texPath>
 			<graphicClass>Graphic_Single</graphicClass>
 			<drawSize>(1,1.064453125)</drawSize>
 			<drawOffset>(0,0,0.0322265625)</drawOffset>
@@ -393,7 +393,7 @@
 		<rotatable>false</rotatable>
 		<fillPercent>0.60</fillPercent>
 		<graphicData>
-			<texPath>VehicleInteriors/Things/BuildableUpgrade/FuelTank/FuelTank</texPath>
+			<texPath>VehicleMapFramework/Things/BuildableUpgrade/FuelTank/FuelTank</texPath>
 			<graphicClass>Graphic_Single</graphicClass>
 			<shaderType>CutoutComplex</shaderType>
 			<damageData>
