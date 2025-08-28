@@ -719,7 +719,7 @@ public static class Patch_Caravan_Notify_PawnRemoved
     {
         if (p is VehiclePawnWithMap vehicle)
         {
-            Delay.AfterNTicks(0, () =>
+            Delay.AfterNTicks(1, () =>
             {
                 if (vehicle.IsWorldPawn() && vehicle.ParentHolder is null) vehicle.RemoveVehicleMap();
             });

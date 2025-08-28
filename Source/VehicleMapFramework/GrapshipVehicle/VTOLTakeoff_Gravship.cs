@@ -14,9 +14,9 @@ namespace VehicleMapFramework
     [StaticConstructorOnStartup]
     public class VTOLTakeoff_Gravship : VTOLTakeoff
     {
-        private MaterialPropertyBlock thrusterFlameBlock;
+        private static MaterialPropertyBlock thrusterFlameBlock;
 
-        private MaterialPropertyBlock engineGlowBlock;
+        private static MaterialPropertyBlock engineGlowBlock;
 
         private static Material MatGravEngineGlow;
 
@@ -30,7 +30,15 @@ namespace VehicleMapFramework
             });
         }
 
-        public VTOLTakeoff_Gravship()
+        public VTOLTakeoff_Gravship() => Init();
+
+        public VTOLTakeoff_Gravship(VTOLTakeoff_Gravship reference, VehiclePawn vehicle) : base(reference, vehicle) => Init();
+
+        public VerticalProtocolProperties_Gravship LaunchProperties_Gravship => LaunchProperties as VerticalProtocolProperties_Gravship;
+
+        public VerticalProtocolProperties_Gravship LandingProperties_Gravship => LandingProperties as VerticalProtocolProperties_Gravship;
+
+        private void Init()
         {
             LongEventHandler.ExecuteWhenFinished(() =>
             {
@@ -38,14 +46,6 @@ namespace VehicleMapFramework
                 engineGlowBlock = new();
             });
         }
-
-        public VTOLTakeoff_Gravship(VTOLTakeoff_Gravship reference, VehiclePawn vehicle) : base(reference, vehicle)
-        {
-        }
-
-        public VerticalProtocolProperties_Gravship LaunchProperties_Gravship => LaunchProperties as VerticalProtocolProperties_Gravship;
-
-        public VerticalProtocolProperties_Gravship LandingProperties_Gravship => LandingProperties as VerticalProtocolProperties_Gravship;
 
         protected override (Vector3 drawPos, float rotation, DynamicShadowData shadowData) AnimateTakeoff(Vector3 drawPos, float rotation, DynamicShadowData shadowData)
         {

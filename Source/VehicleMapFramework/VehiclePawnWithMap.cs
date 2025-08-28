@@ -387,7 +387,6 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         {
             Current.Game.CurrentMap = map;
         }
-        var diff = -Transform.rotation;
         Transform.rotation = 0f;
         interiorMap.mapPawns.AllPawns.OfType<VehiclePawn>().Do(v =>
         {
@@ -538,14 +537,17 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
 
     public override void DrawAt(in Vector3 drawLoc, Rot8 rot, float rotation)
     {
-        interiorMap?.GetDetachedMapComponent<VehiclePositionManager>().AllClaimants.Do(v =>
+        if (!Spawned)
         {
-            v.Transform.rotation = rotation.FlipAngle(v);
-        });
-        if (Transform.rotation != rotation)
-        {
-            Transform.rotation = rotation;
-            CellDesignationsDirty();
+            interiorMap?.GetDetachedMapComponent<VehiclePositionManager>().AllClaimants.Do(v =>
+            {
+                v.Transform.rotation = rotation.FlipAngle(v);
+            });
+            if (Transform.rotation != rotation)
+            {
+                Transform.rotation = rotation;
+                CellDesignationsDirty();
+            }
         }
         DrawTracker.DynamicDrawPhaseAt(DrawPhase.Draw, in cachedDrawPos, rot, rotation.FlipAngle(this));
 

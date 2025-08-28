@@ -13,7 +13,7 @@ namespace VehicleMapFramework
 
         public Building_GravEngine Engine => cachedGravEngine ??= GravshipUtility.GetPlayerGravEngine((Vehicle as VehiclePawnWithMap)?.VehicleMap) as Building_GravEngine;
 
-        public override float FuelCapacity => Engine.MaxFuel;
+        public override float FuelCapacity => Engine?.MaxFuel ?? 0f;
 
         public override bool TickByRequest
         {

@@ -31,7 +31,7 @@ public static class Patch_RGBMaterialPool_SetProperties
     {
         if (target is GraphicOverlay graphicOverlay)
         {
-            var vehiclePawn = GraphicOverlay_vehicle(graphicOverlay);
+            var vehiclePawn = graphicOverlay.Vehicle;
             if (vehiclePawn != null && vehiclePawn.AllComps.OfType<CompOpacityOverlay>().Any(c => c.Props.identifier == graphicOverlay.data?.identifier))
             {
                 if (___Cache.TryGetValue(target, out var materials))
@@ -760,10 +760,9 @@ public static class Patch_VehicleTabHelper_Passenger_DrawPassengersFor
             }
             Widgets.ListSeparator(ref curY, viewRect.width, mapVehicle.LabelCap + "VMF_VehicleMap".Translate());
 
-            if (VehicleTabHelper_Passenger_DoRow == null) return;
             foreach (var pawn in pawns)
             {
-                if (VehicleTabHelper_Passenger_DoRow(curY, viewRect, scrollPos, pawn, ref moreDetailsForPawn, true))
+                if (VehicleTabHelper_Passenger.DoRow(curY, viewRect, scrollPos, pawn, ref moreDetailsForPawn, true))
                 {
                     ___hoveringOverPawn = pawn;
                 }
