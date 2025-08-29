@@ -29,7 +29,7 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="SmashTools">
-      <HintPath>..\..\..\..\..\..\workshop\content\294100\3522907382\1.6\Assemblies\SmashTools.dll</HintPath>
+      <HintPath>..\..\..\3014915404\1.6\Assemblies\SmashTools.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Vehicles">
@@ -38,7 +38,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.4543" />
+    <PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.4566" />
     <PackageReference Include="Lib.Harmony.Ref" Version="2.4.1" />
   </ItemGroup>
   <ItemGroup>
