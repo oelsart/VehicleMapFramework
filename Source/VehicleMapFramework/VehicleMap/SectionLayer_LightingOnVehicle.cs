@@ -16,7 +16,9 @@ public class SectionLayer_LightingOnVehicle : SectionLayer
 
     private const byte RoofedAreaMinSkyCover = 100;
 
-    private MaterialPropertyBlock propertyBlock = new MaterialPropertyBlock();
+    private MaterialPropertyBlock propertyBlockColorDodge = new();
+
+    private MaterialPropertyBlock propertyBlockNormalLight = new();
 
     private bool expandWest;
 
@@ -56,19 +58,20 @@ public class SectionLayer_LightingOnVehicle : SectionLayer
         var baseMap = Map.BaseMap();
         var angle = Ext_Math.RotateAngle(vehicle.FullRotation.AsAngle, extraRotation);
         float a = Mathf.Clamp01(1f - Mathf.Min(baseMap.gameConditionManager.MapBrightness, baseMap.skyManager.CurSkyGlow));
+        propertyBlockColorDodge.SetColor(ShaderPropertyIDs.ColorTwo, new Color(1f, 1f, 1f, a));
+        propertyBlockNormalLight.SetColor(ShaderPropertyIDs.Color, new Color(1f, 1f, 1f, 1f - a));
         foreach (var subMesh in subMeshes)
         {
             if (subMesh.finalized && !subMesh.disabled)
             {
                 if (subMesh.material == VMF_Materials.LightOverlayColorDodge)
                 {
-                    propertyBlock.SetColor(ShaderPropertyIDs.ColorTwo, new Color(1f, 1f, 1f, a));
+                    Graphics.DrawMesh(subMesh.mesh, drawPos, Quaternion.AngleAxis(angle, Vector3.up), subMesh.material, 0, null, 0, propertyBlockColorDodge);
                 }
                 else
                 {
-                    propertyBlock.SetColor(ShaderPropertyIDs.Color, new Color(1f, 1f, 1f, 1f - a));
+                    Graphics.DrawMesh(subMesh.mesh, drawPos, Quaternion.AngleAxis(angle, Vector3.up), subMesh.material, 0, null, 0, propertyBlockNormalLight);
                 }
-                Graphics.DrawMesh(subMesh.mesh, drawPos, Quaternion.AngleAxis(angle, Vector3.up), subMesh.material, 0, null, 0, propertyBlock);
             }
         }
     }

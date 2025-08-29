@@ -275,7 +275,10 @@ public class RoleUpgradeBuildable : RoleUpgrade
             if (pawnRenderer != null)
             {
                 var thing = compBuildableUpgrades.parent;
+                var cacheMode = VehiclePawnWithMapCache.cacheModeGlobal;
+                VehiclePawnWithMapCache.cacheModeGlobal = true;
                 var position = GenThing.TrueCenter(thing.Position, thing.Rotation, thing.def.Size, 0f);
+                VehiclePawnWithMapCache.cacheModeGlobal = cacheMode;
                 var pivot = new Vector3(vehicle.VehicleMap.Size.x / 2f, 0f, vehicle.VehicleMap.Size.z / 2f);
                 var vehiclePos = vehicle.cachedDrawPos;
                 var rot = thing.Rotation;

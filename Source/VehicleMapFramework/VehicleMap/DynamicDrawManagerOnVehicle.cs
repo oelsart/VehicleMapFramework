@@ -307,7 +307,7 @@ public static class DynamicDrawManagerOnVehicle
             }
             Vector3 pos = thingCullDetails.pos;
             pos.y = altitude;
-            thingCullDetails.trs = Matrix4x4.TRS(pos, Quaternion.AngleAxis(0f, Vector3.up), s);
+            thingCullDetails.trs = Matrix4x4.TRS(pos, Quaternion.identity, s);
             details[index] = thingCullDetails;
         }
 

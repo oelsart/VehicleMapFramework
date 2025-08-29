@@ -317,7 +317,7 @@ public static class Patch_DraftedFloatMenuOptionsUI_ExecutionEnabledOnClick
         codes.InsertRange(pos,
         [
             ldarg1,
-            CodeInstruction.Call(typeof(JobAcrossMapsUtility), nameof(JobAcrossMapsUtility.NextJobOfGotoDestmapJob)),
+            CodeInstruction.Call(typeof(JobAcrossMapsUtility), nameof(JobAcrossMapsUtility.NextJobOfGotoDestMapJob)),
             new CodeInstruction(OpCodes.Dup),
             new CodeInstruction(OpCodes.Brfalse_S, label),
             new CodeInstruction(OpCodes.Dup),

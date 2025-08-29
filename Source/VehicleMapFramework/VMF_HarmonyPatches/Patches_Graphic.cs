@@ -332,13 +332,120 @@ public static class Patch_Pawn_ProcessPostTickVisuals
     }
 }
 
-[HarmonyPatch(typeof(Projectile), nameof(Projectile.ExactPosition), MethodType.Getter)]
+//[HarmonyPatch(typeof(Projectile), nameof(Projectile.ExactPosition), MethodType.Getter)]
+//[PatchLevel(Level.Safe)]
+//public static class Patch_Projectile_ExactPosition
+//{
+//    public static void Postfix(ref Vector3 __result)
+//    {
+//        __result = __result.YOffsetFull();
+//    }
+//}
+
+[HarmonyPatch(typeof(Graphic), nameof(Graphic.Draw))]
 [PatchLevel(Level.Safe)]
-public static class Patch_Projectile_ExactPosition
+public static class Patch_Graphic_Draw
 {
-    public static void Postfix(ref Vector3 __result)
+    public static void Prefix(ref Vector3 loc, ref Rot4 rot, Thing thing, ref float extraRotation, Graphic __instance)
     {
-        __result = __result.YOffsetFull();
+        if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle) && thing.def.drawerType == DrawerType.RealtimeOnly && thing.def.category != ThingCategory.Item)
+        {
+            var def = thing.def.IsBlueprint ? thing.def.entityDefToBuild as ThingDef : thing.def;
+
+            var rot2 = rot;
+            var baseRotInt = vehicle.FullRotation.RotForVehicleDraw().AsInt;
+            bool SameMaterialByRot()
+            {
+                var graphic = def.graphic;
+                if (graphic is Graphic_Collection) return true;
+                var rotation = new Rot4(rot2.AsInt + baseRotInt);
+                return graphic != null && graphic.MatAt(rot2, thing) == graphic.MatAt(rotation, thing) && graphic.DrawOffset(rot2) == graphic.DrawOffset(rotation);
+            }
+
+            if (thing is not Building_Bookcase || thing.Graphic == __instance)
+            {
+                if (def.size.x != def.size.z || thing is Building_SupportedDoor || ((((def.graphicData?.drawRotated ?? false) && (!def.graphicData?.Linked ?? true)) || def.rotatable) && !SameMaterialByRot()))
+                {
+                    rot.AsInt += baseRotInt;
+                }
+            }
+            if (def.ShouldRotatedOnVehicle())
+            {
+                var angle = vehicle.Angle - vehicle.Transform.rotation;
+                extraRotation -= angle;
+                var offset = thing.Graphic.DrawOffset(rot);
+                if (__instance is Graphic_Flicker && thing.Graphic is not Graphic_Single && thing.TryGetComp<CompFireOverlay>(out var comp))
+                {
+                    offset += comp.Props.DrawOffsetForRot(rot);
+                }
+                var offset2 = offset.RotatedBy(-angle);
+                loc += new Vector3(offset2.x - offset.x, 0f, offset2.z - offset.z);
+            }
+        }
+        else if (thing != null && !thing.Spawned && thing.SpawnedParentOrMe.IsOnNonFocusedVehicleMapOf(out vehicle))
+        {
+            extraRotation += vehicle.FullAngle();
+        }
+    }
+}
+
+[HarmonyPatch(typeof(Graphic), nameof(Graphic.DrawFromDef))]
+[PatchLevel(Level.Safe)]
+public static class Patch_Graphic_DrawFromDef
+{
+    public static void Prefix(ref Vector3 loc, ref Rot4 rot, ThingDef thingDef, ref float extraRotation, Graphic __instance)
+    {
+        if (VehicleMapUtility.FocusedOnVehicleMap(out var vehicle) && thingDef != null)
+        {
+            var def = thingDef.IsBlueprint ? thingDef.entityDefToBuild as ThingDef : thingDef;
+            var compProperties = def.GetCompProperties<CompProperties_FireOverlay>();
+            var flag = __instance is Graphic_Flicker && compProperties != null;
+
+            if (flag)
+            {
+                loc -= (def.graphicData?.DrawOffsetForRot(rot) ?? Vector3.zero) + compProperties.DrawOffsetForRot(rot);
+            }
+
+            var angle = vehicle.Angle - vehicle.Transform.rotation;
+            var rot2 = rot;
+            var baseRotInt = vehicle.FullRotation.RotForVehicleDraw().AsInt;
+            bool SameMaterialByRot()
+            {
+                var graphic = def.graphic;
+                if (graphic is Graphic_Collection) return true;
+                var rotation = new Rot4(rot2.AsInt + baseRotInt);
+                return graphic != null && graphic.MatAt(rot2, null) == graphic.MatAt(rotation, null) && graphic.DrawOffset(rot2) == graphic.DrawOffset(rotation);
+            }
+
+            if (def.size.x != def.size.z || ((((def.graphicData?.drawRotated ?? false) && (!def.graphicData?.Linked ?? true)) || def.rotatable) && !SameMaterialByRot()))
+            {
+                rot.AsInt += baseRotInt;
+            }
+            var flag2 = def.ShouldRotatedOnVehicle();
+            if (flag2)
+            {
+                extraRotation -= angle;
+            }
+            Vector3 offset = def.graphicData?.DrawOffsetForRot(rot) ?? Vector3.zero;
+            if (flag)
+            {
+                var offset2 = compProperties.DrawOffsetForRot(rot);
+                loc += (offset + offset2).RotatedBy(flag2 ? -angle : 0f);
+            }
+            else
+            {
+                var offset2 = offset.RotatedBy(flag2 ? -angle : 0f);
+                loc += new Vector3(offset2.x - offset.x, 0f, offset2.z - offset.z);
+            }
+
+            //はしごとかのマップ端オフセット
+            VehicleMapProps mapProps;
+            if (thingDef.HasComp<CompVehicleEnterSpot>() && (mapProps = vehicle.VehicleDef.GetModExtension<VehicleMapProps>()) != null)
+            {
+                var baseRot = new Rot8(Rot8.FromIntClockwise((vehicle.FullRotation.AsIntClockwise + new Rot8(rot2).AsIntClockwise) % 8));
+                loc += baseRot.Opposite.AsVector2.ToVector3() * mapProps.EdgeSpaceValue(vehicle.FullRotation, rot2.Opposite);
+            }
+        }
     }
 }
 
@@ -348,25 +455,29 @@ public static class Patch_Graphic_Shadow_DrawWorker
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
-        var codes = instructions.ToList();
-        var f_MatBases_SunShadowFade = AccessTools.Field(typeof(MatBases), nameof(MatBases.SunShadowFade));
-        var pos = codes.FindIndex(c => c.opcode == OpCodes.Ldsfld && c.OperandIs(f_MatBases_SunShadowFade));
-        var label = generator.DefineLabel();
-        var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithMap));
-
-        codes[pos].labels.Add(label);
-        codes.InsertRange(pos,
-        [
+        var codes = new CodeMatcher(instructions, generator);
+        codes.MatchStartForward(CodeMatch.StoresField(AccessTools.Field(typeof(Vector3), nameof(Vector3.y))));
+        codes.DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle);
+        codes.CreateLabel(out var label);
+        codes.InsertAndAdvance(
             CodeInstruction.LoadArgument(4),
             new CodeInstruction(OpCodes.Ldloca_S, vehicle),
             new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf),
             new CodeInstruction(OpCodes.Brfalse_S, label),
             new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-            new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_FullRotation),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_Rot8_AsQuat),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.o_Quaternion_Multiply)
-        ]);
-        return codes.MethodReplacer(CachedMethodInfo.g_Rot4_AsQuat, CachedMethodInfo.m_Rot8_AsQuatRef);
+            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_YOffsetFull2));
+
+        codes.MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Rot4_AsQuat));
+        codes.Operand = CachedMethodInfo.m_Rot8_AsQuatRef;
+        codes.CreateLabelWithOffsets(1, out var label2);
+        codes.InsertAfter(
+            new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+            new CodeInstruction(OpCodes.Brfalse_S, label2),
+            new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_FullAngleQuat),
+            new CodeInstruction(OpCodes.Call, CachedMethodInfo.o_Quaternion_Multiply));
+
+        return codes.Instructions();
     }
 }
 
@@ -394,10 +505,13 @@ public static class Patch_GenDraw_DrawFillableBar
 {
     public static bool Prefix(GenDraw.FillableBarRequest r)
     {
-        if (r.rotation.AsInt >= 4)
+        VehiclePawnWithMap vehicle = null;
+        if (r.rotation.AsInt >= 4 || Find.CurrentMap.IsNonFocusedVehicleMapOf(out vehicle))
         {
+            var extraRotation = vehicle?.Transform.rotation ?? 0f;
             var rot = new Rot8(r.rotation.AsInt);
-            Vector2 vector = r.preRotationOffset.RotatedBy(rot.AsAngle);
+            var fullAngle = rot.AsAngle + extraRotation;
+            Vector2 vector = r.preRotationOffset.RotatedBy(fullAngle);
             r.center += new Vector3(vector.x, 0f, vector.y);
             if (rot == Rot8.NorthEast)
             {
@@ -409,15 +523,16 @@ public static class Patch_GenDraw_DrawFillableBar
             }
             Vector3 s = new(r.size.x + r.margin, 1f, r.size.y + r.margin);
             Matrix4x4 matrix = default;
-            matrix.SetTRS(r.center, rot.AsQuat(), s);
+            var quat = rot.AsQuat() * Quaternion.AngleAxis(extraRotation, Vector3.up);
+            matrix.SetTRS(r.center, quat, s);
             Graphics.DrawMesh(MeshPool.plane10, matrix, r.unfilledMat, 0);
             if (r.fillPercent > 0.001f)
             {
                 s = new Vector3(r.size.x * r.fillPercent, 1f, r.size.y);
                 matrix = default;
                 Vector3 pos = r.center + (Vector3.up * 0.01f);
-                pos += new Vector3((-r.size.x * 0.5f) + (0.5f * r.size.x * r.fillPercent), 0f, 0f).RotatedBy(rot.AsAngle);
-                matrix.SetTRS(pos, rot.AsQuat(), s);
+                pos += new Vector3((-r.size.x * 0.5f) + (0.5f * r.size.x * r.fillPercent), 0f, 0f).RotatedBy(fullAngle);
+                matrix.SetTRS(pos, quat, s);
                 Graphics.DrawMesh(MeshPool.plane10, matrix, r.filledMat, 0);
             }
             return false;

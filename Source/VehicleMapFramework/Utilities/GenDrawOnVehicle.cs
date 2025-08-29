@@ -75,7 +75,7 @@ public static class GenDrawOnVehicle
                     {
                         if (vehicleMap)
                         {
-                            Graphics.DrawMesh(MeshPool.plane10, intVec.ToVector3Shifted().ToBaseMapCoord(vehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor()).WithYOffset(y), new Rot4(k).AsQuat * Quaternion.AngleAxis(vehicle.FullAngle(), Vector3.up), material, 0);
+                            Graphics.DrawMesh(MeshPool.plane10, intVec.ToVector3Shifted().ToBaseMapCoord(vehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor()).WithYOffset(y), new Rot4(k).AsQuat * vehicle.FullAngleQuat(), material, 0);
                         }
                         else
                         {

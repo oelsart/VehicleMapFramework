@@ -31,6 +31,6 @@ public class Building_VehicleRamp : Building_Door
         if (rot.IsDiagonal) drawPos += (facingVect.z < 0f ? facingVect : -facingVect) * 0.35355339f;
         else if (rot.IsHorizontal) drawPos.z -= 0.5f;
         var scale = rot == Rot8.North || rot == Rot8.South ? new Vector3(1f, 1f, openPct) : new Vector3(openPct, 1f, 1f);
-        Graphics.DrawMesh(moverGraphic.MeshAt(rot), Matrix4x4.TRS(drawPos, Quaternion.AngleAxis(rot.AsRotationAngle, Vector3.up), scale), moverGraphic.MatAt(rot, this), 0);
+        Graphics.DrawMesh(moverGraphic.MeshAt(rot), Matrix4x4.TRS(drawPos, Quaternion.AngleAxis(rot.AsRotationAngle + (vehicle?.Transform.rotation ?? 0f), Vector3.up), scale), moverGraphic.MatAt(rot, this), 0);
     }
 }

@@ -35,14 +35,25 @@ public static class Patch_UI_MouseCell
     }
 }
 
-[HarmonyBefore(VehicleFramework.HarmonyId)]
-[HarmonyPatch(typeof(GenThing), nameof(GenThing.TrueCenter), typeof(Thing))]
-[PatchLevel(Level.Mandatory)]
+[HarmonyPatch(typeof(GenThing), nameof(GenThing.TrueCenter))]
 public static class Patch_GenThing_TrueCenter
 {
+    [HarmonyBefore(VehicleFramework.HarmonyId)]
+    [HarmonyPatch([typeof(Thing)])]
+    [PatchLevel(Level.Mandatory)]
     public static bool Prefix(Thing t, ref Vector3 __result)
     {
         return !t.TryGetDrawPos(ref __result);
+    }
+
+    [HarmonyPatch([typeof(IntVec3), typeof(Rot4) ,typeof(IntVec2), typeof(float)])]
+    [PatchLevel(Level.Safe)]
+    public static void Postfix(ref Vector3 __result)
+    {
+        if (VehicleMapUtility.FocusedOnVehicleMap(out var vehicle) && !VehiclePawnWithMapCache.cacheModeGlobal && !vehicle.VehicleMap.GetCachedMapComponent<VehiclePawnWithMapCache>().cacheMode)
+        {
+            __result = __result.ToBaseMapCoord(vehicle).WithY(__result.y);
+        }
     }
 }
 
@@ -372,121 +383,6 @@ public static class Patch_PawnPath_DrawPath
     }
 }
 
-[HarmonyPatch(typeof(Graphic), nameof(Graphic.Draw))]
-[PatchLevel(Level.Safe)]
-public static class Patch_Graphic_Draw
-{
-    public static void Prefix(ref Vector3 loc, ref Rot4 rot, Thing thing, ref float extraRotation, Graphic __instance)
-    {
-        if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle) && thing.def.drawerType == DrawerType.RealtimeOnly && thing.def.category != ThingCategory.Item)
-        {
-            var def = thing.def.IsBlueprint ? thing.def.entityDefToBuild as ThingDef : thing.def;
-
-            var rot2 = rot;
-            var baseRotInt = vehicle.FullRotation.RotForVehicleDraw().AsInt;
-            bool SameMaterialByRot()
-            {
-                var graphic = def.graphic;
-                var rotation = new Rot4(rot2.AsInt + baseRotInt);
-                return graphic != null && graphic.MatAt(rot2, thing) == graphic.MatAt(rotation, thing) && graphic.DrawOffset(rot2) == graphic.DrawOffset(rotation);
-            }
-
-            if (thing is not Building_Bookcase || thing.Graphic == __instance)
-            {
-                if (def.size.x != def.size.z || thing is Building_SupportedDoor || ((((def.graphicData?.drawRotated ?? false) && (!def.graphicData?.Linked ?? true)) || def.rotatable) && !SameMaterialByRot()))
-                {
-                    rot.AsInt += baseRotInt;
-                }
-            }
-            if (def.ShouldRotatedOnVehicle())
-            {
-                var angle = vehicle.Angle + vehicle.Transform.rotation;
-                extraRotation -= angle;
-                var offset = thing.Graphic.DrawOffset(rot);
-                if (__instance is Graphic_Flicker && thing.Graphic is not Graphic_Single && thing.TryGetComp<CompFireOverlay>(out var comp))
-                {
-                    offset += comp.Props.DrawOffsetForRot(rot);
-                }
-                var offset2 = offset.RotatedBy(-angle);
-                loc += new Vector3(offset2.x - offset.x, 0f, offset2.z - offset.z);
-            }
-
-            ////はしごとかのマップ端オフセット
-            //VehicleMapProps mapProps;
-            //if (thing.HasComp<CompVehicleEnterSpot>() && (mapProps = vehicle.VehicleDef.GetModExtension<VehicleMapProps>()) != null)
-            //{
-            //    var baseRot = thing.BaseFullRotation().Opposite;
-            //    loc += baseRot.Opposite.AsVector2.ToVector3() * mapProps.EdgeSpaceValue(vehicle.FullRotation, thing.Rotation.Opposite);
-            //}
-        }
-        else if (thing != null && !thing.Spawned && thing.SpawnedParentOrMe.IsOnNonFocusedVehicleMapOf(out vehicle))
-        {
-            extraRotation += vehicle.FullAngle();
-        }
-    }
-}
-
-[HarmonyPatch(typeof(Graphic), nameof(Graphic.DrawFromDef))]
-[PatchLevel(Level.Safe)]
-public static class Patch_Graphic_DrawFromDef
-{
-    public static void Prefix(ref Vector3 loc, ref Rot4 rot, ThingDef thingDef, ref float extraRotation, Graphic __instance)
-    {
-        if (VehicleMapUtility.FocusedOnVehicleMap(out var vehicle) && thingDef != null)
-        {
-            var def = thingDef.IsBlueprint ? thingDef.entityDefToBuild as ThingDef : thingDef;
-            var compProperties = def.GetCompProperties<CompProperties_FireOverlay>();
-            var flag = __instance is Graphic_Flicker && compProperties != null;
-
-            if (flag)
-            {
-                loc -= (def.graphicData?.DrawOffsetForRot(rot) ?? Vector3.zero) + compProperties.DrawOffsetForRot(rot);
-            }
-
-            var angle = vehicle.Angle - vehicle.Transform.rotation;
-            var loc2 = loc.ToBaseMapCoord(vehicle);
-            loc = loc2.WithY(Mathf.Min(loc2.y, AltitudeLayer.MetaOverlays.AltitudeFor()));
-            var rot2 = rot;
-            var baseRotInt = vehicle.FullRotation.RotForVehicleDraw().AsInt;
-            bool SameMaterialByRot()
-            {
-                var graphic = def.graphic;
-                var rotation = new Rot4(rot2.AsInt + baseRotInt);
-                return graphic != null && graphic.MatAt(rot2, null) == graphic.MatAt(rotation, null) && graphic.DrawOffset(rot2) == graphic.DrawOffset(rotation);
-            }
-
-            if (def.size.x != def.size.z || ((((def.graphicData?.drawRotated ?? false) && (!def.graphicData?.Linked ?? true)) || def.rotatable) && !SameMaterialByRot()))
-            {
-                rot.AsInt += baseRotInt;
-            }
-            var flag2 = def.ShouldRotatedOnVehicle();
-            if (flag2)
-            {
-                extraRotation -= angle;
-            }
-            Vector3 offset = def.graphicData?.DrawOffsetForRot(rot) ?? Vector3.zero;
-            if (flag)
-            {
-                var offset2 = compProperties.DrawOffsetForRot(rot);
-                loc += (offset + offset2).RotatedBy(flag2 ? -angle : 0f);
-            }
-            else
-            {
-                var offset2 = offset.RotatedBy(flag2 ? -angle : 0f);
-                loc += new Vector3(offset2.x - offset.x, 0f, offset2.z - offset.z);
-            }
-
-            //はしごとかのマップ端オフセット
-            VehicleMapProps mapProps;
-            if (thingDef.HasComp<CompVehicleEnterSpot>() && (mapProps = vehicle.VehicleDef.GetModExtension<VehicleMapProps>()) != null)
-            {
-                var baseRot = new Rot8(Rot8.FromIntClockwise((vehicle.FullRotation.AsIntClockwise + new Rot8(rot2).AsIntClockwise) % 8));
-                loc += baseRot.Opposite.AsVector2.ToVector3() * mapProps.EdgeSpaceValue(vehicle.FullRotation, rot2.Opposite);
-            }
-        }
-    }
-}
-
 [HarmonyPatch(typeof(Designation), nameof(Designation.DrawLoc))]
 public static class Patch_Designation_DrawLoc
 {
@@ -527,7 +423,7 @@ public static class Patch_VerbProperties_DrawRadiusRing
     [PatchLevel(Level.Safe)]
     public static void Prefix(ref IntVec3 center, Verb verb)
     {
-        if (verb?.caster.IsOnNonFocusedVehicleMapOf(out var vehicle) ?? false)
+        if ((verb?.caster.IsOnNonFocusedVehicleMapOf(out var vehicle) ?? false) && Find.CurrentMap != vehicle.VehicleMap)
         {
             center = center.ToBaseMapCoord(vehicle);
         }
@@ -545,7 +441,7 @@ public static class Patch_GenDraw_DrawRadiusRing
         Thing thing;
         if ((thing = Find.Selector.SelectedObjects.OfType<Thing>().FirstOrDefault(t => t.Position == tmp)) != null)
         {
-            if (thing.IsOnNonFocusedVehicleMapOf(out vehicle))
+            if (thing.IsOnNonFocusedVehicleMapOf(out vehicle) && Find.CurrentMap != vehicle.VehicleMap)
             {
                 center = center.ToBaseMapCoord(vehicle);
             }

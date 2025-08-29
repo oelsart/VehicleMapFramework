@@ -246,9 +246,7 @@ public static class Patch_GUI_VehicleMapOffset
                 new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_FocusedOnVehicleMap),
                 new CodeInstruction(OpCodes.Brfalse_S, label),
                 new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_FullAngle),
-                new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(Vector3), nameof(Vector3.up))),
-                CodeInstruction.Call(typeof(Quaternion), nameof(Quaternion.AngleAxis)),
+                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_FullAngleQuat),
                 new CodeInstruction(OpCodes.Call, CachedMethodInfo.o_Quaternion_Multiply));
         return codes.Instructions();
     }
