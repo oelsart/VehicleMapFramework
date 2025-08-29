@@ -45,7 +45,7 @@ namespace VehicleMapFramework
             copilot = null;
             if (Vehicle is VehiclePawnWithMap vehicle && Vehicle.def.HasModExtension<VehicleMapProps_Gravship>())
             {
-                if (GravshipUtility.GetPlayerGravEngine(vehicle.VehicleMap) is not Building_GravEngine engine2)
+                if (GravshipUtility.GetPlayerGravEngine_NewTemp(vehicle.VehicleMap) is not Building_GravEngine engine2)
                 {
                     disableReason = "CannotLaunchNoEngine".Translate().CapitalizeFirst();
                     return false;
@@ -162,7 +162,7 @@ namespace VehicleMapFramework
                         return Mathf.FloorToInt((engine?.MaxLaunchDistance / layer.Def.rangeDistanceFactor).GetValueOrDefault());
                     }
 
-                    Find.TilePicker.StartTargeting(tile =>
+                    Find.TilePicker.StartTargeting_NewTemp(tile =>
                     {
                         cannotPlaceTileReason.Clear();
                         if (!GravshipUtility.TryGetPathFuelCost(curTile, tile, out var cost, out var distance, 10f, engine.FuelUseageFactor) && !DebugSettings.ignoreGravshipRange)
@@ -296,7 +296,7 @@ namespace VehicleMapFramework
                         {
                             if (cachedClosestLayerTile.Layer != Find.WorldSelector.SelectedLayer || !cachedClosestLayerTile.Valid)
                             {
-                                cachedClosestLayerTile = Find.WorldSelector.SelectedLayer.GetClosestTile(curTile);
+                                cachedClosestLayerTile = Find.WorldSelector.SelectedLayer.GetClosestTile_NewTemp(curTile);
                             }
                             planetTile = cachedClosestLayerTile;
                         }
@@ -308,7 +308,7 @@ namespace VehicleMapFramework
                     }, allowEscape: true, () =>
                     {
                         CameraJumper.TryJump(parent, CameraJumper.MovementMode.Cut);
-                    }, "ChooseWhereToLand".Translate(), showRandomButton: false, selectTileBehindObject: true, hideFormCaravanGizmo: true, canCancel: true, "MessageNoLandingSiteSelected".Translate());
+                    }, "ChooseWhereToLand".Translate(), showRandomButton: false, selectTileBehindObject: true, hideFormCaravanGizmo: true, canCancel: true, noTileChosenMessage: "MessageNoLandingSiteSelected".Translate());
                 }
             }
         }

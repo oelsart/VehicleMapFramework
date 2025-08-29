@@ -15,7 +15,7 @@ public class PlaceWorker_ForceOnVehicle : PlaceWorker
         if (ModsConfig.OdysseyActive)
         {
             var occupied = GenAdj.OccupiedRect(loc, rot, checkingDef is ThingDef tDef ? tDef.Size : IntVec2.One);
-            if (GravshipUtility.GetPlayerGravEngine(map) is Building_GravEngine engine && occupied.All(engine.ValidSubstructureAt))
+            if (GravshipUtility.GetPlayerGravEngine_NewTemp(map) is Building_GravEngine engine && occupied.All(engine.ValidSubstructureAt))
             {
                 return true;
             }

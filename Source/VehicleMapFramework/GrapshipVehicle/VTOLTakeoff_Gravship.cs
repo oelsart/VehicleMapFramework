@@ -75,7 +75,7 @@ namespace VehicleMapFramework
 
             if (ModsConfig.OdysseyActive && LaunchProperties_Gravship != null && Vehicle is VehiclePawnWithMap vehicle)
             {
-                if (GravshipUtility.GetPlayerGravEngine(vehicle.VehicleMap) is Building_GravEngine engine)
+                if (GravshipUtility.GetPlayerGravEngine_NewTemp(vehicle.VehicleMap) is Building_GravEngine engine)
                 {
                     Color color = Color.white.WithAlpha(0);
                     if (!LaunchProperties_Gravship.thrusterFlameCurve.NullOrEmpty())
@@ -155,7 +155,7 @@ namespace VehicleMapFramework
 
             if (ModsConfig.OdysseyActive && LandingProperties_Gravship != null && Vehicle is VehiclePawnWithMap vehicle)
             {
-                if (GravshipUtility.GetPlayerGravEngine(vehicle.VehicleMap) is Building_GravEngine engine)
+                if (GravshipUtility.GetPlayerGravEngine_NewTemp(vehicle.VehicleMap) is Building_GravEngine engine)
                 {
                     Color color = Color.white.WithAlpha(0);
                     if (!LandingProperties_Gravship.thrusterFlameCurve.NullOrEmpty())
@@ -213,7 +213,7 @@ namespace VehicleMapFramework
             base.OrderProtocol(launchType);
             if (!ModsConfig.OdysseyActive || Vehicle is not VehiclePawnWithMap vehicle) return;
 
-            if (launchType == LaunchType.Takeoff && GravshipUtility.GetPlayerGravEngine(vehicle.VehicleMap) is Building_GravEngine engine)
+            if (launchType == LaunchType.Takeoff && GravshipUtility.GetPlayerGravEngine_NewTemp(vehicle.VehicleMap) is Building_GravEngine engine)
             {
                 if (launchType == LaunchType.Takeoff)
                 {
