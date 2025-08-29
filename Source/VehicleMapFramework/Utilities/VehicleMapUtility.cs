@@ -262,7 +262,7 @@ public static class VehicleMapUtility
 
     public static Vector3 OffsetFor(VehiclePawnWithMap vehicle)
     {
-        return OffsetFor(vehicle, vehicle.FullRotation);
+        return OffsetFor(vehicle, vehicle.FullRotation).RotatedBy(vehicle.Transform.rotation);
     }
 
     public static Vector3 OffsetFor(VehiclePawnWithMap vehicle, Rot8 rot)
@@ -935,6 +935,11 @@ public static class VehicleMapUtility
     public static float FullAngle(this VehiclePawn vehicle)
     {
         return Ext_Math.RotateAngle(vehicle.FullRotation.AsAngle, vehicle.Transform.rotation);
+    }
+
+    public static Quaternion FullAngleQuat(this VehiclePawn vehicle)
+    {
+        return Quaternion.AngleAxis(vehicle.FullAngle(), Vector3.up);
     }
 
     public static IEnumerable<Thing> ColonyThingsWillingToBuyOnVehicle(this VehiclePawnWithMap vehicle, ITrader trader)

@@ -40,28 +40,23 @@ public static class JobAcrossMapsUtility
 
     public static Job SetSpotsToJobAcrossMaps(this Job job, Pawn pawn, TargetInfo? exitSpot1 = null, TargetInfo? enterSpot1 = null, TargetInfo? exitSpot2 = null, TargetInfo? enterSpot2 = null)
     {
-        var driver = job.GetCachedDriver(pawn) as JobDriverAcrossMaps;
+        if (job.GetCachedDriver(pawn) is not JobDriverAcrossMaps driver) return null;
         driver.SetSpots(exitSpot1, enterSpot1, exitSpot2, enterSpot2);
         return job;
     }
 
     public static Job SetSpotsAndNextJob(this Job job, Pawn pawn, TargetInfo? exitSpot1 = null, TargetInfo? enterSpot1 = null, TargetInfo? exitSpot2 = null, TargetInfo? enterSpot2 = null, Job nextJob = null)
     {
-        var driver = job.GetCachedDriver(pawn) as JobDriver_GotoDestMap;
+        if (job.GetCachedDriver(pawn) is not JobDriver_GotoDestMap driver) return null;
         driver.SetSpots(exitSpot1, enterSpot1, exitSpot2, enterSpot2);
         driver.nextJob = nextJob;
         return job;
     }
 
-    public static Job NextJobOfGotoDestmapJob(Pawn pawn)
+    public static Job NextJobOfGotoDestMapJob(Pawn pawn)
     {
         var driver = pawn.jobs.curDriver as JobDriver_GotoDestMap;
         return driver?.nextJob;
-    }
-
-    public static bool PawnDeterminingJob(this Pawn pawn)
-    {
-        return pawn.jobs.DeterminingNextJob || FloatMenuMakerMap.makingFor == pawn;
     }
 
     public static bool NoNeedVirtualMapTransfer(Map pawnMap, Map targetMap, WorkGiver_Scanner scanner)

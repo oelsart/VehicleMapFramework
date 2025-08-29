@@ -332,16 +332,6 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         VMF_Harmony.DynamicPatchAll(VehicleMapFramework.settings.dynamicPatchLevel);
     }
 
-    private void CacheDrawPos(Vector3 drawLoc)
-    {
-        LongEventHandler.ExecuteWhenFinished(() =>
-        {
-            var transform = new TransformData(drawLoc + Transform.position, FullRotation, Transform.rotation);
-            var result = VehicleGraphic.ParallelGetPreRenderResults(ref transform, false, this, 0f);
-            cachedDrawPos = result.position;
-        });
-    }
-
     public override void SpawnSetup(Map map, bool respawningAfterLoad)
     {
         if (interiorMap == null)
@@ -539,7 +529,7 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
     {
         if (!Spawned)
         {
-            interiorMap?.GetDetachedMapComponent<VehiclePositionManager>().AllClaimants.Do(v =>
+            interiorMap?.GetDetachedMapComponent<VehiclePositionManager>().AllClaimants.DoIf(v => v.def.graphicData?.drawRotated ?? false, v =>
             {
                 v.Transform.rotation = rotation.FlipAngle(v);
             });
@@ -549,10 +539,21 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
                 CellDesignationsDirty();
             }
         }
-        DrawTracker.DynamicDrawPhaseAt(DrawPhase.Draw, in cachedDrawPos, rot, rotation.FlipAngle(this));
+        var drawLoc2 = drawLoc.WithYOffset(-Altitudes.AltInc * 100f);
+        CacheDrawPos(drawLoc2);
+        DrawTracker.DynamicDrawPhaseAt(DrawPhase.Draw, in drawLoc2, rot, Transform.rotation.FlipAngle(this));
 
-        CacheDrawPos(drawLoc.WithYOffset(-Altitudes.AltInc * 100f));
         DrawVehicleMap();
+    }
+
+    private void CacheDrawPos(Vector3 drawLoc)
+    {
+        LongEventHandler.ExecuteWhenFinished(() =>
+        {
+            var transform = new TransformData(drawLoc + Transform.position, FullRotation, Transform.rotation.FlipAngle(this));
+            var result = VehicleGraphic?.ParallelGetPreRenderResults(ref transform, false, this, 0f);
+            cachedDrawPos = result?.position ?? drawLoc;
+        });
     }
 
     public override void DynamicDrawPhaseAt(DrawPhase phase, Vector3 drawLoc, bool flip = false)
@@ -570,9 +571,13 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
 
     private void CellDesignationsDirty()
     {
-        foreach (var def in DefDatabase<DesignationDef>.AllDefs.Where(d => d.targetType == TargetType.Cell))
+        if (cellDesignationsDirtyTick != GenTicks.TicksGame)
         {
-            DirtyCellDesignationsCache(interiorMap.designationManager, def);
+            cellDesignationsDirtyTick = GenTicks.TicksGame;
+            foreach (var def in DefDatabase<DesignationDef>.AllDefs.Where(d => d.targetType == TargetType.Cell))
+            {
+                DirtyCellDesignationsCache(interiorMap.designationManager, def);
+            }
         }
     }
 
@@ -757,7 +762,7 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         if (Command_FocusVehicleMap.FocuseLockedVehicle == this || Command_FocusVehicleMap.FocusedVehicle == this)
         {
             Material material = ClipMat;
-            var quat = Quaternion.AngleAxis(this.FullAngle(), Vector3.up);
+            var quat = this.FullAngleQuat();
             IntVec3 size = map.Size;
             Vector3 s = new(500f, 1f, size.z);
             Matrix4x4 matrix = default;
@@ -900,6 +905,8 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
     public bool mapEdgeCellsDirty;
 
     private int standableCellsCachedTick;
+
+    private int cellDesignationsDirtyTick;
 
     private static readonly Material ClipMat = SolidColorMaterials.NewSolidColorMaterial(new Color(0.3f, 0.1f, 0.1f, 0.5f), ShaderDatabase.MetaOverlay);
 

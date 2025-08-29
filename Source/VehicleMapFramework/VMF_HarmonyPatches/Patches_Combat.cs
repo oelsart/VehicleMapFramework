@@ -374,34 +374,24 @@ public static class Patch_TurretTop_DrawTurret
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
-        var codes = instructions.ToList();
-        var pos = codes.FindIndex(c => c.opcode == OpCodes.Stloc_0) - 1;
-        var label = generator.DefineLabel();
-        var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithMap));
-        var rot = generator.DeclareLocal(typeof(Rot8));
-        codes[pos].labels.Add(label);
-        codes.InsertRange(pos,
-        [
+        var codes = new CodeMatcher(instructions, generator);
+        codes.MatchStartForward(CodeMatch.Calls(AccessTools.PropertyGetter(typeof(TurretTop), nameof(TurretTop.CurRotation))));
+        codes.DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle);
+        codes.CreateLabelWithOffsets(1, out var label);
+        codes.InsertAfterAndAdvance(
             CodeInstruction.LoadArgument(0),
             CodeInstruction.LoadField(typeof(TurretTop), "parentTurret"),
             new CodeInstruction(OpCodes.Ldloca_S, vehicle),
             new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf),
             new CodeInstruction(OpCodes.Brfalse_S, label),
             new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-            new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_FullRotation),
-            new CodeInstruction(OpCodes.Stloc_S, rot),
-            new CodeInstruction(OpCodes.Ldloca_S, rot),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.g_Rot8_AsAngle),
-            new CodeInstruction(OpCodes.Add)
-        ]);
+            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_FullAngle),
+            new CodeInstruction(OpCodes.Add));
 
-        pos = codes.FindIndex(pos, c => c.opcode == OpCodes.Ldloc_S && ((LocalBuilder)c.operand).LocalIndex == 5);
-        var label2 = generator.DefineLabel();
-        var target = generator.DeclareLocal(typeof(LocalTargetInfo));
-
-        codes[pos].labels.Add(label2);
-        codes.InsertRange(pos,
-        [
+        codes.MatchStartForward(new CodeMatch(c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalType == typeof(Quaternion)));
+        codes.CreateLabel(out var label2);
+        codes.DeclareLocal(typeof(LocalTargetInfo), out var target);
+        codes.Insert(
             new CodeInstruction(OpCodes.Ldloc_S, vehicle),
             new CodeInstruction(OpCodes.Brfalse_S, label2),
             CodeInstruction.LoadArgument(0),
@@ -411,11 +401,10 @@ public static class Patch_TurretTop_DrawTurret
             new CodeInstruction(OpCodes.Ldloca_S, target),
             new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(LocalTargetInfo), nameof(LocalTargetInfo.IsValid))),
             new CodeInstruction(OpCodes.Brtrue_S, label2),
-            new CodeInstruction(OpCodes.Ldloc_S, rot),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_Rot8_AsQuat),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.o_Quaternion_Multiply),
-        ]);
-        return codes;
+            new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_FullAngleQuat),
+            new CodeInstruction(OpCodes.Call, CachedMethodInfo.o_Quaternion_Multiply));
+        return codes.Instructions();
     }
 }
 
