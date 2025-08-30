@@ -27,9 +27,18 @@ public static class Patches_VEF
 
     public const string CategoryMechanoid = "VMF_Patches_VFE_Mechanoid";
 
+    public static readonly AccessTools.FieldRef<PipeNetManager, int> pipeNetsCount = AccessTools.FieldRefAccess<PipeNetManager, int>("pipeNetsCount");
+
     static Patches_VEF()
     {
-        VMF_Harmony.PatchCategory(CategoryCore);
+        if (pipeNetsCount != null)
+        {
+            VMF_Harmony.PatchCategory(CategoryCore);
+        }
+        else
+        {
+            ModCompat.LogIncompat("VEF Pipe System");
+        }
         if (ModCompat.VFEArchitect)
         {
             VMF_Harmony.PatchCategory(CategoryArchitect);
@@ -58,6 +67,8 @@ public static class Patches_VEF
 [PatchLevel(Level.Safe)]
 public static class Patch_CompResource_Props
 {
+    private static readonly CompProperties_Resource dummy = new();
+
     public static void Postfix(CompResource __instance, ref CompProperties_Resource __result)
     {
         if (__instance is CompPipeConnectorVEF connector)
@@ -67,8 +78,6 @@ public static class Patch_CompResource_Props
             __result = dummy;
         }
     }
-
-    private static readonly CompProperties_Resource dummy = new CompProperties_Resource();
 }
 
 [HarmonyPatchCategory(Patches_VEF.CategoryCore)]
@@ -78,14 +87,14 @@ public static class Patch_PipeNetManager_UnregisterConnector
 {
     public static void Prefix(PipeNetManager __instance, CompResource comp)
     {
-        var pipeNetMap = comp.PipeNet.map;
-        if (__instance.map != pipeNetMap)
+        var pipeNetMap = comp?.PipeNet?.map;
+        if (pipeNetMap != null && __instance.map != null && __instance.map != pipeNetMap)
         {
             var component = MapComponentCache<PipeNetManager>.GetComponent(pipeNetMap);
             var connectors = comp.PipeNet.connectors.Where(c => c.parent.Map == pipeNetMap);
             var newNet = PipeNetMaker.MakePipeNet(connectors, pipeNetMap, comp.PipeNet.def);
             component.pipeNets.Add(newNet);
-            CompPipeConnectorVEF.pipeNetCount(MapComponentCache<PipeNetManager>.GetComponent(__instance.map))++;
+            Patches_VEF.pipeNetsCount(MapComponentCache<PipeNetManager>.GetComponent(__instance.map))++;
         }
     }
 }
