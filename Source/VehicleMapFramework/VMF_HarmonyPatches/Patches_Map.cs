@@ -675,7 +675,7 @@ public static class Patch_Map_TileInfo
 {
     public static void Postfix(Map __instance, ref Tile __result)
     {
-        if (__instance.IsVehicleMapOf(out _))
+        if (__instance.IsVehicleMapOf(out _) && Find.Maps.Contains(__instance))
         {
             __result = Find.WorldGrid[__instance.Tile];
         }
