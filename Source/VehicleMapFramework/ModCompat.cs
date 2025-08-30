@@ -11,14 +11,14 @@ using Verse;
 namespace VehicleMapFramework;
 
 [StaticConstructorOnStartup]
-public static class ModCompat
+internal static class ModCompat
 {
-    private static bool AnyNull(params object[] args)
+    internal static bool AnyNull(params object[] args)
     {
         return args.Any(arg => arg == null);
     }
 
-    private static void LogIncompat(string modName)
+    internal static void LogIncompat(string modName)
     {
         VMF_Log.Error($"{modName} compatibility is broken.");
     }

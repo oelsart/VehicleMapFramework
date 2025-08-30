@@ -260,13 +260,11 @@ public static class LatePatchCore
         {
             VMF_Harmony.PatchCategory(Category);
 
-            var privatePart = 0;
-            var fileName = Assembly.GetExecutingAssembly().Location;
-            if (!fileName.NullOrEmpty())
+            var version = Assembly.GetExecutingAssembly()?.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version?.Split('.');
+            if (version != null)
             {
-                privatePart = FileVersionInfo.GetVersionInfo(fileName)?.FilePrivatePart ?? 0;
+                VMF_Log.Message($"{version.ElementAtOrDefault(0)}.{version.ElementAtOrDefault(1)}.{version.ElementAtOrDefault(2)} rev{version.ElementAtOrDefault(3)}");
             }
-            VMF_Log.Message($"{VehicleMapFramework.mod.Content.ModMetaData.ModVersion} rev{privatePart}");
             VMF_Log.Message($"{VMF_Harmony.Instance.GetPatchedMethods().Count()} patches applied.");
         });
     }

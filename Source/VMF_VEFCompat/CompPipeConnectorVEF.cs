@@ -4,12 +4,19 @@ using SmashTools;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using VehicleMapFramework.VMF_HarmonyPatches;
 using Verse;
 
 namespace VehicleMapFramework;
 
 public class CompPipeConnectorVEF : CompResource, IPipeConnector
 {
+    public PipeNetDef pipeNet = DefDatabase<PipeNetDef>.GetNamed("VMF_UnassignedNet");
+
+    private CompPipeConnector compPipeConnector;
+
+    private CompPipeConnectorVEF pairComp;
+
     public CompPipeConnector.PipeMod Mod => CompPipeConnector.PipeMod.VanillaExpandedFramework;
 
     public CompPipeConnector CompPipeConnector
@@ -59,7 +66,7 @@ public class CompPipeConnectorVEF : CompResource, IPipeConnector
                     parent.DrawColor = d.resource.color;
                     PipeNet.UnregisterComp(this);
                     PipeNetManager.RegisterConnector(this);
-                    pipeNetCount(PipeNetManager) = PipeNetManager.pipeNets.Count;
+                    Patches_VEF.pipeNetsCount(PipeNetManager) = PipeNetManager.pipeNets.Count;
 
                 });
             });
@@ -83,7 +90,7 @@ public class CompPipeConnectorVEF : CompResource, IPipeConnector
             pairComp.PipeNet = PipeNet;
             pipeNet.Destroy();
             var component = MapComponentCache<PipeNetManager>.GetComponent(pairComp.parent.Map);
-            pipeNetCount(component) = component.pipeNets.Count;
+            Patches_VEF.pipeNetsCount(component) = component.pipeNets.Count;
             parent.DirtyMapMesh(parent.Map);
         }
     }
@@ -94,7 +101,7 @@ public class CompPipeConnectorVEF : CompResource, IPipeConnector
         var newConnectors = PipeNet.connectors.Where(c => c.parent.Map == parent.Map);
         if (!pipeNetManager.pipeNets.Remove(PipeNet))
         {
-            pipeNetCount(pipeNetManager)++;
+            Patches_VEF.pipeNetsCount(pipeNetManager)++;
         }
         PipeNet = PipeNetMaker.MakePipeNet(newConnectors, parent.Map, pipeNet);
         pipeNetManager.pipeNets.Add(PipeNet);
@@ -113,12 +120,4 @@ public class CompPipeConnectorVEF : CompResource, IPipeConnector
         base.PostExposeData();
         Scribe_Defs.Look(ref pipeNet, "pipeNetDef");
     }
-
-    public PipeNetDef pipeNet = DefDatabase<PipeNetDef>.GetNamed("VMF_UnassignedNet");
-
-    private CompPipeConnector compPipeConnector;
-
-    private CompPipeConnectorVEF pairComp;
-
-    public static readonly AccessTools.FieldRef<PipeNetManager, int> pipeNetCount = AccessTools.FieldRefAccess<PipeNetManager, int>("pipeNetsCount");
 }
