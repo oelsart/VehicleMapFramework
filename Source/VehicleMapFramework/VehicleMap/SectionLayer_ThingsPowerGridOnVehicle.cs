@@ -11,14 +11,6 @@ public class SectionLayer_ThingsPowerGridOnVehicle : SectionLayer_ThingsOnVehicl
         relevantChangeTypes = MapMeshFlagDefOf.PowerGrid;
     }
 
-    public override void DrawLayer()
-    {
-        if (OverlayDrawHandler.ShouldDrawPowerGrid)
-        {
-            base.DrawLayer();
-        }
-    }
-
     protected override void TakePrintFrom(Thing t)
     {
         if (t.Faction != null && t.Faction != Faction.OfPlayer)

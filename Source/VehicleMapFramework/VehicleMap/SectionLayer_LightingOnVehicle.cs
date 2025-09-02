@@ -46,7 +46,6 @@ public class SectionLayer_LightingOnVehicle : SectionLayer
     //drawPlanetがオフでVehicleMapにフォーカスした時しか呼ばれないよ
     public override void DrawLayer()
     {
-        return;
     }
 
     public void DrawLayer(VehiclePawnWithMap vehicle, Vector3 drawPos, float extraRotation)
@@ -91,6 +90,10 @@ public class SectionLayer_LightingOnVehicle : SectionLayer
 
     public override void Regenerate()
     {
+        if (!Map.IsVehicleMapOf(out _))
+        {
+            return;
+        }
         LayerSubMesh subMesh = GetSubMesh(VMF_Materials.LightOverlayColorDodge);
         LayerSubMesh subMesh2 = GetSubMesh(MatBases.LightOverlay);
         if (subMesh.verts.Count == 0)

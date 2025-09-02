@@ -1,7 +1,6 @@
 ﻿using HarmonyLib;
 using RimWorld;
 using SmashTools;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -129,7 +128,7 @@ public static class Patch_Graphic_Print
     private static Vector3 EdgeSpacerOffset(Vector3 vector, Thing thing)
     {
         VehicleMapProps mapProps;
-        if (thing.HasComp<CompVehicleEnterSpot>() && thing.IsOnVehicleMapOf(out var vehicle) && (mapProps = vehicle.VehicleDef.GetModExtension<VehicleMapProps>()) != null)
+        if (thing.def.HasComp(typeof(CompVehicleEnterSpot)) && thing.IsOnVehicleMapOf(out var vehicle) && (mapProps = vehicle.VehicleDef.GetModExtension<VehicleMapProps>()) != null)
         {
             var opposite = thing.Rotation.Opposite;
             return vector + (opposite.AsVector2.ToVector3() * mapProps.EdgeSpaceValue(VehicleMapUtility.RotForPrint, opposite));
@@ -440,7 +439,7 @@ public static class Patch_Graphic_DrawFromDef
 
             //はしごとかのマップ端オフセット
             VehicleMapProps mapProps;
-            if (thingDef.HasComp<CompVehicleEnterSpot>() && (mapProps = vehicle.VehicleDef.GetModExtension<VehicleMapProps>()) != null)
+            if (thingDef.HasComp(typeof(CompVehicleEnterSpot)) && (mapProps = vehicle.VehicleDef.GetModExtension<VehicleMapProps>()) != null)
             {
                 var baseRot = new Rot8(Rot8.FromIntClockwise((vehicle.FullRotation.AsIntClockwise + new Rot8(rot2).AsIntClockwise) % 8));
                 loc += baseRot.Opposite.AsVector2.ToVector3() * mapProps.EdgeSpaceValue(vehicle.FullRotation, rot2.Opposite);

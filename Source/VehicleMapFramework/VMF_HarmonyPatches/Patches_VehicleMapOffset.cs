@@ -333,53 +333,29 @@ public static class Patch_PawnPath_DrawPath
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
-        var codes = instructions.ToList();
-        var pos = codes.FindIndex(c => c.opcode == OpCodes.Stloc_0);
-        var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithMap));
-        var label = generator.DefineLabel();
-
-        codes[pos].labels.Add(label);
-        codes.InsertRange(pos,
-        [
+        var codes = new CodeMatcher(instructions, generator);
+        codes.MatchEndForward(CodeMatch.Calls(AccessTools.Method(typeof(Altitudes), nameof(Altitudes.AltitudeFor), [typeof(AltitudeLayer)])), CodeMatch.IsStloc());
+        codes.DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle);
+        codes.CreateLabel(out var label);
+        codes.Insert(
             CodeInstruction.LoadArgument(1),
             new CodeInstruction(OpCodes.Ldloca_S, vehicle),
             new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf),
             new CodeInstruction(OpCodes.Brfalse_S, label),
             new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-        new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_YOffsetFull2)
-        ]);
+            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_YOffsetFull2));
 
-        var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Stloc_2);
-        var label2 = generator.DefineLabel();
-        codes[pos2].labels.Add(label2);
-        codes.InsertRange(pos2,
-        [
-            new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-            new CodeInstruction(OpCodes.Brfalse_S, label2),
-            new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ToBaseMapCoord2),
-        ]);
-        var pos3 = codes.FindIndex(pos, c => c.opcode == OpCodes.Stloc_3);
-        var label3 = generator.DefineLabel();
-        codes[pos3].labels.Add(label3);
-        codes.InsertRange(pos3,
-        [
-            new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-            new CodeInstruction(OpCodes.Brfalse_S, label3),
-            new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ToBaseMapCoord2),
-        ]);
-        var pos4 = codes.FindIndex(pos, c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalIndex == 6);
-        var label4 = generator.DefineLabel();
-        codes[pos4].labels.Add(label4);
-        codes.InsertRange(pos4,
-        [
-            new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-            new CodeInstruction(OpCodes.Brfalse_S, label4),
-            new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ToBaseMapCoord2),
-        ]);
-        return codes;
+        codes.MatchEndForward(CodeMatch.Calls(CachedMethodInfo.m_IntVec3_ToVector3Shifted), CodeMatch.IsStloc());
+        codes.Repeat(c =>
+        {
+            c.CreateLabel(out var label2);
+            c.Insert(
+                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+                new CodeInstruction(OpCodes.Brfalse_S, label2),
+                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ToBaseMapCoord2));
+        });
+        return codes.Instructions();
     }
 }
 

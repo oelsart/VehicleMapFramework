@@ -32,7 +32,7 @@ public abstract class SectionLayer_ThingsOnVehicle : SectionLayer_Things
     //drawPlanetがオフでVehicleMapにフォーカスした時しか呼ばれないよ
     public override void DrawLayer()
     {
-        DrawLayer(Rot8.North, Vector3.zero, 0f);
+        //DrawLayer(Rot8.North, Vector3.zero, 0f);
     }
 
     public void DrawLayer(Rot8 rot, Vector3 drawPos, float extraRotation)
@@ -70,12 +70,20 @@ public abstract class SectionLayer_ThingsOnVehicle : SectionLayer_Things
 
     public override void Regenerate()
     {
+        if (!Map.IsVehicleMapOf(out _))
+        {
+            return;
+        }
         dirty = true;
         dirtyFrame = Time.frameCount;
     }
 
     public void RegenerateActually()
     {
+        if (!Map.IsVehicleMapOf(out _))
+        {
+            return;
+        }
         VehicleMapUtility.RotForPrint = Rot4.North;
         bounds = section.CellRect;
         for (var i = 0; i < 4; i++)

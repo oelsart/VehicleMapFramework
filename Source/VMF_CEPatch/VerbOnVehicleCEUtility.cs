@@ -11,6 +11,8 @@ namespace VMF_CEPatch;
 
 public static class VerbOnVehicleCEUtility
 {
+    private static List<IntVec3> tempLeanShootSources = [];
+
     private static Vector3 ShotSource(this Verb_LaunchProjectileCE verb)
     {
         var drawPos = verb.caster.DrawPos;
@@ -19,9 +21,10 @@ public static class VerbOnVehicleCEUtility
 
     public static bool TryFindCEShootLineFromToOnVehicle(this Verb_LaunchProjectileCE verb, IntVec3 root, LocalTargetInfo targ, out ShootLine resultingLine, out Vector3 targetPos)
     {
-        targetPos = targ.Thing is Pawn ? targ.Thing.TrueCenter() : targ.CellOnBaseMap().ToVector3Shifted();
+        targetPos = targ.Thing is Pawn ? targ.Thing.TrueCenter() : TargetMapManager.TargetCellOnBaseMap(ref targ, verb.caster).ToVector3Shifted();
         var casterBaseMap = verb.caster.BaseMap();
-        var targCellOnBaseMap = targ.CellOnBaseMap();
+        var targCellOnBaseMap = TargetMapManager.TargetCellOnBaseMap(ref targ, verb.caster);
+
         if (targ.HasThing && targ.Thing.BaseMap() != casterBaseMap)
         {
             resultingLine = default;
@@ -140,7 +143,7 @@ public static class VerbOnVehicleCEUtility
                     targetPos = targetPos.ToBaseMapCoord(vehicle);
                 }
             }
-            Ray shotLine = new Ray(shotSource, targetPos - shotSource);
+            Ray shotLine = new(shotSource, targetPos - shotSource);
 
             // Create validator to check for intersection with partial cover
             var aimMode = verb.CompFireModes?.CurrentAimMode;
@@ -216,6 +219,4 @@ public static class VerbOnVehicleCEUtility
         }
         return true;
     }
-
-    private static List<IntVec3> tempLeanShootSources = new List<IntVec3>();
 }

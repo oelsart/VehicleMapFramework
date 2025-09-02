@@ -1,6 +1,5 @@
 ﻿using HarmonyLib;
 using SmashTools;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -13,18 +12,16 @@ public class VehiclePawnWithMapCache : MapComponent
 {
     public VehiclePawnWithMapCache(Map map) : base(map)
     {
-        VehicleMapParentsComponent.CachedParentVehicle[this.map] = new Lazy<VehiclePawnWithMap>(() =>
-        {
-            if (this.map.Parent is MapParent_Vehicle parentVehicle)
-            {
-                return parentVehicle.vehicle;
-            }
-            return null;
-        }, false);
+        VehicleMapParentsComponent.CachedMapParentVehicle[map] = map.Parent as MapParent_Vehicle;
         map.events.ThingDespawned += thing =>
         {
             TargetMapManager.RemoveTargetInfo(thing);
         };
+    }
+
+    public override void FinalizeInit()
+    {
+        VehicleMapParentsComponent.CachedMapParentVehicle[map] = map.Parent as MapParent_Vehicle;
     }
 
     public static void RegisterVehicle(VehiclePawnWithMap vehicle)
@@ -56,7 +53,7 @@ public class VehiclePawnWithMapCache : MapComponent
 
     public static IReadOnlyCollection<VehiclePawnWithMap> AllVehiclesOn(Map map)
     {
-        return map.GetCachedMapComponent<VehiclePawnWithMapCache>().allVehicles;
+        return map.GetCachedMapComponent<VehiclePawnWithMapCache>()?.allVehicles ?? [];
     }
 
     public void ForceResetCache()
@@ -106,7 +103,7 @@ public class VehiclePawnWithMapCache : MapComponent
 
     public override void MapRemoved()
     {
-        VehicleMapParentsComponent.CachedParentVehicle.Remove(map);
+        VehicleMapParentsComponent.CachedMapParentVehicle.Remove(map);
     }
 
     public Dictionary<Thing, Vector3> cachedDrawPos = [];

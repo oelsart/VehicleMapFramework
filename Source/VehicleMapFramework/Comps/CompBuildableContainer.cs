@@ -19,7 +19,6 @@ public class CompBuildableContainer : CompTransporter
             {
                 return vehicle;
             }
-            VMF_Log.Error("Container is not on any vehicle map");
             return null;
         }
     }
@@ -138,7 +137,9 @@ public class CompBuildableContainer : CompTransporter
 
     public override IEnumerable<Gizmo> CompGetGizmosExtra()
     {
-        if (!leftToLoad.NullOrEmpty<TransferableOneWay>())
+        if (Vehicle is null) yield break;
+
+        if (!leftToLoad.NullOrEmpty())
         {
             Command_Action command_Action = new()
             {

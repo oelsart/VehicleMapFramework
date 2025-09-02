@@ -8,6 +8,10 @@ namespace VehicleMapFramework;
 
 public static class GenUIOnVehicle
 {
+    private static List<Thing> cellThings = new(32);
+
+    public static VehiclePawnWithMap vehicleForSelector;
+
     public static List<Thing> ThingsUnderMouse(Vector3 clickPos, float pawnWideClickRadius, TargetingParameters clickParams, ITargetingSource source)
     {
         return ThingsUnderMouse(clickPos, pawnWideClickRadius, clickParams, source, vehicleForSelector);
@@ -122,8 +126,6 @@ public static class GenUIOnVehicle
         }
     }
 
-    private static List<Thing> cellThings = new(32);
-
     public static IEnumerable<LocalTargetInfo> TargetsAtMouse(TargetingParameters clickParams, bool thingsOnly = false, ITargetingSource source = null)
     {
         var clickPos = UI.MouseMapPosition();
@@ -136,7 +138,7 @@ public static class GenUIOnVehicle
                 if (source is Verb_Jump || source is Verb_CastAbilityJump || source is Verb_LaunchZipline)
                 {
                     convToVehicleMap = true;
-                     TargetMapManager.SetTargetMap(source?.Caster, vehicle.VehicleMap);
+                    TargetMapManager.SetTargetMap(source?.Caster, vehicle.VehicleMap);
                 }
             }
         }
@@ -185,6 +187,4 @@ public static class GenUIOnVehicle
             }
         }
     }
-
-    public static VehiclePawnWithMap vehicleForSelector;
 }

@@ -206,8 +206,7 @@
 		<designationCategory>VF_Vehicles</designationCategory>
 		<graphicData>
 			<texPath>VehicleMapFramework/Things/ZiplineTurret/ZiplineTurret_Base</texPath>
-			<drawSize>(2,2)</drawSize>
-			<drawOffset>(0,0,0.05)</drawOffset>
+			<drawSize>(1,1)</drawSize>
 			<drawRotated>false</drawRotated>
 		</graphicData>
 		<size>(1,1)</size>
@@ -265,6 +264,7 @@
 		<description>A gun made to be mounted on a zipline turret.</description>
 		<graphicData>
 			<texPath>VehicleMapFramework/Things/ZiplineTurret/ZiplineTurret_Top</texPath>
+			<drawOffset>(0,0,0.2)</drawOffset>
 			<graphicClass>Graphic_Single</graphicClass>
 		</graphicData>
 		<statBases>

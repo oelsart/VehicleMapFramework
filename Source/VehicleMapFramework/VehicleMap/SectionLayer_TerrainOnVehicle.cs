@@ -20,12 +20,10 @@ public class SectionLayer_TerrainOnVehicle : SectionLayer
     public SectionLayer_TerrainOnVehicle(Section section) : base(section)
     {
         relevantChangeTypes = MapMeshFlagDefOf.Terrain;
-        if (Map.Parent is not MapParent_Vehicle parentVehicle)
+        if (Map.Parent is MapParent_Vehicle parentVehicle)
         {
-            VMF_Log.Error("Do not use SectionLayer_TerrainOnVehicle except for vehicle maps.");
-            return;
+            baseTerrainMat = SolidColorMaterials.NewSolidColorMaterial(parentVehicle.vehicle.DrawColor, ShaderDatabase.TerrainHard);
         }
-        baseTerrainMat = SolidColorMaterials.NewSolidColorMaterial(parentVehicle.vehicle.DrawColor, ShaderDatabase.TerrainHard);
     }
 
     public void DrawLayer(Rot8 rot, Vector3 drawPos, float extraRotation)
@@ -49,7 +47,7 @@ public class SectionLayer_TerrainOnVehicle : SectionLayer
     {
         if (!Map.IsVehicleMapOf(out var vehicle))
         {
-            VMF_Log.Error("Do not use SectionLayer_TerrainOnVehicle except for vehicle maps.");
+            //VMF_Log.Error("Do not use SectionLayer_TerrainOnVehicle except for vehicle maps.");
             return;
         }
         var mapSize = new Vector3(vehicle.VehicleMap.Size.x, 0f, vehicle.VehicleMap.Size.z);
@@ -84,6 +82,10 @@ public class SectionLayer_TerrainOnVehicle : SectionLayer
 
     public override void Regenerate()
     {
+        if (!Map.IsVehicleMapOf(out _))
+        {
+            return;
+        }
         ClearSubMeshes(MeshParts.All);
         TerrainGrid terrainGrid = Map.terrainGrid;
         CellRect cellRect = section.CellRect;

@@ -1,5 +1,6 @@
 ﻿using RimWorld;
 using Verse;
+using static VehicleMapFramework.ModCompat;
 
 namespace VehicleMapFramework;
 
@@ -10,11 +11,17 @@ public class SectionLayer_ThingsSewagePipeOnVehicle : SectionLayer_ThingsOnVehic
         relevantChangeTypes = MapMeshFlagDefOf.Buildings;
     }
 
+    public override void Regenerate()
+    {
+        if (!DubsBadHygiene.Active || DubsBadHygiene.LiteMode) return;
+        base.Regenerate();
+    }
+
     protected override void TakePrintFrom(Thing t)
     {
-        if (ModCompat.DubsBadHygiene.Building_Pipe.IsAssignableFrom(t.GetType()))
+        if (DubsBadHygiene.Building_Pipe.IsAssignableFrom(t.GetType()))
         {
-            ModCompat.DubsBadHygiene.PrintForGrid(t, this);
+            DubsBadHygiene.PrintForGrid(t, this);
         }
     }
 }
