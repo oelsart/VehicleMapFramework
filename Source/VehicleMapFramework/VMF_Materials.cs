@@ -4,18 +4,21 @@ using Verse;
 namespace VehicleMapFramework;
 
 [StaticConstructorOnStartup]
-public static class VMF_Materials
+internal static class VMF_Materials
 {
+    public static readonly Material LightOverlayColorDodge = LoadMat("LightOverlayColorDodge");
+
     public static Material LoadMat(string matPath)
     {
-        var mat = VehicleMapFramework.Bundle.LoadAsset<Material>($"Assets/Data/{VehicleMapFramework.mod.Content.PackageIdPlayerFacing}/Materials/{matPath}.mat");
-        if (mat == null)
+        foreach (var bundle in VehicleMapFramework.mod.Content.assetBundles.loadedAssetBundles)
         {
-            Log.Warning("Could not load material " + mat);
-            return BaseContent.BadMat;
+            var mat = bundle.LoadAsset<Material>($"Assets/Data/{VehicleMapFramework.mod.Content.PackageIdPlayerFacing}/Materials/{matPath}.mat");
+            if (mat != null)
+            {
+                return mat;
+            }
         }
-        return mat;
+        Log.Warning("Could not load material " + matPath);
+        return BaseContent.BadMat;
     }
-
-    public static readonly Material LightOverlayColorDodge = LoadMat("LightOverlayColorDodge");
 }

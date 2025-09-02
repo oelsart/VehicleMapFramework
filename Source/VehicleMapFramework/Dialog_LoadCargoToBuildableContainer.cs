@@ -176,7 +176,7 @@ public class Dialog_LoadCargoToBuildableContainer : Window
 
     private void AddToTransferables(Thing t, bool setToTransferMax = false)
     {
-        TransferableOneWay transferableOneWay = TransferableUtility.TransferableMatching<TransferableOneWay>(t, transferables, TransferAsOneMode.PodsOrCaravanPacking);
+        TransferableOneWay transferableOneWay = TransferableUtility.TransferableMatching(t, transferables, TransferAsOneMode.PodsOrCaravanPacking);
         if (transferableOneWay == null)
         {
             transferableOneWay = new TransferableOneWay();
@@ -205,13 +205,17 @@ public class Dialog_LoadCargoToBuildableContainer : Window
     private void AddItemsToTransferables()
     {
         List<Thing> list = CaravanFormingUtility.AllReachableColonyItems(comp.parent.Map, VehicleMod.settings.showAllCargoItems, false, false);
-        if (comp.GatherFromBaseMap)
+        if (comp.GatherFromBaseMap && comp.parent.Map != comp.parent.BaseMap())
         {
             list.AddRange(CaravanFormingUtility.AllReachableColonyItems(comp.parent.BaseMap(), VehicleMod.settings.showAllCargoItems, false, false));
         }
         for (int i = 0; i < list.Count; i++)
         {
-            AddToTransferables(list[i], false);
+            var thing = list[i];
+            if (!TransferableUtility.TransferableMatching(thing, transferables, TransferAsOneMode.PodsOrCaravanPacking)?.things?.Contains(thing) ?? true)
+            {
+                AddToTransferables(thing, false);
+            }
         }
     }
 
