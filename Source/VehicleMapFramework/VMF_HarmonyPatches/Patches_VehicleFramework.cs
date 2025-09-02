@@ -267,18 +267,20 @@ public static class Patch_VehiclePawn_FullRotation
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Rendering_DrawSelectionBracketsVehicles
 {
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator, MethodBase original)
     {
         var codes = new CodeMatcher(instructions, generator);
-        codes.MatchStartForward(new CodeMatch(OpCodes.Add), new CodeMatch(OpCodes.Stloc_2));
+        codes.MatchEndForward(CodeMatch.LoadsField(AccessTools.Field(typeof(SmashTools.Rendering.Transform), nameof(SmashTools.Rendering.Transform.rotation))), new CodeMatch(OpCodes.Add));
         codes.DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle);
         codes.CreateLabel(out var label);
+        var l_vehicle_ind = original.GetMethodBody()?.LocalVariables?.FirstIndexOf(l => l.LocalType == typeof(VehiclePawn)) ?? 0;
+        if (l_vehicle_ind == -1) l_vehicle_ind = 0;
         codes.InsertAndAdvance(
-            CodeInstruction.LoadLocal(0),
+            CodeInstruction.LoadLocal(l_vehicle_ind),
             new CodeInstruction(OpCodes.Ldloca_S, vehicle),
             new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf),
             new CodeInstruction(OpCodes.Brfalse_S, label),
-            CodeInstruction.LoadLocal(0),
+            CodeInstruction.LoadLocal(l_vehicle_ind),
             new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_FlipAngle));
 
         codes.CreateLabelWithOffsets(1, out var label2);

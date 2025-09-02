@@ -328,7 +328,7 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         interiorMap = null;
 
         if (!VehicleMapFramework.settings.dynamicUnpatchEnabled) return;
-        if (VehicleMapParentsComponent.CachedParentVehicle.Any(p => p.Value.Value != null)) return;
+        if (VehicleMapParentsComponent.CachedMapParentVehicle.Any(p => p.Value != null)) return;
         VMF_Harmony.DynamicPatchAll(VehicleMapFramework.settings.dynamicPatchLevel);
     }
 
@@ -389,7 +389,7 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         if (Spawned)
         {
             CacheDrawPos(DrawPos);
-            mapFollower.MapFollowerTick();
+            mapFollower?.MapFollowerTick();
         }
         else if (this.IsHashIntervalTick(15))
         {

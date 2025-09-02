@@ -20,6 +20,16 @@ public class Verb_LaunchZipline : Verb_LaunchProjectile
         return base.ValidateTarget(target, showMessages) && target.Cell.Standable(map);
     }
 
+    public override bool CanHitTargetFrom(IntVec3 root, LocalTargetInfo targ)
+    {
+        if (targ.Thing != null && targ.Thing == caster)
+        {
+            return targetParams.canTargetSelf;
+        }
+        ShootLine shootLine;
+        return (targ.Pawn == null || !targ.Pawn.IsPsychologicallyInvisible() || !caster.HostileTo(targ.Pawn)) && !ApparelPreventsShooting() && this.TryFindShootLineFromToOnVehicle(root, targ, out shootLine, false);
+    }
+
     public override bool TryStartCastOn(LocalTargetInfo castTarg, LocalTargetInfo destTarg, bool surpriseAttack = false, bool canHitNonTargetPawns = true, bool preventFriendlyFire = false, bool nonInterruptingSelfCast = false)
     {
         if (ZiplineEnd?.Spawned ?? false) return false;

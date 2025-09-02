@@ -7,7 +7,7 @@ namespace VehicleMapFramework;
 
 public class VehicleMapParentsComponent : WorldComponent
 {
-    public static Dictionary<Map, Lazy<VehiclePawnWithMap>> CachedParentVehicle => cachedParentVehicle;
+    public static Dictionary<Map, MapParent_Vehicle> CachedMapParentVehicle => cachedMapParentVehicle;
 
     public VehicleMapParentsComponent(World world) : base(world)
     {
@@ -17,8 +17,8 @@ public class VehicleMapParentsComponent : WorldComponent
 
     public override void FinalizeInit(bool fromLoad)
     {
-        cachedParentVehicle.Clear();
+        cachedMapParentVehicle.Clear();
     }
 
-    private static Dictionary<Map, Lazy<VehiclePawnWithMap>> cachedParentVehicle = [];
+    private static Dictionary<Map, MapParent_Vehicle> cachedMapParentVehicle = [];
 }

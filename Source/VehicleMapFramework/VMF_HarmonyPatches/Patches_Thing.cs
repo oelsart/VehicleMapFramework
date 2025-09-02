@@ -23,7 +23,7 @@ public static class Patch_Thing_Rotation
             if (pawn.pather?.Moving ?? false)
             {
                 var angle = (pawn.pather.nextCell - pawn.Position).AngleFlat;
-                value = Rot8.FromAngle(Ext_Math.RotateAngle(angle, vehicle.FullRotation.AsAngle));
+                value = Rot8.FromAngle(Ext_Math.RotateAngle(angle, vehicle.FullAngle()));
             }
             //else if (!pawn.Drafted)
             //{

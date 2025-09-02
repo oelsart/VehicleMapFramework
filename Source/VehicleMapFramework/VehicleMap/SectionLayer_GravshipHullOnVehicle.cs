@@ -132,7 +132,7 @@ namespace VehicleMapFramework
         //drawPlanetがオフでVehicleMapにフォーカスした時しか呼ばれないよ
         public override void DrawLayer()
         {
-            DrawLayer(Rot8.North, Vector3.zero, 0f);
+            //DrawLayer(Rot8.North, Vector3.zero, 0f);
         }
 
         public void DrawLayer(Rot8 rot, Vector3 drawPos, float extraRotation)
@@ -188,6 +188,10 @@ namespace VehicleMapFramework
         public override void Regenerate()
         {
             if (!ModsConfig.OdysseyActive)
+            {
+                return;
+            }
+            if (!Map.IsVehicleMapOf(out _))
             {
                 return;
             }

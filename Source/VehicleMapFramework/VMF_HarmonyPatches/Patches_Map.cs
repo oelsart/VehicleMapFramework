@@ -19,24 +19,40 @@ using static VehicleMapFramework.ModCompat;
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 //VehicleMapの時はいくつかを専用のSectionLayerに置き換え、そうでなければそれらは除外する
-[HarmonyPatch(typeof(Section), MethodType.Constructor, typeof(IntVec3), typeof(Map))]
-[PatchLevel(Level.Mandatory)]
-public static class Patch_Section_Constructor
-{
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        var codes = instructions.ToList();
-        var getAllSubclassesNA = AccessTools.Method(typeof(GenTypes), nameof(GenTypes.AllSubclassesNonAbstract));
-        var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(getAllSubclassesNA)) + 1;
-
-        codes.InsertRange(pos,
-        [
-            CodeInstruction.LoadArgument(2),
-            CodeInstruction.Call(typeof(VehicleMapUtility), nameof(VehicleMapUtility.SelectSectionLayers))
-        ]);
-        return codes;
-    }
-}
+//[HarmonyPatch(typeof(Section), MethodType.Constructor, typeof(IntVec3), typeof(Map))]
+//[PatchLevel(Level.Mandatory)]
+//public static class Patch_Section_Constructor
+//{
+//    public static void Postfix(Map map, List<SectionLayer> ___layers)
+//    {
+//        if (map.Parent is MapParent_Vehicle)
+//        {
+//            ___layers.RemoveAll(layer =>
+//            {
+//                var type = layer.GetType();
+//                if (type == typeof(SectionLayer_ThingsGeneral) ||
+//                    type == typeof(SectionLayer_Terrain) ||
+//                    type == typeof(SectionLayer_ThingsPowerGrid))
+//                {
+//                    return true;
+//                }
+//                if (VFECore.Active && type == GenTypes.GetTypeInAnyAssembly("PipeSystem.SectionLayer_Resource", "PipeSystem"))
+//                {
+//                    return true;
+//                }
+//                if (!DubsBadHygiene.Active || DubsBadHygiene.LiteMode && type == typeof(SectionLayer_ThingsSewagePipeOnVehicle))
+//                {
+//                    return true;
+//                }
+//                if (!Rimefeller.Active && type == typeof(SectionLayer_ThingsPipeOnVehicle))
+//                {
+//                    return true;
+//                }
+//                return false;
+//            });
+//        }
+//    }
+//}
 
 [HarmonyPatch(typeof(MechanitorUtility), nameof(MechanitorUtility.InMechanitorCommandRange))]
 public static class Patch_MechanitorUtility_InMechanitorCommandRange
@@ -324,9 +340,9 @@ public static class Patch_Map_MapUpdate
             var longSide = Mathf.Max(vehicle.DrawSize.x / 2f, vehicle.DrawSize.y / 2f);
             var drawPos = new Vector3(longSide, 0f, longSide);
             if (mat != null)
-            {
                 Graphics.DrawMesh(mesh200, drawPos, Quaternion.identity, mat, 0);
-            }
+            else
+                Graphics.DrawMesh(mesh200, drawPos, Quaternion.identity, SolidColorMaterials.SimpleSolidColorMaterial(Color.black), 0);
 
             skyMat.color = Color.black.WithAlpha((1f - vehicle.VehicleMap.skyManager.CurSkyGlow) * 0.2f);
             skyMat.renderQueue = 3100;
