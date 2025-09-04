@@ -19,15 +19,6 @@
 	</JobDef>
 	
 	<JobDef>
-		<defName>VMF_HaulToTransporterAcrossMaps</defName>
-		<driverClass>VehicleMapFramework.JobDriver_HaulToTransporterAcrossMaps</driverClass>
-		<reportString>hauling TargetA.</reportString>
-		<suspendable>false</suspendable>
-		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
-		<dropThingBeforeJob>false</dropThingBeforeJob>
-	</JobDef>
-	
-	<JobDef>
 		<defName>VMF_BoardAcrossMaps</defName>
 		<driverClass>VehicleMapFramework.JobDriver_BoardAcrossMaps</driverClass>
 		<reportString>Entering TargetA.</reportString>

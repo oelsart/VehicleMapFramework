@@ -30,7 +30,6 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
     private readonly List<CompVehicleEnterSpot> enterCompsInt = [];
 
     private readonly List<CompFuelTank> fuelTankCompsInt = [];
-
     private bool allowHaulIn = true;
 
     private bool allowHaulOut = true;

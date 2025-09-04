@@ -1,9 +1,11 @@
 ﻿using RimWorld;
+using System;
 using Verse;
 using Verse.AI;
 
 namespace VehicleMapFramework;
 
+[Obsolete]
 public class JobDriver_HaulToTransporterAcrossMaps : JobDriver_HaulToContainer
 {
     public CompTransporter Transporter

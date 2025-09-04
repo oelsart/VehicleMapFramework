@@ -11,6 +11,10 @@ namespace VehicleMapFramework;
 
 public class CompBuildableContainer : CompTransporter
 {
+    private AccessTools.FieldRef<CompTransporter, bool> notifiedCantLoadMore = AccessTools.FieldRefAccess<CompTransporter, bool>("notifiedCantLoadMore");
+
+    private bool gatherFromBaseMap;
+
     public VehiclePawnWithMap Vehicle
     {
         get
@@ -86,7 +90,7 @@ public class CompBuildableContainer : CompTransporter
 
                 for (int l = 0; l < list.Count; l++)
                 {
-                    if (LoadTransportersJobOnVehicleUtility.HasJobOnTransporter(allPawnsSpawned[k], list[l]))
+                    if (LoadTransportersJobUtility.HasJobOnTransporter(allPawnsSpawned[k], list[l]))
                     {
                         return true;
                     }
@@ -96,6 +100,7 @@ public class CompBuildableContainer : CompTransporter
             return false;
         }
     }
+
     public bool GatherFromBaseMap => gatherFromBaseMap;
 
     public override void CompTick()
@@ -103,7 +108,7 @@ public class CompBuildableContainer : CompTransporter
         if (parent.IsHashIntervalTick(60) && parent.Spawned && LoadingInProgressOrReadyToLaunch && AnyInGroupHasAnythingLeftToLoad && !AnyInGroupNotifiedCantLoadMore && !AnyPawnCanLoadAnythingNow && (Shuttle == null || !Shuttle.Autoload))
         {
             notifiedCantLoadMore(this) = true;
-            //Messages.Message("MessageCantLoadMoreIntoTransporters".Translate(this.FirstThingLeftToLoadInGroup.LabelNoCount, Faction.OfPlayer.def.pawnsPlural, this.FirstThingLeftToLoadInGroup), this.parent, MessageTypeDefOf.CautionInput, true);
+            Messages.Message("MessageCantLoadMoreIntoTransporters".Translate(FirstThingLeftToLoadInGroup.LabelNoCount, Faction.OfPlayer.def.pawnsPlural, FirstThingLeftToLoadInGroup), parent, MessageTypeDefOf.CautionInput, true);
         }
     }
 
@@ -117,6 +122,7 @@ public class CompBuildableContainer : CompTransporter
         else
         {
             innerContainer = new ThingOwner<Thing>(this);
+            massCapacityOverride = 0f;
         }
     }
 
@@ -147,7 +153,6 @@ public class CompBuildableContainer : CompTransporter
                 icon = Vehicle.VehicleDef.CancelCargoIcon,
                 action = delegate ()
                 {
-                    //this.Map.GetCachedMapComponent<VehicleReservationManager>().RemoveLister(this.Vehicle, "LoadVehicle");
                     leftToLoad.Clear();
                     groupID = -1;
                 }
@@ -210,8 +215,4 @@ public class CompBuildableContainer : CompTransporter
         Scribe_Values.Look(ref massCapacityOverride, "massCapacityOverride", 0f, false);
         Scribe_Values.Look(ref gatherFromBaseMap, "gatherFromBaseMap", false);
     }
-
-    private AccessTools.FieldRef<CompTransporter, bool> notifiedCantLoadMore = AccessTools.FieldRefAccess<CompTransporter, bool>("notifiedCantLoadMore");
-
-    private bool gatherFromBaseMap;
 }

@@ -1,4 +1,5 @@
 ﻿using RimWorld;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Verse;
@@ -6,6 +7,7 @@ using Verse.AI;
 
 namespace VehicleMapFramework;
 
+[Obsolete("Use instead vanilla logic.")]
 public class WorkGiver_LoadBuildableContainer : WorkGiver_Scanner, IWorkGiverAcrossMaps
 {
     public bool NeedVirtualMapTransfer => false;

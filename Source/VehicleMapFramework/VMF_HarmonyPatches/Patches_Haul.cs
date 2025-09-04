@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using RimWorld;
 using RimWorld.Planet;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -206,5 +207,47 @@ public static class Patch_Toils_Haul_IsValidStorageFor
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrPawnMap);
+    }
+}
+
+[HarmonyPatch(typeof(LoadTransportersJobUtility), nameof(LoadTransportersJobUtility.FindThingToLoad))]
+public static class Patch_LoadTransportersJobUtility_FindThingToLoad
+{
+    [HarmonyReversePatch(HarmonyReversePatchType.Snapshot)]
+    [PatchLevel(Level.Mandatory)]
+    public static ThingCount FindThingToLoad(Pawn p, CompTransporter transporter)
+    {
+        static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var codes = new CodeMatcher(instructions);
+            codes.MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Position));
+            codes.Insert(
+                new CodeInstruction(OpCodes.Pop),
+                CodeInstruction.LoadArgument(1),
+                CodeInstruction.LoadField(typeof(ThingComp), nameof(ThingComp.parent)));
+
+            codes.MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Map));
+            codes.Insert(
+                new CodeInstruction(OpCodes.Pop),
+                CodeInstruction.LoadArgument(1),
+                CodeInstruction.LoadField(typeof(ThingComp), nameof(ThingComp.parent)));
+
+            var m_ClosestThingReachable = AccessTools.Method(typeof(GenClosest), nameof(GenClosest.ClosestThingReachable));
+            var m_ClosestThingReachableOriginal = AccessTools.Method(typeof(Patch_GenClosest_ClosestThingReachable), nameof(Patch_GenClosest_ClosestThingReachable.ClosestThingReachableOriginal));
+            return codes.Instructions().MethodReplacer(m_ClosestThingReachable, m_ClosestThingReachableOriginal);
+        }
+        _ = Transpiler(null);
+        throw new NotImplementedException();
+    }
+
+    [PatchLevel(Level.Safe)]
+    public static bool Prefix(Pawn p, CompTransporter transporter, ref ThingCount __result)
+    {
+        if (transporter is CompBuildableContainer container && !container.GatherFromBaseMap)
+        {
+            __result = FindThingToLoad(p, transporter);
+            return false;
+        }
+        return true;
     }
 }

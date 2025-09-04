@@ -13,26 +13,6 @@ public static class DefMessagesReplace
 {
     static DefMessagesReplace()
     {
-        foreach (var workGiverDef in DefDatabase<WorkGiverDef>.AllDefs.Where(d => d.defName.StartsWith(prefix) && d.defName.EndsWith(suffix)))
-        {
-            var baseDefName = workGiverDef.defName.Replace(prefix, "").Replace(suffix, "");
-            var baseDef = DefDatabase<WorkGiverDef>.GetNamedSilentFail(baseDefName);
-            if (baseDef != null)
-            {
-                workGiverDef.label = baseDef.label;
-                workGiverDef.verb = baseDef.verb;
-                workGiverDef.gerund = baseDef.gerund;
-            }
-        }
-
-        var loadTransporters = DefDatabase<WorkGiverDef>.GetNamedSilentFail("LoadTransporters");
-        if (loadTransporters != null)
-        {
-            VMF_DefOf.VMF_LoadBuildableContainer.label = loadTransporters.label;
-            VMF_DefOf.VMF_LoadBuildableContainer.verb = loadTransporters.verb;
-            VMF_DefOf.VMF_LoadBuildableContainer.gerund = loadTransporters.gerund;
-        }
-
         var refuelVehicleTank = DefDatabase<WorkGiverDef>.GetNamedSilentFail("VMF_RefuelVehicleTank");
         var refuelVehicle = DefDatabase<WorkGiverDef>.GetNamedSilentFail("RefuelVehicle");
         if (refuelVehicleTank != null && refuelVehicle != null)

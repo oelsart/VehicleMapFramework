@@ -29,10 +29,13 @@ public class CompVehicleEnterSpot : ThingComp
 
     public override void PostSpawnSetup(bool respawningAfterLoad)
     {
-        if (parent.IsOnVehicleMapOf(out var vehicle))
+        LongEventHandler.ExecuteWhenFinished(() =>
         {
-            vehicle.EnterComps.Add(this);
-        }
+            if (parent.IsOnVehicleMapOf(out var vehicle))
+            {
+                vehicle.EnterComps.Add(this);
+            }
+        });
     }
 
     public override void PostDeSpawn(Map map, DestroyMode mode = DestroyMode.Vanish)

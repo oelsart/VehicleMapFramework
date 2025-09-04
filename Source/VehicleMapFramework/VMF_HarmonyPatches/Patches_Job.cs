@@ -214,7 +214,7 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
     {
         var map = pawn.Map;
         var targetMap = target.Map;
-        if (map == targetMap || scanner is IWorkGiverAcrossMaps workGiverAcrossMaps && !workGiverAcrossMaps.NeedVirtualMapTransfer)
+        if (map == targetMap)
         {
             return scanner.JobOnCell(pawn, target.Cell, forced);
         }
@@ -677,6 +677,7 @@ public static class Patch_GenClosest_ClosestThingReachable
 {
     [HarmonyReversePatch(HarmonyReversePatchType.Original)]
     [PatchLevel(Level.Mandatory)]
+    [MethodImpl(MethodImplOptions.NoInlining)] //リバースパッチはインライン化させないほうがいい。これ豆な
     public static Thing ClosestThingReachableOriginal(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance, Predicate<Thing> validator, IEnumerable<Thing> customGlobalSearchSet, int searchRegionsMin, int searchRegionsMax, bool forceAllowGlobalSearch, RegionType traversableRegionTypes, bool ignoreEntirelyForbiddenRegions, bool lookInHaulSources) => throw new NotImplementedException();
 
     [PatchLevel(Level.Safe)]

@@ -38,15 +38,11 @@ public static class VMF_DefOf
 
     public static JobDef VMF_GotoAcrossMaps;
 
-    public static JobDef VMF_HaulToTransporterAcrossMaps;
-
     public static JobDef VMF_BoardAcrossMaps;
 
     public static JobDef VMF_RefuelVehicleTank;
 
     //public static JobDef VMF_RefuelVehicleTankAtomic;
-
-    public static WorkGiverDef VMF_LoadBuildableContainer;
 
     public static VehicleStatDef MaximumPayload;
 

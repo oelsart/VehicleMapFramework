@@ -1,118 +1,26 @@
 ﻿using RimWorld;
-using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
+using System;
 using VehicleMapFramework.VMF_HarmonyPatches;
 using Verse;
 using Verse.AI;
 
 namespace VehicleMapFramework;
 
+[Obsolete]
 public static class LoadTransportersJobOnVehicleUtility
 {
     public static ThingCount FindThingToLoad(Pawn p, CompTransporter transporter, bool gatherFromBaseMap)
     {
-        neededThings.Clear();
-        List<TransferableOneWay> leftToLoad = transporter.leftToLoad;
-        tmpAlreadyLoading.Clear();
-        if (leftToLoad != null)
-        {
-            IReadOnlyList<Pawn> allPawnsSpawned = transporter.Map.BaseMap().mapPawns.AllPawnsSpawned;
-            for (int i = 0; i < allPawnsSpawned.Count; i++)
-            {
-                if (allPawnsSpawned[i] != p && allPawnsSpawned[i].CurJobDef == VMF_DefOf.VMF_HaulToTransporterAcrossMaps)
-                {
-                    JobDriver_HaulToTransporterAcrossMaps jobDriver_HaulToTransporter = (JobDriver_HaulToTransporterAcrossMaps)allPawnsSpawned[i].jobs.curDriver;
-                    if (jobDriver_HaulToTransporter.Container == transporter.parent)
-                    {
-                        TransferableOneWay transferableOneWay = TransferableUtility.TransferableMatchingDesperate(jobDriver_HaulToTransporter.ThingToCarry, leftToLoad, TransferAsOneMode.PodsOrCaravanPacking);
-                        if (transferableOneWay != null)
-                        {
-                            if (tmpAlreadyLoading.TryGetValue(transferableOneWay, out int num))
-                            {
-                                tmpAlreadyLoading[transferableOneWay] = num + jobDriver_HaulToTransporter.initialCount;
-                            }
-                            else
-                            {
-                                tmpAlreadyLoading.Add(transferableOneWay, jobDriver_HaulToTransporter.initialCount);
-                            }
-                        }
-                    }
-                }
-            }
-            for (int j = 0; j < leftToLoad.Count; j++)
-            {
-                TransferableOneWay transferableOneWay2 = leftToLoad[j];
-                if (!tmpAlreadyLoading.TryGetValue(leftToLoad[j], out int num2))
-                {
-                    num2 = 0;
-                }
-                if (transferableOneWay2.CountToTransfer - num2 > 0)
-                {
-                    for (int k = 0; k < transferableOneWay2.things.Count; k++)
-                    {
-                        neededThings.Add(transferableOneWay2.things[k]);
-                    }
-                }
-            }
-        }
-        if (!neededThings.Any<Thing>())
-        {
-            tmpAlreadyLoading.Clear();
-            return default;
-        }
-        Thing thing;
         if (gatherFromBaseMap)
         {
-            thing = GenClosestCrossMap.ClosestThingReachable(p.Position, p.Map, ThingRequest.ForGroup(ThingRequestGroup.HaulableEver), PathEndMode.Touch, TraverseParms.For(p, Danger.Deadly, TraverseMode.ByPawn, false, false, false), 9999f, x => neededThings.Contains(x) && p.CanReserve(x, 1, -1, null, false) && !x.IsForbidden(p) && p.carryTracker.AvailableStackSpace(x.def) > 0, null, 0, -1, false, RegionType.Set_Passable, false, false, out _, out _);
+            return Patch_LoadTransportersJobUtility_FindThingToLoad.FindThingToLoad(p, transporter);
         }
-        else
-        {
-            TargetInfo exitSpot2 = TargetInfo.Invalid;
-            TargetInfo enterSpot2 = TargetInfo.Invalid;
-            thing = Patch_GenClosest_ClosestThingReachable.ClosestThingReachableOriginal(transporter.parent.Position, transporter.parent.Map, ThingRequest.ForGroup(ThingRequestGroup.HaulableEver), PathEndMode.Touch, TraverseParms.For(p, Danger.Deadly, TraverseMode.ByPawn, false, false, false), 9999f, x => neededThings.Contains(x) && p.CanReserve(x, 1, -1, null, false) && !x.IsForbidden(p) && p.carryTracker.AvailableStackSpace(x.def) > 0 && p.CanReach(x, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, x.Map, out exitSpot2, out enterSpot2), null, 0, -1, false, RegionType.Set_Passable, false, false);
-        }
-        if (thing == null)
-        {
-            foreach (Thing thing2 in neededThings)
-            {
-                if (thing2 is Pawn pawn && pawn.Spawned && ((!pawn.IsFreeColonist && !pawn.IsColonyMech) || pawn.Downed) && !pawn.inventory.UnloadEverything && p.CanReserveAndReach(thing.Map, pawn, PathEndMode.Touch, Danger.Deadly, 1, -1, null, false, out _, out _))
-                {
-                    neededThings.Clear();
-                    tmpAlreadyLoading.Clear();
-                    return new ThingCount(pawn, 1, false);
-                }
-            }
-        }
-        neededThings.Clear();
-        if (thing != null)
-        {
-            TransferableOneWay transferableOneWay3 = null;
-            for (int l = 0; l < leftToLoad.Count; l++)
-            {
-                if (leftToLoad[l].things.Contains(thing))
-                {
-                    transferableOneWay3 = leftToLoad[l];
-                    break;
-                }
-            }
-            if (!tmpAlreadyLoading.TryGetValue(transferableOneWay3, out int num3))
-            {
-                num3 = 0;
-            }
-            tmpAlreadyLoading.Clear();
-            return new ThingCount(thing, Mathf.Min(transferableOneWay3.CountToTransfer - num3, thing.stackCount), false);
-        }
-        tmpAlreadyLoading.Clear();
-        return default;
+        return LoadTransportersJobUtility.FindThingToLoad(p, transporter);
     }
 
     public static Job JobOnTransporter(Pawn p, CompTransporter transporter)
     {
-        _ = p;
-        Job job = JobMaker.MakeJob(VMF_DefOf.VMF_HaulToTransporterAcrossMaps, LocalTargetInfo.Invalid, transporter.parent);
-        job.ignoreForbidden = true;
-        return job;
+        return LoadTransportersJobUtility.JobOnTransporter(p, transporter);
     }
 
     public static bool HasJobOnTransporter(Pawn pawn, CompTransporter transporter)
@@ -144,8 +52,4 @@ public static class LoadTransportersJobOnVehicleUtility
 
         return true;
     }
-
-    private static readonly HashSet<Thing> neededThings = [];
-
-    private static readonly Dictionary<TransferableOneWay, int> tmpAlreadyLoading = [];
 }
