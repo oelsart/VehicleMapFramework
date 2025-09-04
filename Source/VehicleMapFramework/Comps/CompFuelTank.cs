@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using SmashTools;
+using UnityEngine;
 using Vehicles;
 using Verse;
 
@@ -50,19 +51,14 @@ public class CompFuelTank : ThingComp
             }
             GenDraw.FillableBarRequest r = new()
             {
-                center = parent.DrawPos + DrawOffset.RotatedBy(-vehicle.Angle) + (Vector3.down * 0.015f),
+                center = parent.DrawPos + DrawOffset.RotatedBy(-vehicle.Angle + vehicle.Transform.rotation) + (Vector3.down * 0.015f),
                 size = BarSize,
                 fillPercent = vehicle.CompFueledTravel.FuelPercent,
                 filledMat = FilledMat,
                 unfilledMat = UnfilledMat,
                 margin = 0.03f,
-                rotation = parent.BaseFullRotationAsRot4()
+                rotation = Rot8.FromAngle(Mathf.Repeat(-vehicle.Angle, 360f)).AsRot4Force()
             };
-            //中にRot8が入ってるのでIsHorizontalは使えません
-            if (r.rotation == Rot4.East || r.rotation == Rot4.West)
-            {
-                r.rotation = Rot4.North;
-            }
             Rot8Utility.Rotate(ref r.rotation, RotationDirection.Clockwise);
             GenDraw.DrawFillableBar(r);
         }

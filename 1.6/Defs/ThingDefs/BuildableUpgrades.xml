@@ -391,7 +391,9 @@
 		<description>Tank for increase fuel capacity of the vehicle.\n\n&lt;color=#bb8f04&gt;Fuel capacity:&lt;/color&gt; +300</description>
 		<designationCategory>VF_Vehicles</designationCategory>
 		<rotatable>false</rotatable>
+		<passability>Impassable</passability>
 		<fillPercent>0.60</fillPercent>
+		<disableImpassableShotOverConfigError>true</disableImpassableShotOverConfigError>
 		<graphicData>
 			<texPath>VehicleMapFramework/Things/BuildableUpgrade/FuelTank/FuelTank</texPath>
 			<graphicClass>Graphic_Single</graphicClass>

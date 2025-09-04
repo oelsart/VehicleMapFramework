@@ -621,9 +621,7 @@ public static class VehicleMapUtility
 
     public static Rot4 BaseFullRotationAsRot4(this Thing thing)
     {
-        Rot4 rot = default;
-        Rot8Utility.rot4Int(ref rot) = thing.BaseFullRotation().AsByte;
-        return rot;
+        return thing.BaseFullRotation().AsRot4Force();
     }
 
     public static Rot8 BaseFullRotationDoor(this Thing thing)

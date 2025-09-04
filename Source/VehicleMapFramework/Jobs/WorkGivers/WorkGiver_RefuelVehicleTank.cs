@@ -18,10 +18,12 @@ public class WorkGiver_RefuelVehicleTank : WorkGiver_RefuelVehicle
     {
         if (pawn.IsOnVehicleMapOf(out var vehicle))
         {
-            if (!vehicle.Spawned && vehicle.Map.GetCachedMapComponent<VehicleReservationManager>().VehicleListers("Refuel").Contains(vehicle))
-            foreach (var comp in vehicle.FuelTankComps)
+            if (!vehicle.Spawned || vehicle.Map.GetCachedMapComponent<VehicleReservationManager>().VehicleListers("Refuel").Contains(vehicle))
             {
-                yield return comp.parent;
+                foreach (var comp in vehicle.FuelTankComps)
+                {
+                    yield return comp.parent;
+                }
             }
         }
     }
@@ -58,7 +60,7 @@ public class WorkGiver_RefuelVehicleTank : WorkGiver_RefuelVehicle
         }
         bool ShouldAutoRefuelNowIgnoringFuelPct()
         {
-            return compFueledTravel.allowAutoRefuel && (!vehicle.Spawned || (!vehicle.ignition.Drafted && !vehicle.IsBurning() && vehicle.Map.designationManager.DesignationOn(vehicle, DesignationDefOf_Vehicles.DisassembleVehicle) == null));
+            return compFueledTravel.allowAutoRefuel && (!vehicle.Spawned || (/*!vehicle.ignition.Drafted && */!vehicle.IsBurning() && vehicle.Map.designationManager.DesignationOn(vehicle, DesignationDefOf_Vehicles.DisassembleVehicle) == null));
         }
         float FuelPercentOfTarget()
         {

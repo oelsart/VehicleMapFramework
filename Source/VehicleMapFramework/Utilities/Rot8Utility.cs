@@ -46,6 +46,13 @@ public static class Rot8Utility
         }
     }
 
+    public static Rot4 AsRot4Force(this Rot8 rot8)
+    {
+        Rot4 rot4 = default;
+        rot4Int(ref rot4) = rot8.AsByte;
+        return rot4;
+    }
+
     //Rot4の変数に入れたRot8を無理やり回転させるためのもの。Rot4.RotateとTranspilerで簡単に置き換えられるようにしてある
     public static void Rotate(ref Rot4 rot, RotationDirection rotDir)
     {

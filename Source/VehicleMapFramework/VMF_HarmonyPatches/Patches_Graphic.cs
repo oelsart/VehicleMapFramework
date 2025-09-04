@@ -509,17 +509,9 @@ public static class Patch_GenDraw_DrawFillableBar
         {
             var extraRotation = vehicle?.Transform.rotation ?? 0f;
             var rot = new Rot8(r.rotation.AsInt);
-            var fullAngle = rot.AsAngle + extraRotation;
+            var fullAngle = rot.Opposite.AsAngle + extraRotation;
             Vector2 vector = r.preRotationOffset.RotatedBy(fullAngle);
             r.center += new Vector3(vector.x, 0f, vector.y);
-            if (rot == Rot8.NorthEast)
-            {
-                rot = Rot8.SouthWest;
-            }
-            if (rot == Rot8.SouthEast)
-            {
-                rot = Rot8.NorthWest;
-            }
             Vector3 s = new(r.size.x + r.margin, 1f, r.size.y + r.margin);
             Matrix4x4 matrix = default;
             var quat = rot.AsQuat() * Quaternion.AngleAxis(extraRotation, Vector3.up);

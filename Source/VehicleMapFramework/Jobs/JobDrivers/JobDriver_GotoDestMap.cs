@@ -30,6 +30,13 @@ public class JobDriver_GotoDestMap : JobDriverAcrossMaps
         }
     }
 
+    //次のJobDriverがNotify_Starting内でReserveを行っている場合があるため、先に次のJobのNotify_Startingを呼ぶ必要がある
+    public override void Notify_Starting()
+    {
+        base.Notify_Starting();
+        nextJob?.GetCachedDriver(pawn).Notify_Starting();
+    }
+
     protected override IEnumerable<Toil> MakeNewToils()
     {
         base.MakeNewToils();
