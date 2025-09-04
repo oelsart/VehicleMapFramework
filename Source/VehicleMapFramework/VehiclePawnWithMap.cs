@@ -21,6 +21,60 @@ namespace VehicleMapFramework;
 [StaticConstructorOnStartup]
 public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
 {
+    private Map interiorMap;
+
+    public VehicleMapFollower mapFollower;
+
+    public Vector3 cachedDrawPos;
+
+    private readonly List<CompVehicleEnterSpot> enterCompsInt = [];
+
+    private readonly List<CompFuelTank> fuelTankCompsInt = [];
+
+    private bool allowHaulIn = true;
+
+    private bool allowHaulOut = true;
+
+    private bool allowEnter = true;
+
+    private bool allowExit = true;
+
+    private HashSet<IntVec3> structureCellsCache;
+
+    private HashSet<IntVec3> expandableCellsCache;
+
+    private HashSet<IntVec3> outOfBoundsCellsCache;
+
+    private HashSet<IntVec3> mapEdgeCellsCache;
+
+    private HashSet<IntVec3> standableMapEdgeCellsCache = [];
+
+    public bool structureCellsDirty;
+
+    public bool mapEdgeCellsDirty;
+
+    private int standableCellsCachedTick;
+
+    private int cellDesignationsDirtyTick;
+
+    private static readonly Material ClipMat = SolidColorMaterials.NewSolidColorMaterial(new Color(0.3f, 0.1f, 0.1f, 0.5f), ShaderDatabase.MetaOverlay);
+
+    private static readonly Texture2D iconAllowHaulIn = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/AllowHaulIn");
+
+    private static readonly Texture2D iconAllowHaulOut = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/AllowHaulOut");
+
+    private static readonly Texture2D iconIncreasePriority = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/IncreasePriority");
+
+    private static readonly Texture2D iconDecreasePriority = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/DecreasePriority");
+
+    private static readonly Texture2D iconAllowEnter = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/AllowEnter");
+
+    private static readonly Texture2D iconAllowExit = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/AllowExit");
+
+    private static readonly Type t_SectionLayer_Zones = AccessTools.TypeByName("Verse.SectionLayer_Zones");
+
+    private static readonly FastInvokeHandler DirtyCellDesignationsCache = MethodInvoker.GetHandler(AccessTools.Method(typeof(DesignationManager), "DirtyCellDesignationsCache"));
+
     public Map VehicleMap
     {
         get
@@ -171,6 +225,8 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
     public List<CompVehicleEnterSpot> EnterComps => enterCompsInt;
 
     public IEnumerable<CompVehicleEnterSpot> AvailableEnterComps => EnterComps.Where(c => c.parent.Position.Standable(interiorMap) && c.Available);
+
+    public List<CompFuelTank> FuelTankComps => fuelTankCompsInt;
 
     public override Vector3 DrawPos
     {
@@ -873,56 +929,4 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         VMF_Harmony.DynamicPatchAll(Level.All);
         base.PostGenerationSetup();
     }
-
-    private Map interiorMap;
-
-    public VehicleMapFollower mapFollower;
-
-    public Vector3 cachedDrawPos;
-
-    private readonly List<CompVehicleEnterSpot> enterCompsInt = [];
-
-    private bool allowHaulIn = true;
-
-    private bool allowHaulOut = true;
-
-    private bool allowEnter = true;
-
-    private bool allowExit = true;
-
-    private HashSet<IntVec3> structureCellsCache;
-
-    private HashSet<IntVec3> expandableCellsCache;
-
-    private HashSet<IntVec3> outOfBoundsCellsCache;
-
-    private HashSet<IntVec3> mapEdgeCellsCache;
-
-    private HashSet<IntVec3> standableMapEdgeCellsCache = [];
-
-    public bool structureCellsDirty;
-
-    public bool mapEdgeCellsDirty;
-
-    private int standableCellsCachedTick;
-
-    private int cellDesignationsDirtyTick;
-
-    private static readonly Material ClipMat = SolidColorMaterials.NewSolidColorMaterial(new Color(0.3f, 0.1f, 0.1f, 0.5f), ShaderDatabase.MetaOverlay);
-
-    private static readonly Texture2D iconAllowHaulIn = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/AllowHaulIn");
-
-    private static readonly Texture2D iconAllowHaulOut = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/AllowHaulOut");
-
-    private static readonly Texture2D iconIncreasePriority = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/IncreasePriority");
-
-    private static readonly Texture2D iconDecreasePriority = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/DecreasePriority");
-
-    private static readonly Texture2D iconAllowEnter = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/AllowEnter");
-
-    private static readonly Texture2D iconAllowExit = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/AllowExit");
-
-    private static readonly Type t_SectionLayer_Zones = AccessTools.TypeByName("Verse.SectionLayer_Zones");
-
-    private static readonly FastInvokeHandler DirtyCellDesignationsCache = MethodInvoker.GetHandler(AccessTools.Method(typeof(DesignationManager), "DirtyCellDesignationsCache"));
 }

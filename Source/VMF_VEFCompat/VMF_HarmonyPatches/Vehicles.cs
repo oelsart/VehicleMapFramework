@@ -63,10 +63,10 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
             {
                 CompFuelTank compFuelTank = default;
                 var fuelTank = ___parent.InteractionCell.GetThingList(___parent.Map).FirstOrDefault(t => t.TryGetComp(out compFuelTank));
-                if (fuelTank != null && ___compRefuelable.HasFuel)
+                if (fuelTank != null && ___compRefuelable.HasFuel && fuelTank.IsOnVehicleMapOf(out var vehicle))
                 {
-                    CompFueledTravel compFueledTravel = compFuelTank.Vehicle?.CompFueledTravel;
-                    if (compFueledTravel != null && compFueledTravel.Fuel < compFueledTravel.FuelCapacity)
+                    CompFueledTravel compFueledTravel = vehicle.CompFueledTravel;
+                    if (compFueledTravel != null && compFueledTravel.Fuel < compFueledTravel.FuelCapacity && !compFueledTravel.FuelLeaking)
                     {
                         float amount = Mathf.Min(compFueledTravel.FuelCapacity - compFueledTravel.Fuel, refuelAmountPerTick(___props));
                         compFueledTravel.Refuel(amount);

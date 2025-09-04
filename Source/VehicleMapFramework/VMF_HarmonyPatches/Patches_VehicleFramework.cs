@@ -794,6 +794,8 @@ public static class Patch_VehicleTabHelper_Passenger_HandleDragEvent
                             GenSpawn.Spawn(___draggedPawn, intVec, vehicle.VehicleMap, WipeMode.Vanish);
                             vehicleHandler.vehicle.EventRegistry[VehicleEventDefOf.PawnExited].ExecuteEvents();
                             SoundDefOf.Click.PlayOneShotOnCamera();
+                            ___draggedPawn = null;
+                            return false;
                         }
                     }
                     else if (!___draggedPawn.Spawned && ___draggedPawn.IsWorldPawn() && TryFindSpawnSpot(vehicle, null, out var intVec))
@@ -805,17 +807,18 @@ public static class Patch_VehicleTabHelper_Passenger_HandleDragEvent
                         Find.WorldPawns.RemovePawn(___draggedPawn);
                         GenSpawn.Spawn(___draggedPawn, intVec, vehicle.VehicleMap, WipeMode.Vanish);
                         SoundDefOf.Click.PlayOneShotOnCamera();
+                        ___draggedPawn = null;
+                        return false;
                     }
                     else if (___draggedPawn.IsOnVehicleMapOf(out var vehicle2) && vehicle != vehicle2 && TryFindSpawnSpot(vehicle2, null, out intVec))
                     {
                         ___draggedPawn.DeSpawn();
                         GenSpawn.Spawn(___draggedPawn, intVec, vehicle.VehicleMap, WipeMode.Vanish);
                         SoundDefOf.Click.PlayOneShotOnCamera();
+                        ___draggedPawn = null;
+                        return false;
                     }
-                    else
-                    {
-                        Messages.Message("VMF_CannotSpawn".Translate(___draggedPawn), MessageTypeDefOf.RejectInput, true);
-                    }
+                    Messages.Message("VMF_CannotSpawn".Translate(___draggedPawn), MessageTypeDefOf.RejectInput, false);
                     ___draggedPawn = null;
                     return false;
                 }
@@ -825,7 +828,7 @@ public static class Patch_VehicleTabHelper_Passenger_HandleDragEvent
                     {
                         if (!vehicleHandler.CanOperateRole(___draggedPawn))
                         {
-                            Messages.Message("VF_HandlerNotEnoughRoom".Translate(___draggedPawn, vehicleHandler.role.label), MessageTypeDefOf.RejectInput, true);
+                            Messages.Message("VF_HandlerNotEnoughRoom".Translate(___draggedPawn, vehicleHandler.role.label), MessageTypeDefOf.RejectInput, false);
                             ___draggedPawn = null;
                             return false;
                         }
@@ -841,14 +844,14 @@ public static class Patch_VehicleTabHelper_Passenger_HandleDragEvent
                                 }
                                 else
                                 {
-                                    Messages.Message("VMF_CannotSpawn".Translate(___hoveringOverPawn), MessageTypeDefOf.RejectInput, true);
+                                    Messages.Message("VMF_CannotSpawn".Translate(___hoveringOverPawn), MessageTypeDefOf.RejectInput, false);
                                     ___draggedPawn = null;
                                     return false;
                                 }
                             }
                             else
                             {
-                                Messages.Message("VF_HandlerNotEnoughRoom".Translate(___draggedPawn, vehicleHandler.role.label), MessageTypeDefOf.RejectInput, true);
+                                Messages.Message("VF_HandlerNotEnoughRoom".Translate(___draggedPawn, vehicleHandler.role.label), MessageTypeDefOf.RejectInput, false);
                                 ___draggedPawn = null;
                                 return false;
                             }
@@ -889,7 +892,7 @@ public static class Patch_VehicleTabHelper_Passenger_HandleDragEvent
     {
         bool Predicate(IntVec3 c)
         {
-            return c.Standable(vehicle.VehicleMap) || c.GetDoor(vehicle.VehicleMap) != null;
+            return (c.Standable(vehicle.VehicleMap) || c.GetDoor(vehicle.VehicleMap) != null) && c.GetFirstPawn(vehicle.VehicleMap) is null;
         }
 
         if (vehicleHandler != null && vehicleHandler.vehicle == vehicle && vehicleHandler.role is VehicleRoleBuildable vehicleRoleBuildable)
@@ -899,7 +902,7 @@ public static class Patch_VehicleTabHelper_Passenger_HandleDragEvent
             IntVec3 intVec = parent.Position;
             if (cellRect.EdgeCells.Where(delegate (IntVec3 c)
             {
-                if (c.InBounds(vehicle.VehicleMap) && c.Standable(vehicle.VehicleMap))
+                if (c.InBounds(vehicle.VehicleMap) && Predicate(c))
                 {
                     return !c.GetThingList(vehicle.VehicleMap).NotNullAndAny(t => t is Pawn);
                 }
