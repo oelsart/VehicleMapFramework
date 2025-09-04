@@ -7,7 +7,6 @@ namespace VehicleMapFramework;
 
 public static class ReservationAcrossMapsUtility
 {
-    //Transpilerで元のCanReserveと置き換えるためにこうしている
     public static bool CanReserve(this Pawn claimant, LocalTargetInfo target, int maxPawns = 1, int stackCount = -1, ReservationLayerDef layer = null, bool ignoreOtherReservations = false, Map map = null)
     {
         if (claimant == null)

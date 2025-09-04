@@ -20,7 +20,8 @@ public class JobDriver_RefuelVehicleTank : JobDriver
     {
         get
         {
-            return Tank.TryGetComp<CompFuelTank>().Vehicle;
+            if (Tank.IsOnVehicleMapOf(out var vehicle)) return vehicle;
+            return null;
         }
     }
 
@@ -42,7 +43,12 @@ public class JobDriver_RefuelVehicleTank : JobDriver
         this.FailOnDespawnedNullOrForbidden(TargetIndex.A);
         AddEndCondition(delegate
         {
-            if (!Vehicle.CompFueledTravel.FullTank)
+            var compFueledTravel = Vehicle?.CompFueledTravel;
+            if (compFueledTravel is null)
+            {
+                return JobCondition.Incompletable;
+            }
+            if (!compFueledTravel.FullTank)
             {
                 return JobCondition.Ongoing;
             }
@@ -71,13 +77,13 @@ public class JobDriver_RefuelVehicleTank : JobDriver
             Thing thing = curJob.GetTarget(refuelableInd).Thing.TryGetComp<CompFuelTank>().Vehicle;
             if (toil.actor.CurJob.placedThings.NullOrEmpty())
             {
-                thing.TryGetComp<CompFueledTravel>().Refuel(
+                thing?.TryGetComp<CompFueledTravel>().Refuel(
                 [
                     curJob.GetTarget(fuelInd).Thing
                 ]);
                 return;
             }
-            thing.TryGetComp<CompFueledTravel>().Refuel([.. from p in toil.actor.CurJob.placedThings
+            thing?.TryGetComp<CompFueledTravel>().Refuel([.. from p in toil.actor.CurJob.placedThings
                                                          select p.thing]);
         };
         toil.defaultCompleteMode = ToilCompleteMode.Instant;

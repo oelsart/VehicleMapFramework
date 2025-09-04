@@ -11,21 +11,36 @@ public class CompFuelTank : ThingComp
     {
         get
         {
-            if (vehicle == null)
+            if (parent.IsOnVehicleMapOf(out var vehicle))
             {
-                if (!parent.IsOnVehicleMapOf(out vehicle))
-                {
-                    VMF_Log.Error("Fuel tank is not on vehicle map.");
-                }
+                return vehicle;
             }
-            return vehicle;
+            return null;
+        }
+    }
+
+    public override void PostSpawnSetup(bool respawningAfterLoad)
+    {
+        LongEventHandler.ExecuteWhenFinished(() =>
+        {
+            if (parent.IsOnVehicleMapOf(out var vehicle))
+            {
+                vehicle.FuelTankComps.Add(this);
+            }
+        });
+    }
+
+    public override void PostDeSpawn(Map map, DestroyMode mode = DestroyMode.Vanish)
+    {
+        if (map.IsVehicleMapOf(out var vehicle))
+        {
+            vehicle.FuelTankComps.Remove(this);
         }
     }
 
     public override void PostDraw()
     {
-        CompFueledTravel comp;
-        if ((comp = Vehicle?.CompFueledTravel) != null)
+        if (parent.IsOnVehicleMapOf(out var vehicle) && vehicle.CompFueledTravel != null)
         {
             var rot = Vehicle.FullRotation.RotForVehicleDraw();
             if (!rot.IsHorizontal) rot = rot.Opposite;
@@ -37,7 +52,7 @@ public class CompFuelTank : ThingComp
             {
                 center = parent.DrawPos + DrawOffset.RotatedBy(-vehicle.Angle) + (Vector3.down * 0.015f),
                 size = BarSize,
-                fillPercent = comp.FuelPercent,
+                fillPercent = vehicle.CompFueledTravel.FuelPercent,
                 filledMat = FilledMat,
                 unfilledMat = UnfilledMat,
                 margin = 0.03f,
@@ -52,8 +67,6 @@ public class CompFuelTank : ThingComp
             GenDraw.DrawFillableBar(r);
         }
     }
-
-    private VehiclePawnWithMap vehicle;
 
     private static readonly Vector3 DrawOffset = new(0.0015f, 0.1f, -0.3125f);
 

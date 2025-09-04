@@ -12,21 +12,24 @@ public class CompBuildableUpgrades : ThingComp
 
     public override void PostSpawnSetup(bool respawningAfterLoad)
     {
-        if (parent.IsOnVehicleMapOf(out var vehicle))
+        LongEventHandler.ExecuteWhenFinished(() =>
         {
-            foreach (var upgrade in Props.upgrades)
+            if (parent.IsOnVehicleMapOf(out var vehicle))
             {
-                if (upgrade is VehicleUpgradeBuildable buildable)
+                foreach (var upgrade in Props.upgrades)
                 {
-                    buildable.parent = this;
-                    buildable.Unlock(vehicle, respawningAfterLoad);
-                }
-                else
-                {
-                    upgrade.Unlock(vehicle, respawningAfterLoad);
+                    if (upgrade is VehicleUpgradeBuildable buildable)
+                    {
+                        buildable.parent = this;
+                        buildable.Unlock(vehicle, respawningAfterLoad);
+                    }
+                    else
+                    {
+                        upgrade.Unlock(vehicle, respawningAfterLoad);
+                    }
                 }
             }
-        }
+        });
     }
 
     public override void PostDeSpawn(Map map, DestroyMode mode = DestroyMode.Vanish)
