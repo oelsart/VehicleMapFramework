@@ -23,7 +23,7 @@ internal class Patches_NightmareCore
 }
 
 [HarmonyPatchCategory(Patches_NightmareCore.Category)]
-[HarmonyPatch("NightmareCore.DiagonalAtlasGraphics.Graphic_LinkedStitched", "Print")]
+[HarmonyPatch("NightmareCore.StitchedAtlasGraphics.Graphic_LinkedStitched", "Print")]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Graphic_LinkedStitched_Print
 {
@@ -38,9 +38,7 @@ public static class Patch_Graphic_LinkedStitched_Print
 
     private static Vector3 RotateVector(Vector3 vector)
     {
-        var rot = VehicleMapUtility.RotForPrint;
-        if (rot.IsHorizontal) rot = rot.Opposite;
-        return vector.RotatedBy(rot);
+        return vector.RotatedBy(VehicleMapUtility.RotForPrintCounter);
     }
 }
 

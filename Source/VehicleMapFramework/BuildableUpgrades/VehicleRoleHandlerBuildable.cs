@@ -103,14 +103,14 @@ public class VehicleRoleHandlerBuildable : VehicleRoleHandler, IExposable, IThin
             thingOwner.contentsLookMode = (pawn != null && pawn.IsWorldPawn()) ? LookMode.Reference : LookMode.Deep;
         }
         Scribe_Deep.Look(ref thingOwner, "thingOwner", this);
-        if (Scribe.mode == LoadSaveMode.PostLoadInit)
+        if (Scribe.mode == LoadSaveMode.ResolvingCrossRefs)
         {
             role = new VehicleRole
             {
-                key = roleKey(this) + "_INVALID",
-                label = roleKey(this) + " (INVALID)"
+                key = $"{roleKey(this)}_INVALID",
+                label = $"{roleKey(this)} (INVALID)"
             };
-            role.AddUpgrade(new VehicleUpgrade.RoleUpgrade()
+            role.AddUpgrade(new VehicleUpgrade.RoleUpgrade
             {
                 key = role.key,
                 label = role.label,
