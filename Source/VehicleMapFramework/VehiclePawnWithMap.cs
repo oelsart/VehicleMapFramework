@@ -650,10 +650,13 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         //map.waterInfo.SetTextures();
         //map.avoidGrid.DebugDrawOnMap();
         //BreachingGridDebug.DebugDrawAllOnMap(map);
-        VehiclePawnWithMapCache.cacheModeGlobal = true;
-        map.GetCachedMapComponent<VehicleSectionLayerManager>().UpdateAllSection();
-        map.mapDrawer.MapMeshDrawerUpdate_First();
-        VehiclePawnWithMapCache.cacheModeGlobal = false;
+        Delay.AfterNSeconds(0f, () =>
+        {
+            VehiclePawnWithMapCache.cacheModeGlobal = true;
+            map.GetCachedMapComponent<VehicleSectionLayerManager>().UpdateAllSection();
+            map.mapDrawer.MapMeshDrawerUpdate_First();
+            VehiclePawnWithMapCache.cacheModeGlobal = false;
+        });
         //map.powerNetGrid.DrawDebugPowerNetGrid();
         //DoorsDebugDrawer.DrawDebug();
         //map.mapDrawer.DrawMapMesh();
@@ -872,7 +875,8 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
             }
         }
 
-        if (Find.CurrentMap == map && WorldRendererUtility.DrawingMap && VehicleMapFramework.settings.drawPlanet)
+        var currentMap = Find.CurrentMap;
+        if ((currentMap == map || currentMap == interiorMap) && WorldRendererUtility.DrawingMap && VehicleMapFramework.settings.drawPlanet)
         {
             Material material = MapEdgeClipDrawer.ClipMat;
             Vector2 size = Patch_Map_MapUpdate.MeshSize;

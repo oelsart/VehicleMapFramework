@@ -223,17 +223,17 @@ public static class Patch_VehiclePawn_DisembarkPawn
                 IntVec3 intVec = parent.Position;
                 if (cellRect.EdgeCells.Where(delegate (IntVec3 c)
                 {
-                    if (c.InBounds(vehicle.VehicleMap) && c.Standable(vehicle.VehicleMap))
+                    if (c.InBounds(parent.Map) && c.Standable(parent.Map))
                     {
-                        return !c.GetThingList(vehicle.VehicleMap).NotNullAndAny(t => t is Pawn);
+                        return !c.GetThingList(parent.Map).NotNullAndAny(t => t is Pawn);
                     }
                     return false;
                 }).TryRandomElement(out IntVec3 intVec2))
                 {
                     intVec = intVec2;
                 }
-                GenSpawn.Spawn(pawn, intVec, vehicle.VehicleMap, WipeMode.Vanish);
-                if (!intVec.Standable(vehicle.VehicleMap))
+                GenSpawn.Spawn(pawn, intVec, parent.Map, WipeMode.Vanish);
+                if (!intVec.Standable(parent.Map))
                 {
                     pawn.pather.TryRecoverFromUnwalkablePosition(false);
                 }
@@ -788,32 +788,32 @@ public static class Patch_VehicleTabHelper_Passenger_HandleDragEvent
                 {
                     if (___draggedPawn.ParentHolder is VehicleRoleHandler vehicleHandler)
                     {
-                        if (!___draggedPawn.Spawned && TryFindSpawnSpot(vehicle, vehicleHandler, out var intVec))
+                        if (!___draggedPawn.Spawned && TryFindSpawnSpot(vehicle, vehicleHandler, out var intVec, out var map2))
                         {
                             vehicle.RemovePawn(___draggedPawn);
-                            GenSpawn.Spawn(___draggedPawn, intVec, vehicle.VehicleMap, WipeMode.Vanish);
+                            GenSpawn.Spawn(___draggedPawn, intVec, map2, WipeMode.Vanish);
                             vehicleHandler.vehicle.EventRegistry[VehicleEventDefOf.PawnExited].ExecuteEvents();
                             SoundDefOf.Click.PlayOneShotOnCamera();
                             ___draggedPawn = null;
                             return false;
                         }
                     }
-                    else if (!___draggedPawn.Spawned && ___draggedPawn.IsWorldPawn() && TryFindSpawnSpot(vehicle, null, out var intVec))
+                    else if (!___draggedPawn.Spawned && ___draggedPawn.IsWorldPawn() && TryFindSpawnSpot(vehicle, null, out var intVec, out var map2))
                     {
                         if (___draggedPawn.ParentHolder is Caravan caravan)
                         {
                             caravan.RemovePawn(___draggedPawn);
                         }
                         Find.WorldPawns.RemovePawn(___draggedPawn);
-                        GenSpawn.Spawn(___draggedPawn, intVec, vehicle.VehicleMap, WipeMode.Vanish);
+                        GenSpawn.Spawn(___draggedPawn, intVec, map2, WipeMode.Vanish);
                         SoundDefOf.Click.PlayOneShotOnCamera();
                         ___draggedPawn = null;
                         return false;
                     }
-                    else if (___draggedPawn.IsOnVehicleMapOf(out var vehicle2) && vehicle != vehicle2 && TryFindSpawnSpot(vehicle2, null, out intVec))
+                    else if (___draggedPawn.IsOnVehicleMapOf(out var vehicle2) && vehicle != vehicle2 && TryFindSpawnSpot(vehicle2, null, out intVec, out map2))
                     {
                         ___draggedPawn.DeSpawn();
-                        GenSpawn.Spawn(___draggedPawn, intVec, vehicle.VehicleMap, WipeMode.Vanish);
+                        GenSpawn.Spawn(___draggedPawn, intVec, map2, WipeMode.Vanish);
                         SoundDefOf.Click.PlayOneShotOnCamera();
                         ___draggedPawn = null;
                         return false;
@@ -836,10 +836,10 @@ public static class Patch_VehicleTabHelper_Passenger_HandleDragEvent
                         {
                             if (___hoveringOverPawn != null)
                             {
-                                if (TryFindSpawnSpot(vehicle, vehicleHandler, out var intVec))
+                                if (TryFindSpawnSpot(vehicle, vehicleHandler, out var intVec, out var map2))
                                 {
                                     vehicle.RemovePawn(___hoveringOverPawn);
-                                    GenSpawn.Spawn(___hoveringOverPawn, intVec, vehicle.VehicleMap, WipeMode.Vanish);
+                                    GenSpawn.Spawn(___hoveringOverPawn, intVec, map2, WipeMode.Vanish);
                                     vehicleHandler.vehicle.EventRegistry[VehicleEventDefOf.PawnExited].ExecuteEvents();
                                 }
                                 else
@@ -888,11 +888,11 @@ public static class Patch_VehicleTabHelper_Passenger_HandleDragEvent
         return true;
     }
 
-    private static bool TryFindSpawnSpot(VehiclePawnWithMap vehicle, VehicleRoleHandler vehicleHandler, out IntVec3 spot)
+    private static bool TryFindSpawnSpot(VehiclePawnWithMap vehicle, VehicleRoleHandler vehicleHandler, out IntVec3 spot, out Map map)
     {
-        bool Predicate(IntVec3 c)
+        static bool Predicate(IntVec3 c, Map map)
         {
-            return (c.Standable(vehicle.VehicleMap) || c.GetDoor(vehicle.VehicleMap) != null) && c.GetFirstPawn(vehicle.VehicleMap) is null;
+            return (c.Standable(map) || c.GetDoor(map) != null) && c.GetFirstPawn(map) is null;
         }
 
         if (vehicleHandler != null && vehicleHandler.vehicle == vehicle && vehicleHandler.role is VehicleRoleBuildable vehicleRoleBuildable)
@@ -902,32 +902,38 @@ public static class Patch_VehicleTabHelper_Passenger_HandleDragEvent
             IntVec3 intVec = parent.Position;
             if (cellRect.EdgeCells.Where(delegate (IntVec3 c)
             {
-                if (c.InBounds(vehicle.VehicleMap) && Predicate(c))
+                if (c.InBounds(parent.Map) && Predicate(c, parent.Map))
                 {
-                    return !c.GetThingList(vehicle.VehicleMap).NotNullAndAny(t => t is Pawn);
+                    return !c.GetThingList(parent.Map).NotNullAndAny(t => t is Pawn);
                 }
                 return false;
             }).TryRandomElement(out spot))
             {
+                map = parent.Map;
                 return true;
             }
             spot = IntVec3.Invalid;
+            map = null;
             return false;
         }
-        if (vehicle.EnterComps.Any() && vehicle.EnterComps.Select(c => c.parent.Position).TryRandomElement(Predicate, out spot))
+        if (vehicle.EnterComps.Any() && vehicle.EnterComps.Select(c => c.parent.Position).TryRandomElement(c => Predicate(c, vehicle.VehicleMap), out spot))
         {
+            map = vehicle.VehicleMap;
             return true;
         }
-        if (vehicle.CachedMapEdgeCells.TryRandomElement(Predicate, out spot))
+        if (vehicle.CachedMapEdgeCells.TryRandomElement(c => Predicate(c, vehicle.VehicleMap), out spot))
         {
+            map = vehicle.VehicleMap;
             return true;
         }
         var cell = vehicle.CachedMapEdgeCells.RandomElement();
-        if (RCellFinder.TryFindRandomCellNearWith(cell, Predicate, vehicle.VehicleMap, out spot))
+        if (RCellFinder.TryFindRandomCellNearWith(cell, c => Predicate(c, vehicle.VehicleMap), vehicle.VehicleMap, out spot))
         {
+            map = vehicle.VehicleMap;
             return true;
         }
         spot = IntVec3.Invalid;
+        map = null;
         return false;
     }
 }

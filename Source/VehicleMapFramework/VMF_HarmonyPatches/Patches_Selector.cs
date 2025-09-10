@@ -127,7 +127,7 @@ public static class Patch_CameraJumper_TryJumpInternal
             {
                 vehicle.CurrentLevel = map;
             }
-            if (vehicle.Spawned)
+            if (vehicle.Spawned || VehicleMapFramework.settings.drawPlanet)
             {
                 map = vehicle.Map;
                 cell = cell.ToBaseMapCoord(vehicle);
@@ -135,6 +135,30 @@ public static class Patch_CameraJumper_TryJumpInternal
             else if (VehicleMapFramework.settings.drawPlanet)
             {
                 cell = cell.ToBaseMapCoord(vehicle);
+                Patch_Map_MapUpdate.lastRenderedTick = -1;
+            }
+        }
+    }
+}
+
+[HarmonyPatch(typeof(Game), nameof(Game.CurrentMap), MethodType.Setter)]
+[PatchLevel(Level.Safe)]
+public static class Patch_Game_CurrentMap
+{
+    public static void Prefix(ref Map value)
+    {
+        if (value.IsVehicleMapOf(out var vehicle))
+        {
+            if (MultiFloors.Active)
+            {
+                vehicle.CurrentLevel = value;
+            }
+            if (vehicle.Spawned)
+            {
+                value = vehicle.Map;
+            }
+            else if (VehicleMapFramework.settings.drawPlanet)
+            {
                 Patch_Map_MapUpdate.lastRenderedTick = -1;
             }
         }

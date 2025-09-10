@@ -22,3 +22,9 @@ public static class Patch_Stair_Print
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) => Patch_Thing_Print.Transpiler(instructions);
 }
+
+[HarmonyPatch("MultiFloors.StairExit", "Print")]
+public static class Patch_StairExit_Print
+{
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) => Patch_Thing_Print.Transpiler(instructions);
+}
