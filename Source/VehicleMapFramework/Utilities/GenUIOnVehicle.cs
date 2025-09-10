@@ -21,7 +21,7 @@ public static class GenUIOnVehicle
     {
         var mouseMapPosition = UI.MouseMapPosition();
         IntVec3 intVec = IntVec3.FromVector3(clickPos);
-        Map map = vehicle != null ? vehicle.VehicleMap : Find.CurrentMap;
+        Map map = vehicle != null ? vehicle.CurrentLevel : Find.CurrentMap;
         var list = new List<Thing>();
         IReadOnlyList<Pawn> allPawnsSpawned = Find.CurrentMap.mapPawns.AllPawnsSpawned;
         for (int i = 0; i < allPawnsSpawned.Count; i++)

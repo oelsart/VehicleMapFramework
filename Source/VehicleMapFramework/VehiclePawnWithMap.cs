@@ -86,6 +86,8 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         }
     }
 
+    public Map CurrentLevel { get; set; }
+
     public bool AllowHaulIn
     {
         get
@@ -401,6 +403,10 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         {
             Find.World.worldObjects.Add(interiorMap.Parent);
         }
+        if (CurrentLevel is null)
+        {
+            CurrentLevel = interiorMap;
+        }
 
         if (def.HasModExtension<VehicleMapProps_Gravship>())
         {
@@ -638,12 +644,15 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
 
     public virtual void DrawVehicleMap()
     {
-        var map = interiorMap;
+        var map = CurrentLevel ?? interiorMap;
         //PlantFallColors.SetFallShaderGlobals(map);
         //map.waterInfo.SetTextures();
         //map.avoidGrid.DebugDrawOnMap();
         //BreachingGridDebug.DebugDrawAllOnMap(map);
+        VehiclePawnWithMapCache.cacheModeGlobal = true;
+        map.GetCachedMapComponent<VehicleSectionLayerManager>().UpdateAllSection();
         map.mapDrawer.MapMeshDrawerUpdate_First();
+        VehiclePawnWithMapCache.cacheModeGlobal = false;
         //map.powerNetGrid.DrawDebugPowerNetGrid();
         //DoorsDebugDrawer.DrawDebug();
         //map.mapDrawer.DrawMapMesh();
@@ -658,9 +667,9 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
 
         var focused = Command_FocusVehicleMap.FocusedVehicle;
         Command_FocusVehicleMap.FocusedVehicle = this;
-        interiorMap.roofGrid.RoofGridUpdate();
-        interiorMap.mapTemperature.TemperatureUpdate();
-        MapComponentUtility.MapComponentOnDraw(interiorMap);
+        map.roofGrid.RoofGridUpdate();
+        map.mapTemperature.TemperatureUpdate();
+        MapComponentUtility.MapComponentOnDraw(map);
         Command_FocusVehicleMap.FocusedVehicle = focused;
         //map.gameConditionManager.GameConditionManagerDraw(map);
         //MapEdgeClipDrawer.DrawClippers(__instance);
@@ -669,28 +678,32 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
     private void DrawVehicleMapMesh(Map map, Vector3 drawPos)
     {
         var mapDrawer = map.mapDrawer;
+        var rot = FullRotation;
+        var component = map.GetCachedMapComponent<VehicleSectionLayerManager>();
         for (int i = 0; i < map.Size.x; i += 17)
         {
             for (int j = 0; j < map.Size.z; j += 17)
             {
                 var section = mapDrawer.SectionAt(new IntVec3(i, 0, j));
-                DrawSection(section, drawPos);
+                DrawSection(section, drawPos, component);
             }
         }
     }
 
-    protected virtual void DrawSection(Section section, Vector3 drawPos)
+    protected virtual void DrawSection(Section section, Vector3 drawPos, VehicleSectionLayerManager component)
     {
         var rot = FullRotation;
         ((SectionLayer_TerrainOnVehicle)section.GetLayer(typeof(SectionLayer_TerrainOnVehicle))).DrawLayer(rot, drawPos, Transform.rotation);
-        ((SectionLayer_ThingsGeneralOnVehicle)section.GetLayer(typeof(SectionLayer_ThingsGeneralOnVehicle))).DrawLayer(rot, drawPos, Transform.rotation);
+        DrawLayer(component.GetLayer(section, typeof(SectionLayer_ThingsGeneral), rot), drawPos);
         DrawLayer(section, typeof(SectionLayer_BuildingsDamage), drawPos);
-        if ((Find.WindowStack.TryGetWindow<MainTabWindow_Architect>(out var window) && (window.selectedDesPanel?.def.showPowerGrid ?? false)) ||
-            (Find.DesignatorManager.SelectedDesignator is Designator_Build designator && designator.PlacingDef is ThingDef tDef && tDef.HasComp<CompPower>()))
+        if (OverlayDrawHandler.ShouldDrawPowerGrid)
         {
-            ((SectionLayer_ThingsPowerGridOnVehicle)section.GetLayer(typeof(SectionLayer_ThingsPowerGridOnVehicle))).DrawLayer(rot, drawPos.Yto0(), Transform.rotation);
+            DrawLayer(component.GetLayer(section, typeof(SectionLayer_ThingsPowerGrid), rot), drawPos.Yto0());
         }
-        DrawLayer(section, t_SectionLayer_Zones, drawPos);
+        if (OverlayDrawHandler.ShouldDrawZones)
+        {
+            DrawLayer(section, t_SectionLayer_Zones, drawPos);
+        }
         if (Find.CurrentMap == interiorMap && !VehicleMapFramework.settings.drawPlanet)
         {
             DrawLayer(section, typeof(SectionLayer_LightingOverlay), drawPos);
@@ -699,7 +712,7 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         {
             ((SectionLayer_LightingOnVehicle)section.GetLayer(typeof(SectionLayer_LightingOnVehicle))).DrawLayer(this, drawPos, Transform.rotation);
         }
-        DrawModLayers(section, drawPos);
+        DrawModLayers(section, drawPos, component);
         //if (DebugViewSettings.drawSectionEdges)
         //{
         //    Vector3 a = section.botLeft.ToVector3();
@@ -718,11 +731,12 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         //}
     }
 
-    protected virtual void DrawModLayers(Section section, Vector3 drawPos)
+    protected virtual void DrawModLayers(Section section, Vector3 drawPos, VehicleSectionLayerManager component)
     {
+        var rot = FullRotation;
         if (VFECore.Active)
         {
-            ((SectionLayer_ThingsOnVehicle)section.GetLayer(VFECore.SectionLayer_ResourceOnVehicle))?.DrawLayer(FullRotation, drawPos, Transform.rotation);
+            DrawLayer(component.GetLayer(section, VFECore.SectionLayer_Resource, rot), drawPos);
         }
         if (DefenseGrid.Active)
         {
@@ -762,7 +776,6 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
             }
             DrawLayer(section, DubsBadHygiene.SectionLayer_Irrigation, drawPos);
             DrawLayer(section, DubsBadHygiene.SectionLayer_FertilizerGrid, drawPos);
-            ((SectionLayer_ThingsSewagePipeOnVehicle)section.GetLayer(typeof(SectionLayer_ThingsSewagePipeOnVehicle)))?.DrawLayer(FullRotation, drawPos, Transform.rotation);
         }
         if (Rimefeller.Active)
         {
@@ -784,12 +797,16 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
             }
             DrawLayer(section, Rimefeller.XSectionLayer_Napalm, drawPos);
             DrawLayer(section, Rimefeller.XSectionLayer_OilSpill, drawPos);
-            ((SectionLayer_ThingsPipeOnVehicle)section.GetLayer(typeof(SectionLayer_ThingsPipeOnVehicle)))?.DrawLayer(FullRotation, drawPos, Transform.rotation);
+            DrawLayer(component.GetLayer(section, Rimefeller.SectionLayer_ThingsPipe, rot), drawPos);
         }
         if (ModsConfig.OdysseyActive)
         {
             ((SectionLayer_SubstructurePropsOnVehicle)section.GetLayer(typeof(SectionLayer_SubstructurePropsOnVehicle)))?.DrawLayer(FullRotation, drawPos, Transform.rotation);
             ((SectionLayer_GravshipHullOnVehicle)section.GetLayer(typeof(SectionLayer_GravshipHullOnVehicle)))?.DrawLayer(FullRotation, drawPos, Transform.rotation);
+        }
+        if (MultiFloors.Active && CurrentLevel != interiorMap)
+        {
+            DrawLayer(component.GetLayer(section, MultiFloors.SectionLayer_LowerLevel, rot), drawPos);
         }
     }
 
@@ -798,6 +815,11 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         if (layerType == null) return;
 
         var layer = section.GetLayer(layerType);
+        DrawLayer(layer, drawPos);
+    }
+
+    private void DrawLayer(SectionLayer layer, Vector3 drawPos)
+    {
         if (!layer.Visible)
         {
             return;
@@ -807,7 +829,7 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         {
             if (subMesh.finalized && !subMesh.disabled)
             {
-                Graphics.DrawMesh(subMesh.mesh, drawPos, Quaternion.AngleAxis(fullAngle, Vector3.up), subMesh.material, 0);
+                Graphics.DrawMesh(subMesh.mesh, drawPos, Quaternion.AngleAxis(fullAngle, Vector3.up), subMesh.material, subMesh.renderLayer);
             }
         }
     }
@@ -911,6 +933,7 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         base.PostLoad();
         CompVehicleTurrets?.RevalidateTurrets();
         ResetRenderStatus();
+        CurrentLevel = interiorMap;
     }
 
     public override void PostMake()

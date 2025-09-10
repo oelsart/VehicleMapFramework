@@ -54,6 +54,27 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 //    }
 //}
 
+[HarmonyPatch(typeof(MapDrawLayer), "FinalizeMesh")]
+[PatchLevel(Level.Safe)]
+public static class Patch_MapDrawLayer_FinalizeMesh
+{
+    public static void Prefix(MeshParts tags, Map ___map, List<LayerSubMesh> ___subMeshes)
+    {
+        if (!___map.IsVehicleMapOf(out _) || !tags.HasFlag(MeshParts.Verts))
+            return;
+
+        foreach (var subMesh in ___subMeshes)
+        {
+            for (var j = 0; j < subMesh.verts.Count; j++)
+            {
+                var vert = subMesh.verts[j];
+                vert.y /= VehicleMapUtility.YCompress;
+                subMesh.verts[j] = vert;
+            }
+        }
+    }
+}
+
 [HarmonyPatch(typeof(MechanitorUtility), nameof(MechanitorUtility.InMechanitorCommandRange))]
 public static class Patch_MechanitorUtility_InMechanitorCommandRange
 {

@@ -373,6 +373,10 @@ public static class Patch_JobGiver_Work_PawnCanUseWorkGiver
 [PatchLevel(Level.Sensitive)]
 public static class Patch_JobGiver_Work_Validator
 {
+    public static Map tmpMap;
+
+    public static IntVec3 tmpCell = IntVec3.Invalid;
+
     public static MethodInfo TargetMethod()
     {
         return AccessTools.InnerTypes(typeof(JobGiver_Work)).SelectMany(t => t.GetDeclaredMethods()).First(m => m.Name.Contains("Validator"));
@@ -425,10 +429,6 @@ public static class Patch_JobGiver_Work_Validator
             pawn.VirtualMapTransfer(map, cell);
         }
     }
-
-    public static Map tmpMap;
-
-    public static IntVec3 tmpCell = IntVec3.Invalid;
 }
 
 [HarmonyPatch]

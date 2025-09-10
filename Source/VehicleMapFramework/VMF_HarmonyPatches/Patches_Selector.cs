@@ -6,6 +6,7 @@ using System.Reflection.Emit;
 using UnityEngine;
 using Verse;
 using static VehicleMapFramework.MethodInfoCache;
+using static VehicleMapFramework.ModCompat;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
@@ -60,7 +61,7 @@ public static class Patch_Selector_SelectableObjectsUnderMouse
             yield return thing;
         }
 
-        Zone zone = vehicle.VehicleMap.zoneManager.ZoneAt(mouseVehicleMapPosition.ToIntVec3());
+        Zone zone = vehicle.CurrentLevel.zoneManager.ZoneAt(mouseVehicleMapPosition.ToIntVec3());
         if (zone != null)
         {
             yield return zone;
@@ -122,6 +123,10 @@ public static class Patch_CameraJumper_TryJumpInternal
     {
         if (map.IsVehicleMapOf(out var vehicle))
         {
+            if (MultiFloors.Active)
+            {
+                vehicle.CurrentLevel = map;
+            }
             if (vehicle.Spawned)
             {
                 map = vehicle.Map;

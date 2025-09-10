@@ -9,7 +9,6 @@ using UnityEngine;
 using Vehicles;
 using Verse;
 using Verse.AI.Group;
-using static VehicleMapFramework.ModCompat;
 
 namespace VehicleMapFramework;
 
@@ -21,7 +20,7 @@ public static class VehicleMapUtility
         {
             if (Command_FocusVehicleMap.FocusedVehicle != null)
             {
-                return Command_FocusVehicleMap.FocusedVehicle.VehicleMap;
+                return Command_FocusVehicleMap.FocusedVehicle.CurrentLevel;
             }
             return Find.CurrentMap;
         }
@@ -312,50 +311,6 @@ public static class VehicleMapUtility
             }
         }
         return offset;
-    }
-
-    public static List<Type> SelectSectionLayers(List<Type> subClasses, Map map)
-    {
-        List<Type> excepts = [];
-        if (map.IsVehicleMapOf(out _))
-        {
-            excepts.AddRange(
-                [
-                typeof(SectionLayer_ThingsGeneral),
-                typeof(SectionLayer_Terrain),
-                typeof(SectionLayer_ThingsPowerGrid),
-                ]);
-            if (VFECore.Active)
-            {
-                excepts.Add(AccessTools.TypeByName("PipeSystem.SectionLayer_Resource"));
-            }
-            if (!DubsBadHygiene.Active || DubsBadHygiene.LiteMode)
-            {
-                excepts.Add(typeof(SectionLayer_ThingsSewagePipeOnVehicle));
-            }
-            if (!Rimefeller.Active)
-            {
-                excepts.Add(typeof(SectionLayer_ThingsPipeOnVehicle));
-            }
-            return [.. subClasses.Except(excepts)];
-        }
-        return subClasses;
-        //excepts.AddRange(
-        //    [
-        //    typeof(SectionLayer_ThingsGeneralOnVehicle),
-        //    typeof(SectionLayer_TerrainOnVehicle),
-        //    typeof(SectionLayer_LightingOnVehicle),
-        //    typeof(SectionLayer_ThingsPowerGridOnVehicle),
-        //    typeof(SectionLayer_SubstructurePropsOnVehicle),
-        //    typeof(SectionLayer_GravshipHullOnVehicle)
-        //    ]);
-        //if (VFECore.Active)
-        //{
-        //    excepts.Add(AccessTools.TypeByName("VehicleMapFramework.SectionLayer_ResourceOnVehicle"));
-        //}
-        //excepts.Add(typeof(SectionLayer_ThingsSewagePipeOnVehicle));
-        //excepts.Add(typeof(SectionLayer_ThingsPipeOnVehicle));
-        //return [.. subClasses.Except(excepts)];
     }
 
     public static Rot4 RotationForPrint(this Thing thing)

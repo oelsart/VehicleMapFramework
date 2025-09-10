@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Verse;
+using static VehicleMapFramework.ModCompat;
 
 namespace VehicleMapFramework;
 
@@ -45,13 +46,13 @@ public class SectionLayer_TerrainOnVehicle : SectionLayer
     //drawPlanetがオフでVehicleMapにフォーカスした時しか呼ばれないよ
     public override void DrawLayer()
     {
-        if (!Map.IsVehicleMapOf(out var vehicle))
-        {
-            //VMF_Log.Error("Do not use SectionLayer_TerrainOnVehicle except for vehicle maps.");
-            return;
-        }
-        var mapSize = new Vector3(vehicle.VehicleMap.Size.x, 0f, vehicle.VehicleMap.Size.z);
-        Graphics.DrawMesh(MeshPool.plane10, Matrix4x4.TRS(mapSize / 2f, Quaternion.identity, mapSize), baseTerrainMat, 0);
+        //if (!Map.IsVehicleMapOf(out var vehicle))
+        //{
+        //    //VMF_Log.Error("Do not use SectionLayer_TerrainOnVehicle except for vehicle maps.");
+        //    return;
+        //}
+        //var mapSize = new Vector3(vehicle.VehicleMap.Size.x, 0f, vehicle.VehicleMap.Size.z);
+        //Graphics.DrawMesh(MeshPool.plane10, Matrix4x4.TRS(mapSize / 2f, Quaternion.identity, mapSize), baseTerrainMat, 0);
     }
 
     public virtual Material GetMaterialFor(CellTerrain cellTerrain)
@@ -97,7 +98,8 @@ public class SectionLayer_TerrainOnVehicle : SectionLayer
             hashSet.Clear();
             CellTerrain cellTerrain = new(terrainGrid.TerrainAt(intVec), intVec.IsPolluted(Map), Map.snowGrid.GetDepth(intVec), intVec.GetSandDepth(Map), terrainGrid.ColorAt(intVec));
 
-            if (cellTerrain.def == VMF_DefOf.VMF_VehicleFloor) continue; //デフォルトのVehicleFloorの場合は描画しない
+            if (cellTerrain.def.dontRender || cellTerrain.def == VMF_DefOf.VMF_VehicleFloor) continue; //デフォルトのVehicleFloorの場合は描画しない
+            if (MultiFloors.Active && MultiFloors.ShouldRenderLowerLevel(cellTerrain.def)) continue;
 
             LayerSubMesh subMesh = GetSubMesh(GetMaterialFor(cellTerrain));
             if (subMesh != null && AllowRenderingFor(cellTerrain.def))
