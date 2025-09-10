@@ -294,7 +294,7 @@ public static class CrossMapReachabilityUtility
                                         return result;
                                     }
                                 }
-                                foreach (var c2 in vehicle.CachedStandableMapEdgeCells.OrderBy(c2 => cell - c2.ToBaseMapCoord(vehicle)))
+                                foreach (var c2 in vehicle.CachedStandableMapEdgeCells.OrderBy(c2 => (cell - c2.ToBaseMapCoord(vehicle)).LengthHorizontalSquared))
                                 {
                                     var targetInfo = new TargetInfo(c2, destMap);
                                     var cell2 = EnterVehiclePosition(targetInfo);

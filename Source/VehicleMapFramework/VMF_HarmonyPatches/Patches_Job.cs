@@ -239,12 +239,14 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
             {
                 CrossMapReachabilityUtility.DepartMap = map;
                 CrossMapReachabilityUtility.DestMap = targetMap;
+                pawn.VirtualMapTransfer(targetMap);
                 job = scanner.JobOnCell(pawn, target.Cell, forced);
             }
             finally
             {
                 CrossMapReachabilityUtility.DepartMap = null;
                 CrossMapReachabilityUtility.DestMap = null;
+                pawn.VirtualMapTransfer(map);
             }
             return JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot2, enterSpot2, job);
         }
@@ -266,10 +268,6 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
                 IEnumerable<IntVec3> enumerable2 = scanner.PotentialWorkCellsGlobal(pawn);
                 foreach (IntVec3 c in enumerable2)
                 {
-                    if (CrossMapReachabilityUtility.CanReach(map, innerStruct.pawnPosition, c, scanner.PathEndMode, TraverseParms.For(pawn, innerStruct.maxPathDanger), map2, out _, out _))
-                    {
-                        pawn.SetPositionDirect(c);
-                    }
                     bool flag2 = false;
                     float num4 = (c - positionOnMap).LengthHorizontalSquared;
                     float num5 = 0f;
@@ -309,7 +307,7 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
         }
         finally
         {
-            pawn.VirtualMapTransfer(map, innerStruct.pawnPosition);
+            pawn.VirtualMapTransfer(map);
             CrossMapReachabilityUtility.DepartMap = null;
         }
     }
@@ -399,34 +397,16 @@ public static class Patch_JobGiver_Work_Validator
         }
 
         var map = pawn.Map;
-        if (!scanner.AllowUnreachable)
-        {
-            if (pawn.CanReach(t, scanner.PathEndMode, scanner.MaxPathDanger(pawn), false, false, TraverseMode.ByPawn, thingMap, out _, out _))
-            {
-                var pos = pawn.Position;
-                var dest = t.PositionHeld;
-                pawn.VirtualMapTransfer(thingMap, dest);
-                try
-                {
-                    return scanner.HasJobOnThing(pawn, t, forced);
-                }
-                finally
-                {
-                    pawn.VirtualMapTransfer(map, pos);
-                }
-            }
-            return false;
-        }
-        var cell = pawn.Position;
-        var cell2 = CellRect.WholeMap(thingMap).RandomCell;
-        pawn.VirtualMapTransfer(thingMap, cell2);
+        CrossMapReachabilityUtility.DepartMap = map;
+        pawn.VirtualMapTransfer(thingMap);
         try
         {
             return scanner.HasJobOnThing(pawn, t, forced);
         }
         finally
         {
-            pawn.VirtualMapTransfer(map, cell);
+            CrossMapReachabilityUtility.DepartMap = null;
+            pawn.VirtualMapTransfer(map);
         }
     }
 }
@@ -681,15 +661,12 @@ public static class Patch_GenClosest_ClosestThingReachable
     public static Thing ClosestThingReachableOriginal(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance, Predicate<Thing> validator, IEnumerable<Thing> customGlobalSearchSet, int searchRegionsMin, int searchRegionsMax, bool forceAllowGlobalSearch, RegionType traversableRegionTypes, bool ignoreEntirelyForbiddenRegions, bool lookInHaulSources) => throw new NotImplementedException();
 
     [PatchLevel(Level.Safe)]
-    public static bool Prefix(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance, Predicate<Thing> validator, IEnumerable<Thing> customGlobalSearchSet, int searchRegionsMin, int searchRegionsMax, bool forceAllowGlobalSearch, RegionType traversableRegionTypes, bool ignoreEntirelyForbiddenRegions, bool lookInHaulSources, ref Thing __result)
+    public static void Postfix(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance, Predicate<Thing> validator, IEnumerable<Thing> customGlobalSearchSet, int searchRegionsMin, int searchRegionsMax, bool forceAllowGlobalSearch, RegionType traversableRegionTypes, bool ignoreEntirelyForbiddenRegions, bool lookInHaulSources, ref Thing __result)
     {
-        var maps = map.BaseMapAndVehicleMaps().Except(map);
-        if (traverseParams.pawn != null && maps.Any())
+        if (traverseParams.pawn != null && __result == null)
         {
             __result = GenClosestCrossMap.ClosestThingReachable(root, map, thingReq, peMode, traverseParams, maxDistance, validator, customGlobalSearchSet, searchRegionsMin, searchRegionsMax, forceAllowGlobalSearch, traversableRegionTypes, ignoreEntirelyForbiddenRegions, lookInHaulSources);
-            return false;
         }
-        return true;
     }
 }
 
@@ -697,15 +674,12 @@ public static class Patch_GenClosest_ClosestThingReachable
 [PatchLevel(Level.Safe)]
 public static class Patch_GenClosest_ClosestThing_Regionwise_ReachablePrioritized
 {
-    public static bool Prefix(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance, Predicate<Thing> validator, Func<Thing, float> priorityGetter, int minRegions, int maxRegions, bool lookInHaulSources, ref Thing __result)
+    public static void Postfix(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance, Predicate<Thing> validator, Func<Thing, float> priorityGetter, int minRegions, int maxRegions, bool lookInHaulSources, ref Thing __result)
     {
-        var maps = map.BaseMapAndVehicleMaps().Except(map);
-        if (traverseParams.pawn != null && maps.Any())
+        if (traverseParams.pawn != null && __result == null)
         {
             __result = GenClosestCrossMap.ClosestThing_Regionwise_ReachablePrioritized(root, map, thingReq, peMode, traverseParams, maxDistance, validator, priorityGetter, minRegions, maxRegions, lookInHaulSources);
-            return false;
         }
-        return true;
     }
 }
 
@@ -1123,10 +1097,7 @@ public static class Patch_WorkGiver_DoBill_TryFindBestIngredientsHelper
             new CodeInstruction(OpCodes.Pop),
             CodeInstruction.LoadArgument(4)
         ]);
-
-        var m_BreadthFirstTraverse = AccessTools.Method(typeof(RegionTraverser), nameof(RegionTraverser.BreadthFirstTraverse), [typeof(Region), typeof(RegionEntryPredicate), typeof(RegionProcessor), typeof(int), typeof(RegionType)]);
-        var m_BreadthFirstTraverseAcrossMaps = AccessTools.Method(typeof(RegionTraverserAcrossMaps), nameof(RegionTraverserAcrossMaps.BreadthFirstTraverse), [typeof(Region), typeof(RegionEntryPredicate), typeof(RegionProcessor), typeof(int), typeof(RegionType)]);
-        return codes.MethodReplacer(m_BreadthFirstTraverse, m_BreadthFirstTraverseAcrossMaps);
+        return codes.MethodReplacer(CachedMethodInfo.m_BreadthFirstTraverse, CachedMethodInfo.m_BreadthFirstTraverseAcrossMaps);
     }
 }
 

@@ -30,6 +30,7 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
     private readonly List<CompVehicleEnterSpot> enterCompsInt = [];
 
     private readonly List<CompFuelTank> fuelTankCompsInt = [];
+
     private bool allowHaulIn = true;
 
     private bool allowHaulOut = true;
@@ -70,7 +71,7 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
 
     private static readonly Texture2D iconAllowExit = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/AllowExit");
 
-    private static readonly Type t_SectionLayer_Zones = AccessTools.TypeByName("Verse.SectionLayer_Zones");
+    private static readonly Type t_SectionLayer_Zones = GenTypes.GetTypeInAnyAssembly("Verse.SectionLayer_Zones", "Verse");
 
     private static readonly FastInvokeHandler DirtyCellDesignationsCache = MethodInvoker.GetHandler(AccessTools.Method(typeof(DesignationManager), "DirtyCellDesignationsCache"));
 

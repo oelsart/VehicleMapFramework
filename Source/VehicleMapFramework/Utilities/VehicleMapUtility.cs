@@ -9,6 +9,7 @@ using UnityEngine;
 using Vehicles;
 using Verse;
 using Verse.AI.Group;
+using static VehicleMapFramework.ModCompat;
 
 namespace VehicleMapFramework;
 
@@ -803,6 +804,11 @@ public static class VehicleMapUtility
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static IEnumerable<Map> BaseMapAndVehicleMaps(this Map map)
     {
+        if (MultiFloors.Active && MultiFloors.GroundMap(map) != map)
+        {
+            yield return map;
+            yield break;
+        }
         var baseMap = map.BaseMap();
         if (baseMap == null)
         {

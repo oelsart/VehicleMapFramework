@@ -583,26 +583,26 @@ public static class Patch_SelectionHelper_MultiSelectClicker
 
 
 //主にRepairVehicleに使用される。ターゲットAをVehicleとしてターゲットB(=直す場所)に先に向かうため、StartGotoDestMapJobを挟む
-[HarmonyPatch(typeof(JobDriver_WorkVehicle), "MakeNewToils")]
-[PatchLevel(Level.Safe)]
-public static class Patch_JobDriver_WorkVehicle_MakeNewToils
-{
-    public static IEnumerable<Toil> Postfix(IEnumerable<Toil> values, Pawn ___pawn, Job ___job)
-    {
-        var thingMap = ___job.targetA.Thing?.Map;
-        if (thingMap != ___pawn.Map && ___pawn.CanReach(___job.targetA.Thing, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, thingMap, out var exitSpot, out var enterSpot))
-        {
-            yield return Toils_General.Do(() =>
-            {
-                JobAcrossMapsUtility.StartGotoDestMapJob(___pawn, exitSpot, enterSpot);
-            });
-        }
-        foreach (var toil in values)
-        {
-            yield return toil;
-        }
-    }
-}
+//[HarmonyPatch(typeof(JobDriver_WorkVehicle), "MakeNewToils")]
+//[PatchLevel(Level.Safe)]
+//public static class Patch_JobDriver_WorkVehicle_MakeNewToils
+//{
+//    public static IEnumerable<Toil> Postfix(IEnumerable<Toil> values, Pawn ___pawn, Job ___job)
+//    {
+//        var thingMap = ___job.targetA.Thing?.Map;
+//        if (thingMap != ___pawn.Map && ___pawn.CanReach(___job.targetA.Thing, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, thingMap, out var exitSpot, out var enterSpot))
+//        {
+//            yield return Toils_General.Do(() =>
+//            {
+//                JobAcrossMapsUtility.StartGotoDestMapJob(___pawn, exitSpot, enterSpot);
+//            });
+//        }
+//        foreach (var toil in values)
+//        {
+//            yield return toil;
+//        }
+//    }
+//}
 
 //WorkGiver_RefuelVehicleTurretでVehicleが海上に居た場合Regionがnullでエラーを吐いていた問題の修正
 [HarmonyPatch(typeof(WorkGiver_RefuelVehicleTurret), nameof(WorkGiver_RefuelVehicleTurret.JobOnThing))]
