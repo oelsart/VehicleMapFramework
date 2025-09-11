@@ -637,8 +637,9 @@ public static class Patch_GenClosest_ClosestThingReachable
     }
 
     [PatchLevel(Level.Safe)]
-    public static void Postfix(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance, Predicate<Thing> validator, IEnumerable<Thing> customGlobalSearchSet, int searchRegionsMin, int searchRegionsMax, bool forceAllowGlobalSearch, RegionType traversableRegionTypes, bool ignoreEntirelyForbiddenRegions, bool lookInHaulSources, ref Thing __result)
+    public static void Finalizer(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance, Predicate<Thing> validator, IEnumerable<Thing> customGlobalSearchSet, int searchRegionsMin, int searchRegionsMax, bool forceAllowGlobalSearch, RegionType traversableRegionTypes, bool ignoreEntirelyForbiddenRegions, bool lookInHaulSources, ref Thing __result)
     {
+        CrossMapReachabilityUtility.DepartMap = null;
         __result ??= GenClosestCrossMap.ClosestThingReachable(root, map, thingReq, peMode, traverseParams, maxDistance, validator, customGlobalSearchSet, searchRegionsMin, searchRegionsMax, forceAllowGlobalSearch, traversableRegionTypes, ignoreEntirelyForbiddenRegions, lookInHaulSources);
     }
 }
@@ -655,8 +656,9 @@ public static class Patch_GenClosest_ClosestThing_Regionwise_ReachablePrioritize
         }
     }
 
-    public static void Postfix(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance, Predicate<Thing> validator, Func<Thing, float> priorityGetter, int minRegions, int maxRegions, bool lookInHaulSources, ref Thing __result)
+    public static void Finalizer(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance, Predicate<Thing> validator, Func<Thing, float> priorityGetter, int minRegions, int maxRegions, bool lookInHaulSources, ref Thing __result)
     {
+        CrossMapReachabilityUtility.DepartMap = null;
         __result ??= GenClosestCrossMap.ClosestThing_Regionwise_ReachablePrioritized(root, map, thingReq, peMode, traverseParams, maxDistance, validator, priorityGetter, minRegions, maxRegions, lookInHaulSources);
     }
 }
@@ -1162,5 +1164,19 @@ public static class Patch_ToilFailConditions_FailOnForbidden_Delegate
         codes[pos].operand = CachedMethodInfo.m_TargetCellOnBaseMap;
         codes.Insert(pos, CodeInstruction.LoadLocal(0));
         return codes;
+    }
+}
+
+[HarmonyPatch(typeof(WanderUtility), nameof(WanderUtility.GetColonyWanderRoot))]
+[PatchLevel(Level.Cautious)]
+public static class Patch_WanderUtility_GetColonyWanderRoot
+{
+    public static List<Pawn> FreeColonistsSpawned(MapPawns instance) => Patch_MapPawns_FreeHumanlikesSpawnedOfFaction.FreeHumanlikesSpawnedOfFaction(instance, Faction.OfPlayer);
+
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        return instructions.MethodReplacer(
+            AccessTools.PropertyGetter(typeof(MapPawns), nameof(MapPawns.FreeColonistsSpawned)),
+            AccessTools.Method(typeof(Patch_WanderUtility_GetColonyWanderRoot), nameof(FreeColonistsSpawned)));
     }
 }

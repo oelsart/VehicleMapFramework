@@ -11,7 +11,7 @@ namespace VehicleMapFramework
     {
         private Building_GravEngine cachedGravEngine;
 
-        public Building_GravEngine Engine => cachedGravEngine ??= GravshipUtility.GetPlayerGravEngine_NewTemp((Vehicle as VehiclePawnWithMap)?.VehicleMap) as Building_GravEngine;
+        public Building_GravEngine Engine => cachedGravEngine ??= GravshipUtility.GetPlayerGravEngine_NewTemp((Vehicle as VehiclePawnWithMap)?.VehicleMap);
 
         public override float FuelCapacity => Engine?.MaxFuel ?? 0f;
 

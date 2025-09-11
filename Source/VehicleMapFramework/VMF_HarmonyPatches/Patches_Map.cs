@@ -456,13 +456,17 @@ public static class Patch_MapPawns_AllPawnsSpawned
 }
 
 [HarmonyPatch(typeof(MapPawns), nameof(MapPawns.FreeHumanlikesSpawnedOfFaction))]
-[PatchLevel(Level.Sensitive)]
 public static class Patch_MapPawns_FreeHumanlikesSpawnedOfFaction
 {
+    [PatchLevel(Level.Safe)]
     public static void Postfix(List<Pawn> __result, Map ___map, Faction faction)
     {
         __result.AddRange(VehiclePawnWithMapCache.TryGetAllVehiclesOn(___map).SelectMany(v => v.VehicleMap.mapPawns.FreeHumanlikesSpawnedOfFaction(faction)));
     }
+
+    [PatchLevel(Level.Mandatory)]
+    [HarmonyReversePatch]
+    public static List<Pawn> FreeHumanlikesSpawnedOfFaction(MapPawns instance, Faction faction) => throw new NotImplementedException();
 }
 
 [HarmonyPatch(typeof(MapPawns), nameof(MapPawns.SpawnedBabiesInFaction))]
