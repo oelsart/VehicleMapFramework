@@ -502,22 +502,29 @@ public static class Patch_Toils_Goto_GotoBuild
 [PatchLevel(Level.Safe)]
 public static class Patch_ReservationUtility_ReserveSittableOrSpot
 {
-    public static void Prefix(Pawn pawn, IntVec3 exactSittingPos, Job job, ref Map __state)
+    public static bool Prefix(Pawn pawn, IntVec3 exactSittingPos, Job job, ref Map __state)
     {
-        var allTargets = new[] { job.targetA, job.targetB, job.targetC }.ConcatIfNotNull(job.targetQueueA).ConcatIfNotNull(job.targetQueueB);
-        var target = allTargets.FirstOrFallback(t => t.HasThing && (t.Cell == exactSittingPos || (t.Thing.Spawned && t.Thing.InteractionCell == exactSittingPos)), LocalTargetInfo.Invalid);
-        if (target.IsValid && pawn.Map != target.Thing.MapHeld)
+        var map = Patch_ForbidUtility_IsForbidden.Map = job.globalTarget.Map ?? TargetMapManager.TargetMapOrPawnMap(pawn);
+
+        if (pawn.Map != map)
         {
             __state = pawn.Map;
-            pawn.VirtualMapTransfer(target.Thing.MapHeld);
+            pawn.VirtualMapTransfer(map);
         }
+        return exactSittingPos.InBounds(map);
     }
 
-    public static void Finalizer(Pawn pawn, Map __state)
+    public static void Finalizer(Pawn pawn, IntVec3 exactSittingPos, Job job, Map __state, bool __result)
     {
+        Patch_ForbidUtility_IsForbidden.Map = null;
         if (__state != null)
         {
+            var destMap = pawn.Map;
             pawn.VirtualMapTransfer(__state);
+            if (__result)
+            {
+                job.globalTarget = new GlobalTargetInfo(exactSittingPos, destMap);
+            }
         }
     }
 }
@@ -527,30 +534,21 @@ public static class Patch_ReservationUtility_ReserveSittableOrSpot
 [PatchLevel(Level.Safe)]
 public static class Patch_ReservationUtility_CanReserveSittableOrSpot
 {
-    public static bool Prefix(Pawn pawn, IntVec3 exactSittingPos, Thing ignoreThing, ref Map __state, ref bool __result)
+    public static bool Prefix(Pawn pawn, IntVec3 exactSittingPos, Thing ignoreThing, ref Map __state)
     {
-        Patch_ForbidUtility_IsForbidden.Map = ignoreThing?.Map;
+        var map = Patch_ForbidUtility_IsForbidden.Map = ignoreThing?.Map ?? TargetMapManager.TargetMapOrPawnMap(pawn);
 
-        if (!exactSittingPos.InBounds(pawn.Map))
+        if (pawn.Map != map)
         {
-            var maps = pawn.Map.BaseMapAndVehicleMaps().Except(pawn.Map);
-            Map map;
-            if ((map = maps.FirstOrDefault(m => exactSittingPos.IsBuildingInteractionCell(m))) != null)
-            {
-                __state = pawn.Map;
-                pawn.VirtualMapTransfer(map);
-                return true;
-            }
-            __result = false;
-            return false;
+            __state = pawn.Map;
+            pawn.VirtualMapTransfer(map);
         }
-        return true;
+        return exactSittingPos.InBounds(map);
     }
 
     public static void Finalizer(Pawn pawn, Map __state)
     {
         Patch_ForbidUtility_IsForbidden.Map = null;
-
         if (__state != null)
         {
             pawn.VirtualMapTransfer(__state);
@@ -558,47 +556,16 @@ public static class Patch_ReservationUtility_CanReserveSittableOrSpot
     }
 }
 
-//ChewSpotのThingが見つかった場合にGotoTargetMapを挟む
-[HarmonyPatch]
-[PatchLevel(Level.Sensitive)]
-public static class Patch_Toils_Ingest_CarryIngestibleToChewSpot_Delegate
+[HarmonyPatch(typeof(Toils_Ingest), nameof(Toils_Ingest.TryFindFreeSittingSpotOnThing))]
+[PatchLevel(Level.Safe)]
+public static class Patch_Toils_Ingest_TryFindFreeSittingSpotOnThing
 {
-    private static MethodBase TargetMethod()
+    public static void Prefix(Thing t, Pawn pawn)
     {
-        return AccessTools.FindIncludingInnerTypes(typeof(Toils_Ingest), t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<CarryIngestibleToChewSpot>")));
-    }
-
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
-    {
-        foreach (var instruction in instructions)
+        if (pawn.Map != t.Map && t.Map != null)
         {
-            yield return instruction;
-            if (instruction.opcode == OpCodes.Stloc_2)
-            {
-                var label = generator.DefineLabel();
-                yield return CodeInstruction.LoadLocal(2);
-                yield return CodeInstruction.LoadLocal(0);
-                yield return CodeInstruction.Call(typeof(Patch_Toils_Ingest_CarryIngestibleToChewSpot_Delegate), nameof(StartGotoDestMapJob));
-                yield return new CodeInstruction(OpCodes.Brfalse_S, label);
-                yield return new CodeInstruction(OpCodes.Ret);
-                yield return new CodeInstruction(OpCodes.Nop).WithLabels(label);
-            }
+            pawn.CurJob?.globalTarget = t;
         }
-    }
-
-    private static bool StartGotoDestMapJob(Thing thing, Pawn pawn)
-    {
-        if (thing == null)
-        {
-            return false;
-        }
-        var parent = thing.SpawnedParentOrMe;
-        if (parent != null && pawn.Map != parent.Map && pawn.CanReach(thing, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, parent.Map, out var exitSpot, out var enterSpot))
-        {
-            JobAcrossMapsUtility.StartGotoDestMapJob(pawn, exitSpot, enterSpot);
-            return true;
-        }
-        return false;
     }
 }
 
@@ -627,6 +594,8 @@ public static class Patch_Toils_Bed_GotoBed
 [PatchLevel(Level.Sensitive)]
 public static class Patch_ItemAvailability_ThingsAvailableAnywhere
 {
+    private static readonly List<Thing> tmpList = [];
+
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var code = instructions.ToList();
@@ -648,14 +617,12 @@ public static class Patch_ItemAvailability_ThingsAvailableAnywhere
         tmpList.AddRange(map.BaseMapAndVehicleMaps().Except(map).SelectMany(m => m.listerThings.ThingsOfDef(need)));
         return tmpList;
     }
-
-    private static readonly List<Thing> tmpList = [];
 }
 
 [HarmonyPatch(typeof(GenClosest), nameof(GenClosest.ClosestThingReachable))]
 public static class Patch_GenClosest_ClosestThingReachable
 {
-    [HarmonyReversePatch(HarmonyReversePatchType.Original)]
+    [HarmonyReversePatch(HarmonyReversePatchType.Snapshot)]
     [PatchLevel(Level.Mandatory)]
     [MethodImpl(MethodImplOptions.NoInlining)] //リバースパッチはインライン化させないほうがいい。これ豆な
     public static Thing ClosestThingReachableOriginal(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance, Predicate<Thing> validator, IEnumerable<Thing> customGlobalSearchSet, int searchRegionsMin, int searchRegionsMax, bool forceAllowGlobalSearch, RegionType traversableRegionTypes, bool ignoreEntirelyForbiddenRegions, bool lookInHaulSources) => throw new NotImplementedException();
@@ -663,10 +630,7 @@ public static class Patch_GenClosest_ClosestThingReachable
     [PatchLevel(Level.Safe)]
     public static void Postfix(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance, Predicate<Thing> validator, IEnumerable<Thing> customGlobalSearchSet, int searchRegionsMin, int searchRegionsMax, bool forceAllowGlobalSearch, RegionType traversableRegionTypes, bool ignoreEntirelyForbiddenRegions, bool lookInHaulSources, ref Thing __result)
     {
-        if (traverseParams.pawn != null && __result == null)
-        {
-            __result = GenClosestCrossMap.ClosestThingReachable(root, map, thingReq, peMode, traverseParams, maxDistance, validator, customGlobalSearchSet, searchRegionsMin, searchRegionsMax, forceAllowGlobalSearch, traversableRegionTypes, ignoreEntirelyForbiddenRegions, lookInHaulSources);
-        }
+        __result ??= GenClosestCrossMap.ClosestThingReachable(root, map, thingReq, peMode, traverseParams, maxDistance, validator, customGlobalSearchSet, searchRegionsMin, searchRegionsMax, forceAllowGlobalSearch, traversableRegionTypes, ignoreEntirelyForbiddenRegions, lookInHaulSources);
     }
 }
 
@@ -676,20 +640,43 @@ public static class Patch_GenClosest_ClosestThing_Regionwise_ReachablePrioritize
 {
     public static void Postfix(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance, Predicate<Thing> validator, Func<Thing, float> priorityGetter, int minRegions, int maxRegions, bool lookInHaulSources, ref Thing __result)
     {
-        if (traverseParams.pawn != null && __result == null)
-        {
-            __result = GenClosestCrossMap.ClosestThing_Regionwise_ReachablePrioritized(root, map, thingReq, peMode, traverseParams, maxDistance, validator, priorityGetter, minRegions, maxRegions, lookInHaulSources);
-        }
+        __result ??= GenClosestCrossMap.ClosestThing_Regionwise_ReachablePrioritized(root, map, thingReq, peMode, traverseParams, maxDistance, validator, priorityGetter, minRegions, maxRegions, lookInHaulSources);
     }
 }
 
 [HarmonyPatch(typeof(RegionProcessorClosestThingReachable), "ProcessThing")]
-[PatchLevel(Level.Cautious)]
+[HarmonyPriority(Priority.High)]
+[PatchLevel(Level.Mandatory)]
 public static class Patch_RegionProcessorClosestThingReachable_ProcessThing
 {
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    [HarmonyReversePatch(HarmonyReversePatchType.Snapshot)]
+    public static void ProcessThing(RegionProcessorClosestThingReachable instance, Region reg, Thing t)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_PositionHeld, CachedMethodInfo.m_PositionHeldOnBaseMap);
+        static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(CachedMethodInfo.g_Thing_PositionHeld, CachedMethodInfo.m_PositionHeldOnBaseMap);
+        }
+        _ = Transpiler(null);
+        throw new NotImplementedException();
+    }
+}
+
+[HarmonyPatch(typeof(RegionProcessorClosestThingReachable), "RegionProcessor")]
+[HarmonyPriority(Priority.Normal)]
+[PatchLevel(Level.Mandatory)]
+public static class Patch_RegionProcessorClosestThingReachable_RegionProcessor
+{
+    [HarmonyReversePatch(HarmonyReversePatchType.Snapshot)]
+    public static bool RegionProcessorBaseMapCoord(this RegionProcessorClosestThingReachable instance, Region reg)
+    {
+        static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var m_ProcessThingOrig = AccessTools.Method(typeof(RegionProcessorClosestThingReachable), "ProcessThing");
+            var m_ProcessThing = AccessTools.Method(typeof(Patch_RegionProcessorClosestThingReachable_ProcessThing), nameof(Patch_RegionProcessorClosestThingReachable_ProcessThing.ProcessThing));
+            return instructions.MethodReplacer(m_ProcessThingOrig, m_ProcessThing);
+        }
+        _ = Transpiler(null);
+        throw new NotImplementedException();
     }
 }
 
@@ -699,7 +686,7 @@ public static class Patch_ReservationManager_Reserve
     [PatchLevel(Level.Safe)]
     public static bool Prefix(Map ___map, Pawn claimant, Job job, LocalTargetInfo target, int maxPawns, int stackCount, ReservationLayerDef layer, bool errorOnFailed, bool ignoreOtherReservations, bool canReserversStartJobs, ref bool __result)
     {
-        if (ShouldReplace(___map, claimant, target, false, out var map))
+        if (ShouldReplace(___map, claimant, target, false, out var map) || ((map = job?.globalTarget.Map) != null && map != ___map))
         {
             __result = map.reservationManager.Reserve(claimant, job, target, maxPawns, stackCount, layer, errorOnFailed, ignoreOtherReservations, canReserversStartJobs);
             return false;
@@ -815,6 +802,8 @@ public static class Patch_ReservationManager_FirstRespectedReserver
 [PatchLevel(Level.Sensitive)]
 public static class Patch_FoodUtility_BestFoodSourceOnMap
 {
+    private static List<Thing> searchSet = [];
+
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();
@@ -832,21 +821,15 @@ public static class Patch_FoodUtility_BestFoodSourceOnMap
 
     private static List<Thing> AddSearchSet(List<Thing> list, Pawn getter, ThingRequest req)
     {
+        searchSet.Clear();
+        searchSet.AddRange(list);
         var maps = getter.Map.BaseMapAndVehicleMaps().Except(getter.Map);
-        if (maps.Any())
+        foreach (var map in maps)
         {
-            searchSet.Clear();
-            searchSet.AddRange(list);
-            foreach (var map in maps)
-            {
-                searchSet.AddRange(map.listerThings.ThingsMatching(req));
-            }
-            return searchSet;
+            searchSet.AddRange(map.listerThings.ThingsMatching(req));
         }
-        return list;
+        return searchSet;
     }
-
-    private static List<Thing> searchSet = [];
 }
 
 [HarmonyPatch(typeof(RestUtility), nameof(RestUtility.CanUseBedNow))]
@@ -929,11 +912,11 @@ public static class Patch_ToilFailConditions_FailOnSomeonePhysicallyInteracting
 {
     private static MethodInfo TargetMethod()
     {
-        return AccessTools.InnerTypes(typeof(ToilFailConditions)).SelectMany(t =>
+        return AccessTools.FindIncludingInnerTypes(typeof(ToilFailConditions), t =>
         {
             var type = t.IsGenericTypeDefinition ? t.MakeGenericType(typeof(Toil)) : t;
-            return type.GetDeclaredMethods();
-        }).First(m => m.Name.Contains("<FailOnSomeonePhysicallyInteracting>"));
+            return type.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<FailOnSomeonePhysicallyInteracting>"));
+        });
     }
 
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -1138,5 +1121,29 @@ public static class Patch_WorkGiver_ConstructDeliverResources_ResourceDeliverJob
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
+    }
+}
+
+[HarmonyPatch]
+[PatchLevel(Level.Sensitive)]
+public static class Patch_ToilFailConditions_FailOnForbidden_Delegate
+{
+    private static MethodBase TargetMethod()
+    {
+        return AccessTools.FindIncludingInnerTypes(typeof(ToilFailConditions), t =>
+        {
+            var type = t.IsGenericTypeDefinition ? t.MakeGenericType(typeof(Toil)) : t;
+            return type.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<FailOnForbidden>"));
+        });
+    }
+
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        var codes = instructions.ToList();
+        var pos = codes.FindIndex(c => c.Calls(CachedMethodInfo.g_LocalTargetInfo_Cell));
+        codes[pos].opcode = OpCodes.Call;
+        codes[pos].operand = CachedMethodInfo.m_TargetCellOnBaseMap;
+        codes.Insert(pos, CodeInstruction.LoadLocal(0));
+        return codes;
     }
 }

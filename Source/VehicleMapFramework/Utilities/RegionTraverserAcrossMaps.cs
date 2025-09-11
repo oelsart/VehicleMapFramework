@@ -69,7 +69,7 @@ public static class RegionTraverserAcrossMaps
                     return;
                 }
 
-                foreach (var vehicle2 in region.ListerThings.AllThings.OfType<VehiclePawnWithMap>())
+                foreach (var vehicle2 in region.ListerThings.ThingsInGroup(ThingRequestGroup.Pawn).OfType<VehiclePawnWithMap>())
                 {
                     var region2 = vehicle2.VehicleMap.regionGrid.AllRegions.FirstOrDefault(r => !r.touchesMapEdge);
                     if (region2 != null && !open.Contains(region2) && !close.Contains(region2))
