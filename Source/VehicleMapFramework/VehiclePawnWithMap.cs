@@ -23,6 +23,8 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
 {
     private Map interiorMap;
 
+    private Map currentLevel;
+
     public VehicleMapFollower mapFollower;
 
     public Vector3 cachedDrawPos;
@@ -87,7 +89,11 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         }
     }
 
-    public Map CurrentLevel { get; set; }
+    public Map CurrentLevel
+    {
+        get => currentLevel ?? interiorMap;
+        set => currentLevel = value;
+    }
 
     public bool AllowHaulIn
     {
@@ -404,12 +410,10 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         {
             Find.World.worldObjects.Add(interiorMap.Parent);
         }
-        if (CurrentLevel is null)
-        {
-            CurrentLevel = interiorMap;
-        }
+        CurrentLevel ??= interiorMap;
 
-        if (def.HasModExtension<VehicleMapProps_Gravship>())
+        var isGravship = def.HasModExtension<VehicleMapProps_Gravship>();
+        if (isGravship)
         {
             if (GravshipUtility.GetPlayerGravEngine_NewTemp(interiorMap) is Building_GravEngine engine && (engine.launchInfo?.doNegativeOutcome ?? false))
             {
@@ -419,7 +423,7 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
                     DisembarkPawn(list[i]);
                 }
                 var gravship = GravshipUtility.GenerateGravship(engine);
-                GravshipPlacementUtility.PlaceGravshipInMap(gravship, gravship.originalPosition, interiorMap, out _);
+                GravshipVehicleUtility.PlaceGravship(null, gravship, gravship.originalPosition, interiorMap);
                 DefDatabase<LandingOutcomeDef>.AllDefsListForReading.RandomElementByWeight(d => d.weight).Worker.ApplyOutcome(gravship);
                 engine.launchInfo = null;
             }
@@ -652,10 +656,11 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         //BreachingGridDebug.DebugDrawAllOnMap(map);
         Delay.AfterNSeconds(0f, () =>
         {
-            VehiclePawnWithMapCache.cacheModeGlobal = true;
+            var component = MapComponentCache<VehiclePawnWithMapCache>.GetComponent(map);
+            component?.cacheMode = true;
             map.GetCachedMapComponent<VehicleSectionLayerManager>().UpdateAllSection();
             map.mapDrawer.MapMeshDrawerUpdate_First();
-            VehiclePawnWithMapCache.cacheModeGlobal = false;
+            component?.cacheMode = false;
         });
         //map.powerNetGrid.DrawDebugPowerNetGrid();
         //DoorsDebugDrawer.DrawDebug();
@@ -810,7 +815,11 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         }
         if (MultiFloors.Active && CurrentLevel != interiorMap)
         {
-            DrawLayer(component.GetLayer(section, MultiFloors.SectionLayer_LowerLevel, rot), drawPos);
+            var layer = component.GetLayer(section, MultiFloors.SectionLayer_LowerLevel, rot);
+            if (layer != null)
+            {
+                DrawLayer(layer, drawPos);
+            }
         }
     }
 

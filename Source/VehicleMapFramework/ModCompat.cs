@@ -38,9 +38,11 @@ internal static class ModCompat
 
         public static readonly FastInvokeHandler VehicleTurret_IsManned = MethodInvoker.GetHandler(AccessTools.PropertySetter(typeof(VehicleTurret), nameof(VehicleTurret.IsManned)));
 
+        public static readonly Dictionary<(VehicleDef, Rot4), Texture2D> CachedVehicleTextures = AccessTools.StaticFieldRefAccess<Dictionary<(VehicleDef, Rot4), Texture2D>>(typeof(VehicleTex), "CachedVehicleTextures");
+
         static VehicleFramework()
         {
-            if (AnyNull(VehicleTurret_IsManned))
+            if (AnyNull(VehicleTurret_IsManned, CachedVehicleTextures))
             {
                 LogIncompat("Vehicle Framework");
             }
@@ -720,9 +722,13 @@ internal static class ModCompat
 
         public static readonly Func<Map, Map> GroundMap;
 
+        public static readonly Action<Map> RevalidateLaunchSiteState;
+
         public static readonly Type SectionLayer_LowerLevel;
 
-        public static readonly Func<TerrainDef, bool> ShouldRenderLowerLevel;
+        public static readonly Type MF_LevelMapComp;
+
+        public static readonly FastInvokeHandler GetOtherMapVerticallyOutwardFromCache;
 
         static MultiFloors()
         {
@@ -731,12 +737,14 @@ internal static class ModCompat
                 try
                 {
                     GroundMap = AccessTools.MethodDelegate<Func<Map, Map>>("MultiFloors.HarmonyPatches.HarmonyPatch_CallBossGroupOnGround:GetGroundMap");
+                    RevalidateLaunchSiteState = AccessTools.MethodDelegate<Action<Map>>("MultiFloors.HarmonyPatches.HarmonyPatch_OnGravshipLaunch:RevalidateLaunchSiteState");
                     SectionLayer_LowerLevel = GenTypes.GetTypeInAnyAssembly("MultiFloors.Maps.SectionLayer_LowerLevel", "MultiFloors.Maps");
                     if (SectionLayer_LowerLevel != null)
                     {
                         VehicleSectionLayerManager.OrientedSectionLayerTypes.Add(SectionLayer_LowerLevel);
                     }
-                    ShouldRenderLowerLevel = (Func<TerrainDef, bool>)AccessTools.Method(SectionLayer_LowerLevel, "ShouldRenderLowerLevel").CreateDelegate(typeof(Func<TerrainDef, bool>));
+                    MF_LevelMapComp = GenTypes.GetTypeInAnyAssembly("MultiFloors.MF_LevelMapComp", "MultiFloors");
+                    GetOtherMapVerticallyOutwardFromCache = MethodInvoker.GetHandler(AccessTools.Method("MultiFloors.LevelUtility:GetOtherMapVerticallyOutwardFromCache"));
                 }
                 catch (Exception ex)
                 {
@@ -745,7 +753,7 @@ internal static class ModCompat
                 }
                 finally
                 {
-                    if (AnyNull(GroundMap, SectionLayer_LowerLevel))
+                    if (AnyNull(GroundMap, RevalidateLaunchSiteState, SectionLayer_LowerLevel, MF_LevelMapComp, GetOtherMapVerticallyOutwardFromCache))
                     {
                         LogIncompat("MultiFloors");
                         Active = false;

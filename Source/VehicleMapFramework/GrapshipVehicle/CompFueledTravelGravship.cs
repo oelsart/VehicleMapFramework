@@ -70,6 +70,7 @@ namespace VehicleMapFramework
         //少ない燃料コンテナから優先的に分配
         public override void Refuel(float amount)
         {
+            if (Engine is null) return;
             if (Engine.TotalFuel >= Engine.MaxFuel)
             {
                 return;

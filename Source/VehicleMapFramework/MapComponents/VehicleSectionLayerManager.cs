@@ -34,7 +34,6 @@ namespace VehicleMapFramework
             {
                 layersByRot = [];
 
-                VehiclePawnWithMapCache.cacheModeGlobal = true;
                 var component = MapComponentCache<VehiclePawnWithMapCache>.GetComponent(map);
                 component?.cacheMode = true;
                 for (int i = 0; i < map.Size.x; i += 17)
@@ -75,7 +74,6 @@ namespace VehicleMapFramework
                     }
                 }
                 component?.cacheMode = false;
-                VehiclePawnWithMapCache.cacheModeGlobal = false;
             });
         }
 
@@ -109,8 +107,6 @@ namespace VehicleMapFramework
             {
                 return;
             }
-            var component = MapComponentCache<VehiclePawnWithMapCache>.GetComponent(map);
-            component?.cacheMode = true;
             foreach (var sectionLayers in layersByRot[section].Values)
             {
                 sectionLayers[0].Dirty = sectionLayers[0].Dirty || (section.dirtyFlags & sectionLayers[0].relevantChangeTypes) != 0;
@@ -140,7 +136,6 @@ namespace VehicleMapFramework
                 }
                 sectionLayers[0].Dirty = false;
             }
-            component?.cacheMode = false;
         }
     }
 }

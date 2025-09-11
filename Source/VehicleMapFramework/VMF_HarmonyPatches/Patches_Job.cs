@@ -628,6 +628,15 @@ public static class Patch_GenClosest_ClosestThingReachable
     public static Thing ClosestThingReachableOriginal(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance, Predicate<Thing> validator, IEnumerable<Thing> customGlobalSearchSet, int searchRegionsMin, int searchRegionsMax, bool forceAllowGlobalSearch, RegionType traversableRegionTypes, bool ignoreEntirelyForbiddenRegions, bool lookInHaulSources) => throw new NotImplementedException();
 
     [PatchLevel(Level.Safe)]
+    public static void Prefix(ref Map map)
+    {
+        if (CrossMapReachabilityUtility.DepartMap != null)
+        {
+            map = CrossMapReachabilityUtility.DepartMap;
+        }
+    }
+
+    [PatchLevel(Level.Safe)]
     public static void Postfix(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance, Predicate<Thing> validator, IEnumerable<Thing> customGlobalSearchSet, int searchRegionsMin, int searchRegionsMax, bool forceAllowGlobalSearch, RegionType traversableRegionTypes, bool ignoreEntirelyForbiddenRegions, bool lookInHaulSources, ref Thing __result)
     {
         __result ??= GenClosestCrossMap.ClosestThingReachable(root, map, thingReq, peMode, traverseParams, maxDistance, validator, customGlobalSearchSet, searchRegionsMin, searchRegionsMax, forceAllowGlobalSearch, traversableRegionTypes, ignoreEntirelyForbiddenRegions, lookInHaulSources);
@@ -638,6 +647,14 @@ public static class Patch_GenClosest_ClosestThingReachable
 [PatchLevel(Level.Safe)]
 public static class Patch_GenClosest_ClosestThing_Regionwise_ReachablePrioritized
 {
+    public static void Prefix(ref Map map)
+    {
+        if (CrossMapReachabilityUtility.DepartMap != null)
+        {
+            map = CrossMapReachabilityUtility.DepartMap;
+        }
+    }
+
     public static void Postfix(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance, Predicate<Thing> validator, Func<Thing, float> priorityGetter, int minRegions, int maxRegions, bool lookInHaulSources, ref Thing __result)
     {
         __result ??= GenClosestCrossMap.ClosestThing_Regionwise_ReachablePrioritized(root, map, thingReq, peMode, traverseParams, maxDistance, validator, priorityGetter, minRegions, maxRegions, lookInHaulSources);

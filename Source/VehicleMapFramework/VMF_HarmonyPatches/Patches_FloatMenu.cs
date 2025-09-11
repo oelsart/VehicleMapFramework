@@ -25,7 +25,7 @@ public static class Patch_FloatMenuContext_Constructor
         {
             GenUIOnVehicle.vehicleForSelector = vehicle;
             clickPosition = clickPosition.ToVehicleMapCoord(vehicle);
-            map = vehicle.VehicleMap;
+            map = vehicle.CurrentLevel;
         }
     }
 
@@ -146,17 +146,17 @@ public static class Patch_FloatMenuOptionProvider_Entity_GetOptionFor
 
         var m_ClosestThing_Global_Reachable = AccessTools.Method(typeof(GenClosest), nameof(GenClosest.ClosestThing_Global_Reachable));
         var m_ClosestThing_Global_ReachableCrossMap = AccessTools.Method(typeof(GenClosestCrossMap), nameof(GenClosestCrossMap.ClosestThing_Global_Reachable),
-            [
-                typeof(IntVec3),
-                typeof(Map),
-                typeof(IEnumerable<Thing>),
-                typeof(PathEndMode),
-                typeof(TraverseParms),
-                typeof(float),
-                typeof(Predicate<Thing>),
-                typeof(Func<Thing,float>),
-                typeof(bool)
-            ]);
+        [
+            typeof(IntVec3),
+            typeof(Map),
+            typeof(IEnumerable<Thing>),
+            typeof(PathEndMode),
+            typeof(TraverseParms),
+            typeof(float),
+            typeof(Predicate<Thing>),
+            typeof(Func<Thing,float>),
+            typeof(bool)
+        ]);
         codes.MatchStartForward(CodeMatch.Calls(m_ClosestThing_Global_Reachable));
         codes.Operand = m_ClosestThing_Global_ReachableCrossMap;
         return codes.Instructions();
@@ -325,7 +325,7 @@ public static class Patch_RCellFinder_BestOrderedGotoDestNear
         else if ((root.InBounds(Find.CurrentMap) && root.TryGetVehicleMap(Find.CurrentMap, out vehicle)) || searcher.IsOnNonFocusedVehicleMapOf(out _))
         {
             var dest = vehicle != null ? root.ToVehicleMapCoord(vehicle) : root;
-            map = vehicle != null ? vehicle.VehicleMap : Find.CurrentMap;
+            map = vehicle != null ? vehicle.CurrentLevel : Find.CurrentMap;
             __result = CrossMapRCellFinder.BestOrderedGotoDestNear(
                 dest,
                 searcher,

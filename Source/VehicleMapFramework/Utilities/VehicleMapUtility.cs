@@ -746,7 +746,16 @@ public static class VehicleMapUtility
 
     public static float VehicleMapMass(VehiclePawnWithMap vehicle)
     {
-        return CollectionsMassCalculator.MassUsage(vehicle.VehicleMap.listerThings.AllThings, IgnorePawnsInventoryMode.DontIgnore, true);
+        var mass = CollectionsMassCalculator.MassUsage(vehicle.VehicleMap.listerThings.AllThings, IgnorePawnsInventoryMode.DontIgnore, true);
+        if (MultiFloors.Active)
+        {
+            var component = vehicle.VehicleMap.GetComponent(MultiFloors.MF_LevelMapComp);
+            foreach (var map in (IEnumerable<Map>)MultiFloors.GetOtherMapVerticallyOutwardFromCache(null, vehicle.VehicleMap, component, -1))
+            {
+                mass += CollectionsMassCalculator.MassUsage(map.listerThings.AllThings, IgnorePawnsInventoryMode.DontIgnore, true);
+            }
+        }
+        return mass;
     }
 
     public static Vector3 RotateForPrintNegate(Vector3 vector)

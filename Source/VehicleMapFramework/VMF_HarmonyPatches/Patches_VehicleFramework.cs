@@ -213,27 +213,28 @@ public static class Patch_VehiclePawn_DisembarkPawn
 {
     public static bool Prefix(Pawn pawn, VehiclePawn __instance)
     {
-        var handler = __instance.handlers.First(h => h.thingOwner.Contains(pawn));
-        if (handler.role is VehicleRoleBuildable buildable && __instance is VehiclePawnWithMap vehicle)
+        var handler = __instance.handlers.FirstOrDefault(h => h.thingOwner.Contains(pawn));
+        if (handler?.role is VehicleRoleBuildable buildable && __instance is VehiclePawnWithMap vehicle)
         {
             var parent = buildable.upgradeComp.parent;
+            var map = parent.Map ?? vehicle.VehicleMap;
             if (!pawn.Spawned)
             {
                 CellRect cellRect = parent.OccupiedRect().ExpandedBy(1);
                 IntVec3 intVec = parent.Position;
                 if (cellRect.EdgeCells.Where(delegate (IntVec3 c)
                 {
-                    if (c.InBounds(parent.Map) && c.Standable(parent.Map))
+                    if (c.InBounds(map) && c.Standable(map))
                     {
-                        return !c.GetThingList(parent.Map).NotNullAndAny(t => t is Pawn);
+                        return !c.GetThingList(map).NotNullAndAny(t => t is Pawn);
                     }
                     return false;
                 }).TryRandomElement(out IntVec3 intVec2))
                 {
                     intVec = intVec2;
                 }
-                GenSpawn.Spawn(pawn, intVec, parent.Map, WipeMode.Vanish);
-                if (!intVec.Standable(parent.Map))
+                GenSpawn.Spawn(pawn, intVec, map, WipeMode.Vanish);
+                if (!intVec.Standable(map))
                 {
                     pawn.pather.TryRecoverFromUnwalkablePosition(false);
                 }

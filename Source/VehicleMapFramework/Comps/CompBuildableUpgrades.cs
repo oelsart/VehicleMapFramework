@@ -28,6 +28,7 @@ public class CompBuildableUpgrades : ThingComp
                         upgrade.Unlock(vehicle, respawningAfterLoad);
                     }
                 }
+                vehicle.EventRegistry[VehicleEventDefOf.UpgradeCompleted].ExecuteEvents();
             }
         });
     }
@@ -48,6 +49,7 @@ public class CompBuildableUpgrades : ThingComp
                     upgrade.Refund(vehicle);
                 }
             }
+            vehicle.EventRegistry[VehicleEventDefOf.UpgradeRefundCompleted].ExecuteEvents();
 
             //あふれた分の燃料を消費させる
             CompFueledTravel comp;
