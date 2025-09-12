@@ -705,7 +705,7 @@ public static class Patch_ReservationManager_Reserve
     [PatchLevel(Level.Safe)]
     public static bool Prefix(Map ___map, Pawn claimant, Job job, LocalTargetInfo target, int maxPawns, int stackCount, ReservationLayerDef layer, bool errorOnFailed, bool ignoreOtherReservations, bool canReserversStartJobs, ref bool __result)
     {
-        if (ShouldReplace(___map, claimant, target, false, out var map) || ((map = job?.globalTarget.Map) != null && map != ___map))
+        if (ShouldReplace(___map, claimant, target, false, out var map, job))
         {
             __result = map.reservationManager.Reserve(claimant, job, target, maxPawns, stackCount, layer, errorOnFailed, ignoreOtherReservations, canReserversStartJobs);
             return false;
@@ -713,10 +713,11 @@ public static class Patch_ReservationManager_Reserve
         return true;
     }
 
-    public static bool ShouldReplace(Map ___map, Pawn claimant, LocalTargetInfo target, bool allowSameMap, out Map map)
+    public static bool ShouldReplace(Map ___map, Pawn claimant, LocalTargetInfo target, bool allowSameMap, out Map map, Job job = null)
     {
+        //CTDに繋がる可能性があるので無限ループが起きないよう注意
         map = target.Thing?.MapHeld;
-        if (map is null && !TargetMapManager.HasTargetMap(claimant, out map))
+        if (map is null && !TargetMapManager.HasTargetMap(claimant, out map) && (map = job?.globalTarget.Map) is null)
         {
             return false;
         }
@@ -744,7 +745,7 @@ public static class Patch_ReservationManager_ReservedBy
 {
     public static bool Prefix(Map ___map, Pawn claimant, LocalTargetInfo target, Job job, ref bool __result)
     {
-        if (Patch_ReservationManager_Reserve.ShouldReplace(___map, claimant, target, false, out var map))
+        if (Patch_ReservationManager_Reserve.ShouldReplace(___map, claimant, target, false, out var map, job))
         {
             __result = map.reservationManager.ReservedBy(target, claimant, job);
             return false;
