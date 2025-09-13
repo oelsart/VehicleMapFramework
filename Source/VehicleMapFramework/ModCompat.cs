@@ -722,6 +722,8 @@ internal static class ModCompat
 
         public static readonly Func<Map, Map> GroundMap;
 
+        public static readonly Func<Map, int> GetLevel;
+
         public static readonly Action<Map> RevalidateLaunchSiteState;
 
         public static readonly Type SectionLayer_LowerLevel;
@@ -737,6 +739,7 @@ internal static class ModCompat
                 try
                 {
                     GroundMap = AccessTools.MethodDelegate<Func<Map, Map>>("MultiFloors.HarmonyPatches.HarmonyPatch_CallBossGroupOnGround:GetGroundMap");
+                    GetLevel = AccessTools.MethodDelegate<Func<Map, int>>("MultiFloors.HarmonyPatches.HarmonyPatch_SortMapInColonistBarByLevel:GetLevel");
                     RevalidateLaunchSiteState = AccessTools.MethodDelegate<Action<Map>>("MultiFloors.HarmonyPatches.HarmonyPatch_OnGravshipLaunch:RevalidateLaunchSiteState");
                     SectionLayer_LowerLevel = GenTypes.GetTypeInAnyAssembly("MultiFloors.Maps.SectionLayer_LowerLevel", "MultiFloors.Maps");
                     if (SectionLayer_LowerLevel != null)
@@ -753,7 +756,7 @@ internal static class ModCompat
                 }
                 finally
                 {
-                    if (AnyNull(GroundMap, RevalidateLaunchSiteState, SectionLayer_LowerLevel, MF_LevelMapComp, GetOtherMapVerticallyOutwardFromCache))
+                    if (AnyNull(GroundMap, GetLevel, RevalidateLaunchSiteState, SectionLayer_LowerLevel, MF_LevelMapComp, GetOtherMapVerticallyOutwardFromCache))
                     {
                         LogIncompat("MultiFloors");
                         Active = false;

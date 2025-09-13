@@ -27,7 +27,7 @@ public static class Patch_Pawn_JobTracker_StartJob
 
     private static JobDriver MakeOrGetDriver(Job curJob, Pawn driverPawn)
     {
-        if (typeof(JobDriverAcrossMaps).IsAssignableFrom(curJob.def.driverClass) || curJob.jobGiver == JobDriver_GotoDestMap.thinkNode)
+        if (typeof(JobDriverAcrossMaps).IsAssignableFrom(curJob.def.driverClass) || curJob.jobGiver?.GetType() == typeof(JobDriver_GotoDestMap.ThinkNode_JobFromGotoDestMap))
         {
             return curJob.GetCachedDriver(driverPawn);
         }
@@ -504,8 +504,12 @@ public static class Patch_ReservationUtility_ReserveSittableOrSpot
 {
     public static bool Prefix(Pawn pawn, IntVec3 exactSittingPos, Job job, ref Map __state)
     {
-        var map = Patch_ForbidUtility_IsForbidden.Map = job.globalTarget.Map ?? TargetMapManager.TargetMapOrPawnMap(pawn);
+        var map = Patch_ForbidUtility_IsForbidden.Map = job?.globalTarget.Map ?? TargetMapManager.TargetMapOrPawnMap(pawn);
 
+        if (map is null)
+        {
+            return true;
+        }
         if (pawn.Map != map)
         {
             __state = pawn.Map;
@@ -538,6 +542,10 @@ public static class Patch_ReservationUtility_CanReserveSittableOrSpot
     {
         var map = Patch_ForbidUtility_IsForbidden.Map = ignoreThing?.Map ?? TargetMapManager.TargetMapOrPawnMap(pawn);
 
+        if (map is null)
+        {
+            return true;
+        }
         if (pawn.Map != map)
         {
             __state = pawn.Map;
@@ -717,7 +725,7 @@ public static class Patch_ReservationManager_Reserve
     {
         //CTDに繋がる可能性があるので無限ループが起きないよう注意
         map = target.Thing?.MapHeld;
-        if (map is null && !TargetMapManager.HasTargetMap(claimant, out map) && (map = job?.globalTarget.Map) is null)
+        if (map is null && !TargetMapManager.HasTargetMap(claimant, out map) && (job is null || (LocalTargetInfo)job.globalTarget != target || (map = job.globalTarget.Map) is null))
         {
             return false;
         }

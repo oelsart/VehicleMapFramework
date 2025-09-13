@@ -50,7 +50,7 @@ public class JobDriver_GotoDestMap : JobDriverAcrossMaps
             toil.defaultCompleteMode = ToilCompleteMode.Instant;
             toil.initAction = () =>
             {
-                pawn.jobs.StartJob(nextJob, JobCondition.InterruptForced, thinkNode.DeepCopy(), keepCarryingThingOverride: true);
+                pawn.jobs.StartJob(nextJob, JobCondition.InterruptForced, thinkNode.DeepCopy(), keepCarryingThingOverride: true, preToilReservationsCanFail: true);
             };
             yield return toil;
         }

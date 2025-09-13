@@ -9,6 +9,7 @@ using UnityEngine;
 using Vehicles;
 using Verse;
 using Verse.AI;
+using static VehicleMapFramework.ModCompat;
 
 namespace VehicleMapFramework;
 
@@ -107,6 +108,11 @@ public static class CrossMapReachabilityUtility
             {
                 result = destMap.reachability.CanReach(root, dest, peMode, traverseParms);
                 DebugLog($"departMap == destMap: {result}");
+                return result;
+            }
+            if (MultiFloors.Active && (MultiFloors.GetLevel(departMap) != MultiFloors.GetLevel(destMap)))
+            {
+                result = false;
                 return result;
             }
             var destBaseMap = destMap.IsVehicleMapOf(out var vehicle) && vehicle.Spawned ? vehicle.Map : destMap;
@@ -446,6 +452,11 @@ public static class CrossMapReachabilityUtility
             if (departMap == destMap)
             {
                 return MapComponentCache<VehiclePathingSystem>.GetComponent(departMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(vehicle.Position, dest, peMode, traverseParms);
+            }
+            if (MultiFloors.Active && (MultiFloors.GetLevel(departMap) != MultiFloors.GetLevel(destMap)))
+            {
+                result = false;
+                return result;
             }
             if (vehicle is VehiclePawnWithMap)
             {
