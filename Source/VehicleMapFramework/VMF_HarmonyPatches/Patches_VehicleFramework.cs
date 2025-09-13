@@ -213,27 +213,28 @@ public static class Patch_VehiclePawn_DisembarkPawn
 {
     public static bool Prefix(Pawn pawn, VehiclePawn __instance)
     {
-        var handler = __instance.handlers.First(h => h.thingOwner.Contains(pawn));
-        if (handler.role is VehicleRoleBuildable buildable && __instance is VehiclePawnWithMap vehicle)
+        var handler = __instance.handlers.FirstOrDefault(h => h.thingOwner.Contains(pawn));
+        if (handler?.role is VehicleRoleBuildable buildable && __instance is VehiclePawnWithMap vehicle)
         {
             var parent = buildable.upgradeComp.parent;
+            var map = parent.Map ?? vehicle.VehicleMap;
             if (!pawn.Spawned)
             {
                 CellRect cellRect = parent.OccupiedRect().ExpandedBy(1);
                 IntVec3 intVec = parent.Position;
                 if (cellRect.EdgeCells.Where(delegate (IntVec3 c)
                 {
-                    if (c.InBounds(vehicle.VehicleMap) && c.Standable(vehicle.VehicleMap))
+                    if (c.InBounds(map) && c.Standable(map))
                     {
-                        return !c.GetThingList(vehicle.VehicleMap).NotNullAndAny(t => t is Pawn);
+                        return !c.GetThingList(map).NotNullAndAny(t => t is Pawn);
                     }
                     return false;
                 }).TryRandomElement(out IntVec3 intVec2))
                 {
                     intVec = intVec2;
                 }
-                GenSpawn.Spawn(pawn, intVec, vehicle.VehicleMap, WipeMode.Vanish);
-                if (!intVec.Standable(vehicle.VehicleMap))
+                GenSpawn.Spawn(pawn, intVec, map, WipeMode.Vanish);
+                if (!intVec.Standable(map))
                 {
                     pawn.pather.TryRecoverFromUnwalkablePosition(false);
                 }
@@ -583,26 +584,26 @@ public static class Patch_SelectionHelper_MultiSelectClicker
 
 
 //主にRepairVehicleに使用される。ターゲットAをVehicleとしてターゲットB(=直す場所)に先に向かうため、StartGotoDestMapJobを挟む
-[HarmonyPatch(typeof(JobDriver_WorkVehicle), "MakeNewToils")]
-[PatchLevel(Level.Safe)]
-public static class Patch_JobDriver_WorkVehicle_MakeNewToils
-{
-    public static IEnumerable<Toil> Postfix(IEnumerable<Toil> values, Pawn ___pawn, Job ___job)
-    {
-        var thingMap = ___job.targetA.Thing?.Map;
-        if (thingMap != ___pawn.Map && ___pawn.CanReach(___job.targetA.Thing, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, thingMap, out var exitSpot, out var enterSpot))
-        {
-            yield return Toils_General.Do(() =>
-            {
-                JobAcrossMapsUtility.StartGotoDestMapJob(___pawn, exitSpot, enterSpot);
-            });
-        }
-        foreach (var toil in values)
-        {
-            yield return toil;
-        }
-    }
-}
+//[HarmonyPatch(typeof(JobDriver_WorkVehicle), "MakeNewToils")]
+//[PatchLevel(Level.Safe)]
+//public static class Patch_JobDriver_WorkVehicle_MakeNewToils
+//{
+//    public static IEnumerable<Toil> Postfix(IEnumerable<Toil> values, Pawn ___pawn, Job ___job)
+//    {
+//        var thingMap = ___job.targetA.Thing?.Map;
+//        if (thingMap != ___pawn.Map && ___pawn.CanReach(___job.targetA.Thing, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, thingMap, out var exitSpot, out var enterSpot))
+//        {
+//            yield return Toils_General.Do(() =>
+//            {
+//                JobAcrossMapsUtility.StartGotoDestMapJob(___pawn, exitSpot, enterSpot);
+//            });
+//        }
+//        foreach (var toil in values)
+//        {
+//            yield return toil;
+//        }
+//    }
+//}
 
 //WorkGiver_RefuelVehicleTurretでVehicleが海上に居た場合Regionがnullでエラーを吐いていた問題の修正
 [HarmonyPatch(typeof(WorkGiver_RefuelVehicleTurret), nameof(WorkGiver_RefuelVehicleTurret.JobOnThing))]
@@ -788,32 +789,32 @@ public static class Patch_VehicleTabHelper_Passenger_HandleDragEvent
                 {
                     if (___draggedPawn.ParentHolder is VehicleRoleHandler vehicleHandler)
                     {
-                        if (!___draggedPawn.Spawned && TryFindSpawnSpot(vehicle, vehicleHandler, out var intVec))
+                        if (!___draggedPawn.Spawned && TryFindSpawnSpot(vehicle, vehicleHandler, out var intVec, out var map2))
                         {
                             vehicle.RemovePawn(___draggedPawn);
-                            GenSpawn.Spawn(___draggedPawn, intVec, vehicle.VehicleMap, WipeMode.Vanish);
+                            GenSpawn.Spawn(___draggedPawn, intVec, map2, WipeMode.Vanish);
                             vehicleHandler.vehicle.EventRegistry[VehicleEventDefOf.PawnExited].ExecuteEvents();
                             SoundDefOf.Click.PlayOneShotOnCamera();
                             ___draggedPawn = null;
                             return false;
                         }
                     }
-                    else if (!___draggedPawn.Spawned && ___draggedPawn.IsWorldPawn() && TryFindSpawnSpot(vehicle, null, out var intVec))
+                    else if (!___draggedPawn.Spawned && ___draggedPawn.IsWorldPawn() && TryFindSpawnSpot(vehicle, null, out var intVec, out var map2))
                     {
                         if (___draggedPawn.ParentHolder is Caravan caravan)
                         {
                             caravan.RemovePawn(___draggedPawn);
                         }
                         Find.WorldPawns.RemovePawn(___draggedPawn);
-                        GenSpawn.Spawn(___draggedPawn, intVec, vehicle.VehicleMap, WipeMode.Vanish);
+                        GenSpawn.Spawn(___draggedPawn, intVec, map2, WipeMode.Vanish);
                         SoundDefOf.Click.PlayOneShotOnCamera();
                         ___draggedPawn = null;
                         return false;
                     }
-                    else if (___draggedPawn.IsOnVehicleMapOf(out var vehicle2) && vehicle != vehicle2 && TryFindSpawnSpot(vehicle2, null, out intVec))
+                    else if (___draggedPawn.IsOnVehicleMapOf(out var vehicle2) && vehicle != vehicle2 && TryFindSpawnSpot(vehicle2, null, out intVec, out map2))
                     {
                         ___draggedPawn.DeSpawn();
-                        GenSpawn.Spawn(___draggedPawn, intVec, vehicle.VehicleMap, WipeMode.Vanish);
+                        GenSpawn.Spawn(___draggedPawn, intVec, map2, WipeMode.Vanish);
                         SoundDefOf.Click.PlayOneShotOnCamera();
                         ___draggedPawn = null;
                         return false;
@@ -836,10 +837,10 @@ public static class Patch_VehicleTabHelper_Passenger_HandleDragEvent
                         {
                             if (___hoveringOverPawn != null)
                             {
-                                if (TryFindSpawnSpot(vehicle, vehicleHandler, out var intVec))
+                                if (TryFindSpawnSpot(vehicle, vehicleHandler, out var intVec, out var map2))
                                 {
                                     vehicle.RemovePawn(___hoveringOverPawn);
-                                    GenSpawn.Spawn(___hoveringOverPawn, intVec, vehicle.VehicleMap, WipeMode.Vanish);
+                                    GenSpawn.Spawn(___hoveringOverPawn, intVec, map2, WipeMode.Vanish);
                                     vehicleHandler.vehicle.EventRegistry[VehicleEventDefOf.PawnExited].ExecuteEvents();
                                 }
                                 else
@@ -888,11 +889,11 @@ public static class Patch_VehicleTabHelper_Passenger_HandleDragEvent
         return true;
     }
 
-    private static bool TryFindSpawnSpot(VehiclePawnWithMap vehicle, VehicleRoleHandler vehicleHandler, out IntVec3 spot)
+    private static bool TryFindSpawnSpot(VehiclePawnWithMap vehicle, VehicleRoleHandler vehicleHandler, out IntVec3 spot, out Map map)
     {
-        bool Predicate(IntVec3 c)
+        static bool Predicate(IntVec3 c, Map map)
         {
-            return (c.Standable(vehicle.VehicleMap) || c.GetDoor(vehicle.VehicleMap) != null) && c.GetFirstPawn(vehicle.VehicleMap) is null;
+            return (c.Standable(map) || c.GetDoor(map) != null) && c.GetFirstPawn(map) is null;
         }
 
         if (vehicleHandler != null && vehicleHandler.vehicle == vehicle && vehicleHandler.role is VehicleRoleBuildable vehicleRoleBuildable)
@@ -902,32 +903,38 @@ public static class Patch_VehicleTabHelper_Passenger_HandleDragEvent
             IntVec3 intVec = parent.Position;
             if (cellRect.EdgeCells.Where(delegate (IntVec3 c)
             {
-                if (c.InBounds(vehicle.VehicleMap) && Predicate(c))
+                if (c.InBounds(parent.Map) && Predicate(c, parent.Map))
                 {
-                    return !c.GetThingList(vehicle.VehicleMap).NotNullAndAny(t => t is Pawn);
+                    return !c.GetThingList(parent.Map).NotNullAndAny(t => t is Pawn);
                 }
                 return false;
             }).TryRandomElement(out spot))
             {
+                map = parent.Map;
                 return true;
             }
             spot = IntVec3.Invalid;
+            map = null;
             return false;
         }
-        if (vehicle.EnterComps.Any() && vehicle.EnterComps.Select(c => c.parent.Position).TryRandomElement(Predicate, out spot))
+        if (vehicle.EnterComps.Any() && vehicle.EnterComps.Select(c => c.parent.Position).TryRandomElement(c => Predicate(c, vehicle.VehicleMap), out spot))
         {
+            map = vehicle.VehicleMap;
             return true;
         }
-        if (vehicle.CachedMapEdgeCells.TryRandomElement(Predicate, out spot))
+        if (vehicle.CachedMapEdgeCells.TryRandomElement(c => Predicate(c, vehicle.VehicleMap), out spot))
         {
+            map = vehicle.VehicleMap;
             return true;
         }
         var cell = vehicle.CachedMapEdgeCells.RandomElement();
-        if (RCellFinder.TryFindRandomCellNearWith(cell, Predicate, vehicle.VehicleMap, out spot))
+        if (RCellFinder.TryFindRandomCellNearWith(cell, c => Predicate(c, vehicle.VehicleMap), vehicle.VehicleMap, out spot))
         {
+            map = vehicle.VehicleMap;
             return true;
         }
         spot = IntVec3.Invalid;
+        map = null;
         return false;
     }
 }

@@ -184,11 +184,11 @@ public class VehicleUpgradeBuildable : VehicleUpgrade
                 return;
             }
             var handler = handlers[index];
-            handler.role.RemoveUpgrade(roleUpgrade);
             for (var i = 0; i < handler.thingOwner.Count; i++)
             {
                 vehicle.DisembarkPawn(handler.thingOwner[i]);
             }
+            handler.role.RemoveUpgrade(roleUpgrade);
             vehicle.handlers.RemoveAt(index);
             parent.handlerUniqueIDs.RemoveAll(h => h.id == handler.uniqueID);
             vehicle.CompVehicleTurrets?.RecacheTurretPermissions();

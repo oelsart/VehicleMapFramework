@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using RimWorld;
 using System;
+using Vehicles;
 using Verse;
 using Verse.AI;
 
@@ -20,7 +21,7 @@ public static class JobAcrossMapsUtility
         pawn.jobs.curDriver.globalFinishActions.Clear(); //Jobはまだ終わっちゃいねえためFinishActionはさせない。TryDropThingなどをしていることもあるし
         var job = GotoDestMapJob(pawn, exitSpot, enterSpot, nextJob);
         job.playerForced = nextJob.playerForced;
-        pawn.jobs.StartJob(job, JobCondition.InterruptForced, keepCarryingThingOverride: true);
+        pawn.jobs.StartJob(job, JobCondition.InterruptForced, keepCarryingThingOverride: true, preToilReservationsCanFail: true);
     }
 
     public static Job GotoDestMapJob(Pawn pawn, TargetInfo? exitSpot = null, TargetInfo? enterSpot = null, Job nextJob = null)
@@ -61,18 +62,13 @@ public static class JobAcrossMapsUtility
 
     public static bool NoNeedVirtualMapTransfer(Map pawnMap, Map targetMap, WorkGiver_Scanner scanner)
     {
-        return pawnMap == targetMap ||
-            //scanner is IWorkGiverAcrossMaps workGiverAcrossMaps && !workGiverAcrossMaps.NeedVirtualMapTransfer ||
-            scanner is WorkGiver_DoBill ||
-            scanner is WorkGiver_ConstructDeliverResources ||
-            scanner is WorkGiver_ConstructFinishFrames ||
-            scanner is WorkGiver_Refuel ||
-            scanner is WorkGiver_LoadTransporters;
+        return pawnMap == targetMap;
     }
 
     public static bool NeedWrapGotoDestMapJob(WorkGiver_Scanner scanner)
     {
         return scanner is WorkGiver_HunterHunt ||
-            scanner is WorkGiver_Miner;
+            scanner is WorkGiver_Miner ||
+            scanner is VehicleWorkGiver;
     }
 }

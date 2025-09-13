@@ -188,19 +188,6 @@ public static class Patch_GraphicUtility_WrapLinked
     }
 }
 
-//削除予定。現在RimWorldUnstable版にこの修正を行うアップデートが来ている
-//バニラのCopyFromがcornerOverlayPathをコピーしてないためにエラーがでてたので修正。
-[HarmonyPatchCategory(EarlyPatchCore.Category)]
-[HarmonyPatch(typeof(GraphicData), nameof(GraphicData.CopyFrom))]
-[PatchLevel(Level.Mandatory)]
-public static class Patch_GraphicData_CopyFrom
-{
-    public static void Postfix(GraphicData __instance, GraphicData other)
-    {
-        __instance.cornerOverlayPath = other.cornerOverlayPath;
-    }
-}
-
 //カメラの制限範囲を書き換える。CurrentMapがVehicleMapだったらDrawSizeの長辺を参照する
 [HarmonyPatch(typeof(CameraDriver), nameof(CameraDriver.Update))]
 [PatchLevel(Level.Sensitive)]
@@ -330,16 +317,6 @@ public static class Patch_Pawn_ProcessPostTickVisuals
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
     }
 }
-
-//[HarmonyPatch(typeof(Projectile), nameof(Projectile.ExactPosition), MethodType.Getter)]
-//[PatchLevel(Level.Safe)]
-//public static class Patch_Projectile_ExactPosition
-//{
-//    public static void Postfix(ref Vector3 __result)
-//    {
-//        __result = __result.YOffsetFull();
-//    }
-//}
 
 [HarmonyPatch(typeof(Graphic), nameof(Graphic.Draw))]
 [PatchLevel(Level.Safe)]

@@ -11,7 +11,7 @@ namespace VehicleMapFramework
     {
         private Building_GravEngine cachedGravEngine;
 
-        public Building_GravEngine Engine => cachedGravEngine ??= GravshipUtility.GetPlayerGravEngine_NewTemp((Vehicle as VehiclePawnWithMap)?.VehicleMap) as Building_GravEngine;
+        public Building_GravEngine Engine => cachedGravEngine ??= GravshipUtility.GetPlayerGravEngine_NewTemp((Vehicle as VehiclePawnWithMap)?.VehicleMap);
 
         public override float FuelCapacity => Engine?.MaxFuel ?? 0f;
 
@@ -70,6 +70,7 @@ namespace VehicleMapFramework
         //少ない燃料コンテナから優先的に分配
         public override void Refuel(float amount)
         {
+            if (Engine is null) return;
             if (Engine.TotalFuel >= Engine.MaxFuel)
             {
                 return;

@@ -54,6 +54,27 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 //    }
 //}
 
+[HarmonyPatch(typeof(MapDrawLayer), "FinalizeMesh")]
+[PatchLevel(Level.Safe)]
+public static class Patch_MapDrawLayer_FinalizeMesh
+{
+    public static void Prefix(MeshParts tags, Map ___map, List<LayerSubMesh> ___subMeshes)
+    {
+        if (!___map.IsVehicleMapOf(out _) || !tags.HasFlag(MeshParts.Verts))
+            return;
+
+        foreach (var subMesh in ___subMeshes)
+        {
+            for (var j = 0; j < subMesh.verts.Count; j++)
+            {
+                var vert = subMesh.verts[j];
+                vert.y /= VehicleMapUtility.YCompress;
+                subMesh.verts[j] = vert;
+            }
+        }
+    }
+}
+
 [HarmonyPatch(typeof(MechanitorUtility), nameof(MechanitorUtility.InMechanitorCommandRange))]
 public static class Patch_MechanitorUtility_InMechanitorCommandRange
 {
@@ -435,13 +456,17 @@ public static class Patch_MapPawns_AllPawnsSpawned
 }
 
 [HarmonyPatch(typeof(MapPawns), nameof(MapPawns.FreeHumanlikesSpawnedOfFaction))]
-[PatchLevel(Level.Sensitive)]
 public static class Patch_MapPawns_FreeHumanlikesSpawnedOfFaction
 {
+    [PatchLevel(Level.Safe)]
     public static void Postfix(List<Pawn> __result, Map ___map, Faction faction)
     {
         __result.AddRange(VehiclePawnWithMapCache.TryGetAllVehiclesOn(___map).SelectMany(v => v.VehicleMap.mapPawns.FreeHumanlikesSpawnedOfFaction(faction)));
     }
+
+    [PatchLevel(Level.Mandatory)]
+    [HarmonyReversePatch]
+    public static List<Pawn> FreeHumanlikesSpawnedOfFaction(MapPawns instance, Faction faction) => throw new NotImplementedException();
 }
 
 [HarmonyPatch(typeof(MapPawns), nameof(MapPawns.SpawnedBabiesInFaction))]

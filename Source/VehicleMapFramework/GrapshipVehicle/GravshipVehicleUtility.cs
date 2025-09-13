@@ -1,13 +1,14 @@
 ﻿using HarmonyLib;
 using RimWorld;
+using RimWorld.Planet;
 using SmashTools;
 using SmashTools.Rendering;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 using Vehicles;
 using Verse;
+using static VehicleMapFramework.ModCompat;
 
 namespace VehicleMapFramework
 {
@@ -15,11 +16,19 @@ namespace VehicleMapFramework
     {
         public static bool placingGravshipVehicle;
 
-        private static Func<IntVec3, Map, AcceptanceReport> IsValidCell = (Func<IntVec3, Map, AcceptanceReport>)AccessTools.Method(typeof(Designator_MoveGravship), "IsValidCell").CreateDelegate(typeof(Func<IntVec3, Map, AcceptanceReport>));
+        private readonly static Func<IntVec3, Map, AcceptanceReport> IsValidCell = (Func<IntVec3, Map, AcceptanceReport>)AccessTools.Method(typeof(Designator_MoveGravship), "IsValidCell").CreateDelegate(typeof(Func<IntVec3, Map, AcceptanceReport>));
 
-        private static Action<Def, Type, HashSet<ushort>> GiveShortHash = (Action<Def, Type, HashSet<ushort>>)AccessTools.Method(typeof(ShortHashGiver), "GiveShortHash").CreateDelegate(typeof(Action<Def, Type, HashSet<ushort>>));
+        private readonly static Action<Def, Type, HashSet<ushort>> GiveShortHash = (Action<Def, Type, HashSet<ushort>>)AccessTools.Method(typeof(ShortHashGiver), "GiveShortHash").CreateDelegate(typeof(Action<Def, Type, HashSet<ushort>>));
 
-        private static Dictionary<Type, HashSet<ushort>> takenHashesPerDeftype = AccessTools.StaticFieldRefAccess<Dictionary<Type, HashSet<ushort>>>(typeof(ShortHashGiver), "takenHashesPerDeftype");
+        private readonly static Dictionary<Type, HashSet<ushort>> takenHashesPerDeftype = AccessTools.StaticFieldRefAccess<Dictionary<Type, HashSet<ushort>>>(typeof(ShortHashGiver), "takenHashesPerDeftype");
+
+        private readonly static Func<WorldComponent_GravshipController, Building_GravEngine, Gravship> RemoveGravshipFromMap =
+            (Func<WorldComponent_GravshipController, Building_GravEngine, Gravship>)AccessTools.Method(typeof(WorldComponent_GravshipController), "RemoveGravshipFromMap")
+            .CreateDelegate(typeof(Func<WorldComponent_GravshipController, Building_GravEngine, Gravship>));
+
+        public readonly static Func<WorldComponent_GravshipController, Gravship, IntVec3, Map, Building_GravEngine> PlaceGravship =
+            (Func<WorldComponent_GravshipController, Gravship, IntVec3, Map, Building_GravEngine>)AccessTools.Method(typeof(WorldComponent_GravshipController), "PlaceGravship")
+            .CreateDelegate(typeof(Func<WorldComponent_GravshipController, Gravship, IntVec3, Map, Building_GravEngine>));
 
         public static bool GravshipProcessInProgress => GravshipUtility.generatingGravship || GravshipPlacementUtility.placingGravship || placingGravshipVehicle;
 
@@ -93,12 +102,14 @@ namespace VehicleMapFramework
                 var roomStats = vehicle.VehicleMap.regionGrid.AllRooms
                     .Where(r => !r.ExposedToSpace && r.AnyPassable)
                     .Select(r => (r.Cells.FirstOrDefault().ToBaseMapCoord(vehicle), r.Temperature, r.Vacuum)).ToList();
-                var gravship = GravshipUtility.GenerateGravship(engine);
+
+                //MultiFloorsのパッチを発火させるためGenerateGravshipのほぼWrapであるRemoveGravshipFromMapをコール
+                var gravship = RemoveGravshipFromMap(null, engine);
                 gravship.Rotation = rot;
                 var root = gravship.originalPosition.ToBaseMapCoord(vehicle);
 
                 //先にPlaceしないとvehicleがDestroyした瞬間にマップが閉じてしまう可能性がある
-                GravshipPlacementUtility.PlaceGravshipInMap(gravship, root, map, out _);
+                PlaceGravship(null, gravship, root, map);
                 //通常はGravshipに潰されてDestroyしているはず
                 if (!vehicle.Destroyed)
                 {
@@ -153,6 +164,10 @@ namespace VehicleMapFramework
             {
                 return "VMF_ContainsMapVehicle".Translate();
             }
+            if (cells.Any(c => c.GetThingList(map).Any(t => t.def.PlaceWorkers?.Any(p => p is PlaceWorker_ForbidOnVehicle) ?? false)))
+            {
+                return "VMF_ContainsForbidOnVehicle".Translate();
+            }
             var bounds = CellRect.FromCellList(cells);
             var cellRect = bounds.Encapsulate(wheelsRect);
             var outOfBoundsCells = cellRect.Except(cells);
@@ -190,7 +205,13 @@ namespace VehicleMapFramework
                 .Where(r => r.Cells.Any(cells.Contains))
                 .Where(r => !r.ExposedToSpace && r.AnyPassable)
                 .Select(r => (r.Cells.FirstOrDefault(), r.Temperature, r.Vacuum)).ToList();
-                var gravship = GravshipUtility.GenerateGravship(engine);
+
+                //MultiFloorsのパッチを発火させるためGenerateGravshipのほぼWrapであるRemoveGravshipFromMapをコール
+                var gravship = RemoveGravshipFromMap(null, engine);
+                if (MultiFloors.Active)
+                {
+                    MultiFloors.RevalidateLaunchSiteState(map);
+                }
 
                 map.GetCachedMapComponent<VehiclePathingSystem>().RequestGridsFor(vehiclePawn);
                 Thing spawnedVehicle = null;
@@ -204,7 +225,7 @@ namespace VehicleMapFramework
                 }
                 if (spawnedVehicle is null)
                 {
-                    GravshipPlacementUtility.PlaceGravshipInMap(gravship, gravship.originalPosition, map, out _);
+                    PlaceGravship(null, gravship, gravship.originalPosition, map);
                 }
 
                 gravship.Rotation = rotCounter;
@@ -218,11 +239,11 @@ namespace VehicleMapFramework
                 });
                 Delay.AfterNSeconds(0, () =>
                 {
-                    GravshipPlacementUtility.PlaceGravshipInMap(gravship, minOffset.RotatedBy(rotCounter) + IntVec3.NorthEast, vehiclePawn.VehicleMap, out _);
-                    var compFueledTravel = vehiclePawn.CompFueledTravel;
-                    compFueledTravel?.CompTick();
+                    PlaceGravship(null, gravship, minOffset.RotatedBy(rotCounter) + IntVec3.NorthEast, vehiclePawn.VehicleMap);
                     Delay.AfterNSeconds(0, () =>
                     {
+                        var compFueledTravel = vehiclePawn.CompFueledTravel;
+                        compFueledTravel?.CompTick();
                         vehiclePawn.VehicleMap.mapDrawer.RegenerateLayerNow(typeof(SectionLayer_LightingOnVehicle));
                     });
                 });
@@ -267,8 +288,7 @@ namespace VehicleMapFramework
             {
                 VehicleTex.CachedTextureIconPaths[vehicleDef] = WorldObjectDefOf.Gravship.expandingIconTexture;
                 VehicleTex.CachedTextureIcons[vehicleDef] = WorldObjectDefOf.Gravship.ExpandingIconTexture;
-                AccessTools.StaticFieldRefAccess<Dictionary<(VehicleDef, Rot4), Texture2D>>(typeof(VehicleTex), "CachedVehicleTextures")[(vehicleDef, Rot4.North)]
-                = VehicleTex.VehicleTexture(props.baseDef, Rot4.North, out _);
+                VehicleFramework.CachedVehicleTextures[(vehicleDef, Rot4.North)] = VehicleTex.VehicleTexture(props.baseDef, Rot4.North, out _);
             });
             return vehicleDef;
         }

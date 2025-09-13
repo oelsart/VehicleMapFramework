@@ -6,6 +6,7 @@ using System.Reflection.Emit;
 using UnityEngine;
 using Verse;
 using static VehicleMapFramework.MethodInfoCache;
+using static VehicleMapFramework.ModCompat;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
@@ -60,7 +61,7 @@ public static class Patch_Selector_SelectableObjectsUnderMouse
             yield return thing;
         }
 
-        Zone zone = vehicle.VehicleMap.zoneManager.ZoneAt(mouseVehicleMapPosition.ToIntVec3());
+        Zone zone = vehicle.CurrentLevel.zoneManager.ZoneAt(mouseVehicleMapPosition.ToIntVec3());
         if (zone != null)
         {
             yield return zone;
@@ -122,7 +123,11 @@ public static class Patch_CameraJumper_TryJumpInternal
     {
         if (map.IsVehicleMapOf(out var vehicle))
         {
-            if (vehicle.Spawned)
+            if (MultiFloors.Active)
+            {
+                vehicle.CurrentLevel = map;
+            }
+            if (vehicle.Spawned || VehicleMapFramework.settings.drawPlanet)
             {
                 map = vehicle.Map;
                 cell = cell.ToBaseMapCoord(vehicle);
@@ -130,6 +135,30 @@ public static class Patch_CameraJumper_TryJumpInternal
             else if (VehicleMapFramework.settings.drawPlanet)
             {
                 cell = cell.ToBaseMapCoord(vehicle);
+                Patch_Map_MapUpdate.lastRenderedTick = -1;
+            }
+        }
+    }
+}
+
+[HarmonyPatch(typeof(Game), nameof(Game.CurrentMap), MethodType.Setter)]
+[PatchLevel(Level.Safe)]
+public static class Patch_Game_CurrentMap
+{
+    public static void Prefix(ref Map value)
+    {
+        if (value.IsVehicleMapOf(out var vehicle))
+        {
+            if (MultiFloors.Active)
+            {
+                vehicle.CurrentLevel = value;
+            }
+            if (vehicle.Spawned)
+            {
+                value = vehicle.Map;
+            }
+            else if (VehicleMapFramework.settings.drawPlanet)
+            {
                 Patch_Map_MapUpdate.lastRenderedTick = -1;
             }
         }

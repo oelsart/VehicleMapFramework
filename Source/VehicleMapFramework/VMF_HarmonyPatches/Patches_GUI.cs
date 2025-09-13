@@ -27,7 +27,7 @@ public static class Patch_ThingOverlays_ThingOverlaysOnGUI
             return;
         }
         CellRect currentViewRect = Find.CameraDriver.CurrentViewRect;
-        foreach (var thing in vehicles.SelectMany(v => v.VehicleMap.listerThings.ThingsInGroup(ThingRequestGroup.HasGUIOverlay)))
+        foreach (var thing in vehicles.SelectMany(v => v.CurrentLevel.listerThings.ThingsInGroup(ThingRequestGroup.HasGUIOverlay)))
         {
             if (currentViewRect.Contains(thing.PositionOnBaseMap())/* && !Find.CurrentMap.fogGrid.IsFogged(thing.PositionOnBaseMap())*/) //車両マップである時点でFoggedはスキップしていいはず
             {
@@ -66,7 +66,7 @@ public static class Patch_ColonistBar_CheckRecacheEntries
 
     private static IEnumerable<Map> ExcludeVehicleMaps(this IEnumerable<Map> maps)
     {
-        return maps?.Where(m => !m.IsVehicleMapOf(out var vehicle) || !vehicle.Spawned);
+        return maps?.Where(m => !m.IsVehicleMapOf(out var vehicle) || !vehicle.Spawned || m != vehicle.VehicleMap);
     }
 }
 
@@ -82,9 +82,9 @@ public static class Patch_MouseoverReadout_MouseoverReadoutOnGUI
             sbyte index;
             VehiclePawnWithMap vehicle2;
             __state = [index = Current.Game.currentMapIndex, vehicle2 = Command_FocusVehicleMap.FocusedVehicle];
-            Current.Game.currentMapIndex = (sbyte)vehicle.VehicleMap.Index;
+            Current.Game.currentMapIndex = (sbyte)vehicle.CurrentLevel.Index;
             Command_FocusVehicleMap.FocusedVehicle = vehicle;
-            if (!UI.MouseCell().InBounds(vehicle.VehicleMap))
+            if (!UI.MouseCell().InBounds(vehicle.CurrentLevel))
             {
                 Current.Game.currentMapIndex = index;
                 Command_FocusVehicleMap.FocusedVehicle = vehicle2;

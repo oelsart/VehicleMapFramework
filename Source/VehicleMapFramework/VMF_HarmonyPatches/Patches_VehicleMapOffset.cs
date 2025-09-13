@@ -50,7 +50,7 @@ public static class Patch_GenThing_TrueCenter
     [PatchLevel(Level.Safe)]
     public static void Postfix(ref Vector3 __result)
     {
-        if (VehicleMapUtility.FocusedOnVehicleMap(out var vehicle) && !VehiclePawnWithMapCache.cacheModeGlobal && !vehicle.VehicleMap.GetCachedMapComponent<VehiclePawnWithMapCache>().cacheMode)
+        if (VehicleMapUtility.FocusedOnVehicleMap(out var vehicle) && !VehiclePawnWithMapCache.cacheModeGlobal && !vehicle.CurrentLevel.GetCachedMapComponent<VehiclePawnWithMapCache>().cacheMode)
         {
             __result = __result.ToBaseMapCoord(vehicle).WithY(__result.y);
         }

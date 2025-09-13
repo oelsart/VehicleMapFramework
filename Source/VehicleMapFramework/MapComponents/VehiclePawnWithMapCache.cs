@@ -12,16 +12,10 @@ public class VehiclePawnWithMapCache : MapComponent
 {
     public VehiclePawnWithMapCache(Map map) : base(map)
     {
-        VehicleMapParentsComponent.CachedMapParentVehicle[map] = map.Parent as MapParent_Vehicle;
         map.events.ThingDespawned += thing =>
         {
             TargetMapManager.RemoveTargetInfo(thing);
         };
-    }
-
-    public override void FinalizeInit()
-    {
-        VehicleMapParentsComponent.CachedMapParentVehicle[map] = map.Parent as MapParent_Vehicle;
     }
 
     public static void RegisterVehicle(VehiclePawnWithMap vehicle)

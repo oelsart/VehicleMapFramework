@@ -4,6 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using Vehicles;
 using Verse;
@@ -23,16 +24,25 @@ internal static class ModCompat
         VMF_Log.Error($"{modName} compatibility is broken.");
     }
 
-    [StaticConstructorOnStartup]
+    static ModCompat()
+    {
+        foreach (var type in AccessTools.InnerTypes(typeof(ModCompat)))
+        {
+            RuntimeHelpers.RunClassConstructor(type.TypeHandle);
+        }
+    }
+
     public static class VehicleFramework
     {
         public const string HarmonyId = "SmashPhil.VehicleFramework";
 
         public static readonly FastInvokeHandler VehicleTurret_IsManned = MethodInvoker.GetHandler(AccessTools.PropertySetter(typeof(VehicleTurret), nameof(VehicleTurret.IsManned)));
 
+        public static readonly Dictionary<(VehicleDef, Rot4), Texture2D> CachedVehicleTextures = AccessTools.StaticFieldRefAccess<Dictionary<(VehicleDef, Rot4), Texture2D>>(typeof(VehicleTex), "CachedVehicleTextures");
+
         static VehicleFramework()
         {
-            if (AnyNull(VehicleTurret_IsManned))
+            if (AnyNull(VehicleTurret_IsManned, CachedVehicleTextures))
             {
                 LogIncompat("Vehicle Framework");
             }
@@ -59,11 +69,16 @@ internal static class ModCompat
             {
                 try
                 {
-                    TransformData = AccessTools.TypeByName("ITransformable.TransformData");
-                    RotationAngle = AccessTools.TypeByName("ITransformable.RotationAngle");
-                    ThingClass = AccessTools.TypeByName("AdaptiveStorage.ThingClass");
+                    TransformData = GenTypes.GetTypeInAnyAssembly("ITransformable.TransformData", "ITransformable");
+                    RotationAngle = GenTypes.GetTypeInAnyAssembly("ITransformable.RotationAngle", "ITransformable");
+                    ThingClass = GenTypes.GetTypeInAnyAssembly("AdaptiveStorage.ThingClass", "AdaptiveStorage");
                     Renderer = MethodInvoker.GetHandler(AccessTools.PropertyGetter(ThingClass, "Renderer"));
                     SetAllPrintDatasDirty = MethodInvoker.GetHandler(AccessTools.Method("AdaptiveStorage.StorageRenderer:SetAllPrintDatasDirty"));
+                }
+                catch (Exception ex)
+                {
+                    VMF_Log.Error(ex.Message);
+                    Active = false;
                 }
                 finally
                 {
@@ -106,6 +121,11 @@ internal static class ModCompat
                 {
                     ThingListToDisplay = MethodInvoker.GetHandler(AccessTools.Method("LWM.DeepStorage.PatchDisplay_SectionLayer_Things_Regenerate:ThingListToDisplay"));
                 }
+                catch (Exception ex)
+                {
+                    VMF_Log.Error(ex.Message);
+                    Active = false;
+                }
                 finally
                 {
                     if (AnyNull(ThingListToDisplay))
@@ -129,6 +149,8 @@ internal static class ModCompat
         public static readonly bool Active = ModsConfig.IsActive("Dubwise.DubsBadHygiene") || ModsConfig.IsActive("Dubwise.DubsBadHygiene.Lite");
 
         public static readonly bool LiteMode;
+
+        public static readonly Type SectionLayer_ThingsSewagePipe;
 
         public static readonly Type SectionLayer_SewagePipeOverlay;
 
@@ -157,15 +179,25 @@ internal static class ModCompat
                     LiteMode = (bool)AccessTools.PropertyGetter("DubsBadHygiene.Settings:LiteMode").Invoke(null, null);
                     if (LiteMode) return;
 
-                    SectionLayer_SewagePipeOverlay = AccessTools.TypeByName("DubsBadHygiene.SectionLayer_SewagePipeOverlay");
-                    SectionLayer_AirDuctOverlay = AccessTools.TypeByName("DubsBadHygiene.SectionLayer_AirDuctOverlay");
-                    SectionLayer_Irrigation = AccessTools.TypeByName("DubsBadHygiene.SectionLayer_Irrigation");
-                    SectionLayer_FertilizerGrid = AccessTools.TypeByName("DubsBadHygiene.SectionLayer_FertilizerGrid");
-                    Building_Pipe = AccessTools.TypeByName("DubsBadHygiene.Building_Pipe");
+                    SectionLayer_ThingsSewagePipe = GenTypes.GetTypeInAnyAssembly("DubsBadHygiene.SectionLayer_SewagePipeOverlay", "DubsBadHygiene");
+                    if (SectionLayer_ThingsSewagePipe != null)
+                    {
+                        VehicleSectionLayerManager.OrientedSectionLayerTypes.Add(SectionLayer_ThingsSewagePipe);
+                    }
+                    SectionLayer_SewagePipeOverlay = GenTypes.GetTypeInAnyAssembly("DubsBadHygiene.SectionLayer_SewagePipeOverlay", "DubsBadHygiene");
+                    SectionLayer_AirDuctOverlay = GenTypes.GetTypeInAnyAssembly("DubsBadHygiene.SectionLayer_AirDuctOverlay", "DubsBadHygiene");
+                    SectionLayer_Irrigation = GenTypes.GetTypeInAnyAssembly("DubsBadHygiene.SectionLayer_Irrigation", "DubsBadHygiene");
+                    SectionLayer_FertilizerGrid = GenTypes.GetTypeInAnyAssembly("DubsBadHygiene.SectionLayer_FertilizerGrid", "DubsBadHygiene");
+                    Building_Pipe = GenTypes.GetTypeInAnyAssembly("DubsBadHygiene.Building_Pipe", "DubsBadHygiene");
                     PrintForGrid = MethodInvoker.GetHandler(AccessTools.Method(Building_Pipe, "PrintForGrid"));
-                    CompProperties_Pipe = AccessTools.TypeByName("DubsBadHygiene.CompProperties_Pipe");
+                    CompProperties_Pipe = GenTypes.GetTypeInAnyAssembly("DubsBadHygiene.CompProperties_Pipe", "DubsBadHygiene");
                     CompProperties_Pipe_mode = AccessTools.FieldRefAccess<int>(CompProperties_Pipe, "mode");
                     SectionLayer_PipeOverlay_mode = AccessTools.FieldRefAccess<int>("DubsBadHygiene.SectionLayer_PipeOverlay:mode");
+                }
+                catch (Exception ex)
+                {
+                    VMF_Log.Error(ex.Message);
+                    Active = false;
                 }
                 finally
                 {
@@ -216,15 +248,24 @@ internal static class ModCompat
             {
                 try
                 {
-                    SectionLayer_SewagePipe = AccessTools.TypeByName("Rimefeller.SectionLayer_SewagePipe");
-                    SectionLayer_ThingsPipe = AccessTools.TypeByName("Rimefeller.SectionLayer_ThingsPipe");
-                    XSectionLayer_Napalm = AccessTools.TypeByName("Rimefeller.XSectionLayer_Napalm");
-                    XSectionLayer_OilSpill = AccessTools.TypeByName("Rimefeller.XSectionLayer_OilSpill");
-                    Building_Pipe = AccessTools.TypeByName("Rimefeller.Building_Pipe");
+                    SectionLayer_SewagePipe = GenTypes.GetTypeInAnyAssembly("Rimefeller.SectionLayer_SewagePipe", "Rimefeller");
+                    SectionLayer_ThingsPipe = GenTypes.GetTypeInAnyAssembly("Rimefeller.SectionLayer_ThingsPipe", "Rimefeller");
+                    if (SectionLayer_ThingsPipe != null)
+                    {
+                        VehicleSectionLayerManager.OrientedSectionLayerTypes.Add(SectionLayer_ThingsPipe);
+                    }
+                    XSectionLayer_Napalm = GenTypes.GetTypeInAnyAssembly("Rimefeller.XSectionLayer_Napalm", "Rimefeller");
+                    XSectionLayer_OilSpill = GenTypes.GetTypeInAnyAssembly("Rimefeller.XSectionLayer_OilSpill", "Rimefeller");
+                    Building_Pipe = GenTypes.GetTypeInAnyAssembly("Rimefeller.Building_Pipe", "Rimefeller");
                     PrintForGrid = MethodInvoker.GetHandler(AccessTools.Method(Building_Pipe, "PrintForGrid"));
-                    CompProperties_Pipe = AccessTools.TypeByName("Rimefeller.CompProperties_Pipe");
+                    CompProperties_Pipe = GenTypes.GetTypeInAnyAssembly("Rimefeller.CompProperties_Pipe", "Rimefeller");
                     CompProperties_Pipe_mode = AccessTools.FieldRefAccess<int>(CompProperties_Pipe, "mode");
                     SectionLayer_PipeOverlay_mode = AccessTools.FieldRefAccess<int>("Rimefeller.SectionLayer_PipeOverlay:mode");
+                }
+                catch (Exception ex)
+                {
+                    VMF_Log.Error(ex.Message);
+                    Active = false;
                 }
                 finally
                 {
@@ -267,6 +308,11 @@ internal static class ModCompat
                     CompDefenseConduit = AccessTools.TypeByName("EccentricDefenseGrid.CompDefenseConduit");
                     Designator_DeconstructConduit = AccessTools.TypeByName("EccentricDefenseGrid.Designator_DeconstructConduit");
                 }
+                catch (Exception ex)
+                {
+                    VMF_Log.Error(ex.Message);
+                    Active = false;
+                }
                 finally
                 {
                     if (AnyNull(SectionLayer_DefenseGridOverlay, CompDefenseConduit, Designator_DeconstructConduit))
@@ -302,6 +348,11 @@ internal static class ModCompat
                     var method = AccessTools.Method("AM.UI.DraftedFloatMenuOptionsUI:GenerateMenuOptions");
                     GenerateAMMenuOptions = AccessTools.MethodDelegate<Func<Vector3, Pawn, IEnumerable<FloatMenuOption>>>(method);
                 }
+                catch (Exception ex)
+                {
+                    VMF_Log.Error(ex.Message);
+                    Active = false;
+                }
                 finally
                 {
                     if (AnyNull(GenerateAMMenuOptions))
@@ -331,6 +382,11 @@ internal static class ModCompat
                     X2_AIRobot = GenTypes.GetTypeInAnyAssembly("AIRobot.X2_AIRobot", "AIRobot");
                     rechargeStation = AccessTools.FieldRefAccess<Building>("AIRobot.X2_AIRobot:rechargeStation");
                 }
+                catch (Exception ex)
+                {
+                    VMF_Log.Error(ex.Message);
+                    Active = false;
+                }
                 finally
                 {
                     if (AnyNull(X2_AIRobot, rechargeStation))
@@ -357,9 +413,9 @@ internal static class ModCompat
     {
         public static readonly bool Active = ModsConfig.IsActive("OskarPotocki.VanillaFactionsExpanded.Core");
 
-        public static readonly Type SectionLayer_ResourceOnVehicle;
-
         public static readonly Type PipeNetDef;
+
+        public static readonly Type SectionLayer_Resource;
 
         static VFECore()
         {
@@ -367,12 +423,17 @@ internal static class ModCompat
             {
                 try
                 {
-                    SectionLayer_ResourceOnVehicle = AccessTools.TypeByName("VehicleMapFramework.SectionLayer_ResourceOnVehicle");
-                    PipeNetDef = AccessTools.TypeByName("PipeSystem.PipeNetDef");
+                    PipeNetDef = GenTypes.GetTypeInAnyAssembly("PipeSystem.PipeNetDef");
+                    SectionLayer_Resource = GenTypes.GetTypeInAnyAssembly("PipeSystem.SectionLayer_Resource", "PipeSystem");
+                }
+                catch (Exception ex)
+                {
+                    VMF_Log.Error(ex.Message);
+                    Active = false;
                 }
                 finally
                 {
-                    if (AnyNull(SectionLayer_ResourceOnVehicle, PipeNetDef))
+                    if (AnyNull(PipeNetDef, SectionLayer_Resource))
                     {
                         LogIncompat("VFE Core");
                         Active = false;
@@ -401,6 +462,11 @@ internal static class ModCompat
                     targetedTile = AccessTools.FieldRefAccess<GlobalTargetInfo>("VFESecurity.CompLongRangeArtillery:targetedTile");
                     worldTileRange = AccessTools.FieldRefAccess<int>("VFESecurity.CompProperties_LongRangeArtillery:worldTileRange");
                 }
+                catch (Exception ex)
+                {
+                    VMF_Log.Error(ex.Message);
+                    Active = false;
+                }
                 finally
                 {
                     if (AnyNull(targetedTile, worldTileRange))
@@ -426,6 +492,11 @@ internal static class ModCompat
                 try
                 {
                     refuelAmountPerTick = AccessTools.FieldRefAccess<float>("VanillaVehiclesExpanded.CompProperties_RefuelingPump:refuelAmountPerTick");
+                }
+                catch (Exception ex)
+                {
+                    VMF_Log.Error(ex.Message);
+                    Active = false;
                 }
                 finally
                 {
@@ -454,6 +525,11 @@ internal static class ModCompat
                 try
                 {
                     DoWorkOnCell = MethodInvoker.GetHandler(AccessTools.Method("VFE.Mechanoids.Buildings.Building_AutoPlant:DoWorkOnCell"));
+                }
+                catch (Exception ex)
+                {
+                    VMF_Log.Error(ex.Message);
+                    Active = false;
                 }
                 finally
                 {
@@ -490,6 +566,11 @@ internal static class ModCompat
                     var method = AccessTools.Method("HaulToBuilding.Toils_Recipe_Patches:FindCell");
                     FindCell = AccessTools.MethodDelegate<FindCellGetter>(method);
                 }
+                catch (Exception ex)
+                {
+                    VMF_Log.Error(ex.Message);
+                    Active = false;
+                }
                 finally
                 {
                     if (AnyNull(FindCell))
@@ -520,6 +601,11 @@ internal static class ModCompat
                 {
                     Building_Shield = AccessTools.TypeByName("zhuzi.AdvancedEnergy.Shields.Shields.Building_Shield");
                     CECompat = ModsConfig.IsActive("cn.zhuzijun.EnergyShieldCECompat");
+                }
+                catch (Exception ex)
+                {
+                    VMF_Log.Error(ex.Message);
+                    Active = false;
                 }
                 finally
                 {
@@ -555,6 +641,11 @@ internal static class ModCompat
                 {
                     var method = AccessTools.Method("PawnStorages.MutantOrdersPatch:Postfix");
                     MutantOrdersPatch = AccessTools.MethodDelegate<Action<Vector3, Pawn, List<FloatMenuOption>>>(method);
+                }
+                catch (Exception ex)
+                {
+                    VMF_Log.Error(ex.Message);
+                    Active = false;
                 }
                 finally
                 {
@@ -602,6 +693,11 @@ internal static class ModCompat
                     growZoneRegistry = AccessTools.FieldRefAccess<IDictionary>(MapComponent_SmartFarming, "growZoneRegistry");
                     priority = AccessTools.FieldRefAccess<int>(t_ZoneData, "priority");
                 }
+                catch (Exception ex)
+                {
+                    VMF_Log.Error(ex.Message);
+                    Active = false;
+                }
                 finally
                 {
                     if (AnyNull(MapComponent_SmartFarming, growZoneRegistry, priority))
@@ -619,4 +715,54 @@ internal static class ModCompat
     public static readonly bool CeleTech = ModsConfig.IsActive("TOT.CeleTech.MKIII");
 
     public static readonly bool PauseOtherSettlements = ModsConfig.IsActive("esvn.PauseOtherSettlementsSimulation");
+
+    public static class MultiFloors
+    {
+        public static readonly bool Active = ModsConfig.IsActive("telardo.MultiFloors") || ModsConfig.IsActive("telardo.MultiFloorsDev");
+
+        public static readonly Func<Map, Map> GroundMap;
+
+        public static readonly Func<Map, int> GetLevel;
+
+        public static readonly Action<Map> RevalidateLaunchSiteState;
+
+        public static readonly Type SectionLayer_LowerLevel;
+
+        public static readonly Type MF_LevelMapComp;
+
+        public static readonly FastInvokeHandler GetOtherMapVerticallyOutwardFromCache;
+
+        static MultiFloors()
+        {
+            if (Active)
+            {
+                try
+                {
+                    GroundMap = AccessTools.MethodDelegate<Func<Map, Map>>("MultiFloors.HarmonyPatches.HarmonyPatch_CallBossGroupOnGround:GetGroundMap");
+                    GetLevel = AccessTools.MethodDelegate<Func<Map, int>>("MultiFloors.HarmonyPatches.HarmonyPatch_SortMapInColonistBarByLevel:GetLevel");
+                    RevalidateLaunchSiteState = AccessTools.MethodDelegate<Action<Map>>("MultiFloors.HarmonyPatches.HarmonyPatch_OnGravshipLaunch:RevalidateLaunchSiteState");
+                    SectionLayer_LowerLevel = GenTypes.GetTypeInAnyAssembly("MultiFloors.Maps.SectionLayer_LowerLevel", "MultiFloors.Maps");
+                    if (SectionLayer_LowerLevel != null)
+                    {
+                        VehicleSectionLayerManager.OrientedSectionLayerTypes.Add(SectionLayer_LowerLevel);
+                    }
+                    MF_LevelMapComp = GenTypes.GetTypeInAnyAssembly("MultiFloors.MF_LevelMapComp", "MultiFloors");
+                    GetOtherMapVerticallyOutwardFromCache = MethodInvoker.GetHandler(AccessTools.Method("MultiFloors.LevelUtility:GetOtherMapVerticallyOutwardFromCache"));
+                }
+                catch (Exception ex)
+                {
+                    VMF_Log.Error(ex.Message);
+                    Active = false;
+                }
+                finally
+                {
+                    if (AnyNull(GroundMap, GetLevel, RevalidateLaunchSiteState, SectionLayer_LowerLevel, MF_LevelMapComp, GetOtherMapVerticallyOutwardFromCache))
+                    {
+                        LogIncompat("MultiFloors");
+                        Active = false;
+                    }
+                }
+            }
+        }
+    }
 }

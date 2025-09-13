@@ -30,27 +30,11 @@ public static class GenClosestCrossMap
             ]));
             return true;
         }
-        return thingReq.group == ThingRequestGroup.Nothing || ((thingReq.IsUndefined || !map.BaseMapAndVehicleMaps().SelectMany(m => m.listerThings.ThingsMatching(thingReq)).Any()) && customGlobalSearchSet.EnumerableNullOrEmpty());
-    }
-
-    public static Thing ClosestThingReachable(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance = 9999f, Predicate<Thing> validator = null, IEnumerable<Thing> customGlobalSearchSet = null, int searchRegionsMin = 0, int searchRegionsMax = -1, bool forceAllowGlobalSearch = false, RegionType traversableRegionTypes = RegionType.Set_Passable, bool ignoreEntirelyForbiddenRegions = false)
-    {
-        return ClosestThingReachable(root, map, thingReq, peMode, traverseParams, maxDistance, validator, customGlobalSearchSet, searchRegionsMin, searchRegionsMax, forceAllowGlobalSearch, traversableRegionTypes, ignoreEntirelyForbiddenRegions, false);
+        return thingReq.group == ThingRequestGroup.Nothing || ((thingReq.IsUndefined || !map.BaseMapAndVehicleMaps().Except(map).SelectMany(m => m.listerThings.ThingsMatching(thingReq)).Any()) && customGlobalSearchSet.EnumerableNullOrEmpty());
     }
 
     public static Thing ClosestThingReachable(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance = 9999f, Predicate<Thing> validator = null, IEnumerable<Thing> customGlobalSearchSet = null, int searchRegionsMin = 0, int searchRegionsMax = -1, bool forceAllowGlobalSearch = false, RegionType traversableRegionTypes = RegionType.Set_Passable, bool ignoreEntirelyForbiddenRegions = false, bool lookInHaulSources = false)
     {
-        return ClosestThingReachable(root, map, thingReq, peMode, traverseParams, maxDistance, validator, customGlobalSearchSet, searchRegionsMin, searchRegionsMax, forceAllowGlobalSearch, traversableRegionTypes, ignoreEntirelyForbiddenRegions, lookInHaulSources, out _, out _);
-    }
-
-    public static Thing ClosestThingReachable(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance, Predicate<Thing> validator, IEnumerable<Thing> customGlobalSearchSet, int searchRegionsMin, int searchRegionsMax, bool forceAllowGlobalSearch, RegionType traversableRegionTypes, bool ignoreEntirelyForbiddenRegions, bool lookInHaulSources, out TargetInfo exitSpot, out TargetInfo enterSpot)
-    {
-        tmpExitSpot = TargetInfo.Invalid;
-        tmpEnterSpot = TargetInfo.Invalid;
-        exitSpotResult = TargetInfo.Invalid;
-        enterSpotResult = TargetInfo.Invalid;
-        exitSpot = TargetInfo.Invalid;
-        enterSpot = TargetInfo.Invalid;
         bool flag = searchRegionsMax < 0 || forceAllowGlobalSearch;
         if (!flag && customGlobalSearchSet != null)
         {
@@ -75,16 +59,6 @@ public static class GenClosestCrossMap
         {
             int num = (searchRegionsMax > 0) ? searchRegionsMax : 30;
             thing = RegionwiseBFSWorker(root, map, thingReq, peMode, traverseParams, validator, null, searchRegionsMin, num, maxDistance, out int num2, traversableRegionTypes, ignoreEntirelyForbiddenRegions, lookInHaulSources);
-            if (thing != null && CrossMapReachabilityUtility.CanReach(map, root, thing, peMode, traverseParams, thing.MapHeld, out var exitSpot2, out var enterSpot2))
-            {
-                exitSpot = exitSpot2;
-                enterSpot = enterSpot2;
-                return thing;
-            }
-            else
-            {
-                thing = null;
-            }
             flag2 = thing == null && num2 < num;
         }
         if (thing == null && flag && !flag2)
@@ -95,7 +69,7 @@ public static class GenClosestCrossMap
             }
 
             var basePos = map.IsVehicleMapOf(out var vehicle) ? root.ToBaseMapCoord(vehicle) : root;
-            var searchSet = customGlobalSearchSet ?? map.BaseMapAndVehicleMaps().SelectMany(m => m.listerThings.ThingsMatching(thingReq));
+            var searchSet = customGlobalSearchSet ?? map.BaseMapAndVehicleMaps().Except(map).SelectMany(m => m.listerThings.ThingsMatching(thingReq));
             bool Validator(Thing t)
             {
                 if (!CrossMapReachabilityUtility.CanReach(map, root, t, peMode, traverseParams, t.MapHeld, out var exitSpot2, out var enterSpot2))
@@ -106,14 +80,10 @@ public static class GenClosestCrossMap
                 {
                     return false;
                 }
-                tmpExitSpot = exitSpot2;
-                tmpEnterSpot = enterSpot2;
                 return true;
             }
             thing = ClosestThing_Global(basePos, searchSet, maxDistance, Validator, null);
         }
-        exitSpot = exitSpotResult;
-        enterSpot = enterSpotResult;
         return thing;
     }
 
@@ -142,11 +112,6 @@ public static class GenClosestCrossMap
         }
 
         return result;
-    }
-
-    public static Thing RegionwiseBFSWorker(IntVec3 root, Map map, ThingRequest req, PathEndMode peMode, TraverseParms traverseParams, Predicate<Thing> validator, Func<Thing, float> priorityGetter, int minRegions, int maxRegions, float maxDistance, out int regionsSeen, RegionType traversableRegionTypes = RegionType.Set_Passable, bool ignoreEntirelyForbiddenRegions = false)
-    {
-        return RegionwiseBFSWorker(root, map, req, peMode, traverseParams, validator, priorityGetter, minRegions, maxRegions, maxDistance, out regionsSeen, traversableRegionTypes, ignoreEntirelyForbiddenRegions);
     }
 
     public static Thing RegionwiseBFSWorker(IntVec3 root, Map map, ThingRequest req, PathEndMode peMode, TraverseParms traverseParams, Predicate<Thing> validator, Func<Thing, float> priorityGetter, int minRegions, int maxRegions, float maxDistance, out int regionsSeen, RegionType traversableRegionTypes = RegionType.Set_Passable, bool ignoreEntirelyForbiddenRegions = false, bool lookInHaulSources = false)
@@ -182,14 +147,14 @@ public static class GenClosestCrossMap
             return null;
         }
 
-        RegionProcessorClosestThingReachable regionProcessorClosestThingReachable = SimplePool<RegionProcessorClosestThingReachable>.Get();
+        CrossMapRegionProcessorClosestThingReachable regionProcessorClosestThingReachable = SimplePool<CrossMapRegionProcessorClosestThingReachable>.Get();
         var basePos = map.IsVehicleMapOf(out var vehicle) ? root.ToBaseMapCoord(vehicle) : root;
         regionProcessorClosestThingReachable.SetParameters(traverseParams, maxDistance, basePos, ignoreEntirelyForbiddenRegions, req, peMode, priorityGetter, validator, minRegions, 9999999f, 0, float.MinValue, null, lookInHaulSources);
-        RegionTraverserAcrossMaps.BreadthFirstTraverse(region, regionProcessorClosestThingReachable, maxRegions, traversableRegionTypes);
+        RegionTraverserAcrossMaps.BreadthFirstTraverse(region, regionProcessorClosestThingReachable, maxRegions, traversableRegionTypes, true);
         regionsSeen = regionProcessorClosestThingReachable.regionsSeenScan;
         Thing closestThing = regionProcessorClosestThingReachable.closestThing;
         regionProcessorClosestThingReachable.Clear();
-        SimplePool<RegionProcessorClosestThingReachable>.Return(regionProcessorClosestThingReachable);
+        SimplePool<CrossMapRegionProcessorClosestThingReachable>.Return(regionProcessorClosestThingReachable);
         return closestThing;
     }
 
@@ -295,34 +260,14 @@ public static class GenClosestCrossMap
                     return;
                 }
             }
-            exitSpotResult = tmpExitSpot;
-            enterSpotResult = tmpEnterSpot;
             chosen = t;
             closestDistSquared = distSquared;
             bestPrio = num;
         }
     }
 
-    private static readonly object _lock = new();
-
-    public static Thing ClosestThing_Global_Reachable(IntVec3 center, Map map, IEnumerable<Thing> searchSet, PathEndMode peMode, TraverseParms traverseParams, float maxDistance = 9999f, Predicate<Thing> validator = null, Func<Thing, float> priorityGetter = null)
-    {
-        return ClosestThing_Global_Reachable(center, map, searchSet, peMode, traverseParams, maxDistance, validator, priorityGetter, false);
-    }
-
     public static Thing ClosestThing_Global_Reachable(IntVec3 center, Map map, IEnumerable<Thing> searchSet, PathEndMode peMode, TraverseParms traverseParams, float maxDistance = 9999f, Predicate<Thing> validator = null, Func<Thing, float> priorityGetter = null, bool canLookInHaulableSources = false)
     {
-        return ClosestThing_Global_Reachable(center, map, searchSet, peMode, traverseParams, maxDistance, validator, priorityGetter, canLookInHaulableSources, out _, out _);
-    }
-
-    public static Thing ClosestThing_Global_Reachable(IntVec3 center, Map map, IEnumerable<Thing> searchSet, PathEndMode peMode, TraverseParms traverseParams, float maxDistance, Predicate<Thing> validator, Func<Thing, float> priorityGetter, bool canLookInHaulableSources, out TargetInfo exitSpot, out TargetInfo enterSpot)
-    {
-        tmpExitSpot = TargetInfo.Invalid;
-        tmpEnterSpot = TargetInfo.Invalid;
-        exitSpotResult = TargetInfo.Invalid;
-        enterSpotResult = TargetInfo.Invalid;
-        exitSpot = TargetInfo.Invalid;
-        enterSpot = TargetInfo.Invalid;
         if (searchSet == null)
         {
             return null;
@@ -362,8 +307,6 @@ public static class GenClosestCrossMap
                 Process(t);
             }
         }
-        exitSpot = exitSpotResult;
-        enterSpot = enterSpotResult;
         return bestThing;
 
         void Process(Thing t)
@@ -398,7 +341,7 @@ public static class GenClosestCrossMap
 
         void ValidateThing(Thing t, float distSquared)
         {
-            if (!CrossMapReachabilityUtility.CanReach(map, center, t.SpawnedParentOrMe, peMode, traverseParams, t.MapHeld, out tmpExitSpot, out tmpEnterSpot))
+            if (!CrossMapReachabilityUtility.CanReach(map, center, t.SpawnedParentOrMe, peMode, traverseParams, t.MapHeld))
             {
                 return;
             }
@@ -419,21 +362,10 @@ public static class GenClosestCrossMap
                     return;
                 }
             }
-            exitSpotResult = tmpExitSpot;
-            enterSpotResult = tmpEnterSpot;
             bestThing = t;
             closestDistSquared = distSquared;
             bestPrio = num;
             debug_changeCount++;
         }
     }
-
-
-    private static TargetInfo tmpExitSpot;
-
-    private static TargetInfo tmpEnterSpot;
-
-    private static TargetInfo exitSpotResult;
-
-    private static TargetInfo enterSpotResult;
 }

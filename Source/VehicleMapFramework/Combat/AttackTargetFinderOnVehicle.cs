@@ -227,7 +227,7 @@ public static class AttackTargetFinderOnVehicle
         Predicate<IAttackTarget> oldValidator2 = innerValidator;
         innerValidator = t =>
         {
-            return t.Thing.Map != searcherThing.Map && oldValidator2(t) && !ShouldIgnoreNoncombatant(searcherThing, t, flags);
+            return oldValidator2(t) && !ShouldIgnoreNoncombatant(searcherThing, t, flags);
         };
         IAttackTarget attackTarget2 = (IAttackTarget)GenClosestCrossMap.ClosestThingReachable(searcherThing.Position, searcherThing.Map, ThingRequest.ForGroup(ThingRequestGroup.AttackTarget), PathEndMode.Touch, TraverseParms.For(searcherPawn, Danger.Deadly, TraverseMode.ByPawn, canBashDoors, false, canBashFences), maxDist, x => innerValidator((IAttackTarget)x), null, 0, (maxDist > 800f) ? -1 : 40, false, RegionType.Set_Passable, false);
         //if (attackTarget2 != null && PawnUtility.ShouldCollideWithPawns(searcherPawn))

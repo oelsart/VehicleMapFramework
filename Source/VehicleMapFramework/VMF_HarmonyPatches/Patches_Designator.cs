@@ -114,6 +114,27 @@ public static class Patch_Designator_SelectedUpdate
     }
 }
 
+[HarmonyPatch]
+public static class Patch_Designator_CreateReverseDesignationGizmo_Delegate
+{
+    private static MethodBase TargetMethod()
+    {
+        return AccessTools.FindIncludingInnerTypes(typeof(Designator), t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<CreateReverseDesignationGizmo>")));
+    }
+
+    public static void Prefix(Thing ___t, ref VehiclePawnWithMap __state)
+    {
+        ___t.IsOnVehicleMapOf(out var vehicle);
+        __state = Command_FocusVehicleMap.FocusedVehicle;
+        Command_FocusVehicleMap.FocusedVehicle = vehicle;
+    }
+
+    public static void Finalizer(VehiclePawnWithMap __state)
+    {
+        Command_FocusVehicleMap.FocusedVehicle = __state;
+    }
+}
+
 [HarmonyPatch(typeof(Designator), nameof(Designator.Map), MethodType.Getter)]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Designator_Map
