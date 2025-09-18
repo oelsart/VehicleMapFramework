@@ -67,7 +67,7 @@ internal static class ModCompat
 
     public static readonly bool Fortified = ModsConfig.IsActive("AOBA.Framework");
 
-    public static readonly bool DrakkenLaserDrill = ModsConfig.IsActive("MYDE.DrakkenLaserDrill");
+    public static readonly bool DrakkenLaserDrill = ModsConfig.IsActive("MYDE.DrakkenLaserDrill") || ModsConfig.IsActive("Mlie.DrakkenLaserDrill");
 
     public static readonly bool DrillTurret = ModsConfig.IsActive("Mlie.MiningCoDrillTurret");
 
