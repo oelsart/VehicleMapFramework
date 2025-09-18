@@ -4,7 +4,6 @@
 	<JobDef>
 		<defName>VMF_GotoDestMap</defName>
 		<driverClass>VehicleMapFramework.JobDriver_GotoDestMap</driverClass>
-		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
 		<carryThingAfterJob>true</carryThingAfterJob>
 		<dropThingBeforeJob>false</dropThingBeforeJob>
 	</JobDef>

@@ -981,9 +981,24 @@ public static class Patch_ToilFailConditions_FailOnBurningImmobile
         }).First(m => m.Name.Contains("<FailOnBurningImmobile>"));
     }
 
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, MethodBase original)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrPawnMap);
+        var ind = original.GetMethodBody().LocalVariables.FirstIndexOf(l => l.LocalType == typeof(LocalTargetInfo));
+        var codes = new CodeMatcher(instructions);
+        codes.MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Map))
+            .Set(OpCodes.Call, AccessTools.Method(typeof(Patch_ToilFailConditions_FailOnBurningImmobile), nameof(ThingMapOrTargetMapOrPawnMap)))
+            .Insert(CodeInstruction.LoadLocal(ind));
+        return codes.Instructions();
+    }
+
+    private static Map ThingMapOrTargetMapOrPawnMap(Pawn pawn, LocalTargetInfo target)
+    {
+        var map = target.Thing?.MapHeld ?? TargetMapManager.TargetMapOrPawnMap(pawn);
+        if (!target.Cell.InBounds(map))
+        {
+            return map.BaseMap();
+        }
+        return map;
     }
 }
 

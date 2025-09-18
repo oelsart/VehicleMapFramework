@@ -42,6 +42,8 @@ public static class VMF_DefOf
 
     public static JobDef VMF_RefuelVehicleTank;
 
+    public static ThinkTreeDef VMF_GotoDestMapThinkTree;
+
     //public static JobDef VMF_RefuelVehicleTankAtomic;
 
     public static VehicleStatDef MaximumPayload;

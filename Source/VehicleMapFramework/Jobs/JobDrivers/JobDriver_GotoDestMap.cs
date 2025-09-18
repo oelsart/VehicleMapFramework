@@ -7,8 +7,6 @@ namespace VehicleMapFramework;
 
 public class JobDriver_GotoDestMap : JobDriverAcrossMaps
 {
-    public static readonly ThinkNode_JobFromGotoDestMap thinkNode = new();
-
     public Job nextJob;
 
     protected override string ReportStringProcessed(string str)
@@ -46,11 +44,20 @@ public class JobDriver_GotoDestMap : JobDriverAcrossMaps
         }
         if (nextJob != null)
         {
-            var toil = ToilMaker.MakeToil("TryTakeNextJob");
+            var toil = ToilMaker.MakeToil("TryStartNextJob");
             toil.defaultCompleteMode = ToilCompleteMode.Instant;
             toil.initAction = () =>
             {
-                pawn.jobs.StartJob(nextJob, JobCondition.InterruptForced, thinkNode.DeepCopy(), keepCarryingThingOverride: true, preToilReservationsCanFail: true);
+                var allowOpportunisticPrefix = nextJob.def.allowOpportunisticPrefix; //OpportunisticJobを一時的に無効化
+                try
+                {
+                    nextJob.def.allowOpportunisticPrefix = false;
+                    pawn.jobs.StartJob(nextJob, JobCondition.InterruptForced, VMF_DefOf.VMF_GotoDestMapThinkTree.thinkRoot, thinkTree: VMF_DefOf.VMF_GotoDestMapThinkTree, keepCarryingThingOverride: true, preToilReservationsCanFail: true);
+                }
+                finally
+                {
+                    nextJob.def.allowOpportunisticPrefix = allowOpportunisticPrefix;
+                }
             };
             yield return toil;
         }
