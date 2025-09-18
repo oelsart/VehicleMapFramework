@@ -504,7 +504,11 @@ public static class Patch_ReservationUtility_ReserveSittableOrSpot
 {
     public static bool Prefix(Pawn pawn, IntVec3 exactSittingPos, Job job, ref Map __state)
     {
-        var map = Patch_ForbidUtility_IsForbidden.Map = job?.globalTarget.Map ?? TargetMapManager.TargetMapOrPawnMap(pawn);
+        Map map;
+        if (job?.targetA.Thing?.Map != null && job.targetA.Thing.def.hasInteractionCell && job.targetA.Thing.InteractionCell == exactSittingPos)
+            map = job.targetA.Thing.Map;
+        else
+            map = job?.globalTarget.Map ?? TargetMapManager.TargetMapOrPawnMap(pawn);
 
         if (map is null)
         {
@@ -512,6 +516,7 @@ public static class Patch_ReservationUtility_ReserveSittableOrSpot
         }
         if (pawn.Map != map)
         {
+            Patch_ForbidUtility_IsForbidden.Map = map;
             __state = pawn.Map;
             pawn.VirtualMapTransfer(map);
         }

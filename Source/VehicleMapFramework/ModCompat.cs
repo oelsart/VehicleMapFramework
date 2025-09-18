@@ -765,4 +765,6 @@ internal static class ModCompat
             }
         }
     }
+
+    public static readonly bool CutPlantsBeforeBuilding = ModsConfig.IsActive("Mlie.CutPlantsBeforeBuilding");
 }
