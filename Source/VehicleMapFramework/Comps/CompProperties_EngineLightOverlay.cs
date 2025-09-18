@@ -9,6 +9,8 @@ public class CompProperties_EngineLightOverlay : CompProperties_OpacityOverlay
 
     public float engineOnOpacity;
 
+    public float engineOffOpacity;
+
     public float inFlightOpacity;
 
     public float ignitionDuration;

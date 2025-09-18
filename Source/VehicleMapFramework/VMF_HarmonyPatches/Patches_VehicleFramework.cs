@@ -23,7 +23,7 @@ using static VehicleMapFramework.ModCompat.VehicleFramework;
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 [HarmonyPatch(typeof(RGBMaterialPool), nameof(RGBMaterialPool.SetProperties), typeof(IMaterialCacheTarget), typeof(PatternData), typeof(Func<Rot8, Texture2D>), typeof(Func<Rot8, Texture2D>))]
-[PatchLevel(Level.Safe)]
+[PatchLevel(Level.Mandatory)]
 public static class Patch_RGBMaterialPool_SetProperties
 {
     public static bool Prefix(IMaterialCacheTarget target, PatternData patternData,

@@ -16,52 +16,45 @@ public class CompEngineLightOverlay : CompOpacityOverlay
 
     public override void CompTick()
     {
-        var overlay = Overlay;
-        var graphic = overlay?.Graphic as Graphic_VehicleOpacity;
-        if (Vehicle.ignition.Drafted && !ignitionComplete)
-        {
-            if (ignitionTick == null)
-            {
-                ignitionTick = Find.TickManager.TicksGame;
-            }
-            else
-            {
-                var opacity = Mathf.Min((Find.TickManager.TicksGame - ignitionTick.Value) / Props.ignitionDuration, Props.engineOnOpacity);
-                if (opacity == Props.engineOnOpacity)
-                {
-                    ignitionComplete = true;
-                }
-                graphic?.Opacity = opacity;
-            }
-        }
-        if (!Vehicle.ignition.Drafted && ignitionTick != null)
-        {
-            ignitionTick = null;
-            ignitionComplete = false;
-            landingComplete = false;
-        }
-
-        if (!landingComplete)
-        {
-            if (graphic != null)
-            {
-                graphic.Opacity = Mathf.Max(0f, graphic.Opacity - 0.004f);
-                if (graphic.Opacity == 0f)
-                {
-                    landingComplete = true;
-                }
-            }
-        }
+        if (Overlay?.Graphic is not Graphic_VehicleOpacity graphic) return;
 
         if (Vehicle.CompVehicleLauncher != null && Vehicle.CompVehicleLauncher.inFlight)
         {
-            ignitionTick ??= Find.TickManager.TicksGame;
-            if (graphic != null)
+            var launchProtocol = Vehicle.CompVehicleLauncher.launchProtocol;
+            var timeInAnimation = launchProtocol is VTOLTakeoff vtol ? vtol.TimeInAnimationVTOL : launchProtocol.TimeInAnimation;
+            var opacity = Mathf.Min(graphic.Opacity + ((Props.inFlightOpacity - graphic.Opacity) * timeInAnimation * 0.1f), Props.inFlightOpacity);
+            graphic.Opacity = opacity;
+            return;
+        }
+
+        if (Vehicle.ignition.Drafted)
+        {
+            landingComplete = false;
+            if (!ignitionComplete)
             {
-                var launchProtocol = Vehicle.CompVehicleLauncher.launchProtocol;
-                var timeInAnimation = launchProtocol is VTOLTakeoff vtol ? vtol.TimeInAnimationVTOL : launchProtocol.TimeInAnimation;
-                var opacity = Mathf.Min(graphic.Opacity + ((Props.inFlightOpacity - graphic.Opacity) * timeInAnimation * 0.1f), Props.inFlightOpacity);
-                graphic.Opacity = opacity;
+                var offset = Props.engineOnOpacity - Props.engineOffOpacity;
+                var num = offset / Props.ignitionDuration;
+                graphic.Opacity += num;
+                if (Mathf.Abs(Props.engineOnOpacity - graphic.Opacity) <= Mathf.Abs(num))
+                {
+                    ignitionComplete = true;
+                    graphic.Opacity = Props.engineOnOpacity;
+                }
+            }
+        }
+        else
+        {
+            ignitionComplete = false;
+            if (!landingComplete)
+            {
+                var offset = Props.engineOffOpacity - Props.engineOnOpacity;
+                var num = offset / Props.ignitionDuration;
+                graphic.Opacity += num;
+                if (Mathf.Abs(Props.engineOffOpacity - graphic.Opacity) <= Mathf.Abs(num))
+                {
+                    landingComplete = true;
+                    graphic.Opacity = Props.engineOffOpacity;
+                }
             }
         }
     }
@@ -69,14 +62,11 @@ public class CompEngineLightOverlay : CompOpacityOverlay
     public override void PostExposeData()
     {
         base.PostExposeData();
-        Scribe_Values.Look(ref ignitionTick, "ignitionTick");
         Scribe_Values.Look(ref ignitionComplete, "ignitionComplete");
         Scribe_Values.Look(ref landingComplete, "landingComplete");
     }
 
-    private int? ignitionTick = 0;
-
     private bool ignitionComplete;
 
-    private bool landingComplete = true;
+    private bool landingComplete;
 }
