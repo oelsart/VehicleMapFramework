@@ -17,7 +17,7 @@ public static class Patch_Verb_TryFindShootLineFromTo
 {
     private static bool Prepare()
     {
-        return !ModCompat.CombatExtended.Active;
+        return !ModCompat.CombatExtended;
     }
 
     public static bool Prefix(Verb __instance, IntVec3 root, LocalTargetInfo targ, ref ShootLine resultingLine, bool ignoreRange, ref bool __result)

@@ -7,7 +7,7 @@ internal static class Patches_DeepStorage
 {
     static Patches_DeepStorage()
     {
-        if (ModCompat.DeepStorage.Active)
+        if (ModCompat.DeepStorage)
         {
             var original = AccessTools.Method(typeof(StoreAcrossMapsUtility), nameof(StoreAcrossMapsUtility.IsGoodStoreCell));
             var patch = AccessTools.Method("LWM.DeepStorage.Patch_IsGoodStoreCell:Postfix");

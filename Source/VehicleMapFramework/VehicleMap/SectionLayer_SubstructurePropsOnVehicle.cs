@@ -193,7 +193,7 @@ namespace VehicleMapFramework
                     Map map = Map;
                     TerrainGrid terrainGrid = map.terrainGrid;
                     CellRect cellRect = section.CellRect;
-                    float altitude = AltitudeLayer.TerrainScatter.AltitudeFor() / VehicleMapUtility.YCompress;
+                    float altitude = AltitudeLayer.TerrainScatter.AltitudeFor();
                     LayerSubMesh subMesh = GetSubMesh(Bottom.Material);
                     var south = IntVec3.South.RotatedBy(VehicleMapUtility.RotForPrintCounter);
                     foreach (IntVec3 item in cellRect)

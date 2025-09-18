@@ -49,48 +49,7 @@ internal static class ModCompat
         }
     }
 
-    public static class AdaptiveStorage
-    {
-        public static readonly bool Active = ModsConfig.IsActive("adaptive.storage.framework");
-
-        public static readonly Type TransformData;
-
-        public static readonly Type RotationAngle;
-
-        public static readonly Type ThingClass;
-
-        public static readonly FastInvokeHandler Renderer;
-
-        public static readonly FastInvokeHandler SetAllPrintDatasDirty;
-
-        static AdaptiveStorage()
-        {
-            if (Active)
-            {
-                try
-                {
-                    TransformData = GenTypes.GetTypeInAnyAssembly("ITransformable.TransformData", "ITransformable");
-                    RotationAngle = GenTypes.GetTypeInAnyAssembly("ITransformable.RotationAngle", "ITransformable");
-                    ThingClass = GenTypes.GetTypeInAnyAssembly("AdaptiveStorage.ThingClass", "AdaptiveStorage");
-                    Renderer = MethodInvoker.GetHandler(AccessTools.PropertyGetter(ThingClass, "Renderer"));
-                    SetAllPrintDatasDirty = MethodInvoker.GetHandler(AccessTools.Method("AdaptiveStorage.StorageRenderer:SetAllPrintDatasDirty"));
-                }
-                catch (Exception ex)
-                {
-                    VMF_Log.Error(ex.Message);
-                    Active = false;
-                }
-                finally
-                {
-                    if (AnyNull(TransformData, RotationAngle, ThingClass, Renderer, SetAllPrintDatasDirty))
-                    {
-                        LogIncompat("Adaptive Storage Framework");
-                        Active = false;
-                    }
-                }
-            }
-        }
-    }
+    public static readonly bool AdaptiveStorage = ModsConfig.IsActive("adaptive.storage.framework");
 
     public static readonly bool AllowTool = ModsConfig.IsActive("UnlimitedHugs.AllowTool");
 
@@ -100,43 +59,11 @@ internal static class ModCompat
 
     public static readonly bool CallTradeShips = ModsConfig.IsActive("calltradeships.kv.rw");
 
-    public static class CombatExtended
-    {
-        public static readonly bool Active = ModsConfig.IsActive("CETeam.CombatExtended") || ModsConfig.IsActive("CETeam.CombatExtended_steam");
-    }
+    public static readonly bool CombatExtended = ModsConfig.IsActive("CETeam.CombatExtended") || ModsConfig.IsActive("CETeam.CombatExtended_steam");
 
     public static readonly bool ColonyGroups = ModsConfig.IsActive("DerekBickley.LTOColonyGroupsFinal");
 
-    public static class DeepStorage
-    {
-        public static readonly bool Active = ModsConfig.IsActive("LWM.DeepStorage");
-
-        public static readonly FastInvokeHandler ThingListToDisplay;
-
-        static DeepStorage()
-        {
-            if (Active)
-            {
-                try
-                {
-                    ThingListToDisplay = MethodInvoker.GetHandler(AccessTools.Method("LWM.DeepStorage.PatchDisplay_SectionLayer_Things_Regenerate:ThingListToDisplay"));
-                }
-                catch (Exception ex)
-                {
-                    VMF_Log.Error(ex.Message);
-                    Active = false;
-                }
-                finally
-                {
-                    if (AnyNull(ThingListToDisplay))
-                    {
-                        LogIncompat("Deep Storage");
-                        Active = false;
-                    }
-                }
-            }
-        }
-    }
+    public static readonly bool DeepStorage = ModsConfig.IsActive("LWM.DeepStorage");
 
     public static readonly bool Fortified = ModsConfig.IsActive("AOBA.Framework");
 

@@ -82,11 +82,11 @@ namespace VehicleMapFramework
 
         private static CachedMaterial mat_SubStructureExtra_E;
 
-        private static readonly float cornerAltitude = AltitudeLayer.BuildingOnTop.AltitudeFor() / VehicleMapUtility.YCompress;
+        private static readonly float cornerAltitude = AltitudeLayer.BuildingOnTop.AltitudeFor();
 
-        private static readonly float substructureAltitude = AltitudeLayer.TerrainEdges.AltitudeFor() / VehicleMapUtility.YCompress;
+        private static readonly float substructureAltitude = AltitudeLayer.TerrainEdges.AltitudeFor();
 
-        private static readonly float bakedAltitude = AltitudeLayer.MetaOverlays.AltitudeFor() / VehicleMapUtility.YCompress;
+        private static readonly float bakedAltitude = AltitudeLayer.MetaOverlays.AltitudeFor();
 
         private static bool initalized;
 

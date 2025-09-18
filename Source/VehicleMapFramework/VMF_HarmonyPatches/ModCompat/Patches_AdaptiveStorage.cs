@@ -7,7 +7,6 @@ using System.Reflection.Emit;
 using UnityEngine;
 using Verse;
 using static VehicleMapFramework.MethodInfoCache;
-using static VehicleMapFramework.ModCompat.AdaptiveStorage;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
@@ -18,7 +17,7 @@ internal static class Patches_AdaptiveStorage
 
     static Patches_AdaptiveStorage()
     {
-        if (Active)
+        if (ModCompat.AdaptiveStorage)
         {
             VMF_Harmony.PatchCategory(Category);
         }

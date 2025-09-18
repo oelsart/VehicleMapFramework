@@ -49,7 +49,7 @@ public static class AttackTargetFinderOnVehicle
             Log.Error("BestAttackTarget with " + searcher.ToStringSafe() + " who has no attack verb.");
             return null;
         }
-        var onlyTargetMachines = !CombatExtended.Active && verb.IsEMP();
+        var onlyTargetMachines = !CombatExtended && verb.IsEMP();
         var minDistSquared = minDist * minDist;
         float num = maxTravelRadiusFromLocus + verb.verbProps.range;
         var maxLocusDistSquared = num * num;

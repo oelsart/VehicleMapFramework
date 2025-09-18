@@ -1,6 +1,7 @@
 ﻿using SmashTools;
 using System;
 using System.Collections.Generic;
+using VehicleMapFramework.VMF_HarmonyPatches;
 using Verse;
 using static VehicleMapFramework.ModCompat;
 
@@ -30,6 +31,8 @@ namespace VehicleMapFramework
             }
 
             if (!map.IsVehicleMapOf(out _)) return;
+
+            VMF_Harmony.DynamicPatchAllNow(Level.All);
             LongEventHandler.ExecuteWhenFinished(() =>
             {
                 layersByRot = [];

@@ -36,9 +36,9 @@ public class VMF_Harmony
 
     internal static List<Type> AllTypesInMod = [];
 
-    public static Level CurrentPatchLevel { get; private set; } = VehicleMapFramework.settings.dynamicPatchEnabled ? VehicleMapFramework.settings.dynamicPatchLevel : Level.All;
+    internal static Level CurrentPatchLevel { get; private set; } = VehicleMapFramework.settings.dynamicPatchEnabled ? VehicleMapFramework.settings.dynamicPatchLevel : Level.All;
 
-    private static Level PrevPatchLevel { get; set; } = Level.Mandatory;
+    internal static Level PrevPatchLevel { get; set; } = Level.Mandatory;
 
     private readonly static AccessTools.FieldRef<PatchClassProcessor, object> patchMethodsRef = AccessTools.FieldRefAccess<PatchClassProcessor, object>("patchMethods");
 
@@ -74,7 +74,39 @@ public class VMF_Harmony
         return !OutOfRange(attribute.level);
     }
 
-    public static void DynamicPatchAll(Level patchLevel)
+    internal static void DynamicPatchAllNow(Level patchLevel)
+    {
+        if (CurrentPatchLevel < patchLevel)
+        {
+            PrevPatchLevel = CurrentPatchLevel;
+            CurrentPatchLevel = patchLevel;
+            var patchCountBefore = Instance.GetPatchedMethods().Count();
+            PatchAllUncategorized();
+            foreach (var category in Categories)
+            {
+                PatchCategory(category);
+            }
+            var patchCountAfter = Instance.GetPatchedMethods().Count();
+            VMF_Log.Message($"Dynamic patches applied: {patchCountAfter - patchCountBefore} Total: {patchCountAfter}");
+            return;
+        }
+        else if (VehicleMapFramework.settings.dynamicUnpatchEnabled && CurrentPatchLevel != patchLevel)
+        {
+            PrevPatchLevel = CurrentPatchLevel;
+            CurrentPatchLevel = patchLevel;
+            var patchCountBefore = Instance.GetPatchedMethods().Count();
+            UnpatchAllUncategorized();
+            foreach (var category in Categories)
+            {
+                UnpatchCategory(category);
+            }
+            var patchCountAfter = Instance.GetPatchedMethods().Count();
+            VMF_Log.Message($"Dynamic patches unapplied: {patchCountBefore - patchCountAfter} Total: {patchCountAfter}");
+            return;
+        }
+    }
+
+    internal static void DynamicPatchAll(Level patchLevel)
     {
         if (CurrentPatchLevel < patchLevel)
         {
