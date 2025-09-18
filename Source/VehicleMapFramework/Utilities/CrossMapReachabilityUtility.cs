@@ -155,7 +155,7 @@ public static class CrossMapReachabilityUtility
                             {
                                 cell = EnterVehiclePosition(comp.parent);
                             }
-                            result = cell.Standable(destMap) && CanReach(comp.parent.Position, cell);
+                            result = cell.Walkable(destMap) && CanReach(comp.parent.Position, cell);
                             DebugLog($"VehicleMap => BaseMap: {root}, {cell}, {comp}, {traverseParms} :{result} {comp.parent}");
                             if (result)
                             {
@@ -163,11 +163,11 @@ public static class CrossMapReachabilityUtility
                                 return result;
                             }
                         }
-                        foreach (var c in vehicle2.CachedStandableMapEdgeCells.OrderBy(c => (c.ToBaseMapCoord(vehicle2) - dest.Cell).LengthHorizontalSquared))
+                        foreach (var c in vehicle2.CachedWalkableMapEdgeCells.OrderBy(c => (c.ToBaseMapCoord(vehicle2) - dest.Cell).LengthHorizontalSquared))
                         {
                             var targetInfo = new TargetInfo(c, departMap);
                             var cell = EnterVehiclePosition(targetInfo);
-                            result = cell.Standable(destMap) && CanReach(c, cell);
+                            result = cell.Walkable(destMap) && CanReach(c, cell);
                             DebugLog($"VehicleMap => BaseMap: {root}, {cell}, {c}, {traverseParms} :{result} {targetInfo}");
                             if (result)
                             {
@@ -202,7 +202,7 @@ public static class CrossMapReachabilityUtility
                                 cell = EnterVehiclePosition(comp.parent);
                             }
 
-                            result = cell.Standable(departMap) && CanReach(cell, comp.parent.Position);
+                            result = cell.Walkable(departMap) && CanReach(cell, comp.parent.Position);
                             DebugLog($"BaseMap => VehicleMap: {root}, {cell}, {comp}, {traverseParms} :{result}");
                             if (result)
                             {
@@ -210,11 +210,11 @@ public static class CrossMapReachabilityUtility
                                 return result;
                             }
                         }
-                        foreach (var c in vehicle.CachedStandableMapEdgeCells.OrderBy(c => (root - c.ToBaseMapCoord(vehicle)).LengthHorizontalSquared))
+                        foreach (var c in vehicle.CachedWalkableMapEdgeCells.OrderBy(c => (root - c.ToBaseMapCoord(vehicle)).LengthHorizontalSquared))
                         {
                             var targetInfo = new TargetInfo(c, destMap);
                             var cell = EnterVehiclePosition(targetInfo);
-                            result = cell.Standable(departMap) && CanReach(cell, c);
+                            result = cell.Walkable(departMap) && CanReach(cell, c);
                             DebugLog($"BaseMap => VehicleMap: {new TargetInfo(root, departMap)}, {cell}, {c}, {dest.ToTargetInfo(destMap)}, {traverseParms} :{result}");
                             if (result)
                             {
@@ -245,8 +245,8 @@ public static class CrossMapReachabilityUtility
 
                             bool CanReach2(IntVec3 cell, IntVec3 cell2, IntVec3 cell3, IntVec3 cell4)
                             {
-                                return cell2.Standable(departBaseMap) &&
-                                    cell3.Standable(departBaseMap) &&
+                                return cell2.Walkable(departBaseMap) &&
+                                    cell3.Walkable(departBaseMap) &&
                                     departMap.reachability.CanReach(root, cell, PathEndMode.OnCell, traverseParms) &&
                                     departBaseMap.reachability.CanReach(cell2, cell3, PathEndMode.OnCell, traverseParms2) &&
                                     destMap.reachability.CanReach(cell4, dest, peMode, traverseParms2);
@@ -266,7 +266,7 @@ public static class CrossMapReachabilityUtility
                                     if (pair.Map == destMap)
                                     {
                                         var c = comp.parent.Position;
-                                        if (cell.Standable(destMap) && CanReach(c, cell))
+                                        if (cell.Walkable(destMap) && CanReach(c, cell))
                                         {
                                             exitSpot = comp.parent;
                                             enterSpot = pair;
@@ -300,7 +300,7 @@ public static class CrossMapReachabilityUtility
                                         return result;
                                     }
                                 }
-                                foreach (var c2 in vehicle.CachedStandableMapEdgeCells.OrderBy(c2 => (cell - c2.ToBaseMapCoord(vehicle)).LengthHorizontalSquared))
+                                foreach (var c2 in vehicle.CachedWalkableMapEdgeCells.OrderBy(c2 => (cell - c2.ToBaseMapCoord(vehicle)).LengthHorizontalSquared))
                                 {
                                     var targetInfo = new TargetInfo(c2, destMap);
                                     var cell2 = EnterVehiclePosition(targetInfo);
@@ -313,7 +313,7 @@ public static class CrossMapReachabilityUtility
                                     }
                                 }
                             }
-                            foreach (var c in vehicle2.CachedStandableMapEdgeCells.OrderBy(c => (c.ToBaseMapCoord(vehicle2) - dest.Cell.ToBaseMapCoord(vehicle)).LengthHorizontalSquared))
+                            foreach (var c in vehicle2.CachedWalkableMapEdgeCells.OrderBy(c => (c.ToBaseMapCoord(vehicle2) - dest.Cell.ToBaseMapCoord(vehicle)).LengthHorizontalSquared))
                             {
                                 var targetInfo = new TargetInfo(c, departMap);
                                 var cell = EnterVehiclePosition(targetInfo);
@@ -339,7 +339,7 @@ public static class CrossMapReachabilityUtility
                                         return result;
                                     }
                                 }
-                                foreach (var c2 in vehicle.CachedStandableMapEdgeCells.OrderBy(c2 => (cell - c2.ToBaseMapCoord(vehicle)).LengthHorizontalSquared))
+                                foreach (var c2 in vehicle.CachedWalkableMapEdgeCells.OrderBy(c2 => (cell - c2.ToBaseMapCoord(vehicle)).LengthHorizontalSquared))
                                 {
                                     var targetInfo2 = new TargetInfo(c2, destMap);
                                     var cell2 = EnterVehiclePosition(targetInfo2);
@@ -403,7 +403,7 @@ public static class CrossMapReachabilityUtility
                 enterSpot = tmpEnterSpot;
                 return true;
             }
-            if (vehicle2.CachedStandableMapEdgeCells.Any(c => CanReach(departMap, root, c, PathEndMode.OnCell, traverseParms, destMap, out tmpExitSpot, out tmpEnterSpot)))
+            if (vehicle2.CachedWalkableMapEdgeCells.Any(c => CanReach(departMap, root, c, PathEndMode.OnCell, traverseParms, destMap, out tmpExitSpot, out tmpEnterSpot)))
             {
                 exitSpot = tmpExitSpot;
                 enterSpot = tmpEnterSpot;
@@ -418,7 +418,7 @@ public static class CrossMapReachabilityUtility
                 enterSpot = tmpEnterSpot;
                 return true;
             }
-            if (vehicle.CachedStandableMapEdgeCells.Any(c => CanReach(departMap, root, EnterVehiclePosition(new TargetInfo(c, departMap)), PathEndMode.OnCell, traverseParms, destMap, out tmpExitSpot, out tmpEnterSpot)))
+            if (vehicle.CachedWalkableMapEdgeCells.Any(c => CanReach(departMap, root, EnterVehiclePosition(new TargetInfo(c, departMap)), PathEndMode.OnCell, traverseParms, destMap, out tmpExitSpot, out tmpEnterSpot)))
             {
                 exitSpot = tmpExitSpot;
                 enterSpot = tmpEnterSpot;

@@ -216,15 +216,15 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         }
     }
 
-    public HashSet<IntVec3> CachedStandableMapEdgeCells
+    public HashSet<IntVec3> CachedWalkableMapEdgeCells
     {
         get
         {
-            if (standableCellsCachedTick != Find.TickManager.TicksGame || Find.TickManager.Paused)
+            if (standableCellsCachedTick != GenTicks.TicksGame || Find.TickManager.Paused)
             {
-                standableCellsCachedTick = Find.TickManager.TicksGame;
+                standableCellsCachedTick = GenTicks.TicksGame;
                 standableMapEdgeCellsCache.Clear();
-                standableMapEdgeCellsCache.AddRange(CachedMapEdgeCells.Where(c => c.Standable(interiorMap)));
+                standableMapEdgeCellsCache.AddRange(CachedMapEdgeCells.Where(c => c.Walkable(interiorMap)));
             }
             return standableMapEdgeCellsCache;
         }
@@ -232,7 +232,7 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
 
     public List<CompVehicleEnterSpot> EnterComps => enterCompsInt;
 
-    public IEnumerable<CompVehicleEnterSpot> AvailableEnterComps => EnterComps.Where(c => c.parent.Position.Standable(interiorMap) && c.Available);
+    public IEnumerable<CompVehicleEnterSpot> AvailableEnterComps => EnterComps.Where(c => c.parent.Position.Walkable(interiorMap) && c.Available);
 
     public List<CompFuelTank> FuelTankComps => fuelTankCompsInt;
 
