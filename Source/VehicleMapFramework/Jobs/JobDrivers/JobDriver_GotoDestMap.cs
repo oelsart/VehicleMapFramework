@@ -48,15 +48,16 @@ public class JobDriver_GotoDestMap : JobDriverAcrossMaps
             toil.defaultCompleteMode = ToilCompleteMode.Instant;
             toil.initAction = () =>
             {
-                var allowOpportunisticPrefix = nextJob.def.allowOpportunisticPrefix; //OpportunisticJobを一時的に無効化
+                ref var allowOpportunisticPrefix = ref nextJob.def.allowOpportunisticPrefix; //OpportunisticJobを一時的に無効化
+                var value = allowOpportunisticPrefix;
                 try
                 {
-                    nextJob.def.allowOpportunisticPrefix = false;
+                    allowOpportunisticPrefix = false;
                     pawn.jobs.StartJob(nextJob, JobCondition.InterruptForced, VMF_DefOf.VMF_GotoDestMapThinkTree.thinkRoot, thinkTree: VMF_DefOf.VMF_GotoDestMapThinkTree, keepCarryingThingOverride: true, preToilReservationsCanFail: true);
                 }
                 finally
                 {
-                    nextJob.def.allowOpportunisticPrefix = allowOpportunisticPrefix;
+                    allowOpportunisticPrefix = value;
                 }
             };
             yield return toil;

@@ -119,7 +119,7 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
 
     internal static IEnumerable<Thing> AddSearchSet(List<Thing> list, Pawn pawn, WorkGiver_Scanner scanner)
     {
-        if (JobAcrossMapsUtility.NoNeedVirtualMapTransfer(pawn.Map, null, scanner))
+        if (JobAcrossMapsUtility.NoNeedVirtualMapTransfer(pawn.Map, null))
         {
             return list;
         }
@@ -133,7 +133,7 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
 
     internal static IEnumerable<Thing> PotentialWorkThingsGlobalAll(WorkGiver_Scanner scanner, Pawn pawn)
     {
-        if (JobAcrossMapsUtility.NoNeedVirtualMapTransfer(pawn.Map, null, scanner))
+        if (JobAcrossMapsUtility.NoNeedVirtualMapTransfer(pawn.Map, null))
         {
             return scanner.PotentialWorkThingsGlobal(pawn);
         }
@@ -167,7 +167,7 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
     internal static Job JobOnThingMap(WorkGiver_Scanner scanner, Pawn pawn, Thing t, bool forced)
     {
         var thingMap = t.MapHeld;
-        if (JobAcrossMapsUtility.NoNeedVirtualMapTransfer(pawn.Map, thingMap, scanner))
+        if (JobAcrossMapsUtility.NoNeedVirtualMapTransfer(pawn.Map, thingMap))
         {
             return scanner.JobOnThing(pawn, t, forced);
         }
@@ -391,7 +391,7 @@ public static class Patch_JobGiver_Work_Validator
     private static bool HasJobOnThingMap(WorkGiver_Scanner scanner, Pawn pawn, Thing t, bool forced)
     {
         var thingMap = t.MapHeld;
-        if (JobAcrossMapsUtility.NoNeedVirtualMapTransfer(pawn.Map, thingMap, scanner))
+        if (JobAcrossMapsUtility.NoNeedVirtualMapTransfer(pawn.Map, thingMap))
         {
             return scanner.HasJobOnThing(pawn, t, forced);
         }
@@ -650,9 +650,8 @@ public static class Patch_GenClosest_ClosestThingReachable
     }
 
     [PatchLevel(Level.Safe)]
-    public static void Finalizer(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance, Predicate<Thing> validator, IEnumerable<Thing> customGlobalSearchSet, int searchRegionsMin, int searchRegionsMax, bool forceAllowGlobalSearch, RegionType traversableRegionTypes, bool ignoreEntirelyForbiddenRegions, bool lookInHaulSources, ref Thing __result)
+    public static void Postfix(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance, Predicate<Thing> validator, IEnumerable<Thing> customGlobalSearchSet, int searchRegionsMin, int searchRegionsMax, bool forceAllowGlobalSearch, RegionType traversableRegionTypes, bool ignoreEntirelyForbiddenRegions, bool lookInHaulSources, ref Thing __result)
     {
-        CrossMapReachabilityUtility.DepartMap = null;
         __result ??= GenClosestCrossMap.ClosestThingReachable(root, map, thingReq, peMode, traverseParams, maxDistance, validator, customGlobalSearchSet, searchRegionsMin, searchRegionsMax, forceAllowGlobalSearch, traversableRegionTypes, ignoreEntirelyForbiddenRegions, lookInHaulSources);
     }
 }
@@ -669,9 +668,8 @@ public static class Patch_GenClosest_ClosestThing_Regionwise_ReachablePrioritize
         }
     }
 
-    public static void Finalizer(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance, Predicate<Thing> validator, Func<Thing, float> priorityGetter, int minRegions, int maxRegions, bool lookInHaulSources, ref Thing __result)
+    public static void Postfix(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance, Predicate<Thing> validator, Func<Thing, float> priorityGetter, int minRegions, int maxRegions, bool lookInHaulSources, ref Thing __result)
     {
-        CrossMapReachabilityUtility.DepartMap = null;
         __result ??= GenClosestCrossMap.ClosestThing_Regionwise_ReachablePrioritized(root, map, thingReq, peMode, traverseParams, maxDistance, validator, priorityGetter, minRegions, maxRegions, lookInHaulSources);
     }
 }

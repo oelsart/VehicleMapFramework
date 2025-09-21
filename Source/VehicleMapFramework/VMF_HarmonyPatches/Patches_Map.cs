@@ -18,42 +18,6 @@ using static VehicleMapFramework.ModCompat;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
-//VehicleMapの時はいくつかを専用のSectionLayerに置き換え、そうでなければそれらは除外する
-//[HarmonyPatch(typeof(Section), MethodType.Constructor, typeof(IntVec3), typeof(Map))]
-//[PatchLevel(Level.Mandatory)]
-//public static class Patch_Section_Constructor
-//{
-//    public static void Postfix(Map map, List<SectionLayer> ___layers)
-//    {
-//        if (map.Parent is MapParent_Vehicle)
-//        {
-//            ___layers.RemoveAll(layer =>
-//            {
-//                var type = layer.GetType();
-//                if (type == typeof(SectionLayer_ThingsGeneral) ||
-//                    type == typeof(SectionLayer_Terrain) ||
-//                    type == typeof(SectionLayer_ThingsPowerGrid))
-//                {
-//                    return true;
-//                }
-//                if (VFECore.Active && type == GenTypes.GetTypeInAnyAssembly("PipeSystem.SectionLayer_Resource", "PipeSystem"))
-//                {
-//                    return true;
-//                }
-//                if (!DubsBadHygiene.Active || DubsBadHygiene.LiteMode && type == typeof(SectionLayer_ThingsSewagePipeOnVehicle))
-//                {
-//                    return true;
-//                }
-//                if (!Rimefeller.Active && type == typeof(SectionLayer_ThingsPipeOnVehicle))
-//                {
-//                    return true;
-//                }
-//                return false;
-//            });
-//        }
-//    }
-//}
-
 [HarmonyPatch(typeof(MapDrawLayer), "FinalizeMesh")]
 [PatchLevel(Level.Safe)]
 public static class Patch_MapDrawLayer_FinalizeMesh
@@ -107,7 +71,7 @@ public static class Patch_Pawn_MechanitorTracker_CanCommandTo
 public static class Patch_Reachability_CanReach
 {
     [PatchLevel(Level.Safe)]
-    public static bool Prefix(IntVec3 start, LocalTargetInfo dest, PathEndMode peMode, TraverseParms traverseParams, ref bool __result)
+    public static bool Prefix(IntVec3 start, LocalTargetInfo dest, PathEndMode peMode, TraverseParms traverseParams, Map ___map, ref bool __result)
     {
         if (CrossMapReachabilityUtility.working) return true;
 
@@ -123,7 +87,7 @@ public static class Patch_Reachability_CanReach
         {
             return true;
         }
-        if (departMap != destMap)
+        if (departMap != destMap || departMap != ___map)
         {
             __result = CrossMapReachabilityUtility.CanReach(departMap, start, dest, peMode, traverseParams, destMap);
             return false;

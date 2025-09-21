@@ -426,10 +426,10 @@ public static class Patch_FloatMenuOptionProvider_DraftedMove_PawnGotoAction
 
 public static class Patch_FloatMenuOptionProvider_WorkGivers_GetWorkGiverOption
 {
-    public static void Prefix(Pawn pawn, WorkGiverDef workGiver, LocalTargetInfo target, FloatMenuContext context, ref object[] __state)
+    public static void Prefix(Pawn pawn, LocalTargetInfo target, FloatMenuContext context, ref object[] __state)
     {
         __state = new object[5];
-        if (JobAcrossMapsUtility.NoNeedVirtualMapTransfer(pawn.Map, context.map, workGiver.Worker as WorkGiver_Scanner))
+        if (JobAcrossMapsUtility.NoNeedVirtualMapTransfer(pawn.Map, context.map))
         {
             __state[0] = false;
             return;

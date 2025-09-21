@@ -60,7 +60,7 @@ public static class JobAcrossMapsUtility
         return driver?.nextJob;
     }
 
-    public static bool NoNeedVirtualMapTransfer(Map pawnMap, Map targetMap, WorkGiver_Scanner scanner)
+    public static bool NoNeedVirtualMapTransfer(Map pawnMap, Map targetMap)
     {
         return pawnMap == targetMap;
     }
