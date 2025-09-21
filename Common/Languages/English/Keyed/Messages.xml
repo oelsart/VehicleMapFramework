@@ -18,6 +18,7 @@
 	<VMF_UnpatchingDynamicPatches>Unpatching Dynamic Patches</VMF_UnpatchingDynamicPatches>
 	
 	<VMF_ContainsMapVehicle>There are some map vehicles on the gravship structure.</VMF_ContainsMapVehicle>
+	<VMF_ContainsForbidOnVehicle>{0} cannot be placed on the vehicle map.</VMF_ContainsForbidOnVehicle>
 	<VMF_RectContainsImpassable>Vehicle rectangle contains impassable cells.</VMF_RectContainsImpassable>
 	<VMF_WheelsUnstable>Vehicle would be unstable.</VMF_WheelsUnstable>
 	<VMF_CannotSetDownDiagonal>{0} cannot set down at an angle.</VMF_CannotSetDownDiagonal>

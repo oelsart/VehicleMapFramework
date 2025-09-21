@@ -164,9 +164,10 @@ namespace VehicleMapFramework
             {
                 return "VMF_ContainsMapVehicle".Translate();
             }
-            if (cells.Any(c => c.GetThingList(map).Any(t => t.def.PlaceWorkers?.Any(p => p is PlaceWorker_ForbidOnVehicle) ?? false)))
+            Thing thing = null;
+            if (cells.Any(c => c.GetThingList(map).Any(t => (thing = t).def.PlaceWorkers?.Any(p => p is PlaceWorker_ForbidOnVehicle) ?? false)))
             {
-                return "VMF_ContainsForbidOnVehicle".Translate();
+                return "VMF_ContainsForbidOnVehicle".Translate(thing?.LabelCapNoCount);
             }
             var bounds = CellRect.FromCellList(cells);
             var cellRect = bounds.Encapsulate(wheelsRect);

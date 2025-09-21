@@ -18,6 +18,7 @@
 	<VMF_UnpatchingDynamicPatches>動的アンパッチ適用中</VMF_UnpatchingDynamicPatches>
 	
 	<VMF_ContainsMapVehicle>グラヴシップ構造体の上にマップ付き車両があります.</VMF_ContainsMapVehicle>
+	<VMF_ContainsForbidOnVehicle>{0} は車両マップには置けません.</VMF_ContainsForbidOnVehicle>
 	<VMF_RectContainsImpassable>車両の長方形が通れないセルを含んでいます.</VMF_RectContainsImpassable>
 	<VMF_WheelsUnstable>車両が不安定です.</VMF_WheelsUnstable>
 	<VMF_CannotSetDownDiagonal>{0}はこの角度で地面に置けません.</VMF_CannotSetDownDiagonal>
