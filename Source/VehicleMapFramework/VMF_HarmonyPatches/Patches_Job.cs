@@ -173,40 +173,16 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
         }
 
         var map = pawn.Map;
-        if (!scanner.AllowUnreachable)
-        {
-            if (pawn.CanReach(t, scanner.PathEndMode, scanner.MaxPathDanger(pawn), false, false, TraverseMode.ByPawn, thingMap, out var exitSpot, out var enterSpot))
-            {
-                var pos = pawn.Position;
-                var dest = t.PositionHeld;
-                pawn.VirtualMapTransfer(thingMap, dest);
-                Job job;
-                try
-                {
-                    job = scanner.JobOnThing(pawn, t, forced);
-                }
-                finally
-                {
-                    pawn.VirtualMapTransfer(map, pos);
-                }
-                if (JobAcrossMapsUtility.NeedWrapGotoDestMapJob(scanner))
-                {
-                    job = JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, job);
-                }
-                return job;
-            }
-            return null;
-        }
-        var cell = pawn.Position;
-        var cell2 = CellRect.WholeMap(thingMap).RandomCell;
-        pawn.VirtualMapTransfer(thingMap, cell2);
+        CrossMapReachabilityUtility.DepartMap = map;
+        pawn.VirtualMapTransfer(thingMap);
         try
         {
             return scanner.JobOnThing(pawn, t, forced);
         }
         finally
         {
-            pawn.VirtualMapTransfer(map, cell);
+            CrossMapReachabilityUtility.DepartMap = null;
+            pawn.VirtualMapTransfer(map);
         }
     }
 
@@ -1205,5 +1181,15 @@ public static class Patch_WanderUtility_GetColonyWanderRoot
         return instructions.MethodReplacer(
             AccessTools.PropertyGetter(typeof(MapPawns), nameof(MapPawns.FreeColonistsSpawned)),
             AccessTools.Method(typeof(Patch_WanderUtility_GetColonyWanderRoot), nameof(FreeColonistsSpawned)));
+    }
+}
+
+[HarmonyPatch(typeof(Reachability), nameof(Reachability.ClearCache))]
+[PatchLevel(Level.Safe)]
+public static class Patch_Reachability_ClearCache
+{
+    public static void Postfix(Map ___map)
+    {
+        CrossMapReachabilityCache.ClearCacheFor(___map);
     }
 }

@@ -70,9 +70,10 @@ public static class GenClosestCrossMap
 
             var basePos = map.IsVehicleMapOf(out var vehicle) ? root.ToBaseMapCoord(vehicle) : root;
             var searchSet = customGlobalSearchSet ?? map.BaseMapAndVehicleMaps().Except(map).SelectMany(m => m.listerThings.ThingsMatching(thingReq));
-            bool Validator(Thing t)
+            
+            bool GlobalValidator(Thing t)
             {
-                if (!CrossMapReachabilityUtility.CanReach(map, root, t, peMode, traverseParams, t.MapHeld, out var exitSpot2, out var enterSpot2))
+                if (!CrossMapReachabilityUtility.CanReach(map, root, t, peMode, traverseParams, t.MapHeld, out _, out _))
                 {
                     return false;
                 }
@@ -82,7 +83,7 @@ public static class GenClosestCrossMap
                 }
                 return true;
             }
-            thing = ClosestThing_Global(basePos, searchSet, maxDistance, Validator, null);
+            thing = ClosestThing_Global(basePos, searchSet, maxDistance, GlobalValidator, null);
         }
         return thing;
     }
@@ -149,8 +150,8 @@ public static class GenClosestCrossMap
 
         CrossMapRegionProcessorClosestThingReachable regionProcessorClosestThingReachable = SimplePool<CrossMapRegionProcessorClosestThingReachable>.Get();
         var basePos = map.IsVehicleMapOf(out var vehicle) ? root.ToBaseMapCoord(vehicle) : root;
-        regionProcessorClosestThingReachable.SetParameters(traverseParams, maxDistance, basePos, ignoreEntirelyForbiddenRegions, req, peMode, priorityGetter, validator, minRegions, 9999999f, 0, float.MinValue, null, lookInHaulSources);
-        RegionTraverserAcrossMaps.BreadthFirstTraverse(region, regionProcessorClosestThingReachable, maxRegions, traversableRegionTypes, true);
+        regionProcessorClosestThingReachable.SetParameters(traverseParams, maxDistance, basePos, ignoreEntirelyForbiddenRegions, req, peMode, priorityGetter, validator, minRegions, 9999999f, 0, float.MinValue, null, lookInHaulSources, map);
+        RegionTraverserAcrossMaps.BreadthFirstTraverse(region, regionProcessorClosestThingReachable, maxRegions, traversableRegionTypes);
         regionsSeen = regionProcessorClosestThingReachable.regionsSeenScan;
         Thing closestThing = regionProcessorClosestThingReachable.closestThing;
         regionProcessorClosestThingReachable.Clear();

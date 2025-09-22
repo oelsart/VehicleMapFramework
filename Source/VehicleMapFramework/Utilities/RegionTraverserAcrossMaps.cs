@@ -33,7 +33,7 @@ public static class RegionTraverserAcrossMaps
         {
         }
 
-        public void BreadthFirstTraverseWork(Region root, RegionEntryPredicate entryCondition, RegionProcessor regionProcessor, int maxRegions, RegionType traversableRegionTypes, bool skipRootMap)
+        public void BreadthFirstTraverseWork(Region root, RegionEntryPredicate entryCondition, RegionProcessor regionProcessor, int maxRegions, RegionType traversableRegionTypes)
         {
             if ((root.type & traversableRegionTypes) == 0)
             {
@@ -43,7 +43,6 @@ public static class RegionTraverserAcrossMaps
             Clear();
             numRegionsProcessed = 0;
             open.Enqueue(root);
-            var rootMap = skipRootMap ? root.Map : null;
             while (open.Count > 0)
             {
                 Region region = open.Dequeue();
@@ -52,7 +51,7 @@ public static class RegionTraverserAcrossMaps
                     region.Debug_Notify_Traversed();
                 }
 
-                if (region.Map != rootMap && regionProcessor != null && regionProcessor(region))
+                if (regionProcessor != null && regionProcessor(region))
                 {
                     FinalizeSearch();
                     return;
@@ -231,20 +230,10 @@ public static class RegionTraverserAcrossMaps
 
     public static void BreadthFirstTraverse(Region root, RegionProcessorDelegateCache processor, int maxRegions = 999999, RegionType traversableRegionTypes = RegionType.Set_Passable)
     {
-        BreadthFirstTraverse(root, processor.RegionEntryPredicateDelegate, processor.RegionProcessorDelegate, maxRegions, traversableRegionTypes, false);
-    }
-
-    public static void BreadthFirstTraverse(Region root, RegionProcessorDelegateCache processor, int maxRegions = 999999, RegionType traversableRegionTypes = RegionType.Set_Passable, bool skipRootMap = false)
-    {
-        BreadthFirstTraverse(root, processor.RegionEntryPredicateDelegate, processor.RegionProcessorDelegate, maxRegions, traversableRegionTypes, skipRootMap);
+        BreadthFirstTraverse(root, processor.RegionEntryPredicateDelegate, processor.RegionProcessorDelegate, maxRegions, traversableRegionTypes);
     }
 
     public static void BreadthFirstTraverse(Region root, RegionEntryPredicate entryCondition, RegionProcessor regionProcessor, int maxRegions = 999999, RegionType traversableRegionTypes = RegionType.Set_Passable)
-    {
-        BreadthFirstTraverse(root, entryCondition, regionProcessor, maxRegions, traversableRegionTypes, false);
-    }
-
-    public static void BreadthFirstTraverse(Region root, RegionEntryPredicate entryCondition, RegionProcessor regionProcessor, int maxRegions = 999999, RegionType traversableRegionTypes = RegionType.Set_Passable, bool skipRootMap = false)
     {
         if (freeWorkers.Count == 0)
         {
@@ -261,7 +250,7 @@ public static class RegionTraverserAcrossMaps
         BFSWorker bFSWorker = freeWorkers.Dequeue();
         try
         {
-            bFSWorker.BreadthFirstTraverseWork(root, entryCondition, regionProcessor, maxRegions, traversableRegionTypes, skipRootMap);
+            bFSWorker.BreadthFirstTraverseWork(root, entryCondition, regionProcessor, maxRegions, traversableRegionTypes);
         }
         catch (Exception ex)
         {

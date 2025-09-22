@@ -29,6 +29,7 @@ public class VehicleMapFollower(VehiclePawnWithMap vehicle)
 
         if (vehicle.Position != prevCell)
         {
+            CrossMapReachabilityCache.ClearCacheFor(vehicle.VehicleMap);
             if (ticksToMove > 0)
             {
                 UpdatePositionAndRotation();

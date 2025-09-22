@@ -586,7 +586,7 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         {
             crossMapHaulDestinationManager.RemoveHaulDestination(haulDestination);
         }
-        CrossMapReachabilityCache.ClearCache();
+        CrossMapReachabilityCache.ClearCacheFor(interiorMap);
         Map.regionGrid.AllRegions.Where(r => r.ListerThings.Contains(this)).Do(r => r.ListerThings.Remove(this));
         base.DeSpawn(mode);
     }
