@@ -745,7 +745,11 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         var rot = FullRotation;
         if (VFECore.Active)
         {
-            DrawLayer(component.GetLayer(section, VFECore.SectionLayer_Resource, rot), drawPos);
+            var layer = component.GetLayer(section, VFECore.SectionLayer_Resource, rot);
+            if (layer != null && (bool)VFECore.ShouldDraw(layer))
+            {
+                DrawLayer(layer, drawPos);
+            }
         }
         if (DefenseGrid.Active)
         {

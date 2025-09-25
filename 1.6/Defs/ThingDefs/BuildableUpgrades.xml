@@ -248,6 +248,7 @@
 				<max1PerGroup>true</max1PerGroup>
 				<canChangeAssignedThingsAfterStarting>true</canChangeAssignedThingsAfterStarting>
 				<showOverallStats>false</showOverallStats>
+				<shouldTickContents>false</shouldTickContents>
 			</li>
 		</comps>
 		<placeWorkers>

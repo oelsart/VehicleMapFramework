@@ -103,27 +103,26 @@ public class CompBuildableContainer : CompTransporter
 
     public bool GatherFromBaseMap => gatherFromBaseMap;
 
-    public override void CompTick()
-    {
-        if (parent.IsHashIntervalTick(60) && parent.Spawned && LoadingInProgressOrReadyToLaunch && AnyInGroupHasAnythingLeftToLoad && !AnyInGroupNotifiedCantLoadMore && !AnyPawnCanLoadAnythingNow && (Shuttle == null || !Shuttle.Autoload))
-        {
-            notifiedCantLoadMore(this) = true;
-            Messages.Message("MessageCantLoadMoreIntoTransporters".Translate(FirstThingLeftToLoadInGroup.LabelNoCount, Faction.OfPlayer.def.pawnsPlural, FirstThingLeftToLoadInGroup), parent, MessageTypeDefOf.CautionInput, true);
-        }
-    }
-
     public override void PostSpawnSetup(bool respawningAfterLoad)
     {
-        if (parent.IsOnVehicleMapOf(out var vehicle))
+        Delay.AfterNTicks(1, () =>
         {
-            innerContainer = vehicle.inventory.innerContainer;
-            massCapacityOverride = vehicle.GetStatValue(VehicleStatDefOf.CargoCapacity);
-        }
-        else
-        {
-            innerContainer = new ThingOwner<Thing>(this);
-            massCapacityOverride = 0f;
-        }
+            if (parent.IsOnVehicleMapOf(out var vehicle))
+            {
+                var oldContainer = innerContainer;
+                innerContainer = vehicle.inventory.innerContainer;
+                if (oldContainer != null)
+                {
+                    innerContainer.TryAddRangeOrTransfer(oldContainer);
+                }
+                massCapacityOverride = vehicle.GetStatValue(VehicleStatDefOf.CargoCapacity);
+            }
+            else
+            {
+                innerContainer = new ThingOwner<Thing>(this);
+                massCapacityOverride = 0f;
+            }
+        });
     }
 
     public override void PostDeSpawn(Map map, DestroyMode mode = DestroyMode.Vanish)
@@ -210,6 +209,10 @@ public class CompBuildableContainer : CompTransporter
     public override void PostExposeData()
     {
         Scribe_Values.Look(ref groupID, "groupID", 0, false);
+        if (!parent.IsOnVehicleMapOf(out var vehicle) || innerContainer != vehicle?.inventory?.innerContainer)
+        {
+            Scribe_Deep.Look(ref innerContainer, "innerContainer", [this]);
+        }
         Scribe_Collections.Look(ref leftToLoad, "leftToLoad", LookMode.Deep, []);
         Scribe_Values.Look(ref notifiedCantLoadMore(this), "notifiedCantLoadMore", false, false);
         Scribe_Values.Look(ref massCapacityOverride, "massCapacityOverride", 0f, false);

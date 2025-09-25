@@ -7,8 +7,6 @@ namespace VehicleMapFramework;
 
 public class CrossMapReachabilityCache(World world) : WorldComponent(world)
 {
-    private int lastCachedTick;
-
     private Dictionary<CachedEntry, (bool result, TargetInfo exitSpot, TargetInfo enterSpot)> cache = [];
 
     public static CrossMapReachabilityCache Instance => Find.World.GetComponent<CrossMapReachabilityCache>();
