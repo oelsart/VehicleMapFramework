@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net48</TargetFramework>
-    <OutputType>Library</OutputType>
-    <RootNamespace>VehicleMapFramework</RootNamespace>
+  <TargetFramework>net48</TargetFramework>
+  <OutputType>Library</OutputType>
+  <RootNamespace>VehicleMapFramework</RootNamespace>
 	<LangVersion>preview</LangVersion>
 	<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 	<Configurations>Debug;Release;Dev</Configurations>

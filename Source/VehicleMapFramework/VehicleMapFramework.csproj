@@ -88,7 +88,17 @@
 	  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 	</PackageReference>
   </ItemGroup>
-  <ItemGroup>
+  <ItemGroup Condition="'$(Configuration)'=='Dev'">
+    <Reference Include="SmashTools">
+      <HintPath>..\..\..\..\..\..\workshop\content\294100\3522907382\1.6\Assemblies\SmashTools.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Vehicles">
+      <HintPath>..\..\..\..\..\..\workshop\content\294100\3522907382\1.6\Assemblies\Vehicles.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup Condition="'$(Configuration)'=='Release'or'$(Configuration)'=='Debug'">
     <Reference Include="SmashTools">
       <HintPath>..\..\..\3014915404\1.6\Assemblies\SmashTools.dll</HintPath>
       <Private>False</Private>
@@ -108,6 +118,7 @@
       <Private>False</Private>
     </Reference>
   </ItemGroup>
+  
   <ItemGroup>
     <Reference Update="System.Numerics">
       <Private>False</Private>
