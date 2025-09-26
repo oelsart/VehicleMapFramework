@@ -582,40 +582,6 @@ public static class Patch_SelectionHelper_MultiSelectClicker
     }
 }
 
-
-//主にRepairVehicleに使用される。ターゲットAをVehicleとしてターゲットB(=直す場所)に先に向かうため、StartGotoDestMapJobを挟む
-//[HarmonyPatch(typeof(JobDriver_WorkVehicle), "MakeNewToils")]
-//[PatchLevel(Level.Safe)]
-//public static class Patch_JobDriver_WorkVehicle_MakeNewToils
-//{
-//    public static IEnumerable<Toil> Postfix(IEnumerable<Toil> values, Pawn ___pawn, Job ___job)
-//    {
-//        var thingMap = ___job.targetA.Thing?.Map;
-//        if (thingMap != ___pawn.Map && ___pawn.CanReach(___job.targetA.Thing, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, thingMap, out var exitSpot, out var enterSpot))
-//        {
-//            yield return Toils_General.Do(() =>
-//            {
-//                JobAcrossMapsUtility.StartGotoDestMapJob(___pawn, exitSpot, enterSpot);
-//            });
-//        }
-//        foreach (var toil in values)
-//        {
-//            yield return toil;
-//        }
-//    }
-//}
-
-//WorkGiver_RefuelVehicleTurretでVehicleが海上に居た場合Regionがnullでエラーを吐いていた問題の修正
-[HarmonyPatch(typeof(WorkGiver_RefuelVehicleTurret), nameof(WorkGiver_RefuelVehicleTurret.JobOnThing))]
-[PatchLevel(Level.Safe)]
-public static class Patch_WorkGiver_RefuelVehicleTurret_JobOnThing
-{
-    public static bool Prefix(Thing thing)
-    {
-        return thing.Position.GetRegion(thing.Map) != null;
-    }
-}
-
 [HarmonyPatch(typeof(CaravanFormation), "TryFindExitSpot",
     [typeof(Map), typeof(List<Pawn>), typeof(bool), typeof(Rot4), typeof(IntVec3), typeof(bool)],
     [ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Out, ArgumentType.Normal])]
@@ -719,26 +685,6 @@ public static class Patch_EnterMapUtilityVehicles_EnterAndSpawn
             Messages.Message("VMF_FailedEnterMap".Translate(), MessageTypeDefOf.NegativeEvent);
         }
         return null;
-    }
-}
-
-//車両マップ上からLoadVehicleをしようとした時など
-[HarmonyPatch(typeof(JobDriver_LoadVehicle), "FailJob")]
-[PatchLevel(Level.Safe)]
-public static class Patch_JobDriver_LoadVehicle_FailJob
-{
-    public static void Postfix(JobDriver_LoadVehicle __instance, ref bool __result)
-    {
-        if (__result)
-        {
-            var map = __instance.pawn.MapHeld;
-            var maps = map.BaseMapAndVehicleMaps().Except(map);
-            var vehicle = __instance.job.GetTarget(TargetIndex.B).Thing as VehiclePawn;
-            if (maps.Any(m => MapComponentCache<VehicleReservationManager>.GetComponent(m).VehicleListed(vehicle, ReservationType.LoadVehicle)))
-            {
-                __result = false;
-            }
-        }
     }
 }
 

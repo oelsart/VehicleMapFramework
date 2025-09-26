@@ -21,14 +21,14 @@ public class TargetMapManager(World world) : WorldComponent(world)
     public static void SetTargetInfo(Thing thing, TargetInfo target)
     {
         if (thing is null) return;
-        VMF_Log.Debug($"[TargetMapManager] Set target info for {thing}: {target}");
+        VMF_Log.DebugMessage($"[TargetMapManager] Set target info for {thing}: {target}");
         TargetInfoDic[thing] = target;
     }
 
     public static void SetTargetMap(Thing thing, Map map)
     {
         if (thing is null) return;
-        VMF_Log.Debug($"[TargetMapManager] Set target map for {thing}: {map}");
+        VMF_Log.DebugMessage($"[TargetMapManager] Set target map for {thing}: {map}");
         TargetInfoDic[thing] = new TargetInfo(IntVec3.Invalid, map);
     }
 
@@ -37,7 +37,7 @@ public class TargetMapManager(World world) : WorldComponent(world)
         var result = TargetInfoDic.Remove(thing);
         if (result)
         {
-            VMF_Log.Debug($"[TargetMapManager] Remove target map for {thing}");
+            VMF_Log.DebugMessage($"[TargetMapManager] Remove target map for {thing}");
         }
         return result;
     }

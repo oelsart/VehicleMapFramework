@@ -16,7 +16,7 @@ public static class UniqueVehicleUtility
 
     public static VehicleDef GenerateUniqueVehicleDef(VehicleMapProps_Unique props)
     {
-        VMF_Log.Debug($"Generate VehicleDef: {props.defName}");
+        VMF_Log.DebugMessage($"Generate VehicleDef: {props.defName}");
         var vehicleDef = GenerateInner(props);
         VehicleMod.GenerateImpliedDefs(vehicleDef, false);
         DefGenerator.AddImpliedDef(vehicleDef);

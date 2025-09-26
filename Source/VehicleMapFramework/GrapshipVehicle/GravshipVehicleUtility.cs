@@ -193,7 +193,7 @@ namespace VehicleMapFramework
             var curretGravship = Current.Game.Gravship;
             try
             {
-                VMF_Log.Debug($"Create or get VehicleDef: {props.defName}");
+                VMF_Log.DebugMessage($"Create or get VehicleDef: {props.defName}");
                 var vehicleDef = DefDatabase<VehicleDef>.GetNamedSilentFail(props.defName);
                 vehicleDef ??= GenerateGravshipVehicleDef(props);
                 vehicleDef.size = props.size;
@@ -231,7 +231,7 @@ namespace VehicleMapFramework
 
                 gravship.Rotation = rotCounter;
                 var minOffset = gravship.originalPosition - min;
-                VMF_Log.Debug($"Place gravship to {minOffset.RotatedBy(rotCounter) + IntVec3.NorthEast}");
+                VMF_Log.DebugMessage($"Place gravship to {minOffset.RotatedBy(rotCounter) + IntVec3.NorthEast}");
                 LongEventHandler.ExecuteWhenFinished(() =>
                 {
                     var transform = new TransformData(vehiclePawn.DrawPos, vehiclePawn.FullRotation, vehiclePawn.Transform.rotation);
@@ -280,7 +280,7 @@ namespace VehicleMapFramework
         {
             if (!ModsConfig.OdysseyActive) return null;
 
-            VMF_Log.Debug($"Generate VehicleDef: {props.defName}");
+            VMF_Log.DebugMessage($"Generate VehicleDef: {props.defName}");
             var vehicleDef = GenerateInner(props);
             VehicleMod.GenerateImpliedDefs(vehicleDef, false);
             DefGenerator.AddImpliedDef(vehicleDef);

@@ -26,9 +26,23 @@ internal class VMF_Log
     }
 
     [Conditional("DEBUG")]
-    public static void Debug(string message)
+    public static void DebugMessage(string message)
     {
         Log.Message(message);
+    }
+
+    [Conditional("DEBUG")]
+    [Conditional("DEV")]
+    public static void DebugWarning(string message)
+    {
+        Log.Warning(message);
+    }
+
+    [Conditional("DEBUG")]
+    [Conditional("DEV")]
+    public static void DebugError(string message)
+    {
+        Log.Error(message);
     }
 
     internal const string LogLabel = "[VehicleMapFramework]";

@@ -32,7 +32,7 @@ namespace VehicleMapFramework
             {
                 foreach (var props in hashSet)
                 {
-                    VMF_Log.Debug($"Loading VehicleDef: {props.defName}");
+                    VMF_Log.DebugMessage($"Loading VehicleDef: {props.defName}");
                     if (DefDatabase<VehicleDef>.GetNamedSilentFail(props.defName) == null)
                     {
                         if (props is VehicleMapProps_Gravship gravshipProps)
