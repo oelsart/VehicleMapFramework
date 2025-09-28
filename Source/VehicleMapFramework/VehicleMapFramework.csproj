@@ -1,10 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net48</TargetFramework>
-    <OutputType>Library</OutputType>
-    <RootNamespace>VehicleMapFramework</RootNamespace>
-    <AssemblyName>VehicleMapFramework</AssemblyName>
-    <LangVersion>preview</LangVersion>
+  <TargetFramework>net48</TargetFramework>
+  <OutputType>Library</OutputType>
+  <RootNamespace>VehicleMapFramework</RootNamespace>
+  <AssemblyName>VehicleMapFramework</AssemblyName>
+  <LangVersion>preview</LangVersion>
 	<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 	<ImplicitUsings>disable</ImplicitUsings>
 	<Configurations>Debug;Release;Dev</Configurations>

@@ -3,11 +3,10 @@ using RimWorld;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using VehicleMapFramework;
 using Verse;
 using Verse.AI;
 
-namespace VMF_CEPatch;
+namespace VehicleMapFramework;
 
 public static class VerbOnVehicleCEUtility
 {
@@ -16,7 +15,12 @@ public static class VerbOnVehicleCEUtility
     private static Vector3 ShotSource(this Verb_LaunchProjectileCE verb)
     {
         var drawPos = verb.caster.DrawPos;
-        return new Vector3(drawPos.x, verb.ShotHeight, drawPos.z);
+        var shotHeight = verb.ShotHeight;
+        if (verb.caster.IsOnVehicleMapOf(out var vehicle))
+        {
+            shotHeight = shotHeight.YOffsetFull(vehicle);
+        }
+        return new Vector3(drawPos.x, shotHeight, drawPos.z);
     }
 
     public static bool TryFindCEShootLineFromToOnVehicle(this Verb_LaunchProjectileCE verb, IntVec3 root, LocalTargetInfo targ, out ShootLine resultingLine, out Vector3 targetPos)

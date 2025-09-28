@@ -475,7 +475,7 @@ internal static class ModCompat
 
     public static readonly bool Vivi = ModsConfig.IsActive("gguake.race.vivi");
 
-    public static readonly bool WhileYoureUp = ModsConfig.IsActive("CodeOptimist.JobsOfOpportunity");
+    public static readonly bool WhileYoureUp = ModsConfig.IsActive("CodeOptimist.JobsOfOpportunity") || ModsConfig.IsActive("zsbk.patch16.whileyoureup");
 
     public static readonly bool YayosCombat3 = ModsConfig.IsActive("Mlie.YayosCombat3");
 

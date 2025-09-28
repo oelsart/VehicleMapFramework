@@ -1,5 +1,4 @@
 ﻿using HarmonyLib;
-using NAudio.SoundFont;
 using SmashTools;
 using System.Collections.Generic;
 using System.Linq;

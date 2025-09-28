@@ -36,7 +36,7 @@ public class VMF_Harmony
 
     internal static List<Type> AllTypesInMod = [];
 
-    internal static Level CurrentPatchLevel { get; private set; } = VehicleMapFramework.settings.dynamicPatchEnabled ? VehicleMapFramework.settings.dynamicPatchLevel : Level.All;
+    internal static Level CurrentPatchLevel { get; private set; } = (VehicleMapFramework.settings?.dynamicPatchEnabled ?? false) ? VehicleMapFramework.settings.dynamicPatchLevel : Level.All;
 
     internal static Level PrevPatchLevel { get; set; } = Level.Mandatory;
 
@@ -44,7 +44,7 @@ public class VMF_Harmony
 
     private readonly static AccessTools.FieldRef<object, HarmonyMethod> infoRef = AccessTools.FieldRefAccess<HarmonyMethod>("HarmonyLib.AttributePatch:info");
 
-    private readonly static MethodInfo m_RemoveAll = AccessTools.Method(typeof(List<>).MakeGenericType(GenTypes.GetTypeInAnyAssembly("HarmonyLib.AttributePatch", "HarmonyLib")), nameof(List<>.RemoveAll));
+    private readonly static MethodInfo m_RemoveAll = AccessTools.Method(typeof(List<>).MakeGenericType(AccessTools.TypeByName("HarmonyLib.AttributePatch")), nameof(List<>.RemoveAll));
 
     internal static bool OutOfRange(Level level)
     {
@@ -144,7 +144,7 @@ public class VMF_Harmony
         }
     }
 
-    private static List<Type> TypesInAssembly(Assembly assembly)
+    internal static List<Type> TypesInAssembly(Assembly assembly)
     {
         if (!Assemblies.Contains(assembly))
         {

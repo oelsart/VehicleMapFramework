@@ -163,29 +163,6 @@ public static class StoreAcrossMapsUtility
         return true;
     }
 
-    private static bool NoStorageBlockersIn(IntVec3 c, Map map, Thing thing)
-    {
-        List<Thing> list = map.thingGrid.ThingsListAt(c);
-        bool flag = false;
-        for (int i = 0; i < list.Count; i++)
-        {
-            Thing thing2 = list[i];
-            if (!flag && thing2.def.EverStorable(false) && thing2.CanStackWith(thing) && thing2.stackCount < thing2.def.stackLimit)
-            {
-                flag = true;
-            }
-            if (thing2.def.entityDefToBuild != null && thing2.def.entityDefToBuild.passability != Traversability.Standable)
-            {
-                return false;
-            }
-            if (thing2.def.surfaceType == SurfaceType.None && thing2.def.passability != Traversability.Standable && (c.GetMaxItemsAllowedInCell(map) <= 1 || thing2.def.category != ThingCategory.Item))
-            {
-                return false;
-            }
-        }
-        return flag || c.GetItemCount(map) < c.GetMaxItemsAllowedInCell(map);
-    }
-
     public static bool TryFindBestBetterNonSlotGroupStorageFor(Thing t, Pawn carrier, Map map, StoragePriority currentPriority, Faction faction, ref IHaulDestination haulDestination, bool acceptSamePriority, bool requiresDestReservation)
     {
         List<IHaulDestination> allHaulDestinationsListInPriorityOrder = map.BaseMap().GetCachedMapComponent<CrossMapHaulDestinationManager>().AllHaulDestinationsListInPriorityOrder;

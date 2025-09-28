@@ -10,7 +10,6 @@ using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
 using Verse;
-using VMF_CEPatch;
 using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
