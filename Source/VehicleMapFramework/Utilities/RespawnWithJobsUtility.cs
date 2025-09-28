@@ -97,7 +97,6 @@ public static class RespawnWithJobsUtility
 
         Pawn_PathFollower pawn_PathFollower = pawn.pather;
         pawn_PathFollower?.StopDead();
-        _ = pawn.roping;
         //pawn_RopeTracker?.Notify_DeSpawned();
         pawn.mindState.droppedWeapon = null;
         Pawn_NeedsTracker pawn_NeedsTracker = pawn.needs;
@@ -143,7 +142,7 @@ public static class RespawnWithJobsUtility
     {
         if (pawn.Dead)
         {
-            Log.Warning("Tried to spawn Dead Pawn " + pawn.ToStringSafe<Pawn>() + ". Replacing with corpse.");
+            Log.Warning("Tried to spawn Dead Pawn " + pawn.ToStringSafe() + ". Replacing with corpse.");
             Corpse corpse = (Corpse)ThingMaker.MakeThing(pawn.RaceProps.corpseDef, null);
             corpse.InnerPawn = pawn;
             GenSpawn.Spawn(corpse, pawn.Position, map, WipeMode.Vanish);
@@ -151,7 +150,7 @@ public static class RespawnWithJobsUtility
         }
         if (pawn.def == null || pawn.kindDef == null)
         {
-            Log.Warning("Tried to spawn pawn without def " + pawn.ToStringSafe<Pawn>() + ".");
+            Log.Warning("Tried to spawn pawn without def " + pawn.ToStringSafe() + ".");
             return;
         }
         pawn.SpawnSetup(map, respawningAfterLoad);
@@ -162,23 +161,30 @@ public static class RespawnWithJobsUtility
         //PawnComponentsUtility.AddComponentsForSpawn(pawn);
         if (!PawnUtility.InValidState(pawn))
         {
-            Log.Error("Pawn " + pawn.ToStringSafe<Pawn>() + " spawned in invalid state. Destroying...");
-            try
-            {
-                pawn.DeSpawn(DestroyMode.Vanish);
-            }
-            catch (Exception ex)
-            {
-                Log.Error(string.Concat(
-                [
-                    "Tried to despawn ",
-                    pawn.ToStringSafe<Pawn>(),
-                    " because of the previous error but couldn't: ",
-                    ex
-                ]));
-            }
-            Find.WorldPawns.PassToWorld(pawn, PawnDiscardDecideMode.Discard);
-            return;
+            VMF_Log.Warning("The pawn has recovered from an invalid state caused by map transition. Please report it with the log to the mod author.\n" +
+                $"State: pawn.health: {pawn.health != null}, pawn.stances: {pawn.stances != null}, pawn.mindState: {pawn.mindState != null}, pawn.needs: {pawn.needs != null}, pawn.ageTracker: {pawn.ageTracker != null}");
+            pawn.health ??= new Pawn_HealthTracker(pawn);
+            pawn.stances ??= new Pawn_StanceTracker(pawn);
+            pawn.mindState ??= new Pawn_MindState(pawn);
+            pawn.needs ??= new Pawn_NeedsTracker(pawn);
+            pawn.ageTracker ??= new Pawn_AgeTracker(pawn);
+            //Log.Error("Pawn " + pawn.ToStringSafe<Pawn>() + " spawned in invalid state. Destroying...");
+            //try
+            //{
+            //    pawn.DeSpawn(DestroyMode.Vanish);
+            //}
+            //catch (Exception ex)
+            //{
+            //    Log.Error(string.Concat(
+            //    [
+            //        "Tried to despawn ",
+            //        pawn.ToStringSafe<Pawn>(),
+            //        " because of the previous error but couldn't: ",
+            //        ex
+            //    ]));
+            //}
+            //Find.WorldPawns.PassToWorld(pawn, PawnDiscardDecideMode.Discard);
+            //return;
         }
         pawn.Drawer.Notify_Spawned();
         pawn.rotationTracker.Notify_Spawned();
@@ -190,26 +196,12 @@ public static class RespawnWithJobsUtility
         pawn.Map.autoSlaughterManager.Notify_PawnSpawned();
         pawn.relations?.everSeenByPlayer = true;
         AddictionUtility.CheckDrugAddictionTeachOpportunity(pawn);
-        Pawn_NeedsTracker pawn_NeedsTracker = pawn.needs;
-        if (pawn_NeedsTracker != null)
-        {
-            Need_Mood mood = pawn_NeedsTracker.mood;
-            if (mood != null)
-            {
-                PawnRecentMemory recentMemory = mood.recentMemory;
-                recentMemory?.Notify_Spawned(respawningAfterLoad);
-            }
-        }
-        Pawn_EquipmentTracker pawn_EquipmentTracker = pawn.equipment;
-        pawn_EquipmentTracker?.Notify_PawnSpawned();
-        Pawn_HealthTracker pawn_HealthTracker = pawn.health;
-        pawn_HealthTracker?.Notify_Spawned();
-        Pawn_MechanitorTracker pawn_MechanitorTracker = pawn.mechanitor;
-        pawn_MechanitorTracker?.Notify_PawnSpawned(respawningAfterLoad);
-        Pawn_MutantTracker pawn_MutantTracker = pawn.mutant;
-        pawn_MutantTracker?.Notify_Spawned(respawningAfterLoad);
-        Pawn_InfectionVectorTracker pawn_InfectionVectorTracker = pawn.infectionVectors;
-        pawn_InfectionVectorTracker?.NotifySpawned(respawningAfterLoad);
+        pawn.needs?.mood?.recentMemory?.Notify_Spawned(respawningAfterLoad);
+        pawn.equipment?.Notify_PawnSpawned();
+        pawn.health?.Notify_Spawned();
+        pawn.mechanitor?.Notify_PawnSpawned(respawningAfterLoad);
+        pawn.mutant?.Notify_Spawned(respawningAfterLoad);
+        pawn.infectionVectors?.NotifySpawned(respawningAfterLoad);
         if (pawn.Faction == Faction.OfPlayer)
         {
             pawn.Ideo?.RecacheColonistBelieverCount();
