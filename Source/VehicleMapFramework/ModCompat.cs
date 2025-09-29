@@ -697,4 +697,11 @@ internal static class ModCompat
     }
 
     public static readonly bool CutPlantsBeforeBuilding = ModsConfig.IsActive("Mlie.CutPlantsBeforeBuilding");
+
+    public static class StackGap
+    {
+        public static readonly bool Active = ModsConfig.IsActive("Andromeda.StackGap");
+
+        public const string HarmonyId = "Andromeda.StackGap";
+    }
 }

@@ -131,19 +131,21 @@ public static class Patch_StoreUtility_IsGoodStoreCell
 }
 
 [HarmonyPatch(typeof(HaulAIUtility), nameof(HaulAIUtility.HaulToCellStorageJob))]
-[PatchLevel(Level.Cautious)]
 public static class Patch_HaulAIUtility_HaulToCellStorageJob
 {
+    [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrPawnMap);
     }
 
+    [HarmonyBefore(ModCompat.StackGap.HarmonyId)]
+    [PatchLevel(Level.Safe)]
     public static void Postfix(Pawn p, IntVec3 storeCell, Job __result)
     {
         if (TargetMapManager.HasTargetMap(p, out var map))
         {
-            __result?.globalTarget = new GlobalTargetInfo(storeCell, map);
+            __result?.globalTarget = new GlobalTargetInfo(storeCell, map);  
         }
     }
 }
