@@ -564,16 +564,17 @@ public static class Patch_Toils_Bed_GotoBed
 {
     public static void Postfix(TargetIndex bedIndex, Toil __result)
     {
-        __result.AddPreInitAction(() =>
+        //Bunk BedsのFailOn処理であらかじめベッドの位置にポジションを変更しておりマップが違う場合にエラーとなるため、endConditionsの先頭でチェックする
+        __result.endConditions.Insert(0, () =>
         {
             var pawn = __result.actor;
             var bed = pawn.CurJob.GetTarget(bedIndex).Thing;
             if (pawn.Map != bed.Map && pawn.CanReach(bed, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, bed.Map, out var exitSpot, out var enterSpot))
             {
-                var nextJob = pawn.CurJob.Clone();
-                pawn.jobs.curDriver.globalFinishActions.Clear();
-                pawn.jobs.StartJob(JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, nextJob), JobCondition.InterruptForced, keepCarryingThingOverride: true);
+                JobAcrossMapsUtility.StartGotoDestMapJob(pawn, exitSpot, enterSpot);
+                return JobCondition.InterruptForced;
             }
+            return JobCondition.Ongoing;
         });
     }
 }
