@@ -1,6 +1,5 @@
 ﻿using RimWorld;
 using SmashTools;
-using System.Collections.Generic;
 using UnityEngine;
 using VehicleMapFramework.VMF_HarmonyPatches;
 using Verse;
@@ -15,25 +14,25 @@ public static class StoreAcrossMapsUtility
     public static bool TryFindBestBetterStoreCellFor(Thing t, Pawn carrier, Map map, StoragePriority currentPriority, Faction faction, ref IntVec3 foundCell, bool needAccurateResult)
     {
         tmpDestMap = null;
-        List<SlotGroup> allGroupsListInPriorityOrder = map.BaseMap().GetCachedMapComponent<CrossMapHaulDestinationManager>().AllGroupsListInPriorityOrder;
+        var allGroupsListInPriorityOrder = map.BaseMap().GetCachedMapComponent<CrossMapHaulDestinationManager>().AllGroupsListInPriorityOrder;
 
         if (allGroupsListInPriorityOrder.Count == 0)
         {
             return false;
         }
-        StoragePriority storagePriority = currentPriority;
+        var storagePriority = currentPriority;
         float num = int.MaxValue;
-        IntVec3 invalid = IntVec3.Invalid;
-        for (int i = 0; i < allGroupsListInPriorityOrder.Count; i++)
+        var invalid = IntVec3.Invalid;
+        for (var i = 0; i < allGroupsListInPriorityOrder.Count; i++)
         {
-            SlotGroup slotGroup = allGroupsListInPriorityOrder[i];
-            Map storeMap = slotGroup.parent?.Map;
+            var slotGroup = allGroupsListInPriorityOrder[i];
+            var storeMap = slotGroup.parent?.Map;
             if (storeMap is null || map == storeMap)
             {
                 continue;
             }
 
-            StoragePriority priority = slotGroup.Settings.Priority;
+            var priority = slotGroup.Settings.Priority;
             if (priority < storagePriority || priority <= currentPriority)
             {
                 break;
@@ -58,9 +57,9 @@ public static class StoreAcrossMapsUtility
         {
             return;
         }
-        IntVec3 a = t.SpawnedOrAnyParentSpawned ? t.PositionHeldOnBaseMap().CellOnAnotherMap(map) : carrier.PositionHeldOnBaseMap().CellOnAnotherMap(map);
-        List<IntVec3> cellsList = slotGroup.CellsList;
-        int count = cellsList.Count;
+        var a = t.SpawnedOrAnyParentSpawned ? t.PositionHeldOnBaseMap().CellOnAnotherMap(map) : carrier.PositionHeldOnBaseMap().CellOnAnotherMap(map);
+        var cellsList = slotGroup.CellsList;
+        var count = cellsList.Count;
         int num;
         if (needAccurateResult)
         {
@@ -70,9 +69,9 @@ public static class StoreAcrossMapsUtility
         {
             num = 0;
         }
-        for (int i = 0; i < count; i++)
+        for (var i = 0; i < count; i++)
         {
-            IntVec3 intVec = cellsList[i];
+            var intVec = cellsList[i];
             float num2 = (a - intVec).LengthHorizontalSquared;
             if (num2 <= closestDistSquared && IsGoodStoreCell(intVec, map, t, carrier, faction))
             {
@@ -125,8 +124,8 @@ public static class StoreAcrossMapsUtility
         {
             return false;
         }
-        List<Thing> thingList = c.GetThingList(map);
-        for (int i = 0; i < thingList.Count; i++)
+        var thingList = c.GetThingList(map);
+        for (var i = 0; i < thingList.Count; i++)
         {
             if (thingList[i] is IConstructible && GenConstruct.BlocksConstruction(thingList[i], t))
             {
@@ -155,7 +154,7 @@ public static class StoreAcrossMapsUtility
                 startMap = carrier.Map;
                 start = carrier.PositionHeld;
             }
-            if (!CrossMapReachabilityUtility.CanReach(startMap, start, c, PathEndMode.ClosestTouch, TraverseParms.For(carrier, Danger.Deadly, TraverseMode.ByPawn, false, false, false), map, out _, out _))
+            if (!CrossMapReachabilityUtility.CanReach(startMap, start, c, PathEndMode.ClosestTouch, TraverseParms.For(carrier), map, out _, out _))
             {
                 return false;
             }
@@ -165,14 +164,14 @@ public static class StoreAcrossMapsUtility
 
     public static bool TryFindBestBetterNonSlotGroupStorageFor(Thing t, Pawn carrier, Map map, StoragePriority currentPriority, Faction faction, ref IHaulDestination haulDestination, bool acceptSamePriority, bool requiresDestReservation)
     {
-        List<IHaulDestination> allHaulDestinationsListInPriorityOrder = map.BaseMap().GetCachedMapComponent<CrossMapHaulDestinationManager>().AllHaulDestinationsListInPriorityOrder;
+        var allHaulDestinationsListInPriorityOrder = map.BaseMap().GetCachedMapComponent<CrossMapHaulDestinationManager>().AllHaulDestinationsListInPriorityOrder;
 
-        Map thingMap = t.SpawnedOrAnyParentSpawned ? t.MapHeld : carrier.MapHeld;
-        IntVec3 intVec = t.SpawnedOrAnyParentSpawned ? t.PositionHeld : carrier.PositionHeld;
-        IntVec3 intVecOnBase = t.SpawnedOrAnyParentSpawned ? t.PositionHeldOnBaseMap() : carrier.PositionHeldOnBaseMap();
-        float num = float.MaxValue;
-        StoragePriority storagePriority = StoragePriority.Unstored;
-        for (int i = 0; i < allHaulDestinationsListInPriorityOrder.Count; i++)
+        var thingMap = t.SpawnedOrAnyParentSpawned ? t.MapHeld : carrier.MapHeld;
+        var intVec = t.SpawnedOrAnyParentSpawned ? t.PositionHeld : carrier.PositionHeld;
+        var intVecOnBase = t.SpawnedOrAnyParentSpawned ? t.PositionHeldOnBaseMap() : carrier.PositionHeldOnBaseMap();
+        var num = float.MaxValue;
+        var storagePriority = StoragePriority.Unstored;
+        for (var i = 0; i < allHaulDestinationsListInPriorityOrder.Count; i++)
         {
             var destMap = allHaulDestinationsListInPriorityOrder[i].Map;
             if (destMap is null || destMap == map)
@@ -182,7 +181,7 @@ public static class StoreAcrossMapsUtility
 
             if (allHaulDestinationsListInPriorityOrder[i] is not ISlotGroupParent && (allHaulDestinationsListInPriorityOrder[i] is not Building_Grave || t.CanBeBuried()))
             {
-                StoragePriority priority = allHaulDestinationsListInPriorityOrder[i].GetStoreSettings().Priority;
+                var priority = allHaulDestinationsListInPriorityOrder[i].GetStoreSettings().Priority;
                 if (priority < storagePriority || (acceptSamePriority && priority < currentPriority) || (!acceptSamePriority && priority <= currentPriority))
                 {
                     break;
@@ -190,7 +189,7 @@ public static class StoreAcrossMapsUtility
                 float num2 = intVecOnBase.DistanceToSquared(allHaulDestinationsListInPriorityOrder[i].PositionOnBaseMap());
                 if (num2 <= num && allHaulDestinationsListInPriorityOrder[i].Accepts(t))
                 {
-                    Thing thing = allHaulDestinationsListInPriorityOrder[i] as Thing;
+                    var thing = allHaulDestinationsListInPriorityOrder[i] as Thing;
                     if (thing == null || thing.Faction == faction)
                     {
                         if (thing != null)
@@ -211,11 +210,11 @@ public static class StoreAcrossMapsUtility
                         {
                             if (thing is IHaulEnroute enroute)
                             {
-                                if (!thingMap.reservationManager.OnlyReservationsForJobDef(thing, JobDefOf.HaulToContainer, false))
+                                if (!thingMap.reservationManager.OnlyReservationsForJobDef(thing, JobDefOf.HaulToContainer))
                                 {
                                     continue;
                                 }
-                                if (enroute.GetSpaceRemainingWithEnroute(t.def, null) <= 0)
+                                if (enroute.GetSpaceRemainingWithEnroute(t.def) <= 0)
                                 {
                                     continue;
                                 }
@@ -236,12 +235,12 @@ public static class StoreAcrossMapsUtility
                         {
                             if (thing != null)
                             {
-                                if (!CrossMapReachabilityUtility.CanReach(thingMap, intVec, thing, PathEndMode.ClosestTouch, TraverseParms.For(carrier, Danger.Deadly, TraverseMode.ByPawn, false, false, false), thing.Map))
+                                if (!CrossMapReachabilityUtility.CanReach(thingMap, intVec, thing, PathEndMode.ClosestTouch, TraverseParms.For(carrier), thing.Map))
                                 {
                                     continue;
                                 }
                             }
-                            else if (!CrossMapReachabilityUtility.CanReach(thingMap, intVec, allHaulDestinationsListInPriorityOrder[i].Position, PathEndMode.ClosestTouch, TraverseParms.For(carrier, Danger.Deadly, TraverseMode.ByPawn, false, false, false), allHaulDestinationsListInPriorityOrder[i].Map))
+                            else if (!CrossMapReachabilityUtility.CanReach(thingMap, intVec, allHaulDestinationsListInPriorityOrder[i].Position, PathEndMode.ClosestTouch, TraverseParms.For(carrier), allHaulDestinationsListInPriorityOrder[i].Map))
                             {
                                 continue;
                             }

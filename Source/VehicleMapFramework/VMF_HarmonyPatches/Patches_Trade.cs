@@ -1,12 +1,12 @@
-﻿using HarmonyLib;
-using RimWorld;
-using RimWorld.Planet;
-using SmashTools;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using HarmonyLib;
+using RimWorld;
+using RimWorld.Planet;
+using SmashTools;
 using Vehicles;
 using Verse;
 using static VehicleMapFramework.MethodInfoCache;
@@ -236,5 +236,5 @@ public static class Patch_IncidentWorker_OrbitalTraderArrival_TryExecuteWorker
         return buildings;
     }
 
-    private static List<Building> buildings = [];
+    private static readonly List<Building> buildings = [];
 }

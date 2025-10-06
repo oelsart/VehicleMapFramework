@@ -1,8 +1,8 @@
-﻿using HarmonyLib;
-using SmashTools;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using HarmonyLib;
+using SmashTools;
 using Verse;
 
 namespace VehicleMapFramework;
@@ -13,14 +13,14 @@ public class ExplosionAcrossMaps : Explosion
     {
         base.StartExplosion(explosionSound, ignoredThings);
 
-        var vehicles = Position.GetRoom(Map)?.ContainedThings<VehiclePawnWithMap>();
+        var vehicles = Position.GetRoom(Map)?.ContainedThings<VehiclePawnWithMap>().ToArray();
         if (vehicles.NullOrEmpty()) return;
 
         var map = Map;
         var pos = Position;
         try
         {
-            foreach (var vehicle in vehicles)
+            foreach (var vehicle in vehicles!)
             {
                 cellsToAffectOnVehicles[vehicle] = SimplePool<List<IntVec3>>.Get();
                 cellsToAffectOnVehicles[vehicle].Clear();
@@ -53,8 +53,8 @@ public class ExplosionAcrossMaps : Explosion
 
     protected override void Tick()
     {
-        int ticksGame = Find.TickManager.TicksGame;
-        int num = cellsToAffect(this).Count - 1;
+        var ticksGame = Find.TickManager.TicksGame;
+        var num = cellsToAffect(this).Count - 1;
         while (num >= 0 && ticksGame >= (int)GetCellAffectTick(this, cellsToAffect(this)[num]))
         {
             try
@@ -63,13 +63,7 @@ public class ExplosionAcrossMaps : Explosion
             }
             catch (Exception ex)
             {
-                Log.Error(string.Concat(
-                [
-                    "Explosion could not affect cell ",
-                    cellsToAffect(this)[num],
-                    ": ",
-                    ex
-                ]));
+                Log.Error(string.Concat("Explosion could not affect cell ", cellsToAffect(this)[num], ": ", ex));
             }
             cellsToAffect(this).RemoveAt(num);
             num--;
@@ -93,13 +87,7 @@ public class ExplosionAcrossMaps : Explosion
                     }
                     catch (Exception ex)
                     {
-                        Log.Error(string.Concat(
-                        [
-                    "Explosion could not affect cell ",
-                    cellsToAffectOnVehicles[vehicle][num],
-                    ": ",
-                    ex
-                        ]));
+                        Log.Error(string.Concat("Explosion could not affect cell ", cellsToAffectOnVehicles[vehicle][num], ": ", ex));
                     }
                     cellsToAffectOnVehicles[vehicle].RemoveAt(num);
                     num--;
@@ -110,9 +98,9 @@ public class ExplosionAcrossMaps : Explosion
         {
             this.VirtualMapTransfer(map, pos);
 
-            if (!cellsToAffect(this).Any<IntVec3>() && !cellsToAffectOnVehicles.Any(v => v.Value.Any<IntVec3>()))
+            if (!cellsToAffect(this).Any() && !cellsToAffectOnVehicles.Any(v => v.Value.Any()))
             {
-                Destroy(DestroyMode.Vanish);
+                Destroy();
             }
         }
     }

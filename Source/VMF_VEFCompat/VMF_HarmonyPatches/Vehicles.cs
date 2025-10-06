@@ -1,11 +1,10 @@
-﻿using HarmonyLib;
-using RimWorld;
-using SmashTools;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
+using HarmonyLib;
+using RimWorld;
+using SmashTools;
 using UnityEngine;
-using Vehicles;
 using Verse;
 using static VehicleMapFramework.MethodInfoCache;
 using static VehicleMapFramework.ModCompat.VVE;
@@ -44,11 +43,7 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
 
         private static Vector3 RotateOffset(Vector3 point, Building garageDoor)
         {
-            if (garageDoor.IsOnNonFocusedVehicleMapOf(out var vehicle))
-            {
-                return Ext_Math.RotatePoint(point, garageDoor.DrawPos, -vehicle.FullRotation.AsAngle);
-            }
-            return point;
+            return garageDoor.IsOnNonFocusedVehicleMapOf(out var vehicle) ? Ext_Math.RotatePoint(point, garageDoor.DrawPos, -vehicle.FullRotation.AsAngle) : point;
         }
     }
 
@@ -65,10 +60,10 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
                 var fuelTank = ___parent.InteractionCell.GetThingList(___parent.Map).FirstOrDefault(t => t.TryGetComp(out compFuelTank));
                 if (fuelTank != null && ___compRefuelable.HasFuel && fuelTank.IsOnVehicleMapOf(out var vehicle))
                 {
-                    CompFueledTravel compFueledTravel = vehicle.CompFueledTravel;
+                    var compFueledTravel = vehicle.CompFueledTravel;
                     if (compFueledTravel != null && compFueledTravel.Fuel < compFueledTravel.FuelCapacity && !compFueledTravel.FuelLeaking)
                     {
-                        float amount = Mathf.Min(compFueledTravel.FuelCapacity - compFueledTravel.Fuel, refuelAmountPerTick(___props));
+                        var amount = Mathf.Min(compFueledTravel.FuelCapacity - compFueledTravel.Fuel, refuelAmountPerTick(___props));
                         compFueledTravel.Refuel(amount);
                         ___compRefuelable.ConsumeFuel(amount);
                     }

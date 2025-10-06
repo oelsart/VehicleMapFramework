@@ -1,5 +1,5 @@
-﻿using HarmonyLib;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using HarmonyLib;
 using UnityEngine;
 using Verse;
 
@@ -37,7 +37,7 @@ public static class Patch_TankNet_DrawTankOutline
 {
     public static bool Prefix(List<IntVec3> ___netCells, Map ___map)
     {
-        GenDrawOnVehicle.DrawFieldEdges(___netCells, ColorLibrary.LightBlue, null, map: ___map);
+        GenDrawOnVehicle.DrawFieldEdges(___netCells, ColorLibrary.LightBlue, map: ___map);
         return false;
     }
 }
@@ -55,5 +55,5 @@ public static class Patch_FishMovementBehavior_PositionWithOffsets
         }
     }
 
-    private static FastInvokeHandler CurrentTank = MethodInvoker.GetHandler(AccessTools.PropertyGetter("Aquariums.AquariumFish:CurrentTank"));
+    private static readonly FastInvokeHandler CurrentTank = MethodInvoker.GetHandler(AccessTools.PropertyGetter("Aquariums.AquariumFish:CurrentTank"));
 }

@@ -1,7 +1,7 @@
-﻿using HarmonyLib;
-using RimWorld.Planet;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Reflection.Emit;
+using HarmonyLib;
+using RimWorld.Planet;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
@@ -33,10 +33,6 @@ public static class Patch_MapComponent_SmartFarming_FinalizeInit
 
     private static PocketMapParent CheckNotVehicleMapParent(PocketMapParent mapParent)
     {
-        if (mapParent is MapParent_Vehicle)
-        {
-            return null;
-        }
-        return mapParent;
+        return mapParent is MapParent_Vehicle ? null : mapParent;
     }
 }

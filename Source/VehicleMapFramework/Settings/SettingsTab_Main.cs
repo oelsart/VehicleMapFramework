@@ -10,13 +10,13 @@ internal class SettingsTab_Main : SettingsTabDrawer
 
     public override string Label => "VMF_Settings.Tab.Main".Translate();
 
-    public override void ResetSettings()
+    protected override void ResetSettings()
     {
         base.ResetSettings();
         var defaultSettings = VehicleMapSettings.DefaultSettings;
-        settings.drawPlanet = defaultSettings.drawPlanet;
-        settings.weightFactor = defaultSettings.weightFactor;
-        settings.drawVehicleMapGrid = defaultSettings.drawVehicleMapGrid;
+        settings.drawPlanet = VehicleMapSettings.Default.drawPlanet;
+        settings.weightFactor = VehicleMapSettings.Default.weightFactor;
+        settings.drawVehicleMapGrid = VehicleMapSettings.Default.drawVehicleMapGrid;
     }
 
     public override void Draw(Rect inRect)

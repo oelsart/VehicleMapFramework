@@ -1,8 +1,8 @@
-﻿using HarmonyLib;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using HarmonyLib;
 using Verse;
 using Verse.AI;
 using static VehicleMapFramework.MethodInfoCache;
@@ -143,7 +143,7 @@ public static class Patch_Verb_UseAbility
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Verb_UseAbility_UpdateTargets
 {
-    private static List<Thing> tmpList = [];
+    private static readonly List<Thing> tmpList = [];
 
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {

@@ -1,11 +1,11 @@
-﻿using HarmonyLib;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using HarmonyLib;
 using RimWorld;
 using RimWorld.Planet;
 using SmashTools;
 using SmashTools.Rendering;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Vehicles;
 using Verse;
 using static VehicleMapFramework.ModCompat;
@@ -16,17 +16,17 @@ namespace VehicleMapFramework
     {
         public static bool placingGravshipVehicle;
 
-        private readonly static Func<IntVec3, Map, AcceptanceReport> IsValidCell = (Func<IntVec3, Map, AcceptanceReport>)AccessTools.Method(typeof(Designator_MoveGravship), "IsValidCell").CreateDelegate(typeof(Func<IntVec3, Map, AcceptanceReport>));
+        private static readonly Func<IntVec3, Map, AcceptanceReport> IsValidCell = (Func<IntVec3, Map, AcceptanceReport>)AccessTools.Method(typeof(Designator_MoveGravship), "IsValidCell").CreateDelegate(typeof(Func<IntVec3, Map, AcceptanceReport>));
 
-        private readonly static Action<Def, Type, HashSet<ushort>> GiveShortHash = (Action<Def, Type, HashSet<ushort>>)AccessTools.Method(typeof(ShortHashGiver), "GiveShortHash").CreateDelegate(typeof(Action<Def, Type, HashSet<ushort>>));
+        private static readonly Action<Def, Type, HashSet<ushort>> GiveShortHash = (Action<Def, Type, HashSet<ushort>>)AccessTools.Method(typeof(ShortHashGiver), "GiveShortHash").CreateDelegate(typeof(Action<Def, Type, HashSet<ushort>>));
 
-        private readonly static Dictionary<Type, HashSet<ushort>> takenHashesPerDeftype = AccessTools.StaticFieldRefAccess<Dictionary<Type, HashSet<ushort>>>(typeof(ShortHashGiver), "takenHashesPerDeftype");
+        private static readonly Dictionary<Type, HashSet<ushort>> takenHashesPerDeftype = AccessTools.StaticFieldRefAccess<Dictionary<Type, HashSet<ushort>>>(typeof(ShortHashGiver), "takenHashesPerDeftype");
 
-        private readonly static Func<WorldComponent_GravshipController, Building_GravEngine, Gravship> RemoveGravshipFromMap =
+        private static readonly Func<WorldComponent_GravshipController, Building_GravEngine, Gravship> RemoveGravshipFromMap =
             (Func<WorldComponent_GravshipController, Building_GravEngine, Gravship>)AccessTools.Method(typeof(WorldComponent_GravshipController), "RemoveGravshipFromMap")
             .CreateDelegate(typeof(Func<WorldComponent_GravshipController, Building_GravEngine, Gravship>));
 
-        public readonly static Func<WorldComponent_GravshipController, Gravship, IntVec3, Map, Building_GravEngine> PlaceGravship =
+        public static readonly Func<WorldComponent_GravshipController, Gravship, IntVec3, Map, Building_GravEngine> PlaceGravship =
             (Func<WorldComponent_GravshipController, Gravship, IntVec3, Map, Building_GravEngine>)AccessTools.Method(typeof(WorldComponent_GravshipController), "PlaceGravship")
             .CreateDelegate(typeof(Func<WorldComponent_GravshipController, Gravship, IntVec3, Map, Building_GravEngine>));
 
@@ -118,7 +118,7 @@ namespace VehicleMapFramework
                 foreach (var r in roomStats)
                 {
                     var room = r.Item1.GetRoom(map);
-                    if (room != null && !room.ExposedToSpace && room.AnyPassable)
+                    if (room is { ExposedToSpace: false, AnyPassable: true })
                     {
                         room.Temperature = r.Temperature;
                         room.Vacuum = r.Vacuum;
@@ -172,7 +172,7 @@ namespace VehicleMapFramework
             var bounds = CellRect.FromCellList(cells);
             var cellRect = bounds.Encapsulate(wheelsRect);
             var outOfBoundsCells = cellRect.Except(cells);
-            var pathGrid = ComponentCache.GetCachedMapComponent<VehiclePathingSystem>(map)[VMF_DefOf.VMF_GravshipVehicleBase].VehiclePathGrid;
+            var pathGrid = map.GetCachedMapComponent<VehiclePathingSystem>()[VMF_DefOf.VMF_GravshipVehicleBase].VehiclePathGrid;
             var unwalkableCells = outOfBoundsCells.Where(c => !pathGrid.WalkableFast(c)).ToList();
             if (unwalkableCells.Any())
             {
@@ -261,7 +261,7 @@ namespace VehicleMapFramework
                 {
                     var c = (r.Item1 - min).RotatedBy(rotCounter) + IntVec3.NorthEast;
                     var room = c.GetRoom(vehiclePawn.VehicleMap);
-                    if (room != null && !room.ExposedToSpace && room.AnyPassable)
+                    if (room is { ExposedToSpace: false, AnyPassable: true })
                     {
                         room.Temperature = r.Temperature;
                         room.Vacuum = r.Vacuum;

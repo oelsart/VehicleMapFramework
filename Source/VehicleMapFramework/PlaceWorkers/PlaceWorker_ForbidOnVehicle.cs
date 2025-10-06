@@ -10,9 +10,7 @@ public class PlaceWorker_ForbidOnVehicle : PlaceWorker
         {
             return true;
         }
-        else
-        {
-            return "VMF_ForbidOnVehicle".Translate();
-        }
+
+        return "VMF_ForbidOnVehicle".Translate();
     }
 }

@@ -1,12 +1,12 @@
-﻿using HarmonyLib;
-using RimWorld;
-using RimWorld.Planet;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
+using HarmonyLib;
+using RimWorld;
+using RimWorld.Planet;
 using UnityEngine;
 using Verse;
 using Verse.AI;
@@ -51,6 +51,8 @@ public static class Patch_Pawn_JobTracker_DetermineNextJob
 [PatchLevel(Level.Sensitive)]
 public static class Patch_JobGiver_Work_TryIssueJobPackage
 {
+    private static readonly List<Map> tmpMaps = [];
+    
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator, MethodBase original)
     {
         var codes = new CodeMatcher(instructions, generator);
@@ -82,7 +84,7 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
 
         //複数マップのセルをスキャンする
         codes.MatchStartForward(new CodeMatch(c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalType == typeof(IEnumerable<IntVec3>)));
-        var locals = original.GetMethodBody().LocalVariables;
+        var locals = original.GetMethodBody()?.LocalVariables;
         var innerTypeIndex = locals.FirstIndexOf(l => l.LocalType.GetCustomAttribute<CompilerGeneratedAttribute>() != null); //たぶん0のはずだけど一応
         var innerStructIndex = locals.FirstIndexOf(l => l.LocalType.GetCustomAttribute<CompilerGeneratedAttribute>() != null && l.LocalType.IsStruct());
         codes.InsertAfterAndAdvance(
@@ -123,12 +125,10 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
         {
             return list;
         }
-        var maps = pawn.Map.BaseMapAndVehicleMaps().Except(pawn.Map);
-        if (maps.Any())
-        {
-            return maps.SelectMany(m => m.listerThings.ThingsMatching(scanner.PotentialWorkThingRequest)).ConcatIfNotNull(list).Distinct();
-        }
-        return list;
+
+        tmpMaps.Clear();
+        tmpMaps.AddRange(pawn.Map.BaseMapAndVehicleMaps().Except(pawn.Map));
+        return tmpMaps.Any() ? tmpMaps.SelectMany(m => m.listerThings.ThingsMatching(scanner.PotentialWorkThingRequest)).ConcatIfNotNull(list).Distinct() : list;
     }
 
     internal static IEnumerable<Thing> PotentialWorkThingsGlobalAll(WorkGiver_Scanner scanner, Pawn pawn)
@@ -241,12 +241,12 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
             {
                 pawn.VirtualMapTransfer(map2);
                 var positionOnMap = map2.IsVehicleMapOf(out var vehicle) ? basePos.ToVehicleMapCoord(vehicle) : basePos;
-                IEnumerable<IntVec3> enumerable2 = scanner.PotentialWorkCellsGlobal(pawn);
-                foreach (IntVec3 c in enumerable2)
+                var enumerable2 = scanner.PotentialWorkCellsGlobal(pawn);
+                foreach (var c in enumerable2)
                 {
-                    bool flag2 = false;
+                    var flag2 = false;
                     float num4 = (c - positionOnMap).LengthHorizontalSquared;
-                    float num5 = 0f;
+                    var num5 = 0f;
                     try
                     {
                         Patch_ForbidUtility_IsForbidden.Map = map2;
@@ -407,8 +407,8 @@ public static class Patch_Pawn_PathFollower_StartPath
     {
         if (___pawn.CurJob is null) return true;
 
-        bool flag = false;
-        Map destMap = dest.Thing?.MapHeld;
+        var flag = false;
+        var destMap = dest.Thing?.MapHeld;
         if (destMap is null)
         {
             flag = true;
@@ -515,7 +515,7 @@ public static class Patch_ReservationUtility_ReserveSittableOrSpot
 }
 
 //GotoCellと同じやり方でSittableOrSpotのチェック
-[HarmonyPatch(typeof(ReservationUtility), nameof(ReservationUtility.CanReserveSittableOrSpot), [typeof(Pawn), typeof(IntVec3), typeof(Thing), typeof(bool)])]
+[HarmonyPatch(typeof(ReservationUtility), nameof(ReservationUtility.CanReserveSittableOrSpot), typeof(Pawn), typeof(IntVec3), typeof(Thing), typeof(bool))]
 [PatchLevel(Level.Safe)]
 public static class Patch_ReservationUtility_CanReserveSittableOrSpot
 {
@@ -659,12 +659,13 @@ public static class Patch_RegionProcessorClosestThingReachable_ProcessThing
     [HarmonyReversePatch(HarmonyReversePatchType.Snapshot)]
     public static void ProcessThing(RegionProcessorClosestThingReachable instance, Region reg, Thing t)
     {
+        _ = Transpiler(null);
+        throw new NotImplementedException();
+
         static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             return instructions.MethodReplacer(CachedMethodInfo.g_Thing_PositionHeld, CachedMethodInfo.m_PositionHeldOnBaseMap);
         }
-        _ = Transpiler(null);
-        throw new NotImplementedException();
     }
 }
 
@@ -676,14 +677,15 @@ public static class Patch_RegionProcessorClosestThingReachable_RegionProcessor
     [HarmonyReversePatch(HarmonyReversePatchType.Snapshot)]
     public static bool RegionProcessorBaseMapCoord(this RegionProcessorClosestThingReachable instance, Region reg)
     {
+        _ = Transpiler(null);
+        throw new NotImplementedException();
+
         static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             var m_ProcessThingOrig = AccessTools.Method(typeof(RegionProcessorClosestThingReachable), "ProcessThing");
             var m_ProcessThing = AccessTools.Method(typeof(Patch_RegionProcessorClosestThingReachable_ProcessThing), nameof(Patch_RegionProcessorClosestThingReachable_ProcessThing.ProcessThing));
             return instructions.MethodReplacer(m_ProcessThingOrig, m_ProcessThing);
         }
-        _ = Transpiler(null);
-        throw new NotImplementedException();
     }
 }
 
@@ -727,7 +729,7 @@ public static class Patch_ReservationManager_Reserve
     }
 }
 
-[HarmonyPatch(typeof(ReservationManager), nameof(ReservationManager.ReservedBy), [typeof(LocalTargetInfo), typeof(Pawn), typeof(Job)])]
+[HarmonyPatch(typeof(ReservationManager), nameof(ReservationManager.ReservedBy), typeof(LocalTargetInfo), typeof(Pawn), typeof(Job))]
 [PatchLevel(Level.Safe)]
 public static class Patch_ReservationManager_ReservedBy
 {
@@ -810,7 +812,7 @@ public static class Patch_ReservationManager_FirstRespectedReserver
 [PatchLevel(Level.Sensitive)]
 public static class Patch_FoodUtility_BestFoodSourceOnMap
 {
-    private static List<Thing> searchSet = [];
+    private static readonly List<Thing> searchSet = [];
 
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
@@ -969,11 +971,7 @@ public static class Patch_ToilFailConditions_FailOnBurningImmobile
     private static Map ThingMapOrTargetMapOrPawnMap(Pawn pawn, LocalTargetInfo target)
     {
         var map = target.Thing?.MapHeld ?? TargetMapManager.TargetMapOrPawnMap(pawn);
-        if (!target.Cell.InBounds(map))
-        {
-            return map.BaseMap();
-        }
-        return map;
+        return !target.Cell.InBounds(map) ? map.BaseMap() : map;
     }
 }
 
@@ -1004,7 +1002,7 @@ public static class Patch_TransporterUtility_GetTransportersInGroup
 
         foreach (var vehicle in VehiclePawnWithMapCache.AllVehiclesOn(map.BaseMap()))
         {
-            IEnumerable<Thing> list = vehicle.VehicleMap.listerThings.GetAllThings(t => t.HasComp<CompBuildableContainer>());
+            var list = vehicle.VehicleMap.listerThings.GetAllThings(t => t.HasComp<CompBuildableContainer>());
             foreach (var container in list)
             {
                 CompTransporter compTransporter = container.TryGetComp<CompBuildableContainer>();
@@ -1023,7 +1021,7 @@ public static class Patch_ThingOwner_NotifyAdded
 {
     public static void Postfix(Thing item, IThingHolder ___owner)
     {
-        if (___owner is Pawn_InventoryTracker inventory && inventory.pawn is VehiclePawnWithMap vehicle)
+        if (___owner is Pawn_InventoryTracker { pawn: VehiclePawnWithMap vehicle })
         {
             foreach (var container in vehicle.VehicleMap.listerBuildings.allBuildingsColonist.Where(b => b.HasComp<CompBuildableContainer>()))
             {
@@ -1040,7 +1038,7 @@ public static class Patch_ThingOwner_NotifyAddedAndMergedWith
 {
     public static void Postfix(Thing item, IThingHolder ___owner, int mergedCount)
     {
-        if (___owner is Pawn_InventoryTracker inventory && inventory.pawn is VehiclePawnWithMap vehicle)
+        if (___owner is Pawn_InventoryTracker { pawn: VehiclePawnWithMap vehicle })
         {
             foreach (var container in vehicle.VehicleMap.listerBuildings.allBuildingsColonist.Where(b => b.HasComp<CompBuildableContainer>()))
             {
@@ -1135,8 +1133,7 @@ public static class Patch_WorkGiver_ConstructDeliverResources_ResourceDeliverJob
             if (!t.GetDeclaredFields().Select(f => f.FieldType).SequenceEqual(fields)) return null;
             return t.GetDeclaredMethods().FirstOrDefault(m =>
             {
-                if (!m.GetParameters().Select(p => p.ParameterType).SequenceEqual(args)) return false;
-                return m.Name.Contains("<ResourceDeliverJobFor>");
+                return m.GetParameters().Select(p => p.ParameterType).SequenceEqual(args) && m.Name.Contains("<ResourceDeliverJobFor>");
             });
         });
     }

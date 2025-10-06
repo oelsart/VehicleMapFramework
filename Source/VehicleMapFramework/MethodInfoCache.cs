@@ -1,9 +1,9 @@
-﻿using HarmonyLib;
-using RimWorld;
-using SmashTools;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
+using HarmonyLib;
+using RimWorld;
+using SmashTools;
 using UnityEngine;
 using VehicleMapFramework.VMF_HarmonyPatches;
 using Vehicles;
@@ -13,7 +13,7 @@ namespace VehicleMapFramework;
 
 public class MethodInfoCache
 {
-    private readonly static Verse.WeakReference<MethodInfoCache> cacheInt = new(null);
+    private static readonly Verse.WeakReference<MethodInfoCache> cacheInt = new(null);
 
     public static MethodInfoCache CachedMethodInfo
     {

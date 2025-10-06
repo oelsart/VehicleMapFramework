@@ -1,8 +1,8 @@
-﻿using RimWorld;
-using SmashTools;
-using System;
+﻿using System;
 using System.Linq;
 using System.Text;
+using RimWorld;
+using SmashTools;
 using UnityEngine;
 using Verse;
 
@@ -16,9 +16,9 @@ public class SectionLayer_LightingOnVehicle : SectionLayer
 
     private const byte RoofedAreaMinSkyCover = 100;
 
-    private MaterialPropertyBlock propertyBlockColorDodge = new();
+    private readonly MaterialPropertyBlock propertyBlockColorDodge = new();
 
-    private MaterialPropertyBlock propertyBlockNormalLight = new();
+    private readonly MaterialPropertyBlock propertyBlockNormalLight = new();
 
     private bool expandWest;
 
@@ -56,7 +56,7 @@ public class SectionLayer_LightingOnVehicle : SectionLayer
         }
         var baseMap = Map.BaseMap();
         var angle = Ext_Math.RotateAngle(vehicle.FullRotation.AsAngle, extraRotation);
-        float a = Mathf.Clamp01(1f - Mathf.Min(baseMap.gameConditionManager.MapBrightness, baseMap.skyManager.CurSkyGlow));
+        var a = Mathf.Clamp01(1f - Mathf.Min(baseMap.gameConditionManager.MapBrightness, baseMap.skyManager.CurSkyGlow));
         propertyBlockColorDodge.SetColor(ShaderPropertyIDs.ColorTwo, new Color(1f, 1f, 1f, a));
         propertyBlockNormalLight.SetColor(ShaderPropertyIDs.Color, new Color(1f, 1f, 1f, 1f - a));
         foreach (var subMesh in subMeshes)
@@ -77,8 +77,8 @@ public class SectionLayer_LightingOnVehicle : SectionLayer
 
     public string GlowReportAt(IntVec3 c)
     {
-        Color32[] colors = GetSubMesh(VMF_Materials.LightOverlayColorDodge).mesh.colors32;
-        CalculateVertexIndices(c.x, c.z, out int num, out int num2, out int num3, out int num4, out int num5);
+        var colors = GetSubMesh(VMF_Materials.LightOverlayColorDodge).mesh.colors32;
+        CalculateVertexIndices(c.x, c.z, out var num, out var num2, out var num3, out var num4, out var num5);
         StringBuilder stringBuilder = new();
         stringBuilder.Append("BL=" + colors[num]);
         stringBuilder.Append("\nTL=" + colors[num2]);
@@ -94,8 +94,8 @@ public class SectionLayer_LightingOnVehicle : SectionLayer
         {
             return;
         }
-        LayerSubMesh subMesh = GetSubMesh(VMF_Materials.LightOverlayColorDodge);
-        LayerSubMesh subMesh2 = GetSubMesh(MatBases.LightOverlay);
+        var subMesh = GetSubMesh(VMF_Materials.LightOverlayColorDodge);
+        var subMesh2 = GetSubMesh(MatBases.LightOverlay);
         if (subMesh.verts.Count == 0)
         {
             MakeBaseGeometry(subMesh, AltitudeLayer.LightingOverlay.AltitudeFor().YOffset());
@@ -104,44 +104,44 @@ public class SectionLayer_LightingOnVehicle : SectionLayer
         {
             MakeBaseGeometry(subMesh2, AltitudeLayer.LightingOverlay.AltitudeFor().YOffset());
         }
-        Color32[] array = new Color32[subMesh.verts.Count];
-        Color32[] array2 = new Color32[subMesh2.verts.Count];
+        var array = new Color32[subMesh.verts.Count];
+        var array2 = new Color32[subMesh2.verts.Count];
         var origRect = new CellRect(section.botLeft.x, section.botLeft.z, 17, 17);
         origRect.ClipInsideMap(Map);
-        int maxX = origRect.maxX;
-        int maxZ = origRect.maxZ;
-        int width = sectRect.Width;
-        Map map = Map;
-        int x = map.Size.x;
+        var maxX = origRect.maxX;
+        var maxZ = origRect.maxZ;
+        var width = sectRect.Width;
+        var map = Map;
+        var x = map.Size.x;
         Thing[] innerArray = map.edificeGrid.InnerArray;
-        int num = innerArray.Length;
-        RoofGrid roofGrid = map.roofGrid;
-        CellIndices cellIndices = map.cellIndices;
-        CalculateVertexIndices(origRect.minX, origRect.minZ, out int num2, out _, out _, out _, out _);
-        int num7 = cellIndices.CellToIndex(new IntVec3(origRect.minX, 0, origRect.minZ));
-        int[] array3 = new int[4];
+        var num = innerArray.Length;
+        var roofGrid = map.roofGrid;
+        var cellIndices = map.cellIndices;
+        CalculateVertexIndices(origRect.minX, origRect.minZ, out var num2, out _, out _, out _, out _);
+        var num7 = cellIndices.CellToIndex(new IntVec3(origRect.minX, 0, origRect.minZ));
+        var array3 = new int[4];
         array3[0] = -x - 1;
         array3[1] = -x;
         array3[2] = -1;
-        int[] array4 = new int[4];
+        var array4 = new int[4];
         array4[0] = -1;
         array4[1] = -1;
-        for (int i = origRect.minZ; i <= maxZ + 1; i++)
+        for (var i = origRect.minZ; i <= maxZ + 1; i++)
         {
-            int num8 = num7 / x;
-            int j = origRect.minX;
+            var num8 = num7 / x;
+            var j = origRect.minX;
             while (j <= maxX + 1)
             {
                 ColorInt colorInt = new(0, 0, 0, 0);
-                int num9 = 0;
-                bool flag = false;
-                for (int k = 0; k < 4; k++)
+                var num9 = 0;
+                var flag = false;
+                for (var k = 0; k < 4; k++)
                 {
-                    int num10 = num7 + array3[k];
+                    var num10 = num7 + array3[k];
                     if (num10 >= 0 && num10 < num && num10 / x == num8 + array4[k])
                     {
-                        Thing thing = innerArray[num10];
-                        RoofDef roofDef = roofGrid.RoofAt(num10);
+                        var thing = innerArray[num10];
+                        var roofDef = roofGrid.RoofAt(num10);
                         if (roofDef != null && (roofDef.isThickRoof || thing == null || !thing.def.holdsRoof || thing.def.altitudeLayer == AltitudeLayer.DoorMoveable))
                         {
                             flag = true;
@@ -172,7 +172,7 @@ public class SectionLayer_LightingOnVehicle : SectionLayer
                 num2++;
                 num7++;
             }
-            int num11 = maxX + 2 - sectRect.minX;
+            var num11 = maxX + 2 - sectRect.minX;
             var offset = num11;
             if (expandWest) offset -= ExpandSize;
             num2 -= offset;
@@ -181,14 +181,14 @@ public class SectionLayer_LightingOnVehicle : SectionLayer
             num7 += map.Size.x;
         }
 
-        CalculateVertexIndices(origRect.minX, origRect.minZ, out int num12, out _, out int _, out int _, out int num13);
-        int num14 = cellIndices.CellToIndex(origRect.minX, origRect.minZ);
-        for (int l = origRect.minZ; l <= maxZ; l++)
+        CalculateVertexIndices(origRect.minX, origRect.minZ, out var num12, out _, out var _, out var _, out var num13);
+        var num14 = cellIndices.CellToIndex(origRect.minX, origRect.minZ);
+        for (var l = origRect.minZ; l <= maxZ; l++)
         {
-            int m = origRect.minX;
+            var m = origRect.minX;
             while (m <= maxX)
             {
-                ColorInt colorInt2 = default(ColorInt) + array[num12];
+                var colorInt2 = default(ColorInt) + array[num12];
                 colorInt2 += array[num12 + 1];
                 colorInt2 += array[num12 + width + 1];
                 colorInt2 += array[num12 + width + 2];
@@ -200,7 +200,7 @@ public class SectionLayer_LightingOnVehicle : SectionLayer
                 array2[num13] = new Color32((byte)(colorInt2.r / 4), (byte)(colorInt2.g / 4), (byte)(colorInt2.b / 4), (byte)(colorInt2.a / 4));
                 if (array[num13].a < RoofedAreaMinSkyCover && roofGrid.Roofed(num14))
                 {
-                    Thing thing2 = innerArray[num14];
+                    var thing2 = innerArray[num14];
                     if (thing2 == null || !thing2.def.holdsRoof)
                     {
                         array[num13].a = RoofedAreaMinSkyCover;
@@ -224,16 +224,6 @@ public class SectionLayer_LightingOnVehicle : SectionLayer
         var rect = new CellRect(section.botLeft.x, section.botLeft.z, 17, 17);
         rect.ClipInsideMap(Map);
         rect = rect.MovedBy(-rect.Min);
-
-        int IndexGetterCorner(IntVec3 c)
-        {
-            return (((expandSouth ? ExpandSize : 0) + c.z) * (width + 1)) + (expandWest ? ExpandSize : 0) + c.x;
-        }
-
-        int IndexGetterCenter(IntVec3 c)
-        {
-            return firstCenterInd + (((expandSouth ? ExpandSize : 0) + c.z) * width) + (expandWest ? ExpandSize : 0) + c.x;
-        }
 
         if (expandEast || expandSouth || expandEast || expandNorth)
         {
@@ -285,14 +275,16 @@ public class SectionLayer_LightingOnVehicle : SectionLayer
                 {
                     var edge = prevRect.ClosestCellTo(cell);
                     var cardinal = (edge - cell).IsCardinal;
-                    byte Decrease(byte cur)
-                    {
-                        return (byte)Math.Max(0, cur - (cur / i) - ((cardinal ? 50 : 100) / ExpandSize));
-                    }
                     var edgeColorCorner = array[IndexGetterCorner(edge)];
                     var index = IndexGetterCorner(cell);
                     array[index] = new Color32(Decrease(edgeColorCorner.r), Decrease(edgeColorCorner.g), Decrease(edgeColorCorner.b), edgeColorCorner.a);
                     array2[index] = new Color32(glow, glow, glow, glow);
+                    continue;
+
+                    byte Decrease(byte cur)
+                    {
+                        return (byte)Math.Max(0, cur - (cur / i) - ((cardinal ? 50 : 100) / ExpandSize));
+                    }
                 }
 
                 cells = [];
@@ -315,7 +307,7 @@ public class SectionLayer_LightingOnVehicle : SectionLayer
                 foreach (var cell in cells)
                 {
                     var corner = IndexGetterCorner(cell);
-                    ColorInt colorInt = default(ColorInt) + array[corner];
+                    var colorInt = default(ColorInt) + array[corner];
                     colorInt += array[corner + 1];
                     colorInt += array[corner + width + 1];
                     colorInt += array[corner + width + 2];
@@ -328,6 +320,17 @@ public class SectionLayer_LightingOnVehicle : SectionLayer
 
         subMesh.mesh.colors32 = array;
         subMesh2.mesh.colors32 = array2;
+        return;
+
+        int IndexGetterCorner(IntVec3 c)
+        {
+            return (((expandSouth ? ExpandSize : 0) + c.z) * (width + 1)) + (expandWest ? ExpandSize : 0) + c.x;
+        }
+
+        int IndexGetterCenter(IntVec3 c)
+        {
+            return firstCenterInd + (((expandSouth ? ExpandSize : 0) + c.z) * width) + (expandWest ? ExpandSize : 0) + c.x;
+        }
     }
 
     private void MakeBaseGeometry(LayerSubMesh sm, float altitude)
@@ -356,29 +359,29 @@ public class SectionLayer_LightingOnVehicle : SectionLayer
             expandNorth = true;
             sectRect.maxZ += ExpandSize;
         }
-        int capacity = ((sectRect.Width + 1) * (sectRect.Height + 1)) + sectRect.Area;
+        var capacity = ((sectRect.Width + 1) * (sectRect.Height + 1)) + sectRect.Area;
         sm.verts.Capacity = capacity;
-        for (int i = sectRect.minZ; i <= sectRect.maxZ + 1; i++)
+        for (var i = sectRect.minZ; i <= sectRect.maxZ + 1; i++)
         {
-            for (int j = sectRect.minX; j <= sectRect.maxX + 1; j++)
+            for (var j = sectRect.minX; j <= sectRect.maxX + 1; j++)
             {
                 sm.verts.Add(new Vector3(j, altitude, i));
             }
         }
         firstCenterInd = sm.verts.Count;
-        for (int k = sectRect.minZ; k <= sectRect.maxZ; k++)
+        for (var k = sectRect.minZ; k <= sectRect.maxZ; k++)
         {
-            for (int l = sectRect.minX; l <= sectRect.maxX; l++)
+            for (var l = sectRect.minX; l <= sectRect.maxX; l++)
             {
                 sm.verts.Add(new Vector3(l + 0.5f, altitude, k + 0.5f));
             }
         }
         sm.tris.Capacity = sectRect.Area * 4 * 3;
-        for (int m = sectRect.minZ; m <= sectRect.maxZ; m++)
+        for (var m = sectRect.minZ; m <= sectRect.maxZ; m++)
         {
-            for (int n = sectRect.minX; n <= sectRect.maxX; n++)
+            for (var n = sectRect.minX; n <= sectRect.maxX; n++)
             {
-                CalculateVertexIndices(n, m, out int item, out int item2, out int item3, out int item4, out int item5);
+                CalculateVertexIndices(n, m, out var item, out var item2, out var item3, out var item4, out var item5);
                 sm.tris.Add(item);
                 sm.tris.Add(item5);
                 sm.tris.Add(item4);
@@ -398,8 +401,8 @@ public class SectionLayer_LightingOnVehicle : SectionLayer
 
     private void CalculateVertexIndices(int worldX, int worldZ, out int botLeft, out int topLeft, out int topRight, out int botRight, out int center)
     {
-        int num = worldX - sectRect.minX;
-        int num2 = worldZ - sectRect.minZ;
+        var num = worldX - sectRect.minX;
+        var num2 = worldZ - sectRect.minZ;
         botLeft = (num2 * (sectRect.Width + 1)) + num;
         topLeft = ((num2 + 1) * (sectRect.Width + 1)) + num;
         topRight = ((num2 + 1) * (sectRect.Width + 1)) + num + 1;

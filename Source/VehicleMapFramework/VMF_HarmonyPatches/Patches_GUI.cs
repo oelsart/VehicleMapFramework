@@ -1,10 +1,10 @@
-﻿using HarmonyLib;
-using RimWorld;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using HarmonyLib;
+using RimWorld;
 using UnityEngine;
 using Verse;
 using static VehicleMapFramework.MethodInfoCache;
@@ -26,7 +26,7 @@ public static class Patch_ThingOverlays_ThingOverlaysOnGUI
         {
             return;
         }
-        CellRect currentViewRect = Find.CameraDriver.CurrentViewRect;
+        var currentViewRect = Find.CameraDriver.CurrentViewRect;
         foreach (var thing in vehicles.SelectMany(v => v.CurrentLevel.listerThings.ThingsInGroup(ThingRequestGroup.HasGUIOverlay)))
         {
             if (currentViewRect.Contains(thing.PositionOnBaseMap())/* && !Find.CurrentMap.fogGrid.IsFogged(thing.PositionOnBaseMap())*/) //車両マップである時点でFoggedはスキップしていいはず
@@ -37,13 +37,7 @@ public static class Patch_ThingOverlays_ThingOverlaysOnGUI
                 }
                 catch (Exception ex)
                 {
-                    Log.Error(string.Concat(
-                    [
-                        "Exception drawing ThingOverlay for ",
-                        thing,
-                        ": ",
-                        ex
-                    ]));
+                    Log.Error(string.Concat("Exception drawing ThingOverlay for ", thing, ": ", ex));
                 }
             }
         }
@@ -180,7 +174,7 @@ public static class Patch_BeautyDrawer_DrawBeautyAroundMouse
 
     private static Vector2 LabelDrawPosForOffset(IntVec3 center)
     {
-        Vector3 position = center.ToVector3ShiftedWithAltitude(AltitudeLayer.MetaOverlays).ToBaseMapCoord();
+        var position = center.ToVector3ShiftedWithAltitude(AltitudeLayer.MetaOverlays).ToBaseMapCoord();
         Vector2 vector = Find.Camera.WorldToScreenPoint(position) / Prefs.UIScale;
         vector.y = UI.screenHeight - vector.y;
         vector.y -= 1f;

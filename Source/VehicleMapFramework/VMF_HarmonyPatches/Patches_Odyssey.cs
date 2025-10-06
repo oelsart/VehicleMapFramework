@@ -1,9 +1,8 @@
-﻿using HarmonyLib;
-using RimWorld;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Reflection.Emit;
-using Vehicles;
+using HarmonyLib;
+using RimWorld;
 using Verse;
 using static VehicleMapFramework.MethodInfoCache;
 
@@ -31,6 +30,10 @@ public static class Patch_Building_GravEngine_UpdateSubstructureIfNeeded
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
         var codes = new CodeMatcher(instructions, generator);
+        ReplaceType(typeof(SectionLayer_GravshipHull), typeof(SectionLayer_GravshipHullOnVehicle));
+        ReplaceType(typeof(SectionLayer_SubstructureProps), typeof(SectionLayer_SubstructurePropsOnVehicle));
+        return codes.Instructions();
+
         void ReplaceType(Type type, Type type2)
         {
             codes.MatchStartForward(new CodeMatch(OpCodes.Ldtoken, type));
@@ -45,9 +48,6 @@ public static class Patch_Building_GravEngine_UpdateSubstructureIfNeeded
                 new CodeInstruction(OpCodes.Pop),
                 new CodeInstruction(OpCodes.Ldtoken, type2));
         }
-        ReplaceType(typeof(SectionLayer_GravshipHull), typeof(SectionLayer_GravshipHullOnVehicle));
-        ReplaceType(typeof(SectionLayer_SubstructureProps), typeof(SectionLayer_SubstructurePropsOnVehicle));
-        return codes.Instructions();
     }
 }
 

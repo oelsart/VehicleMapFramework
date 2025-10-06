@@ -1,7 +1,7 @@
-﻿using Gilzoide.ManagedJobs;
-using RimWorld;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using Gilzoide.ManagedJobs;
+using RimWorld;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
@@ -18,15 +18,15 @@ public static class DynamicDrawManagerOnVehicle
         {
             return;
         }
-        bool flag = SilhouetteUtility.CanHighlightAny();
+        var flag = SilhouetteUtility.CanHighlightAny();
         var drawThings = map.dynamicDrawManager.DrawThings;
-        NativeArray<ThingCullDetails> details = new(drawThings.Count, Allocator.TempJob, NativeArrayOptions.ClearMemory);
+        NativeArray<ThingCullDetails> details = new(drawThings.Count, Allocator.TempJob);
         ComputeCulledThings(details, map, drawThings);
         if (!DebugViewSettings.singleThreadedDrawing)
         {
             using (new ProfilerBlock("Ensure Graphics Initialized"))
             {
-                for (int i = 0; i < details.Length; i++)
+                for (var i = 0; i < details.Length; i++)
                 {
                     if (details[i].shouldDraw)
                     {
@@ -40,7 +40,7 @@ public static class DynamicDrawManagerOnVehicle
         {
             using (new ProfilerBlock("Draw Visible"))
             {
-                for (int j = 0; j < details.Length; j++)
+                for (var j = 0; j < details.Length; j++)
                 {
                     if (details[j].shouldDraw || details[j].shouldDrawShadow)
                     {
@@ -57,7 +57,7 @@ public static class DynamicDrawManagerOnVehicle
                         }
                         catch (Exception arg)
                         {
-                            Log.Error(string.Format("Exception drawing {0}: {1}", drawThings[j], arg));
+                            Log.Error($"Exception drawing {drawThings[j]}: {arg}");
                         }
                     }
                 }
@@ -69,7 +69,7 @@ public static class DynamicDrawManagerOnVehicle
         }
         catch (Exception arg2)
         {
-            Log.Error(string.Format("Exception drawing dynamic things: {0}", arg2));
+            Log.Error($"Exception drawing dynamic things: {arg2}");
         }
         finally
         {
@@ -85,13 +85,13 @@ public static class DynamicDrawManagerOnVehicle
             {
                 details = [.. details],
                 things = drawThings
-            }).Schedule(details.Length, UnityData.GetIdealBatchCount(details.Length), default).Complete();
+            }).Schedule(details.Length, UnityData.GetIdealBatchCount(details.Length)).Complete();
         }
     }
 
     private static void ComputeCulledThings(NativeArray<ThingCullDetails> details, Map map, IReadOnlyList<Thing> drawThings)
     {
-        CellRect cellRect = Find.CameraDriver.CurrentViewRect;
+        var cellRect = Find.CameraDriver.CurrentViewRect;
         cellRect = cellRect.ExpandedBy(1);
         if (map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
         {
@@ -99,9 +99,9 @@ public static class DynamicDrawManagerOnVehicle
         }
         using (new ProfilerBlock("Prepare cull job"))
         {
-            for (int i = 0; i < drawThings.Count; i++)
+            for (var i = 0; i < drawThings.Count; i++)
             {
-                Thing thing = drawThings[i];
+                var thing = drawThings[i];
                 ThingCullDetails value = new()
                 {
                     cell = thing.Position,
@@ -124,7 +124,7 @@ public static class DynamicDrawManagerOnVehicle
                 details = details,
                 checkShadows = MatBases.SunShadow.shader.isSupported,
                 shadowViewRect = GetSunShadowsViewRect(map, cellRect)
-            }.Schedule(details.Length, UnityData.GetIdealBatchCount(details.Length), default).Complete();
+            }.Schedule(details.Length, UnityData.GetIdealBatchCount(details.Length)).Complete();
         }
     }
 
@@ -138,7 +138,7 @@ public static class DynamicDrawManagerOnVehicle
         {
             return cachedRect[map].rect;
         }
-        GenCelestial.LightInfo lightSourceInfo = GenCelestial.GetLightSourceInfo(map, GenCelestial.LightType.Shadow);
+        var lightSourceInfo = GenCelestial.GetLightSourceInfo(map, GenCelestial.LightType.Shadow);
         if (lightSourceInfo.vector.x < 0f)
         {
             rect.maxX -= Mathf.FloorToInt(lightSourceInfo.vector.x);
@@ -163,20 +163,20 @@ public static class DynamicDrawManagerOnVehicle
         return cachedRect[map].rect;
     }
 
-    private static Dictionary<Map, (int frame, CellRect rect)> cachedRect = [];
+    private static readonly Dictionary<Map, (int frame, CellRect rect)> cachedRect = [];
 
     private static void DrawSilhouettes(NativeArray<ThingCullDetails> details, IReadOnlyList<Thing> drawThings)
     {
         using (new ProfilerBlock("Prepare matrices job"))
         {
-            for (int i = 0; i < details.Length; i++)
+            for (var i = 0; i < details.Length; i++)
             {
                 if (details[i].shouldDraw)
                 {
-                    Thing thing = drawThings[i];
+                    var thing = drawThings[i];
                     if (SilhouetteUtility.ShouldDrawSilhouette(thing) && thing is Pawn pawn)
                     {
-                        ThingCullDetails value = details[i];
+                        var value = details[i];
                         value.pos = pawn.Drawer.renderer.SilhouettePos;
                         value.drawSize = pawn.Drawer.renderer.SilhouetteGraphic.drawSize;
                         value.drawSilhouette = true;
@@ -192,11 +192,11 @@ public static class DynamicDrawManagerOnVehicle
                 inverseFovScale = Find.CameraDriver.InverseFovScale,
                 altitude = AltitudeLayer.Silhouettes.AltitudeFor(),
                 details = details
-            }.Schedule(details.Length, UnityData.GetIdealBatchCount(details.Length), default).Complete();
+            }.Schedule(details.Length, UnityData.GetIdealBatchCount(details.Length)).Complete();
         }
         using (new ProfilerBlock("Draw silhouettes"))
         {
-            for (int j = 0; j < details.Length; j++)
+            for (var j = 0; j < details.Length; j++)
             {
                 if (details[j].drawSilhouette && drawThings[j] is Pawn thing2)
                 {
@@ -212,7 +212,7 @@ public static class DynamicDrawManagerOnVehicle
         [BurstCompile]
         public void Execute(int index)
         {
-            ThingCullDetails thingCullDetails = details[index];
+            var thingCullDetails = details[index];
             _ = CellIndicesUtility.CellToIndex(thingCullDetails.cell, mapSizeX);
             //if (!thingCullDetails.seeThroughFog && this.fogGrid[index2])
             //{
@@ -282,13 +282,13 @@ public static class DynamicDrawManagerOnVehicle
         [BurstCompile]
         public void Execute(int index)
         {
-            ThingCullDetails thingCullDetails = details[index];
+            var thingCullDetails = details[index];
             if (!thingCullDetails.drawSilhouette)
             {
                 return;
             }
             Vector3 vector = new(thingCullDetails.drawSize.x, 0f, thingCullDetails.drawSize.y);
-            Vector3 s = inverseFovScale;
+            var s = inverseFovScale;
             if (vector.x < 2.5f)
             {
                 s.x *= vector.x + SilhouetteUtility.AdjustScale(vector.x);
@@ -305,7 +305,7 @@ public static class DynamicDrawManagerOnVehicle
             {
                 s.z *= vector.z;
             }
-            Vector3 pos = thingCullDetails.pos;
+            var pos = thingCullDetails.pos;
             pos.y = altitude;
             thingCullDetails.trs = Matrix4x4.TRS(pos, Quaternion.identity, s);
             details[index] = thingCullDetails;
@@ -322,7 +322,7 @@ public static class DynamicDrawManagerOnVehicle
     {
         public void Execute(int index)
         {
-            Thing thing = things[index];
+            var thing = things[index];
             if (details[index].shouldDraw)
             {
                 thing.DynamicDrawPhase(DrawPhase.ParallelPreDraw);

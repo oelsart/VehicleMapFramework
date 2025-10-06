@@ -1,10 +1,9 @@
-﻿using RimWorld;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using RimWorld;
 using UnityEngine;
-using Vehicles;
 using Verse;
 using Verse.AI;
 
@@ -21,13 +20,7 @@ public static class GenClosestCrossMap
         }
         if (!start.InBounds(map))
         {
-            Log.Error(string.Concat(
-            [
-                "Did FindClosestThing with start out of bounds (",
-                start,
-                "), thingReq=",
-                thingReq
-            ]));
+            Log.Error(string.Concat("Did FindClosestThing with start out of bounds (", start, "), thingReq=", thingReq));
             return true;
         }
         return thingReq.group == ThingRequestGroup.Nothing || ((thingReq.IsUndefined || !map.BaseMapAndVehicleMaps().Except(map).SelectMany(m => m.listerThings.ThingsMatching(thingReq)).Any()) && customGlobalSearchSet.EnumerableNullOrEmpty());
@@ -35,12 +28,12 @@ public static class GenClosestCrossMap
 
     public static Thing ClosestThingReachable(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance = 9999f, Predicate<Thing> validator = null, IEnumerable<Thing> customGlobalSearchSet = null, int searchRegionsMin = 0, int searchRegionsMax = -1, bool forceAllowGlobalSearch = false, RegionType traversableRegionTypes = RegionType.Set_Passable, bool ignoreEntirelyForbiddenRegions = false, bool lookInHaulSources = false)
     {
-        bool flag = searchRegionsMax < 0 || forceAllowGlobalSearch;
+        var flag = searchRegionsMax < 0 || forceAllowGlobalSearch;
         if (!flag && customGlobalSearchSet != null)
         {
             Log.ErrorOnce("searchRegionsMax >= 0 && customGlobalSearchSet != null && !forceAllowGlobalSearch. customGlobalSearchSet will never be used.", 634984);
         }
-        if (!flag && !thingReq.IsUndefined && !thingReq.CanBeFoundInRegion)
+        if (!flag && thingReq is { IsUndefined: false, CanBeFoundInRegion: false })
         {
             Log.ErrorOnce("ClosestThingReachable with thing request group " + thingReq.group + " and global search not allowed. This will never find anything because this group is never stored in regions. Either allow global search or don't call this method at all.", 518498981);
             return null;
@@ -54,11 +47,11 @@ public static class GenClosestCrossMap
             return null;
         }
         Thing thing = null;
-        bool flag2 = false;
-        if (!thingReq.IsUndefined && thingReq.CanBeFoundInRegion)
+        var flag2 = false;
+        if (thingReq is { IsUndefined: false, CanBeFoundInRegion: true })
         {
-            int num = (searchRegionsMax > 0) ? searchRegionsMax : 30;
-            thing = RegionwiseBFSWorker(root, map, thingReq, peMode, traverseParams, validator, null, searchRegionsMin, num, maxDistance, out int num2, traversableRegionTypes, ignoreEntirelyForbiddenRegions, lookInHaulSources);
+            var num = (searchRegionsMax > 0) ? searchRegionsMax : 30;
+            thing = RegionwiseBFSWorker(root, map, thingReq, peMode, traverseParams, validator, null, searchRegionsMin, num, maxDistance, out var num2, traversableRegionTypes, ignoreEntirelyForbiddenRegions, lookInHaulSources);
             flag2 = thing == null && num2 < num;
         }
         if (thing == null && flag && !flag2)
@@ -90,9 +83,9 @@ public static class GenClosestCrossMap
 
     public static Thing ClosestThing_Regionwise_ReachablePrioritized(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance = 9999f, Predicate<Thing> validator = null, Func<Thing, float> priorityGetter = null, int minRegions = 24, int maxRegions = 30, bool lookInHaulSources = false)
     {
-        if (!thingReq.IsUndefined && !thingReq.CanBeFoundInRegion)
+        if (thingReq is { IsUndefined: false, CanBeFoundInRegion: false })
         {
-            Log.ErrorOnce("ClosestThing_Regionwise_ReachablePrioritized with thing request group " + thingReq.group.ToString() + ". This will never find anything because this group is never stored in regions. Most likely a global search should have been used.", 738476712);
+            Log.ErrorOnce("ClosestThing_Regionwise_ReachablePrioritized with thing request group " + thingReq.group + ". This will never find anything because this group is never stored in regions. Most likely a global search should have been used.", 738476712);
             return null;
         }
 
@@ -136,24 +129,24 @@ public static class GenClosestCrossMap
             return null;
         }
 
-        if (!req.IsUndefined && !req.CanBeFoundInRegion)
+        if (req is { IsUndefined: false, CanBeFoundInRegion: false })
         {
             Log.ErrorOnce(string.Concat("RegionwiseBFSWorker with thing request group ", req.group, ". This group is never stored in regions. Most likely a global search should have been used."), 385766189);
             return null;
         }
 
-        Region region = root.GetRegion(map, traversableRegionTypes);
+        var region = root.GetRegion(map, traversableRegionTypes);
         if (region == null)
         {
             return null;
         }
 
-        CrossMapRegionProcessorClosestThingReachable regionProcessorClosestThingReachable = SimplePool<CrossMapRegionProcessorClosestThingReachable>.Get();
+        var regionProcessorClosestThingReachable = SimplePool<CrossMapRegionProcessorClosestThingReachable>.Get();
         var basePos = map.IsVehicleMapOf(out var vehicle) ? root.ToBaseMapCoord(vehicle) : root;
         regionProcessorClosestThingReachable.SetParameters(traverseParams, maxDistance, basePos, ignoreEntirelyForbiddenRegions, req, peMode, priorityGetter, validator, minRegions, 9999999f, 0, float.MinValue, null, lookInHaulSources, map);
         RegionTraverserAcrossMaps.BreadthFirstTraverse(region, regionProcessorClosestThingReachable, maxRegions, traversableRegionTypes);
         regionsSeen = regionProcessorClosestThingReachable.regionsSeenScan;
-        Thing closestThing = regionProcessorClosestThingReachable.closestThing;
+        var closestThing = regionProcessorClosestThingReachable.closestThing;
         regionProcessorClosestThingReachable.Clear();
         SimplePool<CrossMapRegionProcessorClosestThingReachable>.Return(regionProcessorClosestThingReachable);
         return closestThing;
@@ -176,28 +169,28 @@ public static class GenClosestCrossMap
         var maxDistanceSquared = maxDistance * maxDistance;
         if (searchSet is IList<Thing> list)
         {
-            for (int i = 0; i < list.Count; i++)
+            for (var i = 0; i < list.Count; i++)
             {
                 Process(list[i]);
             }
         }
         else if (searchSet is IList<Pawn> list2)
         {
-            for (int i = 0; i < list2.Count; i++)
+            for (var i = 0; i < list2.Count; i++)
             {
                 Process(list2[i]);
             }
         }
         else if (searchSet is IList<Building> list3)
         {
-            for (int i = 0; i < list3.Count; i++)
+            for (var i = 0; i < list3.Count; i++)
             {
                 Process(list3[i]);
             }
         }
         else if (searchSet is IList<IAttackTarget> list4)
         {
-            for (int i = 0; i < list4.Count; i++)
+            for (var i = 0; i < list4.Count; i++)
             {
                 Process((Thing)list4[i]);
             }
@@ -229,8 +222,8 @@ public static class GenClosestCrossMap
                 {
                     if (t is IHaulSource haulSource)
                     {
-                        ThingOwner directlyHeldThings = haulSource.GetDirectlyHeldThings();
-                        for (int i = 0; i < directlyHeldThings.Count; i++)
+                        var directlyHeldThings = haulSource.GetDirectlyHeldThings();
+                        for (var i = 0; i < directlyHeldThings.Count; i++)
                         {
                             ValidateThing(directlyHeldThings[i], num);
                         }
@@ -248,7 +241,7 @@ public static class GenClosestCrossMap
                     return;
                 }
             }
-            float num = 0f;
+            var num = 0f;
             if (priorityGetter != null)
             {
                 num = priorityGetter(t);
@@ -282,28 +275,28 @@ public static class GenClosestCrossMap
         var closestDistSquared = 2.1474836E+09f;
         if (searchSet is IList<Thing> list)
         {
-            for (int i = 0; i < list.Count; i++)
+            for (var i = 0; i < list.Count; i++)
             {
                 Process(list[i]);
             }
         }
         else if (searchSet is IList<Pawn> list2)
         {
-            for (int j = 0; j < list2.Count; j++)
+            for (var j = 0; j < list2.Count; j++)
             {
                 Process(list2[j]);
             }
         }
         else if (searchSet is IList<Building> list3)
         {
-            for (int k = 0; k < list3.Count; k++)
+            for (var k = 0; k < list3.Count; k++)
             {
                 Process(list3[k]);
             }
         }
         else
         {
-            foreach (Thing t in searchSet)
+            foreach (var t in searchSet)
             {
                 Process(t);
             }
@@ -331,8 +324,8 @@ public static class GenClosestCrossMap
                 ValidateThing(t, num);
                 if (canLookInHaulableSources && t is IHaulSource haulSource)
                 {
-                    ThingOwner directlyHeldThings = haulSource.GetDirectlyHeldThings();
-                    for (int i = 0; i < directlyHeldThings.Count; i++)
+                    var directlyHeldThings = haulSource.GetDirectlyHeldThings();
+                    for (var i = 0; i < directlyHeldThings.Count; i++)
                     {
                         ValidateThing(directlyHeldThings[i], num);
                     }
@@ -350,7 +343,7 @@ public static class GenClosestCrossMap
             {
                 return;
             }
-            float num = 0f;
+            var num = 0f;
             if (priorityGetter != null)
             {
                 num = priorityGetter(t);

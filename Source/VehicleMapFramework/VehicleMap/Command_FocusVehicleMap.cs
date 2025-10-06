@@ -5,7 +5,7 @@ namespace VehicleMapFramework;
 
 public class Command_FocusVehicleMap : Command
 {
-    public static VehiclePawnWithMap FocuseLockedVehicle { get; set; }
+    public static VehiclePawnWithMap FocusLockedVehicle { get; set; }
 
     public static VehiclePawnWithMap FocusedVehicle { get; set; }
 
@@ -13,7 +13,7 @@ public class Command_FocusVehicleMap : Command
     {
         get
         {
-            if (Find.Selector.SingleSelectedObject is not VehiclePawnWithMap vehicle || vehicle == FocuseLockedVehicle)
+            if (Find.Selector.SingleSelectedObject is not VehiclePawnWithMap vehicle || vehicle == FocusLockedVehicle)
             {
                 return "VMF_UnfocusVehicleMap".Translate();
             }
@@ -23,19 +23,20 @@ public class Command_FocusVehicleMap : Command
 
     public Command_FocusVehicleMap()
     {
+        // ReSharper disable once VirtualMemberCallInConstructor
         Order = 5000;
     }
 
     public override void ProcessInput(Event ev)
     {
-        if (Find.Selector.SingleSelectedObject is VehiclePawnWithMap vehicle && FocuseLockedVehicle != vehicle)
+        if (Find.Selector.SingleSelectedObject is VehiclePawnWithMap vehicle && FocusLockedVehicle != vehicle)
         {
-            FocuseLockedVehicle = vehicle;
+            FocusLockedVehicle = vehicle;
             FocusedVehicle = vehicle;
         }
         else
         {
-            FocuseLockedVehicle = null;
+            FocusLockedVehicle = null;
             FocusedVehicle = null;
         }
     }

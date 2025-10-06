@@ -1,12 +1,9 @@
-﻿using RimWorld;
-using Verse;
+﻿using Verse;
 
 namespace VehicleMapFramework
 {
     public class VehicleMapProps_Gravship : VehicleMapProps_Unique
     {
-        public VehicleMapProps_Gravship() { }
-        
         public override void ExposeData()
         {
             base.ExposeData();

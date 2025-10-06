@@ -1,5 +1,4 @@
-﻿using SmashTools;
-using UnityEngine;
+﻿using UnityEngine;
 using Vehicles;
 using Verse;
 
@@ -7,12 +6,11 @@ namespace VehicleMapFramework;
 
 public class Graphic_VehicleOpacity : Graphic_Vehicle
 {
+    private static readonly int OpacityID = Shader.PropertyToID("_Opacity");
+
     public float Opacity
     {
-        get
-        {
-            return opacityInt;
-        }
+        get => opacityInt;
         set
         {
             opacityInt = value;
@@ -22,18 +20,17 @@ public class Graphic_VehicleOpacity : Graphic_Vehicle
 
     public override Graphic GetColoredVersion(Shader newShader, Color newColor, Color newColorTwo)
     {
-        Log.Warning(string.Format("Retrieving {0} Colored Graphic from vanilla GraphicDatabase which will result in redundant graphic creation.", GetType()));
-        return GraphicDatabase.Get<Graphic_VehicleOpacity>(path, newShader, drawSize, newColor, newColorTwo, DataRgb, null);
+        Log.Warning(
+            $"Retrieving {GetType()} Colored Graphic from vanilla GraphicDatabase which will result in redundant graphic creation.");
+        return GraphicDatabase.Get<Graphic_VehicleOpacity>(path, newShader, drawSize, newColor, newColorTwo, DataRgb);
     }
 
     private void Notify_OpacityChanged()
     {
-        if (!materials.NullOrEmpty())
+        if (materials.NullOrEmpty()) return;
+        foreach (var mat in materials)
         {
-            foreach (var mat in materials)
-            {
-                mat?.SetFloat("_Opacity", opacityInt);
-            }
+            mat?.SetFloat(OpacityID, opacityInt);
         }
     }
 

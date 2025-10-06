@@ -1,9 +1,8 @@
-﻿using RimWorld;
+﻿using System.Collections.Generic;
+using System.Linq;
+using RimWorld;
 using RimWorld.Planet;
 using SmashTools;
-using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
 using Vehicles;
 using Verse;
 using Verse.AI;
@@ -20,9 +19,9 @@ public class CompVehicleSeat : CompBuildableUpgrades
             {
                 if (handler.AreSlotsAvailable && handlerUniqueIDs.Any(h => h.id == handler.uniqueID))
                 {
-                    VehicleReservationManager reservationManager = vehicle.Map?.GetCachedMapComponent<VehicleReservationManager>();
-                    bool canOperate = handler.CanOperateRole(selPawn);
-                    int reservedCount = reservationManager?.GetReservation<VehicleHandlerReservation>(vehicle)?.ClaimantsOnHandler(handler) ?? 0;
+                    var reservationManager = vehicle.Map?.GetCachedMapComponent<VehicleReservationManager>();
+                    var canOperate = handler.CanOperateRole(selPawn);
+                    var reservedCount = reservationManager?.GetReservation<VehicleHandlerReservation>(vehicle)?.ClaimantsOnHandler(handler) ?? 0;
                     string label = (canOperate ? "VF_BoardVehicle".Translate(handler.role.label, (handler.role.Slots - (handler.thingOwner.Count + reservedCount)).ToString()) : "VF_BoardVehicleGroupFail".Translate(handler.role.label, "VF_BoardFailureNonCombatant".Translate(selPawn.LabelShort)));
                     FloatMenuOption floatMenuOption = new(label, delegate
                     {
@@ -31,9 +30,9 @@ public class CompVehicleSeat : CompBuildableUpgrades
                             Messages.Message("VF_HandlerNotEnoughRoom".Translate(selPawn, vehicle), MessageTypeDefOf.RejectInput, false);
                             return;
                         }
-                        Job job = new Job(VMF_DefOf.VMF_BoardAcrossMaps, parent).SetSpotsToJobAcrossMaps(selPawn, exitSpot, enterSpot);
+                        var job = new Job(VMF_DefOf.VMF_BoardAcrossMaps, parent).SetSpotsToJobAcrossMaps(selPawn, exitSpot, enterSpot);
                         vehicle.GiveLoadJob(selPawn, handler);
-                        selPawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.DraftedOrder), false);
+                        selPawn.jobs.TryTakeOrderedJob(job, JobTag.DraftedOrder);
                         if (!selPawn.Spawned)
                         {
                             return;
@@ -58,7 +57,7 @@ public class CompVehicleSeat : CompBuildableUpgrades
 
         if (parent.IsOnVehicleMapOf(out var vehicle))
         {
-            bool exitBlocked = !parent.OccupiedRect().ExpandedBy(1).EdgeCells.NotNullAndAny(cell => cell.Walkable(parent.Map));
+            var exitBlocked = !parent.OccupiedRect().ExpandedBy(1).EdgeCells.NotNullAndAny(cell => cell.Walkable(parent.Map));
             foreach (var keyIDPair in handlerUniqueIDs)
             {
                 var handler = vehicle.handlers.FirstOrDefault(h => h.uniqueID == keyIDPair.id);
@@ -73,7 +72,7 @@ public class CompVehicleSeat : CompBuildableUpgrades
                             defaultLabel = "VF_DisembarkSinglePawn".Translate(pawn.LabelShort),
                             groupable = false,
                             pawn = pawn,
-                            action = delegate ()
+                            action = delegate
                             {
                                 var caravan = pawn.GetCaravan();
                                 caravan?.RemovePawn(pawn);
@@ -127,11 +126,11 @@ public class CompVehicleSeat : CompBuildableUpgrades
             {
                 if (handler.Item1.role.PawnRenderer != null)
                 {
-                    foreach (Pawn pawn in handler.Item1.thingOwner)
+                    foreach (var pawn in handler.Item1.thingOwner)
                     {
-                        Vector3 drawLoc = parent.DrawPos + handler.Item2.pawnRenderer.DrawOffsetFor(parent.BaseRotation());
-                        Rot4 value = handler.Item1.role.PawnRenderer.RotFor(parent.BaseRotation());
-                        pawn.Drawer.renderer.RenderPawnAt(drawLoc, new Rot4?(value), false);
+                        var drawLoc = parent.DrawPos + handler.Item2.pawnRenderer.DrawOffsetFor(parent.BaseRotation());
+                        var value = handler.Item1.role.PawnRenderer.RotFor(parent.BaseRotation());
+                        pawn.Drawer.renderer.RenderPawnAt(drawLoc, value);
                     }
                 }
             }

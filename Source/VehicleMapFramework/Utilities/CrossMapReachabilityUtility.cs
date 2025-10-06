@@ -1,7 +1,6 @@
-﻿using SmashTools;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Linq;
+using SmashTools;
 using UnityEngine;
 using Vehicles;
 using Verse;
@@ -90,8 +89,8 @@ public static class CrossMapReachabilityUtility
             return vehiclePawn.CanReachVehicle(dest, peMode, traverseParms.maxDanger, traverseParms.mode, destMap, out exitSpot, out enterSpot);
         }
 
-        var region = root.GetRegion(departMap, RegionType.Set_Passable);
-        var region2 = dest.Cell.GetRegion(destMap, RegionType.Set_Passable);
+        var region = root.GetRegion(departMap);
+        var region2 = dest.Cell.GetRegion(destMap);
         if (CrossMapReachabilityCache.TryGetCache(region, region2, traverseParms, out var result, out exitSpot, out enterSpot))
         {
             DebugLog($"Result from cache: {root}, {departMap}, {dest}, {destMap}, {traverseParms}: {result}, {exitSpot}, {enterSpot}");
@@ -432,8 +431,8 @@ public static class CrossMapReachabilityUtility
         exitSpot = TargetInfo.Invalid;
         enterSpot = TargetInfo.Invalid;
 
-        var traverseParms = TraverseParms.For(vehicle, maxDanger, mode, false, false, false);
-        bool result = false;
+        var traverseParms = TraverseParms.For(vehicle, maxDanger, mode);
+        var result = false;
 
         if (dest.Cell == vehicle.Position && destMap == vehicle.Map)
         {
@@ -573,11 +572,11 @@ public static class CrossMapReachabilityUtility
             radius = Mathf.Min(vehicle.VehicleDef.Size.x, vehicle.VehicleDef.Size.z) * 2;
         }
 
-        int num = GenRadial.NumCellsInRadius(radius);
+        var num = GenRadial.NumCellsInRadius(radius);
         result = IntVec3.Invalid;
-        for (int i = 0; i < num; i++)
+        for (var i = 0; i < num; i++)
         {
-            IntVec3 intVec = GenRadial.RadialPattern[i] + cell;
+            var intVec = GenRadial.RadialPattern[i] + cell;
             if (intVec.Standable(vehicle, map) && (!VehicleMod.settings.main.fullVehiclePathing || vehicle.DrivableRectOnCell(intVec, true, map)))
             {
                 if (map == vehicle.Map && intVec == vehicle.Position || vehicle.beached)
@@ -599,11 +598,11 @@ public static class CrossMapReachabilityUtility
 
     public static VehiclePawn AnyVehicleBlockingPathAt(IntVec3 cell, VehiclePawn vehicle, Map map)
     {
-        List<Thing> thingList = cell.GetThingList(map);
+        var thingList = cell.GetThingList(map);
         if (thingList.NullOrEmpty()) return null;
 
-        float euclideanDistance = Ext_Map.Distance(vehicle.PositionOnBaseMap(), cell.ToBaseMapCoord(map));
-        for (int i = 0; i < thingList.Count; i++)
+        var euclideanDistance = Ext_Map.Distance(vehicle.PositionOnBaseMap(), cell.ToBaseMapCoord(map));
+        for (var i = 0; i < thingList.Count; i++)
         {
             if (thingList[i] is VehiclePawn otherVehicle && otherVehicle != vehicle)
             {
@@ -644,7 +643,7 @@ public static class CrossMapReachabilityUtility
 
     public static bool DrivableFast(this VehiclePawn vehicle, int index, Map map)
     {
-        IntVec3 cell = vehicle.Map.cellIndices.IndexToCell(index);
+        var cell = vehicle.Map.cellIndices.IndexToCell(index);
         return vehicle.DrivableFast(cell, map);
     }
 
@@ -656,7 +655,7 @@ public static class CrossMapReachabilityUtility
 
     public static bool DrivableFast(this VehiclePawn vehicle, IntVec3 cell, Map map)
     {
-        VehiclePawn vehiclePawn = map.GetDetachedMapComponent<VehiclePositionManager>().ClaimedBy(cell);
+        var vehiclePawn = map.GetDetachedMapComponent<VehiclePositionManager>().ClaimedBy(cell);
         if (vehiclePawn == null || vehiclePawn == vehicle)
         {
             return map.GetCachedMapComponent<VehiclePathingSystem>()[vehicle.VehicleDef].VehiclePathGrid.WalkableFast(cell);

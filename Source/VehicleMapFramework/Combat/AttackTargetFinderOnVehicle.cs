@@ -1,7 +1,7 @@
-﻿using RimWorld;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using RimWorld;
 using UnityEngine;
 using Verse;
 using Verse.AI;
@@ -20,21 +20,21 @@ public static class AttackTargetFinderOnVehicle
 
     private const float FriendlyFireScoreOffsetSelf = 40f;
 
-    private static List<IAttackTarget> tmpTargets = new(128);
+    private static readonly List<IAttackTarget> tmpTargets = new(128);
 
-    private static List<IAttackTarget> validTargets = [];
+    private static readonly List<IAttackTarget> validTargets = [];
 
     //private static List<CompProjectileInterceptor> interceptors;
 
-    private static List<Pair<IAttackTarget, float>> availableShootingTargets = [];
+    private static readonly List<Pair<IAttackTarget, float>> availableShootingTargets = [];
 
-    private static List<float> tmpTargetScores = [];
+    private static readonly List<float> tmpTargetScores = [];
 
-    private static List<bool> tmpCanShootAtTarget = [];
+    private static readonly List<bool> tmpCanShootAtTarget = [];
 
-    private static List<IntVec3> tempDestList = [];
+    private static readonly List<IntVec3> tempDestList = [];
 
-    private static List<IntVec3> tempSourceList = [];
+    private static readonly List<IntVec3> tempSourceList = [];
 
     public static IAttackTarget BestAttackTarget(IAttackTargetSearcher searcher, TargetScanFlags flags, Predicate<Thing> validator = null, float minDist = 0f, float maxDist = 9999f, IntVec3 locus = default, float maxTravelRadiusFromLocus = 3.4028235E+38f, bool canBashDoors = false, bool canTakeTargetsCloserThanEffectiveMinRange = true, bool canBashFences = false, bool onlyRanged = false)
     {
@@ -51,7 +51,7 @@ public static class AttackTargetFinderOnVehicle
         }
         var onlyTargetMachines = !CombatExtended && verb.IsEMP();
         var minDistSquared = minDist * minDist;
-        float num = maxTravelRadiusFromLocus + verb.verbProps.range;
+        var num = maxTravelRadiusFromLocus + verb.verbProps.range;
         var maxLocusDistSquared = num * num;
         Func<IntVec3, bool> losValidator = null;
         if ((flags & TargetScanFlags.LOSBlockableByGas) != TargetScanFlags.None)
@@ -60,7 +60,7 @@ public static class AttackTargetFinderOnVehicle
         }
         Predicate<IAttackTarget> innerValidator = delegate (IAttackTarget t)
         {
-            Thing thing = t.Thing;
+            var thing = t.Thing;
             var baseMap = thing.BaseMap();
             if (t == searcher)
             {
@@ -72,7 +72,7 @@ public static class AttackTargetFinderOnVehicle
             }
             if (!canTakeTargetsCloserThanEffectiveMinRange)
             {
-                float num2 = verb.verbProps.EffectiveMinRange(thing, searcherThing);
+                var num2 = verb.verbProps.EffectiveMinRange(thing, searcherThing);
                 if (num2 > 0f && (searcherThing.PositionOnBaseMap() - thing.PositionOnBaseMap()).LengthHorizontalSquared < num2 * num2)
                 {
                     return false;
@@ -92,7 +92,7 @@ public static class AttackTargetFinderOnVehicle
             }
             if (searcherPawn != null)
             {
-                Lord lord = searcherPawn.GetLord();
+                var lord = searcherPawn.GetLord();
                 if (lord != null && !lord.LordJob.ValidateAttackTarget(searcherPawn, thing))
                 {
                     return false;
@@ -100,8 +100,8 @@ public static class AttackTargetFinderOnVehicle
             }
             if ((flags & TargetScanFlags.NeedNotUnderThickRoof) != TargetScanFlags.None)
             {
-                RoofDef roof = thing.PositionOnBaseMap().GetRoof(baseMap);
-                if (roof != null && roof.isThickRoof)
+                var roof = thing.PositionOnBaseMap().GetRoof(baseMap);
+                if (roof is { isThickRoof: true })
                 {
                     return false;
                 }
@@ -147,15 +147,15 @@ public static class AttackTargetFinderOnVehicle
             {
                 return false;
             }
-            if (searcherThing.def.race != null && searcherThing.def.race.intelligence >= Intelligence.Humanlike)
+            if (searcherThing.def.race is { intelligence: >= Intelligence.Humanlike })
             {
-                CompExplosive compExplosive = thing.TryGetComp<CompExplosive>();
-                if (compExplosive != null && compExplosive.wickStarted)
+                var compExplosive = thing.TryGetComp<CompExplosive>();
+                if (compExplosive is { wickStarted: true })
                 {
                     return false;
                 }
             }
-            if (thing.def.size.x == 1 && thing.def.size.z == 1)
+            if (thing.def.size is { x: 1, z: 1 })
             {
                 if (thing.PositionOnBaseMap().Fogged(baseMap))
                 {
@@ -164,7 +164,7 @@ public static class AttackTargetFinderOnVehicle
             }
             else
             {
-                bool flag4 = false;
+                var flag4 = false;
                 foreach (var c in thing.MovedOccupiedRect())
                 {
                     if (!c.Fogged(baseMap))
@@ -185,9 +185,9 @@ public static class AttackTargetFinderOnVehicle
             tmpTargets.Clear();
             tmpTargets.AddRange(searcherThing.Map.BaseMapAndVehicleMaps().Except(searcherThing.Map).SelectMany(m => m.attackTargetsCache.GetPotentialTargetsFor(searcher)));
             validTargets.Clear();
-            for (int i = 0; i < tmpTargets.Count; i++)
+            for (var i = 0; i < tmpTargets.Count; i++)
             {
-                IAttackTarget attackTarget = tmpTargets[i];
+                var attackTarget = tmpTargets[i];
                 if (attackTarget.Thing.PositionOnBaseMap().InHorDistOf(searcherThing.PositionOnBaseMap(), maxDist) && innerValidator(attackTarget))
                 {
                     validTargets.Add(attackTarget);
@@ -216,20 +216,20 @@ public static class AttackTargetFinderOnVehicle
             }
             return (IAttackTarget)GenClosestCrossMap.ClosestThing_Global(searcher.Thing.PositionOnBaseMap(), validTargets, maxDist, null, null, false);
         }
-        if (searcherPawn != null && searcherPawn.mindState.duty != null && searcherPawn.mindState.duty.radius > 0f && !searcherPawn.InMentalState)
+        if (searcherPawn != null && searcherPawn.mindState.duty is { radius: > 0f } && !searcherPawn.InMentalState)
         {
-            Predicate<IAttackTarget> oldValidator = innerValidator;
+            var oldValidator = innerValidator;
             innerValidator = t =>
             {
                 return oldValidator(t) && t.Thing.PositionOnBaseMap().InHorDistOf(searcherPawn.mindState.duty.focus.CellOnBaseMap(), searcherPawn.mindState.duty.radius);
             };
         }
-        Predicate<IAttackTarget> oldValidator2 = innerValidator;
+        var oldValidator2 = innerValidator;
         innerValidator = t =>
         {
             return oldValidator2(t) && !ShouldIgnoreNoncombatant(searcherThing, t, flags);
         };
-        IAttackTarget attackTarget2 = (IAttackTarget)GenClosestCrossMap.ClosestThingReachable(searcherThing.Position, searcherThing.Map, ThingRequest.ForGroup(ThingRequestGroup.AttackTarget), PathEndMode.Touch, TraverseParms.For(searcherPawn, Danger.Deadly, TraverseMode.ByPawn, canBashDoors, false, canBashFences), maxDist, x => innerValidator((IAttackTarget)x), null, 0, (maxDist > 800f) ? -1 : 40, false, RegionType.Set_Passable, false);
+        var attackTarget2 = (IAttackTarget)GenClosestCrossMap.ClosestThingReachable(searcherThing.Position, searcherThing.Map, ThingRequest.ForGroup(ThingRequestGroup.AttackTarget), PathEndMode.Touch, TraverseParms.For(searcherPawn, Danger.Deadly, TraverseMode.ByPawn, canBashDoors, false, canBashFences), maxDist, x => innerValidator((IAttackTarget)x), null, 0, (maxDist > 800f) ? -1 : 40);
         //if (attackTarget2 != null && PawnUtility.ShouldCollideWithPawns(searcherPawn))
         //{
         //    IAttackTarget attackTarget3 = FindBestReachableMeleeTarget(innerValidator, searcherPawn, maxDist, canBashDoors, canBashFences);
@@ -249,7 +249,7 @@ public static class AttackTargetFinderOnVehicle
 
     private static bool ShouldIgnoreNoncombatant(Thing searcherThing, IAttackTarget t, TargetScanFlags flags)
     {
-        return t is Pawn pawn && !pawn.IsCombatant() && ((flags & TargetScanFlags.IgnoreNonCombatants) != TargetScanFlags.None || !GenSightOnVehicle.LineOfSightThingToThing(searcherThing, pawn, false, null));
+        return t is Pawn pawn && !pawn.IsCombatant() && ((flags & TargetScanFlags.IgnoreNonCombatants) != TargetScanFlags.None || !GenSightOnVehicle.LineOfSightThingToThing(searcherThing, pawn));
     }
 
     private static bool CanReach(Thing searcher, Thing target, bool canBashDoors, bool canBashFences)
@@ -263,8 +263,8 @@ public static class AttackTargetFinderOnVehicle
         }
         else
         {
-            TraverseMode mode = canBashDoors ? TraverseMode.PassDoors : TraverseMode.NoPassClosedDoors;
-            if (!CrossMapReachabilityUtility.CanReach(searcher.Map, searcher.Position, target, PathEndMode.Touch, TraverseParms.For(mode, Danger.Deadly, false, false, false), target.Map, out _, out _))
+            var mode = canBashDoors ? TraverseMode.PassDoors : TraverseMode.NoPassClosedDoors;
+            if (!CrossMapReachabilityUtility.CanReach(searcher.Map, searcher.Position, target, PathEndMode.Touch, TraverseParms.For(mode), target.Map, out _, out _))
             {
                 return false;
             }
@@ -276,19 +276,6 @@ public static class AttackTargetFinderOnVehicle
     {
         maxTargDist = Mathf.Min(maxTargDist, 30f);
         IAttackTarget reachableTarget = null;
-        IAttackTarget bestTargetOnCell(IntVec3 x)
-        {
-            List<Thing> thingList = x.GetThingList(searcherPawn.Map);
-            for (int i = 0; i < thingList.Count; i++)
-            {
-                Thing thing = thingList[i];
-                if (thing is IAttackTarget attackTarget && validator(attackTarget) && ReachabilityImmediate.CanReachImmediate(x, thing, searcherPawn.Map, PathEndMode.Touch, searcherPawn) && (searcherPawn.CanReachImmediate(thing, PathEndMode.Touch) || searcherPawn.Map.attackTargetReservationManager.CanReserve(searcherPawn, attackTarget)))
-                {
-                    return attackTarget;
-                }
-            }
-            return null;
-        }
         searcherPawn.Map.floodFiller.FloodFill(searcherPawn.Position, delegate (IntVec3 x)
         {
             if (!x.WalkableBy(searcherPawn.Map, searcherPawn))
@@ -299,7 +286,7 @@ public static class AttackTargetFinderOnVehicle
             {
                 return false;
             }
-            Building edifice = x.GetEdifice(searcherPawn.Map);
+            var edifice = x.GetEdifice(searcherPawn.Map);
             if (edifice != null)
             {
                 if (!canBashDoors && edifice is Building_Door building_Door && !building_Door.CanPhysicallyPass(searcherPawn))
@@ -311,15 +298,15 @@ public static class AttackTargetFinderOnVehicle
                     return false;
                 }
             }
-            return !PawnUtility.AnyPawnBlockingPathAt(x, searcherPawn, true, false, false);
+            return !PawnUtility.AnyPawnBlockingPathAt(x, searcherPawn, true);
         }, delegate (IntVec3 x)
         {
-            for (int i = 0; i < 8; i++)
+            for (var i = 0; i < 8; i++)
             {
-                IntVec3 intVec = x + GenAdj.AdjacentCells[i];
+                var intVec = x + GenAdj.AdjacentCells[i];
                 if (intVec.InBounds(searcherPawn.Map))
                 {
-                    IAttackTarget attackTarget = bestTargetOnCell(intVec);
+                    var attackTarget = bestTargetOnCell(intVec);
                     if (attackTarget != null)
                     {
                         reachableTarget = attackTarget;
@@ -328,13 +315,27 @@ public static class AttackTargetFinderOnVehicle
                 }
             }
             return reachableTarget != null;
-        }, int.MaxValue, false, null);
+        });
         return reachableTarget;
+
+        IAttackTarget bestTargetOnCell(IntVec3 x)
+        {
+            var thingList = x.GetThingList(searcherPawn.Map);
+            for (var i = 0; i < thingList.Count; i++)
+            {
+                var thing = thingList[i];
+                if (thing is IAttackTarget attackTarget && validator(attackTarget) && ReachabilityImmediate.CanReachImmediate(x, thing, searcherPawn.Map, PathEndMode.Touch, searcherPawn) && (searcherPawn.CanReachImmediate(thing, PathEndMode.Touch) || searcherPawn.Map.attackTargetReservationManager.CanReserve(searcherPawn, attackTarget)))
+                {
+                    return attackTarget;
+                }
+            }
+            return null;
+        }
     }
 
     private static bool HasRangedAttack(IAttackTargetSearcher t)
     {
-        Verb currentEffectiveVerb = t.CurrentEffectiveVerb;
+        var currentEffectiveVerb = t.CurrentEffectiveVerb;
         return currentEffectiveVerb != null && !currentEffectiveVerb.verbProps.IsMeleeAttack;
     }
 
@@ -345,7 +346,7 @@ public static class AttackTargetFinderOnVehicle
 
     private static IAttackTarget GetRandomShootingTargetByScore(List<IAttackTarget> targets, IAttackTargetSearcher searcher, Verb verb)
     {
-        if (GetAvailableShootingTargetsByScore(targets, searcher, verb).TryRandomElementByWeight(x => x.Second, out Pair<IAttackTarget, float> pair))
+        if (GetAvailableShootingTargetsByScore(targets, searcher, verb).TryRandomElementByWeight(x => x.Second, out var pair))
         {
             return pair.First;
         }
@@ -361,19 +362,19 @@ public static class AttackTargetFinderOnVehicle
         }
         tmpTargetScores.Clear();
         tmpCanShootAtTarget.Clear();
-        float num = 0f;
+        var num = 0f;
         IAttackTarget attackTarget = null;
-        for (int i = 0; i < rawTargets.Count; i++)
+        for (var i = 0; i < rawTargets.Count; i++)
         {
             tmpTargetScores.Add(float.MinValue);
             tmpCanShootAtTarget.Add(false);
             if (rawTargets[i] != searcher)
             {
-                bool flag = CanShootAtFromCurrentPosition(rawTargets[i], searcher, verb);
+                var flag = CanShootAtFromCurrentPosition(rawTargets[i], searcher, verb);
                 tmpCanShootAtTarget[i] = flag;
                 if (flag)
                 {
-                    float shootingTargetScore = GetShootingTargetScore(rawTargets[i], searcher, verb);
+                    var shootingTargetScore = GetShootingTargetScore(rawTargets[i], searcher, verb);
                     tmpTargetScores[i] = shootingTargetScore;
                     if (attackTarget == null || shootingTargetScore > num)
                     {
@@ -392,15 +393,15 @@ public static class AttackTargetFinderOnVehicle
         }
         else
         {
-            float num2 = num - 30f;
-            for (int j = 0; j < rawTargets.Count; j++)
+            var num2 = num - 30f;
+            for (var j = 0; j < rawTargets.Count; j++)
             {
                 if (rawTargets[j] != searcher && tmpCanShootAtTarget[j])
                 {
-                    float num3 = tmpTargetScores[j];
+                    var num3 = tmpTargetScores[j];
                     if (num3 >= num2)
                     {
-                        float second = Mathf.InverseLerp(num - 30f, num, num3);
+                        var second = Mathf.InverseLerp(num - 30f, num, num3);
                         availableShootingTargets.Add(new Pair<IAttackTarget, float>(rawTargets[j], second));
                     }
                 }
@@ -411,7 +412,7 @@ public static class AttackTargetFinderOnVehicle
 
     private static float GetShootingTargetScore(IAttackTarget target, IAttackTargetSearcher searcher, Verb verb)
     {
-        float num = 60f;
+        var num = 60f;
         num -= Mathf.Min((target.Thing.PositionOnBaseMap() - searcher.Thing.PositionOnBaseMap()).LengthHorizontal, 40f);
         if (target.TargetCurrentlyAimingAt == searcher.Thing)
         {
@@ -472,23 +473,23 @@ public static class AttackTargetFinderOnVehicle
         {
             return 0f;
         }
-        IntVec3 position = target.Thing.Map == map ? target.Thing.Position : target.Thing.PositionOnAnotherThingMap(searcher.Thing);
-        int num = GenRadial.NumCellsInRadius(verb.verbProps.ai_AvoidFriendlyFireRadius);
-        float num2 = 0f;
-        for (int i = 0; i < num; i++)
+        var position = target.Thing.Map == map ? target.Thing.Position : target.Thing.PositionOnAnotherThingMap(searcher.Thing);
+        var num = GenRadial.NumCellsInRadius(verb.verbProps.ai_AvoidFriendlyFireRadius);
+        var num2 = 0f;
+        for (var i = 0; i < num; i++)
         {
-            IntVec3 intVec = position + GenRadial.RadialPattern[i];
+            var intVec = position + GenRadial.RadialPattern[i];
             if (intVec.InBounds(map))
             {
-                bool flag = true;
-                List<Thing> thingList = intVec.GetThingList(map);
-                for (int j = 0; j < thingList.Count; j++)
+                var flag = true;
+                var thingList = intVec.GetThingList(map);
+                for (var j = 0; j < thingList.Count; j++)
                 {
                     if (thingList[j] is IAttackTarget && thingList[j] != target)
                     {
                         if (flag)
                         {
-                            if (!GenSightOnVehicle.LineOfSight(position, intVec, map, true, null, 0, 0))
+                            if (!GenSightOnVehicle.LineOfSight(position, intVec, map, true))
                             {
                                 break;
                             }
@@ -540,7 +541,7 @@ public static class AttackTargetFinderOnVehicle
         {
             return 0f;
         }
-        ThingDef defaultProjectile = verb_Shoot.verbProps.defaultProjectile;
+        var defaultProjectile = verb_Shoot.verbProps.defaultProjectile;
         if (defaultProjectile == null)
         {
             return 0f;
@@ -549,25 +550,26 @@ public static class AttackTargetFinderOnVehicle
         {
             return 0f;
         }
-        ShotReport report = ShotReport.HitReportFor(pawn, verb, (Thing)target);
-        float radius = Mathf.Max(VerbUtility.CalculateAdjustedForcedMiss(verb.verbProps.ForcedMissRadius, report.ShootLine.Dest - report.ShootLine.Source), 1.5f);
-        IEnumerable<IntVec3> enumerable = (from dest in GenRadial.RadialCellsAround(report.ShootLine.Dest, radius, true)
+        var report = ShotReport.HitReportFor(pawn, verb, (Thing)target);
+        var radius = Mathf.Max(VerbUtility.CalculateAdjustedForcedMiss(verb.verbProps.ForcedMissRadius, report.ShootLine.Dest - report.ShootLine.Source), 1.5f);
+        var enumerable = (from dest in GenRadial.RadialCellsAround(report.ShootLine.Dest, radius, true)
                                            select new ShootLine(report.ShootLine.Source, dest)).SelectMany(delegate (ShootLine line)
                                            {
-                                               IEnumerable<IntVec3> source = line.Points().Concat(line.Dest);
+                                               var source = line.Points().Concat(line.Dest);
+                                               return source.TakeWhile(func);
+
                                                bool func(IntVec3 pos)
                                                {
                                                    return pos.CanBeSeenOverOnVehicle(pawn.BaseMap());
                                                }
-                                               return source.TakeWhile(func);
-                                           }).Distinct<IntVec3>();
-        float num = 0f;
-        foreach (IntVec3 c in enumerable)
+                                           }).Distinct();
+        var num = 0f;
+        foreach (var c in enumerable)
         {
-            float num2 = VerbUtility.InterceptChanceFactorFromDistance(report.ShootLine.Source.ToVector3Shifted(), c);
+            var num2 = VerbUtility.InterceptChanceFactorFromDistance(report.ShootLine.Source.ToVector3Shifted(), c);
             if (num2 > 0f)
             {
-                IEnumerable<Thing> thingList = searcher.Thing.Map.thingGrid.ThingsAt(c.ToThingMapCoord(searcher.Thing));
+                var thingList = searcher.Thing.Map.thingGrid.ThingsAt(c.ToThingMapCoord(searcher.Thing));
                 if (searcher.Thing.Map != target.Thing.Map)
                 {
                     thingList = thingList.Concat(target.Thing.Map.thingGrid.ThingsAt(c.ToThingMapCoord(target.Thing)));
@@ -618,20 +620,20 @@ public static class AttackTargetFinderOnVehicle
         var baseMap = seer.BaseMap();
         tempDestList.Clear();
         ShootLeanUtilityOnVehicle.CalcShootableCellsOf(tempDestList, target, seerPosOnBaseMap);
-        for (int i = 0; i < tempDestList.Count; i++)
+        for (var i = 0; i < tempDestList.Count; i++)
         {
-            if (GenSightOnVehicle.LineOfSight(seerPosOnBaseMap, tempDestList[i].ToThingBaseMapCoord(target), baseMap, true, validator, 0, 0))
+            if (GenSightOnVehicle.LineOfSight(seerPosOnBaseMap, tempDestList[i].ToThingBaseMapCoord(target), baseMap, true, validator))
             {
                 return true;
             }
         }
 
         ShootLeanUtilityOnVehicle.LeanShootingSourcesFromTo(seer.Position, targPosOnBaseMap, seer.Map, tempSourceList);
-        for (int j = 0; j < tempSourceList.Count; j++)
+        for (var j = 0; j < tempSourceList.Count; j++)
         {
-            for (int k = 0; k < tempDestList.Count; k++)
+            for (var k = 0; k < tempDestList.Count; k++)
             {
-                if (GenSightOnVehicle.LineOfSight(tempSourceList[j].ToThingBaseMapCoord(seer), tempDestList[k].ToThingBaseMapCoord(target), baseMap, true, validator, 0, 0))
+                if (GenSightOnVehicle.LineOfSight(tempSourceList[j].ToThingBaseMapCoord(seer), tempDestList[k].ToThingBaseMapCoord(target), baseMap, true, validator))
                 {
                     return true;
                 }
@@ -650,19 +652,19 @@ public static class AttackTargetFinderOnVehicle
         {
             return;
         }
-        Verb currentEffectiveVerb = attackTargetSearcher.CurrentEffectiveVerb;
+        var currentEffectiveVerb = attackTargetSearcher.CurrentEffectiveVerb;
         if (currentEffectiveVerb == null)
         {
             return;
         }
         tmpTargets.Clear();
-        List<Thing> list = attackTargetSearcher.Thing.Map.listerThings.ThingsInGroup(ThingRequestGroup.AttackTarget);
-        for (int i = 0; i < list.Count; i++)
+        var list = attackTargetSearcher.Thing.Map.listerThings.ThingsInGroup(ThingRequestGroup.AttackTarget);
+        for (var i = 0; i < list.Count; i++)
         {
             tmpTargets.Add((IAttackTarget)list[i]);
         }
-        List<Pair<IAttackTarget, float>> availableShootingTargetsByScore = GetAvailableShootingTargetsByScore(tmpTargets, attackTargetSearcher, currentEffectiveVerb);
-        for (int j = 0; j < availableShootingTargetsByScore.Count; j++)
+        var availableShootingTargetsByScore = GetAvailableShootingTargetsByScore(tmpTargets, attackTargetSearcher, currentEffectiveVerb);
+        for (var j = 0; j < availableShootingTargetsByScore.Count; j++)
         {
             GenDraw.DrawLineBetween(attackTargetSearcher.Thing.DrawPos, availableShootingTargetsByScore[j].First.Thing.DrawPos);
         }
@@ -678,17 +680,17 @@ public static class AttackTargetFinderOnVehicle
         {
             return;
         }
-        Verb currentEffectiveVerb = attackTargetSearcher.CurrentEffectiveVerb;
+        var currentEffectiveVerb = attackTargetSearcher.CurrentEffectiveVerb;
         if (currentEffectiveVerb == null)
         {
             return;
         }
-        List<Thing> list = attackTargetSearcher.Thing.Map.listerThings.ThingsInGroup(ThingRequestGroup.AttackTarget);
+        var list = attackTargetSearcher.Thing.Map.listerThings.ThingsInGroup(ThingRequestGroup.AttackTarget);
         Text.Anchor = TextAnchor.MiddleCenter;
         Text.Font = GameFont.Tiny;
-        for (int i = 0; i < list.Count; i++)
+        for (var i = 0; i < list.Count; i++)
         {
-            Thing thing = list[i];
+            var thing = list[i];
             if (thing != attackTargetSearcher)
             {
                 string text;
@@ -711,21 +713,21 @@ public static class AttackTargetFinderOnVehicle
     }
     public static void DebugDrawNonCombatantTimer_OnGUI()
     {
-        List<Thing> list = Find.CurrentMap.listerThings.ThingsInGroup(ThingRequestGroup.Pawn);
+        var list = Find.CurrentMap.listerThings.ThingsInGroup(ThingRequestGroup.Pawn);
         using (new TextBlock(GameFont.Tiny, TextAnchor.MiddleCenter, false))
         {
-            foreach (Thing item in list)
+            foreach (var item in list)
             {
                 if (!(item is Pawn { mindState: not null } pawn))
                 {
                     continue;
                 }
 
-                int lastCombatantTick = pawn.mindState.lastCombatantTick;
-                Vector2 screenPos = pawn.DrawPos.MapToUIPosition();
+                var lastCombatantTick = pawn.mindState.lastCombatantTick;
+                var screenPos = pawn.DrawPos.MapToUIPosition();
                 if (pawn.IsCombatant())
                 {
-                    int num = lastCombatantTick + 3600 - Find.TickManager.TicksGame;
+                    var num = lastCombatantTick + 3600 - Find.TickManager.TicksGame;
                     if (pawn.IsPermanentCombatant() || num == 3600)
                     {
                         GenMapUI.DrawThingLabel(screenPos, "combatant", Color.red);
@@ -745,12 +747,12 @@ public static class AttackTargetFinderOnVehicle
 
     public static bool IsAutoTargetable(IAttackTarget target)
     {
-        CompCanBeDormant compCanBeDormant = target.Thing.TryGetComp<CompCanBeDormant>();
-        if (compCanBeDormant != null && !compCanBeDormant.Awake)
+        var compCanBeDormant = target.Thing.TryGetComp<CompCanBeDormant>();
+        if (compCanBeDormant is { Awake: false })
         {
             return false;
         }
-        CompInitiatable compInitiatable = target.Thing.TryGetComp<CompInitiatable>();
+        var compInitiatable = target.Thing.TryGetComp<CompInitiatable>();
         return compInitiatable == null || compInitiatable.Initiated;
     }
 

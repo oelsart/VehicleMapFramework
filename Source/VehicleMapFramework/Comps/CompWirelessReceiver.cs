@@ -4,7 +4,7 @@ namespace VehicleMapFramework;
 
 public class CompWirelessReceiver : CompToggleLitGraphic, IThingGlower
 {
-    new public CompProperties_WirelessCharger Props => (CompProperties_WirelessCharger)props;
+    public new CompProperties_WirelessCharger Props => (CompProperties_WirelessCharger)props;
 
     public override void CompTick()
     {
@@ -22,7 +22,7 @@ public class CompWirelessReceiver : CompToggleLitGraphic, IThingGlower
         shouldBeLitNow = false;
     }
 
-    new public bool ShouldBeLitNow()
+    public new bool ShouldBeLitNow()
     {
         return PowerOutput != 0f;
     }

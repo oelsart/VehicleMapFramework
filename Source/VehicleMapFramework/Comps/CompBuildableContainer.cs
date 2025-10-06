@@ -1,7 +1,6 @@
-﻿using HarmonyLib;
+﻿using System.Collections.Generic;
+using HarmonyLib;
 using RimWorld;
-using SmashTools;
-using System.Collections.Generic;
 using Vehicles;
 using Verse;
 using Verse.AI;
@@ -11,7 +10,7 @@ namespace VehicleMapFramework;
 
 public class CompBuildableContainer : CompTransporter
 {
-    private AccessTools.FieldRef<CompTransporter, bool> notifiedCantLoadMore = AccessTools.FieldRefAccess<CompTransporter, bool>("notifiedCantLoadMore");
+    private readonly AccessTools.FieldRef<CompTransporter, bool> notifiedCantLoadMore = AccessTools.FieldRefAccess<CompTransporter, bool>("notifiedCantLoadMore");
 
     private bool gatherFromBaseMap;
 
@@ -27,7 +26,7 @@ public class CompBuildableContainer : CompTransporter
         }
     }
 
-    new public bool AnyPawnCanLoadAnythingNow
+    public new bool AnyPawnCanLoadAnythingNow
     {
         get
         {
@@ -41,12 +40,12 @@ public class CompBuildableContainer : CompTransporter
                 return false;
             }
 
-            IReadOnlyList<Pawn> allPawnsSpawned = parent.BaseMap().mapPawns.AllPawnsSpawned;
-            for (int i = 0; i < allPawnsSpawned.Count; i++)
+            var allPawnsSpawned = parent.BaseMap().mapPawns.AllPawnsSpawned;
+            for (var i = 0; i < allPawnsSpawned.Count; i++)
             {
                 if (allPawnsSpawned[i].CurJobDef == JobDefOf.HaulToTransporter)
                 {
-                    CompTransporter transporter = ((JobDriver_HaulToTransporter)allPawnsSpawned[i].jobs.curDriver).Transporter;
+                    var transporter = ((JobDriver_HaulToTransporter)allPawnsSpawned[i].jobs.curDriver).Transporter;
                     if (transporter != null && transporter.groupID == groupID)
                     {
                         return true;
@@ -55,7 +54,7 @@ public class CompBuildableContainer : CompTransporter
 
                 if (allPawnsSpawned[i].CurJobDef == JobDefOf.EnterTransporter)
                 {
-                    CompTransporter transporter2 = ((JobDriver_EnterTransporter)allPawnsSpawned[i].jobs.curDriver).Transporter;
+                    var transporter2 = ((JobDriver_EnterTransporter)allPawnsSpawned[i].jobs.curDriver).Transporter;
                     if (transporter2 != null && transporter2.groupID == groupID)
                     {
                         return true;
@@ -63,17 +62,17 @@ public class CompBuildableContainer : CompTransporter
                 }
             }
 
-            List<CompTransporter> list = TransportersInGroup(parent.Map);
+            var list = TransportersInGroup(parent.Map);
             if (list == null)
             {
                 return false;
             }
 
-            for (int j = 0; j < allPawnsSpawned.Count; j++)
+            for (var j = 0; j < allPawnsSpawned.Count; j++)
             {
                 if (allPawnsSpawned[j].mindState.duty != null && allPawnsSpawned[j].mindState.duty.transportersGroup == groupID)
                 {
-                    CompTransporter compTransporter = JobGiver_EnterTransporter.FindMyTransporter(list, allPawnsSpawned[j]);
+                    var compTransporter = JobGiver_EnterTransporter.FindMyTransporter(list, allPawnsSpawned[j]);
                     if (compTransporter != null && allPawnsSpawned[j].CanReach(compTransporter.parent, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, compTransporter.Map, out _, out _))
                     {
                         return true;
@@ -81,14 +80,14 @@ public class CompBuildableContainer : CompTransporter
                 }
             }
 
-            for (int k = 0; k < allPawnsSpawned.Count; k++)
+            for (var k = 0; k < allPawnsSpawned.Count; k++)
             {
                 if (!allPawnsSpawned[k].IsColonist)
                 {
                     continue;
                 }
 
-                for (int l = 0; l < list.Count; l++)
+                for (var l = 0; l < list.Count; l++)
                 {
                     if (LoadTransportersJobUtility.HasJobOnTransporter(allPawnsSpawned[k], list[l]))
                     {
@@ -150,7 +149,7 @@ public class CompBuildableContainer : CompTransporter
             {
                 defaultLabel = "DesignatorCancel".Translate(),
                 icon = Vehicle.VehicleDef.CancelCargoIcon,
-                action = delegate ()
+                action = delegate
                 {
                     leftToLoad.Clear();
                     groupID = -1;
@@ -162,7 +161,7 @@ public class CompBuildableContainer : CompTransporter
         {
             defaultLabel = "VF_LoadCargo".Translate(),
             icon = Vehicle.VehicleDef.LoadCargoIcon,
-            action = delegate ()
+            action = delegate
             {
                 Find.WindowStack.Add(new Dialog_LoadCargoToBuildableContainer(this));
             }
@@ -182,7 +181,7 @@ public class CompBuildableContainer : CompTransporter
         yield return command_Toggle;
     }
 
-    new public void Notify_ThingAdded(Thing t)
+    public new void Notify_ThingAdded(Thing t)
     {
         SubtractFromToLoadList(t, t.stackCount, false);
         if (parent.Spawned && Props.pawnLoadedSound != null && t is Pawn)
@@ -197,7 +196,7 @@ public class CompBuildableContainer : CompTransporter
         }
     }
 
-    new public void Notify_ThingAddedAndMergedWith(Thing t, int mergedCount)
+    public new void Notify_ThingAddedAndMergedWith(Thing t, int mergedCount)
     {
         SubtractFromToLoadList(t, mergedCount, false);
         if (leftToLoad.NullOrEmpty())
@@ -208,14 +207,14 @@ public class CompBuildableContainer : CompTransporter
 
     public override void PostExposeData()
     {
-        Scribe_Values.Look(ref groupID, "groupID", 0, false);
+        Scribe_Values.Look(ref groupID, "groupID");
         if (!parent.IsOnVehicleMapOf(out var vehicle) || innerContainer != vehicle?.inventory?.innerContainer)
         {
-            Scribe_Deep.Look(ref innerContainer, "innerContainer", [this]);
+            Scribe_Deep.Look(ref innerContainer, "innerContainer", this);
         }
-        Scribe_Collections.Look(ref leftToLoad, "leftToLoad", LookMode.Deep, []);
-        Scribe_Values.Look(ref notifiedCantLoadMore(this), "notifiedCantLoadMore", false, false);
-        Scribe_Values.Look(ref massCapacityOverride, "massCapacityOverride", 0f, false);
-        Scribe_Values.Look(ref gatherFromBaseMap, "gatherFromBaseMap", false);
+        Scribe_Collections.Look(ref leftToLoad, "leftToLoad", LookMode.Deep);
+        Scribe_Values.Look(ref notifiedCantLoadMore(this), "notifiedCantLoadMore");
+        Scribe_Values.Look(ref massCapacityOverride, "massCapacityOverride");
+        Scribe_Values.Look(ref gatherFromBaseMap, "gatherFromBaseMap");
     }
 }

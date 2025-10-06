@@ -10,8 +10,8 @@ public class Bullet_ZiplineEndReturn : Bullet, IZiplineEnd
     {
         get
         {
-            float num = def.projectile.arcHeightFactor;
-            float num2 = (destination - origin).MagnitudeHorizontalSquared();
+            var num = def.projectile.arcHeightFactor;
+            var num2 = (destination - origin).MagnitudeHorizontalSquared();
             if (num * num > num2 * 0.2f * 0.2f)
             {
                 num = Mathf.Sqrt(num2) * 0.2f;
@@ -48,14 +48,14 @@ public class Bullet_ZiplineEndReturn : Bullet, IZiplineEnd
     }
     protected override void ImpactSomething()
     {
-        Impact(null, false);
+        Impact(null);
     }
 
     protected override void Impact(Thing hitThing, bool blockedByShield = false)
     {
         if (blockedByShield) return;
 
-        Destroy(DestroyMode.Vanish);
+        Destroy();
         launchVerb.ZiplineEnd = null;
         if (launchVerb.caster is Building_Turret building_Turret)
         {

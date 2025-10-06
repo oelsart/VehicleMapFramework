@@ -1,69 +1,36 @@
-﻿using RimWorld;
-using System.Linq;
+﻿using System.Linq;
+using RimWorld;
 using UnityEngine;
 using Vehicles;
-using Vehicles.World;
 using Verse;
 
 namespace VehicleMapFramework
 {
     public class CompFueledTravelGravship : CompFueledTravel
     {
-        private Building_GravEngine cachedGravEngine;
-
-        public Building_GravEngine Engine => cachedGravEngine ??= GravshipUtility.GetPlayerGravEngine_NewTemp((Vehicle as VehiclePawnWithMap)?.VehicleMap);
+        private Building_GravEngine Engine => field ??= GravshipUtility.GetPlayerGravEngine_NewTemp((Vehicle as VehiclePawnWithMap)?.VehicleMap);
 
         public override float FuelCapacity => Engine?.MaxFuel ?? 0f;
 
-        public override bool TickByRequest
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public override bool TickByRequest => false;
 
-        private bool ShouldConsumeNow
-        {
-            get
-            {
-                return !EmptyTank && Vehicle.Spawned && (ConsumeWhenDrafted || ConsumeWhenMoving || ConsumeAlways);
-            }
-        }
+        private bool ShouldConsumeNow => !EmptyTank && Vehicle.Spawned && (ConsumeWhenDrafted || ConsumeWhenMoving || ConsumeAlways);
 
-        private bool ConsumeAlways
-        {
-            get
-            {
-                return FuelCondition.HasFlag(FuelConsumptionCondition.Always);
-            }
-        }
+        private bool ConsumeAlways => FuelCondition.HasFlag(FuelConsumptionCondition.Always);
 
-        private bool ConsumeWhenDrafted
-        {
-            get
-            {
-                return Vehicle.Spawned && FuelCondition.HasFlag(FuelConsumptionCondition.Drafted) && Vehicle.Drafted;
-            }
-        }
+        private bool ConsumeWhenDrafted => Vehicle.Spawned && FuelCondition.HasFlag(FuelConsumptionCondition.Drafted) && Vehicle.Drafted;
 
         private bool ConsumeWhenMoving
         {
             get
             {
-                if (FuelCondition.HasFlag(FuelConsumptionCondition.Moving))
+                if (!FuelCondition.HasFlag(FuelConsumptionCondition.Moving)) return false;
+                if (Vehicle.Spawned && Vehicle.vehiclePather.Moving)
                 {
-                    if (Vehicle.Spawned && Vehicle.vehiclePather.Moving)
-                    {
-                        return true;
-                    }
-                    VehicleCaravan caravan = Vehicle.GetVehicleCaravan();
-                    if (caravan != null && caravan.vehiclePather.MovingNow)
-                    {
-                        return true;
-                    }
+                    return true;
                 }
-                return false;
+                var caravan = Vehicle.GetVehicleCaravan();
+                return caravan != null && caravan.vehiclePather.MovingNow;
             }
         }
 
@@ -123,16 +90,11 @@ namespace VehicleMapFramework
             {
                 if (compGravshipFacility.CanBeActive && compGravshipFacility.Props.providesFuel)
                 {
-                    CompRefuelable comp = compGravshipFacility.parent.GetComp<CompRefuelable>();
+                    var comp = compGravshipFacility.parent.GetComp<CompRefuelable>();
                     comp?.ConsumeFuel(comp.Fuel * num);
                 }
             }
             base.ConsumeFuel(amount);
-        }
-
-        public override void StartTicking()
-        {
-            base.StartTicking();
         }
 
         public override void CompTick()

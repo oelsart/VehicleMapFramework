@@ -1,12 +1,11 @@
-﻿using HarmonyLib;
-using RimWorld;
-using SmashTools;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using HarmonyLib;
+using RimWorld;
+using SmashTools;
 using UnityEngine;
-using Vehicles;
 using Verse;
 using static VehicleMapFramework.MethodInfoCache;
 
@@ -17,7 +16,7 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 public static class Patch_Graphic_Linked_ShouldLinkWith
 {
     [PatchLevel(Level.Mandatory)]
-    [HarmonyReversePatch(HarmonyReversePatchType.Original)]
+    [HarmonyReversePatch()]
     [HarmonyPriority(Priority.Normal)]
     //なんでReversePatchしてるのにオリジナルのメソッドをコピーしてるのかって？Performance AnalyzerがReversePatchに対応してないからだよ！
     public static bool ShouldLinkWith(Graphic_Linked instance, IntVec3 c, Thing parent)
@@ -40,7 +39,7 @@ public static class Patch_Graphic_Linked_ShouldLinkWith
         if (VehicleMapUtility.RotForPrint != Rot4.North)
         {
             var offset = c - parent.Position;
-            var rotated = offset.RotatedBy(VehicleMapUtility.RotForPrint.IsHorizontal ? VehicleMapUtility.RotForPrint.Opposite : VehicleMapUtility.RotForPrint);
+            var rotated = offset.RotatedBy(VehicleMapUtility.RotForPrintCounter);
             c = rotated + parent.Position;
         }
     }
@@ -92,14 +91,14 @@ public static class Patch_MinifiedThing_Print
         codes.MatchStartForward(CodeMatch.Calls(m_PrintPlane));
         codes.MatchStartBackwards(new CodeMatch(c => c.opcode == OpCodes.Ldloc_1));
         codes.InsertAfterAndAdvance(CodeInstruction.LoadArgument(0));
-        codes.Advance(1);
+        codes.Advance();
         codes.SetInstruction(new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_PrintExtraRotation));
 
         codes.End();
         codes.MatchStartBackwards(CodeMatch.Calls(m_PrintPlane));
         codes.MatchStartBackwards(new CodeMatch(c => c.opcode == OpCodes.Ldloc_S && ((LocalBuilder)c.operand).LocalType == typeof(Material)));
         codes.InsertAfterAndAdvance(CodeInstruction.LoadArgument(0));
-        codes.Advance(1);
+        codes.Advance();
         codes.SetInstruction(new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_PrintExtraRotation));
         return codes.Instructions();
     }
@@ -358,7 +357,7 @@ public static class Patch_Graphic_Draw
                 loc += new Vector3(offset2.x - offset.x, 0f, offset2.z - offset.z);
             }
         }
-        else if (thing != null && !thing.Spawned && thing.SpawnedParentOrMe.IsOnNonFocusedVehicleMapOf(out vehicle))
+        else if (thing is { Spawned: false } && thing.SpawnedParentOrMe.IsOnNonFocusedVehicleMapOf(out vehicle))
         {
             extraRotation += vehicle.FullAngle();
         }
@@ -390,7 +389,7 @@ public static class Patch_Graphic_DrawFromDef
                 var graphic = def.graphic;
                 if (graphic is Graphic_Collection) return true;
                 var rotation = new Rot4(rot2.AsInt + baseRotInt);
-                return graphic != null && graphic.MatAt(rot2, null) == graphic.MatAt(rotation, null) && graphic.DrawOffset(rot2) == graphic.DrawOffset(rotation);
+                return graphic != null && graphic.MatAt(rot2) == graphic.MatAt(rotation) && graphic.DrawOffset(rot2) == graphic.DrawOffset(rotation);
             }
 
             if (def.size.x != def.size.z || ((((def.graphicData?.drawRotated ?? false) && (!def.graphicData?.Linked ?? true)) || def.rotatable) && !SameMaterialByRot()))
@@ -402,7 +401,7 @@ public static class Patch_Graphic_DrawFromDef
             {
                 extraRotation -= angle;
             }
-            Vector3 offset = def.graphicData?.DrawOffsetForRot(rot) ?? Vector3.zero;
+            var offset = def.graphicData?.DrawOffsetForRot(rot) ?? Vector3.zero;
             if (flag)
             {
                 var offset2 = compProperties.DrawOffsetForRot(rot);
@@ -487,7 +486,7 @@ public static class Patch_GenDraw_DrawFillableBar
             var extraRotation = vehicle?.Transform.rotation ?? 0f;
             var rot = new Rot8(r.rotation.AsInt);
             var fullAngle = rot.Opposite.AsAngle + extraRotation;
-            Vector2 vector = r.preRotationOffset.RotatedBy(fullAngle);
+            var vector = r.preRotationOffset.RotatedBy(fullAngle);
             r.center += new Vector3(vector.x, 0f, vector.y);
             Vector3 s = new(r.size.x + r.margin, 1f, r.size.y + r.margin);
             Matrix4x4 matrix = default;
@@ -498,7 +497,7 @@ public static class Patch_GenDraw_DrawFillableBar
             {
                 s = new Vector3(r.size.x * r.fillPercent, 1f, r.size.y);
                 matrix = default;
-                Vector3 pos = r.center + (Vector3.up * 0.01f);
+                var pos = r.center + (Vector3.up * 0.01f);
                 pos += new Vector3((-r.size.x * 0.5f) + (0.5f * r.size.x * r.fillPercent), 0f, 0f).RotatedBy(fullAngle);
                 matrix.SetTRS(pos, quat, s);
                 Graphics.DrawMesh(MeshPool.plane10, matrix, r.filledMat, 0);

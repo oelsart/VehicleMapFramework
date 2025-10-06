@@ -1,9 +1,9 @@
-﻿using HarmonyLib;
-using RimWorld.Planet;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using HarmonyLib;
+using RimWorld.Planet;
 using Verse;
 using static VehicleMapFramework.MethodInfoCache;
 using static VehicleMapFramework.ModCompat.VFESecurity;
@@ -125,7 +125,7 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
             GlobalTargetInfo target;
             if (__instance.parent.IsOnVehicleMapOf(out var vehicle) && __instance.parent.IsHashIntervalTick(60) && (target = targetedTile(__instance)).IsValid)
             {
-                if (Find.WorldGrid.TraversalDistanceBetween(vehicle.Tile, target.Tile, true, 2147483647) < worldTileRange(__instance.props)) return;
+                if (Find.WorldGrid.TraversalDistanceBetween(vehicle.Tile, target.Tile) < worldTileRange(__instance.props)) return;
 
                 targetedTile(__instance) = GlobalTargetInfo.Invalid;
             }

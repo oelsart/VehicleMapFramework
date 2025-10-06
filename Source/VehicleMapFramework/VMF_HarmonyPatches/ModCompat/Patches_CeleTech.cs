@@ -1,8 +1,8 @@
-﻿using HarmonyLib;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using HarmonyLib;
 using Verse;
 using static VehicleMapFramework.MethodInfoCache;
 
@@ -59,7 +59,7 @@ public static class Patch_Building_CMCTurretGun_OrderAttack
 [HarmonyPatch("TOT_DLL_test.Building_CMCTurretGun", "TryFindNewTarget")]
 public static class Patch_Building_CMCTurretGun_TryFindNewTarget
 {
-    private static List<Building> tmpList = [];
+    private static readonly List<Building> tmpList = [];
 
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {

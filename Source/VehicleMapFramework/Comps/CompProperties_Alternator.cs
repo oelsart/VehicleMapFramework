@@ -1,6 +1,6 @@
-﻿using RimWorld;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Xml;
+using RimWorld;
 using Verse;
 
 namespace VehicleMapFramework;
@@ -20,11 +20,9 @@ public class CompProperties_Alternator : CompProperties_Power
 
         public float fuelConsumptionRate = 1f;
 
-        public FuelProperties() { }
-
         public void LoadDataFromXmlCustom(XmlNode xmlRoot)
         {
-            DirectXmlCrossRefLoader.RegisterObjectWantsCrossRef(this, "fuelDef", xmlRoot.Name, null, null, null);
+            DirectXmlCrossRefLoader.RegisterObjectWantsCrossRef(this, "fuelDef", xmlRoot.Name);
             fuelConsumptionRate = ParseHelper.FromString<float>(xmlRoot.InnerText);
         }
     }

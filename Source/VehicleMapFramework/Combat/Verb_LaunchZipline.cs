@@ -27,7 +27,7 @@ public class Verb_LaunchZipline : Verb_LaunchProjectile
             return targetParams.canTargetSelf;
         }
         ShootLine shootLine;
-        return (targ.Pawn == null || !targ.Pawn.IsPsychologicallyInvisible() || !caster.HostileTo(targ.Pawn)) && !ApparelPreventsShooting() && this.TryFindShootLineFromToOnVehicle(root, targ, out shootLine, false);
+        return (targ.Pawn == null || !targ.Pawn.IsPsychologicallyInvisible() || !caster.HostileTo(targ.Pawn)) && !ApparelPreventsShooting() && this.TryFindShootLineFromToOnVehicle(root, targ, out shootLine);
     }
 
     public override bool TryStartCastOn(LocalTargetInfo castTarg, LocalTargetInfo destTarg, bool surpriseAttack = false, bool canHitNonTargetPawns = true, bool preventFriendlyFire = false, bool nonInterruptingSelfCast = false)
@@ -39,13 +39,13 @@ public class Verb_LaunchZipline : Verb_LaunchProjectile
 
     protected override bool TryCastShot()
     {
-        ThingDef projectile = Projectile;
+        var projectile = Projectile;
         if (projectile == null)
         {
             return false;
         }
 
-        bool flag = this.TryFindShootLineFromToOnVehicle(caster.PositionOnBaseMap(), currentTarget, out ShootLine resultingLine);
+        var flag = this.TryFindShootLineFromToOnVehicle(caster.PositionOnBaseMap(), currentTarget, out var resultingLine);
         if (verbProps.stopBurstWithoutLos && !flag)
         {
             return false;
@@ -58,17 +58,17 @@ public class Verb_LaunchZipline : Verb_LaunchProjectile
         }
 
         lastShotTick = Find.TickManager.TicksGame;
-        Thing manningPawn = caster;
+        var manningPawn = caster;
         Thing equipmentSource = EquipmentSource;
-        CompMannable compMannable = caster.TryGetComp<CompMannable>();
+        var compMannable = caster.TryGetComp<CompMannable>();
         if (compMannable?.ManningPawn != null)
         {
             manningPawn = compMannable.ManningPawn;
             equipmentSource = caster;
         }
 
-        Vector3 drawPos = caster.DrawPos;
-        Projectile projectile2 = (Projectile)GenSpawn.Spawn(projectile, resultingLine.Source, caster.BaseMap());
+        var drawPos = caster.DrawPos;
+        var projectile2 = (Projectile)GenSpawn.Spawn(projectile, resultingLine.Source, caster.BaseMap());
         ZiplineEnd = projectile2;
         if (projectile2 is Bullet_ZiplineEnd zipline)
         {
@@ -80,19 +80,19 @@ public class Verb_LaunchZipline : Verb_LaunchProjectile
         }
         if (verbProps.ForcedMissRadius > 0.5f)
         {
-            float num = verbProps.ForcedMissRadius;
+            var num = verbProps.ForcedMissRadius;
             if (manningPawn is Pawn pawn)
             {
                 num *= verbProps.GetForceMissFactorFor(equipmentSource, pawn);
             }
 
-            float num2 = VerbUtility.CalculateAdjustedForcedMiss(num, currentTarget.CellOnBaseMap() - caster.PositionOnBaseMap());
+            var num2 = VerbUtility.CalculateAdjustedForcedMiss(num, currentTarget.CellOnBaseMap() - caster.PositionOnBaseMap());
             if (num2 > 0.5f)
             {
-                IntVec3 forcedMissTarget = GetForcedMissTarget(num2);
+                var forcedMissTarget = GetForcedMissTarget(num2);
                 if (forcedMissTarget != currentTarget.Cell)
                 {
-                    ProjectileHitFlags projectileHitFlags = ProjectileHitFlags.NonTargetWorld;
+                    var projectileHitFlags = ProjectileHitFlags.NonTargetWorld;
                     if (Rand.Chance(0.5f))
                     {
                         projectileHitFlags = ProjectileHitFlags.All;
@@ -109,14 +109,14 @@ public class Verb_LaunchZipline : Verb_LaunchProjectile
             }
         }
 
-        ShotReport shotReport = ShotReport.HitReportFor(caster, this, currentTarget);
-        Thing randomCoverToMissInto = shotReport.GetRandomCoverToMissInto();
-        ThingDef targetCoverDef = randomCoverToMissInto?.def;
+        var shotReport = ShotReport.HitReportFor(caster, this, currentTarget);
+        var randomCoverToMissInto = shotReport.GetRandomCoverToMissInto();
+        var targetCoverDef = randomCoverToMissInto?.def;
         if (verbProps.canGoWild && !Rand.Chance(shotReport.AimOnTargetChance_IgnoringPosture))
         {
-            bool flyOverhead = projectile2?.def?.projectile != null && projectile2.def.projectile.flyOverhead;
+            var flyOverhead = projectile2?.def?.projectile is { flyOverhead: true };
             resultingLine.ChangeDestToMissWild(shotReport.AimOnTargetChance_StandardTarget, flyOverhead, caster.BaseMap());
-            ProjectileHitFlags projectileHitFlags2 = ProjectileHitFlags.NonTargetWorld;
+            var projectileHitFlags2 = ProjectileHitFlags.NonTargetWorld;
             if (Rand.Chance(0.5f) && canHitNonTargetPawnsNow)
             {
                 projectileHitFlags2 |= ProjectileHitFlags.NonTargetPawns;
@@ -128,7 +128,7 @@ public class Verb_LaunchZipline : Verb_LaunchProjectile
 
         if (currentTarget.Thing != null && currentTarget.Thing.def.CanBenefitFromCover && !Rand.Chance(shotReport.PassCoverChance))
         {
-            ProjectileHitFlags projectileHitFlags3 = ProjectileHitFlags.NonTargetWorld;
+            var projectileHitFlags3 = ProjectileHitFlags.NonTargetWorld;
             if (canHitNonTargetPawnsNow)
             {
                 projectileHitFlags3 |= ProjectileHitFlags.NonTargetPawns;
@@ -138,7 +138,7 @@ public class Verb_LaunchZipline : Verb_LaunchProjectile
             return true;
         }
 
-        ProjectileHitFlags projectileHitFlags4 = ProjectileHitFlags.IntendedTarget;
+        var projectileHitFlags4 = ProjectileHitFlags.IntendedTarget;
         if (canHitNonTargetPawnsNow)
         {
             projectileHitFlags4 |= ProjectileHitFlags.NonTargetPawns;
@@ -163,7 +163,7 @@ public class Verb_LaunchZipline : Verb_LaunchProjectile
 
     public override void DrawHighlight(LocalTargetInfo target)
     {
-        if (caster != null && !caster.Spawned)
+        if (caster is { Spawned: false })
         {
             return;
         }

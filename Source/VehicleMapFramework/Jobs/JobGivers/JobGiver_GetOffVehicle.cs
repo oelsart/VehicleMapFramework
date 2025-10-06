@@ -20,7 +20,7 @@ public class JobGiver_GetOffVehicle : ThinkNode_JobGiver
         {
             var cells = vehicle.VehicleRect().ExpandedBy(1).EdgeCells;
 
-            TargetInfo exitSpot = TargetInfo.Invalid;
+            var exitSpot = TargetInfo.Invalid;
             if (cells.Any(c => pawn.CanReach(c, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, vehicle.Map, out exitSpot, out _)))
             {
                 var job = JobMaker.MakeJob(VMF_DefOf.VMF_GotoAcrossMaps).SetSpotsToJobAcrossMaps(pawn, exitSpot);

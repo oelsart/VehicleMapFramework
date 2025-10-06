@@ -12,8 +12,8 @@ public class Bullet_ZiplineEnd : Bullet, IZiplineEnd
     {
         get
         {
-            float num = def.projectile.arcHeightFactor;
-            float num2 = (destination - origin).MagnitudeHorizontalSquared();
+            var num = def.projectile.arcHeightFactor;
+            var num2 = (destination - origin).MagnitudeHorizontalSquared();
             if (num * num > num2 * 0.2f * 0.2f)
             {
                 num = Mathf.Sqrt(num2) * 0.2f;
@@ -35,7 +35,7 @@ public class Bullet_ZiplineEnd : Bullet, IZiplineEnd
 
     protected override void ImpactSomething()
     {
-        Impact(null, false);
+        Impact(null);
     }
 
     protected override void Impact(Thing hitThing, bool blockedByShield = false)
@@ -71,7 +71,7 @@ public class Bullet_ZiplineEnd : Bullet, IZiplineEnd
         }
         TargetMapManager.RemoveTargetInfo(launchVerb.caster);
 
-        base.Destroy(DestroyMode.Vanish);
+        base.Destroy();
 
         if (launchVerb.CasterIsPawn)
         {
@@ -91,9 +91,9 @@ public class Bullet_ZiplineEnd : Bullet, IZiplineEnd
 
     public void DrawZipline(Vector3 drawLoc)
     {
-        if (launcher != null && launcher.Spawned)
+        if (launcher is { Spawned: true })
         {
-            float num = ArcHeightFactor * GenMath.InverseParabola(DistanceCoveredFractionArc);
+            var num = ArcHeightFactor * GenMath.InverseParabola(DistanceCoveredFractionArc);
             var drawPosA = drawLoc + (Vector3.forward * num) + (Vector3.back * ZiplineEnd.ZiplineEndOffset).RotatedBy(ExactRotation.eulerAngles.y);
             var launcherPos = launcher.DrawPos;
             var drawPosB = launcherPos + (Vector3.forward * ZiplineEnd.LauncherOffset).RotatedBy((drawPosA - launcherPos).AngleFlat());

@@ -16,13 +16,13 @@ public class Graphic_LinkedCornerOverlaySingle : Graphic_Linked
     public override void Print(SectionLayer layer, Thing thing, float extraRotation)
     {
         base.Print(layer, thing, extraRotation);
-        IntVec3 position = thing.Position;
+        var position = thing.Position;
         if (ShouldLinkWith(position + IntVec3.East, thing) && ShouldLinkWith(position + IntVec3.North, thing) && ShouldLinkWith(position + IntVec3.NorthEast, thing))
         {
-            Material mat = overlayGraphic.MatSingleFor(thing);
-            TryGetTextureAtlasReplacementInfo(mat, TextureAtlasGroup.Building, false, false, out mat, out Vector2[] uvs, out _);
+            var mat = overlayGraphic.MatSingleFor(thing);
+            TryGetTextureAtlasReplacementInfo(mat, TextureAtlasGroup.Building, false, false, out mat, out var uvs, out _);
             var rot = -VehicleMapUtility.RotForPrint.AsAngle;
-            Printer_Plane.PrintPlane(layer, thing.TrueCenter() + VehicleMapUtility.RotateForPrintNegate(new Vector3(0.5f, 0.1f, 0.5f)), Vector3.one, mat, rot, false, uvs, null, 0.01f, 0f);
+            Printer_Plane.PrintPlane(layer, thing.TrueCenter() + VehicleMapUtility.RotateForPrintNegate(new Vector3(0.5f, 0.1f, 0.5f)), Vector3.one, mat, rot, false, uvs);
         }
     }
 

@@ -1,6 +1,6 @@
-﻿using RimWorld;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using RimWorld;
 using UnityEngine;
 using Verse;
 using Verse.Sound;
@@ -9,7 +9,7 @@ namespace VehicleMapFramework;
 
 public class CompWirelessTransmitter : CompToggleLitGraphic
 {
-    new public CompProperties_WirelessCharger Props => (CompProperties_WirelessCharger)props;
+    public new CompProperties_WirelessCharger Props => (CompProperties_WirelessCharger)props;
 
     public override void CompTick()
     {
@@ -66,70 +66,70 @@ public class CompWirelessTransmitter : CompToggleLitGraphic
 
     public override IEnumerable<Gizmo> CompGetGizmosExtra()
     {
-        foreach (Gizmo gizmo in base.CompGetGizmosExtra())
+        foreach (var gizmo in base.CompGetGizmosExtra())
         {
             yield return gizmo;
         }
         yield return new Command_Action
         {
-            action = delegate ()
+            action = delegate
             {
                 powerOutputSetting = Mathf.Clamp(powerOutputSetting - 1000f, minPowerOutput, maxPowerOutput);
-                MoteMaker.ThrowText(parent.DrawPos, parent.BaseMap(), powerOutputSetting.ToString(), Color.white, -1f);
+                MoteMaker.ThrowText(parent.DrawPos, parent.BaseMap(), powerOutputSetting.ToString(), Color.white);
             },
             defaultLabel = "-1000W",
             defaultDesc = "VMF_LowerPowerDesc".Translate(),
             hotKey = KeyBindingDefOf.Misc5,
-            icon = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/PowerLower", true)
+            icon = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/PowerLower")
         };
         yield return new Command_Action
         {
-            action = delegate ()
+            action = delegate
             {
                 powerOutputSetting = Mathf.Clamp(powerOutputSetting - 100f, minPowerOutput, maxPowerOutput);
-                MoteMaker.ThrowText(parent.DrawPos, parent.BaseMap(), powerOutputSetting.ToString(), Color.white, -1f);
+                MoteMaker.ThrowText(parent.DrawPos, parent.BaseMap(), powerOutputSetting.ToString(), Color.white);
             },
             defaultLabel = "-100W",
             defaultDesc = "VMF_LowerPowerDesc".Translate(),
             hotKey = KeyBindingDefOf.Misc4,
-            icon = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/PowerLower", true)
+            icon = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/PowerLower")
         };
         yield return new Command_Action
         {
-            action = delegate ()
+            action = delegate
             {
                 powerOutputSetting = 500f;
-                SoundDefOf.Tick_Tiny.PlayOneShotOnCamera(null);
-                MoteMaker.ThrowText(parent.DrawPos, parent.BaseMap(), powerOutputSetting.ToString(), Color.white, -1f);
+                SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+                MoteMaker.ThrowText(parent.DrawPos, parent.BaseMap(), powerOutputSetting.ToString(), Color.white);
             },
             defaultLabel = "VMF_ResetPower".Translate(),
             defaultDesc = "VMF_ResetPowerDesc".Translate(),
             hotKey = KeyBindingDefOf.Misc1,
-            icon = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/PowerReset", true)
+            icon = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/PowerReset")
         };
         yield return new Command_Action
         {
-            action = delegate ()
+            action = delegate
             {
                 powerOutputSetting = Mathf.Clamp(powerOutputSetting + 100f, minPowerOutput, maxPowerOutput);
-                MoteMaker.ThrowText(parent.DrawPos, parent.BaseMap(), powerOutputSetting.ToString(), Color.white, -1f);
+                MoteMaker.ThrowText(parent.DrawPos, parent.BaseMap(), powerOutputSetting.ToString(), Color.white);
             },
             defaultLabel = "+100W",
             defaultDesc = "VMF_RaisePowerDesc".Translate(),
             hotKey = KeyBindingDefOf.Misc2,
-            icon = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/PowerRaise", true)
+            icon = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/PowerRaise")
         };
         yield return new Command_Action
         {
-            action = delegate ()
+            action = delegate
             {
                 powerOutputSetting = Mathf.Clamp(powerOutputSetting + 1000f, minPowerOutput, maxPowerOutput);
-                MoteMaker.ThrowText(parent.DrawPos, parent.BaseMap(), powerOutputSetting.ToString(), Color.white, -1f);
+                MoteMaker.ThrowText(parent.DrawPos, parent.BaseMap(), powerOutputSetting.ToString(), Color.white);
             },
             defaultLabel = "+1000W",
             defaultDesc = "VMF_RaisePowerDesc".Translate(),
             hotKey = KeyBindingDefOf.Misc3,
-            icon = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/PowerRaise", true)
+            icon = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/PowerRaise")
         };
     }
 

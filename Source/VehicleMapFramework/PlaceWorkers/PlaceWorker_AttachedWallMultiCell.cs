@@ -1,5 +1,5 @@
-﻿using RimWorld;
-using System.Linq;
+﻿using System.Linq;
+using RimWorld;
 using Verse;
 
 namespace VehicleMapFramework
@@ -15,7 +15,7 @@ namespace VehicleMapFramework
 
             var occupiedRect = GenAdj.OccupiedRect(loc, rot, checkingDef.Size);
 
-            AcceptanceReport report = AcceptanceReport.WasRejected;
+            var report = AcceptanceReport.WasRejected;
             report = base.AllowsPlacing(checkingDef, occupiedRect.GetCenterCellOnEdge(rot), rot, map, thingToIgnore, thing);
             if (report.Accepted) return report;
             if (occupiedRect.GetSideLength(rot) % 2 == 0)

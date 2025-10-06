@@ -1,8 +1,7 @@
-﻿using HarmonyLib;
+﻿using System.Collections.Generic;
+using System.Linq;
 using PipeSystem;
 using SmashTools;
-using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using VehicleMapFramework.VMF_HarmonyPatches;
 using Verse;
@@ -13,24 +12,20 @@ public class CompPipeConnectorVEF : CompResource, IPipeConnector
 {
     public PipeNetDef pipeNet = DefDatabase<PipeNetDef>.GetNamed("VMF_UnassignedNet");
 
-    private CompPipeConnector compPipeConnector;
-
     private CompPipeConnectorVEF pairComp;
 
     public CompPipeConnector.PipeMod Mod => CompPipeConnector.PipeMod.VanillaExpandedFramework;
 
-    public CompPipeConnector CompPipeConnector
+    private CompPipeConnector CompPipeConnector
     {
         get
         {
-            if (compPipeConnector == null)
+            if (field != null) return field;
+            if (!parent.TryGetComp(out field))
             {
-                if (!parent.TryGetComp(out compPipeConnector))
-                {
-                    Log.Error($"[VehicleMapFramework] CompPipeConnector not found with {parent.LabelCap}.");
-                }
+                Log.Error($"[VehicleMapFramework] CompPipeConnector not found with {parent.LabelCap}.");
             }
-            return compPipeConnector;
+            return field;
         }
     }
 
@@ -46,13 +41,7 @@ public class CompPipeConnectorVEF : CompResource, IPipeConnector
         }
     }
 
-    public Texture GizmoIcon
-    {
-        get
-        {
-            return pipeNet?.pipeDefs?.FirstOrDefault()?.uiIcon;
-        }
-    }
+    public Texture GizmoIcon => pipeNet?.pipeDefs?.FirstOrDefault()?.uiIcon;
 
     public IEnumerable<FloatMenuOption> FloatMenuOptions
     {
@@ -80,39 +69,37 @@ public class CompPipeConnectorVEF : CompResource, IPipeConnector
 
     public void ConnectedTickAction()
     {
-        if (PairComp != null && PipeNet != pairComp.PipeNet)
+        if (PairComp == null || PipeNet == pairComp.PipeNet) return;
+        
+        var net = pairComp.PipeNet;
+        
+        foreach (var t in net.connectors)
         {
-            var pipeNet = pairComp.PipeNet;
-            for (var i = 0; i < pipeNet.connectors.Count; i++)
-            {
-                PipeNet.RegisterComp(pipeNet.connectors[i]);
-            }
-            pairComp.PipeNet = PipeNet;
-            pipeNet.Destroy();
-            var component = MapComponentCache<PipeNetManager>.GetComponent(pairComp.parent.Map);
-            Patches_VEF.pipeNetsCount(component) = component.pipeNets.Count;
-            parent.DirtyMapMesh(parent.Map);
+            PipeNet.RegisterComp(t);
         }
+        pairComp.PipeNet = PipeNet;
+        net.Destroy();
+        var component = MapComponentCache<PipeNetManager>.GetComponent(pairComp.parent.Map);
+        Patches_VEF.pipeNetsCount(component) = component.pipeNets.Count;
+        parent.DirtyMapMesh(parent.Map);
     }
 
     public void DisconnectedAction()
     {
         var pipeNetManager = MapComponentCache<PipeNetManager>.GetComponent(parent.Map);
-        var newConnectors = PipeNet.connectors.Where(c => c.parent.Map == parent.Map);
+        var newConnectors = PipeNet.connectors.Where(c => c.parent.Map == parent.Map).ToArray();
         if (!pipeNetManager.pipeNets.Remove(PipeNet))
         {
             Patches_VEF.pipeNetsCount(pipeNetManager)++;
         }
         PipeNet = PipeNetMaker.MakePipeNet(newConnectors, parent.Map, pipeNet);
         pipeNetManager.pipeNets.Add(PipeNet);
-        if (PairComp != null)
+        if (PairComp == null) return;
+        foreach (var connector in newConnectors)
         {
-            foreach (var connector in newConnectors.ToArray())
-            {
-                pairComp.PipeNet.UnregisterComp(connector);
-            }
-            pairComp = null;
+            pairComp.PipeNet.UnregisterComp(connector);
         }
+        pairComp = null;
     }
 
     public override void PostExposeData()

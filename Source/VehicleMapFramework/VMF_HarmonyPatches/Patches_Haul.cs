@@ -1,11 +1,11 @@
-﻿using HarmonyLib;
-using RimWorld;
-using RimWorld.Planet;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using HarmonyLib;
+using RimWorld;
+using RimWorld.Planet;
 using Verse;
 using Verse.AI;
 using static VehicleMapFramework.MethodInfoCache;
@@ -161,8 +161,10 @@ public static class Patch_JobDriver_HaulToCell
         {
             return t.GetDeclaredMethods().FirstOrDefault(m =>
             {
-                if (!m.Name.Contains("<MakeNewToils>")) return false;
-                return m.GetMethodBody().LocalVariables.Select(l => l.LocalType).SequenceEqual([typeof(Pawn), typeof(Job), typeof(Thing), typeof(LocalTargetInfo)]);
+                return m.Name.Contains("<MakeNewToils>") &&
+                       m.GetMethodBody()!.LocalVariables
+                           .Select(l => l.LocalType)
+                           .SequenceEqual([typeof(Pawn), typeof(Job), typeof(Thing), typeof(LocalTargetInfo)]);
             });
         });
     }
@@ -199,8 +201,10 @@ public static class Patch_Toils_Haul_IsValidStorageFor
                 {
                     return true;
                 }
-                if (!m.Name.Contains("<CarryHauledThingToCell>")) return false;
-                return m.GetMethodBody().LocalVariables.Select(l => l.LocalType).SequenceEqual([typeof(Pawn), typeof(IntVec3), typeof(CompPushable), typeof(LocalTargetInfo)]);
+                return m.Name.Contains("<CarryHauledThingToCell>") &&
+                       m.GetMethodBody()!.LocalVariables
+                           .Select(l => l.LocalType)
+                           .SequenceEqual([typeof(Pawn), typeof(IntVec3), typeof(CompPushable), typeof(LocalTargetInfo)]);
             });
             if (method != null) yield return method;
         }
@@ -219,6 +223,9 @@ public static class Patch_LoadTransportersJobUtility_FindThingToLoad
     [PatchLevel(Level.Mandatory)]
     public static ThingCount FindThingToLoad(Pawn p, CompTransporter transporter)
     {
+        _ = Transpiler(null);
+        throw new NotImplementedException();
+
         static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             var codes = new CodeMatcher(instructions);
@@ -238,14 +245,12 @@ public static class Patch_LoadTransportersJobUtility_FindThingToLoad
             var m_ClosestThingReachableOriginal = AccessTools.Method(typeof(Patch_GenClosest_ClosestThingReachable), nameof(Patch_GenClosest_ClosestThingReachable.ClosestThingReachableOriginal));
             return codes.Instructions().MethodReplacer(m_ClosestThingReachable, m_ClosestThingReachableOriginal);
         }
-        _ = Transpiler(null);
-        throw new NotImplementedException();
     }
 
     [PatchLevel(Level.Safe)]
     public static bool Prefix(Pawn p, CompTransporter transporter, ref ThingCount __result)
     {
-        if (transporter is CompBuildableContainer container && !container.GatherFromBaseMap)
+        if (transporter is CompBuildableContainer { GatherFromBaseMap: false })
         {
             __result = FindThingToLoad(p, transporter);
             return false;

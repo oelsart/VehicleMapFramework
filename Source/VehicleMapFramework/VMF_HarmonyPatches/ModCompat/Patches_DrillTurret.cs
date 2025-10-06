@@ -1,7 +1,6 @@
-﻿using HarmonyLib;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Reflection;
+using HarmonyLib;
 using UnityEngine;
 using Verse;
 using static VehicleMapFramework.MethodInfoCache;

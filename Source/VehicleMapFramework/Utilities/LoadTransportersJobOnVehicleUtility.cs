@@ -1,5 +1,5 @@
-﻿using RimWorld;
-using System;
+﻿using System;
+using RimWorld;
 using VehicleMapFramework.VMF_HarmonyPatches;
 using Verse;
 using Verse.AI;
@@ -11,11 +11,9 @@ public static class LoadTransportersJobOnVehicleUtility
 {
     public static ThingCount FindThingToLoad(Pawn p, CompTransporter transporter, bool gatherFromBaseMap)
     {
-        if (gatherFromBaseMap)
-        {
-            return Patch_LoadTransportersJobUtility_FindThingToLoad.FindThingToLoad(p, transporter);
-        }
-        return LoadTransportersJobUtility.FindThingToLoad(p, transporter);
+        return gatherFromBaseMap ?
+            Patch_LoadTransportersJobUtility_FindThingToLoad.FindThingToLoad(p, transporter) :
+            LoadTransportersJobUtility.FindThingToLoad(p, transporter);
     }
 
     public static Job JobOnTransporter(Pawn p, CompTransporter transporter)
@@ -45,11 +43,6 @@ public static class LoadTransportersJobOnVehicleUtility
             return false;
         }
 
-        if (LoadTransportersJobOnVehicleUtility.FindThingToLoad(pawn, transporter, transporter is not CompBuildableContainer container || container.GatherFromBaseMap).Thing == null)
-        {
-            return false;
-        }
-
-        return true;
+        return FindThingToLoad(pawn, transporter, transporter is not CompBuildableContainer container || container.GatherFromBaseMap).Thing != null;
     }
 }

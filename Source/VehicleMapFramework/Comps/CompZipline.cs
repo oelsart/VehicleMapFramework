@@ -1,5 +1,5 @@
-﻿using RimWorld;
-using System.Linq;
+﻿using System.Linq;
+using RimWorld;
 using Verse;
 
 namespace VehicleMapFramework;
@@ -10,26 +10,26 @@ public class CompZipline : CompVehicleEnterSpot
     {
         get
         {
-            if (cachedLaunchVerb == null)
+            if (field == null)
             {
                 if (parent is Building_Turret building_Turret)
                 {
-                    cachedLaunchVerb = building_Turret.AttackVerb as Verb_LaunchZipline;
+                    field = building_Turret.AttackVerb as Verb_LaunchZipline;
                 }
                 else if (parent is ZiplineEnd ziplineEnd)
                 {
-                    cachedLaunchVerb = ziplineEnd.launchVerb;
+                    field = ziplineEnd.launchVerb;
                 }
                 else if (parent is Pawn pawn)
                 {
-                    cachedLaunchVerb = pawn.VerbTracker.AllVerbs.OfType<Verb_LaunchZipline>().FirstOrDefault();
+                    field = pawn.VerbTracker.AllVerbs.OfType<Verb_LaunchZipline>().FirstOrDefault();
                 }
                 else if (parent.def.IsWeapon)
                 {
-                    cachedLaunchVerb = parent.TryGetComp<CompEquippable>()?.PrimaryVerb as Verb_LaunchZipline;
+                    field = parent.TryGetComp<CompEquippable>()?.PrimaryVerb as Verb_LaunchZipline;
                 }
             }
-            return cachedLaunchVerb;
+            return field;
         }
     }
 
@@ -60,8 +60,6 @@ public class CompZipline : CompVehicleEnterSpot
             ziplineEnd.DrawZipline(ziplineEndThing.DrawPos);
         }
     }
-
-    private Verb_LaunchZipline cachedLaunchVerb;
 
     private bool cachedIsZiplineEnd;
 }

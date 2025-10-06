@@ -1,6 +1,6 @@
-﻿using SmashTools;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
+using SmashTools;
 using UnityEngine;
 using Vehicles;
 using Verse;
@@ -11,9 +11,9 @@ public class VehicleMapFollower(VehiclePawnWithMap vehicle)
 {
     public VehiclePawnWithMap vehicle = vehicle;
 
-    private ConcurrentSet<IntVec3> prevOccupiedCells = [];
+    private readonly ConcurrentSet<IntVec3> prevOccupiedCells = [];
 
-    private ConcurrentSet<IntVec3> tmpOccupiedCells = [];
+    private readonly ConcurrentSet<IntVec3> tmpOccupiedCells = [];
 
     private IntVec3 prevCell = IntVec3.Invalid;
 

@@ -1,7 +1,7 @@
-﻿using HarmonyLib;
-using RimWorld;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Reflection.Emit;
+using HarmonyLib;
+using RimWorld;
 using Verse;
 using Verse.AI;
 

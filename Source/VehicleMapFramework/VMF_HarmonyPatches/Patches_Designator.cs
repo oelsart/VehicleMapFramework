@@ -1,9 +1,9 @@
-﻿using HarmonyLib;
-using RimWorld;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using HarmonyLib;
+using RimWorld;
 using Verse;
 using static VehicleMapFramework.MethodInfoCache;
 
@@ -98,12 +98,12 @@ public static class Patch_Designator_SelectedUpdate
 
     public static void SelectedUpdatePostfix(Designator ___selectedDesignator)
     {
-        if (Command_FocusVehicleMap.FocuseLockedVehicle != null || ___selectedDesignator is Designator_AreaAllowed) return;
+        if (Command_FocusVehicleMap.FocusLockedVehicle != null || ___selectedDesignator is Designator_AreaAllowed) return;
 
         Command_FocusVehicleMap.FocusedVehicle = null;
         var mousePos = UI.MouseMapPosition();
         var flag = VehicleMapFlag.None;
-        if (___selectedDesignator is Designator_Build designator_Build && designator_Build.PlacingDef is ThingDef thingDef && thingDef.HasComp<CompMapExpander>())
+        if (___selectedDesignator is Designator_Build { PlacingDef: ThingDef thingDef } && thingDef.HasComp<CompMapExpander>())
         {
             flag |= VehicleMapFlag.ExpandableCells;
         }
@@ -151,7 +151,7 @@ public static class Patch_DesignatorManager_Deselect
 {
     public static void Postfix()
     {
-        if (Command_FocusVehicleMap.FocuseLockedVehicle == null)
+        if (Command_FocusVehicleMap.FocusLockedVehicle == null)
         {
             Command_FocusVehicleMap.FocusedVehicle = null;
         }

@@ -1,9 +1,9 @@
-﻿using HarmonyLib;
-using RimWorld;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using HarmonyLib;
+using RimWorld;
 using UnityEngine;
 using Verse;
 using Verse.AI;
@@ -141,7 +141,7 @@ public static class Patch_Verb_ShootBeam_TryGetHitCell
 {
     public static bool Prefix(IntVec3 source, IntVec3 targetCell, out IntVec3 hitCell, Thing ___caster, VerbProperties ___verbProps, out bool __result)
     {
-        IntVec3 intVec = GenSight.LastPointOnLineOfSight(source, targetCell, c => c.CanBeSeenOverOnVehicle(___caster.BaseMap()), true);
+        var intVec = GenSight.LastPointOnLineOfSight(source, targetCell, c => c.CanBeSeenOverOnVehicle(___caster.BaseMap()), true);
         if (___verbProps.beamCantHitWithinMinRange && intVec.DistanceTo(source) < ___verbProps.minRange)
         {
             hitCell = default;
@@ -397,40 +397,14 @@ public static class Patch_Verb_Jump_DrawHighlight
             }
             if (thing.SpawnedOrAnyParentSpawned)
             {
-                if (TargetMapManager.HasTargetMap(caster, out map))
-                {
-                    return thing.PositionHeld.ToVector3Shifted().ToBaseMapCoord(map);
-                }
-                else
-                {
-                    return thing.PositionHeld.ToVector3Shifted();
-                }
+                return TargetMapManager.HasTargetMap(caster, out map) ? thing.PositionHeld.ToVector3Shifted().ToBaseMapCoord(map) : thing.PositionHeld.ToVector3Shifted();
             }
-            if (TargetMapManager.HasTargetMap(caster, out map))
-            {
-                return thing.Position.ToVector3Shifted().ToBaseMapCoord(map);
-            }
-            else
-            {
-                return thing.Position.ToVector3Shifted();
-            }
+            return TargetMapManager.HasTargetMap(caster, out map) ? thing.Position.ToVector3Shifted().ToBaseMapCoord(map) : thing.Position.ToVector3Shifted();
         }
-        else
-        {
-            var cell = target.Cell;
-            if (cell.IsValid)
-            {
-                if (TargetMapManager.HasTargetMap(caster, out map))
-                {
-                    return cell.ToVector3Shifted().ToBaseMapCoord(map);
-                }
-                else
-                {
-                    return cell.ToVector3Shifted();
-                }
-            }
-            return default;
-        }
+
+        var cell = target.Cell;
+        if (!cell.IsValid) return default;
+        return TargetMapManager.HasTargetMap(caster, out map) ? cell.ToVector3Shifted().ToBaseMapCoord(map) : cell.ToVector3Shifted();
     }
 }
 

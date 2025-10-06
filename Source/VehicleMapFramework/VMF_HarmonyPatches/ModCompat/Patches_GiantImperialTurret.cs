@@ -1,10 +1,10 @@
-﻿using HarmonyLib;
-using RimWorld;
-using SmashTools;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using HarmonyLib;
+using RimWorld;
+using SmashTools;
 using UnityEngine;
 using Verse;
 using Verse.AI;
@@ -96,7 +96,7 @@ public static class Patch_AttackTargetFinderAngle_BestAttackTarget
 {
     private static bool working;
 
-    private static FastInvokeHandler BestAttackTarget = MethodInvoker.GetHandler(AccessTools.Method("BreadMoProjOffset.AttackTargetFinderAngle:BestAttackTarget"));
+    private static readonly FastInvokeHandler BestAttackTarget = MethodInvoker.GetHandler(AccessTools.Method("BreadMoProjOffset.AttackTargetFinderAngle:BestAttackTarget"));
 
     public static void Postfix(IAttackTargetSearcher searcher, TargetScanFlags flags, Vector3 angle, Predicate<Thing> validator, float minDist, float maxDist, IntVec3 locus, float maxTravelRadiusFromLocus, bool canTakeTargetsCloserThanEffectiveMinRange, ref IAttackTarget __result)
     {

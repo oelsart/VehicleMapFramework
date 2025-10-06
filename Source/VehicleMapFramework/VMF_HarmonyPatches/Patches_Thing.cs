@@ -1,14 +1,15 @@
-﻿using HarmonyLib;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Reflection.Emit;
+using HarmonyLib;
 using RimWorld;
 using RimWorld.Planet;
 using SmashTools;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Emit;
 using UnityEngine;
 using Vehicles;
 using Verse;
 using static VehicleMapFramework.MethodInfoCache;
+using Transform = SmashTools.Rendering.Transform;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
@@ -79,7 +80,7 @@ public static class Patch_Building_Door_DrawMovers
                 new CodeInstruction(OpCodes.Brfalse_S, label),
                 new CodeInstruction(OpCodes.Ldloc_S, vehicle),
                 new CodeInstruction(OpCodes.Callvirt, AccessTools.PropertyGetter(typeof(VehiclePawn), nameof(VehiclePawn.Transform))),
-                CodeInstruction.LoadField(typeof(SmashTools.Rendering.Transform), nameof(SmashTools.Rendering.Transform.rotation)),
+                CodeInstruction.LoadField(typeof(Transform), nameof(Transform.rotation)),
                 new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(Vector3), nameof(Vector3.up))),
                 CodeInstruction.Call(typeof(Quaternion), nameof(Quaternion.AngleAxis)),
                 new CodeInstruction(OpCodes.Call, CachedMethodInfo.o_Quaternion_Multiply));
@@ -277,7 +278,7 @@ public static class Patch_TravellingTransporters_Tick
         }
     }
 
-    private static AccessTools.FieldRef<TransportersArrivalAction_LandInSpecificCell, MapParent> mapParent
+    private static readonly AccessTools.FieldRef<TransportersArrivalAction_LandInSpecificCell, MapParent> mapParent
         = AccessTools.FieldRefAccess<TransportersArrivalAction_LandInSpecificCell, MapParent>("mapParent");
 }
 
@@ -467,7 +468,7 @@ public static class Patch_GenConstruct_GetWallAttachedTo
         if (__result is not null) return;
         if (thing.def.PlaceWorkers.All(p => p is not PlaceWorker_AttachedWallMultiCell)) return;
 
-        ThingDef thingDef = GenConstruct.BuiltDefOf(thing.def) as ThingDef;
+        var thingDef = GenConstruct.BuiltDefOf(thing.def) as ThingDef;
         if (thingDef?.building == null || !thingDef.building.isAttachment)
         {
             return;

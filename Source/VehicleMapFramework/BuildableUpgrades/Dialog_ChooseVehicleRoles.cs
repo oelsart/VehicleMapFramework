@@ -10,7 +10,7 @@ public class Dialog_ChooseVehicleRoles : Window
 {
     public override Vector2 InitialSize => new(350f, 216f);
 
-    public Dialog_ChooseVehicleRoles(VehiclePawn vehicle, RoleUpgradeBuildable roleUpgrade, VehicleUpgradeBuildable upgradeBuildable) : base(null)
+    public Dialog_ChooseVehicleRoles(VehiclePawn vehicle, RoleUpgradeBuildable roleUpgrade, VehicleUpgradeBuildable upgradeBuildable)
     {
         this.vehicle = vehicle;
         this.roleUpgrade = roleUpgrade;
@@ -24,50 +24,54 @@ public class Dialog_ChooseVehicleRoles : Window
 
     public override void DoWindowContents(Rect inRect)
     {
-        var font = Text.Font;
-        Text.Font = GameFont.Small;
-        var rect = inRect;
-        rect.height -= CloseButSize.y + 10f;
-        Widgets.DrawMenuSection(rect);
-
-        //まだ割り当てられてないタレットたち
-        var turrets = vehicle.CompVehicleTurrets?.Turrets?.Where(t => vehicle.handlers?.All(h => (!h.role?.TurretIds?.Contains(t.key) ?? true) && (!h.role?.TurretIds?.Contains(t.groupKey) ?? true)) ?? true).ToList();
-        var turretsByGroup = turrets.GroupBy(t => !t.groupKey.NullOrEmpty() ? t.groupKey : t.key);
-        var viewRect = new Rect(0f, 0f, inRect.width, turrets.Count * Text.LineHeight);
-        var outRect = rect;
-        Widgets.AdjustRectsForScrollView(rect, ref outRect, ref viewRect);
-        var rect2 = new Rect(outRect.x, outRect.y, outRect.width, Text.LineHeight);
-        Widgets.BeginScrollView(outRect, ref scrollPosition, viewRect);
-        foreach (var t in turretsByGroup)
+        using (new TextBlock(GameFont.Small))
         {
-            var rect3 = rect2.LeftPartPixels(Text.LineHeight);
-            var rect4 = rect2.RightPartPixels(rect2.width - Text.LineHeight - 10f);
-            Widgets.DrawTextureFitted(rect3, t.First().GizmoIcon, 1f);
-            Widgets.Label(rect4, t.First().gizmoLabel);
-            if (Widgets.ButtonInvisible(rect2))
+            var rect = inRect;
+            rect.height -= CloseButSize.y + 10f;
+            Widgets.DrawMenuSection(rect);
+
+            //まだ割り当てられてないタレットたち
+            var turrets = vehicle.CompVehicleTurrets?.Turrets?.Where(t =>
+                vehicle.handlers?.All(h =>
+                    (!h.role?.TurretIds?.Contains(t.key) ?? true) &&
+                    (!h.role?.TurretIds?.Contains(t.groupKey) ?? true)) ?? true).ToList();
+            if (turrets == null) return;
+            var turretsByGroup = turrets.GroupBy(t => !t.groupKey.NullOrEmpty() ? t.groupKey : t.key);
+            var viewRect = new Rect(0f, 0f, inRect.width, turrets.Count * Text.LineHeight);
+            var outRect = rect;
+            Widgets.AdjustRectsForScrollView(rect, ref outRect, ref viewRect);
+            var rect2 = new Rect(outRect.x, outRect.y, outRect.width, Text.LineHeight);
+            Widgets.BeginScrollView(outRect, ref scrollPosition, viewRect);
+            foreach (var t in turretsByGroup)
             {
-                if (!turretIds.Contains(t.Key))
+                var rect3 = rect2.LeftPartPixels(Text.LineHeight);
+                var rect4 = rect2.RightPartPixels(rect2.width - Text.LineHeight - 10f);
+                Widgets.DrawTextureFitted(rect3, t.First().GizmoIcon, 1f);
+                Widgets.Label(rect4, t.First().gizmoLabel);
+                if (Widgets.ButtonInvisible(rect2))
                 {
-                    turretIds.Add(t.Key);
-                    if (turretIds.Count > roleUpgrade.slotsToOperate)
+                    if (!turretIds.Contains(t.Key))
                     {
-                        turretIds.RemoveAt(0);
+                        turretIds.Add(t.Key);
+                        if (turretIds.Count > roleUpgrade.slotsToOperate)
+                        {
+                            turretIds.RemoveAt(0);
+                        }
+                    }
+                    else
+                    {
+                        turretIds.Remove(t.Key);
                     }
                 }
-                else
+                if (turretIds.Contains(t.Key))
                 {
-                    turretIds.Remove(t.Key);
+                    Widgets.DrawHighlightSelected(rect2);
                 }
+                Widgets.DrawHighlightIfMouseover(rect2);
+                rect2.y += Text.LineHeight;
             }
-            if (turretIds.Contains(t.Key))
-            {
-                Widgets.DrawHighlightSelected(rect2);
-            }
-            Widgets.DrawHighlightIfMouseover(rect2);
-            rect2.y += Text.LineHeight;
+            Widgets.EndScrollView();
         }
-        Widgets.EndScrollView();
-        Text.Font = font;
     }
 
     public override void PostClose()

@@ -1,9 +1,9 @@
-﻿using HarmonyLib;
-using PipeSystem;
-using SmashTools;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using HarmonyLib;
+using PipeSystem;
+using SmashTools;
 using UnityEngine;
 using VEF.Hediffs;
 using VEF.Weapons;
@@ -173,7 +173,7 @@ public static class Patch_ExpandableProjectile_StartingPosition
 [PatchLevel(Level.Safe)]
 public static class Patch_ShieldsSystem_OnPawnSpawn
 {
-    private static Dictionary<string, HashSet<int>> trackedPawns = [];
+    private static readonly Dictionary<string, HashSet<int>> trackedPawns = [];
 
     public static bool Prefix(Pawn __instance)
     {
@@ -182,8 +182,8 @@ public static class Patch_ShieldsSystem_OnPawnSpawn
         try
         {
             // Simple tracking to prevent duplicate key errors
-            string pawnKey = __instance.ThingID;
-            int pawnID = __instance.thingIDNumber;
+            var pawnKey = __instance.ThingID;
+            var pawnID = __instance.thingIDNumber;
 
             // Use our own tracking system to prevent duplicates
             if (!trackedPawns.ContainsKey(pawnKey))

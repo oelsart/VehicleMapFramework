@@ -10,8 +10,8 @@ public static class ToilFailConditionsAcrossMaps
     {
         f.AddEndCondition(delegate
         {
-            Pawn actor = f.GetActor();
-            LocalTargetInfo target = actor.jobs.curJob.GetTarget(ind);
+            var actor = f.GetActor();
+            var target = actor.jobs.curJob.GetTarget(ind);
             return (!target.IsValid || !target.ToTargetInfo(map).IsBurning()) ? JobCondition.Ongoing : JobCondition.Incompletable;
         });
         return f;

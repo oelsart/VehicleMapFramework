@@ -9,13 +9,7 @@ public class CompPipeConnector : ThingComp
 {
     public IPipeConnector selectedComp;
 
-    private Material pipeMat;
-
-    private Graphic pipeEndGraphic;
-
     protected bool connectReq;
-
-    private List<IPipeConnector> connectorComps;
 
     public const int ticksInterval = 30;
 
@@ -25,8 +19,8 @@ public class CompPipeConnector : ThingComp
     {
         get
         {
-            connectorComps ??= [.. parent.AllComps.OfType<IPipeConnector>()];
-            return connectorComps;
+            field ??= [.. parent.AllComps.OfType<IPipeConnector>()];
+            return field;
         }
     }
 
@@ -34,11 +28,11 @@ public class CompPipeConnector : ThingComp
     {
         get
         {
-            if (pipeMat == null)
+            if (field == null)
             {
-                pipeMat = MaterialPool.MatFrom("VehicleMapFramework/Things/PipeConnector/Pipe", ShaderDatabase.Cutout);
+                field = MaterialPool.MatFrom("VehicleMapFramework/Things/PipeConnector/Pipe", ShaderDatabase.Cutout);
             }
-            return pipeMat;
+            return field;
         }
     }
 
@@ -46,8 +40,8 @@ public class CompPipeConnector : ThingComp
     {
         get
         {
-            pipeEndGraphic ??= GraphicDatabase.Get<Graphic_Single>("VehicleMapFramework/Things/PipeConnector/PipeEnd", ShaderDatabase.CutoutComplex);
-            return pipeEndGraphic.GetColoredVersion(ShaderDatabase.CutoutComplex, parent.DrawColor, parent.DrawColorTwo);
+            field ??= GraphicDatabase.Get<Graphic_Single>("VehicleMapFramework/Things/PipeConnector/PipeEnd", ShaderDatabase.CutoutComplex);
+            return field.GetColoredVersion(ShaderDatabase.CutoutComplex, parent.DrawColor, parent.DrawColorTwo);
         }
     }
 

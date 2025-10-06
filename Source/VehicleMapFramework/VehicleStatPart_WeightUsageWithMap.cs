@@ -1,5 +1,4 @@
-﻿using RimWorld;
-using SmashTools;
+﻿using SmashTools;
 using Vehicles;
 using Verse;
 
@@ -7,12 +6,12 @@ namespace VehicleMapFramework;
 
 public class VehicleStatPart_WeightUsageWithMap : VehicleStatPart_WeightUsage
 {
-    protected float Modifier(VehiclePawnWithMap vehicle)
+    private float Modifier(VehiclePawnWithMap vehicle)
     {
-        float num = 0f;
+        var num = 0f;
         if (usageCurve != null)
         {
-            float statValue = vehicle.GetStatValue(VMF_DefOf.MaximumPayload);
+            var statValue = vehicle.GetStatValue(VMF_DefOf.MaximumPayload);
             if (statValue > 0f)
             {
                 num = VehicleMapUtility.VehicleMapMass(vehicle) * VehicleMapFramework.settings.weightFactor / statValue;
@@ -37,20 +36,10 @@ public class VehicleStatPart_WeightUsageWithMap : VehicleStatPart_WeightUsage
 
     public override string ExplanationPart(VehiclePawn vehicle)
     {
-        string value;
-        if (vehicle is VehiclePawnWithMap vehicleWithMap)
-        {
-            var statValue = vehicle.GetStatValue(VMF_DefOf.MaximumPayload).ToStringByStyle(ToStringStyle.FloatTwo);
-            if (formatString.NullOrEmpty())
-            {
-                value = string.Format(statDef.formatString, VehicleMapUtility.VehicleMapMass(vehicleWithMap), statValue);
-            }
-            else
-            {
-                value = string.Format(formatString, VehicleMapUtility.VehicleMapMass(vehicleWithMap), statValue);
-            }
-            return "VMF_StatsReport_MaximumPayload".Translate(value);
-        }
-        return null;
+        if (vehicle is not VehiclePawnWithMap vehicleWithMap) return null;
+        var statValue = vehicle.GetStatValue(VMF_DefOf.MaximumPayload).ToStringByStyle(ToStringStyle.FloatTwo);
+        var value = string.Format(formatString.NullOrEmpty() ? statDef.formatString : formatString,
+            VehicleMapUtility.VehicleMapMass(vehicleWithMap), statValue);
+        return "VMF_StatsReport_MaximumPayload".Translate(value);
     }
 }

@@ -1,8 +1,8 @@
-﻿using HarmonyLib;
-using RimWorld;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
+using HarmonyLib;
+using RimWorld;
 using Verse;
 using Verse.AI;
 using static VehicleMapFramework.MethodInfoCache;
@@ -86,10 +86,10 @@ public static class Patch_AnimalPenUtility_ClosestSuitablePen
             {
                 foreach (var thing in map.listerBuildings.allBuildingsAnimalPenMarkers)
                 {
-                    CompAnimalPenMarker compAnimalPenMarker2 = thing.TryGetComp<CompAnimalPenMarker>();
-                    if (AnimalPenUtilityOnVehicle.CanUseAndReach(animal, compAnimalPenMarker2, allowUnenclosedPens, null))
+                    var compAnimalPenMarker2 = thing.TryGetComp<CompAnimalPenMarker>();
+                    if (AnimalPenUtilityOnVehicle.CanUseAndReach(animal, compAnimalPenMarker2, allowUnenclosedPens))
                     {
-                        int num2 = animal.PositionOnBaseMap().DistanceToSquared(compAnimalPenMarker2.parent.PositionOnBaseMap());
+                        var num2 = animal.PositionOnBaseMap().DistanceToSquared(compAnimalPenMarker2.parent.PositionOnBaseMap());
                         if (__result == null || num2 < num)
                         {
                             __result = compAnimalPenMarker2;
@@ -252,7 +252,7 @@ public static class Patch_JobGiver_FollowRoper_TryGiveJob
                 gotoDestMap.nextJob.GetCachedDriver(roper) is JobDriver_RopeToDestination &&
                 gotoDestMap.nextJob.targetB.Cell.IsValid && roper.Spawned && pawn.CanReach(roper, PathEndMode.Touch, Danger.Deadly))
             {
-                Job job = JobMaker.MakeJob(JobDefOf.FollowRoper, roper);
+                var job = JobMaker.MakeJob(JobDefOf.FollowRoper, roper);
                 job.expiryInterval = 140;
                 job.checkOverrideOnExpire = true;
                 __result = job;

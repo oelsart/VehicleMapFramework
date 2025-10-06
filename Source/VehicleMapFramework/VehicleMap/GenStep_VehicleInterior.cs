@@ -9,7 +9,7 @@ public class GenStep_VehicleInterior : GenStep
     public override void Generate(Map map, GenStepParams parms)
     {
         var terrainGrid = map.terrainGrid;
-        foreach (IntVec3 c in map.AllCells)
+        foreach (var c in map.AllCells)
         {
             if (c.InBounds(map))
             {

@@ -1,7 +1,7 @@
-﻿using RimWorld;
-using SmashTools;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using RimWorld;
+using SmashTools;
 using UnityEngine;
 using Verse;
 
@@ -161,10 +161,10 @@ namespace VehicleMapFramework
             {
                 return;
             }
-            int count = subMeshes.Count;
-            for (int i = 0; i < count; i++)
+            var count = subMeshes.Count;
+            for (var i = 0; i < count; i++)
             {
-                LayerSubMesh layerSubMesh = subMeshes[i];
+                var layerSubMesh = subMeshes[i];
                 if (layerSubMesh.finalized && !layerSubMesh.disabled)
                 {
                     Graphics.DrawMesh(layerSubMesh.mesh, drawPos, Quaternion.AngleAxis(extraRotation, Vector3.up), layerSubMesh.material, layerSubMesh.renderLayer);
@@ -190,20 +190,20 @@ namespace VehicleMapFramework
                 {
                     subMeshes = subMeshesByRot[i];
                     ClearSubMeshes(MeshParts.All);
-                    Map map = Map;
-                    TerrainGrid terrainGrid = map.terrainGrid;
-                    CellRect cellRect = section.CellRect;
-                    float altitude = AltitudeLayer.TerrainScatter.AltitudeFor();
-                    LayerSubMesh subMesh = GetSubMesh(Bottom.Material);
+                    var map = Map;
+                    var terrainGrid = map.terrainGrid;
+                    var cellRect = section.CellRect;
+                    var altitude = AltitudeLayer.TerrainScatter.AltitudeFor();
+                    var subMesh = GetSubMesh(Bottom.Material);
                     var south = IntVec3.South.RotatedBy(VehicleMapUtility.RotForPrintCounter);
-                    foreach (IntVec3 item in cellRect)
+                    foreach (var item in cellRect)
                     {
                         if (ShouldDrawPropsOn(item, terrainGrid, out var edgeEdgeDirections, out var cornerDirections))
                         {
                             DrawEdges(item, edgeEdgeDirections, altitude);
                             DrawCorners(item, cornerDirections, edgeEdgeDirections, altitude);
                             SectionLayer_GravshipHullOnVehicle.ShouldDrawCornerPiece(item + south, map, terrainGrid, out var cornerType, out var _);
-                            bool flag = cornerType == SectionLayer_GravshipHull.CornerType.Corner_NW || cornerType == SectionLayer_GravshipHull.CornerType.Diagonal_NW || cornerType == SectionLayer_GravshipHull.CornerType.Corner_NE || cornerType == SectionLayer_GravshipHull.CornerType.Diagonal_NE;
+                            var flag = cornerType == SectionLayer_GravshipHull.CornerType.Corner_NW || cornerType == SectionLayer_GravshipHull.CornerType.Diagonal_NW || cornerType == SectionLayer_GravshipHull.CornerType.Corner_NE || cornerType == SectionLayer_GravshipHull.CornerType.Diagonal_NE;
                             if (edgeEdgeDirections.HasFlag(EdgeDirections.South) && !flag)
                             {
                                 AddQuad(subMesh, item + south, altitude, Rot4.North);
@@ -224,7 +224,7 @@ namespace VehicleMapFramework
         {
             if (EdgeMats.TryGetValue(edgeDirs, out var value))
             {
-                for (int i = 0; i < value.Length; i++)
+                for (var i = 0; i < value.Length; i++)
                 {
                     var (cachedMaterial, rotation) = value[i];
                     AddQuad(GetSubMesh(cachedMaterial.Material), c, altitude, rotation);
@@ -257,9 +257,9 @@ namespace VehicleMapFramework
             c = c.RotatedBy(VehicleMapUtility.RotForPrint);
             var offset = -UVs[VehicleMapUtility.RotForPrint.AsInt];
 
-            int count = sm.verts.Count;
-            int num = Mathf.Abs(4 - rotation.AsInt);
-            for (int i = 0; i < 4; i++)
+            var count = sm.verts.Count;
+            var num = Mathf.Abs(4 - rotation.AsInt);
+            for (var i = 0; i < 4; i++)
             {
                 sm.verts.Add(new Vector3(c.x + UVs[i].x + offset.x, altitude, c.z + UVs[i].y + offset.y));
                 sm.uvs.Add(UVs[(num + i) % 4]);
@@ -276,34 +276,34 @@ namespace VehicleMapFramework
         {
             edgeEdgeDirections = EdgeDirections.None;
             cornerDirections = CornerDirections.None;
-            TerrainDef terrainDef = terrGrid.FoundationAt(c);
+            var terrainDef = terrGrid.FoundationAt(c);
             if (terrainDef == null || !terrainDef.IsSubstructure)
             {
                 return false;
             }
-            for (int i = 0; i < GenAdj.CardinalDirections.Length; i++)
+            for (var i = 0; i < GenAdj.CardinalDirections.Length; i++)
             {
-                IntVec3 c2 = c + GenAdj.CardinalDirections[GenMath.PositiveMod(i - VehicleMapUtility.RotForPrint.AsInt, 4)];
+                var c2 = c + GenAdj.CardinalDirections[GenMath.PositiveMod(i - VehicleMapUtility.RotForPrint.AsInt, 4)];
                 if (!c2.InBounds(Map))
                 {
                     edgeEdgeDirections |= (EdgeDirections)(1 << i);
                     continue;
                 }
-                TerrainDef terrainDef2 = terrGrid.FoundationAt(c2);
+                var terrainDef2 = terrGrid.FoundationAt(c2);
                 if (terrainDef2 == null || !terrainDef2.IsSubstructure)
                 {
                     edgeEdgeDirections |= (EdgeDirections)(1 << i);
                 }
             }
-            for (int j = 0; j < GenAdj.DiagonalDirections.Length; j++)
+            for (var j = 0; j < GenAdj.DiagonalDirections.Length; j++)
             {
-                IntVec3 c3 = c + GenAdj.DiagonalDirections[GenMath.PositiveMod(j - VehicleMapUtility.RotForPrint.AsInt, 4)];
+                var c3 = c + GenAdj.DiagonalDirections[GenMath.PositiveMod(j - VehicleMapUtility.RotForPrint.AsInt, 4)];
                 if (!c3.InBounds(Map))
                 {
                     cornerDirections |= (CornerDirections)(1 << j);
                     continue;
                 }
-                TerrainDef terrainDef3 = terrGrid.FoundationAt(c3);
+                var terrainDef3 = terrGrid.FoundationAt(c3);
                 if (terrainDef3 == null || !terrainDef3.IsSubstructure)
                 {
                     cornerDirections |= (CornerDirections)(1 << j);

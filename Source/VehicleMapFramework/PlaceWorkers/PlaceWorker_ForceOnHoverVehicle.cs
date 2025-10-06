@@ -10,9 +10,7 @@ public class PlaceWorker_ForceOnHoverVehicle : PlaceWorker
         {
             return true;
         }
-        else
-        {
-            return "VMF_ForceOnHoverVehicle".Translate();
-        }
+
+        return "VMF_ForceOnHoverVehicle".Translate();
     }
 }

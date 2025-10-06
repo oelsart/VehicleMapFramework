@@ -1,6 +1,5 @@
-﻿using RimWorld;
-using SmashTools;
-using System.Linq;
+﻿using System.Linq;
+using RimWorld;
 using UnityEngine;
 using Vehicles;
 using Verse;
@@ -9,11 +8,12 @@ namespace VehicleMapFramework;
 
 public class VehicleStatPart_HumanPower : VehicleStatPart
 {
-    protected float Modifier(VehiclePawn vehicle)
+    private static float Modifier(VehiclePawn vehicle)
     {
-        var handlers = vehicle.handlers?.Where(h => h.Isnt<VehicleRoleHandlerBuildable>() && h.RequiredForMovement);
+        var handlers = vehicle.handlers?.Where(h => h.Isnt<VehicleRoleHandlerBuildable>() && h.RequiredForMovement).ToArray();
         if (!handlers.NullOrEmpty())
         {
+            // ReSharper disable once AssignNullToNotNullAttribute
             return handlers.Average(h =>
             {
                 var statValue = 0f;
@@ -46,10 +46,8 @@ public class VehicleStatPart_HumanPower : VehicleStatPart
 
     public override string ExplanationPart(VehiclePawn vehicle)
     {
-        if (vehicle.VehicleDef.HasModExtension<VehicleHumanPowered>())
-        {
-            return "VMF_StatsReport_HumanPowerAverage".Translate(Modifier(vehicle).ToStringByStyle(ToStringStyle.FloatMaxTwo, ToStringNumberSense.Factor));
-        }
-        return null;
+        return vehicle.VehicleDef.HasModExtension<VehicleHumanPowered>() ?
+            "VMF_StatsReport_HumanPowerAverage".Translate(Modifier(vehicle).ToStringByStyle(ToStringStyle.FloatMaxTwo, ToStringNumberSense.Factor)) :
+            null;
     }
 }

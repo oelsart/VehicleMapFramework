@@ -1,8 +1,7 @@
-﻿using AchtungMod;
-using HarmonyLib;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Reflection;
+using AchtungMod;
+using HarmonyLib;
 using UnityEngine;
 using VehicleMapFramework;
 using VehicleMapFramework.VMF_HarmonyPatches;
@@ -73,7 +72,7 @@ public static class Patch_Colonist_UpdateOrderPos
         }
 
         var bestCell = IntVec3.Invalid;
-        if (ModsConfig.BiotechActive && colonist.pawn.IsColonyMech && MechanitorUtility.InMechanitorCommandRange(colonist.pawn, destCellOnBaseMap) == false)
+        if (ModsConfig.BiotechActive && colonist.pawn.IsColonyMech && !MechanitorUtility.InMechanitorCommandRange(colonist.pawn, destCellOnBaseMap))
         {
             var overseer = colonist.pawn.GetOverseer();
             var map = overseer.MapHeld;

@@ -1,9 +1,9 @@
-﻿using LudeonTK;
-using RimWorld;
-using SmashTools;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using LudeonTK;
+using RimWorld;
+using SmashTools;
 using UnityEngine;
 using Verse;
 
@@ -19,7 +19,7 @@ namespace VehicleMapFramework
             }
         }
 
-        public List<LayerSubMesh>[] subMeshesByRot = new List<LayerSubMesh>[4];
+        private readonly List<LayerSubMesh>[] subMeshesByRot = new List<LayerSubMesh>[4];
 
         private static readonly Vector2[] UVs =
         [
@@ -30,7 +30,7 @@ namespace VehicleMapFramework
         ];
 
         [TweakValue("HullCorners", 0f, 2f)]
-        private static float HullCornerScale = 2f;
+        private static readonly float HullCornerScale = 2f;
 
         private const string TexPath_Corner_NW = "Things/Building/Linked/GravshipHull/AngledGravshipHull_northwest";
 
@@ -110,7 +110,7 @@ namespace VehicleMapFramework
         [5, 7]
         ];
 
-        private static bool[] tmpChecks = new bool[Directions.Length];
+        private static readonly bool[] tmpChecks = new bool[Directions.Length];
 
         private static Shader WallShader => ShaderDatabase.CutoutOverlay;
 
@@ -147,10 +147,10 @@ namespace VehicleMapFramework
             {
                 return;
             }
-            int count = subMeshes.Count;
-            for (int i = 0; i < count; i++)
+            var count = subMeshes.Count;
+            for (var i = 0; i < count; i++)
             {
-                LayerSubMesh layerSubMesh = subMeshes[i];
+                var layerSubMesh = subMeshes[i];
                 if (layerSubMesh.finalized && !layerSubMesh.disabled)
                 {
                     Graphics.DrawMesh(layerSubMesh.mesh, drawPos, Quaternion.AngleAxis(extraRotation, Vector3.up), layerSubMesh.material, layerSubMesh.renderLayer);
@@ -203,17 +203,17 @@ namespace VehicleMapFramework
                 {
                     subMeshes = subMeshesByRot[i];
                     ClearSubMeshes(MeshParts.All);
-                    Map map = Map;
-                    TerrainGrid terrainGrid = map.terrainGrid;
+                    var map = Map;
+                    var terrainGrid = map.terrainGrid;
                     var south = IntVec3.South.RotatedBy(VehicleMapUtility.RotForPrintCounter);
-                    foreach (IntVec3 item in section.CellRect)
+                    foreach (var item in section.CellRect)
                     {
                         if (ShouldDrawCornerPiece(item, map, terrainGrid, out var cornerType, out var color))
                         {
-                            CachedMaterial material = GetMaterial(cornerType);
-                            IntVec3 offset = GetOffset(cornerType).RotatedBy(VehicleMapUtility.RotForPrintCounter);
+                            var material = GetMaterial(cornerType);
+                            var offset = GetOffset(cornerType).RotatedBy(VehicleMapUtility.RotForPrintCounter);
                             AddQuad(material.Material, item + offset, HullCornerScale, cornerAltitude, color);
-                            bool substructureToSouth = terrainGrid.FoundationAt(item + south)?.IsSubstructure ?? false;
+                            var substructureToSouth = terrainGrid.FoundationAt(item + south)?.IsSubstructure ?? false;
                             AddSubstructure(cornerType, item, substructureToSouth);
                         }
                     }
@@ -229,26 +229,25 @@ namespace VehicleMapFramework
 
         private static void EnsureInitialized()
         {
-            if (!initalized)
-            {
-                initalized = true;
-                mat_Corner_NW = new CachedMaterial(TexPath_Corner_NW, WallShader);
-                mat_Corner_NE = new CachedMaterial(TexPath_Corner_NE, WallShader);
-                mat_Corner_SW = new CachedMaterial(TexPath_Corner_SW, WallShader);
-                mat_Corner_SE = new CachedMaterial(TexPath_Corner_SE, WallShader);
-                mat_Diagonal_NW = new CachedMaterial(TexPath_Diagonal_NW, WallShader);
-                mat_Diagonal_NE = new CachedMaterial(TexPath_Diagonal_NE, WallShader);
-                mat_Diagonal_SW = new CachedMaterial(TexPath_Diagonal_SW, WallShader);
-                mat_Diagonal_SE = new CachedMaterial(TexPath_Diagonal_SE, WallShader);
-                mat_SubStructure_W = new CachedMaterial(TexPath_SubStructure_W, SubstructureShader);
-                mat_SubStructure_E = new CachedMaterial(TexPath_SubStructure_E, SubstructureShader);
-                mat_SubStructureExtra_W = new CachedMaterial(TexPath_SubStructureExtra_W, SubstructureShader);
-                mat_SubStructureExtra_E = new CachedMaterial(TexPath_SubStructureExtra_E, SubstructureShader);
-                mat_SubStructure_W.Material.mainTexture.wrapMode = TextureWrapMode.Clamp;
-                mat_SubStructure_E.Material.mainTexture.wrapMode = TextureWrapMode.Clamp;
-                mat_SubStructureExtra_W.Material.mainTexture.wrapMode = TextureWrapMode.Clamp;
-                mat_SubStructureExtra_E.Material.mainTexture.wrapMode = TextureWrapMode.Clamp;
-            }
+            if (initalized) return;
+            
+            initalized = true;
+            mat_Corner_NW = new CachedMaterial(TexPath_Corner_NW, WallShader);
+            mat_Corner_NE = new CachedMaterial(TexPath_Corner_NE, WallShader);
+            mat_Corner_SW = new CachedMaterial(TexPath_Corner_SW, WallShader);
+            mat_Corner_SE = new CachedMaterial(TexPath_Corner_SE, WallShader);
+            mat_Diagonal_NW = new CachedMaterial(TexPath_Diagonal_NW, WallShader);
+            mat_Diagonal_NE = new CachedMaterial(TexPath_Diagonal_NE, WallShader);
+            mat_Diagonal_SW = new CachedMaterial(TexPath_Diagonal_SW, WallShader);
+            mat_Diagonal_SE = new CachedMaterial(TexPath_Diagonal_SE, WallShader);
+            mat_SubStructure_W = new CachedMaterial(TexPath_SubStructure_W, SubstructureShader);
+            mat_SubStructure_E = new CachedMaterial(TexPath_SubStructure_E, SubstructureShader);
+            mat_SubStructureExtra_W = new CachedMaterial(TexPath_SubStructureExtra_W, SubstructureShader);
+            mat_SubStructureExtra_E = new CachedMaterial(TexPath_SubStructureExtra_E, SubstructureShader);
+            mat_SubStructure_W.Material.mainTexture.wrapMode = TextureWrapMode.Clamp;
+            mat_SubStructure_E.Material.mainTexture.wrapMode = TextureWrapMode.Clamp;
+            mat_SubStructureExtra_W.Material.mainTexture.wrapMode = TextureWrapMode.Clamp;
+            mat_SubStructureExtra_E.Material.mainTexture.wrapMode = TextureWrapMode.Clamp;
         }
 
         private static bool IsIndoorMasked(IntVec3 c, Map map)
@@ -258,39 +257,22 @@ namespace VehicleMapFramework
 
         private static bool IsCornerSubstructure(IntVec3 c, CornerType cornerType)
         {
-            switch (cornerType)
+            return cornerType switch
             {
-                case CornerType.Corner_NE:
-                case CornerType.Diagonal_NE:
-                    if (!SectionLayer_GravshipMask.IsValidSubstructure(c + IntVec3.North))
-                    {
-                        return SectionLayer_GravshipMask.IsValidSubstructure(c + IntVec3.East);
-                    }
-                    return true;
-                case CornerType.Corner_NW:
-                case CornerType.Diagonal_NW:
-                    if (!SectionLayer_GravshipMask.IsValidSubstructure(c + IntVec3.North))
-                    {
-                        return SectionLayer_GravshipMask.IsValidSubstructure(c + IntVec3.West);
-                    }
-                    return true;
-                case CornerType.Corner_SE:
-                case CornerType.Diagonal_SE:
-                    if (!SectionLayer_GravshipMask.IsValidSubstructure(c + IntVec3.South))
-                    {
-                        return SectionLayer_GravshipMask.IsValidSubstructure(c + IntVec3.East);
-                    }
-                    return true;
-                case CornerType.Corner_SW:
-                case CornerType.Diagonal_SW:
-                    if (!SectionLayer_GravshipMask.IsValidSubstructure(c + IntVec3.South))
-                    {
-                        return SectionLayer_GravshipMask.IsValidSubstructure(c + IntVec3.West);
-                    }
-                    return true;
-                default:
-                    return false;
-            }
+                CornerType.Corner_NE or CornerType.Diagonal_NE =>
+                    SectionLayer_GravshipMask.IsValidSubstructure(c + IntVec3.North) ||
+                    SectionLayer_GravshipMask.IsValidSubstructure(c + IntVec3.East),
+                CornerType.Corner_NW or CornerType.Diagonal_NW =>
+                    SectionLayer_GravshipMask.IsValidSubstructure(c + IntVec3.North) ||
+                    SectionLayer_GravshipMask.IsValidSubstructure(c + IntVec3.West),
+                CornerType.Corner_SE or CornerType.Diagonal_SE =>
+                    SectionLayer_GravshipMask.IsValidSubstructure(c + IntVec3.South) ||
+                    SectionLayer_GravshipMask.IsValidSubstructure(c + IntVec3.East),
+                CornerType.Corner_SW or CornerType.Diagonal_SW =>
+                    SectionLayer_GravshipMask.IsValidSubstructure(c + IntVec3.South) ||
+                    SectionLayer_GravshipMask.IsValidSubstructure(c + IntVec3.West),
+                _ => false
+            };
         }
 
         private static bool IsCornerIndoorMasked(IntVec3 c, CornerType cornerType, Map map)
@@ -299,32 +281,17 @@ namespace VehicleMapFramework
             {
                 case CornerType.Corner_NE:
                 case CornerType.Diagonal_NE:
-                    if (!IsIndoorMasked(c + IntVec3.North, map))
-                    {
-                        return IsIndoorMasked(c + IntVec3.East, map);
-                    }
-                    return true;
+                    return IsIndoorMasked(c + IntVec3.North, map) || IsIndoorMasked(c + IntVec3.East, map);
                 case CornerType.Corner_NW:
                 case CornerType.Diagonal_NW:
-                    if (!IsIndoorMasked(c + IntVec3.North, map))
-                    {
-                        return IsIndoorMasked(c + IntVec3.West, map);
-                    }
-                    return true;
+                    return IsIndoorMasked(c + IntVec3.North, map) || IsIndoorMasked(c + IntVec3.West, map);
                 case CornerType.Corner_SE:
                 case CornerType.Diagonal_SE:
-                    if (!IsIndoorMasked(c + IntVec3.South, map))
-                    {
-                        return IsIndoorMasked(c + IntVec3.East, map);
-                    }
-                    return true;
+                    return IsIndoorMasked(c + IntVec3.South, map) || IsIndoorMasked(c + IntVec3.East, map);
                 case CornerType.Corner_SW:
                 case CornerType.Diagonal_SW:
-                    if (!IsIndoorMasked(c + IntVec3.South, map))
-                    {
-                        return IsIndoorMasked(c + IntVec3.West, map);
-                    }
-                    return true;
+                    return IsIndoorMasked(c + IntVec3.South, map) || IsIndoorMasked(c + IntVec3.West, map);
+                case CornerType.None:
                 default:
                     return false;
             }
@@ -343,37 +310,28 @@ namespace VehicleMapFramework
                 CornerType.Diagonal_NE => mat_Diagonal_NE,
                 CornerType.Diagonal_SW => mat_Diagonal_SW,
                 CornerType.Diagonal_SE => mat_Diagonal_SE,
-                _ => throw new ArgumentOutOfRangeException("edgeType", edgeType, null),
+                _ => throw new ArgumentOutOfRangeException(nameof(edgeType), edgeType, null),
             };
         }
 
         private static IntVec3 GetOffset(CornerType cornerType)
         {
-            switch (cornerType)
+            return cornerType switch
             {
-                case CornerType.Corner_NE:
-                case CornerType.Diagonal_NE:
-                    return new IntVec3(0, 0, 0);
-                case CornerType.Corner_NW:
-                case CornerType.Diagonal_NW:
-                    return new IntVec3(-1, 0, 0);
-                case CornerType.Corner_SE:
-                case CornerType.Diagonal_SE:
-                    return new IntVec3(0, 0, -1);
-                case CornerType.Corner_SW:
-                case CornerType.Diagonal_SW:
-                    return new IntVec3(-1, 0, -1);
-                default:
-                    return IntVec3.Zero;
-            }
+                CornerType.Corner_NE or CornerType.Diagonal_NE => new IntVec3(0, 0, 0),
+                CornerType.Corner_NW or CornerType.Diagonal_NW => new IntVec3(-1, 0, 0),
+                CornerType.Corner_SE or CornerType.Diagonal_SE => new IntVec3(0, 0, -1),
+                CornerType.Corner_SW or CornerType.Diagonal_SW => new IntVec3(-1, 0, -1),
+                _ => IntVec3.Zero
+            };
         }
 
         private static void AddQuad(LayerSubMesh sm, Vector3 c, float scale, float altitude, Color color)
         {
             c = c.RotatedBy(VehicleMapUtility.RotForPrint);
             var offset = -UVs[VehicleMapUtility.RotForPrint.AsInt];
-            int count = sm.verts.Count;
-            for (int i = 0; i < 4; i++)
+            var count = sm.verts.Count;
+            for (var i = 0; i < 4; i++)
             {
                 sm.verts.Add(new Vector3(c.x + UVs[i].x * scale + offset.x, altitude, c.z + UVs[i].y * scale + offset.y));
                 sm.uvs.Add(UVs[i % 4]);
@@ -389,31 +347,40 @@ namespace VehicleMapFramework
 
         private void AddQuad(Material mat, IntVec3 c, float scale, float altitude, Color color)
         {
-            LayerSubMesh subMesh = GetSubMesh(mat);
+            var subMesh = GetSubMesh(mat);
             AddQuad(subMesh, c.ToVector3(), scale, altitude, color);
         }
 
         private void AddSubstructure(CornerType cornerType, IntVec3 c, bool substructureToSouth)
         {
-            if (cornerType == CornerType.Corner_NW || cornerType == CornerType.Diagonal_NW)
+            switch (cornerType)
             {
-                AddQuad(mat_SubStructure_W.Material, c, 1f, substructureAltitude, Color.white);
-                if (!substructureToSouth)
+                case CornerType.Corner_NW:
+                case CornerType.Diagonal_NW:
                 {
-                    AddQuad(mat_SubStructureExtra_W.Material, c + IntVec3.South.RotatedBy(VehicleMapUtility.RotForPrintCounter), 1f, substructureAltitude, Color.white);
+                    AddQuad(mat_SubStructure_W.Material, c, 1f, substructureAltitude, Color.white);
+                    if (!substructureToSouth)
+                    {
+                        AddQuad(mat_SubStructureExtra_W.Material, c + IntVec3.South.RotatedBy(VehicleMapUtility.RotForPrintCounter), 1f, substructureAltitude, Color.white);
+                    }
+
+                    break;
                 }
-            }
-            if (cornerType == CornerType.Corner_NE || cornerType == CornerType.Diagonal_NE)
-            {
-                AddQuad(mat_SubStructure_E.Material, c, 1f, substructureAltitude, Color.white);
-                if (!substructureToSouth)
+                case CornerType.Corner_NE:
+                case CornerType.Diagonal_NE:
                 {
-                    AddQuad(mat_SubStructureExtra_E.Material, c + IntVec3.South.RotatedBy(VehicleMapUtility.RotForPrintCounter), 1f, substructureAltitude, Color.white);
+                    AddQuad(mat_SubStructure_E.Material, c, 1f, substructureAltitude, Color.white);
+                    if (!substructureToSouth)
+                    {
+                        AddQuad(mat_SubStructureExtra_E.Material, c + IntVec3.South.RotatedBy(VehicleMapUtility.RotForPrintCounter), 1f, substructureAltitude, Color.white);
+                    }
+
+                    break;
                 }
             }
         }
 
-        new public static bool ShouldDrawCornerPiece(IntVec3 pos, Map map, TerrainGrid terrGrid, out CornerType cornerType, out Color color)
+        public new static bool ShouldDrawCornerPiece(IntVec3 pos, Map map, TerrainGrid terrGrid, out CornerType cornerType, out Color color)
         {
             cornerType = CornerType.None;
             color = Color.white;
@@ -422,45 +389,47 @@ namespace VehicleMapFramework
             {
                 return false;
             }
-            TerrainDef terrainDef = terrGrid.FoundationAt(pos);
-            if (terrainDef != null && terrainDef.IsSubstructure)
+            var terrainDef = terrGrid.FoundationAt(pos);
+            if (terrainDef is { IsSubstructure: true })
             {
                 return false;
             }
-            for (int i = 0; i < Directions.Length; i++)
+            for (var i = 0; i < Directions.Length; i++)
             {
                 tmpChecks[i] = (pos + Directions[i].RotatedBy(VehicleMapUtility.RotForPrintCounter)).GetEdificeSafe(map)?.def == ThingDefOf.GravshipHull;
             }
-            if (tmpChecks[0] && tmpChecks[3] && !tmpChecks[2] && !tmpChecks[1])
+
+            cornerType = tmpChecks[0] switch
             {
-                cornerType = (tmpChecks[4] ? CornerType.Corner_NW : CornerType.Diagonal_NW);
-            }
-            else if (tmpChecks[0] && tmpChecks[1] && !tmpChecks[2] && !tmpChecks[3])
-            {
-                cornerType = (tmpChecks[5] ? CornerType.Corner_NE : CornerType.Diagonal_NE);
-            }
-            else if (tmpChecks[2] && tmpChecks[1] && !tmpChecks[0] && !tmpChecks[3])
-            {
-                cornerType = (tmpChecks[6] ? CornerType.Corner_SE : CornerType.Diagonal_SE);
-            }
-            else if (tmpChecks[2] && tmpChecks[3] && !tmpChecks[0] && !tmpChecks[1])
-            {
-                cornerType = (tmpChecks[7] ? CornerType.Corner_SW : CornerType.Diagonal_SW);
-            }
+                true when tmpChecks[3] && !tmpChecks[2] && !tmpChecks[1] => (tmpChecks[4]
+                    ? CornerType.Corner_NW
+                    : CornerType.Diagonal_NW),
+                true when tmpChecks[1] && !tmpChecks[2] && !tmpChecks[3] => (tmpChecks[5]
+                    ? CornerType.Corner_NE
+                    : CornerType.Diagonal_NE),
+                _ => tmpChecks[2] switch
+                {
+                    true when tmpChecks[1] && !tmpChecks[0] && !tmpChecks[3] => (tmpChecks[6]
+                        ? CornerType.Corner_SE
+                        : CornerType.Diagonal_SE),
+                    true when tmpChecks[3] && !tmpChecks[0] && !tmpChecks[1] => (tmpChecks[7]
+                        ? CornerType.Corner_SW
+                        : CornerType.Diagonal_SW),
+                    _ => cornerType
+                }
+            };
             if (cornerType == CornerType.None)
             {
                 return false;
             }
-            int[][] array = directionPairs;
-            for (int j = 0; j < array.Length; j++)
+            var array = directionPairs;
+            foreach (var t in array)
             {
-                List<int> list = [.. array[j].Where(num2 => tmpChecks[num2])];
-                if (list.Count > 0)
-                {
-                    int num = list.First();
-                    color = (pos + Directions[num].RotatedBy(VehicleMapUtility.RotForPrintCounter)).GetEdificeSafe(map).DrawColor;
-                    break;
-                }
+                List<int> list = [.. t.Where(num2 => tmpChecks[num2])];
+                if (list.Count <= 0) continue;
+                var num = list.First();
+                color = (pos + Directions[num].RotatedBy(VehicleMapUtility.RotForPrintCounter)).GetEdificeSafe(map).DrawColor;
+                break;
             }
             return true;
         }

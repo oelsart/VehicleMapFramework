@@ -1,12 +1,11 @@
-﻿using HarmonyLib;
-using SmashTools;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
+using HarmonyLib;
 using Verse;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
@@ -40,11 +39,11 @@ public class VMF_Harmony
 
     internal static Level PrevPatchLevel { get; set; } = Level.Mandatory;
 
-    private readonly static AccessTools.FieldRef<PatchClassProcessor, object> patchMethodsRef = AccessTools.FieldRefAccess<PatchClassProcessor, object>("patchMethods");
+    private static readonly AccessTools.FieldRef<PatchClassProcessor, object> patchMethodsRef = AccessTools.FieldRefAccess<PatchClassProcessor, object>("patchMethods");
 
-    private readonly static AccessTools.FieldRef<object, HarmonyMethod> infoRef = AccessTools.FieldRefAccess<HarmonyMethod>("HarmonyLib.AttributePatch:info");
+    private static readonly AccessTools.FieldRef<object, HarmonyMethod> infoRef = AccessTools.FieldRefAccess<HarmonyMethod>("HarmonyLib.AttributePatch:info");
 
-    private readonly static MethodInfo m_RemoveAll = AccessTools.Method(typeof(List<>).MakeGenericType(AccessTools.TypeByName("HarmonyLib.AttributePatch")), nameof(List<>.RemoveAll));
+    private static readonly MethodInfo m_RemoveAll = AccessTools.Method(typeof(List<>).MakeGenericType(AccessTools.TypeByName("HarmonyLib.AttributePatch")), nameof(List<>.RemoveAll));
 
     internal static bool OutOfRange(Level level)
     {
@@ -88,7 +87,6 @@ public class VMF_Harmony
             }
             var patchCountAfter = Instance.GetPatchedMethods().Count();
             VMF_Log.Message($"Dynamic patches applied: {patchCountAfter - patchCountBefore} Total: {patchCountAfter}");
-            return;
         }
         else if (VehicleMapFramework.settings.dynamicUnpatchEnabled && CurrentPatchLevel != patchLevel)
         {
@@ -102,7 +100,6 @@ public class VMF_Harmony
             }
             var patchCountAfter = Instance.GetPatchedMethods().Count();
             VMF_Log.Message($"Dynamic patches unapplied: {patchCountBefore - patchCountAfter} Total: {patchCountAfter}");
-            return;
         }
     }
 
@@ -123,7 +120,6 @@ public class VMF_Harmony
                 var patchCountAfter = Instance.GetPatchedMethods().Count();
                 VMF_Log.Message($"Dynamic patches applied: {patchCountAfter - patchCountBefore} Total: {patchCountAfter}");
             }, "VMF_ApplyingDynamicPatches", false, null, false);
-            return;
         }
         else if (VehicleMapFramework.settings.dynamicUnpatchEnabled && CurrentPatchLevel != patchLevel)
         {
@@ -140,7 +136,6 @@ public class VMF_Harmony
                 var patchCountAfter = Instance.GetPatchedMethods().Count();
                 VMF_Log.Message($"Dynamic patches unapplied: {patchCountBefore - patchCountAfter} Total: {patchCountAfter}");
             }, "VMF_UnpatchingDynamicPatches", false, null, false);
-            return;
         }
     }
 
@@ -315,7 +310,7 @@ public static class StaticConstructorOnStartupPriorityUtility
     {
         var types = GenTypes.AllTypesWithAttribute<StaticConstructorOnStartupPriorityAttribute>();
         types.SortByDescending(t => t.GetCustomAttribute<StaticConstructorOnStartupPriorityAttribute>().priority);
-        foreach (Type type in types)
+        foreach (var type in types)
         {
             try
             {

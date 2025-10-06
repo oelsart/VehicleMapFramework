@@ -1,8 +1,7 @@
-﻿using HarmonyLib;
-using LudeonTK;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Reflection;
+using HarmonyLib;
+using LudeonTK;
 using Verse;
 using static VehicleMapFramework.MethodInfoCache;
 
@@ -22,18 +21,6 @@ public static class Patches_DebugTools
     public static void ApplyPatches(bool unpatch = false)
     {
         var transpiler = AccessTools.Method(typeof(Patches_DebugTools), nameof(Transpiler));
-        void Patch(MethodInfo method)
-        {
-            if (method.IsGenericMethod || method.ContainsGenericParameters) return;
-            if (unpatch)
-            {
-                VMF_Harmony.Instance.Unpatch(method, transpiler);
-            }
-            else
-            {
-                VMF_Harmony.Instance.Patch(method, transpiler: transpiler);
-            }
-        }
 
         Patch(AccessTools.FindIncludingInnerTypes(typeof(DebugActionNode), t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<Enter>"))));
         foreach (var method in typeof(DebugToolsSpawning).GetDeclaredMethods())
@@ -54,6 +41,21 @@ public static class Patches_DebugTools
         foreach (var method in typeof(DebugToolsPawns).GetDeclaredMethods())
         {
             Patch(method);
+        }
+
+        return;
+
+        void Patch(MethodInfo method)
+        {
+            if (method.IsGenericMethod || method.ContainsGenericParameters) return;
+            if (unpatch)
+            {
+                VMF_Harmony.Instance.Unpatch(method, transpiler);
+            }
+            else
+            {
+                VMF_Harmony.Instance.Patch(method, transpiler: transpiler);
+            }
         }
     }
 

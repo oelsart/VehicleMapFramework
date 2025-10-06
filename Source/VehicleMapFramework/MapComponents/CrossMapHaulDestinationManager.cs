@@ -1,8 +1,8 @@
-﻿using HarmonyLib;
+﻿using System.Collections.Generic;
+using System.Linq;
+using HarmonyLib;
 using RimWorld;
 using SmashTools;
-using System.Collections.Generic;
-using System.Linq;
 using Verse;
 
 namespace VehicleMapFramework;
@@ -35,11 +35,11 @@ public class CrossMapHaulDestinationManager(Map map) : MapComponent(map)
     {
         get
         {
-            for (int i = 0; i < allGroupsInOrder.Count; i++)
+            for (var i = 0; i < allGroupsInOrder.Count; i++)
             {
                 var map = allGroupsInOrder[i].parent.Map;
-                List<IntVec3> cellsList = allGroupsInOrder[i].CellsList;
-                int j = 0;
+                var cellsList = allGroupsInOrder[i].CellsList;
+                var j = 0;
                 while (j < allGroupsInOrder.Count)
                 {
                     yield return new TargetInfo(cellsList[j], map);
@@ -84,7 +84,7 @@ public class CrossMapHaulDestinationManager(Map map) : MapComponent(map)
             return;
         }
 
-        SlotGroup slotGroup = slotGroupParent.GetSlotGroup();
+        var slotGroup = slotGroupParent.GetSlotGroup();
         if (slotGroup == null)
         {
             VMF_Log.Error("ISlotGroupParent gave null slot group: " + slotGroupParent.ToStringSafe());
@@ -109,7 +109,7 @@ public class CrossMapHaulDestinationManager(Map map) : MapComponent(map)
             return;
         }
 
-        SlotGroup slotGroup = slotGroupParent.GetSlotGroup();
+        var slotGroup = slotGroupParent.GetSlotGroup();
         if (slotGroup == null)
         {
             VMF_Log.Error("ISlotGroupParent gave null slot group: " + slotGroupParent.ToStringSafe());

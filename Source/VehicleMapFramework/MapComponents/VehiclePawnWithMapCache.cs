@@ -1,7 +1,7 @@
-﻿using HarmonyLib;
-using SmashTools;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using HarmonyLib;
+using SmashTools;
 using UnityEngine;
 using Vehicles;
 using Verse;
@@ -34,7 +34,7 @@ public class VehiclePawnWithMapCache : MapComponent
         hashSet.Remove(vehicle);
         if (Command_FocusVehicleMap.FocusedVehicle == vehicle)
         {
-            Command_FocusVehicleMap.FocuseLockedVehicle = null;
+            Command_FocusVehicleMap.FocusLockedVehicle = null;
             Command_FocusVehicleMap.FocusedVehicle = null;
         }
     }
@@ -110,7 +110,7 @@ public class VehiclePawnWithMapCache : MapComponent
 
     public bool cacheMode;
 
-    private HashSet<VehiclePawnWithMap> allVehicles = [];
+    private readonly HashSet<VehiclePawnWithMap> allVehicles = [];
 
     public static bool cacheModeGlobal;
 }

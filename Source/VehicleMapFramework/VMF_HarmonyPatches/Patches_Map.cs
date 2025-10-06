@@ -1,12 +1,12 @@
-﻿using HarmonyLib;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection.Emit;
+using HarmonyLib;
 using RimWorld;
 using RimWorld.Planet;
 using RimWorld.QuestGen;
 using SmashTools;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Emit;
 using Unity.Collections;
 using UnityEngine;
 using Vehicles.World;
@@ -75,14 +75,14 @@ public static class Patch_Reachability_CanReach
     {
         if (CrossMapReachabilityUtility.working) return true;
 
-        Map destMap = CrossMapReachabilityUtility.DestMap ??
-            dest.Thing?.MapHeld ??
-            (TargetMapManager.HasTargetInfo(traverseParams.pawn, out var target) && (LocalTargetInfo)target == dest ? target.Map : traverseParams.pawn?.Map);
+        var destMap = CrossMapReachabilityUtility.DestMap ??
+                      dest.Thing?.MapHeld ??
+                      (TargetMapManager.HasTargetInfo(traverseParams.pawn, out var target) && (LocalTargetInfo)target == dest ? target.Map : traverseParams.pawn?.Map);
         if (destMap == null)
         {
             return true;
         }
-        Map departMap = CrossMapReachabilityUtility.DepartMap ?? traverseParams.pawn?.Map;
+        var departMap = CrossMapReachabilityUtility.DepartMap ?? traverseParams.pawn?.Map;
         if (departMap == null)
         {
             return true;
@@ -201,14 +201,14 @@ public static class Patch_ResourceCounter_UpdateResourceCounts
         foreach (var vehicle in VehiclePawnWithMapCache.AllVehiclesOn(___map))
         {
             var allGroupsListForReading = vehicle.VehicleMap.haulDestinationManager.AllGroupsListForReading;
-            for (int i = 0; i < allGroupsListForReading.Count; i++)
+            for (var i = 0; i < allGroupsListForReading.Count; i++)
             {
-                foreach (Thing outerThing in allGroupsListForReading[i].HeldThings)
+                foreach (var outerThing in allGroupsListForReading[i].HeldThings)
                 {
-                    Thing innerIfMinified = outerThing.GetInnerIfMinified();
+                    var innerIfMinified = outerThing.GetInnerIfMinified();
                     if (innerIfMinified.def.CountAsResource && !innerIfMinified.IsNotFresh())
                     {
-                        ThingDef def = innerIfMinified.def;
+                        var def = innerIfMinified.def;
                         ___countedAmounts[def] += innerIfMinified.stackCount;
                     }
                 }
@@ -225,36 +225,24 @@ public static class Patch_Map_MapUpdate
 
     private const int textureSize = 2048;
 
-    public readonly static Vector2 MeshSize = new(200f, 200f);
+    public static readonly Vector2 MeshSize = new(200f, 200f);
 
-    private static Mesh mesh200 = MeshPool.GridPlane(MeshSize);
+    private static readonly Mesh mesh200 = MeshPool.GridPlane(MeshSize);
 
     private static Material mat;
 
-    private static Material skyMat = SolidColorMaterials.NewSolidColorMaterial(Color.black, ShaderDatabase.SolidColor);
+    private static readonly Material skyMat = SolidColorMaterials.NewSolidColorMaterial(Color.black, ShaderDatabase.SolidColor);
 
     public static int lastRenderedTick = -1;
 
-    private static AccessTools.FieldRef<WorldCameraDriver, float> desiredAltitude = AccessTools.FieldRefAccess<WorldCameraDriver, float>("desiredAltitude");
+    private static readonly AccessTools.FieldRef<WorldCameraDriver, float> desiredAltitude = AccessTools.FieldRefAccess<WorldCameraDriver, float>("desiredAltitude");
     [PatchLevel(Level.Safe)]
     public static void Postfix(Map __instance)
     {
-        static WorldObject GetWorldObject(IThingHolder holder)
-        {
-            while (holder != null)
-            {
-                if (holder is WorldObject worldObject)
-                {
-                    return worldObject;
-                }
-                holder = holder.ParentHolder;
-            }
-            return null;
-        }
         var focused = Find.CurrentMap == __instance;
         if (VehicleMapFramework.settings.drawPlanet && focused && __instance.IsVehicleMapOf(out var vehicle) && WorldRendererUtility.DrawingMap && !Find.World.renderer.RegenerateLayersIfDirtyInLongEvent())
         {
-            float angle = vehicle.Transform.rotation + vehicle.Rotation.AsAngle;
+            var angle = vehicle.Transform.rotation + vehicle.Rotation.AsAngle;
             if (GenTicks.TicksGame != lastRenderedTick && Time.frameCount % 2 == 0 || mat != null && tmpRenderTex == null)
             {
                 var worldObject = GetWorldObject(vehicle);
@@ -340,6 +328,21 @@ public static class Patch_Map_MapUpdate
             RenderTexture.ReleaseTemporary(tmpRenderTex);
             tmpRenderTex = null;
         }
+
+        return;
+
+        static WorldObject GetWorldObject(IThingHolder holder)
+        {
+            while (holder != null)
+            {
+                if (holder is WorldObject worldObject)
+                {
+                    return worldObject;
+                }
+                holder = holder.ParentHolder;
+            }
+            return null;
+        }
     }
 
     [PatchLevel(Level.Sensitive)]
@@ -373,7 +376,7 @@ public static class Patch_Map_MapUpdate
 [HarmonyPatch(typeof(MapPawns), nameof(MapPawns.AllPawns), MethodType.Getter)]
 public static class Patch_MapPawns_AllPawns
 {
-    private static List<Pawn> tmpList = [];
+    private static readonly List<Pawn> tmpList = [];
 
     [PatchLevel(Level.Safe)]
     public static List<Pawn> Postfix(List<Pawn> __result, Map ___map)
@@ -400,7 +403,7 @@ public static class Patch_MapPawns_AllPawns
 [PatchLevel(Level.Mandatory)]
 public static class Patch_MapPawns_AllPawnsSpawned
 {
-    private static List<Pawn> tmpList = [];
+    private static readonly List<Pawn> tmpList = [];
 
     public static IReadOnlyList<Pawn> Postfix(IReadOnlyList<Pawn> __result, Map ___map)
     {
@@ -750,8 +753,7 @@ public static class Patch_StorytellerUtility_DefaultThreatPointsNow
     private static bool IsPocketMapReplace(Map map)
     {
         if (!map.IsPocketMap) return false;
-        if (map.PocketMapParent?.sourceMap is null) return false;
-        return true;
+        return map.PocketMapParent?.sourceMap is not null;
     }
 }
 

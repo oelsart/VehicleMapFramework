@@ -1,8 +1,8 @@
-﻿using HarmonyLib;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using HarmonyLib;
 using Verse;
 using static VehicleMapFramework.MethodInfoCache;
 
@@ -44,7 +44,7 @@ public static class Patch_ArcanePlant_Turret_TryFindNewTarget_Delegate
 [PatchLevel(Level.Sensitive)]
 public static class Patch_ArcanePlant_Turret_TryFindNewTarget
 {
-    private static List<Building> tmpList = [];
+    private static readonly List<Building> tmpList = [];
 
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {

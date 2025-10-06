@@ -1,8 +1,8 @@
-﻿using Rimefeller;
-using RimWorld;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Rimefeller;
+using RimWorld;
 using UnityEngine;
 using Verse;
 
@@ -10,7 +10,7 @@ namespace VehicleMapFramework;
 
 public class CompPipeConnectorRF : CompPipe, IPipeConnector
 {
-    new public CompProperties_PipeConnectorRF Props => (CompProperties_PipeConnectorRF)props;
+    public new CompProperties_PipeConnectorRF Props => (CompProperties_PipeConnectorRF)props;
 
     public CompPipeConnector.PipeMod Mod => CompPipeConnector.PipeMod.Rimefeller;
 
@@ -18,14 +18,14 @@ public class CompPipeConnectorRF : CompPipe, IPipeConnector
     {
         get
         {
-            if (compPipeConnector == null)
+            if (field == null)
             {
-                if (!parent.TryGetComp(out compPipeConnector))
+                if (!parent.TryGetComp(out field))
                 {
                     Log.Error($"[VehicleMapFramework] CompPipeConnector not found with {parent.LabelCap}.");
                 }
             }
-            return compPipeConnector;
+            return field;
         }
     }
 
@@ -133,11 +133,9 @@ public class CompPipeConnectorRF : CompPipe, IPipeConnector
         Scribe_Values.Look(ref pumpUp, "pumpUp");
     }
 
-    new public PipeType mode;
+    public new PipeType mode;
 
     public bool pumpUp = true;
-
-    private CompPipeConnector compPipeConnector;
 
     private CompPipeConnectorRF pairComp;
 

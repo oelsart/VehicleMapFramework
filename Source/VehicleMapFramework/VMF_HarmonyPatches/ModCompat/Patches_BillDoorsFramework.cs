@@ -1,8 +1,8 @@
-﻿using HarmonyLib;
+﻿using System.Linq;
+using System.Threading.Tasks;
+using HarmonyLib;
 using RimWorld;
 using SmashTools;
-using System.Linq;
-using System.Threading.Tasks;
 using UnityEngine;
 using Verse;
 
@@ -37,7 +37,7 @@ public static class Patch_PlaceWorker_ShowVerbRadiusBySight_AllowsPlacing
             {
                 cellCache.Clear();
                 badCellCache.Clear();
-                foreach (VerbProperties verbProperties in ((ThingDef)checkingDef).building.turretGunDef.Verbs)
+                foreach (var verbProperties in ((ThingDef)checkingDef).building.turretGunDef.Verbs)
                 {
                     locCache = loc;
                     if (map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
@@ -61,20 +61,20 @@ public static class Patch_PlaceWorker_ShowVerbRadiusBySight_AllowsPlacing
             if (cellCache.Any())
             {
                 GenDraw.DrawFieldEdges([.. cellCache.Keys]);
-                foreach (IntVec3 c in cellCache.Keys)
+                foreach (var c in cellCache.Keys)
                 {
                     CellRenderer.RenderCell(c, greenMat);
                 }
             }
             if (badCellCache.Any())
             {
-                foreach (IntVec3 c in badCellCache.Keys)
+                foreach (var c in badCellCache.Keys)
                 {
                     CellRenderer.RenderCell(c, redMat);
                 }
             }
         }
-        foreach (VerbProperties verbProperties2 in ((ThingDef)checkingDef).building.turretGunDef.Verbs)
+        foreach (var verbProperties2 in ((ThingDef)checkingDef).building.turretGunDef.Verbs)
         {
             if (verbProperties2.range > 0f)
             {
@@ -90,13 +90,13 @@ public static class Patch_PlaceWorker_ShowVerbRadiusBySight_AllowsPlacing
 
     private static IntVec3 locCache;
 
-    private static ConcurrentSet<IntVec3> cellCache;
+    private static readonly ConcurrentSet<IntVec3> cellCache;
 
-    private static ConcurrentSet<IntVec3> badCellCache;
+    private static readonly ConcurrentSet<IntVec3> badCellCache;
 
-    private static Material redMat;
+    private static readonly Material redMat;
 
-    private static Material greenMat;
+    private static readonly Material greenMat;
 
     static Patch_PlaceWorker_ShowVerbRadiusBySight_AllowsPlacing()
     {

@@ -7,7 +7,7 @@ namespace VehicleMapFramework;
 
 public class CompEngineLightOverlay : CompOpacityOverlay
 {
-    new public CompProperties_EngineLightOverlay Props => (CompProperties_EngineLightOverlay)props;
+    public new CompProperties_EngineLightOverlay Props => (CompProperties_EngineLightOverlay)props;
 
     public override IEnumerable<Gizmo> CompGetGizmosExtra()
     {
@@ -18,7 +18,7 @@ public class CompEngineLightOverlay : CompOpacityOverlay
     {
         if (Overlay?.Graphic is not Graphic_VehicleOpacity graphic) return;
 
-        if (Vehicle.CompVehicleLauncher != null && Vehicle.CompVehicleLauncher.inFlight)
+        if (Vehicle.CompVehicleLauncher is { inFlight: true })
         {
             var launchProtocol = Vehicle.CompVehicleLauncher.launchProtocol;
             var timeInAnimation = launchProtocol is VTOLTakeoff vtol ? vtol.TimeInAnimationVTOL : launchProtocol.TimeInAnimation;

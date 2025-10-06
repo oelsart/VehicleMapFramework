@@ -51,5 +51,5 @@ public class VehicleMapGrid(Map map) : MapComponent(map)
         }
     }
 
-    private VehiclePawnWithMap[] vehicleGrid = new VehiclePawnWithMap[map.cellIndices.NumGridCells];
+    private readonly VehiclePawnWithMap[] vehicleGrid = new VehiclePawnWithMap[map.cellIndices.NumGridCells];
 }

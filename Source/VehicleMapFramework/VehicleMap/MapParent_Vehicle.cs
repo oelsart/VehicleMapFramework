@@ -1,7 +1,5 @@
-﻿using RimWorld;
+﻿using System.Collections.Generic;
 using RimWorld.Planet;
-using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using Verse;
 
@@ -23,11 +21,7 @@ public class MapParent_Vehicle : PocketMapParent
 
     public override IEnumerable<FloatMenuOption> GetFloatMenuOptions(Caravan caravan)
     {
-        if (caravan.PawnsListForReading.Any(p => p is VehiclePawnWithMap))
-        {
-            return [];
-        }
-        return base.GetFloatMenuOptions(caravan);
+        return caravan.PawnsListForReading.Any(p => p is VehiclePawnWithMap) ? [] : base.GetFloatMenuOptions(caravan);
     }
 
     public override void ExposeData()

@@ -1,14 +1,14 @@
-﻿using HarmonyLib;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Reflection.Emit;
+using HarmonyLib;
 using RimWorld;
 using RimWorld.Planet;
 using SmashTools;
 using SmashTools.Rendering;
 using SmashTools.Targeting;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Reflection.Emit;
 using UnityEngine;
 using Vehicles;
 using Vehicles.Rendering;
@@ -19,6 +19,7 @@ using Verse.AI.Group;
 using Verse.Sound;
 using static VehicleMapFramework.MethodInfoCache;
 using static VehicleMapFramework.ModCompat.VehicleFramework;
+using Transform = SmashTools.Rendering.Transform;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
@@ -36,26 +37,26 @@ public static class Patch_RGBMaterialPool_SetProperties
             {
                 if (___Cache.TryGetValue(target, out var materials))
                 {
-                    for (int i = 0; i < materials.Length; i++)
+                    for (var i = 0; i < materials.Length; i++)
                     {
-                        Material material = materials[i];
+                        var material = materials[i];
 
                         material.SetColor(AdditionalShaderPropertyIDs.ColorOne, patternData.color);
                         material.SetColor(ShaderPropertyIDs.ColorTwo, patternData.colorTwo);
                         material.SetColor(AdditionalShaderPropertyIDs.ColorThree, patternData.colorThree);
 
                         Rot8 rot = new(i);
-                        Texture2D mainTex = material.mainTexture as Texture2D;
+                        var mainTex = material.mainTexture as Texture2D;
                         if (mainTexGetter != null)
                         {
                             mainTex = mainTexGetter(rot);
                         }
 
-                        Texture2D maskTex = maskTexGetter?.Invoke(rot);
+                        var maskTex = maskTexGetter?.Invoke(rot);
                         if (patternData.patternDef != PatternDefOf.Default)
                         {
-                            float tiles = patternData.tiles;
-                            if (patternData.patternDef.properties.tiles.TryGetValue("All", out float allTiles))
+                            var tiles = patternData.tiles;
+                            if (patternData.patternDef.properties.tiles.TryGetValue("All", out var allTiles))
                             {
                                 tiles *= allTiles;
                             }
@@ -91,13 +92,13 @@ public static class Patch_RGBMaterialPool_SetProperties
                             }
                         }
 
-                        Shader opacityShader = patternData.patternDef.ShaderTypeDef.Shader.OpacityShaderCorrespond();
+                        var opacityShader = patternData.patternDef.ShaderTypeDef.Shader.OpacityShaderCorrespond();
                         if (opacityShader != material.shader)
                         {
                             material.shader = opacityShader;
                         }
 
-                        Texture2D patternTex = patternData.patternDef[rot];
+                        var patternTex = patternData.patternDef[rot];
                         if (patternData.patternDef.ShaderTypeDef == VehicleShaderTypeDefOf.CutoutComplexSkin)
                         {
                             //Null reverts to original tex. Default would calculate to red
@@ -220,8 +221,8 @@ public static class Patch_VehiclePawn_DisembarkPawn
             var map = parent.Map ?? vehicle.VehicleMap;
             if (!pawn.Spawned)
             {
-                CellRect cellRect = parent.OccupiedRect().ExpandedBy(1);
-                IntVec3 intVec = parent.Position;
+                var cellRect = parent.OccupiedRect().ExpandedBy(1);
+                var intVec = parent.Position;
                 if (cellRect.EdgeCells.Where(delegate (IntVec3 c)
                 {
                     if (c.InBounds(map) && c.Standable(map))
@@ -229,20 +230,20 @@ public static class Patch_VehiclePawn_DisembarkPawn
                         return !c.GetThingList(map).NotNullAndAny(t => t is Pawn);
                     }
                     return false;
-                }).TryRandomElement(out IntVec3 intVec2))
+                }).TryRandomElement(out var intVec2))
                 {
                     intVec = intVec2;
                 }
-                GenSpawn.Spawn(pawn, intVec, map, WipeMode.Vanish);
+                GenSpawn.Spawn(pawn, intVec, map);
                 if (!intVec.Standable(map))
                 {
                     pawn.pather.TryRecoverFromUnwalkablePosition(false);
                 }
-                Lord lord = __instance.GetLord();
+                var lord = __instance.GetLord();
                 if (lord != null)
                 {
-                    Lord lord2 = pawn.GetLord();
-                    lord2?.Notify_PawnLost(pawn, PawnLostCondition.ForcedToJoinOtherLord, null);
+                    var lord2 = pawn.GetLord();
+                    lord2?.Notify_PawnLost(pawn, PawnLostCondition.ForcedToJoinOtherLord);
                     lord.AddPawn(pawn);
                 }
             }
@@ -271,7 +272,7 @@ public static class Patch_Rendering_DrawSelectionBracketsVehicles
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator, MethodBase original)
     {
         var codes = new CodeMatcher(instructions, generator);
-        codes.MatchEndForward(CodeMatch.LoadsField(AccessTools.Field(typeof(SmashTools.Rendering.Transform), nameof(SmashTools.Rendering.Transform.rotation))), new CodeMatch(OpCodes.Add));
+        codes.MatchEndForward(CodeMatch.LoadsField(AccessTools.Field(typeof(Transform), nameof(Transform.rotation))), new CodeMatch(OpCodes.Add));
         codes.DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle);
         codes.CreateLabel(out var label);
         var l_vehicle_ind = original.GetMethodBody()?.LocalVariables?.FirstIndexOf(l => l.LocalType == typeof(VehiclePawn)) ?? 0;
@@ -550,8 +551,8 @@ public static class Patch_LaunchProtocol_GetArrivalOptions
                           }
                           else
                           {
-                              AerialVehicleInFlight aerialVehicle = vehicle.GetOrMakeAerialVehicle();
-                              List<FlightNode> nodes = targetData.targets.Select(target => new FlightNode(target)).ToList();
+                              var aerialVehicle = vehicle.GetOrMakeAerialVehicle();
+                              var nodes = targetData.targets.Select(target => new FlightNode(target)).ToList();
                               aerialVehicle.OrderFlyToTiles(nodes,
                         new ArrivalAction_LandToCell(vehicle, mapParent, landingCell.Cell, rot));
                               vehicle.CompVehicleLauncher.inFlight = true;
@@ -630,7 +631,7 @@ public static class Patch_CaravanFormation_CheckForErrors
 
     private static Thing TargetThing(VehiclePawn vehicle, Pawn pawn)
     {
-        AssignedSeat assignedSeat = CaravanHelper.assignedSeats.GetAssignment(pawn);
+        var assignedSeat = CaravanHelper.assignedSeats.GetAssignment(pawn);
         if (assignedSeat != null && assignedSeat.handler.role is VehicleRoleBuildable vehicleRoleBuildable)
         {
             return vehicleRoleBuildable.upgradeComp.parent;
@@ -646,7 +647,7 @@ public static class Patch_JobDriver_Board_MakeNewToils
 {
     public static IEnumerable<Toil> Postfix(IEnumerable<Toil> values)
     {
-        foreach (Toil toil in values)
+        foreach (var toil in values)
         {
             if (toil.debugName == "GotoThing")
             {
@@ -738,7 +739,7 @@ public static class Patch_VehicleTabHelper_Passenger_HandleDragEvent
                         if (!___draggedPawn.Spawned && TryFindSpawnSpot(vehicle, vehicleHandler, out var intVec, out var map2))
                         {
                             vehicle.RemovePawn(___draggedPawn);
-                            GenSpawn.Spawn(___draggedPawn, intVec, map2, WipeMode.Vanish);
+                            GenSpawn.Spawn(___draggedPawn, intVec, map2);
                             vehicleHandler.vehicle.EventRegistry[VehicleEventDefOf.PawnExited].ExecuteEvents();
                             SoundDefOf.Click.PlayOneShotOnCamera();
                             ___draggedPawn = null;
@@ -752,7 +753,7 @@ public static class Patch_VehicleTabHelper_Passenger_HandleDragEvent
                             caravan.RemovePawn(___draggedPawn);
                         }
                         Find.WorldPawns.RemovePawn(___draggedPawn);
-                        GenSpawn.Spawn(___draggedPawn, intVec, map2, WipeMode.Vanish);
+                        GenSpawn.Spawn(___draggedPawn, intVec, map2);
                         SoundDefOf.Click.PlayOneShotOnCamera();
                         ___draggedPawn = null;
                         return false;
@@ -760,7 +761,7 @@ public static class Patch_VehicleTabHelper_Passenger_HandleDragEvent
                     else if (___draggedPawn.IsOnVehicleMapOf(out var vehicle2) && vehicle != vehicle2 && TryFindSpawnSpot(vehicle2, null, out intVec, out map2))
                     {
                         ___draggedPawn.DeSpawn();
-                        GenSpawn.Spawn(___draggedPawn, intVec, map2, WipeMode.Vanish);
+                        GenSpawn.Spawn(___draggedPawn, intVec, map2);
                         SoundDefOf.Click.PlayOneShotOnCamera();
                         ___draggedPawn = null;
                         return false;
@@ -769,7 +770,8 @@ public static class Patch_VehicleTabHelper_Passenger_HandleDragEvent
                     ___draggedPawn = null;
                     return false;
                 }
-                else if (___draggedPawn.IsOnVehicleMapOf(out vehicle))
+
+                if (___draggedPawn.IsOnVehicleMapOf(out vehicle))
                 {
                     if (___transferToHolder is VehicleRoleHandler vehicleHandler)
                     {
@@ -786,7 +788,7 @@ public static class Patch_VehicleTabHelper_Passenger_HandleDragEvent
                                 if (TryFindSpawnSpot(vehicle, vehicleHandler, out var intVec, out var map2))
                                 {
                                     vehicle.RemovePawn(___hoveringOverPawn);
-                                    GenSpawn.Spawn(___hoveringOverPawn, intVec, map2, WipeMode.Vanish);
+                                    GenSpawn.Spawn(___hoveringOverPawn, intVec, map2);
                                     vehicleHandler.vehicle.EventRegistry[VehicleEventDefOf.PawnExited].ExecuteEvents();
                                 }
                                 else
@@ -837,16 +839,11 @@ public static class Patch_VehicleTabHelper_Passenger_HandleDragEvent
 
     private static bool TryFindSpawnSpot(VehiclePawnWithMap vehicle, VehicleRoleHandler vehicleHandler, out IntVec3 spot, out Map map)
     {
-        static bool Predicate(IntVec3 c, Map map)
-        {
-            return (c.Standable(map) || c.GetDoor(map) != null) && c.GetFirstPawn(map) is null;
-        }
-
         if (vehicleHandler != null && vehicleHandler.vehicle == vehicle && vehicleHandler.role is VehicleRoleBuildable vehicleRoleBuildable)
         {
             var parent = vehicleRoleBuildable.upgradeComp.parent;
-            CellRect cellRect = parent.OccupiedRect().ExpandedBy(1);
-            IntVec3 intVec = parent.Position;
+            var cellRect = parent.OccupiedRect().ExpandedBy(1);
+            var intVec = parent.Position;
             if (cellRect.EdgeCells.Where(delegate (IntVec3 c)
             {
                 if (c.InBounds(parent.Map) && Predicate(c, parent.Map))
@@ -882,6 +879,11 @@ public static class Patch_VehicleTabHelper_Passenger_HandleDragEvent
         spot = IntVec3.Invalid;
         map = null;
         return false;
+
+        static bool Predicate(IntVec3 c, Map map)
+        {
+            return (c.Standable(map) || c.GetDoor(map) != null) && c.GetFirstPawn(map) is null;
+        }
     }
 }
 
@@ -953,9 +955,9 @@ public static class Patch_FloatMenuOptionProvider_OrderVehicle_PawnGotoAction
                 job.globalTarget = new GlobalTargetInfo(gotoLoc, map);
                 var baseMap = map.BaseMap();
                 var isBaseMap = map == baseMap;
-                bool isOnEdge = isBaseMap && CellRect.WholeMap(baseMap).IsOnEdge(clickCell, 3);
-                bool exitCell = isBaseMap && baseMap.exitMapGrid.IsExitCell(clickCell);
-                bool vehicleCellsOverlapExit = isBaseMap && vehicle.InhabitedCellsProjected(clickCell, rot)
+                var isOnEdge = isBaseMap && CellRect.WholeMap(baseMap).IsOnEdge(clickCell, 3);
+                var exitCell = isBaseMap && baseMap.exitMapGrid.IsExitCell(clickCell);
+                var vehicleCellsOverlapExit = isBaseMap && vehicle.InhabitedCellsProjected(clickCell, rot)
                  .NotNullAndAny(cell => cell.InBounds(baseMap) &&
                     baseMap.exitMapGrid.IsExitCell(cell));
 
@@ -1109,11 +1111,7 @@ public static class Patch_VehicleGhostUtility_DrawGhostVehicleDef
 
     public static Vector3 ToTargetMapCoord(Vector3 original, Thing thing)
     {
-        if (TargetMapManager.HasTargetMap(thing, out var map))
-        {
-            return original.ToBaseMapCoord(map).WithY(original.y);
-        }
-        return original;
+        return TargetMapManager.HasTargetMap(thing, out var map) ? original.ToBaseMapCoord(map).WithY(original.y) : original;
     }
 }
 
@@ -1206,19 +1204,13 @@ public static class Patch_SettingsCache_TryGetValue
     private static IEnumerable<MethodBase> TargetMethods()
     {
         return AccessTools.GetDeclaredMethods(typeof(SettingsCache)).Where(m => m.Name == "TryGetValue").Select(m =>
-        {
-            if (m.IsGenericMethodDefinition)
-            {
-                return m.MakeGenericMethod(typeof(bool));
-            }
-            return m;
-        });
+            m.IsGenericMethodDefinition ? m.MakeGenericMethod(typeof(bool)) : m);
     }
 
     public static void Prefix(ref VehicleDef def)
     {
         var props = def.GetModExtension<VehicleMapProps_Unique>();
-        if (props != null && props.baseDef != null)
+        if (props is { baseDef: not null })
         {
             def = props.baseDef;
         }
@@ -1234,7 +1226,7 @@ public static class Patch_SectionDrawer_RecacheVehicleFilter
         ___filteredVehicleDefs.RemoveAll(d =>
         {
             var props = d.GetModExtension<VehicleMapProps_Unique>();
-            return props != null && props.baseDef != null;
+            return props is { baseDef: not null };
         });
     }
 }

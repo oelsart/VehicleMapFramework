@@ -1,7 +1,7 @@
-﻿using HarmonyLib;
-using RimWorld;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using HarmonyLib;
+using RimWorld;
 using Verse;
 using static VehicleMapFramework.MethodInfoCache;
 
@@ -11,7 +11,7 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [PatchLevel(Level.Safe)]
 public static class Patch_Alert_NeedMealSource_NeedMealSource
 {
-    private static FastInvokeHandler NeedMealSource = MethodInvoker.GetHandler(AccessTools.Method(typeof(Alert_NeedMealSource), "NeedMealSource"));
+    private static readonly FastInvokeHandler NeedMealSource = MethodInvoker.GetHandler(AccessTools.Method(typeof(Alert_NeedMealSource), "NeedMealSource"));
 
     public static void Postfix(Alert_NeedMealSource __instance, Map map, ref bool __result)
     {
@@ -23,7 +23,7 @@ public static class Patch_Alert_NeedMealSource_NeedMealSource
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Alert_NeedColonistBeds_AvailableColonistBeds
 {
-    private static List<Building> buildings = [];
+    private static readonly List<Building> buildings = [];
 
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {

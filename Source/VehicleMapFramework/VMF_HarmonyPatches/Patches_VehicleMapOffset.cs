@@ -1,11 +1,11 @@
-﻿using HarmonyLib;
-using RimWorld;
-using SmashTools;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using HarmonyLib;
+using RimWorld;
+using SmashTools;
 using UnityEngine;
 using Vehicles;
 using Vehicles.Rendering;
@@ -267,37 +267,30 @@ public static class Patch_Pawn_JobTracker_DrawLinesBetweenTargets
             {
                 return targ.Thing.DrawPos;
             }
-            if (targ.Thing.SpawnedOrAnyParentSpawned)
-            {
-                return targ.Thing.SpawnedParentOrMe.DrawPos;
-            }
-            return targ.Thing.Position.ToVector3Shifted();
+            return targ.Thing.SpawnedOrAnyParentSpawned ? targ.Thing.SpawnedParentOrMe.DrawPos : targ.Thing.Position.ToVector3Shifted();
         }
-        else
+
+        if (!targ.Cell.IsValid) return default;
+            
+        var driver = pawn.jobs.AllJobs()?.FirstOrDefault()?.GetCachedDriver(pawn);
+        if (TargetMapManager.HasTargetMap(pawn, out var map) && pawn.stances.curStance is Stance_Busy)
         {
-            if (targ.Cell.IsValid)
-            {
-                var driver = pawn.jobs.AllJobs()?.FirstOrDefault()?.GetCachedDriver(pawn);
-                if (TargetMapManager.HasTargetMap(pawn, out var map) && pawn.stances.curStance is Stance_Busy)
-                {
-                    return targ.Cell.ToVector3Shifted().ToBaseMapCoord(map);
-                }
-                else if (driver is JobDriverAcrossMaps driverAcrossMaps)
-                {
-                    var destMap = driverAcrossMaps.DestMap;
-                    if (destMap.IsNonFocusedVehicleMapOf(out var vehicle))
-                    {
-                        return targ.Cell.ToVector3Shifted().ToBaseMapCoord(vehicle);
-                    }
-                }
-                else if (pawn.IsOnNonFocusedVehicleMapOf(out var vehicle) && !(pawn.stances.curStance is Stance_Busy busy && (busy.verb is Verb_Jump || busy.verb is Verb_CastAbilityJump)))
-                {
-                    return targ.Cell.ToVector3Shifted().ToBaseMapCoord(vehicle);
-                }
-                return targ.Cell.ToVector3Shifted();
-            }
-            return default;
+            return targ.Cell.ToVector3Shifted().ToBaseMapCoord(map);
         }
+
+        if (driver is JobDriverAcrossMaps driverAcrossMaps)
+        {
+            var destMap = driverAcrossMaps.DestMap;
+            if (destMap.IsNonFocusedVehicleMapOf(out var vehicle))
+            {
+                return targ.Cell.ToVector3Shifted().ToBaseMapCoord(vehicle);
+            }
+        }
+        else if (pawn.IsOnNonFocusedVehicleMapOf(out var vehicle) && !(pawn.stances.curStance is Stance_Busy busy && (busy.verb is Verb_Jump || busy.verb is Verb_CastAbilityJump)))
+        {
+            return targ.Cell.ToVector3Shifted().ToBaseMapCoord(vehicle);
+        }
+        return targ.Cell.ToVector3Shifted();
     }
 }
 

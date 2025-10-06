@@ -1,7 +1,7 @@
-﻿using CombatExtended;
-using RimWorld;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using CombatExtended;
+using RimWorld;
 using UnityEngine;
 using Verse;
 using Verse.AI;
@@ -10,7 +10,7 @@ namespace VehicleMapFramework;
 
 public static class VerbOnVehicleCEUtility
 {
-    private static List<IntVec3> tempLeanShootSources = [];
+    private static readonly List<IntVec3> tempLeanShootSources = [];
 
     private static Vector3 ShotSource(this Verb_LaunchProjectileCE verb)
     {
@@ -39,8 +39,8 @@ public static class VerbOnVehicleCEUtility
             resultingLine = new ShootLine(root, targCellOnBaseMap);
             return ReachabilityImmediate.CanReachImmediate(verb.caster.Position, targ, verb.caster.Map, PathEndMode.Touch, null);
         }
-        CellRect cellRect = !targ.HasThing ? CellRect.SingleCell(targ.Cell) : targ.Thing.MovedOccupiedRect();
-        float num = cellRect.ClosestDistSquaredTo(root);
+        var cellRect = !targ.HasThing ? CellRect.SingleCell(targ.Cell) : targ.Thing.MovedOccupiedRect();
+        var num = cellRect.ClosestDistSquaredTo(root);
         if (num > verb.EffectiveRange * verb.EffectiveRange || num < verb.verbProps.minRange * verb.verbProps.minRange)
         {
             resultingLine = new ShootLine(root, targCellOnBaseMap);
@@ -61,7 +61,7 @@ public static class VerbOnVehicleCEUtility
             shotSource = verb.ShotSource();
         }
 
-        if (verb.CanHitFromCellIgnoringRange(shotSource, targ, out IntVec3 dest))
+        if (verb.CanHitFromCellIgnoringRange(shotSource, targ, out var dest))
         {
             targetPos = dest.ToVector3Shifted();
             resultingLine = new ShootLine(root, dest);
@@ -129,10 +129,10 @@ public static class VerbOnVehicleCEUtility
             Vector3 targetPos;
             if (targetThing != null)
             {
-                float shotHeight = shotSource.y;
+                var shotHeight = shotSource.y;
                 verb.AdjustShotHeight(verb.caster, targetThing, ref shotHeight);
                 shotSource.y = shotHeight;
-                Vector3 targDrawPos = targetThing.DrawPos;
+                var targDrawPos = targetThing.DrawPos;
                 targetPos = new Vector3(targDrawPos.x, new CollisionVertical(targetThing).Max, targDrawPos.z);
                 if (targetThing is Pawn targPawn)
                 {
@@ -154,7 +154,7 @@ public static class VerbOnVehicleCEUtility
 
             bool CanShootThroughCell(IntVec3 cell)
             {
-                Thing cover = cell.InBounds(map) ? cell.GetFirstPawn(map) ?? cell.GetCover(map) : null;
+                var cover = cell.InBounds(map) ? cell.GetFirstPawn(map) ?? cell.GetCover(map) : null;
                 if (verb.caster.IsOnVehicleMapOf(out var vehicle) && cover == vehicle)
                 {
                     return true;
@@ -163,7 +163,7 @@ public static class VerbOnVehicleCEUtility
                 if (cover != null && cover != verb.ShooterPawn && cover != verb.caster && cover != targetThing && !cover.IsPlant() && !(cover is Pawn && cover.HostileTo(verb.caster)))
                 {
                     //Shooter pawns don't attempt to shoot targets partially obstructed by their own faction members or allies, except when close enough to fire over their shoulder
-                    if (cover is Pawn cellPawn && !cellPawn.Downed && cellPawn.Faction != null && verb.ShooterPawn?.Faction != null && (verb.ShooterPawn.Faction == cellPawn.Faction || verb.ShooterPawn.Faction.RelationKindWith(cellPawn.Faction) == FactionRelationKind.Ally) && !cellPawn.AdjacentTo8WayOrInside(verb.ShooterPawn))
+                    if (cover is Pawn { Downed: false, Faction: not null } cellPawn && verb.ShooterPawn?.Faction != null && (verb.ShooterPawn.Faction == cellPawn.Faction || verb.ShooterPawn.Faction.RelationKindWith(cellPawn.Faction) == FactionRelationKind.Ally) && !cellPawn.AdjacentTo8WayOrInside(verb.ShooterPawn))
                     {
                         return false;
                     }
@@ -174,7 +174,7 @@ public static class VerbOnVehicleCEUtility
                         return true;
                     }
 
-                    Bounds bounds = CE_Utility.GetBoundsFor(cover);
+                    var bounds = CE_Utility.GetBoundsFor(cover);
 
                     // Simplified calculations for adjacent cover for gameplay purposes
                     if (cover.def.Fillage != FillCategory.Full && cover.AdjacentTo8WayOrInside(verb.caster))
@@ -209,7 +209,7 @@ public static class VerbOnVehicleCEUtility
             }
 
             // Add validator to parameters
-            foreach (IntVec3 curCell in GenSightCE.PointsOnLineOfSight(shotSource, targetPos))
+            foreach (var curCell in GenSightCE.PointsOnLineOfSight(shotSource, targetPos))
             {
                 if (Controller.settings.DebugDrawPartialLoSChecks)
                 {

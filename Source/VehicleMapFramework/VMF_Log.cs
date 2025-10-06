@@ -3,8 +3,10 @@ using Verse;
 
 namespace VehicleMapFramework;
 
-internal class VMF_Log
+internal static class VMF_Log
 {
+    private const string LogLabel = "[VehicleMapFramework]";
+    
     public static void Error(string message)
     {
         Log.Error($"{LogLabel} {message}");
@@ -44,6 +46,4 @@ internal class VMF_Log
     {
         Log.Error(message);
     }
-
-    internal const string LogLabel = "[VehicleMapFramework]";
 }

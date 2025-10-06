@@ -1,11 +1,10 @@
-﻿using HarmonyLib;
-using RimWorld;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
-using Vehicles;
+using HarmonyLib;
+using RimWorld;
 using Verse;
 using Verse.AI;
 using static VehicleMapFramework.ModCompat;
@@ -59,18 +58,18 @@ public static class Patch_X2_JobGiver_Return2BaseRoom_TryIssueJobPackage
             __result = ThinkResult.NoJob;
             return false;
         }
-        Room roomRecharge = rechargeStation.Position.GetRoom(rechargeStation.Map);
-        Room roomRobot = pawn.Position.GetRoom(pawn.Map);
+        var roomRecharge = rechargeStation.Position.GetRoom(rechargeStation.Map);
+        var roomRobot = pawn.Position.GetRoom(pawn.Map);
         if (roomRecharge == roomRobot)
         {
             __result = ThinkResult.NoJob;
             return false;
         }
-        Map mapRecharge = rechargeStation.Map;
-        IntVec3 posRecharge = rechargeStation.Position;
-        TargetInfo exitSpot = TargetInfo.Invalid;
-        TargetInfo enterSpot = TargetInfo.Invalid;
-        IntVec3 cell = (from c in roomRecharge.Cells
+        var mapRecharge = rechargeStation.Map;
+        var posRecharge = rechargeStation.Position;
+        var exitSpot = TargetInfo.Invalid;
+        var enterSpot = TargetInfo.Invalid;
+        var cell = (from c in roomRecharge.Cells
                         where c.Standable(mapRecharge) && !c.IsForbidden(pawn) && c.InHorDistOf(posRecharge, 5f) && pawn.CanReach(c, PathEndMode.OnCell, Danger.Some, false, false, TraverseMode.ByPawn, rechargeStation.Map, out exitSpot, out enterSpot)
                         select c).FirstOrDefault();
         if (cell == IntVec3.Invalid)
@@ -81,7 +80,7 @@ public static class Patch_X2_JobGiver_Return2BaseRoom_TryIssueJobPackage
         var job = JobMaker.MakeJob(VMF_DefOf.VMF_GotoAcrossMaps, cell);
         job.locomotionUrgency = LocomotionUrgency.Amble;
         job.SetSpotsToJobAcrossMaps(pawn, exitSpot, enterSpot);
-        __result = new ThinkResult(job, __instance, new JobTag?(JobTag.Misc), false);
+        __result = new ThinkResult(job, __instance, JobTag.Misc);
         return false;
     }
 }

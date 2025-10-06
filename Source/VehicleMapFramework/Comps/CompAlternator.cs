@@ -1,5 +1,4 @@
 ﻿using RimWorld;
-using System.Linq;
 using Vehicles;
 using Verse;
 using static VehicleMapFramework.CompProperties_Alternator;

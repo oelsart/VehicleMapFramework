@@ -1,9 +1,9 @@
-﻿using HarmonyLib;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using HarmonyLib;
 using Verse;
 using static VehicleMapFramework.MethodInfoCache;
 
@@ -87,7 +87,7 @@ public static class Patch_WG_PawnFlyer_RespawnPawn
 [PatchLevel(Level.Safe)]
 public static class Patch_WG_PawnFlyer_ToDiffMapTarget
 {
-    private static Type t_Building_EjectorBay = GenTypes.GetTypeInAnyAssembly("Exosuit.Building_EjectorBay", "Exosuit");
+    private static readonly Type t_Building_EjectorBay = GenTypes.GetTypeInAnyAssembly("Exosuit.Building_EjectorBay", "Exosuit");
 
     public static void Prefix(ref Thing ___eBay, Pawn pawn)
     {

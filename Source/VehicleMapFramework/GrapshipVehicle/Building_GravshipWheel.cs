@@ -1,9 +1,8 @@
-﻿using HarmonyLib;
+﻿using System.Collections.Generic;
+using HarmonyLib;
 using RimWorld;
 using SmashTools;
-using System.Collections.Generic;
 using UnityEngine;
-using Vehicles;
 using Verse;
 using Verse.AI;
 
@@ -11,9 +10,6 @@ namespace VehicleMapFramework
 {
     public class Building_GravshipWheel : Building, IAttackTarget
     {
-        [Unsaved(false)]
-        private CompGravshipFacility gravshipGravshipFacility;
-
         private bool flipped;
 
         private Rot4? tmpRot;
@@ -56,12 +52,13 @@ namespace VehicleMapFramework
             }
         }
 
+        [field: Unsaved()]
         public CompGravshipFacility CompGravshipFacility
         {
             get
             {
-                gravshipGravshipFacility ??= GetComp<CompGravshipFacility>();
-                return gravshipGravshipFacility;
+                field ??= GetComp<CompGravshipFacility>();
+                return field;
             }
         }
 
@@ -71,7 +68,7 @@ namespace VehicleMapFramework
 
             if (!this.IsOnVehicleMapOf(out var vehicle))
             {
-                yield return new Command_Toggle()
+                yield return new Command_Toggle
                 {
                     defaultLabel = "VMF_VehicleMode".Translate(),
                     icon = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/GravshipVehicleMode"),
@@ -81,7 +78,7 @@ namespace VehicleMapFramework
             }
             else if (vehicle.Spawned && vehicle.def.HasModExtension<VehicleMapProps_Gravship>())
             {
-                yield return new Command_Toggle()
+                yield return new Command_Toggle
                 {
                     defaultLabel = "VMF_VehicleMode".Translate(),
                     icon = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/GravshipVehicleMode"),
@@ -93,7 +90,7 @@ namespace VehicleMapFramework
             if (vehicle == null || !ValidFor(Rot4.North))
             {
                 var des = BuildCopyCommandUtility.FindAllowedDesignator(def);
-                yield return new Command_FlipBuilding()
+                yield return new Command_FlipBuilding
                 {
                     defaultLabel = "VMF_Flip".Translate(),
                     action = () =>

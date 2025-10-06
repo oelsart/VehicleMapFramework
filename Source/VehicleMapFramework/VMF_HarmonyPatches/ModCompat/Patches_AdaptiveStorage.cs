@@ -1,9 +1,9 @@
-﻿using HarmonyLib;
-using RimWorld;
-using SmashTools;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
+using HarmonyLib;
+using RimWorld;
+using SmashTools;
 using UnityEngine;
 using Verse;
 using static VehicleMapFramework.MethodInfoCache;
@@ -94,9 +94,9 @@ public static class Patch_ItemGraphicWorker_DrawOffsetForItem
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_RotationForPrint);
     }
 
-    private static AccessTools.FieldRef<object, int> stackBehaviour = AccessTools.FieldRefAccess<int>("AdaptiveStorage.ItemGraphic:stackBehaviour");
+    private static readonly AccessTools.FieldRef<object, int> stackBehaviour = AccessTools.FieldRefAccess<int>("AdaptiveStorage.ItemGraphic:stackBehaviour");
 
-    private static AccessTools.FieldRef<object, object> graphic = AccessTools.FieldRefAccess<object>("AdaptiveStorage.ItemGraphicWorker:<graphic>P");
+    private static readonly AccessTools.FieldRef<object, object> graphic = AccessTools.FieldRefAccess<object>("AdaptiveStorage.ItemGraphicWorker:<graphic>P");
 }
 
 [HarmonyPatchCategory(Patches_AdaptiveStorage.Category)]

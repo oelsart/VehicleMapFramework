@@ -1,28 +1,27 @@
-﻿using SmashTools;
+﻿using JetBrains.Annotations;
+using SmashTools;
 using UnityEngine;
 using Verse;
 
 namespace VehicleMapFramework;
 
+[UsedImplicitly]
 public class VehiclePawnWithMap_Hover : VehiclePawnWithMap
 {
     public override Vector3 DrawPos
     {
         get
         {
-            if (Spawned && Find.CurrentMap != VehicleMap)
+            if (!Spawned || Find.CurrentMap == VehicleMap) return base.DrawPos;
+            DrawTracker.tweener.PreDrawPosCalculation();
+            var drawPos = DrawTracker.tweener.TweenedPos;
+            drawPos.y = def.Altitude;
+            if (DrawTracker.recoilTracker.Recoil > 0f)
             {
-                DrawTracker.tweener.PreDrawPosCalculation();
-                Vector3 drawPos = DrawTracker.tweener.TweenedPos;
-                drawPos.y = def.Altitude;
-                if (DrawTracker.recoilTracker.Recoil > 0f)
-                {
-                    drawPos = drawPos.PointFromAngle(DrawTracker.recoilTracker.Recoil, DrawTracker.recoilTracker.Angle);
-                }
-                drawPos.z += drawOffset;
-                return drawPos;
+                drawPos = drawPos.PointFromAngle(DrawTracker.recoilTracker.Recoil, DrawTracker.recoilTracker.Angle);
             }
-            return base.DrawPos;
+            drawPos.z += drawOffset;
+            return drawPos;
         }
     }
 
@@ -40,7 +39,7 @@ public class VehiclePawnWithMap_Hover : VehiclePawnWithMap
                 else
                 {
                     var offsetFactor = Mathf.Min((Find.TickManager.TicksGame - ignitionTick.Value) / ignitionDuration, 1f);
-                    if (offsetFactor == 1f)
+                    if (Mathf.Approximately(offsetFactor, 1f))
                     {
                         ignitionComplete = true;
                     }
@@ -82,9 +81,9 @@ public class VehiclePawnWithMap_Hover : VehiclePawnWithMap
         Scribe_Values.Look(ref landingComplete, "landingComplete");
     }
 
-    private float drawOffset = 0f;
+    private float drawOffset;
 
-    private float prevOffset = 0f;
+    private float prevOffset;
 
     private float? drawPosZ;
 

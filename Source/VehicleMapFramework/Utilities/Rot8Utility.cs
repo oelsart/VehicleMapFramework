@@ -41,7 +41,7 @@ public static class Rot8Utility
             case 7:
                 return Quaternion.LookRotation(new Vector3(-1f, 0f, 1f));
             default:
-                Log.Error("ToQuat with Rot = " + rot.AsInt.ToString());
+                Log.Error("ToQuat with Rot = " + rot.AsInt);
                 return Quaternion.identity;
         }
     }
@@ -61,7 +61,7 @@ public static class Rot8Utility
             return;
         }
         var rot2 = new Rot8(rot.AsInt);
-        int num = rot2.AsIntClockwise;
+        var num = rot2.AsIntClockwise;
         if (rotDir == RotationDirection.Clockwise)
         {
             num += 2;

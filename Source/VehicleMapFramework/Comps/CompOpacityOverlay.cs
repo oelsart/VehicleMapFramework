@@ -1,6 +1,5 @@
-﻿using SmashTools.Performance;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
+using SmashTools.Performance;
 using UnityEngine;
 using Vehicles;
 using Verse;
@@ -15,8 +14,8 @@ public class CompOpacityOverlay : VehicleComp
     {
         get
         {
-            overlay ??= Vehicle?.DrawTracker?.overlayRenderer?.AllOverlaysListForReading.FirstOrDefault(o => o.data?.identifier == Props.identifier);
-            return overlay;
+            field ??= Vehicle?.DrawTracker?.overlayRenderer?.AllOverlaysListForReading.FirstOrDefault(o => o.data?.identifier == Props.identifier);
+            return field;
         }
     }
 
@@ -46,7 +45,7 @@ public class CompOpacityOverlay : VehicleComp
                 var rect = new Rect(UI.MousePositionOnUIInverted - new Vector2(75f, 18f), new Vector2(150f, 33f));
                 if (overlay.Graphic is Graphic_VehicleOpacity graphic)
                 {
-                    Find.WindowStack.Add(new EphemenalWindow()
+                    Find.WindowStack.Add(new EphemenalWindow
                     {
                         windowRect = rect,
                         doWindowFunc = () =>
@@ -86,8 +85,6 @@ public class CompOpacityOverlay : VehicleComp
             });
         }
     }
-
-    private GraphicOverlay overlay;
 
     private float tmpOpacity;
 }

@@ -1,6 +1,6 @@
-﻿using RimWorld;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Text;
+using RimWorld;
 using UnityEngine;
 using Verse;
 
@@ -12,7 +12,7 @@ public struct ShotReportOnVehicle
     {
         get
         {
-            if (target.HasThing && target.Thing is Pawn p && distance >= 4.5f && p.GetPosture() != PawnPosture.Standing)
+            if (target is { HasThing: true, Thing: Pawn p } && distance >= 4.5f && p.GetPosture() != PawnPosture.Standing)
             {
                 return 0.5f;
             }
@@ -24,7 +24,7 @@ public struct ShotReportOnVehicle
     {
         get
         {
-            if (target.HasThing && target.Thing is Pawn p && distance <= 3.9f && p.GetPosture() != PawnPosture.Standing)
+            if (target is { HasThing: true, Thing: Pawn p } && distance <= 3.9f && p.GetPosture() != PawnPosture.Standing)
             {
                 return 7.5f;
             }
@@ -36,7 +36,7 @@ public struct ShotReportOnVehicle
     {
         get
         {
-            float num = factorFromShooterAndDist * factorFromEquipment * factorFromWeather * factorFromCoveringGas * FactorFromExecution;
+            var num = factorFromShooterAndDist * factorFromEquipment * factorFromWeather * factorFromCoveringGas * FactorFromExecution;
             num += offsetFromDarkness;
             if (num < 0.0201f)
             {
@@ -70,8 +70,8 @@ public struct ShotReportOnVehicle
 
     public static ShotReportOnVehicle HitReportFor(Thing caster, Verb verb, LocalTargetInfo target)
     {
-        Map targetMap = target.HasThing ? target.Thing.Map : caster.BaseMap();
-        IntVec3 casterPositionOnTargetMap = target.HasThing ? caster.PositionOnAnotherThingMap(target.Thing) : caster.PositionOnBaseMap();
+        var targetMap = target.HasThing ? target.Thing.Map : caster.BaseMap();
+        var casterPositionOnTargetMap = target.HasThing ? caster.PositionOnAnotherThingMap(target.Thing) : caster.PositionOnBaseMap();
         ShotReportOnVehicle shotReportOnVehicle;
         shotReportOnVehicle.distance = (target.Cell - casterPositionOnTargetMap).LengthHorizontal;
         shotReportOnVehicle.target = target.ToTargetInfo(targetMap);
@@ -87,9 +87,9 @@ public struct ShotReportOnVehicle
         shotReportOnVehicle.covers = CoverUtility.CalculateCoverGiverSet(target, casterPositionOnTargetMap, targetMap);
         shotReportOnVehicle.coversOverallBlockChance = CoverUtility.CalculateOverallBlockChance(target, casterPositionOnTargetMap, targetMap);
         shotReportOnVehicle.factorFromCoveringGas = 1f;
-        if (verb.TryFindShootLineFromToOnVehicle(verb.caster.PositionOnBaseMap(), target, out shotReportOnVehicle.shootLine, false))
+        if (verb.TryFindShootLineFromToOnVehicle(verb.caster.PositionOnBaseMap(), target, out shotReportOnVehicle.shootLine))
         {
-            using (IEnumerator<IntVec3> enumerator = shotReportOnVehicle.shootLine.Points().GetEnumerator())
+            using (var enumerator = shotReportOnVehicle.shootLine.Points().GetEnumerator())
             {
                 while (enumerator.MoveNext())
                 {
@@ -134,19 +134,19 @@ public struct ShotReportOnVehicle
         {
             if (DarknessCombatUtility.IsOutdoorsAndLit(target.Thing))
             {
-                shotReportOnVehicle.offsetFromDarkness = caster.GetStatValue(StatDefOf.ShootingAccuracyOutdoorsLitOffset, true, -1);
+                shotReportOnVehicle.offsetFromDarkness = caster.GetStatValue(StatDefOf.ShootingAccuracyOutdoorsLitOffset);
             }
             else if (DarknessCombatUtility.IsOutdoorsAndDark(target.Thing))
             {
-                shotReportOnVehicle.offsetFromDarkness = caster.GetStatValue(StatDefOf.ShootingAccuracyOutdoorsDarkOffset, true, -1);
+                shotReportOnVehicle.offsetFromDarkness = caster.GetStatValue(StatDefOf.ShootingAccuracyOutdoorsDarkOffset);
             }
             else if (DarknessCombatUtility.IsIndoorsAndDark(target.Thing))
             {
-                shotReportOnVehicle.offsetFromDarkness = caster.GetStatValue(StatDefOf.ShootingAccuracyIndoorsDarkOffset, true, -1);
+                shotReportOnVehicle.offsetFromDarkness = caster.GetStatValue(StatDefOf.ShootingAccuracyIndoorsDarkOffset);
             }
             else if (DarknessCombatUtility.IsIndoorsAndLit(target.Thing))
             {
-                shotReportOnVehicle.offsetFromDarkness = caster.GetStatValue(StatDefOf.ShootingAccuracyIndoorsLitOffset, true, -1);
+                shotReportOnVehicle.offsetFromDarkness = caster.GetStatValue(StatDefOf.ShootingAccuracyIndoorsLitOffset);
             }
         }
         return shotReportOnVehicle;
@@ -208,9 +208,9 @@ public struct ShotReportOnVehicle
             if (PassCoverChance < 1f)
             {
                 stringBuilder.AppendLine("   " + "ShootingCover".Translate() + ": " + PassCoverChance.ToStringPercent());
-                for (int i = 0; i < covers.Count; i++)
+                for (var i = 0; i < covers.Count; i++)
                 {
-                    CoverInfo coverInfo = covers[i];
+                    var coverInfo = covers[i];
                     if (coverInfo.BlockChance > 0f)
                     {
                         stringBuilder.AppendLine("     " + "CoverThingBlocksPercentOfShots".Translate(coverInfo.Thing.LabelCap, coverInfo.BlockChance.ToStringPercent(), new NamedArgument(coverInfo.Thing.def, "COVER")).CapitalizeFirst());
@@ -227,7 +227,7 @@ public struct ShotReportOnVehicle
 
     public readonly Thing GetRandomCoverToMissInto()
     {
-        if (covers.TryRandomElementByWeight(c => c.BlockChance, out CoverInfo coverInfo))
+        if (covers.TryRandomElementByWeight(c => c.BlockChance, out var coverInfo))
         {
             return coverInfo.Thing;
         }

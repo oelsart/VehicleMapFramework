@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Linq;
+using UnityEngine;
 using Verse;
 
 namespace VehicleMapFramework;
@@ -8,15 +9,13 @@ internal static class VMF_Materials
 {
     public static readonly Material LightOverlayColorDodge = LoadMat("LightOverlayColorDodge");
 
-    public static Material LoadMat(string matPath)
+    private static Material LoadMat(string matPath)
     {
-        foreach (var bundle in VehicleMapFramework.mod.Content.assetBundles.loadedAssetBundles)
+        foreach (var mat in VehicleMapFramework.mod.Content.assetBundles.loadedAssetBundles
+                     .Select(bundle => bundle.LoadAsset<Material>($"Assets/Data/{VehicleMapFramework.mod.Content.PackageIdPlayerFacing}/Materials/{matPath}.mat"))
+                     .Where(mat => mat != null))
         {
-            var mat = bundle.LoadAsset<Material>($"Assets/Data/{VehicleMapFramework.mod.Content.PackageIdPlayerFacing}/Materials/{matPath}.mat");
-            if (mat != null)
-            {
-                return mat;
-            }
+            return mat;
         }
         Log.Warning("Could not load material " + matPath);
         return BaseContent.BadMat;

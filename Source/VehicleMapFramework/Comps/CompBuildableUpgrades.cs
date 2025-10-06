@@ -1,5 +1,4 @@
-﻿using RimWorld;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Vehicles;
 using Verse;
@@ -74,7 +73,7 @@ public class CompBuildableUpgrades : ThingComp
                 var turret = vehicle.CompVehicleTurrets?.Turrets.FirstOrDefault(t => handlerUniqueIDs.Any(h => (h.turretIds?.Contains(t.key) ?? false) || (h.turretIds?.Contains(t.groupKey) ?? false)));
                 Command_Action command_Action = new()
                 {
-                    action = delegate ()
+                    action = delegate
                     {
                         foreach (var upgrade in turretRoleUpgrades)
                         {

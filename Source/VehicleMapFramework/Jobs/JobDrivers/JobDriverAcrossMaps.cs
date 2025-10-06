@@ -45,15 +45,16 @@ public abstract class JobDriverAcrossMaps : JobDriver
 
     protected override IEnumerable<Toil> MakeNewToils()
     {
-        static bool MapNullOrDisposed(TargetInfo? spot)
-        {
-            return spot.HasValue && (spot.Value.Map == null || spot.Value.Map.Disposed);
-        }
         this.FailOn(() =>
         {
             return MapNullOrDisposed(exitSpot1) || MapNullOrDisposed(enterSpot1) || MapNullOrDisposed(exitSpot2) || MapNullOrDisposed(enterSpot2);
         });
         yield break;
+
+        static bool MapNullOrDisposed(TargetInfo? spot)
+        {
+            return spot.HasValue && (spot.Value.Map == null || spot.Value.Map.Disposed);
+        }
     }
 
     public void SetSpots(TargetInfo? exitSpot1 = null, TargetInfo? enterSpot1 = null, TargetInfo? exitSpot2 = null, TargetInfo? enterSpot2 = null)
@@ -65,10 +66,10 @@ public abstract class JobDriverAcrossMaps : JobDriver
         targetAMap = TargetAMap;
         destMap = DestMap;
 
-        if ((this.exitSpot1.IsValid && this.exitSpot1.Map == null) ||
-            (this.enterSpot1.IsValid && this.enterSpot1.Map == null) ||
-            (this.exitSpot2.IsValid && this.exitSpot2.Map == null) ||
-            (this.enterSpot2.IsValid && this.enterSpot2.Map == null))
+        if (this.exitSpot1 is { IsValid: true, Map: null } ||
+            this.enterSpot1 is { IsValid: true, Map: null } ||
+            this.exitSpot2 is { IsValid: true, Map: null } ||
+            this.enterSpot2 is { IsValid: true, Map: null })
         {
             VMF_Log.Error("SetSpots with null map.");
         }

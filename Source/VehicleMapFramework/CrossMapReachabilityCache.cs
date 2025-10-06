@@ -1,13 +1,13 @@
-﻿using RimWorld.Planet;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using RimWorld.Planet;
 using Verse;
 
 namespace VehicleMapFramework;
 
 public class CrossMapReachabilityCache(World world) : WorldComponent(world)
 {
-    private Dictionary<CachedEntry, (bool result, TargetInfo exitSpot, TargetInfo enterSpot)> cache = [];
+    private readonly Dictionary<CachedEntry, (bool result, TargetInfo exitSpot, TargetInfo enterSpot)> cache = [];
 
     public static CrossMapReachabilityCache Instance => Find.World.GetComponent<CrossMapReachabilityCache>();
 
@@ -75,7 +75,7 @@ public class CrossMapReachabilityCache(World world) : WorldComponent(world)
             return !lhs.Equals(rhs);
         }
 
-        public override readonly bool Equals(object obj)
+        public readonly override bool Equals(object obj)
         {
             return obj is CachedEntry entry && Equals(entry);
         }
@@ -85,7 +85,7 @@ public class CrossMapReachabilityCache(World world) : WorldComponent(world)
             return FirstRegion == other.FirstRegion && SecondRegion == other.SecondRegion && TraverseParms == other.TraverseParms;
         }
 
-        public override readonly int GetHashCode()
+        public readonly override int GetHashCode()
         {
             return Gen.HashCombineStruct(Gen.HashCombineInt(FirstRegion.id, SecondRegion.id), TraverseParms);
         }

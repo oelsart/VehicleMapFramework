@@ -5,8 +5,6 @@ namespace VehicleMapFramework
 {
     public class VehicleMapProps_Unique : VehicleMapProps, IExposable
     {
-        public VehicleMapProps_Unique() { }
-
         public VehicleDef baseDef;
 
         public string defName;

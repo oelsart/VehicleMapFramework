@@ -15,7 +15,7 @@ public class CrossMapRegionProcessorClosestThingReachable : RegionProcessorClose
         this.rootMap = rootMap;
     }
 
-    new public void Clear()
+    public new void Clear()
     {
         base.Clear();
         rootMap = null;

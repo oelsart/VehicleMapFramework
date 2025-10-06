@@ -1,8 +1,8 @@
-﻿using HarmonyLib;
-using RimWorld;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
+using HarmonyLib;
+using RimWorld;
 using UnityEngine;
 using Verse;
 using static VehicleMapFramework.MethodInfoCache;
@@ -40,14 +40,14 @@ public static class Patch_Selector_SelectableObjectsUnderMouse
 
         if (!mouseVehicleMapPosition.InBounds(vehicle.VehicleMap)) yield break;
 
-        List<Thing> selectableList = GenUIOnVehicle.ThingsUnderMouse(mouseVehicleMapPosition, 1f, targetingParameters, null, vehicle);
+        var selectableList = GenUIOnVehicle.ThingsUnderMouse(mouseVehicleMapPosition, 1f, targetingParameters, null, vehicle);
         if (selectableList.Count > 0)
         {
             if (selectableList[0] is Pawn && (selectableList[0].DrawPos - mouseMapPosition).MagnitudeHorizontal() < 0.4f)
             {
-                for (int j = selectableList.Count - 1; j >= 0; j--)
+                for (var j = selectableList.Count - 1; j >= 0; j--)
                 {
-                    Thing thing2 = selectableList[j];
+                    var thing2 = selectableList[j];
                     if (thing2.def.category == ThingCategory.Pawn && (thing2.DrawPosHeld.Value - mouseMapPosition).MagnitudeHorizontal() > 0.4f)
                     {
                         selectableList.Remove(thing2);
@@ -61,7 +61,7 @@ public static class Patch_Selector_SelectableObjectsUnderMouse
             yield return thing;
         }
 
-        Zone zone = vehicle.CurrentLevel.zoneManager.ZoneAt(mouseVehicleMapPosition.ToIntVec3());
+        var zone = vehicle.CurrentLevel.zoneManager.ZoneAt(mouseVehicleMapPosition.ToIntVec3());
         if (zone != null)
         {
             yield return zone;
@@ -184,22 +184,22 @@ public static class Patch_ThingSelectionUtility_MultiSelectableThingsInScreenRec
     private static IEnumerable<object> MultiSelectableThings(VehiclePawnWithMap vehicle, Rect rect)
     {
         var focusedMap = vehicle.VehicleMap;
-        CellRect mapRect = GetMapRect(rect);
+        var mapRect = GetMapRect(rect);
         yieldedThings.Clear();
         try
         {
-            foreach (IntVec3 c in mapRect)
+            foreach (var c in mapRect)
             {
                 var c2 = c.ToVehicleMapCoord(vehicle);
                 if (c2.InBounds(focusedMap))
                 {
-                    List<Thing> cellThings = focusedMap.thingGrid.ThingsListAt(c2);
+                    var cellThings = focusedMap.thingGrid.ThingsListAt(c2);
                     if (cellThings != null)
                     {
                         int num;
-                        for (int i = 0; i < cellThings.Count; i = num + 1)
+                        for (var i = 0; i < cellThings.Count; i = num + 1)
                         {
-                            Thing t = cellThings[i];
+                            var t = cellThings[i];
                             if ((bool)SelectableByMapClick(null, t) && !t.def.neverMultiSelect && !yieldedThings.Contains(t))
                             {
                                 yield return t;
@@ -210,17 +210,17 @@ public static class Patch_ThingSelectionUtility_MultiSelectableThingsInScreenRec
                     }
                 }
             }
-            Rect rectInWorldSpace = GetRectInWorldSpace(rect);
-            foreach (IntVec3 c2 in mapRect.ExpandedBy(1).EdgeCells)
+            var rectInWorldSpace = GetRectInWorldSpace(rect);
+            foreach (var c2 in mapRect.ExpandedBy(1).EdgeCells)
             {
                 var c3 = c2.ToVehicleMapCoord(vehicle);
                 if (c3.InBounds(focusedMap) && c3.GetItemCount(focusedMap) > 1)
                 {
-                    foreach (Thing t in focusedMap.thingGrid.ThingsAt(c3))
+                    foreach (var t in focusedMap.thingGrid.ThingsAt(c3))
                     {
                         if (t.def.category == ThingCategory.Item && (bool)SelectableByMapClick(null, t) && !t.def.neverMultiSelect && !yieldedThings.Contains(t))
                         {
-                            Vector3 vector = t.TrueCenter();
+                            var vector = t.TrueCenter();
                             Rect rect2 = new(vector.x - 0.5f, vector.z - 0.5f, 1f, 1f);
                             if (rect2.Overlaps(rectInWorldSpace))
                             {
@@ -242,8 +242,8 @@ public static class Patch_ThingSelectionUtility_MultiSelectableThingsInScreenRec
     {
         Vector2 screenLoc = new(rect.x, UI.screenHeight - rect.y);
         Vector2 screenLoc2 = new(rect.x + rect.width, UI.screenHeight - (rect.y + rect.height));
-        Vector3 vector = UI.UIToMapPosition(screenLoc);
-        Vector3 vector2 = UI.UIToMapPosition(screenLoc2);
+        var vector = UI.UIToMapPosition(screenLoc);
+        var vector2 = UI.UIToMapPosition(screenLoc2);
         return new CellRect
         {
             minX = Mathf.FloorToInt(vector.x),
@@ -257,8 +257,8 @@ public static class Patch_ThingSelectionUtility_MultiSelectableThingsInScreenRec
     {
         Vector2 screenLoc = new(rect.x, UI.screenHeight - rect.y);
         Vector2 screenLoc2 = new(rect.x + rect.width, UI.screenHeight - (rect.y + rect.height));
-        Vector3 vector = UI.UIToMapPosition(screenLoc);
-        Vector3 vector2 = UI.UIToMapPosition(screenLoc2);
+        var vector = UI.UIToMapPosition(screenLoc);
+        var vector2 = UI.UIToMapPosition(screenLoc2);
         return new Rect(vector.x, vector2.z, vector2.x - vector.x, vector.z - vector2.z);
     }
 

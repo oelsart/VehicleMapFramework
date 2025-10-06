@@ -1,12 +1,10 @@
-﻿using HarmonyLib;
-using RimWorld;
-using SmashTools;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
+using HarmonyLib;
+using RimWorld;
 using UnityEngine;
-using Vehicles;
 using Verse;
 using Verse.AI;
 using static VehicleMapFramework.MethodInfoCache;
@@ -32,7 +30,7 @@ public static class Patch_AttackTargetFinder_CanSee
     {
         if (seer.Map != target.Map && seer.BaseMap() == target.BaseMap())
         {
-            __result = AttackTargetFinderOnVehicle.CanSee(seer, target, validator);
+            __result = seer.CanSee(target, validator);
             return false;
         }
         return true;
@@ -430,16 +428,16 @@ public static class Patch_Projectile_Liquid_DoImpact
             var cell2 = cell.ToVehicleMapCoord(vehicle);
             if (__instance.def.projectile.filth != null && __instance.def.projectile.filthCount.TrueMax > 0 && !cell2.Filled(vehicle.VehicleMap))
             {
-                FilthMaker.TryMakeFilth(cell2, vehicle.VehicleMap, __instance.def.projectile.filth, __instance.def.projectile.filthCount.RandomInRange, FilthSourceFlags.None, true);
+                FilthMaker.TryMakeFilth(cell2, vehicle.VehicleMap, __instance.def.projectile.filth, __instance.def.projectile.filthCount.RandomInRange);
             }
-            List<Thing> thingList = cell2.GetThingList(vehicle.VehicleMap);
-            for (int i = 0; i < thingList.Count; i++)
+            var thingList = cell2.GetThingList(vehicle.VehicleMap);
+            for (var i = 0; i < thingList.Count; i++)
             {
-                Thing thing = thingList[i];
+                var thing = thingList[i];
                 if (thing is not Mote && thing is not Filth && thing != hitThing)
                 {
                     Find.BattleLog.Add(new BattleLogEntry_RangedImpact(__instance.Launcher, thing, thing, __instance.EquipmentDef, __instance.def, ___targetCoverDef));
-                    DamageInfo dinfo = new(__instance.def.projectile.damageDef, __instance.def.projectile.GetDamageAmount(null, null), __instance.def.projectile.GetArmorPenetration(null, null), -1f, __instance.Launcher, null, null, DamageInfo.SourceCategory.ThingOrUnknown, null, true, true, QualityCategory.Normal, true);
+                    DamageInfo dinfo = new(__instance.def.projectile.damageDef, __instance.def.projectile.GetDamageAmount(null), __instance.def.projectile.GetArmorPenetration(), -1f, __instance.Launcher);
                     thing.TakeDamage(dinfo);
                 }
             }
@@ -449,7 +447,7 @@ public static class Patch_Projectile_Liquid_DoImpact
     }
 }
 
-[HarmonyPatch(typeof(RoofGrid), nameof(RoofGrid.Roofed), [typeof(IntVec3)])]
+[HarmonyPatch(typeof(RoofGrid), nameof(RoofGrid.Roofed), typeof(IntVec3))]
 [PatchLevel(Level.Safe)]
 public static class Patch_RoofGrid_Roofed
 {
@@ -512,7 +510,7 @@ public static class Patch_JobGiver_AIFightEnemy_ShouldLoseTarget
 [PatchLevel(Level.Safe)]
 public static class Patch_CastPositionFinder_TryFindCastPosition
 {
-    public static bool Prefix(Verse.AI.CastPositionRequest newReq, ref IntVec3 dest, ref bool __result)
+    public static bool Prefix(CastPositionRequest newReq, ref IntVec3 dest, ref bool __result)
     {
         if (newReq.caster.Map != newReq.target.MapHeld && newReq.caster.BaseMap() == newReq.target.MapHeldBaseMap())
         {

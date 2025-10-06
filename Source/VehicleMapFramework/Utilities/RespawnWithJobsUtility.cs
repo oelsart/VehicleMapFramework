@@ -1,7 +1,5 @@
 ﻿using RimWorld;
-using RimWorld.Planet;
 using SmashTools;
-using System;
 using Vehicles;
 using Verse;
 using Verse.AI;
@@ -22,12 +20,12 @@ public static class RespawnWithJobsUtility
             Log.Error("Tried to despawn " + pawn.ToStringSafe<Thing>() + " which is not spawned.");
             return;
         }
-        Map map = pawn.Map;
+        var map = pawn.Map;
         map.overlayDrawer.DisposeHandle(pawn);
         RegionListersUpdater.DeregisterInRegions(pawn, map);
         map.spawnedThings.Remove(pawn);
         map.listerThings.Remove(pawn);
-        map.thingGrid.Deregister(pawn, false);
+        map.thingGrid.Deregister(pawn);
         map.coverGrid.DeRegister(pawn);
         if (pawn.def.receivesSignals)
         {
@@ -49,10 +47,10 @@ public static class RespawnWithJobsUtility
         {
             map.dynamicDrawManager.DeRegisterDrawable(pawn);
         }
-        Region validRegionAt_NoRebuild = map.regionGrid.GetValidRegionAt_NoRebuild(pawn.Position);
+        var validRegionAt_NoRebuild = map.regionGrid.GetValidRegionAt_NoRebuild(pawn.Position);
         if (validRegionAt_NoRebuild != null)
         {
-            Room room = validRegionAt_NoRebuild.Room;
+            var room = validRegionAt_NoRebuild.Room;
             room?.Notify_ContainedThingSpawnedOrDespawned(pawn);
         }
         Find.TickManager.DeRegisterAllTickabilityFor(pawn);
@@ -78,8 +76,8 @@ public static class RespawnWithJobsUtility
         }
         if (pawn.def.category == ThingCategory.Item)
         {
-            SlotGroup slotGroup = pawn.Position.GetSlotGroup(map);
-            if (slotGroup != null && slotGroup.parent != null)
+            var slotGroup = pawn.Position.GetSlotGroup(map);
+            if (slotGroup is { parent: not null })
             {
                 slotGroup.parent.Notify_LostThing(pawn);
             }
@@ -89,25 +87,25 @@ public static class RespawnWithJobsUtility
 
         if (pawn.AllComps != null)
         {
-            for (int i = 0; i < pawn.AllComps.Count; i++)
+            for (var i = 0; i < pawn.AllComps.Count; i++)
             {
                 pawn.AllComps[i].PostDeSpawn(map);
             }
         }
 
-        Pawn_PathFollower pawn_PathFollower = pawn.pather;
+        var pawn_PathFollower = pawn.pather;
         pawn_PathFollower?.StopDead();
         //pawn_RopeTracker?.Notify_DeSpawned();
         pawn.mindState.droppedWeapon = null;
-        Pawn_NeedsTracker pawn_NeedsTracker = pawn.needs;
+        var pawn_NeedsTracker = pawn.needs;
         if (pawn_NeedsTracker != null)
         {
-            Need_Mood mood = pawn_NeedsTracker.mood;
+            var mood = pawn_NeedsTracker.mood;
             mood?.thoughts.situational.Notify_SituationalThoughtsDirty();
         }
-        Pawn_MeleeVerbs pawn_MeleeVerbs = pawn.meleeVerbs;
+        var pawn_MeleeVerbs = pawn.meleeVerbs;
         pawn_MeleeVerbs?.Notify_PawnDespawned();
-        Pawn_MechanitorTracker pawn_MechanitorTracker = pawn.mechanitor;
+        var pawn_MechanitorTracker = pawn.mechanitor;
         pawn_MechanitorTracker?.Notify_DeSpawned(mode);
         //pawn.ClearAllReservations(false);
         if (map != null)
@@ -128,7 +126,7 @@ public static class RespawnWithJobsUtility
     {
         vehicle.vehiclePather?.StopDead();
         vehicle.Map.GetDetachedMapComponent<VehiclePositionManager>().ReleaseClaimed(vehicle);
-        VehicleReservationManager cachedMapComponent = vehicle.Map.GetCachedMapComponent<VehicleReservationManager>();
+        var cachedMapComponent = vehicle.Map.GetCachedMapComponent<VehicleReservationManager>();
         cachedMapComponent.ClearReservedFor(vehicle);
         cachedMapComponent.RemoveAllListerFor(vehicle);
         vehicle.cargoToLoad.Clear();
@@ -143,9 +141,9 @@ public static class RespawnWithJobsUtility
         if (pawn.Dead)
         {
             Log.Warning("Tried to spawn Dead Pawn " + pawn.ToStringSafe() + ". Replacing with corpse.");
-            Corpse corpse = (Corpse)ThingMaker.MakeThing(pawn.RaceProps.corpseDef, null);
+            var corpse = (Corpse)ThingMaker.MakeThing(pawn.RaceProps.corpseDef);
             corpse.InnerPawn = pawn;
-            GenSpawn.Spawn(corpse, pawn.Position, map, WipeMode.Vanish);
+            GenSpawn.Spawn(corpse, pawn.Position, map);
             return;
         }
         if (pawn.def == null || pawn.kindDef == null)
@@ -224,7 +222,7 @@ public static class RespawnWithJobsUtility
             }
             if (pawn.IsQuestLodger())
             {
-                for (int i = pawn.health.hediffSet.hediffs.Count - 1; i >= 0; i--)
+                for (var i = pawn.health.hediffSet.hediffs.Count - 1; i >= 0; i--)
                 {
                     if (pawn.health.hediffSet.hediffs[i].def.removeOnQuestLodgers)
                     {
@@ -247,7 +245,7 @@ public static class RespawnWithJobsUtility
         //        pawn.sustainerMoving = pawn.RaceProps.soundMoving.TrySpawnSustainer(SoundInfo.InMap(pawn, MaintenanceType.PerTick));
         //    });
         //}
-        if (pawn.Ideo != null && pawn.Ideo.hidden)
+        if (pawn.Ideo is { hidden: true })
         {
             pawn.Ideo.hidden = false;
         }

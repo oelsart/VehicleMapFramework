@@ -23,6 +23,7 @@ namespace VehicleMapFramework
             {
                 return VMF_DefOf.VMF_CutoutComplexPatternOpacity;
             }
+            // ReSharper disable once ConvertIfStatementToReturnStatement
             if (shaderTypeDef == VehicleShaderTypeDefOf.CutoutComplexSkin)
             {
                 return VMF_DefOf.VMF_CutoutComplexSkinOpacity;
@@ -40,6 +41,7 @@ namespace VehicleMapFramework
             {
                 return VMF_DefOf.VMF_CutoutComplexPatternOpacity.Shader;
             }
+            // ReSharper disable once ConvertIfStatementToReturnStatement
             if (shader == VehicleShaderTypeDefOf.CutoutComplexSkin.Shader)
             {
                 return VMF_DefOf.VMF_CutoutComplexSkinOpacity.Shader;

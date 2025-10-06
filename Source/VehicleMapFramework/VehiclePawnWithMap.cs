@@ -1,13 +1,14 @@
-﻿using HarmonyLib;
-using RimWorld;
-using RimWorld.Planet;
-using SmashTools;
-using SmashTools.Rendering;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using HarmonyLib;
+using JetBrains.Annotations;
+using RimWorld;
+using RimWorld.Planet;
+using SmashTools;
+using SmashTools.Rendering;
 using UnityEngine;
 using VehicleMapFramework.VMF_HarmonyPatches;
 using Vehicles;
@@ -15,6 +16,7 @@ using Vehicles.World;
 using Verse;
 using Verse.AI;
 using static VehicleMapFramework.ModCompat;
+using Debug = System.Diagnostics.Debug;
 
 namespace VehicleMapFramework;
 
@@ -23,15 +25,9 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
 {
     private Map interiorMap;
 
-    private Map currentLevel;
-
-    public VehicleMapFollower mapFollower;
+    private VehicleMapFollower mapFollower;
 
     public Vector3 cachedDrawPos;
-
-    private readonly List<CompVehicleEnterSpot> enterCompsInt = [];
-
-    private readonly List<CompFuelTank> fuelTankCompsInt = [];
 
     private bool allowHaulIn = true;
 
@@ -41,16 +37,6 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
 
     private bool allowExit = true;
 
-    private HashSet<IntVec3> structureCellsCache;
-
-    private HashSet<IntVec3> expandableCellsCache;
-
-    private HashSet<IntVec3> outOfBoundsCellsCache;
-
-    private HashSet<IntVec3> mapEdgeCellsCache;
-
-    private HashSet<IntVec3> standableMapEdgeCellsCache = [];
-
     public bool structureCellsDirty;
 
     public bool mapEdgeCellsDirty;
@@ -59,7 +45,8 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
 
     private int cellDesignationsDirtyTick;
 
-    private static readonly Material ClipMat = SolidColorMaterials.NewSolidColorMaterial(new Color(0.3f, 0.1f, 0.1f, 0.5f), ShaderDatabase.MetaOverlay);
+    private static readonly Material ClipMat =
+        SolidColorMaterials.NewSolidColorMaterial(new Color(0.3f, 0.1f, 0.1f, 0.5f), ShaderDatabase.MetaOverlay);
 
     private static readonly Texture2D iconAllowHaulIn = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/AllowHaulIn");
 
@@ -75,7 +62,8 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
 
     private static readonly Type t_SectionLayer_Zones = GenTypes.GetTypeInAnyAssembly("Verse.SectionLayer_Zones", "Verse");
 
-    private static readonly FastInvokeHandler DirtyCellDesignationsCache = MethodInvoker.GetHandler(AccessTools.Method(typeof(DesignationManager), "DirtyCellDesignationsCache"));
+    private static readonly FastInvokeHandler DirtyCellDesignationsCache =
+        MethodInvoker.GetHandler(AccessTools.Method(typeof(DesignationManager), "DirtyCellDesignationsCache"));
 
     public Map VehicleMap
     {
@@ -91,61 +79,37 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
 
     public Map CurrentLevel
     {
-        get => currentLevel ?? interiorMap;
-        set => currentLevel = value;
+        get => field ?? interiorMap;
+        set;
     }
 
     public bool AllowHaulIn
     {
-        get
-        {
-            return allowHaulIn;
-        }
-        set
-        {
-            allowHaulIn = value;
-        }
+        get => allowHaulIn;
+        set => allowHaulIn = value;
     }
 
     public bool AllowHaulOut
     {
-        get
-        {
-            return allowHaulOut;
-        }
-        set
-        {
-            allowHaulOut = value;
-        }
+        get => allowHaulOut;
+        set => allowHaulOut = value;
     }
 
-    public bool AllowEnter
-    {
-        get
-        {
-            return allowEnter;
-        }
-    }
+    [UsedImplicitly]
+    public bool AllowEnter => allowEnter;
 
-    public bool AllowExit
-    {
-        get
-        {
-            return allowExit;
-        }
-    }
+    [UsedImplicitly]
+    public bool AllowExit => allowExit;
 
     public HashSet<IntVec3> CachedStructureCells
     {
         get
         {
-            if (structureCellsCache == null || structureCellsDirty)
-            {
-                structureCellsDirty = false;
-                structureCellsCache = [.. interiorMap.listerThings.ThingsOfDef(VMF_DefOf.VMF_VehicleStructureFilled)
-                        .Concat(interiorMap.listerThings.ThingsOfDef(VMF_DefOf.VMF_VehicleStructureEmpty)).Select(b => b.Position)];
-            }
-            return structureCellsCache;
+            if (field != null && !structureCellsDirty) return field;
+            structureCellsDirty = false;
+            field = [.. interiorMap.listerThings.ThingsOfDef(VMF_DefOf.VMF_VehicleStructureFilled)
+                .Concat(interiorMap.listerThings.ThingsOfDef(VMF_DefOf.VMF_VehicleStructureEmpty)).Select(b => b.Position)];
+            return field;
         }
     }
 
@@ -153,20 +117,18 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
     {
         get
         {
-            if (expandableCellsCache == null)
+            if (field != null) return field;
+            field = [];
+            var props = VehicleDef.GetModExtension<VehicleMapProps>();
+            if (props != null)
             {
-                expandableCellsCache = [];
-                var props = VehicleDef.GetModExtension<VehicleMapProps>();
-                if (props != null)
-                {
-                    expandableCellsCache = [.. props.ExpandableCells.Select(c => c.ToIntVec3)];
-                }
-                else
-                {
-                    expandableCellsCache = [];
-                }
+                field = [.. props.ExpandableCells.Select(c => c.ToIntVec3)];
             }
-            return expandableCellsCache;
+            else
+            {
+                field = [];
+            }
+            return field;
         }
     }
 
@@ -174,19 +136,17 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
     {
         get
         {
-            if (outOfBoundsCellsCache == null)
+            if (field != null) return field;
+            var props = VehicleDef.GetModExtension<VehicleMapProps>();
+            if (props != null)
             {
-                var props = VehicleDef.GetModExtension<VehicleMapProps>();
-                if (props != null)
-                {
-                    outOfBoundsCellsCache = [.. props.OutOfBoundsCells.Select(c => c.ToIntVec3)];
-                }
-                else
-                {
-                    outOfBoundsCellsCache = [];
-                }
+                field = [.. props.OutOfBoundsCells.Select(c => c.ToIntVec3)];
             }
-            return outOfBoundsCellsCache;
+            else
+            {
+                field = [];
+            }
+            return field;
         }
     }
 
@@ -194,25 +154,23 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
     {
         get
         {
-            if (mapEdgeCellsCache == null || mapEdgeCellsDirty)
+            if (field != null && !mapEdgeCellsDirty) return field;
+            field ??= [];
+            field.Clear();
+            foreach (var c in CellRect.WholeMap(interiorMap).EdgeCells)
             {
-                mapEdgeCellsCache ??= [];
-                mapEdgeCellsCache.Clear();
-                foreach (var c in CellRect.WholeMap(interiorMap).EdgeCells)
+                var facingInside = c.DirectionToInsideMap(this).FacingCell;
+                var c2 = c;
+                while (CachedOutOfBoundsCells.Contains(c2) || (CachedExpandableCells.Contains(c2) && CachedStructureCells.Contains(c2)))
                 {
-                    var facingInside = c.DirectionToInsideMap(this).FacingCell;
-                    var c2 = c;
-                    while (CachedOutOfBoundsCells.Contains(c2) || (CachedExpandableCells.Contains(c2) && CachedStructureCells.Contains(c2)))
-                    {
-                        c2 += facingInside;
-                    }
-                    if (c2.InBounds(interiorMap))
-                    {
-                        mapEdgeCellsCache.Add(c2);
-                    }
+                    c2 += facingInside;
+                }
+                if (c2.InBounds(interiorMap))
+                {
+                    field.Add(c2);
                 }
             }
-            return mapEdgeCellsCache;
+            return field;
         }
     }
 
@@ -223,40 +181,30 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
             if (standableCellsCachedTick != GenTicks.TicksGame || Find.TickManager.Paused)
             {
                 standableCellsCachedTick = GenTicks.TicksGame;
-                standableMapEdgeCellsCache.Clear();
-                standableMapEdgeCellsCache.AddRange(CachedMapEdgeCells.Where(c => c.Walkable(interiorMap)));
+                field.Clear();
+                field.AddRange(CachedMapEdgeCells.Where(c => c.Walkable(interiorMap)));
             }
-            return standableMapEdgeCellsCache;
+            return field;
         }
-    }
+    } = [];
 
-    public List<CompVehicleEnterSpot> EnterComps => enterCompsInt;
+    public List<CompVehicleEnterSpot> EnterComps { get; } = [];
 
     public IEnumerable<CompVehicleEnterSpot> AvailableEnterComps => EnterComps.Where(c => c.parent.Position.Walkable(interiorMap) && c.Available);
 
-    public List<CompFuelTank> FuelTankComps => fuelTankCompsInt;
+    public List<CompFuelTank> FuelTankComps { get; } = [];
 
-    public override Vector3 DrawPos
-    {
-        get
-        {
-            if (Spawned)
-            {
-                return base.DrawPos;
-            }
-            return cachedDrawPos;
-        }
-    }
+    public override Vector3 DrawPos => Spawned ? base.DrawPos : cachedDrawPos;
 
-    new public bool ThreatDisabled(IAttackTargetSearcher disabledFor) => VehicleMap.mapPawns.FreeHumanlikesSpawnedOfFaction(Faction).Empty() && base.ThreatDisabled(disabledFor);
+    public new bool ThreatDisabled(IAttackTargetSearcher disabledFor) => VehicleMap.mapPawns.FreeHumanlikesSpawnedOfFaction(Faction).Empty() && base.ThreatDisabled(disabledFor);
 
-    new public float TargetPriorityFactor => 0.15f;
+    public new float TargetPriorityFactor => 0.15f;
 
     public override IEnumerable<Gizmo> GetGizmos()
     {
         foreach (var gizmo in base.GetGizmos()) yield return gizmo;
 
-        yield return new Command_Action()
+        yield return new Command_Action
         {
             action = () =>
             {
@@ -266,7 +214,7 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
                 for (var i = 0; i < allGroups.Count; i++)
                 {
                     allGroups[i].Settings.Priority = (StoragePriority)Math.Min((sbyte)(priorityList[i] + 1), (sbyte)StoragePriority.Critical);
-                    MoteMaker.ThrowText(allGroups[i].CellsList[0].ToVector3Shifted().ToBaseMapCoord(this), Map, allGroups[i].Settings.Priority.ToString(), Color.white, -1f);
+                    MoteMaker.ThrowText(allGroups[i].CellsList[0].ToVector3Shifted().ToBaseMapCoord(this), Map, allGroups[i].Settings.Priority.ToString(), Color.white);
                 }
             },
             defaultLabel = "VMF_IncreasePriority".Translate(),
@@ -274,7 +222,7 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
             icon = iconIncreasePriority,
         };
 
-        yield return new Command_Action()
+        yield return new Command_Action
         {
             action = () =>
             {
@@ -283,7 +231,7 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
                 for (var i = 0; i < allGroups.Count; i++)
                 {
                     allGroups[i].Settings.Priority = (StoragePriority)Math.Max((sbyte)(priorityList[i] - 1), (sbyte)StoragePriority.Low);
-                    MoteMaker.ThrowText(allGroups[i].CellsList[0].ToVector3Shifted().ToBaseMapCoord(this), Map, allGroups[i].Settings.Priority.ToString(), Color.white, -1f);
+                    MoteMaker.ThrowText(allGroups[i].CellsList[0].ToVector3Shifted().ToBaseMapCoord(this), Map, allGroups[i].Settings.Priority.ToString(), Color.white);
                 }
             },
             defaultLabel = "VMF_DecreasePriority".Translate(),
@@ -291,7 +239,7 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
             icon = iconDecreasePriority,
         };
 
-        yield return new Command_Toggle()
+        yield return new Command_Toggle
         {
             isActive = () => allowHaulIn,
             toggleAction = () => allowHaulIn = !allowHaulIn,
@@ -300,7 +248,7 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
             icon = iconAllowHaulIn,
         };
 
-        yield return new Command_Toggle()
+        yield return new Command_Toggle
         {
             isActive = () => allowHaulOut,
             toggleAction = () => allowHaulOut = !allowHaulOut,
@@ -309,7 +257,7 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
             icon = iconAllowHaulOut,
         };
 
-        yield return new Command_Toggle()
+        yield return new Command_Toggle
         {
             isActive = () => allowEnter,
             toggleAction = () => allowEnter = !allowEnter,
@@ -318,7 +266,7 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
             icon = iconAllowEnter,
         };
 
-        yield return new Command_Toggle()
+        yield return new Command_Toggle
         {
             isActive = () => allowExit,
             toggleAction = () => allowExit = !allowExit,
@@ -406,6 +354,8 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         {
             interiorMap.PocketMapParent?.sourceMap = map;
         }
+
+        Debug.Assert(interiorMap != null, nameof(interiorMap) + " != null");
         if (!Find.World.worldObjects.Contains(interiorMap.Parent))
         {
             Find.World.worldObjects.Add(interiorMap.Parent);
@@ -415,12 +365,12 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         var isGravship = def.HasModExtension<VehicleMapProps_Gravship>();
         if (isGravship)
         {
-            if (GravshipUtility.GetPlayerGravEngine_NewTemp(interiorMap) is Building_GravEngine engine && (engine.launchInfo?.doNegativeOutcome ?? false))
+            if (GravshipUtility.GetPlayerGravEngine_NewTemp(interiorMap) is { } engine && (engine.launchInfo?.doNegativeOutcome ?? false))
             {
                 var list = handlers.OfType<VehicleRoleHandlerBuildable>().SelectMany<VehicleRoleHandlerBuildable, Pawn>(h => h.thingOwner).ToList();
-                for (var i = 0; i < list.Count; i++)
+                foreach (var t in list)
                 {
-                    DisembarkPawn(list[i]);
+                    DisembarkPawn(t);
                 }
                 var gravship = GravshipUtility.GenerateGravship(engine);
                 GravshipVehicleUtility.PlaceGravship(null, gravship, gravship.originalPosition, interiorMap);
@@ -472,18 +422,6 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
             return;
         }
 
-        static WorldObject GetWorldObject(IThingHolder holder)
-        {
-            while (holder != null)
-            {
-                if (holder is WorldObject worldObject)
-                {
-                    return worldObject;
-                }
-                holder = holder.ParentHolder;
-            }
-            return null;
-        }
         var worldObject2 = GetWorldObject(this);
         if (worldObject2 is AerialVehicleInFlight aerial)
         {
@@ -498,6 +436,20 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
             return;
         }
         interiorMap.Parent.Tile = worldObject2.Tile;
+        return;
+
+        static WorldObject GetWorldObject(IThingHolder holder)
+        {
+            while (holder != null)
+            {
+                if (holder is WorldObject worldObject)
+                {
+                    return worldObject;
+                }
+                holder = holder.ParentHolder;
+            }
+            return null;
+        }
     }
 
     //PocketMapとしての管理に変更になったんでマップが破壊されたら車両マップも破壊されるはず
@@ -513,7 +465,7 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
             DisembarkAll();
         }
         StringBuilder stringBuilder = new();
-        bool flag = false;
+        var flag = false;
         foreach (var thing in interiorMap.listerThings.AllThings.Where(t => t.def.drawerType != DrawerType.None).ToArray())
         {
             if (mode != DestroyMode.Vanish)
@@ -561,12 +513,14 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         {
             interiorMap.skyManager = new SkyManager(interiorMap);
             interiorMap.skyManager.ForceSetCurSkyGlow(Map.skyManager.CurSkyGlow);
-            interiorMap.weatherManager = new WeatherManager(interiorMap);
-            interiorMap.weatherManager.curWeather = Map.weatherManager.curWeather;
-            interiorMap.weatherManager.lastWeather = Map.weatherManager.lastWeather;
-            interiorMap.weatherManager.prevSkyTargetLerp = Map.weatherManager.prevSkyTargetLerp;
-            interiorMap.weatherManager.currSkyTargetLerp = Map.weatherManager.currSkyTargetLerp;
-            interiorMap.weatherManager.curWeatherAge = Map.weatherManager.curWeatherAge;
+            interiorMap.weatherManager = new WeatherManager(interiorMap)
+            {
+                curWeather = Map.weatherManager.curWeather,
+                lastWeather = Map.weatherManager.lastWeather,
+                prevSkyTargetLerp = Map.weatherManager.prevSkyTargetLerp,
+                currSkyTargetLerp = Map.weatherManager.currSkyTargetLerp,
+                curWeatherAge = Map.weatherManager.curWeatherAge
+            };
             interiorMap.weatherDecider = new WeatherDecider(interiorMap);
         }
         foreach (var thing in interiorMap.listerThings.AllThings.Intersect(Find.Selector.SelectedObjects))
@@ -599,7 +553,7 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
             {
                 v.Transform.rotation = rotation.FlipAngle(v);
             });
-            if (Transform.rotation != rotation)
+            if (!Mathf.Approximately(Transform.rotation, rotation))
             {
                 Transform.rotation = rotation;
                 CellDesignationsDirty();
@@ -617,7 +571,7 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         LongEventHandler.ExecuteWhenFinished(() =>
         {
             var transform = new TransformData(drawLoc + Transform.position, FullRotation, Transform.rotation.FlipAngle(this));
-            var result = VehicleGraphic?.ParallelGetPreRenderResults(ref transform, false, this, 0f);
+            var result = VehicleGraphic?.ParallelGetPreRenderResults(ref transform, false, this);
             cachedDrawPos = result?.position ?? drawLoc;
         });
     }
@@ -637,17 +591,15 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
 
     private void CellDesignationsDirty()
     {
-        if (cellDesignationsDirtyTick != GenTicks.TicksGame)
+        if (cellDesignationsDirtyTick == GenTicks.TicksGame) return;
+        cellDesignationsDirtyTick = GenTicks.TicksGame;
+        foreach (var designationDef in DefDatabase<DesignationDef>.AllDefs.Where(d => d.targetType == TargetType.Cell))
         {
-            cellDesignationsDirtyTick = GenTicks.TicksGame;
-            foreach (var def in DefDatabase<DesignationDef>.AllDefs.Where(d => d.targetType == TargetType.Cell))
-            {
-                DirtyCellDesignationsCache(interiorMap.designationManager, def);
-            }
+            DirtyCellDesignationsCache(interiorMap.designationManager, designationDef);
         }
     }
 
-    public virtual void DrawVehicleMap()
+    protected virtual void DrawVehicleMap()
     {
         var map = CurrentLevel ?? interiorMap;
         //PlantFallColors.SetFallShaderGlobals(map);
@@ -687,11 +639,10 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
     private void DrawVehicleMapMesh(Map map, Vector3 drawPos)
     {
         var mapDrawer = map.mapDrawer;
-        var rot = FullRotation;
         var component = map.GetCachedMapComponent<VehicleSectionLayerManager>();
-        for (int i = 0; i < map.Size.x; i += 17)
+        for (var i = 0; i < map.Size.x; i += 17)
         {
-            for (int j = 0; j < map.Size.z; j += 17)
+            for (var j = 0; j < map.Size.z; j += 17)
             {
                 var section = mapDrawer.SectionAt(new IntVec3(i, 0, j));
                 DrawSection(section, drawPos, component);
@@ -754,11 +705,9 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         if (DefenseGrid.Active)
         {
             var selDesignator = Find.DesignatorManager.SelectedDesignator;
-            if (selDesignator is Designator_Build designator_Build && designator_Build.PlacingDef is ThingDef thingDef && thingDef.HasComp(DefenseGrid.CompDefenseConduit))
-            {
-                DrawLayer(section, DefenseGrid.SectionLayer_DefenseGridOverlay, drawPos.Yto0());
-            }
-            else if (DefenseGrid.Designator_DeconstructConduit.IsAssignableFrom(selDesignator?.GetType()))
+            if (selDesignator is Designator_Build { PlacingDef: ThingDef thingDef } &&
+                thingDef.HasComp(DefenseGrid.CompDefenseConduit) ||
+                DefenseGrid.Designator_DeconstructConduit.IsInstanceOfType(selDesignator))
             {
                 DrawLayer(section, DefenseGrid.SectionLayer_DefenseGridOverlay, drawPos.Yto0());
             }
@@ -769,7 +718,7 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
             var sewagePipeOverlay = section.GetLayer(DubsBadHygiene.SectionLayer_SewagePipeOverlay);
             var airDuctOverlay = section.GetLayer(DubsBadHygiene.SectionLayer_AirDuctOverlay);
             CompProperties compProperties;
-            if (selDesignator is Designator_Build designator_Build && designator_Build.PlacingDef is ThingDef thingDef &&
+            if (selDesignator is Designator_Build { PlacingDef: ThingDef thingDef } &&
                 (compProperties = thingDef.comps.Find(c => DubsBadHygiene.CompProperties_Pipe?.IsAssignableFrom(c.GetType()) ?? false)) != null)
             {
                 var mode = DubsBadHygiene.CompProperties_Pipe_mode(compProperties);
@@ -795,7 +744,7 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
             var selDesignator = Find.DesignatorManager.SelectedDesignator;
             var sewagePipeOverlay = section.GetLayer(Rimefeller.SectionLayer_SewagePipe);
             CompProperties compProperties;
-            if (selDesignator is Designator_Build designator_Build && designator_Build.PlacingDef is ThingDef thingDef &&
+            if (selDesignator is Designator_Build { PlacingDef: ThingDef thingDef } &&
                 (compProperties = thingDef.comps.Find(c => Rimefeller.CompProperties_Pipe?.IsAssignableFrom(c.GetType()) ?? false)) != null)
             {
                 var mode = Rimefeller.CompProperties_Pipe_mode(compProperties);
@@ -853,11 +802,11 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
 
     private void DrawClippers(Map map)
     {
-        if (Command_FocusVehicleMap.FocuseLockedVehicle == this || Command_FocusVehicleMap.FocusedVehicle == this)
+        if (Command_FocusVehicleMap.FocusLockedVehicle == this || Command_FocusVehicleMap.FocusedVehicle == this)
         {
-            Material material = ClipMat;
+            var material = ClipMat;
             var quat = this.FullAngleQuat();
-            IntVec3 size = map.Size;
+            var size = map.Size;
             Vector3 s = new(500f, 1f, size.z);
             Matrix4x4 matrix = default;
             matrix.SetTRS(new Vector3(-250f, 0f, size.z / 2f).ToBaseMapCoord(this), quat, s);
@@ -875,8 +824,7 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
 
             s = Vector3.one;
             IEnumerable<IntVec3> cells = CachedStructureCells;
-            if (Find.DesignatorManager.SelectedDesignator is Designator_Build designator_Build &&
-                designator_Build.PlacingDef is ThingDef thingDef &&
+            if (Find.DesignatorManager.SelectedDesignator is Designator_Build { PlacingDef: ThingDef thingDef } &&
                 thingDef.HasComp<CompMapExpander>())
             {
                 cells = cells.Where(c => !CachedExpandableCells.Contains(c));
@@ -891,8 +839,8 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         var currentMap = Find.CurrentMap;
         if ((currentMap == map || currentMap == interiorMap) && WorldRendererUtility.DrawingMap && VehicleMapFramework.settings.drawPlanet)
         {
-            Material material = MapEdgeClipDrawer.ClipMat;
-            Vector2 size = Patch_Map_MapUpdate.MeshSize;
+            var material = MapEdgeClipDrawer.ClipMat;
+            var size = Patch_Map_MapUpdate.MeshSize;
             var longSide = Mathf.Max(DrawSize.x / 2f, DrawSize.y / 2f);
             Vector3 origin = new((-size.x / 2f) + longSide, 0f, (-size.y / 2f) + longSide);
             Vector3 s = new(500f, 1f, size.y);

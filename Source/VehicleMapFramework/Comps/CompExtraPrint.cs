@@ -4,6 +4,7 @@ namespace VehicleMapFramework;
 
 public class CompExtraPrint : ThingComp
 {
+    // ReSharper disable once MemberCanBePrivate.Global
     public CompProperties_ExtraPrint Props => (CompProperties_ExtraPrint)props;
 
     public override void PostPrintOnto(SectionLayer layer)

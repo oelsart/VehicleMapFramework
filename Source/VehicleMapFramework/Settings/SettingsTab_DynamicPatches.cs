@@ -1,6 +1,4 @@
-﻿using SmashTools;
-using System;
-using UnityEngine;
+﻿using UnityEngine;
 using VehicleMapFramework.VMF_HarmonyPatches;
 using Verse;
 
@@ -12,15 +10,15 @@ namespace VehicleMapFramework.Settings
 
         public override string Label => "VMF_Settings.Tab.DynamicPatches".Translate();
 
-        public override void ResetSettings()
+        protected override void ResetSettings()
         {
             base.ResetSettings();
             var defaultSettings = VehicleMapSettings.DefaultSettings;
-            settings.dynamicPatchEnabled = defaultSettings.dynamicPatchEnabled;
-            settings.dynamicUnpatchEnabled = defaultSettings.dynamicUnpatchEnabled;
-            settings.dynamicPatchLevel = defaultSettings.dynamicPatchLevel;
-            settings.roofedPatch = defaultSettings.roofedPatch;
-            settings.debugToolPatches = defaultSettings.debugToolPatches;
+            settings.dynamicPatchEnabled = VehicleMapSettings.Default.dynamicPatchEnabled;
+            settings.dynamicUnpatchEnabled = VehicleMapSettings.Default.dynamicUnpatchEnabled;
+            settings.dynamicPatchLevel = VehicleMapSettings.Default.dynamicPatchLevel;
+            settings.roofedPatch = VehicleMapSettings.Default.roofedPatch;
+            settings.debugToolPatches = VehicleMapSettings.Default.debugToolPatches;
         }
 
         public override void Draw(Rect inRect)

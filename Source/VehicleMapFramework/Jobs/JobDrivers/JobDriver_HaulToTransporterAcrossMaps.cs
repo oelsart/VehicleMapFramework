@@ -1,5 +1,5 @@
-﻿using RimWorld;
-using System;
+﻿using System;
+using RimWorld;
 using Verse;
 using Verse.AI;
 
@@ -23,13 +23,13 @@ public class JobDriver_HaulToTransporterAcrossMaps : JobDriver_HaulToContainer
     public override void ExposeData()
     {
         base.ExposeData();
-        Scribe_Values.Look<int>(ref initialCount, "initialCount", 0, false);
+        Scribe_Values.Look(ref initialCount, "initialCount");
     }
 
     public override bool TryMakePreToilReservations(bool errorOnFailed)
     {
-        pawn.ReserveAsManyAsPossible(job.GetTargetQueue(TargetIndex.A), job, 1, -1, null);
-        pawn.ReserveAsManyAsPossible(job.GetTargetQueue(TargetIndex.B), job, 1, -1, null);
+        pawn.ReserveAsManyAsPossible(job.GetTargetQueue(TargetIndex.A), job);
+        pawn.ReserveAsManyAsPossible(job.GetTargetQueue(TargetIndex.B), job);
         return true;
     }
 
@@ -39,7 +39,7 @@ public class JobDriver_HaulToTransporterAcrossMaps : JobDriver_HaulToContainer
         ThingCount thingCount;
         if (job.targetA.IsValid)
         {
-            thingCount = new ThingCount(job.targetA.Thing, job.targetA.Thing.stackCount, false);
+            thingCount = new ThingCount(job.targetA.Thing, job.targetA.Thing.stackCount);
         }
         else
         {
@@ -49,12 +49,12 @@ public class JobDriver_HaulToTransporterAcrossMaps : JobDriver_HaulToContainer
         }
         if (job.playerForced && pawn.carryTracker.CarriedThing != null && pawn.carryTracker.CarriedThing != thingCount.Thing)
         {
-            pawn.carryTracker.TryDropCarriedThing(pawn.Position, ThingPlaceMode.Near, out Thing thing, null);
+            pawn.carryTracker.TryDropCarriedThing(pawn.Position, ThingPlaceMode.Near, out var thing);
         }
         job.targetA = thingCount.Thing;
         job.count = thingCount.Count;
         initialCount = thingCount.Count;
-        pawn.Reserve(thingCount.Thing.MapHeld, thingCount.Thing, job, 1, -1, null, true, false);
+        pawn.Reserve(thingCount.Thing.MapHeld, thingCount.Thing, job);
     }
 
     public int initialCount;

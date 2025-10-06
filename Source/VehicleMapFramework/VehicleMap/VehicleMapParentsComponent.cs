@@ -1,5 +1,5 @@
-﻿using RimWorld.Planet;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using RimWorld.Planet;
 using Verse;
 
 namespace VehicleMapFramework;
@@ -10,7 +10,7 @@ public class VehicleMapParentsComponent : WorldComponent
 
     public VehicleMapParentsComponent(World world) : base(world)
     {
-        Command_FocusVehicleMap.FocuseLockedVehicle = null;
+        Command_FocusVehicleMap.FocusLockedVehicle = null;
         Command_FocusVehicleMap.FocusedVehicle = null;
     }
 
@@ -19,5 +19,5 @@ public class VehicleMapParentsComponent : WorldComponent
         cachedMapParentVehicle.Clear();
     }
 
-    private static Dictionary<Map, MapParent_Vehicle> cachedMapParentVehicle = [];
+    private static readonly Dictionary<Map, MapParent_Vehicle> cachedMapParentVehicle = [];
 }

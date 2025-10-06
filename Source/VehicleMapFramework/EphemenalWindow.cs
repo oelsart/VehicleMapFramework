@@ -1,5 +1,5 @@
-﻿using RimWorld;
-using System;
+﻿using System;
+using RimWorld;
 using UnityEngine;
 using Verse;
 using Verse.Sound;
@@ -24,7 +24,7 @@ public class EphemenalWindow : Window
         }
     }
 
-    public EphemenalWindow() : base(null)
+    public EphemenalWindow() : base()
     {
         layer = WindowLayer.Super;
         closeOnClickedOutside = true;
@@ -57,16 +57,15 @@ public class EphemenalWindow : Window
         baseColor = Color.white;
         if (vanishIfMouseDistant)
         {
-            Rect r = windowRect.AtZero().ContractedBy(-5f);
+            var r = windowRect.AtZero().ContractedBy(-5f);
             if (!r.Contains(Event.current.mousePosition))
             {
-                float num = GenUI.DistFromRect(r, Event.current.mousePosition);
+                var num = GenUI.DistFromRect(r, Event.current.mousePosition);
                 baseColor = new Color(1f, 1f, 1f, 1f - (num / 95f));
                 if (num > 95f)
                 {
                     Close(false);
                     Cancel();
-                    return;
                 }
             }
         }
@@ -74,8 +73,8 @@ public class EphemenalWindow : Window
 
     public void Cancel()
     {
-        SoundDefOf.FloatMenu_Cancel.PlayOneShotOnCamera(null);
-        Find.WindowStack.TryRemove(this, true);
+        SoundDefOf.FloatMenu_Cancel.PlayOneShotOnCamera();
+        Find.WindowStack.TryRemove(this);
     }
 
     public Action doWindowFunc;

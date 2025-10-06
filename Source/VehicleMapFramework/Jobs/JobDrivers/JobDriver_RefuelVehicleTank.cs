@@ -35,7 +35,7 @@ public class JobDriver_RefuelVehicleTank : JobDriver
 
     public override bool TryMakePreToilReservations(bool errorOnFailed)
     {
-        return pawn.Reserve(Tank, job, 1, -1, null, errorOnFailed, false) && pawn.Reserve(Fuel, job, 1, -1, null, errorOnFailed, false);
+        return pawn.Reserve(Tank, job, 1, -1, null, errorOnFailed) && pawn.Reserve(Fuel, job, 1, -1, null, errorOnFailed);
     }
 
     protected override IEnumerable<Toil> MakeNewToils()
@@ -58,22 +58,22 @@ public class JobDriver_RefuelVehicleTank : JobDriver
         {
             job.count = Vehicle.CompFueledTravel.FuelCountToFull;
         });
-        Toil reserveFuel = Toils_Reserve.Reserve(TargetIndex.B, 1, -1, null, false);
+        var reserveFuel = Toils_Reserve.Reserve(TargetIndex.B);
         yield return reserveFuel;
-        yield return Toils_Goto.GotoThing(TargetIndex.B, PathEndMode.ClosestTouch, false).FailOnDespawnedNullOrForbidden(TargetIndex.B).FailOnSomeonePhysicallyInteracting(TargetIndex.B);
-        yield return Toils_Haul.StartCarryThing(TargetIndex.B, false, true, false, true, false).FailOnDestroyedNullOrForbidden(TargetIndex.B);
-        yield return Toils_Haul.CheckForGetOpportunityDuplicate(reserveFuel, TargetIndex.B, TargetIndex.None, true, null);
-        yield return Toils_Goto.GotoThing(TargetIndex.A, PathEndMode.Touch, false);
-        yield return Toils_General.Wait(RefuelingDuration, TargetIndex.None).FailOnDestroyedNullOrForbidden(TargetIndex.B).FailOnDestroyedNullOrForbidden(TargetIndex.A).FailOnCannotTouch(TargetIndex.A, PathEndMode.Touch).WithProgressBarToilDelay(TargetIndex.A, false, -0.5f);
+        yield return Toils_Goto.GotoThing(TargetIndex.B, PathEndMode.ClosestTouch).FailOnDespawnedNullOrForbidden(TargetIndex.B).FailOnSomeonePhysicallyInteracting(TargetIndex.B);
+        yield return Toils_Haul.StartCarryThing(TargetIndex.B, false, true).FailOnDestroyedNullOrForbidden(TargetIndex.B);
+        yield return Toils_Haul.CheckForGetOpportunityDuplicate(reserveFuel, TargetIndex.B, TargetIndex.None, true);
+        yield return Toils_Goto.GotoThing(TargetIndex.A, PathEndMode.Touch);
+        yield return Toils_General.Wait(RefuelingDuration).FailOnDestroyedNullOrForbidden(TargetIndex.B).FailOnDestroyedNullOrForbidden(TargetIndex.A).FailOnCannotTouch(TargetIndex.A, PathEndMode.Touch).WithProgressBarToilDelay(TargetIndex.A);
         yield return FinalizeRefueling(TargetIndex.A, TargetIndex.B);
     }
 
     public static Toil FinalizeRefueling(TargetIndex refuelableInd, TargetIndex fuelInd)
     {
         Toil toil = new();
-        toil.initAction = delegate ()
+        toil.initAction = delegate
         {
-            Job curJob = toil.actor.CurJob;
+            var curJob = toil.actor.CurJob;
             Thing thing = curJob.GetTarget(refuelableInd).Thing.TryGetComp<CompFuelTank>().Vehicle;
             if (toil.actor.CurJob.placedThings.NullOrEmpty())
             {

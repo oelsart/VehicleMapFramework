@@ -9,9 +9,9 @@ public static class RegionTraverserAcrossMaps
 {
     private class BFSWorker
     {
-        private Queue<Region> open = new();
+        private readonly Queue<Region> open = new();
 
-        private HashSet<Region> close = [];
+        private readonly HashSet<Region> close = [];
 
         private int numRegionsProcessed;
 
@@ -45,7 +45,7 @@ public static class RegionTraverserAcrossMaps
             open.Enqueue(root);
             while (open.Count > 0)
             {
-                Region region = open.Dequeue();
+                var region = open.Dequeue();
                 if (DebugViewSettings.drawRegionTraversal)
                 {
                     region.Debug_Notify_Traversed();
@@ -77,12 +77,12 @@ public static class RegionTraverserAcrossMaps
                     }
                 }
 
-                for (int i = 0; i < region.links.Count; i++)
+                for (var i = 0; i < region.links.Count; i++)
                 {
-                    RegionLink regionLink = region.links[i];
-                    for (int j = 0; j < 2; j++)
+                    var regionLink = region.links[i];
+                    for (var j = 0; j < 2; j++)
                     {
-                        Region region2 = regionLink.regions[j];
+                        var region2 = regionLink.regions[j];
                         if (region2 != null && !open.Contains(region2) && !close.Contains(region2) && (region2.type & traversableRegionTypes) != 0 && (entryCondition == null || entryCondition(region, region2)))
                         {
                             QueueNewOpenRegion(region2);
@@ -104,7 +104,7 @@ public static class RegionTraverserAcrossMaps
         }
     }
 
-    private static Queue<BFSWorker> freeWorkers;
+    private static readonly Queue<BFSWorker> freeWorkers;
 
     public static int NumWorkers;
 
@@ -128,14 +128,16 @@ public static class RegionTraverserAcrossMaps
             return floodingDistrict;
         }
 
+        BreadthFirstTraverse(root, entryCondition, regionProcessor, 999999, RegionType.Set_All);
+        return floodingDistrict;
+
         bool entryCondition(Region from, Region r) => r.type == root.type && r.District != floodingDistrict;
+
         bool regionProcessor(Region r)
         {
             r.District = floodingDistrict;
             return false;
         }
-        BreadthFirstTraverse(root, entryCondition, regionProcessor, 999999, RegionType.Set_All);
-        return floodingDistrict;
     }
 
     public static void FloodAndSetNewRegionIndex(Region root, int newRegionGroupIndex)
@@ -155,13 +157,13 @@ public static class RegionTraverserAcrossMaps
 
     public static bool WithinRegions(this IntVec3 A, IntVec3 B, Map map, int regionLookCount, TraverseParms traverseParams, RegionType traversableRegionTypes = RegionType.Set_Passable)
     {
-        Region region = A.GetRegion(map, traversableRegionTypes);
+        var region = A.GetRegion(map, traversableRegionTypes);
         if (region == null)
         {
             return false;
         }
 
-        Region regB = B.GetRegion(map, traversableRegionTypes);
+        var regB = B.GetRegion(map, traversableRegionTypes);
         if (regB == null)
         {
             return false;
@@ -172,8 +174,12 @@ public static class RegionTraverserAcrossMaps
             return true;
         }
 
+        var found = false;
+        BreadthFirstTraverse(region, entryCondition, regionProcessor, regionLookCount, traversableRegionTypes);
+        return found;
+
         bool entryCondition(Region from, Region r) => r.Allows(traverseParams, isDestination: false);
-        bool found = false;
+
         bool regionProcessor(Region r)
         {
             if (r == regB)
@@ -184,8 +190,6 @@ public static class RegionTraverserAcrossMaps
 
             return false;
         }
-        BreadthFirstTraverse(region, entryCondition, regionProcessor, regionLookCount, traversableRegionTypes);
-        return found;
     }
 
     public static void MarkRegionsBFS(Region root, RegionEntryPredicate entryCondition, int maxRegions, int inRadiusMark, RegionType traversableRegionTypes = RegionType.Set_Passable)
@@ -213,7 +217,7 @@ public static class RegionTraverserAcrossMaps
     public static void RecreateWorkers()
     {
         freeWorkers.Clear();
-        for (int i = 0; i < NumWorkers; i++)
+        for (var i = 0; i < NumWorkers; i++)
         {
             freeWorkers.Enqueue(new BFSWorker());
         }
@@ -221,7 +225,7 @@ public static class RegionTraverserAcrossMaps
 
     public static void BreadthFirstTraverse(IntVec3 start, Map map, RegionEntryPredicate entryCondition, RegionProcessor regionProcessor, int maxRegions = 999999, RegionType traversableRegionTypes = RegionType.Set_Passable)
     {
-        Region region = start.GetRegion(map, traversableRegionTypes);
+        var region = start.GetRegion(map, traversableRegionTypes);
         if (region != null)
         {
             BreadthFirstTraverse(region, entryCondition, regionProcessor, maxRegions, traversableRegionTypes);
@@ -247,14 +251,14 @@ public static class RegionTraverserAcrossMaps
             return;
         }
 
-        BFSWorker bFSWorker = freeWorkers.Dequeue();
+        var bFSWorker = freeWorkers.Dequeue();
         try
         {
             bFSWorker.BreadthFirstTraverseWork(root, entryCondition, regionProcessor, maxRegions, traversableRegionTypes);
         }
         catch (Exception ex)
         {
-            Log.Error("Exception in BreadthFirstTraverse: " + ex.ToString());
+            Log.Error("Exception in BreadthFirstTraverse: " + ex);
         }
         finally
         {

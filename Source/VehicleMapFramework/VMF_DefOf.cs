@@ -1,10 +1,12 @@
-﻿using RimWorld;
+﻿using System.Diagnostics.CodeAnalysis;
+using RimWorld;
 using Vehicles;
 using Verse;
 
 namespace VehicleMapFramework;
 
 [DefOf]
+[SuppressMessage("ReSharper", "UnassignedField.Global")]
 public static class VMF_DefOf
 {
     static VMF_DefOf()

@@ -1,11 +1,12 @@
-﻿using RimWorld;
-using SmashTools;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using RimWorld;
+using SmashTools;
 using UnityEngine;
 using Vehicles;
 using Verse;
 using static Vehicles.VehicleUpgrade;
+using PawnOverlayRenderer = Vehicles.PawnOverlayRenderer;
 
 namespace VehicleMapFramework;
 
@@ -17,7 +18,7 @@ public class VehicleUpgradeBuildable : VehicleUpgrade
     {
         if (!roles.NullOrEmpty())
         {
-            foreach (RoleUpgrade roleUpgrade in roles)
+            foreach (var roleUpgrade in roles)
             {
                 if (roleUpgrade is RoleUpgradeBuildable roleUpgradeBuildable)
                 {
@@ -42,12 +43,12 @@ public class VehicleUpgradeBuildable : VehicleUpgrade
         }
         if (!armor.NullOrEmpty())
         {
-            foreach (ArmorUpgrade armorUpgrade in armor)
+            foreach (var armorUpgrade in armor)
             {
                 if (!armorUpgrade.key.NullOrEmpty() && !armorUpgrade.statModifiers.NullOrEmpty())
                 {
-                    VehicleComponent component = vehicle.statHandler.GetComponent(armorUpgrade.key);
-                    UpgradeType type = armorUpgrade.type;
+                    var component = vehicle.statHandler.GetComponent(armorUpgrade.key);
+                    var type = armorUpgrade.type;
                     if (type != UpgradeType.Add)
                     {
                         if (type == UpgradeType.Set)
@@ -64,14 +65,14 @@ public class VehicleUpgradeBuildable : VehicleUpgrade
         }
         if (!health.NullOrEmpty())
         {
-            foreach (HealthUpgrade healthUpgrade in health)
+            foreach (var healthUpgrade in health)
             {
                 if (!healthUpgrade.key.NullOrEmpty())
                 {
-                    VehicleComponent component2 = vehicle.statHandler.GetComponent(healthUpgrade.key);
+                    var component2 = vehicle.statHandler.GetComponent(healthUpgrade.key);
                     if (healthUpgrade.value != null)
                     {
-                        UpgradeType type = healthUpgrade.type;
+                        var type = healthUpgrade.type;
                         if (type != UpgradeType.Add)
                         {
                             if (type == UpgradeType.Set)
@@ -115,12 +116,12 @@ public class VehicleUpgradeBuildable : VehicleUpgrade
         }
         if (!armor.NullOrEmpty())
         {
-            foreach (ArmorUpgrade armorUpgrade in armor)
+            foreach (var armorUpgrade in armor)
             {
-                if (!armorUpgrade.key.NullOrEmpty() && !armorUpgrade.statModifiers.NullOrEmpty<StatModifier>())
+                if (!armorUpgrade.key.NullOrEmpty() && !armorUpgrade.statModifiers.NullOrEmpty())
                 {
-                    VehicleComponent component = vehicle.statHandler.GetComponent(armorUpgrade.key);
-                    UpgradeType type = armorUpgrade.type;
+                    var component = vehicle.statHandler.GetComponent(armorUpgrade.key);
+                    var type = armorUpgrade.type;
                     if (type != UpgradeType.Add)
                     {
                         if (type == UpgradeType.Set)
@@ -137,14 +138,14 @@ public class VehicleUpgradeBuildable : VehicleUpgrade
         }
         if (!health.NullOrEmpty())
         {
-            foreach (HealthUpgrade healthUpgrade in health)
+            foreach (var healthUpgrade in health)
             {
                 if (!healthUpgrade.key.NullOrEmpty())
                 {
-                    VehicleComponent component2 = vehicle.statHandler.GetComponent(healthUpgrade.key);
+                    var component2 = vehicle.statHandler.GetComponent(healthUpgrade.key);
                     if (healthUpgrade.value != null)
                     {
-                        UpgradeType type = healthUpgrade.type;
+                        var type = healthUpgrade.type;
                         if (type != UpgradeType.Add)
                         {
                             if (type == UpgradeType.Set)
@@ -192,7 +193,6 @@ public class VehicleUpgradeBuildable : VehicleUpgrade
             vehicle.handlers.RemoveAt(index);
             parent.handlerUniqueIDs.RemoveAll(h => h.id == handler.uniqueID);
             vehicle.CompVehicleTurrets?.RecacheTurretPermissions();
-            return;
         }
         else
         {
@@ -217,7 +217,7 @@ public class VehicleUpgradeBuildable : VehicleUpgrade
                     VMF_Log.Error("No uniqueID corresponding to this role upgrade found.");
                     return;
                 }
-                VehicleRoleHandler handler = vehicle.handlers.FirstOrDefault(h => h.uniqueID == uniqueID.id);
+                var handler = vehicle.handlers.FirstOrDefault(h => h.uniqueID == uniqueID.id);
                 if (handler == null)
                 {
                     VMF_Log.Error("Unable to edit " + roleUpgrade.editKey + ". Matching VehicleRole not found.");
@@ -240,7 +240,7 @@ public class RoleUpgradeBuildable : RoleUpgrade
 {
     public static VehicleRoleBuildable RoleFromUpgrade(RoleUpgradeBuildable upgrade, CompBuildableUpgrades compBuildableUpgrades, out RoleUpgradeBuildable upgrade2, List<string> turretIds = null)
     {
-        upgrade2 = new RoleUpgradeBuildable()
+        upgrade2 = new RoleUpgradeBuildable
         {
             key = upgrade.key,
             label = upgrade.label,
@@ -285,7 +285,7 @@ public class RoleUpgradeBuildable : RoleUpgrade
                 var angle = rot.AsAngle;
                 var intClockwise = new Rot8(rot).AsIntClockwise;
 
-                upgrade2.pawnRenderer = new Vehicles.PawnOverlayRenderer
+                upgrade2.pawnRenderer = new PawnOverlayRenderer
                 {
                     showBody = pawnRenderer.showBody,
                     north = new Rot4(pawnRenderer.north.AsInt + rot.AsInt),

@@ -1,5 +1,5 @@
-﻿using RimWorld;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using RimWorld;
 using Vehicles;
 using Verse;
 
@@ -9,12 +9,12 @@ public class CompVehicleLauncherWithMap : CompVehicleLauncher
 {
     public override IEnumerable<Gizmo> CompGetGizmosExtra()
     {
-        foreach (Gizmo gizmo in base.CompGetGizmosExtra())
+        foreach (var gizmo in base.CompGetGizmosExtra())
         {
             if (gizmo is Command_ActionHighlighter takeoffCommand)
             {
                 takeoffCommand.Disabled = false;
-                if (!CanLaunchWithCargoCapacityWithMap(out string reason))
+                if (!CanLaunchWithCargoCapacityWithMap(out var reason))
                 {
                     takeoffCommand.Disable(reason);
                 }
@@ -50,12 +50,12 @@ public class CompVehicleLauncherWithMap : CompVehicleLauncher
         }
         else
         {
-            float cargoCapacity = Vehicle.GetStatValue(VehicleStatDefOf.CargoCapacity);
+            var cargoCapacity = Vehicle.GetStatValue(VehicleStatDefOf.CargoCapacity);
             var mass = MassUtility.InventoryMass(Vehicle);
             var flag = true;
             if (Vehicle is VehiclePawnWithMap vehicleWithMap)
             {
-                float maximumPayload = Vehicle.GetStatValue(VMF_DefOf.MaximumPayload);
+                var maximumPayload = Vehicle.GetStatValue(VMF_DefOf.MaximumPayload);
                 var mass2 = CollectionsMassCalculator.MassUsage(vehicleWithMap.VehicleMap.listerThings.AllThings, IgnorePawnsInventoryMode.DontIgnore, true);
                 if (mass2 > maximumPayload)
                 {
@@ -71,7 +71,7 @@ public class CompVehicleLauncherWithMap : CompVehicleLauncher
         {
             disableReason = "VF_NotEnoughToOperate".Translate();
         }
-        else if (Vehicle.CompFueledTravel != null && Vehicle.CompFueledTravel.EmptyTank)
+        else if (Vehicle.CompFueledTravel is { EmptyTank: true })
         {
             disableReason = "VF_LaunchOutOfFuel".Translate();
         }

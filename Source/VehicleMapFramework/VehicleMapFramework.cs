@@ -1,11 +1,12 @@
-﻿using HarmonyLib;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using HarmonyLib;
 using UnityEngine;
 using VehicleMapFramework.Settings;
 using VehicleMapFramework.VMF_HarmonyPatches;
 using Verse;
+using Debug = System.Diagnostics.Debug;
 
 namespace VehicleMapFramework;
 
@@ -15,21 +16,19 @@ public class VehicleMapFramework : Mod
 
     public static VehicleMapSettings settings;
 
-    private static List<TabRecord> tabs = [];
+    private static readonly List<TabRecord> tabs = [];
 
     public static AssetBundle Bundle
     {
         get
         {
-            if (bundleInt == null)
+            if (field == null)
             {
-                bundleInt = mod.Content.assetBundles.loadedAssetBundles[0];
+                field = mod.Content.assetBundles.loadedAssetBundles[0];
             }
-            return bundleInt;
+            return field;
         }
     }
-
-    private static AssetBundle bundleInt;
 
     public VehicleMapFramework(ModContentPack content) : base(content)
     {
@@ -38,7 +37,7 @@ public class VehicleMapFramework : Mod
         EarlyPatchCore.EarlyPatch();
     }
 
-    public void InitializeTabs()
+    private static void InitializeTabs()
     {
         tabs.Clear();
         var tabDrawers = typeof(SettingsTabDrawer).AllSubclassesNonAbstract()
@@ -48,7 +47,7 @@ public class VehicleMapFramework : Mod
         tabs.AddRange(tabDrawers.Select(tab => new TabRecord(tab.Label, () => CurrentTab = tab, () => CurrentTab == tab)));
     }
 
-    internal static SettingsTabDrawer CurrentTab { get; set; }
+    private static SettingsTabDrawer CurrentTab { get; set; }
 
     public override void DoSettingsWindowContents(Rect inRect)
     {
@@ -61,6 +60,7 @@ public class VehicleMapFramework : Mod
         var rect = new Rect(inRect.x, inRect.y + TabDrawer.TabHeight, inRect.width, inRect.height - TabDrawer.TabHeight);
         Widgets.DrawMenuSection(rect);
         TabDrawer.DrawTabs(rect, tabs);
+        Debug.Assert(CurrentTab != null, nameof(CurrentTab) + " != null");
         CurrentTab.Draw(rect.ContractedBy(10f));
     }
 
@@ -69,7 +69,7 @@ public class VehicleMapFramework : Mod
         base.WriteSettings();
 
         Level level;
-        if (settings.dynamicPatchEnabled && !VehicleMapParentsComponent.CachedMapParentVehicle.Any(p => p.Value != null))
+        if (settings.dynamicPatchEnabled && VehicleMapParentsComponent.CachedMapParentVehicle.All(p => p.Value == null))
         {
             level = settings.dynamicPatchLevel;
         }

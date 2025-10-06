@@ -1,9 +1,9 @@
-﻿using CombatExtended;
-using HarmonyLib;
-using SmashTools;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using CombatExtended;
+using HarmonyLib;
+using SmashTools;
 using Verse;
 
 namespace VehicleMapFramework;
@@ -14,16 +14,16 @@ public class ExplosionCEAcrossMaps : ExplosionCE
     {
         get
         {
-            bool flag = Position.InBounds(Map) && Position.Roofed(Map);
-            bool flag2 = height >= 2f;
-            List<IntVec3> list = SimplePool<List<IntVec3>>.Get();
+            var flag = Position.InBounds(Map) && Position.Roofed(Map);
+            var flag2 = height >= 2f;
+            var list = SimplePool<List<IntVec3>>.Get();
             list.Clear();
-            List<IntVec3> list2 = SimplePool<List<IntVec3>>.Get();
+            var list2 = SimplePool<List<IntVec3>>.Get();
             list2.Clear();
-            int num = GenRadial.NumCellsInRadius(radius);
-            for (int i = 0; i < num; i++)
+            var num = GenRadial.NumCellsInRadius(radius);
+            for (var i = 0; i < num; i++)
             {
-                IntVec3 intVec = Position + GenRadial.RadialPattern[i];
+                var intVec = Position + GenRadial.RadialPattern[i];
                 if (!intVec.InBounds(Map))
                 {
                     continue;
@@ -31,7 +31,7 @@ public class ExplosionCEAcrossMaps : ExplosionCE
 
                 if (flag2)
                 {
-                    if ((!flag && GenSightOnVehicle.LineOfSight(Position, intVec, Map, skipFirstCell: false, null, 0, 0)) || !intVec.Roofed(Map))
+                    if ((!flag && GenSightOnVehicle.LineOfSight(Position, intVec, Map, skipFirstCell: false)) || !intVec.Roofed(Map))
                     {
                         list.Add(intVec);
                     }
@@ -45,8 +45,8 @@ public class ExplosionCEAcrossMaps : ExplosionCE
 
                     if (needLOSToCell1.HasValue || needLOSToCell2.HasValue)
                     {
-                        bool flag3 = needLOSToCell1.HasValue && GenSight.LineOfSight(needLOSToCell1.Value, intVec, Map, skipFirstCell: false, null, 0, 0);
-                        bool flag4 = needLOSToCell2.HasValue && GenSight.LineOfSight(needLOSToCell2.Value, intVec, Map, skipFirstCell: false, null, 0, 0);
+                        var flag3 = needLOSToCell1.HasValue && GenSight.LineOfSight(needLOSToCell1.Value, intVec, Map, skipFirstCell: false);
+                        var flag4 = needLOSToCell2.HasValue && GenSight.LineOfSight(needLOSToCell2.Value, intVec, Map, skipFirstCell: false);
                         if (!flag3 && !flag4)
                         {
                             continue;
@@ -57,16 +57,16 @@ public class ExplosionCEAcrossMaps : ExplosionCE
                 }
             }
 
-            foreach (IntVec3 item in list)
+            foreach (var item in list)
             {
                 if (!item.Walkable(Map))
                 {
                     continue;
                 }
 
-                for (int j = 0; j < 4; j++)
+                for (var j = 0; j < 4; j++)
                 {
-                    IntVec3 intVec2 = item + GenAdj.CardinalDirections[j];
+                    var intVec2 = item + GenAdj.CardinalDirections[j];
                     if (intVec2.InHorDistOf(Position, radius) && intVec2.InBounds(Map) && !intVec2.Standable(Map) && intVec2.GetEdifice(Map) != null && !list.Contains(intVec2) && list2.Contains(intVec2))
                     {
                         list2.Add(intVec2);
@@ -109,8 +109,8 @@ public class ExplosionCEAcrossMaps : ExplosionCE
                 cellsToAffectOnVehicles[vehicle].Sort((a, b) => ((int)GetCellAffectTick(this, b)).CompareTo(GetCellAffectTick(this, a)));
                 RegionTraverser.BreadthFirstTraverse(Position, Map, (from, to) => true, delegate (Region x)
                 {
-                    List<Thing> list = x.ListerThings.ThingsInGroup(ThingRequestGroup.Pawn);
-                    for (int num2 = list.Count - 1; num2 >= 0; num2--)
+                    var list = x.ListerThings.ThingsInGroup(ThingRequestGroup.Pawn);
+                    for (var num2 = list.Count - 1; num2 >= 0; num2--)
                     {
                         ((Pawn)list[num2]).mindState.Notify_Explosion(this);
                     }
@@ -127,8 +127,8 @@ public class ExplosionCEAcrossMaps : ExplosionCE
 
     public override void Tick()
     {
-        int ticksGame = Find.TickManager.TicksGame;
-        int num = cellsToAffect(this).Count - 1;
+        var ticksGame = Find.TickManager.TicksGame;
+        var num = cellsToAffect(this).Count - 1;
         while (!toBeMerged && num >= 0 && ticksGame >= (int)GetCellAffectTick(this, cellsToAffect(this)[num]))
         {
             try
@@ -137,13 +137,7 @@ public class ExplosionCEAcrossMaps : ExplosionCE
             }
             catch (Exception ex)
             {
-                Log.Error(string.Concat(
-                [
-                    "Explosion could not affect cell ",
-                    cellsToAffect(this)[num],
-                    ": ",
-                    ex
-                ]));
+                Log.Error(string.Concat("Explosion could not affect cell ", cellsToAffect(this)[num], ": ", ex));
             }
             cellsToAffect(this).RemoveAt(num);
             num--;
@@ -166,13 +160,7 @@ public class ExplosionCEAcrossMaps : ExplosionCE
                     }
                     catch (Exception ex)
                     {
-                        Log.Error(string.Concat(
-                        [
-                    "Explosion could not affect cell ",
-                    cellsToAffectOnVehicles[vehicle][num],
-                    ": ",
-                    ex
-                        ]));
+                        Log.Error(string.Concat("Explosion could not affect cell ", cellsToAffectOnVehicles[vehicle][num], ": ", ex));
                     }
                     cellsToAffectOnVehicles[vehicle].RemoveAt(num);
                     num--;
@@ -185,7 +173,7 @@ public class ExplosionCEAcrossMaps : ExplosionCE
 
             if (toBeMerged || (!cellsToAffect(this).Any() && !cellsToAffectOnVehicles.Any(v => v.Value.Any())))
             {
-                Destroy(DestroyMode.Vanish);
+                Destroy();
             }
         }
     }

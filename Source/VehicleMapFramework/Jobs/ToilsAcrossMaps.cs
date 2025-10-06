@@ -1,6 +1,6 @@
-﻿using RimWorld;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using RimWorld;
 using UnityEngine;
 using Vehicles;
 using Verse;
@@ -12,15 +12,15 @@ public static class ToilsAcrossMaps
 {
     public static Toil GotoVehicleEnterSpot(TargetInfo enterSpot)
     {
-        Toil toil = ToilMaker.MakeToil("GotoVehicleEnterSpot");
+        var toil = ToilMaker.MakeToil();
         toil.defaultCompleteMode = ToilCompleteMode.PatherArrival;
 
         CompZipline compZipline = null;
         enterSpot.Thing?.TryGetComp(out compZipline);
 
-        IntVec3 dest = IntVec3.Invalid;
+        var dest = IntVec3.Invalid;
         var baseMap = enterSpot.Map.BaseMap();
-        if (compZipline != null && compZipline.Pair != null)
+        if (compZipline is { Pair: not null })
         {
             dest = compZipline.Pair.Position;
             toil.FailOn(() =>
@@ -84,14 +84,7 @@ public static class ToilsAcrossMaps
 
     private static Toil ZiplineAnimation(JobDriverAcrossMaps driver, CompZipline comp)
     {
-        //なんかUnityのnormalizedって重いらしいよ
-        static Vector3 NormalizeFlat(Vector3 vec)
-        {
-            var length = vec.MagnitudeHorizontal();
-            return new Vector3(vec.x / length, 0f, vec.z / length);
-        }
-
-        Toil toil = ToilMaker.MakeToil("ZiplineAnimation");
+        var toil = ToilMaker.MakeToil();
         toil.handlingFacing = true;
         var initTick = 0;
         toil.initAction = () =>
@@ -133,13 +126,20 @@ public static class ToilsAcrossMaps
         });
         toil.defaultCompleteMode = ToilCompleteMode.Never;
         return toil;
+
+        //なんかUnityのnormalizedって重いらしいよ
+        static Vector3 NormalizeFlat(Vector3 vec)
+        {
+            var length = vec.MagnitudeHorizontal();
+            return new Vector3(vec.x / length, 0f, vec.z / length);
+        }
     }
 
     private const float distancePerTick = 0.075f;
 
     public static IEnumerable<Toil> GotoTargetMap(JobDriverAcrossMaps driver, TargetInfo exitSpot, TargetInfo enterSpot)
     {
-        if (exitSpot.IsValid && exitSpot.Map != null)
+        if (exitSpot is { IsValid: true, Map: not null })
         {
             CompZipline compZipline = null;
             exitSpot.Thing?.TryGetComp(out compZipline);
@@ -167,7 +167,7 @@ public static class ToilsAcrossMaps
                 yield return openDoor;
             }
 
-            IntVec3 pos = exitSpot.Cell;
+            var pos = exitSpot.Cell;
             if (compZipline != null)
             {
                 yield return ZiplineAnimation(driver, compZipline);
@@ -246,7 +246,7 @@ public static class ToilsAcrossMaps
                 if (vehiclePawn != null)
                 {
                     vehiclePawn.DeSpawnWithoutJobClearVehicle();
-                    GenSpawn.Spawn(toil3.actor, pos, map, rot, WipeMode.Vanish);
+                    GenSpawn.Spawn(toil3.actor, pos, map, rot);
                 }
                 else
                 {
@@ -255,17 +255,17 @@ public static class ToilsAcrossMaps
                     {
                         ropee.DeSpawnWithoutJobClear();
                     }
-                    GenSpawn.Spawn(toil3.actor, pos, map, rot, WipeMode.Vanish);
+                    GenSpawn.Spawn(toil3.actor, pos, map, rot);
                     foreach (var ropee in toil3.actor.roping?.Ropees)
                     {
-                        GenSpawn.Spawn(ropee, pos, map, rot, WipeMode.Vanish);
+                        GenSpawn.Spawn(ropee, pos, map, rot);
                     }
                 }
             };
             yield return toil3.FailOn(() => (exitSpot.Map?.Disposed ?? true) || exitSpot.Map.BaseMap() == exitSpot.Map);
             yield return afterExitMap;
         }
-        if (enterSpot.IsValid && enterSpot.Map != null)
+        if (enterSpot is { IsValid: true, Map: not null })
         {
             CompZipline compZipline = null;
             enterSpot.Thing?.TryGetComp(out compZipline);
@@ -367,7 +367,7 @@ public static class ToilsAcrossMaps
                 if (vehiclePawn != null)
                 {
                     vehiclePawn.DeSpawnWithoutJobClearVehicle();
-                    GenSpawn.Spawn(toil3.actor, enterSpot.Cell + (rot.FacingCell * vehiclePawn.HalfLength()), enterSpot.Map, rot, WipeMode.Vanish);
+                    GenSpawn.Spawn(toil3.actor, enterSpot.Cell + (rot.FacingCell * vehiclePawn.HalfLength()), enterSpot.Map, rot);
                 }
                 else
                 {

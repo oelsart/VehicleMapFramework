@@ -1,6 +1,6 @@
-﻿using SmashTools;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using SmashTools;
 using UnityEngine;
 using Verse;
 
@@ -158,7 +158,7 @@ public class VehicleMapProps : DefModExtension
 
         public EdgeSpace FlipHorizontal()
         {
-            return new EdgeSpace()
+            return new EdgeSpace
             {
                 space = space,
                 north = north,
@@ -170,7 +170,7 @@ public class VehicleMapProps : DefModExtension
 
         public EdgeSpace FlipVertical()
         {
-            return new EdgeSpace()
+            return new EdgeSpace
             {
                 space = space,
                 north = south,

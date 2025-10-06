@@ -8,11 +8,9 @@ namespace VehicleMapFramework
         public override void DrawIcon(Rect rect, Material buttonMat, GizmoRenderParms parms)
         {
             base.DrawIcon(rect, buttonMat, parms);
-            if (commandIcon != null)
-            {
-                rect.y -= 8f;
-                Widgets.DrawTextureFitted(rect, commandIcon, 0.7f);
-            }
+            if (!commandIcon) return;
+            rect.y -= 8f;
+            Widgets.DrawTextureFitted(rect, commandIcon, 0.7f);
         }
 
         public Texture2D commandIcon;

@@ -1,7 +1,7 @@
-﻿using RimWorld;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using RimWorld;
 using Verse;
 using Verse.AI;
 
@@ -32,13 +32,13 @@ public class WorkGiver_LoadBuildableContainer : WorkGiver_Scanner, IWorkGiverAcr
 
     public override bool HasJobOnThing(Pawn pawn, Thing t, bool forced = false)
     {
-        CompTransporter transporter = t.TryGetComp<CompTransporter>();
+        var transporter = t.TryGetComp<CompTransporter>();
         return LoadTransportersJobOnVehicleUtility.HasJobOnTransporter(pawn, transporter);
     }
 
     public override Job JobOnThing(Pawn pawn, Thing t, bool forced = false)
     {
-        CompTransporter transporter = t.TryGetComp<CompTransporter>();
+        var transporter = t.TryGetComp<CompTransporter>();
         return LoadTransportersJobOnVehicleUtility.JobOnTransporter(pawn, transporter);
     }
 }

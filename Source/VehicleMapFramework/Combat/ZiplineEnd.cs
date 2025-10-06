@@ -12,7 +12,7 @@ public class ZiplineEnd : ThingWithComps, IZiplineEnd
         base.Tick();
         if (!launchVerb.caster?.Spawned ?? false)
         {
-            Destroy(DestroyMode.Vanish);
+            Destroy();
             return;
         }
         if ((launchVerb.caster is Pawn pawn && pawn.TargetCurrentlyAimingAt != this) ||
@@ -20,7 +20,7 @@ public class ZiplineEnd : ThingWithComps, IZiplineEnd
             launchVerb.OutOfRange(launchVerb.caster.PositionOnBaseMap(), this, this.MovedOccupiedRect()) ||
             !GenSightOnVehicle.LineOfSightThingToThing(launchVerb.caster, this))
         {
-            Destroy(DestroyMode.Vanish);
+            Destroy();
         }
     }
 
@@ -53,7 +53,7 @@ public class ZiplineEnd : ThingWithComps, IZiplineEnd
 
     public void DrawZipline(Vector3 drawLoc)
     {
-        if (launchVerb.caster != null && launchVerb.caster.Spawned)
+        if (launchVerb.caster is { Spawned: true })
         {
             var rot = rotation;
             if (this.IsOnVehicleMapOf(out var vehicle))

@@ -1,6 +1,6 @@
-﻿using SmashTools;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using SmashTools;
 using VehicleMapFramework.VMF_HarmonyPatches;
 using Verse;
 using static VehicleMapFramework.ModCompat;
@@ -11,7 +11,7 @@ namespace VehicleMapFramework
     {
         private Dictionary<Section, Dictionary<Type, SectionLayer[]>> layersByRot;
 
-        internal readonly static List<Type> OrientedSectionLayerTypes = [.. typeof(SectionLayer_Things).AllSubclassesNonAbstract()];
+        internal static readonly List<Type> OrientedSectionLayerTypes = [.. typeof(SectionLayer_Things).AllSubclassesNonAbstract()];
 
         public VehicleSectionLayerManager(Map map) : base(map)
         {
@@ -39,9 +39,9 @@ namespace VehicleMapFramework
 
                 var component = MapComponentCache<VehiclePawnWithMapCache>.GetComponent(map);
                 component?.cacheMode = true;
-                for (int i = 0; i < map.Size.x; i += 17)
+                for (var i = 0; i < map.Size.x; i += 17)
                 {
-                    for (int j = 0; j < map.Size.z; j += 17)
+                    for (var j = 0; j < map.Size.z; j += 17)
                     {
                         var section = map.mapDrawer.SectionAt(new IntVec3(i, 0, j));
                         layersByRot[section] = [];
@@ -82,11 +82,9 @@ namespace VehicleMapFramework
 
         public SectionLayer GetLayer(Section section, Type type, Rot8 rot)
         {
-            if (layersByRot[section].TryGetValue(type, out var layers))
-            {
-                return layers[rot.RotForVehicleDraw().AsInt];
-            }
-            return null;
+            return layersByRot[section].TryGetValue(type, out var layers) ?
+                layers[rot.RotForVehicleDraw().AsInt] :
+                null;
         }
 
         public void UpdateAllSection()
@@ -94,9 +92,9 @@ namespace VehicleMapFramework
             if (!map.IsVehicleMapOf(out _))
                 return;
 
-            for (int i = 0; i < map.Size.x; i += 17)
+            for (var i = 0; i < map.Size.x; i += 17)
             {
-                for (int j = 0; j < map.Size.z; j += 17)
+                for (var j = 0; j < map.Size.z; j += 17)
                 {
                     var section = map.mapDrawer.SectionAt(new IntVec3(i, 0, j));
                     UpdateSection(section);

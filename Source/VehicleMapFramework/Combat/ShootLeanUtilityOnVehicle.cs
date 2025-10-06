@@ -34,7 +34,7 @@ public static class ShootLeanUtilityOnVehicle
                 if (c.TryGetVehicleMap(t.Map, out var vehicle2) && vehicle == vehicle2)
                 {
                     var c2 = c.ToVehicleMapCoord(vehicle);
-                    Building edifice = c2.GetEdificeSafe(vehicle.VehicleMap);
+                    var edifice = c2.GetEdificeSafe(vehicle.VehicleMap);
                     if (edifice != null && !edifice.CanBeSeenOver())
                     {
                         return false;
@@ -57,7 +57,7 @@ public static class ShootLeanUtilityOnVehicle
         outCells.Add(t.Position);
         if (t.def.size.x != 1 || t.def.size.z != 1)
         {
-            foreach (IntVec3 intVec in t.OccupiedRect())
+            foreach (var intVec in t.OccupiedRect())
             {
                 if (intVec != t.Position)
                 {
@@ -76,13 +76,13 @@ public static class ShootLeanUtilityOnVehicle
             shooterLocBaseCol = shooterLoc.ToBaseMapCoord(vehicle);
         }
         listToFill.Clear();
-        float angleFlat = (targetPosBaseCol - shooterLocBaseCol).AngleFlat;
-        bool flag = angleFlat > 270f || angleFlat < 90f;
-        bool flag2 = angleFlat > 90f && angleFlat < 270f;
-        bool flag3 = angleFlat > 180f;
-        bool flag4 = angleFlat < 180f;
-        bool[] workingBlockedArray = GetWorkingBlockedArray();
-        for (int i = 0; i < 8; i++)
+        var angleFlat = (targetPosBaseCol - shooterLocBaseCol).AngleFlat;
+        var flag = angleFlat > 270f || angleFlat < 90f;
+        var flag2 = angleFlat is > 90f and < 270f;
+        var flag3 = angleFlat > 180f;
+        var flag4 = angleFlat < 180f;
+        var workingBlockedArray = GetWorkingBlockedArray();
+        for (var i = 0; i < 8; i++)
         {
             workingBlockedArray[i] = !(shooterLocBaseCol + GenAdj.AdjacentCells[i]).CanBeSeenOverOnVehicle(baseMap);
         }
@@ -106,7 +106,7 @@ public static class ShootLeanUtilityOnVehicle
         {
             listToFill.Add(shooterLoc);
         }
-        for (int j = 0; j < 4; j++)
+        for (var j = 0; j < 4; j++)
         {
             var adjacentCell = shooterLoc + GenAdj.AdjacentCells[j];
             if (!workingBlockedArray[j] && (j != 0 || flag) && (j != 1 || flag4) && (j != 2 || flag2) && (j != 3 || flag3) && adjacentCell.InBounds(map) && adjacentCell.GetCover(map) != null)
@@ -117,5 +117,5 @@ public static class ShootLeanUtilityOnVehicle
         ReturnWorkingBlockedArray(workingBlockedArray);
     }
 
-    private static Queue<bool[]> blockedArrays = new();
+    private static readonly Queue<bool[]> blockedArrays = new();
 }

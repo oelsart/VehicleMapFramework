@@ -2,7 +2,6 @@
 using RimWorld;
 using Unity.Collections;
 using UnityEngine;
-using Vehicles;
 using Verse;
 using Verse.AI;
 
@@ -10,7 +9,7 @@ namespace VehicleMapFramework;
 
 public static class CastPositionFinderOnVehicle
 {
-    public static bool TryFindCastPosition(Verse.AI.CastPositionRequest newReq, out IntVec3 dest)
+    public static bool TryFindCastPosition(CastPositionRequest newReq, out IntVec3 dest)
     {
         req = newReq;
         casterLoc = req.caster.Position;
@@ -29,7 +28,7 @@ public static class CastPositionFinderOnVehicle
         }
         if (req.maxRegions > 0)
         {
-            Region region = casterLoc.GetRegion(req.caster.Map, RegionType.Set_Passable);
+            var region = casterLoc.GetRegion(req.caster.Map);
             if (region == null)
             {
                 Log.Error("TryFindCastPosition requiring region traversal but root region is null.");
@@ -37,10 +36,10 @@ public static class CastPositionFinderOnVehicle
                 return false;
             }
             inRadiusMark = Rand.Int;
-            RegionTraverser.MarkRegionsBFS(region, null, newReq.maxRegions, inRadiusMark, RegionType.Set_Passable);
+            RegionTraverser.MarkRegionsBFS(region, null, newReq.maxRegions, inRadiusMark);
             if (req.maxRangeFromLocus > 0.01f)
             {
-                Region locusReg = req.locus.GetRegion(req.caster.Map, RegionType.Set_Passable);
+                var locusReg = req.locus.GetRegion(req.caster.Map);
                 if (locusReg == null)
                 {
                     Log.Error("locus " + req.locus + " has no region");
@@ -55,23 +54,23 @@ public static class CastPositionFinderOnVehicle
                         r.mark = inRadiusMark;
                         req.maxRegions++;
                         return r == locusReg;
-                    }, 999999, RegionType.Set_Passable);
+                    });
                 }
             }
         }
-        CellRect cellRect = CellRect.WholeMap(req.caster.Map);
+        var cellRect = CellRect.WholeMap(req.caster.Map);
         if (req.maxRangeFromCaster > 0.01f)
         {
-            int num = Mathf.CeilToInt(req.maxRangeFromCaster);
+            var num = Mathf.CeilToInt(req.maxRangeFromCaster);
             CellRect otherRect = new(casterLoc.x - num, casterLoc.z - num, (num * 2) + 1, (num * 2) + 1);
             cellRect.ClipInsideRect(otherRect);
         }
-        int num2 = Mathf.CeilToInt(req.maxRangeFromTarget);
+        var num2 = Mathf.CeilToInt(req.maxRangeFromTarget);
         CellRect otherRect2 = new(targetLoc.x - num2, targetLoc.z - num2, (num2 * 2) + 1, (num2 * 2) + 1);
         cellRect.ClipInsideRect(otherRect2);
         if (req.maxRangeFromLocus > 0.01f)
         {
-            int num3 = Mathf.CeilToInt(req.maxRangeFromLocus);
+            var num3 = Mathf.CeilToInt(req.maxRangeFromLocus);
             CellRect otherRect3 = new(targetLoc.x - num3, targetLoc.z - num3, (num3 * 2) + 1, (num3 * 2) + 1);
             cellRect.ClipInsideRect(otherRect3);
         }
@@ -83,7 +82,7 @@ public static class CastPositionFinderOnVehicle
         rangeFromTarget = (casterLoc - targetLoc).LengthHorizontal;
         rangeFromTargetSquared = (casterLoc - targetLoc).LengthHorizontalSquared;
         optimalRangeSquared = verb.verbProps.range * 0.8f * (verb.verbProps.range * 0.8f);
-        if (req.preferredCastPosition != null && req.preferredCastPosition.Value.IsValid)
+        if (req.preferredCastPosition is { IsValid: true })
         {
             EvaluateCell(req.preferredCastPosition.Value);
             if (bestSpot.IsValid && bestSpotPref > 0.001f)
@@ -98,10 +97,10 @@ public static class CastPositionFinderOnVehicle
             dest = casterLoc;
             return true;
         }
-        float slope = -1f / CellLine.Between(targetLoc, casterLoc).Slope;
+        var slope = -1f / CellLine.Between(targetLoc, casterLoc).Slope;
         CellLine cellLine = new(targetLoc, slope);
-        bool flag = cellLine.CellIsAbove(casterLoc);
-        foreach (IntVec3 c in cellRect)
+        var flag = cellLine.CellIsAbove(casterLoc);
+        foreach (var c in cellRect)
         {
             if (cellLine.CellIsAbove(c) == flag && cellRect.Contains(c))
             {
@@ -113,7 +112,7 @@ public static class CastPositionFinderOnVehicle
             dest = bestSpot;
             return true;
         }
-        foreach (IntVec3 c2 in cellRect)
+        foreach (var c2 in cellRect)
         {
             if (cellLine.CellIsAbove(c2) != flag && cellRect.Contains(c2))
             {
@@ -137,11 +136,11 @@ public static class CastPositionFinderOnVehicle
         {
             return;
         }
-        if (maxRangeFromTargetSquared > 0.01f && maxRangeFromTargetSquared < 250000f && (c - targetLoc).LengthHorizontalSquared > maxRangeFromTargetSquared)
+        if (maxRangeFromTargetSquared is > 0.01f and < 250000f && (c - targetLoc).LengthHorizontalSquared > maxRangeFromTargetSquared)
         {
             if (DebugViewSettings.drawCastPositionSearch)
             {
-                casterMap.debugDrawer.FlashCell(c, 0f, "range target", 50);
+                casterMap.debugDrawer.FlashCell(c, 0f, "range target");
             }
             return;
         }
@@ -149,7 +148,7 @@ public static class CastPositionFinderOnVehicle
         {
             if (DebugViewSettings.drawCastPositionSearch)
             {
-                casterMap.debugDrawer.FlashCell(c, 0.1f, "range home", 50);
+                casterMap.debugDrawer.FlashCell(c, 0.1f, "range home");
             }
             return;
         }
@@ -160,7 +159,7 @@ public static class CastPositionFinderOnVehicle
             {
                 if (DebugViewSettings.drawCastPositionSearch)
                 {
-                    casterMap.debugDrawer.FlashCell(c, 0.2f, "range caster", 50);
+                    casterMap.debugDrawer.FlashCell(c, 0.2f, "range caster");
                 }
                 return;
             }
@@ -169,51 +168,51 @@ public static class CastPositionFinderOnVehicle
         {
             return;
         }
-        if (req.maxRegions > 0 && c.GetRegion(casterMap, RegionType.Set_Passable).mark != inRadiusMark)
+        if (req.maxRegions > 0 && c.GetRegion(casterMap).mark != inRadiusMark)
         {
             if (DebugViewSettings.drawCastPositionSearch)
             {
-                casterMap.debugDrawer.FlashCell(c, 0.64f, "reg radius", 50);
+                casterMap.debugDrawer.FlashCell(c, 0.64f, "reg radius");
             }
             return;
         }
-        if (!CrossMapReachabilityUtility.CanReach(casterMap, req.caster.Position, c, PathEndMode.OnCell, TraverseParms.For(req.caster, Danger.Some, TraverseMode.ByPawn, false, false, false), req.target.Map, out _, out _) &&
+        if (!CrossMapReachabilityUtility.CanReach(casterMap, req.caster.Position, c, PathEndMode.OnCell, TraverseParms.For(req.caster, Danger.Some), req.target.Map, out _, out _) &&
             !req.caster.IsOnVehicleMapOf(out _) && !req.target.IsOnVehicleMapOf(out _))
         {
             if (DebugViewSettings.drawCastPositionSearch)
             {
-                casterMap.debugDrawer.FlashCell(c, 0.4f, "can't reach", 50);
+                casterMap.debugDrawer.FlashCell(c, 0.4f, "can't reach");
             }
             return;
         }
-        float num = CastPositionPreference(c);
+        var num = CastPositionPreference(c);
         if (avoidGrid.Length > 0)
         {
-            byte b = avoidGrid[req.caster.Map.cellIndices.CellToIndex(c)];
+            var b = avoidGrid[req.caster.Map.cellIndices.CellToIndex(c)];
             num *= Mathf.Max(0.1f, (37.5f - b) / 37.5f);
         }
         if (DebugViewSettings.drawCastPositionSearch)
         {
-            casterMap.debugDrawer.FlashCell(c, num / 4f, num.ToString("F3"), 50);
+            casterMap.debugDrawer.FlashCell(c, num / 4f, num.ToString("F3"));
         }
         if (num < bestSpotPref)
         {
             return;
         }
-        IntVec3 cellOnBaseMap = c.ToThingBaseMapCoord(req.caster);
+        var cellOnBaseMap = c.ToThingBaseMapCoord(req.caster);
         if (!verb.CanHitTargetFrom(cellOnBaseMap, req.target))
         {
             if (DebugViewSettings.drawCastPositionSearch)
             {
-                casterMap.debugDrawer.FlashCell(c, 0.6f, "can't hit", 50);
+                casterMap.debugDrawer.FlashCell(c, 0.6f, "can't hit");
             }
             return;
         }
-        if (!casterMap.pawnDestinationReservationManager.CanReserve(c, req.caster, false))
+        if (!casterMap.pawnDestinationReservationManager.CanReserve(c, req.caster))
         {
             if (DebugViewSettings.drawCastPositionSearch)
             {
-                casterMap.debugDrawer.FlashCell(c, num * 0.9f, "resvd", 50);
+                casterMap.debugDrawer.FlashCell(c, num * 0.9f, "resvd");
             }
             return;
         }
@@ -221,7 +220,7 @@ public static class CastPositionFinderOnVehicle
         {
             if (DebugViewSettings.drawCastPositionSearch)
             {
-                casterMap.debugDrawer.FlashCell(c, 0.9f, "danger", 50);
+                casterMap.debugDrawer.FlashCell(c, 0.9f, "danger");
             }
             return;
         }
@@ -231,10 +230,10 @@ public static class CastPositionFinderOnVehicle
 
     private static float CastPositionPreference(IntVec3 c)
     {
-        bool flag = true;
+        var flag = true;
         foreach (var thing in req.caster.Map.thingGrid.ThingsAt(c))
         {
-            if (thing is Fire fire && fire.parent == null)
+            if (thing is Fire { parent: null })
             {
                 return -1f;
             }
@@ -243,7 +242,7 @@ public static class CastPositionFinderOnVehicle
                 flag = false;
             }
         }
-        float num = 0.3f;
+        var num = 0.3f;
         if (req.caster.kindDef.aiAvoidCover)
         {
             num += 8f - CoverUtility.TotalSurroundingCoverScore(c, req.caster.Map);
@@ -252,7 +251,7 @@ public static class CastPositionFinderOnVehicle
         {
             num += CoverUtility.CalculateOverallBlockChance(c, targetLoc, req.caster.Map) * 0.55f;
         }
-        float num2 = (casterLoc - c).LengthHorizontal;
+        var num2 = (casterLoc - c).LengthHorizontal;
         if (rangeFromTarget > 100f)
         {
             num2 -= rangeFromTarget - 100f;
@@ -262,9 +261,9 @@ public static class CastPositionFinderOnVehicle
             }
         }
         num *= Mathf.Pow(0.967f, num2);
-        float num3 = 1f;
+        var num3 = 1f;
         rangeFromTargetToCellSquared = (c - targetLoc).LengthHorizontalSquared;
-        float num4 = Mathf.Abs(rangeFromTargetToCellSquared - optimalRangeSquared) / optimalRangeSquared;
+        var num4 = Mathf.Abs(rangeFromTargetToCellSquared - optimalRangeSquared) / optimalRangeSquared;
         num4 = 1f - num4;
         num4 = 0.7f + (0.3f * num4);
         num3 *= num4;
@@ -284,7 +283,7 @@ public static class CastPositionFinderOnVehicle
         return num;
     }
 
-    private static Verse.AI.CastPositionRequest req;
+    private static CastPositionRequest req;
 
     private static IntVec3 casterLoc;
 

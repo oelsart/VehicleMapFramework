@@ -1,5 +1,5 @@
-﻿using RimWorld.Planet;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using RimWorld.Planet;
 using Verse;
 
 namespace VehicleMapFramework;
@@ -49,7 +49,7 @@ public class TargetMapManager(World world) : WorldComponent(world)
             target = TargetInfo.Invalid;
             return false;
         }
-        return TargetInfoDic.TryGetValue(thing, out target) && target.IsValid && target.Map != null;
+        return TargetInfoDic.TryGetValue(thing, out target) && target is { IsValid: true, Map: not null };
     }
 
     public static bool HasTargetMap(Thing thing, out Map map)
@@ -66,20 +66,12 @@ public class TargetMapManager(World world) : WorldComponent(world)
 
     public static Map TargetMapOrMap(Map map, Thing thing)
     {
-        if (HasTargetMap(thing, out var targetMap))
-        {
-            return targetMap;
-        }
-        return map;
+        return HasTargetMap(thing, out var targetMap) ? targetMap : map;
     }
 
     public static Map TargetMapOrThingMap(Thing thing)
     {
-        if (HasTargetMap(thing, out var map))
-        {
-            return map;
-        }
-        return thing.Map;
+        return HasTargetMap(thing, out var map) ? map : thing.Map;
     }
 
     public static Map TargetMapOrPawnMap(Pawn pawn)

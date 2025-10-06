@@ -1,14 +1,13 @@
-﻿using HarmonyLib;
-using RimWorld;
-using RimWorld.Planet;
-using SmashTools;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using HarmonyLib;
+using RimWorld;
+using RimWorld.Planet;
+using SmashTools;
 using UnityEngine;
-using Vehicles;
 using Verse;
 using Verse.AI;
 using static VehicleMapFramework.MethodInfoCache;
@@ -125,21 +124,21 @@ public static class Patch_FloatMenuOptionProvider_Entity_GetOptionFor
 {
     private static IEnumerable<MethodBase> TargetMethods()
     {
-        static MethodBase GetOptionsFor_MoveNext(Type t)
-        {
-            if (!t.Name.Contains("<GetOptionsFor>")) return null;
-            return AccessTools.Method(t, "MoveNext");
-        }
-
         yield return AccessTools.FindIncludingInnerTypes(typeof(FloatMenuOptionProvider_CaptureEntity), GetOptionsFor_MoveNext);
         yield return AccessTools.FindIncludingInnerTypes(typeof(FloatMenuOptionProvider_TransferEntity), GetOptionsFor_MoveNext);
+        yield break;
+
+        static MethodBase GetOptionsFor_MoveNext(Type t)
+        {
+            return !t.Name.Contains("<GetOptionsFor>") ? null : AccessTools.Method(t, "MoveNext");
+        }
     }
 
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = new CodeMatcher(instructions);
         var m_AllBuildingsColonistOfClass = AccessTools.Method(typeof(ListerBuildings), nameof(ListerBuildings.AllBuildingsColonistOfClass)).MakeGenericMethod(typeof(Building_HoldingPlatform));
-        codes.MatchStartForward(CodeMatch.Calls(m_AllBuildingsColonistOfClass)).Advance(1);
+        codes.MatchStartForward(CodeMatch.Calls(m_AllBuildingsColonistOfClass)).Advance();
         codes.Insert(CodeInstruction.Call(typeof(Patch_FloatMenuOptionProvider_Entity_GetOptionFor), nameof(AddHoldingPlatforms)));
         codes.MatchStartBackwards(CodeMatch.Calls(CachedMethodInfo.g_Thing_Map));
         codes.Set(OpCodes.Call, CachedMethodInfo.m_BaseMap_Thing);
@@ -239,20 +238,16 @@ public static class Patch_MultiPawnGotoController_Draw
 
     private static Vector3 ToVector3ShiftedOffsetWithAltitude(ref IntVec3 intVec, float AddedAltitude, Pawn pawn)
     {
-        if (TargetMapManager.HasTargetMap(pawn, out var map))
-        {
-            return intVec.ToVector3Shifted().ToBaseMapCoord(map).WithY(AddedAltitude);
-        }
-        return intVec.ToVector3ShiftedWithAltitude(AddedAltitude);
+        return TargetMapManager.HasTargetMap(pawn, out var map) ?
+            intVec.ToVector3Shifted().ToBaseMapCoord(map).WithY(AddedAltitude) :
+            intVec.ToVector3ShiftedWithAltitude(AddedAltitude);
     }
 
     private static bool FoggedOffset(IntVec3 intVec, Pawn pawn)
     {
-        if (TargetMapManager.HasTargetMap(pawn, out var map))
-        {
-            return intVec.ToBaseMapCoord(map).Fogged(map.BaseMap());
-        }
-        return intVec.Fogged(pawn.Map);
+        return TargetMapManager.HasTargetMap(pawn, out var map) ?
+            intVec.ToBaseMapCoord(map).Fogged(map.BaseMap()) :
+            intVec.Fogged(pawn.Map);
     }
 }
 
@@ -396,7 +391,7 @@ public static class Patch_FloatMenuOptionProvider_DraftedMove_PawnGotoAction
         }
         else
         {
-            Job job = JobMaker.MakeJob(VMF_DefOf.VMF_GotoAcrossMaps, dest).SetSpotsToJobAcrossMaps(pawn, exitSpot, enterSpot);
+            var job = JobMaker.MakeJob(VMF_DefOf.VMF_GotoAcrossMaps, dest).SetSpotsToJobAcrossMaps(pawn, exitSpot, enterSpot);
             if (pawn.Map == baseMap && baseMap.exitMapGrid.IsExitCell(clickCell))
             {
                 job.exitMapOnArrival = !pawn.IsColonyMech;
@@ -412,11 +407,11 @@ public static class Patch_FloatMenuOptionProvider_DraftedMove_PawnGotoAction
                     Messages.Message("MessagePlayerTriedToLeaveMapViaExitGrid_CantReform".Translate(), baseMap.Parent, MessageTypeDefOf.RejectInput, false);
                 }
             }
-            flag = pawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), false);
+            flag = pawn.jobs.TryTakeOrderedJob(job, JobTag.Misc);
         }
         if (flag)
         {
-            FleckMaker.Static(dest.Cell, map, FleckDefOf.FeedbackGoto, 1f);
+            FleckMaker.Static(dest.Cell, map, FleckDefOf.FeedbackGoto);
         }
     }
 }

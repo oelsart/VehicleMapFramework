@@ -1,9 +1,11 @@
-﻿using RimWorld;
+﻿using JetBrains.Annotations;
+using RimWorld;
 using SmashTools;
 using Verse;
 
 namespace VehicleMapFramework;
 
+[UsedImplicitly]
 public class VehicleStructure : Building
 {
     public override void PreApplyDamage(ref DamageInfo dinfo, out bool absorbed)
@@ -18,11 +20,9 @@ public class VehicleStructure : Building
     public override void SpawnSetup(Map map, bool respawningAfterLoad)
     {
         base.SpawnSetup(map, respawningAfterLoad);
-        if (this.IsOnVehicleMapOf(out var vehicle))
-        {
-            vehicle.mapEdgeCellsDirty = true;
-            vehicle.structureCellsDirty = true;
-        }
+        if (!this.IsOnVehicleMapOf(out var vehicle)) return;
+        vehicle.mapEdgeCellsDirty = true;
+        vehicle.structureCellsDirty = true;
     }
 
     public override void DeSpawn(DestroyMode mode = DestroyMode.Vanish)

@@ -1,7 +1,7 @@
-﻿using RimWorld;
-using RimWorld.Planet;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using RimWorld;
+using RimWorld.Planet;
 using UnityEngine;
 using Vehicles;
 using Verse;
@@ -18,10 +18,10 @@ public class Dialog_LoadCargoToBuildableContainer : Window
             if (massUsageDirty)
             {
                 massUsageDirty = false;
-                cachedMassUsage = CollectionsMassCalculator.MassUsageTransferables(transferables, IgnorePawnsInventoryMode.IgnoreIfAssignedToUnloadOrPlayerPawn, true, false);
-                cachedMassUsage += MassUtility.GearAndInventoryMass(vehicle);
+                field = CollectionsMassCalculator.MassUsageTransferables(transferables, IgnorePawnsInventoryMode.IgnoreIfAssignedToUnloadOrPlayerPawn, true);
+                field += MassUtility.GearAndInventoryMass(vehicle);
             }
-            return cachedMassUsage;
+            return field;
         }
     }
 
@@ -68,7 +68,7 @@ public class Dialog_LoadCargoToBuildableContainer : Window
         Text.Anchor = TextAnchor.UpperLeft;
         DrawCargoNumbers(new Rect(12f, 35f, inRect.width - 24f, 40f));
         Rect rect2 = new(inRect.width - 225f, 35f, 225f, 40f);
-        bool showAllCargoItems = VehicleMod.settings.showAllCargoItems;
+        var showAllCargoItems = VehicleMod.settings.showAllCargoItems;
         string text = "VF_ShowAllItemsOnMap".Translate();
         Widgets.Label(rect2, text);
         rect2.x += Text.CalcSize(text).x + 20f;
@@ -82,9 +82,9 @@ public class Dialog_LoadCargoToBuildableContainer : Window
         Widgets.DrawMenuSection(inRect);
         inRect = inRect.ContractedBy(17f);
         Widgets.BeginGroup(inRect);
-        Rect rect3 = inRect.AtZero();
+        var rect3 = inRect.AtZero();
         BottomButtons(rect3);
-        Rect inRect2 = rect3;
+        var inRect2 = rect3;
         inRect2.yMax -= 76f;
         itemsTransfer.OnGUI(inRect2, out var anythingChanged);
         if (anythingChanged)
@@ -126,20 +126,22 @@ public class Dialog_LoadCargoToBuildableContainer : Window
             return;
         }
 
-        float width = 200f;
-        float num = BottomButtonSize.y / 2f;
+        var width = 200f;
+        var num = BottomButtonSize.y / 2f;
         if (Widgets.ButtonText(new Rect(0f, rect.height - 55f - 17f, width, num), "Dev: Pack Instantly"))
         {
             SoundDefOf.Tick_High.PlayOneShotOnCamera();
-            for (int i = 0; i < transferables.Count; i++)
+            for (var i = 0; i < transferables.Count; i++)
             {
-                List<Thing> things = transferables[i].things;
-                int countToTransfer = transferables[i].CountToTransfer;
+                var things = transferables[i].things;
+                var countToTransfer = transferables[i].CountToTransfer;
+                TransferableUtility.Transfer(things, countToTransfer, transferred);
+                continue;
+
                 void transferred(Thing thing, IThingHolder originalHolder)
                 {
                     vehicle.AddOrTransfer(thing);
                 }
-                TransferableUtility.Transfer(things, countToTransfer, transferred);
             }
 
             Close(doCloseSound: false);
@@ -167,16 +169,16 @@ public class Dialog_LoadCargoToBuildableContainer : Window
         {
             color = GenUI.LerpColor(MassColor, MassUsage / MassCapacity);
         }
-        Color color2 = GUI.color;
+        var color2 = GUI.color;
         GUI.color = color;
-        string label = string.Format("{0}: {1}/{2}", "Mass".Translate(), MassUsage, MassCapacity);
+        var label = $"{"Mass".Translate()}: {MassUsage}/{MassCapacity}";
         Widgets.Label(rect, label);
         GUI.color = color2;
     }
 
     private void AddToTransferables(Thing t, bool setToTransferMax = false)
     {
-        TransferableOneWay transferableOneWay = TransferableUtility.TransferableMatching(t, transferables, TransferAsOneMode.PodsOrCaravanPacking);
+        var transferableOneWay = TransferableUtility.TransferableMatching(t, transferables, TransferAsOneMode.PodsOrCaravanPacking);
         if (transferableOneWay == null)
         {
             transferableOneWay = new TransferableOneWay();
@@ -184,7 +186,7 @@ public class Dialog_LoadCargoToBuildableContainer : Window
         }
         if (transferableOneWay.things.Contains(t))
         {
-            Log.Error("Tried to add the same thing twice to TransferableOneWay: " + t?.ToString());
+            Log.Error("Tried to add the same thing twice to TransferableOneWay: " + t);
             return;
         }
         transferableOneWay.things.Add(t);
@@ -198,30 +200,30 @@ public class Dialog_LoadCargoToBuildableContainer : Window
     {
         transferables = [];
         AddItemsToTransferables();
-        itemsTransfer = new TransferableOneWayWidget(transferables, null, null, null, true, IgnorePawnsInventoryMode.IgnoreIfAssignedToUnload, false, () => MassCapacity - MassUsage, 0f, false, -1, false, false, false, false, false, false, false, false, false, false);
+        itemsTransfer = new TransferableOneWayWidget(transferables, null, null, null, true, IgnorePawnsInventoryMode.IgnoreIfAssignedToUnload, false, () => MassCapacity - MassUsage, 0f, false, -1);
         CountToTransferChanged();
     }
 
     private void AddItemsToTransferables()
     {
-        List<Thing> list = CaravanFormingUtility.AllReachableColonyItems(comp.parent.Map, VehicleMod.settings.showAllCargoItems, false, false);
+        var list = CaravanFormingUtility.AllReachableColonyItems(comp.parent.Map, VehicleMod.settings.showAllCargoItems);
         if (comp.GatherFromBaseMap && comp.parent.Map != comp.parent.BaseMap())
         {
-            list.AddRange(CaravanFormingUtility.AllReachableColonyItems(comp.parent.BaseMap(), VehicleMod.settings.showAllCargoItems, false, false));
+            list.AddRange(CaravanFormingUtility.AllReachableColonyItems(comp.parent.BaseMap(), VehicleMod.settings.showAllCargoItems));
         }
-        for (int i = 0; i < list.Count; i++)
+        for (var i = 0; i < list.Count; i++)
         {
             var thing = list[i];
             if (!TransferableUtility.TransferableMatching(thing, transferables, TransferAsOneMode.PodsOrCaravanPacking)?.things?.Contains(thing) ?? true)
             {
-                AddToTransferables(thing, false);
+                AddToTransferables(thing);
             }
         }
     }
 
     private void SetToSendEverything()
     {
-        for (int i = 0; i < transferables.Count; i++)
+        for (var i = 0; i < transferables.Count; i++)
         {
             transferables[i].AdjustTo(transferables[i].GetMaximumToTransfer());
         }
@@ -233,17 +235,15 @@ public class Dialog_LoadCargoToBuildableContainer : Window
         massUsageDirty = true;
     }
 
-    private CompBuildableContainer comp;
+    private readonly CompBuildableContainer comp;
 
-    private VehiclePawnWithMap vehicle;
+    private readonly VehiclePawnWithMap vehicle;
 
     private List<TransferableOneWay> transferables = [];
 
     private TransferableOneWayWidget itemsTransfer;
 
     private bool massUsageDirty;
-
-    private float cachedMassUsage;
 
     private readonly Vector2 BottomButtonSize = new(160f, 40f);
 

@@ -1,10 +1,10 @@
-﻿using HarmonyLib;
-using RimWorld;
-using SmashTools;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
+using HarmonyLib;
+using RimWorld;
+using SmashTools;
 using UnityEngine;
 using Verse;
 using static VehicleMapFramework.MethodInfoCache;
@@ -148,24 +148,24 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
             if (__instance.IsOnVehicleMapOf(out _) && ___curFrameTarget == null && ___curBuildingTarget == null)
             {
                 __result = true;
-                float num3 = 5.5f;
-                float num4 = num3 / ___distanceRate;
-                bool flag4 = num4 > ___curCraneSize + ___craneErectionSpeed;
+                var num3 = 5.5f;
+                var num4 = num3 / ___distanceRate;
+                var flag4 = num4 > ___curCraneSize + ___craneErectionSpeed;
                 if (flag4)
                 {
                     ___curCraneSize += ___craneErectionSpeed;
                 }
                 else
                 {
-                    bool flag5 = num4 <= ___curCraneSize - ___craneErectionSpeed;
+                    var flag5 = num4 <= ___curCraneSize - ___craneErectionSpeed;
                     if (flag5)
                     {
                         ___curCraneSize -= ___craneErectionSpeed;
                     }
                     else
                     {
-                        float num5 = Mathf.Abs(num4 - ___curCraneSize);
-                        bool flag6 = num5 > 0f && num5 < ___craneErectionSpeed;
+                        var num5 = Mathf.Abs(num4 - ___curCraneSize);
+                        var flag6 = num5 > 0f && num5 < ___craneErectionSpeed;
                         if (!flag6)
                         {
                             ___endCranePosition = target.Cell;
@@ -195,9 +195,9 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
 
         public static float DistanceFlat(Vector3 a, Vector3 b)
         {
-            float num = a.x - b.x;
-            float num2 = a.z - b.z;
-            return (float)Math.Sqrt((double)((num * num) + (num2 * num2)));
+            var num = a.x - b.x;
+            var num2 = a.z - b.z;
+            return (float)Math.Sqrt((num * num) + (num2 * num2));
         }
 
         public static bool QuiteApproximately(float a, float b)
@@ -297,7 +297,7 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
 
         private static bool CheckCell(IntVec3 cell, Building __instance, VehiclePawnWithMap vehicle, bool ___blockedByTree)
         {
-            foreach (Thing thing in cell.GetThingList(vehicle.Map))
+            foreach (var thing in cell.GetThingList(vehicle.Map))
             {
                 if (thing != __instance && thing != vehicle && thing.def.passability != Traversability.Standable && (thing.def.plant == null || ___blockedByTree))
                 {
@@ -335,18 +335,18 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
             {
                 if (__instance.def.drawerType == DrawerType.RealtimeOnly || !__instance.Spawned)
                 {
-                    __instance.Graphic.Draw(drawLoc + new Vector3(0f, 1f, ___offset).RotatedBy(__instance.BaseFullRotation().AsAngle), flip ? __instance.Rotation.Opposite : __instance.Rotation, __instance, 0f);
+                    __instance.Graphic.Draw(drawLoc + new Vector3(0f, 1f, ___offset).RotatedBy(__instance.BaseFullRotation().AsAngle), flip ? __instance.Rotation.Opposite : __instance.Rotation, __instance);
                 }
                 SilhouetteUtility.DrawGraphicSilhouette(__instance, drawLoc);
                 if (__instance.AllComps != null)
                 {
-                    int count = __instance.AllComps.Count;
-                    for (int i = 0; i < count; i++)
+                    var count = __instance.AllComps.Count;
+                    for (var i = 0; i < count; i++)
                     {
                         __instance.AllComps[i].PostDraw();
                     }
                 }
-                ___baseGraphic.Draw(drawLoc, __instance.Rotation, __instance, 0f);
+                ___baseGraphic.Draw(drawLoc, __instance.Rotation, __instance);
                 return false;
             }
             return true;

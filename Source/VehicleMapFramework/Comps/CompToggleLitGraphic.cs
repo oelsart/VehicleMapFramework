@@ -5,7 +5,7 @@ namespace VehicleMapFramework;
 
 public class CompToggleLitGraphic : CompPowerTrader
 {
-    new public CompProperties_WirelessCharger Props => (CompProperties_WirelessCharger)props;
+    public new CompProperties_WirelessCharger Props => (CompProperties_WirelessCharger)props;
 
     public override void PostDraw()
     {

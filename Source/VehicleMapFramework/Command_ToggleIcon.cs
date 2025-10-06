@@ -18,7 +18,7 @@ public class Command_ToggleIcon : Command
 
     public override void DrawIcon(Rect rect, Material buttonMat, GizmoRenderParms parms)
     {
-        Texture badTex = (isActive() ? icon : iconTwo) ?? BaseContent.BadTex;
+        var badTex = (isActive() ? icon : iconTwo) ?? BaseContent.BadTex;
         rect.position += new Vector2(iconOffset.x * rect.size.x, iconOffset.y * rect.size.y);
         if (!disabled || parms.lowLight)
         {

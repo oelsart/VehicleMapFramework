@@ -1,8 +1,7 @@
-﻿using HarmonyLib;
-using RimWorld;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Reflection.Emit;
+using HarmonyLib;
+using RimWorld;
 using UnityEngine;
 using Verse;
 using static VehicleMapFramework.MethodInfoCache;
@@ -106,7 +105,7 @@ public static class Patch_Projectile_CheckForFreeInterceptBetween
 
     public static Map tmpMap;
 
-    private static FastInvokeHandler CheckIntercept = MethodInvoker.GetHandler(AccessTools.Method("TabulaRasa.Patch_Projectile_CheckForFreeInterceptBetween:Postfix"));
+    private static readonly FastInvokeHandler CheckIntercept = MethodInvoker.GetHandler(AccessTools.Method("TabulaRasa.Patch_Projectile_CheckForFreeInterceptBetween:Postfix"));
 }
 
 [HarmonyPatchCategory(Patches_TabulaRasa.Category)]
@@ -153,7 +152,7 @@ public static class Patch_Skyfaller_Tick
 
     public static Map tmpMap;
 
-    private static FastInvokeHandler CheckIntercept = MethodInvoker.GetHandler(AccessTools.Method("TabulaRasa.Patch_Skyfaller_Tick:Prefix"));
+    private static readonly FastInvokeHandler CheckIntercept = MethodInvoker.GetHandler(AccessTools.Method("TabulaRasa.Patch_Skyfaller_Tick:Prefix"));
 }
 
 [HarmonyPatchCategory(Patches_TabulaRasa.Category)]

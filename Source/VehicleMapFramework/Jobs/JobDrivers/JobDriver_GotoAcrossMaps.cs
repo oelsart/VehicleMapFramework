@@ -1,8 +1,8 @@
-﻿using RimWorld;
+﻿using System;
+using System.Collections.Generic;
+using RimWorld;
 using RimWorld.Planet;
 using SmashTools;
-using System;
-using System.Collections.Generic;
 using Vehicles;
 using Verse;
 using Verse.AI;
@@ -30,9 +30,9 @@ public class JobDriver_GotoAcrossMaps : JobDriverAcrossMaps
         }
         if (job.targetA.IsValid)
         {
-            LocalTargetInfo lookAtTarget = job.GetTarget(TargetIndex.B);
+            var lookAtTarget = job.GetTarget(TargetIndex.B);
             var toil = Toils_Goto.Goto(TargetIndex.A, PathEndMode.OnCell);
-            toil.AddPreTickAction(delegate ()
+            toil.AddPreTickAction(delegate
             {
                 if (job.exitMapOnArrival && pawn.Map.exitMapGrid.IsExitCell(pawn.Position))
                 {
@@ -46,17 +46,17 @@ public class JobDriver_GotoAcrossMaps : JobDriverAcrossMaps
             toil.FailOn(() => job.failIfCantJoinOrCreateCaravan && !CaravanExitMapUtility.CanExitMapAndJoinOrCreateCaravanNow(pawn));
             toil.FailOn(delegate ()
             {
-                return job.GetTarget(TargetIndex.A).Thing is Pawn pawn && pawn.ParentHolder is Corpse;
+                return job.GetTarget(TargetIndex.A).Thing is Pawn { ParentHolder: Corpse };
             });
             toil.FailOn(delegate ()
             {
-                Thing thing = job.GetTarget(TargetIndex.A).Thing;
-                return thing != null && thing.Destroyed;
+                var thing = job.GetTarget(TargetIndex.A).Thing;
+                return thing is { Destroyed: true };
             });
             if (lookAtTarget.IsValid)
             {
-                Toil toil2 = toil;
-                toil2.tickAction = (Action)Delegate.Combine(toil2.tickAction, new Action(delegate ()
+                var toil2 = toil;
+                toil2.tickAction = (Action)Delegate.Combine(toil2.tickAction, new Action(delegate
                 {
                     pawn.rotationTracker.FaceCell(lookAtTarget.CellOnAnotherThingMap(pawn));
                 }));
@@ -70,14 +70,14 @@ public class JobDriver_GotoAcrossMaps : JobDriverAcrossMaps
                 }
                 if (job.controlGroupTag != null)
                 {
-                    Pawn overseer = pawn.GetOverseer();
+                    var overseer = pawn.GetOverseer();
                     overseer?.mechanitor.GetControlGroup(pawn).SetTag(pawn, job.controlGroupTag);
                 }
             });
             yield return toil;
 
-            Toil toil3 = ToilMaker.MakeToil("MakeNewToils");
-            toil3.initAction = delegate ()
+            var toil3 = ToilMaker.MakeToil();
+            toil3.initAction = delegate
             {
                 if (pawn.mindState != null && pawn.mindState.forcedGotoPosition == TargetA.Cell)
                 {
@@ -85,7 +85,7 @@ public class JobDriver_GotoAcrossMaps : JobDriverAcrossMaps
                 }
                 if (!job.ritualTag.NullOrEmpty())
                 {
-                    Lord lord = pawn.GetLord();
+                    var lord = pawn.GetLord();
                     if (lord?.LordJob is LordJob_Ritual lordJob_Ritual)
                     {
                         lordJob_Ritual.AddTagForPawn(pawn, job.ritualTag);

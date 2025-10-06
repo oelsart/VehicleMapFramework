@@ -1,8 +1,5 @@
-﻿using HarmonyLib;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Emit;
-using Verse;
+﻿using System.Collections.Generic;
+using HarmonyLib;
 using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;

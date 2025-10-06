@@ -1,6 +1,6 @@
-﻿using HarmonyLib;
+﻿using System;
+using HarmonyLib;
 using RimWorld;
-using System;
 using Verse.AI;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
