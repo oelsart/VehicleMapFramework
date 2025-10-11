@@ -32,7 +32,7 @@ public static class VehicleMapUtility
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsVehicleMapOf(this Map map, out VehiclePawnWithMap vehicle)
     {
-        if (map.Parent is MapParent_Vehicle mapParent)
+        if (map?.Parent is MapParent_Vehicle mapParent)
         {
             vehicle = mapParent.vehicle;
             return true;

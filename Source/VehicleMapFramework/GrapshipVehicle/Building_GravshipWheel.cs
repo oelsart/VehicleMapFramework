@@ -107,7 +107,7 @@ namespace VehicleMapFramework
 
         public void GenerateGravshipVehicle()
         {
-            var report = GravshipVehicleUtility.GenerateGravshipVehicle(CompGravshipFacility?.engine);
+            var report = GravshipVehicleUtility.GenerateGravshipVehicle(CompGravshipFacility?.engine, VMF_DefOf.VMF_GravshipVehicleBase);
             if (!report.Accepted)
             {
                 Messages.Message(report.Reason, MessageTypeDefOf.RejectInput, false);

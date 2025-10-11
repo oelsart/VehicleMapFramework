@@ -1,0 +1,13 @@
+{
+  "profiles": {
+    "VehicleMapFramework": {
+      "commandName": "Project"
+    },
+    "RimWorld": {
+      "commandName": "Executable",
+      "executablePath": "E:\\Program Files (x86)\\Steam\\steamapps\\common\\RimWorld\\RimWorldWin64.exe",
+      "commandLineArgs": "-popupwindow",
+      "workingDirectory": "E:\\Program Files (x86)\\Steam\\steamapps\\common\\RimWorld\\"
+    }
+  }
+}

@@ -501,12 +501,9 @@ public static class Patch_DesignationManager_DesignationOn
     public static bool Prefix1(Thing t, DesignationManager __instance, ref Designation __result)
     {
         var thingMap = t.MapHeld;
-        if (thingMap != null && thingMap != __instance.map)
-        {
-            __result = thingMap.designationManager.DesignationOn(t);
-            return false;
-        }
-        return true;
+        if (thingMap == null || thingMap == __instance.map) return true;
+        __result = thingMap.designationManager.DesignationOn(t);
+        return false;
     }
 
     [HarmonyPatch([typeof(Thing), typeof(DesignationDef)])]

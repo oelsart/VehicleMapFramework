@@ -52,4 +52,7 @@ public static class VMF_DefOf
 
     [MayRequireOdyssey]
     public static VehicleDef VMF_GravshipVehicleBase;
+
+    [MayRequireOdyssey]
+    public static VehicleDef VMF_GravshipVehicleBaseSpace;
 }

@@ -130,7 +130,7 @@ namespace VehicleMapFramework
             return true;
         }
 
-        public static AcceptanceReport GenerateGravshipVehicle(Building_GravEngine engine)
+        public static AcceptanceReport GenerateGravshipVehicle(Building_GravEngine engine, VehicleDef baseDef, bool checkStability = true)
         {
             if (!ModsConfig.OdysseyActive || GravshipProcessInProgress) return false;
             if (engine is null || !engine.Spawned)
@@ -146,8 +146,9 @@ namespace VehicleMapFramework
             var rot = console.parent.Rotation;
             var rotCounter = rot.IsHorizontal ? rot.Opposite : rot;
 
+            // wheelsRectを車両に確実に含めるためcheckStabilityがfalseの場合もチェック自体はする
             var stability = CheckGravshipVehicleStability(engine, rot, out var wheelsRect);
-            if (!stability.Accepted)
+            if (checkStability && !stability.Accepted)
             {
                 return stability.Reason;
             }
@@ -167,9 +168,13 @@ namespace VehicleMapFramework
                 return "VMF_ContainsForbidOnVehicle".Translate(thing?.LabelCapNoCount);
             }
             var bounds = CellRect.FromCellList(cells);
-            var cellRect = bounds.Encapsulate(wheelsRect);
+            var cellRect = bounds;
+            if (wheelsRect != CellRect.Empty)
+            {
+                cellRect = cellRect.Encapsulate(wheelsRect);
+            }
             var outOfBoundsCells = cellRect.Except(cells);
-            var pathGrid = map.GetCachedMapComponent<VehiclePathingSystem>()[VMF_DefOf.VMF_GravshipVehicleBase].VehiclePathGrid;
+            var pathGrid = map.GetCachedMapComponent<VehiclePathingSystem>()[baseDef].VehiclePathGrid;
             var unwalkableCells = outOfBoundsCells.Where(c => !pathGrid.WalkableFast(c)).ToList();
             if (unwalkableCells.Any())
             {
@@ -181,7 +186,7 @@ namespace VehicleMapFramework
             VehicleMapProps_Gravship props = new()
             {
                 defName = $"GravshipVehicle{engine.GetHashCode()}_",
-                baseDef = VMF_DefOf.VMF_GravshipVehicleBase,
+                baseDef = baseDef,
                 size = rot.IsHorizontal ? cellRect.Size.Rotated() : cellRect.Size,
                 offset = new Vector3(0f, 0f, 0.25f),
                 outOfBoundsCells = [.. cellRect.Except(cells).Select(c => (c - min).RotatedBy(rotCounter).ToIntVec2)]
@@ -313,6 +318,7 @@ namespace VehicleMapFramework
 
             var wheelsRect2 = wheelsRect;
             wheelsRect2.ClipInsideRect(bounds);
+            // ReSharper disable once InvertIf
             if (wheels.Count < 3 || (float)wheelsRect2.Area / bounds.Area < 0.5f)
             {
                 wheelsRect2.Do(c => engine.Map.debugDrawer.FlashCell(c, 0.25f, null, 5));

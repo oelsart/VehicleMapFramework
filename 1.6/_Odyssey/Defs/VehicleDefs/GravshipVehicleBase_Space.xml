@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<Defs>
+	<Vehicles.VehicleDef ParentName="BaseVehiclePawnWithMap" MayRequire="Ludeon.RimWorld.Odyssey">
+		<defName>VMF_GravshipVehicleBaseSpace</defName>
+		<label>Gravship vehicle</label>
+		<enabled>None</enabled>
+
+		<graphicData>
+			<texPath>VehicleMapFramework/UI/GravshipVehicleMode</texPath>
+			<graphicClass>Vehicles.Graphic_Vehicle</graphicClass>
+			<shaderType>CutoutComplexPattern</shaderType>
+			<drawSize>0.0000001</drawSize>
+		</graphicData>
+
+		<fillPercent>0</fillPercent>
+
+		<buildDef>VMF_GravshipVehicleBaseSpace_Blueprint</buildDef>
+		
+		<vehicleCategory>Transport</vehicleCategory>
+		<techLevel>Archotech</techLevel>
+		<vehicleType>Air</vehicleType>
+		
+		<vehicleStats>
+			<MoveSpeed>0.00000001</MoveSpeed>
+			<CargoCapacity>0</CargoCapacity>
+			<RepairRate>1.5</RepairRate>
+			<MaximumPayload>0</MaximumPayload>
+			<FlightSpeed>25</FlightSpeed>
+		</vehicleStats>
+
+		<properties>
+			<customTerrainCosts AllowTerrainWithTag="Space" PathCost="1"/>
+		</properties>
+		
+		<soundSustainersOnEvent>
+			<li>
+				<start>AerialVehicleLaunch</start>
+				<stop>AerialVehicleLeftMap</stop>
+				<value>Gravship_Engine_Loop</value>
+			</li>
+			<li>
+				<start>AerialVehicleLanding</start>
+				<stop>Spawned</stop>
+				<value>Gravship_Engine_Loop</value>
+			</li>
+		</soundSustainersOnEvent>
+		
+		<soundOneShotsOnEvent Inherit="False">
+			<li>
+				<key>IgnitionOn</key>
+				<value>Gravship_Engine_Start</value>
+			</li>
+			<li>
+				<key>IgnitionOff</key>
+				<value>Gravship_Engine_Stop</value>
+			</li>
+		</soundOneShotsOnEvent>
+
+		<components>
+			<li>
+				<key>Hull</key>
+				<label>Hull</label>
+				<health>10000</health>
+				<depth>External</depth>
+				<hitbox>
+					<side>Body</side>
+				</hitbox>
+			</li>
+		</components>
+		
+		<comps>
+			<li Class="Vehicles.CompProperties_FueledTravel">
+				<compClass>VehicleMapFramework.CompFueledTravelGravship</compClass>
+				<fuelType>Chemfuel</fuelType>
+				<leakDef>Filth_Fuel</leakDef>
+				<fuelConsumptionCondition>Moving,Flying</fuelConsumptionCondition>
+				<fuelConsumptionRate>1000</fuelConsumptionRate>
+				<fuelConsumptionWorldMultiplier>15</fuelConsumptionWorldMultiplier>
+			</li>
+		</comps>
+	</Vehicles.VehicleDef>
+	
+	<Vehicles.VehicleBuildDef ParentName="VehicleWithMapBaseBuildable" MayRequire="Ludeon.RimWorld.Odyssey">
+		<defName>VMF_GravshipVehicleBaseSpace_Blueprint</defName>
+		<label>Gravship vehicle</label>
+		<graphicData>
+			<texPath>VehicleMapFramework/ClearTex</texPath>
+			<graphicClass>Vehicles.Graphic_Vehicle</graphicClass>
+		</graphicData>
+
+		<statBases>
+			<MaxHitPoints>99999</MaxHitPoints>
+			<WorkToBuild>99999</WorkToBuild>
+			<Flammability>0</Flammability>
+		</statBases>
+
+		<thingToSpawn>VMF_GravshipVehicleBase</thingToSpawn>
+	</Vehicles.VehicleBuildDef>
+</Defs>
