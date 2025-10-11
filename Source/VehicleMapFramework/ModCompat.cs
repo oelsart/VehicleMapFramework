@@ -90,7 +90,7 @@ internal static class ModCompat
 
         public static readonly Type Building_Pipe;
 
-        public static FastInvokeHandler PrintForGrid;
+        public static readonly FastInvokeHandler PrintForGrid;
 
         public static readonly Type CompProperties_Pipe;
 
@@ -165,7 +165,7 @@ internal static class ModCompat
 
         public static readonly Type Building_Pipe;
 
-        public static FastInvokeHandler PrintForGrid;
+        public static readonly FastInvokeHandler PrintForGrid;
 
         public static readonly Type CompProperties_Pipe;
 
@@ -256,8 +256,6 @@ internal static class ModCompat
         }
     }
 
-    public static readonly bool EnterHere = ModsConfig.IsActive("Mlie.EnterHere");
-
     public static readonly bool ExosuitFramework = ModsConfig.IsActive("Aoba.Exosuit.Framework");
 
     public static readonly bool GiantImperialTurret = ModsConfig.IsActive("XMB.Giantimperialcannonturret.MO");
@@ -300,9 +298,9 @@ internal static class ModCompat
     {
         public static readonly bool Active = ModsConfig.IsActive("Haplo.Miscellaneous.Robots");
 
-        public static Type X2_AIRobot;
+        public static readonly Type X2_AIRobot;
 
-        public static AccessTools.FieldRef<Pawn, Building> rechargeStation;
+        public static readonly AccessTools.FieldRef<Pawn, Building> rechargeStation;
 
         static MiscRobots()
         {
@@ -488,40 +486,6 @@ internal static class ModCompat
 
     public static readonly bool YayosCombat3 = ModsConfig.IsActive("Mlie.YayosCombat3");
 
-    public static class TakeItToStorage
-    {
-        public static readonly bool Active = ModsConfig.IsActive("legodude17.htsb");
-
-        public delegate bool FindCellGetter(Pawn pawn, List<Thing> things, ref IntVec3 cell);
-
-        public static readonly FindCellGetter FindCell;
-
-        static TakeItToStorage()
-        {
-            if (Active)
-            {
-                try
-                {
-                    var method = AccessTools.Method("HaulToBuilding.Toils_Recipe_Patches:FindCell");
-                    FindCell = AccessTools.MethodDelegate<FindCellGetter>(method);
-                }
-                catch (Exception ex)
-                {
-                    VMF_Log.Error(ex.Message);
-                    Active = false;
-                }
-                finally
-                {
-                    if (AnyNull(FindCell))
-                    {
-                        LogIncompat("TakeItToStorage");
-                        Active = false;
-                    }
-                }
-            }
-        }
-    }
-
     public static readonly bool PickUpAndHaul = ModsConfig.IsActive("Mehni.PickUpAndHaul") || ModsConfig.IsActive("Teemo.PickUpAndHaulForked");
 
     public static class EnergyShield
@@ -565,38 +529,6 @@ internal static class ModCompat
     public static readonly bool Aquariums = ModsConfig.IsActive("Nightmare.Aquariums");
 
     public static readonly bool SmartPistol = ModsConfig.IsActive("rabiosus.smartpistol");
-
-    public static class PawnStorages
-    {
-        public static bool Active = ModsConfig.IsActive("Orpheusly.PawnStorages");
-
-        public static Action<Vector3, Pawn, List<FloatMenuOption>> MutantOrdersPatch;
-
-        static PawnStorages()
-        {
-            if (Active)
-            {
-                try
-                {
-                    var method = AccessTools.Method("PawnStorages.MutantOrdersPatch:Postfix");
-                    MutantOrdersPatch = AccessTools.MethodDelegate<Action<Vector3, Pawn, List<FloatMenuOption>>>(method);
-                }
-                catch (Exception ex)
-                {
-                    VMF_Log.Error(ex.Message);
-                    Active = false;
-                }
-                finally
-                {
-                    if (AnyNull(MutantOrdersPatch))
-                    {
-                        LogIncompat("PawnStorages");
-                        Active = false;
-                    }
-                }
-            }
-        }
-    }
 
     public static readonly bool ReGrowth = ModsConfig.IsActive("ReGrowth.BOTR.Core");
 
