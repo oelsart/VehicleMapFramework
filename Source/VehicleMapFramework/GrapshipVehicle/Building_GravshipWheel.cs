@@ -29,26 +29,23 @@ namespace VehicleMapFramework
         {
             get
             {
-                if (Map?.GetCachedMapComponent<VehiclePawnWithMapCache>()?.cacheMode ?? false)
-                {
-                    var drawPos = base.DrawPos;
-                    if (tmpRot is null) return drawPos;
-                    if (!ValidFor(Rot4.North)) return drawPos;
+                if (!(Map?.GetCachedMapComponent<VehiclePawnWithMapCache>()?.cacheMode ?? false)) return base.DrawPos;
+                
+                var drawPos = base.DrawPos;
+                if (tmpRot is null || !ValidFor(Rot4.North)) return drawPos;
 
-                    drawPos += new Vector3(0f, 0f, -0.2f).RotatedBy(VehicleMapUtility.RotForPrintCounter);
-                    var offset = new Vector3(DrawSize.x * 0.07f, 0f, 0f);
-                    if (VehicleMapUtility.RotForPrint.IsVertical || tmpRot == VehicleMapUtility.RotForPrint)
-                    {
-                        offset.y -= Altitudes.AltInc * 250f;
-                    }
-                    if (tmpRot == Rot4.West)
-                    {
-                        offset.x = -offset.x;
-                    }
-                    drawPos += offset;
-                    return drawPos;
+                drawPos += new Vector3(0f, 0f, -0.2f).RotatedBy(VehicleMapUtility.RotForPrintCounter);
+                var offset = new Vector3(DrawSize.x * 0.07f, 0f, 0f);
+                if (VehicleMapUtility.RotForPrint.IsVertical || tmpRot == VehicleMapUtility.RotForPrint)
+                {
+                    offset.y -= Altitudes.AltInc * 250f;
                 }
-                return base.DrawPos;
+                if (tmpRot == Rot4.West)
+                {
+                    offset.x = -offset.x;
+                }
+                drawPos += offset;
+                return drawPos;
             }
         }
 
@@ -87,26 +84,25 @@ namespace VehicleMapFramework
                 };
             }
 
-            if (vehicle == null || !ValidFor(Rot4.North))
+            if (vehicle != null && ValidFor(Rot4.North)) yield break;
+            
+            var des = BuildCopyCommandUtility.FindAllowedDesignator(def);
+            yield return new Command_FlipBuilding
             {
-                var des = BuildCopyCommandUtility.FindAllowedDesignator(def);
-                yield return new Command_FlipBuilding
+                defaultLabel = "VMF_Flip".Translate(),
+                action = () =>
                 {
-                    defaultLabel = "VMF_Flip".Translate(),
-                    action = () =>
-                    {
-                        flipped = !flipped;
-                        DirtyMapMesh(Map);
-                    },
-                    icon = des?.ResolvedIcon(StyleDef),
-                    iconProportions = des?.iconProportions ?? default,
-                    iconDrawScale = des?.iconDrawScale ?? default,
-                    iconTexCoords = des?.iconTexCoords ?? default,
-                    iconAngle = des?.iconAngle ?? default,
-                    iconOffset = des?.iconOffset ?? default,
-                    commandIcon = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/FlipIcon")
-                };
-            }
+                    flipped = !flipped;
+                    DirtyMapMesh(Map);
+                },
+                icon = des?.ResolvedIcon(StyleDef),
+                iconProportions = des?.iconProportions ?? default,
+                iconDrawScale = des?.iconDrawScale ?? 0f,
+                iconTexCoords = des?.iconTexCoords ?? default,
+                iconAngle = des?.iconAngle ?? 0f,
+                iconOffset = des?.iconOffset ?? default,
+                commandIcon = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/FlipIcon")
+            };
         }
 
         public void GenerateGravshipVehicle()
@@ -133,14 +129,14 @@ namespace VehicleMapFramework
             var onVehicle = this.IsOnVehicleMapOf(out var vehicle) && vehicle.Spawned;
             base.DeSpawn(mode);
             AcceptanceReport report;
-            if (onVehicle && engine is not null && !GravshipVehicleUtility.GravshipProcessInProgress && !(report = GravshipVehicleUtility.CheckGravshipVehicleStability(engine, Rot4.North, out _)).Accepted)
+            if (!onVehicle || engine is null || GravshipVehicleUtility.GravshipProcessInProgress ||
+                (report = GravshipVehicleUtility.CheckGravshipVehicleStability(engine, Rot4.North, out _))
+                .Accepted) return;
+            Messages.Message(report.Reason, MessageTypeDefOf.NegativeEvent);
+            LongEventHandler.QueueLongEvent(() =>
             {
-                Messages.Message(report.Reason, MessageTypeDefOf.NegativeEvent);
-                LongEventHandler.QueueLongEvent(() =>
-                {
-                    GravshipVehicleUtility.PlaceGravshipVehicle(engine, vehicle, true);
-                }, "VMF_GravshipVehicleDestroyed".Translate(), false, null, false);
-            }
+                GravshipVehicleUtility.PlaceGravshipVehicle(engine, vehicle, true);
+            }, "VMF_GravshipVehicleDestroyed".Translate(), false, null, false);
         }
 
         public override void Print(SectionLayer layer)

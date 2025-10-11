@@ -6,6 +6,7 @@ using RimWorld;
 using RimWorld.Planet;
 using SmashTools;
 using SmashTools.Rendering;
+using UnityEngine;
 using Vehicles;
 using Verse;
 using static VehicleMapFramework.ModCompat;
@@ -71,29 +72,27 @@ namespace VehicleMapFramework
             }
 
             placingGravshipVehicle = true;
-            var curretGravship = Current.Game.Gravship;
+            var currentGravship = Current.Game.Gravship;
             try
             {
                 var map = vehicle.Map;
                 foreach (var c in engine.AllConnectedSubstructure)
                 {
                     var report = IsValidCell(c.ToBaseMapCoord(vehicle), map);
-                    if (!report.Accepted)
+                    if (report.Accepted) continue;
+                    if (!forced)
                     {
-                        if (!forced)
-                        {
-                            return report;
-                        }
-                        var terrainGrid = vehicle.VehicleMap.terrainGrid;
-                        if (terrainGrid.CanRemoveFoundationAt(c))
-                        {
-                            terrainGrid.RemoveFoundation(c);
-                        }
-                        c.GetThingList(vehicle.VehicleMap)
-                            .SelectMany(t => t.OccupiedRect().Cells)
-                            .Distinct()
-                            .DoIf(terrainGrid.CanRemoveFoundationAt, c => terrainGrid.RemoveFoundation(c));
+                        return report;
                     }
+                    var terrainGrid = vehicle.VehicleMap.terrainGrid;
+                    if (terrainGrid.CanRemoveFoundationAt(c))
+                    {
+                        terrainGrid.RemoveFoundation(c);
+                    }
+                    c.GetThingList(vehicle.VehicleMap)
+                        .SelectMany(t => t.OccupiedRect().Cells)
+                        .Distinct()
+                        .DoIf(terrainGrid.CanRemoveFoundationAt, intVec3 => terrainGrid.RemoveFoundation(intVec3));
                 }
                 vehicle.DisembarkAll();
 
@@ -118,16 +117,14 @@ namespace VehicleMapFramework
                 foreach (var r in roomStats)
                 {
                     var room = r.Item1.GetRoom(map);
-                    if (room is { ExposedToSpace: false, AnyPassable: true })
-                    {
-                        room.Temperature = r.Temperature;
-                        room.Vacuum = r.Vacuum;
-                    }
+                    if (room is not { ExposedToSpace: false, AnyPassable: true }) continue;
+                    room.Temperature = r.Temperature;
+                    room.Vacuum = r.Vacuum;
                 }
             }
             finally
             {
-                Current.Game.Gravship = curretGravship;
+                Current.Game.Gravship = currentGravship;
                 placingGravshipVehicle = false;
             }
             return true;
@@ -186,11 +183,11 @@ namespace VehicleMapFramework
                 defName = $"GravshipVehicle{engine.GetHashCode()}_",
                 baseDef = VMF_DefOf.VMF_GravshipVehicleBase,
                 size = rot.IsHorizontal ? cellRect.Size.Rotated() : cellRect.Size,
-                offset = new(0f, 0f, 0.25f),
+                offset = new Vector3(0f, 0f, 0.25f),
                 outOfBoundsCells = [.. cellRect.Except(cells).Select(c => (c - min).RotatedBy(rotCounter).ToIntVec2)]
             };
 
-            var curretGravship = Current.Game.Gravship;
+            var currentGravship = Current.Game.Gravship;
             try
             {
                 VMF_Log.DebugMessage($"Create or get VehicleDef: {props.defName}");
@@ -270,7 +267,7 @@ namespace VehicleMapFramework
             }
             finally
             {
-                Current.Game.Gravship = curretGravship;
+                Current.Game.Gravship = currentGravship;
             }
 
             return true;

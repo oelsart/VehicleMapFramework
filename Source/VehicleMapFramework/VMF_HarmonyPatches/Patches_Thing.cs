@@ -110,7 +110,7 @@ public static class Patch_Building_SupportedDoor_DrawAt
                 yield return new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf);
                 yield return new CodeInstruction(OpCodes.Brfalse_S, label);
                 yield return new CodeInstruction(OpCodes.Ldloc_S, vehicle);
-                yield return new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_YOffsetFull2);
+                yield return new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_YOffsetFull);
                 yield return instruction.WithLabels(label);
             }
             else if (instruction.Calls(CachedMethodInfo.g_Thing_Rotation) && num < 2)

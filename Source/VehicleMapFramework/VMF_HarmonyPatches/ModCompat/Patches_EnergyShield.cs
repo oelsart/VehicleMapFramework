@@ -171,7 +171,7 @@ public static class Patch_Comp_ShieldGenerator_PostDraw
             {
                 yield return CodeInstruction.LoadArgument(0);
                 yield return CodeInstruction.LoadField(typeof(ThingComp), nameof(ThingComp.parent));
-                yield return new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ToThingBaseMapCoord2);
+                yield return new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ToThingBaseMapCoord);
             }
         }
     }

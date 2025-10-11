@@ -440,7 +440,7 @@ public static class Patch_Graphic_Shadow_DrawWorker
             new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf),
             new CodeInstruction(OpCodes.Brfalse_S, label),
             new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_YOffsetFull2));
+            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_YOffsetFull));
 
         codes.MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Rot4_AsQuat));
         codes.Operand = CachedMethodInfo.m_Rot8_AsQuatRef;

@@ -124,7 +124,7 @@ public static class Patch_Building_DrillTurret_DrawAt
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var m_ToVector3Override = AccessTools.Method(typeof(Patch_Building_DrillTurret_DrawAt), nameof(ToVector3Override));
-        return instructions.MethodReplacer(CachedMethodInfo.m_IntVec3_ToVector3ShiftedWithAltitude2, m_ToVector3Override);
+        return instructions.MethodReplacer(CachedMethodInfo.m_IntVec3_ToVector3ShiftedWithAltitude, m_ToVector3Override);
     }
 
     public static Vector3 ToVector3Override(ref IntVec3 c, float AddedAltitude)

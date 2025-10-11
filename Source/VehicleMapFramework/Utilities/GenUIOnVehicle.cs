@@ -37,11 +37,9 @@ public static class GenUIOnVehicle
         cellThings.Clear();
         foreach (var thing4 in map.thingGrid.ThingsAt(intVec))
         {
-            if (!list.Contains(thing4) && clickParams.CanTarget(thing4, source))
-            {
-                cellThings.Add(thing4);
-                cellThings.AddRange(ContainingSelectionUtility.SelectableContainedThings(thing4));
-            }
+            if (list.Contains(thing4) || !clickParams.CanTarget(thing4, source)) continue;
+            cellThings.Add(thing4);
+            cellThings.AddRange(ContainingSelectionUtility.SelectableContainedThings(thing4));
         }
         var adjacentCells = GenAdj.AdjacentCells;
         foreach (var t in adjacentCells)
@@ -57,12 +55,11 @@ public static class GenUIOnVehicle
             }
         }
         var list2 = map.listerThings.ThingsInGroup(ThingRequestGroup.WithCustomRectForSelector);
-        foreach (var thing3 in list2)
+        foreach (var thing3 in list2.Where(thing3 =>
+                     thing3.CustomRectForSelector != null && thing3.CustomRectForSelector.Value.Contains(intVec) &&
+                     !list.Contains(thing3) && clickParams.CanTarget(thing3, source)))
         {
-            if (thing3.CustomRectForSelector != null && thing3.CustomRectForSelector.Value.Contains(intVec) && !list.Contains(thing3) && clickParams.CanTarget(thing3, source))
-            {
-                cellThings.Add(thing3);
-            }
+            cellThings.Add(thing3);
         }
         cellThings.Sort(CompareThingsByDrawAltitudeOrDistToItem);
         list.AddRange(cellThings);
@@ -82,7 +79,7 @@ public static class GenUIOnVehicle
         }
         list.RemoveAll(thing => !clickParams.CanTarget(thing, source));
         list.RemoveAll(thing => thing is Pawn pawn3 && pawn3.IsHiddenFromPlayer());
-        list.Remove(vehicleForSelector);
+        list.Remove(vehicle);
         return list;
 
         int CompareThingsByDistanceToMousePointer(Thing a, Thing b)
@@ -121,9 +118,9 @@ public static class GenUIOnVehicle
         var convToVehicleMap = Find.CurrentMap.IsVehicleMapOf(out var vehicle);
         if (convToVehicleMap || !clickPos.TryGetVehicleMap(Find.CurrentMap, out vehicle, VehicleMapFlag.None) ||
             source is not (Verb_Jump or Verb_CastAbilityJump or Verb_LaunchZipline))
-            return [.. TargetsAt(clickPos, clickParams, thingsOnly, source, vehicle, convToVehicleMap)];
-        TargetMapManager.SetTargetMap(source?.Caster, vehicle.VehicleMap);
-        return [.. TargetsAt(clickPos, clickParams, thingsOnly, source, vehicle, false)];
+            return TargetsAt(clickPos, clickParams, thingsOnly, source, vehicle, convToVehicleMap);
+        TargetMapManager.SetTargetMap(source.Caster, vehicle.VehicleMap);
+        return TargetsAt(clickPos, clickParams, thingsOnly, source, vehicle, false);
     }
 
     public static IEnumerable<LocalTargetInfo> TargetsAt(Vector3 clickPos, TargetingParameters clickParams, bool thingsOnly, ITargetingSource source = null, bool convToVehicleMap = true)
@@ -133,15 +130,9 @@ public static class GenUIOnVehicle
 
     public static IEnumerable<LocalTargetInfo> TargetsAt(Vector3 clickPos, TargetingParameters clickParams, bool thingsOnly, ITargetingSource source, VehiclePawnWithMap vehicle, bool convToVehicleMap = true)
     {
-        List<Thing> clickableList;
-        if (vehicle != null)
-        {
-            clickableList = ThingsUnderMouse(clickPos, 0.8f, clickParams, source, vehicle);
-        }
-        else
-        {
-            clickableList = GenUI.ThingsUnderMouse(clickPos, 0.8f, clickParams, source);
-        }
+        var clickableList = vehicle != null
+            ? ThingsUnderMouse(clickPos.ToVehicleMapCoord(vehicle), 0.8f, clickParams, source, vehicle)
+            : GenUI.ThingsUnderMouse(clickPos, 0.8f, clickParams, source);
         var caster = source?.Caster;
         int num;
         for (var i = 0; i < clickableList.Count; i = num + 1)
@@ -158,14 +149,13 @@ public static class GenUIOnVehicle
             }
             num = i;
         }
-        if (!thingsOnly)
+
+        if (thingsOnly) yield break;
+        var intVec = (convToVehicleMap && vehicle != null) ? clickPos.ToVehicleMapCoord(vehicle).ToIntVec3() : clickPos.ToIntVec3();
+        var map = (convToVehicleMap && vehicle != null) ? vehicle.VehicleMap : Find.CurrentMap;
+        if (intVec.InBounds(map, clickParams.mapBoundsContractedBy) && clickParams.CanTarget(new TargetInfo(intVec, map), source))
         {
-            var intVec = (convToVehicleMap && vehicle != null) ? clickPos.ToVehicleMapCoord(vehicle).ToIntVec3() : clickPos.ToIntVec3();
-            var map = (convToVehicleMap && vehicle != null) ? vehicle.VehicleMap : Find.CurrentMap;
-            if (intVec.InBounds(map, clickParams.mapBoundsContractedBy) && clickParams.CanTarget(new TargetInfo(intVec, map), source))
-            {
-                yield return intVec;
-            }
+            yield return intVec;
         }
     }
 }

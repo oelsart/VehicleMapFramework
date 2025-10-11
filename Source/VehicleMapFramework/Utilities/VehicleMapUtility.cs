@@ -32,13 +32,13 @@ public static class VehicleMapUtility
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsVehicleMapOf(this Map map, out VehiclePawnWithMap vehicle)
     {
-        if (map == null || !VehicleMapParentsComponent.CachedMapParentVehicle.TryGetValue(map, out var mapParent))
+        if (map.Parent is MapParent_Vehicle mapParent)
         {
-            vehicle = null;
-            return false;
+            vehicle = mapParent.vehicle;
+            return true;
         }
-        vehicle = mapParent?.vehicle;
-        return vehicle != null;
+        vehicle = null;
+        return false;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

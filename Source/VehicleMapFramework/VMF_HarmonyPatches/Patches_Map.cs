@@ -87,12 +87,11 @@ public static class Patch_Reachability_CanReach
         {
             return true;
         }
-        if (departMap != destMap || departMap != ___map)
-        {
-            __result = CrossMapReachabilityUtility.CanReach(departMap, start, dest, peMode, traverseParams, destMap);
-            return false;
-        }
-        return true;
+
+        if (departMap == destMap && departMap == ___map) return true;
+        
+        __result = CrossMapReachabilityUtility.CanReach(departMap, start, dest, peMode, traverseParams, destMap);
+        return false;
     }
 
     [PatchLevel(Level.Cautious)]

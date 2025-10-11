@@ -32,11 +32,10 @@ public class VehiclePawnWithMapCache : MapComponent
             return;
         }
         hashSet.Remove(vehicle);
-        if (Command_FocusVehicleMap.FocusedVehicle == vehicle)
-        {
-            Command_FocusVehicleMap.FocusLockedVehicle = null;
-            Command_FocusVehicleMap.FocusedVehicle = null;
-        }
+        if (Command_FocusVehicleMap.FocusedVehicle != vehicle) return;
+        
+        Command_FocusVehicleMap.FocusLockedVehicle = null;
+        Command_FocusVehicleMap.FocusedVehicle = null;
     }
 
     public static IReadOnlyCollection<VehiclePawnWithMap> TryGetAllVehiclesOn(Map map)
@@ -69,25 +68,24 @@ public class VehiclePawnWithMapCache : MapComponent
 
     private void CacheDrawPos()
     {
-        if (map.IsVehicleMapOf(out var vehicle))
+        if (!map.IsVehicleMapOf(out var vehicle)) return;
+        
+        cacheMode = true;
+        if (vehicle.vehiclePather?.Moving ?? false)
         {
-            cacheMode = true;
-            if (vehicle.vehiclePather?.Moving ?? false)
+            map.listerThings.AllThings.ForEach(t =>
             {
-                map.listerThings.AllThings.ForEach(t =>
-                {
-                    cachedDrawPos[t] = t.DrawPos.ToBaseMapCoord(vehicle);
-                });
-            }
-            else
-            {
-                map.dynamicDrawManager.DrawThings.Do(t =>
-                {
-                    cachedDrawPos[t] = t.DrawPos.ToBaseMapCoord(vehicle);
-                });
-            }
-            cacheMode = false;
+                cachedDrawPos[t] = t.DrawPos.ToBaseMapCoord(vehicle);
+            });
         }
+        else
+        {
+            map.dynamicDrawManager.DrawThings.Do(t =>
+            {
+                cachedDrawPos[t] = t.DrawPos.ToBaseMapCoord(vehicle);
+            });
+        }
+        cacheMode = false;
     }
 
     public override void MapComponentUpdate()
@@ -100,11 +98,11 @@ public class VehiclePawnWithMapCache : MapComponent
         VehicleMapParentsComponent.CachedMapParentVehicle.Remove(map);
     }
 
-    public Dictionary<Thing, Vector3> cachedDrawPos = [];
+    public readonly Dictionary<Thing, Vector3> cachedDrawPos = [];
 
-    public Dictionary<Thing, IntVec3> cachedPosOnBaseMap = [];
+    public readonly Dictionary<Thing, IntVec3> cachedPosOnBaseMap = [];
 
-    public Dictionary<VehiclePawn, Rot8> cachedFullRot = [];
+    public readonly Dictionary<VehiclePawn, Rot8> cachedFullRot = [];
 
     private int lastCachedTick = -1;
 

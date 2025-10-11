@@ -20,12 +20,11 @@ public static class Patch_FloatMenuContext_Constructor
     [PatchLevel(Level.Safe)]
     public static void Prefix(ref Vector3 clickPosition, ref Map map)
     {
-        if (clickPosition.TryGetVehicleMap(Find.CurrentMap, out var vehicle, VehicleMapFlag.None))
-        {
-            GenUIOnVehicle.vehicleForSelector = vehicle;
-            clickPosition = clickPosition.ToVehicleMapCoord(vehicle);
-            map = vehicle.CurrentLevel;
-        }
+        if (!clickPosition.TryGetVehicleMap(Find.CurrentMap, out var vehicle, VehicleMapFlag.None)) return;
+        
+        GenUIOnVehicle.vehicleForSelector = vehicle;
+        clickPosition = clickPosition.ToVehicleMapCoord(vehicle);
+        map = vehicle.CurrentLevel;
     }
 
     [PatchLevel(Level.Safe)]
@@ -111,7 +110,7 @@ public static class Patch_FloatMenuMap_StillValid
         [
             CodeInstruction.LoadArgument(0),
             CodeInstruction.LoadField(typeof(FloatMenuOption), nameof(FloatMenuOption.revalidateClickTarget)),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ToThingBaseMapCoord2)
+            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ToThingBaseMapCoord)
         ]);
         return codes;
     }
@@ -398,14 +397,11 @@ public static class Patch_FloatMenuOptionProvider_DraftedMove_PawnGotoAction
             }
             else if (!baseMap.IsPlayerHome && !baseMap.exitMapGrid.MapUsesExitGrid && pawn.Map == baseMap && CellRect.WholeMap(baseMap).IsOnEdge(clickCell, 3) && baseMap.Parent.GetComponent<FormCaravanComp>() != null && MessagesRepeatAvoider.MessageShowAllowed("MessagePlayerTriedToLeaveMapViaExitGrid-" + baseMap.uniqueID, 60f))
             {
-                if (baseMap.Parent.GetComponent<FormCaravanComp>().CanFormOrReformCaravanNow)
-                {
-                    Messages.Message("MessagePlayerTriedToLeaveMapViaExitGrid_CanReform".Translate(), baseMap.Parent, MessageTypeDefOf.RejectInput, false);
-                }
-                else
-                {
-                    Messages.Message("MessagePlayerTriedToLeaveMapViaExitGrid_CantReform".Translate(), baseMap.Parent, MessageTypeDefOf.RejectInput, false);
-                }
+                Messages.Message(
+                    baseMap.Parent.GetComponent<FormCaravanComp>().CanFormOrReformCaravanNow
+                        ? "MessagePlayerTriedToLeaveMapViaExitGrid_CanReform".Translate()
+                        : "MessagePlayerTriedToLeaveMapViaExitGrid_CantReform".Translate(), baseMap.Parent,
+                    MessageTypeDefOf.RejectInput, false);
             }
             flag = pawn.jobs.TryTakeOrderedJob(job, JobTag.Misc);
         }
@@ -471,7 +467,6 @@ public static class Patch_FloatMenuOptionProvider_WorkGivers_GetWorkGiverOption
         codes.Operand = CachedMethodInfo.m_TargetCellOnBaseMap;
         codes.Insert(CodeInstruction.LoadArgument(1));
 
-        var m_InAllowedArea = AccessTools.Method(typeof(ForbidUtility), nameof(ForbidUtility.InAllowedArea));
         codes.MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_LocalTargetInfo_Cell));
         codes.Operand = CachedMethodInfo.m_TargetCellOnBaseMap;
         codes.Insert(CodeInstruction.LoadArgument(1));

@@ -54,21 +54,15 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
     {
         public static void Postfix(ThingWithComps ___parent, CompRefuelable ___compRefuelable, CompProperties ___props)
         {
-            if (___parent.Spawned)
-            {
-                CompFuelTank compFuelTank = default;
-                var fuelTank = ___parent.InteractionCell.GetThingList(___parent.Map).FirstOrDefault(t => t.TryGetComp(out compFuelTank));
-                if (fuelTank != null && ___compRefuelable.HasFuel && fuelTank.IsOnVehicleMapOf(out var vehicle))
-                {
-                    var compFueledTravel = vehicle.CompFueledTravel;
-                    if (compFueledTravel != null && compFueledTravel.Fuel < compFueledTravel.FuelCapacity && !compFueledTravel.FuelLeaking)
-                    {
-                        var amount = Mathf.Min(compFueledTravel.FuelCapacity - compFueledTravel.Fuel, refuelAmountPerTick(___props));
-                        compFueledTravel.Refuel(amount);
-                        ___compRefuelable.ConsumeFuel(amount);
-                    }
-                }
-            }
+            if (!___parent.Spawned) return;
+            var fuelTank = ___parent.InteractionCell.GetThingList(___parent.Map).FirstOrDefault(t => t.TryGetComp(out CompFuelTank _));
+            if (fuelTank == null || !___compRefuelable.HasFuel || !fuelTank.IsOnVehicleMapOf(out var vehicle)) return;
+            var compFueledTravel = vehicle.CompFueledTravel;
+            if (compFueledTravel == null || !(compFueledTravel.Fuel < compFueledTravel.FuelCapacity) ||
+                compFueledTravel.FuelLeaking) return;
+            var amount = Mathf.Min(compFueledTravel.FuelCapacity - compFueledTravel.Fuel, refuelAmountPerTick(___props));
+            compFueledTravel.Refuel(amount);
+            ___compRefuelable.ConsumeFuel(amount);
         }
     }
 }

@@ -26,6 +26,8 @@ public static class Patches_VEF
     public const string CategoryPirates = "VMF_Patches_VFE_Pirates";
 
     public const string CategoryMechanoid = "VMF_Patches_VFE_Mechanoid";
+    
+    public const string CategoryVGE = "VMF_Patches_VGE";
 
     public static readonly AccessTools.FieldRef<PipeNetManager, int> pipeNetsCount = AccessTools.FieldRefAccess<PipeNetManager, int>("pipeNetsCount");
 
@@ -58,6 +60,10 @@ public static class Patches_VEF
         if (ModCompat.VFEMechanoid.Active)
         {
             VMF_Harmony.PatchCategory(CategoryMechanoid);
+        }
+        if (ModCompat.VGE)
+        {
+            VMF_Harmony.PatchCategory(CategoryVGE);
         }
     }
 }

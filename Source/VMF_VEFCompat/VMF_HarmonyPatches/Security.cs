@@ -50,8 +50,9 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            var last = instructions.Last(c => c.opcode == OpCodes.Call && c.OperandIs(CachedMethodInfo.g_Thing_Map));
-            return instructions.Manipulator(c => c.opcode == OpCodes.Call && c.OperandIs(CachedMethodInfo.g_Thing_Map) && c != last, c =>
+            var codes = instructions.ToList();
+            var last = codes.Last(c => c.opcode == OpCodes.Call && c.OperandIs(CachedMethodInfo.g_Thing_Map));
+            return codes.Manipulator(c => c.opcode == OpCodes.Call && c.OperandIs(CachedMethodInfo.g_Thing_Map) && c != last, c =>
             {
                 c.operand = CachedMethodInfo.m_BaseMap_Thing;
             }).MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
@@ -91,13 +92,12 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.Select((c, i) =>
+            var codes = instructions.ToList();
+            return codes.Select((c, i) =>
             {
-                if (c.OperandIs(CachedMethodInfo.g_Thing_Position) && instructions.ElementAt(i - 1).opcode == OpCodes.Ldarg_0)
-                {
-                    c.opcode = OpCodes.Call;
-                    c.operand = CachedMethodInfo.m_PositionOnBaseMap;
-                }
+                if (!c.OperandIs(CachedMethodInfo.g_Thing_Position) || codes[i - 1].opcode != OpCodes.Ldarg_0) return c;
+                c.opcode = OpCodes.Call;
+                c.operand = CachedMethodInfo.m_PositionOnBaseMap;
                 return c;
             });
         }

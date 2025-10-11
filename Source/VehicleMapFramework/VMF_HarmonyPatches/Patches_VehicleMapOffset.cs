@@ -25,7 +25,7 @@ public static class Patch_UI_MouseCell
         var codes = instructions.ToList();
         var toIntVec3 = AccessTools.Method(typeof(IntVec3Utility), nameof(IntVec3Utility.ToIntVec3));
         var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(toIntVec3));
-        codes.Insert(pos, new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ToVehicleMapCoord1));
+        codes.Insert(pos, new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ToVehicleMapCoord));
         return codes;
     }
 
@@ -336,7 +336,7 @@ public static class Patch_PawnPath_DrawPath
             new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf),
             new CodeInstruction(OpCodes.Brfalse_S, label),
             new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_YOffsetFull2));
+            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_YOffsetFull));
 
         codes.MatchEndForward(CodeMatch.Calls(CachedMethodInfo.m_IntVec3_ToVector3Shifted), CodeMatch.IsStloc());
         codes.Repeat(c =>

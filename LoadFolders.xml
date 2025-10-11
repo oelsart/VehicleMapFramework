@@ -36,6 +36,7 @@
     <li IfModActive="Cain.Mineshaft">1.6/_Mines</li>
     <li IfModActive="OskarPotocki.VFE.Mechanoid">1.6/_VFEMechanoids</li>
     <li IfModActive="VanillaExpanded.VFESecurity">1.6/_VFESecurity</li>
+	<li IfModActive="vanillaexpanded.gravship">1.6/_VGE</li>
     <li IfModActive="Ludeon.RimWorld.Odyssey">1.6/_Odyssey</li>
   </v1.6>
 </loadFolders>

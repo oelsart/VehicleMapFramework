@@ -64,7 +64,10 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
             new CodeInstruction(OpCodes.Stloc_S, scanner));
 
         object local = null;
-        var matchStloc = new CodeMatch(c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalType == typeof(IEnumerable<Thing>) && c.operand != local);
+        var matchStloc = new CodeMatch(c =>
+            c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalType == typeof(IEnumerable<Thing>) &&
+            // ReSharper disable once AccessToModifiedClosure
+            c.operand != local);
         var addedCodes = new[]
         {
             CodeInstruction.LoadArgument(1),
@@ -85,8 +88,8 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
         //複数マップのセルをスキャンする
         codes.MatchStartForward(new CodeMatch(c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalType == typeof(IEnumerable<IntVec3>)));
         var locals = original.GetMethodBody()?.LocalVariables;
-        var innerTypeIndex = locals.FirstIndexOf(l => l.LocalType.GetCustomAttribute<CompilerGeneratedAttribute>() != null); //たぶん0のはずだけど一応
-        var innerStructIndex = locals.FirstIndexOf(l => l.LocalType.GetCustomAttribute<CompilerGeneratedAttribute>() != null && l.LocalType.IsStruct());
+        var innerTypeIndex = locals.FirstIndexOf(l => l.LocalType?.GetCustomAttribute<CompilerGeneratedAttribute>() != null); //たぶん0のはずだけど一応
+        var innerStructIndex = locals.FirstIndexOf(l => l.LocalType?.GetCustomAttribute<CompilerGeneratedAttribute>() != null && l.LocalType.IsStruct());
         codes.InsertAfterAndAdvance(
             new CodeInstruction(OpCodes.Ldloc_S, scanner),
             CodeInstruction.LoadLocal(innerTypeIndex, true),
@@ -208,25 +211,24 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
                 pawn.VirtualMapTransfer(map, pos);
             }
         }
-        if (CrossMapReachabilityUtility.GetClosestExitEnterSpot(map, pawn.Position, TraverseParms.For(pawn), targetMap, out var exitSpot2, out var enterSpot2))
+
+        if (!CrossMapReachabilityUtility.GetClosestExitEnterSpot(map, pawn.Position, TraverseParms.For(pawn), targetMap,
+                out var exitSpot2, out var enterSpot2)) return null;
+        Job job;
+        try
         {
-            Job job = null;
-            try
-            {
-                CrossMapReachabilityUtility.DepartMap = map;
-                CrossMapReachabilityUtility.DestMap = targetMap;
-                pawn.VirtualMapTransfer(targetMap);
-                job = scanner.JobOnCell(pawn, target.Cell, forced);
-            }
-            finally
-            {
-                CrossMapReachabilityUtility.DepartMap = null;
-                CrossMapReachabilityUtility.DestMap = null;
-                pawn.VirtualMapTransfer(map);
-            }
-            return JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot2, enterSpot2, job);
+            CrossMapReachabilityUtility.DepartMap = map;
+            CrossMapReachabilityUtility.DestMap = targetMap;
+            pawn.VirtualMapTransfer(targetMap);
+            job = scanner.JobOnCell(pawn, target.Cell, forced);
         }
-        return null;
+        finally
+        {
+            CrossMapReachabilityUtility.DepartMap = null;
+            CrossMapReachabilityUtility.DestMap = null;
+            pawn.VirtualMapTransfer(map);
+        }
+        return JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot2, enterSpot2, job);
     }
 
     internal static void ScanCellsAcrossMaps(WorkGiver_Scanner scanner, ref InnerClass innerClass, ref InnerStruct innerStruct)
@@ -255,7 +257,7 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
                             if (!c.IsForbidden(pawn) && scanner.HasJobOnCell(pawn, c))
                             {
                                 num5 = scanner.GetPriority(pawn, c);
-                                if (num5 > innerStruct.bestPriority || (num5 == innerStruct.bestPriority && num4 < innerStruct.closestDistSquared))
+                                if (num5 > innerStruct.bestPriority || (Mathf.Approximately(num5, innerStruct.bestPriority) && num4 < innerStruct.closestDistSquared))
                                 {
                                     flag2 = true;
                                 }
@@ -271,13 +273,11 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
                         Patch_ForbidUtility_IsForbidden.Map = null;
                     }
 
-                    if (flag2)
-                    {
-                        innerClass.bestTargetOfLastPriority = new TargetInfo(c, map2);
-                        innerClass.scannerWhoProvidedTarget = scanner;
-                        innerStruct.closestDistSquared = num4;
-                        innerStruct.bestPriority = num5;
-                    }
+                    if (!flag2) continue;
+                    innerClass.bestTargetOfLastPriority = new TargetInfo(c, map2);
+                    innerClass.scannerWhoProvidedTarget = scanner;
+                    innerStruct.closestDistSquared = num4;
+                    innerStruct.bestPriority = num5;
                 }
             }
         }
@@ -318,6 +318,8 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
 [PatchLevel(Level.Sensitive)]
 public static class Patch_JobGiver_Work_PawnCanUseWorkGiver
 {
+    public static readonly HashSet<Type> NoNeedVirtualMapTransferList = [];
+    
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var m_WorkGiver_ShouldSkip = AccessTools.Method(typeof(WorkGiver), nameof(WorkGiver.ShouldSkip));
@@ -327,6 +329,10 @@ public static class Patch_JobGiver_Work_PawnCanUseWorkGiver
 
     public static bool ShouldSkipAll(this WorkGiver workGiver, Pawn pawn, bool forced)
     {
+        if (NoNeedVirtualMapTransferList.Contains(workGiver.GetType()))
+        {
+            return workGiver.ShouldSkip(pawn, forced);
+        }
         var map = pawn.Map;
         try
         {
@@ -347,11 +353,7 @@ public static class Patch_JobGiver_Work_PawnCanUseWorkGiver
 [PatchLevel(Level.Sensitive)]
 public static class Patch_JobGiver_Work_Validator
 {
-    public static Map tmpMap;
-
-    public static IntVec3 tmpCell = IntVec3.Invalid;
-
-    public static MethodInfo TargetMethod()
+    private static MethodInfo TargetMethod()
     {
         return AccessTools.InnerTypes(typeof(JobGiver_Work)).SelectMany(t => t.GetDeclaredMethods()).First(m => m.Name.Contains("Validator"));
     }
@@ -391,7 +393,7 @@ public static class Patch_JobGiver_Work_Validator
 [PatchLevel(Level.Sensitive)]
 public static class Patch_JobGiver_Work_GiverTryGiveJobPrioritized
 {
-    public static MethodInfo TargetMethod()
+    private static MethodInfo TargetMethod()
     {
         return AccessTools.FindIncludingInnerTypes(typeof(JobGiver_Work), t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<GiverTryGiveJobPrioritized>")));
     }
@@ -615,7 +617,11 @@ public static class Patch_GenClosest_ClosestThingReachable
     [HarmonyReversePatch(HarmonyReversePatchType.Snapshot)]
     [PatchLevel(Level.Mandatory)]
     [MethodImpl(MethodImplOptions.NoInlining)] //リバースパッチはインライン化させないほうがいい。これ豆な
-    public static Thing ClosestThingReachableOriginal(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance, Predicate<Thing> validator, IEnumerable<Thing> customGlobalSearchSet, int searchRegionsMin, int searchRegionsMax, bool forceAllowGlobalSearch, RegionType traversableRegionTypes, bool ignoreEntirelyForbiddenRegions, bool lookInHaulSources) => throw new NotImplementedException();
+    public static Thing ClosestThingReachableOriginal(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode,
+        TraverseParms traverseParams, float maxDistance, Predicate<Thing> validator,
+        IEnumerable<Thing> customGlobalSearchSet, int searchRegionsMin, int searchRegionsMax,
+        bool forceAllowGlobalSearch, RegionType traversableRegionTypes, bool ignoreEntirelyForbiddenRegions,
+        bool lookInHaulSources) => throw new NotImplementedException();
 
     [PatchLevel(Level.Safe)]
     public static void Prefix(ref Map map)
@@ -848,10 +854,11 @@ public static class Patch_RestUtility_CanUseBedNow
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
+        var codes = instructions.ToList();
         //!building_Bed.Position.IsInPrisonCell(building_Bed.Map)があるので置き換えるのは最初のMapのみ
-        var code = instructions.FirstOrDefault(i => i.opcode == OpCodes.Callvirt && i.OperandIs(CachedMethodInfo.g_Thing_Map));
+        var code = codes.FirstOrDefault(i => i.opcode == OpCodes.Callvirt && i.OperandIs(CachedMethodInfo.g_Thing_Map));
         code?.operand = CachedMethodInfo.m_BaseMap_Thing;
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_MapHeld, CachedMethodInfo.m_MapHeldBaseMap);
+        return codes.MethodReplacer(CachedMethodInfo.g_Thing_MapHeld, CachedMethodInfo.m_MapHeldBaseMap);
     }
 }
 
@@ -935,11 +942,9 @@ public static class Patch_ToilFailConditions_FailOnSomeonePhysicallyInteracting
 
         return codes.Select((c, i) =>
         {
-            if (c.opcode == OpCodes.Callvirt && c.OperandIs(CachedMethodInfo.g_Thing_Map))
-            {
-                codes[i - 1].opcode = OpCodes.Ldloc_1;
-                c.operand = CachedMethodInfo.g_Thing_MapHeld;
-            }
+            if (c.opcode != OpCodes.Callvirt || !c.OperandIs(CachedMethodInfo.g_Thing_Map)) return c;
+            codes[i - 1].opcode = OpCodes.Ldloc_1;
+            c.operand = CachedMethodInfo.g_Thing_MapHeld;
             return c;
         });
     }
@@ -960,7 +965,7 @@ public static class Patch_ToilFailConditions_FailOnBurningImmobile
 
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, MethodBase original)
     {
-        var ind = original.GetMethodBody().LocalVariables.FirstIndexOf(l => l.LocalType == typeof(LocalTargetInfo));
+        var ind = original.GetMethodBody()!.LocalVariables.FirstIndexOf(l => l.LocalType == typeof(LocalTargetInfo));
         var codes = new CodeMatcher(instructions);
         codes.MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Map))
             .Set(OpCodes.Call, AccessTools.Method(typeof(Patch_ToilFailConditions_FailOnBurningImmobile), nameof(ThingMapOrTargetMapOrPawnMap)))
@@ -1074,6 +1079,7 @@ public static class Patch_JobDriver_FoodDeliver_MakeNewToils
         {
             if (toil.debugName == "MakeNewToils" && !found)
             {
+                found = true;
                 toil.AddPreInitAction(() =>
                 {
                     if (___job.targetB.HasThing && toil.actor.Map != ___job.targetB.Thing.MapHeld && toil.actor.CanReach(___job.targetB, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, ___job.targetB.Thing.MapHeld, out var exitSpot, out var enterSpot))
@@ -1111,7 +1117,8 @@ public static class Patch_WorkGiver_DoBill_TryFindBestIngredientsHelper_Predicat
 {
     private static MethodBase TargetMethod()
     {
-        return AccessTools.FindIncludingInnerTypes(typeof(WorkGiver_DoBill), t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name == "<TryFindBestIngredientsHelper>b__0"));
+        return AccessTools.FindIncludingInnerTypes(typeof(WorkGiver_DoBill),
+            t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name == "<TryFindBestIngredientsHelper>b__0"));
     }
 
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -1133,7 +1140,8 @@ public static class Patch_WorkGiver_ConstructDeliverResources_ResourceDeliverJob
             if (!t.GetDeclaredFields().Select(f => f.FieldType).SequenceEqual(fields)) return null;
             return t.GetDeclaredMethods().FirstOrDefault(m =>
             {
-                return m.GetParameters().Select(p => p.ParameterType).SequenceEqual(args) && m.Name.Contains("<ResourceDeliverJobFor>");
+                return m.GetParameters().Select(p => p.ParameterType).SequenceEqual(args) &&
+                       m.Name.Contains("<ResourceDeliverJobFor>");
             });
         });
     }

@@ -23,9 +23,8 @@ public static class StoreAcrossMapsUtility
         var storagePriority = currentPriority;
         float num = int.MaxValue;
         var invalid = IntVec3.Invalid;
-        for (var i = 0; i < allGroupsListInPriorityOrder.Count; i++)
+        foreach (var slotGroup in allGroupsListInPriorityOrder)
         {
-            var slotGroup = allGroupsListInPriorityOrder[i];
             var storeMap = slotGroup.parent?.Map;
             if (storeMap is null || map == storeMap)
             {
@@ -60,29 +59,19 @@ public static class StoreAcrossMapsUtility
         var a = t.SpawnedOrAnyParentSpawned ? t.PositionHeldOnBaseMap().CellOnAnotherMap(map) : carrier.PositionHeldOnBaseMap().CellOnAnotherMap(map);
         var cellsList = slotGroup.CellsList;
         var count = cellsList.Count;
-        int num;
-        if (needAccurateResult)
-        {
-            num = Mathf.FloorToInt(count * Rand.Range(0.005f, 0.018f));
-        }
-        else
-        {
-            num = 0;
-        }
+        var num = needAccurateResult ? Mathf.FloorToInt(count * Rand.Range(0.005f, 0.018f)) : 0;
         for (var i = 0; i < count; i++)
         {
             var intVec = cellsList[i];
             float num2 = (a - intVec).LengthHorizontalSquared;
-            if (num2 <= closestDistSquared && IsGoodStoreCell(intVec, map, t, carrier, faction))
+            if (!(num2 <= closestDistSquared) || !IsGoodStoreCell(intVec, map, t, carrier, faction)) continue;
+            closestSlot = intVec;
+            closestDistSquared = num2;
+            foundPriority = slotGroup.Settings.Priority;
+            tmpDestMap = map;
+            if (i >= num)
             {
-                closestSlot = intVec;
-                closestDistSquared = num2;
-                foundPriority = slotGroup.Settings.Priority;
-                tmpDestMap = map;
-                if (i >= num)
-                {
-                    break;
-                }
+                break;
             }
         }
     }
@@ -125,39 +114,36 @@ public static class StoreAcrossMapsUtility
             return false;
         }
         var thingList = c.GetThingList(map);
-        for (var i = 0; i < thingList.Count; i++)
+        if (thingList.Any(t1 => t1 is IConstructible && GenConstruct.BlocksConstruction(t1, t)))
         {
-            if (thingList[i] is IConstructible && GenConstruct.BlocksConstruction(thingList[i], t))
-            {
-                return false;
-            }
+            return false;
         }
-        if (carrier != null)
+
+        if (carrier == null) return true;
+        
+        Thing spawnedParentOrMe;
+        IntVec3 start;
+        Map startMap;
+        if ((spawnedParentOrMe = t.SpawnedParentOrMe) != null)
         {
-            Thing spawnedParentOrMe;
-            IntVec3 start;
-            Map startMap;
-            if ((spawnedParentOrMe = t.SpawnedParentOrMe) != null)
+            startMap = spawnedParentOrMe.Map;
+            if (spawnedParentOrMe != t && spawnedParentOrMe.def.hasInteractionCell)
             {
-                startMap = spawnedParentOrMe.Map;
-                if (spawnedParentOrMe != t && spawnedParentOrMe.def.hasInteractionCell)
-                {
-                    start = spawnedParentOrMe.InteractionCell;
-                }
-                else
-                {
-                    start = spawnedParentOrMe.Position;
-                }
+                start = spawnedParentOrMe.InteractionCell;
             }
             else
             {
-                startMap = carrier.Map;
-                start = carrier.PositionHeld;
+                start = spawnedParentOrMe.Position;
             }
-            if (!CrossMapReachabilityUtility.CanReach(startMap, start, c, PathEndMode.ClosestTouch, TraverseParms.For(carrier), map, out _, out _))
-            {
-                return false;
-            }
+        }
+        else
+        {
+            startMap = carrier.Map;
+            start = carrier.PositionHeld;
+        }
+        if (!CrossMapReachabilityUtility.CanReach(startMap, start, c, PathEndMode.ClosestTouch, TraverseParms.For(carrier), map, out _, out _))
+        {
+            return false;
         }
         return true;
     }
@@ -171,87 +157,81 @@ public static class StoreAcrossMapsUtility
         var intVecOnBase = t.SpawnedOrAnyParentSpawned ? t.PositionHeldOnBaseMap() : carrier.PositionHeldOnBaseMap();
         var num = float.MaxValue;
         var storagePriority = StoragePriority.Unstored;
-        for (var i = 0; i < allHaulDestinationsListInPriorityOrder.Count; i++)
+        foreach (var t1 in allHaulDestinationsListInPriorityOrder)
         {
-            var destMap = allHaulDestinationsListInPriorityOrder[i].Map;
+            var destMap = t1.Map;
             if (destMap is null || destMap == map)
             {
                 continue;
             }
 
-            if (allHaulDestinationsListInPriorityOrder[i] is not ISlotGroupParent && (allHaulDestinationsListInPriorityOrder[i] is not Building_Grave || t.CanBeBuried()))
+            if (t1 is ISlotGroupParent || (t1 is Building_Grave && !t.CanBeBuried())) continue;
+            
+            var priority = t1.GetStoreSettings().Priority;
+            if (priority < storagePriority || (acceptSamePriority && priority < currentPriority) || (!acceptSamePriority && priority <= currentPriority))
             {
-                var priority = allHaulDestinationsListInPriorityOrder[i].GetStoreSettings().Priority;
-                if (priority < storagePriority || (acceptSamePriority && priority < currentPriority) || (!acceptSamePriority && priority <= currentPriority))
+                break;
+            }
+            float num2 = intVecOnBase.DistanceToSquared(t1.PositionOnBaseMap());
+            if (!(num2 <= num) || !t1.Accepts(t)) continue;
+            var thing = t1 as Thing;
+            if (thing != null && thing.Faction != faction) continue;
+            if (thing != null)
+            {
+                if (carrier != null)
                 {
-                    break;
-                }
-                float num2 = intVecOnBase.DistanceToSquared(allHaulDestinationsListInPriorityOrder[i].PositionOnBaseMap());
-                if (num2 <= num && allHaulDestinationsListInPriorityOrder[i].Accepts(t))
-                {
-                    var thing = allHaulDestinationsListInPriorityOrder[i] as Thing;
-                    if (thing == null || thing.Faction == faction)
+                    if (thing.IsForbidden(carrier))
                     {
-                        if (thing != null)
-                        {
-                            if (carrier != null)
-                            {
-                                if (thing.IsForbidden(carrier))
-                                {
-                                    continue;
-                                }
-                            }
-                            else if (faction != null && thing.IsForbidden(faction))
-                            {
-                                continue;
-                            }
-                        }
-                        if (thing != null && requiresDestReservation)
-                        {
-                            if (thing is IHaulEnroute enroute)
-                            {
-                                if (!thingMap.reservationManager.OnlyReservationsForJobDef(thing, JobDefOf.HaulToContainer))
-                                {
-                                    continue;
-                                }
-                                if (enroute.GetSpaceRemainingWithEnroute(t.def) <= 0)
-                                {
-                                    continue;
-                                }
-                            }
-                            else if (carrier != null)
-                            {
-                                if (!carrier.CanReserveNew(thing, thingMap))
-                                {
-                                    continue;
-                                }
-                            }
-                            else if (faction != null && thingMap.reservationManager.IsReservedByAnyoneOf(thing, faction))
-                            {
-                                continue;
-                            }
-                        }
-                        if (carrier != null)
-                        {
-                            if (thing != null)
-                            {
-                                if (!CrossMapReachabilityUtility.CanReach(thingMap, intVec, thing, PathEndMode.ClosestTouch, TraverseParms.For(carrier), thing.Map))
-                                {
-                                    continue;
-                                }
-                            }
-                            else if (!CrossMapReachabilityUtility.CanReach(thingMap, intVec, allHaulDestinationsListInPriorityOrder[i].Position, PathEndMode.ClosestTouch, TraverseParms.For(carrier), allHaulDestinationsListInPriorityOrder[i].Map))
-                            {
-                                continue;
-                            }
-                        }
-                        num = num2;
-                        storagePriority = priority;
-                        haulDestination = allHaulDestinationsListInPriorityOrder[i];
-
+                        continue;
                     }
                 }
+                else if (faction != null && thing.IsForbidden(faction))
+                {
+                    continue;
+                }
             }
+            if (thing != null && requiresDestReservation)
+            {
+                if (thing is IHaulEnroute enroute)
+                {
+                    if (!thingMap.reservationManager.OnlyReservationsForJobDef(thing, JobDefOf.HaulToContainer))
+                    {
+                        continue;
+                    }
+                    if (enroute.GetSpaceRemainingWithEnroute(t.def) <= 0)
+                    {
+                        continue;
+                    }
+                }
+                else if (carrier != null)
+                {
+                    if (!carrier.CanReserveNew(thing, thingMap))
+                    {
+                        continue;
+                    }
+                }
+                else if (faction != null && thingMap.reservationManager.IsReservedByAnyoneOf(thing, faction))
+                {
+                    continue;
+                }
+            }
+            if (carrier != null)
+            {
+                if (thing != null)
+                {
+                    if (!CrossMapReachabilityUtility.CanReach(thingMap, intVec, thing, PathEndMode.ClosestTouch, TraverseParms.For(carrier), thing.Map))
+                    {
+                        continue;
+                    }
+                }
+                else if (!CrossMapReachabilityUtility.CanReach(thingMap, intVec, t1.Position, PathEndMode.ClosestTouch, TraverseParms.For(carrier), t1.Map))
+                {
+                    continue;
+                }
+            }
+            num = num2;
+            storagePriority = priority;
+            haulDestination = t1;
         }
         return haulDestination != null;
     }

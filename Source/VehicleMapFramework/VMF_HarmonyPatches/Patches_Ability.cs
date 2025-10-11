@@ -14,24 +14,15 @@ public static class Patches_AbilityComp
 {
     private static IEnumerable<MethodBase> TargetMethods()
     {
-        foreach (var type in typeof(AbilityComp).AllSubclasses().Concat(typeof(GenClamor)))
-        {
-            foreach (var method in type.GetDeclaredMethods())
-            {
-                if (VMF_Harmony.ReadMethodBodyWrapper(method).Any(i =>
-                {
-                    return CachedMethodInfo.g_Thing_Position.Equals(i.Value) ||
-                    CachedMethodInfo.g_LocalTargetInfo_Cell.Equals(i.Value) ||
-                    CachedMethodInfo.g_Thing_Map.Equals(i.Value) ||
-                    CachedMethodInfo.g_Thing_MapHeld.Equals(i.Value) ||
-                    CachedMethodInfo.m_OccupiedRect.Equals(i.Value) ||
-                    CachedMethodInfo.m_BreadthFirstTraverse.Equals(i.Value);
-                }))
-                {
-                    yield return method;
-                }
-            }
-        }
+        return (from type in typeof(AbilityComp).AllSubclasses().Concat(typeof(GenClamor))
+            from method in type.GetDeclaredMethods()
+            where VMF_Harmony.ReadMethodBodyWrapper(method).Any(i =>
+                CachedMethodInfo.g_Thing_Position.Equals(i.Value) ||
+                CachedMethodInfo.g_LocalTargetInfo_Cell.Equals(i.Value) ||
+                CachedMethodInfo.g_Thing_Map.Equals(i.Value) ||
+                CachedMethodInfo.g_Thing_MapHeld.Equals(i.Value) ||
+                CachedMethodInfo.m_OccupiedRect.Equals(i.Value) ||
+                CachedMethodInfo.m_BreadthFirstTraverse.Equals(i.Value)) select method);
     }
 
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)

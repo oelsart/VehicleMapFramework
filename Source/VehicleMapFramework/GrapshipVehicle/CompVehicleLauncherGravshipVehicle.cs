@@ -43,12 +43,12 @@ public class CompVehicleLauncherGravshipVehicle : CompVehicleLauncherWithMap
         copilot = null;
         if (Vehicle is not VehiclePawnWithMap vehicle ||
             !Vehicle.def.HasModExtension<VehicleMapProps_Gravship>()) return false;
-        if (GravshipUtility.GetPlayerGravEngine_NewTemp(vehicle.VehicleMap) is not { } engine2)
+        engine = GravshipUtility.GetPlayerGravEngine_NewTemp(vehicle.VehicleMap);
+        if (engine is null)
         {
             disableReason = "CannotLaunchNoEngine".Translate().CapitalizeFirst();
             return false;
         }
-        engine = engine2;
         var pocketMapProperties = vehicle.VehicleMap.generatorDef?.pocketMapProperties;
         var flag = pocketMapProperties?.canLaunchGravship ?? false;
         try
@@ -66,13 +66,13 @@ public class CompVehicleLauncherGravshipVehicle : CompVehicleLauncherWithMap
             pocketMapProperties?.canLaunchGravship = flag;
         }
 
-        pilot = vehicle.handlers.FirstOrDefault(h => h.role.key == "pilot").thingOwner.InnerListForReading.FirstOrDefault();
+        pilot = vehicle.handlers?.FirstOrDefault(h => h.role?.key == "pilot")?.thingOwner?.InnerListForReading?.FirstOrDefault();
         if (pilot is null)
         {
             disableReason = "VMF_CannotLaunchNoPilot".Translate().CapitalizeFirst();
             return false;
         }
-        copilot = vehicle.handlers.FirstOrDefault(h => h.role.key == "copilot").thingOwner.InnerListForReading.FirstOrDefault();
+        copilot = vehicle.handlers?.FirstOrDefault(h => h.role?.key == "copilot")?.thingOwner?.InnerListForReading?.FirstOrDefault();
         return true;
     }
 
@@ -80,7 +80,7 @@ public class CompVehicleLauncherGravshipVehicle : CompVehicleLauncherWithMap
     {
         if (AnyLeftToLoad)
         {
-            Find.WindowStack.Add(Dialog_MessageBox.CreateConfirmation("ConfirmSendNotCompletelyLoadedPods".Translate(Vehicle.LabelCapNoCount), OpenDialog));
+            Find.WindowStack.Add(Dialog_MessageBox.CreateConfirmation("ConfirmSendNotCompletelyLoadedPods".Translate(vehicle.LabelCapNoCount), OpenDialog));
             return;
         }
         OpenDialog();
@@ -92,7 +92,7 @@ public class CompVehicleLauncherGravshipVehicle : CompVehicleLauncherWithMap
             VehicleRoleHandler copilotHandler = null;
             foreach (var handler in vehicle.handlers.Where(handler => handler is VehicleRoleHandlerBuildable))
             {
-                if (handler.role.key == "copilot") copilotHandler = handler;
+                if (handler.role?.key == "copilot") copilotHandler = handler;
 
                 foreach (var pawn in handler.thingOwner)
                 {

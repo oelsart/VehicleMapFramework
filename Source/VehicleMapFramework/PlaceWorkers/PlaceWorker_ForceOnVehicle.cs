@@ -12,13 +12,14 @@ public class PlaceWorker_ForceOnVehicle : PlaceWorker
         {
             return true;
         }
-        if (ModsConfig.OdysseyActive)
+
+        if (!ModsConfig.OdysseyActive) return "VMF_ForceOnVehicle".Translate();
+        
+        var occupied = GenAdj.OccupiedRect(loc, rot, checkingDef is ThingDef tDef ? tDef.Size : IntVec2.One);
+        var engine = GravshipUtility.GetPlayerGravEngine_NewTemp(map);
+        if (engine != null && occupied.All(engine.ValidSubstructureAt))
         {
-            var occupied = GenAdj.OccupiedRect(loc, rot, checkingDef is ThingDef tDef ? tDef.Size : IntVec2.One);
-            if (GravshipUtility.GetPlayerGravEngine_NewTemp(map) is Building_GravEngine engine && occupied.All(engine.ValidSubstructureAt))
-            {
-                return true;
-            }
+            return true;
         }
         return "VMF_ForceOnVehicle".Translate();
     }

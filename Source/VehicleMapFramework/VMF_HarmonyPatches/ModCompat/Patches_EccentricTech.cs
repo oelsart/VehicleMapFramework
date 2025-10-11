@@ -78,7 +78,7 @@ public static class Patch_CompProjectorOverlay_PostDraw
                 yield return new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf);
                 yield return new CodeInstruction(OpCodes.Brfalse_S, label);
                 yield return new CodeInstruction(OpCodes.Ldloc_S, vehicle);
-                yield return new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_YOffsetFull2);
+                yield return new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_YOffsetFull);
                 yield return instruction.WithLabels(label);
             }
             else

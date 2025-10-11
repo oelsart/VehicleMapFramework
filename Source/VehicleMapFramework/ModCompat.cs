@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using HarmonyLib;
 using RimWorld.Planet;
 using UnityEngine;
+using VehicleMapFramework.VMF_HarmonyPatches;
 using Vehicles;
 using Verse;
 
@@ -103,6 +104,9 @@ internal static class ModCompat
             {
                 try
                 {
+                    Patch_JobGiver_Work_PawnCanUseWorkGiver.NoNeedVirtualMapTransferList.Add(
+                        GenTypes.GetTypeInAnyAssembly("DubsBadHygiene.WorkGiver_PlaceFertilizer", "DubsBadHygiene"));
+                    
                     LiteMode = (bool)AccessTools.PropertyGetter("DubsBadHygiene.Settings:LiteMode").Invoke(null, null);
                     if (LiteMode) return;
 
@@ -472,6 +476,8 @@ internal static class ModCompat
             }
         }
     }
+
+    public static readonly bool VGE = ModsConfig.IsActive("vanillaexpanded.gravship");
 
     public static readonly bool Vivi = ModsConfig.IsActive("gguake.race.vivi");
 
