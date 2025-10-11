@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using LudeonTK;
 using RimWorld;
 using SmashTools;
 using UnityEngine;
@@ -29,8 +28,7 @@ namespace VehicleMapFramework
             new(1f, 0f)
         ];
 
-        [TweakValue("HullCorners", 0f, 2f)]
-        private static readonly float HullCornerScale = 2f;
+        private const float HullCornerScale = 2f;
 
         private const string TexPath_Corner_NW = "Things/Building/Linked/GravshipHull/AngledGravshipHull_northwest";
 
@@ -141,16 +139,16 @@ namespace VehicleMapFramework
             DrawMeshes(subMeshesByRot[rot.RotForVehicleDraw().AsInt], drawPos, angle);
         }
 
-        public void DrawMeshes(List<LayerSubMesh> subMeshes, Vector3 drawPos, float extraRotation)
+        public void DrawMeshes(List<LayerSubMesh> meshes, Vector3 drawPos, float extraRotation)
         {
             if (!Visible)
             {
                 return;
             }
-            var count = subMeshes.Count;
+            var count = meshes.Count;
             for (var i = 0; i < count; i++)
             {
-                var layerSubMesh = subMeshes[i];
+                var layerSubMesh = meshes[i];
                 if (layerSubMesh.finalized && !layerSubMesh.disabled)
                 {
                     Graphics.DrawMesh(layerSubMesh.mesh, drawPos, Quaternion.AngleAxis(extraRotation, Vector3.up), layerSubMesh.material, layerSubMesh.renderLayer);
