@@ -77,12 +77,11 @@ public static class Patch_CompResource_Props
 
     public static void Postfix(CompResource __instance, ref CompProperties_Resource __result)
     {
-        if (__instance is CompPipeConnectorVEF connector)
-        {
-            dummy.pipeNet = connector.pipeNet;
-            dummy.soundAmbient = __result.soundAmbient;
-            __result = dummy;
-        }
+        if (__instance is not CompPipeConnectorVEF connector) return;
+        
+        dummy.pipeNet = connector.pipeNet;
+        dummy.soundAmbient = __result.soundAmbient;
+        __result = dummy;
     }
 }
 
@@ -94,14 +93,13 @@ public static class Patch_PipeNetManager_UnregisterConnector
     public static void Prefix(PipeNetManager __instance, CompResource comp)
     {
         var pipeNetMap = comp?.PipeNet?.map;
-        if (pipeNetMap != null && __instance.map != null && __instance.map != pipeNetMap)
-        {
-            var component = MapComponentCache<PipeNetManager>.GetComponent(pipeNetMap);
-            var connectors = comp.PipeNet.connectors.Where(c => c.parent.Map == pipeNetMap);
-            var newNet = PipeNetMaker.MakePipeNet(connectors, pipeNetMap, comp.PipeNet.def);
-            component.pipeNets.Add(newNet);
-            Patches_VEF.pipeNetsCount(MapComponentCache<PipeNetManager>.GetComponent(__instance.map))++;
-        }
+        if (pipeNetMap == null || __instance.map == null || __instance.map == pipeNetMap) return;
+        
+        var component = MapComponentCache<PipeNetManager>.GetComponent(pipeNetMap);
+        var connectors = comp.PipeNet.connectors.Where(c => c.parent.Map == pipeNetMap);
+        var newNet = PipeNetMaker.MakePipeNet(connectors, pipeNetMap, comp.PipeNet.def);
+        component.pipeNets.Add(newNet);
+        Patches_VEF.pipeNetsCount(MapComponentCache<PipeNetManager>.GetComponent(__instance.map))++;
     }
 }
 
@@ -142,7 +140,6 @@ public static class Patch_Graphic_LinkedPipeVEF_ShouldLinkWith
         return thing.Map;
     }
 }
-
 
 [HarmonyPatchCategory(Patches_VEF.CategoryCore)]
 [HarmonyPatch(typeof(CompResourceStorage), nameof(CompResourceStorage.PostDraw))]

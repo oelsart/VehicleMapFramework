@@ -84,9 +84,9 @@
 								<slotsToOperate>1</slotsToOperate>
 								<pawnRenderer>
 									<showBody>true</showBody>
-									<drawOffsetNorth>(0,0,-2.5)</drawOffsetNorth>
-									<drawOffsetSouth>(0,0,2.5)</drawOffsetSouth>
-									<drawOffsetEast>(-2.5,0,0)</drawOffsetEast>
+									<drawOffsetNorth>(0,0,-2)</drawOffsetNorth>
+									<drawOffsetSouth>(0,0,2)</drawOffsetSouth>
+									<drawOffsetEast>(-2,0,0)</drawOffsetEast>
 								</pawnRenderer>
 							</li>
 							<li Class = "VehicleMapFramework.RoleUpgradeBuildable">
@@ -97,10 +97,10 @@
 								<slots>1</slots>
 								<pawnRenderer>
 									<showBody>true</showBody>
-									<drawOffsetNorth>(1,0,-2.5)</drawOffsetNorth>
-									<drawOffsetSouth>(-1,0,2.5)</drawOffsetSouth>
-									<drawOffsetEast>(-2.5,0,-1)</drawOffsetEast>
-									<drawOffsetWest>(2.5,0,1)</drawOffsetWest>
+									<drawOffsetNorth>(1,0,-2)</drawOffsetNorth>
+									<drawOffsetSouth>(-1,0,2)</drawOffsetSouth>
+									<drawOffsetEast>(-2,0,-1)</drawOffsetEast>
+									<drawOffsetWest>(2,0,1)</drawOffsetWest>
 								</pawnRenderer>
 							</li>
 						</roles>

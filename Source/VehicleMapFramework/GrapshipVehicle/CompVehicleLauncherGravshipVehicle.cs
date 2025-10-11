@@ -94,8 +94,9 @@ public class CompVehicleLauncherGravshipVehicle : CompVehicleLauncherWithMap
             {
                 if (handler.role?.key == "copilot") copilotHandler = handler;
 
-                foreach (var pawn in handler.thingOwner)
+                for (var index = handler.thingOwner.Count - 1; index >= 0; index--)
                 {
+                    var pawn = handler.thingOwner[index];
                     assignedSeats[pawn] = handler;
                     vehicle.DisembarkPawn(pawn);
                 }

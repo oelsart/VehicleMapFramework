@@ -49,29 +49,28 @@ namespace VehicleMapFramework
                         foreach (var type in OrientedSectionLayerTypes)
                         {
                             var layer = section.GetLayer(type);
-                            if (layer != null)
+                            if (layer == null) continue;
+                            
+                            layersByRot[section][type] =
+                            [
+                                layer,
+                                (SectionLayer)Activator.CreateInstance(type, section),
+                                (SectionLayer)Activator.CreateInstance(type, section),
+                                (SectionLayer)Activator.CreateInstance(type, section),
+                            ];
+                            VehicleMapUtility.RotForPrint = Rot4.North;
+                            try
                             {
-                                layersByRot[section][type] =
-                                [
-                                    layer,
-                                    (SectionLayer)Activator.CreateInstance(type, section),
-                                    (SectionLayer)Activator.CreateInstance(type, section),
-                                    (SectionLayer)Activator.CreateInstance(type, section),
-                                ];
+                                for (var k = 0; k < 4; k++)
+                                {
+                                    layersByRot[section][type][k].Regenerate();
+                                    layersByRot[section][type][k].RefreshSubMeshBounds();
+                                    VehicleMapUtility.RotForPrint = VehicleMapUtility.RotForPrint.Rotated(RotationDirection.Clockwise);
+                                }
+                            }
+                            finally
+                            {
                                 VehicleMapUtility.RotForPrint = Rot4.North;
-                                try
-                                {
-                                    for (var k = 0; k < 4; k++)
-                                    {
-                                        layersByRot[section][type][k].Regenerate();
-                                        layersByRot[section][type][k].RefreshSubMeshBounds();
-                                        VehicleMapUtility.RotForPrint = VehicleMapUtility.RotForPrint.Rotated(RotationDirection.Clockwise);
-                                    }
-                                }
-                                finally
-                                {
-                                    VehicleMapUtility.RotForPrint = Rot4.North;
-                                }
                             }
                         }
                     }

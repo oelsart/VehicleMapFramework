@@ -350,6 +350,8 @@ internal static class ModCompat
 
         public static readonly FastInvokeHandler ShouldDraw;
 
+        public static readonly AccessTools.FieldRef<Def> pipeNetDef;
+
         static VFECore()
         {
             if (Active)
@@ -359,6 +361,7 @@ internal static class ModCompat
                     PipeNetDef = GenTypes.GetTypeInAnyAssembly("PipeSystem.PipeNetDef");
                     SectionLayer_Resource = GenTypes.GetTypeInAnyAssembly("PipeSystem.SectionLayer_Resource", "PipeSystem");
                     ShouldDraw = MethodInvoker.GetHandler(AccessTools.PropertyGetter(SectionLayer_Resource, "ShouldDraw"));
+                    pipeNetDef = AccessTools.StaticFieldRefAccess<Def>(AccessTools.Field(SectionLayer_Resource, "pipeNet"));
                 }
                 catch (Exception ex)
                 {
@@ -367,7 +370,7 @@ internal static class ModCompat
                 }
                 finally
                 {
-                    if (AnyNull(PipeNetDef, SectionLayer_Resource, ShouldDraw))
+                    if (AnyNull(PipeNetDef, SectionLayer_Resource, ShouldDraw, pipeNetDef))
                     {
                         LogIncompat("VFE Core");
                         Active = false;

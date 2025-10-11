@@ -16,7 +16,6 @@ using Vehicles.World;
 using Verse;
 using Verse.AI;
 using static VehicleMapFramework.ModCompat;
-using Debug = System.Diagnostics.Debug;
 
 namespace VehicleMapFramework;
 
@@ -44,6 +43,8 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
     private int standableCellsCachedTick;
 
     private int cellDesignationsDirtyTick;
+
+    private static Def pipeNetDef;
 
     private static readonly Material ClipMat =
         SolidColorMaterials.NewSolidColorMaterial(new Color(0.3f, 0.1f, 0.1f, 0.5f), ShaderDatabase.MetaOverlay);
@@ -355,8 +356,7 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
             interiorMap.PocketMapParent?.sourceMap = map;
         }
 
-        Debug.Assert(interiorMap != null, nameof(interiorMap) + " != null");
-        if (!Find.World.worldObjects.Contains(interiorMap.Parent))
+        if (!Find.World.worldObjects.Contains(interiorMap!.Parent))
         {
             Find.World.worldObjects.Add(interiorMap.Parent);
         }
@@ -423,18 +423,18 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         }
 
         var worldObject2 = GetWorldObject(this);
-        if (worldObject2 is AerialVehicleInFlight aerial)
+        switch (worldObject2)
         {
-            Task.Run(() =>
-            {
-                interiorMap.Parent.Tile = WorldHelper.GetNearestTile(aerial.DrawPos);
-            });
-            return;
+            case AerialVehicleInFlight aerial:
+                Task.Run(() =>
+                {
+                    interiorMap.Parent.Tile = WorldHelper.GetNearestTile(aerial.DrawPos);
+                });
+                return;
+            case null or MapParent_Vehicle:
+                return;
         }
-        if (worldObject2 == null || worldObject2 is MapParent_Vehicle)
-        {
-            return;
-        }
+
         interiorMap.Parent.Tile = worldObject2.Tile;
         return;
 
@@ -696,9 +696,15 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         var rot = FullRotation;
         if (VFECore.Active)
         {
-            var layer = component.GetLayer(section, VFECore.SectionLayer_Resource, rot);
+            var layer = section.GetLayer(VFECore.SectionLayer_Resource);
             if (layer != null && (bool)VFECore.ShouldDraw(layer))
             {
+                var curPipeNetDef = VFECore.pipeNetDef();
+                if (pipeNetDef != curPipeNetDef)
+                {
+                    pipeNetDef = curPipeNetDef;
+                    CurrentLevel.mapDrawer.WholeMapChanged(455UL);
+                }
                 DrawLayer(layer, drawPos);
             }
         }
@@ -791,12 +797,9 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
             return;
         }
         var fullAngle = this.FullAngle();
-        foreach (var subMesh in layer.subMeshes)
+        foreach (var subMesh in layer.subMeshes.Where(subMesh => subMesh.finalized && !subMesh.disabled))
         {
-            if (subMesh.finalized && !subMesh.disabled)
-            {
-                Graphics.DrawMesh(subMesh.mesh, drawPos, Quaternion.AngleAxis(fullAngle, Vector3.up), subMesh.material, subMesh.renderLayer);
-            }
+            Graphics.DrawMesh(subMesh.mesh, drawPos, Quaternion.AngleAxis(fullAngle, Vector3.up), subMesh.material, subMesh.renderLayer);
         }
     }
 
