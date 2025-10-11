@@ -3,7 +3,7 @@
 <Defs>
 	<Vehicles.VehicleDef ParentName="BaseVehiclePawnWithMap" MayRequire="Ludeon.RimWorld.Odyssey">
 		<defName>VMF_GravshipVehicleBaseSpace</defName>
-		<label>Gravship vehicle</label>
+		<label>Gravship Vehicle (Space)</label>
 		<enabled>None</enabled>
 
 		<graphicData>
@@ -83,7 +83,7 @@
 	
 	<Vehicles.VehicleBuildDef ParentName="VehicleWithMapBaseBuildable" MayRequire="Ludeon.RimWorld.Odyssey">
 		<defName>VMF_GravshipVehicleBaseSpace_Blueprint</defName>
-		<label>Gravship vehicle</label>
+		<label>Gravship Vehicle (Space)</label>
 		<graphicData>
 			<texPath>VehicleMapFramework/ClearTex</texPath>
 			<graphicClass>Vehicles.Graphic_Vehicle</graphicClass>
