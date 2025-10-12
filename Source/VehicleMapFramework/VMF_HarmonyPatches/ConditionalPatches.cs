@@ -1,8 +1,11 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using HarmonyLib;
 using SmashTools;
 using Vehicles;
+using Vehicles.World;
 using Verse;
 using Verse.AI;
 
@@ -73,5 +76,32 @@ public static class Patch_JobDriver_LoadVehicle_FailJob
                 __result = false;
             }
         }
+    }
+}
+
+//最後の引数が削除される予定.
+[HarmonyPatch]
+[PatchLevel(Level.Safe)]
+public static class Patch_CaravanFormation_TryFindExitSpot
+{
+    private static MethodBase TargetMethod()
+    {
+        Type[] arguments =
+        [
+            typeof(Map), typeof(List<Pawn>), typeof(bool), typeof(Rot4), typeof(IntVec3).MakeByRefType(), typeof(bool)
+        ];
+        var method = AccessTools.Method(typeof(CaravanFormation), "TryFindExitSpot", arguments)
+                     ?? AccessTools.Method(typeof(CaravanFormation), "TryFindExitSpot", arguments.SkipLast(1).ToArray());
+        return method;
+    }
+    
+    public static void Prefix(Map map)
+    {
+        CrossMapReachabilityUtility.DestMap = map;
+    }
+
+    public static void Finalizer()
+    {
+        CrossMapReachabilityUtility.DestMap = null;
     }
 }
