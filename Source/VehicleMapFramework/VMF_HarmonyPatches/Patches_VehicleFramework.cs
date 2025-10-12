@@ -556,23 +556,6 @@ public static class Patch_SelectionHelper_MultiSelectClicker
     }
 }
 
-[HarmonyPatch(typeof(CaravanFormation), "TryFindExitSpot",
-    [typeof(Map), typeof(List<Pawn>), typeof(bool), typeof(Rot4), typeof(IntVec3), typeof(bool)],
-    [ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Out, ArgumentType.Normal])]
-[PatchLevel(Level.Safe)]
-public static class Patch_CaravanFormation_TryFindExitSpot
-{
-    public static void Prefix(Map map)
-    {
-        CrossMapReachabilityUtility.DestMap = map;
-    }
-
-    public static void Finalizer()
-    {
-        CrossMapReachabilityUtility.DestMap = null;
-    }
-}
-
 //ポーンがVehicleRoleBuildableに割り当てられている時はその席へのCanReachにすり替える
 [HarmonyPatch(typeof(CaravanFormation), "CheckForErrors")]
 [PatchLevel(Level.Sensitive)]
