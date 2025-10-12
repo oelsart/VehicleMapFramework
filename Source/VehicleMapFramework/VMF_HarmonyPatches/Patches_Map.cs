@@ -75,14 +75,17 @@ public static class Patch_Reachability_CanReach
     {
         if (CrossMapReachabilityUtility.working) return true;
 
-        var destMap = CrossMapReachabilityUtility.DestMap ??
+        var pawn = traverseParams.pawn;
+        if (pawn is null) return true;
+        
+        var destMap = CrossMapReachabilityUtility.DestMap.GetValueOrDefault(pawn) ??
                       dest.Thing?.MapHeld ??
-                      (TargetMapManager.HasTargetInfo(traverseParams.pawn, out var target) && (LocalTargetInfo)target == dest ? target.Map : traverseParams.pawn?.Map);
+                      (TargetMapManager.HasTargetInfo(pawn, out var target) && (LocalTargetInfo)target == dest ? target.Map : pawn.Map);
         if (destMap == null)
         {
             return true;
         }
-        var departMap = CrossMapReachabilityUtility.DepartMap ?? traverseParams.pawn?.Map;
+        var departMap = CrossMapReachabilityUtility.DepartMap.GetValueOrDefault(pawn) ?? pawn.Map;
         if (departMap == null)
         {
             return true;
@@ -200,9 +203,9 @@ public static class Patch_ResourceCounter_UpdateResourceCounts
         foreach (var vehicle in VehiclePawnWithMapCache.AllVehiclesOn(___map))
         {
             var allGroupsListForReading = vehicle.VehicleMap.haulDestinationManager.AllGroupsListForReading;
-            for (var i = 0; i < allGroupsListForReading.Count; i++)
+            foreach (var t in allGroupsListForReading)
             {
-                foreach (var outerThing in allGroupsListForReading[i].HeldThings)
+                foreach (var outerThing in t.HeldThings)
                 {
                     var innerIfMinified = outerThing.GetInnerIfMinified();
                     if (innerIfMinified.def.CountAsResource && !innerIfMinified.IsNotFresh())
@@ -311,10 +314,8 @@ public static class Patch_Map_MapUpdate
             }
             var longSide = Mathf.Max(vehicle.DrawSize.x / 2f, vehicle.DrawSize.y / 2f);
             var drawPos = new Vector3(longSide, 0f, longSide);
-            if (mat != null)
-                Graphics.DrawMesh(mesh200, drawPos, Quaternion.identity, mat, 0);
-            else
-                Graphics.DrawMesh(mesh200, drawPos, Quaternion.identity, SolidColorMaterials.SimpleSolidColorMaterial(Color.black), 0);
+            Graphics.DrawMesh(mesh200, drawPos, Quaternion.identity,
+                mat != null ? mat : SolidColorMaterials.SimpleSolidColorMaterial(Color.black), 0);
 
             skyMat.color = Color.black.WithAlpha((1f - vehicle.VehicleMap.skyManager.CurSkyGlow) * 0.2f);
             skyMat.renderQueue = 3100;

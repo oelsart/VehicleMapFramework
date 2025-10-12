@@ -140,7 +140,8 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
         {
             return scanner.PotentialWorkThingsGlobal(pawn);
         }
-        CrossMapReachabilityUtility.DepartMap = pawn.Map;
+        var map = pawn.Map;
+        CrossMapReachabilityUtility.DepartMap[pawn] = map;
         var pos = pawn.Position;
         try
         {
@@ -162,8 +163,8 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
         }
         finally
         {
-            pawn.VirtualMapTransfer(CrossMapReachabilityUtility.DepartMap, pos);
-            CrossMapReachabilityUtility.DepartMap = null;
+            pawn.VirtualMapTransfer(map, pos);
+            CrossMapReachabilityUtility.DepartMap.Remove(pawn);
         }
     }
 
@@ -176,7 +177,7 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
         }
 
         var map = pawn.Map;
-        CrossMapReachabilityUtility.DepartMap = map;
+        CrossMapReachabilityUtility.DepartMap[pawn] = map;
         pawn.VirtualMapTransfer(thingMap);
         try
         {
@@ -184,7 +185,7 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
         }
         finally
         {
-            CrossMapReachabilityUtility.DepartMap = null;
+            CrossMapReachabilityUtility.DepartMap.Remove(pawn);
             pawn.VirtualMapTransfer(map);
         }
     }
@@ -217,15 +218,15 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
         Job job;
         try
         {
-            CrossMapReachabilityUtility.DepartMap = map;
-            CrossMapReachabilityUtility.DestMap = targetMap;
+            CrossMapReachabilityUtility.DepartMap[pawn] = map;
+            CrossMapReachabilityUtility.DestMap[pawn] = targetMap;
             pawn.VirtualMapTransfer(targetMap);
             job = scanner.JobOnCell(pawn, target.Cell, forced);
         }
         finally
         {
-            CrossMapReachabilityUtility.DepartMap = null;
-            CrossMapReachabilityUtility.DestMap = null;
+            CrossMapReachabilityUtility.DepartMap.Remove(pawn);
+            CrossMapReachabilityUtility.DestMap.Remove(pawn);
             pawn.VirtualMapTransfer(map);
         }
         return JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot2, enterSpot2, job);
@@ -235,7 +236,7 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
     {
         var pawn = innerClass.pawn;
         var basePos = pawn.PositionOnBaseMap();
-        var map = CrossMapReachabilityUtility.DepartMap = pawn.Map;
+        var map = CrossMapReachabilityUtility.DepartMap[pawn] = pawn.Map;
         var maps = map.BaseMapAndVehicleMaps().Except(map);
         try
         {
@@ -284,7 +285,7 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
         finally
         {
             pawn.VirtualMapTransfer(map);
-            CrossMapReachabilityUtility.DepartMap = null;
+            CrossMapReachabilityUtility.DepartMap.Remove(pawn);
         }
     }
 
@@ -375,7 +376,7 @@ public static class Patch_JobGiver_Work_Validator
         }
 
         var map = pawn.Map;
-        CrossMapReachabilityUtility.DepartMap = map;
+        CrossMapReachabilityUtility.DepartMap[pawn] = map;
         pawn.VirtualMapTransfer(thingMap);
         try
         {
@@ -383,7 +384,7 @@ public static class Patch_JobGiver_Work_Validator
         }
         finally
         {
-            CrossMapReachabilityUtility.DepartMap = null;
+            CrossMapReachabilityUtility.DepartMap.Remove(pawn);
             pawn.VirtualMapTransfer(map);
         }
     }
@@ -624,11 +625,12 @@ public static class Patch_GenClosest_ClosestThingReachable
         bool lookInHaulSources) => throw new NotImplementedException();
 
     [PatchLevel(Level.Safe)]
-    public static void Prefix(ref Map map)
+    public static void Prefix(ref Map map, TraverseParms traverseParams)
     {
-        if (CrossMapReachabilityUtility.DepartMap != null)
+        var pawn = traverseParams.pawn;
+        if (pawn != null && CrossMapReachabilityUtility.DepartMap.TryGetValue(pawn, out var map2) && map2 != null)
         {
-            map = CrossMapReachabilityUtility.DepartMap;
+            map = map2;
         }
     }
 
@@ -643,11 +645,12 @@ public static class Patch_GenClosest_ClosestThingReachable
 [PatchLevel(Level.Safe)]
 public static class Patch_GenClosest_ClosestThing_Regionwise_ReachablePrioritized
 {
-    public static void Prefix(ref Map map)
+    public static void Prefix(ref Map map, TraverseParms traverseParams)
     {
-        if (CrossMapReachabilityUtility.DepartMap != null)
+        var pawn = traverseParams.pawn;
+        if (pawn != null && CrossMapReachabilityUtility.DepartMap.TryGetValue(pawn, out var map2) && map2 != null)
         {
-            map = CrossMapReachabilityUtility.DepartMap;
+            map = map2;
         }
     }
 
