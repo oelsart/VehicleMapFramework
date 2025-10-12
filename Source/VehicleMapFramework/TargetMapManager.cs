@@ -6,6 +6,12 @@ namespace VehicleMapFramework;
 
 public class TargetMapManager(World world) : WorldComponent(world)
 {
+    private Dictionary<Thing, TargetInfo> targetInfoDic;
+
+    private List<Thing> tmpKeys = [];
+
+    private List<TargetInfo> tmpValues = [];
+    
     private static Dictionary<Thing, TargetInfo> TargetInfoDic
     {
         get
@@ -17,6 +23,8 @@ public class TargetMapManager(World world) : WorldComponent(world)
             return component.targetInfoDic;
         }
     }
+
+    public static Dictionary<Pawn, Map> DepartMap { get; } = [];
 
     public static void SetTargetInfo(Thing thing, TargetInfo target)
     {
@@ -110,10 +118,4 @@ public class TargetMapManager(World world) : WorldComponent(world)
     {
         Scribe_Collections.Look(ref targetInfoDic, "TargetInfo", LookMode.Reference, LookMode.TargetInfo, ref tmpKeys, ref tmpValues, false, true, true);
     }
-
-    private Dictionary<Thing, TargetInfo> targetInfoDic;
-
-    private List<Thing> tmpKeys = [];
-
-    private List<TargetInfo> tmpValues = [];
 }

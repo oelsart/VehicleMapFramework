@@ -645,4 +645,6 @@ internal static class ModCompat
 
         public const string HarmonyId = "Andromeda.StackGap";
     }
+
+    public static readonly bool AnimalCages = ModsConfig.IsActive("zal.animalcages");
 }

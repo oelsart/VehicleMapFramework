@@ -30,16 +30,18 @@ public static class Patch_WorkGiver_HaulToInventory_PotentialWorkThingsGlobal
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        var codes = instructions.ToList();
+        var codes = new CodeMatcher(instructions);
         var f_rootCell = AccessTools.Field("PickUpAndHaul.WorkGiver_HaulToInventory+ThingPositionComparer:rootCell");
-        var pos = codes.FindIndex(c => c.StoresField(f_rootCell));
-        codes.Insert(pos, CodeInstruction.Call(typeof(Patch_WorkGiver_HaulToInventory_PotentialWorkThingsGlobal), nameof(ToBaseMapCoord)));
-        return codes;
+        codes.MatchStartForward(CodeMatch.StoresField(f_rootCell));
+        codes.Insert(
+            CodeInstruction.LoadArgument(1),
+            CodeInstruction.Call(typeof(Patch_WorkGiver_HaulToInventory_PotentialWorkThingsGlobal), nameof(ToBaseMapCoord)));
+        return codes.Instructions();
     }
 
-    public static IntVec3 ToBaseMapCoord(IntVec3 c)
+    public static IntVec3 ToBaseMapCoord(IntVec3 c, Pawn pawn)
     {
-        return c.ToBaseMapCoord(CrossMapReachabilityUtility.DepartMap);
+        return c.ToBaseMapCoord(CrossMapReachabilityUtility.DepartMap.GetValueOrDefault(pawn));
     }
 }
 

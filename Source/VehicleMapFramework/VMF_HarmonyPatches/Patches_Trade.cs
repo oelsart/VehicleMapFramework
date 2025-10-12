@@ -18,11 +18,6 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [PatchLevel(Level.Safe)]
 public static class Patch_Pawn_ColonyThingsWillingToBuy
 {
-    public static void Prefix(Pawn playerNegotiator)
-    {
-        CrossMapReachabilityUtility.DepartMap = playerNegotiator.Map;
-    }
-
     public static IEnumerable<Thing> Postfix(IEnumerable<Thing> values, Pawn playerNegotiator, Pawn __instance)
     {
         if (values != null)
@@ -33,8 +28,8 @@ public static class Patch_Pawn_ColonyThingsWillingToBuy
             }
         }
         var maps = __instance.Map.BaseMapAndVehicleMaps().Except(__instance.Map);
-        if (!maps.Any()) yield break;
-        var departMap = playerNegotiator.Map;
+        var departMap = __instance.Map;
+        CrossMapReachabilityUtility.DepartMap[__instance] = departMap;
         try
         {
             foreach (var map in maps)
@@ -49,7 +44,7 @@ public static class Patch_Pawn_ColonyThingsWillingToBuy
         finally
         {
             __instance.VirtualMapTransfer(departMap);
-            CrossMapReachabilityUtility.DepartMap = null;
+            CrossMapReachabilityUtility.DepartMap.Remove(__instance);
         }
     }
 }

@@ -70,8 +70,9 @@ public static class Patch_JobDriver_LoadVehicle_FailJob
         {
             var map = __instance.pawn.MapHeld;
             var maps = map.BaseMapAndVehicleMaps().Except(map);
-            var vehicle = __instance.job.GetTarget(TargetIndex.B).Thing as VehiclePawn;
-            if (maps.Any(m => MapComponentCache<VehicleReservationManager>.GetComponent(m).VehicleListed(vehicle, ReservationType.LoadVehicle)))
+            if (__instance.job.GetTarget(TargetIndex.B).Thing is VehiclePawn vehicle && maps.Any(m =>
+                    MapComponentCache<VehicleReservationManager>.GetComponent(m)
+                        .VehicleListed(vehicle, ReservationType.LoadVehicle)))
             {
                 __result = false;
             }
@@ -80,7 +81,7 @@ public static class Patch_JobDriver_LoadVehicle_FailJob
 }
 
 //最後の引数が削除される予定.
-[HarmonyPatch(typeof(CaravanFormation), "TryFindExitSpot")]
+[HarmonyPatch]
 [PatchLevel(Level.Safe)]
 public static class Patch_CaravanFormation_TryFindExitSpot
 {
@@ -95,13 +96,16 @@ public static class Patch_CaravanFormation_TryFindExitSpot
         return method;
     }
     
-    public static void Prefix(Map map)
+    public static void Prefix(Map map, List<Pawn> pawns)
     {
-        CrossMapReachabilityUtility.DestMap = map;
+        foreach (var pawn in pawns)
+        {
+            CrossMapReachabilityUtility.DestMap[pawn] = map;
+        }
     }
 
-    public static void Finalizer()
+    public static void Finalizer(List<Pawn> pawns)
     {
-        CrossMapReachabilityUtility.DestMap = null;
+        CrossMapReachabilityUtility.DestMap.RemoveRange(pawns);
     }
 }
