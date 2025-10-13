@@ -835,7 +835,7 @@ public static class VehicleMapUtility
     public static IEnumerable<Thing> ColonyThingsWillingToBuyOnVehicle(this VehiclePawnWithMap vehicle, ITrader trader)
     {
         var map = vehicle.VehicleMap;
-        var enumerable = map.listerThings.AllThings.Where(x => x.def.category == ThingCategory.Item && TradeUtility.PlayerSellableNow(x, trader) && !x.Position.Fogged(x.Map) && (map.areaManager.Home[x.Position] || x.IsInAnyStorage()));
+        var enumerable = map.listerThings.AllThings.Where(x => x.def.category == ThingCategory.Item && TradeUtility.PlayerSellableNow(x, trader) && !x.Position.Fogged(map) && (map.areaManager.Home[x.Position] || x.IsInAnyStorage()));
         foreach (var item in enumerable)
         {
             yield return item;
@@ -867,6 +867,8 @@ public static class VehicleMapUtility
         {
             yield break;
         }
+
+        if (vehicle.Spawned) yield break;
 
         foreach (var item6 in from x in TradeUtility.AllSellableColonyPawns(map)
                                where !x.Downed

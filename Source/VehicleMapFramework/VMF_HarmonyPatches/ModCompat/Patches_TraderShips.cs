@@ -54,13 +54,6 @@ public static class Patch_CompShip_PostDraw
 [PatchLevel(Level.Safe)]
 public static class Patch_LandedShip_ColonyThingsWillingToBuy
 {
-    public static void Prefix(Pawn playerNegotiator)
-    {
-        if (working) return;
-
-        CrossMapReachabilityUtility.DepartMap[playerNegotiator] = playerNegotiator.Map;
-    }
-
     public static IEnumerable<Thing> Postfix(IEnumerable<Thing> values, Pawn playerNegotiator, ITrader __instance)
     {
         if (values != null)
@@ -74,13 +67,15 @@ public static class Patch_LandedShip_ColonyThingsWillingToBuy
 
         var maps = playerNegotiator.Map.BaseMapAndVehicleMaps().Except(playerNegotiator.Map);
         var departMap = playerNegotiator.Map;
+        CrossMapReachabilityUtility.DepartMapGlobal = departMap;
         try
         {
             working = true;
             foreach (var map in maps)
             {
                 playerNegotiator.VirtualMapTransfer(map);
-                foreach (var thing in __instance.ColonyThingsWillingToBuy(playerNegotiator))
+                var things = __instance.ColonyThingsWillingToBuy(playerNegotiator).ToList();
+                foreach (var thing in things)
                 {
                     yield return thing;
                 }
@@ -90,7 +85,7 @@ public static class Patch_LandedShip_ColonyThingsWillingToBuy
         {
             working = false;
             playerNegotiator.VirtualMapTransfer(departMap);
-            CrossMapReachabilityUtility.DepartMap.Remove(playerNegotiator);
+            CrossMapReachabilityUtility.DepartMapGlobal = null;
         }
     }
 

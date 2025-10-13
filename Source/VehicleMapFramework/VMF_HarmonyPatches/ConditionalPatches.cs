@@ -89,10 +89,10 @@ public static class Patch_CaravanFormation_TryFindExitSpot
     {
         Type[] arguments =
         [
-            typeof(Map), typeof(List<Pawn>), typeof(bool), typeof(Rot4), typeof(IntVec3).MakeByRefType(), typeof(bool)
+            typeof(Map), typeof(List<Pawn>), typeof(bool), typeof(Rot4), typeof(IntVec3).MakeByRefType()
         ];
         var method = AccessTools.Method(typeof(CaravanFormation), "TryFindExitSpot", arguments)
-                     ?? AccessTools.Method(typeof(CaravanFormation), "TryFindExitSpot", arguments.SkipLast(1).ToArray());
+                     ?? AccessTools.Method(typeof(CaravanFormation), "TryFindExitSpot", arguments.Concat(typeof(bool)).ToArray());
         return method;
     }
     
