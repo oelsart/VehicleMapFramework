@@ -74,18 +74,20 @@ public static class Patch_Reachability_CanReach
     public static bool Prefix(IntVec3 start, LocalTargetInfo dest, PathEndMode peMode, TraverseParms traverseParams, Map ___map, ref bool __result)
     {
         if (CrossMapReachabilityUtility.working) return true;
-
-        var pawn = traverseParams.pawn;
-        if (pawn is null) return true;
         
-        var destMap = CrossMapReachabilityUtility.DestMap.GetValueOrDefault(pawn) ??
+        var pawn = traverseParams.pawn;
+
+        var destMap = CrossMapReachabilityUtility.DestMapGlobal ??
+                      CrossMapReachabilityUtility.DestMap.TryGetValue(pawn) ??
                       dest.Thing?.MapHeld ??
-                      (TargetMapManager.HasTargetInfo(pawn, out var target) && (LocalTargetInfo)target == dest ? target.Map : pawn.Map);
+                      (TargetMapManager.HasTargetInfo(pawn, out var target) && 
+                       (LocalTargetInfo)target == dest ? target.Map : ___map);
         if (destMap == null)
         {
             return true;
         }
-        var departMap = CrossMapReachabilityUtility.DepartMap.GetValueOrDefault(pawn) ?? pawn.Map;
+        var departMap = CrossMapReachabilityUtility.DepartMapGlobal ??
+                        CrossMapReachabilityUtility.DepartMap.TryGetValue(pawn) ?? ___map;
         if (departMap == null)
         {
             return true;

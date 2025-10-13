@@ -6,7 +6,6 @@ using System.Reflection.Emit;
 using HarmonyLib;
 using RimWorld;
 using RimWorld.Planet;
-using SmashTools;
 using Vehicles;
 using Verse;
 using static VehicleMapFramework.MethodInfoCache;
@@ -29,7 +28,7 @@ public static class Patch_Pawn_ColonyThingsWillingToBuy
         }
         var maps = __instance.Map.BaseMapAndVehicleMaps().Except(__instance.Map);
         var departMap = __instance.Map;
-        CrossMapReachabilityUtility.DepartMap[__instance] = departMap;
+        CrossMapReachabilityUtility.DepartMapGlobal = departMap;
         try
         {
             foreach (var map in maps)
@@ -44,7 +43,7 @@ public static class Patch_Pawn_ColonyThingsWillingToBuy
         finally
         {
             __instance.VirtualMapTransfer(departMap);
-            CrossMapReachabilityUtility.DepartMap.Remove(__instance);
+            CrossMapReachabilityUtility.DepartMapGlobal = null;
         }
     }
 }
@@ -56,7 +55,8 @@ public static class Patch_Caravan_ColonyThingsWillingToBuy
 {
     public static IEnumerable<Thing> Postfix(IEnumerable<Thing> values, Pawn playerNegotiator)
     {
-        var vehicles = playerNegotiator.GetCaravan()?.PawnsListForReading?.OfType<VehiclePawnWithMap>() ?? playerNegotiator.GetVehicleCaravan()?.Vehicles?.OfType<VehiclePawnWithMap>();
+        var vehicles = (playerNegotiator.GetCaravan()?.PawnsListForReading?.OfType<VehiclePawnWithMap>() ??
+                       playerNegotiator.GetVehicleCaravan()?.Vehicles?.OfType<VehiclePawnWithMap>())?.ToList();
 
         if (values != null)
         {
@@ -67,12 +67,9 @@ public static class Patch_Caravan_ColonyThingsWillingToBuy
         }
         if (!vehicles.NullOrEmpty())
         {
-            foreach (var vehicle in vehicles)
+            foreach (var thing in vehicles!.SelectMany(vehicle => vehicle.ColonyThingsWillingToBuyOnVehicle(playerNegotiator)))
             {
-                foreach (var thing in vehicle.ColonyThingsWillingToBuyOnVehicle(playerNegotiator))
-                {
-                    yield return thing;
-                }
+                yield return thing;
             }
         }
         else if (playerNegotiator is VehiclePawnWithMap vehicle2)

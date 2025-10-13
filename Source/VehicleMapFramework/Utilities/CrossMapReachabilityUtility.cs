@@ -16,7 +16,11 @@ public static class CrossMapReachabilityUtility
 
     public static Dictionary<Pawn, Map> DestMap { get; } = [];
 
+    public static Map DestMapGlobal;
+    
     public static Dictionary<Pawn, Map> DepartMap { get; } = [];
+
+    public static Map DepartMapGlobal;
 
 #if DEBUG
     public static bool enableDebugLog;

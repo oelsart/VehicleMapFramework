@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Reflection;
 using HarmonyLib;
+using RimWorld;
 using Verse;
 using static VehicleMapFramework.MethodInfoCache;
 
@@ -59,7 +60,11 @@ public static class Patch_FloatMenuOptionProvider_ExtinguishAstrofires_GetSingle
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);
+        var codes = new CodeMatcher(instructions);
+        codes.MatchStartForward(CodeMatch.Calls(AccessTools.PropertyGetter(typeof(FloatMenuContext), nameof(FloatMenuContext.FirstSelectedPawn))));
+        codes.RemoveInstruction();
+        codes.SetInstruction(CodeInstruction.LoadField(typeof(FloatMenuContext), nameof(FloatMenuContext.map)));
+        return codes.Instructions();
     }
 }
 
