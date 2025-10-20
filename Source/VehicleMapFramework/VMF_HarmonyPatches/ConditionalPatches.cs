@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Reflection;
 using HarmonyLib;
 using SmashTools;
 using Vehicles;
-using Vehicles.World;
 using Verse;
 using Verse.AI;
 
@@ -70,42 +67,11 @@ public static class Patch_JobDriver_LoadVehicle_FailJob
         {
             var map = __instance.pawn.MapHeld;
             var maps = map.BaseMapAndVehicleMaps().Except(map);
-            if (__instance.job.GetTarget(TargetIndex.B).Thing is VehiclePawn vehicle && maps.Any(m =>
-                    MapComponentCache<VehicleReservationManager>.GetComponent(m)
-                        .VehicleListed(vehicle, ReservationType.LoadVehicle)))
+            var vehicle = __instance.job.GetTarget(TargetIndex.B).Thing as VehiclePawn;
+            if (maps.Any(m => MapComponentCache<VehicleReservationManager>.GetComponent(m).VehicleListed(vehicle, ReservationType.LoadVehicle)))
             {
                 __result = false;
             }
         }
-    }
-}
-
-//最後の引数が削除される予定.
-[HarmonyPatch]
-[PatchLevel(Level.Safe)]
-public static class Patch_CaravanFormation_TryFindExitSpot
-{
-    private static MethodBase TargetMethod()
-    {
-        Type[] arguments =
-        [
-            typeof(Map), typeof(List<Pawn>), typeof(bool), typeof(Rot4), typeof(IntVec3).MakeByRefType()
-        ];
-        var method = AccessTools.Method(typeof(CaravanFormation), "TryFindExitSpot", arguments)
-                     ?? AccessTools.Method(typeof(CaravanFormation), "TryFindExitSpot", arguments.Concat(typeof(bool)).ToArray());
-        return method;
-    }
-    
-    public static void Prefix(Map map, List<Pawn> pawns)
-    {
-        foreach (var pawn in pawns)
-        {
-            CrossMapReachabilityUtility.DestMap[pawn] = map;
-        }
-    }
-
-    public static void Finalizer(List<Pawn> pawns)
-    {
-        CrossMapReachabilityUtility.DestMap.RemoveRange(pawns);
     }
 }

@@ -18,6 +18,7 @@ using Verse.AI;
 using Verse.AI.Group;
 using Verse.Sound;
 using static VehicleMapFramework.MethodInfoCache;
+using static VehicleMapFramework.ModCompat.VehicleFramework;
 using Transform = SmashTools.Rendering.Transform;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
@@ -26,104 +27,22 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [PatchLevel(Level.Mandatory)]
 public static class Patch_RGBMaterialPool_SetProperties
 {
-    public static bool Prefix(IMaterialCacheTarget target, PatternData patternData,
-    Func<Rot8, Texture2D> mainTexGetter, Func<Rot8, Texture2D> maskTexGetter, Dictionary<IMaterialCacheTarget, Material[]> ___Cache)
+    public static void Postfix(IMaterialCacheTarget target, Dictionary<IMaterialCacheTarget, Material[]> ___Cache)
     {
         if (target is GraphicOverlay graphicOverlay)
         {
             var vehiclePawn = graphicOverlay.Vehicle;
             if (vehiclePawn != null && vehiclePawn.AllComps.OfType<CompOpacityOverlay>().Any(c => c.Props.identifier == graphicOverlay.data?.identifier))
             {
-                if (___Cache.TryGetValue(target, out var materials))
+                if (___Cache.TryGetValue(target, out var materials) && materials != null)
                 {
-                    for (var i = 0; i < materials.Length; i++)
+                    foreach (var material in materials)
                     {
-                        var material = materials[i];
-
-                        material.SetColor(AdditionalShaderPropertyIDs.ColorOne, patternData.color);
-                        material.SetColor(ShaderPropertyIDs.ColorTwo, patternData.colorTwo);
-                        material.SetColor(AdditionalShaderPropertyIDs.ColorThree, patternData.colorThree);
-
-                        Rot8 rot = new(i);
-                        var mainTex = material.mainTexture as Texture2D;
-                        if (mainTexGetter != null)
-                        {
-                            mainTex = mainTexGetter(rot);
-                        }
-
-                        var maskTex = maskTexGetter?.Invoke(rot);
-                        if (patternData.patternDef != PatternDefOf.Default)
-                        {
-                            var tiles = patternData.tiles;
-                            if (patternData.patternDef.properties.tiles.TryGetValue("All", out var allTiles))
-                            {
-                                tiles *= allTiles;
-                            }
-
-                            if (!Mathf.Approximately(tiles, 0))
-                            {
-                                material.SetFloat(AdditionalShaderPropertyIDs.TileNum, tiles);
-                            }
-
-                            if (patternData.patternDef.properties.equalize && mainTex != null)
-                            {
-                                float scaleX = 1;
-                                float scaleY = 1;
-                                if (mainTex.width > mainTex.height)
-                                {
-                                    scaleY = (float)mainTex.height / mainTex.width;
-                                }
-                                else
-                                {
-                                    scaleX = (float)mainTex.width / mainTex.height;
-                                }
-
-                                material.SetFloat(AdditionalShaderPropertyIDs.ScaleX, scaleX);
-                                material.SetFloat(AdditionalShaderPropertyIDs.ScaleY, scaleY);
-                            }
-
-                            if (patternData.patternDef.properties.dynamicTiling)
-                            {
-                                material.SetFloat(AdditionalShaderPropertyIDs.DisplacementX,
-                                  patternData.displacement.x);
-                                material.SetFloat(AdditionalShaderPropertyIDs.DisplacementY,
-                                  patternData.displacement.y);
-                            }
-                        }
-
-                        var opacityShader = patternData.patternDef.ShaderTypeDef.Shader.OpacityShaderCorrespond();
-                        if (opacityShader != material.shader)
-                        {
-                            material.shader = opacityShader;
-                        }
-
-                        var patternTex = patternData.patternDef[rot];
-                        if (patternData.patternDef.ShaderTypeDef == VehicleShaderTypeDefOf.CutoutComplexSkin)
-                        {
-                            //Null reverts to original tex. Default would calculate to red
-                            material.SetTexture(AdditionalShaderPropertyIDs.SkinTex, patternTex);
-                        }
-                        else if (patternData.patternDef.ShaderTypeDef ==
-                          VehicleShaderTypeDefOf.CutoutComplexPattern)
-                        {
-                            material.SetTexture(AdditionalShaderPropertyIDs.PatternTex, patternTex);
-                        }
-
-                        material.mainTexture = mainTex;
-                        if (maskTex != null)
-                        {
-                            material.SetTexture(ShaderPropertyIDs.MaskTex, maskTex);
-                        }
-
-                        material.SetColor(AdditionalShaderPropertyIDs.ColorOne, patternData.color);
-                        material.SetColor(ShaderPropertyIDs.ColorTwo, patternData.colorTwo);
-                        material.SetColor(AdditionalShaderPropertyIDs.ColorThree, patternData.colorThree);
+                        material?.shader = material.shader.OpacityShaderCorrespond();
                     }
-                    return false;
                 }
             }
         }
-        return true;
     }
 }
 
@@ -154,7 +73,34 @@ public static class Patch_VehiclePawn_HasEnoughOperators
     }
 }
 
-//VehicleTurret_Manualの場合タレットに対応するハンドラーが存在しない場合ギズモを操作不能にする
+//VehiclePawnWithMapの場合タレットに対応するハンドラーが存在しない場合コントロールできないようにする
+[HarmonyPatch(typeof(VehicleTurret), nameof(VehicleTurret.RecacheMannedStatus))]
+[PatchLevel(Level.Safe)]
+public static class Patch_VehicleTurret_RecacheMannedStatus
+{
+    public static bool Prefix(VehicleTurret __instance)
+    {
+        if (__instance.vehicle is VehiclePawnWithMap)
+        {
+            if (VehicleMod.settings.debug.debugShootAnyTurret)
+            {
+                VehicleTurret_IsManned(__instance, true);
+                return false;
+            }
+            var matchHandlers = __instance.vehicle.handlers.FindAll(h => h.role.HandlingTypes.HasFlag(HandlingType.Turret) && (h.role.TurretIds.Contains(__instance.key) || h.role.TurretIds.Contains(__instance.groupKey)));
+            if (matchHandlers.Empty())
+            {
+                VehicleTurret_IsManned(__instance, false);
+                return false;
+            }
+            VehicleTurret_IsManned(__instance, matchHandlers.All(h => h.RoleFulfilled));
+            return false;
+        }
+        return true;
+    }
+}
+
+//VehiclePawnWithMapの場合タレットに対応するハンドラーが存在しない場合ギズモを操作不能にする
 [HarmonyPatch(typeof(CompVehicleTurrets), nameof(CompVehicleTurrets.CompGetGizmosExtra))]
 [PatchLevel(Level.Safe)]
 public static class Patch_CompVehicleTurrets_CompGetGizmosExtra
@@ -163,10 +109,10 @@ public static class Patch_CompVehicleTurrets_CompGetGizmosExtra
     {
         foreach (var gizmo in gizmos)
         {
-            if (gizmo is Command_Turret command_Turret)
+            if (gizmo is Command_Turret command_Turret && __instance.Vehicle is VehiclePawnWithMap)
             {
                 var turret = command_Turret.turret;
-                if (turret is VehicleTurret_Manual &&
+                if (turret != null &&
                     !command_Turret.Disabled &&
                     !VehicleMod.settings.debug.debugShootAnyTurret &&
                     !__instance.Vehicle.handlers.Any(h => h.role.handlingTypes.HasFlag(HandlingType.Turret) && (h.role.TurretIds?.Contains(!turret.groupKey.NullOrEmpty() ? turret.groupKey : turret.key) ?? false)))
@@ -246,7 +192,7 @@ public static class Patch_Rendering_DrawSelectionBracketsVehicles
         codes.MatchEndForward(CodeMatch.LoadsField(AccessTools.Field(typeof(Transform), nameof(Transform.rotation))), new CodeMatch(OpCodes.Add));
         codes.DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle);
         codes.CreateLabel(out var label);
-        var l_vehicle_ind = original.GetMethodBody()?.LocalVariables.FirstIndexOf(l => l.LocalType == typeof(VehiclePawn)) ?? 0;
+        var l_vehicle_ind = original.GetMethodBody()?.LocalVariables?.FirstIndexOf(l => l.LocalType == typeof(VehiclePawn)) ?? 0;
         if (l_vehicle_ind == -1) l_vehicle_ind = 0;
         codes.InsertAndAdvance(
             CodeInstruction.LoadLocal(l_vehicle_ind),
@@ -485,6 +431,61 @@ public static class Patch_Command_CooldownAction_DrawBottomBar
     }
 }
 
+//車両マップ上からLoadVehicleをしようとした時など
+[HarmonyPatch]
+[PatchLevel(Level.Safe)]
+public static class Patch_JobDriverLoadVehicleBase_ShouldFailJob
+{
+    private static readonly Dictionary<Type, Predicate<JobDriverLoadVehicleBase>> ShouldFailJob = [];
+
+    private static bool working;
+
+    private static IEnumerable<MethodBase> TargetMethods()
+    {
+        var g_Map = AccessTools.PropertyGetter(typeof(JobDriver), "Map");
+        foreach (var method in typeof(JobDriverLoadVehicleBase).AllSubclasses()
+                     .Select(type => AccessTools.DeclaredMethod(type, "ShouldFailJob"))
+                     .Where(method => method is not null &&
+                         VMF_Harmony.ReadMethodBodyWrapper(method)
+                             .Any(i => g_Map.Equals(i.Value))))
+        {
+            yield return method;
+        }
+    }
+    
+    public static void Postfix(JobDriverLoadVehicleBase __instance, ref bool __result)
+    {
+        if (working) return;
+        
+        if (__result)
+        {
+            var map = __instance.pawn.Map;
+            try
+            {
+                working = true;
+                var type = __instance.GetType();
+                if (!ShouldFailJob.TryGetValue(type, out var predicate))
+                {
+                    var m_ShouldFailJob = AccessTools.DeclaredMethod(type, "ShouldFailJob");
+                    predicate = ShouldFailJob[type] =
+                        AccessTools.MethodDelegate<Predicate<JobDriverLoadVehicleBase>>(m_ShouldFailJob);
+                }
+                foreach (var map2 in map.BaseMapAndVehicleMaps().Except(map))
+                {
+                    __instance.pawn.VirtualMapTransfer(map2);
+                    if (!predicate(__instance))
+                        __result = false;
+                }
+            }
+            finally
+            {
+                working = false;
+                __instance.pawn.VirtualMapTransfer(map);
+            }
+        }
+    }
+}
+
 [HarmonyPatch(typeof(LaunchProtocol), nameof(LaunchProtocol.GetArrivalOptions))]
 [PatchLevel(Level.Safe)]
 public static class Patch_LaunchProtocol_GetArrivalOptions
@@ -523,7 +524,7 @@ public static class Patch_LaunchProtocol_GetArrivalOptions
                           else
                           {
                               var aerialVehicle = vehicle.GetOrMakeAerialVehicle();
-                              var nodes = targetData.targets.Select(target2 => new FlightNode(target2)).ToList();
+                              var nodes = targetData.targets.Select(targetInfo => new FlightNode(targetInfo)).ToList();
                               aerialVehicle.OrderFlyToTiles(nodes,
                         new ArrivalAction_LandToCell(vehicle, mapParent, landingCell.Cell, rot));
                               vehicle.CompVehicleLauncher.inFlight = true;
@@ -554,6 +555,23 @@ public static class Patch_SelectionHelper_MultiSelectClicker
     }
 }
 
+[HarmonyPatch(typeof(CaravanFormation), "TryFindExitSpot",
+    [typeof(Map), typeof(List<Pawn>), typeof(bool), typeof(Rot4), typeof(IntVec3), typeof(bool)],
+    [ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Out, ArgumentType.Normal])]
+[PatchLevel(Level.Safe)]
+public static class Patch_CaravanFormation_TryFindExitSpot
+{
+    public static void Prefix(Map map)
+    {
+        CrossMapReachabilityUtility.DestMap = map;
+    }
+
+    public static void Finalizer()
+    {
+        CrossMapReachabilityUtility.DestMap = null;
+    }
+}
+
 //ポーンがVehicleRoleBuildableに割り当てられている時はその席へのCanReachにすり替える
 [HarmonyPatch(typeof(CaravanFormation), "CheckForErrors")]
 [PatchLevel(Level.Sensitive)]
@@ -579,7 +597,7 @@ public static class Patch_CaravanFormation_CheckForErrors
                     return c.opcode == OpCodes.Ldloc_3;
                 default:
                 {
-                    var localBuilder = codes.Select(code => code.operand).OfType<LocalBuilder>().First(l => l.LocalIndex == ind);
+                    var localBuilder = codes.Select(c2 => c2.operand).OfType<LocalBuilder>().First(l => l.LocalIndex == ind);
                     return c.IsLdloc(localBuilder);
                 }
             }
@@ -596,11 +614,31 @@ public static class Patch_CaravanFormation_CheckForErrors
     private static Thing TargetThing(VehiclePawn vehicle, Pawn pawn)
     {
         var assignedSeat = CaravanHelper.assignedSeats.GetAssignment(pawn);
-        if (assignedSeat?.handler.role is VehicleRoleBuildable vehicleRoleBuildable)
+        if (assignedSeat != null && assignedSeat.handler.role is VehicleRoleBuildable vehicleRoleBuildable)
         {
             return vehicleRoleBuildable.upgradeComp.parent;
         }
         return vehicle;
+    }
+}
+
+[HarmonyPatch(typeof(CaravanFormation), "TryFindExitSpot",
+    [typeof(Map), typeof(List<Pawn>), typeof(bool), typeof(Rot4), typeof(IntVec3)],
+    [ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Out])]
+[PatchLevel(Level.Safe)]
+public static class Patch_CaravanFormation_TryFindExitSpot
+{
+    public static void Prefix(Map map, List<Pawn> pawns)
+    {
+        foreach (var pawn in pawns)
+        {
+            CrossMapReachabilityUtility.DestMap[pawn] = map;
+        }
+    }
+
+    public static void Finalizer(List<Pawn> pawns)
+    {
+        CrossMapReachabilityUtility.DestMap.RemoveRange(pawns);
     }
 }
 
@@ -807,6 +845,7 @@ public static class Patch_VehicleTabHelper_Passenger_HandleDragEvent
         {
             var parent = vehicleRoleBuildable.upgradeComp.parent;
             var cellRect = parent.OccupiedRect().ExpandedBy(1);
+            var intVec = parent.Position;
             if (cellRect.EdgeCells.Where(delegate (IntVec3 c)
             {
                 if (c.InBounds(parent.Map) && Predicate(c, parent.Map))
@@ -939,7 +978,7 @@ public static class Patch_FloatMenuOptionProvider_OrderVehicle_PawnGotoAction
                       "MessagePlayerTriedToLeaveMapViaExitGrid_CantReform".Translate();
                     Messages.Message(text, baseMap.Parent, MessageTypeDefOf.RejectInput, false);
                 }
-                jobSuccess = vehicle.jobs!.TryTakeOrderedJob(job, JobTag.Misc);
+                jobSuccess = vehicle.jobs?.TryTakeOrderedJob(job, JobTag.Misc) ?? false;
 
                 if (jobSuccess)
                     vehicle.vehiclePather.SetEndRotation(rot);
@@ -1043,18 +1082,18 @@ public static class Patch_VehicleOrientationController_TargeterUpdate
         var m_ToVector3ShiftedOffsetWithAltitude = AccessTools.Method(typeof(Patch_MultiPawnGotoController_Draw), "ToVector3ShiftedOffsetWithAltitude");
         var num = 0;
         var ind = codes.Select(c => c.operand).OfType<LocalBuilder>().First(l => l.LocalType == typeof(VehiclePawn)).LocalIndex;
-        foreach (var instruction in codes)
+        foreach (var code in codes)
         {
-            if (instruction.Calls(m_ToVector3ShiftedWithAltitude))
+            if (code.Calls(m_ToVector3ShiftedWithAltitude))
             {
                 num++;
                 if (num > 2)
                 {
                     yield return CodeInstruction.LoadLocal(ind);
-                    instruction.operand = m_ToVector3ShiftedOffsetWithAltitude;
+                    code.operand = m_ToVector3ShiftedOffsetWithAltitude;
                 }
             }
-            yield return instruction;
+            yield return code;
         }
     }
 }

@@ -22,18 +22,18 @@ public enum Level
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, Inherited = false)]
 public sealed class PatchLevelAttribute(Level level) : Attribute
 {
-    public Level level = level;
+    public readonly Level level = level;
 }
 
 public class VMF_Harmony
 {
-    internal static Harmony Instance = new("OELS.VehicleMapFramework");
+    internal static readonly Harmony Instance = new("OELS.VehicleMapFramework");
 
-    internal static List<string> Categories = [];
+    internal static readonly List<string> Categories = [];
 
-    internal static List<Assembly> Assemblies = [];
+    internal static readonly List<Assembly> Assemblies = [];
 
-    internal static List<Type> AllTypesInMod = [];
+    internal static readonly List<Type> AllTypesInMod = [];
 
     internal static Level CurrentPatchLevel { get; private set; } = (VehicleMapFramework.settings?.dynamicPatchEnabled ?? false) ? VehicleMapFramework.settings.dynamicPatchLevel : Level.All;
 
@@ -54,16 +54,16 @@ public class VMF_Harmony
 
     internal static PatchClassProcessor AdjustPatchLevel(PatchClassProcessor patchClassProcessor)
     {
-        Predicate<object> predicate = static attributePatch =>
+        m_RemoveAll.Invoke(patchMethodsRef(patchClassProcessor), [(Predicate<object>)Predicate]);
+        return patchClassProcessor;
+
+        static bool Predicate(object attributePatch)
         {
             var method = infoRef(attributePatch).method;
             var attribute = method.GetCustomAttribute<PatchLevelAttribute>();
-            var level = attribute?.level ?? method.DeclaringType.GetCustomAttribute<PatchLevelAttribute>()?.level ?? Level.Mandatory;
+            var level = attribute?.level ?? method.DeclaringType?.GetCustomAttribute<PatchLevelAttribute>()?.level ?? Level.Mandatory;
             return OutOfRange(level);
-        };
-
-        m_RemoveAll.Invoke(patchMethodsRef(patchClassProcessor), [predicate]);
-        return patchClassProcessor;
+        }
     }
 
     internal static bool CheckClassPatchLevel(Type type)
@@ -141,6 +141,7 @@ public class VMF_Harmony
 
     internal static List<Type> TypesInAssembly(Assembly assembly)
     {
+        if (assembly is null) return [];
         if (!Assemblies.Contains(assembly))
         {
             Assemblies.Add(assembly);
@@ -152,7 +153,7 @@ public class VMF_Harmony
     internal static void PatchCategory(string category)
     {
         var method = new StackTrace().GetFrame(1).GetMethod();
-        var assembly = method.ReflectedType.Assembly;
+        var assembly = method.ReflectedType?.Assembly;
         if (!Categories.Contains(category))
         {
             Categories.Add(category);
@@ -179,7 +180,7 @@ public class VMF_Harmony
     internal static void UnpatchCategory(string category)
     {
         var method = new StackTrace().GetFrame(1).GetMethod();
-        var assembly = method.ReflectedType.Assembly;
+        var assembly = method.ReflectedType?.Assembly;
         TypesInAssembly(assembly)
             .Where(t => t.CustomAttributes.Any(a => a.AttributeType == typeof(HarmonyPatch)) &&
             t.CustomAttributes.Any(a => a.AttributeType == typeof(HarmonyPatchCategory) && a.ConstructorArguments.Any(c => c.Value.Equals(category))))
@@ -202,7 +203,7 @@ public class VMF_Harmony
     internal static void PatchAllUncategorized()
     {
         var method = new StackTrace().GetFrame(1).GetMethod();
-        var assembly = method.ReflectedType.Assembly;
+        var assembly = method.ReflectedType?.Assembly;
         TypesInAssembly(assembly)
             .Where(t => t.CustomAttributes.Any(a => a.AttributeType == typeof(HarmonyPatch)) && t.CustomAttributes.All(a => a.AttributeType != typeof(HarmonyPatchCategory)))
             .Where(CheckClassPatchLevel)
@@ -224,7 +225,7 @@ public class VMF_Harmony
     internal static void UnpatchAllUncategorized()
     {
         var method = new StackTrace().GetFrame(1).GetMethod();
-        var assembly = method.ReflectedType.Assembly;
+        var assembly = method.ReflectedType?.Assembly;
         TypesInAssembly(assembly)
             .Where(t => t.CustomAttributes.Any(a => a.AttributeType == typeof(HarmonyPatch)) && t.CustomAttributes.All(a => a.AttributeType != typeof(HarmonyPatchCategory)))
             .Where(CheckClassPatchLevel)
@@ -287,7 +288,7 @@ public static class LatePatchCore
         {
             VMF_Harmony.PatchCategory(Category);
 
-            var version = Assembly.GetExecutingAssembly()?.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version?.Split('.');
+            var version = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version?.Split('.');
             if (version != null)
             {
                 VMF_Log.Message($"{version.ElementAtOrDefault(0)}.{version.ElementAtOrDefault(1)}.{version.ElementAtOrDefault(2)} rev{version.ElementAtOrDefault(3)}");
@@ -300,7 +301,7 @@ public static class LatePatchCore
 [AttributeUsage(AttributeTargets.Class, Inherited = false)]
 public sealed class StaticConstructorOnStartupPriorityAttribute(int priority) : Attribute
 {
-    public int priority = priority;
+    public readonly int priority = priority;
 }
 
 [StaticConstructorOnStartup]
