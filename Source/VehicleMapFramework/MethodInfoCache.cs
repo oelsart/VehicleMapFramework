@@ -180,7 +180,7 @@ public class MethodInfoCache
 
     public readonly MethodInfo m_CanBeSeenOverFast = AccessTools.Method(typeof(GenGrid), nameof(GenGrid.CanBeSeenOverFast));
 
-    public readonly MethodInfo m_CanBeSeenOverOnVehicle = AccessTools.Method(typeof(GenSightOnVehicle), nameof(GenSightOnVehicle.CanBeSeenOverOnVehicle));
+    public readonly MethodInfo m_CanBeSeenOverOnVehicleFast = AccessTools.Method(typeof(GenSightOnVehicle), nameof(GenSightOnVehicle.CanBeSeenOverOnVehicleFast));
 
     public readonly MethodInfo g_Rot4_FacingCell = AccessTools.PropertyGetter(typeof(Rot4), nameof(Rot4.FacingCell));
 

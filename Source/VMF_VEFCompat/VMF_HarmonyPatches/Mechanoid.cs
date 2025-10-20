@@ -212,7 +212,7 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
         public static bool Prefix(IntVec3 center, Thing thing)
         {
             if (!thing.IsOnNonFocusedVehicleMapOf(out _) &&
-                (Command_FocusVehicleMap.FocusedVehicle) == null) return true;
+                Command_FocusVehicleMap.FocusedVehicle == null) return true;
             GenDraw.DrawRadiusRing(center, 6f, Color.red);
             GenDraw.DrawRadiusRing(center, 20, Color.white);
             return false;

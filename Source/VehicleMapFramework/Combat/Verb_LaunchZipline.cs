@@ -1,4 +1,5 @@
-﻿using RimWorld;
+﻿using System.Diagnostics.CodeAnalysis;
+using RimWorld;
 using UnityEngine;
 using VehicleMapFramework.VMF_HarmonyPatches;
 using Verse;
@@ -26,10 +27,10 @@ public class Verb_LaunchZipline : Verb_LaunchProjectile
         {
             return targetParams.canTargetSelf;
         }
-        ShootLine shootLine;
-        return (targ.Pawn == null || !targ.Pawn.IsPsychologicallyInvisible() || !caster.HostileTo(targ.Pawn)) && !ApparelPreventsShooting() && this.TryFindShootLineFromToOnVehicle(root, targ, out shootLine);
+        return (targ.Pawn == null || !targ.Pawn.IsPsychologicallyInvisible() || !caster.HostileTo(targ.Pawn)) && !ApparelPreventsShooting() && this.TryFindShootLineFromToOnVehicle(root, targ, out _);
     }
 
+    [SuppressMessage("ReSharper", "ParameterHidesMember")]
     public override bool TryStartCastOn(LocalTargetInfo castTarg, LocalTargetInfo destTarg, bool surpriseAttack = false, bool canHitNonTargetPawns = true, bool preventFriendlyFire = false, bool nonInterruptingSelfCast = false)
     {
         if (ZiplineEnd?.Spawned ?? false) return false;
@@ -144,19 +145,13 @@ public class Verb_LaunchZipline : Verb_LaunchProjectile
             projectileHitFlags4 |= ProjectileHitFlags.NonTargetPawns;
         }
 
-        if (!currentTarget.HasThing || currentTarget.Thing.def.Fillage == FillCategory.Full)
+        if (!currentTarget.HasThing || currentTarget.Thing!.def.Fillage == FillCategory.Full)
         {
             projectileHitFlags4 |= ProjectileHitFlags.NonTargetWorld;
         }
 
-        if (currentTarget.Thing != null)
-        {
-            projectile2.Launch(manningPawn, drawPos, currentTarget, currentTarget, projectileHitFlags4, preventFriendlyFire, equipmentSource, targetCoverDef);
-        }
-        else
-        {
-            projectile2.Launch(manningPawn, drawPos, resultingLine.Dest, currentTarget, projectileHitFlags4, preventFriendlyFire, equipmentSource, targetCoverDef);
-        }
+        projectile2.Launch(manningPawn, drawPos, currentTarget.Thing != null ? currentTarget : resultingLine.Dest,
+            currentTarget, projectileHitFlags4, preventFriendlyFire, equipmentSource, targetCoverDef);
 
         return true;
     }
@@ -167,7 +162,7 @@ public class Verb_LaunchZipline : Verb_LaunchProjectile
         {
             return;
         }
-        var map = Patch_JumpUtility_OrderJump.TargetMap(caster);
+        var map = TargetMapManager.TargetMapOrThingMap(caster);
         if (target.IsValid && JumpUtility.ValidJumpTarget(caster, map, target.Cell))
         {
             GenDraw.DrawTargetHighlightWithLayer(Patch_Verb_Jump_DrawHighlight.CenterVector3Offset(ref target, this), AltitudeLayer.MetaOverlays);
@@ -177,7 +172,7 @@ public class Verb_LaunchZipline : Verb_LaunchProjectile
 
     public override void OnGUI(LocalTargetInfo target)
     {
-        if (CanHitTarget(target) && JumpUtility.ValidJumpTarget(caster, Patch_JumpUtility_OrderJump.TargetMap(caster), target.Cell))
+        if (CanHitTarget(target) && JumpUtility.ValidJumpTarget(caster, TargetMapManager.TargetMapOrThingMap(caster), target.Cell))
         {
             base.OnGUI(target);
             return;

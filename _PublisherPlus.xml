@@ -2,7 +2,7 @@
 <Configuration>
   <Excluded>
     <exclude>.git</exclude>
-    <exclude>.vs</exclude>
+    <exclude>CopyToDev.bat</exclude>
     <exclude>Source</exclude>
   </Excluded>
 </Configuration>
