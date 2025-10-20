@@ -4,6 +4,7 @@ using HarmonyLib;
 using RimWorld;
 using Verse;
 using Verse.AI;
+using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
@@ -45,5 +46,16 @@ public static class Patch_HaulingUtility_TryGetHaulingDestination
         {
             map = map2;
         }
+    }
+}
+
+[HarmonyPatchCategory(Patches_StackGap.Category)]
+[HarmonyPatch("StorageUpperBound.ToilsRecipePatch", "PatchNum")]
+[PatchLevel(Level.Cautious)]
+public static class Patch_ToilsRecipePatch_PatchNum
+{
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);
     }
 }
