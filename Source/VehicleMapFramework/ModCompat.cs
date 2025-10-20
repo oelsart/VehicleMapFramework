@@ -526,7 +526,36 @@ internal static class ModCompat
 
     public static readonly bool NightmareCore = ModsConfig.IsActive("Nightmare.Core");
 
-    public static readonly bool Aquariums = ModsConfig.IsActive("Nightmare.Aquariums");
+    public static class Aquariums
+    {
+        public static readonly bool Active = ModsConfig.IsActive("Nightmare.Aquariums");
+
+        public static readonly FastInvokeHandler CurrentTank;
+
+        static Aquariums()
+        {
+            if (Active)
+            {
+                try
+                {
+                    CurrentTank = MethodInvoker.GetHandler(AccessTools.PropertyGetter("Aquariums.AquariumFish:CurrentTank"));
+                }
+                catch (Exception ex)
+                {
+                    VMF_Log.Error(ex.Message);
+                    Active = false;
+                }
+                finally
+                {
+                    if (AnyNull(CurrentTank))
+                    {
+                        LogIncompat("Aquariums");
+                        Active = false;
+                    }
+                }
+            }
+        }
+    }
 
     public static readonly bool SmartPistol = ModsConfig.IsActive("rabiosus.smartpistol");
 

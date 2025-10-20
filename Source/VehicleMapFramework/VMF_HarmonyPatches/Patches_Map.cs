@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
 using RimWorld;
@@ -495,31 +496,21 @@ public static class Patch_CameraJumper_GetWorldTarget
     }
 }
 
-[HarmonyPatch(typeof(DesignationManager), nameof(DesignationManager.DesignationOn))]
+[HarmonyPatch]
 [PatchLevel(Level.Safe)]
 public static class Patch_DesignationManager_DesignationOn
 {
-    [HarmonyPatch([typeof(Thing)])]
-    [HarmonyPrefix]
-    public static bool Prefix1(Thing t, DesignationManager __instance, ref Designation __result)
+    private static IEnumerable<MethodBase> TargetMethods()
     {
-        var thingMap = t.MapHeld;
-        if (thingMap == null || thingMap == __instance.map) return true;
-        __result = thingMap.designationManager.DesignationOn(t);
-        return false;
+        return AccessTools.GetDeclaredMethods(typeof(DesignationManager))
+            .Where(m => m.Name == nameof(DesignationManager.DesignationOn));
     }
-
-    [HarmonyPatch([typeof(Thing), typeof(DesignationDef)])]
-    [HarmonyPrefix]
-    public static bool Prefix2(Thing t, DesignationDef def, DesignationManager __instance, ref Designation __result)
+    
+    public static void Prefix(ref DesignationManager __instance, Thing t)
     {
         var thingMap = t.MapHeld;
-        if (thingMap != null && thingMap != __instance.map)
-        {
-            __result = thingMap.designationManager.DesignationOn(t, def);
-            return false;
-        }
-        return true;
+        if (thingMap == null || thingMap == __instance.map) return;
+        __instance = thingMap.designationManager;
     }
 }
 
@@ -707,15 +698,13 @@ public static class Patch_QuestPart_SpawnThing_MapParent
 [PatchLevel(Level.Safe)]
 public static class Patch_AreaSource_DataForArea
 {
-    public static bool Prefix(Area area, Map ___map, ref NativeBitArray __result)
+    public static void Prefix(ref AreaSource __instance, Area area, Map ___map)
     {
         Map baseMap;
         if (area.Map != ___map && area.Map == (baseMap = ___map.BaseMap()))
         {
-            __result = areas(baseMap.pathFinder.MapData).DataForArea(area);
-            return false;
+            __instance = areas(baseMap.pathFinder.MapData);
         }
-        return true;
     }
 
     private static readonly AccessTools.FieldRef<PathFinderMapData, AreaSource> areas = AccessTools.FieldRefAccess<PathFinderMapData, AreaSource>("areas");

@@ -93,7 +93,7 @@ public class VehiclePawnWithMap_Hover : VehiclePawnWithMap
 
     private bool landingComplete = true;
 
-    private readonly float offsetDrafted = 0.25f;
+    private const float offsetDrafted = 0.25f;
 
     private const float ignitionDuration = 100f;
 }

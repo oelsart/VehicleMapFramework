@@ -192,7 +192,7 @@ public static class Patch_Rendering_DrawSelectionBracketsVehicles
         codes.MatchEndForward(CodeMatch.LoadsField(AccessTools.Field(typeof(Transform), nameof(Transform.rotation))), new CodeMatch(OpCodes.Add));
         codes.DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle);
         codes.CreateLabel(out var label);
-        var l_vehicle_ind = original.GetMethodBody()?.LocalVariables?.FirstIndexOf(l => l.LocalType == typeof(VehiclePawn)) ?? 0;
+        var l_vehicle_ind = original.GetMethodBody()?.LocalVariables.FirstIndexOf(l => l.LocalType == typeof(VehiclePawn)) ?? 0;
         if (l_vehicle_ind == -1) l_vehicle_ind = 0;
         codes.InsertAndAdvance(
             CodeInstruction.LoadLocal(l_vehicle_ind),
@@ -555,23 +555,6 @@ public static class Patch_SelectionHelper_MultiSelectClicker
     }
 }
 
-[HarmonyPatch(typeof(CaravanFormation), "TryFindExitSpot",
-    [typeof(Map), typeof(List<Pawn>), typeof(bool), typeof(Rot4), typeof(IntVec3), typeof(bool)],
-    [ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Out, ArgumentType.Normal])]
-[PatchLevel(Level.Safe)]
-public static class Patch_CaravanFormation_TryFindExitSpot
-{
-    public static void Prefix(Map map)
-    {
-        CrossMapReachabilityUtility.DestMap = map;
-    }
-
-    public static void Finalizer()
-    {
-        CrossMapReachabilityUtility.DestMap = null;
-    }
-}
-
 //ポーンがVehicleRoleBuildableに割り当てられている時はその席へのCanReachにすり替える
 [HarmonyPatch(typeof(CaravanFormation), "CheckForErrors")]
 [PatchLevel(Level.Sensitive)]
@@ -845,7 +828,6 @@ public static class Patch_VehicleTabHelper_Passenger_HandleDragEvent
         {
             var parent = vehicleRoleBuildable.upgradeComp.parent;
             var cellRect = parent.OccupiedRect().ExpandedBy(1);
-            var intVec = parent.Position;
             if (cellRect.EdgeCells.Where(delegate (IntVec3 c)
             {
                 if (c.InBounds(parent.Map) && Predicate(c, parent.Map))
