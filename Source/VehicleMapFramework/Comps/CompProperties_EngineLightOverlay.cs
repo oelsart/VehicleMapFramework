@@ -1,6 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-
-namespace VehicleMapFramework;
+﻿namespace VehicleMapFramework;
 
 public class CompProperties_EngineLightOverlay : CompProperties_OpacityOverlay
 {

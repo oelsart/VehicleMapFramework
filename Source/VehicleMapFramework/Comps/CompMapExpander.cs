@@ -8,6 +8,8 @@ namespace VehicleMapFramework;
 
 public class CompMapExpander : ThingComp
 {
+    public CompProperties_MapExpander Props => (CompProperties_MapExpander)props;
+    
     public override void PostSpawnSetup(bool respawningAfterLoad)
     {
         if (parent.IsOnVehicleMapOf(out var vehicle))
@@ -31,7 +33,7 @@ public class CompMapExpander : ThingComp
         }
     }
 
-    private void ResizeVehicle(VehiclePawnWithMap vehicle)
+    private static void ResizeVehicle(VehiclePawnWithMap vehicle)
     {
         var curSize = vehicle.def.size;
         var mapRect = CellRect.WholeMap(vehicle.VehicleMap);
@@ -68,6 +70,8 @@ public class CompMapExpander : ThingComp
             if (vehicle.Spawned)
             {
                 vehicle.Map.GetCachedMapComponent<VehiclePathingSystem>().RequestGridsFor(vehicle);
+                var def = vehicle.VehicleDef;
+                def.components?.ForEach(c => c.hitbox.Initialize(def));
             }
         }
     }

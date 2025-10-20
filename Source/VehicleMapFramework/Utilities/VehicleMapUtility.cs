@@ -633,7 +633,7 @@ public static class VehicleMapUtility
     public static bool TryGetFullRotation(this VehiclePawn vehicle, ref Rot8 rot)
     {
         var map = vehicle.Map;
-        if (map != null)
+        if (map.IsNonFocusedVehicleMapOf(out _))
         {
             var component = MapComponentCache<VehiclePawnWithMapCache>.GetComponent(map);
             if (!component.cachedFullRot.TryGetValue(vehicle, out rot))
@@ -662,11 +662,9 @@ public static class VehicleMapUtility
 
     public static IntVec2 BaseRotatedSize(Thing thing)
     {
-        if (!thing.BaseRotation().IsHorizontal)
-        {
-            return thing.def.size;
-        }
-        return new IntVec2(thing.def.size.z, thing.def.size.x);
+        return !thing.BaseRotation().IsHorizontal
+            ? thing.def.size
+            : new IntVec2(thing.def.size.z, thing.def.size.x);
     }
 
     public static float FlipAngle(this float angle, VehiclePawn vehicle)
@@ -680,10 +678,8 @@ public static class VehicleMapUtility
         if (MultiFloors.Active)
         {
             var component = vehicle.VehicleMap.GetComponent(MultiFloors.MF_LevelMapComp);
-            foreach (var map in (IEnumerable<Map>)MultiFloors.GetOtherMapVerticallyOutwardFromCache(null, vehicle.VehicleMap, component, -1))
-            {
-                mass += CollectionsMassCalculator.MassUsage(map.listerThings.AllThings, IgnorePawnsInventoryMode.DontIgnore, true);
-            }
+            mass += ((IEnumerable<Map>)MultiFloors.GetOtherMapVerticallyOutwardFromCache(null, vehicle.VehicleMap, component, -1))
+                .Sum(map => CollectionsMassCalculator.MassUsage(map.listerThings.AllThings, IgnorePawnsInventoryMode.DontIgnore, true));
         }
         return mass;
     }

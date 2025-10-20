@@ -2,7 +2,7 @@
 
 namespace VehicleMapFramework;
 
-public class PlaceWorker_ForbidOnHumanPoweredVehicle : PlaceWorker
+public class PlaceWorker_NonFueledVehicle : PlaceWorker
 {
     public override AcceptanceReport AllowsPlacing(BuildableDef checkingDef, IntVec3 loc, Rot4 rot, Map map, Thing thingToIgnore = null, Thing thing = null)
     {

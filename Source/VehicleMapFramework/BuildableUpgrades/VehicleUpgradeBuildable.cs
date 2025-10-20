@@ -45,7 +45,7 @@ public class VehicleUpgradeBuildable : VehicleUpgrade
         {
             foreach (var armorUpgrade in armor)
             {
-                if (!armorUpgrade.key.NullOrEmpty() && !armorUpgrade.statModifiers.NullOrEmpty())
+                if (!armorUpgrade.key.NullOrEmpty() && !armorUpgrade.statModifiers.NullOrEmpty() && parent?.parent != null)
                 {
                     var component = vehicle.statHandler.GetComponent(armorUpgrade.key);
                     var type = armorUpgrade.type;
@@ -53,12 +53,12 @@ public class VehicleUpgradeBuildable : VehicleUpgrade
                     {
                         if (type == UpgradeType.Set)
                         {
-                            component.SetArmorModifiers[node.key] = armorUpgrade.statModifiers;
+                            component.SetArmorModifiers[parent.parent.ThingID] = armorUpgrade.statModifiers;
                         }
                     }
                     else
                     {
-                        component.AddArmorModifiers[node.key] = armorUpgrade.statModifiers;
+                        component.AddArmorModifiers[parent.parent.ThingID] = armorUpgrade.statModifiers;
                     }
                 }
             }
@@ -67,7 +67,7 @@ public class VehicleUpgradeBuildable : VehicleUpgrade
         {
             foreach (var healthUpgrade in health)
             {
-                if (!healthUpgrade.key.NullOrEmpty())
+                if (!healthUpgrade.key.NullOrEmpty() && parent?.parent != null)
                 {
                     var component2 = vehicle.statHandler.GetComponent(healthUpgrade.key);
                     if (healthUpgrade.value != null)
@@ -82,8 +82,9 @@ public class VehicleUpgradeBuildable : VehicleUpgrade
                         }
                         else
                         {
-                            component2.AddHealthModifiers[node.key] = healthUpgrade.value.Value;
+                            component2.AddHealthModifiers[parent.parent.ThingID] = healthUpgrade.value.Value;
                         }
+                        component2.SetHealth(component2.MaxHealth);
                     }
                     if (healthUpgrade.depth != null)
                     {
@@ -98,7 +99,7 @@ public class VehicleUpgradeBuildable : VehicleUpgrade
     {
         if (!roles.NullOrEmpty())
         {
-            for (var i = 0; i < roles.Count; i++)
+            for (var i = roles.Count - 1; i >= 0; i--)
             {
                 if (roles[i] is RoleUpgradeBuildable roleUpgradeBuildable)
                 {
@@ -118,7 +119,7 @@ public class VehicleUpgradeBuildable : VehicleUpgrade
         {
             foreach (var armorUpgrade in armor)
             {
-                if (!armorUpgrade.key.NullOrEmpty() && !armorUpgrade.statModifiers.NullOrEmpty())
+                if (!armorUpgrade.key.NullOrEmpty() && !armorUpgrade.statModifiers.NullOrEmpty() && parent?.parent != null)
                 {
                     var component = vehicle.statHandler.GetComponent(armorUpgrade.key);
                     var type = armorUpgrade.type;
@@ -126,12 +127,12 @@ public class VehicleUpgradeBuildable : VehicleUpgrade
                     {
                         if (type == UpgradeType.Set)
                         {
-                            component.SetArmorModifiers.Remove(node.key);
+                            component.SetArmorModifiers.Remove(parent.parent.ThingID);
                         }
                     }
                     else
                     {
-                        component.AddArmorModifiers.Remove(node.key);
+                        component.AddArmorModifiers.Remove(parent.parent.ThingID);
                     }
                 }
             }
@@ -140,7 +141,7 @@ public class VehicleUpgradeBuildable : VehicleUpgrade
         {
             foreach (var healthUpgrade in health)
             {
-                if (!healthUpgrade.key.NullOrEmpty())
+                if (!healthUpgrade.key.NullOrEmpty() && parent?.parent != null)
                 {
                     var component2 = vehicle.statHandler.GetComponent(healthUpgrade.key);
                     if (healthUpgrade.value != null)
@@ -155,7 +156,7 @@ public class VehicleUpgradeBuildable : VehicleUpgrade
                         }
                         else
                         {
-                            component2.AddHealthModifiers.Remove(node.key);
+                            component2.AddHealthModifiers.Remove(parent.parent.ThingID);
                         }
                     }
                     if (healthUpgrade.depth != null)
@@ -172,7 +173,7 @@ public class VehicleUpgradeBuildable : VehicleUpgrade
         if (roleUpgrade.remove ^ isRefund)
         {
             var uniqueID = parent.handlerUniqueIDs.FirstOrDefault(h => h.key == roleUpgrade.key && h.editKey == roleUpgrade.editKey);
-            if (uniqueID == default)
+            if (uniqueID is null)
             {
                 VMF_Log.Error("No uniqueID corresponding to this role upgrade found.");
                 return;
@@ -185,7 +186,7 @@ public class VehicleUpgradeBuildable : VehicleUpgrade
                 return;
             }
             var handler = handlers[index];
-            for (var i = 0; i < handler.thingOwner.Count; i++)
+            for (var i = handler.thingOwner.Count - 1; i >= 0; i--)
             {
                 vehicle.DisembarkPawn(handler.thingOwner[i]);
             }
@@ -212,7 +213,7 @@ public class VehicleUpgradeBuildable : VehicleUpgrade
             else
             {
                 var uniqueID = parent.handlerUniqueIDs.FirstOrDefault(h => h.key == roleUpgrade.key && h.editKey == roleUpgrade.editKey);
-                if (uniqueID == default)
+                if (uniqueID is null)
                 {
                     VMF_Log.Error("No uniqueID corresponding to this role upgrade found.");
                     return;
@@ -260,7 +261,7 @@ public class RoleUpgradeBuildable : RoleUpgrade
 
         if (!upgrade2.turretIds.NullOrEmpty())
         {
-            upgrade2.label += ": " + upgrade2.turretIds.Select(i => i.CapitalizeFirst()).ToCommaList();
+            upgrade2.label += ": " + upgrade2.turretIds!.Select(i => i.CapitalizeFirst()).ToCommaList();
         }
 
         VehicleRoleBuildable vehicleRole = new()
@@ -279,10 +280,8 @@ public class RoleUpgradeBuildable : RoleUpgrade
                 VehiclePawnWithMapCache.cacheModeGlobal = true;
                 var position = GenThing.TrueCenter(thing.Position, thing.Rotation, thing.def.Size, 0f);
                 VehiclePawnWithMapCache.cacheModeGlobal = cacheMode;
-                var pivot = new Vector3(vehicle.VehicleMap.Size.x / 2f, 0f, vehicle.VehicleMap.Size.z / 2f);
                 var vehiclePos = vehicle.cachedDrawPos;
                 var rot = thing.Rotation;
-                var angle = rot.AsAngle;
                 var intClockwise = new Rot8(rot).AsIntClockwise;
 
                 upgrade2.pawnRenderer = new PawnOverlayRenderer
