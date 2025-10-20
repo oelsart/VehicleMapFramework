@@ -10,7 +10,7 @@ public class CompOpacityOverlay : VehicleComp
 {
     public CompProperties_OpacityOverlay Props => (CompProperties_OpacityOverlay)props;
 
-    public GraphicOverlay Overlay
+    protected GraphicOverlay Overlay
     {
         get
         {
@@ -25,15 +25,9 @@ public class CompOpacityOverlay : VehicleComp
         if (overlay == null) yield break;
 
         var tex = ContentFinder<Texture2D>.Get(overlay.Graphic.path + "_east");
-        Vector2 proportion;
-        if (tex.height > tex.width)
-        {
-            proportion = new Vector2(tex.height / (float)tex.height, 1f);
-        }
-        else
-        {
-            proportion = new Vector2(1f, tex.height / (float)tex.width);
-        }
+        var proportion = tex.height > tex.width
+            ? new Vector2(tex.height / (float)tex.height, 1f)
+            : new Vector2(1f, tex.height / (float)tex.width);
 
         yield return new Command_Action
         {

@@ -323,7 +323,7 @@ public static class Patch_Graphic_Draw
 {
     public static void Prefix(ref Vector3 loc, ref Rot4 rot, Thing thing, ref float extraRotation, Graphic __instance)
     {
-        if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle) && thing.def.drawerType == DrawerType.RealtimeOnly && thing.def.category != ThingCategory.Item)
+        if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle) && thing.def is {drawerType: DrawerType.RealtimeOnly, category: ThingCategory.Item})
         {
             var def = thing.def.IsBlueprint ? thing.def.entityDefToBuild as ThingDef : thing.def;
 
@@ -331,15 +331,16 @@ public static class Patch_Graphic_Draw
             var baseRotInt = vehicle.FullRotation.RotForVehicleDraw().AsInt;
             bool SameMaterialByRot()
             {
-                var graphic = def.graphic;
-                if (graphic is Graphic_Collection) return true;
+                if (__instance is Graphic_Collection) return true;
                 var rotation = new Rot4(rot2.AsInt + baseRotInt);
-                return graphic != null && graphic.MatAt(rot2, thing) == graphic.MatAt(rotation, thing) && graphic.DrawOffset(rot2) == graphic.DrawOffset(rotation);
+                return __instance.MatAt(rot2, thing) == __instance.MatAt(rotation, thing) && __instance.DrawOffset(rot2) == __instance.DrawOffset(rotation);
             }
 
             if (thing is not Building_Bookcase || thing.Graphic == __instance)
             {
-                if (def.size.x != def.size.z || thing is Building_SupportedDoor || ((((def.graphicData?.drawRotated ?? false) && (!def.graphicData?.Linked ?? true)) || def.rotatable) && !SameMaterialByRot()))
+                if (def!.size.x != def.size.z || thing is Building_SupportedDoor || __instance is Graphic_Multi ||
+                    (((__instance.data is null || __instance.data.drawRotated && !__instance.data.Linked) ||
+                      def.rotatable) && !SameMaterialByRot()))
                 {
                     rot.AsInt += baseRotInt;
                 }
@@ -373,7 +374,7 @@ public static class Patch_Graphic_DrawFromDef
         if (VehicleMapUtility.FocusedOnVehicleMap(out var vehicle) && thingDef != null)
         {
             var def = thingDef.IsBlueprint ? thingDef.entityDefToBuild as ThingDef : thingDef;
-            var compProperties = def.GetCompProperties<CompProperties_FireOverlay>();
+            var compProperties = def!.GetCompProperties<CompProperties_FireOverlay>();
             var flag = __instance is Graphic_Flicker && compProperties != null;
 
             if (flag)
@@ -386,13 +387,12 @@ public static class Patch_Graphic_DrawFromDef
             var baseRotInt = vehicle.FullRotation.RotForVehicleDraw().AsInt;
             bool SameMaterialByRot()
             {
-                var graphic = def.graphic;
-                if (graphic is Graphic_Collection) return true;
+                if (__instance is Graphic_Collection) return true;
                 var rotation = new Rot4(rot2.AsInt + baseRotInt);
-                return graphic != null && graphic.MatAt(rot2) == graphic.MatAt(rotation) && graphic.DrawOffset(rot2) == graphic.DrawOffset(rotation);
+                return __instance.MatAt(rot2) == __instance.MatAt(rotation) && __instance.DrawOffset(rot2) == __instance.DrawOffset(rotation);
             }
 
-            if (def.size.x != def.size.z || ((((def.graphicData?.drawRotated ?? false) && (!def.graphicData?.Linked ?? true)) || def.rotatable) && !SameMaterialByRot()))
+            if (def.size.x != def.size.z || ((((__instance.data?.drawRotated ?? false) && (!__instance.data?.Linked ?? true)) || def.rotatable) && !SameMaterialByRot()))
             {
                 rot.AsInt += baseRotInt;
             }

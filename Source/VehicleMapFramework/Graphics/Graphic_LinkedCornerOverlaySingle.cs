@@ -34,5 +34,5 @@ public class Graphic_LinkedCornerOverlaySingle : Graphic_Linked
         };
     }
 
-    public Graphic_Single overlayGraphic;
+    public readonly Graphic_Single overlayGraphic;
 }

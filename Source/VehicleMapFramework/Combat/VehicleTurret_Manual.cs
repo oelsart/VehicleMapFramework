@@ -21,6 +21,5 @@ public class VehicleTurret_Manual : VehicleTurret
         }
 
         IsManned = matchHandlers.All(h => h.RoleFulfilled);
-        return;
     }
 }

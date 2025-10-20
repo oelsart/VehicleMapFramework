@@ -78,7 +78,7 @@ public static class VMF_Widgets
         {
             num = Mathf.RoundToInt(num / roundTo) * roundTo;
         }
-        if (value != num)
+        if (!Mathf.Approximately(value, num))
         {
             if (Time.realtimeSinceStartup > lastDragSliderSoundTime + 0.075f)
             {

@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using RimWorld;
 using RimWorld.Planet;
 using SmashTools;
 using Vehicles;
@@ -25,11 +24,6 @@ public class CompVehicleSeat : CompBuildableUpgrades
                     string label = (canOperate ? "VF_BoardVehicle".Translate(handler.role.label, (handler.role.Slots - (handler.thingOwner.Count + reservedCount)).ToString()) : "VF_BoardVehicleGroupFail".Translate(handler.role.label, "VF_BoardFailureNonCombatant".Translate(selPawn.LabelShort)));
                     FloatMenuOption floatMenuOption = new(label, delegate
                     {
-                        if (handler == null)
-                        {
-                            Messages.Message("VF_HandlerNotEnoughRoom".Translate(selPawn, vehicle), MessageTypeDefOf.RejectInput, false);
-                            return;
-                        }
                         var job = new Job(VMF_DefOf.VMF_BoardAcrossMaps, parent).SetSpotsToJobAcrossMaps(selPawn, exitSpot, enterSpot);
                         vehicle.GiveLoadJob(selPawn, handler);
                         selPawn.jobs.TryTakeOrderedJob(job, JobTag.DraftedOrder);
