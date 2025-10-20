@@ -647,4 +647,6 @@ internal static class ModCompat
     }
 
     public static readonly bool AnimalCages = ModsConfig.IsActive("zal.animalcages");
+
+    public static readonly bool DoNotHitMe = ModsConfig.IsActive("Og.do.not.hit.me");
 }
