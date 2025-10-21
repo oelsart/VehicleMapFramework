@@ -18,18 +18,6 @@ public class VehicleMapFramework : Mod
 
     private static readonly List<TabRecord> tabs = [];
 
-    public static AssetBundle Bundle
-    {
-        get
-        {
-            if (field == null)
-            {
-                field = mod.Content.assetBundles.loadedAssetBundles[0];
-            }
-            return field;
-        }
-    }
-
     public VehicleMapFramework(ModContentPack content) : base(content)
     {
         mod = this;
@@ -61,7 +49,7 @@ public class VehicleMapFramework : Mod
         Widgets.DrawMenuSection(rect);
         TabDrawer.DrawTabs(rect, tabs);
         Debug.Assert(CurrentTab != null, nameof(CurrentTab) + " != null");
-        CurrentTab.Draw(rect.ContractedBy(10f));
+        CurrentTab!.Draw(rect.ContractedBy(10f));
     }
 
     public override void WriteSettings()

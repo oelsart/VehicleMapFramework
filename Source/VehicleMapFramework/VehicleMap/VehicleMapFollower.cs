@@ -9,7 +9,7 @@ namespace VehicleMapFramework;
 
 public class VehicleMapFollower(VehiclePawnWithMap vehicle)
 {
-    public VehiclePawnWithMap vehicle = vehicle;
+    public readonly VehiclePawnWithMap vehicle = vehicle;
 
     private readonly ConcurrentSet<IntVec3> prevOccupiedCells = [];
 

@@ -7,8 +7,6 @@ namespace VehicleMapFramework;
 
 public class VehicleMapSettings : ModSettings
 {
-    internal static readonly Default DefaultSettings = new();
-
     public bool drawPlanet = Default.drawPlanet;
 
     public float weightFactor = Default.weightFactor;
@@ -52,6 +50,8 @@ public class VehicleMapSettings : ModSettings
         public const bool autoGetOffNonPlayer = true;
 
         public const bool drawVehicleMapGrid = false;
+        
+        public const bool drawMapExpanderBridges = false;
 
         public const bool roofedPatch = false;
 

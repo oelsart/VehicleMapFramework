@@ -44,6 +44,12 @@ public static class VMF_DefOf
 
     public static JobDef VMF_RefuelVehicleTank;
 
+    public static JobDef VMF_DeconstructVehicleSegment;
+    
+    public static WorkGiverDef VMF_RemoveVehicleSegment;
+
+    public static DesignationDef VMF_RemoveSegment;
+
     public static ThinkTreeDef VMF_GotoDestMapThinkTree;
 
     //public static JobDef VMF_RefuelVehicleTankAtomic;
