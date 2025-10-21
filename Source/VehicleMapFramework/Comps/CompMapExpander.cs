@@ -9,7 +9,6 @@ using Verse;
 
 namespace VehicleMapFramework;
 
-[HotSwap]
 public class CompMapExpander : ThingComp
 {
     private bool validCellsDirty;
@@ -51,39 +50,39 @@ public class CompMapExpander : ThingComp
             
             cachedIsOnlyBridge ??= IsOnlyBridgeStatus();
             return cachedIsOnlyBridge.Value;
-            
-            bool IsOnlyBridgeStatus()
-            {
-                if (!parent.Spawned) return false;
-        
-                var validCells = ValidCells;
-                tmpCells.Clear();
-                for (var i = 0; i < 8; i++)
-                {
-                    if (validCells[i])
-                    {
-                        tmpCells.Add(parent.Position + GenAdj.AdjacentCellsAround[i]);
-                    }
-                }
+        }
+    }
 
-                var result = true;
-                var first = tmpCells.PopFront();
-                parent.Map.floodFiller.FloodFill(first, c => ValidCell(c) && c != parent.Position, c =>
-                {
-                    if (tmpCells.Contains(c))
-                    {
-                        tmpCells.Remove(c);
-                        if (tmpCells.Empty())
-                        {
-                            result = false;
-                            return true;
-                        }
-                    }
-                    return false;
-                });
-                return result;
+    bool IsOnlyBridgeStatus()
+    {
+        if (!parent.Spawned) return false;
+        
+        var validCells = ValidCells;
+        tmpCells.Clear();
+        for (var i = 0; i < 8; i++)
+        {
+            if (validCells[i])
+            {
+                tmpCells.Add(parent.Position + GenAdj.AdjacentCellsAround[i]);
             }
         }
+
+        var result = true;
+        var first = tmpCells.PopFront();
+        parent.Map.floodFiller.FloodFill(first, c => ValidCell(c) && c != parent.Position, c =>
+        {
+            if (tmpCells.Contains(c))
+            {
+                tmpCells.Remove(c);
+                if (tmpCells.Empty())
+                {
+                    result = false;
+                    return true;
+                }
+            }
+            return false;
+        });
+        return result;
     }
 
     public bool IsBridge
@@ -92,36 +91,36 @@ public class CompMapExpander : ThingComp
         {
             cachedIsBridge ??= IsBridgeStatus();
             return cachedIsBridge.Value;
-            
-            bool IsBridgeStatus()
-            {
-                if (!parent.Spawned) return false;
+        }
+    }
+    
+    bool IsBridgeStatus()
+    {
+        if (!parent.Spawned) return false;
         
-                var validCells = ValidCells;
-                var validState = validCells[^1];
-                var firstBlockFound = false;
-                for (var i = 0; i < 8; i++)
+        var validCells = ValidCells;
+        var validState = validCells[^1];
+        var firstBlockFound = false;
+        for (var i = 0; i < 8; i++)
+        {
+            if (validCells[i])
+            {
+                if (!validState)
                 {
-                    if (validCells[i])
+                    if (firstBlockFound)
                     {
-                        if (!validState)
-                        {
-                            if (firstBlockFound)
-                            {
-                                return true;
-                            }
-                            firstBlockFound = true;
-                            validState = true;
-                        }
+                        return true;
                     }
-                    else if (validState)
-                    {
-                        validState = false;
-                    }
+                    firstBlockFound = true;
+                    validState = true;
                 }
-                return false;
+            }
+            else if (validState)
+            {
+                validState = false;
             }
         }
+        return false;
     }
     
     private bool ValidCell(IntVec3 c) => c.InBounds(parent.Map) && c.GetEdifice(parent.Map) is not VehicleStructure;
@@ -203,11 +202,6 @@ public class CompMapExpander : ThingComp
 
     private static void ResizeVehicle(VehiclePawnWithMap vehicle)
     {
-        if (!UnityData.IsInMainThread)
-        {
-            LongEventHandler.ExecuteWhenFinished(() => ResizeVehicle(vehicle));
-            return;
-        }
         var curSize = vehicle.def.size;
         var mapRect = CellRect.WholeMap(vehicle.VehicleMap);
         var newRect = CellRect.FromCellList(mapRect.Except(vehicle.CachedStructureCells));
@@ -216,42 +210,35 @@ public class CompMapExpander : ThingComp
         {
             vehicle.def.size = newSize;
             var offset = mapRect.CenterVector3 - newRect.CenterVector3;
-            var data = vehicle.VehicleGraphic.DataRgb;
-            var prevOffset = data.drawOffset;
-            data.drawOffset = offset;
-            data.drawOffsetNorth = offset;
-            data.drawOffsetEast = offset.RotatedBy(Rot4.East);
-            data.drawOffsetSouth = offset.RotatedBy(Rot4.South);
-            data.drawOffsetWest = offset.RotatedBy(Rot4.West);
+            LongEventHandler.ExecuteWhenFinished(() =>
+            {
+                var data = vehicle.VehicleGraphic.DataRgb;
+                var prevOffset = data.drawOffset;
+                data.drawOffset = offset;
+                data.drawOffsetNorth = offset;
+                data.drawOffsetEast = offset.RotatedBy(Rot4.East);
+                data.drawOffsetSouth = offset.RotatedBy(Rot4.South);
+                data.drawOffsetWest = offset.RotatedBy(Rot4.West);
+                if (vehicle.Spawned)
+                {
+                    var diff = prevOffset - offset;
+                    var opp = Convert.ToInt32(vehicle.Rotation.AsInt > 1);
+                    if ((diff.x < 0f) == (newSize.x % 2 == opp))
+                    {
+                        vehicle.Position += (IntVec3.East * (int)(diff.x * 2f)).RotatedBy(vehicle.Rotation);
+                    }
+                    if ((diff.z < 0f) == (newSize.z % 2 == opp))
+                    {
+                        vehicle.Position += (IntVec3.North * (int)(diff.z * 2f)).RotatedBy(vehicle.Rotation);
+                    }
+                    vehicle.DrawTracker.tweener.ResetTweenedPosToRoot();
+                }
+            });
             if (vehicle.Spawned)
             {
-                var diff = prevOffset - offset;
-                vehicle.Position += new IntVec3(
-                    (int)MathF.Truncate(diff.x),
-                    0,
-                    (int)MathF.Truncate(diff.z)).RotatedBy(vehicle.Rotation);
-                var opp = Convert.ToInt32(vehicle.Rotation.AsInt > 1);
-                if ((diff.x < 0f) == (newSize.x % 2 == opp))
-                {
-                    vehicle.Position += (IntVec3.East * (int)(diff.x % 1f * 2f)).RotatedBy(vehicle.Rotation);
-                }
-                if ((diff.z < 0f) == (newSize.z % 2 == opp))
-                {
-                    vehicle.Position += (IntVec3.North * (int)(diff.z % 1f * 2f)).RotatedBy(vehicle.Rotation);
-                }
-                
-                vehicle.DrawTracker.tweener.ResetTweenedPosToRoot();
                 vehicle.Map.GetCachedMapComponent<VehiclePathingSystem>().RequestGridsFor(vehicle);
                 var def = vehicle.VehicleDef;
-                def.components?.ForEach(component =>
-                {
-                    component.hitbox.Hitbox.Clear();
-                    component.hitbox.Initialize(def);
-                });
-                if (!vehicle.vehiclePather.Moving)
-                {
-                    vehicle.vehiclePather.nextCell = vehicle.Position;
-                }
+                def.components?.ForEach(c => c.hitbox.Initialize(def));
             }
         }
     }
