@@ -33,5 +33,8 @@
 	
 	<VMF_Flip>Flip</VMF_Flip>
 	<VMF_VehicleMode>Vehicle Mode</VMF_VehicleMode>
+	
+	<VMF_RemoveSegment>Remove segment</VMF_RemoveSegment>
+	<VMF_RemoveSegmentDesc>Removes the segment from the expanded vehicle structure.</VMF_RemoveSegmentDesc>
 
 </LanguageData>

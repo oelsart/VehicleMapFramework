@@ -22,6 +22,15 @@ public static class DefMessagesReplace
             refuelVehicleTank.gerund = refuelVehicle.gerund;
         }
 
+        var removeSegment = VMF_DefOf.VMF_RemoveVehicleSegment;
+        var deconstruct = DefDatabase<WorkGiverDef>.GetNamedSilentFail("Deconstruct");
+        if (removeSegment != null && deconstruct != null)
+        {
+            removeSegment.label = deconstruct.label;
+            removeSegment.verb = deconstruct.verb;
+            removeSegment.gerund = deconstruct.gerund;
+        }
+
         foreach (var jobDef in DefDatabase<JobDef>.AllDefs.Where(d => d.defName.StartsWith(prefix) && d.defName.EndsWith(suffix)))
         {
             var baseDefName = jobDef.defName.Replace(prefix, "").Replace(suffix, "");
@@ -48,6 +57,8 @@ public static class DefMessagesReplace
         //    VMF_RefuelVehicleTankAtomic.label = RefuelVehicleAtomic.label;
         //    VMF_RefuelVehicleTankAtomic.reportString = RefuelVehicleAtomic.reportString;
         //}
+
+        VMF_DefOf.VMF_DeconstructVehicleSegment?.reportString = JobDefOf.Deconstruct.reportString;
     }
 
     public const string prefix = "VMF_";

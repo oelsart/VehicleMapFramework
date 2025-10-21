@@ -17,10 +17,7 @@ public class VehicleMapGrid(Map map) : MapComponent(map)
     public void Register(IntVec3 c, VehiclePawnWithMap vehicle)
     {
         var index = map.cellIndices.CellToIndex(c);
-        if (vehicleGrid[index] == null)
-        {
-            vehicleGrid[index] = vehicle;
-        }
+        vehicleGrid[index] ??= vehicle;
     }
 
     public void DeRegister(IntVec3 c, VehiclePawnWithMap vehicle)

@@ -3,7 +3,7 @@ using Verse;
 
 namespace VehicleMapFramework;
 
-public class Command_FocusVehicleMap : Command
+public sealed class Command_FocusVehicleMap : Command
 {
     public static VehiclePawnWithMap FocusLockedVehicle { get; set; }
 
@@ -23,7 +23,6 @@ public class Command_FocusVehicleMap : Command
 
     public Command_FocusVehicleMap()
     {
-        // ReSharper disable once VirtualMemberCallInConstructor
         Order = 5000;
     }
 

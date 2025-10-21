@@ -12,11 +12,13 @@ public class PlaceWorker_MapExpander : PlaceWorker
         {
             return "VMF_ForbidOnVehicle".Translate();
         }
-        if (!vehicle.CachedExpandableCells.Contains(loc) ||
-            loc.GetEdifice(map)?.def != VMF_DefOf.VMF_VehicleStructureEmpty ||
-            GenAdj.OccupiedRect(loc, rot, checkingDef.Size).Any(c =>
-                (c + c.DirectionToInsideMap(vehicle).AsIntVec3).GetThingList(vehicle.VehicleMap)
-                    .Any(t => t.def.PlaceWorkers?.Any(p => p is PlaceWorker_ForceOnVehicleMapEdge) ?? false)))
+        if (GenAdj.OccupiedRect(loc, rot, checkingDef.Size).Any(c =>
+            {
+                return !vehicle.CachedExpandableCells.Contains(loc) ||
+                       loc.GetEdifice(map)?.def != VMF_DefOf.VMF_VehicleStructureEmpty ||
+                       (c + c.DirectionToInsideMap(vehicle).AsIntVec3).GetThingList(vehicle.VehicleMap)
+                       .Any(t => t.def.PlaceWorkers?.Any(p => p is PlaceWorker_ForceOnVehicleMapEdge) ?? false);
+            }))
         {
             return "VMF_ForceOnExpandableCell".Translate();
         }
