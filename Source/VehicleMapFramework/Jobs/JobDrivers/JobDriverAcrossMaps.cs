@@ -46,9 +46,10 @@ public abstract class JobDriverAcrossMaps : JobDriver
     protected override IEnumerable<Toil> MakeNewToils()
     {
         this.FailOn(() =>
-        {
-            return MapNullOrDisposed(exitSpot1) || MapNullOrDisposed(enterSpot1) || MapNullOrDisposed(exitSpot2) || MapNullOrDisposed(enterSpot2);
-        });
+            MapNullOrDisposed(exitSpot1) ||
+            MapNullOrDisposed(enterSpot1) ||
+            MapNullOrDisposed(exitSpot2) ||
+            MapNullOrDisposed(enterSpot2));
         yield break;
 
         static bool MapNullOrDisposed(TargetInfo? spot)

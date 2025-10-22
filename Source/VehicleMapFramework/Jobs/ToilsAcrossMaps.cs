@@ -146,10 +146,7 @@ public static class ToilsAcrossMaps
 
             //あれ？もうexitSpotから出た後じゃない？ジャンプしよ
             var afterExitMap = Toils_General.Label();
-            yield return Toils_Jump.JumpIf(afterExitMap, () =>
-            {
-                return driver.pawn.Map != exitSpot.Map;
-            });
+            yield return Toils_Jump.JumpIf(afterExitMap, () => driver.pawn.Map != exitSpot.Map);
 
             exitSpot.Map.IsVehicleMapOf(out var vehicle);
             //exitSpotの場所まで行く。vehicleの場合はvehicleの長さ分手前に目的地を指定
@@ -272,10 +269,7 @@ public static class ToilsAcrossMaps
 
             //あれ？もうenterSpotのマップに居ない？ジャンプしよ
             var afterEnterMap = Toils_General.Label();
-            yield return Toils_Jump.JumpIf(afterEnterMap, () =>
-            {
-                return driver.pawn.Map == enterSpot.Map;
-            });
+            yield return Toils_Jump.JumpIf(afterEnterMap, () => driver.pawn.Map == enterSpot.Map);
 
             //enterSpotの手前の場所まで行く。vehicleの長さ分のオフセットはメソッド内でやっている
             var vehiclePawn = driver.pawn as VehiclePawn;
