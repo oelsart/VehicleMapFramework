@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using HarmonyLib;
 using RimWorld;
+using RimWorld.Planet;
 using SmashTools;
 using UnityEngine;
 using Vehicles;
@@ -32,10 +33,18 @@ public static class VehicleMapUtility
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsVehicleMapOf(this Map map, out VehiclePawnWithMap vehicle)
     {
-        if (map?.Parent is MapParent_Vehicle mapParent)
+        if (map?.Parent is PocketMapParent pocketMapParent)
         {
-            vehicle = mapParent.vehicle;
-            return true;
+            if (pocketMapParent is MapParent_Vehicle mapParentVehicle)
+            {
+                vehicle = mapParentVehicle.vehicle;
+                return true;
+            }
+            if (pocketMapParent.sourceMap?.Parent is MapParent_Vehicle mapParentVehicle2)
+            {
+                vehicle = mapParentVehicle2.vehicle;
+                return true;
+            }
         }
         vehicle = null;
         return false;
