@@ -616,7 +616,7 @@ public static class Patch_JobDriver_Board_MakeNewToils
                     lordJob_FormAndSendVehicles.GetVehicleAssigned(actor).handler?.role is VehicleRoleBuildable vehicleRoleBuildable)
                     {
                         var dest = vehicleRoleBuildable.upgradeComp?.parent;
-                        if (ToilFailConditions.DespawnedOrNull(dest, actor))
+                        if ((!dest?.Spawned ?? true) || ToilFailConditions.DespawnedOrNull(dest, actor))
                         {
                             actor.jobs.EndCurrentJob(JobCondition.Incompletable, canReturnToPool: false);
                             return;
