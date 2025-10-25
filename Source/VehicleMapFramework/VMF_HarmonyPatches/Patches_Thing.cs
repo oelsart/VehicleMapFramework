@@ -19,17 +19,17 @@ public static class Patch_Thing_Rotation
 {
     public static void Prefix(Thing __instance, ref Rot4 value)
     {
-        if (__instance is Pawn pawn && pawn.IsOnNonFocusedVehicleMapOf(out var vehicle))
+        if (__instance is Pawn pawn and not VehiclePawn && pawn.IsOnNonFocusedVehicleMapOf(out var vehicle))
         {
             if (pawn.pather?.Moving ?? false)
             {
                 var angle = (pawn.pather.nextCell - pawn.Position).AngleFlat;
                 value = Rot8.FromAngle(Ext_Math.RotateAngle(angle, vehicle.FullAngle()));
             }
-            //else if (!pawn.Drafted)
-            //{
-            //    value.AsInt += vehicle.Rotation.AsInt;
-            //}
+            else if (!pawn.Drafted)
+            {
+                value.AsInt += vehicle.Rotation.AsInt;
+            }
         }
     }
 }
@@ -84,7 +84,6 @@ public static class Patch_Building_Door_DrawMovers
                 new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(Vector3), nameof(Vector3.up))),
                 CodeInstruction.Call(typeof(Quaternion), nameof(Quaternion.AngleAxis)),
                 new CodeInstruction(OpCodes.Call, CachedMethodInfo.o_Quaternion_Multiply));
-            ;
         });
         return codes.Instructions();
     }
@@ -211,9 +210,10 @@ public static class Patch_Building_Battery_DrawAt
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        var ldcr4 = instructions.FirstOrDefault(c => c.opcode == OpCodes.Ldc_R4 && c.OperandIs(0.1f));
+        var codes = instructions.ToList();
+        var ldcr4 = codes.Find(c => c.opcode == OpCodes.Ldc_R4 && c.OperandIs(0.1f));
         ldcr4?.operand = 0.75f;
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseFullRotation_Thing)
+        return codes.MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseFullRotation_Thing)
             .MethodReplacer(CachedMethodInfo.m_Rot4_Rotate, CachedMethodInfo.m_Rot8_Rotate);
     }
 }
