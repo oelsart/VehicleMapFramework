@@ -374,7 +374,8 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         var isGravship = def.HasModExtension<VehicleMapProps_Gravship>();
         if (isGravship)
         {
-            if (GravshipUtility.GetPlayerGravEngine_NewTemp(interiorMap) is { } engine && (engine.launchInfo?.doNegativeOutcome ?? false))
+            var engine = GravshipUtility.GetPlayerGravEngine_NewTemp(interiorMap);
+            if (engine?.launchInfo?.doNegativeOutcome ?? false)
             {
                 var list = handlers.OfType<VehicleRoleHandlerBuildable>().SelectMany<VehicleRoleHandlerBuildable, Pawn>(h => h.thingOwner).ToList();
                 foreach (var t in list)
@@ -922,6 +923,11 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         if (props != null && def.defName != props.defName)
         {
             def = UniqueVehicleUtility.GenerateUniqueVehicleDef(this);
+            VehicleDef.components?.ForEach(component =>
+            {
+                component.hitbox.Hitbox.Clear();
+                component.hitbox.Initialize(VehicleDef);
+            });
         }
     }
 
