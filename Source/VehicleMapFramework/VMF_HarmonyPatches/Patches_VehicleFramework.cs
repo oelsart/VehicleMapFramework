@@ -1111,21 +1111,6 @@ public static class Patch_VehicleGhostUtility_DrawGhostVehicleDef
     }
 }
 
-[HarmonyPatch(typeof(VehicleGhostUtility), nameof(VehicleGhostUtility.DrawGhostOverlays))]
-[PatchLevel(Level.Sensitive)]
-public static class Patch_VehicleGhostUtility_DrawGhostOverlays
-{
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        var codes = new CodeMatcher(instructions);
-        codes.MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_GenThing_TrueCenter2));
-        codes.InsertAfter(
-            CodeInstruction.LoadArgument(6),
-            CodeInstruction.Call(typeof(Patch_VehicleGhostUtility_DrawGhostVehicleDef), nameof(Patch_VehicleGhostUtility_DrawGhostVehicleDef.ToTargetMapCoord)));
-        return codes.Instructions();
-    }
-}
-
 //ここでのTransformData.rotationは西向き時反転する前提の数値なので、車両マップキャラバン描画のユースケースでは正しく描画されるように補正する
 [HarmonyPatch(typeof(VehicleTurret), "ParallelPreRenderResults")]
 [PatchLevel(Level.Safe)]
