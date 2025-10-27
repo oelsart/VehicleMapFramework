@@ -56,21 +56,21 @@
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)'=='Dev'">
     <Reference Include="SmashTools">
-      <HintPath>..\..\..\..\..\..\workshop\content\294100\3522907382\1.6\Assemblies\SmashTools.dll</HintPath>
+      <HintPath>..\..\..\Vehicle-Framework\1.6\Assemblies\SmashTools.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Vehicles">
-      <HintPath>..\..\..\..\..\..\workshop\content\294100\3522907382\1.6\Assemblies\Vehicles.dll</HintPath>
+      <HintPath>..\..\..\Vehicle-Framework\1.6\Assemblies\Vehicles.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)'=='Release'or'$(Configuration)'=='Debug'">
     <Reference Include="SmashTools">
-      <HintPath>..\..\..\3014915404\1.6\Assemblies\SmashTools.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\workshop\content\294100\3014915404\1.6\Assemblies\SmashTools.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Vehicles">
-      <HintPath>..\..\..\3014915404\1.6\Assemblies\Vehicles.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\workshop\content\294100\3014915404\1.6\Assemblies\Vehicles.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
