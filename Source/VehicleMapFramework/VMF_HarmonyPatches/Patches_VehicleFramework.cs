@@ -480,12 +480,12 @@ public static class Patch_LaunchProtocol_GetArrivalOptions
             var vehicle = __instance.Vehicle;
             if (mapParent.HasMap && !mapParent.EnterCooldownBlocksEntering())
             {
-                yield return new ArrivalOption("LandInExistingMap".Translate(vehicle.Label),
+                yield return new ArrivalOption("LandInExistingMap".Translate(mapParent.Label),
                   continueWith: delegate (TargetData<GlobalTargetInfo> targetData)
                   {
                       Current.Game.CurrentMap = mapParent.Map;
                       CameraJumper.TryHideWorld();
-                      LandingTargeter.Instance.BeginTargeting(vehicle,
+                      LandingTargeter.Instance.BeginTargeting(vehicle, mapParent.Map,
                 action: delegate (LocalTargetInfo landingCell, Rot4 rot)
                       {
                           if (vehicle.Spawned)
@@ -870,16 +870,24 @@ public static class Patch_FloatMenuOptionProvider_OrderVehicle_VehicleCanGoto
 [PatchLevel(Level.Safe)]
 public static class Patch_FloatMenuOptionProvider_OrderVehicle_PawnGotoAction
 {
-    public static bool Prefix(IntVec3 clickCell, VehiclePawn vehicle, IntVec3 gotoLoc, Rot8 rot)
+    public static bool Prefix(IntVec3 clickCell, VehiclePawn vehicle, IntVec3 gotoLoc, ref Rot8 rot)
     {
-        if (TargetMapManager.HasTargetMap(vehicle, out var map) && vehicle.Map != map)
+        if (TargetMapManager.HasTargetMap(vehicle, out var map))
         {
-            if (vehicle.CanReachVehicle(gotoLoc, PathEndMode.OnCell, Danger.Deadly, TraverseMode.ByPawn, map, out var exitSpot, out var enterSpot))
+            // 車両マップがターゲットの場合TryGetFullRotationにより回るため
+            if (map.IsVehicleMapOf(out var vehicle2) && rot.IsValid)
             {
-                PawnGotoAction(clickCell, vehicle, map, gotoLoc, rot, exitSpot, enterSpot);
-                TargetMapManager.RemoveTargetInfo(vehicle);
+                rot = new Rot8(Rot8.FromIntClockwise(GenMath.PositiveMod(rot.AsIntClockwise - vehicle2.FullRotation.AsIntClockwise, 8)));
             }
-            return false;
+            if (vehicle.Map != map)
+            {
+                if (vehicle.CanReachVehicle(gotoLoc, PathEndMode.OnCell, Danger.Deadly, TraverseMode.ByPawn, map, out var exitSpot, out var enterSpot))
+                {
+                    PawnGotoAction(clickCell, vehicle, map, gotoLoc, rot, exitSpot, enterSpot);
+                    TargetMapManager.RemoveTargetInfo(vehicle);
+                }
+                return false;
+            }
         }
         return true;
     }
@@ -955,12 +963,15 @@ public static class Patch_PathingHelper_TryFindNearestStandableCell
         }
         radius = Mathf.Min(radius, GenRadial.MaxRadialPatternRadius);
         VehiclePawnWithMap vehicle2 = null;
-        if (TargetMapManager.HasTargetMap(vehicle, out var map) && vehicle.Map != map)
+        if (TargetMapManager.HasTargetMap(vehicle, out var map))
         {
-            __result = CrossMapReachabilityUtility.TryFindNearestStandableCell(vehicle, cell, map, out result, radius);
-            if (result.IsValid)
+            if (vehicle.Map != map)
             {
-                return false;
+                __result = CrossMapReachabilityUtility.TryFindNearestStandableCell(vehicle, cell, map, out result, radius);
+                if (result.IsValid)
+                {
+                    return false;
+                }
             }
         }
         else if ((cell.InBounds(Find.CurrentMap) && cell.TryGetVehicleMap(Find.CurrentMap, out vehicle2)) || vehicle.IsOnNonFocusedVehicleMapOf(out _))
@@ -1069,21 +1080,6 @@ public static class Patch_VehicleGhostUtility_DrawGhostVehicleDef
     public static Vector3 ToTargetMapCoord(Vector3 original, Thing thing)
     {
         return TargetMapManager.HasTargetMap(thing, out var map) ? original.ToBaseMapCoord(map).WithY(original.y) : original;
-    }
-}
-
-[HarmonyPatch(typeof(VehicleGhostUtility), nameof(VehicleGhostUtility.DrawGhostOverlays))]
-[PatchLevel(Level.Sensitive)]
-public static class Patch_VehicleGhostUtility_DrawGhostOverlays
-{
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        var codes = new CodeMatcher(instructions);
-        codes.MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_GenThing_TrueCenter2));
-        codes.InsertAfter(
-            CodeInstruction.LoadArgument(6),
-            CodeInstruction.Call(typeof(Patch_VehicleGhostUtility_DrawGhostVehicleDef), nameof(Patch_VehicleGhostUtility_DrawGhostVehicleDef.ToTargetMapCoord)));
-        return codes.Instructions();
     }
 }
 

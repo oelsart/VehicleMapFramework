@@ -31,7 +31,7 @@ public static class Patch_FloatMenuContext_Constructor
     public static void Finalizer(FloatMenuContext __instance)
     {
         Pawn pawn;
-        if (!__instance.IsMultiselect && (pawn = __instance.ValidSelectedPawns.FirstOrDefault()) != null)
+        if (!__instance.IsMultiselect && (pawn = __instance.FirstSelectedPawn) != null)
         {
             TargetMapManager.SetTargetInfo(pawn, new TargetInfo(__instance.ClickedCell, __instance.map));
         }

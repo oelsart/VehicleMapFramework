@@ -1,10 +1,11 @@
-﻿using System.Linq;
+using System.Collections.Generic;
 using System.Reflection;
+using System;
+using System.Collections.Generic;
 using HarmonyLib;
-using SmashTools;
-using Vehicles;
+using UnityEngine;
 using Verse;
-using Verse.AI;
+using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
@@ -19,5 +20,39 @@ internal class ConditionalPatches
     internal static void DebugError(string methodName)
     {
         VMF_Log.DebugError($"The method {methodName} targeted for patching was not found. This should mean the removal of the stubs targeted for patching.");
+    }
+}
+
+// 引数を変更するPRを出したので、変更を吸収するよう備えておく
+[HarmonyPatch]
+[PatchLevel(Level.Sensitive)]
+public static class Patch_VehicleGhostUtility_DrawGhostOverlays
+{
+    private static MethodBase TargetMethod()
+    {
+        var type = typeof(VehicleGhostUtility);
+        const string name = nameof(VehicleGhostUtility.DrawGhostOverlays);
+        List<Type> args =
+        [
+            typeof(IntVec3), typeof(Rot8), typeof(VehicleDef), typeof(Graphic), typeof(Color), typeof(AltitudeLayer),
+            typeof(Thing)
+        ];
+        var method = AccessTools.Method(type, name, args.ToArray());
+        if (method is null)
+        {
+            args.AddRange([typeof(Rot8?), typeof(float)]);
+            method = AccessTools.Method(type, name, args.ToArray());
+        }
+        return method;
+    }
+    
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        var codes = new CodeMatcher(instructions);
+        codes.MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_GenThing_TrueCenter2));
+        codes.InsertAfter(
+            CodeInstruction.LoadArgument(6),
+            CodeInstruction.Call(typeof(Patch_VehicleGhostUtility_DrawGhostVehicleDef), nameof(Patch_VehicleGhostUtility_DrawGhostVehicleDef.ToTargetMapCoord)));
+        return codes.Instructions();
     }
 }
