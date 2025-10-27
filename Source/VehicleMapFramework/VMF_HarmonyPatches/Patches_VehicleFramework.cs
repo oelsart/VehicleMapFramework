@@ -508,12 +508,12 @@ public static class Patch_LaunchProtocol_GetArrivalOptions
             var vehicle = __instance.Vehicle;
             if (mapParent.HasMap && !mapParent.EnterCooldownBlocksEntering())
             {
-                yield return new ArrivalOption("LandInExistingMap".Translate(vehicle.Label),
+                yield return new ArrivalOption("LandInExistingMap".Translate(mapParent.Label),
                   continueWith: delegate (TargetData<GlobalTargetInfo> targetData)
                   {
                       Current.Game.CurrentMap = mapParent.Map;
                       CameraJumper.TryHideWorld();
-                      LandingTargeter.Instance.BeginTargeting(vehicle,
+                      LandingTargeter.Instance.BeginTargeting(vehicle, mapParent.Map,
                 action: delegate (LocalTargetInfo landingCell, Rot4 rot)
                       {
                           if (vehicle.Spawned)
