@@ -968,5 +968,6 @@ public enum VehicleMapFlag
     None = 0,
     StructureCells = 1 << 0,
     ExpandableCells = 1 << 1,
-    OutOfBoundsCells = 1 << 2
+    OutOfBoundsCells = 1 << 2,
+    All = 0b111
 }
