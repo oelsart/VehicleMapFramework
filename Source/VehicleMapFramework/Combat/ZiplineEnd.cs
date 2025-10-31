@@ -56,12 +56,19 @@ public class ZiplineEnd : ThingWithComps, IZiplineEnd
         if (launchVerb.caster is { Spawned: true })
         {
             var rot = rotation;
-            if (this.IsOnVehicleMapOf(out var vehicle))
+            if (this.IsOnNonFocusedVehicleMapOf(out var vehicle))
             {
                 rot -= vehicle.Angle;
             }
             var drawPosA = drawLoc + (Vector3.back * ZiplineEndOffset).RotatedBy(rot);
-            var launcherPos = launchVerb.caster.DrawPos;
+            var launcher = launchVerb.caster;
+            var launcherPos = launcher.DrawPos;
+            var offset = launcher.def.building?.turretTopOffset.ToVector3() ?? Vector3.zero;
+            if (launcher.IsOnNonFocusedVehicleMapOf(out var vehicle2))
+            {
+                offset = offset.RotatedBy(-vehicle2.Angle);
+            }
+            launcherPos += offset;
             var drawPosB = launcherPos + (Vector3.forward * LauncherOffset).RotatedBy((drawPosA - launcherPos).AngleFlat());
             var y = Mathf.Max(drawPosA.y, drawPosB.y);
             GenDraw.DrawLineBetween(drawPosA.WithY(y), drawPosB.WithY(y), ZiplineLayer, ZiplineMat, ZiplineWidth);

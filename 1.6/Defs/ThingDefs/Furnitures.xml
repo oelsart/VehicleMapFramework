@@ -221,6 +221,7 @@
 			<turretGunDef>VMF_Gun_ZiplineTurret</turretGunDef>
 			<turretBurstWarmupTime>0</turretBurstWarmupTime>
 			<turretBurstCooldownTime>0</turretBurstCooldownTime>
+			<turretTopOffset>(0,0.2)</turretTopOffset>
 		</building>
 		<passability>Standable</passability>
 		<hasInteractionCell>false</hasInteractionCell>
@@ -264,7 +265,6 @@
 		<description>A gun made to be mounted on a zipline turret.</description>
 		<graphicData>
 			<texPath>VehicleMapFramework/Things/ZiplineTurret/ZiplineTurret_Top</texPath>
-			<drawOffset>(0,0,0.2)</drawOffset>
 			<graphicClass>Graphic_Single</graphicClass>
 		</graphicData>
 		<statBases>

@@ -95,7 +95,14 @@ public class Bullet_ZiplineEnd : Bullet, IZiplineEnd
         {
             var num = ArcHeightFactor * GenMath.InverseParabola(DistanceCoveredFractionArc);
             var drawPosA = drawLoc + (Vector3.forward * num) + (Vector3.back * ZiplineEnd.ZiplineEndOffset).RotatedBy(ExactRotation.eulerAngles.y);
-            var launcherPos = launcher.DrawPos;
+            var caster = launchVerb.caster;
+            var launcherPos = caster.DrawPos;
+            var offset = caster.def.building?.turretTopOffset.ToVector3() ?? Vector3.zero;
+            if (caster.IsOnNonFocusedVehicleMapOf(out var vehicle2))
+            {
+                offset = offset.RotatedBy(-vehicle2.Angle);
+            }
+            launcherPos += offset;
             var drawPosB = launcherPos + (Vector3.forward * ZiplineEnd.LauncherOffset).RotatedBy((drawPosA - launcherPos).AngleFlat());
             var y = Mathf.Max(drawPosA.y, drawPosB.y);
             GenDraw.DrawLineBetween(drawPosA.WithY(y), drawPosB.WithY(y), ZiplineEnd.ZiplineLayer, ZiplineEnd.ZiplineMat, ZiplineEnd.ZiplineWidth);

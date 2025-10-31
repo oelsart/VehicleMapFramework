@@ -373,18 +373,20 @@ public static class Patch_TurretTop_DrawTurret
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
         var codes = new CodeMatcher(instructions, generator);
-        codes.MatchStartForward(CodeMatch.Calls(AccessTools.PropertyGetter(typeof(TurretTop), nameof(TurretTop.CurRotation))));
+        codes.MatchStartForward(CodeMatch.Calls(
+            AccessTools.Method(typeof(Vector3Utility), nameof(Vector3Utility.RotatedBy), [typeof(Vector3), typeof(float)])));
         codes.DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle);
-        codes.CreateLabelWithOffsets(1, out var label);
-        codes.InsertAfterAndAdvance(
+        codes.CreateLabel(out var label);
+        codes.InsertAndAdvance(
             CodeInstruction.LoadArgument(0),
             CodeInstruction.LoadField(typeof(TurretTop), "parentTurret"),
             new CodeInstruction(OpCodes.Ldloca_S, vehicle),
             new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf),
             new CodeInstruction(OpCodes.Brfalse_S, label),
             new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_FullAngle),
-            new CodeInstruction(OpCodes.Add));
+            new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_Angle),
+            new CodeInstruction(OpCodes.Sub)
+            );
 
         codes.MatchStartForward(new CodeMatch(c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalType == typeof(Quaternion)));
         codes.CreateLabel(out var label2);

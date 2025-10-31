@@ -48,7 +48,7 @@ public static class Patch_Selector_SelectableObjectsUnderMouse
                 for (var j = selectableList.Count - 1; j >= 0; j--)
                 {
                     var thing2 = selectableList[j];
-                    if (thing2.def.category == ThingCategory.Pawn && (thing2.DrawPosHeld.Value - mouseMapPosition).MagnitudeHorizontal() > 0.4f)
+                    if (thing2.def.category == ThingCategory.Pawn && (thing2.DrawPosHeld!.Value - mouseMapPosition).MagnitudeHorizontal() > 0.4f)
                     {
                         selectableList.Remove(thing2);
                     }
