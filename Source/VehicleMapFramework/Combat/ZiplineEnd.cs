@@ -76,6 +76,13 @@ public class ZiplineEnd : ThingWithComps, IZiplineEnd
             return;
         var drawPosA = drawLoc + (Vector3.back * ziplineData.ZiplineEndOffset).RotatedBy(rotation);
         var launcherPos = launcher.DrawPos;
+        var offset = launcher.def.building?.turretTopOffset.ToVector3() ?? Vector3.zero;
+        if (launcher.IsOnNonFocusedVehicleMapOf(out var vehicle))
+        {
+            offset = offset.RotatedBy(-vehicle.Angle);
+        }
+
+        launcherPos += offset;
         var drawPosB = launcherPos + (Vector3.forward * ziplineData.LauncherOffset).RotatedBy((drawPosA - launcherPos).AngleFlat());
         var y = Mathf.Max(drawPosA.y, drawPosB.y) + Altitudes.AltInc;
         GenDrawOnVehicle.DrawLineBetweenInstanced(drawPosA.WithY(y), drawPosB.WithY(y), ziplineData.ZiplineMat, ziplineData.ZiplineWidth);
