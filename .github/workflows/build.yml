@@ -31,6 +31,28 @@ jobs:
     
     - name: Restore Dependencies
       run: dotnet restore ${{ env.Test_Project_Path }}
+      
+    - name: Download Vehicle Framework Reference
+      shell: powershell
+      run: |
+        $repo = "SmashPhil/Vehicle-Framework"
+        
+        # GitHub APIを使用して最新のRelease情報を取得
+        $release = Invoke-RestMethod -Uri "https://api.github.com/repos/$repo/releases/latest"
+        
+        # アセットのURLを検索 (Zipファイルなど、DLLを含むパッケージ)
+        $asset = $release.assets | Where-Object { $_.name -like "*.zip" } | Select-Object -First 1
+        if (-not $asset) {
+            Write-Error "Vehicle Framework のリリースアセットが見つかりませんでした。"
+            exit 1
+        }
+        $downloadUrl = $asset.browser_download_url
+        
+        # ダウンロード先のフォルダを作成し、ダウンロード
+        New-Item -ItemType Directory -Force -Path "..\..\..\..\..\..\workshop\content\294100"
+        Invoke-WebRequest -Uri $downloadUrl -OutFile "..\..\..\..\..\..\workshop\content\294100\VehicleFramework.zip"
+        
+        Expand-Archive -Path "..\..\..\..\..\..\workshop\content\294100\VehicleFramework.zip" -DestinationPath ..\..\..\..\..\workshop\content\294100\3014915404"
 
     - name: Build Mod DLL
       run: dotnet build ${{ env.Test_Project_Path }} --configuration Release --no-restore
