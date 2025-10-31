@@ -1,0 +1,48 @@
+name: Build
+
+on:
+  push:
+    branches: [ "1.6" ]
+
+jobs:
+
+  build:
+    runs-on: windows-latest
+    
+    env:
+      Solution_Name: VehicleMapFramework
+      Test_Project_Path: Source/VehicleMapFramework/VehicleMapFramework.sln 
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    # Install the .NET Core workload
+    - name: Install .NET Core
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 9.0.x
+
+    # Execute all unit tests in the solution
+    # - name: Execute unit tests
+    #  run: dotnet test
+    
+    - name: Restore Dependencies
+      run: dotnet restore ${{ env.Test_Project_Path }}
+
+    - name: Build Mod DLL
+      run: dotnet build ${{ env.Test_Project_Path }} --configuration Release --no-restore
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ env.ARTIFACT_NAME }}
+        path: |
+          1.5
+          1.6
+          About
+          Common
+          LICENSE
+          LoadFolders.xml
