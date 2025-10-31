@@ -78,6 +78,12 @@ public class Verb_LaunchZipline : Verb_LaunchProjectile
             {
                 zipline.destMap = map;
             }
+
+            var customZipline = zipline.def.GetModExtension<CustomZipline>();
+            if (customZipline != null)
+            {
+                zipline.ZipLineData = customZipline.zipLineData;
+            }
         }
         if (verbProps.ForcedMissRadius > 0.5f)
         {

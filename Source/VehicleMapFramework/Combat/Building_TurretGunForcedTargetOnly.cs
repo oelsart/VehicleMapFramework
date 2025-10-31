@@ -1,27 +1,30 @@
 ﻿using RimWorld;
-using UnityEngine;
 using Verse;
 
 namespace VehicleMapFramework;
 
 public class Building_TurretGunForcedTargetOnly : Building_TurretGun
 {
-    public override Vector3 DrawPos
+    private bool canSetForcedTargetThisTick;
+
+    // ターゲッターによりTargetMapがセットされGUI上で不必要にターゲットにオフセットがかかることを防ぐ
+    protected override bool CanSetForcedTarget =>
+        canSetForcedTargetThisTick || !forcedTarget.IsValid && interactableComp is not CompInteractableRocketswarmLauncher;
+
+    protected override void Tick()
     {
-        get
+        canSetForcedTargetThisTick = true;
+        base.Tick();
+        canSetForcedTargetThisTick = false;
+        if (!currentTargetInt.IsValid && forcedTarget.IsValid)
         {
-            if (VehiclePawnWithMapCache.cacheModeGlobal)
-            {
-                return base.DrawPos;
-            }
-            return base.DrawPos + (gun?.def.graphicData?.DrawOffsetForRot(this.BaseRotationVehicleDraw()) ?? Vector3.zero);
+            currentTargetInt = forcedTarget;
+            top.TurretTopTick();
         }
     }
 
-    protected override bool CanSetForcedTarget => true;
-
     public override LocalTargetInfo TryFindNewTarget()
     {
-        return LocalTargetInfo.Invalid;
+        return forcedTarget;
     }
 }

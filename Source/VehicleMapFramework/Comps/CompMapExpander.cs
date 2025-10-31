@@ -9,7 +9,6 @@ using Verse;
 
 namespace VehicleMapFramework;
 
-[HotSwap]
 public class CompMapExpander : ThingComp
 {
     private bool validCellsDirty;

@@ -87,8 +87,8 @@ public static class GenUIOnVehicle
             Debug.Assert(a.DrawPosHeld != null, "a.DrawPosHeld != null");
             Debug.Assert(b.DrawPosHeld != null, "b.DrawPosHeld != null");
             
-            var num = (a.DrawPosHeld.Value - mouseMapPosition).MagnitudeHorizontalSquared();
-            var num2 = (b.DrawPosHeld.Value - mouseMapPosition).MagnitudeHorizontalSquared();
+            var num = (a.DrawPosHeld!.Value - mouseMapPosition).MagnitudeHorizontalSquared();
+            var num2 = (b.DrawPosHeld!.Value - mouseMapPosition).MagnitudeHorizontalSquared();
             if (num < num2)
             {
                 return -1;
@@ -120,7 +120,7 @@ public static class GenUIOnVehicle
             source is not (Verb_Jump or Verb_CastAbilityJump or Verb_LaunchZipline))
             return TargetsAt(clickPos, clickParams, thingsOnly, source, vehicle, convToVehicleMap);
         TargetMapManager.SetTargetMap(source.Caster, vehicle.VehicleMap);
-        return TargetsAt(clickPos, clickParams, thingsOnly, source, vehicle, false);
+        return TargetsAt(clickPos, clickParams, thingsOnly, source, vehicle);
     }
 
     public static IEnumerable<LocalTargetInfo> TargetsAt(Vector3 clickPos, TargetingParameters clickParams, bool thingsOnly, ITargetingSource source = null, bool convToVehicleMap = true)

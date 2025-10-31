@@ -7,16 +7,22 @@ namespace VehicleMapFramework;
 [StaticConstructorOnStartup]
 public class ZiplineEnd : ThingWithComps, IZiplineEnd
 {
-    protected override void Tick()
+    public Verb_LaunchZipline launchVerb;
+
+    public float rotation;
+    
+    public CustomZipline.ZipLineData ZipLineData { get; set; }
+
+    protected override void TickInterval(int delta)
     {
-        base.Tick();
+        base.TickInterval(delta);
         if (!launchVerb.caster?.Spawned ?? false)
         {
             Destroy();
             return;
         }
         if ((launchVerb.caster is Pawn pawn && pawn.TargetCurrentlyAimingAt != this) ||
-            (launchVerb.caster is Building_Turret building_Turret && building_Turret.CurrentTarget != this) ||
+            (launchVerb.caster is Building_Turret building_Turret && building_Turret.ForcedTarget != this) ||
             launchVerb.OutOfRange(launchVerb.caster.PositionOnBaseMap(), this, this.MovedOccupiedRect()) ||
             !GenSightOnVehicle.LineOfSightThingToThing(launchVerb.caster, this))
         {
@@ -28,8 +34,9 @@ public class ZiplineEnd : ThingWithComps, IZiplineEnd
     {
         if (launchVerb.caster?.Spawned ?? false)
         {
-            var bullet = (Bullet_ZiplineEndReturn)GenSpawn.Spawn(VMF_DefOf.VMF_Bullet_ZiplineTurretReturn, this.PositionOnBaseMap(), this.BaseMap());
+            var bullet = (Bullet_ZiplineEndReturn)GenSpawn.Spawn(ZipLineData.ZiplineReturnDef, this.PositionOnBaseMap(), this.BaseMap());
             bullet.launchVerb = launchVerb;
+            bullet.ZipLineData = ZipLineData;
             launchVerb.ZiplineEnd = bullet;
             bullet.Launch(launchVerb.caster, this.TrueCenter(), launchVerb.caster, launchVerb.caster, ProjectileHitFlags.IntendedTarget);
         }
@@ -53,19 +60,25 @@ public class ZiplineEnd : ThingWithComps, IZiplineEnd
 
     public void DrawZipline(Vector3 drawLoc)
     {
-        if (launchVerb.caster is { Spawned: true })
+        var rot = rotation;
+        if (this.IsOnVehicleMapOf(out var vehicle))
         {
-            var rot = rotation;
-            if (this.IsOnVehicleMapOf(out var vehicle))
-            {
-                rot -= vehicle.Angle;
-            }
-            var drawPosA = drawLoc + (Vector3.back * ZiplineEndOffset).RotatedBy(rot);
-            var launcherPos = launchVerb.caster.DrawPos;
-            var drawPosB = launcherPos + (Vector3.forward * LauncherOffset).RotatedBy((drawPosA - launcherPos).AngleFlat());
-            var y = Mathf.Max(drawPosA.y, drawPosB.y);
-            GenDraw.DrawLineBetween(drawPosA.WithY(y), drawPosB.WithY(y), ZiplineLayer, ZiplineMat, ZiplineWidth);
+            rot -= vehicle.Angle;
         }
+
+        DrawZipline(drawLoc, rot, launchVerb, ZipLineData);
+    }
+
+    public static void DrawZipline(Vector3 drawLoc, float rotation, Verb_LaunchZipline launchVerb, CustomZipline.ZipLineData ziplineData)
+    {
+        var launcher = launchVerb.caster;
+        if (launcher is null || !launcher.Spawned)
+            return;
+        var drawPosA = drawLoc + (Vector3.back * ziplineData.ZiplineEndOffset).RotatedBy(rotation);
+        var launcherPos = launcher.DrawPos;
+        var drawPosB = launcherPos + (Vector3.forward * ziplineData.LauncherOffset).RotatedBy((drawPosA - launcherPos).AngleFlat());
+        var y = Mathf.Max(drawPosA.y, drawPosB.y) + Altitudes.AltInc;
+        GenDrawOnVehicle.DrawLineBetweenInstanced(drawPosA.WithY(y), drawPosB.WithY(y), ziplineData.ZiplineMat, ziplineData.ZiplineWidth);
     }
 
     public override void ExposeData()
@@ -73,19 +86,13 @@ public class ZiplineEnd : ThingWithComps, IZiplineEnd
         base.ExposeData();
         Scribe_References.Look(ref launchVerb, "launchVerb");
         Scribe_Values.Look(ref rotation, "rotation");
+        if (Scribe.mode == LoadSaveMode.PostLoadInit)
+        {
+            var customZipline = launchVerb?.verbProps?.defaultProjectile?.GetModExtension<CustomZipline>();
+            if (customZipline != null)
+            {
+                ZipLineData = customZipline.zipLineData;
+            }
+        }
     }
-
-    public Verb_LaunchZipline launchVerb;
-
-    public float rotation;
-
-    public static Material ZiplineMat = MaterialPool.MatFrom("VehicleMapFramework/Things/ZiplineTurret/Zipline");
-
-    public const float ZiplineWidth = 0.135f;
-
-    public const float ZiplineEndOffset = 0.42f;
-
-    public const float ZiplineLayer = 0.03846154f;
-
-    public const float LauncherOffset = 0.85f;
 }

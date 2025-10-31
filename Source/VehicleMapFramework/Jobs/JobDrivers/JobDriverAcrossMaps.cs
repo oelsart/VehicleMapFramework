@@ -5,8 +5,20 @@ using Verse.AI;
 
 namespace VehicleMapFramework;
 
-public abstract class JobDriverAcrossMaps : JobDriver
+public abstract class JobDriverAcrossMaps : JobDriverBodyOffset
 {
+    private TargetInfo exitSpot1 = TargetInfo.Invalid;
+
+    private TargetInfo enterSpot1 = TargetInfo.Invalid;
+
+    private TargetInfo exitSpot2 = TargetInfo.Invalid;
+
+    private TargetInfo enterSpot2 = TargetInfo.Invalid;
+
+    private Map targetAMap;
+
+    private Map destMap;
+    
     public bool ShouldEnterTargetAMap => exitSpot1.Map != null || enterSpot1.Map != null;
 
     public bool ShouldEnterTargetBMap => exitSpot2.Map != null || enterSpot2.Map != null;
@@ -35,13 +47,7 @@ public abstract class JobDriverAcrossMaps : JobDriver
         }
     }
 
-    public override Vector3 ForcedBodyOffset
-    {
-        get
-        {
-            return drawOffset;
-        }
-    }
+    public override Vector3 ForcedBodyOffset => drawOffset;
 
     protected override IEnumerable<Toil> MakeNewToils()
     {
@@ -52,9 +58,9 @@ public abstract class JobDriverAcrossMaps : JobDriver
             MapNullOrDisposed(enterSpot2));
         yield break;
 
-        static bool MapNullOrDisposed(TargetInfo? spot)
+        static bool MapNullOrDisposed(TargetInfo spot)
         {
-            return spot.HasValue && (spot.Value.Map == null || spot.Value.Map.Disposed);
+            return spot.IsValid && (spot.Map == null || spot.Map.Disposed);
         }
     }
 
@@ -104,18 +110,4 @@ public abstract class JobDriverAcrossMaps : JobDriver
             base.ExposeData();
         });
     }
-
-    private TargetInfo exitSpot1 = TargetInfo.Invalid;
-
-    private TargetInfo enterSpot1 = TargetInfo.Invalid;
-
-    private TargetInfo exitSpot2 = TargetInfo.Invalid;
-
-    private TargetInfo enterSpot2 = TargetInfo.Invalid;
-
-    public Vector3 drawOffset;
-
-    private Map targetAMap;
-
-    private Map destMap;
 }

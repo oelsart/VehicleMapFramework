@@ -349,7 +349,7 @@ public static class Patch_Graphic_Draw
             {
                 var angle = vehicle.Angle - vehicle.Transform.rotation;
                 extraRotation -= angle;
-                var offset = thing.Graphic.DrawOffset(rot);
+                var offset = __instance.DrawOffset(rot);
                 if (__instance is Graphic_Flicker && thing.Graphic is not Graphic_Single && thing.TryGetComp<CompFireOverlay>(out var comp))
                 {
                     offset += comp.Props.DrawOffsetForRot(rot);
