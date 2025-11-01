@@ -22,9 +22,14 @@
     <OutputPath>..\..\..\VehicleMapFrameworkDev\1.6\_Rimefeller\Assemblies\</OutputPath>
     <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
   </PropertyGroup>
+
+  <PropertyGroup>
+    <SteamWorkshopRoot Condition="'$(SteamWorkshopRoot)' == ''">..\..\..\..\..\..\workshop\content\294100</SteamWorkshopRoot>
+  </PropertyGroup>
+
   <ItemGroup>
     <Reference Include="Rimefeller">
-      <HintPath>..\..\..\..\..\..\workshop\content\294100\1321849735\1.6\Assemblies\Rimefeller.dll</HintPath>
+      <HintPath>$(SteamWorkshopRoot)\1321849735\1.6\Assemblies\Rimefeller.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>

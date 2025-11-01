@@ -26,6 +26,11 @@
     <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
     <IntermediateOutputPath>C:\Users\ppss2\AppData\Local\Temp\vs8B2B.tmp\Release\</IntermediateOutputPath>
   </PropertyGroup>
+
+  <PropertyGroup>
+    <SteamWorkshopRoot Condition="'$(SteamWorkshopRoot)' == ''">..\..\..\..\..\..\workshop\content\294100</SteamWorkshopRoot>
+  </PropertyGroup>
+
   <ItemGroup>
     <Reference Update="System">
       <Private>False</Private>
@@ -37,14 +42,11 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="PipeSystem">
-      <HintPath>..\..\..\..\..\..\workshop\content\294100\2023507013\1.6\Assemblies\PipeSystem.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System.Data.DataSetExtensions">
+      <HintPath>$(SteamWorkshopRoot)\2023507013\1.6\Assemblies\PipeSystem.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="VEF">
-      <HintPath>..\..\..\..\..\..\workshop\content\294100\2023507013\1.6\Assemblies\VEF.dll</HintPath>
+      <HintPath>$(SteamWorkshopRoot)\2023507013\1.6\Assemblies\VEF.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Update="System.Data">
@@ -66,11 +68,11 @@
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)'=='Release'or'$(Configuration)'=='Debug'">
     <Reference Include="SmashTools">
-      <HintPath>..\..\..\..\..\..\workshop\content\294100\3014915404\1.6\Assemblies\SmashTools.dll</HintPath>
+      <HintPath>$(SteamWorkshopRoot)\3014915404\1.6\Assemblies\SmashTools.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Vehicles">
-      <HintPath>..\..\..\..\..\..\workshop\content\294100\3014915404\1.6\Assemblies\Vehicles.dll</HintPath>
+      <HintPath>$(SteamWorkshopRoot)\3014915404\1.6\Assemblies\Vehicles.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>

@@ -23,13 +23,18 @@
     <OutputPath>..\..\..\VehicleMapFrameworkDev\1.6\_DubsBadHygiene\Assemblies\</OutputPath>
     <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
   </PropertyGroup>
+
+  <PropertyGroup>
+    <SteamWorkshopRoot Condition="'$(SteamWorkshopRoot)' == ''">..\..\..\..\..\..\workshop\content\294100</SteamWorkshopRoot>
+  </PropertyGroup>
+
   <ItemGroup>
     <Reference Include="0DubCore">
-      <HintPath>..\..\..\..\..\..\workshop\content\294100\836308268\1.6\Assemblies\0DubCore.dll</HintPath>
+      <HintPath>$(SteamWorkshopRoot)\836308268\1.6\Assemblies\0DubCore.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="BadHygiene">
-      <HintPath>..\..\..\..\..\..\workshop\content\294100\836308268\1.6\Assemblies\BadHygiene.dll</HintPath>
+      <HintPath>$(SteamWorkshopRoot)\836308268\1.6\Assemblies\BadHygiene.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
