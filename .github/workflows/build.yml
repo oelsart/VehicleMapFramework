@@ -26,7 +26,6 @@ jobs:
       with:
         fetch-depth: 0
 
-    # Install the .NET Core workload
     - name: Install .NET Core
       uses: actions/setup-dotnet@v4
       with:
@@ -38,12 +37,6 @@ jobs:
     
     - name: Restore Dependencies
       run: dotnet restore ${{ env.Project_Path }}
-      
-    - name: Install 32bit dependencies
-      run: |
-        sudo dpkg --add-architecture i386
-        sudo apt-get update
-        sudo apt-get install -y libc6:i386 libncurses5:i386 libstdc++6:i386
         
     - name: Install SteamCMD
       run: |
@@ -61,7 +54,7 @@ jobs:
             ~/Steam/steamcmd.sh +login anonymous +workshop_download_item 294100 $mod_id validate +quit
           fi
         done <<< "${{ env.WorkshopMods }}"
-        echo "CI_SteamCMD_WorkShop=/root/Steam/steamapps/workshop/content/294100" >> $GITHUB_ENV
+        echo "CI_SteamCMD_WorkShop=$HOME/Steam/steamapps/workshop/content/294100" >> $GITHUB_ENV
         ls -la ~/Steam/steamapps/workshop/content/294100
 
     - name: Build Mod DLL
@@ -70,7 +63,7 @@ jobs:
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ env.ARTIFACT_NAME }}
+        name: VehicleMapFramework
         path: |
           1.5
           1.6
