@@ -91,7 +91,7 @@ jobs:
             LICENSE \
             LoadFolders.xml
         
-        echo "RELEASE_ASSET=VehicleMapFramework-${{ github.ref_name }}.zip" >> $GITHUB_ENV
+        echo "RELEASE_ASSET=VehicleMapFramework-${{ RELEASE_TAG }}.zip" >> $GITHUB_ENV
     
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v2
