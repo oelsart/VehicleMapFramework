@@ -1,40 +1,16 @@
-name: Build
+name: Release
 
 on:
-  workflow_dispatch:
   push:
-    branches:
-      - "1.6"
-      - bug-fix
-      - development
+    tags: [ v* ]
+    
+    permissions:
+      contents: write
 
 jobs:
-  report_local_tests:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download Test Results
-        run: |
-          curl -L -o ./TestResults.xml "https://gist.githubusercontent.com/oelsart/3bb8183cedc9869f566440ca1553c633/raw/TestResults.xml"
 
-      - name: Upload local test results artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: LocalTestResults
-          path: |
-            ./TestResults.xml
-            
-      - name: Test Report
-        uses: dorny/test-reporter@v2
-        with:
-          artifact: LocalTestResults
-          name: Local Tests
-          path: '*.xml'
-          reporter: java-junit
-          fail-on-error: 'true'
-          
-  build:
+  release:
     runs-on: ubuntu-latest
-    needs: report_local_tests
     
     env:
       Solution_Name: VehicleMapFramework
@@ -51,63 +27,61 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
       with:
-        submodules: true
         fetch-depth: 0
 
     - name: Install .NET Core
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 9.0.x
+
+    # Execute all unit tests in the solution
+    # - name: Execute unit tests
+    #  run: dotnet test
     
     - name: Restore Dependencies
       run: dotnet restore ${{ env.Project_Path }}
-      
-    - name: Cache SteamCMD
-      id: cache-steam
-      uses: actions/cache@v4
-      with:
-        path: ~/Steam
-        key: ${{ runner.os }}-steamcmd-v1
-        restore-keys: |
-          ${{ runner.os }}-steamcmd-
-          
+        
     - name: Install SteamCMD
-      if: steps.cache-steam.outputs.cache-hit != 'true'
       run: |
         mkdir -p ~/Steam
         cd ~/Steam
         curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar zxvf -
+        echo "SteamCMD path: ~/Steam/steamcmd.sh"
 
     - name: Download Workshop Mods
       run: |
         mkdir -p ~/Steam/steamapps/workshop/content/294100
-        
-        STEAM_COMMANDS="+login anonymous"
-        
         while IFS= read -r mod_id; do
           if [ -n "$mod_id" ]; then
-            echo "Queueing Workshop Mod: $mod_id"
-            STEAM_COMMANDS="${STEAM_COMMANDS} +workshop_download_item 294100 $mod_id validate"
+            echo "Downloading Workshop Mod: $mod_id"
+            ~/Steam/steamcmd.sh +login anonymous +workshop_download_item 294100 $mod_id validate +quit
           fi
         done <<< "${{ env.WorkshopMods }}"
-        
-        STEAM_COMMANDS="${STEAM_COMMANDS} +quit"
-        ~/Steam/steamcmd.sh ${STEAM_COMMANDS}
-        
         echo "CI_SteamCMD_WorkShop=$HOME/Steam/steamapps/workshop/content/294100" >> $GITHUB_ENV
         ls -la ~/Steam/steamapps/workshop/content/294100
 
     - name: Build Mod DLL
-      run: dotnet build ${{ env.Project_Path }} --configuration Release --no-restore /p:SkipPostBuild=true /p:SteamWorkshopRoot=${{ env.CI_SteamCMD_WorkShop }}
+      run: |
+        dotnet build ${{ env.Project_Path }} \
+            --configuration Release \
+            --no-restore \
+            /p:SkipPostBuild=true \
+            /p:SteamWorkshopRoot=${{ env.CI_SteamCMD_WorkShop }}
+        
+        zip -r VehicleMapFramework-${{ github.ref_name }}.zip \
+            1.5 \
+            1.6 \
+            About \
+            Common \
+            LICENSE \
+            LoadFolders.xml
+        
+        echo "RELEASE_ASSET=VehicleMapFramework-${{ github.ref_name }}.zip" >> $GITHUB_ENV
     
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v4
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v2
       with:
-        name: VehicleMapFramework
-        path: |
-          1.5
-          1.6
-          About
-          Common
-          LICENSE
-          LoadFolders.xml
+        token: ${{ secrets.GITHUB_TOKEN }}
+        tag_name: ${{ github.ref_name }} 
+        name: "${{ github.ref_name }}"
+        files: ${{ env.RELEASE_ASSET }}
