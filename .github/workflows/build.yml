@@ -2,7 +2,7 @@ name: Build
 
 on:
   push:
-    branches: [ "1.6" ]
+    branches: [ "build-test" ]
 
 jobs:
 
