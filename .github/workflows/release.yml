@@ -83,7 +83,7 @@ jobs:
             /p:SkipPostBuild=true \
             /p:SteamWorkshopRoot=${{ env.CI_SteamCMD_WorkShop }}
         
-        zip -r VehicleMapFramework-${{ github.ref_name }}.zip \
+        zip -r VehicleMapFramework-${{ env.RELEASE_TAG }}.zip \
             1.5 \
             1.6 \
             About \
@@ -91,7 +91,7 @@ jobs:
             LICENSE \
             LoadFolders.xml
         
-        echo "RELEASE_ASSET=VehicleMapFramework-${{ RELEASE_TAG }}.zip" >> $GITHUB_ENV
+        echo "RELEASE_ASSET=VehicleMapFramework-${{ env.RELEASE_TAG }}.zip" >> $GITHUB_ENV
     
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v2
