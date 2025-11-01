@@ -23,9 +23,14 @@
     <OutputPath>..\..\..\VehicleMapFrameworkDev\1.6\_CombatExtended\Assemblies\</OutputPath>
     <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
   </PropertyGroup>
+
+  <PropertyGroup>
+    <SteamWorkshopRoot Condition="'$(SteamWorkshopRoot)' == ''">..\..\..\..\..\..\workshop\content\294100</SteamWorkshopRoot>
+  </PropertyGroup>
+
   <ItemGroup>
     <Reference Include="CombatExtended">
-      <HintPath>..\..\..\..\..\..\workshop\content\294100\2890901044\Assemblies\CombatExtended.dll</HintPath>
+      <HintPath>$(SteamWorkshopRoot)\2890901044\Assemblies\CombatExtended.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
@@ -41,16 +46,16 @@
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)'=='Release'or'$(Configuration)'=='Debug'">
     <Reference Include="SmashTools">
-      <HintPath>..\..\..\..\..\..\workshop\content\294100\3014915404\1.6\Assemblies\SmashTools.dll</HintPath>
+      <HintPath>$(SteamWorkshopRoot)\3014915404\1.6\Assemblies\SmashTools.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Vehicles">
-      <HintPath>..\..\..\..\..\..\workshop\content\294100\3014915404\1.6\Assemblies\Vehicles.dll</HintPath>
+      <HintPath>$(SteamWorkshopRoot)\3014915404\1.6\Assemblies\Vehicles.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.4566" />
+    <PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.4630" />
     <PackageReference Include="Lib.Harmony.Ref" Version="2.4.1" />
   </ItemGroup>
   <ItemGroup>

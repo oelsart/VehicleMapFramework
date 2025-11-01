@@ -22,14 +22,19 @@
     <OutputPath>..\..\..\VehicleMapFrameworkDev\1.6\_Rimefeller\Assemblies\</OutputPath>
     <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
   </PropertyGroup>
+
+  <PropertyGroup>
+    <SteamWorkshopRoot Condition="'$(SteamWorkshopRoot)' == ''">..\..\..\..\..\..\workshop\content\294100</SteamWorkshopRoot>
+  </PropertyGroup>
+
   <ItemGroup>
     <Reference Include="Rimefeller">
-      <HintPath>..\..\..\..\..\..\workshop\content\294100\1321849735\1.6\Assemblies\Rimefeller.dll</HintPath>
+      <HintPath>$(SteamWorkshopRoot)\1321849735\1.6\Assemblies\Rimefeller.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.4566" />
+    <PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.4630" />
     <PackageReference Include="Lib.Harmony.Ref" Version="2.4.1" />
   </ItemGroup>
   <ItemGroup>
