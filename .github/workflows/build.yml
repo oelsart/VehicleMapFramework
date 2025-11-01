@@ -54,7 +54,7 @@ jobs:
             ~/Steam/steamcmd.sh +login anonymous +workshop_download_item 294100 $mod_id validate +quit
           fi
         done <<< "${{ env.WorkshopMods }}"
-        echo "CI_SteamCMD_WorkShop=/root/Steam/steamapps/workshop/content/294100" >> $GITHUB_ENV
+        echo "CI_SteamCMD_WorkShop=HOME/Steam/steamapps/workshop/content/294100" >> $GITHUB_ENV
         ls -la ~/Steam/steamapps/workshop/content/294100
 
     - name: Build Mod DLL
