@@ -17,12 +17,12 @@ internal static class Patches_AdaptiveStorage
     {
         if (ModCompat.AdaptiveStorage)
         {
-            VMF_Harmony.PatchCategory(PatchCategories.AdaptiveStorage);
+            VMF_Harmony.PatchCategory(PatchCategories.AdaptiveStorageFramework);
         }
     }
 }
 
-[HarmonyPatchCategory(PatchCategories.AdaptiveStorage)]
+[HarmonyPatchCategory(PatchCategories.AdaptiveStorageFramework)]
 [HarmonyPatch("AdaptiveStorage.StorageGraphicWorker", "UpdatePrintData")]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_StorageGraphicWorker_UpdatePrintData
@@ -43,7 +43,7 @@ public static class Patch_StorageGraphicWorker_UpdatePrintData
     }
 }
 
-[HarmonyPatchCategory(PatchCategories.AdaptiveStorage)]
+[HarmonyPatchCategory(PatchCategories.AdaptiveStorageFramework)]
 [HarmonyPatch("AdaptiveStorage.ItemGraphicWorker", "DrawOffsetForItem")]
 public static class Patch_ItemGraphicWorker_DrawOffsetForItem
 {
@@ -97,7 +97,7 @@ public static class Patch_ItemGraphicWorker_DrawOffsetForItem
     private static readonly AccessTools.FieldRef<object, object> graphic = AccessTools.FieldRefAccess<object>("AdaptiveStorage.ItemGraphicWorker:<graphic>P");
 }
 
-[HarmonyPatchCategory(PatchCategories.AdaptiveStorage)]
+[HarmonyPatchCategory(PatchCategories.AdaptiveStorageFramework)]
 [HarmonyPatch("AdaptiveStorage.ItemGraphicWorker", "ItemOffsetAt")]
 [PatchLevel(Level.Safe)]
 public static class Patch_ItemGraphicWorker_ItemOffsetAt

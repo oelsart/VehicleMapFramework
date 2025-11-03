@@ -23,16 +23,11 @@
     <Using Include="NUnit.Framework" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ReferencePathWithRefAssemblies Update="C:\Users\ppss2\.nuget\packages\system.memory\4.5.4\lib\net461\System.Memory.dll" />
-    <ReferencePathWithRefAssemblies Update="C:\Users\ppss2\.nuget\packages\system.runtime.compilerservices.unsafe\6.0.0\lib\net461\System.Runtime.CompilerServices.Unsafe.dll" />
-  </ItemGroup>
-
   <PropertyGroup>
     <SteamWorkshopRoot Condition="'$(SteamWorkshopRoot)' == ''">E:\Program Files (x86)\Steam\steamapps\workshop\content\294100</SteamWorkshopRoot>
   </PropertyGroup>
 
   <Target Name="GenerateConstants" BeforeTargets="BeforeBuild">
-    <WriteLinesToFile File="GeneratedConstants.cs" Lines="public static class BuildConstants { public const string SteamWorkshopRoot = @&quot;$(SteamWorkshopRoot)&quot;%3B }" Overwrite="true" />
+    <WriteLinesToFile File="GeneratedConstants.cs" Lines="internal static class BuildConstants { public const string SteamWorkshopRoot = @&quot;$(SteamWorkshopRoot)&quot;%3B }" Overwrite="true" />
   </Target>
 </Project>

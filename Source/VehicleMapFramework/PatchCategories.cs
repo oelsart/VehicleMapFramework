@@ -28,7 +28,7 @@ internal static class PatchCategories
     
     public const string DubsBadHygiene = "VMF_Patches_DubsBadHygiene";
     
-    public const string AdaptiveStorage = "VMF_Patches_AdaptiveStorage";
+    public const string AdaptiveStorageFramework = "VMF_Patches_AdaptiveStorageFramework";
     
     public const string AllowTool = "VMF_Patches_AllowTool";
     
@@ -42,11 +42,11 @@ internal static class PatchCategories
     
     public const string CallTradeShips = "VMF_Patches_CallTradeShips";
     
-    public const string CeleTech = "VMF_Patches_CeleTech";
+    public const string CeleTechArsenal = "VMF_Patches_CeleTechArsenal";
     
     public const string ColonyGroups = "VMF_Patches_ColonyGroups";
     
-    public const string CutPlantsBeforeBuilding = "VMF_Patches_Patches_CutPlantsBeforeBuilding";
+    public const string CutPlantsBeforeBuilding = "VMF_Patches_CutPlantsBeforeBuilding";
 
     public const string DoNotHitMe = "VMF_Patches_DoNotHitMe";
     

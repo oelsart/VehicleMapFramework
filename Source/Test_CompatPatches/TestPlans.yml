@@ -1,5 +1,81 @@
-﻿- Name: Test_CompatPatches
+﻿- Name: VanillaExpandedFramework
   Mods:
-    - AdaptiveStorageFramework
+    - VanillaExpandedFramework
+    - VFEArchitect
+    - VFESecurity
+    - VFEMechanoids
+    - VVehiclesE
+    # - VGravshipE
   Categories:
-    - VMF_Patches_AdaptiveStorage
+      - VMF_Patches_VEFCore
+      - VMF_Patches_VFEArchitect
+      - VMF_Patches_VFESecurity
+      - VMF_Patches_VVE
+      - VMF_Patches_VFEPirates
+      - VMF_Patches_VFEMechanoids
+      # - VMF_Patches_VGE
+- Name: Achtung
+- Name: CombatExtended
+- Name: CE + VFESecurity
+  Mods:
+    - CombatExtended
+    - VFESecurity
+  Categories:
+    - VMF_Patches_CombatExtendedVFESecurityCompat
+- Name: DubsBadHygiene
+- Name: AdaptiveStorageFramework
+- Name: AllowTool
+  Mods:
+    - HugsLib
+    - AllowTool
+- Name: AnimalCages
+- Name: Aquariums
+  Mods:
+    - NightmareCore
+    - Aquariums
+  Categories:
+    - VMF_Patches_NightmareCore
+    - VMF_Patches_Aquariums
+- Name: BillDoorsFramework
+- Name: CallTradeShips
+- Name: CeleTechArsenal
+- Name: ColonyGroups
+- Name: CutPlantsBeforeBuilding
+- Name: DoNotHitMe
+- Name: DrakkenLaserDrill
+- Name: EccentricTech_DefenseGrid
+- Name: EnergyShield
+- Name: EnergyShield + CE
+  Mods:
+    - CombatExtended
+    - EnergyShield
+    - EnergyShieldCECompat
+  Categories:
+    - VMF_Patches_EnergyShieldCECompat
+- Name: ExosuitFramework
+- Name: FortifiedFeaturesFramework
+- Name: GiantImperialTurret
+- Name: Gunplay
+- Name: MeleeAnimation
+- Name: MiscRobots
+- Name: MultiFloors
+  Mods:
+    - Prepatcher
+    - MultiFloors
+- Name: MuzzleFlash
+- Name: PauseOtherSettlements
+- Name: ProjectRimFactory
+- Name: PickUpAndHaul
+- Name: ReGrowth
+- Name: RimWorldOfMagic
+  Mods:
+    - JecsLite
+    - RimWorldOfMagic
+- Name: SmarterConstruction
+- Name: SmartPistol
+- Name: StackGap
+- Name: TabulaRasa
+- Name: TraderShips
+- Name: ViviRace
+- Name: WhileYoureUp
+- Name: YayosCombat3

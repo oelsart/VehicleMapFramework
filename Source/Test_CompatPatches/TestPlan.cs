@@ -7,7 +7,5 @@ public class TestPlan
     
     public List<string> Mods { get; set; }
     
-    public Dictionary<string, string> WorkshopIds { get; set; }
-    
     public List<string> Categories { get; set; }
 }
