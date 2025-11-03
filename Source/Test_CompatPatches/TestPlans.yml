@@ -1,18 +1,18 @@
 ﻿- Name: VanillaExpandedFramework
 - Name: VFEArchitect
-- Name: VFESecurity
-- Name: VFESecurity + CE
-  Mods:
-    - VFESecurity
-  Categories:
-    - VMF_Patches_CombatExtendedVFESecurityCompat
+#- Name: VFESecurity
+#- Name: VFESecurity + CE
+#  Mods:
+#    - VFESecurity
+#  Categories:
+#    - VMF_Patches_CombatExtendedVFESecurityCompat
 - Name: VVehiclesE
-- Name: VFEPirates
-- Name: VFEMechanoids
+#- Name: VFEMechanoids
 #- Name: VGravshipE
 - Name: Achtung
 - Name: CombatExtended
 - Name: DubsBadHygiene
+- Name: Rimefeller
 - Name: AdaptiveStorageFramework
 - Name: AllowTool
   Mods:
@@ -21,7 +21,7 @@
 - Name: AnimalCages
 - Name: NightmareCore
 - Name: Aquariums
-- Name: BillDoorsFramework
+#- Name: BillDoorsFramework
 - Name: CallTradeShips
 - Name: CeleTechArsenal
 - Name: ColonyGroups
@@ -65,3 +65,4 @@
 - Name: ViviRace
 - Name: WhileYoureUp
 - Name: YayosCombat3
+- Name: SmartFarming

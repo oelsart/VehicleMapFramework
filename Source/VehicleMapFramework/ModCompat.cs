@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using HarmonyLib;
 using JetBrains.Annotations;
@@ -9,6 +10,7 @@ using RimWorld;
 using RimWorld.Planet;
 using UnityEngine;
 using VehicleMapFramework.VMF_HarmonyPatches;
+using VehicleMapFramework.VMF_HarmonyPatches.AM;
 using Vehicles;
 using Verse;
 using Verse.AI;
@@ -17,13 +19,22 @@ namespace VehicleMapFramework;
 
 internal static class UnitTestDetector
 {
-    internal static bool IsTestingContext { get; [UsedImplicitly] set; }
+    [UsedImplicitly]
+    internal static bool IsTestingContext { get; set; }
 }
+
+/// <summary>
+/// このメソッドは、セキュリティ制約（ECallなど）や内部的な理由により、
+/// Unity外部からのテストから除外される
+/// </summary>
+[AttributeUsage(AttributeTargets.Class)]
+internal class ExceptForTestingAttribute : Attribute;
 
 [StaticConstructorOnStartup]
 internal static class ModCompat
 {
-    internal static List<Exception> CctorExceptions { [UsedImplicitly] get; private set; }
+    [UsedImplicitly]
+    internal static List<Exception> CctorExceptions { get; private set; }
     
     internal static bool AnyNull(params object[] args)
     {
@@ -340,8 +351,18 @@ internal static class ModCompat
     public static class MeleeAnimation
     {
         public static readonly bool Active = IsModActive("co.uk.epicguru.meleeanimation");
+        
+        public static readonly AccessTools.FieldRef<object, Map> AnimRenderer_Map;
 
-        public static readonly Func<Vector3, Pawn, IEnumerable<FloatMenuOption>> GenerateAMMenuOptions;
+        public static readonly AccessTools.FieldRef<object, Matrix4x4> AnimRenderer_RootTransform;
+
+        public static readonly AccessTools.FieldRef<object, Def> AnimRenderer_Def;
+
+        public static readonly AccessTools.FieldRef<Def, IReadOnlyList<object>> AnimRenderer_cellData;
+
+        public static readonly MethodInfo m_GetWorldPosition;
+
+        public static readonly MethodInfo m_GetWorldPositionOffset;
 
         static MeleeAnimation()
         {
@@ -349,8 +370,12 @@ internal static class ModCompat
             {
                 try
                 {
-                    var method = AccessTools.Method("AM.UI.DraftedFloatMenuOptionsUI:GenerateMenuOptions");
-                    GenerateAMMenuOptions = AccessTools.MethodDelegate<Func<Vector3, Pawn, IEnumerable<FloatMenuOption>>>(method);
+                    AnimRenderer_Map = AccessTools.FieldRefAccess<Map>("AM.AnimRenderer:Map");
+                    AnimRenderer_RootTransform = AccessTools.FieldRefAccess<Matrix4x4>("AM.AnimRenderer:RootTransform");
+                    AnimRenderer_Def = AccessTools.FieldRefAccess<Def>("AM.AnimRenderer:Def");
+                    AnimRenderer_cellData = AccessTools.FieldRefAccess<IReadOnlyList<object>>("AM.AnimDef:cellData");
+                    m_GetWorldPosition = AccessTools.Method("AnimPartSnapshot:GetWorldPosition");
+                    m_GetWorldPositionOffset = AccessTools.Method(typeof(Patch_AnimRenderer_DrawPawns), nameof(Patch_AnimRenderer_DrawPawns.GetWorldPositionOffset));
                 }
                 catch (Exception ex)
                 {
@@ -359,7 +384,7 @@ internal static class ModCompat
                 }
                 finally
                 {
-                    if (AnyNull(GenerateAMMenuOptions))
+                    if (AnyNull(AnimRenderer_Map, AnimRenderer_RootTransform, AnimRenderer_Def, AnimRenderer_cellData))
                     {
                         LogIncompat("Melee Animation");
                         Active = false;
@@ -404,8 +429,6 @@ internal static class ModCompat
     }
 
     public static readonly bool MuzzleFlash = IsModActive("IssacZhuang.MuzzleFlash");
-
-    public static readonly bool PathfindingFramework = IsModActive("pathfinding.framework");
 
     public static readonly bool ProjectRimFactory = IsModActive("spdskatr.projectrimfactory");
 
@@ -458,35 +481,35 @@ internal static class ModCompat
     public static class VFESecurity
     {
         public static readonly bool Active = IsModActive("VanillaExpanded.VFESecurity");
-
-        public static readonly AccessTools.FieldRef<object, GlobalTargetInfo> targetedTile;
-
-        public static readonly AccessTools.FieldRef<object, int> worldTileRange;
         
-        static VFESecurity()
-        {
-            if (Active)
-            {
-                try
-                {
-                    targetedTile = AccessTools.FieldRefAccess<GlobalTargetInfo>("VFESecurity.CompLongRangeArtillery:targetedTile");
-                    worldTileRange = AccessTools.FieldRefAccess<int>("VFESecurity.CompProperties_LongRangeArtillery:worldTileRange");
-                }
-                catch (Exception ex)
-                {
-                    LogError(ex);
-                    Active = false;
-                }
-                finally
-                {
-                    if (AnyNull(targetedTile, worldTileRange))
-                    {
-                        LogIncompat("VFE Security");
-                        Active = false;
-                    }
-                }
-            }
-        }
+        public static readonly AccessTools.FieldRef<object, GlobalTargetInfo> targetedTile = null;
+        
+        public static readonly AccessTools.FieldRef<object, int> worldTileRange = null;
+    //     
+    //     static VFESecurity()
+    //     {
+    //         if (Active)
+    //         {
+    //             try
+    //             {
+    //                 targetedTile = AccessTools.FieldRefAccess<GlobalTargetInfo>("VFESecurity.CompLongRangeArtillery:targetedTile");
+    //                 worldTileRange = AccessTools.FieldRefAccess<int>("VFESecurity.CompProperties_LongRangeArtillery:worldTileRange");
+    //             }
+    //             catch (Exception ex)
+    //             {
+    //                 LogError(ex);
+    //                 Active = false;
+    //             }
+    //             finally
+    //             {
+    //                 if (AnyNull(targetedTile, worldTileRange))
+    //                 {
+    //                     LogIncompat("VFE Security");
+    //                     Active = false;
+    //                 }
+    //             }
+    //         }
+    //     }
     }
 
     public static class VVE
@@ -520,37 +543,35 @@ internal static class ModCompat
         }
     }
 
-    public static readonly bool VFEPirates = IsModActive("OskarPotocki.VFE.Pirates");
-
     public static class VFEMechanoid
     {
         public static readonly bool Active = IsModActive("OskarPotocki.VFE.Mechanoid");
-
-        public static readonly FastInvokeHandler DoWorkOnCell;
-
-        static VFEMechanoid()
-        {
-            if (Active)
-            {
-                try
-                {
-                    DoWorkOnCell = MethodInvoker.GetHandler(AccessTools.Method("VFE.Mechanoids.Buildings.Building_AutoPlant:DoWorkOnCell"));
-                }
-                catch (Exception ex)
-                {
-                    LogError(ex);
-                    Active = false;
-                }
-                finally
-                {
-                    if (AnyNull(DoWorkOnCell))
-                    {
-                        LogIncompat("VFEPirates");
-                        Active = false;
-                    }
-                }
-            }
-        }
+        
+        public static readonly FastInvokeHandler DoWorkOnCell = null;
+    //
+    //     static VFEMechanoid()
+    //     {
+    //         if (Active)
+    //         {
+    //             try
+    //             {
+    //                 DoWorkOnCell = MethodInvoker.GetHandler(AccessTools.Method("VFE.Mechanoids.Buildings.Building_AutoPlant:DoWorkOnCell"));
+    //             }
+    //             catch (Exception ex)
+    //             {
+    //                 LogError(ex);
+    //                 Active = false;
+    //             }
+    //             finally
+    //             {
+    //                 if (AnyNull(DoWorkOnCell))
+    //                 {
+    //                     LogIncompat("VFEMechanoids");
+    //                     Active = false;
+    //                 }
+    //             }
+    //         }
+    //     }
     }
 
     public static readonly bool VGE = IsModActive("vanillaexpanded.gravship");

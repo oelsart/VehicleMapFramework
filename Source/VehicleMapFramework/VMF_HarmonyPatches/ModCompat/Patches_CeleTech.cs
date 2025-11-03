@@ -262,27 +262,6 @@ public static class Patch_Comp_TraderShuttle_PostDraw
 }
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
-[HarmonyPatch("TOT_DLL_test.Building_AESARadar", "DrawAt")]
-public static class Patch_Building_AESARadar_DrawAt
-{
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
-    {
-        var codes = new CodeMatcher(instructions, generator);
-        codes.MatchStartForward(CodeMatch.Calls(AccessTools.Method(typeof(Altitudes), nameof(Altitudes.AltitudeFor), [typeof(AltitudeLayer)])));
-        codes.CreateLabelWithOffsets(1, out var label);
-        codes.DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle);
-        codes.InsertAfter(
-            CodeInstruction.LoadArgument(0),
-            new CodeInstruction(OpCodes.Ldloca_S, vehicle),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf),
-            new CodeInstruction(OpCodes.Brfalse_S, label),
-            new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_YOffsetFull));
-        return codes.Instructions();
-    }
-}
-
-[HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
 [HarmonyPatch("TOT_DLL_test.Comp_UAV", "CompTick")]
 public static class Patch_Comp_UAV_CompTick
 {

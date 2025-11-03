@@ -13,21 +13,16 @@ namespace VehicleMapFramework;
 
 public class MethodInfoCache
 {
-    // private static readonly System.WeakReference<MethodInfoCache> cacheInt = new(null);
-    //
-    // public static MethodInfoCache CachedMethodInfo
-    // {
-    //     get
-    //     {
-    //         if (!cacheInt.TryGetTarget(out var target))
-    //         {
-    //             cacheInt.SetTarget(target = new MethodInfoCache());
-    //         }
-    //         return target;
-    //     }
-    // }
+    private static readonly Verse.WeakReference<MethodInfoCache> cacheInt = new(null);
     
-    public static MethodInfoCache CachedMethodInfo { get; } = new();
+    public static MethodInfoCache CachedMethodInfo
+    {
+        get
+        {
+            cacheInt.Target ??= new MethodInfoCache();
+            return cacheInt.Target;
+        }
+    }
     
     public readonly MethodInfo g_FocusedVehicle = AccessTools.PropertyGetter(typeof(Command_FocusVehicleMap), nameof(Command_FocusVehicleMap.FocusedVehicle));
 

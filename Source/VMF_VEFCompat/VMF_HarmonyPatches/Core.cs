@@ -39,10 +39,6 @@ public static class Patches_VEF
         {
             VMF_Harmony.PatchCategory(PatchCategories.VVE);
         }
-        if (ModCompat.VFEPirates)
-        {
-            VMF_Harmony.PatchCategory(PatchCategories.VFEPirates);
-        }
         if (ModCompat.VFEMechanoid.Active)
         {
             VMF_Harmony.PatchCategory(PatchCategories.VFEMechanoids);

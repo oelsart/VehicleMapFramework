@@ -8,6 +8,7 @@ using UnityEngine;
 using Verse;
 using Verse.AI;
 using static VehicleMapFramework.MethodInfoCache;
+using static VehicleMapFramework.ModCompat.MeleeAnimation;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches.AM;
 
@@ -16,7 +17,7 @@ internal static class Patches_MeleeAnimation
 {
     static Patches_MeleeAnimation()
     {
-        if (ModCompat.MeleeAnimation.Active)
+        if (Active)
         {
             VMF_Harmony.PatchCategory(PatchCategories.MeleeAnimation);
         }
@@ -131,44 +132,38 @@ public static class Patch_ActionController_UpdateClosestCells
 [HarmonyPatchCategory(PatchCategories.MeleeAnimation)]
 [HarmonyPatch("AM.AnimRenderer", "Draw")]
 [PatchLevel(Level.Sensitive)]
+[ExceptForTesting]
 public static class Patch_AnimRenderer_Draw
 {
-    public static AccessTools.FieldRef<object, Map> f_Map = AccessTools.FieldRefAccess<Map>("AM.AnimRenderer:Map");
-
-    public static AccessTools.FieldRef<object, Matrix4x4> f_RootTransform = AccessTools.FieldRefAccess<Matrix4x4>("AM.AnimRenderer:RootTransform");
-
-    public static AccessTools.FieldRef<object, Def> f_Def = AccessTools.FieldRefAccess<Def>("AM.AnimRenderer:Def");
-
-    public static AccessTools.FieldRef<Def, IReadOnlyList<object>> f_cellData = AccessTools.FieldRefAccess<IReadOnlyList<object>>("AM.AnimDef:cellData");
-
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var f_AnimRenderer_Map = AccessTools.Field("AM.AnimRenderer:Map");
         var f_RootTransform = AccessTools.Field("AM.AnimRenderer:RootTransform");
-        return instructions.Manipulator(c => c.opcode == OpCodes.Ldfld && c.OperandIs(f_AnimRenderer_Map), c =>
+        var m_BaseMap = AccessTools.Method(typeof(Patch_AnimRenderer_Draw), nameof(BaseMap));
+        var m_RootTransformOffset = AccessTools.Method(typeof(Patch_AnimRenderer_Draw), nameof(RootTransformOffset));
+        return instructions.Manipulator(c => c.LoadsField(f_AnimRenderer_Map), c =>
         {
             c.opcode = OpCodes.Call;
-            c.operand = AccessTools.Method(typeof(Patch_AnimRenderer_Draw), nameof(BaseMap));
-        }).Manipulator(c => c.opcode == OpCodes.Ldfld && c.OperandIs(f_RootTransform), c =>
+            c.operand = m_BaseMap;
+        }).Manipulator(c => c.LoadsField(f_RootTransform), c =>
         {
             c.opcode = OpCodes.Call;
-            c.operand = AccessTools.Method(typeof(Patch_AnimRenderer_Draw), nameof(RootTransformOffset));
+            c.operand = m_RootTransformOffset;
         });
     }
 
     public static Map BaseMap(object instance)
     {
-        return f_Map(instance).BaseMap();
+        return AnimRenderer_Map(instance).BaseMap();
     }
 
     public static Matrix4x4 RootTransformOffset(object instance)
     {
-        var root = f_RootTransform(instance);
-        if (f_Map(instance).IsNonFocusedVehicleMapOf(out var vehicle) && f_cellData(f_Def(instance)).Count > 0)
+        var root = AnimRenderer_RootTransform(instance);
+        if (AnimRenderer_Map(instance).IsNonFocusedVehicleMapOf(out var vehicle) && AnimRenderer_cellData(AnimRenderer_Def(instance)).Count > 0)
         {
             var rootPos = root.Position();
             root.SetColumn(3, rootPos.ToBaseMapCoord(vehicle).WithY(rootPos.y));
-            return root;
         }
         return root;
     }
@@ -178,19 +173,20 @@ public static class Patch_AnimRenderer_Draw
 [HarmonyPatch("AM.AnimRenderer", "DrawPawns")]
 public static class Patch_AnimRenderer_DrawPawns
 {
-    public static MethodInfo m_GetWorldPosition = AccessTools.Method("AnimPartSnapshot:GetWorldPosition");
-
-    public static MethodInfo m_GetWorldPositionOffset = AccessTools.Method(typeof(Patch_AnimRenderer_DrawPawns), nameof(GetWorldPositionOffset));
-
     [PatchLevel(Level.Mandatory)]
     [HarmonyPatch("AnimPartSnapshot", "GetWorldPosition")]
     [HarmonyReversePatch]
-    private static Vector3 GetWorldPositionOriginal(ref object instance, Vector3 vector) => throw new NotImplementedException();
+    private static Vector3 GetWorldPositionOriginal(ref object instance, Vector3 vector)
+    {
+        _ = instance;
+        _ = vector;
+        throw new NotImplementedException();
+    }
 
     public static Vector3 GetWorldPositionOffset(ref object instance, Vector3 vector)
     {
         var result = GetWorldPositionOriginal(ref instance, vector);
-        if (Patch_AnimRenderer_Draw.f_Map(instance).IsNonFocusedVehicleMapOf(out var vehicle) && Patch_AnimRenderer_Draw.f_cellData(Patch_AnimRenderer_Draw.f_Def(instance)).Count > 0)
+        if (AnimRenderer_Map(instance).IsNonFocusedVehicleMapOf(out var vehicle) && AnimRenderer_cellData(AnimRenderer_Def(instance)).Count > 0)
         {
             return result.ToBaseMapCoord(vehicle).WithY(result.y);
         }
@@ -239,7 +235,7 @@ public static class Patch_AnimRenderer_DrawSingle
         f_RootPositionOffset = instance => result = (Vector3)f_RootPosition(instance);
         f_RootPositionOffset += instance =>
         {
-            if (Patch_AnimRenderer_Draw.f_Map(instance).IsNonFocusedVehicleMapOf(out var vehicle) && Patch_AnimRenderer_Draw.f_cellData(Patch_AnimRenderer_Draw.f_Def(instance)).Count > 0)
+            if (AnimRenderer_Map(instance).IsNonFocusedVehicleMapOf(out var vehicle) && AnimRenderer_cellData(AnimRenderer_Def(instance)).Count > 0)
             {
                 return result.ToBaseMapCoord(vehicle);
             }
@@ -258,7 +254,7 @@ public static class Patch_Patch_PawnRenderer_RenderPawnAt_MakeDrawArgs
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(Patch_AnimRenderer_DrawPawns.m_GetWorldPosition, Patch_AnimRenderer_DrawPawns.m_GetWorldPositionOffset);
+        return instructions.MethodReplacer(m_GetWorldPosition, m_GetWorldPositionOffset);
     }
 }
 
@@ -269,7 +265,7 @@ public static class Patch_MoteWorker_Run
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(Patch_AnimRenderer_DrawPawns.m_GetWorldPosition, Patch_AnimRenderer_DrawPawns.m_GetWorldPositionOffset);
+        return instructions.MethodReplacer(m_GetWorldPosition, m_GetWorldPositionOffset);
     }
 }
 
@@ -280,7 +276,7 @@ public static class Patch_TextMoteWorker_Run
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(Patch_AnimRenderer_DrawPawns.m_GetWorldPosition, Patch_AnimRenderer_DrawPawns.m_GetWorldPositionOffset);
+        return instructions.MethodReplacer(m_GetWorldPosition, m_GetWorldPositionOffset);
     }
 }
 
@@ -291,7 +287,7 @@ public static class Patch_AnimPartSnapshot_GetWorldDirection
 {
     public static void Postfix(object ___Renderer, ref Rot4 __result)
     {
-        if (Patch_AnimRenderer_Draw.f_Map(___Renderer).IsNonFocusedVehicleMapOf(out var vehicle))
+        if (AnimRenderer_Map(___Renderer).IsNonFocusedVehicleMapOf(out var vehicle))
         {
             __result.AsInt += vehicle.Rotation.AsInt;
         }

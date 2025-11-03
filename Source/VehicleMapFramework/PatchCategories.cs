@@ -14,8 +14,6 @@ internal static class PatchCategories
 
     public const string VVE = "VMF_Patches_VVehiclesE";
 
-    public const string VFEPirates = "VMF_Patches_VFEPirates";
-
     public const string VFEMechanoids = "VMF_Patches_VFEMechanoids";
     
     public const string VGE = "VMF_Patches_VGravshipE";

@@ -96,7 +96,7 @@ public class HarmonyPatchTests
     [TestCaseSource(typeof(TestPlanLoader), nameof(TestPlanLoader.GetTestPlans))]
     public void ExecutePatches(TestPlan plan)
     {
-        var harmony = new Harmony($"VehicleMapFramework.CompatPatchesTest: {plan.Name}");
+        var harmonyLocal = new Harmony($"VehicleMapFramework.CompatPatchesTest: {plan.Name}");
         Assert.DoesNotThrow(() =>
         {
             foreach (var category in plan.Categories)
@@ -104,7 +104,7 @@ public class HarmonyPatchTests
                 PatchCategory(category);
             }
         });
-        Assert.Pass($"Successfully applied {harmony.GetPatchedMethods().Count()} patches.");
+        Assert.Pass($"Successfully applied {harmonyLocal.GetPatchedMethods().Count()} patches.");
         return;
     
         void PatchCategory(string category)
@@ -113,12 +113,13 @@ public class HarmonyPatchTests
             {
                 var attributes = type.GetCustomAttributesData();
                 return
+                    attributes.All(attr => attr.AttributeType.Name != "ExceptForTestingAttribute") &&
                     attributes.Any(attr => attr.AttributeType == typeof(HarmonyPatch)) &&
                     attributes.Any(attr => attr.AttributeType == typeof(HarmonyPatchCategory) &&
                                            attr.ConstructorArguments.Any(c => (string)c.Value == category));
             }).Do(type =>
             {
-                harmony.CreateClassProcessor(type).Patch();
+                harmonyLocal.CreateClassProcessor(type).Patch();
             });
         }
     }
