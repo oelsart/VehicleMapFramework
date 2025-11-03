@@ -1,0 +1,5 @@
+﻿- Name: Test_CompatPatches
+  Mods:
+    - AdaptiveStorageFramework
+  Categories:
+    - VMF_Patches_AdaptiveStorage

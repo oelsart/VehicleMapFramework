@@ -10,18 +10,16 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 internal static class Patches_SmarterConstruction
 {
-    public const string Category = "VMF_Patches_SmarterConstruction";
-
     static Patches_SmarterConstruction()
     {
         if (ModCompat.SmarterConstruction)
         {
-            VMF_Harmony.PatchCategory(Category);
+            VMF_Harmony.PatchCategory(PatchCategories.SmarterConstruction);
         }
     }
 }
 
-[HarmonyPatchCategory(Patches_SmarterConstruction.Category)]
+[HarmonyPatchCategory(PatchCategories.SmarterConstruction)]
 [HarmonyPatch("SmarterConstruction.Patches.Patch_WorkGiver_Scanner_GetPriority", "PriorityPostfix")]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Patch_WorkGiver_Scanner_GetPriority_PriorityPostfix
@@ -38,7 +36,7 @@ public static class Patch_Patch_WorkGiver_Scanner_GetPriority_PriorityPostfix
     }
 }
 
-[HarmonyPatchCategory(Patches_SmarterConstruction.Category)]
+[HarmonyPatchCategory(PatchCategories.SmarterConstruction)]
 [HarmonyPatch("SmarterConstruction.Patches.CustomGenClosest", "ClosestThing_Global_Reachable_Custom")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_CustomGenClosest_ClosestThing_Global_Reachable_Custom
@@ -49,7 +47,7 @@ public static class Patch_CustomGenClosest_ClosestThing_Global_Reachable_Custom
     }
 }
 
-[HarmonyPatchCategory(Patches_SmarterConstruction.Category)]
+[HarmonyPatchCategory(PatchCategories.SmarterConstruction)]
 [HarmonyPatch("SmarterConstruction.Core.WalkabilityHandler", "Walkable")]
 [PatchLevel(Level.Safe)]
 public static class Patch_WalkabilityHandler_Walkable

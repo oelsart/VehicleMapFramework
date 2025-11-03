@@ -4,11 +4,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using HarmonyLib;
+using RimWorld;
 using RimWorld.Planet;
 using UnityEngine;
 using VehicleMapFramework.VMF_HarmonyPatches;
 using Vehicles;
 using Verse;
+using Verse.AI;
 
 namespace VehicleMapFramework;
 
@@ -58,7 +60,23 @@ internal static class ModCompat
 
     public static readonly bool BiomesCaverns = ModsConfig.IsActive("BiomesTeam.BiomesCaverns");
 
-    public static readonly bool CallTradeShips = ModsConfig.IsActive("calltradeships.kv.rw");
+    public static class CallTradeShips
+    {
+        public static readonly bool Active = ModsConfig.IsActive("calltradeships.kv.rw");
+
+        public static readonly Type Job_CallTradeShip;
+        
+        public static readonly AccessTools.FieldRef<Job, TraderKindDef> TraderKindDef;
+
+        public static readonly AccessTools.FieldRef<Job, int> TraderKind;
+
+        static CallTradeShips()
+        {
+            Job_CallTradeShip = GenTypes.GetTypeInAnyAssembly("CallTradeShips.Job_CallTradeShip", "CallTradeShips");
+            TraderKindDef = AccessTools.FieldRefAccess<TraderKindDef>(Job_CallTradeShip, "TraderKindDef");
+            TraderKind = AccessTools.FieldRefAccess<int>(Job_CallTradeShip, "TraderKind");
+        }
+    }
 
     public static readonly bool CombatExtended = ModsConfig.IsActive("CETeam.CombatExtended") || ModsConfig.IsActive("CETeam.CombatExtended_steam");
 

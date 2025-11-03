@@ -12,18 +12,16 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 internal static class Patches_ExosuitFramework
 {
-    public const string Category = "VMF_Patches_ExosuitFramework";
-
     static Patches_ExosuitFramework()
     {
         if (ModCompat.ExosuitFramework)
         {
-            VMF_Harmony.PatchCategory(Category);
+            VMF_Harmony.PatchCategory(PatchCategories.ExosuitFramework);
         }
     }
 }
 
-[HarmonyPatchCategory(Patches_ExosuitFramework.Category)]
+[HarmonyPatchCategory(PatchCategories.ExosuitFramework)]
 [HarmonyPatch]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_CompBuildingExtraRenderer_PostPrintOnto
@@ -47,7 +45,7 @@ public static class Patch_CompBuildingExtraRenderer_PostPrintOnto
     }
 }
 
-[HarmonyPatchCategory(Patches_ExosuitFramework.Category)]
+[HarmonyPatchCategory(PatchCategories.ExosuitFramework)]
 [HarmonyPatch("Exosuit.WG_AbilityVerb_QuickJump", "DoJump")]
 [HarmonyPatch([typeof(Pawn), typeof(Map), typeof(LocalTargetInfo), typeof(LocalTargetInfo), typeof(bool), typeof(bool)])]
 public static class Patch_WG_AbilityVerb_QuickJump_DoJump
@@ -71,7 +69,7 @@ public static class Patch_WG_AbilityVerb_QuickJump_DoJump
     }
 }
 
-[HarmonyPatchCategory(Patches_ExosuitFramework.Category)]
+[HarmonyPatchCategory(PatchCategories.ExosuitFramework)]
 [HarmonyPatch("Exosuit.WG_PawnFlyer", "RespawnPawn")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_WG_PawnFlyer_RespawnPawn
@@ -82,7 +80,7 @@ public static class Patch_WG_PawnFlyer_RespawnPawn
     }
 }
 
-[HarmonyPatchCategory(Patches_ExosuitFramework.Category)]
+[HarmonyPatchCategory(PatchCategories.ExosuitFramework)]
 [HarmonyPatch("Exosuit.WG_PawnFlyer", "ToDiffMapTarget")]
 [PatchLevel(Level.Safe)]
 public static class Patch_WG_PawnFlyer_ToDiffMapTarget
@@ -100,7 +98,7 @@ public static class Patch_WG_PawnFlyer_ToDiffMapTarget
     }
 }
 
-[HarmonyPatchCategory(Patches_ExosuitFramework.Category)]
+[HarmonyPatchCategory(PatchCategories.ExosuitFramework)]
 [HarmonyPatch("Exosuit.Building_EjectorBay", "DynamicDrawPhaseAt")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Building_EjectorBay_DynamicDrawPhaseAt
@@ -111,7 +109,7 @@ public static class Patch_Building_EjectorBay_DynamicDrawPhaseAt
     }
 }
 
-[HarmonyPatchCategory(Patches_ExosuitFramework.Category)]
+[HarmonyPatchCategory(PatchCategories.ExosuitFramework)]
 [HarmonyPatch("Exosuit.Building_MaintenanceBay", "DynamicDrawPhaseAt")]
 [PatchLevel(Level.Safe)]
 public static class Patch_Building_MaintenanceBay_DynamicDrawPhaseAt

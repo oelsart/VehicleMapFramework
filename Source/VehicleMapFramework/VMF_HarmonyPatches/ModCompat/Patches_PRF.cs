@@ -9,18 +9,16 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 internal static class Patches_PRF
 {
-    public const string Category = "VMF_Patches_PRF";
-
     static Patches_PRF()
     {
         if (ModCompat.ProjectRimFactory)
         {
-            VMF_Harmony.PatchCategory(Category);
+            VMF_Harmony.PatchCategory(PatchCategories.ProjectRimFactory);
         }
     }
 }
 
-[HarmonyPatchCategory(Patches_PRF.Category)]
+[HarmonyPatchCategory(PatchCategories.ProjectRimFactory)]
 [HarmonyPatch("ProjectRimFactory.Common.HarmonyPatches.Patch_CanReserve_SAL", "Postfix")]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Patch_CanReserve_SAL_Postfix
@@ -34,7 +32,7 @@ public static class Patch_Patch_CanReserve_SAL_Postfix
     }
 }
 
-[HarmonyPatchCategory(Patches_PRF.Category)]
+[HarmonyPatchCategory(PatchCategories.ProjectRimFactory)]
 [HarmonyPatch("ProjectRimFactory.Drones.AI.JobGiver_DroneMain", "TryGiveJob")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_JobGiver_DroneMain_TryGiveJob
@@ -45,7 +43,7 @@ public static class Patch_JobGiver_DroneMain_TryGiveJob
     }
 }
 
-[HarmonyPatchCategory(Patches_PRF.Category)]
+[HarmonyPatchCategory(PatchCategories.ProjectRimFactory)]
 [HarmonyPatch("ProjectRimFactory.Drones.AI.JobGiver_DroneFlee", "ReturnToStationJob")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_JobGiver_DroneFlee_ReturnToStationJob

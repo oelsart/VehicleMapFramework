@@ -13,18 +13,16 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 internal static class Patches_AdaptiveStorage
 {
-    public const string Category = "VMF_Patches_AdaptiveStorage";
-
     static Patches_AdaptiveStorage()
     {
         if (ModCompat.AdaptiveStorage)
         {
-            VMF_Harmony.PatchCategory(Category);
+            VMF_Harmony.PatchCategory(PatchCategories.AdaptiveStorage);
         }
     }
 }
 
-[HarmonyPatchCategory(Patches_AdaptiveStorage.Category)]
+[HarmonyPatchCategory(PatchCategories.AdaptiveStorage)]
 [HarmonyPatch("AdaptiveStorage.StorageGraphicWorker", "UpdatePrintData")]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_StorageGraphicWorker_UpdatePrintData
@@ -45,7 +43,7 @@ public static class Patch_StorageGraphicWorker_UpdatePrintData
     }
 }
 
-[HarmonyPatchCategory(Patches_AdaptiveStorage.Category)]
+[HarmonyPatchCategory(PatchCategories.AdaptiveStorage)]
 [HarmonyPatch("AdaptiveStorage.ItemGraphicWorker", "DrawOffsetForItem")]
 public static class Patch_ItemGraphicWorker_DrawOffsetForItem
 {
@@ -99,7 +97,7 @@ public static class Patch_ItemGraphicWorker_DrawOffsetForItem
     private static readonly AccessTools.FieldRef<object, object> graphic = AccessTools.FieldRefAccess<object>("AdaptiveStorage.ItemGraphicWorker:<graphic>P");
 }
 
-[HarmonyPatchCategory(Patches_AdaptiveStorage.Category)]
+[HarmonyPatchCategory(PatchCategories.AdaptiveStorage)]
 [HarmonyPatch("AdaptiveStorage.ItemGraphicWorker", "ItemOffsetAt")]
 [PatchLevel(Level.Safe)]
 public static class Patch_ItemGraphicWorker_ItemOffsetAt

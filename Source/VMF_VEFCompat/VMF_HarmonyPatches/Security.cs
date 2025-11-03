@@ -10,7 +10,7 @@ using static VehicleMapFramework.ModCompat.VFESecurity;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches
 {
-    [HarmonyPatchCategory(Patches_VEF.CategorySecurity)]
+    [HarmonyPatchCategory(PatchCategories.VFESecurity)]
     [HarmonyPatch]
     [PatchLevel(Level.Sensitive)]
     public static class Patch_Building_Shield_ThingsWithinRadius
@@ -26,7 +26,7 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory(Patches_VEF.CategorySecurity)]
+    [HarmonyPatchCategory(PatchCategories.VFESecurity)]
     [HarmonyPatch]
     [PatchLevel(Level.Sensitive)]
     public static class Patch_Building_Shield_ThingsWithinScanArea
@@ -42,7 +42,7 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory(Patches_VEF.CategorySecurity)]
+    [HarmonyPatchCategory(PatchCategories.VFESecurity)]
     [HarmonyPatch("VFESecurity.Building_Shield", "AbsorbDamage")]
     [HarmonyPatch([typeof(float), typeof(DamageDef), typeof(float)])]
     [PatchLevel(Level.Sensitive)]
@@ -59,7 +59,7 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory(Patches_VEF.CategorySecurity)]
+    [HarmonyPatchCategory(PatchCategories.VFESecurity)]
     [HarmonyPatch("VFESecurity.Building_Shield", "DrawAt")]
     [PatchLevel(Level.Sensitive)]
     public static class Patch_Building_Shield_DrawAt
@@ -85,7 +85,7 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory(Patches_VEF.CategorySecurity)]
+    [HarmonyPatchCategory(PatchCategories.VFESecurity)]
     [HarmonyPatch("VFESecurity.Building_Shield", "EnergyShieldTick")]
     [PatchLevel(Level.Sensitive)]
     public static class Patch_Building_Shield_EnergyShieldTick
@@ -103,7 +103,7 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory(Patches_VEF.CategorySecurity)]
+    [HarmonyPatchCategory(PatchCategories.VFESecurity)]
     [HarmonyPatch("VFESecurity.Building_Shield", "UpdateCache")]
     [PatchLevel(Level.Cautious)]
     public static class Patch_Building_Shield_UpdateCache
@@ -115,7 +115,7 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory(Patches_VEF.CategorySecurity)]
+    [HarmonyPatchCategory(PatchCategories.VFESecurity)]
     [HarmonyPatch("VFESecurity.CompLongRangeArtillery", "CompTick")]
     [PatchLevel(Level.Safe)]
     public static class Patch_CompLongRangeArtillery_CompTick

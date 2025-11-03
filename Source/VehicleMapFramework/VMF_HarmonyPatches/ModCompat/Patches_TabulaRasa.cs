@@ -11,18 +11,16 @@ namespace VehicleMapFramework.VMF_HarmonyPatches.TR;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 internal static class Patches_TabulaRasa
 {
-    public const string Category = "VMF_Patches_TabulaRasa";
-
     static Patches_TabulaRasa()
     {
         if (ModCompat.TabulaRasa)
         {
-            VMF_Harmony.PatchCategory("VMF_Patches_TabulaRasa");
+            VMF_Harmony.PatchCategory(PatchCategories.TabulaRasa);
         }
     }
 }
 
-[HarmonyPatchCategory(Patches_TabulaRasa.Category)]
+[HarmonyPatchCategory(PatchCategories.TabulaRasa)]
 [HarmonyPatch("TabulaRasa.Comp_Shield", "CurShieldPosition", MethodType.Getter)]
 [PatchLevel(Level.Safe)]
 public static class Patch_Comp_Shield_CurShieldPosition
@@ -36,7 +34,7 @@ public static class Patch_Comp_Shield_CurShieldPosition
     }
 }
 
-[HarmonyPatchCategory(Patches_TabulaRasa.Category)]
+[HarmonyPatchCategory(PatchCategories.TabulaRasa)]
 [HarmonyPatch("TabulaRasa.Comp_Shield", "ShouldBeBlocked")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Comp_Shield_ShouldBeBlocked
@@ -47,7 +45,7 @@ public static class Patch_Comp_Shield_ShouldBeBlocked
     }
 }
 
-[HarmonyPatchCategory(Patches_TabulaRasa.Category)]
+[HarmonyPatchCategory(PatchCategories.TabulaRasa)]
 [HarmonyPatch("TabulaRasa.Comp_Shield", "BombardmentCanStartFireAt")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Comp_Shield_BombardmentCanStartFireAt
@@ -58,7 +56,7 @@ public static class Patch_Comp_Shield_BombardmentCanStartFireAt
     }
 }
 
-[HarmonyPatchCategory(Patches_TabulaRasa.Category)]
+[HarmonyPatchCategory(PatchCategories.TabulaRasa)]
 [HarmonyPatch("TabulaRasa.Patch_Projectile_CheckForFreeInterceptBetween", "Postfix")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Patch_Projectile_CheckForFreeInterceptBetween_Postfix
@@ -76,7 +74,7 @@ public static class Patch_Patch_Projectile_CheckForFreeInterceptBetween_Postfix
 }
 
 [HarmonyAfter("Neronix17.TabulaRasa.RimWorld")]
-[HarmonyPatchCategory(Patches_TabulaRasa.Category)]
+[HarmonyPatchCategory(PatchCategories.TabulaRasa)]
 [HarmonyPatch(typeof(Projectile), "CheckForFreeInterceptBetween")]
 [PatchLevel(Level.Safe)]
 public static class Patch_Projectile_CheckForFreeInterceptBetween
@@ -108,7 +106,7 @@ public static class Patch_Projectile_CheckForFreeInterceptBetween
     private static readonly FastInvokeHandler CheckIntercept = MethodInvoker.GetHandler(AccessTools.Method("TabulaRasa.Patch_Projectile_CheckForFreeInterceptBetween:Postfix"));
 }
 
-[HarmonyPatchCategory(Patches_TabulaRasa.Category)]
+[HarmonyPatchCategory(PatchCategories.TabulaRasa)]
 [HarmonyPatch("TabulaRasa.Patch_Skyfaller_Tick", "Prefix")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Patch_Skyfaller_Tick_Prefix
@@ -126,7 +124,7 @@ public static class Patch_Patch_Skyfaller_Tick_Prefix
 }
 
 [HarmonyAfter("Neronix17.TabulaRasa.RimWorld")]
-[HarmonyPatchCategory(Patches_TabulaRasa.Category)]
+[HarmonyPatchCategory(PatchCategories.TabulaRasa)]
 [HarmonyPatch(typeof(Skyfaller), "Tick")]
 [PatchLevel(Level.Safe)]
 public static class Patch_Skyfaller_Tick
@@ -155,7 +153,7 @@ public static class Patch_Skyfaller_Tick
     private static readonly FastInvokeHandler CheckIntercept = MethodInvoker.GetHandler(AccessTools.Method("TabulaRasa.Patch_Skyfaller_Tick:Prefix"));
 }
 
-[HarmonyPatchCategory(Patches_TabulaRasa.Category)]
+[HarmonyPatchCategory(PatchCategories.TabulaRasa)]
 [HarmonyPatch("TabulaRasa.PlaceWorker_ShowShieldRadius", "DrawGhost")]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_PlaceWorker_ShowShieldRadius_DrawGhost

@@ -14,18 +14,16 @@ namespace VehicleMapFramework.VMF_HarmonyPatches.AM;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 internal static class Patches_MeleeAnimation
 {
-    public const string Category = "VMF_Patches_MeleeAnimation";
-
     static Patches_MeleeAnimation()
     {
         if (ModCompat.MeleeAnimation.Active)
         {
-            VMF_Harmony.PatchCategory(Category);
+            VMF_Harmony.PatchCategory(PatchCategories.MeleeAnimation);
         }
     }
 }
 
-[HarmonyPatchCategory(Patches_MeleeAnimation.Category)]
+[HarmonyPatchCategory(PatchCategories.MeleeAnimation)]
 [HarmonyPatch("AM.Jobs.JobDriver_GoToAnimationSpot", "MakeGoToToil")]
 [PatchLevel(Level.Safe)]
 public static class Patch_JobDriver_GoToAnimationSpot_MakeGoToToil
@@ -46,7 +44,7 @@ public static class Patch_JobDriver_GoToAnimationSpot_MakeGoToToil
     }
 }
 
-[HarmonyPatchCategory(Patches_MeleeAnimation.Category)]
+[HarmonyPatchCategory(PatchCategories.MeleeAnimation)]
 [HarmonyPatch("AM.Controller.ActionController", "GetGrappleReport")]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_ActionController_GetGrappleReport
@@ -69,7 +67,7 @@ public static class Patch_ActionController_GetGrappleReport
     }
 }
 
-[HarmonyPatchCategory(Patches_MeleeAnimation.Category)]
+[HarmonyPatchCategory(PatchCategories.MeleeAnimation)]
 [HarmonyPatch("AM.Grappling.JobDriver_GrapplePawn", "TickPreEnsnare")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_JobDriver_GrapplePawn_TickPreEnsnare
@@ -81,7 +79,7 @@ public static class Patch_JobDriver_GrapplePawn_TickPreEnsnare
     }
 }
 
-[HarmonyPatchCategory(Patches_MeleeAnimation.Category)]
+[HarmonyPatchCategory(PatchCategories.MeleeAnimation)]
 [HarmonyPatch("AM.Controller.ActionController", "CheckCell")]
 [PatchLevel(Level.Safe)]
 public static class Patch_ActionController_CheckCell
@@ -101,7 +99,7 @@ public static class Patch_ActionController_CheckCell
     }
 }
 
-[HarmonyPatchCategory(Patches_MeleeAnimation.Category)]
+[HarmonyPatchCategory(PatchCategories.MeleeAnimation)]
 [HarmonyPatch]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_ActionController_UpdateClosestCells
@@ -130,7 +128,7 @@ public static class Patch_ActionController_UpdateClosestCells
 }
 
 //Find.CurrentMap != this.Map -> Find.CurrentMap != this.Map.BaseMap()
-[HarmonyPatchCategory(Patches_MeleeAnimation.Category)]
+[HarmonyPatchCategory(PatchCategories.MeleeAnimation)]
 [HarmonyPatch("AM.AnimRenderer", "Draw")]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_AnimRenderer_Draw
@@ -176,7 +174,7 @@ public static class Patch_AnimRenderer_Draw
     }
 }
 
-[HarmonyPatchCategory(Patches_MeleeAnimation.Category)]
+[HarmonyPatchCategory(PatchCategories.MeleeAnimation)]
 [HarmonyPatch("AM.AnimRenderer", "DrawPawns")]
 public static class Patch_AnimRenderer_DrawPawns
 {
@@ -206,7 +204,7 @@ public static class Patch_AnimRenderer_DrawPawns
     }
 }
 
-[HarmonyPatchCategory(Patches_MeleeAnimation.Category)]
+[HarmonyPatchCategory(PatchCategories.MeleeAnimation)]
 [HarmonyPatch("AM.Sweep.PartWithSweep", "Draw")]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_PartWithSweep_Draw
@@ -223,7 +221,7 @@ public static class Patch_PartWithSweep_Draw
 }
 
 //カリング範囲に入るようにRootPositionにオフセットをかける
-[HarmonyPatchCategory(Patches_MeleeAnimation.Category)]
+[HarmonyPatchCategory(PatchCategories.MeleeAnimation)]
 [HarmonyPatch("AM.AnimRenderer", "DrawSingle")]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_AnimRenderer_DrawSingle
@@ -253,7 +251,7 @@ public static class Patch_AnimRenderer_DrawSingle
 }
 
 //実際の描画位置のオフセット
-[HarmonyPatchCategory(Patches_MeleeAnimation.Category)]
+[HarmonyPatchCategory(PatchCategories.MeleeAnimation)]
 [HarmonyPatch("AM.Patches.Patch_PawnRenderer_RenderPawnAt", "MakeDrawArgs")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Patch_PawnRenderer_RenderPawnAt_MakeDrawArgs
@@ -264,7 +262,7 @@ public static class Patch_Patch_PawnRenderer_RenderPawnAt_MakeDrawArgs
     }
 }
 
-[HarmonyPatchCategory(Patches_MeleeAnimation.Category)]
+[HarmonyPatchCategory(PatchCategories.MeleeAnimation)]
 [HarmonyPatch("AM.Events.Workers.MoteWorker", "Run")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_MoteWorker_Run
@@ -275,7 +273,7 @@ public static class Patch_MoteWorker_Run
     }
 }
 
-[HarmonyPatchCategory(Patches_MeleeAnimation.Category)]
+[HarmonyPatchCategory(PatchCategories.MeleeAnimation)]
 [HarmonyPatch("AM.Events.Workers.TextMoteWorker", "Run")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_TextMoteWorker_Run
@@ -286,7 +284,7 @@ public static class Patch_TextMoteWorker_Run
     }
 }
 
-[HarmonyPatchCategory(Patches_MeleeAnimation.Category)]
+[HarmonyPatchCategory(PatchCategories.MeleeAnimation)]
 [HarmonyPatch("AnimPartSnapshot", "GetWorldDirection")]
 [PatchLevel(Level.Safe)]
 public static class Patch_AnimPartSnapshot_GetWorldDirection
@@ -301,7 +299,7 @@ public static class Patch_AnimPartSnapshot_GetWorldDirection
 }
 
 //Jobをすり替えたらエラーを出す処理をしていたので回避する。一応GotoDestMapJobのnextJobはちゃんとチェックするよ
-[HarmonyPatchCategory(Patches_MeleeAnimation.Category)]
+[HarmonyPatchCategory(PatchCategories.MeleeAnimation)]
 [HarmonyPatch("AM.UI.DraftedFloatMenuOptionsUI", "ExecutionEnabledOnClick")]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_DraftedFloatMenuOptionsUI_ExecutionEnabledOnClick

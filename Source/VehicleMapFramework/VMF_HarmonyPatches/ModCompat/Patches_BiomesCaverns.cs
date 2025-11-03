@@ -8,18 +8,16 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 internal class Patches_BiomesCaverns
 {
-    public const string Category = "VMF_Patches_BiomesCaverns";
-
     static Patches_BiomesCaverns()
     {
         if (ModCompat.BiomesCaverns)
         {
-            VMF_Harmony.PatchCategory(Category);
+            VMF_Harmony.PatchCategory(PatchCategories.BiomesCaverns);
         }
     }
 }
 
-[HarmonyPatchCategory(Patches_BiomesCaverns.Category)]
+[HarmonyPatchCategory(PatchCategories.BiomesCaverns)]
 [HarmonyPatch("Caveworld_Flora_Unleashed.MapComponent_CaveFungus", "MapComponentTick")]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_MapComponent_CaveFungus_MapComponentTick

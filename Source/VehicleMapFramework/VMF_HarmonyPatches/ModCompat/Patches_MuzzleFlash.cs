@@ -9,18 +9,16 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 internal static class Patches_MuzzleFlash
 {
-    public const string Category = "VMF_Patches_MuzzleFlash";
-
     static Patches_MuzzleFlash()
     {
         if (ModCompat.MuzzleFlash)
         {
-            VMF_Harmony.PatchCategory(Category);
+            VMF_Harmony.PatchCategory(PatchCategories.MuzzleFlash);
         }
     }
 }
 
-[HarmonyPatchCategory(Patches_MuzzleFlash.Category)]
+[HarmonyPatchCategory(PatchCategories.MuzzleFlash)]
 [HarmonyPatch("MuzzleFlash.MapComponent_MuzzleFlashManager", "MapComponentUpdate")]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_MapComponent_MuzzleFlashManager_MapComponentUpdate

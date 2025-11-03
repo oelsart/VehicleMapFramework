@@ -15,27 +15,13 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 public static class Patches_VEF
 {
-    public const string CategoryCore = "VMF_Patches_VEF";
-
-    public const string CategoryArchitect = "VMF_Patches_VFE_Architect";
-
-    public const string CategorySecurity = "VMF_Patches_VFE_Security";
-
-    public const string CategoryVVE = "VMF_Patches_VVE";
-
-    public const string CategoryPirates = "VMF_Patches_VFE_Pirates";
-
-    public const string CategoryMechanoid = "VMF_Patches_VFE_Mechanoid";
-    
-    public const string CategoryVGE = "VMF_Patches_VGE";
-
     public static readonly AccessTools.FieldRef<PipeNetManager, int> pipeNetsCount = AccessTools.FieldRefAccess<PipeNetManager, int>("pipeNetsCount");
 
     static Patches_VEF()
     {
         if (pipeNetsCount != null)
         {
-            VMF_Harmony.PatchCategory(CategoryCore);
+            VMF_Harmony.PatchCategory(PatchCategories.VEFCore);
         }
         else
         {
@@ -43,32 +29,32 @@ public static class Patches_VEF
         }
         if (ModCompat.VFEArchitect)
         {
-            VMF_Harmony.PatchCategory(CategoryArchitect);
+            VMF_Harmony.PatchCategory(PatchCategories.VFEArchitect);
         }
         if (ModCompat.VFESecurity.Active)
         {
-            VMF_Harmony.PatchCategory(CategorySecurity);
+            VMF_Harmony.PatchCategory(PatchCategories.VFESecurity);
         }
         if (ModCompat.VVE.Active)
         {
-            VMF_Harmony.PatchCategory(CategoryVVE);
+            VMF_Harmony.PatchCategory(PatchCategories.VVE);
         }
         if (ModCompat.VFEPirates)
         {
-            VMF_Harmony.PatchCategory(CategoryPirates);
+            VMF_Harmony.PatchCategory(PatchCategories.VFEPirates);
         }
         if (ModCompat.VFEMechanoid.Active)
         {
-            VMF_Harmony.PatchCategory(CategoryMechanoid);
+            VMF_Harmony.PatchCategory(PatchCategories.VFEMechanoids);
         }
         if (ModCompat.VGE)
         {
-            VMF_Harmony.PatchCategory(CategoryVGE);
+            VMF_Harmony.PatchCategory(PatchCategories.VGE);
         }
     }
 }
 
-[HarmonyPatchCategory(Patches_VEF.CategoryCore)]
+[HarmonyPatchCategory(PatchCategories.VEFCore)]
 [HarmonyPatch(typeof(CompResource), nameof(CompResource.Props), MethodType.Getter)]
 [PatchLevel(Level.Safe)]
 public static class Patch_CompResource_Props
@@ -85,7 +71,7 @@ public static class Patch_CompResource_Props
     }
 }
 
-[HarmonyPatchCategory(Patches_VEF.CategoryCore)]
+[HarmonyPatchCategory(PatchCategories.VEFCore)]
 [HarmonyPatch(typeof(PipeNetManager), nameof(PipeNetManager.UnregisterConnector))]
 [PatchLevel(Level.Safe)]
 public static class Patch_PipeNetManager_UnregisterConnector
@@ -103,7 +89,7 @@ public static class Patch_PipeNetManager_UnregisterConnector
     }
 }
 
-[HarmonyPatchCategory(Patches_VEF.CategoryCore)]
+[HarmonyPatchCategory(PatchCategories.VEFCore)]
 [HarmonyPatch(typeof(PipeNet), nameof(PipeNet.Merge))]
 [PatchLevel(Level.Safe)]
 public static class Patch_PipeNet_Merge
@@ -119,7 +105,7 @@ public static class Patch_PipeNet_Merge
     }
 }
 
-[HarmonyPatchCategory(Patches_VEF.CategoryCore)]
+[HarmonyPatchCategory(PatchCategories.VEFCore)]
 [HarmonyPatch(typeof(Graphic_LinkedPipe), nameof(Graphic_LinkedPipe.ShouldLinkWith))]
 [PatchLevel(Level.Safe)]
 public static class Patch_Graphic_LinkedPipeVEF_ShouldLinkWith
@@ -141,7 +127,7 @@ public static class Patch_Graphic_LinkedPipeVEF_ShouldLinkWith
     }
 }
 
-[HarmonyPatchCategory(Patches_VEF.CategoryCore)]
+[HarmonyPatchCategory(PatchCategories.VEFCore)]
 [HarmonyPatch(typeof(CompResourceStorage), nameof(CompResourceStorage.PostDraw))]
 [PatchLevel(Level.Safe)]
 public static class Patch_CompResourceStorage_PostDraw
@@ -160,7 +146,7 @@ public static class Patch_CompResourceStorage_PostDraw
     }
 }
 
-[HarmonyPatchCategory(Patches_VEF.CategoryCore)]
+[HarmonyPatchCategory(PatchCategories.VEFCore)]
 [HarmonyPatch(typeof(ExpandableProjectile), nameof(ExpandableProjectile.StartingPosition), MethodType.Getter)]
 [PatchLevel(Level.Cautious)]
 public static class Patch_ExpandableProjectile_StartingPosition
@@ -171,7 +157,7 @@ public static class Patch_ExpandableProjectile_StartingPosition
     }
 }
 
-[HarmonyPatchCategory(Patches_VEF.CategoryCore)]
+[HarmonyPatchCategory(PatchCategories.VEFCore)]
 [HarmonyPatch(typeof(ShieldsSystem), nameof(ShieldsSystem.OnPawnSpawn))]
 [PatchLevel(Level.Safe)]
 public static class Patch_ShieldsSystem_OnPawnSpawn
@@ -220,7 +206,7 @@ public static class Patch_ShieldsSystem_OnPawnSpawn
     }
 }
 
-[HarmonyPatchCategory(Patches_VEF.CategoryCore)]
+[HarmonyPatchCategory(PatchCategories.VEFCore)]
 [HarmonyPatch("VEF.Weapons.Verb_ShootCone", "DrawLines")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Verb_ShootCone_DrawLines
@@ -233,7 +219,7 @@ public static class Patch_Verb_ShootCone_DrawLines
     }
 }
 
-[HarmonyPatchCategory(Patches_VEF.CategoryCore)]
+[HarmonyPatchCategory(PatchCategories.VEFCore)]
 [HarmonyPatch("VEF.Weapons.Verb_ShootCone", "DrawConeRounded")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Verb_ShootCone_DrawConeRounded
@@ -245,7 +231,7 @@ public static class Patch_Verb_ShootCone_DrawConeRounded
     }
 }
 
-[HarmonyPatchCategory(Patches_VEF.CategoryCore)]
+[HarmonyPatchCategory(PatchCategories.VEFCore)]
 [HarmonyPatch("VEF.Weapons.Verb_ShootCone", "CanHitTarget")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Verb_ShootCone_CanHitTarget
@@ -258,7 +244,7 @@ public static class Patch_Verb_ShootCone_CanHitTarget
     }
 }
 
-[HarmonyPatchCategory(Patches_VEF.CategoryCore)]
+[HarmonyPatchCategory(PatchCategories.VEFCore)]
 [HarmonyPatch("VEF.Weapons.Verb_ShootCone", "InCone")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Verb_ShootCone_InCone

@@ -8,7 +8,7 @@ using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
-[HarmonyPatchCategory(Patches_VEF.CategoryVGE)]
+[HarmonyPatchCategory(PatchCategories.VGE)]
 [HarmonyPatch("VanillaGravshipExpanded.CompPointDefence", "FindTarget")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_CompPointDefence_FindTarget
@@ -19,7 +19,7 @@ public static class Patch_CompPointDefence_FindTarget
     }
 }
 
-[HarmonyPatchCategory(Patches_VEF.CategoryVGE)]
+[HarmonyPatchCategory(PatchCategories.VGE)]
 [HarmonyPatch]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_CompPointDefence_FindTarget_Delegate
@@ -42,7 +42,7 @@ public static class Patch_CompPointDefence_FindTarget_Delegate
     }
 }
 
-[HarmonyPatchCategory(Patches_VEF.CategoryVGE)]
+[HarmonyPatchCategory(PatchCategories.VGE)]
 [HarmonyPatch("VanillaGravshipExpanded.CompPointDefence", "TryIntercept")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_CompPointDefence_TryIntercept
@@ -53,7 +53,7 @@ public static class Patch_CompPointDefence_TryIntercept
     }
 }
 
-[HarmonyPatchCategory(Patches_VEF.CategoryVGE)]
+[HarmonyPatchCategory(PatchCategories.VGE)]
 [HarmonyPatch("VanillaGravshipExpanded.FloatMenuOptionProvider_ExtinguishAstrofires", "GetSingleOption")]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_FloatMenuOptionProvider_ExtinguishAstrofires_GetSingleOption
@@ -68,7 +68,7 @@ public static class Patch_FloatMenuOptionProvider_ExtinguishAstrofires_GetSingle
     }
 }
 
-[HarmonyPatchCategory(Patches_VEF.CategoryVGE)]
+[HarmonyPatchCategory(PatchCategories.VGE)]
 [HarmonyPatch("VanillaGravshipExpanded.FloatMenuOptionProvider_ExtinguishAstrofires", "PawnCanExtinguish")]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_FloatMenuOptionProvider_ExtinguishAstrofires_PawnCanExtinguish

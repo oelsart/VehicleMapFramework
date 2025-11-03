@@ -11,18 +11,16 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 internal class Patches_StackGap
 {
-    public const string Category = "VMF_Patches_StackGap";
-
     static Patches_StackGap()
     {
         if (ModCompat.StackGap.Active)
         {
-            VMF_Harmony.PatchCategory(Category);
+            VMF_Harmony.PatchCategory(PatchCategories.StackGap);
         }
     }
 }
 
-[HarmonyPatchCategory(Patches_StackGap.Category)]
+[HarmonyPatchCategory(PatchCategories.StackGap)]
 [HarmonyPatch("StorageUpperBound.HaulingUtility", "TryGetHaulingDestination")]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_HaulingUtility_TryGetHaulingDestination
@@ -49,7 +47,7 @@ public static class Patch_HaulingUtility_TryGetHaulingDestination
     }
 }
 
-[HarmonyPatchCategory(Patches_StackGap.Category)]
+[HarmonyPatchCategory(PatchCategories.StackGap)]
 [HarmonyPatch("StorageUpperBound.ToilsRecipePatch", "PatchNum")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_ToilsRecipePatch_PatchNum

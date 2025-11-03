@@ -8,7 +8,7 @@ using static VehicleMapFramework.ModCompat;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
-[StaticConstructorOnStartup]
+[StaticConstructorOnStartupPriority(Priority.VeryLow)]
 public static class DefMessagesReplace
 {
     static DefMessagesReplace()
@@ -55,7 +55,7 @@ public static class DefMessagesReplace
     public const string suffix = "AcrossMaps";
 }
 
-[StaticConstructorOnStartup]
+[StaticConstructorOnStartupPriority(Priority.VeryLow)]
 public static class CheckEnablePipeConnector
 {
     static CheckEnablePipeConnector()
