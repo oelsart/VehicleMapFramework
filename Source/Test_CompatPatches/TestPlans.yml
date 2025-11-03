@@ -1,27 +1,17 @@
 ﻿- Name: VanillaExpandedFramework
+- Name: VFEArchitect
+- Name: VFESecurity
+- Name: VFESecurity + CE
   Mods:
-    - VanillaExpandedFramework
-    - VFEArchitect
-    - VFESecurity
-    - VFEMechanoids
-    - VVehiclesE
-    # - VGravshipE
-  Categories:
-      - VMF_Patches_VEFCore
-      - VMF_Patches_VFEArchitect
-      - VMF_Patches_VFESecurity
-      - VMF_Patches_VVE
-      - VMF_Patches_VFEPirates
-      - VMF_Patches_VFEMechanoids
-      # - VMF_Patches_VGE
-- Name: Achtung
-- Name: CombatExtended
-- Name: CE + VFESecurity
-  Mods:
-    - CombatExtended
     - VFESecurity
   Categories:
     - VMF_Patches_CombatExtendedVFESecurityCompat
+- Name: VVehiclesE
+- Name: VFEPirates
+- Name: VFEMechanoids
+#- Name: VGravshipE
+- Name: Achtung
+- Name: CombatExtended
 - Name: DubsBadHygiene
 - Name: AdaptiveStorageFramework
 - Name: AllowTool
@@ -29,13 +19,8 @@
     - HugsLib
     - AllowTool
 - Name: AnimalCages
+- Name: NightmareCore
 - Name: Aquariums
-  Mods:
-    - NightmareCore
-    - Aquariums
-  Categories:
-    - VMF_Patches_NightmareCore
-    - VMF_Patches_Aquariums
 - Name: BillDoorsFramework
 - Name: CallTradeShips
 - Name: CeleTechArsenal
@@ -45,10 +30,11 @@
 - Name: DrakkenLaserDrill
 - Name: EccentricTech_DefenseGrid
 - Name: EnergyShield
+  Mods:
+    - zzLib
+    - EnergyShield
 - Name: EnergyShield + CE
   Mods:
-    - CombatExtended
-    - EnergyShield
     - EnergyShieldCECompat
   Categories:
     - VMF_Patches_EnergyShieldCECompat

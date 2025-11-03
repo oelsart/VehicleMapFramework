@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using HarmonyLib;
+using JetBrains.Annotations;
 using RimWorld;
 using RimWorld.Planet;
 using UnityEngine;
@@ -14,24 +15,55 @@ using Verse.AI;
 
 namespace VehicleMapFramework;
 
+internal static class UnitTestDetector
+{
+    internal static bool IsTestingContext { get; [UsedImplicitly] set; }
+}
+
 [StaticConstructorOnStartup]
 internal static class ModCompat
 {
+    internal static List<Exception> CctorExceptions { [UsedImplicitly] get; private set; }
+    
     internal static bool AnyNull(params object[] args)
     {
         return args.Any(arg => arg == null);
     }
-
+    
     internal static void LogIncompat(string modName)
     {
-        VMF_Log.Error($"{modName} compatibility is broken.");
+        LogError(new Exception($"{modName} compatibility is broken."));
+    }
+
+    internal static bool IsModActive(string id)
+    {
+        return UnitTestDetector.IsTestingContext || ModsConfig.IsActive(id);
+    }
+
+    private static void LogError(Exception ex)
+    {
+        if (UnitTestDetector.IsTestingContext)
+        {
+            CctorExceptions.Add(ex);
+            return;
+        }
+        VMF_Log.Error(ex.Message);
     }
 
     static ModCompat()
     {
-        foreach (var type in AccessTools.InnerTypes(typeof(ModCompat)))
+        if (UnitTestDetector.IsTestingContext)
+            CctorExceptions = [];
+        try
         {
-            RuntimeHelpers.RunClassConstructor(type.TypeHandle);
+            foreach (var type in AccessTools.InnerTypes(typeof(ModCompat)))
+            {
+                RuntimeHelpers.RunClassConstructor(type.TypeHandle);
+            }
+        }
+        catch (Exception ex)
+        {
+            CctorExceptions?.Add(ex);
         }
     }
 
@@ -39,30 +71,35 @@ internal static class ModCompat
     {
         public const string HarmonyId = "SmashPhil.VehicleFramework";
 
-        public static readonly FastInvokeHandler VehicleTurret_IsManned = MethodInvoker.GetHandler(AccessTools.PropertySetter(typeof(VehicleTurret), nameof(VehicleTurret.IsManned)));
+        public static readonly FastInvokeHandler VehicleTurret_IsManned;
 
-        public static readonly Dictionary<(VehicleDef, Rot4), Texture2D> CachedVehicleTextures = AccessTools.StaticFieldRefAccess<Dictionary<(VehicleDef, Rot4), Texture2D>>(typeof(VehicleTex), "CachedVehicleTextures");
+        public static readonly Dictionary<(VehicleDef, Rot4), Texture2D> CachedVehicleTextures;
 
         static VehicleFramework()
         {
-            if (AnyNull(VehicleTurret_IsManned, CachedVehicleTextures))
+            if (!UnitTestDetector.IsTestingContext)
             {
-                LogIncompat("Vehicle Framework");
+                VehicleTurret_IsManned = MethodInvoker.GetHandler(AccessTools.PropertySetter(typeof(VehicleTurret), nameof(VehicleTurret.IsManned)));
+                CachedVehicleTextures = AccessTools.StaticFieldRefAccess<Dictionary<(VehicleDef, Rot4), Texture2D>>(typeof(VehicleTex), "CachedVehicleTextures");
+                if (AnyNull(VehicleTurret_IsManned, CachedVehicleTextures))
+                {
+                    LogIncompat("Vehicle Framework");
+                }
             }
         }
     }
 
-    public static readonly bool AdaptiveStorage = ModsConfig.IsActive("adaptive.storage.framework");
+    public static readonly bool AdaptiveStorage = IsModActive("adaptive.storage.framework");
 
-    public static readonly bool AllowTool = ModsConfig.IsActive("UnlimitedHugs.AllowTool");
+    public static readonly bool AllowTool = IsModActive("UnlimitedHugs.AllowTool");
 
-    public static readonly bool BillDoorsFramework = ModsConfig.IsActive("3HSTltd.Framework");
+    public static readonly bool BillDoorsFramework = IsModActive("3HSTltd.Framework");
 
-    public static readonly bool BiomesCaverns = ModsConfig.IsActive("BiomesTeam.BiomesCaverns");
+    public static readonly bool BiomesCaverns = IsModActive("BiomesTeam.BiomesCaverns");
 
     public static class CallTradeShips
     {
-        public static readonly bool Active = ModsConfig.IsActive("calltradeships.kv.rw");
+        public static readonly bool Active = IsModActive("calltradeships.kv.rw");
 
         public static readonly Type Job_CallTradeShip;
         
@@ -72,27 +109,47 @@ internal static class ModCompat
 
         static CallTradeShips()
         {
-            Job_CallTradeShip = GenTypes.GetTypeInAnyAssembly("CallTradeShips.Job_CallTradeShip", "CallTradeShips");
-            TraderKindDef = AccessTools.FieldRefAccess<TraderKindDef>(Job_CallTradeShip, "TraderKindDef");
-            TraderKind = AccessTools.FieldRefAccess<int>(Job_CallTradeShip, "TraderKind");
+            if (Active)
+            {
+                try
+                {
+                    Job_CallTradeShip =
+                        GenTypes.GetTypeInAnyAssembly("CallTradeShips.Job_CallTradeShip", "CallTradeShips");
+                    TraderKindDef = AccessTools.FieldRefAccess<TraderKindDef>(Job_CallTradeShip, "TraderKindDef");
+                    TraderKind = AccessTools.FieldRefAccess<int>(Job_CallTradeShip, "TraderKind");
+                }
+                catch (Exception ex)
+                {
+                    LogError(ex);
+                    Active = false;
+                }
+                finally
+                {
+                    if (AnyNull(Job_CallTradeShip, TraderKindDef, TraderKind))
+                    {
+                        LogIncompat("Call Trade Ships");
+                        Active = false;
+                    }
+                }
+            }
         }
     }
 
-    public static readonly bool CombatExtended = ModsConfig.IsActive("CETeam.CombatExtended") || ModsConfig.IsActive("CETeam.CombatExtended_steam");
+    public static readonly bool CombatExtended = IsModActive("CETeam.CombatExtended") || IsModActive("CETeam.CombatExtended_steam");
 
-    public static readonly bool ColonyGroups = ModsConfig.IsActive("DerekBickley.LTOColonyGroupsFinal");
+    public static readonly bool ColonyGroups = IsModActive("DerekBickley.LTOColonyGroupsFinal");
 
-    public static readonly bool DeepStorage = ModsConfig.IsActive("LWM.DeepStorage");
+    public static readonly bool DeepStorage = IsModActive("LWM.DeepStorage");
 
-    public static readonly bool Fortified = ModsConfig.IsActive("AOBA.Framework");
+    public static readonly bool Fortified = IsModActive("AOBA.Framework");
 
-    public static readonly bool DrakkenLaserDrill = ModsConfig.IsActive("MYDE.DrakkenLaserDrill") || ModsConfig.IsActive("Mlie.DrakkenLaserDrill");
+    public static readonly bool DrakkenLaserDrill = IsModActive("MYDE.DrakkenLaserDrill") || IsModActive("Mlie.DrakkenLaserDrill");
 
-    public static readonly bool DrillTurret = ModsConfig.IsActive("Mlie.MiningCoDrillTurret");
+    public static readonly bool DrillTurret = IsModActive("Mlie.MiningCoDrillTurret");
 
     public static class DubsBadHygiene
     {
-        public static readonly bool Active = ModsConfig.IsActive("Dubwise.DubsBadHygiene") || ModsConfig.IsActive("Dubwise.DubsBadHygiene.Lite");
+        public static readonly bool Active = IsModActive("Dubwise.DubsBadHygiene") || IsModActive("Dubwise.DubsBadHygiene.Lite");
 
         public static readonly bool LiteMode;
 
@@ -145,7 +202,7 @@ internal static class ModCompat
                 }
                 catch (Exception ex)
                 {
-                    VMF_Log.Error(ex.Message);
+                    LogError(ex);
                     Active = false;
                 }
                 finally
@@ -171,7 +228,7 @@ internal static class ModCompat
 
     public static class Rimefeller
     {
-        public static readonly bool Active = ModsConfig.IsActive("Dubwise.Rimefeller");
+        public static readonly bool Active = IsModActive("Dubwise.Rimefeller");
 
         public static readonly Type SectionLayer_SewagePipe;
 
@@ -213,7 +270,7 @@ internal static class ModCompat
                 }
                 catch (Exception ex)
                 {
-                    VMF_Log.Error(ex.Message);
+                    LogError(ex);
                     Active = false;
                 }
                 finally
@@ -239,7 +296,7 @@ internal static class ModCompat
 
     public static class DefenseGrid
     {
-        public static readonly bool Active = ModsConfig.IsActive("Aelanna.EccentricTech.DefenseGrid");
+        public static readonly bool Active = IsModActive("Aelanna.EccentricTech.DefenseGrid");
 
         public static readonly Type SectionLayer_DefenseGridOverlay;
 
@@ -259,7 +316,7 @@ internal static class ModCompat
                 }
                 catch (Exception ex)
                 {
-                    VMF_Log.Error(ex.Message);
+                    LogError(ex);
                     Active = false;
                 }
                 finally
@@ -274,15 +331,15 @@ internal static class ModCompat
         }
     }
 
-    public static readonly bool ExosuitFramework = ModsConfig.IsActive("Aoba.Exosuit.Framework");
+    public static readonly bool ExosuitFramework = IsModActive("Aoba.Exosuit.Framework");
 
-    public static readonly bool GiantImperialTurret = ModsConfig.IsActive("XMB.Giantimperialcannonturret.MO");
+    public static readonly bool GiantImperialTurret = IsModActive("XMB.Giantimperialcannonturret.MO");
 
-    public static readonly bool Gunplay = ModsConfig.IsActive("automatic.gunplay");
+    public static readonly bool Gunplay = IsModActive("automatic.gunplay");
 
     public static class MeleeAnimation
     {
-        public static readonly bool Active = ModsConfig.IsActive("co.uk.epicguru.meleeanimation");
+        public static readonly bool Active = IsModActive("co.uk.epicguru.meleeanimation");
 
         public static readonly Func<Vector3, Pawn, IEnumerable<FloatMenuOption>> GenerateAMMenuOptions;
 
@@ -297,7 +354,7 @@ internal static class ModCompat
                 }
                 catch (Exception ex)
                 {
-                    VMF_Log.Error(ex.Message);
+                    LogError(ex);
                     Active = false;
                 }
                 finally
@@ -314,7 +371,7 @@ internal static class ModCompat
 
     public static class MiscRobots
     {
-        public static readonly bool Active = ModsConfig.IsActive("Haplo.Miscellaneous.Robots");
+        public static readonly bool Active = IsModActive("Haplo.Miscellaneous.Robots");
 
         public static readonly Type X2_AIRobot;
 
@@ -331,7 +388,7 @@ internal static class ModCompat
                 }
                 catch (Exception ex)
                 {
-                    VMF_Log.Error(ex.Message);
+                    LogError(ex);
                     Active = false;
                 }
                 finally
@@ -346,19 +403,19 @@ internal static class ModCompat
         }
     }
 
-    public static readonly bool MuzzleFlash = ModsConfig.IsActive("IssacZhuang.MuzzleFlash");
+    public static readonly bool MuzzleFlash = IsModActive("IssacZhuang.MuzzleFlash");
 
-    public static readonly bool PathfindingFramework = ModsConfig.IsActive("pathfinding.framework");
+    public static readonly bool PathfindingFramework = IsModActive("pathfinding.framework");
 
-    public static readonly bool ProjectRimFactory = ModsConfig.IsActive("spdskatr.projectrimfactory");
+    public static readonly bool ProjectRimFactory = IsModActive("spdskatr.projectrimfactory");
 
-    public static readonly bool SmarterConstruction = ModsConfig.IsActive("dhultgren.smarterconstruction");
+    public static readonly bool SmarterConstruction = IsModActive("dhultgren.smarterconstruction");
 
-    public static readonly bool TabulaRasa = ModsConfig.IsActive("neronix17.toolbox");
+    public static readonly bool TabulaRasa = IsModActive("neronix17.toolbox");
 
     public static class VFECore
     {
-        public static readonly bool Active = ModsConfig.IsActive("OskarPotocki.VanillaFactionsExpanded.Core");
+        public static readonly bool Active = IsModActive("OskarPotocki.VanillaFactionsExpanded.Core");
 
         public static readonly Type PipeNetDef;
 
@@ -381,7 +438,7 @@ internal static class ModCompat
                 }
                 catch (Exception ex)
                 {
-                    VMF_Log.Error(ex.Message);
+                    LogError(ex);
                     Active = false;
                 }
                 finally
@@ -396,11 +453,11 @@ internal static class ModCompat
         }
     }
 
-    public static readonly bool VFEArchitect = ModsConfig.IsActive("VanillaExpanded.VFEArchitect");
+    public static readonly bool VFEArchitect = IsModActive("VanillaExpanded.VFEArchitect");
 
     public static class VFESecurity
     {
-        public static readonly bool Active = ModsConfig.IsActive("VanillaExpanded.VFESecurity");
+        public static readonly bool Active = IsModActive("VanillaExpanded.VFESecurity");
 
         public static readonly AccessTools.FieldRef<object, GlobalTargetInfo> targetedTile;
 
@@ -417,7 +474,7 @@ internal static class ModCompat
                 }
                 catch (Exception ex)
                 {
-                    VMF_Log.Error(ex.Message);
+                    LogError(ex);
                     Active = false;
                 }
                 finally
@@ -434,7 +491,7 @@ internal static class ModCompat
 
     public static class VVE
     {
-        public static readonly bool Active = ModsConfig.IsActive("OskarPotocki.VanillaVehiclesExpanded");
+        public static readonly bool Active = IsModActive("OskarPotocki.VanillaVehiclesExpanded");
 
         public static readonly AccessTools.FieldRef<CompProperties, float> refuelAmountPerTick;
 
@@ -448,7 +505,7 @@ internal static class ModCompat
                 }
                 catch (Exception ex)
                 {
-                    VMF_Log.Error(ex.Message);
+                    LogError(ex);
                     Active = false;
                 }
                 finally
@@ -463,11 +520,11 @@ internal static class ModCompat
         }
     }
 
-    public static readonly bool VFEPirates = ModsConfig.IsActive("OskarPotocki.VFE.Pirates");
+    public static readonly bool VFEPirates = IsModActive("OskarPotocki.VFE.Pirates");
 
     public static class VFEMechanoid
     {
-        public static readonly bool Active = ModsConfig.IsActive("OskarPotocki.VFE.Mechanoid");
+        public static readonly bool Active = IsModActive("OskarPotocki.VFE.Mechanoid");
 
         public static readonly FastInvokeHandler DoWorkOnCell;
 
@@ -481,7 +538,7 @@ internal static class ModCompat
                 }
                 catch (Exception ex)
                 {
-                    VMF_Log.Error(ex.Message);
+                    LogError(ex);
                     Active = false;
                 }
                 finally
@@ -496,19 +553,19 @@ internal static class ModCompat
         }
     }
 
-    public static readonly bool VGE = ModsConfig.IsActive("vanillaexpanded.gravship");
+    public static readonly bool VGE = IsModActive("vanillaexpanded.gravship");
 
-    public static readonly bool Vivi = ModsConfig.IsActive("gguake.race.vivi");
+    public static readonly bool Vivi = IsModActive("gguake.race.vivi");
 
-    public static readonly bool WhileYoureUp = ModsConfig.IsActive("CodeOptimist.JobsOfOpportunity") || ModsConfig.IsActive("zsbk.patch16.whileyoureup");
+    public static readonly bool WhileYoureUp = IsModActive("CodeOptimist.JobsOfOpportunity") || IsModActive("zsbk.patch16.whileyoureup");
 
-    public static readonly bool YayosCombat3 = ModsConfig.IsActive("Mlie.YayosCombat3");
+    public static readonly bool YayosCombat3 = IsModActive("Mlie.YayosCombat3");
 
-    public static readonly bool PickUpAndHaul = ModsConfig.IsActive("Mehni.PickUpAndHaul") || ModsConfig.IsActive("Teemo.PickUpAndHaulForked");
+    public static readonly bool PickUpAndHaul = IsModActive("Mehni.PickUpAndHaul") || IsModActive("Teemo.PickUpAndHaulForked");
 
     public static class EnergyShield
     {
-        public static readonly bool Active = ModsConfig.IsActive("zhuzi.AdvancedEnergy.Shields");
+        public static readonly bool Active = IsModActive("zhuzi.AdvancedEnergy.Shields");
 
         public static readonly Type Building_Shield;
 
@@ -521,11 +578,11 @@ internal static class ModCompat
                 try
                 {
                     Building_Shield = AccessTools.TypeByName("zhuzi.AdvancedEnergy.Shields.Shields.Building_Shield");
-                    CECompat = ModsConfig.IsActive("cn.zhuzijun.EnergyShieldCECompat");
+                    CECompat = IsModActive("cn.zhuzijun.EnergyShieldCECompat");
                 }
                 catch (Exception ex)
                 {
-                    VMF_Log.Error(ex.Message);
+                    LogError(ex);
                     Active = false;
                 }
                 finally
@@ -540,19 +597,19 @@ internal static class ModCompat
         }
     }
 
-    public static readonly bool TraderShips = ModsConfig.IsActive("automatic.traderships");
+    public static readonly bool TraderShips = IsModActive("automatic.traderships");
 
-    public static readonly bool NightmareCore = ModsConfig.IsActive("Nightmare.Core");
+    public static readonly bool NightmareCore = IsModActive("Nightmare.Core");
 
-    public static readonly bool Aquariums = ModsConfig.IsActive("Nightmare.Aquariums");
+    public static readonly bool Aquariums = IsModActive("Nightmare.Aquariums");
 
-    public static readonly bool SmartPistol = ModsConfig.IsActive("rabiosus.smartpistol");
+    public static readonly bool SmartPistol = IsModActive("rabiosus.smartpistol");
 
-    public static readonly bool ReGrowth = ModsConfig.IsActive("ReGrowth.BOTR.Core");
+    public static readonly bool ReGrowth = IsModActive("ReGrowth.BOTR.Core");
 
     public static class SmartFarming
     {
-        public static readonly bool SmartFarmingActive = ModsConfig.IsActive("Owlchemist.SmartFarming");
+        public static readonly bool SmartFarmingActive = IsModActive("Owlchemist.SmartFarming");
 
         public static readonly bool Active = SmartFarmingActive || ReGrowth;
 
@@ -584,7 +641,7 @@ internal static class ModCompat
                 }
                 catch (Exception ex)
                 {
-                    VMF_Log.Error(ex.Message);
+                    LogError(ex);
                     Active = false;
                 }
                 finally
@@ -599,15 +656,15 @@ internal static class ModCompat
         }
     }
 
-    public static readonly bool RimWorldOfMagic = ModsConfig.IsActive("Torann.ARimworldOfMagic");
+    public static readonly bool RimWorldOfMagic = IsModActive("Torann.ARimworldOfMagic");
 
-    public static readonly bool CeleTech = ModsConfig.IsActive("TOT.CeleTech.MKIII");
+    public static readonly bool CeleTech = IsModActive("TOT.CeleTech.MKIII");
 
-    public static readonly bool PauseOtherSettlements = ModsConfig.IsActive("esvn.PauseOtherSettlementsSimulation");
+    public static readonly bool PauseOtherSettlements = IsModActive("esvn.PauseOtherSettlementsSimulation");
 
     public static class MultiFloors
     {
-        public static readonly bool Active = ModsConfig.IsActive("telardo.MultiFloors") || ModsConfig.IsActive("telardo.MultiFloorsDev");
+        public static readonly bool Active = IsModActive("telardo.MultiFloors") || IsModActive("telardo.MultiFloorsDev");
 
         public static readonly Func<Map, Map> GroundMap;
 
@@ -640,7 +697,7 @@ internal static class ModCompat
                 }
                 catch (Exception ex)
                 {
-                    VMF_Log.Error(ex.Message);
+                    LogError(ex);
                     Active = false;
                 }
                 finally
@@ -655,18 +712,18 @@ internal static class ModCompat
         }
     }
 
-    public static readonly bool CutPlantsBeforeBuilding = ModsConfig.IsActive("Mlie.CutPlantsBeforeBuilding");
+    public static readonly bool CutPlantsBeforeBuilding = IsModActive("Mlie.CutPlantsBeforeBuilding");
 
     public static class StackGap
     {
-        public static readonly bool Active = ModsConfig.IsActive("Andromeda.StackGap");
+        public static readonly bool Active = IsModActive("Andromeda.StackGap");
 
         public const string HarmonyId = "Andromeda.StackGap";
     }
 
-    public static readonly bool AnimalCages = ModsConfig.IsActive("zal.animalcages");
+    public static readonly bool AnimalCages = IsModActive("zal.animalcages");
 
-    public static readonly bool DoNotHitMe = ModsConfig.IsActive("Og.do.not.hit.me");
+    public static readonly bool DoNotHitMe = IsModActive("Og.do.not.hit.me");
     
-    public static readonly bool AutoApparelPickup = ModsConfig.IsActive("Scorpio.AutoApparelPickup");
+    public static readonly bool AutoApparelPickup = IsModActive("Scorpio.AutoApparelPickup");
 }

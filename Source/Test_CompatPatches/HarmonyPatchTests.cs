@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
 using HarmonyLib;
 using ModAssemblyLoader;
@@ -11,6 +12,10 @@ public class HarmonyPatchTests
     private AssemblyLoader loader;
 
     private Type[] types;
+
+    private Harmony harmony;
+    
+    private const string HarmonyId = "VehicleMapFramework.HarmonyPatchTests";
     
     [OneTimeSetUp]
     public void OneTimeSetUp()
@@ -30,11 +35,34 @@ public class HarmonyPatchTests
         types = assemblies
             .SelectMany(AccessTools.GetTypesFromAssembly)
             .Where(type => type.FullName?.Contains("Patch") ?? false).ToArray();
+
+        AccessTools.PropertySetter("VehicleMapFramework.UnitTestDetector:IsTestingContext")
+            .Invoke(null, [true]);
+        harmony = new Harmony(HarmonyId);
+        harmony.Patch(
+            AccessTools.Method("Verse.GenTypes:GetTypeInAnyAssembly"),
+            AccessTools.Method(typeof(HarmonyPatchTests), nameof(TypeByName)));
+    }
+
+    private static bool TypeByName(string typeName, ref Type __result)
+    {
+        _ = __result;
+        __result = AccessTools.TypeByName(typeName);
+        return false;
+    }
+
+    [OneTimeTearDown]
+    public void OneTimeTearDown()
+    {
+        AccessTools.PropertySetter("VehicleMapFramework.UnitTestDetector:IsTestingContext")
+            .Invoke(null, [false]);
+        harmony.UnpatchAll(HarmonyId);
     }
     
+    [Order(1)]
     [Test]
     [TestCaseSource(typeof(TestPlanLoader), nameof(TestPlanLoader.GetTestPlans))]
-    public void ExecuteTestPlan(TestPlan plan)
+    public void LoadAssemblies(TestPlan plan)
     {
         using (Assert.EnterMultipleScope())
         {
@@ -51,37 +79,47 @@ public class HarmonyPatchTests
                 Assert.That(assemblies2, Is.Not.Empty);
             }
         }
-        
+    }
+
+    [Order(2)]
+    [Test]
+    public void InitializeModCompatClass()
+    {
+        var t_ModCompat = AccessTools.TypeByName("VehicleMapFramework.ModCompat");
+        RuntimeHelpers.RunClassConstructor(t_ModCompat.TypeHandle);
+        var exceptions = (List<Exception>)AccessTools.PropertyGetter(t_ModCompat, "CctorExceptions").Invoke(null, null);
+        Assert.That(exceptions, Is.Empty, string.Join("\n\n", exceptions!));
+    }
+
+    [Order(3)]
+    [Test]
+    [TestCaseSource(typeof(TestPlanLoader), nameof(TestPlanLoader.GetTestPlans))]
+    public void ExecutePatches(TestPlan plan)
+    {
         var harmony = new Harmony($"VehicleMapFramework.CompatPatchesTest: {plan.Name}");
-        var lastType = default(Type);
-        try
+        Assert.DoesNotThrow(() =>
         {
             foreach (var category in plan.Categories)
             {
                 PatchCategory(category);
             }
-        }
-        catch (Exception ex)
-        {
-            Assert.Fail($"{ex}, lastType: {lastType}");
-        }
-        TestContext.Out.WriteLine($"Successfully applied {harmony.GetPatchedMethods().Count()} patches.");
+        });
+        Assert.Pass($"Successfully applied {harmony.GetPatchedMethods().Count()} patches.");
         return;
     
         void PatchCategory(string category)
         {
             types.Where(type =>
-                {
-                    lastType = type;
-                    var attributes = type.GetCustomAttributesData();
-                    return
-                        attributes.Any(attr => attr.AttributeType == typeof(HarmonyPatch)) &&
-                        attributes.Any(attr => attr.AttributeType == typeof(HarmonyPatchCategory) &&
-                                               attr.ConstructorArguments.Any(c => (string)c.Value == category));
-                }).Do(type =>
-                {
-                    harmony.CreateClassProcessor(type).Patch();
-                });
+            {
+                var attributes = type.GetCustomAttributesData();
+                return
+                    attributes.Any(attr => attr.AttributeType == typeof(HarmonyPatch)) &&
+                    attributes.Any(attr => attr.AttributeType == typeof(HarmonyPatchCategory) &&
+                                           attr.ConstructorArguments.Any(c => (string)c.Value == category));
+            }).Do(type =>
+            {
+                harmony.CreateClassProcessor(type).Patch();
+            });
         }
     }
 }

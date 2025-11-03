@@ -6,19 +6,19 @@ internal static class PatchCategories
     
     public const string Odyssey = "VMF_Patches_Odyssey";
     
-    public const string VEFCore = "VMF_Patches_VEFCore";
+    public const string VEFCore = "VMF_Patches_VanillaExpandedFramework";
 
     public const string VFEArchitect = "VMF_Patches_VFEArchitect";
 
     public const string VFESecurity = "VMF_Patches_VFESecurity";
 
-    public const string VVE = "VMF_Patches_VVE";
+    public const string VVE = "VMF_Patches_VVehiclesE";
 
     public const string VFEPirates = "VMF_Patches_VFEPirates";
 
     public const string VFEMechanoids = "VMF_Patches_VFEMechanoids";
     
-    public const string VGE = "VMF_Patches_VGE";
+    public const string VGE = "VMF_Patches_VGravshipE";
     
     public const string Achtung = "VMF_Patches_Achtung";
 
