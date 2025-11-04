@@ -4,7 +4,10 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - **
+      - 1.6
+      - bug-fix
+      - development
+      - test-result-checker-test
 
 jobs:
   check_local_status:
