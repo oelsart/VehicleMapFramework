@@ -13,9 +13,19 @@ jobs:
   report_local_tests:
     runs-on: ubuntu-latest
     steps:
-      - name: Download external TRX
+      - name: Get TRX download URL
+        id: get_trx
         run: |
-          curl -L -o ./LocalTestResults.trx "https://uploads.github.com/repos/oelsart/VehicleMapFramework/contents/testresults/TestResults.trx"
+          API_URL="https://api.github.com/repos/oelsart/VehicleMapFramework/contents/testresults/TestResults.trx"
+          DOWNLOAD_URL=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" $API_URL | jq -r '.download_url')
+          echo "download_url=$DOWNLOAD_URL" >> $GITHUB_OUTPUT
+
+      - name: Download TRX file
+        run: |
+          curl -L -o ./LocalTestResults.trx "${{ steps.get_trx.outputs.download_url }}"
+            - name: Download external TRX
+              run: |
+                curl -L -o ./LocalTestResults.trx "https://uploads.github.com/repos/oelsart/VehicleMapFramework/contents/testresults/TestResults.trx"
 
       - name: Upload local test results artifact
         uses: actions/upload-artifact@v4
