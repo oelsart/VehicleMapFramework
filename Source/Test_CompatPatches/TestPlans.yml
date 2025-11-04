@@ -1,4 +1,5 @@
-﻿- Name: VanillaExpandedFramework
+﻿- Name: VehicleFramework
+- Name: VanillaExpandedFramework
 - Name: VFEArchitect
 #- Name: VFESecurity
 #- Name: VFESecurity + CE
@@ -13,6 +14,7 @@
 - Name: CombatExtended
 - Name: DubsBadHygiene
 - Name: Rimefeller
+  LoadOnly: true
 - Name: AdaptiveStorageFramework
 - Name: AllowTool
   Mods:
@@ -66,3 +68,4 @@
 - Name: WhileYoureUp
 - Name: YayosCombat3
 - Name: SmartFarming
+  LoadOnly: true

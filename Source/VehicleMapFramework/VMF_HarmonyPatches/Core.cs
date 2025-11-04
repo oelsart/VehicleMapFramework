@@ -273,6 +273,7 @@ public static class Core
     static Core()
     {
         VMF_Harmony.PatchAllUncategorized();
+        VMF_Harmony.PatchCategory(PatchCategories.VehicleFramework);
     }
 }
 

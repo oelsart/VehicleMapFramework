@@ -132,7 +132,6 @@ public static class Patch_ActionController_UpdateClosestCells
 [HarmonyPatchCategory(PatchCategories.MeleeAnimation)]
 [HarmonyPatch("AM.AnimRenderer", "Draw")]
 [PatchLevel(Level.Sensitive)]
-[ExceptForTesting]
 public static class Patch_AnimRenderer_Draw
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)

@@ -23,6 +23,7 @@ using Transform = SmashTools.Rendering.Transform;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(RGBMaterialPool), nameof(RGBMaterialPool.SetProperties), typeof(IMaterialCacheTarget), typeof(PatternData), typeof(Func<Rot8, Texture2D>), typeof(Func<Rot8, Texture2D>))]
 [PatchLevel(Level.Mandatory)]
 public static class Patch_RGBMaterialPool_SetProperties
@@ -47,6 +48,7 @@ public static class Patch_RGBMaterialPool_SetProperties
 }
 
 //VehiclePawnWithMapの場合Movementフラグを持つハンドラーが存在しない場合コントロールできないようにする
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(VehiclePawn), nameof(VehiclePawn.HasEnoughOperators), MethodType.Getter)]
 [PatchLevel(Level.Safe)]
 public static class Patch_VehiclePawn_HasEnoughOperators
@@ -74,6 +76,7 @@ public static class Patch_VehiclePawn_HasEnoughOperators
 }
 
 //VehiclePawnWithMapの場合タレットに対応するハンドラーが存在しない場合コントロールできないようにする
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(VehicleTurret), nameof(VehicleTurret.RecacheMannedStatus))]
 [PatchLevel(Level.Safe)]
 public static class Patch_VehicleTurret_RecacheMannedStatus
@@ -101,6 +104,7 @@ public static class Patch_VehicleTurret_RecacheMannedStatus
 }
 
 //VehiclePawnWithMapの場合タレットに対応するハンドラーが存在しない場合ギズモを操作不能にする
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(CompVehicleTurrets), nameof(CompVehicleTurrets.CompGetGizmosExtra))]
 [PatchLevel(Level.Safe)]
 public static class Patch_CompVehicleTurrets_CompGetGizmosExtra
@@ -125,6 +129,7 @@ public static class Patch_CompVehicleTurrets_CompGetGizmosExtra
     }
 }
 
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(VehiclePawn), nameof(VehiclePawn.DisembarkPawn))]
 [PatchLevel(Level.Safe)]
 public static class Patch_VehiclePawn_DisembarkPawn
@@ -172,6 +177,7 @@ public static class Patch_VehiclePawn_DisembarkPawn
     }
 }
 
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(VehiclePawn), nameof(VehiclePawn.FullRotation), MethodType.Getter)]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_VehiclePawn_FullRotation
@@ -182,6 +188,7 @@ public static class Patch_VehiclePawn_FullRotation
     }
 }
 
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch("Vehicles.Patch_Rendering", "DrawSelectionBracketsVehicles")]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Rendering_DrawSelectionBracketsVehicles
@@ -219,6 +226,7 @@ public static class Patch_Rendering_DrawSelectionBracketsVehicles
     }
 }
 
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(VehicleTurret), nameof(VehicleTurret.AngleBetween))]
 [PatchLevel(Level.Safe)]
 public static class Patch_VehicleTurret_AngleBetween
@@ -232,6 +240,7 @@ public static class Patch_VehicleTurret_AngleBetween
     }
 }
 
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(GenGridVehicles), nameof(GenGridVehicles.ImpassableForVehicles))]
 [PatchLevel(Level.Mandatory)]
 public static class Patch_GenGridVehicles_ImpassableForVehicles
@@ -242,6 +251,7 @@ public static class Patch_GenGridVehicles_ImpassableForVehicles
     }
 }
 
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(TargetingHelper), "BestAttackTarget")]
 [PatchLevel(Level.Safe)]
 public static class Patch_TargetingHelper_BestAttackTarget
@@ -254,6 +264,7 @@ public static class Patch_TargetingHelper_BestAttackTarget
     }
 }
 
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(TargetingHelper), nameof(TargetingHelper.TargetMeetsRequirements), [typeof(VehicleTurret), typeof(LocalTargetInfo), typeof(IntVec3)], [ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Out])]
 [PatchLevel(Level.Cautious)]
 public static class Patch_TargetingHelper_TargetMeetsRequirements1
@@ -264,6 +275,7 @@ public static class Patch_TargetingHelper_TargetMeetsRequirements1
     }
 }
 
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(TargetingHelper), nameof(TargetingHelper.TargetMeetsRequirements), [typeof(VehicleTurret), typeof(IntVec3), typeof(LocalTargetInfo), typeof(IntVec3)], [ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Out])]
 [PatchLevel(Level.Cautious)]
 public static class Patch_TargetingHelper_TargetMeetsRequirements2
@@ -279,6 +291,7 @@ public static class Patch_TargetingHelper_TargetMeetsRequirements2
     }
 }
 
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(VehicleTurret), nameof(VehicleTurret.InRange))]
 [PatchLevel(Level.Cautious)]
 public static class Patch_VehicleTurret_InRange
@@ -289,6 +302,7 @@ public static class Patch_VehicleTurret_InRange
     }
 }
 
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(VehicleTurret), nameof(VehicleTurret.TryFindShootLineFromTo))]
 [PatchLevel(Level.Cautious)]
 public static class Patch_VehicleTurret_TryFindShootLineFromTo
@@ -299,6 +313,7 @@ public static class Patch_VehicleTurret_TryFindShootLineFromTo
     }
 }
 
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(VehicleTurret), nameof(VehicleTurret.FireTurret))]
 [PatchLevel(Level.Cautious)]
 public static class Patch_VehicleTurret_FireTurret
@@ -311,6 +326,7 @@ public static class Patch_VehicleTurret_FireTurret
     }
 }
 
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(VehicleTurret), nameof(VehicleTurret.TurretRotation), MethodType.Getter)]
 [PatchLevel(Level.Safe)]
 public static class Patch_VehicleTurret_TurretRotation
@@ -324,6 +340,7 @@ public static class Patch_VehicleTurret_TurretRotation
     }
 }
 
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(VehicleTurret), nameof(VehicleTurret.TurretRotationTargeted), MethodType.Setter)]
 [PatchLevel(Level.Safe)]
 public static class Patch_VehicleTurret_TurretRotationTargeted
@@ -337,6 +354,7 @@ public static class Patch_VehicleTurret_TurretRotationTargeted
     }
 }
 
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(VehicleTurret), nameof(VehicleTurret.RotationAligned), MethodType.Getter)]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_VehicleTurret_RotationAligned
@@ -353,6 +371,7 @@ public static class Patch_VehicleTurret_RotationAligned
     }
 }
 
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(TurretTargeter), nameof(TurretTargeter.BeginTargeting))]
 [PatchLevel(Level.Cautious)]
 public static class Patch_TurretTargeter_BeginTargeting
@@ -363,6 +382,7 @@ public static class Patch_TurretTargeter_BeginTargeting
     }
 }
 
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(TurretTargeter), "CurrentTargetUnderMouse")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_TurretTargeter_CurrentTargetUnderMouse
@@ -373,6 +393,7 @@ public static class Patch_TurretTargeter_CurrentTargetUnderMouse
     }
 }
 
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(TurretTargeter), nameof(TurretTargeter.TargeterUpdate))]
 [PatchLevel(Level.Cautious)]
 public static class Patch_TurretTargeter_TargeterUpdate
@@ -383,6 +404,7 @@ public static class Patch_TurretTargeter_TargeterUpdate
     }
 }
 
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(TurretTargeter), nameof(TurretTargeter.ProcessInputEvents))]
 [PatchLevel(Level.Cautious)]
 public static class Patch_TurretTargeter_ProcessInputEvents
@@ -393,6 +415,7 @@ public static class Patch_TurretTargeter_ProcessInputEvents
     }
 }
 
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(TurretTargeter), "TargeterValid", MethodType.Getter)]
 [PatchLevel(Level.Cautious)]
 public static class Patch_TurretTargeter_TargeterValid
@@ -404,6 +427,7 @@ public static class Patch_TurretTargeter_TargeterValid
 }
 
 //タレットの自動ロードがVehicleDefのCargoCapacityを参照してたので、これをVehiclePawnのインスタンスからステータスを参照させる
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(Command_CooldownAction), "DrawBottomBar")]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Command_CooldownAction_DrawBottomBar
@@ -432,6 +456,7 @@ public static class Patch_Command_CooldownAction_DrawBottomBar
 }
 
 //車両マップ上からLoadVehicleをしようとした時など
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch]
 [PatchLevel(Level.Safe)]
 public static class Patch_JobDriverLoadVehicleBase_ShouldFailJob
@@ -486,6 +511,7 @@ public static class Patch_JobDriverLoadVehicleBase_ShouldFailJob
     }
 }
 
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(LaunchProtocol), nameof(LaunchProtocol.GetArrivalOptions))]
 [PatchLevel(Level.Safe)]
 public static class Patch_LaunchProtocol_GetArrivalOptions
@@ -540,6 +566,7 @@ public static class Patch_LaunchProtocol_GetArrivalOptions
 }
 
 //VehicleMap上を右クリックしている時は複数ポーンのVehicle乗り込みフロートメニューをオフにする
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(SelectionHelper), nameof(SelectionHelper.MultiSelectClicker))]
 [PatchLevel(Level.Safe)]
 public static class Patch_SelectionHelper_MultiSelectClicker
@@ -556,6 +583,7 @@ public static class Patch_SelectionHelper_MultiSelectClicker
 }
 
 //ポーンがVehicleRoleBuildableに割り当てられている時はその席へのCanReachにすり替える
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(CaravanFormation), "CheckForErrors")]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_CaravanFormation_CheckForErrors
@@ -605,6 +633,7 @@ public static class Patch_CaravanFormation_CheckForErrors
     }
 }
 
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(CaravanFormation), "TryFindExitSpot",
     [typeof(Map), typeof(List<Pawn>), typeof(bool), typeof(Rot4), typeof(IntVec3)],
     [ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Out])]
@@ -626,6 +655,7 @@ public static class Patch_CaravanFormation_TryFindExitSpot
 }
 
 //キャラバン編成画面でVehicleRoleBuildableに割り当てられているポーンはその席へ行くようにする
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(JobDriver_Board), "MakeNewToils")]
 [PatchLevel(Level.Safe)]
 public static class Patch_JobDriver_Board_MakeNewToils
@@ -660,6 +690,7 @@ public static class Patch_JobDriver_Board_MakeNewToils
     }
 }
 
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(EnterMapUtilityVehicles), nameof(EnterMapUtilityVehicles.EnterAndSpawn))]
 [PatchLevel(Level.Safe)]
 public static class Patch_EnterMapUtilityVehicles_EnterAndSpawn
@@ -674,6 +705,7 @@ public static class Patch_EnterMapUtilityVehicles_EnterAndSpawn
     }
 }
 
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(VehicleTabHelper_Passenger), nameof(VehicleTabHelper_Passenger.DrawPassengersFor))]
 [PatchLevel(Level.Safe)]
 public static class Patch_VehicleTabHelper_Passenger_DrawPassengersFor
@@ -707,6 +739,7 @@ public static class Patch_VehicleTabHelper_Passenger_DrawPassengersFor
     }
 }
 
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(VehicleTabHelper_Passenger), nameof(VehicleTabHelper_Passenger.HandleDragEvent))]
 [PatchLevel(Level.Safe)]
 public static class Patch_VehicleTabHelper_Passenger_HandleDragEvent
@@ -872,6 +905,7 @@ public static class Patch_VehicleTabHelper_Passenger_HandleDragEvent
 }
 
 //非MultiSelect時は既にターゲットマップある想定
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(FloatMenuOptionProvider_OrderVehicle), "VehicleCanGoto")]
 [PatchLevel(Level.Safe)]
 public static class Patch_FloatMenuOptionProvider_OrderVehicle_VehicleCanGoto
@@ -894,6 +928,7 @@ public static class Patch_FloatMenuOptionProvider_OrderVehicle_VehicleCanGoto
     }
 }
 
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(FloatMenuOptionProvider_OrderVehicle), "PawnGotoAction")]
 [PatchLevel(Level.Safe)]
 public static class Patch_FloatMenuOptionProvider_OrderVehicle_PawnGotoAction
@@ -979,6 +1014,7 @@ public static class Patch_FloatMenuOptionProvider_OrderVehicle_PawnGotoAction
     }
 }
 
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(PathingHelper), nameof(PathingHelper.TryFindNearestStandableCell))]
 [PatchLevel(Level.Safe)]
 public static class Patch_PathingHelper_TryFindNearestStandableCell
@@ -1022,12 +1058,14 @@ public static class Patch_PathingHelper_TryFindNearestStandableCell
     }
 }
 
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(VehiclePath), nameof(VehiclePath.DrawPath))]
 public static class Patch_VehiclePath_DrawPath
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator) => Patch_PawnPath_DrawPath.Transpiler(instructions, generator);
 }
 
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(VehicleOrientationController), "Init")]
 [PatchLevel(Level.Safe)]
 public static class Patch_VehicleOrientationController_Init
@@ -1044,6 +1082,7 @@ public static class Patch_VehicleOrientationController_Init
 
 }
 
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(VehicleOrientationController), "RecomputeDestinations")]
 public static class Patch_VehicleOrientationController_RecomputeDestinations
 {
@@ -1064,6 +1103,7 @@ public static class Patch_VehicleOrientationController_RecomputeDestinations
     }
 }
 
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(VehicleOrientationController), nameof(VehicleOrientationController.TargeterUpdate))]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_VehicleOrientationController_TargeterUpdate
@@ -1091,6 +1131,7 @@ public static class Patch_VehicleOrientationController_TargeterUpdate
     }
 }
 
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(VehicleGhostUtility), nameof(VehicleGhostUtility.DrawGhostVehicleDef))]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_VehicleGhostUtility_DrawGhostVehicleDef
@@ -1112,6 +1153,7 @@ public static class Patch_VehicleGhostUtility_DrawGhostVehicleDef
 }
 
 //ここでのTransformData.rotationは西向き時反転する前提の数値なので、車両マップキャラバン描画のユースケースでは正しく描画されるように補正する
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(VehicleTurret), "ParallelPreRenderResults")]
 [PatchLevel(Level.Safe)]
 public static class Patch_VehicleTurret_ParallelPreRenderResults
@@ -1128,6 +1170,7 @@ public static class Patch_VehicleTurret_ParallelPreRenderResults
     }
 }
 
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(VehicleCaravan), nameof(VehicleCaravan.GetGizmos))]
 [PatchLevel(Level.Safe)]
 public static class Patch_VehicleCaravan_GetGizmos
@@ -1160,6 +1203,7 @@ public static class Patch_VehicleCaravan_GetGizmos
     }
 }
 
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_VehicleCaravan_Notify_MemberDied_Predicate
@@ -1178,6 +1222,7 @@ public static class Patch_VehicleCaravan_Notify_MemberDied_Predicate
     }
 }
 
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch]
 [PatchLevel(Level.Safe)]
 public static class Patch_SettingsCache_TryGetValue
@@ -1198,6 +1243,7 @@ public static class Patch_SettingsCache_TryGetValue
     }
 }
 
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch("Vehicles.SectionDrawer", "RecacheVehicleFilter")]
 [PatchLevel(Level.Safe)]
 public static class Patch_SectionDrawer_RecacheVehicleFilter

@@ -1,13 +1,39 @@
 name: Build
 
 on:
+  workflow_dispatch:
   push:
-    branches: [ "bug-fix" ]
+    branches:
+      - "1.6"
+      - bug-fix
+      - development
 
 jobs:
+  report_local_tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download TRX file
+        run: |
+          curl -L -o ./LocalTestResults.trx "https://gist.githubusercontent.com/oelsart/3bb8183cedc9869f566440ca1553c633/raw/TestResults.trx"
 
+      - name: Upload local test results artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: LocalTestResults
+          path: ./LocalTestResults.trx
+            
+      - name: Test Report
+        uses: dorny/test-reporter@v2
+        with:
+          artifact: LocalTestResults
+          name: Harmony Patch Tests
+          path: '*.trx'
+          reporter: dotnet-trx
+          fail-on-error: 'true'
+          
   build:
     runs-on: ubuntu-latest
+    needs: report_local_tests
     
     env:
       Solution_Name: VehicleMapFramework
@@ -31,10 +57,6 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 9.0.x
-
-    # Execute all unit tests in the solution
-    # - name: Execute unit tests
-    #  run: dotnet test
     
     - name: Restore Dependencies
       run: dotnet restore ${{ env.Project_Path }}

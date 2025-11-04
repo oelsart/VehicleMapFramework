@@ -11,4 +11,8 @@ public class Configurations
     public const string LocalModsRoot = TestProjectRoot + "/../../..";
 
     public const string RimWorldAssemblyFolder = LocalModsRoot + "/../RimWorldWin64_Data/Managed";
+    
+    public const string WorkshopIdsFileName = "WorkshopIds.yml";
+    
+    public const string TestPlansFileName = "TestPlans.yml";
 }
