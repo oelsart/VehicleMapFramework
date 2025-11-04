@@ -15,7 +15,7 @@ jobs:
     steps:
       - name: Download external TRX
         run: |
-          curl -L -o ./LocalTestResults.trx "https://uploads.github.com/repos/oelsart/VehicleMapFramework/actions/artifacts/TestResults.trx"
+          curl -L -o ./LocalTestResults.trx "https://uploads.github.com/repos/oelsart/VehicleMapFramework/contents/testresults/TestResults.trx"
 
       - name: Upload local test results artifact
         uses: actions/upload-artifact@v4
