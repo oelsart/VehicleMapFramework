@@ -7,7 +7,6 @@ on:
       - "1.6"
       - bug-fix
       - development
-      - test-result-checker-test
 
 jobs:
   report_local_tests:
