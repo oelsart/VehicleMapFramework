@@ -13,12 +13,22 @@ jobs:
   check_local_status:
     runs-on: ubuntu-latest
     steps:
+        - name: Download external TRX
+          run: |
+            curl -L -o ./LocalTestResults.trx "https://uploads.github.com/repos/oelsart/VehicleMapFramework/actions/artifacts/TestResults.trx"
+
+        - name: Upload local test results artifact
+          uses: actions/upload-artifact@v4
+          with:
+            name: LocalTestResults
+            path: ./LocalTestResults.trx
+            
       - name: Test Report
         uses: dorny/test-reporter@v2
         with:
           artifact: LocalTestResults
           name: Harmony Patch Tests
-          path: '*.trx'
+          path: './TestResults.trx'
           reporter: dotnet-trx
           fail-on-error: 'true'
           
