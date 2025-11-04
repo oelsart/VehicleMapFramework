@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - 1.6
+      - "1.6"
       - bug-fix
       - development
       - test-result-checker-test
@@ -16,9 +16,9 @@ jobs:
       - name: Download TRX file
         run: |
           curl -L -o ./LocalTestResults.trx "${{ steps.get_trx.outputs.download_url }}"
-            - name: Download external TRX
+            - name: Download TRX
               run: |
-                curl -L -o ./LocalTestResults.trx "https://api.github.com/repos/oelsart/VehicleMapFramework/contents/testresults/TestResults.trx"
+                curl -L -o ./LocalTestResults.trx "https://gist.githubusercontent.com/oelsart/4743ba5e7e55987224cc6fb29459fa4e/raw/TestResults.trx"
 
       - name: Upload local test results artifact
         uses: actions/upload-artifact@v4
