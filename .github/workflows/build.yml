@@ -16,8 +16,9 @@ jobs:
       - name: Test Report
         uses: dorny/test-reporter@v2
         with:
+          artifact: LocalTestResults
           name: Harmony Patch Tests
-          artifact: LocalTestResults.trx
+          path: '*.trx'
           reporter: dotnet-trx
           fail-on-error: 'true'
           
