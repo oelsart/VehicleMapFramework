@@ -1,36 +1,22 @@
 name: Build
 
 on:
+  workflow_dispatch:
   push:
-    branches: [ "bug-fix" ]
+    branches:
+      - **
 
 jobs:
   check_local_status:
     runs-on: ubuntu-latest
     steps:
-    - name: Check Local Test Results
-      id: get_status
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
-        CONTEXT: 'local-tests-status' 
-      run: |
-        STATUS_RESPONSE=$(gh api \
-        /repos/${{ github.repository }}/statuses/${{ github.sha }} \
-        --jq '.[] | select(.context == env.CONTEXT) | .state' \
-        --paginate | head -n 1)
-        echo "Found Commit Status: $STATUS_RESPONSE"
-        if [ "$STATUS_RESPONSE" == "success" ]; then
-          echo "Local tests succeeded. Proceeding."
-          echo "status_result=success" >> $GITHUB_OUTPUT
-        elif [ "$STATUS_RESPONSE" == "failure" ]; then
-          echo "Local tests failed. Aborting build."
-          echo "status_result=failure" >> $GITHUB_OUTPUT
-          exit 1
-        else
-          echo "::error::Local test status not found or not in 'success'/'failure' state. Aborting build."
-          echo "status_result=failure" >> $GITHUB_OUTPUT
-          exit 1
-        fi
+      - name: Test Report
+        uses: dorny/test-reporter@v2
+        with:
+          name: Harmony Patch Tests
+          artifact: LocalTestResults.trx
+          reporter: dotnet-trx
+          fail-on-error: 'true'
           
   build:
     runs-on: ubuntu-latest
