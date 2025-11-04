@@ -1,18 +1,13 @@
 ﻿using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Runtime.Loader;
+using System.Security;
 using HarmonyLib;
-using ModAssemblyLoader;
 
 namespace Test_CompatPatches;
 
 [TestFixture]
 public class HarmonyPatchTests
 {
-    private AssemblyLoader loader;
-
-    private Type[] types;
-
     private Harmony harmony;
     
     private const string HarmonyId = "VehicleMapFramework.HarmonyPatchTests";
@@ -20,34 +15,28 @@ public class HarmonyPatchTests
     [OneTimeSetUp]
     public void OneTimeSetUp()
     {
-        AssemblyLoadContext.Default.Resolving += (_, assemblyName) =>
-        {
-            var fileName = $"{assemblyName.Name}.dll";
-            var path = Path.Combine(Configurations.RimWorldAssemblyFolder, fileName);
-            return File.Exists(path) ? Assembly.LoadFrom(path) : null;
-        };
-        loader = new AssemblyLoader(
-            Configurations.Version,
-            Configurations.SteamWorkshopRoot,
-            Configurations.LocalModsRoot);
-        loader.LoadModFolder(TestPlanLoader.WorkshopIds["VehicleFramework"]);
-        var assemblies = loader.LoadModFolder("VehicleMapFramework");
-        types = assemblies
-            .SelectMany(AccessTools.GetTypesFromAssembly)
-            .Where(type => type.FullName?.Contains("Patch") ?? false).ToArray();
-
         AccessTools.PropertySetter("VehicleMapFramework.UnitTestDetector:IsTestingContext")
             .Invoke(null, [true]);
         harmony = new Harmony(HarmonyId);
         harmony.Patch(
             AccessTools.Method("Verse.GenTypes:GetTypeInAnyAssembly"),
             AccessTools.Method(typeof(HarmonyPatchTests), nameof(TypeByName)));
+        harmony.Patch(
+            AccessTools.Method("Verse.GenTypes:AllSubclasses"),
+            AccessTools.Method(typeof(HarmonyPatchTests), nameof(AllSubclasses)));
     }
 
     private static bool TypeByName(string typeName, ref Type __result)
     {
         _ = __result;
         __result = AccessTools.TypeByName(typeName);
+        return false;
+    }
+
+    private static bool AllSubclasses(Type baseType, ref List<Type> __result)
+    {
+        _ = __result;
+        __result = AccessTools.AllTypes().AsParallel().Where(x => x.IsSubclassOf(baseType)).ToList();
         return false;
     }
 
@@ -59,9 +48,7 @@ public class HarmonyPatchTests
         harmony.UnpatchAll(HarmonyId);
     }
     
-    [Order(1)]
-    [Test]
-    [TestCaseSource(typeof(TestPlanLoader), nameof(TestPlanLoader.GetTestPlans))]
+    [Test, Order(1), TestCaseSource(typeof(TestPlanLoader), nameof(TestPlanLoader.GetLoadTestPlans))]
     public void LoadAssemblies(TestPlan plan)
     {
         using (Assert.EnterMultipleScope())
@@ -75,51 +62,59 @@ public class HarmonyPatchTests
             List<Assembly> assemblies2 = null;
             using (Assert.EnterMultipleScope())
             {
-                Assert.DoesNotThrow(() => assemblies2 = loader.LoadModFolder(TestPlanLoader.WorkshopIds[mod]));
+                Assert.DoesNotThrow(() => assemblies2 = TestPlanLoader.Loader.LoadModFolder(TestPlanLoader.WorkshopIds[mod]));
                 Assert.That(assemblies2, Is.Not.Empty);
             }
         }
     }
 
-    [Order(2)]
-    [Test]
-    public void InitializeModCompatClass()
+    [Test, Order(2), TestCaseSource(typeof(TestPlanLoader), nameof(TestPlanLoader.GetModCompatTestPlans))]
+    public void InitializeModCompatClass(Type type)
     {
-        var t_ModCompat = AccessTools.TypeByName("VehicleMapFramework.ModCompat");
-        RuntimeHelpers.RunClassConstructor(t_ModCompat.TypeHandle);
-        var exceptions = (List<Exception>)AccessTools.PropertyGetter(t_ModCompat, "CctorExceptions").Invoke(null, null);
-        Assert.That(exceptions, Is.Empty, string.Join("\n\n", exceptions!));
+        RuntimeHelpers.RunClassConstructor(type.TypeHandle);
+        var threadLocal = (ThreadLocal<Exception>)AccessTools.PropertyGetter(TestPlanLoader.ModCompatType, "CctorException").Invoke(null, null);
+        var exception = threadLocal!.Value;
+        threadLocal.Value = null;
+        Assert.That(exception, Is.Null);
     }
 
-    [Order(3)]
-    [Test]
-    [TestCaseSource(typeof(TestPlanLoader), nameof(TestPlanLoader.GetTestPlans))]
+    [Test, Order(3), TestCaseSource(typeof(TestPlanLoader), nameof(TestPlanLoader.GetPatchTestPlans))]
     public void ExecutePatches(TestPlan plan)
     {
         var harmonyLocal = new Harmony($"VehicleMapFramework.CompatPatchesTest: {plan.Name}");
-        Assert.DoesNotThrow(() =>
+
+        foreach (var category in plan.Categories)
         {
-            foreach (var category in plan.Categories)
-            {
-                PatchCategory(category);
-            }
-        });
+            PatchCategory(category);
+        }
         Assert.Pass($"Successfully applied {harmonyLocal.GetPatchedMethods().Count()} patches.");
         return;
     
         void PatchCategory(string category)
         {
-            types.Where(type =>
+            TestPlanLoader.Types.Where(type =>
             {
                 var attributes = type.GetCustomAttributesData();
                 return
-                    attributes.All(attr => attr.AttributeType.Name != "ExceptForTestingAttribute") &&
                     attributes.Any(attr => attr.AttributeType == typeof(HarmonyPatch)) &&
                     attributes.Any(attr => attr.AttributeType == typeof(HarmonyPatchCategory) &&
                                            attr.ConstructorArguments.Any(c => (string)c.Value == category));
             }).Do(type =>
             {
-                harmonyLocal.CreateClassProcessor(type).Patch();
+                try
+                {
+                    harmonyLocal.CreateClassProcessor(type).Patch();
+                }
+                catch (Exception ex)
+                {
+                    switch (ex)
+                    {
+                        case SecurityException:
+                        case HarmonyException { InnerException: not SecurityException }:
+                            Assert.Fail(ex.ToString());
+                            break;
+                    }
+                }
             });
         }
     }

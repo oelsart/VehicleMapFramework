@@ -15,7 +15,7 @@ jobs:
     steps:
       - name: Download TRX file
         run: |
-          curl -L -o ./LocalTestResults.trx "https://gist.githubusercontent.com/oelsart/4743ba5e7e55987224cc6fb29459fa4e/raw/TestResults.trx"
+          curl -L -o ./LocalTestResults.trx "https://gist.githubusercontent.com/oelsart/3bb8183cedc9869f566440ca1553c633/raw/TestResults.trx"
 
       - name: Upload local test results artifact
         uses: actions/upload-artifact@v4

@@ -6,6 +6,8 @@ internal static class PatchCategories
     
     public const string Odyssey = "VMF_Patches_Odyssey";
     
+    public const string VehicleFramework = "VMF_Patches_VehicleFramework";
+    
     public const string VEFCore = "VMF_Patches_VanillaExpandedFramework";
 
     public const string VFEArchitect = "VMF_Patches_VFEArchitect";

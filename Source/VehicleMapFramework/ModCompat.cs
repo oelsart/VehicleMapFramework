@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using HarmonyLib;
 using JetBrains.Annotations;
 using RimWorld;
@@ -23,18 +24,11 @@ internal static class UnitTestDetector
     internal static bool IsTestingContext { get; set; }
 }
 
-/// <summary>
-/// このメソッドは、セキュリティ制約（ECallなど）や内部的な理由により、
-/// Unity外部からのテストから除外される
-/// </summary>
-[AttributeUsage(AttributeTargets.Class)]
-internal class ExceptForTestingAttribute : Attribute;
-
 [StaticConstructorOnStartup]
 internal static class ModCompat
 {
     [UsedImplicitly]
-    internal static List<Exception> CctorExceptions { get; private set; }
+    internal static ThreadLocal<Exception> CctorException { get; private set; }
     
     internal static bool AnyNull(params object[] args)
     {
@@ -55,7 +49,7 @@ internal static class ModCompat
     {
         if (UnitTestDetector.IsTestingContext)
         {
-            CctorExceptions.Add(ex);
+            CctorException.Value = ex;
             return;
         }
         VMF_Log.Error(ex.Message);
@@ -64,17 +58,13 @@ internal static class ModCompat
     static ModCompat()
     {
         if (UnitTestDetector.IsTestingContext)
-            CctorExceptions = [];
-        try
         {
-            foreach (var type in AccessTools.InnerTypes(typeof(ModCompat)))
-            {
-                RuntimeHelpers.RunClassConstructor(type.TypeHandle);
-            }
+            CctorException = new ThreadLocal<Exception>();
+            return;
         }
-        catch (Exception ex)
+        foreach (var type in AccessTools.InnerTypes(typeof(ModCompat)))
         {
-            CctorExceptions?.Add(ex);
+            RuntimeHelpers.RunClassConstructor(type.TypeHandle);
         }
     }
 
