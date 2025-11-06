@@ -11,75 +11,18 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <OutputPath>..\..\1.6\Assemblies\</OutputPath>
-    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DebugType>full</DebugType>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>none</DebugType>
     <OutputPath>..\..\1.6\Assemblies\</OutputPath>
-    <WarningLevel>5</WarningLevel>
-    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Dev|AnyCPU'">
     <DebugType>none</DebugType>
     <OutputPath>..\..\..\VehicleMapFrameworkDev\1.6\Assemblies\</OutputPath>
-    <WarningLevel>5</WarningLevel>
-    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
     <Optimize>True</Optimize>
   </PropertyGroup>
-  <ItemGroup>
-    <Compile Remove="Defs\**" />
-    <Compile Remove="Patches\**" />
-    <Compile Remove="_AncientUrbanRuins\**" />
-    <Compile Remove="_MedievalOverhaul\**" />
-    <Compile Remove="_Mines\**" />
-    <Compile Remove="_MultiFloors\**" />
-    <Compile Remove="_RimLifeExpansionProductionPlus\**" />
-    <Compile Remove="_RooflessHull\**" />
-    <Compile Remove="_SaveOurShip2\**" />
-    <Compile Remove="_VFEMechanoids\**" />
-    <Compile Remove="_VFESecurity\**" />
-    <EmbeddedResource Remove="Defs\**" />
-    <EmbeddedResource Remove="Patches\**" />
-    <EmbeddedResource Remove="_AncientUrbanRuins\**" />
-    <EmbeddedResource Remove="_MedievalOverhaul\**" />
-    <EmbeddedResource Remove="_Mines\**" />
-    <EmbeddedResource Remove="_MultiFloors\**" />
-    <EmbeddedResource Remove="_RimLifeExpansionProductionPlus\**" />
-    <EmbeddedResource Remove="_RooflessHull\**" />
-    <EmbeddedResource Remove="_SaveOurShip2\**" />
-    <EmbeddedResource Remove="_VFEMechanoids\**" />
-    <EmbeddedResource Remove="_VFESecurity\**" />
-    <None Remove="Defs\**" />
-    <None Remove="Patches\**" />
-    <None Remove="_AncientUrbanRuins\**" />
-    <None Remove="_MedievalOverhaul\**" />
-    <None Remove="_Mines\**" />
-    <None Remove="_MultiFloors\**" />
-    <None Remove="_RimLifeExpansionProductionPlus\**" />
-    <None Remove="_RooflessHull\**" />
-    <None Remove="_SaveOurShip2\**" />
-    <None Remove="_VFEMechanoids\**" />
-    <None Remove="_VFESecurity\**" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Update="System">
-      <Private>False</Private>
-    </Reference>
-    <Reference Update="System.Core">
-      <Private>False</Private>
-    </Reference>
-    <Reference Update="System.Xml.Linq">
-      <Private>False</Private>
-    </Reference>
-    <Reference Update="System.Data">
-      <Private>False</Private>
-    </Reference>
-    <Reference Update="System.Xml">
-      <Private>False</Private>
-    </Reference>
-  </ItemGroup>
+  
   <ItemGroup>
     <PackageReference Include="Krafs.Rimworld.Ref" />
     <PackageReference Include="Lib.Harmony.Ref" />
@@ -95,11 +38,11 @@
   
   <ItemGroup Condition="'$(Configuration)'=='Dev'">
     <Reference Include="SmashTools">
-      <HintPath>..\..\..\Vehicle-Framework\1.6\Assemblies\SmashTools.dll</HintPath>
+      <HintPath>..\..\..\VehicleFramework\1.6\Assemblies\SmashTools.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Vehicles">
-      <HintPath>..\..\..\Vehicle-Framework\1.6\Assemblies\Vehicles.dll</HintPath>
+      <HintPath>..\..\..\VehicleFramework\1.6\Assemblies\Vehicles.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
@@ -137,6 +80,9 @@
   <ItemGroup>
     <Content Include="..\..\.github\workflows\build.yml">
       <Link>build.yml</Link>
+    </Content>
+    <Content Include="..\..\.git\hooks\pre-push">
+      <Link>pre-push</Link>
     </Content>
   </ItemGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(SkipPostBuild)' != 'true'">

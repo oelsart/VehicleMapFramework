@@ -1,4 +1,4 @@
-﻿namespace Test_CompatPatches;
+﻿namespace VehicleMapFramework.Test_CompatPatches;
 
 [Serializable]
 public class TestPlan

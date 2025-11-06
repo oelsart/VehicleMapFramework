@@ -23,12 +23,12 @@ public class CrossMapReachabilityCache(World world) : WorldComponent(world)
 
     public static bool TryGetCache(Region A, Region B, TraverseParms traverseParms, out bool result, out TargetInfo exitSpot, out TargetInfo enterSpot)
     {
-        if (A == null || B == null)
+        if (A is null || B is null)
         {
             result = false;
             exitSpot = TargetInfo.Invalid;
             enterSpot = TargetInfo.Invalid;
-            return true;
+            return false;
         }
         if (Instance.cache.TryGetValue(new CachedEntry(A, B, traverseParms), out var value))
         {
@@ -45,6 +45,7 @@ public class CrossMapReachabilityCache(World world) : WorldComponent(world)
 
     public static void Cache(Region A, Region B, TraverseParms traverseParms, bool result, TargetInfo exitSpot, TargetInfo enterSpot)
     {
+        if (A is null || B is null) return;
         var key = new CachedEntry(A, B, traverseParms);
         Instance.cache[key] = (result, exitSpot, enterSpot);
     }
@@ -55,7 +56,7 @@ public class CrossMapReachabilityCache(World world) : WorldComponent(world)
 
         public Region SecondRegion { readonly get; private set; }
 
-        public TraverseParms TraverseParms { get; private set; }
+        private TraverseParms TraverseParms { get; set; }
 
         public CachedEntry(Region firstRegion, Region secondRegion, TraverseParms traverseParms)
         {

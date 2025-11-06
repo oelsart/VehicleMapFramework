@@ -1,9 +1,10 @@
-﻿using System.Reflection;
+﻿using System.Diagnostics;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Security;
 using HarmonyLib;
 
-namespace Test_CompatPatches;
+namespace VehicleMapFramework.Test_CompatPatches;
 
 [TestFixture]
 public class HarmonyPatchTests
@@ -109,8 +110,11 @@ public class HarmonyPatchTests
                 {
                     switch (ex)
                     {
-                        case SecurityException:
+                        // デバッガーがアタッチされている時はReadMethodBody時ECallメソッドのSecurityExceptionが出ないため
+                        // そのためSecurityExceptionのスキップをスキップする
+                        case not null when Debugger.IsAttached:
                         case HarmonyException { InnerException: not SecurityException }:
+                        case not SecurityException and not HarmonyException:
                             Assert.Fail(ex.ToString());
                             break;
                     }

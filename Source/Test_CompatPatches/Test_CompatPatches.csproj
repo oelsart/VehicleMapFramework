@@ -4,9 +4,11 @@
     <LangVersion>preview</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <IsPackable>false</IsPackable>
+    <RootNamespace>VehicleMapFramework.Test_CompatPatches</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="JunitXml.TestLogger" Version="7.0.2" />
     <PackageReference Include="Lib.Harmony" Version="2.4.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.0" />
     <PackageReference Include="NUnit.Analyzers" Version="4.11.2">

@@ -190,7 +190,7 @@ public static class Patch_VehiclePawn_FullRotation
 
 [HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch("Vehicles.Patch_Rendering", "DrawSelectionBracketsVehicles")]
-[PatchLevel(Level.Sensitive)]
+[PatchLevel(Level.Mandatory)]
 public static class Patch_Rendering_DrawSelectionBracketsVehicles
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator, MethodBase original)

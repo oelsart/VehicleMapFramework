@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 // 制御されます。アセンブリに関連付けられている情報を変更するには、
 // これらの属性値を変更してください。
 [assembly: AssemblyDescription("")]
-[assembly: AssemblyCopyright("Copyright ©OELS  2024")]
+[assembly: AssemblyCopyright("Copyright ©OELS  2024-2025")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: InternalsVisibleTo("VMF_AchtungPatch")]
@@ -16,6 +16,7 @@ using System.Runtime.InteropServices;
 [assembly: InternalsVisibleTo("VMF_PUAHPatch")]
 [assembly: InternalsVisibleTo("VMF_SmartFarmingPatch")]
 [assembly: InternalsVisibleTo("VMF_VEFCompat")]
+[assembly: InternalsVisibleTo("Test_Logics")]
 
 // ComVisible を false に設定すると、このアセンブリ内の型は COM コンポーネントから
 // 参照できなくなります。COM からこのアセンブリ内の型にアクセスする必要がある場合は、

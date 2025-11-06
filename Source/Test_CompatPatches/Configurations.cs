@@ -1,4 +1,4 @@
-﻿namespace Test_CompatPatches;
+﻿namespace VehicleMapFramework.Test_CompatPatches;
 
 public class Configurations
 {
