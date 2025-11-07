@@ -34,6 +34,7 @@ public class Logger_JUnit : Logger
     public Logger_JUnit(Config config) : base(config)
     {
         document.Add(testsuite);
+        testsuite.Add(new XElement("properties"));
     }
 
     public void ParseAndAdd(string message)
