@@ -76,15 +76,12 @@ public class Test_Logics : Mod
         return false;
     }
 
-    private static bool SaveBeforeDispose(Logger __instance,  FileStream ___fileStream)
+    private static void SaveBeforeDispose(Logger __instance,  FileStream ___fileStream)
     {
         if (__instance is Logger_JUnit loggerJUnit)
         {
             loggerJUnit.Save(___fileStream);
-            return false;
         }
-
-        return true;
     }
     
     private readonly struct MutexLock(Mutex mutex) : IDisposable
