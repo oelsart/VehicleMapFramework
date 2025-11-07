@@ -14,7 +14,7 @@ internal sealed class UnitTest_WorkGivers
     [Test]
     private void TestWorkGivers()
     {
-        using var dynamicPatchActivator = new DynamicPatchActivator();
+        using var dynamicPatchEnabler = new DynamicPatchEnabler();
         using var vehicleGroup = VehicleGroup.CreateBasicVehicleGroup(new VehicleGroup.MockSettings
         {
             vehicleDef = DefDatabase<VehicleDef>.GetNamed("MV_Crawler"),
@@ -37,7 +37,7 @@ internal sealed class UnitTest_WorkGivers
         {
             pawn.workSettings.SetPriority(workTypeDef, 3);
         }
-        Expect.IsTrue(TestUtility.EvacuateFromTestArea(pawn), "Failed to evacuate from test area.");
+        Expect.IsTrue(TestUtility.EvacuateFromTestArea(pawn), "Evacuate from test area.");
 
         VMF_Harmony.DynamicPatchAllNow(Level.Sensitive);
         foreach (var test in workGiverTests)

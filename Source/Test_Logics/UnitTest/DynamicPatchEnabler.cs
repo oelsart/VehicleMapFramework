@@ -1,12 +1,12 @@
 ﻿namespace VehicleMapFramework.Test_Logics;
 
-public readonly struct DynamicPatchActivator : IDisposable
+public readonly struct DynamicPatchEnabler : IDisposable
 {
     private readonly bool dynamicPatchEnabled = VehicleMapFramework.settings.dynamicPatchEnabled;
     
     private readonly bool dynamicUnPatchEnabled = VehicleMapFramework.settings.dynamicUnpatchEnabled;
     
-    public DynamicPatchActivator()
+    public DynamicPatchEnabler()
     {
         VehicleMapFramework.settings.dynamicPatchEnabled = true;
         VehicleMapFramework.settings.dynamicUnpatchEnabled = true;

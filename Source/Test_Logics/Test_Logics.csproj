@@ -5,7 +5,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>VehicleMapFramework.Test_Logics</RootNamespace>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-    <Configurations>Dev</Configurations>
+    <Configurations>Dev;Release;Debug</Configurations>
+    <Platforms>AnyCPU</Platforms>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Dev|AnyCPU'">
