@@ -9,7 +9,7 @@ namespace VehicleMapFramework.Test_CompatPatches;
 
 public static class TestPlanLoader
 {
-    public static AssemblyLoader Loader { get; private set; }
+    public static AssemblyLoader Loader { get; }
     
     public static Type[] Types { get; private set; }
     

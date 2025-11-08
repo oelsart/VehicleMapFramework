@@ -13,7 +13,7 @@ public static class DefMessagesReplace
 {
     static DefMessagesReplace()
     {
-        var refuelVehicleTank = DefDatabase<WorkGiverDef>.GetNamedSilentFail("VMF_RefuelVehicleTank");
+        var refuelVehicleTank = DefDatabase<WorkGiverDef>.GetNamedSilentFail("VMF_RefuelVehicleTank"!);
         var refuelVehicle = DefDatabase<WorkGiverDef>.GetNamedSilentFail("RefuelVehicle");
         if (refuelVehicleTank != null && refuelVehicle != null)
         {

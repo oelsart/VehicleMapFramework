@@ -24,6 +24,7 @@ internal sealed class UnitTest_WorkGivers
             .Select(type => Activator.CreateInstance(type, vehicleGroup)).Cast<WorkGiverTestBase>().ToArray();
         vehicleGroup.SpawnPawns();
         var pawn = vehicleGroup.pawns[0];
+        pawn.Map.weatherManager.curWeather = WeatherDefOf.Clear;
         foreach (var skillDef in DefDatabase<SkillDef>.AllDefs)
         {
             pawn.skills.Learn(skillDef, 100000000f);

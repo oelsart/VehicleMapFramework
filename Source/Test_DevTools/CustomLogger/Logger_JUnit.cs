@@ -3,15 +3,13 @@ using DevTools.Testing;
 
 namespace VehicleMapFramework.Test_Logics;
 
-public class Logger_JUnit : Logger
+public class Logger_JUnit : CustomLoggerBase
 {
     private readonly XDocument document = new();
 
     private readonly XTestSuite testsuite = new(TestSuiteName);
     
     private readonly Stack<XTestCase> testCaseStack = [];
-    
-    private State currentState = State.None;
     
     private const string TestSuiteName = "testsuite";
     
@@ -37,17 +35,8 @@ public class Logger_JUnit : Logger
         document.Add(testsuite);
     }
 
-    public void ParseAndAdd(string message)
+    public override void WriteCustom(StreamWriter writer, string message)
     {
-        const string SettingUp = "Setting up";
-        const string Executing = "Executing";
-        const string TearingDown = "Tearing down";
-        const string BeginGroup = "-- Begin Group";
-        const string EndGroup = "-- End Group";
-        const string PassedLabel = "[Passed]";
-        const string FailedLabel = "[Failed]";
-        const string SkippedLabel = "[Skipped]";
-
         if (message.StartsWith(SettingUp))
             currentState = State.SettingUp;
         else if (message.StartsWith(Executing))
@@ -102,10 +91,10 @@ public class Logger_JUnit : Logger
         }
     }
 
-    public void Save(FileStream stream)
+    public override void DisposeCustom(StreamWriter writer)
     {
         WriteTestResults();
-        document.Save(stream);
+        document.Save(writer);
         return;
 
         void WriteTestResults()
@@ -137,13 +126,6 @@ public class Logger_JUnit : Logger
     {
         if (testCaseStack.TryPop(out var testCase))
             testCase.SetAttributeValue(AssertionAttribute, testCase.assertions);
-    }
-
-    private enum State
-    {
-        None,
-        SettingUp,
-        TearingDown,
     }
 
     private class XTestCase(XName name) : XElement(name)

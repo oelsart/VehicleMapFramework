@@ -34,25 +34,7 @@ internal abstract class WorkGiverTestBase(VehicleGroup group)
     public virtual void ExecuteStep2()
     {
         results[1] = RunWorkGiverAfterPatch(Pawn, Vehicle, WorkGiverDef);
-        var stringBuilder = new StringBuilder("\n");
-        for (var i = 0; i < results.Length; i++)
-        {
-            stringBuilder.AppendLine($"Result{i + 1}:");
-            stringBuilder.AppendLine($"  PawnCanUse: {results[i].pawnCanUse}");
-            if (WorkGiverDef.scanThings)
-            {
-                stringBuilder.AppendLine($"  ThingsCount: {results[i].things.Count}");
-                stringBuilder.AppendLine($"  Thing: {results[i].thing}");
-            }
-
-            if (WorkGiverDef.scanCells)
-            {
-                stringBuilder.AppendLine($"  CellsCount: {results[i].cells.Count}");
-                stringBuilder.AppendLine($"  Cell: {results[i].cell}");
-            }
-            stringBuilder.AppendLine($"  Job: {results[i].job}");
-        }
-        Expect.AreEqual(results[0], results[1], stringBuilder.ToString());
+        Expect.AreEqual(results[0], results[1]);
         Clear();
     }
 
@@ -68,6 +50,7 @@ internal abstract class WorkGiverTestBase(VehicleGroup group)
 
     private static WorkGiverResult RunWorkGiverBeforePatch(Pawn pawn, WorkGiverDef workGiverDef)
     {
+        pawn.ClearAllReservations();
         var result = new WorkGiverResult();
         var workGiver = workGiverDef.Worker;
         result.pawnCanUse = PawnCanUseWorkGiver(pawn, workGiver);
@@ -230,6 +213,7 @@ internal abstract class WorkGiverTestBase(VehicleGroup group)
     
     private static WorkGiverResult RunWorkGiverAfterPatch(Pawn pawn, VehiclePawn vehicle, WorkGiverDef workGiverDef)
     {
+        pawn.ClearAllReservations();
         var result = new WorkGiverResult();
         var workGiver = workGiverDef.Worker;
         result.pawnCanUse = PawnCanUseWorkGiver(pawn, workGiver);
@@ -402,6 +386,18 @@ internal abstract class WorkGiverTestBase(VehicleGroup group)
                 }
                 return second != null && first.SequenceEqual(second);
             }
+        }
+
+        public override string ToString()
+        {
+            var stringBuilder = new StringBuilder("\n");
+            stringBuilder.AppendLine($"  PawnCanUse: {pawnCanUse}");
+            stringBuilder.AppendLine($"  ThingsCount: {things?.Count ?? 0}");
+            stringBuilder.AppendLine($"  Thing: {thing}");
+            stringBuilder.AppendLine($"  CellsCount: {cells?.Count ?? 0}");
+            stringBuilder.AppendLine($"  Cell: {cell}");
+            stringBuilder.AppendLine($"  Job: {job}");
+            return stringBuilder.ToString();
         }
     }
 }

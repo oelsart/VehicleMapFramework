@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using System.Runtime.CompilerServices;
 using DevTools;
 using DevTools.Testing;
 using HarmonyLib;
@@ -6,20 +7,30 @@ using Verse;
 
 namespace VehicleMapFramework.Test_Logics;
 
-public class Test_Logics : Mod
+[StaticConstructorOnStartup]
+public static class CustomLoggerHarmony
 {
-    public Test_Logics(ModContentPack content) : base(content)
+    static CustomLoggerHarmony()
     {
-        var harmony = new Harmony("OELS.VehicleMapFramework.Test_Logics");
-        harmony.Patch(
-            AccessTools.Method(typeof(DevLog), nameof(DevLog.EnableLogger)),
-            AccessTools.Method(typeof(Test_Logics), nameof(EnableCustomLogger)));
-        harmony.Patch(
-            AccessTools.Method(typeof(Logger), nameof(Logger.Write)),
-            AccessTools.Method(typeof(Test_Logics), nameof(ReplaceWriteMethod)));
-        harmony.Patch(
-            AccessTools.Method(typeof(Logger), nameof(Logger.Dispose)),
-            AccessTools.Method(typeof(Test_Logics), nameof(SaveBeforeDispose)));
+        try
+        {
+            RuntimeHelpers.RunClassConstructor(typeof(Logger).TypeHandle);
+            var harmony = new Harmony("OELS.VehicleMapFramework.Test_DevTools");
+            harmony.Patch(
+                AccessTools.Method(typeof(DevLog), nameof(DevLog.EnableLogger)),
+                AccessTools.Method(typeof(CustomLoggerHarmony), nameof(EnableCustomLogger)));
+            harmony.Patch(
+                AccessTools.Method(typeof(Logger), nameof(Logger.Write)),
+                AccessTools.Method(typeof(CustomLoggerHarmony), nameof(ReplaceWriteMethod)));
+            harmony.Patch(
+                AccessTools.Method(typeof(Logger), nameof(Logger.Dispose)),
+                AccessTools.Method(typeof(CustomLoggerHarmony), nameof(SaveBeforeDispose)));
+        }
+        catch (Exception ex)
+        {
+            if (ex is HarmonyException)
+                throw;
+        }
     }
 
     private static bool EnableCustomLogger(Logger.Config config, ref Logger ___logger)
@@ -59,29 +70,32 @@ public class Test_Logics : Mod
         }
     }
 
-    private static bool ReplaceWriteMethod(Logger __instance, Logger.Config ___config, FileInfo ___file,
-        StreamWriter ___writer, Mutex ___writerMutex, string message)
+    private static bool ReplaceWriteMethod(Logger __instance, Logger.Config ___config,
+        FileInfo ___file, StreamWriter ___writer, Mutex ___writerMutex, string message)
     {
-        if (__instance is not Logger_JUnit loggerJUnit)
+        if (__instance is not CustomLoggerBase customLogger)
             return true;
         if (__instance.Disposed)
             return false;
+        if (!customLogger.initialized)
+        {
+            customLogger.InitCustom(___writer);
+            customLogger.initialized = true;
+        }
 
         ___file.Refresh();
         if (!___file.Exists || ___file.Length >= ___config.maxFileSize)
             return false;
 
         using MutexLock ml = new(___writerMutex);
-        loggerJUnit.ParseAndAdd(message);
+        customLogger.WriteCustom(___writer, message);
         return false;
     }
 
-    private static void SaveBeforeDispose(Logger __instance,  FileStream ___fileStream)
+    private static void SaveBeforeDispose(Logger __instance,  StreamWriter ___writer)
     {
-        if (__instance is Logger_JUnit loggerJUnit)
-        {
-            loggerJUnit.Save(___fileStream);
-        }
+        if (__instance is CustomLoggerBase customLogger)
+            customLogger.DisposeCustom(___writer);
     }
     
     private readonly struct MutexLock(Mutex mutex) : IDisposable

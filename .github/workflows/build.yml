@@ -14,16 +14,14 @@ jobs:
     steps:
       - name: Download Test Results
         run: |
-          curl -L -o ./TestResults_DevTools.xml "https://gist.githubusercontent.com/oelsart/29ca54dec75c9cd0947c3be2e6f06c04/raw/TestResults_DevTools.xml"
-          curl -L -o ./TestResults_Harmony.xml "https://gist.githubusercontent.com/oelsart/29ca54dec75c9cd0947c3be2e6f06c04/raw/TestResults_Harmony.xml"
+          curl -L -o ./TestResults.xml "https://gist.githubusercontent.com/oelsart/3bb8183cedc9869f566440ca1553c633/raw/TestResults.xml"
 
       - name: Upload local test results artifact
         uses: actions/upload-artifact@v4
         with:
           name: LocalTestResults
           path: |
-            ./TestResults_DevTools.xml
-            ./TestResults_Harmony.xml
+            ./TestResults.xml
             
       - name: Test Report
         uses: dorny/test-reporter@v2

@@ -260,7 +260,7 @@ public class RoleUpgradeBuildable : RoleUpgrade
 
         if (!upgrade2.turretIds.NullOrEmpty())
         {
-            upgrade2.label += ": " + upgrade2.turretIds.Select(i => i.CapitalizeFirst()).ToCommaList();
+            upgrade2.label += ": " + upgrade2.turretIds!.Select(i => i.CapitalizeFirst()).ToCommaList();
         }
 
         VehicleRoleBuildable vehicleRole = new()
@@ -279,10 +279,8 @@ public class RoleUpgradeBuildable : RoleUpgrade
                 VehiclePawnWithMapCache.cacheModeGlobal = true;
                 var position = GenThing.TrueCenter(thing.Position, thing.Rotation, thing.def.Size, 0f);
                 VehiclePawnWithMapCache.cacheModeGlobal = cacheMode;
-                var pivot = new Vector3(vehicle.VehicleMap.Size.x / 2f, 0f, vehicle.VehicleMap.Size.z / 2f);
                 var vehiclePos = vehicle.cachedDrawPos;
                 var rot = thing.Rotation;
-                var angle = rot.AsAngle;
                 var intClockwise = new Rot8(rot).AsIntClockwise;
 
                 upgrade2.pawnRenderer = new PawnOverlayRenderer
