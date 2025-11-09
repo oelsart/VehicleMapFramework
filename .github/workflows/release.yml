@@ -33,13 +33,18 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 9.0.x
-
-    # Execute all unit tests in the solution
-    # - name: Execute unit tests
-    #  run: dotnet test
     
     - name: Restore Dependencies
       run: dotnet restore ${{ env.Project_Path }}
+      
+    - name: Cache SteamCMD
+      id: cache-steam
+      uses: actions/cache@v4
+      with:
+        path: ~/Steam
+        key: ${{ runner.os }}-steamcmd-v1
+        restore-keys: |
+          ${{ runner.os }}-steamcmd-
         
     - name: Install SteamCMD
       run: |
@@ -51,12 +56,19 @@ jobs:
     - name: Download Workshop Mods
       run: |
         mkdir -p ~/Steam/steamapps/workshop/content/294100
+        
+        STEAM_COMMANDS="+login anonymous"
+        
         while IFS= read -r mod_id; do
           if [ -n "$mod_id" ]; then
-            echo "Downloading Workshop Mod: $mod_id"
-            ~/Steam/steamcmd.sh +login anonymous +workshop_download_item 294100 $mod_id validate +quit
+            echo "Queueing Workshop Mod: $mod_id"
+            STEAM_COMMANDS="${STEAM_COMMANDS} +workshop_download_item 294100 $mod_id validate"
           fi
         done <<< "${{ env.WorkshopMods }}"
+        
+        STEAM_COMMANDS="${STEAM_COMMANDS} +quit"
+        ~/Steam/steamcmd.sh ${STEAM_COMMANDS}
+        
         echo "CI_SteamCMD_WorkShop=$HOME/Steam/steamapps/workshop/content/294100" >> $GITHUB_ENV
         ls -la ~/Steam/steamapps/workshop/content/294100
 
