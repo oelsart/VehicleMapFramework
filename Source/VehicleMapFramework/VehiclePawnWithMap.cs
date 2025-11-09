@@ -400,19 +400,19 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         });
     }
 
-    // protected override void Tick()
-    // {
-    //     if (Spawned)
-    //     {
-    //         CacheDrawPos(DrawPos);
-    //         mapFollower?.MapFollowerTick();
-    //     }
-    //     else if (this.IsHashIntervalTick(15))
-    //     {
-    //         SetTile();
-    //     }
-    //     base.Tick();
-    // }
+    protected override void Tick()
+    {
+        if (Spawned)
+        {
+            CacheDrawPos(DrawPos);
+            mapFollower?.MapFollowerTick();
+        }
+        else if (this.IsHashIntervalTick(15))
+        {
+            SetTile();
+        }
+        base.Tick();
+    }
 
     private void SetTile()
     {

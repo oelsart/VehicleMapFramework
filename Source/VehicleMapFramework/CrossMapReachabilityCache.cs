@@ -52,11 +52,11 @@ public class CrossMapReachabilityCache(World world) : WorldComponent(world)
 
     private struct CachedEntry : IEquatable<CachedEntry>
     {
-        public Region FirstRegion { readonly get; private set; }
+        public Region FirstRegion { get; }
 
-        public Region SecondRegion { readonly get; private set; }
+        public Region SecondRegion { get; }
 
-        private TraverseParms TraverseParms { get; set; }
+        private TraverseParms TraverseParms { get; }
 
         public CachedEntry(Region firstRegion, Region secondRegion, TraverseParms traverseParms)
         {
