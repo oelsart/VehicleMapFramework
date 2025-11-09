@@ -1,5 +1,7 @@
+using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Xml.Linq;
+using Microsoft.VisualBasic;
 
 namespace VehicleMapFramework.Test_DevTools;
 
@@ -11,6 +13,9 @@ internal class TestCoRunner
 
     internal const string ResultPath =
         "E:/Program Files (x86)/Steam/steamapps/common/RimWorld/Mods/VehicleMapFramework/.git/testresults/Test.log";
+    
+    internal static readonly string ConfigPath =
+        $"{Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)[..^6]}/LocalLow/Ludeon Studios/RimWorld by Ludeon Studios/Config";
 
     internal static XElement[] testCases;
     
@@ -39,6 +44,13 @@ internal class TestCoRunner
     
     public static IEnumerable<TestCaseData> TestResults()
     {
+        var modsConfigPath = Path.Combine(ConfigPath, "ModsConfig.xml");
+        var backupPath = $"{modsConfigPath}.bak";
+        var testConfigPath = Path.Combine(ConfigPath, "_TEST_MODLIST.xml");
+        if (!File.Exists(modsConfigPath) || !File.Exists(testConfigPath))
+            yield break;
+        File.Replace(testConfigPath, modsConfigPath, backupPath);
+        
         Run();
         ReadResult();
         if (testCases is null)
@@ -49,5 +61,8 @@ internal class TestCoRunner
             testCaseData.SetName($"{testCase.Attribute("name")?.Value}");
             yield return testCaseData;
         }
+
+        FileSystem.FileCopy(modsConfigPath, testConfigPath);
+        File.Replace(backupPath, modsConfigPath, null);
     }
 }
