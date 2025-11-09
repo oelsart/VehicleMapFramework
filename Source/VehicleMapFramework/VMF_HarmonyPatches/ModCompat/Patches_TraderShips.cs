@@ -7,20 +7,18 @@ using Verse;
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 [StaticConstructorOnStartupPriority(Priority.Low)]
-internal class Patches_TranderShips
+internal class Patches_TraderShips
 {
-    public const string Category = "VMF_Patches_TraderShips";
-
-    static Patches_TranderShips()
+    static Patches_TraderShips()
     {
         if (ModCompat.TraderShips)
         {
-            VMF_Harmony.PatchCategory(Category);
+            VMF_Harmony.PatchCategory(PatchCategories.TraderShips);
         }
     }
 }
 
-[HarmonyPatchCategory(Patches_TranderShips.Category)]
+[HarmonyPatchCategory(PatchCategories.TraderShips)]
 [HarmonyPatch("TraderShips.CompShip", "PostDraw")]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_CompShip_PostDraw
@@ -49,7 +47,7 @@ public static class Patch_CompShip_PostDraw
 
 
 //車上マップにそれぞれVirtualMapTransferしてColonyThingsWillingToBuyを集める
-[HarmonyPatchCategory(Patches_TranderShips.Category)]
+[HarmonyPatchCategory(PatchCategories.TraderShips)]
 [HarmonyPatch("TraderShips.LandedShip", "ColonyThingsWillingToBuy")]
 [PatchLevel(Level.Safe)]
 public static class Patch_LandedShip_ColonyThingsWillingToBuy

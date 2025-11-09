@@ -4,7 +4,7 @@ using HarmonyLib;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches
 {
-    [HarmonyPatchCategory(Patches_VEF.CategoryArchitect)]
+    [HarmonyPatchCategory(PatchCategories.VFEArchitect)]
     [HarmonyPatch("VFEArchitect.Building_DoorSingle", "DrawAt")]
     [PatchLevel(Level.Sensitive)]
     public static class Patch_Building_DoorSingle_DrawAt

@@ -8,18 +8,16 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 internal class Patches_ReGrowth
 {
-    public const string Category = "VMF_Patches_ReGrowth";
-
     static Patches_ReGrowth()
     {
         if (ModCompat.ReGrowth)
         {
-            VMF_Harmony.PatchCategory(Category);
+            VMF_Harmony.PatchCategory(PatchCategories.ReGrowth);
         }
     }
 }
 
-[HarmonyPatchCategory(Patches_ReGrowth.Category)]
+[HarmonyPatchCategory(PatchCategories.ReGrowth)]
 [HarmonyPatch("ReGrowthCore.MapComponent_SmartFarming", "FinalizeInit")]
 public static class Patch_MapComponent_SmartFarming_FinalizeInit
 {

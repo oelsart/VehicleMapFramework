@@ -9,18 +9,16 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 internal class Patches_Aquariums
 {
-    public const string Category = "VMF_Patches_Aquariums";
-
     static Patches_Aquariums()
     {
         if (Active)
         {
-            VMF_Harmony.PatchCategory(Category);
+            VMF_Harmony.PatchCategory(PatchCategories.Aquariums);
         }
     }
 }
 
-[HarmonyPatchCategory(Patches_Aquariums.Category)]
+[HarmonyPatchCategory(PatchCategories.Aquariums)]
 [HarmonyPatch("Aquariums.ThingComp_WaterGraphic", "PostPrintOnto")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_ThingComp_WaterGraphic_PostPrintOnto
@@ -31,7 +29,7 @@ public static class Patch_ThingComp_WaterGraphic_PostPrintOnto
     }
 }
 
-[HarmonyPatchCategory("Patches_Aquariums.Category")]
+[HarmonyPatchCategory(PatchCategories.Aquariums)]
 [HarmonyPatch("Aquariums.TankNet", "DrawTankOutline")]
 [PatchLevel(Level.Safe)]
 public static class Patch_TankNet_DrawTankOutline
@@ -43,7 +41,7 @@ public static class Patch_TankNet_DrawTankOutline
     }
 }
 
-[HarmonyPatchCategory("Patches_Aquariums.Category")]
+[HarmonyPatchCategory(PatchCategories.Aquariums)]
 [HarmonyPatch("Aquariums.FishMovementBehavior", "PositionWithOffsets", MethodType.Getter)]
 [PatchLevel(Level.Safe)]
 public static class Patch_FishMovementBehavior_PositionWithOffsets

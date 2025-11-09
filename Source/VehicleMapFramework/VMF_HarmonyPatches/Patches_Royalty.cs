@@ -3,28 +3,24 @@ using System.Linq;
 using System.Reflection.Emit;
 using HarmonyLib;
 using RimWorld;
-using VehicleMapFramework.VMF_HarmonyPatches;
 using Verse;
 using static VehicleMapFramework.MethodInfoCache;
 
-namespace VehicleMapFramework.VMF_HarmonyPatches
-{
-    [StaticConstructorOnStartupPriority(Priority.Low)]
-    public class Patches_Royalty
-    {
-        public const string Category = "VMF_Patches_Royalty";
+namespace VehicleMapFramework.VMF_HarmonyPatches;
 
-        static Patches_Royalty()
+[StaticConstructorOnStartupPriority(Priority.Low)]
+public class Patches_Royalty
+{
+    static Patches_Royalty()
+    {
+        if (ModsConfig.RoyaltyActive)
         {
-            if (ModsConfig.RoyaltyActive)
-            {
-                VMF_Harmony.PatchCategory(Category);
-            }
+            VMF_Harmony.PatchCategory(PatchCategories.Royalty);
         }
     }
 }
 
-[HarmonyPatchCategory(Patches_Royalty.Category)]
+[HarmonyPatchCategory(PatchCategories.Royalty)]
 [HarmonyPatch(typeof(MeditationUtility), nameof(MeditationUtility.DrawMeditationSpotOverlay))]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_MeditationUtility_DrawMeditationSpotOverlay

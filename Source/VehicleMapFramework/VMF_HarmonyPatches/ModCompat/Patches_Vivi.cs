@@ -11,18 +11,16 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 internal static class Patches_Vivi
 {
-    public const string Category = "VMF_Patches_Vivi";
-
     static Patches_Vivi()
     {
         if (ModCompat.Vivi)
         {
-            VMF_Harmony.PatchCategory(Category);
+            VMF_Harmony.PatchCategory(PatchCategories.ViviRace);
         }
     }
 }
 
-[HarmonyPatchCategory(Patches_Vivi.Category)]
+[HarmonyPatchCategory(PatchCategories.ViviRace)]
 [HarmonyPatch]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_ArcanePlant_Turret_TryFindNewTarget_Delegate
@@ -39,7 +37,7 @@ public static class Patch_ArcanePlant_Turret_TryFindNewTarget_Delegate
     }
 }
 
-[HarmonyPatchCategory(Patches_Vivi.Category)]
+[HarmonyPatchCategory(PatchCategories.ViviRace)]
 [HarmonyPatch("VVRace.ArcanePlant_Turret", "TryFindNewTarget")]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_ArcanePlant_Turret_TryFindNewTarget

@@ -12,18 +12,16 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 internal class Patches_RoM
 {
-    public const string Category = "VMF_Patches_RoM";
-
     static Patches_RoM()
     {
         if (ModCompat.RimWorldOfMagic)
         {
-            VMF_Harmony.PatchCategory(Category);
+            VMF_Harmony.PatchCategory(PatchCategories.RimWorldOfMagic);
         }
     }
 }
 
-[HarmonyPatchCategory(Patches_RoM.Category)]
+[HarmonyPatchCategory(PatchCategories.RimWorldOfMagic)]
 [HarmonyPatch("TorannMagic.TorannMagicMod+FloatMenuMakerMap_Patch", "Postfix")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_FloatMenuMakerMap_Patch_Postfix
@@ -40,7 +38,7 @@ public static class Patch_FloatMenuMakerMap_Patch_Postfix
     }
 }
 
-[HarmonyPatchCategory(Patches_RoM.Category)]
+[HarmonyPatchCategory(PatchCategories.RimWorldOfMagic)]
 [HarmonyPatch("TorannMagic.TorannMagicMod+TryFindShootLineFromTo_Base_Patch", "Prefix")]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_TryFindShootLineFromTo_Base_Patch_Prefix
@@ -59,7 +57,7 @@ public static class Patch_TryFindShootLineFromTo_Base_Patch_Prefix
     }
 }
 
-[HarmonyPatchCategory(Patches_RoM.Category)]
+[HarmonyPatchCategory(PatchCategories.RimWorldOfMagic)]
 [HarmonyPatch("TorannMagic.TorannMagicMod+TryFindCastPosition_Base_Patch", "Prefix")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_TryFindCastPosition_Base_Patch_Prefix
@@ -70,7 +68,7 @@ public static class Patch_TryFindCastPosition_Base_Patch_Prefix
     }
 }
 
-[HarmonyPatchCategory(Patches_RoM.Category)]
+[HarmonyPatchCategory(PatchCategories.RimWorldOfMagic)]
 [HarmonyPatch("AbilityUser.AbilityUserMod", "ConfirmStillValid")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_AbilityUserMod_ConfirmStillValid
@@ -81,7 +79,7 @@ public static class Patch_AbilityUserMod_ConfirmStillValid
     }
 }
 
-[HarmonyPatchCategory(Patches_RoM.Category)]
+[HarmonyPatchCategory(PatchCategories.RimWorldOfMagic)]
 [HarmonyPatch("TorannMagic.AutoCast.Phase", "Evaluate")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Phase_Evaluate
@@ -94,7 +92,7 @@ public static class Patch_Phase_Evaluate
     }
 }
 
-[HarmonyPatchCategory(Patches_RoM.Category)]
+[HarmonyPatchCategory(PatchCategories.RimWorldOfMagic)]
 [HarmonyPatch]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Verb_UseAbility
@@ -138,7 +136,7 @@ public static class Patch_Verb_UseAbility
     }
 }
 
-[HarmonyPatchCategory(Patches_RoM.Category)]
+[HarmonyPatchCategory(PatchCategories.RimWorldOfMagic)]
 [HarmonyPatch("AbilityUser.Verb_UseAbility", "UpdateTargets")]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Verb_UseAbility_UpdateTargets
@@ -171,7 +169,7 @@ public static class Patch_Verb_UseAbility_UpdateTargets
     }
 }
 
-[HarmonyPatchCategory(Patches_RoM.Category)]
+[HarmonyPatchCategory(PatchCategories.RimWorldOfMagic)]
 [HarmonyPatch]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_TMJobDriver_CastAbilityVerb_MakeNewToils

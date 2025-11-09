@@ -8,18 +8,16 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 internal class Patches_AnimalCages
 {
-    public const string Category = "VMF_Patches_AnimalCages";
-
     static Patches_AnimalCages()
     {
         if (ModCompat.AnimalCages)
         {
-            VMF_Harmony.PatchCategory(Category);
+            VMF_Harmony.PatchCategory(PatchCategories.AnimalCages);
         }
     }
 }
 
-[HarmonyPatchCategory(Patches_AnimalCages.Category)]
+[HarmonyPatchCategory(PatchCategories.AnimalCages)]
 [HarmonyPatch("AnimalCage.CageUtility", "IsCaptiveOf")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_CageUtility_IsCaptiveOf
@@ -36,7 +34,7 @@ public static class Patch_CageUtility_IsCaptiveOf
     }
 }
 
-[HarmonyPatchCategory(Patches_AnimalCages.Category)]
+[HarmonyPatchCategory(PatchCategories.AnimalCages)]
 [HarmonyPatch("AnimalCage.CageUtility", "CurrentCage")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_CageUtility_CurrentCage

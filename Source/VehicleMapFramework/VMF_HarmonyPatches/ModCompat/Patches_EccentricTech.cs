@@ -11,18 +11,16 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 internal class Patches_EccentricTech
 {
-    public const string Category = "VMF_Patches_EccentricTech_DefenseGrid";
-
     static Patches_EccentricTech()
     {
         if (ModCompat.DefenseGrid.Active)
         {
-            VMF_Harmony.PatchCategory(Category);
+            VMF_Harmony.PatchCategory(PatchCategories.EccentricTech_DefenseGrid);
         }
     }
 }
 
-[HarmonyPatchCategory(Patches_EccentricTech.Category)]
+[HarmonyPatchCategory(PatchCategories.EccentricTech_DefenseGrid)]
 [HarmonyPatch("EccentricDefenseGrid.PlaceWorker_DefenseProjector", "DrawGhost")]
 [PatchLevel(Level.Safe)]
 public static class Patch_PlaceWorker_DefenseProjector_DrawGhost
@@ -36,7 +34,7 @@ public static class Patch_PlaceWorker_DefenseProjector_DrawGhost
     }
 }
 
-[HarmonyPatchCategory(Patches_EccentricTech.Category)]
+[HarmonyPatchCategory(PatchCategories.EccentricTech_DefenseGrid)]
 [HarmonyPatch("EccentricDefenseGrid.PlaceWorker_ArtillerySensor", "DrawGhost")]
 [PatchLevel(Level.Safe)]
 public static class Patch_PlaceWorker_ArtillerySensor_DrawGhost
@@ -50,7 +48,7 @@ public static class Patch_PlaceWorker_ArtillerySensor_DrawGhost
     }
 }
 
-[HarmonyPatchCategory(Patches_EccentricTech.Category)]
+[HarmonyPatchCategory(PatchCategories.EccentricTech_DefenseGrid)]
 [HarmonyPatch("EccentricDefenseGrid.Graphic_DefenseConduit", "ShouldLinkWith")]
 [PatchLevel(Level.Safe)]
 public static class Patch_Graphic_DefenseConduit_ShouldLinkWith
@@ -58,7 +56,7 @@ public static class Patch_Graphic_DefenseConduit_ShouldLinkWith
     public static void Prefix(ref IntVec3 cell, Thing parent) => Patch_Graphic_Linked_ShouldLinkWith.Prefix(ref cell, parent);
 }
 
-[HarmonyPatchCategory(Patches_EccentricTech.Category)]
+[HarmonyPatchCategory(PatchCategories.EccentricTech_DefenseGrid)]
 [HarmonyPatch("EccentricDefenseGrid.CompProjectorOverlay", "PostDraw")]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_CompProjectorOverlay_PostDraw
@@ -89,7 +87,7 @@ public static class Patch_CompProjectorOverlay_PostDraw
     }
 }
 
-[HarmonyPatchCategory(Patches_EccentricTech.Category)]
+[HarmonyPatchCategory(PatchCategories.EccentricTech_DefenseGrid)]
 [HarmonyPatch("EccentricProjectiles.InterceptorMapComponent", "MapComponentUpdate")]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_InterceptorMapComponent_MapComponentUpdate
@@ -104,7 +102,7 @@ public static class Patch_InterceptorMapComponent_MapComponentUpdate
     }
 }
 
-[HarmonyPatchCategory(Patches_EccentricTech.Category)]
+[HarmonyPatchCategory(PatchCategories.EccentricTech_DefenseGrid)]
 [HarmonyPatch("EccentricProjectiles.InterceptorMapComponent", "Draw")]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_InterceptorMapComponent_Draw
@@ -112,7 +110,7 @@ public static class Patch_InterceptorMapComponent_Draw
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) => Patch_InterceptorMapComponent_MapComponentUpdate.Transpiler(instructions);
 }
 
-[HarmonyPatchCategory(Patches_EccentricTech.Category)]
+[HarmonyPatchCategory(PatchCategories.EccentricTech_DefenseGrid)]
 [HarmonyPatch("EccentricProjectiles.CompProjectileInterceptor", "ShouldDrawField")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_CompProjectileInterceptor_ShouldDrawField

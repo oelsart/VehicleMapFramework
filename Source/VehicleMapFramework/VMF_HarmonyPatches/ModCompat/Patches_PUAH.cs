@@ -11,18 +11,16 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 internal class Patches_PUAH
 {
-    public const string Category = "VMF_Patches_PUAH";
-
     static Patches_PUAH()
     {
         if (ModCompat.PickUpAndHaul)
         {
-            VMF_Harmony.PatchCategory(Category);
+            VMF_Harmony.PatchCategory(PatchCategories.PickUpAndHaul);
         }
     }
 }
 
-[HarmonyPatchCategory(Patches_PUAH.Category)]
+[HarmonyPatchCategory(PatchCategories.PickUpAndHaul)]
 [HarmonyPatch("PickUpAndHaul.WorkGiver_HaulToInventory", "PotentialWorkThingsGlobal")]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_WorkGiver_HaulToInventory_PotentialWorkThingsGlobal
@@ -44,7 +42,7 @@ public static class Patch_WorkGiver_HaulToInventory_PotentialWorkThingsGlobal
     }
 }
 
-[HarmonyPatchCategory(Patches_PUAH.Category)]
+[HarmonyPatchCategory(PatchCategories.PickUpAndHaul)]
 [HarmonyPatch("PickUpAndHaul.WorkGiver_HaulToInventory+ThingPositionComparer", "Compare")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_ThingPositionComparer_Compare
@@ -55,7 +53,7 @@ public static class Patch_ThingPositionComparer_Compare
     }
 }
 
-[HarmonyPatchCategory(Patches_PUAH.Category)]
+[HarmonyPatchCategory(PatchCategories.PickUpAndHaul)]
 [HarmonyPatch("PickUpAndHaul.WorkGiver_HaulToInventory", "JobOnThing")]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_WorkGiver_HaulToInventory_JobOnThing
@@ -119,7 +117,7 @@ public static class Patch_WorkGiver_HaulToInventory_JobOnThing
     }
 }
 
-[HarmonyPatchCategory(Patches_PUAH.Category)]
+[HarmonyPatchCategory(PatchCategories.PickUpAndHaul)]
 [HarmonyPatch("PickUpAndHaul.WorkGiver_HaulToInventory", "AllocateThingAtCell")]
 public static class Patch_WorkGiver_HaulToInventory_AllocateThingAtCell
 {
@@ -145,7 +143,7 @@ public static class Patch_WorkGiver_HaulToInventory_AllocateThingAtCell
     }
 }
 
-[HarmonyPatchCategory(Patches_PUAH.Category)]
+[HarmonyPatchCategory(PatchCategories.PickUpAndHaul)]
 [HarmonyPatch("PickUpAndHaul.WorkGiver_HaulToInventory", "Stackable")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_WorkGiver_HaulToInventory_Stackable
@@ -156,7 +154,7 @@ public static class Patch_WorkGiver_HaulToInventory_Stackable
     }
 }
 
-[HarmonyPatchCategory(Patches_PUAH.Category)]
+[HarmonyPatchCategory(PatchCategories.PickUpAndHaul)]
 [HarmonyPatch("PickUpAndHaul.JobDriver_HaulToInventory", "TryMakePreToilReservations")]
 [PatchLevel(Level.Safe)]
 public static class Patch_JobDriver_HaulToInventory_TryMakePreToilReservations

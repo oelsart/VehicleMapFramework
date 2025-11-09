@@ -12,7 +12,7 @@ using static VehicleMapFramework.ModCompat.VFEMechanoid;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches
 {
-    [HarmonyPatchCategory(Patches_VEF.CategoryMechanoid)]
+    [HarmonyPatchCategory(PatchCategories.VFEMechanoids)]
     [HarmonyPatch("VFEMech.Building_Autocrane", "GetStartingEndCranePosition")]
     [PatchLevel(Level.Cautious)]
     public static class Patch_Building_Autocrane_GetStartingEndCranePosition
@@ -23,7 +23,7 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory(Patches_VEF.CategoryMechanoid)]
+    [HarmonyPatchCategory(PatchCategories.VFEMechanoids)]
     [HarmonyPatch("VFEMech.Building_Autocrane", "CurRotation")]
     [PatchLevel(Level.Safe)]
     public static class Patch_Building_Autocrane_CurRotation
@@ -47,7 +47,7 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory(Patches_VEF.CategoryMechanoid)]
+    [HarmonyPatchCategory(PatchCategories.VFEMechanoids)]
     [HarmonyPatch("VFEMech.Building_Autocrane", "CraneDrawPos", MethodType.Getter)]
     [PatchLevel(Level.Safe)]
     public static class Patch_Building_Autocrane_CraneDrawPos
@@ -61,7 +61,7 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory(Patches_VEF.CategoryMechanoid)]
+    [HarmonyPatchCategory(PatchCategories.VFEMechanoids)]
     [HarmonyPatch("VFEMech.Building_Autocrane", "NextFrameTarget")]
     [PatchLevel(Level.Safe)]
     public static class Patch_Building_Autocrane_NextFrameTarget
@@ -87,7 +87,7 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory(Patches_VEF.CategoryMechanoid)]
+    [HarmonyPatchCategory(PatchCategories.VFEMechanoids)]
     [HarmonyPatch("VFEMech.Building_Autocrane", "NextDamagedBuildingTarget")]
     [PatchLevel(Level.Safe)]
     public static class Patch_Building_Autocrane_NextDamagedBuildingTarget
@@ -110,7 +110,7 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory(Patches_VEF.CategoryMechanoid)]
+    [HarmonyPatchCategory(PatchCategories.VFEMechanoids)]
     [HarmonyPatch("VFEMech.Building_Autocrane", "DoConstruction")]
     [PatchLevel(Level.Sensitive)]
     public static class Patch_Building_Autocrane_DoConstruction
@@ -124,7 +124,7 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory(Patches_VEF.CategoryMechanoid)]
+    [HarmonyPatchCategory(PatchCategories.VFEMechanoids)]
     [HarmonyPatch("VFEMech.Building_Autocrane", "DoRepairing")]
     [PatchLevel(Level.Sensitive)]
     public static class Patch_Building_Autocrane_DoRepairing
@@ -138,7 +138,7 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory(Patches_VEF.CategoryMechanoid)]
+    [HarmonyPatchCategory(PatchCategories.VFEMechanoids)]
     [HarmonyPatch("VFEMech.Building_Autocrane", "TryMoveTo")]
     public static class Patch_Building_Autocrane_TryMoveTo
     {
@@ -204,7 +204,7 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory(Patches_VEF.CategoryMechanoid)]
+    [HarmonyPatchCategory(PatchCategories.VFEMechanoids)]
     [HarmonyPatch("VFE.Mechanoids.PlaceWorkers.PlaceWorker_AutoCrane", "DrawGhost")]
     [PatchLevel(Level.Safe)]
     public static class Patch_PlaceWorker_AutoCrane_DrawGhost
@@ -219,7 +219,7 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory(Patches_VEF.CategoryMechanoid)]
+    [HarmonyPatchCategory(PatchCategories.VFEMechanoids)]
     [HarmonyPatch("VFE.Mechanoids.PlaceWorkers.PlaceWorker_AutoPlant", "GetCells")]
     [PatchLevel(Level.Safe)]
     public static class Patch_PlaceWorker_AutoPlant_GetCells
@@ -246,7 +246,7 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory(Patches_VEF.CategoryMechanoid)]
+    [HarmonyPatchCategory(PatchCategories.VFEMechanoids)]
     [HarmonyPatch("VFE.Mechanoids.Buildings.Building_AutoPlant", "DoWorkOnCells")]
     [PatchLevel(Level.Safe)]
     public static class Patch_Building_AutoPlant_DoWorkOnCells
@@ -272,7 +272,7 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory(Patches_VEF.CategoryMechanoid)]
+    [HarmonyPatchCategory(PatchCategories.VFEMechanoids)]
     [HarmonyPatch("VFE.Mechanoids.Buildings.Building_AutoPlant", "CheckCellsClear")]
     [PatchLevel(Level.Safe)]
     public static class Patch_Building_AutoPlant_CheckCellsClear
@@ -294,7 +294,7 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory(Patches_VEF.CategoryMechanoid)]
+    [HarmonyPatchCategory(PatchCategories.VFEMechanoids)]
     [HarmonyPatch("VFE.Mechanoids.Buildings.Building_AutoPlant", "DrawPos", MethodType.Getter)]
     [PatchLevel(Level.Safe)]
     public static class Patch_Building_AutoPlant_DrawPos
@@ -307,7 +307,7 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory(Patches_VEF.CategoryMechanoid)]
+    [HarmonyPatchCategory(PatchCategories.VFEMechanoids)]
     [HarmonyPatch("VFE.Mechanoids.Buildings.Building_AutoPlant", "DrawAt")]
     [PatchLevel(Level.Safe)]
     public static class Patch_Building_AutoPlant_DrawAt
@@ -333,7 +333,7 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory(Patches_VEF.CategoryMechanoid)]
+    [HarmonyPatchCategory(PatchCategories.VFEMechanoids)]
     [HarmonyPatch("VFE.Mechanoids.Buildings.Building_AutoSower", "DoWorkOnCell")]
     [PatchLevel(Level.Cautious)]
     public static class Patch_Building_AutoSower_DoWorkOnCell
@@ -344,7 +344,7 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory(Patches_VEF.CategoryMechanoid)]
+    [HarmonyPatchCategory(PatchCategories.VFEMechanoids)]
     [HarmonyPatch("VFE.Mechanoids.Buildings.Building_AutoHarvester", "DoWorkOnCell")]
     [PatchLevel(Level.Cautious)]
     public static class Patch_Building_AutoHarvester_DoWorkOnCell
@@ -355,7 +355,7 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
         }
     }
 
-    [HarmonyPatchCategory(Patches_VEF.CategoryMechanoid)]
+    [HarmonyPatchCategory(PatchCategories.VFEMechanoids)]
     [HarmonyPatch("VFE.Mechanoids.Buildings.Building_AutoHarvester", "PlantCollected")]
     [PatchLevel(Level.Cautious)]
     public static class Patch_Building_AutoHarvester_PlantCollected

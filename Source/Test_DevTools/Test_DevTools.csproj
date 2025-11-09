@@ -1,0 +1,52 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>preview</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>VehicleMapFramework.Test_Logics</RootNamespace>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <Configurations>Dev;Release;Debug</Configurations>
+    <Platforms>AnyCPU</Platforms>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Dev|AnyCPU'">
+    <DebugType>none</DebugType>
+    <OutputPath>..\..\..\VehicleMapFrameworkDev\1.6\Assemblies\</OutputPath>
+    <Optimize>True</Optimize>
+    <DefineConstants>UNITY_ASSERTIONS</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\VehicleMapFramework\VehicleMapFramework.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="DevTools">
+      <HintPath>..\..\..\VehicleFramework\1.6\Assemblies\DevTools.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="DevTools_SmashTools">
+      <HintPath>..\..\..\VehicleFramework\1.6\Assemblies\DevTools_SmashTools.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="DevTools_Vehicles">
+      <HintPath>..\..\..\VehicleFramework\1.6\Assemblies\DevTools_Vehicles.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="SmashTools">
+      <HintPath>..\..\..\VehicleFramework\1.6\Assemblies\SmashTools.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Vehicles">
+      <HintPath>..\..\..\VehicleFramework\1.6\Assemblies\Vehicles.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.4630" />
+    <PackageReference Include="PolySharp" Version="1.15.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+</Project>

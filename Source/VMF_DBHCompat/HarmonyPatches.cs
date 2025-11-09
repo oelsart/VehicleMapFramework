@@ -13,19 +13,19 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 public static class Patches_DBH
 {
-    public const string Category = "VMF_Patches_DBH";
-
     static Patches_DBH()
     {
-        VMF_Harmony.PatchCategory(Category);
+        VMF_Harmony.PatchCategory(PatchCategories.DubsBadHygiene);
         if (DubsBadHygiene.Settings.LiteMode)
         {
-            DefDatabase<ThingDef>.GetNamed("VMF_PipeConnector").comps.RemoveAll(c => c is CompProperties_PipeConnectorDBH);
+            DefDatabase<ThingDef>.GetNamed("VMF_PipeConnector"!).comps.RemoveAll(c => c is CompProperties_PipeConnectorDBH);
         }
     }
+
+    public static readonly CompProperties_Pipe dummy = new();
 }
 
-[HarmonyPatchCategory(Patches_DBH.Category)]
+[HarmonyPatchCategory(PatchCategories.DubsBadHygiene)]
 [HarmonyPatch(typeof(CompPipe), nameof(CompPipe.Props), MethodType.Getter)]
 [PatchLevel(Level.Safe)]
 public static class Patch_CompResource_Props
@@ -34,17 +34,15 @@ public static class Patch_CompResource_Props
     {
         if (__instance is CompPipeConnectorDBH connector)
         {
-            dummy.mode = connector.mode;
-            dummy.stuffed = connector.Props.stuffed;
-            dummy.vertPipe = connector.Props.vertPipe;
-            __result = dummy;
+            Patches_DBH.dummy.mode = connector.mode;
+            Patches_DBH.dummy.stuffed = connector.Props.stuffed;
+            Patches_DBH.dummy.vertPipe = connector.Props.vertPipe;
+            __result = Patches_DBH.dummy;
         }
     }
-
-    private static readonly CompProperties_Pipe dummy = new();
 }
 
-[HarmonyPatchCategory(Patches_DBH.Category)]
+[HarmonyPatchCategory(PatchCategories.DubsBadHygiene)]
 [HarmonyPatch(typeof(PlaceWorker_SewageArea), nameof(PlaceWorker_SewageArea.DrawGhost))]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_PlaceWorker_SewageArea_DrawGhost
@@ -80,7 +78,7 @@ public static class Patch_PlaceWorker_SewageArea_DrawGhost
     }
 }
 
-[HarmonyPatchCategory(Patches_DBH.Category)]
+[HarmonyPatchCategory(PatchCategories.DubsBadHygiene)]
 [HarmonyPatch]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_PlaceWorker_SewageArea_DrawGhost_Predicate
@@ -114,7 +112,7 @@ public static class Patch_PlaceWorker_SewageArea_DrawGhost_Predicate
     }
 }
 
-[HarmonyPatchCategory(Patches_DBH.Category)]
+[HarmonyPatchCategory(PatchCategories.DubsBadHygiene)]
 [HarmonyPatch(typeof(MapComponent_Hygiene), nameof(MapComponent_Hygiene.CanHaveSewage))]
 [PatchLevel(Level.Safe)]
 public static class Patch_MapComponent_Hygiene_CanHaveSewage
@@ -125,7 +123,7 @@ public static class Patch_MapComponent_Hygiene_CanHaveSewage
     }
 }
 
-[HarmonyPatchCategory(Patches_DBH.Category)]
+[HarmonyPatchCategory(PatchCategories.DubsBadHygiene)]
 [HarmonyPatch(typeof(MapComponent_Hygiene), nameof(MapComponent_Hygiene.MapComponentUpdate))]
 [PatchLevel(Level.Cautious)]
 public static class Patch_MapComponent_Hygiene_MapComponentUpdate
@@ -136,7 +134,7 @@ public static class Patch_MapComponent_Hygiene_MapComponentUpdate
     }
 }
 
-[HarmonyPatchCategory(Patches_DBH.Category)]
+[HarmonyPatchCategory(PatchCategories.DubsBadHygiene)]
 [HarmonyPatch(typeof(Graphic_LinkedPipe), nameof(Graphic_LinkedPipe.ShouldLinkWith))]
 [PatchLevel(Level.Safe)]
 public static class Patch_Graphic_LinkedPipeDBH_ShouldLinkWith
@@ -144,7 +142,7 @@ public static class Patch_Graphic_LinkedPipeDBH_ShouldLinkWith
     public static void Prefix(IntVec3 c, Thing parent) => Patch_Graphic_Linked_ShouldLinkWith.Prefix(ref c, parent);
 }
 
-[HarmonyPatchCategory(Patches_DBH.Category)]
+[HarmonyPatchCategory(PatchCategories.DubsBadHygiene)]
 [HarmonyPatch(typeof(Building_AssignableFixture), nameof(Building_AssignableFixture.Print))]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Building_AssignableFixture_Print
@@ -160,7 +158,7 @@ public static class Patch_Building_AssignableFixture_Print
     }
 }
 
-[HarmonyPatchCategory(Patches_DBH.Category)]
+[HarmonyPatchCategory(PatchCategories.DubsBadHygiene)]
 [HarmonyPatch("DubsBadHygiene.Building_StallDoor", "DrawAt")]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Building_StallDoor_DrawAt

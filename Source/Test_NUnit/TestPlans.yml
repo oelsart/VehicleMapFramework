@@ -1,0 +1,71 @@
+﻿- Name: VehicleFramework
+- Name: VanillaExpandedFramework
+- Name: VFEArchitect
+#- Name: VFESecurity
+#- Name: VFESecurity + CE
+#  Mods:
+#    - VFESecurity
+#  Categories:
+#    - VMF_Patches_CombatExtendedVFESecurityCompat
+- Name: VVehiclesE
+#- Name: VFEMechanoids
+#- Name: VGravshipE
+- Name: Achtung
+- Name: CombatExtended
+- Name: DubsBadHygiene
+- Name: Rimefeller
+  LoadOnly: true
+- Name: AdaptiveStorageFramework
+- Name: AllowTool
+  Mods:
+    - HugsLib
+    - AllowTool
+- Name: AnimalCages
+- Name: NightmareCore
+- Name: Aquariums
+#- Name: BillDoorsFramework
+- Name: CallTradeShips
+- Name: CeleTechArsenal
+- Name: ColonyGroups
+- Name: CutPlantsBeforeBuilding
+- Name: DoNotHitMe
+- Name: DrakkenLaserDrill
+- Name: EccentricTech_DefenseGrid
+- Name: EnergyShield
+  Mods:
+    - zzLib
+    - EnergyShield
+- Name: EnergyShield + CE
+  Mods:
+    - EnergyShieldCECompat
+  Categories:
+    - VMF_Patches_EnergyShieldCECompat
+- Name: ExosuitFramework
+- Name: FortifiedFeaturesFramework
+- Name: GiantImperialTurret
+- Name: Gunplay
+- Name: MeleeAnimation
+- Name: MiscRobots
+- Name: MultiFloors
+  Mods:
+    - Prepatcher
+    - MultiFloors
+- Name: MuzzleFlash
+- Name: PauseOtherSettlements
+- Name: ProjectRimFactory
+- Name: PickUpAndHaul
+- Name: ReGrowth
+- Name: RimWorldOfMagic
+  Mods:
+    - JecsLite
+    - RimWorldOfMagic
+- Name: SmarterConstruction
+- Name: SmartPistol
+- Name: StackGap
+- Name: TabulaRasa
+- Name: TraderShips
+- Name: ViviRace
+- Name: WhileYoureUp
+- Name: YayosCombat3
+- Name: SmartFarming
+  LoadOnly: true

@@ -8,13 +8,13 @@ using static VehicleMapFramework.ModCompat;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
-[StaticConstructorOnStartup]
+[StaticConstructorOnStartupPriority(Priority.VeryLow)]
 public static class DefMessagesReplace
 {
     static DefMessagesReplace()
     {
-        var refuelVehicleTank = DefDatabase<WorkGiverDef>.GetNamedSilentFail("VMF_RefuelVehicleTank");
-        var refuelVehicle = DefDatabase<WorkGiverDef>.GetNamedSilentFail("RefuelVehicle");
+        var refuelVehicleTank = DefDatabase<WorkGiverDef>.GetNamedSilentFail("VMF_RefuelVehicleTank"!);
+        var refuelVehicle = DefDatabase<WorkGiverDef>.GetNamedSilentFail("RefuelVehicle"!);
         if (refuelVehicleTank != null && refuelVehicle != null)
         {
             refuelVehicleTank.label = refuelVehicle.label;
@@ -66,14 +66,14 @@ public static class DefMessagesReplace
     public const string suffix = "AcrossMaps";
 }
 
-[StaticConstructorOnStartup]
+[StaticConstructorOnStartupPriority(Priority.VeryLow)]
 public static class CheckEnablePipeConnector
 {
     static CheckEnablePipeConnector()
     {
         if (!EnablePipeConnector())
         {
-            DefDatabase<ThingDef>.GetNamed("VMF_PipeConnector").designationCategory = null;
+            DefDatabase<ThingDef>.GetNamed("VMF_PipeConnector"!).designationCategory = null;
             DefDatabase<DesignationCategoryDef>.GetNamed("VF_Vehicles").ResolveReferences();
         }
     }

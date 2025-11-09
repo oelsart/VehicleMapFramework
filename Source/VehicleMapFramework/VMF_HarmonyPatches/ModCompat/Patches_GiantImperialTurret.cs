@@ -15,18 +15,16 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 internal static class Patches_GiantImperialTurret
 {
-    public const string Category = "VMF_Patches_GiantImperialTurret";
-
     static Patches_GiantImperialTurret()
     {
         if (ModCompat.GiantImperialTurret)
         {
-            VMF_Harmony.PatchCategory(Category);
+            VMF_Harmony.PatchCategory(PatchCategories.GiantImperialTurret);
         }
     }
 }
 
-[HarmonyPatchCategory(Patches_GiantImperialTurret.Category)]
+[HarmonyPatchCategory(PatchCategories.GiantImperialTurret)]
 [HarmonyPatch]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Building_TurretGunNonSnap_TryFindNewTarget
@@ -44,7 +42,7 @@ public static class Patch_Building_TurretGunNonSnap_TryFindNewTarget
     }
 }
 
-[HarmonyPatchCategory(Patches_GiantImperialTurret.Category)]
+[HarmonyPatchCategory(PatchCategories.GiantImperialTurret)]
 [HarmonyPatch("BreadMoProjOffset.Building_TurretGunNonSnap", "IsValidTarget")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Building_TurretGunNonSnap_IsValidTarget
@@ -56,7 +54,7 @@ public static class Patch_Building_TurretGunNonSnap_IsValidTarget
     }
 }
 
-[HarmonyPatchCategory(Patches_GiantImperialTurret.Category)]
+[HarmonyPatchCategory(PatchCategories.GiantImperialTurret)]
 [HarmonyPatch("BreadMoProjOffset.Building_TurretGunNonSnap", "TryFindNewTarget")]
 [PatchLevel(Level.Safe)]
 public static class Patch_Building_TurretGunNonSnap_TryFindNewTarget2
@@ -70,7 +68,7 @@ public static class Patch_Building_TurretGunNonSnap_TryFindNewTarget2
     }
 }
 
-[HarmonyPatchCategory(Patches_GiantImperialTurret.Category)]
+[HarmonyPatchCategory(PatchCategories.GiantImperialTurret)]
 [HarmonyPatch("BreadMoProjOffset.Building_TurretGunNonSnap", "Tick")]
 [PatchLevel(Level.Safe)]
 public static class Patch_Building_TurretGunNonSnap_Tick
@@ -89,7 +87,7 @@ public static class Patch_Building_TurretGunNonSnap_Tick
     }
 }
 
-[HarmonyPatchCategory(Patches_GiantImperialTurret.Category)]
+[HarmonyPatchCategory(PatchCategories.GiantImperialTurret)]
 [HarmonyPatch("BreadMoProjOffset.AttackTargetFinderAngle", "BestAttackTarget")]
 [PatchLevel(Level.Safe)]
 public static class Patch_AttackTargetFinderAngle_BestAttackTarget
