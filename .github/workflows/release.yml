@@ -1,11 +1,17 @@
 name: Release
 
 on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Tag Version'
+        required: true
   push:
-    tags: [ v* ]
+    tags:
+      - 'v*'
     
-    permissions:
-      contents: write
+permissions:
+  contents: write
 
 jobs:
 
