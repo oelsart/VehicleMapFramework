@@ -7,18 +7,16 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 internal static class Patches_PauseOtherSettlements
 {
-    public const string Category = "VMF_Patches_PauseOtherSettlements";
-
     static Patches_PauseOtherSettlements()
     {
         if (PauseOtherSettlements)
         {
-            VMF_Harmony.PatchCategory(Category);
+            VMF_Harmony.PatchCategory(PatchCategories.PauseOtherSettlements);
         }
     }
 }
 
-[HarmonyPatchCategory(Patches_PauseOtherSettlements.Category)]
+[HarmonyPatchCategory(PatchCategories.PauseOtherSettlements)]
 [HarmonyPatch("PauseOtherSettlementsSimulation.PauseOtherSettlementsSimulation", "ShouldSimulateMap")]
 public static class Patch_PauseOtherSettlementsSimulation_ShouldSimulateMap
 {

@@ -23,16 +23,16 @@ public static class Patches_CE
         var patch = AccessTools.Method("CombatExtended.HarmonyCE.Harmony_AttackTargetFinder+Harmony_AttackTargetFinder_GetShootingTargetScore:Postfix");
         VMF_Harmony.Instance.Patch(method, postfix: patch);
 
-        VMF_Harmony.PatchCategory("VMF_Patches_CE");
+        VMF_Harmony.PatchCategory(PatchCategories.CombatExtended);
 
         if (ModCompat.VFESecurity.Active)
         {
-            VMF_Harmony.PatchCategory("VMF_Patches_CE_VFESecurity");
+            VMF_Harmony.PatchCategory(PatchCategories.CombatExtendedVFESecurityCompat);
         }
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_CE")]
+[HarmonyPatchCategory(PatchCategories.CombatExtended)]
 [HarmonyPatch(typeof(GenSpawn), nameof(GenSpawn.Spawn), typeof(Thing), typeof(IntVec3), typeof(Map), typeof(Rot4), typeof(WipeMode), typeof(bool), typeof(bool))]
 [PatchLevel(Level.Safe)]
 public static class Patch_GenSpawn_Spawn
@@ -46,7 +46,7 @@ public static class Patch_GenSpawn_Spawn
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_CE")]
+[HarmonyPatchCategory(PatchCategories.CombatExtended)]
 [HarmonyPatch(typeof(Verb_LaunchProjectileCE), "ShotSpeed", MethodType.Getter)]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Verb_LaunchProjectileCE_ShotSpeed
@@ -58,7 +58,7 @@ public static class Patch_Verb_LaunchProjectileCE_ShotSpeed
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_CE")]
+[HarmonyPatchCategory(PatchCategories.CombatExtended)]
 [HarmonyPatch(typeof(Verb_LaunchProjectileCE), "LightingTracker", MethodType.Getter)]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Verb_LaunchProjectileCE_LightingTracker
@@ -69,7 +69,7 @@ public static class Patch_Verb_LaunchProjectileCE_LightingTracker
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_CE")]
+[HarmonyPatchCategory(PatchCategories.CombatExtended)]
 [HarmonyPatch(typeof(Verb_LaunchProjectileCE), nameof(Verb_LaunchProjectileCE.ShiftVecReportFor), typeof(LocalTargetInfo))]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Verb_LaunchProjectileCE_ShiftVecReportFor1
@@ -80,7 +80,7 @@ public static class Patch_Verb_LaunchProjectileCE_ShiftVecReportFor1
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_CE")]
+[HarmonyPatchCategory(PatchCategories.CombatExtended)]
 [HarmonyPatch(typeof(Verb_LaunchProjectileCE), nameof(Verb_LaunchProjectileCE.ShiftVecReportFor), typeof(LocalTargetInfo), typeof(IntVec3))]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Verb_LaunchProjectileCE_ShiftVecReportFor2
@@ -92,7 +92,7 @@ public static class Patch_Verb_LaunchProjectileCE_ShiftVecReportFor2
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_CE")]
+[HarmonyPatchCategory(PatchCategories.CombatExtended)]
 [HarmonyPatch(typeof(Verb_LaunchProjectileCE), nameof(Verb_LaunchProjectileCE.AdjustShotHeight))]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Verb_LaunchProjectileCE_AdjustShotHeight
@@ -103,7 +103,7 @@ public static class Patch_Verb_LaunchProjectileCE_AdjustShotHeight
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_CE")]
+[HarmonyPatchCategory(PatchCategories.CombatExtended)]
 [HarmonyPatch(typeof(Verb_LaunchProjectileCE), "GetHighestCoverAndSmokeForTarget")]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Verb_LaunchProjectileCE_GetHighestCoverAndSmokeForTarget
@@ -125,7 +125,7 @@ public static class Patch_Verb_LaunchProjectileCE_GetHighestCoverAndSmokeForTarg
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_CE")]
+[HarmonyPatchCategory(PatchCategories.CombatExtended)]
 [HarmonyPatch(typeof(Verb_LaunchProjectileCE), nameof(Verb_LaunchProjectileCE.CanHitTarget))]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Verb_LaunchProjectileCE_CanHitTarget
@@ -136,7 +136,7 @@ public static class Patch_Verb_LaunchProjectileCE_CanHitTarget
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_CE")]
+[HarmonyPatchCategory(PatchCategories.CombatExtended)]
 [HarmonyPatch(typeof(Verb_LaunchProjectileCE), nameof(Verb_LaunchProjectileCE.CanHitTargetFrom))]
 [HarmonyPatch([typeof(IntVec3), typeof(LocalTargetInfo), typeof(string)], [ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Out])]
 [PatchLevel(Level.Cautious)]
@@ -149,7 +149,7 @@ public static class Patch_Verb_LaunchProjectileCE_CanHitTargetFrom
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_CE")]
+[HarmonyPatchCategory(PatchCategories.CombatExtended)]
 [HarmonyPatch(typeof(Verb_LaunchProjectileCE), "Retarget")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Verb_LaunchProjectileCE_Retarget
@@ -164,7 +164,7 @@ public static class Patch_Verb_LaunchProjectileCE_Retarget
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_CE")]
+[HarmonyPatchCategory(PatchCategories.CombatExtended)]
 [HarmonyPatch(typeof(Verb_LaunchProjectileCE), nameof(Verb_LaunchProjectileCE.TryCastShot))]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Verb_LaunchProjectileCE_TryCastShot
@@ -178,7 +178,7 @@ public static class Patch_Verb_LaunchProjectileCE_TryCastShot
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_CE")]
+[HarmonyPatchCategory(PatchCategories.CombatExtended)]
 [HarmonyPatch(typeof(Verb_LaunchProjectileCE), "TryFindCEShootLineFromTo", [typeof(IntVec3), typeof(LocalTargetInfo), typeof(ShootLine), typeof(Vector3)], [ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Out, ArgumentType.Out])]
 [PatchLevel(Level.Safe)]
 public static class Patch_Verb_LaunchProjectileCE_TryFindCEShootLineFromTo
@@ -197,7 +197,7 @@ public static class Patch_Verb_LaunchProjectileCE_TryFindCEShootLineFromTo
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_CE")]
+[HarmonyPatchCategory(PatchCategories.CombatExtended)]
 [HarmonyPatch(typeof(Verb_ShootCE), nameof(Verb_ShootCE.AimAngle), MethodType.Getter)]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Verb_ShootCE_AimAngle
@@ -208,7 +208,7 @@ public static class Patch_Verb_ShootCE_AimAngle
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_CE")]
+[HarmonyPatchCategory(PatchCategories.CombatExtended)]
 [HarmonyPatch(typeof(Verb_ShootCE), nameof(Verb_ShootCE.WarmupComplete))]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Verb_ShootCE_WarmupComplete
@@ -220,7 +220,7 @@ public static class Patch_Verb_ShootCE_WarmupComplete
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_CE")]
+[HarmonyPatchCategory(PatchCategories.CombatExtended)]
 [HarmonyPatch(typeof(Verb_ShootCE), nameof(Verb_ShootCE.CanHitTargetFrom))]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Verb_ShootCE_CanHitTargetFrom
@@ -232,7 +232,7 @@ public static class Patch_Verb_ShootCE_CanHitTargetFrom
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_CE")]
+[HarmonyPatchCategory(PatchCategories.CombatExtended)]
 [HarmonyPatch(typeof(Verb_ShootCE), nameof(Verb_ShootCE.RecalculateWarmupTicks))]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Verb_ShootCE_RecalculateWarmupTicks
@@ -243,7 +243,7 @@ public static class Patch_Verb_ShootCE_RecalculateWarmupTicks
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_CE")]
+[HarmonyPatchCategory(PatchCategories.CombatExtended)]
 [HarmonyPatch(typeof(Verb_ShootMortarCE), nameof(Verb_ShootMortarCE.ShiftVecReportFor))]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Verb_ShootMortarCE_ShiftVecReportFor
@@ -267,7 +267,7 @@ public static class Patch_Verb_ShootMortarCE_ShiftVecReportFor
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_CE")]
+[HarmonyPatchCategory(PatchCategories.CombatExtended)]
 [HarmonyPatch(typeof(ProjectileCE), nameof(ProjectileCE.RayCast))]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_ProjectileCE_RayCast
@@ -310,7 +310,7 @@ public static class Patch_ProjectileCE_RayCast
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_CE")]
+[HarmonyPatchCategory(PatchCategories.CombatExtended)]
 [HarmonyPatch(typeof(ProjectileCE), "CheckIntercept")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_ProjectileCE_CheckIntercept
@@ -321,7 +321,7 @@ public static class Patch_ProjectileCE_CheckIntercept
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_CE")]
+[HarmonyPatchCategory(PatchCategories.CombatExtended)]
 [HarmonyPatch(typeof(ProjectileCE), "CheckForCollisionBetween")]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_ProjectileCE_CheckForCollisionBetween
@@ -351,7 +351,7 @@ public static class Patch_ProjectileCE_CheckForCollisionBetween
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_CE")]
+[HarmonyPatchCategory(PatchCategories.CombatExtended)]
 [HarmonyPatch(typeof(ProjectileCE), "CheckCellForCollision")]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_ProjectileCE_CheckCellForCollision
@@ -376,7 +376,7 @@ public static class Patch_ProjectileCE_CheckCellForCollision
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_CE")]
+[HarmonyPatchCategory(PatchCategories.CombatExtended)]
 [HarmonyPatch(typeof(ProjectileCE), nameof(ProjectileCE.Launch), typeof(Thing), typeof(Vector2), typeof(float), typeof(float), typeof(float), typeof(float), typeof(Thing), typeof(float))]
 [PatchLevel(Level.Cautious)]
 public static class Patch_ProjectileCE_Launch
@@ -387,7 +387,7 @@ public static class Patch_ProjectileCE_Launch
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_CE")]
+[HarmonyPatchCategory(PatchCategories.CombatExtended)]
 [HarmonyPatch(typeof(ProjectileCE), nameof(ProjectileCE.ImpactSomething))]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_ProjectileCE_ImpactSomething
@@ -410,7 +410,7 @@ public static class Patch_ProjectileCE_ImpactSomething
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_CE")]
+[HarmonyPatchCategory(PatchCategories.CombatExtended)]
 [HarmonyPatch(typeof(Building_TurretGunCE), nameof(Building_TurretGunCE.TryFindNewTarget))]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Building_TurretGunCE_TryFindNewTarget
@@ -441,7 +441,7 @@ public static class Patch_Building_TurretGunCE_TryFindNewTarget
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_CE")]
+[HarmonyPatchCategory(PatchCategories.CombatExtended)]
 [HarmonyPatch]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Building_TurretGunCE_TryFindNewTarget_Predicate
@@ -457,7 +457,7 @@ public static class Patch_Building_TurretGunCE_TryFindNewTarget_Predicate
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_CE")]
+[HarmonyPatchCategory(PatchCategories.CombatExtended)]
 [HarmonyPatch(typeof(Building_TurretGunCE), nameof(Building_TurretGunCE.OrderAttack))]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Building_TurretGunCE_OrderAttack
@@ -469,7 +469,7 @@ public static class Patch_Building_TurretGunCE_OrderAttack
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_CE")]
+[HarmonyPatchCategory(PatchCategories.CombatExtended)]
 [HarmonyPatch(typeof(ExplosionCE), nameof(ExplosionCE.StartExplosionCE))]
 [PatchLevel(Level.Safe)]
 public static class Patch_ExplosionCE_StartExplosionCE
@@ -483,7 +483,7 @@ public static class Patch_ExplosionCE_StartExplosionCE
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_CE")]
+[HarmonyPatchCategory(PatchCategories.CombatExtended)]
 [HarmonyPatch(typeof(Verb_LaunchProjectileCE), nameof(Verb_LaunchProjectileCE.ShiftTarget), typeof(ShiftVecReport), typeof(bool), typeof(bool))]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Verb_LaunchProjectileCE_ShiftTarget
@@ -494,7 +494,7 @@ public static class Patch_Verb_LaunchProjectileCE_ShiftTarget
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_CE")]
+[HarmonyPatchCategory(PatchCategories.CombatExtended)]
 [HarmonyPatch(typeof(ProjectileCE), "DistanceTraveled", MethodType.Getter)]
 [PatchLevel(Level.Safe)]
 public static class Patch_ProjectileCE_DistanceTraveled
@@ -511,7 +511,7 @@ public static class Patch_ProjectileCE_DistanceTraveled
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_CE_VFESecurity")]
+[HarmonyPatchCategory(PatchCategories.CombatExtendedVFESecurityCompat)]
 [HarmonyPatch(typeof(VanillaFurnitureExpandedSecurity), "refreshShields")]
 [PatchLevel(Level.Safe)]
 public static class Patch_VanillaFurnitureExpandedSecurity_refreshShields
@@ -529,7 +529,7 @@ public static class Patch_VanillaFurnitureExpandedSecurity_refreshShields
     }
 }
 
-[HarmonyPatchCategory("VMF_Patches_CE_VFESecurity")]
+[HarmonyPatchCategory(PatchCategories.CombatExtendedVFESecurityCompat)]
 [HarmonyPatch(typeof(VanillaFurnitureExpandedSecurity), "ShieldInterceptsProjectile")]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_VanillaFurnitureExpandedSecurity_ShieldInterceptsProjectile

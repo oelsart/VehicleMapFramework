@@ -7,18 +7,16 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 internal static class Patches_Fortified
 {
-    public const string Category = "VMF_Patches_DMS";
-
     static Patches_Fortified()
     {
         if (ModCompat.Fortified)
         {
-            VMF_Harmony.PatchCategory(Category);
+            VMF_Harmony.PatchCategory(PatchCategories.FortifiedFeaturesFramework);
         }
     }
 }
 
-[HarmonyPatchCategory(Patches_Fortified.Category)]
+[HarmonyPatchCategory(PatchCategories.FortifiedFeaturesFramework)]
 [HarmonyPatch("Fortified.Verb_CastAbilityArcSprayProjectile", "TryCastShot")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Verb_CastAbilityArcSprayProjectile_TryCastShot
@@ -29,7 +27,7 @@ public static class Patch_Verb_CastAbilityArcSprayProjectile_TryCastShot
     }
 }
 
-[HarmonyPatchCategory(Patches_Fortified.Category)]
+[HarmonyPatchCategory(PatchCategories.FortifiedFeaturesFramework)]
 [HarmonyPatch("Fortified.Verb_CastAbilityArcSprayProjectile", "PreparePath")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Verb_CastAbilityArcSprayProjectile_PreparePath

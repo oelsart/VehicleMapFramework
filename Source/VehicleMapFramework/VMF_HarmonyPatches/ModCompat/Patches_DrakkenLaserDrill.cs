@@ -7,18 +7,16 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 internal class Patches_DrakkenLaserDrill
 {
-    public const string Category = "VMF_Patches_DrakkenLaserDrill";
-
     static Patches_DrakkenLaserDrill()
     {
         if (ModCompat.DrakkenLaserDrill)
         {
-            VMF_Harmony.PatchCategory(Category);
+            VMF_Harmony.PatchCategory(PatchCategories.DrakkenLaserDrill);
         }
     }
 }
 
-[HarmonyPatchCategory(Patches_DrakkenLaserDrill.Category)]
+[HarmonyPatchCategory(PatchCategories.DrakkenLaserDrill)]
 [HarmonyPatch("MYDE_DrakkenLaserDrill.Comp_DrakkenLaserDrill_MouseAttack", "DoSomething")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Comp_DrakkenLaserDrill_MouseAttack_DoSomething
@@ -29,7 +27,7 @@ public static class Patch_Comp_DrakkenLaserDrill_MouseAttack_DoSomething
     }
 }
 
-[HarmonyPatchCategory(Patches_DrakkenLaserDrill.Category)]
+[HarmonyPatchCategory(PatchCategories.DrakkenLaserDrill)]
 [HarmonyPatch("MYDE_DrakkenLaserDrill.Comp_DrakkenLaserDrill_MouseAttack", "DoSomething_Move")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Comp_DrakkenLaserDrill_MouseAttack_DoSomething_Move
@@ -40,7 +38,7 @@ public static class Patch_Comp_DrakkenLaserDrill_MouseAttack_DoSomething_Move
     }
 }
 
-[HarmonyPatchCategory(Patches_DrakkenLaserDrill.Category)]
+[HarmonyPatchCategory(PatchCategories.DrakkenLaserDrill)]
 [HarmonyPatch("MYDE_DrakkenLaserDrill.Comp_DrakkenLaserDrill_AutoAttack", "DoSomething_AttackAllPawn")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Comp_DrakkenLaserDrill_AutoAttack_DoSomething_AttackAllPawn
@@ -52,7 +50,7 @@ public static class Patch_Comp_DrakkenLaserDrill_AutoAttack_DoSomething_AttackAl
     }
 }
 
-[HarmonyPatchCategory(Patches_DrakkenLaserDrill.Category)]
+[HarmonyPatchCategory(PatchCategories.DrakkenLaserDrill)]
 [HarmonyPatch("MYDE_DrakkenLaserDrill.Comp_DrakkenLaserDrill_AutoAttack", "PrepareToAttack")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Comp_DrakkenLaserDrill_AutoAttack_PrepareToAttack
@@ -64,7 +62,7 @@ public static class Patch_Comp_DrakkenLaserDrill_AutoAttack_PrepareToAttack
     }
 }
 
-[HarmonyPatchCategory(Patches_DrakkenLaserDrill.Category)]
+[HarmonyPatchCategory(PatchCategories.DrakkenLaserDrill)]
 [HarmonyPatch("MYDE_DrakkenLaserDrill.Comp_DrakkenLaserDrill_Attack", "DoSomething_I")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Comp_DrakkenLaserDrill_Attack_DoSomething_I
@@ -75,7 +73,7 @@ public static class Patch_Comp_DrakkenLaserDrill_Attack_DoSomething_I
     }
 }
 
-[HarmonyPatchCategory(Patches_DrakkenLaserDrill.Category)]
+[HarmonyPatchCategory(PatchCategories.DrakkenLaserDrill)]
 [HarmonyPatch("MYDE_DrakkenLaserDrill.Comp_DrakkenLaserDrill_Attack", "DoSomething_II")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Comp_DrakkenLaserDrill_Attack_DoSomething_II

@@ -11,18 +11,16 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 internal class Patches_NightmareCore
 {
-    public const string Category = "VMF_Patches_NightmareCore";
-
     static Patches_NightmareCore()
     {
         if (ModCompat.NightmareCore)
         {
-            VMF_Harmony.PatchCategory(Category);
+            VMF_Harmony.PatchCategory(PatchCategories.NightmareCore);
         }
     }
 }
 
-[HarmonyPatchCategory(Patches_NightmareCore.Category)]
+[HarmonyPatchCategory(PatchCategories.NightmareCore)]
 [HarmonyPatch("NightmareCore.StitchedAtlasGraphics.Graphic_LinkedStitched", "Print")]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Graphic_LinkedStitched_Print
@@ -42,7 +40,7 @@ public static class Patch_Graphic_LinkedStitched_Print
     }
 }
 
-[HarmonyPatchCategory(Patches_NightmareCore.Category)]
+[HarmonyPatchCategory(PatchCategories.NightmareCore)]
 [HarmonyPatch("NightmareCore.ThingComp_AdditionalGraphics", "PostPrintOnto")]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_ThingComp_AdditionalGraphics_PostPrintOnto

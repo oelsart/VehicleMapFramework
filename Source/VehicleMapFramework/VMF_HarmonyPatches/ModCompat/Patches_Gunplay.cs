@@ -7,18 +7,16 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 internal static class Patches_Gunplay
 {
-    public const string Category = "VMF_Patches_Gunplay";
-
     static Patches_Gunplay()
     {
         if (ModCompat.Gunplay)
         {
-            VMF_Harmony.PatchCategory(Category);
+            VMF_Harmony.PatchCategory(PatchCategories.Gunplay);
         }
     }
 }
 
-[HarmonyPatchCategory(Patches_Gunplay.Category)]
+[HarmonyPatchCategory(PatchCategories.Gunplay)]
 [HarmonyPatch("Gunplay.Patch.PatchProjectileLaunch", "Postfix")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_PatchProjectileLaunch_Postfix

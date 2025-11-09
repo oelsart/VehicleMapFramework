@@ -10,18 +10,16 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 internal class Patches_DrillTurret
 {
-    public const string Category = "VMF_Patches_DrillTurret";
-
     static Patches_DrillTurret()
     {
         if (ModCompat.DrillTurret)
         {
-            VMF_Harmony.PatchCategory(Category);
+            VMF_Harmony.PatchCategory(PatchCategories.DrillTurret);
         }
     }
 }
 
-[HarmonyPatchCategory(Patches_DrillTurret.Category)]
+[HarmonyPatchCategory(PatchCategories.DrillTurret)]
 [HarmonyPatch("DrillTurret.Building_DrillTurret", "lookForNewTarget")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Building_DrillTurret_lookForNewTarget
@@ -32,7 +30,7 @@ public static class Patch_Building_DrillTurret_lookForNewTarget
     }
 }
 
-[HarmonyPatchCategory(Patches_DrillTurret.Category)]
+[HarmonyPatchCategory(PatchCategories.DrillTurret)]
 [HarmonyPatch("DrillTurret.Building_DrillTurret", "isValidTargetAt")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Building_DrillTurret_isValidTargetAt
@@ -45,7 +43,7 @@ public static class Patch_Building_DrillTurret_isValidTargetAt
     }
 }
 
-[HarmonyPatchCategory(Patches_DrillTurret.Category)]
+[HarmonyPatchCategory(PatchCategories.DrillTurret)]
 [HarmonyPatch("DrillTurret.Building_DrillTurret", "isValidTargetAtForGizmo")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Building_DrillTurret_isValidTargetAtForGizmo
@@ -58,7 +56,7 @@ public static class Patch_Building_DrillTurret_isValidTargetAtForGizmo
     }
 }
 
-[HarmonyPatchCategory(Patches_DrillTurret.Category)]
+[HarmonyPatchCategory(PatchCategories.DrillTurret)]
 [HarmonyPatch("DrillTurret.Building_DrillTurret", "drillRock")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Building_DrillTurret_drillRock
@@ -70,7 +68,7 @@ public static class Patch_Building_DrillTurret_drillRock
     }
 }
 
-[HarmonyPatchCategory(Patches_DrillTurret.Category)]
+[HarmonyPatchCategory(PatchCategories.DrillTurret)]
 [HarmonyPatch]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Building_DrillTurret_selectTarget
@@ -86,7 +84,7 @@ public static class Patch_Building_DrillTurret_selectTarget
     }
 }
 
-[HarmonyPatchCategory(Patches_DrillTurret.Category)]
+[HarmonyPatchCategory(PatchCategories.DrillTurret)]
 [HarmonyPatch("DrillTurret.Building_DrillTurret", "setForcedTarget")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Building_DrillTurret_setForcedTarget
@@ -97,7 +95,7 @@ public static class Patch_Building_DrillTurret_setForcedTarget
     }
 }
 
-[HarmonyPatchCategory(Patches_DrillTurret.Category)]
+[HarmonyPatchCategory(PatchCategories.DrillTurret)]
 [HarmonyPatch]
 public static class Patch_Building_DrillTurret_DrawAt
 {

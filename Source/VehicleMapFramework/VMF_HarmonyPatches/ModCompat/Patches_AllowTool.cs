@@ -10,18 +10,16 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 internal class Patches_AllowTool
 {
-    public const string Category = "VMF_Patches_AllowTool";
-
     static Patches_AllowTool()
     {
         if (ModCompat.AllowTool)
         {
-            VMF_Harmony.PatchCategory(Category);
+            VMF_Harmony.PatchCategory(PatchCategories.AllowTool);
         }
     }
 }
 
-[HarmonyPatchCategory(Patches_AllowTool.Category)]
+[HarmonyPatchCategory(PatchCategories.AllowTool)]
 [HarmonyPatch("AllowTool.Designator_SelectSimilar", "ProcessSingleCellClick")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Designator_SelectSimilar_ProcessSingleCellClick
@@ -32,7 +30,7 @@ public static class Patch_Designator_SelectSimilar_ProcessSingleCellClick
     }
 }
 
-[HarmonyPatchCategory(Patches_AllowTool.Category)]
+[HarmonyPatchCategory(PatchCategories.AllowTool)]
 [HarmonyPatch("AllowTool.Designator_SelectableThings", "DesignateMultiCell")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Designator_SelectableThings_DesignateMultiCell
@@ -43,7 +41,7 @@ public static class Patch_Designator_SelectableThings_DesignateMultiCell
     }
 }
 
-[HarmonyPatchCategory(Patches_AllowTool.Category)]
+[HarmonyPatchCategory(PatchCategories.AllowTool)]
 [HarmonyPatch("AllowTool.UnlimitedAreaDragger", "OnSelectionStarted")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_UnlimitedAreaDragger_OnSelectionStarted
@@ -54,7 +52,7 @@ public static class Patch_UnlimitedAreaDragger_OnSelectionStarted
     }
 }
 
-[HarmonyPatchCategory(Patches_AllowTool.Category)]
+[HarmonyPatchCategory(PatchCategories.AllowTool)]
 [HarmonyPatch("AllowTool.UnlimitedAreaDragger", "Update")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_UnlimitedAreaDragger_Update
@@ -65,7 +63,7 @@ public static class Patch_UnlimitedAreaDragger_Update
     }
 }
 
-[HarmonyPatchCategory(Patches_AllowTool.Category)]
+[HarmonyPatchCategory(PatchCategories.AllowTool)]
 [HarmonyPatch]
 [PatchLevel(Level.Safe)]
 public static class Patch_MapCellHighlighter_CachedHighlight

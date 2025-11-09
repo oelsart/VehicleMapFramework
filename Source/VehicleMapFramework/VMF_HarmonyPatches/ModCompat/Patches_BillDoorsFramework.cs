@@ -11,18 +11,16 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 internal static class Patches_BillDoorsFramework
 {
-    public const string Category = "VMF_Patches_BillDoorsFramework";
-
     static Patches_BillDoorsFramework()
     {
         if (ModCompat.BillDoorsFramework)
         {
-            VMF_Harmony.PatchCategory(Category);
+            VMF_Harmony.PatchCategory(PatchCategories.BillDoorsFramework);
         }
     }
 }
 
-[HarmonyPatchCategory(Patches_BillDoorsFramework.Category)]
+[HarmonyPatchCategory(PatchCategories.BillDoorsFramework)]
 [HarmonyPatch("BillDoorsFramework.PlaceWorker_ShowVerbRadiusBySight", "AllowsPlacing")]
 [PatchLevel(Level.Safe)]
 [StaticConstructorOnStartup]

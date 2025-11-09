@@ -14,7 +14,7 @@ namespace VehicleMapFramework;
 public class MethodInfoCache
 {
     private static readonly Verse.WeakReference<MethodInfoCache> cacheInt = new(null);
-
+    
     public static MethodInfoCache CachedMethodInfo
     {
         get

@@ -11,18 +11,16 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 internal class Patches_CeleTech
 {
-    public const string Category = "VMF_Patches_CeleTech";
-
     static Patches_CeleTech()
     {
         if (ModCompat.CeleTech)
         {
-            VMF_Harmony.PatchCategory(Category);
+            VMF_Harmony.PatchCategory(PatchCategories.CeleTechArsenal);
         }
     }
 }
 
-[HarmonyPatchCategory(Patches_CeleTech.Category)]
+[HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
 [HarmonyPatch("TOT_DLL_test.Building_CMCTurretGun", "DrawExtraSelectionOverlays")]
 public static class Patch_Building_CMCTurretGun_DrawExtraSelectionOverlays
 {
@@ -33,7 +31,7 @@ public static class Patch_Building_CMCTurretGun_DrawExtraSelectionOverlays
     }
 }
 
-[HarmonyPatchCategory(Patches_CeleTech.Category)]
+[HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
 [HarmonyPatch("TOT_DLL_test.Building_CMCTurretGun_MainBattery", "DrawExtraSelectionOverlays")]
 public static class Patch_Building_CMCTurretGun_MainBattery_DrawExtraSelectionOverlays
 {
@@ -44,7 +42,7 @@ public static class Patch_Building_CMCTurretGun_MainBattery_DrawExtraSelectionOv
     }
 }
 
-[HarmonyPatchCategory(Patches_CeleTech.Category)]
+[HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
 [HarmonyPatch("TOT_DLL_test.Building_CMCTurretGun", "OrderAttack")]
 public static class Patch_Building_CMCTurretGun_OrderAttack
 {
@@ -55,7 +53,7 @@ public static class Patch_Building_CMCTurretGun_OrderAttack
     }
 }
 
-[HarmonyPatchCategory(Patches_CeleTech.Category)]
+[HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
 [HarmonyPatch("TOT_DLL_test.Building_CMCTurretGun", "TryFindNewTarget")]
 public static class Patch_Building_CMCTurretGun_TryFindNewTarget
 {
@@ -84,7 +82,7 @@ public static class Patch_Building_CMCTurretGun_TryFindNewTarget
     }
 }
 
-[HarmonyPatchCategory(Patches_CeleTech.Category)]
+[HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
 [HarmonyPatch]
 public static class Patch_Building_CMCTurretGun_TryFindNewTarget_Delegate
 {
@@ -102,7 +100,7 @@ public static class Patch_Building_CMCTurretGun_TryFindNewTarget_Delegate
     }
 }
 
-[HarmonyPatchCategory(Patches_CeleTech.Category)]
+[HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
 [HarmonyPatch("TOT_DLL_test.CMCTurretTop", "DrawTurret")]
 public static class Patch_CMCTurretTop_DrawTurret
 {
@@ -124,7 +122,7 @@ public static class Patch_CMCTurretTop_DrawTurret
     }
 }
 
-[HarmonyPatchCategory(Patches_CeleTech.Category)]
+[HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
 [HarmonyPatch("TOT_DLL_test.CMCTurretTop", "ForceFaceTarget")]
 public static class Patch_CMCTurretTop_ForceFaceTarget
 {
@@ -134,7 +132,7 @@ public static class Patch_CMCTurretTop_ForceFaceTarget
     }
 }
 
-[HarmonyPatchCategory(Patches_CeleTech.Category)]
+[HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
 [HarmonyPatch("TOT_DLL_test.CMCTurretTop", "TurretTopTick")]
 public static class Patch_CMCTurretTop_TurretTopTick
 {
@@ -144,7 +142,7 @@ public static class Patch_CMCTurretTop_TurretTopTick
     }
 }
 
-[HarmonyPatchCategory(Patches_CeleTech.Category)]
+[HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
 [HarmonyPatch("TOT_DLL_test.Building_CMCSniperTurret", "RunDetection")]
 public static class Patch_Building_CMCSniperTurret_RunDetection
 {
@@ -155,7 +153,7 @@ public static class Patch_Building_CMCSniperTurret_RunDetection
     }
 }
 
-[HarmonyPatchCategory(Patches_CeleTech.Category)]
+[HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
 [HarmonyPatch("TOT_DLL_test.Building_CMCSniperTurret", "TryFindNewTarget")]
 public static class Patch_Building_CMCSniperTurret_TryFindNewTarget
 {
@@ -165,7 +163,7 @@ public static class Patch_Building_CMCSniperTurret_TryFindNewTarget
     }
 }
 
-[HarmonyPatchCategory(Patches_CeleTech.Category)]
+[HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
 [HarmonyPatch]
 public static class Patch_Building_CMCSniperTurret_TryFindNewTarget_Delegate
 {
@@ -183,7 +181,7 @@ public static class Patch_Building_CMCSniperTurret_TryFindNewTarget_Delegate
     }
 }
 
-[HarmonyPatchCategory(Patches_CeleTech.Category)]
+[HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
 [HarmonyPatch("TOT_DLL_test.Building_CMCTurretMissile", "TryFindNewTarget")]
 public static class Patch_Building_CMCTurretMissile_TryFindNewTarget
 {
@@ -193,7 +191,7 @@ public static class Patch_Building_CMCTurretMissile_TryFindNewTarget
     }
 }
 
-[HarmonyPatchCategory(Patches_CeleTech.Category)]
+[HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
 [HarmonyPatch]
 public static class Patch_Building_CMCTurretMissile_TryFindNewTarget_Delegate
 {
@@ -211,7 +209,7 @@ public static class Patch_Building_CMCTurretMissile_TryFindNewTarget_Delegate
     }
 }
 
-[HarmonyPatchCategory(Patches_CeleTech.Category)]
+[HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
 [HarmonyPatch("TOT_DLL_test.Comp_FCradar", "PostDraw")]
 public static class Patch_Comp_FCradar_PostDraw
 {
@@ -233,7 +231,7 @@ public static class Patch_Comp_FCradar_PostDraw
     }
 }
 
-[HarmonyPatchCategory(Patches_CeleTech.Category)]
+[HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
 [HarmonyPatch("TOT_DLL_test.Comp_CMCShield", "Draw")]
 public static class Patch_Comp_CMCShield_Draw
 {
@@ -243,7 +241,7 @@ public static class Patch_Comp_CMCShield_Draw
     }
 }
 
-[HarmonyPatchCategory(Patches_CeleTech.Category)]
+[HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
 [HarmonyPatch("TOT_DLL_test.Comp_PrismTowerTop", "PostDraw")]
 public static class Patch_Comp_PrismTowerTop_PostDraw
 {
@@ -253,7 +251,7 @@ public static class Patch_Comp_PrismTowerTop_PostDraw
     }
 }
 
-[HarmonyPatchCategory(Patches_CeleTech.Category)]
+[HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
 [HarmonyPatch("TOT_DLL_test.Comp_TraderShuttle", "PostDraw")]
 public static class Patch_Comp_TraderShuttle_PostDraw
 {
@@ -263,28 +261,7 @@ public static class Patch_Comp_TraderShuttle_PostDraw
     }
 }
 
-[HarmonyPatchCategory(Patches_CeleTech.Category)]
-[HarmonyPatch("TOT_DLL_test.Building_AESARadar", "DrawAt")]
-public static class Patch_Building_AESARadar_DrawAt
-{
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
-    {
-        var codes = new CodeMatcher(instructions, generator);
-        codes.MatchStartForward(CodeMatch.Calls(AccessTools.Method(typeof(Altitudes), nameof(Altitudes.AltitudeFor), [typeof(AltitudeLayer)])));
-        codes.CreateLabelWithOffsets(1, out var label);
-        codes.DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle);
-        codes.InsertAfter(
-            CodeInstruction.LoadArgument(0),
-            new CodeInstruction(OpCodes.Ldloca_S, vehicle),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf),
-            new CodeInstruction(OpCodes.Brfalse_S, label),
-            new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_YOffsetFull));
-        return codes.Instructions();
-    }
-}
-
-[HarmonyPatchCategory(Patches_CeleTech.Category)]
+[HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
 [HarmonyPatch("TOT_DLL_test.Comp_UAV", "CompTick")]
 public static class Patch_Comp_UAV_CompTick
 {
@@ -294,7 +271,7 @@ public static class Patch_Comp_UAV_CompTick
     }
 }
 
-[HarmonyPatchCategory(Patches_CeleTech.Category)]
+[HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
 [HarmonyPatch("TOT_DLL_test.Verb_LauncherProjectileSwitchFire", "GetForcedMissTarget")]
 public static class Patch_Verb_LauncherProjectileSwitchFire_GetForcedMissTarget
 {
@@ -304,7 +281,7 @@ public static class Patch_Verb_LauncherProjectileSwitchFire_GetForcedMissTarget
     }
 }
 
-[HarmonyPatchCategory(Patches_CeleTech.Category)]
+[HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
 [HarmonyPatch]
 public static class Patch_Verb_LauncherProjectileSwitchFire_GetForcedMissTarget_Delegate
 {
@@ -322,7 +299,7 @@ public static class Patch_Verb_LauncherProjectileSwitchFire_GetForcedMissTarget_
     }
 }
 
-[HarmonyPatchCategory(Patches_CeleTech.Category)]
+[HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
 [HarmonyPatch("TOT_DLL_test.Verb_LauncherProjectileSwitchFire", "TryCastShot")]
 public static class Patch_Verb_LauncherProjectileSwitchFire_TryCastShot
 {
@@ -332,7 +309,7 @@ public static class Patch_Verb_LauncherProjectileSwitchFire_TryCastShot
     }
 }
 
-[HarmonyPatchCategory(Patches_CeleTech.Category)]
+[HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
 [HarmonyPatch("TOT_DLL_test.Verb_LauncherProjectileSwitchFire", "Retarget")]
 public static class Patch_Verb_LauncherProjectileSwitchFire_Retarget
 {
@@ -342,7 +319,7 @@ public static class Patch_Verb_LauncherProjectileSwitchFire_Retarget
     }
 }
 
-[HarmonyPatchCategory(Patches_CeleTech.Category)]
+[HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
 [HarmonyPatch]
 public static class Patch_Patch_Verb_LauncherProjectileSwitchFire_Retarget_Delegate
 {
@@ -360,7 +337,7 @@ public static class Patch_Patch_Verb_LauncherProjectileSwitchFire_Retarget_Deleg
     }
 }
 
-[HarmonyPatchCategory(Patches_CeleTech.Category)]
+[HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
 [HarmonyPatch("TOT_DLL_test.Verb_LauncherProjectileSwitchFire", "CanHitFromCellIgnoringRange")]
 public static class Patch_Verb_LauncherProjectileSwitchFire_CanHitFromCellIgnoringRange
 {

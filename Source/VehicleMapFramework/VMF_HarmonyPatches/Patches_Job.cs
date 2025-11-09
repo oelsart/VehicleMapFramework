@@ -107,16 +107,15 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
         //GenClosestの各メソッドを自作のものに置き換える
         //PotentialWorkThingsGlobalの各マップの結果を合計
         var m_GenClosest_ClosestThing_Global = AccessTools.Method(typeof(GenClosest), nameof(GenClosest.ClosestThing_Global));
-        var m_GenClosestCrossMap_ClosestThing_Global = AccessTools.Method(typeof(GenClosestCrossMap), nameof(GenClosestCrossMap.ClosestThing_Global),
-            [typeof(IntVec3), typeof(IEnumerable<>), typeof(float), typeof(Predicate<Thing>), typeof(Func<Thing, float>), typeof(bool)]);
+        var m_GenClosestCrossMap_ClosestThing_Global = AccessTools.Method(typeof(GenClosestCrossMap), nameof(GenClosestCrossMap.ClosestThing_Global));
         var m_GenClosest_ClosestThing_Global_Reachable = AccessTools.Method(typeof(GenClosest), nameof(GenClosest.ClosestThing_Global_Reachable));
-        var m_GenClosestCrossMap_ClosestThing_Global_Reachable = AccessTools.Method(typeof(GenClosestCrossMap), nameof(GenClosestCrossMap.ClosestThing_Global_Reachable),
-            [typeof(IntVec3), typeof(Map), typeof(IEnumerable<Thing>), typeof(PathEndMode), typeof(TraverseParms), typeof(float), typeof(Predicate<Thing>), typeof(Func<Thing, float>), typeof(bool)]);
+        var m_GenClosestCrossMap_ClosestThing_Global_Reachable = AccessTools.Method(typeof(GenClosestCrossMap), nameof(GenClosestCrossMap.ClosestThing_Global_Reachable));
         var m_Scanner_PotentialWorkThingsGlobal = AccessTools.Method(typeof(WorkGiver_Scanner), nameof(WorkGiver_Scanner.PotentialWorkThingsGlobal));
         var m_PotentialWorkThingsGlobalAll = AccessTools.Method(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(PotentialWorkThingsGlobalAll));
         var m_Scanner_JobOnThing = AccessTools.Method(typeof(WorkGiver_Scanner), nameof(WorkGiver_Scanner.JobOnThing));
         var m_JobOnThingMap = AccessTools.Method(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(JobOnThingMap));
-        return codes.Instructions().MethodReplacer(m_GenClosest_ClosestThing_Global, m_GenClosestCrossMap_ClosestThing_Global)
+        return codes.Instructions()
+            .MethodReplacer(m_GenClosest_ClosestThing_Global, m_GenClosestCrossMap_ClosestThing_Global)
             .MethodReplacer(m_GenClosest_ClosestThing_Global_Reachable, m_GenClosestCrossMap_ClosestThing_Global_Reachable)
             .MethodReplacer(m_Scanner_PotentialWorkThingsGlobal, m_PotentialWorkThingsGlobalAll)
             .MethodReplacer(m_Scanner_JobOnThing, m_JobOnThingMap);
@@ -134,7 +133,7 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
         return tmpMaps.Any() ? tmpMaps.SelectMany(m => m.listerThings.ThingsMatching(scanner.PotentialWorkThingRequest)).ConcatIfNotNull(list).Distinct() : list;
     }
 
-    internal static IEnumerable<Thing> PotentialWorkThingsGlobalAll(WorkGiver_Scanner scanner, Pawn pawn)
+    internal static IEnumerable<Thing> PotentialWorkThingsGlobalAll(this WorkGiver_Scanner scanner, Pawn pawn)
     {
         if (JobAcrossMapsUtility.NoNeedVirtualMapTransfer(pawn.Map, null))
         {
@@ -168,7 +167,7 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
         }
     }
 
-    internal static Job JobOnThingMap(WorkGiver_Scanner scanner, Pawn pawn, Thing t, bool forced)
+    internal static Job JobOnThingMap(this WorkGiver_Scanner scanner, Pawn pawn, Thing t, bool forced = false)
     {
         var thingMap = t.MapHeld;
         if (JobAcrossMapsUtility.NoNeedVirtualMapTransfer(pawn.Map, thingMap))
@@ -190,7 +189,7 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
         }
     }
 
-    internal static Job JobOnCellMap(WorkGiver_Scanner scanner, Pawn pawn, in TargetInfo target, bool forced)
+    internal static Job JobOnCellMap(this WorkGiver_Scanner scanner, Pawn pawn, in TargetInfo target, bool forced = false)
     {
         var map = pawn.Map;
         var targetMap = target.Map;
@@ -232,7 +231,7 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
         return JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot2, enterSpot2, job);
     }
 
-    internal static void ScanCellsAcrossMaps(WorkGiver_Scanner scanner, ref InnerClass innerClass, ref InnerStruct innerStruct)
+    internal static void ScanCellsAcrossMaps(this WorkGiver_Scanner scanner, ref InnerClass innerClass, ref InnerStruct innerStruct)
     {
         var pawn = innerClass.pawn;
         var basePos = pawn.PositionOnBaseMap();
@@ -328,7 +327,7 @@ public static class Patch_JobGiver_Work_PawnCanUseWorkGiver
         return instructions.MethodReplacer(m_WorkGiver_ShouldSkip, m_ShouldSkipAll);
     }
 
-    public static bool ShouldSkipAll(this WorkGiver workGiver, Pawn pawn, bool forced)
+    public static bool ShouldSkipAll(this WorkGiver workGiver, Pawn pawn, bool forced = false)
     {
         if (NoNeedVirtualMapTransferList.Contains(workGiver.GetType()))
         {
@@ -367,7 +366,7 @@ public static class Patch_JobGiver_Work_Validator
     }
 
     //目的のtに届く位置とマップに転移してからHasJobOnThingを走らせる
-    private static bool HasJobOnThingMap(WorkGiver_Scanner scanner, Pawn pawn, Thing t, bool forced)
+    public static bool HasJobOnThingMap(this WorkGiver_Scanner scanner, Pawn pawn, Thing t, bool forced = false)
     {
         var thingMap = t.MapHeld;
         if (JobAcrossMapsUtility.NoNeedVirtualMapTransfer(pawn.Map, thingMap))

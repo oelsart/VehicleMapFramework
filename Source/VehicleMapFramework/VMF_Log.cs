@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using Verse;
 
 namespace VehicleMapFramework;
@@ -9,6 +10,10 @@ internal static class VMF_Log
     
     public static void Error(string message)
     {
+        if (UnitTestDetector.IsTestingContext)
+        {
+            Console.WriteLine(message);
+        }
         Log.Error($"{LogLabel} {message}");
     }
 

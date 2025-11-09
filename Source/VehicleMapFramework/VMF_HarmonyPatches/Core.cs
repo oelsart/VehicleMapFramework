@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
-using System.Runtime.CompilerServices;
 using HarmonyLib;
 using Verse;
 
@@ -274,6 +273,8 @@ public static class Core
     static Core()
     {
         VMF_Harmony.PatchAllUncategorized();
+        VMF_Harmony.PatchCategory(PatchCategories.VehicleFramework);
+        VMF_Harmony.Categories.Add(PatchCategories.VehicleFramework);
     }
 }
 
@@ -302,25 +303,4 @@ public static class LatePatchCore
 public sealed class StaticConstructorOnStartupPriorityAttribute(int priority) : Attribute
 {
     public readonly int priority = priority;
-}
-
-[StaticConstructorOnStartup]
-public static class StaticConstructorOnStartupPriorityUtility
-{
-    static StaticConstructorOnStartupPriorityUtility()
-    {
-        var types = GenTypes.AllTypesWithAttribute<StaticConstructorOnStartupPriorityAttribute>();
-        types.SortByDescending(t => t.GetCustomAttribute<StaticConstructorOnStartupPriorityAttribute>().priority);
-        foreach (var type in types)
-        {
-            try
-            {
-                RuntimeHelpers.RunClassConstructor(type.TypeHandle);
-            }
-            catch (Exception ex)
-            {
-                Log.Error($"Error in static constructor of {type}: {ex}");
-            }
-        }
-    }
 }

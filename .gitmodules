@@ -1,0 +1,3 @@
+[submodule "Source/Test_CompatPatches/ModAssemblyLoader"]
+	path = Source/Test_CompatPatches/ModAssemblyLoader
+	url = https://github.com/oelsart/ModAssemblyLoader

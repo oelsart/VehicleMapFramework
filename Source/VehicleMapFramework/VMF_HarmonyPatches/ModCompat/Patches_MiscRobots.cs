@@ -14,18 +14,16 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 internal static class Patches_MiscRobots
 {
-    public const string Category = "VMF_Patches_MiscRobots";
-
     static Patches_MiscRobots()
     {
         if (MiscRobots.Active)
         {
-            VMF_Harmony.PatchCategory("VMF_Patches_MiscRobots");
+            VMF_Harmony.PatchCategory(PatchCategories.MiscRobots);
         }
     }
 }
 
-[HarmonyPatchCategory(Patches_MiscRobots.Category)]
+[HarmonyPatchCategory(PatchCategories.MiscRobots)]
 [HarmonyPatch("AIRobot.X2_JobGiver_Return2BaseRoom", "TryIssueJobPackage")]
 [PatchLevel(Level.Safe)]
 public static class Patch_X2_JobGiver_Return2BaseRoom_TryIssueJobPackage
@@ -85,7 +83,7 @@ public static class Patch_X2_JobGiver_Return2BaseRoom_TryIssueJobPackage
     }
 }
 
-[HarmonyPatchCategory(Patches_MiscRobots.Category)]
+[HarmonyPatchCategory(PatchCategories.MiscRobots)]
 [HarmonyPatch("AIRobot.X2_JobGiver_Work", "TryIssueJobPackage")]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_X2_JobGiver_Work_TryIssueJobPackage

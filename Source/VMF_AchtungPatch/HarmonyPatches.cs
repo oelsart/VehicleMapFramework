@@ -16,13 +16,11 @@ public static class Patches_Achtung
 {
     static Patches_Achtung()
     {
-        VMF_Harmony.PatchCategory(Category);
+        VMF_Harmony.PatchCategory(PatchCategories.Achtung);
     }
-
-    public const string Category = "VMF_Patches_Achtung";
 }
 
-[HarmonyPatchCategory(Patches_Achtung.Category)]
+[HarmonyPatchCategory(PatchCategories.Achtung)]
 [HarmonyPatch(typeof(Colonist), nameof(Colonist.UpdateOrderPos))]
 [PatchLevel(Level.Safe)]
 public static class Patch_Colonist_UpdateOrderPos
@@ -108,7 +106,7 @@ public static class Patch_Colonist_UpdateOrderPos
     private static int lastCachedTick;
 }
 
-[HarmonyPatchCategory(Patches_Achtung.Category)]
+[HarmonyPatchCategory(PatchCategories.Achtung)]
 [HarmonyPatch("AchtungMod.Tools", "OrderTo")]
 [PatchLevel(Level.Safe)]
 public static class Patch_Tools_OrderTo
@@ -138,7 +136,7 @@ public static class Patch_Tools_OrderTo
     }
 }
 
-[HarmonyPatchCategory(Patches_Achtung.Category)]
+[HarmonyPatchCategory(PatchCategories.Achtung)]
 [HarmonyPatch("AchtungMod.Tools", "LabelDrawPosFor")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Tools_LabelDrawPosFor
@@ -161,7 +159,7 @@ public static class Patch_Tools_LabelDrawPosFor
     public static MethodInfo m_ToVector3ShiftedOffset = AccessTools.Method(typeof(Patch_Tools_LabelDrawPosFor), nameof(ToVector3ShiftedOffset));
 }
 
-[HarmonyPatchCategory(Patches_Achtung.Category)]
+[HarmonyPatchCategory(PatchCategories.Achtung)]
 [HarmonyPatch]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Controller_HandleDrawing
@@ -177,7 +175,7 @@ public static class Patch_Controller_HandleDrawing
     }
 }
 
-[HarmonyPatchCategory(Patches_Achtung.Category)]
+[HarmonyPatchCategory(PatchCategories.Achtung)]
 [HarmonyPatch(typeof(Controller), nameof(Controller.MouseDown))]
 [PatchLevel(Level.Safe)]
 public static class Patch_Controller_MouseDown

@@ -6,18 +6,16 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 internal class Patches_CutPlantsBeforeBuilding
 {
-    public const string Category = "VMF_Patches_Patches_CutPlantsBeforeBuilding";
-
     static Patches_CutPlantsBeforeBuilding()
     {
         if (ModCompat.CutPlantsBeforeBuilding)
         {
-            VMF_Harmony.PatchCategory(Category);
+            VMF_Harmony.PatchCategory(PatchCategories.CutPlantsBeforeBuilding);
         }
     }
 }
 
-[HarmonyPatchCategory(Patches_CutPlantsBeforeBuilding.Category)]
+[HarmonyPatchCategory(PatchCategories.CutPlantsBeforeBuilding)]
 [HarmonyPatch("CutPlantsBeforeBuilding.Util", "DesignatePlants")]
 public static class Patch_Util_DesignatePlants
 {

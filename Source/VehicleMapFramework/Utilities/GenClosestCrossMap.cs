@@ -64,19 +64,18 @@ public static class GenClosestCrossMap
             var basePos = map.IsVehicleMapOf(out var vehicle) ? root.ToBaseMapCoord(vehicle) : root;
             var searchSet = customGlobalSearchSet ?? map.BaseMapAndVehicleMaps().Except(map).SelectMany(m => m.listerThings.ThingsMatching(thingReq));
             
+            var departMap =
+                traverseParams.pawn is not null &&
+                CrossMapReachabilityUtility.DepartMap.TryGetValue(traverseParams.pawn, out var map2) ? map2 : map;
             bool GlobalValidator(Thing t)
             {
-                if (!CrossMapReachabilityUtility.CanReach(map, root, t, peMode, traverseParams, t.MapHeld, out _, out _))
+                if (!CrossMapReachabilityUtility.CanReach(departMap, root, t, peMode, traverseParams, t.MapHeld, out _, out _))
                 {
                     return false;
                 }
-                if (validator != null && !validator(t))
-                {
-                    return false;
-                }
-                return true;
+                return validator == null || validator(t);
             }
-            thing = ClosestThing_Global(basePos, searchSet, maxDistance, GlobalValidator, null);
+            thing = ClosestThing_Global(basePos, searchSet, maxDistance, GlobalValidator);
         }
         return thing;
     }
@@ -150,11 +149,6 @@ public static class GenClosestCrossMap
         regionProcessorClosestThingReachable.Clear();
         SimplePool<CrossMapRegionProcessorClosestThingReachable>.Return(regionProcessorClosestThingReachable);
         return closestThing;
-    }
-
-    public static Thing ClosestThing_Global(IntVec3 center, IEnumerable searchSet, float maxDistance = 99999f, Predicate<Thing> validator = null, Func<Thing, float> priorityGetter = null)
-    {
-        return ClosestThing_Global(center, searchSet, maxDistance, validator, priorityGetter, false);
     }
 
     public static Thing ClosestThing_Global(IntVec3 center, IEnumerable searchSet, float maxDistance = 99999f, Predicate<Thing> validator = null, Func<Thing, float> priorityGetter = null, bool lookInHaulSources = false)
@@ -267,12 +261,14 @@ public static class GenClosestCrossMap
             return null;
         }
         var basePos = map.IsVehicleMapOf(out var vehicle) ? center.ToBaseMapCoord(vehicle) : center;
-        var debug_changeCount = 0;
-        var debug_scanCount = 0;
         Thing bestThing = null;
         var bestPrio = float.MinValue;
         var maxDistanceSquared = maxDistance * maxDistance;
         var closestDistSquared = 2.1474836E+09f;
+        var careAboutHaulSourceEnabled = canLookInHaulableSources && traverseParams.pawn is { IsColonist: true };
+        var departMap =
+            traverseParams.pawn is not null &&
+            CrossMapReachabilityUtility.DepartMap.TryGetValue(traverseParams.pawn, out var map2) ? map2 : map;
         if (searchSet is IList<Thing> list)
         {
             for (var i = 0; i < list.Count; i++)
@@ -305,29 +301,21 @@ public static class GenClosestCrossMap
 
         void Process(Thing t)
         {
-            if (t == null)
-            {
+            if (t is null || !t.Spawned)
                 return;
-            }
-            if (!t.Spawned)
-            {
-                return;
-            }
-            debug_scanCount++;
             float num = (basePos - t.PositionHeldOnBaseMap()).LengthHorizontalSquared;
             if (num > maxDistanceSquared)
-            {
                 return;
-            }
             if (priorityGetter != null || num < closestDistSquared)
             {
                 ValidateThing(t, num);
-                if (canLookInHaulableSources && t is IHaulSource haulSource)
+                if (canLookInHaulableSources && t is IHaulSource haulSource &&
+                    (!careAboutHaulSourceEnabled || haulSource.HaulSourceEnabled))
                 {
                     var directlyHeldThings = haulSource.GetDirectlyHeldThings();
-                    for (var i = 0; i < directlyHeldThings.Count; i++)
+                    foreach (var t1 in directlyHeldThings)
                     {
-                        ValidateThing(directlyHeldThings[i], num);
+                        ValidateThing(t1, num);
                     }
                 }
             }
@@ -335,14 +323,10 @@ public static class GenClosestCrossMap
 
         void ValidateThing(Thing t, float distSquared)
         {
-            if (!CrossMapReachabilityUtility.CanReach(map, center, t.SpawnedParentOrMe, peMode, traverseParams, t.MapHeld))
-            {
+            if (!CrossMapReachabilityUtility.CanReach(departMap, center, t.SpawnedParentOrMe, peMode, traverseParams, t.MapHeld))
                 return;
-            }
             if (validator != null && !validator(t))
-            {
                 return;
-            }
             var num = 0f;
             if (priorityGetter != null)
             {
@@ -359,7 +343,6 @@ public static class GenClosestCrossMap
             bestThing = t;
             closestDistSquared = distSquared;
             bestPrio = num;
-            debug_changeCount++;
         }
     }
 }

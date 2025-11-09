@@ -11,18 +11,16 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 public static class Patches_Odyssey
 {
-    public const string Category = "VMF_Patches_Odyssey";
-
     static Patches_Odyssey()
     {
         if (ModsConfig.OdysseyActive)
         {
-            VMF_Harmony.PatchCategory(Category);
+            VMF_Harmony.PatchCategory(PatchCategories.Odyssey);
         }
     }
 }
 
-[HarmonyPatchCategory(Patches_Odyssey.Category)]
+[HarmonyPatchCategory(PatchCategories.Odyssey)]
 [HarmonyPatch(typeof(Building_GravEngine), "UpdateSubstructureIfNeeded")]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Building_GravEngine_UpdateSubstructureIfNeeded
@@ -51,7 +49,7 @@ public static class Patch_Building_GravEngine_UpdateSubstructureIfNeeded
     }
 }
 
-[HarmonyPatchCategory(Patches_Odyssey.Category)]
+[HarmonyPatchCategory(PatchCategories.Odyssey)]
 [HarmonyPatch(typeof(Building_GravEngine), nameof(Building_GravEngine.DeSpawn))]
 [PatchLevel(Level.Safe)]
 public static class Patch_Building_GravEngine_DeSpawn
@@ -70,7 +68,7 @@ public static class Patch_Building_GravEngine_DeSpawn
     }
 }
 
-[HarmonyPatchCategory(Patches_Odyssey.Category)]
+[HarmonyPatchCategory(PatchCategories.Odyssey)]
 [HarmonyPatch(typeof(TerrainGrid), nameof(TerrainGrid.CanRemoveFoundationAt))]
 [PatchLevel(Level.Safe)]
 public static class Patch_TerrainGrid_CanRemoveFoundationAt
@@ -82,7 +80,7 @@ public static class Patch_TerrainGrid_CanRemoveFoundationAt
 }
 
 //ThingがあればThing.Map、なければFocusedVehicle.VehicleMap、それもなければFind.CurrentMapを参照するようにする
-[HarmonyPatchCategory(Patches_Odyssey.Category)]
+[HarmonyPatchCategory(PatchCategories.Odyssey)]
 [HarmonyPatch(typeof(PlaceWorker_GravshipThruster), nameof(PlaceWorker_GravshipThruster.DrawGhost))]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_PlaceWorker_GravshipThruster_DrawGhost
