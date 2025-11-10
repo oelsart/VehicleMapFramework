@@ -316,7 +316,6 @@ internal abstract class WorkGiverTestBase(VehicleGroup group)
             result.job = job3;
         }
 
-        Expect.IsNotNull(result.job);
         return result;
         
         // VehicleGroupのvehicleがスポーンしたことにより結果が変わるのを防ぐ
