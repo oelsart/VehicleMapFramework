@@ -535,31 +535,34 @@ public static class Patch_LaunchProtocol_GetArrivalOptions
             if (mapParent.HasMap && !mapParent.EnterCooldownBlocksEntering())
             {
                 yield return new ArrivalOption("LandInExistingMap".Translate(mapParent.Label),
-                  continueWith: delegate (TargetData<GlobalTargetInfo> targetData)
-                  {
-                      Current.Game.CurrentMap = mapParent.Map;
-                      CameraJumper.TryHideWorld();
-                      LandingTargeter.Instance.BeginTargeting(vehicle, mapParent.Map,
-                action: delegate (LocalTargetInfo landingCell, Rot4 rot)
-                      {
-                          if (vehicle.Spawned)
-                          {
-                              vehicle.CompVehicleLauncher.Launch(targetData,
-                        new ArrivalAction_LandToCell(vehicle, mapParent, landingCell.Cell, rot));
-                          }
-                          else
-                          {
-                              var aerialVehicle = vehicle.GetOrMakeAerialVehicle();
-                              var nodes = targetData.targets.Select(targetInfo => new FlightNode(targetInfo)).ToList();
-                              aerialVehicle.OrderFlyToTiles(nodes,
-                        new ArrivalAction_LandToCell(vehicle, mapParent, landingCell.Cell, rot));
-                              vehicle.CompVehicleLauncher.inFlight = true;
-                              CameraJumper.TryShowWorld();
-                          }
-                      }, allowRotating: vehicle.VehicleDef.rotatable,
-                targetValidator: targetInfo => targetInfo.Cell.InBounds(mapParent.Map) &&
-                  !Ext_Vehicles.IsRoofRestricted(vehicle.VehicleDef, targetInfo.Cell, mapParent.Map));
-                  });
+                    continueWith: targetData =>
+                    {
+                        Patch_Game_CurrentMap.ForceSet = true;
+                        Current.Game.CurrentMap = mapParent.Map;
+                        CameraJumper.TryHideWorld();
+                        LandingTargeter.Instance.BeginTargeting(vehicle, mapParent.Map,
+                            action: (landingCell, rot) =>
+                            {
+                                if (vehicle.Spawned)
+                                {
+                                    vehicle.CompVehicleLauncher.Launch(targetData,
+                                        new ArrivalAction_LandToCell(vehicle, mapParent, landingCell.Cell, rot));
+                                }
+                                else
+                                {
+                                    var aerialVehicle = vehicle.GetOrMakeAerialVehicle();
+                                    var nodes = targetData.targets.Select(targetInfo => new FlightNode(targetInfo))
+                                        .ToList();
+                                    aerialVehicle.OrderFlyToTiles(nodes,
+                                        new ArrivalAction_LandToCell(vehicle, mapParent, landingCell.Cell, rot));
+                                    vehicle.CompVehicleLauncher.inFlight = true;
+                                    CameraJumper.TryShowWorld();
+                                }
+                            }, allowRotating: vehicle.VehicleDef.rotatable,
+                            targetValidator: targetInfo => targetInfo.Cell.InBounds(mapParent.Map) &&
+                                                           !Ext_Vehicles.IsRoofRestricted(vehicle.VehicleDef,
+                                                               targetInfo.Cell, mapParent.Map));
+                    });
             }
         }
     }
