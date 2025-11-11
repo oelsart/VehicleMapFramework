@@ -702,7 +702,8 @@ public static class VehicleMapUtility
             return false;
         }
 
-        var vehicles = VehiclePawnWithMapCache.AllVehiclesOn(map);
+        var vehicles = VehiclePawnWithMapCache.AllVehiclesOn(map)
+            .OrderBy(v => (v.cachedDrawPos - point).MagnitudeHorizontalSquared());
         vehicle = vehicles.FirstOrDefault(v =>
         {
             var rect = new Rect(0f, 0f, v.VehicleMap.Size.x, v.VehicleMap.Size.z);
