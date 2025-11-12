@@ -133,158 +133,161 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
         return tmpMaps.Any() ? tmpMaps.SelectMany(m => m.listerThings.ThingsMatching(scanner.PotentialWorkThingRequest)).ConcatIfNotNull(list).Distinct() : list;
     }
 
-    internal static IEnumerable<Thing> PotentialWorkThingsGlobalAll(this WorkGiver_Scanner scanner, Pawn pawn)
+    extension(WorkGiver_Scanner scanner)
     {
-        if (JobAcrossMapsUtility.NoNeedVirtualMapTransfer(pawn.Map, null))
+        internal IEnumerable<Thing> PotentialWorkThingsGlobalAll(Pawn pawn)
         {
-            return scanner.PotentialWorkThingsGlobal(pawn);
-        }
-        var map = pawn.Map;
-        CrossMapReachabilityUtility.DepartMap[pawn] = map;
-        var pos = pawn.Position;
-        try
-        {
-            IEnumerable<Thing> enumerable = null;
-            pawn.Map.BaseMapAndVehicleMaps().Do(m =>
+            if (JobAcrossMapsUtility.NoNeedVirtualMapTransfer(pawn.Map, null))
             {
-                pawn.VirtualMapTransfer(m);
-                var things = scanner.PotentialWorkThingsGlobal(pawn)?.ToArray();
-                if (enumerable == null)
-                {
-                    enumerable = things;
-                }
-                else if (things != null)
-                {
-                    enumerable = enumerable.Concat(things);
-                }
-            });
-            return enumerable?.Distinct();
-        }
-        finally
-        {
-            pawn.VirtualMapTransfer(map, pos);
-            CrossMapReachabilityUtility.DepartMap.Remove(pawn);
-        }
-    }
-
-    internal static Job JobOnThingMap(this WorkGiver_Scanner scanner, Pawn pawn, Thing t, bool forced = false)
-    {
-        var thingMap = t.MapHeld;
-        if (JobAcrossMapsUtility.NoNeedVirtualMapTransfer(pawn.Map, thingMap))
-        {
-            return scanner.JobOnThing(pawn, t, forced);
-        }
-
-        var map = pawn.Map;
-        CrossMapReachabilityUtility.DepartMap[pawn] = map;
-        pawn.VirtualMapTransfer(thingMap);
-        try
-        {
-            return scanner.JobOnThing(pawn, t, forced);
-        }
-        finally
-        {
-            CrossMapReachabilityUtility.DepartMap.Remove(pawn);
-            pawn.VirtualMapTransfer(map);
-        }
-    }
-
-    internal static Job JobOnCellMap(this WorkGiver_Scanner scanner, Pawn pawn, in TargetInfo target, bool forced = false)
-    {
-        var map = pawn.Map;
-        var targetMap = target.Map;
-        if (map == targetMap)
-        {
-            return scanner.JobOnCell(pawn, target.Cell, forced);
-        }
-
-        if (pawn.CanReach(target.Cell, scanner.PathEndMode, scanner.MaxPathDanger(pawn), false, false, TraverseMode.ByPawn, targetMap, out var exitSpot, out var enterSpot))
-        {
+                return scanner.PotentialWorkThingsGlobal(pawn);
+            }
+            var map = pawn.Map;
+            pawn.DepartMap = map;
             var pos = pawn.Position;
-            pawn.VirtualMapTransfer(targetMap, enterSpot.Cell);
             try
             {
-                return JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, scanner.JobOnCell(pawn, target.Cell, forced));
+                IEnumerable<Thing> enumerable = null;
+                pawn.Map.BaseMapAndVehicleMaps().Do(m =>
+                {
+                    pawn.VirtualMapTransfer(m);
+                    var things = scanner.PotentialWorkThingsGlobal(pawn)?.ToArray();
+                    if (enumerable == null)
+                    {
+                        enumerable = things;
+                    }
+                    else if (things != null)
+                    {
+                        enumerable = enumerable.Concat(things);
+                    }
+                });
+                return enumerable?.Distinct();
             }
             finally
             {
                 pawn.VirtualMapTransfer(map, pos);
+                pawn.RemoveDepartMap();
             }
         }
 
-        if (!CrossMapReachabilityUtility.GetClosestExitEnterSpot(map, pawn.Position, TraverseParms.For(pawn), targetMap,
-                out var exitSpot2, out var enterSpot2)) return null;
-        Job job;
-        try
+        internal Job JobOnThingMap(Pawn pawn, Thing t, bool forced = false)
         {
-            CrossMapReachabilityUtility.DepartMap[pawn] = map;
-            CrossMapReachabilityUtility.DestMap[pawn] = targetMap;
-            pawn.VirtualMapTransfer(targetMap);
-            job = scanner.JobOnCell(pawn, target.Cell, forced);
-        }
-        finally
-        {
-            CrossMapReachabilityUtility.DepartMap.Remove(pawn);
-            CrossMapReachabilityUtility.DestMap.Remove(pawn);
-            pawn.VirtualMapTransfer(map);
-        }
-        return JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot2, enterSpot2, job);
-    }
-
-    internal static void ScanCellsAcrossMaps(this WorkGiver_Scanner scanner, ref InnerClass innerClass, ref InnerStruct innerStruct)
-    {
-        var pawn = innerClass.pawn;
-        var basePos = pawn.PositionOnBaseMap();
-        var map = CrossMapReachabilityUtility.DepartMap[pawn] = pawn.Map;
-        var maps = map.BaseMapAndVehicleMaps().Except(map);
-        try
-        {
-            foreach (var map2 in maps)
+            var thingMap = t.MapHeld;
+            if (JobAcrossMapsUtility.NoNeedVirtualMapTransfer(pawn.Map, thingMap))
             {
-                pawn.VirtualMapTransfer(map2);
-                var positionOnMap = map2.IsVehicleMapOf(out var vehicle) ? basePos.ToVehicleMapCoord(vehicle) : basePos;
-                var enumerable2 = scanner.PotentialWorkCellsGlobal(pawn);
-                foreach (var c in enumerable2)
-                {
-                    var flag2 = false;
-                    float num4 = (c - positionOnMap).LengthHorizontalSquared;
-                    var num5 = 0f;
-                    try
-                    {
-                        Patch_ForbidUtility_IsForbidden.Map = map2;
-                        if (innerStruct.prioritized)
-                        {
-                            if (!c.IsForbidden(pawn) && scanner.HasJobOnCell(pawn, c))
-                            {
-                                num5 = scanner.GetPriority(pawn, c);
-                                if (num5 > innerStruct.bestPriority || (Mathf.Approximately(num5, innerStruct.bestPriority) && num4 < innerStruct.closestDistSquared))
-                                {
-                                    flag2 = true;
-                                }
-                            }
-                        }
-                        else if (num4 < innerStruct.closestDistSquared && !c.IsForbidden(pawn) && scanner.HasJobOnCell(pawn, c))
-                        {
-                            flag2 = true;
-                        }
-                    }
-                    finally
-                    {
-                        Patch_ForbidUtility_IsForbidden.Map = null;
-                    }
+                return scanner.JobOnThing(pawn, t, forced);
+            }
 
-                    if (!flag2) continue;
-                    innerClass.bestTargetOfLastPriority = new TargetInfo(c, map2);
-                    innerClass.scannerWhoProvidedTarget = scanner;
-                    innerStruct.closestDistSquared = num4;
-                    innerStruct.bestPriority = num5;
+            var map = pawn.Map;
+            pawn.DepartMap = map;
+            pawn.VirtualMapTransfer(thingMap);
+            try
+            {
+                return scanner.JobOnThing(pawn, t, forced);
+            }
+            finally
+            {
+                pawn.VirtualMapTransfer(map);
+                pawn.RemoveDepartMap();
+            }
+        }
+
+        internal Job JobOnCellMap(Pawn pawn, in TargetInfo target, bool forced = false)
+        {
+            var map = pawn.Map;
+            var targetMap = target.Map;
+            if (map == targetMap)
+            {
+                return scanner.JobOnCell(pawn, target.Cell, forced);
+            }
+
+            if (pawn.CanReach(target.Cell, scanner.PathEndMode, scanner.MaxPathDanger(pawn), false, false, TraverseMode.ByPawn, targetMap, out var exitSpot, out var enterSpot))
+            {
+                var pos = pawn.Position;
+                pawn.VirtualMapTransfer(targetMap, enterSpot.Cell);
+                try
+                {
+                    return JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, scanner.JobOnCell(pawn, target.Cell, forced));
+                }
+                finally
+                {
+                    pawn.VirtualMapTransfer(map, pos);
                 }
             }
+
+            if (!CrossMapReachabilityUtility.GetClosestExitEnterSpot(map, pawn.Position, TraverseParms.For(pawn), targetMap,
+                    out var exitSpot2, out var enterSpot2)) return null;
+            Job job;
+            try
+            {
+                pawn.DepartMap = map;
+                pawn.DestMap = targetMap;
+                pawn.VirtualMapTransfer(targetMap);
+                job = scanner.JobOnCell(pawn, target.Cell, forced);
+            }
+            finally
+            {
+                pawn.RemoveDepartMap();
+                pawn.RemoveDestMap();
+                pawn.VirtualMapTransfer(map);
+            }
+            return JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot2, enterSpot2, job);
         }
-        finally
+
+        internal void ScanCellsAcrossMaps(ref InnerClass innerClass, ref InnerStruct innerStruct)
         {
-            pawn.VirtualMapTransfer(map);
-            CrossMapReachabilityUtility.DepartMap.Remove(pawn);
+            var pawn = innerClass.pawn;
+            var basePos = pawn.PositionOnBaseMap();
+            var map = pawn.DepartMap = pawn.Map;
+            var maps = map.BaseMapAndVehicleMaps().Except(map);
+            try
+            {
+                foreach (var map2 in maps)
+                {
+                    pawn.VirtualMapTransfer(map2);
+                    var positionOnMap = map2.IsVehicleMapOf(out var vehicle) ? basePos.ToVehicleMapCoord(vehicle) : basePos;
+                    var enumerable2 = scanner.PotentialWorkCellsGlobal(pawn);
+                    foreach (var c in enumerable2)
+                    {
+                        var flag2 = false;
+                        float num4 = (c - positionOnMap).LengthHorizontalSquared;
+                        var num5 = 0f;
+                        try
+                        {
+                            Patch_ForbidUtility_IsForbidden.Map = map2;
+                            if (innerStruct.prioritized)
+                            {
+                                if (!c.IsForbidden(pawn) && scanner.HasJobOnCell(pawn, c))
+                                {
+                                    num5 = scanner.GetPriority(pawn, c);
+                                    if (num5 > innerStruct.bestPriority || (Mathf.Approximately(num5, innerStruct.bestPriority) && num4 < innerStruct.closestDistSquared))
+                                    {
+                                        flag2 = true;
+                                    }
+                                }
+                            }
+                            else if (num4 < innerStruct.closestDistSquared && !c.IsForbidden(pawn) && scanner.HasJobOnCell(pawn, c))
+                            {
+                                flag2 = true;
+                            }
+                        }
+                        finally
+                        {
+                            Patch_ForbidUtility_IsForbidden.Map = null;
+                        }
+
+                        if (!flag2) continue;
+                        innerClass.bestTargetOfLastPriority = new TargetInfo(c, map2);
+                        innerClass.scannerWhoProvidedTarget = scanner;
+                        innerStruct.closestDistSquared = num4;
+                        innerStruct.bestPriority = num5;
+                    }
+                }
+            }
+            finally
+            {
+                pawn.VirtualMapTransfer(map);
+                pawn.RemoveDepartMap();
+            }
         }
     }
 
@@ -375,7 +378,7 @@ public static class Patch_JobGiver_Work_Validator
         }
 
         var map = pawn.Map;
-        CrossMapReachabilityUtility.DepartMap[pawn] = map;
+        pawn.DepartMap = map;
         pawn.VirtualMapTransfer(thingMap);
         try
         {
@@ -383,7 +386,7 @@ public static class Patch_JobGiver_Work_Validator
         }
         finally
         {
-            CrossMapReachabilityUtility.DepartMap.Remove(pawn);
+            pawn.RemoveDepartMap();
             pawn.VirtualMapTransfer(map);
         }
     }
@@ -626,11 +629,8 @@ public static class Patch_GenClosest_ClosestThingReachable
     [PatchLevel(Level.Safe)]
     public static void Prefix(ref Map map, TraverseParms traverseParams)
     {
-        var pawn = traverseParams.pawn;
-        if (pawn != null && CrossMapReachabilityUtility.DepartMap.TryGetValue(pawn, out var map2) && map2 != null)
-        {
-            map = map2;
-        }
+        var map2 = traverseParams.pawn?.DepartMap;
+        if (map2 != null) map = map2;
     }
 
     [PatchLevel(Level.Safe)]
@@ -646,11 +646,8 @@ public static class Patch_GenClosest_ClosestThing_Regionwise_ReachablePrioritize
 {
     public static void Prefix(ref Map map, TraverseParms traverseParams)
     {
-        var pawn = traverseParams.pawn;
-        if (pawn != null && CrossMapReachabilityUtility.DepartMap.TryGetValue(pawn, out var map2) && map2 != null)
-        {
-            map = map2;
-        }
+        var map2 = traverseParams.pawn?.DepartMap;
+        if (map2 != null) map = map2;
     }
 
     public static void Postfix(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance, Predicate<Thing> validator, Func<Thing, float> priorityGetter, int minRegions, int maxRegions, bool lookInHaulSources, ref Thing __result)

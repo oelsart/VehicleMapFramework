@@ -11,7 +11,7 @@ namespace VehicleMapFramework;
 
 public static class GenClosestCrossMap
 {
-    private static bool EarlyOutSearch(IntVec3 start, Map map, ThingRequest thingReq, IEnumerable<Thing> customGlobalSearchSet, Predicate<Thing> validator)
+    private static bool EarlyOutSearch(IntVec3 start, Map map, ThingRequest thingReq, IEnumerable<Thing> customGlobalSearchSet)
     {
         if (thingReq.group == ThingRequestGroup.Everything)
         {
@@ -42,7 +42,7 @@ public static class GenClosestCrossMap
         {
             return null;
         }
-        if (EarlyOutSearch(root, map, thingReq, customGlobalSearchSet, validator))
+        if (EarlyOutSearch(root, map, thingReq, customGlobalSearchSet))
         {
             return null;
         }
@@ -63,10 +63,8 @@ public static class GenClosestCrossMap
 
             var basePos = map.IsVehicleMapOf(out var vehicle) ? root.ToBaseMapCoord(vehicle) : root;
             var searchSet = customGlobalSearchSet ?? map.BaseMapAndVehicleMaps().Except(map).SelectMany(m => m.listerThings.ThingsMatching(thingReq));
-            
-            var departMap =
-                traverseParams.pawn is not null &&
-                CrossMapReachabilityUtility.DepartMap.TryGetValue(traverseParams.pawn, out var map2) ? map2 : map;
+
+            var departMap = traverseParams.pawn?.DepartMap ?? map;
             bool GlobalValidator(Thing t)
             {
                 if (!CrossMapReachabilityUtility.CanReach(departMap, root, t, peMode, traverseParams, t.MapHeld, out _, out _))
@@ -88,7 +86,7 @@ public static class GenClosestCrossMap
             return null;
         }
 
-        if (EarlyOutSearch(root, map, thingReq, null, validator))
+        if (EarlyOutSearch(root, map, thingReq, null))
         {
             return null;
         }
@@ -266,9 +264,7 @@ public static class GenClosestCrossMap
         var maxDistanceSquared = maxDistance * maxDistance;
         var closestDistSquared = 2.1474836E+09f;
         var careAboutHaulSourceEnabled = canLookInHaulableSources && traverseParams.pawn is { IsColonist: true };
-        var departMap =
-            traverseParams.pawn is not null &&
-            CrossMapReachabilityUtility.DepartMap.TryGetValue(traverseParams.pawn, out var map2) ? map2 : map;
+        var departMap = traverseParams.pawn?.DepartMap ?? map;
         if (searchSet is IList<Thing> list)
         {
             for (var i = 0; i < list.Count; i++)

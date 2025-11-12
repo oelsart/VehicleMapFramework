@@ -50,13 +50,13 @@ public class CrossMapReachabilityCache(World world) : WorldComponent(world)
         Instance.cache[key] = (result, exitSpot, enterSpot);
     }
 
-    private struct CachedEntry : IEquatable<CachedEntry>
+    private readonly struct CachedEntry : IEquatable<CachedEntry>
     {
-        public Region FirstRegion { readonly get; private set; }
+        public Region FirstRegion { get; }
 
-        public Region SecondRegion { readonly get; private set; }
+        public Region SecondRegion { get; }
 
-        private TraverseParms TraverseParms { get; set; }
+        private TraverseParms TraverseParms { get; }
 
         public CachedEntry(Region firstRegion, Region secondRegion, TraverseParms traverseParms)
         {
@@ -83,7 +83,9 @@ public class CrossMapReachabilityCache(World world) : WorldComponent(world)
 
         public readonly bool Equals(CachedEntry other)
         {
-            return FirstRegion == other.FirstRegion && SecondRegion == other.SecondRegion && TraverseParms == other.TraverseParms;
+            return ReferenceEquals(FirstRegion, other.FirstRegion) &&
+                   ReferenceEquals(SecondRegion, other.SecondRegion) &&
+                   TraverseParms == other.TraverseParms;
         }
 
         public readonly override int GetHashCode()
