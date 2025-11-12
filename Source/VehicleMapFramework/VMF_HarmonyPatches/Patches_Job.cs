@@ -523,12 +523,12 @@ public static class Patch_ReservationUtility_CanReserveSittableOrSpot
 {
     public static bool Prefix(Pawn pawn, IntVec3 exactSittingPos, Thing ignoreThing, ref Map __state)
     {
+        if (pawn?.Map is null)
+            return false;
+        
         var map = Patch_ForbidUtility_IsForbidden.Map = ignoreThing?.Map ?? TargetMapManager.TargetMapOrPawnMap(pawn);
-
         if (map is null)
-        {
             return true;
-        }
         if (pawn.Map != map)
         {
             __state = pawn.Map;

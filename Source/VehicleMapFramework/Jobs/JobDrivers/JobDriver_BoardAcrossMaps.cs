@@ -64,7 +64,7 @@ public class JobDriver_BoardAcrossMaps : JobDriverAcrossMaps
         return toil;
     }
 
-    private void ThrowAppropriateHistoryEvent(VehicleType type, Pawn pawn)
+    private static void ThrowAppropriateHistoryEvent(VehicleType type, Pawn pawn)
     {
         if (ModsConfig.IdeologyActive)
         {

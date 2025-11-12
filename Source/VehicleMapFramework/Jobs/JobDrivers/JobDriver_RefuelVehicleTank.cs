@@ -8,34 +8,16 @@ namespace VehicleMapFramework;
 
 public class JobDriver_RefuelVehicleTank : JobDriver
 {
-    protected Thing Tank
-    {
-        get
-        {
-            return job.GetTarget(TargetIndex.A).Thing;
-        }
-    }
+    protected Thing Tank => job.GetTarget(TargetIndex.A).Thing;
 
-    protected VehiclePawn Vehicle
-    {
-        get
-        {
-            if (Tank.IsOnVehicleMapOf(out var vehicle)) return vehicle;
-            return null;
-        }
-    }
+    protected VehiclePawn Vehicle => Tank.IsOnVehicleMapOf(out var vehicle) ? vehicle : null;
 
-    protected Thing Fuel
-    {
-        get
-        {
-            return job.GetTarget(TargetIndex.B).Thing;
-        }
-    }
+    protected Thing Fuel => job.GetTarget(TargetIndex.B).Thing;
 
     public override bool TryMakePreToilReservations(bool errorOnFailed)
     {
-        return pawn.Reserve(Tank, job, 1, -1, null, errorOnFailed) && pawn.Reserve(Fuel, job, 1, -1, null, errorOnFailed);
+        return pawn.Reserve(Tank, job, errorOnFailed: errorOnFailed) &&
+               pawn.Reserve(Fuel, job, errorOnFailed: errorOnFailed);
     }
 
     protected override IEnumerable<Toil> MakeNewToils()

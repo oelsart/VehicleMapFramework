@@ -22,9 +22,9 @@ public class Bullet_ZiplineEnd : Bullet, IZiplineEnd
         }
     }
 
-    public override void Launch(Thing launcher, Vector3 origin, LocalTargetInfo usedTarget, LocalTargetInfo intendedTarget, ProjectileHitFlags hitFlags, bool preventFriendlyFire = false, Thing equipment = null, ThingDef targetCoverDef = null)
+    public override void Launch(Thing launcher_, Vector3 origin_, LocalTargetInfo usedTarget_, LocalTargetInfo intendedTarget_, ProjectileHitFlags hitFlags, bool preventFriendlyFire_ = false, Thing equipment_ = null, ThingDef targetCoverDef_ = null)
     {
-        base.Launch(launcher, origin, usedTarget, intendedTarget, hitFlags, preventFriendlyFire, equipment, targetCoverDef);
+        base.Launch(launcher_, origin_, usedTarget_, intendedTarget_, hitFlags, preventFriendlyFire_, equipment_, targetCoverDef_);
         this.origin += (Vector3.forward * ZiplineEnd.LauncherOffset).RotatedBy(ExactRotation.eulerAngles.y);
     }
     protected override void Tick()

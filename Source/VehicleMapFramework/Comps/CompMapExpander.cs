@@ -31,7 +31,7 @@ public class CompMapExpander : ThingComp
         }
     }
 
-    private void ResizeVehicle(VehiclePawnWithMap vehicle)
+    private static void ResizeVehicle(VehiclePawnWithMap vehicle)
     {
         var curSize = vehicle.def.size;
         var mapRect = CellRect.WholeMap(vehicle.VehicleMap);

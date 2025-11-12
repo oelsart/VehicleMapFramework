@@ -8,23 +8,11 @@ namespace VehicleMapFramework;
 
 public class EphemenalWindow : Window
 {
-    public override Vector2 InitialSize
-    {
-        get
-        {
-            return windowRect.size;
-        }
-    }
+    public override Vector2 InitialSize => windowRect.size;
 
-    protected override float Margin
-    {
-        get
-        {
-            return 0f;
-        }
-    }
+    protected override float Margin => 0f;
 
-    public EphemenalWindow() : base()
+    public EphemenalWindow()
     {
         layer = WindowLayer.Super;
         closeOnClickedOutside = true;

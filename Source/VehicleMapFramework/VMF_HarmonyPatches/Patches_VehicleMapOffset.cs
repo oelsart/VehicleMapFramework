@@ -406,11 +406,10 @@ public static class Patch_GenDraw_DrawRadiusRing
     public static void Prefix(ref IntVec3 center)
     {
         var tmp = center;
-        VehiclePawnWithMap vehicle = null;
         Thing thing;
         if ((thing = Find.Selector.SelectedObjects.OfType<Thing>().FirstOrDefault(t => t.Position == tmp)) != null)
         {
-            if (thing.IsOnNonFocusedVehicleMapOf(out vehicle) && Find.CurrentMap != vehicle.VehicleMap)
+            if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle) && Find.CurrentMap != vehicle.VehicleMap)
             {
                 center = center.ToBaseMapCoord(vehicle);
             }
@@ -509,7 +508,7 @@ public static class Patch_DesignationDragger_DraggerOnGUI
         var codes = instructions.ToList();
         var c_Vector3 = AccessTools.Constructor(typeof(Vector3), [typeof(float), typeof(float), typeof(float)]);
         var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(c_Vector3)) + 1;
-        var ind = original.GetMethodBody().LocalVariables.First(l => l.LocalType == typeof(Vector3)).LocalIndex;
+        var ind = original.GetMethodBody()!.LocalVariables.First(l => l.LocalType == typeof(Vector3)).LocalIndex;
         codes.InsertRange(pos,
         [
             CodeInstruction.LoadLocal(ind),

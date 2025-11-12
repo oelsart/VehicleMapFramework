@@ -8,7 +8,6 @@ using RimWorld;
 using RimWorld.Planet;
 using SmashTools;
 using SmashTools.Rendering;
-using SmashTools.Targeting;
 using UnityEngine;
 using Vehicles;
 using Vehicles.Rendering;

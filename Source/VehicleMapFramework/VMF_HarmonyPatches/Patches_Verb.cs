@@ -304,7 +304,7 @@ public static class Patch_JumpUtility_OrderJump
         return TargetMapManager.HasTargetMap(thing, out var map) ? map : thing.Map;
     }
 
-    public static MethodInfo m_TargetMap = AccessTools.Method(typeof(Patch_JumpUtility_OrderJump), nameof(TargetMap));
+    public static readonly MethodInfo m_TargetMap = AccessTools.Method(typeof(Patch_JumpUtility_OrderJump), nameof(TargetMap));
 }
 
 [HarmonyPatch]

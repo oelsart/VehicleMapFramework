@@ -8,17 +8,7 @@ namespace VehicleMapFramework;
 [Obsolete]
 public class JobDriver_HaulToTransporterAcrossMaps : JobDriver_HaulToContainer
 {
-    public CompTransporter Transporter
-    {
-        get
-        {
-            if (Container == null)
-            {
-                return null;
-            }
-            return Container.TryGetComp<CompTransporter>();
-        }
-    }
+    public CompTransporter Transporter => Container?.TryGetComp<CompTransporter>();
 
     public override void ExposeData()
     {
@@ -49,7 +39,7 @@ public class JobDriver_HaulToTransporterAcrossMaps : JobDriver_HaulToContainer
         }
         if (job.playerForced && pawn.carryTracker.CarriedThing != null && pawn.carryTracker.CarriedThing != thingCount.Thing)
         {
-            pawn.carryTracker.TryDropCarriedThing(pawn.Position, ThingPlaceMode.Near, out var thing);
+            pawn.carryTracker.TryDropCarriedThing(pawn.Position, ThingPlaceMode.Near, out _);
         }
         job.targetA = thingCount.Thing;
         job.count = thingCount.Count;
