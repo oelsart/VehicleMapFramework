@@ -24,8 +24,6 @@ public class TargetMapManager(World world) : WorldComponent(world)
         }
     }
 
-    public static Dictionary<Pawn, Map> DepartMap { get; } = [];
-
     public static void SetTargetInfo(Thing thing, TargetInfo target)
     {
         if (thing is null) return;
