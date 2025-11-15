@@ -38,12 +38,12 @@ public static class VehicleMapUtility
                 if (pocketMapParent is MapParent_Vehicle mapParentVehicle)
                 {
                     vehicle = mapParentVehicle.vehicle;
-                    return true;
+                    return vehicle != null;
                 }
                 if (pocketMapParent.sourceMap?.Parent is MapParent_Vehicle mapParentVehicle2)
                 {
                     vehicle = mapParentVehicle2.vehicle;
-                    return true;
+                    return vehicle != null;
                 }
             }
             vehicle = null;
