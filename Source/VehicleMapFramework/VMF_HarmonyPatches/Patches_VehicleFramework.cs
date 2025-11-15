@@ -74,34 +74,6 @@ public static class Patch_VehiclePawn_HasEnoughOperators
     }
 }
 
-//VehiclePawnWithMapの場合タレットに対応するハンドラーが存在しない場合コントロールできないようにする
-[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
-[HarmonyPatch(typeof(VehicleTurret), nameof(VehicleTurret.RecacheMannedStatus))]
-[PatchLevel(Level.Safe)]
-public static class Patch_VehicleTurret_RecacheMannedStatus
-{
-    public static bool Prefix(VehicleTurret __instance)
-    {
-        if (__instance.vehicle is VehiclePawnWithMap)
-        {
-            if (VehicleMod.settings.debug.debugShootAnyTurret)
-            {
-                VehicleTurret_IsManned(__instance, true);
-                return false;
-            }
-            var matchHandlers = __instance.vehicle.handlers.FindAll(h => h.role.HandlingTypes.HasFlag(HandlingType.Turret) && (h.role.TurretIds.Contains(__instance.key) || h.role.TurretIds.Contains(__instance.groupKey)));
-            if (matchHandlers.Empty())
-            {
-                VehicleTurret_IsManned(__instance, false);
-                return false;
-            }
-            VehicleTurret_IsManned(__instance, matchHandlers.All(h => h.RoleFulfilled));
-            return false;
-        }
-        return true;
-    }
-}
-
 //VehiclePawnWithMapの場合タレットに対応するハンドラーが存在しない場合ギズモを操作不能にする
 [HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(CompVehicleTurrets), nameof(CompVehicleTurrets.CompGetGizmosExtra))]
@@ -112,7 +84,7 @@ public static class Patch_CompVehicleTurrets_CompGetGizmosExtra
     {
         foreach (var gizmo in gizmos)
         {
-            if (gizmo is Command_Turret command_Turret && __instance.Vehicle is VehiclePawnWithMap)
+            if (gizmo is Command_Turret command_Turret && command_Turret.turret is VehicleTurret_Manual)
             {
                 var turret = command_Turret.turret;
                 if (turret != null &&
