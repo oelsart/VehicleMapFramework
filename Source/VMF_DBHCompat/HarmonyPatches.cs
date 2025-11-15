@@ -18,7 +18,7 @@ public static class Patches_DBH
         VMF_Harmony.PatchCategory(PatchCategories.DubsBadHygiene);
         if (DubsBadHygiene.Settings.LiteMode)
         {
-            DefDatabase<ThingDef>.GetNamed("VMF_PipeConnector").comps.RemoveAll(c => c is CompProperties_PipeConnectorDBH);
+            DefDatabase<ThingDef>.GetNamed("VMF_PipeConnector"!).comps.RemoveAll(c => c is CompProperties_PipeConnectorDBH);
         }
     }
 

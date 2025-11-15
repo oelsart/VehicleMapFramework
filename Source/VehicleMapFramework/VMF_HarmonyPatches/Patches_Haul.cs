@@ -88,12 +88,14 @@ public static class Patch_StoreUtility_TryFindBestBetterStoreCellForWorker
 {
     public static bool Prefix(Thing t, Pawn carrier, Map map, Faction faction, ISlotGroup slotGroup, bool needAccurateResult, ref IntVec3 closestSlot, ref float closestDistSquared, ref StoragePriority foundPriority)
     {
-        Map destMap = null;
         var owner = slotGroup?.Settings?.owner;
-        if (owner is StorageGroup storageGroup) destMap = storageGroup.Map;
-        else if (owner is IHaulDestination haulDestination) destMap = haulDestination.Map;
-        else if (owner is IHaulSource haulSource) destMap = haulSource.Map;
-        else if (owner is ISlotGroupParent slotGroupParent) destMap = slotGroupParent.Map;
+        var destMap = owner switch
+        {
+            StorageGroup storageGroup => storageGroup.Map,
+            IHaulDestination haulDestination => haulDestination.Map,
+            IHaulSource haulSource => haulSource.Map,
+            _ => null
+        };
 
         if (destMap is not null && destMap != map)
         {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using RimWorld;
 using UnityEngine;
@@ -9,6 +10,7 @@ using Verse.AI;
 
 namespace VehicleMapFramework;
 
+[SuppressMessage("ReSharper", "ForCanBeConvertedToForeach")]
 public static class TargetingHelperOnVehicle
 {
     private static readonly List<IAttackTarget> tmpTargets = [];
@@ -41,7 +43,7 @@ public static class TargetingHelperOnVehicle
         {
             var attackTarget = tmpTargets[i];
             var thingPosOnBaseMap = attackTarget.Thing.PositionOnBaseMap();
-            if (thingPosOnBaseMap.InHorDistOf(searcherPosOnBaseMap, maxDist) && innerValidator(attackTarget) && turret.TryFindShootLineFromTo(searcherPosOnBaseMap, new LocalTargetInfo(attackTarget.Thing), out var resultingLine))
+            if (thingPosOnBaseMap.InHorDistOf(searcherPosOnBaseMap, maxDist) && innerValidator(attackTarget) && turret.TryFindShootLineFromTo(searcherPosOnBaseMap, new LocalTargetInfo(attackTarget.Thing), out _))
             {
                 flag = true;
                 break;
@@ -58,13 +60,13 @@ public static class TargetingHelperOnVehicle
             Predicate<Thing> validator2;
             if ((flags & TargetScanFlags.NeedReachableIfCantHitFromMyPos) != TargetScanFlags.None && (flags & TargetScanFlags.NeedReachable) == TargetScanFlags.None)
             {
-                validator2 = t => innerValidator((IAttackTarget)t) && turret.TryFindShootLineFromTo(searcherPawn.PositionOnBaseMap(), new LocalTargetInfo(t), out var resultingLine);
+                validator2 = t => innerValidator((IAttackTarget)t) && turret.TryFindShootLineFromTo(searcherPawn.PositionOnBaseMap(), new LocalTargetInfo(t), out _);
             }
             else
             {
                 validator2 = t => innerValidator((IAttackTarget)t);
             }
-            result = (IAttackTarget)GenClosestCrossMap.ClosestThing_Global(searcherPawn.PositionOnBaseMap(), tmpTargets, maxDist, validator2, null);
+            result = (IAttackTarget)GenClosestCrossMap.ClosestThing_Global(searcherPawn.PositionOnBaseMap(), tmpTargets, maxDist, validator2);
         }
         tmpTargets.Clear();
         return result;
@@ -134,7 +136,6 @@ public static class TargetingHelperOnVehicle
             {
                 return false;
             }
-            var pawn = t as Pawn;
             if ((flags & TargetScanFlags.NeedNonBurning) != TargetScanFlags.None && thing.IsBurning())
             {
                 return false;
@@ -180,6 +181,7 @@ public static class TargetingHelperOnVehicle
     /// <summary>
     /// Get all available targets ordered by weight
     /// </summary>
+    /// <param name="turret"></param>
     /// <param name="rawTargets"></param>
     /// <param name="searcher"></param>
     /// <returns></returns>

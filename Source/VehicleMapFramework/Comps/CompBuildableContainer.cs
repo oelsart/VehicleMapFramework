@@ -14,17 +14,7 @@ public class CompBuildableContainer : CompTransporter
 
     private bool gatherFromBaseMap;
 
-    public VehiclePawnWithMap Vehicle
-    {
-        get
-        {
-            if (parent.IsOnVehicleMapOf(out var vehicle))
-            {
-                return vehicle;
-            }
-            return null;
-        }
-    }
+    public VehiclePawnWithMap Vehicle => parent.IsOnVehicleMapOf(out var vehicle) ? vehicle : null;
 
     public new bool AnyPawnCanLoadAnythingNow
     {

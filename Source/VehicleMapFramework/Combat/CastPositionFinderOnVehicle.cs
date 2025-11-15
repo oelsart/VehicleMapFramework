@@ -1,4 +1,5 @@
-﻿using LudeonTK;
+﻿using System.Linq;
+using LudeonTK;
 using RimWorld;
 using Unity.Collections;
 using UnityEngine;
@@ -15,10 +16,8 @@ public static class CastPositionFinderOnVehicle
         casterLoc = req.caster.Position;
         targetLoc = req.target.PositionOnAnotherThingMap(req.caster);
         verb = req.verb;
-        CastPositionFinderOnVehicle.avoidGrid = newReq.caster.TryGetAvoidGrid(out var avoidGrid) ?
-            avoidGrid.Grid : emptyByteArray.AsReadOnly();
-
-        var casterPositionOnBaseMap = req.caster.PositionOnBaseMap();
+        avoidGrid = newReq.caster.TryGetAvoidGrid(out var grid) ?
+            grid.Grid : emptyByteArray.AsReadOnly();
 
         if (verb == null)
         {
@@ -53,7 +52,7 @@ public static class CastPositionFinderOnVehicle
                     {
                         r.mark = inRadiusMark;
                         req.maxRegions++;
-                        return r == locusReg;
+                        return ReferenceEquals(r, locusReg);
                     });
                 }
             }
@@ -100,24 +99,18 @@ public static class CastPositionFinderOnVehicle
         var slope = -1f / CellLine.Between(targetLoc, casterLoc).Slope;
         CellLine cellLine = new(targetLoc, slope);
         var flag = cellLine.CellIsAbove(casterLoc);
-        foreach (var c in cellRect)
+        foreach (var c in cellRect.Where(c => cellLine.CellIsAbove(c) == flag && cellRect.Contains(c)))
         {
-            if (cellLine.CellIsAbove(c) == flag && cellRect.Contains(c))
-            {
-                EvaluateCell(c);
-            }
+            EvaluateCell(c);
         }
         if (bestSpot.IsValid && bestSpotPref > 0.33f)
         {
             dest = bestSpot;
             return true;
         }
-        foreach (var c2 in cellRect)
+        foreach (var c2 in cellRect.Where(c2 => cellLine.CellIsAbove(c2) != flag && cellRect.Contains(c2)))
         {
-            if (cellLine.CellIsAbove(c2) != flag && cellRect.Contains(c2))
-            {
-                EvaluateCell(c2);
-            }
+            EvaluateCell(c2);
         }
         if (bestSpot.IsValid)
         {

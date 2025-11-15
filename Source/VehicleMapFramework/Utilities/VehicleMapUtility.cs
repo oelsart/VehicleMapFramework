@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using HarmonyLib;
@@ -15,7 +14,6 @@ using static VehicleMapFramework.ModCompat;
 
 namespace VehicleMapFramework;
 
-[SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
 public static class VehicleMapUtility
 {
     public static Map CurrentMap =>
@@ -30,51 +28,57 @@ public static class VehicleMapUtility
         return true;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsVehicleMapOf(this Map map, out VehiclePawnWithMap vehicle)
+    extension(Map map)
     {
-        if (map?.Parent is PocketMapParent pocketMapParent)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool IsVehicleMapOf(out VehiclePawnWithMap vehicle)
         {
-            if (pocketMapParent is MapParent_Vehicle mapParentVehicle)
+            if (map?.Parent is PocketMapParent pocketMapParent)
             {
-                vehicle = mapParentVehicle.vehicle;
+                if (pocketMapParent is MapParent_Vehicle mapParentVehicle)
+                {
+                    vehicle = mapParentVehicle.vehicle;
+                    return vehicle != null;
+                }
+                if (pocketMapParent.sourceMap?.Parent is MapParent_Vehicle mapParentVehicle2)
+                {
+                    vehicle = mapParentVehicle2.vehicle;
+                    return vehicle != null;
+                }
+            }
+            vehicle = null;
+            return false;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool IsNonFocusedVehicleMapOf(out VehiclePawnWithMap vehicle)
+        {
+            if (map.IsVehicleMapOf(out vehicle) && (VehicleMapFramework.settings.drawPlanet || Find.CurrentMap != vehicle.VehicleMap))
+            {
                 return true;
             }
-            if (pocketMapParent.sourceMap?.Parent is MapParent_Vehicle mapParentVehicle2)
-            {
-                vehicle = mapParentVehicle2.vehicle;
-                return true;
-            }
+            vehicle = null;
+            return false;
         }
-        vehicle = null;
-        return false;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsNonFocusedVehicleMapOf(this Map map, out VehiclePawnWithMap vehicle)
+    extension(Thing thing)
     {
-        if (map.IsVehicleMapOf(out vehicle) && (VehicleMapFramework.settings.drawPlanet || Find.CurrentMap != vehicle.VehicleMap))
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool IsOnVehicleMapOf(out VehiclePawnWithMap vehicle)
         {
-            return true;
+            if (thing != null) return thing.Map.IsVehicleMapOf(out vehicle);
+            vehicle = null;
+            return false;
         }
-        vehicle = null;
-        return false;
-    }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsOnVehicleMapOf(this Thing thing, out VehiclePawnWithMap vehicle)
-    {
-        if (thing != null) return thing.Map.IsVehicleMapOf(out vehicle);
-        vehicle = null;
-        return false;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsOnNonFocusedVehicleMapOf(this Thing thing, out VehiclePawnWithMap vehicle)
-    {
-        if (thing != null) return thing.Map.IsNonFocusedVehicleMapOf(out vehicle);
-        vehicle = null;
-        return false;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool IsOnNonFocusedVehicleMapOf(out VehiclePawnWithMap vehicle)
+        {
+            if (thing != null) return thing.Map.IsNonFocusedVehicleMapOf(out vehicle);
+            vehicle = null;
+            return false;
+        }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -89,52 +93,58 @@ public static class VehicleMapUtility
         return original.WithY(original.y.YOffset());
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static float YOffsetFull(this float original)
+    extension(float original)
     {
-        return original / YCompress + AltitudeOffsetFull;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static float YOffsetFull(this float original, VehiclePawnWithMap vehicle)
-    {
-        return original / YCompress + vehicle.cachedDrawPos.y;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector3 YOffsetFull(this Vector3 original)
-    {
-        return original.WithY(original.y.YOffsetFull());
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector3 YOffsetFull(this Vector3 original, VehiclePawnWithMap vehicle)
-    {
-        return original.WithY(original.y.YOffsetFull(vehicle));
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector3 ToVehicleMapCoord(this Vector3 original)
-    {
-        if (Command_FocusVehicleMap.FocusedVehicle != null)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public float YOffsetFull()
         {
-            return original.ToVehicleMapCoord(Command_FocusVehicleMap.FocusedVehicle);
+            return original / YCompress + AltitudeOffsetFull;
         }
-        if ((VehicleMapFramework.settings.drawPlanet) && Find.CurrentMap.IsVehicleMapOf(out var vehicle))
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public float YOffsetFull(VehiclePawnWithMap vehicle)
         {
-            return original.ToVehicleMapCoord(vehicle);
+            return original / YCompress + vehicle.cachedDrawPos.y;
         }
-        return original;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector3 ToVehicleMapCoord(this Vector3 original, VehiclePawnWithMap vehicle)
+    extension(Vector3 original)
     {
-        var vehicleMapPos = vehicle.cachedDrawPos + OffsetFor(vehicle);
-        var map = vehicle.VehicleMap;
-        var pivot = new Vector3(map.Size.x / 2f, 0f, map.Size.z / 2f);
-        var drawPos = (original - vehicleMapPos).RotatedBy(-vehicle.FullAngle()) + pivot;
-        return drawPos;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Vector3 YOffsetFull()
+        {
+            return original.WithY(original.y.YOffsetFull());
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Vector3 YOffsetFull(VehiclePawnWithMap vehicle)
+        {
+            return original.WithY(original.y.YOffsetFull(vehicle));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Vector3 ToVehicleMapCoord()
+        {
+            if (Command_FocusVehicleMap.FocusedVehicle != null)
+            {
+                return original.ToVehicleMapCoord(Command_FocusVehicleMap.FocusedVehicle);
+            }
+            if ((VehicleMapFramework.settings.drawPlanet) && Find.CurrentMap.IsVehicleMapOf(out var vehicle))
+            {
+                return original.ToVehicleMapCoord(vehicle);
+            }
+            return original;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Vector3 ToVehicleMapCoord(VehiclePawnWithMap vehicle)
+        {
+            var vehicleMapPos = vehicle.cachedDrawPos + OffsetFor(vehicle);
+            var map = vehicle.VehicleMap;
+            var pivot = new Vector3(map.Size.x / 2f, 0f, map.Size.z / 2f);
+            var drawPos = (original - vehicleMapPos).RotatedBy(-vehicle.FullAngle()) + pivot;
+            return drawPos;
+        }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -170,45 +180,48 @@ public static class VehicleMapUtility
         return GenAdj.OccupiedRect(t.PositionOnBaseMap(), t.BaseRotation(), new IntVec2(Mathf.CeilToInt(drawSize.x), Mathf.CeilToInt(drawSize.y)));
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector3 ToBaseMapCoord(this Vector3 original)
+    extension(Vector3 original)
     {
-        if (Command_FocusVehicleMap.FocusedVehicle != null)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Vector3 ToBaseMapCoord()
         {
-            return ToBaseMapCoord(original, Command_FocusVehicleMap.FocusedVehicle).WithY(original.y);
+            if (Command_FocusVehicleMap.FocusedVehicle != null)
+            {
+                return ToBaseMapCoord(original, Command_FocusVehicleMap.FocusedVehicle).WithY(original.y);
+            }
+            if (VehicleMapFramework.settings.drawPlanet && Find.CurrentMap.IsVehicleMapOf(out var vehicle))
+            {
+                return ToBaseMapCoord(original, vehicle).WithY(original.y);
+            }
+            return original;
         }
-        if (VehicleMapFramework.settings.drawPlanet && Find.CurrentMap.IsVehicleMapOf(out var vehicle))
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Vector3 ToBaseMapCoord(Map map)
         {
-            return ToBaseMapCoord(original, vehicle).WithY(original.y);
+            return map.IsNonFocusedVehicleMapOf(out var vehicle) ? ToBaseMapCoord(original, vehicle) : original;
         }
-        return original;
-    }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector3 ToBaseMapCoord(this Vector3 original, Map map)
-    {
-        return map.IsNonFocusedVehicleMapOf(out var vehicle) ? ToBaseMapCoord(original, vehicle) : original;
-    }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Vector3 ToBaseMapCoord(VehiclePawnWithMap vehicle)
+        {
+            var vehiclePos = vehicle.cachedDrawPos;
+            var map = vehicle.VehicleMap;
+            var pivot = new Vector3(map.Size.x / 2f, 0f, map.Size.z / 2f);
+            var drawPos = (original.YOffset() - pivot).RotatedBy(vehicle.FullAngle()) + vehiclePos;
+            drawPos += OffsetFor(vehicle);
+            return drawPos;
+        }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector3 ToBaseMapCoord(this Vector3 original, VehiclePawnWithMap vehicle)
-    {
-        var vehiclePos = vehicle.cachedDrawPos;
-        var map = vehicle.VehicleMap;
-        var pivot = new Vector3(map.Size.x / 2f, 0f, map.Size.z / 2f);
-        var drawPos = (original.YOffset() - pivot).RotatedBy(vehicle.FullAngle()) + vehiclePos;
-        drawPos += OffsetFor(vehicle);
-        return drawPos;
-    }
-
-    public static Vector3 ToBaseMapCoord(this Vector3 original, VehiclePawnWithMap vehicle, Rot8 rot)
-    {
-        var vehiclePos = vehicle.cachedDrawPos;
-        var map = vehicle.VehicleMap;
-        var pivot = new Vector3(map.Size.x / 2f, 0f, map.Size.z / 2f);
-        var drawPos = (original.YOffset() - pivot).RotatedBy(rot.AsAngle) + vehiclePos;
-        drawPos += OffsetFor(vehicle, rot);
-        return drawPos;
+        public Vector3 ToBaseMapCoord(VehiclePawnWithMap vehicle, Rot8 rot)
+        {
+            var vehiclePos = vehicle.cachedDrawPos;
+            var map = vehicle.VehicleMap;
+            var pivot = new Vector3(map.Size.x / 2f, 0f, map.Size.z / 2f);
+            var drawPos = (original.YOffset() - pivot).RotatedBy(rot.AsAngle) + vehiclePos;
+            drawPos += OffsetFor(vehicle, rot);
+            return drawPos;
+        }
     }
 
     public static Matrix4x4 ToBaseMapCoord(this Matrix4x4 matrix, VehiclePawnWithMap vehicle)
@@ -218,33 +231,36 @@ public static class VehicleMapUtility
         return matrix;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static IntVec3 ToBaseMapCoord(this IntVec3 original)
+    extension(IntVec3 original)
     {
-        return original.ToVector3Shifted().ToBaseMapCoord().ToIntVec3();
-    }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public IntVec3 ToBaseMapCoord()
+        {
+            return original.ToVector3Shifted().ToBaseMapCoord().ToIntVec3();
+        }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static IntVec3 ToBaseMapCoord(this IntVec3 original, VehiclePawnWithMap vehicle)
-    {
-        return original.ToVector3Shifted().ToBaseMapCoord(vehicle).ToIntVec3();
-    }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public IntVec3 ToBaseMapCoord(VehiclePawnWithMap vehicle)
+        {
+            return original.ToVector3Shifted().ToBaseMapCoord(vehicle).ToIntVec3();
+        }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static IntVec3 ToBaseMapCoord(this IntVec3 original, Map map)
-    {
-        return original.ToVector3Shifted().ToBaseMapCoord(map).ToIntVec3();
-    }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public IntVec3 ToBaseMapCoord(Map map)
+        {
+            return original.ToVector3Shifted().ToBaseMapCoord(map).ToIntVec3();
+        }
 
-    public static Vector3 ToBaseMapCoord(this IntVec3 original, VehiclePawnWithMap vehicle, Rot8 rot)
-    {
-        return original.ToVector3Shifted().ToBaseMapCoord(vehicle, rot);
-    }
+        public Vector3 ToBaseMapCoord(VehiclePawnWithMap vehicle, Rot8 rot)
+        {
+            return original.ToVector3Shifted().ToBaseMapCoord(vehicle, rot);
+        }
 
-    public static IntVec2 ToHitCell(this IntVec3 cell, VehiclePawnWithMap vehicle)
-    {
-        var orig = Vector3.zero.ToBaseMapCoord(vehicle).ToVehicleMapCoord(vehicle).ToIntVec3();
-        return (orig + cell).ToIntVec2;
+        public IntVec2 ToHitCell(VehiclePawnWithMap vehicle)
+        {
+            var orig = Vector3.zero.ToBaseMapCoord(vehicle).ToVehicleMapCoord(vehicle).ToIntVec3();
+            return (orig + original).ToIntVec2;
+        }
     }
 
     public static Vector3 OffsetFor(VehiclePawnWithMap vehicle)
@@ -400,14 +416,17 @@ public static class VehicleMapUtility
         return rootPosition.IsValid ? rootPosition : thing.PositionOnBaseMap();
     }
 
-    public static IntVec3 ToThingMapCoord(this IntVec3 origin, Thing thing)
+    extension(IntVec3 origin)
     {
-        return thing.IsOnVehicleMapOf(out var vehicle) ? origin.ToVehicleMapCoord(vehicle) : origin;
-    }
+        public IntVec3 ToThingMapCoord(Thing thing)
+        {
+            return thing.IsOnVehicleMapOf(out var vehicle) ? origin.ToVehicleMapCoord(vehicle) : origin;
+        }
 
-    public static IntVec3 ToThingBaseMapCoord(this IntVec3 origin, Thing thing)
-    {
-        return thing.IsOnVehicleMapOf(out var vehicle) ? origin.ToBaseMapCoord(vehicle) : origin;
+        public IntVec3 ToThingBaseMapCoord(Thing thing)
+        {
+            return thing.IsOnVehicleMapOf(out var vehicle) ? origin.ToBaseMapCoord(vehicle) : origin;
+        }
     }
 
     public static Vector3 ToThingBaseMapCoord(this Vector3 origin, Thing thing)
@@ -471,18 +490,21 @@ public static class VehicleMapUtility
         return another.IsVehicleMapOf(out var vehicle) ? cell.ToVehicleMapCoord(vehicle) : cell;
     }
 
-    public static Rot4 BaseRotation(this Thing thing)
+    extension(Thing thing)
     {
-        return thing.IsOnNonFocusedVehicleMapOf(out var vehicle) ?
-            new Rot4(thing.Rotation.AsInt + vehicle.Rotation.AsInt) :
-            thing.Rotation;
-    }
+        public Rot4 BaseRotation()
+        {
+            return thing.IsOnNonFocusedVehicleMapOf(out var vehicle) ?
+                new Rot4(thing.Rotation.AsInt + vehicle.Rotation.AsInt) :
+                thing.Rotation;
+        }
 
-    public static Rot4 BaseRotationVehicleDraw(this Thing thing)
-    {
-        return thing.IsOnNonFocusedVehicleMapOf(out var vehicle) ?
-            new Rot4(thing.Rotation.AsInt + vehicle.FullRotation.RotForVehicleDraw().AsInt) :
-            thing.Rotation;
+        public Rot4 BaseRotationVehicleDraw()
+        {
+            return thing.IsOnNonFocusedVehicleMapOf(out var vehicle) ?
+                new Rot4(thing.Rotation.AsInt + vehicle.FullRotation.RotForVehicleDraw().AsInt) :
+                thing.Rotation;
+        }
     }
 
     public static Rot8 BaseFullRotation(this VehiclePawn vehicle)
@@ -499,84 +521,90 @@ public static class VehicleMapUtility
         return rot;
     }
 
-    public static Rot8 BaseFullRotation(this Thing thing)
+    extension(Thing thing)
     {
-        if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle))
+        public Rot8 BaseFullRotation()
         {
-            return new Rot8(Rot8.FromIntClockwise((new Rot8(thing.Rotation).AsIntClockwise + vehicle.FullRotation.AsIntClockwise) % 8));
-        }
-        return thing.Rotation;
-    }
-
-    public static Rot4 BaseFullRotationAsRot4(this Thing thing)
-    {
-        return thing.BaseFullRotation().AsRot4Force();
-    }
-
-    public static Rot8 BaseFullRotationDoor(this Thing thing)
-    {
-        if (!thing.IsOnNonFocusedVehicleMapOf(out var vehicle)) return thing.Rotation;
-        var rot = new Rot8(Rot8.FromIntClockwise((new Rot8(thing.Rotation).AsIntClockwise + vehicle.FullRotation.AsIntClockwise) % 8));
-        return rot.FacingCell.z < 0 ? rot.Opposite : rot;
-    }
-
-    public static Rot4 DirectionToInsideMap(this IntVec3 c, VehiclePawnWithMap vehicle)
-    {
-        return CellRect.WholeMap(vehicle.VehicleMap).GetClosestEdge(c).Opposite;
-    }
-
-    public static Rot8 BaseFullDirectionToInsideMap(this IntVec3 c, VehiclePawnWithMap vehicle)
-    {
-        var dir = c.DirectionToInsideMap(vehicle);
-        var map = vehicle.VehicleMap;
-        if (Find.CurrentMap != map)
-        {
-            return new Rot8(Rot8.FromIntClockwise((new Rot8(dir).AsIntClockwise + vehicle.FullRotation.AsIntClockwise) % 8));
-        }
-        return dir;
-    }
-
-    public static Rot8 FullDirectionToInsideMap(this IntVec3 c, Map map)
-    {
-        Rot8 dir;
-        if (c.x == 0)
-        {
-            if (c.z == 0)
+            if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle))
             {
-                dir = Rot8.NorthEast;
+                return new Rot8(Rot8.FromIntClockwise((new Rot8(thing.Rotation).AsIntClockwise + vehicle.FullRotation.AsIntClockwise) % 8));
             }
-            else if (c.z == map.Size.z - 1)
+            return thing.Rotation;
+        }
+
+        public Rot4 BaseFullRotationAsRot4()
+        {
+            return thing.BaseFullRotation().AsRot4Force();
+        }
+
+        public Rot8 BaseFullRotationDoor()
+        {
+            if (!thing.IsOnNonFocusedVehicleMapOf(out var vehicle)) return thing.Rotation;
+            var rot = new Rot8(Rot8.FromIntClockwise((new Rot8(thing.Rotation).AsIntClockwise + vehicle.FullRotation.AsIntClockwise) % 8));
+            return rot.FacingCell.z < 0 ? rot.Opposite : rot;
+        }
+    }
+
+    extension(IntVec3 c)
+    {
+        public Rot4 DirectionToInsideMap(VehiclePawnWithMap vehicle)
+        {
+            return CellRect.WholeMap(vehicle.VehicleMap).GetClosestEdge(c).Opposite;
+        }
+
+        public Rot8 BaseFullDirectionToInsideMap(VehiclePawnWithMap vehicle)
+        {
+            var dir = c.DirectionToInsideMap(vehicle);
+            var map = vehicle.VehicleMap;
+            if (Find.CurrentMap != map)
             {
-                dir = Rot8.SouthEast;
+                return new Rot8(Rot8.FromIntClockwise((new Rot8(dir).AsIntClockwise + vehicle.FullRotation.AsIntClockwise) % 8));
             }
+            return dir;
+        }
+
+        public Rot8 FullDirectionToInsideMap(Map map)
+        {
+            Rot8 dir;
+            if (c.x == 0)
+            {
+                if (c.z == 0)
+                {
+                    dir = Rot8.NorthEast;
+                }
+                else if (c.z == map.Size.z - 1)
+                {
+                    dir = Rot8.SouthEast;
+                }
+                else
+                {
+                    dir = Rot8.East;
+                }
+            }
+            else if (c.x == map.Size.x - 1)
+            {
+                if (c.z == 0)
+                {
+                    dir = Rot8.NorthWest;
+                }
+                else if (c.z == map.Size.z - 1)
+                {
+                    dir = Rot8.SouthWest;
+                }
+                else
+                {
+                    dir = Rot8.West;
+                }
+            }
+            else if (c.z == 0) dir = Rot8.North;
+            else if (c.z == map.Size.z - 1) dir = Rot8.South;
             else
             {
-                dir = Rot8.East;
+                Log.ErrorOnce("That position is not the edge of the map", 494896165);
+                return Rot8.Invalid;
             }
+            return dir;
         }
-        else if (c.x == map.Size.x - 1)
-        {
-            if (c.z == 0)
-            {
-                dir = Rot8.NorthWest;
-            }
-            else if (c.z == map.Size.z - 1)
-            {
-                dir = Rot8.SouthWest;
-            }
-            else
-            {
-                dir = Rot8.West;
-            }
-        }
-        else if (c.z == 0) dir = Rot8.North;
-        else if (c.z == map.Size.z - 1) dir = Rot8.South;
-        else
-        {
-            Log.ErrorOnce("That position is not the edge of the map", 494896165);
-            return Rot8.Invalid;
-        }
-        return dir;
     }
 
     public static int HalfLength(this VehiclePawn vehicle)
@@ -764,15 +792,18 @@ public static class VehicleMapUtility
         }
     }
 
-    public static void VirtualMapTransfer(this Thing thing, Map map)
+    extension(Thing thing)
     {
-        mapIndexOrState(thing) = (sbyte)map.Index;
-    }
+        public void VirtualMapTransfer(Map map)
+        {
+            mapIndexOrState(thing) = (sbyte)map.Index;
+        }
 
-    public static void VirtualMapTransfer(this Thing thing, Map map, IntVec3 c)
-    {
-        mapIndexOrState(thing) = (sbyte)map.Index;
-        thing.SetPositionDirect(c);
+        public void VirtualMapTransfer(Map map, IntVec3 c)
+        {
+            mapIndexOrState(thing) = (sbyte)map.Index;
+            thing.SetPositionDirect(c);
+        }
     }
 
     private static readonly AccessTools.FieldRef<Thing, sbyte> mapIndexOrState = AccessTools.FieldRefAccess<Thing, sbyte>("mapIndexOrState");
@@ -826,19 +857,22 @@ public static class VehicleMapUtility
         return original;
     }
 
-    public static float AngleRotated(this VehiclePawn vehicle)
+    extension(VehiclePawn vehicle)
     {
-        return Ext_Math.RotateAngle(vehicle.Angle, vehicle.Transform.rotation);
-    }
+        public float AngleRotated()
+        {
+            return Ext_Math.RotateAngle(vehicle.Angle, vehicle.Transform.rotation);
+        }
 
-    public static float FullAngle(this VehiclePawn vehicle)
-    {
-        return Ext_Math.RotateAngle(vehicle.FullRotation.AsAngle, vehicle.Transform.rotation);
-    }
+        public float FullAngle()
+        {
+            return Ext_Math.RotateAngle(vehicle.FullRotation.AsAngle, vehicle.Transform.rotation);
+        }
 
-    public static Quaternion FullAngleQuat(this VehiclePawn vehicle)
-    {
-        return Quaternion.AngleAxis(vehicle.FullAngle(), Vector3.up);
+        public Quaternion FullAngleQuat()
+        {
+            return Quaternion.AngleAxis(vehicle.FullAngle(), Vector3.up);
+        }
     }
 
     public static IEnumerable<Thing> ColonyThingsWillingToBuyOnVehicle(this VehiclePawnWithMap vehicle, ITrader trader)
@@ -919,40 +953,43 @@ public static class VehicleMapUtility
 
     private static readonly List<Thing> tmpList = [];
 
-    public static Pawn GetFirstPawnAcrossMaps(this IntVec3 c, Map map)
+    extension(IntVec3 c)
     {
-        var thingList = c.GetThingListAcrossMaps(map);
-        foreach (var t in thingList)
+        public Pawn GetFirstPawnAcrossMaps(Map map)
         {
-            if (t is Pawn result)
+            var thingList = c.GetThingListAcrossMaps(map);
+            foreach (var t in thingList)
             {
-                return result;
+                if (t is Pawn result)
+                {
+                    return result;
+                }
             }
+
+            return null;
         }
 
-        return null;
-    }
-
-    public static Thing GetCoverOnThingMap(this IntVec3 c, Map map, Thing thing)
-    {
-        var thingMap = thing?.MapHeld;
-        if (thingMap == null) return c.GetCover(map);
-        var c2 = c.ToBaseMapCoord(thingMap);
-        return c2.InBounds(thingMap) ? c2.GetCover(thingMap) : c.GetCover(map);
-    }
-
-    public static bool RoofedAcrossMaps(this IntVec3 c, Map map)
-    {
-        if (c.Roofed(map))
+        public Thing GetCoverOnThingMap(Map map, Thing thing)
         {
-            return true;
+            var thingMap = thing?.MapHeld;
+            if (thingMap == null) return c.GetCover(map);
+            var c2 = c.ToBaseMapCoord(thingMap);
+            return c2.InBounds(thingMap) ? c2.GetCover(thingMap) : c.GetCover(map);
         }
-        if (map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
+
+        public bool RoofedAcrossMaps(Map map)
         {
-            return c.ToBaseMapCoord(vehicle).Roofed(vehicle.Map);
+            if (c.Roofed(map))
+            {
+                return true;
+            }
+            if (map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
+            {
+                return c.ToBaseMapCoord(vehicle).Roofed(vehicle.Map);
+            }
+            var vehicle2 = map.GetCachedMapComponent<VehicleMapGrid>().VehicleAt(c);
+            return vehicle2 != null && c.ToVehicleMapCoord(vehicle2).Roofed(vehicle2.VehicleMap);
         }
-        var vehicle2 = map.GetCachedMapComponent<VehicleMapGrid>().VehicleAt(c);
-        return vehicle2 != null && c.ToVehicleMapCoord(vehicle2).Roofed(vehicle2.VehicleMap);
     }
 
     public static Rot4 RotForPrintCounter => RotForPrint.IsHorizontal ? RotForPrint.Opposite : RotForPrint;

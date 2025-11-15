@@ -188,7 +188,7 @@ public static class Patch_Verb_ShootBeam_BurstingTick_Delegate
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-            .MethodReplacer(CachedMethodInfo.m_CanBeSeenOverFast, CachedMethodInfo.m_CanBeSeenOverOnVehicle);
+            .MethodReplacer(CachedMethodInfo.m_CanBeSeenOverFast, CachedMethodInfo.m_CanBeSeenOverOnVehicleFast);
     }
 }
 
@@ -236,7 +236,7 @@ public static class Patch_Verb_ShootBeam_ApplyDamage_Delegate
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-            .MethodReplacer(CachedMethodInfo.m_CanBeSeenOverFast, CachedMethodInfo.m_CanBeSeenOverOnVehicle);
+            .MethodReplacer(CachedMethodInfo.m_CanBeSeenOverFast, CachedMethodInfo.m_CanBeSeenOverOnVehicleFast);
     }
 }
 
@@ -304,7 +304,7 @@ public static class Patch_JumpUtility_OrderJump
         return TargetMapManager.HasTargetMap(thing, out var map) ? map : thing.Map;
     }
 
-    public static MethodInfo m_TargetMap = AccessTools.Method(typeof(Patch_JumpUtility_OrderJump), nameof(TargetMap));
+    public static readonly MethodInfo m_TargetMap = AccessTools.Method(typeof(Patch_JumpUtility_OrderJump), nameof(TargetMap));
 }
 
 [HarmonyPatch]

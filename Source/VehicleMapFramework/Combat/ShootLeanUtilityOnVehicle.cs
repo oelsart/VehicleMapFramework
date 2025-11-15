@@ -7,11 +7,7 @@ public static class ShootLeanUtilityOnVehicle
 {
     private static bool[] GetWorkingBlockedArray()
     {
-        if (blockedArrays.Count > 0)
-        {
-            return blockedArrays.Dequeue();
-        }
-        return new bool[8];
+        return blockedArrays.Count > 0 ? blockedArrays.Dequeue() : new bool[8];
     }
 
     private static void ReturnWorkingBlockedArray(bool[] ar)

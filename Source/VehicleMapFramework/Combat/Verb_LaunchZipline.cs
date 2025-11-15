@@ -26,15 +26,14 @@ public class Verb_LaunchZipline : Verb_LaunchProjectile
         {
             return targetParams.canTargetSelf;
         }
-        ShootLine shootLine;
-        return (targ.Pawn == null || !targ.Pawn.IsPsychologicallyInvisible() || !caster.HostileTo(targ.Pawn)) && !ApparelPreventsShooting() && this.TryFindShootLineFromToOnVehicle(root, targ, out shootLine);
+        return (targ.Pawn == null || !targ.Pawn.IsPsychologicallyInvisible() || !caster.HostileTo(targ.Pawn)) && !ApparelPreventsShooting() && this.TryFindShootLineFromToOnVehicle(root, targ, out _);
     }
 
-    public override bool TryStartCastOn(LocalTargetInfo castTarg, LocalTargetInfo destTarg, bool surpriseAttack = false, bool canHitNonTargetPawns = true, bool preventFriendlyFire = false, bool nonInterruptingSelfCast = false)
+    public override bool TryStartCastOn(LocalTargetInfo castTarg, LocalTargetInfo destTarg, bool surpriseAttack_ = false, bool canHitNonTargetPawns = true, bool preventFriendlyFire_ = false, bool nonInterruptingSelfCast_ = false)
     {
         if (ZiplineEnd?.Spawned ?? false) return false;
 
-        return base.TryStartCastOn(castTarg, destTarg, surpriseAttack, canHitNonTargetPawns, preventFriendlyFire, nonInterruptingSelfCast);
+        return base.TryStartCastOn(castTarg, destTarg, surpriseAttack_, canHitNonTargetPawns, preventFriendlyFire_, nonInterruptingSelfCast_);
     }
 
     protected override bool TryCastShot()
@@ -144,19 +143,13 @@ public class Verb_LaunchZipline : Verb_LaunchProjectile
             projectileHitFlags4 |= ProjectileHitFlags.NonTargetPawns;
         }
 
-        if (!currentTarget.HasThing || currentTarget.Thing.def.Fillage == FillCategory.Full)
+        if (currentTarget.Thing?.def.Fillage == FillCategory.Full)
         {
             projectileHitFlags4 |= ProjectileHitFlags.NonTargetWorld;
         }
 
-        if (currentTarget.Thing != null)
-        {
-            projectile2.Launch(manningPawn, drawPos, currentTarget, currentTarget, projectileHitFlags4, preventFriendlyFire, equipmentSource, targetCoverDef);
-        }
-        else
-        {
-            projectile2.Launch(manningPawn, drawPos, resultingLine.Dest, currentTarget, projectileHitFlags4, preventFriendlyFire, equipmentSource, targetCoverDef);
-        }
+        projectile2.Launch(manningPawn, drawPos, currentTarget.Thing != null ? currentTarget : resultingLine.Dest,
+            currentTarget, projectileHitFlags4, preventFriendlyFire, equipmentSource, targetCoverDef);
 
         return true;
     }

@@ -30,7 +30,7 @@ public static class Patch_CageUtility_IsCaptiveOf
 
     private static Map DepartMapOrMapHeld(Pawn pawn)
     {
-        return CrossMapReachabilityUtility.DepartMap.TryGetValue(pawn) ?? pawn.MapHeld;
+        return pawn.DepartMap ?? pawn.MapHeld;
     }
 }
 

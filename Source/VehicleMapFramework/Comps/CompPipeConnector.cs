@@ -2,6 +2,7 @@
 using System.Linq;
 using UnityEngine;
 using Verse;
+// ReSharper disable SuspiciousTypeConversion.Global
 
 namespace VehicleMapFramework;
 

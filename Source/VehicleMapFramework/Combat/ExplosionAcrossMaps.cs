@@ -73,10 +73,8 @@ public class ExplosionAcrossMaps : Explosion
         var pos = Position;
         try
         {
-            foreach (var vehicle in cellsToAffectOnVehicles.Keys)
+            foreach (var vehicle in cellsToAffectOnVehicles.Keys.Where(vehicle => vehicle is { VehicleMap: not null, Spawned: true }))
             {
-                if (vehicle?.VehicleMap == null || !vehicle.Spawned) continue;
-
                 this.VirtualMapTransfer(vehicle.VehicleMap, pos.ToVehicleMapCoord(vehicle));
                 num = cellsToAffectOnVehicles[vehicle].Count - 1;
                 while (num >= 0 && ticksGame >= (int)GetCellAffectTick(this, cellsToAffectOnVehicles[vehicle][num]) && !vehicle.VehicleMap.Disposed)

@@ -44,10 +44,7 @@ public class JobDriver_GotoAcrossMaps : JobDriverAcrossMaps
                 }
             });
             toil.FailOn(() => job.failIfCantJoinOrCreateCaravan && !CaravanExitMapUtility.CanExitMapAndJoinOrCreateCaravanNow(pawn));
-            toil.FailOn(delegate ()
-            {
-                return job.GetTarget(TargetIndex.A).Thing is Pawn { ParentHolder: Corpse };
-            });
+            toil.FailOn(() => job.GetTarget(TargetIndex.A).Thing is Pawn { ParentHolder: Corpse });
             toil.FailOn(delegate ()
             {
                 var thing = job.GetTarget(TargetIndex.A).Thing;
@@ -55,8 +52,7 @@ public class JobDriver_GotoAcrossMaps : JobDriverAcrossMaps
             });
             if (lookAtTarget.IsValid)
             {
-                var toil2 = toil;
-                toil2.tickAction = (Action)Delegate.Combine(toil2.tickAction, new Action(delegate
+                toil.tickAction = (Action)Delegate.Combine(toil.tickAction, new Action(delegate
                 {
                     pawn.rotationTracker.FaceCell(lookAtTarget.CellOnAnotherThingMap(pawn));
                 }));

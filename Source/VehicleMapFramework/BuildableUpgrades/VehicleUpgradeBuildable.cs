@@ -98,15 +98,15 @@ public class VehicleUpgradeBuildable : VehicleUpgrade
     {
         if (!roles.NullOrEmpty())
         {
-            for (var i = 0; i < roles.Count; i++)
+            foreach (var role in roles)
             {
-                if (roles[i] is RoleUpgradeBuildable roleUpgradeBuildable)
+                if (role is RoleUpgradeBuildable roleUpgradeBuildable)
                 {
                     UpgradeRole(vehicle, roleUpgradeBuildable, true, false);
                 }
                 else
                 {
-                    UpgradeRole(vehicle, roles[i], true, false);
+                    UpgradeRole(vehicle, role, true, false);
                 }
             }
         }
@@ -172,7 +172,7 @@ public class VehicleUpgradeBuildable : VehicleUpgrade
         if (roleUpgrade.remove ^ isRefund)
         {
             var uniqueID = parent.handlerUniqueIDs.FirstOrDefault(h => h.key == roleUpgrade.key && h.editKey == roleUpgrade.editKey);
-            if (uniqueID == default)
+            if (uniqueID == null)
             {
                 VMF_Log.Error("No uniqueID corresponding to this role upgrade found.");
                 return;
@@ -185,9 +185,9 @@ public class VehicleUpgradeBuildable : VehicleUpgrade
                 return;
             }
             var handler = handlers[index];
-            for (var i = 0; i < handler.thingOwner.Count; i++)
+            foreach (var pawn in handler.thingOwner)
             {
-                vehicle.DisembarkPawn(handler.thingOwner[i]);
+                vehicle.DisembarkPawn(pawn);
             }
             handler.role.RemoveUpgrade(roleUpgrade);
             vehicle.handlers.RemoveAt(index);
@@ -212,7 +212,7 @@ public class VehicleUpgradeBuildable : VehicleUpgrade
             else
             {
                 var uniqueID = parent.handlerUniqueIDs.FirstOrDefault(h => h.key == roleUpgrade.key && h.editKey == roleUpgrade.editKey);
-                if (uniqueID == default)
+                if (uniqueID == null)
                 {
                     VMF_Log.Error("No uniqueID corresponding to this role upgrade found.");
                     return;

@@ -8,7 +8,6 @@ using RimWorld;
 using RimWorld.Planet;
 using SmashTools;
 using SmashTools.Rendering;
-using SmashTools.Targeting;
 using UnityEngine;
 using Vehicles;
 using Vehicles.Rendering;
@@ -75,34 +74,6 @@ public static class Patch_VehiclePawn_HasEnoughOperators
     }
 }
 
-//VehiclePawnWithMapの場合タレットに対応するハンドラーが存在しない場合コントロールできないようにする
-[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
-[HarmonyPatch(typeof(VehicleTurret), nameof(VehicleTurret.RecacheMannedStatus))]
-[PatchLevel(Level.Safe)]
-public static class Patch_VehicleTurret_RecacheMannedStatus
-{
-    public static bool Prefix(VehicleTurret __instance)
-    {
-        if (__instance.vehicle is VehiclePawnWithMap)
-        {
-            if (VehicleMod.settings.debug.debugShootAnyTurret)
-            {
-                VehicleTurret_IsManned(__instance, true);
-                return false;
-            }
-            var matchHandlers = __instance.vehicle.handlers.FindAll(h => h.role.HandlingTypes.HasFlag(HandlingType.Turret) && (h.role.TurretIds.Contains(__instance.key) || h.role.TurretIds.Contains(__instance.groupKey)));
-            if (matchHandlers.Empty())
-            {
-                VehicleTurret_IsManned(__instance, false);
-                return false;
-            }
-            VehicleTurret_IsManned(__instance, matchHandlers.All(h => h.RoleFulfilled));
-            return false;
-        }
-        return true;
-    }
-}
-
 //VehiclePawnWithMapの場合タレットに対応するハンドラーが存在しない場合ギズモを操作不能にする
 [HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(CompVehicleTurrets), nameof(CompVehicleTurrets.CompGetGizmosExtra))]
@@ -113,7 +84,7 @@ public static class Patch_CompVehicleTurrets_CompGetGizmosExtra
     {
         foreach (var gizmo in gizmos)
         {
-            if (gizmo is Command_Turret command_Turret && __instance.Vehicle is VehiclePawnWithMap)
+            if (gizmo is Command_Turret command_Turret && command_Turret.turret is VehicleTurret_Manual)
             {
                 var turret = command_Turret.turret;
                 if (turret != null &&
@@ -535,31 +506,34 @@ public static class Patch_LaunchProtocol_GetArrivalOptions
             if (mapParent.HasMap && !mapParent.EnterCooldownBlocksEntering())
             {
                 yield return new ArrivalOption("LandInExistingMap".Translate(mapParent.Label),
-                  continueWith: delegate (TargetData<GlobalTargetInfo> targetData)
-                  {
-                      Current.Game.CurrentMap = mapParent.Map;
-                      CameraJumper.TryHideWorld();
-                      LandingTargeter.Instance.BeginTargeting(vehicle, mapParent.Map,
-                action: delegate (LocalTargetInfo landingCell, Rot4 rot)
-                      {
-                          if (vehicle.Spawned)
-                          {
-                              vehicle.CompVehicleLauncher.Launch(targetData,
-                        new ArrivalAction_LandToCell(vehicle, mapParent, landingCell.Cell, rot));
-                          }
-                          else
-                          {
-                              var aerialVehicle = vehicle.GetOrMakeAerialVehicle();
-                              var nodes = targetData.targets.Select(targetInfo => new FlightNode(targetInfo)).ToList();
-                              aerialVehicle.OrderFlyToTiles(nodes,
-                        new ArrivalAction_LandToCell(vehicle, mapParent, landingCell.Cell, rot));
-                              vehicle.CompVehicleLauncher.inFlight = true;
-                              CameraJumper.TryShowWorld();
-                          }
-                      }, allowRotating: vehicle.VehicleDef.rotatable,
-                targetValidator: targetInfo => targetInfo.Cell.InBounds(mapParent.Map) &&
-                  !Ext_Vehicles.IsRoofRestricted(vehicle.VehicleDef, targetInfo.Cell, mapParent.Map));
-                  });
+                    continueWith: targetData =>
+                    {
+                        Patch_Game_CurrentMap.ForceSet = true;
+                        Current.Game.CurrentMap = mapParent.Map;
+                        CameraJumper.TryHideWorld();
+                        LandingTargeter.Instance.BeginTargeting(vehicle, mapParent.Map,
+                            action: (landingCell, rot) =>
+                            {
+                                if (vehicle.Spawned)
+                                {
+                                    vehicle.CompVehicleLauncher.Launch(targetData,
+                                        new ArrivalAction_LandToCell(vehicle, mapParent, landingCell.Cell, rot));
+                                }
+                                else
+                                {
+                                    var aerialVehicle = vehicle.GetOrMakeAerialVehicle();
+                                    var nodes = targetData.targets.Select(targetInfo => new FlightNode(targetInfo))
+                                        .ToList();
+                                    aerialVehicle.OrderFlyToTiles(nodes,
+                                        new ArrivalAction_LandToCell(vehicle, mapParent, landingCell.Cell, rot));
+                                    vehicle.CompVehicleLauncher.inFlight = true;
+                                    CameraJumper.TryShowWorld();
+                                }
+                            }, allowRotating: vehicle.VehicleDef.rotatable,
+                            targetValidator: targetInfo => targetInfo.Cell.InBounds(mapParent.Map) &&
+                                                           !Ext_Vehicles.IsRoofRestricted(vehicle.VehicleDef,
+                                                               targetInfo.Cell, mapParent.Map));
+                    });
             }
         }
     }
@@ -643,14 +617,13 @@ public static class Patch_CaravanFormation_TryFindExitSpot
     public static void Prefix(Map map, List<Pawn> pawns)
     {
         foreach (var pawn in pawns)
-        {
-            CrossMapReachabilityUtility.DestMap[pawn] = map;
-        }
+            pawn.DestMap = map;
     }
 
     public static void Finalizer(List<Pawn> pawns)
     {
-        CrossMapReachabilityUtility.DestMap.RemoveRange(pawns);
+        foreach (var pawn in pawns)
+            pawn.RemoveDestMap();
     }
 }
 

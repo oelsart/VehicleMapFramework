@@ -9,45 +9,13 @@ namespace VehicleMapFramework;
 
 public class CrossMapHaulDestinationManager(Map map) : MapComponent(map)
 {
-    private readonly List<IHaulDestination> allHaulDestinationsInOrder = [];
+    public List<IHaulDestination> AllHaulDestinationsListInPriorityOrder { get; } = [];
 
-    private readonly List<IHaulSource> allHaulSourcesInOrder = [];
+    public List<SlotGroup> AllGroupsListForReading { get; } = [];
 
-    private readonly List<SlotGroup> allGroupsInOrder = [];
+    public List<IHaulSource> AllHaulSourcesListForReading { get; } = [];
 
-    public IEnumerable<IHaulDestination> AllHaulDestinations => allHaulDestinationsInOrder;
-
-    public List<IHaulDestination> AllHaulDestinationsListForReading => allHaulDestinationsInOrder;
-
-    public List<IHaulDestination> AllHaulDestinationsListInPriorityOrder => allHaulDestinationsInOrder;
-
-    public List<IHaulSource> AllHaulSourcesListInPriorityOrder => allHaulSourcesInOrder;
-
-    public IEnumerable<SlotGroup> AllGroups => allGroupsInOrder;
-
-    public List<SlotGroup> AllGroupsListForReading => allGroupsInOrder;
-
-    public List<IHaulSource> AllHaulSourcesListForReading => allHaulSourcesInOrder;
-
-    public List<SlotGroup> AllGroupsListInPriorityOrder => allGroupsInOrder;
-
-    public IEnumerable<TargetInfo> AllSlots
-    {
-        get
-        {
-            for (var i = 0; i < allGroupsInOrder.Count; i++)
-            {
-                var map = allGroupsInOrder[i].parent.Map;
-                var cellsList = allGroupsInOrder[i].CellsList;
-                var j = 0;
-                while (j < allGroupsInOrder.Count)
-                {
-                    yield return new TargetInfo(cellsList[j], map);
-                    i++;
-                }
-            }
-        }
-    }
+    public List<SlotGroup> AllGroupsListInPriorityOrder => AllGroupsListForReading;
 
     //60tickごとにベースマップのコンポーネントにHaulDestinationを登録する。vehicleがDespawnした時にRemoveされる
     public override void MapComponentTick()
@@ -60,25 +28,25 @@ public class CrossMapHaulDestinationManager(Map map) : MapComponent(map)
 
             var baseMapComponent = baseMap.GetCachedMapComponent<CrossMapHaulDestinationManager>();
 
-            var baseMapDestinations = baseMapComponent.allHaulDestinationsInOrder;
-            allHaulDestinationsInOrder.Where(h => !baseMapDestinations.Contains(h)).Do(baseMapComponent.AddHaulDestination);
+            var baseMapDestinations = baseMapComponent.AllHaulDestinationsListInPriorityOrder;
+            AllHaulDestinationsListInPriorityOrder.Where(h => !baseMapDestinations.Contains(h)).Do(baseMapComponent.AddHaulDestination);
 
-            var baseMapSources = baseMapComponent.allHaulSourcesInOrder;
-            allHaulSourcesInOrder.Where(s => !baseMapSources.Contains(s)).Do(baseMapComponent.AddHaulSource);
+            var baseMapSources = baseMapComponent.AllHaulSourcesListForReading;
+            AllHaulSourcesListForReading.Where(s => !baseMapSources.Contains(s)).Do(baseMapComponent.AddHaulSource);
         }
     }
 
     public void AddHaulDestination(IHaulDestination haulDestination)
     {
-        if (allHaulDestinationsInOrder.Contains(haulDestination))
+        if (AllHaulDestinationsListInPriorityOrder.Contains(haulDestination))
         {
             //車両マップから下のマップに転写するので、GravshipVehicleでHaulDestinationが再び下のマップに登録されてしまうこともあるわなと思ってエラーを無効化
             //VMF_Log.Error("Double-added haul destination " + haulDestination.ToStringSafe());
             return;
         }
 
-        allHaulDestinationsInOrder.Add(haulDestination);
-        allHaulDestinationsInOrder.InsertionSort(CompareHaulDestinationPrioritiesDescending);
+        AllHaulDestinationsListInPriorityOrder.Add(haulDestination);
+        AllHaulDestinationsListInPriorityOrder.InsertionSort(CompareHaulDestinationPrioritiesDescending);
         if (haulDestination is not ISlotGroupParent slotGroupParent)
         {
             return;
@@ -91,8 +59,8 @@ public class CrossMapHaulDestinationManager(Map map) : MapComponent(map)
             return;
         }
 
-        allGroupsInOrder.Add(slotGroup);
-        allGroupsInOrder.InsertionSort(CompareSlotGroupPrioritiesDescending);
+        AllGroupsListForReading.Add(slotGroup);
+        AllGroupsListForReading.InsertionSort(CompareSlotGroupPrioritiesDescending);
     }
 
     public void RemoveHaulDestination(IHaulDestination haulDestination)
@@ -103,7 +71,7 @@ public class CrossMapHaulDestinationManager(Map map) : MapComponent(map)
         //    return;
         //}
 
-        allHaulDestinationsInOrder.Remove(haulDestination);
+        AllHaulDestinationsListInPriorityOrder.Remove(haulDestination);
         if (haulDestination is not ISlotGroupParent slotGroupParent)
         {
             return;
@@ -116,25 +84,25 @@ public class CrossMapHaulDestinationManager(Map map) : MapComponent(map)
             return;
         }
 
-        allGroupsInOrder.Remove(slotGroup);
+        AllGroupsListForReading.Remove(slotGroup);
     }
 
     public void AddHaulSource(IHaulSource source)
     {
-        if (allHaulSourcesInOrder.Contains(source))
+        if (AllHaulSourcesListForReading.Contains(source))
         {
             //車両マップから下のマップに転写するので、GravshipVehicleでHaulDestinationが再び下のマップに登録されてしまうこともあるわなと思ってエラーを無効化
             //VMF_Log.Error("Double-added haul destination " + source.ToStringSafe());
             return;
         }
 
-        allHaulSourcesInOrder.Add(source);
-        allHaulSourcesInOrder.InsertionSort(CompareHaulSourcePrioritiesDescending);
+        AllHaulSourcesListForReading.Add(source);
+        AllHaulSourcesListForReading.InsertionSort(CompareHaulSourcePrioritiesDescending);
     }
 
     public void RemoveHaulSource(IHaulSource source)
     {
-        if (!allHaulSourcesInOrder.Remove(source))
+        if (!AllHaulSourcesListForReading.Remove(source))
         {
             //VMF_Log.Error("Removing haul source that isn't registered " + source.ToStringSafe());
         }
@@ -142,9 +110,9 @@ public class CrossMapHaulDestinationManager(Map map) : MapComponent(map)
 
     public void Notify_HaulDestinationChangedPriority()
     {
-        allHaulDestinationsInOrder.InsertionSort(CompareHaulDestinationPrioritiesDescending);
-        allGroupsInOrder.InsertionSort(CompareSlotGroupPrioritiesDescending);
-        allHaulSourcesInOrder.InsertionSort(CompareHaulSourcePrioritiesDescending);
+        AllHaulDestinationsListInPriorityOrder.InsertionSort(CompareHaulDestinationPrioritiesDescending);
+        AllGroupsListForReading.InsertionSort(CompareSlotGroupPrioritiesDescending);
+        AllHaulSourcesListForReading.InsertionSort(CompareHaulSourcePrioritiesDescending);
 
         var baseMap = map.BaseMap();
         if (map != baseMap)

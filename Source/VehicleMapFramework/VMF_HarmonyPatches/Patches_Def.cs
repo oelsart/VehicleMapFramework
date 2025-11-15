@@ -14,7 +14,7 @@ public static class DefMessagesReplace
     static DefMessagesReplace()
     {
         var refuelVehicleTank = DefDatabase<WorkGiverDef>.GetNamedSilentFail("VMF_RefuelVehicleTank"!);
-        var refuelVehicle = DefDatabase<WorkGiverDef>.GetNamedSilentFail("RefuelVehicle");
+        var refuelVehicle = DefDatabase<WorkGiverDef>.GetNamedSilentFail("RefuelVehicle"!);
         if (refuelVehicleTank != null && refuelVehicle != null)
         {
             refuelVehicleTank.label = refuelVehicle.label;
@@ -62,7 +62,7 @@ public static class CheckEnablePipeConnector
     {
         if (!EnablePipeConnector())
         {
-            DefDatabase<ThingDef>.GetNamed("VMF_PipeConnector").designationCategory = null;
+            DefDatabase<ThingDef>.GetNamed("VMF_PipeConnector"!).designationCategory = null;
             DefDatabase<DesignationCategoryDef>.GetNamed("VF_Vehicles").ResolveReferences();
         }
     }

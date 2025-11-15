@@ -35,4 +35,21 @@ public static class TestUtility
 
         return false;
     }
+
+    public static void MakePawnPerfect(Pawn pawn)
+    {
+        foreach (var skillDef in DefDatabase<SkillDef>.AllDefs)
+        {
+            pawn.skills.Learn(skillDef, 100000000f);
+        }
+        pawn.health.RemoveAllHediffs();
+        pawn.workSettings.EnableAndInitializeIfNotAlreadyInitialized();
+        pawn.story.AllBackstories?.Clear();
+        pawn.story.traits.allTraits?.Clear();
+        pawn.Notify_DisabledWorkTypesChanged();
+        foreach (var workTypeDef in DefDatabase<WorkTypeDef>.AllDefs)
+        {
+            pawn.workSettings.SetPriority(workTypeDef, 3);
+        }
+    }
 }
