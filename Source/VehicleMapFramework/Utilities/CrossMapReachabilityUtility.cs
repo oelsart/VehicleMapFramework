@@ -27,19 +27,43 @@ public static class CrossMapReachabilityUtility
     {
         public Map DestMap
         {
-            get => DestMap.TryGetValue(pawn, out var map) ? map : null;
-            set => DestMap.AddOrUpdate(pawn, value);
+            get
+            {
+                if (pawn is null) return null;
+                return DestMap.TryGetValue(pawn, out var map) ? map : null;
+            }
+            set
+            {
+                if (pawn is null) return;
+                DestMap.AddOrUpdate(pawn, value);
+            }
         }
-        
-        public void RemoveDestMap() => DestMap.Remove(pawn);
+
+        public void RemoveDestMap()
+        {
+            if (pawn is null) return;
+            DestMap.Remove(pawn);
+        }
         
         public Map DepartMap
         {
-            get => DepartMap.TryGetValue(pawn, out var map) ? map : null;
-            set => DepartMap.AddOrUpdate(pawn, value);
+            get
+            {
+                if (pawn is null) return null;
+                return DepartMap.TryGetValue(pawn, out var map) ? map : null;
+            }
+            set
+            {
+                if (pawn is null) return;
+                DepartMap.AddOrUpdate(pawn, value);
+            }
         }
-        
-        public void RemoveDepartMap() => DepartMap.Remove(pawn);
+
+        public void RemoveDepartMap()
+        {
+            if (pawn is null) return;
+            DepartMap.Remove(pawn);
+        }
     }
 
 #if DEBUG
