@@ -38,7 +38,7 @@ public static class Patch_WorkGiver_HaulToInventory_PotentialWorkThingsGlobal
 
     public static IntVec3 ToBaseMapCoord(IntVec3 c, Pawn pawn)
     {
-        return c.ToBaseMapCoord(CrossMapReachabilityUtility.DepartMap.TryGetValue(pawn));
+        return c.ToBaseMapCoord(pawn.DepartMap ?? pawn.Map);
     }
 }
 

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using SmashTools;
 using UnityEngine;
 using Vehicles;
@@ -14,13 +15,56 @@ public static class CrossMapReachabilityUtility
 {
     public static bool working;
 
-    public static Dictionary<Pawn, Map> DestMap { get; } = [];
+    private static ConditionalWeakTable<Pawn, Map> DestMap { get; } = [];
 
     public static Map DestMapGlobal;
     
-    public static Dictionary<Pawn, Map> DepartMap { get; } = [];
+    private static ConditionalWeakTable<Pawn, Map> DepartMap { get; } = [];
 
     public static Map DepartMapGlobal;
+
+    extension(Pawn pawn)
+    {
+        public Map DestMap
+        {
+            get
+            {
+                if (pawn is null) return null;
+                return DestMap.TryGetValue(pawn, out var map) ? map : null;
+            }
+            set
+            {
+                if (pawn is null) return;
+                DestMap.AddOrUpdate(pawn, value);
+            }
+        }
+
+        public void RemoveDestMap()
+        {
+            if (pawn is null) return;
+            DestMap.Remove(pawn);
+        }
+        
+        public Map DepartMap
+        {
+            get
+            {
+                if (pawn is null) return null;
+                return DepartMap.TryGetValue(pawn, out var map) ? map : null;
+            }
+            set
+            {
+                if (pawn is null) return;
+                DepartMap.AddOrUpdate(pawn, value);
+            }
+        }
+
+        public void RemoveDepartMap()
+        {
+            if (pawn is null) return;
+            DepartMap.Remove(pawn);
+        }
+    }
 
 #if DEBUG
     public static bool enableDebugLog;

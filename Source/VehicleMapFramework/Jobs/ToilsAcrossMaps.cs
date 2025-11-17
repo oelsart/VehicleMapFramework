@@ -56,10 +56,7 @@ public static class ToilsAcrossMaps
             }
             toil.actor.pather.StartPath(dest, PathEndMode.OnCell);
         };
-        toil.FailOn(() =>
-        {
-            return !enterSpot.IsValid || baseMap != toil.actor.BaseMap();
-        });
+        toil.FailOn(() => !enterSpot.IsValid || baseMap != toil.actor.BaseMap());
         return toil;
     }
 
@@ -120,10 +117,7 @@ public static class ToilsAcrossMaps
                 driver.ReadyForNextToil();
             }
         };
-        toil.FailOn(() =>
-        {
-            return !comp.parent.Spawned || (!comp.Pair?.Spawned ?? true);
-        });
+        toil.FailOn(() => !comp.parent.Spawned || (!comp.Pair?.Spawned ?? true));
         toil.defaultCompleteMode = ToilCompleteMode.Never;
         return toil;
 
@@ -151,8 +145,8 @@ public static class ToilsAcrossMaps
             exitSpot.Map.IsVehicleMapOf(out var vehicle);
             //exitSpotの場所まで行く。vehicleの場合はvehicleの長さ分手前に目的地を指定
             var vehiclePawn = driver.pawn as VehiclePawn;
-            var rot = exitSpot.HasThing ? exitSpot.Thing.Rotation : exitSpot.Cell.DirectionToInsideMap(vehicle);
-            var vehicleOffset = vehiclePawn != null ? vehiclePawn.HalfLength() : 0;
+            var rot = exitSpot.Thing?.Rotation ?? exitSpot.Cell.DirectionToInsideMap(vehicle);
+            var vehicleOffset = vehiclePawn?.HalfLength() ?? 0;
             var cell = exitSpot.Cell + (vehicleOffset * rot.FacingCell);
             var toil = Toils_Goto.GotoCell(cell, PathEndMode.OnCell);
             yield return toil;
@@ -181,7 +175,6 @@ public static class ToilsAcrossMaps
                 var initTick = 0;
                 toil2.initAction += () =>
                 {
-                    var baseMap = exitSpot.Map.BaseMap();
                     initTick = GenTicks.TicksGame;
                     Rot4 baseRot = exitSpot.HasThing ? exitSpot.Thing.BaseFullRotation() : exitSpot.Cell.BaseFullDirectionToInsideMap(vehicle);
                     pos = CrossMapReachabilityUtility.EnterVehiclePosition(exitSpot, out var dist, vehiclePawn);
@@ -221,7 +214,7 @@ public static class ToilsAcrossMaps
             }
 
             //デスポーン後目的地のマップにリスポーン。スポーン地の再計算時にそこが埋まってたらとりあえず失敗に
-            var toil3 = ToilMaker.MakeToil("Exit Vehicle Map");
+            var toil3 = ToilMaker.MakeToil();
             toil3.defaultCompleteMode = ToilCompleteMode.Instant;
             toil3.initAction = () =>
             {
@@ -234,7 +227,6 @@ public static class ToilsAcrossMaps
                 else
                 {
                     map = exitSpot.Map.BaseMap();
-                    var basePos = exitSpot.HasThing ? exitSpot.Thing.PositionOnBaseMap() : exitSpot.Cell.ToBaseMapCoord(vehicle);
                     rot = exitSpot.HasThing ? exitSpot.Thing.BaseFullRotation() : exitSpot.Cell.BaseFullDirectionToInsideMap(vehicle);
                     rot = rot.Opposite;
                 }
@@ -248,14 +240,20 @@ public static class ToilsAcrossMaps
                 else
                 {
                     toil3.actor.DeSpawnWithoutJobClear();
-                    foreach (var ropee in toil3.actor.roping?.Ropees)
+                    if (toil3.actor.roping != null)
                     {
-                        ropee.DeSpawnWithoutJobClear();
+                        foreach (var ropee in toil3.actor.roping.Ropees)
+                        {
+                            ropee.DeSpawnWithoutJobClear();
+                        }
                     }
                     GenSpawn.Spawn(toil3.actor, pos, map, rot);
-                    foreach (var ropee in toil3.actor.roping?.Ropees)
+                    if (toil3.actor.roping != null)
                     {
-                        GenSpawn.Spawn(ropee, pos, map, rot);
+                        foreach (var ropee in toil3.actor.roping.Ropees)
+                        {
+                            GenSpawn.Spawn(ropee, pos, map, rot);
+                        }
                     }
                 }
             };
@@ -301,11 +299,10 @@ public static class ToilsAcrossMaps
                 var initTick = 0;
                 toil2.initAction += () =>
                 {
-                    var baseMap = enterSpot.Map.BaseMap();
                     var baseRot8 = enterSpot.HasThing ? enterSpot.Thing.BaseFullRotation() : enterSpot.Cell.BaseFullDirectionToInsideMap(vehicle);
                     Rot4 baseRot4 = baseRot8;
                     var cell = CrossMapReachabilityUtility.EnterVehiclePosition(enterSpot, out var dist, vehiclePawn);
-                    var vehicleOffset = vehiclePawn != null ? vehiclePawn.HalfLength() : 0;
+                    var vehicleOffset = vehiclePawn?.HalfLength() ?? 0;
                     ticks *= dist + vehicleOffset;
                     driver.ticksLeftThisToil = (int)ticks;
                     if (vehiclePawn != null)
@@ -343,7 +340,7 @@ public static class ToilsAcrossMaps
                 yield return toil2.FailOn(() => enterSpot.Map?.Disposed ?? true);
             }
 
-            var toil3 = ToilMaker.MakeToil("Enter Vehicle Map");
+            var toil3 = ToilMaker.MakeToil();
             toil3.defaultCompleteMode = ToilCompleteMode.Instant;
             toil3.initAction = () =>
             {
@@ -366,14 +363,20 @@ public static class ToilsAcrossMaps
                 else
                 {
                     toil3.actor.DeSpawnWithoutJobClear();
-                    foreach (var ropee in toil3.actor.roping?.Ropees)
+                    if (toil3.actor.roping != null)
                     {
-                        ropee.DeSpawnWithoutJobClear();
+                        foreach (var ropee in toil3.actor.roping.Ropees)
+                        {
+                            ropee.DeSpawnWithoutJobClear();
+                        }
                     }
                     GenSpawn.Spawn(toil3.actor, enterSpot.Cell, enterSpot.Map, rot, WipeMode.VanishOrMoveAside);
-                    foreach (var ropee in toil3.actor.roping?.Ropees)
+                    if (toil3.actor.roping != null)
                     {
-                        GenSpawn.Spawn(ropee, enterSpot.Cell, enterSpot.Map, rot, WipeMode.VanishOrMoveAside);
+                        foreach (var ropee in toil3.actor.roping.Ropees)
+                        {
+                            GenSpawn.Spawn(ropee, enterSpot.Cell, enterSpot.Map, rot, WipeMode.VanishOrMoveAside);
+                        }
                     }
                 }
             };

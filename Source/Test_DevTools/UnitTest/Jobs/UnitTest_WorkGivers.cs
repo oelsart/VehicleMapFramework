@@ -14,7 +14,6 @@ internal sealed class UnitTest_WorkGivers
     [Test]
     private void TestWorkGivers()
     {
-        using var dynamicPatchEnabler = new DynamicPatchEnabler();
         using var vehicleGroup = VehicleGroup.CreateBasicVehicleGroup(new VehicleGroup.MockSettings
         {
             vehicleDef = DefDatabase<VehicleDef>.GetNamed("MV_Crawler"),
@@ -25,21 +24,10 @@ internal sealed class UnitTest_WorkGivers
         vehicleGroup.SpawnPawns();
         var pawn = vehicleGroup.pawns[0];
         pawn.Map.weatherManager.curWeather = WeatherDefOf.Clear;
-        foreach (var skillDef in DefDatabase<SkillDef>.AllDefs)
-        {
-            pawn.skills.Learn(skillDef, 100000000f);
-        }
-        pawn.health.RemoveAllHediffs();
-        pawn.workSettings.EnableAndInitializeIfNotAlreadyInitialized();
-        pawn.story.AllBackstories?.Clear();
-        pawn.story.traits.allTraits?.Clear();
-        pawn.Notify_DisabledWorkTypesChanged();
-        foreach (var workTypeDef in DefDatabase<WorkTypeDef>.AllDefs)
-        {
-            pawn.workSettings.SetPriority(workTypeDef, 3);
-        }
+        TestUtility.MakePawnPerfect(pawn);
         Expect.IsTrue(TestUtility.EvacuateFromTestArea(pawn), "Evacuate from test area.");
 
+        using var dynamicPatchEnabler = new DynamicPatchEnabler();
         VMF_Harmony.DynamicPatchAllNow(Level.Sensitive);
         foreach (var test in workGiverTests)
         {

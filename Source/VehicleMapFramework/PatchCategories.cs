@@ -4,6 +4,8 @@ internal static class PatchCategories
 {
     public const string Royalty = "VMF_Patches_Royalty";
     
+    public const string Biotech = "VMF_Patches_Biotech";
+    
     public const string Odyssey = "VMF_Patches_Odyssey";
     
     public const string VehicleFramework = "VMF_Patches_VehicleFramework";

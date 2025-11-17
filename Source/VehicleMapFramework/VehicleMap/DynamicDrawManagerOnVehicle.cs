@@ -106,8 +106,8 @@ public static class DynamicDrawManagerOnVehicle
                 {
                     cell = thing.Position,
                     coarseBounds = thing.MovedOccupiedDrawRect(),
-                    hideAtSnowOrSandDepth = thing.def.hideAtSnowOrSandDepth,
-                    seeThroughFog = thing.def.seeThroughFog,
+                    // hideAtSnowOrSandDepth = thing.def.hideAtSnowOrSandDepth,
+                    // seeThroughFog = thing.def.seeThroughFog,
                     hasSunShadows = thing.def.HasSunShadows
                 };
                 details[i] = value;
@@ -154,10 +154,6 @@ public static class DynamicDrawManagerOnVehicle
         else
         {
             rect.minZ -= Mathf.CeilToInt(lightSourceInfo.vector.y);
-        }
-        if (map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
-        {
-            rect.ClipInsideMap(vehicle.Map);
         }
         cachedRect[map] = (RealTime.frameCount, rect);
         return cachedRect[map].rect;
@@ -257,9 +253,9 @@ public static class DynamicDrawManagerOnVehicle
 
         public CellRect coarseBounds;
 
-        public bool seeThroughFog;
-
-        public float hideAtSnowOrSandDepth;
+        // public bool seeThroughFog;
+        //
+        // public float hideAtSnowOrSandDepth;
 
         public Vector3 pos;
 

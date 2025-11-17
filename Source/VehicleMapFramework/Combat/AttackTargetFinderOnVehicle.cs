@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using RimWorld;
 using UnityEngine;
@@ -10,6 +11,7 @@ using static VehicleMapFramework.ModCompat;
 
 namespace VehicleMapFramework;
 
+[SuppressMessage("ReSharper", "ForCanBeConvertedToForeach")]
 public static class AttackTargetFinderOnVehicle
 {
     private const float FriendlyFireScoreOffsetPerHumanlikeOrMechanoid = 18f;
@@ -199,7 +201,7 @@ public static class AttackTargetFinderOnVehicle
             }
 
             var targetToHit = GetRandomShootingTargetByScore(validTargets, searcher, verb);
-            if (targetToHit != null || searcher is Building_Turret || (searcher is Pawn sercherPawn && searcherPawn.CurJobDef == JobDefOf.ManTurret))
+            if (targetToHit != null || searcher is Building_Turret || (searcher is Pawn && searcherPawn.CurJobDef == JobDefOf.ManTurret))
             {
                 return targetToHit;
             }
@@ -209,26 +211,19 @@ public static class AttackTargetFinderOnVehicle
                     searcher.Thing.PositionOnBaseMap(),
                     validTargets,
                     maxDist,
-                    t => CanReach(searcher.Thing, t, canBashDoors, canBashFences),
-                    null,
-                    false
+                    t => CanReach(searcher.Thing, t, canBashDoors, canBashFences)
                     );
             }
-            return (IAttackTarget)GenClosestCrossMap.ClosestThing_Global(searcher.Thing.PositionOnBaseMap(), validTargets, maxDist, null, null, false);
+            return (IAttackTarget)GenClosestCrossMap.ClosestThing_Global(searcher.Thing.PositionOnBaseMap(), validTargets, maxDist);
         }
-        if (searcherPawn != null && searcherPawn.mindState.duty is { radius: > 0f } && !searcherPawn.InMentalState)
+        if (searcherPawn?.mindState.duty is { radius: > 0f } && !searcherPawn.InMentalState)
         {
             var oldValidator = innerValidator;
-            innerValidator = t =>
-            {
-                return oldValidator(t) && t.Thing.PositionOnBaseMap().InHorDistOf(searcherPawn.mindState.duty.focus.CellOnBaseMap(), searcherPawn.mindState.duty.radius);
-            };
+            innerValidator = t => oldValidator(t) && t.Thing.PositionOnBaseMap()
+                .InHorDistOf(searcherPawn.mindState.duty.focus.CellOnBaseMap(), searcherPawn.mindState.duty.radius);
         }
         var oldValidator2 = innerValidator;
-        innerValidator = t =>
-        {
-            return oldValidator2(t) && !ShouldIgnoreNoncombatant(searcherThing, t, flags);
-        };
+        innerValidator = t => oldValidator2(t) && !ShouldIgnoreNoncombatant(searcherThing, t, flags);
         var attackTarget2 = (IAttackTarget)GenClosestCrossMap.ClosestThingReachable(searcherThing.Position, searcherThing.Map, ThingRequest.ForGroup(ThingRequestGroup.AttackTarget), PathEndMode.Touch, TraverseParms.For(searcherPawn, Danger.Deadly, TraverseMode.ByPawn, canBashDoors, false, canBashFences), maxDist, x => innerValidator((IAttackTarget)x), null, 0, (maxDist > 800f) ? -1 : 40);
         //if (attackTarget2 != null && PawnUtility.ShouldCollideWithPawns(searcherPawn))
         //{

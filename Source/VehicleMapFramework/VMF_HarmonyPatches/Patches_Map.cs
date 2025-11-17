@@ -78,7 +78,7 @@ public static class Patch_Reachability_CanReach
         var pawn = traverseParams.pawn;
 
         var destMap = CrossMapReachabilityUtility.DestMapGlobal ??
-                      CrossMapReachabilityUtility.DestMap.TryGetValue(pawn) ??
+                      pawn.DestMap ??
                       dest.Thing?.MapHeld ??
                       (TargetMapManager.HasTargetInfo(pawn, out var target) && 
                        (LocalTargetInfo)target == dest ? target.Map : ___map);
@@ -87,7 +87,7 @@ public static class Patch_Reachability_CanReach
             return true;
         }
         var departMap = CrossMapReachabilityUtility.DepartMapGlobal ??
-                        CrossMapReachabilityUtility.DepartMap.TryGetValue(pawn) ?? ___map;
+                        pawn.DepartMap ?? ___map;
         if (departMap == null)
         {
             return true;

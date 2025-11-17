@@ -12,7 +12,7 @@ public class CompProperties_Alternator : CompProperties_Power
         compClass = typeof(CompAlternator);
     }
 
-    public List<FuelProperties> fuelConsumptionRates = [];
+    public List<FuelProperties> fuelConsumptionRates;
 
     public class FuelProperties
     {

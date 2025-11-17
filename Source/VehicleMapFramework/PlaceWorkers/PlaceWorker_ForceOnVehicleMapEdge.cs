@@ -1,4 +1,5 @@
-﻿using Verse;
+﻿using System.Linq;
+using Verse;
 
 namespace VehicleMapFramework;
 
@@ -10,11 +11,17 @@ public class PlaceWorker_ForceOnVehicleMapEdge : PlaceWorker
         {
             return "VMF_ForceOnVehicle".Translate();
         }
-        var facingCell = loc - rot.FacingCell;
-        if (vehicle.CachedOutOfBoundsCells.Contains(facingCell) || vehicle.CachedExpandableCells.Contains(facingCell) && vehicle.CachedStructureCells.Contains(facingCell))
+
+        if (GenAdj.OccupiedRect(loc, rot, checkingDef.Size)
+            .Select(cell => cell - rot.FacingCell)
+            .Any(facingCell =>
+                !vehicle.CachedOutOfBoundsCells.Contains(facingCell) &&
+                (!vehicle.CachedExpandableCells.Contains(facingCell) ||
+                 !vehicle.CachedStructureCells.Contains(facingCell))))
         {
-            return true;
+            return "VMF_ForceOnVehicleMapEdge".Translate();
         }
-        return "VMF_ForceOnVehicleMapEdge".Translate();
+
+        return true;
     }
 }

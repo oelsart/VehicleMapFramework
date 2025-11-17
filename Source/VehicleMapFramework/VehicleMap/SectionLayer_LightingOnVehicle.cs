@@ -59,19 +59,13 @@ public class SectionLayer_LightingOnVehicle : SectionLayer
         var a = Mathf.Clamp01(1f - Mathf.Min(baseMap.gameConditionManager.MapBrightness, baseMap.skyManager.CurSkyGlow));
         propertyBlockColorDodge.SetColor(ShaderPropertyIDs.ColorTwo, new Color(1f, 1f, 1f, a));
         propertyBlockNormalLight.SetColor(ShaderPropertyIDs.Color, new Color(1f, 1f, 1f, 1f - a));
-        foreach (var subMesh in subMeshes)
+        foreach (var subMesh in subMeshes.Where(subMesh => subMesh.finalized && !subMesh.disabled))
         {
-            if (subMesh.finalized && !subMesh.disabled)
-            {
-                if (subMesh.material == VMF_Materials.LightOverlayColorDodge)
-                {
-                    Graphics.DrawMesh(subMesh.mesh, drawPos, Quaternion.AngleAxis(angle, Vector3.up), subMesh.material, 0, null, 0, propertyBlockColorDodge);
-                }
-                else
-                {
-                    Graphics.DrawMesh(subMesh.mesh, drawPos, Quaternion.AngleAxis(angle, Vector3.up), subMesh.material, 0, null, 0, propertyBlockNormalLight);
-                }
-            }
+            Graphics.DrawMesh(subMesh.mesh, drawPos, Quaternion.AngleAxis(angle, Vector3.up),
+                subMesh.material, 0, null, 0,
+                subMesh.material == VMF_Materials.LightOverlayColorDodge
+                    ? propertyBlockColorDodge
+                    : propertyBlockNormalLight);
         }
     }
 
@@ -113,7 +107,7 @@ public class SectionLayer_LightingOnVehicle : SectionLayer
         var width = sectRect.Width;
         var map = Map;
         var x = map.Size.x;
-        Thing[] innerArray = map.edificeGrid.InnerArray;
+        var innerArray = map.edificeGrid.InnerArray;
         var num = innerArray.Length;
         var roofGrid = map.roofGrid;
         var cellIndices = map.cellIndices;

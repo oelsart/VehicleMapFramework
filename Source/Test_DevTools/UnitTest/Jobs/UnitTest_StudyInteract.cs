@@ -4,7 +4,6 @@ using Verse;
 
 namespace VehicleMapFramework.Test_Logics;
 
-[HotSwap]
 internal sealed class UnitTest_StudyInteract(VehicleGroup group) : WorkGiverTestBase(group)
 {
     public override WorkGiverDef WorkGiverDef => DefDatabase<WorkGiverDef>.GetNamed("StudyInteract");
@@ -26,5 +25,12 @@ internal sealed class UnitTest_StudyInteract(VehicleGroup group) : WorkGiverTest
 
         Pawn.pather.TryRecoverFromUnwalkablePosition();
         component.monolith.Activate(Pawn);
+    }
+    
+    public override void TearDown()
+    {
+        Thing.allowDestroyNonDestroyable = true;
+        Current.Game.GetComponent<GameComponent_Anomaly>().monolith.Destroy();
+        Thing.allowDestroyNonDestroyable = false;
     }
 }

@@ -20,7 +20,7 @@ public class CompAlternator : CompPowerPlant
             (compFueledTravel = vehicle.CompFueledTravel) == null ||
             (fuelType = compFueledTravel.Props?.fuelType) == null ||
             compFueledTravel.Props.ElectricPowered ||
-            (fuelProps = Props.fuelConsumptionRates.FirstOrDefault(f => f.fuelDef == fuelType)) == null ||
+            (fuelProps = Props.fuelConsumptionRates?.FirstOrDefault(f => f.fuelDef == fuelType)) == null ||
             compFueledTravel.Fuel < (comsumptionRatePerTick = fuelProps.fuelConsumptionRate / 60000f))
         {
             PowerOutput = 0f;

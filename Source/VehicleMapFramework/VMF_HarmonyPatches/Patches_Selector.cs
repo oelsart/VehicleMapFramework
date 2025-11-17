@@ -145,8 +145,15 @@ public static class Patch_CameraJumper_TryJumpInternal
 [PatchLevel(Level.Safe)]
 public static class Patch_Game_CurrentMap
 {
+    public static bool ForceSet { get; set; }
+    
     public static void Prefix(ref Map value)
     {
+        if (ForceSet)
+        {
+            ForceSet = false;
+            return;
+        }
         if (value.IsVehicleMapOf(out var vehicle))
         {
             if (MultiFloors.Active)
