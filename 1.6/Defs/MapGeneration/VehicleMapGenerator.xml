@@ -8,7 +8,6 @@
             <biome>VMF_VehicleMapBiome</biome>
             <temperature>21</temperature>
         </pocketMapProperties>
-        <disableShadows>true</disableShadows>
         <genSteps>
 			<li>VMF_VehicleMap</li>
         </genSteps>

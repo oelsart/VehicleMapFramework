@@ -2,6 +2,7 @@
 <Configuration>
   <Excluded>
     <exclude>.git</exclude>
+    <exclude>CheckList.txt</exclude>
     <exclude>CopyToDev.bat</exclude>
     <exclude>Source</exclude>
   </Excluded>

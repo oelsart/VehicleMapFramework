@@ -4,7 +4,6 @@ using Verse;
 
 namespace VehicleMapFramework.Test_Logics;
 
-[HotSwap]
 internal sealed class UnitTest_StudyInteract(VehicleGroup group) : WorkGiverTestBase(group)
 {
     public override WorkGiverDef WorkGiverDef => DefDatabase<WorkGiverDef>.GetNamed("StudyInteract");

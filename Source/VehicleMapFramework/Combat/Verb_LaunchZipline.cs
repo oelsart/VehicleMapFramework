@@ -5,7 +5,7 @@ using Verse;
 
 namespace VehicleMapFramework;
 
-public class Verb_LaunchZipline : Verb_LaunchProjectile
+public class Verb_LaunchZipline : Verb_Shoot //タレット範囲の表示PlaceWorkerの仕様のためShootを継承
 {
     public Thing ZiplineEnd { get; set; }
 
