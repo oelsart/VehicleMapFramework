@@ -3,7 +3,9 @@ using System.Linq;
 using RimWorld;
 using SmashTools;
 using UnityEngine;
+using VehicleMapFramework.VMF_HarmonyPatches;
 using Vehicles;
+using Vehicles.Rendering;
 using Verse;
 using static Vehicles.VehicleUpgrade;
 using PawnOverlayRenderer = Vehicles.PawnOverlayRenderer;
@@ -283,6 +285,7 @@ public class RoleUpgradeBuildable : RoleUpgrade
                 var vehiclePos = vehicle.cachedDrawPos;
                 var rot = thing.Rotation;
                 var intClockwise = new Rot8(rot).AsIntClockwise;
+                var data = vehicle.VehicleDef.graphicData;
 
                 upgrade2.pawnRenderer = new PawnOverlayRenderer
                 {
@@ -304,15 +307,15 @@ public class RoleUpgradeBuildable : RoleUpgrade
                     layerSouthEast = pawnRenderer.layerSouthEast,
                     layerSouthWest = pawnRenderer.layerSouthWest,
                     layerNorthWest = pawnRenderer.layerNorthWest,
-                    drawOffset = position.ToBaseMapCoord(vehicle, Rot8.North) - vehiclePos + pawnRenderer.drawOffset,
-                    drawOffsetNorth = position.ToBaseMapCoord(vehicle, Rot8.North) - vehiclePos + pawnRenderer.DrawOffsetFor(new Rot4(Rot4.NorthInt + rot.AsInt)),
-                    drawOffsetSouth = position.ToBaseMapCoord(vehicle, Rot8.South) - vehiclePos + pawnRenderer.DrawOffsetFor(new Rot4(Rot4.SouthInt + rot.AsInt)),
-                    drawOffsetEast = position.ToBaseMapCoord(vehicle, Rot8.East) - vehiclePos + pawnRenderer.DrawOffsetFor(new Rot4(Rot4.EastInt + rot.AsInt)),
-                    drawOffsetWest = position.ToBaseMapCoord(vehicle, Rot8.West) - vehiclePos + pawnRenderer.DrawOffsetFor(new Rot4(Rot4.WestInt + rot.AsInt)),
-                    drawOffsetNorthEast = position.ToBaseMapCoord(vehicle, Rot8.NorthEast) - vehiclePos + (rot.IsHorizontal ? pawnRenderer.DrawOffsetFor(rot).RotatedBy(45f) : pawnRenderer.DrawOffsetFor(new Rot8(Rot8.FromIntClockwise((intClockwise + Rot8.NorthEast.AsIntClockwise) % 8)))),
-                    drawOffsetNorthWest = position.ToBaseMapCoord(vehicle, Rot8.NorthWest) - vehiclePos + (rot.IsHorizontal ? pawnRenderer.DrawOffsetFor(rot).RotatedBy(-45f) : pawnRenderer.DrawOffsetFor(new Rot8(Rot8.FromIntClockwise((intClockwise + Rot8.NorthWest.AsIntClockwise) % 8)))),
-                    drawOffsetSouthEast = position.ToBaseMapCoord(vehicle, Rot8.SouthEast) - vehiclePos + (rot.IsHorizontal ? pawnRenderer.DrawOffsetFor(rot.Opposite).RotatedBy(-45f) : pawnRenderer.DrawOffsetFor(new Rot8(Rot8.FromIntClockwise((intClockwise + Rot8.SouthEast.AsIntClockwise) % 8)))),
-                    drawOffsetSouthWest = position.ToBaseMapCoord(vehicle, Rot8.SouthWest) - vehiclePos + (rot.IsHorizontal ? pawnRenderer.DrawOffsetFor(rot.Opposite).RotatedBy(45f) : pawnRenderer.DrawOffsetFor(new Rot8(Rot8.FromIntClockwise((intClockwise + Rot8.SouthWest.AsIntClockwise) % 8)))),
+                    drawOffset = position.ToBaseMapCoord(vehicle, Rot8.North) - vehiclePos + data.DrawOffsetForRot(Rot4.North) + pawnRenderer.drawOffset,
+                    drawOffsetNorth = position.ToBaseMapCoord(vehicle, Rot8.North) - vehiclePos + data.DrawOffsetForRot(Rot4.North) + pawnRenderer.DrawOffsetFor(new Rot4(Rot4.NorthInt + rot.AsInt)),
+                    drawOffsetSouth = position.ToBaseMapCoord(vehicle, Rot8.South) - vehiclePos + data.DrawOffsetForRot(Rot4.South) + pawnRenderer.DrawOffsetFor(new Rot4(Rot4.SouthInt + rot.AsInt)),
+                    drawOffsetEast = position.ToBaseMapCoord(vehicle, Rot8.East) - vehiclePos + data.DrawOffsetForRot(Rot4.East) + pawnRenderer.DrawOffsetFor(new Rot4(Rot4.EastInt + rot.AsInt)),
+                    drawOffsetWest = position.ToBaseMapCoord(vehicle, Rot8.West) - vehiclePos + data.DrawOffsetForRot(Rot4.West) + pawnRenderer.DrawOffsetFor(new Rot4(Rot4.WestInt + rot.AsInt)),
+                    drawOffsetNorthEast = position.ToBaseMapCoord(vehicle, Rot8.NorthEast) - vehiclePos + data.DrawOffsetForRot(Rot4.North).RotatedBy(45f) + (rot.IsHorizontal ? pawnRenderer.DrawOffsetFor(rot).RotatedBy(45f) : pawnRenderer.DrawOffsetFor(new Rot8(Rot8.FromIntClockwise((intClockwise + Rot8.NorthEast.AsIntClockwise) % 8)))),
+                    drawOffsetNorthWest = position.ToBaseMapCoord(vehicle, Rot8.NorthWest) - vehiclePos + data.DrawOffsetForRot(Rot4.North).RotatedBy(-45f) + (rot.IsHorizontal ? pawnRenderer.DrawOffsetFor(rot).RotatedBy(-45f) : pawnRenderer.DrawOffsetFor(new Rot8(Rot8.FromIntClockwise((intClockwise + Rot8.NorthWest.AsIntClockwise) % 8)))),
+                    drawOffsetSouthEast = position.ToBaseMapCoord(vehicle, Rot8.SouthEast) - vehiclePos + data.DrawOffsetForRot(Rot4.South).RotatedBy(-45f) + (rot.IsHorizontal ? pawnRenderer.DrawOffsetFor(rot.Opposite).RotatedBy(-45f) : pawnRenderer.DrawOffsetFor(new Rot8(Rot8.FromIntClockwise((intClockwise + Rot8.SouthEast.AsIntClockwise) % 8)))),
+                    drawOffsetSouthWest = position.ToBaseMapCoord(vehicle, Rot8.SouthWest) - vehiclePos + data.DrawOffsetForRot(Rot4.South).RotatedBy(45f) + (rot.IsHorizontal ? pawnRenderer.DrawOffsetFor(rot.Opposite).RotatedBy(45f) : pawnRenderer.DrawOffsetFor(new Rot8(Rot8.FromIntClockwise((intClockwise + Rot8.SouthWest.AsIntClockwise) % 8)))),
                     angle = pawnRenderer.angle,
                     angleNorth = pawnRenderer.angleNorth ?? (pawnRenderer.angleSouth + 180f) ?? pawnRenderer.angle,
                     angleEast = pawnRenderer.angleEast ?? -pawnRenderer.angleWest ?? pawnRenderer.angle,

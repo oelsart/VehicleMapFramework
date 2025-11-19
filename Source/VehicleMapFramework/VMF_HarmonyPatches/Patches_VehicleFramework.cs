@@ -644,13 +644,16 @@ public static class Patch_CaravanFormation_TryFindExitSpot
     {
         foreach (var pawn in pawns)
         {
-            CrossMapReachabilityUtility.DestMap[pawn] = map;
+            pawn.DestMap = map;
         }
     }
 
     public static void Finalizer(List<Pawn> pawns)
     {
-        CrossMapReachabilityUtility.DestMap.RemoveRange(pawns);
+        foreach (var pawn in pawns)
+        {
+            pawn.RemoveDestMap();
+        }
     }
 }
 

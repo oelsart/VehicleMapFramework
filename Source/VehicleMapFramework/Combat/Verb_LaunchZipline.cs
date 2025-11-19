@@ -6,7 +6,7 @@ using Verse;
 
 namespace VehicleMapFramework;
 
-public class Verb_LaunchZipline : Verb_LaunchProjectile
+public class Verb_LaunchZipline : Verb_Shoot
 {
     public Thing ZiplineEnd { get; set; }
 

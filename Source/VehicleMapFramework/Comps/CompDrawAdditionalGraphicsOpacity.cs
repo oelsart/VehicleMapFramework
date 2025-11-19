@@ -70,6 +70,9 @@ public class CompDrawAdditionalGraphicsOpacity : CompDrawAdditionalGraphics
 
     public override void PostDraw()
     {
+        if (opacity == 0f)
+            return;
+        
         foreach (var graphic in Props.graphics.Select(g => g.Graphic))
         {
             var loc = parent.DrawPos;
