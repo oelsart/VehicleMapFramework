@@ -7,7 +7,6 @@ using HarmonyLib;
 namespace VehicleMapFramework.Test_CompatPatches;
 
 [TestFixture]
-[NonParallelizable]
 public class HarmonyPatchTests
 {
     private Harmony harmony;

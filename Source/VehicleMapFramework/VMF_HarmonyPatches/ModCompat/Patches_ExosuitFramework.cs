@@ -70,17 +70,6 @@ public static class Patch_WG_AbilityVerb_QuickJump_DoJump
 }
 
 [HarmonyPatchCategory(PatchCategories.ExosuitFramework)]
-[HarmonyPatch("Exosuit.WG_PawnFlyer", "RespawnPawn")]
-[PatchLevel(Level.Cautious)]
-public static class Patch_WG_PawnFlyer_RespawnPawn
-{
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap);
-    }
-}
-
-[HarmonyPatchCategory(PatchCategories.ExosuitFramework)]
 [HarmonyPatch("Exosuit.WG_PawnFlyer", "ToDiffMapTarget")]
 [PatchLevel(Level.Safe)]
 public static class Patch_WG_PawnFlyer_ToDiffMapTarget

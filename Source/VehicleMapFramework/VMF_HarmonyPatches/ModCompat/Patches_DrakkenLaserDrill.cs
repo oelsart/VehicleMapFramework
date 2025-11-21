@@ -1,5 +1,8 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using HarmonyLib;
+using Verse;
 using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
@@ -74,13 +77,55 @@ public static class Patch_Comp_DrakkenLaserDrill_Attack_DoSomething_I
 }
 
 [HarmonyPatchCategory(PatchCategories.DrakkenLaserDrill)]
+[HarmonyPatch]
+[PatchLevel(Level.Sensitive)]
+public static class Patch_Comp_DrakkenLaserDrill_Attack_DoSomething_I_Delegate
+{
+    private static IEnumerable<MethodBase> TargetMethods()
+    {
+        var type = GenTypes.GetTypeInAnyAssembly("MYDE_DrakkenLaserDrill.Comp_DrakkenLaserDrill_Attack", "MYDE_DrakkenLaserDrill");
+        return AccessTools.InnerTypes(type)
+            .SelectMany(t => t.GetDeclaredMethods())
+            .Where(m => m.Name.Contains("<DoSomething_I>"));
+    }
+    
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        if (UnitTestDetector.IsTestingContext) return instructions;
+        return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap)
+            .MethodReplacer(CachedMethodInfo.g_TargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap_TargetInfo);
+    }
+}
+
+[HarmonyPatchCategory(PatchCategories.DrakkenLaserDrill)]
 [HarmonyPatch("MYDE_DrakkenLaserDrill.Comp_DrakkenLaserDrill_Attack", "DoSomething_II")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Comp_DrakkenLaserDrill_Attack_DoSomething_II
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
+    }
+}
+
+[HarmonyPatchCategory(PatchCategories.DrakkenLaserDrill)]
+[HarmonyPatch]
+[PatchLevel(Level.Sensitive)]
+public static class Patch_Comp_DrakkenLaserDrill_Attack_DoSomething_II_Delegate
+{
+    private static IEnumerable<MethodBase> TargetMethods()
+    {
+        var type = GenTypes.GetTypeInAnyAssembly("MYDE_DrakkenLaserDrill.Comp_DrakkenLaserDrill_Attack", "MYDE_DrakkenLaserDrill");
+        return AccessTools.InnerTypes(type)
+            .SelectMany(t => t.GetDeclaredMethods())
+            .Where(m => m.Name.Contains("<DoSomething_II>"));
+    }
+    
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        if (UnitTestDetector.IsTestingContext) return instructions;
+        return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap)
+            .MethodReplacer(CachedMethodInfo.g_TargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap_TargetInfo)
             .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
     }
 }
