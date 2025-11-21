@@ -7,6 +7,7 @@ using HarmonyLib;
 namespace VehicleMapFramework.Test_CompatPatches;
 
 [TestFixture]
+[NonParallelizable]
 public class HarmonyPatchTests
 {
     private Harmony harmony;
@@ -25,20 +26,31 @@ public class HarmonyPatchTests
         harmony.Patch(
             AccessTools.Method("Verse.GenTypes:AllSubclasses"),
             AccessTools.Method(typeof(HarmonyPatchTests), nameof(AllSubclasses)));
+        harmony.Patch(
+            AccessTools.Method(typeof(Transpilers), nameof(Transpilers.MethodReplacer)),
+            postfix: AccessTools.Method(typeof(HarmonyPatchTests), nameof(AssertReplaced)));
     }
 
-    private static bool TypeByName(string typeName, ref Type __result)
+    private static bool TypeByName(string typeName, out Type __result)
     {
-        _ = __result;
         __result = AccessTools.TypeByName(typeName);
         return false;
     }
 
-    private static bool AllSubclasses(Type baseType, ref List<Type> __result)
+    private static bool AllSubclasses(Type baseType, out List<Type> __result)
     {
-        _ = __result;
         __result = AccessTools.AllTypes().AsParallel().Where(x => x.IsSubclassOf(baseType)).ToList();
         return false;
+    }
+
+    private static readonly MethodInfo m_GetExecutingAssembly =
+        AccessTools.Method(typeof(Assembly), nameof(Assembly.GetExecutingAssembly), []);
+    
+    private static void AssertReplaced(MethodBase from, MethodBase to, IEnumerable<CodeInstruction> __result)
+    {
+        if (from == m_GetExecutingAssembly)
+            return;
+        Assert.That(__result.Any(c => (c.operand as MethodBase) == to));
     }
 
     [OneTimeTearDown]
