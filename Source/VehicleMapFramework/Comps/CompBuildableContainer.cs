@@ -118,14 +118,11 @@ public class CompBuildableContainer : CompTransporter
     {
         if (CancelLoad(map) && Shuttle == null)
         {
-            if (Props.max1PerGroup)
-            {
-                Messages.Message("MessageTransporterSingleLoadCanceled_TransporterDestroyed".Translate(), MessageTypeDefOf.NegativeEvent);
-            }
-            else
-            {
-                Messages.Message("MessageTransportersLoadCanceled_TransporterDestroyed".Translate(), MessageTypeDefOf.NegativeEvent);
-            }
+            Messages.Message(
+                Props.max1PerGroup
+                    ? "MessageTransporterSingleLoadCanceled_TransporterDestroyed".Translate()
+                    : "MessageTransportersLoadCanceled_TransporterDestroyed".Translate(),
+                MessageTypeDefOf.NegativeEvent);
         }
     }
 

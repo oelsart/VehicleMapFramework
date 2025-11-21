@@ -9,7 +9,7 @@
 #    - VMF_Patches_CombatExtendedVFESecurityCompat
 - Name: VVehiclesE
 #- Name: VFEMechanoids
-#- Name: VGravshipE
+- Name: VGravshipE
 - Name: Achtung
 - Name: CombatExtended
 - Name: DubsBadHygiene

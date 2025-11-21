@@ -482,3 +482,16 @@ public static class Patch_GenConstruct_GetWallAttachedTo
         __result = GenConstruct.GetWallAttachedTo(occupiedRect.GetCenterCellOnEdge(rot, -1), rot, thing.Map);
     }
 }
+
+[HarmonyPatch(typeof(Building_Bed), nameof(Building_Bed.FindPreferredInteractionCell))]
+[PatchLevel(Level.Mandatory)]
+public static class Patch_Building_Bed_FindPreferredInteractionCell
+{
+    public static void Prefix(Building_Bed __instance, ref CellSearchPattern customSearchPattern)
+    {
+        if (__instance is Building_Hatch && customSearchPattern is null)
+        {
+            customSearchPattern = Building_Hatch.customBedInteractionCellsOrder;
+        }
+    }
+}

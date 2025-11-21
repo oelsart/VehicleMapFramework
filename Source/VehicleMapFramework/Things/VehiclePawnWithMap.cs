@@ -20,7 +20,7 @@ using static VehicleMapFramework.ModCompat;
 namespace VehicleMapFramework;
 
 [StaticConstructorOnStartup]
-public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
+public class VehiclePawnWithMap : VehiclePawn
 {
     private Map interiorMap;
 

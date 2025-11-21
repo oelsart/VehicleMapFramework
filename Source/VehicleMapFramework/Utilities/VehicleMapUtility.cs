@@ -646,7 +646,15 @@ public static class VehicleMapUtility
             VehiclePawnWithMapCache.cacheModeGlobal = true;
             try
             {
-                result = thing.DrawPos;
+                if (thing.def.category == ThingCategory.Item &&
+                    thing.GetSlotGroup()?.parent is Building_Hatch)
+                {
+                    result = Vector3.negativeInfinity;
+                }
+                else
+                {
+                    result = thing.DrawPos;
+                }
             }
             finally
             {
