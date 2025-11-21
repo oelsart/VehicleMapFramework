@@ -274,17 +274,6 @@ public static class Patch_VehicleTurret_InRange
 }
 
 [HarmonyPatchCategory(PatchCategories.VehicleFramework)]
-[HarmonyPatch(typeof(VehicleTurret), nameof(VehicleTurret.TryFindShootLineFromTo))]
-[PatchLevel(Level.Cautious)]
-public static class Patch_VehicleTurret_TryFindShootLineFromTo
-{
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap);
-    }
-}
-
-[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(VehicleTurret), nameof(VehicleTurret.FireTurret))]
 [PatchLevel(Level.Cautious)]
 public static class Patch_VehicleTurret_FireTurret

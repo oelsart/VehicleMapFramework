@@ -15,7 +15,9 @@ public class SectionLayer_TerrainOnVehicle(Section section) : SectionLayer_Terra
             return;
         }
         var angle = Ext_Math.RotateAngle(rot.AsAngle, extraRotation);
-        foreach (var layerSubMesh in subMeshes.Where(layerSubMesh => layerSubMesh.finalized && !layerSubMesh.disabled))
+        foreach (var layerSubMesh in subMeshes.Where(layerSubMesh => layerSubMesh.finalized &&
+                                                                     !layerSubMesh.disabled &&
+                                                                     layerSubMesh.material != MatBases.ShadowMask))
         {
             Graphics.DrawMesh(layerSubMesh.mesh, drawPos, Quaternion.AngleAxis(angle, Vector3.up), layerSubMesh.material, 0);
         }
@@ -50,9 +52,8 @@ public class SectionLayer_TerrainOnVehicle(Section section) : SectionLayer_Terra
     public override void Regenerate()
     {
         if (!Map.IsVehicleMapOf(out var vehicle))
-        {
             return;
-        }
+        
         baseTerrainMat = SolidColorMaterials.NewSolidColorMaterial(vehicle.DrawColor, ShaderDatabase.TerrainHard);
         base.Regenerate();
     }

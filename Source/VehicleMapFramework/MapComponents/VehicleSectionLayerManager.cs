@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using SmashTools;
 using VehicleMapFramework.VMF_HarmonyPatches;
 using Verse;
@@ -10,8 +11,9 @@ namespace VehicleMapFramework
     public class VehicleSectionLayerManager : MapComponent
     {
         private Dictionary<Section, Dictionary<Type, SectionLayer[]>> layersByRot;
-
-        internal static readonly List<Type> OrientedSectionLayerTypes = [.. typeof(SectionLayer_Things).AllSubclassesNonAbstract()];
+        
+        internal static readonly List<Type> OrientedSectionLayerTypes =
+            [.. typeof(SectionLayer_Things).AllSubclassesNonAbstract().Concat(typeof(SectionLayer_SunShadowsOnVehicle))];
 
         public VehicleSectionLayerManager(Map map) : base(map)
         {
@@ -97,6 +99,13 @@ namespace VehicleMapFramework
                 {
                     var section = map.mapDrawer.SectionAt(new IntVec3(i, 0, j));
                     UpdateSection(section);
+                    
+                    // LayerSubMeshを直接FinalizeしているためY圧縮をかける
+                    var edgeShadowsLayer = section.GetLayer(typeof(SectionLayer_EdgeShadows));
+                    if (edgeShadowsLayer != null)
+                    {
+                        FinalizeShadowVerts(edgeShadowsLayer);
+                    }
                 }
             }
         }
@@ -136,6 +145,23 @@ namespace VehicleMapFramework
                 }
                 sectionLayers[0].Dirty = false;
             }
+        }
+
+        /// <summary>
+        /// Fixes the shadows layer by compressing the y values.
+        /// </summary>
+        /// <param name="layer"></param>
+        public static void FinalizeShadowVerts(SectionLayer layer)
+        {
+            var subMesh = layer.subMeshes.FirstOrDefault(subMesh => subMesh.finalized);
+            if (subMesh is null) return;
+            for (var i = 0; i < subMesh.verts.Count; i++)
+            {
+                var vert = subMesh.verts[i];
+                vert.y /= VehicleMapUtility.YCompress;
+                subMesh.verts[i] = vert;
+            }
+            subMesh.mesh.SetVertices(subMesh.verts);
         }
     }
 }

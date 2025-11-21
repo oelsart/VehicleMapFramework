@@ -372,6 +372,11 @@ public static class VehicleMapUtility
         return zone.Map;
     }
 
+    public static Map BaseMap(this ref GlobalTargetInfo target)
+    {
+        return target.Map.BaseMap();
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static IntVec3 PositionOnBaseMap(this Thing thing)
     {
@@ -448,6 +453,11 @@ public static class VehicleMapUtility
     }
 
     public static IntVec3 CellOnBaseMap(this ref TargetInfo target)
+    {
+        return target.Map.IsVehicleMapOf(out var vehicle) ? target.Cell.ToBaseMapCoord(vehicle) : target.Cell;
+    }
+
+    public static IntVec3 CellOnBaseMap(this ref GlobalTargetInfo target)
     {
         return target.Map.IsVehicleMapOf(out var vehicle) ? target.Cell.ToBaseMapCoord(vehicle) : target.Cell;
     }

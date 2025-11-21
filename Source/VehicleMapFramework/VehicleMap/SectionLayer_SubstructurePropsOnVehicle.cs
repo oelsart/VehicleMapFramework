@@ -18,7 +18,7 @@ namespace VehicleMapFramework
             Bottom.Material.mainTexture.wrapMode = TextureWrapMode.Clamp;
         }
 
-        public List<LayerSubMesh>[] subMeshesByRot = new List<LayerSubMesh>[4];
+        public readonly List<LayerSubMesh>[] subMeshesByRot = new List<LayerSubMesh>[4];
 
         [Flags]
         private enum EdgeDirections

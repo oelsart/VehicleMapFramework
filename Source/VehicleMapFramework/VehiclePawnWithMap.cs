@@ -656,6 +656,9 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         ((SectionLayer_TerrainOnVehicle)section.GetLayer(typeof(SectionLayer_TerrainOnVehicle))).DrawLayer(rot, drawPos, Transform.rotation);
         DrawLayer(component.GetLayer(section, typeof(SectionLayer_ThingsGeneral), rot), drawPos);
         DrawLayer(section, typeof(SectionLayer_BuildingsDamage), drawPos);
+        DrawLayer(section, typeof(SectionLayer_EdgeShadows), drawPos);
+        ((SectionLayer_SunShadowsOnVehicle)component.GetLayer(section, typeof(SectionLayer_SunShadowsOnVehicle), rot))
+                .DrawLayer(drawPos, Transform.rotation - Angle);
         if (OverlayDrawHandler.ShouldDrawPowerGrid)
         {
             DrawLayer(component.GetLayer(section, typeof(SectionLayer_ThingsPowerGrid), rot), drawPos.Yto0());
@@ -673,22 +676,6 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
             ((SectionLayer_LightingOnVehicle)section.GetLayer(typeof(SectionLayer_LightingOnVehicle))).DrawLayer(this, drawPos, Transform.rotation);
         }
         DrawModLayers(section, drawPos, component);
-        //if (DebugViewSettings.drawSectionEdges)
-        //{
-        //    Vector3 a = section.botLeft.ToVector3();
-        //    GenDraw.DrawLineBetween(a, a + new Vector3(0f, 0f, 17f));
-        //    GenDraw.DrawLineBetween(a, a + new Vector3(17f, 0f, 0f));
-        //    if (section.CellRect.Contains(UI.MouseCell()))
-        //    {
-        //        var bounds = section.Bounds;
-        //        Vector3 a2 = bounds.Min.ToVector3();
-        //        Vector3 a3 = bounds.Max.ToVector3() + new Vector3(1f, 0f, 1f);
-        //        GenDraw.DrawLineBetween(a2, a2 + new Vector3((float)bounds.Width, 0f, 0f), SimpleColor.Magenta, 0.2f);
-        //        GenDraw.DrawLineBetween(a2, a2 + new Vector3(0f, 0f, (float)bounds.Height), SimpleColor.Magenta, 0.2f);
-        //        GenDraw.DrawLineBetween(a3, a3 - new Vector3((float)bounds.Width, 0f, 0f), SimpleColor.Magenta, 0.2f);
-        //        GenDraw.DrawLineBetween(a3, a3 - new Vector3(0f, 0f, (float)bounds.Height), SimpleColor.Magenta, 0.2f);
-        //    }
-        //}
     }
 
     protected virtual void DrawModLayers(Section section, Vector3 drawPos, VehicleSectionLayerManager component)
@@ -784,25 +771,30 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
 
     private void DrawLayer(Section section, Type layerType, Vector3 drawPos)
     {
-        if (layerType == null) return;
+        if (layerType is null) return;
 
         var layer = section.GetLayer(layerType);
+        if (layer is null) return;
+        
         DrawLayer(layer, drawPos);
     }
 
     private void DrawLayer(SectionLayer layer, Vector3 drawPos)
     {
         if (!layer.Visible)
-        {
             return;
-        }
-        var fullAngle = this.FullAngle();
-        foreach (var subMesh in layer.subMeshes.Where(subMesh => subMesh.finalized && !subMesh.disabled))
+        
+        var rot = Quaternion.AngleAxis(this.FullAngle(), Vector3.up);
+        for (var i = 0; i < layer.subMeshes.Count; i++)
         {
-            Graphics.DrawMesh(subMesh.mesh, drawPos, Quaternion.AngleAxis(fullAngle, Vector3.up), subMesh.material, subMesh.renderLayer);
+            var subMesh = layer.subMeshes[i];
+            if (subMesh.finalized && !subMesh.disabled)
+            {
+                Graphics.DrawMesh(subMesh.mesh, drawPos, rot, subMesh.material, subMesh.renderLayer);
+            }
         }
     }
-
+    
     private void DrawClippers(Map map)
     {
         if (Command_FocusVehicleMap.FocusLockedVehicle == this || Command_FocusVehicleMap.FocusedVehicle == this)

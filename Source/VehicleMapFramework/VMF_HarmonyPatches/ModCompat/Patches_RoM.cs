@@ -103,28 +103,24 @@ public static class Patch_Verb_UseAbility
         var nestedTypes = AccessTools.InnerTypes(t_Verb_UseAbility);
         foreach (var type in t_Verb_UseAbility.AllSubclasses().Concat(t_Verb_UseAbility).Concat(nestedTypes))
         {
-            foreach (var method in type.GetDeclaredMethods())
+            foreach (var method in type.GetDeclaredMethods().Where(method => VMF_Harmony.ReadMethodBodyWrapper(method)
+                         .Any(i => CachedMethodInfo.g_Thing_Position.Equals(i.Value) ||
+                                   CachedMethodInfo.g_Thing_PositionHeld.Equals(i.Value) ||
+                                   CachedMethodInfo.m_GetThingList.Equals(i.Value) ||
+                                   CachedMethodInfo.g_LocalTargetInfo_Cell.Equals(i.Value) ||
+                                   CachedMethodInfo.g_Thing_Map.Equals(i.Value) ||
+                                   CachedMethodInfo.g_Thing_MapHeld.Equals(i.Value) ||
+                                   CachedMethodInfo.m_OccupiedRect.Equals(i.Value) ||
+                                   CachedMethodInfo.m_BreadthFirstTraverse.Equals(i.Value))))
             {
-                if (VMF_Harmony.ReadMethodBodyWrapper(method).Any(i =>
-                {
-                    return CachedMethodInfo.g_Thing_Position.Equals(i.Value) ||
-                    CachedMethodInfo.g_Thing_PositionHeld.Equals(i.Value) ||
-                    CachedMethodInfo.m_GetThingList.Equals(i.Value) ||
-                    CachedMethodInfo.g_LocalTargetInfo_Cell.Equals(i.Value) ||
-                    CachedMethodInfo.g_Thing_Map.Equals(i.Value) ||
-                    CachedMethodInfo.g_Thing_MapHeld.Equals(i.Value) ||
-                    CachedMethodInfo.m_OccupiedRect.Equals(i.Value) ||
-                    CachedMethodInfo.m_BreadthFirstTraverse.Equals(i.Value);
-                }))
-                {
-                    yield return method;
-                }
+                yield return method;
             }
         }
     }
 
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
+        if (UnitTestDetector.IsTestingContext) return instructions;
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap)
             .MethodReplacer(CachedMethodInfo.g_Thing_PositionHeld, CachedMethodInfo.m_PositionHeldOnBaseMap)
             .MethodReplacer(CachedMethodInfo.m_OccupiedRect, CachedMethodInfo.m_MovedOccupiedRect)
