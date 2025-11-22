@@ -1032,8 +1032,9 @@ public static class Patch_VehiclePath_DrawPath
 [PatchLevel(Level.Safe)]
 public static class Patch_VehicleOrientationController_Init
 {
-    public static void Postfix(ref IntVec3 ___start, ref IntVec3 ___end)
+    public static void Postfix(List<VehiclePawn> vehicles, ref IntVec3 ___start, ref IntVec3 ___end)
     {
+        if (vehicles.All(p => p is VehiclePawnWithMap)) return;
         if (UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out var vehicle, VehicleMapFlag.None))
         {
             ___start = ___start.ToBaseMapCoord(vehicle);
