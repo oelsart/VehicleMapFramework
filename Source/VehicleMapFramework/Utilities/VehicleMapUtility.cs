@@ -60,6 +60,30 @@ public static class VehicleMapUtility
             vehicle = null;
             return false;
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public IEnumerable<Map> BaseMapAndVehicleMaps()
+        {
+            if (MultiFloors.Active && MultiFloors.GroundMap(map) != map)
+            {
+                yield return map;
+                yield break;
+            }
+            var baseMap = map.BaseMap();
+            if (baseMap == null)
+            {
+                yield break;
+            }
+            yield return baseMap;
+
+            foreach (var vehicle in VehiclePawnWithMapCache.AllVehiclesOn(baseMap))
+            {
+                if (vehicle.VehicleMap != null)
+                {
+                    yield return vehicle.VehicleMap;
+                }
+            }
+        }
     }
 
     extension(Thing thing)
@@ -372,6 +396,11 @@ public static class VehicleMapUtility
         return zone.Map;
     }
 
+    public static Map BaseMap(this ref GlobalTargetInfo target)
+    {
+        return target.Map.BaseMap();
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static IntVec3 PositionOnBaseMap(this Thing thing)
     {
@@ -448,6 +477,11 @@ public static class VehicleMapUtility
     }
 
     public static IntVec3 CellOnBaseMap(this ref TargetInfo target)
+    {
+        return target.Map.IsVehicleMapOf(out var vehicle) ? target.Cell.ToBaseMapCoord(vehicle) : target.Cell;
+    }
+
+    public static IntVec3 CellOnBaseMap(this ref GlobalTargetInfo target)
     {
         return target.Map.IsVehicleMapOf(out var vehicle) ? target.Cell.ToBaseMapCoord(vehicle) : target.Cell;
     }
@@ -556,60 +590,12 @@ public static class VehicleMapUtility
         {
             var dir = c.DirectionToInsideMap(vehicle);
             var map = vehicle.VehicleMap;
-            if (Find.CurrentMap != map)
+            if (Find.CurrentMap != map || VehicleMapFramework.settings.drawPlanet)
             {
                 return new Rot8(Rot8.FromIntClockwise((new Rot8(dir).AsIntClockwise + vehicle.FullRotation.AsIntClockwise) % 8));
             }
             return dir;
         }
-
-        public Rot8 FullDirectionToInsideMap(Map map)
-        {
-            Rot8 dir;
-            if (c.x == 0)
-            {
-                if (c.z == 0)
-                {
-                    dir = Rot8.NorthEast;
-                }
-                else if (c.z == map.Size.z - 1)
-                {
-                    dir = Rot8.SouthEast;
-                }
-                else
-                {
-                    dir = Rot8.East;
-                }
-            }
-            else if (c.x == map.Size.x - 1)
-            {
-                if (c.z == 0)
-                {
-                    dir = Rot8.NorthWest;
-                }
-                else if (c.z == map.Size.z - 1)
-                {
-                    dir = Rot8.SouthWest;
-                }
-                else
-                {
-                    dir = Rot8.West;
-                }
-            }
-            else if (c.z == 0) dir = Rot8.North;
-            else if (c.z == map.Size.z - 1) dir = Rot8.South;
-            else
-            {
-                Log.ErrorOnce("That position is not the edge of the map", 494896165);
-                return Rot8.Invalid;
-            }
-            return dir;
-        }
-    }
-
-    public static int HalfLength(this VehiclePawn vehicle)
-    {
-        return vehicle.VehicleDef.HalfLength();
     }
 
     public static int HalfLength(this VehicleDef vehicleDef)
@@ -773,30 +759,6 @@ public static class VehicleMapUtility
         return vehicle != null;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static IEnumerable<Map> BaseMapAndVehicleMaps(this Map map)
-    {
-        if (MultiFloors.Active && MultiFloors.GroundMap(map) != map)
-        {
-            yield return map;
-            yield break;
-        }
-        var baseMap = map.BaseMap();
-        if (baseMap == null)
-        {
-            yield break;
-        }
-        yield return baseMap;
-
-        foreach (var vehicle in VehiclePawnWithMapCache.AllVehiclesOn(baseMap))
-        {
-            if (vehicle.VehicleMap != null)
-            {
-                yield return vehicle.VehicleMap;
-            }
-        }
-    }
-
     extension(Thing thing)
     {
         public void VirtualMapTransfer(Map map)
@@ -829,20 +791,16 @@ public static class VehicleMapUtility
     public static Vector3 SelectedDrawPosOffset(Vector3 original, IntVec3 center)
     {
         VehiclePawnWithMap vehicle = null;
-        if (Find.Selector.SelectedObjects.Any(o => o is Thing thing && thing.Position == center && thing.IsOnNonFocusedVehicleMapOf(out vehicle)))
-        {
-            return original.ToBaseMapCoord(vehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor());
-        }
-        return original;
+        return Find.Selector.SelectedObjects
+            .Any(o => o is Thing thing && thing.Position == center && thing.IsOnNonFocusedVehicleMapOf(out vehicle))
+            ? original.ToBaseMapCoord(vehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor())
+            : original;
     }
 
     public static Vector3 FocusedDrawPosOffset(Vector3 original)
     {
-        if (FocusedOnVehicleMap(out var vehicle))
-        {
-            return original.ToBaseMapCoord(vehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor());
-        }
-        return original;
+        return FocusedOnVehicleMap(out var vehicle)
+            ? original.ToBaseMapCoord(vehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor()) : original;
     }
 
     public static Vector3 FocusedOrSelectedDrawPosOffset(Vector3 original, IntVec3 center)
@@ -877,6 +835,11 @@ public static class VehicleMapUtility
         public Quaternion FullAngleQuat()
         {
             return Quaternion.AngleAxis(vehicle.FullAngle(), Vector3.up);
+        }
+
+        public int HalfLength()
+        {
+            return vehicle.VehicleDef.HalfLength();
         }
     }
 

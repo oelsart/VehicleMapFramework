@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
 using Verse;
@@ -37,10 +38,22 @@ public static class Patch_Patch_WorkGiver_Scanner_GetPriority_PriorityPostfix
 }
 
 [HarmonyPatchCategory(PatchCategories.SmarterConstruction)]
-[HarmonyPatch("SmarterConstruction.Patches.CustomGenClosest", "ClosestThing_Global_Reachable_Custom")]
-[PatchLevel(Level.Cautious)]
+[HarmonyPatch]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_CustomGenClosest_ClosestThing_Global_Reachable_Custom
 {
+    private static IEnumerable<MethodBase> TargetMethods()
+    {
+        var type = GenTypes.GetTypeInAnyAssembly("SmarterConstruction.Patches.CustomGenClosest", "SmarterConstruction.Patches");
+        return AccessTools.InnerTypes(type).SelectMany(t => t.GetDeclaredMethods())
+            .Where(m =>
+            {
+                if (!m.Name.Contains("<ClosestThing_Global_Reachable_Custom>")) return false;
+                return VMF_Harmony.ReadMethodBodyWrapper(m).Any(i =>
+                    CachedMethodInfo.g_Thing_Position.Equals(i.Value));
+            });
+    }
+    
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);

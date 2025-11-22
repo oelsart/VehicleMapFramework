@@ -374,8 +374,7 @@ public class VehiclePawnWithMap : VehiclePawn
         var isGravship = def.HasModExtension<VehicleMapProps_Gravship>();
         if (isGravship)
         {
-            var engine = GravshipUtility.GetPlayerGravEngine_NewTemp(interiorMap);
-            if (engine?.launchInfo?.doNegativeOutcome ?? false)
+            if (GravshipUtility.GetPlayerGravEngine_NewTemp(interiorMap) is { launchInfo.doNegativeOutcome: true } engine)
             {
                 var list = handlers.OfType<VehicleRoleHandlerBuildable>().SelectMany<VehicleRoleHandlerBuildable, Pawn>(h => h.thingOwner).ToList();
                 foreach (var t in list)

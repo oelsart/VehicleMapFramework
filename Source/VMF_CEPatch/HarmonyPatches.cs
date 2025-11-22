@@ -248,7 +248,7 @@ public static class Patch_Verb_ShootCE_RecalculateWarmupTicks
 [PatchLevel(Level.Cautious)]
 public static class Patch_Verb_ShootMortarCE_ShiftVecReportFor
 {
-    [HarmonyPatch([typeof(LocalTargetInfo)])]
+    [HarmonyPatch([typeof(LocalTargetInfo), typeof(IntVec3)])]
     [HarmonyTranspiler]
     public static IEnumerable<CodeInstruction> Transpiler1(IEnumerable<CodeInstruction> instructions)
     {
@@ -262,7 +262,8 @@ public static class Patch_Verb_ShootMortarCE_ShiftVecReportFor
     [HarmonyTranspiler]
     public static IEnumerable<CodeInstruction> Transpiler2(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap)
+        return instructions.MethodReplacer(CachedMethodInfo.g_GlobalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap_GlobalTargetInfo)
+            .MethodReplacer(CachedMethodInfo.g_GlobalTargetInfo_Map, CachedMethodInfo.m_BaseMap_GlobalTargetInfo)
             .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
     }
 }
@@ -448,7 +449,13 @@ public static class Patch_Building_TurretGunCE_TryFindNewTarget_Predicate
 {
     private static MethodInfo TargetMethod()
     {
-        return AccessTools.FindIncludingInnerTypes(typeof(Building_TurretGunCE), t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("TryFindNewTarget")));
+        return AccessTools.FindIncludingInnerTypes(typeof(Building_TurretGunCE), t => t.GetDeclaredMethods()
+            .FirstOrDefault(m =>
+            {
+                if (!m.Name.Contains("TryFindNewTarget")) return false;
+                return VMF_Harmony.ReadMethodBodyWrapper(m).Any(i =>
+                    CachedMethodInfo.g_Thing_Position.Equals(i.Value));
+            }));
     }
 
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)

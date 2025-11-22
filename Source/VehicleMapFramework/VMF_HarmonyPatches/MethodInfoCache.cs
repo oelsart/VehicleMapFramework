@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using HarmonyLib;
 using RimWorld;
+using RimWorld.Planet;
 using SmashTools;
 using UnityEngine;
 using VehicleMapFramework.VMF_HarmonyPatches;
@@ -53,8 +54,12 @@ public class MethodInfoCache
     public readonly MethodInfo m_ToVehicleMapCoord = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.ToVehicleMapCoord), [typeof(Vector3)]);
 
     public readonly MethodInfo g_Thing_Map = AccessTools.PropertyGetter(typeof(Thing), nameof(Thing.Map));
+    
+    public readonly MethodBase g_GlobalTargetInfo_Map = AccessTools.PropertyGetter(typeof(GlobalTargetInfo), nameof(GlobalTargetInfo.Map));
 
     public readonly MethodInfo m_BaseMap_Thing = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.BaseMap), [typeof(Thing)]);
+    
+    public readonly MethodInfo m_BaseMap_GlobalTargetInfo = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.BaseMap), [typeof(GlobalTargetInfo).MakeByRefType()]);
 
     public readonly MethodInfo m_TargetMapOrMap = AccessTools.Method(typeof(TargetMapManager), nameof(TargetMapManager.TargetMapOrMap));
 
@@ -81,10 +86,16 @@ public class MethodInfoCache
     public readonly MethodInfo m_PositionOnAnotherThingMap = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.PositionOnAnotherThingMap));
 
     public readonly MethodInfo g_LocalTargetInfo_Cell = AccessTools.PropertyGetter(typeof(LocalTargetInfo), nameof(LocalTargetInfo.Cell));
+    
+    public readonly MethodInfo g_TargetInfo_Cell = AccessTools.PropertyGetter(typeof(TargetInfo), nameof(TargetInfo.Cell));
+    
+    public readonly MethodInfo g_GlobalTargetInfo_Cell = AccessTools.PropertyGetter(typeof(GlobalTargetInfo), nameof(GlobalTargetInfo.Cell));
 
     public readonly MethodInfo m_CellOnBaseMap = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.CellOnBaseMap), [typeof(LocalTargetInfo).MakeByRefType()]);
 
     public readonly MethodInfo m_CellOnBaseMap_TargetInfo = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.CellOnBaseMap), [typeof(TargetInfo).MakeByRefType()]);
+
+    public readonly MethodInfo m_CellOnBaseMap_GlobalTargetInfo = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.CellOnBaseMap), [typeof(GlobalTargetInfo).MakeByRefType()]);
 
     public readonly MethodInfo m_OccupiedRect = AccessTools.Method(typeof(GenAdj), nameof(GenAdj.OccupiedRect), [typeof(Thing)]);
 

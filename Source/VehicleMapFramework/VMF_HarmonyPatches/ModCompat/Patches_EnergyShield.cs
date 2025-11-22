@@ -98,61 +98,6 @@ public static class Patch_Comp_ShieldGenerator_costShield
 }
 
 [HarmonyPatchCategory(PatchCategories.EnergyShield)]
-[HarmonyPatch("zhuzi.AdvancedEnergy.Shields.Shields.Comp_ShieldGenerator", "WillInterceptOrbitalStrike")]
-[PatchLevel(Level.Cautious)]
-public static class Patch_Comp_ShieldGenerator_WillInterceptOrbitalStrike
-{
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
-    }
-}
-
-[HarmonyPatchCategory(PatchCategories.EnergyShield)]
-[HarmonyPatch("zhuzi.AdvancedEnergy.Shields.Shields.Comp_ShieldGenerator", "WillInterceptExplosionAffectCell")]
-[PatchLevel(Level.Cautious)]
-public static class Patch_Comp_ShieldGenerator_WillInterceptExplosionAffectCell
-{
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
-    }
-}
-
-[HarmonyPatchCategory(PatchCategories.EnergyShield)]
-[HarmonyPatch("zhuzi.AdvancedEnergy.Shields.Shields.Comp_ShieldGenerator", "WillInterceptExplosion")]
-[PatchLevel(Level.Cautious)]
-public static class Patch_Comp_ShieldGenerator_WillInterceptExplosion
-{
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
-    }
-}
-
-[HarmonyPatchCategory(PatchCategories.EnergyShield)]
-[HarmonyPatch("zhuzi.AdvancedEnergy.Shields.Shields.Comp_ShieldGenerator", "WillInterceptDropPod")]
-[PatchLevel(Level.Cautious)]
-public static class Patch_Comp_ShieldGenerator_WillInterceptDropPod
-{
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
-    }
-}
-
-[HarmonyPatchCategory(PatchCategories.EnergyShield)]
-[HarmonyPatch("zhuzi.AdvancedEnergy.Shields.Shields.Comp_ShieldGenerator", "WillProjectileBeBlocked")]
-[PatchLevel(Level.Cautious)]
-public static class Patch_Comp_ShieldGenerator_WillProjectileBeBlocked
-{
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
-    }
-}
-
-[HarmonyPatchCategory(PatchCategories.EnergyShield)]
 [HarmonyPatch("zhuzi.AdvancedEnergy.Shields.Shields.Comp_ShieldGenerator", "PostDraw")]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Comp_ShieldGenerator_PostDraw
@@ -181,7 +126,7 @@ public static class Patch_PatchProjectileCE_TickPostfix
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var m_AllBuildingsColonistOfClass = AccessTools.Method(typeof(ListerBuildings), nameof(ListerBuildings.AllBuildingsColonistOfClass), generics: [ModCompat.EnergyShield.Building_Shield]);
-        foreach (var instruction in instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap))
+        foreach (var instruction in instructions)
         {
             yield return instruction;
 

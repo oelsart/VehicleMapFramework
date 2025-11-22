@@ -303,17 +303,6 @@ public static class Patch_VehicleTurret_InRange
 }
 
 [HarmonyPatchCategory(PatchCategories.VehicleFramework)]
-[HarmonyPatch(typeof(VehicleTurret), nameof(VehicleTurret.TryFindShootLineFromTo))]
-[PatchLevel(Level.Cautious)]
-public static class Patch_VehicleTurret_TryFindShootLineFromTo
-{
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap);
-    }
-}
-
-[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(VehicleTurret), nameof(VehicleTurret.FireTurret))]
 [PatchLevel(Level.Cautious)]
 public static class Patch_VehicleTurret_FireTurret
@@ -1073,8 +1062,9 @@ public static class Patch_VehiclePath_DrawPath
 [PatchLevel(Level.Safe)]
 public static class Patch_VehicleOrientationController_Init
 {
-    public static void Postfix(ref IntVec3 ___start, ref IntVec3 ___end)
+    public static void Postfix(List<VehiclePawn> vehicles, ref IntVec3 ___start, ref IntVec3 ___end)
     {
+        if (vehicles.All(p => p is VehiclePawnWithMap)) return;
         if (UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out var vehicle, VehicleMapFlag.None))
         {
             ___start = ___start.ToBaseMapCoord(vehicle);

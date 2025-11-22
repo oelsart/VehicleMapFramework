@@ -26,7 +26,7 @@ public static class Patch_Thing_Rotation
                 var angle = (pawn.pather.nextCell - pawn.Position).AngleFlat;
                 value = Rot8.FromAngle(Ext_Math.RotateAngle(angle, vehicle.FullAngle()));
             }
-            else if (!pawn.Drafted)
+            else if (!pawn.Drafted && !pawn.HostileTo(Faction.OfPlayer))
             {
                 value.AsInt += vehicle.Rotation.AsInt;
             }

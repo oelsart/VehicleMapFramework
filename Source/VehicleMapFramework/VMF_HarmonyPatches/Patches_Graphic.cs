@@ -325,7 +325,7 @@ public static class Patch_Graphic_Draw
     {
         if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle) && thing.def is {drawerType: DrawerType.RealtimeOnly, category: ThingCategory.Item})
         {
-            var def = thing.def.IsBlueprint ? thing.def.entityDefToBuild as ThingDef : thing.def;
+            var def = thing.def.IsBlueprint ? thing.def.entityDefToBuild as ThingDef ?? thing.def : thing.def;
 
             var rot2 = rot;
             var baseRotInt = vehicle.FullRotation.RotForVehicleDraw().AsInt;
@@ -373,8 +373,8 @@ public static class Patch_Graphic_DrawFromDef
     {
         if (VehicleMapUtility.FocusedOnVehicleMap(out var vehicle) && thingDef != null)
         {
-            var def = thingDef.IsBlueprint ? thingDef.entityDefToBuild as ThingDef : thingDef;
-            var compProperties = def!.GetCompProperties<CompProperties_FireOverlay>();
+            var def = thingDef.IsBlueprint ? thingDef.entityDefToBuild as ThingDef ?? thingDef : thingDef;
+            var compProperties = def.GetCompProperties<CompProperties_FireOverlay>();
             var flag = __instance is Graphic_Flicker && compProperties != null;
 
             if (flag)
