@@ -176,7 +176,7 @@ public static class ToilsAcrossMaps
                 toil2.initAction += () =>
                 {
                     initTick = GenTicks.TicksGame;
-                    Rot4 baseRot = exitSpot.HasThing ? exitSpot.Thing.BaseFullRotation() : exitSpot.Cell.BaseFullDirectionToInsideMap(vehicle);
+                    var baseRot = new Rot4(rot.AsInt + vehicle.Rotation.AsInt);
                     pos = CrossMapReachabilityUtility.EnterVehiclePosition(exitSpot, out var dist, vehiclePawn);
                     ticks *= dist + vehicleOffset;
                     driver.ticksLeftThisToil = (int)ticks;
@@ -187,7 +187,8 @@ public static class ToilsAcrossMaps
                     }
                     else
                     {
-                        toil2.actor.Rotation = baseRot.Opposite;
+                        toil2.actor.Rotation = toil2.actor.Drafted || toil2.actor.HostileTo(Faction.OfPlayer)
+                            ? baseRot.Opposite : rot.Opposite; // Thing.Rotationへのパッチとの兼ね合い
                     }
                     var initPos = GenThing.TrueCenter(pos, baseRot.Opposite, driver.pawn.def.size, 0f);
                     if (driver.pawn.def.size.x % 2 == 0 &&

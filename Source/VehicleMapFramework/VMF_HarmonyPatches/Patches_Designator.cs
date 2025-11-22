@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
 using RimWorld;
+using Vehicles;
 using Verse;
 using static VehicleMapFramework.MethodInfoCache;
 
@@ -15,14 +16,10 @@ public static class Patches_Designator_ZoneAdd_MakeNewZone
 {
     private static IEnumerable<MethodBase> TargetMethods()
     {
-        foreach (var type in typeof(Designator_ZoneAdd).AllSubclasses())
-        {
-            var method = AccessTools.DeclaredMethod(type, "MakeNewZone");
-            if (method != null && VMF_Harmony.ReadMethodBodyWrapper(method).Any(i => CachedMethodInfo.g_Find_CurrentMap.Equals(i.Value)))
-            {
-                yield return method;
-            }
-        }
+        return typeof(Designator_ZoneAdd).AllSubclasses()
+            .Select(type => AccessTools.DeclaredMethod(type, "MakeNewZone"))
+            .Where(method => method != null && VMF_Harmony.ReadMethodBodyWrapper(method)
+                .Any(i => CachedMethodInfo.g_Find_CurrentMap.Equals(i.Value)));
     }
 
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -103,9 +100,12 @@ public static class Patch_Designator_SelectedUpdate
         Command_FocusVehicleMap.FocusedVehicle = null;
         var mousePos = UI.MouseMapPosition();
         var flag = VehicleMapFlag.None;
-        if (___selectedDesignator is Designator_Build { PlacingDef: ThingDef thingDef } && thingDef.HasComp<CompMapExpander>())
+        if (___selectedDesignator is Designator_Build { PlacingDef: ThingDef thingDef })
         {
-            flag |= VehicleMapFlag.ExpandableCells;
+            if (thingDef is VehicleBuildDef { thingToSpawn.thingClass: { } type } && type.SameOrSubclassOf(typeof(VehiclePawnWithMap)))
+                return;
+            if (thingDef.HasComp<CompMapExpander>())
+                flag |= VehicleMapFlag.ExpandableCells;
         }
         if (mousePos.TryGetVehicleMap(Find.CurrentMap, out var vehicle, flag))
         {
