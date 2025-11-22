@@ -18,8 +18,9 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 public static class Patch_FloatMenuContext_Constructor
 {
     [PatchLevel(Level.Safe)]
-    public static void Prefix(ref Vector3 clickPosition, ref Map map)
+    public static void Prefix(List<Pawn> selectedPawns, ref Vector3 clickPosition, ref Map map)
     {
+        if (selectedPawns.All(p => p is VehiclePawnWithMap)) return;
         if (!clickPosition.TryGetVehicleMap(Find.CurrentMap, out var vehicle, VehicleMapFlag.None)) return;
         
         GenUIOnVehicle.vehicleForSelector = vehicle;

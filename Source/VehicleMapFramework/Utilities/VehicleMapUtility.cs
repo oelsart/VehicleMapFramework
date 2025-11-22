@@ -60,6 +60,30 @@ public static class VehicleMapUtility
             vehicle = null;
             return false;
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public IEnumerable<Map> BaseMapAndVehicleMaps()
+        {
+            if (MultiFloors.Active && MultiFloors.GroundMap(map) != map)
+            {
+                yield return map;
+                yield break;
+            }
+            var baseMap = map.BaseMap();
+            if (baseMap == null)
+            {
+                yield break;
+            }
+            yield return baseMap;
+
+            foreach (var vehicle in VehiclePawnWithMapCache.AllVehiclesOn(baseMap))
+            {
+                if (vehicle.VehicleMap != null)
+                {
+                    yield return vehicle.VehicleMap;
+                }
+            }
+        }
     }
 
     extension(Thing thing)
@@ -730,30 +754,6 @@ public static class VehicleMapUtility
         return vehicle != null;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static IEnumerable<Map> BaseMapAndVehicleMaps(this Map map)
-    {
-        if (MultiFloors.Active && MultiFloors.GroundMap(map) != map)
-        {
-            yield return map;
-            yield break;
-        }
-        var baseMap = map.BaseMap();
-        if (baseMap == null)
-        {
-            yield break;
-        }
-        yield return baseMap;
-
-        foreach (var vehicle in VehiclePawnWithMapCache.AllVehiclesOn(baseMap))
-        {
-            if (vehicle.VehicleMap != null)
-            {
-                yield return vehicle.VehicleMap;
-            }
-        }
-    }
-
     extension(Thing thing)
     {
         public void VirtualMapTransfer(Map map)
@@ -786,20 +786,16 @@ public static class VehicleMapUtility
     public static Vector3 SelectedDrawPosOffset(Vector3 original, IntVec3 center)
     {
         VehiclePawnWithMap vehicle = null;
-        if (Find.Selector.SelectedObjects.Any(o => o is Thing thing && thing.Position == center && thing.IsOnNonFocusedVehicleMapOf(out vehicle)))
-        {
-            return original.ToBaseMapCoord(vehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor());
-        }
-        return original;
+        return Find.Selector.SelectedObjects
+            .Any(o => o is Thing thing && thing.Position == center && thing.IsOnNonFocusedVehicleMapOf(out vehicle))
+            ? original.ToBaseMapCoord(vehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor())
+            : original;
     }
 
     public static Vector3 FocusedDrawPosOffset(Vector3 original)
     {
-        if (FocusedOnVehicleMap(out var vehicle))
-        {
-            return original.ToBaseMapCoord(vehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor());
-        }
-        return original;
+        return FocusedOnVehicleMap(out var vehicle)
+            ? original.ToBaseMapCoord(vehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor()) : original;
     }
 
     public static Vector3 FocusedOrSelectedDrawPosOffset(Vector3 original, IntVec3 center)
