@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using SmashTools;
@@ -95,18 +94,23 @@ public static class CrossMapReachabilityUtility
         var cell = enterSpot.Cell.ToBaseMapCoord(vehicle);
         var faceCell = enterSpot.HasThing ? enterSpot.Thing.BaseFullRotation().FacingCell : enterSpot.Cell.BaseFullDirectionToInsideMap(vehicle).FacingCell;
 
-        dist = 1;
-        while ((cell - (faceCell * dist)).GetThingList(vehicle.Map).Contains(vehicle))
+        dist = 0;
+        IntVec3 cell2;
+        do
         {
             dist++;
-        }
+            cell2 = cell - faceCell * dist;
+            if (!cell2.InBounds(vehicle.Map))
+            {
+                dist = 0;
+                return IntVec3.Invalid;
+            }
+        } while (cell2.GetThingList(vehicle.Map).Contains(vehicle));
         if (enterSpot.Thing is Building_VehicleRamp && dist < 2) dist++;
 
-        var result = cell - (faceCell * dist);
         if (enterer != null)
-        {
-            result -= faceCell * enterer.HalfLength();
-        }
+            dist += enterer.HalfLength();
+        var result = cell - faceCell * dist;
         return result;
     }
 
