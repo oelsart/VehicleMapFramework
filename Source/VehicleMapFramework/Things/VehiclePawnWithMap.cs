@@ -189,6 +189,8 @@ public class VehiclePawnWithMap : VehiclePawn
         }
     } = [];
 
+    public CompNpcVehicleMap CompNpcVehicleMap => field ??= GetComp<CompNpcVehicleMap>();
+
     public List<CompVehicleEnterSpot> EnterComps { get; } = [];
 
     public IEnumerable<CompVehicleEnterSpot> AvailableEnterComps => EnterComps.Where(c => c.parent.Position.Walkable(interiorMap) && c.Available);
@@ -206,7 +208,9 @@ public class VehiclePawnWithMap : VehiclePawn
     public override IEnumerable<Gizmo> GetGizmos()
     {
         foreach (var gizmo in base.GetGizmos()) yield return gizmo;
-
+        if (Faction != Faction.OfPlayer && !DebugSettings.ShowDevGizmos)
+            yield break;
+        
         yield return new Command_Action
         {
             action = () =>

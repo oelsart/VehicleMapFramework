@@ -15,7 +15,7 @@
 
 	<GenStepDef>
 		<defName>VMF_VehicleMap</defName>
-		<order>10</order>
+		<order>200</order>
 		<genStep Class="VehicleMapFramework.GenStep_VehicleInterior"/>
 	</GenStepDef>
 </Defs>

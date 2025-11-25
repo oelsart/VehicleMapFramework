@@ -761,3 +761,41 @@ public static class Patch_QuestGen_TransportShip_AddShipJob_Arrive
         return codes.Instructions();
     }
 }
+
+[HarmonyPatch(typeof(GenHostility), nameof(GenHostility.AnyHostileActiveThreatTo))]
+[HarmonyPatch([typeof(Map), typeof(Faction), typeof(IAttackTarget), typeof(bool), typeof(bool)],
+    [ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Out, ArgumentType.Normal, ArgumentType.Normal])]
+[PatchLevel(Level.Safe)]
+public static class Patch_GenHostility_AnyHostileActiveThreatTo
+{
+    public static void Postfix(Map map, Faction faction, ref IAttackTarget threat, bool countDormantPawnsAsHostile, bool canBeFogged, ref bool __result)
+    {
+        if (__result) return;
+
+        foreach (var vehicle in VehiclePawnWithMapCache.AllVehiclesOn(map))
+        {
+            foreach (var attackTarget in vehicle.VehicleMap.attackTargetsCache.TargetsHostileToFaction(faction))
+            {
+                if (GenHostility.IsActiveThreatTo(attackTarget, faction, true, canBeFogged))
+                {
+                    threat = attackTarget;
+                    __result = true;
+                    return;
+                }
+                if (countDormantPawnsAsHostile && attackTarget.Thing.HostileTo(faction) && (canBeFogged || !attackTarget.Thing.Fogged()) && !attackTarget.ThreatDisabled(null))
+                {
+                    if (attackTarget.Thing is Pawn pawn)
+                    {
+                        var comp = pawn.GetComp<CompCanBeDormant>();
+                        if (comp is { Awake: false })
+                        {
+                            threat = attackTarget;
+                            __result = true;
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

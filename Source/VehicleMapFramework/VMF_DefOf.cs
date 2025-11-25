@@ -2,6 +2,7 @@
 using RimWorld;
 using Vehicles;
 using Verse;
+using Verse.AI;
 
 namespace VehicleMapFramework;
 
@@ -15,6 +16,8 @@ public static class VMF_DefOf
     }
 
     public static WorldObjectDef VMF_VehicleMap;
+    
+    public static WorldObjectDef VMF_AmbushSea;
 
     public static MapGeneratorDef VMF_VehicleMapGenerator;
 
@@ -45,6 +48,8 @@ public static class VMF_DefOf
     public static JobDef VMF_RefuelVehicleTank;
 
     public static JobDef VMF_DeconstructVehicleSegment;
+
+    public static JobDef VMF_GotoShipCombat;
     
     public static WorkGiverDef VMF_RemoveVehicleSegment;
 
@@ -55,6 +60,8 @@ public static class VMF_DefOf
     //public static JobDef VMF_RefuelVehicleTankAtomic;
 
     public static VehicleStatDef MaximumPayload;
+
+    public static DutyDef VMF_RangedBoatAggressive;
 
     [MayRequireOdyssey]
     public static VehicleDef VMF_GravshipVehicleBase;

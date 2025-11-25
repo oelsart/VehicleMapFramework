@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+    <MapGeneratorDef>
+        <defName>VMF_MapGeneratorSea</defName>
+        <genSteps>
+            <li>VMF_SimpleTerrain</li>
+        </genSteps>
+    </MapGeneratorDef>
+
+    <GenStepDef>
+        <defName>VMF_SimpleTerrain</defName>
+        <order>200</order>
+        <genStep Class="VehicleMapFramework.GenStep_SimpleTerrain"/>
+    </GenStepDef>
+</Defs>
