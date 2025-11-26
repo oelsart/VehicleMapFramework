@@ -541,20 +541,6 @@ public static class VehicleMapUtility
         }
     }
 
-    public static Rot8 BaseFullRotation(this VehiclePawn vehicle)
-    {
-        if (!vehicle.VehicleDef.graphicData.drawRotated)
-        {
-            return Rot8.North;
-        }
-        var rot = new Rot8(vehicle.Rotation, vehicle.Angle);
-        if (vehicle.IsOnNonFocusedVehicleMapOf(out var vehicle2))
-        {
-            rot = new Rot8(Rot8.FromIntClockwise((rot.AsIntClockwise + vehicle2.FullRotation.AsIntClockwise) % 8));
-        }
-        return rot;
-    }
-
     extension(Thing thing)
     {
         public Rot8 BaseFullRotation()
@@ -603,74 +589,60 @@ public static class VehicleMapUtility
         return vehicleDef.size.z / 2;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool TryGetDrawPos(this Thing thing, ref Vector3 result)
+    extension(Thing thing)
     {
-        if (VehiclePawnWithMapCache.cacheModeGlobal) return false;
-
-        var map = thing.Map;
-        if (map.IsNonFocusedVehicleMapOf(out var vehicle))
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetDrawPos(ref Vector3 result)
         {
-            var component = MapComponentCache<VehiclePawnWithMapCache>.GetComponent(map);
-            if (!component.cacheMode)
+            if (VehiclePawnWithMapCache.cacheModeGlobal) return false;
+
+            var map = thing.Map;
+            if (map.IsNonFocusedVehicleMapOf(out var vehicle))
             {
-                if (!component.cachedDrawPos.TryGetValue(thing, out result))
+                var component = MapComponentCache<VehiclePawnWithMapCache>.GetComponent(map);
+                if (!component.cacheMode)
                 {
-                    VehiclePawnWithMapCache.cacheModeGlobal = true;
-                    try
+                    if (!component.cachedDrawPos.TryGetValue(thing, out result))
                     {
-                        result = thing.DrawPos.ToBaseMapCoord(vehicle);
-                        component.cachedDrawPos[thing] = result;
+                        VehiclePawnWithMapCache.cacheModeGlobal = true;
+                        try
+                        {
+                            result = thing.DrawPos.ToBaseMapCoord(vehicle);
+                            component.cachedDrawPos[thing] = result;
+                        }
+                        finally
+                        {
+                            VehiclePawnWithMapCache.cacheModeGlobal = false;
+                        }
                     }
-                    finally
+                    return true;
+                }
+                VehiclePawnWithMapCache.cacheModeGlobal = true;
+                try
+                {
+                    if (thing.def.category == ThingCategory.Item &&
+                        thing.GetSlotGroup()?.parent is Building_Hatch)
                     {
-                        VehiclePawnWithMapCache.cacheModeGlobal = false;
+                        result = Vector3.negativeInfinity;
                     }
+                    else
+                    {
+                        result = thing.DrawPos;
+                    }
+                }
+                finally
+                {
+                    VehiclePawnWithMapCache.cacheModeGlobal = false;
                 }
                 return true;
             }
-            VehiclePawnWithMapCache.cacheModeGlobal = true;
-            try
-            {
-                if (thing.def.category == ThingCategory.Item &&
-                    thing.GetSlotGroup()?.parent is Building_Hatch)
-                {
-                    result = Vector3.negativeInfinity;
-                }
-                else
-                {
-                    result = thing.DrawPos;
-                }
-            }
-            finally
-            {
-                VehiclePawnWithMapCache.cacheModeGlobal = false;
-            }
-            return true;
+            return false;
         }
-        return false;
-    }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool TryGetFullRotation(this VehiclePawn vehicle, ref Rot8 rot)
-    {
-        var map = vehicle.Map;
-        if (map.IsNonFocusedVehicleMapOf(out _))
+        public Map MapHeldBaseMap()
         {
-            var component = MapComponentCache<VehiclePawnWithMapCache>.GetComponent(map);
-            if (!component.cachedFullRot.TryGetValue(vehicle, out rot))
-            {
-                rot = vehicle.BaseFullRotation();
-                component.cachedFullRot[vehicle] = rot;
-            }
-            return true;
+            return thing.MapHeld.BaseMap();
         }
-        return false;
-    }
-
-    public static Map MapHeldBaseMap(this Thing thing)
-    {
-        return thing.MapHeld.BaseMap();
     }
 
     public static Rot4 RotForVehicleDraw(this Rot8 rot)
@@ -840,6 +812,37 @@ public static class VehicleMapUtility
         public int HalfLength()
         {
             return vehicle.VehicleDef.HalfLength();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetFullRotation(ref Rot8 rot)
+        {
+            var map = vehicle.Map;
+            if (map.IsNonFocusedVehicleMapOf(out _))
+            {
+                var component = MapComponentCache<VehiclePawnWithMapCache>.GetComponent(map);
+                if (!component.cachedFullRot.TryGetValue(vehicle, out rot))
+                {
+                    rot = vehicle.BaseFullRotation();
+                    component.cachedFullRot[vehicle] = rot;
+                }
+                return true;
+            }
+            return false;
+        }
+
+        public Rot8 BaseFullRotation()
+        {
+            if (!vehicle.VehicleDef.graphicData.drawRotated)
+            {
+                return Rot8.North;
+            }
+            var rot = new Rot8(vehicle.Rotation, vehicle.Angle);
+            if (vehicle.IsOnNonFocusedVehicleMapOf(out var vehicle2))
+            {
+                rot = new Rot8(Rot8.FromIntClockwise((rot.AsIntClockwise + vehicle2.FullRotation.AsIntClockwise) % 8));
+            }
+            return rot;
         }
     }
 

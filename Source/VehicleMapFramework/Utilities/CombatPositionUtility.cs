@@ -7,9 +7,9 @@ namespace VehicleMapFramework;
 
 public static class CombatPositionUtility
 {
-    public static bool TryFindShipCombatPosition(VehiclePawn vehicle, out IntVec3 dest)
+    public static bool TryFindShipCombatPosition(VehiclePawn vehicle, out IntVec3 dest, out Rot8 endRot)
     {
-        
+        endRot = Rot8.Invalid;
         var target = vehicle.mindState.enemyTarget;
         if (target is null)
         {
@@ -23,10 +23,10 @@ public static class CombatPositionUtility
         if (vehicle is VehiclePawnWithMap { CompNpcVehicleMap: { } compNpcVehicleMap })
         {
             var dir = compNpcVehicleMap.Params.preferredDir;
-            var angle = (target.PositionOnBaseMap() - dest).AngleFlat;
-            var rot = new Rot8(Rot8.FromIntClockwise((Rot8.FromAngle(angle).AsIntClockwise + dir.AsIntClockwise) % 8));
-            vehicle.vehiclePather.SetEndRotation(rot);
-            var dest2 = dest + rot.Opposite.FacingCell;
+            var angle = (dest - target.PositionOnBaseMap()).AngleFlat;
+            var rot = Rot8.FromAngle(angle);
+            endRot = new Rot8(Rot8.FromIntClockwise((rot.AsIntClockwise + dir.AsIntClockwise) % 8));
+            var dest2 = dest + rot.FacingCell;
             if (vehicle.DrivableRectOnCell(dest2, Ext_Vehicles.DestinationHitboxReq.AnyRotation))
                 dest = dest2;
         }

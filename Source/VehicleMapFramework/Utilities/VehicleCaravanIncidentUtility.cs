@@ -98,7 +98,12 @@ public class VehicleCaravanIncidentUtility
                     {
                         if (!vehicle2.TryAddPawn(pawn))
                             VMF_Log.Error($"Unable to add {pawn} to {vehicle} during raid generation.");
-                        else continue;
+                        else
+                        {
+                            if (vehicle2 is { CompVehicleTurrets: { CanDeploy: true, Deployed: false } })
+                                vehicle2.CompVehicleTurrets.ToggleDeployment();
+                            continue;
+                        }
                     }
                 
                     var pos = CellFinder.RandomSpawnCellForPawnNear(vehicleMap.Center, vehicleMap);
@@ -137,7 +142,8 @@ public class VehicleCaravanIncidentUtility
             if (!pathData.VehicleRegionAndRoomUpdater.Enabled) pathData.VehicleRegionAndRoomUpdater.Init();
             
             var pos2 = CellFinderExtended.RandomSpawnCellForPawnNear(cell, map, vehicle,
-                c => playerVehicle is null || playerVehicle.CanReachVehicle(c, PathEndMode.Touch, Danger.Deadly),
+                c => vehicle.DrivableRectOnCell(c, true, map) &&
+                    (playerVehicle is null || playerVehicle.CanReachVehicle(c, PathEndMode.Touch, Danger.Deadly)),
                 vehicle.VehicleDef.type == VehicleType.Sea);
             if (!pos2.IsValid)
             {

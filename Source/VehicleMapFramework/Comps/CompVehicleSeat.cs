@@ -8,36 +8,53 @@ using Verse.AI;
 
 namespace VehicleMapFramework;
 
-public class CompVehicleSeat : CompBuildableUpgrades
+public class CompVehicleSeat : CompBuildableUpgrades, IAttackTarget
 {
+    private readonly List<(VehicleRoleHandler, VehicleUpgrade.RoleUpgrade)> handlers = [];
+    
+    Thing IAttackTarget.Thing => parent;
+    
+    LocalTargetInfo IAttackTarget.TargetCurrentlyAimingAt => LocalTargetInfo.Invalid;
+
+    float IAttackTarget.TargetPriorityFactor => 1f;
+
+    bool IAttackTarget.ThreatDisabled(IAttackTargetSearcher _) =>
+        !handlers.SelectMany(h => h.Item1.thingOwner.InnerListForReading).Any();
+
+    string ILoadReferenceable.GetUniqueLoadID() => parent.GetUniqueLoadID() + "_CompVehicleSeat";
+
     public override IEnumerable<FloatMenuOption> CompFloatMenuOptions(Pawn selPawn)
     {
         if (parent.IsOnVehicleMapOf(out var vehicle) && selPawn.CanReach(parent, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, parent.Map, out var exitSpot, out var enterSpot))
         {
-            foreach (var handler in vehicle.handlers)
+            foreach (var floatMenuOption in from handler in vehicle.handlers
+                     where handler.AreSlotsAvailable && handlerUniqueIDs.Any(h => h.id == handler.uniqueID)
+                     let reservationManager = vehicle.Map?.GetCachedMapComponent<VehicleReservationManager>()
+                     let canOperate = handler.CanOperateRole(selPawn)
+                     let reservedCount =
+                         reservationManager?.GetReservation<VehicleHandlerReservation>(vehicle)
+                             ?.ClaimantsOnHandler(handler) ?? 0
+                     let label = (canOperate
+                         ? "VF_BoardVehicle".Translate(handler.role.label,
+                             (handler.role.Slots - (handler.thingOwner.Count + reservedCount)).ToString())
+                         : "VF_BoardVehicleGroupFail".Translate(handler.role.label,
+                             "VF_BoardFailureNonCombatant".Translate(selPawn.LabelShort)))
+                     select new FloatMenuOption(label, delegate
+                     {
+                         var job = new Job(VMF_DefOf.VMF_BoardAcrossMaps, parent).SetSpotsToJobAcrossMaps(selPawn, exitSpot, enterSpot);
+                         vehicle.GiveLoadJob(selPawn, handler);
+                         selPawn.jobs.TryTakeOrderedJob(job, JobTag.DraftedOrder);
+                         if (!selPawn.Spawned)
+                         {
+                             return;
+                         }
+                         reservationManager?.Reserve<VehicleRoleHandler, VehicleHandlerReservation>(vehicle, selPawn, selPawn.CurJob, handler);
+                     })
+                     {
+                         Disabled = !canOperate
+                     })
             {
-                if (handler.AreSlotsAvailable && handlerUniqueIDs.Any(h => h.id == handler.uniqueID))
-                {
-                    var reservationManager = vehicle.Map?.GetCachedMapComponent<VehicleReservationManager>();
-                    var canOperate = handler.CanOperateRole(selPawn);
-                    var reservedCount = reservationManager?.GetReservation<VehicleHandlerReservation>(vehicle)?.ClaimantsOnHandler(handler) ?? 0;
-                    string label = (canOperate ? "VF_BoardVehicle".Translate(handler.role.label, (handler.role.Slots - (handler.thingOwner.Count + reservedCount)).ToString()) : "VF_BoardVehicleGroupFail".Translate(handler.role.label, "VF_BoardFailureNonCombatant".Translate(selPawn.LabelShort)));
-                    FloatMenuOption floatMenuOption = new(label, delegate
-                    {
-                        var job = new Job(VMF_DefOf.VMF_BoardAcrossMaps, parent).SetSpotsToJobAcrossMaps(selPawn, exitSpot, enterSpot);
-                        vehicle.GiveLoadJob(selPawn, handler);
-                        selPawn.jobs.TryTakeOrderedJob(job, JobTag.DraftedOrder);
-                        if (!selPawn.Spawned)
-                        {
-                            return;
-                        }
-                        reservationManager?.Reserve<VehicleRoleHandler, VehicleHandlerReservation>(vehicle, selPawn, selPawn.CurJob, handler);
-                    })
-                    {
-                        Disabled = !canOperate
-                    };
-                    yield return floatMenuOption;
-                }
+                yield return floatMenuOption;
             }
         }
     }
@@ -52,41 +69,38 @@ public class CompVehicleSeat : CompBuildableUpgrades
         if (parent.IsOnVehicleMapOf(out var vehicle))
         {
             var exitBlocked = !parent.OccupiedRect().ExpandedBy(1).EdgeCells.NotNullAndAny(cell => cell.Walkable(parent.Map));
-            foreach (var keyIDPair in handlerUniqueIDs)
+            foreach (var command_Action_PawnDrawer in from keyIDPair in handlerUniqueIDs
+                     select vehicle.handlers.FirstOrDefault(h => h.uniqueID == keyIDPair.id)
+                     into handler
+                     where handler != null
+                     from Pawn pawn in handler.thingOwner
+                     where !vehicle.Drafted || !handler.role.HandlingTypes.HasFlag(HandlingType.Movement) ||
+                           !vehicle.Spawned
+                     select new Command_ActionPawnDrawer
+                     {
+                         defaultLabel = "VF_DisembarkSinglePawn".Translate((NamedArgument)pawn.LabelShort),
+                         groupable = false,
+                         pawn = pawn,
+                         action = delegate
+                         {
+                             var caravan = pawn.GetCaravan();
+                             caravan?.RemovePawn(pawn);
+                             if (Find.WorldPawns.Contains(pawn))
+                             {
+                                 Find.WorldPawns.RemovePawn(pawn);
+                             }
+                             vehicle.DisembarkPawn(pawn);
+                         }
+                     })
             {
-                var handler = vehicle.handlers.FirstOrDefault(h => h.uniqueID == keyIDPair.id);
-                if (handler != null)
+                if (exitBlocked)
                 {
-                    foreach (var pawn in handler.thingOwner)
-                    {
-                        if (vehicle.Drafted && handler.role.HandlingTypes.HasFlag(HandlingType.Movement) && vehicle.Spawned) continue;
-
-                        Command_ActionPawnDrawer command_Action_PawnDrawer = new()
-                        {
-                            defaultLabel = "VF_DisembarkSinglePawn".Translate(pawn.LabelShort),
-                            groupable = false,
-                            pawn = pawn,
-                            action = delegate
-                            {
-                                var caravan = pawn.GetCaravan();
-                                caravan?.RemovePawn(pawn);
-                                if (Find.WorldPawns.Contains(pawn))
-                                {
-                                    Find.WorldPawns.RemovePawn(pawn);
-                                }
-                                vehicle.DisembarkPawn(pawn);
-                            }
-                        };
-                        if (exitBlocked)
-                        {
-                            command_Action_PawnDrawer.Disable("VF_DisembarkNoExit".Translate());
-                        }
-                        yield return command_Action_PawnDrawer;
-                    }
+                    command_Action_PawnDrawer.Disable("VF_DisembarkNoExit".Translate());
                 }
+                yield return command_Action_PawnDrawer;
             }
 
-            foreach (var gizmo in vehicle.AllComps.Where(c => c is CompOpacityOverlay).SelectMany(c => c.CompGetGizmosExtra()))
+            foreach (var gizmo in vehicle.AllComps.OfType<CompOpacityOverlay>().SelectMany(c => c.CompGetGizmosExtra()))
             {
                 yield return gizmo;
             }
@@ -100,23 +114,24 @@ public class CompVehicleSeat : CompBuildableUpgrades
         {
             vehicle.CompVehicleTurrets?.RecacheTurretPermissions();
             vehicle.RecachePawnCount();
-            handlersToDraw = vehicle.handlers.Where(h => handlerUniqueIDs.Any(i => h.uniqueID == i.id))
-                .Select(h => (h, Props.upgrades.SelectMany(u => (u as VehicleUpgrade).roles).FirstOrDefault(r => r?.key == h.role.key)));
+            handlers.AddRange(vehicle.handlers.Where(h => handlerUniqueIDs.Any(i => h.uniqueID == i.id))
+                .Select(h => (h, Props.upgrades.OfType<VehicleUpgrade>().SelectMany(u => u.roles)
+                    .FirstOrDefault(r => r?.key == h.role.key))));
         }
     }
 
     public override void PostDeSpawn(Map map, DestroyMode mode = DestroyMode.Vanish)
     {
-        base.PostDeSpawn(map);
-        handlersToDraw = null;
+        base.PostDeSpawn(map, mode);
+        handlers.Clear();
     }
 
     public override void PostDraw()
     {
         base.PostDraw();
-        if (!VehicleMapFramework.settings.drawPlanet && parent.IsOnVehicleMapOf(out var vehicle) && !vehicle.Spawned && !handlersToDraw.NullOrEmpty())
+        if (!VehicleMapFramework.settings.drawPlanet && parent.IsOnVehicleMapOf(out var vehicle) && !vehicle.Spawned && !handlers.NullOrEmpty())
         {
-            foreach (var handler in handlersToDraw)
+            foreach (var handler in handlers)
             {
                 if (handler.Item1.role.PawnRenderer != null)
                 {
@@ -146,6 +161,4 @@ public class CompVehicleSeat : CompBuildableUpgrades
         }
         return null;
     }
-
-    private IEnumerable<(VehicleRoleHandler, VehicleUpgrade.RoleUpgrade)> handlersToDraw;
 }
