@@ -1,25 +1,25 @@
 ﻿using System.Collections.Generic;
 using HarmonyLib;
-using RimWorld;
 using Verse;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 [StaticConstructorOnStartupPriority(Priority.Low)]
-public static class Patches_Biotech
+public static class Patches_Anomaly
 {
-    static Patches_Biotech()
+    static Patches_Anomaly()
     {
-        if (ModsConfig.BiotechActive)
+        if (ModsConfig.AnomalyActive)
         {
-            VMF_Harmony.PatchCategory(PatchCategories.Biotech);
+            VMF_Harmony.PatchCategory(PatchCategories.Anomaly);
         }
     }
 }
 
-[HarmonyPatch(typeof(ThoughtWorker_PsychicBondProximity), nameof(ThoughtWorker_PsychicBondProximity.NearPsychicBondedPerson))]
+[HarmonyPatchCategory(PatchCategories.Anomaly)]
+[HarmonyPatch(typeof(Hediff_MetalhorrorImplant), nameof(Hediff_MetalhorrorImplant.Emerge))]
 [PatchLevel(Level.Cautious)]
-public static class Patch_ThoughtWorker_PsychicBondProximity_NearPsychicBondedPerson
+public static class Patch_Hediff_MetalhorrorImplant_Emerge
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {

@@ -7,7 +7,6 @@ using HarmonyLib;
 using UnityEngine;
 using Verse;
 using Verse.AI;
-using static VehicleMapFramework.MethodInfoCache;
 using static VehicleMapFramework.ModCompat.MeleeAnimation;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches.AM;

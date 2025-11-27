@@ -4,7 +4,6 @@ using System.Reflection.Emit;
 using HarmonyLib;
 using RimWorld;
 using Verse;
-using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 

@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Reflection.Emit;
 using HarmonyLib;
-using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 

@@ -10,7 +10,6 @@ using RimWorld.Planet;
 using UnityEngine;
 using Verse;
 using Verse.AI;
-using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
@@ -853,11 +852,12 @@ public static class Patch_RestUtility_CanUseBedNow
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        var codes = instructions.ToList();
         //!building_Bed.Position.IsInPrisonCell(building_Bed.Map)があるので置き換えるのは最初のMapのみ
-        var code = codes.FirstOrDefault(i => i.opcode == OpCodes.Callvirt && i.OperandIs(CachedMethodInfo.g_Thing_Map));
-        code?.operand = CachedMethodInfo.m_BaseMap_Thing;
-        return codes.MethodReplacer(CachedMethodInfo.g_Thing_MapHeld, CachedMethodInfo.m_MapHeldBaseMap);
+        return new CodeMatcher(instructions)
+            .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Map))
+            .SetInstruction(new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMap_Thing))
+            .Instructions()
+            .MethodReplacer(CachedMethodInfo.g_Thing_MapHeld, CachedMethodInfo.m_MapHeldBaseMap);
     }
 }
 
@@ -867,8 +867,7 @@ public static class Patch_ToilFailConditions_DespawnedOrNull
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_MapHeld, CachedMethodInfo.m_MapHeldBaseMap)
-            .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
     }
 }
 

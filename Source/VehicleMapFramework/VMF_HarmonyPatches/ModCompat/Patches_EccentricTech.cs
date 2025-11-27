@@ -4,7 +4,6 @@ using System.Reflection.Emit;
 using HarmonyLib;
 using UnityEngine;
 using Verse;
-using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 

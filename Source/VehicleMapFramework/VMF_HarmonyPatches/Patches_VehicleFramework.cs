@@ -16,7 +16,6 @@ using Verse;
 using Verse.AI;
 using Verse.AI.Group;
 using Verse.Sound;
-using static VehicleMapFramework.MethodInfoCache;
 using Transform = SmashTools.Rendering.Transform;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;

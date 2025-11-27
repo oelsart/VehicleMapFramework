@@ -8,7 +8,6 @@ using RimWorld;
 using RimWorld.Planet;
 using Verse;
 using Verse.AI;
-using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 

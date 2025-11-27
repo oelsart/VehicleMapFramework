@@ -6,6 +6,8 @@ internal static class PatchCategories
     
     public const string Biotech = "VMF_Patches_Biotech";
     
+    public const string Anomaly = "VMF_Patches_Anomaly";
+    
     public const string Odyssey = "VMF_Patches_Odyssey";
     
     public const string VehicleFramework = "VMF_Patches_VehicleFramework";

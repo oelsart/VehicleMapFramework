@@ -13,7 +13,6 @@ using Vehicles.World;
 using Verse;
 using Verse.AI;
 using Verse.Sound;
-using static VehicleMapFramework.MethodInfoCache;
 using static VehicleMapFramework.ModCompat;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
@@ -579,21 +578,6 @@ public static class Patch_Game_FindMap
         {
             __result = ___maps.FirstOrDefault(m => m.Tile == tile && !m.IsVehicleMapOf(out _));
         }
-    }
-}
-
-[HarmonyPatch(typeof(Hediff_MetalhorrorImplant), nameof(Hediff_MetalhorrorImplant.Emerge))]
-[PatchLevel(Level.Cautious)]
-public static class Patch_Hediff_MetalhorrorImplant_Emerge
-{
-    private static bool Prepare()
-    {
-        return ModsConfig.AnomalyActive;
-    }
-
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_MapHeld, CachedMethodInfo.m_MapHeldBaseMap);
     }
 }
 

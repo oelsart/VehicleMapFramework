@@ -7,7 +7,6 @@ using RimWorld;
 using UnityEngine;
 using Verse;
 using Verse.AI;
-using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
@@ -118,20 +117,7 @@ public static class Patch_Verb_ShootBeam_TryCastShot
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-            .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap);
-    }
-}
-
-[HarmonyPatch(typeof(Verb_ShootBeam), nameof(Verb_ShootBeam.DrawHighlight))]
-[PatchLevel(Level.Cautious)]
-public static class Patch_Verb_ShootBeam_DrawHighlight
-{
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseFullRotation_Thing)
-            .MethodReplacer(CachedMethodInfo.g_Rot4_AsQuat, CachedMethodInfo.m_Rot8_AsQuatRef)
-            .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap);
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
     }
 }
 
@@ -154,10 +140,16 @@ public static class Patch_Verb_ShootBeam_TryGetHitCell
     }
 }
 
-[HarmonyPatch(typeof(Verb_ShootBeam), "GetBeamHitNeighbourCells")]
+[HarmonyPatch]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Verb_ShootBeam_GetBeamHitNeighbourCells
 {
+    private static MethodBase TargetMethod()
+    {
+        return AccessTools.FindIncludingInnerTypes(typeof(Verb_ShootBeam), t =>
+            !t.Name.Contains("<GetBeamHitNeighbourCells>") ? null : AccessTools.Method(t, "MoveNext"));
+    }
+    
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)

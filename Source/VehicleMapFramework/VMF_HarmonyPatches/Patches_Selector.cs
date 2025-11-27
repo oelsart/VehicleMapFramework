@@ -5,7 +5,6 @@ using HarmonyLib;
 using RimWorld;
 using UnityEngine;
 using Verse;
-using static VehicleMapFramework.MethodInfoCache;
 using static VehicleMapFramework.ModCompat;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;

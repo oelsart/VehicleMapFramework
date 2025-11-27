@@ -6,7 +6,6 @@ using HarmonyLib;
 using RimWorld;
 using Vehicles;
 using Verse;
-using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 

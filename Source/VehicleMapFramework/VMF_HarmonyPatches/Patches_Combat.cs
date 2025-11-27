@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
 using RimWorld;
 using UnityEngine;
 using Verse;
 using Verse.AI;
-using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
@@ -266,10 +266,16 @@ public static class Patch_Building_Turret_Tick
     }
 }
 
-[HarmonyPatch(typeof(Building_TurretGun), nameof(Building_TurretGun.TryFindNewTarget))]
+[HarmonyPatch]
 [PatchLevel(Level.Cautious)]
-public static class Patch_Building_Turret_TryFindNewTarget
+public static class Patch_Building_TurretGun_TryFindNewTarget_Delegate
 {
+    private static MethodBase TargetMethod()
+    {
+        return AccessTools.FindIncludingInnerTypes(typeof(Building_TurretGun),
+            t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<TryFindNewTarget>")));
+    }
+    
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
@@ -455,7 +461,7 @@ public static class Patch_RoofGrid_Roofed
 {
     private static bool Prepare()
     {
-        return VehicleMapFramework.settings.roofedPatch;
+        return VehicleMapFramework.settings is { roofedPatch: true };
     }
 
     public static void Postfix(IntVec3 c, Map ___map, ref bool __result)
