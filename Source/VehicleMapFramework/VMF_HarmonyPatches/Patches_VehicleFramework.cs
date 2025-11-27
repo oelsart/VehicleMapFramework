@@ -8,6 +8,7 @@ using RimWorld;
 using RimWorld.Planet;
 using SmashTools;
 using SmashTools.Rendering;
+using SmashTools.Targeting;
 using UnityEngine;
 using Vehicles;
 using Vehicles.Rendering;
@@ -82,10 +83,10 @@ public static class Patch_CompVehicleTurrets_CompGetGizmosExtra
     {
         foreach (var gizmo in gizmos)
         {
-            if (gizmo is Command_Turret command_Turret && command_Turret.turret is VehicleTurret_Manual)
+            if (gizmo is Command_Turret command_Turret)
             {
                 var turret = command_Turret.turret;
-                if (turret != null &&
+                if (turret is VehicleTurret_Manual &&
                     !command_Turret.Disabled &&
                     !VehicleMod.settings.debug.debugShootAnyTurret &&
                     !__instance.Vehicle.handlers.Any(h => h.role.handlingTypes.HasFlag(HandlingType.Turret) && (h.role.TurretIds?.Contains(!turret.groupKey.NullOrEmpty() ? turret.groupKey : turret.key) ?? false)))
@@ -493,34 +494,31 @@ public static class Patch_LaunchProtocol_GetArrivalOptions
             if (mapParent.HasMap && !mapParent.EnterCooldownBlocksEntering())
             {
                 yield return new ArrivalOption("LandInExistingMap".Translate(mapParent.Label),
-                    continueWith: targetData =>
-                    {
-                        Patch_Game_CurrentMap.ForceSet = true;
-                        Current.Game.CurrentMap = mapParent.Map;
-                        CameraJumper.TryHideWorld();
-                        LandingTargeter.Instance.BeginTargeting(vehicle, mapParent.Map,
-                            action: (landingCell, rot) =>
-                            {
-                                if (vehicle.Spawned)
-                                {
-                                    vehicle.CompVehicleLauncher.Launch(targetData,
-                                        new ArrivalAction_LandToCell(vehicle, mapParent, landingCell.Cell, rot));
-                                }
-                                else
-                                {
-                                    var aerialVehicle = vehicle.GetOrMakeAerialVehicle();
-                                    var nodes = targetData.targets.Select(targetInfo => new FlightNode(targetInfo))
-                                        .ToList();
-                                    aerialVehicle.OrderFlyToTiles(nodes,
-                                        new ArrivalAction_LandToCell(vehicle, mapParent, landingCell.Cell, rot));
-                                    vehicle.CompVehicleLauncher.inFlight = true;
-                                    CameraJumper.TryShowWorld();
-                                }
-                            }, allowRotating: vehicle.VehicleDef.rotatable,
-                            targetValidator: targetInfo => targetInfo.Cell.InBounds(mapParent.Map) &&
-                                                           !Ext_Vehicles.IsRoofRestricted(vehicle.VehicleDef,
-                                                               targetInfo.Cell, mapParent.Map));
-                    });
+                  continueWith: delegate (TargetData<GlobalTargetInfo> targetData)
+                  {
+                      Current.Game.CurrentMap = mapParent.Map;
+                      CameraJumper.TryHideWorld();
+                      LandingTargeter.Instance.BeginTargeting(vehicle, mapParent.Map,
+                action: delegate (LocalTargetInfo landingCell, Rot4 rot)
+                      {
+                          if (vehicle.Spawned)
+                          {
+                              vehicle.CompVehicleLauncher.Launch(targetData,
+                        new ArrivalAction_LandToCell(vehicle, mapParent, landingCell.Cell, rot));
+                          }
+                          else
+                          {
+                              var aerialVehicle = vehicle.GetOrMakeAerialVehicle();
+                              var nodes = targetData.targets.Select(targetInfo => new FlightNode(targetInfo)).ToList();
+                              aerialVehicle.OrderFlyToTiles(nodes,
+                        new ArrivalAction_LandToCell(vehicle, mapParent, landingCell.Cell, rot));
+                              vehicle.CompVehicleLauncher.inFlight = true;
+                              CameraJumper.TryShowWorld();
+                          }
+                      }, allowRotating: vehicle.VehicleDef.rotatable,
+                targetValidator: targetInfo => targetInfo.Cell.InBounds(mapParent.Map) &&
+                  !Ext_Vehicles.IsRoofRestricted(vehicle.VehicleDef, targetInfo.Cell, mapParent.Map));
+                  });
             }
         }
     }
@@ -604,13 +602,17 @@ public static class Patch_CaravanFormation_TryFindExitSpot
     public static void Prefix(Map map, List<Pawn> pawns)
     {
         foreach (var pawn in pawns)
+        {
             pawn.DestMap = map;
+        }
     }
 
     public static void Finalizer(List<Pawn> pawns)
     {
         foreach (var pawn in pawns)
+        {
             pawn.RemoveDestMap();
+        }
     }
 }
 

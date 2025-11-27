@@ -218,11 +218,16 @@ public static class Patch_Verb_ShootBeam_ApplyDamage
 
 [HarmonyPatch]
 [PatchLevel(Level.Sensitive)]
-public static class Patch_Verb_ShootBeam_ApplyDamage_Delegate
+public static class Patch_Verb_ShootBeam_Delegate
 {
-    private static MethodInfo TargetMethod()
+    private static IEnumerable<MethodBase> TargetMethods()
     {
-        return typeof(Verb_ShootBeam).GetDeclaredMethods().First(m => m.Name.Contains("<ApplyDamage>"));
+        yield return typeof(Verb_ShootBeam).FindIncludingInnerTypes(
+            t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<ApplyDamage>")));
+        yield return typeof(Verb_ShootBeam).FindIncludingInnerTypes(
+            t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<BurstingTick>")));
+        yield return typeof(Verb_ShootBeam).FindIncludingInnerTypes(
+            t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<TryGetHitCell>")));
     }
 
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -288,15 +293,8 @@ public static class Patch_JumpUtility_OrderJump
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, m_TargetMap);
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);
     }
-
-    public static Map TargetMap(Thing thing)
-    {
-        return TargetMapManager.HasTargetMap(thing, out var map) ? map : thing.Map;
-    }
-
-    public static readonly MethodInfo m_TargetMap = AccessTools.Method(typeof(Patch_JumpUtility_OrderJump), nameof(TargetMap));
 }
 
 [HarmonyPatch]
@@ -320,7 +318,7 @@ public static class Patch_JumpUtility_DoJump
     [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, Patch_JumpUtility_OrderJump.m_TargetMap);
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);
     }
 
     [PatchLevel(Level.Safe)]
@@ -337,7 +335,7 @@ public static class Patch_JobDriver_CastJump_TryMakePreToilReservations
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, Patch_JumpUtility_OrderJump.m_TargetMap);
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);
     }
 }
 
@@ -357,7 +355,7 @@ public static class Patch_Verb_Jump_DrawHighlight
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        instructions = instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, Patch_JumpUtility_OrderJump.m_TargetMap);
+        instructions = instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);
 
         var m_CenterVector3 = AccessTools.PropertyGetter(typeof(LocalTargetInfo), nameof(LocalTargetInfo.CenterVector3));
         var m_CenterVector3Offset = AccessTools.Method(typeof(Patch_Verb_Jump_DrawHighlight), nameof(CenterVector3Offset));
@@ -413,7 +411,7 @@ public static class Patch_Verb_Jump_OnGUI
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, Patch_JumpUtility_OrderJump.m_TargetMap);
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);
     }
 }
 
@@ -430,7 +428,7 @@ public static class Patch_Verb_Jump_ValidateTarget
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, Patch_JumpUtility_OrderJump.m_TargetMap);
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);
     }
 }
 

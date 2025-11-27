@@ -13,4 +13,17 @@
 			<li>Manipulation</li>
 		</requiredCapacities>
 	</WorkGiverDef>
+	
+	<WorkGiverDef>
+		<defName>VMF_RemoveVehicleSegment</defName>
+		<label>remove vehicle segment</label>
+		<giverClass>VehicleMapFramework.WorkGiver_RemoveVehicleSegment</giverClass>
+		<workType>Construction</workType>
+		<priorityInType>50</priorityInType>
+		<verb>deconstruct</verb>
+		<gerund>deconstructing</gerund>
+		<requiredCapacities>
+		  <li>Manipulation</li>
+		</requiredCapacities>
+	</WorkGiverDef>
 </Defs>

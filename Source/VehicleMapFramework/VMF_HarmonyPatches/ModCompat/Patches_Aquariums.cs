@@ -2,6 +2,7 @@
 using HarmonyLib;
 using UnityEngine;
 using Verse;
+using static VehicleMapFramework.ModCompat.Aquariums;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
@@ -10,7 +11,7 @@ internal class Patches_Aquariums
 {
     static Patches_Aquariums()
     {
-        if (ModCompat.Aquariums)
+        if (Active)
         {
             VMF_Harmony.PatchCategory(PatchCategories.Aquariums);
         }
@@ -52,6 +53,4 @@ public static class Patch_FishMovementBehavior_PositionWithOffsets
             __result = __result.ToBaseMapCoord(vehicle);
         }
     }
-
-    private static readonly FastInvokeHandler CurrentTank = MethodInvoker.GetHandler(AccessTools.PropertyGetter("Aquariums.AquariumFish:CurrentTank"));
 }

@@ -37,30 +37,14 @@ public class JobDriver_GotoDestMap : JobDriverAcrossMaps
 
     protected override IEnumerable<Toil> MakeNewToils()
     {
-        base.MakeNewToils();
+        foreach (var toil in base.MakeNewToils()) yield return toil;
         if (ShouldEnterTargetAMap)
         {
             foreach (var toil in GotoTargetMap(TargetIndex.A)) yield return toil;
         }
         if (nextJob != null)
         {
-            var toil = ToilMaker.MakeToil("TryStartNextJob");
-            toil.defaultCompleteMode = ToilCompleteMode.Instant;
-            toil.initAction = () =>
-            {
-                ref var allowOpportunisticPrefix = ref nextJob.def.allowOpportunisticPrefix; //OpportunisticJobを一時的に無効化
-                var value = allowOpportunisticPrefix;
-                try
-                {
-                    allowOpportunisticPrefix = false;
-                    pawn.jobs.StartJob(nextJob, JobCondition.InterruptForced, VMF_DefOf.VMF_GotoDestMapThinkTree.thinkRoot, thinkTree: VMF_DefOf.VMF_GotoDestMapThinkTree, keepCarryingThingOverride: true, preToilReservationsCanFail: true);
-                }
-                finally
-                {
-                    allowOpportunisticPrefix = value;
-                }
-            };
-            yield return toil;
+            yield return TryStartNextJob();
         }
     }
 
@@ -68,6 +52,27 @@ public class JobDriver_GotoDestMap : JobDriverAcrossMaps
     {
         Scribe_Deep.Look(ref nextJob, "nextJob");
         base.ExposeData();
+    }
+
+    private Toil TryStartNextJob()
+    {
+        var toil = ToilMaker.MakeToil();
+        toil.defaultCompleteMode = ToilCompleteMode.Instant;
+        toil.initAction = () =>
+        {
+            ref var allowOpportunisticPrefix = ref nextJob.def.allowOpportunisticPrefix; //OpportunisticJobを一時的に無効化
+            var value = allowOpportunisticPrefix;
+            try
+            {
+                allowOpportunisticPrefix = false;
+                pawn.jobs.StartJob(nextJob, JobCondition.InterruptForced, VMF_DefOf.VMF_GotoDestMapThinkTree.thinkRoot, thinkTree: VMF_DefOf.VMF_GotoDestMapThinkTree, keepCarryingThingOverride: true, preToilReservationsCanFail: true);
+            }
+            finally
+            {
+                allowOpportunisticPrefix = value;
+            }
+        };
+        return toil;
     }
 
     public class ThinkNode_JobFromGotoDestMap : ThinkNode

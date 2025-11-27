@@ -193,22 +193,21 @@ public static class Patch_Toils_Haul_IsValidStorageFor
 {
     private static IEnumerable<MethodBase> TargetMethods()
     {
-        foreach (var t in AccessTools.InnerTypes(typeof(Toils_Haul)))
-        {
-            var methods = t.GetDeclaredMethods();
-            var method = methods.FirstOrDefault(m =>
+        return AccessTools.InnerTypes(typeof(Toils_Haul))
+            .Select(t => t.GetDeclaredMethods())
+            .Select(methods => methods.FirstOrDefault(m =>
             {
                 if (m.Name.Contains("DupeValidator"))
                 {
                     return true;
                 }
+
                 return m.Name.Contains("<CarryHauledThingToCell>") &&
                        m.GetMethodBody()!.LocalVariables
                            .Select(l => l.LocalType)
-                           .SequenceEqual([typeof(Pawn), typeof(IntVec3), typeof(CompPushable), typeof(LocalTargetInfo)]);
-            });
-            if (method != null) yield return method;
-        }
+                           .SequenceEqual(
+                               [typeof(Pawn), typeof(IntVec3), typeof(CompPushable), typeof(LocalTargetInfo)]);
+            })).Where(method => method != null).Cast<MethodBase>();
     }
 
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)

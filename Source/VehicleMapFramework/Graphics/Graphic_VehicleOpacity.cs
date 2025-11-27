@@ -6,7 +6,7 @@ namespace VehicleMapFramework;
 
 public class Graphic_VehicleOpacity : Graphic_Vehicle
 {
-    private static readonly int OpacityID = Shader.PropertyToID("_Opacity");
+    public static readonly int OpacityID = Shader.PropertyToID("_Opacity");
 
     public float Opacity
     {

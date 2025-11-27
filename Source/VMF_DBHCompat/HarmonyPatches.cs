@@ -117,14 +117,9 @@ public static class Patch_PlaceWorker_SewageArea_DrawGhost_Predicate
 [PatchLevel(Level.Safe)]
 public static class Patch_MapComponent_Hygiene_CanHaveSewage
 {
-    public static bool Prefix(IntVec3 c, Map ___map, ref bool __result)
+    public static bool Prefix(IntVec3 c, Map ___map)
     {
-        if (!c.InBounds(___map))
-        {
-            __result = false;
-            return false;
-        }
-        return true;
+        return c.InBounds(___map);
     }
 }
 

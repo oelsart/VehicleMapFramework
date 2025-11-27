@@ -37,19 +37,41 @@ public static class Patch_UI_MouseCell
 [HarmonyPatch(typeof(GenThing), nameof(GenThing.TrueCenter))]
 public static class Patch_GenThing_TrueCenter
 {
+    private static bool skipFlag;
+    
     [HarmonyBefore(VehicleFramework.HarmonyId)]
     [HarmonyPatch([typeof(Thing)])]
     [PatchLevel(Level.Mandatory)]
     public static bool Prefix(Thing t, ref Vector3 __result)
     {
-        return !t.TryGetDrawPos(ref __result);
+        if (!t.TryGetDrawPos(ref __result))
+        {
+            skipFlag = true;
+            return true;
+        }
+
+        return false;
+    }
+
+    [HarmonyPatch([typeof(Thing)])]
+    [PatchLevel(Level.Mandatory)]
+    public static void Finalizer()
+    {
+        skipFlag = false;
     }
 
     [HarmonyPatch([typeof(IntVec3), typeof(Rot4) ,typeof(IntVec2), typeof(float)])]
     [PatchLevel(Level.Safe)]
     public static void Postfix(ref Vector3 __result)
     {
-        if (VehicleMapUtility.FocusedOnVehicleMap(out var vehicle) && !VehiclePawnWithMapCache.cacheModeGlobal && !vehicle.CurrentLevel.GetCachedMapComponent<VehiclePawnWithMapCache>().cacheMode)
+        // TrueCenter(this Thing t)から呼ばれた場合はオフセットしない
+        if (skipFlag)
+        {
+            return;
+        }
+        if (VehicleMapUtility.FocusedOnVehicleMap(out var vehicle) &&
+            !VehiclePawnWithMapCache.cacheModeGlobal &&
+            !vehicle.CurrentLevel.GetCachedMapComponent<VehiclePawnWithMapCache>().cacheMode)
         {
             __result = __result.ToBaseMapCoord(vehicle).WithY(__result.y);
         }
@@ -67,7 +89,7 @@ public static class Patch_Pawn_DrawTracker_DrawPos
 
     public static void Postfix(Pawn ___pawn, ref Vector3 __result)
     {
-        __result.y += ___pawn.jobs?.curDriver is JobDriverAcrossMaps driver ? driver.ForcedBodyOffset.y : 0f;
+        __result.y += ___pawn.jobs?.curDriver is JobDriverBodyOffset driver ? driver.ForcedBodyOffset.y : 0f;
     }
 }
 
@@ -85,7 +107,7 @@ public static class Patch_VehiclePawn_DrawPos
     {
         if (__state)
         {
-            __result += ___vehicle.jobs?.curDriver is JobDriverAcrossMaps driver ? driver.ForcedBodyOffset : Vector3.zero;
+            __result += ___vehicle.jobs?.curDriver is JobDriverBodyOffset driver ? driver.ForcedBodyOffset : Vector3.zero;
         }
     }
 }

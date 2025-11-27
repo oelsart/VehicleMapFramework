@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using RimWorld;
 using UnityEngine;
+using Vehicles;
 using Verse;
 using static VehicleMapFramework.ModCompat.SmartFarming;
 
@@ -11,6 +12,8 @@ public static class GenDrawOnVehicle
     private static BoolGrid fieldGrid;
 
     private static readonly bool[] rotNeeded = new bool[4];
+
+    private static readonly List<Matrix4x4> matrixList = [];
 
     public static void DrawFieldEdges(List<IntVec3> cells, int renderQueue = 2900, Map map = null)
     {
@@ -39,7 +42,7 @@ public static class GenDrawOnVehicle
             BaseTexPath = "UI/Overlays/TargetHighlight_Side",
             renderQueue = renderQueue
         });
-        material.GetTexture("_MainTex").wrapMode = TextureWrapMode.Clamp;
+        material.GetTexture(AdditionalShaderPropertyIDs.MainTex).wrapMode = TextureWrapMode.Clamp;
         if (fieldGrid == null)
         {
             fieldGrid = new BoolGrid(map);
@@ -147,5 +150,35 @@ public static class GenDrawOnVehicle
             }
         }
         DrawFieldEdges(cells, renderQueue, map);
+    }
+    
+    public static void DrawLineBetweenInstanced(Vector3 A, Vector3 B, Material mat, float lineWidth = 0.2f)
+    {
+        if (Mathf.Abs(A.x - B.x) < 0.01f && Mathf.Abs(A.z - B.z) < 0.01f)
+        {
+            return;
+        }
+
+        if (!mat.enableInstancing)
+        {
+            GenDraw.DrawLineBetween(A, B, mat, lineWidth);
+            return;
+        }
+
+        A.y = B.y;
+        var distance = (B - A).MagnitudeHorizontal();
+        var matCount = Mathf.CeilToInt(distance / lineWidth);
+        var scale = new Vector3(lineWidth, 1f, distance / matCount);
+        var offset = (B - A) / matCount;
+        var firstPosition = A + offset * 0.5f;
+        var quaternion = Quaternion.LookRotation(B - A);
+        
+        matrixList.Clear();
+        for (var i = 0; i < matCount; i++)
+        {
+            matrixList.Add(Matrix4x4.TRS(firstPosition + offset * i, quaternion, scale));
+        }
+
+        Graphics.DrawMeshInstanced(MeshPool.plane10, 0, mat, matrixList);
     }
 }

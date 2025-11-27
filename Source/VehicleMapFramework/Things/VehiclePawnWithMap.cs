@@ -20,7 +20,7 @@ using static VehicleMapFramework.ModCompat;
 namespace VehicleMapFramework;
 
 [StaticConstructorOnStartup]
-public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
+public class VehiclePawnWithMap : VehiclePawn
 {
     private Map interiorMap;
 
@@ -190,11 +190,15 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         }
     } = [];
 
+    public CompNpcVehicleMap CompNpcVehicleMap => field ??= GetComp<CompNpcVehicleMap>();
+
     public List<CompVehicleEnterSpot> EnterComps { get; } = [];
 
     public IEnumerable<CompVehicleEnterSpot> AvailableEnterComps => EnterComps.Where(c => c.parent.Position.Walkable(interiorMap) && c.Available);
 
     public List<CompFuelTank> FuelTankComps { get; } = [];
+    
+    public List<CompMapExpander> MapExpanderComps { get; } = [];
 
     public override Vector3 DrawPos => Spawned ? base.DrawPos : cachedDrawPos;
 
@@ -205,7 +209,9 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
     public override IEnumerable<Gizmo> GetGizmos()
     {
         foreach (var gizmo in base.GetGizmos()) yield return gizmo;
-
+        if (Faction != Faction.OfPlayer && !DebugSettings.ShowDevGizmos)
+            yield break;
+        
         yield return new Command_Action
         {
             action = () =>
@@ -280,6 +286,13 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         if (DebugSettings.ShowDevGizmos)
         {
             yield return new Command_FocusVehicleMap();
+            yield return new Command_Toggle
+            {
+                defaultLabel = "Debug draw: bridge cells",
+                Order = 5001,
+                isActive = () => CompMapExpander.debugDraw,
+                toggleAction = () => CompMapExpander.debugDraw = !CompMapExpander.debugDraw
+            };
         }
     }
 
@@ -635,6 +648,7 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         map.roofGrid.RoofGridUpdate();
         map.mapTemperature.TemperatureUpdate();
         MapComponentUtility.MapComponentOnDraw(map);
+        CompMapExpander.DebugDraw(MapExpanderComps);
         Command_FocusVehicleMap.FocusedVehicle = focused;
         //map.gameConditionManager.GameConditionManagerDraw(map);
         //MapEdgeClipDrawer.DrawClippers(__instance);
@@ -931,6 +945,11 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
         if (props != null && def.defName != props.defName)
         {
             def = UniqueVehicleUtility.GenerateUniqueVehicleDef(this);
+            VehicleDef.components?.ForEach(component =>
+            {
+                component.hitbox.Hitbox.Clear();
+                component.hitbox.Initialize(VehicleDef);
+            });
         }
     }
 

@@ -316,7 +316,8 @@
 			</li>
 		</comps>
 		<placeWorkers>
-			<li>VehicleMapFramework.PlaceWorker_ForbidOnHumanPoweredVehicle</li>
+			<li>VehicleMapFramework.PlaceWorker_ForceOnVehicle</li>
+			<li>VehicleMapFramework.PlaceWorker_NonFueledVehicle</li>
 		</placeWorkers>
 	</ThingDef>
 
@@ -383,6 +384,7 @@
 		</comps>
 		<placeWorkers>
 			<li>VehicleMapFramework.PlaceWorker_ForceOnHoverVehicle</li>
+			<li>VehicleMapFramework.PlaceWorker_NonFueledVehicle</li>
 		</placeWorkers>
 	</ThingDef>
 		
@@ -448,6 +450,7 @@
 		</comps>
 		<placeWorkers>
 			<li>VehicleMapFramework.PlaceWorker_ForceOnVehicle</li>
+			<li>VehicleMapFramework.PlaceWorker_NonFueledVehicle</li>
 		</placeWorkers>
 	</ThingDef>
 </Defs>

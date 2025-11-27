@@ -5,11 +5,23 @@ using Verse.AI;
 
 namespace VehicleMapFramework;
 
-public abstract class JobDriverAcrossMaps : JobDriver
+public abstract class JobDriverAcrossMaps : JobDriverBodyOffset
 {
-    protected bool ShouldEnterTargetAMap => exitSpot1.Map != null || enterSpot1.Map != null;
+    private TargetInfo exitSpot1 = TargetInfo.Invalid;
 
-    protected bool ShouldEnterTargetBMap => exitSpot2.Map != null || enterSpot2.Map != null;
+    private TargetInfo enterSpot1 = TargetInfo.Invalid;
+
+    private TargetInfo exitSpot2 = TargetInfo.Invalid;
+
+    private TargetInfo enterSpot2 = TargetInfo.Invalid;
+
+    private Map targetAMap;
+
+    private Map destMap;
+    
+    public bool ShouldEnterTargetAMap => exitSpot1.Map != null || enterSpot1.Map != null;
+
+    public bool ShouldEnterTargetBMap => exitSpot2.Map != null || enterSpot2.Map != null;
 
     public Map DestMap
     {
@@ -19,7 +31,8 @@ public abstract class JobDriverAcrossMaps : JobDriver
             if (enterSpot2.Map != null) return enterSpot2.Map;
             if (exitSpot2.Map != null) return exitSpot2.Map.BaseMap();
             if (enterSpot1.Map != null) return enterSpot1.Map;
-            return exitSpot1.Map != null ? exitSpot1.Map.BaseMap() : Map;
+            if (exitSpot1.Map != null) return exitSpot1.Map.BaseMap();
+            return Map;
         }
     }
 
@@ -29,7 +42,8 @@ public abstract class JobDriverAcrossMaps : JobDriver
         {
             if (targetAMap != null) return targetAMap;
             if (enterSpot1.Map != null) return enterSpot1.Map;
-            return exitSpot1.Map != null ? exitSpot1.Map.BaseMap() : Map;
+            if (exitSpot1.Map != null) return exitSpot1.Map.BaseMap();
+            return Map;
         }
     }
 
@@ -44,18 +58,18 @@ public abstract class JobDriverAcrossMaps : JobDriver
             MapNullOrDisposed(enterSpot2));
         yield break;
 
-        static bool MapNullOrDisposed(TargetInfo? spot)
+        static bool MapNullOrDisposed(TargetInfo spot)
         {
-            return spot.HasValue && (spot.Value.Map == null || spot.Value.Map.Disposed);
+            return spot.IsValid && (spot.Map == null || spot.Map.Disposed);
         }
     }
 
-    public void SetSpots(TargetInfo? exitSpot1_ = null, TargetInfo? enterSpot1_ = null, TargetInfo? exitSpot2_ = null, TargetInfo? enterSpot2_ = null)
+    public void SetSpots(TargetInfo? exitSpot1 = null, TargetInfo? enterSpot1 = null, TargetInfo? exitSpot2 = null, TargetInfo? enterSpot2 = null)
     {
-        this.exitSpot1 = exitSpot1_ ?? TargetInfo.Invalid;
-        this.enterSpot1 = enterSpot1_ ?? TargetInfo.Invalid;
-        this.exitSpot2 = exitSpot2_ ?? TargetInfo.Invalid;
-        this.enterSpot2 = enterSpot2_ ?? TargetInfo.Invalid;
+        this.exitSpot1 = exitSpot1 ?? TargetInfo.Invalid;
+        this.enterSpot1 = enterSpot1 ?? TargetInfo.Invalid;
+        this.exitSpot2 = exitSpot2 ?? TargetInfo.Invalid;
+        this.enterSpot2 = enterSpot2 ?? TargetInfo.Invalid;
         targetAMap = TargetAMap;
         destMap = DestMap;
 
@@ -68,20 +82,18 @@ public abstract class JobDriverAcrossMaps : JobDriver
         }
     }
 
-    protected IEnumerable<Toil> GotoTargetMap(TargetIndex ind)
+    public IEnumerable<Toil> GotoTargetMap(TargetIndex ind)
     {
-        switch (ind)
+        if (ind == TargetIndex.A)
         {
-            case TargetIndex.A:
-                return ToilsAcrossMaps.GotoTargetMap(this, exitSpot1, enterSpot1);
-            case TargetIndex.B:
-                return ToilsAcrossMaps.GotoTargetMap(this, exitSpot2, enterSpot2);
-            case TargetIndex.None:
-            case TargetIndex.C:
-            default:
-                VMF_Log.Error("GotoTargetMap() does not support TargetIndex.C.");
-                return null;
+            return ToilsAcrossMaps.GotoTargetMap(this, exitSpot1, enterSpot1);
         }
+        if (ind == TargetIndex.B)
+        {
+            return ToilsAcrossMaps.GotoTargetMap(this, exitSpot2, enterSpot2);
+        }
+        VMF_Log.Error("GotoTargetMap() does not support TargetIndex.C.");
+        return null;
     }
 
     public override void ExposeData()
@@ -98,18 +110,4 @@ public abstract class JobDriverAcrossMaps : JobDriver
             base.ExposeData();
         });
     }
-
-    private TargetInfo exitSpot1 = TargetInfo.Invalid;
-
-    private TargetInfo enterSpot1 = TargetInfo.Invalid;
-
-    private TargetInfo exitSpot2 = TargetInfo.Invalid;
-
-    private TargetInfo enterSpot2 = TargetInfo.Invalid;
-
-    public Vector3 drawOffset;
-
-    private Map targetAMap;
-
-    private Map destMap;
 }

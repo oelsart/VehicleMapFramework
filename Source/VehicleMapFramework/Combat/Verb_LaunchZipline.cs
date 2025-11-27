@@ -1,11 +1,12 @@
-﻿using RimWorld;
+﻿using System.Diagnostics.CodeAnalysis;
+using RimWorld;
 using UnityEngine;
 using VehicleMapFramework.VMF_HarmonyPatches;
 using Verse;
 
 namespace VehicleMapFramework;
 
-public class Verb_LaunchZipline : Verb_Shoot //タレット範囲の表示PlaceWorkerの仕様のためShootを継承
+public class Verb_LaunchZipline : Verb_Shoot
 {
     public Thing ZiplineEnd { get; set; }
 
@@ -29,11 +30,12 @@ public class Verb_LaunchZipline : Verb_Shoot //タレット範囲の表示PlaceW
         return (targ.Pawn == null || !targ.Pawn.IsPsychologicallyInvisible() || !caster.HostileTo(targ.Pawn)) && !ApparelPreventsShooting() && this.TryFindShootLineFromToOnVehicle(root, targ, out _);
     }
 
-    public override bool TryStartCastOn(LocalTargetInfo castTarg, LocalTargetInfo destTarg, bool surpriseAttack_ = false, bool canHitNonTargetPawns = true, bool preventFriendlyFire_ = false, bool nonInterruptingSelfCast_ = false)
+    [SuppressMessage("ReSharper", "ParameterHidesMember")]
+    public override bool TryStartCastOn(LocalTargetInfo castTarg, LocalTargetInfo destTarg, bool surpriseAttack = false, bool canHitNonTargetPawns = true, bool preventFriendlyFire = false, bool nonInterruptingSelfCast = false)
     {
         if (ZiplineEnd?.Spawned ?? false) return false;
 
-        return base.TryStartCastOn(castTarg, destTarg, surpriseAttack_, canHitNonTargetPawns, preventFriendlyFire_, nonInterruptingSelfCast_);
+        return base.TryStartCastOn(castTarg, destTarg, surpriseAttack, canHitNonTargetPawns, preventFriendlyFire, nonInterruptingSelfCast);
     }
 
     protected override bool TryCastShot()
@@ -75,6 +77,12 @@ public class Verb_LaunchZipline : Verb_Shoot //タレット範囲の表示PlaceW
             if (TargetMapManager.HasTargetMap(caster, out var map))
             {
                 zipline.destMap = map;
+            }
+
+            var customZipline = zipline.def.GetModExtension<CustomZipline>();
+            if (customZipline != null)
+            {
+                zipline.ZipLineData = customZipline.zipLineData;
             }
         }
         if (verbProps.ForcedMissRadius > 0.5f)
@@ -143,7 +151,7 @@ public class Verb_LaunchZipline : Verb_Shoot //タレット範囲の表示PlaceW
             projectileHitFlags4 |= ProjectileHitFlags.NonTargetPawns;
         }
 
-        if (currentTarget.Thing?.def.Fillage == FillCategory.Full)
+        if (!currentTarget.HasThing || currentTarget.Thing!.def.Fillage == FillCategory.Full)
         {
             projectileHitFlags4 |= ProjectileHitFlags.NonTargetWorld;
         }
@@ -160,7 +168,7 @@ public class Verb_LaunchZipline : Verb_Shoot //タレット範囲の表示PlaceW
         {
             return;
         }
-        var map = Patch_JumpUtility_OrderJump.TargetMap(caster);
+        var map = TargetMapManager.TargetMapOrThingMap(caster);
         if (target.IsValid && JumpUtility.ValidJumpTarget(caster, map, target.Cell))
         {
             GenDraw.DrawTargetHighlightWithLayer(Patch_Verb_Jump_DrawHighlight.CenterVector3Offset(ref target, this), AltitudeLayer.MetaOverlays);
@@ -170,7 +178,7 @@ public class Verb_LaunchZipline : Verb_Shoot //タレット範囲の表示PlaceW
 
     public override void OnGUI(LocalTargetInfo target)
     {
-        if (CanHitTarget(target) && JumpUtility.ValidJumpTarget(caster, Patch_JumpUtility_OrderJump.TargetMap(caster), target.Cell))
+        if (CanHitTarget(target) && JumpUtility.ValidJumpTarget(caster, TargetMapManager.TargetMapOrThingMap(caster), target.Cell))
         {
             base.OnGUI(target);
             return;

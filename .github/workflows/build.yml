@@ -22,7 +22,7 @@ jobs:
           name: LocalTestResults
           path: |
             ./TestResults.xml
-            
+      
       - name: Test Report
         uses: dorny/test-reporter@v2
         with:

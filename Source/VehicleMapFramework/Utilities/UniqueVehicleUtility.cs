@@ -36,7 +36,7 @@ public static class UniqueVehicleUtility
         {
             if (!field.IsLiteral) field.SetValue(props, field.GetValue(baseProps));
         }
-        props.defName = vehicle.def.defName + vehicle.ThingID + "_";
+        props.defName = $"{Find.World.info.name}_{vehicle.ThingID}_Unique";
         props.baseDef = vehicle.VehicleDef;
         return GenerateUniqueVehicleDef(props);
     }

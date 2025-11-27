@@ -697,14 +697,12 @@ public static class Patch_RegionProcessorClosestThingReachable_RegionProcessor
 public static class Patch_ReservationManager_Reserve
 {
     [PatchLevel(Level.Safe)]
-    public static bool Prefix(Map ___map, Pawn claimant, Job job, LocalTargetInfo target, int maxPawns, int stackCount, ReservationLayerDef layer, bool errorOnFailed, bool ignoreOtherReservations, bool canReserversStartJobs, ref bool __result)
+    public static void Prefix(ref ReservationManager __instance, Map ___map, Pawn claimant, Job job, LocalTargetInfo target)
     {
         if (ShouldReplace(___map, claimant, target, false, out var map, job))
         {
-            __result = map.reservationManager.Reserve(claimant, job, target, maxPawns, stackCount, layer, errorOnFailed, ignoreOtherReservations, canReserversStartJobs);
-            return false;
+            __instance = map.reservationManager;
         }
-        return true;
     }
 
     public static bool ShouldReplace(Map ___map, Pawn claimant, LocalTargetInfo target, bool allowSameMap, out Map map, Job job = null)
@@ -737,14 +735,12 @@ public static class Patch_ReservationManager_Reserve
 [PatchLevel(Level.Safe)]
 public static class Patch_ReservationManager_ReservedBy
 {
-    public static bool Prefix(Map ___map, Pawn claimant, LocalTargetInfo target, Job job, ref bool __result)
+    public static void Prefix(ref ReservationManager __instance, Map ___map, Pawn claimant, LocalTargetInfo target, Job job)
     {
         if (Patch_ReservationManager_Reserve.ShouldReplace(___map, claimant, target, false, out var map, job))
         {
-            __result = map.reservationManager.ReservedBy(target, claimant, job);
-            return false;
+            __instance = map.reservationManager;
         }
-        return true;
     }
 }
 
@@ -784,12 +780,12 @@ public static class Patch_ReservationManager_CanReserveStack
 [PatchLevel(Level.Safe)]
 public static class Patch_ReservationManager_TryGetReserver
 {
-    public static bool Prefix(Map ___map, LocalTargetInfo target, Faction faction, ref Pawn reserver, ref bool __result)
+    public static bool Prefix(ref ReservationManager __instance, Map ___map, LocalTargetInfo target)
     {
         Map thingMap;
         if ((thingMap = target.Thing?.MapHeld) != null && ___map != thingMap)
         {
-            __result = thingMap.reservationManager.TryGetReserver(target, faction, out reserver);
+            __instance = thingMap.reservationManager;
             return false;
         }
         return true;
@@ -800,14 +796,12 @@ public static class Patch_ReservationManager_TryGetReserver
 [PatchLevel(Level.Safe)]
 public static class Patch_ReservationManager_FirstRespectedReserver
 {
-    public static bool Prefix(Map ___map, LocalTargetInfo target, Pawn claimant, ReservationLayerDef layer, ref Pawn __result)
+    public static void Prefix(ref ReservationManager __instance, Map ___map, LocalTargetInfo target, Pawn claimant)
     {
         if (Patch_ReservationManager_Reserve.ShouldReplace(___map, claimant, target, false, out var map))
         {
-            __result = map.reservationManager.FirstRespectedReserver(target, claimant, layer);
-            return false;
+            __instance = map.reservationManager;
         }
-        return true;
     }
 }
 

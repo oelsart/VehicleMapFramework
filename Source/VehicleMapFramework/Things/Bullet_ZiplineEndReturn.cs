@@ -6,6 +6,10 @@ namespace VehicleMapFramework;
 
 public class Bullet_ZiplineEndReturn : Bullet, IZiplineEnd
 {
+    public CustomZipline.ZipLineData ZipLineData { get; set; }
+
+    public override Quaternion ExactRotation => Quaternion.LookRotation((origin - destination).Yto0());
+
     private float ArcHeightFactor
     {
         get
@@ -20,13 +24,13 @@ public class Bullet_ZiplineEndReturn : Bullet, IZiplineEnd
         }
     }
 
-    public override Quaternion ExactRotation => Quaternion.LookRotation((origin - destination).Yto0());
-
-    protected override void Tick()
+    protected override void TickInterval(int delta)
     {
         if (launchVerb.caster?.Spawned ?? false)
         {
-            destination = launchVerb.caster.TrueCenter() + (Vector3.forward * ZiplineEnd.LauncherOffset).RotatedBy(ExactRotation.eulerAngles.y);
+            destination = launchVerb.caster.DrawPos +
+                          (Vector3.forward * (ZipLineData.LauncherOffset + 0.5f - ZipLineData.ZiplineEndOffset))
+                          .RotatedBy(ExactRotation.eulerAngles.y);
 
             //戻ってる間砲塔をこっちに向けとくためにOrderAttackしとく
             if (launchVerb.caster is Building_Turret building_Turret)
@@ -44,7 +48,7 @@ public class Bullet_ZiplineEndReturn : Bullet, IZiplineEnd
                 }
             }
         }
-        base.Tick();
+        base.TickInterval(delta);
     }
     protected override void ImpactSomething()
     {
@@ -71,21 +75,8 @@ public class Bullet_ZiplineEndReturn : Bullet, IZiplineEnd
 
     public void DrawZipline(Vector3 drawLoc)
     {
-        if (launchVerb.caster?.Spawned ?? false)
-        {
-            var drawPosA = drawLoc + (Vector3.back * ZiplineEnd.ZiplineEndOffset).RotatedBy(ExactRotation.eulerAngles.y);
-            var caster = launchVerb.caster;
-            var launcherPos = caster.DrawPos;
-            var offset = caster.def.building?.turretTopOffset.ToVector3() ?? Vector3.zero;
-            if (caster.IsOnNonFocusedVehicleMapOf(out var vehicle2))
-            {
-                offset = offset.RotatedBy(-vehicle2.Angle);
-            }
-            launcherPos += offset;
-            var drawPosB = launcherPos + (Vector3.forward * ZiplineEnd.LauncherOffset).RotatedBy((drawPosA - launcherPos).AngleFlat());
-            var y = Mathf.Max(drawPosA.y, drawPosB.y);
-            GenDraw.DrawLineBetween(drawPosA.WithY(y), drawPosB.WithY(y), ZiplineEnd.ZiplineLayer, ZiplineEnd.ZiplineMat, ZiplineEnd.ZiplineWidth);
-        }
+        var num = ArcHeightFactor * GenMath.InverseParabola(DistanceCoveredFractionArc);
+        ZiplineEnd.DrawZipline(drawLoc + Vector3.forward * num, ExactRotation.eulerAngles.y, launchVerb, ZipLineData);
     }
 
     public override void ExposeData()
@@ -93,6 +84,14 @@ public class Bullet_ZiplineEndReturn : Bullet, IZiplineEnd
         base.ExposeData();
         Scribe_References.Look(ref launchVerb, "launchVerb");
         Scribe_TargetInfo.Look(ref tmpTarget, "tmpTarget");
+        if (Scribe.mode == LoadSaveMode.PostLoadInit)
+        {
+            var customZipline = launchVerb?.verbProps?.defaultProjectile?.GetModExtension<CustomZipline>();
+            if (customZipline != null)
+            {
+                ZipLineData = customZipline.zipLineData;
+            }
+        }
     }
 
     public Verb_LaunchZipline launchVerb;

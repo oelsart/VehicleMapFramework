@@ -653,8 +653,37 @@ internal static class ModCompat
     public static readonly bool TraderShips = IsModActive("automatic.traderships");
 
     public static readonly bool NightmareCore = IsModActive("Nightmare.Core");
+    
+    public static class Aquariums
+    {
+        public static readonly bool Active = IsModActive("Nightmare.Aquariums");
 
-    public static readonly bool Aquariums = IsModActive("Nightmare.Aquariums");
+        public static readonly FastInvokeHandler CurrentTank;
+
+        static Aquariums()
+        {
+            if (Active)
+            {
+                try
+                {
+                    CurrentTank =
+                        MethodInvoker.GetHandler(AccessTools.PropertyGetter("Aquariums.AquariumFish:CurrentTank"));
+                }
+                catch (Exception ex)
+                {
+                    LogError(ex);
+                    Active = false;
+                }
+                finally
+                {
+                    if (AnyNull(CurrentTank))
+                    {
+                        LogIncompat("Aquariums");
+                    }
+                }
+            }
+        }
+    }
 
     public static readonly bool SmartPistol = IsModActive("rabiosus.smartpistol");
 

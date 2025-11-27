@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
 using RimWorld;
 using RimWorld.Planet;
 using RimWorld.QuestGen;
 using SmashTools;
-using Unity.Collections;
 using UnityEngine;
 using Vehicles.World;
 using Verse;
@@ -494,31 +494,21 @@ public static class Patch_CameraJumper_GetWorldTarget
     }
 }
 
-[HarmonyPatch(typeof(DesignationManager), nameof(DesignationManager.DesignationOn))]
+[HarmonyPatch]
 [PatchLevel(Level.Safe)]
 public static class Patch_DesignationManager_DesignationOn
 {
-    [HarmonyPatch([typeof(Thing)])]
-    [HarmonyPrefix]
-    public static bool Prefix1(Thing t, DesignationManager __instance, ref Designation __result)
+    private static IEnumerable<MethodBase> TargetMethods()
     {
-        var thingMap = t.MapHeld;
-        if (thingMap == null || thingMap == __instance.map) return true;
-        __result = thingMap.designationManager.DesignationOn(t);
-        return false;
+        return AccessTools.GetDeclaredMethods(typeof(DesignationManager))
+            .Where(m => m.Name == nameof(DesignationManager.DesignationOn));
     }
-
-    [HarmonyPatch([typeof(Thing), typeof(DesignationDef)])]
-    [HarmonyPrefix]
-    public static bool Prefix2(Thing t, DesignationDef def, DesignationManager __instance, ref Designation __result)
+    
+    public static void Prefix(ref DesignationManager __instance, Thing t)
     {
         var thingMap = t.MapHeld;
-        if (thingMap != null && thingMap != __instance.map)
-        {
-            __result = thingMap.designationManager.DesignationOn(t, def);
-            return false;
-        }
-        return true;
+        if (thingMap == null || thingMap == __instance.map) return;
+        __instance = thingMap.designationManager;
     }
 }
 
@@ -691,15 +681,13 @@ public static class Patch_QuestPart_SpawnThing_MapParent
 [PatchLevel(Level.Safe)]
 public static class Patch_AreaSource_DataForArea
 {
-    public static bool Prefix(Area area, Map ___map, ref NativeBitArray __result)
+    public static void Prefix(ref AreaSource __instance, Area area, Map ___map)
     {
         Map baseMap;
         if (area.Map != ___map && area.Map == (baseMap = ___map.BaseMap()))
         {
-            __result = areas(baseMap.pathFinder.MapData).DataForArea(area);
-            return false;
+            __instance = areas(baseMap.pathFinder.MapData);
         }
-        return true;
     }
 
     private static readonly AccessTools.FieldRef<PathFinderMapData, AreaSource> areas = AccessTools.FieldRefAccess<PathFinderMapData, AreaSource>("areas");
@@ -755,6 +743,44 @@ public static class Patch_QuestGen_TransportShip_AddShipJob_Arrive
             CodeInstruction.LoadField(typeof(PocketMapParent), nameof(PocketMapParent.sourceMap)),
             new CodeInstruction(OpCodes.Brfalse_S, label));
         return codes.Instructions();
+    }
+}
+
+[HarmonyPatch(typeof(GenHostility), nameof(GenHostility.AnyHostileActiveThreatTo))]
+[HarmonyPatch([typeof(Map), typeof(Faction), typeof(IAttackTarget), typeof(bool), typeof(bool)],
+    [ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Out, ArgumentType.Normal, ArgumentType.Normal])]
+[PatchLevel(Level.Safe)]
+public static class Patch_GenHostility_AnyHostileActiveThreatTo
+{
+    public static void Postfix(Map map, Faction faction, ref IAttackTarget threat, bool countDormantPawnsAsHostile, bool canBeFogged, ref bool __result)
+    {
+        if (__result) return;
+
+        foreach (var vehicle in VehiclePawnWithMapCache.AllVehiclesOn(map))
+        {
+            foreach (var attackTarget in vehicle.VehicleMap.attackTargetsCache.TargetsHostileToFaction(faction))
+            {
+                if (GenHostility.IsActiveThreatTo(attackTarget, faction, true, canBeFogged))
+                {
+                    threat = attackTarget;
+                    __result = true;
+                    return;
+                }
+                if (countDormantPawnsAsHostile && attackTarget.Thing.HostileTo(faction) && (canBeFogged || !attackTarget.Thing.Fogged()) && !attackTarget.ThreatDisabled(null))
+                {
+                    if (attackTarget.Thing is Pawn pawn)
+                    {
+                        var comp = pawn.GetComp<CompCanBeDormant>();
+                        if (comp is { Awake: false })
+                        {
+                            threat = attackTarget;
+                            __result = true;
+                            return;
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 

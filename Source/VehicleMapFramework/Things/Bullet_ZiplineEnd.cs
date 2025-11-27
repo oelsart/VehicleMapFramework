@@ -1,4 +1,5 @@
-﻿using RimWorld;
+﻿using System.Diagnostics.CodeAnalysis;
+using RimWorld;
 using UnityEngine;
 using Vehicles;
 using Verse;
@@ -8,6 +9,8 @@ namespace VehicleMapFramework;
 
 public class Bullet_ZiplineEnd : Bullet, IZiplineEnd
 {
+    public CustomZipline.ZipLineData ZipLineData { get; set; }
+
     private float ArcHeightFactor
     {
         get
@@ -22,14 +25,16 @@ public class Bullet_ZiplineEnd : Bullet, IZiplineEnd
         }
     }
 
-    public override void Launch(Thing launcher_, Vector3 origin_, LocalTargetInfo usedTarget_, LocalTargetInfo intendedTarget_, ProjectileHitFlags hitFlags, bool preventFriendlyFire_ = false, Thing equipment_ = null, ThingDef targetCoverDef_ = null)
+    [SuppressMessage("ReSharper", "ParameterHidesMember")]
+    public override void Launch(Thing launcher, Vector3 origin, LocalTargetInfo usedTarget, LocalTargetInfo intendedTarget, ProjectileHitFlags hitFlags, bool preventFriendlyFire = false, Thing equipment = null, ThingDef targetCoverDef = null)
     {
-        base.Launch(launcher_, origin_, usedTarget_, intendedTarget_, hitFlags, preventFriendlyFire_, equipment_, targetCoverDef_);
-        this.origin += (Vector3.forward * ZiplineEnd.LauncherOffset).RotatedBy(ExactRotation.eulerAngles.y);
+        base.Launch(launcher, origin, usedTarget, intendedTarget, hitFlags, preventFriendlyFire, equipment, targetCoverDef);
+        this.origin += (Vector3.forward * ZipLineData.LauncherOffset).RotatedBy(ExactRotation.eulerAngles.y);
     }
-    protected override void Tick()
+
+    protected override void TickInterval(int delta)
     {
-        base.Tick();
+        base.TickInterval(delta);
         destination = destMap != null ? intendedTarget.Cell.ToVector3Shifted().ToBaseMapCoord(destMap) : intendedTarget.Cell.ToVector3Shifted();
     }
 
@@ -42,9 +47,10 @@ public class Bullet_ZiplineEnd : Bullet, IZiplineEnd
     {
         if (blockedByShield) return;
 
-        var ziplineEnd = (ZiplineEnd)ThingMaker.MakeThing(VMF_DefOf.VMF_ZiplineEnd);
+        var ziplineEnd = (ZiplineEnd)ThingMaker.MakeThing(ZipLineData.ZiplineEndDef);
         ziplineEnd.launchVerb = launchVerb;
         ziplineEnd.rotation = ExactRotation.eulerAngles.y;
+        ziplineEnd.ZipLineData = ZipLineData;
         launchVerb.ZiplineEnd = ziplineEnd;
 
         if (destMap != null)
@@ -91,22 +97,8 @@ public class Bullet_ZiplineEnd : Bullet, IZiplineEnd
 
     public void DrawZipline(Vector3 drawLoc)
     {
-        if (launcher is { Spawned: true })
-        {
-            var num = ArcHeightFactor * GenMath.InverseParabola(DistanceCoveredFractionArc);
-            var drawPosA = drawLoc + (Vector3.forward * num) + (Vector3.back * ZiplineEnd.ZiplineEndOffset).RotatedBy(ExactRotation.eulerAngles.y);
-            var caster = launchVerb.caster;
-            var launcherPos = caster.DrawPos;
-            var offset = caster.def.building?.turretTopOffset.ToVector3() ?? Vector3.zero;
-            if (caster.IsOnNonFocusedVehicleMapOf(out var vehicle2))
-            {
-                offset = offset.RotatedBy(-vehicle2.Angle);
-            }
-            launcherPos += offset;
-            var drawPosB = launcherPos + (Vector3.forward * ZiplineEnd.LauncherOffset).RotatedBy((drawPosA - launcherPos).AngleFlat());
-            var y = Mathf.Max(drawPosA.y, drawPosB.y);
-            GenDraw.DrawLineBetween(drawPosA.WithY(y), drawPosB.WithY(y), ZiplineEnd.ZiplineLayer, ZiplineEnd.ZiplineMat, ZiplineEnd.ZiplineWidth);
-        }
+        var num = ArcHeightFactor * GenMath.InverseParabola(DistanceCoveredFractionArc);
+        ZiplineEnd.DrawZipline(drawLoc + Vector3.forward * num, ExactRotation.eulerAngles.y, launchVerb, ZipLineData);
     }
 
     public override void ExposeData()
@@ -114,6 +106,14 @@ public class Bullet_ZiplineEnd : Bullet, IZiplineEnd
         base.ExposeData();
         Scribe_References.Look(ref launchVerb, "LaunchVerb");
         Scribe_References.Look(ref destMap, "destMap");
+        if (Scribe.mode == LoadSaveMode.PostLoadInit)
+        {
+            var customZipline = def.GetModExtension<CustomZipline>();
+            if (customZipline != null)
+            {
+                ZipLineData = customZipline.zipLineData;
+            }
+        }
     }
 
     public Verb_LaunchZipline launchVerb;

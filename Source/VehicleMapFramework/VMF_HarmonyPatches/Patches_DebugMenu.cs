@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using HarmonyLib;
 using LudeonTK;
+using RimWorld;
 using Verse;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
@@ -38,6 +40,11 @@ public static class Patches_DebugTools
             Patch(method);
         }
         foreach (var method in typeof(DebugToolsPawns).GetDeclaredMethods())
+        {
+            Patch(method);
+        }
+        foreach (var method in AccessTools.InnerTypes(typeof(PrefabUtility)).Concat(typeof(PrefabUtility))
+                     .SelectMany(t => t.GetDeclaredMethods()))
         {
             Patch(method);
         }
