@@ -21,8 +21,10 @@ public class VehicleStructure : Building
     {
         base.SpawnSetup(map, respawningAfterLoad);
         if (!this.IsOnVehicleMapOf(out var vehicle)) return;
+        
         vehicle.mapEdgeCellsDirty = true;
         vehicle.structureCellsDirty = true;
+        BackwardCompatibility();
     }
 
     public override void DeSpawn(DestroyMode mode = DestroyMode.Vanish)
@@ -33,5 +35,15 @@ public class VehicleStructure : Building
             vehicle.structureCellsDirty = true;
         }
         base.DeSpawn(mode);
+    }
+    
+    private void BackwardCompatibility()
+    {
+        if (def != VMF_DefOf.VMF_VehicleStructureEmpty) return;
+
+        Map.terrainGrid.SetTerrain(Position, VMF_DefOf.VMF_ImpassableFloor);
+        allowDestroyNonDestroyable = true;
+        Destroy();
+        allowDestroyNonDestroyable = false;
     }
 }

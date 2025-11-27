@@ -10,15 +10,10 @@ public class PlaceWorker_MapExpander : PlaceWorker
         {
             return "VMF_ForbidOnVehicle".Translate();
         }
-        if (!vehicle.CachedExpandableCells.Contains(loc) || loc.GetEdifice(map)?.def != VMF_DefOf.VMF_VehicleStructureEmpty)
+        if (!vehicle.CachedExpandableCells.Contains(loc))
         {
             return "VMF_ForceOnExpandableCell".Translate();
         }
         return true;
-    }
-
-    public override bool ForceAllowPlaceOver(BuildableDef other)
-    {
-        return other == VMF_DefOf.VMF_VehicleStructureEmpty;
     }
 }

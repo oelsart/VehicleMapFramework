@@ -11,24 +11,13 @@ public class CompMapExpander : ThingComp
     public override void PostSpawnSetup(bool respawningAfterLoad)
     {
         if (parent.IsOnVehicleMapOf(out var vehicle))
-        {
-            if (parent.Position.GetEdifice(parent.Map) is VehicleStructure structure)
-            {
-                Thing.allowDestroyNonDestroyable = true;
-                structure.Destroy();
-                Thing.allowDestroyNonDestroyable = false;
-            }
             ResizeVehicle(vehicle);
-        }
     }
 
     public override void PostDeSpawn(Map map, DestroyMode mode = DestroyMode.Vanish)
     {
         if (map.IsVehicleMapOf(out var vehicle))
-        {
-            GenSpawn.Spawn(VMF_DefOf.VMF_VehicleStructureEmpty, parent.Position, map, WipeMode.VanishOrMoveAside);
             ResizeVehicle(vehicle);
-        }
     }
 
     private static void ResizeVehicle(VehiclePawnWithMap vehicle)

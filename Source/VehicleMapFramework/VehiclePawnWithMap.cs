@@ -109,7 +109,8 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
             if (field != null && !structureCellsDirty) return field;
             structureCellsDirty = false;
             field = [.. interiorMap.listerThings.ThingsOfDef(VMF_DefOf.VMF_VehicleStructureFilled)
-                .Concat(interiorMap.listerThings.ThingsOfDef(VMF_DefOf.VMF_VehicleStructureEmpty)).Select(b => b.Position)];
+                .Select(b => b.Position)
+                .Concat(interiorMap.AllCells.Where(c => c.GetTerrain(interiorMap) == VMF_DefOf.VMF_ImpassableFloor))];
             return field;
         }
     }
@@ -307,15 +308,15 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
                 }
                 foreach (var c in props.EmptyStructureCells)
                 {
-                    GenSpawn.Spawn(VMF_DefOf.VMF_VehicleStructureEmpty, c.ToIntVec3, interiorMap).SetFaction(Faction);
+                    interiorMap.terrainGrid.SetTerrain(c.ToIntVec3, VMF_DefOf.VMF_ImpassableFloor);
                 }
                 foreach (var c in props.ExpandableCells)
                 {
-                    GenSpawn.Spawn(VMF_DefOf.VMF_VehicleStructureEmpty, c.ToIntVec3, interiorMap).SetFaction(Faction);
+                    interiorMap.terrainGrid.SetTerrain(c.ToIntVec3, VMF_DefOf.VMF_ImpassableFloor);
                 }
                 foreach (var c in CachedOutOfBoundsCells)
                 {
-                    GenSpawn.Spawn(VMF_DefOf.VMF_VehicleStructureEmpty, c, interiorMap).SetFaction(Faction);
+                    interiorMap.terrainGrid.SetTerrain(c, VMF_DefOf.VMF_ImpassableFloor);
                 }
             }
         }

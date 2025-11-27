@@ -382,11 +382,6 @@ namespace VehicleMapFramework
         {
             cornerType = CornerType.None;
             color = Color.white;
-            var edifice = pos.GetEdifice(map);
-            if (edifice != null && edifice.def != VMF_DefOf.VMF_VehicleStructureEmpty)
-            {
-                return false;
-            }
             var terrainDef = terrGrid.FoundationAt(pos);
             if (terrainDef is { IsSubstructure: true })
             {

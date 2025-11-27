@@ -26,6 +26,8 @@ public static class VMF_DefOf
 
     public static TerrainDef VMF_VehicleFloor;
 
+    public static TerrainDef VMF_ImpassableFloor;
+
     public static ShaderTypeDef VMF_TerrainHardWithZ;
 
     public static ShaderTypeDef VMF_CutoutComplexRGBOpacity;
