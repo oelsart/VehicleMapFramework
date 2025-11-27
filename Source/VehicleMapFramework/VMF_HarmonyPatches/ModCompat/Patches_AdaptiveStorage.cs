@@ -15,7 +15,7 @@ internal static class Patches_AdaptiveStorage
 {
     static Patches_AdaptiveStorage()
     {
-        if (ModCompat.AdaptiveStorage)
+        if (ModCompat.AdaptiveStorage.Active)
         {
             VMF_Harmony.PatchCategory(PatchCategories.AdaptiveStorageFramework);
         }

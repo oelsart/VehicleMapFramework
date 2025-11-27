@@ -1,35 +1,19 @@
-﻿using System.Collections.Generic;
-using HarmonyLib;
-
-namespace VehicleMapFramework.VMF_HarmonyPatches;
-
-[StaticConstructorOnStartupPriority(Priority.Low)]
-internal static class Patches_MultiFloors
-{
-    static Patches_MultiFloors()
-    {
-        if (ModCompat.MultiFloors.Active)
-        {
-            VMF_Harmony.PatchCategory(PatchCategories.MultiFloors);
-        }
-    }
-}
-
-[HarmonyPatchCategory(PatchCategories.MultiFloors)]
-[HarmonyPatch("MultiFloors.Stair", "Print")]
-[PatchLevel(Level.Cautious)]
-public static class Patch_Stair_Print
-{
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) => Patch_Thing_Print.Transpiler(instructions);
-}
-
-[HarmonyPatchCategory(PatchCategories.MultiFloors)]
-[HarmonyPatch("MultiFloors.StairExit", "Print")]
-[PatchLevel(Level.Cautious)]
-public static class Patch_StairExit_Print
-{
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) => Patch_Thing_Print.Transpiler(instructions);
-}
+﻿// using System.Collections.Generic;
+// using HarmonyLib;
+//
+// namespace VehicleMapFramework.VMF_HarmonyPatches;
+//
+// [StaticConstructorOnStartupPriority(Priority.Low)]
+// internal static class Patches_MultiFloors
+// {
+//     static Patches_MultiFloors()
+//     {
+//         if (ModCompat.MultiFloors.Active)
+//         {
+//             VMF_Harmony.PatchCategory(PatchCategories.MultiFloors);
+//         }
+//     }
+// }
 
 //[HarmonyPatchCategory(PatchCategories.MultiFloors)]
 //[HarmonyPatch("MultiFloors.Maps.LevelMapGenerator", "SetupMapGenerator")]

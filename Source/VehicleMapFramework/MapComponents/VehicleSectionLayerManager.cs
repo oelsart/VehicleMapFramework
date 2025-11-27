@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using RimWorld;
 using SmashTools;
 using VehicleMapFramework.VMF_HarmonyPatches;
 using Verse;
@@ -64,9 +65,11 @@ namespace VehicleMapFramework
                             {
                                 for (var k = 0; k < 4; k++)
                                 {
-                                    layersByRot[section][type][k].Regenerate();
-                                    layersByRot[section][type][k].RefreshSubMeshBounds();
+                                    var layer2 = layersByRot[section][type][k];
+                                    layer2.Regenerate();
+                                    layer2.RefreshSubMeshBounds();
                                     VehicleMapUtility.RotForPrint = VehicleMapUtility.RotForPrint.Rotated(RotationDirection.Clockwise);
+                                    DirtyAdaptiveStorageGraphics(layer2, section);
                                 }
                             }
                             finally
@@ -125,18 +128,20 @@ namespace VehicleMapFramework
                 try
                 {
                     VehicleMapUtility.RotForPrint = Rot4.North;
-                    for (var i = 0; i < 4; i++)
+                    try
                     {
-                        try
+                        for (var i = 0; i < 4; i++)
                         {
                             sectionLayers[i].Regenerate();
-                        }
-                        finally
-                        {
-                            VehicleMapUtility.RotForPrint = VehicleMapUtility.RotForPrint.Rotated(RotationDirection.Clockwise);
+                            VehicleMapUtility.RotForPrint =
+                                VehicleMapUtility.RotForPrint.Rotated(RotationDirection.Clockwise);
+                            DirtyAdaptiveStorageGraphics(sectionLayers[i], section);
                         }
                     }
-                    VehicleMapUtility.RotForPrint = Rot4.North;
+                    finally
+                    {
+                        VehicleMapUtility.RotForPrint = Rot4.North;
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -161,6 +166,36 @@ namespace VehicleMapFramework
                 subMesh.verts[i] = vert;
             }
             subMesh.mesh.SetVertices(subMesh.verts);
+        }
+
+        private void DirtyAdaptiveStorageGraphics(SectionLayer layer, Section section)
+        {
+            if (AdaptiveStorage.Active && layer is SectionLayer_ThingsGeneral)
+            {
+                foreach (var intVec in section.CellRect)
+                {
+                    var list = map.thingGrid.ThingsListAt(intVec);
+                    var count = list.Count;
+                    for (var i = 0; i < count; i++)
+                    {
+                        var thing = list[i];
+                        if (thing.def.thingClass.SameOrSubclassOf(AdaptiveStorage.ThingClass) &&
+                            (thing.def.seeThroughFog || !map.fogGrid.IsFogged(thing.Position)) &&
+                            thing.def.drawerType != DrawerType.None &&
+                            thing.def.drawerType != DrawerType.RealtimeOnly &&
+                            (thing.def.hideAtSnowOrSandDepth >= 1f ||
+                             Math.Max(map.snowGrid.GetDepth(thing.Position), thing.Position.GetSandDepth(map)) <=
+                             thing.def.hideAtSnowOrSandDepth) &&
+                            (thing.def.plant == null || thing.def.plant.showInFrozenWater ||
+                             thing.Position.GetTerrain(map) != TerrainDefOf.ThinIce) && thing.Position.x == intVec.x &&
+                            thing.Position.z == intVec.z &&
+                            AdaptiveStorage.Renderer(thing) is { } renderer)
+                        {
+                            AdaptiveStorage.SetAllPrintDatasDirty(renderer);
+                        }
+                    }
+                }
+            }
         }
     }
 }

@@ -148,22 +148,6 @@ public static class Patch_Graphic_LinkedPipeDBH_ShouldLinkWith
 }
 
 [HarmonyPatchCategory(PatchCategories.DubsBadHygiene)]
-[HarmonyPatch(typeof(Building_AssignableFixture), nameof(Building_AssignableFixture.Print))]
-[PatchLevel(Level.Sensitive)]
-public static class Patch_Building_AssignableFixture_Print
-{
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        var codes = instructions.ToList();
-        var pos = codes.FindIndex(c => c.opcode == OpCodes.Ldc_R4 && (float)c.operand == 0f);
-
-        codes.Replace(codes[pos], new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_PrintExtraRotation));
-        codes.Insert(pos, CodeInstruction.LoadArgument(0));
-        return codes;
-    }
-}
-
-[HarmonyPatchCategory(PatchCategories.DubsBadHygiene)]
 [HarmonyPatch("DubsBadHygiene.Building_StallDoor", "DrawAt")]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Building_StallDoor_DrawAt

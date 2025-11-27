@@ -90,7 +90,49 @@ internal static class ModCompat
         }
     }
 
-    public static readonly bool AdaptiveStorage = IsModActive("adaptive.storage.framework");
+    public static class AdaptiveStorage
+    {
+        public static readonly bool Active = IsModActive("adaptive.storage.framework");
+
+        public static readonly Type TransformData;
+
+        public static readonly Type RotationAngle;
+
+        public static readonly Type ThingClass;
+
+        public static readonly FastInvokeHandler Renderer;
+
+        public static readonly FastInvokeHandler SetAllPrintDatasDirty;
+
+        static AdaptiveStorage()
+        {
+            
+            if (Active)
+            {
+                try
+                {
+                    TransformData = AccessTools.TypeByName("ITransformable.TransformData");
+                    RotationAngle = AccessTools.TypeByName("ITransformable.RotationAngle");
+                    ThingClass = AccessTools.TypeByName("AdaptiveStorage.ThingClass");
+                    Renderer = MethodInvoker.GetHandler(AccessTools.PropertyGetter(ThingClass, "Renderer"));
+                    SetAllPrintDatasDirty = MethodInvoker.GetHandler(AccessTools.Method("AdaptiveStorage.StorageRenderer:SetAllPrintDatasDirty"));
+                }
+                catch (Exception ex)
+                {
+                    LogError(ex);
+                    Active = false;
+                }
+                finally
+                {
+                    if (AnyNull(TransformData, RotationAngle, ThingClass, Renderer, SetAllPrintDatasDirty))
+                    {
+                        LogIncompat("Adaptive Storage");
+                        Active = false;
+                    }
+                }
+            }
+        }
+    }
 
     public static readonly bool AllowTool = IsModActive("UnlimitedHugs.AllowTool");
 
@@ -617,6 +659,62 @@ internal static class ModCompat
     public static readonly bool SmartPistol = IsModActive("rabiosus.smartpistol");
 
     public static readonly bool ReGrowth = IsModActive("ReGrowth.BOTR.Core");
+
+    public static class Rimatomics
+    {
+        public static readonly bool Active = IsModActive("Dubwise.Rimatomics");
+        
+        public static readonly Type CompProperties_Pipe;
+        
+        public static readonly AccessTools.FieldRef<object, int> CompProperties_Pipe_mode;
+        
+        public static readonly AccessTools.FieldRef<object, int> SectionLayer_OverlayPipe_mode;
+
+        public static readonly List<Type> SectionLayer_OverlayPipes;
+
+        public static readonly Type Designator_RemovePipe;
+        
+        public static readonly AccessTools.FieldRef<Designator, int> Designator_RemovePipe_RemovalMode;
+
+        public static readonly Type SectionLayer_ThingsPipe;
+
+        public static readonly Type BaseMissile;
+        
+        static Rimatomics()
+        {
+            if (Active)
+            {
+                try
+                {
+                    var t_SectionLayer_OverlayPipe =
+                        GenTypes.GetTypeInAnyAssembly("Rimatomics.SectionLayer_OverlayPipe", "Rimatomics");
+                    CompProperties_Pipe = GenTypes.GetTypeInAnyAssembly("Rimatomics.CompProperties_Pipe", "Rimatomics");
+                    CompProperties_Pipe_mode = AccessTools.FieldRefAccess<int>(CompProperties_Pipe, "mode");
+                    SectionLayer_OverlayPipe_mode = AccessTools.FieldRefAccess<int>(t_SectionLayer_OverlayPipe, "mode");
+                    SectionLayer_OverlayPipes = t_SectionLayer_OverlayPipe.AllSubclassesNonAbstract();
+                    Designator_RemovePipe = GenTypes.GetTypeInAnyAssembly("Rimatomics.Designator_RemovePipe", "Rimatomics");
+                    Designator_RemovePipe_RemovalMode = AccessTools.FieldRefAccess<int>(Designator_RemovePipe, "RemovalMode");
+                    SectionLayer_ThingsPipe = GenTypes.GetTypeInAnyAssembly("Rimatomics.SectionLayer_ThingsPipe", "Rimatomics");
+                    BaseMissile = GenTypes.GetTypeInAnyAssembly("Rimatomics.BaseMissile", "Rimatomics");
+                }
+                catch (Exception ex)
+                {
+                    LogError(ex);
+                    Active = false;
+                }
+                finally
+                {
+                    if (AnyNull(CompProperties_Pipe, CompProperties_Pipe_mode, SectionLayer_OverlayPipe_mode,
+                            SectionLayer_OverlayPipes, SectionLayer_ThingsPipe, Designator_RemovePipe,
+                            Designator_RemovePipe_RemovalMode))
+                    {
+                        LogIncompat("Rimatomics");
+                        Active = false;
+                    }
+                }
+            }
+        }
+    }
 
     public static class SmartFarming
     {
