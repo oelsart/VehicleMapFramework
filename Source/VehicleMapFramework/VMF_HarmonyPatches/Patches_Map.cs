@@ -773,3 +773,17 @@ public static class Patch_QuestGen_TransportShip_AddShipJob_Arrive
         return codes.Instructions();
     }
 }
+
+// 車両マップではマップサイズによってウェザーイベント（雷）のチャンスを減らす
+[HarmonyPatch(typeof(WeatherEventMaker), nameof(WeatherEventMaker.WeatherEventMakerTick))]
+[PatchLevel(Level.Safe)]
+public static class Patch_WeatherEventMaker_WeatherEventMakerTick
+{
+    public static void Prefix(Map map, ref float strength)
+    {
+        if (map.IsVehicleMapOf(out _))
+        {
+            strength *= map.Area / 40000f;
+        }
+    }
+}

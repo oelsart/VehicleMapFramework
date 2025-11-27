@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using SmashTools;
@@ -95,18 +94,23 @@ public static class CrossMapReachabilityUtility
         var cell = enterSpot.Cell.ToBaseMapCoord(vehicle);
         var faceCell = enterSpot.HasThing ? enterSpot.Thing.BaseFullRotation().FacingCell : enterSpot.Cell.BaseFullDirectionToInsideMap(vehicle).FacingCell;
 
-        dist = 1;
-        while ((cell - (faceCell * dist)).GetThingList(vehicle.Map).Contains(vehicle))
+        dist = 0;
+        IntVec3 cell2;
+        do
         {
             dist++;
-        }
+            cell2 = cell - faceCell * dist;
+            if (!cell2.InBounds(vehicle.Map))
+            {
+                dist = 0;
+                return IntVec3.Invalid;
+            }
+        } while (cell2.GetThingList(vehicle.Map).Contains(vehicle));
         if (enterSpot.Thing is Building_VehicleRamp && dist < 2) dist++;
 
-        var result = cell - (faceCell * dist);
         if (enterer != null)
-        {
-            result -= faceCell * enterer.HalfLength();
-        }
+            dist += enterer.HalfLength();
+        var result = cell - faceCell * dist;
         return result;
     }
 
@@ -624,7 +628,7 @@ public static class CrossMapReachabilityUtility
         for (var i = 0; i < num; i++)
         {
             var intVec = GenRadial.RadialPattern[i] + cell;
-            if (intVec.Standable(vehicle, map) && (!VehicleMod.settings.main.fullVehiclePathing || vehicle.DrivableRectOnCell(intVec, true, map)))
+            if (intVec.InBounds(map) && intVec.Standable(vehicle, map) && (!VehicleMod.settings.main.fullVehiclePathing || vehicle.DrivableRectOnCell(intVec, true, map)))
             {
                 if (map == vehicle.Map && intVec == vehicle.Position || vehicle.beached ||
                     AnyVehicleBlockingPathAt(intVec, vehicle, map) == null && vehicle.CanReachVehicle(intVec,
@@ -659,42 +663,45 @@ public static class CrossMapReachabilityUtility
         return null;
     }
 
-    public static bool DrivableRectOnCell(this VehiclePawn vehicle, IntVec3 cell, bool maxPossibleSize, Map map)
+    extension(VehiclePawn vehicle)
     {
-        if (maxPossibleSize)
+        public bool DrivableRectOnCell(IntVec3 cell, bool maxPossibleSize, Map map)
         {
-            return vehicle.VehicleRect(cell, Rot8.North).All(rectCell => vehicle.Drivable(rectCell, map)) &&
-                   vehicle.VehicleRect(cell, Rot8.East).All(rectCell => vehicle.Drivable(rectCell, map));
+            if (maxPossibleSize)
+            {
+                return vehicle.VehicleRect(cell, Rot8.North).All(rectCell => vehicle.Drivable(rectCell, map)) &&
+                       vehicle.VehicleRect(cell, Rot8.East).All(rectCell => vehicle.Drivable(rectCell, map));
+            }
+
+            return vehicle.MinRect(cell).Cells.All(c => vehicle.Drivable(c, map));
         }
 
-        return vehicle.MinRect(cell).Cells.All(c => vehicle.Drivable(c, map));
-    }
-
-    public static bool Drivable(this VehiclePawn vehicle, IntVec3 cell, Map map)
-    {
-        return cell.InBounds(map) && vehicle.DrivableFast(cell, map);
-    }
-
-    public static bool DrivableFast(this VehiclePawn vehicle, int index, Map map)
-    {
-        var cell = vehicle.Map.cellIndices.IndexToCell(index);
-        return vehicle.DrivableFast(cell, map);
-    }
-
-    public static bool DrivableFast(this VehiclePawn vehicle, int x, int z, Map map)
-    {
-        IntVec3 cell = new(x, 0, z);
-        return vehicle.DrivableFast(cell, map);
-    }
-
-    public static bool DrivableFast(this VehiclePawn vehicle, IntVec3 cell, Map map)
-    {
-        var vehiclePawn = map.GetDetachedMapComponent<VehiclePositionManager>().ClaimedBy(cell);
-        if (vehiclePawn == null || vehiclePawn == vehicle)
+        public bool Drivable(IntVec3 cell, Map map)
         {
-            return map.GetCachedMapComponent<VehiclePathingSystem>()[vehicle.VehicleDef].VehiclePathGrid.WalkableFast(cell);
+            return cell.InBounds(map) && vehicle.DrivableFast(cell, map);
         }
 
-        return false;
+        public bool DrivableFast(int index, Map map)
+        {
+            var cell = vehicle.Map.cellIndices.IndexToCell(index);
+            return vehicle.DrivableFast(cell, map);
+        }
+
+        public bool DrivableFast(int x, int z, Map map)
+        {
+            IntVec3 cell = new(x, 0, z);
+            return vehicle.DrivableFast(cell, map);
+        }
+
+        public bool DrivableFast(IntVec3 cell, Map map)
+        {
+            var vehiclePawn = map.GetDetachedMapComponent<VehiclePositionManager>().ClaimedBy(cell);
+            if (vehiclePawn == null || vehiclePawn == vehicle)
+            {
+                return map.GetCachedMapComponent<VehiclePathingSystem>()[vehicle.VehicleDef].VehiclePathGrid.WalkableFast(cell);
+            }
+
+            return false;
+        }
     }
 }

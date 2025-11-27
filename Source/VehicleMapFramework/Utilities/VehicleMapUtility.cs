@@ -16,9 +16,19 @@ namespace VehicleMapFramework;
 
 public static class VehicleMapUtility
 {
+    public const float YCompress = 40f;
+
+    private const float AltitudeOffset = 0.09615385f;
+
+    private const float AltitudeOffsetFull = 7.692308f;
+    
     public static Map CurrentMap =>
-        Command_FocusVehicleMap.FocusedVehicle != null ?
-            Command_FocusVehicleMap.FocusedVehicle.CurrentLevel : Find.CurrentMap;
+        Command_FocusVehicleMap.FocusedVehicle != null
+            ? Command_FocusVehicleMap.FocusedVehicle.CurrentLevel : Find.CurrentMap;
+
+    public static Rot4 RotForPrintCounter => RotForPrint.IsHorizontal ? RotForPrint.Opposite : RotForPrint;
+
+    public static Rot4 RotForPrint { get; set; }
 
     public static bool FocusedOnVehicleMap(out VehiclePawnWithMap vehicle)
     {
@@ -105,18 +115,6 @@ public static class VehicleMapUtility
         }
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static float YOffset(this float original)
-    {
-        return original / YCompress + AltitudeOffset;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector3 YOffset(this Vector3 original)
-    {
-        return original.WithY(original.y.YOffset());
-    }
-
     extension(float original)
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -130,10 +128,27 @@ public static class VehicleMapUtility
         {
             return original / YCompress + vehicle.cachedDrawPos.y;
         }
+
+        public float FlipAngle(VehiclePawn vehicle)
+        {
+            return vehicle.Graphic.WestFlipped && vehicle.BaseRotation() == Rot4.West ? -original : original;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public float YOffset()
+        {
+            return original / YCompress + AltitudeOffset;
+        }
     }
 
     extension(Vector3 original)
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Vector3 YOffset()
+        {
+            return original.WithY(original.y.YOffset());
+        }
+        
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Vector3 YOffsetFull()
         {
@@ -169,43 +184,7 @@ public static class VehicleMapUtility
             var drawPos = (original - vehicleMapPos).RotatedBy(-vehicle.FullAngle()) + pivot;
             return drawPos;
         }
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static IntVec3 ToVehicleMapCoord(this IntVec3 original, VehiclePawnWithMap vehicle)
-    {
-        return original.ToVector3Shifted().ToVehicleMapCoord(vehicle).ToIntVec3();
-    }
-
-    public static CellRect ToVehicleMapCoord(this CellRect original)
-    {
-        var longSide = Mathf.Max(original.Width, original.Height);
-        return new CellRect(0, 0, longSide, longSide);
-    }
-
-    public static CellRect ClipInsideVehicleMap(ref this CellRect cellRect, Map map)
-    {
-        if (map.IsVehicleMapOf(out var vehicle))
-        {
-            //if (vehicle.Spawned)
-            //{
-            //    var vehicleRect = vehicle.VehicleRect(true);
-            //    cellRect = cellRect.MovedBy(-vehicleRect.Min);
-            //    return cellRect.ClipInsideMap(vehicle.VehicleMap);
-            //}
-            return cellRect = vehicle.VehicleMap.BoundsRect();
-        }
-        return cellRect.ClipInsideMap(map);
-    }
-
-    public static CellRect MovedOccupiedDrawRect(this Thing t)
-    {
-        var drawSize = t.DrawSize;
-        return GenAdj.OccupiedRect(t.PositionOnBaseMap(), t.BaseRotation(), new IntVec2(Mathf.CeilToInt(drawSize.x), Mathf.CeilToInt(drawSize.y)));
-    }
-
-    extension(Vector3 original)
-    {
+        
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Vector3 ToBaseMapCoord()
         {
@@ -246,6 +225,39 @@ public static class VehicleMapUtility
             drawPos += OffsetFor(vehicle, rot);
             return drawPos;
         }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static IntVec3 ToVehicleMapCoord(this IntVec3 original, VehiclePawnWithMap vehicle)
+    {
+        return original.ToVector3Shifted().ToVehicleMapCoord(vehicle).ToIntVec3();
+    }
+
+    public static CellRect ToVehicleMapCoord(this CellRect original)
+    {
+        var longSide = Mathf.Max(original.Width, original.Height);
+        return new CellRect(0, 0, longSide, longSide);
+    }
+
+    public static CellRect ClipInsideVehicleMap(ref this CellRect cellRect, Map map)
+    {
+        if (map.IsVehicleMapOf(out var vehicle))
+        {
+            //if (vehicle.Spawned)
+            //{
+            //    var vehicleRect = vehicle.VehicleRect(true);
+            //    cellRect = cellRect.MovedBy(-vehicleRect.Min);
+            //    return cellRect.ClipInsideMap(vehicle.VehicleMap);
+            //}
+            return cellRect = vehicle.VehicleMap.BoundsRect();
+        }
+        return cellRect.ClipInsideMap(map);
+    }
+
+    public static CellRect MovedOccupiedDrawRect(this Thing t)
+    {
+        var drawSize = t.DrawSize;
+        return GenAdj.OccupiedRect(t.PositionOnBaseMap(), t.BaseRotation(), new IntVec2(Mathf.CeilToInt(drawSize.x), Mathf.CeilToInt(drawSize.y)));
     }
 
     public static Matrix4x4 ToBaseMapCoord(this Matrix4x4 matrix, VehiclePawnWithMap vehicle)
@@ -541,20 +553,6 @@ public static class VehicleMapUtility
         }
     }
 
-    public static Rot8 BaseFullRotation(this VehiclePawn vehicle)
-    {
-        if (!vehicle.VehicleDef.graphicData.drawRotated)
-        {
-            return Rot8.North;
-        }
-        var rot = new Rot8(vehicle.Rotation, vehicle.Angle);
-        if (vehicle.IsOnNonFocusedVehicleMapOf(out var vehicle2))
-        {
-            rot = new Rot8(Rot8.FromIntClockwise((rot.AsIntClockwise + vehicle2.FullRotation.AsIntClockwise) % 8));
-        }
-        return rot;
-    }
-
     extension(Thing thing)
     {
         public Rot8 BaseFullRotation()
@@ -676,16 +674,7 @@ public static class VehicleMapUtility
 
     public static IntVec2 BaseRotatedSize(Thing thing)
     {
-        if (!thing.BaseRotation().IsHorizontal)
-        {
-            return thing.def.size;
-        }
-        return new IntVec2(thing.def.size.z, thing.def.size.x);
-    }
-
-    public static float FlipAngle(this float angle, VehiclePawn vehicle)
-    {
-        return vehicle.Graphic.WestFlipped && vehicle.BaseRotation() == Rot4.West ? -angle : angle;
+        return !thing.BaseRotation().IsHorizontal ? thing.def.size : new IntVec2(thing.def.size.z, thing.def.size.x);
     }
 
     public static float VehicleMapMass(VehiclePawnWithMap vehicle)
@@ -836,6 +825,20 @@ public static class VehicleMapUtility
         {
             return vehicle.VehicleDef.HalfLength();
         }
+
+        public Rot8 BaseFullRotation()
+        {
+            if (!vehicle.VehicleDef.graphicData.drawRotated)
+            {
+                return Rot8.North;
+            }
+            var rot = new Rot8(vehicle.Rotation, vehicle.Angle);
+            if (vehicle.IsOnNonFocusedVehicleMapOf(out var vehicle2))
+            {
+                rot = new Rot8(Rot8.FromIntClockwise((rot.AsIntClockwise + vehicle2.FullRotation.AsIntClockwise) % 8));
+            }
+            return rot;
+        }
     }
 
     public static IEnumerable<Thing> ColonyThingsWillingToBuyOnVehicle(this VehiclePawnWithMap vehicle, ITrader trader)
@@ -954,16 +957,6 @@ public static class VehicleMapUtility
             return vehicle2 != null && c.ToVehicleMapCoord(vehicle2).Roofed(vehicle2.VehicleMap);
         }
     }
-
-    public static Rot4 RotForPrintCounter => RotForPrint.IsHorizontal ? RotForPrint.Opposite : RotForPrint;
-
-    public static Rot4 RotForPrint { get; set; }
-
-    public const float YCompress = 40f;
-
-    private const float AltitudeOffset = 0.09615385f;
-
-    private const float AltitudeOffsetFull = 7.692308f;
 }
 
 [Flags]

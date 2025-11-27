@@ -15,6 +15,7 @@
 - Name: DubsBadHygiene
 - Name: Rimefeller
   LoadOnly: true
+- Name: Rimatomics
 - Name: AdaptiveStorageFramework
 - Name: AllowTool
   Mods:

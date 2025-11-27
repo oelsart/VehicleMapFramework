@@ -65,18 +65,30 @@ public static class Patch_Graphic_LinkedTransmitter_ShouldLinkWith
     public static void Prefix(ref IntVec3 c, Thing parent) => Patch_Graphic_Linked_ShouldLinkWith.Prefix(ref c, parent);
 }
 
-[HarmonyPatch(typeof(Thing), nameof(Thing.Print))]
+[HarmonyPatch]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Thing_Print
 {
+    private static IEnumerable<MethodBase> TargetMethods()
+    {
+        return typeof(Thing).AllSubclasses().Concat(typeof(Thing)).Except(typeof(MinifiedThing))
+            .Select(t => AccessTools.DeclaredMethod(t, nameof(Thing.Print)))
+            .Where(m =>
+            {
+                if (m is null) return false;
+                return VMF_Harmony.ReadMethodBodyWrapper(m).Any(i =>
+                    OpCodes.Ldc_R4.Equals(i.Key) && 0f.Equals(i.Value));
+            });
+    }
+    
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        var codes = instructions.ToList();
-        var pos = codes.FindIndex(c => c.opcode == OpCodes.Ldc_R4 && (float)c.operand == 0f);
-
-        codes.Replace(codes[pos], new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_PrintExtraRotation));
-        codes.Insert(pos, CodeInstruction.LoadArgument(0));
-        return codes;
+        var codes = new CodeMatcher(instructions);
+        codes.MatchStartForward(CodeMatch.LoadsConstant(0f))
+            .Repeat(matcher =>
+                matcher.InsertAndAdvance(CodeInstruction.LoadArgument(0))
+                    .SetInstruction(new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_PrintExtraRotation)));
+        return codes.Instructions();
     }
 }
 

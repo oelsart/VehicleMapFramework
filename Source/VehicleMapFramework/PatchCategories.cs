@@ -88,6 +88,8 @@ internal static class PatchCategories
     
     public const string ReGrowth = "VMF_Patches_ReGrowth";
     
+    public const string Rimatomics = "VMF_Patches_Rimatomics";
+    
     public const string RimWorldOfMagic = "VMF_Patches_RimWorldOfMagic";
     
     public const string SmarterConstruction = "VMF_Patches_SmarterConstruction";

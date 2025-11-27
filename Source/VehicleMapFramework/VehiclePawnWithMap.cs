@@ -327,22 +327,25 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
 
     internal void RemoveVehicleMap()
     {
-        if (Find.Maps.Contains(interiorMap))
+        LongEventHandler.ExecuteWhenFinished(() =>
         {
-            var pocketMapParent = interiorMap.PocketMapParent;
-            if (pocketMapParent != null)
+            if (Find.Maps.Contains(interiorMap))
             {
-                pocketMapParent.sourceMap = null;
-                Find.World.pocketMaps.Remove(pocketMapParent);
-                Find.World.renderer.wantedMode = WorldRenderMode.None;
+                var pocketMapParent = interiorMap.PocketMapParent;
+                if (pocketMapParent != null)
+                {
+                    pocketMapParent.sourceMap = null;
+                    Find.World.pocketMaps.Remove(pocketMapParent);
+                    Find.World.renderer.wantedMode = WorldRenderMode.None;
+                }
+                Current.Game.DeinitAndRemoveMap(interiorMap, false);
             }
-            Current.Game.DeinitAndRemoveMap(interiorMap, false);
-        }
-        interiorMap = null;
+            interiorMap = null;
 
-        if (!VehicleMapFramework.settings.dynamicUnpatchEnabled) return;
-        if (VehicleMapParentsComponent.CachedMapParentVehicle.Any(p => p.Value != null)) return;
-        VMF_Harmony.DynamicPatchAll(VehicleMapFramework.settings.dynamicPatchLevel);
+            if (!VehicleMapFramework.settings.dynamicUnpatchEnabled) return;
+            if (VehicleMapParentsComponent.CachedMapParentVehicle.Any(p => p.Value != null)) return;
+            VMF_Harmony.DynamicPatchAll(VehicleMapFramework.settings.dynamicPatchLevel);
+        });
     }
 
     public override void SpawnSetup(Map map, bool respawningAfterLoad)
@@ -753,6 +756,29 @@ public class VehiclePawnWithMap : VehiclePawn, IAttackTarget
             DrawLayer(section, Rimefeller.XSectionLayer_Napalm, drawPos);
             DrawLayer(section, Rimefeller.XSectionLayer_OilSpill, drawPos);
             DrawLayer(component.GetLayer(section, Rimefeller.SectionLayer_ThingsPipe, rot), drawPos);
+        }
+        if (Rimatomics.Active)
+        {
+            var designator = Find.DesignatorManager.SelectedDesignator;
+            if (designator?.GetType() == Rimatomics.Designator_RemovePipe)
+            {
+                var mode = Rimatomics.Designator_RemovePipe_RemovalMode(designator);
+                foreach (var layer in Rimatomics.SectionLayer_OverlayPipes.Where(layer =>
+                             mode == Rimatomics.SectionLayer_OverlayPipe_mode(section.GetLayer(layer))))
+                    DrawLayer(section, layer, drawPos);
+            }
+            else if (designator is Designator_Build { PlacingDef: ThingDef thingDef })
+            {
+                foreach (var compProperties in thingDef.comps.Where(c =>
+                             c.GetType().SameOrSubclassOf(Rimatomics.CompProperties_Pipe)))
+                {
+                    var mode = Rimatomics.CompProperties_Pipe_mode(compProperties);
+                    foreach (var layer in Rimatomics.SectionLayer_OverlayPipes.Where(layer =>
+                                 mode == Rimatomics.SectionLayer_OverlayPipe_mode(section.GetLayer(layer))))
+                        DrawLayer(section, layer, drawPos);
+                }
+            }
+            DrawLayer(section, Rimatomics.SectionLayer_ThingsPipe, drawPos);
         }
         if (ModsConfig.OdysseyActive)
         {
