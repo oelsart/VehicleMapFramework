@@ -205,58 +205,40 @@ public static class Patch_CameraDriver_Update
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
-        var codes = instructions.ToList();
-        var g_Thing_DrawSize = AccessTools.PropertyGetter(typeof(Thing), nameof(Thing.DrawSize));
-        var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithMap));
-        var isVehicleMap = generator.DeclareLocal(typeof(bool));
-        var longSide = generator.DeclareLocal(typeof(float));
-        var drawSize = generator.DeclareLocal(typeof(Vector2));
+        var limit = Patch_Map_MapUpdate.MeshSize.x / 2f;
+        var codes = new CodeMatcher(instructions, generator).Reset();
+        codes.DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle);
+        codes.DeclareLocal(typeof(bool), out var isVehicleMap);
 
-        var pos = codes.FindIndex(c => c.opcode == OpCodes.Ldc_R4 && c.OperandIs(2f)) + 1;
-        var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Ldc_R4 && c.OperandIs(-2f));
-        var label = generator.DefineLabel();
-        var label2 = generator.DefineLabel();
-        codes[pos].labels.Add(label);
-        codes[pos2].labels.Add(label2);
-        codes.InsertRange(pos,
-        [
+        codes.CreateLabel(out var label);
+        codes.Insert(
             CodeInstruction.LoadField(typeof(VehicleMapFramework), nameof(VehicleMapFramework.settings)),
             CodeInstruction.LoadField(typeof(VehicleMapSettings), nameof(VehicleMapSettings.drawPlanet)),
             new CodeInstruction(OpCodes.Brfalse_S, label),
             new CodeInstruction(OpCodes.Call, CachedMethodInfo.g_Find_CurrentMap),
             new CodeInstruction(OpCodes.Ldloca_S, vehicle),
             new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsVehicleMapOf),
-            new CodeInstruction(OpCodes.Stloc_S, isVehicleMap),
-            new CodeInstruction(OpCodes.Ldloc_S, isVehicleMap),
-            new CodeInstruction(OpCodes.Brfalse_S, label),
-            new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-            new CodeInstruction(OpCodes.Callvirt, g_Thing_DrawSize),
-            new CodeInstruction(OpCodes.Stloc_S, drawSize),
-            new CodeInstruction(OpCodes.Ldloc_S, drawSize),
-            CodeInstruction.LoadField(typeof(Vector2), nameof(Vector2.x)),
-            new CodeInstruction(OpCodes.Ldloc_S, drawSize),
-            CodeInstruction.LoadField(typeof(Vector2), nameof(Vector2.y)),
-            CodeInstruction.Call(typeof(Mathf), nameof(Mathf.Max), [typeof(float), typeof(float)]),
-            new CodeInstruction(OpCodes.Stloc_S, longSide),
-            new CodeInstruction(OpCodes.Ldloc_S, longSide),
-            new CodeInstruction(OpCodes.Br_S, label2),
-        ]);
+            new CodeInstruction(OpCodes.Stloc_S, isVehicleMap));
 
-        pos = codes.FindIndex(pos2, c => c.opcode == OpCodes.Ldc_R4 && c.OperandIs(2f)) + 1;
-        pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Ldc_R4 && c.OperandIs(-2f));
-        var label3 = generator.DefineLabel();
-        var label4 = generator.DefineLabel();
-        codes[pos].labels.Add(label3);
-        codes[pos2].labels.Add(label4);
-        codes.InsertRange(pos,
-        [
-            new CodeInstruction(OpCodes.Ldloc_S, isVehicleMap),
-            new CodeInstruction(OpCodes.Brfalse_S, label3),
-            new CodeInstruction(OpCodes.Ldloc_S, longSide),
-            new CodeInstruction(OpCodes.Br_S, label4),
-        ]);
+        for (var i = 0; i < 2; i++)
+        {
+            codes.MatchStartForward(CodeMatch.LoadsConstant(2f));
+            codes.CreateLabelWithOffsets(1, out var label2);
+            codes.InsertAfterAndAdvance(
+                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+                new CodeInstruction(OpCodes.Brfalse_S, label2),
+                new CodeInstruction(OpCodes.Ldc_R4, limit),
+                new CodeInstruction(OpCodes.Sub));
 
-        return codes;
+            codes.MatchStartForward(CodeMatch.LoadsConstant(-2f));
+            codes.CreateLabel(out var label3);
+            codes.InsertAndAdvance(
+                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+                new CodeInstruction(OpCodes.Brfalse_S, label3),
+                new CodeInstruction(OpCodes.Pop),
+                new CodeInstruction(OpCodes.Ldc_R4, limit));
+        }
+        return codes.InstructionEnumeration();
     }
 }
 

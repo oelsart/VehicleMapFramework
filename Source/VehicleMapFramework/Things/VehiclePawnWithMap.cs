@@ -883,8 +883,7 @@ public class VehiclePawnWithMap : VehiclePawn
         {
             var material = MapEdgeClipDrawer.ClipMat;
             var size = Patch_Map_MapUpdate.MeshSize;
-            var longSide = Mathf.Max(DrawSize.x / 2f, DrawSize.y / 2f);
-            Vector3 origin = new((-size.x / 2f) + longSide, 0f, (-size.y / 2f) + longSide);
+            Vector3 origin = new(-size.x / 2f, 0f, -size.y / 2f);
             Vector3 s = new(500f, 1f, size.y);
             Matrix4x4 matrix = default;
             matrix.SetTRS(new Vector3(-250f, 0f, size.y / 2f) + origin, Quaternion.identity, s);
