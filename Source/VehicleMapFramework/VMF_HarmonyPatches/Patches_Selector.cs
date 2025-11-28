@@ -76,41 +76,24 @@ public static class Patch_Selector_SelectInternal
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
-        var codes = instructions.MethodReplacer(CachedMethodInfo.g_Thing_MapHeld, CachedMethodInfo.m_MapHeldBaseMap)
-            .MethodReplacer(CachedMethodInfo.g_Zone_Map, CachedMethodInfo.m_BaseMap_Zone).ToList();
-        var g_Zone_Cells = AccessTools.PropertyGetter(typeof(Zone), nameof(Zone.Cells));
-        var pos = codes.FindIndex(c => c.opcode == OpCodes.Callvirt && c.OperandIs(g_Zone_Cells));
-        pos = codes.FindIndex(pos, c => c.opcode == OpCodes.Br_S);
-        var label = generator.DefineLabel();
-        var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithMap));
-
-        codes[pos].labels.Add(label);
-        codes.InsertRange(pos,
-        [
-            CodeInstruction.LoadArgument(1),
-            new CodeInstruction(OpCodes.Castclass, typeof(Zone)),
-            new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_Zone_Map),
-            new CodeInstruction(OpCodes.Ldloca_S, vehicle),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsVehicleMapOf),
-            new CodeInstruction(OpCodes.Brfalse_S, label),
-            new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ToBaseMapCoord2)
-        ]);
-
-        var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalIndex == 11);
-        var label2 = codes[pos2].labels[0];
-        var vehicle2 = generator.DeclareLocal(typeof(VehiclePawnWithMap));
-
-        codes.InsertRange(pos2,
-        [
-            CodeInstruction.LoadLocal(0),
-            new CodeInstruction(OpCodes.Ldloca_S, vehicle2),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf),
-            new CodeInstruction(OpCodes.Brfalse_S, label2),
-            new CodeInstruction(OpCodes.Ldloc_S, vehicle2),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ToBaseMapCoord2)
-        ]);
-        return codes;
+        var codes = new CodeMatcher(instructions, generator)
+            .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Find_CurrentMap))
+            .InsertAndAdvance(new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMap_Map));
+        
+        var l_intVec = codes.Instructions().Select(c => c.operand).OfType<LocalBuilder>()
+            .First(l => l.LocalType == typeof(IntVec3));
+        return codes
+            .MatchStartForward(CodeMatch.IsStloc(l_intVec))
+            .DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle)
+            .CreateLabel(out var label)
+            .Insert(
+                CodeInstruction.LoadLocal(3),
+                new CodeInstruction(OpCodes.Ldloca_S, vehicle),
+                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsVehicleMapOf),
+                new CodeInstruction(OpCodes.Brfalse_S, label),
+                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ToBaseMapCoord3))
+            .InstructionEnumeration();
     }
 }
 
@@ -126,13 +109,15 @@ public static class Patch_CameraJumper_TryJumpInternal
             {
                 vehicle.CurrentLevel = map;
             }
-            if (vehicle.Spawned || VehicleMapFramework.settings.drawPlanet)
+
+            if (VehicleMapFramework.settings.drawPlanet)
             {
-                map = vehicle.Map;
-                cell = cell.ToBaseMapCoord(vehicle);
-            }
-            else if (VehicleMapFramework.settings.drawPlanet)
-            {
+                if (vehicle.Spawned)
+                {
+                    map = vehicle.Map;
+                    cell = cell.ToBaseMapCoord(vehicle);
+                    return;
+                }
                 cell = cell.ToBaseMapCoord(vehicle);
                 Patch_Map_MapUpdate.lastRenderedTick = -1;
             }

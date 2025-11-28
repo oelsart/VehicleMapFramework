@@ -581,6 +581,8 @@ public class VehiclePawnWithMap : VehiclePawn
                 Transform.rotation = rotation;
                 CellDesignationsDirty();
             }
+
+            interiorMap?.rememberedCameraPos.rootPos = drawLoc;
         }
         var drawLoc2 = drawLoc.WithYOffset(-Altitudes.AltInc * 100f);
         CacheDrawPos(drawLoc2);

@@ -225,6 +225,49 @@ public static class VehicleMapUtility
             drawPos += OffsetFor(vehicle, rot);
             return drawPos;
         }
+
+        public bool TryGetVehicleMap(Map map, out VehiclePawnWithMap vehicle, VehicleMapFlag flag = VehicleMapFlag.StructureCells)
+        {
+            if (map == null)
+            {
+                vehicle = null;
+                return false;
+            }
+
+            var vehicles =
+                (map.IsVehicleMapOf(out var vehicle2) &&
+                 VehicleMapFramework.settings.drawPlanet &&
+                 vehicle2.GetVehicleCaravan() is { } vehicleCaravan
+                    ? vehicleCaravan.Vehicles.OfType<VehiclePawnWithMap>()
+                    : VehiclePawnWithMapCache.AllVehiclesOn(map))
+                .OrderBy(v => (v.cachedDrawPos - original).MagnitudeHorizontalSquared());
+
+            vehicle = vehicles
+                .FirstOrDefault(v =>
+            {
+                var rect = new Rect(0f, 0f, v.VehicleMap.Size.x, v.VehicleMap.Size.z);
+                var vector = original.ToVehicleMapCoord(v);
+                var intVec = vector.ToIntVec3();
+                if (!rect.Contains(new Vector2(vector.x, vector.z)))
+                {
+                    return false;
+                }
+                if (!v.CachedStructureCells.Contains(intVec))
+                {
+                    return true;
+                }
+                if (flag.HasFlag(VehicleMapFlag.StructureCells) && !v.CachedExpandableCells.Contains(intVec) && !v.CachedOutOfBoundsCells.Contains(intVec))
+                {
+                    return true;
+                }
+                if (flag.HasFlag(VehicleMapFlag.ExpandableCells) && v.CachedExpandableCells.Contains(intVec))
+                {
+                    return true;
+                }
+                return flag.HasFlag(VehicleMapFlag.OutOfBoundsCells) && v.CachedOutOfBoundsCells.Contains(intVec);
+            });
+            return vehicle != null;
+        }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -688,47 +731,6 @@ public static class VehicleMapUtility
     public static Vector3 RotateForPrintNegate(Vector3 vector)
     {
         return vector.RotatedBy(-RotForPrint.AsAngle);
-    }
-
-    public static bool TryGetVehicleMap(this Vector3 point, Map map, out VehiclePawnWithMap vehicle, VehicleMapFlag flag = VehicleMapFlag.StructureCells)
-    {
-        if (VehicleMapFramework.settings.drawPlanet && Find.CurrentMap.IsVehicleMapOf(out vehicle))
-        {
-            return true;
-        }
-
-        if (map == null)
-        {
-            vehicle = null;
-            return false;
-        }
-
-        var vehicles = VehiclePawnWithMapCache.AllVehiclesOn(map)
-            .OrderBy(v => (v.cachedDrawPos - point).MagnitudeHorizontalSquared());
-        vehicle = vehicles.FirstOrDefault(v =>
-        {
-            var rect = new Rect(0f, 0f, v.VehicleMap.Size.x, v.VehicleMap.Size.z);
-            var vector = point.ToVehicleMapCoord(v);
-            var intVec = vector.ToIntVec3();
-            if (!rect.Contains(new Vector2(vector.x, vector.z)))
-            {
-                return false;
-            }
-            if (!v.CachedStructureCells.Contains(intVec))
-            {
-                return true;
-            }
-            if (flag.HasFlag(VehicleMapFlag.StructureCells) && !v.CachedExpandableCells.Contains(intVec) && !v.CachedOutOfBoundsCells.Contains(intVec))
-            {
-                return true;
-            }
-            if (flag.HasFlag(VehicleMapFlag.ExpandableCells) && v.CachedExpandableCells.Contains(intVec))
-            {
-                return true;
-            }
-            return flag.HasFlag(VehicleMapFlag.OutOfBoundsCells) && v.CachedOutOfBoundsCells.Contains(intVec);
-        });
-        return vehicle != null;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

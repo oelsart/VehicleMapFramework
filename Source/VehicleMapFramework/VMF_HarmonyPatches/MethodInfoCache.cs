@@ -46,6 +46,8 @@ public class MethodInfoCache
     public readonly MethodInfo m_ToBaseMapCoord1 = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.ToBaseMapCoord), [typeof(Vector3)]);
 
     public readonly MethodInfo m_ToBaseMapCoord2 = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.ToBaseMapCoord), [typeof(Vector3), typeof(VehiclePawnWithMap)]);
+    
+    public readonly MethodInfo m_ToBaseMapCoord3 = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.ToBaseMapCoord), [typeof(IntVec3), typeof(VehiclePawnWithMap)]);
 
     public readonly MethodInfo m_ToThingMapCoord = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.ToThingMapCoord));
 
