@@ -3,9 +3,7 @@ using System.Linq;
 using RimWorld;
 using SmashTools;
 using UnityEngine;
-using VehicleMapFramework.VMF_HarmonyPatches;
 using Vehicles;
-using Vehicles.Rendering;
 using Verse;
 using static Vehicles.VehicleUpgrade;
 using PawnOverlayRenderer = Vehicles.PawnOverlayRenderer;
@@ -47,7 +45,7 @@ public class VehicleUpgradeBuildable : VehicleUpgrade
         {
             foreach (var armorUpgrade in armor)
             {
-                if (!armorUpgrade.key.NullOrEmpty() && !armorUpgrade.statModifiers.NullOrEmpty())
+                if (!armorUpgrade.key.NullOrEmpty() && !armorUpgrade.statModifiers.NullOrEmpty() && parent?.parent != null)
                 {
                     var component = vehicle.statHandler.GetComponent(armorUpgrade.key);
                     var type = armorUpgrade.type;
@@ -55,12 +53,12 @@ public class VehicleUpgradeBuildable : VehicleUpgrade
                     {
                         if (type == UpgradeType.Set)
                         {
-                            component.SetArmorModifiers[node.key] = armorUpgrade.statModifiers;
+                            component.SetArmorModifiers[parent.parent.ThingID] = armorUpgrade.statModifiers;
                         }
                     }
                     else
                     {
-                        component.AddArmorModifiers[node.key] = armorUpgrade.statModifiers;
+                        component.AddArmorModifiers[parent.parent.ThingID] = armorUpgrade.statModifiers;
                     }
                 }
             }
@@ -69,7 +67,7 @@ public class VehicleUpgradeBuildable : VehicleUpgrade
         {
             foreach (var healthUpgrade in health)
             {
-                if (!healthUpgrade.key.NullOrEmpty())
+                if (!healthUpgrade.key.NullOrEmpty() && parent?.parent != null)
                 {
                     var component2 = vehicle.statHandler.GetComponent(healthUpgrade.key);
                     if (healthUpgrade.value != null)
@@ -84,7 +82,7 @@ public class VehicleUpgradeBuildable : VehicleUpgrade
                         }
                         else
                         {
-                            component2.AddHealthModifiers[node.key] = healthUpgrade.value.Value;
+                            component2.AddHealthModifiers[parent.parent.ThingID] = healthUpgrade.value.Value;
                         }
                         component2.SetHealth(component2.MaxHealth);
                     }
@@ -121,7 +119,7 @@ public class VehicleUpgradeBuildable : VehicleUpgrade
         {
             foreach (var armorUpgrade in armor)
             {
-                if (!armorUpgrade.key.NullOrEmpty() && !armorUpgrade.statModifiers.NullOrEmpty())
+                if (!armorUpgrade.key.NullOrEmpty() && !armorUpgrade.statModifiers.NullOrEmpty() && parent?.parent != null)
                 {
                     var component = vehicle.statHandler.GetComponent(armorUpgrade.key);
                     var type = armorUpgrade.type;
@@ -158,7 +156,7 @@ public class VehicleUpgradeBuildable : VehicleUpgrade
                         }
                         else
                         {
-                            component2.AddHealthModifiers.Remove(node.key);
+                            component2.AddHealthModifiers.Remove(parent.parent.ThingID);
                         }
                     }
                     if (healthUpgrade.depth != null)

@@ -1,15 +1,16 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using RimWorld;
+using Vehicles;
 using Verse;
 
 namespace VehicleMapFramework;
 
-public class CompRelatedBuildCommands : ThingComp
+public class CompRelatedBuildCommands : VehicleComp
 {
     public override IEnumerable<Gizmo> CompGetGizmosExtra()
     {
-        foreach (var dropdownGroup in BuildRelatedCommandUtility.RelatedBuildCommands(parent.def)
+        foreach (var dropdownGroup in BuildRelatedCommandUtility.RelatedBuildCommands(Vehicle.VehicleDef.buildDef)
                      .OfType<Designator_Build>()
                      .GroupBy(des => des.PlacingDef?.designatorDropdown))
         {

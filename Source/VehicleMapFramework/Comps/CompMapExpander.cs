@@ -129,17 +129,13 @@ public class CompMapExpander : ThingComp
     {
         if (parent.IsOnVehicleMapOf(out var vehicle))
         {
+            foreach (var c in parent.OccupiedRect())
+                parent.Map.terrainGrid.SetTerrain(c, VMF_DefOf.VMF_VehicleFloor);
             vehicle.MapExpanderComps.Add(this);
-            foreach (var intVec in parent.OccupiedRect())
-            {
-                if (intVec.GetEdifice(parent.Map) is not VehicleStructure structure)
-                    continue;
-                Thing.allowDestroyNonDestroyable = true;
-                structure.Destroy();
-                Thing.allowDestroyNonDestroyable = false;
-            }
             DirtySelfAndAdjacentComps(parent.Map);
+            vehicle.structureCellsDirty = true;
             ResizeVehicle(vehicle);
+        }
     }
 
     public override void PostDeSpawn(Map map, DestroyMode mode = DestroyMode.Vanish)
@@ -162,21 +158,20 @@ public class CompMapExpander : ThingComp
                 }
             }
         }
-        
+
         if (map.IsVehicleMapOf(out var vehicle))
         {
+            foreach (var c in occupiedRect)
+                map.terrainGrid.SetTerrain(c, VMF_DefOf.VMF_ImpassableFloor);
             vehicle.MapExpanderComps.Remove(this);
-            foreach (var intVec in occupiedRect)
-            {
-                GenSpawn.Spawn(VMF_DefOf.VMF_VehicleStructureEmpty, intVec, map, WipeMode.VanishOrMoveAside);
-            }
-
             if (IsBridge)
             {
                 vehicle.MapExpanderComps.ForEach(c => c.cachedIsOnlyBridge = null);
             }
             DirtySelfAndAdjacentComps(map);
+            vehicle.structureCellsDirty = true;
             ResizeVehicle(vehicle);
+        }
     }
 
     private void DirtySelfAndAdjacentComps(Map map)
@@ -238,7 +233,6 @@ public class CompMapExpander : ThingComp
                 }
                 
                 vehicle.DrawTracker.tweener.ResetTweenedPosToRoot();
-                vehicle.Map.GetCachedMapComponent<VehiclePathingSystem>().RequestGridsFor(vehicle);
                 var def = vehicle.VehicleDef;
                 def.components?.ForEach(component =>
                 {
@@ -249,6 +243,7 @@ public class CompMapExpander : ThingComp
                 {
                     vehicle.vehiclePather.nextCell = vehicle.Position;
                 }
+                vehicle.Map.GetCachedMapComponent<VehiclePathingSystem>().RequestGridsFor(vehicle);
             }
         }
     }

@@ -8,7 +8,7 @@ public class PlaceWorker_VehicleRelatedBuildings : PlaceWorker
         Thing thing = null)
     {
         if (map.IsVehicleMapOf(out var vehicle) && checkingDef is ThingDef thingDef &&
-            (vehicle.def.building?.relatedBuildCommands?.Contains(thingDef) ?? false))
+            (vehicle.VehicleDef.buildDef.building?.relatedBuildCommands?.Contains(thingDef) ?? false))
         {
             return true;
         }

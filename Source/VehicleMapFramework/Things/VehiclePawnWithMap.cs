@@ -490,7 +490,13 @@ public class VehiclePawnWithMap : VehiclePawn
                 var positionOnBaseMap = thing.PositionOnBaseMap();
                 if (thing.def.category == ThingCategory.Building)
                 {
-                    thing.Destroy();
+                    if (thing.def.destroyable)
+                    {
+                        allowDestroyNonDestroyable = true;
+                        thing.Destroy();
+                        allowDestroyNonDestroyable = false;
+                    }
+                    else thing.Destroy();
                     thing.Position = positionOnBaseMap;
                     GenLeaving.DoLeavingsFor(thing, Map, DestroyMode.Deconstruct);
                 }
