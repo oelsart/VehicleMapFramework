@@ -6,5 +6,5 @@
 		<texturePath>Designations/RemoveFloor</texturePath>
 		<targetType>Thing</targetType>
 	</DesignationDef>
-
+	
 </Defs>

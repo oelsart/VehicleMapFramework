@@ -31,7 +31,7 @@ public static class VerbOnVehicleUtility
             var casterBaseMap = verb.caster.BaseMap();
             var targCellOnBaseMap = TargetMapManager.TargetCellOnBaseMap(ref targ, verb.caster);
 
-            if (targ.HasThing && targ.Thing.BaseMap() != casterBaseMap)
+            if (targ.HasThing && targ.Thing.BaseMapOrCaravan() != verb.caster.BaseMapOrCaravan())
             {
                 resultingLine = default;
                 return false;
@@ -96,11 +96,10 @@ public static class VerbOnVehicleUtility
 
         public bool CanHitFromCellIgnoringRange(IntVec3 sourceCellBaseCol, LocalTargetInfo targ, out IntVec3 goodDest)
         {
-            var baseMap = verb.Caster.BaseMap();
             var targCellOnBaseMap = TargetMapManager.TargetCellOnBaseMap(ref targ, verb.caster);
             if (targ.HasThing)
             {
-                if (targ.Thing.BaseMap() != baseMap)
+                if (targ.Thing.BaseMapOrCaravan() != verb.caster.BaseMapOrCaravan())
                 {
                     goodDest = IntVec3.Invalid;
                     return false;
@@ -116,7 +115,7 @@ public static class VerbOnVehicleUtility
                     }
                 }
             }
-            else if (verb.CanHitCellFromCellIgnoringRange(sourceCellBaseCol, targCellOnBaseMap, baseMap))
+            else if (verb.CanHitCellFromCellIgnoringRange(sourceCellBaseCol, targCellOnBaseMap, verb.Caster.BaseMap()))
             {
                 goodDest = targCellOnBaseMap;
                 return true;

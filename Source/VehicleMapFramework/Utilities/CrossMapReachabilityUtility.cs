@@ -158,10 +158,11 @@ public static class CrossMapReachabilityUtility
                 result = false;
                 return false;
             }
-            var destBaseMap = destMap.IsVehicleMapOf(out var vehicle) && vehicle.Spawned ? vehicle.Map : destMap;
+
+            destMap.IsVehicleMapOf(out var vehicle);
             var departBaseMap = departMap.IsVehicleMapOf(out var vehicle2) && vehicle2.Spawned ? vehicle2.Map : departMap;
 
-            if (departBaseMap == destBaseMap)
+            if (departMap.BaseMapOrCaravan() == destMap.BaseMapOrCaravan())
             {
                 var flag = departMap == departBaseMap;
                 var flag2 = departBaseMap == destMap;
@@ -441,7 +442,7 @@ public static class CrossMapReachabilityUtility
         {
             return false;
         }
-        if (departMap.BaseMap() != destMap.BaseMap())
+        if (departMap.BaseMapOrCaravan() != destMap.BaseMapOrCaravan())
         {
             return false;
         }
@@ -450,13 +451,10 @@ public static class CrossMapReachabilityUtility
         var tmpEnterSpot = TargetInfo.Invalid;
         if (flag2)
         {
-            if (vehicle2.AvailableEnterComps.Any(c => CanReach(departMap, root, c.parent, PathEndMode.OnCell, traverseParms, destMap, out tmpExitSpot, out tmpEnterSpot)))
-            {
-                exitSpot = tmpExitSpot;
-                enterSpot = tmpEnterSpot;
-                return true;
-            }
-            if (vehicle2.CachedWalkableMapEdgeCells.Any(c => CanReach(departMap, root, c, PathEndMode.OnCell, traverseParms, destMap, out tmpExitSpot, out tmpEnterSpot)))
+            if (vehicle2.AvailableEnterComps.Any(c => CanReach(departMap, root, c.parent, PathEndMode.OnCell,
+                    traverseParms, destMap, out tmpExitSpot, out tmpEnterSpot)) ||
+                vehicle2.CachedWalkableMapEdgeCells.Any(c => CanReach(departMap, root, c, PathEndMode.OnCell,
+                    traverseParms, destMap, out tmpExitSpot, out tmpEnterSpot)))
             {
                 exitSpot = tmpExitSpot;
                 enterSpot = tmpEnterSpot;
@@ -465,152 +463,15 @@ public static class CrossMapReachabilityUtility
         }
         else if (flag)
         {
-            if (vehicle.AvailableEnterComps.Any(c => CanReach(departMap, root, c.EnterVehiclePosition, PathEndMode.OnCell, traverseParms, destMap, out tmpExitSpot, out tmpEnterSpot)))
+            if (vehicle.AvailableEnterComps.Any(c => CanReach(departMap, root, c.EnterVehiclePosition,
+                    PathEndMode.OnCell, traverseParms, destMap, out tmpExitSpot, out tmpEnterSpot)) ||
+                vehicle.CachedWalkableMapEdgeCells.Any(c => CanReach(departMap, root,
+                    EnterVehiclePosition(new TargetInfo(c, departMap)), PathEndMode.OnCell, traverseParms, destMap,
+                    out tmpExitSpot, out tmpEnterSpot)))
             {
                 exitSpot = tmpExitSpot;
                 enterSpot = tmpEnterSpot;
                 return true;
-            }
-            if (vehicle.CachedWalkableMapEdgeCells.Any(c => CanReach(departMap, root, EnterVehiclePosition(new TargetInfo(c, departMap)), PathEndMode.OnCell, traverseParms, destMap, out tmpExitSpot, out tmpEnterSpot)))
-            {
-                exitSpot = tmpExitSpot;
-                enterSpot = tmpEnterSpot;
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public static bool CanReachVehicle(this VehiclePawn vehicle, LocalTargetInfo dest, PathEndMode peMode, Danger maxDanger, TraverseMode mode, Map destMap, out TargetInfo exitSpot, out TargetInfo enterSpot)
-    {
-        exitSpot = TargetInfo.Invalid;
-        enterSpot = TargetInfo.Invalid;
-
-        var traverseParms = TraverseParms.For(vehicle, maxDanger, mode);
-
-        if (dest.Cell == vehicle.Position && destMap == vehicle.Map)
-        {
-            return true;
-        }
-        if (!vehicle.Spawned) return false;
-
-        var departMap = vehicle.Map;
-        if (departMap == null || destMap == null) return false;
-        if (departMap == destMap)
-        {
-            return MapComponentCache<VehiclePathingSystem>.GetComponent(departMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(vehicle.Position, dest, peMode, traverseParms);
-        }
-        if (MultiFloors.Active && (MultiFloors.GetLevel(departMap) != MultiFloors.GetLevel(destMap)))
-        {
-            return false;
-        }
-        if (vehicle is VehiclePawnWithMap)
-        {
-            return false;
-        }
-        var destBaseMap = destMap.IsVehicleMapOf(out var vehicle2) && vehicle2.Spawned ? vehicle2.Map : destMap;
-        var departBaseMap = departMap.IsVehicleMapOf(out var vehicle3) && vehicle3.Spawned ? vehicle3.Map : departMap;
-
-        //行き先のマップでまだPathGridが作られてない場合構築をリクエストする処理を追加
-        var destMapPathing = MapComponentCache<VehiclePathingSystem>.GetComponent(destMap);
-        if (!destMapPathing[vehicle.VehicleDef].VehiclePathGrid.Enabled)
-        {
-            destMapPathing.RequestGridsFor(vehicle.VehicleDef, DeferredGridGeneration.Urgency.Urgent);
-        }
-
-        if (departBaseMap == destBaseMap)
-        {
-            var flag = departMap == departBaseMap;
-            var flag2 = departBaseMap == destMap;
-            bool AvailableEnterSpot(CompVehicleEnterSpot comp)
-            {
-                return comp != null && comp.Props.allowPassingVehicle && comp.parent.def.size.x >= vehicle.VehicleDef.size.x;
-            }
-
-            bool result;
-            switch (flag)
-            {
-                //vehicleが車上マップに居て目的地がベースマップ
-                case false when flag2 && vehicle3 != null:
-                {
-                    Thing tmpSpot = null;
-                    result = vehicle3.AvailableEnterComps.Where(e => e.Isnt<CompZipline>()).OrderBy(e => e.DistanceSquared(dest.Cell)).Any(e =>
-                    {
-                        tmpSpot = e.parent;
-                        if (!AvailableEnterSpot(e) || tmpSpot.OccupiedRect().Any(c3 => !vehicle.Drivable(c3, departMap))) return false;
-
-                        var cell = EnterVehiclePosition(tmpSpot, vehicle);
-                        return vehicle.VehicleDef.CellRectStandable(destMap, cell, tmpSpot.BaseFullRotation().Opposite) &&
-                               MapComponentCache<VehiclePathingSystem>.GetComponent(departMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(vehicle.Position, tmpSpot, PathEndMode.OnCell, traverseParms) &&
-                               destMapPathing[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(cell, dest, peMode, TraverseMode.PassDoors, traverseParms.maxDanger);
-                    });
-                    exitSpot = result ? tmpSpot : TargetInfo.Invalid;
-                    return result;
-                }
-                //vehicleがベースマップに居て目的地が車上マップ
-                case true when !flag2 && vehicle2 != null:
-                {
-                    Thing tmpSpot = null;
-                    result = vehicle2.AvailableEnterComps.Where(e => e.Isnt<CompZipline>()).OrderBy(e => e.DistanceSquared(vehicle.Position)).Any(e =>
-                    {
-                        tmpSpot = e.parent;
-                        if (!AvailableEnterSpot(e) || tmpSpot.OccupiedRect().Any(c3 => !vehicle.Drivable(c3, destMap))) return false;
-
-                        var cell = EnterVehiclePosition(tmpSpot, vehicle);
-                        var cell2 = tmpSpot.Position + (tmpSpot.Rotation.FacingCell * vehicle.HalfLength());
-                        return vehicle.VehicleDef.CellRectStandable(destMap, cell2, tmpSpot.Rotation) &&
-                               MapComponentCache<VehiclePathingSystem>.GetComponent(departMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(vehicle.Position, cell, PathEndMode.OnCell, traverseParms) &&
-                               destMapPathing[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(cell2, dest, peMode, TraverseMode.PassDoors, traverseParms.maxDanger);
-                    });
-                    enterSpot = result ? tmpSpot : TargetInfo.Invalid;
-                    return result;
-                }
-                //vehicleと目的地がそれぞれ別の車上マップ
-                default:
-                {
-                    if (vehicle3 != null)
-                    {
-                        if (vehicle2 != null)
-                        {
-                            //行き先のベースマップでまだPathGridが作られてない場合構築をリクエストする処理を追加
-                            var departBaseMapPathing = MapComponentCache<VehiclePathingSystem>.GetComponent(departBaseMap);
-                            if (!departBaseMapPathing[vehicle.VehicleDef].VehiclePathGrid.Enabled)
-                            {
-                                departBaseMapPathing.RequestGridsFor(vehicle.VehicleDef, DeferredGridGeneration.Urgency.Urgent);
-                            }
-
-                            Thing tmpSpot = null;
-                            Thing tmpSpot2 = null;
-                            result = vehicle3.AvailableEnterComps.Where(e => e.Isnt<CompZipline>()).OrderBy(e => e.DistanceSquared(dest.Cell.ToBaseMapCoord(vehicle2))).Any(e =>
-                            {
-                                tmpSpot = e.parent;
-                                if (!AvailableEnterSpot(e) || tmpSpot.OccupiedRect().Any(c => !vehicle.Drivable(c, departMap))) return false;
-
-                                var cell = EnterVehiclePosition(tmpSpot, vehicle);
-
-                                return vehicle2.AvailableEnterComps.Where(e2 => e2.Isnt<CompZipline>()).OrderBy(e2 => e2.DistanceSquared(cell)).Any(e2 =>
-                                {
-                                    tmpSpot2 = e2.parent;
-                                    if (!AvailableEnterSpot(e2) || tmpSpot2.OccupiedRect().Any(c => !vehicle.Drivable(c, destMap))) return false;
-
-                                    var cell2 = EnterVehiclePosition(tmpSpot2, vehicle);
-                                    var cell3 = tmpSpot2.Position + (tmpSpot2.Rotation.FacingCell * vehicle.HalfLength());
-
-                                    return vehicle.VehicleDef.CellRectStandable(departBaseMap, cell, tmpSpot.BaseFullRotation().Opposite) &&
-                                           vehicle.VehicleDef.CellRectStandable(destMap, cell3, tmpSpot2.Rotation) &&
-                                           MapComponentCache<VehiclePathingSystem>.GetComponent(departMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(vehicle.Position, tmpSpot, PathEndMode.OnCell, traverseParms) &&
-                                           departBaseMapPathing[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(cell, cell2, PathEndMode.OnCell, TraverseMode.PassDoors, traverseParms.maxDanger) &&
-                                           destMapPathing[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(cell3, dest, peMode, TraverseMode.PassDoors, traverseParms.maxDanger);
-                                });
-                            });
-                            exitSpot = result ? tmpSpot : TargetInfo.Invalid;
-                            enterSpot = result ? tmpSpot2 : TargetInfo.Invalid;
-                            return result;
-                        }
-                    }
-
-                    break;
-                }
             }
         }
         return false;
@@ -701,6 +562,141 @@ public static class CrossMapReachabilityUtility
                 return map.GetCachedMapComponent<VehiclePathingSystem>()[vehicle.VehicleDef].VehiclePathGrid.WalkableFast(cell);
             }
 
+            return false;
+        }
+
+        public bool CanReachVehicle(LocalTargetInfo dest, PathEndMode peMode, Danger maxDanger, TraverseMode mode, Map destMap, out TargetInfo exitSpot, out TargetInfo enterSpot)
+        {
+            exitSpot = TargetInfo.Invalid;
+            enterSpot = TargetInfo.Invalid;
+
+            var traverseParms = TraverseParms.For(vehicle, maxDanger, mode);
+
+            if (dest.Cell == vehicle.Position && destMap == vehicle.Map)
+            {
+                return true;
+            }
+            if (!vehicle.Spawned) return false;
+
+            var departMap = vehicle.Map;
+            if (departMap == null || destMap == null) return false;
+            if (departMap == destMap)
+            {
+                return MapComponentCache<VehiclePathingSystem>.GetComponent(departMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(vehicle.Position, dest, peMode, traverseParms);
+            }
+            if (MultiFloors.Active && (MultiFloors.GetLevel(departMap) != MultiFloors.GetLevel(destMap)))
+            {
+                return false;
+            }
+            if (vehicle is VehiclePawnWithMap)
+            {
+                return false;
+            }
+            var destBaseMap = destMap.IsVehicleMapOf(out var vehicle2) && vehicle2.Spawned ? vehicle2.Map : destMap;
+            var departBaseMap = departMap.IsVehicleMapOf(out var vehicle3) && vehicle3.Spawned ? vehicle3.Map : departMap;
+
+            //行き先のマップでまだPathGridが作られてない場合構築をリクエストする処理を追加
+            var destMapPathing = MapComponentCache<VehiclePathingSystem>.GetComponent(destMap);
+            if (!destMapPathing[vehicle.VehicleDef].VehiclePathGrid.Enabled)
+            {
+                destMapPathing.RequestGridsFor(vehicle.VehicleDef, DeferredGridGeneration.Urgency.Urgent);
+            }
+
+            if (departBaseMap == destBaseMap)
+            {
+                var flag = departMap == departBaseMap;
+                var flag2 = departBaseMap == destMap;
+                bool AvailableEnterSpot(CompVehicleEnterSpot comp)
+                {
+                    return comp != null && comp.Props.allowPassingVehicle && comp.parent.def.size.x >= vehicle.VehicleDef.size.x;
+                }
+
+                bool result;
+                switch (flag)
+                {
+                    //vehicleが車上マップに居て目的地がベースマップ
+                    case false when flag2 && vehicle3 != null:
+                    {
+                        Thing tmpSpot = null;
+                        result = vehicle3.AvailableEnterComps.Where(e => e.Isnt<CompZipline>()).OrderBy(e => e.DistanceSquared(dest.Cell)).Any(e =>
+                        {
+                            tmpSpot = e.parent;
+                            if (!AvailableEnterSpot(e) || tmpSpot.OccupiedRect().Any(c3 => !vehicle.Drivable(c3, departMap))) return false;
+
+                            var cell = EnterVehiclePosition(tmpSpot, vehicle);
+                            return vehicle.VehicleDef.CellRectStandable(destMap, cell, tmpSpot.BaseFullRotation().Opposite) &&
+                                   MapComponentCache<VehiclePathingSystem>.GetComponent(departMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(vehicle.Position, tmpSpot, PathEndMode.OnCell, traverseParms) &&
+                                   destMapPathing[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(cell, dest, peMode, TraverseMode.PassDoors, traverseParms.maxDanger);
+                        });
+                        exitSpot = result ? tmpSpot : TargetInfo.Invalid;
+                        return result;
+                    }
+                    //vehicleがベースマップに居て目的地が車上マップ
+                    case true when !flag2 && vehicle2 != null:
+                    {
+                        Thing tmpSpot = null;
+                        result = vehicle2.AvailableEnterComps.Where(e => e.Isnt<CompZipline>()).OrderBy(e => e.DistanceSquared(vehicle.Position)).Any(e =>
+                        {
+                            tmpSpot = e.parent;
+                            if (!AvailableEnterSpot(e) || tmpSpot.OccupiedRect().Any(c3 => !vehicle.Drivable(c3, destMap))) return false;
+
+                            var cell = EnterVehiclePosition(tmpSpot, vehicle);
+                            var cell2 = tmpSpot.Position + (tmpSpot.Rotation.FacingCell * vehicle.HalfLength());
+                            return vehicle.VehicleDef.CellRectStandable(destMap, cell2, tmpSpot.Rotation) &&
+                                   MapComponentCache<VehiclePathingSystem>.GetComponent(departMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(vehicle.Position, cell, PathEndMode.OnCell, traverseParms) &&
+                                   destMapPathing[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(cell2, dest, peMode, TraverseMode.PassDoors, traverseParms.maxDanger);
+                        });
+                        enterSpot = result ? tmpSpot : TargetInfo.Invalid;
+                        return result;
+                    }
+                    //vehicleと目的地がそれぞれ別の車上マップ
+                    default:
+                    {
+                        if (vehicle3 != null)
+                        {
+                            if (vehicle2 != null)
+                            {
+                                //行き先のベースマップでまだPathGridが作られてない場合構築をリクエストする処理を追加
+                                var departBaseMapPathing = MapComponentCache<VehiclePathingSystem>.GetComponent(departBaseMap);
+                                if (!departBaseMapPathing[vehicle.VehicleDef].VehiclePathGrid.Enabled)
+                                {
+                                    departBaseMapPathing.RequestGridsFor(vehicle.VehicleDef, DeferredGridGeneration.Urgency.Urgent);
+                                }
+
+                                Thing tmpSpot = null;
+                                Thing tmpSpot2 = null;
+                                result = vehicle3.AvailableEnterComps.Where(e => e.Isnt<CompZipline>()).OrderBy(e => e.DistanceSquared(dest.Cell.ToBaseMapCoord(vehicle2))).Any(e =>
+                                {
+                                    tmpSpot = e.parent;
+                                    if (!AvailableEnterSpot(e) || tmpSpot.OccupiedRect().Any(c => !vehicle.Drivable(c, departMap))) return false;
+
+                                    var cell = EnterVehiclePosition(tmpSpot, vehicle);
+
+                                    return vehicle2.AvailableEnterComps.Where(e2 => e2.Isnt<CompZipline>()).OrderBy(e2 => e2.DistanceSquared(cell)).Any(e2 =>
+                                    {
+                                        tmpSpot2 = e2.parent;
+                                        if (!AvailableEnterSpot(e2) || tmpSpot2.OccupiedRect().Any(c => !vehicle.Drivable(c, destMap))) return false;
+
+                                        var cell2 = EnterVehiclePosition(tmpSpot2, vehicle);
+                                        var cell3 = tmpSpot2.Position + (tmpSpot2.Rotation.FacingCell * vehicle.HalfLength());
+
+                                        return vehicle.VehicleDef.CellRectStandable(departBaseMap, cell, tmpSpot.BaseFullRotation().Opposite) &&
+                                               vehicle.VehicleDef.CellRectStandable(destMap, cell3, tmpSpot2.Rotation) &&
+                                               MapComponentCache<VehiclePathingSystem>.GetComponent(departMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(vehicle.Position, tmpSpot, PathEndMode.OnCell, traverseParms) &&
+                                               departBaseMapPathing[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(cell, cell2, PathEndMode.OnCell, TraverseMode.PassDoors, traverseParms.maxDanger) &&
+                                               destMapPathing[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(cell3, dest, peMode, TraverseMode.PassDoors, traverseParms.maxDanger);
+                                    });
+                                });
+                                exitSpot = result ? tmpSpot : TargetInfo.Invalid;
+                                enterSpot = result ? tmpSpot2 : TargetInfo.Invalid;
+                                return result;
+                            }
+                        }
+
+                        break;
+                    }
+                }
+            }
             return false;
         }
     }

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using Verse;
 
 namespace VehicleMapFramework;
@@ -37,6 +38,22 @@ public sealed class Command_FocusVehicleMap : Command
         {
             FocusLockedVehicle = null;
             FocusedVehicle = null;
+        }
+    }
+
+    public readonly struct FocusVehicle : IDisposable
+    {
+        private readonly VehiclePawnWithMap tmpFocused;
+
+        public FocusVehicle(VehiclePawnWithMap vehicle)
+        {
+            tmpFocused = FocusedVehicle;
+            FocusedVehicle = vehicle;
+        }
+        
+        public void Dispose()
+        {
+            FocusedVehicle = tmpFocused;
         }
     }
 }

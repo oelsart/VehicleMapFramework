@@ -22,6 +22,9 @@ public static class GenDrawOnVehicle
 
     public static void DrawFieldEdges(List<IntVec3> cells, Color color, float? altOffset = null, HashSet<IntVec3> ignoreBorderCells = null, int renderQueue = 2900, Map map = null)
     {
+        const int x = 200;
+        const int z = 200;
+        
         if (map == null)
         {
             if (Command_FocusVehicleMap.FocusedVehicle != null)
@@ -45,28 +48,28 @@ public static class GenDrawOnVehicle
         material.GetTexture(AdditionalShaderPropertyIDs.MainTex).wrapMode = TextureWrapMode.Clamp;
         if (fieldGrid == null)
         {
-            fieldGrid = new BoolGrid(map);
+            fieldGrid = new BoolGrid(x, z);
         }
         else
         {
-            fieldGrid.ClearAndResizeTo(map);
+            fieldGrid.ClearAndResizeTo(x, z);
         }
-        var x = map.Size.x;
-        var z = map.Size.z;
         var count = cells.Count;
         var y = altOffset ?? (Rand.ValueSeeded(color.ToOpaque().GetHashCode()) * 0.03846154f / 10f);
+        var offset = new IntVec3(x / 2, 0, z / 2);
         for (var i = 0; i < count; i++)
         {
-            if (cells[i].InBounds(map))
+            var intVec = cells[i] + offset;
+            if (InBounds(intVec))
             {
-                fieldGrid[cells[i].x, cells[i].z] = true;
+                fieldGrid[intVec.x, intVec.z] = true;
             }
         }
         var vehicleMap = map.IsVehicleMapOf(out var vehicle);
         for (var j = 0; j < count; j++)
         {
-            var intVec = cells[j];
-            if (intVec.InBounds(map))
+            var intVec = cells[j] + offset;
+            if (InBounds(intVec))
             {
                 rotNeeded[0] = intVec.z < z - 1 && !fieldGrid[intVec.x, intVec.z + 1] && !(ignoreBorderCells?.Contains(intVec + IntVec3.North) ?? false);
                 rotNeeded[1] = intVec.x < x - 1 && !fieldGrid[intVec.x + 1, intVec.z] && !(ignoreBorderCells?.Contains(intVec + IntVec3.East) ?? false);
@@ -78,16 +81,19 @@ public static class GenDrawOnVehicle
                     {
                         if (vehicleMap)
                         {
-                            Graphics.DrawMesh(MeshPool.plane10, intVec.ToVector3Shifted().ToBaseMapCoord(vehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor()).WithYOffset(y), new Rot4(k).AsQuat * vehicle.FullAngleQuat(), material, 0);
+                            Graphics.DrawMesh(MeshPool.plane10, (intVec - offset).ToVector3Shifted().ToBaseMapCoord(vehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor()).WithYOffset(y), new Rot4(k).AsQuat * vehicle.FullAngleQuat(), material, 0);
                         }
                         else
                         {
-                            Graphics.DrawMesh(MeshPool.plane10, intVec.ToVector3ShiftedWithAltitude(AltitudeLayer.MetaOverlays).WithYOffset(y), new Rot4(k).AsQuat, material, 0);
+                            Graphics.DrawMesh(MeshPool.plane10, (intVec - offset).ToVector3ShiftedWithAltitude(AltitudeLayer.MetaOverlays).WithYOffset(y), new Rot4(k).AsQuat, material, 0);
                         }
                     }
                 }
             }
         }
+        return;
+
+        bool InBounds(IntVec3 c) => (ulong)c.x < 200 && (ulong)c.z < 200;
     }
 
     public static void DrawFieldEdgesSF(List<IntVec3> cells, Zone zone, Map map)

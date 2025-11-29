@@ -2,6 +2,7 @@
 using RimWorld;
 using UnityEngine;
 using VehicleMapFramework.VMF_HarmonyPatches;
+using Vehicles;
 using Verse;
 
 namespace VehicleMapFramework;
@@ -30,12 +31,11 @@ public class Verb_LaunchZipline : Verb_Shoot
         return (targ.Pawn == null || !targ.Pawn.IsPsychologicallyInvisible() || !caster.HostileTo(targ.Pawn)) && !ApparelPreventsShooting() && this.TryFindShootLineFromToOnVehicle(root, targ, out _);
     }
 
-    [SuppressMessage("ReSharper", "ParameterHidesMember")]
-    public override bool TryStartCastOn(LocalTargetInfo castTarg, LocalTargetInfo destTarg, bool surpriseAttack = false, bool canHitNonTargetPawns = true, bool preventFriendlyFire = false, bool nonInterruptingSelfCast = false)
+    public override bool TryStartCastOn(LocalTargetInfo castTarg, LocalTargetInfo destTarg, bool surpriseAttack_ = false, bool canHitNonTargetPawns = true, bool preventFriendlyFire_ = false, bool nonInterruptingSelfCast_ = false)
     {
         if (ZiplineEnd?.Spawned ?? false) return false;
 
-        return base.TryStartCastOn(castTarg, destTarg, surpriseAttack, canHitNonTargetPawns, preventFriendlyFire, nonInterruptingSelfCast);
+        return base.TryStartCastOn(castTarg, destTarg, surpriseAttack_, canHitNonTargetPawns, preventFriendlyFire_, nonInterruptingSelfCast_);
     }
 
     protected override bool TryCastShot()
@@ -68,6 +68,21 @@ public class Verb_LaunchZipline : Verb_Shoot
             equipmentSource = caster;
         }
 
+        if (caster.IsOnVehicleMapOf(out var vehicle) && !vehicle.Spawned &&
+            TargetMapManager.HasTargetMap(caster, out var anotherMap) &&
+            anotherMap.IsVehicleMapOf(out var vehicle2) &&
+            vehicle.GetVehicleCaravan() == vehicle2.GetVehicleCaravan())
+        {
+            var customZipline = projectile.GetModExtension<CustomZipline>() ?? new CustomZipline();
+            var ziplineEnd = (ZiplineEnd)ThingMaker.MakeThing(customZipline.zipLineData.ZiplineEndDef);
+            ziplineEnd.ZipLineData = customZipline.zipLineData;
+            ziplineEnd.rotation = (caster.DrawPos - ziplineEnd.DrawPos).AngleFlat();
+            ziplineEnd.launchVerb = this;
+            GenSpawn.Spawn(ziplineEnd, currentTarget.Cell, anotherMap);
+            ZiplineEnd = ziplineEnd;
+            return true;
+        }
+
         var drawPos = caster.DrawPos;
         var projectile2 = (Projectile)GenSpawn.Spawn(projectile, resultingLine.Source, caster.BaseMap());
         ZiplineEnd = projectile2;
@@ -79,10 +94,10 @@ public class Verb_LaunchZipline : Verb_Shoot
                 zipline.destMap = map;
             }
 
-            var customZipline = zipline.def.GetModExtension<CustomZipline>();
-            if (customZipline != null)
+            var customZipline2 = zipline.def.GetModExtension<CustomZipline>();
+            if (customZipline2 != null)
             {
-                zipline.ZipLineData = customZipline.zipLineData;
+                zipline.ZipLineData = customZipline2.zipLineData;
             }
         }
         if (verbProps.ForcedMissRadius > 0.5f)

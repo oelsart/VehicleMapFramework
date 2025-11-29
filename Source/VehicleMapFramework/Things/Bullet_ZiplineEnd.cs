@@ -75,18 +75,8 @@ public class Bullet_ZiplineEnd : Bullet, IZiplineEnd
             SoundDefOf.BulletImpact_Ground.PlayOneShot(intendedTarget.ToTargetInfo(Map));
             GenSpawn.Spawn(ziplineEnd, intendedTarget.Cell, Map);
         }
-        TargetMapManager.RemoveTargetInfo(launchVerb.caster);
 
         base.Destroy();
-
-        if (launchVerb.CasterIsPawn)
-        {
-            launchVerb.OrderForceTarget(ziplineEnd);
-        }
-        else if (launchVerb.caster is Building_Turret building_Turret)
-        {
-            building_Turret.OrderAttack(ziplineEnd);
-        }
     }
 
     protected override void DrawAt(Vector3 drawLoc, bool flip = false)

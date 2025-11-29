@@ -91,7 +91,7 @@ public class TargetMapManager(World world) : WorldComponent(world)
 
     public static IntVec3 TargetCellOnBaseMap(ref LocalTargetInfo targ, Thing thing)
     {
-        return targ.HasThing ? targ.CellOnBaseMap() : HasTargetMap(thing, out var map) ? targ.Cell.ToBaseMapCoord(map) : targ.Cell;
+        return targ.HasThing ? targ.Thing.PositionOnBaseMap() : HasTargetMap(thing, out var map) ? targ.Cell.ToBaseMapCoord(map) : targ.Cell;
     }
 
     public static IntVec3 PositionOnTargetMap(Thing thing)

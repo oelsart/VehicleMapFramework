@@ -8,6 +8,7 @@ using RimWorld.Planet;
 using SmashTools;
 using UnityEngine;
 using Vehicles;
+using Vehicles.World;
 using Verse;
 using Verse.AI.Group;
 using static VehicleMapFramework.ModCompat;
@@ -32,7 +33,7 @@ public static class VehicleMapUtility
 
     public static bool FocusedOnVehicleMap(out VehiclePawnWithMap vehicle)
     {
-        if (Command_FocusVehicleMap.FocusedVehicle == null)
+        if (Command_FocusVehicleMap.FocusedVehicle is null)
             return Find.CurrentMap.IsNonFocusedVehicleMapOf(out vehicle);
         vehicle = Command_FocusVehicleMap.FocusedVehicle;
         return true;
@@ -86,13 +87,39 @@ public static class VehicleMapUtility
             }
             yield return baseMap;
 
-            foreach (var vehicle in VehiclePawnWithMapCache.AllVehiclesOn(baseMap))
+            if (baseMap.IsVehicleMapOf(out var vehicle) && vehicle.GetVehicleCaravan() is { } vehicleCaravan)
             {
-                if (vehicle.VehicleMap != null)
+                foreach (var vehicle2 in vehicleCaravan.Vehicles.OfType<VehiclePawnWithMap>())
+                    yield return vehicle2.VehicleMap;
+            }
+            else
+            {
+                foreach (var vehicle2 in VehiclePawnWithMapCache.AllVehiclesOn(baseMap))
                 {
-                    yield return vehicle.VehicleMap;
+                    if (vehicle2.VehicleMap != null)
+                    {
+                        yield return vehicle2.VehicleMap;
+                    }
                 }
             }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Map BaseMap()
+        {
+            if (map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
+            {
+                return vehicle.Map;
+            }
+            return map;
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public object BaseMapOrCaravan()
+        {
+            return map.IsVehicleMapOf(out var vehicle)
+                ? vehicle.Spawned ? vehicle.Map : vehicle.GetVehicleCaravan()
+                : map;
         }
     }
 
@@ -112,6 +139,24 @@ public static class VehicleMapUtility
             if (thing != null) return thing.Map.IsNonFocusedVehicleMapOf(out vehicle);
             vehicle = null;
             return false;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Map BaseMap()
+        {
+            if (thing.IsOnVehicleMapOf(out var vehicle) && vehicle.Spawned)
+            {
+                return vehicle.Map;
+            }
+            return thing.Map;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public object BaseMapOrCaravan()
+        {
+            return thing.IsOnVehicleMapOf(out var vehicle)
+                ? vehicle.Spawned ? vehicle.Map : vehicle.GetVehicleCaravan()
+                : thing.Map;
         }
     }
 
@@ -168,7 +213,8 @@ public static class VehicleMapUtility
             {
                 return original.ToVehicleMapCoord(Command_FocusVehicleMap.FocusedVehicle);
             }
-            if ((VehicleMapFramework.settings.drawPlanet) && Find.CurrentMap.IsVehicleMapOf(out var vehicle))
+            if (VehicleMapFramework.settings.drawPlanet && Find.CurrentMap.IsVehicleMapOf(out _) &&
+                UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out var vehicle))
             {
                 return original.ToVehicleMapCoord(vehicle);
             }
@@ -192,7 +238,8 @@ public static class VehicleMapUtility
             {
                 return ToBaseMapCoord(original, Command_FocusVehicleMap.FocusedVehicle).WithY(original.y);
             }
-            if (VehicleMapFramework.settings.drawPlanet && Find.CurrentMap.IsVehicleMapOf(out var vehicle))
+            if (VehicleMapFramework.settings.drawPlanet && Find.CurrentMap.IsVehicleMapOf(out _) &&
+                UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out var vehicle))
             {
                 return ToBaseMapCoord(original, vehicle).WithY(original.y);
             }
@@ -234,10 +281,14 @@ public static class VehicleMapUtility
                 return false;
             }
 
+            if (map.IsVehicleMapOf(out var vehicle2) && !VehicleMapFramework.settings.drawPlanet)
+            {
+                vehicle = vehicle2;
+                return true;
+            }
+
             var vehicles =
-                (map.IsVehicleMapOf(out var vehicle2) &&
-                 VehicleMapFramework.settings.drawPlanet &&
-                 vehicle2.GetVehicleCaravan() is { } vehicleCaravan
+                    (vehicle2?.GetVehicleCaravan() is { } vehicleCaravan
                     ? vehicleCaravan.Vehicles.OfType<VehiclePawnWithMap>()
                     : VehiclePawnWithMapCache.AllVehiclesOn(map))
                 .OrderBy(v => (v.cachedDrawPos - original).MagnitudeHorizontalSquared());
@@ -267,6 +318,11 @@ public static class VehicleMapUtility
                 return flag.HasFlag(VehicleMapFlag.OutOfBoundsCells) && v.CachedOutOfBoundsCells.Contains(intVec);
             });
             return vehicle != null;
+        }
+
+        public Vector3 ToThingBaseMapCoord(Thing thing)
+        {
+            return thing.IsOnVehicleMapOf(out var vehicle) ? original.ToBaseMapCoord(vehicle) : original;
         }
     }
 
@@ -353,40 +409,26 @@ public static class VehicleMapUtility
         var vehicleMap = vehicle.def.GetModExtension<VehicleMapProps>();
         if (vehicleMap == null) return offset;
 
-        switch (rot.AsByte)
+        offset = rot.AsByte switch
         {
-            case Rot8.NorthInt:
-                offset = OffsetNorth();
-                break;
-
-            case Rot8.EastInt:
-                offset = vehicleMap.offsetEast ?? (vehicleMap.offsetWest == null ? vehicleMap.offsetEast = vehicleMap.offsetWest = vehicleMap.offset : vehicleMap.offsetEast = vehicleMap.offsetWest.Value.MirrorHorizontal()).Value;
-                break;
-
-            case Rot8.SouthInt:
-                offset = OffsetSouth();
-                break;
-
-            case Rot8.WestInt:
-                offset = vehicleMap.offsetWest ?? (vehicleMap.offsetEast == null ? vehicleMap.offsetWest = vehicleMap.offsetEast = vehicleMap.offset : vehicleMap.offsetWest = vehicleMap.offsetEast.Value.MirrorHorizontal()).Value;
-                break;
-
-            case Rot8.NorthEastInt:
-                offset = vehicleMap.offsetNorthEast ??= (vehicleMap.offsetNorthWest ??= OffsetNorth().RotatedBy(-45f)).MirrorHorizontal();
-                break;
-
-            case Rot8.SouthEastInt:
-                offset = vehicleMap.offsetSouthEast ??= (vehicleMap.offsetSouthWest ??= OffsetSouth().RotatedBy(45f)).MirrorHorizontal();
-                break;
-
-            case Rot8.SouthWestInt:
-                offset = vehicleMap.offsetSouthWest ??= (vehicleMap.offsetSouthEast ??= OffsetSouth().RotatedBy(-45f)).MirrorHorizontal();
-                break;
-
-            case Rot8.NorthWestInt:
-                offset = vehicleMap.offsetNorthWest ??= (vehicleMap.offsetNorthEast ??= OffsetNorth().RotatedBy(45f)).MirrorHorizontal();
-                break;
-        }
+            Rot8.NorthInt => OffsetNorth(),
+            Rot8.EastInt => vehicleMap.offsetEast ?? (vehicleMap.offsetWest == null
+                ? vehicleMap.offsetEast = vehicleMap.offsetWest = vehicleMap.offset
+                : vehicleMap.offsetEast = vehicleMap.offsetWest.Value.MirrorHorizontal()).Value,
+            Rot8.SouthInt => OffsetSouth(),
+            Rot8.WestInt => vehicleMap.offsetWest ?? (vehicleMap.offsetEast == null
+                ? vehicleMap.offsetWest = vehicleMap.offsetEast = vehicleMap.offset
+                : vehicleMap.offsetWest = vehicleMap.offsetEast.Value.MirrorHorizontal()).Value,
+            Rot8.NorthEastInt => vehicleMap.offsetNorthEast ??=
+                (vehicleMap.offsetNorthWest ??= OffsetNorth().RotatedBy(-45f)).MirrorHorizontal(),
+            Rot8.SouthEastInt => vehicleMap.offsetSouthEast ??=
+                (vehicleMap.offsetSouthWest ??= OffsetSouth().RotatedBy(45f)).MirrorHorizontal(),
+            Rot8.SouthWestInt => vehicleMap.offsetSouthWest ??=
+                (vehicleMap.offsetSouthEast ??= OffsetSouth().RotatedBy(-45f)).MirrorHorizontal(),
+            Rot8.NorthWestInt => vehicleMap.offsetNorthWest ??=
+                (vehicleMap.offsetNorthEast ??= OffsetNorth().RotatedBy(45f)).MirrorHorizontal(),
+            _ => offset
+        };
         return offset;
 
         Vector3 OffsetNorth() => vehicleMap.offsetNorth ?? (vehicleMap.offsetSouth == null ? vehicleMap.offsetNorth = vehicleMap.offsetSouth = vehicleMap.offset : vehicleMap.offsetNorth = vehicleMap.offsetSouth.Value.MirrorVertical()).Value;
@@ -420,26 +462,6 @@ public static class VehicleMapUtility
             result -= RotForPrint.AsAngle;
         }
         return result;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Map BaseMap(this Map map)
-    {
-        if (map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
-        {
-            return vehicle.Map;
-        }
-        return map;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Map BaseMap(this Thing thing)
-    {
-        if (thing.IsOnVehicleMapOf(out var vehicle) && vehicle.Spawned)
-        {
-            return vehicle.Map;
-        }
-        return thing.Map;
     }
 
     public static Map BaseMap(this Zone zone)
@@ -513,22 +535,9 @@ public static class VehicleMapUtility
         }
     }
 
-    public static Vector3 ToThingBaseMapCoord(this Vector3 origin, Thing thing)
-    {
-        return thing.IsOnVehicleMapOf(out var vehicle) ? origin.ToBaseMapCoord(vehicle) : origin;
-    }
-
     public static IntVec3 CellOnBaseMap(this ref LocalTargetInfo target)
     {
-        if (!target.HasThing || !target.Thing.IsOnVehicleMapOf(out var vehicle)) return target.Cell;
-        var component = MapComponentCache<VehiclePawnWithMapCache>.GetComponent(target.Thing.Map);
-        if (component.cachedPosOnBaseMap.TryGetValue(target.Thing, out var pos))
-        {
-            return pos;
-        }
-        pos = target.Thing.Position.ToBaseMapCoord(vehicle);
-        component.cachedPosOnBaseMap[target.Thing] = pos;
-        return pos;
+        return target.HasThing ? target.Thing.PositionOnBaseMap() : target.Cell;
     }
 
     public static IntVec3 CellOnBaseMap(this ref TargetInfo target)

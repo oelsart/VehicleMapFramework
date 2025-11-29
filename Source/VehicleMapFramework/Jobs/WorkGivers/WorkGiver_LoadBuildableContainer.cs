@@ -17,13 +17,7 @@ public class WorkGiver_LoadBuildableContainer : WorkGiver_Scanner, IWorkGiverAcr
         return pawn.Map.BaseMapAndVehicleMaps().SelectMany(m => m.listerBuildings.allBuildingsColonist.Where(b => b.HasComp<CompTransporter>()));
     }
 
-    public override PathEndMode PathEndMode
-    {
-        get
-        {
-            return PathEndMode.Touch;
-        }
-    }
+    public override PathEndMode PathEndMode => PathEndMode.Touch;
 
     public override Danger MaxPathDanger(Pawn pawn)
     {

@@ -37,11 +37,11 @@ public static class RespawnWithJobsUtility
             map.linkGrid.Notify_LinkerCreatedOrDestroyed(pawn);
             map.mapDrawer.MapMeshDirty(pawn.Position, MapMeshFlagDefOf.Things, true, false);
         }
-        //if (Find.Selector.IsSelected(pawn))
-        //{
-        //    Find.Selector.Deselect(pawn);
-        //    Find.MainButtonsRoot.tabs.Notify_SelectedObjectDespawned();
-        //}
+        if (Find.Selector.IsSelected(pawn) && map.IsVehicleMapOf(out var vehicle) && !vehicle.Spawned)
+        {
+            Find.Selector.Deselect(pawn);
+            Find.MainButtonsRoot.tabs.Notify_SelectedObjectDespawned();
+        }
         pawn.DirtyMapMesh(map);
         if (pawn.def.drawerType != DrawerType.MapMeshOnly)
         {
@@ -70,7 +70,7 @@ public static class RespawnWithJobsUtility
         {
             map.haulDestinationManager.RemoveHaulSource(source);
         }
-        if (pawn is IThingHolder && Find.ColonistBar != null)
+        if (Find.ColonistBar != null)
         {
             Find.ColonistBar.MarkColonistsDirty();
         }

@@ -102,14 +102,12 @@ public static class Patch_Reachability_CanReach
     [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        var codes = instructions.ToList();
-
-        var pos = codes.FindIndex(c => c.opcode == OpCodes.Callvirt && c.OperandIs(CachedMethodInfo.g_Thing_Map));
-        codes[pos] = new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMap_Thing);
-
-        var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Beq_S);
-        codes.Insert(pos2, new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMap_Map));
-        return codes;
+        return new CodeMatcher(instructions)
+            .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Map))
+            .SetInstruction(new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMapOrCaravan_Thing))
+            .MatchStartForward(new CodeMatch(OpCodes.Beq_S))
+            .Insert(new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMapOrCaravan_Map))
+            .InstructionEnumeration();
     }
 }
 
@@ -324,14 +322,16 @@ public static class Patch_Map_MapUpdate
                     else vehicle.FullRotation = rot;
                 }
             }
+
+            var center = new Vector3(MeshSize.x / 2f, 0f, MeshSize.y / 2f);
             // 背景
-            Graphics.DrawMesh(mesh200, Vector3.zero, Quaternion.identity,
+            Graphics.DrawMesh(mesh200, center, Quaternion.identity,
                 mat != null ? mat : SolidColorMaterials.SimpleSolidColorMaterial(Color.black), 0);
 
             // 空の暗さ
             skyMat.color = Color.black.WithAlpha((1f - vehicle.VehicleMap.skyManager.CurSkyGlow) * 0.2f);
             skyMat.renderQueue = 3100;
-            Graphics.DrawMesh(mesh200, Vector3.zero.WithY(AltitudeLayer.LightingOverlay.AltitudeFor()), Quaternion.identity, skyMat, 0);
+            Graphics.DrawMesh(mesh200, center.WithY(AltitudeLayer.LightingOverlay.AltitudeFor()), Quaternion.identity, skyMat, 0);
 
             //　車両本体
             if (vehicleCaravan != null)
@@ -342,13 +342,13 @@ public static class Patch_Map_MapUpdate
 
                 foreach (var vehicle2 in vehicleCaravan.Vehicles)
                 {
-                    var drawPos2 = drawPositions[vehicle2].RotatedBy(angle);
+                    var drawPos2 = center + drawPositions[vehicle2].RotatedBy(angle);
                     vehicle2.DrawAt(in drawPos2, vehicle2.FullRotation, angle - vehicle2.FullRotation.AsAngle);
                 }
             }
             else
             {
-                var drawPos = Vector3.zero.WithY(AltitudeLayer.LayingPawn.AltitudeFor());
+                var drawPos = center.WithY(AltitudeLayer.LayingPawn.AltitudeFor());
                 vehicle.DrawAt(in drawPos, vehicle.FullRotation, angle - vehicle.FullRotation.AsAngle);
             }
         }

@@ -180,6 +180,8 @@ public static class Patch_Controller_HandleDrawing
 [PatchLevel(Level.Safe)]
 public static class Patch_Controller_MouseDown
 {
+    private static VehiclePawnWithMap tmpFocusedMap;
+    
     public static void Prefix(Vector3 pos)
     {
         tmpFocusedMap = Command_FocusVehicleMap.FocusedVehicle;
@@ -206,6 +208,4 @@ public static class Patch_Controller_MouseDown
     {
         Command_FocusVehicleMap.FocusedVehicle = tmpFocusedMap;
     }
-
-    private static VehiclePawnWithMap tmpFocusedMap;
 }

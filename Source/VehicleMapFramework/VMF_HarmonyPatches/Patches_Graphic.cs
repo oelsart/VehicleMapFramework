@@ -198,47 +198,37 @@ public static class Patch_GraphicUtility_WrapLinked
     }
 }
 
-//カメラの制限範囲を書き換える。CurrentMapがVehicleMapだったらDrawSizeの長辺を参照する
+//カメラの制限範囲を書き換える
 [HarmonyPatch(typeof(CameraDriver), nameof(CameraDriver.Update))]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_CameraDriver_Update
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
-        var limit = Patch_Map_MapUpdate.MeshSize.x / 2f;
-        var codes = new CodeMatcher(instructions, generator).Reset();
-        codes.DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle);
-        codes.DeclareLocal(typeof(bool), out var isVehicleMap);
-
-        codes.CreateLabel(out var label);
-        codes.Insert(
-            CodeInstruction.LoadField(typeof(VehicleMapFramework), nameof(VehicleMapFramework.settings)),
-            CodeInstruction.LoadField(typeof(VehicleMapSettings), nameof(VehicleMapSettings.drawPlanet)),
-            new CodeInstruction(OpCodes.Brfalse_S, label),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.g_Find_CurrentMap),
-            new CodeInstruction(OpCodes.Ldloca_S, vehicle),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsVehicleMapOf),
-            new CodeInstruction(OpCodes.Stloc_S, isVehicleMap));
-
-        for (var i = 0; i < 2; i++)
-        {
-            codes.MatchStartForward(CodeMatch.LoadsConstant(2f));
-            codes.CreateLabelWithOffsets(1, out var label2);
-            codes.InsertAfterAndAdvance(
-                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-                new CodeInstruction(OpCodes.Brfalse_S, label2),
-                new CodeInstruction(OpCodes.Ldc_R4, limit),
-                new CodeInstruction(OpCodes.Sub));
-
-            codes.MatchStartForward(CodeMatch.LoadsConstant(-2f));
-            codes.CreateLabel(out var label3);
-            codes.InsertAndAdvance(
-                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-                new CodeInstruction(OpCodes.Brfalse_S, label3),
-                new CodeInstruction(OpCodes.Pop),
-                new CodeInstruction(OpCodes.Ldc_R4, limit));
-        }
-        return codes.InstructionEnumeration();
+        const float limit = 200f;
+        return new CodeMatcher(instructions, generator)
+            .MatchStartForward(CodeMatch.LoadsConstant(-2f))
+            .DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle)
+            .DeclareLocal(typeof(bool), out var isVehicleMap)
+            .CreateLabel(out var label)
+            .Insert(
+                CodeInstruction.LoadField(typeof(VehicleMapFramework), nameof(VehicleMapFramework.settings)),
+                CodeInstruction.LoadField(typeof(VehicleMapSettings), nameof(VehicleMapSettings.drawPlanet)),
+                new CodeInstruction(OpCodes.Brfalse_S, label),
+                new CodeInstruction(OpCodes.Call, CachedMethodInfo.g_Find_CurrentMap),
+                new CodeInstruction(OpCodes.Ldloca_S, vehicle),
+                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsVehicleMapOf),
+                new CodeInstruction(OpCodes.Stloc_S, isVehicleMap))
+            .Repeat(c =>
+            {
+                c.CreateLabel(out var label2)
+                    .InsertAndAdvance(
+                    new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+                    new CodeInstruction(OpCodes.Brfalse_S, label2),
+                    new CodeInstruction(OpCodes.Pop),
+                    new CodeInstruction(OpCodes.Ldc_R4, limit))
+                    .Advance();
+            }).InstructionEnumeration();
     }
 }
 

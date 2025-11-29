@@ -6,6 +6,7 @@ using System.Reflection.Emit;
 using HarmonyLib;
 using RimWorld;
 using UnityEngine;
+using Vehicles;
 using Verse;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
@@ -14,18 +15,12 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [PatchLevel(Level.Safe)]
 public static class Patch_ThingOverlays_ThingOverlaysOnGUI
 {
-    public static void Postfix()
+    public static bool Prefix()
     {
-        if (Event.current.type != EventType.Repaint)
-        {
-            return;
-        }
-        var vehicles = VehiclePawnWithMapCache.AllVehiclesOn(Find.CurrentMap);
-        if (vehicles.Count == 0)
-        {
-            return;
-        }
+        if (Event.current.type != EventType.Repaint) return true;
         var currentViewRect = Find.CameraDriver.CurrentViewRect;
+        var flag = Find.CurrentMap.IsVehicleMapOf(out var vehicle);
+        var vehicles = flag ? GetVehicles() : VehiclePawnWithMapCache.AllVehiclesOn(Find.CurrentMap);
         foreach (var thing in vehicles.SelectMany(v => v.CurrentLevel.listerThings.ThingsInGroup(ThingRequestGroup.HasGUIOverlay)))
         {
             if (currentViewRect.Contains(thing.PositionOnBaseMap())/* && !Find.CurrentMap.fogGrid.IsFogged(thing.PositionOnBaseMap())*/) //車両マップである時点でFoggedはスキップしていいはず
@@ -36,8 +31,23 @@ public static class Patch_ThingOverlays_ThingOverlaysOnGUI
                 }
                 catch (Exception ex)
                 {
-                    Log.Error(string.Concat("Exception drawing ThingOverlay for ", thing, ": ", ex));
+                    Log.Error($"Exception drawing ThingOverlay for {thing}: {ex}");
                 }
+            }
+        }
+
+        return !flag;
+
+        IEnumerable<VehiclePawnWithMap> GetVehicles()
+        {
+            if (vehicle.GetVehicleCaravan() is { } vehicleCaravan)
+            {
+                foreach (var vehicle2 in vehicleCaravan.Vehicles.OfType<VehiclePawnWithMap>())
+                    yield return vehicle2;
+            }
+            else
+            {
+                yield return vehicle;
             }
         }
     }

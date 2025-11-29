@@ -651,13 +651,13 @@ public class VehiclePawnWithMap : VehiclePawn
         map.temporaryThingDrawer.Draw();
         map.flecks.FleckManagerDraw();
 
-        var focused = Command_FocusVehicleMap.FocusedVehicle;
-        Command_FocusVehicleMap.FocusedVehicle = this;
-        map.roofGrid.RoofGridUpdate();
-        map.mapTemperature.TemperatureUpdate();
-        MapComponentUtility.MapComponentOnDraw(map);
-        CompMapExpander.DebugDraw(MapExpanderComps);
-        Command_FocusVehicleMap.FocusedVehicle = focused;
+        using (new Command_FocusVehicleMap.FocusVehicle(this))
+        {
+            map.roofGrid.RoofGridUpdate();
+            map.mapTemperature.TemperatureUpdate();
+            MapComponentUtility.MapComponentOnDraw(map);
+            CompMapExpander.DebugDraw(MapExpanderComps);
+        }
         //map.gameConditionManager.GameConditionManagerDraw(map);
         //MapEdgeClipDrawer.DrawClippers(__instance);
     }
@@ -885,20 +885,19 @@ public class VehiclePawnWithMap : VehiclePawn
         {
             var material = MapEdgeClipDrawer.ClipMat;
             var size = Patch_Map_MapUpdate.MeshSize;
-            Vector3 origin = new(-size.x / 2f, 0f, -size.y / 2f);
             Vector3 s = new(500f, 1f, size.y);
             Matrix4x4 matrix = default;
-            matrix.SetTRS(new Vector3(-250f, 0f, size.y / 2f) + origin, Quaternion.identity, s);
+            matrix.SetTRS(new Vector3(-250f, 0f, size.y / 2f), Quaternion.identity, s);
             Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
             matrix = default;
-            matrix.SetTRS(new Vector3(size.x + 250f, 0f, size.y / 2f) + origin, Quaternion.identity, s);
+            matrix.SetTRS(new Vector3(size.x + 250f, 0f, size.y / 2f), Quaternion.identity, s);
             Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
             s = new Vector3(1000f, 1f, 500f);
             matrix = default;
-            matrix.SetTRS(new Vector3(size.x / 2f, 0f, size.y + 250f) + origin, Quaternion.identity, s);
+            matrix.SetTRS(new Vector3(size.x / 2f, 0f, size.y + 250f), Quaternion.identity, s);
             Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
             matrix = default;
-            matrix.SetTRS(new Vector3(size.x / 2f, 0f, -250f) + origin, Quaternion.identity, s);
+            matrix.SetTRS(new Vector3(size.x / 2f, 0f, -250f), Quaternion.identity, s);
             Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
         }
     }

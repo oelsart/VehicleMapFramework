@@ -13,6 +13,32 @@ using Verse.AI;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
+[HarmonyPatch(typeof(FloatMenuMakerMap), nameof(FloatMenuMakerMap.GetOptions))]
+[PatchLevel(Level.Sensitive)]
+public static class Patch_FloatMenuMakerMap_GetOptions
+{
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        return new CodeMatcher(instructions)
+            .MatchStartForward(CodeMatch.Calls(AccessTools.Method(typeof(GenGrid), nameof(GenGrid.InBounds),
+                [typeof(Vector3), typeof(Map)])))
+            .SetInstruction(CodeInstruction.Call(typeof(Patch_FloatMenuMakerMap_GetOptions), nameof(InBounds)))
+            .MatchStartForward(CodeMatch.Calls(AccessTools.Method(typeof(GenGrid), nameof(GenGrid.InBounds),
+                [typeof(IntVec3), typeof(Map)])))
+            .Insert(
+                new CodeInstruction(OpCodes.Pop),
+                CodeInstruction.LoadArgument(2),
+                new CodeInstruction(OpCodes.Ldind_Ref),
+                CodeInstruction.LoadField(typeof(FloatMenuContext), nameof(FloatMenuContext.map)))
+            .InstructionEnumeration();
+    }
+
+    private static bool InBounds(Vector3 c, Map map)
+    {
+        return map.IsVehicleMapOf(out _) ? c.TryGetVehicleMap(map, out _, VehicleMapFlag.None) : c.InBounds(map);
+    }
+}
+
 [HarmonyPatch(typeof(FloatMenuContext), MethodType.Constructor, typeof(List<Pawn>), typeof(Vector3), typeof(Map))]
 public static class Patch_FloatMenuContext_Constructor
 {
@@ -32,9 +58,7 @@ public static class Patch_FloatMenuContext_Constructor
     {
         Pawn pawn;
         if (!__instance.IsMultiselect && (pawn = __instance.FirstSelectedPawn) != null)
-        {
             TargetMapManager.SetTargetInfo(pawn, new TargetInfo(__instance.ClickedCell, __instance.map));
-        }
         GenUIOnVehicle.vehicleForSelector = null;
     }
 
@@ -316,8 +340,10 @@ public static class Patch_RCellFinder_BestOrderedGotoDestNear
                 return false;
             }
         }
-        else if ((root.InBounds(Find.CurrentMap) && root.TryGetVehicleMap(Find.CurrentMap, out vehicle)) || searcher.IsOnNonFocusedVehicleMapOf(out _))
+        else if (searcher.IsOnNonFocusedVehicleMapOf(out var vehicle2) || (root.InBounds(Find.CurrentMap) && root.TryGetVehicleMap(Find.CurrentMap, out vehicle)))
         {
+            if (vehicle is null && vehicle2 is not { Spawned: true })
+                UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out vehicle, VehicleMapFlag.None);
             var dest = vehicle != null ? root.ToVehicleMapCoord(vehicle) : root;
             map = vehicle != null ? vehicle.CurrentLevel : Find.CurrentMap;
             __result = CrossMapRCellFinder.BestOrderedGotoDestNear(

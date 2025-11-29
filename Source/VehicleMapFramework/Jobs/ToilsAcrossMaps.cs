@@ -19,7 +19,6 @@ public static class ToilsAcrossMaps
         enterSpot.Thing?.TryGetComp(out compZipline);
 
         var dest = IntVec3.Invalid;
-        var baseMap = enterSpot.Map.BaseMap();
         if (compZipline is { Pair: not null })
         {
             dest = compZipline.Pair.Position;
@@ -56,7 +55,7 @@ public static class ToilsAcrossMaps
             }
             toil.actor.pather.StartPath(dest, PathEndMode.OnCell);
         };
-        toil.FailOn(() => !enterSpot.IsValid || baseMap != toil.actor.BaseMap());
+        toil.FailOn(() => !enterSpot.IsValid || enterSpot.Map.BaseMapOrCaravan() != toil.actor.BaseMapOrCaravan());
         return toil;
     }
 
@@ -98,7 +97,7 @@ public static class ToilsAcrossMaps
 
             if (toil.actor.IsOnVehicleMapOf(out var vehicle))
             {
-                normalized = normalized.RotatedBy(-vehicle.FullRotation.AsAngle);
+                normalized = normalized.RotatedBy(-vehicle.FullAngle());
             }
 
             //ジップラインの先端から登る場合は遅くなるわな

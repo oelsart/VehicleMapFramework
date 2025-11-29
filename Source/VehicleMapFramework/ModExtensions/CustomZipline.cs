@@ -1,24 +1,25 @@
 ﻿using System.Collections.Generic;
+using JetBrains.Annotations;
 using UnityEngine;
 using Verse;
-#pragma warning disable CS0649 // フィールドは割り当てられません。常に既定値を使用します
 
 namespace VehicleMapFramework;
 
+[UsedImplicitly(ImplicitUseTargetFlags.Members)]
 [StaticConstructorOnStartup]
 public class CustomZipline : DefModExtension
 {
-    private string texPath;
+    public string texPath;
 
-    private float? ziplineWidth;
+    public float? ziplineWidth;
     
-    private float? ziplineEndOffset;
+    public float? ziplineEndOffset;
     
-    private float? launcherOffset;
+    public float? launcherOffset;
 
-    private ThingDef ziplineEndDef;
+    public ThingDef ziplineEndDef;
     
-    private ThingDef ziplineReturnDef;
+    public ThingDef ziplineReturnDef;
     
     [Unsaved]
     public ZipLineData zipLineData;

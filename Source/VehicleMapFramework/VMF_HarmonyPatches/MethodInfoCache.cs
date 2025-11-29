@@ -59,7 +59,13 @@ public class MethodInfoCache
     
     public readonly MethodBase g_GlobalTargetInfo_Map = AccessTools.PropertyGetter(typeof(GlobalTargetInfo), nameof(GlobalTargetInfo.Map));
 
+    public readonly MethodInfo m_BaseMap_Map = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.BaseMap), [typeof(Map)]);
+    
+    public readonly MethodInfo m_BaseMapOrCaravan_Map = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.BaseMapOrCaravan), [typeof(Map)]);
+    
     public readonly MethodInfo m_BaseMap_Thing = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.BaseMap), [typeof(Thing)]);
+    
+    public readonly MethodInfo m_BaseMapOrCaravan_Thing = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.BaseMapOrCaravan), [typeof(Thing)]);
     
     public readonly MethodInfo m_BaseMap_GlobalTargetInfo = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.BaseMap), [typeof(GlobalTargetInfo).MakeByRefType()]);
 
@@ -70,8 +76,6 @@ public class MethodInfoCache
     public readonly MethodInfo m_TargetMapOrPawnMap = AccessTools.Method(typeof(TargetMapManager), nameof(TargetMapManager.TargetMapOrPawnMap));
 
     public readonly MethodInfo g_Zone_Map = AccessTools.PropertyGetter(typeof(Zone), nameof(Zone.Map));
-
-    public readonly MethodInfo m_BaseMap_Zone = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.BaseMap), [typeof(Zone)]);
 
     public readonly MethodInfo g_Thing_MapHeld = AccessTools.PropertyGetter(typeof(Thing), nameof(Thing.MapHeld));
 
@@ -128,8 +132,6 @@ public class MethodInfoCache
     public readonly MethodInfo m_FullAngleQuat = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.FullAngleQuat));
 
     public readonly MethodInfo m_FlipAngle = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.FlipAngle));
-
-    public readonly MethodInfo m_BaseMap_Map = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.BaseMap), [typeof(Map)]);
 
     public readonly MethodInfo m_RotatePoint = AccessTools.Method(typeof(Ext_Math), nameof(Ext_Math.RotatePoint));
 

@@ -13,18 +13,29 @@ public class ZiplineEnd : ThingWithComps, IZiplineEnd
     
     public CustomZipline.ZipLineData ZipLineData { get; set; }
 
+    public override void SpawnSetup(Map map, bool respawningAfterLoad)
+    {
+        base.SpawnSetup(map, respawningAfterLoad);
+        
+        TargetMapManager.RemoveTargetInfo(launchVerb.caster);
+        if (launchVerb.CasterIsPawn)
+            launchVerb.OrderForceTarget(this);
+        else if (launchVerb.caster is Building_Turret building_Turret)
+            building_Turret.OrderAttack(this);
+    }
+
     protected override void TickInterval(int delta)
     {
         base.TickInterval(delta);
-        if (!launchVerb.caster?.Spawned ?? false)
+        if (launchVerb.caster is not { Spawned: true })
         {
             Destroy();
             return;
         }
-        if ((launchVerb.caster is Pawn pawn && pawn.TargetCurrentlyAimingAt != this) ||
-            (launchVerb.caster is Building_Turret building_Turret && building_Turret.ForcedTarget != this) ||
-            launchVerb.OutOfRange(launchVerb.caster.PositionOnBaseMap(), this, this.MovedOccupiedRect()) ||
-            !GenSightOnVehicle.LineOfSightThingToThing(launchVerb.caster, this))
+
+        if ((launchVerb.caster is Pawn { TargetCurrentlyAimingAt: var target } && target != this) ||
+            (launchVerb.caster is Building_Turret { ForcedTarget: var target2 } && target2 != this) ||
+            !launchVerb.TryFindShootLineFromToOnVehicle(launchVerb.caster.PositionOnBaseMap(), this.PositionOnBaseMap(), out _))
         {
             Destroy();
         }
@@ -32,7 +43,9 @@ public class ZiplineEnd : ThingWithComps, IZiplineEnd
 
     public override void Destroy(DestroyMode mode = DestroyMode.Vanish)
     {
-        if (launchVerb.caster?.Spawned ?? false)
+        if (this.BaseMap() != launchVerb.caster.BaseMap())
+            launchVerb.ZiplineEnd = null;
+        else if (launchVerb.caster?.Spawned ?? false)
         {
             var bullet = (Bullet_ZiplineEndReturn)GenSpawn.Spawn(ZipLineData.ZiplineReturnDef, this.PositionOnBaseMap(), this.BaseMap());
             bullet.launchVerb = launchVerb;
