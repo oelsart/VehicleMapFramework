@@ -108,6 +108,8 @@ internal static class PatchCategories
     
     public const string ViviRace = "VMF_Patches_ViviRace";
     
+    public const string WASDedPawn = "VMF_Patches_WASDedPawn";
+    
     public const string WhileYoureUp = "VMF_Patches_WhileYoureUp";
     
     public const string YayosCombat3 = "VMF_Patches_YayosCombat3";

@@ -297,6 +297,11 @@ public static class VehicleMapUtility
             return drawPos;
         }
         
+        public Vector3 ToNonFocusedThingMapCoord(Thing thing)
+        {
+            return thing.IsOnNonFocusedVehicleMapOf(out var vehicle) ? original.ToVehicleMapCoord(vehicle) : original;
+        }
+        
         public Vector3 ToBaseMapCoord()
         {
             if (Command_FocusVehicleMap.FocusedVehicle != null)
@@ -685,10 +690,7 @@ public static class VehicleMapUtility
                 new Rot4(thing.Rotation.AsInt + vehicle.FullRotation.RotForVehicleDraw().AsInt) :
                 thing.Rotation;
         }
-    }
-
-    extension(Thing thing)
-    {
+        
         public Rot8 BaseFullRotation()
         {
             if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle))

@@ -609,6 +609,8 @@ internal static class ModCompat
     public static readonly bool VGE = IsModActive("vanillaexpanded.gravship");
 
     public static readonly bool Vivi = IsModActive("gguake.race.vivi");
+    
+    public static readonly bool WASDedPawn = IsModActive("addvans.WASDedPawn");
 
     public static readonly bool WhileYoureUp = IsModActive("CodeOptimist.JobsOfOpportunity") || IsModActive("zsbk.patch16.whileyoureup");
 

@@ -51,6 +51,8 @@ public class MethodInfoCache
 
     public readonly MethodInfo m_ToThingMapCoord = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.ToThingMapCoord));
 
+    public readonly MethodInfo m_ToNonFocusedThingMapCoord = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.ToNonFocusedThingMapCoord));
+
     public readonly MethodInfo m_ToThingBaseMapCoord = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.ToThingBaseMapCoord), [typeof(Vector3), typeof(Thing)]);
 
     public readonly MethodInfo m_ToVehicleMapCoord = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.ToVehicleMapCoord), [typeof(Vector3)]);
