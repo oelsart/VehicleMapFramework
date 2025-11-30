@@ -199,13 +199,14 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
                 return scanner.JobOnCell(pawn, target.Cell, forced);
             }
 
-            if (pawn.CanReach(target.Cell, scanner.PathEndMode, scanner.MaxPathDanger(pawn), false, false, TraverseMode.ByPawn, targetMap, out var exitSpot, out var enterSpot))
+            if (pawn.CanReach(target.Cell, scanner.PathEndMode, scanner.MaxPathDanger(pawn), false, false,
+                    TraverseMode.ByPawn, targetMap, out var exitSpot, out var enterSpot, out var spotsQueue))
             {
                 var pos = pawn.Position;
                 pawn.VirtualMapTransfer(targetMap, enterSpot.Cell);
                 try
                 {
-                    return JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, scanner.JobOnCell(pawn, target.Cell, forced));
+                    return JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, spotsQueue, scanner.JobOnCell(pawn, target.Cell, forced));
                 }
                 finally
                 {
@@ -214,7 +215,7 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
             }
 
             if (!CrossMapReachabilityUtility.GetClosestExitEnterSpot(map, pawn.Position, TraverseParms.For(pawn), targetMap,
-                    out var exitSpot2, out var enterSpot2)) return null;
+                    out var exitSpot2, out var enterSpot2, out var spotsQueue2)) return null;
             Job job;
             try
             {
@@ -229,7 +230,7 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
                 pawn.RemoveDestMap();
                 pawn.VirtualMapTransfer(map);
             }
-            return JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot2, enterSpot2, job);
+            return JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot2, enterSpot2, spotsQueue2, job);
         }
 
         internal void ScanCellsAcrossMaps(ref InnerClass innerClass, ref InnerStruct innerStruct)
@@ -409,7 +410,7 @@ public static class Patch_Pawn_PathFollower_StartPath
 {
     public static bool Prefix(LocalTargetInfo dest, PathEndMode peMode, Pawn ___pawn)
     {
-        if (___pawn.CurJob is null) return true;
+        if (___pawn.jobs is null or {curDriver: JobDriver_GotoAcrossMaps }) return true;
 
         var flag = false;
         var destMap = dest.Thing?.MapHeld;
@@ -422,14 +423,15 @@ public static class Patch_Pawn_PathFollower_StartPath
         {
             return true;
         }
-        if (___pawn.Map != destMap && ___pawn.CanReach(dest, peMode, Danger.Deadly, false, false, TraverseMode.ByPawn, destMap, out var exitSpot, out var enterSpot))
+        if (___pawn.Map != destMap && ___pawn.CanReach(dest, peMode, Danger.Deadly, false, false, TraverseMode.ByPawn,
+                destMap, out var exitSpot, out var enterSpot, out var spotsQueue))
         {
             if (flag)
             {
                 TargetMapManager.RemoveTargetInfo(___pawn);
                 ___pawn.CurJob.globalTarget = GlobalTargetInfo.Invalid;
             }
-            JobAcrossMapsUtility.StartGotoDestMapJob(___pawn, exitSpot, enterSpot);
+            JobAcrossMapsUtility.StartGotoDestMapJob(___pawn, exitSpot, enterSpot, spotsQueue);
             return false;
         }
         return true;
@@ -449,9 +451,11 @@ public static class Patch_Toils_Goto_GotoCell
             var curJob = actor.CurJob;
             var allTargets = new[] { curJob.targetA, curJob.targetB, curJob.targetC }.ConcatIfNotNull(curJob.targetQueueA).ConcatIfNotNull(curJob.targetQueueB);
             var target = allTargets.FirstOrFallback(t => t.HasThing && (t.Cell == cell || (t.Thing.Spawned && t.Thing.InteractionCell == cell)), LocalTargetInfo.Invalid);
-            if (target.IsValid && actor.Map != target.Thing.MapHeld && actor.CanReach(target, peMode, Danger.Deadly, false, false, TraverseMode.ByPawn, target.Thing.MapHeld, out var exitSpot, out var enterSpot))
+            if (target.IsValid && actor.Map != target.Thing.MapHeld && actor.CanReach(target, peMode, Danger.Deadly,
+                    false, false, TraverseMode.ByPawn, target.Thing.MapHeld, out var exitSpot, out var enterSpot,
+                    out var spotsQueue))
             {
-                JobAcrossMapsUtility.StartGotoDestMapJob(actor, exitSpot, enterSpot);
+                JobAcrossMapsUtility.StartGotoDestMapJob(actor, exitSpot, enterSpot, spotsQueue);
             }
         });
     }
@@ -469,9 +473,11 @@ public static class Patch_Toils_Goto_GotoBuild
             var curJob = actor.CurJob;
             var target = curJob.GetTarget(ind);
             var thingMap = target.Thing?.MapHeld;
-            if (thingMap != null && actor.Map != thingMap && actor.CanReach(target, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, thingMap, out var exitSpot, out var enterSpot))
+            if (thingMap != null && actor.Map != thingMap && actor.CanReach(target, PathEndMode.Touch, Danger.Deadly,
+                    false, false, TraverseMode.ByPawn, thingMap, out var exitSpot, out var enterSpot,
+                    out var spotsQueue))
             {
-                JobAcrossMapsUtility.StartGotoDestMapJob(actor, exitSpot, enterSpot);
+                JobAcrossMapsUtility.StartGotoDestMapJob(actor, exitSpot, enterSpot, spotsQueue);
             }
         });
     }
@@ -573,9 +579,10 @@ public static class Patch_Toils_Bed_GotoBed
         {
             var pawn = __result.actor;
             var bed = pawn.CurJob.GetTarget(bedIndex).Thing;
-            if (pawn.Map != bed.Map && pawn.CanReach(bed, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, bed.Map, out var exitSpot, out var enterSpot))
+            if (pawn.Map != bed.Map && pawn.CanReach(bed, PathEndMode.OnCell, Danger.Deadly, false, false,
+                    TraverseMode.ByPawn, bed.Map, out var exitSpot, out var enterSpot, out var spotsQueue))
             {
-                JobAcrossMapsUtility.StartGotoDestMapJob(pawn, exitSpot, enterSpot);
+                JobAcrossMapsUtility.StartGotoDestMapJob(pawn, exitSpot, enterSpot, spotsQueue);
                 return JobCondition.InterruptForced;
             }
             return JobCondition.Ongoing;
@@ -768,10 +775,10 @@ public static class Patch_ReservationManager_CanReserveStack
         var codes = instructions.ToList();
 
         var pos = codes.FindIndex(c => c.opcode == OpCodes.Callvirt && c.OperandIs(CachedMethodInfo.g_Thing_Map));
-        codes[pos] = new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMap_Thing);
+        codes[pos] = new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMapOrCaravan_Thing);
 
         var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Beq_S);
-        codes.Insert(pos2, new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMap_Map));
+        codes.Insert(pos2, new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMapOrCaravan_Map));
         return codes;
     }
 }
@@ -849,9 +856,10 @@ public static class Patch_RestUtility_CanUseBedNow
         //!building_Bed.Position.IsInPrisonCell(building_Bed.Map)があるので置き換えるのは最初のMapのみ
         return new CodeMatcher(instructions)
             .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Map))
-            .SetInstruction(new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMap_Thing))
-            .Instructions()
-            .MethodReplacer(CachedMethodInfo.g_Thing_MapHeld, CachedMethodInfo.m_MapHeldBaseMap);
+            .Set(OpCodes.Call, CachedMethodInfo.m_BaseMapOrCaravan_Thing)
+            .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_MapHeld))
+            .Set(OpCodes.Call, CachedMethodInfo.m_MapHeldBaseMapOrCaravan)
+            .Instructions();
     }
 }
 
@@ -861,7 +869,7 @@ public static class Patch_ToilFailConditions_DespawnedOrNull
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMapOrCaravan_Thing);
     }
 }
 
@@ -871,8 +879,8 @@ public static class Patch_ToilFailConditions_SelfAndParentsDespawnedOrNull
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_MapHeld, CachedMethodInfo.m_MapHeldBaseMap)
-            .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_MapHeld, CachedMethodInfo.m_MapHeldBaseMapOrCaravan)
+            .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMapOrCaravan_Thing);
     }
 }
 
@@ -997,18 +1005,9 @@ public static class Patch_TransporterUtility_GetTransportersInGroup
             return;
         }
 
-        foreach (var vehicle in VehiclePawnWithMapCache.AllVehiclesOn(map.BaseMap()))
-        {
-            var list = vehicle.VehicleMap.listerThings.GetAllThings(t => t.HasComp<CompBuildableContainer>());
-            foreach (var container in list)
-            {
-                CompTransporter compTransporter = container.TryGetComp<CompBuildableContainer>();
-                if (compTransporter.groupID == transportersGroup)
-                {
-                    outTransporters.Add(compTransporter);
-                }
-            }
-        }
+        outTransporters.AddRange(VehiclePawnWithMapCache.AllVehiclesOn(map.BaseMap())
+            .SelectMany(vehicle => vehicle.ContainerComps)
+            .Where(compTransporter => compTransporter.groupID == transportersGroup));
     }
 }
 
@@ -1074,9 +1073,12 @@ public static class Patch_JobDriver_FoodDeliver_MakeNewToils
                 found = true;
                 toil.AddPreInitAction(() =>
                 {
-                    if (___job.targetB.HasThing && toil.actor.Map != ___job.targetB.Thing.MapHeld && toil.actor.CanReach(___job.targetB, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, ___job.targetB.Thing.MapHeld, out var exitSpot, out var enterSpot))
+                    if (___job.targetB.HasThing && toil.actor.Map != ___job.targetB.Thing.MapHeld &&
+                        toil.actor.CanReach(___job.targetB, PathEndMode.Touch, Danger.Deadly, false, false,
+                            TraverseMode.ByPawn, ___job.targetB.Thing.MapHeld, out var exitSpot, out var enterSpot,
+                            out var spotsQueue))
                     {
-                        JobAcrossMapsUtility.StartGotoDestMapJob(toil.actor, exitSpot, enterSpot);
+                        JobAcrossMapsUtility.StartGotoDestMapJob(toil.actor, exitSpot, enterSpot, spotsQueue);
                     }
                 });
             }

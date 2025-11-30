@@ -251,7 +251,7 @@ public static class AttackTargetFinderOnVehicle
     {
         if (searcher is Pawn pawn)
         {
-            if (!pawn.CanReach(target, PathEndMode.Touch, Danger.Some, canBashDoors, canBashFences, TraverseMode.ByPawn, target.Map, out _, out _))
+            if (!pawn.CanReach(target, PathEndMode.Touch, Danger.Some, canBashDoors, canBashFences, TraverseMode.ByPawn, target.Map))
             {
                 return false;
             }
@@ -259,7 +259,7 @@ public static class AttackTargetFinderOnVehicle
         else
         {
             var mode = canBashDoors ? TraverseMode.PassDoors : TraverseMode.NoPassClosedDoors;
-            if (!CrossMapReachabilityUtility.CanReach(searcher.Map, searcher.Position, target, PathEndMode.Touch, TraverseParms.For(mode), target.Map, out _, out _))
+            if (!CrossMapReachabilityUtility.CanReach(searcher.Map, searcher.Position, target, PathEndMode.Touch, TraverseParms.For(mode), target.Map))
             {
                 return false;
             }

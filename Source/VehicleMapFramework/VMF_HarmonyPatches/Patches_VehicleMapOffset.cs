@@ -293,12 +293,12 @@ public static class Patch_Pawn_JobTracker_DrawLinesBetweenTargets
 
         if (!targ.Cell.IsValid) return default;
             
-        var driver = pawn.jobs.AllJobs()?.FirstOrDefault()?.GetCachedDriver(pawn);
         if (TargetMapManager.HasTargetMap(pawn, out var map) && pawn.stances.curStance is Stance_Busy)
         {
             return targ.Cell.ToVector3Shifted().ToBaseMapCoord(map);
         }
 
+        var driver = pawn.jobs.AllJobs()?.FirstOrDefault()?.GetCachedDriver(pawn);
         if (driver is JobDriverAcrossMaps driverAcrossMaps)
         {
             var destMap = driverAcrossMaps.DestMap;
@@ -307,7 +307,8 @@ public static class Patch_Pawn_JobTracker_DrawLinesBetweenTargets
                 return targ.Cell.ToVector3Shifted().ToBaseMapCoord(vehicle);
             }
         }
-        else if (pawn.IsOnNonFocusedVehicleMapOf(out var vehicle) && !(pawn.stances.curStance is Stance_Busy busy && (busy.verb is Verb_Jump || busy.verb is Verb_CastAbilityJump)))
+        else if (pawn.IsOnNonFocusedVehicleMapOf(out var vehicle) && pawn.stances.curStance is not Stance_Busy
+                 { verb: Verb_Jump or Verb_CastAbilityJump })
         {
             return targ.Cell.ToVector3Shifted().ToBaseMapCoord(vehicle);
         }

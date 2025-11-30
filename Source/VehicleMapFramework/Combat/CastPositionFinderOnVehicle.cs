@@ -169,7 +169,7 @@ public static class CastPositionFinderOnVehicle
             }
             return;
         }
-        if (!CrossMapReachabilityUtility.CanReach(casterMap, req.caster.Position, c, PathEndMode.OnCell, TraverseParms.For(req.caster, Danger.Some), req.target.Map, out _, out _) &&
+        if (!CrossMapReachabilityUtility.CanReach(casterMap, req.caster.Position, c, PathEndMode.OnCell, TraverseParms.For(req.caster, Danger.Some), req.target.Map) &&
             !req.caster.IsOnVehicleMapOf(out _) && !req.target.IsOnVehicleMapOf(out _))
         {
             if (DebugViewSettings.drawCastPositionSearch)

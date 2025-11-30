@@ -66,7 +66,11 @@ public static class Patch_Projectile_Launch
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap);
+        return new CodeMatcher(instructions)
+            .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_LocalTargetInfo_Cell))
+            .InsertAndAdvance(CodeInstruction.LoadArgument(1))
+            .Set(OpCodes.Call, CachedMethodInfo.m_TargetCellOnBaseMap)
+            .InstructionEnumeration();
     }
 }
 
@@ -196,8 +200,8 @@ public static class Patch_ShotReport_HitReportFor
         }
 
         var codes1 = codes.Take(pos2);
-        var codes2 = codes.Skip(pos2).MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap)
-            .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap)
+        var codes2 = codes.Skip(pos2).MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned)
+            .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned)
             .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
 
         return codes1.Concat(codes2);

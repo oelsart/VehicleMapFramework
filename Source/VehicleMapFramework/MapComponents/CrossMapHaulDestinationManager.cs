@@ -3,6 +3,7 @@ using System.Linq;
 using HarmonyLib;
 using RimWorld;
 using SmashTools;
+using Vehicles;
 using Verse;
 
 namespace VehicleMapFramework;
@@ -13,8 +14,6 @@ public class CrossMapHaulDestinationManager(Map map) : MapComponent(map)
 
     public List<SlotGroup> AllGroupsListForReading { get; } = [];
 
-    public List<IHaulSource> AllHaulSourcesListForReading { get; } = [];
-
     public List<SlotGroup> AllGroupsListInPriorityOrder => AllGroupsListForReading;
 
     //60tickごとにベースマップのコンポーネントにHaulDestinationを登録する。vehicleがDespawnした時にRemoveされる
@@ -24,15 +23,21 @@ public class CrossMapHaulDestinationManager(Map map) : MapComponent(map)
         if (map.IsHashIntervalTick(60))
         {
             var baseMap = map.BaseMap();
-            if (map == baseMap) return;
+            if (map == baseMap)
+            {
+                if (!map.IsVehicleMapOf(out var vehicle) ||
+                    vehicle.GetVehicleCaravan() is not { } caravan ||
+                    !caravan.TryGetComponent<CaravanHaulDestinationManager>(out var comp))
+                    return;
+
+                var destinations = comp.AllHaulDestinationsListInPriorityOrder;
+                AllHaulDestinationsListInPriorityOrder.Where(h => !destinations.Contains(h)).Do(comp.AddHaulDestination);
+            }
 
             var baseMapComponent = baseMap.GetCachedMapComponent<CrossMapHaulDestinationManager>();
 
             var baseMapDestinations = baseMapComponent.AllHaulDestinationsListInPriorityOrder;
             AllHaulDestinationsListInPriorityOrder.Where(h => !baseMapDestinations.Contains(h)).Do(baseMapComponent.AddHaulDestination);
-
-            var baseMapSources = baseMapComponent.AllHaulSourcesListForReading;
-            AllHaulSourcesListForReading.Where(s => !baseMapSources.Contains(s)).Do(baseMapComponent.AddHaulSource);
         }
     }
 
@@ -87,32 +92,10 @@ public class CrossMapHaulDestinationManager(Map map) : MapComponent(map)
         AllGroupsListForReading.Remove(slotGroup);
     }
 
-    public void AddHaulSource(IHaulSource source)
-    {
-        if (AllHaulSourcesListForReading.Contains(source))
-        {
-            //車両マップから下のマップに転写するので、GravshipVehicleでHaulDestinationが再び下のマップに登録されてしまうこともあるわなと思ってエラーを無効化
-            //VMF_Log.Error("Double-added haul destination " + source.ToStringSafe());
-            return;
-        }
-
-        AllHaulSourcesListForReading.Add(source);
-        AllHaulSourcesListForReading.InsertionSort(CompareHaulSourcePrioritiesDescending);
-    }
-
-    public void RemoveHaulSource(IHaulSource source)
-    {
-        if (!AllHaulSourcesListForReading.Remove(source))
-        {
-            //VMF_Log.Error("Removing haul source that isn't registered " + source.ToStringSafe());
-        }
-    }
-
     public void Notify_HaulDestinationChangedPriority()
     {
         AllHaulDestinationsListInPriorityOrder.InsertionSort(CompareHaulDestinationPrioritiesDescending);
         AllGroupsListForReading.InsertionSort(CompareSlotGroupPrioritiesDescending);
-        AllHaulSourcesListForReading.InsertionSort(CompareHaulSourcePrioritiesDescending);
 
         var baseMap = map.BaseMap();
         if (map != baseMap)

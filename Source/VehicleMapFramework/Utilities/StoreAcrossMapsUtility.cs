@@ -2,6 +2,7 @@
 using SmashTools;
 using UnityEngine;
 using VehicleMapFramework.VMF_HarmonyPatches;
+using Vehicles;
 using Verse;
 using Verse.AI;
 
@@ -14,8 +15,15 @@ public static class StoreAcrossMapsUtility
     public static bool TryFindBestBetterStoreCellFor(Thing t, Pawn carrier, Map map, StoragePriority currentPriority, Faction faction, ref IntVec3 foundCell, bool needAccurateResult)
     {
         tmpDestMap = null;
-        var allGroupsListInPriorityOrder = map.BaseMap().GetCachedMapComponent<CrossMapHaulDestinationManager>().AllGroupsListInPriorityOrder;
-
+        var baseMap = map.BaseMap();
+        var allGroupsListInPriorityOrder = baseMap.IsVehicleMapOf(out var vehicle) &&
+                                           vehicle.GetVehicleCaravan() is { } caravan &&
+                                           caravan.TryGetComponent<CaravanHaulDestinationManager>(out var comp)
+                                               ? comp.AllGroupsListInPriorityOrder
+                                               : baseMap.GetCachedMapComponent<CrossMapHaulDestinationManager>()
+                                                   .AllGroupsListInPriorityOrder;
+        
+        
         if (allGroupsListInPriorityOrder.Count == 0)
         {
             return false;
@@ -141,17 +149,20 @@ public static class StoreAcrossMapsUtility
             startMap = carrier.Map;
             start = carrier.PositionHeld;
         }
-        if (!CrossMapReachabilityUtility.CanReach(startMap, start, c, PathEndMode.ClosestTouch, TraverseParms.For(carrier), map, out _, out _))
-        {
-            return false;
-        }
-        return true;
+        return CrossMapReachabilityUtility.CanReach(startMap, start, c, PathEndMode.ClosestTouch, TraverseParms.For(carrier), map);
     }
 
     public static bool TryFindBestBetterNonSlotGroupStorageFor(Thing t, Pawn carrier, Map map, StoragePriority currentPriority, Faction faction, ref IHaulDestination haulDestination, bool acceptSamePriority, bool requiresDestReservation)
     {
-        var allHaulDestinationsListInPriorityOrder = map.BaseMap().GetCachedMapComponent<CrossMapHaulDestinationManager>().AllHaulDestinationsListInPriorityOrder;
-
+        var baseMap = map.BaseMap();
+        var allHaulDestinationsListInPriorityOrder = baseMap.IsVehicleMapOf(out var vehicle) &&
+                                                     vehicle.GetVehicleCaravan() is { } caravan &&
+                                                     caravan.TryGetComponent<CaravanHaulDestinationManager>(out var comp)
+            ? comp.AllHaulDestinationsListInPriorityOrder
+            : baseMap.GetCachedMapComponent<CrossMapHaulDestinationManager>()
+                .AllHaulDestinationsListInPriorityOrder;
+        
+        
         var thingMap = t.SpawnedOrAnyParentSpawned ? t.MapHeld : carrier.MapHeld;
         var intVec = t.SpawnedOrAnyParentSpawned ? t.PositionHeld : carrier.PositionHeld;
         var intVecOnBase = t.SpawnedOrAnyParentSpawned ? t.PositionHeldOnBaseMap() : carrier.PositionHeldOnBaseMap();

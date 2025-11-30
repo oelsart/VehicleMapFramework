@@ -43,16 +43,17 @@ public class ZiplineEnd : ThingWithComps, IZiplineEnd
 
     public override void Destroy(DestroyMode mode = DestroyMode.Vanish)
     {
-        if (this.BaseMap() != launchVerb.caster.BaseMap())
-            launchVerb.ZiplineEnd = null;
-        else if (launchVerb.caster?.Spawned ?? false)
+        if (launchVerb.caster is { Spawned: true })
         {
-            var bullet = (Bullet_ZiplineEndReturn)GenSpawn.Spawn(ZipLineData.ZiplineReturnDef, this.PositionOnBaseMap(), this.BaseMap());
+            var pos = launchVerb.caster.IsOnVehicleMapOf(out var vehicle) && !vehicle.Spawned
+                ? Position : this.PositionOnBaseMap();
+            var bullet = (Bullet_ZiplineEndReturn)GenSpawn.Spawn(ZipLineData.ZiplineReturnDef, pos, this.BaseMap());
             bullet.launchVerb = launchVerb;
             bullet.ZipLineData = ZipLineData;
             launchVerb.ZiplineEnd = bullet;
             bullet.Launch(launchVerb.caster, this.TrueCenter(), launchVerb.caster, launchVerb.caster, ProjectileHitFlags.IntendedTarget);
         }
+        else launchVerb.ZiplineEnd = null;
         base.Destroy(mode);
     }
 
@@ -76,7 +77,7 @@ public class ZiplineEnd : ThingWithComps, IZiplineEnd
         var rot = rotation;
         if (this.IsOnVehicleMapOf(out var vehicle))
         {
-            rot -= vehicle.Angle;
+            rot -= vehicle.Angle - vehicle.Transform.rotation;
         }
 
         DrawZipline(drawLoc, rot, launchVerb, ZipLineData);
@@ -92,7 +93,7 @@ public class ZiplineEnd : ThingWithComps, IZiplineEnd
         var offset = launcher.def.building?.turretTopOffset.ToVector3() ?? Vector3.zero;
         if (launcher.IsOnNonFocusedVehicleMapOf(out var vehicle))
         {
-            offset = offset.RotatedBy(-vehicle.Angle);
+            offset = offset.RotatedBy(-vehicle.Angle + vehicle.Transform.rotation);
         }
 
         launcherPos += offset;

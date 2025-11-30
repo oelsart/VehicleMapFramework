@@ -8,7 +8,6 @@ using RimWorld.Planet;
 using SmashTools;
 using UnityEngine;
 using Vehicles;
-using Vehicles.World;
 using Verse;
 using Verse.AI.Group;
 using static VehicleMapFramework.ModCompat;
@@ -72,7 +71,6 @@ public static class VehicleMapUtility
             return false;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public IEnumerable<Map> BaseMapAndVehicleMaps()
         {
             if (MultiFloors.Active && MultiFloors.GroundMap(map) != map)
@@ -113,14 +111,13 @@ public static class VehicleMapUtility
             }
             return map;
         }
+
+        public Map GroundMap => map.BaseMap();
         
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public object BaseMapOrCaravan()
-        {
-            return map.IsVehicleMapOf(out var vehicle)
+        public object BaseMapOrCaravan =>
+            map.IsVehicleMapOf(out var vehicle)
                 ? vehicle.Spawned ? vehicle.Map : vehicle.GetVehicleCaravan()
                 : map;
-        }
     }
 
     extension(Thing thing)
@@ -133,6 +130,8 @@ public static class VehicleMapUtility
             return false;
         }
 
+        public bool IsOnVehicleMap => thing.IsOnVehicleMapOf(out _);
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsOnNonFocusedVehicleMapOf(out VehiclePawnWithMap vehicle)
         {
@@ -140,6 +139,8 @@ public static class VehicleMapUtility
             vehicle = null;
             return false;
         }
+
+        public bool IsOnNonFocusedVehicleMap => thing.IsOnNonFocusedVehicleMapOf(out _);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Map BaseMap()
@@ -151,12 +152,74 @@ public static class VehicleMapUtility
             return thing.Map;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public object BaseMapOrCaravan()
-        {
-            return thing.IsOnVehicleMapOf(out var vehicle)
+        public Map GroundMap => thing.BaseMap();
+
+        public object BaseMapOrCaravan =>
+            thing.IsOnVehicleMapOf(out var vehicle)
                 ? vehicle.Spawned ? vehicle.Map : vehicle.GetVehicleCaravan()
                 : thing.Map;
+
+        public Map MapHeldBaseMap()
+        {
+            return thing.MapHeld.BaseMap();
+        }
+
+        public object MapHeldBaseMapOrCaravan
+        {
+            get
+            {
+                var mapHeld = thing.MapHeld;
+                return mapHeld.IsVehicleMapOf(out var vehicle)
+                    ? vehicle.Spawned ? vehicle.Map : vehicle.GetVehicleCaravan()
+                    : mapHeld;
+            }
+        }
+        
+        public bool TryGetDrawPos(ref Vector3 result)
+        {
+            if (VehiclePawnWithMapCache.cacheModeGlobal) return false;
+
+            var map = thing.Map;
+            if (map.IsNonFocusedVehicleMapOf(out var vehicle))
+            {
+                var component = MapComponentCache<VehiclePawnWithMapCache>.GetComponent(map);
+                if (!component.cacheMode)
+                {
+                    if (!component.cachedDrawPos.TryGetValue(thing, out result))
+                    {
+                        VehiclePawnWithMapCache.cacheModeGlobal = true;
+                        try
+                        {
+                            result = thing.DrawPos.ToBaseMapCoord(vehicle);
+                            component.cachedDrawPos[thing] = result;
+                        }
+                        finally
+                        {
+                            VehiclePawnWithMapCache.cacheModeGlobal = false;
+                        }
+                    }
+                    return true;
+                }
+                VehiclePawnWithMapCache.cacheModeGlobal = true;
+                try
+                {
+                    if (thing.def.category == ThingCategory.Item &&
+                        thing.GetSlotGroup()?.parent is Building_Hatch)
+                    {
+                        result = Vector3.negativeInfinity;
+                    }
+                    else
+                    {
+                        result = thing.DrawPos;
+                    }
+                }
+                finally
+                {
+                    VehiclePawnWithMapCache.cacheModeGlobal = false;
+                }
+                return true;
+            }
+            return false;
         }
     }
 
@@ -206,7 +269,6 @@ public static class VehicleMapUtility
             return original.WithY(original.y.YOffsetFull(vehicle));
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Vector3 ToVehicleMapCoord()
         {
             if (Command_FocusVehicleMap.FocusedVehicle != null)
@@ -231,7 +293,6 @@ public static class VehicleMapUtility
             return drawPos;
         }
         
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Vector3 ToBaseMapCoord()
         {
             if (Command_FocusVehicleMap.FocusedVehicle != null)
@@ -246,7 +307,6 @@ public static class VehicleMapUtility
             return original;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Vector3 ToBaseMapCoord(Map map)
         {
             return map.IsNonFocusedVehicleMapOf(out var vehicle) ? ToBaseMapCoord(original, vehicle) : original;
@@ -326,7 +386,6 @@ public static class VehicleMapUtility
         }
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static IntVec3 ToVehicleMapCoord(this IntVec3 original, VehiclePawnWithMap vehicle)
     {
         return original.ToVector3Shifted().ToVehicleMapCoord(vehicle).ToIntVec3();
@@ -368,19 +427,16 @@ public static class VehicleMapUtility
 
     extension(IntVec3 original)
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public IntVec3 ToBaseMapCoord()
         {
             return original.ToVector3Shifted().ToBaseMapCoord().ToIntVec3();
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public IntVec3 ToBaseMapCoord(VehiclePawnWithMap vehicle)
         {
             return original.ToVector3Shifted().ToBaseMapCoord(vehicle).ToIntVec3();
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public IntVec3 ToBaseMapCoord(Map map)
         {
             return original.ToVector3Shifted().ToBaseMapCoord(map).ToIntVec3();
@@ -478,27 +534,40 @@ public static class VehicleMapUtility
         return target.Map.BaseMap();
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static IntVec3 PositionOnBaseMap(this Thing thing)
+    extension(Thing thing)
     {
-        if (!thing.IsOnVehicleMapOf(out var vehicle)) return thing.Position;
-        var component = MapComponentCache<VehiclePawnWithMapCache>.GetComponent(thing.Map);
-        if (component.cachedPosOnBaseMap.TryGetValue(thing, out var pos))
+        public IntVec3 PositionOnBaseMap()
         {
+            if (!thing.IsOnVehicleMapOf(out var vehicle)) return thing.Position;
+            var component = MapComponentCache<VehiclePawnWithMapCache>.GetComponent(thing.Map);
+            if (component.cachedPosOnBaseMap.TryGetValue(thing, out var pos))
+            {
+                return pos;
+            }
+            pos = thing.Position.ToBaseMapCoord(vehicle);
+            component.cachedPosOnBaseMap[thing] = pos;
             return pos;
         }
-        pos = thing.Position.ToBaseMapCoord(vehicle);
-        component.cachedPosOnBaseMap[thing] = pos;
-        return pos;
+
+        public IntVec3 PositionOnBaseMapSpawned()
+        {
+            if (!thing.IsOnVehicleMapOf(out var vehicle) || !vehicle.Spawned) return thing.Position;
+            var component = MapComponentCache<VehiclePawnWithMapCache>.GetComponent(thing.Map);
+            if (component.cachedPosOnBaseMap.TryGetValue(thing, out var pos))
+            {
+                return pos;
+            }
+            pos = thing.Position.ToBaseMapCoord(vehicle);
+            component.cachedPosOnBaseMap[thing] = pos;
+            return pos;
+        }
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static IntVec3 PositionOnBaseMap(this IHaulDestination dest)
     {
         return dest.Map.IsVehicleMapOf(out var vehicle) ? dest.Position.ToBaseMapCoord(vehicle) : dest.Position;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static IntVec3 PositionHeldOnBaseMap(this Thing thing)
     {
         if (thing.Spawned)
@@ -535,9 +604,18 @@ public static class VehicleMapUtility
         }
     }
 
-    public static IntVec3 CellOnBaseMap(this ref LocalTargetInfo target)
+    extension(ref LocalTargetInfo target)
     {
-        return target.HasThing ? target.Thing.PositionOnBaseMap() : target.Cell;
+        public IntVec3 CellOnBaseMap()
+        {
+            return target.HasThing ? target.Thing.PositionOnBaseMap() : target.Cell;
+        }
+
+        public IntVec3 CellOnBaseMapSpawned()
+        {
+            return target.Thing.IsOnVehicleMapOf(out var vehicle) && vehicle.Spawned
+                ? target.Cell.ToBaseMapCoord(vehicle) : target.Cell;
+        }
     }
 
     public static IntVec3 CellOnBaseMap(this ref TargetInfo target)
@@ -651,62 +729,6 @@ public static class VehicleMapUtility
     public static int HalfLength(this VehicleDef vehicleDef)
     {
         return vehicleDef.size.z / 2;
-    }
-
-    extension(Thing thing)
-    {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetDrawPos(ref Vector3 result)
-        {
-            if (VehiclePawnWithMapCache.cacheModeGlobal) return false;
-
-            var map = thing.Map;
-            if (map.IsNonFocusedVehicleMapOf(out var vehicle))
-            {
-                var component = MapComponentCache<VehiclePawnWithMapCache>.GetComponent(map);
-                if (!component.cacheMode)
-                {
-                    if (!component.cachedDrawPos.TryGetValue(thing, out result))
-                    {
-                        VehiclePawnWithMapCache.cacheModeGlobal = true;
-                        try
-                        {
-                            result = thing.DrawPos.ToBaseMapCoord(vehicle);
-                            component.cachedDrawPos[thing] = result;
-                        }
-                        finally
-                        {
-                            VehiclePawnWithMapCache.cacheModeGlobal = false;
-                        }
-                    }
-                    return true;
-                }
-                VehiclePawnWithMapCache.cacheModeGlobal = true;
-                try
-                {
-                    if (thing.def.category == ThingCategory.Item &&
-                        thing.GetSlotGroup()?.parent is Building_Hatch)
-                    {
-                        result = Vector3.negativeInfinity;
-                    }
-                    else
-                    {
-                        result = thing.DrawPos;
-                    }
-                }
-                finally
-                {
-                    VehiclePawnWithMapCache.cacheModeGlobal = false;
-                }
-                return true;
-            }
-            return false;
-        }
-
-        public Map MapHeldBaseMap()
-        {
-            return thing.MapHeld.BaseMap();
-        }
     }
 
     public static Rot4 RotForVehicleDraw(this Rot8 rot)
@@ -832,7 +854,6 @@ public static class VehicleMapUtility
             return vehicle.VehicleDef.HalfLength();
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetFullRotation(ref Rot8 rot)
         {
             var map = vehicle.Map;

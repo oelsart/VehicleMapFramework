@@ -90,12 +90,26 @@ public static class RegionTraverserAcrossMaps
                     }
                 }
 
-                if (region.Map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
+                if (region.Map.IsVehicleMapOf(out var vehicle))
                 {
-                    var baseRegion = vehicle.Position.GetRegion(vehicle.Map);
-                    if (baseRegion != null && !open.Contains(baseRegion) && !close.Contains(baseRegion))
+                    if (vehicle.Spawned)
                     {
-                        QueueNewOpenRegion(baseRegion);
+                        var baseRegion = vehicle.Position.GetRegion(vehicle.Map);
+                        if (baseRegion != null && !open.Contains(baseRegion) && !close.Contains(baseRegion))
+                        {
+                            QueueNewOpenRegion(baseRegion);
+                        }
+                    }
+                    else
+                    {
+                        foreach (var thing in ziplines.SelectMany(def => region.ListerThings.ThingsOfDef(def)))
+                        {
+                            if (!thing.TryGetComp<CompZipline>(out var comp)) continue;
+                            var pair = comp.Pair;
+                            var region2 = pair?.Position.GetRegion(pair.Map);
+                            if (region2 != null && !open.Contains(region2) && !close.Contains(region2))
+                                QueueNewOpenRegion(region2);
+                        }
                     }
                 }
             }
@@ -110,17 +124,11 @@ public static class RegionTraverserAcrossMaps
 
     public static readonly RegionEntryPredicate PassAll;
 
+    private static readonly List<ThingDef> ziplines;
+
     public static District FloodAndSetDistricts(Region root, Map map, District existingRoom)
     {
-        District floodingDistrict;
-        if (existingRoom == null)
-        {
-            floodingDistrict = District.MakeNew(map);
-        }
-        else
-        {
-            floodingDistrict = existingRoom;
-        }
+        var floodingDistrict = existingRoom ?? District.MakeNew(map);
 
         root.District = floodingDistrict;
         if (!root.type.AllowsMultipleRegionsPerDistrict())
@@ -169,7 +177,7 @@ public static class RegionTraverserAcrossMaps
             return false;
         }
 
-        if (region == regB)
+        if (ReferenceEquals(region, regB))
         {
             return true;
         }
@@ -182,7 +190,7 @@ public static class RegionTraverserAcrossMaps
 
         bool regionProcessor(Region r)
         {
-            if (r == regB)
+            if (ReferenceEquals(r, regB))
             {
                 found = true;
                 return true;
@@ -210,8 +218,9 @@ public static class RegionTraverserAcrossMaps
     {
         freeWorkers = new Queue<BFSWorker>();
         NumWorkers = 8;
-        PassAll = (from, to) => true;
+        PassAll = (_, _) => true;
         RecreateWorkers();
+        ziplines = DefDatabase<ThingDef>.AllDefs.Where(d => d.HasAssignableCompFrom(typeof(CompZipline))).ToList();
     }
 
     public static void RecreateWorkers()

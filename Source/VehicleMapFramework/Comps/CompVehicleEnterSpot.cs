@@ -35,15 +35,17 @@ public class CompVehicleEnterSpot : ThingComp
             {
                 vehicle.EnterComps.Add(this);
             }
+            CrossMapReachabilityCache.ClearCacheFor(parent.Map);
         });
     }
 
     public override void PostDeSpawn(Map map, DestroyMode mode = DestroyMode.Vanish)
     {
-        base.PostDeSpawn(map);
+        base.PostDeSpawn(map, mode);
         if (map.IsVehicleMapOf(out var vehicle))
         {
             vehicle.EnterComps.Remove(this);
         }
+        CrossMapReachabilityCache.ClearCacheFor(map);
     }
 }

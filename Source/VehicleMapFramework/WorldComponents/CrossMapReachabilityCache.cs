@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using JetBrains.Annotations;
 using RimWorld.Planet;
 using Verse;
 
@@ -7,7 +8,8 @@ namespace VehicleMapFramework;
 
 public class CrossMapReachabilityCache(World world) : WorldComponent(world)
 {
-    private readonly Dictionary<CachedEntry, (bool result, TargetInfo exitSpot, TargetInfo enterSpot)> cache = [];
+    private readonly Dictionary<CachedEntry,
+        (bool result, TargetInfo exitSpot, TargetInfo enterSpot, List<(TargetInfo, TargetInfo)> spotsQueue)> cache = [];
 
     public static CrossMapReachabilityCache Instance => Find.World.GetComponent<CrossMapReachabilityCache>();
 
@@ -21,13 +23,15 @@ public class CrossMapReachabilityCache(World world) : WorldComponent(world)
         Instance.cache.RemoveAll(kvp => kvp.Key.FirstRegion.Map == map || kvp.Key.SecondRegion.Map == map);
     }
 
-    public static bool TryGetCache(Region A, Region B, TraverseParms traverseParms, out bool result, out TargetInfo exitSpot, out TargetInfo enterSpot)
+    public static bool TryGetCache(Region A, Region B, TraverseParms traverseParms, out bool result,
+        out TargetInfo exitSpot, out TargetInfo enterSpot, out List<(TargetInfo, TargetInfo)> spotsQueue)
     {
         if (A is null || B is null)
         {
             result = false;
             exitSpot = TargetInfo.Invalid;
             enterSpot = TargetInfo.Invalid;
+            spotsQueue = null;
             return false;
         }
         if (Instance.cache.TryGetValue(new CachedEntry(A, B, traverseParms), out var value))
@@ -35,19 +39,22 @@ public class CrossMapReachabilityCache(World world) : WorldComponent(world)
             result = value.result;
             exitSpot = value.exitSpot;
             enterSpot = value.enterSpot;
+            spotsQueue = value.spotsQueue;
             return true;
         }
         result = false;
         exitSpot = TargetInfo.Invalid;
         enterSpot = TargetInfo.Invalid;
+        spotsQueue = null;
         return false;
     }
 
-    public static void Cache(Region A, Region B, TraverseParms traverseParms, bool result, TargetInfo exitSpot, TargetInfo enterSpot)
+    public static void Cache(Region A, Region B, TraverseParms traverseParms, bool result,
+        TargetInfo exitSpot, TargetInfo enterSpot, List<(TargetInfo, TargetInfo)> spotsQueue)
     {
         if (A is null || B is null) return;
         var key = new CachedEntry(A, B, traverseParms);
-        Instance.cache[key] = (result, exitSpot, enterSpot);
+        Instance.cache[key] = (result, exitSpot, enterSpot, spotsQueue);
     }
 
     private readonly struct CachedEntry : IEquatable<CachedEntry>
@@ -76,19 +83,19 @@ public class CrossMapReachabilityCache(World world) : WorldComponent(world)
             return !lhs.Equals(rhs);
         }
 
-        public readonly override bool Equals(object obj)
+        public override bool Equals(object obj)
         {
             return obj is CachedEntry entry && Equals(entry);
         }
 
-        public readonly bool Equals(CachedEntry other)
+        public bool Equals(CachedEntry other)
         {
             return ReferenceEquals(FirstRegion, other.FirstRegion) &&
                    ReferenceEquals(SecondRegion, other.SecondRegion) &&
                    TraverseParms == other.TraverseParms;
         }
 
-        public readonly override int GetHashCode()
+        public override int GetHashCode()
         {
             return Gen.HashCombineStruct(Gen.HashCombineInt(FirstRegion.id, SecondRegion.id), TraverseParms);
         }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using HarmonyLib;
 using RimWorld;
 using Vehicles;
@@ -11,47 +12,56 @@ public static class JobAcrossMapsUtility
 {
     private static readonly AccessTools.FieldRef<JobDriver, int> curToilIndex = AccessTools.FieldRefAccess<JobDriver, int>("curToilIndex");
 
-    public static void StartGotoDestMapJob(Pawn pawn, TargetInfo? exitSpot = null, TargetInfo? enterSpot = null)
+    public static void StartGotoDestMapJob(Pawn pawn, TargetInfo? exitSpot = null, TargetInfo? enterSpot = null,
+        List<(TargetInfo, TargetInfo)> spotsQueue = null)
     {
-        if (pawn.CurJobDef == VMF_DefOf.VMF_GotoDestMap) return;
+        if (pawn.jobs is null or { curDriver: JobDriverAcrossMaps })
+            return;
 
         var nextJob = pawn.CurJob.Clone();
         var driver = nextJob.GetCachedDriver(pawn);
         curToilIndex(driver) = pawn.jobs.curDriver.CurToilIndex - 1;
         pawn.jobs.curDriver.globalFinishActions.Clear(); //Jobはまだ終わっちゃいねえためFinishActionはさせない。TryDropThingなどをしていることもあるし
-        var job = GotoDestMapJob(pawn, exitSpot, enterSpot, nextJob);
+        var job = GotoDestMapJob(pawn, exitSpot, enterSpot, spotsQueue, nextJob);
         job.playerForced = nextJob.playerForced;
         pawn.jobs.StartJob(job, JobCondition.InterruptForced, keepCarryingThingOverride: true, preToilReservationsCanFail: true);
     }
 
-    public static Job GotoDestMapJob(Pawn pawn, TargetInfo? exitSpot = null, TargetInfo? enterSpot = null, Job nextJob = null)
+    public static Job GotoDestMapJob(Pawn pawn, TargetInfo? exitSpot = null, TargetInfo? enterSpot = null,
+        List<(TargetInfo, TargetInfo)> spotsQueue = null, Job nextJob = null)
     {
+        if (!spotsQueue.NullOrEmpty() && spotsQueue.Any(s => s.Item1 is { Map: not null } || s.Item2 is { Map: not null }))
+            return JobMaker.MakeJob(VMF_DefOf.VMF_GotoDestMap).SetSpotsAndNextJob(pawn, spotsQueue, nextJob: nextJob);
         if (enterSpot is { Map: not null } || exitSpot is { Map: not null })
-        {
             return JobMaker.MakeJob(VMF_DefOf.VMF_GotoDestMap).SetSpotsAndNextJob(pawn, exitSpot, enterSpot, nextJob: nextJob);
-        }
         return nextJob;
-    }
-
-    [Obsolete]
-    public static void TryTakeGotoDestMapJob(Pawn pawn, TargetInfo? exitSpot = null, TargetInfo? enterSpot = null)
-    {
-        pawn.jobs.TryTakeOrderedJob(JobMaker.MakeJob(VMF_DefOf.VMF_GotoAcrossMaps).SetSpotsToJobAcrossMaps(pawn, exitSpot, enterSpot), JobTag.Misc);
     }
 
     extension(Job job)
     {
-        public Job SetSpotsToJobAcrossMaps(Pawn pawn, TargetInfo? exitSpot1 = null, TargetInfo? enterSpot1 = null, TargetInfo? exitSpot2 = null, TargetInfo? enterSpot2 = null)
+        public Job SetSpotsToJobAcrossMaps(Pawn pawn, TargetInfo? exitSpot = null, TargetInfo? enterSpot = null,
+            List<(TargetInfo, TargetInfo)> spotsQueue = null)
         {
             if (job.GetCachedDriver(pawn) is not JobDriverAcrossMaps driver) return null;
-            driver.SetSpots(exitSpot1, enterSpot1, exitSpot2, enterSpot2);
+            if (spotsQueue.NullOrEmpty()) driver.SetSpots(exitSpot, enterSpot);
+            else driver.SetSpots(spotsQueue);
             return job;
         }
-
-        public Job SetSpotsAndNextJob(Pawn pawn, TargetInfo? exitSpot1 = null, TargetInfo? enterSpot1 = null, TargetInfo? exitSpot2 = null, TargetInfo? enterSpot2 = null, Job nextJob = null)
+        
+        public Job SetSpotsAndNextJob(Pawn pawn, List<(TargetInfo, TargetInfo)> spotsQueueA = null,
+            List<(TargetInfo, TargetInfo)> spotsQueueB = null, Job nextJob = null)
         {
             if (job.GetCachedDriver(pawn) is not JobDriver_GotoDestMap driver) return null;
-            driver.SetSpots(exitSpot1, enterSpot1, exitSpot2, enterSpot2);
+            driver.SetSpots(spotsQueueA, spotsQueueB);
+            driver.nextJob = nextJob;
+            return job;
+        }
+        
+        public Job SetSpotsAndNextJob(Pawn pawn, TargetInfo? exitSpotA = null, TargetInfo? enterSpotA = null,
+            TargetInfo? exitSpotB = null, TargetInfo? enterSpotB = null, Job nextJob = null)
+        {
+            if (job.GetCachedDriver(pawn) is not JobDriver_GotoDestMap driver) return null;
+            driver.SetSpots(exitSpotA, enterSpotA, exitSpotB, enterSpotB);
             driver.nextJob = nextJob;
             return job;
         }

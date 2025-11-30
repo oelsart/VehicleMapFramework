@@ -36,12 +36,14 @@ public static class AnimalPenUtilityOnVehicle
         if (roper == null)
         {
             var traverseParams = TraverseParms.For(TraverseMode.PassDoors).WithFenceblockedOf(animal);
-            flag = CrossMapReachabilityUtility.CanReach(animal.Map, animal.Position, penMarker.parent, PathEndMode.Touch, traverseParams, penMarker.parent.Map, out _, out _);
+            flag = CrossMapReachabilityUtility.CanReach(animal.Map, animal.Position, penMarker.parent,
+                PathEndMode.Touch, traverseParams, penMarker.parent.Map);
         }
         else
         {
             var traverseParams2 = TraverseParms.For(roper).WithFenceblockedOf(animal);
-            flag = CrossMapReachabilityUtility.CanReach(animal.Map, animal.Position, penMarker.parent, PathEndMode.Touch, traverseParams2, penMarker.parent.Map, out _, out _);
+            flag = CrossMapReachabilityUtility.CanReach(animal.Map, animal.Position, penMarker.parent,
+                PathEndMode.Touch, traverseParams2, penMarker.parent.Map);
         }
         if (!flag)
         {

@@ -93,7 +93,7 @@ public class CustomZipline : DefModExtension
         
         public ThingDef ZiplineReturnDef => field ?? VMF_DefOf.VMF_Bullet_ZiplineTurretReturn;
 
-        private const float DefaultZiplineWidth = 0.135f;
+        private const float DefaultZiplineWidth = 0.12f;
 
         private const float DefaultZiplineEndOffset = 0.42f;
 

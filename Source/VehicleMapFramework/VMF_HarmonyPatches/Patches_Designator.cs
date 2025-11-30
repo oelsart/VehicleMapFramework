@@ -47,7 +47,7 @@ public static class Patches_Designator_DesignateThing
             }
         }
     }
-
+    
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
         foreach (var instruction in instructions)

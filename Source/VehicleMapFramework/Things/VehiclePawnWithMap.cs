@@ -199,6 +199,8 @@ public class VehiclePawnWithMap : VehiclePawn
     public List<CompFuelTank> FuelTankComps { get; } = [];
     
     public List<CompMapExpander> MapExpanderComps { get; } = [];
+    
+    public List<CompBuildableContainer> ContainerComps { get; } = [];
 
     public override Vector3 DrawPos => Spawned ? base.DrawPos : cachedDrawPos;
 
@@ -555,10 +557,6 @@ public class VehiclePawnWithMap : VehiclePawn
             Find.Selector.Deselect(zone);
         }
         var crossMapHaulDestinationManager = Map.GetCachedMapComponent<CrossMapHaulDestinationManager>();
-        foreach (var haulSource in interiorMap.haulDestinationManager.AllHaulSourcesListForReading)
-        {
-            crossMapHaulDestinationManager.RemoveHaulSource(haulSource);
-        }
         foreach (var haulDestination in interiorMap.haulDestinationManager.AllHaulDestinations)
         {
             crossMapHaulDestinationManager.RemoveHaulDestination(haulDestination);

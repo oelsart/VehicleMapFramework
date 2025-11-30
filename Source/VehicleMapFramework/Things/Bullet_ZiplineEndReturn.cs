@@ -4,25 +4,9 @@ using Verse;
 
 namespace VehicleMapFramework;
 
-public class Bullet_ZiplineEndReturn : Bullet, IZiplineEnd
+public class Bullet_ZiplineEndReturn : Bullet_ZiplineBase
 {
-    public CustomZipline.ZipLineData ZipLineData { get; set; }
-
     public override Quaternion ExactRotation => Quaternion.LookRotation((origin - destination).Yto0());
-
-    private float ArcHeightFactor
-    {
-        get
-        {
-            var num = def.projectile.arcHeightFactor;
-            var num2 = (destination - origin).MagnitudeHorizontalSquared();
-            if (num * num > num2 * 0.2f * 0.2f)
-            {
-                num = Mathf.Sqrt(num2) * 0.2f;
-            }
-            return num;
-        }
-    }
 
     protected override void TickInterval(int delta)
     {
@@ -50,16 +34,16 @@ public class Bullet_ZiplineEndReturn : Bullet, IZiplineEnd
         }
         base.TickInterval(delta);
     }
-    protected override void ImpactSomething()
-    {
-        Impact(null);
-    }
 
     protected override void Impact(Thing hitThing, bool blockedByShield = false)
     {
         if (blockedByShield) return;
-
         Destroy();
+    }
+
+    public override void Destroy(DestroyMode mode = DestroyMode.Vanish)
+    {
+        base.Destroy(mode);
         launchVerb.ZiplineEnd = null;
         if (launchVerb.caster is Building_Turret building_Turret)
         {
@@ -73,7 +57,7 @@ public class Bullet_ZiplineEndReturn : Bullet, IZiplineEnd
         DrawZipline(drawLoc);
     }
 
-    public void DrawZipline(Vector3 drawLoc)
+    public override void DrawZipline(Vector3 drawLoc)
     {
         var num = ArcHeightFactor * GenMath.InverseParabola(DistanceCoveredFractionArc);
         ZiplineEnd.DrawZipline(drawLoc + Vector3.forward * num, ExactRotation.eulerAngles.y, launchVerb, ZipLineData);
@@ -93,8 +77,6 @@ public class Bullet_ZiplineEndReturn : Bullet, IZiplineEnd
             }
         }
     }
-
-    public Verb_LaunchZipline launchVerb;
 
     private LocalTargetInfo tmpTarget = LocalTargetInfo.Invalid;
 }

@@ -31,7 +31,7 @@ public static class VerbOnVehicleCEUtility
             targetPos = targ.Thing is Pawn ? targ.Thing.TrueCenter() : TargetMapManager.TargetCellOnBaseMap(ref targ, verb.caster).ToVector3Shifted();
             var targCellOnBaseMap = TargetMapManager.TargetCellOnBaseMap(ref targ, verb.caster);
 
-            if (targ.HasThing && targ.Thing.BaseMapOrCaravan() != verb.caster.BaseMapOrCaravan())
+            if (targ.HasThing && targ.Thing.BaseMapOrCaravan != verb.caster.BaseMapOrCaravan)
             {
                 resultingLine = default;
                 return false;
@@ -95,7 +95,7 @@ public static class VerbOnVehicleCEUtility
         private bool CanHitFromCellIgnoringRange(Vector3 shotSource, LocalTargetInfo targ, out IntVec3 goodDest)
         {
             var targCellOnBaseMap = targ.CellOnBaseMap();
-            if (targ.Thing != null && targ.Thing.BaseMapOrCaravan() != verb.Caster.BaseMapOrCaravan())
+            if (targ.Thing != null && targ.Thing.BaseMapOrCaravan != verb.Caster.BaseMapOrCaravan)
             {
                 goodDest = IntVec3.Invalid;
                 return false;

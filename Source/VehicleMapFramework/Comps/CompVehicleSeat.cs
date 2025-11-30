@@ -25,7 +25,8 @@ public class CompVehicleSeat : CompBuildableUpgrades, IAttackTarget
 
     public override IEnumerable<FloatMenuOption> CompFloatMenuOptions(Pawn selPawn)
     {
-        if (parent.IsOnVehicleMapOf(out var vehicle) && selPawn.CanReach(parent, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, parent.Map, out var exitSpot, out var enterSpot))
+        if (parent.IsOnVehicleMapOf(out var vehicle) && selPawn.CanReach(parent, PathEndMode.Touch, Danger.Deadly,
+                false, false, TraverseMode.ByPawn, parent.Map, out var exitSpot, out var enterSpot, out var spotsQueue))
         {
             foreach (var floatMenuOption in from handler in vehicle.handlers
                      where handler.AreSlotsAvailable && handlerUniqueIDs.Any(h => h.id == handler.uniqueID)
@@ -41,7 +42,7 @@ public class CompVehicleSeat : CompBuildableUpgrades, IAttackTarget
                              "VF_BoardFailureNonCombatant".Translate(selPawn.LabelShort)))
                      select new FloatMenuOption(label, delegate
                      {
-                         var job = new Job(VMF_DefOf.VMF_BoardAcrossMaps, parent).SetSpotsToJobAcrossMaps(selPawn, exitSpot, enterSpot);
+                         var job = new Job(VMF_DefOf.VMF_BoardAcrossMaps, parent).SetSpotsToJobAcrossMaps(selPawn, exitSpot, enterSpot, spotsQueue);
                          vehicle.GiveLoadJob(selPawn, handler);
                          selPawn.jobs.TryTakeOrderedJob(job, JobTag.DraftedOrder);
                          if (!selPawn.Spawned)

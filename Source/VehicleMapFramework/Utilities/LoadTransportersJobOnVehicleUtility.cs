@@ -38,7 +38,7 @@ public static class LoadTransportersJobOnVehicleUtility
             return false;
         }
 
-        if (!pawn.CanReach(transporter.parent, PathEndMode.Touch, pawn.NormalMaxDanger(), false, false, TraverseMode.ByPawn, transporter.parent.Map, out _, out _))
+        if (!pawn.CanReach(transporter.parent, PathEndMode.Touch, pawn.NormalMaxDanger(), false, false, TraverseMode.ByPawn, transporter.parent.Map))
         {
             return false;
         }

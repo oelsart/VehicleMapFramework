@@ -63,7 +63,7 @@ public static class ReservationAcrossMapsUtility
                 Log.Error("CanReserve with null claimant");
                 return false;
             }
-            if (!p.Spawned || p.BaseMapOrCaravan() != map.BaseMapOrCaravan())
+            if (!p.Spawned || p.BaseMapOrCaravan != map.BaseMapOrCaravan)
             {
                 return false;
             }

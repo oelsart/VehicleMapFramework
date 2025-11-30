@@ -67,7 +67,7 @@ public static class GenClosestCrossMap
             var departMap = traverseParams.pawn?.DepartMap ?? map;
             bool GlobalValidator(Thing t)
             {
-                if (!CrossMapReachabilityUtility.CanReach(departMap, root, t, peMode, traverseParams, t.MapHeld, out _, out _))
+                if (!CrossMapReachabilityUtility.CanReach(departMap, root, t, peMode, traverseParams, t.MapHeld))
                 {
                     return false;
                 }
@@ -108,22 +108,22 @@ public static class GenClosestCrossMap
     public static Thing RegionwiseBFSWorker(IntVec3 root, Map map, ThingRequest req, PathEndMode peMode, TraverseParms traverseParams, Predicate<Thing> validator, Func<Thing, float> priorityGetter, int minRegions, int maxRegions, float maxDistance, out int regionsSeen, RegionType traversableRegionTypes = RegionType.Set_Passable, bool ignoreEntirelyForbiddenRegions = false, bool lookInHaulSources = false)
     {
         regionsSeen = 0;
-        if (traverseParams.mode == TraverseMode.PassAllDestroyableThings)
+        switch (traverseParams.mode)
         {
-            Log.Error("RegionwiseBFSWorker with traverseParams.mode PassAllDestroyableThings. Use ClosestThingGlobal.");
-            return null;
-        }
-
-        if (traverseParams.mode == TraverseMode.PassAllDestroyablePlayerOwnedThings)
-        {
-            Log.Error("RegionwiseBFSWorker with traverseParams.mode PassAllDestroyablePlayerOwnedThings. Use ClosestThingGlobal.");
-            return null;
-        }
-
-        if (traverseParams.mode == TraverseMode.PassAllDestroyableThingsNotWater)
-        {
-            Log.Error("RegionwiseBFSWorker with traverseParams.mode PassAllDestroyableThingsNotWater. Use ClosestThingGlobal.");
-            return null;
+            case TraverseMode.PassAllDestroyableThings:
+                Log.Error("RegionwiseBFSWorker with traverseParams.mode PassAllDestroyableThings. Use ClosestThingGlobal.");
+                return null;
+            case TraverseMode.PassAllDestroyablePlayerOwnedThings:
+                Log.Error("RegionwiseBFSWorker with traverseParams.mode PassAllDestroyablePlayerOwnedThings. Use ClosestThingGlobal.");
+                return null;
+            case TraverseMode.PassAllDestroyableThingsNotWater:
+                Log.Error("RegionwiseBFSWorker with traverseParams.mode PassAllDestroyableThingsNotWater. Use ClosestThingGlobal.");
+                return null;
+            case TraverseMode.ByPawn:
+            case TraverseMode.PassDoors:
+            case TraverseMode.NoPassClosedDoors:
+            case TraverseMode.NoPassClosedDoorsOrWater:
+            default: break;
         }
 
         if (req is { IsUndefined: false, CanBeFoundInRegion: false })

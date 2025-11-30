@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using HarmonyLib;
 using RimWorld;
 using UnityEngine;
 using VehicleMapFramework.VMF_HarmonyPatches;
@@ -66,21 +67,6 @@ public class Verb_LaunchZipline : Verb_Shoot
         {
             manningPawn = compMannable.ManningPawn;
             equipmentSource = caster;
-        }
-
-        if (caster.IsOnVehicleMapOf(out var vehicle) && !vehicle.Spawned &&
-            TargetMapManager.HasTargetMap(caster, out var anotherMap) &&
-            anotherMap.IsVehicleMapOf(out var vehicle2) &&
-            vehicle.GetVehicleCaravan() == vehicle2.GetVehicleCaravan())
-        {
-            var customZipline = projectile.GetModExtension<CustomZipline>() ?? new CustomZipline();
-            var ziplineEnd = (ZiplineEnd)ThingMaker.MakeThing(customZipline.zipLineData.ZiplineEndDef);
-            ziplineEnd.ZipLineData = customZipline.zipLineData;
-            ziplineEnd.rotation = (caster.DrawPos - ziplineEnd.DrawPos).AngleFlat();
-            ziplineEnd.launchVerb = this;
-            GenSpawn.Spawn(ziplineEnd, currentTarget.Cell, anotherMap);
-            ZiplineEnd = ziplineEnd;
-            return true;
         }
 
         var drawPos = caster.DrawPos;

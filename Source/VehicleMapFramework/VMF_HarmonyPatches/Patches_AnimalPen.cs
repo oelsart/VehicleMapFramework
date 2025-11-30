@@ -59,7 +59,7 @@ public static class Patch_AnimalPenUtility_AnySuitableHitch
             {
                 foreach (var thing in map.listerBuildings.allBuildingsAnimalPenMarkers)
                 {
-                    if (animal.CanReach(thing, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, thing.Map, out _, out _))
+                    if (animal.CanReach(thing, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, thing.Map))
                     {
                         __result = true;
                         return;
@@ -197,11 +197,12 @@ public static class Patch_JobDriver_RopeToDestination_MakeNewToils
                 toil.AddPreInitAction(() =>
                 {
                     var actor = toil.actor;
-                    var ropee = actor.CurJob.targetA.Thing as Pawn;
                     if (actor.CurJob.targetC.HasThing && actor.Map != actor.CurJob.targetC.Thing.Map &&
-                        actor.CanReach(actor.CurJob.targetC.Thing, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, actor.CurJob.targetC.Thing.Map, out var exitSpot, out var enterSpot))
+                        actor.CanReach(actor.CurJob.targetC.Thing, PathEndMode.Touch, Danger.Deadly, false, false,
+                            TraverseMode.ByPawn, actor.CurJob.targetC.Thing.Map, out var exitSpot, out var enterSpot,
+                            out var spotsQueue))
                     {
-                        JobAcrossMapsUtility.StartGotoDestMapJob(actor, exitSpot, enterSpot);
+                        JobAcrossMapsUtility.StartGotoDestMapJob(actor, exitSpot, enterSpot, spotsQueue);
                     }
                 });
             }
@@ -219,10 +220,11 @@ public static class Patch_Toils_Rope_GotoRopeAttachmentInteractionCell
         __result.AddPreInitAction(() =>
         {
             var actor = __result.actor;
-            var ropee = actor.CurJob.GetTarget(ropeeIndex).Thing as Pawn;
-            if (actor.Map != ropee.Map && actor.CanReach(ropee, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, ropee.Map, out var exitSpot, out var enterSpot))
+            if (actor.CurJob.GetTarget(ropeeIndex).Thing is not Pawn ropee) return;
+            if (actor.Map != ropee.Map && actor.CanReach(ropee, PathEndMode.Touch, Danger.Deadly, false, false,
+                    TraverseMode.ByPawn, ropee.Map, out var exitSpot, out var enterSpot, out var spotsQueue))
             {
-                JobAcrossMapsUtility.StartGotoDestMapJob(actor, exitSpot, enterSpot);
+                JobAcrossMapsUtility.StartGotoDestMapJob(actor, exitSpot, enterSpot, spotsQueue);
             }
         });
     }

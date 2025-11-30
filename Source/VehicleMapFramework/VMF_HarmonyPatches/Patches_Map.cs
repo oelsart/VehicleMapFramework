@@ -118,7 +118,7 @@ public static class Patch_Reachability_CanReachNonLocal
     public static bool Prefix(IntVec3 start, TargetInfo dest, PathEndMode peMode, TraverseParms traverseParams, Map ___map, ref bool __result)
     {
         var destMap = dest.Map;
-        if (___map.BaseMap() == destMap.BaseMap())
+        if (___map.BaseMapOrCaravan == destMap.BaseMapOrCaravan)
         {
             __result = CrossMapReachabilityUtility.CanReach(___map, start, (LocalTargetInfo)dest, peMode, traverseParams, destMap);
             return false;
@@ -599,16 +599,6 @@ public static class Patch_Game_FindMap
     }
 }
 
-[HarmonyPatch(typeof(HaulDestinationManager), nameof(HaulDestinationManager.AddHaulSource))]
-[PatchLevel(Level.Mandatory)]
-public static class Patch_HaulDestinationManager_AddHaulSource
-{
-    public static void Postfix(Map ___map, IHaulSource source)
-    {
-        ___map.GetCachedMapComponent<CrossMapHaulDestinationManager>().AddHaulSource(source);
-    }
-}
-
 [HarmonyPatch(typeof(HaulDestinationManager), nameof(HaulDestinationManager.AddHaulDestination))]
 [PatchLevel(Level.Mandatory)]
 public static class Patch_HaulDestinationManager_AddHaulDestination
@@ -616,16 +606,6 @@ public static class Patch_HaulDestinationManager_AddHaulDestination
     public static void Postfix(Map ___map, IHaulDestination haulDestination)
     {
         ___map.GetCachedMapComponent<CrossMapHaulDestinationManager>().AddHaulDestination(haulDestination);
-    }
-}
-
-[HarmonyPatch(typeof(HaulDestinationManager), nameof(HaulDestinationManager.RemoveHaulSource))]
-[PatchLevel(Level.Mandatory)]
-public static class Patch_HaulDestinationManager_RemoveHaulSource
-{
-    public static void Postfix(Map ___map, IHaulSource source)
-    {
-        ___map.GetCachedMapComponent<CrossMapHaulDestinationManager>().RemoveHaulSource(source);
     }
 }
 

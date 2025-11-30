@@ -1,10 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
 using HarmonyLib;
 using RimWorld;
+using RimWorld.Planet;
 using UnityEngine;
 using Verse;
+using Verse.Sound;
 using static VehicleMapFramework.ModCompat;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
@@ -78,7 +81,8 @@ public static class Patch_Selector_SelectInternal
     {
         var codes = new CodeMatcher(instructions, generator)
             .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Find_CurrentMap))
-            .InsertAndAdvance(new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMap_Map));
+            .InsertAndAdvance(new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMapOrCaravan_Map))
+            .InsertAfterAndAdvance(new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMapOrCaravan_Map));
         
         var l_intVec = codes.Instructions().Select(c => c.operand).OfType<LocalBuilder>()
             .First(l => l.LocalType == typeof(IntVec3));

@@ -45,7 +45,7 @@ public class CompZipline : CompVehicleEnterSpot
 
     public bool IsZiplineEnd { get; private set; }
 
-    public override bool Available => Pair?.Spawned ?? false;
+    public override bool Available => Pair is { Spawned: true };
 
     public override IntVec3 EnterVehiclePosition => Pair?.Position ?? IntVec3.Invalid;
 

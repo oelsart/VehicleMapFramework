@@ -1,17 +1,24 @@
 ﻿using System.Collections.Generic;
+using System.Reflection.Emit;
 using HarmonyLib;
 using RimWorld;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 [HarmonyPatch(typeof(Targeter), "ConfirmStillValid")]
-[PatchLevel(Level.Cautious)]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_Targeter_ConfirmStillValid
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-            .MethodReplacer(CachedMethodInfo.g_Thing_MapHeld, CachedMethodInfo.m_MapHeldBaseMap);
+        var code = new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMapOrCaravan_Map);
+        return new CodeMatcher(instructions)
+            .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Find_CurrentMap))
+            .Repeat(c =>
+            {
+                c.InsertAndAdvance(code);
+                c.InsertAfterAndAdvance(code).Advance();
+            }).InstructionEnumeration();
     }
 }
 
@@ -21,7 +28,7 @@ public static class Patch_Targeter_OrderVerbForceTarget
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
+        return Patch_Targeter_ConfirmStillValid.Transpiler(instructions);
     }
 }
 

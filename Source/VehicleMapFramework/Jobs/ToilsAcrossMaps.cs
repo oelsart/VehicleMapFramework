@@ -55,7 +55,7 @@ public static class ToilsAcrossMaps
             }
             toil.actor.pather.StartPath(dest, PathEndMode.OnCell);
         };
-        toil.FailOn(() => !enterSpot.IsValid || enterSpot.Map.BaseMapOrCaravan() != toil.actor.BaseMapOrCaravan());
+        toil.FailOn(() => !enterSpot.IsValid || enterSpot.Map.BaseMapOrCaravan != toil.actor.BaseMapOrCaravan);
         return toil;
     }
 
@@ -93,30 +93,36 @@ public static class ToilsAcrossMaps
             var drawPosA = comp.parent.DrawPos;
             var drawPosB = comp.Pair.DrawPos;
             var normalized = NormalizeFlat(drawPosB - drawPosA);
-            toil.actor.Rotation = Rot4.FromAngleFlat(normalized.AngleFlat());
+            var rot = Rot4.FromAngleFlat(normalized.AngleFlat());
 
             if (toil.actor.IsOnVehicleMapOf(out var vehicle))
             {
                 normalized = normalized.RotatedBy(-vehicle.FullAngle());
+                rot.AsInt -= vehicle.Rotation.AsInt;
             }
+            toil.actor.Rotation = rot;
 
             //ジップラインの先端から登る場合は遅くなるわな
             var distance = comp.IsZiplineEnd ? distancePerTick * 0.5f : distancePerTick;
             var distanceSquared = (drawPosB - toil.actor.DrawPos).MagnitudeHorizontalSquared();
             var moveDistance = distanceSquared < distance * distance ? Mathf.Sqrt(distanceSquared) : distance;
 
-            driver.drawOffset = normalized * moveDistance * (GenTicks.TicksGame - initTick);
-            if (vehicle == null)
+            driver.drawOffset = (normalized * moveDistance * (GenTicks.TicksGame - initTick)).WithYOffset(0.1f);
+            if (vehicle is null)
             {
                 driver.drawOffset = driver.drawOffset.YOffsetFull();
             }
 
-            if (distanceSquared < 0.2f)
+            var rect = Rect.MinMaxRect(drawPosA.x, drawPosA.z, drawPosB.x, drawPosB.z);
+            // 裏返りを修正
+            if (rect.xMin > rect.xMax) (rect.xMin, rect.xMax) = (rect.xMax, rect.xMin);
+            if (rect.yMin > rect.yMax) (rect.yMin, rect.yMax) = (rect.yMax, rect.yMin);
+            if (distanceSquared < 0.2f || !rect.ExpandedBy(3f).Contains(toil.actor.DrawPos.ToVector2()))
             {
                 driver.ReadyForNextToil();
             }
         };
-        toil.FailOn(() => !comp.parent.Spawned || (!comp.Pair?.Spawned ?? true));
+        toil.FailOn(() => !comp.parent.Spawned || comp.Pair is null or { Spawned: false });
         toil.defaultCompleteMode = ToilCompleteMode.Never;
         return toil;
 
@@ -161,7 +167,8 @@ public static class ToilsAcrossMaps
             if (compZipline != null)
             {
                 yield return ZiplineAnimation(driver, compZipline);
-                pos = compZipline.Pair.Position;
+                if (compZipline.Pair != null)
+                    pos = compZipline.Pair.Position;
             }
             else
             {
@@ -257,7 +264,7 @@ public static class ToilsAcrossMaps
                     }
                 }
             };
-            yield return toil3.FailOn(() => (exitSpot.Map?.Disposed ?? true) || exitSpot.Map.BaseMap() == exitSpot.Map);
+            yield return toil3.FailOn(() => exitSpot.Map is null or { Disposed: true} );
             yield return afterExitMap;
         }
         if (enterSpot is { IsValid: true, Map: not null })
@@ -380,7 +387,7 @@ public static class ToilsAcrossMaps
                     }
                 }
             };
-            yield return toil3.FailOn(() => enterSpot.Map?.Disposed ?? true);
+            yield return toil3.FailOn(() => enterSpot.Map is null or { Disposed: true});
             yield return afterEnterMap;
         }
     }

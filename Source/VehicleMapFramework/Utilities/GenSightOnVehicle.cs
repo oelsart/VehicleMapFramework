@@ -76,8 +76,8 @@ public static class GenSightOnVehicle
     public static bool LineOfSightVehicleToVehicle(IntVec3 start, IntVec3 end, Map map, bool skipFirstCell = false,
         Func<IntVec3, bool> validator = null, int halfXOffset = 0, int halfZOffset = 0)
     {
-        return start.ToVector3Shifted().TryGetVehicleMap(map, out var vehicle2) && LOS(vehicle2) &&
-               end.ToVector3Shifted().TryGetVehicleMap(map, out var vehicle3) && LOS(vehicle3);
+        return (!start.ToVector3Shifted().TryGetVehicleMap(map, out var vehicle2) || LOS(vehicle2)) &&
+               (!end.ToVector3Shifted().TryGetVehicleMap(map, out var vehicle3) || LOS(vehicle3));
         
         bool LOS(VehiclePawnWithMap v)
         {

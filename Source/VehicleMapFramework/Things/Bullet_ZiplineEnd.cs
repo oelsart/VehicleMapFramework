@@ -1,5 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using RimWorld;
+﻿using RimWorld;
 using UnityEngine;
 using Vehicles;
 using Verse;
@@ -7,28 +6,13 @@ using Verse.Sound;
 
 namespace VehicleMapFramework;
 
-public class Bullet_ZiplineEnd : Bullet, IZiplineEnd
+public class Bullet_ZiplineEnd : Bullet_ZiplineBase
 {
-    public CustomZipline.ZipLineData ZipLineData { get; set; }
-
-    private float ArcHeightFactor
+    public override void Launch(Thing launcher_, Vector3 origin_, LocalTargetInfo usedTarget_,
+        LocalTargetInfo intendedTarget_, ProjectileHitFlags hitFlags, bool preventFriendlyFire_ = false,
+        Thing equipment_ = null, ThingDef targetCoverDef_ = null)
     {
-        get
-        {
-            var num = def.projectile.arcHeightFactor;
-            var num2 = (destination - origin).MagnitudeHorizontalSquared();
-            if (num * num > num2 * 0.2f * 0.2f)
-            {
-                num = Mathf.Sqrt(num2) * 0.2f;
-            }
-            return num;
-        }
-    }
-
-    [SuppressMessage("ReSharper", "ParameterHidesMember")]
-    public override void Launch(Thing launcher, Vector3 origin, LocalTargetInfo usedTarget, LocalTargetInfo intendedTarget, ProjectileHitFlags hitFlags, bool preventFriendlyFire = false, Thing equipment = null, ThingDef targetCoverDef = null)
-    {
-        base.Launch(launcher, origin, usedTarget, intendedTarget, hitFlags, preventFriendlyFire, equipment, targetCoverDef);
+        base.Launch(launcher_, origin_, usedTarget_, intendedTarget_, hitFlags, preventFriendlyFire_, equipment_, targetCoverDef_);
         this.origin += (Vector3.forward * ZipLineData.LauncherOffset).RotatedBy(ExactRotation.eulerAngles.y);
     }
 
@@ -36,11 +20,6 @@ public class Bullet_ZiplineEnd : Bullet, IZiplineEnd
     {
         base.TickInterval(delta);
         destination = destMap != null ? intendedTarget.Cell.ToVector3Shifted().ToBaseMapCoord(destMap) : intendedTarget.Cell.ToVector3Shifted();
-    }
-
-    protected override void ImpactSomething()
-    {
-        Impact(null);
     }
 
     protected override void Impact(Thing hitThing, bool blockedByShield = false)
@@ -62,7 +41,7 @@ public class Bullet_ZiplineEnd : Bullet, IZiplineEnd
                     penetration = VehicleComponent.Penetration.Penetrated,
                     cell = intendedTarget.Cell.ToHitCell(vehicle)
                 });
-                ziplineEnd.rotation += vehicle.Angle;
+                ziplineEnd.rotation += vehicle.Angle - vehicle.Transform.rotation;
             }
             else
             {
@@ -85,7 +64,7 @@ public class Bullet_ZiplineEnd : Bullet, IZiplineEnd
         DrawZipline(drawLoc);
     }
 
-    public void DrawZipline(Vector3 drawLoc)
+    public override void DrawZipline(Vector3 drawLoc)
     {
         var num = ArcHeightFactor * GenMath.InverseParabola(DistanceCoveredFractionArc);
         ZiplineEnd.DrawZipline(drawLoc + Vector3.forward * num, ExactRotation.eulerAngles.y, launchVerb, ZipLineData);
@@ -105,8 +84,6 @@ public class Bullet_ZiplineEnd : Bullet, IZiplineEnd
             }
         }
     }
-
-    public Verb_LaunchZipline launchVerb;
 
     public Map destMap;
 }
