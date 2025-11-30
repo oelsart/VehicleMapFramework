@@ -686,6 +686,8 @@ internal static class ModCompat
     }
 
     public static readonly bool SmartPistol = IsModActive("rabiosus.smartpistol");
+    
+    public static readonly bool RealFogOfWar = IsModActive("Mlie.NWNRealFogOfWar");
 
     public static readonly bool ReGrowth = IsModActive("ReGrowth.BOTR.Core");
 

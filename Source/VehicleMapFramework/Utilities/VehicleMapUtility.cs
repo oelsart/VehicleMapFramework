@@ -60,6 +60,8 @@ public static class VehicleMapUtility
             return false;
         }
 
+        public bool IsVehicleMap => map.IsVehicleMapOf(out _);
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsNonFocusedVehicleMapOf(out VehiclePawnWithMap vehicle)
         {
@@ -70,6 +72,8 @@ public static class VehicleMapUtility
             vehicle = null;
             return false;
         }
+
+        public bool IsNonFocusedVehicleMap => map.IsNonFocusedVehicleMapOf(out _);
 
         public IEnumerable<Map> BaseMapAndVehicleMaps()
         {

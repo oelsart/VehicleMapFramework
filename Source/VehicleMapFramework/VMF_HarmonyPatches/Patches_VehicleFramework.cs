@@ -710,7 +710,7 @@ public static class Patch_VehicleTabHelper_Passenger_HandleDragEvent
     {
         if (Event.current.type == EventType.MouseUp && Event.current.button == 0)
         {
-            if (___draggedPawn != null && ___transferToHolder != null)
+            if (___draggedPawn != null && ___draggedPawn.Faction == Faction.OfPlayer && ___transferToHolder != null)
             {
                 if (___transferToHolder is Map map && map.IsVehicleMapOf(out var vehicle))
                 {

@@ -88,6 +88,8 @@ internal static class PatchCategories
     
     public const string PickUpAndHaul = "VMF_Patches_PickUpAndHaul";
     
+    public const string RealFogOfWar = "VMF_Patches_RealFogOfWar";
+    
     public const string ReGrowth = "VMF_Patches_ReGrowth";
     
     public const string Rimatomics = "VMF_Patches_Rimatomics";
