@@ -1220,3 +1220,29 @@ public static class Patch_SectionDrawer_RecacheVehicleFilter
         });
     }
 }
+
+[HarmonyPatch(typeof(RenderHelper), nameof(RenderHelper.DrawLinesBetweenTargets))]
+[PatchLevel(Level.Sensitive)]
+public static class Patch_RenderHelper_DrawLinesBetweenTargets
+{
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        var codes = instructions.ToList();
+        var pos = codes.FindIndex(c => c.opcode == OpCodes.Callvirt && c.OperandIs(CachedMethodInfo.g_Thing_Position));
+        codes.RemoveRange(pos, 4);
+        var g_Pawn_DrawPos = AccessTools.PropertyGetter(typeof(Pawn), nameof(Pawn.DrawPos));
+        codes.Insert(pos, new CodeInstruction(OpCodes.Callvirt, g_Pawn_DrawPos));
+
+        var g_CenterVector3 = AccessTools.PropertyGetter(typeof(LocalTargetInfo), nameof(LocalTargetInfo.CenterVector3));
+        var m_CenterVector3VehicleOffset = AccessTools.Method(typeof(Patch_Pawn_JobTracker_DrawLinesBetweenTargets), nameof(Patch_Pawn_JobTracker_DrawLinesBetweenTargets.CenterVector3VehicleOffset));
+        foreach (var code in codes)
+        {
+            if (code.opcode == OpCodes.Call && code.OperandIs(g_CenterVector3))
+            {
+                yield return CodeInstruction.LoadArgument(0);
+                code.operand = m_CenterVector3VehicleOffset;
+            }
+            yield return code;
+        }
+    }
+}

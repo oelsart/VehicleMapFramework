@@ -161,11 +161,15 @@ public static class GenSightOnVehicle
 
     public static bool LineOfSight(IntVec3 start, IntVec3 end, Map map, CellRect startRect, CellRect endRect, Func<IntVec3, bool> validator = null)
     {
-        if (map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
+        if (map.IsVehicleMapOf(out var vehicle))
         {
-            start = start.ToBaseMapCoord(vehicle);
-            end = end.ToBaseMapCoord(vehicle);
-            map = vehicle.Map;
+            if (vehicle.Spawned)
+            {
+                start = start.ToBaseMapCoord(vehicle);
+                end = end.ToBaseMapCoord(vehicle);
+                map = vehicle.Map;
+            }
+            else return LineOfSightVehicleToVehicle(start, end, map, false, validator);
         }
         if (!start.InBounds(map) || !end.InBounds(map)) return false;
 

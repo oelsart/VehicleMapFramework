@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using RimWorld;
 using Verse;
 using Verse.AI;
 
@@ -17,7 +18,7 @@ public static class VerbOnVehicleUtility
         public bool TryFindShootLineFromToOnVehicle(IntVec3 root, LocalTargetInfo targ, out ShootLine resultingLine, bool ignoreRange = false)
         {
             resultingLine = default;
-            var flag = verb.caster.IsOnVehicleMapOf(out var vehicle);
+            var flag = verb.caster.IsOnVehicleMapOf(out var vehicle) && verb is not Verb_Jump && verb is not Verb_CastAbilityJump;
             var recoverRoot = flag && !vehicle.Spawned;
             try
             {
