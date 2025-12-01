@@ -8,6 +8,12 @@ namespace VehicleMapFramework;
 
 public class EphemenalWindow : Window
 {
+    public Action doWindowFunc;
+
+    public bool vanishIfMouseDistant = true;
+
+    private Color baseColor = Color.white;
+    
     public override Vector2 InitialSize => windowRect.size;
 
     protected override float Margin => 0f;
@@ -64,10 +70,4 @@ public class EphemenalWindow : Window
         SoundDefOf.FloatMenu_Cancel.PlayOneShotOnCamera();
         Find.WindowStack.TryRemove(this);
     }
-
-    public Action doWindowFunc;
-
-    public bool vanishIfMouseDistant = true;
-
-    private Color baseColor = Color.white;
 }

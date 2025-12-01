@@ -8,6 +8,16 @@ namespace VehicleMapFramework;
 
 public class Dialog_ChooseVehicleRoles : Window
 {
+    private readonly VehiclePawn vehicle;
+
+    private readonly RoleUpgradeBuildable roleUpgrade;
+
+    private readonly VehicleUpgradeBuildable upgradeBuildable;
+
+    private readonly List<string> turretIds = [];
+
+    private Vector2 scrollPosition;
+    
     public override Vector2 InitialSize => new(350f, 216f);
 
     public Dialog_ChooseVehicleRoles(VehiclePawn vehicle, RoleUpgradeBuildable roleUpgrade, VehicleUpgradeBuildable upgradeBuildable)
@@ -78,14 +88,4 @@ public class Dialog_ChooseVehicleRoles : Window
     {
         upgradeBuildable.UpgradeRole(vehicle, roleUpgrade, false, false, turretIds);
     }
-
-    private readonly VehiclePawn vehicle;
-
-    private readonly RoleUpgradeBuildable roleUpgrade;
-
-    private readonly VehicleUpgradeBuildable upgradeBuildable;
-
-    private readonly List<string> turretIds = [];
-
-    private Vector2 scrollPosition;
 }

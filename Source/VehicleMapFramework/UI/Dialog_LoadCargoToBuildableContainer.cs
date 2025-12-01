@@ -11,6 +11,25 @@ namespace VehicleMapFramework;
 
 public class Dialog_LoadCargoToBuildableContainer : Window
 {
+    private readonly CompBuildableContainer comp;
+
+    private readonly VehiclePawnWithMap vehicle;
+
+    private List<TransferableOneWay> transferables = [];
+
+    private TransferableOneWayWidget itemsTransfer;
+
+    private bool massUsageDirty;
+
+    private readonly Vector2 BottomButtonSize = new(160f, 40f);
+
+    private static readonly List<Pair<float, Color>> MassColor =
+    [
+        new (0.1f, Color.green),
+        new (0.75f, Color.yellow),
+        new (1f, new Color(1f, 0.6f, 0f))
+    ];
+    
     public float MassUsage
     {
         get
@@ -25,13 +44,7 @@ public class Dialog_LoadCargoToBuildableContainer : Window
         }
     }
 
-    public float MassCapacity
-    {
-        get
-        {
-            return vehicle.GetStatValue(VehicleStatDefOf.CargoCapacity);
-        }
-    }
+    public float MassCapacity => vehicle.GetStatValue(VehicleStatDefOf.CargoCapacity);
 
     public Dialog_LoadCargoToBuildableContainer(CompBuildableContainer comp)
     {
@@ -43,13 +56,7 @@ public class Dialog_LoadCargoToBuildableContainer : Window
         absorbInputAroundWindow = true;
     }
 
-    public override Vector2 InitialSize
-    {
-        get
-        {
-            return new Vector2(1024f, UI.screenHeight);
-        }
-    }
+    public override Vector2 InitialSize => new(1024f, UI.screenHeight);
 
     public override void PostOpen()
     {
@@ -126,7 +133,7 @@ public class Dialog_LoadCargoToBuildableContainer : Window
             return;
         }
 
-        var width = 200f;
+        const float width = 200f;
         var num = BottomButtonSize.y / 2f;
         if (Widgets.ButtonText(new Rect(0f, rect.height - 55f - 17f, width, num), "Dev: Pack Instantly"))
         {
@@ -234,23 +241,4 @@ public class Dialog_LoadCargoToBuildableContainer : Window
     {
         massUsageDirty = true;
     }
-
-    private readonly CompBuildableContainer comp;
-
-    private readonly VehiclePawnWithMap vehicle;
-
-    private List<TransferableOneWay> transferables = [];
-
-    private TransferableOneWayWidget itemsTransfer;
-
-    private bool massUsageDirty;
-
-    private readonly Vector2 BottomButtonSize = new(160f, 40f);
-
-    private static readonly List<Pair<float, Color>> MassColor =
-    [
-        new Pair<float, Color>(0.1f, Color.green),
-        new Pair<float, Color>(0.75f, Color.yellow),
-        new Pair<float, Color>(1f, new Color(1f, 0.6f, 0f))
-    ];
 }

@@ -20,6 +20,7 @@ using static VehicleMapFramework.ModCompat;
 namespace VehicleMapFramework;
 
 [StaticConstructorOnStartup]
+[HotSwap]
 public class VehiclePawnWithMap : VehiclePawn
 {
     private Map interiorMap;
@@ -60,6 +61,8 @@ public class VehiclePawnWithMap : VehiclePawn
     private static readonly Texture2D iconAllowEnter = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/AllowEnter");
 
     private static readonly Texture2D iconAllowExit = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/AllowExit");
+    
+    private static readonly Texture2D iconEye = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/Eye");
 
     private static readonly Type t_SectionLayer_Zones = GenTypes.GetTypeInAnyAssembly("Verse.SectionLayer_Zones", "Verse");
 
@@ -285,6 +288,19 @@ public class VehiclePawnWithMap : VehiclePawn
             icon = iconAllowExit,
         };
 
+        yield return new Command_ActionWithIcon
+        {
+            action = () =>
+            {
+                Patch_Game_CurrentMap.ForceSet = true;
+                Current.Game.CurrentMap = interiorMap;
+            },
+            defaultLabel = interiorMap.Parent.LabelCap,
+            icon = VehicleMapUIRenderer.GetVehicleMapTexture(this, Rot4.East, new Vector2Int(128, 128)),
+            miniIcon = iconEye,
+            miniIconSize = 28f
+        };
+
         if (DebugSettings.ShowDevGizmos)
         {
             yield return new Command_FocusVehicleMap();
@@ -333,6 +349,9 @@ public class VehiclePawnWithMap : VehiclePawn
                 {
                     interiorMap.terrainGrid.SetTerrain(c, VMF_DefOf.VMF_ImpassableFloor);
                 }
+
+                var size = Patch_Map_MapUpdate.MeshSize;
+                interiorMap.rememberedCameraPos.rootPos = new Vector3(size.x / 2f, 0f, size.y / 2f);
             }
         }
         catch (Exception ex)
@@ -641,7 +660,7 @@ public class VehiclePawnWithMap : VehiclePawn
         //DoorsDebugDrawer.DrawDebug();
         //map.mapDrawer.DrawMapMesh();
         var drawPos = Vector3.zero.ToBaseMapCoord(this);
-        DrawVehicleMapMesh(map, drawPos);
+        DrawVehicleMapMesh(drawPos);
         DynamicDrawManagerOnVehicle.DrawDynamicThings(map);
         DrawClippers(map);
         map.designationManager.DrawDesignations();
@@ -660,8 +679,9 @@ public class VehiclePawnWithMap : VehiclePawn
         //MapEdgeClipDrawer.DrawClippers(__instance);
     }
 
-    private void DrawVehicleMapMesh(Map map, Vector3 drawPos)
+    internal void DrawVehicleMapMesh(Vector3 drawPos)
     {
+        var map = interiorMap;
         var mapDrawer = map.mapDrawer;
         var component = map.GetCachedMapComponent<VehicleSectionLayerManager>();
         for (var i = 0; i < map.Size.x; i += 17)

@@ -6,6 +6,16 @@ namespace VehicleMapFramework;
 
 public class Command_ToggleIcon : Command
 {
+    public Func<bool> isActive;
+
+    public Action toggleAction;
+
+    public SoundDef toggleSound;
+
+    public string labelTwo;
+
+    public Texture iconTwo;
+    
     public override SoundDef CurActivateSound => toggleSound;
 
     public override string Label => isActive() ? defaultLabel : labelTwo;
@@ -37,14 +47,4 @@ public class Command_ToggleIcon : Command
         Widgets.DrawTextureFitted(rect, badTex, iconDrawScale * 0.85f, iconProportions, iconTexCoords, iconAngle, buttonMat);
         GUI.color = Color.white;
     }
-
-    public Func<bool> isActive;
-
-    public Action toggleAction;
-
-    public SoundDef toggleSound;
-
-    public string labelTwo;
-
-    public Texture iconTwo;
 }

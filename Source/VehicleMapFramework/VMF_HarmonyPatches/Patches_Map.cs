@@ -255,7 +255,7 @@ public static class Patch_Map_MapUpdate
                 }
                 Find.World.dynamicDrawManager.DrawDynamicWorldObjects();
 
-                if (tmpRenderTex != null)
+                if (tmpRenderTex is not null)
                 {
                     RenderTexture.ReleaseTemporary(tmpRenderTex);
                 }
@@ -268,7 +268,7 @@ public static class Patch_Map_MapUpdate
                 Find.WorldCamera.gameObject.SetActive(false);
                 Find.Camera.gameObject.SetActive(true);
                 Find.CameraDriver.Update();
-                if (mat == null)
+                if (mat is null)
                 {
                     mat = MaterialPool.MatFrom(new MaterialRequest(tmpRenderTex));
                 }
@@ -291,23 +291,26 @@ public static class Patch_Map_MapUpdate
                     return Mathf.Repeat(signedAngle + 180f, 360f);
                 }
 
-                angle =
-                    worldObject switch
-                    {
-                        VehicleCaravan vehicleCaravan2 => AngleOnPlanetSurface(Find.WorldGrid.GetTileCenter(vehicleCaravan2.vehiclePather.NextTile.Valid ? vehicleCaravan2.vehiclePather.NextTile : vehicleCaravan2.Tile), Find.WorldGrid.GetTileCenter(vehicleCaravan2.Tile)),
-                        Caravan caravan => AngleOnPlanetSurface(Find.WorldGrid.GetTileCenter(caravan.pather.nextTile.Valid ? caravan.pather.nextTile : caravan.Tile), Find.WorldGrid.GetTileCenter(caravan.Tile)),
-                        AerialVehicleInFlight aerial => AngleOnPlanetSurface(aerial.DrawPos, aerial.position),
-                        _ => 90f
-                    };
-                var rot = Rot4.FromAngleFlat(angle);
-                if (vehicleCaravan != null)
+                if (!vehicle.Spawned)
                 {
-                    foreach (var vehicle2 in vehicleCaravan.Vehicles)
+                    angle =
+                        worldObject switch
+                        {
+                            VehicleCaravan vehicleCaravan2 => AngleOnPlanetSurface(Find.WorldGrid.GetTileCenter(vehicleCaravan2.vehiclePather.NextTile.Valid ? vehicleCaravan2.vehiclePather.NextTile : vehicleCaravan2.Tile), Find.WorldGrid.GetTileCenter(vehicleCaravan2.Tile)),
+                            Caravan caravan => AngleOnPlanetSurface(Find.WorldGrid.GetTileCenter(caravan.pather.nextTile.Valid ? caravan.pather.nextTile : caravan.Tile), Find.WorldGrid.GetTileCenter(caravan.Tile)),
+                            AerialVehicleInFlight aerial => AngleOnPlanetSurface(aerial.DrawPos, aerial.position),
+                            _ => 90f
+                        };
+                    var rot = Rot4.FromAngleFlat(angle);
+                    if (vehicleCaravan != null)
                     {
-                        vehicle2.FullRotation = rot;
+                        foreach (var vehicle2 in vehicleCaravan.Vehicles)
+                        {
+                            vehicle2.FullRotation = rot;
+                        }
                     }
+                    else vehicle.FullRotation = rot;
                 }
-                else vehicle.FullRotation = rot;
             }
 
             var center = new Vector3(MeshSize.x / 2f, 0f, MeshSize.y / 2f);
