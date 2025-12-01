@@ -94,7 +94,8 @@ public static class Patch_Designator_SelectedUpdate
 
     public static void SelectedUpdatePostfix(Designator ___selectedDesignator)
     {
-        if (Command_FocusVehicleMap.FocusLockedVehicle != null || ___selectedDesignator is Designator_AreaAllowed) return;
+        
+        if (Command_FocusVehicleMap.FocusLockedVehicle != null) return;
 
         Command_FocusVehicleMap.FocusedVehicle = null;
         var mousePos = UI.MouseMapPosition();
@@ -109,6 +110,19 @@ public static class Patch_Designator_SelectedUpdate
         if (mousePos.TryGetVehicleMap(Find.CurrentMap, out var vehicle, flag))
         {
             Command_FocusVehicleMap.FocusedVehicle = vehicle;
+        }
+
+        if (___selectedDesignator is Designator_AreaAllowed)
+        {
+            ref var selArea = ref Designator_AreaAllowed.selectedArea;
+            if (selArea != null && selArea.Map != ___selectedDesignator.Map)
+            {
+                selArea = ___selectedDesignator.Map.areaManager.AllAreas
+                    .FirstOrDefault(a => a.AssignableAsAllowed() &&
+                                         a.InspectLabel == Designator_AreaAllowed.selectedArea.InspectLabel);
+                if (selArea is null)
+                    Find.DesignatorManager.Deselect();
+            }
         }
     }
 }

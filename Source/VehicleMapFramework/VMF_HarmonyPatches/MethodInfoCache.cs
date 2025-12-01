@@ -252,4 +252,10 @@ public class MethodInfoCache
     public readonly MethodInfo m_BreadthFirstTraverse = AccessTools.Method(typeof(RegionTraverser), nameof(RegionTraverser.BreadthFirstTraverse), [typeof(Region), typeof(RegionEntryPredicate), typeof(RegionProcessor), typeof(int), typeof(RegionType)]);
 
     public readonly MethodInfo m_BreadthFirstTraverseAcrossMaps = AccessTools.Method(typeof(RegionTraverserAcrossMaps), nameof(RegionTraverserAcrossMaps.BreadthFirstTraverse), [typeof(Region), typeof(RegionEntryPredicate), typeof(RegionProcessor), typeof(int), typeof(RegionType)]);
+
+    public readonly MethodInfo m_IsForbidden = AccessTools.Method(typeof(ForbidUtility),
+        nameof(ForbidUtility.IsForbidden), [typeof(IntVec3), typeof(Pawn)]);
+
+    public readonly MethodInfo m_CrossMapIsForbidden = AccessTools.Method(typeof(CrossMapForbidUtility),
+        nameof(CrossMapForbidUtility.IsForbidden), [typeof(IntVec3), typeof(Pawn), typeof(Thing)]);
 }

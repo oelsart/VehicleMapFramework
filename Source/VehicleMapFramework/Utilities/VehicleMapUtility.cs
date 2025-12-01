@@ -781,17 +781,15 @@ public static class VehicleMapUtility
     {
         public void VirtualMapTransfer(Map map)
         {
-            mapIndexOrState(thing) = (sbyte)map.Index;
+            VirtualTeleporter.mapIndexOrState(thing) = (sbyte)map.Index;
         }
 
         public void VirtualMapTransfer(Map map, IntVec3 c)
         {
-            mapIndexOrState(thing) = (sbyte)map.Index;
+            VirtualTeleporter.mapIndexOrState(thing) = (sbyte)map.Index;
             thing.SetPositionDirect(c);
         }
     }
-
-    private static readonly AccessTools.FieldRef<Thing, sbyte> mapIndexOrState = AccessTools.FieldRefAccess<Thing, sbyte>("mapIndexOrState");
 
     //thingが車両マップ上にあったらthingの中心を基準として位置と回転を下の車両基準に回転するわよ
     public static void SetTRSOnVehicle(ref Matrix4x4 matrix, Vector3 pos, Quaternion q, Vector3 s, Thing thing)

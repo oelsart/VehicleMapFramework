@@ -59,7 +59,7 @@ public class ZiplineEnd : ThingWithComps, IZiplineEnd
 
     public override void Print(SectionLayer layer)
     {
-        Graphic.Print(layer, this, VehicleMapUtility.PrintExtraRotation(this) + rotation);
+        Graphic.Print(layer, this, rotation);
         foreach (var comp in AllComps)
         {
             comp.PostPrintOnto(layer);

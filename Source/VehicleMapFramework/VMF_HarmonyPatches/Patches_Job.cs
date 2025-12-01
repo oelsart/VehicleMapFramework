@@ -202,15 +202,9 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
             if (pawn.CanReach(target.Cell, scanner.PathEndMode, scanner.MaxPathDanger(pawn), false, false,
                     TraverseMode.ByPawn, targetMap, out var exitSpot, out var enterSpot, out var spotsQueue))
             {
-                var pos = pawn.Position;
-                pawn.VirtualMapTransfer(targetMap, enterSpot.Cell);
-                try
+                using (new VirtualTeleporter(pawn, targetMap, enterSpot.Cell))
                 {
                     return JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, spotsQueue, scanner.JobOnCell(pawn, target.Cell, forced));
-                }
-                finally
-                {
-                    pawn.VirtualMapTransfer(map, pos);
                 }
             }
 
@@ -251,28 +245,20 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
                         var flag2 = false;
                         float num4 = (c - positionOnMap).LengthHorizontalSquared;
                         var num5 = 0f;
-                        try
+                        if (innerStruct.prioritized)
                         {
-                            Patch_ForbidUtility_IsForbidden.Map = map2;
-                            if (innerStruct.prioritized)
+                            if (!c.IsForbidden(pawn, map2) && scanner.HasJobOnCell(pawn, c))
                             {
-                                if (!c.IsForbidden(pawn) && scanner.HasJobOnCell(pawn, c))
+                                num5 = scanner.GetPriority(pawn, c);
+                                if (num5 > innerStruct.bestPriority || (Mathf.Approximately(num5, innerStruct.bestPriority) && num4 < innerStruct.closestDistSquared))
                                 {
-                                    num5 = scanner.GetPriority(pawn, c);
-                                    if (num5 > innerStruct.bestPriority || (Mathf.Approximately(num5, innerStruct.bestPriority) && num4 < innerStruct.closestDistSquared))
-                                    {
-                                        flag2 = true;
-                                    }
+                                    flag2 = true;
                                 }
                             }
-                            else if (num4 < innerStruct.closestDistSquared && !c.IsForbidden(pawn) && scanner.HasJobOnCell(pawn, c))
-                            {
-                                flag2 = true;
-                            }
                         }
-                        finally
+                        else if (num4 < innerStruct.closestDistSquared && !c.IsForbidden(pawn, map2) && scanner.HasJobOnCell(pawn, c))
                         {
-                            Patch_ForbidUtility_IsForbidden.Map = null;
+                            flag2 = true;
                         }
 
                         if (!flag2) continue;
@@ -336,19 +322,11 @@ public static class Patch_JobGiver_Work_PawnCanUseWorkGiver
         {
             return workGiver.ShouldSkip(pawn, forced);
         }
-        var map = pawn.Map;
-        try
+        return pawn.Map.BaseMapAndVehicleMaps().All(m =>
         {
-            return pawn.Map.BaseMapAndVehicleMaps().All(m =>
-            {
-                pawn.VirtualMapTransfer(m);
-                return workGiver.ShouldSkip(pawn, forced);
-            });
-        }
-        finally
-        {
-            pawn.VirtualMapTransfer(map);
-        }
+            using var _ = new VirtualTeleporter(pawn, m);
+            return workGiver.ShouldSkip(pawn, forced);
+        });
     }
 }
 
@@ -379,7 +357,7 @@ public static class Patch_JobGiver_Work_Validator
 
         var map = pawn.Map;
         pawn.DepartMap = map;
-        pawn.VirtualMapTransfer(thingMap);
+        using var _ = new VirtualTeleporter(pawn, thingMap);
         try
         {
             return scanner.HasJobOnThing(pawn, t, forced);
@@ -387,7 +365,6 @@ public static class Patch_JobGiver_Work_Validator
         finally
         {
             pawn.RemoveDepartMap();
-            pawn.VirtualMapTransfer(map);
         }
     }
 }
@@ -502,7 +479,6 @@ public static class Patch_ReservationUtility_ReserveSittableOrSpot
         }
         if (pawn.Map != map)
         {
-            Patch_ForbidUtility_IsForbidden.Map = map;
             __state = pawn.Map;
             pawn.VirtualMapTransfer(map);
         }
@@ -511,7 +487,6 @@ public static class Patch_ReservationUtility_ReserveSittableOrSpot
 
     public static void Finalizer(Pawn pawn, IntVec3 exactSittingPos, Job job, Map __state, bool __result)
     {
-        Patch_ForbidUtility_IsForbidden.Map = null;
         if (__state != null)
         {
             var destMap = pawn.Map;
@@ -534,7 +509,7 @@ public static class Patch_ReservationUtility_CanReserveSittableOrSpot
         if (pawn?.Map is null)
             return false;
         
-        var map = Patch_ForbidUtility_IsForbidden.Map = ignoreThing?.Map ?? TargetMapManager.TargetMapOrPawnMap(pawn);
+        var map = ignoreThing?.Map ?? TargetMapManager.TargetMapOrPawnMap(pawn);
         if (map is null)
             return true;
         if (pawn.Map != map)
@@ -547,7 +522,6 @@ public static class Patch_ReservationUtility_CanReserveSittableOrSpot
 
     public static void Finalizer(Pawn pawn, Map __state)
     {
-        Patch_ForbidUtility_IsForbidden.Map = null;
         if (__state != null)
         {
             pawn.VirtualMapTransfer(__state);
@@ -884,32 +858,44 @@ public static class Patch_ToilFailConditions_SelfAndParentsDespawnedOrNull
     }
 }
 
-[HarmonyPatch]
+[HarmonyPatch(typeof(ForbidUtility), nameof(ForbidUtility.IsForbidden), typeof(Thing), typeof(Pawn))]
+[PatchLevel(Level.Safe)]
 public static class Patch_ForbidUtility_IsForbidden
 {
-    [PatchLevel(Level.Cautious)]
-    [HarmonyPatch(typeof(ForbidUtility), nameof(ForbidUtility.IsForbidden), typeof(Thing), typeof(Pawn))]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_PositionHeld, CachedMethodInfo.m_PositionHeldOnBaseMap);
+        return new CodeMatcher(instructions)
+            .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_IsForbidden))
+            .InsertAndAdvance(CodeInstruction.LoadArgument(0))
+            .SetOperandAndAdvance(CachedMethodInfo.m_CrossMapIsForbidden)
+            .InstructionEnumeration();
+    }
+}
+
+[HarmonyPatch(typeof(ForbidUtility), nameof(ForbidUtility.InAllowedArea))]
+[PatchLevel(Level.Safe)]
+public static class Patch_ForbidUtility_InAllowedArea
+{
+    public static bool Prefix(IntVec3 c, Pawn forPawn, ref Map __state)
+    {
+        if (TargetMapManager.HasTargetMap(forPawn, out var map) && map != forPawn.Map)
+        {
+            __state = forPawn.Map;
+            forPawn.VirtualMapTransfer(map);
+        }
+        return c.InBounds(forPawn.MapHeld);
     }
 
-    [PatchLevel(Level.Safe)]
-    [HarmonyPatch(typeof(ForbidUtility), nameof(ForbidUtility.IsForbidden), typeof(IntVec3), typeof(Pawn))]
-    public static void Prefix(ref IntVec3 c, Pawn pawn)
+    public static void Finalizer(IntVec3 c, Pawn forPawn, Map __state, ref bool __result)
     {
-        Map map;
-        if ((map = Map) != null || TargetMapManager.HasTargetMap(pawn, out map) && map != pawn.Map)
+        if (__state is not null)
+            forPawn.VirtualMapTransfer(__state);
+        if (forPawn.IsOnVehicleMapOf(out var vehicle) && vehicle.Spawned && __result)
         {
-            var basePos = c.ToBaseMapCoord(map);
-            if (basePos.InBounds(map.BaseMap()))
-            {
-                c = basePos;
-            }
+            using var _ = new VirtualTeleporter(forPawn, vehicle.Map);
+            __result = c.ToBaseMapCoord(vehicle).InAllowedArea(forPawn);
         }
     }
-
-    public static Map Map { get; set; }
 }
 
 [HarmonyPatch(typeof(PawnUtility), nameof(PawnUtility.DutyLocation))]

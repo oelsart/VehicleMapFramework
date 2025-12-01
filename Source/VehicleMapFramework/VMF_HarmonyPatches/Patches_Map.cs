@@ -137,16 +137,6 @@ public static class Patch_Reachability_CanReachMapEdge
     }
 }
 
-[HarmonyPatch(typeof(Pawn_PlayerSettings), nameof(Pawn_PlayerSettings.EffectiveAreaRestrictionInPawnCurrentMap), MethodType.Getter)]
-[PatchLevel(Level.Cautious)]
-public static class Patch_Pawn_PlayerSettings_EffectiveAreaRestrictionInPawnCurrentMap
-{
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_MapHeld, CachedMethodInfo.m_MapHeldBaseMap);
-    }
-}
-
 //VehicleMapの外気温はマップ上のその位置の気温、スポーンしてないなら今いるタイルの外気温
 [HarmonyPatch(typeof(MapTemperature), nameof(MapTemperature.OutdoorTemp), MethodType.Getter)]
 [PatchLevel(Level.Safe)]

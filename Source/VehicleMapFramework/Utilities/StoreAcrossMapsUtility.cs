@@ -86,21 +86,9 @@ public static class StoreAcrossMapsUtility
 
     public static bool IsGoodStoreCell(IntVec3 c, Map map, Thing t, Pawn carrier, Faction faction)
     {
-        if (carrier != null)
+        if (carrier != null && c.IsForbidden(carrier, map))
         {
-            try
-            {
-                Patch_ForbidUtility_IsForbidden.Map = map;
-                if (c.IsForbidden(carrier))
-                {
-                    return false;
-                }
-            }
-            finally
-            {
-                Patch_ForbidUtility_IsForbidden.Map = null;
-            }
-
+            return false;
         }
         if (!c.IsValidStorageFor(map, t))
         {
