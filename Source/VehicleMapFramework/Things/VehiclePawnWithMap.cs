@@ -623,6 +623,7 @@ public class VehiclePawnWithMap : VehiclePawn
         base.DynamicDrawPhaseAt(phase, drawLoc, flip);
         if (phase == DrawPhase.Draw)
         {
+            CacheDrawPos(drawLoc);
             if (vehiclePather?.Moving ?? false)
             {
                 CellDesignationsDirty();
