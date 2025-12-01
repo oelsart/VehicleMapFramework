@@ -86,13 +86,9 @@ namespace VehicleMapFramework
         public override void ConsumeFuel(float amount)
         {
             var num = amount / Engine.TotalFuel;
-            foreach (var compGravshipFacility in Engine.GravshipComponents)
+            foreach (var comp in from compGravshipFacility in Engine.GravshipComponents where compGravshipFacility.CanBeActive && compGravshipFacility.Props.providesFuel select compGravshipFacility.parent.GetComp<CompRefuelable>())
             {
-                if (compGravshipFacility.CanBeActive && compGravshipFacility.Props.providesFuel)
-                {
-                    var comp = compGravshipFacility.parent.GetComp<CompRefuelable>();
-                    comp?.ConsumeFuel(comp.Fuel * num);
-                }
+                comp?.ConsumeFuel(comp.Fuel * num);
             }
             base.ConsumeFuel(amount);
         }

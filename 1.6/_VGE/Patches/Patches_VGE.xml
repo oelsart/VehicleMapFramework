@@ -6,6 +6,7 @@
 		<value>
 			<li>VMF_GravshipWheelSmall</li>
 			<li>VMF_GravshipWheelLarge</li>
+			<li>VMF_FuelTank</li>
 		</value>
 	</Operation>
 	
@@ -107,6 +108,20 @@
 					</li>
 				</upgrades>
 			</li>
+		</value>
+	</Operation>
+	
+	<Operation Class="PatchOperationReplace">
+		<xpath>Defs/Vehicles.VehicleDef[defName="VMF_GravshipVehicleBase"]/comps/li[@Class="Vehicles.CompProperties_FueledTravel"]/fuelType</xpath>
+		<value>
+			<fuelType>VGE_Astrofuel</fuelType>
+		</value>
+	</Operation>
+	
+	<Operation Class="PatchOperationReplace">
+		<xpath>Defs/Vehicles.VehicleDef[defName="VMF_GravshipVehicleBaseSpace"]/comps/li[@Class="Vehicles.CompProperties_FueledTravel"]/fuelType</xpath>
+		<value>
+			<fuelType>VGE_Astrofuel</fuelType>
 		</value>
 	</Operation>
 </Patch>

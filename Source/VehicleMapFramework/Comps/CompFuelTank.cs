@@ -1,23 +1,14 @@
-﻿using SmashTools;
+﻿using RimWorld;
+using SmashTools;
 using UnityEngine;
 using Verse;
 
 namespace VehicleMapFramework;
 
 [StaticConstructorOnStartup]
-public class CompFuelTank : ThingComp
+public class CompFuelTank : CompRefuelable
 {
-    public VehiclePawnWithMap Vehicle
-    {
-        get
-        {
-            if (parent.IsOnVehicleMapOf(out var vehicle))
-            {
-                return vehicle;
-            }
-            return null;
-        }
-    }
+    public VehiclePawnWithMap Vehicle => parent.IsOnVehicleMapOf(out var vehicle) ? vehicle : null;
 
     public override void PostSpawnSetup(bool respawningAfterLoad)
     {
@@ -26,6 +17,14 @@ public class CompFuelTank : ThingComp
             if (parent.IsOnVehicleMapOf(out var vehicle))
             {
                 vehicle.FuelTankComps.Add(this);
+                if (ModCompat.VGE && vehicle.def.HasModExtension<VehicleMapProps_Gravship>())
+                {
+                    FilledMat = SolidColorMaterials.SimpleSolidColorMaterial(new Color(0.3f, 0.2f, 0.5f));
+                }
+                else
+                {
+                    FilledMat = SolidColorMaterials.SimpleSolidColorMaterial(new Color(0.4f, 0.25f, 0.1f));
+                }
             }
         });
     }
@@ -67,7 +66,7 @@ public class CompFuelTank : ThingComp
 
     private static readonly Vector2 BarSize = new(0.15f, 0.18f);
 
-    private static readonly Material FilledMat = SolidColorMaterials.SimpleSolidColorMaterial(new Color(0.4f, 0.25f, 0.1f));
+    private Material FilledMat;
 
     private static readonly Material UnfilledMat = BaseContent.ClearMat;
 }

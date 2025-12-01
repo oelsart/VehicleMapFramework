@@ -40,11 +40,7 @@ public class WorkGiver_RefuelVehicleTank : WorkGiver_RefuelVehicle
             return null;
         }
         var fuel = vehicle.CompFueledTravel.ClosestFuelAvailable(pawn);
-        if (fuel == null)
-        {
-            return null;
-        }
-        return JobMaker.MakeJob(VMF_DefOf.VMF_RefuelVehicleTank, t, fuel);
+        return fuel == null ? null : JobMaker.MakeJob(VMF_DefOf.VMF_RefuelVehicleTank, t, fuel);
     }
 
     public static bool CanRefuelVehicle(Pawn pawn, VehiclePawn vehicle, bool forced)
@@ -64,11 +60,7 @@ public class WorkGiver_RefuelVehicleTank : WorkGiver_RefuelVehicle
             JobFailReason.Is("NoFuelToRefuel".Translate(compFueledTravel.Props.fuelType));
             return false;
         }
-        if (vehicle.Faction != pawn.Faction)
-        {
-            return false;
-        }
-        return true;
+        return vehicle.Faction == pawn.Faction;
 
         bool ShouldAutoRefuelNow()
         {
@@ -96,10 +88,6 @@ public class WorkGiver_RefuelVehicleTank : WorkGiver_RefuelVehicle
         {
             return false;
         }
-        if (t.Faction != pawn.Faction)
-        {
-            return false;
-        }
-        return true;
+        return t.Faction == pawn.Faction;
     }
 }

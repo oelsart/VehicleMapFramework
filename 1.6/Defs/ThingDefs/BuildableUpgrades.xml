@@ -444,7 +444,22 @@
 					</li>
 				</upgrades>
 			</li>
-			<li>
+			
+			<!-- For use when placed on the grav ship -->
+			<li Class="CompProperties_GravshipFacility">
+				<providesFuel>true</providesFuel>
+				<componentTypeDef>FuelStorage</componentTypeDef>
+				<requiresLOS>false</requiresLOS>
+				<showMaxSimultaneous>false</showMaxSimultaneous>
+				<maxSimultaneous>9999</maxSimultaneous>
+				<maxDistance>500</maxDistance>
+			</li>
+			<li Class="CompProperties_Refuelable">
+				<fuelCapacity>100</fuelCapacity>
+				<fuelConsumptionRate>0</fuelConsumptionRate>
+				<consumeFuelOnlyWhenUsed>true</consumeFuelOnlyWhenUsed>
+				<initialAllowAutoRefuel>false</initialAllowAutoRefuel>
+				<fuelFilter/>
 				<compClass>VehicleMapFramework.CompFuelTank</compClass>
 			</li>
 		</comps>
