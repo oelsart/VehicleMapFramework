@@ -134,6 +134,7 @@ public static class VerbOnVehicleUtility
                 var intVec = sourceCellBaseCol.ToThingMapCoord(targ.Thing);
                 for (var i = 0; i < tempDestList.Count; i++)
                 {
+                    Log.Message($"{intVec} {tempDestList[i]}");
                     if (verb.CanHitCellFromCellIgnoringRange(intVec, tempDestList[i], targ.Thing.Map, targ.Thing.def.Fillage == FillCategory.Full))
                     {
                         goodDest = tempDestList[i].ToThingBaseMapCoord(targ.Thing);

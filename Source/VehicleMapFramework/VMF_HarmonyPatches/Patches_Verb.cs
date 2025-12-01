@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
 using RimWorld;
+using SmashTools;
 using UnityEngine;
 using Verse;
 using Verse.AI;
@@ -21,6 +22,9 @@ public static class Patch_Verb_TryFindShootLineFromTo
 
     public static bool Prefix(Verb __instance, IntVec3 root, LocalTargetInfo targ, ref ShootLine resultingLine, bool ignoreRange, ref bool __result)
     {
+        if (VehiclePawnWithMapCache.AllVehiclesOn(__instance.caster.GroundMap).NullOrEmpty())
+            return true;
+        
         if ((__instance.caster.IsOnVehicleMapOf(out _) ||
             targ.Thing.IsOnVehicleMapOf(out _) ||
             (TargetMapManager.HasTargetMap(__instance.caster, out var map) && map.IsVehicleMapOf(out _)) ||
