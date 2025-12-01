@@ -114,14 +114,17 @@ public static class Patch_Designator_SelectedUpdate
 
         if (___selectedDesignator is Designator_AreaAllowed)
         {
-            ref var selArea = ref Designator_AreaAllowed.selectedArea;
+            var selArea = Designator_AreaAllowed.selectedArea;
             if (selArea != null && selArea.Map != ___selectedDesignator.Map)
             {
-                selArea = ___selectedDesignator.Map.areaManager.AllAreas
+                Designator_AreaAllowed.selectedArea = ___selectedDesignator.Map.areaManager.AllAreas
                     .FirstOrDefault(a => a.AssignableAsAllowed() &&
-                                         a.InspectLabel == Designator_AreaAllowed.selectedArea.InspectLabel);
-                if (selArea is null)
+                                         a.InspectLabel == selArea.InspectLabel);
+                if (Designator_AreaAllowed.selectedArea is null)
+                {
+                    Messages.Message("VMF_AreaDeselect".Translate(selArea.InspectLabel), MessageTypeDefOf.RejectInput, false);
                     Find.DesignatorManager.Deselect();
+                }
             }
         }
     }

@@ -310,7 +310,7 @@ namespace VehicleMapFramework
             if (wheels.Empty())
             {
                 wheelsRect = CellRect.Empty;
-                return "VMF_WheelsUnstable".Translate();
+                return "VMF_WheelsUnstable".Translate(0);
             }
             var wheelCells = wheels.SelectMany(w => w.OccupiedRect());
             wheelsRect = CellRect.FromCellList(wheelCells);
@@ -322,7 +322,7 @@ namespace VehicleMapFramework
             if (wheels.Count < 3 || (float)wheelsRect2.Area / bounds.Area < 0.5f)
             {
                 wheelsRect2.Do(c => engine.Map.debugDrawer.FlashCell(c, 0.25f, null, 5));
-                return "VMF_WheelsUnstable".Translate();
+                return "VMF_WheelsUnstable".Translate(wheels.Count);
             }
             return true;
         }
