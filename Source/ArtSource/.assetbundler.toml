@@ -10,7 +10,7 @@ link_method = "copy"
 [bundles.vehiclemapframework]
 description = "Bundle for Vehicle Map Framework"
 output_directory = "../../Common/AssetBundles"
-asset_directory = "../ArtSource"
+asset_directory = "Assets"
 bundle_name = "OELS.VehicleMapFramework"
 filename = "textures"
 exclude_patterns = ["*.meta", "*.tmp"]
@@ -19,7 +19,7 @@ include_patterns = ["*.png", "*.wav", "*.ogg"]
 [bundles.vehiclemapframeworkdev]
 description = "Bundle for Vehicle Map Framework"
 output_directory = "../../../VehicleMapFrameworkDev/Common/AssetBundles"
-asset_directory = "../ArtSource"
+asset_directory = "Assets"
 bundle_name = "OELS.VehicleMapFramework.dev"
 filename = "textures"
 exclude_patterns = ["*.meta", "*.tmp"]
