@@ -188,8 +188,9 @@ public static class Patch_Designator_Zone_SelectedUpdate
         codes[pos].operand = CachedMethodInfo.m_GenDrawOnVehicle_DrawFieldEdges;
         codes.InsertRange(pos,
         [
-            CodeInstruction.LoadArgument(0),
-            new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_Designator_Map),
+            new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(Find), nameof(Find.Selector))),
+            new CodeInstruction(OpCodes.Callvirt, AccessTools.PropertyGetter(typeof(Selector), nameof(Selector.SelectedZone))),
+            new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_Zone_Map)
         ]);
         return codes;
     }

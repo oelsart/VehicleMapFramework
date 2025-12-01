@@ -301,26 +301,23 @@ public static class Patch_Map_MapUpdate
                     return Mathf.Repeat(signedAngle + 180f, 360f);
                 }
 
-                if (GenTicks.TicksGame % 2 == 0)
-                {
-                    angle =
-                        worldObject switch
-                        {
-                            VehicleCaravan vehicleCaravan2 => AngleOnPlanetSurface(Find.WorldGrid.GetTileCenter(vehicleCaravan2.vehiclePather.NextTile.Valid ? vehicleCaravan2.vehiclePather.NextTile : vehicleCaravan2.Tile), Find.WorldGrid.GetTileCenter(vehicleCaravan2.Tile)),
-                            Caravan caravan => AngleOnPlanetSurface(Find.WorldGrid.GetTileCenter(caravan.pather.nextTile.Valid ? caravan.pather.nextTile : caravan.Tile), Find.WorldGrid.GetTileCenter(caravan.Tile)),
-                            AerialVehicleInFlight aerial => AngleOnPlanetSurface(aerial.DrawPos, aerial.position),
-                            _ => 90f
-                        };
-                    var rot = Rot4.FromAngleFlat(angle);
-                    if (vehicleCaravan != null)
+                angle =
+                    worldObject switch
                     {
-                        foreach (var vehicle2 in vehicleCaravan.Vehicles)
-                        {
-                            vehicle2.FullRotation = rot;
-                        }
+                        VehicleCaravan vehicleCaravan2 => AngleOnPlanetSurface(Find.WorldGrid.GetTileCenter(vehicleCaravan2.vehiclePather.NextTile.Valid ? vehicleCaravan2.vehiclePather.NextTile : vehicleCaravan2.Tile), Find.WorldGrid.GetTileCenter(vehicleCaravan2.Tile)),
+                        Caravan caravan => AngleOnPlanetSurface(Find.WorldGrid.GetTileCenter(caravan.pather.nextTile.Valid ? caravan.pather.nextTile : caravan.Tile), Find.WorldGrid.GetTileCenter(caravan.Tile)),
+                        AerialVehicleInFlight aerial => AngleOnPlanetSurface(aerial.DrawPos, aerial.position),
+                        _ => 90f
+                    };
+                var rot = Rot4.FromAngleFlat(angle);
+                if (vehicleCaravan != null)
+                {
+                    foreach (var vehicle2 in vehicleCaravan.Vehicles)
+                    {
+                        vehicle2.FullRotation = rot;
                     }
-                    else vehicle.FullRotation = rot;
                 }
+                else vehicle.FullRotation = rot;
             }
 
             var center = new Vector3(MeshSize.x / 2f, 0f, MeshSize.y / 2f);
