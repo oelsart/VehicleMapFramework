@@ -10,7 +10,7 @@ public static class TestUtility
         var map = pawn.Map;
         if (map is null)
             return false;
-        const int padding = 10;
+        const int padding = 5;
         var size = map.Size;
         IntVec3[] candidates =
         [

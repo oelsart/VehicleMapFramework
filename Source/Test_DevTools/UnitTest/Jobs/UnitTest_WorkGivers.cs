@@ -36,6 +36,7 @@ internal sealed class UnitTest_WorkGivers
             {
                 test.SetUp();
                 test.ExecuteStep1();
+                ClearPawnState();
             }
             catch (Exception ex)
             {
@@ -52,6 +53,7 @@ internal sealed class UnitTest_WorkGivers
             {
                 test.ExecuteStep2();
                 test.TearDown();
+                ClearPawnState();
             }
             catch (Exception ex)
             {
@@ -60,5 +62,14 @@ internal sealed class UnitTest_WorkGivers
         }
         
         VMF_Harmony.DynamicPatchAllNow(Level.Sensitive);
+        return;
+
+        void ClearPawnState()
+        {
+            pawn.jobs.ClearQueuedJobs(false);
+            pawn.ClearAllReservations(false);
+            pawn.pather.StopDead();
+            TargetMapManager.RemoveTargetInfo(pawn);
+        }
     }
 }

@@ -200,6 +200,13 @@ public static class CrossMapReachabilityUtility
                         destMap.reachability.CanReach(cell2, dest, peMode, traverseParms);
                 }
 
+                bool CellCheck(IntVec3 cell, Map map)
+                {
+                    return cell.Walkable(map) &&
+                           (cell.GetDoor(map) is not { } door ||
+                            traverseParms.pawn != null && door.PawnCanOpen(traverseParms.pawn));
+                }
+
                 switch (flag)
                 {
                     //出発地が車上マップで目的地がベースマップ
@@ -225,7 +232,7 @@ public static class CrossMapReachabilityUtility
                                 {
                                     cell = EnterVehiclePosition(comp.parent);
                                 }
-                                result = cell.Walkable(destMap) && CanReachLocal(comp.parent.Position, cell);
+                                result = CellCheck(cell, destMap) && CanReachLocal(comp.parent.Position, cell);
                                 DebugLog($"VehicleMap => BaseMap: {root}, {cell}, {comp}, {traverseParms} :{result} {comp.parent}");
                                 if (result)
                                 {
@@ -237,7 +244,7 @@ public static class CrossMapReachabilityUtility
                             {
                                 var targetInfo = new TargetInfo(c, departMap);
                                 var cell = EnterVehiclePosition(targetInfo);
-                                result = cell.Walkable(destMap) && CanReachLocal(c, cell);
+                                result = CellCheck(cell, destMap) && CanReachLocal(c, cell);
                                 DebugLog($"VehicleMap => BaseMap: {root}, {cell}, {c}, {traverseParms} :{result} {targetInfo}");
                                 if (result)
                                 {
@@ -273,7 +280,7 @@ public static class CrossMapReachabilityUtility
                                     cell = EnterVehiclePosition(comp.parent);
                                 }
 
-                                result = cell.Walkable(departMap) && CanReachLocal(cell, comp.parent.Position);
+                                result = CellCheck(cell, departMap) && CanReachLocal(cell, comp.parent.Position);
                                 DebugLog($"BaseMap => VehicleMap: {root}, {cell}, {comp}, {traverseParms} :{result}");
                                 if (result)
                                 {
@@ -285,7 +292,7 @@ public static class CrossMapReachabilityUtility
                             {
                                 var targetInfo = new TargetInfo(c, destMap);
                                 var cell = EnterVehiclePosition(targetInfo);
-                                result = cell.Walkable(departMap) && CanReachLocal(cell, c);
+                                result = CellCheck(cell, departMap) && CanReachLocal(cell, c);
                                 DebugLog($"BaseMap => VehicleMap: {new TargetInfo(root, departMap)}, {cell}, {c}, {dest.ToTargetInfo(destMap)}, {traverseParms} :{result}");
                                 if (result)
                                 {
@@ -331,7 +338,7 @@ public static class CrossMapReachabilityUtility
                                     if (pair.Map == destMap)
                                     {
                                         var c = comp.parent.Position;
-                                        if (cell.Walkable(destMap) && CanReachLocal(c, cell))
+                                        if (CellCheck(cell, destMap) && CanReachLocal(c, cell))
                                         {
                                             exitSpot = comp.parent;
                                             return true;
@@ -429,8 +436,8 @@ public static class CrossMapReachabilityUtility
 
                             bool CanReach2(IntVec3 cell, IntVec3 cell2, IntVec3 cell3, IntVec3 cell4)
                             {
-                                return cell2.Walkable(departBaseMap) &&
-                                       cell3.Walkable(departBaseMap) &&
+                                return CellCheck(cell2, departBaseMap) &&
+                                       CellCheck(cell3, departBaseMap) &&
                                        departMap.reachability.CanReach(root, cell, PathEndMode.OnCell,
                                            traverseParms) &&
                                        departBaseMap.reachability.CanReach(cell2, cell3, PathEndMode.OnCell,
@@ -475,7 +482,7 @@ public static class CrossMapReachabilityUtility
                                     var c = comp.parent.Position;
                                     var c2 = pair.Position;
                                     var map = comp.parent.Map;
-                                    if (c.Walkable(map) && c2.Walkable(v2.VehicleMap) &&
+                                    if (CellCheck(c, map) && CellCheck(c2, v2.VehicleMap) &&
                                         map.reachability.CanReach(start, c, PathEndMode.OnCell, traverseParms2))
                                     {
                                         tmpZiplines.Add(comp);

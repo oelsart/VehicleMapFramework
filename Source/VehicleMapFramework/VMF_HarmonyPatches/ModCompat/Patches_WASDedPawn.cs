@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
-using UnityEngine;
 using Verse;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;

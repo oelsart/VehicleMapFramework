@@ -1,7 +1,6 @@
 ﻿using RimWorld;
 using SmashTools;
 using UnityEngine;
-using VehicleMapFramework.VMF_HarmonyPatches;
 using Vehicles;
 using Verse;
 using Verse.AI;

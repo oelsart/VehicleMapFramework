@@ -1,9 +1,6 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using HarmonyLib;
-using RimWorld;
+﻿using RimWorld;
 using UnityEngine;
 using VehicleMapFramework.VMF_HarmonyPatches;
-using Vehicles;
 using Verse;
 
 namespace VehicleMapFramework;

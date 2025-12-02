@@ -29,6 +29,7 @@ internal abstract class WorkGiverTestBase(VehicleGroup group)
     public virtual void ExecuteStep1()
     {
         results[0] = RunWorkGiverBeforePatch(Pawn, WorkGiverDef);
+        Expect.IsNotNull(results[0].job);
     }
 
     public virtual void ExecuteStep2()
@@ -50,7 +51,6 @@ internal abstract class WorkGiverTestBase(VehicleGroup group)
 
     protected static WorkGiverResult RunWorkGiverBeforePatch(Pawn pawn, WorkGiverDef workGiverDef)
     {
-        pawn.ClearAllReservations();
         var result = new WorkGiverResult();
         var workGiver = workGiverDef.Worker;
         result.pawnCanUse = PawnCanUseWorkGiver(pawn, workGiver);
@@ -182,7 +182,6 @@ internal abstract class WorkGiverTestBase(VehicleGroup group)
             result.job = job3;
         }
 
-        Expect.IsNotNull(result.job);
         return result;
         
         static bool PawnCanUseWorkGiver(Pawn pawn, WorkGiver giver)
@@ -213,7 +212,6 @@ internal abstract class WorkGiverTestBase(VehicleGroup group)
     
     protected static WorkGiverResult RunWorkGiverAfterPatch(Pawn pawn, VehiclePawn vehicle, WorkGiverDef workGiverDef)
     {
-        pawn.ClearAllReservations();
         var result = new WorkGiverResult();
         var workGiver = workGiverDef.Worker;
         result.pawnCanUse = PawnCanUseWorkGiver(pawn, workGiver);

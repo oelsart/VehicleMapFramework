@@ -897,7 +897,7 @@ public static class Patch_ForbidUtility_InAllowedArea
         bool InAllowedArea(IntVec3 c2)
         {
             var effectiveAreaRestrictionInPawnCurrentMap = forPawn.playerSettings?.EffectiveAreaRestrictionInPawnCurrentMap;
-            return effectiveAreaRestrictionInPawnCurrentMap is not { TrueCount: > 0 } || effectiveAreaRestrictionInPawnCurrentMap[c];
+            return effectiveAreaRestrictionInPawnCurrentMap is not { TrueCount: > 0 } || effectiveAreaRestrictionInPawnCurrentMap[c2];
         }
     }
 }

@@ -21,13 +21,14 @@ internal class UnitTest_HaulGeneral(VehicleGroup group) : WorkGiverTestBase(grou
         GenSpawn.Spawn(woodLog, Pawn.Position, Pawn.Map);
         zone = new Zone_Stockpile(StorageSettingsPreset.DefaultStockpile, Pawn.Map.zoneManager);
         Pawn.Map.zoneManager.RegisterZone(zone);
-        foreach (var cell in CellRect.FromLimits(5, 5, 7, 7).Cells)
+        foreach (var cell in CellRect.FromLimits(2, 2, 3, 3).Cells)
             zone.AddCell(cell);
     }
 
     public override void ExecuteStep2()
     {
         base.ExecuteStep2();
+        TargetMapManager.RemoveTargetInfo(Pawn);
         zone.Delete();
         
         var vehicle = Vehicle as VehiclePawnWithMap;
@@ -38,6 +39,7 @@ internal class UnitTest_HaulGeneral(VehicleGroup group) : WorkGiverTestBase(grou
         zone.AddCell(new IntVec3(1, 0, 1));
         
         results[1] = RunWorkGiverAfterPatch(Pawn, Vehicle, WorkGiverDef);
+        Expect.IsNotNull(results[1].job);
         Expect.AreNotEqual(results[0], results[1]);
         Expect.IsTrue(results[1].job?.globalTarget.Map == vehicle.VehicleMap);
         Pawn.Map.haulDestinationManager.RemoveHaulDestination(zone);

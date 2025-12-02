@@ -133,7 +133,7 @@ public static class GenClosestCrossMap
         }
 
         var region = root.GetRegion(map, traversableRegionTypes);
-        if (region == null)
+        if (region is null)
         {
             return null;
         }
