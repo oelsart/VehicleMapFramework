@@ -28,10 +28,6 @@ public class VehiclePawnWithMap : VehiclePawn
 
     public Vector3 cachedDrawPos;
 
-    private bool allowHaulIn = true;
-
-    private bool allowHaulOut = true;
-
     private bool allowEnter = true;
 
     private bool allowExit = true;
@@ -48,10 +44,6 @@ public class VehiclePawnWithMap : VehiclePawn
 
     private static readonly Material ClipMat =
         SolidColorMaterials.NewSolidColorMaterial(new Color(0.3f, 0.1f, 0.1f, 0.5f), ShaderDatabase.MetaOverlay);
-
-    private static readonly Texture2D iconAllowHaulIn = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/AllowHaulIn");
-
-    private static readonly Texture2D iconAllowHaulOut = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/AllowHaulOut");
 
     private static readonly Texture2D iconIncreasePriority = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/IncreasePriority");
 
@@ -84,18 +76,6 @@ public class VehiclePawnWithMap : VehiclePawn
     {
         get => field ?? interiorMap;
         set;
-    }
-
-    public bool AllowHaulIn
-    {
-        get => allowHaulIn;
-        set => allowHaulIn = value;
-    }
-
-    public bool AllowHaulOut
-    {
-        get => allowHaulOut;
-        set => allowHaulOut = value;
     }
 
     [UsedImplicitly]
@@ -249,24 +229,6 @@ public class VehiclePawnWithMap : VehiclePawn
             defaultLabel = "VMF_DecreasePriority".Translate(),
             defaultDesc = "VMF_DecreasePriorityDesc".Translate(),
             icon = iconDecreasePriority,
-        };
-
-        yield return new Command_Toggle
-        {
-            isActive = () => allowHaulIn,
-            toggleAction = () => allowHaulIn = !allowHaulIn,
-            defaultLabel = "VMF_AllowsHaulIn".Translate(),
-            defaultDesc = "VMF_AllowsHaulInDesc".Translate(),
-            icon = iconAllowHaulIn,
-        };
-
-        yield return new Command_Toggle
-        {
-            isActive = () => allowHaulOut,
-            toggleAction = () => allowHaulOut = !allowHaulOut,
-            defaultLabel = "VMF_AllowsHaulOut".Translate(),
-            defaultDesc = "VMF_AllowsHaulOutDesc".Translate(),
-            icon = iconAllowHaulOut,
         };
 
         yield return new Command_Toggle
@@ -953,8 +915,6 @@ public class VehiclePawnWithMap : VehiclePawn
     {
         base.ExposeData();
         Scribe_References.Look(ref interiorMap, "interiorMap");
-        Scribe_Values.Look(ref allowHaulIn, "allowsHaulIn");
-        Scribe_Values.Look(ref allowHaulOut, "allowsHaulOut");
         Scribe_Values.Look(ref allowEnter, "allowEnter");
         Scribe_Values.Look(ref allowExit, "autoGetOff");
     }
