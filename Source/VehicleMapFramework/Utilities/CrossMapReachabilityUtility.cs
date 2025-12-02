@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using RimWorld;
 using SmashTools;
 using UnityEngine;
 using Vehicles;
@@ -203,8 +204,8 @@ public static class CrossMapReachabilityUtility
                 bool CellCheck(IntVec3 cell, Map map)
                 {
                     return cell.Walkable(map) &&
-                           (cell.GetDoor(map) is not { } door ||
-                            traverseParms.pawn != null && door.PawnCanOpen(traverseParms.pawn));
+                           (cell.GetDoor(map) is not { } door || door.HoldOpen ||
+                            traverseParms.pawn is { } pawn && door.PawnCanOpen(pawn) && !door.IsForbidden(pawn));
                 }
 
                 switch (flag)
