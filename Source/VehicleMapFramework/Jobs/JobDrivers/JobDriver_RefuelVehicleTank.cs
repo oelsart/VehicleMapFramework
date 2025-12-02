@@ -23,18 +23,14 @@ public class JobDriver_RefuelVehicleTank : JobDriver
     protected override IEnumerable<Toil> MakeNewToils()
     {
         this.FailOnDespawnedNullOrForbidden(TargetIndex.A);
-        AddEndCondition(delegate
+        AddEndCondition(() =>
         {
             var compFueledTravel = Vehicle?.CompFueledTravel;
             if (compFueledTravel is null)
             {
                 return JobCondition.Incompletable;
             }
-            if (!compFueledTravel.FullTank)
-            {
-                return JobCondition.Ongoing;
-            }
-            return JobCondition.Succeeded;
+            return !compFueledTravel.FullTank ? JobCondition.Ongoing : JobCondition.Succeeded;
         });
         yield return Toils_General.DoAtomic(delegate
         {

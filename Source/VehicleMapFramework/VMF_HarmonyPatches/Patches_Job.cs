@@ -1147,12 +1147,11 @@ public static class Patch_ToilFailConditions_FailOnForbidden_Delegate
 
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        var codes = instructions.ToList();
-        var pos = codes.FindIndex(c => c.Calls(CachedMethodInfo.g_LocalTargetInfo_Cell));
-        codes[pos].opcode = OpCodes.Call;
-        codes[pos].operand = CachedMethodInfo.m_TargetCellOnBaseMap;
-        codes.Insert(pos, CodeInstruction.LoadLocal(0));
-        return codes;
+        return new CodeMatcher(instructions)
+            .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_IsForbidden))
+            .InsertAndAdvance(CodeInstruction.LoadLocal(2))
+            .SetOperandAndAdvance(CachedMethodInfo.m_CrossMapIsForbidden)
+            .InstructionEnumeration();
     }
 }
 
