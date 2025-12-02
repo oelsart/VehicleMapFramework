@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using HarmonyLib;
@@ -15,7 +16,7 @@ using Verse.Sound;
 
 namespace VehicleMapFramework;
 
-public class CompVehicleLauncherGravshipVehicle : CompVehicleLauncherWithMap
+public class CompVehicleLauncherGravshipVehicle : CompVehicleLauncherWithMap, ITargeterSource<GlobalTargetInfo, ArrivalOption>
 {
     public override IEnumerable<Gizmo> CompGetGizmosExtra()
     {
@@ -155,7 +156,6 @@ public class CompVehicleLauncherGravshipVehicle : CompVehicleLauncherWithMap
             void ChoosingDestination(RitualRoleAssignments assignment)
             {
                 var qualityRange = (FloatRange)AccessTools.Method(typeof(Dialog_BeginRitual),
-                    // ReSharper disable once AccessToModifiedClosure
                     "PredictedQuality").Invoke(dialog,
                 [
                     null
@@ -270,11 +270,7 @@ public class CompVehicleLauncherGravshipVehicle : CompVehicleLauncherWithMap
                                 List<FloatMenuOption> list =
                                 [
                                 ];
-                                foreach (var option in result.options)
-                                {
-                                    list.Add(new FloatMenuOption(option.Label,
-                                        delegate { ChooseOption(option); }));
-                                }
+                                list.AddRange(result.options.Select(option => new FloatMenuOption(option.Label, () => ChooseOption(option))));
 
                                 Find.WindowStack.Add(new FloatMenu(list));
                                 break;
@@ -294,6 +290,9 @@ public class CompVehicleLauncherGravshipVehicle : CompVehicleLauncherWithMap
                                         SoundDefOf.Gravship_Launch.PlayOneShotOnCamera();
                                     }
                                 }
+                            case TargeterAction.None:
+                            default:
+                                break;
                         }
                     },
                     () =>

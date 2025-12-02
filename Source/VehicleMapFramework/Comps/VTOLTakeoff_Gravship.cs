@@ -38,12 +38,12 @@ namespace VehicleMapFramework
 
         public VerticalProtocolProperties_Gravship LandingProperties_Gravship => LandingProperties as VerticalProtocolProperties_Gravship;
 
-        private void Init()
+        private static void Init()
         {
             LongEventHandler.ExecuteWhenFinished(() =>
             {
-                thrusterFlameBlock = new();
-                engineGlowBlock = new();
+                thrusterFlameBlock = new MaterialPropertyBlock();
+                engineGlowBlock = new MaterialPropertyBlock();
             });
         }
 
@@ -73,9 +73,9 @@ namespace VehicleMapFramework
                 drawPos += (offset2 - offset).RotatedBy(Vehicle?.Rotation.AsAngle ?? 0f) + offset;
             }
 
-            if (ModsConfig.OdysseyActive && LaunchProperties_Gravship != null && Vehicle is VehiclePawnWithMap vehicle)
+            if (ModsConfig.OdysseyActive && LaunchProperties_Gravship != null && Vehicle is VehiclePawnWithMap vehiclePawnWithMap)
             {
-                if (GravshipUtility.GetPlayerGravEngine_NewTemp(vehicle.VehicleMap) is Building_GravEngine engine)
+                if (GravshipUtility.GetPlayerGravEngine_NewTemp(vehiclePawnWithMap.VehicleMap) is { } engine)
                 {
                     var color = Color.white.WithAlpha(0);
                     if (!LaunchProperties_Gravship.thrusterFlameCurve.NullOrEmpty())
@@ -88,7 +88,7 @@ namespace VehicleMapFramework
                     }
                     thrusterFlameBlock.Clear();
                     thrusterFlameBlock.SetColor(ShaderPropertyColor2, color);
-                    engine?.GravshipComponents.OfType<CompGravshipThruster>()
+                    engine.GravshipComponents.OfType<CompGravshipThruster>()
                         .Where(t => t.CanBeActive)
                         .Where(t => (t.Props.exhaustSettings?.enabled ?? false) && t.Props.exhaustSettings.ExhaustFleckDef != null)
                         .Do(t =>
@@ -107,11 +107,11 @@ namespace VehicleMapFramework
                             {
                                 shaderParameter.Apply(thrusterFlameBlock);
                             }
-                            GenDraw.DrawQuad(material, vector2.SetToAltitude(AltitudeLayer.Skyfaller).YOffsetFull(vehicle), Quaternion.AngleAxis(rot.AsAngle + rotation, Vector3.up), num, thrusterFlameBlock);
+                            GenDraw.DrawQuad(material, vector2.SetToAltitude(AltitudeLayer.Skyfaller).YOffsetFull(vehiclePawnWithMap), Quaternion.AngleAxis(rot.AsAngle + rotation, Vector3.up), num, thrusterFlameBlock);
                         });
 
                     var color2 = Color.white.WithAlpha(0);
-                    color2 *= Mathf.Lerp(0.75f, 1f, Mathf.PerlinNoise1D((ticksPassed + ticksPassedVertical) / TotalTicks_Takeoff) * 100f);
+                    color2 *= Mathf.Lerp(0.75f, 1f, Mathf.PerlinNoise1D((ticksPassed + ticksPassedVertical) / (float)TotalTicks_Takeoff) * 100f);
                     if (!LaunchProperties_Gravship.engineGlowVerticalCurve.NullOrEmpty())
                     {
                         color2.a += LaunchProperties_Gravship.engineGlowVerticalCurve.Evaluate(TimeInAnimationVTOL);
@@ -153,9 +153,9 @@ namespace VehicleMapFramework
                 drawPos += (offset2 - offset).RotatedBy(Vehicle?.Rotation.AsAngle ?? 0f) + offset;
             }
 
-            if (ModsConfig.OdysseyActive && LandingProperties_Gravship != null && Vehicle is VehiclePawnWithMap vehicle)
+            if (ModsConfig.OdysseyActive && LandingProperties_Gravship != null && Vehicle is VehiclePawnWithMap vehiclePawnWithMap)
             {
-                if (GravshipUtility.GetPlayerGravEngine_NewTemp(vehicle.VehicleMap) is Building_GravEngine engine)
+                if (GravshipUtility.GetPlayerGravEngine_NewTemp(vehiclePawnWithMap.VehicleMap) is { } engine)
                 {
                     var color = Color.white.WithAlpha(0);
                     if (!LandingProperties_Gravship.thrusterFlameCurve.NullOrEmpty())
@@ -168,7 +168,7 @@ namespace VehicleMapFramework
                     }
                     thrusterFlameBlock.Clear();
                     thrusterFlameBlock.SetColor(ShaderPropertyColor2, color);
-                    engine?.GravshipComponents.OfType<CompGravshipThruster>()
+                    engine.GravshipComponents.OfType<CompGravshipThruster>()
                         .Where(t => t.CanBeActive)
                         .Where(t => (t.Props.exhaustSettings?.enabled ?? false) && t.Props.exhaustSettings.ExhaustFleckDef != null)
                         .Do(t =>
@@ -187,11 +187,12 @@ namespace VehicleMapFramework
                             {
                                 shaderParameter.Apply(thrusterFlameBlock);
                             }
-                            GenDraw.DrawQuad(material, vector2.SetToAltitude(AltitudeLayer.Skyfaller).YOffsetFull(vehicle), Quaternion.AngleAxis(rot.AsAngle + rotation, Vector3.up), num, thrusterFlameBlock);
+                            GenDraw.DrawQuad(material, vector2.SetToAltitude(AltitudeLayer.Skyfaller).YOffsetFull(vehiclePawnWithMap), Quaternion.AngleAxis(rot.AsAngle + rotation, Vector3.up), num, thrusterFlameBlock);
                         });
 
                     var color2 = Color.white.WithAlpha(0);
-                    color2 *= Mathf.Lerp(0.75f, 1f, Mathf.PerlinNoise1D((ticksPassed + ticksPassedVertical) / TotalTicks_Takeoff) * 100f);
+                    color2 *= Mathf.Lerp(0.75f, 1f,
+                        Mathf.PerlinNoise1D((ticksPassed + ticksPassedVertical) / (float)TotalTicks_Takeoff) * 100f);
                     if (!LandingProperties_Gravship.engineGlowVerticalCurve.NullOrEmpty())
                     {
                         color2.a += LandingProperties_Gravship.engineGlowVerticalCurve.Evaluate(TimeInAnimationVTOL);
@@ -208,29 +209,29 @@ namespace VehicleMapFramework
             return (drawPos, rotation, shadowData);
         }
 
-        public override void OrderProtocol(LaunchType launchType)
+        public override void OrderProtocol(LaunchType launchType_)
         {
-            base.OrderProtocol(launchType);
-            if (!ModsConfig.OdysseyActive || Vehicle is not VehiclePawnWithMap vehicle) return;
+            base.OrderProtocol(launchType_);
+            if (!ModsConfig.OdysseyActive || Vehicle is not VehiclePawnWithMap vehiclePawnWithMap) return;
 
-            if (launchType == LaunchType.Takeoff && GravshipUtility.GetPlayerGravEngine_NewTemp(vehicle.VehicleMap) is Building_GravEngine engine)
+            if (launchType_ == LaunchType.Takeoff && GravshipUtility.GetPlayerGravEngine_NewTemp(vehiclePawnWithMap.VehicleMap) is { } engine)
             {
-                if (launchType == LaunchType.Takeoff)
-                {
-                    engine.cooldownCompleteTick = GenTicks.TicksGame + (int)GravshipUtility.LaunchCooldownFromQuality(engine.launchInfo?.quality ?? 1f);
-                }
+                engine.cooldownCompleteTick = GenTicks.TicksGame + (int)GravshipUtility.LaunchCooldownFromQuality(engine.launchInfo?.quality ?? 1f);
             }
         }
 
         public override IEnumerable<ArrivalOption> GetArrivalOptions(GlobalTargetInfo target)
         {
-            foreach (var option in base.GetArrivalOptions(target))
-            {
-                yield return option;
-            }
-            if (target.WorldObject is MapParent { Spawned: true, HasMap: false } mapParent && !mapParent.EnterCooldownBlocksEntering())
+            if (target.WorldObject is MapParent { Spawned: true, HasMap: true } mapParent && !mapParent.EnterCooldownBlocksEntering())
             {
                 yield return new ArrivalOption("VF_LandVehicleTargetedLanding".Translate(mapParent.Label), new ArrivalAction_LoadMap(vehicle, AerialVehicleArrivalModeDefOf.TargetedLanding));
+            }
+            else
+            {
+                foreach (var option in base.GetArrivalOptions(target))
+                {
+                    yield return option;
+                }
             }
         }
     }
