@@ -350,14 +350,16 @@ public static class VehicleMapUtility
                 return false;
             }
 
-            if (map.IsVehicleMapOf(out var vehicle2) && !VehicleMapFramework.settings.drawPlanet)
+            var isVehicleMap = map.IsVehicleMapOf(out var vehicle2);
+            var vehicleCaravan = vehicle2?.GetVehicleCaravan();
+            if (isVehicleMap && (vehicleCaravan is null || !VehicleMapFramework.settings.drawPlanet))
             {
                 vehicle = vehicle2;
                 return true;
             }
 
             var vehicles =
-                    (vehicle2?.GetVehicleCaravan() is { } vehicleCaravan
+                    (isVehicleMap
                     ? vehicleCaravan.Vehicles.OfType<VehiclePawnWithMap>()
                     : VehiclePawnWithMapCache.AllVehiclesOn(map))
                 .OrderBy(v => (v.cachedDrawPos - original).MagnitudeHorizontalSquared());

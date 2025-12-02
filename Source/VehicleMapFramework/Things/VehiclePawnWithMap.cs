@@ -20,7 +20,6 @@ using static VehicleMapFramework.ModCompat;
 namespace VehicleMapFramework;
 
 [StaticConstructorOnStartup]
-[HotSwap]
 public class VehiclePawnWithMap : VehiclePawn
 {
     private Map interiorMap;
@@ -205,7 +204,7 @@ public class VehiclePawnWithMap : VehiclePawn
     
     public List<CompBuildableContainer> ContainerComps { get; } = [];
 
-    public override Vector3 DrawPos => Spawned ? base.DrawPos : cachedDrawPos;
+    public override Vector3 DrawPos => Spawned && Find.CurrentMap != interiorMap ? base.DrawPos : cachedDrawPos;
 
     public new bool ThreatDisabled(IAttackTargetSearcher disabledFor) => VehicleMap.mapPawns.FreeHumanlikesSpawnedOfFaction(Faction).Empty() && base.ThreatDisabled(disabledFor);
 
@@ -288,13 +287,19 @@ public class VehiclePawnWithMap : VehiclePawn
             icon = iconAllowExit,
         };
 
-        yield return new Command_ActionWithIcon
+        yield return new Command_ToggleWithIcon
         {
-            action = () =>
+            toggleAction = () =>
             {
+                if (Find.CurrentMap == interiorMap && Spawned)
+                {
+                    Current.Game.CurrentMap = Map;
+                    return;
+                }
                 Patch_Game_CurrentMap.ForceSet = true;
                 Current.Game.CurrentMap = interiorMap;
             },
+            isActive = () => Find.CurrentMap != interiorMap || !Spawned,
             defaultLabel = interiorMap.Parent.LabelCap,
             icon = VehicleMapUIRenderer.GetVehicleMapTexture(this, Rot4.East, new Vector2Int(128, 128)),
             miniIcon = iconEye,

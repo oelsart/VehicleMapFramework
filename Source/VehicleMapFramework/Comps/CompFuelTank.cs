@@ -1,4 +1,5 @@
-﻿using RimWorld;
+﻿using System.Collections.Generic;
+using RimWorld;
 using SmashTools;
 using UnityEngine;
 using Verse;
@@ -60,6 +61,33 @@ public class CompFuelTank : CompRefuelable
             Rot8Utility.Rotate(ref r.rotation, RotationDirection.Clockwise);
             GenDraw.DrawFillableBar(r);
         }
+    }
+
+    public override IEnumerable<Gizmo> CompGetGizmosExtra()
+    {
+        if (parent.IsOnVehicleMapOf(out var vehicle))
+        {
+            if (!parent.TryGetComp<CompGravshipFacilityPossibly>(out var compGravshipFacility) ||
+                compGravshipFacility.LinkedBuildings.Empty())
+            {
+                if (vehicle.CompFueledTravel is { } compFueledTravel)
+                {
+                    foreach (var gizmo in compFueledTravel.CompGetGizmosExtra()) yield return gizmo;
+                }
+            }
+            else
+            {
+                foreach (var gizmo in base.CompGetGizmosExtra()) yield return gizmo;
+            }
+        }
+    }
+
+    public override string CompInspectStringExtra()
+    {
+        if (parent.IsOnVehicleMapOf(out var vehicle) && vehicle.CompFueledTravel is { } compFueledTravel &&
+            !vehicle.def.HasModExtension<VehicleMapProps_Gravship>())
+            return $"{"Fuel".TranslateSimple()}: {compFueledTravel.Fuel.ToStringDecimalIfSmall()} / {compFueledTravel.FuelCapacity.ToStringDecimalIfSmall()}";
+        return base.CompInspectStringExtra();
     }
 
     private static readonly Vector3 DrawOffset = new(0.0015f, 0.1f, -0.3125f);

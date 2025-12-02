@@ -68,6 +68,8 @@ public static class Patch_Selector_SelectableObjectsUnderMouse
         {
             yield return zone;
         }
+        
+        if (Find.CurrentMap == vehicle.VehicleMap && vehicle.Spawned) yield return vehicle;
     }
 }
 

@@ -5,7 +5,6 @@ using Verse;
 
 namespace VehicleMapFramework;
 
-[HotSwap]
 public static class VehicleMapUIRenderer
 {
     const int VEHICLE_MAP_LAYER = 31;
