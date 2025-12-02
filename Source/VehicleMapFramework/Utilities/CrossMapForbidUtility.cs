@@ -19,6 +19,8 @@ public static class CrossMapForbidUtility
 
         public bool IsForbidden(Pawn pawn, Map map)
         {
+            if (map == pawn.Map)
+                return c.IsForbidden(pawn);
             using var _ = new VirtualTeleporter(pawn, map);
             return c.IsForbidden(pawn);
         }

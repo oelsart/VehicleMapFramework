@@ -8,6 +8,7 @@ using Verse.AI;
 
 namespace VehicleMapFramework;
 
+[HotSwap]
 public static class StoreAcrossMapsUtility
 {
     public static Map tmpDestMap;
@@ -134,7 +135,7 @@ public static class StoreAcrossMapsUtility
         }
         else
         {
-            startMap = carrier.Map;
+            startMap = carrier.DepartMap ?? carrier.Map;
             start = carrier.PositionHeld;
         }
         return CrossMapReachabilityUtility.CanReach(startMap, start, c, PathEndMode.ClosestTouch, TraverseParms.For(carrier), map);

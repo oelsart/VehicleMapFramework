@@ -176,16 +176,14 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
                 return scanner.JobOnThing(pawn, t, forced);
             }
 
-            var map = pawn.Map;
-            pawn.DepartMap = map;
-            pawn.VirtualMapTransfer(thingMap);
+            pawn.DepartMap = pawn.Map;
+            using var _ = new VirtualTeleporter(pawn, thingMap);
             try
             {
                 return scanner.JobOnThing(pawn, t, forced);
             }
             finally
             {
-                pawn.VirtualMapTransfer(map);
                 pawn.RemoveDepartMap();
             }
         }
@@ -355,8 +353,7 @@ public static class Patch_JobGiver_Work_Validator
             return scanner.HasJobOnThing(pawn, t, forced);
         }
 
-        var map = pawn.Map;
-        pawn.DepartMap = map;
+        pawn.DepartMap = pawn.Map;
         using var _ = new VirtualTeleporter(pawn, thingMap);
         try
         {
@@ -888,12 +885,19 @@ public static class Patch_ForbidUtility_InAllowedArea
 
     public static void Finalizer(IntVec3 c, Pawn forPawn, Map __state, ref bool __result)
     {
-        if (__state is not null)
-            forPawn.VirtualMapTransfer(__state);
         if (forPawn.IsOnVehicleMapOf(out var vehicle) && vehicle.Spawned && __result)
         {
             using var _ = new VirtualTeleporter(forPawn, vehicle.Map);
-            __result = c.ToBaseMapCoord(vehicle).InAllowedArea(forPawn);
+            __result = InAllowedArea(c.ToBaseMapCoord(vehicle));
+        }
+        if (__state is not null)
+            forPawn.VirtualMapTransfer(__state);
+        return;
+        
+        bool InAllowedArea(IntVec3 c2)
+        {
+            var effectiveAreaRestrictionInPawnCurrentMap = forPawn.playerSettings?.EffectiveAreaRestrictionInPawnCurrentMap;
+            return effectiveAreaRestrictionInPawnCurrentMap is not { TrueCount: > 0 } || effectiveAreaRestrictionInPawnCurrentMap[c];
         }
     }
 }
