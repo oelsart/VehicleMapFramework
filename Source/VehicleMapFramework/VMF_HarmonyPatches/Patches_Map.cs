@@ -655,7 +655,7 @@ public static class Patch_Map_TileInfo
     public static void Postfix(Map __instance, ref Tile __result)
     {
         if (__instance.IsVehicleMapOf(out _) && Find.Maps.Contains(__instance) &&
-            Find.WorldGrid.InBounds(__instance.Tile))
+            __instance.Tile.Valid && Find.WorldGrid.InBounds(__instance.Tile))
         {
             __result = Find.WorldGrid[__instance.Tile];
         }

@@ -788,13 +788,18 @@ public static class VehicleMapUtility
     {
         public void VirtualMapTransfer(Map map)
         {
-            VirtualTeleporter.mapIndexOrState(thing) = (sbyte)map.Index;
+            if (thing is not null && map is not null)
+                VirtualTeleporter.mapIndexOrState(thing) = (sbyte)map.Index;
         }
 
         public void VirtualMapTransfer(Map map, IntVec3 c)
         {
-            VirtualTeleporter.mapIndexOrState(thing) = (sbyte)map.Index;
-            thing.SetPositionDirect(c);
+            if (thing is not null)
+            {
+                if (map is not null)
+                    VirtualTeleporter.mapIndexOrState(thing) = (sbyte)map.Index;
+                thing.SetPositionDirect(c);
+            }
         }
     }
 
