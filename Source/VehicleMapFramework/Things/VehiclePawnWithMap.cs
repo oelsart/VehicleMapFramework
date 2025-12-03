@@ -652,11 +652,17 @@ public class VehiclePawnWithMap : VehiclePawn
         var map = interiorMap;
         var mapDrawer = map.mapDrawer;
         var component = map.GetCachedMapComponent<VehicleSectionLayerManager>();
+        var dirty = false;
         for (var i = 0; i < map.Size.x; i += 17)
         {
             for (var j = 0; j < map.Size.z; j += 17)
             {
                 var section = mapDrawer.SectionAt(new IntVec3(i, 0, j));
+                if (!dirty && (section.dirtyFlags & (MapMeshFlagDefOf.Things | MapMeshFlagDefOf.Terrain)) > 0UL)
+                {
+                    VehicleMapUIRenderer.SetDirty(this);
+                    dirty = true;
+                }
                 DrawSection(section, drawPos, component);
             }
         }

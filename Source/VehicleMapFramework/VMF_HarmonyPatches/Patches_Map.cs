@@ -246,7 +246,6 @@ public static class Patch_Map_MapUpdate
                 Find.WorldCameraDriver.altitude = 140f;
                 desiredAltitude(Find.WorldCameraDriver) = 140f;
                 Find.WorldCameraDriver.Update();
-                Find.WorldCamera.gameObject.SetActive(true);
                 WorldRendererUtility.UpdateGlobalShadersParams();
                 ExpandableWorldObjectsUtility.ExpandableWorldObjectsUpdate();
                 foreach (var layer in Find.World.renderer.AllVisibleDrawLayers.Where(l => l is not WorldDrawLayer_SingleTile && l is not WorldDrawLayer_Satellites))
@@ -265,8 +264,6 @@ public static class Patch_Map_MapUpdate
                 Find.WorldCamera.Render();
                 Find.WorldCamera.targetTexture = targetTexture;
                 Find.World.renderer.wantedMode = WorldRenderMode.None;
-                Find.WorldCamera.gameObject.SetActive(false);
-                Find.Camera.gameObject.SetActive(true);
                 Find.CameraDriver.Update();
                 if (mat is null)
                 {
