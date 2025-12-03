@@ -12,20 +12,28 @@ public readonly struct VirtualTeleporter : IDisposable
 
     private readonly Map _map;
 
-    private readonly IntVec3 _pos;
+    private readonly IntVec3 _pos = IntVec3.Invalid;
         
     public VirtualTeleporter(Thing thing, Map map, IntVec3? c = null)
     {
         _thing = thing;
+        if (thing is null)
+            return;
         _map = thing.Map;
         _pos = thing.Position;
-        mapIndexOrState(thing) = (sbyte)map.Index;
+        if (map is not null)
+            mapIndexOrState(thing) = (sbyte)map.Index;
         if (c.HasValue) thing.SetPositionDirect(c.Value);
     }
 
     public void Dispose()
     {
-        mapIndexOrState(_thing) = (sbyte)_map.Index;
-        _thing.SetPositionDirect(_pos);
+        if (_thing is not null)
+        {
+            if (_map is not null)
+                mapIndexOrState(_thing) = (sbyte)_map.Index;
+            if (_pos.IsValid)
+                _thing.SetPositionDirect(_pos);
+        }
     }
 }
