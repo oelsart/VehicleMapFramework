@@ -86,7 +86,7 @@ public static class CrossMapReachabilityUtility
         public bool CanReach(LocalTargetInfo dest3, PathEndMode peMode, Danger maxDanger, bool canBashDoors, bool canBashFences, TraverseMode mode, Map destMap)
         {
             var traverseParms = TraverseParms.For(pawn, maxDanger: maxDanger, mode: mode, canBashDoors: canBashDoors, canBashFences: canBashFences);
-            return pawn.Spawned && CanReach(pawn.Map, traverseParms.pawn.Position, dest3, peMode, traverseParms, destMap, out _, out _, out _);
+            return pawn.Spawned && CanReach(pawn.DepartMap ?? pawn.Map, traverseParms.pawn.Position, dest3, peMode, traverseParms, destMap, out _, out _, out _);
         }
 
         public bool CanReach(LocalTargetInfo dest3, PathEndMode peMode, Danger maxDanger, bool canBashDoors, bool canBashFences, TraverseMode mode, Map destMap, out TargetInfo exitSpot, out TargetInfo enterSpot, out List<(TargetInfo, TargetInfo)> spotsQueue)
@@ -95,7 +95,7 @@ public static class CrossMapReachabilityUtility
             exitSpot = TargetInfo.Invalid;
             enterSpot = TargetInfo.Invalid;
             spotsQueue = null;
-            return pawn.Spawned && CanReach(pawn.Map, traverseParms.pawn.Position, dest3, peMode, traverseParms, destMap, out exitSpot, out enterSpot, out spotsQueue);
+            return pawn.Spawned && CanReach(pawn.DepartMap ?? pawn.Map, traverseParms.pawn.Position, dest3, peMode, traverseParms, destMap, out exitSpot, out enterSpot, out spotsQueue);
         }
     }
 

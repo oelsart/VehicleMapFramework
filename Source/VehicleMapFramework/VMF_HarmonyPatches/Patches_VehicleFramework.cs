@@ -55,12 +55,12 @@ public static class Patch_VehiclePawn_HasEnoughOperators
     {
         if (__instance is VehiclePawnWithMap)
         {
-            if (__instance.MovementPermissions.HasFlag(VehiclePermissions.Autonomous))
+            if ((__instance.MovementPermissions & VehiclePermissions.Autonomous) > VehiclePermissions.None)
             {
                 __result = true;
                 return false;
             }
-            var matchHandlers = __instance.handlers.Where(h => h.role.HandlingTypes.HasFlag(HandlingType.Movement)).ToList();
+            var matchHandlers = __instance.handlers.Where(h => (h.role.HandlingTypes & HandlingType.Movement) > HandlingType.None).ToList();
             if (matchHandlers.Empty())
             {
                 __result = false;

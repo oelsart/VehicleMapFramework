@@ -767,6 +767,10 @@ internal static class ModCompat
             {
                 try
                 {
+                    if (SmartFarmingActive && ReGrowth && !UnitTestDetector.IsTestingContext)
+                    {
+                        VMF_Log.Error("When both Smart Farming and ReGrowth 2 are enabled, a patch error will occur. Since these have overlapping functionality, please enable only one of them.");
+                    }
                     Type t_ZoneData;
                     if (SmartFarmingActive)
                     {

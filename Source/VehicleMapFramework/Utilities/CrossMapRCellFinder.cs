@@ -135,7 +135,8 @@ public static class CrossMapRCellFinder
         }
         foreach (var item2 in GenAdj.CellsAdjacent8Way(touchee).InRandomOrder())
         {
-            if (item2.WalkableBy(map, toucher) && toucher.CanReach(item2, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, map))
+            if (item2.WalkableBy(map, toucher) && toucher.CanReach(item2, PathEndMode.OnCell, Danger.Deadly, false,
+                    false, TraverseMode.ByPawn, map))
             {
                 result = item2;
                 return true;

@@ -45,6 +45,19 @@ public static class Patch_Pawn_JobTracker_DetermineNextJob
     }
 }
 
+[HarmonyPatch(typeof(JobDriver), "Map", MethodType.Getter)]
+[PatchLevel(Level.Safe)]
+public static class Patch_JobDriver_Map
+{
+    public static void Postfix(JobDriver __instance, ref Map __result)
+    {
+        if (__instance.job.globalTarget.Map is { } map || TargetMapManager.HasTargetMap(__instance.pawn, out map))
+        {
+            __result = map;
+        }
+    }
+}
+
 [HarmonyAfter("SmarterConstruction")]
 [HarmonyPatch(typeof(JobGiver_Work), nameof(JobGiver_Work.TryIssueJobPackage))]
 [PatchLevel(Level.Sensitive)]
@@ -180,7 +193,13 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
             using var _ = new VirtualTeleporter(pawn, thingMap);
             try
             {
-                return scanner.JobOnThing(pawn, t, forced);
+                var job = scanner.JobOnThing(pawn, t, forced);
+                if (job != null && JobAcrossMapsUtility.NeedWrapGotoDestMapJob(scanner) &&
+                    pawn.CanReach(t, scanner.PathEndMode, scanner.MaxPathDanger(pawn), false, false,
+                        TraverseMode.ByPawn, t.MapHeld, out var exitSpot, out var enterSpot, out var spotsQueue))
+                    job = JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, spotsQueue, job);
+                return job;
+
             }
             finally
             {
@@ -192,6 +211,7 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
         {
             var map = pawn.Map;
             var targetMap = target.Map;
+            TargetMapManager.SetTargetInfo(pawn, target);
             if (map == targetMap)
             {
                 return scanner.JobOnCell(pawn, target.Cell, forced);
@@ -200,21 +220,25 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
             if (pawn.CanReach(target.Cell, scanner.PathEndMode, scanner.MaxPathDanger(pawn), false, false,
                     TraverseMode.ByPawn, targetMap, out var exitSpot, out var enterSpot, out var spotsQueue))
             {
-                using (new VirtualTeleporter(pawn, targetMap, enterSpot.Cell))
+                var cell2 = CellFinder.StandableCellNear(target.Cell, targetMap, 1f);
+                using (new VirtualTeleporter(pawn, targetMap, cell2))
                 {
-                    return JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, spotsQueue, scanner.JobOnCell(pawn, target.Cell, forced));
+                    var job = scanner.JobOnCell(pawn, target.Cell, forced);
+                    if (!JobAcrossMapsUtility.NoNeedWrapGotoDestMapJob(scanner))
+                        job = JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, spotsQueue, job);
+                    return job;
                 }
             }
 
             if (!CrossMapReachabilityUtility.GetClosestExitEnterSpot(map, pawn.Position, TraverseParms.For(pawn), targetMap,
                     out var exitSpot2, out var enterSpot2, out var spotsQueue2)) return null;
-            Job job;
+            Job job2;
             try
             {
                 pawn.DepartMap = map;
                 pawn.DestMap = targetMap;
                 pawn.VirtualMapTransfer(targetMap);
-                job = scanner.JobOnCell(pawn, target.Cell, forced);
+                job2 = scanner.JobOnCell(pawn, target.Cell, forced);
             }
             finally
             {
@@ -222,7 +246,9 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
                 pawn.RemoveDestMap();
                 pawn.VirtualMapTransfer(map);
             }
-            return JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot2, enterSpot2, spotsQueue2, job);
+            if (!JobAcrossMapsUtility.NoNeedWrapGotoDestMapJob(scanner))
+                job2 = JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot2, enterSpot2, spotsQueue2, job2);
+            return job2;
         }
 
         internal void ScanCellsAcrossMaps(ref InnerClass innerClass, ref InnerStruct innerStruct)
@@ -245,7 +271,7 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
                         var num5 = 0f;
                         if (innerStruct.prioritized)
                         {
-                            if (!c.IsForbidden(pawn, map2) && scanner.HasJobOnCell(pawn, c))
+                            if (!c.IsForbidden(pawn) && scanner.HasJobOnCell(pawn, c))
                             {
                                 num5 = scanner.GetPriority(pawn, c);
                                 if (num5 > innerStruct.bestPriority || (Mathf.Approximately(num5, innerStruct.bestPriority) && num4 < innerStruct.closestDistSquared))
@@ -254,7 +280,7 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
                                 }
                             }
                         }
-                        else if (num4 < innerStruct.closestDistSquared && !c.IsForbidden(pawn, map2) && scanner.HasJobOnCell(pawn, c))
+                        else if (num4 < innerStruct.closestDistSquared && !c.IsForbidden(pawn) && scanner.HasJobOnCell(pawn, c))
                         {
                             flag2 = true;
                         }
@@ -1180,5 +1206,46 @@ public static class Patch_Reachability_ClearCache
     public static void Postfix(Map ___map)
     {
         CrossMapReachabilityCache.ClearCacheFor(___map);
+    }
+}
+
+[HarmonyPatch]
+[PatchLevel(Level.Sensitive)]
+public static class Patch_PaintUtility_FindNearbyDyes
+{
+    private static readonly List<Thing> tmpList = [];
+    
+    private static IEnumerable<MethodBase> TargetMethods()
+    {
+        yield return AccessTools.Method(typeof(PaintUtility), nameof(PaintUtility.FindNearbyDyes));
+        yield return AccessTools.Method(typeof(WorkGiver_PaintBuilding), "ShouldPaintThing");
+        yield return AccessTools.Method(typeof(WorkGiver_PaintFloor), "ShouldPaintCell");
+    }
+    
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, MethodBase original)
+    {
+        var parameters = original.GetParameters();
+        var isStatic = original.IsStatic ? 0 : 1;
+        var i_pawn = parameters.FirstIndexOf(p => p.ParameterType == typeof(Pawn)) + isStatic;
+        var i_forced = parameters.FirstIndexOf(p => p.ParameterType == typeof(bool)) + isStatic;
+        return new CodeMatcher(instructions)
+            .MatchStartForward(CodeMatch.Calls(AccessTools.Method(typeof(ListerThings), nameof(ListerThings.ThingsOfDef))))
+            .InsertAfter(
+                CodeInstruction.LoadArgument(i_pawn),
+                CodeInstruction.LoadArgument(i_forced),
+                CodeInstruction.Call(typeof(Patch_PaintUtility_FindNearbyDyes), nameof(AddThingList)))
+            .InstructionEnumeration();
+    }
+
+    private static List<Thing> AddThingList(List<Thing> list, Pawn pawn, bool forced)
+    {
+        var map = pawn.Map;
+        tmpList.Clear();
+        tmpList.AddRange(list);
+        tmpList.AddRange(map.BaseMapAndVehicleMaps().Except(map)
+            .SelectMany(m => m.listerThings.ThingsOfDef(ThingDefOf.Dye))
+            .Where(t => !t.IsForbidden(pawn) &&
+                        pawn.CanReserveAndReach(t, PathEndMode.ClosestTouch, Danger.Deadly, ignoreOtherReservations: forced)));
+        return tmpList;
     }
 }

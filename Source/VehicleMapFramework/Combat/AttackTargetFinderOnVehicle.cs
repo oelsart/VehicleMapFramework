@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using RimWorld;
 using UnityEngine;
@@ -11,7 +10,6 @@ using static VehicleMapFramework.ModCompat;
 
 namespace VehicleMapFramework;
 
-[SuppressMessage("ReSharper", "ForCanBeConvertedToForeach")]
 public static class AttackTargetFinderOnVehicle
 {
     private const float FriendlyFireScoreOffsetPerHumanlikeOrMechanoid = 18f;
@@ -166,15 +164,7 @@ public static class AttackTargetFinderOnVehicle
             }
             else
             {
-                var flag4 = false;
-                foreach (var c in thing.MovedOccupiedRect())
-                {
-                    if (!c.Fogged(baseMap))
-                    {
-                        flag4 = true;
-                        break;
-                    }
-                }
+                var flag4 = thing.MovedOccupiedRect().Any(c => !c.Fogged(baseMap));
                 if (!flag4)
                 {
                     return false;
@@ -706,6 +696,7 @@ public static class AttackTargetFinderOnVehicle
         Text.Anchor = TextAnchor.UpperLeft;
         Text.Font = GameFont.Small;
     }
+    
     public static void DebugDrawNonCombatantTimer_OnGUI()
     {
         var list = Find.CurrentMap.listerThings.ThingsInGroup(ThingRequestGroup.Pawn);
@@ -713,7 +704,7 @@ public static class AttackTargetFinderOnVehicle
         {
             foreach (var item in list)
             {
-                if (!(item is Pawn { mindState: not null } pawn))
+                if (item is not Pawn { mindState: not null } pawn)
                 {
                     continue;
                 }
@@ -771,11 +762,10 @@ public static class AttackTargetFinderOnVehicle
         {
             return target1;
         }
-        if ((target1.Thing.Position - searcher.Thing.Position).LengthHorizontalSquared > (target2.Thing.PositionOnBaseMap() - searcher.Thing.PositionOnBaseMap()).LengthHorizontalSquared)
-        {
-            return target2;
-        }
-        return target1;
+        return (target1.Thing.Position - searcher.Thing.Position).LengthHorizontalSquared >
+               (target2.Thing.PositionOnBaseMap() - searcher.Thing.PositionOnBaseMap()).LengthHorizontalSquared
+            ? target2
+            : target1;
     }
 }
 

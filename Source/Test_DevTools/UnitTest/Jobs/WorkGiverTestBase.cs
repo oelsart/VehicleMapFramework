@@ -210,7 +210,7 @@ internal abstract class WorkGiverTestBase(VehicleGroup group)
         }
     }
     
-    protected static WorkGiverResult RunWorkGiverAfterPatch(Pawn pawn, VehiclePawn vehicle, WorkGiverDef workGiverDef)
+    internal static WorkGiverResult RunWorkGiverAfterPatch(Pawn pawn, VehiclePawn vehicle, WorkGiverDef workGiverDef)
     {
         var result = new WorkGiverResult();
         var workGiver = workGiverDef.Worker;
