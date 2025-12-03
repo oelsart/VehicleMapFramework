@@ -293,7 +293,7 @@ public static class Patch_Pawn_JobTracker_DrawLinesBetweenTargets
 
         if (!targ.Cell.IsValid) return default;
             
-        if (TargetMapManager.HasTargetMap(pawn, out var map) && pawn.stances.curStance is Stance_Busy)
+        if (pawn.TryGetTargetMap(out var map) && pawn.stances.curStance is Stance_Busy)
         {
             return targ.Cell.ToVector3Shifted().ToBaseMapCoord(map);
         }

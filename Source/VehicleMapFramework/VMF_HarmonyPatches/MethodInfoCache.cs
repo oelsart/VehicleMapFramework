@@ -71,11 +71,11 @@ public class MethodInfoCache
     
     public readonly MethodInfo m_BaseMap_GlobalTargetInfo = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.BaseMap), [typeof(GlobalTargetInfo).MakeByRefType()]);
 
-    public readonly MethodInfo m_TargetMapOrMap = AccessTools.Method(typeof(TargetMapManager), nameof(TargetMapManager.TargetMapOrMap));
+    public readonly MethodInfo m_TargetMapOrMap = AccessTools.Method(typeof(TargetMapUtility), nameof(TargetMapUtility.TargetMapOrMap));
 
-    public readonly MethodInfo m_TargetMapOrThingMap = AccessTools.Method(typeof(TargetMapManager), nameof(TargetMapManager.TargetMapOrThingMap));
+    public readonly MethodInfo m_TargetMapOrThingMap = AccessTools.Method(typeof(TargetMapUtility), nameof(TargetMapUtility.get_TargetMapOrThingMap));
 
-    public readonly MethodInfo m_TargetMapOrPawnMap = AccessTools.Method(typeof(TargetMapManager), nameof(TargetMapManager.TargetMapOrPawnMap));
+    public readonly MethodInfo m_TargetMapOrPawnMap = AccessTools.Method(typeof(TargetMapUtility), nameof(TargetMapUtility.get_TargetMapOrPawnMap));
 
     public readonly MethodInfo g_Zone_Map = AccessTools.PropertyGetter(typeof(Zone), nameof(Zone.Map));
 
@@ -87,9 +87,9 @@ public class MethodInfoCache
 
     public readonly MethodInfo g_Thing_Position = AccessTools.PropertyGetter(typeof(Thing), nameof(Thing.Position));
 
-    public readonly MethodInfo m_PositionOnBaseMap = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.PositionOnBaseMap), [typeof(Thing)]);
+    public readonly MethodInfo m_PositionOnBaseMap = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.get_PositionOnBaseMap), [typeof(Thing)]);
 
-    public readonly MethodInfo m_PositionOnBaseMapSpawned = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.PositionOnBaseMapSpawned), [typeof(Thing)]);
+    public readonly MethodInfo m_PositionOnBaseMapSpawned = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.get_PositionOnBaseMapSpawned), [typeof(Thing)]);
 
     public readonly MethodInfo g_Thing_PositionHeld = AccessTools.PropertyGetter(typeof(Thing), nameof(Thing.PositionHeld));
 
@@ -245,9 +245,9 @@ public class MethodInfoCache
 
     public readonly MethodInfo m_Vector3Utility_WithY = AccessTools.Method(typeof(Vector3Utility), nameof(Vector3Utility.WithY));
 
-    public readonly MethodInfo m_TargetCellOnBaseMap = AccessTools.Method(typeof(TargetMapManager), nameof(TargetMapManager.TargetCellOnBaseMap));
+    public readonly MethodInfo m_TargetCellOnBaseMap = AccessTools.Method(typeof(TargetMapUtility), nameof(TargetMapUtility.TargetCellOnBaseMap));
 
-    public readonly MethodInfo m_PositionOnTargetMap = AccessTools.Method(typeof(TargetMapManager), nameof(TargetMapManager.PositionOnTargetMap));
+    public readonly MethodInfo m_PositionOnTargetMap = AccessTools.Method(typeof(TargetMapUtility), nameof(TargetMapUtility.get_PositionOnTargetMap));
 
     public readonly MethodInfo m_BreadthFirstTraverse = AccessTools.Method(typeof(RegionTraverser), nameof(RegionTraverser.BreadthFirstTraverse), [typeof(Region), typeof(RegionEntryPredicate), typeof(RegionProcessor), typeof(int), typeof(RegionType)]);
 

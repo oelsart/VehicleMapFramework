@@ -276,7 +276,7 @@ public static class Patch_GenDraw_DrawAimPie
     [PatchLevel(Level.Safe)]
     public static void Prefix(Thing shooter, ref LocalTargetInfo target)
     {
-        if (!target.HasThing && TargetMapManager.HasTargetMap(shooter, out var map))
+        if (!target.HasThing && shooter.TryGetTargetMap(out var map))
         {
             target = target.Cell.ToBaseMapCoord(map);
         }

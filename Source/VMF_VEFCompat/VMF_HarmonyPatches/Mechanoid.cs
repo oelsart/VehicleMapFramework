@@ -71,19 +71,19 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
             if (__result != null) return;
             var things = __instance.Map.BaseMapAndVehicleMaps().Except(__instance.Map).SelectMany(m =>
             {
-                var pos = m.IsVehicleMapOf(out var vehicle) ? __instance.PositionOnBaseMap().ToVehicleMapCoord(vehicle) : __instance.PositionOnBaseMap();
+                var pos = m.IsVehicleMapOf(out var vehicle) ? __instance.PositionOnBaseMap.ToVehicleMapCoord(vehicle) : __instance.PositionOnBaseMap;
                 return GenRadial.RadialDistinctThingsAround(pos, m, 20f, true);
             });
 
             __result = (from x in things.OfType<Frame>()
                 where x.IsCompleted() && Validator(x, __instance)
-                orderby x.PositionOnBaseMap().DistanceTo(___endCranePosition)
+                orderby x.PositionOnBaseMap.DistanceTo(___endCranePosition)
                 select x).FirstOrDefault();
         }
 
         public static bool Validator(Thing x, Building b)
         {
-            return x.Faction == b.Faction && !x.IsBurning() && x.PositionOnBaseMap().DistanceTo(b.PositionOnBaseMap()) >= 6f && !x.Map.reservationManager.IsReservedByAnyoneOf(x, b.Faction);
+            return x.Faction == b.Faction && !x.IsBurning() && x.PositionOnBaseMap.DistanceTo(b.PositionOnBaseMap) >= 6f && !x.Map.reservationManager.IsReservedByAnyoneOf(x, b.Faction);
         }
     }
 
@@ -98,13 +98,13 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
             {
                 var things = __instance.Map.BaseMapAndVehicleMaps().Except(__instance.Map).SelectMany(m =>
                 {
-                    var pos = m.IsVehicleMapOf(out var vehicle) ? __instance.PositionOnBaseMap().ToVehicleMapCoord(vehicle) : __instance.PositionOnBaseMap();
+                    var pos = m.IsVehicleMapOf(out var vehicle) ? __instance.PositionOnBaseMap.ToVehicleMapCoord(vehicle) : __instance.PositionOnBaseMap;
                     return GenRadial.RadialDistinctThingsAround(pos, m, 20f, true);
                 });
 
                 __result = (from x in things.OfType<Building>()
                             where x.def.useHitPoints && x.MaxHitPoints > 0 && x.HitPoints < x.MaxHitPoints && Patch_Building_Autocrane_NextFrameTarget.Validator(x, __instance)
-                            orderby x.PositionOnBaseMap().DistanceTo(___endCranePosition)
+                            orderby x.PositionOnBaseMap.DistanceTo(___endCranePosition)
                             select x).FirstOrDefault();
             }
         }

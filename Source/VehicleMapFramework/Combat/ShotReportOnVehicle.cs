@@ -71,7 +71,7 @@ public struct ShotReportOnVehicle
     public static ShotReportOnVehicle HitReportFor(Thing caster, Verb verb, LocalTargetInfo target)
     {
         var targetMap = target.HasThing ? target.Thing.Map : caster.BaseMap();
-        var casterPositionOnTargetMap = target.HasThing ? caster.PositionOnAnotherThingMap(target.Thing) : caster.PositionOnBaseMap();
+        var casterPositionOnTargetMap = target.HasThing ? caster.PositionOnAnotherThingMap(target.Thing) : caster.PositionOnBaseMap;
         ShotReportOnVehicle shotReportOnVehicle;
         shotReportOnVehicle.distance = (target.Cell - casterPositionOnTargetMap).LengthHorizontal;
         shotReportOnVehicle.target = target.ToTargetInfo(targetMap);
@@ -87,7 +87,7 @@ public struct ShotReportOnVehicle
         shotReportOnVehicle.covers = CoverUtility.CalculateCoverGiverSet(target, casterPositionOnTargetMap, targetMap);
         shotReportOnVehicle.coversOverallBlockChance = CoverUtility.CalculateOverallBlockChance(target, casterPositionOnTargetMap, targetMap);
         shotReportOnVehicle.factorFromCoveringGas = 1f;
-        if (verb.TryFindShootLineFromToOnVehicle(verb.caster.PositionOnBaseMap(), target, out shotReportOnVehicle.shootLine))
+        if (verb.TryFindShootLineFromToOnVehicle(verb.caster.PositionOnBaseMap, target, out shotReportOnVehicle.shootLine))
         {
             using (var enumerator = shotReportOnVehicle.shootLine.Points().GetEnumerator())
             {
@@ -104,7 +104,7 @@ public struct ShotReportOnVehicle
         }
         shotReportOnVehicle.shootLine = new ShootLine(IntVec3.Invalid, IntVec3.Invalid);
     IL_13D:
-        if (!caster.PositionOnBaseMap().Roofed(caster.BaseMap()) || !target.CellOnBaseMap().Roofed(caster.BaseMap()))
+        if (!caster.PositionOnBaseMap.Roofed(caster.BaseMap()) || !target.CellOnBaseMap().Roofed(caster.BaseMap()))
         {
             shotReportOnVehicle.factorFromWeather = caster.Map.weatherManager.CurWeatherAccuracyMultiplier;
         }

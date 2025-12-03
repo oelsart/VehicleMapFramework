@@ -54,7 +54,7 @@ public static class Patch_WG_AbilityVerb_QuickJump_DoJump
     {
         if (pawn.IsOnNonFocusedVehicleMapOf(out _))
         {
-            var positionOnBaseMap = pawn.PositionOnBaseMap();
+            var positionOnBaseMap = pawn.PositionOnBaseMap;
             currentTarget = new IntVec3(positionOnBaseMap.x, positionOnBaseMap.y, Math.Min(positionOnBaseMap.z + 25, CellRect.WholeMap(targetMap).maxZ));
         }
     }

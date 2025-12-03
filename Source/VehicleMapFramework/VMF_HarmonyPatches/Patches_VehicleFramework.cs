@@ -874,7 +874,7 @@ public static class Patch_FloatMenuOptionProvider_OrderVehicle_VehicleCanGoto
 {
     public static bool Prefix(VehiclePawn vehicle, IntVec3 gotoLoc, ref AcceptanceReport __result)
     {
-        if (TargetMapManager.HasTargetMap(vehicle, out var map) && vehicle.Map != map)
+        if (vehicle.TryGetTargetMap(out var map) && vehicle.Map != map)
         {
             if (!vehicle.CanReachVehicle(gotoLoc, PathEndMode.OnCell, Danger.Deadly, TraverseMode.ByPawn, map, out _, out _))
             {
@@ -897,7 +897,7 @@ public static class Patch_FloatMenuOptionProvider_OrderVehicle_PawnGotoAction
 {
     public static bool Prefix(IntVec3 clickCell, VehiclePawn vehicle, IntVec3 gotoLoc, ref Rot8 rot)
     {
-        if (TargetMapManager.HasTargetMap(vehicle, out var map))
+        if (vehicle.TryGetTargetMap(out var map))
         {
             // 車両マップがターゲットの場合TryGetFullRotationにより回るため
             if (map.IsVehicleMapOf(out var vehicle2) && rot.IsValid)
@@ -909,7 +909,7 @@ public static class Patch_FloatMenuOptionProvider_OrderVehicle_PawnGotoAction
                 if (vehicle.CanReachVehicle(gotoLoc, PathEndMode.OnCell, Danger.Deadly, TraverseMode.ByPawn, map, out var exitSpot, out var enterSpot))
                 {
                     PawnGotoAction(clickCell, vehicle, map, gotoLoc, rot, exitSpot, enterSpot);
-                    TargetMapManager.RemoveTargetInfo(vehicle);
+                    vehicle.RemoveTargetInfo();
                 }
                 return false;
             }
@@ -989,7 +989,7 @@ public static class Patch_PathingHelper_TryFindNearestStandableCell
         }
         radius = Mathf.Min(radius, GenRadial.MaxRadialPatternRadius);
         VehiclePawnWithMap vehicle2 = null;
-        if (TargetMapManager.HasTargetMap(vehicle, out var map))
+        if (vehicle.TryGetTargetMap(out var map))
         {
             if (vehicle.Map != map)
             {
@@ -1012,7 +1012,7 @@ public static class Patch_PathingHelper_TryFindNearestStandableCell
                 radius);
             if (result.IsValid)
             {
-                TargetMapManager.SetTargetMap(vehicle, map);
+                vehicle.TargetMap = map;
                 return false;
             }
         }
@@ -1054,7 +1054,7 @@ public static class Patch_VehicleOrientationController_RecomputeDestinations
     {
         if (___vehicles.Count > 1)
         {
-            ___vehicles.Do(v => TargetMapManager.RemoveTargetInfo(v));
+            ___vehicles.Do(v => v.RemoveTargetInfo());
         }
     }
 
@@ -1111,7 +1111,7 @@ public static class Patch_VehicleGhostUtility_DrawGhostVehicleDef
 
     public static Vector3 ToTargetMapCoord(Vector3 original, Thing thing)
     {
-        return TargetMapManager.HasTargetMap(thing, out var map) ? original.ToBaseMapCoord(map).WithY(original.y) : original;
+        return thing.TryGetTargetMap(out var map) ? original.ToBaseMapCoord(map).WithY(original.y) : original;
     }
 }
 

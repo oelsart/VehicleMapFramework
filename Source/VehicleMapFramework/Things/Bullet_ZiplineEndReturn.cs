@@ -21,7 +21,7 @@ public class Bullet_ZiplineEndReturn : Bullet_ZiplineBase
             {
                 var forcedTarget = building_Turret.ForcedTarget;
                 var originCell = origin.ToIntVec3();
-                if (TargetMapManager.HasTargetMap(launchVerb.caster, out var destMap) && destMap.IsVehicleMapOf(out var vehicle))
+                if (launchVerb.caster.TryGetTargetMap(out var destMap) && destMap.IsVehicleMapOf(out var vehicle))
                 {
                     originCell = originCell.ToVehicleMapCoord(vehicle);
                 }

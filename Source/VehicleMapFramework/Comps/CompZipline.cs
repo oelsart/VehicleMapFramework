@@ -51,7 +51,7 @@ public class CompZipline : CompVehicleEnterSpot
 
     public override float DistanceSquared(IntVec3 root)
     {
-        return (Pair?.PositionOnBaseMap() - root)?.LengthHorizontalSquared ?? float.MaxValue;
+        return (Pair?.PositionOnBaseMap - root)?.LengthHorizontalSquared ?? float.MaxValue;
     }
 
     public override void PostSpawnSetup(bool respawningAfterLoad)

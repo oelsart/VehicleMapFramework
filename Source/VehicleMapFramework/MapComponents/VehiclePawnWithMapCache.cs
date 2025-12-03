@@ -12,10 +12,7 @@ public class VehiclePawnWithMapCache : MapComponent
 {
     public VehiclePawnWithMapCache(Map map) : base(map)
     {
-        map.events.ThingDespawned += thing =>
-        {
-            TargetMapManager.RemoveTargetInfo(thing);
-        };
+        map.events.ThingDespawned += thing => thing.RemoveTargetInfo();
     }
 
     public static void RegisterVehicle(VehiclePawnWithMap vehicle)

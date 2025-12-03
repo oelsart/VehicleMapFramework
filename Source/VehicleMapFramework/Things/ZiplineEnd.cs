@@ -17,7 +17,7 @@ public class ZiplineEnd : ThingWithComps, IZiplineEnd
     {
         base.SpawnSetup(map, respawningAfterLoad);
         
-        TargetMapManager.RemoveTargetInfo(launchVerb.caster);
+        launchVerb.caster.RemoveTargetInfo();
         if (launchVerb.CasterIsPawn)
             launchVerb.OrderForceTarget(this);
         else if (launchVerb.caster is Building_Turret building_Turret)
@@ -35,7 +35,7 @@ public class ZiplineEnd : ThingWithComps, IZiplineEnd
 
         if ((launchVerb.caster is Pawn { TargetCurrentlyAimingAt: var target } && target != this) ||
             (launchVerb.caster is Building_Turret { ForcedTarget: var target2 } && target2 != this) ||
-            !launchVerb.TryFindShootLineFromToOnVehicle(launchVerb.caster.PositionOnBaseMap(), this.PositionOnBaseMap(), out _))
+            !launchVerb.TryFindShootLineFromToOnVehicle(launchVerb.caster.PositionOnBaseMap, this.PositionOnBaseMap, out _))
         {
             Destroy();
         }
@@ -46,7 +46,7 @@ public class ZiplineEnd : ThingWithComps, IZiplineEnd
         if (launchVerb.caster is { Spawned: true })
         {
             var pos = launchVerb.caster.IsOnVehicleMapOf(out var vehicle) && !vehicle.Spawned
-                ? Position : this.PositionOnBaseMap();
+                ? Position : this.PositionOnBaseMap;
             var bullet = (Bullet_ZiplineEndReturn)GenSpawn.Spawn(ZipLineData.ZiplineReturnDef, pos, this.BaseMap());
             bullet.launchVerb = launchVerb;
             bullet.ZipLineData = ZipLineData;

@@ -48,7 +48,7 @@ public class JobGiver_PirateShip : JobGiver_CombatFormation
                 //	&& !GenSight.LineOfSightToThing(vehicle.Position, innerTargetPawn, vehicle.Map, false, null)) continue;
 
                 thing = (Thing)attackTarget;
-                var dist = thing.PositionOnBaseMap().DistanceToSquared(vehicle.PositionOnBaseMap());
+                var dist = thing.PositionOnBaseMap.DistanceToSquared(vehicle.PositionOnBaseMap);
                 if (dist < minDist && vehicle.CanReachVehicle(thing.Position, PathEndMode.Touch,
                         Danger.Deadly, TraverseMode.ByPawn, thing.Map, out _, out _))
                 {
@@ -58,7 +58,7 @@ public class JobGiver_PirateShip : JobGiver_CombatFormation
         }
         vehicle.mindState.enemyTarget = thing;
         if (thing is Pawn && thing.Faction == Faction.OfPlayer &&
-            vehicle.PositionOnBaseMap().InHorDistOf(thing.PositionOnBaseMap(), 60f))
+            vehicle.PositionOnBaseMap.InHorDistOf(thing.PositionOnBaseMap, 60f))
         {
             Find.TickManager.slower.SignalForceNormalSpeed();
         }

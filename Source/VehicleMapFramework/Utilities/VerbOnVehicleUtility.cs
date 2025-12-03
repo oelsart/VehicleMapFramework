@@ -24,18 +24,18 @@ public static class VerbOnVehicleUtility
             {
                 var flag2 = targ.Thing.IsOnVehicleMapOf(out var vehicle2);
                 VehiclePawnWithMap vehicle3 = null;
-                var flag3 = TargetMapManager.HasTargetMap(verb.caster, out var map) && map.IsVehicleMapOf(out vehicle3);
+                var flag3 = verb.caster.TryGetTargetMap(out var map) && map.IsVehicleMapOf(out vehicle3);
                 //if (!flag && !flag2 && !flag3)
                 //{
                 //    return verb.TryFindShootLineFromTo(root, targ, out resultingLine, ignoreRange);
                 //}
                 if (root == verb.caster.Position)
                 {
-                    root = verb.caster.PositionOnBaseMap();
+                    root = verb.caster.PositionOnBaseMap;
                 }
 
                 var casterBaseMap = verb.caster.BaseMap();
-                var targCellOnBaseMap = TargetMapManager.TargetCellOnBaseMap(ref targ, verb.caster);
+                var targCellOnBaseMap = TargetMapUtility.TargetCellOnBaseMap(ref targ, verb.caster);
 
                 if (targ.HasThing && targ.Thing.BaseMapOrCaravan != verb.caster.BaseMapOrCaravan)
                 {
@@ -122,7 +122,7 @@ public static class VerbOnVehicleUtility
 
         public bool CanHitFromCellIgnoringRange(IntVec3 sourceCellBaseCol, LocalTargetInfo targ, out IntVec3 goodDest)
         {
-            var targCellOnBaseMap = TargetMapManager.TargetCellOnBaseMap(ref targ, verb.caster);
+            var targCellOnBaseMap = TargetMapUtility.TargetCellOnBaseMap(ref targ, verb.caster);
             if (targ.HasThing)
             {
                 if (targ.Thing.BaseMapOrCaravan != verb.caster.BaseMapOrCaravan)

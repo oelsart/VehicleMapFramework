@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using RimWorld.Planet;
 using Verse;
 
@@ -6,114 +8,53 @@ namespace VehicleMapFramework;
 
 public class TargetMapManager(World world) : WorldComponent(world)
 {
-    private Dictionary<Thing, TargetInfo> targetInfoDic;
-
     private List<Thing> tmpKeys = [];
 
     private List<TargetInfo> tmpValues = [];
-    
-    private static Dictionary<Thing, TargetInfo> TargetInfoDic
+
+    public ConditionalWeakTable<Thing, StrongBox<TargetInfo>> TargetInfoTable { get; } = [];
+
+    internal StrongBox<TargetInfo> GetOrCreateTargetInfo(Thing thing)
     {
-        get
+        if (thing is null or Pawn { RaceProps.Humanlike: false }) return null;
+        return TargetInfoTable.GetValue(thing, _ =>
         {
-            var component = Find.World?.GetComponent<TargetMapManager>();
-            if (component == null) return null;
-
-            component.targetInfoDic ??= [];
-            return component.targetInfoDic;
-        }
-    }
-
-    public static void SetTargetInfo(Thing thing, TargetInfo target)
-    {
-        if (thing is null) return;
-        VMF_Log.DebugMessage($"[TargetMapManager] Set target info for {thing}: {target}");
-        TargetInfoDic[thing] = target;
-    }
-
-    public static void SetTargetMap(Thing thing, Map map)
-    {
-        if (thing is null) return;
-        VMF_Log.DebugMessage($"[TargetMapManager] Set target map for {thing}: {map}");
-        TargetInfoDic[thing] = new TargetInfo(IntVec3.Invalid, map);
-    }
-
-    public static bool RemoveTargetInfo(Thing thing)
-    {
-        var result = TargetInfoDic.Remove(thing);
-        if (result)
-        {
-            VMF_Log.DebugMessage($"[TargetMapManager] Remove target map for {thing}");
-        }
-        return result;
-    }
-
-    public static bool HasTargetInfo(Thing thing, out TargetInfo target)
-    {
-        if (thing == null)
-        {
-            target = TargetInfo.Invalid;
-            return false;
-        }
-        return TargetInfoDic.TryGetValue(thing, out target) && target is { IsValid: true, Map: not null };
-    }
-
-    public static bool HasTargetMap(Thing thing, out Map map)
-    {
-        if (thing == null)
-        {
-            map = null;
-            return false;
-        }
-        var flag = TargetInfoDic.TryGetValue(thing, out var target);
-        map = target.Map;
-        return flag && map != null;
-    }
-
-    public static Map TargetMapOrMap(Map map, Thing thing)
-    {
-        return HasTargetMap(thing, out var targetMap) ? targetMap : map;
-    }
-
-    public static Map TargetMapOrThingMap(Thing thing)
-    {
-        return HasTargetMap(thing, out var map) ? map : thing.Map;
-    }
-
-    public static Map TargetMapOrPawnMap(Pawn pawn)
-    {
-        if (HasTargetMap(pawn, out var map) || (map = pawn.CurJob?.globalTarget.Map) != null)
-        {
-            return map;
-        }
-        return pawn.Map;
-    }
-
-    public static IntVec3 TargetCellOnBaseMap(ref LocalTargetInfo targ, Thing thing)
-    {
-        return targ.HasThing ? targ.Thing.PositionOnBaseMap() : HasTargetMap(thing, out var map) ? targ.Cell.ToBaseMapCoord(map) : targ.Cell;
-    }
-
-    public static IntVec3 PositionOnTargetMap(Thing thing)
-    {
-        if (HasTargetMap(thing, out var map))
-        {
-            if (map == thing.Map)
+            var box = new StrongBox<TargetInfo>
             {
-                return thing.Position;
-            }
-            var pos = thing.PositionOnBaseMap();
-            if (map.IsNonFocusedVehicleMapOf(out var vehicle))
-            {
-                pos = pos.ToVehicleMapCoord(vehicle);
-            }
-            return pos;
-        }
-        return thing.Position;
+                Value = TargetInfo.Invalid
+            };
+            return box;
+        });
+    }
+
+    public override void FinalizeInit(bool fromLoad)
+    {
+        TargetMapUtility.manager = this;
     }
 
     public override void ExposeData()
     {
-        Scribe_Collections.Look(ref targetInfoDic, "TargetInfo", LookMode.Reference, LookMode.TargetInfo, ref tmpKeys, ref tmpValues, false, true, true);
+        switch (Scribe.mode)
+        {
+            case LoadSaveMode.Saving:
+            {
+                var targetInfoDic = TargetInfoTable.Select(pair => (pair.Key, pair.Value.Value))
+                    .ToDictionary(pair => pair.Key, pair => pair.Value);
+                Scribe_Collections.Look(ref targetInfoDic, "TargetInfo", LookMode.Reference, LookMode.TargetInfo, ref tmpKeys, ref tmpValues, false);
+                break;
+            }
+            case LoadSaveMode.LoadingVars:
+            {
+                Dictionary<Thing, TargetInfo> targetInfoDic = null;
+                Scribe_Collections.Look(ref targetInfoDic, "TargetInfo", LookMode.Reference, LookMode.TargetInfo, ref tmpKeys, ref tmpValues, false);
+                foreach (var pair in targetInfoDic)
+                    TargetInfoTable.Add(pair.Key, new StrongBox<TargetInfo>(pair.Value));
+                break;
+            }
+            case LoadSaveMode.Inactive:
+            case LoadSaveMode.ResolvingCrossRefs:
+            case LoadSaveMode.PostLoadInit:
+            default: break;
+        }
     }
 }

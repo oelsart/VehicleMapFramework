@@ -88,7 +88,7 @@ public static class Patch_AnimalPenUtility_ClosestSuitablePen
                     var compAnimalPenMarker2 = thing.TryGetComp<CompAnimalPenMarker>();
                     if (AnimalPenUtilityOnVehicle.CanUseAndReach(animal, compAnimalPenMarker2, allowUnenclosedPens))
                     {
-                        var num2 = animal.PositionOnBaseMap().DistanceToSquared(compAnimalPenMarker2.parent.PositionOnBaseMap());
+                        var num2 = animal.PositionOnBaseMap.DistanceToSquared(compAnimalPenMarker2.parent.PositionOnBaseMap);
                         if (__result == null || num2 < num)
                         {
                             __result = compAnimalPenMarker2;

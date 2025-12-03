@@ -109,7 +109,7 @@ public static class Patch_WorkGiver_HaulToInventory_JobOnThing
     public static void Postfix(Pawn pawn, Job __result)
     {
         if (__result is null) return;
-        if (TargetMapManager.HasTargetMap(pawn, out var map) && __result.def?.defName == "HaulToInventory" && __result.targetB.IsValid)
+        if (pawn.TryGetTargetMap(out var map) && __result.def?.defName == "HaulToInventory" && __result.targetB.IsValid)
         {
             __result.globalTarget = __result.targetB.ToGlobalTargetInfo(map);
         }
@@ -123,16 +123,16 @@ public static class Patch_WorkGiver_HaulToInventory_AllocateThingAtCell
     [PatchLevel(Level.Safe)]
     public static void Prefix(Pawn pawn, Thing nextThing)
     {
-        if (TargetMapManager.HasTargetMap(pawn, out var map))
+        if (pawn.TryGetTargetMap(out var map))
         {
-            TargetMapManager.SetTargetMap(nextThing, map);
+            nextThing.TargetMap = map;
         }
     }
 
     [PatchLevel(Level.Safe)]
     public static void Finaliner(Thing nextThing)
     {
-        TargetMapManager.RemoveTargetInfo(nextThing);
+        nextThing.RemoveTargetInfo();
     }
 
     [PatchLevel(Level.Cautious)]

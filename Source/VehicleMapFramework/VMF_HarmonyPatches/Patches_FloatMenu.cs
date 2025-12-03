@@ -58,7 +58,7 @@ public static class Patch_FloatMenuContext_Constructor
     {
         Pawn pawn;
         if (!__instance.IsMultiselect && (pawn = __instance.FirstSelectedPawn) != null)
-            TargetMapManager.SetTargetInfo(pawn, new TargetInfo(__instance.ClickedCell, __instance.map));
+            pawn.TargetInfo = new TargetInfo(__instance.ClickedCell, __instance.map);
         GenUIOnVehicle.vehicleForSelector = null;
     }
 
@@ -214,7 +214,7 @@ public static class Patch_MultiPawnGotoController_RecomputeDestinations
     [PatchLevel(Level.Safe)]
     public static void Prefix(List<Pawn> ___pawns)
     {
-        ___pawns.Do(p => TargetMapManager.RemoveTargetInfo(p));
+        ___pawns.Do(p => p.RemoveTargetInfo());
     }
 
     [PatchLevel(Level.Cautious)]
@@ -265,14 +265,14 @@ public static class Patch_MultiPawnGotoController_Draw
 
     private static Vector3 ToVector3ShiftedOffsetWithAltitude(ref IntVec3 intVec, float AddedAltitude, Pawn pawn)
     {
-        return TargetMapManager.HasTargetMap(pawn, out var map) ?
+        return pawn.TryGetTargetMap(out var map) ?
             intVec.ToVector3Shifted().ToBaseMapCoord(map).WithY(AddedAltitude) :
             intVec.ToVector3ShiftedWithAltitude(AddedAltitude);
     }
 
     private static bool FoggedOffset(IntVec3 intVec, Pawn pawn)
     {
-        return TargetMapManager.HasTargetMap(pawn, out var map) ?
+        return pawn.TryGetTargetMap(out var map) ?
             intVec.ToBaseMapCoord(map).Fogged(map.BaseMap()) :
             intVec.Fogged(pawn.Map);
     }
@@ -315,7 +315,7 @@ public static class Patch_MultiPawnGotoController_OnGUI
 
     private static Vector3 ToVector3Offset(IntVec3 intVec, Pawn pawn)
     {
-        if (TargetMapManager.HasTargetMap(pawn, out var map))
+        if (pawn.TryGetTargetMap(out var map))
         {
             if (map.IsNonFocusedVehicleMapOf(out var vehicle))
             {
@@ -335,12 +335,12 @@ public static class Patch_RCellFinder_BestOrderedGotoDestNear
     public static bool Prefix(IntVec3 root, Pawn searcher, Predicate<IntVec3> cellValidator, bool reachable, ref IntVec3 __result)
     {
         VehiclePawnWithMap vehicle = null;
-        if (TargetMapManager.HasTargetMap(searcher, out var map))
+        if (searcher.TryGetTargetMap(out var map))
         {
             __result = CrossMapRCellFinder.BestOrderedGotoDestNear(root, searcher, cellValidator, reachable, map);
             if (__result.IsValid)
             {
-                TargetMapManager.SetTargetInfo(searcher, new TargetInfo(__result, map));
+                searcher.TargetInfo = new TargetInfo(__result, map);
                 return false;
             }
         }
@@ -358,7 +358,7 @@ public static class Patch_RCellFinder_BestOrderedGotoDestNear
                 map);
             if (__result.IsValid)
             {
-                TargetMapManager.SetTargetInfo(searcher, new TargetInfo(__result, map));
+                searcher.TargetInfo = new TargetInfo(__result, map);
                 return false;
             }
         }
@@ -388,7 +388,7 @@ public static class Patch_FloatMenuOptionProvider_DraftedMove_PawnGotoAction
 {
     public static bool Prefix(IntVec3 clickCell, Pawn pawn, IntVec3 gotoLoc)
     {
-        if (TargetMapManager.HasTargetMap(pawn, out var map) && pawn.Map != map)
+        if (pawn.TryGetTargetMap(out var map) && pawn.Map != map)
         {
             //BestOrderedGotoDestNearが通ってるはずなのでキャッシュからexitSpotとenterSpotを取ってくるだけの最終確認CanReach
             if (pawn.CanReach(gotoLoc, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, map,

@@ -28,8 +28,8 @@ public static class VerbOnVehicleCEUtility
 
         public bool TryFindCEShootLineFromToOnVehicle(IntVec3 root, LocalTargetInfo targ, out ShootLine resultingLine, out Vector3 targetPos)
         {
-            targetPos = targ.Thing is Pawn ? targ.Thing.TrueCenter() : TargetMapManager.TargetCellOnBaseMap(ref targ, verb.caster).ToVector3Shifted();
-            var targCellOnBaseMap = TargetMapManager.TargetCellOnBaseMap(ref targ, verb.caster);
+            targetPos = targ.Thing is Pawn ? targ.Thing.TrueCenter() : TargetMapUtility.TargetCellOnBaseMap(ref targ, verb.caster).ToVector3Shifted();
+            var targCellOnBaseMap = TargetMapUtility.TargetCellOnBaseMap(ref targ, verb.caster);
 
             if (targ.HasThing && targ.Thing.BaseMapOrCaravan != verb.caster.BaseMapOrCaravan)
             {

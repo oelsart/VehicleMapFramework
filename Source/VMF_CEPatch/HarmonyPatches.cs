@@ -187,7 +187,7 @@ public static class Patch_Verb_LaunchProjectileCE_TryFindCEShootLineFromTo
     {
         if (__instance.caster.IsOnVehicleMapOf(out _) ||
             targ.Thing.IsOnVehicleMapOf(out _) ||
-            (TargetMapManager.HasTargetMap(__instance.caster, out var map) && map.IsVehicleMapOf(out _)) ||
+            (__instance.caster.TryGetTargetMap(out var map) && map.IsVehicleMapOf(out _)) ||
             root.IsValid && GenSight.PointsOnLineOfSight(root, targ.Cell).Any(c => c.InBounds(__instance.caster.Map) && c.TryGetVehicleMap(__instance.caster.Map, out _)))
         {
             __result = __instance.TryFindCEShootLineFromToOnVehicle(root, targ, out resultingLine, out targetPos);

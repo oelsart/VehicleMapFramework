@@ -475,7 +475,7 @@ public class VehiclePawnWithMap : VehiclePawn
         {
             if (mode != DestroyMode.Vanish)
             {
-                var positionOnBaseMap = thing.PositionOnBaseMap();
+                var positionOnBaseMap = thing.PositionOnBaseMap;
                 if (thing.def.category == ThingCategory.Building)
                 {
                     if (thing.def.destroyable)

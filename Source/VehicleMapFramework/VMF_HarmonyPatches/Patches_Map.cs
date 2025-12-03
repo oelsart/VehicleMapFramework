@@ -45,7 +45,7 @@ public static class Patch_MechanitorUtility_InMechanitorCommandRange
     [PatchLevel(Level.Safe)]
     public static void Prefix(Pawn mech, ref LocalTargetInfo target)
     {
-        target = TargetMapManager.TargetCellOnBaseMap(ref target, mech);
+        target = TargetMapUtility.TargetCellOnBaseMap(ref target, mech);
     }
 
     [PatchLevel(Level.Cautious)]
@@ -80,8 +80,7 @@ public static class Patch_Reachability_CanReach
         var destMap = CrossMapReachabilityUtility.DestMapGlobal ??
                       pawn.DestMap ??
                       dest.Thing?.MapHeld ??
-                      (TargetMapManager.HasTargetInfo(pawn, out var target) && 
-                       (LocalTargetInfo)target == dest ? target.Map : ___map);
+                      (pawn.IsTargeting(dest, out var target) ? target.Map : ___map);
         if (destMap == null)
         {
             return true;

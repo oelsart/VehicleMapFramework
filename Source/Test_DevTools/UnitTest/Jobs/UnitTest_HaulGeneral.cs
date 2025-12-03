@@ -28,7 +28,7 @@ internal class UnitTest_HaulGeneral(VehicleGroup group) : WorkGiverTestBase(grou
     public override void ExecuteStep2()
     {
         base.ExecuteStep2();
-        TargetMapManager.RemoveTargetInfo(Pawn);
+        Pawn.RemoveTargetInfo();
         zone.Delete();
         
         var vehicle = Vehicle as VehiclePawnWithMap;

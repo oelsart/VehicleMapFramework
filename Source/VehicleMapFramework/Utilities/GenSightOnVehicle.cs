@@ -131,12 +131,12 @@ public static class GenSightOnVehicle
 
     public static bool LineOfSightThingToTarget(Thing thing, LocalTargetInfo target, bool skipFirstCell = false, Func<IntVec3, bool> validator = null)
     {
-        return LineOfSight(thing.PositionOnBaseMap(), target.CellOnBaseMap(), thing.BaseMap(), skipFirstCell, validator);
+        return LineOfSight(thing.PositionOnBaseMap, target.CellOnBaseMap(), thing.BaseMap(), skipFirstCell, validator);
     }
 
     public static bool LineOfSightThingToThing(Thing start, Thing end, bool skipFirstCell = false, Func<IntVec3, bool> validator = null)
     {
-        return LineOfSight(start.PositionOnBaseMap(), end.PositionOnBaseMap(), start.BaseMap(), skipFirstCell, validator);
+        return LineOfSight(start.PositionOnBaseMap, end.PositionOnBaseMap, start.BaseMap(), skipFirstCell, validator);
     }
 
     public static bool LineOfSightToThing(IntVec3 start, Thing t, Map map, bool skipFirstCell = false, Func<IntVec3, bool> validator = null)
@@ -149,7 +149,7 @@ public static class GenSightOnVehicle
             flag = true;
         }
         return t.def.size == IntVec2.One
-            ? LineOfSight(start, t.PositionOnBaseMap(), map, skipFirstCell, validator)
+            ? LineOfSight(start, t.PositionOnBaseMap, map, skipFirstCell, validator)
             : t.OccupiedRect().Select(end => flag ? end.ToBaseMapCoord(vehicle) : end)
                 .Any(end2 => LineOfSight(start, end2, map, skipFirstCell, validator));
     }

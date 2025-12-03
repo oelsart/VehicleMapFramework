@@ -24,7 +24,7 @@ public class CompVehicleEnterSpot : ThingComp
 
     public virtual float DistanceSquared(IntVec3 root)
     {
-        return (parent.PositionOnBaseMap() - root).LengthHorizontalSquared;
+        return (parent.PositionOnBaseMap - root).LengthHorizontalSquared;
     }
 
     public override void PostSpawnSetup(bool respawningAfterLoad)

@@ -23,7 +23,7 @@ public static class Patch_ThingOverlays_ThingOverlaysOnGUI
         var vehicles = flag ? GetVehicles() : VehiclePawnWithMapCache.AllVehiclesOn(Find.CurrentMap);
         foreach (var thing in vehicles.SelectMany(v => v.CurrentLevel.listerThings.ThingsInGroup(ThingRequestGroup.HasGUIOverlay)))
         {
-            if (currentViewRect.Contains(thing.PositionOnBaseMap())/* && !Find.CurrentMap.fogGrid.IsFogged(thing.PositionOnBaseMap())*/) //車両マップである時点でFoggedはスキップしていいはず
+            if (currentViewRect.Contains(thing.PositionOnBaseMap)/* && !Find.CurrentMap.fogGrid.IsFogged(thing.PositionOnBaseMap)*/) //車両マップである時点でFoggedはスキップしていいはず
             {
                 try
                 {

@@ -11,7 +11,7 @@ public class Verb_LaunchZipline : Verb_Shoot
 
     public override bool ValidateTarget(LocalTargetInfo target, bool showMessages = true)
     {
-        var map = TargetMapManager.HasTargetMap(caster, out var map2) ? map2 : caster.Map;
+        var map = caster.TargetMap ?? caster.Map;
         if (caster.Map == map)
         {
             Messages.Message("VMF_MustShotAtAnotherMap".Translate(), MessageTypeDefOf.RejectInput, false);
@@ -44,7 +44,7 @@ public class Verb_LaunchZipline : Verb_Shoot
             return false;
         }
 
-        var flag = this.TryFindShootLineFromToOnVehicle(caster.PositionOnBaseMap(), currentTarget, out var resultingLine);
+        var flag = this.TryFindShootLineFromToOnVehicle(caster.PositionOnBaseMap, currentTarget, out var resultingLine);
         if (verbProps.stopBurstWithoutLos && !flag)
         {
             return false;
@@ -72,7 +72,7 @@ public class Verb_LaunchZipline : Verb_Shoot
         if (projectile2 is Bullet_ZiplineEnd zipline)
         {
             zipline.launchVerb = this;
-            if (TargetMapManager.HasTargetMap(caster, out var map))
+            if (caster.TryGetTargetMap(out var map))
             {
                 zipline.destMap = map;
             }
@@ -91,7 +91,7 @@ public class Verb_LaunchZipline : Verb_Shoot
                 num *= verbProps.GetForceMissFactorFor(equipmentSource, pawn);
             }
 
-            var num2 = VerbUtility.CalculateAdjustedForcedMiss(num, currentTarget.CellOnBaseMap() - caster.PositionOnBaseMap());
+            var num2 = VerbUtility.CalculateAdjustedForcedMiss(num, currentTarget.CellOnBaseMap() - caster.PositionOnBaseMap);
             if (num2 > 0.5f)
             {
                 var forcedMissTarget = GetForcedMissTarget(num2);
@@ -166,17 +166,17 @@ public class Verb_LaunchZipline : Verb_Shoot
         {
             return;
         }
-        var map = TargetMapManager.TargetMapOrThingMap(caster);
+        var map = caster.TargetMapOrThingMap;
         if (target.IsValid && JumpUtility.ValidJumpTarget(caster, map, target.Cell))
         {
             GenDraw.DrawTargetHighlightWithLayer(Patch_Verb_Jump_DrawHighlight.CenterVector3Offset(ref target, this), AltitudeLayer.MetaOverlays);
         }
-        GenDraw.DrawRadiusRing(caster.Position, EffectiveRange, Color.white, c => GenSightOnVehicle.LineOfSight(caster.PositionOnBaseMap(), c, caster.BaseMap()) && JumpUtility.ValidJumpTarget(caster, caster.BaseMap(), c));
+        GenDraw.DrawRadiusRing(caster.Position, EffectiveRange, Color.white, c => GenSightOnVehicle.LineOfSight(caster.PositionOnBaseMap, c, caster.BaseMap()) && JumpUtility.ValidJumpTarget(caster, caster.BaseMap(), c));
     }
 
     public override void OnGUI(LocalTargetInfo target)
     {
-        if (CanHitTarget(target) && JumpUtility.ValidJumpTarget(caster, TargetMapManager.TargetMapOrThingMap(caster), target.Cell))
+        if (CanHitTarget(target) && JumpUtility.ValidJumpTarget(caster, caster.TargetMapOrThingMap, target.Cell))
         {
             base.OnGUI(target);
             return;

@@ -41,7 +41,7 @@ public static class Patch_Pawn_JobTracker_DetermineNextJob
     public static void Prefix(Pawn ___pawn, bool ignoreQueue)
     {
         if (!ignoreQueue && ___pawn.jobs.jobQueue.Any()) return;
-        TargetMapManager.RemoveTargetInfo(___pawn);
+        ___pawn.RemoveTargetInfo();
     }
 }
 
@@ -51,7 +51,8 @@ public static class Patch_JobDriver_Map
 {
     public static void Postfix(JobDriver __instance, ref Map __result)
     {
-        if (__instance.job.globalTarget.Map is { } map || TargetMapManager.HasTargetMap(__instance.pawn, out map))
+        var map = __instance.job.globalTarget.Map ?? __instance.pawn.TargetMap;
+        if (map is not null)
         {
             __result = map;
         }
@@ -211,7 +212,7 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
         {
             var map = pawn.Map;
             var targetMap = target.Map;
-            TargetMapManager.SetTargetInfo(pawn, target);
+            pawn.TargetInfo = target;
             if (map == targetMap)
             {
                 return scanner.JobOnCell(pawn, target.Cell, forced);
@@ -254,7 +255,7 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
         internal void ScanCellsAcrossMaps(ref InnerClass innerClass, ref InnerStruct innerStruct)
         {
             var pawn = innerClass.pawn;
-            var basePos = pawn.PositionOnBaseMap();
+            var basePos = pawn.PositionOnBaseMap;
             var map = pawn.DepartMap = pawn.Map;
             var maps = map.BaseMapAndVehicleMaps().Except(map);
             try
@@ -417,7 +418,7 @@ public static class Patch_Pawn_PathFollower_StartPath
         if (destMap is null)
         {
             flag = true;
-            destMap = (TargetMapManager.HasTargetInfo(___pawn, out var target) || (target = (TargetInfo)___pawn.CurJob.globalTarget).IsValid) && (LocalTargetInfo)target == dest ? target.Map : null;
+            destMap = (___pawn.TryGetTargetInfo(out var target) || (target = (TargetInfo)___pawn.CurJob.globalTarget).IsValid) && (LocalTargetInfo)target == dest ? target.Map : null;
         }
         if (destMap is null)
         {
@@ -428,7 +429,7 @@ public static class Patch_Pawn_PathFollower_StartPath
         {
             if (flag)
             {
-                TargetMapManager.RemoveTargetInfo(___pawn);
+                ___pawn.RemoveTargetInfo();
                 ___pawn.CurJob.globalTarget = GlobalTargetInfo.Invalid;
             }
             JobAcrossMapsUtility.StartGotoDestMapJob(___pawn, exitSpot, enterSpot, spotsQueue);
@@ -494,7 +495,7 @@ public static class Patch_ReservationUtility_ReserveSittableOrSpot
         if (job?.targetA.Thing?.Map != null && job.targetA.Thing.def.hasInteractionCell && job.targetA.Thing.InteractionCell == exactSittingPos)
             map = job.targetA.Thing.Map;
         else
-            map = job?.globalTarget.Map ?? TargetMapManager.TargetMapOrPawnMap(pawn);
+            map = job?.globalTarget.Map ?? pawn.TargetMap ?? pawn.Map;
 
         if (map is null)
         {
@@ -532,7 +533,7 @@ public static class Patch_ReservationUtility_CanReserveSittableOrSpot
         if (pawn?.Map is null)
             return false;
         
-        var map = ignoreThing?.Map ?? TargetMapManager.TargetMapOrPawnMap(pawn);
+        var map = ignoreThing?.Map ?? pawn.TargetMapOrThingMap;
         if (map is null)
             return true;
         if (pawn.Map != map)
@@ -712,8 +713,8 @@ public static class Patch_ReservationManager_Reserve
     public static bool ShouldReplace(Map ___map, Pawn claimant, LocalTargetInfo target, bool allowSameMap, out Map map, Job job = null)
     {
         //CTDに繋がる可能性があるので無限ループが起きないよう注意
-        map = target.Thing?.MapHeld;
-        if (map is null && !TargetMapManager.HasTargetMap(claimant, out map) && (job is null || (LocalTargetInfo)job.globalTarget != target || (map = job.globalTarget.Map) is null))
+        map = target.Thing?.MapHeld ?? claimant.TargetMap;
+        if (map is null && (job is null || (LocalTargetInfo)job.globalTarget != target || (map = job.globalTarget.Map) is null))
         {
             return false;
         }
@@ -901,7 +902,7 @@ public static class Patch_ForbidUtility_InAllowedArea
 {
     public static bool Prefix(IntVec3 c, Pawn forPawn, ref Map __state)
     {
-        if (TargetMapManager.HasTargetMap(forPawn, out var map) && map != forPawn.Map)
+        if (forPawn.TryGetTargetMap(out var map) && map != forPawn.Map)
         {
             __state = forPawn.Map;
             forPawn.VirtualMapTransfer(map);
@@ -991,7 +992,7 @@ public static class Patch_ToilFailConditions_FailOnBurningImmobile
 
     private static Map ThingMapOrTargetMapOrPawnMap(Pawn pawn, LocalTargetInfo target)
     {
-        var map = target.Thing?.MapHeld ?? TargetMapManager.TargetMapOrPawnMap(pawn);
+        var map = target.Thing?.MapHeld ?? pawn.TargetMapOrPawnMap;
         return !target.Cell.InBounds(map) ? map.BaseMap() : map;
     }
 }

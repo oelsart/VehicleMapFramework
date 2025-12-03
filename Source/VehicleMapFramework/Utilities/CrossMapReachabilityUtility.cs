@@ -595,7 +595,7 @@ public static class CrossMapReachabilityUtility
         var thingList = cell.GetThingList(map);
         if (thingList.NullOrEmpty()) return null;
 
-        var euclideanDistance = Ext_Map.Distance(vehicle.PositionOnBaseMap(), cell.ToBaseMapCoord(map));
+        var euclideanDistance = Ext_Map.Distance(vehicle.PositionOnBaseMap, cell.ToBaseMapCoord(map));
         foreach (var t in thingList)
         {
             if (t is VehiclePawn otherVehicle && otherVehicle != vehicle)

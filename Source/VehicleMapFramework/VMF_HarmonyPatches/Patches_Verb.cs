@@ -27,7 +27,7 @@ public static class Patch_Verb_TryFindShootLineFromTo
         
         if ((__instance.caster.IsOnVehicleMapOf(out _) ||
             targ.Thing.IsOnVehicleMapOf(out _) ||
-            (TargetMapManager.HasTargetMap(__instance.caster, out var map) && map.IsVehicleMapOf(out _)) ||
+            (__instance.caster.TryGetTargetMap(out var map) && map.IsVehicleMapOf(out _)) ||
             root.IsValid && GenSight.PointsOnLineOfSight(root, targ.Cell).Any(c => c.InBounds(__instance.caster.Map) && c.TryGetVehicleMap(__instance.caster.Map, out _))))
         {
             __result = __instance.TryFindShootLineFromToOnVehicle(root, targ, out resultingLine, ignoreRange);
@@ -329,7 +329,7 @@ public static class Patch_JumpUtility_DoJump
     public static void Finalizer(Pawn pawn, bool __result)
     {
         if (!__result) return;
-        TargetMapManager.RemoveTargetInfo(pawn);
+        pawn.RemoveTargetInfo();
     }
 }
 
@@ -391,14 +391,14 @@ public static class Patch_Verb_Jump_DrawHighlight
             }
             if (thing.SpawnedOrAnyParentSpawned)
             {
-                return TargetMapManager.HasTargetMap(caster, out map) ? thing.PositionHeld.ToVector3Shifted().ToBaseMapCoord(map) : thing.PositionHeld.ToVector3Shifted();
+                return caster.TryGetTargetMap(out map) ? thing.PositionHeld.ToVector3Shifted().ToBaseMapCoord(map) : thing.PositionHeld.ToVector3Shifted();
             }
-            return TargetMapManager.HasTargetMap(caster, out map) ? thing.Position.ToVector3Shifted().ToBaseMapCoord(map) : thing.Position.ToVector3Shifted();
+            return caster.TryGetTargetMap(out map) ? thing.Position.ToVector3Shifted().ToBaseMapCoord(map) : thing.Position.ToVector3Shifted();
         }
 
         var cell = target.Cell;
         if (!cell.IsValid) return default;
-        return TargetMapManager.HasTargetMap(caster, out map) ? cell.ToVector3Shifted().ToBaseMapCoord(map) : cell.ToVector3Shifted();
+        return caster.TryGetTargetMap(out map) ? cell.ToVector3Shifted().ToBaseMapCoord(map) : cell.ToVector3Shifted();
     }
 }
 

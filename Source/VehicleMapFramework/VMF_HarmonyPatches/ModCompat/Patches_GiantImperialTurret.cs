@@ -105,7 +105,7 @@ public static class Patch_AttackTargetFinderAngle_BestAttackTarget
 
         if (maps.Any())
         {
-            var basePos = searcher.Thing.PositionOnBaseMap();
+            var basePos = searcher.Thing.PositionOnBaseMap;
             foreach (var map2 in maps)
             {
                 IAttackTarget target = null;

@@ -69,6 +69,6 @@ internal sealed class UnitTest_WorkGivers
         pawn.jobs.ClearQueuedJobs(false);
         pawn.ClearAllReservations(false);
         pawn.pather.StopDead();
-        TargetMapManager.RemoveTargetInfo(pawn);
+        pawn.RemoveTargetInfo();
     }
 }
