@@ -65,6 +65,8 @@ public static class Patch_JobDriver_Map
 public static class Patch_JobGiver_Work_TryIssueJobPackage
 {
     private static readonly List<Map> tmpMaps = [];
+
+    private static readonly List<Thing> tmpThings = [];
     
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator, MethodBase original)
     {
@@ -159,21 +161,19 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
             var pos = pawn.Position;
             try
             {
-                IEnumerable<Thing> enumerable = null;
+                tmpThings.Clear();
+                var shouldBeNull = true;
                 pawn.Map.BaseMapAndVehicleMaps().Do(m =>
                 {
                     pawn.VirtualMapTransfer(m);
-                    var things = scanner.PotentialWorkThingsGlobal(pawn)?.ToArray();
-                    if (enumerable == null)
+                    var things = scanner.PotentialWorkThingsGlobal(pawn)?.Where(t => t != null);
+                    if (things is not null)
                     {
-                        enumerable = things;
-                    }
-                    else if (things != null)
-                    {
-                        enumerable = enumerable.Concat(things);
+                        tmpThings.AddRange(things);
+                        shouldBeNull = false;
                     }
                 });
-                return enumerable?.Distinct();
+                return shouldBeNull ? null : tmpThings.Distinct();
             }
             finally
             {
