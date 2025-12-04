@@ -51,6 +51,7 @@ public static class Patch_JobDriver_Map
 {
     public static void Postfix(JobDriver __instance, ref Map __result)
     {
+        if (__instance is JobDriver_Wait) return;
         var map = __instance.job.globalTarget.Map ?? __instance.pawn.TargetMap;
         if (map is not null)
         {
@@ -1275,5 +1276,16 @@ public static class Patch_ChildcareUtility_FindUnsafeBaby
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_MapHeld, CachedMethodInfo.m_MapHeldBaseMap);
+    }
+}
+
+[HarmonyPatch(typeof(JoyGiver_SocialRelax), "TryFindChairNear")]
+public static class Patch_JoyGiver_SocialRelax_TryFindChairNear
+{
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        var m_GetEdifice = AccessTools.Method(typeof(GridsUtility), nameof(GridsUtility.GetEdifice));
+        var m_GetEdificeSafe = AccessTools.Method(typeof(GridsUtility), nameof(GridsUtility.GetEdificeSafe));
+        return instructions.MethodReplacer(m_GetEdifice, m_GetEdificeSafe);
     }
 }

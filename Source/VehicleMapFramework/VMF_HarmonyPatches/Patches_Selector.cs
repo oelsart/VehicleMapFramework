@@ -79,6 +79,9 @@ public static class Patch_Selector_SelectInternal
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
         var codes = new CodeMatcher(instructions, generator)
+            .MatchStartForward(new CodeMatch(OpCodes.Ldloc_3))
+            .InsertAndAdvance(new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMapOrCaravan_Map))
+            .InsertAfterAndAdvance(new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMapOrCaravan_Map))
             .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Find_CurrentMap))
             .InsertAndAdvance(new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMapOrCaravan_Map))
             .InsertAfterAndAdvance(new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMapOrCaravan_Map));
