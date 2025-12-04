@@ -1,12 +1,8 @@
-﻿using System.Text;
-using DevTools.Testing;
+﻿using DevTools.Testing;
 using RimWorld;
-using UnityEngine;
-using VehicleMapFramework.VMF_HarmonyPatches;
 using Vehicles;
 using Vehicles.UnitTesting;
 using Verse;
-using Verse.AI;
 
 namespace VehicleMapFramework.Test_Logics;
 
@@ -37,7 +33,8 @@ internal abstract class CrossMapWorkGiverTestBase(VehicleGroup group)
         Pawn.jobs.StartJob(result.job);
         Pawn.jobs.JobTrackerTick();
         Expect.IsTrue(result.job == Pawn.CurJob ||
-                      Pawn.jobs.curDriver is JobDriver_GotoDestMap { nextJob: { } nextJob } && nextJob.def == result.job.def);
+                      Pawn.jobs.curDriver is JobDriver_GotoDestMap { nextJob: { } nextJob } && nextJob.def == result.job?.def,
+            $"job interrupted\n{result}\nbut curjob: {Pawn.CurJob}");
     }
 
     public virtual void TearDown()

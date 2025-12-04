@@ -84,6 +84,6 @@ public static class JobAcrossMapsUtility
     
     public static bool NeedWrapGotoDestMapJob(WorkGiver_Scanner scanner)
     {
-        return scanner is WorkGiver_HunterHunt or WorkGiver_Miner or VehicleWorkGiver;
+        return scanner is WorkGiver_Merge or WorkGiver_HunterHunt or WorkGiver_Miner or VehicleWorkGiver;
     }
 }

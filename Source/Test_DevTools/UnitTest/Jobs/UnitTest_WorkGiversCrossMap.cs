@@ -1,11 +1,9 @@
 ﻿using DevTools.Testing;
 using RimWorld;
-using UnityEngine.Assertions;
 using VehicleMapFramework.VMF_HarmonyPatches;
 using Vehicles;
 using Vehicles.UnitTesting;
 using Verse;
-using Verse.AI;
 
 namespace VehicleMapFramework.Test_Logics;
 
@@ -33,7 +31,7 @@ public sealed class UnitTest_WorkGiversCrossMap
         vehicle.Map.weatherManager.curWeather = WeatherDefOf.Clear;
         foreach (var test in workGiverTests)
         {
-            using var testGroup = new Test.Group($"CrossMap: {test.WorkGiverDef.defName}");
+            using var testGroup = new Test.Group($"CrossMap: {test.WorkGiverDef?.defName}");
             try
             {
                 test.SetUp();
@@ -42,7 +40,7 @@ public sealed class UnitTest_WorkGiversCrossMap
             }
             catch (Exception ex)
             {
-                Assert.IsNull(ex, ex.ToString());
+                Expect.IsNull(ex, ex.ToString());
             }
         }
     }

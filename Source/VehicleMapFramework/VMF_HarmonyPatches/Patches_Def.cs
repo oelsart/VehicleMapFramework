@@ -23,7 +23,7 @@ public static class DefMessagesReplace
         }
 
         var removeSegment = VMF_DefOf.VMF_RemoveVehicleSegment;
-        var deconstruct = DefDatabase<WorkGiverDef>.GetNamedSilentFail("Deconstruct");
+        var deconstruct = DefDatabase<WorkGiverDef>.GetNamedSilentFail("Deconstruct"!);
         if (removeSegment != null && deconstruct != null)
         {
             removeSegment.label = deconstruct.label;
@@ -31,7 +31,8 @@ public static class DefMessagesReplace
             removeSegment.gerund = deconstruct.gerund;
         }
 
-        foreach (var jobDef in DefDatabase<JobDef>.AllDefs.Where(d => d.defName.StartsWith(prefix) && d.defName.EndsWith(suffix)))
+        foreach (var jobDef in DefDatabase<JobDef>.AllDefs
+                     .Where(d => d.defName.StartsWith(prefix) && d.defName.EndsWith(suffix)))
         {
             var baseDefName = jobDef.defName.Replace(prefix, "").Replace(suffix, "");
             var baseDef = DefDatabase<JobDef>.GetNamedSilentFail(baseDefName);
@@ -85,7 +86,8 @@ public static class CheckEnablePipeConnector
 
         if (VFECore.Active)
         {
-            var allDefs = (IEnumerable<object>)AccessTools.PropertyGetter(typeof(DefDatabase<>).MakeGenericType(VFECore.PipeNetDef), "AllDefs").Invoke(null, null);
+            var allDefs = (IEnumerable<object>)AccessTools.PropertyGetter(typeof(DefDatabase<>)
+                .MakeGenericType(VFECore.PipeNetDef), "AllDefs").Invoke(null, null);
             if (allDefs.Count() > 1)
             {
                 return true;

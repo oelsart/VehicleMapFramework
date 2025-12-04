@@ -74,34 +74,53 @@ public static class VehicleMapUtility
 
         public bool IsNonFocusedVehicleMap => map.IsNonFocusedVehicleMapOf(out _);
 
-        public IEnumerable<Map> BaseMapAndVehicleMaps()
+        public IEnumerable<Map> BaseMapAndVehicleMaps
         {
-            if (MultiFloors.Active && MultiFloors.GroundMap(map) != map)
+            get
             {
-                yield return map;
-                yield break;
-            }
-            var baseMap = map.BaseMap();
-            if (baseMap == null)
-            {
-                yield break;
-            }
-            yield return baseMap;
-
-            if (baseMap.IsVehicleMapOf(out var vehicle) && vehicle.GetVehicleCaravan() is { } vehicleCaravan)
-            {
-                foreach (var vehicle2 in vehicleCaravan.Vehicles.OfType<VehiclePawnWithMap>())
-                    yield return vehicle2.VehicleMap;
-            }
-            else
-            {
-                foreach (var vehicle2 in VehiclePawnWithMapCache.AllVehiclesOn(baseMap))
+                if (MultiFloors.Active && MultiFloors.GroundMap(map) != map)
                 {
-                    if (vehicle2.VehicleMap != null)
-                    {
+                    yield return map;
+                    yield break;
+                }
+                var baseMap = map.BaseMap();
+                if (baseMap == null)
+                {
+                    yield break;
+                }
+                yield return baseMap;
+
+                if (baseMap.IsVehicleMapOf(out var vehicle) && vehicle.GetVehicleCaravan() is { } vehicleCaravan)
+                {
+                    foreach (var vehicle2 in vehicleCaravan.Vehicles.OfType<VehiclePawnWithMap>())
                         yield return vehicle2.VehicleMap;
+                }
+                else
+                {
+                    foreach (var vehicle2 in VehiclePawnWithMapCache.AllVehiclesOn(baseMap))
+                    {
+                        if (vehicle2.VehicleMap != null)
+                        {
+                            yield return vehicle2.VehicleMap;
+                        }
                     }
                 }
+            }
+        }
+
+        public IEnumerable<Map> VehicleMapsOnMap
+        {
+            get
+            {
+                if (map.IsVehicleMapOf(out var vehicle))
+                {
+                    if (vehicle.GetVehicleCaravan() is { } caravan)
+                        foreach (var vehicle2 in caravan.Vehicles.OfType<VehiclePawnWithMap>().Except(vehicle))
+                            yield return vehicle2.VehicleMap;
+                }
+                else
+                    foreach (var vehicle2 in VehiclePawnWithMapCache.TryGetAllVehiclesOn(map))
+                        yield return vehicle2.VehicleMap;
             }
         }
 
@@ -962,7 +981,7 @@ public static class VehicleMapUtility
     {
         tmpList.Clear();
         var orig = map.IsVehicleMapOf(out var vehicle) ? c.ToBaseMapCoord(vehicle) : c;
-        foreach (var m in map.BaseMapAndVehicleMaps())
+        foreach (var m in map.BaseMapAndVehicleMaps)
         {
             if (m.IsVehicleMapOf(out var vehicle2))
             {

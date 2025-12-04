@@ -14,7 +14,7 @@ public class WorkGiver_LoadBuildableContainer : WorkGiver_Scanner, IWorkGiverAcr
 
     public override IEnumerable<Thing> PotentialWorkThingsGlobal(Pawn pawn)
     {
-        return pawn.Map.BaseMapAndVehicleMaps().SelectMany(m => m.listerBuildings.allBuildingsColonist.Where(b => b.HasComp<CompTransporter>()));
+        return pawn.Map.BaseMapAndVehicleMaps.SelectMany(m => m.listerBuildings.allBuildingsColonist.Where(b => b.HasComp<CompTransporter>()));
     }
 
     public override PathEndMode PathEndMode => PathEndMode.Touch;

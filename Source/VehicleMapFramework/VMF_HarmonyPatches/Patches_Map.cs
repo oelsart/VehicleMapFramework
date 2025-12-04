@@ -396,14 +396,9 @@ public static class Patch_MapPawns_AllPawns
     [PatchLevel(Level.Safe)]
     public static List<Pawn> Postfix(List<Pawn> __result, Map ___map)
     {
-        if (___map.IsVehicleMapOf(out _)) return __result;
-
         tmpList.Clear();
         tmpList.AddRange(__result);
-        foreach (var vehicle in VehiclePawnWithMapCache.TryGetAllVehiclesOn(___map))
-        {
-            tmpList.AddRange(vehicle.VehicleMap.mapPawns.AllPawns);
-        }
+        tmpList.AddRange(___map.VehicleMapsOnMap.SelectMany(m => AllPawns(m.mapPawns)));
         return tmpList;
     }
 
@@ -422,14 +417,9 @@ public static class Patch_MapPawns_AllPawnsSpawned
 
     public static IReadOnlyList<Pawn> Postfix(IReadOnlyList<Pawn> __result, Map ___map)
     {
-        if (___map.IsVehicleMapOf(out _)) return __result;
-
         tmpList.Clear();
         tmpList.AddRange(__result);
-        foreach (var vehicle in VehiclePawnWithMapCache.TryGetAllVehiclesOn(___map))
-        {
-            tmpList.AddRange(vehicle.VehicleMap.mapPawns.AllPawnsSpawned);
-        }
+        tmpList.AddRange(___map.VehicleMapsOnMap.SelectMany(m => AllPawnsSpawned(m.mapPawns)));
         return tmpList;
     }
 
@@ -443,22 +433,12 @@ public static class Patch_MapPawns_FreeHumanlikesSpawnedOfFaction
     [PatchLevel(Level.Safe)]
     public static void Postfix(List<Pawn> __result, Map ___map, Faction faction)
     {
-        __result.AddRange(VehiclePawnWithMapCache.TryGetAllVehiclesOn(___map).SelectMany(v => v.VehicleMap.mapPawns.FreeHumanlikesSpawnedOfFaction(faction)));
+        __result.AddRange(___map.VehicleMapsOnMap.SelectMany(m => FreeHumanlikesSpawnedOfFaction(m.mapPawns, faction)));
     }
 
     [PatchLevel(Level.Mandatory)]
     [HarmonyReversePatch]
     public static List<Pawn> FreeHumanlikesSpawnedOfFaction(MapPawns instance, Faction faction) => throw new NotImplementedException();
-}
-
-[HarmonyPatch(typeof(MapPawns), nameof(MapPawns.SpawnedBabiesInFaction))]
-[PatchLevel(Level.Safe)]
-public static class Patch_MapPawns_SpawnedBabiesInFaction
-{
-    public static void Postfix(List<Pawn> __result, Map ___map, Faction faction)
-    {
-        __result.AddRange(VehiclePawnWithMapCache.TryGetAllVehiclesOn(___map).SelectMany(v => v.VehicleMap.mapPawns.SpawnedBabiesInFaction(faction)));
-    }
 }
 
 [HarmonyPatch(typeof(MapPawns), nameof(MapPawns.AnyPawnBlockingMapRemoval), MethodType.Getter)]

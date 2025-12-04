@@ -139,7 +139,7 @@ namespace VehicleMapFramework
             }
             var map = engine.Map;
             var console = engine.GravshipComponents.FirstOrDefault(c => c is CompPilotConsole);
-            if (console is null)
+            if (console is null || !console.CanBeActive)
             {
                 return "PilotConsoleInaccessible".Translate();
             }
@@ -210,7 +210,7 @@ namespace VehicleMapFramework
                 .Select(r => (r.Cells.FirstOrDefault(), r.Temperature, r.Vacuum)).ToList();
 
                 //MultiFloorsのパッチを発火させるためGenerateGravshipのほぼWrapであるRemoveGravshipFromMapをコール
-                var gravship = RemoveGravshipFromMap(null, engine);
+                var gravship = RemoveGravshipFromMap(Find.World.GetComponent<WorldComponent_GravshipController>(), engine);
                 if (MultiFloors.Active)
                 {
                     MultiFloors.RevalidateLaunchSiteState(map);

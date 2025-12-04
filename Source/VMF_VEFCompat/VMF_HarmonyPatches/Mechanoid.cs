@@ -69,7 +69,7 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
         public static void Postfix(Building __instance, IntVec3 ___endCranePosition, ref Frame __result)
         {
             if (__result != null) return;
-            var things = __instance.Map.BaseMapAndVehicleMaps().Except(__instance.Map).SelectMany(m =>
+            var things = __instance.Map.BaseMapAndVehicleMaps.Except(__instance.Map).SelectMany(m =>
             {
                 var pos = m.IsVehicleMapOf(out var vehicle) ? __instance.PositionOnBaseMap.ToVehicleMapCoord(vehicle) : __instance.PositionOnBaseMap;
                 return GenRadial.RadialDistinctThingsAround(pos, m, 20f, true);
@@ -96,7 +96,7 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
         {
             if (__result == null)
             {
-                var things = __instance.Map.BaseMapAndVehicleMaps().Except(__instance.Map).SelectMany(m =>
+                var things = __instance.Map.BaseMapAndVehicleMaps.Except(__instance.Map).SelectMany(m =>
                 {
                     var pos = m.IsVehicleMapOf(out var vehicle) ? __instance.PositionOnBaseMap.ToVehicleMapCoord(vehicle) : __instance.PositionOnBaseMap;
                     return GenRadial.RadialDistinctThingsAround(pos, m, 20f, true);

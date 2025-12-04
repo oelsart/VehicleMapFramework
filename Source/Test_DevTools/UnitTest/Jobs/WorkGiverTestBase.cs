@@ -2,6 +2,7 @@
 using DevTools.Testing;
 using RimWorld;
 using UnityEngine;
+using UnityEngine.Assertions;
 using VehicleMapFramework.VMF_HarmonyPatches;
 using Vehicles;
 using Vehicles.UnitTesting;
@@ -212,6 +213,9 @@ internal abstract class WorkGiverTestBase(VehicleGroup group)
     
     internal static WorkGiverResult RunWorkGiverAfterPatch(Pawn pawn, VehiclePawn vehicle, WorkGiverDef workGiverDef)
     {
+        Assert.IsNotNull(pawn, "pawn is null");
+        Assert.IsNotNull(vehicle, "vehicle is null");
+        Assert.IsNotNull(workGiverDef, "workGiverDef is null");
         var result = new WorkGiverResult();
         var workGiver = workGiverDef.Worker;
         result.pawnCanUse = PawnCanUseWorkGiver(pawn, workGiver);

@@ -19,6 +19,7 @@ public static class TargetMapUtility
         public bool TryGetTargetInfo(out TargetInfo target)
         {
             target = TargetInfo.Invalid;
+            if (thing is null) return false;
             if (manager?.TargetInfoTable is not { } table) return false;
             var result = table.TryGetValue(thing, out var box);
             if (result)
@@ -42,6 +43,7 @@ public static class TargetMapUtility
         public bool TryGetTargetMap(out Map map)
         {
             map = null;
+            if (thing is null) return false;
             if (manager?.TargetInfoTable is not { } table) return false;
             var result = table.TryGetValue(thing, out var box);
             if (result)

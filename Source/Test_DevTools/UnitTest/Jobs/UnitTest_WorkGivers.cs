@@ -65,10 +65,10 @@ internal sealed class UnitTest_WorkGivers
     
     internal static void ClearPawnState(Pawn pawn)
     {
-        pawn.jobs.EndCurrentJob(JobCondition.Succeeded, false, false);
-        pawn.jobs.ClearQueuedJobs(false);
+        pawn.jobs?.EndCurrentJob(JobCondition.Succeeded, false, false);
+        pawn.jobs?.ClearQueuedJobs(false);
         pawn.ClearAllReservations(false);
-        pawn.pather.StopDead();
+        pawn.pather?.StopDead();
         pawn.RemoveTargetInfo();
     }
 }

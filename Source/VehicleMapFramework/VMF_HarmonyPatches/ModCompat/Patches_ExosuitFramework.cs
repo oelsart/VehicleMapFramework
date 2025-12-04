@@ -80,7 +80,7 @@ public static class Patch_WG_PawnFlyer_ToDiffMapTarget
         if (___eBay == null)
         {
             var mapHeld = pawn.MapHeld;
-            var maps = mapHeld.BaseMapAndVehicleMaps().Except(mapHeld);
+            var maps = mapHeld.BaseMapAndVehicleMaps.Except(mapHeld);
             ___eBay = maps.SelectMany(m => m.listerBuildings.allBuildingsColonist).FirstOrDefault(b => b.GetType() == t_Building_EjectorBay);
         }
     }

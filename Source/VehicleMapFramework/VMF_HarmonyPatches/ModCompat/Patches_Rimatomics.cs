@@ -205,7 +205,7 @@ public static class Patch_H_CheckForFreeInterceptBetween_Prefix
     private static List<Thing> ThingsOfDefAllMaps(Map map, ThingDef def)
     {
         list.Clear();
-        list.AddRange(map.BaseMapAndVehicleMaps().SelectMany(m => m.listerThings.ThingsOfDef(def)));
+        list.AddRange(map.BaseMapAndVehicleMaps.SelectMany(m => m.listerThings.ThingsOfDef(def)));
         return list;
     }
 }
