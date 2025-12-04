@@ -35,12 +35,28 @@ public sealed class UnitTest_WorkGiversCrossMap
             try
             {
                 test.SetUp();
+            }
+            catch (Exception ex)
+            {
+                Expect.IsNull(ex, $"SetUp: {ex}");
+            }
+
+            try
+            {
                 test.Execute();
+            }
+            catch (Exception ex)
+            {
+                Expect.IsNull(ex, $"Execute: {ex}");
+            }
+
+            try
+            {
                 test.TearDown();
             }
             catch (Exception ex)
             {
-                Expect.IsNull(ex, ex.ToString());
+                Expect.IsNull(ex, $"TearDown: {ex}");
             }
         }
     }

@@ -8,9 +8,13 @@ internal class UnitTest_HaulGeneralCrossMap(VehicleGroup group) : CrossMapWorkGi
 {
     public override WorkGiverDef WorkGiverDef => DefDatabase<WorkGiverDef>.GetNamed("HaulGeneral");
     
+    protected virtual bool DisablePUAH => true;
+    
     private Thing steel;
 
     private Thing shelf;
+    
+    private PuahDisabler puahDisabler;
     
     public override void SetUp()
     {
@@ -18,6 +22,7 @@ internal class UnitTest_HaulGeneralCrossMap(VehicleGroup group) : CrossMapWorkGi
         steel = GenSpawn.Spawn(ThingDefOf.Steel, Pawn.Position + IntVec3.NorthEast, VehicleMap);
         shelf = ThingMaker.MakeThing(ThingDefOf.Shelf, ThingDefOf.WoodLog);
         GenSpawn.Spawn(shelf, new IntVec3(3, 0, 3), GroundMap);
+        if (DisablePUAH) puahDisabler = new PuahDisabler();
     }
 
     public override void TearDown()
@@ -27,5 +32,6 @@ internal class UnitTest_HaulGeneralCrossMap(VehicleGroup group) : CrossMapWorkGi
         shelf.Destroy();
         steel = null;
         shelf = null;
+        if (DisablePUAH) puahDisabler.Dispose();
     }
 }

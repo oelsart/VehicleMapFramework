@@ -76,7 +76,7 @@ public static class Patch_StoreUtility_TryFindBestBetterStoreCellFor
         __result |= StoreAcrossMapsUtility.TryFindBestBetterStoreCellFor(t, carrier, map, priority, faction, ref foundCell, needAccurateResult);
         if (StoreAcrossMapsUtility.tmpDestMap != null)
         {
-            carrier.TargetInfo = new TargetInfo(foundCell, StoreAcrossMapsUtility.tmpDestMap);
+            carrier.TargetInfo = new TargetInfo(foundCell, StoreAcrossMapsUtility.tmpDestMap ?? map);
         }
     }
 }

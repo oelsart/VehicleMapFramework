@@ -36,13 +36,20 @@ internal sealed class UnitTest_WorkGivers
             try
             {
                 test.SetUp();
-                test.ExecuteStep1();
-                ClearPawnState(pawn);
             }
             catch (Exception ex)
             {
-                Assert.IsNull(ex, ex.ToString());
+                Assert.IsNull(ex, $"SetUp: {ex}");
             }
+            try
+            {
+                test.ExecuteStep1();
+            }
+            catch (Exception ex)
+            {
+                Assert.IsNull(ex, $"ExecuteStep1: {ex}");
+            }
+            ClearPawnState(pawn);
         }
         
         VMF_Harmony.DynamicPatchAllNow(Level.All);
@@ -53,12 +60,18 @@ internal sealed class UnitTest_WorkGivers
             try
             {
                 test.ExecuteStep2();
-                test.TearDown();
-                ClearPawnState(pawn);
             }
             catch (Exception ex)
             {
-                Assert.IsNull(ex, ex.ToString());
+                Assert.IsNull(ex, $"ExecuteStep2: {ex}");
+            }
+            try
+            {
+                test.TearDown();
+            }
+            catch (Exception ex)
+            {
+                Assert.IsNull(ex, $"TearDown: {ex}");
             }
         }
     }

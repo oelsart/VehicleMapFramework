@@ -68,6 +68,8 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
         Vector2? drawSize = null, Vector3? drawOffset = null)
     {
         var component = Current.Game.GetComponent<VehicleMapUIRenderer>();
+        if (component?.camera is null || component.commandBuffer is null)
+            return BaseContent.BadTex;
         var camera = component.camera;
         var key = (vehicle, texSize);
         var cache = component.GetOrCreateCachedMapTexture(key);

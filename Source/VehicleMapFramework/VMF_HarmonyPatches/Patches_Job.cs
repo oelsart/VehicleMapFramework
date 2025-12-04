@@ -901,25 +901,22 @@ public static class Patch_ForbidUtility_IsForbidden
 [PatchLevel(Level.Safe)]
 public static class Patch_ForbidUtility_InAllowedArea
 {
-    public static bool Prefix(IntVec3 c, Pawn forPawn, ref Map __state)
+    public static bool Prefix(IntVec3 c, Pawn forPawn)
     {
-        if (forPawn.TryGetTargetMap(out var map) && map != forPawn.Map)
-        {
-            __state = forPawn.Map;
-            forPawn.VirtualMapTransfer(map);
-        }
         return c.InBounds(forPawn.MapHeld);
     }
 
-    public static void Finalizer(IntVec3 c, Pawn forPawn, Map __state, ref bool __result)
+    public static void Finalizer(IntVec3 c, Pawn forPawn, ref bool __result)
     {
         if (forPawn.IsOnVehicleMapOf(out var vehicle) && vehicle.Spawned && __result)
         {
-            using var _ = new VirtualTeleporter(forPawn, vehicle.Map);
-            __result = InAllowedArea(c.ToBaseMapCoord(vehicle));
+            var cell = c.ToBaseMapCoord(vehicle);
+            if (cell.InBounds(vehicle.Map))
+            {
+                using var _ = new VirtualTeleporter(forPawn, vehicle.Map);
+                __result = InAllowedArea(cell);
+            }
         }
-        if (__state is not null)
-            forPawn.VirtualMapTransfer(__state);
         return;
         
         bool InAllowedArea(IntVec3 c2)

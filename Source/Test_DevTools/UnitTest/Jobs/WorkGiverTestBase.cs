@@ -37,10 +37,12 @@ internal abstract class WorkGiverTestBase(VehicleGroup group)
     {
         results[1] = RunWorkGiverAfterPatch(Pawn, Vehicle, WorkGiverDef);
         Expect.AreEqual(results[0], results[1]);
+        Expect.IsFalse(JobFailReason.HaveReason, JobFailReason.Reason);
     }
 
     public virtual void TearDown()
     {
+        UnitTest_WorkGivers.ClearPawnState(Pawn);
         Clear();
     }
 

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Reflection.Emit;
 using HarmonyLib;
+using RimWorld;
 using SmashTools;
 using Verse;
 using Verse.AI;
@@ -49,6 +50,17 @@ public static class Patch_ThingPositionComparer_Compare
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
+    }
+}
+
+[HarmonyPatchCategory(PatchCategories.PickUpAndHaul)]
+[HarmonyPatch("PickUpAndHaul.WorkGiver_HaulToInventory", "HasJobOnThing")]
+[PatchLevel(Level.Safe)]
+public static class Patch_WorkGiver_HaulToInventory_HasJobOnThing
+{
+    public static void Postfix(Pawn pawn)
+    {
+        pawn.RemoveTargetInfo();
     }
 }
 

@@ -44,6 +44,7 @@ public static class StoreAcrossMapsUtility
             {
                 break;
             }
+            
             TryFindBestBetterStoreCellForWorker(t, carrier, storeMap, faction, slotGroup, needAccurateResult, ref invalid, ref num, ref storagePriority);
         }
         if (!invalid.IsValid)
@@ -72,7 +73,7 @@ public static class StoreAcrossMapsUtility
         {
             var intVec = cellsList[i];
             float num2 = (a - intVec).LengthHorizontalSquared;
-            if (!(num2 <= closestDistSquared) || !IsGoodStoreCell(intVec, map, t, carrier, faction)) continue;
+            if (num2 > closestDistSquared || !IsGoodStoreCell(intVec, map, t, carrier, faction)) continue;
             closestSlot = intVec;
             closestDistSquared = num2;
             foundPriority = slotGroup.Settings.Priority;
