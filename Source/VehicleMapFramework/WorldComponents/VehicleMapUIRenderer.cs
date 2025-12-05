@@ -37,7 +37,8 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
                      .Where(cache => cache.Value.Expired))
         {
             toRemove.Add(cache.Key);
-            renderTexturesPool.Add(cache.Value.RenderTexture);
+            if (cache.Value.RenderTexture != null)
+                renderTexturesPool.Add(cache.Value.RenderTexture);
         }
         foreach (var key in toRemove)
             cachedTextures.Remove(key);
@@ -63,7 +64,7 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
         commandBuffer = new CommandBuffer { name = "VehicleMapDrawBuffer" };
         camera.AddCommandBuffer(CameraEvent.BeforeForwardOpaque, commandBuffer);
     }
-    
+
     public static Texture GetVehicleMapTexture(VehiclePawnWithMap vehicle, Rot4 rot, Vector2Int texSize,
         Vector2? drawSize = null, Vector3? drawOffset = null)
     {
@@ -73,8 +74,12 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
         var camera = component.camera;
         var key = (vehicle, texSize);
         var cache = component.GetOrCreateCachedMapTexture(key);
-        if (!cache.Dirty) return cache.RenderTexture;
-        
+        if (!cache.Dirty)
+        {
+            component.cachedTextures[key] = new CachedMapTexture(cache.RenderTexture, false, Time.time);
+            return cache.RenderTexture;
+        }
+
         var mapSize = vehicle.VehicleMap.Size.ToVector2();
         var mapOrigin = new Vector3(-mapSize.x / 2f, 0f, -mapSize.y / 2f).RotatedBy(rot);
         var proportions = drawSize ?? mapSize;
@@ -89,6 +94,7 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
         camera.Render();
         camera.targetTexture = null;
         camera.enabled = false;
+        component.cachedTextures[key] = new CachedMapTexture(cache.RenderTexture, false, Time.time);
         return cache.RenderTexture;
     }
 
@@ -132,23 +138,25 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
         foreach (var cache in cachedTextures.Values
                      .Where(cache => cache.RenderTexture != null))
         {
-            cache.RenderTexture.Release();
             Object.Destroy(cache.RenderTexture);
         }
         cachedTextures.Clear();
 
-        foreach (var renderTexture in renderTexturesPool)
+        foreach (var renderTexture in renderTexturesPool.Where(renderTexture => renderTexture != null))
         {
-            renderTexture.Release();
             Object.Destroy(renderTexture);
         }
         renderTexturesPool.Clear();
         toRemove.Clear();
         toSetDirty.Clear();
         
-        camera.RemoveAllCommandBuffers();
-        commandBuffer.Release();
-        Object.Destroy(camera.gameObject);
+        if (camera != null)
+        {
+            camera.RemoveAllCommandBuffers();
+            Object.Destroy(camera.gameObject);
+        }
+            
+        commandBuffer?.Release();
         camera = null;
         commandBuffer = null;
     }
