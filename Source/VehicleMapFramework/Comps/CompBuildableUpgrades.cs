@@ -7,7 +7,7 @@ namespace VehicleMapFramework;
 
 public class CompBuildableUpgrades : ThingComp
 {
-    public CompProperties_BuildableUpgrades Props => (CompProperties_BuildableUpgrades)props;
+    protected CompProperties_BuildableUpgrades Props => (CompProperties_BuildableUpgrades)props;
 
     public override void PostSpawnSetup(bool respawningAfterLoad)
     {

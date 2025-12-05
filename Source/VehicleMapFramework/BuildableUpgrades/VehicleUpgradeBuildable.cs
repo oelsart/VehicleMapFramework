@@ -203,12 +203,12 @@ public class VehicleUpgradeBuildable : VehicleUpgrade
                 role.ResolveReferences(vehicle.VehicleDef);
                 role.AddUpgrade(roleUpgrade2);
                 var handler = new VehicleRoleHandlerBuildable(vehicle, role);
-                vehicle.handlers.Add(handler);
+                vehicle.Handlers.Add(handler);
                 if (role.PawnRenderer != null)
                 {
                     vehicle.ResetRenderStatus();
                 }
-                parent.handlerUniqueIDs.Add(new UpgradeID(roleUpgrade2.key, roleUpgrade2.editKey, roleUpgrade2.turretIds, handler.uniqueID));
+                (parent.handlerUniqueIDs ??= []).Add(new UpgradeID(roleUpgrade2.key, roleUpgrade2.editKey, roleUpgrade2.turretIds, handler.uniqueID));
             }
             else
             {

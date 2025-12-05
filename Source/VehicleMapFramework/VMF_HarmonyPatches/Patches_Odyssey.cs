@@ -4,6 +4,7 @@ using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using HarmonyLib;
 using RimWorld;
+using RimWorld.Planet;
 using Verse;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
@@ -101,6 +102,20 @@ public static class Patch_PlaceWorker_GravshipThruster_DrawGhost
             );
         codes.Operand = CachedMethodInfo.m_GenDrawOnVehicle_DrawFieldEdges;
         return codes.Instructions();
+    }
+}
+
+/// <summary>
+/// Mod製のPilotConsoleの場合回転が決定できない場合があるため、安全装置を追加
+/// </summary>
+[HarmonyPatchCategory(PatchCategories.Odyssey)]
+[HarmonyPatch(typeof(Gravship), "DetermineLaunchDirection")]
+[PatchLevel(Level.Mandatory)]
+public static class Patch_Gravship_DetermineLaunchDirection
+{
+    public static bool Prefix(IntVec3 ___launchDirection, Building ___pilotConsole)
+    {
+        return ___launchDirection != IntVec3.Zero || ___pilotConsole is not null;
     }
 }
 

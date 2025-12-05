@@ -47,9 +47,9 @@
 								<slotsToOperate>1</slotsToOperate>
 								<pawnRenderer>
 									<showBody>true</showBody>
-									<drawOffsetNorth>(0,0,-1.5)</drawOffsetNorth>
-									<drawOffsetSouth>(0,0,1.5)</drawOffsetSouth>
-									<drawOffsetEast>(-1.5,0,0)</drawOffsetEast>
+									<drawOffsetNorth>(0,0,-1)</drawOffsetNorth>
+									<drawOffsetSouth>(0,0,1)</drawOffsetSouth>
+									<drawOffsetEast>(-1,0,0)</drawOffsetEast>
 								</pawnRenderer>
 							</li>
 						</roles>

@@ -210,7 +210,18 @@ namespace VehicleMapFramework
                 .Select(r => (r.Cells.FirstOrDefault(), r.Temperature, r.Vacuum)).ToList();
 
                 //MultiFloorsのパッチを発火させるためGenerateGravshipのほぼWrapであるRemoveGravshipFromMapをコール
-                var gravship = RemoveGravshipFromMap(Find.World.GetComponent<WorldComponent_GravshipController>(), engine);
+                Gravship gravship;
+                try
+                {
+                    gravship = RemoveGravshipFromMap(Find.World.GetComponent<WorldComponent_GravshipController>(),
+                        engine);
+                }
+                catch(Exception ex)
+                {
+                    VMF_Log.Error($"Error while generating gravship.\n{ex}");
+                    GravshipUtility.generatingGravship = false;
+                    return AcceptanceReport.WasRejected;
+                }
                 if (MultiFloors.Active)
                 {
                     MultiFloors.RevalidateLaunchSiteState(map);
@@ -226,11 +237,11 @@ namespace VehicleMapFramework
                 {
                     VMF_Log.Error($"Error while spawning gravship vehicle.\n{ex.Message}");
                 }
+                
                 if (spawnedVehicle is null)
                 {
                     PlaceGravship(null, gravship, gravship.originalPosition, map);
                 }
-
                 gravship.Rotation = rotCounter;
                 var minOffset = gravship.originalPosition - min;
                 VMF_Log.DebugMessage($"Place gravship to {minOffset.RotatedBy(rotCounter) + IntVec3.NorthEast}");
