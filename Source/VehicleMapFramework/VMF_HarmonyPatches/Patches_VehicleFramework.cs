@@ -111,6 +111,7 @@ public static class Patch_VehiclePawn_DisembarkPawn
         {
             var parent = buildable.upgradeComp.parent;
             var map = parent.Map ?? vehicle.VehicleMap;
+            __instance.RemovePawn(pawn);
             if (!pawn.Spawned)
             {
                 var cellRect = parent.OccupiedRect().ExpandedBy(1);
@@ -139,7 +140,6 @@ public static class Patch_VehiclePawn_DisembarkPawn
                     lord.AddPawn(pawn);
                 }
             }
-            __instance.RemovePawn(pawn);
             __instance.EventRegistry[VehicleEventDefOf.PawnExited].ExecuteEvents();
             return false;
         }
@@ -679,7 +679,7 @@ public static class Patch_VehicleTabHelper_Passenger_DrawPassengersFor
     {
         if (vehicle is VehiclePawnWithMap mapVehicle)
         {
-            var pawns = mapVehicle.VehicleMap.mapPawns.AllPawnsSpawned;
+            var pawns = Patch_MapPawns_AllPawnsSpawned.AllPawnsSpawned(mapVehicle.VehicleMap.mapPawns);
             var rect = new Rect(0f, curY, viewRect.width - 48f, 25f + (PawnRowHeight * pawns.Count));
             if (___draggedPawn != null && Mouse.IsOver(rect) && ___draggedPawn.Map != mapVehicle.VehicleMap)
             {

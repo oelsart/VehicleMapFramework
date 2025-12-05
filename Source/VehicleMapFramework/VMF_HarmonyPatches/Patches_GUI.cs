@@ -58,18 +58,44 @@ public static class Patch_ThingOverlays_ThingOverlaysOnGUI
 [PatchLevel(Level.Sensitive)]
 public static class Patch_ColonistBar_CheckRecacheEntries
 {
+    private static readonly AccessTools.FieldRef<MapPawns, Map> map = AccessTools.FieldRefAccess<MapPawns, Map>("map");
+
+    private static readonly List<Pawn> tmpList = [];
+    
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        var codes = instructions.ToList();
-        var g_Find_Maps = AccessTools.PropertyGetter(typeof(Find), nameof(Find.Maps));
-        var pos = codes.FindIndex(c => c.Calls(g_Find_Maps)) + 1;
-        codes.Insert(pos, CodeInstruction.Call(typeof(Patch_ColonistBar_CheckRecacheEntries), nameof(ExcludeVehicleMaps)));
-        return codes;
+        return new CodeMatcher(instructions)
+            .MatchStartForward(CodeMatch.Calls(AccessTools.PropertyGetter(typeof(Find), nameof(Find.Maps))))
+            .InsertAfterAndAdvance(
+                CodeInstruction.Call(typeof(Patch_ColonistBar_CheckRecacheEntries), nameof(ExcludeVehicleMaps)))
+            .MatchStartForward(
+                CodeMatch.Calls(AccessTools.PropertyGetter(typeof(MapPawns), nameof(MapPawns.FreeColonists))))
+            .Set(OpCodes.Call, AccessTools.Method(typeof(Patch_ColonistBar_CheckRecacheEntries), nameof(FreeColonists)))
+            .MatchStartForward(
+                CodeMatch.Calls(AccessTools.PropertyGetter(typeof(MapPawns), nameof(MapPawns.AllPawnsSpawned))))
+            .Set(OpCodes.Call, AccessTools.Method(typeof(Patch_ColonistBar_CheckRecacheEntries), nameof(AllPawnsSpawned)))
+            .InstructionEnumeration();
     }
 
     private static IEnumerable<Map> ExcludeVehicleMaps(this IEnumerable<Map> maps)
     {
         return maps?.Where(m => !m.IsVehicleMapOf(out var vehicle) || !vehicle.Spawned || m != vehicle.VehicleMap);
+    }
+
+    private static List<Pawn> FreeColonists(MapPawns instance)
+    {
+        var list = instance.FreeColonists;
+        var baseMap = map(instance).GroundMap;
+        list.RemoveAll(pawn => pawn.GroundMap != baseMap);
+        return list;
+    }
+
+    private static IReadOnlyList<Pawn> AllPawnsSpawned(MapPawns instance)
+    {
+        tmpList.Clear();
+        var baseMap = map(instance).GroundMap;
+        tmpList.AddRange(instance.AllPawnsSpawned.Where(pawn => pawn.GroundMap == baseMap));
+        return tmpList;
     }
 }
 

@@ -65,7 +65,8 @@ public static class Patch_CaravanInventoryUtility_AllInventoryItems
     {
         if (!VehicleMapFramework.settings.includeMapThings || caravan is not VehicleCaravan vehicleCaravan) return;
         __result.AddRange(vehicleCaravan.Vehicles.OfType<VehiclePawnWithMap>()
-            .SelectMany(v => v.VehicleMap.listerThings.AllThings));
+            .SelectMany(v => v.VehicleMap.listerThings.AllThings
+                .Where(t => t is not Pawn { IsFreeColonist: true })));
     }
 }
 
