@@ -1,12 +1,15 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
 using HarmonyLib;
 using RimWorld;
 using RimWorld.Planet;
 using Vehicles;
+using Vehicles.World;
 using Verse;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
@@ -47,6 +50,36 @@ public static class Patch_Pawn_ColonyThingsWillingToBuy
     }
 }
 
+// Experimental: AllInventoryItemsに車両マップの物を含める
+[HarmonyPatch(typeof(CaravanInventoryUtility), nameof(CaravanInventoryUtility.AllInventoryItems))]
+[PatchLevel(Level.Safe)]
+public static class Patch_CaravanInventoryUtility_AllInventoryItems
+{
+    [PatchLevel(Level.Mandatory)]
+    [HarmonyReversePatch]
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static List<Thing> AllInventoryItems(Caravan caravan) => throw new NotImplementedException();
+    
+    [PatchLevel(Level.Safe)]
+    public static void Postfix(Caravan caravan, List<Thing> __result)
+    {
+        if (!VehicleMapFramework.settings.includeMapThings || caravan is not VehicleCaravan vehicleCaravan) return;
+        __result.AddRange(vehicleCaravan.Vehicles.OfType<VehiclePawnWithMap>()
+            .SelectMany(v => v.VehicleMap.listerThings.AllThings));
+    }
+}
+
+[HarmonyPatch(typeof(Caravan_BedsTracker), "GetUsableBeds")]
+[PatchLevel(Level.Cautious)]
+public static class Patch_Caravan_BedsTracker_GetUsableBeds
+{
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        return instructions.MethodReplacer(CachedMethodInfo.m_AllInventoryItems,
+            CachedMethodInfo.m_AllInventoryItems_Original);
+    }
+}
+
 //キャラバンのメンバーにVehiclePawnWithMapが含まれる場合そのVehicleMap上の物も取引できるようにする
 [HarmonyPatch(typeof(Caravan), nameof(Caravan.ColonyThingsWillingToBuy))]
 [PatchLevel(Level.Safe)]
@@ -64,6 +97,10 @@ public static class Patch_Caravan_ColonyThingsWillingToBuy
                 yield return thing;
             }
         }
+
+        if (VehicleMapFramework.settings.includeMapThings)
+            yield break;
+        
         if (!vehicles.NullOrEmpty())
         {
             foreach (var thing in vehicles!.SelectMany(vehicle => vehicle.ColonyThingsWillingToBuyOnVehicle(playerNegotiator)))

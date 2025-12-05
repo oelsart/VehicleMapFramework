@@ -40,9 +40,9 @@ public static class Patch_ThingOverlays_ThingOverlaysOnGUI
 
         IEnumerable<VehiclePawnWithMap> GetVehicles()
         {
-            if (vehicle.GetVehicleCaravan() is { } vehicleCaravan)
+            if (vehicle.VehicleCaravanOrStashedVehicle is { } vehicleCaravanOrStashedVehicle)
             {
-                foreach (var vehicle2 in vehicleCaravan.Vehicles.OfType<VehiclePawnWithMap>())
+                foreach (var vehicle2 in vehicleCaravanOrStashedVehicle.Vehicles.OfType<VehiclePawnWithMap>())
                     yield return vehicle2;
             }
             else

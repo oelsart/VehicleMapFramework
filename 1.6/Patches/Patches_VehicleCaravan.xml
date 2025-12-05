@@ -2,7 +2,7 @@
 
 <Patch>
     <Operation Class = "PatchOperationAdd">
-        <xpath>Defs/WorldObjectDef[defName = "VehicleCaravan"]/comps</xpath>
+        <xpath>Defs/WorldObjectDef[defName="VehicleCaravan" or defName="StashedVehicle"]/comps</xpath>
         <value>
             <li>
                 <compClass>VehicleMapFramework.CaravanHaulDestinationManager</compClass>

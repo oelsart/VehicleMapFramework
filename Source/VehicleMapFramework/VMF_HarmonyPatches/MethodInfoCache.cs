@@ -258,4 +258,11 @@ public class MethodInfoCache
 
     public readonly MethodInfo m_CrossMapIsForbidden = AccessTools.Method(typeof(CrossMapForbidUtility),
         nameof(CrossMapForbidUtility.IsForbidden), [typeof(IntVec3), typeof(Pawn), typeof(Thing)]);
+
+    public readonly MethodInfo m_AllInventoryItems = AccessTools.Method(typeof(CaravanInventoryUtility),
+        nameof(CaravanInventoryUtility.AllInventoryItems));
+
+    public readonly MethodInfo m_AllInventoryItems_Original = AccessTools.Method(
+        typeof(Patch_CaravanInventoryUtility_AllInventoryItems),
+        nameof(Patch_CaravanInventoryUtility_AllInventoryItems.AllInventoryItems));
 }

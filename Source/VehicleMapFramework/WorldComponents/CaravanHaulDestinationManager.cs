@@ -3,16 +3,13 @@ using System.Linq;
 using RimWorld;
 using RimWorld.Planet;
 using Vehicles;
-using Vehicles.World;
 using Verse;
 
 namespace VehicleMapFramework;
 
 public class CaravanHaulDestinationManager : WorldObjectComp
 {
-    private VehicleCaravan Caravan => parent as VehicleCaravan;
-    
-    private List<VehiclePawn> Vehicles => field ??= Caravan.Vehicles.ToList();
+    private List<VehiclePawn> Vehicles => field ??= parent.Vehicles.ToList();
     
     public List<IHaulDestination> AllHaulDestinationsListInPriorityOrder { get; } = [];
 
@@ -20,10 +17,10 @@ public class CaravanHaulDestinationManager : WorldObjectComp
 
     public override void CompTick()
     {
-        if (!Vehicles.SequenceEqual(Caravan.Vehicles))
+        if (!Vehicles.SequenceEqual(parent.Vehicles))
         {
             Vehicles.Clear();
-            Vehicles.AddRange(Caravan.Vehicles);
+            Vehicles.AddRange(parent.Vehicles);
             AllHaulDestinationsListInPriorityOrder.Clear();
             AllGroupsListInPriorityOrder.Clear();
         }

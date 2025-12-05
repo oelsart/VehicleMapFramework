@@ -9,7 +9,6 @@ using RimWorld.Planet;
 using RimWorld.QuestGen;
 using SmashTools;
 using UnityEngine;
-using Vehicles;
 using Vehicles.World;
 using Verse;
 using Verse.AI;
@@ -234,10 +233,10 @@ public static class Patch_Map_MapUpdate
         if (focused && __instance.IsVehicleMapOf(out var vehicle) && VehicleMapFramework.settings.drawPlanet && WorldRendererUtility.DrawingMap && !Find.World.renderer.RegenerateLayersIfDirtyInLongEvent())
         {
             var angle = vehicle.Transform.rotation + vehicle.Rotation.AsAngle;
-            var vehicleCaravan = vehicle.GetVehicleCaravan();
+            var vehicleCaravanOrStashedVehicle = vehicle.VehicleCaravanOrStashedVehicle;
             if (GenTicks.TicksGame != lastRenderedTick && Time.frameCount % 2 == 0 || mat != null && tmpRenderTex == null)
             {
-                var worldObject = vehicleCaravan ?? GetWorldObject(vehicle);
+                var worldObject = vehicleCaravanOrStashedVehicle ?? GetWorldObject(vehicle);
                 if (worldObject is null) return;
                 lastRenderedTick = GenTicks.TicksGame;
                 Find.World.renderer.wantedMode = WorldRenderMode.Planet;
@@ -295,12 +294,12 @@ public static class Patch_Map_MapUpdate
                             VehicleCaravan vehicleCaravan2 => AngleOnPlanetSurface(Find.WorldGrid.GetTileCenter(vehicleCaravan2.vehiclePather.NextTile.Valid ? vehicleCaravan2.vehiclePather.NextTile : vehicleCaravan2.Tile), Find.WorldGrid.GetTileCenter(vehicleCaravan2.Tile)),
                             Caravan caravan => AngleOnPlanetSurface(Find.WorldGrid.GetTileCenter(caravan.pather.nextTile.Valid ? caravan.pather.nextTile : caravan.Tile), Find.WorldGrid.GetTileCenter(caravan.Tile)),
                             AerialVehicleInFlight aerial => AngleOnPlanetSurface(aerial.DrawPos, aerial.position),
-                            _ => 90f
+                            _ => 0f
                         };
                     var rot = Rot4.FromAngleFlat(angle);
-                    if (vehicleCaravan != null)
+                    if (vehicleCaravanOrStashedVehicle != null)
                     {
-                        foreach (var vehicle2 in vehicleCaravan.Vehicles)
+                        foreach (var vehicle2 in vehicleCaravanOrStashedVehicle.Vehicles)
                         {
                             vehicle2.FullRotation = rot;
                         }
@@ -320,13 +319,13 @@ public static class Patch_Map_MapUpdate
             Graphics.DrawMesh(mesh200, center.WithY(AltitudeLayer.LightingOverlay.AltitudeFor()), Quaternion.identity, skyMat, 0);
 
             //　車両本体
-            if (vehicleCaravan != null)
+            if (vehicleCaravanOrStashedVehicle != null)
             {
-                var drawPositions = vehicleCaravan.DrawPositions;
-                if (!drawPositions.Keys.SequenceEqual(vehicleCaravan.Vehicles))
-                    vehicleCaravan.RecalculateVehiclePositions();
+                var drawPositions = vehicleCaravanOrStashedVehicle.DrawPositions;
+                if (!drawPositions.Keys.SequenceEqual(vehicleCaravanOrStashedVehicle.Vehicles))
+                    vehicleCaravanOrStashedVehicle.RecalculateVehiclePositions();
 
-                foreach (var vehicle2 in vehicleCaravan.Vehicles)
+                foreach (var vehicle2 in vehicleCaravanOrStashedVehicle.Vehicles)
                 {
                     var drawPos2 = center + drawPositions[vehicle2].RotatedBy(angle);
                     vehicle2.DrawAt(in drawPos2, vehicle2.FullRotation, angle - vehicle2.FullRotation.AsAngle);

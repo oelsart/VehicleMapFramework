@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using JetBrains.Annotations;
+using RimWorld.Planet;
 using UnityEngine;
 using Vehicles;
 using Vehicles.World;
@@ -10,19 +12,45 @@ namespace VehicleMapFramework;
 
 public static class VehicleCaravanRenderer
 {
-    private static ConditionalWeakTable<VehicleCaravan, Dictionary<VehiclePawn, Vector3>> DrawPositions { get; } = [];
+    private static ConditionalWeakTable<WorldObject, Dictionary<VehiclePawn, Vector3>> DrawPositions { get; } = [];
 
     private static readonly List<CellRect> tmpCellRects = [];
-    
-    extension(VehicleCaravan caravan)
+
+    extension(VehiclePawn vehicle)
     {
-        public Dictionary<VehiclePawn, Vector3> DrawPositions => DrawPositions.GetOrCreateValue(caravan);
+        [CanBeNull]
+        public WorldObject VehicleCaravanOrStashedVehicle
+        {
+            get
+            {
+                if (vehicle.ParentHolder is VehicleCaravan caravan) return caravan;
+                return Find.World.GetComponent<VehicleWorldObjectsHolder>().StashedVehicleObject(vehicle);
+            }
+        }
+    }
+    
+    extension(WorldObject vehicleCaravanOrStashedVehicle)
+    {
+        public Dictionary<VehiclePawn, Vector3> DrawPositions => DrawPositions.GetOrCreateValue(vehicleCaravanOrStashedVehicle);
+
+        public IEnumerable<VehiclePawn> Vehicles => vehicleCaravanOrStashedVehicle switch
+        {
+            VehicleCaravan caravan => caravan.Vehicles,
+            StashedVehicle stashedVehicle => stashedVehicle.Vehicles,
+            _ => []
+        };
 
         public void RecalculateVehiclePositions()
         {
             var radialCount = GenRadial.NumCellsInRadius(GenRadial.MaxRadialPatternRadius - 0.1f);
-            var drawPositions = caravan.DrawPositions;
-            foreach (var vehicle in caravan.Vehicles)
+            var drawPositions = vehicleCaravanOrStashedVehicle.DrawPositions;
+            var vehicles = (vehicleCaravanOrStashedVehicle switch
+            {
+                VehicleCaravan caravan => caravan.Vehicles,
+                StashedVehicle stashedVehicle => stashedVehicle.Vehicles,
+                _ => []
+            }).ToList();
+            foreach (var vehicle in vehicles)
             {
                 var cellRect = CellRect.FromLimits(IntVec3.Zero, vehicle.VehicleDef.Size.ToIntVec3 + IntVec3.NorthEast);
                 for (var i = 0; i < radialCount; i++)
@@ -40,7 +68,7 @@ public static class VehicleCaravanRenderer
             var values = drawPositions.Values;
             var y = AltitudeLayer.LayingPawn.AltitudeFor();
             var average = new Vector3(values.Average(p => p.x), -y, values.Average(p => p.z));
-            foreach (var vehicle in caravan.Vehicles)
+            foreach (var vehicle in vehicles)
                 drawPositions[vehicle] -= average;
             
             tmpCellRects.Clear();

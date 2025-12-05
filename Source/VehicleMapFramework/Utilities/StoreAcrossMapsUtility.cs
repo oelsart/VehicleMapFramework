@@ -17,8 +17,8 @@ public static class StoreAcrossMapsUtility
         tmpDestMap = null;
         var baseMap = map.BaseMap();
         var allGroupsListInPriorityOrder = baseMap.IsVehicleMapOf(out var vehicle) &&
-                                           vehicle.GetVehicleCaravan() is { } caravan &&
-                                           caravan.TryGetComponent<CaravanHaulDestinationManager>(out var comp)
+                                           vehicle.VehicleCaravanOrStashedVehicle is { } vehicleCaravanOrStashedVehicle &&
+                                           vehicleCaravanOrStashedVehicle.TryGetComponent<CaravanHaulDestinationManager>(out var comp)
                                                ? comp.AllGroupsListInPriorityOrder
                                                : baseMap.GetCachedMapComponent<CrossMapHaulDestinationManager>()
                                                    .AllGroupsListInPriorityOrder;
@@ -145,8 +145,8 @@ public static class StoreAcrossMapsUtility
     {
         var baseMap = map.BaseMap();
         var allHaulDestinationsListInPriorityOrder = baseMap.IsVehicleMapOf(out var vehicle) &&
-                                                     vehicle.GetVehicleCaravan() is { } caravan &&
-                                                     caravan.TryGetComponent<CaravanHaulDestinationManager>(out var comp)
+                                                     vehicle.VehicleCaravanOrStashedVehicle is { } vehicleCaravanOrStashedVehicle &&
+                                                     vehicleCaravanOrStashedVehicle.TryGetComponent<CaravanHaulDestinationManager>(out var comp)
             ? comp.AllHaulDestinationsListInPriorityOrder
             : baseMap.GetCachedMapComponent<CrossMapHaulDestinationManager>()
                 .AllHaulDestinationsListInPriorityOrder;

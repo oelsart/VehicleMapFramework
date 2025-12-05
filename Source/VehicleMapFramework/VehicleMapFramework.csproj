@@ -84,6 +84,9 @@
     <Content Include="..\..\.git\hooks\pre-push">
       <Link>pre-push</Link>
     </Content>
+    <Content Include="..\..\CopyToDev.bat">
+      <Link>CopyToDev.bat</Link>
+    </Content>
   </ItemGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(SkipPostBuild)' != 'true'">
     <Exec Command="powershell.exe -ExecutionPolicy Bypass -File &quot;$(ProjectDir)UpdateAboutXmlVersion.ps1&quot; -AboutXmlPath &quot;$(TargetPath)\..\..\..\About\About.xml&quot; -BuiltDllPath &quot;$(TargetPath)&quot;" />

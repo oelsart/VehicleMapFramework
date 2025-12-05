@@ -26,8 +26,8 @@ public class CrossMapHaulDestinationManager(Map map) : MapComponent(map)
             if (map == baseMap)
             {
                 if (!map.IsVehicleMapOf(out var vehicle) ||
-                    vehicle.GetVehicleCaravan() is not { } caravan ||
-                    !caravan.TryGetComponent<CaravanHaulDestinationManager>(out var comp))
+                    vehicle.VehicleCaravanOrStashedVehicle is not { } vehicleCaravanOrStashedVehicle ||
+                    !vehicleCaravanOrStashedVehicle.TryGetComponent<CaravanHaulDestinationManager>(out var comp))
                     return;
 
                 var destinations = comp.AllHaulDestinationsListInPriorityOrder;

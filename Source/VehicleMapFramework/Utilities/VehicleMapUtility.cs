@@ -90,9 +90,9 @@ public static class VehicleMapUtility
                 }
                 yield return baseMap;
 
-                if (baseMap.IsVehicleMapOf(out var vehicle) && vehicle.GetVehicleCaravan() is { } vehicleCaravan)
+                if (baseMap.IsVehicleMapOf(out var vehicle) && vehicle.VehicleCaravanOrStashedVehicle is { } vehicleCaravanOrStashedVehicle)
                 {
-                    foreach (var vehicle2 in vehicleCaravan.Vehicles.OfType<VehiclePawnWithMap>())
+                    foreach (var vehicle2 in vehicleCaravanOrStashedVehicle.Vehicles.OfType<VehiclePawnWithMap>())
                         yield return vehicle2.VehicleMap;
                 }
                 else
@@ -114,8 +114,8 @@ public static class VehicleMapUtility
             {
                 if (map.IsVehicleMapOf(out var vehicle))
                 {
-                    if (vehicle.GetVehicleCaravan() is { } caravan)
-                        foreach (var vehicle2 in caravan.Vehicles.OfType<VehiclePawnWithMap>().Except(vehicle))
+                    if (vehicle.VehicleCaravanOrStashedVehicle is { } vehicleCaravanOrStashedVehicle)
+                        foreach (var vehicle2 in vehicleCaravanOrStashedVehicle.Vehicles.OfType<VehiclePawnWithMap>().Except(vehicle))
                             yield return vehicle2.VehicleMap;
                 }
                 else
@@ -138,7 +138,7 @@ public static class VehicleMapUtility
         
         public object BaseMapOrCaravan =>
             map.IsVehicleMapOf(out var vehicle)
-                ? vehicle.Spawned ? vehicle.Map : vehicle.GetVehicleCaravan()
+                ? vehicle.Spawned ? vehicle.Map : vehicle.VehicleCaravanOrStashedVehicle
                 : map;
     }
 
@@ -178,7 +178,7 @@ public static class VehicleMapUtility
 
         public object BaseMapOrCaravan =>
             thing.IsOnVehicleMapOf(out var vehicle)
-                ? vehicle.Spawned ? vehicle.Map : vehicle.GetVehicleCaravan()
+                ? vehicle.Spawned ? vehicle.Map : vehicle.VehicleCaravanOrStashedVehicle
                 : thing.Map;
 
         public Map MapHeldBaseMap()
@@ -192,7 +192,7 @@ public static class VehicleMapUtility
             {
                 var mapHeld = thing.MapHeld;
                 return mapHeld.IsVehicleMapOf(out var vehicle)
-                    ? vehicle.Spawned ? vehicle.Map : vehicle.GetVehicleCaravan()
+                    ? vehicle.Spawned ? vehicle.Map : vehicle.VehicleCaravanOrStashedVehicle
                     : mapHeld;
             }
         }
@@ -369,8 +369,8 @@ public static class VehicleMapUtility
             }
 
             var isVehicleMap = map.IsVehicleMapOf(out var vehicle2);
-            var vehicleCaravan = vehicle2?.GetVehicleCaravan();
-            if (isVehicleMap && (vehicleCaravan is null || !VehicleMapFramework.settings.drawPlanet))
+            var vehicleCaravanOrStashedVehicle = vehicle2?.VehicleCaravanOrStashedVehicle;
+            if (isVehicleMap && (vehicleCaravanOrStashedVehicle is null || !VehicleMapFramework.settings.drawPlanet))
             {
                 vehicle = vehicle2;
                 return true;
@@ -378,7 +378,7 @@ public static class VehicleMapUtility
 
             var vehicles =
                     (isVehicleMap
-                    ? vehicleCaravan.Vehicles.OfType<VehiclePawnWithMap>()
+                    ? vehicleCaravanOrStashedVehicle.Vehicles.OfType<VehiclePawnWithMap>()
                     : VehiclePawnWithMapCache.AllVehiclesOn(map))
                 .OrderBy(v => (v.cachedDrawPos - original).MagnitudeHorizontalSquared());
 
@@ -615,7 +615,7 @@ public static class VehicleMapUtility
         {
             rootPosition = holder switch
             {
-                Thing thing2 when thing2.PositionOnBaseMap.IsValid => thing2.PositionOnBaseMap,
+                Thing { PositionOnBaseMap.IsValid: true } thing2 => thing2.PositionOnBaseMap,
                 ThingComp thingComp when thingComp.parent.PositionOnBaseMap.IsValid => thingComp.parent
                     .PositionOnBaseMap,
                 _ => rootPosition
