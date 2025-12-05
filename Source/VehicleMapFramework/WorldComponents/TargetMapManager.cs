@@ -38,7 +38,9 @@ public class TargetMapManager(World world) : WorldComponent(world)
         {
             case LoadSaveMode.Saving:
             {
-                var targetInfoDic = TargetInfoTable.Select(pair => (pair.Key, pair.Value.Value))
+                var targetInfoDic = TargetInfoTable
+                    .Select(pair => (pair.Key, pair.Value.Value))
+                    .Where(tuple => tuple.Value.IsValid)
                     .ToDictionary(pair => pair.Key, pair => pair.Value);
                 Scribe_Collections.Look(ref targetInfoDic, "TargetInfo", LookMode.Reference, LookMode.TargetInfo, ref tmpKeys, ref tmpValues, false);
                 break;

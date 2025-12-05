@@ -390,6 +390,7 @@ public static class Patch_JobGiver_Work_Validator
         finally
         {
             pawn.RemoveDepartMap();
+            pawn.RemoveTargetInfo();
         }
     }
 }
@@ -884,7 +885,7 @@ public static class Patch_ToilFailConditions_SelfAndParentsDespawnedOrNull
 }
 
 [HarmonyPatch(typeof(ForbidUtility), nameof(ForbidUtility.IsForbidden), typeof(Thing), typeof(Pawn))]
-[PatchLevel(Level.Safe)]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_ForbidUtility_IsForbidden
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)

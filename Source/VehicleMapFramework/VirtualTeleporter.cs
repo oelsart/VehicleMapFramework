@@ -17,7 +17,7 @@ public readonly struct VirtualTeleporter : IDisposable
     public VirtualTeleporter(Thing thing, Map map, IntVec3? c = null)
     {
         _thing = thing;
-        if (thing is null)
+        if (thing is null or { Spawned: false })
             return;
         _map = thing.Map;
         _pos = thing.Position;

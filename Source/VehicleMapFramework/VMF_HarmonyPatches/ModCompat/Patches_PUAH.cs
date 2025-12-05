@@ -54,17 +54,6 @@ public static class Patch_ThingPositionComparer_Compare
 }
 
 [HarmonyPatchCategory(PatchCategories.PickUpAndHaul)]
-[HarmonyPatch("PickUpAndHaul.WorkGiver_HaulToInventory", "HasJobOnThing")]
-[PatchLevel(Level.Safe)]
-public static class Patch_WorkGiver_HaulToInventory_HasJobOnThing
-{
-    public static void Postfix(Pawn pawn)
-    {
-        pawn.RemoveTargetInfo();
-    }
-}
-
-[HarmonyPatchCategory(PatchCategories.PickUpAndHaul)]
 [HarmonyPatch("PickUpAndHaul.WorkGiver_HaulToInventory", "JobOnThing")]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_WorkGiver_HaulToInventory_JobOnThing
