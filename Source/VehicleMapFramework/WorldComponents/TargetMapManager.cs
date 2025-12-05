@@ -16,7 +16,8 @@ public class TargetMapManager(World world) : WorldComponent(world)
 
     internal StrongBox<TargetInfo> GetOrCreateTargetInfo(Thing thing)
     {
-        if (thing is null or Pawn { RaceProps.Humanlike: false }) return null;
+        if (thing is null) return null;
+        VMF_Log.DebugMessage($"GetOrCreateTargetInfo: {thing}");
         return TargetInfoTable.GetValue(thing, _ =>
         {
             var box = new StrongBox<TargetInfo>
@@ -30,6 +31,18 @@ public class TargetMapManager(World world) : WorldComponent(world)
     public override void FinalizeInit(bool fromLoad)
     {
         TargetMapUtility.manager = this;
+    }
+
+    public override void WorldComponentTick()
+    {
+        if (GenTicks.IsTickInterval(10800))
+        {
+            foreach (var pair in TargetInfoTable.Where(pair => !pair.Value.Value.IsValid))
+                tmpKeys.Add(pair.Key);
+            foreach (var thing in tmpKeys.Where(thing => thing is not null))
+                TargetInfoTable.Remove(thing);
+            tmpKeys.Clear();
+        }
     }
 
     public override void ExposeData()

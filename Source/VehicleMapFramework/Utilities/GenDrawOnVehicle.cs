@@ -38,6 +38,12 @@ public static class GenDrawOnVehicle
             }
         }
 
+        if (!map.IsNonFocusedVehicleMapOf(out var vehicle))
+        {
+            GenDraw.DrawFieldEdges(cells, color, altOffset);
+            return;
+        }
+
         var material = MaterialPool.MatFrom(new MaterialRequest
         {
             shader = ShaderDatabase.Transparent,
@@ -65,7 +71,6 @@ public static class GenDrawOnVehicle
                 fieldGrid[intVec.x, intVec.z] = true;
             }
         }
-        var vehicleMap = map.IsVehicleMapOf(out var vehicle);
         for (var j = 0; j < count; j++)
         {
             var intVec = cells[j] + offset;
@@ -79,14 +84,7 @@ public static class GenDrawOnVehicle
                 {
                     if (rotNeeded[k])
                     {
-                        if (vehicleMap)
-                        {
-                            Graphics.DrawMesh(MeshPool.plane10, (intVec - offset).ToVector3Shifted().ToBaseMapCoord(vehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor()).WithYOffset(y), new Rot4(k).AsQuat * vehicle.FullAngleQuat(), material, 0);
-                        }
-                        else
-                        {
-                            Graphics.DrawMesh(MeshPool.plane10, (intVec - offset).ToVector3ShiftedWithAltitude(AltitudeLayer.MetaOverlays).WithYOffset(y), new Rot4(k).AsQuat, material, 0);
-                        }
+                        Graphics.DrawMesh(MeshPool.plane10, (intVec - offset).ToVector3Shifted().ToBaseMapCoord(vehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor()).WithYOffset(y), new Rot4(k).AsQuat * vehicle.FullAngleQuat(), material, 0);
                     }
                 }
             }

@@ -10,18 +10,25 @@ public static class TargetMapUtility
     {
         public TargetInfo TargetInfo
         {
-            get => manager?.GetOrCreateTargetInfo(thing)?.Value ?? TargetInfo.Invalid;
+            get => manager?.TargetInfoTable.TryGetValue(thing, out var box) ?? false ? box.Value : TargetInfo.Invalid;
             set => manager?.GetOrCreateTargetInfo(thing)?.Value = value;
         }
-        
-        public void RemoveTargetInfo() => manager?.GetOrCreateTargetInfo(thing)?.Value = TargetInfo.Invalid;
+
+        public void RemoveTargetInfo()
+        {
+            if (thing is null || manager is null) return;
+            if (manager.TargetInfoTable.TryGetValue(thing, out var box))
+            {
+                VMF_Log.DebugMessage($"Remove TargetInfo: {thing}");
+                box.Value = TargetInfo.Invalid;
+            }
+        }
 
         public bool TryGetTargetInfo(out TargetInfo target)
         {
             target = TargetInfo.Invalid;
-            if (thing is null) return false;
-            if (manager?.TargetInfoTable is not { } table) return false;
-            var result = table.TryGetValue(thing, out var box);
+            if (thing is null || manager is null) return false;
+            var result = manager.TargetInfoTable.TryGetValue(thing, out var box);
             if (result)
                 target = box.Value;
             return result && target.IsValid;
@@ -36,7 +43,7 @@ public static class TargetMapUtility
 
         public Map TargetMap
         {
-            get => manager?.GetOrCreateTargetInfo(thing)?.Value.Map;
+            get => manager?.TargetInfoTable.TryGetValue(thing, out var box) ?? false ? box.Value.Map : null;
             set => manager?.GetOrCreateTargetInfo(thing)?.Value = new TargetInfo(IntVec3.Invalid, value);
         }
 

@@ -8,13 +8,8 @@ using Verse;
 
 namespace VehicleMapFramework;
 
-public class VehiclePawnWithMapCache : MapComponent
+public class VehiclePawnWithMapCache(Map map) : MapComponent(map)
 {
-    public VehiclePawnWithMapCache(Map map) : base(map)
-    {
-        map.events.ThingDespawned += thing => thing.RemoveTargetInfo();
-    }
-
     public static void RegisterVehicle(VehiclePawnWithMap vehicle)
     {
         MapComponentCache<VehiclePawnWithMapCache>.GetComponent(vehicle.Map).allVehicles.Add(vehicle);

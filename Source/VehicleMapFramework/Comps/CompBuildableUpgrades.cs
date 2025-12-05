@@ -112,6 +112,7 @@ public class CompBuildableUpgrades : ThingComp
     public override void PostExposeData()
     {
         Scribe_Collections.Look(ref handlerUniqueIDs, "handlerUniqueIDs", LookMode.Deep);
+        handlerUniqueIDs ??= [];
     }
 
     public List<UpgradeID> handlerUniqueIDs = [];

@@ -839,16 +839,14 @@ public static class Patch_VehicleTabHelper_Passenger_HandleDragEvent
             map = null;
             return false;
         }
-        if (vehicle.EnterComps.Any() && vehicle.EnterComps.Select(c => c.parent.Position).TryRandomElement(c => Predicate(c, vehicle.VehicleMap), out spot))
+        if (vehicle.EnterComps.Any() && vehicle.EnterComps.Select(c => c.parent.Position)
+                .TryRandomElement(c => Predicate(c, vehicle.VehicleMap), out spot) ||
+            vehicle.CachedMapEdgeCells.TryRandomElement(c => Predicate(c, vehicle.VehicleMap), out spot))
         {
             map = vehicle.VehicleMap;
             return true;
         }
-        if (vehicle.CachedMapEdgeCells.TryRandomElement(c => Predicate(c, vehicle.VehicleMap), out spot))
-        {
-            map = vehicle.VehicleMap;
-            return true;
-        }
+
         var cell = vehicle.CachedMapEdgeCells.RandomElement();
         if (RCellFinder.TryFindRandomCellNearWith(cell, c => Predicate(c, vehicle.VehicleMap), vehicle.VehicleMap, out spot))
         {
