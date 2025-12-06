@@ -704,6 +704,7 @@ public static class Patch_VehicleTabHelper_Passenger_DrawPassengersFor
 [HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(VehicleTabHelper_Passenger), nameof(VehicleTabHelper_Passenger.HandleDragEvent))]
 [PatchLevel(Level.Safe)]
+[HotSwap]
 public static class Patch_VehicleTabHelper_Passenger_HandleDragEvent
 {
     public static bool Prefix(ref Pawn ___draggedPawn, IThingHolder ___transferToHolder, Pawn ___hoveringOverPawn)
@@ -714,6 +715,7 @@ public static class Patch_VehicleTabHelper_Passenger_HandleDragEvent
             {
                 if (___transferToHolder is Map map && map.IsVehicleMapOf(out var vehicle))
                 {
+                    var caravan = ___draggedPawn.GetVehicleCaravan();
                     if (___draggedPawn.ParentHolder is VehicleRoleHandler vehicleHandler)
                     {
                         if (!___draggedPawn.Spawned && TryFindSpawnSpot(vehicle, vehicleHandler, out var intVec, out var map2))
@@ -728,13 +730,10 @@ public static class Patch_VehicleTabHelper_Passenger_HandleDragEvent
                     }
                     else if (!___draggedPawn.Spawned && ___draggedPawn.IsWorldPawn() && TryFindSpawnSpot(vehicle, null, out var intVec, out var map2))
                     {
-                        if (___draggedPawn.ParentHolder is VehicleCaravan caravan)
-                        {
-                            caravan.RemovePawn(___draggedPawn);
-                            caravan.RecacheVehicles();
-                        }
                         Find.WorldPawns.RemovePawn(___draggedPawn);
                         GenSpawn.Spawn(___draggedPawn, intVec, map2);
+                        caravan?.RecacheVehicles();
+                        caravan?.GetInspectTabs()?.FirstOrDefault(t => t is WITab_Vehicle_Manifest)?.OnOpen();
                         SoundDefOf.Click.PlayOneShotOnCamera();
                         ___draggedPawn = null;
                         return false;
@@ -804,6 +803,7 @@ public static class Patch_VehicleTabHelper_Passenger_HandleDragEvent
                         if (___transferToHolder is VehicleCaravan caravan)
                         {
                             caravan.RecacheVehicles();
+                            caravan.GetInspectTabs()?.FirstOrDefault(t => t is WITab_Vehicle_Manifest)?.OnOpen();
                         }
                     }
                     else
