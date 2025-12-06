@@ -18,7 +18,7 @@ public class CompFuelTank : CompRefuelable
             if (parent.IsOnVehicleMapOf(out var vehicle))
             {
                 vehicle.FuelTankComps.Add(this);
-                if (ModCompat.VGE && vehicle.def.HasModExtension<VehicleMapProps_Gravship>())
+                if (VGE && vehicle.def.HasModExtension<VehicleMapProps_Gravship>())
                 {
                     FilledMat = SolidColorMaterials.SimpleSolidColorMaterial(new Color(0.3f, 0.2f, 0.5f));
                 }

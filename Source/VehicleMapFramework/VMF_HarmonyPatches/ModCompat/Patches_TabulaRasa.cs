@@ -12,7 +12,7 @@ internal static class Patches_TabulaRasa
 {
     static Patches_TabulaRasa()
     {
-        if (ModCompat.TabulaRasa)
+        if (TabulaRasa)
         {
             VMF_Harmony.PatchCategory(PatchCategories.TabulaRasa);
         }

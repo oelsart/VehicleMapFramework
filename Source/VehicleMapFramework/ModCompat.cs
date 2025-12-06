@@ -610,6 +610,40 @@ internal static class ModCompat
     
     public static readonly bool VQEGenerator = IsModActive("vanillaquestsexpanded.generator");
 
+    public static class VTE
+    {
+        public static readonly bool Active = IsModActive("VanillaExpanded.Temperature");
+
+        public static readonly Type ProxyHeatManager;
+
+        public static readonly FastInvokeHandler RemoveComp;
+        
+        static VTE()
+        {
+            if (Active)
+            {
+                try
+                {
+                    ProxyHeatManager = GenTypes.GetTypeInAnyAssembly("ProxyHeat.ProxyHeatManager", "ProxyHeat");
+                    RemoveComp = MethodInvoker.GetHandler(AccessTools.Method(ProxyHeatManager, "RemoveComp"));
+                }
+                catch (Exception ex)
+                {
+                    LogError(ex);
+                    Active = false;
+                }
+                finally
+                {
+                    if (AnyNull(ProxyHeatManager, RemoveComp))
+                    {
+                        LogIncompat("Vanilla Temperature Expanded");
+                        Active = false;
+                    }
+                }
+            }
+        }
+    }
+
     public static readonly bool Vivi = IsModActive("gguake.race.vivi");
     
     public static readonly bool WASDedPawn = IsModActive("addvans.WASDedPawn");

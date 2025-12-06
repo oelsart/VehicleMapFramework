@@ -12,7 +12,7 @@ internal static class Patches_Vivi
 {
     static Patches_Vivi()
     {
-        if (ModCompat.Vivi)
+        if (Vivi)
         {
             VMF_Harmony.PatchCategory(PatchCategories.ViviRace);
         }

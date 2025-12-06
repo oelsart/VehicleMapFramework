@@ -89,7 +89,7 @@ public static class Patch_PlaceWorker_GravshipThruster_DrawGhost
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
         var codes = new CodeMatcher(instructions, generator);
-        codes.MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_GenDraw_DrawFieldEdges));
+        codes.MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_GenDraw_DrawFieldEdges1));
         codes.CreateLabel(out var label);
         codes.DefineLabel(out var label2);
         codes.InsertAndAdvance(
@@ -100,7 +100,7 @@ public static class Patch_PlaceWorker_GravshipThruster_DrawGhost
             new CodeInstruction(OpCodes.Br_S, label),
             new CodeInstruction(OpCodes.Call, CachedMethodInfo.g_VehicleMapUtility_CurrentMap).WithLabels(label2)
             );
-        codes.Operand = CachedMethodInfo.m_GenDrawOnVehicle_DrawFieldEdges;
+        codes.Operand = CachedMethodInfo.m_GenDrawOnVehicle_DrawFieldEdges1;
         return codes.Instructions();
     }
 }

@@ -9,7 +9,7 @@ internal class Patches_AnimalCages
 {
     static Patches_AnimalCages()
     {
-        if (ModCompat.AnimalCages)
+        if (AnimalCages)
         {
             VMF_Harmony.PatchCategory(PatchCategories.AnimalCages);
         }

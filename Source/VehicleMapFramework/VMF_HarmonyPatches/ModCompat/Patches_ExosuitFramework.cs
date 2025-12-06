@@ -13,7 +13,7 @@ internal static class Patches_ExosuitFramework
 {
     static Patches_ExosuitFramework()
     {
-        if (ModCompat.ExosuitFramework)
+        if (ExosuitFramework)
         {
             VMF_Harmony.PatchCategory(PatchCategories.ExosuitFramework);
         }

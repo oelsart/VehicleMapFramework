@@ -12,7 +12,7 @@ internal class Patches_CeleTech
 {
     static Patches_CeleTech()
     {
-        if (ModCompat.CeleTech)
+        if (CeleTech)
         {
             VMF_Harmony.PatchCategory(PatchCategories.CeleTechArsenal);
         }

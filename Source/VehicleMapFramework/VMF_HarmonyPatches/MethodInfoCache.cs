@@ -155,9 +155,13 @@ public class MethodInfoCache
 
     public readonly MethodInfo o_Quaternion_Multiply = AccessTools.Method(typeof(Quaternion), "op_Multiply", [typeof(Quaternion), typeof(Quaternion)]);
 
-    public readonly MethodInfo m_GenDraw_DrawFieldEdges = AccessTools.Method(typeof(GenDraw), nameof(GenDraw.DrawFieldEdges), [typeof(List<IntVec3>), typeof(int)]);
+    public readonly MethodInfo m_GenDraw_DrawFieldEdges1 = AccessTools.Method(typeof(GenDraw), nameof(GenDraw.DrawFieldEdges), [typeof(List<IntVec3>), typeof(int)]);
+    
+    public readonly MethodInfo m_GenDraw_DrawFieldEdges2 = AccessTools.Method(typeof(GenDraw), nameof(GenDraw.DrawFieldEdges), [typeof(List<IntVec3>), typeof(Color), typeof(float?), typeof(HashSet<IntVec3>), typeof(int)]);
 
-    public readonly MethodInfo m_GenDrawOnVehicle_DrawFieldEdges = AccessTools.Method(typeof(GenDrawOnVehicle), nameof(GenDrawOnVehicle.DrawFieldEdges), [typeof(List<IntVec3>), typeof(int), typeof(Map)]);
+    public readonly MethodInfo m_GenDrawOnVehicle_DrawFieldEdges1 = AccessTools.Method(typeof(GenDrawOnVehicle), nameof(GenDrawOnVehicle.DrawFieldEdges), [typeof(List<IntVec3>), typeof(int), typeof(Map)]);
+
+    public readonly MethodInfo m_GenDrawOnVehicle_DrawFieldEdges2 = AccessTools.Method(typeof(GenDrawOnVehicle), nameof(GenDrawOnVehicle.DrawFieldEdges), [typeof(List<IntVec3>), typeof(Color), typeof(float?), typeof(HashSet<IntVec3>), typeof(int), typeof(Map)]);
 
     public readonly MethodInfo g_Designator_Map = AccessTools.PropertyGetter(typeof(Designator), nameof(Designator.Map));
 

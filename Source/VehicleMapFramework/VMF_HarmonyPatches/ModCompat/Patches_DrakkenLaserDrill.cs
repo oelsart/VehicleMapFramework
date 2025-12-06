@@ -11,7 +11,7 @@ internal class Patches_DrakkenLaserDrill
 {
     static Patches_DrakkenLaserDrill()
     {
-        if (ModCompat.DrakkenLaserDrill)
+        if (DrakkenLaserDrill)
         {
             VMF_Harmony.PatchCategory(PatchCategories.DrakkenLaserDrill);
         }

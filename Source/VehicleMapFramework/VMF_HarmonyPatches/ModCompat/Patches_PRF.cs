@@ -10,7 +10,7 @@ internal static class Patches_PRF
 {
     static Patches_PRF()
     {
-        if (ModCompat.ProjectRimFactory)
+        if (ProjectRimFactory)
         {
             VMF_Harmony.PatchCategory(PatchCategories.ProjectRimFactory);
         }

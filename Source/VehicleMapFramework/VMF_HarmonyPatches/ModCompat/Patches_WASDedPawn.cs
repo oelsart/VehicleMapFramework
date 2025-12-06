@@ -11,7 +11,7 @@ internal static class Patches_WASDedPawn
 {
     static Patches_WASDedPawn()
     {
-        if (ModCompat.WASDedPawn)
+        if (WASDedPawn)
         {
             VMF_Harmony.PatchCategory(PatchCategories.WASDedPawn);
         }

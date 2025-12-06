@@ -10,7 +10,7 @@ internal class Patches_BiomesCaverns
 {
     static Patches_BiomesCaverns()
     {
-        if (ModCompat.BiomesCaverns)
+        if (BiomesCaverns)
         {
             VMF_Harmony.PatchCategory(PatchCategories.BiomesCaverns);
         }

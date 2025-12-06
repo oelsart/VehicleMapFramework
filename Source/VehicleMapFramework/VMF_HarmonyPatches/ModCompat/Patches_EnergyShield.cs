@@ -11,11 +11,11 @@ internal class Patches_EnergyShield
 {
     static Patches_EnergyShield()
     {
-        if (ModCompat.EnergyShield.Active)
+        if (EnergyShield.Active)
         {
             VMF_Harmony.PatchCategory(PatchCategories.EnergyShield);
 
-            if (ModCompat.EnergyShield.CECompat)
+            if (EnergyShield.CECompat)
             {
                 VMF_Harmony.PatchCategory(PatchCategories.EnergyShieldCECompat);
             }
@@ -30,7 +30,7 @@ public static class Patch_ShieldManagerMapComp_WillInterceptOrbitalStrike
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        var m_AllBuildingsColonistOfClass = AccessTools.Method(typeof(ListerBuildings), nameof(ListerBuildings.AllBuildingsColonistOfClass), generics: [ModCompat.EnergyShield.Building_Shield]);
+        var m_AllBuildingsColonistOfClass = AccessTools.Method(typeof(ListerBuildings), nameof(ListerBuildings.AllBuildingsColonistOfClass), generics: [EnergyShield.Building_Shield]);
         foreach (var instruction in instructions)
         {
             yield return instruction;
@@ -48,7 +48,7 @@ public static class Patch_ShieldManagerMapComp_WillInterceptOrbitalStrike
         return buildings
             .Concat(VehiclePawnWithMapCache.AllVehiclesOn(component.map)
             .SelectMany(v => v.VehicleMap.listerBuildings.allBuildingsColonist
-            .Where(b => ModCompat.EnergyShield.Building_Shield.IsAssignableFrom(b.GetType()))));
+            .Where(b => EnergyShield.Building_Shield.IsAssignableFrom(b.GetType()))));
 
     }
 }
@@ -124,7 +124,7 @@ public static class Patch_PatchProjectileCE_TickPostfix
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        var m_AllBuildingsColonistOfClass = AccessTools.Method(typeof(ListerBuildings), nameof(ListerBuildings.AllBuildingsColonistOfClass), generics: [ModCompat.EnergyShield.Building_Shield]);
+        var m_AllBuildingsColonistOfClass = AccessTools.Method(typeof(ListerBuildings), nameof(ListerBuildings.AllBuildingsColonistOfClass), generics: [EnergyShield.Building_Shield]);
         foreach (var instruction in instructions)
         {
             yield return instruction;
@@ -141,7 +141,7 @@ public static class Patch_PatchProjectileCE_TickPostfix
     {
         return buildings.Concat(VehiclePawnWithMapCache.AllVehiclesOn(projectile.Map)
             .SelectMany(v => v.VehicleMap.listerBuildings.allBuildingsColonist
-            .Where(b => ModCompat.EnergyShield.Building_Shield.IsAssignableFrom(b.GetType()))));
+            .Where(b => EnergyShield.Building_Shield.IsAssignableFrom(b.GetType()))));
 
     }
 }

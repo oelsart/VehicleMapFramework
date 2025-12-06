@@ -75,7 +75,7 @@ public static class CheckEnablePipeConnector
         if (!EnablePipeConnector())
         {
             DefDatabase<ThingDef>.GetNamed("VMF_PipeConnector"!).designationCategory = null;
-            DefDatabase<DesignationCategoryDef>.GetNamed("VF_Vehicles").ResolveReferences();
+            DefDatabase<DesignationCategoryDef>.GetNamed("VF_Vehicles"!).ResolveReferences();
         }
     }
 

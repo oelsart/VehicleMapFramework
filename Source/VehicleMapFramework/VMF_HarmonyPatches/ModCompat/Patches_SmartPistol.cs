@@ -8,7 +8,7 @@ internal class Patches_SmartPistol
 {
     static Patches_SmartPistol()
     {
-        if (ModCompat.SmartPistol)
+        if (SmartPistol)
         {
             VMF_Harmony.PatchCategory(PatchCategories.SmartPistol);
         }

@@ -13,7 +13,7 @@ internal class Patches_RoM
 {
     static Patches_RoM()
     {
-        if (ModCompat.RimWorldOfMagic)
+        if (RimWorldOfMagic)
         {
             VMF_Harmony.PatchCategory(PatchCategories.RimWorldOfMagic);
         }

@@ -12,7 +12,7 @@ internal class Patches_StackGap
 {
     static Patches_StackGap()
     {
-        if (ModCompat.StackGap.Active)
+        if (StackGap.Active)
         {
             VMF_Harmony.PatchCategory(PatchCategories.StackGap);
         }

@@ -12,7 +12,7 @@ internal class Patches_NightmareCore
 {
     static Patches_NightmareCore()
     {
-        if (ModCompat.NightmareCore)
+        if (NightmareCore)
         {
             VMF_Harmony.PatchCategory(PatchCategories.NightmareCore);
         }

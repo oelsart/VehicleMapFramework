@@ -8,7 +8,7 @@ internal static class Patches_Gunplay
 {
     static Patches_Gunplay()
     {
-        if (ModCompat.Gunplay)
+        if (Gunplay)
         {
             VMF_Harmony.PatchCategory(PatchCategories.Gunplay);
         }

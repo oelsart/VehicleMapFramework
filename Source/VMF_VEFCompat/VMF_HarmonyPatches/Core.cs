@@ -51,6 +51,11 @@ public static class Patches_VEF
         {
             VMF_Harmony.PatchCategory(PatchCategories.VQEGenerator);
         }
+
+        if (ModCompat.VTE.Active)
+        {
+            VMF_Harmony.PatchCategory(PatchCategories.VTE);
+        }
     }
 }
 

@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
+using SmashTools;
 using UnityEngine;
 using VehicleMapFramework.Settings;
 using VehicleMapFramework.VMF_HarmonyPatches;
 using Verse;
-using Debug = System.Diagnostics.Debug;
 
 namespace VehicleMapFramework;
 

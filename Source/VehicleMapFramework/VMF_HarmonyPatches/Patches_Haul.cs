@@ -140,7 +140,7 @@ public static class Patch_HaulAIUtility_HaulToCellStorageJob
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrPawnMap);
     }
 
-    [HarmonyBefore(ModCompat.StackGap.HarmonyId)]
+    [HarmonyBefore(StackGap.HarmonyId)]
     [PatchLevel(Level.Safe)]
     public static void Postfix(Pawn p, IntVec3 storeCell, Job __result)
     {

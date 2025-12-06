@@ -12,7 +12,7 @@ internal static class Patches_SmarterConstruction
 {
     static Patches_SmarterConstruction()
     {
-        if (ModCompat.SmarterConstruction)
+        if (SmarterConstruction)
         {
             VMF_Harmony.PatchCategory(PatchCategories.SmarterConstruction);
         }

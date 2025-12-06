@@ -25,7 +25,7 @@ public static class GenDrawOnVehicle
         const int x = 200;
         const int z = 200;
         
-        if (map == null)
+        if (map is null)
         {
             if (Command_FocusVehicleMap.FocusedVehicle != null)
             {

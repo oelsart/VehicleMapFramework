@@ -11,7 +11,7 @@ internal class Patches_AllowTool
 {
     static Patches_AllowTool()
     {
-        if (ModCompat.AllowTool)
+        if (AllowTool)
         {
             VMF_Harmony.PatchCategory(PatchCategories.AllowTool);
         }

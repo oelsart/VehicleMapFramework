@@ -11,7 +11,7 @@ internal class Patches_DrillTurret
 {
     static Patches_DrillTurret()
     {
-        if (ModCompat.DrillTurret)
+        if (DrillTurret)
         {
             VMF_Harmony.PatchCategory(PatchCategories.DrillTurret);
         }

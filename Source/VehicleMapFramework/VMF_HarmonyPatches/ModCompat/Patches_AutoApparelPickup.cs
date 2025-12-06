@@ -9,7 +9,7 @@ public class Patches_AutoApparelPickup
 {
     static Patches_AutoApparelPickup()
     {
-        if (ModCompat.AutoApparelPickup)
+        if (AutoApparelPickup)
         {
             var f_ignoredJobs = AccessTools.Field("AutoApparelPickup.HarmonyPatches:ignoredJobs");
             if (f_ignoredJobs?.GetValue(null) is HashSet<JobDef> hashSet)

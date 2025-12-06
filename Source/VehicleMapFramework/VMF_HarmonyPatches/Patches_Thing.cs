@@ -341,10 +341,10 @@ public static class Patch_PlaceWorker_WatchArea_DrawGhost
             new CodeInstruction(OpCodes.Br_S, label2),
             new CodeInstruction(OpCodes.Pop).WithLabels(label)
         ]);
-        pos = codes.FindIndex(pos, c => c.opcode == OpCodes.Call && c.OperandIs(CachedMethodInfo.m_GenDraw_DrawFieldEdges));
+        pos = codes.FindIndex(pos, c => c.opcode == OpCodes.Call && c.OperandIs(CachedMethodInfo.m_GenDraw_DrawFieldEdges1));
         codes.Insert(pos, CodeInstruction.LoadLocal(0));
         return codes.MethodReplacer(CachedMethodInfo.g_Find_CurrentMap, CachedMethodInfo.g_VehicleMapUtility_CurrentMap)
-            .MethodReplacer(CachedMethodInfo.m_GenDraw_DrawFieldEdges, CachedMethodInfo.m_GenDrawOnVehicle_DrawFieldEdges);
+            .MethodReplacer(CachedMethodInfo.m_GenDraw_DrawFieldEdges1, CachedMethodInfo.m_GenDrawOnVehicle_DrawFieldEdges1);
     }
 }
 

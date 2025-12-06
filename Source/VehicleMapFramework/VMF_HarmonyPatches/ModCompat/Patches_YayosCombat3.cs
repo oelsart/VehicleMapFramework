@@ -8,7 +8,7 @@ internal class Patches_YayosCombat3
 {
     static Patches_YayosCombat3()
     {
-        if (ModCompat.YayosCombat3)
+        if (YayosCombat3)
         {
             VMF_Harmony.PatchCategory(PatchCategories.YayosCombat3);
         }

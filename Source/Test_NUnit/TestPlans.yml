@@ -11,6 +11,7 @@
 #- Name: VFEMechanoids
 - Name: VGravshipE
 - Name: VQEGenerator
+- Name: VTemperatureE
 - Name: Achtung
 - Name: CombatExtended
 - Name: DubsBadHygiene

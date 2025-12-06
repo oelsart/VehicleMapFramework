@@ -12,7 +12,7 @@ internal class Patches_Rimatomics
 {
     static Patches_Rimatomics()
     {
-        if (ModCompat.Rimatomics.Active)
+        if (Rimatomics.Active)
         {
             VMF_Harmony.PatchCategory(PatchCategories.Rimatomics);
         }
@@ -217,7 +217,7 @@ public static class Patch_GenSpawn_Spawn_Rimatomics
 {
     public static void Prefix(Thing newThing, ref Map map)
     {
-        if (newThing.GetType().SameOrSubclassOf(ModCompat.Rimatomics.BaseMissile))
+        if (newThing.GetType().SameOrSubclassOf(Rimatomics.BaseMissile))
         {
             map = map.BaseMap();
         }

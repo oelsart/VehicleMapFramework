@@ -8,7 +8,7 @@ internal static class Patches_Fortified
 {
     static Patches_Fortified()
     {
-        if (ModCompat.Fortified)
+        if (Fortified)
         {
             VMF_Harmony.PatchCategory(PatchCategories.FortifiedFeaturesFramework);
         }

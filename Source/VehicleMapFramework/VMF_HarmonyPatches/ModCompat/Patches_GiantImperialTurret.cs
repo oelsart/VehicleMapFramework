@@ -16,7 +16,7 @@ internal static class Patches_GiantImperialTurret
 {
     static Patches_GiantImperialTurret()
     {
-        if (ModCompat.GiantImperialTurret)
+        if (GiantImperialTurret)
         {
             VMF_Harmony.PatchCategory(PatchCategories.GiantImperialTurret);
         }

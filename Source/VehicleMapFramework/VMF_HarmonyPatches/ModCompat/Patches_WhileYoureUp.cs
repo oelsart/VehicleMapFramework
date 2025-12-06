@@ -8,7 +8,7 @@ internal static class Patches_WhileYoureUp
 {
     static Patches_WhileYoureUp()
     {
-        if (ModCompat.WhileYoureUp)
+        if (WhileYoureUp)
         {
             VMF_Harmony.PatchCategory(PatchCategories.WhileYoureUp);
         }

@@ -8,7 +8,7 @@ internal class Patches_RealFogOfWar
 {
     static Patches_RealFogOfWar()
     {
-        if (ModCompat.RealFogOfWar)
+        if (RealFogOfWar)
         {
             VMF_Harmony.PatchCategory(PatchCategories.RealFogOfWar);
         }

@@ -232,10 +232,10 @@ public static class Patch_SelectionDrawer_DrawSelectionBracketFor
             new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_RotatePoint)
         ]);
 
-        var m_DrawFieldEdges = SmartFarming.Active ? AccessTools.Method(SmartFarming.MapComponent_SmartFarming, "DrawFieldEdges") : CachedMethodInfo.m_GenDraw_DrawFieldEdges;
+        var m_DrawFieldEdges = SmartFarming.Active ? AccessTools.Method(SmartFarming.MapComponent_SmartFarming, "DrawFieldEdges") : CachedMethodInfo.m_GenDraw_DrawFieldEdges1;
         var m_DrawFieldEdgesOnVehicle =
             SmartFarming.SmartFarmingActive ? AccessTools.Method(typeof(GenDrawOnVehicle), nameof(GenDrawOnVehicle.DrawFieldEdgesSF)) :
-            ReGrowth ? AccessTools.Method(typeof(GenDrawOnVehicle), nameof(GenDrawOnVehicle.DrawFieldEdgesRG)) : CachedMethodInfo.m_GenDrawOnVehicle_DrawFieldEdges;
+            ReGrowth ? AccessTools.Method(typeof(GenDrawOnVehicle), nameof(GenDrawOnVehicle.DrawFieldEdgesRG)) : CachedMethodInfo.m_GenDrawOnVehicle_DrawFieldEdges1;
         var pos3 = codes.FindIndex(c => c.Calls(m_DrawFieldEdges));
         codes[pos3].operand = m_DrawFieldEdgesOnVehicle;
         codes.InsertRange(pos3,
@@ -243,8 +243,8 @@ public static class Patch_SelectionDrawer_DrawSelectionBracketFor
             CodeInstruction.LoadLocal(0),
             new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_Zone_Map)
         ]);
-        var pos4 = codes.FindIndex(pos3 + 3, c => c.Calls(CachedMethodInfo.m_GenDraw_DrawFieldEdges));
-        codes[pos4].operand = CachedMethodInfo.m_GenDrawOnVehicle_DrawFieldEdges;
+        var pos4 = codes.FindIndex(pos3 + 3, c => c.Calls(CachedMethodInfo.m_GenDraw_DrawFieldEdges1));
+        codes[pos4].operand = CachedMethodInfo.m_GenDrawOnVehicle_DrawFieldEdges1;
         codes.InsertRange(pos4,
         [
             CodeInstruction.LoadLocal(1),
@@ -569,9 +569,9 @@ public static class Patch_PlaceWorker_ShowTradeBeaconRadius_DrawGhost
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
         var codes = instructions.ToList();
-        var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(CachedMethodInfo.m_GenDraw_DrawFieldEdges));
+        var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(CachedMethodInfo.m_GenDraw_DrawFieldEdges1));
         var label = generator.DefineLabel();
-        codes[pos].operand = CachedMethodInfo.m_GenDrawOnVehicle_DrawFieldEdges;
+        codes[pos].operand = CachedMethodInfo.m_GenDrawOnVehicle_DrawFieldEdges1;
         codes[pos].labels.Add(label);
         codes.InsertRange(pos,
         [

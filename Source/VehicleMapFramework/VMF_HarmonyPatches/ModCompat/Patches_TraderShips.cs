@@ -11,7 +11,7 @@ internal class Patches_TraderShips
 {
     static Patches_TraderShips()
     {
-        if (ModCompat.TraderShips)
+        if (TraderShips)
         {
             VMF_Harmony.PatchCategory(PatchCategories.TraderShips);
         }

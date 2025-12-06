@@ -8,7 +8,7 @@ internal static class Patches_ColonyGroups
 {
     static Patches_ColonyGroups()
     {
-        if (ModCompat.ColonyGroups)
+        if (ColonyGroups)
         {
             VMF_Harmony.PatchCategory(PatchCategories.ColonyGroups);
         }
