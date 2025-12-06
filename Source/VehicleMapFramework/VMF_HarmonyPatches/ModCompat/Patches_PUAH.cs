@@ -54,9 +54,9 @@ public static class Patch_ThingPositionComparer_Compare
 
 [HarmonyPatchCategory(PatchCategories.PickUpAndHaul)]
 [HarmonyPatch("PickUpAndHaul.WorkGiver_HaulToInventory", "JobOnThing")]
-[PatchLevel(Level.Sensitive)]
 public static class Patch_WorkGiver_HaulToInventory_JobOnThing
 {
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
         var codes = new CodeMatcher(instructions, generator);
@@ -107,9 +107,10 @@ public static class Patch_WorkGiver_HaulToInventory_JobOnThing
     }
 
     // JobGiver_Haulから呼ばれた時用
-    public static void Prefix(Pawn pawn, Thing t, ref Map __state)
+    [PatchLevel(Level.Safe)]
+    public static void Prefix(Pawn pawn, Thing thing, ref Map __state)
     {
-        var thingMap = t.MapHeld;
+        var thingMap = thing.MapHeld;
         var pawnMap = pawn.MapHeld;
         if (thingMap is not null && thingMap != pawnMap)
         {
@@ -118,6 +119,7 @@ public static class Patch_WorkGiver_HaulToInventory_JobOnThing
         }
     }
 
+    [PatchLevel(Level.Safe)]
     public static void Finalizer(Pawn pawn, Job __result, Map __state)
     {
         if (__state is not null)
