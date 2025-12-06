@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using HarmonyLib;
-using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
@@ -9,7 +8,7 @@ internal static class Patches_Gunplay
 {
     static Patches_Gunplay()
     {
-        if (ModCompat.Gunplay)
+        if (Gunplay)
         {
             VMF_Harmony.PatchCategory(PatchCategories.Gunplay);
         }

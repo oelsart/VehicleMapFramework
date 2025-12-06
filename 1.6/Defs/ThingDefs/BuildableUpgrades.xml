@@ -316,7 +316,8 @@
 			</li>
 		</comps>
 		<placeWorkers>
-			<li>VehicleMapFramework.PlaceWorker_ForbidOnHumanPoweredVehicle</li>
+			<li>VehicleMapFramework.PlaceWorker_ForceOnVehicle</li>
+			<li>VehicleMapFramework.PlaceWorker_NonFueledVehicle</li>
 		</placeWorkers>
 	</ThingDef>
 
@@ -383,6 +384,7 @@
 		</comps>
 		<placeWorkers>
 			<li>VehicleMapFramework.PlaceWorker_ForceOnHoverVehicle</li>
+			<li>VehicleMapFramework.PlaceWorker_NonFueledVehicle</li>
 		</placeWorkers>
 	</ThingDef>
 		
@@ -442,12 +444,29 @@
 					</li>
 				</upgrades>
 			</li>
-			<li>
+			
+			<!-- For use when placed on the grav ship -->
+			<li Class="CompProperties_GravshipFacility">
+				<compClass>VehicleMapFramework.CompGravshipFacilityPossibly</compClass>
+				<providesFuel>true</providesFuel>
+				<componentTypeDef>FuelStorage</componentTypeDef>
+				<requiresLOS>false</requiresLOS>
+				<showMaxSimultaneous>false</showMaxSimultaneous>
+				<maxSimultaneous>9999</maxSimultaneous>
+				<maxDistance>500</maxDistance>
+			</li>
+			<li Class="CompProperties_Refuelable">
 				<compClass>VehicleMapFramework.CompFuelTank</compClass>
+				<fuelCapacity>100</fuelCapacity>
+				<fuelConsumptionRate>0</fuelConsumptionRate>
+				<consumeFuelOnlyWhenUsed>true</consumeFuelOnlyWhenUsed>
+				<initialAllowAutoRefuel>false</initialAllowAutoRefuel>
+				<fuelFilter/>
 			</li>
 		</comps>
 		<placeWorkers>
 			<li>VehicleMapFramework.PlaceWorker_ForceOnVehicle</li>
+			<li>VehicleMapFramework.PlaceWorker_NonFueledVehicle</li>
 		</placeWorkers>
 	</ThingDef>
 </Defs>

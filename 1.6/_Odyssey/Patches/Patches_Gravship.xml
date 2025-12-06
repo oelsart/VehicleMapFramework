@@ -5,6 +5,7 @@
 		<value>
 			<li>VMF_GravshipWheelSmall</li>
 			<li>VMF_GravshipWheelLarge</li>
+			<li>VMF_FuelTank</li>
 		</value>
 	</Operation>
 	

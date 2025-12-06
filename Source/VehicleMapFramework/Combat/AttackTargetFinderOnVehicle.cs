@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using RimWorld;
 using UnityEngine;
@@ -11,7 +10,6 @@ using static VehicleMapFramework.ModCompat;
 
 namespace VehicleMapFramework;
 
-[SuppressMessage("ReSharper", "ForCanBeConvertedToForeach")]
 public static class AttackTargetFinderOnVehicle
 {
     private const float FriendlyFireScoreOffsetPerHumanlikeOrMechanoid = 18f;
@@ -40,7 +38,7 @@ public static class AttackTargetFinderOnVehicle
 
     public static IAttackTarget BestAttackTarget(IAttackTargetSearcher searcher, TargetScanFlags flags, Predicate<Thing> validator = null, float minDist = 0f, float maxDist = 9999f, IntVec3 locus = default, float maxTravelRadiusFromLocus = 3.4028235E+38f, bool canBashDoors = false, bool canTakeTargetsCloserThanEffectiveMinRange = true, bool canBashFences = false, bool onlyRanged = false)
     {
-        //AttackTargetFinderOnVehicle.interceptors = searcher.Thing?.Map.BaseMapAndVehicleMaps()
+        //AttackTargetFinderOnVehicle.interceptors = searcher.Thing?.Map.BaseMapAndVehicleMaps
         //    .SelectMany(m => m.listerThings.ThingsInGroup(ThingRequestGroup.ProjectileInterceptor)
         //    .Select(t => t.TryGetComp<CompProjectileInterceptor>())).ToList() ?? new List<CompProjectileInterceptor>();
         var searcherThing = searcher.Thing;
@@ -68,19 +66,19 @@ public static class AttackTargetFinderOnVehicle
             {
                 return false;
             }
-            if (minDistSquared > 0f && (searcherThing.PositionOnBaseMap() - thing.PositionOnBaseMap()).LengthHorizontalSquared < minDistSquared)
+            if (minDistSquared > 0f && (searcherThing.PositionOnBaseMap - thing.PositionOnBaseMap).LengthHorizontalSquared < minDistSquared)
             {
                 return false;
             }
             if (!canTakeTargetsCloserThanEffectiveMinRange)
             {
                 var num2 = verb.verbProps.EffectiveMinRange(thing, searcherThing);
-                if (num2 > 0f && (searcherThing.PositionOnBaseMap() - thing.PositionOnBaseMap()).LengthHorizontalSquared < num2 * num2)
+                if (num2 > 0f && (searcherThing.PositionOnBaseMap - thing.PositionOnBaseMap).LengthHorizontalSquared < num2 * num2)
                 {
                     return false;
                 }
             }
-            if (maxTravelRadiusFromLocus < 9999f && (thing.PositionOnBaseMap() - locus).LengthHorizontalSquared > maxLocusDistSquared)
+            if (maxTravelRadiusFromLocus < 9999f && (thing.PositionOnBaseMap - locus).LengthHorizontalSquared > maxLocusDistSquared)
             {
                 return false;
             }
@@ -102,7 +100,7 @@ public static class AttackTargetFinderOnVehicle
             }
             if ((flags & TargetScanFlags.NeedNotUnderThickRoof) != TargetScanFlags.None)
             {
-                var roof = thing.PositionOnBaseMap().GetRoof(baseMap);
+                var roof = thing.PositionOnBaseMap.GetRoof(baseMap);
                 if (roof is { isThickRoof: true })
                 {
                     return false;
@@ -110,7 +108,7 @@ public static class AttackTargetFinderOnVehicle
             }
             if ((flags & TargetScanFlags.NeedLOSToAll) != TargetScanFlags.None)
             {
-                if (losValidator != null && (!losValidator(searcherThing.PositionOnBaseMap()) || !losValidator(thing.PositionOnBaseMap())))
+                if (losValidator != null && (!losValidator(searcherThing.PositionOnBaseMap) || !losValidator(thing.PositionOnBaseMap)))
                 {
                     return false;
                 }
@@ -159,22 +157,14 @@ public static class AttackTargetFinderOnVehicle
             }
             if (thing.def.size is { x: 1, z: 1 })
             {
-                if (thing.PositionOnBaseMap().Fogged(baseMap))
+                if (thing.PositionOnBaseMap.Fogged(baseMap))
                 {
                     return false;
                 }
             }
             else
             {
-                var flag4 = false;
-                foreach (var c in thing.MovedOccupiedRect())
-                {
-                    if (!c.Fogged(baseMap))
-                    {
-                        flag4 = true;
-                        break;
-                    }
-                }
+                var flag4 = thing.MovedOccupiedRect().Any(c => !c.Fogged(baseMap));
                 if (!flag4)
                 {
                     return false;
@@ -185,12 +175,12 @@ public static class AttackTargetFinderOnVehicle
         if ((HasRangedAttack(searcher) || onlyRanged) && (searcherPawn == null || !searcherPawn.InAggroMentalState))
         {
             tmpTargets.Clear();
-            tmpTargets.AddRange(searcherThing.Map.BaseMapAndVehicleMaps().Except(searcherThing.Map).SelectMany(m => m.attackTargetsCache.GetPotentialTargetsFor(searcher)));
+            tmpTargets.AddRange(searcherThing.Map.BaseMapAndVehicleMaps.Except(searcherThing.Map).SelectMany(m => m.attackTargetsCache.GetPotentialTargetsFor(searcher)));
             validTargets.Clear();
             for (var i = 0; i < tmpTargets.Count; i++)
             {
                 var attackTarget = tmpTargets[i];
-                if (attackTarget.Thing.PositionOnBaseMap().InHorDistOf(searcherThing.PositionOnBaseMap(), maxDist) && innerValidator(attackTarget))
+                if (attackTarget.Thing.PositionOnBaseMap.InHorDistOf(searcherThing.PositionOnBaseMap, maxDist) && innerValidator(attackTarget))
                 {
                     validTargets.Add(attackTarget);
                 }
@@ -208,18 +198,18 @@ public static class AttackTargetFinderOnVehicle
             if (flags.HasFlag(TargetScanFlags.NeedReachableIfCantHitFromMyPos) || flags.HasFlag(TargetScanFlags.NeedReachable))
             {
                 return (IAttackTarget)GenClosestCrossMap.ClosestThing_Global(
-                    searcher.Thing.PositionOnBaseMap(),
+                    searcher.Thing.PositionOnBaseMap,
                     validTargets,
                     maxDist,
                     t => CanReach(searcher.Thing, t, canBashDoors, canBashFences)
                     );
             }
-            return (IAttackTarget)GenClosestCrossMap.ClosestThing_Global(searcher.Thing.PositionOnBaseMap(), validTargets, maxDist);
+            return (IAttackTarget)GenClosestCrossMap.ClosestThing_Global(searcher.Thing.PositionOnBaseMap, validTargets, maxDist);
         }
         if (searcherPawn?.mindState.duty is { radius: > 0f } && !searcherPawn.InMentalState)
         {
             var oldValidator = innerValidator;
-            innerValidator = t => oldValidator(t) && t.Thing.PositionOnBaseMap()
+            innerValidator = t => oldValidator(t) && t.Thing.PositionOnBaseMap
                 .InHorDistOf(searcherPawn.mindState.duty.focus.CellOnBaseMap(), searcherPawn.mindState.duty.radius);
         }
         var oldValidator2 = innerValidator;
@@ -230,8 +220,8 @@ public static class AttackTargetFinderOnVehicle
         //    IAttackTarget attackTarget3 = FindBestReachableMeleeTarget(innerValidator, searcherPawn, maxDist, canBashDoors, canBashFences);
         //    if (attackTarget3 != null)
         //    {
-        //        float lengthHorizontal = (searcherPawn.PositionOnBaseMap() - attackTarget2.Thing.PositionOnBaseMap()).LengthHorizontal;
-        //        float lengthHorizontal2 = (searcherPawn.PositionOnBaseMap() - attackTarget3.Thing.PositionOnBaseMap()).LengthHorizontal;
+        //        float lengthHorizontal = (searcherPawn.PositionOnBaseMap - attackTarget2.Thing.PositionOnBaseMap).LengthHorizontal;
+        //        float lengthHorizontal2 = (searcherPawn.PositionOnBaseMap - attackTarget3.Thing.PositionOnBaseMap).LengthHorizontal;
         //        if (Mathf.Abs(lengthHorizontal - lengthHorizontal2) < 50f)
         //        {
         //            attackTarget2 = attackTarget3;
@@ -251,7 +241,7 @@ public static class AttackTargetFinderOnVehicle
     {
         if (searcher is Pawn pawn)
         {
-            if (!pawn.CanReach(target, PathEndMode.Touch, Danger.Some, canBashDoors, canBashFences, TraverseMode.ByPawn, target.Map, out _, out _))
+            if (!pawn.CanReach(target, PathEndMode.Touch, Danger.Some, canBashDoors, canBashFences, TraverseMode.ByPawn, target.Map))
             {
                 return false;
             }
@@ -259,7 +249,7 @@ public static class AttackTargetFinderOnVehicle
         else
         {
             var mode = canBashDoors ? TraverseMode.PassDoors : TraverseMode.NoPassClosedDoors;
-            if (!CrossMapReachabilityUtility.CanReach(searcher.Map, searcher.Position, target, PathEndMode.Touch, TraverseParms.For(mode), target.Map, out _, out _))
+            if (!CrossMapReachabilityUtility.CanReach(searcher.Map, searcher.Position, target, PathEndMode.Touch, TraverseParms.For(mode), target.Map))
             {
                 return false;
             }
@@ -336,7 +326,7 @@ public static class AttackTargetFinderOnVehicle
 
     private static bool CanShootAtFromCurrentPosition(IAttackTarget target, IAttackTargetSearcher searcher, Verb verb)
     {
-        return verb != null && verb.CanHitTargetFrom(searcher.Thing.PositionOnBaseMap(), target.Thing);
+        return verb != null && verb.CanHitTargetFrom(searcher.Thing.PositionOnBaseMap, target.Thing);
     }
 
     private static IAttackTarget GetRandomShootingTargetByScore(List<IAttackTarget> targets, IAttackTargetSearcher searcher, Verb verb)
@@ -408,7 +398,7 @@ public static class AttackTargetFinderOnVehicle
     private static float GetShootingTargetScore(IAttackTarget target, IAttackTargetSearcher searcher, Verb verb)
     {
         var num = 60f;
-        num -= Mathf.Min((target.Thing.PositionOnBaseMap() - searcher.Thing.PositionOnBaseMap()).LengthHorizontal, 40f);
+        num -= Mathf.Min((target.Thing.PositionOnBaseMap - searcher.Thing.PositionOnBaseMap).LengthHorizontal, 40f);
         if (target.TargetCurrentlyAimingAt == searcher.Thing)
         {
             num += 10f;
@@ -610,8 +600,8 @@ public static class AttackTargetFinderOnVehicle
             return AttackTargetFinder.CanSee(seer, target, validator);
         }
 
-        var seerPosOnBaseMap = seer.PositionOnBaseMap();
-        var targPosOnBaseMap = target.PositionOnBaseMap();
+        var seerPosOnBaseMap = seer.PositionOnBaseMap;
+        var targPosOnBaseMap = target.PositionOnBaseMap;
         var baseMap = seer.BaseMap();
         tempDestList.Clear();
         ShootLeanUtilityOnVehicle.CalcShootableCellsOf(tempDestList, target, seerPosOnBaseMap);
@@ -706,6 +696,7 @@ public static class AttackTargetFinderOnVehicle
         Text.Anchor = TextAnchor.UpperLeft;
         Text.Font = GameFont.Small;
     }
+    
     public static void DebugDrawNonCombatantTimer_OnGUI()
     {
         var list = Find.CurrentMap.listerThings.ThingsInGroup(ThingRequestGroup.Pawn);
@@ -713,7 +704,7 @@ public static class AttackTargetFinderOnVehicle
         {
             foreach (var item in list)
             {
-                if (!(item is Pawn { mindState: not null } pawn))
+                if (item is not Pawn { mindState: not null } pawn)
                 {
                     continue;
                 }
@@ -771,11 +762,10 @@ public static class AttackTargetFinderOnVehicle
         {
             return target1;
         }
-        if ((target1.Thing.Position - searcher.Thing.Position).LengthHorizontalSquared > (target2.Thing.PositionOnBaseMap() - searcher.Thing.PositionOnBaseMap()).LengthHorizontalSquared)
-        {
-            return target2;
-        }
-        return target1;
+        return (target1.Thing.Position - searcher.Thing.Position).LengthHorizontalSquared >
+               (target2.Thing.PositionOnBaseMap - searcher.Thing.PositionOnBaseMap).LengthHorizontalSquared
+            ? target2
+            : target1;
     }
 }
 

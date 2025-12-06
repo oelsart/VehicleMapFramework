@@ -4,10 +4,10 @@ using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
 using RimWorld;
+using SmashTools;
 using UnityEngine;
 using Verse;
 using Verse.AI;
-using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
@@ -17,14 +17,17 @@ public static class Patch_Verb_TryFindShootLineFromTo
 {
     private static bool Prepare()
     {
-        return !ModCompat.CombatExtended;
+        return !CombatExtended;
     }
 
     public static bool Prefix(Verb __instance, IntVec3 root, LocalTargetInfo targ, ref ShootLine resultingLine, bool ignoreRange, ref bool __result)
     {
+        if (VehiclePawnWithMapCache.AllVehiclesOn(__instance.caster.GroundMap).NullOrEmpty())
+            return true;
+        
         if ((__instance.caster.IsOnVehicleMapOf(out _) ||
             targ.Thing.IsOnVehicleMapOf(out _) ||
-            (TargetMapManager.HasTargetMap(__instance.caster, out var map) && map.IsVehicleMapOf(out _)) ||
+            (__instance.caster.TryGetTargetMap(out var map) && map.IsVehicleMapOf(out _)) ||
             root.IsValid && GenSight.PointsOnLineOfSight(root, targ.Cell).Any(c => c.InBounds(__instance.caster.Map) && c.TryGetVehicleMap(__instance.caster.Map, out _))))
         {
             __result = __instance.TryFindShootLineFromToOnVehicle(root, targ, out resultingLine, ignoreRange);
@@ -118,20 +121,7 @@ public static class Patch_Verb_ShootBeam_TryCastShot
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-            .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap);
-    }
-}
-
-[HarmonyPatch(typeof(Verb_ShootBeam), nameof(Verb_ShootBeam.DrawHighlight))]
-[PatchLevel(Level.Cautious)]
-public static class Patch_Verb_ShootBeam_DrawHighlight
-{
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseFullRotation_Thing)
-            .MethodReplacer(CachedMethodInfo.g_Rot4_AsQuat, CachedMethodInfo.m_Rot8_AsQuatRef)
-            .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap);
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
     }
 }
 
@@ -154,10 +144,16 @@ public static class Patch_Verb_ShootBeam_TryGetHitCell
     }
 }
 
-[HarmonyPatch(typeof(Verb_ShootBeam), "GetBeamHitNeighbourCells")]
+[HarmonyPatch]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Verb_ShootBeam_GetBeamHitNeighbourCells
 {
+    private static MethodBase TargetMethod()
+    {
+        return AccessTools.FindIncludingInnerTypes(typeof(Verb_ShootBeam), t =>
+            !t.Name.Contains("<GetBeamHitNeighbourCells>") ? null : AccessTools.Method(t, "MoveNext"));
+    }
+    
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
@@ -226,11 +222,16 @@ public static class Patch_Verb_ShootBeam_ApplyDamage
 
 [HarmonyPatch]
 [PatchLevel(Level.Sensitive)]
-public static class Patch_Verb_ShootBeam_ApplyDamage_Delegate
+public static class Patch_Verb_ShootBeam_Delegate
 {
-    private static MethodInfo TargetMethod()
+    private static IEnumerable<MethodBase> TargetMethods()
     {
-        return typeof(Verb_ShootBeam).GetDeclaredMethods().First(m => m.Name.Contains("<ApplyDamage>"));
+        yield return typeof(Verb_ShootBeam).FindIncludingInnerTypes(
+            t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<ApplyDamage>")));
+        yield return typeof(Verb_ShootBeam).FindIncludingInnerTypes(
+            t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<BurstingTick>")));
+        yield return typeof(Verb_ShootBeam).FindIncludingInnerTypes(
+            t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<TryGetHitCell>")));
     }
 
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -296,15 +297,8 @@ public static class Patch_JumpUtility_OrderJump
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, m_TargetMap);
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);
     }
-
-    public static Map TargetMap(Thing thing)
-    {
-        return TargetMapManager.HasTargetMap(thing, out var map) ? map : thing.Map;
-    }
-
-    public static readonly MethodInfo m_TargetMap = AccessTools.Method(typeof(Patch_JumpUtility_OrderJump), nameof(TargetMap));
 }
 
 [HarmonyPatch]
@@ -328,14 +322,14 @@ public static class Patch_JumpUtility_DoJump
     [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, Patch_JumpUtility_OrderJump.m_TargetMap);
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);
     }
 
     [PatchLevel(Level.Safe)]
     public static void Finalizer(Pawn pawn, bool __result)
     {
         if (!__result) return;
-        TargetMapManager.RemoveTargetInfo(pawn);
+        pawn.RemoveTargetInfo();
     }
 }
 
@@ -345,7 +339,7 @@ public static class Patch_JobDriver_CastJump_TryMakePreToilReservations
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, Patch_JumpUtility_OrderJump.m_TargetMap);
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);
     }
 }
 
@@ -365,7 +359,7 @@ public static class Patch_Verb_Jump_DrawHighlight
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        instructions = instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, Patch_JumpUtility_OrderJump.m_TargetMap);
+        instructions = instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);
 
         var m_CenterVector3 = AccessTools.PropertyGetter(typeof(LocalTargetInfo), nameof(LocalTargetInfo.CenterVector3));
         var m_CenterVector3Offset = AccessTools.Method(typeof(Patch_Verb_Jump_DrawHighlight), nameof(CenterVector3Offset));
@@ -397,14 +391,14 @@ public static class Patch_Verb_Jump_DrawHighlight
             }
             if (thing.SpawnedOrAnyParentSpawned)
             {
-                return TargetMapManager.HasTargetMap(caster, out map) ? thing.PositionHeld.ToVector3Shifted().ToBaseMapCoord(map) : thing.PositionHeld.ToVector3Shifted();
+                return caster.TryGetTargetMap(out map) ? thing.PositionHeld.ToVector3Shifted().ToBaseMapCoord(map) : thing.PositionHeld.ToVector3Shifted();
             }
-            return TargetMapManager.HasTargetMap(caster, out map) ? thing.Position.ToVector3Shifted().ToBaseMapCoord(map) : thing.Position.ToVector3Shifted();
+            return caster.TryGetTargetMap(out map) ? thing.Position.ToVector3Shifted().ToBaseMapCoord(map) : thing.Position.ToVector3Shifted();
         }
 
         var cell = target.Cell;
         if (!cell.IsValid) return default;
-        return TargetMapManager.HasTargetMap(caster, out map) ? cell.ToVector3Shifted().ToBaseMapCoord(map) : cell.ToVector3Shifted();
+        return caster.TryGetTargetMap(out map) ? cell.ToVector3Shifted().ToBaseMapCoord(map) : cell.ToVector3Shifted();
     }
 }
 
@@ -421,7 +415,7 @@ public static class Patch_Verb_Jump_OnGUI
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, Patch_JumpUtility_OrderJump.m_TargetMap);
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);
     }
 }
 
@@ -438,7 +432,7 @@ public static class Patch_Verb_Jump_ValidateTarget
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, Patch_JumpUtility_OrderJump.m_TargetMap);
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);
     }
 }
 

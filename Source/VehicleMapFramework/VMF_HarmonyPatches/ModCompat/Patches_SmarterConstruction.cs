@@ -4,7 +4,6 @@ using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
 using Verse;
-using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
@@ -13,7 +12,7 @@ internal static class Patches_SmarterConstruction
 {
     static Patches_SmarterConstruction()
     {
-        if (ModCompat.SmarterConstruction)
+        if (SmarterConstruction)
         {
             VMF_Harmony.PatchCategory(PatchCategories.SmarterConstruction);
         }

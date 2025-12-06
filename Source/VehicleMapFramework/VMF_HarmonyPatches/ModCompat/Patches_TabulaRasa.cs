@@ -4,7 +4,6 @@ using HarmonyLib;
 using RimWorld;
 using UnityEngine;
 using Verse;
-using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches.TR;
 
@@ -13,7 +12,7 @@ internal static class Patches_TabulaRasa
 {
     static Patches_TabulaRasa()
     {
-        if (ModCompat.TabulaRasa)
+        if (TabulaRasa)
         {
             VMF_Harmony.PatchCategory(PatchCategories.TabulaRasa);
         }
@@ -86,7 +85,7 @@ public static class Patch_Projectile_CheckForFreeInterceptBetween
             try
             {
                 var map = __instance.Map;
-                var maps = map.BaseMapAndVehicleMaps().Except(map);
+                var maps = map.BaseMapAndVehicleMaps.Except(map);
                 foreach (var map2 in maps)
                 {
                     tmpMap = map2;
@@ -134,7 +133,7 @@ public static class Patch_Skyfaller_Tick
         try
         {
             var map = __instance.Map;
-            var maps = map.BaseMapAndVehicleMaps().Except(map);
+            var maps = map.BaseMapAndVehicleMaps.Except(map);
             foreach (var map2 in maps)
             {
                 tmpMap = map2;

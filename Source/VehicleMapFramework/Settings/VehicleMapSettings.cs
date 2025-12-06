@@ -7,8 +7,6 @@ namespace VehicleMapFramework;
 
 public class VehicleMapSettings : ModSettings
 {
-    internal static readonly Default DefaultSettings = new();
-
     public bool drawPlanet = Default.drawPlanet;
 
     public float weightFactor = Default.weightFactor;
@@ -18,6 +16,8 @@ public class VehicleMapSettings : ModSettings
     public bool autoGetOffNonPlayer = Default.autoGetOffNonPlayer;
 
     public bool drawVehicleMapGrid = Default.drawVehicleMapGrid;
+    
+    public bool includeMapThings = Default.includeMapThings;
 
     public bool roofedPatch = Default.roofedPatch;
 
@@ -34,6 +34,7 @@ public class VehicleMapSettings : ModSettings
         Scribe_Values.Look(ref drawPlanet, "drawPlanet", Default.drawPlanet);
         Scribe_Values.Look(ref weightFactor, "weightFactor", Default.weightFactor);
         Scribe_Values.Look(ref drawVehicleMapGrid, "drawVehicleMapGrid", Default.drawVehicleMapGrid);
+        Scribe_Values.Look(ref includeMapThings, "includeMapThings", Default.includeMapThings);
         Scribe_Values.Look(ref roofedPatch, "roofedPatch", Default.roofedPatch);
         Scribe_Values.Look(ref debugToolPatches, "debugToolPatches", Default.debugToolPatches);
         Scribe_Values.Look(ref dynamicPatchEnabled, "dynamicPatchEnabled", Default.dynamicPatchEnabled);
@@ -52,6 +53,8 @@ public class VehicleMapSettings : ModSettings
         public const bool autoGetOffNonPlayer = true;
 
         public const bool drawVehicleMapGrid = false;
+        
+        public const bool includeMapThings = false;
 
         public const bool roofedPatch = false;
 

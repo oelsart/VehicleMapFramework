@@ -4,7 +4,6 @@ using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
 using Verse;
-using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
@@ -13,7 +12,7 @@ internal class Patches_CeleTech
 {
     static Patches_CeleTech()
     {
-        if (ModCompat.CeleTech)
+        if (CeleTech)
         {
             VMF_Harmony.PatchCategory(PatchCategories.CeleTechArsenal);
         }
@@ -75,7 +74,7 @@ public static class Patch_Building_CMCTurretGun_TryFindNewTarget
     {
         tmpList.Clear();
         tmpList.AddRange(list);
-        var maps = instance.Map.BaseMapAndVehicleMaps().Except(instance.Map);
+        var maps = instance.Map.BaseMapAndVehicleMaps.Except(instance.Map);
         tmpList.AddRange(maps.SelectMany(m => m.listerBuildings.allBuildingsColonist));
         return tmpList;
     }

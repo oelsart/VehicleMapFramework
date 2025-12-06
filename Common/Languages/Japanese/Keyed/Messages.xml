@@ -20,10 +20,12 @@
 	<VMF_ContainsMapVehicle>グラヴシップ構造体の上にマップ付き車両があります.</VMF_ContainsMapVehicle>
 	<VMF_ContainsForbidOnVehicle>{0} は車両マップには置けません.</VMF_ContainsForbidOnVehicle>
 	<VMF_RectContainsImpassable>車両の長方形が通れないセルを含んでいます.</VMF_RectContainsImpassable>
-	<VMF_WheelsUnstable>車両が不安定です.</VMF_WheelsUnstable>
+	<VMF_WheelsUnstable>車両が不安定です. 有効なホイール数: {0}</VMF_WheelsUnstable>
 	<VMF_CannotSetDownDiagonal>{0}はこの角度で地面に置けません.</VMF_CannotSetDownDiagonal>
 	<VMF_CannotLaunchNoPilot>パイロットが居ない</VMF_CannotLaunchNoPilot>
 	
-	<VMF_GravshipVehicleDestroyed>グラヴシップ車両は破壊されました</VMF_GravshipVehicleDestroyed>
+	<VMF_GravshipVehicleDestroyed>グラヴシップ車両は破壊されました.</VMF_GravshipVehicleDestroyed>
+	
+	<VMF_AreaDeselect>このマップはエリア {0} を持ちません.</VMF_AreaDeselect>
 	
 </LanguageData>

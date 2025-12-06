@@ -136,6 +136,7 @@
 					<Hay>55.0</Hay>
 					<Uranium>0.75</Uranium>
 					<Bioferrite MayRequire="Ludeon.RimWorld.Anomaly">6</Bioferrite>
+					<VGE_Astrofuel MayRequire="vanillaexpanded.gravship">1.5</VGE_Astrofuel>
 				</fuelConsumptionRates>
 			</li>
 			<li Class="CompProperties_HeatPusher">

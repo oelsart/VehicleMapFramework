@@ -8,7 +8,6 @@ using SmashTools;
 using UnityEngine;
 using Vehicles;
 using Verse;
-using static VehicleMapFramework.MethodInfoCache;
 using Transform = SmashTools.Rendering.Transform;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
@@ -24,7 +23,7 @@ public static class Patch_Thing_Rotation
             if (pawn.pather?.Moving ?? false)
             {
                 var angle = (pawn.pather.nextCell - pawn.Position).AngleFlat;
-                value = Rot8.FromAngle(Ext_Math.RotateAngle(angle, vehicle.FullAngle()));
+                value = Rot8.FromAngle(Ext_Math.RotateAngle(angle, vehicle.FullAngle));
             }
             else if (!pawn.Drafted && !pawn.HostileTo(Faction.OfPlayer))
             {
@@ -342,10 +341,10 @@ public static class Patch_PlaceWorker_WatchArea_DrawGhost
             new CodeInstruction(OpCodes.Br_S, label2),
             new CodeInstruction(OpCodes.Pop).WithLabels(label)
         ]);
-        pos = codes.FindIndex(pos, c => c.opcode == OpCodes.Call && c.OperandIs(CachedMethodInfo.m_GenDraw_DrawFieldEdges));
+        pos = codes.FindIndex(pos, c => c.opcode == OpCodes.Call && c.OperandIs(CachedMethodInfo.m_GenDraw_DrawFieldEdges1));
         codes.Insert(pos, CodeInstruction.LoadLocal(0));
         return codes.MethodReplacer(CachedMethodInfo.g_Find_CurrentMap, CachedMethodInfo.g_VehicleMapUtility_CurrentMap)
-            .MethodReplacer(CachedMethodInfo.m_GenDraw_DrawFieldEdges, CachedMethodInfo.m_GenDrawOnVehicle_DrawFieldEdges);
+            .MethodReplacer(CachedMethodInfo.m_GenDraw_DrawFieldEdges1, CachedMethodInfo.m_GenDrawOnVehicle_DrawFieldEdges1);
     }
 }
 
@@ -480,5 +479,18 @@ public static class Patch_GenConstruct_GetWallAttachedTo
         if (__result is not null) return;
         if (occupiedRect.GetSideLength(thing.Rotation) % 2 == 1) return;
         __result = GenConstruct.GetWallAttachedTo(occupiedRect.GetCenterCellOnEdge(rot, -1), rot, thing.Map);
+    }
+}
+
+[HarmonyPatch(typeof(Building_Bed), nameof(Building_Bed.FindPreferredInteractionCell))]
+[PatchLevel(Level.Mandatory)]
+public static class Patch_Building_Bed_FindPreferredInteractionCell
+{
+    public static void Prefix(Building_Bed __instance, ref CellSearchPattern customSearchPattern)
+    {
+        if (__instance is Building_Hatch && customSearchPattern is null)
+        {
+            customSearchPattern = Building_Hatch.customBedInteractionCellsOrder;
+        }
     }
 }

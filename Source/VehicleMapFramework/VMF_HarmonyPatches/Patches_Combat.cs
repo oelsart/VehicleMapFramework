@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
 using RimWorld;
 using UnityEngine;
 using Verse;
 using Verse.AI;
-using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
@@ -55,7 +55,7 @@ public static class Patch_PawnLeaner_LeanOffset
     {
         if (___pawn.IsOnVehicleMapOf(out var vehicle))
         {
-            __result = __result.RotatedBy(-vehicle.FullAngle());
+            __result = __result.RotatedBy(-vehicle.FullAngle);
         }
     }
 }
@@ -66,7 +66,11 @@ public static class Patch_Projectile_Launch
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap);
+        return new CodeMatcher(instructions)
+            .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_LocalTargetInfo_Cell))
+            .InsertAndAdvance(CodeInstruction.LoadArgument(1))
+            .Set(OpCodes.Call, CachedMethodInfo.m_TargetCellOnBaseMap)
+            .InstructionEnumeration();
     }
 }
 
@@ -196,8 +200,8 @@ public static class Patch_ShotReport_HitReportFor
         }
 
         var codes1 = codes.Take(pos2);
-        var codes2 = codes.Skip(pos2).MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap)
-            .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap)
+        var codes2 = codes.Skip(pos2).MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned)
+            .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned)
             .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
 
         return codes1.Concat(codes2);
@@ -262,14 +266,20 @@ public static class Patch_Building_Turret_Tick
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMapOrCaravan_Thing);
     }
 }
 
-[HarmonyPatch(typeof(Building_TurretGun), nameof(Building_TurretGun.TryFindNewTarget))]
+[HarmonyPatch]
 [PatchLevel(Level.Cautious)]
-public static class Patch_Building_Turret_TryFindNewTarget
+public static class Patch_Building_TurretGun_TryFindNewTarget_Delegate
 {
+    private static MethodBase TargetMethod()
+    {
+        return AccessTools.FindIncludingInnerTypes(typeof(Building_TurretGun),
+            t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<TryFindNewTarget>")));
+    }
+    
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
@@ -455,7 +465,7 @@ public static class Patch_RoofGrid_Roofed
 {
     private static bool Prepare()
     {
-        return VehicleMapFramework.settings.roofedPatch;
+        return VehicleMapFramework.settings is { roofedPatch: true };
     }
 
     public static void Postfix(IntVec3 c, Map ___map, ref bool __result)

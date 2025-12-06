@@ -1,9 +1,10 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using Verse;
 
 namespace VehicleMapFramework;
 
-public class Command_FocusVehicleMap : Command
+public sealed class Command_FocusVehicleMap : Command
 {
     public static VehiclePawnWithMap FocusLockedVehicle { get; set; }
 
@@ -23,7 +24,6 @@ public class Command_FocusVehicleMap : Command
 
     public Command_FocusVehicleMap()
     {
-        // ReSharper disable once VirtualMemberCallInConstructor
         Order = 5000;
     }
 
@@ -38,6 +38,22 @@ public class Command_FocusVehicleMap : Command
         {
             FocusLockedVehicle = null;
             FocusedVehicle = null;
+        }
+    }
+
+    public readonly struct FocusVehicle : IDisposable
+    {
+        private readonly VehiclePawnWithMap tmpFocused;
+
+        public FocusVehicle(VehiclePawnWithMap vehicle)
+        {
+            tmpFocused = FocusedVehicle;
+            FocusedVehicle = vehicle;
+        }
+        
+        public void Dispose()
+        {
+            FocusedVehicle = tmpFocused;
         }
     }
 }

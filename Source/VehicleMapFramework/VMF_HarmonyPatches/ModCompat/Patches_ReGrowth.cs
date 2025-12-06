@@ -10,7 +10,7 @@ internal class Patches_ReGrowth
 {
     static Patches_ReGrowth()
     {
-        if (ModCompat.ReGrowth)
+        if (ReGrowth)
         {
             VMF_Harmony.PatchCategory(PatchCategories.ReGrowth);
         }

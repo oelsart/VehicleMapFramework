@@ -33,5 +33,8 @@
 	
 	<VMF_Flip>反転</VMF_Flip>
 	<VMF_VehicleMode>車両モード</VMF_VehicleMode>
+	
+	<VMF_RemoveSegment>車両セグメント解体</VMF_RemoveSegment>
+	<VMF_RemoveSegmentDesc>拡張された車両構造の一部を解体する.</VMF_RemoveSegmentDesc>
 
 </LanguageData>

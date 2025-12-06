@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using HarmonyLib;
 using Verse;
-using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
@@ -10,7 +9,7 @@ internal class Patches_AnimalCages
 {
     static Patches_AnimalCages()
     {
-        if (ModCompat.AnimalCages)
+        if (AnimalCages)
         {
             VMF_Harmony.PatchCategory(PatchCategories.AnimalCages);
         }

@@ -4,7 +4,6 @@ using System.Reflection.Emit;
 using HarmonyLib;
 using UnityEngine;
 using Verse;
-using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
@@ -13,7 +12,7 @@ internal class Patches_EccentricTech
 {
     static Patches_EccentricTech()
     {
-        if (ModCompat.DefenseGrid.Active)
+        if (DefenseGrid.Active)
         {
             VMF_Harmony.PatchCategory(PatchCategories.EccentricTech_DefenseGrid);
         }

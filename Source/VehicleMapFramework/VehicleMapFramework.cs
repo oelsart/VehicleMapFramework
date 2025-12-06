@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
+using SmashTools;
 using UnityEngine;
 using VehicleMapFramework.Settings;
 using VehicleMapFramework.VMF_HarmonyPatches;
 using Verse;
-using Debug = System.Diagnostics.Debug;
 
 namespace VehicleMapFramework;
 
@@ -17,18 +17,6 @@ public class VehicleMapFramework : Mod
     public static VehicleMapSettings settings;
 
     private static readonly List<TabRecord> tabs = [];
-
-    public static AssetBundle Bundle
-    {
-        get
-        {
-            if (field == null)
-            {
-                field = mod.Content.assetBundles.loadedAssetBundles[0];
-            }
-            return field;
-        }
-    }
 
     public VehicleMapFramework(ModContentPack content) : base(content)
     {
@@ -61,7 +49,7 @@ public class VehicleMapFramework : Mod
         Widgets.DrawMenuSection(rect);
         TabDrawer.DrawTabs(rect, tabs);
         Debug.Assert(CurrentTab != null, nameof(CurrentTab) + " != null");
-        CurrentTab.Draw(rect.ContractedBy(10f));
+        CurrentTab!.Draw(rect.ContractedBy(10f));
     }
 
     public override void WriteSettings()

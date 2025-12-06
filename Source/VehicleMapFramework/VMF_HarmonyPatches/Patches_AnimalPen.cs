@@ -5,7 +5,6 @@ using HarmonyLib;
 using RimWorld;
 using Verse;
 using Verse.AI;
-using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
@@ -29,7 +28,7 @@ public static class Patch_AnimalPenUtility_AnySuitablePens
         {
             var animalMap = animal.Map;
             _ = animal.Position;
-            var maps = animalMap.BaseMapAndVehicleMaps().Except(animalMap);
+            var maps = animalMap.BaseMapAndVehicleMaps.Except(animalMap);
             foreach (var map in maps)
             {
                 foreach (var thing in map.listerBuildings.allBuildingsAnimalPenMarkers)
@@ -55,12 +54,12 @@ public static class Patch_AnimalPenUtility_AnySuitableHitch
         if (!__result)
         {
             var animalMap = animal.Map;
-            var maps = animalMap.BaseMapAndVehicleMaps().Except(animalMap);
+            var maps = animalMap.BaseMapAndVehicleMaps.Except(animalMap);
             foreach (var map in maps)
             {
                 foreach (var thing in map.listerBuildings.allBuildingsAnimalPenMarkers)
                 {
-                    if (animal.CanReach(thing, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, thing.Map, out _, out _))
+                    if (animal.CanReach(thing, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, thing.Map))
                     {
                         __result = true;
                         return;
@@ -80,7 +79,7 @@ public static class Patch_AnimalPenUtility_ClosestSuitablePen
         if (__result == null)
         {
             var animalMap = animal.Map;
-            var maps = animalMap.BaseMapAndVehicleMaps().Except(animalMap);
+            var maps = animalMap.BaseMapAndVehicleMaps.Except(animalMap);
             var num = 0f;
             foreach (var map in maps)
             {
@@ -89,7 +88,7 @@ public static class Patch_AnimalPenUtility_ClosestSuitablePen
                     var compAnimalPenMarker2 = thing.TryGetComp<CompAnimalPenMarker>();
                     if (AnimalPenUtilityOnVehicle.CanUseAndReach(animal, compAnimalPenMarker2, allowUnenclosedPens))
                     {
-                        var num2 = animal.PositionOnBaseMap().DistanceToSquared(compAnimalPenMarker2.parent.PositionOnBaseMap());
+                        var num2 = animal.PositionOnBaseMap.DistanceToSquared(compAnimalPenMarker2.parent.PositionOnBaseMap);
                         if (__result == null || num2 < num)
                         {
                             __result = compAnimalPenMarker2;
@@ -125,7 +124,7 @@ public static class Patch_AnimalPenUtility_GetPenAnimalShouldBeTakenTo
     private static HashSet<Building> AddPenMarkers(HashSet<Building> hashSet, Map map)
     {
         var result = new HashSet<Building>(hashSet);
-        var maps = map.BaseMapAndVehicleMaps().Except(map);
+        var maps = map.BaseMapAndVehicleMaps.Except(map);
         foreach (var map2 in maps)
         {
             result.AddRange(map2.listerBuildings.allBuildingsAnimalPenMarkers);
@@ -166,7 +165,7 @@ public static class Patch_AnimalPenUtility_GetHitchingPostAnimalShouldBeTakenTo
     private static HashSet<Building> AddHitchingPosts(HashSet<Building> hashSet, Map map)
     {
         var result = new HashSet<Building>(hashSet);
-        var maps = map.BaseMapAndVehicleMaps().Except(map);
+        var maps = map.BaseMapAndVehicleMaps.Except(map);
         foreach (var map2 in maps)
         {
             result.AddRange(map2.listerBuildings.allBuildingsHitchingPosts);
@@ -198,11 +197,12 @@ public static class Patch_JobDriver_RopeToDestination_MakeNewToils
                 toil.AddPreInitAction(() =>
                 {
                     var actor = toil.actor;
-                    var ropee = actor.CurJob.targetA.Thing as Pawn;
                     if (actor.CurJob.targetC.HasThing && actor.Map != actor.CurJob.targetC.Thing.Map &&
-                        actor.CanReach(actor.CurJob.targetC.Thing, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, actor.CurJob.targetC.Thing.Map, out var exitSpot, out var enterSpot))
+                        actor.CanReach(actor.CurJob.targetC.Thing, PathEndMode.Touch, Danger.Deadly, false, false,
+                            TraverseMode.ByPawn, actor.CurJob.targetC.Thing.Map, out var exitSpot, out var enterSpot,
+                            out var spotsQueue))
                     {
-                        JobAcrossMapsUtility.StartGotoDestMapJob(actor, exitSpot, enterSpot);
+                        JobAcrossMapsUtility.StartGotoDestMapJob(actor, exitSpot, enterSpot, spotsQueue);
                     }
                 });
             }
@@ -220,10 +220,11 @@ public static class Patch_Toils_Rope_GotoRopeAttachmentInteractionCell
         __result.AddPreInitAction(() =>
         {
             var actor = __result.actor;
-            var ropee = actor.CurJob.GetTarget(ropeeIndex).Thing as Pawn;
-            if (actor.Map != ropee.Map && actor.CanReach(ropee, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, ropee.Map, out var exitSpot, out var enterSpot))
+            if (actor.CurJob.GetTarget(ropeeIndex).Thing is not Pawn ropee) return;
+            if (actor.Map != ropee.Map && actor.CanReach(ropee, PathEndMode.Touch, Danger.Deadly, false, false,
+                    TraverseMode.ByPawn, ropee.Map, out var exitSpot, out var enterSpot, out var spotsQueue))
             {
-                JobAcrossMapsUtility.StartGotoDestMapJob(actor, exitSpot, enterSpot);
+                JobAcrossMapsUtility.StartGotoDestMapJob(actor, exitSpot, enterSpot, spotsQueue);
             }
         });
     }

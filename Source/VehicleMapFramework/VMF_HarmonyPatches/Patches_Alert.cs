@@ -3,7 +3,6 @@ using System.Linq;
 using HarmonyLib;
 using RimWorld;
 using Verse;
-using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
@@ -27,7 +26,7 @@ public static class Patch_Alert_NeedColonistBeds_AvailableColonistBeds
 
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        foreach (var instruction in instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing))
+        foreach (var instruction in instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMapOrCaravan_Thing))
         {
             yield return instruction;
 

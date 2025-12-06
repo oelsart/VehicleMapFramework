@@ -2,7 +2,6 @@
 using HarmonyLib;
 using RimWorld;
 using Verse;
-using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
@@ -18,6 +17,7 @@ public static class Patches_Biotech
     }
 }
 
+[HarmonyPatchCategory(PatchCategories.Biotech)]
 [HarmonyPatch(typeof(ThoughtWorker_PsychicBondProximity), nameof(ThoughtWorker_PsychicBondProximity.NearPsychicBondedPerson))]
 [PatchLevel(Level.Cautious)]
 public static class Patch_ThoughtWorker_PsychicBondProximity_NearPsychicBondedPerson

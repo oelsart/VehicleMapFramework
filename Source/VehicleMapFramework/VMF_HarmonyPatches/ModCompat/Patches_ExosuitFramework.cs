@@ -5,7 +5,6 @@ using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
 using Verse;
-using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
@@ -14,7 +13,7 @@ internal static class Patches_ExosuitFramework
 {
     static Patches_ExosuitFramework()
     {
-        if (ModCompat.ExosuitFramework)
+        if (ExosuitFramework)
         {
             VMF_Harmony.PatchCategory(PatchCategories.ExosuitFramework);
         }
@@ -55,7 +54,7 @@ public static class Patch_WG_AbilityVerb_QuickJump_DoJump
     {
         if (pawn.IsOnNonFocusedVehicleMapOf(out _))
         {
-            var positionOnBaseMap = pawn.PositionOnBaseMap();
+            var positionOnBaseMap = pawn.PositionOnBaseMap;
             currentTarget = new IntVec3(positionOnBaseMap.x, positionOnBaseMap.y, Math.Min(positionOnBaseMap.z + 25, CellRect.WholeMap(targetMap).maxZ));
         }
     }
@@ -81,7 +80,7 @@ public static class Patch_WG_PawnFlyer_ToDiffMapTarget
         if (___eBay == null)
         {
             var mapHeld = pawn.MapHeld;
-            var maps = mapHeld.BaseMapAndVehicleMaps().Except(mapHeld);
+            var maps = mapHeld.BaseMapAndVehicleMaps.Except(mapHeld);
             ___eBay = maps.SelectMany(m => m.listerBuildings.allBuildingsColonist).FirstOrDefault(b => b.GetType() == t_Building_EjectorBay);
         }
     }

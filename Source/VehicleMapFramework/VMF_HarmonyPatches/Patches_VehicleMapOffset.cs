@@ -11,7 +11,6 @@ using Vehicles;
 using Vehicles.Rendering;
 using Verse;
 using Verse.AI;
-using static VehicleMapFramework.MethodInfoCache;
 using static VehicleMapFramework.ModCompat;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
@@ -38,19 +37,41 @@ public static class Patch_UI_MouseCell
 [HarmonyPatch(typeof(GenThing), nameof(GenThing.TrueCenter))]
 public static class Patch_GenThing_TrueCenter
 {
+    private static bool skipFlag;
+    
     [HarmonyBefore(VehicleFramework.HarmonyId)]
     [HarmonyPatch([typeof(Thing)])]
     [PatchLevel(Level.Mandatory)]
     public static bool Prefix(Thing t, ref Vector3 __result)
     {
-        return !t.TryGetDrawPos(ref __result);
+        if (!t.TryGetDrawPos(ref __result))
+        {
+            skipFlag = true;
+            return true;
+        }
+
+        return false;
+    }
+
+    [HarmonyPatch([typeof(Thing)])]
+    [PatchLevel(Level.Mandatory)]
+    public static void Finalizer()
+    {
+        skipFlag = false;
     }
 
     [HarmonyPatch([typeof(IntVec3), typeof(Rot4) ,typeof(IntVec2), typeof(float)])]
     [PatchLevel(Level.Safe)]
     public static void Postfix(ref Vector3 __result)
     {
-        if (VehicleMapUtility.FocusedOnVehicleMap(out var vehicle) && !VehiclePawnWithMapCache.cacheModeGlobal && !vehicle.CurrentLevel.GetCachedMapComponent<VehiclePawnWithMapCache>().cacheMode)
+        // TrueCenter(this Thing t)から呼ばれた場合はオフセットしない
+        if (skipFlag)
+        {
+            return;
+        }
+        if (Command_FocusVehicleMap.FocusedVehicle is { } vehicle &&
+            !VehiclePawnWithMapCache.cacheModeGlobal &&
+            !vehicle.CurrentLevel.GetCachedMapComponent<VehiclePawnWithMapCache>().cacheMode)
         {
             __result = __result.ToBaseMapCoord(vehicle).WithY(__result.y);
         }
@@ -68,7 +89,7 @@ public static class Patch_Pawn_DrawTracker_DrawPos
 
     public static void Postfix(Pawn ___pawn, ref Vector3 __result)
     {
-        __result.y += ___pawn.jobs?.curDriver is JobDriverAcrossMaps driver ? driver.ForcedBodyOffset.y : 0f;
+        __result.y += ___pawn.jobs?.curDriver is JobDriverBodyOffset driver ? driver.ForcedBodyOffset.y : 0f;
     }
 }
 
@@ -86,7 +107,7 @@ public static class Patch_VehiclePawn_DrawPos
     {
         if (__state)
         {
-            __result += ___vehicle.jobs?.curDriver is JobDriverAcrossMaps driver ? driver.ForcedBodyOffset : Vector3.zero;
+            __result += ___vehicle.jobs?.curDriver is JobDriverBodyOffset driver ? driver.ForcedBodyOffset : Vector3.zero;
         }
     }
 }
@@ -211,10 +232,10 @@ public static class Patch_SelectionDrawer_DrawSelectionBracketFor
             new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_RotatePoint)
         ]);
 
-        var m_DrawFieldEdges = SmartFarming.Active ? AccessTools.Method(SmartFarming.MapComponent_SmartFarming, "DrawFieldEdges") : CachedMethodInfo.m_GenDraw_DrawFieldEdges;
+        var m_DrawFieldEdges = SmartFarming.Active ? AccessTools.Method(SmartFarming.MapComponent_SmartFarming, "DrawFieldEdges") : CachedMethodInfo.m_GenDraw_DrawFieldEdges1;
         var m_DrawFieldEdgesOnVehicle =
             SmartFarming.SmartFarmingActive ? AccessTools.Method(typeof(GenDrawOnVehicle), nameof(GenDrawOnVehicle.DrawFieldEdgesSF)) :
-            ReGrowth ? AccessTools.Method(typeof(GenDrawOnVehicle), nameof(GenDrawOnVehicle.DrawFieldEdgesRG)) : CachedMethodInfo.m_GenDrawOnVehicle_DrawFieldEdges;
+            ReGrowth ? AccessTools.Method(typeof(GenDrawOnVehicle), nameof(GenDrawOnVehicle.DrawFieldEdgesRG)) : CachedMethodInfo.m_GenDrawOnVehicle_DrawFieldEdges1;
         var pos3 = codes.FindIndex(c => c.Calls(m_DrawFieldEdges));
         codes[pos3].operand = m_DrawFieldEdgesOnVehicle;
         codes.InsertRange(pos3,
@@ -222,8 +243,8 @@ public static class Patch_SelectionDrawer_DrawSelectionBracketFor
             CodeInstruction.LoadLocal(0),
             new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_Zone_Map)
         ]);
-        var pos4 = codes.FindIndex(pos3 + 3, c => c.Calls(CachedMethodInfo.m_GenDraw_DrawFieldEdges));
-        codes[pos4].operand = CachedMethodInfo.m_GenDrawOnVehicle_DrawFieldEdges;
+        var pos4 = codes.FindIndex(pos3 + 3, c => c.Calls(CachedMethodInfo.m_GenDraw_DrawFieldEdges1));
+        codes[pos4].operand = CachedMethodInfo.m_GenDrawOnVehicle_DrawFieldEdges1;
         codes.InsertRange(pos4,
         [
             CodeInstruction.LoadLocal(1),
@@ -272,12 +293,12 @@ public static class Patch_Pawn_JobTracker_DrawLinesBetweenTargets
 
         if (!targ.Cell.IsValid) return default;
             
-        var driver = pawn.jobs.AllJobs()?.FirstOrDefault()?.GetCachedDriver(pawn);
-        if (TargetMapManager.HasTargetMap(pawn, out var map) && pawn.stances.curStance is Stance_Busy)
+        if (pawn.TryGetTargetMap(out var map) && pawn.stances.curStance is Stance_Busy)
         {
             return targ.Cell.ToVector3Shifted().ToBaseMapCoord(map);
         }
 
+        var driver = pawn.jobs.AllJobs()?.FirstOrDefault()?.GetCachedDriver(pawn);
         if (driver is JobDriverAcrossMaps driverAcrossMaps)
         {
             var destMap = driverAcrossMaps.DestMap;
@@ -286,37 +307,12 @@ public static class Patch_Pawn_JobTracker_DrawLinesBetweenTargets
                 return targ.Cell.ToVector3Shifted().ToBaseMapCoord(vehicle);
             }
         }
-        else if (pawn.IsOnNonFocusedVehicleMapOf(out var vehicle) && !(pawn.stances.curStance is Stance_Busy busy && (busy.verb is Verb_Jump || busy.verb is Verb_CastAbilityJump)))
+        else if (pawn.IsOnNonFocusedVehicleMapOf(out var vehicle) && pawn.stances.curStance is not Stance_Busy
+                 { verb: Verb_Jump or Verb_CastAbilityJump })
         {
             return targ.Cell.ToVector3Shifted().ToBaseMapCoord(vehicle);
         }
         return targ.Cell.ToVector3Shifted();
-    }
-}
-
-[HarmonyPatch(typeof(RenderHelper), nameof(RenderHelper.DrawLinesBetweenTargets))]
-[PatchLevel(Level.Sensitive)]
-public static class Patch_RenderHelper_DrawLinesBetweenTargets
-{
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        var codes = instructions.ToList();
-        var pos = codes.FindIndex(c => c.opcode == OpCodes.Callvirt && c.OperandIs(CachedMethodInfo.g_Thing_Position));
-        codes.RemoveRange(pos, 4);
-        var g_Pawn_DrawPos = AccessTools.PropertyGetter(typeof(Pawn), nameof(Pawn.DrawPos));
-        codes.Insert(pos, new CodeInstruction(OpCodes.Callvirt, g_Pawn_DrawPos));
-
-        var g_CenterVector3 = AccessTools.PropertyGetter(typeof(LocalTargetInfo), nameof(LocalTargetInfo.CenterVector3));
-        var m_CenterVector3VehicleOffset = AccessTools.Method(typeof(Patch_Pawn_JobTracker_DrawLinesBetweenTargets), nameof(Patch_Pawn_JobTracker_DrawLinesBetweenTargets.CenterVector3VehicleOffset));
-        foreach (var code in codes)
-        {
-            if (code.opcode == OpCodes.Call && code.OperandIs(g_CenterVector3))
-            {
-                yield return CodeInstruction.LoadArgument(0);
-                code.operand = m_CenterVector3VehicleOffset;
-            }
-            yield return code;
-        }
     }
 }
 
@@ -539,7 +535,7 @@ public static class Patch_DesignationDragger_DraggerOnGUI
             new CodeInstruction(OpCodes.Call, CachedMethodInfo.g_FocusedVehicle),
             new CodeInstruction(OpCodes.Brfalse_S, label),
             new CodeInstruction(OpCodes.Call, CachedMethodInfo.g_FocusedVehicle),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_AngleRotated),
+            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ExtraAngle),
             new CodeInstruction(OpCodes.Br_S, label2),
             new CodeInstruction(OpCodes.Ldc_R4, 0f).WithLabels(label),
         ]);
@@ -573,9 +569,9 @@ public static class Patch_PlaceWorker_ShowTradeBeaconRadius_DrawGhost
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
         var codes = instructions.ToList();
-        var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(CachedMethodInfo.m_GenDraw_DrawFieldEdges));
+        var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(CachedMethodInfo.m_GenDraw_DrawFieldEdges1));
         var label = generator.DefineLabel();
-        codes[pos].operand = CachedMethodInfo.m_GenDrawOnVehicle_DrawFieldEdges;
+        codes[pos].operand = CachedMethodInfo.m_GenDrawOnVehicle_DrawFieldEdges1;
         codes[pos].labels.Add(label);
         codes.InsertRange(pos,
         [

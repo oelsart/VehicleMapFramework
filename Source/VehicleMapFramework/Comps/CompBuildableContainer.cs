@@ -63,7 +63,8 @@ public class CompBuildableContainer : CompTransporter
                 if (allPawnsSpawned[j].mindState.duty != null && allPawnsSpawned[j].mindState.duty.transportersGroup == groupID)
                 {
                     var compTransporter = JobGiver_EnterTransporter.FindMyTransporter(list, allPawnsSpawned[j]);
-                    if (compTransporter != null && allPawnsSpawned[j].CanReach(compTransporter.parent, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, compTransporter.Map, out _, out _))
+                    if (compTransporter != null && allPawnsSpawned[j].CanReach(compTransporter.parent,
+                            PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, compTransporter.Map))
                     {
                         return true;
                     }
@@ -105,6 +106,7 @@ public class CompBuildableContainer : CompTransporter
                     innerContainer.TryAddRangeOrTransfer(oldContainer);
                 }
                 massCapacityOverride = vehicle.GetStatValue(VehicleStatDefOf.CargoCapacity);
+                vehicle.ContainerComps.Add(this);
             }
             else
             {
@@ -116,16 +118,14 @@ public class CompBuildableContainer : CompTransporter
 
     public override void PostDeSpawn(Map map, DestroyMode mode = DestroyMode.Vanish)
     {
+        if (map.IsVehicleMapOf(out var vehicle)) vehicle.ContainerComps.Remove(this);
         if (CancelLoad(map) && Shuttle == null)
         {
-            if (Props.max1PerGroup)
-            {
-                Messages.Message("MessageTransporterSingleLoadCanceled_TransporterDestroyed".Translate(), MessageTypeDefOf.NegativeEvent);
-            }
-            else
-            {
-                Messages.Message("MessageTransportersLoadCanceled_TransporterDestroyed".Translate(), MessageTypeDefOf.NegativeEvent);
-            }
+            Messages.Message(
+                Props.max1PerGroup
+                    ? "MessageTransporterSingleLoadCanceled_TransporterDestroyed".Translate()
+                    : "MessageTransportersLoadCanceled_TransporterDestroyed".Translate(),
+                MessageTypeDefOf.NegativeEvent);
         }
     }
 

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LanguageData>
 
-	<VMF_ForceOnVehicle>Cannot be placed outside of a vehicle map.</VMF_ForceOnVehicle>
-	<VMF_ForceOnHoverVehicle>Cannot be placed outside of a hover vehicle map.</VMF_ForceOnHoverVehicle>
+	<VMF_ForceOnVehicle>Cannot be placed outside a vehicle map.</VMF_ForceOnVehicle>
+	<VMF_ForceOnHoverVehicle>Cannot be placed outside a hover vehicle map.</VMF_ForceOnHoverVehicle>
 	<VMF_ForbidOnVehicle>Cannot be placed on a vehicle map.</VMF_ForbidOnVehicle>
 	<VMF_ForbidOnHumanPoweredVehicle>Cannot be placed on a human powered vehicle map.</VMF_ForbidOnHumanPoweredVehicle>
 	<VMF_ForceOnVehicleMapEdge>Cannot be placed outside the edge of a vehicle map.</VMF_ForceOnVehicleMapEdge>
@@ -20,10 +20,11 @@
 	<VMF_ContainsMapVehicle>There are some map vehicles on the gravship structure.</VMF_ContainsMapVehicle>
 	<VMF_ContainsForbidOnVehicle>{0} cannot be placed on the vehicle map.</VMF_ContainsForbidOnVehicle>
 	<VMF_RectContainsImpassable>Vehicle rectangle contains impassable cells.</VMF_RectContainsImpassable>
-	<VMF_WheelsUnstable>Vehicle would be unstable.</VMF_WheelsUnstable>
+	<VMF_WheelsUnstable>Vehicle would be unstable. Number of valid wheels: {0}</VMF_WheelsUnstable>
 	<VMF_CannotSetDownDiagonal>{0} cannot set down at an angle.</VMF_CannotSetDownDiagonal>
 	<VMF_CannotLaunchNoPilot>no pilot</VMF_CannotLaunchNoPilot>
 	
 	<VMF_GravshipVehicleDestroyed>The gravship vehicle has been destroyed</VMF_GravshipVehicleDestroyed>
 
+	<VMF_AreaDeselect>This map does not have the area {0}.</VMF_AreaDeselect>
 </LanguageData>

@@ -3,7 +3,6 @@ using System.Reflection;
 using HarmonyLib;
 using UnityEngine;
 using Verse;
-using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
@@ -12,7 +11,7 @@ internal class Patches_DrillTurret
 {
     static Patches_DrillTurret()
     {
-        if (ModCompat.DrillTurret)
+        if (DrillTurret)
         {
             VMF_Harmony.PatchCategory(PatchCategories.DrillTurret);
         }
@@ -110,9 +109,9 @@ public static class Patch_Building_DrillTurret_DrawAt
     [PatchLevel(Level.Safe)]
     public static void Prefix(Thing __instance)
     {
-        if (__instance.IsOnVehicleMapOf(out var vehicle))
+        if (__instance.IsOnNonFocusedVehicleMapOf(out var vehicle))
         {
-            overridePos = __instance.Position.ToVector3ShiftedWithAltitude(AltitudeLayer.Projectile).ToBaseMapCoord(vehicle);
+            overridePos = __instance.Position.ToVector3ShiftedWithAltitude(AltitudeLayer.Projectile.AltitudeFor()).ToBaseMapCoord(vehicle);
             return;
         }
         overridePos = null;

@@ -4,7 +4,6 @@ using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
 using Verse;
-using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
@@ -13,7 +12,7 @@ internal static class Patches_Vivi
 {
     static Patches_Vivi()
     {
-        if (ModCompat.Vivi)
+        if (Vivi)
         {
             VMF_Harmony.PatchCategory(PatchCategories.ViviRace);
         }
@@ -61,7 +60,7 @@ public static class Patch_ArcanePlant_Turret_TryFindNewTarget
     {
         tmpList.Clear();
         tmpList.AddRange(list);
-        var maps = instance.Map.BaseMapAndVehicleMaps().Except(instance.Map);
+        var maps = instance.Map.BaseMapAndVehicleMaps.Except(instance.Map);
         tmpList.AddRange(maps.SelectMany(m => m.listerBuildings.allBuildingsColonist));
         return tmpList;
     }

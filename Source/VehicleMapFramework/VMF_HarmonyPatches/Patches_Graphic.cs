@@ -7,7 +7,6 @@ using RimWorld;
 using SmashTools;
 using UnityEngine;
 using Verse;
-using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
@@ -199,65 +198,37 @@ public static class Patch_GraphicUtility_WrapLinked
     }
 }
 
-//カメラの制限範囲を書き換える。CurrentMapがVehicleMapだったらDrawSizeの長辺を参照する
+//カメラの制限範囲を書き換える
 [HarmonyPatch(typeof(CameraDriver), nameof(CameraDriver.Update))]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_CameraDriver_Update
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
-        var codes = instructions.ToList();
-        var g_Thing_DrawSize = AccessTools.PropertyGetter(typeof(Thing), nameof(Thing.DrawSize));
-        var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithMap));
-        var isVehicleMap = generator.DeclareLocal(typeof(bool));
-        var longSide = generator.DeclareLocal(typeof(float));
-        var drawSize = generator.DeclareLocal(typeof(Vector2));
-
-        var pos = codes.FindIndex(c => c.opcode == OpCodes.Ldc_R4 && c.OperandIs(2f)) + 1;
-        var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Ldc_R4 && c.OperandIs(-2f));
-        var label = generator.DefineLabel();
-        var label2 = generator.DefineLabel();
-        codes[pos].labels.Add(label);
-        codes[pos2].labels.Add(label2);
-        codes.InsertRange(pos,
-        [
-            CodeInstruction.LoadField(typeof(VehicleMapFramework), nameof(VehicleMapFramework.settings)),
-            CodeInstruction.LoadField(typeof(VehicleMapSettings), nameof(VehicleMapSettings.drawPlanet)),
-            new CodeInstruction(OpCodes.Brfalse_S, label),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.g_Find_CurrentMap),
-            new CodeInstruction(OpCodes.Ldloca_S, vehicle),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsVehicleMapOf),
-            new CodeInstruction(OpCodes.Stloc_S, isVehicleMap),
-            new CodeInstruction(OpCodes.Ldloc_S, isVehicleMap),
-            new CodeInstruction(OpCodes.Brfalse_S, label),
-            new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-            new CodeInstruction(OpCodes.Callvirt, g_Thing_DrawSize),
-            new CodeInstruction(OpCodes.Stloc_S, drawSize),
-            new CodeInstruction(OpCodes.Ldloc_S, drawSize),
-            CodeInstruction.LoadField(typeof(Vector2), nameof(Vector2.x)),
-            new CodeInstruction(OpCodes.Ldloc_S, drawSize),
-            CodeInstruction.LoadField(typeof(Vector2), nameof(Vector2.y)),
-            CodeInstruction.Call(typeof(Mathf), nameof(Mathf.Max), [typeof(float), typeof(float)]),
-            new CodeInstruction(OpCodes.Stloc_S, longSide),
-            new CodeInstruction(OpCodes.Ldloc_S, longSide),
-            new CodeInstruction(OpCodes.Br_S, label2),
-        ]);
-
-        pos = codes.FindIndex(pos2, c => c.opcode == OpCodes.Ldc_R4 && c.OperandIs(2f)) + 1;
-        pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Ldc_R4 && c.OperandIs(-2f));
-        var label3 = generator.DefineLabel();
-        var label4 = generator.DefineLabel();
-        codes[pos].labels.Add(label3);
-        codes[pos2].labels.Add(label4);
-        codes.InsertRange(pos,
-        [
-            new CodeInstruction(OpCodes.Ldloc_S, isVehicleMap),
-            new CodeInstruction(OpCodes.Brfalse_S, label3),
-            new CodeInstruction(OpCodes.Ldloc_S, longSide),
-            new CodeInstruction(OpCodes.Br_S, label4),
-        ]);
-
-        return codes;
+        const float limit = 200f;
+        return new CodeMatcher(instructions, generator)
+            .MatchStartForward(CodeMatch.LoadsConstant(-2f))
+            .DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle)
+            .DeclareLocal(typeof(bool), out var isVehicleMap)
+            .CreateLabel(out var label)
+            .Insert(
+                CodeInstruction.LoadField(typeof(VehicleMapFramework), nameof(VehicleMapFramework.settings)),
+                CodeInstruction.LoadField(typeof(VehicleMapSettings), nameof(VehicleMapSettings.drawPlanet)),
+                new CodeInstruction(OpCodes.Brfalse_S, label),
+                new CodeInstruction(OpCodes.Call, CachedMethodInfo.g_Find_CurrentMap),
+                new CodeInstruction(OpCodes.Ldloca_S, vehicle),
+                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsVehicleMapOf),
+                new CodeInstruction(OpCodes.Stloc_S, isVehicleMap))
+            .Repeat(c =>
+            {
+                c.CreateLabel(out var label2)
+                    .InsertAndAdvance(
+                    new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+                    new CodeInstruction(OpCodes.Brfalse_S, label2),
+                    new CodeInstruction(OpCodes.Pop),
+                    new CodeInstruction(OpCodes.Ldc_R4, limit))
+                    .Advance();
+            }).InstructionEnumeration();
     }
 }
 
@@ -294,7 +265,7 @@ public static class Patch_PawnRenderer_BodyAngle
     {
         if (___pawn.IsOnNonFocusedVehicleMapOf(out var vehicle))
         {
-            __result = Ext_Math.RotateAngle(__result, vehicle.FullAngle());
+            __result = Ext_Math.RotateAngle(__result, vehicle.FullAngle);
         }
     }
 }
@@ -305,7 +276,7 @@ public static class Patch_GenDraw_DrawAimPie
     [PatchLevel(Level.Safe)]
     public static void Prefix(Thing shooter, ref LocalTargetInfo target)
     {
-        if (!target.HasThing && TargetMapManager.HasTargetMap(shooter, out var map))
+        if (!target.HasThing && shooter.TryGetTargetMap(out var map))
         {
             target = target.Cell.ToBaseMapCoord(map);
         }
@@ -371,7 +342,7 @@ public static class Patch_Graphic_Draw
         }
         else if (thing is { Spawned: false } && thing.SpawnedParentOrMe.IsOnNonFocusedVehicleMapOf(out vehicle))
         {
-            extraRotation += vehicle.FullAngle();
+            extraRotation += vehicle.FullAngle;
         }
     }
 }

@@ -7,7 +7,6 @@ using HarmonyLib;
 using UnityEngine;
 using Verse;
 using Verse.AI;
-using static VehicleMapFramework.MethodInfoCache;
 using static VehicleMapFramework.ModCompat.MeleeAnimation;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches.AM;
@@ -37,9 +36,11 @@ public static class Patch_JobDriver_GoToAnimationSpot_MakeGoToToil
             var curJob = actor.CurJob;
             var target = curJob.GetTarget(TargetIndex.A);
             var thingMap = target.Thing?.MapHeld;
-            if (thingMap != null && actor.Map != thingMap && actor.CanReach(target, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, thingMap, out var exitSpot, out var enterSpot))
+            if (thingMap != null && actor.Map != thingMap && actor.CanReach(target, PathEndMode.OnCell, Danger.Deadly,
+                    false, false, TraverseMode.ByPawn, thingMap, out var exitSpot, out var enterSpot,
+                    out var spotsQueue))
             {
-                JobAcrossMapsUtility.StartGotoDestMapJob(actor, exitSpot, enterSpot);
+                JobAcrossMapsUtility.StartGotoDestMapJob(actor, exitSpot, enterSpot, spotsQueue);
             }
         });
     }
@@ -58,7 +59,7 @@ public static class Patch_ActionController_GetGrappleReport
         //GrapplerとTargetのマップ比較のとこだけBaseMapに変換する
         var pos = codes.FindIndex(c => c.opcode == OpCodes.Callvirt && c.OperandIs(CachedMethodInfo.g_Thing_Map));
         pos = codes.FindIndex(pos + 1, c => c.opcode == OpCodes.Callvirt && c.OperandIs(CachedMethodInfo.g_Thing_Map));
-        codes[pos].opcode = OpCodes.Callvirt;
+        codes[pos].opcode = OpCodes.Call;
         codes[pos].operand = CachedMethodInfo.m_BaseMap_Thing;
 
         pos = codes.FindLastIndex(pos, c => c.opcode == OpCodes.Ldarg_1);

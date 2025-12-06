@@ -4,7 +4,6 @@ using HarmonyLib;
 using SmashTools;
 using Verse;
 using Verse.AI;
-using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
@@ -13,7 +12,7 @@ internal class Patches_PUAH
 {
     static Patches_PUAH()
     {
-        if (ModCompat.PickUpAndHaul)
+        if (PickUpAndHaul)
         {
             VMF_Harmony.PatchCategory(PatchCategories.PickUpAndHaul);
         }
@@ -55,9 +54,9 @@ public static class Patch_ThingPositionComparer_Compare
 
 [HarmonyPatchCategory(PatchCategories.PickUpAndHaul)]
 [HarmonyPatch("PickUpAndHaul.WorkGiver_HaulToInventory", "JobOnThing")]
-[PatchLevel(Level.Sensitive)]
 public static class Patch_WorkGiver_HaulToInventory_JobOnThing
 {
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
         var codes = new CodeMatcher(instructions, generator);
@@ -107,10 +106,26 @@ public static class Patch_WorkGiver_HaulToInventory_JobOnThing
         });
     }
 
-    public static void Postfix(Pawn pawn, Job __result)
+    // JobGiver_Haulから呼ばれた時用
+    [PatchLevel(Level.Safe)]
+    public static void Prefix(Pawn pawn, Thing thing, ref Map __state)
     {
+        var thingMap = thing.MapHeld;
+        var pawnMap = pawn.MapHeld;
+        if (thingMap is not null && thingMap != pawnMap)
+        {
+            __state = pawnMap;
+            pawn.VirtualMapTransfer(thingMap);
+        }
+    }
+
+    [PatchLevel(Level.Safe)]
+    public static void Finalizer(Pawn pawn, Job __result, Map __state)
+    {
+        if (__state is not null)
+            pawn.VirtualMapTransfer(__state);
         if (__result is null) return;
-        if (TargetMapManager.HasTargetMap(pawn, out var map) && __result.def?.defName == "HaulToInventory" && __result.targetB.IsValid)
+        if (pawn.TryGetTargetMap(out var map) && __result.def?.defName == "HaulToInventory" && __result.targetB.IsValid)
         {
             __result.globalTarget = __result.targetB.ToGlobalTargetInfo(map);
         }
@@ -124,16 +139,16 @@ public static class Patch_WorkGiver_HaulToInventory_AllocateThingAtCell
     [PatchLevel(Level.Safe)]
     public static void Prefix(Pawn pawn, Thing nextThing)
     {
-        if (TargetMapManager.HasTargetMap(pawn, out var map))
+        if (pawn.TryGetTargetMap(out var map))
         {
-            TargetMapManager.SetTargetMap(nextThing, map);
+            nextThing.TargetMap = map;
         }
     }
 
     [PatchLevel(Level.Safe)]
     public static void Finaliner(Thing nextThing)
     {
-        TargetMapManager.RemoveTargetInfo(nextThing);
+        nextThing.RemoveTargetInfo();
     }
 
     [PatchLevel(Level.Cautious)]

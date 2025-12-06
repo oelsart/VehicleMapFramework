@@ -13,7 +13,7 @@ internal static class Patches_BillDoorsFramework
 {
     static Patches_BillDoorsFramework()
     {
-        if (ModCompat.BillDoorsFramework)
+        if (BillDoorsFramework)
         {
             VMF_Harmony.PatchCategory(PatchCategories.BillDoorsFramework);
         }
@@ -98,7 +98,7 @@ public static class Patch_PlaceWorker_ShowVerbRadiusBySight_AllowsPlacing
 
     static Patch_PlaceWorker_ShowVerbRadiusBySight_AllowsPlacing()
     {
-        if (ModCompat.BillDoorsFramework)
+        if (BillDoorsFramework)
         {
             redMat = DebugMatsSpectrum.Mat(0, false);
             redMat.color = redMat.color.ToTransparent(0.1f);

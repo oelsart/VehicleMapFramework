@@ -2,6 +2,7 @@
 using DevTools.Testing;
 using RimWorld;
 using UnityEngine;
+using UnityEngine.Assertions;
 using VehicleMapFramework.VMF_HarmonyPatches;
 using Vehicles;
 using Vehicles.UnitTesting;
@@ -29,16 +30,19 @@ internal abstract class WorkGiverTestBase(VehicleGroup group)
     public virtual void ExecuteStep1()
     {
         results[0] = RunWorkGiverBeforePatch(Pawn, WorkGiverDef);
+        Expect.IsNotNull(results[0].job);
     }
 
     public virtual void ExecuteStep2()
     {
         results[1] = RunWorkGiverAfterPatch(Pawn, Vehicle, WorkGiverDef);
         Expect.AreEqual(results[0], results[1]);
+        Expect.IsFalse(JobFailReason.HaveReason, JobFailReason.Reason);
     }
 
     public virtual void TearDown()
     {
+        UnitTest_WorkGivers.ClearPawnState(Pawn);
         Clear();
     }
 
@@ -50,7 +54,6 @@ internal abstract class WorkGiverTestBase(VehicleGroup group)
 
     protected static WorkGiverResult RunWorkGiverBeforePatch(Pawn pawn, WorkGiverDef workGiverDef)
     {
-        pawn.ClearAllReservations();
         var result = new WorkGiverResult();
         var workGiver = workGiverDef.Worker;
         result.pawnCanUse = PawnCanUseWorkGiver(pawn, workGiver);
@@ -182,7 +185,6 @@ internal abstract class WorkGiverTestBase(VehicleGroup group)
             result.job = job3;
         }
 
-        Expect.IsNotNull(result.job);
         return result;
         
         static bool PawnCanUseWorkGiver(Pawn pawn, WorkGiver giver)
@@ -211,9 +213,11 @@ internal abstract class WorkGiverTestBase(VehicleGroup group)
         }
     }
     
-    protected static WorkGiverResult RunWorkGiverAfterPatch(Pawn pawn, VehiclePawn vehicle, WorkGiverDef workGiverDef)
+    internal static WorkGiverResult RunWorkGiverAfterPatch(Pawn pawn, VehiclePawn vehicle, WorkGiverDef workGiverDef)
     {
-        pawn.ClearAllReservations();
+        Assert.IsNotNull(pawn, "pawn is null");
+        Assert.IsNotNull(vehicle, "vehicle is null");
+        Assert.IsNotNull(workGiverDef, "workGiverDef is null");
         var result = new WorkGiverResult();
         var workGiver = workGiverDef.Worker;
         result.pawnCanUse = PawnCanUseWorkGiver(pawn, workGiver);

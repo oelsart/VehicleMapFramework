@@ -8,7 +8,6 @@ using SmashTools;
 using UnityEngine;
 using Verse;
 using Verse.AI;
-using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
@@ -17,7 +16,7 @@ internal static class Patches_GiantImperialTurret
 {
     static Patches_GiantImperialTurret()
     {
-        if (ModCompat.GiantImperialTurret)
+        if (GiantImperialTurret)
         {
             VMF_Harmony.PatchCategory(PatchCategories.GiantImperialTurret);
         }
@@ -102,11 +101,11 @@ public static class Patch_AttackTargetFinderAngle_BestAttackTarget
 
         var map = searcher.Thing.Map;
         var pos = searcher.Thing.Position;
-        var maps = map.BaseMapAndVehicleMaps().Except(map);
+        var maps = map.BaseMapAndVehicleMaps.Except(map);
 
         if (maps.Any())
         {
-            var basePos = searcher.Thing.PositionOnBaseMap();
+            var basePos = searcher.Thing.PositionOnBaseMap;
             foreach (var map2 in maps)
             {
                 IAttackTarget target = null;

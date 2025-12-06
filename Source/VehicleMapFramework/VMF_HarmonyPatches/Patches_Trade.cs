@@ -1,14 +1,16 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
 using HarmonyLib;
 using RimWorld;
 using RimWorld.Planet;
 using Vehicles;
+using Vehicles.World;
 using Verse;
-using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
@@ -26,7 +28,7 @@ public static class Patch_Pawn_ColonyThingsWillingToBuy
                 yield return thing;
             }
         }
-        var maps = __instance.Map.BaseMapAndVehicleMaps().Except(__instance.Map);
+        var maps = __instance.Map.BaseMapAndVehicleMaps.Except(__instance.Map);
         var departMap = __instance.Map;
         CrossMapReachabilityUtility.DepartMapGlobal = departMap;
         try
@@ -48,6 +50,37 @@ public static class Patch_Pawn_ColonyThingsWillingToBuy
     }
 }
 
+// Experimental: AllInventoryItemsに車両マップの物を含める
+[HarmonyPatch(typeof(CaravanInventoryUtility), nameof(CaravanInventoryUtility.AllInventoryItems))]
+[PatchLevel(Level.Safe)]
+public static class Patch_CaravanInventoryUtility_AllInventoryItems
+{
+    [PatchLevel(Level.Mandatory)]
+    [HarmonyReversePatch]
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static List<Thing> AllInventoryItems(Caravan caravan) => throw new NotImplementedException();
+    
+    [PatchLevel(Level.Safe)]
+    public static void Postfix(Caravan caravan, List<Thing> __result)
+    {
+        if (!VehicleMapFramework.settings.includeMapThings || caravan is not VehicleCaravan vehicleCaravan) return;
+        __result.AddRange(vehicleCaravan.Vehicles.OfType<VehiclePawnWithMap>()
+            .SelectMany(v => v.VehicleMap.listerThings.AllThings
+                .Where(t => t is not Pawn { IsFreeColonist: true })));
+    }
+}
+
+[HarmonyPatch(typeof(Caravan_BedsTracker), "GetUsableBeds")]
+[PatchLevel(Level.Cautious)]
+public static class Patch_Caravan_BedsTracker_GetUsableBeds
+{
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        return instructions.MethodReplacer(CachedMethodInfo.m_AllInventoryItems,
+            CachedMethodInfo.m_AllInventoryItems_Original);
+    }
+}
+
 //キャラバンのメンバーにVehiclePawnWithMapが含まれる場合そのVehicleMap上の物も取引できるようにする
 [HarmonyPatch(typeof(Caravan), nameof(Caravan.ColonyThingsWillingToBuy))]
 [PatchLevel(Level.Safe)]
@@ -65,6 +98,10 @@ public static class Patch_Caravan_ColonyThingsWillingToBuy
                 yield return thing;
             }
         }
+
+        if (VehicleMapFramework.settings.includeMapThings)
+            yield break;
+        
         if (!vehicles.NullOrEmpty())
         {
             foreach (var thing in vehicles!.SelectMany(vehicle => vehicle.ColonyThingsWillingToBuyOnVehicle(playerNegotiator)))
@@ -98,7 +135,7 @@ public static class Patch_Building_OrbitalTradeBeacon_AllPowered
     {
         foreach (var b in values) yield return b;
 
-        var maps = map.BaseMapAndVehicleMaps().Except(map);
+        var maps = map.BaseMapAndVehicleMaps.Except(map);
         var buildings = maps.SelectMany(m => m.listerBuildings.AllBuildingsColonistOfClass<Building_OrbitalTradeBeacon>().Where(b =>
         {
             var comp = b.GetComp<CompPowerTrader>();
@@ -117,7 +154,7 @@ public static class Patch_TradeShip_ColonyThingsWillingToBuy
     public static IEnumerable<Thing> Postfix(IEnumerable<Thing> values, Pawn playerNegotiator)
     {
         var result = values.ToList();
-        var maps = playerNegotiator.Map.BaseMapAndVehicleMaps().Except(playerNegotiator.Map);
+        var maps = playerNegotiator.Map.BaseMapAndVehicleMaps.Except(playerNegotiator.Map);
 
         foreach (var map in maps)
         {

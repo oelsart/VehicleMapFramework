@@ -8,7 +8,7 @@ internal class Patches_CutPlantsBeforeBuilding
 {
     static Patches_CutPlantsBeforeBuilding()
     {
-        if (ModCompat.CutPlantsBeforeBuilding)
+        if (CutPlantsBeforeBuilding)
         {
             VMF_Harmony.PatchCategory(PatchCategories.CutPlantsBeforeBuilding);
         }

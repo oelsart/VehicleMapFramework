@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using HarmonyLib;
-using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
@@ -9,7 +8,7 @@ internal class Patches_SmartPistol
 {
     static Patches_SmartPistol()
     {
-        if (ModCompat.SmartPistol)
+        if (SmartPistol)
         {
             VMF_Harmony.PatchCategory(PatchCategories.SmartPistol);
         }

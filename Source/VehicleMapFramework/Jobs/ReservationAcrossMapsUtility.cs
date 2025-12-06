@@ -12,101 +12,6 @@ namespace VehicleMapFramework;
 public static class ReservationAcrossMapsUtility
 {
     private static readonly List<ReservationManager.Reservation> tmpReservations = [];
-    
-    public static bool CanReserve(this Pawn claimant, LocalTargetInfo target, int maxPawns, int stackCount, ReservationLayerDef layer, bool ignoreOtherReservations, Map map)
-    {
-        if (claimant == null)
-        {
-            Log.Error("CanReserve with null claimant");
-            return false;
-        }
-        if (!claimant.Spawned || claimant.BaseMap() != map.BaseMap())
-        {
-            return false;
-        }
-        if (!target.IsValid || target.ThingDestroyed)
-        {
-            return false;
-        }
-        if (target.HasThing && target.Thing.SpawnedOrAnyParentSpawned && target.Thing.MapHeld != map)
-        {
-            return false;
-        }
-        var num = target.HasThing ? target.Thing.stackCount : 1;
-        var num2 = (stackCount == -1) ? num : stackCount;
-        if (num2 > num)
-        {
-            return false;
-        }
-
-        if (ignoreOtherReservations) return true;
-        if (map.physicalInteractionReservationManager.IsReserved(target) && !map.physicalInteractionReservationManager.IsReservedBy(claimant, target))
-        {
-            return false;
-        }
-        if (MultiFloors.Active && map != claimant.Map)
-        {
-            if (claimant.Map.physicalInteractionReservationManager.IsReserved(target) && !claimant.Map.physicalInteractionReservationManager.IsReservedBy(claimant, target))
-            {
-                return false;
-            }
-        }
-
-        tmpReservations.Clear();
-        tmpReservations.AddRange(map.reservationManager.ReservationsReadOnly);
-        if (MultiFloors.Active && map != claimant.Map)
-        {
-            tmpReservations.AddRange(claimant.Map.reservationManager.ReservationsReadOnly);
-        }
-        foreach (var reservation in tmpReservations)
-        {
-            if (reservation.Target == target && reservation.Layer == layer && reservation.Claimant == claimant && (reservation.StackCount == -1 || reservation.StackCount >= num2))
-            {
-                return true;
-            }
-        }
-        if (target is { HasThing: true, Thing: Building building } && building.def.hasInteractionCell)
-        {
-            var interactionCell = building.InteractionCell;
-            var edifice = interactionCell.GetEdifice(map);
-            if (edifice != null)
-            {
-                if (map.reservationManager.TryGetReserver(edifice, claimant.Faction, out var pawn) && pawn.Spawned && pawn != claimant)
-                {
-                    return false;
-                }
-            }
-            else if (map.reservationManager.TryGetReserver(interactionCell, claimant.Faction, out var pawn2) && pawn2.Spawned && pawn2 != claimant)
-            {
-                return false;
-            }
-        }
-        var num3 = 0;
-        var num4 = 0;
-        foreach (var reservation in tmpReservations.Where(reservation =>
-                     reservation.Target == target && reservation.Layer == layer && reservation.Claimant != claimant &&
-                     RespectsReservationsOf(claimant, reservation.Claimant)))
-        {
-            if (reservation.MaxPawns != maxPawns)
-            {
-                return false;
-            }
-            num3++;
-            if (reservation.StackCount == -1)
-            {
-                num4 += num;
-            }
-            else
-            {
-                num4 += reservation.StackCount;
-            }
-            if (num3 >= maxPawns || num2 + num4 > num)
-            {
-                return false;
-            }
-        }
-        return true;
-    }
 
     private static bool RespectsReservationsOf(Pawn newClaimant, Pawn oldClaimant)
     {
@@ -149,23 +54,120 @@ public static class ReservationAcrossMapsUtility
     //    return p.Spawned && destMap.reservationManager.ReservedBy<TDriver>(target, p, targetAIsNot, targetBIsNot, targetCIsNot);
     //}
 
-    public static bool CanReserveNew(this Pawn p, LocalTargetInfo target, Map destMap)
+    extension(Pawn p)
     {
-        return target.IsValid && !p.HasReserved(target, null, destMap) && p.CanReserve(target, 1, -1, null, false, destMap);
-    }
-
-    public static bool HasReserved(this Pawn p, LocalTargetInfo target, Job job, Map destMap)
-    {
-        return p.Spawned && destMap.reservationManager.ReservedBy(target, p, job);
-    }
-
-    public static bool Reserve(this Pawn p, Map map, LocalTargetInfo target, Job job, int maxPawns = 1, int stackCount = -1, ReservationLayerDef layer = null, bool errorOnFailed = true, bool ignoreOtherReservations = false)
-    {
-        if (map == null && target.HasThing)
+        public bool CanReserve(LocalTargetInfo target, int maxPawns, int stackCount, ReservationLayerDef layer, bool ignoreOtherReservations, Map map)
         {
-            map = target.Thing.MapHeld;
+            if (p == null)
+            {
+                Log.Error("CanReserve with null claimant");
+                return false;
+            }
+            if (!p.Spawned || p.BaseMapOrCaravan != map.BaseMapOrCaravan)
+            {
+                return false;
+            }
+            if (!target.IsValid || target.ThingDestroyed)
+            {
+                return false;
+            }
+            if (target.HasThing && target.Thing.SpawnedOrAnyParentSpawned && target.Thing.MapHeld != map)
+            {
+                return false;
+            }
+            var num = target.HasThing ? target.Thing.stackCount : 1;
+            var num2 = (stackCount == -1) ? num : stackCount;
+            if (num2 > num)
+            {
+                return false;
+            }
+
+            if (ignoreOtherReservations) return true;
+            if (map.physicalInteractionReservationManager.IsReserved(target) && !map.physicalInteractionReservationManager.IsReservedBy(p, target))
+            {
+                return false;
+            }
+            if (MultiFloors.Active && map != p.Map)
+            {
+                if (p.Map.physicalInteractionReservationManager.IsReserved(target) && !p.Map.physicalInteractionReservationManager.IsReservedBy(p, target))
+                {
+                    return false;
+                }
+            }
+
+            tmpReservations.Clear();
+            tmpReservations.AddRange(map.reservationManager.ReservationsReadOnly);
+            if (MultiFloors.Active && map != p.Map)
+            {
+                tmpReservations.AddRange(p.Map.reservationManager.ReservationsReadOnly);
+            }
+            if (tmpReservations.Any(reservation =>
+                    reservation.Target == target && reservation.Layer == layer && reservation.Claimant == p &&
+                    (reservation.StackCount == -1 || reservation.StackCount >= num2)))
+            {
+                return true;
+            }
+            if (target is { HasThing: true, Thing: Building building } && building.def.hasInteractionCell)
+            {
+                var interactionCell = building.InteractionCell;
+                var edifice = interactionCell.GetEdifice(map);
+                if (edifice != null)
+                {
+                    if (map.reservationManager.TryGetReserver(edifice, p.Faction, out var pawn) && pawn.Spawned && pawn != p)
+                    {
+                        return false;
+                    }
+                }
+                else if (map.reservationManager.TryGetReserver(interactionCell, p.Faction, out var pawn2) && pawn2.Spawned && pawn2 != p)
+                {
+                    return false;
+                }
+            }
+            var num3 = 0;
+            var num4 = 0;
+            foreach (var reservation in tmpReservations.Where(reservation =>
+                         reservation.Target == target && reservation.Layer == layer && reservation.Claimant != p &&
+                         RespectsReservationsOf(p, reservation.Claimant)))
+            {
+                if (reservation.MaxPawns != maxPawns)
+                {
+                    return false;
+                }
+                num3++;
+                if (reservation.StackCount == -1)
+                {
+                    num4 += num;
+                }
+                else
+                {
+                    num4 += reservation.StackCount;
+                }
+                if (num3 >= maxPawns || num2 + num4 > num)
+                {
+                    return false;
+                }
+            }
+            return true;
         }
-        return map != null && map.reservationManager.Reserve(p, job, target, maxPawns, stackCount, layer, errorOnFailed, ignoreOtherReservations);
+        
+        public bool CanReserveNew(LocalTargetInfo target, Map destMap)
+        {
+            return target.IsValid && !p.HasReserved(target, null, destMap) && p.CanReserve(target, 1, -1, null, false, destMap);
+        }
+
+        public bool HasReserved(LocalTargetInfo target, Job job, Map destMap)
+        {
+            return p.Spawned && destMap.reservationManager.ReservedBy(target, p, job);
+        }
+
+        public bool Reserve(Map map, LocalTargetInfo target, Job job, int maxPawns = 1, int stackCount = -1, ReservationLayerDef layer = null, bool errorOnFailed = true, bool ignoreOtherReservations = false)
+        {
+            if (map == null && target.HasThing)
+            {
+                map = target.Thing.MapHeld;
+            }
+            return map != null && map.reservationManager.Reserve(p, job, target, maxPawns, stackCount, layer, errorOnFailed, ignoreOtherReservations);
+        }
     }
 
     //public static void ReserveAsManyAsPossible(this Pawn p, Map map, List<LocalTargetInfo> target, Job job, int maxPawns = 1, int stackCount = -1, ReservationLayerDef layer = null)

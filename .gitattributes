@@ -61,5 +61,4 @@
 #*.PDF   diff=astextplain
 #*.rtf   diff=astextplain
 #*.RTF   diff=astextplain
-
-About/About.xml merge=theirs
+/About/About.xml merge=theirs

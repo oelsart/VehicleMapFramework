@@ -5,13 +5,13 @@ using Verse;
 
 namespace VehicleMapFramework;
 
-public class Verb_LaunchZipline : Verb_Shoot //タレット範囲の表示PlaceWorkerの仕様のためShootを継承
+public class Verb_LaunchZipline : Verb_Shoot
 {
     public Thing ZiplineEnd { get; set; }
 
     public override bool ValidateTarget(LocalTargetInfo target, bool showMessages = true)
     {
-        var map = TargetMapManager.HasTargetMap(caster, out var map2) ? map2 : caster.Map;
+        var map = caster.TargetMap ?? caster.Map;
         if (caster.Map == map)
         {
             Messages.Message("VMF_MustShotAtAnotherMap".Translate(), MessageTypeDefOf.RejectInput, false);
@@ -44,7 +44,7 @@ public class Verb_LaunchZipline : Verb_Shoot //タレット範囲の表示PlaceW
             return false;
         }
 
-        var flag = this.TryFindShootLineFromToOnVehicle(caster.PositionOnBaseMap(), currentTarget, out var resultingLine);
+        var flag = this.TryFindShootLineFromToOnVehicle(caster.PositionOnBaseMap, currentTarget, out var resultingLine);
         if (verbProps.stopBurstWithoutLos && !flag)
         {
             return false;
@@ -72,9 +72,15 @@ public class Verb_LaunchZipline : Verb_Shoot //タレット範囲の表示PlaceW
         if (projectile2 is Bullet_ZiplineEnd zipline)
         {
             zipline.launchVerb = this;
-            if (TargetMapManager.HasTargetMap(caster, out var map))
+            if (caster.TryGetTargetMap(out var map))
             {
                 zipline.destMap = map;
+            }
+
+            var customZipline2 = zipline.def.GetModExtension<CustomZipline>();
+            if (customZipline2 != null)
+            {
+                zipline.ZipLineData = customZipline2.zipLineData;
             }
         }
         if (verbProps.ForcedMissRadius > 0.5f)
@@ -85,7 +91,7 @@ public class Verb_LaunchZipline : Verb_Shoot //タレット範囲の表示PlaceW
                 num *= verbProps.GetForceMissFactorFor(equipmentSource, pawn);
             }
 
-            var num2 = VerbUtility.CalculateAdjustedForcedMiss(num, currentTarget.CellOnBaseMap() - caster.PositionOnBaseMap());
+            var num2 = VerbUtility.CalculateAdjustedForcedMiss(num, currentTarget.CellOnBaseMap() - caster.PositionOnBaseMap);
             if (num2 > 0.5f)
             {
                 var forcedMissTarget = GetForcedMissTarget(num2);
@@ -143,7 +149,7 @@ public class Verb_LaunchZipline : Verb_Shoot //タレット範囲の表示PlaceW
             projectileHitFlags4 |= ProjectileHitFlags.NonTargetPawns;
         }
 
-        if (currentTarget.Thing?.def.Fillage == FillCategory.Full)
+        if (!currentTarget.HasThing || currentTarget.Thing!.def.Fillage == FillCategory.Full)
         {
             projectileHitFlags4 |= ProjectileHitFlags.NonTargetWorld;
         }
@@ -160,17 +166,17 @@ public class Verb_LaunchZipline : Verb_Shoot //タレット範囲の表示PlaceW
         {
             return;
         }
-        var map = Patch_JumpUtility_OrderJump.TargetMap(caster);
+        var map = caster.TargetMapOrThingMap;
         if (target.IsValid && JumpUtility.ValidJumpTarget(caster, map, target.Cell))
         {
             GenDraw.DrawTargetHighlightWithLayer(Patch_Verb_Jump_DrawHighlight.CenterVector3Offset(ref target, this), AltitudeLayer.MetaOverlays);
         }
-        GenDraw.DrawRadiusRing(caster.Position, EffectiveRange, Color.white, c => GenSightOnVehicle.LineOfSight(caster.PositionOnBaseMap(), c, caster.BaseMap()) && JumpUtility.ValidJumpTarget(caster, caster.BaseMap(), c));
+        GenDraw.DrawRadiusRing(caster.Position, EffectiveRange, Color.white, c => GenSightOnVehicle.LineOfSight(caster.PositionOnBaseMap, c, caster.BaseMap()) && JumpUtility.ValidJumpTarget(caster, caster.BaseMap(), c));
     }
 
     public override void OnGUI(LocalTargetInfo target)
     {
-        if (CanHitTarget(target) && JumpUtility.ValidJumpTarget(caster, Patch_JumpUtility_OrderJump.TargetMap(caster), target.Cell))
+        if (CanHitTarget(target) && JumpUtility.ValidJumpTarget(caster, caster.TargetMapOrThingMap, target.Cell))
         {
             base.OnGUI(target);
             return;

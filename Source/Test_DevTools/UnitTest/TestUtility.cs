@@ -10,7 +10,7 @@ public static class TestUtility
         var map = pawn.Map;
         if (map is null)
             return false;
-        const int padding = 10;
+        const int padding = 5;
         var size = map.Size;
         IntVec3[] candidates =
         [
@@ -51,5 +51,21 @@ public static class TestUtility
         {
             pawn.workSettings.SetPriority(workTypeDef, 3);
         }
+    }
+
+    public static Pawn GenerateBaby(Faction faction)
+    {
+        return PawnGenerator.GeneratePawn(new PawnGenerationRequest(PawnKindDefOf.Colonist, faction,
+            PawnGenerationContext.PlayerStarter, developmentalStages: DevelopmentalStage.Baby, fixedBiologicalAge: 1f,
+            allowDowned: true));
+    }
+
+    public static Pawn GeneratePatient(Faction faction)
+    {
+        var pawn = PawnGenerator.GeneratePawn(new PawnGenerationRequest(PawnKindDefOf.Colonist, faction,
+            PawnGenerationContext.PlayerStarter));
+        pawn.health.AddHediff(HediffDefOf.Misc, pawn.health.hediffSet.GetBodyPartRecord(BodyPartDefOf.Torso))
+            .Severity = 0.5f;
+        return pawn;
     }
 }

@@ -4,7 +4,6 @@ using System.Reflection.Emit;
 using HarmonyLib;
 using UnityEngine;
 using Verse;
-using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
@@ -13,7 +12,7 @@ internal class Patches_NightmareCore
 {
     static Patches_NightmareCore()
     {
-        if (ModCompat.NightmareCore)
+        if (NightmareCore)
         {
             VMF_Harmony.PatchCategory(PatchCategories.NightmareCore);
         }

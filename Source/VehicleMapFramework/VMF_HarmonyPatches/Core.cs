@@ -1,4 +1,6 @@
-﻿using System;
+﻿global using static VehicleMapFramework.MethodInfoCache;
+global using static VehicleMapFramework.ModCompat;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;

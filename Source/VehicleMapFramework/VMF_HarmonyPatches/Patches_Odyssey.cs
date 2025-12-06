@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
 using HarmonyLib;
 using RimWorld;
+using RimWorld.Planet;
 using Verse;
-using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
@@ -88,7 +89,7 @@ public static class Patch_PlaceWorker_GravshipThruster_DrawGhost
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
         var codes = new CodeMatcher(instructions, generator);
-        codes.MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_GenDraw_DrawFieldEdges));
+        codes.MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_GenDraw_DrawFieldEdges1));
         codes.CreateLabel(out var label);
         codes.DefineLabel(out var label2);
         codes.InsertAndAdvance(
@@ -99,7 +100,58 @@ public static class Patch_PlaceWorker_GravshipThruster_DrawGhost
             new CodeInstruction(OpCodes.Br_S, label),
             new CodeInstruction(OpCodes.Call, CachedMethodInfo.g_VehicleMapUtility_CurrentMap).WithLabels(label2)
             );
-        codes.Operand = CachedMethodInfo.m_GenDrawOnVehicle_DrawFieldEdges;
+        codes.Operand = CachedMethodInfo.m_GenDrawOnVehicle_DrawFieldEdges1;
         return codes.Instructions();
+    }
+}
+
+/// <summary>
+/// Mod製のPilotConsoleの場合回転が決定できない場合があるため、安全装置を追加
+/// </summary>
+[HarmonyPatchCategory(PatchCategories.Odyssey)]
+[HarmonyPatch(typeof(Gravship), "DetermineLaunchDirection")]
+[PatchLevel(Level.Mandatory)]
+public static class Patch_Gravship_DetermineLaunchDirection
+{
+    public static bool Prefix(IntVec3 ___launchDirection, Building ___pilotConsole)
+    {
+        return ___launchDirection != IntVec3.Zero || ___pilotConsole is not null;
+    }
+}
+
+/// <summary>
+/// PlayerHomeが無くてそれ以外のマップが2つ以上ある時キャッシュを更新し続けてしまう問題があるため、ルデオンがこれを修正するまでの一時パッチ
+/// </summary>
+[HarmonyPatchCategory(PatchCategories.Odyssey)]
+[HarmonyPatch(typeof(GravshipUtility), nameof(GravshipUtility.GetPlayerGravEngine_NewTemp))]
+[PatchLevel(Level.Sensitive)]
+public static class Patch_GravshipUtility_GetPlayerGravEngine_NewTemp
+{
+    private static readonly ConditionalWeakTable<Map, StrongBox<(int tick, Building_GravEngine engine)>> cacheTable = [];
+
+    private static bool working;
+    
+    public static void Prefix(Map map, ref int ___lastCachedEngineTick, ref int ___lastCachedEngineMapID,
+        ref Building_GravEngine ___cachedGravEngine)
+    {
+        if (working) return;
+
+        var cache = cacheTable.GetOrCreateValue(map);
+        if (cache.Value.tick != Find.TickManager.TicksGame)
+        {
+            working = true;
+            try
+            {
+                cache.Value.tick = Find.TickManager.TicksGame;
+                cache.Value.engine = GravshipUtility.GetPlayerGravEngine_NewTemp(map);
+            }
+            finally
+            {
+                working = false;
+            }
+        }
+        ___lastCachedEngineTick = cache.Value.tick;
+        ___lastCachedEngineMapID = map.uniqueID;
+        ___cachedGravEngine = cache.Value.engine;
     }
 }

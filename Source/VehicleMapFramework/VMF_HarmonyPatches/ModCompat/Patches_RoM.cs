@@ -5,7 +5,6 @@ using System.Reflection.Emit;
 using HarmonyLib;
 using Verse;
 using Verse.AI;
-using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
@@ -14,7 +13,7 @@ internal class Patches_RoM
 {
     static Patches_RoM()
     {
-        if (ModCompat.RimWorldOfMagic)
+        if (RimWorldOfMagic)
         {
             VMF_Harmony.PatchCategory(PatchCategories.RimWorldOfMagic);
         }

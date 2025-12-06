@@ -5,6 +5,7 @@ using VehicleMapFramework.VMF_HarmonyPatches;
 using Vehicles;
 using Vehicles.UnitTesting;
 using Verse;
+using Verse.AI;
 
 namespace VehicleMapFramework.Test_Logics;
 
@@ -35,12 +36,20 @@ internal sealed class UnitTest_WorkGivers
             try
             {
                 test.SetUp();
+            }
+            catch (Exception ex)
+            {
+                Assert.IsNull(ex, $"SetUp: {ex}");
+            }
+            try
+            {
                 test.ExecuteStep1();
             }
             catch (Exception ex)
             {
-                Assert.IsNull(ex, ex.ToString());
+                Assert.IsNull(ex, $"ExecuteStep1: {ex}");
             }
+            ClearPawnState(pawn);
         }
         
         VMF_Harmony.DynamicPatchAllNow(Level.All);
@@ -51,14 +60,28 @@ internal sealed class UnitTest_WorkGivers
             try
             {
                 test.ExecuteStep2();
+            }
+            catch (Exception ex)
+            {
+                Assert.IsNull(ex, $"ExecuteStep2: {ex}");
+            }
+            try
+            {
                 test.TearDown();
             }
             catch (Exception ex)
             {
-                Assert.IsNull(ex, ex.ToString());
+                Assert.IsNull(ex, $"TearDown: {ex}");
             }
         }
-        
-        VMF_Harmony.DynamicPatchAllNow(Level.Sensitive);
+    }
+    
+    internal static void ClearPawnState(Pawn pawn)
+    {
+        pawn.jobs?.EndCurrentJob(JobCondition.Succeeded, false, false);
+        pawn.jobs?.ClearQueuedJobs(false);
+        pawn.ClearAllReservations(false);
+        pawn.pather?.StopDead();
+        pawn.RemoveTargetInfo();
     }
 }

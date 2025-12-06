@@ -77,13 +77,8 @@ public static class TestPlanLoader
     
     public static IEnumerable<TestCaseData> GetPatchTestPlans()
     {
-        foreach (var plan in testPlans)
-        {
-            if (plan.LoadOnly)
-                continue;
-            var testCaseData = new TestCaseData(plan);
-            testCaseData.SetName($"Patch: {plan.Name}");
-            yield return testCaseData;
-        }
+        yield return new TestCaseData(new TestPlan()).SetName($"Patch: VehicleMapFramework");
+        foreach (var plan in testPlans.Where(plan => !plan.LoadOnly))
+            yield return new TestCaseData(plan).SetName($"Patch: {plan.Name}");
     }
 }

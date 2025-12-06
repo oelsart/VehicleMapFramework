@@ -29,7 +29,7 @@ public class JobDriver_BoardAcrossMaps : JobDriverAcrossMaps
         yield return BoardVehicle(pawn);
     }
 
-    private Toil BoardVehicle(Pawn pawnBoarding)
+    private static Toil BoardVehicle(Pawn pawnBoarding)
     {
         Toil toil = new();
         toil.initAction = delegate

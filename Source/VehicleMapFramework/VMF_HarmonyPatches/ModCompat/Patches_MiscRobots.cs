@@ -36,26 +36,12 @@ public static class Patch_X2_JobGiver_Return2BaseRoom_TryIssueJobPackage
         var rechargeStation = MiscRobots.rechargeStation(pawn);
         if (pawn.Map == rechargeStation?.Map) return true;
 
-        if (pawn.DestroyedOrNull())
+        if (pawn.DestroyedOrNull() || !pawn.Spawned || rechargeStation.DestroyedOrNull() || !rechargeStation!.Spawned)
         {
             __result = ThinkResult.NoJob;
             return false;
         }
-        if (!pawn.Spawned)
-        {
-            __result = ThinkResult.NoJob;
-            return false;
-        }
-        if (rechargeStation.DestroyedOrNull())
-        {
-            __result = ThinkResult.NoJob;
-            return false;
-        }
-        if (!rechargeStation.Spawned)
-        {
-            __result = ThinkResult.NoJob;
-            return false;
-        }
+
         var roomRecharge = rechargeStation.Position.GetRoom(rechargeStation.Map);
         var roomRobot = pawn.Position.GetRoom(pawn.Map);
         if (roomRecharge == roomRobot)
@@ -67,8 +53,11 @@ public static class Patch_X2_JobGiver_Return2BaseRoom_TryIssueJobPackage
         var posRecharge = rechargeStation.Position;
         var exitSpot = TargetInfo.Invalid;
         var enterSpot = TargetInfo.Invalid;
+        List<(TargetInfo, TargetInfo)> spotsQueue = null;
         var cell = (from c in roomRecharge.Cells
-                        where c.Standable(mapRecharge) && !c.IsForbidden(pawn) && c.InHorDistOf(posRecharge, 5f) && pawn.CanReach(c, PathEndMode.OnCell, Danger.Some, false, false, TraverseMode.ByPawn, rechargeStation.Map, out exitSpot, out enterSpot)
+                        where c.Standable(mapRecharge) && !c.IsForbidden(pawn) && c.InHorDistOf(posRecharge, 5f) &&
+                              pawn.CanReach(c, PathEndMode.OnCell, Danger.Some, false, false, TraverseMode.ByPawn,
+                                  rechargeStation.Map, out exitSpot, out enterSpot, out spotsQueue)
                         select c).FirstOrDefault();
         if (cell == IntVec3.Invalid)
         {
@@ -77,7 +66,7 @@ public static class Patch_X2_JobGiver_Return2BaseRoom_TryIssueJobPackage
         }
         var job = JobMaker.MakeJob(VMF_DefOf.VMF_GotoAcrossMaps, cell);
         job.locomotionUrgency = LocomotionUrgency.Amble;
-        job.SetSpotsToJobAcrossMaps(pawn, exitSpot, enterSpot);
+        job.SetSpotsToJobAcrossMaps(pawn, exitSpot, enterSpot, spotsQueue);
         __result = new ThinkResult(job, __instance, JobTag.Misc);
         return false;
     }

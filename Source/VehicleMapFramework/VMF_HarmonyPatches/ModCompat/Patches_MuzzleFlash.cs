@@ -2,7 +2,6 @@
 using System.Reflection.Emit;
 using HarmonyLib;
 using Verse;
-using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
@@ -11,7 +10,7 @@ internal static class Patches_MuzzleFlash
 {
     static Patches_MuzzleFlash()
     {
-        if (ModCompat.MuzzleFlash)
+        if (MuzzleFlash)
         {
             VMF_Harmony.PatchCategory(PatchCategories.MuzzleFlash);
         }

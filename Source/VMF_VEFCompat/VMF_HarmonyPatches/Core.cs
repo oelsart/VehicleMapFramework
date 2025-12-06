@@ -1,4 +1,5 @@
-﻿using System;
+﻿global using static VehicleMapFramework.MethodInfoCache;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
@@ -8,7 +9,6 @@ using UnityEngine;
 using VEF.Hediffs;
 using VEF.Weapons;
 using Verse;
-using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
@@ -46,6 +46,15 @@ public static class Patches_VEF
         if (ModCompat.VGE)
         {
             VMF_Harmony.PatchCategory(PatchCategories.VGE);
+        }
+        if (ModCompat.VQEGenerator)
+        {
+            VMF_Harmony.PatchCategory(PatchCategories.VQEGenerator);
+        }
+
+        if (ModCompat.VTE.Active)
+        {
+            VMF_Harmony.PatchCategory(PatchCategories.VTE);
         }
     }
 }

@@ -7,15 +7,13 @@ namespace VehicleMapFramework;
 
 public static class CrossMapRCellFinder
 {
-    public static IntVec3 BestOrderedGotoDestNear(IntVec3 root, Pawn searcher, Predicate<IntVec3> cellValidator, bool reachable, Map map, out TargetInfo exitSpot, out TargetInfo enterSpot)
+    public static IntVec3 BestOrderedGotoDestNear(IntVec3 root, Pawn searcher, Predicate<IntVec3> cellValidator, bool reachable, Map map)
     {
-        exitSpot = TargetInfo.Invalid;
-        enterSpot = TargetInfo.Invalid;
         if (map is null)
         {
             return IntVec3.Invalid;
         }
-        if (IsGoodDest(root, out exitSpot, out enterSpot))
+        if (IsGoodDest(root))
         {
             return root;
         }
@@ -27,7 +25,7 @@ public static class CrossMapRCellFinder
         do
         {
             var intVec = root + GenRadial.RadialPattern[num];
-            if (IsGoodDest(intVec, out exitSpot, out enterSpot))
+            if (IsGoodDest(intVec))
             {
                 var num4 = CoverUtility.TotalSurroundingCoverScore(intVec, map);
                 if (num4 > num2)
@@ -46,10 +44,8 @@ public static class CrossMapRCellFinder
         while (num < num3);
         return searcher.Position;
 
-        bool IsGoodDest(IntVec3 c, out TargetInfo exitSpot, out TargetInfo enterSpot)
+        bool IsGoodDest(IntVec3 c)
         {
-            exitSpot = TargetInfo.Invalid;
-            enterSpot = TargetInfo.Invalid;
             if (!IsGoodDestinationFor(c, searcher, map, false))
             {
                 return false;
@@ -62,7 +58,7 @@ public static class CrossMapRCellFinder
             {
                 return false;
             }
-            if (reachable && !searcher.CanReach(c, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, map, out exitSpot, out enterSpot))
+            if (reachable && !searcher.CanReach(c, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, map, out _, out _, out _))
             {
                 return false;
             }
@@ -101,9 +97,9 @@ public static class CrossMapRCellFinder
                 return false;
             }
         }
-        return !c.IsForbidden(pawn) && (!careAboutDanger || c.GetDangerFor(pawn, map) != Danger.Deadly) && (!careAboutDanger || !PawnUtility.KnownDangerAt(c, map, pawn)) && (!careAboutDanger || !VacuumConcernTo(c, pawn));
+        return !c.IsForbidden(pawn) && (!careAboutDanger || c.GetDangerFor(pawn, map) != Danger.Deadly) && (!careAboutDanger || !PawnUtility.KnownDangerAt(c, map, pawn)) && (!careAboutDanger || !VacuumConcernTo(c));
 
-        bool VacuumConcernTo(IntVec3 cell, Pawn pawn)
+        bool VacuumConcernTo(IntVec3 cell)
         {
             return pawn.ConcernedByVacuum && cell.GetVacuum(map) >= 0.5f;
         }
@@ -117,7 +113,7 @@ public static class CrossMapRCellFinder
         var positionOnThingMap = toucher.PositionOnAnotherThingMap(touchee);
         foreach (var item in GenAdj.CellsAdjacent8Way(touchee))
         {
-            if (IsGoodDestinationFor(item, toucher, map, careAboutDanger: true) && toucher.CanReach(item, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, map, out _, out _) && ReachabilityImmediate.CanReachImmediate(item, touchee, toucher.Map, PathEndMode.Touch, toucher))
+            if (IsGoodDestinationFor(item, toucher, map, careAboutDanger: true) && toucher.CanReach(item, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, map) && ReachabilityImmediate.CanReachImmediate(item, touchee, toucher.Map, PathEndMode.Touch, toucher))
             {
                 if (positionOnThingMap == item && map == toucher.Map)
                 {
@@ -139,7 +135,8 @@ public static class CrossMapRCellFinder
         }
         foreach (var item2 in GenAdj.CellsAdjacent8Way(touchee).InRandomOrder())
         {
-            if (item2.WalkableBy(map, toucher) && toucher.CanReach(item2, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, map, out _, out _))
+            if (item2.WalkableBy(map, toucher) && toucher.CanReach(item2, PathEndMode.OnCell, Danger.Deadly, false,
+                    false, TraverseMode.ByPawn, map))
             {
                 result = item2;
                 return true;

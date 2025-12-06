@@ -25,9 +25,13 @@ public static class Patches_Achtung
 [PatchLevel(Level.Safe)]
 public static class Patch_Colonist_UpdateOrderPos
 {
+    public static readonly Dictionary<IntVec3, Map> tmpDestMaps = [];
+
+    private static int lastCachedTick;
+    
     public static bool Prefix(Colonist __instance, ref Vector3 pos, ref IntVec3 __result)
     {
-        TargetMapManager.SetTargetMap(__instance.pawn, __instance.pawn.Map);
+        __instance.pawn.TargetMap = __instance.pawn.Map;
         if (Find.TickManager.TicksGame != lastCachedTick)
         {
             tmpDestMaps.Clear();
@@ -57,11 +61,12 @@ public static class Patch_Colonist_UpdateOrderPos
             destCell = destCellOnBaseMap = pos.ToIntVec3();
             destMap = colonist.pawn.MapHeldBaseMap();
         }
-        TargetMapManager.SetTargetMap(colonist.pawn, destMap);
+        colonist.pawn.TargetMap = destMap;
 
         if (AchtungLoader.IsSameSpotInstalled)
         {
-            if (destCell.Standable(destMap) && colonist.pawn.CanReach(destCell, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, destMap, out _, out _))
+            if (destCell.Standable(destMap) && colonist.pawn.CanReach(destCell, PathEndMode.OnCell, Danger.Deadly,
+                    false, false, TraverseMode.ByPawn, destMap))
             {
                 colonist.designation = destCell;
                 tmpDestMaps[destCell] = destMap;
@@ -74,14 +79,14 @@ public static class Patch_Colonist_UpdateOrderPos
         {
             var overseer = colonist.pawn.GetOverseer();
             var map = overseer.MapHeld;
-            if (map.BaseMap() == colonist.pawn.MapHeldBaseMap())
+            if (map.BaseMapOrCaravan == colonist.pawn.MapHeldBaseMapOrCaravan)
             {
                 var mechanitor = overseer.mechanitor;
                 foreach (var newPos in GenRadial.RadialCellsAround(destCell, 20f, false))
                     if (mechanitor.CanCommandTo(newPos))
                         if (destMap.pawnDestinationReservationManager.CanReserve(newPos, colonist.pawn, true)
                             && newPos.Standable(destMap)
-                            && colonist.pawn.CanReach(newPos, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, destMap, out _, out _)
+                            && colonist.pawn.CanReach(newPos, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, destMap)
                         )
                         {
                             bestCell = newPos;
@@ -91,7 +96,7 @@ public static class Patch_Colonist_UpdateOrderPos
             }
         }
         else
-            bestCell = CrossMapRCellFinder.BestOrderedGotoDestNear(destCell, colonist.pawn, null, true, destMap, out _, out _);
+            bestCell = CrossMapRCellFinder.BestOrderedGotoDestNear(destCell, colonist.pawn, null, true, destMap);
         if (bestCell.InBounds(destMap))
         {
             colonist.designation = bestCell;
@@ -100,10 +105,6 @@ public static class Patch_Colonist_UpdateOrderPos
         }
         return IntVec3.Invalid;
     }
-
-    public static Dictionary<IntVec3, Map> tmpDestMaps = [];
-
-    private static int lastCachedTick;
 }
 
 [HarmonyPatchCategory(PatchCategories.Achtung)]
@@ -114,17 +115,19 @@ public static class Patch_Tools_OrderTo
     public static bool Prefix(Pawn pawn, int x, int z)
     {
         var cell = new IntVec3(x, 0, z);
-        if (TargetMapManager.HasTargetMap(pawn, out var map) && pawn.MapHeld != map && pawn.CanReach(cell, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, map, out var exitSpot, out var enterSpot))
+        if (pawn.TryGetTargetMap(out var map) && pawn.MapHeld != map && pawn.CanReach(cell,
+                PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, map, out var exitSpot,
+                out var enterSpot, out var spotsQueue))
         {
-            OrderTo(pawn, cell, map, exitSpot, enterSpot);
+            OrderTo(pawn, cell, map, exitSpot, enterSpot, spotsQueue);
             return false;
         }
         return true;
     }
 
-    public static void OrderTo(Pawn pawn, IntVec3 cell, Map map, TargetInfo exitSpot, TargetInfo enterSpot)
+    public static void OrderTo(Pawn pawn, IntVec3 cell, Map map, TargetInfo exitSpot, TargetInfo enterSpot, List<(TargetInfo, TargetInfo)> spotsQueue)
     {
-        var job = JobMaker.MakeJob(VMF_DefOf.VMF_GotoAcrossMaps, cell).SetSpotsToJobAcrossMaps(pawn, exitSpot, enterSpot);
+        var job = JobMaker.MakeJob(VMF_DefOf.VMF_GotoAcrossMaps, cell).SetSpotsToJobAcrossMaps(pawn, exitSpot, enterSpot, spotsQueue);
         job.playerForced = true;
         job.collideWithPawns = false;
         var baseMap = pawn.BaseMap();
@@ -141,6 +144,8 @@ public static class Patch_Tools_OrderTo
 [PatchLevel(Level.Cautious)]
 public static class Patch_Tools_LabelDrawPosFor
 {
+    public static readonly MethodInfo m_ToVector3ShiftedOffset = AccessTools.Method(typeof(Patch_Tools_LabelDrawPosFor), nameof(ToVector3ShiftedOffset));
+    
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.m_IntVec3_ToVector3Shifted, m_ToVector3ShiftedOffset);
@@ -155,8 +160,6 @@ public static class Patch_Tools_LabelDrawPosFor
         }
         return vector;
     }
-
-    public static MethodInfo m_ToVector3ShiftedOffset = AccessTools.Method(typeof(Patch_Tools_LabelDrawPosFor), nameof(ToVector3ShiftedOffset));
 }
 
 [HarmonyPatchCategory(PatchCategories.Achtung)]
@@ -180,6 +183,8 @@ public static class Patch_Controller_HandleDrawing
 [PatchLevel(Level.Safe)]
 public static class Patch_Controller_MouseDown
 {
+    private static VehiclePawnWithMap tmpFocusedMap;
+    
     public static void Prefix(Vector3 pos)
     {
         tmpFocusedMap = Command_FocusVehicleMap.FocusedVehicle;
@@ -206,6 +211,4 @@ public static class Patch_Controller_MouseDown
     {
         Command_FocusVehicleMap.FocusedVehicle = tmpFocusedMap;
     }
-
-    private static VehiclePawnWithMap tmpFocusedMap;
 }

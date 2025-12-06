@@ -10,5 +10,27 @@
 		<neverMultiSelect>true</neverMultiSelect>
 		<saved>false</saved>
 	</WorldObjectDef>
+	
+	<WorldObjectDef ParentName="StaticWorldObjectBase">
+		<defName>VMF_AmbushSea</defName>
+		<label>ambush</label>
+		<description>An ongoing ambush battle.</description>
+		<worldObjectClass>CaravansBattlefield</worldObjectClass>
+		<mapGenerator>VMF_MapGeneratorSea</mapGenerator>
+		<texture>World/WorldObjects/Ambush</texture>
+		<expandingIcon>true</expandingIcon>
+		<expandingIconTexture>World/WorldObjects/Expanding/Ambush</expandingIconTexture>
+		<expandingIconPriority>80</expandingIconPriority>
+		<expandMore>true</expandMore>
+		<blockExitGridUntilBattleIsWon>true</blockExitGridUntilBattleIsWon>
+		<isTempIncidentMapOwner>true</isTempIncidentMapOwner>
+		<IncidentTargetTags>
+			<li>VMF_Map_TempIncidentSea</li>
+		</IncidentTargetTags>
+		<comps>
+			<li Class="WorldObjectCompProperties_FormCaravan" />
+			<li Class="WorldObjectCompProperties_TimedDetectionRaids" />
+		</comps>
+	</WorldObjectDef>
 
 </Defs>

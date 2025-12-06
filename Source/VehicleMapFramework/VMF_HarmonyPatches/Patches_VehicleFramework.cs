@@ -8,6 +8,7 @@ using RimWorld;
 using RimWorld.Planet;
 using SmashTools;
 using SmashTools.Rendering;
+using SmashTools.Targeting;
 using UnityEngine;
 using Vehicles;
 using Vehicles.Rendering;
@@ -16,7 +17,6 @@ using Verse;
 using Verse.AI;
 using Verse.AI.Group;
 using Verse.Sound;
-using static VehicleMapFramework.MethodInfoCache;
 using Transform = SmashTools.Rendering.Transform;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
@@ -55,12 +55,12 @@ public static class Patch_VehiclePawn_HasEnoughOperators
     {
         if (__instance is VehiclePawnWithMap)
         {
-            if (__instance.MovementPermissions.HasFlag(VehiclePermissions.Autonomous))
+            if ((__instance.MovementPermissions & VehiclePermissions.Autonomous) > VehiclePermissions.None)
             {
                 __result = true;
                 return false;
             }
-            var matchHandlers = __instance.handlers.Where(h => h.role.HandlingTypes.HasFlag(HandlingType.Movement)).ToList();
+            var matchHandlers = __instance.handlers.Where(h => (h.role.HandlingTypes & HandlingType.Movement) > HandlingType.None).ToList();
             if (matchHandlers.Empty())
             {
                 __result = false;
@@ -83,10 +83,10 @@ public static class Patch_CompVehicleTurrets_CompGetGizmosExtra
     {
         foreach (var gizmo in gizmos)
         {
-            if (gizmo is Command_Turret command_Turret && command_Turret.turret is VehicleTurret_Manual)
+            if (gizmo is Command_Turret command_Turret)
             {
                 var turret = command_Turret.turret;
-                if (turret != null &&
+                if (turret is VehicleTurret_Manual &&
                     !command_Turret.Disabled &&
                     !VehicleMod.settings.debug.debugShootAnyTurret &&
                     !__instance.Vehicle.handlers.Any(h => h.role.handlingTypes.HasFlag(HandlingType.Turret) && (h.role.TurretIds?.Contains(!turret.groupKey.NullOrEmpty() ? turret.groupKey : turret.key) ?? false)))
@@ -111,6 +111,7 @@ public static class Patch_VehiclePawn_DisembarkPawn
         {
             var parent = buildable.upgradeComp.parent;
             var map = parent.Map ?? vehicle.VehicleMap;
+            __instance.RemovePawn(pawn);
             if (!pawn.Spawned)
             {
                 var cellRect = parent.OccupiedRect().ExpandedBy(1);
@@ -139,7 +140,6 @@ public static class Patch_VehiclePawn_DisembarkPawn
                     lord.AddPawn(pawn);
                 }
             }
-            __instance.RemovePawn(pawn);
             __instance.EventRegistry[VehicleEventDefOf.PawnExited].ExecuteEvents();
             return false;
         }
@@ -454,7 +454,7 @@ public static class Patch_JobDriverLoadVehicleBase_ShouldFailJob
                     predicate = ShouldFailJob[type] =
                         AccessTools.MethodDelegate<Predicate<JobDriverLoadVehicleBase>>(m_ShouldFailJob);
                 }
-                foreach (var map2 in map.BaseMapAndVehicleMaps().Except(map))
+                foreach (var map2 in map.BaseMapAndVehicleMaps.Except(map))
                 {
                     __instance.pawn.VirtualMapTransfer(map2);
                     if (!predicate(__instance))
@@ -494,34 +494,31 @@ public static class Patch_LaunchProtocol_GetArrivalOptions
             if (mapParent.HasMap && !mapParent.EnterCooldownBlocksEntering())
             {
                 yield return new ArrivalOption("LandInExistingMap".Translate(mapParent.Label),
-                    continueWith: targetData =>
-                    {
-                        Patch_Game_CurrentMap.ForceSet = true;
-                        Current.Game.CurrentMap = mapParent.Map;
-                        CameraJumper.TryHideWorld();
-                        LandingTargeter.Instance.BeginTargeting(vehicle, mapParent.Map,
-                            action: (landingCell, rot) =>
-                            {
-                                if (vehicle.Spawned)
-                                {
-                                    vehicle.CompVehicleLauncher.Launch(targetData,
-                                        new ArrivalAction_LandToCell(vehicle, mapParent, landingCell.Cell, rot));
-                                }
-                                else
-                                {
-                                    var aerialVehicle = vehicle.GetOrMakeAerialVehicle();
-                                    var nodes = targetData.targets.Select(targetInfo => new FlightNode(targetInfo))
-                                        .ToList();
-                                    aerialVehicle.OrderFlyToTiles(nodes,
-                                        new ArrivalAction_LandToCell(vehicle, mapParent, landingCell.Cell, rot));
-                                    vehicle.CompVehicleLauncher.inFlight = true;
-                                    CameraJumper.TryShowWorld();
-                                }
-                            }, allowRotating: vehicle.VehicleDef.rotatable,
-                            targetValidator: targetInfo => targetInfo.Cell.InBounds(mapParent.Map) &&
-                                                           !Ext_Vehicles.IsRoofRestricted(vehicle.VehicleDef,
-                                                               targetInfo.Cell, mapParent.Map));
-                    });
+                  continueWith: delegate (TargetData<GlobalTargetInfo> targetData)
+                  {
+                      Current.Game.CurrentMap = mapParent.Map;
+                      CameraJumper.TryHideWorld();
+                      LandingTargeter.Instance.BeginTargeting(vehicle, mapParent.Map,
+                action: delegate (LocalTargetInfo landingCell, Rot4 rot)
+                      {
+                          if (vehicle.Spawned)
+                          {
+                              vehicle.CompVehicleLauncher.Launch(targetData,
+                        new ArrivalAction_LandToCell(vehicle, mapParent, landingCell.Cell, rot));
+                          }
+                          else
+                          {
+                              var aerialVehicle = vehicle.GetOrMakeAerialVehicle();
+                              var nodes = targetData.targets.Select(targetInfo => new FlightNode(targetInfo)).ToList();
+                              aerialVehicle.OrderFlyToTiles(nodes,
+                        new ArrivalAction_LandToCell(vehicle, mapParent, landingCell.Cell, rot));
+                              vehicle.CompVehicleLauncher.inFlight = true;
+                              CameraJumper.TryShowWorld();
+                          }
+                      }, allowRotating: vehicle.VehicleDef.rotatable,
+                targetValidator: targetInfo => targetInfo.Cell.InBounds(mapParent.Map) &&
+                  !Ext_Vehicles.IsRoofRestricted(vehicle.VehicleDef, targetInfo.Cell, mapParent.Map));
+                  });
             }
         }
     }
@@ -605,13 +602,17 @@ public static class Patch_CaravanFormation_TryFindExitSpot
     public static void Prefix(Map map, List<Pawn> pawns)
     {
         foreach (var pawn in pawns)
+        {
             pawn.DestMap = map;
+        }
     }
 
     public static void Finalizer(List<Pawn> pawns)
     {
         foreach (var pawn in pawns)
+        {
             pawn.RemoveDestMap();
+        }
     }
 }
 
@@ -678,7 +679,7 @@ public static class Patch_VehicleTabHelper_Passenger_DrawPassengersFor
     {
         if (vehicle is VehiclePawnWithMap mapVehicle)
         {
-            var pawns = mapVehicle.VehicleMap.mapPawns.AllPawnsSpawned;
+            var pawns = Patch_MapPawns_AllPawnsSpawned.AllPawnsSpawned(mapVehicle.VehicleMap.mapPawns);
             var rect = new Rect(0f, curY, viewRect.width - 48f, 25f + (PawnRowHeight * pawns.Count));
             if (___draggedPawn != null && Mouse.IsOver(rect) && ___draggedPawn.Map != mapVehicle.VehicleMap)
             {
@@ -709,7 +710,7 @@ public static class Patch_VehicleTabHelper_Passenger_HandleDragEvent
     {
         if (Event.current.type == EventType.MouseUp && Event.current.button == 0)
         {
-            if (___draggedPawn != null && ___transferToHolder != null)
+            if (___draggedPawn != null && ___draggedPawn.Faction == Faction.OfPlayer && ___transferToHolder != null)
             {
                 if (___transferToHolder is Map map && map.IsVehicleMapOf(out var vehicle))
                 {
@@ -727,9 +728,10 @@ public static class Patch_VehicleTabHelper_Passenger_HandleDragEvent
                     }
                     else if (!___draggedPawn.Spawned && ___draggedPawn.IsWorldPawn() && TryFindSpawnSpot(vehicle, null, out var intVec, out var map2))
                     {
-                        if (___draggedPawn.ParentHolder is Caravan caravan)
+                        if (___draggedPawn.ParentHolder is VehicleCaravan caravan)
                         {
                             caravan.RemovePawn(___draggedPawn);
+                            caravan.RecacheVehicles();
                         }
                         Find.WorldPawns.RemovePawn(___draggedPawn);
                         GenSpawn.Spawn(___draggedPawn, intVec, map2);
@@ -838,16 +840,14 @@ public static class Patch_VehicleTabHelper_Passenger_HandleDragEvent
             map = null;
             return false;
         }
-        if (vehicle.EnterComps.Any() && vehicle.EnterComps.Select(c => c.parent.Position).TryRandomElement(c => Predicate(c, vehicle.VehicleMap), out spot))
+        if (vehicle.EnterComps.Any() && vehicle.EnterComps.Select(c => c.parent.Position)
+                .TryRandomElement(c => Predicate(c, vehicle.VehicleMap), out spot) ||
+            vehicle.CachedMapEdgeCells.TryRandomElement(c => Predicate(c, vehicle.VehicleMap), out spot))
         {
             map = vehicle.VehicleMap;
             return true;
         }
-        if (vehicle.CachedMapEdgeCells.TryRandomElement(c => Predicate(c, vehicle.VehicleMap), out spot))
-        {
-            map = vehicle.VehicleMap;
-            return true;
-        }
+
         var cell = vehicle.CachedMapEdgeCells.RandomElement();
         if (RCellFinder.TryFindRandomCellNearWith(cell, c => Predicate(c, vehicle.VehicleMap), vehicle.VehicleMap, out spot))
         {
@@ -873,7 +873,7 @@ public static class Patch_FloatMenuOptionProvider_OrderVehicle_VehicleCanGoto
 {
     public static bool Prefix(VehiclePawn vehicle, IntVec3 gotoLoc, ref AcceptanceReport __result)
     {
-        if (TargetMapManager.HasTargetMap(vehicle, out var map) && vehicle.Map != map)
+        if (vehicle.TryGetTargetMap(out var map) && vehicle.Map != map)
         {
             if (!vehicle.CanReachVehicle(gotoLoc, PathEndMode.OnCell, Danger.Deadly, TraverseMode.ByPawn, map, out _, out _))
             {
@@ -896,7 +896,7 @@ public static class Patch_FloatMenuOptionProvider_OrderVehicle_PawnGotoAction
 {
     public static bool Prefix(IntVec3 clickCell, VehiclePawn vehicle, IntVec3 gotoLoc, ref Rot8 rot)
     {
-        if (TargetMapManager.HasTargetMap(vehicle, out var map))
+        if (vehicle.TryGetTargetMap(out var map))
         {
             // 車両マップがターゲットの場合TryGetFullRotationにより回るため
             if (map.IsVehicleMapOf(out var vehicle2) && rot.IsValid)
@@ -908,7 +908,7 @@ public static class Patch_FloatMenuOptionProvider_OrderVehicle_PawnGotoAction
                 if (vehicle.CanReachVehicle(gotoLoc, PathEndMode.OnCell, Danger.Deadly, TraverseMode.ByPawn, map, out var exitSpot, out var enterSpot))
                 {
                     PawnGotoAction(clickCell, vehicle, map, gotoLoc, rot, exitSpot, enterSpot);
-                    TargetMapManager.RemoveTargetInfo(vehicle);
+                    vehicle.RemoveTargetInfo();
                 }
                 return false;
             }
@@ -988,7 +988,7 @@ public static class Patch_PathingHelper_TryFindNearestStandableCell
         }
         radius = Mathf.Min(radius, GenRadial.MaxRadialPatternRadius);
         VehiclePawnWithMap vehicle2 = null;
-        if (TargetMapManager.HasTargetMap(vehicle, out var map))
+        if (vehicle.TryGetTargetMap(out var map))
         {
             if (vehicle.Map != map)
             {
@@ -1011,7 +1011,7 @@ public static class Patch_PathingHelper_TryFindNearestStandableCell
                 radius);
             if (result.IsValid)
             {
-                TargetMapManager.SetTargetMap(vehicle, map);
+                vehicle.TargetMap = map;
                 return false;
             }
         }
@@ -1053,7 +1053,7 @@ public static class Patch_VehicleOrientationController_RecomputeDestinations
     {
         if (___vehicles.Count > 1)
         {
-            ___vehicles.Do(v => TargetMapManager.RemoveTargetInfo(v));
+            ___vehicles.Do(v => v.RemoveTargetInfo());
         }
     }
 
@@ -1110,7 +1110,7 @@ public static class Patch_VehicleGhostUtility_DrawGhostVehicleDef
 
     public static Vector3 ToTargetMapCoord(Vector3 original, Thing thing)
     {
-        return TargetMapManager.HasTargetMap(thing, out var map) ? original.ToBaseMapCoord(map).WithY(original.y) : original;
+        return thing.TryGetTargetMap(out var map) ? original.ToBaseMapCoord(map).WithY(original.y) : original;
     }
 }
 
@@ -1217,5 +1217,84 @@ public static class Patch_SectionDrawer_RecacheVehicleFilter
             var props = d.GetModExtension<VehicleMapProps_Unique>();
             return props is { baseDef: not null };
         });
+    }
+}
+
+[HarmonyPatch(typeof(RenderHelper), nameof(RenderHelper.DrawLinesBetweenTargets))]
+[PatchLevel(Level.Sensitive)]
+public static class Patch_RenderHelper_DrawLinesBetweenTargets
+{
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        var codes = instructions.ToList();
+        var pos = codes.FindIndex(c => c.opcode == OpCodes.Callvirt && c.OperandIs(CachedMethodInfo.g_Thing_Position));
+        codes.RemoveRange(pos, 4);
+        var g_Pawn_DrawPos = AccessTools.PropertyGetter(typeof(Pawn), nameof(Pawn.DrawPos));
+        codes.Insert(pos, new CodeInstruction(OpCodes.Callvirt, g_Pawn_DrawPos));
+
+        var g_CenterVector3 = AccessTools.PropertyGetter(typeof(LocalTargetInfo), nameof(LocalTargetInfo.CenterVector3));
+        var m_CenterVector3VehicleOffset = AccessTools.Method(typeof(Patch_Pawn_JobTracker_DrawLinesBetweenTargets), nameof(Patch_Pawn_JobTracker_DrawLinesBetweenTargets.CenterVector3VehicleOffset));
+        foreach (var code in codes)
+        {
+            if (code.opcode == OpCodes.Call && code.OperandIs(g_CenterVector3))
+            {
+                yield return CodeInstruction.LoadArgument(0);
+                code.operand = m_CenterVector3VehicleOffset;
+            }
+            yield return code;
+        }
+    }
+}
+
+[HarmonyPatch(typeof(TransferableVehicleWidget), "DrawCard")]
+[PatchLevel(Level.Safe)]
+public static class Patch_TransferableVehicleWidget_DrawCard
+{
+    internal static VehiclePawnWithMap vehicle;
+    
+    public static void Prefix(TransferableOneWay transferable)
+    {
+        if (Event.current.type == EventType.Repaint)
+            vehicle = transferable.AnyThing as VehiclePawnWithMap;
+    }
+}
+
+[HarmonyPatch(typeof(TextureDrawer), "Draw")]
+[PatchLevel(Level.Sensitive)]
+public static class Patch_TextureDrawer_Draw
+{
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        return new CodeMatcher(instructions)
+            .MatchStartForward(CodeMatch.Calls(
+                AccessTools.Method(typeof(UIElements), nameof(UIElements.DrawTextureWithMaterialOnGUI))))
+            .InsertAfter(
+                CodeInstruction.LoadLocal(3),
+                CodeInstruction.Call(typeof(Patch_TextureDrawer_Draw), nameof(TryRenderVehicleMap)))
+            .InstructionEnumeration();
+    }
+    
+    public static void TryRenderVehicleMap(Rect drawRect)
+    {
+        ref var vehicle = ref Patch_TransferableVehicleWidget_DrawCard.vehicle;
+        if (vehicle is not null)
+        {
+            Vector2? drawSize = null;
+            Vector3? drawOffset = null;
+            if (!vehicle.def.HasModExtension<VehicleMapProps_Gravship>())
+            {
+                drawSize = vehicle.DrawSize;
+                drawOffset = VehicleMapUtility.OffsetFor(vehicle, Rot4.East);
+            }
+            var texture = VehicleMapUIRenderer.GetVehicleMapTexture(vehicle, Rot4.East, new Vector2Int(256, 256),
+                drawSize, drawOffset);
+            var rect2 = new Rect(0f, 0f, 150f, 150f)
+            {
+                center = drawRect.center
+            };
+            Widgets.DrawTextureFitted(rect2, texture, 1f);
+            
+            vehicle = null;
+        }
     }
 }

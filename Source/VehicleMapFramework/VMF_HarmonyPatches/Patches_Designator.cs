@@ -6,7 +6,6 @@ using HarmonyLib;
 using RimWorld;
 using Vehicles;
 using Verse;
-using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
@@ -48,7 +47,7 @@ public static class Patches_Designator_DesignateThing
             }
         }
     }
-
+    
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
         foreach (var instruction in instructions)
@@ -95,7 +94,8 @@ public static class Patch_Designator_SelectedUpdate
 
     public static void SelectedUpdatePostfix(Designator ___selectedDesignator)
     {
-        if (Command_FocusVehicleMap.FocusLockedVehicle != null || ___selectedDesignator is Designator_AreaAllowed) return;
+        
+        if (Command_FocusVehicleMap.FocusLockedVehicle != null) return;
 
         Command_FocusVehicleMap.FocusedVehicle = null;
         var mousePos = UI.MouseMapPosition();
@@ -110,6 +110,22 @@ public static class Patch_Designator_SelectedUpdate
         if (mousePos.TryGetVehicleMap(Find.CurrentMap, out var vehicle, flag))
         {
             Command_FocusVehicleMap.FocusedVehicle = vehicle;
+        }
+
+        if (___selectedDesignator is Designator_AreaAllowed)
+        {
+            var selArea = Designator_AreaAllowed.selectedArea;
+            if (selArea != null && selArea.Map != ___selectedDesignator.Map)
+            {
+                Designator_AreaAllowed.selectedArea = ___selectedDesignator.Map.areaManager.AllAreas
+                    .FirstOrDefault(a => a.AssignableAsAllowed() &&
+                                         a.InspectLabel == selArea.InspectLabel);
+                if (Designator_AreaAllowed.selectedArea is null)
+                {
+                    Messages.Message("VMF_AreaDeselect".Translate(selArea.InspectLabel), MessageTypeDefOf.RejectInput, false);
+                    Find.DesignatorManager.Deselect();
+                }
+            }
         }
     }
 }
@@ -185,12 +201,13 @@ public static class Patch_Designator_Zone_SelectedUpdate
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();
-        var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(CachedMethodInfo.m_GenDraw_DrawFieldEdges));
-        codes[pos].operand = CachedMethodInfo.m_GenDrawOnVehicle_DrawFieldEdges;
+        var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(CachedMethodInfo.m_GenDraw_DrawFieldEdges1));
+        codes[pos].operand = CachedMethodInfo.m_GenDrawOnVehicle_DrawFieldEdges1;
         codes.InsertRange(pos,
         [
-            CodeInstruction.LoadArgument(0),
-            new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_Designator_Map),
+            new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(Find), nameof(Find.Selector))),
+            new CodeInstruction(OpCodes.Callvirt, AccessTools.PropertyGetter(typeof(Selector), nameof(Selector.SelectedZone))),
+            new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_Zone_Map)
         ]);
         return codes;
     }

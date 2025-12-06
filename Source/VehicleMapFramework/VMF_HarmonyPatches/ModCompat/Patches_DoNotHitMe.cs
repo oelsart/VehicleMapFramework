@@ -8,7 +8,7 @@ internal static class Patches_DoNotHitMe
 {
     static Patches_DoNotHitMe()
     {
-        if (ModCompat.DoNotHitMe)
+        if (DoNotHitMe)
         {
             VMF_Harmony.PatchCategory(PatchCategories.DoNotHitMe);
         }

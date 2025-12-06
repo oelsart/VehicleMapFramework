@@ -39,5 +39,7 @@
     <li IfModActive="VanillaExpanded.VFESecurity">1.6/_VFESecurity</li>
 	<li IfModActive="vanillaexpanded.gravship">1.6/_VGE</li>
     <li IfModActive="Ludeon.RimWorld.Odyssey">1.6/_Odyssey</li>
+	<li IfModActive="memer.minigravships">1.6/_MiniGravships</li>
+	<li IfModActive="More.Buildable.Grav.Engine.Sizes">1.6/_MoreBuildableGravEngineSizes</li>
   </v1.6>
 </loadFolders>

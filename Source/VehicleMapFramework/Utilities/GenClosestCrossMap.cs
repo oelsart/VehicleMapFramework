@@ -11,7 +11,7 @@ namespace VehicleMapFramework;
 
 public static class GenClosestCrossMap
 {
-    private static bool EarlyOutSearch(IntVec3 start, Map map, ThingRequest thingReq, IEnumerable<Thing> customGlobalSearchSet)
+    private static bool EarlyOutSearch(IntVec3 start, ref Map map, ThingRequest thingReq, IEnumerable<Thing> customGlobalSearchSet)
     {
         if (thingReq.group == ThingRequestGroup.Everything)
         {
@@ -20,10 +20,14 @@ public static class GenClosestCrossMap
         }
         if (!start.InBounds(map))
         {
-            Log.Error(string.Concat("Did FindClosestThing with start out of bounds (", start, "), thingReq=", thingReq));
-            return true;
+            map = map.GroundMap;
+            if (!start.InBounds(map))
+            {
+                Log.Error(string.Concat("Did FindClosestThing with start out of bounds (", start, "), thingReq=", thingReq));
+                return true;
+            }
         }
-        return thingReq.group == ThingRequestGroup.Nothing || ((thingReq.IsUndefined || !map.BaseMapAndVehicleMaps().Except(map).SelectMany(m => m.listerThings.ThingsMatching(thingReq)).Any()) && customGlobalSearchSet.EnumerableNullOrEmpty());
+        return thingReq.group == ThingRequestGroup.Nothing || ((thingReq.IsUndefined || !map.BaseMapAndVehicleMaps.Except(map).SelectMany(m => m.listerThings.ThingsMatching(thingReq)).Any()) && customGlobalSearchSet.EnumerableNullOrEmpty());
     }
 
     public static Thing ClosestThingReachable(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance = 9999f, Predicate<Thing> validator = null, IEnumerable<Thing> customGlobalSearchSet = null, int searchRegionsMin = 0, int searchRegionsMax = -1, bool forceAllowGlobalSearch = false, RegionType traversableRegionTypes = RegionType.Set_Passable, bool ignoreEntirelyForbiddenRegions = false, bool lookInHaulSources = false)
@@ -42,7 +46,7 @@ public static class GenClosestCrossMap
         {
             return null;
         }
-        if (EarlyOutSearch(root, map, thingReq, customGlobalSearchSet))
+        if (EarlyOutSearch(root, ref map, thingReq, customGlobalSearchSet))
         {
             return null;
         }
@@ -62,12 +66,12 @@ public static class GenClosestCrossMap
             }
 
             var basePos = map.IsVehicleMapOf(out var vehicle) ? root.ToBaseMapCoord(vehicle) : root;
-            var searchSet = customGlobalSearchSet ?? map.BaseMapAndVehicleMaps().Except(map).SelectMany(m => m.listerThings.ThingsMatching(thingReq));
+            var searchSet = customGlobalSearchSet ?? map.BaseMapAndVehicleMaps.Except(map).SelectMany(m => m.listerThings.ThingsMatching(thingReq));
 
             var departMap = traverseParams.pawn?.DepartMap ?? map;
             bool GlobalValidator(Thing t)
             {
-                if (!CrossMapReachabilityUtility.CanReach(departMap, root, t, peMode, traverseParams, t.MapHeld, out _, out _))
+                if (!CrossMapReachabilityUtility.CanReach(departMap, root, t, peMode, traverseParams, t.MapHeld))
                 {
                     return false;
                 }
@@ -86,7 +90,7 @@ public static class GenClosestCrossMap
             return null;
         }
 
-        if (EarlyOutSearch(root, map, thingReq, null))
+        if (EarlyOutSearch(root, ref map, thingReq, null))
         {
             return null;
         }
@@ -108,22 +112,22 @@ public static class GenClosestCrossMap
     public static Thing RegionwiseBFSWorker(IntVec3 root, Map map, ThingRequest req, PathEndMode peMode, TraverseParms traverseParams, Predicate<Thing> validator, Func<Thing, float> priorityGetter, int minRegions, int maxRegions, float maxDistance, out int regionsSeen, RegionType traversableRegionTypes = RegionType.Set_Passable, bool ignoreEntirelyForbiddenRegions = false, bool lookInHaulSources = false)
     {
         regionsSeen = 0;
-        if (traverseParams.mode == TraverseMode.PassAllDestroyableThings)
+        switch (traverseParams.mode)
         {
-            Log.Error("RegionwiseBFSWorker with traverseParams.mode PassAllDestroyableThings. Use ClosestThingGlobal.");
-            return null;
-        }
-
-        if (traverseParams.mode == TraverseMode.PassAllDestroyablePlayerOwnedThings)
-        {
-            Log.Error("RegionwiseBFSWorker with traverseParams.mode PassAllDestroyablePlayerOwnedThings. Use ClosestThingGlobal.");
-            return null;
-        }
-
-        if (traverseParams.mode == TraverseMode.PassAllDestroyableThingsNotWater)
-        {
-            Log.Error("RegionwiseBFSWorker with traverseParams.mode PassAllDestroyableThingsNotWater. Use ClosestThingGlobal.");
-            return null;
+            case TraverseMode.PassAllDestroyableThings:
+                Log.Error("RegionwiseBFSWorker with traverseParams.mode PassAllDestroyableThings. Use ClosestThingGlobal.");
+                return null;
+            case TraverseMode.PassAllDestroyablePlayerOwnedThings:
+                Log.Error("RegionwiseBFSWorker with traverseParams.mode PassAllDestroyablePlayerOwnedThings. Use ClosestThingGlobal.");
+                return null;
+            case TraverseMode.PassAllDestroyableThingsNotWater:
+                Log.Error("RegionwiseBFSWorker with traverseParams.mode PassAllDestroyableThingsNotWater. Use ClosestThingGlobal.");
+                return null;
+            case TraverseMode.ByPawn:
+            case TraverseMode.PassDoors:
+            case TraverseMode.NoPassClosedDoors:
+            case TraverseMode.NoPassClosedDoorsOrWater:
+            default: break;
         }
 
         if (req is { IsUndefined: false, CanBeFoundInRegion: false })
@@ -133,7 +137,7 @@ public static class GenClosestCrossMap
         }
 
         var region = root.GetRegion(map, traversableRegionTypes);
-        if (region == null)
+        if (region is null)
         {
             return null;
         }

@@ -1,19 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
 using RimWorld;
 using RimWorld.Planet;
 using RimWorld.QuestGen;
 using SmashTools;
-using Unity.Collections;
 using UnityEngine;
 using Vehicles.World;
 using Verse;
 using Verse.AI;
 using Verse.Sound;
-using static VehicleMapFramework.MethodInfoCache;
 using static VehicleMapFramework.ModCompat;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
@@ -45,7 +44,7 @@ public static class Patch_MechanitorUtility_InMechanitorCommandRange
     [PatchLevel(Level.Safe)]
     public static void Prefix(Pawn mech, ref LocalTargetInfo target)
     {
-        target = TargetMapManager.TargetCellOnBaseMap(ref target, mech);
+        target = TargetMapUtility.TargetCellOnBaseMap(ref target, mech);
     }
 
     [PatchLevel(Level.Cautious)]
@@ -80,8 +79,7 @@ public static class Patch_Reachability_CanReach
         var destMap = CrossMapReachabilityUtility.DestMapGlobal ??
                       pawn.DestMap ??
                       dest.Thing?.MapHeld ??
-                      (TargetMapManager.HasTargetInfo(pawn, out var target) && 
-                       (LocalTargetInfo)target == dest ? target.Map : ___map);
+                      (pawn.IsTargeting(dest, out var target) ? target.Map : ___map);
         if (destMap == null)
         {
             return true;
@@ -102,14 +100,12 @@ public static class Patch_Reachability_CanReach
     [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        var codes = instructions.ToList();
-
-        var pos = codes.FindIndex(c => c.opcode == OpCodes.Callvirt && c.OperandIs(CachedMethodInfo.g_Thing_Map));
-        codes[pos] = new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMap_Thing);
-
-        var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Beq_S);
-        codes.Insert(pos2, new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMap_Map));
-        return codes;
+        return new CodeMatcher(instructions)
+            .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Map))
+            .SetInstruction(new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMapOrCaravan_Thing))
+            .MatchStartForward(new CodeMatch(OpCodes.Beq_S))
+            .Insert(new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMapOrCaravan_Map))
+            .InstructionEnumeration();
     }
 }
 
@@ -120,7 +116,7 @@ public static class Patch_Reachability_CanReachNonLocal
     public static bool Prefix(IntVec3 start, TargetInfo dest, PathEndMode peMode, TraverseParms traverseParams, Map ___map, ref bool __result)
     {
         var destMap = dest.Map;
-        if (___map.BaseMap() == destMap.BaseMap())
+        if (___map.BaseMapOrCaravan == destMap.BaseMapOrCaravan)
         {
             __result = CrossMapReachabilityUtility.CanReach(___map, start, (LocalTargetInfo)dest, peMode, traverseParams, destMap);
             return false;
@@ -136,16 +132,6 @@ public static class Patch_Reachability_CanReachMapEdge
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return Patch_Reachability_CanReach.Transpiler(instructions);
-    }
-}
-
-[HarmonyPatch(typeof(Pawn_PlayerSettings), nameof(Pawn_PlayerSettings.EffectiveAreaRestrictionInPawnCurrentMap), MethodType.Getter)]
-[PatchLevel(Level.Cautious)]
-public static class Patch_Pawn_PlayerSettings_EffectiveAreaRestrictionInPawnCurrentMap
-{
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_MapHeld, CachedMethodInfo.m_MapHeldBaseMap);
     }
 }
 
@@ -244,20 +230,20 @@ public static class Patch_Map_MapUpdate
     public static void Postfix(Map __instance)
     {
         var focused = Find.CurrentMap == __instance;
-        if (VehicleMapFramework.settings.drawPlanet && focused && __instance.IsVehicleMapOf(out var vehicle) && WorldRendererUtility.DrawingMap && !Find.World.renderer.RegenerateLayersIfDirtyInLongEvent())
+        if (focused && __instance.IsVehicleMapOf(out var vehicle) && VehicleMapFramework.settings.drawPlanet && WorldRendererUtility.DrawingMap && !Find.World.renderer.RegenerateLayersIfDirtyInLongEvent())
         {
             var angle = vehicle.Transform.rotation + vehicle.Rotation.AsAngle;
+            var vehicleCaravanOrStashedVehicle = vehicle.VehicleCaravanOrStashedVehicle;
             if (GenTicks.TicksGame != lastRenderedTick && Time.frameCount % 2 == 0 || mat != null && tmpRenderTex == null)
             {
-                var worldObject = GetWorldObject(vehicle);
-                if (worldObject == null) return;
+                var worldObject = vehicleCaravanOrStashedVehicle ?? GetWorldObject(vehicle);
+                if (worldObject is null) return;
                 lastRenderedTick = GenTicks.TicksGame;
                 Find.World.renderer.wantedMode = WorldRenderMode.Planet;
                 Find.WorldCameraDriver.JumpTo(worldObject.DrawPos);
                 Find.WorldCameraDriver.altitude = 140f;
                 desiredAltitude(Find.WorldCameraDriver) = 140f;
                 Find.WorldCameraDriver.Update();
-                Find.WorldCamera.gameObject.SetActive(true);
                 WorldRendererUtility.UpdateGlobalShadersParams();
                 ExpandableWorldObjectsUtility.ExpandableWorldObjectsUpdate();
                 foreach (var layer in Find.World.renderer.AllVisibleDrawLayers.Where(l => l is not WorldDrawLayer_SingleTile && l is not WorldDrawLayer_Satellites))
@@ -266,7 +252,7 @@ public static class Patch_Map_MapUpdate
                 }
                 Find.World.dynamicDrawManager.DrawDynamicWorldObjects();
 
-                if (tmpRenderTex != null)
+                if (tmpRenderTex is not null)
                 {
                     RenderTexture.ReleaseTemporary(tmpRenderTex);
                 }
@@ -276,10 +262,8 @@ public static class Patch_Map_MapUpdate
                 Find.WorldCamera.Render();
                 Find.WorldCamera.targetTexture = targetTexture;
                 Find.World.renderer.wantedMode = WorldRenderMode.None;
-                Find.WorldCamera.gameObject.SetActive(false);
-                Find.Camera.gameObject.SetActive(true);
                 Find.CameraDriver.Update();
-                if (mat == null)
+                if (mat is null)
                 {
                     mat = MaterialPool.MatFrom(new MaterialRequest(tmpRenderTex));
                 }
@@ -302,28 +286,56 @@ public static class Patch_Map_MapUpdate
                     return Mathf.Repeat(signedAngle + 180f, 360f);
                 }
 
-                if (GenTicks.TicksGame % 4 == 0)
+                if (!vehicle.Spawned)
                 {
                     angle =
-                        worldObject is VehicleCaravan vehicleCaravan ?
-                        AngleOnPlanetSurface(Find.WorldGrid.GetTileCenter(vehicleCaravan.vehiclePather.NextTile.Valid ? vehicleCaravan.vehiclePather.NextTile : vehicleCaravan.Tile), Find.WorldGrid.GetTileCenter(vehicleCaravan.Tile)) :
-                        worldObject is Caravan caravan ?
-                        AngleOnPlanetSurface(Find.WorldGrid.GetTileCenter(caravan.pather.nextTile.Valid ? caravan.pather.nextTile : caravan.Tile), Find.WorldGrid.GetTileCenter(caravan.Tile)) :
-                        worldObject is AerialVehicleInFlight aerial ?
-                        AngleOnPlanetSurface(aerial.DrawPos, aerial.position) : 90f;
-                    vehicle.FullRotation = Rot4.FromAngleFlat(angle);
+                        worldObject switch
+                        {
+                            VehicleCaravan vehicleCaravan2 => AngleOnPlanetSurface(Find.WorldGrid.GetTileCenter(vehicleCaravan2.vehiclePather.NextTile.Valid ? vehicleCaravan2.vehiclePather.NextTile : vehicleCaravan2.Tile), Find.WorldGrid.GetTileCenter(vehicleCaravan2.Tile)),
+                            Caravan caravan => AngleOnPlanetSurface(Find.WorldGrid.GetTileCenter(caravan.pather.nextTile.Valid ? caravan.pather.nextTile : caravan.Tile), Find.WorldGrid.GetTileCenter(caravan.Tile)),
+                            AerialVehicleInFlight aerial => AngleOnPlanetSurface(aerial.DrawPos, aerial.position),
+                            _ => 0f
+                        };
+                    var rot = Rot4.FromAngleFlat(angle);
+                    if (vehicleCaravanOrStashedVehicle != null)
+                    {
+                        foreach (var vehicle2 in vehicleCaravanOrStashedVehicle.Vehicles)
+                        {
+                            vehicle2.FullRotation = rot;
+                        }
+                    }
+                    else vehicle.FullRotation = rot;
                 }
             }
-            var longSide = Mathf.Max(vehicle.DrawSize.x / 2f, vehicle.DrawSize.y / 2f);
-            var drawPos = new Vector3(longSide, 0f, longSide);
-            Graphics.DrawMesh(mesh200, drawPos, Quaternion.identity,
+
+            var center = new Vector3(MeshSize.x / 2f, 0f, MeshSize.y / 2f);
+            // 背景
+            Graphics.DrawMesh(mesh200, center, Quaternion.identity,
                 mat != null ? mat : SolidColorMaterials.SimpleSolidColorMaterial(Color.black), 0);
 
+            // 空の暗さ
             skyMat.color = Color.black.WithAlpha((1f - vehicle.VehicleMap.skyManager.CurSkyGlow) * 0.2f);
             skyMat.renderQueue = 3100;
-            Graphics.DrawMesh(mesh200, drawPos.WithY(AltitudeLayer.LightingOverlay.AltitudeFor()), Quaternion.identity, skyMat, 0);
-            drawPos = drawPos.SetToAltitude(AltitudeLayer.LayingPawn);
-            vehicle.DrawAt(in drawPos, vehicle.FullRotation, angle - vehicle.FullRotation.AsAngle);
+            Graphics.DrawMesh(mesh200, center.WithY(AltitudeLayer.LightingOverlay.AltitudeFor()), Quaternion.identity, skyMat, 0);
+
+            //　車両本体
+            if (vehicleCaravanOrStashedVehicle != null)
+            {
+                var drawPositions = vehicleCaravanOrStashedVehicle.DrawPositions;
+                if (!drawPositions.Keys.SequenceEqual(vehicleCaravanOrStashedVehicle.Vehicles))
+                    vehicleCaravanOrStashedVehicle.RecalculateVehiclePositions();
+
+                foreach (var vehicle2 in vehicleCaravanOrStashedVehicle.Vehicles)
+                {
+                    var drawPos2 = center + drawPositions[vehicle2].RotatedBy(angle);
+                    vehicle2.DrawAt(in drawPos2, vehicle2.FullRotation, angle - vehicle2.FullRotation.AsAngle);
+                }
+            }
+            else
+            {
+                var drawPos = center.WithY(AltitudeLayer.LayingPawn.AltitudeFor());
+                vehicle.DrawAt(in drawPos, vehicle.FullRotation, angle - vehicle.FullRotation.AsAngle);
+            }
         }
         else if(tmpRenderTex != null && focused)
         {
@@ -383,14 +395,9 @@ public static class Patch_MapPawns_AllPawns
     [PatchLevel(Level.Safe)]
     public static List<Pawn> Postfix(List<Pawn> __result, Map ___map)
     {
-        if (___map.IsVehicleMapOf(out _)) return __result;
-
         tmpList.Clear();
         tmpList.AddRange(__result);
-        foreach (var vehicle in VehiclePawnWithMapCache.TryGetAllVehiclesOn(___map))
-        {
-            tmpList.AddRange(vehicle.VehicleMap.mapPawns.AllPawns);
-        }
+        tmpList.AddRange(___map.VehicleMapsOnMap.SelectMany(m => AllPawns(m.mapPawns)));
         return tmpList;
     }
 
@@ -409,14 +416,9 @@ public static class Patch_MapPawns_AllPawnsSpawned
 
     public static IReadOnlyList<Pawn> Postfix(IReadOnlyList<Pawn> __result, Map ___map)
     {
-        if (___map.IsVehicleMapOf(out _)) return __result;
-
         tmpList.Clear();
         tmpList.AddRange(__result);
-        foreach (var vehicle in VehiclePawnWithMapCache.TryGetAllVehiclesOn(___map))
-        {
-            tmpList.AddRange(vehicle.VehicleMap.mapPawns.AllPawnsSpawned);
-        }
+        tmpList.AddRange(___map.VehicleMapsOnMap.SelectMany(m => AllPawnsSpawned(m.mapPawns)));
         return tmpList;
     }
 
@@ -430,22 +432,12 @@ public static class Patch_MapPawns_FreeHumanlikesSpawnedOfFaction
     [PatchLevel(Level.Safe)]
     public static void Postfix(List<Pawn> __result, Map ___map, Faction faction)
     {
-        __result.AddRange(VehiclePawnWithMapCache.TryGetAllVehiclesOn(___map).SelectMany(v => v.VehicleMap.mapPawns.FreeHumanlikesSpawnedOfFaction(faction)));
+        __result.AddRange(___map.VehicleMapsOnMap.SelectMany(m => FreeHumanlikesSpawnedOfFaction(m.mapPawns, faction)));
     }
 
     [PatchLevel(Level.Mandatory)]
     [HarmonyReversePatch]
     public static List<Pawn> FreeHumanlikesSpawnedOfFaction(MapPawns instance, Faction faction) => throw new NotImplementedException();
-}
-
-[HarmonyPatch(typeof(MapPawns), nameof(MapPawns.SpawnedBabiesInFaction))]
-[PatchLevel(Level.Safe)]
-public static class Patch_MapPawns_SpawnedBabiesInFaction
-{
-    public static void Postfix(List<Pawn> __result, Map ___map, Faction faction)
-    {
-        __result.AddRange(VehiclePawnWithMapCache.TryGetAllVehiclesOn(___map).SelectMany(v => v.VehicleMap.mapPawns.SpawnedBabiesInFaction(faction)));
-    }
 }
 
 [HarmonyPatch(typeof(MapPawns), nameof(MapPawns.AnyPawnBlockingMapRemoval), MethodType.Getter)]
@@ -495,31 +487,21 @@ public static class Patch_CameraJumper_GetWorldTarget
     }
 }
 
-[HarmonyPatch(typeof(DesignationManager), nameof(DesignationManager.DesignationOn))]
+[HarmonyPatch]
 [PatchLevel(Level.Safe)]
 public static class Patch_DesignationManager_DesignationOn
 {
-    [HarmonyPatch([typeof(Thing)])]
-    [HarmonyPrefix]
-    public static bool Prefix1(Thing t, DesignationManager __instance, ref Designation __result)
+    private static IEnumerable<MethodBase> TargetMethods()
     {
-        var thingMap = t.MapHeld;
-        if (thingMap == null || thingMap == __instance.map) return true;
-        __result = thingMap.designationManager.DesignationOn(t);
-        return false;
+        return AccessTools.GetDeclaredMethods(typeof(DesignationManager))
+            .Where(m => m.Name == nameof(DesignationManager.DesignationOn));
     }
-
-    [HarmonyPatch([typeof(Thing), typeof(DesignationDef)])]
-    [HarmonyPrefix]
-    public static bool Prefix2(Thing t, DesignationDef def, DesignationManager __instance, ref Designation __result)
+    
+    public static void Prefix(ref DesignationManager __instance, Thing t)
     {
         var thingMap = t.MapHeld;
-        if (thingMap != null && thingMap != __instance.map)
-        {
-            __result = thingMap.designationManager.DesignationOn(t, def);
-            return false;
-        }
-        return true;
+        if (thingMap == null || thingMap == __instance.map) return;
+        __instance = thingMap.designationManager;
     }
 }
 
@@ -582,31 +564,6 @@ public static class Patch_Game_FindMap
     }
 }
 
-[HarmonyPatch(typeof(Hediff_MetalhorrorImplant), nameof(Hediff_MetalhorrorImplant.Emerge))]
-[PatchLevel(Level.Cautious)]
-public static class Patch_Hediff_MetalhorrorImplant_Emerge
-{
-    private static bool Prepare()
-    {
-        return ModsConfig.AnomalyActive;
-    }
-
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_MapHeld, CachedMethodInfo.m_MapHeldBaseMap);
-    }
-}
-
-[HarmonyPatch(typeof(HaulDestinationManager), nameof(HaulDestinationManager.AddHaulSource))]
-[PatchLevel(Level.Mandatory)]
-public static class Patch_HaulDestinationManager_AddHaulSource
-{
-    public static void Postfix(Map ___map, IHaulSource source)
-    {
-        ___map.GetCachedMapComponent<CrossMapHaulDestinationManager>().AddHaulSource(source);
-    }
-}
-
 [HarmonyPatch(typeof(HaulDestinationManager), nameof(HaulDestinationManager.AddHaulDestination))]
 [PatchLevel(Level.Mandatory)]
 public static class Patch_HaulDestinationManager_AddHaulDestination
@@ -614,16 +571,6 @@ public static class Patch_HaulDestinationManager_AddHaulDestination
     public static void Postfix(Map ___map, IHaulDestination haulDestination)
     {
         ___map.GetCachedMapComponent<CrossMapHaulDestinationManager>().AddHaulDestination(haulDestination);
-    }
-}
-
-[HarmonyPatch(typeof(HaulDestinationManager), nameof(HaulDestinationManager.RemoveHaulSource))]
-[PatchLevel(Level.Mandatory)]
-public static class Patch_HaulDestinationManager_RemoveHaulSource
-{
-    public static void Postfix(Map ___map, IHaulSource source)
-    {
-        ___map.GetCachedMapComponent<CrossMapHaulDestinationManager>().RemoveHaulSource(source);
     }
 }
 
@@ -686,7 +633,8 @@ public static class Patch_Map_TileInfo
 {
     public static void Postfix(Map __instance, ref Tile __result)
     {
-        if (__instance.IsVehicleMapOf(out _) && Find.Maps.Contains(__instance))
+        if (__instance.IsVehicleMapOf(out _) && Find.Maps.Contains(__instance) &&
+            __instance.Tile.Valid && Find.WorldGrid.InBounds(__instance.Tile))
         {
             __result = Find.WorldGrid[__instance.Tile];
         }
@@ -707,15 +655,13 @@ public static class Patch_QuestPart_SpawnThing_MapParent
 [PatchLevel(Level.Safe)]
 public static class Patch_AreaSource_DataForArea
 {
-    public static bool Prefix(Area area, Map ___map, ref NativeBitArray __result)
+    public static void Prefix(ref AreaSource __instance, Area area, Map ___map)
     {
         Map baseMap;
         if (area.Map != ___map && area.Map == (baseMap = ___map.BaseMap()))
         {
-            __result = areas(baseMap.pathFinder.MapData).DataForArea(area);
-            return false;
+            __instance = areas(baseMap.pathFinder.MapData);
         }
-        return true;
     }
 
     private static readonly AccessTools.FieldRef<PathFinderMapData, AreaSource> areas = AccessTools.FieldRefAccess<PathFinderMapData, AreaSource>("areas");
@@ -771,6 +717,44 @@ public static class Patch_QuestGen_TransportShip_AddShipJob_Arrive
             CodeInstruction.LoadField(typeof(PocketMapParent), nameof(PocketMapParent.sourceMap)),
             new CodeInstruction(OpCodes.Brfalse_S, label));
         return codes.Instructions();
+    }
+}
+
+[HarmonyPatch(typeof(GenHostility), nameof(GenHostility.AnyHostileActiveThreatTo))]
+[HarmonyPatch([typeof(Map), typeof(Faction), typeof(IAttackTarget), typeof(bool), typeof(bool)],
+    [ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Out, ArgumentType.Normal, ArgumentType.Normal])]
+[PatchLevel(Level.Safe)]
+public static class Patch_GenHostility_AnyHostileActiveThreatTo
+{
+    public static void Postfix(Map map, Faction faction, ref IAttackTarget threat, bool countDormantPawnsAsHostile, bool canBeFogged, ref bool __result)
+    {
+        if (__result) return;
+
+        foreach (var vehicle in VehiclePawnWithMapCache.AllVehiclesOn(map))
+        {
+            foreach (var attackTarget in vehicle.VehicleMap.attackTargetsCache.TargetsHostileToFaction(faction))
+            {
+                if (GenHostility.IsActiveThreatTo(attackTarget, faction, true, canBeFogged))
+                {
+                    threat = attackTarget;
+                    __result = true;
+                    return;
+                }
+                if (countDormantPawnsAsHostile && attackTarget.Thing.HostileTo(faction) && (canBeFogged || !attackTarget.Thing.Fogged()) && !attackTarget.ThreatDisabled(null))
+                {
+                    if (attackTarget.Thing is Pawn pawn)
+                    {
+                        var comp = pawn.GetComp<CompCanBeDormant>();
+                        if (comp is { Awake: false })
+                        {
+                            threat = attackTarget;
+                            __result = true;
+                            return;
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 

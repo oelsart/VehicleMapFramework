@@ -3,7 +3,6 @@ using System.Reflection;
 using HarmonyLib;
 using UnityEngine;
 using Verse;
-using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
@@ -12,7 +11,7 @@ internal class Patches_AllowTool
 {
     static Patches_AllowTool()
     {
-        if (ModCompat.AllowTool)
+        if (AllowTool)
         {
             VMF_Harmony.PatchCategory(PatchCategories.AllowTool);
         }

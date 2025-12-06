@@ -93,12 +93,22 @@ public class HarmonyPatchTests
     [Test, Order(3), TestCaseSource(typeof(TestPlanLoader), nameof(TestPlanLoader.GetPatchTestPlans))]
     public void ExecutePatches(TestPlan plan)
     {
+        const string Royalty = "VMF_Patches_Royalty";
+        const string Biotech = "VMF_Patches_Biotech";
+        const string Anomaly = "VMF_Patches_Anomaly";
+        const string Odyssey = "VMF_Patches_Odyssey";
+        
         var harmonyLocal = new Harmony($"VehicleMapFramework.CompatPatchesTest: {plan.Name}");
-
-        foreach (var category in plan.Categories)
+        if (plan.Categories is null)
         {
-            PatchCategory(category);
+            PatchAllUncategorized();
+            PatchCategory(Royalty);
+            PatchCategory(Biotech);
+            PatchCategory(Anomaly);
+            PatchCategory(Odyssey);
         }
+        else foreach (var category in plan.Categories)
+            PatchCategory(category);
         Assert.Pass($"Successfully applied {harmonyLocal.GetPatchedMethods().Count()} patches.");
         return;
     
@@ -119,18 +129,44 @@ public class HarmonyPatchTests
                 }
                 catch (Exception ex)
                 {
-                    switch (ex)
-                    {
-                        // デバッガーがアタッチされている時はReadMethodBody時ECallメソッドのSecurityExceptionが出ないため
-                        // そのためSecurityExceptionのスキップをスキップする
-                        case not null when Debugger.IsAttached:
-                        case HarmonyException { InnerException: not SecurityException }:
-                        case not SecurityException and not HarmonyException:
-                            Assert.Fail(ex.ToString());
-                            break;
-                    }
+                    HandleException(ex);
                 }
             });
+        }
+
+        void PatchAllUncategorized()
+        {
+            TestPlanLoader.Types.Where(type =>
+            {
+                var attributes = type.GetCustomAttributesData();
+                return
+                    attributes.Any(attr => attr.AttributeType == typeof(HarmonyPatch)) &&
+                    attributes.All(attr => attr.AttributeType != typeof(HarmonyPatchCategory));
+            }).Do(type =>
+            {
+                try
+                {
+                    harmonyLocal.CreateClassProcessor(type).Patch();
+                }
+                catch (Exception ex)
+                {
+                    HandleException(ex);
+                }
+            });
+        }
+        
+        void HandleException(Exception ex)
+        {
+            switch (ex)
+            {
+                // デバッガーがアタッチされている時はReadMethodBody時ECallメソッドのSecurityExceptionが出ないため
+                // そのためSecurityExceptionのスキップをスキップする
+                case not null when Debugger.IsAttached:
+                case HarmonyException { InnerException: not SecurityException }:
+                case not SecurityException and not HarmonyException:
+                    Assert.Fail(ex?.ToString() ?? "");
+                    break;
+            }
         }
     }
 }

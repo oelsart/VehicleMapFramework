@@ -11,7 +11,7 @@ internal class Patches_TraderShips
 {
     static Patches_TraderShips()
     {
-        if (ModCompat.TraderShips)
+        if (TraderShips)
         {
             VMF_Harmony.PatchCategory(PatchCategories.TraderShips);
         }
@@ -63,7 +63,7 @@ public static class Patch_LandedShip_ColonyThingsWillingToBuy
         }
         if (working) yield break;
 
-        var maps = playerNegotiator.Map.BaseMapAndVehicleMaps().Except(playerNegotiator.Map);
+        var maps = playerNegotiator.Map.BaseMapAndVehicleMaps.Except(playerNegotiator.Map);
         var departMap = playerNegotiator.Map;
         CrossMapReachabilityUtility.DepartMapGlobal = departMap;
         try

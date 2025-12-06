@@ -11,7 +11,7 @@
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Dev|AnyCPU'">
     <DebugType>none</DebugType>
-    <OutputPath>..\..\..\VehicleMapFrameworkDev\1.6\Assemblies\</OutputPath>
+    <OutputPath>..\..\..\VehicleMapFrameworkDev\Test\Assemblies\</OutputPath>
     <Optimize>True</Optimize>
     <DefineConstants>UNITY_ASSERTIONS</DefineConstants>
   </PropertyGroup>

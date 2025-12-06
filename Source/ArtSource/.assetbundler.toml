@@ -1,0 +1,26 @@
+[global]
+unity_version = "2022.3.35f1"
+unity_hub_path = "E:/Unity Hub/Unity Hub.exe"
+unity_editor_path = "E:/Unity Hub/Editor/2022.3.35f1/Editor/Unity.exe"
+allowed_targets = ["windows", "linux", "mac"]
+temp_project_path = "/tmp/unity"
+clean_temp_project = false
+link_method = "copy"
+
+[bundles.vehiclemapframework]
+description = "Bundle for Vehicle Map Framework"
+output_directory = "../../Common/AssetBundles"
+asset_directory = "Assets"
+bundle_name = "OELS.VehicleMapFramework"
+filename = "textures"
+exclude_patterns = ["*.meta", "*.tmp"]
+include_patterns = ["*.png", "*.wav", "*.ogg"]
+
+[bundles.vehiclemapframeworkdev]
+description = "Bundle for Vehicle Map Framework"
+output_directory = "../../../VehicleMapFrameworkDev/Common/AssetBundles"
+asset_directory = "Assets"
+bundle_name = "OELS.VehicleMapFramework.dev"
+filename = "textures"
+exclude_patterns = ["*.meta", "*.tmp"]
+include_patterns = ["*.png", "*.wav", "*.ogg"]

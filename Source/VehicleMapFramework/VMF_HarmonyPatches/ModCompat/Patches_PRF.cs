@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Reflection.Emit;
 using HarmonyLib;
-using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
@@ -11,7 +10,7 @@ internal static class Patches_PRF
 {
     static Patches_PRF()
     {
-        if (ModCompat.ProjectRimFactory)
+        if (ProjectRimFactory)
         {
             VMF_Harmony.PatchCategory(PatchCategories.ProjectRimFactory);
         }
@@ -39,7 +38,7 @@ public static class Patch_JobGiver_DroneMain_TryGiveJob
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMapOrCaravan_Thing);
     }
 }
 
@@ -50,6 +49,6 @@ public static class Patch_JobGiver_DroneFlee_ReturnToStationJob
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMapOrCaravan_Thing);
     }
 }

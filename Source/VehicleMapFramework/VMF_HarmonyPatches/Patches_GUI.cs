@@ -7,7 +7,6 @@ using HarmonyLib;
 using RimWorld;
 using UnityEngine;
 using Verse;
-using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
@@ -15,21 +14,15 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [PatchLevel(Level.Safe)]
 public static class Patch_ThingOverlays_ThingOverlaysOnGUI
 {
-    public static void Postfix()
+    public static bool Prefix()
     {
-        if (Event.current.type != EventType.Repaint)
-        {
-            return;
-        }
-        var vehicles = VehiclePawnWithMapCache.AllVehiclesOn(Find.CurrentMap);
-        if (vehicles.Count == 0)
-        {
-            return;
-        }
+        if (Event.current.type != EventType.Repaint) return true;
         var currentViewRect = Find.CameraDriver.CurrentViewRect;
+        var flag = Find.CurrentMap.IsVehicleMapOf(out var vehicle);
+        var vehicles = flag ? GetVehicles() : VehiclePawnWithMapCache.AllVehiclesOn(Find.CurrentMap);
         foreach (var thing in vehicles.SelectMany(v => v.CurrentLevel.listerThings.ThingsInGroup(ThingRequestGroup.HasGUIOverlay)))
         {
-            if (currentViewRect.Contains(thing.PositionOnBaseMap())/* && !Find.CurrentMap.fogGrid.IsFogged(thing.PositionOnBaseMap())*/) //車両マップである時点でFoggedはスキップしていいはず
+            if (currentViewRect.Contains(thing.PositionOnBaseMap)/* && !Find.CurrentMap.fogGrid.IsFogged(thing.PositionOnBaseMap)*/) //車両マップである時点でFoggedはスキップしていいはず
             {
                 try
                 {
@@ -37,8 +30,23 @@ public static class Patch_ThingOverlays_ThingOverlaysOnGUI
                 }
                 catch (Exception ex)
                 {
-                    Log.Error(string.Concat("Exception drawing ThingOverlay for ", thing, ": ", ex));
+                    Log.Error($"Exception drawing ThingOverlay for {thing}: {ex}");
                 }
+            }
+        }
+
+        return !flag;
+
+        IEnumerable<VehiclePawnWithMap> GetVehicles()
+        {
+            if (vehicle.VehicleCaravanOrStashedVehicle is { } vehicleCaravanOrStashedVehicle)
+            {
+                foreach (var vehicle2 in vehicleCaravanOrStashedVehicle.Vehicles.OfType<VehiclePawnWithMap>())
+                    yield return vehicle2;
+            }
+            else
+            {
+                yield return vehicle;
             }
         }
     }
@@ -49,18 +57,44 @@ public static class Patch_ThingOverlays_ThingOverlaysOnGUI
 [PatchLevel(Level.Sensitive)]
 public static class Patch_ColonistBar_CheckRecacheEntries
 {
+    private static readonly AccessTools.FieldRef<MapPawns, Map> map = AccessTools.FieldRefAccess<MapPawns, Map>("map");
+
+    private static readonly List<Pawn> tmpList = [];
+    
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        var codes = instructions.ToList();
-        var g_Find_Maps = AccessTools.PropertyGetter(typeof(Find), nameof(Find.Maps));
-        var pos = codes.FindIndex(c => c.Calls(g_Find_Maps)) + 1;
-        codes.Insert(pos, CodeInstruction.Call(typeof(Patch_ColonistBar_CheckRecacheEntries), nameof(ExcludeVehicleMaps)));
-        return codes;
+        return new CodeMatcher(instructions)
+            .MatchStartForward(CodeMatch.Calls(AccessTools.PropertyGetter(typeof(Find), nameof(Find.Maps))))
+            .InsertAfterAndAdvance(
+                CodeInstruction.Call(typeof(Patch_ColonistBar_CheckRecacheEntries), nameof(ExcludeVehicleMaps)))
+            .MatchStartForward(
+                CodeMatch.Calls(AccessTools.PropertyGetter(typeof(MapPawns), nameof(MapPawns.FreeColonists))))
+            .Set(OpCodes.Call, AccessTools.Method(typeof(Patch_ColonistBar_CheckRecacheEntries), nameof(FreeColonists)))
+            .MatchStartForward(
+                CodeMatch.Calls(AccessTools.PropertyGetter(typeof(MapPawns), nameof(MapPawns.AllPawnsSpawned))))
+            .Set(OpCodes.Call, AccessTools.Method(typeof(Patch_ColonistBar_CheckRecacheEntries), nameof(AllPawnsSpawned)))
+            .InstructionEnumeration();
     }
 
     private static IEnumerable<Map> ExcludeVehicleMaps(this IEnumerable<Map> maps)
     {
         return maps?.Where(m => !m.IsVehicleMapOf(out var vehicle) || !vehicle.Spawned || m != vehicle.VehicleMap);
+    }
+
+    private static List<Pawn> FreeColonists(MapPawns instance)
+    {
+        var list = instance.FreeColonists;
+        var baseMap = map(instance).GroundMap;
+        list.RemoveAll(pawn => pawn.GroundMap != baseMap);
+        return list;
+    }
+
+    private static IReadOnlyList<Pawn> AllPawnsSpawned(MapPawns instance)
+    {
+        tmpList.Clear();
+        var baseMap = map(instance).GroundMap;
+        tmpList.AddRange(instance.AllPawnsSpawned.Where(pawn => pawn.GroundMap == baseMap));
+        return tmpList;
     }
 }
 
@@ -71,7 +105,7 @@ public static class Patch_MouseoverReadout_MouseoverReadoutOnGUI
 {
     public static void PrefixCommon(ref object[] __state)
     {
-        if (UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out var vehicle))
+        if (Command_FocusVehicleMap.FocusedVehicle is { } vehicle || UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out vehicle))
         {
             sbyte index;
             VehiclePawnWithMap vehicle2;

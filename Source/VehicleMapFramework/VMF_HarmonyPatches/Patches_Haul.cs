@@ -8,7 +8,6 @@ using RimWorld;
 using RimWorld.Planet;
 using Verse;
 using Verse.AI;
-using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
@@ -62,7 +61,7 @@ public static class Patch_StoreUtility_TryFindBestBetterStorageFor
     {
         if (haulDestination?.Map != null)
         {
-            TargetMapManager.SetTargetInfo(carrier, new TargetInfo(foundCell, haulDestination.Map));
+            carrier.TargetInfo = new TargetInfo(foundCell, haulDestination.Map);
         }
     }
 }
@@ -77,7 +76,7 @@ public static class Patch_StoreUtility_TryFindBestBetterStoreCellFor
         __result |= StoreAcrossMapsUtility.TryFindBestBetterStoreCellFor(t, carrier, map, priority, faction, ref foundCell, needAccurateResult);
         if (StoreAcrossMapsUtility.tmpDestMap != null)
         {
-            TargetMapManager.SetTargetInfo(carrier, new TargetInfo(foundCell, StoreAcrossMapsUtility.tmpDestMap));
+            carrier.TargetInfo = new TargetInfo(foundCell, StoreAcrossMapsUtility.tmpDestMap ?? map);
         }
     }
 }
@@ -141,50 +140,14 @@ public static class Patch_HaulAIUtility_HaulToCellStorageJob
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrPawnMap);
     }
 
-    [HarmonyBefore(ModCompat.StackGap.HarmonyId)]
+    [HarmonyBefore(StackGap.HarmonyId)]
     [PatchLevel(Level.Safe)]
     public static void Postfix(Pawn p, IntVec3 storeCell, Job __result)
     {
-        if (TargetMapManager.HasTargetMap(p, out var map))
+        if (p.TryGetTargetMap(out var map))
         {
             __result?.globalTarget = new GlobalTargetInfo(storeCell, map);  
         }
-    }
-}
-
-[HarmonyPatch]
-[PatchLevel(Level.Sensitive)]
-public static class Patch_JobDriver_HaulToCell
-{
-    private static IEnumerable<MethodBase> TargetMethods()
-    {
-        yield return AccessTools.Method(typeof(JobDriver_HaulToCell), nameof(JobDriver_HaulToCell.GetReport));
-        yield return AccessTools.FindIncludingInnerTypes(typeof(JobDriver_HaulToCell), t =>
-        {
-            return t.GetDeclaredMethods().FirstOrDefault(m =>
-            {
-                return m.Name.Contains("<MakeNewToils>") &&
-                       m.GetMethodBody()!.LocalVariables
-                           .Select(l => l.LocalType)
-                           .SequenceEqual([typeof(Pawn), typeof(Job), typeof(Thing), typeof(LocalTargetInfo)]);
-            });
-        });
-    }
-
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        var g_JobDriver_Map = AccessTools.PropertyGetter(typeof(JobDriver), "Map");
-        var m_TargetMapOrPawnMap = AccessTools.Method(typeof(Patch_JobDriver_HaulToCell), nameof(TargetMapOrPawnMap));
-        return instructions.MethodReplacer(g_JobDriver_Map, m_TargetMapOrPawnMap);
-    }
-
-    public static Map TargetMapOrPawnMap(JobDriver instance)
-    {
-        if (TargetMapManager.HasTargetMap(instance.pawn, out var map) || (map = instance.job.globalTarget.Map) != null || (map = instance.job.targetA.Thing?.MapHeld) != null)
-        {
-            return map;
-        }
-        return instance.pawn.MapHeld;
     }
 }
 
@@ -194,22 +157,21 @@ public static class Patch_Toils_Haul_IsValidStorageFor
 {
     private static IEnumerable<MethodBase> TargetMethods()
     {
-        foreach (var t in AccessTools.InnerTypes(typeof(Toils_Haul)))
-        {
-            var methods = t.GetDeclaredMethods();
-            var method = methods.FirstOrDefault(m =>
+        return AccessTools.InnerTypes(typeof(Toils_Haul))
+            .Select(t => t.GetDeclaredMethods())
+            .Select(methods => methods.FirstOrDefault(m =>
             {
                 if (m.Name.Contains("DupeValidator"))
                 {
                     return true;
                 }
+
                 return m.Name.Contains("<CarryHauledThingToCell>") &&
                        m.GetMethodBody()!.LocalVariables
                            .Select(l => l.LocalType)
-                           .SequenceEqual([typeof(Pawn), typeof(IntVec3), typeof(CompPushable), typeof(LocalTargetInfo)]);
-            });
-            if (method != null) yield return method;
-        }
+                           .SequenceEqual(
+                               [typeof(Pawn), typeof(IntVec3), typeof(CompPushable), typeof(LocalTargetInfo)]);
+            })).Where(method => method != null);
     }
 
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)

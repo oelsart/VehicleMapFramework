@@ -607,8 +607,46 @@ internal static class ModCompat
     }
 
     public static readonly bool VGE = IsModActive("vanillaexpanded.gravship");
+    
+    public static readonly bool VQEGenerator = IsModActive("vanillaquestsexpanded.generator");
+
+    public static class VTE
+    {
+        public static readonly bool Active = IsModActive("VanillaExpanded.Temperature");
+
+        public static readonly Type ProxyHeatManager;
+
+        public static readonly FastInvokeHandler RemoveComp;
+        
+        static VTE()
+        {
+            if (Active)
+            {
+                try
+                {
+                    ProxyHeatManager = GenTypes.GetTypeInAnyAssembly("ProxyHeat.ProxyHeatManager", "ProxyHeat");
+                    RemoveComp = MethodInvoker.GetHandler(AccessTools.Method(ProxyHeatManager, "RemoveComp"));
+                }
+                catch (Exception ex)
+                {
+                    LogError(ex);
+                    Active = false;
+                }
+                finally
+                {
+                    if (AnyNull(ProxyHeatManager, RemoveComp))
+                    {
+                        LogIncompat("Vanilla Temperature Expanded");
+                        Active = false;
+                    }
+                }
+            }
+        }
+    }
 
     public static readonly bool Vivi = IsModActive("gguake.race.vivi");
+    
+    public static readonly bool WASDedPawn = IsModActive("addvans.WASDedPawn");
 
     public static readonly bool WhileYoureUp = IsModActive("CodeOptimist.JobsOfOpportunity") || IsModActive("zsbk.patch16.whileyoureup");
 
@@ -653,10 +691,41 @@ internal static class ModCompat
     public static readonly bool TraderShips = IsModActive("automatic.traderships");
 
     public static readonly bool NightmareCore = IsModActive("Nightmare.Core");
+    
+    public static class Aquariums
+    {
+        public static readonly bool Active = IsModActive("Nightmare.Aquariums");
 
-    public static readonly bool Aquariums = IsModActive("Nightmare.Aquariums");
+        public static readonly FastInvokeHandler CurrentTank;
+
+        static Aquariums()
+        {
+            if (Active)
+            {
+                try
+                {
+                    CurrentTank =
+                        MethodInvoker.GetHandler(AccessTools.PropertyGetter("Aquariums.AquariumFish:CurrentTank"));
+                }
+                catch (Exception ex)
+                {
+                    LogError(ex);
+                    Active = false;
+                }
+                finally
+                {
+                    if (AnyNull(CurrentTank))
+                    {
+                        LogIncompat("Aquariums");
+                    }
+                }
+            }
+        }
+    }
 
     public static readonly bool SmartPistol = IsModActive("rabiosus.smartpistol");
+    
+    public static readonly bool RealFogOfWar = IsModActive("Mlie.NWNRealFogOfWar");
 
     public static readonly bool ReGrowth = IsModActive("ReGrowth.BOTR.Core");
 
@@ -734,6 +803,10 @@ internal static class ModCompat
             {
                 try
                 {
+                    if (SmartFarmingActive && ReGrowth && !UnitTestDetector.IsTestingContext)
+                    {
+                        VMF_Log.Error("When both Smart Farming and ReGrowth 2 are enabled, a patch error will occur. Since these have overlapping functionality, please enable only one of them.");
+                    }
                     Type t_ZoneData;
                     if (SmartFarmingActive)
                     {
@@ -835,4 +908,9 @@ internal static class ModCompat
     public static readonly bool DoNotHitMe = IsModActive("Og.do.not.hit.me");
     
     public static readonly bool AutoApparelPickup = IsModActive("Scorpio.AutoApparelPickup");
+
+    public static class ProgressionEducation
+    {
+        public const string HarmonyId = "ProgressionEducationMod";
+    }
 }

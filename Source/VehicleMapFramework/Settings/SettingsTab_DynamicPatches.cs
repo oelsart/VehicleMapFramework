@@ -13,7 +13,6 @@ namespace VehicleMapFramework.Settings
         protected override void ResetSettings()
         {
             base.ResetSettings();
-            var defaultSettings = VehicleMapSettings.DefaultSettings;
             settings.dynamicPatchEnabled = VehicleMapSettings.Default.dynamicPatchEnabled;
             settings.dynamicUnpatchEnabled = VehicleMapSettings.Default.dynamicUnpatchEnabled;
             settings.dynamicPatchLevel = VehicleMapSettings.Default.dynamicPatchLevel;

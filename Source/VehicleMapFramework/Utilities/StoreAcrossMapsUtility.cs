@@ -1,12 +1,12 @@
 ﻿using RimWorld;
 using SmashTools;
 using UnityEngine;
-using VehicleMapFramework.VMF_HarmonyPatches;
 using Verse;
 using Verse.AI;
 
 namespace VehicleMapFramework;
 
+[HotSwap]
 public static class StoreAcrossMapsUtility
 {
     public static Map tmpDestMap;
@@ -14,8 +14,15 @@ public static class StoreAcrossMapsUtility
     public static bool TryFindBestBetterStoreCellFor(Thing t, Pawn carrier, Map map, StoragePriority currentPriority, Faction faction, ref IntVec3 foundCell, bool needAccurateResult)
     {
         tmpDestMap = null;
-        var allGroupsListInPriorityOrder = map.BaseMap().GetCachedMapComponent<CrossMapHaulDestinationManager>().AllGroupsListInPriorityOrder;
-
+        var baseMap = map.BaseMap();
+        var allGroupsListInPriorityOrder = baseMap.IsVehicleMapOf(out var vehicle) &&
+                                           vehicle.VehicleCaravanOrStashedVehicle is { } vehicleCaravanOrStashedVehicle &&
+                                           vehicleCaravanOrStashedVehicle.TryGetComponent<CaravanHaulDestinationManager>(out var comp)
+                                               ? comp.AllGroupsListInPriorityOrder
+                                               : baseMap.GetCachedMapComponent<CrossMapHaulDestinationManager>()
+                                                   .AllGroupsListInPriorityOrder;
+        
+        
         if (allGroupsListInPriorityOrder.Count == 0)
         {
             return false;
@@ -36,6 +43,7 @@ public static class StoreAcrossMapsUtility
             {
                 break;
             }
+            
             TryFindBestBetterStoreCellForWorker(t, carrier, storeMap, faction, slotGroup, needAccurateResult, ref invalid, ref num, ref storagePriority);
         }
         if (!invalid.IsValid)
@@ -64,7 +72,7 @@ public static class StoreAcrossMapsUtility
         {
             var intVec = cellsList[i];
             float num2 = (a - intVec).LengthHorizontalSquared;
-            if (!(num2 <= closestDistSquared) || !IsGoodStoreCell(intVec, map, t, carrier, faction)) continue;
+            if (num2 > closestDistSquared || !IsGoodStoreCell(intVec, map, t, carrier, faction)) continue;
             closestSlot = intVec;
             closestDistSquared = num2;
             foundPriority = slotGroup.Settings.Priority;
@@ -78,21 +86,9 @@ public static class StoreAcrossMapsUtility
 
     public static bool IsGoodStoreCell(IntVec3 c, Map map, Thing t, Pawn carrier, Faction faction)
     {
-        if (carrier != null)
+        if (carrier != null && c.IsForbidden(carrier, map))
         {
-            try
-            {
-                Patch_ForbidUtility_IsForbidden.Map = map;
-                if (c.IsForbidden(carrier))
-                {
-                    return false;
-                }
-            }
-            finally
-            {
-                Patch_ForbidUtility_IsForbidden.Map = null;
-            }
-
+            return false;
         }
         if (!c.IsValidStorageFor(map, t))
         {
@@ -138,20 +134,23 @@ public static class StoreAcrossMapsUtility
         }
         else
         {
-            startMap = carrier.Map;
+            startMap = carrier.DepartMap ?? carrier.Map;
             start = carrier.PositionHeld;
         }
-        if (!CrossMapReachabilityUtility.CanReach(startMap, start, c, PathEndMode.ClosestTouch, TraverseParms.For(carrier), map, out _, out _))
-        {
-            return false;
-        }
-        return true;
+        return CrossMapReachabilityUtility.CanReach(startMap, start, c, PathEndMode.ClosestTouch, TraverseParms.For(carrier), map);
     }
 
     public static bool TryFindBestBetterNonSlotGroupStorageFor(Thing t, Pawn carrier, Map map, StoragePriority currentPriority, Faction faction, ref IHaulDestination haulDestination, bool acceptSamePriority, bool requiresDestReservation)
     {
-        var allHaulDestinationsListInPriorityOrder = map.BaseMap().GetCachedMapComponent<CrossMapHaulDestinationManager>().AllHaulDestinationsListInPriorityOrder;
-
+        var baseMap = map.BaseMap();
+        var allHaulDestinationsListInPriorityOrder = baseMap.IsVehicleMapOf(out var vehicle) &&
+                                                     vehicle.VehicleCaravanOrStashedVehicle is { } vehicleCaravanOrStashedVehicle &&
+                                                     vehicleCaravanOrStashedVehicle.TryGetComponent<CaravanHaulDestinationManager>(out var comp)
+            ? comp.AllHaulDestinationsListInPriorityOrder
+            : baseMap.GetCachedMapComponent<CrossMapHaulDestinationManager>()
+                .AllHaulDestinationsListInPriorityOrder;
+        
+        
         var thingMap = t.SpawnedOrAnyParentSpawned ? t.MapHeld : carrier.MapHeld;
         var intVec = t.SpawnedOrAnyParentSpawned ? t.PositionHeld : carrier.PositionHeld;
         var intVecOnBase = t.SpawnedOrAnyParentSpawned ? t.PositionHeldOnBaseMap() : carrier.PositionHeldOnBaseMap();

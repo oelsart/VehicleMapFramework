@@ -11,10 +11,7 @@ internal sealed class UnitTest_StudyInteract(VehicleGroup group) : WorkGiverTest
     public override void SetUp()
     {
         var component = Current.Game.GetComponent<GameComponent_Anomaly>();
-        CellFinder.TryFindRandomReachableCellNearPosition(Pawn.Position, Pawn.Position,Pawn.Map, 20f,
-            TraverseParms.For(Pawn),
-            c => GenConstruct.CanPlaceBlueprintAt(ThingDefOf.VoidMonolith, c, Rot4.North, Pawn.Map),
-            null, out var cell);
+        var cell = new IntVec3(Pawn.Map.Size.x - 3, 0, Pawn.Map.Size.z - 3);
         if (!component.MonolithSpawned || component.monolith.Map != Pawn.Map)
             component.SpawnNewMonolith(cell, Pawn.Map);
         else

@@ -5,7 +5,6 @@ using System.Reflection.Emit;
 using HarmonyLib;
 using RimWorld.Planet;
 using Verse;
-using static VehicleMapFramework.MethodInfoCache;
 using static VehicleMapFramework.ModCompat.VFESecurity;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches

@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using HarmonyLib;
-using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
@@ -9,7 +8,7 @@ internal static class Patches_Fortified
 {
     static Patches_Fortified()
     {
-        if (ModCompat.Fortified)
+        if (Fortified)
         {
             VMF_Harmony.PatchCategory(PatchCategories.FortifiedFeaturesFramework);
         }

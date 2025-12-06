@@ -1,10 +1,13 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Verse;
 
 namespace VehicleMapFramework;
 
 public static class ShootLeanUtilityOnVehicle
 {
+    private static readonly Queue<bool[]> blockedArrays = new();
+    
     private static bool[] GetWorkingBlockedArray()
     {
         return blockedArrays.Count > 0 ? blockedArrays.Dequeue() : new bool[8];
@@ -22,44 +25,40 @@ public static class ShootLeanUtilityOnVehicle
     public static void CalcShootableCellsOf(List<IntVec3> outCells, Thing t, IntVec3 shooterPosOnBaseMap)
     {
         outCells.Clear();
-        if (t is VehiclePawnWithMap vehicle)
+        switch (t)
         {
-            //VehiclePawnWithMapへの射撃は壁がある場合その壁の場所を目標とする
-            var cell = GenSight.LastPointOnLineOfSight(shooterPosOnBaseMap, t.Position, c =>
+            case VehiclePawnWithMap vehicle:
             {
-                if (c.TryGetVehicleMap(t.Map, out var vehicle2) && vehicle == vehicle2)
+                //VehiclePawnWithMapへの射撃は壁がある場合その壁の場所を目標とする
+                var cell = GenSight.LastPointOnLineOfSight(shooterPosOnBaseMap, t.Position, c =>
                 {
-                    var c2 = c.ToVehicleMapCoord(vehicle);
-                    var edifice = c2.GetEdificeSafe(vehicle.VehicleMap);
-                    if (edifice != null && !edifice.CanBeSeenOver())
+                    if (c.TryGetVehicleMap(t.Map, out var vehicle2) && vehicle == vehicle2)
                     {
-                        return false;
+                        var c2 = c.ToVehicleMapCoord(vehicle);
+                        var edifice = c2.GetEdificeSafe(vehicle.VehicleMap);
+                        if (edifice != null && !edifice.CanBeSeenOver())
+                        {
+                            return false;
+                        }
                     }
+                    return true;
+                });
+                if (cell == IntVec3.Invalid)
+                {
+                    cell = t.Position;
                 }
-                return true;
-            });
-            if (cell == IntVec3.Invalid)
-            {
-                cell = t.Position;
+                LeanShootingSourcesFromTo(cell, shooterPosOnBaseMap, t.Map, outCells);
+                return;
             }
-            LeanShootingSourcesFromTo(cell, shooterPosOnBaseMap, t.Map, outCells);
-            return;
+            case Pawn:
+                LeanShootingSourcesFromTo(t.Position, shooterPosOnBaseMap, t.Map, outCells);
+                return;
         }
-        if (t is Pawn)
-        {
-            LeanShootingSourcesFromTo(t.Position, shooterPosOnBaseMap, t.Map, outCells);
-            return;
-        }
+
         outCells.Add(t.Position);
         if (t.def.size.x != 1 || t.def.size.z != 1)
         {
-            foreach (var intVec in t.OccupiedRect())
-            {
-                if (intVec != t.Position)
-                {
-                    outCells.Add(intVec);
-                }
-            }
+            outCells.AddRange(t.OccupiedRect().Where(intVec => intVec != t.Position));
         }
     }
 
@@ -72,15 +71,21 @@ public static class ShootLeanUtilityOnVehicle
             shooterLocBaseCol = shooterLoc.ToBaseMapCoord(vehicle);
         }
         listToFill.Clear();
-        var angleFlat = (targetPosBaseCol - shooterLocBaseCol).AngleFlat;
-        var flag = angleFlat > 270f || angleFlat < 90f;
+        var vector = (targetPosBaseCol - shooterLocBaseCol).ToVector3();
+        if (vehicle is not null)
+            vector = vector.RotatedBy(-vehicle.FullAngle);
+        var angleFlat = vector.AngleFlat();
+        var flag = angleFlat is > 270f or < 90f;
         var flag2 = angleFlat is > 90f and < 270f;
         var flag3 = angleFlat > 180f;
         var flag4 = angleFlat < 180f;
         var workingBlockedArray = GetWorkingBlockedArray();
         for (var i = 0; i < 8; i++)
         {
-            workingBlockedArray[i] = !(shooterLocBaseCol + GenAdj.AdjacentCells[i]).CanBeSeenOverOnVehicle(baseMap);
+            var cell = shooterLoc + GenAdj.AdjacentCells[i];
+            if (vehicle is not null)
+                cell = cell.ToBaseMapCoord(vehicle);
+            workingBlockedArray[i] = !cell.CanBeSeenOverOnVehicle(baseMap);
         }
         if (!workingBlockedArray[1] && ((workingBlockedArray[0] && !workingBlockedArray[5] && flag) || (workingBlockedArray[2] && !workingBlockedArray[4] && flag2)))
         {
@@ -104,14 +109,12 @@ public static class ShootLeanUtilityOnVehicle
         }
         for (var j = 0; j < 4; j++)
         {
-            var adjacentCell = shooterLoc + GenAdj.AdjacentCells[j];
-            if (!workingBlockedArray[j] && (j != 0 || flag) && (j != 1 || flag4) && (j != 2 || flag2) && (j != 3 || flag3) && adjacentCell.InBounds(map) && adjacentCell.GetCover(map) != null)
+            var cell = shooterLoc + GenAdj.AdjacentCells[j];
+            if (!workingBlockedArray[j] && (j != 0 || flag) && (j != 1 || flag4) && (j != 2 || flag2) && (j != 3 || flag3) && cell.InBounds(map) && cell.GetCover(map) != null)
             {
-                listToFill.Add(shooterLoc + GenAdj.AdjacentCells[j]);
+                listToFill.Add(cell);
             }
         }
         ReturnWorkingBlockedArray(workingBlockedArray);
     }
-
-    private static readonly Queue<bool[]> blockedArrays = new();
 }

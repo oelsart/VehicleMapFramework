@@ -9,8 +9,8 @@ public class CompExtraPrint : ThingComp
 
     public override void PostPrintOnto(SectionLayer layer)
     {
-        if (Props.graphicDatas is null) return;
-        foreach (var graphicData in Props.graphicDatas)
+        if (Props.graphics is null) return;
+        foreach (var graphicData in Props.graphics)
         {
             graphicData.Graphic.Print(layer, parent, VehicleMapUtility.PrintExtraRotation(parent));
         }

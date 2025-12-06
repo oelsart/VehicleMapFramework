@@ -3,7 +3,6 @@ using System.Linq;
 using System.Reflection;
 using HarmonyLib;
 using Verse;
-using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
@@ -12,7 +11,7 @@ internal class Patches_DrakkenLaserDrill
 {
     static Patches_DrakkenLaserDrill()
     {
-        if (ModCompat.DrakkenLaserDrill)
+        if (DrakkenLaserDrill)
         {
             VMF_Harmony.PatchCategory(PatchCategories.DrakkenLaserDrill);
         }

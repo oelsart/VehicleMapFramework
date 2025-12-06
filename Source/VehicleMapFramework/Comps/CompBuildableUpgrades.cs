@@ -7,7 +7,7 @@ namespace VehicleMapFramework;
 
 public class CompBuildableUpgrades : ThingComp
 {
-    public CompProperties_BuildableUpgrades Props => (CompProperties_BuildableUpgrades)props;
+    protected CompProperties_BuildableUpgrades Props => (CompProperties_BuildableUpgrades)props;
 
     public override void PostSpawnSetup(bool respawningAfterLoad)
     {
@@ -112,6 +112,7 @@ public class CompBuildableUpgrades : ThingComp
     public override void PostExposeData()
     {
         Scribe_Collections.Look(ref handlerUniqueIDs, "handlerUniqueIDs", LookMode.Deep);
+        handlerUniqueIDs ??= [];
     }
 
     public List<UpgradeID> handlerUniqueIDs = [];

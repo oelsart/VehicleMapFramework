@@ -10,6 +10,8 @@
 - Name: VVehiclesE
 #- Name: VFEMechanoids
 - Name: VGravshipE
+- Name: VQEGenerator
+- Name: VTemperatureE
 - Name: Achtung
 - Name: CombatExtended
 - Name: DubsBadHygiene
@@ -70,3 +72,5 @@
 - Name: YayosCombat3
 - Name: SmartFarming
   LoadOnly: true
+- Name: RealFogOfWar
+- Name: WASDedPawn

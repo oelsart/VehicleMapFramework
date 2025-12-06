@@ -6,7 +6,6 @@ using RimWorld;
 using SmashTools;
 using UnityEngine;
 using Verse;
-using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
@@ -15,7 +14,7 @@ internal static class Patches_AdaptiveStorage
 {
     static Patches_AdaptiveStorage()
     {
-        if (ModCompat.AdaptiveStorage.Active)
+        if (AdaptiveStorage.Active)
         {
             VMF_Harmony.PatchCategory(PatchCategories.AdaptiveStorageFramework);
         }

@@ -25,7 +25,7 @@ public static class TargetingHelperOnVehicle
         var minDistSquared = minDist * minDist;
         var num = maxTravelRadiusFromLocus + turret.MaxRange;
         var maxLocusDistSquared = num * num;
-        var searcherPosOnBaseMap = searcherPawn.PositionOnBaseMap();
+        var searcherPosOnBaseMap = searcherPawn.PositionOnBaseMap;
         var baseMap = searcherPawn.BaseMap();
 
         Func<IntVec3, bool> losValidator = null;
@@ -35,14 +35,14 @@ public static class TargetingHelperOnVehicle
         }
 
         tmpTargets.Clear();
-        var maps = searcherPawn.Map.BaseMapAndVehicleMaps().Except(searcherPawn.Map);
+        var maps = searcherPawn.Map.BaseMapAndVehicleMaps.Except(searcherPawn.Map);
         tmpTargets.AddRange(maps.SelectMany(m => m.attackTargetsCache.GetPotentialTargetsFor(searcherPawn)));
 
         var flag = false;
         for (var i = 0; i < tmpTargets.Count; i++)
         {
             var attackTarget = tmpTargets[i];
-            var thingPosOnBaseMap = attackTarget.Thing.PositionOnBaseMap();
+            var thingPosOnBaseMap = attackTarget.Thing.PositionOnBaseMap;
             if (thingPosOnBaseMap.InHorDistOf(searcherPosOnBaseMap, maxDist) && innerValidator(attackTarget) && turret.TryFindShootLineFromTo(searcherPosOnBaseMap, new LocalTargetInfo(attackTarget.Thing), out _))
             {
                 flag = true;
@@ -52,7 +52,7 @@ public static class TargetingHelperOnVehicle
         IAttackTarget result;
         if (flag)
         {
-            tmpTargets.RemoveAll(x => !x.Thing.PositionOnBaseMap().InHorDistOf(searcherPosOnBaseMap, maxDist) || !innerValidator(x));
+            tmpTargets.RemoveAll(x => !x.Thing.PositionOnBaseMap.InHorDistOf(searcherPosOnBaseMap, maxDist) || !innerValidator(x));
             result = GetRandomShootingTargetByScore(turret, tmpTargets, searcherPawn);
         }
         else
@@ -60,13 +60,13 @@ public static class TargetingHelperOnVehicle
             Predicate<Thing> validator2;
             if ((flags & TargetScanFlags.NeedReachableIfCantHitFromMyPos) != TargetScanFlags.None && (flags & TargetScanFlags.NeedReachable) == TargetScanFlags.None)
             {
-                validator2 = t => innerValidator((IAttackTarget)t) && turret.TryFindShootLineFromTo(searcherPawn.PositionOnBaseMap(), new LocalTargetInfo(t), out _);
+                validator2 = t => innerValidator((IAttackTarget)t) && turret.TryFindShootLineFromTo(searcherPawn.PositionOnBaseMap, new LocalTargetInfo(t), out _);
             }
             else
             {
                 validator2 = t => innerValidator((IAttackTarget)t);
             }
-            result = (IAttackTarget)GenClosestCrossMap.ClosestThing_Global(searcherPawn.PositionOnBaseMap(), tmpTargets, maxDist, validator2);
+            result = (IAttackTarget)GenClosestCrossMap.ClosestThing_Global(searcherPawn.PositionOnBaseMap, tmpTargets, maxDist, validator2);
         }
         tmpTargets.Clear();
         return result;
@@ -74,7 +74,7 @@ public static class TargetingHelperOnVehicle
         bool innerValidator(IAttackTarget t)
         {
             var thing = t.Thing;
-            var thingPosOnBaseMap = thing.PositionOnBaseMap();
+            var thingPosOnBaseMap = thing.PositionOnBaseMap;
             if (t == searcherPawn)
             {
                 return false;
@@ -86,7 +86,7 @@ public static class TargetingHelperOnVehicle
             if (!canTakeTargetsCloserThanEffectiveMinRange)
             {
                 var num2 = turret.MinRange;
-                if (num2 > 0f && (turret.vehicle.PositionOnBaseMap() - thingPosOnBaseMap).LengthHorizontalSquared < num2 * num2)
+                if (num2 > 0f && (turret.vehicle.PositionOnBaseMap - thingPosOnBaseMap).LengthHorizontalSquared < num2 * num2)
                 {
                     return false;
                 }
@@ -204,7 +204,7 @@ public static class TargetingHelperOnVehicle
             tmpCanShootAtTarget.Add(false);
             if (rawTargets[i] != searcher)
             {
-                var flag = turret.TryFindShootLineFromTo(searcher.PositionOnBaseMap(), new LocalTargetInfo(rawTargets[i].Thing.PositionOnBaseMap()), out _);
+                var flag = turret.TryFindShootLineFromTo(searcher.PositionOnBaseMap, new LocalTargetInfo(rawTargets[i].Thing.PositionOnBaseMap), out _);
                 tmpCanShootAtTarget[i] = flag;
                 if (flag)
                 {
@@ -252,7 +252,7 @@ public static class TargetingHelperOnVehicle
     private static float GetShootingTargetScore(IAttackTarget target, IAttackTargetSearcher searcher)
     {
         var num = 60f;
-        num -= Mathf.Min((target.Thing.PositionOnBaseMap() - searcher.Thing.PositionOnBaseMap()).LengthHorizontal, 40f);
+        num -= Mathf.Min((target.Thing.PositionOnBaseMap - searcher.Thing.PositionOnBaseMap).LengthHorizontal, 40f);
         if (target.TargetCurrentlyAimingAt == searcher.Thing)
         {
             num += 10f;
