@@ -13,7 +13,6 @@ using Vehicles.World;
 using Verse;
 using Verse.AI;
 using Verse.Sound;
-using static VehicleMapFramework.ModCompat;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
