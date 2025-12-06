@@ -316,9 +316,6 @@ public class VehiclePawnWithMap : VehiclePawn
                 {
                     interiorMap.terrainGrid.SetTerrain(c, VMF_DefOf.VMF_ImpassableFloor);
                 }
-
-                var size = Patch_Map_MapUpdate.MeshSize;
-                interiorMap.rememberedCameraPos.rootPos = new Vector3(size.x / 2f, 0f, size.y / 2f);
             }
         }
         catch (Exception ex)
@@ -932,6 +929,8 @@ public class VehiclePawnWithMap : VehiclePawn
         CompVehicleTurrets?.RevalidateTurrets();
         ResetRenderStatus();
         CurrentLevel = interiorMap;
+        var size = Patch_Map_MapUpdate.MeshSize;
+        interiorMap?.rememberedCameraPos?.rootPos = new Vector3(size.x / 2f, 0f, size.y / 2f);
     }
 
     public override void PostMake()
@@ -947,6 +946,8 @@ public class VehiclePawnWithMap : VehiclePawn
                 component.hitbox.Initialize(VehicleDef);
             });
         }
+        var size = Patch_Map_MapUpdate.MeshSize;
+        interiorMap?.rememberedCameraPos?.rootPos = new Vector3(size.x / 2f, 0f, size.y / 2f);
     }
 
     public override void PostGenerationSetup()
