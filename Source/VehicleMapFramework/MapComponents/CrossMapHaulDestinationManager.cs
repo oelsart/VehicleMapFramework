@@ -3,7 +3,6 @@ using System.Linq;
 using HarmonyLib;
 using RimWorld;
 using SmashTools;
-using Vehicles;
 using Verse;
 
 namespace VehicleMapFramework;

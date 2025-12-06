@@ -728,9 +728,10 @@ public static class Patch_VehicleTabHelper_Passenger_HandleDragEvent
                     }
                     else if (!___draggedPawn.Spawned && ___draggedPawn.IsWorldPawn() && TryFindSpawnSpot(vehicle, null, out var intVec, out var map2))
                     {
-                        if (___draggedPawn.ParentHolder is Caravan caravan)
+                        if (___draggedPawn.ParentHolder is VehicleCaravan caravan)
                         {
                             caravan.RemovePawn(___draggedPawn);
+                            caravan.RecacheVehicles();
                         }
                         Find.WorldPawns.RemovePawn(___draggedPawn);
                         GenSpawn.Spawn(___draggedPawn, intVec, map2);

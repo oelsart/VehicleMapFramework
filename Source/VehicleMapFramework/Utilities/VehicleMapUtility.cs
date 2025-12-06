@@ -311,7 +311,7 @@ public static class VehicleMapUtility
             var vehicleMapPos = vehicle.cachedDrawPos + OffsetFor(vehicle);
             var map = vehicle.VehicleMap;
             var pivot = new Vector3(map.Size.x / 2f, 0f, map.Size.z / 2f);
-            var drawPos = (original - vehicleMapPos).RotatedBy(-vehicle.FullAngle()) + pivot;
+            var drawPos = (original - vehicleMapPos).RotatedBy(-vehicle.FullAngle) + pivot;
             return drawPos;
         }
         
@@ -345,7 +345,7 @@ public static class VehicleMapUtility
             var vehiclePos = vehicle.cachedDrawPos;
             var map = vehicle.VehicleMap;
             var pivot = new Vector3(map.Size.x / 2f, 0f, map.Size.z / 2f);
-            var drawPos = (original.YOffset() - pivot).RotatedBy(vehicle.FullAngle()) + vehiclePos;
+            var drawPos = (original.YOffset() - pivot).RotatedBy(vehicle.FullAngle) + vehiclePos;
             drawPos += OffsetFor(vehicle);
             return drawPos;
         }
@@ -829,7 +829,8 @@ public static class VehicleMapUtility
         {
             var rot = vehicle.FullRotation;
             var angle = rot.AsAngle + vehicle.Transform.rotation;
-            matrix = Matrix4x4.TRS(Ext_Math.RotatePoint(pos, thing.TrueCenter(), -angle), q * rot.AsQuat(), s);
+            matrix = Matrix4x4.TRS(Ext_Math.RotatePoint(pos, thing.TrueCenter(), -angle),
+                q * vehicle.FullAngleQuat, s);
             return;
         }
         matrix = Matrix4x4.TRS(pos, q, s);
@@ -869,20 +870,12 @@ public static class VehicleMapUtility
 
     extension(VehiclePawn vehicle)
     {
-        public float AngleRotated()
-        {
-            return Ext_Math.RotateAngle(vehicle.Angle, vehicle.Transform.rotation);
-        }
+        public float FullAngle => Ext_Math.RotateAngle(vehicle.FullRotation.AsAngle, vehicle.Transform.rotation);
 
-        public float FullAngle()
-        {
-            return Ext_Math.RotateAngle(vehicle.FullRotation.AsAngle, vehicle.Transform.rotation);
-        }
+        public Quaternion FullAngleQuat => Quaternion.AngleAxis(vehicle.FullAngle, Vector3.up);
 
-        public Quaternion FullAngleQuat()
-        {
-            return Quaternion.AngleAxis(vehicle.FullAngle(), Vector3.up);
-        }
+        public float ExtraAngle =>
+            Mathf.Repeat(vehicle.FullAngle - vehicle.FullRotation.RotForVehicleDraw().AsAngle, 360f);
 
         public int HalfLength()
         {

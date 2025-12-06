@@ -825,7 +825,7 @@ public class VehiclePawnWithMap : VehiclePawn
         if (!layer.Visible)
             return;
         
-        var rot = Quaternion.AngleAxis(this.FullAngle(), Vector3.up);
+        var rot = Quaternion.AngleAxis(this.FullAngle, Vector3.up);
         for (var i = 0; i < layer.subMeshes.Count; i++)
         {
             var subMesh = layer.subMeshes[i];
@@ -841,7 +841,7 @@ public class VehiclePawnWithMap : VehiclePawn
         if (Command_FocusVehicleMap.FocusLockedVehicle == this || Command_FocusVehicleMap.FocusedVehicle == this)
         {
             var material = ClipMat;
-            var quat = this.FullAngleQuat();
+            var quat = this.FullAngleQuat;
             var size = map.Size;
             Vector3 s = new(500f, 1f, size.z);
             Matrix4x4 matrix = default;

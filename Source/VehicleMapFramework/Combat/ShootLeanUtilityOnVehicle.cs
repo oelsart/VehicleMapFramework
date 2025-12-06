@@ -73,7 +73,7 @@ public static class ShootLeanUtilityOnVehicle
         listToFill.Clear();
         var vector = (targetPosBaseCol - shooterLocBaseCol).ToVector3();
         if (vehicle is not null)
-            vector = vector.RotatedBy(-vehicle.FullAngle());
+            vector = vector.RotatedBy(-vehicle.FullAngle);
         var angleFlat = vector.AngleFlat();
         var flag = angleFlat is > 270f or < 90f;
         var flag2 = angleFlat is > 90f and < 270f;

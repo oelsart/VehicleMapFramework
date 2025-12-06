@@ -488,7 +488,9 @@ public static class Patch_Toils_Goto_GotoBuild
 
 //GotoCellと同じやり方でSittableOrSpotのチェック
 [HarmonyPatch(typeof(ReservationUtility), nameof(ReservationUtility.ReserveSittableOrSpot))]
-[PatchLevel(Level.Safe)]
+[HarmonyPatchCategory(EarlyPatchCore.Category)]
+[HarmonyBefore(ModCompat.ProgressionEducation.HarmonyId)]
+[PatchLevel(Level.Mandatory)]
 public static class Patch_ReservationUtility_ReserveSittableOrSpot
 {
     public static bool Prefix(Pawn pawn, IntVec3 exactSittingPos, Job job, ref Map __state)

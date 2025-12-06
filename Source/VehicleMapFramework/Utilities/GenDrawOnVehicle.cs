@@ -84,7 +84,7 @@ public static class GenDrawOnVehicle
                 {
                     if (rotNeeded[k])
                     {
-                        Graphics.DrawMesh(MeshPool.plane10, (intVec - offset).ToVector3Shifted().ToBaseMapCoord(vehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor()).WithYOffset(y), new Rot4(k).AsQuat * vehicle.FullAngleQuat(), material, 0);
+                        Graphics.DrawMesh(MeshPool.plane10, (intVec - offset).ToVector3Shifted().ToBaseMapCoord(vehicle).WithY(AltitudeLayer.MetaOverlays.AltitudeFor()).WithYOffset(y), new Rot4(k).AsQuat * vehicle.FullAngleQuat, material, 0);
                     }
                 }
             }

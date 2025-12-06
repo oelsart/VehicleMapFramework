@@ -6,7 +6,6 @@ using System.Reflection.Emit;
 using HarmonyLib;
 using RimWorld;
 using UnityEngine;
-using Vehicles;
 using Verse;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;

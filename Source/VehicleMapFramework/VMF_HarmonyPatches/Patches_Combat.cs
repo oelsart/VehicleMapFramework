@@ -55,7 +55,7 @@ public static class Patch_PawnLeaner_LeanOffset
     {
         if (___pawn.IsOnVehicleMapOf(out var vehicle))
         {
-            __result = __result.RotatedBy(-vehicle.FullAngle());
+            __result = __result.RotatedBy(-vehicle.FullAngle);
         }
     }
 }

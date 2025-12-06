@@ -133,11 +133,11 @@ public class MethodInfoCache
 
     public readonly MethodInfo g_Rot8_AsAngle = AccessTools.PropertyGetter(typeof(Rot8), nameof(Rot8.AsAngle));
 
-    public readonly MethodInfo m_AngleRotated = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.AngleRotated));
+    public readonly MethodInfo m_FullAngle = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.get_FullAngle));
 
-    public readonly MethodInfo m_FullAngle = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.FullAngle));
-
-    public readonly MethodInfo m_FullAngleQuat = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.FullAngleQuat));
+    public readonly MethodInfo m_FullAngleQuat = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.get_FullAngleQuat));
+    
+    public readonly MethodInfo m_ExtraAngle = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.get_ExtraAngle));
 
     public readonly MethodInfo m_FlipAngle = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.FlipAngle));
 
@@ -265,4 +265,7 @@ public class MethodInfoCache
     public readonly MethodInfo m_AllInventoryItems_Original = AccessTools.Method(
         typeof(Patch_CaravanInventoryUtility_AllInventoryItems),
         nameof(Patch_CaravanInventoryUtility_AllInventoryItems.AllInventoryItems));
+
+    public readonly MethodInfo m_RotatedBy = AccessTools.Method(typeof(Vector3Utility),
+        nameof(Vector3Utility.RotatedBy), [typeof(Vector3), typeof(float)]);
 }

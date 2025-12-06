@@ -535,7 +535,7 @@ public static class Patch_DesignationDragger_DraggerOnGUI
             new CodeInstruction(OpCodes.Call, CachedMethodInfo.g_FocusedVehicle),
             new CodeInstruction(OpCodes.Brfalse_S, label),
             new CodeInstruction(OpCodes.Call, CachedMethodInfo.g_FocusedVehicle),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_AngleRotated),
+            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ExtraAngle),
             new CodeInstruction(OpCodes.Br_S, label2),
             new CodeInstruction(OpCodes.Ldc_R4, 0f).WithLabels(label),
         ]);

@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Reflection.Emit;
 using HarmonyLib;
-using RimWorld;
 using SmashTools;
 using Verse;
 using Verse.AI;
@@ -107,8 +106,22 @@ public static class Patch_WorkGiver_HaulToInventory_JobOnThing
         });
     }
 
-    public static void Postfix(Pawn pawn, Job __result)
+    // JobGiver_Haulから呼ばれた時用
+    public static void Prefix(Pawn pawn, Thing t, ref Map __state)
     {
+        var thingMap = t.MapHeld;
+        var pawnMap = pawn.MapHeld;
+        if (thingMap is not null && thingMap != pawnMap)
+        {
+            __state = pawnMap;
+            pawn.VirtualMapTransfer(thingMap);
+        }
+    }
+
+    public static void Finalizer(Pawn pawn, Job __result, Map __state)
+    {
+        if (__state is not null)
+            pawn.VirtualMapTransfer(__state);
         if (__result is null) return;
         if (pawn.TryGetTargetMap(out var map) && __result.def?.defName == "HaulToInventory" && __result.targetB.IsValid)
         {

@@ -24,6 +24,8 @@ internal static class PatchCategories
     
     public const string VGE = "VMF_Patches_VGravshipE";
     
+    public const string VQEGenerator = "VMF_Patches_VQEGenerator";
+    
     public const string Achtung = "VMF_Patches_Achtung";
 
     public const string CombatExtended = "VMF_Patches_CombatExtended";

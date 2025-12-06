@@ -7,7 +7,6 @@ using RimWorld;
 using SmashTools;
 using UnityEngine;
 using Verse;
-using static VehicleMapFramework.MethodInfoCache;
 using static VehicleMapFramework.ModCompat.VFEMechanoid;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches

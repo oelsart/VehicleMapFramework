@@ -11,7 +11,7 @@ namespace VehicleMapFramework;
 
 public static class GenClosestCrossMap
 {
-    private static bool EarlyOutSearch(IntVec3 start, Map map, ThingRequest thingReq, IEnumerable<Thing> customGlobalSearchSet)
+    private static bool EarlyOutSearch(IntVec3 start, ref Map map, ThingRequest thingReq, IEnumerable<Thing> customGlobalSearchSet)
     {
         if (thingReq.group == ThingRequestGroup.Everything)
         {
@@ -20,8 +20,12 @@ public static class GenClosestCrossMap
         }
         if (!start.InBounds(map))
         {
-            Log.Error(string.Concat("Did FindClosestThing with start out of bounds (", start, "), thingReq=", thingReq));
-            return true;
+            map = map.GroundMap;
+            if (!start.InBounds(map))
+            {
+                Log.Error(string.Concat("Did FindClosestThing with start out of bounds (", start, "), thingReq=", thingReq));
+                return true;
+            }
         }
         return thingReq.group == ThingRequestGroup.Nothing || ((thingReq.IsUndefined || !map.BaseMapAndVehicleMaps.Except(map).SelectMany(m => m.listerThings.ThingsMatching(thingReq)).Any()) && customGlobalSearchSet.EnumerableNullOrEmpty());
     }
@@ -42,7 +46,7 @@ public static class GenClosestCrossMap
         {
             return null;
         }
-        if (EarlyOutSearch(root, map, thingReq, customGlobalSearchSet))
+        if (EarlyOutSearch(root, ref map, thingReq, customGlobalSearchSet))
         {
             return null;
         }
@@ -86,7 +90,7 @@ public static class GenClosestCrossMap
             return null;
         }
 
-        if (EarlyOutSearch(root, map, thingReq, null))
+        if (EarlyOutSearch(root, ref map, thingReq, null))
         {
             return null;
         }

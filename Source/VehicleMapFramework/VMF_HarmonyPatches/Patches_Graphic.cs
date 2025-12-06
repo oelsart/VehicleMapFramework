@@ -265,7 +265,7 @@ public static class Patch_PawnRenderer_BodyAngle
     {
         if (___pawn.IsOnNonFocusedVehicleMapOf(out var vehicle))
         {
-            __result = Ext_Math.RotateAngle(__result, vehicle.FullAngle());
+            __result = Ext_Math.RotateAngle(__result, vehicle.FullAngle);
         }
     }
 }
@@ -342,7 +342,7 @@ public static class Patch_Graphic_Draw
         }
         else if (thing is { Spawned: false } && thing.SpawnedParentOrMe.IsOnNonFocusedVehicleMapOf(out vehicle))
         {
-            extraRotation += vehicle.FullAngle();
+            extraRotation += vehicle.FullAngle;
         }
     }
 }

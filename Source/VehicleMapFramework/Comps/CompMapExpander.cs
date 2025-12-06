@@ -252,7 +252,7 @@ public class CompMapExpander : ThingComp
     {
         if (!debugDraw || !VehicleMapUtility.FocusedOnVehicleMap(out var vehicle))
             return;
-        var quat = vehicle.FullAngleQuat();
+        var quat = vehicle.FullAngleQuat;
         foreach (var comp in comps)
         {
             if (!comp.IsBridge)

@@ -97,7 +97,7 @@ public static class ToilsAcrossMaps
 
             if (toil.actor.IsOnVehicleMapOf(out var vehicle))
             {
-                normalized = normalized.RotatedBy(-vehicle.FullAngle());
+                normalized = normalized.RotatedBy(-vehicle.FullAngle);
                 rot.AsInt -= vehicle.Rotation.AsInt;
             }
             toil.actor.Rotation = rot;

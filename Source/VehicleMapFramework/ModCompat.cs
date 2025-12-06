@@ -607,6 +607,8 @@ internal static class ModCompat
     }
 
     public static readonly bool VGE = IsModActive("vanillaexpanded.gravship");
+    
+    public static readonly bool VQEGenerator = IsModActive("vanillaquestsexpanded.generator");
 
     public static readonly bool Vivi = IsModActive("gguake.race.vivi");
     
@@ -872,4 +874,9 @@ internal static class ModCompat
     public static readonly bool DoNotHitMe = IsModActive("Og.do.not.hit.me");
     
     public static readonly bool AutoApparelPickup = IsModActive("Scorpio.AutoApparelPickup");
+
+    public static class ProgressionEducation
+    {
+        public const string HarmonyId = "ProgressionEducationMod";
+    }
 }

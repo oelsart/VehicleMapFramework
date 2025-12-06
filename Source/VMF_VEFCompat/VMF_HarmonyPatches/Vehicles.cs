@@ -6,7 +6,6 @@ using SmashTools;
 using UnityEngine;
 using Vehicles;
 using Verse;
-using static VehicleMapFramework.MethodInfoCache;
 using static VehicleMapFramework.ModCompat.VVE;
 using Transform = SmashTools.Rendering.Transform;
 
@@ -62,7 +61,7 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
 
         private static Vector3 RotateOffset(Vector3 point, Building garageDoor)
         {
-            return garageDoor.IsOnNonFocusedVehicleMapOf(out var vehicle) ? Ext_Math.RotatePoint(point, garageDoor.DrawPos, -vehicle.FullAngle()) : point;
+            return garageDoor.IsOnNonFocusedVehicleMapOf(out var vehicle) ? Ext_Math.RotatePoint(point, garageDoor.DrawPos, -vehicle.FullAngle) : point;
         }
     }
 
