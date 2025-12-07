@@ -62,11 +62,11 @@
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)'=='Dev'">
     <Reference Include="SmashTools">
-      <HintPath>($VFUnstableFolder)\1.6\Assemblies\SmashTools.dll</HintPath>
+      <HintPath>$(VFUnstableFolder)\1.6\Assemblies\SmashTools.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Vehicles">
-      <HintPath>($VFUnstableFolder)\1.6\Assemblies\Vehicles.dll</HintPath>
+      <HintPath>$(VFUnstableFolder)\1.6\Assemblies\Vehicles.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
