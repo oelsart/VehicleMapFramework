@@ -35,14 +35,18 @@
   <PropertyGroup>
     <SteamWorkshopRoot Condition="'$(SteamWorkshopRoot)' == ''">..\..\..\..\..\..\workshop\content\294100</SteamWorkshopRoot>
   </PropertyGroup>
-  
+  <PropertyGroup>
+		<VFUnstableFolder Condition="'$(UseVFUnstableSteamVersion)' != 'true'">$(SteamWorkshopRoot)\3522907382</VFUnstableFolder>
+    <VFUnstableFolder Condition="'$(VFUnstableFolder)' == ''">..\..\..\VehicleFramework</VFUnstableFolder>
+  </PropertyGroup>
+
   <ItemGroup Condition="'$(Configuration)'=='Dev'">
     <Reference Include="SmashTools">
-      <HintPath>..\..\..\VehicleFramework\1.6\Assemblies\SmashTools.dll</HintPath>
+      <HintPath>$(VFUnstableFolder)\1.6\Assemblies\SmashTools.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Vehicles">
-      <HintPath>..\..\..\VehicleFramework\1.6\Assemblies\Vehicles.dll</HintPath>
+      <HintPath>$(VFUnstableFolder)\1.6\Assemblies\Vehicles.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
