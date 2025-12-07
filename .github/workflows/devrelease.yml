@@ -109,14 +109,14 @@ jobs:
         dotnet-version: 9.0.x
     
     - name: Restore Dependencies
-      run: |
+      run: |
         dotnet restore Source/VehicleMapFramework/VehicleMapFramework.csproj
         dotnet restore Source/VMF_AchtungPatch/VMF_AchtungPatch.csproj
         dotnet restore Source/VMF_CEPatch/VMF_CEPatch.csproj
         dotnet restore Source/VMF_DBHCompat/VMF_DBHCompat.csproj
         dotnet restore Source/VMF_RimefellerCompat/VMF_RimefellerCompat.csproj
         dotnet restore Source/VMF_VEFCompat/VMF_VEFCompat.csproj
-
+    
     - name: Build DLL
       run: |
         dotnet build Source/VehicleMapFramework/VehicleMapFramework.csproj --configuration Dev --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=${{ env.USERPROFILE }}/Steam/steamapps/workshop/content/294100
