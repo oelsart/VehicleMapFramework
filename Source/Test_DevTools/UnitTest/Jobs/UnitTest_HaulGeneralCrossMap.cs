@@ -21,7 +21,7 @@ internal class UnitTest_HaulGeneralCrossMap(VehicleGroup group) : CrossMapWorkGi
         base.SetUp();
         steel = GenSpawn.Spawn(ThingDefOf.Steel, Pawn.Position + IntVec3.NorthEast, VehicleMap);
         shelf = ThingMaker.MakeThing(ThingDefOf.Shelf, ThingDefOf.WoodLog);
-        GenSpawn.Spawn(shelf, new IntVec3(3, 0, 3), GroundMap);
+        GenSpawn.Spawn(shelf, FromRUCorner(GroundMap, 3), GroundMap);
         if (DisablePUAH) puahDisabler = new PuahDisabler();
     }
 

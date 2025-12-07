@@ -16,7 +16,7 @@ internal class WorkGiver_BuildRoofs(VehicleGroup group) : CrossMapWorkGiverTestB
     {
         base.SetUp();
         wall = ThingMaker.MakeThing(ThingDefOf.Wall, ThingDefOf.WoodLog);
-        cell = new IntVec3(3, 0, 3);
+        cell = FromRUCorner(GroundMap, 3);
         GenSpawn.Spawn(wall, cell, GroundMap);
         GroundMap.areaManager.BuildRoof[cell] = true;
     }

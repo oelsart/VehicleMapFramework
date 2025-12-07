@@ -13,7 +13,7 @@ internal class UnitTest_Mine(VehicleGroup group) : CrossMapWorkGiverTestBase(gro
     public override void SetUp()
     {
         base.SetUp();
-        mine = GenSpawn.Spawn(ThingDefOf.MineableSteel, new IntVec3(5, 0, 5), GroundMap);
+        mine = GenSpawn.Spawn(ThingDefOf.MineableSteel, FromRUCorner(GroundMap, 5), GroundMap);
         GroundMap.designationManager.AddDesignation(new Designation(mine, DesignationDefOf.Mine));
     }
 

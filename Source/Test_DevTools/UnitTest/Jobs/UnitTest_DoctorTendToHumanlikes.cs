@@ -18,7 +18,7 @@ internal class UnitTest_DoctorTendToHumanlikes(VehicleGroup group) : CrossMapWor
         patient = TestUtility.GeneratePatient(Pawn.Faction);
         bed = (Building_Bed)ThingMaker.MakeThing(ThingDefOf.Bed, ThingDefOf.WoodLog);
         bed.SetFaction(Pawn.Faction);
-        GenSpawn.Spawn(bed, new IntVec3(3, 0, 3), GroundMap);
+        GenSpawn.Spawn(bed, FromRUCorner(GroundMap, 3), GroundMap);
         GenSpawn.Spawn(patient, bed.Position, GroundMap);
         patient.ownership.ClaimBedIfNonMedical(bed);
         patient.jobs.StartJob(JobMaker.MakeJob(JobDefOf.LayDownResting, bed));
