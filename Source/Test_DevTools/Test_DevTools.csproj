@@ -8,10 +8,6 @@
     <Configurations>Dev;Release;Debug</Configurations>
     <Platforms>AnyCPU</Platforms>
   </PropertyGroup>
-  
-  <PropertyGroup Condition="'$(CIBuild)' == 'true'">
-    <TargetFramework>INVALID_SKIP</TargetFramework>
-  </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Dev|AnyCPU'">
     <DebugType>none</DebugType>

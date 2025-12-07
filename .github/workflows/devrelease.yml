@@ -88,10 +88,6 @@ jobs:
   deploy:
     runs-on: windows-latest
     needs: download_steam_mods
-    
-    env:
-      Solution_Name: VehicleMapFramework
-      Project_Path: Source/VehicleMapFramework/VehicleMapFramework.sln 
       
     steps:
     - name: Checkout
@@ -113,10 +109,22 @@ jobs:
         dotnet-version: 9.0.x
     
     - name: Restore Dependencies
-      run: dotnet restore ${{ env.Project_Path }}
+      run: |
+        dotnet restore Source/VehicleMapFramework/VehicleMapFramework.csproj
+        dotnet restore Source/VMF_AchtungPatch/VMF_AchtungPatch.csproj
+        dotnet restore Source/VMF_CEPatch/VMF_CEPatch.csproj
+        dotnet restore Source/VMF_DBHCompat/VMF_DBHCompat.csproj
+        dotnet restore Source/VMF_RimefellerCompat/VMF_RimefellerCompat.csproj
+        dotnet restore Source/VMF_VEFCompat/VMF_VEFCompat.csproj
 
     - name: Build DLL
-      run: dotnet build ${{ env.Project_Path }} --configuration Dev --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=${{ env.USERPROFILE }}/Steam/steamapps/workshop/content/294100
+      run: |
+        dotnet build Source/VehicleMapFramework/VehicleMapFramework.csproj --configuration Dev --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=${{ env.USERPROFILE }}/Steam/steamapps/workshop/content/294100
+        dotnet build Source/VMF_AchtungPatch/VMF_AchtungPatch.csproj --configuration Dev --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=${{ env.USERPROFILE }}/Steam/steamapps/workshop/content/294100
+        dotnet build Source/VMF_CEPatch/VMF_CEPatch.csproj --configuration Dev --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=${{ env.USERPROFILE }}/Steam/steamapps/workshop/content/294100
+        dotnet build Source/VMF_DBHCompat/VMF_DBHCompat.csproj --configuration Dev --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=${{ env.USERPROFILE }}/Steam/steamapps/workshop/content/294100
+        dotnet build Source/VMF_RimefellerCompat/VMF_RimefellerCompat.csproj --configuration Dev --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=${{ env.USERPROFILE }}/Steam/steamapps/workshop/content/294100
+        dotnet build Source/VMF_VEFCompat/VMF_VEFCompat.csproj --configuration Dev --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=${{ env.USERPROFILE }}/Steam/steamapps/workshop/content/294100
       
     - name: Deploy
       uses: m00nl1ght-dev/steam-workshop-deploy@v4
