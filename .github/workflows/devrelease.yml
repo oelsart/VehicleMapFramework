@@ -122,11 +122,11 @@ jobs:
       run: |
         $workshopRoot = "${{ env.USERPROFILE }}/Steam/steamapps/workshop/content/294100"
         dotnet build Source/VehicleMapFramework/VehicleMapFramework.csproj --configuration Dev --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
-        dotnet build Source/VMF_AchtungPatch/VMF_AchtungPatch.csproj --configuration Dev --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
-        dotnet build Source/VMF_CEPatch/VMF_CEPatch.csproj --configuration Dev --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
-        dotnet build Source/VMF_DBHCompat/VMF_DBHCompat.csproj --configuration Dev --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
-        dotnet build Source/VMF_RimefellerCompat/VMF_RimefellerCompat.csproj --configuration Dev --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
-        dotnet build Source/VMF_VEFCompat/VMF_VEFCompat.csproj --configuration Dev --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
+        dotnet build Source/VMF_AchtungPatch/VMF_AchtungPatch.csproj --configuration Dev --no-restore /p:SkipPostBuild=true /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
+        dotnet build Source/VMF_CEPatch/VMF_CEPatch.csproj --configuration Dev --no-restore /p:SkipPostBuild=true /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
+        dotnet build Source/VMF_DBHCompat/VMF_DBHCompat.csproj --configuration Dev --no-restore /p:SkipPostBuild=true /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
+        dotnet build Source/VMF_RimefellerCompat/VMF_RimefellerCompat.csproj --configuration Dev --no-restore /p:SkipPostBuild=true /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
+        dotnet build Source/VMF_VEFCompat/VMF_VEFCompat.csproj --configuration Dev --no-restore /p:SkipPostBuild=true /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
     
     - name: Move dev folder
       run: Move-Item ../VehicleMapFrameworkDev VehicleMapFrameworkDev
