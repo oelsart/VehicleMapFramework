@@ -3,10 +3,8 @@ name: Build
 on:
   workflow_dispatch:
   push:
-    branches:
-      - "1.6"
-      - bug-fix
-      - development
+    tags:
+      - 'dev-v*'
 
 jobs:
   report_local_tests:
@@ -32,7 +30,7 @@ jobs:
           reporter: java-junit
           fail-on-error: 'true'
           
-  build:
+  download_steam_mods:
     runs-on: ubuntu-latest
     needs: report_local_tests
     
@@ -40,7 +38,7 @@ jobs:
       Solution_Name: VehicleMapFramework
       Project_Path: Source/VehicleMapFramework/VehicleMapFramework.sln 
       WorkshopMods: |
-        3014915404  # Vehicle Framework
+        3522907382  # Vehicle Framework (Unstable)
         2023507013  # Vanilla Expanded Framework
         730936602   # Achtung!
         2890901044  # Combat Extended
@@ -53,14 +51,6 @@ jobs:
       with:
         submodules: true
         fetch-depth: 0
-
-    - name: Install .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 9.0.x
-    
-    - name: Restore Dependencies
-      run: dotnet restore ${{ env.Project_Path }}
       
     - name: Cache SteamCMD
       id: cache-steam
@@ -94,18 +84,46 @@ jobs:
         
         echo "CI_SteamCMD_WorkShop=$HOME/Steam/steamapps/workshop/content/294100" >> $GITHUB_ENV
         ls -la ~/Steam/steamapps/workshop/content/294100
-
-    - name: Build Mod DLL
-      run: dotnet build ${{ env.Project_Path }} --configuration Release --no-restore /p:SkipPostBuild=true /p:SteamWorkshopRoot=${{ env.CI_SteamCMD_WorkShop }}
+        
+  deploy:
+    runs-on: windows-latest
+    needs: download_steam_mods
     
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v4
+    env:
+      Solution_Name: VehicleMapFramework
+      Project_Path: Source/VehicleMapFramework/VehicleMapFramework.sln 
+      CI_SteamCMD_WorkShop: ${{ env.USERPROFILE }}/Steam/steamapps/workshop/content/294100
+      
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
       with:
-        name: VehicleMapFramework
-        path: |
-          1.5
-          1.6
-          About
-          Common
-          LICENSE
-          LoadFolders.xml
+        submodules: true
+        fetch-depth: 0
+        
+    - name: Cache SteamCMD
+      id: cache-steam
+      uses: actions/cache@v4
+      with:
+        path: Steam
+        key: steamcmd-static-v1
+    
+    - name: Install .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 9.0.x
+    
+    - name: Restore Dependencies
+      run: dotnet restore ${{ env.Project_Path }}
+
+    - name: Build DLL
+      run: dotnet build ${{ env.Project_Path }} --configuration Dev --no-restore /p:SteamWorkshopRoot=${{ env.CI_SteamCMD_WorkShop }}
+      
+    - name: Deploy
+      uses: m00nl1ght-dev/steam-workshop-deploy@v4
+      with:
+        username: ${{ secrets.STEAM_USERNAME }}          
+        configVdf: ${{ secrets.STEAM_CONFIG_VDF }}
+        path: build
+        appId: 294100
+        publishedFileId: 3528683767

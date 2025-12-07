@@ -179,7 +179,7 @@ namespace VehicleMapFramework
                     for (var i = 0; i < count; i++)
                     {
                         var thing = list[i];
-                        if (thing.def.thingClass.SameOrSubclassOf(AdaptiveStorage.ThingClass) &&
+                        if (AdaptiveStorage.IsAdaptiveStorageClass(thing.def.thingClass) &&
                             (thing.def.seeThroughFog || !map.fogGrid.IsFogged(thing.Position)) &&
                             thing.def.drawerType != DrawerType.None &&
                             thing.def.drawerType != DrawerType.RealtimeOnly &&

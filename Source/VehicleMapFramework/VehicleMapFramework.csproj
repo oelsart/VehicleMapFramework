@@ -84,11 +84,21 @@
     <Content Include="..\..\.git\hooks\pre-push">
       <Link>pre-push</Link>
     </Content>
-    <Content Include="..\..\CopyToDev.bat">
-      <Link>CopyToDev.bat</Link>
-    </Content>
   </ItemGroup>
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(SkipPostBuild)' != 'true'">
-    <Exec Command="powershell.exe -ExecutionPolicy Bypass -File &quot;$(ProjectDir)UpdateAboutXmlVersion.ps1&quot; -AboutXmlPath &quot;$(TargetPath)\..\..\..\About\About.xml&quot; -BuiltDllPath &quot;$(TargetPath)&quot;" />
+
+  <PropertyGroup>
+    <AboutFolderPath Condition="'$(AboutXmlPath)' == ''">../../About</AboutFolderPath>
+    <AboutFolderPath Condition="'$(Configuration)'=='Dev'">../../About_Dev</AboutFolderPath>
+  </PropertyGroup>
+  <Target Name="UpdateVersion" AfterTargets="PreBuildEvent" Condition="'$(SkipPostBuild)' != 'true'">
+    <Exec Command="powershell.exe -ExecutionPolicy Bypass -File &quot;$(ProjectDir)UpdateAboutXmlVersion.ps1&quot; -AboutXmlPath &quot;$(AboutFolderPath)/About.xml&quot; -BuiltDllPath &quot;$(TargetPath)&quot;" />
   </Target>
+	<Target Name="CopyToDev" AfterTargets="PreBuildEvent" Condition="'$(Configuration)'=='Dev'">
+		<Exec Command="(robocopy ../../1.5 ../../../VehicleMapFrameworkDev/1.5 /MIR /E /XD Assemblies) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0" />
+		<Exec Command="(robocopy ../../1.6 ../../../VehicleMapFrameworkDev/1.6 /MIR /E /XD Assemblies) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0" />
+		<Exec Command="(robocopy ../../About_Dev ../../../VehicleMapFrameworkDev/About /MIR /E) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0" />
+		<Exec Command="(robocopy ../../Common ../../../VehicleMapFrameworkDev/Common /MIR /E /XD AssetBundles) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0" />
+		<Exec Command="(robocopy ../../ ../../../VehicleMapFrameworkDev LoadFolders.xml) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0" />
+		<Exec Command="(robocopy ../../ ../../../VehicleMapFrameworkDev LICENSE) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0" />
+	</Target>
 </Project>

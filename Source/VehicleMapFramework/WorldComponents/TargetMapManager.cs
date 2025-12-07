@@ -37,7 +37,7 @@ public class TargetMapManager(World world) : WorldComponent(world)
     {
         if (GenTicks.IsTickInterval(10800))
         {
-            foreach (var pair in TargetInfoTable.Where(pair => !pair.Value.Value.IsValid))
+            foreach (var pair in TargetInfoTable.Where(pair => !pair.Value?.Value.IsValid ?? true))
                 tmpKeys.Add(pair.Key);
             foreach (var thing in tmpKeys.Where(thing => thing is not null))
                 TargetInfoTable.Remove(thing);
@@ -71,5 +71,8 @@ public class TargetMapManager(World world) : WorldComponent(world)
             case LoadSaveMode.PostLoadInit:
             default: break;
         }
+
+        tmpKeys ??= [];
+        tmpValues ??= [];
     }
 }

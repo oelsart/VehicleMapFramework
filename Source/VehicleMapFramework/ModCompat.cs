@@ -104,6 +104,8 @@ internal static class ModCompat
 
         public static readonly FastInvokeHandler SetAllPrintDatasDirty;
 
+        private static readonly Dictionary<Type, bool> SameOrSubClassDic;
+
         static AdaptiveStorage()
         {
             
@@ -116,6 +118,7 @@ internal static class ModCompat
                     ThingClass = AccessTools.TypeByName("AdaptiveStorage.ThingClass");
                     Renderer = MethodInvoker.GetHandler(AccessTools.PropertyGetter(ThingClass, "Renderer"));
                     SetAllPrintDatasDirty = MethodInvoker.GetHandler(AccessTools.Method("AdaptiveStorage.StorageRenderer:SetAllPrintDatasDirty"));
+                    SameOrSubClassDic = [];
                 }
                 catch (Exception ex)
                 {
@@ -124,13 +127,23 @@ internal static class ModCompat
                 }
                 finally
                 {
-                    if (AnyNull(TransformData, RotationAngle, ThingClass, Renderer, SetAllPrintDatasDirty))
+                    if (AnyNull(TransformData, RotationAngle, ThingClass, Renderer, SetAllPrintDatasDirty, SameOrSubClassDic))
                     {
                         LogIncompat("Adaptive Storage");
                         Active = false;
                     }
                 }
             }
+        }
+
+        public static bool IsAdaptiveStorageClass(Type type)
+        {
+            if (!SameOrSubClassDic.TryGetValue(type, out var result))
+            {
+                SameOrSubClassDic[type] = result = type.SameOrSubclassOf(ThingClass);
+            }
+
+            return result;
         }
     }
 
@@ -912,5 +925,21 @@ internal static class ModCompat
     public static class ProgressionEducation
     {
         public const string HarmonyId = "ProgressionEducationMod";
+    }
+
+    public static class ColonyManager
+    {
+        public static readonly bool Active = IsModActive("ilyvion.colonymanagerredux");
+
+        static ColonyManager()
+        {
+            if (Active)
+            {
+                var type = GenTypes.GetTypeInAnyAssembly("ColonyManagerRedux.WorkGiver_Manage", "ColonyManagerRedux");
+                if (type is not null)
+                    JobAcrossMapsUtility.WorkGiverClassesNeedWrap.Add(type);
+                else LogIncompat("ColonyManagerRedux");
+            }
+        }
     }
 }
