@@ -11,7 +11,6 @@ using Vehicles;
 using Vehicles.Rendering;
 using Verse;
 using Verse.AI;
-using static VehicleMapFramework.ModCompat;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 

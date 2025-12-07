@@ -15,7 +15,6 @@ using Vehicles;
 using Vehicles.World;
 using Verse;
 using Verse.AI;
-using static VehicleMapFramework.ModCompat;
 
 namespace VehicleMapFramework;
 

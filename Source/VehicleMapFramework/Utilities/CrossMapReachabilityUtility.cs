@@ -8,7 +8,6 @@ using UnityEngine;
 using Vehicles;
 using Verse;
 using Verse.AI;
-using static VehicleMapFramework.ModCompat;
 
 namespace VehicleMapFramework;
 

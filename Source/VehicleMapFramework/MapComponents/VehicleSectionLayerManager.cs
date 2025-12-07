@@ -4,7 +4,6 @@ using RimWorld;
 using SmashTools;
 using VehicleMapFramework.VMF_HarmonyPatches;
 using Verse;
-using static VehicleMapFramework.ModCompat;
 
 namespace VehicleMapFramework
 {

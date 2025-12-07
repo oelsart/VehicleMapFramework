@@ -9,7 +9,6 @@ using SmashTools.Rendering;
 using UnityEngine;
 using Vehicles;
 using Verse;
-using static VehicleMapFramework.ModCompat;
 
 namespace VehicleMapFramework
 {
