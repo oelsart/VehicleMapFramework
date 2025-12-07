@@ -157,6 +157,6 @@ jobs:
       with:
         username: ${{ secrets.STEAM_USERNAME }}          
         configVdf: ${{ secrets.STEAM_CONFIG_VDF }}
-        path: VehicleMapFrameworkDev
+        path: VehicleMapFramework/VehicleMapFramework/VehicleMapFrameworkDev
         appId: 294100
         publishedFileId: 3528683767
