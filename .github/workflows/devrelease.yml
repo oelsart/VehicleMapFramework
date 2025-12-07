@@ -146,6 +146,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: build
+    environment: Steam
     steps:
     - name: Download build artifacts
       uses: actions/download-artifact@v5
