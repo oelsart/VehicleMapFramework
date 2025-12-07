@@ -153,11 +153,19 @@ jobs:
         name: VehicleMapFrameworkDev
         path: VehicleMapFrameworkDev
     
+    - name: Generate TOTP
+      uses: CyberAndrii/steam-totp@v1
+      id: steam-totp
+      with:
+        shared_secret: ${{ secrets.STEAM_SHARED_SECRET }}
+    
     - name: Deploy
       uses: m00nl1ght-dev/steam-workshop-deploy@v4
       with:
-        username: ${{ secrets.STEAM_USERNAME }}          
-        configVdf: ${{ secrets.STEAM_CONFIG_VDF }}
+        username: ${{ secrets.STEAM_USERNAME }}
+        password: ${{ secrets.STEAM_PASSWORD }}
+        totp: ${{ steps.steam-totp.outputs.code }}
         path: VehicleMapFrameworkDev
         appId: 294100
         publishedFileId: 3528683767
+        changeNote: "${{ github.ref_name }}"
