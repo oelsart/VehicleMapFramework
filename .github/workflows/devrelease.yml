@@ -128,17 +128,20 @@ jobs:
         dotnet build Source/VMF_RimefellerCompat/VMF_RimefellerCompat.csproj --configuration Dev --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
         dotnet build Source/VMF_VEFCompat/VMF_VEFCompat.csproj --configuration Dev --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
     
+    - name: Move dev folder
+      run: Move-Item ../VehicleMapFrameworkDev VehicleMapFrameworkDev
+    
     - name: Upload build artifacts
       uses: actions/upload-artifact@v5
       with:
         name: VehicleMapFrameworkDev
         path: |
-          ../VehicleMapFrameworkDev/1.5
-          ../VehicleMapFrameworkDev/1.6
-          ../VehicleMapFrameworkDev/About
-          ../VehicleMapFrameworkDev/Common
-          ../VehicleMapFrameworkDev/LICENSE
-          ../VehicleMapFrameworkDev/LoadFolders.xml
+          VehicleMapFrameworkDev/1.5
+          VehicleMapFrameworkDev/1.6
+          VehicleMapFrameworkDev/About
+          VehicleMapFrameworkDev/Common
+          VehicleMapFrameworkDev/LICENSE
+          VehicleMapFrameworkDev/LoadFolders.xml
     
   deploy:
     runs-on: ubuntu-latest
