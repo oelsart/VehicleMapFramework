@@ -1,4 +1,4 @@
-name: Build
+name: DevRelease
 
 on:
   workflow_dispatch:
@@ -92,7 +92,6 @@ jobs:
     env:
       Solution_Name: VehicleMapFramework
       Project_Path: Source/VehicleMapFramework/VehicleMapFramework.sln 
-      CI_SteamCMD_WorkShop: ${{ env.USERPROFILE }}/Steam/steamapps/workshop/content/294100
       
     steps:
     - name: Checkout
@@ -117,7 +116,7 @@ jobs:
       run: dotnet restore ${{ env.Project_Path }}
 
     - name: Build DLL
-      run: dotnet build ${{ env.Project_Path }} --configuration Dev --no-restore /p:SteamWorkshopRoot=${{ env.CI_SteamCMD_WorkShop }}
+      run: dotnet build ${{ env.Project_Path }} --configuration Dev --no-restore /p:SteamWorkshopRoot=${{ env.USERPROFILE }}/Steam/steamapps/workshop/content/294100
       
     - name: Deploy
       uses: m00nl1ght-dev/steam-workshop-deploy@v4
