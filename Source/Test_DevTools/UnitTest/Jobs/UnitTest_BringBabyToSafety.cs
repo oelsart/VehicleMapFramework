@@ -16,9 +16,7 @@ internal class UnitTest_BringBabyToSafety(VehicleGroup group) : CrossMapWorkGive
     {
         base.SetUp();
         var map = GroundMap;
-        var c1 = new IntVec3(3, 0, 3).Reversed(map);
-        var c2 = new IntVec3(7, 0, 7).Reversed(map);
-        roomRect = CellRect.FromLimits(c1, c2);
+        roomRect = CellRect.FromLimits(FromRUCorner(map, 3), FromRUCorner(map, 7));
         baby = GenerateBaby(Pawn.Faction);
         GenSpawn.Spawn(baby, FromRUCorner(map, 5), map);
         baby.mindState.SetAutofeeder(Pawn, AutofeedMode.Childcare);

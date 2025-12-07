@@ -19,7 +19,7 @@ internal abstract class WorkGiverTestBase(VehicleGroup group)
     
     protected Pawn Pawn => group.pawns[0];
 
-    protected VehiclePawn Vehicle => group.vehicle;
+    protected VehiclePawnWithMap Vehicle => (VehiclePawnWithMap)group.vehicle;
 
     protected WorkGiverResult[] results = new WorkGiverResult[2];
 

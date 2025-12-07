@@ -72,7 +72,7 @@ public static class TestUtility
 
     extension(IntVec3 c)
     {
-        public IntVec3 Reversed(Map map) => new IntVec3(map.Size.x - c.x, c.y, map.Size.z - c.z);
+        public IntVec3 Reversed(Map map) => new (map.Size.x - c.x - 1, c.y, map.Size.z - c.z - 1);
     }
 
     public static IntVec3 FromRUCorner(Map map, int dist) => new IntVec3(dist, 0, dist).Reversed(map);
