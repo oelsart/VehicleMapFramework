@@ -104,7 +104,7 @@ jobs:
       id: cache-steam
       uses: actions/cache@v4
       with:
-        path: Steam
+        path: ~/Steam
         key: steamcmd-static-v1
     
     - name: Install .NET
@@ -116,7 +116,7 @@ jobs:
       run: dotnet restore ${{ env.Project_Path }}
 
     - name: Build DLL
-      run: dotnet build ${{ env.Project_Path }} --configuration Dev --no-restore /p:UseVFUnstableSteamVersion=true /p:SteamWorkshopRoot=${{ env.USERPROFILE }}/Steam/steamapps/workshop/content/294100
+      run: dotnet build ${{ env.Project_Path }} --configuration Dev --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=${{ env.USERPROFILE }}/Steam/steamapps/workshop/content/294100
       
     - name: Deploy
       uses: m00nl1ght-dev/steam-workshop-deploy@v4

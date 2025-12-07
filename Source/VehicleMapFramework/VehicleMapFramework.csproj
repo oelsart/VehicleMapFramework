@@ -36,8 +36,8 @@
     <SteamWorkshopRoot Condition="'$(SteamWorkshopRoot)' == ''">..\..\..\..\..\..\workshop\content\294100</SteamWorkshopRoot>
   </PropertyGroup>
   <PropertyGroup>
-		<VFUnstableFolder Condition="'$(UseVFUnstableSteamVersion)' != 'true'">$(SteamWorkshopRoot)\3522907382</VFUnstableFolder>
-    <VFUnstableFolder Condition="'$(VFUnstableFolder)' == ''">..\..\..\VehicleFramework</VFUnstableFolder>
+		<VFUnstableFolder Condition="'$(CIBuild)' == 'true'">$(SteamWorkshopRoot)\3522907382</VFUnstableFolder>
+    <VFUnstableFolder Condition="'$(CIBuild)' != 'true'">..\..\..\VehicleFramework</VFUnstableFolder>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Dev'">

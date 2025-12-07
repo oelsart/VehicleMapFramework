@@ -9,7 +9,7 @@
     <Platforms>AnyCPU</Platforms>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Dev|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)|$(CIBuild)'=='Dev|AnyCPU|false'">
     <DebugType>none</DebugType>
     <OutputPath>..\..\..\VehicleMapFrameworkDev\Test\Assemblies\</OutputPath>
     <Optimize>True</Optimize>
