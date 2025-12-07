@@ -58,6 +58,7 @@ jobs:
       with:
         path: ~/Steam
         key: steamcmd-static-v1
+        enableCrossOsArchive: true
           
     - name: Install SteamCMD
       if: steps.cache-steam.outputs.cache-hit != 'true'
