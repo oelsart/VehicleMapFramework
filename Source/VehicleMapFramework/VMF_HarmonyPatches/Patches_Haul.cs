@@ -158,7 +158,7 @@ public static class Patch_HaulAIUtility_HaulToContainerJob
 {
     public static void Postfix(Pawn p, Thing container, Job __result)
     {
-        if (p.TryGetTargetMap(out var map))
+        if (p.TryGetTargetMap(out _))
         {
             __result?.globalTarget = container;
         }

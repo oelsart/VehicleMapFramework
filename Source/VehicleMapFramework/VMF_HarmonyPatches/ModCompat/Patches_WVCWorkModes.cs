@@ -45,7 +45,7 @@ public static class Patch_JobGiver_GoToShutdownZone_TryGiveJob
     
     public static void Postfix(ThinkNode_JobGiver __instance, Pawn pawn, ref Job __result)
     {
-        if (__result is not null && working) return;
+        if (__result is not null || working) return;
 
         try
         {
