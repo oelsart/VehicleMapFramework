@@ -1,0 +1,164 @@
+name: DevRelease
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'dev-v*'
+
+jobs:
+  report_local_tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Test Results
+        run: |
+          curl -L -o ./TestResults.xml "https://gist.githubusercontent.com/oelsart/3bb8183cedc9869f566440ca1553c633/raw/TestResults.xml"
+
+      - name: Upload local test results artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: LocalTestResults
+          path: |
+            ./TestResults.xml
+      
+      - name: Test Report
+        uses: dorny/test-reporter@v2
+        with:
+          artifact: LocalTestResults
+          name: Local Tests
+          path: '*.xml'
+          reporter: java-junit
+          fail-on-error: 'true'
+          
+  download_steam_mods:
+    runs-on: ubuntu-latest
+    needs: report_local_tests
+    
+    env:
+      Solution_Name: VehicleMapFramework
+      Project_Path: Source/VehicleMapFramework/VehicleMapFramework.sln 
+      WorkshopMods: |
+        3522907382  # Vehicle Framework (Unstable)
+        2023507013  # Vanilla Expanded Framework
+        730936602   # Achtung!
+        2890901044  # Combat Extended
+        836308268   # Dubs Bad Hygiene
+        1321849735  # Rimefeller
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        submodules: true
+        fetch-depth: 0
+      
+    - name: Cache SteamCMD
+      id: cache-steam
+      uses: actions/cache@v4
+      with:
+        path: ~/Steam
+        key: steamcmd-static-v1
+          
+    - name: Install SteamCMD
+      if: steps.cache-steam.outputs.cache-hit != 'true'
+      run: |
+        mkdir -p ~/Steam
+        cd ~/Steam
+        curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar zxvf -
+
+    - name: Download Workshop Mods
+      run: |
+        mkdir -p ~/Steam/steamapps/workshop/content/294100
+        
+        STEAM_COMMANDS="+login anonymous"
+        
+        while IFS= read -r mod_id; do
+          if [ -n "$mod_id" ]; then
+            echo "Queueing Workshop Mod: $mod_id"
+            STEAM_COMMANDS="${STEAM_COMMANDS} +workshop_download_item 294100 $mod_id validate"
+          fi
+        done <<< "${{ env.WorkshopMods }}"
+        
+        STEAM_COMMANDS="${STEAM_COMMANDS} +quit"
+        ~/Steam/steamcmd.sh ${STEAM_COMMANDS}
+        
+        echo "CI_SteamCMD_WorkShop=$HOME/Steam/steamapps/workshop/content/294100" >> $GITHUB_ENV
+        ls -la ~/Steam/steamapps/workshop/content/294100
+        
+  build:
+    runs-on: windows-latest
+    needs: download_steam_mods
+      
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        submodules: true
+        fetch-depth: 0
+        
+    - name: Cache SteamCMD
+      id: cache-steam
+      uses: actions/cache@v4
+      with:
+        path: ~/Steam
+        key: steamcmd-static-v1
+        enableCrossOsArchive: true
+    
+    - name: Install .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 9.0.x
+    
+    - name: Restore Dependencies
+      run: |
+        dotnet restore Source/VehicleMapFramework/VehicleMapFramework.csproj
+        dotnet restore Source/VMF_AchtungPatch/VMF_AchtungPatch.csproj
+        dotnet restore Source/VMF_CEPatch/VMF_CEPatch.csproj
+        dotnet restore Source/VMF_DBHCompat/VMF_DBHCompat.csproj
+        dotnet restore Source/VMF_RimefellerCompat/VMF_RimefellerCompat.csproj
+        dotnet restore Source/VMF_VEFCompat/VMF_VEFCompat.csproj
+    
+    - name: Build DLL
+      run: |
+        $workshopRoot = "${{ env.USERPROFILE }}/Steam/steamapps/workshop/content/294100"
+        dotnet build Source/VehicleMapFramework/VehicleMapFramework.csproj --configuration Dev --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
+        dotnet build Source/VMF_AchtungPatch/VMF_AchtungPatch.csproj --configuration Dev --no-restore /p:SkipPostBuild=true /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
+        dotnet build Source/VMF_CEPatch/VMF_CEPatch.csproj --configuration Dev --no-restore /p:SkipPostBuild=true /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
+        dotnet build Source/VMF_DBHCompat/VMF_DBHCompat.csproj --configuration Dev --no-restore /p:SkipPostBuild=true /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
+        dotnet build Source/VMF_RimefellerCompat/VMF_RimefellerCompat.csproj --configuration Dev --no-restore /p:SkipPostBuild=true /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
+        dotnet build Source/VMF_VEFCompat/VMF_VEFCompat.csproj --configuration Dev --no-restore /p:SkipPostBuild=true /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
+    
+    - name: Move dev folder
+      run: Move-Item ../VehicleMapFrameworkDev VehicleMapFrameworkDev
+    
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v5
+      with:
+        name: VehicleMapFrameworkDev
+        path: |
+          VehicleMapFrameworkDev/1.5
+          VehicleMapFrameworkDev/1.6
+          VehicleMapFrameworkDev/About
+          VehicleMapFrameworkDev/Common
+          VehicleMapFrameworkDev/LICENSE
+          VehicleMapFrameworkDev/LoadFolders.xml
+    
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    environment: Steam
+    steps:
+    - name: Download build artifacts
+      uses: actions/download-artifact@v5
+      with:
+        name: VehicleMapFrameworkDev
+        path: VehicleMapFrameworkDev
+    
+    - name: Deploy
+      uses: m00nl1ght-dev/steam-workshop-deploy@v4
+      with:
+        username: ${{ secrets.STEAM_USERNAME }}          
+        configVdf: ${{ secrets.STEAM_CONFIG_VDF }}
+        path: VehicleMapFrameworkDev
+        appId: 294100
+        publishedFileId: 3528683767

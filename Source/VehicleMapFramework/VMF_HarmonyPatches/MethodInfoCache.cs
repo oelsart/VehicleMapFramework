@@ -84,6 +84,10 @@ public class MethodInfoCache
     public readonly MethodInfo m_MapHeldBaseMap = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.MapHeldBaseMap));
     
     public readonly MethodInfo m_MapHeldBaseMapOrCaravan = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.get_MapHeldBaseMapOrCaravan));
+    
+    public readonly MethodInfo m_DepartMapOrPawnMap = AccessTools.Method(typeof(CrossMapReachabilityUtility), nameof(CrossMapReachabilityUtility.get_DepartMapOrPawnMap));
+    
+    public readonly MethodInfo m_DepartMapOrPawnMapHeld = AccessTools.Method(typeof(CrossMapReachabilityUtility), nameof(CrossMapReachabilityUtility.get_DepartMapOrPawnMapHeld));
 
     public readonly MethodInfo g_Thing_Position = AccessTools.PropertyGetter(typeof(Thing), nameof(Thing.Position));
 

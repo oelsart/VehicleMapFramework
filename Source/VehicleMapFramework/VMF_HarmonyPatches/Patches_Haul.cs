@@ -151,6 +151,20 @@ public static class Patch_HaulAIUtility_HaulToCellStorageJob
     }
 }
 
+// TryReplaceWithFrame用
+[HarmonyPatch(typeof(HaulAIUtility), nameof(HaulAIUtility.HaulToContainerJob))]
+[PatchLevel(Level.Safe)]
+public static class Patch_HaulAIUtility_HaulToContainerJob
+{
+    public static void Postfix(Pawn p, Thing container, Job __result)
+    {
+        if (p.TryGetTargetMap(out _))
+        {
+            __result?.globalTarget = container;
+        }
+    }
+}
+
 [HarmonyPatch]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Toils_Haul_IsValidStorageFor
@@ -220,5 +234,15 @@ public static class Patch_LoadTransportersJobUtility_FindThingToLoad
             return false;
         }
         return true;
+    }
+}
+
+[HarmonyPatch(typeof(HaulAIUtility), nameof(HaulAIUtility.FindFixedIngredientCount))]
+public static class Patch_HaulAIUtility_FindFixedIngredientCount
+{
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_DepartMapOrPawnMap)
+            .MethodReplacer(CachedMethodInfo.m_BreadthFirstTraverse, CachedMethodInfo.m_BreadthFirstTraverseAcrossMaps);
     }
 }

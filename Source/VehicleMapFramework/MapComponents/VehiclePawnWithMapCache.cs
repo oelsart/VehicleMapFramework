@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using HarmonyLib;
 using SmashTools;
 using UnityEngine;
 using Vehicles;
@@ -10,6 +9,18 @@ namespace VehicleMapFramework;
 
 public class VehiclePawnWithMapCache(Map map) : MapComponent(map)
 {
+    public readonly Dictionary<Thing, Vector3> cachedDrawPos = [];
+
+    public readonly Dictionary<Thing, IntVec3> cachedPosOnBaseMap = [];
+
+    public readonly Dictionary<VehiclePawn, Rot8> cachedFullRot = [];
+
+    public static bool CacheMode { get; set; }
+
+    private int lastCachedTick = -1;
+
+    private readonly HashSet<VehiclePawnWithMap> allVehicles = [];
+    
     public static void RegisterVehicle(VehiclePawnWithMap vehicle)
     {
         MapComponentCache<VehiclePawnWithMapCache>.GetComponent(vehicle.Map).allVehicles.Add(vehicle);
@@ -47,7 +58,6 @@ public class VehiclePawnWithMapCache(Map map) : MapComponent(map)
         cachedDrawPos.Clear();
         cachedPosOnBaseMap.Clear();
         cachedFullRot.Clear();
-        //CacheDrawPos();
     }
 
     public void ResetCache()
@@ -56,28 +66,6 @@ public class VehiclePawnWithMapCache(Map map) : MapComponent(map)
         {
             ForceResetCache();
         }
-    }
-
-    private void CacheDrawPos()
-    {
-        if (!map.IsVehicleMapOf(out var vehicle)) return;
-        
-        cacheMode = true;
-        if (vehicle.vehiclePather?.Moving ?? false)
-        {
-            map.listerThings.AllThings.ForEach(t =>
-            {
-                cachedDrawPos[t] = t.DrawPos.ToBaseMapCoord(vehicle);
-            });
-        }
-        else
-        {
-            map.dynamicDrawManager.DrawThings.Do(t =>
-            {
-                cachedDrawPos[t] = t.DrawPos.ToBaseMapCoord(vehicle);
-            });
-        }
-        cacheMode = false;
     }
 
     public override void MapComponentUpdate()
@@ -89,18 +77,4 @@ public class VehiclePawnWithMapCache(Map map) : MapComponent(map)
     {
         VehicleMapParentsComponent.CachedMapParentVehicle.Remove(map);
     }
-
-    public readonly Dictionary<Thing, Vector3> cachedDrawPos = [];
-
-    public readonly Dictionary<Thing, IntVec3> cachedPosOnBaseMap = [];
-
-    public readonly Dictionary<VehiclePawn, Rot8> cachedFullRot = [];
-
-    private int lastCachedTick = -1;
-
-    public bool cacheMode;
-
-    private readonly HashSet<VehiclePawnWithMap> allVehicles = [];
-
-    public static bool cacheModeGlobal;
 }

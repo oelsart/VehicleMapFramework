@@ -62,3 +62,4 @@
 #*.rtf   diff=astextplain
 #*.RTF   diff=astextplain
 /About/About.xml merge=theirs
+/About_Dev/About.xml merge=theirs

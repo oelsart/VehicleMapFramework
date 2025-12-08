@@ -81,6 +81,10 @@ public static class CrossMapReachabilityUtility
             if (pawn is null) return;
             DepartMap.Remove(pawn);
         }
+
+        public Map DepartMapOrPawnMap => pawn.DepartMap ?? pawn.Map;
+
+        public Map DepartMapOrPawnMapHeld => pawn.DepartMap ?? pawn.MapHeld;
         
         public bool CanReach(LocalTargetInfo dest3, PathEndMode peMode, Danger maxDanger, bool canBashDoors, bool canBashFences, TraverseMode mode, Map destMap)
         {

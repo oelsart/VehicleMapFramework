@@ -35,7 +35,7 @@ public static class Patch_Graphic_LinkedStitched_Print
 
     private static Vector3 RotateVector(Vector3 vector)
     {
-        return vector.RotatedBy(VehicleMapUtility.RotForPrintCounter);
+        return vector.RotatedBy(VehicleSectionLayerManager.RotForPrintCounter);
     }
 }
 

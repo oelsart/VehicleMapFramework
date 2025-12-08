@@ -48,12 +48,12 @@ public class SectionLayer_SunShadowsOnVehicle : SectionLayer
         
         subLayer.Regenerate();
         var subMesh = subLayer.GetSubMesh(MatBases.SunShadow);
-        if (VehicleMapUtility.RotForPrint != Rot4.North)
+        if (VehicleSectionLayerManager.RotForPrint != Rot4.North)
         {
             CastShadowNorth(subMesh);
             for (var i = 0; i < subMesh.verts.Count; i++)
             {
-                subMesh.verts[i] = subMesh.verts[i].RotatedBy(VehicleMapUtility.RotForPrint);
+                subMesh.verts[i] = subMesh.verts[i].RotatedBy(VehicleSectionLayerManager.RotForPrint);
             }
         }
         VehicleSectionLayerManager.FinalizeShadowVerts(subLayer);

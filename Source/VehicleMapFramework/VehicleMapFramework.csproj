@@ -25,6 +25,7 @@
   
   <ItemGroup>
     <PackageReference Include="Krafs.Rimworld.Ref" />
+    <PackageReference Include="Lib.Harmony" />
     <PackageReference Include="Lib.Harmony.Ref" />
 	<PackageReference Include="Nerdbank.GitVersioning">
 	  <PrivateAssets>all</PrivateAssets>
@@ -35,14 +36,18 @@
   <PropertyGroup>
     <SteamWorkshopRoot Condition="'$(SteamWorkshopRoot)' == ''">..\..\..\..\..\..\workshop\content\294100</SteamWorkshopRoot>
   </PropertyGroup>
-  
+  <PropertyGroup>
+		<VFUnstableFolder Condition="'$(CIBuild)' == 'true'">$(SteamWorkshopRoot)\3522907382</VFUnstableFolder>
+    <VFUnstableFolder Condition="'$(CIBuild)' != 'true'">..\..\..\VehicleFramework</VFUnstableFolder>
+  </PropertyGroup>
+
   <ItemGroup Condition="'$(Configuration)'=='Dev'">
     <Reference Include="SmashTools">
-      <HintPath>..\..\..\VehicleFramework\1.6\Assemblies\SmashTools.dll</HintPath>
+      <HintPath>$(VFUnstableFolder)\1.6\Assemblies\SmashTools.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Vehicles">
-      <HintPath>..\..\..\VehicleFramework\1.6\Assemblies\Vehicles.dll</HintPath>
+      <HintPath>$(VFUnstableFolder)\1.6\Assemblies\Vehicles.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
@@ -84,11 +89,20 @@
     <Content Include="..\..\.git\hooks\pre-push">
       <Link>pre-push</Link>
     </Content>
-    <Content Include="..\..\CopyToDev.bat">
-      <Link>CopyToDev.bat</Link>
-    </Content>
   </ItemGroup>
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(SkipPostBuild)' != 'true'">
-    <Exec Command="powershell.exe -ExecutionPolicy Bypass -File &quot;$(ProjectDir)UpdateAboutXmlVersion.ps1&quot; -AboutXmlPath &quot;$(TargetPath)\..\..\..\About\About.xml&quot; -BuiltDllPath &quot;$(TargetPath)&quot;" />
+
+  <PropertyGroup>
+    <AboutFolderPath Condition="'$(AboutXmlPath)' == ''">../../About</AboutFolderPath>
+    <AboutFolderPath Condition="'$(Configuration)'=='Dev'">../../About_Dev</AboutFolderPath>
+  </PropertyGroup>
+  <Target Name="UpdateVersion" AfterTargets="PostBuildEvent" Condition="'$(SkipPostBuild)' != 'true'">
+    <Exec Command="powershell.exe -ExecutionPolicy Bypass -File &quot;$(ProjectDir)UpdateAboutXmlVersion.ps1&quot; -AboutXmlPath &quot;$(AboutFolderPath)/About.xml&quot; -BuiltDllPath &quot;$(TargetPath)&quot;" />
   </Target>
+	<Target Name="CopyToDev" AfterTargets="PostBuildEvent" Condition="'$(Configuration)'=='Dev'">
+		<Exec Command="(robocopy ../../1.5 ../../../VehicleMapFrameworkDev/1.5 /MIR /E /XD Assemblies) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0" />
+		<Exec Command="(robocopy ../../1.6 ../../../VehicleMapFrameworkDev/1.6 /MIR /E /XD Assemblies) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0" />
+		<Exec Command="(robocopy ../../About_Dev ../../../VehicleMapFrameworkDev/About /MIR /E) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0" />
+		<Exec Command="(robocopy ../../Common ../../../VehicleMapFrameworkDev/Common /MIR /E /XD AssetBundles) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0" />
+		<Exec Command="(robocopy ../../ ../../../VehicleMapFrameworkDev LICENSE) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0" />
+	</Target>
 </Project>

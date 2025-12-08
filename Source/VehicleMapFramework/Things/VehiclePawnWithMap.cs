@@ -173,6 +173,9 @@ public class VehiclePawnWithMap : VehiclePawn
 
     public CompNpcVehicleMap CompNpcVehicleMap => field ??= GetComp<CompNpcVehicleMap>();
 
+    private VehicleSectionLayerManager SectionLayerManager =>
+        field ??= interiorMap?.GetCachedMapComponent<VehicleSectionLayerManager>();
+
     public List<CompVehicleEnterSpot> EnterComps { get; } = [];
 
     public IEnumerable<CompVehicleEnterSpot> AvailableEnterComps => EnterComps.Where(c => c.parent.Position.Walkable(interiorMap) && c.Available);
@@ -614,11 +617,16 @@ public class VehiclePawnWithMap : VehiclePawn
         //BreachingGridDebug.DebugDrawAllOnMap(map);
         Delay.AfterNSeconds(0f, () =>
         {
-            var component = MapComponentCache<VehiclePawnWithMapCache>.GetComponent(map);
-            component?.cacheMode = true;
-            map.GetCachedMapComponent<VehicleSectionLayerManager>().UpdateAllSection();
-            map.mapDrawer.MapMeshDrawerUpdate_First();
-            component?.cacheMode = false;
+            try
+            {
+                VehicleSectionLayerManager.CacheMode = true;
+                SectionLayerManager.UpdateAllSection();
+                map.mapDrawer.MapMeshDrawerUpdate_First();
+            }
+            finally
+            {
+                VehicleSectionLayerManager.CacheMode = false;
+            }
         });
         //map.powerNetGrid.DrawDebugPowerNetGrid();
         //DoorsDebugDrawer.DrawDebug();

@@ -15,7 +15,7 @@ internal class UnitTest_ConstructFinishFrames(VehicleGroup group) : CrossMapWork
     {
         base.SetUp();
         frame = (Frame)ThingMaker.MakeThing(ThingDefOf.Wall.frameDef, ThingDefOf.WoodLog);
-        GenSpawn.Spawn(frame, new IntVec3(3, 0, 3), GroundMap).SetFaction(Pawn.Faction);
+        GenSpawn.Spawn(frame, FromRUCorner(GroundMap, 3), GroundMap).SetFaction(Pawn.Faction);
         var woodLog = ThingMaker.MakeThing(ThingDefOf.WoodLog);
         woodLog.stackCount = frame.ThingCountNeeded(ThingDefOf.WoodLog);
         frame.resourceContainer.TryAddOrTransfer(woodLog);

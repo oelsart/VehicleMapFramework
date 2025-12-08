@@ -65,8 +65,8 @@ public static class Patch_CaravanInventoryUtility_AllInventoryItems
     {
         if (!VehicleMapFramework.settings.includeMapThings || caravan is not VehicleCaravan vehicleCaravan) return;
         __result.AddRange(vehicleCaravan.Vehicles.OfType<VehiclePawnWithMap>()
-            .SelectMany(v => v.VehicleMap.listerThings.AllThings
-                .Where(t => t is not Pawn { IsFreeColonist: true })));
+            .SelectMany(v => v.VehicleMap.listerThings
+                .GetAllThings(t => t.def.category == ThingCategory.Item || t is Pawn { IsSlaveOfColony: true })));
     }
 }
 
@@ -78,6 +78,33 @@ public static class Patch_Caravan_BedsTracker_GetUsableBeds
     {
         return instructions.MethodReplacer(CachedMethodInfo.m_AllInventoryItems,
             CachedMethodInfo.m_AllInventoryItems_Original);
+    }
+}
+
+[HarmonyPatch(typeof(Dialog_SplitCaravan), "TrySplitCaravan")]
+[PatchLevel(Level.Safe)]
+public static class Patch_Dialog_SplitCaravan_TrySplitCaravan
+{
+    public static void Prefix(Caravan ___caravan, List<TransferableOneWay> ___transferables)
+    {
+        for (var i = ___transferables.Count - 1; i >= 0; i--)
+        {
+            var transferable = ___transferables[i];
+            if (transferable.CountToTransfer <= 0) continue;
+            var count = transferable.CountToTransfer;
+            
+            foreach (var thing in transferable.things)
+            {
+                if (thing.IsOnVehicleMapOf(out _))
+                {
+                    var count2 = Math.Min(count, thing.stackCount);
+                    count -= count2;
+                    var thing2 = thing.SplitOff(count2);
+                    ___caravan.AddPawnOrItem(thing2, false);
+                    ___transferables.RemoveAt(i);
+                }
+            }
+        }
     }
 }
 

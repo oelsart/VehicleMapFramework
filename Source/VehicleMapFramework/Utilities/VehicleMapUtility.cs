@@ -24,10 +24,6 @@ public static class VehicleMapUtility
         Command_FocusVehicleMap.FocusedVehicle != null
             ? Command_FocusVehicleMap.FocusedVehicle.CurrentLevel : Find.CurrentMap;
 
-    public static Rot4 RotForPrintCounter => RotForPrint.IsHorizontal ? RotForPrint.Opposite : RotForPrint;
-
-    public static Rot4 RotForPrint { get; set; }
-
     public static bool FocusedOnVehicleMap(out VehiclePawnWithMap vehicle)
     {
         if (Command_FocusVehicleMap.FocusedVehicle is null)
@@ -198,47 +194,44 @@ public static class VehicleMapUtility
         
         public bool TryGetDrawPos(ref Vector3 result)
         {
-            if (VehiclePawnWithMapCache.cacheModeGlobal) return false;
+            if (VehicleSectionLayerManager.CacheMode)
+            {
+                if (thing.def.category == ThingCategory.Item &&
+                    thing.GetSlotGroup()?.parent is Building_Hatch)
+                {
+                    result = Vector3.negativeInfinity;
+                    return true;
+                }
+
+                if (thing is Building_GravshipWheel { CacheMode: false })
+                {
+                    result = thing.DrawPos;
+                    return true;
+                }
+
+                return false;
+            }
 
             var map = thing.Map;
             if (map.IsNonFocusedVehicleMapOf(out var vehicle))
             {
-                var component = MapComponentCache<VehiclePawnWithMapCache>.GetComponent(map);
-                if (!component.cacheMode)
+                if (!VehiclePawnWithMapCache.CacheMode)
                 {
+                    var component = MapComponentCache<VehiclePawnWithMapCache>.GetComponent(map);
                     if (!component.cachedDrawPos.TryGetValue(thing, out result))
                     {
-                        VehiclePawnWithMapCache.cacheModeGlobal = true;
                         try
                         {
-                            result = thing.DrawPos.ToBaseMapCoord(vehicle);
-                            component.cachedDrawPos[thing] = result;
+                            VehiclePawnWithMapCache.CacheMode = true;
+                            component.cachedDrawPos[thing] = result = thing.DrawPos.ToBaseMapCoord(vehicle);
                         }
                         finally
                         {
-                            VehiclePawnWithMapCache.cacheModeGlobal = false;
+                            VehiclePawnWithMapCache.CacheMode = false;
                         }
                     }
                     return true;
                 }
-                VehiclePawnWithMapCache.cacheModeGlobal = true;
-                try
-                {
-                    if (thing.def.category == ThingCategory.Item &&
-                        thing.GetSlotGroup()?.parent is Building_Hatch)
-                    {
-                        result = Vector3.negativeInfinity;
-                    }
-                    else
-                    {
-                        result = thing.DrawPos;
-                    }
-                }
-                finally
-                {
-                    VehiclePawnWithMapCache.cacheModeGlobal = false;
-                }
-                return true;
             }
             return false;
         }
@@ -524,16 +517,16 @@ public static class VehicleMapUtility
     {
         var rot = thing.Rotation;
 
-        if (RotForPrint != Rot4.North && (thing.def.size.x != thing.def.size.z || ((thing.def.rotatable || (thing.def.graphicData?.drawRotated ?? false)) && thing.Graphic is Graphic_Multi && !SameMaterialByRot())))
+        if (VehicleSectionLayerManager.RotForPrint != Rot4.North && (thing.def.size.x != thing.def.size.z || ((thing.def.rotatable || (thing.def.graphicData?.drawRotated ?? false)) && thing.Graphic is Graphic_Multi && !SameMaterialByRot())))
         {
-            rot.AsInt += RotForPrint.AsInt;
+            rot.AsInt += VehicleSectionLayerManager.RotForPrint.AsInt;
         }
         return rot;
 
         bool SameMaterialByRot()
         {
             var graphic = thing.Graphic;
-            var rotation = new Rot4(rot.AsInt + RotForPrint.AsInt);
+            var rotation = new Rot4(rot.AsInt + VehicleSectionLayerManager.RotForPrint.AsInt);
             return graphic != null && graphic.MatAt(rot, thing) == graphic.MatAt(rotation, thing) && graphic.DrawOffset(rot) == graphic.DrawOffset(rotation);
         }
     }
@@ -543,7 +536,7 @@ public static class VehicleMapUtility
         var result = 0f;
         if (thing.IsOnVehicleMapOf(out _))
         {
-            result -= RotForPrint.AsAngle;
+            result -= VehicleSectionLayerManager.RotForPrint.AsAngle;
         }
         return result;
     }
@@ -792,7 +785,7 @@ public static class VehicleMapUtility
 
     public static Vector3 RotateForPrintNegate(Vector3 vector)
     {
-        return vector.RotatedBy(-RotForPrint.AsAngle);
+        return vector.RotatedBy(-VehicleSectionLayerManager.RotForPrint.AsAngle);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

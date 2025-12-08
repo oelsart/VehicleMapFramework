@@ -49,7 +49,7 @@ public static class Patch_MechanitorUtility_InMechanitorCommandRange
     [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_MapHeld, CachedMethodInfo.m_MapHeldBaseMap);
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_MapHeld, CachedMethodInfo.m_MapHeldBaseMapOrCaravan);
     }
 }
 
@@ -768,5 +768,64 @@ public static class Patch_WeatherEventMaker_WeatherEventMakerTick
         {
             strength *= map.Area / 40000f;
         }
+    }
+}
+
+// 別マップの素材がある場合MissingIngredientsから除外する。主に車両マップでの手術などでレシピが表示されるようにする
+[HarmonyPatch(typeof(RecipeDef), nameof(RecipeDef.PotentiallyMissingIngredients))]
+[PatchLevel(Level.Safe)]
+public static class Patch_RecipeDef_PotentiallyMissingIngredients
+{
+    public static IEnumerable<ThingDef> Postfix(IEnumerable<ThingDef> values, Pawn billDoer, Map map, RecipeDef __instance)
+    {
+        return from thingDef in values
+            let found = __instance.ingredients
+                .Where(ing => ing.IsFixedIngredient && thingDef == ing.FixedIngredient || ing.filter.Allows(thingDef))
+                .Any(ing => (map.BaseMapAndVehicleMaps.Except(map))
+                    .Any(map2 => {
+                        var list = map2.listerThings.ThingsInGroup(ThingRequestGroup.HaulableEver);
+                        return list.Exists(t =>
+                            t.def == thingDef &&
+                            (billDoer == null || !t.IsForbidden(billDoer)) &&
+                            !t.Position.Fogged(map2) &&
+                            (ing.IsFixedIngredient || __instance.fixedIngredientFilter.Allows(t)) &&
+                            ing.filter.Allows(t));
+                    }))
+            where !found
+            select thingDef;
+    }
+}
+
+// CreateNoPawnsWithSkillDialogの抑制
+[HarmonyPatch(typeof(HealthCardUtility), nameof(HealthCardUtility.CreateSurgeryBill))]
+[PatchLevel(Level.Safe)]
+public static class Patch_HealthCardUtility_CreateSurgeryBill
+{
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_MapHeld, CachedMethodInfo.m_MapHeldBaseMap);
+    }
+}
+
+[HarmonyPatch]
+[PatchLevel(Level.Sensitive)]
+public static class Patch_ITab_Bills_FillTab_Delegate
+{
+    private static MethodBase TargetMethod()
+    {
+        return AccessTools.FindIncludingInnerTypes(typeof(ITab_Bills), t =>
+        {
+            return t.GetDeclaredMethods().FirstOrDefault(m =>
+            {
+                if (!m.Name.Contains("<FillTab>")) return false;
+                return VMF_Harmony.ReadMethodBodyWrapper(m).Any(i =>
+                    AccessTools.Field(typeof(Map), nameof(Map.mapPawns)).Equals(i.Value));
+            });
+        });
+    }
+
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
     }
 }

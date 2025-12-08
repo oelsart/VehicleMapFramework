@@ -1,4 +1,5 @@
-﻿using RimWorld;
+﻿global using static VehicleMapFramework.Test_Logics.TestUtility;
+using RimWorld;
 using Verse;
 
 namespace VehicleMapFramework.Test_Logics;
@@ -68,4 +69,11 @@ public static class TestUtility
             .Severity = 0.5f;
         return pawn;
     }
+
+    extension(IntVec3 c)
+    {
+        public IntVec3 Reversed(Map map) => new (map.Size.x - c.x - 1, c.y, map.Size.z - c.z - 1);
+    }
+
+    public static IntVec3 FromRUCorner(Map map, int dist) => new IntVec3(dist, 0, dist).Reversed(map);
 }

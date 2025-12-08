@@ -381,6 +381,7 @@ public static class Patch_JobGiver_Work_Validator
             return scanner.HasJobOnThing(pawn, t, forced);
         }
 
+        
         pawn.DepartMap = pawn.Map;
         using var _ = new VirtualTeleporter(pawn, thingMap);
         try
@@ -636,10 +637,13 @@ public static class Patch_GenClosest_ClosestThingReachable
         bool lookInHaulSources) => throw new NotImplementedException();
 
     [PatchLevel(Level.Safe)]
-    public static void Prefix(ref Map map, TraverseParms traverseParams)
+    public static void Prefix(IntVec3 root, ref Map map, TraverseParms traverseParams)
     {
-        var map2 = traverseParams.pawn?.DepartMap;
-        if (map2 != null) map = map2;
+        if (traverseParams.pawn is not { } pawn) return;
+        
+        var map2 = pawn.DepartMap;
+        if (map2 != null && root == pawn.Position && map == pawn.Map)
+            map = map2;
     }
 
     [PatchLevel(Level.Safe)]
@@ -1281,6 +1285,7 @@ public static class Patch_ChildcareUtility_FindUnsafeBaby
 }
 
 [HarmonyPatch(typeof(JoyGiver_SocialRelax), "TryFindChairNear")]
+[PatchLevel(Level.Cautious)]
 public static class Patch_JoyGiver_SocialRelax_TryFindChairNear
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -1288,5 +1293,15 @@ public static class Patch_JoyGiver_SocialRelax_TryFindChairNear
         var m_GetEdifice = AccessTools.Method(typeof(GridsUtility), nameof(GridsUtility.GetEdifice));
         var m_GetEdificeSafe = AccessTools.Method(typeof(GridsUtility), nameof(GridsUtility.GetEdificeSafe));
         return instructions.MethodReplacer(m_GetEdifice, m_GetEdificeSafe);
+    }
+}
+
+[HarmonyPatch(typeof(JobDriver_HaulToContainer), "TryReplaceWithFrame")]
+[PatchLevel(Level.Cautious)]
+public static class Patch_JobDriver_HaulToContainer_TryReplaceWithFrame
+{
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrPawnMap);
     }
 }

@@ -168,7 +168,7 @@ namespace VehicleMapFramework
         //            Texture2D srcTex = material.mainTexture as Texture2D;
         //            Color color2 = material.color;
         //            Material material2 = MaterialPool.MatFrom(srcTex, ShaderDatabase.IndoorMaskMasked, color2, 3185);
-        //            IntVec3 offset = GetOffset(cornerType).RotatedBy(VehicleMapUtility.rotForPrint.IsHorizontal ? VehicleMapUtility.rotForPrint.Opposite : VehicleMapUtility.rotForPrint);
+        //            IntVec3 offset = GetOffset(cornerType).RotatedBy(VehicleSectionLayerManager.RotForPrint.IsHorizontal ? VehicleSectionLayerManager.RotForPrint.Opposite : VehicleSectionLayerManager.RotForPrint);
         //            if (!dictionary.TryGetValue(cornerType, out var value))
         //            {
         //                dictionary.Add(cornerType, value = MapDrawLayer.CreateFreeSubMesh(material2, map));
@@ -194,7 +194,7 @@ namespace VehicleMapFramework
                 return;
             }
 
-            VehicleMapUtility.RotForPrint = Rot4.North;
+            VehicleSectionLayerManager.RotForPrint = Rot4.North;
             for (var i = 0; i < 4; i++)
             {
                 try
@@ -203,13 +203,13 @@ namespace VehicleMapFramework
                     ClearSubMeshes(MeshParts.All);
                     var map = Map;
                     var terrainGrid = map.terrainGrid;
-                    var south = IntVec3.South.RotatedBy(VehicleMapUtility.RotForPrintCounter);
+                    var south = IntVec3.South.RotatedBy(VehicleSectionLayerManager.RotForPrintCounter);
                     foreach (var item in section.CellRect)
                     {
                         if (ShouldDrawCornerPiece(item, map, terrainGrid, out var cornerType, out var color))
                         {
                             var material = GetMaterial(cornerType);
-                            var offset = GetOffset(cornerType).RotatedBy(VehicleMapUtility.RotForPrintCounter);
+                            var offset = GetOffset(cornerType).RotatedBy(VehicleSectionLayerManager.RotForPrintCounter);
                             AddQuad(material.Material, item + offset, HullCornerScale, cornerAltitude, color);
                             var substructureToSouth = terrainGrid.FoundationAt(item + south)?.IsSubstructure ?? false;
                             AddSubstructure(cornerType, item, substructureToSouth);
@@ -219,10 +219,10 @@ namespace VehicleMapFramework
                 }
                 finally
                 {
-                    VehicleMapUtility.RotForPrint = VehicleMapUtility.RotForPrint.Rotated(RotationDirection.Clockwise);
+                    VehicleSectionLayerManager.RotForPrint = VehicleSectionLayerManager.RotForPrint.Rotated(RotationDirection.Clockwise);
                 }
             }
-            VehicleMapUtility.RotForPrint = Rot4.North;
+            VehicleSectionLayerManager.RotForPrint = Rot4.North;
         }
 
         private static void EnsureInitialized()
@@ -326,8 +326,8 @@ namespace VehicleMapFramework
 
         private static void AddQuad(LayerSubMesh sm, Vector3 c, float scale, float altitude, Color color)
         {
-            c = c.RotatedBy(VehicleMapUtility.RotForPrint);
-            var offset = -UVs[VehicleMapUtility.RotForPrint.AsInt];
+            c = c.RotatedBy(VehicleSectionLayerManager.RotForPrint);
+            var offset = -UVs[VehicleSectionLayerManager.RotForPrint.AsInt];
             var count = sm.verts.Count;
             for (var i = 0; i < 4; i++)
             {
@@ -359,7 +359,7 @@ namespace VehicleMapFramework
                     AddQuad(mat_SubStructure_W.Material, c, 1f, substructureAltitude, Color.white);
                     if (!substructureToSouth)
                     {
-                        AddQuad(mat_SubStructureExtra_W.Material, c + IntVec3.South.RotatedBy(VehicleMapUtility.RotForPrintCounter), 1f, substructureAltitude, Color.white);
+                        AddQuad(mat_SubStructureExtra_W.Material, c + IntVec3.South.RotatedBy(VehicleSectionLayerManager.RotForPrintCounter), 1f, substructureAltitude, Color.white);
                     }
 
                     break;
@@ -370,7 +370,7 @@ namespace VehicleMapFramework
                     AddQuad(mat_SubStructure_E.Material, c, 1f, substructureAltitude, Color.white);
                     if (!substructureToSouth)
                     {
-                        AddQuad(mat_SubStructureExtra_E.Material, c + IntVec3.South.RotatedBy(VehicleMapUtility.RotForPrintCounter), 1f, substructureAltitude, Color.white);
+                        AddQuad(mat_SubStructureExtra_E.Material, c + IntVec3.South.RotatedBy(VehicleSectionLayerManager.RotForPrintCounter), 1f, substructureAltitude, Color.white);
                     }
 
                     break;
@@ -389,7 +389,7 @@ namespace VehicleMapFramework
             }
             for (var i = 0; i < Directions.Length; i++)
             {
-                tmpChecks[i] = (pos + Directions[i].RotatedBy(VehicleMapUtility.RotForPrintCounter)).GetEdificeSafe(map)?.def == ThingDefOf.GravshipHull;
+                tmpChecks[i] = (pos + Directions[i].RotatedBy(VehicleSectionLayerManager.RotForPrintCounter)).GetEdificeSafe(map)?.def == ThingDefOf.GravshipHull;
             }
 
             cornerType = tmpChecks[0] switch
@@ -421,7 +421,7 @@ namespace VehicleMapFramework
                 List<int> list = [.. t.Where(num2 => tmpChecks[num2])];
                 if (list.Count <= 0) continue;
                 var num = list.First();
-                color = (pos + Directions[num].RotatedBy(VehicleMapUtility.RotForPrintCounter)).GetEdificeSafe(map).DrawColor;
+                color = (pos + Directions[num].RotatedBy(VehicleSectionLayerManager.RotForPrintCounter)).GetEdificeSafe(map).DrawColor;
                 break;
             }
             return true;

@@ -17,7 +17,7 @@ internal class UnitTest_PairtFloor(VehicleGroup group) : CrossMapWorkGiverTestBa
     public override void SetUp()
     {
         base.SetUp();
-        cell = new IntVec3(3, 0, 3);
+        cell = FromRUCorner(GroundMap, 3);
         terrain = cell.GetTerrain(GroundMap);
         GroundMap.terrainGrid.SetTerrain(cell, TerrainDefOf.WoodPlankFloor);
         var designation = new Designation(cell, DesignationDefOf.PaintFloor)

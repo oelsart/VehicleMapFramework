@@ -11,7 +11,7 @@ internal sealed class UnitTest_StudyInteract(VehicleGroup group) : WorkGiverTest
     public override void SetUp()
     {
         var component = Current.Game.GetComponent<GameComponent_Anomaly>();
-        var cell = new IntVec3(Pawn.Map.Size.x - 3, 0, Pawn.Map.Size.z - 3);
+        var cell = FromRUCorner(Pawn.Map, 3);
         if (!component.MonolithSpawned || component.monolith.Map != Pawn.Map)
             component.SpawnNewMonolith(cell, Pawn.Map);
         else

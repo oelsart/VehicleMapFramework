@@ -10,18 +10,20 @@ internal class UnitTest_BringBabyToSafety(VehicleGroup group) : CrossMapWorkGive
     
     private Pawn baby;
     
-    private readonly CellRect roomRect = CellRect.FromLimits(3, 3, 7, 7);
+    private CellRect roomRect;
     
     public override void SetUp()
     {
         base.SetUp();
-        baby = TestUtility.GenerateBaby(Pawn.Faction);
-        GenSpawn.Spawn(baby, new IntVec3(5, 0, 5), GroundMap);
+        var map = GroundMap;
+        roomRect = CellRect.FromLimits(FromRUCorner(map, 3), FromRUCorner(map, 7));
+        baby = GenerateBaby(Pawn.Faction);
+        GenSpawn.Spawn(baby, FromRUCorner(map, 5), map);
         baby.mindState.SetAutofeeder(Pawn, AutofeedMode.Childcare);
 
         foreach (var cell in roomRect.EdgeCells)
         {
-            var def = cell == new IntVec3(7, 0, 5) ? ThingDefOf.Wall : ThingDefOf.Door;
+            var def = cell == new IntVec3(7, 0, 5).Reversed(map) ? ThingDefOf.Wall : ThingDefOf.Door;
             var edifice = ThingMaker.MakeThing(def, ThingDefOf.WoodLog);
             GenSpawn.Spawn(edifice, cell, GroundMap);
         }

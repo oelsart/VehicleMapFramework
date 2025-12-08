@@ -25,7 +25,8 @@ internal class UnitTest_HaulGeneral(VehicleGroup group) : WorkGiverTestBase(grou
         GenSpawn.Spawn(woodLog, Pawn.Position, Pawn.Map);
         zone = new Zone_Stockpile(StorageSettingsPreset.DefaultStockpile, Pawn.Map.zoneManager);
         Pawn.Map.zoneManager.RegisterZone(zone);
-        foreach (var cell in CellRect.FromLimits(2, 2, 3, 3).Cells)
+        var map = Vehicle.VehicleMap;
+        foreach (var cell in CellRect.FromLimits(FromRUCorner(map, 2), FromRUCorner(map, 3)).Cells)
             zone.AddCell(cell);
     }
 
@@ -43,25 +44,25 @@ internal class UnitTest_HaulGeneral(VehicleGroup group) : WorkGiverTestBase(grou
         if (DisablePUAH) puahDisabler = new PuahDisabler();
         woodLog = ThingMaker.MakeThing(ThingDefOf.WoodLog);
         woodLog.stackCount = 10;
-        GenSpawn.Spawn(woodLog, Pawn.Position, Pawn.Map);
-        zone = new Zone_Stockpile(StorageSettingsPreset.DefaultStockpile, Pawn.Map.zoneManager);
-        Pawn.Map.zoneManager.RegisterZone(zone);
-        foreach (var cell in CellRect.FromLimits(2, 2, 3, 3).Cells)
+        var map = Pawn.Map;
+        GenSpawn.Spawn(woodLog, Pawn.Position, map);
+        zone = new Zone_Stockpile(StorageSettingsPreset.DefaultStockpile, map.zoneManager);
+        map.zoneManager.RegisterZone(zone);
+        foreach (var cell in CellRect.FromLimits(FromRUCorner(map, 6), FromRUCorner(map, 7)).Cells)
             zone.AddCell(cell);
         results[1] = RunWorkGiverAfterPatch(Pawn, Vehicle, WorkGiverDef);
         Expect.IsNotNull(results[1].job);
         zone.Delete();
 
-        var vehicle = (VehiclePawnWithMap)Vehicle;
-        zone = new Zone_Stockpile(StorageSettingsPreset.DefaultStockpile, vehicle!.VehicleMap.zoneManager);
-        vehicle.VehicleMap.zoneManager.RegisterZone(zone);
-        Pawn.Map.haulDestinationManager.AddHaulDestination(zone);
+        zone = new Zone_Stockpile(StorageSettingsPreset.DefaultStockpile, Vehicle.VehicleMap.zoneManager);
+        Vehicle.VehicleMap.zoneManager.RegisterZone(zone);
+        map.haulDestinationManager.AddHaulDestination(zone);
         zone.AddCell(new IntVec3(1, 0, 1));
         
         results[1] = RunWorkGiverAfterPatch(Pawn, Vehicle, WorkGiverDef);
         Expect.IsNotNull(results[1].job);
         Expect.AreNotEqual(results[0], results[1]);
-        Expect.IsTrue(results[1].job?.globalTarget.Map == vehicle.VehicleMap);
+        Expect.IsTrue(results[1].job?.globalTarget.Map == Vehicle.VehicleMap);
     }
 
     public override void TearDown()
@@ -70,5 +71,7 @@ internal class UnitTest_HaulGeneral(VehicleGroup group) : WorkGiverTestBase(grou
         woodLog.Destroy();
         zone.Delete();
         Pawn.RemoveTargetInfo();
+        woodLog = null;
+        zone = null;
     }
 }

@@ -37,7 +37,7 @@ public class TargetMapManager(World world) : WorldComponent(world)
     {
         if (GenTicks.IsTickInterval(10800))
         {
-            foreach (var pair in TargetInfoTable.Where(pair => !pair.Value.Value.IsValid))
+            foreach (var pair in TargetInfoTable.Where(pair => !pair.Value?.Value.IsValid ?? true))
                 tmpKeys.Add(pair.Key);
             foreach (var thing in tmpKeys.Where(thing => thing is not null))
                 TargetInfoTable.Remove(thing);
@@ -52,9 +52,10 @@ public class TargetMapManager(World world) : WorldComponent(world)
             case LoadSaveMode.Saving:
             {
                 var targetInfoDic = TargetInfoTable
-                    .Select(pair => (pair.Key, pair.Value.Value))
-                    .Where(tuple => tuple.Value.IsValid)
-                    .ToDictionary(pair => pair.Key, pair => pair.Value);
+                    .Select(pair => (pair.Key, pair.Value?.Value ?? TargetInfo.Invalid))
+                    .Where(tuple => tuple.Item2.IsValid)
+                    .ToDictionary(pair => pair.Key, pair => pair.Item2);
+                if (!targetInfoDic.Any()) return;
                 Scribe_Collections.Look(ref targetInfoDic, "TargetInfo", LookMode.Reference, LookMode.TargetInfo, ref tmpKeys, ref tmpValues, false);
                 break;
             }
@@ -62,6 +63,7 @@ public class TargetMapManager(World world) : WorldComponent(world)
             {
                 Dictionary<Thing, TargetInfo> targetInfoDic = null;
                 Scribe_Collections.Look(ref targetInfoDic, "TargetInfo", LookMode.Reference, LookMode.TargetInfo, ref tmpKeys, ref tmpValues, false);
+                targetInfoDic ??= [];
                 foreach (var pair in targetInfoDic)
                     TargetInfoTable.Add(pair.Key, new StrongBox<TargetInfo>(pair.Value));
                 break;
@@ -71,5 +73,8 @@ public class TargetMapManager(World world) : WorldComponent(world)
             case LoadSaveMode.PostLoadInit:
             default: break;
         }
+
+        tmpKeys ??= [];
+        tmpValues ??= [];
     }
 }

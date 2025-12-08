@@ -116,5 +116,7 @@ internal static class PatchCategories
     
     public const string WhileYoureUp = "VMF_Patches_WhileYoureUp";
     
+    public const string WVCWorkModes = "VMF_Patches_WVCWorkModes";
+    
     public const string YayosCombat3 = "VMF_Patches_YayosCombat3";
 }

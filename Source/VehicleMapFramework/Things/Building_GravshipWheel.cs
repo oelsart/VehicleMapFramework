@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using HarmonyLib;
 using RimWorld;
-using SmashTools;
 using UnityEngine;
 using Verse;
 using Verse.AI;
@@ -15,6 +14,8 @@ namespace VehicleMapFramework
         private Rot4? tmpRot;
 
         private static readonly AccessTools.FieldRef<Thing, Rot4> rotationInt = AccessTools.FieldRefAccess<Rot4>(typeof(Thing), "rotationInt");
+        
+        public bool CacheMode { get; private set; }
 
         public Thing Thing => this;
 
@@ -29,14 +30,16 @@ namespace VehicleMapFramework
         {
             get
             {
-                if (!(Map?.GetCachedMapComponent<VehiclePawnWithMapCache>()?.cacheMode ?? false)) return base.DrawPos;
+                if (!VehicleSectionLayerManager.CacheMode) return base.DrawPos;
                 
+                CacheMode = true;
                 var drawPos = base.DrawPos;
+                CacheMode = false;
                 if (tmpRot is null || !ValidFor(Rot4.North)) return drawPos;
 
-                drawPos += new Vector3(0f, 0f, -0.2f).RotatedBy(VehicleMapUtility.RotForPrintCounter);
+                drawPos += new Vector3(0f, 0f, -0.2f).RotatedBy(VehicleSectionLayerManager.RotForPrintCounter);
                 var offset = new Vector3(DrawSize.x * 0.07f, 0f, 0f);
-                if (VehicleMapUtility.RotForPrint.IsVertical || tmpRot == VehicleMapUtility.RotForPrint)
+                if (VehicleSectionLayerManager.RotForPrint.IsVertical || tmpRot == VehicleSectionLayerManager.RotForPrint)
                 {
                     offset.y -= Altitudes.AltInc * 250f;
                 }

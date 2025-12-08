@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using HarmonyLib;
 using RimWorld;
 using Vehicles;
@@ -10,6 +11,8 @@ namespace VehicleMapFramework;
 public static class JobAcrossMapsUtility
 {
     private static readonly AccessTools.FieldRef<JobDriver, int> curToilIndex = AccessTools.FieldRefAccess<JobDriver, int>("curToilIndex");
+
+    public static List<Type> WorkGiverClassesNeedWrap { get; } = [];
 
     public static void StartGotoDestMapJob(Pawn pawn, TargetInfo? exitSpot = null, TargetInfo? enterSpot = null,
         List<(TargetInfo, TargetInfo)> spotsQueue = null)
@@ -84,6 +87,7 @@ public static class JobAcrossMapsUtility
     
     public static bool NeedWrapGotoDestMapJob(WorkGiver_Scanner scanner)
     {
-        return scanner is WorkGiver_Merge or WorkGiver_HunterHunt or WorkGiver_Miner or VehicleWorkGiver;
+        return scanner is WorkGiver_Merge or WorkGiver_HunterHunt or WorkGiver_Miner or VehicleWorkGiver ||
+               WorkGiverClassesNeedWrap.Contains(scanner.def.giverClass);
     }
 }

@@ -17,12 +17,13 @@ internal class UnitTest_HaulMerge(VehicleGroup group) : CrossMapWorkGiverTestBas
     public override void SetUp()
     {
         base.SetUp();
-        zone = new Zone_Stockpile(StorageSettingsPreset.DefaultStockpile, GroundMap.zoneManager);
-        GroundMap.zoneManager.RegisterZone(zone);
-        foreach (var cell in CellRect.FromLimits(3, 3, 4, 4).Cells)
+        var map = GroundMap;
+        zone = new Zone_Stockpile(StorageSettingsPreset.DefaultStockpile, map.zoneManager);
+        map.zoneManager.RegisterZone(zone);
+        foreach (var cell in CellRect.FromLimits(FromRUCorner(map, 3), FromRUCorner(map, 4)).Cells)
             zone.AddCell(cell);
-        woodLog1 = GenSpawn.Spawn(ThingDefOf.WoodLog, new IntVec3(3, 0, 3), GroundMap);
-        woodLog2 = GenSpawn.Spawn(ThingDefOf.WoodLog, new IntVec3(4, 0, 4), GroundMap);
+        woodLog1 = GenSpawn.Spawn(ThingDefOf.WoodLog, FromRUCorner(map, 3), map);
+        woodLog2 = GenSpawn.Spawn(ThingDefOf.WoodLog, FromRUCorner(map, 4), map);
     }
 
     public override void TearDown()

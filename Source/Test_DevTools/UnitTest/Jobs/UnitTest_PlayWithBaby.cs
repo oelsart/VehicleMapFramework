@@ -18,9 +18,10 @@ internal class UnitTest_PlayWithBaby(VehicleGroup group) : CrossMapWorkGiverTest
         baby = TestUtility.GenerateBaby(Pawn.Faction);
         baby.needs.BindDirectNeedFields();
         baby.needs.play.CurLevel = 0.1f;
-        GenSpawn.Spawn(baby, new IntVec3(3, 0, 3), GroundMap);
+        var map = GroundMap;
+        GenSpawn.Spawn(baby, FromRUCorner(map, 3), map);
         toybox = ThingMaker.MakeThing(ThingDefOf.ToyBox, ThingDefOf.WoodLog);
-        GenSpawn.Spawn(toybox, new IntVec3(3, 0, 4), GroundMap);
+        GenSpawn.Spawn(toybox, FromRUCorner(map, 4), map);
     }
 
     public override void TearDown()
