@@ -21,7 +21,7 @@ public class Graphic_LinkedCornerOverlaySingle : Graphic_Linked
         {
             var mat = overlayGraphic.MatSingleFor(thing);
             TryGetTextureAtlasReplacementInfo(mat, TextureAtlasGroup.Building, false, false, out mat, out var uvs, out _);
-            var rot = -VehicleMapUtility.RotForPrint.AsAngle;
+            var rot = -VehicleSectionLayerManager.RotForPrint.AsAngle;
             Printer_Plane.PrintPlane(layer, thing.TrueCenter() + VehicleMapUtility.RotateForPrintNegate(new Vector3(0.5f, 0.1f, 0.5f)), Vector3.one, mat, rot, false, uvs);
         }
     }

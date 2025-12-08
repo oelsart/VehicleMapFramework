@@ -10,9 +10,17 @@ namespace VehicleMapFramework
     public class VehicleSectionLayerManager : MapComponent
     {
         private Dictionary<Section, Dictionary<Type, SectionLayer[]>> layersByRot;
+
+        private Rot4 lastGeneratedRots = Rot4.North;
         
         internal static readonly List<Type> OrientedSectionLayerTypes =
             [.. typeof(SectionLayer_Things).AllSubclassesNonAbstract().Concat(typeof(SectionLayer_SunShadowsOnVehicle))];
+        
+        public static Rot4 RotForPrintCounter => RotForPrint.IsHorizontal ? RotForPrint.Opposite : RotForPrint;
+
+        public static Rot4 RotForPrint { get; set; }
+        
+        public static bool CacheMode { get; set; }
 
         public VehicleSectionLayerManager(Map map) : base(map)
         {
@@ -38,8 +46,6 @@ namespace VehicleMapFramework
             {
                 layersByRot = [];
 
-                var component = MapComponentCache<VehiclePawnWithMapCache>.GetComponent(map);
-                component?.cacheMode = true;
                 for (var i = 0; i < map.Size.x; i += 17)
                 {
                     for (var j = 0; j < map.Size.z; j += 17)
@@ -51,7 +57,7 @@ namespace VehicleMapFramework
                         {
                             var layer = section.GetLayer(type);
                             if (layer == null) continue;
-                            
+
                             layersByRot[section][type] =
                             [
                                 layer,
@@ -59,34 +65,46 @@ namespace VehicleMapFramework
                                 (SectionLayer)Activator.CreateInstance(type, section),
                                 (SectionLayer)Activator.CreateInstance(type, section),
                             ];
-                            VehicleMapUtility.RotForPrint = Rot4.North;
-                            try
+                            for (var k = 0; k < 4; k++)
                             {
-                                for (var k = 0; k < 4; k++)
-                                {
-                                    var layer2 = layersByRot[section][type][k];
-                                    layer2.Regenerate();
-                                    layer2.RefreshSubMeshBounds();
-                                    VehicleMapUtility.RotForPrint = VehicleMapUtility.RotForPrint.Rotated(RotationDirection.Clockwise);
-                                    DirtyAdaptiveStorageGraphics(layer2, section);
-                                }
-                            }
-                            finally
-                            {
-                                VehicleMapUtility.RotForPrint = Rot4.North;
+                                var layer2 = layersByRot[section][type][k];
+                                layer2.Dirty = true;
                             }
                         }
                     }
                 }
-                component?.cacheMode = false;
             });
         }
 
         public SectionLayer GetLayer(Section section, Type type, Rot8 rot)
         {
-            return layersByRot[section].TryGetValue(type, out var layers) ?
-                layers[rot.RotForVehicleDraw().AsInt] :
-                null;
+            if (!layersByRot[section].TryGetValue(type, out var layers))
+                return null;
+            var rot2 = rot.RotForVehicleDraw();
+            var layer = layers[rot2.AsInt];
+            if (layer.Dirty)
+            {
+                try
+                {
+                    CacheMode = true;
+                    RotForPrint = rot2;
+                    DirtyAdaptiveStorageGraphics(section, rot2);
+                    layer.Regenerate();
+                    layer.RefreshSubMeshBounds();
+                }
+                catch (Exception ex)
+                {
+                    Log.Error($"Could not regenerate layer {layer.ToStringSafe()}: {ex}");
+                }
+                finally
+                {
+                    CacheMode = false;
+                    RotForPrint = Rot4.North;
+                    layer.Dirty = false;
+                }
+            }
+
+            return layer;
         }
 
         public void UpdateAllSection()
@@ -102,10 +120,10 @@ namespace VehicleMapFramework
                     UpdateSection(section);
                     
                     // LayerSubMeshを直接FinalizeしているためY圧縮をかける
-                    var edgeShadowsLayer = section.GetLayer(typeof(SectionLayer_EdgeShadows));
-                    if (edgeShadowsLayer != null)
+                    if ((section.dirtyFlags & MapMeshFlagDefOf.Buildings) > 0UL)
                     {
-                        FinalizeShadowVerts(edgeShadowsLayer);
+                        var edgeShadowsLayer = section.GetLayer(typeof(SectionLayer_EdgeShadows));
+                        Delay.AfterNSeconds(0, () => FinalizeShadowVerts(edgeShadowsLayer));
                     }
                 }
             }
@@ -119,34 +137,67 @@ namespace VehicleMapFramework
             }
             foreach (var sectionLayers in layersByRot[section].Values)
             {
-                sectionLayers[0].Dirty = sectionLayers[0].Dirty || (section.dirtyFlags & sectionLayers[0].relevantChangeTypes) != 0;
-                if (!sectionLayers[0].Dirty)
+                var northLayer = sectionLayers[0];
+                northLayer.Dirty = northLayer.Dirty || (section.dirtyFlags & northLayer.relevantChangeTypes) > 0UL;
+                if (!northLayer.Dirty) continue;
+                
+                // 北向きレイヤーはベースゲームのメソッドにより必ずRegenerateされるため先にやっておく
+                DirtyAdaptiveStorageGraphics(section, Rot4.North);
+                for (var i = 1; i < 4; i++)
                 {
-                    continue;
+                    sectionLayers[i].Dirty = true;
                 }
-                try
+            }
+        }
+
+        private static void TryRegenerate(SectionLayer layer, Rot4 rot)
+        {
+            try
+            {
+                CacheMode = true;
+                RotForPrint = rot;
+                layer.Regenerate();
+                layer.RefreshSubMeshBounds();
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Could not regenerate layer {layer.ToStringSafe()}: {ex}");
+            }
+            finally
+            {
+                CacheMode = false;
+                RotForPrint = Rot4.North;
+                layer.Dirty = false;
+            }
+        }
+
+        private void DirtyAdaptiveStorageGraphics(Section section, Rot4 rot)
+        {
+            if (!AdaptiveStorage.Active || rot == lastGeneratedRots) return;
+            
+            lastGeneratedRots = rot;
+            foreach (var intVec in section.CellRect)
+            {
+                var list = map.thingGrid.ThingsListAt(intVec);
+                var count = list.Count;
+                for (var i = 0; i < count; i++)
                 {
-                    VehicleMapUtility.RotForPrint = Rot4.North;
-                    try
+                    var thing = list[i];
+                    if (AdaptiveStorage.IsAdaptiveStorageClass(thing.def.thingClass) &&
+                        (thing.def.seeThroughFog || !map.fogGrid.IsFogged(thing.Position)) &&
+                        thing.def.drawerType != DrawerType.None &&
+                        thing.def.drawerType != DrawerType.RealtimeOnly &&
+                        (thing.def.hideAtSnowOrSandDepth >= 1f ||
+                         Math.Max(map.snowGrid.GetDepth(thing.Position), thing.Position.GetSandDepth(map)) <=
+                         thing.def.hideAtSnowOrSandDepth) &&
+                        (thing.def.plant == null || thing.def.plant.showInFrozenWater ||
+                         thing.Position.GetTerrain(map) != TerrainDefOf.ThinIce) && thing.Position.x == intVec.x &&
+                        thing.Position.z == intVec.z &&
+                        AdaptiveStorage.Renderer(thing) is { } renderer)
                     {
-                        for (var i = 0; i < 4; i++)
-                        {
-                            sectionLayers[i].Regenerate();
-                            VehicleMapUtility.RotForPrint =
-                                VehicleMapUtility.RotForPrint.Rotated(RotationDirection.Clockwise);
-                            DirtyAdaptiveStorageGraphics(sectionLayers[i], section);
-                        }
-                    }
-                    finally
-                    {
-                        VehicleMapUtility.RotForPrint = Rot4.North;
+                        AdaptiveStorage.SetAllPrintDatasDirty(renderer);
                     }
                 }
-                catch (Exception ex)
-                {
-                    Log.Error($"Could not regenerate layer {sectionLayers[0].ToStringSafe()}: {ex}");
-                }
-                sectionLayers[0].Dirty = false;
             }
         }
 
@@ -165,36 +216,6 @@ namespace VehicleMapFramework
                 subMesh.verts[i] = vert;
             }
             subMesh.mesh.SetVertices(subMesh.verts);
-        }
-
-        private void DirtyAdaptiveStorageGraphics(SectionLayer layer, Section section)
-        {
-            if (AdaptiveStorage.Active && layer is SectionLayer_ThingsGeneral)
-            {
-                foreach (var intVec in section.CellRect)
-                {
-                    var list = map.thingGrid.ThingsListAt(intVec);
-                    var count = list.Count;
-                    for (var i = 0; i < count; i++)
-                    {
-                        var thing = list[i];
-                        if (AdaptiveStorage.IsAdaptiveStorageClass(thing.def.thingClass) &&
-                            (thing.def.seeThroughFog || !map.fogGrid.IsFogged(thing.Position)) &&
-                            thing.def.drawerType != DrawerType.None &&
-                            thing.def.drawerType != DrawerType.RealtimeOnly &&
-                            (thing.def.hideAtSnowOrSandDepth >= 1f ||
-                             Math.Max(map.snowGrid.GetDepth(thing.Position), thing.Position.GetSandDepth(map)) <=
-                             thing.def.hideAtSnowOrSandDepth) &&
-                            (thing.def.plant == null || thing.def.plant.showInFrozenWater ||
-                             thing.Position.GetTerrain(map) != TerrainDefOf.ThinIce) && thing.Position.x == intVec.x &&
-                            thing.Position.z == intVec.z &&
-                            AdaptiveStorage.Renderer(thing) is { } renderer)
-                        {
-                            AdaptiveStorage.SetAllPrintDatasDirty(renderer);
-                        }
-                    }
-                }
-            }
         }
     }
 }

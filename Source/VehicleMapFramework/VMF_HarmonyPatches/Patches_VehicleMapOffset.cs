@@ -5,7 +5,6 @@ using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
 using RimWorld;
-using SmashTools;
 using UnityEngine;
 using Vehicles;
 using Vehicles.Rendering;
@@ -69,8 +68,7 @@ public static class Patch_GenThing_TrueCenter
             return;
         }
         if (Command_FocusVehicleMap.FocusedVehicle is { } vehicle &&
-            !VehiclePawnWithMapCache.cacheModeGlobal &&
-            !vehicle.CurrentLevel.GetCachedMapComponent<VehiclePawnWithMapCache>().cacheMode)
+            !VehicleSectionLayerManager.CacheMode && !VehiclePawnWithMapCache.CacheMode)
         {
             __result = __result.ToBaseMapCoord(vehicle).WithY(__result.y);
         }

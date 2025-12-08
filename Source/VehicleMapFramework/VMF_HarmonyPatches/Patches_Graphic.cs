@@ -35,10 +35,10 @@ public static class Patch_Graphic_Linked_ShouldLinkWith
     [HarmonyPriority(Priority.Low)]
     public static void Prefix(ref IntVec3 c, Thing parent)
     {
-        if (VehicleMapUtility.RotForPrint != Rot4.North)
+        if (VehicleSectionLayerManager.RotForPrint != Rot4.North)
         {
             var offset = c - parent.Position;
-            var rotated = offset.RotatedBy(VehicleMapUtility.RotForPrintCounter);
+            var rotated = offset.RotatedBy(VehicleSectionLayerManager.RotForPrintCounter);
             c = rotated + parent.Position;
         }
     }
@@ -141,7 +141,7 @@ public static class Patch_Graphic_Print
         if (thing.def.HasComp(typeof(CompVehicleEnterSpot)) && thing.IsOnVehicleMapOf(out var vehicle) && (mapProps = vehicle.VehicleDef.GetModExtension<VehicleMapProps>()) != null)
         {
             var opposite = thing.Rotation.Opposite;
-            return vector + (opposite.AsVector2.ToVector3() * mapProps.EdgeSpaceValue(VehicleMapUtility.RotForPrint, opposite));
+            return vector + (opposite.AsVector2.ToVector3() * mapProps.EdgeSpaceValue(VehicleSectionLayerManager.RotForPrint, opposite));
         }
         return vector;
     }
