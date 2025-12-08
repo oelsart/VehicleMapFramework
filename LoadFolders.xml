@@ -22,7 +22,6 @@
   <v1.6>
     <li>1.6</li>
     <li>Common</li>
-	<li>Test</li>
     <li IfModActive="CETeam.CombatExtended">1.6/_CombatExtended</li>
     <li IfModActive="brrainz.achtung">1.6/_Achtung</li>
     <li IfModActive="Dubwise.DubsBadHygiene,Dubwise.DubsBadHygiene.Lite">1.6/_DubsBadHygiene</li>
