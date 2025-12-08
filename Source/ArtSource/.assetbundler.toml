@@ -18,7 +18,7 @@ include_patterns = ["*.png", "*.wav", "*.ogg"]
 
 [bundles.vehiclemapframeworkdev]
 description = "Bundle for Vehicle Map Framework"
-output_directory = "../../../VehicleMapFrameworkDev/Common/AssetBundles"
+output_directory = "../../AssetBundlesDev"
 asset_directory = "Assets"
 bundle_name = "OELS.VehicleMapFramework.dev"
 filename = "textures"
