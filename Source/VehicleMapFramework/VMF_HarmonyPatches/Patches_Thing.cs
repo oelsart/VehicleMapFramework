@@ -494,3 +494,17 @@ public static class Patch_Building_Bed_FindPreferredInteractionCell
         }
     }
 }
+
+// pawnとtravellerのマップが違う可能性を考慮しpawn.Map -> traveller.MapHeld
+[HarmonyPatch(typeof(CompBiosculpterPod), nameof(CompBiosculpterPod.FindPodFor))]
+public static class Patch_CompBiosculpterPod_FindPodFor
+{
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        return new CodeMatcher(instructions)
+            .MatchStartForward(new CodeMatch(OpCodes.Ldarg_0), CodeMatch.Calls(CachedMethodInfo.g_Thing_Map))
+            .SetOpcodeAndAdvance(OpCodes.Ldarg_1)
+            .Set(OpCodes.Call, CachedMethodInfo.g_Thing_MapHeld)
+            .InstructionEnumeration();
+    }
+}

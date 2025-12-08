@@ -662,6 +662,8 @@ internal static class ModCompat
     public static readonly bool WASDedPawn = IsModActive("addvans.WASDedPawn");
 
     public static readonly bool WhileYoureUp = IsModActive("CodeOptimist.JobsOfOpportunity") || IsModActive("zsbk.patch16.whileyoureup");
+    
+    public static readonly bool WVCWorkModes = IsModActive("wvc.sergkart.biotech.MoreMechanoidsWorkModes");
 
     public static readonly bool YayosCombat3 = IsModActive("Mlie.YayosCombat3");
 

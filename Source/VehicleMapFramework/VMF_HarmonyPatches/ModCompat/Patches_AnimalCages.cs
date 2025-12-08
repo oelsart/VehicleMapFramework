@@ -23,13 +23,7 @@ public static class Patch_CageUtility_IsCaptiveOf
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        var m_DepartMapOrMapHeld = AccessTools.Method(typeof(Patch_CageUtility_IsCaptiveOf), nameof(DepartMapOrMapHeld));
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_MapHeld, m_DepartMapOrMapHeld);
-    }
-
-    private static Map DepartMapOrMapHeld(Pawn pawn)
-    {
-        return pawn.DepartMap ?? pawn.MapHeld;
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_MapHeld, CachedMethodInfo.m_DepartMapOrPawnMapHeld);
     }
 }
 

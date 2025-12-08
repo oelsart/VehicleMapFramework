@@ -76,3 +76,4 @@
 - Name: WASDedPawn
 - Name: ColonyManagerRedux
   LoadOnly: true
+- Name: WVCWorkModes

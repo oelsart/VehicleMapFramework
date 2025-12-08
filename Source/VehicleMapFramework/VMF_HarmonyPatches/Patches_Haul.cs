@@ -222,3 +222,13 @@ public static class Patch_LoadTransportersJobUtility_FindThingToLoad
         return true;
     }
 }
+
+[HarmonyPatch(typeof(HaulAIUtility), nameof(HaulAIUtility.FindFixedIngredientCount))]
+public static class Patch_HaulAIUtility_FindFixedIngredientCount
+{
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_DepartMapOrPawnMap)
+            .MethodReplacer(CachedMethodInfo.m_BreadthFirstTraverse, CachedMethodInfo.m_BreadthFirstTraverseAcrossMaps);
+    }
+}
