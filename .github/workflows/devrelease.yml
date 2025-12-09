@@ -70,7 +70,7 @@ jobs:
       run: |
         mkdir -p Steam/steamapps/workshop/content/294100
         
-        STEAM_COMMANDS="+login anonymous +force_install_dir \"$GITHUB_WORKSPACE/Steam\"
+        STEAM_COMMANDS="+login anonymous +force_install_dir \"$GITHUB_WORKSPACE/Steam\""
         
         while IFS= read -r mod_id; do
           if [ -n "$mod_id" ]; then
