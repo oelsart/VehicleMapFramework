@@ -62,13 +62,16 @@ jobs:
     - name: Install SteamCMD
       if: steps.cache-steam.outputs.cache-hit != 'true'
       run: |
-        mkdir -p Steam
+        mkdir -p $GITHUB_WORKSPACE/Steam
         cd Steam
         curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar zxvf -
+        
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
 
     - name: Download Workshop Mods
       run: |
-        mkdir -p Steam/steamapps/workshop/content/294100
+        mkdir -p $GITHUB_WORKSPACE/Steam/steamapps/workshop/content/294100
         
         STEAM_COMMANDS="+login anonymous"
         
@@ -80,7 +83,7 @@ jobs:
         done <<< "${{ env.WorkshopMods }}"
         
         STEAM_COMMANDS="${STEAM_COMMANDS} +quit"
-        Steam/steamcmd.sh ${STEAM_COMMANDS}
+        $GITHUB_WORKSPACE/Steam/steamcmd.sh ${STEAM_COMMANDS}
         
   build:
     runs-on: windows-latest
