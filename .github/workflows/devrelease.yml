@@ -58,6 +58,7 @@ jobs:
       with:
         path: ~/Steam
         key: steamcmd-static-v1
+        save-always: true
           
     - name: Install SteamCMD
       if: steps.cache-steam.outputs.cache-hit != 'true'
@@ -103,6 +104,7 @@ jobs:
         path: Steam
         key: steamcmd-static-v1
         enableCrossOsArchive: true
+        lookup-only: true
     
     - name: Install .NET
       uses: actions/setup-dotnet@v4
