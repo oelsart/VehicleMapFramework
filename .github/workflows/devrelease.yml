@@ -73,7 +73,7 @@ jobs:
         WORKSHOP_DIR="$WORKDIR/steamapps/workshop/content/294100"
         mkdir -p "$WORKSHOP_DIR"
         
-        export HOME="$WORKDIR/home"
+        export HOME="$WORKDIR"
         rm -rf "$HOME"
         mkdir -p "$HOME/.steam/steamcmd"
         
@@ -138,8 +138,7 @@ jobs:
     
     - name: Build DLL
       run: |
-        $workshopRoot = "./steamcmd/steamapps/workshop/content/294100"
-        $workshopRoot = "./steamcmd/steamapps/workshop/content/294100"
+        $workshopRoot = "./steamcmd/Steam/steamapps/workshop/content/294100"
         dotnet build Source/VehicleMapFramework/VehicleMapFramework.csproj --configuration Dev --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
         dotnet build Source/VMF_AchtungPatch/VMF_AchtungPatch.csproj --configuration Dev --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
         dotnet build Source/VMF_CEPatch/VMF_CEPatch.csproj --configuration Dev --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
