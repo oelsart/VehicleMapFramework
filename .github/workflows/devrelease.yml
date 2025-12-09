@@ -56,14 +56,14 @@ jobs:
       id: cache-steam
       uses: actions/cache@v4
       with:
-        path: ~/Steam
+        path: ./steamcmd
         key: steamcmd-static-v1
           
     - name: Install SteamCMD
       if: steps.cache-steam.outputs.cache-hit != 'true'
       run: |
-        mkdir -p ~/Steam
-        cd ~/Steam
+        mkdir -p ./steamcmd
+        cd ./steamcmd
         curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar zxvf -
         
     - name: Setup tmate session
@@ -71,7 +71,7 @@ jobs:
 
     - name: Download Workshop Mods
       run: |
-        mkdir -p ~/Steam/steamapps/workshop/content/294100
+        mkdir -p ./steamcmd/steamapps/workshop/content/294100
         
         STEAM_COMMANDS="+login anonymous"
         
@@ -83,7 +83,7 @@ jobs:
         done <<< "${{ env.WorkshopMods }}"
         
         STEAM_COMMANDS="${STEAM_COMMANDS} +quit"
-        ~/Steam/steamcmd.sh ${STEAM_COMMANDS}
+        ./steamcmd/steamcmd.sh ${STEAM_COMMANDS}
         
   build:
     runs-on: windows-latest
@@ -100,7 +100,7 @@ jobs:
       id: cache-steam
       uses: actions/cache@v4
       with:
-        path: ~/Steam
+        path: ./steamcmd
         key: steamcmd-static-v1
         enableCrossOsArchive: true
         
@@ -123,8 +123,8 @@ jobs:
     
     - name: Build DLL
       run: |
-        $workshopRoot = "~/Steam/steamapps/workshop/content/294100"
-        $workshopRoot = "~/Steam/steamapps/workshop/content/294100"
+        $workshopRoot = "./steamcmd/steamapps/workshop/content/294100"
+        $workshopRoot = "./steamcmd/steamapps/workshop/content/294100"
         dotnet build Source/VehicleMapFramework/VehicleMapFramework.csproj --configuration Dev --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
         dotnet build Source/VMF_AchtungPatch/VMF_AchtungPatch.csproj --configuration Dev --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
         dotnet build Source/VMF_CEPatch/VMF_CEPatch.csproj --configuration Dev --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
