@@ -86,7 +86,7 @@ jobs:
         }
         EOF
         
-        STEAMCMD="$WORKDIR/Steam/steamcmd.sh"
+        STEAMCMD="$WORKDIR/steamcmd.sh"
         
         CMD="+login anonymous"
         while IFS= read -r mod_id; do
