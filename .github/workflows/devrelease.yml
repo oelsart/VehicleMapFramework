@@ -68,19 +68,37 @@ jobs:
 
     - name: Download Workshop Mods
       run: |
-        mkdir -p ./steamcmd/steamapps/workshop/content/294100
-        INSTALL_DIR="$(pwd)/steamcmd"
-        STEAM_COMMANDS="+force_install_dir $INSTALL_DIR +login anonymous"
+        # ダウンロード先
+        WORKDIR="$PWD/steamcmd"
+        WORKSHOP_DIR="$WORKDIR/steamapps/workshop/content/294100"
+        mkdir -p "$WORKSHOP_DIR"
         
+        export HOME="$WORKDIR/home"
+        rm -rf "$HOME"
+        mkdir -p "$HOME/.steam/steamcmd"
+        
+        cat > "$HOME/.steam/steamcmd/libraryfolders.vdf" <<EOF
+        "libraryfolders"
+        {
+            "0"
+            {
+                "path"        "${WORKDIR}"
+            }
+        }
+        EOF
+        
+        STEAMCMD="$WORKDIR/steamcmd.sh"
+        
+        CMD="+login anonymous"
         while IFS= read -r mod_id; do
-          if [ -n "$mod_id" ]; then
-            echo "Queueing Workshop Mod: $mod_id"
-            STEAM_COMMANDS="${STEAM_COMMANDS} +workshop_download_item 294100 $mod_id validate"
-          fi
+          [ -n "$mod_id" ] && CMD="$CMD +workshop_download_item 294100 $mod_id validate"
         done <<< "${{ env.WorkshopMods }}"
         
-        STEAM_COMMANDS="${STEAM_COMMANDS} +quit"
-        ./steamcmd/steamcmd.sh ${STEAM_COMMANDS}
+        CMD="$CMD +quit"
+        $STEAMCMD $CMD
+        
+        echo "Downloaded to:"
+        ls -R "$WORKSHOP_DIR"
         
   build:
     runs-on: windows-latest
