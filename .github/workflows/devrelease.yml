@@ -65,15 +65,12 @@ jobs:
         mkdir -p ./steamcmd
         cd ./steamcmd
         curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar zxvf -
-        
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
 
     - name: Download Workshop Mods
       run: |
         mkdir -p ./steamcmd/steamapps/workshop/content/294100
-        
-        STEAM_COMMANDS="+login anonymous"
+        INSTALL_DIR="$(pwd)/steamcmd"
+        STEAM_COMMANDS="+force_install_dir $INSTALL_DIR +login anonymous"
         
         while IFS= read -r mod_id; do
           if [ -n "$mod_id" ]; then
