@@ -56,25 +56,25 @@ jobs:
       id: cache-steam
       uses: actions/cache@v4
       with:
-        path: Steam
+        path: ${{ env.GITHUB_WORKSPACE }}/Steam
         key: steamcmd-static-v1
           
     - name: Install SteamCMD
       if: steps.cache-steam.outputs.cache-hit != 'true'
       run: |
-        mkdir -p Steam
-        cd Steam
+        mkdir -p $GITHUB_WORKSPACE/Steam
+        cd $GITHUB_WORKSPACE/Steam
         curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar zxvf -
 
     - name: Download Workshop Mods
       run: |
         mkdir -p Steam/steamapps/workshop/content/294100
         
-        STEAM_COMMANDS="+force_install_dir \"$GITHUB_WORKSPACE/Steam\" +login anonymous"
+        STEAM_COMMANDS="+login anonymous"
         
         while IFS= read -r mod_id; do
           if [ -n "$mod_id" ]; then
-            echo "Queueing Workshop Mod: $mod_id"
+            echo "Queueing Workshop Mod: $mod_id\n"
             STEAM_COMMANDS="${STEAM_COMMANDS} +workshop_download_item 294100 $mod_id validate"
           fi
         done <<< "${{ env.WorkshopMods }}"
@@ -97,7 +97,7 @@ jobs:
       id: cache-steam
       uses: actions/cache@v4
       with:
-        path: Steam
+        path: ${{ env.GITHUB_WORKSPACE }}/Steam
         key: steamcmd-static-v1
         enableCrossOsArchive: true
     
