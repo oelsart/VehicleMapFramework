@@ -70,7 +70,7 @@ jobs:
       run: |
         mkdir -p Steam/steamapps/workshop/content/294100
         
-        STEAM_COMMANDS="+login anonymous"
+        STEAM_COMMANDS="+login anonymous +force_install_dir \"$GITHUB_WORKSPACE/Steam\"
         
         while IFS= read -r mod_id; do
           if [ -n "$mod_id" ]; then
@@ -82,7 +82,7 @@ jobs:
         STEAM_COMMANDS="${STEAM_COMMANDS} +quit"
         Steam/steamcmd.sh ${STEAM_COMMANDS}
         
-        ls -la ~/Steam/steamapps/workshop/content/294100
+        ls -la /Steam/steamapps/workshop/content/294100
         
   build:
     runs-on: windows-latest
@@ -102,10 +102,6 @@ jobs:
         path: Steam
         key: steamcmd-static-v1
         enableCrossOsArchive: true
-        
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
-      if: ${{ github.event_name == 'workflow_dispatch' }}
     
     - name: Install .NET
       uses: actions/setup-dotnet@v4
