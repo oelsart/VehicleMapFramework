@@ -102,6 +102,10 @@ jobs:
         path: Steam
         key: steamcmd-static-v1
         enableCrossOsArchive: true
+        
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
+      if: ${{ github.event_name == 'workflow_dispatch' }}
     
     - name: Install .NET
       uses: actions/setup-dotnet@v4
