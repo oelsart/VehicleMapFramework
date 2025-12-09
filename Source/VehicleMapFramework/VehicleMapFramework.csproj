@@ -95,6 +95,9 @@
     <AboutFolderPath Condition="'$(AboutXmlPath)' == ''">../../About</AboutFolderPath>
     <AboutFolderPath Condition="'$(Configuration)'=='Dev'">../../About_Dev</AboutFolderPath>
   </PropertyGroup>
+  <Target Name="Debug" AfterTargets="PreBuildEvent">
+    <Exec Command="echo $(SteamWorkshopRoot)" />
+  </Target>
   <Target Name="UpdateVersion" AfterTargets="PostBuildEvent" Condition="'$(SkipPostBuild)' != 'true'">
     <Exec Command="powershell.exe -ExecutionPolicy Bypass -File &quot;$(ProjectDir)UpdateAboutXmlVersion.ps1&quot; -AboutXmlPath &quot;$(AboutFolderPath)/About.xml&quot; -BuiltDllPath &quot;$(TargetPath)&quot;" />
   </Target>
