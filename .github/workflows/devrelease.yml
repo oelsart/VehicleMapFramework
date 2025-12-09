@@ -68,12 +68,11 @@ jobs:
 
     - name: Download Workshop Mods
       run: |
-        # ダウンロード先
         WORKDIR="$PWD/steamcmd"
         WORKSHOP_DIR="$WORKDIR/steamapps/workshop/content/294100"
         mkdir -p "$WORKSHOP_DIR"
         
-        export HOME="$WORKDIR"
+        export HOME="$WORKDIR/home"
         rm -rf "$HOME"
         mkdir -p "$HOME/.steam/steamcmd"
         
@@ -87,7 +86,7 @@ jobs:
         }
         EOF
         
-        STEAMCMD="$WORKDIR/steamcmd.sh"
+        STEAMCMD="$WORKDIR/Steam/steamcmd.sh"
         
         CMD="+login anonymous"
         while IFS= read -r mod_id; do
@@ -118,9 +117,6 @@ jobs:
         path: ./steamcmd
         key: steamcmd-static-v1
         enableCrossOsArchive: true
-        
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
     
     - name: Install .NET
       uses: actions/setup-dotnet@v4
@@ -138,7 +134,7 @@ jobs:
     
     - name: Build DLL
       run: |
-        $workshopRoot = "./steamcmd/Steam/steamapps/workshop/content/294100"
+        $workshopRoot = "./steamcmd/home/Steam/steamapps/workshop/content/294100"
         dotnet build Source/VehicleMapFramework/VehicleMapFramework.csproj --configuration Dev --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
         dotnet build Source/VMF_AchtungPatch/VMF_AchtungPatch.csproj --configuration Dev --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
         dotnet build Source/VMF_CEPatch/VMF_CEPatch.csproj --configuration Dev --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
