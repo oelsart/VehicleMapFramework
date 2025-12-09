@@ -82,8 +82,6 @@ jobs:
         STEAM_COMMANDS="${STEAM_COMMANDS} +quit"
         Steam/steamcmd.sh ${STEAM_COMMANDS}
         
-        ls -la /Steam/steamapps/workshop/content/294100
-        
   build:
     runs-on: windows-latest
     needs: download_steam_mods
