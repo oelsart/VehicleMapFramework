@@ -58,29 +58,32 @@ jobs:
       with:
         path: ${{ env.GITHUB_WORKSPACE }}/Steam
         key: steamcmd-static-v1
+        restore-keys: |
+          steamcmd-static-v1
           
     - name: Install SteamCMD
       if: steps.cache-steam.outputs.cache-hit != 'true'
       run: |
         mkdir -p $GITHUB_WORKSPACE/Steam
         cd $GITHUB_WORKSPACE/Steam
+        echo $GITHUB_WORKSPACE/Steam
         curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar zxvf -
 
     - name: Download Workshop Mods
       run: |
-        mkdir -p Steam/steamapps/workshop/content/294100
+        mkdir -p $GITHUB_WORKSPACE/Steam/steamapps/workshop/content/294100
         
         STEAM_COMMANDS="+login anonymous"
         
         while IFS= read -r mod_id; do
           if [ -n "$mod_id" ]; then
-            echo "Queueing Workshop Mod: $mod_id\n"
+            echo "Queueing Workshop Mod: $mod_id"
             STEAM_COMMANDS="${STEAM_COMMANDS} +workshop_download_item 294100 $mod_id validate"
           fi
         done <<< "${{ env.WorkshopMods }}"
         
         STEAM_COMMANDS="${STEAM_COMMANDS} +quit"
-        Steam/steamcmd.sh ${STEAM_COMMANDS}
+        $GITHUB_WORKSPACE/Steam/steamcmd.sh ${STEAM_COMMANDS}
         
   build:
     runs-on: windows-latest
