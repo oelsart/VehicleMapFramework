@@ -56,7 +56,7 @@ jobs:
       id: cache-steam
       uses: actions/cache@v4
       with:
-        path: ${{ env.GITHUB_WORKSPACE }}/Steam
+        path: Steam
         key: steamcmd-static-v1
         restore-keys: |
           steamcmd-static-v1
@@ -64,14 +64,13 @@ jobs:
     - name: Install SteamCMD
       if: steps.cache-steam.outputs.cache-hit != 'true'
       run: |
-        mkdir -p $GITHUB_WORKSPACE/Steam
-        cd $GITHUB_WORKSPACE/Steam
-        echo $GITHUB_WORKSPACE/Steam
+        mkdir -p Steam
+        cd Steam
         curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar zxvf -
 
     - name: Download Workshop Mods
       run: |
-        mkdir -p $GITHUB_WORKSPACE/Steam/steamapps/workshop/content/294100
+        mkdir -p Steam/steamapps/workshop/content/294100
         
         STEAM_COMMANDS="+login anonymous"
         
@@ -83,7 +82,7 @@ jobs:
         done <<< "${{ env.WorkshopMods }}"
         
         STEAM_COMMANDS="${STEAM_COMMANDS} +quit"
-        $GITHUB_WORKSPACE/Steam/steamcmd.sh ${STEAM_COMMANDS}
+        Steam/steamcmd.sh ${STEAM_COMMANDS}
         
   build:
     runs-on: windows-latest
@@ -100,7 +99,7 @@ jobs:
       id: cache-steam
       uses: actions/cache@v4
       with:
-        path: ${{ env.GITHUB_WORKSPACE }}/Steam
+        path: ~Steam
         key: steamcmd-static-v1
         enableCrossOsArchive: true
     
@@ -120,7 +119,7 @@ jobs:
     
     - name: Build DLL
       run: |
-        $workshopRoot = "$env:GITHUB_WORKSPACE\Steam\steamapps\workshop\content\294100"
+        $workshopRoot = ~Steam\steamapps\workshop\content\294100
         echo $workshopRoot
         dotnet build Source/VehicleMapFramework/VehicleMapFramework.csproj --configuration Dev --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
         dotnet build Source/VMF_AchtungPatch/VMF_AchtungPatch.csproj --configuration Dev --no-restore /p:SkipPostBuild=true /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
