@@ -120,7 +120,7 @@ jobs:
     
     - name: Build DLL
       run: |
-        $workshopRoot = "Steam/steamapps/workshop/content/294100"
+        $workshopRoot = "../../Steam/steamapps/workshop/content/294100"
         echo $workshopRoot
         dotnet build Source/VehicleMapFramework/VehicleMapFramework.csproj --configuration Dev --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
         dotnet build Source/VMF_AchtungPatch/VMF_AchtungPatch.csproj --configuration Dev --no-restore /p:SkipPostBuild=true /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
