@@ -729,9 +729,9 @@ public static class Patch_GenHostility_AnyHostileActiveThreatTo
     {
         if (__result) return;
 
-        foreach (var vehicle in VehiclePawnWithMapCache.AllVehiclesOn(map))
+        foreach (var map2 in map.BaseMapAndVehicleMaps.Except(map))
         {
-            foreach (var attackTarget in vehicle.VehicleMap.attackTargetsCache.TargetsHostileToFaction(faction))
+            foreach (var attackTarget in map2.attackTargetsCache.TargetsHostileToFaction(faction))
             {
                 if (GenHostility.IsActiveThreatTo(attackTarget, faction, true, canBeFogged))
                 {
