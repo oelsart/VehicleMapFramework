@@ -53,7 +53,7 @@ public class TargetMapManager(World world) : WorldComponent(world)
             {
                 var targetInfoDic = TargetInfoTable
                     .Select(pair => (pair.Key, pair.Value?.Value ?? TargetInfo.Invalid))
-                    .Where(tuple => tuple.Item2.IsValid)
+                    .Where(tuple => tuple is { Key: not null, Item2: { IsValid: true, Map: not null } })
                     .ToDictionary(pair => pair.Key, pair => pair.Item2);
                 if (!targetInfoDic.Any()) return;
                 Scribe_Collections.Look(ref targetInfoDic, "TargetInfo", LookMode.Reference, LookMode.TargetInfo, ref tmpKeys, ref tmpValues, false);

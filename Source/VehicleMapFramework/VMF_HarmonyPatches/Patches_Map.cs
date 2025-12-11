@@ -12,6 +12,7 @@ using UnityEngine;
 using Vehicles.World;
 using Verse;
 using Verse.AI;
+using Verse.AI.Group;
 using Verse.Sound;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
@@ -78,7 +79,9 @@ public static class Patch_Reachability_CanReach
         var destMap = CrossMapReachabilityUtility.DestMapGlobal ??
                       pawn.DestMap ??
                       dest.Thing?.MapHeld ??
-                      (pawn.IsTargeting(dest, out var target) ? target.Map : ___map);
+                      (pawn.IsTargeting(dest, out var target)
+                          ? target.Map
+                          : pawn?.GetLord() is { } lord? lord.Map : ___map);
         if (destMap == null)
         {
             return true;

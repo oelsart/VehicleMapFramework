@@ -246,3 +246,13 @@ public static class Patch_HaulAIUtility_FindFixedIngredientCount
             .MethodReplacer(CachedMethodInfo.m_BreadthFirstTraverse, CachedMethodInfo.m_BreadthFirstTraverseAcrossMaps);
     }
 }
+
+[HarmonyPatch(typeof(JobDriver_HaulToContainer), "TryReplaceWithFrame")]
+[PatchLevel(Level.Cautious)]
+public static class Patch_JobDriver_HaulToContainer_TryReplaceWithFrame
+{
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrPawnMap);
+    }
+}

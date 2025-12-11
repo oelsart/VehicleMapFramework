@@ -3,6 +3,7 @@
   <Excluded>
     <exclude>.git</exclude>
     <exclude>About_Dev</exclude>
+    <exclude>AssetBundles_Dev</exclude>
     <exclude>CheckList.txt</exclude>
     <exclude>Source</exclude>
   </Excluded>

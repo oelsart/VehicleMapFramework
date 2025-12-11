@@ -10,6 +10,7 @@ using RimWorld.Planet;
 using UnityEngine;
 using Verse;
 using Verse.AI;
+using Verse.AI.Group;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
@@ -722,11 +723,9 @@ public static class Patch_ReservationManager_Reserve
     public static bool ShouldReplace(Map ___map, Pawn claimant, LocalTargetInfo target, bool allowSameMap, out Map map, Job job = null)
     {
         //CTDに繋がる可能性があるので無限ループが起きないよう注意
-        map = target.Thing?.MapHeld ?? claimant.TargetMap;
-        if (map is null && (job is null || (LocalTargetInfo)job.globalTarget != target || (map = job.globalTarget.Map) is null))
-        {
-            return false;
-        }
+        map = target.Thing?.MapHeld ?? claimant.TargetMap ??
+            (job is not null && (LocalTargetInfo)job.globalTarget == target ? job.globalTarget.Map : claimant.GetLord()?.Map);
+        if (map is null) return false;
         return allowSameMap || ___map != map;
     }
 
@@ -900,7 +899,7 @@ public static class Patch_ForbidUtility_IsForbidden
         return new CodeMatcher(instructions)
             .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_IsForbidden))
             .InsertAndAdvance(CodeInstruction.LoadArgument(0))
-            .SetOperandAndAdvance(CachedMethodInfo.m_CrossMapIsForbidden)
+            .SetOperandAndAdvance(CachedMethodInfo.m_CrossMapIsForbidden1)
             .InstructionEnumeration();
     }
 }
@@ -1187,7 +1186,7 @@ public static class Patch_ToilFailConditions_FailOnForbidden_Delegate
         return new CodeMatcher(instructions)
             .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_IsForbidden))
             .InsertAndAdvance(CodeInstruction.LoadLocal(2))
-            .SetOperandAndAdvance(CachedMethodInfo.m_CrossMapIsForbidden)
+            .SetOperandAndAdvance(CachedMethodInfo.m_CrossMapIsForbidden1)
             .InstructionEnumeration();
     }
 }
@@ -1296,12 +1295,107 @@ public static class Patch_JoyGiver_SocialRelax_TryFindChairNear
     }
 }
 
-[HarmonyPatch(typeof(JobDriver_HaulToContainer), "TryReplaceWithFrame")]
+[HarmonyPatch]
+[PatchLevel(Level.Sensitive)]
+public static class Patch_LordJob_Joinable_Gathering_VoluntaryJoinPriorityFor
+{
+    private static IEnumerable<MethodBase> TargetMethods()
+    {
+        return typeof(LordJob_Joinable_Gathering).AllSubclassesNonAbstract()
+            .Select(t => AccessTools.DeclaredMethod(t, nameof(LordJob_Joinable_Gathering.VoluntaryJoinPriorityFor)))
+            .Where(m =>
+            {
+                if (m is null) return false;
+                return VMF_Harmony.ReadMethodBodyWrapper(m).Any(i =>
+                    CachedMethodInfo.m_IsForbidden.Equals(i.Value));
+            });
+    }
+    
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        foreach (var instruction in instructions)
+        {
+            if (instruction.Calls(CachedMethodInfo.m_IsForbidden))
+            {
+                yield return CodeInstruction.LoadArgument(0);
+                yield return new CodeInstruction(OpCodes.Callvirt, 
+                    AccessTools.PropertyGetter(typeof(LordJob), nameof(LordJob.Map)));
+                yield return new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_CrossMapIsForbidden2);
+            }
+            else yield return instruction;
+        }
+    }
+}
+
+[HarmonyPatch(typeof(LordJob_Ritual), nameof(LordJob_Ritual.IsParticipating))]
 [PatchLevel(Level.Cautious)]
-public static class Patch_JobDriver_HaulToContainer_TryReplaceWithFrame
+public static class Patch_LordJob_Ritual_IsParticipating
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrPawnMap);
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_MapHeld, CachedMethodInfo.m_LordMapOrMapHeld);
+    }
+}
+
+[HarmonyPatch(typeof(RitualOutcomeComp_ParticipantCount), nameof(RitualOutcomeComp_ParticipantCount.Tick))]
+[PatchLevel(Level.Sensitive)]
+public static class Patch_RitualOutcomeComp_ParticipantCount_Tick
+{
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_MapHeld, CachedMethodInfo.m_LordMapOrMapHeld);
+    }
+}
+
+[HarmonyPatch]
+[PatchLevel(Level.Safe)]
+public static class Patch_JobGiver_Lord_TryGiveJob
+{
+    private static IEnumerable<MethodBase> TargetMethods()
+    {
+        yield return AccessTools.Method(typeof(JobGiver_SpectateDutySpectateRect), "TryGiveJob");
+        yield return AccessTools.Method(typeof(JobGiver_GotoTravelDestination), "TryGiveJob");
+    }
+    
+    public static void Prefix(Pawn pawn, ref VirtualTeleporter? __state)
+    {
+        var mapHeld = pawn.MapHeld;
+        var lordMap = pawn.GetLord()?.Map;
+        if (mapHeld is not null && lordMap is not null && mapHeld != lordMap)
+        {
+            pawn.DepartMap = mapHeld;
+            __state = new VirtualTeleporter(pawn, lordMap);
+        }
+    }
+
+    public static void Finalizer(Pawn pawn, VirtualTeleporter? __state, ref Job __result)
+    {
+        if (__state is not null)
+        {
+            if (__result is not null &&
+                pawn.CanReach(__result.targetA, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn,
+                    pawn.Map, out var exitSpot, out var enterSpot, out var spotsQueue))
+                __result = JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, spotsQueue, __result);
+            __state.Value.Dispose();
+            pawn.RemoveDepartMap();
+        }
+    }
+}
+
+[HarmonyPatch(typeof(RitualStage), nameof(RitualStage.GetPawnPosition))]
+[PatchLevel(Level.Safe)]
+public static class Patch_RitualStage_GetPawnPosition
+{
+    public static void Prefix(Pawn pawn, LordJob_Ritual ritual, ref VirtualTeleporter? __state)
+    {
+        if (pawn.Map != ritual.Map)
+        {
+            __state = new VirtualTeleporter(pawn, ritual.Map);
+        }
+    }
+
+    public static void Finalizer(ref VirtualTeleporter? __state)
+    {
+        __state?.Dispose();
     }
 }

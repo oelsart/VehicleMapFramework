@@ -237,6 +237,11 @@ public static class VehicleMapUtility
         }
     }
 
+    extension(Pawn pawn)
+    {
+        public Map LordMapOrMapHeld => pawn.GetLord()?.Map ?? pawn.MapHeld;
+    }
+
     extension(float original)
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
