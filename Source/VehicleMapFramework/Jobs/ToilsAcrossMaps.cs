@@ -153,8 +153,10 @@ public static class ToilsAcrossMaps
             var rot = exitSpot.Thing?.Rotation ?? exitSpot.Cell.DirectionToInsideMap(vehicle);
             var vehicleOffset = vehiclePawn?.HalfLength() ?? 0;
             var cell = exitSpot.Cell + (vehicleOffset * rot.FacingCell);
-            var toil = Toils_Goto.GotoCell(cell, PathEndMode.OnCell);
-            yield return toil;
+            var jumpTarget = Toils_General.Label();
+            yield return Toils_Jump.JumpIf(jumpTarget, () => vehiclePawn?.VehicleRect().Contains(cell) ?? false);
+            yield return Toils_Goto.GotoCell(cell, PathEndMode.OnCell);
+            yield return jumpTarget;
 
             //ドアがあれば開ける
             var openDoor = OpenDoor(exitSpot, out var door, out var ramp);
