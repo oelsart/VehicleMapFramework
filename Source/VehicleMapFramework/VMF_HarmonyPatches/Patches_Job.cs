@@ -1209,9 +1209,17 @@ public static class Patch_WanderUtility_GetColonyWanderRoot
 [PatchLevel(Level.Safe)]
 public static class Patch_Reachability_ClearCache
 {
-    public static void Postfix(Map ___map)
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        CrossMapReachabilityCache.ClearCacheFor(___map);
+        return new CodeMatcher(instructions)
+            .MatchStartForward(
+                CodeMatch.Calls(AccessTools.Method(typeof(ReachabilityCache), nameof(ReachabilityCache.Clear))))
+            .InsertAfter(
+                CodeInstruction.LoadArgument(0),
+                CodeInstruction.LoadField(typeof(Reachability), "map"),
+                CodeInstruction.Call(typeof(CrossMapReachabilityCache),
+                    nameof(CrossMapReachabilityCache.ClearCacheFor)))
+            .InstructionEnumeration();
     }
 }
 

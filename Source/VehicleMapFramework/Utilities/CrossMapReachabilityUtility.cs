@@ -162,6 +162,12 @@ public static class CrossMapReachabilityUtility
             return vehiclePawn.CanReachVehicle(dest, peMode, traverseParms.maxDanger, traverseParms.mode, destMap, out exitSpot, out enterSpot);
         }
 
+        if (departMap == null || destMap == null) return false;
+        if (departMap == destMap)
+        {
+            return destMap.reachability.CanReach(root, dest, peMode, traverseParms);
+        }
+
         var region = root.GetRegion(departMap);
         var region2 = dest.Cell.GetRegion(destMap);
         if (CrossMapReachabilityCache.TryGetCache(region, region2, traverseParms, out var result, out exitSpot, out enterSpot, out spotsQueue))
@@ -173,15 +179,6 @@ public static class CrossMapReachabilityUtility
         result = false;
         try
         {
-
-            if (departMap == null || destMap == null) return false;
-
-            if (departMap == destMap)
-            {
-                result = destMap.reachability.CanReach(root, dest, peMode, traverseParms);
-                DebugLog($"departMap == destMap: {result}");
-                return result;
-            }
             if (MultiFloors.Active && (MultiFloors.GetLevel(departMap) != MultiFloors.GetLevel(destMap)))
             {
                 return false;
