@@ -73,6 +73,7 @@
 			<li Class="Vehicles.CompProperties_VehicleLauncher">
 				<compClass>VehicleMapFramework.CompVehicleLauncherGravshipVehicle</compClass>
 				<spaceFlight>true</spaceFlight>
+				<fuelConsumptionWorldMultiplier>20</fuelConsumptionWorldMultiplier>
 				<launchProtocol Class="VehicleMapFramework.VTOLTakeoff_Gravship">
 					<launchProperties Class="VehicleMapFramework.VerticalProtocolProperties_Gravship">
 						<maxTicks>200</maxTicks>
@@ -356,8 +357,7 @@
 				<fuelType>Chemfuel</fuelType>
 				<leakDef>Filth_Fuel</leakDef>
 				<fuelConsumptionCondition>Moving,Flying</fuelConsumptionCondition>
-				<fuelConsumptionRate>1000</fuelConsumptionRate>
-				<fuelConsumptionWorldMultiplier>15</fuelConsumptionWorldMultiplier>
+				<fuelConsumptionRate>750</fuelConsumptionRate>
 			</li>
 		</comps>
 	</Vehicles.VehicleDef>

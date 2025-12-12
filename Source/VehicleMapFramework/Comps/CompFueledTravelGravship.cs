@@ -2,6 +2,7 @@
 using RimWorld;
 using UnityEngine;
 using Vehicles;
+using Vehicles.World;
 using Verse;
 
 namespace VehicleMapFramework
@@ -13,6 +14,8 @@ namespace VehicleMapFramework
         public override float FuelCapacity => Engine?.MaxFuel ?? 0f;
 
         public override bool TickByRequest => false;
+        
+        internal const float EfficiencyIdleMultiplier = 0.5f;
 
         private bool ShouldConsumeNow => !EmptyTank && Vehicle.Spawned && (ConsumeWhenDrafted || ConsumeWhenMoving || ConsumeAlways);
 
@@ -86,11 +89,25 @@ namespace VehicleMapFramework
         public override void ConsumeFuel(float amount)
         {
             var num = amount / Engine.TotalFuel;
-            foreach (var comp in from compGravshipFacility in Engine.GravshipComponents where compGravshipFacility.CanBeActive && compGravshipFacility.Props.providesFuel select compGravshipFacility.parent.GetComp<CompRefuelable>())
+            foreach (var comp in from compGravshipFacility in Engine.GravshipComponents
+                     where compGravshipFacility.CanBeActive && compGravshipFacility.Props.providesFuel
+                     select compGravshipFacility.parent.GetComp<CompRefuelable>())
             {
                 comp?.ConsumeFuel(comp.Fuel * num);
             }
             base.ConsumeFuel(amount);
+        }
+
+        public override void ConsumeFuelWorld()
+        {
+            if (Fuel <= 0f)
+                return;
+
+            var fuelToConsume = ConsumptionRateWorldPerTick;
+            var caravan = Vehicle.GetVehicleCaravan();
+            if (!caravan.vehiclePather.Moving) fuelToConsume *= EfficiencyIdleMultiplier;
+
+            ConsumeFuel(fuelToConsume);
         }
 
         public override void CompTick()
