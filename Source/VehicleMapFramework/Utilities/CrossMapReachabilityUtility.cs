@@ -165,7 +165,15 @@ public static class CrossMapReachabilityUtility
         if (departMap == null || destMap == null) return false;
         if (departMap == destMap)
         {
-            return destMap.reachability.CanReach(root, dest, peMode, traverseParms);
+            try
+            {
+                working = true;
+                return destMap.reachability.CanReach(root, dest, peMode, traverseParms);
+            }
+            finally
+            {
+                working = false;
+            }
         }
 
         var region = root.GetRegion(departMap);
@@ -175,10 +183,10 @@ public static class CrossMapReachabilityUtility
             DebugLog($"Result from cache: {root}, {departMap}, {dest}, {destMap}, {traverseParms}: {result}, {exitSpot}, {enterSpot}");
             return result;
         }
-        working = true;
-        result = false;
         try
         {
+            working = true;
+            result = false;
             if (MultiFloors.Active && (MultiFloors.GetLevel(departMap) != MultiFloors.GetLevel(destMap)))
             {
                 return false;

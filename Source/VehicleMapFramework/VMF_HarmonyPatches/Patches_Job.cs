@@ -146,7 +146,7 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
         }
 
         tmpMaps.Clear();
-        tmpMaps.AddRange(pawn.Map.BaseMapAndVehicleMaps.Except(pawn.Map));
+        tmpMaps.AddRange(pawn.Map.BaseMapAndVehicleMaps().Except(pawn.Map));
         return tmpMaps.Any() ? tmpMaps.SelectMany(m => m.listerThings.ThingsMatching(scanner.PotentialWorkThingRequest)).ConcatIfNotNull(list).Distinct() : list;
     }
 
@@ -165,7 +165,7 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
             {
                 tmpThings.Clear();
                 var shouldBeNull = true;
-                pawn.Map.BaseMapAndVehicleMaps.Do(m =>
+                pawn.Map.BaseMapAndVehicleMaps().Do(m =>
                 {
                     pawn.VirtualMapTransfer(m);
                     var things = scanner.PotentialWorkThingsGlobal(pawn)?.Where(t => t != null);
@@ -259,7 +259,7 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
             var pawn = innerClass.pawn;
             var basePos = pawn.PositionOnBaseMap;
             var map = pawn.DepartMap = pawn.Map;
-            var maps = map.BaseMapAndVehicleMaps.Except(map);
+            var maps = map.BaseMapAndVehicleMaps().Except(map);
             try
             {
                 foreach (var map2 in maps)
@@ -349,7 +349,7 @@ public static class Patch_JobGiver_Work_PawnCanUseWorkGiver
         {
             return workGiver.ShouldSkip(pawn, forced);
         }
-        return pawn.Map.BaseMapAndVehicleMaps.All(m =>
+        return pawn.Map.BaseMapAndVehicleMaps().All(m =>
         {
             using var _ = new VirtualTeleporter(pawn, m);
             return workGiver.ShouldSkip(pawn, forced);
@@ -620,7 +620,7 @@ public static class Patch_ItemAvailability_ThingsAvailableAnywhere
     {
         tmpList.Clear();
         tmpList.AddRange(list);
-        tmpList.AddRange(map.BaseMapAndVehicleMaps.Except(map).SelectMany(m => m.listerThings.ThingsOfDef(need)));
+        tmpList.AddRange(map.BaseMapAndVehicleMaps().Except(map).SelectMany(m => m.listerThings.ThingsOfDef(need)));
         return tmpList;
     }
 }
@@ -844,7 +844,7 @@ public static class Patch_FoodUtility_BestFoodSourceOnMap
     {
         searchSet.Clear();
         searchSet.AddRange(list);
-        var maps = getter.Map.BaseMapAndVehicleMaps.Except(getter.Map);
+        var maps = getter.Map.BaseMapAndVehicleMaps().Except(getter.Map);
         foreach (var map in maps)
         {
             searchSet.AddRange(map.listerThings.ThingsMatching(req));
@@ -1256,7 +1256,7 @@ public static class Patch_PaintUtility_FindNearbyDyes
         var map = pawn.Map;
         tmpList.Clear();
         tmpList.AddRange(list);
-        tmpList.AddRange(map.BaseMapAndVehicleMaps.Except(map)
+        tmpList.AddRange(map.BaseMapAndVehicleMaps().Except(map)
             .SelectMany(m => m.listerThings.ThingsOfDef(ThingDefOf.Dye))
             .Where(t => !t.IsForbidden(pawn) &&
                         pawn.CanReserveAndReach(t, PathEndMode.ClosestTouch, Danger.Deadly, ignoreOtherReservations: forced)));

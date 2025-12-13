@@ -27,7 +27,7 @@ public static class GenClosestCrossMap
                 return true;
             }
         }
-        return thingReq.group == ThingRequestGroup.Nothing || ((thingReq.IsUndefined || !map.BaseMapAndVehicleMaps.Except(map).SelectMany(m => m.listerThings.ThingsMatching(thingReq)).Any()) && customGlobalSearchSet.EnumerableNullOrEmpty());
+        return thingReq.group == ThingRequestGroup.Nothing || ((thingReq.IsUndefined || !map.BaseMapAndVehicleMaps().Except(map).SelectMany(m => m.listerThings.ThingsMatching(thingReq)).Any()) && customGlobalSearchSet.EnumerableNullOrEmpty());
     }
 
     public static Thing ClosestThingReachable(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance = 9999f, Predicate<Thing> validator = null, IEnumerable<Thing> customGlobalSearchSet = null, int searchRegionsMin = 0, int searchRegionsMax = -1, bool forceAllowGlobalSearch = false, RegionType traversableRegionTypes = RegionType.Set_Passable, bool ignoreEntirelyForbiddenRegions = false, bool lookInHaulSources = false)
@@ -66,7 +66,7 @@ public static class GenClosestCrossMap
             }
 
             var basePos = map.IsVehicleMapOf(out var vehicle) ? root.ToBaseMapCoord(vehicle) : root;
-            var searchSet = customGlobalSearchSet ?? map.BaseMapAndVehicleMaps.Except(map).SelectMany(m => m.listerThings.ThingsMatching(thingReq));
+            var searchSet = customGlobalSearchSet ?? map.BaseMapAndVehicleMaps().Except(map).SelectMany(m => m.listerThings.ThingsMatching(thingReq));
 
             var departMap = traverseParams.pawn?.DepartMap ?? map;
             bool GlobalValidator(Thing t)

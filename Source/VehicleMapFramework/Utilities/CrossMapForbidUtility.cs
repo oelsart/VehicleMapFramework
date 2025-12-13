@@ -9,7 +9,7 @@ public static class CrossMapForbidUtility
     {
         public bool IsForbidden(Pawn pawn, Thing thing)
         {
-            var map = thing?.MapHeld ?? pawn.TargetMap;
+            var map = thing?.MapHeld ?? pawn.TargetMapOrPawnMap;
             if (map is null || map == pawn.Map)
                 return c.IsForbidden(pawn);
         

@@ -117,10 +117,9 @@ public static class StoreAcrossMapsUtility
 
         if (carrier == null) return true;
         
-        Thing spawnedParentOrMe;
         IntVec3 start;
         Map startMap;
-        if ((spawnedParentOrMe = t.SpawnedParentOrMe) != null)
+        if (t.SpawnedParentOrMe is { } spawnedParentOrMe)
         {
             startMap = spawnedParentOrMe.Map;
             if (spawnedParentOrMe != t && spawnedParentOrMe.def.hasInteractionCell)
@@ -134,7 +133,7 @@ public static class StoreAcrossMapsUtility
         }
         else
         {
-            startMap = carrier.DepartMap ?? carrier.Map;
+            startMap = carrier.DepartMapOrPawnMap;
             start = carrier.PositionHeld;
         }
         return CrossMapReachabilityUtility.CanReach(startMap, start, c, PathEndMode.ClosestTouch, TraverseParms.For(carrier), map);

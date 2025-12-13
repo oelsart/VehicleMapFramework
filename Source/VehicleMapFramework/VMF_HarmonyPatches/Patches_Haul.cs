@@ -116,21 +116,6 @@ public static class Patch_StoreUtility_TryFindBestBetterNonSlotGroupStorageFor
     }
 }
 
-[HarmonyPatch(typeof(StoreUtility), nameof(StoreUtility.IsGoodStoreCell))]
-[PatchLevel(Level.Safe)]
-public static class Patch_StoreUtility_IsGoodStoreCell
-{
-    public static bool Prefix(IntVec3 c, Map map, Thing t, Pawn carrier, Faction faction, ref bool __result)
-    {
-        if (map.IsVehicleMapOf(out _))
-        {
-            __result = StoreAcrossMapsUtility.IsGoodStoreCell(c, map, t, carrier, faction);
-            return false;
-        }
-        return true;
-    }
-}
-
 [HarmonyPatch(typeof(HaulAIUtility), nameof(HaulAIUtility.HaulToCellStorageJob))]
 public static class Patch_HaulAIUtility_HaulToCellStorageJob
 {
@@ -167,7 +152,7 @@ public static class Patch_HaulAIUtility_HaulToContainerJob
 
 [HarmonyPatch]
 [PatchLevel(Level.Sensitive)]
-public static class Patch_Toils_Haul_IsValidStorageFor
+public static class Patch_Toils_Haul_CarryHauledThingToCell
 {
     private static IEnumerable<MethodBase> TargetMethods()
     {

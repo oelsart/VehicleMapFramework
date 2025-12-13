@@ -51,7 +51,7 @@ public static class Patch_JobGiver_GoToShutdownZone_TryGiveJob
         {
             working = true;
             pawn.DepartMap = pawn.Map;
-            foreach (var map in pawn.Map.BaseMapAndVehicleMaps.Except(pawn.Map))
+            foreach (var map in pawn.Map.BaseMapAndVehicleMaps().Except(pawn.Map))
             {
                 using var _ = new VirtualTeleporter(pawn, map);
                 var job = __instance.TryIssueJobPackage(pawn, new JobIssueParams()).Job;
