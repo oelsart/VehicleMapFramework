@@ -13,6 +13,8 @@ public static class JobAcrossMapsUtility
     private static readonly AccessTools.FieldRef<JobDriver, int> curToilIndex = AccessTools.FieldRefAccess<JobDriver, int>("curToilIndex");
 
     public static List<Type> WorkGiverClassesNeedWrap { get; } = [];
+    
+    public static List<WorkGiverDef> DisabledCrossMapWorkGiverDefs { get; } = [];
 
     public static void StartGotoDestMapJob(Pawn pawn, TargetInfo? exitSpot = null, TargetInfo? enterSpot = null,
         List<(TargetInfo, TargetInfo)> spotsQueue = null)
@@ -75,9 +77,9 @@ public static class JobAcrossMapsUtility
         return driver?.nextJob;
     }
 
-    public static bool NoNeedVirtualMapTransfer(Map pawnMap, Map targetMap)
+    public static bool NoNeedVirtualMapTransfer(Map pawnMap, Map targetMap, WorkGiverDef workGiver)
     {
-        return pawnMap == targetMap;
+        return pawnMap == targetMap || DisabledCrossMapWorkGiverDefs.Contains(workGiver);
     }
 
     public static bool NoNeedWrapGotoDestMapJob(WorkGiver_Scanner scanner)

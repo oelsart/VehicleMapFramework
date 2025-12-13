@@ -15,9 +15,9 @@ using Verse.AI.Group;
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 [HarmonyPatch(typeof(Pawn_JobTracker), nameof(Pawn_JobTracker.StartJob))]
-[PatchLevel(Level.Sensitive)]
 public static class Patch_Pawn_JobTracker_StartJob
 {
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var m_MakeDriver = AccessTools.Method(typeof(Job), nameof(Job.MakeDriver));
@@ -32,6 +32,26 @@ public static class Patch_Pawn_JobTracker_StartJob
             return curJob.GetCachedDriver(driverPawn);
         }
         return curJob.MakeDriver(driverPawn);
+    }
+
+    [PatchLevel(Level.Safe)]
+    public static void Prefix(Pawn_JobTracker __instance, Job newJob, int ___jobsGivenThisTick)
+    {
+        if (___jobsGivenThisTick > 7 && newJob?.workGiverDef is { } workGiverDef)
+        {
+            var message = "A \"10 jobs in one tick\" error is about to occur. ";
+            message += VehicleMapFramework.settings.crossMapJobProtect
+                ? $"Disable cross-map job support for WorkGiver: {workGiverDef?.defName} and temporarily enable job logging."
+                : $"Likely to be the cause WorkGiver: {workGiverDef?.defName}. Temporarily enable job logging.";
+            VMF_Log.Warning(message);
+            if (!__instance.debugLog)
+            {
+                __instance.debugLog = true;
+                Delay.AfterNSeconds(0, () => __instance.debugLog = false);
+            }
+            if (VehicleMapFramework.settings.crossMapJobProtect)
+                JobAcrossMapsUtility.DisabledCrossMapWorkGiverDefs.AddUnique(workGiverDef);
+        }
     }
 }
 
@@ -140,7 +160,7 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
 
     internal static IEnumerable<Thing> AddSearchSet(List<Thing> list, Pawn pawn, WorkGiver_Scanner scanner)
     {
-        if (JobAcrossMapsUtility.NoNeedVirtualMapTransfer(pawn.Map, null))
+        if (JobAcrossMapsUtility.NoNeedVirtualMapTransfer(pawn.Map, null, scanner.def))
         {
             return list;
         }
@@ -154,7 +174,7 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
     {
         internal IEnumerable<Thing> PotentialWorkThingsGlobalAll(Pawn pawn)
         {
-            if (JobAcrossMapsUtility.NoNeedVirtualMapTransfer(pawn.Map, null))
+            if (JobAcrossMapsUtility.NoNeedVirtualMapTransfer(pawn.Map, null, scanner.def))
             {
                 return scanner.PotentialWorkThingsGlobal(pawn);
             }
@@ -187,7 +207,7 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
         internal Job JobOnThingMap(Pawn pawn, Thing t, bool forced = false)
         {
             var thingMap = t.MapHeld;
-            if (JobAcrossMapsUtility.NoNeedVirtualMapTransfer(pawn.Map, thingMap))
+            if (JobAcrossMapsUtility.NoNeedVirtualMapTransfer(pawn.Map, thingMap, scanner.def))
             {
                 return scanner.JobOnThing(pawn, t, forced);
             }
@@ -377,7 +397,7 @@ public static class Patch_JobGiver_Work_Validator
     public static bool HasJobOnThingMap(this WorkGiver_Scanner scanner, Pawn pawn, Thing t, bool forced = false)
     {
         var thingMap = t.MapHeld;
-        if (JobAcrossMapsUtility.NoNeedVirtualMapTransfer(pawn.Map, thingMap))
+        if (JobAcrossMapsUtility.NoNeedVirtualMapTransfer(pawn.Map, thingMap, scanner.def))
         {
             return scanner.HasJobOnThing(pawn, t, forced);
         }

@@ -7,6 +7,8 @@
 	<VMF_Settings.WeightFactor>Weight factor of things on the vehicle map.</VMF_Settings.WeightFactor>
 	<VMF_Settings.AutoGetOffPlayer>Player pawns automatically exit vehicle map.</VMF_Settings.AutoGetOffPlayer>
 	<VMF_Settings.AutoGetOffNonPlayer>Non-Player pawns automatically exit vehicle map.</VMF_Settings.AutoGetOffNonPlayer>
+	<VMF_Settings.CrossMapJobProtect>Protection from jobs not compatible with cross-map.</VMF_Settings.CrossMapJobProtect>
+	<VMF_Settings.CrossMapJobProtect.Tooltip>Workgivers causing pawn stack issues due to the "10 jobs in one tick" error will be automatically excluded from cross-map job support.\nThis improves gameplay stability, but makes it harder to discover unsupported jobs (Unsupported jobs will be fixed if reported to the author).</VMF_Settings.CrossMapJobProtect.Tooltip>
 	<VMF_Settings.ThreadingPathCost>Multi-threading for path cost calculations on large vehicles.</VMF_Settings.ThreadingPathCost>
 	<VMF_Settings.MinAreaForThreading>Minimum area of vehicle calculated in multi-threading.</VMF_Settings.MinAreaForThreading>
 	<VMF_Settings.AsyncClosestThing>Multi-threading of calculations to get closest reachable thing.</VMF_Settings.AsyncClosestThing>
