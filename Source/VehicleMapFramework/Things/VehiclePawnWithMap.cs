@@ -422,7 +422,7 @@ public class VehiclePawnWithMap : VehiclePawn
     {
         if (Spawned)
         {
-            interiorMap.Parent.Tile = Map.Tile;
+            interiorMap?.Parent.Tile = Map.Tile;
             return;
         }
 
@@ -432,14 +432,14 @@ public class VehiclePawnWithMap : VehiclePawn
             case AerialVehicleInFlight aerial:
                 Task.Run(() =>
                 {
-                    interiorMap.Parent.Tile = WorldHelper.GetNearestTile(aerial.DrawPos);
+                    interiorMap?.Parent.Tile = WorldHelper.GetNearestTile(aerial.DrawPos);
                 });
                 return;
             case null or MapParent_Vehicle:
                 return;
         }
 
-        interiorMap.Parent.Tile = worldObject2.Tile;
+        interiorMap?.Parent.Tile = worldObject2.Tile;
         return;
 
         static WorldObject GetWorldObject(IThingHolder holder)

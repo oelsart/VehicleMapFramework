@@ -76,6 +76,8 @@ public class MethodInfoCache
     public readonly MethodInfo m_TargetMapOrThingMap = AccessTools.Method(typeof(TargetMapUtility), nameof(TargetMapUtility.get_TargetMapOrThingMap));
 
     public readonly MethodInfo m_TargetMapOrPawnMap = AccessTools.Method(typeof(TargetMapUtility), nameof(TargetMapUtility.get_TargetMapOrPawnMap));
+    
+    public readonly MethodInfo m_LordMapOrMapHeld = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.get_LordMapOrMapHeld));
 
     public readonly MethodInfo g_Zone_Map = AccessTools.PropertyGetter(typeof(Zone), nameof(Zone.Map));
 
@@ -264,8 +266,11 @@ public class MethodInfoCache
     public readonly MethodInfo m_IsForbidden = AccessTools.Method(typeof(ForbidUtility),
         nameof(ForbidUtility.IsForbidden), [typeof(IntVec3), typeof(Pawn)]);
 
-    public readonly MethodInfo m_CrossMapIsForbidden = AccessTools.Method(typeof(CrossMapForbidUtility),
+    public readonly MethodInfo m_CrossMapIsForbidden1 = AccessTools.Method(typeof(CrossMapForbidUtility),
         nameof(CrossMapForbidUtility.IsForbidden), [typeof(IntVec3), typeof(Pawn), typeof(Thing)]);
+    
+    public readonly MethodInfo m_CrossMapIsForbidden2 = AccessTools.Method(typeof(CrossMapForbidUtility),
+        nameof(CrossMapForbidUtility.IsForbidden), [typeof(IntVec3), typeof(Pawn), typeof(Map)]);
 
     public readonly MethodInfo m_AllInventoryItems = AccessTools.Method(typeof(CaravanInventoryUtility),
         nameof(CaravanInventoryUtility.AllInventoryItems));

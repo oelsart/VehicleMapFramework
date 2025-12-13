@@ -27,7 +27,6 @@
 		<label>out of bounds</label>
 		<dontRender>true</dontRender>
 		<fertility>0</fertility>
-		<natural>true</natural>
 		<passability>Impassable</passability>
 		<pathCost>300</pathCost>
 		<affordances>

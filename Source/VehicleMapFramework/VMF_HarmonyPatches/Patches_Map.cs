@@ -12,6 +12,7 @@ using UnityEngine;
 using Vehicles.World;
 using Verse;
 using Verse.AI;
+using Verse.AI.Group;
 using Verse.Sound;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
@@ -78,7 +79,9 @@ public static class Patch_Reachability_CanReach
         var destMap = CrossMapReachabilityUtility.DestMapGlobal ??
                       pawn.DestMap ??
                       dest.Thing?.MapHeld ??
-                      (pawn.IsTargeting(dest, out var target) ? target.Map : ___map);
+                      (pawn.IsTargeting(dest, out var target)
+                          ? target.Map
+                          : pawn?.GetLord() is { } lord? lord.Map : ___map);
         if (destMap == null)
         {
             return true;
@@ -396,7 +399,7 @@ public static class Patch_MapPawns_AllPawns
     {
         tmpList.Clear();
         tmpList.AddRange(__result);
-        tmpList.AddRange(___map.VehicleMapsOnMap.SelectMany(m => AllPawns(m.mapPawns)));
+        tmpList.AddRange(___map.VehicleMapsOnMap().SelectMany(m => AllPawns(m.mapPawns)));
         return tmpList;
     }
 
@@ -417,7 +420,7 @@ public static class Patch_MapPawns_AllPawnsSpawned
     {
         tmpList.Clear();
         tmpList.AddRange(__result);
-        tmpList.AddRange(___map.VehicleMapsOnMap.SelectMany(m => AllPawnsSpawned(m.mapPawns)));
+        tmpList.AddRange(___map.VehicleMapsOnMap().SelectMany(m => AllPawnsSpawned(m.mapPawns)));
         return tmpList;
     }
 
@@ -431,7 +434,7 @@ public static class Patch_MapPawns_FreeHumanlikesSpawnedOfFaction
     [PatchLevel(Level.Safe)]
     public static void Postfix(List<Pawn> __result, Map ___map, Faction faction)
     {
-        __result.AddRange(___map.VehicleMapsOnMap.SelectMany(m => FreeHumanlikesSpawnedOfFaction(m.mapPawns, faction)));
+        __result.AddRange(___map.VehicleMapsOnMap().SelectMany(m => FreeHumanlikesSpawnedOfFaction(m.mapPawns, faction)));
     }
 
     [PatchLevel(Level.Mandatory)]
@@ -729,7 +732,7 @@ public static class Patch_GenHostility_AnyHostileActiveThreatTo
     {
         if (__result) return;
 
-        foreach (var map2 in map.BaseMapAndVehicleMaps.Except(map))
+        foreach (var map2 in map.BaseMapAndVehicleMaps().Except(map))
         {
             foreach (var attackTarget in map2.attackTargetsCache.TargetsHostileToFaction(faction))
             {
@@ -781,7 +784,7 @@ public static class Patch_RecipeDef_PotentiallyMissingIngredients
         return from thingDef in values
             let found = __instance.ingredients
                 .Where(ing => ing.IsFixedIngredient && thingDef == ing.FixedIngredient || ing.filter.Allows(thingDef))
-                .Any(ing => (map.BaseMapAndVehicleMaps.Except(map))
+                .Any(ing => (map.BaseMapAndVehicleMaps().Except(map))
                     .Any(map2 => {
                         var list = map2.listerThings.ThingsInGroup(ThingRequestGroup.HaulableEver);
                         return list.Exists(t =>

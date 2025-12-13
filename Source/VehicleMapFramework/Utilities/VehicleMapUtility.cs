@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using JetBrains.Annotations;
 using RimWorld;
 using RimWorld.Planet;
 using SmashTools;
@@ -69,56 +70,52 @@ public static class VehicleMapUtility
 
         public bool IsNonFocusedVehicleMap => map.IsNonFocusedVehicleMapOf(out _);
 
-        public IEnumerable<Map> BaseMapAndVehicleMaps
+        [UsedImplicitly] // Reflection access by Portable Blueprints
+        public IEnumerable<Map> BaseMapAndVehicleMaps()
         {
-            get
+            if (MultiFloors.Active && MultiFloors.GroundMap(map) != map)
             {
-                if (MultiFloors.Active && MultiFloors.GroundMap(map) != map)
-                {
-                    yield return map;
-                    yield break;
-                }
-                var baseMap = map.BaseMap();
-                if (baseMap == null)
-                {
-                    yield break;
-                }
-                yield return baseMap;
+                yield return map;
+                yield break;
+            }
+            var baseMap = map.BaseMap();
+            if (baseMap == null)
+            {
+                yield break;
+            }
+            yield return baseMap;
 
-                if (baseMap.IsVehicleMapOf(out var vehicle) && vehicle.VehicleCaravanOrStashedVehicle is { } vehicleCaravanOrStashedVehicle)
+            if (baseMap.IsVehicleMapOf(out var vehicle) && vehicle.VehicleCaravanOrStashedVehicle is { } vehicleCaravanOrStashedVehicle)
+            {
+                foreach (var vehicle2 in vehicleCaravanOrStashedVehicle.Vehicles.OfType<VehiclePawnWithMap>())
+                    yield return vehicle2.VehicleMap;
+            }
+            else
+            {
+                foreach (var vehicle2 in VehiclePawnWithMapCache.AllVehiclesOn(baseMap))
                 {
-                    foreach (var vehicle2 in vehicleCaravanOrStashedVehicle.Vehicles.OfType<VehiclePawnWithMap>())
-                        yield return vehicle2.VehicleMap;
-                }
-                else
-                {
-                    foreach (var vehicle2 in VehiclePawnWithMapCache.AllVehiclesOn(baseMap))
+                    if (vehicle2.VehicleMap != null)
                     {
-                        if (vehicle2.VehicleMap != null)
-                        {
-                            yield return vehicle2.VehicleMap;
-                        }
+                        yield return vehicle2.VehicleMap;
                     }
                 }
             }
         }
 
-        public IEnumerable<Map> VehicleMapsOnMap
+        public IEnumerable<Map> VehicleMapsOnMap()
         {
-            get
+            if (map.IsVehicleMapOf(out var vehicle))
             {
-                if (map.IsVehicleMapOf(out var vehicle))
-                {
-                    if (vehicle.VehicleCaravanOrStashedVehicle is { } vehicleCaravanOrStashedVehicle)
-                        foreach (var vehicle2 in vehicleCaravanOrStashedVehicle.Vehicles.OfType<VehiclePawnWithMap>().Except(vehicle))
-                            yield return vehicle2.VehicleMap;
-                }
-                else
-                    foreach (var vehicle2 in VehiclePawnWithMapCache.TryGetAllVehiclesOn(map))
+                if (vehicle.VehicleCaravanOrStashedVehicle is { } vehicleCaravanOrStashedVehicle)
+                    foreach (var vehicle2 in vehicleCaravanOrStashedVehicle.Vehicles.OfType<VehiclePawnWithMap>().Except(vehicle))
                         yield return vehicle2.VehicleMap;
             }
+            else
+                foreach (var vehicle2 in VehiclePawnWithMapCache.TryGetAllVehiclesOn(map))
+                    yield return vehicle2.VehicleMap;
         }
-
+        
+        [UsedImplicitly] // Reflection access by Portable Blueprints
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Map BaseMap()
         {
@@ -235,6 +232,11 @@ public static class VehicleMapUtility
             }
             return false;
         }
+    }
+
+    extension(Pawn pawn)
+    {
+        public Map LordMapOrMapHeld => pawn.GetLord()?.Map ?? pawn.MapHeld;
     }
 
     extension(float original)
@@ -966,7 +968,7 @@ public static class VehicleMapUtility
     {
         tmpList.Clear();
         var orig = map.IsVehicleMapOf(out var vehicle) ? c.ToBaseMapCoord(vehicle) : c;
-        foreach (var m in map.BaseMapAndVehicleMaps)
+        foreach (var m in map.BaseMapAndVehicleMaps())
         {
             if (m.IsVehicleMapOf(out var vehicle2))
             {
