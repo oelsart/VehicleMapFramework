@@ -41,8 +41,8 @@ public static class Patch_Pawn_JobTracker_StartJob
         {
             var message = "A \"10 jobs in one tick\" error is about to occur. ";
             message += VehicleMapFramework.settings.crossMapJobProtect
-                ? $"Disable cross-map job support for WorkGiver: {workGiverDef?.defName} and temporarily enable job logging."
-                : $"Likely to be the cause WorkGiver: {workGiverDef?.defName}. Temporarily enable job logging.";
+                ? $"Disable cross-map job support for WorkGiver: {workGiverDef.defName} and temporarily enable job logging."
+                : $"Likely to be the cause WorkGiver: {workGiverDef.defName}. Temporarily enable job logging.";
             VMF_Log.Warning(message);
             if (!__instance.debugLog)
             {
@@ -435,7 +435,7 @@ public static class Patch_Pawn_PathFollower_StartPath
 {
     public static bool Prefix(LocalTargetInfo dest, PathEndMode peMode, Pawn ___pawn)
     {
-        if (___pawn.jobs is null or {curDriver: JobDriver_GotoAcrossMaps }) return true;
+        if (___pawn.jobs is null or {curDriver: JobDriver_GotoAcrossMaps } or { curJob: null }) return true;
 
         var flag = false;
         var destMap = dest.Thing?.MapHeld;
