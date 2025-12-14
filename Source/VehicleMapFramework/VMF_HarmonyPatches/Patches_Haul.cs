@@ -105,6 +105,24 @@ public static class Patch_StoreUtility_TryFindBestBetterStoreCellForWorker
     }
 }
 
+// IsGoodStoreCell内ではtの場所からCanReachする。主にJobのcount計算用
+[HarmonyPatch(typeof(StoreUtility), nameof(StoreUtility.IsGoodStoreCell))]
+[PatchLevel(Level.Safe)]
+public static class Patch_StoreUtility_IsGoodStoreCell
+{
+    public static void Prefix(Pawn carrier, ref Map __state)
+    {
+        __state = carrier?.DepartMap;
+        carrier?.DepartMap = null;
+    }
+
+    public static void Postfix(Pawn carrier, Map __state)
+    {
+        if (__state is not null)
+            carrier?.DepartMap = __state;
+    }
+}
+
 [HarmonyPatch(typeof(StoreUtility), nameof(StoreUtility.TryFindBestBetterNonSlotGroupStorageFor))]
 [PatchLevel(Level.Safe)]
 public static class Patch_StoreUtility_TryFindBestBetterNonSlotGroupStorageFor
