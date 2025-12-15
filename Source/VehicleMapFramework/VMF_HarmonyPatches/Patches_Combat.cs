@@ -68,9 +68,23 @@ public static class Patch_Projectile_Launch
     {
         return new CodeMatcher(instructions)
             .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_LocalTargetInfo_Cell))
-            .InsertAndAdvance(CodeInstruction.LoadArgument(1))
-            .Set(OpCodes.Call, CachedMethodInfo.m_TargetCellOnBaseMap)
+            .InsertAndAdvance(
+                CodeInstruction.LoadArgument(1), 
+                CodeInstruction.LoadArgument(7))
+            .SetInstruction(CodeInstruction.Call(typeof(Patch_Projectile_Launch), nameof(TargetCell)))
             .InstructionEnumeration();
+    }
+
+    // ManTurretJobのpawnのターゲットマップではなくタレット自体のターゲットマップでベースマップ座標を取得する
+    private static IntVec3 TargetCell(ref LocalTargetInfo targ, Thing launcher, Thing equipment)
+    {
+        var thing = launcher;
+        if (equipment is not null && equipment.TryGetComp<CompMannable>(out var comp) && comp.ManningPawn == launcher)
+        {
+            thing = equipment;
+        }
+
+        return targ.TargetCellOnBaseMap(thing);
     }
 }
 
