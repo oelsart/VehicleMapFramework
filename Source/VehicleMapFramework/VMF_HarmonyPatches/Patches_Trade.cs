@@ -52,7 +52,7 @@ public static class Patch_Pawn_ColonyThingsWillingToBuy
 
 // Experimental: AllInventoryItemsに車両マップの物を含める
 [HarmonyPatch(typeof(CaravanInventoryUtility), nameof(CaravanInventoryUtility.AllInventoryItems))]
-[PatchLevel(Level.Safe)]
+[HarmonyPriority(Priority.High)]
 public static class Patch_CaravanInventoryUtility_AllInventoryItems
 {
     [PatchLevel(Level.Mandatory)]
@@ -72,6 +72,7 @@ public static class Patch_CaravanInventoryUtility_AllInventoryItems
 
 [HarmonyPatch(typeof(Caravan_BedsTracker), "GetUsableBeds")]
 [PatchLevel(Level.Cautious)]
+[HarmonyPriority(Priority.Low)]
 public static class Patch_Caravan_BedsTracker_GetUsableBeds
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)

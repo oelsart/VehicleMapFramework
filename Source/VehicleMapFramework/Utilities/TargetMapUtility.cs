@@ -87,7 +87,7 @@ public static class TargetMapUtility
         public Map TargetMapOrPawnMap => pawn.TargetMap ?? pawn.CurJob?.globalTarget.Map ?? pawn.Map;
     }
 
-    public static IntVec3 TargetCellOnBaseMap(ref LocalTargetInfo targ, Thing thing)
+    public static IntVec3 TargetCellOnBaseMap(this ref LocalTargetInfo targ, Thing thing)
     {
         return targ.HasThing ? targ.Thing.PositionOnBaseMap : thing.TryGetTargetMap(out var map) ? targ.Cell.ToBaseMapCoord(map) : targ.Cell;
     }
