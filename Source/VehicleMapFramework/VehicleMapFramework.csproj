@@ -25,7 +25,6 @@
   
   <ItemGroup>
     <PackageReference Include="Krafs.Rimworld.Ref" />
-    <PackageReference Include="Lib.Harmony" />
     <PackageReference Include="Lib.Harmony.Ref" />
 	<PackageReference Include="Nerdbank.GitVersioning">
 	  <PrivateAssets>all</PrivateAssets>

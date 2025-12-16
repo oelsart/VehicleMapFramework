@@ -110,16 +110,19 @@ public static class Patch_StoreUtility_TryFindBestBetterStoreCellForWorker
 [PatchLevel(Level.Safe)]
 public static class Patch_StoreUtility_IsGoodStoreCell
 {
-    public static void Prefix(Pawn carrier, ref Map __state)
+    public static bool Prefix(IntVec3 c, Map map, Thing t, Pawn carrier, Faction faction, ref bool __result)
     {
-        __state = carrier?.DepartMap;
-        carrier?.DepartMap = null;
-    }
-
-    public static void Postfix(Pawn carrier, Map __state)
-    {
-        if (__state is not null)
-            carrier?.DepartMap = __state;
+        if (carrier is null) return true;
+        var departMap = carrier.DepartMap;
+        var targetMap = carrier.TargetMap;
+        if (departMap is not null || targetMap is not null)
+        {
+            carrier.RemoveDepartMap();
+            __result = StoreAcrossMapsUtility.IsGoodStoreCell(c, targetMap ?? map, t, carrier, faction);
+            carrier.DepartMap = departMap;
+            return false;
+        }
+        return true;
     }
 }
 
