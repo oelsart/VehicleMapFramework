@@ -101,9 +101,10 @@
 	<Target Name="CopyToDev" AfterTargets="PostBuildEvent" Condition="'$(Configuration)'=='Dev'">
 		<Exec Command="(robocopy ../../1.5 ../../../VehicleMapFrameworkDev/1.5 /MIR /E /XD Assemblies) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0" />
 		<Exec Command="(robocopy ../../1.6 ../../../VehicleMapFrameworkDev/1.6 /MIR /E /XD Assemblies) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0" />
-		<Exec Command="(robocopy ../../About_Dev ../../../VehicleMapFrameworkDev/About /MIR /E) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0" />
 		<Exec Command="(robocopy ../../Common ../../../VehicleMapFrameworkDev/Common /MIR /E /XD AssetBundles) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0" />
-    <Exec Command="(robocopy ../../AssetBundles_Dev ../../../VehicleMapFrameworkDev/Common/AssetBundles /MIR /E) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0" />
-		<Exec Command="(robocopy ../../ ../../../VehicleMapFrameworkDev LICENSE) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0" />
+    <Exec Command="(robocopy ../../Dev/About ../../../VehicleMapFrameworkDev/About /MIR /E) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0" />
+    <Exec Command="(robocopy ../../Dev/AssetBundles ../../../VehicleMapFrameworkDev/Common/AssetBundles /MIR /E) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0" />
+    <Exec Command="(robocopy ../../Dev/LoadFolders.xml ../../../VehicleMapFrameworkDev/LoadFolders.xml /MIR /E) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0" />
+		<Exec Command="(robocopy ../../LICENSE ../../../VehicleMapFrameworkDev LICENSE) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0" />
 	</Target>
 </Project>
