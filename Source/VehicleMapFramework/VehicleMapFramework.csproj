@@ -93,7 +93,7 @@
 
   <PropertyGroup>
     <AboutFolderPath Condition="'$(AboutXmlPath)' == ''">../../About</AboutFolderPath>
-    <AboutFolderPath Condition="'$(Configuration)'=='Dev'">../../About_Dev</AboutFolderPath>
+    <AboutFolderPath Condition="'$(Configuration)'=='Dev'">../../Dev/About</AboutFolderPath>
   </PropertyGroup>
   <Target Name="UpdateVersion" AfterTargets="PostBuildEvent" Condition="'$(SkipPostBuild)' != 'true'">
     <Exec Command="powershell.exe -ExecutionPolicy Bypass -File &quot;$(ProjectDir)UpdateAboutXmlVersion.ps1&quot; -AboutXmlPath &quot;$(AboutFolderPath)/About.xml&quot; -BuiltDllPath &quot;$(TargetPath)&quot;" />
@@ -104,7 +104,7 @@
 		<Exec Command="(robocopy ../../Common ../../../VehicleMapFrameworkDev/Common /MIR /E /XD AssetBundles) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0" />
     <Exec Command="(robocopy ../../Dev/About ../../../VehicleMapFrameworkDev/About /MIR /E) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0" />
     <Exec Command="(robocopy ../../Dev/AssetBundles ../../../VehicleMapFrameworkDev/Common/AssetBundles /MIR /E) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0" />
-    <Exec Command="(robocopy ../../Dev/LoadFolders.xml ../../../VehicleMapFrameworkDev/LoadFolders.xml /MIR /E) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0" />
-		<Exec Command="(robocopy ../../LICENSE ../../../VehicleMapFrameworkDev LICENSE) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0" />
+    <Exec Command="(robocopy ../../Dev/ ../../../VehicleMapFrameworkDev LoadFolders.xml) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0" />
+		<Exec Command="(robocopy ../../ ../../../VehicleMapFrameworkDev LICENSE) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0" />
 	</Target>
 </Project>
