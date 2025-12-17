@@ -2,7 +2,6 @@
 using RimWorld;
 using UnityEngine;
 using Vehicles;
-using Vehicles.World;
 using Verse;
 
 namespace VehicleMapFramework
