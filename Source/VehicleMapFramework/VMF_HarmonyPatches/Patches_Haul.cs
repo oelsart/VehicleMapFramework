@@ -105,6 +105,27 @@ public static class Patch_StoreUtility_TryFindBestBetterStoreCellForWorker
     }
 }
 
+// IsGoodStoreCell内ではtの場所からCanReachする。主にJobのcount計算用
+[HarmonyPatch(typeof(StoreUtility), nameof(StoreUtility.IsGoodStoreCell))]
+[PatchLevel(Level.Safe)]
+public static class Patch_StoreUtility_IsGoodStoreCell
+{
+    public static bool Prefix(IntVec3 c, Map map, Thing t, Pawn carrier, Faction faction, ref bool __result)
+    {
+        if (carrier is null) return true;
+        var departMap = carrier.DepartMap;
+        var targetMap = carrier.TargetMap;
+        if (departMap is not null || targetMap is not null)
+        {
+            carrier.RemoveDepartMap();
+            __result = StoreAcrossMapsUtility.IsGoodStoreCell(c, targetMap ?? map, t, carrier, faction);
+            carrier.DepartMap = departMap;
+            return false;
+        }
+        return true;
+    }
+}
+
 [HarmonyPatch(typeof(StoreUtility), nameof(StoreUtility.TryFindBestBetterNonSlotGroupStorageFor))]
 [PatchLevel(Level.Safe)]
 public static class Patch_StoreUtility_TryFindBestBetterNonSlotGroupStorageFor
@@ -113,21 +134,6 @@ public static class Patch_StoreUtility_TryFindBestBetterNonSlotGroupStorageFor
     {
         var priority = haulDestination is not null ? haulDestination.GetParentStoreSettings()?.Priority ?? currentPriority : currentPriority;
         __result |= StoreAcrossMapsUtility.TryFindBestBetterNonSlotGroupStorageFor(t, carrier, map, priority, faction, ref haulDestination, acceptSamePriority, requiresDestReservation);
-    }
-}
-
-[HarmonyPatch(typeof(StoreUtility), nameof(StoreUtility.IsGoodStoreCell))]
-[PatchLevel(Level.Safe)]
-public static class Patch_StoreUtility_IsGoodStoreCell
-{
-    public static bool Prefix(IntVec3 c, Map map, Thing t, Pawn carrier, Faction faction, ref bool __result)
-    {
-        if (map.IsVehicleMapOf(out _))
-        {
-            __result = StoreAcrossMapsUtility.IsGoodStoreCell(c, map, t, carrier, faction);
-            return false;
-        }
-        return true;
     }
 }
 
@@ -167,7 +173,7 @@ public static class Patch_HaulAIUtility_HaulToContainerJob
 
 [HarmonyPatch]
 [PatchLevel(Level.Sensitive)]
-public static class Patch_Toils_Haul_IsValidStorageFor
+public static class Patch_Toils_Haul_CarryHauledThingToCell
 {
     private static IEnumerable<MethodBase> TargetMethods()
     {

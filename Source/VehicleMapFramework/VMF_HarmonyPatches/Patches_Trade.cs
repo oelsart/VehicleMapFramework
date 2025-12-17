@@ -28,7 +28,7 @@ public static class Patch_Pawn_ColonyThingsWillingToBuy
                 yield return thing;
             }
         }
-        var maps = __instance.Map.BaseMapAndVehicleMaps.Except(__instance.Map);
+        var maps = __instance.Map.BaseMapAndVehicleMaps().Except(__instance.Map);
         var departMap = __instance.Map;
         CrossMapReachabilityUtility.DepartMapGlobal = departMap;
         try
@@ -52,7 +52,7 @@ public static class Patch_Pawn_ColonyThingsWillingToBuy
 
 // Experimental: AllInventoryItemsに車両マップの物を含める
 [HarmonyPatch(typeof(CaravanInventoryUtility), nameof(CaravanInventoryUtility.AllInventoryItems))]
-[PatchLevel(Level.Safe)]
+[HarmonyPriority(Priority.High)]
 public static class Patch_CaravanInventoryUtility_AllInventoryItems
 {
     [PatchLevel(Level.Mandatory)]
@@ -72,6 +72,7 @@ public static class Patch_CaravanInventoryUtility_AllInventoryItems
 
 [HarmonyPatch(typeof(Caravan_BedsTracker), "GetUsableBeds")]
 [PatchLevel(Level.Cautious)]
+[HarmonyPriority(Priority.Low)]
 public static class Patch_Caravan_BedsTracker_GetUsableBeds
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -162,7 +163,7 @@ public static class Patch_Building_OrbitalTradeBeacon_AllPowered
     {
         foreach (var b in values) yield return b;
 
-        var maps = map.BaseMapAndVehicleMaps.Except(map);
+        var maps = map.BaseMapAndVehicleMaps().Except(map);
         var buildings = maps.SelectMany(m => m.listerBuildings.AllBuildingsColonistOfClass<Building_OrbitalTradeBeacon>().Where(b =>
         {
             var comp = b.GetComp<CompPowerTrader>();
@@ -181,7 +182,7 @@ public static class Patch_TradeShip_ColonyThingsWillingToBuy
     public static IEnumerable<Thing> Postfix(IEnumerable<Thing> values, Pawn playerNegotiator)
     {
         var result = values.ToList();
-        var maps = playerNegotiator.Map.BaseMapAndVehicleMaps.Except(playerNegotiator.Map);
+        var maps = playerNegotiator.Map.BaseMapAndVehicleMaps().Except(playerNegotiator.Map);
 
         foreach (var map in maps)
         {

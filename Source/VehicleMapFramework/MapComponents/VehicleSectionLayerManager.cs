@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using JetBrains.Annotations;
 using RimWorld;
 using SmashTools;
 using VehicleMapFramework.VMF_HarmonyPatches;
@@ -16,6 +17,7 @@ namespace VehicleMapFramework
         internal static readonly List<Type> OrientedSectionLayerTypes =
             [.. typeof(SectionLayer_Things).AllSubclassesNonAbstract().Concat(typeof(SectionLayer_SunShadowsOnVehicle))];
         
+        [UsedImplicitly] // Reflection access by Naname Walls
         public static Rot4 RotForPrintCounter => RotForPrint.IsHorizontal ? RotForPrint.Opposite : RotForPrint;
 
         public static Rot4 RotForPrint { get; set; }

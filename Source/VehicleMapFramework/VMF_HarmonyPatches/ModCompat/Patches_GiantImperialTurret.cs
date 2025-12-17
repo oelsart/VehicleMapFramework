@@ -101,7 +101,7 @@ public static class Patch_AttackTargetFinderAngle_BestAttackTarget
 
         var map = searcher.Thing.Map;
         var pos = searcher.Thing.Position;
-        var maps = map.BaseMapAndVehicleMaps.Except(map);
+        var maps = map.BaseMapAndVehicleMaps().Except(map);
 
         if (maps.Any())
         {

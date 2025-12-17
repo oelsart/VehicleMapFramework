@@ -176,3 +176,4 @@ jobs:
         path: VehicleMapFrameworkDev
         appId: 294100
         publishedFileId: 3528683767
+        changeNote: ${{ github.ref_name }}

@@ -15,9 +15,9 @@ using Verse.AI.Group;
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 [HarmonyPatch(typeof(Pawn_JobTracker), nameof(Pawn_JobTracker.StartJob))]
-[PatchLevel(Level.Sensitive)]
 public static class Patch_Pawn_JobTracker_StartJob
 {
+    [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var m_MakeDriver = AccessTools.Method(typeof(Job), nameof(Job.MakeDriver));
@@ -32,6 +32,26 @@ public static class Patch_Pawn_JobTracker_StartJob
             return curJob.GetCachedDriver(driverPawn);
         }
         return curJob.MakeDriver(driverPawn);
+    }
+
+    [PatchLevel(Level.Safe)]
+    public static void Prefix(Pawn_JobTracker __instance, Job newJob, int ___jobsGivenThisTick)
+    {
+        if (___jobsGivenThisTick > 7 && newJob?.workGiverDef is { } workGiverDef)
+        {
+            var message = "A \"10 jobs in one tick\" error is about to occur. ";
+            message += VehicleMapFramework.settings.crossMapJobProtect
+                ? $"Disable cross-map job support for WorkGiver: {workGiverDef.defName} and temporarily enable job logging."
+                : $"Likely to be the cause WorkGiver: {workGiverDef.defName}. Temporarily enable job logging.";
+            VMF_Log.Warning(message);
+            if (!__instance.debugLog)
+            {
+                __instance.debugLog = true;
+                Delay.AfterNSeconds(0, () => __instance.debugLog = false);
+            }
+            if (VehicleMapFramework.settings.crossMapJobProtect)
+                JobAcrossMapsUtility.DisabledCrossMapWorkGiverDefs.AddUnique(workGiverDef);
+        }
     }
 }
 
@@ -140,13 +160,13 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
 
     internal static IEnumerable<Thing> AddSearchSet(List<Thing> list, Pawn pawn, WorkGiver_Scanner scanner)
     {
-        if (JobAcrossMapsUtility.NoNeedVirtualMapTransfer(pawn.Map, null))
+        if (JobAcrossMapsUtility.NoNeedVirtualMapTransfer(pawn.Map, null, scanner.def))
         {
             return list;
         }
 
         tmpMaps.Clear();
-        tmpMaps.AddRange(pawn.Map.BaseMapAndVehicleMaps.Except(pawn.Map));
+        tmpMaps.AddRange(pawn.Map.BaseMapAndVehicleMaps().Except(pawn.Map));
         return tmpMaps.Any() ? tmpMaps.SelectMany(m => m.listerThings.ThingsMatching(scanner.PotentialWorkThingRequest)).ConcatIfNotNull(list).Distinct() : list;
     }
 
@@ -154,7 +174,7 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
     {
         internal IEnumerable<Thing> PotentialWorkThingsGlobalAll(Pawn pawn)
         {
-            if (JobAcrossMapsUtility.NoNeedVirtualMapTransfer(pawn.Map, null))
+            if (JobAcrossMapsUtility.NoNeedVirtualMapTransfer(pawn.Map, null, scanner.def))
             {
                 return scanner.PotentialWorkThingsGlobal(pawn);
             }
@@ -165,7 +185,7 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
             {
                 tmpThings.Clear();
                 var shouldBeNull = true;
-                pawn.Map.BaseMapAndVehicleMaps.Do(m =>
+                pawn.Map.BaseMapAndVehicleMaps().Do(m =>
                 {
                     pawn.VirtualMapTransfer(m);
                     var things = scanner.PotentialWorkThingsGlobal(pawn)?.Where(t => t != null);
@@ -187,7 +207,7 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
         internal Job JobOnThingMap(Pawn pawn, Thing t, bool forced = false)
         {
             var thingMap = t.MapHeld;
-            if (JobAcrossMapsUtility.NoNeedVirtualMapTransfer(pawn.Map, thingMap))
+            if (JobAcrossMapsUtility.NoNeedVirtualMapTransfer(pawn.Map, thingMap, scanner.def))
             {
                 return scanner.JobOnThing(pawn, t, forced);
             }
@@ -259,7 +279,7 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
             var pawn = innerClass.pawn;
             var basePos = pawn.PositionOnBaseMap;
             var map = pawn.DepartMap = pawn.Map;
-            var maps = map.BaseMapAndVehicleMaps.Except(map);
+            var maps = map.BaseMapAndVehicleMaps().Except(map);
             try
             {
                 foreach (var map2 in maps)
@@ -349,7 +369,7 @@ public static class Patch_JobGiver_Work_PawnCanUseWorkGiver
         {
             return workGiver.ShouldSkip(pawn, forced);
         }
-        return pawn.Map.BaseMapAndVehicleMaps.All(m =>
+        return pawn.Map.BaseMapAndVehicleMaps().All(m =>
         {
             using var _ = new VirtualTeleporter(pawn, m);
             return workGiver.ShouldSkip(pawn, forced);
@@ -377,7 +397,7 @@ public static class Patch_JobGiver_Work_Validator
     public static bool HasJobOnThingMap(this WorkGiver_Scanner scanner, Pawn pawn, Thing t, bool forced = false)
     {
         var thingMap = t.MapHeld;
-        if (JobAcrossMapsUtility.NoNeedVirtualMapTransfer(pawn.Map, thingMap))
+        if (JobAcrossMapsUtility.NoNeedVirtualMapTransfer(pawn.Map, thingMap, scanner.def))
         {
             return scanner.HasJobOnThing(pawn, t, forced);
         }
@@ -415,7 +435,7 @@ public static class Patch_Pawn_PathFollower_StartPath
 {
     public static bool Prefix(LocalTargetInfo dest, PathEndMode peMode, Pawn ___pawn)
     {
-        if (___pawn.jobs is null or {curDriver: JobDriver_GotoAcrossMaps }) return true;
+        if (___pawn.jobs is null or {curDriver: JobDriver_GotoAcrossMaps } or { curJob: null }) return true;
 
         var flag = false;
         var destMap = dest.Thing?.MapHeld;
@@ -620,7 +640,7 @@ public static class Patch_ItemAvailability_ThingsAvailableAnywhere
     {
         tmpList.Clear();
         tmpList.AddRange(list);
-        tmpList.AddRange(map.BaseMapAndVehicleMaps.Except(map).SelectMany(m => m.listerThings.ThingsOfDef(need)));
+        tmpList.AddRange(map.BaseMapAndVehicleMaps().Except(map).SelectMany(m => m.listerThings.ThingsOfDef(need)));
         return tmpList;
     }
 }
@@ -844,7 +864,7 @@ public static class Patch_FoodUtility_BestFoodSourceOnMap
     {
         searchSet.Clear();
         searchSet.AddRange(list);
-        var maps = getter.Map.BaseMapAndVehicleMaps.Except(getter.Map);
+        var maps = getter.Map.BaseMapAndVehicleMaps().Except(getter.Map);
         foreach (var map in maps)
         {
             searchSet.AddRange(map.listerThings.ThingsMatching(req));
@@ -1209,9 +1229,17 @@ public static class Patch_WanderUtility_GetColonyWanderRoot
 [PatchLevel(Level.Safe)]
 public static class Patch_Reachability_ClearCache
 {
-    public static void Postfix(Map ___map)
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        CrossMapReachabilityCache.ClearCacheFor(___map);
+        return new CodeMatcher(instructions)
+            .MatchStartForward(
+                CodeMatch.Calls(AccessTools.Method(typeof(ReachabilityCache), nameof(ReachabilityCache.Clear))))
+            .InsertAfter(
+                CodeInstruction.LoadArgument(0),
+                CodeInstruction.LoadField(typeof(Reachability), "map"),
+                CodeInstruction.Call(typeof(CrossMapReachabilityCache),
+                    nameof(CrossMapReachabilityCache.ClearCacheFor)))
+            .InstructionEnumeration();
     }
 }
 
@@ -1248,7 +1276,7 @@ public static class Patch_PaintUtility_FindNearbyDyes
         var map = pawn.Map;
         tmpList.Clear();
         tmpList.AddRange(list);
-        tmpList.AddRange(map.BaseMapAndVehicleMaps.Except(map)
+        tmpList.AddRange(map.BaseMapAndVehicleMaps().Except(map)
             .SelectMany(m => m.listerThings.ThingsOfDef(ThingDefOf.Dye))
             .Where(t => !t.IsForbidden(pawn) &&
                         pawn.CanReserveAndReach(t, PathEndMode.ClosestTouch, Danger.Deadly, ignoreOtherReservations: forced)));

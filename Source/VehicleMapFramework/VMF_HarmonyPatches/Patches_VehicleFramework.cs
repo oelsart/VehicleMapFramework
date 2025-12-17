@@ -454,7 +454,7 @@ public static class Patch_JobDriverLoadVehicleBase_ShouldFailJob
                     predicate = ShouldFailJob[type] =
                         AccessTools.MethodDelegate<Predicate<JobDriverLoadVehicleBase>>(m_ShouldFailJob);
                 }
-                foreach (var map2 in map.BaseMapAndVehicleMaps.Except(map))
+                foreach (var map2 in map.BaseMapAndVehicleMaps().Except(map))
                 {
                     __instance.pawn.VirtualMapTransfer(map2);
                     if (!predicate(__instance))

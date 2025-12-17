@@ -14,6 +14,8 @@ public class VehicleMapSettings : ModSettings
     public bool autoGetOffPlayer = Default.autoGetOffPlayer;
 
     public bool autoGetOffNonPlayer = Default.autoGetOffNonPlayer;
+    
+    public bool crossMapJobProtect = Default.crossMapJobProtect;
 
     public bool drawVehicleMapGrid = Default.drawVehicleMapGrid;
     
@@ -33,6 +35,9 @@ public class VehicleMapSettings : ModSettings
     {
         Scribe_Values.Look(ref drawPlanet, "drawPlanet", Default.drawPlanet);
         Scribe_Values.Look(ref weightFactor, "weightFactor", Default.weightFactor);
+        Scribe_Values.Look(ref autoGetOffPlayer, "autoGetOffPlayer", Default.autoGetOffPlayer);
+        Scribe_Values.Look(ref autoGetOffNonPlayer, "autoGetOffNonPlayer", Default.autoGetOffNonPlayer);
+        Scribe_Values.Look(ref crossMapJobProtect, "crossMapJobProtect", Default.crossMapJobProtect);
         Scribe_Values.Look(ref drawVehicleMapGrid, "drawVehicleMapGrid", Default.drawVehicleMapGrid);
         Scribe_Values.Look(ref includeMapThings, "includeMapThings", Default.includeMapThings);
         Scribe_Values.Look(ref roofedPatch, "roofedPatch", Default.roofedPatch);
@@ -51,6 +56,8 @@ public class VehicleMapSettings : ModSettings
         public const bool autoGetOffPlayer = false;
 
         public const bool autoGetOffNonPlayer = true;
+        
+        public const bool crossMapJobProtect = true;
 
         public const bool drawVehicleMapGrid = false;
         
