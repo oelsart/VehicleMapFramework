@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using JetBrains.Annotations;
 using RimWorld;
 using Verse;
 
@@ -7,7 +8,8 @@ namespace VehicleMapFramework;
 
 public class CompAdditionalGraphicsChild : ThingComp
 {
-    protected ThingWithComps parentThing;
+    [UsedImplicitly]
+    public ThingWithComps parentThing;
     
     private CompProperties_DrawAdditionalGraphics Props => (CompProperties_DrawAdditionalGraphics)props;
     
