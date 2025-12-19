@@ -9,17 +9,28 @@ public class CrossMapReachabilityCache(World world) : WorldComponent(world)
 {
     private readonly Dictionary<CachedEntry,
         (bool result, TargetInfo exitSpot, TargetInfo enterSpot, List<(TargetInfo, TargetInfo)> spotsQueue)> cache = [];
-
+    
+    private readonly List<CachedEntry> removalList = [];
+    
     public static CrossMapReachabilityCache Instance => Find.World.GetComponent<CrossMapReachabilityCache>();
 
     public static void ClearCache()
     {
         Instance.cache.Clear();
     }
-
+    
     public static void ClearCacheFor(Map map)
     {
-        Instance.cache.RemoveAll(kvp => kvp.Key.FirstRegion.Map == map || kvp.Key.SecondRegion.Map == map);
+        var instance = Instance;
+        instance.removalList.Clear();
+    
+        foreach (var key in instance.cache.Keys)
+        {
+            if (key.FirstRegion?.Map == map || key.SecondRegion?.Map == map)
+                instance.removalList.Add(key);
+        }
+        foreach (var key in instance.removalList)
+            instance.cache.Remove(key);
     }
 
     public static bool TryGetCache(Region A, Region B, TraverseParms traverseParms, out bool result,
