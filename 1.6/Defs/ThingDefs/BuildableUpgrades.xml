@@ -446,7 +446,7 @@
 			</li>
 			
 			<!-- For use when placed on the grav ship -->
-			<li Class="CompProperties_GravshipFacility">
+			<li Class="CompProperties_GravshipFacility" MayRequire="Ludeon.RimWorld.Odyssey">
 				<compClass>VehicleMapFramework.CompGravshipFacilityPossibly</compClass>
 				<providesFuel>true</providesFuel>
 				<componentTypeDef>FuelStorage</componentTypeDef>
