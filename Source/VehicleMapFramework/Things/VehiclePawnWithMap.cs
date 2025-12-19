@@ -39,6 +39,8 @@ public class VehiclePawnWithMap : VehiclePawn
 
     private int cellDesignationsDirtyTick;
 
+    private readonly List<CompVehicleEnterSpot> tmpEnterComps = [];
+
     private static Def pipeNetDef;
 
     private static readonly Material ClipMat =
@@ -58,6 +60,8 @@ public class VehiclePawnWithMap : VehiclePawn
 
     private static readonly FastInvokeHandler DirtyCellDesignationsCache =
         MethodInvoker.GetHandler(AccessTools.Method(typeof(DesignationManager), "DirtyCellDesignationsCache"));
+    
+    private static readonly AccessTools.FieldRef<MapDrawer, Section[,]> sections = AccessTools.FieldRefAccess<MapDrawer, Section[,]>("sections");
 
     public Map VehicleMap
     {
@@ -165,7 +169,8 @@ public class VehiclePawnWithMap : VehiclePawn
             {
                 standableCellsCachedTick = GenTicks.TicksGame;
                 field.Clear();
-                field.AddRange(CachedMapEdgeCells.Where(c => c.Walkable(interiorMap)));
+                foreach (var c in CachedMapEdgeCells)
+                    if (c.Walkable(interiorMap)) field.Add(c);
             }
             return field;
         }
@@ -177,8 +182,6 @@ public class VehiclePawnWithMap : VehiclePawn
         field ??= interiorMap?.GetCachedMapComponent<VehicleSectionLayerManager>();
 
     public List<CompVehicleEnterSpot> EnterComps { get; } = [];
-
-    public IEnumerable<CompVehicleEnterSpot> AvailableEnterComps => EnterComps.Where(c => c.parent.Position.Walkable(interiorMap) && c.Available);
 
     public List<CompFuelTank> FuelTankComps { get; } = [];
     
@@ -281,6 +284,20 @@ public class VehiclePawnWithMap : VehiclePawn
                 toggleAction = () => CompMapExpander.debugDraw = !CompMapExpander.debugDraw
             };
         }
+    }
+
+    public List<CompVehicleEnterSpot> GetSortedEnterComps(IntVec3 cell, EnterCompKind kind = EnterCompKind.All)
+    {
+        tmpEnterComps.Clear();
+        for (var i = 0; i < EnterComps.Count; i++)
+        {
+            var comp = EnterComps[i];
+            if (kind == EnterCompKind.RampOnly && !comp.Props.allowPassingVehicle ||
+                kind == EnterCompKind.ZiplineOnly && comp is not CompZipline) continue;
+            if (comp.parent.Position.Walkable(interiorMap) && comp.Available) tmpEnterComps.Add(comp);
+        }
+        tmpEnterComps.SortBy(c => c.parent.Position.DistanceToSquared(cell));
+        return tmpEnterComps;
     }
 
     private void GenerateVehicleMap(Map sourceMap)
@@ -411,7 +428,7 @@ public class VehiclePawnWithMap : VehiclePawn
             CacheDrawPos(DrawPos);
             mapFollower?.MapFollowerTick();
         }
-        else if (this.IsHashIntervalTick(15))
+        else if (this.IsHashIntervalTick(30))
         {
             SetTile();
         }
@@ -477,7 +494,7 @@ public class VehiclePawnWithMap : VehiclePawn
                 var positionOnBaseMap = thing.PositionOnBaseMap;
                 if (thing.def.category == ThingCategory.Building)
                 {
-                    if (thing.def.destroyable)
+                    if (!thing.def.destroyable)
                     {
                         allowDestroyNonDestroyable = true;
                         thing.Destroy();
@@ -632,7 +649,7 @@ public class VehiclePawnWithMap : VehiclePawn
         //DoorsDebugDrawer.DrawDebug();
         //map.mapDrawer.DrawMapMesh();
         var drawPos = Vector3.zero.ToBaseMapCoord(this);
-        DrawVehicleMapMesh(drawPos);
+        DrawVehicleMapMesh(drawPos, map);
         DynamicDrawManagerOnVehicle.DrawDynamicThings(map);
         DrawClippers(map);
         map.designationManager.DrawDesignations();
@@ -651,24 +668,19 @@ public class VehiclePawnWithMap : VehiclePawn
         //MapEdgeClipDrawer.DrawClippers(__instance);
     }
 
-    internal void DrawVehicleMapMesh(Vector3 drawPos)
+    internal void DrawVehicleMapMesh(Vector3 drawPos, Map map)
     {
-        var map = interiorMap;
         var mapDrawer = map.mapDrawer;
         var component = map.GetCachedMapComponent<VehicleSectionLayerManager>();
         var dirty = false;
-        for (var i = 0; i < map.Size.x; i += 17)
+        foreach (var section in sections(mapDrawer))
         {
-            for (var j = 0; j < map.Size.z; j += 17)
+            if (!dirty && (section.dirtyFlags & (MapMeshFlagDefOf.Things | MapMeshFlagDefOf.Terrain)) > 0UL)
             {
-                var section = mapDrawer.SectionAt(new IntVec3(i, 0, j));
-                if (!dirty && (section.dirtyFlags & (MapMeshFlagDefOf.Things | MapMeshFlagDefOf.Terrain)) > 0UL)
-                {
-                    VehicleMapUIRenderer.SetDirty(this);
-                    dirty = true;
-                }
-                DrawSection(section, drawPos, component);
+                VehicleMapUIRenderer.SetDirty(this);
+                dirty = true;
             }
+            DrawSection(section, drawPos, component);
         }
     }
 
@@ -961,5 +973,12 @@ public class VehiclePawnWithMap : VehiclePawn
     {
         VMF_Harmony.DynamicPatchAll(Level.All);
         base.PostGenerationSetup();
+    }
+
+    public enum EnterCompKind
+    {
+        RampOnly,
+        ZiplineOnly,
+        All
     }
 }
