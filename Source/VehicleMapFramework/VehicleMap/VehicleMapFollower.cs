@@ -1,5 +1,5 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
+﻿using System;
+using System.Collections.Generic;
 using SmashTools;
 using UnityEngine;
 using Vehicles;
@@ -11,9 +11,9 @@ public class VehicleMapFollower(VehiclePawnWithMap vehicle)
 {
     public readonly VehiclePawnWithMap vehicle = vehicle;
 
-    private readonly ConcurrentSet<IntVec3> prevOccupiedCells = [];
+    private HashSet<IntVec3> prevOccupiedCells = [];
 
-    private readonly ConcurrentSet<IntVec3> tmpOccupiedCells = [];
+    private HashSet<IntVec3> tmpOccupiedCells = [];
 
     private IntVec3 prevCell = IntVec3.Invalid;
 
@@ -58,7 +58,7 @@ public class VehicleMapFollower(VehiclePawnWithMap vehicle)
     {
         CalculateMapCells();
         var component = MapComponentCache<VehicleMapGrid>.GetComponent(vehicle.Map);
-        foreach (var c in tmpOccupiedCells.Keys)
+        foreach (var c in tmpOccupiedCells)
         {
             component.Register(c, vehicle);
         }
@@ -67,7 +67,7 @@ public class VehicleMapFollower(VehiclePawnWithMap vehicle)
     public void DeRegisterVehicle()
     {
         var component = MapComponentCache<VehicleMapGrid>.GetComponent(vehicle.Map);
-        foreach (var c in prevOccupiedCells.Keys)
+        foreach (var c in prevOccupiedCells)
         {
             component.DeRegister(c, vehicle);
         }
@@ -77,16 +77,17 @@ public class VehicleMapFollower(VehiclePawnWithMap vehicle)
     {
         CalculateMapCells();
         var component = MapComponentCache<VehicleMapGrid>.GetComponent(vehicle.Map);
-        foreach (var c in tmpOccupiedCells.Keys.Except(prevOccupiedCells.Keys))
+        foreach (var c in tmpOccupiedCells)
         {
-            component.Register(c, vehicle);
+            if (!prevOccupiedCells.Contains(c))
+                component.Register(c, vehicle);
         }
-        foreach (var c in prevOccupiedCells.Keys.Except(tmpOccupiedCells.Keys))
+        foreach (var c in prevOccupiedCells)
         {
-            component.DeRegister(c, vehicle);
+            if (!tmpOccupiedCells.Contains(c))
+                component.DeRegister(c, vehicle);
         }
-        prevOccupiedCells.Clear();
-        prevOccupiedCells.AddRange(tmpOccupiedCells);
+        (prevOccupiedCells, tmpOccupiedCells) = (tmpOccupiedCells, prevOccupiedCells);
     }
 
     private void CalculateMapCells()
@@ -98,19 +99,19 @@ public class VehicleMapFollower(VehiclePawnWithMap vehicle)
         var c3 = new IntVec3(0, 0, mapSize.z - 1).ToBaseMapCoord(vehicle);
         var c4 = new IntVec3(mapSize.x - 1, 0, mapSize.z - 1).ToBaseMapCoord(vehicle);
         var cellRect = CellRect.FromLimits(Mathf.Min(c1.x, c2.x, c3.x, c4.x), Mathf.Min(c1.z, c2.z, c3.z, c4.z), Mathf.Max(c1.x, c2.x, c3.x, c4.x), Mathf.Max(c1.z, c2.z, c3.z, c4.z));
-
-        Parallel.ForEach(cellRect, cell =>
+        
+        Span<IntVec3> adjBuffer = stackalloc IntVec3[4];
+        var map = vehicle.Map;
+        foreach (var cell in cellRect)
         {
-            if (cell.ToVector3Shifted().TryGetVehicleMap(vehicle.Map, out var vehicle2) && vehicle == vehicle2)
+            if (cell.ToVector3Shifted().TryGetVehicleMap(map, vehicle))
             {
-                foreach (var c in cell.AdjacentCellsCardinal(vehicle.Map))
+                var adjCount = cell.AdjacentCellsCardinalNonAlloc(map, adjBuffer);
+                for (var i = 0; i < adjCount; i++)
                 {
-                    if (!tmpOccupiedCells.Contains(c))
-                    {
-                        tmpOccupiedCells.Add(c);
-                    }
+                    tmpOccupiedCells.Add(adjBuffer[i]);
                 }
             }
-        });
+        }
     }
 }

@@ -6,6 +6,8 @@
 	<VMF_ForbidOnVehicle>Cannot be placed on a vehicle map.</VMF_ForbidOnVehicle>
 	<VMF_ForbidOnHumanPoweredVehicle>Cannot be placed on a human powered vehicle map.</VMF_ForbidOnHumanPoweredVehicle>
 	<VMF_ForceOnVehicleMapEdge>Cannot be placed outside the edge of a vehicle map.</VMF_ForceOnVehicleMapEdge>
+	<VMF_ForceOnRelatedVehicle>This building is not related to this vehicle.</VMF_ForceOnRelatedVehicle>
+	<VMF_ForceOnRelatedBuilding>It can only be built on top of related buildings.</VMF_ForceOnRelatedBuilding>
 
 	<VMF_NoRoles>No roles for operating this turret in {0}.</VMF_NoRoles>
 

@@ -390,17 +390,42 @@ public static class VehicleMapUtility
                 {
                     return true;
                 }
-                if (flag.HasFlag(VehicleMapFlag.StructureCells) && !v.CachedExpandableCells.Contains(intVec) && !v.CachedOutOfBoundsCells.Contains(intVec))
+                if ((flag & VehicleMapFlag.StructureCells) > 0 && !v.CachedExpandableCells.Contains(intVec) && !v.CachedOutOfBoundsCells.Contains(intVec))
                 {
                     return true;
                 }
-                if (flag.HasFlag(VehicleMapFlag.ExpandableCells) && v.CachedExpandableCells.Contains(intVec))
+                if ((flag & VehicleMapFlag.ExpandableCells) > 0 && v.CachedExpandableCells.Contains(intVec))
                 {
                     return true;
                 }
-                return flag.HasFlag(VehicleMapFlag.OutOfBoundsCells) && v.CachedOutOfBoundsCells.Contains(intVec);
+                return (flag & VehicleMapFlag.OutOfBoundsCells) > 0 && v.CachedOutOfBoundsCells.Contains(intVec);
             });
             return vehicle != null;
+        }
+
+        public bool TryGetVehicleMap(Map map, VehiclePawnWithMap vehicle, VehicleMapFlag flag = VehicleMapFlag.StructureCells)
+        {
+            if (map == null) return false;
+            var rect = new Rect(0f, 0f, vehicle.VehicleMap.Size.x, vehicle.VehicleMap.Size.z);
+            var vector = original.ToVehicleMapCoord(vehicle);
+            var intVec = vector.ToIntVec3();
+            if (!rect.Contains(new Vector2(vector.x, vector.z)))
+            {
+                return false;
+            }
+            if (!vehicle.CachedStructureCells.Contains(intVec))
+            {
+                return true;
+            }
+            if ((flag & VehicleMapFlag.StructureCells) > 0 && !vehicle.CachedExpandableCells.Contains(intVec) && !vehicle.CachedOutOfBoundsCells.Contains(intVec))
+            {
+                return true;
+            }
+            if ((flag & VehicleMapFlag.ExpandableCells) > 0 && vehicle.CachedExpandableCells.Contains(intVec))
+            {
+                return true;
+            }
+            return (flag & VehicleMapFlag.OutOfBoundsCells) > 0 && vehicle.CachedOutOfBoundsCells.Contains(intVec);
         }
 
         public Vector3 ToThingBaseMapCoord(Thing thing)
