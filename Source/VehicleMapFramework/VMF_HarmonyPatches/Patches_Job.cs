@@ -217,7 +217,7 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
             try
             {
                 var job = scanner.JobOnThing(pawn, t, forced);
-                if (job != null && JobAcrossMapsUtility.NeedWrapGotoDestMapJob(scanner) &&
+                if (job != null && JobAcrossMapsUtility.NeedWrapGotoDestMapJob(scanner, job) &&
                     pawn.CanReach(t, scanner.PathEndMode, scanner.MaxPathDanger(pawn), false, false,
                         TraverseMode.ByPawn, t.MapHeld, out var exitSpot, out var enterSpot, out var spotsQueue))
                     job = JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, spotsQueue, job);
@@ -670,6 +670,8 @@ public static class Patch_GenClosest_ClosestThingReachable
     [PatchLevel(Level.Safe)]
     public static void Postfix(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance, Predicate<Thing> validator, IEnumerable<Thing> customGlobalSearchSet, int searchRegionsMin, int searchRegionsMax, bool forceAllowGlobalSearch, RegionType traversableRegionTypes, bool ignoreEntirelyForbiddenRegions, bool lookInHaulSources, ref Thing __result)
     {
+        // 非プレイヤーポーンが車両マップの椅子に座ろうとすることなどの防止
+        if (traverseParams.pawn is { Faction.IsPlayer: false }) return;
         __result ??= GenClosestCrossMap.ClosestThingReachable(root, map, thingReq, peMode, traverseParams, maxDistance, validator, customGlobalSearchSet, searchRegionsMin, searchRegionsMax, forceAllowGlobalSearch, traversableRegionTypes, ignoreEntirelyForbiddenRegions, lookInHaulSources);
     }
 }
@@ -686,6 +688,7 @@ public static class Patch_GenClosest_ClosestThing_Regionwise_ReachablePrioritize
 
     public static void Postfix(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance, Predicate<Thing> validator, Func<Thing, float> priorityGetter, int minRegions, int maxRegions, bool lookInHaulSources, ref Thing __result)
     {
+        if (traverseParams.pawn is { Faction.IsPlayer: false }) return;
         __result ??= GenClosestCrossMap.ClosestThing_Regionwise_ReachablePrioritized(root, map, thingReq, peMode, traverseParams, maxDistance, validator, priorityGetter, minRegions, maxRegions, lookInHaulSources);
     }
 }

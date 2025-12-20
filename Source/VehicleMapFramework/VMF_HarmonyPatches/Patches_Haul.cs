@@ -157,20 +157,6 @@ public static class Patch_HaulAIUtility_HaulToCellStorageJob
     }
 }
 
-// TryReplaceWithFrame用
-[HarmonyPatch(typeof(HaulAIUtility), nameof(HaulAIUtility.HaulToContainerJob))]
-[PatchLevel(Level.Safe)]
-public static class Patch_HaulAIUtility_HaulToContainerJob
-{
-    public static void Postfix(Pawn p, Thing container, Job __result)
-    {
-        if (p.TryGetTargetMap(out _))
-        {
-            __result?.globalTarget = container;
-        }
-    }
-}
-
 [HarmonyPatch]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Toils_Haul_CarryHauledThingToCell

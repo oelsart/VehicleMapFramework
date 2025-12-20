@@ -14,6 +14,8 @@ public class CompDrawAdditionalGraphicsOpacity : CompDrawAdditionalGraphics
     
     private MaterialPropertyBlock propertyBlock;
     
+    public List<ThingWithComps> children = [];
+    
     private CompProperties_DrawAdditionalGraphics Props => (CompProperties_DrawAdditionalGraphics)this.props;
     
     public CompDrawAdditionalGraphicsOpacity()
@@ -73,7 +75,8 @@ public class CompDrawAdditionalGraphicsOpacity : CompDrawAdditionalGraphics
         if (opacity == 0f)
             return;
         
-        foreach (var graphic in Props.graphics.Select(g => g.Graphic))
+        foreach (var graphic in Props.graphics.Select(g => g.Graphic)
+                     .Concat(children.SelectMany(c => c.GetComp<CompAdditionalGraphicsChild>().Graphics)))
         {
             var loc = parent.DrawPos;
             var rot = parent.BaseRotationVehicleDraw();
@@ -82,10 +85,10 @@ public class CompDrawAdditionalGraphicsOpacity : CompDrawAdditionalGraphics
                 graphic is Graphic_Appearances appearance ? appearance.SubGraphicFor(parent) : graphic);
             if (parent.IsOnVehicleMapOf(out var vehicle))
             {
-                var angle = vehicle.Angle - vehicle.Transform.rotation;
-                extraRotation -= angle;
+                var angle = vehicle.ExtraAngle;
+                extraRotation += angle;
                 var offset = graphic.DrawOffset(rot);
-                var offset2 = offset.RotatedBy(-angle);
+                var offset2 = offset.RotatedBy(angle);
                 loc += new Vector3(offset2.x - offset.x, 0f, offset2.z - offset.z);
             }
             
@@ -101,10 +104,10 @@ public class CompDrawAdditionalGraphicsOpacity : CompDrawAdditionalGraphics
             }
             loc += graphic.DrawOffset(rot);
             var material = graphic.MatAt(rot, parent);
-            loc.y += 0.1f;
+            loc.y += 0.01f;
             loc.y -= loc.z * 0.00001f;
             loc.y -= loc.x * 0.000001f;
-            var drawColor = parent.DrawColor;
+            var drawColor = parent.DrawColor.WithAlpha(opacity);
             propertyBlock.SetColor(ShaderPropertyIDs.Color, drawColor);
             propertyBlock.SetColor(AdditionalShaderPropertyIDs.ColorOne, drawColor);
             propertyBlock.SetFloat(Graphic_VehicleOpacity.OpacityID, opacity);
@@ -113,9 +116,20 @@ public class CompDrawAdditionalGraphicsOpacity : CompDrawAdditionalGraphics
         }
     }
 
+    public override void PostDeSpawn(Map map, DestroyMode mode = DestroyMode.Vanish)
+    {
+        base.PostDeSpawn(map, mode);
+        for (var i = children.Count - 1; i >= 0; i--)
+        {
+            var child = children[i];
+            if (child.Spawned) child.DeSpawn(mode);
+        }
+    }
+
     public override void PostExposeData()
     {
         base.PostExposeData();
         Scribe_Values.Look(ref opacity, "opacity");
+        Scribe_Collections.Look(ref children, "children", LookMode.Reference);
     }
 }

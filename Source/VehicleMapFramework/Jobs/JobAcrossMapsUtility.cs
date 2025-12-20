@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using HarmonyLib;
 using RimWorld;
 using Vehicles;
@@ -14,6 +13,11 @@ public static class JobAcrossMapsUtility
     private static readonly AccessTools.FieldRef<JobDriver, int> curToilIndex = AccessTools.FieldRefAccess<JobDriver, int>("curToilIndex");
 
     public static List<Type> WorkGiverClassesNeedWrap { get; } = [];
+    
+    public static List<Type> JobDriverClassesNeedWrap { get; } =
+        [
+            typeof(JobDriver_RemoveFloor)
+        ];
     
     public static List<WorkGiverDef> DisabledCrossMapWorkGiverDefs { get; } = [];
 
@@ -88,9 +92,10 @@ public static class JobAcrossMapsUtility
         return scanner is WorkGiver_PaintFloor;
     }
     
-    public static bool NeedWrapGotoDestMapJob(WorkGiver_Scanner scanner)
+    public static bool NeedWrapGotoDestMapJob(WorkGiver_Scanner scanner, Job job = null)
     {
         return scanner is WorkGiver_Merge or WorkGiver_HunterHunt or WorkGiver_Miner or VehicleWorkGiver ||
+               job is not null && JobDriverClassesNeedWrap.Contains(job.def.driverClass) ||
                WorkGiverClassesNeedWrap.Contains(scanner.def.giverClass);
     }
 }

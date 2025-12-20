@@ -1,7 +1,9 @@
-﻿using Verse;
+﻿using JetBrains.Annotations;
+using Verse;
 
 namespace VehicleMapFramework;
 
+[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 public class CompProperties_OpacityOverlay : CompProperties
 {
     public CompProperties_OpacityOverlay()
