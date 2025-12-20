@@ -133,7 +133,8 @@ public static class Patch_Reachability_CanReachMapEdge
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return Patch_Reachability_CanReach.Transpiler(instructions);
+        return Patch_Reachability_CanReach.Transpiler(instructions)
+            .MethodReplacer(CachedMethodInfo.m_BreadthFirstTraverse, CachedMethodInfo.m_BreadthFirstTraverseAcrossMaps);
     }
 }
 
