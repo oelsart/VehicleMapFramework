@@ -217,7 +217,7 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
             try
             {
                 var job = scanner.JobOnThing(pawn, t, forced);
-                if (job != null && JobAcrossMapsUtility.NeedWrapGotoDestMapJob(scanner) &&
+                if (job != null && JobAcrossMapsUtility.NeedWrapGotoDestMapJob(scanner, job) &&
                     pawn.CanReach(t, scanner.PathEndMode, scanner.MaxPathDanger(pawn), false, false,
                         TraverseMode.ByPawn, t.MapHeld, out var exitSpot, out var enterSpot, out var spotsQueue))
                     job = JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, spotsQueue, job);

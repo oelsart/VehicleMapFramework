@@ -14,6 +14,11 @@ public static class JobAcrossMapsUtility
 
     public static List<Type> WorkGiverClassesNeedWrap { get; } = [];
     
+    public static List<Type> JobDriverClassesNeedWrap { get; } =
+        [
+            typeof(JobDriver_RemoveFloor)
+        ];
+    
     public static List<WorkGiverDef> DisabledCrossMapWorkGiverDefs { get; } = [];
 
     public static void StartGotoDestMapJob(Pawn pawn, TargetInfo? exitSpot = null, TargetInfo? enterSpot = null,
@@ -87,9 +92,10 @@ public static class JobAcrossMapsUtility
         return scanner is WorkGiver_PaintFloor;
     }
     
-    public static bool NeedWrapGotoDestMapJob(WorkGiver_Scanner scanner)
+    public static bool NeedWrapGotoDestMapJob(WorkGiver_Scanner scanner, Job job = null)
     {
         return scanner is WorkGiver_Merge or WorkGiver_HunterHunt or WorkGiver_Miner or VehicleWorkGiver ||
+               job is not null && JobDriverClassesNeedWrap.Contains(job.def.driverClass) ||
                WorkGiverClassesNeedWrap.Contains(scanner.def.giverClass);
     }
 }
