@@ -511,10 +511,10 @@ public static class Patch_Toils_Goto_GotoBuild
 //GotoCellと同じやり方でSittableOrSpotのチェック
 [HarmonyPatchCategory(EarlyPatchCore.Category)]
 [HarmonyPatch(typeof(ReservationUtility), nameof(ReservationUtility.ReserveSittableOrSpot))]
+[PatchLevel(Level.Mandatory)]
+[HarmonyBefore(ProgressionEducation.HarmonyId)]
 public static class Patch_ReservationUtility_ReserveSittableOrSpot
 {
-    [HarmonyBefore(ProgressionEducation.HarmonyId)]
-    [PatchLevel(Level.Mandatory)]
     public static bool Prefix(Pawn pawn, IntVec3 exactSittingPos, Job job, ref Map __state)
     {
         Map map;
@@ -535,7 +535,6 @@ public static class Patch_ReservationUtility_ReserveSittableOrSpot
         return exactSittingPos.InBounds(map);
     }
 
-    [PatchLevel(Level.Safe)]
     public static void Finalizer(Pawn pawn, IntVec3 exactSittingPos, Job job, Map __state, bool __result)
     {
         if (__state != null)
