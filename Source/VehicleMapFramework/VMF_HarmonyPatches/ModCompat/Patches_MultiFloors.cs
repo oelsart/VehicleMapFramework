@@ -1,5 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Linq;
 using HarmonyLib;
 using Verse;
 
@@ -18,41 +18,40 @@ internal static class Patches_MultiFloors
 }
 
 [HarmonyPatchCategory(PatchCategories.MultiFloors)]
-[HarmonyPatch(typeof(LoadedObjectDirectory), nameof(LoadedObjectDirectory.RegisterLoaded))]
+[HarmonyPatch(typeof(Map), nameof(Map.ExposeData))]
 [PatchLevel(Level.Mandatory)]
-public static class Patch_LoadedObjectDirectory_RegisterLoaded
+public static class Patch_Map_ExposeData
 {
-    public static bool Prefix(ILoadReferenceable reffable, Dictionary<string, ILoadReferenceable> ___allObjectsByLoadID)
+    private static readonly AccessTools.FieldRef<Map, List<Thing>> loadedFullThings = AccessTools.FieldRefAccess<Map, List<Thing>>("loadedFullThings");
+    
+    public static void Postfix(Map __instance, List<Thing> ___loadedFullThings)
     {
-        if (reffable is not Pawn pawn) return true;
-        var text = "[excepted]";
-        try
+        if (Scribe.mode != LoadSaveMode.LoadingVars) return;
+        var thingIDs = ___loadedFullThings.OfType<Pawn>().Select(t => t.ThingID).ToList();
+        var duplicates = thingIDs.GroupBy(id => id).Where(id => id.Count() > 1)
+            .Select(group => group.Key).ToList();
+        foreach (var duplicate in duplicates)
         {
-            text = reffable.GetUniqueLoadID();
-        }
-        catch (Exception)
-        {
-            // ignored
-        }
-
-        if (___allObjectsByLoadID.TryGetValue(text, out _))
-        {
-            var text2 = "[excepted]";
-            try
+            var thing = ___loadedFullThings.FindLast(t => t.ThingID == duplicate);
+            if (thing is not null)
             {
-                text2 = reffable.ToString();
+                VMF_Log.Warning($"Duplicated pawn found: {thing}");
+                ___loadedFullThings.Remove(thing);
             }
-            catch (Exception)
-            {
-                // ignored
-            }
-
-            VMF_Log.Warning($"Pawn duplication detected. Destroying the duplicated pawn: {text2}.");
-            pawn.Destroy();
-            return false;
         }
 
-        return true;
+        foreach (var map in Find.Maps)
+        {
+            if (map == __instance) continue;
+            thingIDs.Clear();
+            thingIDs.AddRange(loadedFullThings(map).OfType<Pawn>().Select(t => t.ThingID));
+            var thing = ___loadedFullThings.FindLast(t => thingIDs.Contains(t.ThingID));
+            if (thing is not null)
+            {
+                VMF_Log.Warning($"Duplicated pawn found: {thing}");
+                ___loadedFullThings.Remove(thing);
+            }
+        }
     }
 }
 
