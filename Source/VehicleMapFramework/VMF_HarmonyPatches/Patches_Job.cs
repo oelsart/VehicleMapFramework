@@ -527,7 +527,7 @@ public static class Patch_ReservationUtility_ReserveSittableOrSpot
         {
             return true;
         }
-        if (pawn.Map != map)
+        if (pawn.Map != map && pawn.GroundMap == map.GroundMap)
         {
             __state = pawn.Map;
             pawn.VirtualMapTransfer(map);
@@ -562,7 +562,7 @@ public static class Patch_ReservationUtility_CanReserveSittableOrSpot
         var map = ignoreThing?.Map ?? pawn.TargetMapOrThingMap;
         if (map is null)
             return true;
-        if (pawn.Map != map)
+        if (pawn.Map != map && pawn.GroundMap == map.GroundMap)
         {
             __state = pawn.Map;
             pawn.VirtualMapTransfer(map);
