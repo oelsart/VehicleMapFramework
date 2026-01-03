@@ -16,11 +16,11 @@ public static class CrossMapReachabilityUtility
 {
     public static bool working;
 
-    private static ConditionalWeakTable<Pawn, Map> DestMap { get; } = [];
+    private static ConditionalWeakTable<Pawn, Map> DestMaps { get; } = [];
 
     public static Map DestMapGlobal;
     
-    private static ConditionalWeakTable<Pawn, Map> DepartMap { get; } = [];
+    private static ConditionalWeakTable<Pawn, Map> DepartMaps { get; } = [];
 
     public static Map DepartMapGlobal;
     
@@ -48,19 +48,24 @@ public static class CrossMapReachabilityUtility
             get
             {
                 if (pawn is null) return null;
-                return DestMap.TryGetValue(pawn, out var map) ? map : null;
+                return DestMaps.TryGetValue(pawn, out var map) ? map : null;
             }
             set
             {
                 if (pawn is null) return;
-                DestMap.AddOrUpdate(pawn, value);
+                if (value is null)
+                {
+                    pawn.RemoveDestMap();
+                    return;
+                }
+                DestMaps.AddOrUpdate(pawn, value);
             }
         }
 
         public void RemoveDestMap()
         {
             if (pawn is null) return;
-            DestMap.Remove(pawn);
+            DestMaps.Remove(pawn);
         }
         
         public Map DepartMap
@@ -68,19 +73,24 @@ public static class CrossMapReachabilityUtility
             get
             {
                 if (pawn is null) return null;
-                return DepartMap.TryGetValue(pawn, out var map) ? map : null;
+                return DepartMaps.TryGetValue(pawn, out var map) ? map : null;
             }
             set
             {
                 if (pawn is null) return;
-                DepartMap.AddOrUpdate(pawn, value);
+                if (value is null)
+                {
+                    pawn.RemoveDepartMap();
+                    return;
+                }
+                DepartMaps.AddOrUpdate(pawn, value);
             }
         }
 
         public void RemoveDepartMap()
         {
             if (pawn is null) return;
-            DepartMap.Remove(pawn);
+            DepartMaps.Remove(pawn);
         }
 
         public Map DepartMapOrPawnMap => pawn.DepartMap ?? pawn.Map;
