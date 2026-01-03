@@ -20,27 +20,6 @@ internal class Patches_CeleTech
 }
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
-[HarmonyPatch("TOT_DLL_test.Building_CMCTurretGun", "DrawExtraSelectionOverlays")]
-public static class Patch_Building_CMCTurretGun_DrawExtraSelectionOverlays
-{
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap)
-            .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap);
-    }
-}
-
-[HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
-[HarmonyPatch("TOT_DLL_test.Building_CMCTurretGun_MainBattery", "DrawExtraSelectionOverlays")]
-public static class Patch_Building_CMCTurretGun_MainBattery_DrawExtraSelectionOverlays
-{
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap);
-    }
-}
-
-[HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
 [HarmonyPatch("TOT_DLL_test.Building_CMCTurretGun", "OrderAttack")]
 public static class Patch_Building_CMCTurretGun_OrderAttack
 {
@@ -137,73 +116,6 @@ public static class Patch_CMCTurretTop_TurretTopTick
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap);
-    }
-}
-
-[HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
-[HarmonyPatch("TOT_DLL_test.Building_CMCSniperTurret", "RunDetection")]
-public static class Patch_Building_CMCSniperTurret_RunDetection
-{
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-            .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
-    }
-}
-
-[HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
-[HarmonyPatch("TOT_DLL_test.Building_CMCSniperTurret", "TryFindNewTarget")]
-public static class Patch_Building_CMCSniperTurret_TryFindNewTarget
-{
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return Patch_Building_CMCTurretGun_TryFindNewTarget.Transpiler(instructions);
-    }
-}
-
-[HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
-[HarmonyPatch]
-public static class Patch_Building_CMCSniperTurret_TryFindNewTarget_Delegate
-{
-    private static MethodBase TargetMethod()
-    {
-        return AccessTools.FindIncludingInnerTypes(GenTypes.GetTypeInAnyAssembly("TOT_DLL_test.Building_CMCSniperTurret", "TOT_DLL_test"), t =>
-        {
-            return t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<TryFindNewTarget>"));
-        });
-    }
-
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
-    }
-}
-
-[HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
-[HarmonyPatch("TOT_DLL_test.Building_CMCTurretMissile", "TryFindNewTarget")]
-public static class Patch_Building_CMCTurretMissile_TryFindNewTarget
-{
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return Patch_Building_CMCTurretGun_TryFindNewTarget.Transpiler(instructions);
-    }
-}
-
-[HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
-[HarmonyPatch]
-public static class Patch_Building_CMCTurretMissile_TryFindNewTarget_Delegate
-{
-    private static MethodBase TargetMethod()
-    {
-        return AccessTools.FindIncludingInnerTypes(GenTypes.GetTypeInAnyAssembly("TOT_DLL_test.Building_CMCTurretMissile", "TOT_DLL_test"), t =>
-        {
-            return t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<TryFindNewTarget>"));
-        });
-    }
-
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
     }
 }
 
