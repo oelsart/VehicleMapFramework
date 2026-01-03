@@ -21,6 +21,7 @@ internal class Patches_CeleTech
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
 [HarmonyPatch("TOT_DLL_test.Building_CMCTurretGun", "OrderAttack")]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Building_CMCTurretGun_OrderAttack
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -32,6 +33,7 @@ public static class Patch_Building_CMCTurretGun_OrderAttack
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
 [HarmonyPatch("TOT_DLL_test.Building_CMCTurretGun", "TryFindNewTarget")]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_Building_CMCTurretGun_TryFindNewTarget
 {
     private static readonly List<Building> tmpList = [];
@@ -61,6 +63,7 @@ public static class Patch_Building_CMCTurretGun_TryFindNewTarget
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
 [HarmonyPatch]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_Building_CMCTurretGun_TryFindNewTarget_Delegate
 {
     private static MethodBase TargetMethod()
@@ -79,6 +82,7 @@ public static class Patch_Building_CMCTurretGun_TryFindNewTarget_Delegate
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
 [HarmonyPatch("TOT_DLL_test.CMCTurretTop", "DrawTurret")]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_CMCTurretTop_DrawTurret
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
@@ -101,6 +105,7 @@ public static class Patch_CMCTurretTop_DrawTurret
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
 [HarmonyPatch("TOT_DLL_test.CMCTurretTop", "ForceFaceTarget")]
+[PatchLevel(Level.Cautious)]
 public static class Patch_CMCTurretTop_ForceFaceTarget
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -111,6 +116,7 @@ public static class Patch_CMCTurretTop_ForceFaceTarget
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
 [HarmonyPatch("TOT_DLL_test.CMCTurretTop", "TurretTopTick")]
+[PatchLevel(Level.Cautious)]
 public static class Patch_CMCTurretTop_TurretTopTick
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -121,6 +127,7 @@ public static class Patch_CMCTurretTop_TurretTopTick
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
 [HarmonyPatch("TOT_DLL_test.Comp_FCradar", "PostDraw")]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_Comp_FCradar_PostDraw
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
@@ -143,6 +150,7 @@ public static class Patch_Comp_FCradar_PostDraw
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
 [HarmonyPatch("TOT_DLL_test.Comp_CMCShield", "Draw")]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_Comp_CMCShield_Draw
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
@@ -153,6 +161,7 @@ public static class Patch_Comp_CMCShield_Draw
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
 [HarmonyPatch("TOT_DLL_test.Comp_PrismTowerTop", "PostDraw")]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_Comp_PrismTowerTop_PostDraw
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
@@ -163,6 +172,7 @@ public static class Patch_Comp_PrismTowerTop_PostDraw
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
 [HarmonyPatch("TOT_DLL_test.Comp_TraderShuttle", "PostDraw")]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_Comp_TraderShuttle_PostDraw
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
@@ -173,6 +183,7 @@ public static class Patch_Comp_TraderShuttle_PostDraw
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
 [HarmonyPatch("TOT_DLL_test.Comp_UAV", "CompTick")]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Comp_UAV_CompTick
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -183,6 +194,7 @@ public static class Patch_Comp_UAV_CompTick
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
 [HarmonyPatch("TOT_DLL_test.Verb_LauncherProjectileSwitchFire", "GetForcedMissTarget")]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Verb_LauncherProjectileSwitchFire_GetForcedMissTarget
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -193,6 +205,7 @@ public static class Patch_Verb_LauncherProjectileSwitchFire_GetForcedMissTarget
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
 [HarmonyPatch]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_Verb_LauncherProjectileSwitchFire_GetForcedMissTarget_Delegate
 {
     private static MethodBase TargetMethod()
@@ -211,6 +224,7 @@ public static class Patch_Verb_LauncherProjectileSwitchFire_GetForcedMissTarget_
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
 [HarmonyPatch("TOT_DLL_test.Verb_LauncherProjectileSwitchFire", "TryCastShot")]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Verb_LauncherProjectileSwitchFire_TryCastShot
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -221,6 +235,7 @@ public static class Patch_Verb_LauncherProjectileSwitchFire_TryCastShot
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
 [HarmonyPatch("TOT_DLL_test.Verb_LauncherProjectileSwitchFire", "Retarget")]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Verb_LauncherProjectileSwitchFire_Retarget
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -231,6 +246,7 @@ public static class Patch_Verb_LauncherProjectileSwitchFire_Retarget
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
 [HarmonyPatch]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_Patch_Verb_LauncherProjectileSwitchFire_Retarget_Delegate
 {
     private static MethodBase TargetMethod()
@@ -249,6 +265,7 @@ public static class Patch_Patch_Verb_LauncherProjectileSwitchFire_Retarget_Deleg
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
 [HarmonyPatch("TOT_DLL_test.Verb_LauncherProjectileSwitchFire", "CanHitFromCellIgnoringRange")]
+[PatchLevel(Level.Cautious)]
 public static class Patch_Verb_LauncherProjectileSwitchFire_CanHitFromCellIgnoringRange
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
