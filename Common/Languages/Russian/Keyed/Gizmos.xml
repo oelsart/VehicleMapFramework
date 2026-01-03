@@ -1,0 +1,40 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+
+  <VMF_FocusVehicleMap>Сфокусировать на карте техники</VMF_FocusVehicleMap>
+  <VMF_UnfocusVehicleMap>Снять фокус с карты техники</VMF_UnfocusVehicleMap>
+
+  <VMF_AllowsHaulIn>Разрешить занос</VMF_AllowsHaulIn>
+  <VMF_AllowsHaulInDesc>Позволяет колонистам заносить предметы в хранилище на карте этого транспорта.</VMF_AllowsHaulInDesc>
+  <VMF_AllowsHaulOut>Разрешить вынос</VMF_AllowsHaulOut>
+  <VMF_AllowsHaulOutDesc>Позволяет колонистам выносить предметы из хранилища на карте этого транспорта.</VMF_AllowsHaulOutDesc>
+  <VMF_IncreasePriority>Повысить приоритет</VMF_IncreasePriority>
+  <VMF_IncreasePriorityDesc>Повысить все приоритеты хранилищ на карте этого транспорта</VMF_IncreasePriorityDesc>
+  <VMF_DecreasePriority>Понизить приоритет</VMF_DecreasePriority>
+  <VMF_DecreasePriorityDesc>Понизить все приоритеты хранилищ на карте этого транспорта</VMF_DecreasePriorityDesc>
+  <VMF_AllowsGetOff>Разрешить выход</VMF_AllowsGetOff>
+  <VMF_AllowsGetOffDesc>Позволяет ИИ колонистов покидать карту техники.</VMF_AllowsGetOffDesc>
+  <VMF_AllowEnter>Разрешить вход</VMF_AllowEnter>
+  <VMF_AllowEnterDesc>Позволяет ИИ колонистов входить на карту техники.</VMF_AllowEnterDesc>
+
+  <VMF_LowerPowerDesc>Уменьшить целевой объём передачи энергии.</VMF_LowerPowerDesc>
+  <VMF_ResetPower>Сбросить</VMF_ResetPower>
+  <VMF_ResetPowerDesc>Сбросить целевой объём передачи энергии.</VMF_ResetPowerDesc>
+  <VMF_RaisePowerDesc>Увеличить целевой объём передачи энергии.</VMF_RaisePowerDesc>
+
+  <VMF_Reassign>Переназначить</VMF_Reassign>
+  <VMF_ReassignDesc>Переназначить турель, которой управляет это место.</VMF_ReassignDesc>
+
+  <VMF_GatherFromBaseMap>Собрать с базовой карты</VMF_GatherFromBaseMap>
+
+  <VMF_AssignPipeNet>Назначить</VMF_AssignPipeNet>
+  <VMF_PumpUp>Откачать</VMF_PumpUp>
+  <VMF_Drain>Слить</VMF_Drain>
+
+  <VMF_Flip>Перевернуть</VMF_Flip>
+  <VMF_VehicleMode>Режим техники</VMF_VehicleMode>
+
+  <VMF_RemoveSegment>Удалить сегмент</VMF_RemoveSegment>
+  <VMF_RemoveSegmentDesc>Удаляет сегмент из расширенной структуры транспорта.</VMF_RemoveSegmentDesc>
+
+</LanguageData>

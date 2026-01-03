@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+
+  <VMF_VehicleMap.label>карта техники</VMF_VehicleMap.label>
+
+  <VMF_AmbushSea.label>засада</VMF_AmbushSea.label>
+  <VMF_AmbushSea.description>Идёт бой в засаде.</VMF_AmbushSea.description>
+
+</LanguageData>

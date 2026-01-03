@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+
+  <MaximumPayload.label>грузоподъёмность</MaximumPayload.label>
+  <MaximumPayload.description>Максимальный вес, который может перевозить транспорт. Включая вес предметов на карте техники.</MaximumPayload.description>
+  <MaximumPayload.formatString>{0} кг</MaximumPayload.formatString>
+
+</LanguageData>

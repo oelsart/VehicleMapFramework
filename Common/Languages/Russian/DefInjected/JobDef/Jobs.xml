@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+
+  <!-- Reportstrings are automatically overwritten and do not need to be translated -->
+  <!-- (Примечание: строки reportString перезаписываются автоматически и не требуют перевода) -->
+
+  <VMF_GotoDestMap.reportString>Выполняет действие.</VMF_GotoDestMap.reportString>
+  <VMF_GotoAcrossMaps.reportString>Перемещается.</VMF_GotoAcrossMaps.reportString>
+  <VMF_BoardAcrossMaps.reportString>Входит в ЦельА.</VMF_BoardAcrossMaps.reportString>
+  <VMF_RefuelVehicleTank.reportString>Заправляет ЦельА</VMF_RefuelVehicleTank.reportString>
+
+  <!-- <JobDef>
+		<defName>VMF_RefuelVehicleTankAtomic</defName>
+		<driverClass>VehicleMapFramework.JobDriver_RefuelVehicleTankAtomic</driverClass>
+		<reportString>Refueling TargetA</reportString>
+		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
+		<casualInterruptible>false</casualInterruptible>
+	</JobDef> -->
+
+  <VMF_DeconstructVehicleSegment.reportString>Выполняет действие.</VMF_DeconstructVehicleSegment.reportString>
+  <VMF_GotoShipCombat.reportString>Перемещается.</VMF_GotoShipCombat.reportString>
+
+</LanguageData>

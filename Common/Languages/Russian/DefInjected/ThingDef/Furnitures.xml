@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+
+  <VMF_WirelessTransmitter.label>беспроводной передатчик энергии</VMF_WirelessTransmitter.label>
+  <VMF_WirelessTransmitter.description>Устройство для передачи энергии между обычной картой и картой техники. Можно установить на обычной карте.</VMF_WirelessTransmitter.description>
+
+  <VMF_WirelessReceiver.label>беспроводной приёмник энергии</VMF_WirelessReceiver.label>
+  <VMF_WirelessReceiver.description>Устройство, получающее энергию с обычной карты. Может быть установлено на карте техники и получать энергию при совмещении с передатчиком.</VMF_WirelessReceiver.description>
+
+  <VMF_Alternator.label>генератор</VMF_Alternator.label>
+  <VMF_Alternator.description>Компонент, использующий топливо транспорта для выработки электричества.</VMF_Alternator.description>
+
+  <VMF_PipeConnector.label>трубный соединитель</VMF_PipeConnector.label>
+  <VMF_PipeConnector.description>Соединение для труб между обычной картой и картой техники.\nУстанавливается на обычной карте и карте техники, соединяется при совмещении их позиций.</VMF_PipeConnector.description>
+
+  <VMF_Turret_ZiplineTurret.label>турель зиплайна</VMF_Turret_ZiplineTurret.label>
+  <VMF_Turret_ZiplineTurret.description>Турель, устанавливающая зиплайн в месте попадания. Используется для прямого доступа между транспортными средствами.</VMF_Turret_ZiplineTurret.description>
+
+  <VMF_Gun_ZiplineTurret.label>оружие турели зиплайна</VMF_Gun_ZiplineTurret.label>
+  <VMF_Gun_ZiplineTurret.description>Оружие, предназначенное для установки на турель зиплайна.</VMF_Gun_ZiplineTurret.description>
+
+  <VMF_Bullet_ZiplineTurret.label>снаряд турели зиплайна</VMF_Bullet_ZiplineTurret.label>
+  <VMF_Bullet_ZiplineTurretReturn.label>снаряд турели зиплайна</VMF_Bullet_ZiplineTurretReturn.label>
+  <VMF_ZiplineEnd.label>конец зиплайна</VMF_ZiplineEnd.label>
+
+</LanguageData>

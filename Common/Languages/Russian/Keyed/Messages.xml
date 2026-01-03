@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+
+  <VMF_ForceOnVehicle>Невозможно разместить вне карты техники.</VMF_ForceOnVehicle>
+  <VMF_ForceOnHoverVehicle>Невозможно разместить вне карты ховер-транспорта.</VMF_ForceOnHoverVehicle>
+  <VMF_ForbidOnVehicle>Невозможно разместить на карте техники.</VMF_ForbidOnVehicle>
+  <VMF_ForbidOnHumanPoweredVehicle>Невозможно разместить на карте транспорта с мускульным приводом.</VMF_ForbidOnHumanPoweredVehicle>
+  <VMF_ForceOnVehicleMapEdge>Невозможно разместить вне границы карты техники.</VMF_ForceOnVehicleMapEdge>
+  <VMF_ForceOnRelatedVehicle>Это сооружение не относится к данному транспорту.</VMF_ForceOnRelatedVehicle>
+  <VMF_ForceOnRelatedBuilding>Может быть построено только поверх связанных сооружений.</VMF_ForceOnRelatedBuilding>
+
+  <VMF_NoRoles>Нет ролей для управления этой турелью в {0}.</VMF_NoRoles>
+
+  <VMF_FailedEnterMap>Транспорту не удалось войти на карту.</VMF_FailedEnterMap>
+  <VMF_CannotSpawn>{0} не может появиться.</VMF_CannotSpawn>
+
+  <VMF_MustShotAtAnotherMap>Зиплайны должны выстреливаться на другую карту.</VMF_MustShotAtAnotherMap>
+
+  <VMF_ApplyingDynamicPatches>Применение динамических патчей</VMF_ApplyingDynamicPatches>
+  <VMF_UnpatchingDynamicPatches>Снятие динамических патчей</VMF_UnpatchingDynamicPatches>
+
+  <VMF_ContainsMapVehicle>На структуре гравикорабля есть карточный транспорт.</VMF_ContainsMapVehicle>
+  <VMF_ContainsForbidOnVehicle>{0} не может быть размещён на карте техники.</VMF_ContainsForbidOnVehicle>
+  <VMF_RectContainsImpassable>Прямоугольник транспорта содержит непроходимые клетки.</VMF_RectContainsImpassable>
+  <VMF_WheelsUnstable>Транспорт будет неустойчив. Количество рабочих колёс: {0}</VMF_WheelsUnstable>
+  <VMF_CannotSetDownDiagonal>{0} не может приземлиться под углом.</VMF_CannotSetDownDiagonal>
+  <VMF_CannotLaunchNoPilot>нет пилота</VMF_CannotLaunchNoPilot>
+
+  <VMF_GravshipVehicleDestroyed>Гравитационный транспорт уничтожен</VMF_GravshipVehicleDestroyed>
+
+  <VMF_AreaDeselect>На этой карте нет области {0}.</VMF_AreaDeselect>
+
+</LanguageData>

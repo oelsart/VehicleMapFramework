@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+
+  <VMF_VehicleMap>карта техники</VMF_VehicleMap>
+
+  <VMF_PowerTransferSetting>Настройка передачи энергии</VMF_PowerTransferSetting>
+
+  <VMF_StatsReport_MaximumPayload>Грузоподъёмность: {0}</VMF_StatsReport_MaximumPayload>
+
+  <VMF_StatsReport_HumanPowerAverage>Средний показатель силы операторов: {0}</VMF_StatsReport_HumanPowerAverage>
+
+  <VMF_LandInSpecificMap>Приблизьтесь к {0} и выберите место посадки в {1}</VMF_LandInSpecificMap>
+
+</LanguageData>

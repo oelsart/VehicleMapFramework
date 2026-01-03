@@ -1,0 +1,40 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+
+  <VMF_Ladder.label>лестница</VMF_Ladder.label>
+  <VMF_Ladder.description>Лестница для подъёма и спуска людей с транспорта. Пешки получают приоритет подъёма и спуска в месте её установки.</VMF_Ladder.description>
+  <VMF_Ladder_Blueprint.label>лестница (чертёж)</VMF_Ladder_Blueprint.label>
+  <VMF_Ladder_Blueprint_Install.label>лестница (чертёж)</VMF_Ladder_Blueprint_Install.label>
+  <VMF_Ladder_Frame.label>лестница (строение)</VMF_Ladder_Frame.label>
+  <VMF_Ladder_Frame.description>Лестница для подъёма и спуска людей с транспорта. Пешки получают приоритет подъёма и спуска в месте её установки.</VMF_Ladder_Frame.description>
+
+
+  <!-- <ThingDef ParentName="VehicleRampBase">
+		<defName>VMF_RampSmall</defName>
+		<label>ramp (1x1)</label>
+		<description>test</description>
+		<graphicData>
+			<texPath>VehicleMapFramework/Things/EnterSpot/RampSmall</texPath>
+			<drawSize>(2,1)</drawSize>
+		</graphicData>
+		<statBases>
+			<MaxHitPoints>500</MaxHitPoints>
+			<Beauty>0</Beauty>
+			<WorkToBuild>300</WorkToBuild>
+			<Mass>15</Mass>
+		</statBases>
+		<size>(1,1)</size>
+		<costList>
+			<Steel>50</Steel>
+			<ComponentIndustrial>2</ComponentIndustrial>
+		</costList>
+		<uiOrder>1010</uiOrder>
+	</ThingDef> -->
+
+  <VMF_RampMedium.label>аппарель (1x3)</VMF_RampMedium.label>
+  <VMF_RampMedium.description>Аппарель для подъёма и спуска транспорта на карту техники. Транспорт шириной до 3 клеток может подниматься и спускаться здесь.</VMF_RampMedium.description>
+
+  <VMF_RampLarge.label>аппарель (1x5)</VMF_RampLarge.label>
+  <VMF_RampLarge.description>Аппарель для подъёма и спуска транспорта на карту техники. Транспорт шириной до 5 клеток может подниматься и спускаться здесь.</VMF_RampLarge.description>
+
+</LanguageData>

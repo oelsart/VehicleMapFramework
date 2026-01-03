@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+
+  <VMF_VehicleStructureFilled.label>структура транспорта</VMF_VehicleStructureFilled.label>
+  <VMF_VehicleStructureFilled.description>Конструкция транспорта.</VMF_VehicleStructureFilled.description>
+
+  <VMF_VehicleStructureEmpty.label>структура транспорта</VMF_VehicleStructureEmpty.label>
+  <VMF_VehicleStructureEmpty.description>Конструкция транспорта.</VMF_VehicleStructureEmpty.description>
+
+</LanguageData>

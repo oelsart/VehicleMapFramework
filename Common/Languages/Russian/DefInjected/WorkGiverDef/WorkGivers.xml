@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+
+  <VMF_RefuelVehicleTank.label>заправить бак техники</VMF_RefuelVehicleTank.label>
+  <VMF_RefuelVehicleTank.verb>заправить</VMF_RefuelVehicleTank.verb>
+  <VMF_RefuelVehicleTank.gerund>заправляет</VMF_RefuelVehicleTank.gerund>
+
+  <VMF_RemoveVehicleSegment.label>удалить сегмент техники</VMF_RemoveVehicleSegment.label>
+  <VMF_RemoveVehicleSegment.verb>разобрать</VMF_RemoveVehicleSegment.verb>
+  <VMF_RemoveVehicleSegment.gerund>разбирает</VMF_RemoveVehicleSegment.gerund>
+
+</LanguageData>
