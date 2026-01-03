@@ -9,10 +9,10 @@ public class CrossMapRegionProcessorClosestThingReachable : RegionProcessorClose
 {
     private Map rootMap;
 
-    public void SetParameters(TraverseParms traverseParams, float maxDistance, IntVec3 root, bool ignoreEntirelyForbiddenRegions, ThingRequest req, PathEndMode peMode, Func<Thing, float> priorityGetter, Predicate<Thing> validator, int minRegions, float closestDistSquared = 9999999f, int regionsSeenScan = 0, float bestPrio = -3.4028235E+38f, Thing closestThing = null, bool lookInHaulSources = false, Map rootMap = null)
+    public void SetParameters(TraverseParms traverseParams, float maxDistance, IntVec3 root, bool ignoreEntirelyForbiddenRegions, ThingRequest req, PathEndMode peMode, Func<Thing, float> priorityGetter, Predicate<Thing> validator, int minRegions, float closestDistSquared = 9999999f, int _regionsSeenScan = 0, float bestPrio = -3.4028235E+38f, Thing _closestThing = null, bool lookInHaulSources = false, Map _rootMap = null)
     {
-        base.SetParameters(traverseParams, maxDistance, root, ignoreEntirelyForbiddenRegions, req, peMode, priorityGetter, validator, minRegions, closestDistSquared, regionsSeenScan, bestPrio, closestThing, lookInHaulSources);
-        this.rootMap = rootMap;
+        base.SetParameters(traverseParams, maxDistance, root, ignoreEntirelyForbiddenRegions, req, peMode, priorityGetter, validator, minRegions, closestDistSquared, _regionsSeenScan, bestPrio, _closestThing, lookInHaulSources);
+        rootMap = _rootMap;
     }
 
     public new void Clear()
