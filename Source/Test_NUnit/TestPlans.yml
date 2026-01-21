@@ -1,7 +1,7 @@
 ﻿- Name: VehicleFramework
 - Name: VanillaExpandedFramework
 - Name: VFEArchitect
-#- Name: VFESecurity
+- Name: VFESecurity
 #- Name: VFESecurity + CE
 #  Mods:
 #    - VFESecurity

@@ -527,34 +527,34 @@ internal static class ModCompat
     {
         public static readonly bool Active = IsModActive("VanillaExpanded.VFESecurity");
         
-        public static readonly AccessTools.FieldRef<object, GlobalTargetInfo> targetedTile = null;
+        public static readonly AccessTools.FieldRef<object, GlobalTargetInfo> worldTarget;
         
-        public static readonly AccessTools.FieldRef<object, int> worldTileRange = null;
-    //     
-    //     static VFESecurity()
-    //     {
-    //         if (Active)
-    //         {
-    //             try
-    //             {
-    //                 targetedTile = AccessTools.FieldRefAccess<GlobalTargetInfo>("VFESecurity.CompLongRangeArtillery:targetedTile");
-    //                 worldTileRange = AccessTools.FieldRefAccess<int>("VFESecurity.CompProperties_LongRangeArtillery:worldTileRange");
-    //             }
-    //             catch (Exception ex)
-    //             {
-    //                 LogError(ex);
-    //                 Active = false;
-    //             }
-    //             finally
-    //             {
-    //                 if (AnyNull(targetedTile, worldTileRange))
-    //                 {
-    //                     LogIncompat("VFE Security");
-    //                     Active = false;
-    //                 }
-    //             }
-    //         }
-    //     }
+        public static readonly AccessTools.FieldRef<object, int> worldMapAttackRange;
+    
+        static VFESecurity()
+        {
+            if (Active)
+            {
+                try
+                {
+                    worldTarget = AccessTools.FieldRefAccess<GlobalTargetInfo>("VFESecurity.CompWorldArtillery:worldTarget");
+                    worldMapAttackRange = AccessTools.FieldRefAccess<int>("VFESecurity.CompProperties_WorldArtillery:worldMapAttackRange");
+                }
+                catch (Exception ex)
+                {
+                    LogError(ex);
+                    Active = false;
+                }
+                finally
+                {
+                    if (AnyNull(worldTarget, worldMapAttackRange))
+                    {
+                        LogIncompat("VFE Security");
+                        Active = false;
+                    }
+                }
+            }
+        }
     }
 
     public static class VVE

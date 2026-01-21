@@ -85,7 +85,7 @@ public static class Patch_ColonistBar_CheckRecacheEntries
     {
         var list = instance.FreeColonists;
         var baseMap = map(instance).GroundMap;
-        list.RemoveAll(pawn => pawn.GroundMap != baseMap);
+        list.RemoveAll(pawn => pawn.MapHeldBaseMap() != baseMap);
         return list;
     }
 
@@ -93,7 +93,7 @@ public static class Patch_ColonistBar_CheckRecacheEntries
     {
         tmpList.Clear();
         var baseMap = map(instance).GroundMap;
-        tmpList.AddRange(instance.AllPawnsSpawned.Where(pawn => pawn.GroundMap == baseMap));
+        tmpList.AddRange(instance.AllPawnsSpawned.Where(pawn => pawn.MapHeldBaseMap() == baseMap));
         return tmpList;
     }
 }

@@ -10,18 +10,32 @@ using static VehicleMapFramework.ModCompat.VFESecurity;
 namespace VehicleMapFramework.VMF_HarmonyPatches
 {
     [HarmonyPatchCategory(PatchCategories.VFESecurity)]
-    [HarmonyPatch]
+    [HarmonyPatch("VFESecurity.CompPointDefense", "FindTarget")]
     [PatchLevel(Level.Sensitive)]
-    public static class Patch_Building_Shield_ThingsWithinRadius
+    public static class Patch_CompPointDefense_FindTarget
     {
-        private static MethodInfo TargetMethod()
-        {
-            return AccessTools.Method(AccessTools.TypeByName("VFESecurity.Building_Shield").FirstInner(t => t.Name.Contains("ThingsWithinRadius")), "MoveNext");
-        }
-
+        private static readonly List<Thing> tmpList = [];
+        
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(CachedMethodInfo.m_GetThingList, CachedMethodInfo.m_GetThingListAcrossMaps);
+            return new CodeMatcher(instructions)
+                .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Map))
+                .Set(OpCodes.Call, CachedMethodInfo.m_BaseMap_Thing)
+                .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Map))
+                .Advance()
+                .RemoveInstruction()
+                .Advance()
+                .Set(OpCodes.Call, AccessTools.Method(typeof(Patch_CompPointDefense_FindTarget), nameof(ThingsInGroup)))
+                .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Position))
+                .Set(OpCodes.Call, CachedMethodInfo.m_PositionOnBaseMap)
+                .Instructions();
+        }
+
+        private static List<Thing> ThingsInGroup(Map map, ThingRequestGroup req)
+        {
+            tmpList.Clear();
+            tmpList.AddRangeFast(map.BaseMapAndVehicleMaps().SelectMany(m => m.listerThings.ThingsInGroup(req)));
+            return tmpList;
         }
     }
 
@@ -30,103 +44,43 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
     [PatchLevel(Level.Sensitive)]
     public static class Patch_Building_Shield_ThingsWithinScanArea
     {
-        private static MethodInfo TargetMethod()
+        private static MethodBase TargetMethod()
         {
-            return AccessTools.Method(AccessTools.TypeByName("VFESecurity.Building_Shield").FirstInner(t => t.Name.Contains("ThingsWithinScanArea")), "MoveNext");
+            var type = GenTypes.GetTypeInAnyAssembly("VFESecurity.CompPointDefense", "VFESecurity");
+            return AccessTools.GetDeclaredMethods(type).First(m => m.Name.Contains("<FindTarget>"));
         }
 
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(CachedMethodInfo.m_GetThingList, CachedMethodInfo.m_GetThingListAcrossMaps);
+            return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
         }
     }
 
     [HarmonyPatchCategory(PatchCategories.VFESecurity)]
-    [HarmonyPatch("VFESecurity.Building_Shield", "AbsorbDamage")]
-    [HarmonyPatch([typeof(float), typeof(DamageDef), typeof(float)])]
-    [PatchLevel(Level.Sensitive)]
+    [HarmonyPatch("VFESecurity.CompPointDefense", "TryIntercept")]
+    [PatchLevel(Level.Cautious)]
     public static class Patch_Building_Shield_AbsorbDamage
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            var codes = instructions.ToList();
-            var last = codes.Last(c => c.opcode == OpCodes.Call && c.OperandIs(CachedMethodInfo.g_Thing_Map));
-            return codes.Manipulator(c => c.opcode == OpCodes.Call && c.OperandIs(CachedMethodInfo.g_Thing_Map) && c != last, c =>
-            {
-                c.operand = CachedMethodInfo.m_BaseMap_Thing;
-            }).MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
-        }
-    }
-
-    [HarmonyPatchCategory(PatchCategories.VFESecurity)]
-    [HarmonyPatch("VFESecurity.Building_Shield", "DrawAt")]
-    [PatchLevel(Level.Sensitive)]
-    public static class Patch_Building_Shield_DrawAt
-    {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
-        {
-            var codes = instructions.ToList();
-            var pos = codes.FindIndex(c => c.opcode == OpCodes.Stloc_1);
-            var label = generator.DefineLabel();
-            var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithMap));
-
-            codes[pos].labels.Add(label);
-            codes.InsertRange(pos,
-            [
-                CodeInstruction.LoadArgument(0),
-            new CodeInstruction(OpCodes.Ldloca_S, vehicle),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf),
-            new CodeInstruction(OpCodes.Brfalse_S, label),
-            new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ToBaseMapCoord2),
-        ]);
-            return codes;
-        }
-    }
-
-    [HarmonyPatchCategory(PatchCategories.VFESecurity)]
-    [HarmonyPatch("VFESecurity.Building_Shield", "EnergyShieldTick")]
-    [PatchLevel(Level.Sensitive)]
-    public static class Patch_Building_Shield_EnergyShieldTick
-    {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
-            var codes = instructions.ToList();
-            return codes.Select((c, i) =>
-            {
-                if (!c.OperandIs(CachedMethodInfo.g_Thing_Position) || codes[i - 1].opcode != OpCodes.Ldarg_0) return c;
-                c.opcode = OpCodes.Call;
-                c.operand = CachedMethodInfo.m_PositionOnBaseMap;
-                return c;
-            });
-        }
-    }
-
-    [HarmonyPatchCategory(PatchCategories.VFESecurity)]
-    [HarmonyPatch("VFESecurity.Building_Shield", "UpdateCache")]
-    [PatchLevel(Level.Cautious)]
-    public static class Patch_Building_Shield_UpdateCache
-    {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
             return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-                .MethodReplacer(CachedMethodInfo.g_Thing_MapHeld, CachedMethodInfo.m_MapHeldBaseMap);
+                .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
         }
     }
-
+    
     [HarmonyPatchCategory(PatchCategories.VFESecurity)]
-    [HarmonyPatch("VFESecurity.CompLongRangeArtillery", "CompTick")]
+    [HarmonyPatch("VFESecurity.CompWorldArtillery", "CompTickInterval")]
     [PatchLevel(Level.Safe)]
-    public static class Patch_CompLongRangeArtillery_CompTick
+    public static class Patch_CompWorldArtillery_CompTickInterval
     {
         public static void Postfix(ThingComp __instance)
         {
             GlobalTargetInfo target;
-            if (__instance.parent.IsOnVehicleMapOf(out var vehicle) && __instance.parent.IsHashIntervalTick(60) && (target = targetedTile(__instance)).IsValid)
+            if (__instance.parent.IsOnVehicleMapOf(out var vehicle) && (target = worldTarget(__instance)).IsValid)
             {
-                if (Find.WorldGrid.TraversalDistanceBetween(vehicle.Tile, target.Tile) < worldTileRange(__instance.props)) return;
+                if (Find.WorldGrid.TraversalDistanceBetween(vehicle.Tile, target.Tile) < worldMapAttackRange(__instance.props)) return;
 
-                targetedTile(__instance) = GlobalTargetInfo.Invalid;
+                worldTarget(__instance) = GlobalTargetInfo.Invalid;
             }
         }
     }
