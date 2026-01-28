@@ -70,7 +70,7 @@ public class CompOpacityOverlay : VehicleComp
         }
         else if (Scribe.mode == LoadSaveMode.PostLoadInit)
         { 
-            UnityThread.ExecuteOnMainThread(() =>
+            LongEventHandler.ExecuteWhenFinished(() =>
             {
                 if (Overlay?.Graphic is Graphic_VehicleOpacity graphic)
                 {

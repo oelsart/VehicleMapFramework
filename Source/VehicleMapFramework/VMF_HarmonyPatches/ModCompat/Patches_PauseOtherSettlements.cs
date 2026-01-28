@@ -16,8 +16,8 @@ internal static class Patches_PauseOtherSettlements
 }
 
 [HarmonyPatchCategory(PatchCategories.PauseOtherSettlements)]
-[HarmonyPatch("PauseOtherSettlementsSimulation.PauseOtherSettlementsSimulation", "ShouldSimulateMap")]
-public static class Patch_PauseOtherSettlementsSimulation_ShouldSimulateMap
+[HarmonyPatch("PauseOtherSettlementsSimulation.SimulationManager", "ShouldSimulateMap")]
+public static class Patch_SimulationManager_ShouldSimulateMap
 {
     public static bool Prefix(ref Map map, ref bool __result)
     {

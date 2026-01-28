@@ -17,7 +17,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\VehicleMapFramework\VehicleMapFramework.csproj" />
+    <ProjectReference Include="..\VehicleMapFramework\VehicleMapFramework.csproj">
+      <private>False</private>
+    </ProjectReference>
   </ItemGroup>
 
   <ItemGroup>
@@ -25,16 +27,16 @@
       <HintPath>..\..\..\VehicleFramework\1.6\Assemblies\DevTools.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="DevTools_SmashTools">
-      <HintPath>..\..\..\VehicleFramework\1.6\Assemblies\DevTools_SmashTools.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="DevTools_Vehicles">
-      <HintPath>..\..\..\VehicleFramework\1.6\Assemblies\DevTools_Vehicles.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="SmashTools">
       <HintPath>..\..\..\VehicleFramework\1.6\Assemblies\SmashTools.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Test_SmashTools">
+      <HintPath>..\..\..\VehicleFramework\1.6\Assemblies\Test_SmashTools.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Test_Vehicles">
+      <HintPath>..\..\..\VehicleFramework\1.6\Assemblies\Test_Vehicles.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Vehicles">
