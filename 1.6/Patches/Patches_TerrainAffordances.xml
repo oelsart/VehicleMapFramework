@@ -1,20 +1,13 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Patch>
-	<Operation Class="PatchOperationConditional">
-		<xpath>Defs/TerrainDef[tags/li="Water"]/affordances</xpath>
-		<match Class="PatchOperationAdd">
-			<xpath>Defs/TerrainDef[tags/li="Water"]/affordances</xpath>
-			<value>
+
+	<Operation Class="PatchOperationAdd">
+		<xpath>Defs/TerrainDef[tags/li="Water"]</xpath>
+		<value>
+			<affordances>
 				<li>VMF_DeepWater</li>
-			</value>
-		</match>
-		<nomatch Class="PatchOperationAdd">
-			<xpath>Defs/TerrainDef[tags/li="Water"]</xpath>
-			<value>
-				<affordances>
-					<li>VMF_DeepWater</li>
-				</affordances>
-			</value>
-		</nomatch>
+			</affordances>
+		</value>
 	</Operation>
+	
 </Patch>

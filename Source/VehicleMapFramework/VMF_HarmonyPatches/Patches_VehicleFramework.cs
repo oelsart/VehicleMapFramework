@@ -938,9 +938,7 @@ public static class Patch_FloatMenuOptionProvider_OrderVehicle_PawnGotoAction
             }
             else
             {
-                Job job = new(VMF_DefOf.VMF_GotoAcrossMaps, gotoLoc);
-                job.SetSpotsToJobAcrossMaps(vehicle, exitSpot, enterSpot);
-                job.globalTarget = new GlobalTargetInfo(gotoLoc, map);
+                Job job = new(JobDefOf.Goto, gotoLoc);
                 var baseMap = map.BaseMap();
                 var isBaseMap = map == baseMap;
                 var isOnEdge = isBaseMap && CellRect.WholeMap(baseMap).IsOnEdge(clickCell, 3);
@@ -948,12 +946,9 @@ public static class Patch_FloatMenuOptionProvider_OrderVehicle_PawnGotoAction
                 var vehicleCellsOverlapExit = isBaseMap && vehicle.InhabitedCellsProjected(clickCell, rot)
                  .NotNullAndAny(cell => cell.InBounds(baseMap) &&
                     baseMap.exitMapGrid.IsExitCell(cell));
-
-                if (exitCell || vehicleCellsOverlapExit)
-                {
-                    job.exitMapOnArrival = true;
-                }
-                else if (!baseMap.IsPlayerHome && !baseMap.exitMapGrid.MapUsesExitGrid &&
+                var exitMapOnArrival = exitCell || vehicleCellsOverlapExit;
+                job.exitMapOnArrival = exitMapOnArrival;
+                if (!exitMapOnArrival && !baseMap.IsPlayerHome && !baseMap.exitMapGrid.MapUsesExitGrid &&
                   isOnEdge &&
                   baseMap.Parent.GetComponent<FormCaravanComp>() is { } formCaravanComp &&
                   MessagesRepeatAvoider.MessageShowAllowed(
@@ -967,7 +962,22 @@ public static class Patch_FloatMenuOptionProvider_OrderVehicle_PawnGotoAction
                 jobSuccess = vehicle.jobs?.TryTakeOrderedJob(job, JobTag.Misc) ?? false;
 
                 if (jobSuccess)
-                    vehicle.vehiclePather.SetEndRotation(rot);
+                {
+                    #if DEV
+                    var pathOrderData = new PathOrderData
+                    {
+                        destination = gotoLoc,
+                        endRotation = rot,
+                        exitMapOnArrival = exitMapOnArrival
+                    };
+					vehicle.vehiclePather.OrderMoveTo(in pathOrderData);
+                    #else
+                    vehicle.jobs.TryTakeOrderedJob(job);
+                    #endif
+                    var job2 = vehicle.jobs.AllJobs()
+                        .FirstOrDefault(j => j.def == JobDefOf.Goto && j.targetA.Cell == gotoLoc);
+                    job2?.globalTarget = new GlobalTargetInfo(gotoLoc, map);
+                }
             }
         }
         if (jobSuccess)
