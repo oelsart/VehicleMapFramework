@@ -256,7 +256,7 @@ public class CompVehicleLauncherGravshipVehicle : CompVehicleLauncherWithMap, IT
                             case TargeterAction.Submit:
                                 if (result.options.NullOrEmpty())
                                 {
-                                    Trace.Fail("Finalizing results with no options to choose.");
+                                    //Trace.Fail("Finalizing results with no options to choose.");
                                     return;
                                 }
 
