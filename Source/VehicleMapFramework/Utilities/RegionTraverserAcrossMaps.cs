@@ -67,14 +67,12 @@ public static class RegionTraverserAcrossMaps
                     FinalizeSearch();
                     return;
                 }
-
+                
                 foreach (var vehicle2 in region.ListerThings.ThingsInGroup(ThingRequestGroup.Pawn).OfType<VehiclePawnWithMap>())
                 {
-                    var region2 = vehicle2.VehicleMap.regionGrid.AllRegions.FirstOrDefault(r => !r.touchesMapEdge);
-                    if (region2 != null && !open.Contains(region2) && !close.Contains(region2))
-                    {
+                    var region2 = vehicle2.VehicleMap.regionGrid.AllRegions.FirstOrDefault(r => ValidateRegion(region, r));
+                    if (region2 is not null)
                         QueueNewOpenRegion(region2);
-                    }
                 }
 
                 for (var i = 0; i < region.links.Count; i++)
@@ -83,10 +81,8 @@ public static class RegionTraverserAcrossMaps
                     for (var j = 0; j < 2; j++)
                     {
                         var region2 = regionLink.regions[j];
-                        if (region2 != null && !open.Contains(region2) && !close.Contains(region2) && (region2.type & traversableRegionTypes) != 0 && (entryCondition == null || entryCondition(region, region2)))
-                        {
+                        if (ValidateRegion(region, region2))
                             QueueNewOpenRegion(region2);
-                        }
                     }
                 }
 
@@ -95,26 +91,32 @@ public static class RegionTraverserAcrossMaps
                     if (vehicle.Spawned)
                     {
                         var baseRegion = vehicle.Position.GetRegion(vehicle.Map);
-                        if (baseRegion != null && !open.Contains(baseRegion) && !close.Contains(baseRegion))
+                        if (ValidateRegion(region, baseRegion))
                         {
                             QueueNewOpenRegion(baseRegion);
+                            continue;
                         }
                     }
-                    else
+                    foreach (var thing in ziplines.SelectMany(def => region.ListerThings.ThingsOfDef(def)))
                     {
-                        foreach (var thing in ziplines.SelectMany(def => region.ListerThings.ThingsOfDef(def)))
-                        {
-                            if (!thing.TryGetComp<CompZipline>(out var comp)) continue;
-                            var pair = comp.Pair;
-                            var region2 = pair?.Position.GetRegion(pair.Map);
-                            if (region2 != null && !open.Contains(region2) && !close.Contains(region2))
-                                QueueNewOpenRegion(region2);
-                        }
+                        if (!thing.TryGetComp<CompZipline>(out var comp)) continue;
+                        var pair = comp.Pair;
+                        var region2 = pair?.Position.GetRegion(pair.Map);
+                        if (ValidateRegion(region, region2))
+                            QueueNewOpenRegion(region2);
                     }
                 }
             }
 
             FinalizeSearch();
+            return;
+            
+            bool ValidateRegion(Region from, Region to)
+            {
+                return to != null && !open.Contains(to) && !close.Contains(to) &&
+                       (to.type & traversableRegionTypes) != 0 &&
+                       (entryCondition == null || entryCondition(from, to));
+            }
         }
     }
 
