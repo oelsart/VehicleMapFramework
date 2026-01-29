@@ -74,7 +74,11 @@ public class VehicleCaravanIncidentUtility
                 vehicle.CompNpcVehicleMap.SetParams(count);
                 var prefab = vehicle.CompNpcVehicleMap.Params.prefabDef;
                 var center = CellRect.FromLimits(IntVec3.Zero, prefab.size.ToIntVec3).CenterCell;
-                PrefabUtility.SpawnPrefab(prefab, vehicleMap, center, Rot4.North, vehicle.Faction);
+                PrefabUtility.SpawnPrefab(prefab, vehicleMap, center, Rot4.North, vehicle.Faction, onSpawned: thing =>
+                {
+                    if (thing.TryGetComp<CompPowerBattery>(out var comp))
+                        comp.SetStoredEnergyPct(1f);
+                });
             }
 
             // UpgradeBuildableをExecuteWhenFinishedで呼んでいるため
@@ -105,8 +109,9 @@ public class VehicleCaravanIncidentUtility
                             continue;
                         }
                     }
-                
-                    var pos = CellFinder.RandomSpawnCellForPawnNear(vehicleMap.Center, vehicleMap);
+
+                    var pos = CellFinderExtended.RandomSpawnCellForPawnNear(vehicleMap.Center, vehicleMap, pawn,
+                        _ => true);
                     GenSpawn.Spawn(pawn, pos, vehicleMap, Rot4.South);
                 }
             });
@@ -140,9 +145,11 @@ public class VehicleCaravanIncidentUtility
             var pathData = mapping[vehicle.VehicleDef];
             if (!pathData.VehiclePathGrid.Enabled) pathData.VehiclePathGrid.RecalculateAllPerceivedPathCosts();
             if (!pathData.VehicleRegionAndRoomUpdater.Enabled) pathData.VehicleRegionAndRoomUpdater.Init();
-            
+
+            var reachability = map.GetCachedMapComponent<VehiclePathingSystem>()[vehicle.VehicleDef].VehicleReachability;
             var pos2 = CellFinderExtended.RandomSpawnCellForPawnNear(cell, map, vehicle,
                 c => vehicle.DrivableRectOnCell(c, true, map) &&
+                     reachability.CanReachBase(c, vehicle.VehicleDef) &&
                     (playerVehicle is null || playerVehicle.CanReachVehicle(c, PathEndMode.Touch, Danger.Deadly)),
                 vehicle.VehicleDef.type == VehicleType.Sea);
             if (!pos2.IsValid)

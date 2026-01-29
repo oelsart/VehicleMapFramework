@@ -30,4 +30,12 @@ public class CompNpcVehicleMap : VehicleComp
         VMF_Log.Warning($"CompNpcVehicleMap: No mapParams found for pawnCount {pawnCount}. Using first mapParams.");
         Params = Props.mapParamsList.FirstOrDefault();
     }
+
+    public override void PostExposeData()
+    {
+        base.PostExposeData();
+        var vehicleMapParams = Params;
+        Scribe_Deep.Look(ref vehicleMapParams, "params");
+        Params = vehicleMapParams;
+    }
 }

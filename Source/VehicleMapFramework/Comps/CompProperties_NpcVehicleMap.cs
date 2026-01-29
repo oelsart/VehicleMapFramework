@@ -19,12 +19,19 @@ public class CompProperties_NpcVehicleMap : VehicleCompProperties
     
     public List<VehicleMapParams> mapParamsList;
 
-    public class VehicleMapParams
+    public class VehicleMapParams : IExposable
     {
         public IntRange pawnCountRange;
 
         public PrefabDef prefabDef;
         
         public Rot8 preferredDir;
+
+        void IExposable.ExposeData()
+        {
+            Scribe_Values.Look(ref pawnCountRange, "pawnCountRange");
+            Scribe_Defs.Look(ref prefabDef, "prefabDef");
+            Scribe_Values.Look(ref preferredDir, "preferredDir");
+        }
     }
 }

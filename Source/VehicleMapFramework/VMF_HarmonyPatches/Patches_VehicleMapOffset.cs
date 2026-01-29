@@ -86,7 +86,7 @@ public static class Patch_Pawn_DrawTracker_DrawPos
 
     public static void Postfix(Pawn ___pawn, ref Vector3 __result)
     {
-        __result.y += ___pawn.jobs?.curDriver is JobDriverBodyOffset driver ? driver.ForcedBodyOffset.y : 0f;
+        __result.y += ___pawn.jobs?.curDriver is IBodyOffsetJobDriver driver ? driver.PawnDrawPosOffset_Y : 0f;
     }
 }
 
