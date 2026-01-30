@@ -89,13 +89,11 @@ public static class AttackTargetFinderOnVehicle
             {
                 return false;
             }
-            if (searcherPawn != null)
+
+            var lord = searcherPawn?.GetLord();
+            if (lord != null && !lord.LordJob.ValidateAttackTarget(searcherPawn, thing))
             {
-                var lord = searcherPawn.GetLord();
-                if (lord != null && !lord.LordJob.ValidateAttackTarget(searcherPawn, thing))
-                {
-                    return false;
-                }
+                return false;
             }
             if ((flags & TargetScanFlags.NeedNotUnderThickRoof) != TargetScanFlags.None)
             {

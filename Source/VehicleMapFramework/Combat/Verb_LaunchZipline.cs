@@ -14,7 +14,8 @@ public class Verb_LaunchZipline : Verb_Shoot
         var map = caster.TargetMap ?? caster.Map;
         if (caster.Map == map)
         {
-            Messages.Message("VMF_MustShotAtAnotherMap".Translate(), MessageTypeDefOf.RejectInput, false);
+            if (showMessages)
+                Messages.Message("VMF_MustShotAtAnotherMap".Translate(), MessageTypeDefOf.RejectInput, false);
             return false;
         }
         return base.ValidateTarget(target, showMessages) && target.Cell.Standable(map);

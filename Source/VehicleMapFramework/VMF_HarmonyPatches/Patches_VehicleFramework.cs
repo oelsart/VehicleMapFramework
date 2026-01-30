@@ -262,6 +262,43 @@ public static class Patch_TargetingHelper_TargetMeetsRequirements2
 }
 
 [HarmonyPatchCategory(PatchCategories.VehicleFramework)]
+[HarmonyPatch(typeof(TurretShotReport), nameof(TurretShotReport.HitReportFor))]
+[PatchLevel(Level.Sensitive)]
+public static class Patch_TurretShotReport_HitReportFor
+{
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+    {
+        var g_Thing = AccessTools.PropertyGetter(typeof(LocalTargetInfo), nameof(LocalTargetInfo.Thing));
+        return new CodeMatcher(instructions, generator).Reset()
+            .DeclareLocal(typeof(Thing), out var targetThing)
+            .DeclareLocal(typeof(Map), out var targetMap)
+            .CreateLabel(out var label)
+            .DefineLabel(out var label2)
+            .Insert(
+                CodeInstruction.LoadArgument(2, true),
+                new CodeInstruction(OpCodes.Call, g_Thing),
+                new CodeInstruction(OpCodes.Stloc_S, targetThing),
+                new CodeInstruction(OpCodes.Ldloc_S, targetThing),
+                new CodeInstruction(OpCodes.Brfalse_S, label),
+                new CodeInstruction(OpCodes.Ldloc_S, targetThing),
+                new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_Thing_Map),
+                new CodeInstruction(OpCodes.Br_S, label2),
+                CodeInstruction.LoadArgument(0).WithLabels(label),
+                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMap_Thing),
+                new CodeInstruction(OpCodes.Stloc_S, targetMap).WithLabels(label2))
+            .MatchStartForward(
+                new CodeMatch(OpCodes.Ldloc_0),
+                CodeMatch.Calls(AccessTools.Method(typeof(CoverUtility), nameof(CoverUtility.CalculateCoverGiverSet))))
+            .Set(OpCodes.Ldloc_S, targetMap)
+            .InstructionEnumeration()
+            .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
+            .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap)
+            .MethodReplacer(AccessTools.Method(typeof(GridsUtility), nameof(GridsUtility.Roofed)),
+                AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.RoofedAcrossMaps)));
+    }
+}
+
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(VehicleTurret), nameof(VehicleTurret.InRange))]
 [PatchLevel(Level.Cautious)]
 public static class Patch_VehicleTurret_InRange
