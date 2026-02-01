@@ -12,13 +12,7 @@ public class JobGiver_PirateShip : JobGiver_CombatFormation
 
     protected override bool TryFindCombatPosition(VehiclePawn vehicle, out IntVec3 dest)
     {
-        if (CombatPositionUtility.TryFindShipCombatPosition(vehicle, out dest, out var endRot) && endRot.IsValid)
-        {
-            vehicle.vehiclePather.SetEndRotation(endRot);
-            return true;
-        }
-
-        return false;
+        return CombatPositionUtility.TryFindShipCombatPosition(vehicle, out dest, out _);
     }
     
     protected override void UpdateEnemyTarget(VehiclePawn vehicle)

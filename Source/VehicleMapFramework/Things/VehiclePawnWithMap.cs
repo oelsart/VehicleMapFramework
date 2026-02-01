@@ -31,7 +31,7 @@ public class VehiclePawnWithMap : VehiclePawn
 
     private bool allowExit = true;
 
-    public bool structureCellsDirty;
+    public bool impassableCellsDirty;
 
     public bool mapEdgeCellsDirty;
 
@@ -87,15 +87,33 @@ public class VehiclePawnWithMap : VehiclePawn
     [UsedImplicitly]
     public bool AllowExit => allowExit;
 
-    public HashSet<IntVec3> CachedStructureCells
+    public HashSet<IntVec3> CachedImpassableCells
     {
         get
         {
-            if (field != null && !structureCellsDirty) return field;
-            structureCellsDirty = false;
+            if (field != null && !impassableCellsDirty) return field;
+            impassableCellsDirty = false;
             field = [.. interiorMap.listerThings.ThingsOfDef(VMF_DefOf.VMF_VehicleStructureFilled)
                 .Select(b => b.Position)
                 .Concat(interiorMap.AllCells.Where(c => c.GetTerrain(interiorMap) == VMF_DefOf.VMF_ImpassableFloor))];
+            return field;
+        }
+    }
+
+    public HashSet<IntVec3> CachedEmptyStructureCells
+    {
+        get
+        {
+            if (field is not null) return field;
+            var props = VehicleDef.GetModExtension<VehicleMapProps>();
+            if (props != null)
+            {
+                field = [.. props.EmptyStructureCells.Select(c => c.ToIntVec3)];
+            }
+            else
+            {
+                field = [];
+            }
             return field;
         }
     }
@@ -105,7 +123,6 @@ public class VehiclePawnWithMap : VehiclePawn
         get
         {
             if (field != null) return field;
-            field = [];
             var props = VehicleDef.GetModExtension<VehicleMapProps>();
             if (props != null)
             {
@@ -148,7 +165,7 @@ public class VehiclePawnWithMap : VehiclePawn
             {
                 var facingInside = c.DirectionToInsideMap(this).FacingCell;
                 var c2 = c;
-                while (CachedOutOfBoundsCells.Contains(c2) || (CachedExpandableCells.Contains(c2) && CachedStructureCells.Contains(c2)))
+                while (CachedOutOfBoundsCells.Contains(c2) || (CachedExpandableCells.Contains(c2) && CachedImpassableCells.Contains(c2)))
                 {
                     c2 += facingInside;
                 }
@@ -481,15 +498,25 @@ public class VehiclePawnWithMap : VehiclePawn
 
     public override void Destroy(DestroyMode mode = DestroyMode.Vanish)
     {
+        var map = Map;
         if (Spawned)
         {
             DisembarkAll();
         }
+
+        if (interiorMap is null)
+        {
+            base.Destroy(mode);
+            return;
+        }
+        
         StringBuilder stringBuilder = new();
         var flag = false;
-        foreach (var thing in interiorMap.listerThings.AllThings.Where(t => t.def.drawerType != DrawerType.None).ToArray())
+        var allThings = interiorMap.listerThings.AllThings;
+        for (var i = allThings.Count - 1; i >= 0; i--)
         {
-            if (mode != DestroyMode.Vanish)
+            var thing = allThings.ElementAtOrDefault(i);
+            if (mode != DestroyMode.Vanish && thing is { Destroyed: false })
             {
                 var positionOnBaseMap = thing.PositionOnBaseMap;
                 if (thing.def.category == ThingCategory.Building)
@@ -501,10 +528,17 @@ public class VehiclePawnWithMap : VehiclePawn
                         allowDestroyNonDestroyable = false;
                     }
                     else thing.Destroy();
-                    thing.Position = positionOnBaseMap;
-                    GenLeaving.DoLeavingsFor(thing, Map, DestroyMode.Deconstruct);
+
+                    if (positionOnBaseMap.Walkable(map) &&
+                        positionOnBaseMap.GetItemCount(map) < positionOnBaseMap.GetMaxItemsAllowedInCell(map))
+                    {
+                        var pos = thing.Position;
+                        thing.Position = positionOnBaseMap;
+                        GenLeaving.DoLeavingsFor(thing, map, DestroyMode.Deconstruct);
+                        thing.Position = pos;
+                    }
                 }
-                else if (thing.Isnt<Explosion>())
+                else if (thing is not Explosion or Projectile)
                 {
                     thing.DeSpawn();
                     var terrain = positionOnBaseMap.GetTerrain(Map);
@@ -514,9 +548,9 @@ public class VehiclePawnWithMap : VehiclePawn
                         flag = true;
                         stringBuilder.AppendLine(pawn.LabelCap);
                     }
-                    if (!GenPlace.TryPlaceThing(thing, positionOnBaseMap, Map, ThingPlaceMode.Near))
+                    if (!GenPlace.TryPlaceThing(thing, positionOnBaseMap, map, ThingPlaceMode.Near))
                     {
-                        CellFinder.TryFindRandomCellNear(positionOnBaseMap, Map, 50, c => GenPlace.TryPlaceThing(thing, c, Map, ThingPlaceMode.Near), out _);
+                        CellFinder.TryFindRandomCellNear(positionOnBaseMap, map, 50, c => GenPlace.TryPlaceThing(thing, c, Map, ThingPlaceMode.Near), out _);
                     }
                 }
             }
@@ -875,7 +909,7 @@ public class VehiclePawnWithMap : VehiclePawn
             Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
 
             s = Vector3.one;
-            IEnumerable<IntVec3> cells = CachedStructureCells;
+            IEnumerable<IntVec3> cells = CachedImpassableCells;
             if (Find.DesignatorManager.SelectedDesignator is Designator_Build { PlacingDef: ThingDef thingDef } &&
                 thingDef.HasComp<CompMapExpander>())
             {

@@ -40,11 +40,19 @@ public class IncidentWorker_Ambush_EnemyMapVehicle : IncidentWorker_AmbushMapVeh
     {
         var raiderModExtension = parms.faction.def.GetModExtension<VehicleRaiderDefModExtension>();
         var vehicleBudget = (raiderModExtension?.pointMultiplier ?? 1f) * parms.points / 2f;
-        if (vehicleBudget <= 0f) return [];
+        if (vehicleBudget <= 0f)
+        {
+            VMF_Log.DebugWarning("vehicleBudget <= 0f");
+            return [];
+        }
         
         var budgetSpent = 0f;
         var vehicleCount = Mathf.FloorToInt(VehicleCountByPointsCurve.Evaluate(parms.points));
-        if (vehicleCount <= 0) return [];
+        if (vehicleCount <= 0)
+        {
+            VMF_Log.DebugWarning("vehicleCount <= 0");
+            return [];
+        }
         
         var category = RaidInjectionHelper.GetResolvedCategory(parms);
         var availableDefs = DefDatabase<VehicleDef>.AllDefsListForReading
@@ -81,7 +89,10 @@ public class IncidentWorker_Ambush_EnemyMapVehicle : IncidentWorker_AmbushMapVeh
 
     protected override LordJob CreateLordJob(List<Pawn> generatedPawns, IncidentParms parms)
     {
-        return new LordJob_AssaultColony(parms.faction, true, false);
+        return new LordJob_AssaultColony(parms.faction,
+            canTimeoutOrFlee: false,
+            useAvoidGridSmart: true,
+            canPickUpOpportunisticWeapons: true);
     }
 
     protected override LordJob CreateLordJob(List<VehiclePawnWithMap> generatedVehicles, IncidentParms parms)

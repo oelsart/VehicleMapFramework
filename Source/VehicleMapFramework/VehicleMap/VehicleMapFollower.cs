@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using SmashTools;
 using UnityEngine;
 using Vehicles;
@@ -62,6 +63,8 @@ public class VehicleMapFollower(VehiclePawnWithMap vehicle)
         {
             component.Register(c, vehicle);
         }
+
+        component.OccupiedCells[vehicle] = tmpOccupiedCells;
     }
 
     public void DeRegisterVehicle()
@@ -69,8 +72,15 @@ public class VehicleMapFollower(VehiclePawnWithMap vehicle)
         var component = MapComponentCache<VehicleMapGrid>.GetComponent(vehicle.Map);
         foreach (var c in prevOccupiedCells)
         {
-            component.DeRegister(c, vehicle);
+            var vehicle2 = component.OccupiedCells
+                .FirstOrDefault(pair => pair.Value.Contains(c) && pair.Key != vehicle).Key;
+            if (vehicle2 is not null)
+                component.Register(c, vehicle2);
+            else
+                component.DeRegister(c);
         }
+        
+        component.OccupiedCells.Remove(vehicle);
     }
 
     private void UpdatePositionAndRotation()
@@ -85,9 +95,17 @@ public class VehicleMapFollower(VehiclePawnWithMap vehicle)
         foreach (var c in prevOccupiedCells)
         {
             if (!tmpOccupiedCells.Contains(c))
-                component.DeRegister(c, vehicle);
+            {
+                var vehicle2 = component.OccupiedCells
+                    .FirstOrDefault(pair => pair.Value.Contains(c) && pair.Key != vehicle).Key;
+                if (vehicle2 is not null)
+                    component.Register(c, vehicle2);
+                else
+                    component.DeRegister(c);
+            }
         }
         (prevOccupiedCells, tmpOccupiedCells) = (tmpOccupiedCells, prevOccupiedCells);
+        component.OccupiedCells[vehicle] = prevOccupiedCells;
     }
 
     private void CalculateMapCells()
@@ -100,13 +118,13 @@ public class VehicleMapFollower(VehiclePawnWithMap vehicle)
         var c4 = new IntVec3(mapSize.x - 1, 0, mapSize.z - 1).ToBaseMapCoord(vehicle);
         var cellRect = CellRect.FromLimits(Mathf.Min(c1.x, c2.x, c3.x, c4.x), Mathf.Min(c1.z, c2.z, c3.z, c4.z), Mathf.Max(c1.x, c2.x, c3.x, c4.x), Mathf.Max(c1.z, c2.z, c3.z, c4.z));
         
-        Span<IntVec3> adjBuffer = stackalloc IntVec3[4];
+        Span<IntVec3> adjBuffer = stackalloc IntVec3[5];
         var map = vehicle.Map;
         foreach (var cell in cellRect)
         {
             if (cell.ToVector3Shifted().TryGetVehicleMap(map, vehicle))
             {
-                var adjCount = cell.AdjacentCellsCardinalNonAlloc(map, adjBuffer);
+                var adjCount = cell.AdjacentCellsInsideCardinalNonAlloc(map, adjBuffer);
                 for (var i = 0; i < adjCount; i++)
                 {
                     tmpOccupiedCells.Add(adjBuffer[i]);

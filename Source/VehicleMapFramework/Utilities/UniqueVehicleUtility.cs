@@ -31,12 +31,16 @@ public static class UniqueVehicleUtility
         {
             return null;
         }
+        var defName = $"{Find.World.info.name}_{vehicle.ThingID}_Unique";
+        var def = DefDatabase<VehicleDef>.GetNamedSilentFail(defName);
+        if (def is not null) return def;
+        
         var props = new VehicleMapProps_Unique();
         foreach (var field in typeof(VehicleMapProps_Unique).GetFields())
         {
             if (!field.IsLiteral) field.SetValue(props, field.GetValue(baseProps));
         }
-        props.defName = $"{Find.World.info.name}_{vehicle.ThingID}_Unique";
+        props.defName = defName;
         props.baseDef = vehicle.VehicleDef;
         return GenerateUniqueVehicleDef(props);
     }

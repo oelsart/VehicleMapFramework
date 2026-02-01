@@ -386,19 +386,18 @@ public static class VehicleMapUtility
                 {
                     return false;
                 }
-                if (!v.CachedStructureCells.Contains(intVec))
-                {
+                
+                if (!v.CachedImpassableCells.Contains(intVec))
                     return true;
-                }
-                if ((flag & VehicleMapFlag.StructureCells) > 0 && !v.CachedExpandableCells.Contains(intVec) && !v.CachedOutOfBoundsCells.Contains(intVec))
-                {
+                var cachedEmptyStructureCellsContains = v.CachedEmptyStructureCells.Contains(intVec);
+                var cachedExpandableCellsContains = v.CachedExpandableCells.Contains(intVec);
+                var cachedOutOfBoundsCellsContains = v.CachedOutOfBoundsCells.Contains(intVec);
+                if ((flag & VehicleMapFlag.StructureCells) > 0 && !cachedEmptyStructureCellsContains &&
+                    !cachedExpandableCellsContains && !cachedOutOfBoundsCellsContains)
                     return true;
-                }
-                if ((flag & VehicleMapFlag.ExpandableCells) > 0 && v.CachedExpandableCells.Contains(intVec))
-                {
+                if ((flag & VehicleMapFlag.ExpandableCells) > 0 && cachedExpandableCellsContains)
                     return true;
-                }
-                return (flag & VehicleMapFlag.OutOfBoundsCells) > 0 && v.CachedOutOfBoundsCells.Contains(intVec);
+                return (flag & VehicleMapFlag.OutOfBoundsCells) > 0 && cachedOutOfBoundsCellsContains;
             });
             return vehicle != null;
         }
@@ -413,19 +412,18 @@ public static class VehicleMapUtility
             {
                 return false;
             }
-            if (!vehicle.CachedStructureCells.Contains(intVec))
-            {
+
+            if (!vehicle.CachedImpassableCells.Contains(intVec))
                 return true;
-            }
-            if ((flag & VehicleMapFlag.StructureCells) > 0 && !vehicle.CachedExpandableCells.Contains(intVec) && !vehicle.CachedOutOfBoundsCells.Contains(intVec))
-            {
+            var cachedEmptyStructureCellsContains = vehicle.CachedEmptyStructureCells.Contains(intVec);
+            var cachedExpandableCellsContains = vehicle.CachedExpandableCells.Contains(intVec);
+            var cachedOutOfBoundsCellsContains = vehicle.CachedOutOfBoundsCells.Contains(intVec);
+            if ((flag & VehicleMapFlag.StructureCells) > 0 && !cachedEmptyStructureCellsContains &&
+                !cachedExpandableCellsContains && !cachedOutOfBoundsCellsContains)
                 return true;
-            }
-            if ((flag & VehicleMapFlag.ExpandableCells) > 0 && vehicle.CachedExpandableCells.Contains(intVec))
-            {
+            if ((flag & VehicleMapFlag.ExpandableCells) > 0 && cachedExpandableCellsContains)
                 return true;
-            }
-            return (flag & VehicleMapFlag.OutOfBoundsCells) > 0 && vehicle.CachedOutOfBoundsCells.Contains(intVec);
+            return (flag & VehicleMapFlag.OutOfBoundsCells) > 0 && cachedOutOfBoundsCellsContains;
         }
 
         public Vector3 ToThingBaseMapCoord(Thing thing)

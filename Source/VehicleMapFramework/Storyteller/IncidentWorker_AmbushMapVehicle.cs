@@ -43,7 +43,11 @@ public abstract class IncidentWorker_AmbushMapVehicle : IncidentWorker
 
     private static void CleanUpGeneratedVehicles(List<VehiclePawnWithMap> generatedVehicles)
     {
-        generatedVehicles.ForEach(v => v.Destroy());
+        foreach (var vehicle in generatedVehicles)
+        {
+            if (!vehicle.Destroyed)
+                vehicle.Destroy();
+        }
     }
     
     protected override bool TryExecuteWorker(IncidentParms parms)
@@ -115,7 +119,8 @@ public abstract class IncidentWorker_AmbushMapVehicle : IncidentWorker
             flag = true;
         }
         else return false;
-        
+
+        if (map is null) return false;
         
         PostProcessGeneratedPawnsAfterSpawning(generatedEnemies);
         PostProcessGeneratedVehiclesAfterSpawning(generatedVehicles);

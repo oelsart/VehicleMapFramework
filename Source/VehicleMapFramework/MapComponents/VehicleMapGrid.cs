@@ -1,9 +1,14 @@
-﻿using Verse;
+﻿using System.Collections.Generic;
+using Verse;
 
 namespace VehicleMapFramework;
 
 public class VehicleMapGrid(Map map) : MapComponent(map)
 {
+    public Dictionary<VehiclePawnWithMap, HashSet<IntVec3>> OccupiedCells { get; } = new();
+
+    private readonly VehiclePawnWithMap[] vehicleGrid = new VehiclePawnWithMap[map.cellIndices.NumGridCells];
+    
     public VehiclePawnWithMap VehicleAt(IntVec3 c)
     {
         return vehicleGrid[map.cellIndices.CellToIndex(c)];
@@ -20,13 +25,10 @@ public class VehicleMapGrid(Map map) : MapComponent(map)
         vehicleGrid[index] ??= vehicle;
     }
 
-    public void DeRegister(IntVec3 c, VehiclePawnWithMap vehicle)
+    public void DeRegister(IntVec3 c)
     {
         var index = map.cellIndices.CellToIndex(c);
-        if (vehicleGrid[index] == vehicle)
-        {
-            vehicleGrid[index] = null;
-        }
+        vehicleGrid[index] = null;
     }
 
     public override void MapComponentUpdate()
@@ -47,6 +49,4 @@ public class VehicleMapGrid(Map map) : MapComponent(map)
             }
         }
     }
-
-    private readonly VehiclePawnWithMap[] vehicleGrid = new VehiclePawnWithMap[map.cellIndices.NumGridCells];
 }

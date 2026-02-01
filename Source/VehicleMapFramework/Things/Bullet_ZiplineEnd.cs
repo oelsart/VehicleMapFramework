@@ -18,7 +18,40 @@ public class Bullet_ZiplineEnd : Bullet_ZiplineBase
 
     protected override void TickInterval(int delta)
     {
-        base.TickInterval(delta);
+        if (AllComps != null)
+        {
+            var i = 0;
+            var count = AllComps.Count;
+            while (i < count)
+            {
+                AllComps[i].CompTickInterval(delta);
+                i++;
+            }
+        }
+        lifetime -= delta;
+        if (landed) return;
+        
+        var exactPosition = ExactPosition;
+        ticksToImpact -= delta;
+        if (!exactPosition.InBounds(Map))
+        {
+            ticksToImpact += delta;
+            Position = exactPosition.ToIntVec3();
+            Destroy();
+            return;
+        }
+        Position = exactPosition.ToIntVec3();
+        if (ticksToImpact <= 0)
+        {
+            var destinationCell = DestinationCell;
+            if (destinationCell.InBounds(Map))
+            {
+                Position = destinationCell;
+            }
+            ImpactSomething();
+            return;
+        }
+        
         destination = destMap != null ? intendedTarget.Cell.ToVector3Shifted().ToBaseMapCoord(destMap) : intendedTarget.Cell.ToVector3Shifted();
     }
 

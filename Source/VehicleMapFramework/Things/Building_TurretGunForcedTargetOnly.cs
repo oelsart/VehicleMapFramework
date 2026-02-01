@@ -17,6 +17,10 @@ public class Building_TurretGunForcedTargetOnly : Building_TurretGun
         canSetForcedTargetThisTick = true;
         base.Tick();
         canSetForcedTargetThisTick = false;
+        if (Faction != Faction.OfPlayer)
+        {
+            TryActivateBurst();
+        }
         if (!currentTargetInt.IsValid && forcedTarget.IsValid)
         {
             currentTargetInt = forcedTarget;

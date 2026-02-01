@@ -28,7 +28,8 @@ public class VehicleCaravanIncidentUtility
             if (first is null) return null;
             var num = CalculateIncidentMapSize(caravan.VehiclesListForReading, vehicles);
             var map = CaravanIncidentUtility.GetOrGenerateMapForIncident(caravan, new IntVec3(num, 1, num), mapParent);
-
+            if (map is null) return null;
+            
             // キャラバンスポーン
             EnterMapUtilityVehicles.EnterMap(caravan, map,
                 new EnterMapUtilityVehicles.SpawnParams(CaravanEnterMode.Edge)
@@ -66,20 +67,25 @@ public class VehicleCaravanIncidentUtility
         for (var i = 0; i < vehicles.Count; i++)
         {
             var vehicle = vehicles[i];
-            if (!SpawnVehicle(vehicle)) continue;
-            var vehicleMap = vehicle.VehicleMap;
             var count = pawnCounts[i];
+            var vehicleMap = vehicle.VehicleMap;
             if (vehicle.CompNpcVehicleMap != null)
             {
                 vehicle.CompNpcVehicleMap.SetParams(count);
                 var prefab = vehicle.CompNpcVehicleMap.Params.prefabDef;
-                var center = CellRect.FromLimits(IntVec3.Zero, prefab.size.ToIntVec3).CenterCell;
-                PrefabUtility.SpawnPrefab(prefab, vehicleMap, center, Rot4.North, vehicle.Faction, onSpawned: thing =>
+                // MapExpanderによってサイズが変わる車両用に先にPrefabをスポーンさせる
+                PrefabUtility.SpawnPrefab(prefab, vehicleMap, vehicleMap.Center, Rot4.North, vehicle.Faction, onSpawned: thing =>
                 {
-                    if (thing.TryGetComp<CompPowerBattery>(out var comp))
-                        comp.SetStoredEnergyPct(1f);
+                    if (thing is ThingWithComps thingWithComps)
+                    {
+                        if (thingWithComps.TryGetComp<CompPowerBattery>(out var comp))
+                            comp.SetStoredEnergyPct(1f);
+                        if (thingWithComps.TryGetComp<CompDrawAdditionalGraphicsOpacity>(out var comp2))
+                            comp2.Opacity = 0.5f;
+                    }
                 });
             }
+            if (!SpawnVehicle(vehicle)) continue;
 
             // UpgradeBuildableをExecuteWhenFinishedで呼んでいるため
             LongEventHandler.ExecuteWhenFinished(() =>
@@ -140,6 +146,7 @@ public class VehicleCaravanIncidentUtility
 
         bool SpawnVehicle(VehiclePawnWithMap vehicle)
         {
+            Log.Message($"Spawn vehicle: {vehicle}");
             var cell = CellFinder.RandomEdgeCell(edge, map);
             vehicle.Rotation = opposite;
             var pathData = mapping[vehicle.VehicleDef];
@@ -158,7 +165,8 @@ public class VehicleCaravanIncidentUtility
                 vehicle.Destroy();
                 return false;
             }
-            return GenSpawn.Spawn(vehicle, pos2, map, opposite) != null;
+            var result = GenSpawn.Spawn(vehicle, pos2, map, opposite) != null;
+            return result;
         }
     }
 }

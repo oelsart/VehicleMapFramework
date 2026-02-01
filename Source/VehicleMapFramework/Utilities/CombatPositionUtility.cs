@@ -2,6 +2,7 @@
 using UnityEngine;
 using Vehicles;
 using Verse;
+using Verse.AI;
 
 namespace VehicleMapFramework;
 
@@ -10,6 +11,7 @@ public static class CombatPositionUtility
     public static bool TryFindShipCombatPosition(VehiclePawn vehicle, out IntVec3 dest, out Rot8 endRot)
     {
         endRot = Rot8.Invalid;
+        dest = vehicle.Position;
         var target = vehicle.mindState.enemyTarget;
         if (target is null)
         {
@@ -17,19 +19,31 @@ public static class CombatPositionUtility
             return false;
         }
         var radius = Mathf.Max(target.def.Size.x, target.def.Size.z) * 2;
-        if (!PathingHelper.TryFindNearestStandableCell(vehicle, target.Position, out dest, radius))
-            return false;
-
-        if (vehicle is VehiclePawnWithMap { CompNpcVehicleMap: { } compNpcVehicleMap })
+        var offset = vehicle is VehiclePawnWithMap { CompNpcVehicleMap.Params.preferredDir.IsVertical: true }
+            ? vehicle.VehicleDef.Size.z
+            : vehicle.VehicleDef.Size.x;
+        var collisionRect = target.OccupiedRect().ExpandedBy(offset / 2 + 1);
+        var root = target.Position + Rot8.FromAngle((vehicle.Position - target.Position).AngleFlat).FacingCell *
+            Mathf.Min(target.def.Size.x, target.def.Size.z) / 2;
+        var num = GenRadial.NumCellsInRadius(radius);
+        for (var i = 0; i < num; i++)
         {
-            var dir = compNpcVehicleMap.Params.preferredDir;
-            var angle = (dest - target.PositionOnBaseMap).AngleFlat;
-            var rot = Rot8.FromAngle(angle);
-            endRot = new Rot8(Rot8.FromIntClockwise((rot.AsIntClockwise + dir.AsIntClockwise) % 8));
-            var dest2 = dest + rot.FacingCell;
-            if (vehicle.DrivableRectOnCell(dest2, Ext_Vehicles.DestinationHitboxReq.AnyRotation))
-                dest = dest2;
+            var intVec = GenRadial.RadialPattern[i] + root;
+            if (collisionRect.Contains(intVec)) continue;
+            if (vehicle.CanReachVehicle(intVec, PathEndMode.OnCell, Danger.Deadly))
+            {
+                if (vehicle is VehiclePawnWithMap { CompNpcVehicleMap: { } compNpcVehicleMap })
+                {
+                    var dir = compNpcVehicleMap.Params.preferredDir;
+                    var angle = (intVec - target.PositionOnBaseMap).AngleFlat;
+                    var rot2 = Rot8.FromAngle(angle);
+                    endRot = new Rot8(Rot8.FromIntClockwise((rot2.AsIntClockwise + dir.AsIntClockwise) % 8));
+                }
+
+                return PathingHelper.TryFindNearestStandableCell(vehicle, intVec, out dest);
+            }
         }
-        return true;
+
+        return false;
     }
 }

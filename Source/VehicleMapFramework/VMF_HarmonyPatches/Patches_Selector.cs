@@ -130,6 +130,16 @@ public static class Patch_CameraJumper_TryJumpInternal
     }
 }
 
+[HarmonyPatch(typeof(CameraJumper), "TrySelectInternal", typeof(Thing))]
+[PatchLevel(Level.Cautious)]
+public static class Patch_CameraJumper_TrySelectInternal
+{
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
+    }
+}
+
 [HarmonyPatch(typeof(Game), nameof(Game.CurrentMap), MethodType.Setter)]
 [PatchLevel(Level.Safe)]
 public static class Patch_Game_CurrentMap

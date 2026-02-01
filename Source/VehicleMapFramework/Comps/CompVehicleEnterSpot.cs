@@ -16,7 +16,7 @@ public class CompVehicleEnterSpot : ThingComp
             }
             var opposite = parent.Position + parent.Rotation.Opposite.AsIntVec3;
             return vehicle.CachedOutOfBoundsCells.Contains(opposite) ||
-                   vehicle.CachedExpandableCells.Contains(opposite) && vehicle.CachedStructureCells.Contains(opposite);
+                   vehicle.CachedExpandableCells.Contains(opposite) && vehicle.CachedImpassableCells.Contains(opposite);
         }
      }
 

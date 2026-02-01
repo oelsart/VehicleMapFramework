@@ -15,6 +15,11 @@ public class CompDrawAdditionalGraphicsOpacity : CompDrawAdditionalGraphics
     private MaterialPropertyBlock propertyBlock;
     
     public List<ThingWithComps> children = [];
+
+    public float Opacity
+    {
+        set => opacity = value;
+    }
     
     private CompProperties_DrawAdditionalGraphics Props => (CompProperties_DrawAdditionalGraphics)this.props;
     
