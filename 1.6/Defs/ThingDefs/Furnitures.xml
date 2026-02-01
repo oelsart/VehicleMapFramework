@@ -325,8 +325,8 @@
 		<defName>VMF_ZiplineEnd</defName>
 		<label>zipline end</label>
 		<thingClass>VehicleMapFramework.ZiplineEnd</thingClass>
-		<category>Attachment</category>
-		<drawerType>MapMeshAndRealTime</drawerType>
+		<category>Building</category>
+		<drawerType>RealtimeOnly</drawerType>
 		<graphicData>
 			<graphicClass>Graphic_Single</graphicClass>
 			<texPath>VehicleMapFramework/Things/ZiplineTurret/ZiplineEnd</texPath>
@@ -334,6 +334,9 @@
 		<statBases>
 			<Mass>0.1</Mass>
 		</statBases>
+		<building>
+			<isEdifice>false</isEdifice>
+		</building>
 		<comps>
 			<li Class="VehicleMapFramework.CompProperties_Zipline"/>
 		</comps>

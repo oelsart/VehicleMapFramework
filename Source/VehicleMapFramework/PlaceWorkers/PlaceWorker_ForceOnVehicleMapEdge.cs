@@ -17,7 +17,7 @@ public class PlaceWorker_ForceOnVehicleMapEdge : PlaceWorker
             .Any(facingCell =>
                 !vehicle.CachedOutOfBoundsCells.Contains(facingCell) &&
                 (!vehicle.CachedExpandableCells.Contains(facingCell) ||
-                 !vehicle.CachedStructureCells.Contains(facingCell))))
+                 !vehicle.CachedImpassableCells.Contains(facingCell))))
         {
             return "VMF_ForceOnVehicleMapEdge".Translate();
         }

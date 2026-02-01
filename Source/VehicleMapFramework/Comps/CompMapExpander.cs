@@ -133,7 +133,7 @@ public class CompMapExpander : ThingComp
                 parent.Map.terrainGrid.SetTerrain(c, VMF_DefOf.VMF_VehicleFloor);
             vehicle.MapExpanderComps.Add(this);
             DirtySelfAndAdjacentComps(parent.Map);
-            vehicle.structureCellsDirty = true;
+            vehicle.impassableCellsDirty = true;
             ResizeVehicle(vehicle);
         }
     }
@@ -169,7 +169,7 @@ public class CompMapExpander : ThingComp
                 vehicle.MapExpanderComps.ForEach(c => c.cachedIsOnlyBridge = null);
             }
             DirtySelfAndAdjacentComps(map);
-            vehicle.structureCellsDirty = true;
+            vehicle.impassableCellsDirty = true;
             ResizeVehicle(vehicle);
         }
     }
@@ -202,7 +202,7 @@ public class CompMapExpander : ThingComp
         }
         var curSize = vehicle.def.size;
         var mapRect = CellRect.WholeMap(vehicle.VehicleMap);
-        var newRect = CellRect.FromCellList(mapRect.Except(vehicle.CachedStructureCells));
+        var newRect = CellRect.FromCellList(mapRect.Except(vehicle.CachedImpassableCells));
         var newSize = newRect.Size;
         if (curSize != newSize)
         {

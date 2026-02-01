@@ -23,7 +23,7 @@ public class VehicleStructure : Building
         if (!this.IsOnVehicleMapOf(out var vehicle)) return;
         
         vehicle.mapEdgeCellsDirty = true;
-        vehicle.structureCellsDirty = true;
+        vehicle.impassableCellsDirty = true;
         BackwardCompatibility();
     }
 
@@ -32,7 +32,7 @@ public class VehicleStructure : Building
         if (this.IsOnVehicleMapOf(out var vehicle))
         {
             vehicle.mapEdgeCellsDirty = true;
-            vehicle.structureCellsDirty = true;
+            vehicle.impassableCellsDirty = true;
         }
         base.DeSpawn(mode);
     }

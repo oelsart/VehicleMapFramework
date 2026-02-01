@@ -68,18 +68,21 @@ public class ZiplineEnd : ThingWithComps, IZiplineEnd
 
     protected override void DrawAt(Vector3 drawLoc, bool flip = false)
     {
-        base.DrawAt(drawLoc, flip);
+        if (def.drawerType == DrawerType.RealtimeOnly && launchVerb is { caster.Spawned: true })
+        {
+            rotation = (drawLoc - launchVerb.caster.DrawPos).AngleFlat();
+            Graphic.Draw(drawLoc, Rot4.North, this, rotation);
+        }
+        Comps_DrawAt(drawLoc, flip);
+        Comps_PostDraw();
+
+        SilhouetteUtility.DrawGraphicSilhouette(this, drawLoc);
         DrawZipline(drawLoc);
     }
 
     public void DrawZipline(Vector3 drawLoc)
     {
         var rot = rotation;
-        if (this.IsOnVehicleMapOf(out var vehicle))
-        {
-            rot -= vehicle.Angle - vehicle.Transform.rotation;
-        }
-
         DrawZipline(drawLoc, rot, launchVerb, ZipLineData);
     }
 
