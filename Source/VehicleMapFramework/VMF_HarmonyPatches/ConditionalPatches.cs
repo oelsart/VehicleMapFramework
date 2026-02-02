@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Reflection.Emit;
 using HarmonyLib;
 using UnityEngine;
 using SmashTools;
@@ -24,6 +25,7 @@ internal class ConditionalPatches
 }
 
 // 引数を変更するPRを出したので、変更を吸収するよう備えておく
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_VehicleGhostUtility_DrawGhostOverlays
@@ -55,4 +57,19 @@ public static class Patch_VehicleGhostUtility_DrawGhostOverlays
             CodeInstruction.Call(typeof(Patch_VehicleGhostUtility_DrawGhostVehicleDef), nameof(Patch_VehicleGhostUtility_DrawGhostVehicleDef.ToTargetMapCoord)));
         return codes.Instructions();
     }
+}
+
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
+[HarmonyPatch]
+public static class Patch_VehiclePath_DrawPath
+{
+    private static MethodBase TargetMethod()
+    {
+#if DEV
+        return AccessTools.Method(typeof(Ext_Path), nameof(VehiclePath.DrawPath));
+#endif
+        return AccessTools.Method(typeof(VehiclePath), nameof(VehiclePath.DrawPath));
+    }
+    
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator) => Patch_PawnPath_DrawPath.Transpiler(instructions, generator);
 }
