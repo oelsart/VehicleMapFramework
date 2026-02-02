@@ -1,12 +1,12 @@
 ﻿global using static VehicleMapFramework.MethodInfoCache;
-using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Emit;
 using HarmonyLib;
 using PipeSystem;
 using SmashTools;
 using UnityEngine;
-using VEF.Hediffs;
+using VEF.Apparels;
 using VEF.Weapons;
 using Verse;
 
@@ -163,56 +163,7 @@ public static class Patch_ExpandableProjectile_StartingPosition
 }
 
 [HarmonyPatchCategory(PatchCategories.VEFCore)]
-[HarmonyPatch(typeof(ShieldsSystem), nameof(ShieldsSystem.OnPawnSpawn))]
-[PatchLevel(Level.Safe)]
-public static class Patch_ShieldsSystem_OnPawnSpawn
-{
-    private static readonly Dictionary<string, HashSet<int>> trackedPawns = [];
-
-    public static bool Prefix(Pawn __instance)
-    {
-        if (__instance == null) return false;
-
-        try
-        {
-            // Simple tracking to prevent duplicate key errors
-            var pawnKey = __instance.ThingID;
-            var pawnID = __instance.thingIDNumber;
-
-            // Use our own tracking system to prevent duplicates
-            if (!trackedPawns.ContainsKey(pawnKey))
-            {
-                trackedPawns[pawnKey] = [];
-            }
-
-            if (trackedPawns[pawnKey].Contains(pawnID))
-            {
-                // We've seen this pawn before, skip the original method
-                return false;
-            }
-
-            // First time seeing this pawn, add it to our tracker
-            trackedPawns[pawnKey].Add(pawnID);
-
-            // Clean up if we're tracking too many versions of this pawn
-            if (trackedPawns[pawnKey].Count > 10)
-            {
-                trackedPawns[pawnKey].Clear();
-                trackedPawns[pawnKey].Add(pawnID);
-            }
-
-            return true; // Let the original method run for new pawns
-        }
-        catch (Exception ex)
-        {
-            Log.Error($"Exception in shield system: {ex.Message}");
-            return true; // If anything goes wrong, let the original method run
-        }
-    }
-}
-
-[HarmonyPatchCategory(PatchCategories.VEFCore)]
-[HarmonyPatch("VEF.Weapons.Verb_ShootCone", "DrawLines")]
+[HarmonyPatch(typeof(Verb_ShootCone), "DrawLines")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Verb_ShootCone_DrawLines
 {
@@ -225,7 +176,7 @@ public static class Patch_Verb_ShootCone_DrawLines
 }
 
 [HarmonyPatchCategory(PatchCategories.VEFCore)]
-[HarmonyPatch("VEF.Weapons.Verb_ShootCone", "DrawConeRounded")]
+[HarmonyPatch(typeof(Verb_ShootCone), "DrawConeRounded")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Verb_ShootCone_DrawConeRounded
 {
@@ -237,7 +188,7 @@ public static class Patch_Verb_ShootCone_DrawConeRounded
 }
 
 [HarmonyPatchCategory(PatchCategories.VEFCore)]
-[HarmonyPatch("VEF.Weapons.Verb_ShootCone", "CanHitTarget")]
+[HarmonyPatch(typeof(Verb_ShootCone), nameof(Verb_ShootCone.CanHitTarget))]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Verb_ShootCone_CanHitTarget
 {
@@ -250,12 +201,132 @@ public static class Patch_Verb_ShootCone_CanHitTarget
 }
 
 [HarmonyPatchCategory(PatchCategories.VEFCore)]
-[HarmonyPatch("VEF.Weapons.Verb_ShootCone", "InCone")]
+[HarmonyPatch(typeof(Verb_ShootCone), nameof(Verb_ShootCone.InCone))]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Verb_ShootCone_InCone
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Rot4_AsAngle, CachedMethodInfo.g_Rot8_AsAngle);
+    }
+}
+
+[HarmonyPatchCategory(PatchCategories.VEFCore)]
+[HarmonyPatch(typeof(CompShieldField), "UpdateShieldCoverage")]
+[PatchLevel(Level.Safe)]
+public static class Patch_CompShieldField_UpdateShieldCoverage
+{
+    public static bool Prefix(CompShieldField __instance)
+    {
+        if (!__instance.HostThing.IsOnVehicleMapOf(out var vehicle) || !vehicle.Spawned)
+            return true;
+        
+        var positionOnBaseMap = __instance.HostThing.PositionOnBaseMap;
+        __instance.coveredCells = new HashSet<IntVec3>(GenRadial
+            .RadialCellsAround(positionOnBaseMap, __instance.ShieldRadius, true)
+            .Where(x => x.InBounds(vehicle.Map)));
+        if (__instance.ShieldRadius < 6f)
+            __instance.scanCells = __instance.coveredCells;
+        else
+        {
+            var interiorCells = GenRadial.RadialCellsAround(positionOnBaseMap,
+                __instance.ShieldRadius - 5f, true);
+            __instance.scanCells = new HashSet<IntVec3>(__instance.coveredCells.Where(c => !interiorCells.Contains(c)));
+        }
+        return false;
+    }
+}
+
+
+[HarmonyPatchCategory(PatchCategories.VEFCore)]
+[HarmonyPatch(typeof(CompShieldField), nameof(CompShieldField.GetThingsInAreas))]
+[PatchLevel(Level.Cautious)]
+public static class Patch_CompShieldField_GetThingsInAreas
+{
+    private static readonly List<Thing> thingList = [];
+    
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        return new CodeMatcher(instructions)
+            .MatchStartForward(CodeMatch.Calls(
+                AccessTools.Method(typeof(ThingGrid), nameof(ThingGrid.ThingsListAtFast), [ typeof(IntVec3) ])))
+            .Set(OpCodes.Call,
+                AccessTools.Method(typeof(Patch_CompShieldField_GetThingsInAreas), nameof(ThingsListAtFastAcrossMaps)))
+            .MatchStartBackwards(CodeMatch.LoadsField(AccessTools.Field(typeof(Map), nameof(Map.thingGrid))))
+            .RemoveInstruction()
+            .InstructionEnumeration()
+            .MethodReplacer(CachedMethodInfo.g_Thing_MapHeld, CachedMethodInfo.m_MapHeldBaseMap);
+    }
+
+    private static List<Thing> ThingsListAtFastAcrossMaps(Map map, IntVec3 c)
+    {
+        if (map.GetCachedMapComponent<VehicleMapGrid>().VehicleAt(c) is not { } vehicle)
+            return map.thingGrid.ThingsListAtFast(c);
+        
+        thingList.Clear();
+        thingList.AddRange(map.thingGrid.ThingsListAtFast(c));
+        thingList.AddRange(vehicle.VehicleMap.thingGrid.ThingsAt(c.ToVehicleMapCoord(vehicle)));
+        return thingList;
+    }
+}
+
+[HarmonyPatchCategory(PatchCategories.VEFCore)]
+[HarmonyPatch(typeof(CompShieldField), nameof(CompShieldField.ListerShieldGensActiveIn))]
+[PatchLevel(Level.Safe)]
+public static class Patch_CompShieldField_ListerShieldGensActiveIn
+{
+    public static IEnumerable<CompShieldField> Postfix(IEnumerable<CompShieldField> values, Map map)
+    {
+        foreach (var comp in values) yield return comp;
+        foreach (var comp in VehiclePawnWithMapCache.AllVehiclesOn(map)
+                     .SelectMany(vehicle => CompShieldField.ListerShieldGensActiveIn(vehicle.VehicleMap)))
+            yield return comp;
+    }
+}
+
+[HarmonyPatchCategory(PatchCategories.VEFCore)]
+[HarmonyPatch(typeof(CompShieldField), nameof(CompShieldField.AbsorbDamage), typeof(float), typeof(DamageDef),
+    typeof(float))]
+[PatchLevel(Level.Cautious)]
+public static class Patch_CompShieldField_AbsorbDamage
+{
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
+            .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap)
+            .MethodReplacer(CachedMethodInfo.m_OccupiedRect, CachedMethodInfo.m_MovedOccupiedRect);
+    }
+}
+
+[HarmonyPatchCategory(PatchCategories.VEFCore)]
+[HarmonyPatch(typeof(CompShieldField), "EnergyShieldTick")]
+[PatchLevel(Level.Cautious)]
+public static class Patch_CompShieldField_EnergyShieldTick
+{
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
+    }
+}
+
+[HarmonyPatchCategory(PatchCategories.VEFCore)]
+[HarmonyPatch(typeof(CompShieldField), "Notify_EnergyDepleted")]
+[PatchLevel(Level.Cautious)]
+public static class Patch_CompShieldField_Notify_EnergyDepleted
+{
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
+    }
+}
+
+[HarmonyPatchCategory(PatchCategories.VEFCore)]
+[HarmonyPatch(typeof(CompShieldField), "UpdateCache")]
+[PatchLevel(Level.Cautious)]
+public static class Patch_CompShieldField_UpdateCache
+{
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
     }
 }

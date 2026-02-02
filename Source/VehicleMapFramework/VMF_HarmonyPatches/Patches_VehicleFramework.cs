@@ -1067,13 +1067,6 @@ public static class Patch_PathingHelper_TryFindNearestStandableCell
 }
 
 [HarmonyPatchCategory(PatchCategories.VehicleFramework)]
-[HarmonyPatch(typeof(VehiclePath), nameof(VehiclePath.DrawPath))]
-public static class Patch_VehiclePath_DrawPath
-{
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator) => Patch_PawnPath_DrawPath.Transpiler(instructions, generator);
-}
-
-[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(VehicleOrientationController), "Init")]
 [PatchLevel(Level.Safe)]
 public static class Patch_VehicleOrientationController_Init
