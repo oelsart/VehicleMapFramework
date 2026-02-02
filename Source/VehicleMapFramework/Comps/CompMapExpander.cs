@@ -243,7 +243,8 @@ public class CompMapExpander : ThingComp
                 {
                     vehicle.vehiclePather.nextCell = vehicle.Position;
                 }
-                vehicle.Map.GetCachedMapComponent<VehiclePathingSystem>().RequestGridsFor(vehicle);
+                if (vehicle.Spawned)
+                    vehicle.Map.GetCachedMapComponent<VehiclePathingSystem>().RequestGridsFor(vehicle);
             }
         }
     }
