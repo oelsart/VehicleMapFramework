@@ -2,7 +2,6 @@
 using System.Linq;
 using RimWorld;
 using SmashTools;
-using UnityEngine;
 using Vehicles;
 using Verse;
 using static Vehicles.VehicleUpgrade;
@@ -326,14 +325,15 @@ public class RoleUpgradeBuildable : RoleUpgrade
                 };
             }
 
-            if (upgrade2.hitbox == null)
+            upgrade2.hitbox ??= new ComponentHitbox
             {
-                var orig = Vector3.zero.ToBaseMapCoord(vehicle).ToVehicleMapCoord(vehicle).ToIntVec3();
-                upgrade2.hitbox = new ComponentHitbox
-                {
-                    Hitbox = [.. compBuildableUpgrades.parent.OccupiedRect().MovedBy(orig).Cells2D]
-                };
-            }
+                Hitbox =
+                [
+                    .. compBuildableUpgrades.parent.OccupiedRect()
+                        .MovedBy(VehicleMapUtility.OffsetFor(vehicle, Rot8.North).ToIntVec3() -
+                                 compBuildableUpgrades.parent.Map.Size / 2).Cells2D
+                ]
+            };
         }
         vehicleRole.CopyFrom(upgrade2);
         return vehicleRole;

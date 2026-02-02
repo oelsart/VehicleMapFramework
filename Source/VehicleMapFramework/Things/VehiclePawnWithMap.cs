@@ -473,11 +473,10 @@ public class VehiclePawnWithMap : VehiclePawn
         }
     }
 
-    //PocketMapとしての管理に変更になったんでマップが破壊されたら車両マップも破壊されるはず
-    //public override void Notify_MyMapRemoved()
-    //{
-    //    Destroy();
-    //}
+    public override void Notify_MyMapRemoved()
+    {
+        Destroy();
+    }
 
     public override void Destroy(DestroyMode mode = DestroyMode.Vanish)
     {

@@ -120,13 +120,9 @@ public abstract class IncidentWorker_AmbushMapVehicle : IncidentWorker
         PostProcessGeneratedPawnsAfterSpawning(generatedEnemies);
         PostProcessGeneratedVehiclesAfterSpawning(generatedVehicles);
 
-        foreach (var vehicle in generatedVehicles)
-        {
-            var pawns = vehicle.VehicleMap.mapPawns.SpawnedPawnsInFaction(parms.faction);
-            var lordJob = CreateLordJob(pawns, parms);
-            if (lordJob != null)
-                LordMaker.MakeNewLord(parms.faction, lordJob, vehicle.VehicleMap, pawns);
-        }
+        var lordJob = CreateLordJob(generatedEnemies, parms);
+        if (lordJob != null)
+            LordMaker.MakeNewLord(parms.faction, lordJob, map, generatedEnemies);
         var lordJob2 = CreateLordJob(generatedVehicles, parms);
         if (lordJob2 != null)
             LordMaker.MakeNewLord(parms.faction, lordJob2, map, generatedVehicles);

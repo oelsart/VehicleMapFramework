@@ -11,7 +11,7 @@ public class Verb_LaunchZipline : Verb_Shoot
 
     public override bool ValidateTarget(LocalTargetInfo target, bool showMessages = true)
     {
-        var map = caster.TargetMap ?? caster.Map;
+        var map = target.Thing?.Map ?? caster.TargetMap ?? caster.Map;
         if (caster.Map == map)
         {
             if (showMessages)
@@ -73,10 +73,10 @@ public class Verb_LaunchZipline : Verb_Shoot
         if (projectile2 is Bullet_ZiplineEnd zipline)
         {
             zipline.launchVerb = this;
-            if (caster.TryGetTargetMap(out var map))
-            {
+            if (currentTarget.HasThing)
+                zipline.destMap = currentTarget.Thing.Map;
+            if (zipline.destMap is null && caster.TryGetTargetMap(out var map))
                 zipline.destMap = map;
-            }
 
             var customZipline2 = zipline.def.GetModExtension<CustomZipline>();
             if (customZipline2 != null)

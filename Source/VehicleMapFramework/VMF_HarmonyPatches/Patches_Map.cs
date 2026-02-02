@@ -81,7 +81,7 @@ public static class Patch_Reachability_CanReach
                       dest.Thing?.MapHeld ??
                       (pawn.IsTargeting(dest, out var target)
                           ? target.Map
-                          : pawn?.GetLord() is { } lord? lord.Map : ___map);
+                          : pawn?.GetLord() is { LordJob: LordJob_Ritual } lord ? lord.Map : ___map);
         if (destMap == null)
         {
             return true;

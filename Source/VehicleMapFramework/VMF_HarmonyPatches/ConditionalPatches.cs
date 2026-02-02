@@ -5,6 +5,9 @@ using System.Reflection.Emit;
 using HarmonyLib;
 using UnityEngine;
 using SmashTools;
+#if DEV
+using SmashTools.Burst;
+#endif
 using Vehicles;
 using Verse;
 

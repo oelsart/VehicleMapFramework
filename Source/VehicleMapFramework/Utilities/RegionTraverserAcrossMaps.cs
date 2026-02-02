@@ -99,9 +99,9 @@ public static class RegionTraverserAcrossMaps
                     }
                     foreach (var thing in ziplines.SelectMany(def => region.ListerThings.ThingsOfDef(def)))
                     {
-                        if (!thing.TryGetComp<CompZipline>(out var comp)) continue;
+                        if (!thing.TryGetComp<CompZipline>(out var comp) || comp.Pair is null or { Spawned: false }) continue;
                         var pair = comp.Pair;
-                        var region2 = pair?.Position.GetRegion(pair.Map);
+                        var region2 = pair.Position.GetRegion(pair.Map);
                         if (ValidateRegion(region, region2))
                             QueueNewOpenRegion(region2);
                     }
