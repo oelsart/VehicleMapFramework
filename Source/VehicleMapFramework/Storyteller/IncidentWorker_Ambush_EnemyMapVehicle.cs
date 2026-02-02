@@ -55,7 +55,7 @@ public class IncidentWorker_Ambush_EnemyMapVehicle : IncidentWorker_AmbushMapVeh
         }
         
         var category = RaidInjectionHelper.GetResolvedCategory(parms);
-        var availableDefs = DefDatabase<VehicleDef>.AllDefsListForReading
+        var availableDefs = DefDatabase<VehicleDef>.AllDefs
             .Where(vehicleDef => ValidRaiderVehicle(vehicleDef, category, null, parms.faction, vehicleBudget))
             .ToList();
         
@@ -84,7 +84,8 @@ public class IncidentWorker_Ambush_EnemyMapVehicle : IncidentWorker_AmbushMapVeh
         PawnsArrivalModeDef arrivalModeDef, Faction faction, float points)
     {
         return vehicleDef.thingClass.SameOrSubclassOf<VehiclePawnWithMap>() && vehicleDef.HasComp<CompNpcVehicleMap>() &&
-               RaidInjectionHelper.ValidRaiderVehicle(vehicleDef, category, arrivalModeDef, faction, points);
+               RaidInjectionHelper.ValidRaiderVehicle(vehicleDef, category, arrivalModeDef, faction, points) &&
+               vehicleDef.GetModExtension<VehicleMapProps_Unique>() is null or { baseDef: null };
     }
 
     protected override LordJob CreateLordJob(List<Pawn> generatedPawns, IncidentParms parms)

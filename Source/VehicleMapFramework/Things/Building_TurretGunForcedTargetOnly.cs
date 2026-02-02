@@ -62,9 +62,9 @@ public class Building_TurretGunForcedTargetOnly : Building_TurretGun
                 if (canTargetThings)
                 {
                     foreach (var thing in map2.thingGrid.ThingsListAtFast(cell2))
-                    { 
+                    {
                         if (targetParams.CanTarget(thing) && attackVerb.ValidateTarget(thing, false) &&
-                          attackVerb.CanHitTarget(thing))
+                            attackVerb.CanHitTarget(thing))
                         {
                             return thing;
                         }

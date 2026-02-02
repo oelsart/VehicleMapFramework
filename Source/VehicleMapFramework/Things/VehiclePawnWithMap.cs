@@ -194,6 +194,8 @@ public class VehiclePawnWithMap : VehiclePawn
     } = [];
 
     public CompNpcVehicleMap CompNpcVehicleMap => field ??= GetComp<CompNpcVehicleMap>();
+    
+    public CompDelayedKill CompDelayedKill => field ??= GetComp<CompDelayedKill>();
 
     private VehicleSectionLayerManager SectionLayerManager =>
         field ??= interiorMap?.GetCachedMapComponent<VehicleSectionLayerManager>();
@@ -442,6 +444,11 @@ public class VehiclePawnWithMap : VehiclePawn
     {
         if (Spawned)
         {
+            if (CompDelayedKill is { KillStarted: true })
+            {
+                CompDelayedKill.CompTick();
+                return;
+            }
             CacheDrawPos(DrawPos);
             mapFollower?.MapFollowerTick();
         }
@@ -450,6 +457,13 @@ public class VehiclePawnWithMap : VehiclePawn
             SetTile();
         }
         base.Tick();
+    }
+
+    protected override void TickInterval(int delta)
+    {
+        if (Spawned && CompDelayedKill is { KillStarted: true })
+            return;
+        base.TickInterval(delta);
     }
 
     private void SetTile()
@@ -493,6 +507,20 @@ public class VehiclePawnWithMap : VehiclePawn
     public override void Notify_MyMapRemoved()
     {
         Destroy();
+    }
+
+    public override void Kill(DamageInfo? dinfo, DestroyMode destroyMode = DestroyMode.KillFinalize, bool spawnWreckage = false)
+    {
+        if (CompDelayedKill is { KillOnTick: false })
+        {
+            if (dinfo?.Instigator is Pawn instigator)
+            {
+                RecordsUtility.Notify_PawnKilled(this, instigator);
+            }
+            CompDelayedKill.StartKillTimer(destroyMode, spawnWreckage);
+            return;
+        }
+        base.Kill(dinfo, destroyMode, spawnWreckage);
     }
 
     public override void Destroy(DestroyMode mode = DestroyMode.Vanish)

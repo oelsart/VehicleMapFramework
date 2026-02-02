@@ -27,18 +27,18 @@ public class JobDriver_GotoShipCombat : JobDriver_Goto
                     return;
                 }
         
-#if DEV
-                var pathOrderData = new PathOrderData
-                {
-                    destination = dest,
-                    endRotation = endRot
-                };
-                vehicle.vehiclePather.OrderMoveTo(in pathOrderData);
-#else
+// #if DEV
+//                 var pathOrderData = new PathOrderData
+//                 {
+//                     destination = dest,
+//                     endRotation = endRot
+//                 };
+//                 vehicle.vehiclePather.OrderMoveTo(in pathOrderData);
+// #else
                 if (endRot.IsValid)
                     vehicle.vehiclePather.SetEndRotation(endRot);
                 vehicle.vehiclePather.StartPath(dest, PathEndMode.OnCell);
-#endif
+// #endif
             }
         };
         yield return toil;

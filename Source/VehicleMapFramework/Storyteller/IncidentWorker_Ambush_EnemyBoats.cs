@@ -14,6 +14,7 @@ public class IncidentWorker_Ambush_EnemyBoats : IncidentWorker_Ambush_EnemyMapVe
         Faction faction, float points)
     {
         return vehicleDef.thingClass.SameOrSubclassOf<VehiclePawnWithMap>() && vehicleDef.HasComp<CompNpcVehicleMap>() &&
+               vehicleDef.GetModExtension<VehicleMapProps_Unique>() is null or { baseDef: null } &&
                vehicleDef.type == VehicleType.Sea && (vehicleDef.vehicleCategory & category) == category &&
                vehicleDef.combatPower <= points && faction.def.techLevel >= vehicleDef.techLevel &&
                (vehicleDef.enabled & VehicleEnabled.For.Raiders) != VehicleEnabled.For.None &&
