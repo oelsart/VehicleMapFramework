@@ -169,7 +169,7 @@ public static class AttackTargetFinderOnVehicle
             }
             return true;
         };
-        if ((HasRangedAttack(searcher) || onlyRanged) && (searcherPawn == null || !searcherPawn.InAggroMentalState))
+        if ((HasRangedAttack(searcher) || onlyRanged) && searcherPawn is not { InAggroMentalState: true })
         {
             tmpTargets.Clear();
             tmpTargets.AddRange(searcherThing.Map.BaseMapAndVehicleMaps().Except(searcherThing.Map).SelectMany(m => m.attackTargetsCache.GetPotentialTargetsFor(searcher)));

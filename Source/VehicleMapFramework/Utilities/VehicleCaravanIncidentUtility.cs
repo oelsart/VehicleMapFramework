@@ -146,7 +146,6 @@ public class VehicleCaravanIncidentUtility
 
         bool SpawnVehicle(VehiclePawnWithMap vehicle)
         {
-            Log.Message($"Spawn vehicle: {vehicle}");
             var cell = CellFinder.RandomEdgeCell(edge, map);
             vehicle.Rotation = opposite;
             var pathData = mapping[vehicle.VehicleDef];
