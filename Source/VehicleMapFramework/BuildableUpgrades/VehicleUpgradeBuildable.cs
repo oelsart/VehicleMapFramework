@@ -330,8 +330,7 @@ public class RoleUpgradeBuildable : RoleUpgrade
                 Hitbox =
                 [
                     .. compBuildableUpgrades.parent.OccupiedRect()
-                        .MovedBy(VehicleMapUtility.OffsetFor(vehicle, Rot8.North).ToIntVec3() -
-                                 compBuildableUpgrades.parent.Map.Size / 2).Cells2D
+                        .MovedBy(VehicleMapUtility.MapCellToHitbox(vehicle)).Cells2D
                 ]
             };
         }

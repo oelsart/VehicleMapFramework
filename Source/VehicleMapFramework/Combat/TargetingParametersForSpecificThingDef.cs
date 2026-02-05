@@ -9,9 +9,6 @@ public class TargetingParametersForSpecificThingDef : TargetingParameters
     
     public void PostLoad()
     {
-        if (thingDef is not null)
-        {
-            validator = targetInfo => targetInfo.Thing?.def == thingDef;
-        }
+        validator = targetInfo => targetInfo.Thing?.def == thingDef;
     }
 }

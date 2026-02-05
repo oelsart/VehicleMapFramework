@@ -57,7 +57,7 @@ public class Bullet_ZiplineEnd : Bullet_ZiplineBase
 
     protected override void Impact(Thing hitThing, bool blockedByShield = false)
     {
-        if (blockedByShield) return;
+        if (blockedByShield || hitThing != intendedTarget.Thing) return;
 
         var ziplineEnd = (ZiplineEnd)ThingMaker.MakeThing(ZipLineData.ZiplineEndDef);
         ziplineEnd.launchVerb = launchVerb;

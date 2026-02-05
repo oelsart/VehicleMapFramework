@@ -63,6 +63,6 @@ public abstract class Bullet_ZiplineBase : Bullet, IZiplineEnd
 
     protected override void ImpactSomething()
     {
-        Impact(null);
+        Impact(intendedTarget.Thing);
     }
 }
