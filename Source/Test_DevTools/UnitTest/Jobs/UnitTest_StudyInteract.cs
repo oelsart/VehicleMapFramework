@@ -12,13 +12,9 @@ internal sealed class UnitTest_StudyInteract(VehicleGroup group) : WorkGiverTest
     {
         var component = Current.Game.GetComponent<GameComponent_Anomaly>();
         var cell = FromRUCorner(Pawn.Map, 3);
-        if (!component.MonolithSpawned || component.monolith.Map != Pawn.Map)
-            component.SpawnNewMonolith(cell, Pawn.Map);
-        else
-        {
-            component.ResetMonolith();
-            component.monolith.Position = cell;
-        }
+        if (component.MonolithSpawned && component.monolith.Map == Pawn.Map)
+            component.monolith.DeSpawn();
+        component.SpawnNewMonolith(cell, Pawn.Map);
 
         Pawn.pather.TryRecoverFromUnwalkablePosition();
         component.monolith.Activate(Pawn);

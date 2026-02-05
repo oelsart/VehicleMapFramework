@@ -156,6 +156,7 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
         return codes.Instructions()
             .MethodReplacer(m_GenClosest_ClosestThing_Global, m_GenClosestCrossMap_ClosestThing_Global)
             .MethodReplacer(m_GenClosest_ClosestThing_Global_Reachable, m_GenClosestCrossMap_ClosestThing_Global_Reachable)
+            .MethodReplacer(m_NonScanJob, m_NonScanJobAll)
             .MethodReplacer(m_Scanner_PotentialWorkThingsGlobal, m_PotentialWorkThingsGlobalAll)
             .MethodReplacer(m_Scanner_JobOnThing, m_JobOnThingMap);
     }

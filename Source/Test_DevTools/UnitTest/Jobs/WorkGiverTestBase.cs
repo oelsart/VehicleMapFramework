@@ -223,7 +223,7 @@ internal abstract class WorkGiverTestBase(VehicleGroup group)
         result.pawnCanUse = PawnCanUseWorkGiver(pawn, workGiver);
         if (!result.pawnCanUse)
             return result;
-        result.job = workGiver.NonScanJob(pawn);
+        result.job = workGiver.NonScanJobAll(pawn);
         if (result.job != null || workGiver is not WorkGiver_Scanner scanner)
             return result;
         var target = TargetInfo.Invalid;

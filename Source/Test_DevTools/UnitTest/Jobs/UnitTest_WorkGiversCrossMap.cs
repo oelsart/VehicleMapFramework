@@ -22,7 +22,7 @@ public sealed class UnitTest_WorkGiversCrossMap
             .Select(type => Activator.CreateInstance(type, vehicleGroup)).Cast<CrossMapWorkGiverTestBase>().ToArray();
         var pawn = vehicleGroup.pawns[0];
         var vehicle = (VehiclePawnWithMap)vehicleGroup.vehicle;
-        TestUtility.MakePawnPerfect(pawn);
+        MakePawnPerfect(pawn);
         GenSpawn.Spawn(pawn, vehicle.VehicleMap.Center, vehicle.VehicleMap);
 
         using var dynamicPatchEnabler = new DynamicPatchEnabler();

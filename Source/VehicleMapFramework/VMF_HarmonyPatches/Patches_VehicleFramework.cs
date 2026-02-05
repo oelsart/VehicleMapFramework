@@ -263,7 +263,7 @@ public static class Patch_TargetingHelper_TargetMeetsRequirements2
 
 [HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(TurretShotReport), nameof(TurretShotReport.HitReportFor))]
-[PatchLevel(Level.Sensitive)]
+[PatchLevel(Level.Mandatory)]
 public static class Patch_TurretShotReport_HitReportFor
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)

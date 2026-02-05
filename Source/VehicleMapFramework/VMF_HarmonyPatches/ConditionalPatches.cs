@@ -69,7 +69,8 @@ public static class Patch_VehiclePath_DrawPath
     private static MethodBase TargetMethod()
     {
 #if DEV
-        return AccessTools.Method(typeof(Ext_Path), nameof(VehiclePath.DrawPath));
+        var method = AccessTools.Method(typeof(Ext_Path), nameof(VehiclePath.DrawPath));
+        if (method is not null) return method;
 #endif
         return AccessTools.Method(typeof(VehiclePath), nameof(VehiclePath.DrawPath));
     }
