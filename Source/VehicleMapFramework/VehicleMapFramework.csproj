@@ -42,6 +42,10 @@
   </PropertyGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Dev'">
+    <Reference Include="CoreLib">
+      <HintPath>$(VFUnstableFolder)\1.6\Assemblies\CoreLib.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="SmashTools">
       <HintPath>$(VFUnstableFolder)\1.6\Assemblies\SmashTools.dll</HintPath>
       <Private>False</Private>

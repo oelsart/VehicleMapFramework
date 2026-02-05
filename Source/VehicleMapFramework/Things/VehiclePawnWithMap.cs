@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+#if DEV
+using CoreLib.Performance;
+#endif
 using HarmonyLib;
 using JetBrains.Annotations;
 using RimWorld;
@@ -38,6 +41,8 @@ public class VehiclePawnWithMap : VehiclePawn
     private int standableCellsCachedTick;
 
     private int cellDesignationsDirtyTick;
+
+    internal bool resizeRequest;
 
     private readonly List<CompVehicleEnterSpot> tmpEnterComps = [];
 
@@ -95,7 +100,7 @@ public class VehiclePawnWithMap : VehiclePawn
             impassableCellsDirty = false;
             field = [.. interiorMap.listerThings.ThingsOfDef(VMF_DefOf.VMF_VehicleStructureFilled)
                 .Select(b => b.Position)
-                .Concat(interiorMap.AllCells.Where(c => c.GetTerrain(interiorMap) == VMF_DefOf.VMF_ImpassableFloor))];
+                .Concat(interiorMap.AllCells.Where(c => c.GetTerrain(interiorMap) is { passability: Traversability.Impassable }))];
             return field;
         }
     }
@@ -444,6 +449,11 @@ public class VehiclePawnWithMap : VehiclePawn
     {
         if (Spawned)
         {
+            if (resizeRequest)
+            {
+                resizeRequest = false;
+                Resize();
+            }
             if (CompDelayedKill is { KillStarted: true })
             {
                 CompDelayedKill.CompTick();
@@ -1020,11 +1030,6 @@ public class VehiclePawnWithMap : VehiclePawn
         if (props != null && def.defName != props.defName)
         {
             def = UniqueVehicleUtility.GenerateUniqueVehicleDef(this);
-            VehicleDef.components?.ForEach(component =>
-            {
-                component.hitbox.Hitbox.Clear();
-                component.hitbox.Initialize(VehicleDef);
-            });
         }
         var size = Patch_Map_MapUpdate.MeshSize;
         interiorMap?.rememberedCameraPos?.rootPos = new Vector3(size.x / 2f, 0f, size.y / 2f);
@@ -1034,6 +1039,83 @@ public class VehiclePawnWithMap : VehiclePawn
     {
         VMF_Harmony.DynamicPatchAll(Level.All);
         base.PostGenerationSetup();
+    }
+    
+    private void Resize()
+    {
+        var vehicleDef = VehicleDef;
+        var curSize = vehicleDef.Size;
+        var mapRect = CellRect.WholeMap(VehicleMap);
+        var newRect = CellRect.FromCellList(mapRect.Except(CachedImpassableCells));
+        var newSize = newRect.Size;
+        if (curSize != newSize)
+        {
+            vehicleDef.size = newSize;
+            var offset = mapRect.CenterVector3 - newRect.CenterVector3;
+            var data = VehicleGraphic.DataRgb;
+            var prevOffset = data.drawOffset;
+            data.drawOffset = offset;
+            data.drawOffsetNorth = offset;
+            data.drawOffsetEast = offset.RotatedBy(Rot4.East);
+            data.drawOffsetSouth = offset.RotatedBy(Rot4.South);
+            data.drawOffsetWest = offset.RotatedBy(Rot4.West);
+            vehicleDef.components?.ForEach(component =>
+            {
+                component.hitbox.Hitbox.Clear();
+                component.hitbox.Initialize(vehicleDef);
+            });
+            
+            foreach (var map in Find.Maps)
+            {
+                if (map.IsVehicleMap) continue;
+                    
+                var component = map.GetCachedMapComponent<VehiclePathingSystem>();
+                UniqueVehicleUtility.configsMap(component.GridOwners)[vehicleDef.DefIndex]
+                    = UniqueVehicleUtility.PathConfigMap(vehicleDef);
+                UniqueVehicleUtility.GeneratePathData(component, vehicleDef);
+            }
+            
+            if (Spawned)
+            {
+                var diff = prevOffset - offset;
+                Position += new IntVec3(
+                    (int)MathF.Truncate(diff.x),
+                    0,
+                    (int)MathF.Truncate(diff.z)).RotatedBy(Rotation);
+                var opp = Convert.ToInt32(Rotation.AsInt > 1);
+                if ((diff.x < 0f) == (newSize.x % 2 == opp))
+                {
+                    Position += (IntVec3.East * (int)(diff.x % 1f * 2f)).RotatedBy(Rotation);
+                }
+                if ((diff.z < 0f) == (newSize.z % 2 == opp))
+                {
+                    Position += (IntVec3.North * (int)(diff.z % 1f * 2f)).RotatedBy(Rotation);
+                }
+                
+                DrawTracker.tweener.ResetTweenedPosToRoot();
+                if (!vehiclePather.Moving)
+                {
+                    vehiclePather.nextCell = Position;
+                }
+                
+                var component = Map.GetCachedMapComponent<VehiclePathingSystem>();
+                if (UniqueVehicleUtility.PathData is not null)
+                    UniqueVehicleUtility.PathData(vehiclePather, component[vehicleDef]);
+#if DEV
+                if (!component.ThreadAvailable ||
+                    component.dedicatedThread.State == DedicatedThread.ThreadState.Running)
+                {
+                    component.RequestGridsFor(vehicleDef, DeferredGridGeneration.Urgency.Urgent);
+                }
+                else
+                {
+                    component.RequestGridsFor(this);
+                }
+#else
+                component.RequestGridsFor(vehicleDef, DeferredGridGeneration.Urgency.Urgent);
+#endif
+            }
+        }
     }
 
     public enum EnterCompKind

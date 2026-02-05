@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using RimWorld;
-using SmashTools;
 using UnityEngine;
-using Vehicles;
 using Verse;
 
 namespace VehicleMapFramework;
@@ -134,7 +131,7 @@ public class CompMapExpander : ThingComp
             vehicle.MapExpanderComps.Add(this);
             DirtySelfAndAdjacentComps(parent.Map);
             vehicle.impassableCellsDirty = true;
-            ResizeVehicle(vehicle);
+            vehicle.resizeRequest = true;
         }
     }
 
@@ -170,7 +167,7 @@ public class CompMapExpander : ThingComp
             }
             DirtySelfAndAdjacentComps(map);
             vehicle.impassableCellsDirty = true;
-            ResizeVehicle(vehicle);
+            vehicle.resizeRequest = true;
         }
     }
 
@@ -189,62 +186,6 @@ public class CompMapExpander : ThingComp
                 comp.cachedIsBridge = null;
                 comp.cachedIsOnlyBridge = null;
                 break;
-            }
-        }
-    }
-
-    private static void ResizeVehicle(VehiclePawnWithMap vehicle)
-    {
-        if (!UnityData.IsInMainThread)
-        {
-            LongEventHandler.ExecuteWhenFinished(() => ResizeVehicle(vehicle));
-            return;
-        }
-        var curSize = vehicle.def.size;
-        var mapRect = CellRect.WholeMap(vehicle.VehicleMap);
-        var newRect = CellRect.FromCellList(mapRect.Except(vehicle.CachedImpassableCells));
-        var newSize = newRect.Size;
-        if (curSize != newSize)
-        {
-            vehicle.def.size = newSize;
-            var offset = mapRect.CenterVector3 - newRect.CenterVector3;
-            var data = vehicle.VehicleGraphic.DataRgb;
-            var prevOffset = data.drawOffset;
-            data.drawOffset = offset;
-            data.drawOffsetNorth = offset;
-            data.drawOffsetEast = offset.RotatedBy(Rot4.East);
-            data.drawOffsetSouth = offset.RotatedBy(Rot4.South);
-            data.drawOffsetWest = offset.RotatedBy(Rot4.West);
-            if (vehicle.Spawned)
-            {
-                var diff = prevOffset - offset;
-                vehicle.Position += new IntVec3(
-                    (int)MathF.Truncate(diff.x),
-                    0,
-                    (int)MathF.Truncate(diff.z)).RotatedBy(vehicle.Rotation);
-                var opp = Convert.ToInt32(vehicle.Rotation.AsInt > 1);
-                if ((diff.x < 0f) == (newSize.x % 2 == opp))
-                {
-                    vehicle.Position += (IntVec3.East * (int)(diff.x % 1f * 2f)).RotatedBy(vehicle.Rotation);
-                }
-                if ((diff.z < 0f) == (newSize.z % 2 == opp))
-                {
-                    vehicle.Position += (IntVec3.North * (int)(diff.z % 1f * 2f)).RotatedBy(vehicle.Rotation);
-                }
-                
-                vehicle.DrawTracker.tweener.ResetTweenedPosToRoot();
-                var def = vehicle.VehicleDef;
-                def.components?.ForEach(component =>
-                {
-                    component.hitbox.Hitbox.Clear();
-                    component.hitbox.Initialize(def);
-                });
-                if (!vehicle.vehiclePather.Moving)
-                {
-                    vehicle.vehiclePather.nextCell = vehicle.Position;
-                }
-                if (vehicle.Spawned)
-                    vehicle.Map.GetCachedMapComponent<VehiclePathingSystem>().RequestGridsFor(vehicle);
             }
         }
     }
