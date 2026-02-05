@@ -369,13 +369,12 @@ public static class Patch_Graphic_DrawFromDef
             var baseRotInt = vehicle.FullRotation.RotForVehicleDraw().AsInt;
             bool SameMaterialByRot()
             {
-                var graphic = def.graphic;
-                if (graphic is Graphic_Collection) return true;
+                if (__instance is Graphic_Collection) return true;
                 var rotation = new Rot4(rot2.AsInt + baseRotInt);
-                return graphic != null && graphic.MatAt(rot2) == graphic.MatAt(rotation) && graphic.DrawOffset(rot2) == graphic.DrawOffset(rotation);
+                return __instance.MatAt(rot2) == __instance.MatAt(rotation) && __instance.DrawOffset(rot2) == __instance.DrawOffset(rotation);
             }
 
-            if (def.size.x != def.size.z || ((((def.graphicData?.drawRotated ?? false) && (!def.graphicData?.Linked ?? true)) || def.rotatable) && !SameMaterialByRot()))
+            if (def.size.x != def.size.z || ((((__instance.data?.drawRotated ?? false) && (!__instance.data?.Linked ?? true)) || def.rotatable) && !SameMaterialByRot()))
             {
                 rot.AsInt += baseRotInt;
             }
@@ -384,7 +383,7 @@ public static class Patch_Graphic_DrawFromDef
             {
                 extraRotation -= angle;
             }
-            var offset = def.graphicData?.DrawOffsetForRot(rot) ?? Vector3.zero;
+            var offset = __instance.data?.DrawOffsetForRot(rot) ?? Vector3.zero;
             if (flag)
             {
                 var offset2 = compProperties.DrawOffsetForRot(rot);
@@ -505,54 +504,9 @@ public static class Patch_MapDrawer_ViewRect
 [PatchLevel(Level.Safe)]
 public static class Patch_GenView_ShouldSpawnMotesAt
 {
-    [HarmonyPatch([typeof(Vector3), typeof(Map), typeof(bool)])]
-    public static void Prefix(ref Map map)
-    {
-        offset = false;
-        if (map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
-        {
-            offset = true;
-            map = vehicle.Map;
-        }
-    }
-
     [HarmonyPatch([typeof(IntVec3), typeof(Map), typeof(bool)])]
-    public static void Prefix(ref IntVec3 loc, ref Map map)
+    public static void Postfix(Map map, ref bool __result)
     {
-        if (map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
-        {
-            loc = loc.ToBaseMapCoord(vehicle);
-            map = vehicle.Map;
-        }
-    }
-
-    public static bool offset;
-}
-
-[HarmonyPatch]
-[PatchLevel(Level.Cautious)]
-public static class Patch_SubEffecter_Sprayer
-{
-    private static IEnumerable<MethodBase> TargetMethods()
-    {
-        yield return AccessTools.Method(typeof(SubEffecter_Sprayer), nameof(SubEffecter_Sprayer.GetAttachedSpawnLoc));
-        yield return AccessTools.Method(typeof(SubEffecter_Sprayer), "MakeMote");
-    }
-
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        var g_CenterVector3 = AccessTools.PropertyGetter(typeof(TargetInfo), nameof(TargetInfo.CenterVector3));
-        var m_CenterVector3ToBaseMap = AccessTools.Method(typeof(Patch_SubEffecter_Sprayer), nameof(CenterVector3ToBaseMap));
-        return instructions.MethodReplacer(g_CenterVector3, m_CenterVector3ToBaseMap);
-    }
-
-    private static Vector3 CenterVector3ToBaseMap(ref TargetInfo targetInfo)
-    {
-        var result = targetInfo.CenterVector3;
-        if (!targetInfo.HasThing && targetInfo.Map.IsNonFocusedVehicleMapOf(out var vehicle))
-        {
-            result = result.ToBaseMapCoord(vehicle);
-        }
-        return result;
+        __result = __result || map.IsVehicleMap && map.BaseMapOrCaravan == Find.CurrentMap.BaseMapOrCaravan;
     }
 }

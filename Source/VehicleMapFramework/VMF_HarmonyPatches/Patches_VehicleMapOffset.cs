@@ -142,19 +142,6 @@ public static class Patch_FleckSystemBase_FleckStatic_CreateFleck
     {
         if (__instance.parent.parent.IsNonFocusedVehicleMapOf(out var vehicle))
         {
-            creationData.Offset(vehicle);
-        }
-    }
-
-    public static void Offset(this ref FleckCreationData creationData, VehiclePawnWithMap vehicle)
-    {
-        if (creationData.link.Target.HasThing || Patch_GenView_ShouldSpawnMotesAt.offset)
-        {
-            creationData.spawnPosition = creationData.spawnPosition.YOffsetFull(vehicle);
-            Patch_GenView_ShouldSpawnMotesAt.offset = false;
-        }
-        else
-        {
             creationData.spawnPosition = creationData.spawnPosition.ToBaseMapCoord(vehicle);
         }
     }
@@ -168,20 +155,7 @@ public static class Patch_FleckSystemBase_FleckThrown_CreateFleck
     {
         if (__instance.parent.parent.IsNonFocusedVehicleMapOf(out var vehicle))
         {
-            creationData.Offset(vehicle);
-        }
-    }
-}
-
-[HarmonyPatch(typeof(FleckSystemBase<FleckSplash>), nameof(FleckSystemBase<>.CreateFleck))]
-[PatchLevel(Level.Safe)]
-public static class Patch_FleckSystemBase_FleckSplash_CreateFleck
-{
-    public static void Prefix(FleckSystemBase<FleckSplash> __instance, ref FleckCreationData creationData)
-    {
-        if (__instance.parent.parent.IsNonFocusedVehicleMapOf(out var vehicle))
-        {
-            creationData.Offset(vehicle);
+            creationData.spawnPosition = creationData.spawnPosition.ToBaseMapCoord(vehicle);
         }
     }
 }
@@ -293,6 +267,11 @@ public static class Patch_Pawn_JobTracker_DrawLinesBetweenTargets
         if (pawn.TryGetTargetMap(out var map) && pawn.stances.curStance is Stance_Busy)
         {
             return targ.Cell.ToVector3Shifted().ToBaseMapCoord(map);
+        }
+
+        if (pawn.CurJob?.globalTarget.Map is { } map2)
+        {
+            return targ.Cell.ToVector3Shifted().ToBaseMapCoord(map2);
         }
 
         var driver = pawn.jobs.AllJobs()?.FirstOrDefault()?.GetCachedDriver(pawn);
@@ -608,5 +587,23 @@ public static class Patch_MoteAttachLink_UpdateDrawPos
             new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ToBaseMapCoord2)
         ]);
         return codes;
+    }
+}
+
+[HarmonyPatch(typeof(SubEffecter_Sprayer), "MakeMote")]
+[PatchLevel(Level.Safe)]
+public static class Patch_SubEffecter_Sprayer_MakeMote
+{
+    public static void Prefix(SubEffecter_Sprayer __instance, TargetInfo A, TargetInfo B)
+    {
+        var locType = __instance.EffectiveSpawnLocType;
+        if (locType == MoteSpawnLocType.OnSource && A.HasThing || locType == MoteSpawnLocType.OnTarget && B.HasThing)
+            return;
+        VehiclePawnWithMapCache.CacheMode = true;
+    }
+
+    public static void Finalizer()
+    {
+        VehiclePawnWithMapCache.CacheMode = false;
     }
 }
