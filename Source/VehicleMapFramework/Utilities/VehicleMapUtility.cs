@@ -35,7 +35,6 @@ public static class VehicleMapUtility
 
     extension(Map map)
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsVehicleMapOf(out VehiclePawnWithMap vehicle)
         {
             if (map?.Parent is PocketMapParent pocketMapParent)
@@ -57,7 +56,6 @@ public static class VehicleMapUtility
 
         public bool IsVehicleMap => map.IsVehicleMapOf(out _);
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsNonFocusedVehicleMapOf(out VehiclePawnWithMap vehicle)
         {
             if (map.IsVehicleMapOf(out vehicle) && (VehicleMapFramework.settings.drawPlanet || Find.CurrentMap != vehicle.VehicleMap))
@@ -73,31 +71,39 @@ public static class VehicleMapUtility
         [UsedImplicitly] // Reflection access by Portable Blueprints
         public IEnumerable<Map> BaseMapAndVehicleMaps()
         {
+            return map.BaseMapAndVehicleMaps(true);
+        }
+        
+        public IEnumerable<Map> BaseMapAndVehicleMaps(bool includeItself)
+        {
             if (MultiFloors.Active && MultiFloors.GroundMap(map) != map)
             {
                 yield return map;
                 yield break;
             }
             var baseMap = map.BaseMap();
-            if (baseMap == null)
+            if (baseMap is null)
             {
                 yield break;
             }
-            yield return baseMap;
+            if (includeItself || baseMap != map)
+                yield return baseMap;
 
             if (baseMap.IsVehicleMapOf(out var vehicle) && vehicle.VehicleCaravanOrStashedVehicle is { } vehicleCaravanOrStashedVehicle)
             {
-                foreach (var vehicle2 in vehicleCaravanOrStashedVehicle.Vehicles.OfType<VehiclePawnWithMap>())
-                    yield return vehicle2.VehicleMap;
+                foreach (var vehicle2 in vehicleCaravanOrStashedVehicle.Vehicles)
+                {
+                    if (vehicle != vehicle2 && vehicle2 is VehiclePawnWithMap vehiclePawnWithMap)
+                        yield return vehiclePawnWithMap.VehicleMap;
+                }
             }
             else
             {
+                var allVehicles = VehiclePawnWithMapCache.AllVehiclesOn(baseMap);
                 foreach (var vehicle2 in VehiclePawnWithMapCache.AllVehiclesOn(baseMap))
                 {
-                    if (vehicle2.VehicleMap != null)
-                    {
+                    if (includeItself || vehicle2.VehicleMap != map)
                         yield return vehicle2.VehicleMap;
-                    }
                 }
             }
         }
@@ -107,8 +113,13 @@ public static class VehicleMapUtility
             if (map.IsVehicleMapOf(out var vehicle))
             {
                 if (vehicle.VehicleCaravanOrStashedVehicle is { } vehicleCaravanOrStashedVehicle)
-                    foreach (var vehicle2 in vehicleCaravanOrStashedVehicle.Vehicles.OfType<VehiclePawnWithMap>().Except(vehicle))
-                        yield return vehicle2.VehicleMap;
+                {
+                    foreach (var vehicle2 in vehicleCaravanOrStashedVehicle.Vehicles)
+                    {
+                        if (vehicle != vehicle2 && vehicle2 is VehiclePawnWithMap vehiclePawnWithMap)
+                            yield return vehiclePawnWithMap.VehicleMap;
+                    }
+                }
             }
             else
                 foreach (var vehicle2 in VehiclePawnWithMapCache.TryGetAllVehiclesOn(map))
@@ -116,7 +127,6 @@ public static class VehicleMapUtility
         }
         
         [UsedImplicitly] // Reflection access by Portable Blueprints
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Map BaseMap()
         {
             if (map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
@@ -136,7 +146,6 @@ public static class VehicleMapUtility
 
     extension(Thing thing)
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsOnVehicleMapOf(out VehiclePawnWithMap vehicle)
         {
             if (thing != null) return thing.Map.IsVehicleMapOf(out vehicle);
@@ -146,7 +155,6 @@ public static class VehicleMapUtility
 
         public bool IsOnVehicleMap => thing.IsOnVehicleMapOf(out _);
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsOnNonFocusedVehicleMapOf(out VehiclePawnWithMap vehicle)
         {
             if (thing != null) return thing.Map.IsNonFocusedVehicleMapOf(out vehicle);
@@ -156,7 +164,6 @@ public static class VehicleMapUtility
 
         public bool IsOnNonFocusedVehicleMap => thing.IsOnNonFocusedVehicleMapOf(out _);
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Map BaseMap()
         {
             if (thing.IsOnVehicleMapOf(out var vehicle) && vehicle.Spawned)
@@ -299,7 +306,6 @@ public static class VehicleMapUtility
             return original;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Vector3 ToVehicleMapCoord(VehiclePawnWithMap vehicle)
         {
             var vehicleMapPos = vehicle.cachedDrawPos + OffsetFor(vehicle);
@@ -318,22 +324,21 @@ public static class VehicleMapUtility
         {
             if (Command_FocusVehicleMap.FocusedVehicle != null)
             {
-                return ToBaseMapCoord(original, Command_FocusVehicleMap.FocusedVehicle).WithY(original.y);
+                return original.ToBaseMapCoord(Command_FocusVehicleMap.FocusedVehicle).WithY(original.y);
             }
             if (VehicleMapFramework.settings.drawPlanet && Find.CurrentMap.IsVehicleMapOf(out _) &&
                 UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out var vehicle))
             {
-                return ToBaseMapCoord(original, vehicle).WithY(original.y);
+                return original.ToBaseMapCoord(vehicle).WithY(original.y);
             }
             return original;
         }
 
         public Vector3 ToBaseMapCoord(Map map)
         {
-            return map.IsNonFocusedVehicleMapOf(out var vehicle) ? ToBaseMapCoord(original, vehicle) : original;
+            return map.IsNonFocusedVehicleMapOf(out var vehicle) ? original.ToBaseMapCoord(vehicle) : original;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Vector3 ToBaseMapCoord(VehiclePawnWithMap vehicle)
         {
             var vehiclePos = vehicle.cachedDrawPos;
@@ -536,6 +541,16 @@ public static class VehicleMapUtility
         Vector3 OffsetNorth() => vehicleMap.offsetNorth ?? (vehicleMap.offsetSouth == null ? vehicleMap.offsetNorth = vehicleMap.offsetSouth = vehicleMap.offset : vehicleMap.offsetNorth = vehicleMap.offsetSouth.Value.MirrorVertical()).Value;
 
         Vector3 OffsetSouth() => vehicleMap.offsetSouth ?? (vehicleMap.offsetNorth == null ? vehicleMap.offsetSouth = vehicleMap.offsetNorth = vehicleMap.offset : vehicleMap.offsetNorth = vehicleMap.offsetNorth.Value.MirrorVertical()).Value;
+    }
+
+    public static IntVec3 HitboxToMapCell(VehiclePawnWithMap vehicle)
+    {
+        return vehicle.VehicleMap.Size / 2 - OffsetFor(vehicle, Rot8.North).ToIntVec3();
+    }
+
+    public static IntVec2 MapCellToHitbox(VehiclePawnWithMap vehicle)
+    {
+        return (OffsetFor(vehicle, Rot8.North).ToIntVec3() - vehicle.VehicleMap.Size / 2).ToIntVec2;
     }
 
     public static Rot4 RotationForPrint(this Thing thing)

@@ -147,6 +147,8 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
         var m_GenClosestCrossMap_ClosestThing_Global = AccessTools.Method(typeof(GenClosestCrossMap), nameof(GenClosestCrossMap.ClosestThing_Global));
         var m_GenClosest_ClosestThing_Global_Reachable = AccessTools.Method(typeof(GenClosest), nameof(GenClosest.ClosestThing_Global_Reachable));
         var m_GenClosestCrossMap_ClosestThing_Global_Reachable = AccessTools.Method(typeof(GenClosestCrossMap), nameof(GenClosestCrossMap.ClosestThing_Global_Reachable));
+        var m_NonScanJob = AccessTools.Method(typeof(WorkGiver), nameof(WorkGiver.NonScanJob));
+        var m_NonScanJobAll = AccessTools.Method(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(NonScanJobAll));
         var m_Scanner_PotentialWorkThingsGlobal = AccessTools.Method(typeof(WorkGiver_Scanner), nameof(WorkGiver_Scanner.PotentialWorkThingsGlobal));
         var m_PotentialWorkThingsGlobalAll = AccessTools.Method(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(PotentialWorkThingsGlobalAll));
         var m_Scanner_JobOnThing = AccessTools.Method(typeof(WorkGiver_Scanner), nameof(WorkGiver_Scanner.JobOnThing));
@@ -166,8 +168,37 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
         }
 
         tmpMaps.Clear();
-        tmpMaps.AddRange(pawn.Map.BaseMapAndVehicleMaps().Except(pawn.Map));
+        tmpMaps.AddRange(pawn.Map.BaseMapAndVehicleMaps(false));
         return tmpMaps.Any() ? tmpMaps.SelectMany(m => m.listerThings.ThingsMatching(scanner.PotentialWorkThingRequest)).ConcatIfNotNull(list).Distinct() : list;
+    }
+
+    internal static Job NonScanJobAll(this WorkGiver workGiver, Pawn pawn)
+    {
+        var job = workGiver.NonScanJob(pawn);
+        if (job is not null || !JobAcrossMapsUtility.WorkGiverClassesNonScanAll.Contains(workGiver.def.giverClass))
+            return job;
+
+        var map = pawn.Map;
+        foreach (var map2 in pawn.Map.BaseMapAndVehicleMaps(false))
+        {
+            try
+            {
+                pawn.DepartMap = map;
+                pawn.DestMap = map2;
+                pawn.VirtualMapTransfer(map2);
+                job = workGiver.NonScanJob(pawn);
+                if (job is not null && pawn.CanReach(job.targetA, PathEndMode.Touch, Danger.Deadly, false, false,
+                        TraverseMode.ByPawn, map2, out var exitSpot, out var enterSpot, out var spotsQueue))
+                    return JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, spotsQueue, job);
+            }
+            finally
+            {
+                pawn.RemoveDepartMap();
+                pawn.RemoveDestMap();
+                pawn.VirtualMapTransfer(map);
+            }
+        }
+        return null;
     }
 
     extension(WorkGiver_Scanner scanner)
@@ -279,7 +310,7 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
             var pawn = innerClass.pawn;
             var basePos = pawn.PositionOnBaseMap;
             var map = pawn.DepartMap = pawn.Map;
-            var maps = map.BaseMapAndVehicleMaps().Except(map);
+            var maps = map.BaseMapAndVehicleMaps(false);
             try
             {
                 foreach (var map2 in maps)
@@ -639,7 +670,7 @@ public static class Patch_ItemAvailability_ThingsAvailableAnywhere
     {
         tmpList.Clear();
         tmpList.AddRange(list);
-        tmpList.AddRange(map.BaseMapAndVehicleMaps().Except(map).SelectMany(m => m.listerThings.ThingsOfDef(need)));
+        tmpList.AddRange(map.BaseMapAndVehicleMaps(false).SelectMany(m => m.listerThings.ThingsOfDef(need)));
         return tmpList;
     }
 }
@@ -746,7 +777,8 @@ public static class Patch_ReservationManager_Reserve
     {
         //CTDに繋がる可能性があるので無限ループが起きないよう注意
         map = target.Thing?.MapHeld ?? claimant.TargetMap ??
-            (job is not null && (LocalTargetInfo)job.globalTarget == target ? job.globalTarget.Map : claimant.GetLord()?.Map);
+            (job is not null && (LocalTargetInfo)job.globalTarget == target ? job.globalTarget.Map :
+                claimant.GetLord() is { LordJob: LordJob_Ritual } lord ? lord.Map : null);
         if (map is null) return false;
         return allowSameMap || ___map != map;
     }
@@ -866,7 +898,7 @@ public static class Patch_FoodUtility_BestFoodSourceOnMap
     {
         searchSet.Clear();
         searchSet.AddRange(list);
-        var maps = getter.Map.BaseMapAndVehicleMaps().Except(getter.Map);
+        var maps = getter.Map.BaseMapAndVehicleMaps(false);
         foreach (var map in maps)
         {
             searchSet.AddRange(map.listerThings.ThingsMatching(req));
@@ -1278,7 +1310,7 @@ public static class Patch_PaintUtility_FindNearbyDyes
         var map = pawn.Map;
         tmpList.Clear();
         tmpList.AddRange(list);
-        tmpList.AddRange(map.BaseMapAndVehicleMaps().Except(map)
+        tmpList.AddRange(map.BaseMapAndVehicleMaps(false)
             .SelectMany(m => m.listerThings.ThingsOfDef(ThingDefOf.Dye))
             .Where(t => !t.IsForbidden(pawn) &&
                         pawn.CanReserveAndReach(t, PathEndMode.ClosestTouch, Danger.Deadly, ignoreOtherReservations: forced)));

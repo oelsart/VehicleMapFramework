@@ -68,7 +68,7 @@ public static class Patch_Building_Autocrane_NextFrameTarget
     public static void Postfix(Building __instance, IntVec3 ___endCranePosition, ref Frame __result)
     {
         if (__result != null) return;
-        var things = __instance.Map.BaseMapAndVehicleMaps().Except(__instance.Map).SelectMany(m =>
+        var things = __instance.Map.BaseMapAndVehicleMaps(false).SelectMany(m =>
         {
             var pos = m.IsVehicleMapOf(out var vehicle) ? __instance.PositionOnBaseMap.ToVehicleMapCoord(vehicle) : __instance.PositionOnBaseMap;
             return GenRadial.RadialDistinctThingsAround(pos, m, 20f, true);
@@ -95,7 +95,7 @@ public static class Patch_Building_Autocrane_NextDamagedBuildingTarget
     {
         if (__result == null)
         {
-            var things = __instance.Map.BaseMapAndVehicleMaps().Except(__instance.Map).SelectMany(m =>
+            var things = __instance.Map.BaseMapAndVehicleMaps(false).SelectMany(m =>
             {
                 var pos = m.IsVehicleMapOf(out var vehicle) ? __instance.PositionOnBaseMap.ToVehicleMapCoord(vehicle) : __instance.PositionOnBaseMap;
                 return GenRadial.RadialDistinctThingsAround(pos, m, 20f, true);

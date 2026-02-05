@@ -47,6 +47,8 @@ public static class VMF_DefOf
 
     public static JobDef VMF_RefuelVehicleTank;
 
+    public static JobDef VMF_RepairMapVehicle;
+
     public static JobDef VMF_DeconstructVehicleSegment;
 
     public static JobDef VMF_GotoShipCombat;

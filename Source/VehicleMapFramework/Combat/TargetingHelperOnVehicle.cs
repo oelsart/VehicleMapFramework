@@ -35,7 +35,7 @@ public static class TargetingHelperOnVehicle
         }
 
         tmpTargets.Clear();
-        var maps = searcherPawn.Map.BaseMapAndVehicleMaps().Except(searcherPawn.Map);
+        var maps = searcherPawn.Map.BaseMapAndVehicleMaps(false);
         tmpTargets.AddRange(maps.SelectMany(m => m.attackTargetsCache.GetPotentialTargetsFor(searcherPawn)));
 
         var flag = false;

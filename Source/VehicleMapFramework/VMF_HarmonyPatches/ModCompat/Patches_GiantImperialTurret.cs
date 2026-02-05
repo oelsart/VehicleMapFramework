@@ -101,26 +101,21 @@ public static class Patch_AttackTargetFinderAngle_BestAttackTarget
 
         var map = searcher.Thing.Map;
         var pos = searcher.Thing.Position;
-        var maps = map.BaseMapAndVehicleMaps().Except(map);
-
-        if (maps.Any())
+        var basePos = searcher.Thing.PositionOnBaseMap;
+        foreach (var map2 in map.BaseMapAndVehicleMaps(false))
         {
-            var basePos = searcher.Thing.PositionOnBaseMap;
-            foreach (var map2 in maps)
+            IAttackTarget target = null;
+            try
             {
-                IAttackTarget target = null;
-                try
-                {
-                    working = true;
-                    searcher.Thing.VirtualMapTransfer(map2, map2.IsVehicleMapOf(out var vehicle) ? basePos.ToVehicleMapCoord(vehicle) : basePos);
-                    target = (IAttackTarget)BestAttackTarget(null, searcher, flags, angle, validator, minDist, maxDist, locus, maxTravelRadiusFromLocus, canTakeTargetsCloserThanEffectiveMinRange);
-                }
-                finally
-                {
-                    working = false;
-                    searcher.Thing.VirtualMapTransfer(map, pos);
-                    __result = AttackTargetFinderOnVehicle.CompareTarget(__result, target, searcher);
-                }
+                working = true;
+                searcher.Thing.VirtualMapTransfer(map2, map2.IsVehicleMapOf(out var vehicle) ? basePos.ToVehicleMapCoord(vehicle) : basePos);
+                target = (IAttackTarget)BestAttackTarget(null, searcher, flags, angle, validator, minDist, maxDist, locus, maxTravelRadiusFromLocus, canTakeTargetsCloserThanEffectiveMinRange);
+            }
+            finally
+            {
+                working = false;
+                searcher.Thing.VirtualMapTransfer(map, pos);
+                __result = AttackTargetFinderOnVehicle.CompareTarget(__result, target, searcher);
             }
         }
     }

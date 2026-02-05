@@ -294,7 +294,7 @@ public static class Patch_ProjectileCE_RayCast
     {
         tmpList.Clear();
         tmpList.AddRange(list);
-        var maps = map.BaseMapAndVehicleMaps().Except(map);
+        var maps = map.BaseMapAndVehicleMaps(false);
         foreach (var map2 in maps)
         {
             var c2 = c;
@@ -346,7 +346,7 @@ public static class Patch_ProjectileCE_CheckForCollisionBetween
     {
         tmpList.Clear();
         tmpList.AddRange(list);
-        var maps = map.BaseMapAndVehicleMaps().Except(map);
+        var maps = map.BaseMapAndVehicleMaps(false);
         tmpList.AddRange(maps.SelectMany(m => m.listerThings.ThingsInGroup(ThingRequestGroup.ProjectileInterceptor)));
         return tmpList;
     }
@@ -436,7 +436,7 @@ public static class Patch_Building_TurretGunCE_TryFindNewTarget
     {
         tmpList.Clear();
         tmpList.AddRange(list);
-        var maps = map.BaseMapAndVehicleMaps().Except(map);
+        var maps = map.BaseMapAndVehicleMaps(false);
         tmpList.AddRange(maps.SelectMany(m => m.listerBuildings.allBuildingsColonist));
         return tmpList;
     }

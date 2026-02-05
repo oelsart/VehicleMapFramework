@@ -12,12 +12,17 @@ public static class JobAcrossMapsUtility
 {
     private static readonly AccessTools.FieldRef<JobDriver, int> curToilIndex = AccessTools.FieldRefAccess<JobDriver, int>("curToilIndex");
 
-    public static List<Type> WorkGiverClassesNeedWrap { get; } = [];
+    public static List<Type> WorkGiverClassesNonScanAll { get; } =
+    [
+        typeof(WorkGiver_Fish)
+    ];
     
+    public static List<Type> WorkGiverClassesNeedWrap { get; } = [];
+
     public static List<Type> JobDriverClassesNeedWrap { get; } =
-        [
-            typeof(JobDriver_RemoveFloor)
-        ];
+    [
+        typeof(JobDriver_RemoveFloor)
+    ];
     
     public static List<WorkGiverDef> DisabledCrossMapWorkGiverDefs { get; } = [];
 

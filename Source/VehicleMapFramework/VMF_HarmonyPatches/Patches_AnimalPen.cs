@@ -28,7 +28,7 @@ public static class Patch_AnimalPenUtility_AnySuitablePens
         {
             var animalMap = animal.Map;
             _ = animal.Position;
-            var maps = animalMap.BaseMapAndVehicleMaps().Except(animalMap);
+            var maps = animalMap.BaseMapAndVehicleMaps(false);
             foreach (var map in maps)
             {
                 foreach (var thing in map.listerBuildings.allBuildingsAnimalPenMarkers)
@@ -54,7 +54,7 @@ public static class Patch_AnimalPenUtility_AnySuitableHitch
         if (!__result)
         {
             var animalMap = animal.Map;
-            var maps = animalMap.BaseMapAndVehicleMaps().Except(animalMap);
+            var maps = animalMap.BaseMapAndVehicleMaps(false);
             foreach (var map in maps)
             {
                 foreach (var thing in map.listerBuildings.allBuildingsAnimalPenMarkers)
@@ -79,7 +79,7 @@ public static class Patch_AnimalPenUtility_ClosestSuitablePen
         if (__result == null)
         {
             var animalMap = animal.Map;
-            var maps = animalMap.BaseMapAndVehicleMaps().Except(animalMap);
+            var maps = animalMap.BaseMapAndVehicleMaps(false);
             var num = 0f;
             foreach (var map in maps)
             {
@@ -124,7 +124,7 @@ public static class Patch_AnimalPenUtility_GetPenAnimalShouldBeTakenTo
     private static HashSet<Building> AddPenMarkers(HashSet<Building> hashSet, Map map)
     {
         var result = new HashSet<Building>(hashSet);
-        var maps = map.BaseMapAndVehicleMaps().Except(map);
+        var maps = map.BaseMapAndVehicleMaps(false);
         foreach (var map2 in maps)
         {
             result.AddRange(map2.listerBuildings.allBuildingsAnimalPenMarkers);
@@ -165,7 +165,7 @@ public static class Patch_AnimalPenUtility_GetHitchingPostAnimalShouldBeTakenTo
     private static HashSet<Building> AddHitchingPosts(HashSet<Building> hashSet, Map map)
     {
         var result = new HashSet<Building>(hashSet);
-        var maps = map.BaseMapAndVehicleMaps().Except(map);
+        var maps = map.BaseMapAndVehicleMaps(false);
         foreach (var map2 in maps)
         {
             result.AddRange(map2.listerBuildings.allBuildingsHitchingPosts);

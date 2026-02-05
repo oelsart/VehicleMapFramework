@@ -4,7 +4,6 @@ using System.Text;
 using HarmonyLib;
 using RimWorld;
 using RimWorld.Planet;
-using SmashTools;
 using SmashTools.Targeting;
 using UnityEngine;
 using Vehicles;

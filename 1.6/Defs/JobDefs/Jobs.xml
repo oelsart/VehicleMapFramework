@@ -41,6 +41,13 @@
 	</JobDef>-->
 	
 	<JobDef>
+		<defName>VMF_RepairMapVehicle</defName>
+		<driverClass>VehicleMapFramework.JobDriver_RepairMapVehicle</driverClass>
+		<reportString>Repairing TargetA.</reportString>
+		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
+	</JobDef>
+	
+	<JobDef>
 		<defName>VMF_DeconstructVehicleSegment</defName>
 		<driverClass>VehicleMapFramework.JobDriver_DeconstructSegment</driverClass>
 		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
@@ -51,4 +58,5 @@
 		<driverClass>VehicleMapFramework.JobDriver_GotoShipCombat</driverClass>
 		<reportString>moving.</reportString>
 	</JobDef>
+	
 </Defs>

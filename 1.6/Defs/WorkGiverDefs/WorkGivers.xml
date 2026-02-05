@@ -15,6 +15,18 @@
 	</WorkGiverDef>
 	
 	<WorkGiverDef>
+		<defName>VMF_RepairMapVehicle</defName>
+		<label>repair vehicle</label>
+		<giverClass>VehicleMapFramework.WorkGiver_RepairMapVehicle</giverClass>
+		<workType>Construction</workType>
+		<scanThings>false</scanThings>
+		<scanCells>true</scanCells>
+		<verb>repair</verb>
+		<gerund>repairing</gerund>
+		<priorityInType>81</priorityInType>
+	</WorkGiverDef>
+	
+	<WorkGiverDef>
 		<defName>VMF_RemoveVehicleSegment</defName>
 		<label>remove vehicle segment</label>
 		<giverClass>VehicleMapFramework.WorkGiver_RemoveVehicleSegment</giverClass>

@@ -42,7 +42,7 @@ public class CompVehicleSeat : CompBuildableUpgrades, IAttackTarget
                              "VF_BoardFailureNonCombatant".Translate(selPawn.LabelShort)))
                      select new FloatMenuOption(label, delegate
                      {
-                         var job = new Job(VMF_DefOf.VMF_BoardAcrossMaps, parent).SetSpotsToJobAcrossMaps(selPawn, exitSpot, enterSpot, spotsQueue);
+                         var job = JobMaker.MakeJob(VMF_DefOf.VMF_BoardAcrossMaps, parent).SetSpotsToJobAcrossMaps(selPawn, exitSpot, enterSpot, spotsQueue);
                          vehicle.GiveLoadJob(selPawn, handler);
                          selPawn.jobs.TryTakeOrderedJob(job, JobTag.DraftedOrder);
                          if (!selPawn.Spawned)

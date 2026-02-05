@@ -4,7 +4,6 @@ using RimWorld;
 using SmashTools;
 using Vehicles;
 using Verse;
-using Verse.AI;
 
 namespace VehicleMapFramework;
 
@@ -65,7 +64,7 @@ public class VehicleTurret_AutoRefuel : VehicleTurret
             var job = RefuelVehicleTurret.JobOnThing(pawn, vehicle);
             if (job is null) return;
             pawn.jobs.TryTakeOrderedJob(job);
-            var job2 =  new Job(JobDefOf_Vehicles.Board, vehicle);
+            var job2 =  JobMaker.MakeJob(JobDefOf_Vehicles.Board, vehicle);
             vehicle.GiveLoadJob(pawn, handler);
             pawn.jobs.TryTakeOrderedJob(job2, requestQueueing: true);
             vehicle.Map.GetCachedMapComponent<VehicleReservationManager>()

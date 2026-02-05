@@ -12,17 +12,26 @@ public static class DefMessagesReplace
 {
     static DefMessagesReplace()
     {
-        var refuelVehicleTank = DefDatabase<WorkGiverDef>.GetNamedSilentFail("VMF_RefuelVehicleTank"!);
-        var refuelVehicle = DefDatabase<WorkGiverDef>.GetNamedSilentFail("RefuelVehicle"!);
+        var refuelVehicleTank = DefDatabase<WorkGiverDef>.GetNamedSilentFail("VMF_RefuelVehicleTank");
+        var refuelVehicle = DefDatabase<WorkGiverDef>.GetNamedSilentFail("RefuelVehicle");
         if (refuelVehicleTank != null && refuelVehicle != null)
         {
             refuelVehicleTank.label = refuelVehicle.label;
             refuelVehicleTank.verb = refuelVehicle.verb;
             refuelVehicleTank.gerund = refuelVehicle.gerund;
         }
+        
+        var repairMapVehicle = DefDatabase<WorkGiverDef>.GetNamedSilentFail("VMF_RepairMapVehicle");
+        var repairVehicle = DefDatabase<WorkGiverDef>.GetNamedSilentFail("RepairVehicle");
+        if (repairMapVehicle != null && repairVehicle != null)
+        {
+            repairMapVehicle.label = repairVehicle.label;
+            repairMapVehicle.verb = repairVehicle.verb;
+            repairMapVehicle.gerund = repairVehicle.gerund;
+        }
 
         var removeSegment = VMF_DefOf.VMF_RemoveVehicleSegment;
-        var deconstruct = DefDatabase<WorkGiverDef>.GetNamedSilentFail("Deconstruct"!);
+        var deconstruct = DefDatabase<WorkGiverDef>.GetNamedSilentFail("Deconstruct");
         if (removeSegment != null && deconstruct != null)
         {
             removeSegment.label = deconstruct.label;
@@ -57,6 +66,8 @@ public static class DefMessagesReplace
         //    VMF_RefuelVehicleTankAtomic.label = RefuelVehicleAtomic.label;
         //    VMF_RefuelVehicleTankAtomic.reportString = RefuelVehicleAtomic.reportString;
         //}
+        
+        VMF_DefOf.VMF_RepairMapVehicle.reportString = JobDefOf_Vehicles.RepairVehicle.reportString;
 
         VMF_DefOf.VMF_DeconstructVehicleSegment?.reportString = JobDefOf.Deconstruct.reportString;
     }

@@ -60,7 +60,7 @@ public static class Patch_ArcanePlant_Turret_TryFindNewTarget
     {
         tmpList.Clear();
         tmpList.AddRange(list);
-        var maps = instance.Map.BaseMapAndVehicleMaps().Except(instance.Map);
+        var maps = instance.Map.BaseMapAndVehicleMaps(false);
         tmpList.AddRange(maps.SelectMany(m => m.listerBuildings.allBuildingsColonist));
         return tmpList;
     }

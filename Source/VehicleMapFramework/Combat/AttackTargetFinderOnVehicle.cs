@@ -172,7 +172,7 @@ public static class AttackTargetFinderOnVehicle
         if ((HasRangedAttack(searcher) || onlyRanged) && searcherPawn is not { InAggroMentalState: true })
         {
             tmpTargets.Clear();
-            tmpTargets.AddRange(searcherThing.Map.BaseMapAndVehicleMaps().Except(searcherThing.Map).SelectMany(m => m.attackTargetsCache.GetPotentialTargetsFor(searcher)));
+            tmpTargets.AddRange(searcherThing.Map.BaseMapAndVehicleMaps(false).SelectMany(m => m.attackTargetsCache.GetPotentialTargetsFor(searcher)));
             validTargets.Clear();
             for (var i = 0; i < tmpTargets.Count; i++)
             {

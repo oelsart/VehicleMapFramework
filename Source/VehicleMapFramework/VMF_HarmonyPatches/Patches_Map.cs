@@ -44,7 +44,7 @@ public static class Patch_MechanitorUtility_InMechanitorCommandRange
     [PatchLevel(Level.Safe)]
     public static void Prefix(Pawn mech, ref LocalTargetInfo target)
     {
-        target = TargetMapUtility.TargetCellOnBaseMap(ref target, mech);
+        target = target.TargetCellOnBaseMap(mech);
     }
 
     [PatchLevel(Level.Cautious)]
@@ -733,7 +733,7 @@ public static class Patch_GenHostility_AnyHostileActiveThreatTo
     {
         if (__result) return;
 
-        foreach (var map2 in map.BaseMapAndVehicleMaps().Except(map))
+        foreach (var map2 in map.BaseMapAndVehicleMaps(false))
         {
             foreach (var attackTarget in map2.attackTargetsCache.TargetsHostileToFaction(faction))
             {
@@ -785,7 +785,7 @@ public static class Patch_RecipeDef_PotentiallyMissingIngredients
         return from thingDef in values
             let found = __instance.ingredients
                 .Where(ing => ing.IsFixedIngredient && thingDef == ing.FixedIngredient || ing.filter.Allows(thingDef))
-                .Any(ing => (map.BaseMapAndVehicleMaps().Except(map))
+                .Any(ing => (map.BaseMapAndVehicleMaps(false))
                     .Any(map2 => {
                         var list = map2.listerThings.ThingsInGroup(ThingRequestGroup.HaulableEver);
                         return list.Exists(t =>
