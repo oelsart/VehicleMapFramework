@@ -528,55 +528,6 @@ public static class CrossMapReachabilityUtility
             CrossMapReachabilityCache.Cache(region, region2, traverseParms, result, exitSpot, enterSpot, spotsQueue);
             working = false;
         }
-
-    }
-
-    public static bool GetClosestExitEnterSpot(Map departMap, IntVec3 root, TraverseParms traverseParms, Map destMap, out TargetInfo exitSpot, out TargetInfo enterSpot, out List<(TargetInfo, TargetInfo)> spotsQueue)
-    {
-        exitSpot = TargetInfo.Invalid;
-        enterSpot = TargetInfo.Invalid;
-        spotsQueue = null;
-        var flag = departMap.IsVehicleMapOf(out var vehicle);
-        var flag2 = destMap.IsVehicleMapOf(out var vehicle2);
-        if (!flag && !flag2 && departMap != destMap)
-        {
-            return false;
-        }
-        if (departMap.BaseMapOrCaravan != destMap.BaseMapOrCaravan)
-        {
-            return false;
-        }
-
-        var tmpExitSpot = TargetInfo.Invalid;
-        var tmpEnterSpot = TargetInfo.Invalid;
-        List<(TargetInfo, TargetInfo)> tmpSpotsQueue = null;
-        if (flag2)
-        {
-            if (vehicle2.EnterComps.Any(c => CanReach(departMap, root, c.parent, PathEndMode.OnCell,
-                    traverseParms, destMap, out tmpExitSpot, out tmpEnterSpot, out tmpSpotsQueue)) ||
-                vehicle2.CachedWalkableMapEdgeCells.Any(c => CanReach(departMap, root, c, PathEndMode.OnCell,
-                    traverseParms, destMap, out tmpExitSpot, out tmpEnterSpot, out tmpSpotsQueue)))
-            {
-                exitSpot = tmpExitSpot;
-                enterSpot = tmpEnterSpot;
-                spotsQueue = tmpSpotsQueue;
-                return true;
-            }
-        }
-        else if (flag)
-        {
-            if (vehicle.EnterComps.Any(c => CanReach(departMap, root, c.EnterVehiclePosition,
-                    PathEndMode.OnCell, traverseParms, destMap, out tmpExitSpot, out tmpEnterSpot, out tmpSpotsQueue)) ||
-                vehicle.CachedWalkableMapEdgeCells.Any(c => CanReach(departMap, root,
-                    EnterVehiclePosition(new TargetInfo(c, departMap)), PathEndMode.OnCell, traverseParms, destMap,
-                    out tmpExitSpot, out tmpEnterSpot, out tmpSpotsQueue)))
-            {
-                exitSpot = tmpExitSpot;
-                enterSpot = tmpEnterSpot;
-                return true;
-            }
-        }
-        return false;
     }
 
     public static bool TryFindNearestStandableCell(VehiclePawn vehicle, IntVec3 cell, Map map, out IntVec3 result, float radius = -1f)

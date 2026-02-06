@@ -86,8 +86,6 @@ public static class Patch_JobDriver_Map
 [PatchLevel(Level.Sensitive)]
 public static class Patch_JobGiver_Work_TryIssueJobPackage
 {
-    private static readonly List<Map> tmpMaps = [];
-
     private static readonly List<Thing> tmpThings = [];
     
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator, MethodBase original)
@@ -163,14 +161,18 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
 
     internal static IEnumerable<Thing> AddSearchSet(List<Thing> list, Pawn pawn, WorkGiver_Scanner scanner)
     {
-        if (JobAcrossMapsUtility.NoNeedVirtualMapTransfer(pawn.Map, null, scanner.def))
+        if (list is not null)
         {
-            return list;
+            foreach (var t in list) yield return t;
         }
+        if (JobAcrossMapsUtility.NoNeedVirtualMapTransfer(pawn.Map, null, scanner.def))
+            yield break;
 
-        tmpMaps.Clear();
-        tmpMaps.AddRange(pawn.Map.BaseMapAndVehicleMaps(false));
-        return tmpMaps.Any() ? tmpMaps.SelectMany(m => m.listerThings.ThingsMatching(scanner.PotentialWorkThingRequest)).ConcatIfNotNull(list).Distinct() : list;
+        var req = scanner.PotentialWorkThingRequest;
+        foreach (var t in pawn.Map.BaseMapAndVehicleMaps(false).SelectMany(m => m.listerThings.ThingsMatching(req)))
+        {
+            yield return t;
+        }
     }
 
     internal static Job NonScanJobAll(this WorkGiver workGiver, Pawn pawn)
@@ -180,24 +182,32 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
             return job;
 
         var map = pawn.Map;
+        var pos = pawn.Position;
+        var region = pos.GetRegion(map);
+        if (region is null) return null;
+
+        var traverseParms = TraverseParms.For(pawn);
         foreach (var map2 in pawn.Map.BaseMapAndVehicleMaps(false))
         {
-            try
+            Region region2 = null;
+            RegionTraverserAcrossMaps.BreadthFirstTraverse(region, (_, r) => r.Allows(traverseParms, true),
+                r =>
+                {
+                    if (r.Map == map2)
+                    {
+                        region2 = r;
+                        return true;
+                    }
+                    return false;
+                });
+            if (region2 is null) continue;
+            
+            using (new VirtualTeleporter(pawn, map2, region2.RandomCell))
             {
-                pawn.DepartMap = map;
-                pawn.DestMap = map2;
-                pawn.VirtualMapTransfer(map2);
                 job = workGiver.NonScanJob(pawn);
-                if (job is not null && pawn.CanReach(job.targetA, PathEndMode.Touch, Danger.Deadly, false, false,
-                        TraverseMode.ByPawn, map2, out var exitSpot, out var enterSpot, out var spotsQueue))
-                    return JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, spotsQueue, job);
             }
-            finally
-            {
-                pawn.RemoveDepartMap();
-                pawn.RemoveDestMap();
-                pawn.VirtualMapTransfer(map);
-            }
+            if (job is not null && pawn.CanReach(job.targetA, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, map2, out var exitSpot, out var enterSpot, out var spotsQueue))
+                return JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, spotsQueue, job);
         }
         return null;
     }
@@ -284,26 +294,7 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
                     return job;
                 }
             }
-
-            if (!CrossMapReachabilityUtility.GetClosestExitEnterSpot(map, pawn.Position, TraverseParms.For(pawn), targetMap,
-                    out var exitSpot2, out var enterSpot2, out var spotsQueue2)) return null;
-            Job job2;
-            try
-            {
-                pawn.DepartMap = map;
-                pawn.DestMap = targetMap;
-                pawn.VirtualMapTransfer(targetMap);
-                job2 = scanner.JobOnCell(pawn, target.Cell, forced);
-            }
-            finally
-            {
-                pawn.RemoveDepartMap();
-                pawn.RemoveDestMap();
-                pawn.VirtualMapTransfer(map);
-            }
-            if (!JobAcrossMapsUtility.NoNeedWrapGotoDestMapJob(scanner))
-                job2 = JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot2, enterSpot2, spotsQueue2, job2);
-            return job2;
+            return null;
         }
 
         internal void ScanCellsAcrossMaps(ref InnerClass innerClass, ref InnerStruct innerStruct)
@@ -444,7 +435,6 @@ public static class Patch_JobGiver_Work_Validator
         finally
         {
             pawn.RemoveDepartMap();
-            pawn.RemoveTargetInfo();
         }
     }
 }

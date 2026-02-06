@@ -99,7 +99,6 @@ public static class VehicleMapUtility
             }
             else
             {
-                var allVehicles = VehiclePawnWithMapCache.AllVehiclesOn(baseMap);
                 foreach (var vehicle2 in VehiclePawnWithMapCache.AllVehiclesOn(baseMap))
                 {
                     if (includeItself || vehicle2.VehicleMap != map)

@@ -25,8 +25,8 @@ internal sealed class UnitTest_WorkGivers
         vehicleGroup.SpawnPawns();
         var pawn = vehicleGroup.pawns[0];
         pawn.Map.weatherManager.curWeather = WeatherDefOf.Clear;
-        TestUtility.MakePawnPerfect(pawn);
-        Expect.IsTrue(TestUtility.EvacuateFromTestArea(pawn), "Evacuate from test area.");
+        MakePawnPerfect(pawn);
+        Expect.IsTrue(EvacuateFromTestArea(pawn), "Evacuate from test area.");
 
         using var dynamicPatchEnabler = new DynamicPatchEnabler();
         VMF_Harmony.DynamicPatchAllNow(Level.Sensitive);

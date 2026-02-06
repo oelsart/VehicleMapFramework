@@ -24,8 +24,8 @@ internal class UnitTest_ConstructFinishFrames(VehicleGroup group) : CrossMapWork
 
     public override void TearDown()
     {
-        base.TearDown();
         frame.Destroy();
         frame = null;
+        base.TearDown();
     }
 }

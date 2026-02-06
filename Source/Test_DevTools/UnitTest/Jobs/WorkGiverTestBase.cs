@@ -56,6 +56,7 @@ internal abstract class WorkGiverTestBase(VehicleGroup group)
     {
         var result = new WorkGiverResult();
         var workGiver = workGiverDef.Worker;
+        result.workGiver = workGiver;
         result.pawnCanUse = PawnCanUseWorkGiver(pawn, workGiver);
         if (!result.pawnCanUse)
             return result;
@@ -219,7 +220,9 @@ internal abstract class WorkGiverTestBase(VehicleGroup group)
         Assert.IsNotNull(vehicle, "vehicle is null");
         Assert.IsNotNull(workGiverDef, "workGiverDef is null");
         var result = new WorkGiverResult();
+        
         var workGiver = workGiverDef.Worker;
+        result.workGiver = workGiver;
         result.pawnCanUse = PawnCanUseWorkGiver(pawn, workGiver);
         if (!result.pawnCanUse)
             return result;
@@ -364,6 +367,8 @@ internal abstract class WorkGiverTestBase(VehicleGroup group)
     internal struct WorkGiverResult : IEquatable<WorkGiverResult>
     {
         public WorkGiverResult(){}
+
+        public WorkGiver workGiver;
         
         public bool pawnCanUse;
         
@@ -379,7 +384,8 @@ internal abstract class WorkGiverTestBase(VehicleGroup group)
         
         bool IEquatable<WorkGiverResult>.Equals(WorkGiverResult other)
         {
-            return pawnCanUse == other.pawnCanUse &&
+            return workGiver == other.workGiver &&
+                   pawnCanUse == other.pawnCanUse &&
                    SequenceEqual(things, other.things) &&
                    thing == other.thing &&
                    SequenceEqual(cells, other.cells) &&
@@ -404,6 +410,7 @@ internal abstract class WorkGiverTestBase(VehicleGroup group)
         public override string ToString()
         {
             var stringBuilder = new StringBuilder("\n");
+            stringBuilder.AppendLine($"  WorkGiver: {workGiver?.def.defName}");
             stringBuilder.AppendLine($"  PawnCanUse: {pawnCanUse}");
             stringBuilder.AppendLine($"  ThingsCount: {things?.Count ?? 0}");
             stringBuilder.AppendLine($"  Thing: {thing}");

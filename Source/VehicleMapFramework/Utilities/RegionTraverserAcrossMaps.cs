@@ -9,7 +9,7 @@ public static class RegionTraverserAcrossMaps
 {
     private class BFSWorker
     {
-        private readonly Queue<Region> open = new();
+        private readonly Queue<Region> open = [];
 
         private readonly HashSet<Region> close = [];
 
@@ -42,7 +42,7 @@ public static class RegionTraverserAcrossMaps
 
             Clear();
             numRegionsProcessed = 0;
-            open.Enqueue(root);
+            QueueNewOpenRegion(root);
             while (open.Count > 0)
             {
                 var region = open.Dequeue();
@@ -70,7 +70,7 @@ public static class RegionTraverserAcrossMaps
                 
                 foreach (var vehicle2 in region.ListerThings.ThingsInGroup(ThingRequestGroup.Pawn).OfType<VehiclePawnWithMap>())
                 {
-                    var region2 = vehicle2.VehicleMap.regionGrid.AllRegions.FirstOrDefault(r => ValidateRegion(region, r));
+                    var region2 = vehicle2.VehicleMap.regionGrid.AllRegions_NoRebuild_InvalidAllowed.FirstOrDefault(r => ValidateRegion(region, r));
                     if (region2 is not null)
                         QueueNewOpenRegion(region2);
                 }
@@ -90,7 +90,7 @@ public static class RegionTraverserAcrossMaps
                 {
                     if (vehicle.Spawned)
                     {
-                        var baseRegion = vehicle.Position.GetRegion(vehicle.Map);
+                        var baseRegion = vehicle.Position.GetRegion(vehicle.Map, traversableRegionTypes);
                         if (ValidateRegion(region, baseRegion))
                         {
                             QueueNewOpenRegion(baseRegion);
@@ -113,8 +113,8 @@ public static class RegionTraverserAcrossMaps
             
             bool ValidateRegion(Region from, Region to)
             {
-                return to != null && !open.Contains(to) && !close.Contains(to) &&
-                       (to.type & traversableRegionTypes) != 0 &&
+                return to != null && !close.Contains(to) &&
+                       (to.type & traversableRegionTypes) != RegionType.None &&
                        (entryCondition == null || entryCondition(from, to));
             }
         }
