@@ -1,0 +1,33 @@
+<Analyzer>
+	<VehicleMapFramework>
+		<Types>
+			<li>VehicleMapFramework.VMF_HarmonyPatches.Patch_MapDrawLayer_FinalizeMesh</li>
+			<li>VehicleMapFramework.VMF_HarmonyPatches.Patch_Reachability_CanReach</li>
+			<li>VehicleMapFramework.VMF_HarmonyPatches.Patch_Map_MapUpdate</li>
+			<li>VehicleMapFramework.VMF_HarmonyPatches.Patch_DesignationManager_DesignationOn</li>
+			<li>VehicleMapFramework.VMF_HarmonyPatches.Patch_Pawn_JobTracker_StartJob</li>
+			<li>VehicleMapFramework.VMF_HarmonyPatches.Patch_JobGiver_Work_TryIssueJobPackage</li>
+			<li>VehicleMapFramework.VMF_HarmonyPatches.Patch_JobGiver_Work_PawnCanUseWorkGiver</li>
+			<li>VehicleMapFramework.VMF_HarmonyPatches.Patch_JobGiver_Work_Validator</li>
+			<li>VehicleMapFramework.VMF_HarmonyPatches.Patch_Pawn_PathFollower_StartPath</li>
+			<li>VehicleMapFramework.VMF_HarmonyPatches.Patch_AttackTargetFinder_BestAttackTarget</li>
+			<li>VehicleMapFramework.VMF_HarmonyPatches.Patch_AttackTargetFinder_CanSee</li>
+			<li>VehicleMapFramework.VMF_HarmonyPatches.Patch_AttackTargetFinder_CanSee</li>
+			<li>VehicleMapFramework.VMF_HarmonyPatches.Patch_Verb_TryFindShootLineFromTo</li>
+			<li>VehicleMapFramework.CompMapExpander</li>
+			<li>VehicleMapFramework.VehicleMapFollower</li>
+			<li>VehicleMapFramework.WorkGiver_RepairMapVehicle</li>
+		</Types>
+		<Methods>
+			<li>VehicleMapFramework.VehicleMapUtility:IsVehicleMapOf</li>
+			<li>VehicleMapFramework.VehiclePawnWithMap:DrawVehicleMap</li>
+			<li>VehicleMapFramework.VehiclePawnWithMap:DrawVehicleMapMesh</li>
+			<li>VehicleMapFramework.DynamicDrawManagerOnVehicle:DrawDynamicThings</li>
+			<li>VehicleMapFramework.VMF_HarmonyPatches.Patch_MapPawns_AllPawns:Postfix</li>
+			<li>VehicleMapFramework.VMF_HarmonyPatches.Patch_MapPawns_AllPawnsSpawned:Postfix</li>
+			<li>VehicleMapFramework.VMF_HarmonyPatches.Patch_GenClosest_ClosestThingReachable:Postfix</li>
+			<li>VehicleMapFramework.VehicleMapUIRenderer:GetVehicleMapTexture</li>
+			<li>VehicleMapFramework.CrossMapReachabilityCache:ClearCacheFor</li>
+		</Methods>
+	</VehicleMapFramework>
+</Analyzer>

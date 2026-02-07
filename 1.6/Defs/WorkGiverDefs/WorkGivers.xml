@@ -23,7 +23,7 @@
 		<scanCells>true</scanCells>
 		<verb>repair</verb>
 		<gerund>repairing</gerund>
-		<priorityInType>81</priorityInType>
+		<priorityInType>79</priorityInType>
 	</WorkGiverDef>
 	
 	<WorkGiverDef>
