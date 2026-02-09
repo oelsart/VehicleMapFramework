@@ -41,7 +41,7 @@ public class CompZipline : CompVehicleEnterSpot
         }
     }
 
-    public Thing Pair => IsZiplineEnd ? LaunchVerb?.caster : LaunchVerb?.ZiplineEnd;
+    public Thing Pair => IsZiplineEnd ? LaunchVerb?.caster : LaunchVerb?.ziplineEnd;
 
     public bool IsZiplineEnd { get; private set; }
 
@@ -64,7 +64,7 @@ public class CompZipline : CompVehicleEnterSpot
     {
         if (!IsZiplineEnd)
         {
-            var ziplineEndThing = LaunchVerb?.ZiplineEnd;
+            var ziplineEndThing = LaunchVerb?.ziplineEnd;
             switch (ziplineEndThing)
             {
                 case IZiplineEnd ziplineEnd:

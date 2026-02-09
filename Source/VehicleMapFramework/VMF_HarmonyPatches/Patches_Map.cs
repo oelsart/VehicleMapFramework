@@ -560,9 +560,9 @@ public static class Patch_Game_FindMap
 {
     public static void Postfix(ref Map __result, List<Map> ___maps, PlanetTile tile)
     {
-        if (__result.IsVehicleMapOf(out _))
+        if (__result.IsVehicleMap)
         {
-            __result = ___maps.FirstOrDefault(m => m.Tile == tile && !m.IsVehicleMapOf(out _));
+            __result = ___maps.FirstOrDefault(m => m.Tile == tile && !m.IsVehicleMap);
         }
     }
 }

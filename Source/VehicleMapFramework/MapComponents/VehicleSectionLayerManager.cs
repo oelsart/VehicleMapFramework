@@ -8,7 +8,7 @@ using Verse;
 
 namespace VehicleMapFramework
 {
-    public class VehicleSectionLayerManager : MapComponent
+    public class VehicleSectionLayerManager(Map map) : MapComponent(map)
     {
         private Dictionary<Section, Dictionary<Type, SectionLayer[]>> layersByRot;
 
@@ -23,29 +23,14 @@ namespace VehicleMapFramework
         public static Rot4 RotForPrint { get; set; }
         
         public static bool CacheMode { get; set; }
-
-        public VehicleSectionLayerManager(Map map) : base(map)
-        {
-            VehicleMapParentsComponent.CachedMapParentVehicle[map] = map.Parent as MapParent_Vehicle;
-            if (MultiFloors.Active && VehicleMapParentsComponent.CachedMapParentVehicle[map] is null)
-            {
-                VehicleMapParentsComponent.CachedMapParentVehicle[map] = MultiFloors.GroundMap(map)?.Parent as MapParent_Vehicle;
-            }
-        }
-
+        
         public override void FinalizeInit()
         {
-            VehicleMapParentsComponent.CachedMapParentVehicle[map] = map.Parent as MapParent_Vehicle;
-            if (MultiFloors.Active && VehicleMapParentsComponent.CachedMapParentVehicle[map] is null)
-            {
-                VehicleMapParentsComponent.CachedMapParentVehicle[map] = MultiFloors.GroundMap(map)?.Parent as MapParent_Vehicle;
-            }
-
-            if (!map.IsVehicleMapOf(out _)) return;
-
-            VMF_Harmony.DynamicPatchAllNow(Level.All);
             LongEventHandler.ExecuteWhenFinished(() =>
             {
+                if (!map.IsVehicleMap) return;
+                VMF_Harmony.DynamicPatchAllNow(Level.All);
+                
                 layersByRot = [];
 
                 for (var i = 0; i < map.Size.x; i += 17)

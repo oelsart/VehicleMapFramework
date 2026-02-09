@@ -20,7 +20,16 @@ public class VehiclePawnWithMapCache(Map map) : MapComponent(map)
     private int lastCachedTick = -1;
 
     private readonly HashSet<VehiclePawnWithMap> allVehicles = [];
-    
+
+    public override void FinalizeInit()
+    {
+        VehicleMapParentsComponent.SetCachedVehicle(map, map.Parent as MapParent_Vehicle);
+        if (MultiFloors.Active && VehicleMapParentsComponent.GetCachedVehicle(map) is null)
+        {
+            VehicleMapParentsComponent.SetCachedVehicle(map, MultiFloors.GroundMap(map)?.Parent as MapParent_Vehicle);
+        }
+    }
+
     public static void RegisterVehicle(VehiclePawnWithMap vehicle)
     {
         MapComponentCache<VehiclePawnWithMapCache>.GetComponent(vehicle.Map).allVehicles.Add(vehicle);
@@ -75,6 +84,6 @@ public class VehiclePawnWithMapCache(Map map) : MapComponent(map)
 
     public override void MapRemoved()
     {
-        VehicleMapParentsComponent.CachedMapParentVehicle.Remove(map);
+        VehicleMapParentsComponent.SetCachedVehicle(map, null);
     }
 }

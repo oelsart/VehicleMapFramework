@@ -11,20 +11,40 @@ public class Building_TurretGunForcedTargetOnly : Building_TurretGun
     // ターゲッターによりTargetMapがセットされGUI上で不必要にターゲットにオフセットがかかることを防ぐ
     protected override bool CanSetForcedTarget =>
         canSetForcedTargetThisTick || !forcedTarget.IsValid && interactableComp is not CompInteractableRocketswarmLauncher;
-
+    
+    public new LocalTargetInfo ForcedTarget
+    {
+        get => forcedTarget;
+        set => forcedTarget = value;
+    }
+    
     protected override void Tick()
     {
+        if (AttackVerb is Verb_LaunchZipline { ziplineEnd: { Spawned: true } ziplineEnd })
+        {
+            top.CurRotation = (ziplineEnd.DrawPos - DrawPos).AngleFlat();
+            return;
+        }
         canSetForcedTargetThisTick = true;
         base.Tick();
         canSetForcedTargetThisTick = false;
-        if (Faction != Faction.OfPlayer)
+    }
+
+    protected override void TickInterval(int delta)
+    {
+        base.TickInterval(delta);
+        if (AttackVerb is Verb_LaunchZipline verb_LaunchZipline)
         {
-            TryActivateBurst();
-        }
-        if (!currentTargetInt.IsValid && forcedTarget.IsValid)
-        {
-            currentTargetInt = forcedTarget;
-            top.TurretTopTick();
+            if (verb_LaunchZipline.ziplineEnd is { Spawned: true } ziplineEnd)
+            {
+                if (ziplineEnd is ZiplineEnd && (forcedTarget != ziplineEnd ||
+                                                 !verb_LaunchZipline.TryFindShootLineFromToOnVehicle(
+                                                     this.PositionOnBaseMap, ziplineEnd.PositionOnBaseMap, out _)))
+                    ziplineEnd.Destroy();
+                return;
+            }
+            if (Faction != Faction.OfPlayer && !IsStunned && burstCooldownTicksLeft <= 0)
+                TryActivateBurst();
         }
     }
 
@@ -41,7 +61,7 @@ public class Building_TurretGunForcedTargetOnly : Building_TurretGun
         var groundMap = this.GroundMap;
         var component = groundMap.GetCachedMapComponent<VehicleMapGrid>();
         var cells = GenRadial.RadialCellsAround(this.PositionOnBaseMap,
-            attackVerb.verbProps.minRange, attackVerb.verbProps.range);
+            attackVerb.verbProps.EffectiveMinRange(true), attackVerb.EffectiveRange);
         foreach (var cell in cells)
         {
             if (!cell.InBounds(groundMap)) continue;

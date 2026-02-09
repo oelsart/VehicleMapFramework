@@ -30,13 +30,7 @@ public class SectionLayer_LightingOnVehicle : SectionLayer
 
 
     private const int ExpandSize = 5;
-    public override bool Visible
-    {
-        get
-        {
-            return DebugViewSettings.drawLightingOverlay && (Find.CurrentMap != Map || VehicleMapFramework.settings.drawPlanet);
-        }
-    }
+    public override bool Visible => DebugViewSettings.drawLightingOverlay && (Find.CurrentMap != Map || VehicleMapFramework.settings.drawPlanet);
 
     public SectionLayer_LightingOnVehicle(Section section) : base(section)
     {
@@ -150,13 +144,13 @@ public class SectionLayer_LightingOnVehicle : SectionLayer
                 if (num9 > 0)
                 {
                     array[num2] = (colorInt / num9).ProjectToColor32();
-                    array2[num2] = array[num2];
                 }
                 else
                 {
                     array[num2] = new Color32(0, 0, 0, 0);
-                    array2[num2] = array[num2];
                 }
+
+                array2[num2] = array[num2];
                 if (flag && array[num2].a < RoofedAreaMinSkyCover)
                 {
                     array[num2].a = RoofedAreaMinSkyCover;

@@ -8,62 +8,28 @@ namespace VehicleMapFramework;
 
 public class Bullet_ZiplineEnd : Bullet_ZiplineBase
 {
-    public override void Launch(Thing launcher_, Vector3 origin_, LocalTargetInfo usedTarget_,
-        LocalTargetInfo intendedTarget_, ProjectileHitFlags hitFlags, bool preventFriendlyFire_ = false,
-        Thing equipment_ = null, ThingDef targetCoverDef_ = null)
+    public Map destMap;
+    
+    protected Vector3 ExactDestination => destMap != null ? intendedTarget.Cell.ToVector3Shifted().ToBaseMapCoord(destMap) : intendedTarget.Cell.ToVector3Shifted();
+    
+    public override void Launch(Thing _launcher, Vector3 _origin, LocalTargetInfo _usedTarget,
+        LocalTargetInfo _intendedTarget, ProjectileHitFlags hitFlags, bool _preventFriendlyFire = false,
+        Thing _equipment = null, ThingDef _targetCoverDef = null)
     {
-        base.Launch(launcher_, origin_, usedTarget_, intendedTarget_, hitFlags, preventFriendlyFire_, equipment_, targetCoverDef_);
-        this.origin += (Vector3.forward * ZipLineData.LauncherOffset).RotatedBy(ExactRotation.eulerAngles.y);
+        base.Launch(_launcher, _origin, _usedTarget, _intendedTarget, hitFlags, _preventFriendlyFire, _equipment, _targetCoverDef);
+        destination = ExactDestination;
+        origin += ExactRotation * (Vector3.forward * (ZipLineData.LauncherOffset + DrawSize.y / 2f));
     }
 
     protected override void TickInterval(int delta)
     {
-        if (AllComps != null)
-        {
-            var i = 0;
-            var count = AllComps.Count;
-            while (i < count)
-            {
-                AllComps[i].CompTickInterval(delta);
-                i++;
-            }
-        }
-        lifetime -= delta;
-        if (landed) return;
-        
-        var exactPosition = ExactPosition;
-        ticksToImpact -= delta;
-        if (!exactPosition.InBounds(Map))
-        {
-            ticksToImpact += delta;
-            Position = exactPosition.ToIntVec3();
-            Destroy();
-            return;
-        }
-        Position = exactPosition.ToIntVec3();
-        if (ticksToImpact <= 0)
-        {
-            var destinationCell = DestinationCell;
-            if (destinationCell.InBounds(Map))
-            {
-                Position = destinationCell;
-            }
-            ImpactSomething();
-            return;
-        }
-        
-        destination = destMap != null ? intendedTarget.Cell.ToVector3Shifted().ToBaseMapCoord(destMap) : intendedTarget.Cell.ToVector3Shifted();
+        base.TickInterval(delta);
+        if (intendedTarget.HasThing) destination = ExactDestination;
     }
 
-    protected override void Impact(Thing hitThing, bool blockedByShield = false)
+    public override void Destroy(DestroyMode mode = DestroyMode.Vanish)
     {
-        if (blockedByShield || hitThing != intendedTarget.Thing) return;
-
-        var ziplineEnd = (ZiplineEnd)ThingMaker.MakeThing(ZipLineData.ZiplineEndDef);
-        ziplineEnd.launchVerb = launchVerb;
-        ziplineEnd.rotation = ExactRotation.eulerAngles.y;
-        ziplineEnd.ZipLineData = ZipLineData;
-        launchVerb.ZiplineEnd = ziplineEnd;
+        base.Destroy(mode);
 
         if (destMap != null)
         {
@@ -74,21 +40,32 @@ public class Bullet_ZiplineEnd : Bullet_ZiplineBase
                     penetration = VehicleComponent.Penetration.Penetrated,
                     cell = intendedTarget.Cell.ToHitCell(vehicle)
                 });
-                ziplineEnd.rotation += vehicle.Angle - vehicle.Transform.rotation;
+                return;
             }
-            else
-            {
-                SoundDefOf.BulletImpact_Ground.PlayOneShot(intendedTarget.ToTargetInfo(destMap));
-            }
-            GenSpawn.Spawn(ziplineEnd, intendedTarget.Cell, destMap);
+            SoundDefOf.BulletImpact_Ground.PlayOneShot(intendedTarget.ToTargetInfo(destMap));
+            return;
         }
-        else
+        SoundDefOf.BulletImpact_Ground.PlayOneShot(intendedTarget.ToTargetInfo(Map));
+    }
+
+    protected override void Impact(Thing hitThing, bool blockedByShield = false)
+    {
+        if (blockedByShield || hitThing != intendedTarget.Thing)
         {
-            SoundDefOf.BulletImpact_Ground.PlayOneShot(intendedTarget.ToTargetInfo(Map));
-            GenSpawn.Spawn(ziplineEnd, intendedTarget.Cell, Map);
+            ZiplineEnd.ReturnZipline(launchVerb);
+            return;
         }
 
-        base.Destroy();
+        var map = Map;
+        Destroy();
+        
+        var ziplineEnd = (ZiplineEnd)ThingMaker.MakeThing(ZipLineData.ZiplineEndDef);
+        ziplineEnd.launchVerb = launchVerb;
+        ziplineEnd.rotation = ExactRotation.eulerAngles.y;
+        ziplineEnd.ZipLineData = ZipLineData;
+        if (destMap.IsVehicleMapOf(out var vehicle))
+            ziplineEnd.rotation += vehicle.Angle - vehicle.Transform.rotation;
+        GenSpawn.Spawn(ziplineEnd, intendedTarget.Cell, vehicle?.VehicleMap ?? map);
     }
 
     protected override void DrawAt(Vector3 drawLoc, bool flip = false)
@@ -106,17 +83,6 @@ public class Bullet_ZiplineEnd : Bullet_ZiplineBase
     public override void ExposeData()
     {
         base.ExposeData();
-        Scribe_References.Look(ref launchVerb, "LaunchVerb");
         Scribe_References.Look(ref destMap, "destMap");
-        if (Scribe.mode == LoadSaveMode.PostLoadInit)
-        {
-            var customZipline = def.GetModExtension<CustomZipline>();
-            if (customZipline != null)
-            {
-                ZipLineData = customZipline.zipLineData;
-            }
-        }
     }
-
-    public Map destMap;
 }

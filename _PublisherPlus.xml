@@ -2,6 +2,7 @@
 <Configuration>
   <Excluded>
     <exclude>.git</exclude>
+    <exclude>Analyzer.xml</exclude>
     <exclude>CheckList.txt</exclude>
     <exclude>Dev</exclude>
     <exclude>Source</exclude>

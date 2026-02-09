@@ -16,44 +16,24 @@ public class ZiplineEnd : ThingWithComps, IZiplineEnd
     public override void SpawnSetup(Map map, bool respawningAfterLoad)
     {
         base.SpawnSetup(map, respawningAfterLoad);
-        
-        launchVerb.caster.RemoveTargetInfo();
-        if (launchVerb.CasterIsPawn)
-            launchVerb.OrderForceTarget(this);
-        else if (launchVerb.caster is Building_Turret building_Turret)
-            building_Turret.OrderAttack(this);
+        launchVerb?.ziplineEnd = this;
+        if (launchVerb is { caster: Building_TurretGunForcedTargetOnly turret })
+        {
+            turret.RemoveTargetInfo();
+            turret.ForcedTarget = this;
+        }
     }
 
     protected override void TickInterval(int delta)
     {
         base.TickInterval(delta);
-        if (launchVerb.caster is not { Spawned: true })
-        {
-            Destroy();
-            return;
-        }
-
-        if ((launchVerb.caster is Pawn { TargetCurrentlyAimingAt: var target } && target != this) ||
-            (launchVerb.caster is Building_Turret { ForcedTarget: var target2 } && target2 != this) ||
-            !launchVerb.TryFindShootLineFromToOnVehicle(launchVerb.caster.PositionOnBaseMap, this.PositionOnBaseMap, out _))
-        {
-            Destroy();
-        }
+        if (launchVerb is not { caster.SpawnedOrAnyParentSpawned: true } || launchVerb.ziplineEnd != this)
+            base.Destroy();
     }
 
     public override void Destroy(DestroyMode mode = DestroyMode.Vanish)
     {
-        if (launchVerb.caster is { Spawned: true })
-        {
-            var pos = launchVerb.caster.IsOnVehicleMapOf(out var vehicle) && !vehicle.Spawned
-                ? Position : this.PositionOnBaseMap;
-            var bullet = (Bullet_ZiplineEndReturn)GenSpawn.Spawn(ZipLineData.ZiplineReturnDef, pos, this.BaseMap());
-            bullet.launchVerb = launchVerb;
-            bullet.ZipLineData = ZipLineData;
-            launchVerb.ZiplineEnd = bullet;
-            bullet.Launch(launchVerb.caster, this.TrueCenter(), launchVerb.caster, launchVerb.caster, ProjectileHitFlags.IntendedTarget);
-        }
-        else launchVerb.ZiplineEnd = null;
+        ReturnZipline(launchVerb);
         base.Destroy(mode);
     }
 
@@ -88,8 +68,8 @@ public class ZiplineEnd : ThingWithComps, IZiplineEnd
 
     public static void DrawZipline(Vector3 drawLoc, float rotation, Verb_LaunchZipline launchVerb, CustomZipline.ZipLineData ziplineData)
     {
-        var launcher = launchVerb.caster;
-        if (launcher is null || !launcher.Spawned)
+        var launcher = launchVerb?.caster;
+        if (launcher is not { Spawned: true })
             return;
         var drawPosA = drawLoc + (Vector3.back * ziplineData.ZiplineEndOffset).RotatedBy(rotation);
         var launcherPos = launcher.DrawPos;
@@ -98,18 +78,33 @@ public class ZiplineEnd : ThingWithComps, IZiplineEnd
         {
             offset = offset.RotatedBy(-vehicle.Angle + vehicle.Transform.rotation);
         }
-
         launcherPos += offset;
+        
         var drawPosB = launcherPos + (Vector3.forward * ziplineData.LauncherOffset).RotatedBy((drawPosA - launcherPos).AngleFlat());
         var y = Mathf.Max(drawPosA.y, drawPosB.y) + Altitudes.AltInc;
         GenDrawOnVehicle.DrawLineBetweenInstanced(drawPosA.WithY(y), drawPosB.WithY(y), ziplineData.ZiplineMat, ziplineData.ZiplineWidth);
+    }
+    
+    public static void ReturnZipline(Verb_LaunchZipline launchVerb)
+    {
+        if (launchVerb is { caster.Spawned: true, ziplineEnd: IZiplineEnd ziplineEnd })
+        {
+            var thing = launchVerb.ziplineEnd;
+            var pos = launchVerb.caster.IsOnVehicleMapOf(out var vehicle) && !vehicle.Spawned
+                ? thing.Position : thing.PositionOnBaseMap;
+            var bullet = (Bullet_ZiplineEndReturn)ThingMaker.MakeThing(ziplineEnd.ZipLineData.ZiplineReturnDef);
+            bullet.launchVerb = launchVerb;
+            bullet.ZipLineData = ziplineEnd.ZipLineData;
+            GenSpawn.Spawn(bullet, pos, thing.GroundMap);
+            var spawnedParentOrMe = launchVerb.caster.SpawnedParentOrMe;
+            bullet.Launch(launchVerb.caster, thing.DrawPos, spawnedParentOrMe, spawnedParentOrMe, ProjectileHitFlags.IntendedTarget);
+        }
     }
 
     public override void ExposeData()
     {
         base.ExposeData();
         Scribe_References.Look(ref launchVerb, "launchVerb");
-        Scribe_Values.Look(ref rotation, "rotation");
         if (Scribe.mode == LoadSaveMode.PostLoadInit)
         {
             var customZipline = launchVerb?.verbProps?.defaultProjectile?.GetModExtension<CustomZipline>();

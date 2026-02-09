@@ -124,15 +124,18 @@ public class CompMapExpander : ThingComp
 
     public override void PostSpawnSetup(bool respawningAfterLoad)
     {
-        if (parent.IsOnVehicleMapOf(out var vehicle))
+        LongEventHandler.ExecuteWhenFinished(() =>
         {
-            foreach (var c in parent.OccupiedRect())
-                parent.Map.terrainGrid.SetTerrain(c, VMF_DefOf.VMF_VehicleFloor);
-            vehicle.MapExpanderComps.Add(this);
-            DirtySelfAndAdjacentComps(parent.Map);
-            vehicle.impassableCellsDirty = true;
-            vehicle.resizeRequest = true;
-        }
+            if (parent.IsOnVehicleMapOf(out var vehicle))
+            {
+                foreach (var c in parent.OccupiedRect())
+                    parent.Map.terrainGrid.SetTerrain(c, VMF_DefOf.VMF_VehicleFloor);
+                vehicle.MapExpanderComps.Add(this);
+                DirtySelfAndAdjacentComps(parent.Map);
+                vehicle.impassableCellsDirty = true;
+                vehicle.resizeRequest = true;
+            }
+        });
     }
 
     public override void PostDeSpawn(Map map, DestroyMode mode = DestroyMode.Vanish)

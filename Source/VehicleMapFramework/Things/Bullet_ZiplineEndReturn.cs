@@ -1,5 +1,4 @@
-﻿using RimWorld;
-using UnityEngine;
+﻿using UnityEngine;
 using Verse;
 
 namespace VehicleMapFramework;
@@ -10,27 +9,16 @@ public class Bullet_ZiplineEndReturn : Bullet_ZiplineBase
 
     protected override void TickInterval(int delta)
     {
-        if (launchVerb.caster?.Spawned ?? false)
+        if (launchVerb is { caster.Spawned: true })
         {
-            destination = launchVerb.caster.DrawPos +
-                          (Vector3.forward * (ZipLineData.LauncherOffset + 0.5f - ZipLineData.ZiplineEndOffset))
-                          .RotatedBy(ExactRotation.eulerAngles.y);
-
-            //戻ってる間砲塔をこっちに向けとくためにOrderAttackしとく
-            if (launchVerb.caster is Building_Turret building_Turret)
+            var drawPos = launchVerb.caster.DrawPos;
+            var offset = launcher.def.building?.turretTopOffset.ToVector3() ?? Vector3.zero;
+            if (launcher.IsOnNonFocusedVehicleMapOf(out var vehicle))
             {
-                var forcedTarget = building_Turret.ForcedTarget;
-                var originCell = origin.ToIntVec3();
-                if (launchVerb.caster.TryGetTargetMap(out var destMap) && destMap.IsVehicleMapOf(out var vehicle))
-                {
-                    originCell = originCell.ToVehicleMapCoord(vehicle);
-                }
-                if (forcedTarget != originCell)
-                {
-                    tmpTarget = forcedTarget;
-                    building_Turret.OrderAttack(originCell);
-                }
+                offset = offset.RotatedBy(-vehicle.Angle + vehicle.Transform.rotation);
             }
+            drawPos += offset;
+            destination = drawPos + ExactRotation * (Vector3.forward * (ZipLineData.LauncherOffset + DrawSize.y / 2f));
         }
         base.TickInterval(delta);
     }
@@ -39,16 +27,6 @@ public class Bullet_ZiplineEndReturn : Bullet_ZiplineBase
     {
         if (blockedByShield) return;
         Destroy();
-    }
-
-    public override void Destroy(DestroyMode mode = DestroyMode.Vanish)
-    {
-        base.Destroy(mode);
-        launchVerb.ZiplineEnd = null;
-        if (launchVerb.caster is Building_Turret building_Turret)
-        {
-            building_Turret.OrderAttack(tmpTarget);
-        }
     }
 
     protected override void DrawAt(Vector3 drawLoc, bool flip = false)
@@ -67,7 +45,6 @@ public class Bullet_ZiplineEndReturn : Bullet_ZiplineBase
     {
         base.ExposeData();
         Scribe_References.Look(ref launchVerb, "launchVerb");
-        Scribe_TargetInfo.Look(ref tmpTarget, "tmpTarget");
         if (Scribe.mode == LoadSaveMode.PostLoadInit)
         {
             var customZipline = launchVerb?.verbProps?.defaultProjectile?.GetModExtension<CustomZipline>();
@@ -77,6 +54,4 @@ public class Bullet_ZiplineEndReturn : Bullet_ZiplineBase
             }
         }
     }
-
-    private LocalTargetInfo tmpTarget = LocalTargetInfo.Invalid;
 }
