@@ -346,6 +346,7 @@ public static class Patch_RCellFinder_BestOrderedGotoDestNear
         }
         else if (searcher.IsOnNonFocusedVehicleMapOf(out var vehicle2) || (root.InBounds(Find.CurrentMap) && root.TryGetVehicleMap(Find.CurrentMap, out vehicle)))
         {
+            vehicle ??= vehicle2;
             if (vehicle is null && vehicle2 is not { Spawned: true })
                 UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out vehicle, VehicleMapFlag.None);
             var dest = vehicle != null ? root.ToVehicleMapCoord(vehicle) : root;

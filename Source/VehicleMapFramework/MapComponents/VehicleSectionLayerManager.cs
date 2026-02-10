@@ -125,19 +125,15 @@ namespace VehicleMapFramework
             if (!map.IsVehicleMapOf(out _))
                 return;
 
-            for (var i = 0; i < map.Size.x; i += 17)
+            foreach (var section in VehiclePawnWithMap.sections(map.mapDrawer))
             {
-                for (var j = 0; j < map.Size.z; j += 17)
+                UpdateSection(section);
+            
+                // LayerSubMeshを直接FinalizeしているためY圧縮をかける
+                if ((section.dirtyFlags & MapMeshFlagDefOf.Buildings) > 0UL)
                 {
-                    var section = map.mapDrawer.SectionAt(new IntVec3(i, 0, j));
-                    UpdateSection(section);
-                    
-                    // LayerSubMeshを直接FinalizeしているためY圧縮をかける
-                    if ((section.dirtyFlags & MapMeshFlagDefOf.Buildings) > 0UL)
-                    {
-                        var edgeShadowsLayer = section.GetLayer(typeof(SectionLayer_EdgeShadows));
-                        Delay.AfterNSeconds(0, () => FinalizeShadowVerts(edgeShadowsLayer));
-                    }
+                    var edgeShadowsLayer = section.GetLayer(typeof(SectionLayer_EdgeShadows));
+                    Delay.AfterNSeconds(0, () => FinalizeShadowVerts(edgeShadowsLayer));
                 }
             }
         }

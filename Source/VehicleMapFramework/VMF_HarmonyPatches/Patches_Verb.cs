@@ -316,23 +316,6 @@ public static class Patch_JumpUtility_OrderJump_Delegate
     }
 }
 
-[HarmonyPatch(typeof(JumpUtility), nameof(JumpUtility.DoJump))]
-public static class Patch_JumpUtility_DoJump
-{
-    [PatchLevel(Level.Cautious)]
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);
-    }
-
-    [PatchLevel(Level.Safe)]
-    public static void Finalizer(Pawn pawn, bool __result)
-    {
-        if (!__result) return;
-        pawn.RemoveTargetInfo();
-    }
-}
-
 [HarmonyPatch(typeof(JobDriver_CastJump), nameof(JobDriver_CastJump.TryMakePreToilReservations))]
 [PatchLevel(Level.Cautious)]
 public static class Patch_JobDriver_CastJump_TryMakePreToilReservations

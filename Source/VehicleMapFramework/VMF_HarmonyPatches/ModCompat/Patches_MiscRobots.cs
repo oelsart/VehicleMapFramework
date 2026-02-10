@@ -27,7 +27,6 @@ internal static class Patches_MiscRobots
 [PatchLevel(Level.Safe)]
 public static class Patch_X2_JobGiver_Return2BaseRoom_TryIssueJobPackage
 {
-
     public static bool Prefix(ThinkNode __instance, Pawn pawn, ref ThinkResult __result)
     {
         if (!MiscRobots.X2_AIRobot?.IsAssignableFrom(pawn.GetType()) ?? true) return true;

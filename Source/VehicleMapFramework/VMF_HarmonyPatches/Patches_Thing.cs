@@ -401,13 +401,17 @@ public static class Patch_GenSpawn_Spawn
         {
             return;
         }
-        if (newThing is Projectile)
+
+        switch (newThing)
         {
-            map = map.BaseMap();
-        }
-        else if (newThing is Mote && !loc.InBounds(map))
-        {
-            map = map.BaseMap();
+            case Projectile:
+            case Mote when !loc.InBounds(map):
+                map = map.BaseMap();
+                break;
+            case PawnFlyer flyer when flyer.FlyingPawn.TryGetTargetMap(out var map2):
+                map = map2;
+                flyer.FlyingPawn.RemoveTargetInfo();
+                break;
         }
     }
 }
