@@ -50,12 +50,6 @@ public class VehiclePawnWithMapCache(Map map) : MapComponent(map)
         Command_FocusVehicleMap.FocusedVehicle = null;
     }
 
-    public static IReadOnlyCollection<VehiclePawnWithMap> TryGetAllVehiclesOn(Map map)
-    {
-        //ColonyManagerReduxでコンポーネント構築中に呼ばれてしまうため、nullを想定する必要がある
-        return map.GetComponent<VehiclePawnWithMapCache>()?.allVehicles ?? [];
-    }
-
     public static IReadOnlyCollection<VehiclePawnWithMap> AllVehiclesOn(Map map)
     {
         return map.GetCachedMapComponent<VehiclePawnWithMapCache>()?.allVehicles ?? [];

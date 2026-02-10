@@ -419,6 +419,9 @@ public static class Patch_MapPawns_AllPawnsSpawned
 
     public static IReadOnlyList<Pawn> Postfix(IReadOnlyList<Pawn> __result, Map ___map)
     {
+        if (!___map.IsVehicleMap && VehiclePawnWithMapCache.AllVehiclesOn(___map).Count == 0)
+            return __result;
+        
         tmpList.Clear();
         tmpList.AddRange(__result);
         tmpList.AddRange(___map.VehicleMapsOnMap().SelectMany(m => AllPawnsSpawned(m.mapPawns)));
@@ -449,7 +452,7 @@ public static class Patch_MapPawns_AnyPawnBlockingMapRemoval
 {
     public static void Postfix(ref bool __result, Map ___map)
     {
-        __result = __result || VehiclePawnWithMapCache.TryGetAllVehiclesOn(___map).Any(v => v.VehicleMap.mapPawns.AnyPawnBlockingMapRemoval);
+        __result = __result || VehiclePawnWithMapCache.AllVehiclesOn(___map).Any(v => v.VehicleMap.mapPawns.AnyPawnBlockingMapRemoval);
     }
 }
 

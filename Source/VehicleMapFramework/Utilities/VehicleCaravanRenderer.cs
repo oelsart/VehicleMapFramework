@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using JetBrains.Annotations;
 using RimWorld.Planet;
 using UnityEngine;
 using Vehicles;
@@ -15,19 +14,6 @@ public static class VehicleCaravanRenderer
     private static ConditionalWeakTable<WorldObject, Dictionary<VehiclePawn, Vector3>> DrawPositions { get; } = [];
 
     private static readonly List<CellRect> tmpCellRects = [];
-
-    extension(VehiclePawn vehicle)
-    {
-        [CanBeNull]
-        public WorldObject VehicleCaravanOrStashedVehicle
-        {
-            get
-            {
-                if (vehicle.ParentHolder is VehicleCaravan caravan) return caravan;
-                return Find.World.GetComponent<VehicleWorldObjectsHolder>().StashedVehicleObject(vehicle);
-            }
-        }
-    }
     
     extension(WorldObject vehicleCaravanOrStashedVehicle)
     {

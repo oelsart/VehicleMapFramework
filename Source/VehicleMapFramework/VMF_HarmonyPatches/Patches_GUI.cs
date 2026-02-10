@@ -17,12 +17,12 @@ public static class Patch_ThingOverlays_ThingOverlaysOnGUI
     public static bool Prefix()
     {
         if (Event.current.type != EventType.Repaint) return true;
-        var currentViewRect = Find.CameraDriver.CurrentViewRect;
+        var bounds = Find.CameraDriver.CurrentViewRect.ToBounds();
         var flag = Find.CurrentMap.IsVehicleMapOf(out var vehicle);
         var vehicles = flag ? GetVehicles() : VehiclePawnWithMapCache.AllVehiclesOn(Find.CurrentMap);
         foreach (var thing in vehicles.SelectMany(v => v.CurrentLevel.listerThings.ThingsInGroup(ThingRequestGroup.HasGUIOverlay)))
         {
-            if (currentViewRect.Contains(thing.PositionOnBaseMap)/* && !Find.CurrentMap.fogGrid.IsFogged(thing.PositionOnBaseMap)*/) //車両マップである時点でFoggedはスキップしていいはず
+            if (bounds.Contains(thing.DrawPos.Yto0())/* && !Find.CurrentMap.fogGrid.IsFogged(thing.PositionOnBaseMap)*/) //車両マップである時点でFoggedはスキップしていいはず
             {
                 try
                 {

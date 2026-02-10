@@ -117,7 +117,7 @@ public static class VehicleMapUtility
                 }
             }
             else
-                foreach (var vehicle2 in VehiclePawnWithMapCache.TryGetAllVehiclesOn(map))
+                foreach (var vehicle2 in VehiclePawnWithMapCache.AllVehiclesOn(map))
                     yield return vehicle2.VehicleMap;
         }
         
@@ -376,8 +376,7 @@ public static class VehicleMapUtility
                     : VehiclePawnWithMapCache.AllVehiclesOn(map))
                 .OrderBy(v => (v.cachedDrawPos - original).MagnitudeHorizontalSquared());
 
-            vehicle = vehicles
-                .FirstOrDefault(v =>
+            vehicle = vehicles.FirstOrDefault(v =>
             {
                 var rect = new Rect(0f, 0f, v.VehicleMap.Size.x, v.VehicleMap.Size.z);
                 var vector = original.ToVehicleMapCoord(v);
@@ -386,7 +385,7 @@ public static class VehicleMapUtility
                 {
                     return false;
                 }
-                
+
                 if (!v.CachedImpassableCells.Contains(intVec))
                     return true;
                 var cachedEmptyStructureCellsContains = v.CachedEmptyStructureCells.Contains(intVec);
@@ -432,11 +431,6 @@ public static class VehicleMapUtility
         }
     }
 
-    public static IntVec3 ToVehicleMapCoord(this IntVec3 original, VehiclePawnWithMap vehicle)
-    {
-        return original.ToVector3Shifted().ToVehicleMapCoord(vehicle).ToIntVec3();
-    }
-
     public static CellRect ToVehicleMapCoord(this CellRect original)
     {
         var longSide = Mathf.Max(original.Width, original.Height);
@@ -480,17 +474,36 @@ public static class VehicleMapUtility
 
         public IntVec3 ToBaseMapCoord(VehiclePawnWithMap vehicle)
         {
-            return original.ToVector3Shifted().ToBaseMapCoord(vehicle).ToIntVec3();
+            var vehiclePos = vehicle.cachedExactPos;
+            var map = vehicle.VehicleMap;
+            var pivot = new Vector3(map.Size.x / 2f, 0f, map.Size.z / 2f);
+            var drawPos = (original.ToVector3Shifted().YOffset() - pivot).RotatedBy(vehicle.FullAngle) + vehiclePos;
+            drawPos += OffsetFor(vehicle);
+            return drawPos.ToIntVec3();
         }
 
         public IntVec3 ToBaseMapCoord(Map map)
         {
-            return original.ToVector3Shifted().ToBaseMapCoord(map).ToIntVec3();
+            return map.IsVehicleMapOf(out var vehicle) ? original.ToBaseMapCoord(vehicle) : original;
         }
 
         public Vector3 ToBaseMapCoord(VehiclePawnWithMap vehicle, Rot8 rot)
         {
-            return original.ToVector3Shifted().ToBaseMapCoord(vehicle, rot);
+            var vehiclePos = vehicle.cachedExactPos;
+            var map = vehicle.VehicleMap;
+            var pivot = new Vector3(map.Size.x / 2f, 0f, map.Size.z / 2f);
+            var drawPos = (original.ToVector3Shifted().YOffset() - pivot).RotatedBy(rot.AsAngle) + vehiclePos;
+            drawPos += OffsetFor(vehicle, rot);
+            return drawPos;
+        }
+
+        public IntVec3 ToVehicleMapCoord(VehiclePawnWithMap vehicle)
+        {
+            var vehicleMapPos = vehicle.cachedExactPos + OffsetFor(vehicle);
+            var map = vehicle.VehicleMap;
+            var pivot = new Vector3(map.Size.x / 2f, 0f, map.Size.z / 2f);
+            var drawPos = (original.ToVector3Shifted() - vehicleMapPos).RotatedBy(-vehicle.FullAngle) + pivot;
+            return drawPos.ToIntVec3();
         }
 
         public IntVec2 ToHitCell(VehiclePawnWithMap vehicle)

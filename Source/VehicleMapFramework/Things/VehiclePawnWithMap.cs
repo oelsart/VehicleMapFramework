@@ -30,6 +30,8 @@ public class VehiclePawnWithMap : VehiclePawn
 
     public Vector3 cachedDrawPos;
 
+    public Vector3 cachedExactPos;
+
     private bool allowEnter = true;
 
     private bool allowExit = true;
@@ -41,6 +43,8 @@ public class VehiclePawnWithMap : VehiclePawn
     private int standableCellsCachedTick;
 
     private int cellDesignationsDirtyTick;
+
+    private int vehicleCaravanOrStashedVehicleCachedTick;
 
     internal bool resizeRequest;
 
@@ -66,7 +70,7 @@ public class VehiclePawnWithMap : VehiclePawn
     private static readonly FastInvokeHandler DirtyCellDesignationsCache =
         MethodInvoker.GetHandler(AccessTools.Method(typeof(DesignationManager), "DirtyCellDesignationsCache"));
     
-    private static readonly AccessTools.FieldRef<MapDrawer, Section[,]> sections = AccessTools.FieldRefAccess<MapDrawer, Section[,]>("sections");
+    internal static readonly AccessTools.FieldRef<MapDrawer, Section[,]> sections = AccessTools.FieldRefAccess<MapDrawer, Section[,]>("sections");
 
     public Map VehicleMap
     {
@@ -91,6 +95,22 @@ public class VehiclePawnWithMap : VehiclePawn
 
     [UsedImplicitly]
     public bool AllowExit => allowExit;
+    
+    [CanBeNull]
+    public WorldObject VehicleCaravanOrStashedVehicle
+    {
+        get
+        {
+            var ticks = GenTicks.TicksGame;
+            if (GenTicks.TicksGame == vehicleCaravanOrStashedVehicleCachedTick)
+                return field;
+
+            vehicleCaravanOrStashedVehicleCachedTick = ticks;
+            field = ParentHolder as VehicleCaravan as WorldObject ??
+                    Find.World.GetComponent<VehicleWorldObjectsHolder>().StashedVehicleObject(this);
+            return field;
+        }
+    }
 
     public HashSet<IntVec3> CachedImpassableCells
     {
@@ -669,6 +689,14 @@ public class VehiclePawnWithMap : VehiclePawn
             var transform = new TransformData(drawLoc + Transform.position, FullRotation, Transform.rotation.FlipAngle(this));
             var result = VehicleGraphic?.ParallelGetPreRenderResults(ref transform, false, this);
             cachedDrawPos = result?.position ?? drawLoc;
+            if (Spawned && Find.CurrentMap == interiorMap)
+            {
+                cachedExactPos = cachedDrawPos + base.DrawPos - drawLoc;
+            }
+            else
+            {
+                cachedExactPos = cachedDrawPos;
+            }
         });
     }
 
