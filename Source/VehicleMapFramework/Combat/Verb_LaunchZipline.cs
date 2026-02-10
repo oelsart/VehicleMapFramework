@@ -5,14 +5,16 @@ using Verse;
 
 namespace VehicleMapFramework;
 
-public class Verb_LaunchZipline : Verb_Shoot
+public class Verb_LaunchZipline : Verb_Shoot, IAbilityVerb
 {
     public Thing ziplineEnd;
+    
+    public Ability Ability { get; set; }
 
     public override bool ValidateTarget(LocalTargetInfo target, bool showMessages = true)
     {
         var map = target.Thing?.Map ?? caster.TargetMap ?? (caster as Pawn)?.mindState?.enemyTarget?.Map ?? caster.Map;
-        if (caster.Map == map)
+        if (Ability is null && caster.Map == map)
         {
             if (showMessages)
                 Messages.Message("VMF_MustShotAtAnotherMap".Translate(), MessageTypeDefOf.RejectInput, false);
@@ -38,7 +40,9 @@ public class Verb_LaunchZipline : Verb_Shoot
             return false;
         }
 
-        var flag = this.TryFindShootLineFromToOnVehicle(caster.PositionOnBaseMap, currentTarget, out var resultingLine);
+        var target = currentDestination.IsValid ? currentDestination : currentTarget;
+        var destMap = target.Thing?.Map ?? caster.TargetMap ?? (caster as Pawn)?.mindState?.enemyTarget?.Map ?? caster.Map;
+        var flag = this.TryFindShootLineFromToOnVehicle(caster.PositionOnBaseMap, target, out var resultingLine);
         if (verbProps.stopBurstWithoutLos && !flag)
         {
             return false;
@@ -72,7 +76,7 @@ public class Verb_LaunchZipline : Verb_Shoot
         if (projectile2 is Bullet_ZiplineEnd zipline)
         {
             zipline.launchVerb = this;
-            zipline.destMap = currentTarget.Thing?.Map ?? caster.TargetMap ?? (caster as Pawn)?.mindState?.enemyTarget?.Map ?? caster.Map;
+            zipline.destMap = destMap;
 
             if (zipline.def.GetModExtension<CustomZipline>() is { } customZipline)
             {
@@ -88,11 +92,11 @@ public class Verb_LaunchZipline : Verb_Shoot
                 num *= verbProps.GetForceMissFactorFor(equipmentSource, pawn);
             }
 
-            var num2 = VerbUtility.CalculateAdjustedForcedMiss(num, currentTarget.CellOnBaseMap() - caster.PositionOnBaseMap);
+            var num2 = VerbUtility.CalculateAdjustedForcedMiss(num, target.Cell.ToBaseMapCoord(destMap) - caster.PositionOnBaseMap);
             if (num2 > 0.5f)
             {
                 var forcedMissTarget = GetForcedMissTarget(num2);
-                if (forcedMissTarget != currentTarget.Cell)
+                if (forcedMissTarget != target.Cell)
                 {
                     var projectileHitFlags = ProjectileHitFlags.NonTargetWorld;
                     if (Rand.Chance(0.5f))
@@ -105,13 +109,13 @@ public class Verb_LaunchZipline : Verb_Shoot
                         projectileHitFlags &= ~ProjectileHitFlags.NonTargetPawns;
                     }
 
-                    projectile2.Launch(manningPawn, drawPos, forcedMissTarget, currentTarget, projectileHitFlags, preventFriendlyFire, equipmentSource);
+                    projectile2.Launch(manningPawn, drawPos, forcedMissTarget, target, projectileHitFlags, preventFriendlyFire, equipmentSource);
                     return true;
                 }
             }
         }
 
-        var shotReport = ShotReport.HitReportFor(caster, this, currentTarget);
+        var shotReport = ShotReport.HitReportFor(caster, this, target);
         var randomCoverToMissInto = shotReport.GetRandomCoverToMissInto();
         var targetCoverDef = randomCoverToMissInto?.def;
         if (verbProps.canGoWild && !Rand.Chance(shotReport.AimOnTargetChance_IgnoringPosture))
@@ -124,11 +128,11 @@ public class Verb_LaunchZipline : Verb_Shoot
                 projectileHitFlags2 |= ProjectileHitFlags.NonTargetPawns;
             }
 
-            projectile2.Launch(manningPawn, drawPos, resultingLine.Dest, currentTarget, projectileHitFlags2, preventFriendlyFire, equipmentSource, targetCoverDef);
+            projectile2.Launch(manningPawn, drawPos, resultingLine.Dest, target, projectileHitFlags2, preventFriendlyFire, equipmentSource, targetCoverDef);
             return true;
         }
 
-        if (currentTarget.Thing != null && currentTarget.Thing.def.CanBenefitFromCover && !Rand.Chance(shotReport.PassCoverChance))
+        if (target.Thing != null && target.Thing.def.CanBenefitFromCover && !Rand.Chance(shotReport.PassCoverChance))
         {
             var projectileHitFlags3 = ProjectileHitFlags.NonTargetWorld;
             if (canHitNonTargetPawnsNow)
@@ -136,12 +140,12 @@ public class Verb_LaunchZipline : Verb_Shoot
                 projectileHitFlags3 |= ProjectileHitFlags.NonTargetPawns;
             }
 
-            projectile2.Launch(manningPawn, drawPos, randomCoverToMissInto, currentTarget, projectileHitFlags3, preventFriendlyFire, equipmentSource, targetCoverDef);
+            projectile2.Launch(manningPawn, drawPos, randomCoverToMissInto, target, projectileHitFlags3, preventFriendlyFire, equipmentSource, targetCoverDef);
             return true;
         }
 
-        projectile2.Launch(manningPawn, drawPos, currentTarget.Thing != null ? currentTarget : resultingLine.Dest,
-            currentTarget, ProjectileHitFlags.IntendedTarget, preventFriendlyFire, equipmentSource, targetCoverDef);
+        projectile2.Launch(manningPawn, drawPos, target.Thing != null ? target : resultingLine.Dest,
+            target, ProjectileHitFlags.IntendedTarget, preventFriendlyFire, equipmentSource, targetCoverDef);
 
         return true;
     }
