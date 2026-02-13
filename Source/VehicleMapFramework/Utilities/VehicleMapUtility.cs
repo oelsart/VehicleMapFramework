@@ -505,6 +505,21 @@ public static class VehicleMapUtility
             var drawPos = (original.ToVector3Shifted() - vehicleMapPos).RotatedBy(-vehicle.FullAngle) + pivot;
             return drawPos.ToIntVec3();
         }
+        
+        public IntVec3 ToThingMapCoord(Thing thing)
+        {
+            return original.ToVehicleMapCoord(thing.Map);
+        }
+
+        public IntVec3 ToVehicleMapCoord(Map map)
+        {
+            return map.IsVehicleMapOf(out var vehicle) ? original.ToVehicleMapCoord(vehicle) : original;
+        }
+
+        public IntVec3 ToThingBaseMapCoord(Thing thing)
+        {
+            return thing.IsOnVehicleMapOf(out var vehicle) ? original.ToBaseMapCoord(vehicle) : original;
+        }
 
         public IntVec2 ToHitCell(VehiclePawnWithMap vehicle)
         {
@@ -665,20 +680,7 @@ public static class VehicleMapUtility
         }
         return rootPosition.IsValid ? rootPosition : thing.PositionOnBaseMap;
     }
-
-    extension(IntVec3 origin)
-    {
-        public IntVec3 ToThingMapCoord(Thing thing)
-        {
-            return thing.IsOnVehicleMapOf(out var vehicle) ? origin.ToVehicleMapCoord(vehicle) : origin;
-        }
-
-        public IntVec3 ToThingBaseMapCoord(Thing thing)
-        {
-            return thing.IsOnVehicleMapOf(out var vehicle) ? origin.ToBaseMapCoord(vehicle) : origin;
-        }
-    }
-
+    
     extension(ref LocalTargetInfo target)
     {
         public IntVec3 CellOnBaseMap()
@@ -695,7 +697,9 @@ public static class VehicleMapUtility
 
     public static IntVec3 CellOnBaseMap(this ref TargetInfo target)
     {
-        return target.Map.IsVehicleMapOf(out var vehicle) ? target.Cell.ToBaseMapCoord(vehicle) : target.Cell;
+        return target.HasThing
+            ? target.Thing.PositionOnBaseMap
+            : target.Map.IsVehicleMapOf(out var vehicle) ? target.Cell.ToBaseMapCoord(vehicle) : target.Cell;
     }
 
     public static IntVec3 CellOnBaseMap(this ref GlobalTargetInfo target)

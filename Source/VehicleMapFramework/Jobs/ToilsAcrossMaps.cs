@@ -138,19 +138,26 @@ public static class ToilsAcrossMaps
 
     public static IEnumerable<Toil> GotoTargetMap(JobDriverAcrossMaps driver, TargetInfo exitSpot, TargetInfo enterSpot)
     {
+        var pawn = driver.pawn;
+        var afterEnterMap = Toils_General.Label();
         if (exitSpot is { IsValid: true, Map: not null })
         {
             CompZipline compZipline = null;
             exitSpot.Thing?.TryGetComp(out compZipline);
 
+            var ability = pawn.abilities?.AllAbilitiesForReading.FirstOrDefault(a => a is Ability_GrapplingHook);
+
             //あれ？もうexitSpotから出た後じゃない？ジャンプしよ
             var afterExitMap = Toils_General.Label();
-            yield return Toils_Jump.JumpIf(afterExitMap, () => driver.pawn.Map != exitSpot.Map);
+            yield return Toils_Jump.JumpIf(afterExitMap, () => pawn.Map != exitSpot.Map);
 
             exitSpot.Map.IsVehicleMapOf(out var vehicle);
+            enterSpot.Map.IsVehicleMapOf(out var vehicle2);
             //exitSpotの場所まで行く。vehicleの場合はvehicleの長さ分手前に目的地を指定
-            var vehiclePawn = driver.pawn as VehiclePawn;
-            var rot = exitSpot.Thing?.Rotation ?? exitSpot.Cell.DirectionToInsideMap(vehicle);
+            var vehiclePawn = pawn as VehiclePawn;
+            var rot = exitSpot.Thing?.Rotation ?? (vehicle is not null
+                ? exitSpot.Cell.DirectionToInsideMap(vehicle)
+                : enterSpot.Cell.BaseFullDirectionToInsideMap(vehicle2).Opposite);
             var vehicleOffset = vehiclePawn?.HalfLength() ?? 0;
             var cell = exitSpot.Cell + (vehicleOffset * rot.FacingCell);
             var jumpTarget = Toils_General.Label();
@@ -172,9 +179,23 @@ public static class ToilsAcrossMaps
                 if (compZipline.Pair != null)
                     pos = compZipline.Pair.Position;
             }
+            else if (ability is { CanCast.Accepted: true } &&
+                     !CrossMapReachabilityUtility.CanReach(exitSpot.Map, exitSpot.Cell, enterSpot.Cell,
+                         PathEndMode.OnCell, TraverseParms.For(pawn), enterSpot.Map, false))
+            {
+                // GrapplingHookアビリティがある場合
+                var toil2 = Toils_General.Do(() =>
+                {
+                    pawn.TargetMap = enterSpot.Map;
+                    ability.verb.TryStartCastOn(enterSpot.Cell);
+                });
+                yield return toil2;
+                yield return Toils_Jump.Jump(afterEnterMap);
+            }
             else
             {
                 //マップ移動アニメーション。目的地の計算の後tick毎の描画位置を計算。ドアは開け続けておく
+                vehicle ??= vehicle2;
                 var ticks = driver.pawn.TicksPerMoveCardinal * 4f;
                 if (!exitSpot.HasThing) ticks *= 2f;
                 var toil2 = Toils_General.Wait((int)ticks);
@@ -275,11 +296,10 @@ public static class ToilsAcrossMaps
             enterSpot.Thing?.TryGetComp(out compZipline);
 
             //あれ？もうenterSpotのマップに居ない？ジャンプしよ
-            var afterEnterMap = Toils_General.Label();
-            yield return Toils_Jump.JumpIf(afterEnterMap, () => driver.pawn.Map == enterSpot.Map);
+            yield return Toils_Jump.JumpIf(afterEnterMap, () => pawn.Map == enterSpot.Map);
 
             //enterSpotの手前の場所まで行く。vehicleの長さ分のオフセットはメソッド内でやっている
-            var vehiclePawn = driver.pawn as VehiclePawn;
+            var vehiclePawn = pawn as VehiclePawn;
             var toil = GotoVehicleEnterSpot(enterSpot);
             yield return toil;
 
@@ -299,7 +319,7 @@ public static class ToilsAcrossMaps
             else
             {
                 //マップ移動アニメーション。目的地の計算の後tick毎の描画位置を計算。ドアは開け続けておく
-                var ticks = driver.pawn.TicksPerMoveCardinal * 4f;
+                var ticks = pawn.TicksPerMoveCardinal * 4f;
                 if (!enterSpot.HasThing) ticks *= 2f;
                 var toil2 = Toils_General.Wait((int)ticks);
                 toil2.handlingFacing = true;
@@ -325,16 +345,16 @@ public static class ToilsAcrossMaps
                     }
                     var rot = enterSpot.HasThing ? enterSpot.Thing.Rotation : enterSpot.Cell.DirectionToInsideMap(vehicle);
                     var faceCell2 = rot.FacingCell;
-                    var initPos = GenThing.TrueCenter(enterSpot.Cell + (faceCell2 * vehicleOffset), rot, driver.pawn.def.size, 0f).ToBaseMapCoord(vehicle).Yto0();
-                    if (driver.pawn.def.size.x % 2 == 0 &&
-                    ((vehicle.Rotation == Rot4.East && rot.IsHorizontal) ||
-                    (vehicle.Rotation == Rot4.West && !rot.IsHorizontal) ||
-                    vehicle.Rotation == Rot4.South)
+                    var initPos = GenThing.TrueCenter(enterSpot.Cell + (faceCell2 * vehicleOffset), rot, pawn.def.size, 0f).ToBaseMapCoord(vehicle).Yto0();
+                    if (pawn.def.size.x % 2 == 0 &&
+                        ((vehicle.Rotation == Rot4.East && rot.IsHorizontal) ||
+                         (vehicle.Rotation == Rot4.West && !rot.IsHorizontal) ||
+                         vehicle.Rotation == Rot4.South)
                     )
                     {
                         initPos += baseRot4.IsHorizontal ? Vector3.forward : Vector3.left;
                     }
-                    var initPos2 = GenThing.TrueCenter(cell, baseRot8, driver.pawn.def.size, 0f);
+                    var initPos2 = GenThing.TrueCenter(cell, baseRot8, pawn.def.size, 0f);
                     initPos3 = enterSpot.Cell.ToBaseMapCoord(vehicle).ToVector3().Yto0();
                     offset = initPos - initPos2;
                     initTick = GenTicks.TicksGame;
@@ -390,7 +410,7 @@ public static class ToilsAcrossMaps
                 }
             };
             yield return toil3.FailOn(() => enterSpot.Map is null or { Disposed: true});
-            yield return afterEnterMap;
         }
+        yield return afterEnterMap;
     }
 }

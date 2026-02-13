@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using LudeonTK;
 using RimWorld.Planet;
 using Verse;
 
@@ -33,7 +34,7 @@ public class CrossMapReachabilityCache(World world) : WorldComponent(world)
             instance.cache.Remove(key);
     }
 
-    public static bool TryGetCache(Region A, Region B, TraverseParms traverseParms, out bool result,
+    public static bool TryGetCache(Region A, Region B, TraverseParmsExtended traverseParms, out bool result,
         out TargetInfo exitSpot, out TargetInfo enterSpot, out List<(TargetInfo, TargetInfo)> spotsQueue)
     {
         if (A is null || B is null)
@@ -59,7 +60,7 @@ public class CrossMapReachabilityCache(World world) : WorldComponent(world)
         return false;
     }
 
-    public static void Cache(Region A, Region B, TraverseParms traverseParms, bool result,
+    public static void Cache(Region A, Region B, TraverseParmsExtended traverseParms, bool result,
         TargetInfo exitSpot, TargetInfo enterSpot, List<(TargetInfo, TargetInfo)> spotsQueue)
     {
         if (A is null || B is null) return;
@@ -73,9 +74,9 @@ public class CrossMapReachabilityCache(World world) : WorldComponent(world)
 
         public Region SecondRegion { get; }
 
-        private TraverseParms TraverseParms { get; }
+        private TraverseParmsExtended TraverseParms { get; }
 
-        public CachedEntry(Region firstRegion, Region secondRegion, TraverseParms traverseParms)
+        public CachedEntry(Region firstRegion, Region secondRegion, TraverseParmsExtended traverseParms)
         {
             this = default;
             FirstRegion = firstRegion;
@@ -110,4 +111,10 @@ public class CrossMapReachabilityCache(World world) : WorldComponent(world)
             return Gen.HashCombineStruct(Gen.HashCombineInt(FirstRegion.id, SecondRegion.id), TraverseParms);
         }
     }
+    
+    [DebugAction(VehicleMapFramework.CategoryName, "Clear CrossMapReachabilityCache")]
+    private static void ClearCacheAction()
+    {
+        ClearCache();
+    }   
 }

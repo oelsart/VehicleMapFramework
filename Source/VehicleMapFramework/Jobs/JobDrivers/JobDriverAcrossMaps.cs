@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using Verse;
@@ -122,22 +123,22 @@ public abstract class JobDriverAcrossMaps : JobDriverBodyOffset
 
     protected IEnumerable<Toil> GotoTargetMap(TargetIndex ind)
     {
-        switch (ind)
+        return ind switch
         {
-            case TargetIndex.A:
-                return !spotsQueueA.NullOrEmpty()
-                    ? spotsQueueA.SelectMany(s => ToilsAcrossMaps.GotoTargetMap(this, s.exitSpot, s.enterSpot))
-                    : ToilsAcrossMaps.GotoTargetMap(this, exitSpotA, enterSpotA);
-            case TargetIndex.B:
-                return !spotsQueueB.NullOrEmpty()
-                    ? spotsQueueB.SelectMany(s => ToilsAcrossMaps.GotoTargetMap(this, s.exitSpot, s.enterSpot))
-                    : ToilsAcrossMaps.GotoTargetMap(this, exitSpotB, enterSpotB);
-            case TargetIndex.None:
-            case TargetIndex.C:
-            default:
+            TargetIndex.A when !spotsQueueA.NullOrEmpty() =>
+                spotsQueueA.SelectMany(s => ToilsAcrossMaps.GotoTargetMap(this, s.exitSpot, s.enterSpot)),
+            TargetIndex.A => ToilsAcrossMaps.GotoTargetMap(this, exitSpotA, enterSpotA),
+            
+            TargetIndex.B when !spotsQueueB.NullOrEmpty() =>
+                spotsQueueB.SelectMany(s => ToilsAcrossMaps.GotoTargetMap(this, s.exitSpot, s.enterSpot)),
+            TargetIndex.B => ToilsAcrossMaps.GotoTargetMap(this, exitSpotB, enterSpotB),
+            
+            _ => new Func<IEnumerable<Toil>>(() =>
+            {
                 VMF_Log.Error("GotoTargetMap() does not support TargetIndex.C.");
-                return null;
-        }
+                return [];
+            })()
+        };
     }
 
     public override void ExposeData()

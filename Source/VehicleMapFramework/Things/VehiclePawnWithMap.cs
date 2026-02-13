@@ -40,7 +40,7 @@ public class VehiclePawnWithMap : VehiclePawn
 
     public bool mapEdgeCellsDirty;
 
-    private int standableCellsCachedTick;
+    private int walkableCellsCachedTick;
 
     private int cellDesignationsDirtyTick;
 
@@ -178,6 +178,8 @@ public class VehiclePawnWithMap : VehiclePawn
             return field;
         }
     }
+    
+    public CellRect ValidMapRect { get; private set; }
 
     public HashSet<IntVec3> CachedMapEdgeCells
     {
@@ -186,19 +188,26 @@ public class VehiclePawnWithMap : VehiclePawn
             if (field != null && !mapEdgeCellsDirty) return field;
             field ??= [];
             field.Clear();
-            foreach (var c in CellRect.WholeMap(interiorMap).EdgeCells)
+            var cellRect = interiorMap.BoundsRect(1);
+            for (var i = 0; i < 4; i++)
             {
-                var facingInside = c.DirectionToInsideMap(this).FacingCell;
-                var c2 = c;
-                while (CachedOutOfBoundsCells.Contains(c2) || (CachedExpandableCells.Contains(c2) && CachedImpassableCells.Contains(c2)))
+                var rot = new Rot4(i);
+                var facingInside = rot.Opposite.FacingCell;
+                foreach (var c in cellRect.GetEdgeCells(rot))
                 {
-                    c2 += facingInside;
-                }
-                if (c2.InBounds(interiorMap))
-                {
-                    field.Add(c2);
+                    var c2 = c;
+                    while (CachedOutOfBoundsCells.Contains(c2) || (CachedExpandableCells.Contains(c2) && CachedImpassableCells.Contains(c2)))
+                    {
+                        c2 += facingInside;
+                    }
+                    if (c2.InBounds(interiorMap))
+                    {
+                        field.Add(c2);
+                    }
                 }
             }
+
+            ValidMapRect = CellRect.FromCellList(field);
             return field;
         }
     }
@@ -207,9 +216,9 @@ public class VehiclePawnWithMap : VehiclePawn
     {
         get
         {
-            if (standableCellsCachedTick != GenTicks.TicksGame || Find.TickManager.Paused)
+            if (walkableCellsCachedTick != GenTicks.TicksGame || Find.TickManager.Paused)
             {
-                standableCellsCachedTick = GenTicks.TicksGame;
+                walkableCellsCachedTick = GenTicks.TicksGame;
                 field.Clear();
                 foreach (var c in CachedMapEdgeCells)
                     if (c.Walkable(interiorMap)) field.Add(c);
@@ -763,6 +772,7 @@ public class VehiclePawnWithMap : VehiclePawn
             MapComponentUtility.MapComponentOnDraw(map);
             CompMapExpander.DebugDraw(MapExpanderComps);
         }
+        DebugDrawHelper.DebugDraw(map.debugDrawer, map);
         //map.gameConditionManager.GameConditionManagerDraw(map);
         //MapEdgeClipDrawer.DrawClippers(__instance);
     }
@@ -1007,6 +1017,13 @@ public class VehiclePawnWithMap : VehiclePawn
             matrix.SetTRS(new Vector3(size.x / 2f, 0f, -250f), Quaternion.identity, s);
             Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
         }
+    }
+
+    public override void DrawGUIOverlay()
+    {
+        base.DrawGUIOverlay();
+        var map = CurrentLevel;
+        DebugDrawHelper.DebugOnGUI(map.debugDrawer, map);
     }
 
     public override string GetInspectString()

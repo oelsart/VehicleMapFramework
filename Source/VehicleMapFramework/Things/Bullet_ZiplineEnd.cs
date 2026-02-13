@@ -10,6 +10,8 @@ public class Bullet_ZiplineEnd : Bullet_ZiplineBase
 {
     public Map destMap;
     
+    public int TicksToImpact => ticksToImpact;
+    
     protected Vector3 ExactDestination => destMap != null
         ? intendedTarget.Cell.ToVector3Shifted().ToBaseMapCoord(destMap)
         : intendedTarget.Cell.ToVector3Shifted();

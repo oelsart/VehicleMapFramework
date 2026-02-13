@@ -15,6 +15,7 @@
 	<VMF_CannotSpawn>{0} がスポーンできません.</VMF_CannotSpawn>
 
 	<VMF_MustShotAtAnotherMap>ジップラインは別のマップに発射される必要があります.</VMF_MustShotAtAnotherMap>
+	<VMF_GrapplingHookAlreadyLaunched>グラップリングフックが既に展開されています.</VMF_GrapplingHookAlreadyLaunched>
 	
 	<VMF_ApplyingDynamicPatches>動的パッチ適用中</VMF_ApplyingDynamicPatches>
 	<VMF_UnpatchingDynamicPatches>動的アンパッチ適用中</VMF_UnpatchingDynamicPatches>

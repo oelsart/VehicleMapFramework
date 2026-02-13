@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using LudeonTK;
 using RimWorld;
 using SmashTools;
 using UnityEngine;
@@ -23,9 +24,11 @@ public static class CrossMapReachabilityUtility
 
     public static Map DepartMapGlobal;
     
-    private static readonly List<CompZipline> tmpZiplines = [];
+    private static readonly Stack<(TargetInfo, TargetInfo)> tmpTargets = new(32);
     
-    private static readonly Stack<VehiclePawnWithMap> visitedVehicles = [];
+    private static readonly HashSet<Map> visitedMaps = new(32);
+    
+    private static readonly List<Map> candidateMaps = new(32);
 
 #if DEBUG
     public static bool enableDebugLog;
@@ -150,28 +153,18 @@ public static class CrossMapReachabilityUtility
     }
 
     public static bool CanReach(Map departMap, IntVec3 root, LocalTargetInfo dest, PathEndMode peMode,
-        TraverseParms traverseParms, Map destMap)
+        TraverseParms traverseParms, Map destMap, bool canUseAbility = true)
     {
-        return CanReach(departMap, root, dest, peMode, traverseParms, destMap, out _, out _, out _);
+        return CanReach(departMap, root, dest, peMode, traverseParms, destMap, out _, out _, out _, canUseAbility);
     }
 
     public static bool CanReach(Map departMap, IntVec3 root, LocalTargetInfo dest, PathEndMode peMode,
         TraverseParms traverseParms, Map destMap, out TargetInfo exitSpot, out TargetInfo enterSpot,
-        out List<(TargetInfo, TargetInfo)> spotsQueue)
+        out List<(TargetInfo, TargetInfo)> spotsQueue, bool canUseAbility = true)
     {
         exitSpot = TargetInfo.Invalid;
         enterSpot = TargetInfo.Invalid;
         spotsQueue = null;
-        if (working)
-        {
-            Log.ErrorOnce("Called CanReach() while working. This should never happen. Suppressing further errors.", 7312233);
-            return false;
-        }
-
-        if (traverseParms.pawn is VehiclePawn vehiclePawn)
-        {
-            return vehiclePawn.CanReachVehicle(dest, peMode, traverseParms.maxDanger, traverseParms.mode, destMap, out exitSpot, out enterSpot);
-        }
 
         if (departMap == null || destMap == null) return false;
         if (departMap == destMap)
@@ -186,10 +179,29 @@ public static class CrossMapReachabilityUtility
                 working = false;
             }
         }
+        if (traverseParms.pawn is VehiclePawn vehiclePawn)
+        {
+            return vehiclePawn.CanReachVehicle(dest, peMode, traverseParms.maxDanger, traverseParms.mode, destMap, out exitSpot, out enterSpot);
+        }
+        
+        if (working)
+        {
+            Log.ErrorOnce("Called CanReach() while working. This should never happen. Suppressing further errors.", 7312233);
+            return false;
+        }
 
         var region = root.GetRegion(departMap);
         var region2 = dest.Cell.GetRegion(destMap);
-        if (CrossMapReachabilityCache.TryGetCache(region, region2, traverseParms, out var result, out exitSpot, out enterSpot, out spotsQueue))
+        TraverseParmsExtended parmsForCache = traverseParms;
+        Ability_GrapplingHook ability = null;
+        if (canUseAbility)
+        {
+            ability = traverseParms.pawn?.abilities?.AllAbilitiesForReading.OfType<Ability_GrapplingHook>()
+                .FirstOrDefault(a => a is { CanCast.Accepted: true });
+            parmsForCache.ability = ability?.def;
+        }
+        
+        if (CrossMapReachabilityCache.TryGetCache(region, region2, parmsForCache, out var result, out exitSpot, out enterSpot, out spotsQueue))
         {
             DebugLog($"Result from cache: {root}, {departMap}, {dest}, {destMap}, {traverseParms}: {result}, {exitSpot}, {enterSpot}");
             return result;
@@ -272,6 +284,9 @@ public static class CrossMapReachabilityUtility
                                     return result;
                                 }
                             }
+                            result = ability is not null &&
+                                     ability.TryFindCastPosition(dest.ToTargetInfo(destMap), out exitSpot, out enterSpot);
+                            return result;
                         }
 
                         break;
@@ -320,6 +335,9 @@ public static class CrossMapReachabilityUtility
                                     return result;
                                 }
                             }
+                            result = ability is not null &&
+                                     ability.TryFindCastPosition(dest.ToTargetInfo(destMap), out exitSpot, out enterSpot);
+                            return result;
                         }
 
                         break;
@@ -449,7 +467,8 @@ public static class CrossMapReachabilityUtility
                                     }
                                 }
                             }
-                            return false;
+                            return ability is not null &&
+                                   ability.TryFindCastPosition(dest.ToTargetInfo(destMap), out exitSpot, out enterSpot);
 
                             bool CanReach2(IntVec3 cell, IntVec3 cell2, IntVec3 cell3, IntVec3 cell4)
                             {
@@ -462,58 +481,83 @@ public static class CrossMapReachabilityUtility
                                        destMap.reachability.CanReach(cell4, dest, peMode, traverseParms2);
                             }
                         }
+                        
                         bool CanReachRecursive(out List<(TargetInfo, TargetInfo)> spotsQueue)
                         {
                             spotsQueue = null;
-                            result = EnterVehicle(vehicle2, root);
+                            var destBaseMapCoord = dest.Cell.ToBaseMapCoord(vehicle);
+                            candidateMaps.AddRange(departMap.BaseMapAndVehicleMaps(false));
+                            result = EnterMap(vehicle2.VehicleMap, root);
                             if (result)
                             {
-                                spotsQueue = tmpZiplines.Select(zipline => ((TargetInfo)zipline.parent, TargetInfo.Invalid))
-                                    .ToList();
+                                spotsQueue = tmpTargets.Reverse().ToList();
                             }
-                            tmpZiplines.Clear();
-                            visitedVehicles.Clear();
+                            tmpTargets.Clear();
+                            visitedMaps.Clear();
+                            candidateMaps.Clear();
                             return result;
 
-                            bool EnterVehicle(VehiclePawnWithMap v, IntVec3 start)
+                            bool EnterMap(Map map, IntVec3 start)
                             {
                                 // 目的のマップ
-                                if (v.VehicleMap == destMap &&
+                                if (map == destMap &&
                                     destMap.reachability.CanReach(start, dest, PathEndMode.OnCell, traverseParms2))
                                 {
                                     return true;
                                 }
-                                
-                                visitedVehicles.Push(v);
-                                var destBaseMapCoord = dest.Cell.ToBaseMapCoord(vehicle);
-                                foreach (var comp in v.GetSortedEnterComps(destBaseMapCoord, VehiclePawnWithMap.EnterCompKind.ZiplineOnly))
+
+                                visitedMaps.Add(map);
+                                var isVehicleMap = map.IsVehicleMapOf(out var vehicle3);
+                                var comps = isVehicleMap
+                                    ? vehicle3.GetSortedEnterComps(destBaseMapCoord,
+                                        VehiclePawnWithMap.EnterCompKind.ZiplineOnly).AsEnumerable()
+                                    : RegionTraverserAcrossMaps.ZiplineDefs.SelectMany(def =>
+                                        map.listerThings.ThingsOfDef(def).Select(t => t.TryGetComp<CompZipline>()));
+                                foreach (var comp in comps)
                                 {
                                     if (comp is not CompZipline comp2) continue;
                                     // Pairが適正か
                                     var pair = comp2.Pair;
-                                    if (pair == null || !pair.IsOnVehicleMapOf(out var v2) ||
-                                        visitedVehicles.Contains(v2))
+                                    if (pair is not { Spawned: true } || !visitedMaps.Contains(pair.Map))
                                         continue;
 
                                     // Pairの車両を探索
                                     var c = comp2.parent.Position;
                                     var c2 = pair.Position;
-                                    var map = comp2.parent.Map;
-                                    if (CellCheck(c, map) && CellCheck(c2, v2.VehicleMap) &&
-                                        map.reachability.CanReach(start, c, PathEndMode.OnCell, traverseParms2))
+                                    var map2 = comp2.parent.Map;
+                                    if (CellCheck(c, map) && CellCheck(c2, map2) &&
+                                        map2.reachability.CanReach(start, c, PathEndMode.OnCell, traverseParms2))
                                     {
-                                        tmpZiplines.Add(comp2);
-                                        if (!EnterVehicle(v2, c2))
+                                        tmpTargets.Push((comp2.parent, TargetInfo.Invalid));
+                                        if (!EnterMap(map2, c2))
                                         {
-                                            tmpZiplines.RemoveLast();
+                                            tmpTargets.Pop();
                                             return false;
                                         }
-
                                         return true;
                                     }
                                 }
-
-                                visitedVehicles.Pop();
+                                
+                                // GrapplingHookアビリティによる探索
+                                if (ability is not null)
+                                {
+                                    foreach (var targetMap in candidateMaps)
+                                    {
+                                        if (!visitedMaps.Contains(targetMap) &&
+                                            ability.TryFindCastPositionFromTo(
+                                                new TargetInfo(start, map), new TargetInfo(targetMap.Center, targetMap),
+                                                out var castSpot, out var targSpot))
+                                        {
+                                            tmpTargets.Push((castSpot, targSpot));
+                                            if (!EnterMap(targetMap, targSpot.Cell))
+                                            {
+                                                tmpTargets.Pop();
+                                                return false;
+                                            }
+                                            return true;
+                                        }
+                                    }
+                                }
                                 return false;
                             }
                         }
@@ -525,7 +569,7 @@ public static class CrossMapReachabilityUtility
         }
         finally
         {
-            CrossMapReachabilityCache.Cache(region, region2, traverseParms, result, exitSpot, enterSpot, spotsQueue);
+            CrossMapReachabilityCache.Cache(region, region2, parmsForCache, result, exitSpot, enterSpot, spotsQueue);
             working = false;
         }
     }
@@ -749,5 +793,48 @@ public static class CrossMapReachabilityUtility
             }
             return false;
         }
+    }
+
+    [DebugAction(VehicleMapFramework.CategoryName, "Flash Traverse Points", actionType = DebugActionType.ToolMapForPawns)]
+    private static void FlashTraversePoints(Pawn p)
+    {
+        DebugTools.curTool = new DebugTool($"{p}: Destination...", () =>
+        {
+            var mousePos = UI.MouseMapPosition();
+            IntVec3 dest;
+            Map destMap;
+            if (mousePos.TryGetVehicleMap(Find.CurrentMap, out var vehicle, VehicleMapFlag.None))
+            {
+                dest = UI.MouseCell().ToVehicleMapCoord(vehicle);
+                destMap = vehicle.VehicleMap;
+            }
+            else
+            {
+                dest = UI.MouseCell();
+                destMap = p.Map;
+            }
+
+            if (p.CanReach(dest, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, destMap,
+                    out var exitSpot, out var enterSpot, out var spotsQueue))
+            {
+                var i = 0;
+                if (!spotsQueue.NullOrEmpty())
+                {
+                    foreach (var spots in spotsQueue)
+                    {
+                        FlashCell(spots.Item1, false, ref i);
+                        FlashCell(spots.Item2, true, ref i);
+                    }
+                }
+                FlashCell(exitSpot, false, ref i);
+                FlashCell(enterSpot, true, ref i);
+                return;
+            }
+            Messages.Message($"{p} can not reach to {new TargetInfo(dest, destMap)}", MessageTypeDefOf.RejectInput, false);
+        });
+        return;
+
+        static void FlashCell(TargetInfo target, bool enterSpot, ref int index) =>
+            target.Map?.debugDrawer.FlashCell(target.Cell, enterSpot ? 0.2f : 0.4f, $"{index++}");
     }
 }

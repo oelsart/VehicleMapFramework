@@ -17,7 +17,6 @@ public class TargetMapManager(World world) : WorldComponent(world)
     internal StrongBox<TargetInfo> GetOrCreateTargetInfo(Thing thing)
     {
         if (thing is null) return null;
-        VMF_Log.DebugMessage($"GetOrCreateTargetInfo: {thing}");
         return TargetInfoTable.GetValue(thing, _ =>
         {
             var box = new StrongBox<TargetInfo>

@@ -3,7 +3,6 @@ using Verse;
 
 namespace VehicleMapFramework;
 
-[StaticConstructorOnStartup]
 public class ZiplineEnd : ThingWithComps, IZiplineEnd
 {
     public Verb_LaunchZipline launchVerb;
@@ -32,7 +31,8 @@ public class ZiplineEnd : ThingWithComps, IZiplineEnd
     protected override void TickInterval(int delta)
     {
         base.TickInterval(delta);
-        if (launchVerb is not { caster.SpawnedOrAnyParentSpawned: true } || launchVerb.ziplineEnd != this)
+        if (launchVerb is not { caster.SpawnedOrAnyParentSpawned: true } ||
+            launchVerb.ziplineEnd != this)
             base.Destroy();
     }
 

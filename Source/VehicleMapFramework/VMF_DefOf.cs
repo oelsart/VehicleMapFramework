@@ -27,6 +27,8 @@ public static class VMF_DefOf
 
     public static ThingDef VMF_Bullet_ZiplineTurretReturn;
 
+    public static ThingDef VMF_GrapplingHookFlyer;
+
     public static TerrainDef VMF_VehicleFloor;
 
     public static TerrainDef VMF_ImpassableFloor;

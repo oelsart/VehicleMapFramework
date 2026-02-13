@@ -169,7 +169,10 @@ public static class AttackTargetFinderOnVehicle
             }
             return true;
         };
-        if ((HasRangedAttack(searcher) || onlyRanged) && searcherPawn is not { InAggroMentalState: true })
+
+        var hasGrappling =
+            searcherPawn?.abilities?.AllAbilitiesForReading.FirstOrDefault(a => a is Ability_GrapplingHook) is not null;
+        if ((HasRangedAttack(searcher) || onlyRanged || hasGrappling) && searcherPawn is not { InAggroMentalState: true })
         {
             tmpTargets.Clear();
             tmpTargets.AddRange(searcherThing.Map.BaseMapAndVehicleMaps(false).SelectMany(m => m.attackTargetsCache.GetPotentialTargetsFor(searcher)));
@@ -192,15 +195,19 @@ public static class AttackTargetFinderOnVehicle
             {
                 return targetToHit;
             }
-            if (flags.HasFlag(TargetScanFlags.NeedReachableIfCantHitFromMyPos) || flags.HasFlag(TargetScanFlags.NeedReachable))
+
+            if (!hasGrappling &&
+                ((flags & TargetScanFlags.NeedReachableIfCantHitFromMyPos) != TargetScanFlags.None ||
+                 (flags & TargetScanFlags.NeedReachable) != TargetScanFlags.None))
             {
                 return (IAttackTarget)GenClosestCrossMap.ClosestThing_Global(
                     searcher.Thing.PositionOnBaseMap,
                     validTargets,
                     maxDist,
                     t => CanReach(searcher.Thing, t, canBashDoors, canBashFences)
-                    );
+                );
             }
+
             return (IAttackTarget)GenClosestCrossMap.ClosestThing_Global(searcher.Thing.PositionOnBaseMap, validTargets, maxDist);
         }
         if (searcherPawn?.mindState.duty is { radius: > 0f } && !searcherPawn.InMentalState)

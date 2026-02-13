@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using RimWorld;
 using RimWorld.Planet;
 using SmashTools;
@@ -45,17 +44,17 @@ public class JobDriver_GotoAcrossMaps : JobDriverAcrossMaps
             });
             toil.FailOn(() => job.failIfCantJoinOrCreateCaravan && !CaravanExitMapUtility.CanExitMapAndJoinOrCreateCaravanNow(pawn));
             toil.FailOn(() => job.GetTarget(TargetIndex.A).Thing is Pawn { ParentHolder: Corpse });
-            toil.FailOn(delegate ()
+            toil.FailOn(() =>
             {
                 var thing = job.GetTarget(TargetIndex.A).Thing;
                 return thing is { Destroyed: true };
             });
             if (lookAtTarget.IsValid)
             {
-                toil.tickAction = (Action)Delegate.Combine(toil.tickAction, new Action(delegate
+                toil.tickAction += delegate
                 {
                     pawn.rotationTracker.FaceCell(lookAtTarget.CellOnAnotherThingMap(pawn));
-                }));
+                };
                 toil.handlingFacing = true;
             }
             toil.AddFinishAction(delegate

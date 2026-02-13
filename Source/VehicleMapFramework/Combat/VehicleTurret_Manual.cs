@@ -36,7 +36,9 @@ public class VehicleTurret_Manual : VehicleTurret
             IsManned = true;
             return;
         }
-        var matchHandlers = vehicle.handlers.FindAll(h => h.role.HandlingTypes.HasFlag(HandlingType.Turret) && (h.role.TurretIds.Contains(key) || h.role.TurretIds.Contains(groupKey)));
+        var matchHandlers = vehicle.handlers.FindAll(h =>
+            (h.role.HandlingTypes & HandlingType.Turret) != HandlingType.None &&
+            (h.role.TurretIds.Contains(key) || h.role.TurretIds.Contains(groupKey)));
         if (matchHandlers.Empty())
         {
             IsManned = false;

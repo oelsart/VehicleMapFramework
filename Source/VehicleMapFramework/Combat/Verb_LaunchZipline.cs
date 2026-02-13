@@ -1,15 +1,22 @@
 ﻿using RimWorld;
+using SmashTools;
 using UnityEngine;
 using VehicleMapFramework.VMF_HarmonyPatches;
 using Verse;
 
 namespace VehicleMapFramework;
 
-public class Verb_LaunchZipline : Verb_Shoot, IAbilityVerb
+public class Verb_LaunchZipline : Verb_LaunchProjectile, IAbilityVerb
 {
     public Thing ziplineEnd;
+
+    private Ability ability;
     
-    public Ability Ability { get; set; }
+    public Ability Ability
+    {
+        get => ability;
+        set => ability = value;
+    }
 
     public override bool ValidateTarget(LocalTargetInfo target, bool showMessages = true)
     {
@@ -20,16 +27,17 @@ public class Verb_LaunchZipline : Verb_Shoot, IAbilityVerb
                 Messages.Message("VMF_MustShotAtAnotherMap".Translate(), MessageTypeDefOf.RejectInput, false);
             return false;
         }
-        return base.ValidateTarget(target, showMessages) && target.Cell.Standable(map);
+        return base.ValidateTarget(target, showMessages) && target.Cell.Walkable(map);
     }
 
     public override bool CanHitTargetFrom(IntVec3 root, LocalTargetInfo targ)
     {
-        if (targ.Thing != null && targ.Thing == caster)
+        return targ.Thing switch
         {
-            return targetParams.canTargetSelf;
-        }
-        return (targ.Pawn == null || !targ.Pawn.IsPsychologicallyInvisible() || !caster.HostileTo(targ.Pawn)) && !ApparelPreventsShooting() && this.TryFindShootLineFromToOnVehicle(root, targ, out _);
+            { } t when t == caster => targetParams.canTargetSelf,
+            _ => (targ.Pawn == null || !targ.Pawn.IsPsychologicallyInvisible() || !caster.HostileTo(targ.Pawn)) &&
+                 !ApparelPreventsShooting() && this.TryFindShootLineFromToOnVehicle(root, targ, out _)
+        };
     }
 
     protected override bool TryCastShot()
@@ -39,8 +47,8 @@ public class Verb_LaunchZipline : Verb_Shoot, IAbilityVerb
         {
             return false;
         }
-
-        var target = currentDestination.IsValid ? currentDestination : currentTarget;
+        
+        var target = currentTarget;
         var destMap = target.Thing?.Map ?? caster.TargetMap ?? (caster as Pawn)?.mindState?.enemyTarget?.Map ?? caster.Map;
         var flag = this.TryFindShootLineFromToOnVehicle(caster.PositionOnBaseMap, target, out var resultingLine);
         if (verbProps.stopBurstWithoutLos && !flag)
@@ -146,7 +154,6 @@ public class Verb_LaunchZipline : Verb_Shoot, IAbilityVerb
 
         projectile2.Launch(manningPawn, drawPos, target.Thing != null ? target : resultingLine.Dest,
             target, ProjectileHitFlags.IntendedTarget, preventFriendlyFire, equipmentSource, targetCoverDef);
-
         return true;
     }
 
@@ -161,16 +168,30 @@ public class Verb_LaunchZipline : Verb_Shoot, IAbilityVerb
         {
             GenDraw.DrawTargetHighlightWithLayer(Patch_Verb_Jump_DrawHighlight.CenterVector3Offset(ref target, this), AltitudeLayer.MetaOverlays);
         }
-        GenDraw.DrawRadiusRing(caster.Position, EffectiveRange, Color.white, c => GenSightOnVehicle.LineOfSight(caster.PositionOnBaseMap, c, caster.BaseMap()) && JumpUtility.ValidJumpTarget(caster, caster.BaseMap(), c));
+
+        var baseMap = caster.GroundMap;
+        GenDraw.DrawRadiusRing(caster.Position, EffectiveRange, Color.white,
+            c =>
+                GenSightOnVehicle.LineOfSight(caster.PositionOnBaseMap, c, baseMap) &&
+                (JumpUtility.ValidJumpTarget(caster, baseMap, c) ||
+                 baseMap.GetCachedMapComponent<VehicleMapGrid>().VehicleAt(c) is { } vehicle &&
+                 JumpUtility.ValidJumpTarget(caster, vehicle.VehicleMap, c.ToVehicleMapCoord(vehicle))));
     }
 
     public override void OnGUI(LocalTargetInfo target)
     {
+        if (!target.IsValid) return;
         if (CanHitTarget(target) && JumpUtility.ValidJumpTarget(caster, caster.TargetMapOrThingMap, target.Cell))
         {
             base.OnGUI(target);
             return;
         }
         GenUI.DrawMouseAttachment(TexCommand.CannotShoot);
+    }
+
+    public override void ExposeData()
+    {
+        base.ExposeData();
+        Scribe_References.Look(ref ability, "ability");       
     }
 }
