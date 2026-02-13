@@ -975,7 +975,9 @@ public static class Patch_FloatMenuOptionProvider_OrderVehicle_PawnGotoAction
             }
             else
             {
-                Job job = new(JobDefOf.Goto, gotoLoc);
+                Job job = new(VMF_DefOf.VMF_GotoAcrossMaps, gotoLoc);
+                job.SetSpotsToJobAcrossMaps(vehicle, exitSpot, enterSpot);
+                job.globalTarget = new GlobalTargetInfo(gotoLoc, map);
                 var baseMap = map.BaseMap();
                 var isBaseMap = map == baseMap;
                 var isOnEdge = isBaseMap && CellRect.WholeMap(baseMap).IsOnEdge(clickCell, 3);
@@ -997,24 +999,8 @@ public static class Patch_FloatMenuOptionProvider_OrderVehicle_PawnGotoAction
                     Messages.Message(text, baseMap.Parent, MessageTypeDefOf.RejectInput, false);
                 }
                 jobSuccess = vehicle.jobs?.TryTakeOrderedJob(job, JobTag.Misc) ?? false;
-
                 if (jobSuccess)
-                {
-                    #if DEV
-                    var pathOrderData = new PathOrderData
-                    {
-                        destination = gotoLoc,
-                        endRotation = rot,
-                        exitMapOnArrival = exitMapOnArrival
-                    };
-					vehicle.vehiclePather.OrderMoveTo(in pathOrderData);
-                    #else
-                    vehicle.jobs.TryTakeOrderedJob(job);
-                    #endif
-                    var job2 = vehicle.jobs.AllJobs()
-                        .FirstOrDefault(j => j.def == JobDefOf.Goto && j.targetA.Cell == gotoLoc);
-                    job2?.globalTarget = new GlobalTargetInfo(gotoLoc, map);
-                }
+                    vehicle.vehiclePather.SetEndRotation(rot);
             }
         }
         if (jobSuccess)
