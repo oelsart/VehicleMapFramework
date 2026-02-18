@@ -201,9 +201,6 @@ public static class CrossMapReachabilityUtility
 
         var region = root.GetRegion(departMap);
         var region2 = dest.Cell.GetRegion(destMap);
-        if ((region, region2) is not (not null, not null))
-            return false;
-        
         TraverseParmsExtended parmsForCache = traverseParms;
         Ability_MapTraverse ability = null;
         if (canUseAbility)
@@ -245,7 +242,10 @@ public static class CrossMapReachabilityUtility
                         exitSpot = traverseList[0].exitSpot;
                         enterSpot = traverseList[0].enterSpot;
                     }
-                    else spotsQueue = traverseList.Select(t => (t.exitSpot, t.enterSpot)).ToList();
+                    else if (result)
+                    {
+                        spotsQueue = traverseList.Select(t => (t.exitSpot, t.enterSpot)).ToList();
+                    }
                     return result;
                 }
 

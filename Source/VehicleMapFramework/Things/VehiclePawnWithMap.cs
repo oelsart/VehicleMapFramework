@@ -207,7 +207,8 @@ public class VehiclePawnWithMap : VehiclePawn
             if (mapEdgeCellsDirty)
             {
                 mapEdgeCellsDirty = false;
-                WalkableCellsDirtyIfNeeded(IntVec3.Invalid);
+                walkableCellsDirty = true;
+                enterPositionsDirty = true;
                 field.Clear();
                 var cellRect = interiorMap.BoundsRect(1);
                 for (var i = 0; i < 4; i++)
@@ -244,13 +245,14 @@ public class VehiclePawnWithMap : VehiclePawn
         {
             if (walkableCellsDirty)
             {
+                var mapEdgeCells = CachedMapEdgeCells;
                 walkableCellsDirty = false;
-                CrossMapReachabilityCache.ClearCacheFor(VehicleMap);
+                CrossMapReachabilityCache.ClearCacheFor(interiorMap);
                 field.Clear();
                 CachedEdgeDistricts.Clear();
-                for (var i = 0; i < CachedMapEdgeCells.Count; i++)
+                for (var i = 0; i < mapEdgeCells.Count; i++)
                 {
-                    var cell = CachedMapEdgeCells[i];
+                    var cell = mapEdgeCells[i];
                     if (cell.Walkable(interiorMap))
                     {
                         var district = RegionAndRoomQuery.DistirctAtFast(cell, interiorMap);
@@ -263,7 +265,14 @@ public class VehiclePawnWithMap : VehiclePawn
         }
     } = [];
 
-    public HashSet<District> CachedEdgeDistricts { get; } = [];
+    public HashSet<District> CachedEdgeDistricts
+    {
+        get
+        {
+            _ = CachedWalkableMapEdgeCells;
+            return field;
+        }
+    } = [];
 
     public List<IntVec3> CachedEnterPositions
     {
@@ -271,12 +280,14 @@ public class VehiclePawnWithMap : VehiclePawn
         {
             if (enterPositionsDirty)
             {
+                var mapEdgeCells = CachedMapEdgeCells;
+                var walkableCells = CachedWalkableMapEdgeCells;
                 enterPositionsDirty = false;
-                CrossMapReachabilityCache.ClearCacheFor(VehicleMap);
+                CrossMapReachabilityCache.ClearCacheFor(interiorMap);
                 field.Clear();
-                foreach (var cell in CachedMapEdgeCells.AsSpan())
+                foreach (var cell in mapEdgeCells.AsSpan())
                 {
-                    field.Add(CachedWalkableMapEdgeCells.ContainsKey(cell) &&
+                    field.Add(walkableCells.ContainsKey(cell) &&
                               CrossMapReachabilityUtility.EnterVehiclePosition(new TargetInfo(cell, interiorMap)) is
                                   { IsValid: true } c
                         ? c
