@@ -19,7 +19,7 @@ public class VehiclePawnWithMapCache(Map map) : MapComponent(map)
 
     private int lastCachedTick = -1;
 
-    private readonly HashSet<VehiclePawnWithMap> allVehicles = [];
+    private readonly List<VehiclePawnWithMap> allVehicles = [];
 
     public override void FinalizeInit()
     {
@@ -32,7 +32,7 @@ public class VehiclePawnWithMapCache(Map map) : MapComponent(map)
 
     public static void RegisterVehicle(VehiclePawnWithMap vehicle)
     {
-        MapComponentCache<VehiclePawnWithMapCache>.GetComponent(vehicle.Map).allVehicles.Add(vehicle);
+        MapComponentCache<VehiclePawnWithMapCache>.GetComponent(vehicle.Map).allVehicles.AddUnique(vehicle);
     }
 
     public static void DeRegisterVehicle(VehiclePawnWithMap vehicle)

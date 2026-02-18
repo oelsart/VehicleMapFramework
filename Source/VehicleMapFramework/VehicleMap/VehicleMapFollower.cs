@@ -29,6 +29,7 @@ public class VehicleMapFollower(VehiclePawnWithMap vehicle)
 
         if (vehicle.Position != prevCell)
         {
+            vehicle.enterPositionsDirty = true;
             CrossMapReachabilityCache.ClearCacheFor(vehicle.VehicleMap);
             if (ticksToMove > 0)
             {
@@ -49,6 +50,8 @@ public class VehicleMapFollower(VehiclePawnWithMap vehicle)
         }
         if (vehicle.FullRotation != prevRot)
         {
+            vehicle.enterPositionsDirty = true;
+            CrossMapReachabilityCache.ClearCacheFor(vehicle.VehicleMap);
             UpdatePositionAndRotation();
             prevRot = vehicle.FullRotation;
         }

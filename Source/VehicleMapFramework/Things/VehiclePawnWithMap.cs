@@ -36,11 +36,13 @@ public class VehiclePawnWithMap : VehiclePawn
 
     private bool allowExit = true;
 
-    public bool impassableCellsDirty;
+    public bool impassableCellsDirty = true;
 
-    public bool mapEdgeCellsDirty;
+    public bool mapEdgeCellsDirty = true;
 
-    private int walkableCellsCachedTick;
+    private bool walkableCellsDirty = true;
+
+    public bool enterPositionsDirty = true;
 
     private int cellDesignationsDirtyTick;
 
@@ -116,14 +118,31 @@ public class VehiclePawnWithMap : VehiclePawn
     {
         get
         {
-            if (field != null && !impassableCellsDirty) return field;
-            impassableCellsDirty = false;
-            field = [.. interiorMap.listerThings.ThingsOfDef(VMF_DefOf.VMF_VehicleStructureFilled)
-                .Select(b => b.Position)
-                .Concat(interiorMap.AllCells.Where(c => c.GetTerrain(interiorMap) is { passability: Traversability.Impassable }))];
+            if (impassableCellsDirty)
+            {
+                impassableCellsDirty = false;
+                field.Clear();
+                var sizeX = interiorMap.Size.x;
+                var sizeZ = interiorMap.Size.z;
+                var terrainGrid = interiorMap.terrainGrid;
+                for (var x = 0; x < sizeX; x++)
+                {
+                    for (var z = 0; z < sizeZ; z++)
+                    {
+                        if (terrainGrid.TerrainAt(z * sizeX + x) is { passability: Traversability.Impassable })
+                            field.Add(new IntVec3(x, 0, z));
+                    }
+                }
+
+                var list = interiorMap.listerThings.ThingsOfDef(VMF_DefOf.VMF_VehicleStructureFilled);
+                for (var i = 0; i < list.Count; i++)
+                {
+                    field.Add(list[i].Position);
+                }
+            }
             return field;
         }
-    }
+    } = [];
 
     public HashSet<IntVec3> CachedEmptyStructureCells
     {
@@ -181,51 +200,117 @@ public class VehiclePawnWithMap : VehiclePawn
     
     public CellRect ValidMapRect { get; private set; }
 
-    public HashSet<IntVec3> CachedMapEdgeCells
+    public List<IntVec3> CachedMapEdgeCells
     {
         get
         {
-            if (field != null && !mapEdgeCellsDirty) return field;
-            field ??= [];
-            field.Clear();
-            var cellRect = interiorMap.BoundsRect(1);
-            for (var i = 0; i < 4; i++)
+            if (mapEdgeCellsDirty)
             {
-                var rot = new Rot4(i);
-                var facingInside = rot.Opposite.FacingCell;
-                foreach (var c in cellRect.GetEdgeCells(rot))
+                mapEdgeCellsDirty = false;
+                WalkableCellsDirtyIfNeeded(IntVec3.Invalid);
+                field.Clear();
+                var cellRect = interiorMap.BoundsRect(1);
+                for (var i = 0; i < 4; i++)
                 {
-                    var c2 = c;
-                    while (CachedOutOfBoundsCells.Contains(c2) || (CachedExpandableCells.Contains(c2) && CachedImpassableCells.Contains(c2)))
+                    var rot = new Rot4(i);
+                    var facingInside = rot.Opposite.FacingCell;
+                    var cells = cellRect.GetEdgeCells(rot);
+                    // GetEdgeCellsはminからの列挙なので東と南は反転させ時計回りにしておく。
+                    cells = rot is { AsInt: Rot4.EastInt or Rot4.SouthInt } ? cells.Reverse() : cells;
+                    foreach (var c in cells)
                     {
-                        c2 += facingInside;
-                    }
-                    if (c2.InBounds(interiorMap))
-                    {
-                        field.Add(c2);
+                        var c2 = c;
+                        while (CachedOutOfBoundsCells.Contains(c2) ||
+                               (CachedExpandableCells.Contains(c2) && CachedImpassableCells.Contains(c2)))
+                        {
+                            c2 += facingInside;
+                        }
+
+                        if (c2.InBounds(interiorMap))
+                        {
+                            field.AddUnique(c2);
+                        }
                     }
                 }
-            }
-
-            ValidMapRect = CellRect.FromCellList(field);
-            return field;
-        }
-    }
-
-    public HashSet<IntVec3> CachedWalkableMapEdgeCells
-    {
-        get
-        {
-            if (walkableCellsCachedTick != GenTicks.TicksGame || Find.TickManager.Paused)
-            {
-                walkableCellsCachedTick = GenTicks.TicksGame;
-                field.Clear();
-                foreach (var c in CachedMapEdgeCells)
-                    if (c.Walkable(interiorMap)) field.Add(c);
+                ValidMapRect = CellRect.FromCellList(field);
             }
             return field;
         }
     } = [];
+
+    public Dictionary<IntVec3, District> CachedWalkableMapEdgeCells
+    {
+        get
+        {
+            if (walkableCellsDirty)
+            {
+                walkableCellsDirty = false;
+                CrossMapReachabilityCache.ClearCacheFor(VehicleMap);
+                field.Clear();
+                CachedEdgeDistricts.Clear();
+                for (var i = 0; i < CachedMapEdgeCells.Count; i++)
+                {
+                    var cell = CachedMapEdgeCells[i];
+                    if (cell.Walkable(interiorMap))
+                    {
+                        var district = RegionAndRoomQuery.DistirctAtFast(cell, interiorMap);
+                        field[cell] = district;
+                        CachedEdgeDistricts.Add(district);
+                    }
+                }
+            }
+            return field;
+        }
+    } = [];
+
+    public HashSet<District> CachedEdgeDistricts { get; } = [];
+
+    public List<IntVec3> CachedEnterPositions
+    {
+        get
+        {
+            if (enterPositionsDirty)
+            {
+                enterPositionsDirty = false;
+                CrossMapReachabilityCache.ClearCacheFor(VehicleMap);
+                field.Clear();
+                foreach (var cell in CachedMapEdgeCells.AsSpan())
+                {
+                    field.Add(CachedWalkableMapEdgeCells.ContainsKey(cell) &&
+                              CrossMapReachabilityUtility.EnterVehiclePosition(new TargetInfo(cell, interiorMap)) is
+                                  { IsValid: true } c
+                        ? c
+                        : IntVec3.Invalid);
+                }
+            }
+            return field;
+        }
+    } = [];
+
+    private void WalkableCellsDirtyIfNeeded(Building building)
+    {
+        if (!building.def.AffectsReachability) return;
+        foreach (var c in building.OccupiedRect())
+        {
+            if (CachedMapEdgeCells.Contains(c))
+            {
+                walkableCellsDirty = true;
+                enterPositionsDirty = true;
+                CrossMapReachabilityCache.ClearCacheFor(interiorMap);
+                break;
+            }
+        }
+    }
+    
+    private void WalkableCellsDirtyIfNeeded(IntVec3 c)
+    {
+        if (CachedMapEdgeCells.Contains(c))
+        {
+            walkableCellsDirty = true;
+            enterPositionsDirty = true;
+            CrossMapReachabilityCache.ClearCacheFor(interiorMap);
+        }
+    }
 
     public CompNpcVehicleMap CompNpcVehicleMap => field ??= GetComp<CompNpcVehicleMap>();
     
@@ -332,16 +417,44 @@ public class VehiclePawnWithMap : VehiclePawn
             yield return new Command_Toggle
             {
                 defaultLabel = "Debug draw: bridge cells",
-                Order = 5001,
+                Order = 5005,
                 isActive = () => CompMapExpander.debugDraw,
                 toggleAction = () => CompMapExpander.debugDraw = !CompMapExpander.debugDraw
             };
+            yield return new Command_Action
+            {
+                defaultLabel = "Flash CachedMapEdgeCells",
+                Order = 5001,
+                action = () =>
+                {
+                    foreach (var c in CachedMapEdgeCells) interiorMap.debugDrawer.FlashCell(c);
+                }
+            };
+            yield return new Command_Action
+            {
+                defaultLabel = "Flash CachedWalkableMapEdgeCells",
+                Order = 5002,
+                action = () =>
+                {
+                    foreach (var c in CachedWalkableMapEdgeCells.Keys) interiorMap.debugDrawer.FlashCell(c);
+                }
+            };
+            yield return new Command_Action
+            {
+                defaultLabel = "Flash CachedEnterPositions",
+                Order = 5003,
+                action = () =>
+                {
+                    foreach (var c in CachedEnterPositions.Where(c => c.IsValid)) Map.debugDrawer.FlashCell(c);
+                }
+            };
         }
     }
-
+    
     public List<CompVehicleEnterSpot> GetSortedEnterComps(IntVec3 cell, EnterCompKind kind = EnterCompKind.All)
     {
         tmpEnterComps.Clear();
+        if (EnterComps.Empty()) return tmpEnterComps;
         for (var i = 0; i < EnterComps.Count; i++)
         {
             var comp = EnterComps[i];
@@ -421,14 +534,20 @@ public class VehiclePawnWithMap : VehiclePawn
 
     public override void SpawnSetup(Map map, bool respawningAfterLoad)
     {
-        if (interiorMap == null)
+        if (interiorMap is null)
         {
             GenerateVehicleMap(map);
+            interiorMap?.events.BuildingSpawned += WalkableCellsDirtyIfNeeded;
+            interiorMap?.events.PathCostRecalculate += WalkableCellsDirtyIfNeeded;
+            _ = CachedMapEdgeCells;
         }
-        else
+        else if (respawningAfterLoad)
         {
-            interiorMap.PocketMapParent?.sourceMap = map;
+            interiorMap.events.BuildingSpawned += WalkableCellsDirtyIfNeeded;
+            interiorMap.events.PathCostRecalculate += WalkableCellsDirtyIfNeeded;
+            _ = CachedMapEdgeCells;
         }
+        interiorMap?.PocketMapParent?.sourceMap = map;
 
         if (!Find.World.worldObjects.Contains(interiorMap!.Parent))
         {
@@ -1088,6 +1207,7 @@ public class VehiclePawnWithMap : VehiclePawn
     
     private void Resize()
     {
+        mapEdgeCellsDirty = true;
         var vehicleDef = VehicleDef;
         var curSize = vehicleDef.Size;
         var mapRect = CellRect.WholeMap(VehicleMap);

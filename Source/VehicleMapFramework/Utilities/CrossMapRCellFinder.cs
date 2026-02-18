@@ -74,7 +74,7 @@ public static class CrossMapRCellFinder
         }
     }
 
-    public static IntVec3 GoodDestNearFromTo(IntVec3 from, IntVec3 to, Pawn searcher, Map map, Predicate<IntVec3> cellValidator = null, bool reachable = true, float radius = 30f)
+    public static IntVec3 GoodDestNearFromTo(IntVec3 from, IntVec3 to, Pawn searcher, Map map, Predicate<IntVec3> cellValidator = null, bool reachable = true, bool reserve = true, float radius = 30f)
     {
         if (map is null)
             return IntVec3.Invalid;
@@ -102,7 +102,7 @@ public static class CrossMapRCellFinder
             {
                 return false;
             }
-            if (!map.pawnDestinationReservationManager.CanReserve(c, searcher, true))
+            if (reserve && !map.pawnDestinationReservationManager.CanReserve(c, searcher, true))
             {
                 return false;
             }

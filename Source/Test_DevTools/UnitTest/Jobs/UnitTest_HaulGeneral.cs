@@ -26,7 +26,7 @@ internal class UnitTest_HaulGeneral(VehicleGroup group) : WorkGiverTestBase(grou
         zone = new Zone_Stockpile(StorageSettingsPreset.DefaultStockpile, Pawn.Map.zoneManager);
         Pawn.Map.zoneManager.RegisterZone(zone);
         var map = Vehicle.VehicleMap;
-        foreach (var cell in CellRect.FromLimits(FromRUCorner(map, 2), FromRUCorner(map, 3)).Cells)
+        foreach (var cell in CellRect.FromLimits(FromRUCorner(map, 2), FromRUCorner(map, 3)))
             zone.AddCell(cell);
     }
 
@@ -48,7 +48,7 @@ internal class UnitTest_HaulGeneral(VehicleGroup group) : WorkGiverTestBase(grou
         GenSpawn.Spawn(woodLog, Pawn.Position, map);
         zone = new Zone_Stockpile(StorageSettingsPreset.DefaultStockpile, map.zoneManager);
         map.zoneManager.RegisterZone(zone);
-        foreach (var cell in CellRect.FromLimits(FromRUCorner(map, 6), FromRUCorner(map, 7)).Cells)
+        foreach (var cell in CellRect.FromLimits(FromRUCorner(map, 6), FromRUCorner(map, 7)))
             zone.AddCell(cell);
         results[1] = RunWorkGiverAfterPatch(Pawn, Vehicle, WorkGiverDef);
         Expect.IsNotNull(results[1].job);

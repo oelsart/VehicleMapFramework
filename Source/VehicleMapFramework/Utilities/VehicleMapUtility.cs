@@ -13,6 +13,7 @@ using Verse.AI.Group;
 
 namespace VehicleMapFramework;
 
+[HotSwap]
 public static class VehicleMapUtility
 {
     public const float YCompress = 40f;
@@ -467,17 +468,12 @@ public static class VehicleMapUtility
 
     extension(IntVec3 original)
     {
-        public IntVec3 ToBaseMapCoord()
-        {
-            return original.ToVector3Shifted().ToBaseMapCoord().ToIntVec3();
-        }
-
         public IntVec3 ToBaseMapCoord(VehiclePawnWithMap vehicle)
         {
             var vehiclePos = vehicle.cachedExactPos;
             var map = vehicle.VehicleMap;
             var pivot = new Vector3(map.Size.x / 2f, 0f, map.Size.z / 2f);
-            var drawPos = (original.ToVector3Shifted().YOffset() - pivot).RotatedBy(vehicle.FullAngle) + vehiclePos;
+            var drawPos = (original.ToVector3Shifted() - pivot).RotatedBy(vehicle.FullAngle) + vehiclePos;
             drawPos += OffsetFor(vehicle);
             return drawPos.ToIntVec3();
         }
@@ -525,6 +521,29 @@ public static class VehicleMapUtility
         {
             var orig = Vector3.zero.ToBaseMapCoord(vehicle).ToVehicleMapCoord(vehicle).ToIntVec3();
             return (orig + original).ToIntVec2;
+        }
+        
+        public IntVec3 ClosestWalkableEdgeCell(VehiclePawnWithMap vehicle, int districtID = -1)
+        {
+            if (vehicle.CachedWalkableMapEdgeCells.Count == 0) return IntVec3.Invalid;
+            
+            var cellOnVehicleMap = original.ToVehicleMapCoord(vehicle);
+            var mapRect = vehicle.ValidMapRect.ExpandedBy(1);
+            var root = mapRect.ClosestCellTo(cellOnVehicleMap);
+            if (cellOnVehicleMap == root) return root;
+            var radius = (mapRect.GetCorner(Rot4.North) - mapRect.GetCorner(Rot4.South)).LengthHorizontal;
+            
+            var pattern =
+                GenRadialDirectional.PatternFor(cellOnVehicleMap, vehicle.ValidMapRect, 0f, radius, out var indexRange);
+            for (var i = indexRange.min; i < indexRange.max; i++)
+            {
+                var cell = root + pattern[i];
+                if (vehicle.CachedWalkableMapEdgeCells.TryGetValue(cell, out var district) &&
+                    (districtID == -1 || district.ID == districtID))
+                    return cell;
+            }
+
+            return IntVec3.Invalid;
         }
     }
 
@@ -693,6 +712,15 @@ public static class VehicleMapUtility
             return target.Thing.IsOnVehicleMapOf(out var vehicle) && vehicle.Spawned
                 ? target.Cell.ToBaseMapCoord(vehicle) : target.Cell;
         }
+    }
+
+    extension(TargetInfo target)
+    {
+        public IntVec3 CellOnGroundMap => target.HasThing
+            ? target.Thing.PositionOnBaseMap
+            : target.Map.IsVehicleMapOf(out var vehicle)
+                ? target.Cell.ToBaseMapCoord(vehicle)
+                : target.Cell;
     }
 
     public static IntVec3 CellOnBaseMap(this ref TargetInfo target)

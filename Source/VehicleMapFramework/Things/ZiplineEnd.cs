@@ -42,6 +42,12 @@ public class ZiplineEnd : ThingWithComps, IZiplineEnd
         base.Destroy(mode);
     }
 
+    public override void Notify_MyMapRemoved()
+    {
+        launchVerb.ziplineEnd = null;
+        base.Notify_MyMapRemoved();
+    }
+
     public override void Print(SectionLayer layer)
     {
         Graphic.Print(layer, this, rotation);

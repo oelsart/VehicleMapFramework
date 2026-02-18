@@ -9,7 +9,7 @@ namespace VehicleMapFramework;
 public class CrossMapReachabilityCache(World world) : WorldComponent(world)
 {
     private readonly Dictionary<CachedEntry,
-        (bool result, TargetInfo exitSpot, TargetInfo enterSpot, List<(TargetInfo, TargetInfo)> spotsQueue)> cache = [];
+        (bool result, TargetInfo exitSpot, TargetInfo enterSpot, List<TraverseSpots> spotsQueue)> cache = [];
     
     private readonly List<CachedEntry> removalList = [];
     
@@ -22,6 +22,7 @@ public class CrossMapReachabilityCache(World world) : WorldComponent(world)
     
     public static void ClearCacheFor(Map map)
     {
+        if (map is null) return;
         var instance = Instance;
         instance.removalList.Clear();
     
@@ -35,7 +36,7 @@ public class CrossMapReachabilityCache(World world) : WorldComponent(world)
     }
 
     public static bool TryGetCache(Region A, Region B, TraverseParmsExtended traverseParms, out bool result,
-        out TargetInfo exitSpot, out TargetInfo enterSpot, out List<(TargetInfo, TargetInfo)> spotsQueue)
+        out TargetInfo exitSpot, out TargetInfo enterSpot, out List<TraverseSpots> spotsQueue)
     {
         if (A is null || B is null)
         {
@@ -61,7 +62,7 @@ public class CrossMapReachabilityCache(World world) : WorldComponent(world)
     }
 
     public static void Cache(Region A, Region B, TraverseParmsExtended traverseParms, bool result,
-        TargetInfo exitSpot, TargetInfo enterSpot, List<(TargetInfo, TargetInfo)> spotsQueue)
+        TargetInfo exitSpot, TargetInfo enterSpot, List<TraverseSpots> spotsQueue)
     {
         if (A is null || B is null) return;
         var key = new CachedEntry(A, B, traverseParms);

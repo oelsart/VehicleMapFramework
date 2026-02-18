@@ -14,28 +14,28 @@ public class VehicleMapParentsComponent : WorldComponent
     {
         if (map is null) return null;
         
-        var index = map.Index;
-        if (index >= 0 && index < cachedMapParentVehicle.Length)
+        var id = map.uniqueID;
+        if (id >= 0 && id < cachedMapParentVehicle.Length)
         {
-            return cachedMapParentVehicle[index];
+            return cachedMapParentVehicle[id];
         }
         return null;
     }
 
     public static void SetCachedVehicle(Map map, MapParent_Vehicle parent)
     {
-        var index = map.Index;
-        if (index < 0) return;
-        if (index >= cachedMapParentVehicle.Length)
+        var id = map.uniqueID;
+        if (id < 0) return;
+        if (id >= cachedMapParentVehicle.Length)
         {
             var newSize = cachedMapParentVehicle.Length;
-            while (index >= newSize)
+            while (id >= newSize)
             {
                 newSize *= 2;
             }
             Array.Resize(ref cachedMapParentVehicle, newSize);
         }
-        cachedMapParentVehicle[index] = parent;
+        cachedMapParentVehicle[id] = parent;
     }
 
     public VehicleMapParentsComponent(World world) : base(world)

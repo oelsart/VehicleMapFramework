@@ -20,7 +20,7 @@ internal class UnitTest_HaulMerge(VehicleGroup group) : CrossMapWorkGiverTestBas
         var map = GroundMap;
         zone = new Zone_Stockpile(StorageSettingsPreset.DefaultStockpile, map.zoneManager);
         map.zoneManager.RegisterZone(zone);
-        foreach (var cell in CellRect.FromLimits(FromRUCorner(map, 3), FromRUCorner(map, 4)).Cells)
+        foreach (var cell in CellRect.FromLimits(FromRUCorner(map, 3), FromRUCorner(map, 4)))
             zone.AddCell(cell);
         woodLog1 = GenSpawn.Spawn(ThingDefOf.WoodLog, FromRUCorner(map, 3), map);
         woodLog2 = GenSpawn.Spawn(ThingDefOf.WoodLog, FromRUCorner(map, 4), map);

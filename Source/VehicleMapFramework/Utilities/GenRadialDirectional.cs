@@ -6,6 +6,7 @@ using Verse;
 
 namespace VehicleMapFramework;
 
+[StaticConstructorOnStartup]
 public class GenRadialDirectional
 {
     private static readonly IntVec3[][] Patterns = new IntVec3[8][];

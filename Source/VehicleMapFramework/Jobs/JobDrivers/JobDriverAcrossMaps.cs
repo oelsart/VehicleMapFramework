@@ -1,4 +1,4 @@
-﻿using System;
+﻿global using TraverseSpots = (Verse.TargetInfo exitSpot, Verse.TargetInfo enterSpot);using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -17,9 +17,11 @@ public abstract class JobDriverAcrossMaps : JobDriverBodyOffset
 
     private TargetInfo enterSpotB = TargetInfo.Invalid;
     
-    private List<(TargetInfo exitSpot, TargetInfo enterSpot)> spotsQueueA;
+    private List<TraverseSpots> spotsQueueA;
     
-    private List<(TargetInfo exitSpot, TargetInfo enterSpot)> spotsQueueB;
+    private List<TraverseSpots> spotsQueueB;
+
+    private List<TraverseSpots> consumedSpots = [];
 
     private Map targetAMap;
 
@@ -92,6 +94,7 @@ public abstract class JobDriverAcrossMaps : JobDriverBodyOffset
 
     public void SetSpots(TargetInfo? exitSpot1 = null, TargetInfo? enterSpot1 = null, TargetInfo? exitSpot2 = null, TargetInfo? enterSpot2 = null)
     {
+        consumedSpots.Clear();
         exitSpotA = exitSpot1 ?? TargetInfo.Invalid;
         enterSpotA = enterSpot1 ?? TargetInfo.Invalid;
         exitSpotB = exitSpot2 ?? TargetInfo.Invalid;
@@ -106,8 +109,9 @@ public abstract class JobDriverAcrossMaps : JobDriverBodyOffset
             VMF_Log.Error("SetSpots with null map.");
     }
 
-    public void SetSpots(List<(TargetInfo exitSpot, TargetInfo enterSpot)> spotsQueueA_ = null, List<(TargetInfo exitSpot, TargetInfo enterSpot)> spotsQueueB_ = null)
+    public void SetSpots(List<TraverseSpots> spotsQueueA_ = null, List<TraverseSpots> spotsQueueB_ = null)
     {
+        consumedSpots.Clear();
         spotsQueueA = spotsQueueA_;
         spotsQueueB = spotsQueueB_;
         targetAMap = TargetAMap;
@@ -117,8 +121,18 @@ public abstract class JobDriverAcrossMaps : JobDriverBodyOffset
             VMF_Log.Error("SetSpots with null map.");
         return;
 
-        static bool MapAnyNull((TargetInfo exitSpot, TargetInfo enterSpot) spots) =>
+        static bool MapAnyNull(TraverseSpots spots) =>
             spots.exitSpot is { IsValid: true, Map: null } || spots.enterSpot is { IsValid: true, Map: null };
+    }
+
+    public void ConsumeSpots(TraverseSpots spots)
+    {
+        consumedSpots.Add(spots);
+    }
+
+    public bool Consumed(TraverseSpots spots)
+    {
+        return consumedSpots.Contains(spots);
     }
 
     protected IEnumerable<Toil> GotoTargetMap(TargetIndex ind)
@@ -126,12 +140,12 @@ public abstract class JobDriverAcrossMaps : JobDriverBodyOffset
         return ind switch
         {
             TargetIndex.A when !spotsQueueA.NullOrEmpty() =>
-                spotsQueueA.SelectMany(s => ToilsAcrossMaps.GotoTargetMap(this, s.exitSpot, s.enterSpot)),
-            TargetIndex.A => ToilsAcrossMaps.GotoTargetMap(this, exitSpotA, enterSpotA),
+                spotsQueueA.SelectMany(s => ToilsAcrossMaps.GotoTargetMap(this, s)),
+            TargetIndex.A => ToilsAcrossMaps.GotoTargetMap(this, (exitSpotA, enterSpotA)),
             
             TargetIndex.B when !spotsQueueB.NullOrEmpty() =>
-                spotsQueueB.SelectMany(s => ToilsAcrossMaps.GotoTargetMap(this, s.exitSpot, s.enterSpot)),
-            TargetIndex.B => ToilsAcrossMaps.GotoTargetMap(this, exitSpotB, enterSpotB),
+                spotsQueueB.SelectMany(s => ToilsAcrossMaps.GotoTargetMap(this, s)),
+            TargetIndex.B => ToilsAcrossMaps.GotoTargetMap(this, (exitSpotB, enterSpotB)),
             
             _ => new Func<IEnumerable<Toil>>(() =>
             {
@@ -154,19 +168,27 @@ public abstract class JobDriverAcrossMaps : JobDriverBodyOffset
         {
             case LoadSaveMode.Saving:
             {
-                if (spotsQueueA != null)
+                if (spotsQueueA is not null)
                 {
                     var tmpExitSpots = spotsQueueA.Select(s => s.exitSpot).ToList();
                     var tmpEnterSpots = spotsQueueA.Select(s => s.enterSpot).ToList();
                     Scribe_Collections.Look(ref tmpExitSpots, "exitSpotsA", LookMode.TargetInfo);
                     Scribe_Collections.Look(ref tmpEnterSpots, "enterSpotsA", LookMode.TargetInfo);
                 }
-                if (spotsQueueB != null)
+                if (spotsQueueB is not null)
                 {
                     var tmpExitSpots = spotsQueueB.Select(s => s.exitSpot).ToList();
                     var tmpEnterSpots = spotsQueueB.Select(s => s.enterSpot).ToList();
                     Scribe_Collections.Look(ref tmpExitSpots, "exitSpotsB", LookMode.TargetInfo);
                     Scribe_Collections.Look(ref tmpEnterSpots, "enterSpotsB", LookMode.TargetInfo);
+                }
+
+                if (consumedSpots is not null)
+                {
+                    var tmpExitSpots = consumedSpots.Select(s => s.exitSpot).ToList();
+                    var tmpEnterSpots = consumedSpots.Select(s => s.enterSpot).ToList();
+                    Scribe_Collections.Look(ref tmpExitSpots, "consumedExitSpots", LookMode.TargetInfo);
+                    Scribe_Collections.Look(ref tmpEnterSpots, "consumedEnterSpots", LookMode.TargetInfo);
                 }
                 break;
             }
@@ -176,7 +198,7 @@ public abstract class JobDriverAcrossMaps : JobDriverBodyOffset
                 List<TargetInfo> tmpEnterSpots = null;
                 Scribe_Collections.Look(ref tmpExitSpots, "exitSpotsA", LookMode.TargetInfo);
                 Scribe_Collections.Look(ref tmpEnterSpots, "enterSpotsA", LookMode.TargetInfo);
-                if (tmpExitSpots != null && tmpEnterSpots != null)
+                if (tmpExitSpots is not null && tmpEnterSpots is not null)
                 {
                     spotsQueueA = tmpExitSpots.Zip(tmpEnterSpots, (exitSpot, enterSpot) => (exitSpot, enterSpot)).ToList();
                 }
@@ -184,9 +206,17 @@ public abstract class JobDriverAcrossMaps : JobDriverBodyOffset
                 tmpEnterSpots = null;
                 Scribe_Collections.Look(ref tmpExitSpots, "exitSpotsB", LookMode.TargetInfo);
                 Scribe_Collections.Look(ref tmpEnterSpots, "enterSpotsB", LookMode.TargetInfo);
-                if (tmpExitSpots != null && tmpEnterSpots != null)
+                if (tmpExitSpots is not null && tmpEnterSpots is not null)
                 {
                     spotsQueueB = tmpExitSpots.Zip(tmpEnterSpots, (exitSpot, enterSpot) => (exitSpot, enterSpot)).ToList();
+                }
+                tmpExitSpots = null;
+                tmpEnterSpots = null;
+                Scribe_Collections.Look(ref tmpExitSpots, "consumedExitSpots", LookMode.TargetInfo);
+                Scribe_Collections.Look(ref tmpEnterSpots, "consumedEnterSpots", LookMode.TargetInfo);
+                if (tmpExitSpots is not null && tmpEnterSpots is not null)
+                {
+                    consumedSpots = tmpExitSpots.Zip(tmpEnterSpots, (exitSpot, enterSpot) => (exitSpot, enterSpot)).ToList();
                 }
                 break;
             }

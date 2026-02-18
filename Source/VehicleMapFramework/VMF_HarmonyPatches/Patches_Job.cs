@@ -1251,7 +1251,7 @@ public static class Patch_WanderUtility_GetColonyWanderRoot
 }
 
 [HarmonyPatch(typeof(Reachability), nameof(Reachability.ClearCache))]
-[PatchLevel(Level.Safe)]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_Reachability_ClearCache
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)

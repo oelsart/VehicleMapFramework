@@ -14,5 +14,6 @@
     <PackageVersion Include="NUnit.Analyzers" Version="4.10.0" />
     <PackageVersion Include="NUnit3TestAdapter" Version="5.1.0" />
     <PackageVersion Include="NUnitLite" Version="4.4.0" />
+    <PackageVersion Include="PolySharp" Version="1.15.0" />
   </ItemGroup>
 </Project>
