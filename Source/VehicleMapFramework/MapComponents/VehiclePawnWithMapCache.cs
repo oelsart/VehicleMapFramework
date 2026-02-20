@@ -79,5 +79,6 @@ public class VehiclePawnWithMapCache(Map map) : MapComponent(map)
     public override void MapRemoved()
     {
         VehicleMapParentsComponent.SetCachedVehicle(map, null);
+        CrossMapReachabilityCache.ClearCacheFor(map, true);
     }
 }

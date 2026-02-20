@@ -250,9 +250,8 @@ public static class ToilsAcrossMaps
                     ramp?.StartManualOpenBy(toil2.actor);
                 };
 
-                //toil2.FailOn(() => !exitSpot.Cell.Standable(exitSpot.Map));
                 yield return toil2.FailOn(() => exitSpot.Map?.Disposed ?? true);
-                var mapCheck = Toils_Jump.JumpIf(afterExitMap, () => pawn.Map != exitSpot.Map);
+                var mapCheck = Toils_Jump.JumpIf(afterExitMap, () => pawn.MapHeld != exitSpot.Map);
                 yield return Toils_Jump.Jump(mapCheck);
                 yield return abilityToil;
                 yield return mapCheck;
@@ -310,7 +309,7 @@ public static class ToilsAcrossMaps
             enterSpot.Thing?.TryGetComp(out compZipline);
 
             //あれ？もうenterSpotのマップに居ない？ジャンプしよ
-            yield return Toils_Jump.JumpIf(afterEnterMap, () => pawn.Map == enterSpot.Map);
+            yield return Toils_Jump.JumpIf(afterEnterMap, () => pawn.MapHeld != enterSpot.Map.GroundMap || pawn.MapHeld == enterSpot.Map);
 
             //enterSpotの手前の場所まで行く。vehicleの長さ分のオフセットはメソッド内でやっている
             var vehiclePawn = pawn as VehiclePawn;

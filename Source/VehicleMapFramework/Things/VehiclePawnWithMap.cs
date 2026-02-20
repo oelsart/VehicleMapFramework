@@ -274,29 +274,40 @@ public class VehiclePawnWithMap : VehiclePawn
         }
     } = [];
 
-    public List<IntVec3> CachedEnterPositions
+    public List<IntVec3?> CachedEnterPositions
     {
         get
         {
             if (enterPositionsDirty)
             {
                 var mapEdgeCells = CachedMapEdgeCells;
-                var walkableCells = CachedWalkableMapEdgeCells;
                 enterPositionsDirty = false;
                 CrossMapReachabilityCache.ClearCacheFor(interiorMap);
                 field.Clear();
-                foreach (var cell in mapEdgeCells.AsSpan())
+                for (var i = 0; i < mapEdgeCells.Count; i++)
                 {
-                    field.Add(walkableCells.ContainsKey(cell) &&
-                              CrossMapReachabilityUtility.EnterVehiclePosition(new TargetInfo(cell, interiorMap)) is
-                                  { IsValid: true } c
-                        ? c
-                        : IntVec3.Invalid);
+                    field.Add(null);
                 }
             }
             return field;
         }
     } = [];
+
+    public IntVec3 GetCachedEnterPosition(int index)
+    {
+        var enterPositions = CachedEnterPositions;
+        var pos = enterPositions[index];
+        if (pos.HasValue) return pos.Value;
+
+        var cell = CachedMapEdgeCells[index];
+        pos = enterPositions[index] = CachedWalkableMapEdgeCells.ContainsKey(cell) &&
+                                      CrossMapReachabilityUtility.EnterVehiclePosition(
+                                              new TargetInfo(cell, interiorMap)) is
+                                          { IsValid: true } c
+            ? c
+            : IntVec3.Invalid;
+        return pos.Value;
+    }
 
     private void WalkableCellsDirtyIfNeeded(Building building)
     {
@@ -456,7 +467,11 @@ public class VehiclePawnWithMap : VehiclePawn
                 Order = 5003,
                 action = () =>
                 {
-                    foreach (var c in CachedEnterPositions.Where(c => c.IsValid)) Map.debugDrawer.FlashCell(c);
+                    for (var i = 0; i < CachedMapEdgeCells.Count; i++)
+                    {
+                        var pos = GetCachedEnterPosition(i);
+                        if (pos.IsValid) Map.debugDrawer.FlashCell(pos);
+                    }
                 }
             };
         }

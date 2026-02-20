@@ -109,11 +109,11 @@ public abstract class JobDriverAcrossMaps : JobDriverBodyOffset
             VMF_Log.Error("SetSpots with null map.");
     }
 
-    public void SetSpots(List<TraverseSpots> spotsQueueA_ = null, List<TraverseSpots> spotsQueueB_ = null)
+    public void SetSpots(List<TraverseSpots> _spotsQueueA = null, List<TraverseSpots> _spotsQueueB = null)
     {
         consumedSpots.Clear();
-        spotsQueueA = spotsQueueA_;
-        spotsQueueB = spotsQueueB_;
+        spotsQueueA = _spotsQueueA;
+        spotsQueueB = _spotsQueueB;
         targetAMap = TargetAMap;
         destMap = DestMap;
         if (spotsQueueA != null && spotsQueueA.Any(MapAnyNull) ||

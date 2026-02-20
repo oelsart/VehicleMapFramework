@@ -31,13 +31,13 @@ public static class CrossMapReachabilityUtility
     private static readonly AStar<MapTraverse> aStar = new(Traverser.Cost, traverser.Neighbors, traverser.CanEnter,
         traverser.Heuristic, traverser.FinalCheck, Traverser.ProcessPath, traverser.DebugDrawEnterNode);
 
-    private static readonly List<MapTraverse> traverseList = [];
+    private static readonly List<MapTraverse> traverseList = new(16);
     
-    private static readonly Stack<(TargetInfo, TargetInfo)> tmpTargets = new(32);
+    private static readonly Stack<(TargetInfo, TargetInfo)> tmpTargets = new(16);
     
-    private static readonly HashSet<Map> visitedMaps = new(32);
+    private static readonly HashSet<Map> visitedMaps = new(16);
     
-    private static readonly List<Map> candidateMaps = new(32);
+    private static readonly List<Map> candidateMaps = new(16);
 
 #if DEBUG
     public static bool enableDebugLog;
@@ -244,7 +244,13 @@ public static class CrossMapReachabilityUtility
                     }
                     else if (result)
                     {
-                        spotsQueue = traverseList.Select(t => (t.exitSpot, t.enterSpot)).ToList();
+                        spotsQueue = SimplePool<List<TraverseSpots>>.Get();
+                        spotsQueue.Clear();
+                        foreach (var traverse in traverseList)
+                        {
+                            spotsQueue.Add((traverse.exitSpot, traverse.enterSpot));
+                        }
+                        traverseList.Clear();
                     }
                     return result;
                 }
@@ -515,7 +521,12 @@ public static class CrossMapReachabilityUtility
                             result = EnterMap(vehicle2.VehicleMap, root);
                             if (result)
                             {
-                                spotsQueue = tmpTargets.Reverse().ToList();
+                                spotsQueue = SimplePool<List<TraverseSpots>>.Get();
+                                spotsQueue.Clear();
+                                foreach (var target in tmpTargets)
+                                {
+                                    spotsQueue.Add(target);
+                                }
                             }
                             tmpTargets.Clear();
                             visitedMaps.Clear();
@@ -924,9 +935,12 @@ public static class CrossMapReachabilityUtility
                         var offset = (i % 2 == 0) ? (i / 2) : -(i / 2 + 1);
                         var index = GenMath.PositiveMod(startIndex + offset, count);
                         var cell = vehicle.CachedMapEdgeCells[index];
-                        if (vehicle.CachedEnterPositions[index] is { IsValid: true } cell2)
+                        if (vehicle.GetCachedEnterPosition(index) is { IsValid: true } cell2)
                         {
-                            yield return new MapTraverse(new TargetInfo(cell, map), new TargetInfo(cell2, map2));
+                            var traverse = new MapTraverse(new TargetInfo(cell, map), new TargetInfo(cell2, map2));
+                            yield return traverse;
+                            if (_visitedDistrictIDs.Contains(traverse.DistrictID))
+                                break; // 車両の周りにnullでない複数のDistrictがあるとは考えにくいため早期breakしていいはず
                         }
                     }
                 }
@@ -964,7 +978,7 @@ public static class CrossMapReachabilityUtility
                             {
                                 var offset = j % 2 == 0 ? j / 2 : -j / 2 + 1;
                                 var index = GenMath.PositiveMod(startIndex + offset, count);
-                                if (vehicle2.CachedEnterPositions[index] is { IsValid: true } cell)
+                                if (vehicle2.GetCachedEnterPosition(index) is { IsValid: true } cell)
                                 {
                                     var cell2 = vehicle2.CachedMapEdgeCells[index];
                                     yield return new MapTraverse(new TargetInfo(cell, map), new TargetInfo(cell2, map2));

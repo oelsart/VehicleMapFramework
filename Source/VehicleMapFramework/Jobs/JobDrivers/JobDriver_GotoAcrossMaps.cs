@@ -31,7 +31,7 @@ public class JobDriver_GotoAcrossMaps : JobDriverAcrossMaps
         if (job.targetA.IsValid)
         {
             var lookAtTarget = job.GetTarget(TargetIndex.B);
-            var toil = Toils_Goto.Goto(TargetIndex.A, PathEndMode.OnCell);
+            var toil = Toils_Goto.GotoCell(TargetIndex.A, PathEndMode.OnCell);
             toil.AddPreTickAction(delegate
             {
                 if (job.exitMapOnArrival && pawn.Map.exitMapGrid.IsExitCell(pawn.Position))
@@ -54,7 +54,7 @@ public class JobDriver_GotoAcrossMaps : JobDriverAcrossMaps
             {
                 toil.tickAction += delegate
                 {
-                    pawn.rotationTracker.FaceCell(lookAtTarget.CellOnAnotherThingMap(pawn));
+                    pawn.rotationTracker.FaceCell(job.GetTarget(TargetIndex.B).CellOnAnotherThingMap(pawn));
                 };
                 toil.handlingFacing = true;
             }
