@@ -66,7 +66,7 @@ public class VehicleMapSettings : ModSettings
         
         public const bool includeMapThings = false;
         
-        public const bool aStarTraverse = false;
+        public const bool aStarTraverse = true;
 
         public const bool roofedPatch = false;
 
