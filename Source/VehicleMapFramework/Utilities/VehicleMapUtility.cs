@@ -530,7 +530,8 @@ public static class VehicleMapUtility
             var cellOnVehicleMap = original.ToVehicleMapCoord(vehicle);
             var mapRect = vehicle.ValidMapRect.ExpandedBy(1);
             var root = mapRect.ClosestCellTo(cellOnVehicleMap);
-            if (cellOnVehicleMap == root) return root;
+            if (cellOnVehicleMap == root || vehicle.CachedWalkableMapEdgeCells.TryGetValue(root, out var district) &&
+                (districtID == -1 || district.ID == districtID)) return root;
             var radius = (mapRect.GetCorner(Rot4.North) - mapRect.GetCorner(Rot4.South)).LengthHorizontal;
             
             var pattern =
@@ -538,7 +539,7 @@ public static class VehicleMapUtility
             for (var i = indexRange.min; i < indexRange.max; i++)
             {
                 var cell = root + pattern[i];
-                if (vehicle.CachedWalkableMapEdgeCells.TryGetValue(cell, out var district) &&
+                if (vehicle.CachedWalkableMapEdgeCells.TryGetValue(cell, out district) &&
                     (districtID == -1 || district.ID == districtID))
                     return cell;
             }

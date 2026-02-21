@@ -28,8 +28,8 @@ public static class CrossMapReachabilityUtility
 
     private static readonly Traverser traverser = new();
 
-    private static readonly AStar<MapTraverse> aStar = new(Traverser.Cost, traverser.Neighbors, traverser.CanEnter,
-        traverser.Heuristic, traverser.FinalCheck, Traverser.ProcessPath, traverser.DebugDrawEnterNode);
+    private static readonly AStar<MapTraverse> aStar = new(Traverser.Cost, traverser.Neighbors, traverser.FinalCheck,
+        traverser.CanEnter, traverser.Heuristic, Traverser.ProcessPath, traverser.DebugDrawEnterNode);
 
     private static readonly List<MapTraverse> traverseList = new(16);
     
@@ -38,6 +38,8 @@ public static class CrossMapReachabilityUtility
     private static readonly HashSet<Map> visitedMaps = new(16);
     
     private static readonly List<Map> candidateMaps = new(16);
+
+    private static readonly List<Region> destRegions = [];
 
 #if DEBUG
     public static bool enableDebugLog;
@@ -200,7 +202,6 @@ public static class CrossMapReachabilityUtility
         }
 
         var region = root.GetRegion(departMap);
-        var region2 = dest.Cell.GetRegion(destMap);
         TraverseParmsExtended parmsForCache = traverseParms;
         Ability_MapTraverse ability = null;
         if (canUseAbility)
@@ -210,15 +211,38 @@ public static class CrossMapReachabilityUtility
             parmsForCache.ability = ability?.def;
         }
         
-        if (CrossMapReachabilityCache.TryGetCache(region, region2, parmsForCache, out var result, out exitSpot, out enterSpot, out spotsQueue))
+        dest = (LocalTargetInfo)GenPath.ResolvePathMode(traverseParms.pawn, dest.ToTargetInfo(destMap), ref peMode);
+        destRegions.Clear();
+        switch (peMode)
         {
-            DebugLog($"Result from cache: {root}, {departMap}, {dest}, {destMap}, {traverseParms}: {result}, {exitSpot}, {enterSpot}");
-            return result;
+            case PathEndMode.OnCell:
+            {
+                if (dest.Cell.GetRegion(destMap) is { } region2 && region2.Allows(traverseParms, true))
+                    destRegions.Add(region2);
+                break;
+            }
+            case PathEndMode.Touch:
+                TouchPathEndModeUtility.AddAllowedAdjacentRegions(dest, traverseParms, destMap, destRegions);
+                break;
+            case PathEndMode.None:
+            case PathEndMode.ClosestTouch:
+            case PathEndMode.InteractionCell:
+            default: break;
+        }
+        destRegions.RemoveDuplicates();
+
+        var result = false;
+        foreach (var region2 in destRegions)
+        {
+            if (CrossMapReachabilityCache.TryGetCache(region, region2, parmsForCache, out result, out exitSpot, out enterSpot, out spotsQueue))
+            {
+                DebugLog($"Result from cache: {root}, {departMap}, {dest}, {destMap}, {traverseParms}: {result}, {exitSpot}, {enterSpot}");
+                return result;
+            }
         }
         try
         {
             working = true;
-            result = false;
             if (MultiFloors.Active && (MultiFloors.GetLevel(departMap) != MultiFloors.GetLevel(destMap)))
             {
                 return false;
@@ -233,7 +257,7 @@ public static class CrossMapReachabilityUtility
                 {
                     var start = new MapTraverse(TargetInfo.Invalid, new TargetInfo(root, departMap));
                     var destination = new MapTraverse(TargetInfo.Invalid, dest.ToTargetInfo(destMap));
-                    traverser.SetParameters(start.enterSpot, destination.enterSpot, peMode, traverseParms, ability);
+                    traverser.SetParameters(start.enterSpot, destination.enterSpot, traverseParms, ability);
                     traverseList.Clear();
                     aStar.Run(start, destination, traverseList);
                     result = traverseList.Count > 0;
@@ -263,6 +287,7 @@ public static class CrossMapReachabilityUtility
                 var traverseParms2 = traverseParms.pawn != null ?
                     TraverseParms.For(traverseParms.pawn, traverseParms.maxDanger, TraverseMode.PassDoors, traverseParms.canBashDoors, traverseParms.alwaysUseAvoidGrid, traverseParms.canBashFences, traverseParms.avoidPersistentDanger) :
                     TraverseParms.For(TraverseMode.PassDoors, traverseParms.maxDanger, traverseParms.canBashDoors, traverseParms.alwaysUseAvoidGrid, traverseParms.canBashFences, traverseParms.avoidPersistentDanger);
+                traverser.destRegion = dest.Cell.GetRegion(destMap);
                 
                 bool CanReachLocal(IntVec3 cell, IntVec3 cell2)
                 {
@@ -605,7 +630,7 @@ public static class CrossMapReachabilityUtility
         }
         finally
         {
-            CrossMapReachabilityCache.Cache(region, region2, parmsForCache, result, exitSpot, enterSpot, spotsQueue);
+            CrossMapReachabilityCache.Cache(region, traverser.destRegion, parmsForCache, result, exitSpot, enterSpot, spotsQueue);
             working = false;
         }
     }
@@ -870,16 +895,15 @@ public static class CrossMapReachabilityUtility
         private IntVec3 _destBaseMapCoord;
         private TraverseParms _traverseParms;
         private TraverseParms _traverseParms2;
-        private PathEndMode _peMode;
         private Ability_MapTraverse _ability;
         private readonly List<Map> _tmpCandidates = [];
         private readonly HashSet<int> _visitedDistrictIDs = [];
         private int debugNodeNumber;
+        public Region destRegion;
         
-        public void SetParameters(TargetInfo start,TargetInfo destination, PathEndMode peMode, TraverseParms traverseParms, Ability_MapTraverse ability)
+        public void SetParameters(TargetInfo start,TargetInfo destination, TraverseParms traverseParms, Ability_MapTraverse ability)
         {
             _destBaseMapCoord = destination.CellOnGroundMap;
-            _peMode = peMode;
             _traverseParms = traverseParms;
             _traverseParms2 = traverseParms.pawn != null ?
                 TraverseParms.For(traverseParms.pawn, traverseParms.maxDanger, TraverseMode.PassDoors, traverseParms.canBashDoors, traverseParms.alwaysUseAvoidGrid, traverseParms.canBashFences, traverseParms.avoidPersistentDanger) :
@@ -899,6 +923,7 @@ public static class CrossMapReachabilityUtility
             _visitedDistrictIDs.Clear();
             if (RegionAndRoomQuery.DistirctAtFast(start.Cell, start.Map) is { } district)
                 _visitedDistrictIDs.Add(district.ID);
+            destRegion = null;
             debugNodeNumber = 0;
         }
         
@@ -1039,7 +1064,18 @@ public static class CrossMapReachabilityUtility
 
         public bool FinalCheck(MapTraverse from, MapTraverse to)
         {
-            return from.enterSpot.Map.reachability.CanReach(from.enterSpot.Cell, (LocalTargetInfo)to.enterSpot, _peMode, _traverseParms2);
+            if (from.enterSpot.Map is null || from.enterSpot.Map != to.enterSpot.Map)
+                return false;
+            foreach (var region in destRegions)
+            {
+                if (from.enterSpot.Map.reachability.CanReach(from.enterSpot.Cell, region.AnyCell, PathEndMode.OnCell,
+                        _traverseParms2))
+                {
+                    destRegion = region;
+                    return true;
+                }
+            }
+            return false;
         }
         
         public static int Cost(MapTraverse from, MapTraverse to)
@@ -1082,9 +1118,9 @@ public static class CrossMapReachabilityUtility
     private class AStar<T>(
         Func<T, T, int> cost,
         Func<T, IEnumerable<T>> neighbors,
+        Func<T, T, bool> finalCheck,
         Func<T, T, bool> canEnter = null,
         Func<T, int> heuristic = null,
-        Func<T, T, bool> finalCheck = null,
         Action<List<T>, T> processPath = null,
         Action<T> debugAction = null) where T: IEquatable<T>
     {
@@ -1117,7 +1153,7 @@ public static class CrossMapReachabilityUtility
                         }
 
                         openQueue.Enqueue(neighbor, node.cost + node.heuristic);
-                        if (neighbor.Equals(destination) && (finalCheck?.Invoke(neighbor, destination) ?? true))
+                        if (finalCheck(neighbor, destination))
                         {
                             SolvePath(start, neighbor, path);
                             return;

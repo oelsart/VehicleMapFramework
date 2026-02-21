@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using LudeonTK;
 using RimWorld.Planet;
+using SmashTools;
 using Verse;
 
 namespace VehicleMapFramework;
@@ -23,7 +24,18 @@ public class CrossMapReachabilityCache(World world) : WorldComponent(world)
 
     public static void ClearCache()
     {
+        foreach (var value in Instance.cache.Values)
+        {
+            if (value.spotsQueue is not null)
+            {
+                value.spotsQueue.Clear();
+                SimplePool<List<TraverseSpots>>.Return(value.spotsQueue);
+            }
+        }
         Instance.cache.Clear();
+        
+        foreach (var hashSet in Instance.removalDic.Values)
+            hashSet.Clear();
     }
     
     public static void ClearCacheFor(Map map, bool cleanup = false)
@@ -39,9 +51,9 @@ public class CrossMapReachabilityCache(World world) : WorldComponent(world)
 
         static void ClearInner(Map map, bool cleanup)
         {
-            if (Instance.removalDic.TryGetValue(map.uniqueID, out var list))
+            if (Instance.removalDic.TryGetValue(map.uniqueID, out var hashSet))
             {
-                foreach (var key in list)
+                foreach (var key in hashSet)
                 {
                     if (Instance.cache.TryGetValue(key, out var value))
                     {
@@ -54,7 +66,7 @@ public class CrossMapReachabilityCache(World world) : WorldComponent(world)
                     }
                     Instance.cache.Remove(key);
                 }
-                list.Clear();
+                hashSet.Clear();
             }
             if (cleanup) Instance.removalDic.Remove(map.uniqueID);
         }
@@ -96,18 +108,18 @@ public class CrossMapReachabilityCache(World world) : WorldComponent(world)
         if (spotsQueue is null)
         {
             var uniqueIDA = A.Map.uniqueID;
-            if (!Instance.removalDic.TryGetValue(uniqueIDA, out var list))
+            if (!Instance.removalDic.TryGetValue(uniqueIDA, out var hashSet))
             {
-                Instance.removalDic[uniqueIDA] = list = [];
+                Instance.removalDic[uniqueIDA] = hashSet = [];
             }
-            list.Add(key);
+            hashSet.Add(key);
 
             var uniqueIDB = B.Map.uniqueID;
-            if (!Instance.removalDic.TryGetValue(uniqueIDB, out var list2))
+            if (!Instance.removalDic.TryGetValue(uniqueIDB, out var hashSet2))
             {
-                Instance.removalDic[uniqueIDB] = list2 = [];
+                Instance.removalDic[uniqueIDB] = hashSet2 = [];
             }
-            list2.Add(key);
+            hashSet2.Add(key);
             
             return;
         }
@@ -117,21 +129,21 @@ public class CrossMapReachabilityCache(World world) : WorldComponent(world)
             if (exitSpot.Map is not null)
             {
                 var uniqueID = spots.exitSpot.Map.uniqueID;
-                if (!Instance.removalDic.TryGetValue(uniqueID, out var list3))
+                if (!Instance.removalDic.TryGetValue(uniqueID, out var hashSet3))
                 {
-                    Instance.removalDic[uniqueID] = list3 = [];
+                    Instance.removalDic[uniqueID] = hashSet3 = [];
                 }
-                list3.Add(key);
+                hashSet3.Add(key);
             }
 
             if (enterSpot.Map is not null)
             {
                 var uniqueID2 = spots.enterSpot.Map.uniqueID;
-                if (!Instance.removalDic.TryGetValue(uniqueID2, out var list4))
+                if (!Instance.removalDic.TryGetValue(uniqueID2, out var hashSet4))
                 {
-                    Instance.removalDic[uniqueID2] = list4 = [];
+                    Instance.removalDic[uniqueID2] = hashSet4 = [];
                 }
-                list4.Add(key);
+                hashSet4.Add(key);
             }
         }
     }
