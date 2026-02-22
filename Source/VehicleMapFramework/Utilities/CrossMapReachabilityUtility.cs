@@ -230,6 +230,12 @@ public static class CrossMapReachabilityUtility
             default: break;
         }
         destRegions.RemoveDuplicates();
+        if (destRegions.Count == 0 && traverseParms.mode != TraverseMode.PassAllDestroyableThings &&
+            traverseParms.mode != TraverseMode.PassAllDestroyablePlayerOwnedThings &&
+            traverseParms.mode != TraverseMode.PassAllDestroyableThingsNotWater)
+        {
+            return false;
+        }
 
         var result = false;
         foreach (var region2 in destRegions)
@@ -630,7 +636,15 @@ public static class CrossMapReachabilityUtility
         }
         finally
         {
-            CrossMapReachabilityCache.Cache(region, traverser.destRegion, parmsForCache, result, exitSpot, enterSpot, spotsQueue);
+            if (result)
+                CrossMapReachabilityCache.Cache(region, traverser.destRegion, parmsForCache, true, exitSpot, enterSpot, spotsQueue);
+            else
+            {
+                foreach (var region2 in destRegions)
+                {
+                    CrossMapReachabilityCache.Cache(region, region2, parmsForCache, false, TargetInfo.Invalid, TargetInfo.Invalid, null);
+                }
+            }
             working = false;
         }
     }
