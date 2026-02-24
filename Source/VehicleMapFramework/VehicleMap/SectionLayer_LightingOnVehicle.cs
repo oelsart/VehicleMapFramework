@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Text;
 using RimWorld;
-using SmashTools;
 using UnityEngine;
 using Verse;
 
@@ -30,13 +29,7 @@ public class SectionLayer_LightingOnVehicle : SectionLayer
 
 
     private const int ExpandSize = 5;
-    public override bool Visible
-    {
-        get
-        {
-            return DebugViewSettings.drawLightingOverlay && (Find.CurrentMap != Map || VehicleMapFramework.settings.drawPlanet);
-        }
-    }
+    public override bool Visible => DebugViewSettings.drawLightingOverlay && (Find.CurrentMap != Map || VehicleMapFramework.settings.drawPlanet);
 
     public SectionLayer_LightingOnVehicle(Section section) : base(section)
     {
@@ -48,24 +41,29 @@ public class SectionLayer_LightingOnVehicle : SectionLayer
     {
     }
 
-    public void DrawLayer(VehiclePawnWithMap vehicle, Vector3 drawPos, float extraRotation)
+    public void DrawLayer(Vector3 drawPos)
     {
-        if (!Visible)
+        if (!Visible || !Map.IsVehicleMapOf(out var vehicle))
         {
             return;
         }
         var baseMap = Map.BaseMap();
-        var angle = Ext_Math.RotateAngle(vehicle.FullRotation.AsAngle, extraRotation);
+        var rot = Quaternion.AngleAxis(vehicle.FullAngle, Vector3.up);
         var a = Mathf.Clamp01(1f - Mathf.Min(baseMap.gameConditionManager.MapBrightness, baseMap.skyManager.CurSkyGlow));
         propertyBlockColorDodge.SetColor(ShaderPropertyIDs.ColorTwo, new Color(1f, 1f, 1f, a));
         propertyBlockNormalLight.SetColor(ShaderPropertyIDs.Color, new Color(1f, 1f, 1f, 1f - a));
-        foreach (var subMesh in subMeshes.Where(subMesh => subMesh.finalized && !subMesh.disabled))
+        
+        for (var i = 0; i < subMeshes.Count; i++)
         {
-            Graphics.DrawMesh(subMesh.mesh, drawPos, Quaternion.AngleAxis(angle, Vector3.up),
-                subMesh.material, 0, null, 0,
-                subMesh.material == VMF_Materials.LightOverlayColorDodge
-                    ? propertyBlockColorDodge
-                    : propertyBlockNormalLight);
+            var subMesh = subMeshes[i];
+            if (subMesh.finalized && !subMesh.disabled)
+            {
+                Graphics.DrawMesh(subMesh.mesh, drawPos, rot,
+                    subMesh.material, 0, null, 0,
+                    subMesh.material == VMF_Materials.LightOverlayColorDodge
+                        ? propertyBlockColorDodge
+                        : propertyBlockNormalLight);
+            }
         }
     }
 

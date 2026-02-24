@@ -54,81 +54,79 @@ namespace VehicleMapFramework
 
         private static readonly Vector2[] UVs =
         [
-        new Vector2(0f, 0f),
-        new Vector2(0f, 1f),
-        new Vector2(1f, 1f),
-        new Vector2(1f, 0f)
+        new(0f, 0f),
+        new(0f, 1f),
+        new(1f, 1f),
+        new(1f, 0f)
         ];
 
         private static readonly Dictionary<EdgeDirections, (CachedMaterial, Rot4)[]> EdgeMats = new()
         {
             {
                 EdgeDirections.North,
-                new(CachedMaterial, Rot4)[1] { (Flat, Rot4.South) }
+                [(Flat, Rot4.South)]
             },
             {
                 EdgeDirections.East,
-                new(CachedMaterial, Rot4)[1] { (Flat, Rot4.West) }
+                [(Flat, Rot4.West)]
             },
             {
                 EdgeDirections.South,
-                new(CachedMaterial, Rot4)[1] { (Flat, Rot4.North) }
+                [(Flat, Rot4.North)]
             },
             {
                 EdgeDirections.West,
-                new(CachedMaterial, Rot4)[1] { (Flat, Rot4.East) }
+                [(Flat, Rot4.East)]
             },
             {
                 EdgeDirections.North | EdgeDirections.East,
-                new(CachedMaterial, Rot4)[1] { (CornerOuter, Rot4.West) }
+                [(CornerOuter, Rot4.West)]
             },
             {
                 EdgeDirections.East | EdgeDirections.South,
-                new(CachedMaterial, Rot4)[1] { (CornerOuter, Rot4.North) }
+                [(CornerOuter, Rot4.North)]
             },
             {
                 EdgeDirections.South | EdgeDirections.West,
-                new(CachedMaterial, Rot4)[1] { (CornerOuter, Rot4.East) }
+                [(CornerOuter, Rot4.East)]
             },
             {
                 EdgeDirections.North | EdgeDirections.West,
-                new(CachedMaterial, Rot4)[1] { (CornerOuter, Rot4.South) }
+                [(CornerOuter, Rot4.South)]
             },
             {
                 EdgeDirections.North | EdgeDirections.South,
-                new(CachedMaterial, Rot4)[2]
-                {
+                [
                     (Flat, Rot4.South),
                     (Flat, Rot4.North)
-                }
+                ]
             },
             {
                 EdgeDirections.East | EdgeDirections.West,
-                new(CachedMaterial, Rot4)[2]
-                {
+                [
                     (Flat, Rot4.West),
                     (Flat, Rot4.East)
-                }
+                ]
             },
             {
                 EdgeDirections.North | EdgeDirections.East | EdgeDirections.South,
-                new(CachedMaterial, Rot4)[1] { (UShape, Rot4.West) }
+                [(UShape, Rot4.West)]
             },
             {
                 EdgeDirections.East | EdgeDirections.South | EdgeDirections.West,
-                new(CachedMaterial, Rot4)[1] { (UShape, Rot4.North) }
+                [(UShape, Rot4.North)]
             },
             {
                 EdgeDirections.North | EdgeDirections.South | EdgeDirections.West,
-                new(CachedMaterial, Rot4)[1] { (UShape, Rot4.East) }
+                [(UShape, Rot4.East)]
             },
             {
                 EdgeDirections.North | EdgeDirections.East | EdgeDirections.West,
-                new(CachedMaterial, Rot4)[1] { (UShape, Rot4.South) }
+                [(UShape, Rot4.South)]
             },
             {
                 EdgeDirections.North | EdgeDirections.East | EdgeDirections.South | EdgeDirections.West,
-                new(CachedMaterial, Rot4)[1] { (OShape, Rot4.North) }
+                [(OShape, Rot4.North)]
             }
         };
 
@@ -155,16 +153,16 @@ namespace VehicleMapFramework
             DrawMeshes(subMeshesByRot[rot.RotForVehicleDraw().AsInt], drawPos, angle);
         }
 
-        public void DrawMeshes(List<LayerSubMesh> subMeshes, Vector3 drawPos, float extraRotation)
+        public void DrawMeshes(List<LayerSubMesh> _subMeshes, Vector3 drawPos, float extraRotation)
         {
             if (!Visible)
             {
                 return;
             }
-            var count = subMeshes.Count;
+            var count = _subMeshes.Count;
             for (var i = 0; i < count; i++)
             {
-                var layerSubMesh = subMeshes[i];
+                var layerSubMesh = _subMeshes[i];
                 if (layerSubMesh.finalized && !layerSubMesh.disabled)
                 {
                     Graphics.DrawMesh(layerSubMesh.mesh, drawPos, Quaternion.AngleAxis(extraRotation, Vector3.up), layerSubMesh.material, layerSubMesh.renderLayer);

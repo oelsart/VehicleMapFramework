@@ -65,6 +65,9 @@ public class VehiclePawnWithMap : VehiclePawn
 
     private static readonly FastInvokeHandler DirtyCellDesignationsCache =
         MethodInvoker.GetHandler(AccessTools.Method(typeof(DesignationManager), "DirtyCellDesignationsCache"));
+
+    private static readonly List<DesignationDef> cellDesignations =
+        DefDatabase<DesignationDef>.AllDefs.Where(d => d.targetType == TargetType.Cell).ToList();
     
     private static readonly AccessTools.FieldRef<MapDrawer, Section[,]> sections = AccessTools.FieldRefAccess<MapDrawer, Section[,]>("sections");
 
@@ -201,9 +204,6 @@ public class VehiclePawnWithMap : VehiclePawn
     public CompNpcVehicleMap CompNpcVehicleMap => field ??= GetComp<CompNpcVehicleMap>();
     
     public CompDelayedKill CompDelayedKill => field ??= GetComp<CompDelayedKill>();
-
-    private VehicleSectionLayerManager SectionLayerManager =>
-        field ??= interiorMap?.GetCachedMapComponent<VehicleSectionLayerManager>();
 
     public List<CompVehicleEnterSpot> EnterComps { get; } = [];
 
@@ -690,15 +690,16 @@ public class VehiclePawnWithMap : VehiclePawn
     {
         if (cellDesignationsDirtyTick == GenTicks.TicksGame) return;
         cellDesignationsDirtyTick = GenTicks.TicksGame;
-        foreach (var designationDef in DefDatabase<DesignationDef>.AllDefs.Where(d => d.targetType == TargetType.Cell))
+        foreach (var designationDef in cellDesignations)
         {
-            DirtyCellDesignationsCache(interiorMap.designationManager, designationDef);
+            DirtyCellDesignationsCache(CurrentLevel.designationManager, designationDef);
         }
     }
 
     protected virtual void DrawVehicleMap()
     {
         var map = CurrentLevel ?? interiorMap;
+        if (map is null) return;
         //PlantFallColors.SetFallShaderGlobals(map);
         //map.waterInfo.SetTextures();
         //map.avoidGrid.DebugDrawOnMap();
@@ -708,7 +709,7 @@ public class VehiclePawnWithMap : VehiclePawn
             try
             {
                 VehicleSectionLayerManager.CacheMode = true;
-                SectionLayerManager.UpdateAllSection();
+                map.GetCachedMapComponent<VehicleSectionLayerManager>().UpdateAllSection();
                 map.mapDrawer.MapMeshDrawerUpdate_First();
             }
             finally
@@ -758,10 +759,10 @@ public class VehiclePawnWithMap : VehiclePawn
     protected virtual void DrawSection(Section section, Vector3 drawPos, VehicleSectionLayerManager component)
     {
         var rot = FullRotation;
-        ((SectionLayer_TerrainOnVehicle)section.GetLayer(typeof(SectionLayer_TerrainOnVehicle))).DrawLayer(rot, drawPos, Transform.rotation);
+        ((SectionLayer_TerrainOnVehicle)component.GetLayer(section, typeof(SectionLayer_TerrainOnVehicle), default)).DrawLayer(drawPos);
         DrawLayer(component.GetLayer(section, typeof(SectionLayer_ThingsGeneral), rot), drawPos);
-        DrawLayer(section, typeof(SectionLayer_BuildingsDamage), drawPos);
-        DrawLayer(section, typeof(SectionLayer_EdgeShadows), drawPos);
+        DrawLayer(component, section, typeof(SectionLayer_BuildingsDamage), drawPos);
+        DrawLayer(component, section, typeof(SectionLayer_EdgeShadows), drawPos);
         ((SectionLayer_SunShadowsOnVehicle)component.GetLayer(section, typeof(SectionLayer_SunShadowsOnVehicle), rot))
                 .DrawLayer(drawPos, Transform.rotation - Angle);
         if (OverlayDrawHandler.ShouldDrawPowerGrid)
@@ -770,25 +771,24 @@ public class VehiclePawnWithMap : VehiclePawn
         }
         if (OverlayDrawHandler.ShouldDrawZones)
         {
-            DrawLayer(section, t_SectionLayer_Zones, drawPos);
+            DrawLayer(component, section, t_SectionLayer_Zones, drawPos);
         }
         if (Find.CurrentMap == interiorMap && !VehicleMapFramework.settings.drawPlanet)
         {
-            DrawLayer(section, typeof(SectionLayer_LightingOverlay), drawPos);
+            DrawLayer(component, section, typeof(SectionLayer_LightingOverlay), drawPos);
         }
         else
         {
-            ((SectionLayer_LightingOnVehicle)section.GetLayer(typeof(SectionLayer_LightingOnVehicle))).DrawLayer(this, drawPos, Transform.rotation);
+            ((SectionLayer_LightingOnVehicle)component.GetLayer(section, typeof(SectionLayer_LightingOnVehicle), default)).DrawLayer(drawPos);
         }
         DrawModLayers(section, drawPos, component);
     }
 
     protected virtual void DrawModLayers(Section section, Vector3 drawPos, VehicleSectionLayerManager component)
     {
-        var rot = FullRotation;
         if (VFECore.Active)
         {
-            var layer = section.GetLayer(VFECore.SectionLayer_Resource);
+            var layer = component.GetLayer(section, VFECore.SectionLayer_Resource, default);
             if (layer != null && (bool)VFECore.ShouldDraw(layer))
             {
                 var curPipeNetDef = VFECore.pipeNetDef();
@@ -807,14 +807,14 @@ public class VehiclePawnWithMap : VehiclePawn
                 thingDef.HasComp(DefenseGrid.CompDefenseConduit) ||
                 DefenseGrid.Designator_DeconstructConduit.IsInstanceOfType(selDesignator))
             {
-                DrawLayer(section, DefenseGrid.SectionLayer_DefenseGridOverlay, drawPos.Yto0());
+                DrawLayer(component, section, DefenseGrid.SectionLayer_DefenseGridOverlay, drawPos.Yto0());
             }
         }
         if (DubsBadHygiene.Active && !DubsBadHygiene.LiteMode)
         {
             var selDesignator = Find.DesignatorManager.SelectedDesignator;
-            var sewagePipeOverlay = section.GetLayer(DubsBadHygiene.SectionLayer_SewagePipeOverlay);
-            var airDuctOverlay = section.GetLayer(DubsBadHygiene.SectionLayer_AirDuctOverlay);
+            var sewagePipeOverlay = component.GetLayer(section, DubsBadHygiene.SectionLayer_SewagePipeOverlay, default);
+            var airDuctOverlay = component.GetLayer(section, DubsBadHygiene.SectionLayer_AirDuctOverlay, default);
             CompProperties compProperties;
             if (selDesignator is Designator_Build { PlacingDef: ThingDef thingDef } &&
                 (compProperties = thingDef.comps.Find(c => DubsBadHygiene.CompProperties_Pipe?.IsAssignableFrom(c.GetType()) ?? false)) != null)
@@ -822,25 +822,25 @@ public class VehiclePawnWithMap : VehiclePawn
                 var mode = DubsBadHygiene.CompProperties_Pipe_mode(compProperties);
                 if (sewagePipeOverlay != null & DubsBadHygiene.SectionLayer_PipeOverlay_mode(sewagePipeOverlay) == mode)
                 {
-                    DrawLayer(section, DubsBadHygiene.SectionLayer_SewagePipeOverlay, drawPos.Yto0());
+                    DrawLayer(component, section, DubsBadHygiene.SectionLayer_SewagePipeOverlay, drawPos.Yto0());
                 }
                 if (airDuctOverlay != null && DubsBadHygiene.SectionLayer_PipeOverlay_mode(airDuctOverlay) == mode)
                 {
-                    DrawLayer(section, DubsBadHygiene.SectionLayer_AirDuctOverlay, drawPos.Yto0());
+                    DrawLayer(component, section, DubsBadHygiene.SectionLayer_AirDuctOverlay, drawPos.Yto0());
                 }
                 if (Time.frameCount % 120 == 0)
                 {
-                    section.GetLayer(DubsBadHygiene.SectionLayer_SewagePipeOverlay)?.Regenerate();
-                    section.GetLayer(DubsBadHygiene.SectionLayer_AirDuctOverlay)?.Regenerate();
+                    component.GetLayer(section, DubsBadHygiene.SectionLayer_SewagePipeOverlay, default)?.Regenerate();
+                    component.GetLayer(section, DubsBadHygiene.SectionLayer_AirDuctOverlay, default)?.Regenerate();
                 }
             }
-            DrawLayer(section, DubsBadHygiene.SectionLayer_Irrigation, drawPos);
-            DrawLayer(section, DubsBadHygiene.SectionLayer_FertilizerGrid, drawPos);
+            DrawLayer(component, section, DubsBadHygiene.SectionLayer_Irrigation, drawPos);
+            DrawLayer(component, section, DubsBadHygiene.SectionLayer_FertilizerGrid, drawPos);
         }
         if (Rimefeller.Active)
         {
             var selDesignator = Find.DesignatorManager.SelectedDesignator;
-            var sewagePipeOverlay = section.GetLayer(Rimefeller.SectionLayer_SewagePipe);
+            var sewagePipeOverlay = component.GetLayer(section, Rimefeller.SectionLayer_SewagePipe, default);
             CompProperties compProperties;
             if (selDesignator is Designator_Build { PlacingDef: ThingDef thingDef } &&
                 (compProperties = thingDef.comps.Find(c => Rimefeller.CompProperties_Pipe?.IsAssignableFrom(c.GetType()) ?? false)) != null)
@@ -848,16 +848,16 @@ public class VehiclePawnWithMap : VehiclePawn
                 var mode = Rimefeller.CompProperties_Pipe_mode(compProperties);
                 if (sewagePipeOverlay != null & Rimefeller.SectionLayer_PipeOverlay_mode(sewagePipeOverlay) == mode)
                 {
-                    DrawLayer(section, Rimefeller.SectionLayer_SewagePipe, drawPos.Yto0());
+                    DrawLayer(component, section, Rimefeller.SectionLayer_SewagePipe, drawPos.Yto0());
                 }
                 if (Time.frameCount % 120 == 0)
                 {
-                    section.GetLayer(Rimefeller.SectionLayer_SewagePipe)?.Regenerate();
+                    component.GetLayer(section, Rimefeller.SectionLayer_SewagePipe, default)?.Regenerate();
                 }
             }
-            DrawLayer(section, Rimefeller.XSectionLayer_Napalm, drawPos);
-            DrawLayer(section, Rimefeller.XSectionLayer_OilSpill, drawPos);
-            DrawLayer(component.GetLayer(section, Rimefeller.SectionLayer_ThingsPipe, rot), drawPos);
+            DrawLayer(component, section, Rimefeller.XSectionLayer_Napalm, drawPos);
+            DrawLayer(component, section, Rimefeller.XSectionLayer_OilSpill, drawPos);
+            DrawLayer(component, section, Rimefeller.SectionLayer_ThingsPipe, drawPos, FullRotation);
         }
         if (Rimatomics.Active)
         {
@@ -867,7 +867,7 @@ public class VehiclePawnWithMap : VehiclePawn
                 var mode = Rimatomics.Designator_RemovePipe_RemovalMode(designator);
                 foreach (var layer in Rimatomics.SectionLayer_OverlayPipes.Where(layer =>
                              mode == Rimatomics.SectionLayer_OverlayPipe_mode(section.GetLayer(layer))))
-                    DrawLayer(section, layer, drawPos);
+                    DrawLayer(component, section, layer, drawPos);
             }
             else if (designator is Designator_Build { PlacingDef: ThingDef thingDef })
             {
@@ -877,31 +877,28 @@ public class VehiclePawnWithMap : VehiclePawn
                     var mode = Rimatomics.CompProperties_Pipe_mode(compProperties);
                     foreach (var layer in Rimatomics.SectionLayer_OverlayPipes.Where(layer =>
                                  mode == Rimatomics.SectionLayer_OverlayPipe_mode(section.GetLayer(layer))))
-                        DrawLayer(section, layer, drawPos);
+                        DrawLayer(component, section, layer, drawPos);
                 }
             }
-            DrawLayer(section, Rimatomics.SectionLayer_ThingsPipe, drawPos);
+            DrawLayer(component, section, Rimatomics.SectionLayer_ThingsPipe, drawPos);
         }
         if (ModsConfig.OdysseyActive)
         {
-            ((SectionLayer_SubstructurePropsOnVehicle)section.GetLayer(typeof(SectionLayer_SubstructurePropsOnVehicle)))?.DrawLayer(FullRotation, drawPos, Transform.rotation);
-            ((SectionLayer_GravshipHullOnVehicle)section.GetLayer(typeof(SectionLayer_GravshipHullOnVehicle)))?.DrawLayer(FullRotation, drawPos, Transform.rotation);
+            var fullRot = FullRotation;
+            ((SectionLayer_SubstructurePropsOnVehicle)component.GetLayer(section, typeof(SectionLayer_SubstructurePropsOnVehicle), default))?.DrawLayer(fullRot, drawPos, Transform.rotation);
+            ((SectionLayer_GravshipHullOnVehicle)component.GetLayer(section, typeof(SectionLayer_GravshipHullOnVehicle), default))?.DrawLayer(fullRot, drawPos, Transform.rotation);
         }
         if (MultiFloors.Active && CurrentLevel != interiorMap)
         {
-            var layer = component.GetLayer(section, MultiFloors.SectionLayer_LowerLevel, rot);
-            if (layer != null)
-            {
-                DrawLayer(layer, drawPos);
-            }
+            DrawLayer(component, section, MultiFloors.SectionLayer_LowerLevel, drawPos, FullRotation);
         }
     }
 
-    private void DrawLayer(Section section, Type layerType, Vector3 drawPos)
+    private void DrawLayer(VehicleSectionLayerManager component, Section section, Type layerType, Vector3 drawPos, Rot8 rot = default)
     {
         if (layerType is null) return;
 
-        var layer = section.GetLayer(layerType);
+        var layer = component.GetLayer(section, layerType, rot);
         if (layer is null) return;
         
         DrawLayer(layer, drawPos);
