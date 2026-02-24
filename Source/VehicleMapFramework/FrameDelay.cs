@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading;
 using UnityEngine;
 using Verse;
 
@@ -40,7 +39,8 @@ public class FrameDelay : MonoBehaviour
 
     private static readonly List<IJob> currentJobs = [];
     private static readonly List<IJob> nextJobs = [];
-    private static readonly Lock lockObj = new();
+    // ReSharper disable once ChangeFieldTypeToSystemThreadingLock
+    private static readonly object lockObj = new();
 
     private static FrameDelay instance;
 
