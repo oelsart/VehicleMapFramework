@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using HarmonyLib;
 using JetBrains.Annotations;
 using RimWorld;
 using SmashTools;
@@ -15,7 +16,7 @@ namespace VehicleMapFramework
         private Rot4 lastGeneratedRots = Rot4.North;
         
         internal static readonly List<Type> OrientedSectionLayerTypes =
-            [.. typeof(SectionLayer_Things).AllSubclassesNonAbstract().Concat(typeof(SectionLayer_SunShadowsOnVehicle))];
+            [.. typeof(SectionLayer_Things).AllSubclassesNonAbstract().AddItem(typeof(SectionLayer_SunShadowsOnVehicle))];
         
         [UsedImplicitly] // Reflection access by Naname Walls
         public static Rot4 RotForPrintCounter => RotForPrint.IsHorizontal ? RotForPrint.Opposite : RotForPrint;
@@ -41,7 +42,7 @@ namespace VehicleMapFramework
                 VehicleMapParentsComponent.CachedMapParentVehicle[map] = MultiFloors.GroundMap(map)?.Parent as MapParent_Vehicle;
             }
 
-            if (!map.IsVehicleMapOf(out _)) return;
+            if (!map.IsVehicleMap) return;
 
             VMF_Harmony.DynamicPatchAllNow(Level.All);
             LongEventHandler.ExecuteWhenFinished(() =>
@@ -122,9 +123,6 @@ namespace VehicleMapFramework
 
         public void UpdateAllSection()
         {
-            if (!map.IsVehicleMapOf(out _))
-                return;
-
             foreach (var section in VehiclePawnWithMap.sections(map.mapDrawer))
             {
                 UpdateSection(section);
@@ -132,8 +130,8 @@ namespace VehicleMapFramework
                 // LayerSubMeshを直接FinalizeしているためY圧縮をかける
                 if ((section.dirtyFlags & MapMeshFlagDefOf.Buildings) > 0UL)
                 {
-                    var edgeShadowsLayer = section.GetLayer(typeof(SectionLayer_EdgeShadows));
-                    Delay.AfterNSeconds(0, () => FinalizeShadowVerts(edgeShadowsLayer));
+                    var edgeShadowsLayer = GetLayer(section, typeof(SectionLayer_EdgeShadows), default);
+                    FrameDelay.DelayOne(static layer => FinalizeShadowVerts(layer), edgeShadowsLayer);
                 }
             }
         }
@@ -144,9 +142,11 @@ namespace VehicleMapFramework
             {
                 return;
             }
-            foreach (var sectionLayers in layersByRot[section].Values)
+            foreach (var sectionLayers in layersByRot[section])
             {
-                var northLayer = sectionLayers[0];
+                if (!OrientedSectionLayerTypes.Contains(sectionLayers.Key)) continue;
+                
+                var northLayer = sectionLayers.Value[0];
                 northLayer.Dirty = northLayer.Dirty || (section.dirtyFlags & northLayer.relevantChangeTypes) > 0UL;
                 if (!northLayer.Dirty) continue;
                 
@@ -154,7 +154,7 @@ namespace VehicleMapFramework
                 DirtyAdaptiveStorageGraphics(section, Rot4.North);
                 for (var i = 1; i < 4; i++)
                 {
-                    sectionLayers[i].Dirty = true;
+                    sectionLayers.Value[i].Dirty = true;
                 }
             }
         }

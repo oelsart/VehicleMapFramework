@@ -133,20 +133,20 @@ namespace VehicleMapFramework
             base.PostSpawnSetup(respawningAfterLoad);
             if (respawningAfterLoad) return;
 
-            Delay.AfterNSeconds(0, () =>
+            FrameDelay.DelayOne(static instance =>
             {
-                var diff = (Engine?.TotalFuel - Fuel) ?? 0f;
+                var diff = (instance.Engine?.TotalFuel - instance.Fuel) ?? 0f;
                 if (diff < Mathf.Epsilon) return;
 
                 if (diff > 0f)
                 {
-                    base.Refuel(diff);
+                    instance.Refuel(diff);
                 }
                 else
                 {
-                    base.ConsumeFuel(diff);
+                    instance.ConsumeFuel(diff);
                 }
-            });
+            }, this);
         }
     }
 }

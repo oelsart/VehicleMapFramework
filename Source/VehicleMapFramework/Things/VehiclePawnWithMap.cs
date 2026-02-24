@@ -720,19 +720,19 @@ public class VehiclePawnWithMap : VehiclePawn
         cellDesignationsDirtyTick = GenTicks.TicksGame;
         foreach (var designationDef in cellDesignations)
         {
-            DirtyCellDesignationsCache(CurrentLevel.designationManager, designationDef);
+            DirtyCellDesignationsCache(CurrentLevel.designationManager, FastInvokeHelper.SingleParam(designationDef));
         }
     }
 
     protected virtual void DrawVehicleMap()
     {
-        var map = CurrentLevel ?? interiorMap;
+        var map = CurrentLevel;
         if (map is null) return;
         //PlantFallColors.SetFallShaderGlobals(map);
         //map.waterInfo.SetTextures();
         //map.avoidGrid.DebugDrawOnMap();
         //BreachingGridDebug.DebugDrawAllOnMap(map);
-        Delay.AfterNSeconds(0f, () =>
+        FrameDelay.DelayOne(static map =>
         {
             try
             {
@@ -744,7 +744,7 @@ public class VehiclePawnWithMap : VehiclePawn
             {
                 VehicleSectionLayerManager.CacheMode = false;
             }
-        });
+        }, map);
         //map.powerNetGrid.DrawDebugPowerNetGrid();
         //DoorsDebugDrawer.DrawDebug();
         //map.mapDrawer.DrawMapMesh();
@@ -894,7 +894,7 @@ public class VehiclePawnWithMap : VehiclePawn
             {
                 var mode = Rimatomics.Designator_RemovePipe_RemovalMode(designator);
                 foreach (var layer in Rimatomics.SectionLayer_OverlayPipes.Where(layer =>
-                             mode == Rimatomics.SectionLayer_OverlayPipe_mode(section.GetLayer(layer))))
+                             mode == Rimatomics.SectionLayer_OverlayPipe_mode(component.GetLayer(section, layer, default))))
                     DrawLayer(component, section, layer, drawPos);
             }
             else if (designator is Designator_Build { PlacingDef: ThingDef thingDef })
@@ -904,7 +904,7 @@ public class VehiclePawnWithMap : VehiclePawn
                 {
                     var mode = Rimatomics.CompProperties_Pipe_mode(compProperties);
                     foreach (var layer in Rimatomics.SectionLayer_OverlayPipes.Where(layer =>
-                                 mode == Rimatomics.SectionLayer_OverlayPipe_mode(section.GetLayer(layer))))
+                                 mode == Rimatomics.SectionLayer_OverlayPipe_mode(component.GetLayer(section, layer, default))))
                         DrawLayer(component, section, layer, drawPos);
                 }
             }
