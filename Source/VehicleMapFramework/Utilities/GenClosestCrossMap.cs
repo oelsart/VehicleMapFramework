@@ -153,7 +153,7 @@ public static class GenClosestCrossMap
         return closestThing;
     }
 
-    public static Thing ClosestThing_Global(IntVec3 center, IEnumerable searchSet, float maxDistance = 99999f, Predicate<Thing> validator = null, Func<Thing, float> priorityGetter = null, bool lookInHaulSources = false)
+    public static Thing ClosestThing_Global(IntVec3 centerOnBaseMap, IEnumerable searchSet, float maxDistance = 99999f, Predicate<Thing> validator = null, Func<Thing, float> priorityGetter = null, bool lookInHaulSources = false)
     {
         if (searchSet == null)
         {
@@ -206,7 +206,7 @@ public static class GenClosestCrossMap
             {
                 return;
             }
-            float num = (center - t.PositionHeldOnBaseMap()).LengthHorizontalSquared;
+            float num = (centerOnBaseMap - t.PositionHeldOnBaseMap()).LengthHorizontalSquared;
             if (num > maxDistanceSquared)
             {
                 return;

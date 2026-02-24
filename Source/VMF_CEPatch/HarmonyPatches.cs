@@ -10,6 +10,7 @@ using RimWorld;
 using RimWorld.Planet;
 using UnityEngine;
 using Verse;
+using Verse.AI;
 using static VehicleMapFramework.MethodInfoCache;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
@@ -515,6 +516,18 @@ public static class Patch_ProjectileCE_DistanceTraveled
             return false;
         }
         return true;
+    }
+}
+
+[HarmonyPatchCategory(PatchCategories.CombatExtended)]
+[HarmonyPatch(typeof(NonSnapAttackTargetFinder), nameof(NonSnapAttackTargetFinder.BestAttackTarget))]
+[PatchLevel(Level.Safe)]
+public static class Patch_AttackTargetFinder_BestAttackTarget
+{
+    public static void Postfix(IAttackTargetSearcher searcher, TargetScanFlags flags, Vector3 angle, Predicate<Thing> validator, float minDist, float maxDist, ref IAttackTarget __result)
+    {
+        var target = NonSnapAttackTargetFinderOnVehicle.BestAttackTarget(searcher, flags, angle, validator, minDist, maxDist);
+        __result = AttackTargetFinderOnVehicle.CompareTarget(__result, target, searcher);
     }
 }
 
