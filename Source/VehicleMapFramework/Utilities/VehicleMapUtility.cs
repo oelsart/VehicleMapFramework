@@ -35,27 +35,23 @@ public static class VehicleMapUtility
 
     extension(Map map)
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsVehicleMapOf(out VehiclePawnWithMap vehicle)
         {
-            if (map?.Parent is PocketMapParent pocketMapParent)
+            var mapParentVehicle = VehicleMapParentsComponent.GetCachedVehicle(map);
+            if (mapParentVehicle != null)
             {
-                if (pocketMapParent is MapParent_Vehicle mapParentVehicle)
-                {
-                    vehicle = mapParentVehicle.vehicle;
-                    return vehicle != null;
-                }
-                if (pocketMapParent.sourceMap?.Parent is MapParent_Vehicle mapParentVehicle2)
-                {
-                    vehicle = mapParentVehicle2.vehicle;
-                    return vehicle != null;
-                }
+                vehicle = mapParentVehicle.vehicle;
+                return vehicle != null;
             }
+
             vehicle = null;
             return false;
         }
 
         public bool IsVehicleMap => map.IsVehicleMapOf(out _);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsNonFocusedVehicleMapOf(out VehiclePawnWithMap vehicle)
         {
             if (map.IsVehicleMapOf(out vehicle) && (VehicleMapFramework.settings.drawPlanet || Find.CurrentMap != vehicle.VehicleMap))

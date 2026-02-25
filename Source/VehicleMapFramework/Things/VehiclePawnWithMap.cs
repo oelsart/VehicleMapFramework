@@ -405,7 +405,7 @@ public class VehiclePawnWithMap : VehiclePawn
             interiorMap = null;
 
             if (!VehicleMapFramework.settings.dynamicUnpatchEnabled) return;
-            if (VehicleMapParentsComponent.CachedMapParentVehicle.Any(p => p.Value != null)) return;
+            if (Find.Maps.Any(m => m.IsVehicleMap)) return;
             VMF_Harmony.DynamicPatchAll(VehicleMapFramework.settings.dynamicPatchLevel);
         });
     }

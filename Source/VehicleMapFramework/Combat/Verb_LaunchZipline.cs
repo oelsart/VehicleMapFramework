@@ -7,11 +7,11 @@ namespace VehicleMapFramework;
 
 public class Verb_LaunchZipline : Verb_Shoot
 {
-    public Thing ZiplineEnd { get; set; }
+    public Thing ziplineEnd;
 
     public override bool ValidateTarget(LocalTargetInfo target, bool showMessages = true)
     {
-        var map = target.Thing?.Map ?? caster.TargetMap ?? caster.Map;
+        var map = target.Thing?.Map ?? caster.TargetMap ?? (caster as Pawn)?.mindState?.enemyTarget?.Map ?? caster.Map;
         if (caster.Map == map)
         {
             if (showMessages)
@@ -28,13 +28,6 @@ public class Verb_LaunchZipline : Verb_Shoot
             return targetParams.canTargetSelf;
         }
         return (targ.Pawn == null || !targ.Pawn.IsPsychologicallyInvisible() || !caster.HostileTo(targ.Pawn)) && !ApparelPreventsShooting() && this.TryFindShootLineFromToOnVehicle(root, targ, out _);
-    }
-
-    public override bool TryStartCastOn(LocalTargetInfo castTarg, LocalTargetInfo destTarg, bool surpriseAttack_ = false, bool canHitNonTargetPawns = true, bool preventFriendlyFire_ = false, bool nonInterruptingSelfCast_ = false)
-    {
-        if (ZiplineEnd?.Spawned ?? false) return false;
-
-        return base.TryStartCastOn(castTarg, destTarg, surpriseAttack_, canHitNonTargetPawns, preventFriendlyFire_, nonInterruptingSelfCast_);
     }
 
     protected override bool TryCastShot()
@@ -68,22 +61,25 @@ public class Verb_LaunchZipline : Verb_Shoot
         }
 
         var drawPos = caster.DrawPos;
-        var projectile2 = (Projectile)GenSpawn.Spawn(projectile, resultingLine.Source, caster.GroundMap);
-        ZiplineEnd = projectile2;
+        var offset = caster.def.building?.turretTopOffset.ToVector3() ?? Vector3.zero;
+        if (caster.IsOnNonFocusedVehicleMapOf(out var vehicle))
+        {
+            offset = offset.RotatedBy(-vehicle.Angle + vehicle.Transform.rotation);
+        }
+        drawPos += offset;
+        
+        var projectile2 = (Projectile)ThingMaker.MakeThing(projectile);
         if (projectile2 is Bullet_ZiplineEnd zipline)
         {
             zipline.launchVerb = this;
-            if (currentTarget.HasThing)
-                zipline.destMap = currentTarget.Thing.Map;
-            if (zipline.destMap is null && caster.TryGetTargetMap(out var map))
-                zipline.destMap = map;
+            zipline.destMap = currentTarget.Thing?.Map ?? caster.TargetMap ?? (caster as Pawn)?.mindState?.enemyTarget?.Map ?? caster.Map;
 
-            var customZipline2 = zipline.def.GetModExtension<CustomZipline>();
-            if (customZipline2 != null)
+            if (zipline.def.GetModExtension<CustomZipline>() is { } customZipline)
             {
-                zipline.ZipLineData = customZipline2.zipLineData;
+                zipline.ZipLineData = customZipline.zipLineData;
             }
         }
+        GenSpawn.Spawn(projectile2, resultingLine.Source, caster.GroundMap);
         if (verbProps.ForcedMissRadius > 0.5f)
         {
             var num = verbProps.ForcedMissRadius;
@@ -121,7 +117,7 @@ public class Verb_LaunchZipline : Verb_Shoot
         if (verbProps.canGoWild && !Rand.Chance(shotReport.AimOnTargetChance_IgnoringPosture))
         {
             var flyOverhead = projectile2?.def?.projectile is { flyOverhead: true };
-            resultingLine.ChangeDestToMissWild(shotReport.AimOnTargetChance_StandardTarget, flyOverhead, caster.GroundMap);
+            resultingLine.ChangeDestToMissWild(shotReport.AimOnTargetChance_StandardTarget, flyOverhead, caster.BaseMap());
             var projectileHitFlags2 = ProjectileHitFlags.NonTargetWorld;
             if (Rand.Chance(0.5f) && canHitNonTargetPawnsNow)
             {
@@ -144,19 +140,8 @@ public class Verb_LaunchZipline : Verb_Shoot
             return true;
         }
 
-        var projectileHitFlags4 = ProjectileHitFlags.IntendedTarget;
-        if (canHitNonTargetPawnsNow)
-        {
-            projectileHitFlags4 |= ProjectileHitFlags.NonTargetPawns;
-        }
-
-        if (!currentTarget.HasThing || currentTarget.Thing!.def.Fillage == FillCategory.Full)
-        {
-            projectileHitFlags4 |= ProjectileHitFlags.NonTargetWorld;
-        }
-
         projectile2.Launch(manningPawn, drawPos, currentTarget.Thing != null ? currentTarget : resultingLine.Dest,
-            currentTarget, projectileHitFlags4, preventFriendlyFire, equipmentSource, targetCoverDef);
+            currentTarget, ProjectileHitFlags.IntendedTarget, preventFriendlyFire, equipmentSource, targetCoverDef);
 
         return true;
     }
@@ -183,13 +168,5 @@ public class Verb_LaunchZipline : Verb_Shoot
             return;
         }
         GenUI.DrawMouseAttachment(TexCommand.CannotShoot);
-    }
-
-    public override void ExposeData()
-    {
-        base.ExposeData();
-        var ziplineEnd = ZiplineEnd;
-        Scribe_References.Look(ref ziplineEnd, "ZiplineEnd");
-        ZiplineEnd = ziplineEnd;
     }
 }

@@ -36,6 +36,12 @@ public abstract class Bullet_ZiplineBase : Bullet, IZiplineEnd
     }
     
     public abstract void DrawZipline(Vector3 drawLoc);
+    
+    public override void SpawnSetup(Map map, bool respawningAfterLoad)
+    {
+        base.SpawnSetup(map, respawningAfterLoad);
+        launchVerb?.ziplineEnd = this;
+    }
 
     protected override void TickInterval(int delta)
     {
@@ -64,5 +70,25 @@ public abstract class Bullet_ZiplineBase : Bullet, IZiplineEnd
     protected override void ImpactSomething()
     {
         Impact(intendedTarget.Thing);
+    }
+
+    public override void Destroy(DestroyMode mode = DestroyMode.Vanish)
+    {
+        base.Destroy(mode);
+        launchVerb?.ziplineEnd = null;
+    }
+
+    public override void ExposeData()
+    {
+        base.ExposeData();
+        Scribe_References.Look(ref launchVerb, "LaunchVerb");
+        if (Scribe.mode == LoadSaveMode.PostLoadInit)
+        {
+            var customZipline = def.GetModExtension<CustomZipline>();
+            if (customZipline != null)
+            {
+                ZipLineData = customZipline.zipLineData;
+            }
+        }
     }
 }

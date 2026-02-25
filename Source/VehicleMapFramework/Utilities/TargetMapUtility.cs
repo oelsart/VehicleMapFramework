@@ -14,6 +14,12 @@ public static class TargetMapUtility
             set => manager?.GetOrCreateTargetInfo(thing)?.Value = value;
         }
 
+        public Map TargetMap
+        {
+            get => manager?.TargetInfoTable.TryGetValue(thing, out var box) ?? false ? box.Value.Map : null;
+            set => manager?.GetOrCreateTargetInfo(thing)?.Value = new TargetInfo(IntVec3.Invalid, value);
+        }
+
         public void RemoveTargetInfo()
         {
             if (thing is null || manager is null) return;
@@ -39,12 +45,6 @@ public static class TargetMapUtility
             target = TargetInfo.Invalid;
             if (thing is null) return false;
             return thing.TryGetTargetInfo(out target) && (LocalTargetInfo)target == localTarget;
-        }
-
-        public Map TargetMap
-        {
-            get => manager?.TargetInfoTable.TryGetValue(thing, out var box) ?? false ? box.Value.Map : null;
-            set => manager?.GetOrCreateTargetInfo(thing)?.Value = new TargetInfo(IntVec3.Invalid, value);
         }
 
         public bool TryGetTargetMap(out Map map)

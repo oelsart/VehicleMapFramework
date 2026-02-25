@@ -148,13 +148,13 @@ public class SectionLayer_LightingOnVehicle : SectionLayer
                 if (num9 > 0)
                 {
                     array[num2] = (colorInt / num9).ProjectToColor32();
-                    array2[num2] = array[num2];
                 }
                 else
                 {
                     array[num2] = new Color32(0, 0, 0, 0);
-                    array2[num2] = array[num2];
                 }
+
+                array2[num2] = array[num2];
                 if (flag && array[num2].a < RoofedAreaMinSkyCover)
                 {
                     array[num2].a = RoofedAreaMinSkyCover;
