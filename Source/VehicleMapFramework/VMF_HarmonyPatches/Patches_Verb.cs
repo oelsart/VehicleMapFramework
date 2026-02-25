@@ -22,7 +22,7 @@ public static class Patch_Verb_TryFindShootLineFromTo
 
     public static bool Prefix(Verb __instance, IntVec3 root, LocalTargetInfo targ, ref ShootLine resultingLine, bool ignoreRange, ref bool __result)
     {
-        if (VehiclePawnWithMapCache.AllVehiclesOn(__instance.caster.GroundMap).NullOrEmpty())
+        if (VehiclePawnWithMapCache.AllVehiclesOn(__instance.caster.GroundMap).Count == 0)
             return true;
         
         if ((__instance.caster.IsOnVehicleMapOf(out _) ||

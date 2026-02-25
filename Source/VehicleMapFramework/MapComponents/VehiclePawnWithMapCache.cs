@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using SmashTools;
 using UnityEngine;
@@ -19,31 +20,37 @@ public class VehiclePawnWithMapCache(Map map) : MapComponent(map)
 
     private int lastCachedTick = -1;
 
-    private readonly HashSet<VehiclePawnWithMap> allVehicles = [];
+    private readonly List<VehiclePawnWithMap> allVehicles = [];
     
     public static void RegisterVehicle(VehiclePawnWithMap vehicle)
     {
-        MapComponentCache<VehiclePawnWithMapCache>.GetComponent(vehicle.Map).allVehicles.Add(vehicle);
+        MapComponentCache<VehiclePawnWithMapCache>.GetComponent(vehicle.Map).allVehicles.AddUnique(vehicle);
     }
 
     public static void DeRegisterVehicle(VehiclePawnWithMap vehicle)
     {
-        var hashSet = Find.Maps.Select(m => MapComponentCache<VehiclePawnWithMapCache>.GetComponent(m).allVehicles).FirstOrDefault(h => h.Contains(vehicle));
-        if (hashSet == null)
+        var list = Find.Maps.Select(m => MapComponentCache<VehiclePawnWithMapCache>.GetComponent(m).allVehicles).FirstOrDefault(h => h.Contains(vehicle));
+        if (list == null)
         {
             VMF_Log.Warning("Tried to deregister an unregistered vehicle.");
             return;
         }
-        hashSet.Remove(vehicle);
+        list.Remove(vehicle);
         if (Command_FocusVehicleMap.FocusedVehicle != vehicle) return;
         
         Command_FocusVehicleMap.FocusLockedVehicle = null;
         Command_FocusVehicleMap.FocusedVehicle = null;
     }
 
-    public static IReadOnlyCollection<VehiclePawnWithMap> AllVehiclesOn(Map map)
+    public static List<VehiclePawnWithMap> AllVehiclesOn(Map map)
     {
         return map.GetCachedMapComponent<VehiclePawnWithMapCache>()?.allVehicles ?? [];
+    }
+
+    public static ReadOnlySpan<VehiclePawnWithMap> AllVehiclesOnAsReadOnlySpan(Map map)
+    {
+        var component = map.GetCachedMapComponent<VehiclePawnWithMapCache>();
+        return component is null ? [] : component.allVehicles.AsReadOnlySpan();
     }
 
     public void ForceResetCache()

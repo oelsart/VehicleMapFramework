@@ -124,6 +124,24 @@ public static class VehicleMapUtility
                 foreach (var vehicle2 in VehiclePawnWithMapCache.AllVehiclesOn(map))
                     yield return vehicle2.VehicleMap;
         }
+
+        public void VehicleMapsOnMap(List<Map> list)
+        {
+            if (map.IsVehicleMapOf(out var vehicle))
+            {
+                if (vehicle.VehicleCaravanOrStashedVehicle is { } vehicleCaravanOrStashedVehicle)
+                {
+                    foreach (var vehicle2 in vehicleCaravanOrStashedVehicle.Vehicles)
+                    {
+                        if (vehicle != vehicle2 && vehicle2 is VehiclePawnWithMap vehiclePawnWithMap)
+                            list.Add(vehiclePawnWithMap.VehicleMap);
+                    }
+                }
+            }
+            else
+                foreach (var vehicle2 in VehiclePawnWithMapCache.AllVehiclesOnAsReadOnlySpan(map))
+                    list.Add(vehicle2.VehicleMap);
+        }
         
         [UsedImplicitly] // Reflection access by Portable Blueprints
         public Map BaseMap()
