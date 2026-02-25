@@ -68,7 +68,7 @@ public class Verb_LaunchZipline : Verb_Shoot
         }
 
         var drawPos = caster.DrawPos;
-        var projectile2 = (Projectile)GenSpawn.Spawn(projectile, resultingLine.Source, caster.BaseMap());
+        var projectile2 = (Projectile)GenSpawn.Spawn(projectile, resultingLine.Source, caster.GroundMap);
         ZiplineEnd = projectile2;
         if (projectile2 is Bullet_ZiplineEnd zipline)
         {
@@ -121,7 +121,7 @@ public class Verb_LaunchZipline : Verb_Shoot
         if (verbProps.canGoWild && !Rand.Chance(shotReport.AimOnTargetChance_IgnoringPosture))
         {
             var flyOverhead = projectile2?.def?.projectile is { flyOverhead: true };
-            resultingLine.ChangeDestToMissWild(shotReport.AimOnTargetChance_StandardTarget, flyOverhead, caster.BaseMap());
+            resultingLine.ChangeDestToMissWild(shotReport.AimOnTargetChance_StandardTarget, flyOverhead, caster.GroundMap);
             var projectileHitFlags2 = ProjectileHitFlags.NonTargetWorld;
             if (Rand.Chance(0.5f) && canHitNonTargetPawnsNow)
             {

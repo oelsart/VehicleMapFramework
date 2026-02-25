@@ -684,20 +684,18 @@ public class VehiclePawnWithMap : VehiclePawn
 
     private void CacheDrawPos(Vector3 drawLoc)
     {
-        LongEventHandler.ExecuteWhenFinished(() =>
+        if (!UnityData.IsInMainThread) return;
+        var transform = new TransformData(drawLoc + Transform.position, FullRotation, Transform.rotation.FlipAngle(this));
+        var result = VehicleGraphic?.ParallelGetPreRenderResults(ref transform, false, this);
+        cachedDrawPos = result?.position ?? drawLoc;
+        if (Spawned && Find.CurrentMap == interiorMap)
         {
-            var transform = new TransformData(drawLoc + Transform.position, FullRotation, Transform.rotation.FlipAngle(this));
-            var result = VehicleGraphic?.ParallelGetPreRenderResults(ref transform, false, this);
-            cachedDrawPos = result?.position ?? drawLoc;
-            if (Spawned && Find.CurrentMap == interiorMap)
-            {
-                cachedExactPos = cachedDrawPos + base.DrawPos - drawLoc;
-            }
-            else
-            {
-                cachedExactPos = cachedDrawPos;
-            }
-        });
+            cachedExactPos = cachedDrawPos + base.DrawPos - drawLoc;
+        }
+        else
+        {
+            cachedExactPos = cachedDrawPos;
+        }
     }
 
     public override void DynamicDrawPhaseAt(DrawPhase phase, Vector3 drawLoc, bool flip = false)
@@ -732,10 +730,11 @@ public class VehiclePawnWithMap : VehiclePawn
         //map.waterInfo.SetTextures();
         //map.avoidGrid.DebugDrawOnMap();
         //BreachingGridDebug.DebugDrawAllOnMap(map);
-        FrameDelay.DelayOne(static map =>
+        FrameDelay.DelayOne(static vehicle =>
         {
             try
             {
+                var map = vehicle.CurrentLevel;
                 VehicleSectionLayerManager.CacheMode = true;
                 map.GetCachedMapComponent<VehicleSectionLayerManager>().UpdateAllSection();
                 map.mapDrawer.MapMeshDrawerUpdate_First();
@@ -744,7 +743,7 @@ public class VehiclePawnWithMap : VehiclePawn
             {
                 VehicleSectionLayerManager.CacheMode = false;
             }
-        }, map);
+        }, this);
         //map.powerNetGrid.DrawDebugPowerNetGrid();
         //DoorsDebugDrawer.DrawDebug();
         //map.mapDrawer.DrawMapMesh();
@@ -893,9 +892,11 @@ public class VehiclePawnWithMap : VehiclePawn
             if (designator?.GetType() == Rimatomics.Designator_RemovePipe)
             {
                 var mode = Rimatomics.Designator_RemovePipe_RemovalMode(designator);
-                foreach (var layer in Rimatomics.SectionLayer_OverlayPipes.Where(layer =>
-                             mode == Rimatomics.SectionLayer_OverlayPipe_mode(component.GetLayer(section, layer, default))))
-                    DrawLayer(component, section, layer, drawPos);
+                foreach (var layer in Rimatomics.SectionLayer_OverlayPipes)
+                {
+                    if (mode == Rimatomics.SectionLayer_OverlayPipe_mode(component.GetLayer(section, layer, default)))
+                        DrawLayer(component, section, layer, drawPos);
+                }
             }
             else if (designator is Designator_Build { PlacingDef: ThingDef thingDef })
             {
@@ -903,9 +904,11 @@ public class VehiclePawnWithMap : VehiclePawn
                              c.GetType().SameOrSubclassOf(Rimatomics.CompProperties_Pipe)))
                 {
                     var mode = Rimatomics.CompProperties_Pipe_mode(compProperties);
-                    foreach (var layer in Rimatomics.SectionLayer_OverlayPipes.Where(layer =>
-                                 mode == Rimatomics.SectionLayer_OverlayPipe_mode(component.GetLayer(section, layer, default))))
-                        DrawLayer(component, section, layer, drawPos);
+                    foreach (var layer in Rimatomics.SectionLayer_OverlayPipes)
+                    {
+                        if (mode == Rimatomics.SectionLayer_OverlayPipe_mode(component.GetLayer(section, layer, default)))
+                            DrawLayer(component, section, layer, drawPos);
+                    }
                 }
             }
             DrawLayer(component, section, Rimatomics.SectionLayer_ThingsPipe, drawPos);

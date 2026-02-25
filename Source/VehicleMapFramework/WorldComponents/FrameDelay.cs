@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using UnityEngine;
 using Verse;
 
 namespace VehicleMapFramework;
 
-public class FrameDelay : MonoBehaviour
+public class FrameDelay(Game game) : GameComponent
 {
-    public interface IJob
+    private readonly Game game = game;
+    
+    private interface IJob
     {
         public void Execute();
         
@@ -37,20 +38,10 @@ public class FrameDelay : MonoBehaviour
         }
     }
 
-    private static readonly List<IJob> currentJobs = [];
-    private static readonly List<IJob> nextJobs = [];
+    private static List<IJob> currentJobs = [];
+    private static List<IJob> nextJobs = [];
     // ReSharper disable once ChangeFieldTypeToSystemThreadingLock
     private static readonly object lockObj = new();
-
-    private static FrameDelay instance;
-
-    public static void Initialize()
-    {
-        if (instance != null) return;
-        var go = new GameObject("VehicleMapFramework_FrameDelay");
-        instance = go.AddComponent<FrameDelay>();
-        DontDestroyOnLoad(go);
-    }
 
     public static void DelayOne<T>(Action<T> action, T state)
     {
@@ -60,13 +51,12 @@ public class FrameDelay : MonoBehaviour
         }
     }
 
-    private void Update()
+    public override void GameComponentUpdate()
     {
         lock (lockObj)
         {
             if (nextJobs.Count == 0) return;
-            currentJobs.AddRange(nextJobs);
-            nextJobs.Clear();
+            (currentJobs, nextJobs) = (nextJobs, currentJobs);
         }
 
         for (var i = 0; i < currentJobs.Count; i++)

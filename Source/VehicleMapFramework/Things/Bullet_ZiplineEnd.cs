@@ -8,51 +8,24 @@ namespace VehicleMapFramework;
 
 public class Bullet_ZiplineEnd : Bullet_ZiplineBase
 {
-    public override void Launch(Thing launcher_, Vector3 origin_, LocalTargetInfo usedTarget_,
-        LocalTargetInfo intendedTarget_, ProjectileHitFlags hitFlags, bool preventFriendlyFire_ = false,
-        Thing equipment_ = null, ThingDef targetCoverDef_ = null)
+    public override void Launch(Thing _launcher, Vector3 _origin, LocalTargetInfo _usedTarget,
+        LocalTargetInfo _intendedTarget, ProjectileHitFlags hitFlags, bool _preventFriendlyFire = false,
+        Thing _equipment = null, ThingDef _targetCoverDef = null)
     {
-        base.Launch(launcher_, origin_, usedTarget_, intendedTarget_, hitFlags, preventFriendlyFire_, equipment_, targetCoverDef_);
-        this.origin += (Vector3.forward * ZipLineData.LauncherOffset).RotatedBy(ExactRotation.eulerAngles.y);
+        if (!_usedTarget.HasThing && _launcher.TargetMap.IsVehicleMapOf(out var vehicle))
+        {
+            _usedTarget = _usedTarget.Cell.ToVehicleMapCoord(vehicle);
+        }
+        base.Launch(_launcher, _origin, _usedTarget, _intendedTarget, hitFlags, _preventFriendlyFire, _equipment, _targetCoverDef);
+        origin += (Vector3.forward * ZipLineData.LauncherOffset).RotatedBy(ExactRotation.eulerAngles.y);
     }
 
     protected override void TickInterval(int delta)
     {
-        if (AllComps != null)
-        {
-            var i = 0;
-            var count = AllComps.Count;
-            while (i < count)
-            {
-                AllComps[i].CompTickInterval(delta);
-                i++;
-            }
-        }
-        lifetime -= delta;
-        if (landed) return;
-        
-        var exactPosition = ExactPosition;
-        ticksToImpact -= delta;
-        if (!exactPosition.InBounds(Map))
-        {
-            ticksToImpact += delta;
-            Position = exactPosition.ToIntVec3();
-            Destroy();
-            return;
-        }
-        Position = exactPosition.ToIntVec3();
-        if (ticksToImpact <= 0)
-        {
-            var destinationCell = DestinationCell;
-            if (destinationCell.InBounds(Map))
-            {
-                Position = destinationCell;
-            }
-            ImpactSomething();
-            return;
-        }
-        
-        destination = destMap != null ? intendedTarget.Cell.ToVector3Shifted().ToBaseMapCoord(destMap) : intendedTarget.Cell.ToVector3Shifted();
+        destination = destMap != null
+            ? intendedTarget.Cell.ToVector3Shifted().ToBaseMapCoord(destMap)
+            : intendedTarget.Cell.ToVector3Shifted();
+        base.TickInterval(delta);
     }
 
     protected override void Impact(Thing hitThing, bool blockedByShield = false)

@@ -18,7 +18,7 @@ public static class VerbOnVehicleUtility
         public bool TryFindShootLineFromToOnVehicle(IntVec3 root, LocalTargetInfo targ, out ShootLine resultingLine, bool ignoreRange = false)
         {
             resultingLine = default;
-            var flag = verb.caster.IsOnVehicleMapOf(out var vehicle) && verb is not Verb_Jump && verb is not Verb_CastAbilityJump;
+            var flag = verb.caster.IsOnVehicleMapOf(out var vehicle) && verb is not Verb_Jump and not Verb_CastAbilityJump;
             var recoverRoot = flag && !vehicle.Spawned;
             try
             {
@@ -35,7 +35,7 @@ public static class VerbOnVehicleUtility
                 }
 
                 var casterBaseMap = verb.caster.BaseMap();
-                var targCellOnBaseMap = TargetMapUtility.TargetCellOnBaseMap(ref targ, verb.caster);
+                var targCellOnBaseMap = targ.TargetCellOnBaseMap(verb.caster);
 
                 if (targ.HasThing && targ.Thing.BaseMapOrCaravan != verb.caster.BaseMapOrCaravan)
                 {
@@ -122,7 +122,7 @@ public static class VerbOnVehicleUtility
 
         public bool CanHitFromCellIgnoringRange(IntVec3 sourceCellBaseCol, LocalTargetInfo targ, out IntVec3 goodDest)
         {
-            var targCellOnBaseMap = TargetMapUtility.TargetCellOnBaseMap(ref targ, verb.caster);
+            var targCellOnBaseMap = targ.TargetCellOnBaseMap(verb.caster);
             if (targ.HasThing)
             {
                 if (targ.Thing.BaseMapOrCaravan != verb.caster.BaseMapOrCaravan)
