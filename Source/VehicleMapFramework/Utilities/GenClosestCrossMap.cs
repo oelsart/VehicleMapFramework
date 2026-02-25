@@ -11,6 +11,8 @@ namespace VehicleMapFramework;
 
 public static class GenClosestCrossMap
 {
+    private static readonly List<Thing> tmpThings = [];
+    
     private static bool EarlyOutSearch(IntVec3 start, ref Map map, ThingRequest thingReq, IEnumerable<Thing> customGlobalSearchSet)
     {
         if (thingReq.group == ThingRequestGroup.Everything)
@@ -27,7 +29,23 @@ public static class GenClosestCrossMap
                 return true;
             }
         }
-        return thingReq.group == ThingRequestGroup.Nothing || ((thingReq.IsUndefined || !map.BaseMapAndVehicleMaps(false).SelectMany(m => m.listerThings.ThingsMatching(thingReq)).Any()) && customGlobalSearchSet.EnumerableNullOrEmpty());
+
+        if (thingReq.group == ThingRequestGroup.Nothing)
+            return true;
+        var flag = thingReq.IsUndefined;
+        var flag2 = true;
+        if (!flag)
+        {
+            foreach (var map2 in map.BaseMapAndVehicleMaps(false))
+            {
+                if (map2.listerThings.ThingsMatching(thingReq).Any())
+                {
+                    flag2 = false;
+                    break;
+                }
+            }
+        }
+        return (flag || flag2) && customGlobalSearchSet.EnumerableNullOrEmpty();
     }
 
     public static Thing ClosestThingReachable(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance = 9999f, Predicate<Thing> validator = null, IEnumerable<Thing> customGlobalSearchSet = null, int searchRegionsMin = 0, int searchRegionsMax = -1, bool forceAllowGlobalSearch = false, RegionType traversableRegionTypes = RegionType.Set_Passable, bool ignoreEntirelyForbiddenRegions = false, bool lookInHaulSources = false)
@@ -66,8 +84,19 @@ public static class GenClosestCrossMap
             }
 
             var basePos = map.IsVehicleMapOf(out var vehicle) ? root.ToBaseMapCoord(vehicle) : root;
-            var searchSet = customGlobalSearchSet ?? map.BaseMapAndVehicleMaps(false).SelectMany(m => m.listerThings.ThingsMatching(thingReq));
-
+            if (customGlobalSearchSet is null)
+            {
+                tmpThings.Clear();
+                foreach (var map2 in map.BaseMapAndVehicleMaps(false))
+                {
+                    var list = map2.listerThings.ThingsMatching(thingReq);
+                    for (var i = 0; i < list.Count; i++)
+                    {
+                        tmpThings.Add(list[i]);
+                    }
+                }
+            }
+            
             var departMap = traverseParams.pawn?.DepartMap ?? map;
             bool GlobalValidator(Thing t)
             {
@@ -77,7 +106,7 @@ public static class GenClosestCrossMap
                 }
                 return validator == null || validator(t);
             }
-            thing = ClosestThing_Global(basePos, searchSet, maxDistance, GlobalValidator);
+            thing = ClosestThing_Global(basePos, customGlobalSearchSet ?? tmpThings, maxDistance, GlobalValidator);
         }
         return thing;
     }

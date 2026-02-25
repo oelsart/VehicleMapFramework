@@ -169,9 +169,10 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
             yield break;
 
         var req = scanner.PotentialWorkThingRequest;
-        foreach (var t in pawn.Map.BaseMapAndVehicleMaps(false).SelectMany(m => m.listerThings.ThingsMatching(req)))
+        foreach (var map in pawn.Map.BaseMapAndVehicleMaps(false))
         {
-            yield return t;
+            foreach (var t in map.listerThings.ThingsMatching(req))
+                yield return t;
         }
     }
 
@@ -227,16 +228,16 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
             {
                 tmpThings.Clear();
                 var shouldBeNull = true;
-                pawn.Map.BaseMapAndVehicleMaps().Do(m =>
+                foreach (var map2 in pawn.Map.BaseMapAndVehicleMaps(true))
                 {
-                    pawn.VirtualMapTransfer(m);
+                    pawn.VirtualMapTransfer(map2);
                     var things = scanner.PotentialWorkThingsGlobal(pawn)?.Where(t => t != null);
                     if (things is not null)
                     {
                         tmpThings.AddRange(things);
                         shouldBeNull = false;
                     }
-                });
+                }
                 return shouldBeNull ? null : tmpThings.Distinct();
             }
             finally
@@ -302,10 +303,9 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
             var pawn = innerClass.pawn;
             var basePos = pawn.PositionOnBaseMap;
             var map = pawn.DepartMap = pawn.Map;
-            var maps = map.BaseMapAndVehicleMaps(false);
             try
             {
-                foreach (var map2 in maps)
+                foreach (var map2 in pawn.Map.BaseMapAndVehicleMaps(false))
                 {
                     pawn.VirtualMapTransfer(map2);
                     var positionOnMap = map2.IsVehicleMapOf(out var vehicle) ? basePos.ToVehicleMapCoord(vehicle) : basePos;
@@ -392,11 +392,13 @@ public static class Patch_JobGiver_Work_PawnCanUseWorkGiver
         {
             return workGiver.ShouldSkip(pawn, forced);
         }
-        return pawn.Map.BaseMapAndVehicleMaps().All(m =>
+        foreach (var map in pawn.Map.BaseMapAndVehicleMaps(true))
         {
-            using var _ = new VirtualTeleporter(pawn, m);
-            return workGiver.ShouldSkip(pawn, forced);
-        });
+            using var _ = new VirtualTeleporter(pawn, map);
+            if (!workGiver.ShouldSkip(pawn, forced))
+                return false;
+        }
+        return true;
     }
 }
 
@@ -659,9 +661,20 @@ public static class Patch_ItemAvailability_ThingsAvailableAnywhere
 
     public static List<Thing> AddThingList(List<Thing> list, Map map, ThingDef need)
     {
+        if (!map.CrossMapContext) return list;
         tmpList.Clear();
-        tmpList.AddRange(list);
-        tmpList.AddRange(map.BaseMapAndVehicleMaps(false).SelectMany(m => m.listerThings.ThingsOfDef(need)));
+        for (var i = 0; i < list.Count; i++)
+        {
+            tmpList.Add(list[i]);
+        }
+        foreach (var map2 in map.BaseMapAndVehicleMaps(false))
+        {
+            var list2 = map2.listerThings.ThingsOfDef(need);
+            for (var i = 0; i < list2.Count; i++)
+            {
+                tmpList.Add(list2[i]);
+            }
+        }
         return tmpList;
     }
 }
@@ -681,7 +694,7 @@ public static class Patch_GenClosest_ClosestThingReachable
     [PatchLevel(Level.Safe)]
     public static void Prefix(IntVec3 root, ref Map map, TraverseParms traverseParams)
     {
-        if (traverseParams.pawn is not { } pawn) return;
+        if (!map.CrossMapContext || traverseParams.pawn is not { } pawn) return;
         
         var map2 = pawn.DepartMap;
         if (map2 != null && root == pawn.Position && map == pawn.Map)
@@ -691,8 +704,11 @@ public static class Patch_GenClosest_ClosestThingReachable
     [PatchLevel(Level.Safe)]
     public static void Postfix(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance, Predicate<Thing> validator, IEnumerable<Thing> customGlobalSearchSet, int searchRegionsMin, int searchRegionsMax, bool forceAllowGlobalSearch, RegionType traversableRegionTypes, bool ignoreEntirelyForbiddenRegions, bool lookInHaulSources, ref Thing __result)
     {
+        if (!map.CrossMapContext || traverseParams.pawn is not { } pawn) return;
+        
         // 非プレイヤーポーンが車両マップの椅子に座ろうとすることなどの防止
-        if (traverseParams.pawn is { Faction.IsPlayer: false }) return;
+        if (pawn is { Faction.IsPlayer: false }) return;
+        customGlobalSearchSet = customGlobalSearchSet?.Where(t => t.Map != map);
         __result ??= GenClosestCrossMap.ClosestThingReachable(root, map, thingReq, peMode, traverseParams, maxDistance, validator, customGlobalSearchSet, searchRegionsMin, searchRegionsMax, forceAllowGlobalSearch, traversableRegionTypes, ignoreEntirelyForbiddenRegions, lookInHaulSources);
     }
 }
@@ -709,7 +725,7 @@ public static class Patch_GenClosest_ClosestThing_Regionwise_ReachablePrioritize
 
     public static void Postfix(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode, TraverseParms traverseParams, float maxDistance, Predicate<Thing> validator, Func<Thing, float> priorityGetter, int minRegions, int maxRegions, bool lookInHaulSources, ref Thing __result)
     {
-        if (traverseParams.pawn is { Faction.IsPlayer: false }) return;
+        if (traverseParams.pawn is null or { Faction.IsPlayer: false }) return;
         __result ??= GenClosestCrossMap.ClosestThing_Regionwise_ReachablePrioritized(root, map, thingReq, peMode, traverseParams, maxDistance, validator, priorityGetter, minRegions, maxRegions, lookInHaulSources);
     }
 }

@@ -17,6 +17,7 @@ public static class Patch_AttackTargetFinder_BestAttackTarget
 {
     public static void Postfix(IAttackTargetSearcher searcher, TargetScanFlags flags, Predicate<Thing> validator, float minDist, float maxDist, IntVec3 locus, float maxTravelRadiusFromLocus, bool canBashDoors, bool canTakeTargetsCloserThanEffectiveMinRange, bool canBashFences, bool onlyRanged, ref IAttackTarget __result)
     {
+        if (!searcher.Thing.Map.CrossMapContext) return;
         var target = AttackTargetFinderOnVehicle.BestAttackTarget(searcher, flags, validator, minDist, maxDist, locus, maxTravelRadiusFromLocus, canBashDoors, canTakeTargetsCloserThanEffectiveMinRange, canBashFences, onlyRanged);
         __result = AttackTargetFinderOnVehicle.CompareTarget(__result, target, searcher);
     }

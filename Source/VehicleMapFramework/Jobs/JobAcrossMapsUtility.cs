@@ -89,7 +89,7 @@ public static class JobAcrossMapsUtility
 
     public static bool NoNeedVirtualMapTransfer(Map pawnMap, Map targetMap, WorkGiverDef workGiver)
     {
-        return pawnMap == targetMap || DisabledCrossMapWorkGiverDefs.Contains(workGiver);
+        return pawnMap == targetMap || !pawnMap.CrossMapContext || DisabledCrossMapWorkGiverDefs.Contains(workGiver);
     }
 
     public static bool NoNeedWrapGotoDestMapJob(WorkGiver_Scanner scanner)

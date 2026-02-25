@@ -16,6 +16,8 @@ public class VehiclePawnWithMapCache(Map map) : MapComponent(map)
 
     public readonly Dictionary<VehiclePawn, Rot8> cachedFullRot = [];
 
+    public readonly (int lastCachedTick, HashSet<Map> hashSet) cachedBaseMapAndVehicleMaps = (-1, []);
+
     public static bool CacheMode { get; set; }
 
     private int lastCachedTick = -1;
