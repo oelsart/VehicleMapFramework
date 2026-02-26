@@ -72,17 +72,14 @@ internal static class ModCompat
     {
         public const string HarmonyId = "SmashPhil.VehicleFramework";
 
-        public static readonly FastInvokeHandler VehicleTurret_IsManned;
-
         public static readonly Dictionary<(VehicleDef, Rot4), Texture2D> CachedVehicleTextures;
 
         static VehicleFramework()
         {
             if (!UnitTestDetector.IsTestingContext)
             {
-                VehicleTurret_IsManned = MethodInvoker.GetHandler(AccessTools.PropertySetter(typeof(VehicleTurret), nameof(VehicleTurret.IsManned)));
                 CachedVehicleTextures = AccessTools.StaticFieldRefAccess<Dictionary<(VehicleDef, Rot4), Texture2D>>(typeof(VehicleTex), "CachedVehicleTextures");
-                if (AnyNull(VehicleTurret_IsManned, CachedVehicleTextures))
+                if (AnyNull(CachedVehicleTextures))
                 {
                     LogIncompat("Vehicle Framework");
                 }
@@ -221,8 +218,6 @@ internal static class ModCompat
 
         public static readonly Type Building_Pipe;
 
-        public static readonly FastInvokeHandler PrintForGrid;
-
         public static readonly Type CompProperties_Pipe;
 
         public static readonly AccessTools.FieldRef<object, int> CompProperties_Pipe_mode;
@@ -251,7 +246,6 @@ internal static class ModCompat
                     SectionLayer_Irrigation = GenTypes.GetTypeInAnyAssembly("DubsBadHygiene.SectionLayer_Irrigation", "DubsBadHygiene");
                     SectionLayer_FertilizerGrid = GenTypes.GetTypeInAnyAssembly("DubsBadHygiene.SectionLayer_FertilizerGrid", "DubsBadHygiene");
                     Building_Pipe = GenTypes.GetTypeInAnyAssembly("DubsBadHygiene.Building_Pipe", "DubsBadHygiene");
-                    PrintForGrid = MethodInvoker.GetHandler(AccessTools.Method(Building_Pipe, "PrintForGrid"));
                     CompProperties_Pipe = GenTypes.GetTypeInAnyAssembly("DubsBadHygiene.CompProperties_Pipe", "DubsBadHygiene");
                     CompProperties_Pipe_mode = AccessTools.FieldRefAccess<int>(CompProperties_Pipe, "mode");
                     SectionLayer_PipeOverlay_mode = AccessTools.FieldRefAccess<int>("DubsBadHygiene.SectionLayer_PipeOverlay:mode");
@@ -269,7 +263,6 @@ internal static class ModCompat
                         SectionLayer_Irrigation,
                         SectionLayer_FertilizerGrid,
                         Building_Pipe,
-                        PrintForGrid,
                         CompProperties_Pipe,
                         CompProperties_Pipe_mode,
                         SectionLayer_PipeOverlay_mode))
@@ -296,8 +289,6 @@ internal static class ModCompat
 
         public static readonly Type Building_Pipe;
 
-        public static readonly FastInvokeHandler PrintForGrid;
-
         public static readonly Type CompProperties_Pipe;
 
         public static readonly AccessTools.FieldRef<object, int> CompProperties_Pipe_mode;
@@ -319,7 +310,6 @@ internal static class ModCompat
                     XSectionLayer_Napalm = GenTypes.GetTypeInAnyAssembly("Rimefeller.XSectionLayer_Napalm", "Rimefeller");
                     XSectionLayer_OilSpill = GenTypes.GetTypeInAnyAssembly("Rimefeller.XSectionLayer_OilSpill", "Rimefeller");
                     Building_Pipe = GenTypes.GetTypeInAnyAssembly("Rimefeller.Building_Pipe", "Rimefeller");
-                    PrintForGrid = MethodInvoker.GetHandler(AccessTools.Method(Building_Pipe, "PrintForGrid"));
                     CompProperties_Pipe = GenTypes.GetTypeInAnyAssembly("Rimefeller.CompProperties_Pipe", "Rimefeller");
                     CompProperties_Pipe_mode = AccessTools.FieldRefAccess<int>(CompProperties_Pipe, "mode");
                     SectionLayer_PipeOverlay_mode = AccessTools.FieldRefAccess<int>("Rimefeller.SectionLayer_PipeOverlay:mode");
@@ -337,7 +327,6 @@ internal static class ModCompat
                         XSectionLayer_Napalm,
                         XSectionLayer_OilSpill,
                         Building_Pipe,
-                        PrintForGrid,
                         CompProperties_Pipe,
                         CompProperties_Pipe_mode,
                         SectionLayer_PipeOverlay_mode))

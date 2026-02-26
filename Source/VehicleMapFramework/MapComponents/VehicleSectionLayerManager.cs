@@ -40,24 +40,32 @@ namespace VehicleMapFramework
                         var section = map.mapDrawer.SectionAt(new IntVec3(i, 0, j));
                         layersByRot[section] = [];
 
-                        foreach (var type in OrientedSectionLayerTypes)
+                        foreach (var type in typeof(SectionLayer).AllSubclassesNonAbstract())
                         {
                             var layer = section.GetLayer(type);
                             if (layer == null) continue;
 
-                            layersByRot[section][type] =
-                            [
-                                layer,
-                                (SectionLayer)Activator.CreateInstance(type, section),
-                                (SectionLayer)Activator.CreateInstance(type, section),
-                                (SectionLayer)Activator.CreateInstance(type, section),
-                            ];
-                            for (var k = 0; k < 4; k++)
+                            if (OrientedSectionLayerTypes.Contains(type))
                             {
-                                var layer2 = layersByRot[section][type][k];
-                                layer2.Dirty = true;
+                                layersByRot[section][type] =
+                                [
+                                    layer,
+                                    (SectionLayer)Activator.CreateInstance(type, section),
+                                    (SectionLayer)Activator.CreateInstance(type, section),
+                                    (SectionLayer)Activator.CreateInstance(type, section),
+                                ];
+                                for (var k = 0; k < 4; k++)
+                                {
+                                    var layer2 = layersByRot[section][type][k];
+                                    layer2.Dirty = true;
+                                }
+                            }
+                            else
+                            {
+                                layersByRot[section][type] = [layer];
                             }
                         }
+                        
                     }
                 }
             });
@@ -67,6 +75,9 @@ namespace VehicleMapFramework
         {
             if (!layersByRot[section].TryGetValue(type, out var layers))
                 return null;
+            if (!OrientedSectionLayerTypes.Contains(type))
+                return layers[0];
+            
             var rot2 = rot.RotForVehicleDraw();
             var layer = layers[rot2.AsInt];
             if (layer.Dirty)
@@ -96,9 +107,6 @@ namespace VehicleMapFramework
 
         public void UpdateAllSection()
         {
-            if (!map.IsVehicleMapOf(out _))
-                return;
-
             foreach (var section in VehiclePawnWithMap.sections(map.mapDrawer))
             {
                 UpdateSection(section);
@@ -106,8 +114,8 @@ namespace VehicleMapFramework
                 // LayerSubMeshを直接FinalizeしているためY圧縮をかける
                 if ((section.dirtyFlags & MapMeshFlagDefOf.Buildings) > 0UL)
                 {
-                    var edgeShadowsLayer = section.GetLayer(typeof(SectionLayer_EdgeShadows));
-                    Delay.AfterNSeconds(0, () => FinalizeShadowVerts(edgeShadowsLayer));
+                    var edgeShadowsLayer = GetLayer(section, typeof(SectionLayer_EdgeShadows), default);
+                    FrameDelay.DelayOne(static layer => FinalizeShadowVerts(layer), edgeShadowsLayer);
                 }
             }
         }
@@ -118,9 +126,11 @@ namespace VehicleMapFramework
             {
                 return;
             }
-            foreach (var sectionLayers in layersByRot[section].Values)
+            foreach (var sectionLayers in layersByRot[section])
             {
-                var northLayer = sectionLayers[0];
+                if (!OrientedSectionLayerTypes.Contains(sectionLayers.Key)) continue;
+                
+                var northLayer = sectionLayers.Value[0];
                 northLayer.Dirty = northLayer.Dirty || (section.dirtyFlags & northLayer.relevantChangeTypes) > 0UL;
                 if (!northLayer.Dirty) continue;
                 
@@ -128,7 +138,7 @@ namespace VehicleMapFramework
                 DirtyAdaptiveStorageGraphics(section, Rot4.North);
                 for (var i = 1; i < 4; i++)
                 {
-                    sectionLayers[i].Dirty = true;
+                    sectionLayers.Value[i].Dirty = true;
                 }
             }
         }

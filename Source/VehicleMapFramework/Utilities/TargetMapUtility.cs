@@ -31,6 +31,12 @@ public static class TargetMapUtility
             }
         }
 
+        public Map TargetMap
+        {
+            get => manager?.TargetInfoTable.TryGetValue(thing, out var box) ?? false ? box.Value.Map : null;
+            set => manager?.GetOrCreateTargetInfo(thing)?.Value = new TargetInfo(IntVec3.Invalid, value);
+        }
+
         public void RemoveTargetInfo()
         {
             if (thing is null || manager is null) return;

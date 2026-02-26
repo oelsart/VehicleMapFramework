@@ -1,6 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
-using SmashTools;
 using UnityEngine;
 using Verse;
 
@@ -8,18 +6,19 @@ namespace VehicleMapFramework;
 
 public class SectionLayer_TerrainOnVehicle(Section section) : SectionLayer_Terrain(section)
 {
-    public void DrawLayer(Rot8 rot, Vector3 drawPos, float extraRotation)
+    public void DrawLayer(Vector3 drawPos)
     {
-        if (!Visible)
-        {
+        if (!Visible || !Map.IsVehicleMapOf(out var vehicle))
             return;
-        }
-        var angle = Ext_Math.RotateAngle(rot.AsAngle, extraRotation);
-        foreach (var layerSubMesh in subMeshes.Where(layerSubMesh => layerSubMesh.finalized &&
-                                                                     !layerSubMesh.disabled &&
-                                                                     layerSubMesh.material != MatBases.ShadowMask))
+        
+        var rot = Quaternion.AngleAxis(vehicle.FullAngle, Vector3.up);
+        for (var i = 0; i < subMeshes.Count; i++)
         {
-            Graphics.DrawMesh(layerSubMesh.mesh, drawPos, Quaternion.AngleAxis(angle, Vector3.up), layerSubMesh.material, 0);
+            var subMesh = subMeshes[i];
+            if (subMesh.finalized && !subMesh.disabled && subMesh.material != MatBases.ShadowMask)
+            {
+                Graphics.DrawMesh(subMesh.mesh, drawPos, rot, subMesh.material, subMesh.renderLayer);
+            }
         }
     }
 

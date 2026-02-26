@@ -13,7 +13,8 @@ public class WorkGiver_RepairMapVehicle : WorkGiver_Scanner
 
     public override bool ShouldSkip(Pawn pawn, bool forced = false)
     {
-        return !pawn.IsOnVehicleMapOf(out var vehicle) || !vehicle.statHandler.NeedsRepairs;
+        var map = pawn.DepartMap ?? pawn.Map;
+        return !map.IsVehicleMapOf(out var vehicle) || !vehicle.statHandler.NeedsRepairs;
     }
 
     public override IEnumerable<IntVec3> PotentialWorkCellsGlobal(Pawn pawn)

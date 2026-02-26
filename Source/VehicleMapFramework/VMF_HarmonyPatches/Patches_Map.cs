@@ -393,15 +393,31 @@ public static class Patch_Map_MapUpdate
 [HarmonyPatch(typeof(MapPawns), nameof(MapPawns.AllPawns), MethodType.Getter)]
 public static class Patch_MapPawns_AllPawns
 {
-    private static readonly List<Pawn> tmpList = [];
+    private static readonly List<Pawn> tmpPawns = [];
+    private static readonly List<Map> tmpMaps = new(128);
 
     [PatchLevel(Level.Safe)]
     public static List<Pawn> Postfix(List<Pawn> __result, Map ___map)
     {
-        tmpList.Clear();
-        tmpList.AddRange(__result);
-        tmpList.AddRange(___map.VehicleMapsOnMap().SelectMany(m => AllPawns(m.mapPawns)));
-        return tmpList;
+        if (!___map.IsVehicleMap && VehiclePawnWithMapCache.AllVehiclesOn(___map).Count == 0)
+            return __result;
+
+        tmpPawns.Clear();
+        for (var i = 0; i < __result.Count; i++)
+        {
+            tmpPawns.Add(__result[i]);
+        }
+        tmpMaps.Clear();
+        ___map.VehicleMapsOnMap(tmpMaps);
+        foreach (var map in tmpMaps.AsReadOnlySpan())
+        {
+            var allPawns = AllPawns(map.mapPawns);
+            for (var i = 0; i < allPawns.Count; i++)
+            {
+                tmpPawns.Add(allPawns[i]);
+            }
+        }
+        return tmpPawns;
     }
 
     [PatchLevel(Level.Mandatory)]
@@ -415,17 +431,30 @@ public static class Patch_MapPawns_AllPawns
 [PatchLevel(Level.Mandatory)]
 public static class Patch_MapPawns_AllPawnsSpawned
 {
-    private static readonly List<Pawn> tmpList = [];
+    private static readonly List<Pawn> tmpPawns = [];
+    private static readonly List<Map> tmpMaps = new(128);
 
     public static IReadOnlyList<Pawn> Postfix(IReadOnlyList<Pawn> __result, Map ___map)
     {
         if (!___map.IsVehicleMap && VehiclePawnWithMapCache.AllVehiclesOn(___map).Count == 0)
             return __result;
-        
-        tmpList.Clear();
-        tmpList.AddRange(__result);
-        tmpList.AddRange(___map.VehicleMapsOnMap().SelectMany(m => AllPawnsSpawned(m.mapPawns)));
-        return tmpList;
+
+        tmpPawns.Clear();
+        for (var i = 0; i < __result.Count; i++)
+        {
+            tmpPawns.Add(__result[i]);
+        }
+        tmpMaps.Clear();
+        ___map.VehicleMapsOnMap(tmpMaps);
+        foreach (var map in tmpMaps.AsReadOnlySpan())
+        {
+            var allPawnsSpawned = AllPawnsSpawned(map.mapPawns);
+            for (var i = 0; i < allPawnsSpawned.Count; i++)
+            {
+                tmpPawns.Add(allPawnsSpawned[i]);
+            }
+        }
+        return tmpPawns;
     }
 
     [HarmonyReversePatch]
@@ -435,10 +464,25 @@ public static class Patch_MapPawns_AllPawnsSpawned
 [HarmonyPatch(typeof(MapPawns), nameof(MapPawns.FreeHumanlikesSpawnedOfFaction))]
 public static class Patch_MapPawns_FreeHumanlikesSpawnedOfFaction
 {
+    private static readonly List<Map> tmpMaps = new(128);
+    
     [PatchLevel(Level.Safe)]
     public static void Postfix(List<Pawn> __result, Map ___map, Faction faction)
     {
-        __result.AddRange(___map.VehicleMapsOnMap().SelectMany(m => FreeHumanlikesSpawnedOfFaction(m.mapPawns, faction)));
+        if (!___map.IsVehicleMap && VehiclePawnWithMapCache.AllVehiclesOn(___map).Count == 0)
+            return;
+
+        tmpMaps.Clear();
+        ___map.VehicleMapsOnMap(tmpMaps);
+        foreach (var map in tmpMaps.AsReadOnlySpan())
+        {
+            var freeHumanlikesSpawnedOfFaction = FreeHumanlikesSpawnedOfFaction(map.mapPawns, faction);
+            for (var i = 0; i < freeHumanlikesSpawnedOfFaction.Count; i++)
+            {
+                __result.Add(freeHumanlikesSpawnedOfFaction[i]);
+            }
+        }
+        return;
     }
 
     [PatchLevel(Level.Mandatory)]
@@ -452,7 +496,15 @@ public static class Patch_MapPawns_AnyPawnBlockingMapRemoval
 {
     public static void Postfix(ref bool __result, Map ___map)
     {
-        __result = __result || VehiclePawnWithMapCache.AllVehiclesOn(___map).Any(v => v.VehicleMap.mapPawns.AnyPawnBlockingMapRemoval);
+        if (__result) return;
+        foreach (var vehicle in VehiclePawnWithMapCache.AllVehiclesOnAsReadOnlySpan(___map))
+        {
+            if (vehicle.VehicleMap.mapPawns.AnyPawnBlockingMapRemoval)
+            {
+                __result = true;
+                return;
+            }
+        }
     }
 }
 

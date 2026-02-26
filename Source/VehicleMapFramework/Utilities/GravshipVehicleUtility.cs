@@ -250,16 +250,16 @@ namespace VehicleMapFramework
                     var result = vehiclePawn.VehicleGraphic.ParallelGetPreRenderResults(ref transform, false, vehiclePawn);
                     vehiclePawn.cachedDrawPos = result.position;
                 });
-                Delay.AfterNSeconds(0, () =>
+                FrameDelay.DelayOne(static state =>
                 {
-                    PlaceGravship(null, gravship, minOffset.RotatedBy(rotCounter) + IntVec3.NorthEast, vehiclePawn.VehicleMap);
-                    Delay.AfterNSeconds(0, () =>
+                    PlaceGravship(null, state.gravship, state.minOffset.RotatedBy(state.rotCounter) + IntVec3.NorthEast, state.vehiclePawn.VehicleMap);
+                    FrameDelay.DelayOne(static vehiclePawn =>
                     {
                         var compFueledTravel = vehiclePawn.CompFueledTravel;
                         compFueledTravel?.CompTick();
                         vehiclePawn.VehicleMap.mapDrawer.RegenerateLayerNow(typeof(SectionLayer_LightingOnVehicle));
-                    });
-                });
+                    }, state.vehiclePawn);
+                }, (gravship, minOffset, rotCounter, vehiclePawn));
 
                 var buildRoof = map.areaManager.BuildRoof;
                 var buildRoofCells = buildRoof.ActiveCells;

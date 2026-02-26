@@ -288,8 +288,19 @@ public static class Patch_IncidentWorker_OrbitalTraderArrival_TryExecuteWorker
     private static List<Building> AddBuildings(List<Building> list, IncidentParms parms)
     {
         buildings.Clear();
-        buildings.AddRange(list);
-        buildings.AddRange(VehiclePawnWithMapCache.AllVehiclesOn((Map)parms.target).SelectMany(v => v.VehicleMap.listerBuildings.allBuildingsColonist));
+        for (var i = 0; i < list.Count; i++)
+        {
+            buildings.Add(list[i]);
+        }
+
+        foreach (var vehicle in VehiclePawnWithMapCache.AllVehiclesOn((Map)parms.target))
+        {
+            var allBuildingsColonist = vehicle.VehicleMap.listerBuildings.allBuildingsColonist;
+            for (var i = 0; i < allBuildingsColonist.Count; i++)
+            {
+                buildings.Add(allBuildingsColonist[i]);
+            }
+        }
         return buildings;
     }
 

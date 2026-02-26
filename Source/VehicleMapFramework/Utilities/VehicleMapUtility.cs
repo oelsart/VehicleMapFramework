@@ -13,7 +13,6 @@ using Verse.AI.Group;
 
 namespace VehicleMapFramework;
 
-[HotSwap]
 public static class VehicleMapUtility
 {
     public const float YCompress = 40f;
@@ -65,33 +64,47 @@ public static class VehicleMapUtility
 
         public bool IsNonFocusedVehicleMap => map.IsNonFocusedVehicleMapOf(out _);
 
+        public bool CrossMapContext => map is not null &&
+            (map.IsVehicleMap || VehiclePawnWithMapCache.AllVehiclesOn(map).Count != 0);
+
         [UsedImplicitly] // Reflection access by Portable Blueprints
         public IEnumerable<Map> BaseMapAndVehicleMaps()
         {
             return map.BaseMapAndVehicleMaps(true);
         }
         
-        public IEnumerable<Map> BaseMapAndVehicleMaps(bool includeItself)
+        public HashSet<Map> BaseMapAndVehicleMaps(bool includeItself)
         {
+            if (map?.GetCachedMapComponent<VehiclePawnWithMapCache>() is not { } component)
+                return [];
+            var cache = component.cachedBaseMapAndVehicleMaps;
+            if (cache.lastCachedTick == GenTicks.TicksGame)
+            {
+                if (includeItself) cache.hashSet.Add(map);
+                else cache.hashSet.Remove(map);
+                return cache.hashSet;
+            }
+            
+            cache.lastCachedTick = GenTicks.TicksGame;
+            cache.hashSet.Clear();
             if (MultiFloors.Active && MultiFloors.GroundMap(map) != map)
             {
-                yield return map;
-                yield break;
+                if (includeItself) 
+                    cache.hashSet.Add(map);
+                return cache.hashSet;
             }
             var baseMap = map.BaseMap();
             if (baseMap is null)
-            {
-                yield break;
-            }
+                return cache.hashSet;
             if (includeItself || baseMap != map)
-                yield return baseMap;
+                cache.hashSet.Add(baseMap);
 
             if (baseMap.IsVehicleMapOf(out var vehicle) && vehicle.VehicleCaravanOrStashedVehicle is { } vehicleCaravanOrStashedVehicle)
             {
                 foreach (var vehicle2 in vehicleCaravanOrStashedVehicle.Vehicles)
                 {
                     if (vehicle != vehicle2 && vehicle2 is VehiclePawnWithMap vehiclePawnWithMap)
-                        yield return vehiclePawnWithMap.VehicleMap;
+                        cache.hashSet.Add(vehiclePawnWithMap.VehicleMap);
                 }
             }
             else
@@ -99,9 +112,10 @@ public static class VehicleMapUtility
                 foreach (var vehicle2 in VehiclePawnWithMapCache.AllVehiclesOn(baseMap))
                 {
                     if (includeItself || vehicle2.VehicleMap != map)
-                        yield return vehicle2.VehicleMap;
+                        cache.hashSet.Add(vehicle2.VehicleMap);
                 }
             }
+            return cache.hashSet;
         }
 
         public IEnumerable<Map> VehicleMapsOnMap()
@@ -120,6 +134,24 @@ public static class VehicleMapUtility
             else
                 foreach (var vehicle2 in VehiclePawnWithMapCache.AllVehiclesOn(map))
                     yield return vehicle2.VehicleMap;
+        }
+
+        public void VehicleMapsOnMap(List<Map> list)
+        {
+            if (map.IsVehicleMapOf(out var vehicle))
+            {
+                if (vehicle.VehicleCaravanOrStashedVehicle is { } vehicleCaravanOrStashedVehicle)
+                {
+                    foreach (var vehicle2 in vehicleCaravanOrStashedVehicle.Vehicles)
+                    {
+                        if (vehicle != vehicle2 && vehicle2 is VehiclePawnWithMap vehiclePawnWithMap)
+                            list.Add(vehiclePawnWithMap.VehicleMap);
+                    }
+                }
+            }
+            else
+                foreach (var vehicle2 in VehiclePawnWithMapCache.AllVehiclesOnAsReadOnlySpan(map))
+                    list.Add(vehicle2.VehicleMap);
         }
         
         [UsedImplicitly] // Reflection access by Portable Blueprints
