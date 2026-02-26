@@ -67,7 +67,6 @@ public class VehiclePawnWithMapCache(Map map) : MapComponent(map)
     public void ForceResetCache()
     {
         lastCachedTick = Find.TickManager.TicksGame;
-        cachedDrawPos.Clear();
         cachedPosOnBaseMap.Clear();
         cachedFullRot.Clear();
     }
@@ -78,6 +77,7 @@ public class VehiclePawnWithMapCache(Map map) : MapComponent(map)
         {
             ForceResetCache();
         }
+        cachedDrawPos.Clear(); // PawnのTweenerとの兼ね合いでDrawPosは毎フレームキャッシュクリアせねばならない
     }
 
     public override void MapComponentUpdate()
