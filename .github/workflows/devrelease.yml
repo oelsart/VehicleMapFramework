@@ -117,7 +117,9 @@ jobs:
       uses: actions/cache@v4
       with:
         path: ./steamcmd
-        key: steamcmd-static-v1
+        key: steamcmd-${{ github.run_id }}
+        restore-keys: |
+          steamcmd-
         enableCrossOsArchive: true
     
     - name: Install .NET
