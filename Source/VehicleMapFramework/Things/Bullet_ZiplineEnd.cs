@@ -16,6 +16,10 @@ public class Bullet_ZiplineEnd : Bullet_ZiplineBase
         LocalTargetInfo _intendedTarget, ProjectileHitFlags hitFlags, bool _preventFriendlyFire = false,
         Thing _equipment = null, ThingDef _targetCoverDef = null)
     {
+        if (!_usedTarget.HasThing && _launcher.TargetMap.IsVehicleMapOf(out var vehicle))
+        {
+            _usedTarget = _usedTarget.Cell.ToVehicleMapCoord(vehicle);
+        }
         base.Launch(_launcher, _origin, _usedTarget, _intendedTarget, hitFlags, _preventFriendlyFire, _equipment, _targetCoverDef);
         destination = ExactDestination;
         origin += ExactRotation * (Vector3.forward * (ZipLineData.LauncherOffset + DrawSize.y / 2f));
