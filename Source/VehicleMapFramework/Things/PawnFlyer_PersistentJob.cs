@@ -17,7 +17,7 @@ public class PawnFlyer_PersistentJob : PawnFlyer
     protected override void RespawnPawn()
     {
         // 保持しているJobを逃がしてダミーのJobをセットし、保持していたJobを後からスタートさせるややハック的な実装
-        if ((jobQueue(this)?.FirstOrDefault(), FlyingPawn) is ({ } queuedJob, { } pawn))
+        if ((jobQueue(this)?.FirstOrDefault(), FlyingPawn) is ({ } queuedJob and not { job.verbToUse: Verb_LaunchZipline }, { } pawn))
         {
             var job = queuedJob.job;
             queuedJob.job = JobMaker.MakeJob(JobDefOf.Wait_Combat);
