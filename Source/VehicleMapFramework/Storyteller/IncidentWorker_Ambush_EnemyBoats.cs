@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using RimWorld;
 using Vehicles;
 using Verse;
@@ -10,6 +11,14 @@ public class IncidentWorker_Ambush_EnemyBoats : IncidentWorker_Ambush_EnemyMapVe
 {
     protected override WorldObjectDef MapParentDef => VMF_DefOf.VMF_AmbushSea;
 
+    protected override List<Pawn> GeneratePawns(IncidentParms parms)
+    {
+        var defaultPawnGroupMakerParms = IncidentParmsUtility.GetDefaultPawnGroupMakerParms(VMF_DefOf.MV_ShipCombat, parms);
+        defaultPawnGroupMakerParms.generateFightersOnly = true;
+        defaultPawnGroupMakerParms.dontUseSingleUseRocketLaunchers = true;
+        return PawnGroupMakerUtility.GeneratePawns(defaultPawnGroupMakerParms).ToList();
+    }
+    
     protected override bool ValidRaiderVehicle(VehicleDef vehicleDef, VehicleCategory category, PawnsArrivalModeDef arrivalModeDef,
         Faction faction, float points)
     {

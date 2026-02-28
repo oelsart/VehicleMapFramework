@@ -1237,7 +1237,8 @@ public class VehiclePawnWithMap : VehiclePawn
         var vehicleDef = VehicleDef;
         var curSize = vehicleDef.Size;
         var mapRect = CellRect.WholeMap(VehicleMap);
-        var newRect = CellRect.FromCellList(mapRect.Except(CachedImpassableCells));
+        _ = CachedMapEdgeCells;
+        var newRect = ValidMapRect;
         var newSize = newRect.Size;
         if (curSize != newSize)
         {
@@ -1250,12 +1251,15 @@ public class VehiclePawnWithMap : VehiclePawn
             data.drawOffsetEast = offset.RotatedBy(Rot4.East);
             data.drawOffsetSouth = offset.RotatedBy(Rot4.South);
             data.drawOffsetWest = offset.RotatedBy(Rot4.West);
-            vehicleDef.components?.ForEach(component =>
+            if (vehicleDef.components is not null)
             {
-                component.hitbox.Hitbox.Clear();
-                component.hitbox.Initialize(vehicleDef);
-            });
-            
+                foreach (var component in vehicleDef.components)
+                {
+                    component.hitbox.Hitbox.Clear();
+                    component.hitbox.Initialize(vehicleDef);
+                }
+            }
+
             foreach (var map in Find.Maps)
             {
                 if (map.IsVehicleMap) continue;
@@ -1263,7 +1267,7 @@ public class VehiclePawnWithMap : VehiclePawn
                 var component = map.GetCachedMapComponent<VehiclePathingSystem>();
                 UniqueVehicleUtility.configsMap(component.GridOwners)[vehicleDef.DefIndex]
                     = UniqueVehicleUtility.PathConfigMap(vehicleDef);
-                UniqueVehicleUtility.GeneratePathData(component, vehicleDef);
+                UniqueVehicleUtility.GeneratePathData(component, FastInvokeHelper.SingleParam(vehicleDef));
             }
             
             if (Spawned)
@@ -1291,7 +1295,7 @@ public class VehiclePawnWithMap : VehiclePawn
                 
                 var component = Map.GetCachedMapComponent<VehiclePathingSystem>();
                 if (UniqueVehicleUtility.PathData is not null)
-                    UniqueVehicleUtility.PathData(vehiclePather, component[vehicleDef]);
+                    UniqueVehicleUtility.PathData(vehiclePather, FastInvokeHelper.SingleParam(component[vehicleDef]));
 #if DEV
                 if (!component.ThreadAvailable ||
                     component.dedicatedThread.State == DedicatedThread.ThreadState.Running)

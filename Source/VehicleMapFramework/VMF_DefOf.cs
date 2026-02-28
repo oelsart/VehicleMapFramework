@@ -67,6 +67,8 @@ public static class VMF_DefOf
 
     public static DutyDef VMF_RangedBoatAggressive;
 
+    public static PawnGroupKindDef MV_ShipCombat;
+
     [MayRequireOdyssey]
     public static VehicleDef VMF_GravshipVehicleBase;
 
