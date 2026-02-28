@@ -933,4 +933,9 @@ internal static class ModCompat
             }
         }
     }
+
+    public static class GestaltEngine
+    {
+        public const string HarmonyId = "GestaltEngine.Mod";
+    }
 }
