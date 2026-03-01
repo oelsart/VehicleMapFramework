@@ -8,6 +8,7 @@ public class CompWirelessReceiver : CompToggleLitGraphic, IThingGlower
 
     public override void CompTick()
     {
+        if (!parent.Spawned) return;
         base.CompTick();
         if (Find.TickManager.TicksGame % CompWirelessTransmitter.ticksInterval != 0) return;
 
