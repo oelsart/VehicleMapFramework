@@ -174,7 +174,7 @@ public class Verb_LaunchZipline : Verb_LaunchProjectile, IAbilityVerb
             c =>
                 GenSightOnVehicle.LineOfSight(caster.PositionOnBaseMap, c, baseMap) &&
                 (JumpUtility.ValidJumpTarget(caster, baseMap, c) ||
-                 baseMap.GetCachedMapComponent<VehicleMapGrid>().VehicleAt(c) is { } vehicle &&
+                 c.InBounds(baseMap) && baseMap.GetCachedMapComponent<VehicleMapGrid>().VehicleAt(c) is { } vehicle &&
                  JumpUtility.ValidJumpTarget(caster, vehicle.VehicleMap, c.ToVehicleMapCoord(vehicle))));
     }
 
