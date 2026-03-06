@@ -283,10 +283,12 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
                 return scanner.JobOnCell(pawn, target.Cell, forced);
             }
 
-            if (pawn.CanReach(target.Cell, scanner.PathEndMode, scanner.MaxPathDanger(pawn), false, false,
+            var target2 = target.Cell.GetEdifice(targetMap) ?? (LocalTargetInfo)target.Cell;
+            if (pawn.CanReach(target2, scanner.PathEndMode, scanner.MaxPathDanger(pawn), false, false,
                     TraverseMode.ByPawn, targetMap, out var exitSpot, out var enterSpot, out var spotsQueue))
             {
-                var cell2 = CellFinder.StandableCellNear(target.Cell, targetMap, 1f);
+                var cell2 = CellFinder.StandableCellNear(target.Cell, targetMap, 1.5f);
+                if (!cell2.IsValid) cell2 = target.Cell;
                 using (new VirtualTeleporter(pawn, targetMap, cell2))
                 {
                     var job = scanner.JobOnCell(pawn, target.Cell, forced);
