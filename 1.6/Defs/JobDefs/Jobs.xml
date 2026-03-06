@@ -53,10 +53,4 @@
 		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
 	</JobDef>
 	
-	<JobDef>
-		<defName>VMF_GotoShipCombat</defName>
-		<driverClass>VehicleMapFramework.JobDriver_GotoShipCombat</driverClass>
-		<reportString>moving.</reportString>
-	</JobDef>
-	
 </Defs>
