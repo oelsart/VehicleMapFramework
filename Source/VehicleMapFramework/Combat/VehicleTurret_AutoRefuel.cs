@@ -38,7 +38,8 @@ public class VehicleTurret_AutoRefuel : VehicleTurret
     {
         LongEventHandler.ExecuteWhenFinished(() =>
         {
-            RefuelVehicleTurret = (WorkGiver_RefuelVehicleTurret)DefDatabase<WorkGiverDef>.GetNamed("PackVehicleTurret").Worker;
+            const string PackVehicleTurret = "PackVehicleTurret";
+            RefuelVehicleTurret = (WorkGiver_RefuelVehicleTurret)DefDatabase<WorkGiverDef>.GetNamed(PackVehicleTurret).Worker;
         });
     }
     

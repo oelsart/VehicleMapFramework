@@ -482,7 +482,6 @@ public static class Patch_MapPawns_FreeHumanlikesSpawnedOfFaction
                 __result.Add(freeHumanlikesSpawnedOfFaction[i]);
             }
         }
-        return;
     }
 
     [PatchLevel(Level.Mandatory)]
@@ -868,6 +867,7 @@ public static class Patch_HealthCardUtility_CreateSurgeryBill
 
 [HarmonyPatch]
 [PatchLevel(Level.Sensitive)]
+[HarmonyAfter(GestaltEngine.HarmonyId)]
 public static class Patch_ITab_Bills_FillTab_Delegate
 {
     private static MethodBase TargetMethod()
@@ -878,7 +878,7 @@ public static class Patch_ITab_Bills_FillTab_Delegate
             {
                 if (!m.Name.Contains("<FillTab>")) return false;
                 return VMF_Harmony.ReadMethodBodyWrapper(m).Any(i =>
-                    AccessTools.Field(typeof(Map), nameof(Map.mapPawns)).Equals(i.Value));
+                    CachedMethodInfo.g_Thing_Map.Equals(i.Value));
             });
         });
     }

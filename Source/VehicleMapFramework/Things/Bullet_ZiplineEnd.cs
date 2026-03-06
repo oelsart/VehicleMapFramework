@@ -10,7 +10,11 @@ public class Bullet_ZiplineEnd : Bullet_ZiplineBase
 {
     public Map destMap;
     
-    protected Vector3 ExactDestination => destMap != null ? intendedTarget.Cell.ToVector3Shifted().ToBaseMapCoord(destMap) : intendedTarget.Cell.ToVector3Shifted();
+    public int TicksToImpact => ticksToImpact;
+    
+    protected Vector3 ExactDestination => destMap != null
+        ? intendedTarget.Cell.ToVector3Shifted().ToBaseMapCoord(destMap)
+        : intendedTarget.Cell.ToVector3Shifted();
     
     public override void Launch(Thing _launcher, Vector3 _origin, LocalTargetInfo _usedTarget,
         LocalTargetInfo _intendedTarget, ProjectileHitFlags hitFlags, bool _preventFriendlyFire = false,
@@ -23,6 +27,12 @@ public class Bullet_ZiplineEnd : Bullet_ZiplineBase
         base.Launch(_launcher, _origin, _usedTarget, _intendedTarget, hitFlags, _preventFriendlyFire, _equipment, _targetCoverDef);
         destination = ExactDestination;
         origin += ExactRotation * (Vector3.forward * (ZipLineData.LauncherOffset + DrawSize.y / 2f));
+        ticksToImpact = Mathf.CeilToInt(StartingTicksToImpact);
+        if (ticksToImpact < 1)
+        {
+            ticksToImpact = 1;
+        }
+        lifetime = ticksToImpact;
     }
 
     protected override void TickInterval(int delta)

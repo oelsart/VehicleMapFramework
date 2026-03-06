@@ -57,9 +57,8 @@ public class VehicleCaravanIncidentUtility
         }
     }
 
-    public static void SpawnEnemies(Map map, List<VehiclePawnWithMap> vehicles, List<Pawn> enemies, Rot4 edge, VehiclePawn playerVehicle = null)
+    public static void SpawnEnemies(Map map, List<VehiclePawnWithMap> vehicles, List<Pawn> enemies, Rot4? edge = null, VehiclePawn playerVehicle = null)
     {
-        var opposite = edge.Opposite;
         vehicles.SortBy(v => v.CompNpcVehicleMap?.Props.pawnCountWeight ?? 0f);
         var pawnCounts = PawnAllocation();
         var index = 0;
@@ -146,8 +145,9 @@ public class VehicleCaravanIncidentUtility
 
         bool SpawnVehicle(VehiclePawnWithMap vehicle)
         {
-            var cell = CellFinder.RandomEdgeCell(edge, map);
-            vehicle.Rotation = opposite;
+            var rot = edge?.Opposite ?? Rot4.Random;
+            var cell = edge.HasValue ? CellFinder.RandomEdgeCell(edge.Value, map) : map.Center;
+            vehicle.Rotation = rot;
             var pathData = mapping[vehicle.VehicleDef];
             if (!pathData.VehiclePathGrid.Enabled) pathData.VehiclePathGrid.RecalculateAllPerceivedPathCosts();
             if (!pathData.VehicleRegionAndRoomUpdater.Enabled) pathData.VehicleRegionAndRoomUpdater.Init();
@@ -164,7 +164,7 @@ public class VehicleCaravanIncidentUtility
                 vehicle.Destroy();
                 return false;
             }
-            var result = GenSpawn.Spawn(vehicle, pos2, map, opposite) != null;
+            var result = GenSpawn.Spawn(vehicle, pos2, map, rot) != null;
             return result;
         }
     }

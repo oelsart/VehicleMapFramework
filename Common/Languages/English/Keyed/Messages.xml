@@ -15,6 +15,7 @@
 	<VMF_CannotSpawn>{0} cannot spawn.</VMF_CannotSpawn>
 
 	<VMF_MustShotAtAnotherMap>Ziplines must be shot at another map.</VMF_MustShotAtAnotherMap>
+	<VMF_GrapplingHookAlreadyLaunched>The grappling hook has already been deployed.</VMF_GrapplingHookAlreadyLaunched>
 	
 	<VMF_ApplyingDynamicPatches>Applying Dynamic Patches</VMF_ApplyingDynamicPatches>
 	<VMF_UnpatchingDynamicPatches>Unpatching Dynamic Patches</VMF_UnpatchingDynamicPatches>

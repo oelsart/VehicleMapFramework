@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using RimWorld;
 using UnityEngine;
@@ -10,13 +11,15 @@ namespace VehicleMapFramework;
 public class CompWirelessTransmitter : CompToggleLitGraphic
 {
     public new CompProperties_WirelessCharger Props => (CompProperties_WirelessCharger)props;
+    private static readonly List<CompPowerTrader> tmpList = [];
 
     public override void CompTick()
     {
+        if (!parent.Spawned) return;
         base.CompTick();
         if (Find.TickManager.TicksGame % ticksInterval != 0) return;
 
-        foreach (var c in parent.OccupiedRect().ExpandedBy(1).Cells)
+        foreach (var c in parent.OccupiedRect().ExpandedBy(1))
         {
             if (!c.InBounds(parent.Map)) continue;
             if (c.TryGetVehicleMap(parent.Map, out var vehicle))
@@ -35,15 +38,22 @@ public class CompWirelessTransmitter : CompToggleLitGraphic
                     }
 
                     var powerNet = compReceiver.PowerNet;
-                    var powerComps = compReceiver.PowerNet.powerComps.Where(p => p != compReceiver);
-                    if (powerComps.Any(p => !p.PowerOn && FlickUtility.WantsToBeOn(p.parent) && !p.parent.IsBrokenDown()))
+                    tmpList.Clear();
+                    foreach (var comp in compReceiver.PowerNet.powerComps)
+                    {
+                        if (comp != compReceiver)
+                        {
+                            tmpList.Add(comp);
+                        }
+                    }
+                    if (tmpList.Any(p => !p.PowerOn && FlickUtility.WantsToBeOn(p.parent) && !p.parent.IsBrokenDown()))
                     {
                         PowerOutput = Mathf.Max(PowerOutput - 10f, -powerOutputSetting);
                     }
                     else
                     {
                         var sumBatteriesDiscarge = powerNet.batteryComps.Count * 5f;
-                        var needs = ((powerNet.batteryComps.Sum(b => b.AmountCanAccept) - powerComps.Sum(p => p.EnergyOutputPerTick)) / WattsToWattDaysPerTick) + sumBatteriesDiscarge;
+                        var needs = ((powerNet.batteryComps.Sum(b => b.AmountCanAccept) - tmpList.Sum(p => p.EnergyOutputPerTick)) / WattsToWattDaysPerTick) + sumBatteriesDiscarge;
                         PowerOutput = -Mathf.Clamp((needs / Props.powerLossFactor) + 1E-07f, sumBatteriesDiscarge, powerOutputSetting);
                     }
                     compReceiver.shouldBeLitNow = true;
@@ -75,7 +85,7 @@ public class CompWirelessTransmitter : CompToggleLitGraphic
             action = delegate
             {
                 powerOutputSetting = Mathf.Clamp(powerOutputSetting - 1000f, minPowerOutput, maxPowerOutput);
-                MoteMaker.ThrowText(parent.DrawPos, parent.BaseMap(), powerOutputSetting.ToString(), Color.white);
+                MoteMaker.ThrowText(parent.DrawPos, parent.BaseMap(), powerOutputSetting.ToString(CultureInfo.CurrentCulture), Color.white);
             },
             defaultLabel = "-1000W",
             defaultDesc = "VMF_LowerPowerDesc".Translate(),
@@ -87,7 +97,7 @@ public class CompWirelessTransmitter : CompToggleLitGraphic
             action = delegate
             {
                 powerOutputSetting = Mathf.Clamp(powerOutputSetting - 100f, minPowerOutput, maxPowerOutput);
-                MoteMaker.ThrowText(parent.DrawPos, parent.BaseMap(), powerOutputSetting.ToString(), Color.white);
+                MoteMaker.ThrowText(parent.DrawPos, parent.BaseMap(), powerOutputSetting.ToString(CultureInfo.CurrentCulture), Color.white);
             },
             defaultLabel = "-100W",
             defaultDesc = "VMF_LowerPowerDesc".Translate(),
@@ -100,7 +110,7 @@ public class CompWirelessTransmitter : CompToggleLitGraphic
             {
                 powerOutputSetting = 500f;
                 SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                MoteMaker.ThrowText(parent.DrawPos, parent.BaseMap(), powerOutputSetting.ToString(), Color.white);
+                MoteMaker.ThrowText(parent.DrawPos, parent.BaseMap(), powerOutputSetting.ToString(CultureInfo.CurrentCulture), Color.white);
             },
             defaultLabel = "VMF_ResetPower".Translate(),
             defaultDesc = "VMF_ResetPowerDesc".Translate(),
@@ -112,7 +122,7 @@ public class CompWirelessTransmitter : CompToggleLitGraphic
             action = delegate
             {
                 powerOutputSetting = Mathf.Clamp(powerOutputSetting + 100f, minPowerOutput, maxPowerOutput);
-                MoteMaker.ThrowText(parent.DrawPos, parent.BaseMap(), powerOutputSetting.ToString(), Color.white);
+                MoteMaker.ThrowText(parent.DrawPos, parent.BaseMap(), powerOutputSetting.ToString(CultureInfo.CurrentCulture), Color.white);
             },
             defaultLabel = "+100W",
             defaultDesc = "VMF_RaisePowerDesc".Translate(),
@@ -124,7 +134,7 @@ public class CompWirelessTransmitter : CompToggleLitGraphic
             action = delegate
             {
                 powerOutputSetting = Mathf.Clamp(powerOutputSetting + 1000f, minPowerOutput, maxPowerOutput);
-                MoteMaker.ThrowText(parent.DrawPos, parent.BaseMap(), powerOutputSetting.ToString(), Color.white);
+                MoteMaker.ThrowText(parent.DrawPos, parent.BaseMap(), powerOutputSetting.ToString(CultureInfo.CurrentCulture), Color.white);
             },
             defaultLabel = "+1000W",
             defaultDesc = "VMF_RaisePowerDesc".Translate(),
@@ -136,7 +146,7 @@ public class CompWirelessTransmitter : CompToggleLitGraphic
     public override void PostDrawExtraSelectionOverlays()
     {
         var rect = CellRect.SingleCell(parent.Position);
-        GenDraw.DrawFieldEdges([.. rect.ExpandedBy(1).Cells]);
+        GenDraw.DrawFieldEdges([.. rect.ExpandedBy(1)]);
     }
 
     public override void PostExposeData()

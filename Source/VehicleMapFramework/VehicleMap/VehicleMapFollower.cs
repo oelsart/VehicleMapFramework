@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using SmashTools;
 using UnityEngine;
@@ -30,6 +29,7 @@ public class VehicleMapFollower(VehiclePawnWithMap vehicle)
 
         if (vehicle.Position != prevCell)
         {
+            vehicle.enterPositionsDirty = true;
             CrossMapReachabilityCache.ClearCacheFor(vehicle.VehicleMap);
             if (ticksToMove > 0)
             {
@@ -50,6 +50,8 @@ public class VehicleMapFollower(VehiclePawnWithMap vehicle)
         }
         if (vehicle.FullRotation != prevRot)
         {
+            vehicle.enterPositionsDirty = true;
+            CrossMapReachabilityCache.ClearCacheFor(vehicle.VehicleMap);
             UpdatePositionAndRotation();
             prevRot = vehicle.FullRotation;
         }
@@ -118,16 +120,17 @@ public class VehicleMapFollower(VehiclePawnWithMap vehicle)
         var c4 = new IntVec3(mapSize.x - 1, 0, mapSize.z - 1).ToBaseMapCoord(vehicle);
         var cellRect = CellRect.FromLimits(Mathf.Min(c1.x, c2.x, c3.x, c4.x), Mathf.Min(c1.z, c2.z, c3.z, c4.z), Mathf.Max(c1.x, c2.x, c3.x, c4.x), Mathf.Max(c1.z, c2.z, c3.z, c4.z));
         
-        Span<IntVec3> adjBuffer = stackalloc IntVec3[5];
         var map = vehicle.Map;
         foreach (var cell in cellRect)
         {
             if (cell.ToVector3Shifted().TryGetVehicleMap(map, vehicle))
             {
-                var adjCount = cell.AdjacentCellsInsideCardinalNonAlloc(map, adjBuffer);
-                for (var i = 0; i < adjCount; i++)
+                var adj = GenAdj.AdjacentCellsAndInside;
+                for (var i = 0; i < 5; i++)
                 {
-                    tmpOccupiedCells.Add(adjBuffer[i]);
+                    var cell2 = cell + adj[i];
+                    if (cell2.InBounds(map))
+                        tmpOccupiedCells.Add(cell2);
                 }
             }
         }

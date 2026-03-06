@@ -283,10 +283,12 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
                 return scanner.JobOnCell(pawn, target.Cell, forced);
             }
 
-            if (pawn.CanReach(target.Cell, scanner.PathEndMode, scanner.MaxPathDanger(pawn), false, false,
+            var target2 = target.Cell.GetEdifice(targetMap) ?? (LocalTargetInfo)target.Cell;
+            if (pawn.CanReach(target2, scanner.PathEndMode, scanner.MaxPathDanger(pawn), false, false,
                     TraverseMode.ByPawn, targetMap, out var exitSpot, out var enterSpot, out var spotsQueue))
             {
-                var cell2 = CellFinder.StandableCellNear(target.Cell, targetMap, 1f);
+                var cell2 = CellFinder.StandableCellNear(target.Cell, targetMap, 1.5f);
+                if (!cell2.IsValid) cell2 = target.Cell;
                 using (new VirtualTeleporter(pawn, targetMap, cell2))
                 {
                     var job = scanner.JobOnCell(pawn, target.Cell, forced);
@@ -459,7 +461,7 @@ public static class Patch_Pawn_PathFollower_StartPath
 {
     public static bool Prefix(LocalTargetInfo dest, PathEndMode peMode, Pawn ___pawn)
     {
-        if (___pawn.jobs is null or {curDriver: JobDriver_GotoAcrossMaps } or { curJob: null }) return true;
+        if (___pawn.jobs is null or {curDriver: JobDriverAcrossMaps } or { curJob: null }) return true;
 
         var flag = false;
         var destMap = dest.Thing?.MapHeld;
@@ -1267,7 +1269,7 @@ public static class Patch_WanderUtility_GetColonyWanderRoot
 }
 
 [HarmonyPatch(typeof(Reachability), nameof(Reachability.ClearCache))]
-[PatchLevel(Level.Safe)]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_Reachability_ClearCache
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -1278,6 +1280,7 @@ public static class Patch_Reachability_ClearCache
             .InsertAfter(
                 CodeInstruction.LoadArgument(0),
                 CodeInstruction.LoadField(typeof(Reachability), "map"),
+                new CodeInstruction(OpCodes.Ldc_I4_0),
                 CodeInstruction.Call(typeof(CrossMapReachabilityCache),
                     nameof(CrossMapReachabilityCache.ClearCacheFor)))
             .InstructionEnumeration();

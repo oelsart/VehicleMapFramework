@@ -1,11 +1,9 @@
-﻿using JetBrains.Annotations;
-using RimWorld;
+﻿using RimWorld;
 using SmashTools;
 using Verse;
 
 namespace VehicleMapFramework;
 
-[UsedImplicitly]
 public class VehicleStructure : Building
 {
     public override void PreApplyDamage(ref DamageInfo dinfo, out bool absorbed)

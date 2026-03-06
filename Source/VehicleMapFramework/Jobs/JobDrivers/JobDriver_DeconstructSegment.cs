@@ -22,7 +22,7 @@ public class JobDriver_DeconstructSegment : JobDriver_RemoveBuilding
             yield return toil;
             if (toil.debugName == "GotoThing")
             {
-                var toil2 = ToilMaker.MakeToil("GotoCell");
+                var toil2 = ToilMaker.MakeToil();
                 toil2.initAction = () =>
                 {
                     if (!RCellFinder.TryFindGoodAdjacentSpotToTouch(pawn, Target, out var cell))
