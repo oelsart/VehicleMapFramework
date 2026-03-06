@@ -97,7 +97,7 @@ public static class RegionTraverserAcrossMaps
                             continue;
                         }
                     }
-                    foreach (var thing in ziplines.SelectMany(def => region.ListerThings.ThingsOfDef(def)))
+                    foreach (var thing in ZiplineDefs.SelectMany(def => region.ListerThings.ThingsOfDef(def)))
                     {
                         if (!thing.TryGetComp<CompZipline>(out var comp) || comp.Pair is null or { Spawned: false }) continue;
                         var pair = comp.Pair;
@@ -126,7 +126,7 @@ public static class RegionTraverserAcrossMaps
 
     public static readonly RegionEntryPredicate PassAll;
 
-    private static readonly List<ThingDef> ziplines;
+    public static IReadOnlyList<ThingDef> ZiplineDefs { get; } = DefDatabase<ThingDef>.AllDefs.Where(d => d.HasAssignableCompFrom(typeof(CompZipline))).ToList();
 
     public static District FloodAndSetDistricts(Region root, Map map, District existingRoom)
     {
@@ -222,7 +222,6 @@ public static class RegionTraverserAcrossMaps
         NumWorkers = 8;
         PassAll = (_, _) => true;
         RecreateWorkers();
-        ziplines = DefDatabase<ThingDef>.AllDefs.Where(d => d.HasAssignableCompFrom(typeof(CompZipline))).ToList();
     }
 
     public static void RecreateWorkers()

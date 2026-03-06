@@ -1,23 +1,34 @@
-﻿using Verse;
+﻿using LudeonTK;
+using Verse;
 
 namespace VehicleMapFramework;
 
 public static class TargetMapUtility
 {
     public static TargetMapManager manager;
+    
+    private static bool logging;
 
     extension(Thing thing)
     {
         public TargetInfo TargetInfo
         {
-            get => manager?.TargetInfoTable.TryGetValue(thing, out var box) ?? false ? box.Value : TargetInfo.Invalid;
-            set => manager?.GetOrCreateTargetInfo(thing)?.Value = value;
+            get => manager?.TargetInfoTable.TryGetValue(thing, out var box) is true ? box.Value : TargetInfo.Invalid;
+            set
+            {
+                if (logging) VMF_Log.Message($"Set TargetInfo ({value}) to {thing}");
+                manager?.GetOrCreateTargetInfo(thing)?.Value = value;
+            }
         }
 
         public Map TargetMap
         {
-            get => manager?.TargetInfoTable.TryGetValue(thing, out var box) ?? false ? box.Value.Map : null;
-            set => manager?.GetOrCreateTargetInfo(thing)?.Value = new TargetInfo(IntVec3.Invalid, value);
+            get => manager?.TargetInfoTable.TryGetValue(thing, out var box) is true ? box.Value.Map : null;
+            set
+            {
+                if (logging) VMF_Log.Message($"Set TargetMap ({value}) to {thing}");
+                manager?.GetOrCreateTargetInfo(thing)?.Value = new TargetInfo(IntVec3.Invalid, value);
+            }
         }
 
         public void RemoveTargetInfo()
@@ -25,7 +36,7 @@ public static class TargetMapUtility
             if (thing is null || manager is null) return;
             if (manager.TargetInfoTable.TryGetValue(thing, out var box))
             {
-                VMF_Log.DebugMessage($"Remove TargetInfo: {thing}");
+                if (logging) VMF_Log.Message($"Remove TargetInfo ({box.Value}) from {thing}");
                 box.Value = TargetInfo.Invalid;
             }
         }
@@ -95,5 +106,11 @@ public static class TargetMapUtility
     public static Map TargetMapOrMap(Map map, Thing thing)
     {
         return thing.TargetMap ?? map;
+    }
+    
+    [DebugAction(VehicleMapFramework.CategoryName, "Toggle Logging TargetMapManager")]
+    private static void ToggleLogging()
+    {
+        logging = !logging;
     }
 }

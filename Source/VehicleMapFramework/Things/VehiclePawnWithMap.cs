@@ -36,11 +36,13 @@ public class VehiclePawnWithMap : VehiclePawn
 
     private bool allowExit = true;
 
-    public bool impassableCellsDirty;
+    public bool impassableCellsDirty = true;
 
-    public bool mapEdgeCellsDirty;
+    public bool mapEdgeCellsDirty = true;
 
-    private int standableCellsCachedTick;
+    private bool walkableCellsDirty = true;
+
+    public bool enterPositionsDirty = true;
 
     private int cellDesignationsDirtyTick;
 
@@ -119,14 +121,31 @@ public class VehiclePawnWithMap : VehiclePawn
     {
         get
         {
-            if (field != null && !impassableCellsDirty) return field;
-            impassableCellsDirty = false;
-            field = [.. interiorMap.listerThings.ThingsOfDef(VMF_DefOf.VMF_VehicleStructureFilled)
-                .Select(b => b.Position)
-                .Concat(interiorMap.AllCells.Where(c => c.GetTerrain(interiorMap) is { passability: Traversability.Impassable }))];
+            if (impassableCellsDirty)
+            {
+                impassableCellsDirty = false;
+                field.Clear();
+                var sizeX = interiorMap.Size.x;
+                var sizeZ = interiorMap.Size.z;
+                var terrainGrid = interiorMap.terrainGrid;
+                for (var x = 0; x < sizeX; x++)
+                {
+                    for (var z = 0; z < sizeZ; z++)
+                    {
+                        if (terrainGrid.TerrainAt(z * sizeX + x) is { passability: Traversability.Impassable })
+                            field.Add(new IntVec3(x, 0, z));
+                    }
+                }
+
+                var list = interiorMap.listerThings.ThingsOfDef(VMF_DefOf.VMF_VehicleStructureFilled);
+                for (var i = 0; i < list.Count; i++)
+                {
+                    field.Add(list[i].Position);
+                }
+            }
             return field;
         }
-    }
+    } = [];
 
     public HashSet<IntVec3> CachedEmptyStructureCells
     {
@@ -181,45 +200,142 @@ public class VehiclePawnWithMap : VehiclePawn
             return field;
         }
     }
+    
+    public CellRect ValidMapRect { get; private set; }
 
-    public HashSet<IntVec3> CachedMapEdgeCells
+    public List<IntVec3> CachedMapEdgeCells
     {
         get
         {
-            if (field != null && !mapEdgeCellsDirty) return field;
-            field ??= [];
-            field.Clear();
-            foreach (var c in CellRect.WholeMap(interiorMap).EdgeCells)
+            if (mapEdgeCellsDirty)
             {
-                var facingInside = c.DirectionToInsideMap(this).FacingCell;
-                var c2 = c;
-                while (CachedOutOfBoundsCells.Contains(c2) || (CachedExpandableCells.Contains(c2) && CachedImpassableCells.Contains(c2)))
-                {
-                    c2 += facingInside;
-                }
-                if (c2.InBounds(interiorMap))
-                {
-                    field.Add(c2);
-                }
-            }
-            return field;
-        }
-    }
-
-    public HashSet<IntVec3> CachedWalkableMapEdgeCells
-    {
-        get
-        {
-            if (standableCellsCachedTick != GenTicks.TicksGame || Find.TickManager.Paused)
-            {
-                standableCellsCachedTick = GenTicks.TicksGame;
+                mapEdgeCellsDirty = false;
+                walkableCellsDirty = true;
+                enterPositionsDirty = true;
                 field.Clear();
-                foreach (var c in CachedMapEdgeCells)
-                    if (c.Walkable(interiorMap)) field.Add(c);
+                var cellRect = interiorMap.BoundsRect(1);
+                for (var i = 0; i < 4; i++)
+                {
+                    var rot = new Rot4(i);
+                    var facingInside = rot.Opposite.FacingCell;
+                    var cells = cellRect.GetEdgeCells(rot);
+                    // GetEdgeCellsはminからの列挙なので東と南は反転させ時計回りにしておく。
+                    cells = rot is { AsInt: Rot4.EastInt or Rot4.SouthInt } ? cells.Reverse() : cells;
+                    foreach (var c in cells)
+                    {
+                        var c2 = c;
+                        while (CachedOutOfBoundsCells.Contains(c2) ||
+                               (CachedExpandableCells.Contains(c2) && CachedImpassableCells.Contains(c2)))
+                        {
+                            c2 += facingInside;
+                        }
+
+                        if (c2.InBounds(interiorMap))
+                        {
+                            field.AddUnique(c2);
+                        }
+                    }
+                }
+                ValidMapRect = CellRect.FromCellList(field);
             }
             return field;
         }
     } = [];
+
+    public Dictionary<IntVec3, District> CachedWalkableMapEdgeCells
+    {
+        get
+        {
+            if (walkableCellsDirty)
+            {
+                var mapEdgeCells = CachedMapEdgeCells;
+                walkableCellsDirty = false;
+                CrossMapReachabilityCache.ClearCacheFor(interiorMap);
+                field.Clear();
+                CachedEdgeDistricts.Clear();
+                for (var i = 0; i < mapEdgeCells.Count; i++)
+                {
+                    var cell = mapEdgeCells[i];
+                    if (cell.Walkable(interiorMap))
+                    {
+                        var district = RegionAndRoomQuery.DistirctAtFast(cell, interiorMap);
+                        field[cell] = district;
+                        CachedEdgeDistricts.Add(district);
+                    }
+                }
+            }
+            return field;
+        }
+    } = [];
+
+    public HashSet<District> CachedEdgeDistricts
+    {
+        get
+        {
+            _ = CachedWalkableMapEdgeCells;
+            return field;
+        }
+    } = [];
+
+    public List<IntVec3?> CachedEnterPositions
+    {
+        get
+        {
+            if (enterPositionsDirty)
+            {
+                var mapEdgeCells = CachedMapEdgeCells;
+                enterPositionsDirty = false;
+                CrossMapReachabilityCache.ClearCacheFor(interiorMap);
+                field.Clear();
+                for (var i = 0; i < mapEdgeCells.Count; i++)
+                {
+                    field.Add(null);
+                }
+            }
+            return field;
+        }
+    } = [];
+
+    public IntVec3 GetCachedEnterPosition(int index)
+    {
+        var enterPositions = CachedEnterPositions;
+        var pos = enterPositions[index];
+        if (pos.HasValue) return pos.Value;
+
+        var cell = CachedMapEdgeCells[index];
+        pos = enterPositions[index] = CachedWalkableMapEdgeCells.ContainsKey(cell) &&
+                                      CrossMapReachabilityUtility.EnterVehiclePosition(
+                                              new TargetInfo(cell, interiorMap)) is
+                                          { IsValid: true } c
+            ? c
+            : IntVec3.Invalid;
+        return pos.Value;
+    }
+
+    private void WalkableCellsDirtyIfNeeded(Building building)
+    {
+        if (!building.def.AffectsReachability) return;
+        foreach (var c in building.OccupiedRect())
+        {
+            if (CachedMapEdgeCells.Contains(c))
+            {
+                walkableCellsDirty = true;
+                enterPositionsDirty = true;
+                CrossMapReachabilityCache.ClearCacheFor(interiorMap);
+                break;
+            }
+        }
+    }
+    
+    private void WalkableCellsDirtyIfNeeded(IntVec3 c)
+    {
+        if (CachedMapEdgeCells.Contains(c))
+        {
+            walkableCellsDirty = true;
+            enterPositionsDirty = true;
+            CrossMapReachabilityCache.ClearCacheFor(interiorMap);
+        }
+    }
 
     public CompNpcVehicleMap CompNpcVehicleMap => field ??= GetComp<CompNpcVehicleMap>();
     
@@ -323,16 +439,48 @@ public class VehiclePawnWithMap : VehiclePawn
             yield return new Command_Toggle
             {
                 defaultLabel = "Debug draw: bridge cells",
-                Order = 5001,
+                Order = 5005,
                 isActive = () => CompMapExpander.debugDraw,
                 toggleAction = () => CompMapExpander.debugDraw = !CompMapExpander.debugDraw
             };
+            yield return new Command_Action
+            {
+                defaultLabel = "Flash CachedMapEdgeCells",
+                Order = 5001,
+                action = () =>
+                {
+                    foreach (var c in CachedMapEdgeCells) interiorMap.debugDrawer.FlashCell(c);
+                }
+            };
+            yield return new Command_Action
+            {
+                defaultLabel = "Flash CachedWalkableMapEdgeCells",
+                Order = 5002,
+                action = () =>
+                {
+                    foreach (var c in CachedWalkableMapEdgeCells.Keys) interiorMap.debugDrawer.FlashCell(c);
+                }
+            };
+            yield return new Command_Action
+            {
+                defaultLabel = "Flash CachedEnterPositions",
+                Order = 5003,
+                action = () =>
+                {
+                    for (var i = 0; i < CachedMapEdgeCells.Count; i++)
+                    {
+                        var pos = GetCachedEnterPosition(i);
+                        if (pos.IsValid) Map.debugDrawer.FlashCell(pos);
+                    }
+                }
+            };
         }
     }
-
+    
     public List<CompVehicleEnterSpot> GetSortedEnterComps(IntVec3 cell, EnterCompKind kind = EnterCompKind.All)
     {
         tmpEnterComps.Clear();
+        if (EnterComps.Empty()) return tmpEnterComps;
         for (var i = 0; i < EnterComps.Count; i++)
         {
             var comp = EnterComps[i];
@@ -412,14 +560,20 @@ public class VehiclePawnWithMap : VehiclePawn
 
     public override void SpawnSetup(Map map, bool respawningAfterLoad)
     {
-        if (interiorMap == null)
+        if (interiorMap is null)
         {
             GenerateVehicleMap(map);
+            interiorMap?.events.BuildingSpawned += WalkableCellsDirtyIfNeeded;
+            interiorMap?.events.PathCostRecalculate += WalkableCellsDirtyIfNeeded;
+            _ = CachedMapEdgeCells;
         }
-        else
+        else if (respawningAfterLoad)
         {
-            interiorMap.PocketMapParent?.sourceMap = map;
+            interiorMap.events.BuildingSpawned += WalkableCellsDirtyIfNeeded;
+            interiorMap.events.PathCostRecalculate += WalkableCellsDirtyIfNeeded;
+            _ = CachedMapEdgeCells;
         }
+        interiorMap?.PocketMapParent?.sourceMap = map;
 
         if (!Find.World.worldObjects.Contains(interiorMap!.Parent))
         {
@@ -763,6 +917,7 @@ public class VehiclePawnWithMap : VehiclePawn
             MapComponentUtility.MapComponentOnDraw(map);
             CompMapExpander.DebugDraw(MapExpanderComps);
         }
+        DebugDrawHelper.DebugDraw(map.debugDrawer, map);
         //map.gameConditionManager.GameConditionManagerDraw(map);
         //MapEdgeClipDrawer.DrawClippers(__instance);
     }
@@ -1009,6 +1164,13 @@ public class VehiclePawnWithMap : VehiclePawn
         }
     }
 
+    public override void DrawGUIOverlay()
+    {
+        base.DrawGUIOverlay();
+        var map = CurrentLevel;
+        DebugDrawHelper.DebugOnGUI(map.debugDrawer, map);
+    }
+
     public override string GetInspectString()
     {
         if (VehicleMapFramework.settings.weightFactor == 0f) return null;
@@ -1071,10 +1233,12 @@ public class VehiclePawnWithMap : VehiclePawn
     
     private void Resize()
     {
+        mapEdgeCellsDirty = true;
         var vehicleDef = VehicleDef;
         var curSize = vehicleDef.Size;
         var mapRect = CellRect.WholeMap(VehicleMap);
-        var newRect = CellRect.FromCellList(mapRect.Except(CachedImpassableCells));
+        _ = CachedMapEdgeCells;
+        var newRect = ValidMapRect;
         var newSize = newRect.Size;
         if (curSize != newSize)
         {
@@ -1087,12 +1251,15 @@ public class VehiclePawnWithMap : VehiclePawn
             data.drawOffsetEast = offset.RotatedBy(Rot4.East);
             data.drawOffsetSouth = offset.RotatedBy(Rot4.South);
             data.drawOffsetWest = offset.RotatedBy(Rot4.West);
-            vehicleDef.components?.ForEach(component =>
+            if (vehicleDef.components is not null)
             {
-                component.hitbox.Hitbox.Clear();
-                component.hitbox.Initialize(vehicleDef);
-            });
-            
+                foreach (var component in vehicleDef.components)
+                {
+                    component.hitbox.Hitbox.Clear();
+                    component.hitbox.Initialize(vehicleDef);
+                }
+            }
+
             foreach (var map in Find.Maps)
             {
                 if (map.IsVehicleMap) continue;
@@ -1100,7 +1267,7 @@ public class VehiclePawnWithMap : VehiclePawn
                 var component = map.GetCachedMapComponent<VehiclePathingSystem>();
                 UniqueVehicleUtility.configsMap(component.GridOwners)[vehicleDef.DefIndex]
                     = UniqueVehicleUtility.PathConfigMap(vehicleDef);
-                UniqueVehicleUtility.GeneratePathData(component, vehicleDef);
+                UniqueVehicleUtility.GeneratePathData(component, FastInvokeHelper.SingleParam(vehicleDef));
             }
             
             if (Spawned)
@@ -1128,7 +1295,7 @@ public class VehiclePawnWithMap : VehiclePawn
                 
                 var component = Map.GetCachedMapComponent<VehiclePathingSystem>();
                 if (UniqueVehicleUtility.PathData is not null)
-                    UniqueVehicleUtility.PathData(vehiclePather, component[vehicleDef]);
+                    UniqueVehicleUtility.PathData(vehiclePather, FastInvokeHelper.SingleParam(component[vehicleDef]));
 #if DEV
                 if (!component.ThreadAvailable ||
                     component.dedicatedThread.State == DedicatedThread.ThreadState.Running)

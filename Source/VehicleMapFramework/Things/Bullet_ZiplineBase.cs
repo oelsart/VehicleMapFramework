@@ -46,7 +46,7 @@ public abstract class Bullet_ZiplineBase : Bullet, IZiplineEnd
     protected override void TickInterval(int delta)
     {
         if (!this.IsOnNonFocusedVehicleMap || landed)
-        {
+        {;
             base.TickInterval(delta);
             return;
         }

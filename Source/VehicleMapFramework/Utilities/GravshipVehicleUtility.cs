@@ -89,7 +89,7 @@ namespace VehicleMapFramework
                         terrainGrid.RemoveFoundation(c);
                     }
                     c.GetThingList(vehicle.VehicleMap)
-                        .SelectMany(t => t.OccupiedRect().Cells)
+                        .SelectMany(t => t.OccupiedRect())
                         .Distinct()
                         .DoIf(terrainGrid.CanRemoveFoundationAt, intVec3 => terrainGrid.RemoveFoundation(intVec3));
                 }

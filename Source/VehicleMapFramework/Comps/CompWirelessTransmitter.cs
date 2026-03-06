@@ -19,7 +19,7 @@ public class CompWirelessTransmitter : CompToggleLitGraphic
         base.CompTick();
         if (Find.TickManager.TicksGame % ticksInterval != 0) return;
 
-        foreach (var c in parent.OccupiedRect().ExpandedBy(1).Cells)
+        foreach (var c in parent.OccupiedRect().ExpandedBy(1))
         {
             if (!c.InBounds(parent.Map)) continue;
             if (c.TryGetVehicleMap(parent.Map, out var vehicle))
@@ -146,7 +146,7 @@ public class CompWirelessTransmitter : CompToggleLitGraphic
     public override void PostDrawExtraSelectionOverlays()
     {
         var rect = CellRect.SingleCell(parent.Position);
-        GenDraw.DrawFieldEdges([.. rect.ExpandedBy(1).Cells]);
+        GenDraw.DrawFieldEdges([.. rect.ExpandedBy(1)]);
     }
 
     public override void PostExposeData()

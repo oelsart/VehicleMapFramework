@@ -18,6 +18,7 @@ internal class SettingsTab_Main : SettingsTabDrawer
         settings.drawVehicleMapGrid = VehicleMapSettings.Default.drawVehicleMapGrid;
         settings.includeMapThings = VehicleMapSettings.Default.includeMapThings;
         settings.crossMapJobProtect = VehicleMapSettings.Default.crossMapJobProtect;
+        settings.aStarTraverse = VehicleMapSettings.Default.aStarTraverse;
     }
 
     public override void Draw(Rect inRect)
@@ -30,6 +31,7 @@ internal class SettingsTab_Main : SettingsTabDrawer
         listingStandard.CheckboxLabeled("VMF_Settings.AutoGetOffPlayer".Translate(), ref settings.autoGetOffPlayer);
         listingStandard.CheckboxLabeled("VMF_Settings.AutoGetOffNonPlayer".Translate(), ref settings.autoGetOffNonPlayer);
         listingStandard.CheckboxLabeled("VMF_Settings.CrossMapJobProtect".Translate(), ref settings.crossMapJobProtect, "VMF_Settings.CrossMapJobProtect.Tooltip".Translate());
+        listingStandard.CheckboxLabeled("(Experimental) Improved map traversal reachability checks.", ref settings.aStarTraverse);
         listingStandard.CheckboxLabeled("(Experimental) Count items on the vehicle map as part of the caravan's inventory.", ref settings.includeMapThings);
         listingStandard.CheckboxLabeled("(Debug) Draw vehicle map grid.", ref settings.drawVehicleMapGrid);
         listingStandard.End();

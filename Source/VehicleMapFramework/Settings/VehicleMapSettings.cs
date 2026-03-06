@@ -20,6 +20,8 @@ public class VehicleMapSettings : ModSettings
     public bool drawVehicleMapGrid = Default.drawVehicleMapGrid;
     
     public bool includeMapThings = Default.includeMapThings;
+    
+    public bool aStarTraverse = Default.aStarTraverse;
 
     public bool roofedPatch = Default.roofedPatch;
 
@@ -40,6 +42,7 @@ public class VehicleMapSettings : ModSettings
         Scribe_Values.Look(ref crossMapJobProtect, "crossMapJobProtect", Default.crossMapJobProtect);
         Scribe_Values.Look(ref drawVehicleMapGrid, "drawVehicleMapGrid", Default.drawVehicleMapGrid);
         Scribe_Values.Look(ref includeMapThings, "includeMapThings", Default.includeMapThings);
+        Scribe_Values.Look(ref aStarTraverse, "astarTraverse", Default.aStarTraverse);
         Scribe_Values.Look(ref roofedPatch, "roofedPatch", Default.roofedPatch);
         Scribe_Values.Look(ref debugToolPatches, "debugToolPatches", Default.debugToolPatches);
         Scribe_Values.Look(ref dynamicPatchEnabled, "dynamicPatchEnabled", Default.dynamicPatchEnabled);
@@ -62,6 +65,8 @@ public class VehicleMapSettings : ModSettings
         public const bool drawVehicleMapGrid = false;
         
         public const bool includeMapThings = false;
+        
+        public const bool aStarTraverse = true;
 
         public const bool roofedPatch = false;
 

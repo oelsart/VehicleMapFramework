@@ -64,7 +64,7 @@ public class CompPipeConnector : ThingComp
         else
         {
             var flag = false;
-            foreach (var c in parent.OccupiedRect().ExpandedBy(2).Cells)
+            foreach (var c in parent.OccupiedRect().ExpandedBy(2))
             {
                 if (!c.InBounds(parent.Map)) continue;
 

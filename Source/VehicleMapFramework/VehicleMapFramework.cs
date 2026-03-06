@@ -11,6 +11,8 @@ namespace VehicleMapFramework;
 
 public class VehicleMapFramework : Mod
 {
+    public const string CategoryName = "Vehicle Map Framework";
+    
     public static VehicleMapFramework mod;
 
     public static VehicleMapSettings settings;
@@ -100,6 +102,6 @@ public class VehicleMapFramework : Mod
 
     public override string SettingsCategory()
     {
-        return "Vehicle Map Framework";
+        return CategoryName;
     }
 }

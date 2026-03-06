@@ -1,10 +1,8 @@
-﻿using RimWorld;
-using UnityEngine;
+﻿using UnityEngine;
 using Verse;
 
 namespace VehicleMapFramework;
 
-[StaticConstructorOnStartup]
 public class ZiplineEnd : ThingWithComps, IZiplineEnd
 {
     public Verb_LaunchZipline launchVerb;
@@ -16,18 +14,25 @@ public class ZiplineEnd : ThingWithComps, IZiplineEnd
     public override void SpawnSetup(Map map, bool respawningAfterLoad)
     {
         base.SpawnSetup(map, respawningAfterLoad);
-        launchVerb?.ziplineEnd = this;
-        if (launchVerb is { caster: Building_TurretGunForcedTargetOnly turret })
+        if (launchVerb is null) return;
+        
+        launchVerb.ziplineEnd = this;
+        if (launchVerb.caster is Building_TurretGunForcedTargetOnly turret)
         {
             turret.RemoveTargetInfo();
             turret.ForcedTarget = this;
+        }
+        if (launchVerb.Ability is Ability_GrapplingHook ability)
+        {
+            ability.OnHit(this);
         }
     }
 
     protected override void TickInterval(int delta)
     {
         base.TickInterval(delta);
-        if (launchVerb is not { caster.SpawnedOrAnyParentSpawned: true } || launchVerb.ziplineEnd != this)
+        if (launchVerb is not { caster.SpawnedOrAnyParentSpawned: true } ||
+            launchVerb.ziplineEnd != this)
             base.Destroy();
     }
 
@@ -35,6 +40,12 @@ public class ZiplineEnd : ThingWithComps, IZiplineEnd
     {
         ReturnZipline(launchVerb);
         base.Destroy(mode);
+    }
+
+    public override void Notify_MyMapRemoved()
+    {
+        launchVerb.ziplineEnd = null;
+        base.Notify_MyMapRemoved();
     }
 
     public override void Print(SectionLayer layer)
@@ -68,37 +79,37 @@ public class ZiplineEnd : ThingWithComps, IZiplineEnd
 
     public static void DrawZipline(Vector3 drawLoc, float rotation, Verb_LaunchZipline launchVerb, CustomZipline.ZipLineData ziplineData)
     {
-        var launcher = launchVerb?.caster;
-        if (launcher is not { Spawned: true })
-            return;
+        if (launchVerb?.caster.SpawnedParentOrMe is not { } launcher) return;
+        
         var drawPosA = drawLoc + (Vector3.back * ziplineData.ZiplineEndOffset).RotatedBy(rotation);
         var launcherPos = launcher.DrawPos;
-        var offset = launcher.def.building?.turretTopOffset.ToVector3() ?? Vector3.zero;
-        if (launcher.IsOnNonFocusedVehicleMapOf(out var vehicle))
+        if (launcher.def.building?.turretTopOffset is { } offset)
         {
-            offset = offset.RotatedBy(-vehicle.Angle + vehicle.Transform.rotation);
+            if (launcher.IsOnNonFocusedVehicleMapOf(out var vehicle))
+            {
+                offset = offset.RotatedBy(-vehicle.Angle + vehicle.Transform.rotation);
+            }
+            launcherPos += offset.ToVector3();
         }
-        launcherPos += offset;
         
         var drawPosB = launcherPos + (Vector3.forward * ziplineData.LauncherOffset).RotatedBy((drawPosA - launcherPos).AngleFlat());
-        var y = Mathf.Max(drawPosA.y, drawPosB.y) + Altitudes.AltInc;
+        var y = Mathf.Max(drawPosA.y, drawPosB.y) - Altitudes.AltInc;
         GenDrawOnVehicle.DrawLineBetweenInstanced(drawPosA.WithY(y), drawPosB.WithY(y), ziplineData.ZiplineMat, ziplineData.ZiplineWidth);
     }
     
     public static void ReturnZipline(Verb_LaunchZipline launchVerb)
     {
-        if (launchVerb is { caster.Spawned: true, ziplineEnd: IZiplineEnd ziplineEnd })
-        {
-            var thing = launchVerb.ziplineEnd;
-            var pos = launchVerb.caster.IsOnVehicleMapOf(out var vehicle) && !vehicle.Spawned
-                ? thing.Position : thing.PositionOnBaseMap;
-            var bullet = (Bullet_ZiplineEndReturn)ThingMaker.MakeThing(ziplineEnd.ZipLineData.ZiplineReturnDef);
-            bullet.launchVerb = launchVerb;
-            bullet.ZipLineData = ziplineEnd.ZipLineData;
-            GenSpawn.Spawn(bullet, pos, thing.GroundMap);
-            var spawnedParentOrMe = launchVerb.caster.SpawnedParentOrMe;
-            bullet.Launch(launchVerb.caster, thing.DrawPos, spawnedParentOrMe, spawnedParentOrMe, ProjectileHitFlags.IntendedTarget);
-        }
+        if (launchVerb?.caster.SpawnedParentOrMe is not { } launcher ||
+            launchVerb.ziplineEnd is not IZiplineEnd ziplineEnd) return;
+        
+        var thing = launchVerb.ziplineEnd;
+        var pos = launcher.IsOnVehicleMapOf(out var vehicle) && !vehicle.Spawned
+            ? thing.Position : thing.PositionOnBaseMap;
+        var bullet = (Bullet_ZiplineEndReturn)ThingMaker.MakeThing(ziplineEnd.ZipLineData.ZiplineReturnDef);
+        bullet.launchVerb = launchVerb;
+        bullet.ZipLineData = ziplineEnd.ZipLineData;
+        GenSpawn.Spawn(bullet, pos, thing.GroundMap);
+        bullet.Launch(launcher, thing.DrawPos, launcher, launcher, ProjectileHitFlags.IntendedTarget);
     }
 
     public override void ExposeData()

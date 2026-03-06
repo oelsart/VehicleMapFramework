@@ -500,17 +500,12 @@ public static class VehicleMapUtility
 
     extension(IntVec3 original)
     {
-        public IntVec3 ToBaseMapCoord()
-        {
-            return original.ToVector3Shifted().ToBaseMapCoord().ToIntVec3();
-        }
-
         public IntVec3 ToBaseMapCoord(VehiclePawnWithMap vehicle)
         {
             var vehiclePos = vehicle.cachedExactPos;
             var map = vehicle.VehicleMap;
             var pivot = new Vector3(map.Size.x / 2f, 0f, map.Size.z / 2f);
-            var drawPos = (original.ToVector3Shifted().YOffset() - pivot).RotatedBy(vehicle.FullAngle) + vehiclePos;
+            var drawPos = (original.ToVector3Shifted() - pivot).RotatedBy(vehicle.FullAngle) + vehiclePos;
             drawPos += OffsetFor(vehicle);
             return drawPos.ToIntVec3();
         }
@@ -538,11 +533,50 @@ public static class VehicleMapUtility
             var drawPos = (original.ToVector3Shifted() - vehicleMapPos).RotatedBy(-vehicle.FullAngle) + pivot;
             return drawPos.ToIntVec3();
         }
+        
+        public IntVec3 ToThingMapCoord(Thing thing)
+        {
+            return original.ToVehicleMapCoord(thing.Map);
+        }
+
+        public IntVec3 ToVehicleMapCoord(Map map)
+        {
+            return map.IsVehicleMapOf(out var vehicle) ? original.ToVehicleMapCoord(vehicle) : original;
+        }
+
+        public IntVec3 ToThingBaseMapCoord(Thing thing)
+        {
+            return thing.IsOnVehicleMapOf(out var vehicle) ? original.ToBaseMapCoord(vehicle) : original;
+        }
 
         public IntVec2 ToHitCell(VehiclePawnWithMap vehicle)
         {
             var orig = Vector3.zero.ToBaseMapCoord(vehicle).ToVehicleMapCoord(vehicle).ToIntVec3();
             return (orig + original).ToIntVec2;
+        }
+        
+        public IntVec3 ClosestWalkableEdgeCell(VehiclePawnWithMap vehicle, int districtID = -1)
+        {
+            if (vehicle.CachedWalkableMapEdgeCells.Count == 0) return IntVec3.Invalid;
+            
+            var cellOnVehicleMap = original.ToVehicleMapCoord(vehicle);
+            var mapRect = vehicle.ValidMapRect.ExpandedBy(1);
+            var root = mapRect.ClosestCellTo(cellOnVehicleMap);
+            if (cellOnVehicleMap == root || vehicle.CachedWalkableMapEdgeCells.TryGetValue(root, out var district) &&
+                (districtID == -1 || district.ID == districtID)) return root;
+            var radius = (mapRect.GetCorner(Rot4.North) - mapRect.GetCorner(Rot4.South)).LengthHorizontal;
+            
+            var pattern =
+                GenRadialDirectional.PatternFor(cellOnVehicleMap, vehicle.ValidMapRect, 0f, radius, out var indexRange);
+            for (var i = indexRange.min; i < indexRange.max; i++)
+            {
+                var cell = root + pattern[i];
+                if (vehicle.CachedWalkableMapEdgeCells.TryGetValue(cell, out district) &&
+                    (districtID == -1 || district.ID == districtID))
+                    return cell;
+            }
+
+            return IntVec3.Invalid;
         }
     }
 
@@ -698,20 +732,7 @@ public static class VehicleMapUtility
         }
         return rootPosition.IsValid ? rootPosition : thing.PositionOnBaseMap;
     }
-
-    extension(IntVec3 origin)
-    {
-        public IntVec3 ToThingMapCoord(Thing thing)
-        {
-            return thing.IsOnVehicleMapOf(out var vehicle) ? origin.ToVehicleMapCoord(vehicle) : origin;
-        }
-
-        public IntVec3 ToThingBaseMapCoord(Thing thing)
-        {
-            return thing.IsOnVehicleMapOf(out var vehicle) ? origin.ToBaseMapCoord(vehicle) : origin;
-        }
-    }
-
+    
     extension(ref LocalTargetInfo target)
     {
         public IntVec3 CellOnBaseMap()
@@ -726,9 +747,20 @@ public static class VehicleMapUtility
         }
     }
 
+    extension(TargetInfo target)
+    {
+        public IntVec3 CellOnGroundMap => target.HasThing
+            ? target.Thing.PositionOnBaseMap
+            : target.Map.IsVehicleMapOf(out var vehicle)
+                ? target.Cell.ToBaseMapCoord(vehicle)
+                : target.Cell;
+    }
+
     public static IntVec3 CellOnBaseMap(this ref TargetInfo target)
     {
-        return target.Map.IsVehicleMapOf(out var vehicle) ? target.Cell.ToBaseMapCoord(vehicle) : target.Cell;
+        return target.HasThing
+            ? target.Thing.PositionOnBaseMap
+            : target.Map.IsVehicleMapOf(out var vehicle) ? target.Cell.ToBaseMapCoord(vehicle) : target.Cell;
     }
 
     public static IntVec3 CellOnBaseMap(this ref GlobalTargetInfo target)

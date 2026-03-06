@@ -461,7 +461,7 @@ public static class Patch_Pawn_PathFollower_StartPath
 {
     public static bool Prefix(LocalTargetInfo dest, PathEndMode peMode, Pawn ___pawn)
     {
-        if (___pawn.jobs is null or {curDriver: JobDriver_GotoAcrossMaps } or { curJob: null }) return true;
+        if (___pawn.jobs is null or {curDriver: JobDriverAcrossMaps } or { curJob: null }) return true;
 
         var flag = false;
         var destMap = dest.Thing?.MapHeld;
@@ -1269,7 +1269,7 @@ public static class Patch_WanderUtility_GetColonyWanderRoot
 }
 
 [HarmonyPatch(typeof(Reachability), nameof(Reachability.ClearCache))]
-[PatchLevel(Level.Safe)]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_Reachability_ClearCache
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -1280,6 +1280,7 @@ public static class Patch_Reachability_ClearCache
             .InsertAfter(
                 CodeInstruction.LoadArgument(0),
                 CodeInstruction.LoadField(typeof(Reachability), "map"),
+                new CodeInstruction(OpCodes.Ldc_I4_0),
                 CodeInstruction.Call(typeof(CrossMapReachabilityCache),
                     nameof(CrossMapReachabilityCache.ClearCacheFor)))
             .InstructionEnumeration();

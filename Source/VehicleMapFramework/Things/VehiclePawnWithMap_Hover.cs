@@ -1,13 +1,27 @@
-﻿using JetBrains.Annotations;
-using SmashTools;
+﻿using SmashTools;
 using UnityEngine;
 using Verse;
 
 namespace VehicleMapFramework;
 
-[UsedImplicitly]
 public class VehiclePawnWithMap_Hover : VehiclePawnWithMap
 {
+    private float drawOffset;
+
+    private float prevOffset;
+
+    private float? drawPosZ;
+
+    private int? ignitionTick;
+
+    private bool ignitionComplete;
+
+    private bool landingComplete = true;
+
+    private const float offsetDrafted = 0.25f;
+
+    private const float ignitionDuration = 100f;
+    
     public override Vector3 DrawPos
     {
         get
@@ -80,20 +94,4 @@ public class VehiclePawnWithMap_Hover : VehiclePawnWithMap
         Scribe_Values.Look(ref ignitionComplete, "ignitionComplete");
         Scribe_Values.Look(ref landingComplete, "landingComplete");
     }
-
-    private float drawOffset;
-
-    private float prevOffset;
-
-    private float? drawPosZ;
-
-    private int? ignitionTick;
-
-    private bool ignitionComplete;
-
-    private bool landingComplete = true;
-
-    private const float offsetDrafted = 0.25f;
-
-    private const float ignitionDuration = 100f;
 }

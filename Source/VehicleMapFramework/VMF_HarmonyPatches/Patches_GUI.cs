@@ -20,17 +20,31 @@ public static class Patch_ThingOverlays_ThingOverlaysOnGUI
         var bounds = Find.CameraDriver.CurrentViewRect.ToBounds();
         var flag = Find.CurrentMap.IsVehicleMapOf(out var vehicle);
         var vehicles = flag ? GetVehicles() : VehiclePawnWithMapCache.AllVehiclesOn(Find.CurrentMap);
-        foreach (var thing in vehicles.SelectMany(v => v.CurrentLevel.listerThings.ThingsInGroup(ThingRequestGroup.HasGUIOverlay)))
+        foreach (var vehicle2 in vehicles)
         {
-            if (bounds.Contains(thing.DrawPos.Yto0())/* && !Find.CurrentMap.fogGrid.IsFogged(thing.PositionOnBaseMap)*/) //車両マップである時点でFoggedはスキップしていいはず
+            if (!flag && bounds.Contains(vehicle2.DrawPos.Yto0()))
             {
                 try
                 {
-                    thing.DrawGUIOverlay();
+                    vehicle2.DrawGUIOverlay();
                 }
                 catch (Exception ex)
                 {
-                    Log.Error($"Exception drawing ThingOverlay for {thing}: {ex}");
+                    Log.Error($"Exception drawing ThingOverlay for {vehicle2}: {ex}");
+                }
+            }
+            foreach (var thing in vehicle2.CurrentLevel.listerThings.ThingsInGroup(ThingRequestGroup.HasGUIOverlay))
+            {
+                if (bounds.Contains(thing.DrawPos.Yto0())/* && !Find.CurrentMap.fogGrid.IsFogged(thing.PositionOnBaseMap)*/) //車両マップである時点でFoggedはスキップしていいはず
+                {
+                    try
+                    {
+                        thing.DrawGUIOverlay();
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error($"Exception drawing ThingOverlay for {thing}: {ex}");
+                    }
                 }
             }
         }

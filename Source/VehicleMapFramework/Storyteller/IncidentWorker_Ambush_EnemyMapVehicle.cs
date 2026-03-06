@@ -12,7 +12,7 @@ namespace VehicleMapFramework;
 
 public class IncidentWorker_Ambush_EnemyMapVehicle : IncidentWorker_AmbushMapVehicle
 {
-    protected virtual LinearCurve VehicleCountByPointsCurve { get; } =
+    public static LinearCurve VehicleCountByPointsCurve { get; } =
     [
         new CurvePoint(0f, 1f),
         new CurvePoint(1000f, 1f),
@@ -38,46 +38,14 @@ public class IncidentWorker_Ambush_EnemyMapVehicle : IncidentWorker_AmbushMapVeh
 
     protected override List<VehiclePawnWithMap> GenerateVehicles(IncidentParms parms)
     {
-        var raiderModExtension = parms.faction.def.GetModExtension<VehicleRaiderDefModExtension>();
-        var vehicleBudget = (raiderModExtension?.pointMultiplier ?? 1f) * parms.points / 2f;
-        if (vehicleBudget <= 0f)
-        {
-            VMF_Log.DebugWarning("vehicleBudget <= 0f");
-            return [];
-        }
-        
-        var budgetSpent = 0f;
-        var vehicleCount = Mathf.FloorToInt(VehicleCountByPointsCurve.Evaluate(parms.points));
-        if (vehicleCount <= 0)
-        {
-            VMF_Log.DebugWarning("vehicleCount <= 0");
-            return [];
-        }
-        
         var category = RaidInjectionHelper.GetResolvedCategory(parms);
         var availableDefs = DefDatabase<VehicleDef>.AllDefs
-            .Where(vehicleDef => ValidRaiderVehicle(vehicleDef, category, null, parms.faction, vehicleBudget))
+            .Where(vehicleDef => ValidRaiderVehicle(vehicleDef, category, null, parms.faction, parms.points))
             .ToList();
-        
-        var result = new List<VehiclePawnWithMap>();
-        if (availableDefs.Count > 0)
-        {
-            for (var i = 0; i < vehicleCount; i++)
-            {
-                var budget = vehicleBudget;
-                if (!availableDefs.Where(vehicleDef => vehicleDef.combatPower <= budget)
-                        .TryRandomElementByWeight(vehicleDef => vehicleDef.combatPower, out var vehicleDef2))
-                    continue;
-                
-                result.Add((VehiclePawnWithMap)VehicleSpawner.GenerateVehicle(vehicleDef2, parms.faction));
-                vehicleBudget -= vehicleDef2.combatPower;
-                budgetSpent += vehicleDef2.combatPower;
-            }
-
-            parms.points = Mathf.Max(parms.points - budgetSpent, 10f);
-        }
-
-        return result;
+        var list = MapVehicleGroupMakerUtility.GenerateVehicles(parms.faction, parms.points, VehicleCountByPointsCurve,
+            availableDefs).ToList();
+        parms.points = Mathf.Max(parms.points - list.Sum(v => v.VehicleDef.combatPower), 10f);
+        return list;
     }
 
     protected virtual bool ValidRaiderVehicle(VehicleDef vehicleDef, VehicleCategory category,

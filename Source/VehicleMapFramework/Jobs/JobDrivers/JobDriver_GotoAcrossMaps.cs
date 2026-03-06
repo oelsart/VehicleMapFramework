@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using RimWorld;
 using RimWorld.Planet;
 using SmashTools;
@@ -7,6 +6,7 @@ using Vehicles;
 using Verse;
 using Verse.AI;
 using Verse.AI.Group;
+using Debug = UnityEngine.Debug;
 
 namespace VehicleMapFramework;
 
@@ -31,7 +31,7 @@ public class JobDriver_GotoAcrossMaps : JobDriverAcrossMaps
         if (job.targetA.IsValid)
         {
             var lookAtTarget = job.GetTarget(TargetIndex.B);
-            var toil = Toils_Goto.Goto(TargetIndex.A, PathEndMode.OnCell);
+            var toil = Toils_Goto.GotoCell(TargetIndex.A, PathEndMode.OnCell);
             toil.AddPreTickAction(delegate
             {
                 if (job.exitMapOnArrival && pawn.Map.exitMapGrid.IsExitCell(pawn.Position))
@@ -45,17 +45,17 @@ public class JobDriver_GotoAcrossMaps : JobDriverAcrossMaps
             });
             toil.FailOn(() => job.failIfCantJoinOrCreateCaravan && !CaravanExitMapUtility.CanExitMapAndJoinOrCreateCaravanNow(pawn));
             toil.FailOn(() => job.GetTarget(TargetIndex.A).Thing is Pawn { ParentHolder: Corpse });
-            toil.FailOn(delegate ()
+            toil.FailOn(() =>
             {
                 var thing = job.GetTarget(TargetIndex.A).Thing;
                 return thing is { Destroyed: true };
             });
             if (lookAtTarget.IsValid)
             {
-                toil.tickAction = (Action)Delegate.Combine(toil.tickAction, new Action(delegate
+                toil.tickAction += delegate
                 {
-                    pawn.rotationTracker.FaceCell(lookAtTarget.CellOnAnotherThingMap(pawn));
-                }));
+                    pawn.rotationTracker.FaceCell(job.GetTarget(TargetIndex.B).CellOnAnotherThingMap(pawn));
+                };
                 toil.handlingFacing = true;
             }
             toil.AddFinishAction(delegate

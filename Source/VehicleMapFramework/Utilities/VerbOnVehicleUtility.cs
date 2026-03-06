@@ -18,7 +18,7 @@ public static class VerbOnVehicleUtility
         public bool TryFindShootLineFromToOnVehicle(IntVec3 root, LocalTargetInfo targ, out ShootLine resultingLine, bool ignoreRange = false)
         {
             resultingLine = default;
-            var flag = verb.caster.IsOnVehicleMapOf(out var vehicle) && verb is not Verb_Jump and not Verb_CastAbilityJump;
+            var flag = verb.caster.IsOnVehicleMapOf(out var vehicle) && verb is not Verb_Jump or Verb_CastAbilityJump or Verb_LaunchZipline;
             var recoverRoot = flag && !vehicle.Spawned;
             try
             {

@@ -134,6 +134,7 @@ public class CompMapExpander : ThingComp
                 DirtySelfAndAdjacentComps(parent.Map);
                 vehicle.impassableCellsDirty = true;
                 vehicle.resizeRequest = true;
+                CrossMapReachabilityCache.ClearCacheFor(vehicle.VehicleMap);
             }
         });
     }
@@ -166,11 +167,16 @@ public class CompMapExpander : ThingComp
             vehicle.MapExpanderComps.Remove(this);
             if (IsBridge)
             {
+                foreach (var comp in vehicle.MapExpanderComps)
+                {
+                    
+                }
                 vehicle.MapExpanderComps.ForEach(c => c.cachedIsOnlyBridge = null);
             }
             DirtySelfAndAdjacentComps(map);
             vehicle.impassableCellsDirty = true;
             vehicle.resizeRequest = true;
+            CrossMapReachabilityCache.ClearCacheFor(vehicle.VehicleMap);
         }
     }
 

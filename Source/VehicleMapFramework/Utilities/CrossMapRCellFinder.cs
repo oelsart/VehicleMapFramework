@@ -43,7 +43,7 @@ public static class CrossMapRCellFinder
         }
         while (num < num3);
         return searcher.Position;
-
+        
         bool IsGoodDest(IntVec3 c)
         {
             if (!IsGoodDestinationFor(c, searcher, map, false))
@@ -58,7 +58,55 @@ public static class CrossMapRCellFinder
             {
                 return false;
             }
-            if (reachable && !searcher.CanReach(c, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, map, out _, out _, out _))
+            if (reachable && !searcher.CanReach(c, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, map))
+            {
+                return false;
+            }
+            var thingList = c.GetThingList(map);
+            for (var i = 0; i < thingList.Count; i++)
+            {
+                if (thingList[i] is Pawn pawn && pawn != searcher && pawn.RaceProps.Humanlike && ((searcher.Faction == Faction.OfPlayer && pawn.Faction == searcher.Faction) || (searcher.Faction != Faction.OfPlayer && pawn.Faction != Faction.OfPlayer)))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
+
+    public static IntVec3 GoodDestNearFromTo(IntVec3 from, IntVec3 to, Pawn searcher, Map map, Predicate<IntVec3> cellValidator = null, bool reachable = true, bool reserve = true, float radius = 30f)
+    {
+        if (map is null)
+            return IntVec3.Invalid;
+        if (IsGoodDest(to))
+            return to;
+        var num = 1;
+        var num3 = GenRadial.NumCellsInRadius(radius);
+        do
+        {
+            var intVec = to + GenRadial.RadialPattern[num];
+            if (IsGoodDest(intVec))
+                return intVec;
+            num++;
+        }
+        while (num < num3);
+        return IntVec3.Invalid;
+        
+        bool IsGoodDest(IntVec3 c)
+        {
+            if (!IsGoodDestinationFor(c, searcher, map, false))
+            {
+                return false;
+            }
+            if (cellValidator != null && !cellValidator(c))
+            {
+                return false;
+            }
+            if (reserve && !map.pawnDestinationReservationManager.CanReserve(c, searcher, true))
+            {
+                return false;
+            }
+            if (reachable && !map.reachability.CanReach(from, c, PathEndMode.OnCell, TraverseMode.ByPawn, Danger.Deadly))
             {
                 return false;
             }
