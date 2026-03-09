@@ -623,11 +623,7 @@ public class VehiclePawnWithMap : VehiclePawn
     {
         if (Spawned)
         {
-            if (resizeRequest)
-            {
-                resizeRequest = false;
-                Resize();
-            }
+            ResizeNow();
             if (CompDelayedKill is { KillStarted: true })
             {
                 CompDelayedKill.CompTick();
@@ -1229,6 +1225,15 @@ public class VehiclePawnWithMap : VehiclePawn
     {
         VMF_Harmony.DynamicPatchAll(Level.All);
         base.PostGenerationSetup();
+    }
+
+    public void ResizeNow()
+    {
+        if (resizeRequest)
+        {
+            resizeRequest = false;
+            Resize();
+        }
     }
     
     private void Resize()

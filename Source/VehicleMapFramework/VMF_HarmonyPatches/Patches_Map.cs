@@ -525,9 +525,7 @@ public static class Patch_PawnsFinder_AllMaps_Spawned
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        var g_AllPawnsSpawned = AccessTools.PropertyGetter(typeof(MapPawns), nameof(MapPawns.AllPawnsSpawned));
-        var m_AllPawnsSpawned_Reverse = AccessTools.Method(typeof(Patch_MapPawns_AllPawnsSpawned), nameof(Patch_MapPawns_AllPawnsSpawned.AllPawnsSpawned));
-        return instructions.MethodReplacer(g_AllPawnsSpawned, m_AllPawnsSpawned_Reverse);
+        return instructions.MethodReplacer(CachedMethodInfo.g_AllPawnsSpawned, CachedMethodInfo.m_AllPawnsSpawned_Reverse);
     }
 }
 
@@ -886,5 +884,16 @@ public static class Patch_ITab_Bills_FillTab_Delegate
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
+    }
+}
+
+[HarmonyPatch(typeof(CaravanFormingUtility), nameof(CaravanFormingUtility.AllSendablePawns))]
+[PatchLevel(Level.Cautious)]
+public static class Patch_CaravanFormingUtility_AllSendablePawns
+{
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        
+        return instructions.MethodReplacer(CachedMethodInfo.g_AllPawnsSpawned, CachedMethodInfo.m_AllPawnsSpawned_Reverse);
     }
 }

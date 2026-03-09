@@ -281,4 +281,8 @@ public class MethodInfoCache
 
     public readonly MethodInfo m_RotatedBy = AccessTools.Method(typeof(Vector3Utility),
         nameof(Vector3Utility.RotatedBy), [typeof(Vector3), typeof(float)]);
+    
+    public readonly MethodInfo g_AllPawnsSpawned = AccessTools.PropertyGetter(typeof(MapPawns), nameof(MapPawns.AllPawnsSpawned));
+    
+    public readonly MethodInfo m_AllPawnsSpawned_Reverse = AccessTools.Method(typeof(Patch_MapPawns_AllPawnsSpawned), nameof(Patch_MapPawns_AllPawnsSpawned.AllPawnsSpawned));
 }

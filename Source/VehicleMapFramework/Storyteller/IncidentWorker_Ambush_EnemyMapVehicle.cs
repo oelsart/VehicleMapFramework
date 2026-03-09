@@ -44,7 +44,7 @@ public class IncidentWorker_Ambush_EnemyMapVehicle : IncidentWorker_AmbushMapVeh
             .ToList();
         var list = MapVehicleGroupMakerUtility.GenerateVehicles(parms.faction, parms.points, VehicleCountByPointsCurve,
             availableDefs).ToList();
-        parms.points = Mathf.Max(parms.points - list.Sum(v => v.VehicleDef.combatPower), 10f);
+        parms.points = Mathf.Max(parms.points - list.Sum(v => v.VehicleDef.combatPower), parms.faction.def.MinPointsToGeneratePawnGroup(PawnGroupKindDefOf.Combat));
         return list;
     }
 

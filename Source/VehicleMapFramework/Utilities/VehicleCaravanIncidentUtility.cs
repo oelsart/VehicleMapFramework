@@ -83,6 +83,7 @@ public class VehicleCaravanIncidentUtility
                             comp2.Opacity = 0.5f;
                     }
                 });
+                vehicle.ResizeNow();
             }
             if (!SpawnVehicle(vehicle)) continue;
 
@@ -127,6 +128,7 @@ public class VehicleCaravanIncidentUtility
         int[] PawnAllocation()
         {
             var counts = new int[vehicles.Count];
+            if (vehicles.Count == 0) return counts;
             var pawnCount = enemies.Count;
             var num = pawnCount;
             var weightSum = vehicles.Sum(v => v.CompNpcVehicleMap?.Props.pawnCountWeight ?? 0f);
@@ -139,7 +141,7 @@ public class VehicleCaravanIncidentUtility
                 num -= num2;
             }
             for (var i = 0; i < num; i++)
-                counts[i]++;
+                counts[i % vehicles.Count]++;
             return counts;
         }
 
@@ -152,10 +154,8 @@ public class VehicleCaravanIncidentUtility
             if (!pathData.VehiclePathGrid.Enabled) pathData.VehiclePathGrid.RecalculateAllPerceivedPathCosts();
             if (!pathData.VehicleRegionAndRoomUpdater.Enabled) pathData.VehicleRegionAndRoomUpdater.Init();
 
-            var reachability = map.GetCachedMapComponent<VehiclePathingSystem>()[vehicle.VehicleDef].VehicleReachability;
             var pos2 = CellFinderExtended.RandomSpawnCellForPawnNear(cell, map, vehicle,
                 c => vehicle.DrivableRectOnCell(c, true, map) &&
-                     reachability.CanReachBase(c, vehicle.VehicleDef) &&
                     (playerVehicle is null || playerVehicle.CanReachVehicle(c, PathEndMode.Touch, Danger.Deadly)),
                 vehicle.VehicleDef.type == VehicleType.Sea);
             if (!pos2.IsValid)

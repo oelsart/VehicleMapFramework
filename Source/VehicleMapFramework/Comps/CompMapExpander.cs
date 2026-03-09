@@ -124,26 +124,35 @@ public class CompMapExpander : ThingComp
 
     public override void PostSpawnSetup(bool respawningAfterLoad)
     {
-        LongEventHandler.ExecuteWhenFinished(() =>
+        if (respawningAfterLoad)
         {
-            if (parent.IsOnVehicleMapOf(out var vehicle))
+            FrameDelay.DelayOne(Process, this);
+            return;
+        }
+        Process(this);
+        return;
+
+        static void Process(CompMapExpander comp)
+        {
+            if (comp.parent.IsOnVehicleMapOf(out var vehicle))
             {
-                foreach (var c in parent.OccupiedRect())
-                    parent.Map.terrainGrid.SetTerrain(c, VMF_DefOf.VMF_VehicleFloor);
-                vehicle.MapExpanderComps.Add(this);
-                DirtySelfAndAdjacentComps(parent.Map);
+                foreach (var c in comp.parent.OccupiedRect())
+                    comp.parent.Map.terrainGrid.SetTerrain(c, VMF_DefOf.VMF_VehicleFloor);
+                vehicle.MapExpanderComps.Add(comp);
+                comp.DirtySelfAndAdjacentComps(comp.parent.Map);
                 vehicle.impassableCellsDirty = true;
                 vehicle.resizeRequest = true;
                 CrossMapReachabilityCache.ClearCacheFor(vehicle.VehicleMap);
             }
-        });
+        }
     }
 
     public override void PostDeSpawn(Map map, DestroyMode mode = DestroyMode.Vanish)
     {
         var occupiedRect = parent.OccupiedRect();
-        foreach (var thingList in occupiedRect.Select(intVec => map.thingGrid.ThingsListAtFast(intVec)))
+        foreach (var intVec in occupiedRect)
         {
+            var thingList = map.thingGrid.ThingsListAtFast(intVec);
             for (var i = thingList.Count - 1; i >= 0; i--)
             {
                 var thing = thingList[i];
@@ -167,10 +176,6 @@ public class CompMapExpander : ThingComp
             vehicle.MapExpanderComps.Remove(this);
             if (IsBridge)
             {
-                foreach (var comp in vehicle.MapExpanderComps)
-                {
-                    
-                }
                 vehicle.MapExpanderComps.ForEach(c => c.cachedIsOnlyBridge = null);
             }
             DirtySelfAndAdjacentComps(map);

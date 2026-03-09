@@ -22,14 +22,15 @@ public class GenStep_MapVehicleThreat : GenStep
     
     protected virtual List<VehiclePawnWithMap> GenerateVehicles(Faction faction, SitePart sitePart)
     {
-        var points = sitePart.parms.points;
+        var minPoints = faction.def.MinPointsToGeneratePawnGroup(PawnGroupKindDefOf.Combat);
+        var points = Mathf.Max(sitePart.parms.points, minPoints);
         const VehicleCategory category = VehicleCategory.Combat;
         var availableDefs = DefDatabase<VehicleDef>.AllDefs
             .Where(vehicleDef => ValidRaiderVehicle(vehicleDef, category, null, faction, points))
             .ToList();
         var list = MapVehicleGroupMakerUtility.GenerateVehicles(faction, points, IncidentWorker_Ambush_EnemyMapVehicle.VehicleCountByPointsCurve,
             availableDefs).ToList();
-        points = Mathf.Max(points - list.Sum(v => v.VehicleDef.combatPower), 10f);
+        points = Mathf.Max(points - list.Sum(v => v.VehicleDef.combatPower), minPoints);
         return list;
     }
 
