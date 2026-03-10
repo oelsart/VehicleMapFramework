@@ -403,7 +403,7 @@ public static class Patch_FloatMenuOptionProvider_DraftedMove_PawnGotoAction
     }
 
     public static void PawnGotoAction(IntVec3 clickCell, Pawn pawn, Map map, TargetInfo exitSpot, TargetInfo enterSpot,
-        List<(TargetInfo, TargetInfo)> spotsQueue, LocalTargetInfo dest)
+        List<TraverseSpots> spotsQueue, LocalTargetInfo dest)
     {
         bool flag;
         var baseMap = map.BaseMap();
@@ -486,7 +486,7 @@ public static class Patch_FloatMenuOptionProvider_WorkGivers_GetWorkGiverOption
                 __result.action = (() =>
                 {
                     JobAcrossMapsUtility.StartGotoDestMapJob(pawn, (TargetInfo)__state[3], (TargetInfo)__state[4],
-                        (List<(TargetInfo, TargetInfo)>)__state[5]);
+                        (List<TraverseSpots>)__state[5]);
                 }) + __result.action;
             }
         }

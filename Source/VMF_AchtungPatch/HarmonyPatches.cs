@@ -125,7 +125,7 @@ public static class Patch_Tools_OrderTo
         return true;
     }
 
-    public static void OrderTo(Pawn pawn, IntVec3 cell, Map map, TargetInfo exitSpot, TargetInfo enterSpot, List<(TargetInfo, TargetInfo)> spotsQueue)
+    public static void OrderTo(Pawn pawn, IntVec3 cell, Map map, TargetInfo exitSpot, TargetInfo enterSpot, List<TraverseSpots> spotsQueue)
     {
         var job = JobMaker.MakeJob(VMF_DefOf.VMF_GotoAcrossMaps, cell).SetSpotsToJobAcrossMaps(pawn, exitSpot, enterSpot, spotsQueue);
         job.playerForced = true;

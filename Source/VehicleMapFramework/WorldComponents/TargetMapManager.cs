@@ -9,8 +9,8 @@ namespace VehicleMapFramework;
 public class TargetMapManager(World world) : WorldComponent(world)
 {
     private List<Thing> tmpKeys = [];
-
     private List<TargetInfo> tmpValues = [];
+    private Dictionary<Thing, TargetInfo> tmpTargetInfoDic = [];
 
     public ConditionalWeakTable<Thing, StrongBox<TargetInfo>> TargetInfoTable { get; } = [];
 
@@ -54,22 +54,32 @@ public class TargetMapManager(World world) : WorldComponent(world)
                     .Select(pair => (pair.Key, pair.Value?.Value ?? TargetInfo.Invalid))
                     .Where(tuple => tuple is { Key: not null, Item2: { IsValid: true, Map: not null } })
                     .ToDictionary(pair => pair.Key, pair => pair.Item2);
-                if (!targetInfoDic.Any()) return;
-                Scribe_Collections.Look(ref targetInfoDic, "TargetInfo", LookMode.Reference, LookMode.TargetInfo, ref tmpKeys, ref tmpValues, false);
+                Scribe_Collections.Look(ref targetInfoDic, "TargetInfo", LookMode.Reference, LookMode.TargetInfo,
+                    ref tmpKeys, ref tmpValues, false);
+                tmpTargetInfoDic = null;
                 break;
             }
             case LoadSaveMode.LoadingVars:
+            case LoadSaveMode.ResolvingCrossRefs:
             {
-                Dictionary<Thing, TargetInfo> targetInfoDic = null;
-                Scribe_Collections.Look(ref targetInfoDic, "TargetInfo", LookMode.Reference, LookMode.TargetInfo, ref tmpKeys, ref tmpValues, false);
-                targetInfoDic ??= [];
-                foreach (var pair in targetInfoDic)
-                    TargetInfoTable.Add(pair.Key, new StrongBox<TargetInfo>(pair.Value));
+                Scribe_Collections.Look(ref tmpTargetInfoDic, "TargetInfo", LookMode.Reference, LookMode.TargetInfo,
+                    ref tmpKeys, ref tmpValues, false);
+                break;
+            }
+            case LoadSaveMode.PostLoadInit:
+            {
+                if (tmpTargetInfoDic is not null)
+                {
+                    foreach (var pair in tmpTargetInfoDic)
+                    {
+                        if (pair.Key is null) continue;
+                        TargetInfoTable.Add(pair.Key, new StrongBox<TargetInfo>(pair.Value));
+                    }
+                    tmpTargetInfoDic = null;
+                }
                 break;
             }
             case LoadSaveMode.Inactive:
-            case LoadSaveMode.ResolvingCrossRefs:
-            case LoadSaveMode.PostLoadInit:
             default: break;
         }
 

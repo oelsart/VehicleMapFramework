@@ -290,7 +290,7 @@ public static class VehicleMapUtility
 
         public float FlipAngle(VehiclePawn vehicle)
         {
-            return vehicle.Graphic.WestFlipped && vehicle.BaseRotation() == Rot4.West ? -original : original;
+            return vehicle.VehicleGraphic.WestFlipped && vehicle.BaseRotation() == Rot4.West ? -original : original;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

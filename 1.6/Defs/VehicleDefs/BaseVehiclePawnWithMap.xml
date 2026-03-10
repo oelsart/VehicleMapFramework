@@ -5,23 +5,27 @@
 		<thingClass>VehicleMapFramework.VehiclePawnWithMap</thingClass>
 		<enabled>Player</enabled>
 		<tradeability>None</tradeability>
+		<notifyMapRemoved>true</notifyMapRemoved>
 	</Vehicles.VehicleDef>
 	
 	<Vehicles.VehicleDef Name="BaseVehiclePawnWithMapHover" ParentName="BaseVehiclePawn" Abstract="True">
 		<thingClass>VehicleMapFramework.VehiclePawnWithMap_Hover</thingClass>
 		<enabled>Player</enabled>
 		<tradeability>None</tradeability>
+		<notifyMapRemoved>true</notifyMapRemoved>
 	</Vehicles.VehicleDef>
 
 	<Vehicles.VehicleDef Name="BaseSeaVehiclePawnWithMap" ParentName="BaseSeaVehicle" Abstract="True">
 		<thingClass>VehicleMapFramework.VehiclePawnWithMap</thingClass>
 		<enabled>Player</enabled>
 		<tradeability>None</tradeability>
+		<notifyMapRemoved>true</notifyMapRemoved>
 	</Vehicles.VehicleDef>
 
 	<Vehicles.VehicleDef Name="BaseSeaVehiclePawnWithMapHover" ParentName="BaseSeaVehicle" Abstract="True">
 		<thingClass>VehicleMapFramework.VehiclePawnWithMap_Hover</thingClass>
 		<enabled>Player</enabled>
 		<tradeability>None</tradeability>
+		<notifyMapRemoved>true</notifyMapRemoved>
 	</Vehicles.VehicleDef>
 </Defs>
