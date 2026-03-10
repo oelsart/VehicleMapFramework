@@ -848,7 +848,8 @@ public static class VehicleMapUtility
     {
         public Rot4 DirectionToInsideMap(VehiclePawnWithMap vehicle)
         {
-            return CellRect.WholeMap(vehicle.VehicleMap).GetClosestEdge(c).Opposite;
+            _ = vehicle.CachedMapEdgeCells;
+            return vehicle.ValidMapRect.GetClosestEdge(c).Opposite;
         }
 
         public Rot8 BaseFullDirectionToInsideMap(VehiclePawnWithMap vehicle)

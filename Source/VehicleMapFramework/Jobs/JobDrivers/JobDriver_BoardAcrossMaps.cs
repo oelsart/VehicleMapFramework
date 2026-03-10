@@ -21,10 +21,7 @@ public class JobDriver_BoardAcrossMaps : JobDriverAcrossMaps
         this.FailOnDespawnedOrNull(TargetIndex.A);
         this.FailOnForbidden(TargetIndex.A);
         //this.FailOnDowned(TargetIndex.A);
-        if (ShouldEnterTargetAMap)
-        {
-            foreach (var toil in GotoTargetMap(TargetIndex.A)) yield return toil;
-        }
+        foreach (var toil in GotoTargetMap(TargetIndex.A)) yield return toil;
         yield return Toils_Goto.GotoThing(TargetIndex.A, PathEndMode.Touch);
         yield return BoardVehicle(pawn);
     }

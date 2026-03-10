@@ -19,14 +19,8 @@ public class JobDriver_GotoAcrossMaps : JobDriverAcrossMaps
 
     protected override IEnumerable<Toil> MakeNewToils()
     {
-        if (ShouldEnterTargetAMap)
-        {
-            foreach (var toil in GotoTargetMap(TargetIndex.A)) yield return toil;
-        }
-        if (ShouldEnterTargetBMap)
-        {
-            foreach (var toil in GotoTargetMap(TargetIndex.B)) yield return toil;
-        }
+        foreach (var toil in base.MakeNewToils()) yield return toil;
+        foreach (var toil in GotoTargetMap(TargetIndex.A)) yield return toil;
         if (job.targetA.IsValid)
         {
             var lookAtTarget = job.GetTarget(TargetIndex.B);

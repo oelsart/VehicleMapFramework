@@ -147,6 +147,16 @@ public static class RespawnWithJobsUtility
             vehicle.cargoToLoad.Clear();
             vehicle.Map.GetCachedMapComponent<ListerVehiclesRepairable>().NotifyVehicleDespawned(vehicle);
             vehicle.EventRegistry[VehicleEventDefOf.Despawned].ExecuteEvents();
+            if (!vehicle.AllComps.NullOrEmpty())
+            {
+                for (var i = 0; i < vehicle.AllComps.Count; i++)
+                {
+                    if (vehicle.AllComps[i] is VehicleComp vehicleComp)
+                    {
+                        vehicleComp.OnDeSpawn();
+                    }
+                }
+            }
             vehicle.DeSpawnWithoutJobClear(mode);
             vehicle.SoundCleanup();
         }
