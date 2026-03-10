@@ -19,6 +19,15 @@ internal class ConditionalPatches
     static ConditionalPatches()
     {
         // This class is just a placeholder for conditional patches.
+        var method = AccessTools.Method(typeof(VehicleOrientationController), "VehicleCanStandAt");
+        if (method is not null)
+        {
+            VMF_Harmony.Instance.Patch(method,
+                prefix: AccessTools.Method(typeof(Patch_VehicleOrientationController_VehicleCanStandAt),
+                    nameof(Patch_VehicleOrientationController_VehicleCanStandAt.Prefix)),
+                finalizer: AccessTools.Method(typeof(Patch_VehicleOrientationController_VehicleCanStandAt),
+                    nameof(Patch_VehicleOrientationController_VehicleCanStandAt.Finalizer)));
+        }
     }
 
     internal static void DebugError(string methodName)
@@ -76,4 +85,21 @@ public static class Patch_VehiclePath_DrawPath
     }
     
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator) => Patch_PawnPath_DrawPath.Transpiler(instructions, generator);
+}
+
+// [HarmonyPatchCategory(PatchCategories.VehicleFramework)]
+// [HarmonyPatch(typeof(VehicleOrientationController), "VehicleCanStandAt")]
+// [PatchLevel(Level.Cautious)]
+public static class Patch_VehicleOrientationController_VehicleCanStandAt
+{
+    public static void Prefix(VehiclePawn vehicle, ref VirtualTeleporter? __state)
+    {
+        if (vehicle.TryGetTargetMap(out var map) && vehicle.Map != map)
+            __state = new VirtualTeleporter(vehicle, map);
+    }
+
+    public static void Finalizer(VirtualTeleporter? __state)
+    {
+        __state?.Dispose();
+    }
 }

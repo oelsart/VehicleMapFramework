@@ -33,14 +33,6 @@ public abstract class JobDriverAcrossMaps : JobDriverBodyOffset
 
     private Map destMap;
 
-    protected bool ShouldEnterTargetAMap =>
-        !spotsQueueA.NullOrEmpty() && spotsQueueA.Any(s => s.exitSpot.Map != null || s.enterSpot.Map != null) ||
-        exitSpotA.Map != null || enterSpotA.Map != null;
-
-    protected bool ShouldEnterTargetBMap =>
-        !spotsQueueB.NullOrEmpty() && spotsQueueB.Any(s => s.exitSpot.Map != null || s.enterSpot.Map != null) ||
-        exitSpotB.Map != null || enterSpotB.Map != null;
-
     public Map DestMap
     {
         get
@@ -133,7 +125,8 @@ public abstract class JobDriverAcrossMaps : JobDriverBodyOffset
 
     public void ConsumeSpots(TraverseSpots spots)
     {
-        consumedSpots.Add(spots);
+        if (spots.exitSpot.Map is not null || spots.enterSpot.Map is not null)
+            consumedSpots.Add(spots);
     }
 
     public bool Consumed(TraverseSpots spots)

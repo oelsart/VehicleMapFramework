@@ -1,4 +1,5 @@
-﻿using Verse;
+﻿using JetBrains.Annotations;
+using Verse;
 
 namespace VehicleMapFramework;
 
@@ -12,6 +13,7 @@ public class TraverseSpotsSaveLoader(TraverseSpots spots) : IExposable
 {
     public TraverseSpots spots = spots;
 
+    [UsedImplicitly]
     public TraverseSpotsSaveLoader() : this(new TraverseSpots(TargetInfo.Invalid, TargetInfo.Invalid))
     {
     }
