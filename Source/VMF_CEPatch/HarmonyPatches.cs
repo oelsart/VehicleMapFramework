@@ -4,7 +4,6 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using CombatExtended;
-using CombatExtended.Compatibility;
 using HarmonyLib;
 using RimWorld;
 using RimWorld.Planet;

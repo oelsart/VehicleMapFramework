@@ -1,4 +1,4 @@
-﻿global using TraverseSpots = (Verse.TargetInfo exitSpot, Verse.TargetInfo enterSpot);using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -22,6 +22,12 @@ public abstract class JobDriverAcrossMaps : JobDriverBodyOffset
     private List<TraverseSpots> spotsQueueB;
 
     private List<TraverseSpots> consumedSpots = [];
+    
+    private List<TraverseSpotsSaveLoader> spotsQueueA_SaveLoader;
+    
+    private List<TraverseSpotsSaveLoader> spotsQueueB_SaveLoader;
+    
+    private List<TraverseSpotsSaveLoader> consumedSpots_SaveLoader;
 
     private Map targetAMap;
 
@@ -141,11 +147,11 @@ public abstract class JobDriverAcrossMaps : JobDriverBodyOffset
         {
             TargetIndex.A when !spotsQueueA.NullOrEmpty() =>
                 spotsQueueA.SelectMany(s => ToilsAcrossMaps.GotoTargetMap(this, s)),
-            TargetIndex.A => ToilsAcrossMaps.GotoTargetMap(this, (exitSpotA, enterSpotA)),
+            TargetIndex.A => ToilsAcrossMaps.GotoTargetMap(this, new TraverseSpots(exitSpotA, enterSpotA)),
             
             TargetIndex.B when !spotsQueueB.NullOrEmpty() =>
                 spotsQueueB.SelectMany(s => ToilsAcrossMaps.GotoTargetMap(this, s)),
-            TargetIndex.B => ToilsAcrossMaps.GotoTargetMap(this, (exitSpotB, enterSpotB)),
+            TargetIndex.B => ToilsAcrossMaps.GotoTargetMap(this, new TraverseSpots(exitSpotB, enterSpotB)),
             
             _ => new Func<IEnumerable<Toil>>(() =>
             {
@@ -157,78 +163,39 @@ public abstract class JobDriverAcrossMaps : JobDriverBodyOffset
 
     public override void ExposeData()
     {
-        Scribe_TargetInfo.Look(ref exitSpotA, "exitSpot1");
-        Scribe_TargetInfo.Look(ref enterSpotA, "enterSpot1");
-        Scribe_TargetInfo.Look(ref exitSpotB, "exitSpot2");
-        Scribe_TargetInfo.Look(ref enterSpotB, "enterSpot2");
-        Scribe_Values.Look(ref drawOffset, "drawOffset");
-        Scribe_References.Look(ref targetAMap, "targetAMap");
-        Scribe_References.Look(ref destMap, "destMap");
-        switch (Scribe.mode)
-        {
-            case LoadSaveMode.Saving:
-            {
-                if (spotsQueueA is not null)
-                {
-                    var tmpExitSpots = spotsQueueA.Select(s => s.exitSpot).ToList();
-                    var tmpEnterSpots = spotsQueueA.Select(s => s.enterSpot).ToList();
-                    Scribe_Collections.Look(ref tmpExitSpots, "exitSpotsA", LookMode.TargetInfo);
-                    Scribe_Collections.Look(ref tmpEnterSpots, "enterSpotsA", LookMode.TargetInfo);
-                }
-                if (spotsQueueB is not null)
-                {
-                    var tmpExitSpots = spotsQueueB.Select(s => s.exitSpot).ToList();
-                    var tmpEnterSpots = spotsQueueB.Select(s => s.enterSpot).ToList();
-                    Scribe_Collections.Look(ref tmpExitSpots, "exitSpotsB", LookMode.TargetInfo);
-                    Scribe_Collections.Look(ref tmpEnterSpots, "enterSpotsB", LookMode.TargetInfo);
-                }
+        Scribe_TargetInfo.Look(ref exitSpotA, nameof(exitSpotA));
+        Scribe_TargetInfo.Look(ref enterSpotA, nameof(enterSpotA));
+        Scribe_TargetInfo.Look(ref exitSpotB, nameof(exitSpotB));
+        Scribe_TargetInfo.Look(ref enterSpotB, nameof(enterSpotB));
+        Scribe_Values.Look(ref drawOffset, nameof(drawOffset));
+        Scribe_References.Look(ref targetAMap, nameof(targetAMap));
+        Scribe_References.Look(ref destMap, nameof(destMap));
 
-                if (consumedSpots is not null)
-                {
-                    var tmpExitSpots = consumedSpots.Select(s => s.exitSpot).ToList();
-                    var tmpEnterSpots = consumedSpots.Select(s => s.enterSpot).ToList();
-                    Scribe_Collections.Look(ref tmpExitSpots, "consumedExitSpots", LookMode.TargetInfo);
-                    Scribe_Collections.Look(ref tmpEnterSpots, "consumedEnterSpots", LookMode.TargetInfo);
-                }
-                break;
-            }
-            case LoadSaveMode.LoadingVars:
-            {
-                List<TargetInfo> tmpExitSpots = null;
-                List<TargetInfo> tmpEnterSpots = null;
-                Scribe_Collections.Look(ref tmpExitSpots, "exitSpotsA", LookMode.TargetInfo);
-                Scribe_Collections.Look(ref tmpEnterSpots, "enterSpotsA", LookMode.TargetInfo);
-                if (tmpExitSpots is not null && tmpEnterSpots is not null)
-                {
-                    spotsQueueA = tmpExitSpots.Zip(tmpEnterSpots, (exitSpot, enterSpot) => (exitSpot, enterSpot)).ToList();
-                }
-                tmpExitSpots = null;
-                tmpEnterSpots = null;
-                Scribe_Collections.Look(ref tmpExitSpots, "exitSpotsB", LookMode.TargetInfo);
-                Scribe_Collections.Look(ref tmpEnterSpots, "enterSpotsB", LookMode.TargetInfo);
-                if (tmpExitSpots is not null && tmpEnterSpots is not null)
-                {
-                    spotsQueueB = tmpExitSpots.Zip(tmpEnterSpots, (exitSpot, enterSpot) => (exitSpot, enterSpot)).ToList();
-                }
-                tmpExitSpots = null;
-                tmpEnterSpots = null;
-                Scribe_Collections.Look(ref tmpExitSpots, "consumedExitSpots", LookMode.TargetInfo);
-                Scribe_Collections.Look(ref tmpEnterSpots, "consumedEnterSpots", LookMode.TargetInfo);
-                if (tmpExitSpots is not null && tmpEnterSpots is not null)
-                {
-                    consumedSpots = tmpExitSpots.Zip(tmpEnterSpots, (exitSpot, enterSpot) => (exitSpot, enterSpot)).ToList();
-                }
-                break;
-            }
-            case LoadSaveMode.Inactive:
-            case LoadSaveMode.ResolvingCrossRefs:
-            case LoadSaveMode.PostLoadInit:
-            default: break;
+        var flag = Scribe.mode == LoadSaveMode.Saving;
+        if (flag)
+        {
+            spotsQueueA_SaveLoader = spotsQueueA?.Select(spots => new TraverseSpotsSaveLoader(spots)).ToList();
+            spotsQueueB_SaveLoader = spotsQueueB?.Select(spots => new TraverseSpotsSaveLoader(spots)).ToList();
+            consumedSpots_SaveLoader = consumedSpots?.Select(spots => new TraverseSpotsSaveLoader(spots)).ToList();
+        }
+        Scribe_Collections.Look(ref spotsQueueA_SaveLoader, nameof(spotsQueueA), LookMode.Deep);
+        Scribe_Collections.Look(ref spotsQueueB_SaveLoader, nameof(spotsQueueB), LookMode.Deep);
+        Scribe_Collections.Look(ref consumedSpots_SaveLoader, nameof(consumedSpots), LookMode.Deep);
+        var flag2 = Scribe.mode == LoadSaveMode.PostLoadInit;
+        if (flag2)
+        {
+            spotsQueueA = spotsQueueA_SaveLoader?.Select(loader => loader.spots).ToList();
+            spotsQueueB = spotsQueueB_SaveLoader?.Select(loader => loader.spots).ToList();
+            consumedSpots = consumedSpots_SaveLoader?.Select(loader => loader.spots).ToList();
         }
 
-        LongEventHandler.ExecuteWhenFinished(() =>
+        if (flag || flag2)
         {
-            base.ExposeData();
-        });
+            spotsQueueA_SaveLoader = null;
+            spotsQueueB_SaveLoader = null;
+            consumedSpots_SaveLoader = null;
+        }
+
+        base.ExposeData();
     }
 }

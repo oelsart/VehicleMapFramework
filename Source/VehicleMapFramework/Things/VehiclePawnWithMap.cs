@@ -690,6 +690,19 @@ public class VehiclePawnWithMap : VehiclePawn
 
     public override void Notify_MyMapRemoved()
     {
+        base.Notify_MyMapRemoved();
+        Destroy();
+    }
+
+    public override void Notify_AbandonedAtTile(PlanetTile tile)
+    {
+        base.Notify_AbandonedAtTile(tile);
+        Destroy();
+    }
+
+    public override void Notify_LeftBehind()
+    {
+        base.Notify_LeftBehind();
         Destroy();
     }
 
