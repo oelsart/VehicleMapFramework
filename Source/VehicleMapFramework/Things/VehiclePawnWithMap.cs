@@ -21,8 +21,10 @@ using Verse.AI;
 
 namespace VehicleMapFramework;
 
+public class MapVehicleEventDef : Def;
+
 [StaticConstructorOnStartup]
-public class VehiclePawnWithMap : VehiclePawn
+public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
 {
     private Map interiorMap;
 
@@ -76,6 +78,10 @@ public class VehiclePawnWithMap : VehiclePawn
         DefDatabase<DesignationDef>.AllDefs.Where(d => d.targetType == TargetType.Cell).ToList();
     
     internal static readonly AccessTools.FieldRef<MapDrawer, Section[,]> sections = AccessTools.FieldRefAccess<MapDrawer, Section[,]>("sections");
+
+    EventManager<MapVehicleEventDef> IEventManager<MapVehicleEventDef>.EventRegistry { get; set; }
+
+    public EventManager<MapVehicleEventDef> MapVehicleEventManager => ((IEventManager<MapVehicleEventDef>)this).EventRegistry;
 
     public Map VehicleMap
     {
@@ -200,8 +206,16 @@ public class VehiclePawnWithMap : VehiclePawn
             return field;
         }
     }
-    
-    public CellRect ValidMapRect { get; private set; }
+
+    public CellRect ValidMapRect
+    {
+        get
+        {
+            _ = CachedMapEdgeCells;
+            return field;
+        }
+        private set;
+    }
 
     public List<IntVec3> CachedMapEdgeCells
     {
@@ -340,6 +354,8 @@ public class VehiclePawnWithMap : VehiclePawn
     public CompNpcVehicleMap CompNpcVehicleMap => field ??= GetComp<CompNpcVehicleMap>();
     
     public CompDelayedKill CompDelayedKill => field ??= GetComp<CompDelayedKill>();
+
+    public MapComponent InterceptorMapComponent => field ??= interiorMap.GetComponent(DefenseGrid.InterceptorMapComponent);
 
     public List<CompVehicleEnterSpot> EnterComps { get; } = [];
 
@@ -599,6 +615,7 @@ public class VehiclePawnWithMap : VehiclePawn
         }
 
         base.SpawnSetup(map, respawningAfterLoad);
+        RegisterEvents();
         CacheDrawPos(DrawPos);
         VehiclePawnWithMapCache.RegisterVehicle(this);
         mapFollower = new VehicleMapFollower(this);
@@ -1219,6 +1236,7 @@ public class VehiclePawnWithMap : VehiclePawn
     {
         VMF_Harmony.DynamicPatchAll(Level.All);
         base.PostLoad();
+        RegisterEvents();
         CompVehicleTurrets?.RevalidateTurrets();
         ResetRenderStatus();
         CurrentLevel = interiorMap;
@@ -1242,6 +1260,46 @@ public class VehiclePawnWithMap : VehiclePawn
     {
         VMF_Harmony.DynamicPatchAll(Level.All);
         base.PostGenerationSetup();
+        RegisterEvents();
+    }
+
+    public new void RegisterEvents()
+    {
+        var manager = MapVehicleEventManager;
+        if (manager is not null && manager.Initialized()) return;
+        this.FillEventsDef<MapVehicleEventDef>();
+        this.AddEvent(VMF_DefOf.EnterNextCell, () =>
+        {
+            enterPositionsDirty = true;
+            CrossMapReachabilityCache.ClearCacheFor(VehicleMap);
+        });
+        if (DefenseGrid.Active)
+        {
+            this.AddEvent(VMF_DefOf.EnterNextCell, () =>
+            {
+                if (InterceptorMapComponent is null) return;
+                foreach (var grid in DefenseGrid.grids(InterceptorMapComponent))
+                {
+                    DefenseGrid.RepaintGrid(InterceptorMapComponent, FastInvokeHelper.SingleParam(grid));
+                }
+            });
+            this.AddEvent(VehicleEventDefOf.Spawned, () => FrameDelay.DelayOne(static component =>
+            {
+                if (component is null) return;
+                foreach (var grid in DefenseGrid.grids(component))
+                {
+                    DefenseGrid.RepaintGrid(component, FastInvokeHelper.SingleParam(grid));
+                }
+            }, InterceptorMapComponent));
+            this.AddEvent(VehicleEventDefOf.Despawned, () =>
+            {
+                if (InterceptorMapComponent is null) return;
+                foreach (var grid in DefenseGrid.grids(InterceptorMapComponent))
+                {
+                    DefenseGrid.UnpaintGrid(InterceptorMapComponent, FastInvokeHelper.SingleParam(grid));
+                }
+            });
+        }
     }
     
     private void Resize()
@@ -1250,7 +1308,6 @@ public class VehiclePawnWithMap : VehiclePawn
         var vehicleDef = VehicleDef;
         var curSize = vehicleDef.Size;
         var mapRect = CellRect.WholeMap(VehicleMap);
-        _ = CachedMapEdgeCells;
         var newRect = ValidMapRect;
         var newSize = newRect.Size;
         if (curSize != newSize)

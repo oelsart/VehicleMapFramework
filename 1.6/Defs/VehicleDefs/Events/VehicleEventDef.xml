@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+
+    <VehicleMapFramework.MapVehicleEventDef>
+        <defName>EnterNextCell</defName>
+    </VehicleMapFramework.MapVehicleEventDef>
+    
+</Defs>
