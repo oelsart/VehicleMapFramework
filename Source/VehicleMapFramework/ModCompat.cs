@@ -546,6 +546,11 @@ internal static class ModCompat
         }
     }
 
+    public static class VFEFactory
+    {
+        public static readonly bool Active = IsModActive("VanillaExpanded.VFEFactory");
+    }
+
     public static class VVE
     {
         public static readonly bool Active = IsModActive("OskarPotocki.VanillaVehiclesExpanded");
@@ -575,37 +580,6 @@ internal static class ModCompat
                 }
             }
         }
-    }
-
-    public static class VFEMechanoid
-    {
-        public static readonly bool Active = IsModActive("OskarPotocki.VFE.Mechanoid");
-        
-        public static readonly FastInvokeHandler DoWorkOnCell = null;
-    //
-    //     static VFEMechanoid()
-    //     {
-    //         if (Active)
-    //         {
-    //             try
-    //             {
-    //                 DoWorkOnCell = MethodInvoker.GetHandler(AccessTools.Method("VFE.Mechanoids.Buildings.Building_AutoPlant:DoWorkOnCell"));
-    //             }
-    //             catch (Exception ex)
-    //             {
-    //                 LogError(ex);
-    //                 Active = false;
-    //             }
-    //             finally
-    //             {
-    //                 if (AnyNull(DoWorkOnCell))
-    //                 {
-    //                     LogIncompat("VFEMechanoids");
-    //                     Active = false;
-    //                 }
-    //             }
-    //         }
-    //     }
     }
 
     public static readonly bool VGE = IsModActive("vanillaexpanded.gravship");

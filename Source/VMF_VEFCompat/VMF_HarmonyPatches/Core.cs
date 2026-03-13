@@ -35,13 +35,13 @@ public static class Patches_VEF
         {
             VMF_Harmony.PatchCategory(PatchCategories.VFESecurity);
         }
+        if (ModCompat.VFEFactory.Active)
+        {
+            VMF_Harmony.PatchCategory(PatchCategories.VFEFactory);
+        }
         if (ModCompat.VVE.Active)
         {
             VMF_Harmony.PatchCategory(PatchCategories.VVE);
-        }
-        if (ModCompat.VFEMechanoid.Active)
-        {
-            VMF_Harmony.PatchCategory(PatchCategories.VFEMechanoids);
         }
         if (ModCompat.VGE)
         {
