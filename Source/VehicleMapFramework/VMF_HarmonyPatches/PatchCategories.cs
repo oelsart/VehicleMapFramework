@@ -32,7 +32,9 @@ internal static class PatchCategories
 
     public const string CombatExtended = "VMF_Patches_CombatExtended";
 
-    public const string CombatExtendedVFESecurityCompat = "VMF_Patches_CombatExtendedVFESecurityCompat";
+    public const string CombatExtendedVFECompat = "VMF_Patches_CombatExtendedVFECompat";
+
+    public const string CombatExtendedRimatomicsCompat = "VMF_Patches_CombatExtendedRimatomicsCompat";
     
     public const string DubsBadHygiene = "VMF_Patches_DubsBadHygiene";
     

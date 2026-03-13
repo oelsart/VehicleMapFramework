@@ -24,11 +24,6 @@ public static class Patches_CE
         VMF_Harmony.Instance.Patch(method, postfix: patch);
 
         VMF_Harmony.PatchCategory(PatchCategories.CombatExtended);
-
-        if (ModCompat.VFESecurity.Active)
-        {
-            VMF_Harmony.PatchCategory(PatchCategories.CombatExtendedVFESecurityCompat);
-        }
     }
 }
 
@@ -265,6 +260,103 @@ public static class Patch_Verb_ShootMortarCE_ShiftVecReportFor
         return instructions.MethodReplacer(CachedMethodInfo.g_GlobalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap_GlobalTargetInfo)
             .MethodReplacer(CachedMethodInfo.g_GlobalTargetInfo_Map, CachedMethodInfo.m_BaseMap_GlobalTargetInfo)
             .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
+    }
+}
+
+[HarmonyPatchCategory(PatchCategories.CombatExtended)]
+[HarmonyPatch]
+[PatchLevel(Level.Sensitive)]
+public static class Patch_VerbCIWS_TryFindNewTarget_Delegate
+{
+    private static MethodBase TargetMethod()
+    {
+        var m_ProjectilesAt = AccessTools.Method(typeof(ProjectileCE_CIWS), nameof(ProjectileCE_CIWS.ProjectilesAt));
+        return AccessTools.FindIncludingInnerTypes(typeof(VerbCIWS<ProjectileCE>), t =>
+        {
+            if (!t.IsGenericTypeDefinition) return null;
+            return AccessTools.FirstMethod(t.MakeGenericType(typeof(ProjectileCE)), m =>
+            {
+                if (!m.Name.Contains("<TryFindNewTarget>")) return false;
+                return VMF_Harmony.ReadMethodBodyWrapper(m).Any(i =>
+                    m_ProjectilesAt.Equals(i.Value));
+            });
+        });
+    }
+    
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        var m_ProjectilesAt = AccessTools.Method(typeof(ProjectileCE_CIWS), nameof(ProjectileCE_CIWS.ProjectilesAt));
+        return new CodeMatcher(instructions)
+            .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Map), CodeMatch.Calls(m_ProjectilesAt))
+            .Set(OpCodes.Call, CachedMethodInfo.m_BaseMap_Thing)
+            .InstructionEnumeration()
+            .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
+    }
+}
+
+[HarmonyPatchCategory(PatchCategories.CombatExtended)]
+[HarmonyPatch(typeof(VerbCIWS<ProjectileCE>), nameof(VerbCIWS.TryFindCEShootLineFromTo))]
+[PatchLevel(Level.Cautious)]
+public static class Patch_VerbCIWS_TryFindCEShootLineFromTo
+{
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
+    }
+}
+
+[HarmonyPatchCategory(PatchCategories.CombatExtended)]
+[HarmonyPatch(typeof(VerbCIWSProjectile), nameof(VerbCIWSProjectile.Targets), MethodType.Getter)]
+[PatchLevel(Level.Cautious)]
+public static class Patch_VerbCIWSProjectile_Targets
+{
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
+    }
+}
+
+[HarmonyPatchCategory(PatchCategories.CombatExtended)]
+[HarmonyPatch(typeof(VerbCIWSSkyfaller), nameof(VerbCIWSSkyfaller.Targets), MethodType.Getter)]
+[PatchLevel(Level.Safe)]
+public static class Patch_VerbCIWSSkyfaller_Targets
+{
+    public static IEnumerable<Skyfaller> Postfix(IEnumerable<Skyfaller> values, VerbCIWSSkyfaller __instance)
+    {
+        if (values is null) yield break;
+        foreach (var value in values) yield return value;
+        foreach (var map in __instance.Caster.Map.BaseMapAndVehicleMaps(false))
+        {
+            foreach (var transporter in map.listerThings.ThingsInGroup(ThingRequestGroup.ActiveTransporter))
+            {
+                if (transporter is Skyfaller skyfaller)
+                    yield return skyfaller;
+            }
+        }
+    }
+}
+
+[HarmonyPatchCategory(PatchCategories.CombatExtended)]
+[HarmonyPatch]
+[PatchLevel(Level.Safe)]
+public static class Patch_CompCIWSTarget_Targets
+{
+    private static MethodBase TargetMethod()
+    {
+        return AccessTools.FirstMethod(typeof(CompCIWSTarget), m => m.Name == nameof(CompCIWSTarget.Targets) && !m.IsGenericMethodDefinition);
+    }
+    
+    public static IEnumerable<Thing> Postfix(IEnumerable<Thing> values, Map map)
+    {
+        foreach (var value in values) yield return value;
+        foreach (var map2 in map.BaseMapAndVehicleMaps(false))
+        {
+            foreach (var transporter in map2.listerThings.ThingsInGroup(ThingRequestGroup.ActiveTransporter))
+            {
+                if (transporter is Skyfaller skyfaller)
+                    yield return skyfaller;
+            }
+        }
     }
 }
 
@@ -529,43 +621,3 @@ public static class Patch_NonSnapAttackTargetFinder_BestAttackTarget
         __result = AttackTargetFinderOnVehicle.CompareTarget(__result, target, searcher);
     }
 }
-
-// [HarmonyPatchCategory(PatchCategories.CombatExtendedVFESecurityCompat)]
-// [HarmonyPatch(typeof(VanillaFurnitureExpandedSecurity), "refreshShields")]
-// [PatchLevel(Level.Safe)]
-// public static class Patch_VanillaFurnitureExpandedSecurity_refreshShields
-// {
-//     private static readonly Type t_ListerThingsExtended = AccessTools.TypeByName("VFESecurity.ListerThingsExtended");
-//
-//     private static readonly AccessTools.FieldRef<MapComponent, IEnumerable<Building>> listerShieldGens = AccessTools.FieldRefAccess<IEnumerable<Building>>(t_ListerThingsExtended, "listerShieldGens");
-//
-//     public static void Postfix(Map map, HashSet<Building> ___shields)
-//     {
-//         VehiclePawnWithMapCache.AllVehiclesOn(map).Do(v =>
-//         {
-//             ___shields.AddRange(listerShieldGens(v.VehicleMap.GetComponent(t_ListerThingsExtended)));
-//         });
-//     }
-// }
-//
-// [HarmonyPatchCategory(PatchCategories.CombatExtendedVFESecurityCompat)]
-// [HarmonyPatch(typeof(VanillaFurnitureExpandedSecurity), "ShieldInterceptsProjectile")]
-// [PatchLevel(Level.Sensitive)]
-// public static class Patch_VanillaFurnitureExpandedSecurity_ShieldInterceptsProjectile
-// {
-//     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-//     {
-//         foreach (var instruction in instructions)
-//         {
-//             if (instruction.Calls(CachedMethodInfo.g_Thing_Position))
-//             {
-//                 yield return CodeInstruction.LoadArgument(0);
-//                 yield return new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_PositionOnAnotherThingMap);
-//             }
-//             else
-//             {
-//                 yield return instruction;
-//             }
-//         }
-//     }
-// }
