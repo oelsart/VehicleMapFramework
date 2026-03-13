@@ -920,7 +920,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
             {
                 var map = vehicle.CurrentLevel;
                 VehicleSectionLayerManager.CacheMode = true;
-                map.GetCachedMapComponent<VehicleSectionLayerManager>().UpdateAllSection();
+                map.GetCachedMapComponent<VehicleSectionLayerManager>()?.UpdateAllSection();
                 map.mapDrawer.MapMeshDrawerUpdate_First();
             }
             finally
@@ -956,6 +956,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     {
         var mapDrawer = map.mapDrawer;
         var component = map.GetCachedMapComponent<VehicleSectionLayerManager>();
+        if (component is null) return;
         var dirty = false;
         foreach (var section in sections(mapDrawer))
         {

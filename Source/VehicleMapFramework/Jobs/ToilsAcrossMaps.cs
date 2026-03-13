@@ -231,9 +231,8 @@ public static class ToilsAcrossMaps
                     dist += vehicleOffset;
                     var initPos = exitSpot.Cell.ToVector3Shifted().ToBaseMapCoord(vehicle);
                     var rot = exitSpot.Cell.DirectionToInsideMap(vehicle);
-                    var baseRot = exitSpot.Cell.BaseFullDirectionToInsideMap(vehicle);
 
-                    var offset = ((initPos + baseRot.Opposite.AsVector2.ToVector3() * dist) - initPos).Yto0();
+                    var offset = ((initPos + rot.Opposite.AsVector2.ToVector3() * dist) - initPos).Yto0();
                     var totalTick = toil2.defaultDuration;
                     driver.drawOffset = offset * ((totalTick - driver.ticksLeftThisToil) / (float)totalTick);
                     
