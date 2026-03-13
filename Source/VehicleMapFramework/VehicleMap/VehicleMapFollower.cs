@@ -29,8 +29,6 @@ public class VehicleMapFollower(VehiclePawnWithMap vehicle)
 
         if (vehicle.Position != prevCell)
         {
-            vehicle.enterPositionsDirty = true;
-            CrossMapReachabilityCache.ClearCacheFor(vehicle.VehicleMap);
             if (ticksToMove > 0)
             {
                 UpdatePositionAndRotation();
@@ -38,6 +36,7 @@ public class VehicleMapFollower(VehiclePawnWithMap vehicle)
             ticksToMove = VehiclePathFollower.MoveTicksAt(vehicle, prevCell, vehicle.Position);
             prevCell = vehicle.Position;
             updated = false;
+            vehicle.MapVehicleEventManager[VMF_DefOf.EnterNextCell].ExecuteEvents();
         }
         else
         {

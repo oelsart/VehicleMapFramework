@@ -342,12 +342,14 @@ internal static class ModCompat
     public static class DefenseGrid
     {
         public static readonly bool Active = IsModActive("Aelanna.EccentricTech.DefenseGrid");
-
         public static readonly Type SectionLayer_DefenseGridOverlay;
-
         public static readonly Type CompDefenseConduit;
-
         public static readonly Type Designator_DeconstructConduit;
+        public static readonly Type InterceptorMapComponent;
+        public static readonly AccessTools.FieldRef<MapComponent, IList> grids;
+        public static readonly AccessTools.FieldRef<object, MapComponent> mapComponent;
+        public static readonly FastInvokeHandler RepaintGrid;
+        public static readonly FastInvokeHandler UnpaintGrid;
 
         static DefenseGrid()
         {
@@ -358,6 +360,12 @@ internal static class ModCompat
                     SectionLayer_DefenseGridOverlay = AccessTools.TypeByName("EccentricDefenseGrid.SectionLayer_DefenseGridOverlay");
                     CompDefenseConduit = AccessTools.TypeByName("EccentricDefenseGrid.CompDefenseConduit");
                     Designator_DeconstructConduit = AccessTools.TypeByName("EccentricDefenseGrid.Designator_DeconstructConduit");
+                    InterceptorMapComponent = GenTypes.GetTypeInAnyAssembly("EccentricProjectiles.InterceptorMapComponent", "EccentricProjectiles");
+                    grids = AccessTools.FieldRefAccess<IList>(InterceptorMapComponent, "grids");
+                    var t_InterceptorGrid = GenTypes.GetTypeInAnyAssembly("EccentricProjectiles.InterceptorGrid", "EccentricProjectiles");
+                    mapComponent = AccessTools.FieldRefAccess<MapComponent>(t_InterceptorGrid, "mapComponent");
+                    RepaintGrid = MethodInvoker.GetHandler(AccessTools.Method(InterceptorMapComponent, "RepaintGrid"));
+                    UnpaintGrid = MethodInvoker.GetHandler(AccessTools.Method(InterceptorMapComponent, "UnpaintGrid"));
                 }
                 catch (Exception ex)
                 {
@@ -366,7 +374,8 @@ internal static class ModCompat
                 }
                 finally
                 {
-                    if (AnyNull(SectionLayer_DefenseGridOverlay, CompDefenseConduit, Designator_DeconstructConduit))
+                    if (AnyNull(SectionLayer_DefenseGridOverlay, CompDefenseConduit, Designator_DeconstructConduit,
+                            InterceptorMapComponent, grids, RepaintGrid, UnpaintGrid))
                     {
                         LogIncompat("Defense Grid");
                         Active = false;
@@ -546,6 +555,11 @@ internal static class ModCompat
         }
     }
 
+    public static class VFEFactory
+    {
+        public static readonly bool Active = IsModActive("VanillaExpanded.VFEFactory");
+    }
+
     public static class VVE
     {
         public static readonly bool Active = IsModActive("OskarPotocki.VanillaVehiclesExpanded");
@@ -575,37 +589,6 @@ internal static class ModCompat
                 }
             }
         }
-    }
-
-    public static class VFEMechanoid
-    {
-        public static readonly bool Active = IsModActive("OskarPotocki.VFE.Mechanoid");
-        
-        public static readonly FastInvokeHandler DoWorkOnCell = null;
-    //
-    //     static VFEMechanoid()
-    //     {
-    //         if (Active)
-    //         {
-    //             try
-    //             {
-    //                 DoWorkOnCell = MethodInvoker.GetHandler(AccessTools.Method("VFE.Mechanoids.Buildings.Building_AutoPlant:DoWorkOnCell"));
-    //             }
-    //             catch (Exception ex)
-    //             {
-    //                 LogError(ex);
-    //                 Active = false;
-    //             }
-    //             finally
-    //             {
-    //                 if (AnyNull(DoWorkOnCell))
-    //                 {
-    //                     LogIncompat("VFEMechanoids");
-    //                     Active = false;
-    //                 }
-    //             }
-    //         }
-    //     }
     }
 
     public static readonly bool VGE = IsModActive("vanillaexpanded.gravship");

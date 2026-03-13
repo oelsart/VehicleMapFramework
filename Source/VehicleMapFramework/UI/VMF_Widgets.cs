@@ -7,8 +7,19 @@ using Verse.Sound;
 namespace VehicleMapFramework;
 
 [StaticConstructorOnStartup]
+[HotSwap]
 public static class VMF_Widgets
 {
+    private static readonly Texture2D SliderRailAtlas = ContentFinder<Texture2D>.Get("UI/Buttons/SliderRail");
+
+    private static readonly Texture2D SliderHandle = ContentFinder<Texture2D>.Get("UI/Buttons/SliderHandle");
+
+    private static readonly Color RangeControlTextColor = new(0.6f, 0.6f, 0.6f);
+
+    private static float lastDragSliderSoundTime = -1f;
+
+    private static int sliderDraggingID;
+    
     public static float HorizontalSlider(Rect rect, float value, float min, float max, bool middleAlignment = false, string label = null, string leftAlignedLabel = null, string rightAlignedLabel = null, float roundTo = -1f, Color colorFactor = default)
     {
         var color = GUI.color;
@@ -92,52 +103,32 @@ public static class VMF_Widgets
 
     public static void DrawBoxRotated(Rect rect, int thickness = 1, Texture2D lineTexture = null, float rotation = 0f)
     {
-        var vector = RotatePoint(new Vector2(rect.x, rect.y), rect.center, rotation);
-        var vector2 = RotatePoint(new Vector2(rect.xMax, rect.yMax), rect.center, rotation);
+        var center = rect.center;
+        var vector = RotatePoint(new Vector2(rect.x, rect.y), center, -rotation);
+        var vector2 = RotatePoint(new Vector2(rect.xMax, rect.yMax), center, -rotation);
         if (vector.x > vector2.x)
         {
-            ref var ptr = ref vector.x;
-            var num = vector2.x;
-            var num2 = vector.x;
-            ptr = num;
-            vector2.x = num2;
+            (vector.x, vector2.x) = (vector2.x, vector.x);
         }
         if (vector.y > vector2.y)
         {
-            ref var ptr = ref vector.y;
-            var num2 = vector2.y;
-            var num = vector.y;
-            ptr = num2;
-            vector2.y = num;
+            (vector.y, vector2.y) = (vector2.y, vector.y);
         }
         Vector3 vector3 = vector2 - vector;
         var matrix = GUI.matrix;
-        UI.RotateAroundPivot(-rotation, rect.center);
+        UI.RotateAroundPivot(rotation, center);
         GUI.DrawTexture(UIScaling.AdjustRectToUIScaling(new Rect(vector.x, vector.y, thickness, vector3.y)), lineTexture ?? BaseContent.WhiteTex);
         GUI.DrawTexture(UIScaling.AdjustRectToUIScaling(new Rect(vector2.x - thickness, vector.y, thickness, vector3.y)), lineTexture ?? BaseContent.WhiteTex);
         GUI.DrawTexture(UIScaling.AdjustRectToUIScaling(new Rect(vector.x + thickness, vector.y, vector3.x - (thickness * 2), thickness)), lineTexture ?? BaseContent.WhiteTex);
         GUI.DrawTexture(UIScaling.AdjustRectToUIScaling(new Rect(vector.x + thickness, vector2.y - thickness, vector3.x - (thickness * 2), thickness)), lineTexture ?? BaseContent.WhiteTex);
 
         GUI.matrix = matrix;
-        return;
-
-        static Vector2 RotatePoint(Vector2 point, Vector2 origin, float angle)
-        {
-            var x = (Mathf.Cos(angle * angleToRad) * (point.x - origin.x)) - (Mathf.Sin(angle * angleToRad) * (point.y - origin.y)) + origin.x;
-            var y = (Mathf.Sin(angle * angleToRad) * (point.x - origin.x)) + (Mathf.Cos(angle * angleToRad) * (point.y - origin.y)) + origin.y;
-            return new Vector2(x, y);
-        }
     }
-
-    private static readonly Texture2D SliderRailAtlas = ContentFinder<Texture2D>.Get("UI/Buttons/SliderRail");
-
-    private static readonly Texture2D SliderHandle = ContentFinder<Texture2D>.Get("UI/Buttons/SliderHandle");
-
-    private static readonly Color RangeControlTextColor = new(0.6f, 0.6f, 0.6f);
-
-    private const float angleToRad = 0.017453292519943f;
-
-    private static float lastDragSliderSoundTime = -1f;
-
-    private static int sliderDraggingID;
+    
+    private static Vector2 RotatePoint(Vector2 point, Vector2 origin, float angle)
+    {
+        var x = (Mathf.Cos(angle * Mathf.Deg2Rad) * (point.x - origin.x)) - (Mathf.Sin(angle * Mathf.Deg2Rad) * (point.y - origin.y)) + origin.x;
+        var y = (Mathf.Sin(angle * Mathf.Deg2Rad) * (point.x - origin.x)) + (Mathf.Cos(angle * Mathf.Deg2Rad) * (point.y - origin.y)) + origin.y;
+        return new Vector2(x, y);
+    }
 }

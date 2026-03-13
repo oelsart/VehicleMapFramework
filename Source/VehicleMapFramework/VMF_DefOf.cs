@@ -60,6 +60,8 @@ public static class VMF_DefOf
 
     public static VehicleStatDef MaximumPayload;
 
+    public static MapVehicleEventDef EnterNextCell;
+
     [MayRequireOdyssey]
     public static VehicleDef VMF_GravshipVehicleBase;
 

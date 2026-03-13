@@ -18,9 +18,9 @@ internal static class PatchCategories
 
     public const string VFESecurity = "VMF_Patches_VFESecurity";
 
-    public const string VVE = "VMF_Patches_VVehiclesE";
+    public const string VFEFactory = "VMF_Patches_VFEFactory";
 
-    public const string VFEMechanoids = "VMF_Patches_VFEMechanoids";
+    public const string VVE = "VMF_Patches_VVehiclesE";
     
     public const string VGE = "VMF_Patches_VGravshipE";
     
@@ -32,7 +32,9 @@ internal static class PatchCategories
 
     public const string CombatExtended = "VMF_Patches_CombatExtended";
 
-    public const string CombatExtendedVFESecurityCompat = "VMF_Patches_CombatExtendedVFESecurityCompat";
+    public const string CombatExtendedVFECompat = "VMF_Patches_CombatExtendedVFECompat";
+
+    public const string CombatExtendedRimatomicsCompat = "VMF_Patches_CombatExtendedRimatomicsCompat";
     
     public const string DubsBadHygiene = "VMF_Patches_DubsBadHygiene";
     
