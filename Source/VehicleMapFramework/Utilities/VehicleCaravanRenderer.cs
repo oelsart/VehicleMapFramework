@@ -28,7 +28,7 @@ public static class VehicleCaravanRenderer
 
         public void RecalculateVehiclePositions()
         {
-            var radialCount = GenRadial.NumCellsInRadius(GenRadial.MaxRadialPatternRadius - 0.1f);
+            var radialCount = GenRadial.NumCellsInRadius(CombatExtended ? 119f : GenRadial.MaxRadialPatternRadius - 0.1f);
             var drawPositions = vehicleCaravanOrStashedVehicle.DrawPositions;
             var vehicles = (vehicleCaravanOrStashedVehicle switch
             {
