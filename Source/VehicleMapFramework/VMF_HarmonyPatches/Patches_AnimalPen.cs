@@ -79,9 +79,8 @@ public static class Patch_AnimalPenUtility_ClosestSuitablePen
         if (__result == null)
         {
             var animalMap = animal.Map;
-            var maps = animalMap.BaseMapAndVehicleMaps(false);
             var num = 0f;
-            foreach (var map in maps)
+            foreach (var map in animalMap.BaseMapAndVehicleMaps(false))
             {
                 foreach (var thing in map.listerBuildings.allBuildingsAnimalPenMarkers)
                 {
@@ -137,40 +136,28 @@ public static class Patch_AnimalPenUtility_GetPenAnimalShouldBeTakenTo
 [PatchLevel(Level.Sensitive)]
 public static class Patch_AnimalPenUtility_GetHitchingPostAnimalShouldBeTakenTo
 {
+    private static readonly HashSet<Building> tmpBuildings = [];
+    
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        var codes = instructions.ToList();
-        var f_allHitchingPosts = AccessTools.Field(typeof(ListerBuildings), nameof(ListerBuildings.allBuildingsHitchingPosts));
-        var pos = codes.FindIndex(c => c.opcode == OpCodes.Ldfld && c.OperandIs(f_allHitchingPosts)) + 1;
-
-        codes.InsertRange(pos,
-        [
-            CodeInstruction.LoadArgument(1),
-            new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_Thing_Map),
-            CodeInstruction.Call(typeof(Patch_AnimalPenUtility_GetHitchingPostAnimalShouldBeTakenTo), nameof(AddHitchingPosts))
-        ]);
-
-        var count = 0;
-        return codes.Manipulator(c => c.opcode == OpCodes.Callvirt && c.OperandIs(CachedMethodInfo.g_Thing_Position), c =>
-        {
-            if (count > 0)
-            {
-                c.opcode = OpCodes.Call;
-                c.operand = CachedMethodInfo.m_PositionOnBaseMap;
-            }
-            count++;
-        });
+        return new CodeMatcher(instructions)
+            .MatchStartForward(CodeMatch.LoadsField(AccessTools.Field(typeof(ListerBuildings),
+                nameof(ListerBuildings.allBuildingsHitchingPosts))))
+            .InsertAfter(
+                CodeInstruction.LoadArgument(1),
+                CodeInstruction.Call(typeof(Patch_AnimalPenUtility_GetHitchingPostAnimalShouldBeTakenTo), nameof(AddHitchingPosts)))
+            .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Position)).Advance()
+            .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Position))
+            .Repeat(matcher => matcher.Set(OpCodes.Call, CachedMethodInfo.m_PositionOnBaseMap))
+            .InstructionEnumeration();
     }
 
-    private static HashSet<Building> AddHitchingPosts(HashSet<Building> hashSet, Map map)
+    private static HashSet<Building> AddHitchingPosts(HashSet<Building> hashSet, Pawn animal)
     {
-        var result = new HashSet<Building>(hashSet);
-        var maps = map.BaseMapAndVehicleMaps(false);
-        foreach (var map2 in maps)
-        {
-            result.AddRange(map2.listerBuildings.allBuildingsHitchingPosts);
-        }
-        return result;
+        tmpBuildings.Clear();
+        tmpBuildings.AddRange(hashSet);
+        tmpBuildings.AddRange(animal.Map.BaseMapAndVehicleMaps(false).SelectMany(m => m.listerBuildings.allBuildingsHitchingPosts));
+        return tmpBuildings;
     }
 }
 

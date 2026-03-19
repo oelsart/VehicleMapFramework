@@ -5,9 +5,6 @@ using System.Reflection.Emit;
 using HarmonyLib;
 using UnityEngine;
 using SmashTools;
-#if DEV
-using SmashTools.Burst;
-#endif
 using Vehicles;
 using Verse;
 
@@ -78,7 +75,8 @@ public static class Patch_VehiclePath_DrawPath
     private static MethodBase TargetMethod()
     {
 #if DEV
-        var method = AccessTools.Method(typeof(Ext_Path), nameof(VehiclePath.DrawPath));
+        var type = GenTypes.GetTypeInAnyAssembly("SmashTools.Burst.Ext_Path", "SmashTools.Burst");
+        var method = AccessTools.Method(type, "DrawPath");
         if (method is not null) return method;
 #endif
         return AccessTools.Method(typeof(VehiclePath), nameof(VehiclePath.DrawPath));

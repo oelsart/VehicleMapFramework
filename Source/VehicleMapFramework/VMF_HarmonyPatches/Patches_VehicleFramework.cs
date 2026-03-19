@@ -241,7 +241,7 @@ public static class Patch_TargetingHelper_TargetMeetsRequirements1
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
     }
 }
 
@@ -252,8 +252,8 @@ public static class Patch_TargetingHelper_TargetMeetsRequirements2
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap)
-            .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap)
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned)
+            .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned)
             .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
             .MethodReplacer(CachedMethodInfo.m_GenSight_LineOfSight1, CachedMethodInfo.m_GenSightOnVehicle_LineOfSight1)
             .MethodReplacer(CachedMethodInfo.m_OccupiedRect, CachedMethodInfo.m_MovedOccupiedRect)
@@ -316,8 +316,8 @@ public static class Patch_VehicleTurret_FireTurret
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap)
-            .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap)
+        return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned)
+            .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned)
             .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
     }
 }
@@ -331,7 +331,7 @@ public static class Patch_VehicleTurret_TurretRotation
     {
         if (___vehicle.IsOnNonFocusedVehicleMapOf(out var vehicle2))
         {
-            __result = Ext_Math.RotateAngle(__result, vehicle2.FullRotation.AsAngle);
+            __result = Ext_Math.RotateAngle(__result, vehicle2.FullAngle);
         }
     }
 }
@@ -345,7 +345,7 @@ public static class Patch_VehicleTurret_TurretRotationTargeted
     {
         if (__instance.vehicle.IsOnNonFocusedVehicleMapOf(out var vehicle2) && (__instance.TargetLocked || TurretTargeter.Turret == __instance))
         {
-            value = Ext_Math.RotateAngle(value, -vehicle2.FullRotation.AsAngle);
+            value = Ext_Math.RotateAngle(value, -vehicle2.FullAngle);
         }
     }
 }
@@ -407,7 +407,7 @@ public static class Patch_TurretTargeter_ProcessInputEvents
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap);
+        return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned);
     }
 }
 
@@ -419,35 +419,6 @@ public static class Patch_TurretTargeter_TargeterValid
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
-    }
-}
-
-//タレットの自動ロードがVehicleDefのCargoCapacityを参照してたので、これをVehiclePawnのインスタンスからステータスを参照させる
-[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
-[HarmonyPatch(typeof(Command_CooldownAction), "DrawBottomBar")]
-[PatchLevel(Level.Sensitive)]
-public static class Patch_Command_CooldownAction_DrawBottomBar
-{
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        var codes = instructions.ToList();
-        var m_GetStatValueAbstract = AccessTools.Method(typeof(Ext_Vehicles), nameof(Ext_Vehicles.GetStatValueAbstract));
-        var m_VehiclePawn_GetStatValue = AccessTools.Method(typeof(VehiclePawn), nameof(VehiclePawn.GetStatValue));
-        var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(m_GetStatValueAbstract));
-
-        if (pos != -1)
-        {
-            codes[pos].opcode = OpCodes.Callvirt;
-            codes[pos].operand = m_VehiclePawn_GetStatValue;
-
-            var g_VehiclePawn_VehicleDef = AccessTools.PropertyGetter(typeof(VehiclePawn), nameof(VehiclePawn.VehicleDef));
-            var pos2 = codes.FindLastIndex(pos, c => c.opcode == OpCodes.Callvirt && c.OperandIs(g_VehiclePawn_VehicleDef));
-            if (pos2 != -1)
-            {
-                codes.RemoveAt(pos2);
-            }
-        }
-        return codes;
     }
 }
 

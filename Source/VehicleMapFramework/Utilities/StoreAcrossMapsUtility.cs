@@ -64,7 +64,7 @@ public static class StoreAcrossMapsUtility
         {
             return;
         }
-        var a = t.SpawnedOrAnyParentSpawned ? t.PositionHeldOnBaseMap().CellOnAnotherMap(map) : carrier.PositionHeldOnBaseMap().CellOnAnotherMap(map);
+        var a = t.SpawnedOrAnyParentSpawned ? t.PositionHeldOnBaseMap.CellOnAnotherMap(map) : carrier.PositionHeldOnBaseMap.CellOnAnotherMap(map);
         var cellsList = slotGroup.CellsList;
         var count = cellsList.Count;
         var num = needAccurateResult ? Mathf.FloorToInt(count * Rand.Range(0.005f, 0.018f)) : 0;
@@ -152,7 +152,7 @@ public static class StoreAcrossMapsUtility
         
         var thingMap = t.SpawnedOrAnyParentSpawned ? t.MapHeld : carrier.MapHeld;
         var intVec = t.SpawnedOrAnyParentSpawned ? t.PositionHeld : carrier.PositionHeld;
-        var intVecOnBase = t.SpawnedOrAnyParentSpawned ? t.PositionHeldOnBaseMap() : carrier.PositionHeldOnBaseMap();
+        var intVecOnBase = t.SpawnedOrAnyParentSpawned ? t.PositionHeldOnBaseMap : carrier.PositionHeldOnBaseMap;
         var num = float.MaxValue;
         var storagePriority = StoragePriority.Unstored;
         foreach (var t1 in allHaulDestinationsListInPriorityOrder)

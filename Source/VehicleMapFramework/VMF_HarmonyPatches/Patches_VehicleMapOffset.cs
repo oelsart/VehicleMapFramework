@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
 using RimWorld;
@@ -106,6 +105,40 @@ public static class Patch_VehiclePawn_DrawPos
         {
             __result += ___vehicle.jobs?.curDriver is JobDriverBodyOffset driver ? driver.ForcedBodyOffset : Vector3.zero;
         }
+    }
+}
+
+[HarmonyPatch(typeof(Projectile), nameof(Projectile.DrawPos), MethodType.Getter)]
+[PatchLevel(Level.Safe)]
+public static class Patch_Projectile_DrawPos
+{
+    public static bool Prefix(Projectile __instance, ref Vector3 __result)
+    {
+        return !__instance.TryGetDrawPos(ref __result);
+    }
+}
+
+[HarmonyPatch(typeof(Projectile), nameof(Projectile.ExactRotation), MethodType.Getter)]
+[PatchLevel(Level.Safe)]
+public static class Patch_Projectile_ExactRotation
+{
+    public static void Postfix(Projectile __instance, ref Quaternion __result)
+    {
+        if (__instance.IsOnNonFocusedVehicleMapOf(out var vehicle))
+        {
+            __result *= vehicle.FullAngleQuat;
+        }
+    }
+}
+
+[HarmonyPatch(typeof(CameraDriver), nameof(CameraDriver.InViewOf))]
+[PatchLevel(Level.Cautious)]
+public static class Patch_CameraDriver_InViewOf
+{
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        return instructions.MethodReplacer(CachedMethodInfo.m_CellRect_ClipInsideMap,
+            CachedMethodInfo.m_ClipInsideVehicleMap);
     }
 }
 
@@ -375,14 +408,31 @@ public static class Patch_VerbProperties_DrawRadiusRing
 [PatchLevel(Level.Safe)]
 public static class Patch_GenDraw_DrawRadiusRing
 {
-    public static void Prefix(ref IntVec3 center)
+    private static readonly List<IntVec3> ringDrawCells = [];
+    
+    public static bool Prefix(ref IntVec3 center, float radius, Color color, Func<IntVec3, bool> predicate)
     {
-        var tmp = center;
-        Thing thing;
-        if ((thing = Find.Selector.SelectedObjects.OfType<Thing>().FirstOrDefault(t => t.Position == tmp)) != null)
+        Thing thing = null;
+        var flag = false;
+        foreach (var selObj in Find.Selector.SelectedObjects)
         {
-            if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle) && Find.CurrentMap != vehicle.VehicleMap)
+            if (selObj is Thing thing2 && thing2.Position == center)
             {
+                flag = true;
+                thing = thing2;
+                break;
+            }
+        }
+        if (flag)
+        {
+            if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle))
+            {
+                if (Find.CurrentMap.IsNonFocusedVehicleMap &&
+                    Find.CurrentMap.BaseMapOrCaravan == vehicle.VehicleMap.BaseMapOrCaravan)
+                {
+                    DrawRadiusRing(vehicle.VehicleMap, center, radius, color, predicate);
+                    return false;
+                }
                 center = center.ToBaseMapCoord(vehicle);
             }
         }
@@ -390,6 +440,30 @@ public static class Patch_GenDraw_DrawRadiusRing
         {
             center = center.ToBaseMapCoord(Command_FocusVehicleMap.FocusedVehicle);
         }
+
+        return true;
+    }
+
+    private static void DrawRadiusRing(Map map, IntVec3 center, float radius, Color color,
+        Func<IntVec3, bool> predicate = null)
+    {
+        
+        if (radius > GenRadial.MaxRadialPatternRadius)
+        {
+            Log.ErrorOnce($"Cannot draw radius ring of radius {radius}: not enough squares in the precalculated list.", 71496514);
+            return;
+        }
+        ringDrawCells.Clear();
+        var num = GenRadial.NumCellsInRadius(radius);
+        for (var i = 0; i < num; i++)
+        {
+            var intVec = center + GenRadial.RadialPattern[i];
+            if (predicate == null || predicate(intVec))
+            {
+                ringDrawCells.Add(intVec);
+            }
+        }
+        GenDrawOnVehicle.DrawFieldEdges(ringDrawCells, color, map: map);
     }
 }
 
@@ -450,21 +524,6 @@ public static class Patch_GenDraw_DrawTargetHighlightWithLayer
         var pos = codes.FindIndex(c => c.opcode == OpCodes.Stloc_0);
         codes.Insert(pos, new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ToBaseMapCoord1));
         return codes;
-    }
-}
-
-[HarmonyPatch(typeof(GenDraw), nameof(GenDraw.DrawFieldEdges), typeof(List<IntVec3>), typeof(Color), typeof(float?), typeof(HashSet<IntVec3>), typeof(int))]
-[PatchLevel(Level.Safe)]
-public static class Patch_GenDraw_DrawFieldEdges
-{
-    public static bool Prefix(List<IntVec3> cells, Color color, float? altOffset, HashSet<IntVec3> ignoreBorderCells, int renderQueue)
-    {
-        if (Find.CurrentMap.IsVehicleMapOf(out var vehicle))
-        {
-            GenDrawOnVehicle.DrawFieldEdges(cells, color, altOffset, ignoreBorderCells, renderQueue, vehicle.VehicleMap);
-            return false;
-        }
-        return true;
     }
 }
 

@@ -20,7 +20,7 @@ public static class Patch_Thing_Rotation
     {
         if (__instance is Pawn pawn and not VehiclePawn && pawn.IsOnNonFocusedVehicleMapOf(out var vehicle))
         {
-            if (pawn.pather?.Moving ?? false)
+            if (pawn.pather is { Moving: true, nextCell.IsValid: true } && pawn.pather.nextCell != pawn.Position)
             {
                 var angle = (pawn.pather.nextCell - pawn.Position).AngleFlat;
                 value = Rot8.FromAngle(Ext_Math.RotateAngle(angle, vehicle.FullAngle));
@@ -198,8 +198,8 @@ public static class Patch_CompPowerPlantWind_RecalculateBlockages
             CodeInstruction.Call(typeof(Patch_CompPowerPlantWind_RecalculateBlockages), nameof(Restrict))
         ]);
 
-        return codes.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap)
-            .MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseRotation)
+        return codes.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned)
+            .MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseRotationSpawned)
             .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
     }
 

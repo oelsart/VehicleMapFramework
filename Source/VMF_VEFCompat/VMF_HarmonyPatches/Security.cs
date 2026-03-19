@@ -27,7 +27,7 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
                 .Advance()
                 .Set(OpCodes.Call, AccessTools.Method(typeof(Patch_CompPointDefense_FindTarget), nameof(ThingsInGroup)))
                 .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Position))
-                .Set(OpCodes.Call, CachedMethodInfo.m_PositionOnBaseMap)
+                .Set(OpCodes.Call, CachedMethodInfo.m_PositionOnBaseMapSpawned)
                 .Instructions();
         }
 
@@ -52,7 +52,7 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
 
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
+            return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
         }
     }
 
@@ -64,7 +64,7 @@ namespace VehicleMapFramework.VMF_HarmonyPatches
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-                .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
+                .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
         }
     }
     

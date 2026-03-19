@@ -828,6 +828,8 @@ internal static class ModCompat
     public static readonly bool RimWorldOfMagic = IsModActive("Torann.ARimworldOfMagic");
 
     public static readonly bool CeleTech = IsModActive("TOT.CeleTech.MKIII");
+    
+    public static readonly bool PerspectiveShift = IsModActive("ferny.PerspectiveShift");
 
     public static readonly bool PauseOtherSettlements = IsModActive("esvn.PauseOtherSettlementsSimulation");
 

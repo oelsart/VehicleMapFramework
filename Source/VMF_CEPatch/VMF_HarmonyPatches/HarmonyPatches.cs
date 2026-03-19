@@ -48,8 +48,8 @@ public static class Patch_Verb_LaunchProjectileCE_ShotSpeed
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap)
-            .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
+        return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned)
+            .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
     }
 }
 
@@ -71,7 +71,7 @@ public static class Patch_Verb_LaunchProjectileCE_ShiftVecReportFor1
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap);
+        return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned);
     }
 }
 
@@ -94,7 +94,7 @@ public static class Patch_Verb_LaunchProjectileCE_AdjustShotHeight
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
     }
 }
 
@@ -109,8 +109,8 @@ public static class Patch_Verb_LaunchProjectileCE_GetHighestCoverAndSmokeForTarg
         var m_GetFirstPawnAcrossMaps = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.GetFirstPawnAcrossMaps));
         var m_GetCover = AccessTools.Method(typeof(GridsUtility), nameof(GridsUtility.GetCover));
         var m_GetCoverOnThingMap = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.GetCoverOnThingMap));
-        var codes = instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap)
-            .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap)
+        var codes = instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned)
+            .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned)
             .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
             .MethodReplacer(m_GetFirstPawn, m_GetFirstPawnAcrossMaps)
             .MethodReplacer(m_GetCover, m_GetCoverOnThingMap).ToList();
@@ -127,7 +127,7 @@ public static class Patch_Verb_LaunchProjectileCE_CanHitTarget
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
     }
 }
 
@@ -139,7 +139,7 @@ public static class Patch_Verb_LaunchProjectileCE_CanHitTargetFrom
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap)
+        return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned)
             .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
     }
 }
@@ -153,8 +153,8 @@ public static class Patch_Verb_LaunchProjectileCE_Retarget
     {
         var m_Verb_CanHitFromCellIgnoringRange = AccessTools.Method(typeof(Verb), "CanHitFromCellIgnoringRange");
         var m_VerbOnVehicleUtility_CanHitFromCellIgnoringRange = AccessTools.Method(typeof(VerbOnVehicleUtility), "CanHitFromCellIgnoringRange");
-        return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap)
-            .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap)
+        return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned)
+            .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned)
             .MethodReplacer(m_Verb_CanHitFromCellIgnoringRange, m_VerbOnVehicleUtility_CanHitFromCellIgnoringRange);
     }
 }
@@ -166,8 +166,8 @@ public static class Patch_Verb_LaunchProjectileCE_TryCastShot
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap)
-            .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap)
+        return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned)
+            .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned)
             .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
             .MethodReplacer(CachedMethodInfo.m_GetThingList, CachedMethodInfo.m_GetThingListAcrossMaps);
     }
@@ -180,10 +180,14 @@ public static class Patch_Verb_LaunchProjectileCE_TryFindCEShootLineFromTo
 {
     public static bool Prefix(Verb_LaunchProjectileCE __instance, IntVec3 root, LocalTargetInfo targ, ref ShootLine resultingLine, ref Vector3 targetPos, ref bool __result)
     {
-        if (__instance.caster.IsOnVehicleMapOf(out _) ||
-            targ.Thing.IsOnVehicleMapOf(out _) ||
-            (__instance.caster.TryGetTargetMap(out var map) && map.IsVehicleMapOf(out _)) ||
-            root.IsValid && GenSight.PointsOnLineOfSight(root, targ.Cell).Any(c => c.InBounds(__instance.caster.Map) && c.TryGetVehicleMap(__instance.caster.Map, out _)))
+        if (VehiclePawnWithMapCache.AllVehiclesOn(__instance.caster.GroundMap).Count == 0)
+            return true;
+
+        if (__instance.caster.IsOnVehicleMap ||
+            targ.Thing.IsOnVehicleMap ||
+            (__instance.caster.TryGetTargetMap(out var map) && map.IsVehicleMap) ||
+            root.IsValid && GenSight.PointsOnLineOfSight(root, targ.Cell)
+                .Any(c => c.InBounds(__instance.caster.Map) && c.TryGetVehicleMap(__instance.caster.Map, out _)))
         {
             __result = __instance.TryFindCEShootLineFromToOnVehicle(root, targ, out resultingLine, out targetPos);
             return false;
@@ -210,8 +214,8 @@ public static class Patch_Verb_ShootCE_WarmupComplete
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap)
-            .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
+        return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned)
+            .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
     }
 }
 
@@ -222,7 +226,7 @@ public static class Patch_Verb_ShootCE_CanHitTargetFrom
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap)
+        return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned)
             .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
     }
 }
@@ -247,9 +251,9 @@ public static class Patch_Verb_ShootMortarCE_ShiftVecReportFor
     [HarmonyTranspiler]
     public static IEnumerable<CodeInstruction> Transpiler1(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap)
+        return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned)
             .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-            .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap)
+            .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned)
             .MethodReplacer(CachedMethodInfo.m_GenSight_LineOfSight2, CachedMethodInfo.m_GenSightOnVehicle_LineOfSight2);
     }
 
@@ -257,7 +261,7 @@ public static class Patch_Verb_ShootMortarCE_ShiftVecReportFor
     [HarmonyTranspiler]
     public static IEnumerable<CodeInstruction> Transpiler2(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_GlobalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap_GlobalTargetInfo)
+        return instructions.MethodReplacer(CachedMethodInfo.g_GlobalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned_GlobalTargetInfo)
             .MethodReplacer(CachedMethodInfo.g_GlobalTargetInfo_Map, CachedMethodInfo.m_BaseMap_GlobalTargetInfo)
             .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
     }
@@ -290,7 +294,7 @@ public static class Patch_VerbCIWS_TryFindNewTarget_Delegate
             .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Map), CodeMatch.Calls(m_ProjectilesAt))
             .Set(OpCodes.Call, CachedMethodInfo.m_BaseMap_Thing)
             .InstructionEnumeration()
-            .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
+            .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
     }
 }
 
@@ -301,7 +305,7 @@ public static class Patch_VerbCIWS_TryFindCEShootLineFromTo
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
     }
 }
 
@@ -361,6 +365,22 @@ public static class Patch_CompCIWSTarget_Targets
 }
 
 [HarmonyPatchCategory(PatchCategories.CombatExtended)]
+[HarmonyPatch(typeof(CE_Utility), nameof(CE_Utility.GetBoundsFor), typeof(Thing))]
+[PatchLevel(Level.Safe)]
+public static class Patch_CE_Utility_GetBoundsFor
+{
+    public static void Prefix(Thing thing)
+    {
+        if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle) && !vehicle.Spawned)
+        {
+            VehiclePawnWithMapCache.CacheMode = true;
+        }
+    }
+    
+    public static void Finalizer() => VehiclePawnWithMapCache.CacheMode = false;
+}
+
+[HarmonyPatchCategory(PatchCategories.CombatExtended)]
 [HarmonyPatch(typeof(ProjectileCE), nameof(ProjectileCE.RayCast))]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_ProjectileCE_RayCast
@@ -410,7 +430,7 @@ public static class Patch_ProjectileCE_CheckIntercept
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
     }
 }
 
@@ -451,7 +471,7 @@ public static class Patch_ProjectileCE_CheckCellForCollision
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        var codes = instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap).ToList();
+        var codes = instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned).ToList();
         var m_ThingsListAtFast = AccessTools.Method(typeof(ThingGrid), nameof(ThingGrid.ThingsListAtFast), [typeof(IntVec3)]);
         var pos = 0;
         for (var i = 0; i < 2; i++)
@@ -552,7 +572,7 @@ public static class Patch_Building_TurretGunCE_TryFindNewTarget_Predicate
 
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
     }
 }
 
@@ -563,8 +583,8 @@ public static class Patch_Building_TurretGunCE_OrderAttack
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap)
-            .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap);
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned)
+            .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned);
     }
 }
 
@@ -585,12 +605,30 @@ public static class Patch_ExplosionCE_StartExplosionCE
 [HarmonyPatchCategory(PatchCategories.CombatExtended)]
 [HarmonyPatch(typeof(Verb_LaunchProjectileCE), nameof(Verb_LaunchProjectileCE.ShiftTarget), typeof(ShiftVecReport), typeof(bool), typeof(bool))]
 [PatchLevel(Level.Cautious)]
-public static class Patch_Verb_LaunchProjectileCE_ShiftTarget
+public static class Patch_Verb_LaunchProjectileCE_ShiftTarget1
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap);
+        return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned);
     }
+}
+
+[HarmonyPatchCategory(PatchCategories.CombatExtended)]
+[HarmonyPatch(typeof(Verb_LaunchProjectileCE), nameof(Verb_LaunchProjectileCE.ShiftTarget),
+    [typeof(ShiftVecReport), typeof(Vector3), typeof(float), typeof(bool), typeof(bool)],
+    [ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Out, ArgumentType.Normal, ArgumentType.Normal])]
+[PatchLevel(Level.Safe)]
+public static class Patch_Verb_LaunchProjectileCE_ShiftTarget2
+{
+    public static void Prefix(Thing ___caster)
+    {
+        if (___caster.IsOnVehicleMapOf(out var vehicle) && !vehicle.Spawned)
+        {
+            VehiclePawnWithMapCache.CacheMode = true;
+        }
+    }
+
+    public static void Finalizer() => VehiclePawnWithMapCache.CacheMode = false;
 }
 
 [HarmonyPatchCategory(PatchCategories.CombatExtended)]
@@ -609,6 +647,46 @@ public static class Patch_ProjectileCE_DistanceTraveled
         return true;
     }
 }
+
+[HarmonyPatchCategory(PatchCategories.CombatExtended)]
+[HarmonyPatch(typeof(ProjectileCE), nameof(ProjectileCE.DrawPos), MethodType.Getter)]
+[PatchLevel(Level.Safe)]
+public static class Patch_ProjectileCE_DrawPos
+{
+    public static bool Prefix(ProjectileCE __instance, ref Vector3 __result)
+    {
+        return !__instance.TryGetDrawPos(ref __result);
+    }
+}
+
+[HarmonyPatchCategory(PatchCategories.CombatExtended)]
+[HarmonyPatch(typeof(ProjectileCE), nameof(ProjectileCE.ExactRotation), MethodType.Getter)]
+[PatchLevel(Level.Safe)]
+public static class Patch_ProjectileCE_ExactRotation
+{
+    public static void Postfix(ProjectileCE __instance, ref Quaternion __result)
+    {
+        if (__instance.IsOnNonFocusedVehicleMapOf(out var vehicle))
+        {
+            __result *= vehicle.FullAngleQuat;
+        }
+    }
+}
+
+[HarmonyPatchCategory(PatchCategories.CombatExtended)]
+[HarmonyPatch(typeof(ProjectileCE), nameof(ProjectileCE.DrawRotation), MethodType.Getter)]
+[PatchLevel(Level.Safe)]
+public static class Patch_ProjectileCE_DrawRotation
+{
+    public static void Postfix(ProjectileCE __instance, ref Quaternion __result)
+    {
+        if (__instance.IsOnNonFocusedVehicleMapOf(out var vehicle))
+        {
+            __result *= vehicle.FullAngleQuat;
+        }
+    }
+}
+
 
 [HarmonyPatchCategory(PatchCategories.CombatExtended)]
 [HarmonyPatch(typeof(NonSnapAttackTargetFinder), nameof(NonSnapAttackTargetFinder.BestAttackTarget))]

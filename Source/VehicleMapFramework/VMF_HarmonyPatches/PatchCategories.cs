@@ -88,6 +88,8 @@ internal static class PatchCategories
     
     public const string NightmareCore = "VMF_Patches_NightmareCore";
     
+    public const string PerspectiveShift = "VMF_Patches_PerspectiveShift";
+    
     public const string PauseOtherSettlements = "VMF_Patches_PauseOtherSettlements";
     
     public const string ProjectRimFactory = "VMF_Patches_ProjectRimFactory";

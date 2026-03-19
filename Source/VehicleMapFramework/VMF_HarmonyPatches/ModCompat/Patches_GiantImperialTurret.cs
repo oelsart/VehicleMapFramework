@@ -37,7 +37,7 @@ public static class Patch_Building_TurretGunNonSnap_TryFindNewTarget
 
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
     }
 }
 
@@ -48,7 +48,7 @@ public static class Patch_Building_TurretGunNonSnap_IsValidTarget
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap)
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned)
             .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
     }
 }
@@ -62,7 +62,7 @@ public static class Patch_Building_TurretGunNonSnap_TryFindNewTarget2
     {
         if (!___currentTargetInt.IsValid && __result.IsValid && __instance.IsOnNonFocusedVehicleMapOf(out var vehicle))
         {
-            ___curAngle = Ext_Math.RotateAngle(___curAngle, vehicle.FullRotation.AsAngle);
+            ___curAngle = Ext_Math.RotateAngle(___curAngle, vehicle.FullAngle);
         }
     }
 }
@@ -81,7 +81,7 @@ public static class Patch_Building_TurretGunNonSnap_Tick
     {
         if (!___currentTargetInt.IsValid && __state && __instance.IsOnNonFocusedVehicleMapOf(out var vehicle))
         {
-            ___curAngle = Ext_Math.RotateAngle(___curAngle, -vehicle.FullRotation.AsAngle);
+            ___curAngle = Ext_Math.RotateAngle(___curAngle, -vehicle.FullAngle);
         }
     }
 }

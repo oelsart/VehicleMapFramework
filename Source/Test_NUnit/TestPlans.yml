@@ -59,6 +59,7 @@
     - Prepatcher
     - MultiFloors
 - Name: MuzzleFlash
+- Name: PerspectiveShift
 - Name: PauseOtherSettlements
 - Name: ProjectRimFactory
 - Name: PickUpAndHaul

@@ -686,10 +686,10 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
                 return;
             case null or MapParent_Vehicle:
                 return;
+            default:
+                interiorMap?.Parent.Tile = worldObject2.Tile;
+                return;
         }
-
-        interiorMap?.Parent.Tile = worldObject2.Tile;
-        return;
 
         static WorldObject GetWorldObject(IThingHolder holder)
         {
@@ -750,57 +750,66 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
             base.Destroy(mode);
             return;
         }
-        
-        StringBuilder stringBuilder = new();
-        var flag = false;
-        var allThings = interiorMap.listerThings.AllThings;
-        for (var i = allThings.Count - 1; i >= 0; i--)
-        {
-            var thing = allThings.ElementAtOrDefault(i);
-            if (mode != DestroyMode.Vanish && thing is { Destroyed: false })
-            {
-                var positionOnBaseMap = thing.PositionOnBaseMap;
-                if (thing.def.category == ThingCategory.Building)
-                {
-                    if (!thing.def.destroyable)
-                    {
-                        allowDestroyNonDestroyable = true;
-                        thing.Destroy();
-                        allowDestroyNonDestroyable = false;
-                    }
-                    else thing.Destroy();
 
-                    if (positionOnBaseMap.Walkable(map) &&
-                        positionOnBaseMap.GetItemCount(map) < positionOnBaseMap.GetMaxItemsAllowedInCell(map))
-                    {
-                        var pos = thing.Position;
-                        thing.Position = positionOnBaseMap;
-                        GenLeaving.DoLeavingsFor(thing, map, DestroyMode.Deconstruct);
-                        thing.Position = pos;
-                    }
-                }
-                else if (thing is not Explosion or Projectile)
+        if (map is not null)
+        {
+            StringBuilder stringBuilder = new();
+            var flag = false;
+            var allThings = interiorMap.listerThings.AllThings;
+            for (var i = allThings.Count - 1; i >= 0; i--)
+            {
+                var thing = allThings.ElementAtOrDefault(i);
+                if (mode != DestroyMode.Vanish && thing is { Destroyed: false })
                 {
-                    thing.DeSpawn();
-                    var terrain = positionOnBaseMap.GetTerrain(Map);
-                    if (thing is Pawn pawn && (terrain == TerrainDefOf.WaterDeep || terrain == TerrainDefOf.WaterOceanDeep) &&
-                        HealthHelper.AttemptToDrown(pawn))
+                    var positionOnBaseMap = thing.PositionOnBaseMap;
+                    if (thing.def.category == ThingCategory.Building)
                     {
-                        flag = true;
-                        stringBuilder.AppendLine(pawn.LabelCap);
+                        if (!thing.def.destroyable)
+                        {
+                            allowDestroyNonDestroyable = true;
+                            thing.Destroy();
+                            allowDestroyNonDestroyable = false;
+                        }
+                        else thing.Destroy();
+
+                        if (positionOnBaseMap.Walkable(map) &&
+                            positionOnBaseMap.GetItemCount(map) < positionOnBaseMap.GetMaxItemsAllowedInCell(map))
+                        {
+                            var pos = thing.Position;
+                            thing.Position = positionOnBaseMap;
+                            GenLeaving.DoLeavingsFor(thing, map, DestroyMode.Deconstruct);
+                            thing.Position = pos;
+                        }
                     }
-                    if (!GenPlace.TryPlaceThing(thing, positionOnBaseMap, map, ThingPlaceMode.Near))
+                    else if (thing is not (Explosion or Projectile))
                     {
-                        CellFinder.TryFindRandomCellNear(positionOnBaseMap, map, 50, c => GenPlace.TryPlaceThing(thing, c, Map, ThingPlaceMode.Near), out _);
+                        thing.DeSpawn();
+                        var terrain = positionOnBaseMap.GetTerrain(map);
+                        if (thing is Pawn pawn &&
+                            (terrain == TerrainDefOf.WaterDeep || terrain == TerrainDefOf.WaterOceanDeep) &&
+                            HealthHelper.AttemptToDrown(pawn))
+                        {
+                            flag = true;
+                            stringBuilder.AppendLine(pawn.LabelCap);
+                        }
+
+                        if (!GenPlace.TryPlaceThing(thing, positionOnBaseMap, map, ThingPlaceMode.Near))
+                        {
+                            CellFinder.TryFindRandomCellNear(positionOnBaseMap, map, 50,
+                                c => GenPlace.TryPlaceThing(thing, c, Map, ThingPlaceMode.Near), out _);
+                        }
                     }
                 }
             }
+
+            if (flag)
+            {
+                string text = "VF_BoatSunkWithPawnsDesc".Translate(LabelShort, stringBuilder.ToString());
+                Find.LetterStack.ReceiveLetter("VF_BoatSunk".Translate(), text, LetterDefOf.NegativeEvent,
+                    new TargetInfo(Position, Map));
+            }
         }
-        if (flag)
-        {
-            string text = "VF_BoatSunkWithPawnsDesc".Translate(LabelShort, stringBuilder.ToString());
-            Find.LetterStack.ReceiveLetter("VF_BoatSunk".Translate(), text, LetterDefOf.NegativeEvent, new TargetInfo(Position, Map));
-        }
+
         base.Destroy(mode);
         RemoveVehicleMap();
     }

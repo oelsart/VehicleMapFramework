@@ -52,7 +52,7 @@ public static class Patch_WG_AbilityVerb_QuickJump_DoJump
     [PatchLevel(Level.Safe)]
     public static void Prefix(Pawn pawn, Map targetMap, ref LocalTargetInfo currentTarget)
     {
-        if (pawn.IsOnNonFocusedVehicleMapOf(out _))
+        if (pawn.IsOnNonFocusedVehicleMap)
         {
             var positionOnBaseMap = pawn.PositionOnBaseMap;
             currentTarget = new IntVec3(positionOnBaseMap.x, positionOnBaseMap.y, Math.Min(positionOnBaseMap.z + 25, CellRect.WholeMap(targetMap).maxZ));
@@ -92,7 +92,7 @@ public static class Patch_Building_EjectorBay_DynamicDrawPhaseAt
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseRotation);
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseRotationVehicleDraw);
     }
 }
 
@@ -103,6 +103,6 @@ public static class Patch_Building_MaintenanceBay_DynamicDrawPhaseAt
 {
     public static void Prefix(Building __instance, Pawn ___cachePawn)
     {
-        ___cachePawn?.Rotation = __instance.BaseRotation().Opposite;
+        ___cachePawn?.Rotation = __instance.BaseRotationVehicleDraw().Opposite;
     }
 }
