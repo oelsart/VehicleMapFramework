@@ -1378,7 +1378,7 @@ public static class Patch_LordJob_Joinable_Gathering_VoluntaryJoinPriorityFor
             .Where(m =>
             {
                 if (m is null) return false;
-                return VMF_Harmony.ReadMethodBodyWrapper(m).Any(i =>
+                return PatchHelper.ReadMethodBodyWrapper(m).Any(i =>
                     CachedMethodInfo.m_IsForbidden.Equals(i.Value));
             });
     }

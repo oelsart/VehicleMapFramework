@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
 using CombatExtended;
+using CombatExtended.Compatibility;
 using HarmonyLib;
 using RimWorld;
 using RimWorld.Planet;
@@ -281,7 +283,7 @@ public static class Patch_VerbCIWS_TryFindNewTarget_Delegate
             return AccessTools.FirstMethod(t.MakeGenericType(typeof(ProjectileCE)), m =>
             {
                 if (!m.Name.Contains("<TryFindNewTarget>")) return false;
-                return VMF_Harmony.ReadMethodBodyWrapper(m).Any(i =>
+                return PatchHelper.ReadMethodBodyWrapper(m).Any(i =>
                     m_ProjectilesAt.Equals(i.Value));
             });
         });
@@ -404,19 +406,17 @@ public static class Patch_ProjectileCE_RayCast
 
     public static List<Thing> AddThingList(List<Thing> list, Map map, IntVec3 c)
     {
+        var vehicles = VehiclePawnWithMapCache.AllVehiclesOnAsReadOnlySpan(map);
+        if (vehicles.Length == 0) return list;
+        
         tmpList.Clear();
         tmpList.AddRange(list);
-        var maps = map.BaseMapAndVehicleMaps(false);
-        foreach (var map2 in maps)
+        foreach (var vehicle in vehicles)
         {
-            var c2 = c;
-            if (map2.IsVehicleMapOf(out var vehicle))
+            var c2 = c.ToVehicleMapCoord(vehicle);
+            if (c2.InBounds(vehicle.VehicleMap))
             {
-                c2 = c.ToVehicleMapCoord(vehicle);
-            }
-            if (c2.InBounds(map2))
-            {
-                tmpList.AddRange(map2.thingGrid.ThingsListAtFast(c2));
+                tmpList.AddRange(vehicle.VehicleMap.thingGrid.ThingsListAtFast(c2));
             }
         }
         return tmpList;
@@ -424,43 +424,199 @@ public static class Patch_ProjectileCE_RayCast
 }
 
 [HarmonyPatchCategory(PatchCategories.CombatExtended)]
-[HarmonyPatch(typeof(ProjectileCE), "CheckIntercept")]
-[PatchLevel(Level.Cautious)]
-public static class Patch_ProjectileCE_CheckIntercept
+[HarmonyPatch(typeof(BlockerRegistry), nameof(BlockerRegistry.ImpactSomethingCallback))]
+[PatchLevel(Level.Safe)]
+public static class Patch_BlockerRegistry_ImpactSomethingCallback
 {
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    public static List<Func<ProjectileCE, Thing, bool>> Callbacks { get; } = [];
+
+    public static void Postfix(ProjectileCE projectile, Thing launcher, ref bool __result)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
+        if (__result || projectile is not { Spawned: true }) return;
+
+        if (projectile.ExactPosition.TryGetVehicleMap(projectile.Map, out var vehicle, VehicleMapFlag.None))
+        {
+            projectile.TargetMap = vehicle.VehicleMap;
+            try
+            {
+                for (var i = 0; i < Callbacks.Count; i++)
+                {
+                    if (Callbacks[i](projectile, launcher))
+                    {
+                        __result = true;
+                        return;
+                    }
+                }
+            }
+            finally
+            {
+                projectile.RemoveTargetInfo();
+            }
+        }
     }
 }
 
 [HarmonyPatchCategory(PatchCategories.CombatExtended)]
-[HarmonyPatch(typeof(ProjectileCE), "CheckForCollisionBetween")]
-[PatchLevel(Level.Sensitive)]
-public static class Patch_ProjectileCE_CheckForCollisionBetween
+[HarmonyPatch(typeof(ProjectileCE), "CheckIntercept")]
+[PatchLevel(Level.Mandatory)]
+public static class Patch_ProjectileCE_CheckIntercept
 {
-    private static readonly List<Thing> tmpList = [];
-
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    [HarmonyReversePatch]
+    public static bool CheckIntercept(ProjectileCE instance, Thing interceptorThing, CompProjectileInterceptor interceptorComp, bool withDebug = false)
     {
-        var codes = instructions.ToList();
-        var pos = codes.FindIndex(c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalIndex == 4);
-        codes.InsertRange(pos,
-        [
-            CodeInstruction.LoadArgument(0),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.g_Thing_Map),
-            CodeInstruction.Call(typeof(Patch_ProjectileCE_CheckForCollisionBetween), nameof(AddThingList))
-        ]);
-        return codes;
+        _ = Transpiler(null);
+        throw new NotImplementedException();
+        
+        IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
+        }
+    }
+}
+
+[HarmonyPatchCategory(PatchCategories.CombatExtended)]
+[HarmonyPatch(typeof(BlockerRegistry), nameof(BlockerRegistry.CheckForCollisionBetweenCallback))]
+[PatchLevel(Level.Safe)]
+public static class Patch_BlockerRegistry_CheckForCollisionBetweenCallback
+{
+    public static List<Func<ProjectileCE, Vector3, Vector3, bool>> Callbacks { get; } = [VanillaIntercept];
+
+    public static void Postfix(ProjectileCE projectile, Vector3 from, Vector3 to, ref bool __result)
+    {
+        if (__result || projectile is not { Spawned: true }) return;
+
+        foreach (var vehicle in VehiclePawnWithMapCache.AllVehiclesOnAsReadOnlySpan(projectile.Map))
+        {
+            projectile.TargetMap = vehicle.VehicleMap;
+            try
+            {
+                for (var i = 0; i < Callbacks.Count; i++)
+                {
+                    if (Callbacks[i](projectile, from, to))
+                    {
+                        __result = true;
+                        return;
+                    }
+                }
+            }
+            finally
+            {
+                projectile.RemoveTargetInfo();
+            }
+        }
     }
 
-    private static List<Thing> AddThingList(List<Thing> list, Map map)
+    private static bool VanillaIntercept(ProjectileCE projectile, Vector3 from, Vector3 to)
     {
-        tmpList.Clear();
-        tmpList.AddRange(list);
-        var maps = map.BaseMapAndVehicleMaps(false);
-        tmpList.AddRange(maps.SelectMany(m => m.listerThings.ThingsInGroup(ThingRequestGroup.ProjectileInterceptor)));
-        return tmpList;
+        var list = projectile.TargetMapOrThingMap.listerThings.ThingsInGroup(ThingRequestGroup.ProjectileInterceptor);
+        for (var i = 0; i < list.Count; ++i)
+        {
+            if (Patch_ProjectileCE_CheckIntercept.CheckIntercept(projectile, list[i], list[i].TryGetComp<CompProjectileInterceptor>()))
+            {
+                if (projectile.def.projectile.flyOverhead)
+                {
+                    projectile.Destroy();
+                    return true;
+                }
+                projectile.landed = true;
+                projectile.Impact(null);
+                return true;
+            }
+        }
+
+        return false;
+    }
+}
+
+[HarmonyPatchCategory(PatchCategories.CombatExtended)]
+[HarmonyPatch(typeof(BlockerRegistry), nameof(BlockerRegistry.CheckCellForCollisionCallback))]
+[PatchLevel(Level.Safe)]
+public static class Patch_BlockerRegistry_CheckCellForCollisionCallback
+{
+    public static List<Func<ProjectileCE, IntVec3, Thing, bool>> Callbacks { get; } = [];
+
+    public static void Postfix(ProjectileCE projectile, IntVec3 cell, Thing launcher, ref bool __result)
+    {
+        if (__result || projectile is not { Spawned: true }) return;
+        
+        foreach (var vehicle in VehiclePawnWithMapCache.AllVehiclesOnAsReadOnlySpan(projectile.Map))
+        {
+            projectile.TargetMap = vehicle.VehicleMap;
+            var cell2 = cell.ToVehicleMapCoord(vehicle);
+            if (!cell2.InBounds(vehicle.VehicleMap)) continue;
+            try
+            {
+                for (var i = 0; i < Callbacks.Count; i++)
+                {
+                    if (Callbacks[i](projectile, cell2, launcher))
+                    {
+                        __result = true;
+                        return;
+                    }
+                }
+            }
+            finally
+            {
+                projectile.RemoveTargetInfo();
+            }
+        }
+    }
+}
+
+[HarmonyPatchCategory(PatchCategories.CombatExtended)]
+[HarmonyPatch(typeof(BlockerRegistry), nameof(BlockerRegistry.ShieldZonesCallback))]
+[PatchLevel(Level.Safe)]
+public static class Patch_BlockerRegistry_ShieldZonesCallback
+{
+    public static List<Func<Thing, IEnumerable<IEnumerable<IntVec3>>>> Callbacks { get; } = [VanillaZones];
+
+    public static IEnumerable<IEnumerable<IntVec3>> Postfix(IEnumerable<IEnumerable<IntVec3>> values, Thing thing)
+    {
+        foreach (var value in values) yield return value;
+
+        if (thing is not { Spawned: true }) yield break;
+
+        var thingMap = thing.Map;
+        var angleA = thingMap.IsVehicleMapOf(out var vehicle) ? vehicle.FullAngle : 0f;
+        var inBounds = (IntVec3 c) => c.InBounds(thingMap);
+        
+        foreach (var map in thing.Map.BaseMapAndVehicleMaps(false))
+        {
+            using var _ = new VirtualTeleporter(thing, map);
+            var angleB = map.IsVehicleMapOf(out var vehicle2) ? vehicle2.FullAngle : 0f;
+            var originB = vehicle2 is not null ? Vector3.zero.ToBaseMapCoord(vehicle2) : Vector3.zero;
+            var originBinA = vehicle is not null ? originB.ToVehicleMapCoord(vehicle) : originB;
+            var relAng = (angleB - angleA) * Mathf.Deg2Rad;
+            var sin = Mathf.Sin(relAng);
+            var cos = Mathf.Cos(relAng);
+            var transform = (IntVec3 c) =>
+            {
+                var nx = c.x * cos - c.z * sin;
+                var nz = c.x * sin + c.z * cos;
+                return new IntVec3(Mathf.RoundToInt(nx + originBinA.x), 0, Mathf.RoundToInt(nz + originBinA.z));
+            };
+            
+            for (var i = 0; i < Callbacks.Count; i++)
+            {
+                foreach (var cells in Callbacks[i](thing).ToArray()) // テレポート中に列挙を確定
+                {
+                    yield return cells.Select(transform).Where(inBounds);
+                }
+            }
+        }
+    }
+
+    private static IEnumerable<IEnumerable<IntVec3>> VanillaZones(Thing thing)
+    {
+        foreach (var interceptor in thing.Map.listerThings.ThingsInGroup(ThingRequestGroup.ProjectileInterceptor))
+        {
+            var comp = interceptor.TryGetComp<CompProjectileInterceptor>();
+            if (comp.Active && (comp.Props.interceptNonHostileProjectiles || !interceptor.HostileTo(thing)))
+            {
+                yield return GenRadial.RadialCellsAround(interceptor.Position, comp.Props.radius, true);
+            }
+        }
     }
 }
 
@@ -528,29 +684,9 @@ public static class Patch_ProjectileCE_ImpactSomething
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Building_TurretGunCE_TryFindNewTarget
 {
-    private static readonly List<Building> tmpList = [];
-
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        var codes = instructions.ToList();
-        var f_allBuildingsColonist = AccessTools.Field(typeof(ListerBuildings), nameof(ListerBuildings.allBuildingsColonist));
-        var pos = codes.FindIndex(c => c.opcode == OpCodes.Ldfld && c.OperandIs(f_allBuildingsColonist)) + 1;
-        codes.InsertRange(pos,
-        [
-            CodeInstruction.LoadArgument(0),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.g_Thing_Map),
-            CodeInstruction.Call(typeof(Patch_Building_TurretGunCE_TryFindNewTarget), nameof(AddBuildingList))
-        ]);
-        return codes;
-    }
-
-    private static List<Building> AddBuildingList(List<Building> list, Map map)
-    {
-        tmpList.Clear();
-        tmpList.AddRange(list);
-        var maps = map.BaseMapAndVehicleMaps(false);
-        tmpList.AddRange(maps.SelectMany(m => m.listerBuildings.allBuildingsColonist));
-        return tmpList;
+        return instructions.AddAllBuildingsColonistForThingInstance();
     }
 }
 
@@ -565,7 +701,7 @@ public static class Patch_Building_TurretGunCE_TryFindNewTarget_Predicate
             .FirstOrDefault(m =>
             {
                 if (!m.Name.Contains("TryFindNewTarget")) return false;
-                return VMF_Harmony.ReadMethodBodyWrapper(m).Any(i =>
+                return PatchHelper.ReadMethodBodyWrapper(m).Any(i =>
                     CachedMethodInfo.g_Thing_Position.Equals(i.Value));
             }));
     }

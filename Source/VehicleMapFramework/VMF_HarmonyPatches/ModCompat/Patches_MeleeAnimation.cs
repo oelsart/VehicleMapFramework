@@ -9,7 +9,7 @@ using Verse;
 using Verse.AI;
 using static VehicleMapFramework.ModCompat.MeleeAnimation;
 
-namespace VehicleMapFramework.VMF_HarmonyPatches.AM;
+namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 [StaticConstructorOnStartupPriority(Priority.Low)]
 internal static class Patches_MeleeAnimation

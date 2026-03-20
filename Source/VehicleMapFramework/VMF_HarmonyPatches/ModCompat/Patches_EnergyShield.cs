@@ -48,7 +48,7 @@ public static class Patch_ShieldManagerMapComp_WillInterceptOrbitalStrike
         return buildings
             .Concat(VehiclePawnWithMapCache.AllVehiclesOn(component.map)
             .SelectMany(v => v.VehicleMap.listerBuildings.allBuildingsColonist
-            .Where(b => EnergyShield.Building_Shield.IsAssignableFrom(b.GetType()))));
+            .Where(b => b.def.thingClass.SameOrSubclassOf(EnergyShield.Building_Shield))));
 
     }
 }
@@ -115,57 +115,4 @@ public static class Patch_Comp_ShieldGenerator_PostDraw
             }
         }
     }
-}
-
-[HarmonyPatchCategory(PatchCategories.EnergyShieldCECompat)]
-[HarmonyPatch("EnergyShieldCECompat.PatchProjectileCE", "TickPostfix")]
-[PatchLevel(Level.Sensitive)]
-public static class Patch_PatchProjectileCE_TickPostfix
-{
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        var m_AllBuildingsColonistOfClass = AccessTools.Method(typeof(ListerBuildings), nameof(ListerBuildings.AllBuildingsColonistOfClass), generics: [EnergyShield.Building_Shield]);
-        foreach (var instruction in instructions)
-        {
-            yield return instruction;
-
-            if (instruction.Calls(m_AllBuildingsColonistOfClass))
-            {
-                yield return CodeInstruction.LoadArgument(0);
-                yield return CodeInstruction.Call(typeof(Patch_PatchProjectileCE_TickPostfix), nameof(ReplaceBuildings));
-            }
-        }
-    }
-
-    private static IEnumerable<Building> ReplaceBuildings(IEnumerable<Building> buildings, Thing projectile)
-    {
-        return buildings.Concat(VehiclePawnWithMapCache.AllVehiclesOn(projectile.Map)
-            .SelectMany(v => v.VehicleMap.listerBuildings.allBuildingsColonist
-            .Where(b => EnergyShield.Building_Shield.IsAssignableFrom(b.GetType()))));
-
-    }
-}
-
-[HarmonyPatchCategory(PatchCategories.EnergyShieldCECompat)]
-[HarmonyPatch("cn.zhuzijun.EnergyShieldCECompat.ZMod", "CheckIntercept")]
-[PatchLevel(Level.Cautious)]
-public static class Patch_ZMod_CheckIntercept
-{
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) => Patch_PatchProjectileCE_TickPostfix.Transpiler(instructions);
-}
-
-[HarmonyPatchCategory(PatchCategories.EnergyShieldCECompat)]
-[HarmonyPatch("cn.zhuzijun.EnergyShieldCECompat.ZMod", "ImpactSomethingCallback")]
-[PatchLevel(Level.Cautious)]
-public static class Patch_ZMod_ImpactSomethingCallback
-{
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) => Patch_PatchProjectileCE_TickPostfix.Transpiler(instructions);
-}
-
-[HarmonyPatchCategory(PatchCategories.EnergyShieldCECompat)]
-[HarmonyPatch("cn.zhuzijun.EnergyShieldCECompat.ZMod", "ShieldZonesCallback")]
-[PatchLevel(Level.Cautious)]
-public static class Patch_ZMod_ShieldZonesCallback
-{
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) => Patch_PatchProjectileCE_TickPostfix.Transpiler(instructions);
 }

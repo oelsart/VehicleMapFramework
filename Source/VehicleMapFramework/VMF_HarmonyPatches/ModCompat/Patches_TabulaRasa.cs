@@ -1,11 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
 using HarmonyLib;
 using RimWorld;
 using UnityEngine;
 using Verse;
 
-namespace VehicleMapFramework.VMF_HarmonyPatches.TR;
+namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 [StaticConstructorOnStartupPriority(Priority.Low)]
 internal static class Patches_TabulaRasa
@@ -15,6 +17,15 @@ internal static class Patches_TabulaRasa
         if (TabulaRasa)
         {
             VMF_Harmony.PatchCategory(PatchCategories.TabulaRasa);
+            try
+            {
+                Patch_Projectile_CheckForFreeInterceptBetween.Postfixes.Add(
+                    Patch_Patch_Projectile_CheckForFreeInterceptBetween_Postfix.PostfixPatch);
+            }
+            catch (Exception ex)
+            {
+                VMF_Log.Error($"{ex}");
+            }
         }
     }
 }
@@ -57,68 +68,39 @@ public static class Patch_Comp_Shield_BombardmentCanStartFireAt
 
 [HarmonyPatchCategory(PatchCategories.TabulaRasa)]
 [HarmonyPatch("TabulaRasa.Patch_Projectile_CheckForFreeInterceptBetween", "Postfix")]
-[PatchLevel(Level.Cautious)]
+[PatchLevel(Level.Mandatory)]
 public static class Patch_Patch_Projectile_CheckForFreeInterceptBetween_Postfix
 {
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    [HarmonyReversePatch]
+    public static void PostfixPatch(Projectile __instance, ref bool __result, Vector3 lastExactPos, Vector3 newExactPos)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map,
-            AccessTools.Method(typeof(Patch_Patch_Projectile_CheckForFreeInterceptBetween_Postfix), nameof(ReplaceMap)));
-    }
-
-    private static Map ReplaceMap(Projectile instance)
-    {
-        return Patch_Projectile_CheckForFreeInterceptBetween.tmpMap ?? instance.Map;
-    }
-}
-
-[HarmonyAfter("Neronix17.TabulaRasa.RimWorld")]
-[HarmonyPatchCategory(PatchCategories.TabulaRasa)]
-[HarmonyPatch(typeof(Projectile), "CheckForFreeInterceptBetween")]
-[PatchLevel(Level.Safe)]
-public static class Patch_Projectile_CheckForFreeInterceptBetween
-{
-    public static void Postfix(Projectile __instance, ref bool __result, Vector3 lastExactPos, Vector3 newExactPos)
-    {
-        if (!__result)
+        _ = Transpiler(null);
+        throw new NotImplementedException();
+        
+        IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            try
-            {
-                var map = __instance.Map;
-                var maps = map.BaseMapAndVehicleMaps(false);
-                foreach (var map2 in maps)
-                {
-                    tmpMap = map2;
-                    CheckIntercept(null, __instance, __result, lastExactPos, newExactPos);
-                    if (__result) break;
-                }
-            }
-            finally
-            {
-                tmpMap = null;
-            }
+            return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);
         }
     }
-
-    public static Map tmpMap;
-
-    private static readonly FastInvokeHandler CheckIntercept = MethodInvoker.GetHandler(AccessTools.Method("TabulaRasa.Patch_Projectile_CheckForFreeInterceptBetween:Postfix"));
 }
 
 [HarmonyPatchCategory(PatchCategories.TabulaRasa)]
 [HarmonyPatch("TabulaRasa.Patch_Skyfaller_Tick", "Prefix")]
-[PatchLevel(Level.Cautious)]
+[PatchLevel(Level.Mandatory)]
 public static class Patch_Patch_Skyfaller_Tick_Prefix
 {
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    [HarmonyReversePatch]
+    public static bool PrefixPatch(Skyfaller __instance)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map,
-            AccessTools.Method(typeof(Patch_Patch_Skyfaller_Tick_Prefix), nameof(ReplaceMap)));
-    }
-
-    private static Map ReplaceMap(Skyfaller instance)
-    {
-        return Patch_Skyfaller_Tick.tmpMap ?? instance.Map;
+        _ = Transpiler(null);
+        throw new NotImplementedException();
+        
+        IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);
+        }
     }
 }
 
@@ -128,28 +110,27 @@ public static class Patch_Patch_Skyfaller_Tick_Prefix
 [PatchLevel(Level.Safe)]
 public static class Patch_Skyfaller_Tick
 {
-    public static bool Prefix(Projectile __instance)
+    public static List<Func<Skyfaller, bool>> Prefixes { get; } = [Patch_Patch_Skyfaller_Tick_Prefix.PrefixPatch];
+    
+    public static bool Prefix(Skyfaller __instance)
     {
-        try
+        foreach (var map in __instance.Map.BaseMapAndVehicleMaps(false))
         {
-            var map = __instance.Map;
-            var maps = map.BaseMapAndVehicleMaps(false);
-            foreach (var map2 in maps)
+            __instance.TargetMap = map;
+            try
             {
-                tmpMap = map2;
-                if (!(bool)CheckIntercept(null, __instance)) return false;
+                for (var i = 0; i < Prefixes.Count; i++)
+                {
+                    if (!Prefixes[i](__instance)) return false;
+                }
             }
-            return true;
+            finally
+            {
+                __instance.RemoveTargetInfo();
+            }
         }
-        finally
-        {
-            tmpMap = null;
-        }
+        return true;
     }
-
-    public static Map tmpMap;
-
-    private static readonly FastInvokeHandler CheckIntercept = MethodInvoker.GetHandler(AccessTools.Method("TabulaRasa.Patch_Skyfaller_Tick:Prefix"));
 }
 
 [HarmonyPatchCategory(PatchCategories.TabulaRasa)]

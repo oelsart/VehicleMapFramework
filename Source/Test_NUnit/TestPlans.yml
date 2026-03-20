@@ -12,6 +12,12 @@
 - Name: VGravshipE
 - Name: VQEGenerator
 - Name: VTemperatureE
+- Name: VPsyE
+- Name: VPsyE + CE
+  Mods:
+    - VPsyE
+  Categories:
+    - VMF_Patches_CombatExtendedVPsyECompat
 - Name: Achtung
 - Name: CombatExtended
 - Name: DubsBadHygiene

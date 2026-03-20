@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -15,6 +16,17 @@ internal class Patches_Rimatomics
         if (Rimatomics.Active)
         {
             VMF_Harmony.PatchCategory(PatchCategories.Rimatomics);
+            try
+            {
+                var func = AccessTools.MethodDelegate<Patch_Projectile_CheckForFreeInterceptBetween.Prefix>(
+                    AccessTools.Method("Rimatomics.HarmonyPatches+H_CheckForFreeInterceptBetween:Prefix"));
+                if (func is null) throw new NullReferenceException();
+                Patch_Projectile_CheckForFreeInterceptBetween.Prefixes.Add(func);
+            }
+            catch (Exception ex)
+            {
+                VMF_Log.Error($"{ex}");
+            }
         }
     }
 }
@@ -26,20 +38,9 @@ public static class Patch_Building_Radar_DrawAt
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
-        var codes = new CodeMatcher(instructions, generator);
-        codes.MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_Altitudes_AltitudeFor));
-        codes.CreateLabelWithOffsets(1, out var label);
-        codes.DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle);
-        codes.InsertAfter(
-            CodeInstruction.LoadArgument(0),
-            new CodeInstruction(OpCodes.Ldloca_S, vehicle),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf),
-            new CodeInstruction(OpCodes.Brfalse_S, label),
-            new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_YOffsetFull),
-            new CodeInstruction(OpCodes.Ldc_R4, 0.1f),
-            new CodeInstruction(OpCodes.Add));
-        return codes.Instructions();
+        return new CodeMatcher(instructions, generator)
+            .AddAltitudeFor(out _, 0.1f)
+            .InstructionEnumeration();
     }
 }
 
@@ -113,7 +114,7 @@ public static class Patch_Verb_RimatomicsVerb_TryCastShot
             .Where(m =>
             {
                 if (m is null) return false;
-                return VMF_Harmony.ReadMethodBodyWrapper(m)
+                return PatchHelper.ReadMethodBodyWrapper(m)
                     .Any(i =>
                         CachedMethodInfo.g_Thing_Map.Equals(i.Value) ||
                         CachedMethodInfo.g_Thing_Position.Equals(i.Value) ||
@@ -148,26 +149,26 @@ public static class Patch_CompRimatomicsShield_PostDraw
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
-        var codes = new CodeMatcher(instructions, generator);
-        codes.MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_IntVec3_ToVector3Shifted));
-        codes.CreateLabelWithOffsets(1, out var label);
-        codes.DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle);
-        codes.InsertAfterAndAdvance(
-            CodeInstruction.LoadArgument(0),
-            CodeInstruction.LoadField(typeof(ThingComp), nameof(ThingComp.parent)),
-            new CodeInstruction(OpCodes.Ldloca_S, vehicle),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf),
-            new CodeInstruction(OpCodes.Brfalse_S, label),
-            new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ToBaseMapCoord2));
-        codes.MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_Altitudes_AltitudeFor));
-        codes.CreateLabelWithOffsets(1, out var label2);
-        codes.InsertAfter(
-            new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-            new CodeInstruction(OpCodes.Brfalse_S, label2),
-            new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_YOffsetFull));
-        return codes.Instructions();
+        return new CodeMatcher(instructions, generator)
+            .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_IntVec3_ToVector3Shifted))
+            .CreateLabelWithOffsets(1, out var label)
+            .DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle)
+            .InsertAfterAndAdvance(
+                CodeInstruction.LoadArgument(0),
+                CodeInstruction.LoadField(typeof(ThingComp), nameof(ThingComp.parent)),
+                new CodeInstruction(OpCodes.Ldloca_S, vehicle),
+                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf),
+                new CodeInstruction(OpCodes.Brfalse_S, label),
+                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ToBaseMapCoord2))
+            .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_Altitudes_AltitudeFor))
+            .CreateLabelWithOffsets(1, out var label2)
+            .InsertAfter(
+                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+                new CodeInstruction(OpCodes.Brfalse_S, label2),
+                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_YOffsetFull))
+            .InstructionEnumeration();
     }
 }
 
@@ -180,33 +181,6 @@ public static class Patch_CompRimatomicsShield_CheckIntercept
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned)
             .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
-    }
-}
-
-[HarmonyPatchCategory(PatchCategories.Rimatomics)]
-[HarmonyPatch("Rimatomics.HarmonyPatches+H_CheckForFreeInterceptBetween", "Prefix")]
-[PatchLevel(Level.Cautious)]
-public static class Patch_H_CheckForFreeInterceptBetween_Prefix
-{
-    private static readonly List<Thing> list = [];
-    
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return new CodeMatcher(instructions)
-            .MatchStartForward(CodeMatch.LoadsField(AccessTools.Field(typeof(Map), nameof(Map.listerThings))))
-            .RemoveInstruction()
-            .MatchStartForward(
-                CodeMatch.Calls(AccessTools.Method(typeof(ListerThings), nameof(ListerThings.ThingsOfDef))))
-            .SetInstruction(CodeInstruction.Call(typeof(Patch_H_CheckForFreeInterceptBetween_Prefix),
-                nameof(ThingsOfDefAllMaps)))
-            .Instructions();
-    }
-
-    private static List<Thing> ThingsOfDefAllMaps(Map map, ThingDef def)
-    {
-        list.Clear();
-        list.AddRange(map.BaseMapAndVehicleMaps().SelectMany(m => m.listerThings.ThingsOfDef(def)));
-        return list;
     }
 }
 

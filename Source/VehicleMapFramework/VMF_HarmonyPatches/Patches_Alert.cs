@@ -40,9 +40,12 @@ public static class Patch_Alert_NeedColonistBeds_AvailableColonistBeds
 
     private static List<Building> AddBuildings(List<Building> list, Map map)
     {
+        var allVehicles = VehiclePawnWithMapCache.AllVehiclesOn(map);
+        if (allVehicles.NullOrEmpty()) return list;
+        
         buildings.Clear();
         buildings.AddRange(list);
-        buildings.AddRange(VehiclePawnWithMapCache.AllVehiclesOn(map).SelectMany(v => v.VehicleMap.listerBuildings.allBuildingsColonist));
+        buildings.AddRange(allVehicles.SelectMany(v => v.VehicleMap.listerBuildings.allBuildingsColonist));
         return buildings;
     }
 }

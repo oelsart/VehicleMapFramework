@@ -15,7 +15,7 @@ public static class Patches_AbilityComp
     {
         return (from type in typeof(AbilityComp).AllSubclasses().Concat(typeof(GenClamor))
             from method in type.GetDeclaredMethods()
-            where VMF_Harmony.ReadMethodBodyWrapper(method).Any(i =>
+            where PatchHelper.ReadMethodBodyWrapper(method).Any(i =>
                 CachedMethodInfo.g_Thing_Position.Equals(i.Value) ||
                 CachedMethodInfo.g_LocalTargetInfo_Cell.Equals(i.Value) ||
                 CachedMethodInfo.g_Thing_Map.Equals(i.Value) ||

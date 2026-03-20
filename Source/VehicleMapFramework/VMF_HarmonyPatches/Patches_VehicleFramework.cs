@@ -294,7 +294,7 @@ public static class Patch_TurretShotReport_HitReportFor
             .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
             .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap)
             .MethodReplacer(AccessTools.Method(typeof(GridsUtility), nameof(GridsUtility.Roofed)),
-                AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.RoofedAcrossMaps)));
+                AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.RoofedAcrossMaps), [typeof(IntVec3), typeof(Map)]));
     }
 }
 
@@ -438,7 +438,7 @@ public static class Patch_JobDriverLoadVehicleBase_ShouldFailJob
         foreach (var method in typeof(JobDriverLoadVehicleBase).AllSubclasses()
                      .Select(type => AccessTools.DeclaredMethod(type, "ShouldFailJob"))
                      .Where(method => method is not null &&
-                         VMF_Harmony.ReadMethodBodyWrapper(method)
+                         PatchHelper.ReadMethodBodyWrapper(method)
                              .Any(i => g_Map.Equals(i.Value))))
         {
             yield return method;

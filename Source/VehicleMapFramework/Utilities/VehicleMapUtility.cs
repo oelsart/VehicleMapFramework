@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using HarmonyLib;
 using JetBrains.Annotations;
 using RimWorld;
 using RimWorld.Planet;
@@ -13,6 +14,7 @@ using Verse.AI.Group;
 
 namespace VehicleMapFramework;
 
+[HotSwap]
 public static class VehicleMapUtility
 {
     public const float YCompress = 40f;
@@ -1158,11 +1160,11 @@ public static class VehicleMapUtility
             tDef.size.x != tDef.size.z;
     }
 
-    private static readonly List<Thing> tmpList = [];
+    private static readonly List<Thing> tmpThingList = [];
     
     public static List<Thing> GetThingListAcrossMaps(this IntVec3 c, Map map)
     {
-        tmpList.Clear();
+        tmpThingList.Clear();
         var orig = map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned ? c.ToBaseMapCoord(vehicle) : c;
         foreach (var m in map.BaseMapAndVehicleMaps(true))
         {
@@ -1170,15 +1172,31 @@ public static class VehicleMapUtility
             {
                 var c2 = orig.ToVehicleMapCoord(vehicle2);
                 if (c2.InBounds(m))
-                    tmpList.AddRange(m.thingGrid.ThingsListAtFast(c2));
+                    tmpThingList.AddRange(m.thingGrid.ThingsListAtFast(c2));
             }
             else
             {
                 if (orig.InBounds(m))
-                    tmpList.AddRange(m.thingGrid.ThingsListAtFast(orig));
+                    tmpThingList.AddRange(m.thingGrid.ThingsListAtFast(orig));
             }
         }
-        return tmpList;
+        return tmpThingList;
+    }
+
+    private static readonly List<Building> tmpBuildingList = [];
+    
+    public static List<Building> AddColonistBuildingList(List<Building> allBuildingsColonist, Thing instance)
+    {
+        var maps = instance.Map.BaseMapAndVehicleMaps(false);
+        if (maps.NullOrEmpty()) return allBuildingsColonist;
+        
+        tmpBuildingList.Clear();
+        tmpBuildingList.AddRange(allBuildingsColonist);
+        foreach (var map in maps)
+        {
+            tmpBuildingList.AddRange(map.listerBuildings.allBuildingsColonist);
+        }
+        return tmpBuildingList;
     }
 
     extension(IntVec3 c)
@@ -1218,6 +1236,12 @@ public static class VehicleMapUtility
             var vehicle2 = map.GetCachedMapComponent<VehicleMapGrid>().VehicleAt(c);
             return vehicle2 != null && c.ToVehicleMapCoord(vehicle2).Roofed(vehicle2.VehicleMap);
         }
+    }
+
+    private static readonly AccessTools.FieldRef<RoofGrid, Map> roofGrid_map = AccessTools.FieldRefAccess<RoofGrid, Map>("map");
+    public static bool RoofedAcrossMaps(RoofGrid roofGrid, IntVec3 c)
+    {
+        return c.RoofedAcrossMaps(roofGrid_map(roofGrid));
     }
 }
 

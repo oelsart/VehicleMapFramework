@@ -11,7 +11,6 @@ using RimWorld;
 using RimWorld.Planet;
 using UnityEngine;
 using VehicleMapFramework.VMF_HarmonyPatches;
-using VehicleMapFramework.VMF_HarmonyPatches.AM;
 using Vehicles;
 using Verse;
 using Verse.AI;
@@ -560,6 +559,8 @@ internal static class ModCompat
         public static readonly bool Active = IsModActive("VanillaExpanded.VFEFactory");
     }
 
+    public static readonly bool VPsyE = IsModActive("VanillaExpanded.VPsycastsE");
+
     public static class VVE
     {
         public static readonly bool Active = IsModActive("OskarPotocki.VanillaVehiclesExpanded");
@@ -676,6 +677,8 @@ internal static class ModCompat
     }
 
     public static readonly bool TraderShips = IsModActive("automatic.traderships");
+    
+    public static readonly bool UFHeavyIndustries = IsModActive("KindSeal.LOL");
 
     public static readonly bool NightmareCore = IsModActive("Nightmare.Core");
     
@@ -711,6 +714,8 @@ internal static class ModCompat
     }
 
     public static readonly bool SmartPistol = IsModActive("rabiosus.smartpistol");
+
+    public static readonly bool SRALib = IsModActive("DiZhuan.SRALib");
     
     public static readonly bool RealFogOfWar = IsModActive("Mlie.NWNRealFogOfWar");
 

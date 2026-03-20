@@ -326,7 +326,7 @@ public static class Patch_Avatar_DrawReticle_Delegate
             t => t.GetDeclaredMethods().FirstOrDefault(m =>
             {
                 return m.Name.Contains("<DrawReticle>") &&
-                       VMF_Harmony.ReadMethodBodyWrapper(m).Any(i =>
+                       PatchHelper.ReadMethodBodyWrapper(m).Any(i =>
                            CachedMethodInfo.m_GenSight_LineOfSight2.Equals(i.Value));
             }));
     }

@@ -331,29 +331,18 @@ public static class Patch_PawnPath_DrawPath
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
-        var codes = new CodeMatcher(instructions, generator);
-        codes.MatchEndForward(CodeMatch.Calls(AccessTools.Method(typeof(Altitudes), nameof(Altitudes.AltitudeFor), [typeof(AltitudeLayer)])), CodeMatch.IsStloc());
-        codes.DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle);
-        codes.CreateLabel(out var label);
-        codes.Insert(
-            CodeInstruction.LoadArgument(1),
-            new CodeInstruction(OpCodes.Ldloca_S, vehicle),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf),
-            new CodeInstruction(OpCodes.Brfalse_S, label),
-            new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_YOffsetFull));
-
-        codes.MatchEndForward(CodeMatch.Calls(CachedMethodInfo.m_IntVec3_ToVector3Shifted), CodeMatch.IsStloc());
-        codes.Repeat(c =>
-        {
-            c.CreateLabel(out var label2);
-            c.Insert(
-                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-                new CodeInstruction(OpCodes.Brfalse_S, label2),
-                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ToBaseMapCoord2));
-        });
-        return codes.Instructions();
+        return new CodeMatcher(instructions, generator)
+            .AddAltitudeFor(out var vehicle,
+                getInstance: [CodeInstruction.LoadArgument(1)])
+            .MatchEndForward(CodeMatch.Calls(CachedMethodInfo.m_IntVec3_ToVector3Shifted), CodeMatch.IsStloc())
+            .Repeat(c => c
+                .CreateLabel(out var label2)
+                .Insert(
+                    new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+                    new CodeInstruction(OpCodes.Brfalse_S, label2),
+                    new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+                    new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ToBaseMapCoord2)))
+            .InstructionEnumeration();
     }
 }
 

@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
@@ -36,28 +35,9 @@ public static class Patch_Building_CMCTurretGun_OrderAttack
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Building_CMCTurretGun_TryFindNewTarget
 {
-    private static readonly List<Building> tmpList = [];
-
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        var codes = instructions.ToList();
-        var f_allBuildingsColonist = AccessTools.Field(typeof(ListerBuildings), nameof(ListerBuildings.allBuildingsColonist));
-        var pos = codes.FindIndex(c => c.opcode == OpCodes.Ldfld && c.OperandIs(f_allBuildingsColonist)) + 1;
-        codes.InsertRange(pos,
-        [
-            CodeInstruction.LoadArgument(0),
-            CodeInstruction.Call(typeof(Patch_ArcanePlant_Turret_TryFindNewTarget), nameof(AddBuildingList))
-        ]);
-        return codes;
-    }
-
-    private static List<Building> AddBuildingList(List<Building> list, Building instance)
-    {
-        tmpList.Clear();
-        tmpList.AddRange(list);
-        var maps = instance.Map.BaseMapAndVehicleMaps(false);
-        tmpList.AddRange(maps.SelectMany(m => m.listerBuildings.allBuildingsColonist));
-        return tmpList;
+        return instructions.AddAllBuildingsColonistForThingInstance();
     }
 }
 
@@ -87,19 +67,12 @@ public static class Patch_CMCTurretTop_DrawTurret
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
-        var codes = new CodeMatcher(instructions, generator);
-        codes.MatchStartForward(CodeMatch.Calls(AccessTools.Method(typeof(Altitudes), nameof(Altitudes.AltitudeFor), [typeof(AltitudeLayer)])));
-        codes.CreateLabelWithOffsets(1, out var label);
-        codes.DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle);
-        codes.InsertAfter(
-            CodeInstruction.LoadArgument(0),
-            CodeInstruction.LoadField(GenTypes.GetTypeInAnyAssembly("TOT_DLL_test.CMCTurretTop", "TOT_DLL_test"), "parentTurret"),
-            new CodeInstruction(OpCodes.Ldloca_S, vehicle),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf),
-            new CodeInstruction(OpCodes.Brfalse_S, label),
-            new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_YOffsetFull));
-        return codes.Instructions();
+        return new CodeMatcher(instructions, generator)
+            .AddAltitudeFor(out _,
+                getInstance: [CodeInstruction.LoadArgument(0),
+                    CodeInstruction.LoadField(
+                        GenTypes.GetTypeInAnyAssembly("TOT_DLL_test.CMCTurretTop", "TOT_DLL_test"), "parentTurret")])
+            .InstructionEnumeration();
     }
 }
 
@@ -132,19 +105,10 @@ public static class Patch_Comp_FCradar_PostDraw
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
-        var codes = new CodeMatcher(instructions, generator);
-        codes.MatchStartForward(CodeMatch.Calls(AccessTools.Method(typeof(Altitudes), nameof(Altitudes.AltitudeFor), [typeof(AltitudeLayer)])));
-        codes.CreateLabelWithOffsets(1, out var label);
-        codes.DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle);
-        codes.InsertAfter(
-            CodeInstruction.LoadArgument(0),
-            CodeInstruction.LoadField(typeof(ThingComp), nameof(ThingComp.parent)),
-            new CodeInstruction(OpCodes.Ldloca_S, vehicle),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf),
-            new CodeInstruction(OpCodes.Brfalse_S, label),
-            new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_YOffsetFull));
-        return codes.Instructions();
+        return new CodeMatcher(instructions, generator)
+            .AddAltitudeFor(out _,
+                getInstance: [CodeInstruction.LoadArgument(0), CodeInstruction.LoadField(typeof(ThingComp), nameof(ThingComp.parent))])
+            .InstructionEnumeration();
     }
 }
 

@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using System.Reflection.Emit;
 using HarmonyLib;
 using Verse;
 
@@ -243,19 +242,6 @@ public class VMF_Harmony
                     VMF_Log.Error($"Error while apply unpatching\n{ex}");
                 }
             });
-    }
-
-    public static IEnumerable<KeyValuePair<OpCode, object>> ReadMethodBodyWrapper(MethodBase method)
-    {
-        try
-        {
-            return PatchProcessor.ReadMethodBody(method);
-        }
-        catch(Exception ex)
-        {
-            VMF_Log.Error($"Error within ReadMethodBody(). {method.FullDescription()} is likely referencing an old signature.\n{ex}");
-            return [];
-        }
     }
 }
 

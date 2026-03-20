@@ -3,7 +3,6 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
-using RimWorld;
 using Verse;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
@@ -31,7 +30,7 @@ public static class Patch_CompPointDefence_FindTarget_Delegate
             .Where(m =>
             {
                 if (!m.Name.Contains("<FindTarget>")) return false;
-                return VMF_Harmony.ReadMethodBodyWrapper(m).Any(i =>
+                return PatchHelper.ReadMethodBodyWrapper(m).Any(i =>
                     CachedMethodInfo.g_Thing_Position.Equals(i.Value));
             });
     }
