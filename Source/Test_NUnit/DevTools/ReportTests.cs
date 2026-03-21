@@ -3,6 +3,7 @@ using System.Xml.Linq;
 namespace VehicleMapFramework.Test_DevTools;
 
 [TestFixture]
+[Category("Local")]
 public class ReportTests
 {
     [Test]
