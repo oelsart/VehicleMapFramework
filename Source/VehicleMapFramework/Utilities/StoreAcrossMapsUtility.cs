@@ -6,7 +6,6 @@ using Verse.AI;
 
 namespace VehicleMapFramework;
 
-[HotSwap]
 public static class StoreAcrossMapsUtility
 {
     public static Map tmpDestMap;

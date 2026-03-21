@@ -24,7 +24,6 @@ namespace VehicleMapFramework;
 public class MapVehicleEventDef : Def;
 
 [StaticConstructorOnStartup]
-[HotSwap]
 public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
 {
     private Map interiorMap;

@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
+using SmashTools;
 using UnityEngine;
 using Verse;
 
@@ -88,16 +88,22 @@ public static class Patch_Avatar_UpdateInput
 public static class Patch_Avatar_ProcessMovement
 {
     private static CompZipline compZipline;
-    private static AccessTools.FieldRef<PawnTweener, Vector3> tweenedPos = AccessTools.FieldRefAccess<PawnTweener, Vector3>("tweenedPos");
+    private static readonly AccessTools.FieldRef<PawnTweener, Vector3> tweenedPos =
+        AccessTools.FieldRefAccess<PawnTweener, Vector3>("tweenedPos");
     
-    public static bool Prefix(Vector3 ___moveInput, ref Vector3? ___physicsPosition, Pawn ___pawn)
+    public static bool Prefix(Vector3 ___moveInput, ref Vector3? ___physicsPosition, ref IntVec3 ___prevCell, Pawn ___pawn)
     {
-        if (___pawn.Map is null || ___physicsPosition is null) return true;
+        if (___pawn.Map is null || ___physicsPosition is null)
+        {
+            return true;
+        }
 
         ___pawn.IsOnVehicleMapOf(out var vehicle);
         if (compZipline is not null)
         {
-            if (___pawn.Position != compZipline.parent.Position || compZipline.Pair is not { Spawned: true })
+            if (compZipline.parent is { Spawned: false } ||
+                ___pawn.Position != compZipline.parent.Position ||
+                compZipline.Pair is not { Spawned: true })
             {
                 compZipline = null;
                 return true;
@@ -124,14 +130,14 @@ public static class Patch_Avatar_ProcessMovement
 
                 const float distancePerTick = 0.075f;
                 //ジップラインの先端から登る場合は遅くなるわな
-                var moveDistance = compZipline.IsZiplineEnd ? distancePerTick * 0.5f : distancePerTick;
-                if (Vector3.Dot(normalized, ___moveInput) < 0f) moveDistance *= -1f;
+                var back = Vector3.Dot(normalized, ___moveInput) < 0f;
+                var moveDistance = compZipline.IsZiplineEnd ^ back ? distancePerTick * 0.5f : distancePerTick;
+                if (back) moveDistance *= -1f;
                 
                 ___physicsPosition += normalized * moveDistance;
                 if ((drawPosC - drawPosA).MagnitudeHorizontalSquared() > totalLengthSquared)
                 {
-                    ___pawn.DeSpawnWithoutJobClear();
-                    GenSpawn.Spawn(___pawn, compZipline.Pair.Position, compZipline.Pair.Map);
+                    RespawnPawn(___pawn, compZipline.Pair.Position, compZipline.Pair.Map, out ___prevCell);
                     ___physicsPosition = ___physicsPosition.Value
                         .ToThingBaseMapCoord(compZipline.parent)
                         .ToNonFocusedThingMapCoord(compZipline.Pair);
@@ -152,15 +158,32 @@ public static class Patch_Avatar_ProcessMovement
             }
         }
 
-        if (___moveInput == Vector3.zero) return true;
+        if (___moveInput == Vector3.zero)
+        {
+            if (!___physicsPosition.Value.ToIntVec3().WalkableBy(___pawn.Map, ___pawn))
+            {
+                ___pawn.pather.TryRecoverFromUnwalkablePosition(false);
+                ___physicsPosition = ___pawn.Position.ToVector3Shifted();
+                return false;
+            }
+            return true;
+        }
         switch (vehicle)
         {
             case { Spawned: true } when vehicle.CachedWalkableMapEdgeCells.Keys.Contains(___pawn.Position):
             {
                 var baseMapCoord = ___physicsPosition.Value.ToBaseMapCoord(vehicle);
                 var baseMapMove = ___moveInput.RotatedBy(vehicle.FullAngle);
-                if ((baseMapCoord + baseMapMove / 2f).TryGetVehicleMap(vehicle.Map, vehicle, VehicleMapFlag.None))
+                var moveToTentative = (baseMapCoord + baseMapMove / 2f);
+                if (moveToTentative.TryGetVehicleMap(vehicle.Map, vehicle, VehicleMapFlag.None))
+                {
+                    if (!___physicsPosition.Value.ToIntVec3().WalkableBy(___pawn.Map, ___pawn))
+                    {
+                        ___pawn.pather.TryRecoverFromUnwalkablePosition(false);
+                        ___physicsPosition = ___pawn.Position.ToVector3Shifted();
+                    }
                     return true;
+                }
                 var groundMap = vehicle.Map;
                 var ticks = ___pawn.TicksPerMoveCardinal * 4f;
                 if (!___pawn.Position.GetThingList(vehicle.VehicleMap)
@@ -185,6 +208,9 @@ public static class Patch_Avatar_ProcessMovement
                 if (containsVehicle)
                 {
                     ___physicsPosition += Time.deltaTime * (60f / ticks) * ___moveInput;
+                    var rot = Rot8.FromAngle(___moveInput.AngleFlat());
+                    if (vehicle.Rotation.IsHorizontal) rot = rot.RotForVehicleDraw();
+                    ___pawn.Rotation = rot;
                     if (___pawn.Position.TryGetFirstThing<Building_VehicleRamp>(vehicle.VehicleMap, out var ramp))
                     {
                         ramp.StartManualOpenBy(___pawn);
@@ -193,8 +219,7 @@ public static class Patch_Avatar_ProcessMovement
                 }
                 if (moveToCell.Walkable(groundMap))
                 {
-                    ___pawn.DeSpawnWithoutJobClear();
-                    GenSpawn.Spawn(___pawn, moveToCell, groundMap);
+                    RespawnPawn(___pawn, moveToCell, groundMap, out ___prevCell);
                     ___physicsPosition = moveTo;
                     tweenedPos(___pawn.Drawer.tweener) = ___physicsPosition.Value;
                     return false;
@@ -210,6 +235,7 @@ public static class Patch_Avatar_ProcessMovement
                     var vehicleMapCoord = moveTo.ToVehicleMapCoord(vehicle);
                     var intVec3 = vehicleMapCoord.ToIntVec3();
                     var edgeCell = moveToCell.ClosestEdgeCell(vehicle);
+                    if (!edgeCell.IsValid) return true;
                     var ticks = ___pawn.TicksPerMoveCardinal * 4f;
                     if (edgeCell.AdjacentTo8WayOrInside(intVec3))
                     {
@@ -229,14 +255,15 @@ public static class Patch_Avatar_ProcessMovement
 
                     var offset = Time.deltaTime * (60f / ticks) * ___moveInput;
                     ___physicsPosition += offset;
+                    ___pawn.Rotation = Rot8.FromAngle(___moveInput.AngleFlat());
+                    
                     if (___physicsPosition.Value.TryGetVehicleMap(___pawn.Map, vehicle, VehicleMapFlag.None))
                     {
                         var vehicleMapCoord2 = ___physicsPosition.Value.ToVehicleMapCoord(vehicle);
                         var cell = vehicleMapCoord2.ToIntVec3();
                         if (cell.Walkable(vehicle.VehicleMap))
                         {
-                            ___pawn.DeSpawnWithoutJobClear();
-                            GenSpawn.Spawn(___pawn, cell, vehicle.VehicleMap);
+                            RespawnPawn(___pawn, cell, vehicle.VehicleMap, out ___prevCell);
                             ___physicsPosition = vehicleMapCoord2;
                             tweenedPos(___pawn.Drawer.tweener) = ___physicsPosition.Value;
                             return false;
@@ -252,6 +279,13 @@ public static class Patch_Avatar_ProcessMovement
         }
 
         return true;
+        
+        static void RespawnPawn(Pawn pawn, IntVec3 cell, Map map, out IntVec3 prevCell)
+        {
+            pawn.DeSpawnWithoutJobClear();
+            GenSpawn.Spawn(pawn, cell, map);
+            prevCell = IntVec3.Invalid;
+        }
     }
 }
 
@@ -310,47 +344,30 @@ public static class Patch_Avatar_DrawReticle
         var m_LeanShootingSourcesFromToOnVehicle =
             AccessTools.Method(typeof(ShootLeanUtilityOnVehicle), nameof(ShootLeanUtilityOnVehicle.LeanShootingSourcesFromTo));
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-            .MethodReplacer(CachedMethodInfo.m_GetThingList, CachedMethodInfo.m_GetThingListAcrossMaps)
             .MethodReplacer(m_LeanShootingSourcesFromTo, m_LeanShootingSourcesFromToOnVehicle);
     }
 }
 
 [HarmonyPatchCategory(PatchCategories.PerspectiveShift)]
-[HarmonyPatch]
-[PatchLevel(Level.Sensitive)]
-public static class Patch_Avatar_DrawReticle_Delegate
+[HarmonyPatch("PerspectiveShift.Avatar", "GetBestTarget")]
+[PatchLevel(Level.Cautious)]
+public static class Patch_Avatar_GetBestTarget
 {
-    private static MethodBase TargetMethod()
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return AccessTools.FindIncludingInnerTypes(GenTypes.GetTypeInAnyAssembly("PerspectiveShift.Avatar", "PerspectiveShift"),
-            t => t.GetDeclaredMethods().FirstOrDefault(m =>
-            {
-                return m.Name.Contains("<DrawReticle>") &&
-                       PatchHelper.ReadMethodBodyWrapper(m).Any(i =>
-                           CachedMethodInfo.m_GenSight_LineOfSight2.Equals(i.Value));
-            }));
-    }
-
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
-    {
-        return new CodeMatcher(instructions, generator)
-            .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_GenSight_LineOfSight2))
-            .Set(OpCodes.Call, CachedMethodInfo.m_GenSightOnVehicle_LineOfSight2)
-            .MatchStartBackwards(CodeMatch.Calls(CachedMethodInfo.g_Thing_Map))
+        return new CodeMatcher(instructions)
+            .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Map))
             .Set(OpCodes.Call, CachedMethodInfo.m_BaseMap_Thing)
-            .CreateLabel(out var label)
-            .DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle)
-            .DeclareLocal(typeof(Pawn), out var pawn)
-            .Insert(
-                new CodeInstruction(OpCodes.Dup),
-                new CodeInstruction(OpCodes.Ldloca_S, vehicle),
-                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf),
-                new CodeInstruction(OpCodes.Brfalse_S, label),
-                new CodeInstruction(OpCodes.Stloc_S, pawn),
-                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ToBaseMapCoord2),
-                new CodeInstruction(OpCodes.Ldloc_S, pawn))
+            .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_GetThingList))
+            .SetOperandAndAdvance(CachedMethodInfo.m_GetThingListAcrossMaps)
+            .Insert(CodeInstruction.Call(typeof(Patch_Avatar_GetBestTarget), nameof(RemoveMapVehicles)))
             .InstructionEnumeration();
+    }
+    
+    private static List<Thing> RemoveMapVehicles(List<Thing> list)
+    {
+        list.RemoveAll(t => t is VehiclePawnWithMap);
+        return list;
     }
 }
 
@@ -361,17 +378,7 @@ public static class Patch_Avatar_HandleFiring
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return new CodeMatcher(instructions)
-            .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_GetThingList))
-            .SetOperandAndAdvance(CachedMethodInfo.m_GetThingListAcrossMaps)
-            .Insert(CodeInstruction.Call(typeof(Patch_Avatar_HandleFiring), nameof(RemoveMapVehicles)))
-            .InstructionEnumeration()
-            .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
-    }
-    
-    private static List<Thing> RemoveMapVehicles(List<Thing> list)
-    {
-        list.RemoveAll(t => t is VehiclePawnWithMap);
-        return list;
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
+            .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
     }
 }

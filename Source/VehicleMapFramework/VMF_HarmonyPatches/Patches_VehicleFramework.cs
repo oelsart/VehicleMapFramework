@@ -712,7 +712,6 @@ public static class Patch_VehicleTabHelper_Passenger_DrawPassengersFor
 [HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(VehicleTabHelper_Passenger), nameof(VehicleTabHelper_Passenger.HandleDragEvent))]
 [PatchLevel(Level.Safe)]
-[HotSwap]
 public static class Patch_VehicleTabHelper_Passenger_HandleDragEvent
 {
     public static bool Prefix(ref Pawn ___draggedPawn, IThingHolder ___transferToHolder, Pawn ___hoveringOverPawn)
