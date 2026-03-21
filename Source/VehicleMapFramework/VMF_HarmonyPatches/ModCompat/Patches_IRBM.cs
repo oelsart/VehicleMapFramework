@@ -46,8 +46,8 @@ public static class Patch_Building_CIWS_FindBestGroundTarget
             .End()
             .MatchEndBackwards(new CodeMatch(OpCodes.Ret))
             .Insert(
-                CodeInstruction.LoadLocal(0),
                 CodeInstruction.LoadArgument(0),
+                CodeInstruction.LoadLocal(0),
                 CodeInstruction.Call(typeof(Patch_Building_CIWS_FindBestGroundTarget), nameof(PostfixWithMaxRange)))
             .InstructionEnumeration();
     }
@@ -116,7 +116,7 @@ public static class Patch_Building_CIWS_IsHeadingForPlayerAssets
 }
 
 [HarmonyPatchCategory(PatchCategories.IRBM)]
-[HarmonyPatch("IRBM.Building_CIWS", "IsHeadingForPlayerAssets")]
+[HarmonyPatch("IRBM.Building_CIWS", "FindBestTarget")]
 public static class Patch_Building_CIWS_FindBestTarget
 {
     [PatchLevel(Level.Safe)]
