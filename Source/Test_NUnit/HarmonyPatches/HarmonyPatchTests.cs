@@ -24,9 +24,11 @@ public class HarmonyPatchTests
         harmony.Patch(
             AccessTools.Method("Verse.GenTypes:GetTypeInAnyAssembly"),
             AccessTools.Method(typeof(HarmonyPatchTests), nameof(TypeByName)));
+
         harmony.Patch(
             AccessTools.Method("Verse.GenTypes:AllSubclasses"),
             AccessTools.Method(typeof(HarmonyPatchTests), nameof(AllSubclasses)));
+        
         harmony.Patch(
             AccessTools.Method(typeof(Transpilers), nameof(Transpilers.MethodReplacer)),
             postfix: AccessTools.Method(typeof(HarmonyPatchTests), nameof(AssertReplaced)));
@@ -161,7 +163,7 @@ public class HarmonyPatchTests
         {
             switch (ex)
             {
-                // デバッガーがアタッチされている時はReadMethodBody時ECallメソッドのSecurityExceptionが出ないため
+                // デバッガーがアタッチされている時はReadMethodBody時ECallメソッドのSecurityExceptionが出ない
                 // そのためSecurityExceptionのスキップをスキップする
                 case not null when Debugger.IsAttached:
                 case HarmonyException { InnerException: not SecurityException }:

@@ -15,4 +15,6 @@ public class Configurations
     public const string WorkshopIdsFileName = "WorkshopIds.yml";
     
     public const string TestPlansFileName = "TestPlans.yml";
+    
+    public static readonly bool IsRemote = Environment.GetEnvironmentVariable("GITHUB_ACTIONS") == "true";
 }

@@ -46,7 +46,9 @@ public static class TestPlanLoader
         }
         
         // VMFロードと型キャッシュ
-        var assemblies = Loader.LoadModFolder("VehicleMapFramework");
+        var assemblies = Configurations.IsRemote
+            ? Loader.LoadModFolder("VehicleMapFramework")
+            : Loader.LoadModFolder(WorkshopIds["VehicleMapFramework"]);
         Types = assemblies
             .SelectMany(AccessTools.GetTypesFromAssembly)
             .Where(type => type.FullName?.Contains("Patch") ?? false).ToArray();
@@ -77,7 +79,8 @@ public static class TestPlanLoader
     
     public static IEnumerable<TestCaseData> GetPatchTestPlans()
     {
-        yield return new TestCaseData(new TestPlan()).SetName($"Patch: VehicleMapFramework");
+        if (!Configurations.IsRemote)
+            yield return new TestCaseData(new TestPlan()).SetName("Patch: VehicleMapFramework");
         foreach (var plan in testPlans.Where(plan => !plan.LoadOnly))
             yield return new TestCaseData(plan).SetName($"Patch: {plan.Name}");
     }
