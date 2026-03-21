@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
 using HarmonyLib;
+using UnityEngine;
 using Verse;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
@@ -16,17 +18,9 @@ internal class Patches_Rimatomics
         if (Rimatomics.Active)
         {
             VMF_Harmony.PatchCategory(PatchCategories.Rimatomics);
-            try
-            {
-                var func = AccessTools.MethodDelegate<Patch_Projectile_CheckForFreeInterceptBetween.Prefix>(
-                    AccessTools.Method("Rimatomics.HarmonyPatches+H_CheckForFreeInterceptBetween:Prefix"));
-                if (func is null) throw new NullReferenceException();
-                Patch_Projectile_CheckForFreeInterceptBetween.Prefixes.Add(func);
-            }
-            catch (Exception ex)
-            {
-                VMF_Log.Error($"{ex}");
-            }
+            
+            Patch_Projectile_CheckForFreeInterceptBetween.Prefixes.Add(
+                Patch_Patch_HarmonyPatches_H_CheckForFreeInterceptBetween_Prefix.PrefixPatch);
         }
     }
 }
@@ -195,6 +189,25 @@ public static class Patch_GenSpawn_Spawn_Rimatomics
         if (thingClass.SameOrSubclassOf(Rimatomics.BaseMissile))
         {
             map = map.BaseMap();
+        }
+    }
+}
+
+[HarmonyPatchCategory(PatchCategories.Rimatomics)]
+[HarmonyPatch("Rimatomics.HarmonyPatches+H_CheckForFreeInterceptBetween", "Prefix")]
+[PatchLevel(Level.Mandatory)]
+public static class Patch_Patch_HarmonyPatches_H_CheckForFreeInterceptBetween_Prefix
+{
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    [HarmonyReversePatch]
+    public static bool PrefixPatch(Projectile __instance, Vector3 lastExactPos, Vector3 newExactPos, ref bool __result)
+    {
+        _ = Transpiler(null);
+        throw new NotImplementedException();
+        
+        IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);
         }
     }
 }

@@ -17,15 +17,9 @@ internal static class Patches_TabulaRasa
         if (TabulaRasa)
         {
             VMF_Harmony.PatchCategory(PatchCategories.TabulaRasa);
-            try
-            {
-                Patch_Projectile_CheckForFreeInterceptBetween.Postfixes.Add(
-                    Patch_Patch_Projectile_CheckForFreeInterceptBetween_Postfix.PostfixPatch);
-            }
-            catch (Exception ex)
-            {
-                VMF_Log.Error($"{ex}");
-            }
+            
+            Patch_Projectile_CheckForFreeInterceptBetween.Postfixes.Add(
+                Patch_Patch_Projectile_CheckForFreeInterceptBetween_Postfix.PostfixPatch);
         }
     }
 }

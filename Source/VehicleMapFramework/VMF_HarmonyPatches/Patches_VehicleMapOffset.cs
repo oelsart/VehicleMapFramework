@@ -380,19 +380,6 @@ public static class Patch_OverlayDrawer_RenderPulsingOverlay
     }
 }
 
-[HarmonyPatch(typeof(VerbProperties), nameof(VerbProperties.DrawRadiusRing))]
-public static class Patch_VerbProperties_DrawRadiusRing
-{
-    [PatchLevel(Level.Safe)]
-    public static void Prefix(ref IntVec3 center, Verb verb)
-    {
-        if ((verb?.caster.IsOnNonFocusedVehicleMapOf(out var vehicle) ?? false) && Find.CurrentMap != vehicle.VehicleMap)
-        {
-            center = center.ToBaseMapCoord(vehicle);
-        }
-    }
-}
-
 [HarmonyPatch(typeof(GenDraw), nameof(GenDraw.DrawRadiusRing), typeof(IntVec3), typeof(float), typeof(Color), typeof(Func<IntVec3, bool>))]
 [PatchLevel(Level.Safe)]
 public static class Patch_GenDraw_DrawRadiusRing
@@ -422,6 +409,7 @@ public static class Patch_GenDraw_DrawRadiusRing
                     DrawRadiusRing(vehicle.VehicleMap, center, radius, color, predicate);
                     return false;
                 }
+                Log.Message(center);
                 center = center.ToBaseMapCoord(vehicle);
             }
         }
