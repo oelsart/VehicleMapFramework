@@ -390,6 +390,8 @@ internal static class ModCompat
 
     public static readonly bool Gunplay = IsModActive("automatic.gunplay");
 
+    public static readonly bool IRBM = IsModActive("kazepsi.irbm");
+
     public static class MeleeAnimation
     {
         public static readonly bool Active = IsModActive("co.uk.epicguru.meleeanimation");
