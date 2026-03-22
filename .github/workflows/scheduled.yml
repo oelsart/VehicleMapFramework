@@ -63,7 +63,7 @@ jobs:
           echo "quit"
         } > steam_script.txt
         
-        ~/Steam/steamcmd.sh +runscript steam_script.txt
+        ~/Steam/steamcmd.sh +runscript "$(pwd)/steam_script.txt"
         
         echo "CI_SteamCMD_WorkShop=$HOME/Steam/steamapps/workshop/content/294100" >> $GITHUB_ENV
         ls -la ~/Steam/steamapps/workshop/content/294100
