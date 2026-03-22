@@ -30,12 +30,12 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         fetch-depth: 0
 
     - name: Install .NET Core
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v5
       with:
         dotnet-version: 9.0.x
     
@@ -44,7 +44,7 @@ jobs:
       
     - name: Restore Cache
       id: cache-steam
-      uses: actions/cache/restore@v4
+      uses: actions/cache/restore@v5
       with:
         path: ~/Steam
         key: steamcmd-initial
