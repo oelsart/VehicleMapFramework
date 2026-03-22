@@ -35,15 +35,13 @@ jobs:
         IDS=$(yq eval '.[]' ${{ env.Workshop_IDs_File }} | tr '\n' ' ')
         echo "MOD_IDS=$IDS" >> $GITHUB_ENV
       
-    - name: Cache SteamCMD
-      id: cache-steam
-      uses: actions/cache@v4
+    - name: Restore Cache
+      uses: actions/cache/restore@v4
       with:
         path: ~/Steam
-        key: steamcmd-${{ github.run_id }}
+        key: steamcmd-initial
         restore-keys: |
           steamcmd-
-        save-always: true
           
     - name: Install SteamCMD
       if: steps.cache-steam.outputs.cache-hit != 'true'
@@ -66,10 +64,22 @@ jobs:
           echo "quit"
         } > steam_script.txt
         
-        ~/Steam/steamcmd.sh +runscript $(pwd)/steam_script.txt
+        cat steam_script.txt | ~/Steam/steamcmd.sh
         
         echo "CI_SteamCMD_WorkShop=$HOME/Steam/steamapps/workshop/content/294100" >> $GITHUB_ENV
         ls -la ~/Steam/steamapps/workshop/content/294100
+    
+    - name: Generate Content Hash
+      run: |
+        MODS_HASH=$(find ~/Steam/steamapps/workshop/content/294100 -type f -print0 | sort -z | xargs -0 sha1sum | sha1sum | awk '{print $1}')
+        echo "MODS_HASH=$MODS_HASH" >> $GITHUB_ENV
+
+    - name: Save Cache
+      uses: actions/cache/save@v4
+      if: always()
+      with:
+        path: ~/Steam
+        key: steamcmd-${{ env.MODS_HASH }}
 
     - name: Build Mod DLL
       run: dotnet build ${{ env.Project_Path }} --configuration Release --no-restore /p:SkipPostBuild=true /p:SteamWorkshopRoot=${{ env.CI_SteamCMD_WorkShop }}
@@ -102,4 +112,4 @@ jobs:
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         discord-webhook: ${{ secrets.DISCORD_WEBHOOK }}
-        title: '${{ github.workflow }}: {{STATUS}}'
+        title: '${{ github.workflow }}: ${{ job.status }}
