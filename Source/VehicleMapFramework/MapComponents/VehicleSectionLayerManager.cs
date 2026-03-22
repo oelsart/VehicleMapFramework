@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using JetBrains.Annotations;
 using RimWorld;
 using SmashTools;
@@ -15,7 +16,7 @@ namespace VehicleMapFramework
         private Rot4 lastGeneratedRots = Rot4.North;
         
         internal static readonly List<Type> OrientedSectionLayerTypes =
-            [.. typeof(SectionLayer_Things).AllSubclassesNonAbstract().Concat(typeof(SectionLayer_SunShadowsOnVehicle))];
+            [.. typeof(SectionLayer_Things).AllSubclassesNonAbstract().Append(typeof(SectionLayer_SunShadowsOnVehicle))];
         
         [UsedImplicitly] // Reflection access by Naname Walls
         public static Rot4 RotForPrintCounter => RotForPrint.IsHorizontal ? RotForPrint.Opposite : RotForPrint;

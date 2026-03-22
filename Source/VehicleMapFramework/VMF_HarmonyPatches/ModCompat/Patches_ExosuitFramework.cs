@@ -35,12 +35,11 @@ public static class Patch_CompBuildingExtraRenderer_PostPrintOnto
 
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        var codes = instructions.ToList();
-        var pos = codes.FindIndex(c => c.opcode == OpCodes.Ldc_R4 && (float)c.operand == 0f);
-
-        codes.Replace(codes[pos], new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_PrintExtraRotation));
-        codes.Insert(pos, new CodeInstruction(OpCodes.Dup));
-        return codes;
+        return new CodeMatcher(instructions)
+            .MatchStartForward(CodeMatch.LoadsConstant(0f))
+            .Set(OpCodes.Call, CachedMethodInfo.m_PrintExtraRotation)
+            .Insert(new CodeInstruction(OpCodes.Dup))
+            .InstructionEnumeration();
     }
 }
 

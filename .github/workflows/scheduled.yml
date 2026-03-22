@@ -67,7 +67,7 @@ jobs:
         STEAM_COMMANDS="${STEAM_COMMANDS} +quit"
         ~/Steam/steamcmd.sh ${STEAM_COMMANDS}
         
-        echo "CI_SteamCMD_WorkShop=$HOME/Steam/steamapps/workshop/content/294100" >> $GITHUB_ENV
+        echo "\nCI_SteamCMD_WorkShop=$HOME/Steam/steamapps/workshop/content/294100" >> $GITHUB_ENV
         ls -la ~/Steam/steamapps/workshop/content/294100
 
     - name: Build Mod DLL

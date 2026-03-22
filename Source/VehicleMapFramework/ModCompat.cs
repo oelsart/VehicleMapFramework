@@ -31,12 +31,22 @@ internal static class ModCompat
     
     internal static bool AnyNull(params object[] args)
     {
-        return args.Any(arg => arg == null);
+        for (var i = 0; i < args.Length; i++)
+        {
+            if (args[i] is null)
+            {
+                LogError(new Exception($"Argument {i} is null."));
+                return true;
+            }
+        }
+
+        return false;
     }
     
     internal static void LogIncompat(string modName)
     {
-        LogError(new Exception($"{modName} compatibility is broken."));
+        if (!UnitTestDetector.IsTestingContext)
+            LogError(new Exception($"{modName} compatibility is broken."));
     }
 
     internal static bool IsModActive(string id)

@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
 using HarmonyLib;
 using ModAssemblyLoader;
+using NUnit.Framework.Interfaces;
 using YamlDotNet.Serialization;
 
 namespace VehicleMapFramework.Test_CompatPatches;
@@ -15,7 +16,7 @@ public static class TestPlanLoader
     
     public static Type ModCompatType { get; private set; }
     
-    public static Dictionary<string, string> WorkshopIds { get; private set; } 
+    public static Dictionary<string, string> WorkshopIds { get; } 
     
     private static readonly List<TestPlan> testPlans;
 
@@ -47,8 +48,8 @@ public static class TestPlanLoader
         
         // VMFロードと型キャッシュ
         var assemblies = Configurations.IsRemote
-            ? Loader.LoadModFolder("VehicleMapFramework")
-            : Loader.LoadModFolder(WorkshopIds["VehicleMapFramework"]);
+            ? Loader.LoadModFolder(WorkshopIds["VehicleMapFramework"])
+            : Loader.LoadModFolder("VehicleMapFramework");
         Types = assemblies
             .SelectMany(AccessTools.GetTypesFromAssembly)
             .Where(type => type.FullName?.Contains("Patch") ?? false).ToArray();

@@ -91,24 +91,20 @@ public static class Patch_PlaceWorker_SewageArea_DrawGhost_Predicate
 
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
-        var codes = instructions.ToList();
-        var m_GetFirstBuilding = AccessTools.Method(typeof(GridsUtility), nameof(GridsUtility.GetFirstBuilding));
-        var pos = codes.FindIndex(c => c.Calls(m_GetFirstBuilding));
-        var label = generator.DefineLabel();
-        var map = generator.DeclareLocal(typeof(Map));
-
-        codes.InsertRange(pos,
-        [
-            new CodeInstruction(OpCodes.Stloc_S, map),
-            new CodeInstruction(OpCodes.Ldloc_S, map),
-            CodeInstruction.Call(typeof(GenGrid), nameof(GenGrid.InBounds), [typeof(IntVec3), typeof(Map)]),
-            new CodeInstruction(OpCodes.Brtrue_S, label),
-            new CodeInstruction(OpCodes.Ldc_I4_0),
-            new CodeInstruction(OpCodes.Ret),
-            CodeInstruction.LoadArgument(1).WithLabels(label),
-            new CodeInstruction(OpCodes.Ldloc_S, map)
-        ]);
-        return codes;
+        return new CodeMatcher(instructions, generator)
+            .MatchStartForward(CodeMatch.Calls(AccessTools.Method(typeof(GridsUtility), nameof(GridsUtility.GetFirstBuilding))))
+            .CreateLabel(out var label)
+            .DeclareLocal(typeof(Map), out var map)
+            .Insert(
+                new CodeInstruction(OpCodes.Stloc_S, map),
+                new CodeInstruction(OpCodes.Ldloc_S, map),
+                CodeInstruction.Call(typeof(GenGrid), nameof(GenGrid.InBounds), [typeof(IntVec3), typeof(Map)]),
+                new CodeInstruction(OpCodes.Brtrue_S, label),
+                new CodeInstruction(OpCodes.Ldc_I4_0),
+                new CodeInstruction(OpCodes.Ret),
+                CodeInstruction.LoadArgument(1).WithLabels(label),
+                new CodeInstruction(OpCodes.Ldloc_S, map))
+            .InstructionEnumeration();
     }
 }
 

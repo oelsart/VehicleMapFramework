@@ -30,8 +30,17 @@ public class HarmonyPatchTests
             AccessTools.Method(typeof(HarmonyPatchTests), nameof(AllSubclasses)));
         
         harmony.Patch(
+            AccessTools.Method("Verse.GenTypes:AllSubclassesNonAbstract"),
+            AccessTools.Method(typeof(HarmonyPatchTests), nameof(AllSubclassesNonAbstract)));
+        
+        harmony.Patch(
             AccessTools.Method(typeof(Transpilers), nameof(Transpilers.MethodReplacer)),
             postfix: AccessTools.Method(typeof(HarmonyPatchTests), nameof(AssertReplaced)));
+
+        harmony.Patch(
+            AccessTools.Method("Verse.GenCollection:FirstOrDefault").MakeGenericMethod(typeof(object)),
+            prefix: AccessTools.Method(typeof(HarmonyPatchTests), nameof(FirstOrDefault)));
+
     }
 
     private static bool TypeByName(string typeName, out Type __result)
@@ -46,6 +55,13 @@ public class HarmonyPatchTests
         return false;
     }
 
+    private static bool AllSubclassesNonAbstract(Type baseType, out List<Type> __result)
+    {
+        __result = AccessTools.AllTypes().AsParallel()
+            .Where(x => x.IsSubclassOf(baseType) && !x.IsAbstract).ToList();
+        return false;
+    }
+
     private static readonly MethodInfo m_GetExecutingAssembly =
         AccessTools.Method(typeof(Assembly), nameof(Assembly.GetExecutingAssembly), []);
     
@@ -54,6 +70,14 @@ public class HarmonyPatchTests
         if (from == m_GetExecutingAssembly)
             return;
         Assert.That(__result.Any(c => (c.operand as MethodBase) == to));
+    }
+
+    private static bool FirstOrDefault(IEnumerable<object> list, Predicate<object> predicate, out object __result)
+    {
+        __result = list.FirstOrDefault((Func<object, bool>)Func);
+        return false;
+        
+        bool Func(object obj) => predicate(obj);
     }
 
     [OneTimeTearDown]

@@ -165,34 +165,30 @@ public static class Patch_Rendering_DrawSelectionBracketsVehicles
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator, MethodBase original)
     {
-        var codes = new CodeMatcher(instructions, generator);
-        codes.MatchEndForward(CodeMatch.LoadsField(AccessTools.Field(typeof(Transform), nameof(Transform.rotation))), new CodeMatch(OpCodes.Add));
-        codes.DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle);
-        codes.CreateLabel(out var label);
-        var l_vehicle_ind = original.GetMethodBody()?.LocalVariables.FirstIndexOf(l => l.LocalType == typeof(VehiclePawn)) ?? 0;
-        if (l_vehicle_ind == -1) l_vehicle_ind = 0;
-        codes.InsertAndAdvance(
-            CodeInstruction.LoadLocal(l_vehicle_ind),
-            new CodeInstruction(OpCodes.Ldloca_S, vehicle),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf),
-            new CodeInstruction(OpCodes.Brfalse_S, label),
-            CodeInstruction.LoadLocal(l_vehicle_ind),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_FlipAngle));
-
-        codes.CreateLabelWithOffsets(1, out var label2);
-        codes.InsertAfter(
-            new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-            new CodeInstruction(OpCodes.Brfalse_S, label2),
-            new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.g_Angle),
-            new CodeInstruction(OpCodes.Add));
-
-        var g_RotatedSize = AccessTools.PropertyGetter(typeof(Thing), nameof(Thing.RotatedSize));
-        var m_BaseRotatedSize = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.BaseRotatedSize));
-        codes.MatchStartForward(CodeMatch.Calls(g_RotatedSize));
-        codes.Opcode = OpCodes.Call;
-        codes.Operand = m_BaseRotatedSize;
-        return codes.Instructions();
+        var matcher = new CodeMatcher(instructions, generator)
+            .MatchEndForward(CodeMatch.LoadsField(AccessTools.Field(typeof(Transform), nameof(Transform.rotation))), new CodeMatch(OpCodes.Add))
+            .DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle)
+            .CreateLabel(out var label);
+        var l_vehicle_ind = matcher.Instructions().Select(i => i.operand).OfType<LocalBuilder>()
+            .FirstOrDefault(l => l.LocalType == typeof(VehiclePawn))?.LocalIndex ?? 0;
+        return matcher.InsertAndAdvance(
+                CodeInstruction.LoadLocal(l_vehicle_ind),
+                new CodeInstruction(OpCodes.Ldloca_S, vehicle),
+                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf),
+                new CodeInstruction(OpCodes.Brfalse_S, label),
+                CodeInstruction.LoadLocal(l_vehicle_ind),
+                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_FlipAngle))
+            .CreateLabelWithOffsets(1, out var label2)
+            .InsertAfter(
+                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+                new CodeInstruction(OpCodes.Brfalse_S, label2),
+                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+                new CodeInstruction(OpCodes.Call, CachedMethodInfo.g_Angle),
+                new CodeInstruction(OpCodes.Add))
+            .MatchStartForward(CodeMatch.Calls(
+                AccessTools.PropertyGetter(typeof(Thing), nameof(Thing.RotatedSize))))
+            .Set(OpCodes.Call, AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.BaseRotatedSize)))
+            .InstructionEnumeration();
     }
 }
 
