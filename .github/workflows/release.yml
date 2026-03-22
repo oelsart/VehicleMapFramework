@@ -70,7 +70,7 @@ jobs:
           echo "quit"
         } > steam_script.txt
         
-        cat steam_script.txt | ~/Steam/steamcmd.sh
+        ~/Steam/steamcmd.sh +runscript steam_script.txt
         
         echo "CI_SteamCMD_WorkShop=$HOME/Steam/steamapps/workshop/content/294100" >> $GITHUB_ENV
         ls -la ~/Steam/steamapps/workshop/content/294100
@@ -100,10 +100,11 @@ jobs:
         tag_name: ${{ github.ref_name }} 
         name: "${{ github.ref_name }}"
         files: ${{ env.RELEASE_ASSET }}
-        
+
     - name: Discord Notification
-      uses: nobrayner/discord-webhook@v1
+      uses: sarisia/actions-status-discord@v1
       with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        discord-webhook: ${{ secrets.DISCORD_WEBHOOK_UPDATE }}
+        webhook: ${{ secrets.DISCORD_WEBHOOK_UPDATE }}
         title: 'Release: ${{ github.ref_name }}'
+        username: LS & Co. (GitHub Division)
+        url: "https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}"
