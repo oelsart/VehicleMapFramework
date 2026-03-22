@@ -89,6 +89,7 @@ jobs:
         
         & "./Steam/steamcmd.exe" +runscript "../steam_script.txt"
         
+        $LastExitCode = 0        
         if (Test-Path "Steam/steamapps/workshop/content/294100") {
             Write-Host "Workshop content verified."
         } else {
