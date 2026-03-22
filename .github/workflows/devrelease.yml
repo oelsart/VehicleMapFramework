@@ -52,54 +52,51 @@ jobs:
         submodules: true
         fetch-depth: 0
       
-    - name: Cache SteamCMD
-      id: cache-steam
-      uses: actions/cache@v4
+    - name: Restore Cache
+      uses: actions/cache/restore@v4
       with:
-        path: ./steamcmd
-        key: steamcmd-${{ github.run_id }}
+        path: ~/Steam
+        key: steamcmd-initial
         restore-keys: |
           steamcmd-
           
     - name: Install SteamCMD
       if: steps.cache-steam.outputs.cache-hit != 'true'
       run: |
-        mkdir -p ./steamcmd
-        cd ./steamcmd
+        mkdir -p ~/Steam
+        cd ~/Steam
         curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar zxvf -
 
     - name: Download Workshop Mods
       run: |
-        WORKDIR="$PWD/steamcmd"
-        WORKSHOP_DIR="$WORKDIR/steamapps/workshop/content/294100"
-        mkdir -p "$WORKSHOP_DIR"
+        mkdir -p ~/Steam/steamapps/workshop/content/294100
         
-        export HOME="$WORKDIR/home"
-        rm -rf "$HOME"
-        mkdir -p "$HOME/.steam/steamcmd"
-        
-        cat > "$HOME/.steam/steamcmd/libraryfolders.vdf" <<EOF
-        "libraryfolders"
         {
-            "0"
-            {
-                "path"        "${WORKDIR}"
-            }
-        }
-        EOF
+          echo "login anonymous"
+          for mod_id in ${{ env.WorkshopMods }}; do
+            if [ -n "$mod_id" ]; then
+              echo "workshop_download_item 294100 $mod_id validate"
+            fi
+          done
+          echo "quit"
+        } > steam_script.txt
         
-        STEAMCMD="$WORKDIR/steamcmd.sh"
+        cat steam_script.txt | ~/Steam/steamcmd.sh
         
-        CMD="+login anonymous"
-        while IFS= read -r mod_id; do
-          [ -n "$mod_id" ] && CMD="$CMD +workshop_download_item 294100 $mod_id validate"
-        done <<< "${{ env.WorkshopMods }}"
-        
-        CMD="$CMD +quit"
-        $STEAMCMD $CMD
-        
-        echo "Downloaded to:"
-        ls -R "$WORKSHOP_DIR"
+        echo "CI_SteamCMD_WorkShop=$HOME/Steam/steamapps/workshop/content/294100" >> $GITHUB_ENV
+        ls -la ~/Steam/steamapps/workshop/content/294100
+    
+    - name: Generate Content Hash
+      run: |
+        MODS_HASH=$(find ~/Steam/steamapps/workshop/content/294100 -type f -print0 | sort -z | xargs -0 sha1sum | sha1sum | awk '{print $1}')
+        echo "MODS_HASH=$MODS_HASH" >> $GITHUB_ENV
+
+    - name: Save Cache
+      uses: actions/cache/save@v4
+      if: always()
+      with:
+        path: ~/Steam
+        key: steamcmd-${{ env.MODS_HASH }}
         
   build:
     runs-on: windows-latest
@@ -116,7 +113,7 @@ jobs:
       id: cache-steam
       uses: actions/cache@v4
       with:
-        path: ./steamcmd
+        path: ./Steam
         key: steamcmd-${{ github.run_id }}
         restore-keys: |
           steamcmd-
@@ -138,7 +135,7 @@ jobs:
     
     - name: Build DLL
       run: |
-        $workshopRoot = "../../steamcmd/home/Steam/steamapps/workshop/content/294100"
+        $workshopRoot = "../../Steam/home/Steam/steamapps/workshop/content/294100"
         dotnet build Source/VehicleMapFramework/VehicleMapFramework.csproj --configuration Dev --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
         dotnet build Source/VMF_AchtungPatch/VMF_AchtungPatch.csproj --configuration Dev --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
         dotnet build Source/VMF_CEPatch/VMF_CEPatch.csproj --configuration Dev --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
