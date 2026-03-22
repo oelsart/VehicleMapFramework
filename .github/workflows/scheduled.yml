@@ -36,6 +36,7 @@ jobs:
         echo "MOD_IDS=$IDS" >> $GITHUB_ENV
       
     - name: Restore Cache
+      id: cache-steam
       uses: actions/cache/restore@v4
       with:
         path: ~/Steam

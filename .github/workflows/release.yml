@@ -43,6 +43,7 @@ jobs:
       run: dotnet restore ${{ env.Project_Path }}
       
     - name: Restore Cache
+      id: cache-steam
       uses: actions/cache/restore@v4
       with:
         path: ~/Steam
