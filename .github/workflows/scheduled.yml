@@ -1,0 +1,114 @@
+name: Scheduled Test
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 */2 * *'
+
+jobs:
+  build_and_remote_test:
+    runs-on: ubuntu-latest
+    
+    env:
+      Solution_Name: VehicleMapFramework
+      Project_Path: Source/VehicleMapFramework/VehicleMapFramework.sln
+      Workshop_IDs_File: Source/Test_NUnit/WorkshopIds.yml
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        submodules: true
+        fetch-depth: 0
+
+    - name: Install .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 9.0.x
+    
+    - name: Restore Dependencies
+      run: dotnet restore ${{ env.Project_Path }}
+      
+    - name: Load Workshop IDs from YAML
+      id: load_ids
+      run: |
+        IDS=$(yq eval '.[]' ${{ env.Workshop_IDs_File }} | tr '\n' ' ')
+        echo "MOD_IDS=$IDS" >> $GITHUB_ENV
+      
+    - name: Restore Cache
+      id: cache-steam
+      uses: actions/cache/restore@v4
+      with:
+        path: ~/Steam
+        key: steamcmd-initial
+        restore-keys: |
+          steamcmd-
+          
+    - name: Install SteamCMD
+      if: steps.cache-steam.outputs.cache-hit != 'true'
+      run: |
+        mkdir -p ~/Steam
+        cd ~/Steam
+        curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar zxvf -
+
+    - name: Download Workshop Mods
+      run: |
+        mkdir -p ~/Steam/steamapps/workshop/content/294100
+        
+        {
+          echo "login anonymous"
+          while IFS= read -r mod_id; do
+          [[ -n "$mod_id" ]] && echo "workshop_download_item 294100 $mod_id validate"
+          done <<< "${{ env.MOD_IDS }}"
+          echo "quit"
+        } > steam_script.txt
+        
+        cat steam_script.txt | ~/Steam/steamcmd.sh
+        
+        echo "CI_SteamCMD_WorkShop=$HOME/Steam/steamapps/workshop/content/294100" >> $GITHUB_ENV
+        ls -la ~/Steam/steamapps/workshop/content/294100
+    
+    - name: Generate Content Hash
+      run: |
+        MODS_HASH=$(find ~/Steam/steamapps/workshop/content/294100 -type f -print0 | sort -z | xargs -0 sha1sum | sha1sum | awk '{print $1}')
+        echo "MODS_HASH=$MODS_HASH" >> $GITHUB_ENV
+
+    - name: Save Cache
+      uses: actions/cache/save@v4
+      if: always()
+      with:
+        path: ~/Steam
+        key: steamcmd-${{ env.MODS_HASH }}
+
+    - name: Build Mod DLL
+      run: dotnet build ${{ env.Project_Path }} --configuration Release --no-restore /p:SkipPostBuild=true /p:SteamWorkshopRoot=${{ env.CI_SteamCMD_WorkShop }}
+      
+    - name: Run Remote Tests
+      run: |
+        dotnet test ${{ env.Project_Path }} --configuration Release --no-build \
+        --filter "Category=Remote" \
+        --logger "trx;LogFileName=remote_results.trx" \
+        /p:SteamWorkshopRoot=${{ env.CI_SteamCMD_WorkShop }}
+
+    - name: Upload Remote Test Results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: RemoteTestResults
+        path: "**/remote_results.trx"
+
+    - name: Remote Test Report
+      uses: dorny/test-reporter@v2
+      if: always()
+      with:
+        name: Remote Tests
+        path: "**/remote_results.trx"
+        reporter: dotnet-trx
+    
+    - name: Discord Notification
+      uses: nobrayner/discord-webhook@v1
+      if: always()
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        discord-webhook: ${{ secrets.DISCORD_WEBHOOK }}
+        title: '${{ github.workflow }}: ${{ job.status }}'

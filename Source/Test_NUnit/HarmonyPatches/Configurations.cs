@@ -2,6 +2,8 @@
 
 public class Configurations
 {
+    public static readonly bool IsRemote = Environment.GetEnvironmentVariable("GITHUB_ACTIONS") == "true";
+    
     public const string Version = "1.6";
 
     public const string SteamWorkshopRoot = BuildConstants.SteamWorkshopRoot;
@@ -10,7 +12,7 @@ public class Configurations
 
     public const string LocalModsRoot = TestProjectRoot + "/../../..";
 
-    public const string RimWorldAssemblyFolder = LocalModsRoot + "/../RimWorldWin64_Data/Managed";
+    public static readonly string RimWorldAssemblyFolder = IsRemote ? TestProjectRoot + "/Stubs" : LocalModsRoot + "/../RimWorldWin64_Data/Managed";
     
     public const string WorkshopIdsFileName = "WorkshopIds.yml";
     

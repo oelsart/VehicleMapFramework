@@ -14,14 +14,17 @@ namespace VehicleMapFramework;
 
 public class MethodInfoCache
 {
-    private static readonly Verse.WeakReference<MethodInfoCache> cacheInt = new(null);
+    private static readonly System.WeakReference<MethodInfoCache> cacheInt = new(null);
     
     public static MethodInfoCache CachedMethodInfo
     {
         get
         {
-            cacheInt.Target ??= new MethodInfoCache();
-            return cacheInt.Target;
+            if (!cacheInt.TryGetTarget(out var target))
+            {
+                cacheInt.SetTarget(target = new MethodInfoCache());
+            }
+            return target;
         }
     }
     
