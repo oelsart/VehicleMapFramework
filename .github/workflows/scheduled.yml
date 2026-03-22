@@ -43,6 +43,7 @@ jobs:
         key: steamcmd-${{ github.run_id }}
         restore-keys: |
           steamcmd-
+        save-always: true
           
     - name: Install SteamCMD
       if: steps.cache-steam.outputs.cache-hit != 'true'
