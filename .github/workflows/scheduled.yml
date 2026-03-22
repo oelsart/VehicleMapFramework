@@ -55,19 +55,19 @@ jobs:
       run: |
         mkdir -p ~/Steam/steamapps/workshop/content/294100
         
-        STEAM_COMMANDS="+login anonymous"
+        {
+          echo "login anonymous"
+          for mod_id in ${{ env.MOD_IDS }}; do
+            if [ -n "$mod_id" ]; then
+              echo "workshop_download_item 294100 $mod_id validate"
+            fi
+          done
+          echo "quit"
+        } > steam_script.txt
         
-        for mod_id in ${{ env.MOD_IDS }}; do
-          if [ -n "$mod_id" ]; then
-            echo "Queueing Workshop Mod: $mod_id"
-            STEAM_COMMANDS="${STEAM_COMMANDS} +workshop_download_item 294100 $mod_id validate"
-          fi
-        done
+        ~/Steam/steamcmd.sh +runscript $(pwd)/steam_script.txt
         
-        STEAM_COMMANDS="${STEAM_COMMANDS} +quit"
-        ~/Steam/steamcmd.sh ${STEAM_COMMANDS}
-        
-        echo "\nCI_SteamCMD_WorkShop=$HOME/Steam/steamapps/workshop/content/294100" >> $GITHUB_ENV
+        echo "CI_SteamCMD_WorkShop=$HOME/Steam/steamapps/workshop/content/294100" >> $GITHUB_ENV
         ls -la ~/Steam/steamapps/workshop/content/294100
 
     - name: Build Mod DLL
