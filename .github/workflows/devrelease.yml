@@ -15,14 +15,14 @@ jobs:
           curl -L -o ./TestResults.xml "https://gist.githubusercontent.com/oelsart/3bb8183cedc9869f566440ca1553c633/raw/TestResults.xml"
 
       - name: Upload local test results artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: LocalTestResults
           path: |
             ./TestResults.xml
       
       - name: Test Report
-        uses: dorny/test-reporter@v2
+        uses: dorny/test-reporter@v3
         with:
           artifact: LocalTestResults
           name: Local Tests
@@ -47,14 +47,14 @@ jobs:
       
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         submodules: true
         fetch-depth: 0
         
     - name: Restore Cache
       id: cache-steam
-      uses: actions/cache/restore@v4
+      uses: actions/cache/restore@v5
       with:
         path: ./Steam
         key: steamcmd-initial
@@ -97,7 +97,7 @@ jobs:
         }
     
     - name: Install .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v5
       with:
         dotnet-version: 9.0.x
     
@@ -124,7 +124,7 @@ jobs:
       run: Move-Item ../VehicleMapFrameworkDev VehicleMapFrameworkDev
     
     - name: Upload build artifacts
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v7
       with:
         name: VehicleMapFrameworkDev
         path: |
@@ -141,7 +141,7 @@ jobs:
     environment: Steam
     steps:
     - name: Download build artifacts
-      uses: actions/download-artifact@v5
+      uses: actions/download-artifact@v8
       with:
         name: VehicleMapFrameworkDev
         path: VehicleMapFrameworkDev
