@@ -87,7 +87,7 @@ jobs:
         $commands += "quit"
         $commands | Out-File -FilePath $scriptPath -Encoding ascii
         
-        Get-Content $scriptPath | & "./Steam/steamcmd.exe"
+        & "./Steam/steamcmd.exe" +runscript "../steam_script.txt"
         
         if (Test-Path "Steam/steamapps/workshop/content/294100") {
             Write-Host "Workshop content verified."
