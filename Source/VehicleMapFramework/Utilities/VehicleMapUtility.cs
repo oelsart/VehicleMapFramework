@@ -14,7 +14,6 @@ using Verse.AI.Group;
 
 namespace VehicleMapFramework;
 
-[HotSwap]
 public static class VehicleMapUtility
 {
     public const float YCompress = 40f;
@@ -415,12 +414,12 @@ public static class VehicleMapUtility
             {
                 var rect = new Rect(0f, 0f, v.VehicleMap.Size.x, v.VehicleMap.Size.z);
                 var vector = original.ToVehicleMapCoord(v);
-                var intVec = vector.ToIntVec3();
                 if (!rect.Contains(new Vector2(vector.x, vector.z)))
                 {
                     return false;
                 }
 
+                var intVec = vector.ToIntVec3();
                 if (!v.CachedImpassableCells.Contains(intVec))
                     return true;
                 var cachedEmptyStructureCellsContains = v.CachedEmptyStructureCells.Contains(intVec);
@@ -441,12 +440,12 @@ public static class VehicleMapUtility
             if (map == null) return false;
             var rect = new Rect(0f, 0f, vehicle.VehicleMap.Size.x, vehicle.VehicleMap.Size.z);
             var vector = original.ToVehicleMapCoord(vehicle);
-            var intVec = vector.ToIntVec3();
             if (!rect.Contains(new Vector2(vector.x, vector.z)))
             {
                 return false;
             }
 
+            var intVec = vector.ToIntVec3();
             if (!vehicle.CachedImpassableCells.Contains(intVec))
                 return true;
             var cachedEmptyStructureCellsContains = vehicle.CachedEmptyStructureCells.Contains(intVec);
