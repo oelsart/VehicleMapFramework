@@ -84,17 +84,6 @@ jobs:
         
         echo "CI_SteamCMD_WorkShop=$HOME/Steam/steamapps/workshop/content/294100" >> $GITHUB_ENV
         ls -la ~/Steam/steamapps/workshop/content/294100
-    
-    - name: Generate Content Hash
-      run: |
-        MODS_HASH=$(find ~/Steam/steamapps/workshop/content/294100 -type f -print0 | sort -z | xargs -0 sha1sum | sha1sum | awk '{print $1}')
-        echo "MODS_HASH=$MODS_HASH" >> $GITHUB_ENV
-
-    - name: Save Cache
-      uses: actions/cache/save@v4
-      with:
-        path: ~/Steam
-        key: steamcmd-${{ env.MODS_HASH }}
         
   build:
     runs-on: windows-latest
@@ -107,12 +96,12 @@ jobs:
         submodules: true
         fetch-depth: 0
         
-    - name: Cache SteamCMD
+    - name: Restore Cache
       id: cache-steam
-      uses: actions/cache@v4
+      uses: actions/cache/restore@v4
       with:
         path: ./Steam
-        key: steamcmd-${{ github.run_id }}
+        key: steamcmd-initial
         restore-keys: |
           steamcmd-
         enableCrossOsArchive: true
