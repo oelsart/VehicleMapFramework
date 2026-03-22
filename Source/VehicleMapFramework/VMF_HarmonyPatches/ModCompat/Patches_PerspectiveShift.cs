@@ -339,12 +339,7 @@ public static class Patch_Avatar_DrawReticle
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        var m_LeanShootingSourcesFromTo =
-            AccessTools.Method(typeof(ShootLeanUtility), nameof(ShootLeanUtility.LeanShootingSourcesFromTo));
-        var m_LeanShootingSourcesFromToOnVehicle =
-            AccessTools.Method(typeof(ShootLeanUtilityOnVehicle), nameof(ShootLeanUtilityOnVehicle.LeanShootingSourcesFromTo));
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-            .MethodReplacer(m_LeanShootingSourcesFromTo, m_LeanShootingSourcesFromToOnVehicle);
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
     }
 }
 

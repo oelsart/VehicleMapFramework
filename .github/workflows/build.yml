@@ -101,7 +101,6 @@ jobs:
 
     - name: Save Cache
       uses: actions/cache/save@v4
-      if: always()
       with:
         path: ~/Steam
         key: steamcmd-${{ env.MODS_HASH }}

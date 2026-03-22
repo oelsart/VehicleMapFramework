@@ -75,7 +75,6 @@ jobs:
 
     - name: Save Cache
       uses: actions/cache/save@v4
-      if: always()
       with:
         path: ~/Steam
         key: steamcmd-${{ env.MODS_HASH }}
@@ -110,5 +109,5 @@ jobs:
       if: always()
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
-        discord-webhook: ${{ secrets.DISCORD_WEBHOOK }}
+        discord-webhook: ${{ secrets.DISCORD_WEBHOOK_TEST }}
         title: '${{ github.workflow }}: ${{ job.status }}'

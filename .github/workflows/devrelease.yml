@@ -92,7 +92,6 @@ jobs:
 
     - name: Save Cache
       uses: actions/cache/save@v4
-      if: always()
       with:
         path: ~/Steam
         key: steamcmd-${{ env.MODS_HASH }}
@@ -177,3 +176,10 @@ jobs:
         appId: 294100
         publishedFileId: 3528683767
         changeNote: ${{ github.ref_name }}
+    
+    - name: Discord Notification
+      uses: nobrayner/discord-webhook@v1
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        discord-webhook: ${{ secrets.DISCORD_WEBHOOK_UPDATE }}
+        title: 'Dev Update: ${{ github.ref_name }}'
