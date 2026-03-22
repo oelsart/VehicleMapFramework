@@ -29,9 +29,9 @@ jobs:
           path: '*.xml'
           reporter: java-junit
           fail-on-error: 'true'
-          
-  download_steam_mods:
-    runs-on: ubuntu-latest
+        
+  build:
+    runs-on: windows-latest
     needs: report_local_tests
     
     env:
@@ -44,50 +44,6 @@ jobs:
         2890901044  # Combat Extended
         836308268   # Dubs Bad Hygiene
         1321849735  # Rimefeller
-
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        submodules: true
-        fetch-depth: 0
-      
-    - name: Restore Cache
-      id: cache-steam
-      uses: actions/cache/restore@v4
-      with:
-        path: ~/Steam
-        key: steamcmd-initial
-        restore-keys: |
-          steamcmd-
-          
-    - name: Install SteamCMD
-      if: steps.cache-steam.outputs.cache-hit != 'true'
-      run: |
-        mkdir -p ~/Steam
-        cd ~/Steam
-        curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar zxvf -
-
-    - name: Download Workshop Mods
-      run: |
-        mkdir -p ~/Steam/steamapps/workshop/content/294100
-        
-        {
-          echo "login anonymous"
-          while IFS= read -r mod_id; do
-          [[ -n "$mod_id" ]] && echo "workshop_download_item 294100 $mod_id validate"
-          done <<< "${{ env.WorkshopMods }}"
-          echo "quit"
-        } > steam_script.txt
-        
-        cat steam_script.txt | ~/Steam/steamcmd.sh
-        
-        echo "CI_SteamCMD_WorkShop=$HOME/Steam/steamapps/workshop/content/294100" >> $GITHUB_ENV
-        ls -la ~/Steam/steamapps/workshop/content/294100
-        
-  build:
-    runs-on: windows-latest
-    needs: download_steam_mods
       
     steps:
     - name: Checkout
@@ -105,6 +61,33 @@ jobs:
         restore-keys: |
           steamcmd-
         enableCrossOsArchive: true
+        
+    - name: Install SteamCMD
+      if: steps.cache-steam.outputs.cache-hit != 'true'
+      shell: powershell
+      run: |
+        New-Item -ItemType Directory -Force -Path "Steam"
+        cd Steam
+        Invoke-WebRequest -Uri "https://steamcdn-a.akamaihd.net/client/installer/steamcmd.zip" -OutFile "steamcmd.zip"
+        Expand-Archive -Path "steamcmd.zip" -DestinationPath "."
+        Remove-Item "steamcmd.zip"
+        
+    - name: Download Workshop Mods
+      shell: powershell
+      run: |
+        $scriptPath = "steam_script.txt"
+        $modIds = @"
+        ${{ env.WorkshopMods }}
+        "@ -split "`n" | ForEach-Object { $_.Split('#')[0].Trim() } | Where-Object { $_ -ne "" }
+
+        $commands = @("login anonymous")
+        foreach ($id in $modIds) {
+            $commands += "workshop_download_item 294100 $id validate"
+        }
+        $commands += "quit"
+        $commands | Out-File -FilePath $scriptPath -Encoding ascii
+
+        ./Steam/steamcmd.exe +runscript ../$scriptPath
     
     - name: Install .NET
       uses: actions/setup-dotnet@v4
