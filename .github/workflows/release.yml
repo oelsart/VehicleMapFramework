@@ -64,8 +64,9 @@ jobs:
         
         {
           echo "login anonymous"
-          while IFS= read -r mod_id; do
-          [[ -n "$mod_id" ]] && echo "workshop_download_item 294100 $mod_id validate"
+          while IFS= read -r line; do
+            mod_id=$(echo "$line" | sed 's/#.*//' | xargs)
+            [[ -n "$mod_id" ]] && echo "workshop_download_item 294100 $mod_id validate"
           done <<< "${{ env.WorkshopMods }}"
           echo "quit"
         } > steam_script.txt
