@@ -75,19 +75,25 @@ jobs:
     - name: Download Workshop Mods
       shell: powershell
       run: |
-        $scriptPath = "steam_script.txt"
         $modIds = @"
         ${{ env.WorkshopMods }}
         "@ -split "`n" | ForEach-Object { $_.Split('#')[0].Trim() } | Where-Object { $_ -ne "" }
-
+        
+        $scriptPath = "steam_script.txt"
         $commands = @("login anonymous")
         foreach ($id in $modIds) {
             $commands += "workshop_download_item 294100 $id validate"
         }
         $commands += "quit"
         $commands | Out-File -FilePath $scriptPath -Encoding ascii
-
-        ./Steam/steamcmd.exe +runscript ../$scriptPath
+        
+        Get-Content $scriptPath | & "./SteamCMD/steamcmd.exe"
+        
+        if (Test-Path "SteamCMD/steamapps/workshop/content/294100") {
+            Write-Host "Workshop content verified."
+        } else {
+            exit 1
+        }
     
     - name: Install .NET
       uses: actions/setup-dotnet@v4
@@ -106,7 +112,7 @@ jobs:
     - name: Build DLL
       run: |
         $workshopRoot = "../../Steam/home/Steam/steamapps/workshop/content/294100"
-        dotnet build Source/VehicleMapFramework/VehicleMapFramework.csproj --configuration Dev --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
+        dotnet build Source/VehicleMapFramework/VehicleMapFramework.csproj --configuration Dev --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot /p:SkipPostBuild=true
         dotnet build Source/VMF_AchtungPatch/VMF_AchtungPatch.csproj --configuration Dev --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
         dotnet build Source/VMF_CEPatch/VMF_CEPatch.csproj --configuration Dev --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
         dotnet build Source/VMF_DBHCompat/VMF_DBHCompat.csproj --configuration Dev --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
