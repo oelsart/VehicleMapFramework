@@ -99,7 +99,8 @@ public static class ToilsAcrossMaps
                 rot.AsInt -= vehicle.Rotation.AsInt;
             }
             toil.actor.Rotation = rot;
-
+            
+            const float distancePerTick = 0.075f;
             //ジップラインの先端から登る場合は遅くなるわな
             var distance = comp.IsZiplineEnd ? distancePerTick * 0.5f : distancePerTick;
             var distanceSquared = (drawPosB - toil.actor.DrawPos).MagnitudeHorizontalSquared();
@@ -131,8 +132,6 @@ public static class ToilsAcrossMaps
             return new Vector3(vec.x / length, 0f, vec.z / length);
         }
     }
-
-    private const float distancePerTick = 0.075f;
 
     public static IEnumerable<Toil> GotoTargetMap(JobDriverAcrossMaps driver, TraverseSpots spots)
     {

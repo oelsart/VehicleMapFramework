@@ -64,19 +64,9 @@ public static class Patch_CompProjectorOverlay_PostDraw
     {
         var f_Vector3_y = AccessTools.Field(typeof(Vector3), nameof(Vector3.y));
         return new CodeMatcher(instructions, generator)
-            .MatchStartForward(CodeMatch.StoresField(f_Vector3_y))
-            .CreateLabel(out var label)
-            .DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle)
-            .InsertAndAdvance(
-                CodeInstruction.LoadArgument(0),
-                CodeInstruction.LoadField(typeof(ThingComp), nameof(ThingComp.parent)),
-                new CodeInstruction(OpCodes.Ldloca_S, vehicle),
-                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf),
-                new CodeInstruction(OpCodes.Brfalse_S, label),
-                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_YOffsetFull),
-                new CodeInstruction(OpCodes.Ldc_R4, Altitudes.AltInc * 3f),
-                new CodeInstruction(OpCodes.Add)).Advance()
+            .AddAltitudeFor(out var vehicle, Altitudes.AltInc * 3f,
+                getInstance: [CodeInstruction.LoadArgument(0), CodeInstruction.LoadField(typeof(ThingComp), nameof(ThingComp.parent))])
+            .Advance()
             .MatchStartForward(CodeMatch.StoresField(f_Vector3_y))
             .Repeat(matcher => matcher
                 .CreateLabel(out var label2)
@@ -145,7 +135,7 @@ public static class Patch_InterceptorMapComponent_GetSourceCell
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
     }
 }
 

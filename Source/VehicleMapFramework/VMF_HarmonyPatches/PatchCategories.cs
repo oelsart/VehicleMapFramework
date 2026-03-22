@@ -24,6 +24,8 @@ internal static class PatchCategories
     
     public const string VGE = "VMF_Patches_VGravshipE";
     
+    public const string VPsyE = "VMF_Patches_VPsyE";
+    
     public const string VTE = "VMF_Patches_VTemperatureE";
     
     public const string VQEGenerator = "VMF_Patches_VQEGenerator";
@@ -33,6 +35,8 @@ internal static class PatchCategories
     public const string CombatExtended = "VMF_Patches_CombatExtended";
 
     public const string CombatExtendedVFECompat = "VMF_Patches_CombatExtendedVFECompat";
+    
+    public const string CombatExtendedVPsyECompat = "VMF_Patches_CombatExtendedVPsyECompat";
 
     public const string CombatExtendedRimatomicsCompat = "VMF_Patches_CombatExtendedRimatomicsCompat";
     
@@ -45,6 +49,8 @@ internal static class PatchCategories
     public const string AnimalCages = "VMF_Patches_AnimalCages";
     
     public const string Aquariums = "VMF_Patches_Aquariums";
+
+    public const string AttackTargetFinderAngle = "VMF_Patches_AttackTargetFinderAngle";
     
     public const string BillDoorsFramework = "VMF_Patches_BillDoorsFramework";
     
@@ -78,6 +84,8 @@ internal static class PatchCategories
     
     public const string Gunplay = "VMF_Patches_Gunplay";
     
+    public const string IRBM = "VMF_Patches_IRBM";
+    
     public const string MeleeAnimation = "VMF_Patches_MeleeAnimation";
     
     public const string MiscRobots = "VMF_Patches_MiscRobots";
@@ -87,6 +95,8 @@ internal static class PatchCategories
     public const string MuzzleFlash = "VMF_Patches_MuzzleFlash";
     
     public const string NightmareCore = "VMF_Patches_NightmareCore";
+    
+    public const string PerspectiveShift = "VMF_Patches_PerspectiveShift";
     
     public const string PauseOtherSettlements = "VMF_Patches_PauseOtherSettlements";
     
@@ -104,6 +114,8 @@ internal static class PatchCategories
     
     public const string SmarterConstruction = "VMF_Patches_SmarterConstruction";
     
+    public const string SRALib = "VMF_Patches_SRALib";
+    
     public const string SmartPistol = "VMF_Patches_SmartPistol";
     
     public const string StackGap = "VMF_Patches_StackGap";
@@ -111,6 +123,8 @@ internal static class PatchCategories
     public const string TabulaRasa = "VMF_Patches_TabulaRasa";
     
     public const string TraderShips = "VMF_Patches_TraderShips";
+    
+    public const string UFHeavyIndustries = "VMF_Patches_UFHeavyIndustries";
     
     public const string ViviRace = "VMF_Patches_ViviRace";
     

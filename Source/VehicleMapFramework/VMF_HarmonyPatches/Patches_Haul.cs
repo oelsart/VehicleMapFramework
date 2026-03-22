@@ -15,18 +15,17 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [PatchLevel(Level.Sensitive)]
 public static class Patch_HaulAIUtility_PawnCanAutomaticallyHaul
 {
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    public static void Prefix(Pawn p, Thing t, ref VirtualTeleporter? __state)
     {
-        var num = 0;
-        return instructions.Manipulator(c => c.Calls(CachedMethodInfo.g_Thing_Position), c =>
+        if (p.Map != t.Map)
         {
-            num++;
-            if (num == 2)
-            {
-                c.opcode = OpCodes.Call;
-                c.operand = CachedMethodInfo.m_PositionOnBaseMap;
-            }
-        });
+            __state = new VirtualTeleporter(p, t.Map);
+        }
+    }
+
+    public static void Finalizer(VirtualTeleporter? __state)
+    {
+        __state?.Dispose();
     }
 }
 

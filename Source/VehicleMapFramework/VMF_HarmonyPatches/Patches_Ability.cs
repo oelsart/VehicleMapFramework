@@ -15,7 +15,7 @@ public static class Patches_AbilityComp
     {
         return (from type in typeof(AbilityComp).AllSubclasses().Concat(typeof(GenClamor))
             from method in type.GetDeclaredMethods()
-            where VMF_Harmony.ReadMethodBodyWrapper(method).Any(i =>
+            where PatchHelper.ReadMethodBodyWrapper(method).Any(i =>
                 CachedMethodInfo.g_Thing_Position.Equals(i.Value) ||
                 CachedMethodInfo.g_LocalTargetInfo_Cell.Equals(i.Value) ||
                 CachedMethodInfo.g_Thing_Map.Equals(i.Value) ||
@@ -27,9 +27,9 @@ public static class Patches_AbilityComp
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         if (UnitTestDetector.IsTestingContext) return instructions;
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap)
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned)
             .MethodReplacer(CachedMethodInfo.m_OccupiedRect, CachedMethodInfo.m_MovedOccupiedRect)
-            .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap)
+            .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned)
             .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
             .MethodReplacer(CachedMethodInfo.g_Thing_MapHeld, CachedMethodInfo.m_MapHeldBaseMap)
             .MethodReplacer(CachedMethodInfo.m_BreadthFirstTraverse, CachedMethodInfo.m_BreadthFirstTraverseAcrossMaps);

@@ -7,7 +7,6 @@ using Verse.Sound;
 namespace VehicleMapFramework;
 
 [StaticConstructorOnStartup]
-[HotSwap]
 public static class VMF_Widgets
 {
     private static readonly Texture2D SliderRailAtlas = ContentFinder<Texture2D>.Get("UI/Buttons/SliderRail");

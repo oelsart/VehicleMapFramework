@@ -17,7 +17,7 @@ public static class Patches_Designator_ZoneAdd_MakeNewZone
     {
         return typeof(Designator_ZoneAdd).AllSubclasses()
             .Select(type => AccessTools.DeclaredMethod(type, "MakeNewZone"))
-            .Where(method => method != null && VMF_Harmony.ReadMethodBodyWrapper(method)
+            .Where(method => method != null && PatchHelper.ReadMethodBodyWrapper(method)
                 .Any(i => CachedMethodInfo.g_Find_CurrentMap.Equals(i.Value)));
     }
 
@@ -36,12 +36,12 @@ public static class Patches_Designator_DesignateThing
         foreach (var type in typeof(Designator).AllSubclasses())
         {
             var method = AccessTools.DeclaredMethod(type, "DesignateThing");
-            if (method != null && VMF_Harmony.ReadMethodBodyWrapper(method).Any(i => CachedMethodInfo.g_Designator_Map.Equals(i.Value)))
+            if (method != null && PatchHelper.ReadMethodBodyWrapper(method).Any(i => CachedMethodInfo.g_Designator_Map.Equals(i.Value)))
             {
                 yield return method;
             }
             var method2 = AccessTools.DeclaredMethod(type, "CanDesignateThing");
-            if (method2 != null && VMF_Harmony.ReadMethodBodyWrapper(method2).Any(i => CachedMethodInfo.g_Designator_Map.Equals(i.Value)))
+            if (method2 != null && PatchHelper.ReadMethodBodyWrapper(method2).Any(i => CachedMethodInfo.g_Designator_Map.Equals(i.Value)))
             {
                 yield return method2;
             }

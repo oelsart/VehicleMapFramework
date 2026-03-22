@@ -14,7 +14,6 @@ permissions:
   contents: write
 
 jobs:
-
   release:
     runs-on: ubuntu-latest
     
@@ -43,42 +42,40 @@ jobs:
     - name: Restore Dependencies
       run: dotnet restore ${{ env.Project_Path }}
       
-    - name: Cache SteamCMD
+    - name: Restore Cache
       id: cache-steam
-      uses: actions/cache@v4
+      uses: actions/cache/restore@v4
       with:
         path: ~/Steam
-        key: steamcmd-${{ github.run_id }}
+        key: steamcmd-initial
         restore-keys: |
           steamcmd-
-        
+          
     - name: Install SteamCMD
+      if: steps.cache-steam.outputs.cache-hit != 'true'
       run: |
         mkdir -p ~/Steam
         cd ~/Steam
         curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar zxvf -
-        echo "SteamCMD path: ~/Steam/steamcmd.sh"
 
     - name: Download Workshop Mods
       run: |
         mkdir -p ~/Steam/steamapps/workshop/content/294100
         
-        STEAM_COMMANDS="+login anonymous"
+        {
+          echo "login anonymous"
+          while IFS= read -r mod_id; do
+          [[ -n "$mod_id" ]] && echo "workshop_download_item 294100 $mod_id validate"
+          done <<< "${{ env.WorkshopMods }}"
+          echo "quit"
+        } > steam_script.txt
         
-        while IFS= read -r mod_id; do
-          if [ -n "$mod_id" ]; then
-            echo "Queueing Workshop Mod: $mod_id"
-            STEAM_COMMANDS="${STEAM_COMMANDS} +workshop_download_item 294100 $mod_id validate"
-          fi
-        done <<< "${{ env.WorkshopMods }}"
-        
-        STEAM_COMMANDS="${STEAM_COMMANDS} +quit"
-        ~/Steam/steamcmd.sh ${STEAM_COMMANDS}
+        cat steam_script.txt | ~/Steam/steamcmd.sh
         
         echo "CI_SteamCMD_WorkShop=$HOME/Steam/steamapps/workshop/content/294100" >> $GITHUB_ENV
         ls -la ~/Steam/steamapps/workshop/content/294100
 
-    - name: Build Mod DLL
+    - name: Build DLL
       run: |
         dotnet build ${{ env.Project_Path }} \
             --configuration Release \
@@ -103,3 +100,10 @@ jobs:
         tag_name: ${{ github.ref_name }} 
         name: "${{ github.ref_name }}"
         files: ${{ env.RELEASE_ASSET }}
+        
+    - name: Discord Notification
+      uses: nobrayner/discord-webhook@v1
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        discord-webhook: ${{ secrets.DISCORD_WEBHOOK_UPDATE }}
+        title: 'Release: ${{ github.ref_name }}'

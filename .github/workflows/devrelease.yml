@@ -29,9 +29,9 @@ jobs:
           path: '*.xml'
           reporter: java-junit
           fail-on-error: 'true'
-          
-  download_steam_mods:
-    runs-on: ubuntu-latest
+        
+  build:
+    runs-on: windows-latest
     needs: report_local_tests
     
     env:
@@ -44,66 +44,6 @@ jobs:
         2890901044  # Combat Extended
         836308268   # Dubs Bad Hygiene
         1321849735  # Rimefeller
-
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        submodules: true
-        fetch-depth: 0
-      
-    - name: Cache SteamCMD
-      id: cache-steam
-      uses: actions/cache@v4
-      with:
-        path: ./steamcmd
-        key: steamcmd-${{ github.run_id }}
-        restore-keys: |
-          steamcmd-
-          
-    - name: Install SteamCMD
-      if: steps.cache-steam.outputs.cache-hit != 'true'
-      run: |
-        mkdir -p ./steamcmd
-        cd ./steamcmd
-        curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar zxvf -
-
-    - name: Download Workshop Mods
-      run: |
-        WORKDIR="$PWD/steamcmd"
-        WORKSHOP_DIR="$WORKDIR/steamapps/workshop/content/294100"
-        mkdir -p "$WORKSHOP_DIR"
-        
-        export HOME="$WORKDIR/home"
-        rm -rf "$HOME"
-        mkdir -p "$HOME/.steam/steamcmd"
-        
-        cat > "$HOME/.steam/steamcmd/libraryfolders.vdf" <<EOF
-        "libraryfolders"
-        {
-            "0"
-            {
-                "path"        "${WORKDIR}"
-            }
-        }
-        EOF
-        
-        STEAMCMD="$WORKDIR/steamcmd.sh"
-        
-        CMD="+login anonymous"
-        while IFS= read -r mod_id; do
-          [ -n "$mod_id" ] && CMD="$CMD +workshop_download_item 294100 $mod_id validate"
-        done <<< "${{ env.WorkshopMods }}"
-        
-        CMD="$CMD +quit"
-        $STEAMCMD $CMD
-        
-        echo "Downloaded to:"
-        ls -R "$WORKSHOP_DIR"
-        
-  build:
-    runs-on: windows-latest
-    needs: download_steam_mods
       
     steps:
     - name: Checkout
@@ -112,15 +52,49 @@ jobs:
         submodules: true
         fetch-depth: 0
         
-    - name: Cache SteamCMD
+    - name: Restore Cache
       id: cache-steam
-      uses: actions/cache@v4
+      uses: actions/cache/restore@v4
       with:
-        path: ./steamcmd
-        key: steamcmd-${{ github.run_id }}
+        path: ./Steam
+        key: steamcmd-initial
         restore-keys: |
           steamcmd-
         enableCrossOsArchive: true
+        
+    - name: Install SteamCMD
+      if: steps.cache-steam.outputs.cache-hit != 'true'
+      shell: powershell
+      run: |
+        New-Item -ItemType Directory -Force -Path "Steam"
+        cd Steam
+        Invoke-WebRequest -Uri "https://steamcdn-a.akamaihd.net/client/installer/steamcmd.zip" -OutFile "steamcmd.zip"
+        Expand-Archive -Path "steamcmd.zip" -DestinationPath "."
+        Remove-Item "steamcmd.zip"
+        
+    - name: Download Workshop Mods
+      shell: powershell
+      run: |
+        $modIds = @"
+        ${{ env.WorkshopMods }}
+        "@ -split "`n" | ForEach-Object { $_.Split('#')[0].Trim() } | Where-Object { $_ -ne "" }
+        
+        $scriptPath = "steam_script.txt"
+        $commands = @("login anonymous")
+        foreach ($id in $modIds) {
+            $commands += "workshop_download_item 294100 $id validate"
+        }
+        $commands += "quit"
+        $commands | Out-File -FilePath $scriptPath -Encoding ascii
+        
+        & "./Steam/steamcmd.exe" +runscript "../steam_script.txt"
+        
+        $LastExitCode = 0        
+        if (Test-Path "Steam/steamapps/workshop/content/294100") {
+            Write-Host "Workshop content verified."
+        } else {
+            exit 1
+        }
     
     - name: Install .NET
       uses: actions/setup-dotnet@v4
@@ -138,8 +112,8 @@ jobs:
     
     - name: Build DLL
       run: |
-        $workshopRoot = "../../steamcmd/home/Steam/steamapps/workshop/content/294100"
-        dotnet build Source/VehicleMapFramework/VehicleMapFramework.csproj --configuration Dev --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
+        $workshopRoot = "$pwd/Steam/steamapps/workshop/content/294100"
+        dotnet build Source/VehicleMapFramework/VehicleMapFramework.csproj --configuration Dev --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot /p:SkipPostBuild=true
         dotnet build Source/VMF_AchtungPatch/VMF_AchtungPatch.csproj --configuration Dev --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
         dotnet build Source/VMF_CEPatch/VMF_CEPatch.csproj --configuration Dev --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
         dotnet build Source/VMF_DBHCompat/VMF_DBHCompat.csproj --configuration Dev --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
@@ -181,3 +155,10 @@ jobs:
         appId: 294100
         publishedFileId: 3528683767
         changeNote: ${{ github.ref_name }}
+    
+    - name: Discord Notification
+      uses: nobrayner/discord-webhook@v1
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        discord-webhook: ${{ secrets.DISCORD_WEBHOOK_UPDATE }}
+        title: 'Dev Update: ${{ github.ref_name }}'

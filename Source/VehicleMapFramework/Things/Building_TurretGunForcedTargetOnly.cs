@@ -60,10 +60,12 @@ public class Building_TurretGunForcedTargetOnly : Building_TurretGun
         var map = Map;
         var groundMap = this.GroundMap;
         var component = groundMap.GetCachedMapComponent<VehicleMapGrid>();
-        var cells = GenRadial.RadialCellsAround(this.PositionOnBaseMap,
-            attackVerb.verbProps.EffectiveMinRange(true), attackVerb.EffectiveRange);
-        foreach (var cell in cells)
+        var minIndex = GenRadial.NumCellsInRadius(attackVerb.verbProps.EffectiveMinRange(true));
+        var maxIndex = GenRadial.NumCellsInRadius(attackVerb.EffectiveRange);
+        var center = this.PositionOnBaseMapSpawned;
+        for (var i = minIndex; i < maxIndex; i++)
         {
+            var cell = center + GenRadial.RadialPattern[i];
             if (!cell.InBounds(groundMap)) continue;
             var vehicle = component.VehicleAt(cell);
             var map2 = vehicle?.VehicleMap;

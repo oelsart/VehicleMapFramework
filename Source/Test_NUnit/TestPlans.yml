@@ -12,6 +12,12 @@
 - Name: VGravshipE
 - Name: VQEGenerator
 - Name: VTemperatureE
+- Name: VPsyE
+- Name: VPsyE + CE
+  Mods:
+    - VPsyE
+  Categories:
+    - VMF_Patches_CombatExtendedVPsyECompat
 - Name: Achtung
 - Name: CombatExtended
 - Name: DubsBadHygiene
@@ -59,6 +65,7 @@
     - Prepatcher
     - MultiFloors
 - Name: MuzzleFlash
+- Name: PerspectiveShift
 - Name: PauseOtherSettlements
 - Name: ProjectRimFactory
 - Name: PickUpAndHaul

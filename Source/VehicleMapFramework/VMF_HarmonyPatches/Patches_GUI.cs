@@ -117,26 +117,17 @@ public static class Patch_ColonistBar_CheckRecacheEntries
 [PatchLevel(Level.Safe)]
 public static class Patch_MouseoverReadout_MouseoverReadoutOnGUI
 {
-    public static void PrefixCommon(ref object[] __state)
+    public static void PrefixCommon(ref (sbyte, Command_FocusVehicleMap.FocusVehicle)? __state)
     {
-        if (Command_FocusVehicleMap.FocusedVehicle is { } vehicle || UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out vehicle))
+        if ((Command_FocusVehicleMap.FocusedVehicle is { } vehicle || UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out vehicle)))
         {
-            sbyte index;
-            VehiclePawnWithMap vehicle2;
-            __state = [index = Current.Game.currentMapIndex, vehicle2 = Command_FocusVehicleMap.FocusedVehicle];
+            __state = (Current.Game.currentMapIndex, new Command_FocusVehicleMap.FocusVehicle(vehicle));
             Current.Game.currentMapIndex = (sbyte)vehicle.CurrentLevel.Index;
-            Command_FocusVehicleMap.FocusedVehicle = vehicle;
-            if (!UI.MouseCell().InBounds(vehicle.CurrentLevel))
-            {
-                Current.Game.currentMapIndex = index;
-                Command_FocusVehicleMap.FocusedVehicle = vehicle2;
-                __state = null;
-            }
         }
     }
 
     //車両マップにマウスオーバーしていたらFocusedVehicleに入れておく。これでMouseCellが勝手にオフセットされる
-    public static void Prefix(ref object[] __state)
+    public static void Prefix(ref (sbyte, Command_FocusVehicleMap.FocusVehicle)? __state)
     {
         if (Event.current.type != EventType.Repaint || Find.MainTabsRoot.OpenTab != null)
         {
@@ -146,13 +137,12 @@ public static class Patch_MouseoverReadout_MouseoverReadoutOnGUI
     }
 
     //FocusedVehicleをもとに戻しておく
-    public static void Finalizer(object[] __state)
+    public static void Finalizer((sbyte, Command_FocusVehicleMap.FocusVehicle)? __state)
     {
-        if (__state is not null)
-        {
-            Current.Game.currentMapIndex = (sbyte)__state[0];
-            Command_FocusVehicleMap.FocusedVehicle = (VehiclePawnWithMap)__state[1];
-        }
+        if (__state is null) return;
+        
+        Current.Game.currentMapIndex = __state.Value.Item1;
+        __state.Value.Item2.Dispose();
     }
 }
 
@@ -162,19 +152,18 @@ public static class Patch_MouseoverReadout_MouseoverReadoutOnGUI
 public static class Patch_CellInspectorDrawer_DrawMapInspector
 {
     //車両マップにマウスオーバーしていたらFocusedVehicleに入れておく。これでMouseCellが勝手にオフセットされる
-    public static void Prefix(ref object[] __state)
+    public static void Prefix(ref (sbyte, Command_FocusVehicleMap.FocusVehicle)? __state)
     {
         Patch_MouseoverReadout_MouseoverReadoutOnGUI.PrefixCommon(ref __state);
     }
 
     //FocusedVehicleをもとに戻しておく
-    public static void Finalizer(object[] __state)
+    public static void Finalizer((sbyte, Command_FocusVehicleMap.FocusVehicle)? __state)
     {
-        if (__state is not null)
-        {
-            Current.Game.currentMapIndex = (sbyte)__state[0];
-            Command_FocusVehicleMap.FocusedVehicle = (VehiclePawnWithMap)__state[1];
-        }
+        if (__state is null) return;
+        
+        Current.Game.currentMapIndex = __state.Value.Item1;
+        __state.Value.Item2.Dispose();
     }
 }
 
@@ -183,20 +172,19 @@ public static class Patch_CellInspectorDrawer_DrawMapInspector
 public static class Patch_CellInspectorDrawer_Update
 {
     //車両マップにマウスオーバーしていたらFocusedVehicleに入れておく。これでMouseCellが勝手にオフセットされる
-    public static void Prefix(ref object[] __state)
+    public static void Prefix(ref (sbyte, Command_FocusVehicleMap.FocusVehicle)? __state)
     {
         if (!KeyBindingDefOf.ShowCellInspector.IsDown) return;
         Patch_MouseoverReadout_MouseoverReadoutOnGUI.PrefixCommon(ref __state);
     }
 
     //FocusedVehicleをもとに戻しておく
-    public static void Finalizer(object[] __state)
+    public static void Finalizer((sbyte, Command_FocusVehicleMap.FocusVehicle)? __state)
     {
-        if (__state is not null)
-        {
-            Current.Game.currentMapIndex = (sbyte)__state[0];
-            Command_FocusVehicleMap.FocusedVehicle = (VehiclePawnWithMap)__state[1];
-        }
+        if (__state is null) return;
+        
+        Current.Game.currentMapIndex = __state.Value.Item1;
+        __state.Value.Item2.Dispose();
     }
 }
 
@@ -206,7 +194,7 @@ public static class Patch_BeautyDrawer_DrawBeautyAroundMouse
 {
     //車両マップにマウスオーバーしていたらFocusedVehicleに入れておく。これでMouseCellが勝手にオフセットされる
     [PatchLevel(Level.Safe)]
-    public static void Prefix(ref object[] __state)
+    public static void Prefix(ref (sbyte, Command_FocusVehicleMap.FocusVehicle)? __state)
     {
         Patch_MouseoverReadout_MouseoverReadoutOnGUI.PrefixCommon(ref __state);
     }
@@ -231,13 +219,12 @@ public static class Patch_BeautyDrawer_DrawBeautyAroundMouse
 
     //FocusedVehicleをもとに戻しておく
     [PatchLevel(Level.Safe)]
-    public static void Finalizer(object[] __state)
+    public static void Finalizer((sbyte, Command_FocusVehicleMap.FocusVehicle)? __state)
     {
-        if (__state is not null)
-        {
-            Current.Game.currentMapIndex = (sbyte)__state[0];
-            Command_FocusVehicleMap.FocusedVehicle = (VehiclePawnWithMap)__state[1];
-        }
+        if (__state is null) return;
+        
+        Current.Game.currentMapIndex = __state.Value.Item1;
+        __state.Value.Item2.Dispose();
     }
 }
 
@@ -247,19 +234,18 @@ public static class Patch_BeautyDrawer_DrawBeautyAroundMouse
 public static class Patch_GlobalControls_TemperatureString
 {
     //車両マップにマウスオーバーしていたらFocusedVehicleに入れておく。これでMouseCellが勝手にオフセットされる
-    public static void Prefix(ref object[] __state)
+    public static void Prefix(ref (sbyte, Command_FocusVehicleMap.FocusVehicle)? __state)
     {
         Patch_MouseoverReadout_MouseoverReadoutOnGUI.PrefixCommon(ref __state);
     }
 
     //FocusedVehicleをもとに戻しておく
-    public static void Finalizer(object[] __state)
+    public static void Finalizer((sbyte, Command_FocusVehicleMap.FocusVehicle)? __state)
     {
-        if (__state is not null)
-        {
-            Current.Game.currentMapIndex = (sbyte)__state[0];
-            Command_FocusVehicleMap.FocusedVehicle = (VehiclePawnWithMap)__state[1];
-        }
+        if (__state is null) return;
+        
+        Current.Game.currentMapIndex = __state.Value.Item1;
+        __state.Value.Item2.Dispose();
     }
 }
 

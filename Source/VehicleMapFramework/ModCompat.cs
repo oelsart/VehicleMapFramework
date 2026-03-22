@@ -11,7 +11,6 @@ using RimWorld;
 using RimWorld.Planet;
 using UnityEngine;
 using VehicleMapFramework.VMF_HarmonyPatches;
-using VehicleMapFramework.VMF_HarmonyPatches.AM;
 using Vehicles;
 using Verse;
 using Verse.AI;
@@ -32,12 +31,22 @@ internal static class ModCompat
     
     internal static bool AnyNull(params object[] args)
     {
-        return args.Any(arg => arg == null);
+        for (var i = 0; i < args.Length; i++)
+        {
+            if (args[i] is null)
+            {
+                LogError(new Exception($"Argument {i} is null."));
+                return true;
+            }
+        }
+
+        return false;
     }
     
     internal static void LogIncompat(string modName)
     {
-        LogError(new Exception($"{modName} compatibility is broken."));
+        if (!UnitTestDetector.IsTestingContext)
+            LogError(new Exception($"{modName} compatibility is broken."));
     }
 
     internal static bool IsModActive(string id)
@@ -391,6 +400,8 @@ internal static class ModCompat
 
     public static readonly bool Gunplay = IsModActive("automatic.gunplay");
 
+    public static readonly bool IRBM = IsModActive("kazepsi.irbm");
+
     public static class MeleeAnimation
     {
         public static readonly bool Active = IsModActive("co.uk.epicguru.meleeanimation");
@@ -560,6 +571,8 @@ internal static class ModCompat
         public static readonly bool Active = IsModActive("VanillaExpanded.VFEFactory");
     }
 
+    public static readonly bool VPsyE = IsModActive("VanillaExpanded.VPsycastsE");
+
     public static class VVE
     {
         public static readonly bool Active = IsModActive("OskarPotocki.VanillaVehiclesExpanded");
@@ -676,6 +689,8 @@ internal static class ModCompat
     }
 
     public static readonly bool TraderShips = IsModActive("automatic.traderships");
+    
+    public static readonly bool UFHeavyIndustries = IsModActive("KindSeal.LOL");
 
     public static readonly bool NightmareCore = IsModActive("Nightmare.Core");
     
@@ -711,6 +726,8 @@ internal static class ModCompat
     }
 
     public static readonly bool SmartPistol = IsModActive("rabiosus.smartpistol");
+
+    public static readonly bool SRALib = IsModActive("DiZhuan.SRALib");
     
     public static readonly bool RealFogOfWar = IsModActive("Mlie.NWNRealFogOfWar");
 
@@ -828,6 +845,8 @@ internal static class ModCompat
     public static readonly bool RimWorldOfMagic = IsModActive("Torann.ARimworldOfMagic");
 
     public static readonly bool CeleTech = IsModActive("TOT.CeleTech.MKIII");
+    
+    public static readonly bool PerspectiveShift = IsModActive("ferny.PerspectiveShift");
 
     public static readonly bool PauseOtherSettlements = IsModActive("esvn.PauseOtherSettlementsSimulation");
 

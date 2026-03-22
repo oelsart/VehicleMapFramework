@@ -165,34 +165,30 @@ public static class Patch_Rendering_DrawSelectionBracketsVehicles
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator, MethodBase original)
     {
-        var codes = new CodeMatcher(instructions, generator);
-        codes.MatchEndForward(CodeMatch.LoadsField(AccessTools.Field(typeof(Transform), nameof(Transform.rotation))), new CodeMatch(OpCodes.Add));
-        codes.DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle);
-        codes.CreateLabel(out var label);
-        var l_vehicle_ind = original.GetMethodBody()?.LocalVariables.FirstIndexOf(l => l.LocalType == typeof(VehiclePawn)) ?? 0;
-        if (l_vehicle_ind == -1) l_vehicle_ind = 0;
-        codes.InsertAndAdvance(
-            CodeInstruction.LoadLocal(l_vehicle_ind),
-            new CodeInstruction(OpCodes.Ldloca_S, vehicle),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf),
-            new CodeInstruction(OpCodes.Brfalse_S, label),
-            CodeInstruction.LoadLocal(l_vehicle_ind),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_FlipAngle));
-
-        codes.CreateLabelWithOffsets(1, out var label2);
-        codes.InsertAfter(
-            new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-            new CodeInstruction(OpCodes.Brfalse_S, label2),
-            new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.g_Angle),
-            new CodeInstruction(OpCodes.Add));
-
-        var g_RotatedSize = AccessTools.PropertyGetter(typeof(Thing), nameof(Thing.RotatedSize));
-        var m_BaseRotatedSize = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.BaseRotatedSize));
-        codes.MatchStartForward(CodeMatch.Calls(g_RotatedSize));
-        codes.Opcode = OpCodes.Call;
-        codes.Operand = m_BaseRotatedSize;
-        return codes.Instructions();
+        var matcher = new CodeMatcher(instructions, generator)
+            .MatchEndForward(CodeMatch.LoadsField(AccessTools.Field(typeof(Transform), nameof(Transform.rotation))), new CodeMatch(OpCodes.Add))
+            .DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle)
+            .CreateLabel(out var label);
+        var l_vehicle_ind = matcher.Instructions().Select(i => i.operand).OfType<LocalBuilder>()
+            .FirstOrDefault(l => l.LocalType == typeof(VehiclePawn))?.LocalIndex ?? 0;
+        return matcher.InsertAndAdvance(
+                CodeInstruction.LoadLocal(l_vehicle_ind),
+                new CodeInstruction(OpCodes.Ldloca_S, vehicle),
+                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf),
+                new CodeInstruction(OpCodes.Brfalse_S, label),
+                CodeInstruction.LoadLocal(l_vehicle_ind),
+                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_FlipAngle))
+            .CreateLabelWithOffsets(1, out var label2)
+            .InsertAfter(
+                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+                new CodeInstruction(OpCodes.Brfalse_S, label2),
+                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+                new CodeInstruction(OpCodes.Call, CachedMethodInfo.g_Angle),
+                new CodeInstruction(OpCodes.Add))
+            .MatchStartForward(CodeMatch.Calls(
+                AccessTools.PropertyGetter(typeof(Thing), nameof(Thing.RotatedSize))))
+            .Set(OpCodes.Call, AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.BaseRotatedSize)))
+            .InstructionEnumeration();
     }
 }
 
@@ -241,7 +237,7 @@ public static class Patch_TargetingHelper_TargetMeetsRequirements1
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
     }
 }
 
@@ -252,8 +248,8 @@ public static class Patch_TargetingHelper_TargetMeetsRequirements2
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap)
-            .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap)
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned)
+            .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned)
             .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
             .MethodReplacer(CachedMethodInfo.m_GenSight_LineOfSight1, CachedMethodInfo.m_GenSightOnVehicle_LineOfSight1)
             .MethodReplacer(CachedMethodInfo.m_OccupiedRect, CachedMethodInfo.m_MovedOccupiedRect)
@@ -294,7 +290,7 @@ public static class Patch_TurretShotReport_HitReportFor
             .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
             .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap)
             .MethodReplacer(AccessTools.Method(typeof(GridsUtility), nameof(GridsUtility.Roofed)),
-                AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.RoofedAcrossMaps)));
+                AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.RoofedAcrossMaps), [typeof(IntVec3), typeof(Map)]));
     }
 }
 
@@ -316,8 +312,8 @@ public static class Patch_VehicleTurret_FireTurret
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap)
-            .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap)
+        return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned)
+            .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned)
             .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
     }
 }
@@ -331,7 +327,7 @@ public static class Patch_VehicleTurret_TurretRotation
     {
         if (___vehicle.IsOnNonFocusedVehicleMapOf(out var vehicle2))
         {
-            __result = Ext_Math.RotateAngle(__result, vehicle2.FullRotation.AsAngle);
+            __result = Ext_Math.RotateAngle(__result, vehicle2.FullAngle);
         }
     }
 }
@@ -345,7 +341,7 @@ public static class Patch_VehicleTurret_TurretRotationTargeted
     {
         if (__instance.vehicle.IsOnNonFocusedVehicleMapOf(out var vehicle2) && (__instance.TargetLocked || TurretTargeter.Turret == __instance))
         {
-            value = Ext_Math.RotateAngle(value, -vehicle2.FullRotation.AsAngle);
+            value = Ext_Math.RotateAngle(value, -vehicle2.FullAngle);
         }
     }
 }
@@ -407,7 +403,7 @@ public static class Patch_TurretTargeter_ProcessInputEvents
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap);
+        return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned);
     }
 }
 
@@ -419,35 +415,6 @@ public static class Patch_TurretTargeter_TargeterValid
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
-    }
-}
-
-//タレットの自動ロードがVehicleDefのCargoCapacityを参照してたので、これをVehiclePawnのインスタンスからステータスを参照させる
-[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
-[HarmonyPatch(typeof(Command_CooldownAction), "DrawBottomBar")]
-[PatchLevel(Level.Sensitive)]
-public static class Patch_Command_CooldownAction_DrawBottomBar
-{
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        var codes = instructions.ToList();
-        var m_GetStatValueAbstract = AccessTools.Method(typeof(Ext_Vehicles), nameof(Ext_Vehicles.GetStatValueAbstract));
-        var m_VehiclePawn_GetStatValue = AccessTools.Method(typeof(VehiclePawn), nameof(VehiclePawn.GetStatValue));
-        var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(m_GetStatValueAbstract));
-
-        if (pos != -1)
-        {
-            codes[pos].opcode = OpCodes.Callvirt;
-            codes[pos].operand = m_VehiclePawn_GetStatValue;
-
-            var g_VehiclePawn_VehicleDef = AccessTools.PropertyGetter(typeof(VehiclePawn), nameof(VehiclePawn.VehicleDef));
-            var pos2 = codes.FindLastIndex(pos, c => c.opcode == OpCodes.Callvirt && c.OperandIs(g_VehiclePawn_VehicleDef));
-            if (pos2 != -1)
-            {
-                codes.RemoveAt(pos2);
-            }
-        }
-        return codes;
     }
 }
 
@@ -467,7 +434,7 @@ public static class Patch_JobDriverLoadVehicleBase_ShouldFailJob
         foreach (var method in typeof(JobDriverLoadVehicleBase).AllSubclasses()
                      .Select(type => AccessTools.DeclaredMethod(type, "ShouldFailJob"))
                      .Where(method => method is not null &&
-                         VMF_Harmony.ReadMethodBodyWrapper(method)
+                         PatchHelper.ReadMethodBodyWrapper(method)
                              .Any(i => g_Map.Equals(i.Value))))
         {
             yield return method;
@@ -741,7 +708,6 @@ public static class Patch_VehicleTabHelper_Passenger_DrawPassengersFor
 [HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(VehicleTabHelper_Passenger), nameof(VehicleTabHelper_Passenger.HandleDragEvent))]
 [PatchLevel(Level.Safe)]
-[HotSwap]
 public static class Patch_VehicleTabHelper_Passenger_HandleDragEvent
 {
     public static bool Prefix(ref Pawn ___draggedPawn, IThingHolder ___transferToHolder, Pawn ___hoveringOverPawn)

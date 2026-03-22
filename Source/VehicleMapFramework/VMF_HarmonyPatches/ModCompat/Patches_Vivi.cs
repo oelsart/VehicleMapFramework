@@ -1,7 +1,5 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Reflection.Emit;
 using HarmonyLib;
 using Verse;
 
@@ -32,7 +30,7 @@ public static class Patch_ArcanePlant_Turret_TryFindNewTarget_Delegate
 
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
     }
 }
 
@@ -41,27 +39,8 @@ public static class Patch_ArcanePlant_Turret_TryFindNewTarget_Delegate
 [PatchLevel(Level.Sensitive)]
 public static class Patch_ArcanePlant_Turret_TryFindNewTarget
 {
-    private static readonly List<Building> tmpList = [];
-
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        var codes = instructions.ToList();
-        var f_allBuildingsColonist = AccessTools.Field(typeof(ListerBuildings), nameof(ListerBuildings.allBuildingsColonist));
-        var pos = codes.FindIndex(c => c.opcode == OpCodes.Ldfld && c.OperandIs(f_allBuildingsColonist)) + 1;
-        codes.InsertRange(pos,
-        [
-            CodeInstruction.LoadArgument(0),
-            CodeInstruction.Call(typeof(Patch_ArcanePlant_Turret_TryFindNewTarget), nameof(AddBuildingList))
-        ]);
-        return codes;
-    }
-
-    private static List<Building> AddBuildingList(List<Building> list, Building instance)
-    {
-        tmpList.Clear();
-        tmpList.AddRange(list);
-        var maps = instance.Map.BaseMapAndVehicleMaps(false);
-        tmpList.AddRange(maps.SelectMany(m => m.listerBuildings.allBuildingsColonist));
-        return tmpList;
+        return instructions.AddAllBuildingsColonistForThingInstance();
     }
 }

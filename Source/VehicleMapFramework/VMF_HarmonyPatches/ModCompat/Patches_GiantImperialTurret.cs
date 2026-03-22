@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using HarmonyLib;
 using RimWorld;
 using SmashTools;
-using UnityEngine;
 using Verse;
-using Verse.AI;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
@@ -37,7 +34,7 @@ public static class Patch_Building_TurretGunNonSnap_TryFindNewTarget
 
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
     }
 }
 
@@ -48,7 +45,7 @@ public static class Patch_Building_TurretGunNonSnap_IsValidTarget
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap)
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned)
             .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
     }
 }
@@ -62,7 +59,7 @@ public static class Patch_Building_TurretGunNonSnap_TryFindNewTarget2
     {
         if (!___currentTargetInt.IsValid && __result.IsValid && __instance.IsOnNonFocusedVehicleMapOf(out var vehicle))
         {
-            ___curAngle = Ext_Math.RotateAngle(___curAngle, vehicle.FullRotation.AsAngle);
+            ___curAngle = Ext_Math.RotateAngle(___curAngle, vehicle.FullAngle);
         }
     }
 }
@@ -81,42 +78,7 @@ public static class Patch_Building_TurretGunNonSnap_Tick
     {
         if (!___currentTargetInt.IsValid && __state && __instance.IsOnNonFocusedVehicleMapOf(out var vehicle))
         {
-            ___curAngle = Ext_Math.RotateAngle(___curAngle, -vehicle.FullRotation.AsAngle);
-        }
-    }
-}
-
-[HarmonyPatchCategory(PatchCategories.GiantImperialTurret)]
-[HarmonyPatch("BreadMoProjOffset.AttackTargetFinderAngle", "BestAttackTarget")]
-[PatchLevel(Level.Safe)]
-public static class Patch_AttackTargetFinderAngle_BestAttackTarget
-{
-    private static bool working;
-
-    private static readonly FastInvokeHandler BestAttackTarget = MethodInvoker.GetHandler(AccessTools.Method("BreadMoProjOffset.AttackTargetFinderAngle:BestAttackTarget"));
-
-    public static void Postfix(IAttackTargetSearcher searcher, TargetScanFlags flags, Vector3 angle, Predicate<Thing> validator, float minDist, float maxDist, IntVec3 locus, float maxTravelRadiusFromLocus, bool canTakeTargetsCloserThanEffectiveMinRange, ref IAttackTarget __result)
-    {
-        if (working) return;
-
-        var map = searcher.Thing.Map;
-        var pos = searcher.Thing.Position;
-        var basePos = searcher.Thing.PositionOnBaseMap;
-        foreach (var map2 in map.BaseMapAndVehicleMaps(false))
-        {
-            IAttackTarget target = null;
-            try
-            {
-                working = true;
-                searcher.Thing.VirtualMapTransfer(map2, map2.IsVehicleMapOf(out var vehicle) ? basePos.ToVehicleMapCoord(vehicle) : basePos);
-                target = (IAttackTarget)BestAttackTarget(null, searcher, flags, angle, validator, minDist, maxDist, locus, maxTravelRadiusFromLocus, canTakeTargetsCloserThanEffectiveMinRange);
-            }
-            finally
-            {
-                working = false;
-                searcher.Thing.VirtualMapTransfer(map, pos);
-                __result = AttackTargetFinderOnVehicle.CompareTarget(__result, target, searcher);
-            }
+            ___curAngle = Ext_Math.RotateAngle(___curAngle, -vehicle.FullAngle);
         }
     }
 }

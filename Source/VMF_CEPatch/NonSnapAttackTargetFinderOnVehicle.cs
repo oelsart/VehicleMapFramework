@@ -56,7 +56,7 @@ public class NonSnapAttackTargetFinderOnVehicle
         for (var i = 0; i < tmpTargets.Count; i++)
         {
             var attackTarget = tmpTargets[i];
-            if (attackTarget.Thing.PositionOnBaseMap.InHorDistOf(searcherThing.PositionOnBaseMap, maxDist) && innerValidator(attackTarget) && CanShootAtFromCurrentPosition(attackTarget, searcher, verb))
+            if (attackTarget.Thing.PositionOnBaseMapSpawned.InHorDistOf(searcherThing.PositionOnBaseMapSpawned, maxDist) && innerValidator(attackTarget) && CanShootAtFromCurrentPosition(attackTarget, searcher, verb))
             {
                 flag = true;
                 break;
@@ -65,14 +65,14 @@ public class NonSnapAttackTargetFinderOnVehicle
         IAttackTarget result;
         if (flag)
         {
-            tmpTargets.RemoveAll(x => !x.Thing.PositionOnBaseMap.InHorDistOf(searcherThing.PositionOnBaseMap, maxDist) || !innerValidator(x));
+            tmpTargets.RemoveAll(x => !x.Thing.PositionOnBaseMapSpawned.InHorDistOf(searcherThing.PositionOnBaseMapSpawned, maxDist) || !innerValidator(x));
             result = GetRandomShootingTargetByScore(tmpTargets, searcher, verb, angle);
         }
         else
         {
             var num2 = (flags & TargetScanFlags.NeedReachableIfCantHitFromMyPos) != 0;
             var flag2 = (flags & TargetScanFlags.NeedReachable) != 0;
-            result = (IAttackTarget)GenClosestCrossMap.ClosestThing_Global(validator: (!num2 || flag2) ? t => innerValidator((IAttackTarget)t) : t => innerValidator((IAttackTarget)t) && CanShootAtFromCurrentPosition((IAttackTarget)t, searcher, verb), centerOnBaseMap: searcherThing.PositionOnBaseMap, searchSet: tmpTargets, maxDistance: maxDist);
+            result = (IAttackTarget)GenClosestCrossMap.ClosestThing_Global(validator: (!num2 || flag2) ? t => innerValidator((IAttackTarget)t) : t => innerValidator((IAttackTarget)t) && CanShootAtFromCurrentPosition((IAttackTarget)t, searcher, verb), centerOnBaseMap: searcherThing.PositionOnBaseMapSpawned, searchSet: tmpTargets, maxDistance: maxDist);
         }
         tmpTargets.Clear();
         return result;
@@ -85,13 +85,13 @@ public class NonSnapAttackTargetFinderOnVehicle
                 return false;
             }
 
-            if (minDistSquared > 0f && (searcherThing.PositionOnBaseMap - thing.PositionOnBaseMap).LengthHorizontalSquared < minDistSquared)
+            if (minDistSquared > 0f && (searcherThing.PositionOnBaseMapSpawned - thing.PositionOnBaseMapSpawned).LengthHorizontalSquared < minDistSquared)
             {
                 return false;
             }
 
             var num3 = verb.verbProps.EffectiveMinRange(thing, searcherThing);
-            if (num3 > 0f && (searcherThing.PositionOnBaseMap - thing.PositionOnBaseMap).LengthHorizontalSquared < num3 * num3)
+            if (num3 > 0f && (searcherThing.PositionOnBaseMapSpawned - thing.PositionOnBaseMapSpawned).LengthHorizontalSquared < num3 * num3)
             {
                 return false;
             }
@@ -108,7 +108,7 @@ public class NonSnapAttackTargetFinderOnVehicle
 
             if ((flags & TargetScanFlags.NeedNotUnderThickRoof) != 0)
             {
-                var roof = thing.PositionOnBaseMap.GetRoof(thing.GroundMap);
+                var roof = thing.PositionOnBaseMapSpawned.GetRoof(thing.GroundMap);
                 if (roof is { isThickRoof: true })
                 {
                     return false;
@@ -116,7 +116,7 @@ public class NonSnapAttackTargetFinderOnVehicle
             }
             if ((flags & TargetScanFlags.NeedLOSToAll) != 0)
             {
-                if (losValidator != null && (!losValidator(searcherThing.PositionOnBaseMap) || !losValidator(thing.PositionOnBaseMap)))
+                if (losValidator != null && (!losValidator(searcherThing.PositionOnBaseMapSpawned) || !losValidator(thing.PositionOnBaseMapSpawned)))
                 {
                     return false;
                 }
@@ -171,7 +171,7 @@ public class NonSnapAttackTargetFinderOnVehicle
             }
             if (thing.def.size is { x: 1, z: 1 })
             {
-                if (thing.PositionOnBaseMap.Fogged(thing.GroundMap))
+                if (thing.PositionOnBaseMapSpawned.Fogged(thing.GroundMap))
                 {
                     return false;
                 }
@@ -213,12 +213,12 @@ public class NonSnapAttackTargetFinderOnVehicle
             return true;
         }
 
-        return !GenSightOnVehicle.LineOfSightToThing(searcherThing.PositionOnBaseMap, pawn, searcherThing.GroundMap);
+        return !GenSightOnVehicle.LineOfSightToThing(searcherThing.PositionOnBaseMapSpawned, pawn, searcherThing.GroundMap);
     }
 
     private static bool CanShootAtFromCurrentPosition(IAttackTarget target, IAttackTargetSearcher searcher, Verb verb)
     {
-        return verb?.CanHitTargetFrom(searcher.Thing.PositionOnBaseMap, target.Thing) ?? false;
+        return verb?.CanHitTargetFrom(searcher.Thing.PositionOnBaseMapSpawned, target.Thing) ?? false;
     }
 
     private static IAttackTarget GetRandomShootingTargetByScore(List<IAttackTarget> targets, IAttackTargetSearcher searcher, Verb verb, Vector3 angle)
@@ -334,7 +334,7 @@ public class NonSnapAttackTargetFinderOnVehicle
             return 0f;
         }
         var map = target.Thing.GroundMap;
-        var position = target.Thing.PositionOnBaseMap;
+        var position = target.Thing.PositionOnBaseMapSpawned;
         var num = GenRadial.NumCellsInRadius(verb.verbProps.ai_AvoidFriendlyFireRadius);
         var num2 = 0f;
         for (var i = 0; i < num; i++)

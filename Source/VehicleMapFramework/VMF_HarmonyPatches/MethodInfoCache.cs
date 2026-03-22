@@ -14,14 +14,17 @@ namespace VehicleMapFramework;
 
 public class MethodInfoCache
 {
-    private static readonly Verse.WeakReference<MethodInfoCache> cacheInt = new(null);
+    private static readonly System.WeakReference<MethodInfoCache> cacheInt = new(null);
     
     public static MethodInfoCache CachedMethodInfo
     {
         get
         {
-            cacheInt.Target ??= new MethodInfoCache();
-            return cacheInt.Target;
+            if (!cacheInt.TryGetTarget(out var target))
+            {
+                cacheInt.SetTarget(target = new MethodInfoCache());
+            }
+            return target;
         }
     }
     
@@ -99,7 +102,9 @@ public class MethodInfoCache
 
     public readonly MethodInfo g_Thing_PositionHeld = AccessTools.PropertyGetter(typeof(Thing), nameof(Thing.PositionHeld));
 
-    public readonly MethodInfo m_PositionHeldOnBaseMap = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.PositionHeldOnBaseMap));
+    public readonly MethodInfo m_PositionHeldOnBaseMap = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.get_PositionHeldOnBaseMap));
+
+    public readonly MethodInfo m_PositionHeldOnBaseMapSpawned = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.get_PositionHeldOnBaseMapSpawned));
 
     public readonly MethodInfo m_PositionOnAnotherThingMap = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.PositionOnAnotherThingMap));
 
@@ -115,8 +120,12 @@ public class MethodInfoCache
 
     public readonly MethodInfo m_CellOnBaseMap_TargetInfo = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.CellOnBaseMap), [typeof(TargetInfo).MakeByRefType()]);
 
+    public readonly MethodInfo m_CellOnBaseMapSpawned_TargetInfo = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.CellOnBaseMapSpawned), [typeof(TargetInfo).MakeByRefType()]);
+    
     public readonly MethodInfo m_CellOnBaseMap_GlobalTargetInfo = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.CellOnBaseMap), [typeof(GlobalTargetInfo).MakeByRefType()]);
 
+    public readonly MethodInfo m_CellOnBaseMapSpawned_GlobalTargetInfo = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.CellOnBaseMapSpawned), [typeof(GlobalTargetInfo).MakeByRefType()]);
+    
     public readonly MethodInfo m_OccupiedRect = AccessTools.Method(typeof(GenAdj), nameof(GenAdj.OccupiedRect), [typeof(Thing)]);
 
     public readonly MethodInfo m_MovedOccupiedRect = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.MovedOccupiedRect));
@@ -126,10 +135,14 @@ public class MethodInfoCache
     public readonly MethodInfo m_ToBaseMapTargetInfo = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.ToBaseMapTargetInfo));
 
     public readonly MethodInfo m_BaseRotation = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.BaseRotation));
+    
+    public readonly MethodInfo m_BaseRotationSpawned = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.BaseRotationSpawned));
 
     public readonly MethodInfo m_BaseRotationVehicleDraw = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.BaseRotationVehicleDraw));
 
     public readonly MethodInfo m_BaseFullRotation_Thing = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.BaseFullRotation), [typeof(Thing)]);
+
+    public readonly MethodInfo m_BaseFullRotationSpawned_Thing = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.BaseFullRotationSpawned), [typeof(Thing)]);
 
     public readonly MethodInfo m_BaseFullRotationAsRot4 = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.BaseFullRotationAsRot4), [typeof(Thing)]);
 
@@ -223,6 +236,8 @@ public class MethodInfoCache
 
     public readonly MethodInfo m_Rot8Utility_RighthandCell = AccessTools.Method(typeof(Rot8Utility), nameof(Rot8Utility.RighthandCell));
 
+    public readonly MethodInfo m_ToIntVec3 = AccessTools.Method(typeof(IntVec3Utility), nameof(IntVec3Utility.ToIntVec3));
+
     public readonly MethodInfo m_IntVec3_ToVector3 = AccessTools.Method(typeof(IntVec3), nameof(IntVec3.ToVector3));
 
     public readonly MethodInfo m_IntVec3_ToVector3Shifted = AccessTools.Method(typeof(IntVec3), nameof(IntVec3.ToVector3Shifted));
@@ -247,9 +262,16 @@ public class MethodInfoCache
 
     public readonly MethodInfo m_AsFundVector2 = AccessTools.Method(typeof(Rot8Utility), nameof(Rot8Utility.AsFundVector2));
 
+    public readonly MethodInfo m_Roofed = AccessTools.Method(typeof(RoofGrid), nameof(RoofGrid.Roofed), [typeof(IntVec3)]);
+
+    public readonly MethodInfo m_RoofedAcrossMaps =
+        AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.RoofedAcrossMaps), [typeof(RoofGrid), typeof(IntVec3)]);
+
     public readonly MethodInfo m_GetThingList = AccessTools.Method(typeof(GridsUtility), nameof(GridsUtility.GetThingList));
 
     public readonly MethodInfo m_GetThingListAcrossMaps = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.GetThingListAcrossMaps));
+
+    public readonly MethodInfo m_AddColonistBuildingList = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.AddColonistBuildingList));
 
     public readonly MethodInfo m_PrintExtraRotation = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.PrintExtraRotation));
 

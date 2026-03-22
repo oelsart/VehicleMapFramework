@@ -877,7 +877,7 @@ public static class Patch_ITab_Bills_FillTab_Delegate
             return t.GetDeclaredMethods().FirstOrDefault(m =>
             {
                 if (!m.Name.Contains("<FillTab>")) return false;
-                return VMF_Harmony.ReadMethodBodyWrapper(m).Any(i =>
+                return PatchHelper.ReadMethodBodyWrapper(m).Any(i =>
                     CachedMethodInfo.g_Thing_Map.Equals(i.Value));
             });
         });
