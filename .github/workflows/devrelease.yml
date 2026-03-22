@@ -155,10 +155,11 @@ jobs:
         appId: 294100
         publishedFileId: 3528683767
         changeNote: ${{ github.ref_name }}
-    
+
     - name: Discord Notification
-      uses: nobrayner/discord-webhook@v1
+      uses: sarisia/actions-status-discord@v1
       with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        discord-webhook: ${{ secrets.DISCORD_WEBHOOK_UPDATE }}
+        webhook: ${{ secrets.DISCORD_WEBHOOK_UPDATE }}
         title: 'Dev Update: ${{ github.ref_name }}'
+        username: LS & Co. (GitHub Division)
+        url: "https://steamcommunity.com/sharedfiles/filedetails/?id=3528683767"

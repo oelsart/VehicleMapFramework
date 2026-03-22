@@ -63,7 +63,7 @@ jobs:
           echo "quit"
         } > steam_script.txt
         
-        cat steam_script.txt | ~/Steam/steamcmd.sh
+        ~/Steam/steamcmd.sh +runscript steam_script.txt
         
         echo "CI_SteamCMD_WorkShop=$HOME/Steam/steamapps/workshop/content/294100" >> $GITHUB_ENV
         ls -la ~/Steam/steamapps/workshop/content/294100
@@ -106,9 +106,11 @@ jobs:
         reporter: dotnet-trx
     
     - name: Discord Notification
-      uses: nobrayner/discord-webhook@v1
+      uses: sarisia/actions-status-discord@v1
       if: always()
       with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        discord-webhook: ${{ secrets.DISCORD_WEBHOOK_TEST }}
+        webhook: ${{ secrets.DISCORD_WEBHOOK_TEST }}
         title: '${{ github.workflow }}: ${{ job.status }}'
+        description: "Mod compatibility tests run every 2 days"
+        content: ${{ job.status == 'failure' && '<@1183347523843264602>' || '' }}
+        username: LS & Co. (GitHub Division)
