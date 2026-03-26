@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using RimWorld;
+using SmashTools;
 using Verse;
 using Verse.AI;
 
@@ -160,5 +161,32 @@ public static class VerbOnVehicleUtility
             }
             return true;
         }
+    }
+
+    private static readonly List<IntVec3> tmpCellList = [];
+    
+    public static bool ShouldConsiderCrossMap(Thing caster, IntVec3 root, LocalTargetInfo targ)
+    {
+        if (!root.IsValid || !caster.Spawned ||
+            VehiclePawnWithMapCache.AllVehiclesOn(caster.GroundMap).Count == 0) return false;
+        
+        if ((caster.IsOnVehicleMapOf(out var vehicle) && vehicle.Spawned ||
+             targ.Thing.IsOnVehicleMapOf(out vehicle) && vehicle.Spawned ||
+             (caster.TryGetTargetMap(out var map) && map.IsVehicleMapOf(out vehicle) && vehicle.Spawned)))
+            return true;
+        
+        var casterMap = caster.Map;
+        var component = casterMap?.GetCachedMapComponent<VehicleMapGrid>();
+        if (component is null) return false;
+        
+        tmpCellList.Clear();
+        GenSight.PointsOnLineOfSight(root, targ.Cell, c => tmpCellList.Add(c));
+        foreach (var cell in tmpCellList.AsReadOnlySpan())
+        {
+            if (cell.InBounds(casterMap) && component.VehicleAt(cell) is not null)
+                return true;
+        }
+
+        return false;
     }
 }

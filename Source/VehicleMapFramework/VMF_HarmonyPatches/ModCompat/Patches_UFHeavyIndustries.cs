@@ -128,6 +128,19 @@ public static class Patch_Verb_ShootWithOffsetECT_BaseTryCastShot
     }
 }
 
+[HarmonyPatchCategory(PatchCategories.UFHeavyIndustries)]
+[HarmonyPatch("HNGT.Verb_BarrelWithRecoilAndFlash", "BaseTryCastShot")]
+[PatchLevel(Level.Cautious)]
+public static class Patch_Verb_BarrelWithRecoilAndFlash_BaseTryCastShot
+{
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
+            .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned)
+            .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
+    }
+}
+
 // [HarmonyPatchCategory(PatchCategories.UFHeavyIndustries)]
 // [HarmonyPatch("ATFieldGenerator.Comp_AbsoluteTerrorField", "Break")]
 // [PatchLevel(Level.Cautious)]

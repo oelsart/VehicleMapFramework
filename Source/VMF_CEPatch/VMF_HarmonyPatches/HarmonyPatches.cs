@@ -175,6 +175,26 @@ public static class Patch_Verb_LaunchProjectileCE_TryCastShot
     }
 }
 
+
+[HarmonyPatchCategory(PatchCategories.CombatExtended)]
+[HarmonyPatch(typeof(Verb), nameof(Verb.TryFindShootLineFromTo))]
+[PatchLevel(Level.Safe)]
+public static class Patch_Verb_TryFindShootLineFromTo
+{
+    public static bool Prefix(Verb __instance, IntVec3 root, LocalTargetInfo targ, ref ShootLine resultingLine, bool ignoreRange, ref bool __result)
+    {
+        if (__instance is Verb_LaunchProjectileCE)
+            return true;
+        
+        if (VerbOnVehicleUtility.ShouldConsiderCrossMap(__instance.caster, root, targ))
+        {
+            __result = __instance.TryFindShootLineFromToOnVehicle(root, targ, out resultingLine, ignoreRange);
+            return false;
+        }
+        return true;
+    }
+}
+
 [HarmonyPatchCategory(PatchCategories.CombatExtended)]
 [HarmonyPatch(typeof(Verb_LaunchProjectileCE), "TryFindCEShootLineFromTo", [typeof(IntVec3), typeof(LocalTargetInfo), typeof(ShootLine), typeof(Vector3)], [ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Out, ArgumentType.Out])]
 [PatchLevel(Level.Safe)]
@@ -182,14 +202,7 @@ public static class Patch_Verb_LaunchProjectileCE_TryFindCEShootLineFromTo
 {
     public static bool Prefix(Verb_LaunchProjectileCE __instance, IntVec3 root, LocalTargetInfo targ, ref ShootLine resultingLine, ref Vector3 targetPos, ref bool __result)
     {
-        if (VehiclePawnWithMapCache.AllVehiclesOn(__instance.caster.GroundMap).Count == 0)
-            return true;
-
-        if (__instance.caster.IsOnVehicleMap ||
-            targ.Thing.IsOnVehicleMap ||
-            (__instance.caster.TryGetTargetMap(out var map) && map.IsVehicleMap) ||
-            root.IsValid && GenSight.PointsOnLineOfSight(root, targ.Cell)
-                .Any(c => c.InBounds(__instance.caster.Map) && c.TryGetVehicleMap(__instance.caster.Map, out _)))
+        if (VerbOnVehicleUtility.ShouldConsiderCrossMap(__instance.caster, root, targ))
         {
             __result = __instance.TryFindCEShootLineFromToOnVehicle(root, targ, out resultingLine, out targetPos);
             return false;
