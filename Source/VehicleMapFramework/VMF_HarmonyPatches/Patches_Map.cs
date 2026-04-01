@@ -743,17 +743,15 @@ public static class Patch_Caravan_Notify_PawnRemoved
 [PatchLevel(Level.Cautious)]
 public static class Patch_StorytellerUtility_DefaultThreatPointsNow
 {
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    public static bool Prefix(IIncidentTarget target, ref float __result)
     {
-        var g_IsPocketMap = AccessTools.PropertyGetter(typeof(Map), nameof(Map.IsPocketMap));
-        var m_IsPocketMapReplace = AccessTools.Method(typeof(Patch_StorytellerUtility_DefaultThreatPointsNow), nameof(IsPocketMapReplace));
-        return instructions.MethodReplacer(g_IsPocketMap, m_IsPocketMapReplace);
-    }
+        if (target is Map { IsVehicleMap: true } || target.PlayerPawnsForStoryteller.Any(p => p is VehiclePawnWithMap))
+        {
+            __result = VehicleMapUtility.DefaultThreatPointsNowForMapVehicles(target);
+            return false;
+        }
 
-    private static bool IsPocketMapReplace(Map map)
-    {
-        if (!map.IsPocketMap) return false;
-        return map.PocketMapParent?.sourceMap is not null;
+        return true;
     }
 }
 

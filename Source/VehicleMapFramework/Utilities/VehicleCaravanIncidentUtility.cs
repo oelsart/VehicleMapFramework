@@ -132,6 +132,7 @@ public class VehicleCaravanIncidentUtility
             var pawnCount = enemies.Count;
             var num = pawnCount;
             var weightSum = vehicles.Sum(v => v.CompNpcVehicleMap?.Props.pawnCountWeight ?? 0f);
+            if (weightSum == 0f) weightSum = 1f;
             for (var i = 0; i < vehicles.Count; i++)
             {
                 var vehicle = vehicles[i];

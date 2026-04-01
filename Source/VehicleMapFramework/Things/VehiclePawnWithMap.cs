@@ -218,10 +218,8 @@ public class VehiclePawnWithMap : VehiclePawn
                 {
                     var rot = new Rot4(i);
                     var facingInside = rot.Opposite.FacingCell;
-                    var cells = cellRect.GetEdgeCells(rot);
                     // GetEdgeCellsはminからの列挙なので東と南は反転させ時計回りにしておく。
-                    cells = rot is { AsInt: Rot4.EastInt or Rot4.SouthInt } ? cells.Reverse() : cells;
-                    foreach (var c in cells)
+                    foreach (var c in cellRect.EdgeRectClockwise(rot))
                     {
                         var c2 = c;
                         while (CachedOutOfBoundsCells.Contains(c2) ||
