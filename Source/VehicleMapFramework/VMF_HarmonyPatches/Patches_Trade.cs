@@ -285,15 +285,20 @@ public static class Patch_IncidentWorker_OrbitalTraderArrival_TryExecuteWorker
         }
     }
 
+    private static readonly List<Building> buildings = [];
+
     private static List<Building> AddBuildings(List<Building> list, IncidentParms parms)
     {
+        var allVehicles = VehiclePawnWithMapCache.AllVehiclesOn((Map)parms.target);
+        if (allVehicles.NullOrEmpty()) return list;
+        
         buildings.Clear();
         for (var i = 0; i < list.Count; i++)
         {
             buildings.Add(list[i]);
         }
 
-        foreach (var vehicle in VehiclePawnWithMapCache.AllVehiclesOn((Map)parms.target))
+        foreach (var vehicle in allVehicles)
         {
             var allBuildingsColonist = vehicle.VehicleMap.listerBuildings.allBuildingsColonist;
             for (var i = 0; i < allBuildingsColonist.Count; i++)
@@ -303,6 +308,4 @@ public static class Patch_IncidentWorker_OrbitalTraderArrival_TryExecuteWorker
         }
         return buildings;
     }
-
-    private static readonly List<Building> buildings = [];
 }

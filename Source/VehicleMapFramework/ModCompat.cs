@@ -11,7 +11,6 @@ using RimWorld;
 using RimWorld.Planet;
 using UnityEngine;
 using VehicleMapFramework.VMF_HarmonyPatches;
-using VehicleMapFramework.VMF_HarmonyPatches.AM;
 using Vehicles;
 using Verse;
 using Verse.AI;
@@ -32,12 +31,22 @@ internal static class ModCompat
     
     internal static bool AnyNull(params object[] args)
     {
-        return args.Any(arg => arg == null);
+        for (var i = 0; i < args.Length; i++)
+        {
+            if (args[i] is null)
+            {
+                LogError(new Exception($"Argument {i} is null."));
+                return true;
+            }
+        }
+
+        return false;
     }
     
     internal static void LogIncompat(string modName)
     {
-        LogError(new Exception($"{modName} compatibility is broken."));
+        if (!UnitTestDetector.IsTestingContext)
+            LogError(new Exception($"{modName} compatibility is broken."));
     }
 
     internal static bool IsModActive(string id)
@@ -342,12 +351,14 @@ internal static class ModCompat
     public static class DefenseGrid
     {
         public static readonly bool Active = IsModActive("Aelanna.EccentricTech.DefenseGrid");
-
         public static readonly Type SectionLayer_DefenseGridOverlay;
-
         public static readonly Type CompDefenseConduit;
-
         public static readonly Type Designator_DeconstructConduit;
+        public static readonly Type InterceptorMapComponent;
+        public static readonly AccessTools.FieldRef<MapComponent, IList> grids;
+        public static readonly AccessTools.FieldRef<object, MapComponent> mapComponent;
+        public static readonly FastInvokeHandler RepaintGrid;
+        public static readonly FastInvokeHandler UnpaintGrid;
 
         static DefenseGrid()
         {
@@ -358,6 +369,12 @@ internal static class ModCompat
                     SectionLayer_DefenseGridOverlay = AccessTools.TypeByName("EccentricDefenseGrid.SectionLayer_DefenseGridOverlay");
                     CompDefenseConduit = AccessTools.TypeByName("EccentricDefenseGrid.CompDefenseConduit");
                     Designator_DeconstructConduit = AccessTools.TypeByName("EccentricDefenseGrid.Designator_DeconstructConduit");
+                    InterceptorMapComponent = GenTypes.GetTypeInAnyAssembly("EccentricProjectiles.InterceptorMapComponent", "EccentricProjectiles");
+                    grids = AccessTools.FieldRefAccess<IList>(InterceptorMapComponent, "grids");
+                    var t_InterceptorGrid = GenTypes.GetTypeInAnyAssembly("EccentricProjectiles.InterceptorGrid", "EccentricProjectiles");
+                    mapComponent = AccessTools.FieldRefAccess<MapComponent>(t_InterceptorGrid, "mapComponent");
+                    RepaintGrid = MethodInvoker.GetHandler(AccessTools.Method(InterceptorMapComponent, "RepaintGrid"));
+                    UnpaintGrid = MethodInvoker.GetHandler(AccessTools.Method(InterceptorMapComponent, "UnpaintGrid"));
                 }
                 catch (Exception ex)
                 {
@@ -366,7 +383,8 @@ internal static class ModCompat
                 }
                 finally
                 {
-                    if (AnyNull(SectionLayer_DefenseGridOverlay, CompDefenseConduit, Designator_DeconstructConduit))
+                    if (AnyNull(SectionLayer_DefenseGridOverlay, CompDefenseConduit, Designator_DeconstructConduit,
+                            InterceptorMapComponent, grids, RepaintGrid, UnpaintGrid))
                     {
                         LogIncompat("Defense Grid");
                         Active = false;
@@ -381,6 +399,8 @@ internal static class ModCompat
     public static readonly bool GiantImperialTurret = IsModActive("XMB.Giantimperialcannonturret.MO");
 
     public static readonly bool Gunplay = IsModActive("automatic.gunplay");
+
+    public static readonly bool IRBM = IsModActive("kazepsi.irbm");
 
     public static class MeleeAnimation
     {
@@ -546,6 +566,13 @@ internal static class ModCompat
         }
     }
 
+    public static class VFEFactory
+    {
+        public static readonly bool Active = IsModActive("VanillaExpanded.VFEFactory");
+    }
+
+    public static readonly bool VPsyE = IsModActive("VanillaExpanded.VPsycastsE");
+
     public static class VVE
     {
         public static readonly bool Active = IsModActive("OskarPotocki.VanillaVehiclesExpanded");
@@ -575,37 +602,6 @@ internal static class ModCompat
                 }
             }
         }
-    }
-
-    public static class VFEMechanoid
-    {
-        public static readonly bool Active = IsModActive("OskarPotocki.VFE.Mechanoid");
-        
-        public static readonly FastInvokeHandler DoWorkOnCell = null;
-    //
-    //     static VFEMechanoid()
-    //     {
-    //         if (Active)
-    //         {
-    //             try
-    //             {
-    //                 DoWorkOnCell = MethodInvoker.GetHandler(AccessTools.Method("VFE.Mechanoids.Buildings.Building_AutoPlant:DoWorkOnCell"));
-    //             }
-    //             catch (Exception ex)
-    //             {
-    //                 LogError(ex);
-    //                 Active = false;
-    //             }
-    //             finally
-    //             {
-    //                 if (AnyNull(DoWorkOnCell))
-    //                 {
-    //                     LogIncompat("VFEMechanoids");
-    //                     Active = false;
-    //                 }
-    //             }
-    //         }
-    //     }
     }
 
     public static readonly bool VGE = IsModActive("vanillaexpanded.gravship");
@@ -693,6 +689,8 @@ internal static class ModCompat
     }
 
     public static readonly bool TraderShips = IsModActive("automatic.traderships");
+    
+    public static readonly bool UFHeavyIndustries = IsModActive("KindSeal.LOL");
 
     public static readonly bool NightmareCore = IsModActive("Nightmare.Core");
     
@@ -728,6 +726,8 @@ internal static class ModCompat
     }
 
     public static readonly bool SmartPistol = IsModActive("rabiosus.smartpistol");
+
+    public static readonly bool SRALib = IsModActive("DiZhuan.SRALib");
     
     public static readonly bool RealFogOfWar = IsModActive("Mlie.NWNRealFogOfWar");
 
@@ -845,6 +845,8 @@ internal static class ModCompat
     public static readonly bool RimWorldOfMagic = IsModActive("Torann.ARimworldOfMagic");
 
     public static readonly bool CeleTech = IsModActive("TOT.CeleTech.MKIII");
+    
+    public static readonly bool PerspectiveShift = IsModActive("ferny.PerspectiveShift");
 
     public static readonly bool PauseOtherSettlements = IsModActive("esvn.PauseOtherSettlementsSimulation");
 

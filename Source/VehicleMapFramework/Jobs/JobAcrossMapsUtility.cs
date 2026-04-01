@@ -27,7 +27,7 @@ public static class JobAcrossMapsUtility
     public static List<WorkGiverDef> DisabledCrossMapWorkGiverDefs { get; } = [];
 
     public static void StartGotoDestMapJob(Pawn pawn, TargetInfo? exitSpot = null, TargetInfo? enterSpot = null,
-        List<(TargetInfo, TargetInfo)> spotsQueue = null)
+        List<TraverseSpots> spotsQueue = null)
     {
         if (pawn.jobs is null or { curDriver: JobDriverAcrossMaps })
             return;
@@ -42,9 +42,9 @@ public static class JobAcrossMapsUtility
     }
 
     public static Job GotoDestMapJob(Pawn pawn, TargetInfo? exitSpot = null, TargetInfo? enterSpot = null,
-        List<(TargetInfo, TargetInfo)> spotsQueue = null, Job nextJob = null)
+        List<TraverseSpots> spotsQueue = null, Job nextJob = null)
     {
-        if (!spotsQueue.NullOrEmpty() && spotsQueue.Any(s => s.Item1 is { Map: not null } || s.Item2 is { Map: not null }))
+        if (!spotsQueue.NullOrEmpty() && spotsQueue.Any(s => s.exitSpot is { Map: not null } || s.enterSpot is { Map: not null }))
             return JobMaker.MakeJob(VMF_DefOf.VMF_GotoDestMap).SetSpotsAndNextJob(pawn, spotsQueue, nextJob: nextJob);
         if (enterSpot is { Map: not null } || exitSpot is { Map: not null })
             return JobMaker.MakeJob(VMF_DefOf.VMF_GotoDestMap).SetSpotsAndNextJob(pawn, exitSpot, enterSpot, nextJob: nextJob);
@@ -54,7 +54,7 @@ public static class JobAcrossMapsUtility
     extension(Job job)
     {
         public Job SetSpotsToJobAcrossMaps(Pawn pawn, TargetInfo? exitSpot = null, TargetInfo? enterSpot = null,
-            List<(TargetInfo, TargetInfo)> spotsQueue = null)
+            List<TraverseSpots> spotsQueue = null)
         {
             if (job.GetCachedDriver(pawn) is not JobDriverAcrossMaps driver) return null;
             if (spotsQueue.NullOrEmpty()) driver.SetSpots(exitSpot, enterSpot);
@@ -62,8 +62,8 @@ public static class JobAcrossMapsUtility
             return job;
         }
         
-        public Job SetSpotsAndNextJob(Pawn pawn, List<(TargetInfo, TargetInfo)> spotsQueueA = null,
-            List<(TargetInfo, TargetInfo)> spotsQueueB = null, Job nextJob = null)
+        public Job SetSpotsAndNextJob(Pawn pawn, List<TraverseSpots> spotsQueueA = null,
+            List<TraverseSpots> spotsQueueB = null, Job nextJob = null)
         {
             if (job.GetCachedDriver(pawn) is not JobDriver_GotoDestMap driver) return null;
             driver.SetSpots(spotsQueueA, spotsQueueB);

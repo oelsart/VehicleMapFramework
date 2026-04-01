@@ -17,14 +17,14 @@ jobs:
           curl -L -o ./TestResults.xml "https://gist.githubusercontent.com/oelsart/3bb8183cedc9869f566440ca1553c633/raw/TestResults.xml"
 
       - name: Upload local test results artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: LocalTestResults
           path: |
             ./TestResults.xml
       
       - name: Test Report
-        uses: dorny/test-reporter@v2
+        uses: dorny/test-reporter@v3
         with:
           artifact: LocalTestResults
           name: Local Tests
@@ -34,7 +34,6 @@ jobs:
           
   build:
     runs-on: ubuntu-latest
-    needs: report_local_tests
     
     env:
       Solution_Name: VehicleMapFramework
@@ -49,25 +48,25 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         submodules: true
         fetch-depth: 0
 
     - name: Install .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v5
       with:
         dotnet-version: 9.0.x
     
     - name: Restore Dependencies
       run: dotnet restore ${{ env.Project_Path }}
       
-    - name: Cache SteamCMD
+    - name: Restore Cache
       id: cache-steam
-      uses: actions/cache@v4
+      uses: actions/cache/restore@v5
       with:
         path: ~/Steam
-        key: steamcmd-${{ github.run_id }}
+        key: steamcmd-initial
         restore-keys: |
           steamcmd-
           
@@ -82,26 +81,37 @@ jobs:
       run: |
         mkdir -p ~/Steam/steamapps/workshop/content/294100
         
-        STEAM_COMMANDS="+login anonymous"
+        {
+          echo "login anonymous"
+          while IFS= read -r line; do
+            mod_id=$(echo "$line" | sed 's/#.*//' | xargs)
+            [[ -n "$mod_id" ]] && echo "workshop_download_item 294100 $mod_id validate"
+          done <<< "${{ env.WorkshopMods }}"
+          echo "quit"
+        } > steam_script.txt
         
-        while IFS= read -r mod_id; do
-          if [ -n "$mod_id" ]; then
-            echo "Queueing Workshop Mod: $mod_id"
-            STEAM_COMMANDS="${STEAM_COMMANDS} +workshop_download_item 294100 $mod_id validate"
-          fi
-        done <<< "${{ env.WorkshopMods }}"
-        
-        STEAM_COMMANDS="${STEAM_COMMANDS} +quit"
-        ~/Steam/steamcmd.sh ${STEAM_COMMANDS}
+        ~/Steam/steamcmd.sh +runscript "$(pwd)/steam_script.txt"
         
         echo "CI_SteamCMD_WorkShop=$HOME/Steam/steamapps/workshop/content/294100" >> $GITHUB_ENV
         ls -la ~/Steam/steamapps/workshop/content/294100
+    
+    - name: Generate Content Hash
+      run: |
+        MODS_HASH=$(find ~/Steam/steamapps/workshop/content/294100 -type f -print0 | sort -z | xargs -0 sha1sum | sha1sum | awk '{print $1}')
+        echo "MODS_HASH=$MODS_HASH" >> $GITHUB_ENV
+
+    - name: Save Cache
+      uses: actions/cache/save@v5
+      with:
+        path: ~/Steam
+        key: steamcmd-${{ env.MODS_HASH }}
+        enableCrossOsArchive: true
 
     - name: Build Mod DLL
       run: dotnet build ${{ env.Project_Path }} --configuration Release --no-restore /p:SkipPostBuild=true /p:SteamWorkshopRoot=${{ env.CI_SteamCMD_WorkShop }}
     
     - name: Upload build artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: VehicleMapFramework
         path: |

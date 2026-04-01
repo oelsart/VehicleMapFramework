@@ -33,7 +33,7 @@ public static class CrossMapReachabilityUtility
 
     private static readonly List<MapTraverse> traverseList = new(16);
     
-    private static readonly Stack<(TargetInfo, TargetInfo)> tmpTargets = new(16);
+    private static readonly Stack<TraverseSpots> tmpTargets = new(16);
     
     private static readonly HashSet<Map> visitedMaps = new(16);
     
@@ -116,7 +116,7 @@ public static class CrossMapReachabilityUtility
             return pawn.Spawned && CanReach(pawn.DepartMap ?? pawn.Map, traverseParms.pawn.Position, dest3, peMode, traverseParms, destMap, out _, out _, out _);
         }
 
-        public bool CanReach(LocalTargetInfo dest3, PathEndMode peMode, Danger maxDanger, bool canBashDoors, bool canBashFences, TraverseMode mode, Map destMap, out TargetInfo exitSpot, out TargetInfo enterSpot, out List<(TargetInfo, TargetInfo)> spotsQueue)
+        public bool CanReach(LocalTargetInfo dest3, PathEndMode peMode, Danger maxDanger, bool canBashDoors, bool canBashFences, TraverseMode mode, Map destMap, out TargetInfo exitSpot, out TargetInfo enterSpot, out List<TraverseSpots> spotsQueue)
         {
             var traverseParms = TraverseParms.For(pawn, maxDanger: maxDanger, mode: mode, canBashDoors: canBashDoors, canBashFences: canBashFences);
             exitSpot = TargetInfo.Invalid;
@@ -171,7 +171,7 @@ public static class CrossMapReachabilityUtility
 
     public static bool CanReach(Map departMap, IntVec3 root, LocalTargetInfo dest, PathEndMode peMode,
         TraverseParms traverseParms, Map destMap, out TargetInfo exitSpot, out TargetInfo enterSpot,
-        out List<(TargetInfo, TargetInfo)> spotsQueue, bool canUseAbility = true)
+        out List<TraverseSpots> spotsQueue, bool canUseAbility = true)
     {
         exitSpot = TargetInfo.Invalid;
         enterSpot = TargetInfo.Invalid;
@@ -278,7 +278,7 @@ public static class CrossMapReachabilityUtility
                         spotsQueue.Clear();
                         foreach (var traverse in traverseList)
                         {
-                            spotsQueue.Add((traverse.exitSpot, traverse.enterSpot));
+                            spotsQueue.Add(new TraverseSpots(traverse.exitSpot, traverse.enterSpot));
                         }
                         traverseList.Clear();
                     }
@@ -544,7 +544,7 @@ public static class CrossMapReachabilityUtility
                             }
                         }
                         
-                        bool CanReachRecursive(out List<(TargetInfo, TargetInfo)> spotsQueue)
+                        bool CanReachRecursive(out List<TraverseSpots> spotsQueue)
                         {
                             spotsQueue = null;
                             var destBaseMapCoord = dest.Cell.ToBaseMapCoord(vehicle);
@@ -595,7 +595,7 @@ public static class CrossMapReachabilityUtility
                                     if (CellCheck(c, map, pawn) && CellCheck(c2, map2, pawn) &&
                                         map2.reachability.CanReach(start, c, PathEndMode.OnCell, traverseParms2))
                                     {
-                                        tmpTargets.Push((comp2.parent, TargetInfo.Invalid));
+                                        tmpTargets.Push(new TraverseSpots(comp2.parent, TargetInfo.Invalid));
                                         if (!EnterMap(map2, c2))
                                         {
                                             tmpTargets.Pop();
@@ -615,7 +615,7 @@ public static class CrossMapReachabilityUtility
                                                 new TargetInfo(start, map), new TargetInfo(targetMap.Center, targetMap),
                                                 out var castSpot, out var targSpot))
                                         {
-                                            tmpTargets.Push((castSpot, targSpot));
+                                            tmpTargets.Push(new TraverseSpots(castSpot, targSpot));
                                             if (!EnterMap(targetMap, targSpot.Cell))
                                             {
                                                 tmpTargets.Pop();
@@ -1251,8 +1251,8 @@ public static class CrossMapReachabilityUtility
                 {
                     foreach (var spots in spotsQueue)
                     {
-                        FlashCell(spots.Item1, false, ref i);
-                        FlashCell(spots.Item2, true, ref i);
+                        FlashCell(spots.exitSpot, false, ref i);
+                        FlashCell(spots.enterSpot, true, ref i);
                     }
                 }
                 FlashCell(exitSpot, false, ref i);

@@ -2,22 +2,33 @@
 - Name: VanillaExpandedFramework
 - Name: VFEArchitect
 - Name: VFESecurity
-#- Name: VFESecurity + CE
-#  Mods:
-#    - VFESecurity
-#  Categories:
-#    - VMF_Patches_CombatExtendedVFESecurityCompat
+- Name: VFESecurity + CE
+  Mods:
+    - VFESecurity
+  Categories:
+    - VMF_Patches_CombatExtendedVFESecurityCompat
+- Name: VFEFactory
 - Name: VVehiclesE
-#- Name: VFEMechanoids
 - Name: VGravshipE
 - Name: VQEGenerator
 - Name: VTemperatureE
+- Name: VPsyE
+- Name: VPsyE + CE
+  Mods:
+    - VPsyE
+  Categories:
+    - VMF_Patches_CombatExtendedVPsyECompat
 - Name: Achtung
 - Name: CombatExtended
 - Name: DubsBadHygiene
 - Name: Rimefeller
   LoadOnly: true
 - Name: Rimatomics
+- Name: Rimatomics + CE
+  Mods:
+    - Rimatomics
+  Categories:
+    - VMF_Patches_CombatExtendedRimatomicsCompat
 - Name: AdaptiveStorageFramework
 - Name: AllowTool
   Mods:
@@ -54,6 +65,7 @@
     - Prepatcher
     - MultiFloors
 - Name: MuzzleFlash
+- Name: PerspectiveShift
 - Name: PauseOtherSettlements
 - Name: ProjectRimFactory
 - Name: PickUpAndHaul

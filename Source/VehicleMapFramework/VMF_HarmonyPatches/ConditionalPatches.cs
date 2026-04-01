@@ -5,9 +5,6 @@ using System.Reflection.Emit;
 using HarmonyLib;
 using UnityEngine;
 using SmashTools;
-#if DEV
-using SmashTools.Burst;
-#endif
 using Vehicles;
 using Verse;
 
@@ -19,6 +16,15 @@ internal class ConditionalPatches
     static ConditionalPatches()
     {
         // This class is just a placeholder for conditional patches.
+        var method = AccessTools.Method(typeof(VehicleOrientationController), "VehicleCanStandAt");
+        if (method is not null)
+        {
+            VMF_Harmony.Instance.Patch(method,
+                prefix: AccessTools.Method(typeof(Patch_VehicleOrientationController_VehicleCanStandAt),
+                    nameof(Patch_VehicleOrientationController_VehicleCanStandAt.Prefix)),
+                finalizer: AccessTools.Method(typeof(Patch_VehicleOrientationController_VehicleCanStandAt),
+                    nameof(Patch_VehicleOrientationController_VehicleCanStandAt.Finalizer)));
+        }
     }
 
     internal static void DebugError(string methodName)
@@ -69,11 +75,29 @@ public static class Patch_VehiclePath_DrawPath
     private static MethodBase TargetMethod()
     {
 #if DEV
-        var method = AccessTools.Method(typeof(Ext_Path), nameof(VehiclePath.DrawPath));
+        var type = GenTypes.GetTypeInAnyAssembly("SmashTools.Burst.Ext_Path", "SmashTools.Burst");
+        var method = AccessTools.Method(type, "DrawPath");
         if (method is not null) return method;
 #endif
         return AccessTools.Method(typeof(VehiclePath), nameof(VehiclePath.DrawPath));
     }
     
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator) => Patch_PawnPath_DrawPath.Transpiler(instructions, generator);
+}
+
+// [HarmonyPatchCategory(PatchCategories.VehicleFramework)]
+// [HarmonyPatch(typeof(VehicleOrientationController), "VehicleCanStandAt")]
+// [PatchLevel(Level.Cautious)]
+public static class Patch_VehicleOrientationController_VehicleCanStandAt
+{
+    public static void Prefix(VehiclePawn vehicle, ref VirtualTeleporter? __state)
+    {
+        if (vehicle.TryGetTargetMap(out var map) && vehicle.Map != map)
+            __state = new VirtualTeleporter(vehicle, map);
+    }
+
+    public static void Finalizer(VirtualTeleporter? __state)
+    {
+        __state?.Dispose();
+    }
 }

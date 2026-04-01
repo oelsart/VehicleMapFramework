@@ -48,7 +48,7 @@ public static class Patch_Comp_DrakkenLaserDrill_AutoAttack_DoSomething_AttackAl
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-            .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
+            .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
     }
 }
 
@@ -60,7 +60,7 @@ public static class Patch_Comp_DrakkenLaserDrill_AutoAttack_PrepareToAttack
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-            .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
+            .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
     }
 }
 
@@ -91,8 +91,8 @@ public static class Patch_Comp_DrakkenLaserDrill_Attack_DoSomething_I_Delegate
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         if (UnitTestDetector.IsTestingContext) return instructions;
-        return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap)
-            .MethodReplacer(CachedMethodInfo.g_TargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap_TargetInfo);
+        return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned)
+            .MethodReplacer(CachedMethodInfo.g_TargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned_TargetInfo);
     }
 }
 
@@ -123,8 +123,8 @@ public static class Patch_Comp_DrakkenLaserDrill_Attack_DoSomething_II_Delegate
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         if (UnitTestDetector.IsTestingContext) return instructions;
-        return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap)
-            .MethodReplacer(CachedMethodInfo.g_TargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap_TargetInfo)
-            .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
+        return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned)
+            .MethodReplacer(CachedMethodInfo.g_TargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned_TargetInfo)
+            .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
     }
 }

@@ -75,7 +75,7 @@ public static class Patch_Thing_Print
             .Where(m =>
             {
                 if (m is null) return false;
-                return VMF_Harmony.ReadMethodBodyWrapper(m).Any(i =>
+                return PatchHelper.ReadMethodBodyWrapper(m).Any(i =>
                     OpCodes.Ldc_R4.Equals(i.Key) && 0f.Equals(i.Value));
             });
     }
@@ -412,29 +412,19 @@ public static class Patch_Graphic_Shadow_DrawWorker
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
-        var codes = new CodeMatcher(instructions, generator);
-        codes.MatchStartForward(CodeMatch.StoresField(AccessTools.Field(typeof(Vector3), nameof(Vector3.y))));
-        codes.DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle);
-        codes.CreateLabel(out var label);
-        codes.InsertAndAdvance(
-            CodeInstruction.LoadArgument(4),
-            new CodeInstruction(OpCodes.Ldloca_S, vehicle),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf),
-            new CodeInstruction(OpCodes.Brfalse_S, label),
-            new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_YOffsetFull));
-
-        codes.MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Rot4_AsQuat));
-        codes.Operand = CachedMethodInfo.m_Rot8_AsQuatRef;
-        codes.CreateLabelWithOffsets(1, out var label2);
-        codes.InsertAfter(
-            new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-            new CodeInstruction(OpCodes.Brfalse_S, label2),
-            new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_FullAngleQuat),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.o_Quaternion_Multiply));
-
-        return codes.Instructions();
+        return new CodeMatcher(instructions, generator)
+            .AddAltitudeFor(out var vehicle,
+                getInstance: [CodeInstruction.LoadArgument(4)])
+            .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Rot4_AsQuat))
+            .SetOperandAndAdvance(CachedMethodInfo.m_Rot8_AsQuatRef)
+            .CreateLabel(out var label)
+            .Insert(
+                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+                new CodeInstruction(OpCodes.Brfalse_S, label),
+                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_FullAngleQuat),
+                new CodeInstruction(OpCodes.Call, CachedMethodInfo.o_Quaternion_Multiply))
+            .InstructionEnumeration();
     }
 }
 

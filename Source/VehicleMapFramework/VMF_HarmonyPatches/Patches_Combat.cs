@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
 using HarmonyLib;
 using RimWorld;
 using UnityEngine;
@@ -44,7 +45,7 @@ public static class Patch_PawnLeaner_Notify_WarmingCastAlongLine
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
     }
 }
 
@@ -79,6 +80,9 @@ public static class Patch_Projectile_Launch
     // ManTurretJobのpawnのターゲットマップではなくタレット自体のターゲットマップでベースマップ座標を取得する
     private static IntVec3 TargetCell(ref LocalTargetInfo targ, Thing launcher, Thing equipment)
     {
+        if (launcher.IsOnNonFocusedVehicleMapOf(out var vehicle) && !vehicle.Spawned)
+            return targ.Cell;
+        
         var thing = launcher;
         if (equipment is not null && equipment.TryGetComp<CompMannable>(out var comp) && comp.ManningPawn == launcher)
         {
@@ -108,40 +112,105 @@ public static class Patch_Projectile_CanHit
     }
 }
 
+[HarmonyPatch(typeof(CompProjectileInterceptor), nameof(CompProjectileInterceptor.CheckIntercept))]
+[PatchLevel(Level.Mandatory)]
+public static class Patch_CompProjectileInterceptor_CheckIntercept
+{
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    [HarmonyReversePatch]
+    public static bool CheckIntercept(CompProjectileInterceptor instance, Projectile projectile,
+        Vector3 lastExactPos, Vector3 newExactPos)
+    {
+        _ = Transpiler(null);
+        throw new NotImplementedException();
+        
+        IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
+        }
+    }
+}
+
 [HarmonyPatch(typeof(Projectile), "CheckForFreeInterceptBetween")]
 [PatchLevel(Level.Sensitive)]
+[StaticConstructorOnStartup]
 public static class Patch_Projectile_CheckForFreeInterceptBetween
 {
-    private static readonly List<Thing> tmpList = [];
+    public delegate bool Prefix(Projectile __instance, Vector3 lastExactPos, Vector3 newExactPos, ref bool __result);
+    
+    // TabulaRasaのPostfixの引数順にちなむ
+    public delegate void Postfix(Projectile __instance, ref bool __result, Vector3 lastExactPos, Vector3 newExactPos);
 
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    public static List<Prefix> Prefixes { get; } = [];
+    
+    public static List<Postfix> Postfixes { get; } = [VanillaIntercept];
+
+    private static readonly Action<Projectile, Thing, bool> Impact =
+        AccessTools.MethodDelegate<Action<Projectile, Thing, bool>>(AccessTools.Method(typeof(Projectile), "Impact"));
+    
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
-        var codes = instructions.ToList();
-        var pos = codes.FindIndex(c => c.opcode == OpCodes.Stloc_0);
+        return new CodeMatcher(instructions, generator)
+            .MatchStartForward(new CodeMatch(OpCodes.Ldarg_1), CodeMatch.Calls(CachedMethodInfo.m_ToIntVec3))
+            .CreateLabel(out var label)
+            .Insert(
+                CodeInstruction.LoadArgument(0),
+                CodeInstruction.LoadArgument(1),
+                CodeInstruction.LoadArgument(2),
+                CodeInstruction.Call(
+                    typeof(Patch_Projectile_CheckForFreeInterceptBetween), nameof(CheckInterceptCrossMap)),
+                new CodeInstruction(OpCodes.Brfalse_S, label),
+                new CodeInstruction(OpCodes.Ldc_I4_1),
+                new CodeInstruction(OpCodes.Ret))
+            .InstructionEnumeration();
+    }
+    
+    private static bool CheckInterceptCrossMap(Projectile instance, Vector3 lastExactPos, Vector3 newExactPos)
+    {
+        if (!instance.Spawned) return false;
 
-        codes.InsertRange(pos,
-        [
-            CodeInstruction.LoadArgument(0),
-            CodeInstruction.LoadField(typeof(Projectile), "launcher"),
-            CodeInstruction.LoadArgument(0),
-            CodeInstruction.Call(typeof(Patch_Projectile_CheckForFreeInterceptBetween), nameof(IncludeVehicleMapIntercepters))
-        ]);
-        return codes;
+        foreach (var vehicle in VehiclePawnWithMapCache.AllVehiclesOnAsReadOnlySpan(instance.Map))
+        {
+            instance.TargetMap = vehicle.VehicleMap;
+            try
+            {
+                for (var i = 0; i < Prefixes.Count; i++)
+                {
+                    var result = false;
+                    if (!Prefixes[i](instance, lastExactPos, newExactPos, ref result) && result) return true;
+                }
+
+                for (var i = 0; i < Postfixes.Count; i++)
+                {
+                    var result = false;
+                    Postfixes[i](instance, ref result, lastExactPos, newExactPos);
+                    if (result)
+                    {
+                        Impact(instance, null, true);
+                        return true;
+                    }
+                }
+            }
+            finally
+            {
+                instance.RemoveTargetInfo();
+            }
+        }
+        return false;
     }
 
-    public static List<Thing> IncludeVehicleMapIntercepters(List<Thing> list, Thing launcher, Projectile instance)
+    private static void VanillaIntercept(Projectile instance, ref bool __result, Vector3 lastExactPos, Vector3 newExactPos)
     {
-        tmpList.Clear();
-        tmpList.AddRange(list);
-        if (launcher.IsOnVehicleMapOf(out var vehicle))
+        var list = instance.TargetMapOrThingMap.listerThings.ThingsInGroup(ThingRequestGroup.ProjectileInterceptor);
+        for (var i = 0; i < list.Count; i++)
         {
-            tmpList.AddRange(vehicle.VehicleMap.listerThings.ThingsInGroup(ThingRequestGroup.ProjectileInterceptor));
+            if (Patch_CompProjectileInterceptor_CheckIntercept.CheckIntercept(
+                    list[i].TryGetComp<CompProjectileInterceptor>(), instance, lastExactPos, newExactPos))
+            {
+                __result = true;
+                return;
+            }
         }
-        if (instance.usedTarget.HasThing && instance.usedTarget.Thing.IsOnVehicleMapOf(out var vehicle2))
-        {
-            tmpList.AddRange(vehicle2.VehicleMap.listerThings.ThingsInGroup(ThingRequestGroup.ProjectileInterceptor));
-        }
-        return tmpList;
     }
 }
 
@@ -152,6 +221,79 @@ public static class Patch_Projectile_CheckForFreeIntercept
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.m_GetThingList, CachedMethodInfo.m_GetThingListAcrossMaps);
+    }
+}
+
+
+[HarmonyPatch(typeof(CompProjectileInterceptor), nameof(CompProjectileInterceptor.CheckBombardmentIntercept))]
+[PatchLevel(Level.Mandatory)]
+public static class Patch_CompProjectileInterceptor_CheckBombardmentIntercept
+{
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    [HarmonyReversePatch]
+    public static bool CheckBombardmentIntercept(CompProjectileInterceptor instance, Bombardment bombardment,
+        Bombardment.BombardmentProjectile projectile)
+    {
+        _ = Transpiler(null);
+        throw new NotImplementedException();
+        
+        IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
+        }
+    }
+}
+
+[HarmonyPatch(typeof(Bombardment), "TryDoExplosion")]
+[PatchLevel(Level.Safe)]
+public static class Patch_Bombardment_TryDoExplosion
+{
+    public static List<Func<Bombardment, Bombardment.BombardmentProjectile, bool>> Prefixes { get; } = [VanillaIntercept];
+
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+    {
+        return new CodeMatcher(instructions, generator)
+            .MatchStartForward(
+                new CodeMatch(OpCodes.Ldarg_1), CodeMatch.LoadsField(
+                    AccessTools.Field(typeof(Bombardment.BombardmentProjectile),
+                        nameof(Bombardment.BombardmentProjectile.targetCell))))
+            .CreateLabel(out var label)
+            .Insert(
+                CodeInstruction.LoadArgument(0),
+                CodeInstruction.LoadArgument(1),
+                CodeInstruction.Call(typeof(Patch_Bombardment_TryDoExplosion), nameof(CheckInterceptCrossMap)),
+                new CodeInstruction(OpCodes.Brfalse_S, label),
+                new CodeInstruction(OpCodes.Ret))
+            .InstructionEnumeration();
+    }
+
+    private static bool CheckInterceptCrossMap(Bombardment __instance, Bombardment.BombardmentProjectile proj)
+    {
+        if (!__instance.Spawned) return false;
+
+        foreach (var vehicle in VehiclePawnWithMapCache.AllVehiclesOnAsReadOnlySpan(__instance.Map))
+        {
+            using var _ = new VirtualTeleporter(__instance, vehicle.VehicleMap);
+            for (var i = 0; i < Prefixes.Count; i++)
+            {
+                if (!Prefixes[i](__instance, proj)) return true;
+            }
+        }
+        return false;
+    }
+
+    private static bool VanillaIntercept(Bombardment __instance, Bombardment.BombardmentProjectile proj)
+    {
+        var list = __instance.Map.listerThings.ThingsInGroup(ThingRequestGroup.ProjectileInterceptor);
+        for (var i = 0; i < list.Count; i++)
+        {
+            if (Patch_CompProjectileInterceptor_CheckBombardmentIntercept.CheckBombardmentIntercept(
+                    list[i].TryGetComp<CompProjectileInterceptor>(), __instance, proj))
+            {
+                return false;
+            }
+        }
+        return true;
     }
 }
 
@@ -223,16 +365,6 @@ public static class Patch_ShotReport_HitReportFor
     }
 }
 
-[HarmonyPatch(typeof(CompProjectileInterceptor), nameof(CompProjectileInterceptor.CheckIntercept))]
-[PatchLevel(Level.Cautious)]
-public static class Patch_CompProjectileInterceptor_CheckIntercept
-{
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
-    }
-}
-
 [HarmonyPatch(typeof(VerbUtility), nameof(VerbUtility.ThingsToHit))]
 [PatchLevel(Level.Cautious)]
 public static class Patch_VerbUtility_ThingsToHit
@@ -261,7 +393,7 @@ public static class Patch_Stance_Warmup_StanceTick
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-            .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
+            .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
     }
 }
 
@@ -271,7 +403,7 @@ public static class Patch_Pawn_TryStartAttack
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap);
+        return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned);
     }
 }
 
@@ -297,7 +429,7 @@ public static class Patch_Building_TurretGun_TryFindNewTarget_Delegate
     
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
     }
 }
 
@@ -307,7 +439,7 @@ public static class Patch_Building_TurretFoam_TryFindNewTarget
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap)
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned)
             .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
             .MethodReplacer(CachedMethodInfo.m_GenSight_LineOfSight2, CachedMethodInfo.m_GenSightOnVehicle_LineOfSight2)
             .MethodReplacer(CachedMethodInfo.m_GetThingList, CachedMethodInfo.m_GetThingListAcrossMaps);
@@ -342,7 +474,7 @@ public static class Patch_Building_TurretGun_IsValidTarget
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap)
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned)
             .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
     }
 }
@@ -397,39 +529,37 @@ public static class Patch_TurretTop_DrawTurret
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
-        var codes = new CodeMatcher(instructions, generator);
-        codes.MatchStartForward(CodeMatch.Calls(
-            AccessTools.Method(typeof(Vector3Utility), nameof(Vector3Utility.RotatedBy), [typeof(Vector3), typeof(float)])));
-        codes.DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle);
-        codes.CreateLabel(out var label);
-        codes.InsertAndAdvance(
-            CodeInstruction.LoadArgument(0),
-            CodeInstruction.LoadField(typeof(TurretTop), "parentTurret"),
-            new CodeInstruction(OpCodes.Ldloca_S, vehicle),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf),
-            new CodeInstruction(OpCodes.Brfalse_S, label),
-            new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-            new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_Angle),
-            new CodeInstruction(OpCodes.Sub)
-            );
-
-        codes.MatchStartForward(new CodeMatch(c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalType == typeof(Quaternion)));
-        codes.CreateLabel(out var label2);
-        codes.DeclareLocal(typeof(LocalTargetInfo), out var target);
-        codes.Insert(
-            new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-            new CodeInstruction(OpCodes.Brfalse_S, label2),
-            CodeInstruction.LoadArgument(0),
-            CodeInstruction.LoadField(typeof(TurretTop), "parentTurret"),
-            new CodeInstruction(OpCodes.Callvirt, AccessTools.PropertyGetter(typeof(Building_Turret), nameof(Building_Turret.CurrentTarget))),
-            new CodeInstruction(OpCodes.Stloc_S, target),
-            new CodeInstruction(OpCodes.Ldloca_S, target),
-            new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(LocalTargetInfo), nameof(LocalTargetInfo.IsValid))),
-            new CodeInstruction(OpCodes.Brtrue_S, label2),
-            new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_FullAngleQuat),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.o_Quaternion_Multiply));
-        return codes.Instructions();
+        return new CodeMatcher(instructions, generator)
+            .MatchStartForward(CodeMatch.Calls(
+            AccessTools.Method(typeof(Vector3Utility), nameof(Vector3Utility.RotatedBy), [typeof(Vector3), typeof(float)])))
+            .DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle)
+            .CreateLabel(out var label)
+            .InsertAndAdvance(
+                CodeInstruction.LoadArgument(0),
+                CodeInstruction.LoadField(typeof(TurretTop), "parentTurret"),
+                new CodeInstruction(OpCodes.Ldloca_S, vehicle),
+                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf),
+                new CodeInstruction(OpCodes.Brfalse_S, label),
+                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+                new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_Angle),
+                new CodeInstruction(OpCodes.Sub))
+            .MatchStartForward(new CodeMatch(c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalType == typeof(Quaternion)))
+            .CreateLabel(out var label2)
+            .DeclareLocal(typeof(LocalTargetInfo), out var target)
+            .Insert(
+                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+                new CodeInstruction(OpCodes.Brfalse_S, label2),
+                CodeInstruction.LoadArgument(0),
+                CodeInstruction.LoadField(typeof(TurretTop), "parentTurret"),
+                new CodeInstruction(OpCodes.Callvirt, AccessTools.PropertyGetter(typeof(Building_Turret), nameof(Building_Turret.CurrentTarget))),
+                new CodeInstruction(OpCodes.Stloc_S, target),
+                new CodeInstruction(OpCodes.Ldloca_S, target),
+                new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(LocalTargetInfo), nameof(LocalTargetInfo.IsValid))),
+                new CodeInstruction(OpCodes.Brtrue_S, label2),
+                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_FullAngleQuat),
+                new CodeInstruction(OpCodes.Call, CachedMethodInfo.o_Quaternion_Multiply))
+            .InstructionEnumeration();
     }
 }
 

@@ -103,8 +103,7 @@ public class ZiplineEnd : ThingWithComps, IZiplineEnd
             launchVerb.ziplineEnd is not IZiplineEnd ziplineEnd) return;
         
         var thing = launchVerb.ziplineEnd;
-        var pos = launcher.IsOnVehicleMapOf(out var vehicle) && !vehicle.Spawned
-            ? thing.Position : thing.PositionOnBaseMap;
+        var pos = thing.PositionOnBaseMapSpawned;
         var bullet = (Bullet_ZiplineEndReturn)ThingMaker.MakeThing(ziplineEnd.ZipLineData.ZiplineReturnDef);
         bullet.launchVerb = launchVerb;
         bullet.ZipLineData = ziplineEnd.ZipLineData;

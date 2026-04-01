@@ -48,7 +48,7 @@ public static class Patch_CustomGenClosest_ClosestThing_Global_Reachable_Custom
             .Where(m =>
             {
                 if (!m.Name.Contains("<ClosestThing_Global_Reachable_Custom>")) return false;
-                return VMF_Harmony.ReadMethodBodyWrapper(m).Any(i =>
+                return PatchHelper.ReadMethodBodyWrapper(m).Any(i =>
                     CachedMethodInfo.g_Thing_Position.Equals(i.Value));
             });
     }

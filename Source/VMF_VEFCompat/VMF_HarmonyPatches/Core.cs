@@ -35,13 +35,13 @@ public static class Patches_VEF
         {
             VMF_Harmony.PatchCategory(PatchCategories.VFESecurity);
         }
+        if (ModCompat.VFEFactory.Active)
+        {
+            VMF_Harmony.PatchCategory(PatchCategories.VFEFactory);
+        }
         if (ModCompat.VVE.Active)
         {
             VMF_Harmony.PatchCategory(PatchCategories.VVE);
-        }
-        if (ModCompat.VFEMechanoid.Active)
-        {
-            VMF_Harmony.PatchCategory(PatchCategories.VFEMechanoids);
         }
         if (ModCompat.VGE)
         {
@@ -51,10 +51,13 @@ public static class Patches_VEF
         {
             VMF_Harmony.PatchCategory(PatchCategories.VQEGenerator);
         }
-
         if (ModCompat.VTE.Active)
         {
             VMF_Harmony.PatchCategory(PatchCategories.VTE);
+        }
+        if (ModCompat.VPsyE)
+        {
+            VMF_Harmony.PatchCategory(PatchCategories.VPsyE);
         }
     }
 }
@@ -194,9 +197,9 @@ public static class Patch_Verb_ShootCone_CanHitTarget
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap)
-            .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap)
-            .MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseFullRotation_Thing);
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned)
+            .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned)
+            .MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseFullRotationSpawned_Thing);
     }
 }
 
@@ -293,7 +296,7 @@ public static class Patch_CompShieldField_AbsorbDamage
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-            .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap)
+            .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned)
             .MethodReplacer(CachedMethodInfo.m_OccupiedRect, CachedMethodInfo.m_MovedOccupiedRect);
     }
 }
@@ -305,7 +308,7 @@ public static class Patch_CompShieldField_EnergyShieldTick
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
     }
 }
 

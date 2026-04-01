@@ -89,20 +89,90 @@ public static class Patch_FloatMenuMakerMap_ShouldGenerateFloatMenuForPawn
 [PatchLevel(Level.Sensitive)]
 public static class Patch_FloatMenuOptionProvider_ExtinguishFires_GetSingleOption
 {
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
-        var codes = instructions.ToList();
+        return new CodeMatcher(instructions, generator)
+            .MatchStartForward(CodeMatch.Calls(AccessTools.PropertyGetter(typeof(FloatMenuContext),
+                nameof(FloatMenuContext.FirstSelectedPawn))))
+            .RemoveInstruction()
+            .SetInstruction(CodeInstruction.LoadField(typeof(FloatMenuContext), nameof(FloatMenuContext.map)))
+            .MatchStartForward(CodeMatch.Calls(AccessTools.PropertyGetter(typeof(FloatMenuContext),
+                nameof(FloatMenuContext.ClickedCell))))
+            .DeclareLocal(typeof(FloatMenuContext), out var context)
+            .DeclareLocal(typeof(Pawn), out var pawn)
+            .DeclareLocal(typeof(VirtualTeleporter?), out var teleporter)
+            .InsertAndAdvance(
+                new CodeInstruction(OpCodes.Stloc_S, context),
+                new CodeInstruction(OpCodes.Dup),
+                new CodeInstruction(OpCodes.Dup),
+                new CodeInstruction(OpCodes.Stloc_S, pawn),
+                new CodeInstruction(OpCodes.Ldloc_S, context),
+                CodeInstruction.Call(typeof(Patch_FloatMenuOptionProvider_ExtinguishFires_GetSingleOption),
+                    nameof(Teleport)),
+                new CodeInstruction(OpCodes.Stloc_S, teleporter),
+                new CodeInstruction(OpCodes.Ldloc_S, context))
+            .MatchStartForward(new CodeMatch(OpCodes.Call))
+            .InsertAfter(
+                new CodeInstruction(OpCodes.Ldloc_S, pawn),
+                new CodeInstruction(OpCodes.Ldloc_S, teleporter),
+                CodeInstruction.Call(typeof(Patch_FloatMenuOptionProvider_ExtinguishFires_GetSingleOption),
+                    nameof(Dispose)))
+            .InstructionEnumeration();
+    }
+    
+    internal static VirtualTeleporter? Teleport(Pawn pawn, FloatMenuContext context)
+    {
+        return pawn.Map != context.map ? new VirtualTeleporter(pawn, context.map) : null;
+    }
 
-        var g_FirstSelectedPawn = AccessTools.PropertyGetter(typeof(FloatMenuContext), nameof(FloatMenuContext.FirstSelectedPawn));
-        for (var i = 0; i < codes.Count; i++)
+    internal static void Dispose(Pawn pawn, VirtualTeleporter? __state)
+    {
+        pawn?.RemoveDepartMap();
+        __state?.Dispose();
+    }
+}
+
+[HarmonyPatch]
+[PatchLevel(Level.Sensitive)]
+public static class Patch_FloatMenuOptionProvider_ExtinguishFires_GetSingleOption_Delegate
+{
+    private static MethodBase TargetMethod()
+    {
+        return AccessTools.FindIncludingInnerTypes(typeof(FloatMenuOptionProvider_ExtinguishFires), t =>
         {
-            if (codes[i].Calls(g_FirstSelectedPawn) && codes[i + 1].Calls(CachedMethodInfo.g_Thing_Map))
-            {
-                codes.RemoveAt(i);
-                codes[i] = CodeInstruction.LoadField(typeof(FloatMenuContext), nameof(FloatMenuContext.map));
-            }
-        }
-        return codes;
+            return t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<GetSingleOption>"));
+        });
+    }
+    
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+    {
+        return new CodeMatcher(instructions, generator)
+            .MatchStartForward(CodeMatch.Calls(AccessTools.PropertyGetter(typeof(FloatMenuContext),
+                nameof(FloatMenuContext.ClickedCell))))
+            .DeclareLocal(typeof(FloatMenuContext), out var context)
+            .DeclareLocal(typeof(Pawn), out var pawn)
+            .DeclareLocal(typeof(VirtualTeleporter?), out var teleporter)
+            .InsertAndAdvance(
+                new CodeInstruction(OpCodes.Stloc_S, context),
+                new CodeInstruction(OpCodes.Dup),
+                new CodeInstruction(OpCodes.Dup),
+                new CodeInstruction(OpCodes.Stloc_S, pawn),
+                new CodeInstruction(OpCodes.Ldloc_S, context),
+                CodeInstruction.Call(typeof(Patch_FloatMenuOptionProvider_ExtinguishFires_GetSingleOption),
+                    nameof(Patch_FloatMenuOptionProvider_ExtinguishFires_GetSingleOption.Teleport)),
+                new CodeInstruction(OpCodes.Stloc_S, teleporter),
+                new CodeInstruction(OpCodes.Ldloc_S, context))
+            .MatchStartForward(new CodeMatch(OpCodes.Call))
+            .InsertAfterAndAdvance(
+                new CodeInstruction(OpCodes.Ldloc_S, pawn),
+                new CodeInstruction(OpCodes.Ldloc_S, teleporter),
+                CodeInstruction.Call(typeof(Patch_FloatMenuOptionProvider_ExtinguishFires_GetSingleOption),
+                    nameof(Patch_FloatMenuOptionProvider_ExtinguishFires_GetSingleOption.Dispose)))
+            .MatchStartForward(CodeMatch.Calls(AccessTools.PropertyGetter(typeof(FloatMenuContext),
+                nameof(FloatMenuContext.FirstSelectedPawn))))
+            .RemoveInstruction()
+            .SetInstruction(CodeInstruction.LoadField(typeof(FloatMenuContext), nameof(FloatMenuContext.map)))
+            .InstructionEnumeration();
     }
 }
 
@@ -403,7 +473,7 @@ public static class Patch_FloatMenuOptionProvider_DraftedMove_PawnGotoAction
     }
 
     public static void PawnGotoAction(IntVec3 clickCell, Pawn pawn, Map map, TargetInfo exitSpot, TargetInfo enterSpot,
-        List<(TargetInfo, TargetInfo)> spotsQueue, LocalTargetInfo dest)
+        List<TraverseSpots> spotsQueue, LocalTargetInfo dest)
     {
         bool flag;
         var baseMap = map.BaseMap();
@@ -444,66 +514,37 @@ public static class Patch_FloatMenuOptionProvider_DraftedMove_PawnGotoAction
 }
 
 [HarmonyPatch(typeof(FloatMenuOptionProvider_WorkGivers), "GetWorkGiverOption")]
-[PatchLevel(Level.Sensitive)]
+[PatchLevel(Level.Safe)]
 
 public static class Patch_FloatMenuOptionProvider_WorkGivers_GetWorkGiverOption
 {
-    public static void Prefix(Pawn pawn, WorkGiverDef workGiver, LocalTargetInfo target, FloatMenuContext context, ref object[] __state)
+    public static void Prefix(Pawn pawn, WorkGiverDef workGiver, LocalTargetInfo target, FloatMenuContext context, ref VirtualTeleporter? __state)
     {
-        __state = new object[6];
         if (JobAcrossMapsUtility.NoNeedVirtualMapTransfer(pawn.Map, context.map, workGiver))
         {
-            __state[0] = false;
             return;
         }
-        if (pawn.CanReach(target, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, context.map,
-                out var tmpExitSpot, out var tmpEnterSpot, out var spotsQueue))
+        if (pawn.CanReach(target, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, context.map))
         {
-            __state[0] = true;
-            __state[1] = pawn.Map;
-            __state[2] = pawn.Position;
-            __state[3] = tmpExitSpot;
-            __state[4] = tmpEnterSpot;
-            __state[5] = spotsQueue;
-            pawn.VirtualMapTransfer(context.map, target.Cell);
-            return;
+            __state = new VirtualTeleporter(pawn, context.map, target.Cell);
         }
-        __state[0] = false;
     }
 
-    public static void Finalizer(Pawn pawn, WorkGiverDef workGiver, object[] __state, FloatMenuOption __result)
+    public static void Finalizer(Pawn pawn, WorkGiverDef workGiver, LocalTargetInfo target, FloatMenuContext context, VirtualTeleporter? __state, FloatMenuOption __result)
     {
         if (__state is null)
         {
             return;
         }
-        if ((bool)__state[0])
+        __state.Value.Dispose();
+
+        if ((!__result?.Disabled ?? false) && __result.action != null && JobAcrossMapsUtility.NeedWrapGotoDestMapJob(workGiver.Worker as WorkGiver_Scanner) &&
+            pawn.CanReach(target, PathEndMode.Touch, Danger.Deadly, false, false, TraverseMode.ByPawn, context.map, out var exitSpot, out var enterSpot, out var spotsQueue))
         {
-            pawn.VirtualMapTransfer((Map)__state[1], (IntVec3)__state[2]);
-
-            if ((!__result?.Disabled ?? false) && __result.action != null && JobAcrossMapsUtility.NeedWrapGotoDestMapJob(workGiver.Worker as WorkGiver_Scanner))
+            __result.action = (() =>
             {
-                __result.action = (() =>
-                {
-                    JobAcrossMapsUtility.StartGotoDestMapJob(pawn, (TargetInfo)__state[3], (TargetInfo)__state[4],
-                        (List<(TargetInfo, TargetInfo)>)__state[5]);
-                }) + __result.action;
-            }
+                JobAcrossMapsUtility.StartGotoDestMapJob(pawn, exitSpot, enterSpot, spotsQueue);
+            }) + __result.action;
         }
-    }
-
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        var codes = new CodeMatcher(instructions);
-        var m_IsForbidden = AccessTools.Method(typeof(ForbidUtility), nameof(ForbidUtility.IsForbidden), [typeof(IntVec3), typeof(Pawn)]);
-        codes.MatchStartForward(CodeMatch.Calls(m_IsForbidden));
-        codes.MatchStartBackwards(CodeMatch.Calls(CachedMethodInfo.g_LocalTargetInfo_Cell));
-        codes.Operand = CachedMethodInfo.m_TargetCellOnBaseMap;
-        codes.Insert(CodeInstruction.LoadArgument(1));
-
-        codes.MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_LocalTargetInfo_Cell));
-        codes.Operand = CachedMethodInfo.m_TargetCellOnBaseMap;
-        codes.Insert(CodeInstruction.LoadArgument(1));
-        return codes.Instructions().MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
     }
 }

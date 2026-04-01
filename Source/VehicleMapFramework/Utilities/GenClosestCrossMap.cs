@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using RimWorld;
 using UnityEngine;
 using Verse;
@@ -235,7 +234,7 @@ public static class GenClosestCrossMap
             {
                 return;
             }
-            float num = (centerOnBaseMap - t.PositionHeldOnBaseMap()).LengthHorizontalSquared;
+            float num = (centerOnBaseMap - t.PositionHeldOnBaseMap).LengthHorizontalSquared;
             if (num > maxDistanceSquared)
             {
                 return;
@@ -332,7 +331,7 @@ public static class GenClosestCrossMap
         {
             if (t is null || !t.Spawned)
                 return;
-            float num = (basePos - t.PositionHeldOnBaseMap()).LengthHorizontalSquared;
+            float num = (basePos - t.PositionHeldOnBaseMap).LengthHorizontalSquared;
             if (num > maxDistanceSquared)
                 return;
             if (priorityGetter != null || num < closestDistSquared)

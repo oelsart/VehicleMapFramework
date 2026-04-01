@@ -51,7 +51,7 @@ public static class Patch_X2_JobGiver_Return2BaseRoom_TryIssueJobPackage
         var posRecharge = rechargeStation.Position;
         var exitSpot = TargetInfo.Invalid;
         var enterSpot = TargetInfo.Invalid;
-        List<(TargetInfo, TargetInfo)> spotsQueue = null;
+        List<TraverseSpots> spotsQueue = null;
         var cell = (from c in roomRecharge.Cells
                         where c.Standable(mapRecharge) && !c.IsForbidden(pawn) && c.InHorDistOf(posRecharge, 5f) &&
                               pawn.CanReach(c, PathEndMode.OnCell, Danger.Some, false, false, TraverseMode.ByPawn,

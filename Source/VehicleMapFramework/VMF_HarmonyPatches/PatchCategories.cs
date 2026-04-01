@@ -18,11 +18,13 @@ internal static class PatchCategories
 
     public const string VFESecurity = "VMF_Patches_VFESecurity";
 
-    public const string VVE = "VMF_Patches_VVehiclesE";
+    public const string VFEFactory = "VMF_Patches_VFEFactory";
 
-    public const string VFEMechanoids = "VMF_Patches_VFEMechanoids";
+    public const string VVE = "VMF_Patches_VVehiclesE";
     
     public const string VGE = "VMF_Patches_VGravshipE";
+    
+    public const string VPsyE = "VMF_Patches_VPsyE";
     
     public const string VTE = "VMF_Patches_VTemperatureE";
     
@@ -32,7 +34,11 @@ internal static class PatchCategories
 
     public const string CombatExtended = "VMF_Patches_CombatExtended";
 
-    public const string CombatExtendedVFESecurityCompat = "VMF_Patches_CombatExtendedVFESecurityCompat";
+    public const string CombatExtendedVFECompat = "VMF_Patches_CombatExtendedVFECompat";
+    
+    public const string CombatExtendedVPsyECompat = "VMF_Patches_CombatExtendedVPsyECompat";
+
+    public const string CombatExtendedRimatomicsCompat = "VMF_Patches_CombatExtendedRimatomicsCompat";
     
     public const string DubsBadHygiene = "VMF_Patches_DubsBadHygiene";
     
@@ -43,6 +49,8 @@ internal static class PatchCategories
     public const string AnimalCages = "VMF_Patches_AnimalCages";
     
     public const string Aquariums = "VMF_Patches_Aquariums";
+
+    public const string AttackTargetFinderAngle = "VMF_Patches_AttackTargetFinderAngle";
     
     public const string BillDoorsFramework = "VMF_Patches_BillDoorsFramework";
     
@@ -76,6 +84,8 @@ internal static class PatchCategories
     
     public const string Gunplay = "VMF_Patches_Gunplay";
     
+    public const string IRBM = "VMF_Patches_IRBM";
+    
     public const string MeleeAnimation = "VMF_Patches_MeleeAnimation";
     
     public const string MiscRobots = "VMF_Patches_MiscRobots";
@@ -85,6 +95,8 @@ internal static class PatchCategories
     public const string MuzzleFlash = "VMF_Patches_MuzzleFlash";
     
     public const string NightmareCore = "VMF_Patches_NightmareCore";
+    
+    public const string PerspectiveShift = "VMF_Patches_PerspectiveShift";
     
     public const string PauseOtherSettlements = "VMF_Patches_PauseOtherSettlements";
     
@@ -102,6 +114,8 @@ internal static class PatchCategories
     
     public const string SmarterConstruction = "VMF_Patches_SmarterConstruction";
     
+    public const string SRALib = "VMF_Patches_SRALib";
+    
     public const string SmartPistol = "VMF_Patches_SmartPistol";
     
     public const string StackGap = "VMF_Patches_StackGap";
@@ -109,6 +123,8 @@ internal static class PatchCategories
     public const string TabulaRasa = "VMF_Patches_TabulaRasa";
     
     public const string TraderShips = "VMF_Patches_TraderShips";
+    
+    public const string UFHeavyIndustries = "VMF_Patches_UFHeavyIndustries";
     
     public const string ViviRace = "VMF_Patches_ViviRace";
     

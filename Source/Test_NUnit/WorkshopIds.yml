@@ -1,13 +1,16 @@
 Harmony: 2009463077
-VehicleFramework: VehicleFramework #ローカルModsフォルダのUnstable版を使用
+VehicleFramework: 3014915404
+VehicleMapFramework: 3426502333
 VanillaExpandedFramework: 2023507013
 VFEArchitect: 2608762624
 VFESecurity: 1845154007
+VFEFactory: 3686924415
 VFEMechanoids: 2329011599
 VVehiclesE: 3014906877
 VGravshipE: 3609835606
 VQEGenerator: 3411401573
 VTemperatureE: 3202046258
+VPsyE: 2842502659
 Achtung: 730936602
 CombatExtended: 2890901044
 DubsBadHygiene: 836308268
@@ -43,6 +46,7 @@ Prepatcher: 2934420800
 MultiFloors: 3384660931
 MuzzleFlash: 2917732219
 NightmareCore: 3047049650
+PerspectiveShift: 3686618980
 PauseOtherSettlements: 3526657761
 ProjectRimFactory: 2033979700
 PickUpAndHaul: 1279012058
