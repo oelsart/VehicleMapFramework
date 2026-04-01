@@ -9,6 +9,7 @@ using RimWorld.Planet;
 using SmashTools;
 using UnityEngine;
 using Vehicles;
+using Vehicles.World;
 using Verse;
 using Verse.AI.Group;
 
@@ -1241,6 +1242,109 @@ public static class VehicleMapUtility
     public static bool RoofedAcrossMaps(RoofGrid roofGrid, IntVec3 c)
     {
         return c.RoofedAcrossMaps(roofGrid_map(roofGrid));
+    }
+
+    private static readonly SimpleCurve PointsPerWealthCurve =
+        AccessTools.StaticFieldRefAccess<SimpleCurve>(typeof(StorytellerUtility), "PointsPerWealthCurve");
+    private static readonly SimpleCurve PointsPerColonistByWealthCurve =
+        AccessTools.StaticFieldRefAccess<SimpleCurve>(typeof(StorytellerUtility), "PointsPerColonistByWealthCurve");
+    private static readonly SimpleCurve PointsFactorForColonyMechsCurve =
+        AccessTools.StaticFieldRefAccess<SimpleCurve>(typeof(StorytellerUtility), "PointsFactorForColonyMechsCurve");
+    private static readonly SimpleCurve PointsFactorForColonySubhumanCurve =
+        AccessTools.StaticFieldRefAccess<SimpleCurve>(typeof(StorytellerUtility), "PointsFactorForColonySubhumanCurve");
+    private static readonly SimpleCurve PointsFactorForPawnAgeYearsCurve =
+        AccessTools.StaticFieldRefAccess<SimpleCurve>(typeof(StorytellerUtility), "PointsFactorForPawnAgeYearsCurve");
+
+    public static float DefaultThreatPointsNowForMapVehicles(IIncidentTarget target)
+    {
+        List<Pawn> pawns;
+        if (target is Map map && map.IsVehicleMapOf(out var vehicle))
+        {
+            var vehicleCaravanOrStashedVehicle = vehicle.VehicleCaravanOrStashedVehicle;
+            switch (vehicleCaravanOrStashedVehicle)
+            {
+                case VehicleCaravan caravan:
+                    target = caravan;
+                    pawns = caravan.PlayerPawnsForStoryteller.ToList();
+                    break;
+                case StashedVehicle stashedVehicle:
+                    pawns = stashedVehicle.Vehicles.OfType<Pawn>().ToList();
+                    break;
+                default:
+                {
+                    if (vehicle.Spawned)
+                    {
+                        target = vehicle.Map;
+                        pawns = vehicle.Map.PlayerPawnsForStoryteller.ToList();
+                    }
+                    else return 0f;
+                    break;
+                }
+            }
+        }
+        else
+        {
+            pawns = target.PlayerPawnsForStoryteller.ToList();
+        }
+        
+        var wealthForStoryteller = target.PlayerWealthForStoryteller;
+        wealthForStoryteller += pawns.OfType<VehiclePawnWithMap>().Sum(v => v.VehicleMap.PlayerWealthForStoryteller);
+        var num1 = PointsPerWealthCurve.Evaluate(wealthForStoryteller);
+        var num2 = 0f;
+        PawnsFactor(pawns);
+
+        return Mathf.Clamp(
+            (num1 + num2) * target.IncidentPointsRandomFactorRange.RandomInRange *
+            Mathf.Lerp(1f, Find.StoryWatcher.watcherAdaptation.TotalThreatPointsFactor,
+                Find.Storyteller.difficulty.adaptationEffectFactor) * Find.Storyteller.difficulty.threatScale *
+            Find.Storyteller.def.pointsFactorFromDaysPassed.Evaluate(GenDate.DaysPassedSinceSettle),
+            StorytellerUtility.GlobalPointsMin(), 10000f);
+
+        void PawnsFactor(IEnumerable<Pawn> pawnsEnumerable)
+        {
+            foreach (var p in pawnsEnumerable)
+            {
+                if (!p.IsQuestLodger())
+                {
+                    var a = 0.0f;
+                    if (p.IsFreeColonist)
+                        a = PointsPerColonistByWealthCurve.Evaluate(wealthForStoryteller);
+                    else if (p.IsAnimal && p.Faction == Faction.OfPlayer && !p.Downed &&
+                             p.training.CanAssignToTrain(TrainableDefOf.Release).Accepted)
+                    {
+                        a = 0.08f * p.kindDef.combatPower;
+                        if (target is Caravan)
+                            a *= 0.7f;
+                    }
+                    else if (p.IsColonyMech && !p.Downed)
+                        a = p.kindDef.combatPower * PointsFactorForColonyMechsCurve.Evaluate(wealthForStoryteller);
+                    else if (p.IsSubhuman)
+                        a = p.kindDef.combatPower * PointsFactorForColonySubhumanCurve.Evaluate(wealthForStoryteller);
+
+                    if (p is VehiclePawnWithMap vehicle2)
+                    {
+                        a += PointsPerWealthCurve.Evaluate(vehicle2.VehicleMap.PlayerWealthForStoryteller);
+                        PawnsFactor(vehicle2.VehicleMap.PlayerPawnsForStoryteller);
+                    }
+
+                    if (p is VehiclePawn vehicle3)
+                    {
+                        PawnsFactor(vehicle3.AllPawnsAboard);
+                    }
+                    if (a > 0f)
+                    {
+                        if (p.ParentHolder is Building_CryptosleepCasket)
+                            a *= 0.3f;
+                        var num3 = Mathf.Lerp(a, a * p.health.summaryHealth.SummaryHealthPercent, 0.65f);
+                        if (p.IsSlaveOfColony)
+                            num3 *= 0.75f;
+                        if (ModsConfig.BiotechActive && p.RaceProps.Humanlike)
+                            num3 *= PointsFactorForPawnAgeYearsCurve.Evaluate(p.ageTracker.AgeBiologicalYearsFloat);
+                        num2 += num3;
+                    }
+                }
+            }
+        }
     }
 }
 

@@ -410,7 +410,7 @@ public static class Patch_GenSpawn_Spawn
 
         switch (newThing)
         {
-            case Projectile:
+            case Projectile and not Spark:
             case Mote when !loc.InBounds(map):
                 map = map.BaseMap();
                 break;
