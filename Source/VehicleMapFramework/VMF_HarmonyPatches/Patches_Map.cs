@@ -215,20 +215,25 @@ public static class Patch_ResourceCounter_UpdateResourceCounts
 public static class Patch_Map_MapUpdate
 {
     private static RenderTexture tmpRenderTex;
-
-    private const int textureSize = 2048;
-
-    public static readonly Vector2 MeshSize = new(200f, 200f);
-
+    public const float Altitude = 140f;
+    public const int TextureSize = 2048;
+    public const float MeshSizeX = 200f;
+    public static readonly Vector2 MeshSize = new(MeshSizeX, MeshSizeX);
     private static readonly Mesh mesh200 = MeshPool.GridPlane(MeshSize);
-
     private static Material mat;
-
     private static readonly Material skyMat = SolidColorMaterials.NewSolidColorMaterial(Color.black, ShaderDatabase.SolidColor);
-
     public static int lastRenderedTick = -1;
+    private static readonly AccessTools.FieldRef<WorldCameraDriver, float> desiredAltitude =
+        AccessTools.FieldRefAccess<WorldCameraDriver, float>("desiredAltitude");
 
-    private static readonly AccessTools.FieldRef<WorldCameraDriver, float> desiredAltitude = AccessTools.FieldRefAccess<WorldCameraDriver, float>("desiredAltitude");
+    public static void JumpTo(Vector3 pos, float altitude)
+    {
+        Find.WorldCameraDriver.JumpTo(pos);
+        Find.WorldCameraDriver.altitude = altitude;
+        desiredAltitude(Find.WorldCameraDriver) = altitude;
+        Find.WorldCameraDriver.Update();
+    }
+    
     [PatchLevel(Level.Safe)]
     public static void Postfix(Map __instance)
     {
@@ -237,16 +242,13 @@ public static class Patch_Map_MapUpdate
         {
             var angle = vehicle.Transform.rotation + vehicle.Rotation.AsAngle;
             var vehicleCaravanOrStashedVehicle = vehicle.VehicleCaravanOrStashedVehicle;
-            if (GenTicks.TicksGame != lastRenderedTick && Time.frameCount % 2 == 0 || mat != null && tmpRenderTex == null)
+            if ((GenTicks.TicksGame != lastRenderedTick || Find.TickManager.Paused) && Time.frameCount % 2 == 0 || mat != null && tmpRenderTex == null)
             {
                 var worldObject = vehicleCaravanOrStashedVehicle ?? GetWorldObject(vehicle);
                 if (worldObject is null) return;
                 lastRenderedTick = GenTicks.TicksGame;
                 Find.World.renderer.wantedMode = WorldRenderMode.Planet;
-                Find.WorldCameraDriver.JumpTo(worldObject.DrawPos);
-                Find.WorldCameraDriver.altitude = 140f;
-                desiredAltitude(Find.WorldCameraDriver) = 140f;
-                Find.WorldCameraDriver.Update();
+                JumpTo(worldObject.DrawPos, Altitude);
                 WorldRendererUtility.UpdateGlobalShadersParams();
                 ExpandableWorldObjectsUtility.ExpandableWorldObjectsUpdate();
                 foreach (var layer in Find.World.renderer.AllVisibleDrawLayers.Where(l => l is not WorldDrawLayer_SingleTile && l is not WorldDrawLayer_Satellites))
@@ -254,16 +256,23 @@ public static class Patch_Map_MapUpdate
                     layer.Render();
                 }
                 Find.World.dynamicDrawManager.DrawDynamicWorldObjects();
+                if (worldObject is VehicleCaravan vehicleCaravan)
+                {
+                    vehicleCaravan.gotoMote.RenderMote();
+                    vehicleCaravan.vehiclePather?.curPath?.DrawPath(vehicleCaravan);
+                }
 
                 if (tmpRenderTex is not null)
                 {
                     RenderTexture.ReleaseTemporary(tmpRenderTex);
                 }
-                tmpRenderTex = RenderTexture.GetTemporary(textureSize, textureSize);
+                tmpRenderTex = RenderTexture.GetTemporary(TextureSize, TextureSize);
                 var targetTexture = Find.WorldCamera.targetTexture;
                 Find.WorldCamera.targetTexture = tmpRenderTex;
+                Find.WorldCamera.orthographic = true;
                 Find.WorldCamera.Render();
                 Find.WorldCamera.targetTexture = targetTexture;
+                Find.WorldCamera.orthographic = false;
                 Find.World.renderer.wantedMode = WorldRenderMode.None;
                 Find.CameraDriver.Update();
                 if (mat is null)

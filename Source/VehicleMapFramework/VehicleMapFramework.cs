@@ -49,7 +49,6 @@ public class VehicleMapFramework : Mod
         var rect = new Rect(inRect.x, inRect.y + TabDrawer.TabHeight, inRect.width, inRect.height - TabDrawer.TabHeight);
         Widgets.DrawMenuSection(rect);
         TabDrawer.DrawTabs(rect, tabs);
-        Debug.Assert(CurrentTab != null, nameof(CurrentTab) + " != null");
         CurrentTab!.Draw(rect.ContractedBy(10f));
     }
 

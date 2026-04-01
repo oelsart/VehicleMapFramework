@@ -523,6 +523,11 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
                 mapSize.z += 2;
                 mapParent.sourceMap = sourceMap;
                 interiorMap = MapGenerator.GenerateMap(mapSize, mapParent, mapParent.MapGeneratorDef, mapParent.ExtraGenStepDefs, isPocketMap: true);
+                if (VehicleMapFramework.settings.drawPlanet)
+                {
+                    var size = Patch_Map_MapUpdate.MeshSize;
+                    interiorMap.rememberedCameraPos?.rootPos = new Vector3(size.x / 2f, 0f, size.y / 2f);
+                }
                 Find.World.pocketMaps.Add(mapParent);
 
                 foreach (var c in props.FilledStructureCells)
@@ -1244,8 +1249,6 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
         CompVehicleTurrets?.RevalidateTurrets();
         ResetRenderStatus();
         CurrentLevel = interiorMap;
-        var size = Patch_Map_MapUpdate.MeshSize;
-        interiorMap?.rememberedCameraPos?.rootPos = new Vector3(size.x / 2f, 0f, size.y / 2f);
     }
 
     public override void PostMake()
@@ -1256,8 +1259,6 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
         {
             def = UniqueVehicleUtility.GenerateUniqueVehicleDef(this);
         }
-        var size = Patch_Map_MapUpdate.MeshSize;
-        interiorMap?.rememberedCameraPos?.rootPos = new Vector3(size.x / 2f, 0f, size.y / 2f);
     }
 
     public override void PostGenerationSetup()
