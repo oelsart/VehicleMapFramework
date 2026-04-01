@@ -1244,12 +1244,6 @@ public static class VehicleMapUtility
         return c.RoofedAcrossMaps(roofGrid_map(roofGrid));
     }
 
-    private static readonly AccessTools.FieldRef<RoofGrid, Map> roofGrid_map = AccessTools.FieldRefAccess<RoofGrid, Map>("map");
-    public static bool RoofedAcrossMaps(RoofGrid roofGrid, IntVec3 c)
-    {
-        return c.RoofedAcrossMaps(roofGrid_map(roofGrid));
-    }
-
     private static readonly SimpleCurve PointsPerWealthCurve =
         AccessTools.StaticFieldRefAccess<SimpleCurve>(typeof(StorytellerUtility), "PointsPerWealthCurve");
     private static readonly SimpleCurve PointsPerColonistByWealthCurve =
