@@ -54,8 +54,6 @@ internal static class PatchCategories
     
     public const string BillDoorsFramework = "VMF_Patches_BillDoorsFramework";
     
-    public const string BiomesCaverns = "VMF_Patches_BiomesCaverns";
-    
     public const string CallTradeShips = "VMF_Patches_CallTradeShips";
     
     public const string CeleTechArsenal = "VMF_Patches_CeleTechArsenal";
