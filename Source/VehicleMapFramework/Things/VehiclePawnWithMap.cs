@@ -820,7 +820,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
         interiorMap.PocketMapParent.sourceMap = null;
         VehiclePawnWithMapCache.DeRegisterVehicle(this);
         mapFollower.DeRegisterVehicle();
-        if (mode != DestroyMode.KillFinalize)
+        if (mode < DestroyMode.KillFinalize)
         {
             interiorMap.skyManager = new SkyManager(interiorMap);
             interiorMap.skyManager.ForceSetCurSkyGlow(Map.skyManager.CurSkyGlow);

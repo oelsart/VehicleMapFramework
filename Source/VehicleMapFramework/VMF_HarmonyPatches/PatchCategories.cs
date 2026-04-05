@@ -58,6 +58,8 @@ internal static class PatchCategories
     
     public const string CeleTechArsenal = "VMF_Patches_CeleTechArsenal";
     
+    public const string CeleTechArsenalCECompat = "VMF_Patches_CeleTechArsenalCECompat";
+    
     public const string ColonyGroups = "VMF_Patches_ColonyGroups";
     
     public const string CutPlantsBeforeBuilding = "VMF_Patches_CutPlantsBeforeBuilding";

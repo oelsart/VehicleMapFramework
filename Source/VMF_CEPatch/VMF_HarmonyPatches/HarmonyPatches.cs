@@ -493,6 +493,8 @@ public static class Patch_ProjectileCE_CheckIntercept
 [PatchLevel(Level.Safe)]
 public static class Patch_BlockerRegistry_CheckForCollisionBetweenCallback
 {
+    public delegate bool Prefix(ProjectileCE projectile, ref bool __result);
+    public static List<Prefix> Prefixes { get; } = [];
     public static List<Func<ProjectileCE, Vector3, Vector3, bool>> Callbacks { get; } = [VanillaIntercept];
 
     public static void Postfix(ProjectileCE projectile, Vector3 from, Vector3 to, ref bool __result)
@@ -504,6 +506,13 @@ public static class Patch_BlockerRegistry_CheckForCollisionBetweenCallback
             projectile.TargetMap = vehicle.VehicleMap;
             try
             {
+                for (var i = 0; i < Prefixes.Count; i++)
+                {
+                    if (!Prefixes[i](projectile, ref __result))
+                    {
+                        return;
+                    }
+                }
                 for (var i = 0; i < Callbacks.Count; i++)
                 {
                     if (Callbacks[i](projectile, from, to))
