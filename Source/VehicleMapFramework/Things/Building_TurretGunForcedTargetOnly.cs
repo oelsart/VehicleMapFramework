@@ -22,7 +22,12 @@ public class Building_TurretGunForcedTargetOnly : Building_TurretGun
     {
         if (AttackVerb is Verb_LaunchZipline { ziplineEnd: { Spawned: true } ziplineEnd })
         {
-            top.CurRotation = (ziplineEnd.DrawPos - DrawPos).AngleFlat();
+            var rotation = (ziplineEnd.DrawPos - DrawPos).AngleFlat();
+            if (this.IsOnNonFocusedVehicleMapOf(out var vehicle) && !CurrentTarget.IsValid)
+            {
+                rotation = Ext_Math.RotateAngle(rotation, -vehicle.FullAngle);
+            }
+            top.CurRotation = rotation;
             return;
         }
         canSetForcedTargetThisTick = true;

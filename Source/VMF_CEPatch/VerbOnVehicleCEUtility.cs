@@ -28,9 +28,12 @@ public static class VerbOnVehicleCEUtility
 
         public bool TryFindCEShootLineFromToOnVehicle(IntVec3 root, LocalTargetInfo targ, out ShootLine resultingLine, out Vector3 targetPos)
         {
-            targetPos = targ.Thing is Pawn ? targ.Thing.TrueCenter() : TargetMapUtility.TargetCellOnBaseMap(ref targ, verb.caster).ToVector3Shifted();
-            var targCellOnBaseMap = TargetMapUtility.TargetCellOnBaseMap(ref targ, verb.caster);
-
+            var flag = verb.caster.IsOnVehicleMapOf(out var vehicle) && vehicle.Spawned;
+            targetPos = targ.Thing is Pawn ? targ.Thing.TrueCenter() : targ.TargetCellOnBaseMap(verb.caster).ToVector3Shifted();
+            var targCellOnBaseMap = targ.TargetCellOnBaseMap(verb.caster);
+            var positionOnBaseMap = verb.caster.PositionOnBaseMap;
+            var tmpRoot = !flag ? root : positionOnBaseMap;
+            
             if (targ.HasThing && targ.Thing.BaseMapOrCaravan != verb.caster.BaseMapOrCaravan)
             {
                 resultingLine = default;
@@ -41,54 +44,49 @@ public static class VerbOnVehicleCEUtility
                 resultingLine = new ShootLine(root, targCellOnBaseMap);
                 return ReachabilityImmediate.CanReachImmediate(verb.caster.Position, targ, verb.caster.Map, PathEndMode.Touch, null);
             }
-            var cellRect = !targ.HasThing ? CellRect.SingleCell(targ.Cell) : targ.Thing.MovedOccupiedRect();
-            var num = cellRect.ClosestDistSquaredTo(root);
+            var cellRect = !targ.HasThing ? CellRect.SingleCell(targCellOnBaseMap) : targ.Thing.MovedOccupiedRect();
+            var num = cellRect.ClosestDistSquaredTo(positionOnBaseMap);
             if (num > verb.EffectiveRange * verb.EffectiveRange || num < verb.verbProps.minRange * verb.verbProps.minRange)
             {
-                resultingLine = new ShootLine(root, targCellOnBaseMap);
+                resultingLine = new ShootLine(tmpRoot, targCellOnBaseMap);
                 return false;
             }
             if (verb.Projectile.projectile.flyOverhead)
             {
-                resultingLine = new ShootLine(root, targCellOnBaseMap);
+                resultingLine = new ShootLine(tmpRoot, targCellOnBaseMap);
                 return true;
             }
 
-            var shotSource = root.ToVector3Shifted();
-            shotSource.y = verb.ShotHeight;
-
-            // Adjust for multi-tile turrets
-            if (verb.caster.def.building?.IsTurret ?? false)
-            {
-                shotSource = verb.ShotSource();
-            }
+            var shotSource = verb.caster.def.building is { IsTurret: true }
+                ? verb.ShotSource()
+                : root.ToVector3Shifted().WithY(verb.ShotHeight);
 
             if (verb.CanHitFromCellIgnoringRange(shotSource, targ, out var dest))
             {
                 targetPos = dest.ToVector3Shifted();
-                resultingLine = new ShootLine(root, dest);
+                resultingLine = new ShootLine(tmpRoot, dest);
                 return true;
             }
 
             if (verb.CasterIsPawn)
             {
-                ShootLeanUtilityOnVehicle.LeanShootingSourcesFromTo(verb.caster.Position, cellRect.ClosestCellTo(root), verb.caster.Map, tempLeanShootSources);
+                ShootLeanUtilityOnVehicle.LeanShootingSourcesFromTo(verb.caster.Position, cellRect.ClosestCellTo(positionOnBaseMap), verb.caster.Map, tempLeanShootSources);
                 var targCellOnCasterMap = targ.CellOnAnotherThingMap(verb.caster);
                 foreach (var leanLoc in tempLeanShootSources.OrderBy(c => c.DistanceTo(targCellOnCasterMap)))
                 {
                     const float leanOffset = 0.5f - 0.001f;
                     var leanLocOnBaseMap = leanLoc.ToThingBaseMapCoord(verb.caster);
-                    var leanPosOffset = (leanLocOnBaseMap - root).ToVector3() * leanOffset;
+                    var leanPosOffset = (leanLocOnBaseMap - positionOnBaseMap).ToVector3() * leanOffset;
                     if (verb.CanHitFromCellIgnoringRange(shotSource + leanPosOffset, targ, out dest))
                     {
                         targetPos = dest.ToVector3Shifted();
-                        resultingLine = new ShootLine(leanLocOnBaseMap, dest);
+                        resultingLine = new ShootLine(!flag ? leanLoc : leanLocOnBaseMap, dest);
                         return true;
                     }
                 }
             }
 
-            resultingLine = new ShootLine(root, targCellOnBaseMap);
+            resultingLine = new ShootLine(tmpRoot, targCellOnBaseMap);
             return false;
         }
 

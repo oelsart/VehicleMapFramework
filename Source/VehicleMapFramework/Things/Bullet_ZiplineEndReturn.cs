@@ -5,22 +5,25 @@ namespace VehicleMapFramework;
 
 public class Bullet_ZiplineEndReturn : Bullet_ZiplineBase
 {
-    public override Quaternion ExactRotation => Quaternion.LookRotation((origin - destination).Yto0());
+    public override Quaternion ExactRotation => base.ExactRotation * Quaternion.AngleAxis(180f, Vector3.up);
 
-    protected override void TickInterval(int delta)
+    protected override Vector3 ExactDestination
     {
-        if (launchVerb is { caster.Spawned: true })
+        get
         {
-            var drawPos = launchVerb.caster.DrawPos;
-            var offset = launcher.def.building?.turretTopOffset.ToVector3() ?? Vector3.zero;
-            if (launcher.IsOnNonFocusedVehicleMapOf(out var vehicle))
+            if (launchVerb is { caster.Spawned: true })
             {
-                offset = offset.RotatedBy(-vehicle.Angle + vehicle.Transform.rotation);
+                var drawPos = launchVerb.caster.DrawPos;
+                var offset = launcher.def.building?.turretTopOffset.ToVector3() ?? Vector3.zero;
+                if (launcher.IsOnNonFocusedVehicleMapOf(out var vehicle) && !this.IsOnNonFocusedVehicleMap)
+                {
+                    offset = offset.RotatedBy(-vehicle.Angle + vehicle.Transform.rotation);
+                }
+                drawPos += offset;
+                destination = drawPos + ExactRotation * (Vector3.forward * (ZipLineData.LauncherOffset + DrawSize.y / 2f));
             }
-            drawPos += offset;
-            destination = drawPos + ExactRotation * (Vector3.forward * (ZipLineData.LauncherOffset + DrawSize.y / 2f));
+            return this.IsOnNonFocusedVehicleMapOf(out var vehicle2) ? destination.ToVehicleMapCoord(vehicle2) : destination;
         }
-        base.TickInterval(delta);
     }
 
     protected override void Impact(Thing hitThing, bool blockedByShield = false)

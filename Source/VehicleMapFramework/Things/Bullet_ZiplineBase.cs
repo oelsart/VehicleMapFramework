@@ -21,6 +21,21 @@ public abstract class Bullet_ZiplineBase : Bullet, IZiplineEnd
         }
     }
 
+    protected Quaternion ExactRotationOrigin
+    {
+        get
+        {
+            var rotation = ExactRotation;
+            if (this.IsOnNonFocusedVehicleMapOf(out var vehicle))
+            {
+                rotation *= Quaternion.AngleAxis(-vehicle.FullAngle, Vector3.up);
+            }
+            return rotation;
+        }
+    }
+
+    protected abstract Vector3 ExactDestination { get; }
+
     protected float ArcHeightFactor
     {
         get
@@ -34,6 +49,26 @@ public abstract class Bullet_ZiplineBase : Bullet, IZiplineEnd
             return num;
         }
     }
+
+    public override void Launch(Thing _launcher, Vector3 _origin, LocalTargetInfo _usedTarget,
+        LocalTargetInfo _intendedTarget, ProjectileHitFlags hitFlags, bool _preventFriendlyFire = false,
+        Thing _equipment = null, ThingDef _targetCoverDef = null)
+    {
+        if (this.IsOnNonFocusedVehicleMapOf(out var vehicle))
+        {
+            _origin = _origin.ToVehicleMapCoord(vehicle);
+        }
+        base.Launch(_launcher, _origin, _usedTarget, _intendedTarget, hitFlags, _preventFriendlyFire, _equipment, _targetCoverDef);
+        destination = ExactDestination;
+        if (this is Bullet_ZiplineEnd)
+            origin += ExactRotationOrigin * (Vector3.forward * (ZipLineData.LauncherOffset + DrawSize.y / 2f));
+        ticksToImpact = Mathf.CeilToInt(StartingTicksToImpact);
+        if (ticksToImpact < 1)
+        {
+            ticksToImpact = 1;
+        }
+        lifetime = ticksToImpact;
+    }
     
     public abstract void DrawZipline(Vector3 drawLoc);
     
@@ -45,22 +80,27 @@ public abstract class Bullet_ZiplineBase : Bullet, IZiplineEnd
 
     protected override void TickInterval(int delta)
     {
+        destination = ExactDestination;
         if (!this.IsOnNonFocusedVehicleMap || landed)
-        {;
-            base.TickInterval(delta);
-            return;
-        }
-        
-        var exactPosition = ExactPosition;
-        var rect = new Rect(Vector2.zero, Patch_Map_MapUpdate.MeshSize);
-        if (exactPosition.InBounds(Map) || !rect.Contains(exactPosition.ToVector2()))
         {
             base.TickInterval(delta);
             return;
         }
         
+        var rect = new Rect(Vector2.zero, Patch_Map_MapUpdate.MeshSize);
+        if (!rect.Contains(DrawPos.ToVector2()))
+        {
+            Destroy();
+            return;
+        }
+        
         lifetime -= delta;
         ticksToImpact -= delta;
+        var newPos = ExactPosition.ToIntVec3();
+        if (newPos.InBounds(Map))
+        {
+            Position = newPos;
+        }
         if (ticksToImpact <= 0)
         {
             ImpactSomething();
