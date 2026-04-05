@@ -273,17 +273,6 @@ public static class Patch_Comp_FloatingGunRework_CompTick
 }
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
-[HarmonyPatch("TOT_DLL_test.Verb_LauncherProjectileSwitchFire", "TryCastShot")]
-[PatchLevel(Level.Cautious)]
-public static class Patch_Verb_LauncherProjectileSwitchFire_TryCastShot
-{
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return Patch_Verb_LaunchProjectile_TryCastShot.Transpiler(instructions);
-    }
-}
-
-[HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
 [HarmonyPatch("TOT_DLL_test.Verb_LauncherProjectileSwitchFire", "Retarget")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Verb_LauncherProjectileSwitchFire_Retarget
