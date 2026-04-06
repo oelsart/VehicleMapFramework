@@ -17,7 +17,7 @@ public static class PatchHelper
         }
         catch(Exception ex)
         {
-            VMF_Log.Error($"Error within ReadMethodBody(). {method.FullDescription()} is likely referencing an old signature.\n{ex}");
+            VMF_Log.Warning($"Autopatching to {method.FullDescription()} failed. It may be referencing outdated signatures. The patch will simply be skipped.\n{ex}");
             return [];
         }
     }

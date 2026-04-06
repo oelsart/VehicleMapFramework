@@ -10,7 +10,7 @@ public class VehicleStructure : Building
     {
         if (this.IsOnVehicleMapOf(out var vehicle) && dinfo.Def != DamageDefOf.Bomb)
         {
-            vehicle.TakeDamage(dinfo, (Position.ToVector3() - VehicleMapUtility.OffsetFor(vehicle, Rot8.North)).ToIntVec3().ToIntVec2);
+            vehicle.TakeDamage(dinfo, Position.ToHitCell(vehicle));
         }
         base.PreApplyDamage(ref dinfo, out absorbed);
     }

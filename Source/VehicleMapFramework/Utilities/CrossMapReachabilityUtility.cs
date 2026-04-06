@@ -428,7 +428,7 @@ public static class CrossMapReachabilityUtility
                                 if (comp is CompZipline compZipline)
                                 {
                                     var pair = compZipline.Pair;
-                                    if (pair == null || !pair.HasComp<CompZipline>() || pair.Map == departMap)
+                                    if (pair == null || !pair.HasComp<CompZipline>() || pair.Map != destMap && pair.Map != departBaseMap)
                                         continue;
 
                                     cell = pair.Position;
@@ -996,9 +996,10 @@ public static class CrossMapReachabilityUtility
                     {
                         foreach (var comp in vehicle2.GetSortedEnterComps(start.ToVehicleMapCoord(vehicle2)))
                         {
-                            if (comp is CompZipline { Pair.Spawned: true } zipline && zipline.Pair.Map == map)
+                            if (comp is CompZipline { Pair.Spawned: true } zipline)
                             {
-                                yield return new MapTraverse(zipline.Pair, zipline.parent);
+                                if (zipline.Pair.Map == map)
+                                    yield return new MapTraverse(zipline.Pair, zipline.parent);
                             }
                             else if (comp.EnterVehiclePosition is { IsValid: true } cell)
                             {

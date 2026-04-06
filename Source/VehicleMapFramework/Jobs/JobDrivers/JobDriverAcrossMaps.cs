@@ -51,9 +51,11 @@ public abstract class JobDriverAcrossMaps : JobDriverBodyOffset
                 if (last.exitSpot.Map != null) return last.exitSpot.Map;
             }
             if (enterSpotB.Map != null) return enterSpotB.Map;
-            if (exitSpotB.Map != null) return exitSpotB.Map.BaseMap();
+            if (exitSpotB.Map != null) return ZiplineMapOrBaseMap(exitSpotB);
             if (enterSpotA.Map != null) return enterSpotA.Map;
-            return exitSpotA.Map != null ? exitSpotA.Map.BaseMap() : Map;
+            return exitSpotA.Map != null ? ZiplineMapOrBaseMap(exitSpotA) : Map;
+
+            
         }
     }
 
@@ -69,8 +71,15 @@ public abstract class JobDriverAcrossMaps : JobDriverBodyOffset
                 if (last.exitSpot.Map != null) return last.exitSpot.Map;
             }
             if (enterSpotA.Map != null) return enterSpotA.Map;
-            return exitSpotA.Map != null ? exitSpotA.Map.BaseMap() : Map;
+            return exitSpotA.Map != null ? ZiplineMapOrBaseMap(exitSpotA) : Map;
         }
+    }
+    
+    private static Map ZiplineMapOrBaseMap(TargetInfo target)
+    {
+        return target.Thing?.TryGetComp<CompZipline>() is { Pair.Spawned: true } compZipline
+            ? compZipline.Pair.Map
+            : target.Map.GroundMap;
     }
 
     public override Vector3 ForcedBodyOffset => drawOffset;

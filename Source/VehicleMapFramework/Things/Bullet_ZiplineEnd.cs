@@ -9,42 +9,22 @@ namespace VehicleMapFramework;
 public class Bullet_ZiplineEnd : Bullet_ZiplineBase
 {
     public Map destMap;
-    
-    public int TicksToImpact => ticksToImpact;
-    
-    protected Vector3 ExactDestination => destMap != null
-        ? intendedTarget.Cell.ToVector3Shifted().ToBaseMapCoord(destMap)
-        : intendedTarget.Cell.ToVector3Shifted();
-    
-    public override void Launch(Thing _launcher, Vector3 _origin, LocalTargetInfo _usedTarget,
-        LocalTargetInfo _intendedTarget, ProjectileHitFlags hitFlags, bool _preventFriendlyFire = false,
-        Thing _equipment = null, ThingDef _targetCoverDef = null)
-    {
-        if (!_usedTarget.HasThing && _launcher.TargetMap.IsVehicleMapOf(out var vehicle))
-        {
-            _usedTarget = _usedTarget.Cell.ToVehicleMapCoord(vehicle);
-        }
-        base.Launch(_launcher, _origin, _usedTarget, _intendedTarget, hitFlags, _preventFriendlyFire, _equipment, _targetCoverDef);
-        destination = ExactDestination;
-        origin += ExactRotation * (Vector3.forward * (ZipLineData.LauncherOffset + DrawSize.y / 2f));
-        ticksToImpact = Mathf.CeilToInt(StartingTicksToImpact);
-        if (ticksToImpact < 1)
-        {
-            ticksToImpact = 1;
-        }
-        lifetime = ticksToImpact;
-    }
 
-    protected override void TickInterval(int delta)
+    protected override Vector3 ExactDestination
     {
-        base.TickInterval(delta);
-        if (intendedTarget.HasThing) destination = ExactDestination;
+        get
+        {
+            var vector3 = intendedTarget.Cell.ToVector3Shifted();
+            if (destMap is not null) vector3 = vector3.ToBaseMapCoord(destMap);
+            if (this.IsOnNonFocusedVehicleMapOf(out var vehicle)) vector3 = vector3.ToVehicleMapCoord(vehicle);
+            return vector3;
+        }
     }
 
     public override void Destroy(DestroyMode mode = DestroyMode.Vanish)
     {
         base.Destroy(mode);
-
+        
         if (destMap != null)
         {
             if (destMap.IsVehicleMapOf(out var vehicle))
@@ -69,17 +49,16 @@ public class Bullet_ZiplineEnd : Bullet_ZiplineBase
             ZiplineEnd.ReturnZipline(launchVerb);
             return;
         }
-
-        var map = Map;
         Destroy();
-        
-        var ziplineEnd = (ZiplineEnd)ThingMaker.MakeThing(ZipLineData.ZiplineEndDef);
-        ziplineEnd.launchVerb = launchVerb;
-        ziplineEnd.rotation = ExactRotation.eulerAngles.y;
-        ziplineEnd.ZipLineData = ZipLineData;
-        if (destMap.IsVehicleMapOf(out var vehicle))
-            ziplineEnd.rotation += vehicle.Angle - vehicle.Transform.rotation;
-        GenSpawn.Spawn(ziplineEnd, intendedTarget.Cell, vehicle?.VehicleMap ?? map);
+
+        if (destMap is not null)
+        {
+            var ziplineEnd = (ZiplineEnd)ThingMaker.MakeThing(ZipLineData.ZiplineEndDef);
+            ziplineEnd.launchVerb = launchVerb;
+            ziplineEnd.rotation = ExactRotation.eulerAngles.y;
+            ziplineEnd.ZipLineData = ZipLineData;
+            GenSpawn.Spawn(ziplineEnd, intendedTarget.Cell, destMap);
+        }
     }
 
     protected override void DrawAt(Vector3 drawLoc, bool flip = false)

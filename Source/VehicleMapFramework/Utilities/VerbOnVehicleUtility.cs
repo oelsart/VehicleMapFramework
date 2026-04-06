@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using RimWorld;
 using SmashTools;
 using Verse;
 using Verse.AI;
@@ -19,19 +18,16 @@ public static class VerbOnVehicleUtility
         public bool TryFindShootLineFromToOnVehicle(IntVec3 root, LocalTargetInfo targ, out ShootLine resultingLine, bool ignoreRange = false)
         {
             resultingLine = default;
-            var flag = verb.caster.IsOnVehicleMapOf(out var vehicle) && verb is not (Verb_Jump or Verb_CastAbilityJump or Verb_LaunchZipline);
-            var flag2 = targ.Thing.IsOnVehicleMapOf(out var vehicle2);
+            var flag = verb.caster.IsOnVehicleMapOf(out var vehicle) && vehicle.Spawned;
+            var flag2 = targ.Thing.IsOnVehicleMapOf(out var vehicle2) && vehicle2.Spawned;
             VehiclePawnWithMap vehicle3 = null;
             var flag3 = verb.caster.TryGetTargetMap(out var map) && map.IsVehicleMapOf(out vehicle3);
             //if (!flag && !flag2 && !flag3)
             //{
             //    return verb.TryFindShootLineFromTo(root, targ, out resultingLine, ignoreRange);
             //}
-            if (root == verb.caster.Position)
-            {
-                root = verb.caster.PositionOnBaseMapSpawned;
-            }
-
+            var positionOnBaseMap = verb.caster.PositionOnBaseMap;
+            var tmpRoot = !flag ? root : positionOnBaseMap;
             var casterBaseMap = verb.caster.BaseMap();
             var targCellOnBaseMap = targ.TargetCellOnBaseMap(verb.caster);
 
@@ -48,47 +44,47 @@ public static class VerbOnVehicleUtility
                 !flag && flag3 && verb.caster.Position.TryGetVehicleMap(casterBaseMap, out vehicle4) &&
                 vehicle4 == vehicle3)
             {
-                resultingLine = new ShootLine(root, targCellOnBaseMap);
+                resultingLine = new ShootLine(tmpRoot, targCellOnBaseMap);
                 return false;
             }
 
             if (verb.verbProps.IsMeleeAttack || verb.EffectiveRange <= 1.42f)
             {
-                resultingLine = new ShootLine(root, targCellOnBaseMap);
+                resultingLine = new ShootLine(tmpRoot, targCellOnBaseMap);
                 return ReachabilityImmediate.CanReachImmediate(verb.caster.Position, targ, verb.caster.Map,
                     PathEndMode.Touch, null);
             }
 
             var occupiedRect =
                 targ.HasThing ? targ.Thing.MovedOccupiedRect() : CellRect.SingleCell(targCellOnBaseMap);
-            if (!ignoreRange && verb.OutOfRange(root, targ, occupiedRect))
+            if (!ignoreRange && verb.OutOfRange(positionOnBaseMap, targ, occupiedRect))
             {
-                resultingLine = new ShootLine(root, targCellOnBaseMap);
+                resultingLine = new ShootLine(tmpRoot, targCellOnBaseMap);
                 return false;
             }
 
             if (!verb.verbProps.requireLineOfSight)
             {
-                resultingLine = new ShootLine(root, targCellOnBaseMap);
+                resultingLine = new ShootLine(tmpRoot, targCellOnBaseMap);
                 return true;
             }
 
             if (verb.CasterIsPawn)
             {
-                if (verb.CanHitFromCellIgnoringRange(root, targ, out var dest))
+                if (verb.CanHitFromCellIgnoringRange(tmpRoot, targ, out var dest))
                 {
-                    resultingLine = new ShootLine(root, dest);
+                    resultingLine = new ShootLine(tmpRoot, dest);
                     return true;
                 }
 
                 ShootLeanUtilityOnVehicle.LeanShootingSourcesFromTo(verb.caster.Position,
-                    occupiedRect.ClosestCellTo(root), verb.caster.Map, tempLeanShootSources);
+                    occupiedRect.ClosestCellTo(positionOnBaseMap), verb.caster.Map, tempLeanShootSources);
                 for (var i = 0; i < tempLeanShootSources.Count; i++)
                 {
                     var intVec = tempLeanShootSources[i].ToThingBaseMapCoord(verb.caster);
                     if (verb.CanHitFromCellIgnoringRange(intVec, targ, out dest))
                     {
-                        resultingLine = new ShootLine(intVec, dest);
+                        resultingLine = new ShootLine(!flag ? tempLeanShootSources[i] : intVec, dest);
                         return true;
                     }
                 }
@@ -99,13 +95,13 @@ public static class VerbOnVehicleUtility
                 {
                     if (verb.CanHitFromCellIgnoringRange(intVec2, targ, out var dest))
                     {
-                        resultingLine = new ShootLine(intVec2, dest);
+                        resultingLine = new ShootLine(!flag ? intVec2.ToThingMapCoord(verb.caster) : intVec2, dest);
                         return true;
                     }
                 }
             }
 
-            resultingLine = new ShootLine(root, targCellOnBaseMap);
+            resultingLine = new ShootLine(tmpRoot, targCellOnBaseMap);
             return false;
         }
 

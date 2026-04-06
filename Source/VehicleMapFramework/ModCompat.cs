@@ -157,8 +157,6 @@ internal static class ModCompat
 
     public static readonly bool BillDoorsFramework = IsModActive("3HSTltd.Framework");
 
-    public static readonly bool BiomesCaverns = IsModActive("BiomesTeam.BiomesCaverns");
-
     public static class CallTradeShips
     {
         public static readonly bool Active = IsModActive("calltradeships.kv.rw");

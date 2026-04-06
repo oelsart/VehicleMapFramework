@@ -553,8 +553,7 @@ public static class VehicleMapUtility
 
         public IntVec2 ToHitCell(VehiclePawnWithMap vehicle)
         {
-            var orig = Vector3.zero.ToBaseMapCoord(vehicle).ToVehicleMapCoord(vehicle).ToIntVec3();
-            return (orig + original).ToIntVec2;
+            return (original.ToVector3Shifted() - OffsetFor(vehicle, Rot8.North)).ToIntVec3().ToIntVec2;
         }
         
         public IntVec3 ClosestEdgeCell(VehiclePawnWithMap vehicle)
@@ -840,7 +839,7 @@ public static class VehicleMapUtility
     public static CellRect MovedOccupiedRect(this Thing thing)
     {
         var size = thing.def.size;
-        return GenAdj.OccupiedRect(thing.PositionOnBaseMapSpawned, thing.BaseRotation(), new IntVec2(Mathf.CeilToInt(size.x), Mathf.CeilToInt(size.z)));
+        return GenAdj.OccupiedRect(thing.PositionOnBaseMap, thing.BaseRotation(), new IntVec2(Mathf.CeilToInt(size.x), Mathf.CeilToInt(size.z)));
     }
 
     public static TargetInfo ToBaseMapTargetInfo(ref LocalTargetInfo target, Map map)
