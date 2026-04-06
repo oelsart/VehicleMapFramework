@@ -408,7 +408,6 @@ public static class Patch_GenDraw_DrawRadiusRing
                     DrawRadiusRing(vehicle.VehicleMap, center, radius, color, predicate);
                     return false;
                 }
-                Log.Message(center);
                 center = center.ToBaseMapCoord(vehicle);
             }
         }

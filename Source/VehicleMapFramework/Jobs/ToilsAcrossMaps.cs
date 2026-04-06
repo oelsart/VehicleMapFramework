@@ -93,10 +93,10 @@ public static class ToilsAcrossMaps
             var normalized = NormalizeFlat(drawPosB - drawPosA);
             var rot = Rot4.FromAngleFlat(normalized.AngleFlat());
 
-            if (toil.actor.IsOnVehicleMapOf(out var vehicle))
+            if (toil.actor.IsOnNonFocusedVehicleMapOf(out var vehicle))
             {
                 normalized = normalized.RotatedBy(-vehicle.FullAngle);
-                rot.AsInt -= vehicle.Rotation.AsInt;
+                if (!toil.actor.Drafted) rot.AsInt -= vehicle.Rotation.AsInt;
             }
             toil.actor.Rotation = rot;
             
@@ -109,7 +109,7 @@ public static class ToilsAcrossMaps
             driver.drawOffset = (normalized * moveDistance * (GenTicks.TicksGame - initTick)).WithYOffset(0.1f);
             if (vehicle is null)
             {
-                driver.drawOffset = driver.drawOffset.YOffsetFull();
+                driver.drawOffset.y = Mathf.Max(driver.drawOffset.y, driver.drawOffset.y.YOffsetFull());
             }
 
             var rect = Rect.MinMaxRect(drawPosA.x, drawPosA.z, drawPosB.x, drawPosB.z);
@@ -388,8 +388,8 @@ public static class ToilsAcrossMaps
                 Rot4 rot;
                 if (compZipline is not null)
                 {
-                    if (compZipline.Pair is not { Spawned: true }) return;
-                    cell = compZipline.Pair.Position;
+                    if (compZipline.parent is not { Spawned: true }) return;
+                    cell = compZipline.parent.Position;
                     rot = toil3.actor.Rotation;
                 }
                 else
