@@ -113,7 +113,7 @@ jobs:
       if: always()
       with:
         webhook: ${{ secrets.DISCORD_WEBHOOK_TEST }}
-        title: '${{ github.workflow }}: ${{ job.status }}'
+        title: ${{ github.workflow }}
         description: "Mod compatibility tests run every 2 days"
         content: ${{ job.status == 'failure' && '<@1183347523843264602>' || '' }}
         username: LS & Co. (GitHub Division)

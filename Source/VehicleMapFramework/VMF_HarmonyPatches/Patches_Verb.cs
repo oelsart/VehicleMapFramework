@@ -21,13 +21,7 @@ public static class Patch_Verb_TryFindShootLineFromTo
 
     public static bool Prefix(Verb __instance, IntVec3 root, LocalTargetInfo targ, ref ShootLine resultingLine, bool ignoreRange, ref bool __result)
     {
-        if (VehiclePawnWithMapCache.AllVehiclesOn(__instance.caster.GroundMap).Count == 0)
-            return true;
-        
-        if ((__instance.caster.IsOnVehicleMapOf(out var vehicle) && vehicle.Spawned ||
-            targ.Thing.IsOnVehicleMapOf(out vehicle) && vehicle.Spawned ||
-            (__instance.caster.TryGetTargetMap(out var map) && map.IsVehicleMapOf(out vehicle) && vehicle.Spawned) ||
-            root.IsValid && GenSight.PointsOnLineOfSight(root, targ.Cell).Any(c => c.InBounds(__instance.caster.Map) && c.TryGetVehicleMap(__instance.caster.Map, out _))))
+        if (VerbOnVehicleUtility.ShouldConsiderCrossMap(__instance.caster, root, targ))
         {
             __result = __instance.TryFindShootLineFromToOnVehicle(root, targ, out resultingLine, ignoreRange);
             return false;

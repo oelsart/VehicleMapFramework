@@ -40,6 +40,11 @@
 #- Name: BillDoorsFramework
 - Name: CallTradeShips
 - Name: CeleTechArsenal
+- Name: CeleTechArsenal + CE
+  Mods:
+    - Rimatomics
+  Categories:
+    - VMF_Patches_CeleTechArsenalCECompat
 - Name: ColonyGroups
 - Name: CutPlantsBeforeBuilding
 - Name: DoNotHitMe

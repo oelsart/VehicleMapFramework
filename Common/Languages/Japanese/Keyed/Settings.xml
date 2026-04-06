@@ -8,6 +8,7 @@
 	<VMF_Settings.AutoGetOffNonPlayer>非プレイヤー派閥のポーンが自動で車両マップから降りる.</VMF_Settings.AutoGetOffNonPlayer>
 	<VMF_Settings.CrossMapJobProtect>クロスマップ非対応ジョブからの保護.</VMF_Settings.CrossMapJobProtect>
 	<VMF_Settings.CrossMapJobProtect.Tooltip>"10 jobs in one tick" エラーによりポーンがスタックする原因となるWorkgiverを自動的にクロスマップ対応から除外します.\nゲームプレイの安定性が向上しますが, 非対応ジョブの発見が難しくなります (非対応ジョブは作者に報告すれば修正されます).</VMF_Settings.CrossMapJobProtect.Tooltip>
+	<VMF_Settings.TreatAsCaravanInventory>車両マップ上のアイテムをキャラバンの所持品の一部として扱う.</VMF_Settings.TreatAsCaravanInventory>
 	<VMF_Settings.ThreadingPathCost>大きな車両における経路コスト計算のマルチスレッド化.</VMF_Settings.ThreadingPathCost>
 	<VMF_Settings.MinAreaForThreading>マルチスレッドで計算される車両の最小面積.</VMF_Settings.MinAreaForThreading>
 	<VMF_Settings.AsyncClosestThing>到達可能な最も近い物を取得する計算のマルチスレッド化.</VMF_Settings.AsyncClosestThing>

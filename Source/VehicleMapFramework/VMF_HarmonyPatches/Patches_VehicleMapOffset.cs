@@ -307,10 +307,9 @@ public static class Patch_Pawn_JobTracker_DrawLinesBetweenTargets
             return targ.Cell.ToVector3Shifted().ToBaseMapCoord(map2);
         }
 
-        var driver = pawn.jobs.AllJobs()?.FirstOrDefault()?.GetCachedDriver(pawn);
-        if (driver is JobDriverAcrossMaps driverAcrossMaps)
+        if (pawn.CurJob?.GetCachedDriver(pawn) is JobDriverAcrossMaps driver)
         {
-            var destMap = driverAcrossMaps.DestMap;
+            var destMap = driver.DestMap;
             if (destMap.IsNonFocusedVehicleMapOf(out var vehicle))
             {
                 return targ.Cell.ToVector3Shifted().ToBaseMapCoord(vehicle);
@@ -409,7 +408,6 @@ public static class Patch_GenDraw_DrawRadiusRing
                     DrawRadiusRing(vehicle.VehicleMap, center, radius, color, predicate);
                     return false;
                 }
-                Log.Message(center);
                 center = center.ToBaseMapCoord(vehicle);
             }
         }

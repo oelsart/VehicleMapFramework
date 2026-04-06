@@ -93,10 +93,10 @@ public static class ToilsAcrossMaps
             var normalized = NormalizeFlat(drawPosB - drawPosA);
             var rot = Rot4.FromAngleFlat(normalized.AngleFlat());
 
-            if (toil.actor.IsOnVehicleMapOf(out var vehicle))
+            if (toil.actor.IsOnNonFocusedVehicleMapOf(out var vehicle))
             {
                 normalized = normalized.RotatedBy(-vehicle.FullAngle);
-                rot.AsInt -= vehicle.Rotation.AsInt;
+                if (!toil.actor.Drafted) rot.AsInt -= vehicle.Rotation.AsInt;
             }
             toil.actor.Rotation = rot;
             
@@ -109,7 +109,7 @@ public static class ToilsAcrossMaps
             driver.drawOffset = (normalized * moveDistance * (GenTicks.TicksGame - initTick)).WithYOffset(0.1f);
             if (vehicle is null)
             {
-                driver.drawOffset = driver.drawOffset.YOffsetFull();
+                driver.drawOffset.y = Mathf.Max(driver.drawOffset.y, driver.drawOffset.y.YOffsetFull());
             }
 
             var rect = Rect.MinMaxRect(drawPosA.x, drawPosA.z, drawPosB.x, drawPosB.z);
@@ -266,21 +266,24 @@ public static class ToilsAcrossMaps
             toil3.initAction = () =>
             {
                 if (!exitSpot.Map.IsVehicleMapOf(out var vehicle)) return;
-                var cell = CrossMapReachabilityUtility.EnterVehiclePosition(exitSpot, vehiclePawn);
-                if (!cell.IsValid) return;
+                IntVec3 cell;
                 Rot4 rot;
                 Map map;
-                if (compZipline != null)
+                if (compZipline is not null)
                 {
+                    if (compZipline.Pair is not { Spawned: true }) return;
+                    cell = compZipline.Pair.Position;
                     map = compZipline.Pair.Map;
                     rot = toil3.actor.Rotation;
                 }
                 else
                 {
+                    cell = CrossMapReachabilityUtility.EnterVehiclePosition(exitSpot, vehiclePawn);
                     map = exitSpot.Map.BaseMap();
                     rot = exitSpot.HasThing ? exitSpot.Thing.BaseFullRotation() : exitSpot.Cell.BaseFullDirectionToInsideMap(vehicle);
                     rot = rot.Opposite;
                 }
+                if (!cell.IsValid) return;
 
                 driver.drawOffset = Vector3.zero;
                 if (vehiclePawn != null)
@@ -327,8 +330,7 @@ public static class ToilsAcrossMaps
             //ドアがあれば開ける
             yield return OpenDoor(driver, enterSpot);
 
-            CompZipline pairComp;
-            if (compZipline != null && (pairComp = compZipline.Pair?.TryGetComp<CompZipline>()) != null)
+            if (compZipline is { Pair.Spawned: true } && compZipline.Pair.TryGetComp<CompZipline>() is { } pairComp)
             {
                 yield return ZiplineAnimation(driver, pairComp);
             }
@@ -382,20 +384,25 @@ public static class ToilsAcrossMaps
             {
                 if (!enterSpot.Map.IsVehicleMapOf(out var vehicle)) return;
                 driver.drawOffset = Vector3.zero;
+                IntVec3 cell;
                 Rot4 rot;
-                if (compZipline != null)
+                if (compZipline is not null)
                 {
+                    if (compZipline.parent is not { Spawned: true }) return;
+                    cell = compZipline.parent.Position;
                     rot = toil3.actor.Rotation;
                 }
                 else
                 {
+                    cell = enterSpot.Cell;
                     rot = enterSpot.HasThing ? enterSpot.Thing.Rotation : enterSpot.Cell.DirectionToInsideMap(vehicle);
                 }
+                if (!cell.IsValid) return;
 
                 if (vehiclePawn != null)
                 {
                     vehiclePawn.DeSpawnWithoutJobClearVehicle();
-                    GenSpawn.Spawn(toil3.actor, enterSpot.Cell + (rot.FacingCell * vehiclePawn.HalfLength()), enterSpot.Map, rot);
+                    GenSpawn.Spawn(toil3.actor, cell + (rot.FacingCell * vehiclePawn.HalfLength()), enterSpot.Map, rot);
                 }
                 else
                 {
@@ -407,12 +414,12 @@ public static class ToilsAcrossMaps
                             ropee.DeSpawnWithoutJobClear();
                         }
                     }
-                    GenSpawn.Spawn(toil3.actor, enterSpot.Cell, enterSpot.Map, rot, WipeMode.VanishOrMoveAside);
+                    GenSpawn.Spawn(toil3.actor, cell, enterSpot.Map, rot, WipeMode.VanishOrMoveAside);
                     if (toil3.actor.roping != null)
                     {
                         foreach (var ropee in toil3.actor.roping.Ropees)
                         {
-                            GenSpawn.Spawn(ropee, enterSpot.Cell, enterSpot.Map, rot, WipeMode.VanishOrMoveAside);
+                            GenSpawn.Spawn(ropee, cell, enterSpot.Map, rot, WipeMode.VanishOrMoveAside);
                         }
                     }
                 }
