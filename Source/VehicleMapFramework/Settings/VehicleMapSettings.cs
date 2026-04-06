@@ -3,8 +3,6 @@ using Verse;
 
 namespace VehicleMapFramework;
 
-
-
 public class VehicleMapSettings : ModSettings
 {
     public bool drawPlanet = Default.drawPlanet;
@@ -64,7 +62,7 @@ public class VehicleMapSettings : ModSettings
 
         public const bool drawVehicleMapGrid = false;
         
-        public const bool includeMapThings = false;
+        public const bool includeMapThings = true;
         
         public const bool aStarTraverse = false;
 
