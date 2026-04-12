@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -9,6 +8,7 @@ using HarmonyLib;
 using JetBrains.Annotations;
 using RimWorld;
 using RimWorld.Planet;
+using SmashTools;
 using UnityEngine;
 using VehicleMapFramework.VMF_HarmonyPatches;
 using Vehicles;
@@ -83,12 +83,15 @@ internal static class ModCompat
 
         public static readonly Dictionary<(VehicleDef, Rot4), Texture2D> CachedVehicleTextures;
 
+        public static readonly AccessTools.FieldRef<CompFueledTravel, CompPower> connectedPower;
+
         static VehicleFramework()
         {
             if (!UnitTestDetector.IsTestingContext)
             {
                 CachedVehicleTextures = AccessTools.StaticFieldRefAccess<Dictionary<(VehicleDef, Rot4), Texture2D>>(typeof(VehicleTex), "CachedVehicleTextures");
-                if (AnyNull(CachedVehicleTextures))
+                connectedPower = AccessTools.FieldRefAccess<CompFueledTravel, CompPower>("connectedPower");
+                if (AnyNull(CachedVehicleTextures, connectedPower))
                 {
                     LogIncompat("Vehicle Framework");
                 }
@@ -851,18 +854,12 @@ internal static class ModCompat
     public static class MultiFloors
     {
         public static readonly bool Active = IsModActive("telardo.MultiFloors") || IsModActive("telardo.MultiFloorsDev");
-
         public static readonly Func<Map, Map> GroundMap;
-
         public static readonly Func<Map, int> GetLevel;
-
         public static readonly Action<Map> RevalidateLaunchSiteState;
-
         public static readonly Type SectionLayer_LowerLevel;
-
-        public static readonly Type MF_LevelMapComp;
-
-        public static readonly FastInvokeHandler GetOtherMapVerticallyOutwardFromCache;
+        private static readonly Func<Map, MapComponent> GetCachedLevelMapComp;
+        private static readonly FastInvokeHandler GetOtherMapVerticallyOutwardFromCache;
 
         static MultiFloors()
         {
@@ -878,7 +875,10 @@ internal static class ModCompat
                     {
                         VehicleSectionLayerManager.OrientedSectionLayerTypes.Add(SectionLayer_LowerLevel);
                     }
-                    MF_LevelMapComp = GenTypes.GetTypeInAnyAssembly("MultiFloors.MF_LevelMapComp", "MultiFloors");
+                    GetCachedLevelMapComp = AccessTools.MethodDelegate<Func<Map, MapComponent>>(
+                        AccessTools.Method(
+                            typeof(MapComponentCache<>).MakeGenericType(GenTypes.GetTypeInAnyAssembly("MultiFloors.MF_LevelMapComp", "MultiFloors")),
+                            "GetComponent", [typeof(Map)]));
                     GetOtherMapVerticallyOutwardFromCache = MethodInvoker.GetHandler(AccessTools.Method("MultiFloors.LevelUtility:GetOtherMapVerticallyOutwardFromCache"));
                 }
                 catch (Exception ex)
@@ -888,13 +888,20 @@ internal static class ModCompat
                 }
                 finally
                 {
-                    if (AnyNull(GroundMap, GetLevel, RevalidateLaunchSiteState, SectionLayer_LowerLevel, MF_LevelMapComp, GetOtherMapVerticallyOutwardFromCache))
+                    if (AnyNull(GroundMap, GetLevel, RevalidateLaunchSiteState, SectionLayer_LowerLevel, GetCachedLevelMapComp, GetOtherMapVerticallyOutwardFromCache))
                     {
                         LogIncompat("MultiFloors");
                         Active = false;
                     }
                 }
             }
+        }
+
+        private static readonly object MinusOne = -1;
+        public static IEnumerable<Map> GetOtherLevels(Map map)
+        {
+            return (IEnumerable<Map>)GetOtherMapVerticallyOutwardFromCache(null,
+                Params<ValueTuple<object, object, object>>.Get((map, GetCachedLevelMapComp(map), MinusOne)));
         }
     }
 

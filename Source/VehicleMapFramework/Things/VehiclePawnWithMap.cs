@@ -910,7 +910,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
         cellDesignationsDirtyTick = GenTicks.TicksGame;
         foreach (var designationDef in cellDesignations)
         {
-            DirtyCellDesignationsCache(CurrentLevel.designationManager, FastInvokeHelper.SingleParam(designationDef));
+            DirtyCellDesignationsCache(CurrentLevel.designationManager, SingleParam.Get(designationDef));
         }
     }
 
@@ -1285,7 +1285,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
                 if (InterceptorMapComponent is null) return;
                 foreach (var grid in DefenseGrid.grids(InterceptorMapComponent))
                 {
-                    DefenseGrid.RepaintGrid(InterceptorMapComponent, FastInvokeHelper.SingleParam(grid));
+                    DefenseGrid.RepaintGrid(InterceptorMapComponent, SingleParam.Get(grid));
                 }
             });
             this.AddEvent(VehicleEventDefOf.Spawned, () => FrameDelay.DelayOne(static component =>
@@ -1293,7 +1293,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
                 if (component is null) return;
                 foreach (var grid in DefenseGrid.grids(component))
                 {
-                    DefenseGrid.RepaintGrid(component, FastInvokeHelper.SingleParam(grid));
+                    DefenseGrid.RepaintGrid(component, SingleParam.Get(grid));
                 }
             }, InterceptorMapComponent));
             this.AddEvent(VehicleEventDefOf.Despawned, () =>
@@ -1301,7 +1301,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
                 if (InterceptorMapComponent is null) return;
                 foreach (var grid in DefenseGrid.grids(InterceptorMapComponent))
                 {
-                    DefenseGrid.UnpaintGrid(InterceptorMapComponent, FastInvokeHelper.SingleParam(grid));
+                    DefenseGrid.UnpaintGrid(InterceptorMapComponent, SingleParam.Get(grid));
                 }
             });
         }
@@ -1351,7 +1351,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
                 var component = map.GetCachedMapComponent<VehiclePathingSystem>();
                 UniqueVehicleUtility.configsMap(component.GridOwners)[vehicleDef.DefIndex]
                     = UniqueVehicleUtility.PathConfigMap(vehicleDef);
-                UniqueVehicleUtility.GeneratePathData(component, FastInvokeHelper.SingleParam(vehicleDef));
+                UniqueVehicleUtility.GeneratePathData(component, SingleParam.Get(vehicleDef));
             }
             
             if (Spawned)
@@ -1379,7 +1379,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
                 
                 var component = Map.GetCachedMapComponent<VehiclePathingSystem>();
                 if (UniqueVehicleUtility.PathData is not null)
-                    UniqueVehicleUtility.PathData(vehiclePather, FastInvokeHelper.SingleParam(component[vehicleDef]));
+                    UniqueVehicleUtility.PathData(vehiclePather, SingleParam.Get(component[vehicleDef]));
 #if DEV
                 if (!component.ThreadAvailable ||
                     component.dedicatedThread.State == DedicatedThread.ThreadState.Running)
