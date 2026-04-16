@@ -724,7 +724,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
 
     public override void Kill(DamageInfo? dinfo, DestroyMode destroyMode = DestroyMode.KillFinalize, bool spawnWreckage = false)
     {
-        if (CompDelayedKill is { KillOnTick: false })
+        if (Spawned && CompDelayedKill is { KillOnTick: false })
         {
             if (dinfo?.Instigator is Pawn instigator)
             {
@@ -815,7 +815,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
 
     public override void DeSpawn(DestroyMode mode = DestroyMode.Vanish)
     {
-        //sourceMapをinteriorMap自身にすると無限ループの危険がある
+        // sourceMapをinteriorMap自身にすると無限ループの危険がある
         interiorMap.PocketMapParent.sourceMap = null;
         VehiclePawnWithMapCache.DeRegisterVehicle(this);
         mapFollower.DeRegisterVehicle();

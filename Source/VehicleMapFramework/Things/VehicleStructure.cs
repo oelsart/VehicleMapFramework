@@ -1,5 +1,4 @@
 ﻿using RimWorld;
-using SmashTools;
 using Verse;
 
 namespace VehicleMapFramework;

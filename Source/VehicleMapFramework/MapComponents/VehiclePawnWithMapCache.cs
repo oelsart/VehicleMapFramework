@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using SmashTools;
 using UnityEngine;
 using Vehicles;
@@ -35,22 +34,27 @@ public class VehiclePawnWithMapCache(Map map) : MapComponent(map)
 
     public static void RegisterVehicle(VehiclePawnWithMap vehicle)
     {
-        MapComponentCache<VehiclePawnWithMapCache>.GetComponent(vehicle.Map).allVehicles.AddUnique(vehicle);
+        LongEventHandler.ExecuteWhenFinished(() =>
+        {
+            vehicle.Map?.GetComponent<VehiclePawnWithMapCache>()?.allVehicles.AddUnique(vehicle);
+        });
     }
 
     public static void DeRegisterVehicle(VehiclePawnWithMap vehicle)
     {
-        var list = Find.Maps.Select(m => MapComponentCache<VehiclePawnWithMapCache>.GetComponent(m).allVehicles).FirstOrDefault(h => h.Contains(vehicle));
-        if (list == null)
+        foreach (var map in Find.Maps)
         {
-            VMF_Log.Warning("Tried to deregister an unregistered vehicle.");
-            return;
+            if (map.GetComponent<VehiclePawnWithMapCache>() is { } component)
+            {
+                component.allVehicles.Remove(vehicle);
+            }
         }
-        list.Remove(vehicle);
-        if (Command_FocusVehicleMap.FocusedVehicle != vehicle) return;
-        
-        Command_FocusVehicleMap.FocusLockedVehicle = null;
-        Command_FocusVehicleMap.FocusedVehicle = null;
+
+        if (Command_FocusVehicleMap.FocusedVehicle == vehicle)
+        {
+            Command_FocusVehicleMap.FocusLockedVehicle = null;
+            Command_FocusVehicleMap.FocusedVehicle = null;
+        }
     }
 
     public static List<VehiclePawnWithMap> AllVehiclesOn(Map map)

@@ -731,23 +731,6 @@ public static class Patch_AreaSource_DataForArea
     private static readonly AccessTools.FieldRef<PathFinderMapData, AreaSource> areas = AccessTools.FieldRefAccess<PathFinderMapData, AreaSource>("areas");
 }
 
-//キャラバン壊滅時
-[HarmonyPatch(typeof(Caravan), nameof(Caravan.Notify_PawnRemoved))]
-[PatchLevel(Level.Safe)]
-public static class Patch_Caravan_Notify_PawnRemoved
-{
-    public static void Postfix(Pawn p)
-    {
-        if (p is VehiclePawnWithMap vehicle)
-        {
-            Delay.AfterNTicks(5, () =>
-            {
-                if (vehicle.IsWorldPawn() && vehicle.ParentHolder is null) vehicle.RemoveVehicleMap();
-            });
-        }
-    }
-}
-
 [HarmonyPatch(typeof(StorytellerUtility), nameof(StorytellerUtility.DefaultThreatPointsNow))]
 [PatchLevel(Level.Cautious)]
 public static class Patch_StorytellerUtility_DefaultThreatPointsNow
