@@ -19,7 +19,7 @@ public class CompNpcVehicleMap : VehicleComp
             return;
         }
 
-        if (Props.mapParamsList
+        if (Props.mapParams
             .Where(mapParams => mapParams.pawnCountRange.InRange(pawnCount))
             .TryRandomElement(out var result))
         {
@@ -28,7 +28,7 @@ public class CompNpcVehicleMap : VehicleComp
         }
 
         VMF_Log.Warning($"CompNpcVehicleMap: No mapParams found for pawnCount {pawnCount}. Using first mapParams.");
-        Params = Props.mapParamsList.FirstOrDefault();
+        Params = Props.mapParams.FirstOrDefault();
     }
 
     public override void PostExposeData()
