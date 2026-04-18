@@ -83,7 +83,7 @@ public class VehicleCaravanIncidentUtility
                             comp2.Opacity = 0.5f;
                     }
                 });
-                vehicle.ResizeNow();
+                vehicle.Resize();
             }
             if (!SpawnVehicle(vehicle)) continue;
 
@@ -168,5 +168,28 @@ public class VehicleCaravanIncidentUtility
             var result = GenSpawn.Spawn(vehicle, pos2, map, rot) != null;
             return result;
         }
+    }
+    
+    public static bool ValidThreatVehicle(VehicleDef vehicleDef, VehicleCategory category,
+        PawnsArrivalModeDef arrivalModeDef, Faction faction, float points)
+    {
+        return vehicleDef.thingClass.SameOrSubclassOf<VehiclePawnWithMap>() && vehicleDef.HasComp<CompNpcVehicleMap>() &&
+               RaidInjectionHelper.ValidRaiderVehicle(vehicleDef, category, arrivalModeDef, faction, points) &&
+               vehicleDef.GetModExtension<VehicleMapProps_Unique>() is null or { baseDef: null } &&
+               UniqueVehicleUtility.AllowGenerate(vehicleDef);
+    }
+    
+    public static bool ValidSeaThreatVehicle(VehicleDef vehicleDef, VehicleCategory category,
+        PawnsArrivalModeDef arrivalModeDef, Faction faction, float points)
+    {
+        return vehicleDef.thingClass.SameOrSubclassOf<VehiclePawnWithMap>() && vehicleDef.HasComp<CompNpcVehicleMap>() &&
+               vehicleDef.GetModExtension<VehicleMapProps_Unique>() is null or { baseDef: null } &&
+               UniqueVehicleUtility.AllowGenerate(vehicleDef) &&
+               vehicleDef.type == VehicleType.Sea && (vehicleDef.vehicleCategory & category) == category &&
+               vehicleDef.combatPower <= points && faction.def.techLevel >= vehicleDef.techLevel &&
+               (vehicleDef.enabled & VehicleEnabled.For.Raiders) != VehicleEnabled.For.None &&
+               vehicleDef.npcProperties != null && (vehicleDef.npcProperties.raidParams == null ||
+                                                    vehicleDef.npcProperties.raidParams.Allows(faction,
+                                                        arrivalModeDef));
     }
 }

@@ -8,6 +8,7 @@
 	<VMF_ForceOnVehicleMapEdge>Cannot be placed outside the edge of a vehicle map.</VMF_ForceOnVehicleMapEdge>
 	<VMF_ForceOnRelatedVehicle>This building is not related to this vehicle.</VMF_ForceOnRelatedVehicle>
 	<VMF_ForceOnRelatedBuilding>It can only be built on top of related buildings.</VMF_ForceOnRelatedBuilding>
+	<VMF_UniqueVehicleExceedsLimit>The number of {0} exceeds the limit.</VMF_UniqueVehicleExceedsLimit>
 
 	<VMF_NoRoles>No roles for operating this turret in {0}.</VMF_NoRoles>
 

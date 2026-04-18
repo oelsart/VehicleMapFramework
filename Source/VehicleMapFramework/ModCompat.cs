@@ -82,8 +82,8 @@ internal static class ModCompat
         public const string HarmonyId = "SmashPhil.VehicleFramework";
 
         public static readonly Dictionary<(VehicleDef, Rot4), Texture2D> CachedVehicleTextures;
-
         public static readonly AccessTools.FieldRef<CompFueledTravel, CompPower> connectedPower;
+        public static readonly AccessTools.StructFieldRef<MapGridOwners.PathConfig, VehicleDef> vehicleDef;
 
         static VehicleFramework()
         {
@@ -91,6 +91,7 @@ internal static class ModCompat
             {
                 CachedVehicleTextures = AccessTools.StaticFieldRefAccess<Dictionary<(VehicleDef, Rot4), Texture2D>>(typeof(VehicleTex), "CachedVehicleTextures");
                 connectedPower = AccessTools.FieldRefAccess<CompFueledTravel, CompPower>("connectedPower");
+                vehicleDef = AccessTools.StructFieldRefAccess<MapGridOwners.PathConfig, VehicleDef>("vehicleDef");
                 if (AnyNull(CachedVehicleTextures, connectedPower))
                 {
                     LogIncompat("Vehicle Framework");

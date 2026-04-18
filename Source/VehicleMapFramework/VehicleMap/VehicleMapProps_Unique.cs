@@ -1,51 +1,32 @@
-﻿using Vehicles;
+﻿using JetBrains.Annotations;
+using Vehicles;
 using Verse;
 
 namespace VehicleMapFramework
 {
-    public class VehicleMapProps_Unique : VehicleMapProps, IExposable
+    [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
+    public class VehicleMapProps_Unique : VehicleMapProps
     {
-        public VehicleDef baseDef;
+        [Unsaved] public VehicleDef baseDef;
+        public int placeholderCount = 32;
 
-        public string defName;
-
-        public virtual void ExposeData()
+        public override void ResolveReferences(Def parentDef)
         {
-            Scribe_Defs.Look(ref baseDef, "baseDef");
-            Scribe_Values.Look(ref defName, "defName");
-
-            if (Scribe.mode == LoadSaveMode.LoadingVars && baseDef != null)
+            base.ResolveReferences(parentDef);
+            if (this is VehicleMapProps_Gravship ||
+                parentDef is not VehicleDef vehicleDef) return;
+            
+            LongEventHandler.ExecuteWhenFinished(() =>
             {
-                var props = baseDef.GetModExtension<VehicleMapProps_Unique>();
-                if (props is null) return;
-                size = props.size;
-                offset = props.offset;
-                offsetNorth = props.offsetNorth;
-                offsetSouth = props.offsetSouth;
-                offsetEast = props.offsetEast;
-                offsetWest = props.offsetWest;
-                offsetNorthEast = props.offsetNorthEast;
-                offsetNorthWest = props.offsetNorthWest;
-                offsetSouthEast = props.offsetSouthEast;
-                offsetSouthWest = props.offsetSouthWest;
-                filledStructureCells = props.filledStructureCells;
-                filledStructureCellRects = props.filledStructureCellRects;
-                emptyStructureCells = props.emptyStructureCells;
-                emptyStructureCellRects = props.emptyStructureCellRects;
-                expandableCells = props.expandableCells;
-                expandableCellRects = props.expandableCellRects;
-                outOfBoundsCells = props.outOfBoundsCells;
-                outOfBoundsCellRects = props.outOfBoundsCellRects;
-                edgeSpace = props.edgeSpace;
-                edgeSpaceNorth = props.edgeSpaceNorth;
-                edgeSpaceNorthEast = props.edgeSpaceNorthEast;
-                edgeSpaceEast = props.edgeSpaceEast;
-                edgeSpaceSouthEast = props.edgeSpaceSouthEast;
-                edgeSpaceSouth = props.edgeSpaceSouth;
-                edgeSpaceSouthWest = props.edgeSpaceSouthWest;
-                edgeSpaceWest = props.edgeSpaceWest;
-                edgeSpaceNorthWest = props.edgeSpaceNorthWest;
-            }
+                if (!UniqueVehicleManager.PlaceholderDefs.TryGetValue(vehicleDef, out var list))
+                    UniqueVehicleManager.PlaceholderDefs[vehicleDef] = list = [];
+                list.Clear();
+                for (var i = 0; i < placeholderCount; i++)
+                {
+                    var def = UniqueVehicleUtility.GenerateUniqueVehicleDef(vehicleDef, i);
+                    list.Add(def);
+                }
+            });
         }
     }
 }

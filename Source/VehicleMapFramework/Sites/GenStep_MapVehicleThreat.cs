@@ -15,9 +15,7 @@ public class GenStep_MapVehicleThreat : GenStep
     protected virtual bool ValidRaiderVehicle(VehicleDef vehicleDef, VehicleCategory category, PawnsArrivalModeDef arrivalModeDef,
         Faction faction, float points)
     {
-        return vehicleDef.thingClass.SameOrSubclassOf<VehiclePawnWithMap>() && vehicleDef.HasComp<CompNpcVehicleMap>() &&
-               RaidInjectionHelper.ValidRaiderVehicle(vehicleDef, category, arrivalModeDef, faction, points) &&
-               vehicleDef.GetModExtension<VehicleMapProps_Unique>() is null or { baseDef: null };
+        return VehicleCaravanIncidentUtility.ValidThreatVehicle(vehicleDef, category, arrivalModeDef, faction, points);
     }
     
     protected virtual List<VehiclePawnWithMap> GenerateVehicles(Faction faction, SitePart sitePart)
