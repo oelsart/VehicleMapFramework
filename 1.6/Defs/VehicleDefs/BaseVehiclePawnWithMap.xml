@@ -6,13 +6,15 @@
 		<enabled>Player</enabled>
 		<tradeability>None</tradeability>
 		<notifyMapRemoved>true</notifyMapRemoved>
+		<comps>
+			<li>
+				<compClass>VehicleMapFramework.CompRemoveVehicleMap</compClass>
+			</li>
+		</comps>
 	</Vehicles.VehicleDef>
 	
-	<Vehicles.VehicleDef Name="BaseVehiclePawnWithMapHover" ParentName="BaseVehiclePawn" Abstract="True">
+	<Vehicles.VehicleDef Name="BaseVehiclePawnWithMapHover" ParentName="BaseVehiclePawnWithMap" Abstract="True">
 		<thingClass>VehicleMapFramework.VehiclePawnWithMap_Hover</thingClass>
-		<enabled>Player</enabled>
-		<tradeability>None</tradeability>
-		<notifyMapRemoved>true</notifyMapRemoved>
 	</Vehicles.VehicleDef>
 
 	<Vehicles.VehicleDef Name="BaseSeaVehiclePawnWithMap" ParentName="BaseSeaVehicle" Abstract="True">
@@ -20,12 +22,14 @@
 		<enabled>Player</enabled>
 		<tradeability>None</tradeability>
 		<notifyMapRemoved>true</notifyMapRemoved>
+		<comps>
+			<li>
+				<compClass>VehicleMapFramework.CompRemoveVehicleMap</compClass>
+			</li>
+		</comps>
 	</Vehicles.VehicleDef>
 
-	<Vehicles.VehicleDef Name="BaseSeaVehiclePawnWithMapHover" ParentName="BaseSeaVehicle" Abstract="True">
+	<Vehicles.VehicleDef Name="BaseSeaVehiclePawnWithMapHover" ParentName="BaseSeaVehiclePawnWithMap" Abstract="True">
 		<thingClass>VehicleMapFramework.VehiclePawnWithMap_Hover</thingClass>
-		<enabled>Player</enabled>
-		<tradeability>None</tradeability>
-		<notifyMapRemoved>true</notifyMapRemoved>
 	</Vehicles.VehicleDef>
 </Defs>

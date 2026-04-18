@@ -17,7 +17,7 @@ public class CompProperties_NpcVehicleMap : VehicleCompProperties
     
     public float pawnCountWeight = 1f;
     
-    public List<VehicleMapParams> mapParamsList;
+    public List<VehicleMapParams> mapParams;
 
     public class VehicleMapParams : IExposable
     {
