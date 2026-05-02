@@ -68,24 +68,24 @@ public class CompPipeConnectorRF : CompPipe, IPipeConnector
 
     public void ConnectedTickAction()
     {
-        if (PairComp != null)
+        if (PairComp is not { parent.Spawned: true })
         {
             pumpUp = pumpUp || pairComp.pumpUp;
             if (pumpUp)
             {
-                var oil = Math.Min(Math.Min(flowAmount * CompPipeConnector.ticksInterval, pipeNet.TotalOil), pairComp.pipeNet.OilStorage.Sum(o => o.space));
+                var oil = Math.Min(Math.Min(flowAmount * CompPipeConnector.TicksInterval, pipeNet.TotalOil), pairComp.pipeNet.OilStorage.Sum(o => o.space));
                 pipeNet.PullOil(oil);
                 pairComp.pipeNet.PushCrude(oil);
-                var fuel = Math.Min(Math.Min(flowAmount * CompPipeConnector.ticksInterval, pipeNet.TotalFuel), pairComp.pipeNet.FuelStorage.Sum(f => f.space));
+                var fuel = Math.Min(Math.Min(flowAmount * CompPipeConnector.TicksInterval, pipeNet.TotalFuel), pairComp.pipeNet.FuelStorage.Sum(f => f.space));
                 pipeNet.PullFuel(fuel);
                 pairComp.pipeNet.PushFuel((float)fuel);
             }
             else
             {
-                var oil = Math.Min(Math.Min(flowAmount * CompPipeConnector.ticksInterval, pairComp.pipeNet.TotalOil), pipeNet.OilStorage.Sum(o => o.space));
+                var oil = Math.Min(Math.Min(flowAmount * CompPipeConnector.TicksInterval, pairComp.pipeNet.TotalOil), pipeNet.OilStorage.Sum(o => o.space));
                 pipeNet.PushCrude(oil);
                 pairComp.pipeNet.PullOil(oil);
-                var fuel = Math.Min(Math.Min(flowAmount * CompPipeConnector.ticksInterval, pairComp.pipeNet.TotalFuel), pipeNet.FuelStorage.Sum(f => f.space));
+                var fuel = Math.Min(Math.Min(flowAmount * CompPipeConnector.TicksInterval, pairComp.pipeNet.TotalFuel), pipeNet.FuelStorage.Sum(f => f.space));
                 pipeNet.PushFuel((float)fuel);
                 pairComp.pipeNet.PullFuel(fuel);
             }
