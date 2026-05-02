@@ -1332,7 +1332,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
                 if (map.IsVehicleMap) continue;
                     
                 var component = map.GetCachedMapComponent<VehiclePathingSystem>();
-                UniqueVehicleUtility.GeneratePathData(component, SingleParam.Get(vehicleDef));
+                UniqueVehicleUtility.GeneratePathData?.Invoke(component, SingleParam.Get(vehicleDef));
             }
             
             if (Spawned)
@@ -1362,8 +1362,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
                 }
                 
                 var component = Map.GetCachedMapComponent<VehiclePathingSystem>();
-                if (UniqueVehicleUtility.PathData is not null)
-                    UniqueVehicleUtility.PathData(vehiclePather, SingleParam.Get(component[vehicleDef]));
+                UniqueVehicleUtility.PathData?.Invoke(vehiclePather, SingleParam.Get(component[vehicleDef]));
 #if DEV
                 if (!component.ThreadAvailable ||
                     component.dedicatedThread.State == DedicatedThread.ThreadState.Running)

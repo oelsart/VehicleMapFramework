@@ -12,10 +12,21 @@ public static class UniqueVehicleUtility
 {
     private static readonly Action<Def, Type, HashSet<ushort>> GiveShortHash = (Action<Def, Type, HashSet<ushort>>)AccessTools.Method(typeof(ShortHashGiver), "GiveShortHash").CreateDelegate(typeof(Action<Def, Type, HashSet<ushort>>));
     private static readonly Dictionary<Type, HashSet<ushort>> takenHashesPerDeftype = AccessTools.StaticFieldRefAccess<Dictionary<Type, HashSet<ushort>>>(typeof(ShortHashGiver), "takenHashesPerDeftype");
-    internal static readonly FastInvokeHandler GeneratePathData =
-        MethodInvoker.GetHandler(AccessTools.Method(typeof(VehiclePathingSystem), "GeneratePathData"));
-    internal static readonly FastInvokeHandler PathData =
-        MethodInvoker.GetHandler(AccessTools.PropertySetter(typeof(VehiclePathFollower), "PathData"));
+    internal static readonly FastInvokeHandler GeneratePathData;
+    internal static readonly FastInvokeHandler PathData;
+
+    static UniqueVehicleUtility()
+    {
+        var m_GeneratePathData = AccessTools.Method(typeof(VehiclePathingSystem), "GeneratePathData");
+        if (m_GeneratePathData is not null)
+            GeneratePathData = MethodInvoker.GetHandler(m_GeneratePathData);
+
+        var m_PathData = AccessTools.PropertySetter(typeof(VehiclePathFollower), "PathData");
+        if (m_PathData is not null)
+        {
+            PathData = MethodInvoker.GetHandler(m_PathData);
+        }
+    }
     
     public static bool IsUniqueVehicle(VehicleDef def) => def.HasModExtension<VehicleMapProps_Unique>();
     
