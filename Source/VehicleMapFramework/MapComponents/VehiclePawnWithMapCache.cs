@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using SmashTools;
 using UnityEngine;
+using VehicleMapFramework.VMF_HarmonyPatches;
 using Vehicles;
 using Verse;
 
@@ -59,11 +60,16 @@ public class VehiclePawnWithMapCache(Map map) : MapComponent(map)
 
     public static List<VehiclePawnWithMap> AllVehiclesOn(Map map)
     {
+        // ColonyManagerReduxで早期にGetCachedMapComponentが呼ばれてしまった場合、キャッシュにnullが登録されnullを返し続けてしまう
+        if (Patch_MapPawns_AllPawns.AllPawns(map.mapPawns).Empty()) return [];
+        
         return map.GetCachedMapComponent<VehiclePawnWithMapCache>()?.allVehicles ?? [];
     }
 
     public static ReadOnlySpan<VehiclePawnWithMap> AllVehiclesOnAsReadOnlySpan(Map map)
     {
+        if (Patch_MapPawns_AllPawns.AllPawns(map.mapPawns).Empty()) return [];
+        
         var component = map.GetCachedMapComponent<VehiclePawnWithMapCache>();
         return component is null ? [] : component.allVehicles.AsReadOnlySpan();
     }

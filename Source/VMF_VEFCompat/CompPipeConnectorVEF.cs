@@ -69,17 +69,17 @@ public class CompPipeConnectorVEF : CompResource, IPipeConnector
 
     public void ConnectedTickAction()
     {
-        if (PairComp == null || PipeNet == pairComp.PipeNet) return;
+        if (PairComp is not { parent.Spawned: true } pair || PipeNet == pairComp.PipeNet) return;
         
-        var net = pairComp.PipeNet;
+        var net = pair.PipeNet;
         
         foreach (var t in net.connectors)
         {
             PipeNet.RegisterComp(t);
         }
-        pairComp.PipeNet = PipeNet;
+        pair.PipeNet = PipeNet;
         net.Destroy();
-        var component = MapComponentCache<PipeNetManager>.GetComponent(pairComp.parent.Map);
+        var component = MapComponentCache<PipeNetManager>.GetComponent(pair.parent.Map);
         Patches_VEF.pipeNetsCount(component) = component.pipeNets.Count;
         parent.DirtyMapMesh(parent.Map);
     }

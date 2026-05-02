@@ -8,4 +8,6 @@ public class CompProperties_PipeConnector : CompProperties
     {
         compClass = typeof(CompPipeConnector);
     }
+
+    public float radius;
 }

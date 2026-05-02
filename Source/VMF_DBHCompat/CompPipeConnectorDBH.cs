@@ -66,12 +66,12 @@ public class CompPipeConnectorDBH : CompPipe, IPipeConnector
 
     public void ConnectedTickAction()
     {
-        if (PairComp != null)
+        if (PairComp is not { parent.Spawned: true })
         {
             pumpUp = pumpUp || pairComp.pumpUp;
             if (pumpUp)
             {
-                var water = Mathf.Min(flowAmount * CompPipeConnector.ticksInterval, pipeNet.WaterStorage, pairComp.pipeNet.WaterTowers.Sum(w => w.space));
+                var water = Mathf.Min(flowAmount * CompPipeConnector.TicksInterval, pipeNet.WaterStorage, pairComp.pipeNet.WaterTowers.Sum(w => w.space));
                 pipeNet.PullWater(water, out _);
                 pairComp.pipeNet.PushWater(water);
                 var temp = pipeNet.HotWaterTanks.Empty() ? 0f : pipeNet.HotWaterTanks.Average(h => h.HeaterTemp);
@@ -80,7 +80,7 @@ public class CompPipeConnectorDBH : CompPipe, IPipeConnector
             }
             else
             {
-                var water = Mathf.Min(flowAmount * CompPipeConnector.ticksInterval, pipeNet.WaterTowers.Sum(w => w.space), pairComp.pipeNet.WaterStorage);
+                var water = Mathf.Min(flowAmount * CompPipeConnector.TicksInterval, pipeNet.WaterTowers.Sum(w => w.space), pairComp.pipeNet.WaterStorage);
                 pipeNet.PushWater(water);
                 pairComp.pipeNet.PullWater(water, out _);
                 var temp = pipeNet.HotWaterTanks.Empty() ? 0f : pipeNet.HotWaterTanks.Average(h => h.HeaterTemp);
