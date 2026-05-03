@@ -402,31 +402,15 @@ public static class Patch_Map_MapUpdate
 [HarmonyPatch(typeof(MapPawns), nameof(MapPawns.AllPawns), MethodType.Getter)]
 public static class Patch_MapPawns_AllPawns
 {
-    private static readonly List<Pawn> tmpPawns = [];
-    private static readonly List<Map> tmpMaps = new(128);
+    private static readonly CrossMapMapPawnsCache cache = new ((instance, _) => AllPawns(instance));
 
     [PatchLevel(Level.Safe)]
-    public static List<Pawn> Postfix(List<Pawn> __result, Map ___map)
+    public static void Postfix(ref List<Pawn> __result, Map ___map)
     {
         if (!___map.IsVehicleMap && VehiclePawnWithMapCache.AllVehiclesOn(___map).Count == 0)
-            return __result;
+            return;
 
-        tmpPawns.Clear();
-        for (var i = 0; i < __result.Count; i++)
-        {
-            tmpPawns.Add(__result[i]);
-        }
-        tmpMaps.Clear();
-        ___map.VehicleMapsOnMap(tmpMaps);
-        foreach (var map in tmpMaps.AsReadOnlySpan())
-        {
-            var allPawns = AllPawns(map.mapPawns);
-            for (var i = 0; i < allPawns.Count; i++)
-            {
-                tmpPawns.Add(allPawns[i]);
-            }
-        }
-        return tmpPawns;
+        __result = cache.Get(___map, __result);
     }
 
     [PatchLevel(Level.Mandatory)]
@@ -440,30 +424,14 @@ public static class Patch_MapPawns_AllPawns
 [PatchLevel(Level.Mandatory)]
 public static class Patch_MapPawns_AllPawnsSpawned
 {
-    private static readonly List<Pawn> tmpPawns = [];
-    private static readonly List<Map> tmpMaps = new(128);
+    private static readonly CrossMapMapPawnsCache cache = new ((instance, _) => AllPawnsSpawned(instance));
 
-    public static IReadOnlyList<Pawn> Postfix(IReadOnlyList<Pawn> __result, Map ___map)
+    public static void Postfix(ref IReadOnlyList<Pawn> __result, Map ___map)
     {
         if (!___map.IsVehicleMap && VehiclePawnWithMapCache.AllVehiclesOn(___map).Count == 0)
-            return __result;
+            return;
 
-        tmpPawns.Clear();
-        for (var i = 0; i < __result.Count; i++)
-        {
-            tmpPawns.Add(__result[i]);
-        }
-        tmpMaps.Clear();
-        ___map.VehicleMapsOnMap(tmpMaps);
-        foreach (var map in tmpMaps.AsReadOnlySpan())
-        {
-            var allPawnsSpawned = AllPawnsSpawned(map.mapPawns);
-            for (var i = 0; i < allPawnsSpawned.Count; i++)
-            {
-                tmpPawns.Add(allPawnsSpawned[i]);
-            }
-        }
-        return tmpPawns;
+        __result = cache.Get(___map, __result);
     }
 
     [HarmonyReversePatch]
@@ -473,24 +441,15 @@ public static class Patch_MapPawns_AllPawnsSpawned
 [HarmonyPatch(typeof(MapPawns), nameof(MapPawns.FreeHumanlikesSpawnedOfFaction))]
 public static class Patch_MapPawns_FreeHumanlikesSpawnedOfFaction
 {
-    private static readonly List<Map> tmpMaps = new(128);
+    private static readonly CrossMapMapPawnsCache cache = new (FreeHumanlikesSpawnedOfFaction);
     
     [PatchLevel(Level.Safe)]
-    public static void Postfix(List<Pawn> __result, Map ___map, Faction faction)
+    public static void Postfix(ref List<Pawn> __result, Map ___map, Faction faction)
     {
         if (!___map.IsVehicleMap && VehiclePawnWithMapCache.AllVehiclesOn(___map).Count == 0)
             return;
-
-        tmpMaps.Clear();
-        ___map.VehicleMapsOnMap(tmpMaps);
-        foreach (var map in tmpMaps.AsReadOnlySpan())
-        {
-            var freeHumanlikesSpawnedOfFaction = FreeHumanlikesSpawnedOfFaction(map.mapPawns, faction);
-            for (var i = 0; i < freeHumanlikesSpawnedOfFaction.Count; i++)
-            {
-                __result.Add(freeHumanlikesSpawnedOfFaction[i]);
-            }
-        }
+        
+        __result = cache.Get(___map, __result, faction);
     }
 
     [PatchLevel(Level.Mandatory)]
@@ -514,6 +473,20 @@ public static class Patch_MapPawns_AnyPawnBlockingMapRemoval
             }
         }
     }
+}
+
+[HarmonyPatch(typeof(MapPawns), nameof(MapPawns.RegisterPawn))]
+[PatchLevel(Level.Safe)]
+public static class Patch_MapPawns_RegisterPawn
+{
+    public static void Postfix() => CrossMapMapPawnsCache.ClearAll();
+}
+
+[HarmonyPatch(typeof(MapPawns), nameof(MapPawns.DeRegisterPawn))]
+[PatchLevel(Level.Safe)]
+public static class Patch_MapPawns_DeRegisterPawn
+{
+    public static void Postfix() => CrossMapMapPawnsCache.ClearAll();
 }
 
 [HarmonyPatch(typeof(PawnsFinder), nameof(PawnsFinder.AllMaps), MethodType.Getter)]

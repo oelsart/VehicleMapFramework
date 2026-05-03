@@ -507,6 +507,7 @@ public static class Patch_Building_Bed_FindPreferredInteractionCell
 
 // pawnとtravellerのマップが違う可能性を考慮しpawn.Map -> traveller.MapHeld
 [HarmonyPatch(typeof(CompBiosculpterPod), nameof(CompBiosculpterPod.FindPodFor))]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_CompBiosculpterPod_FindPodFor
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -516,5 +517,18 @@ public static class Patch_CompBiosculpterPod_FindPodFor
             .SetOpcodeAndAdvance(OpCodes.Ldarg_1)
             .Set(OpCodes.Call, CachedMethodInfo.g_Thing_MapHeld)
             .InstructionEnumeration();
+    }
+}
+
+// 多くのPsilocapが高頻度でAllPawnsSpawnedを呼ぶ可能性がある
+[HarmonyPatch(typeof(Plant_Psilocap), "TickInterval")]
+[PatchLevel(Level.Cautious)]
+public static class Patch_Plant_Psilocap_TickInterval
+{
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        var g_AllPawnsSpawned = AccessTools.PropertyGetter(typeof(MapPawns), nameof(MapPawns.AllPawnsSpawned));
+        var m_AllPawnsSpawned_Reverse = AccessTools.Method(typeof(Patch_MapPawns_AllPawnsSpawned), nameof(Patch_MapPawns_AllPawnsSpawned.AllPawnsSpawned));
+        return instructions.MethodReplacer(g_AllPawnsSpawned, m_AllPawnsSpawned_Reverse);
     }
 }

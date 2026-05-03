@@ -25,6 +25,7 @@
 			<li>VehicleMapFramework.DynamicDrawManagerOnVehicle:DrawDynamicThings</li>
 			<li>VehicleMapFramework.VMF_HarmonyPatches.Patch_MapPawns_AllPawns:Postfix</li>
 			<li>VehicleMapFramework.VMF_HarmonyPatches.Patch_MapPawns_AllPawnsSpawned:Postfix</li>
+			<li>VehicleMapFramework.CrossMapMapPawnsCache:Get</li>
 			<li>VehicleMapFramework.VMF_HarmonyPatches.Patch_GenClosest_ClosestThingReachable:Postfix</li>
 			<li>VehicleMapFramework.VehicleMapUIRenderer:GetVehicleMapTexture</li>
 			<li>VehicleMapFramework.CrossMapReachabilityCache:ClearCacheFor</li>
