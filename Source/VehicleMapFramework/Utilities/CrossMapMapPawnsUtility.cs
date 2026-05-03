@@ -5,12 +5,21 @@ using Verse;
 
 namespace VehicleMapFramework;
 
-public class CrossMapMapPawnsCache(CrossMapMapPawnsCache.GetPawns GetPawns)
+public class CrossMapMapPawnsCache
 {
     private readonly List<Map> tmpMaps = new(128);
     private readonly ConditionalWeakTable<Map, Cache> cacheDict = [];
-    public delegate List<Pawn> GetPawns(MapPawns instance, Faction faction = null);
-    
+    private readonly PawnsGetter GetPawns;
+    private static List<CrossMapMapPawnsCache> AllInstance { get; } = [];
+
+    public delegate List<Pawn> PawnsGetter(MapPawns instance, Faction faction = null);
+
+    public CrossMapMapPawnsCache(PawnsGetter getter)
+    {
+        GetPawns = getter;
+        AllInstance.Add(this);
+    }
+
     public List<Pawn> Get(Map map, IEnumerable<Pawn> result, Faction faction = null)
     {
         if (!cacheDict.TryGetValue(map, out var cache))
@@ -42,9 +51,24 @@ public class CrossMapMapPawnsCache(CrossMapMapPawnsCache.GetPawns GetPawns)
         }
     }
 
+    public static void ClearAll()
+    {
+        foreach (var instance in AllInstance)
+        {
+            foreach (var cache in instance.cacheDict)
+                cache.Value.Clear();
+        }
+    }
+
     private class Cache
     {
         public int lastCachedTick = -1;
         public readonly List<Pawn> cachedPawns = [];
+
+        public void Clear()
+        {
+            lastCachedTick = -1;
+            cachedPawns.Clear();
+        }
     }
 }

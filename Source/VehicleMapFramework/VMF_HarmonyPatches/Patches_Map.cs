@@ -475,6 +475,20 @@ public static class Patch_MapPawns_AnyPawnBlockingMapRemoval
     }
 }
 
+[HarmonyPatch(typeof(MapPawns), nameof(MapPawns.RegisterPawn))]
+[PatchLevel(Level.Safe)]
+public static class Patch_MapPawns_RegisterPawn
+{
+    public static void Postfix() => CrossMapMapPawnsCache.ClearAll();
+}
+
+[HarmonyPatch(typeof(MapPawns), nameof(MapPawns.DeRegisterPawn))]
+[PatchLevel(Level.Safe)]
+public static class Patch_MapPawns_DeRegisterPawn
+{
+    public static void Postfix() => CrossMapMapPawnsCache.ClearAll();
+}
+
 [HarmonyPatch(typeof(PawnsFinder), nameof(PawnsFinder.AllMaps), MethodType.Getter)]
 [PatchLevel(Level.Cautious)]
 public static class Patch_PawnsFinder_AllMaps
