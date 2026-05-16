@@ -77,32 +77,21 @@ public static class Patch_X2_JobGiver_Work_TryIssueJobPackage
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator, MethodBase original)
     {
-        var codes = new CodeMatcher(instructions, generator);
-        //scanner変数をローカルに保存しておく
-        codes.MatchStartForward(new CodeMatch(c => c.opcode == OpCodes.Isinst && c.operand.Equals(typeof(WorkGiver_Scanner))));
-        codes.DeclareLocal(typeof(WorkGiver_Scanner), out var scanner);
-        codes.InsertAfterAndAdvance(
-            new CodeInstruction(OpCodes.Dup),
-            new CodeInstruction(OpCodes.Stloc_S, scanner));
-
-        object local = null;
-        var matchStloc = new CodeMatch(c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalType == typeof(IEnumerable<Thing>) && c.operand != local);
-        var addedCodes = new[]
-        {
-           CodeInstruction.LoadArgument(1),
-           new CodeInstruction(OpCodes.Ldloc_S, scanner),
-           CodeInstruction.Call(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(Patch_JobGiver_Work_TryIssueJobPackage.AddSearchSet))
-       };
-        codes.MatchStartForward(matchStloc);
-        local = codes.Operand;
-
-        //サーチセットに複数マップのthingリストを足す
-        codes.MatchStartForward(matchStloc);
-        local = codes.Operand;
-        codes.InsertAndAdvance(addedCodes);
-
-        codes.MatchStartForward(matchStloc);
-        codes.InsertAndAdvance(addedCodes);
+        var codes = new CodeMatcher(instructions, generator)
+            //scanner変数をローカルに保存しておく
+            .MatchStartForward(new CodeMatch(c => c.opcode == OpCodes.Isinst && c.operand.Equals(typeof(WorkGiver_Scanner))))
+            .DeclareLocal(typeof(WorkGiver_Scanner), out var scanner)
+            .InsertAfterAndAdvance(
+                new CodeInstruction(OpCodes.Dup),
+                new CodeInstruction(OpCodes.Stloc_S, scanner))
+            .MatchEndForward(
+                CodeMatch.Calls(AccessTools.Method(typeof(ListerThings), nameof(ListerThings.ThingsMatching))),
+                new CodeMatch(c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalType == typeof(IEnumerable<Thing>)))
+            .Repeat(matcher => matcher.InsertAndAdvance(
+                    CodeInstruction.LoadArgument(1),
+                    new CodeInstruction(OpCodes.Ldloc_S, scanner),
+                    CodeInstruction.Call(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(Patch_JobGiver_Work_TryIssueJobPackage.AddSearchSet)))
+                .Advance());
 
         //複数マップのセルをスキャンする
         //codes.MatchStartForward(new CodeMatch(c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalType == typeof(IEnumerable<IntVec3>)));
@@ -136,7 +125,8 @@ public static class Patch_X2_JobGiver_Work_TryIssueJobPackage
         var m_PotentialWorkThingsGlobalAll = AccessTools.Method(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(Patch_JobGiver_Work_TryIssueJobPackage.PotentialWorkThingsGlobalAll));
         var m_Scanner_JobOnThing = AccessTools.Method(typeof(WorkGiver_Scanner), nameof(WorkGiver_Scanner.JobOnThing));
         var m_JobOnThingMap = AccessTools.Method(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(Patch_JobGiver_Work_TryIssueJobPackage.JobOnThingMap));
-        return codes.Instructions().MethodReplacer(m_GenClosest_ClosestThing_Global, m_GenClosestCrossMap_ClosestThing_Global)
+        return codes.InstructionEnumeration()
+            .MethodReplacer(m_GenClosest_ClosestThing_Global, m_GenClosestCrossMap_ClosestThing_Global)
             .MethodReplacer(m_GenClosest_ClosestThing_Global_Reachable, m_GenClosestCrossMap_ClosestThing_Global_Reachable)
             .MethodReplacer(m_Scanner_PotentialWorkThingsGlobal, m_PotentialWorkThingsGlobalAll)
             .MethodReplacer(m_Scanner_JobOnThing, m_JobOnThingMap);

@@ -187,7 +187,9 @@
 		</researchPrerequisites>
 		<uiOrder>1062</uiOrder>
 		<comps>
-			<li Class="VehicleMapFramework.CompProperties_PipeConnector"/>
+			<li Class="VehicleMapFramework.CompProperties_PipeConnector">
+				<radius>3.4</radius>
+			</li>
 			<li Class="VehicleMapFramework.CompProperties_PipeConnectorVEF" MayRequire="OskarPotocki.VanillaFactionsExpanded.Core">
 				<pipeNet>VMF_UnassignedNet</pipeNet>
 			</li>

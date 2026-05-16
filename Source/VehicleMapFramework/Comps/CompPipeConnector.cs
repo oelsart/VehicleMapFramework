@@ -2,7 +2,6 @@
 using System.Linq;
 using UnityEngine;
 using Verse;
-// ReSharper disable SuspiciousTypeConversion.Global
 
 namespace VehicleMapFramework;
 
@@ -12,7 +11,9 @@ public class CompPipeConnector : ThingComp
 
     protected bool connectReq;
 
-    public const int ticksInterval = 30;
+    public const int TicksInterval = 30;
+
+    public CompProperties_PipeConnector Props => (CompProperties_PipeConnector)props;
 
     public CompPipeConnector Pair { get; set; }
 
@@ -50,9 +51,9 @@ public class CompPipeConnector : ThingComp
     {
         base.CompTick();
         if (!parent.Spawned) return;
-        if (Find.TickManager.TicksGame % ticksInterval != 0 || selectedComp == null) return;
+        if (Find.TickManager.TicksGame % TicksInterval != 0 || selectedComp == null) return;
 
-        if (parent.IsOnVehicleMapOf(out _))
+        if (parent.IsOnVehicleMap)
         {
             if (Pair != null && !connectReq)
             {
@@ -64,8 +65,11 @@ public class CompPipeConnector : ThingComp
         else
         {
             var flag = false;
-            foreach (var c in parent.OccupiedRect().ExpandedBy(2))
+            var num = GenRadial.NumCellsInRadius(Props.radius);
+            var pos = parent.Position;
+            for (var i = 0; i < num; i++)
             {
+                var c = pos + GenRadial.RadialPattern[i];
                 if (!c.InBounds(parent.Map)) continue;
 
                 if (c.TryGetVehicleMap(parent.Map, out var vehicle))
@@ -115,6 +119,12 @@ public class CompPipeConnector : ThingComp
             Graphics.DrawMesh(MeshPool.plane10, drawPosB, Quaternion.AngleAxis(angle + 180f, Vector3.up), graphic.MatSingle, 0);
             GenDraw.DrawLineBetween(drawPosA, drawPosB, -0.001f, PipeMat, 1f);
         }
+    }
+
+    public override void PostDrawExtraSelectionOverlays()
+    {
+        base.PostDrawExtraSelectionOverlays();
+        GenDraw.DrawRadiusRing(parent.PositionOnBaseMap, Props.radius);
     }
 
     public override IEnumerable<Gizmo> CompGetGizmosExtra()
