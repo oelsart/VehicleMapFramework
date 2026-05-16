@@ -745,7 +745,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
             var allThings = interiorMap.listerThings.AllThings;
             for (var i = allThings.Count - 1; i >= 0; i--)
             {
-                var thing = allThings.ElementAtOrDefault(i);
+                var thing = allThings[i];
                 if (mode != DestroyMode.Vanish && thing is { Destroyed: false })
                 {
                     var positionOnBaseMap = thing.PositionOnBaseMap;
@@ -1338,47 +1338,13 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
             if (Spawned)
             {
                 if (changePosition)
-                {
-                    var diff = prevOffset - offset;
-                    Position += new IntVec3(
-                        (int)MathF.Truncate(diff.x),
-                        0,
-                        (int)MathF.Truncate(diff.z)).RotatedBy(Rotation);
-                    var opp = Convert.ToInt32(Rotation.AsInt > 1);
-                    if ((diff.x < 0f) == (newSize.x % 2 == opp))
-                    {
-                        Position += (IntVec3.East * (int)(diff.x % 1f * 2f)).RotatedBy(Rotation);
-                    }
-                    if ((diff.z < 0f) == (newSize.z % 2 == opp))
-                    {
-                        Position += (IntVec3.North * (int)(diff.z % 1f * 2f)).RotatedBy(Rotation);
-                    }
+                    VehicleResizeUtility.Reposition(this, prevOffset - offset);
                 
-                    DrawTracker.tweener.ResetTweenedPosToRoot();
-                    if (!vehiclePather.Moving)
-                    {
-                        vehiclePather.nextCell = Position;
-                    }
-                }
-                
-                var component = Map.GetCachedMapComponent<VehiclePathingSystem>();
-                UniqueVehicleUtility.PathData?.Invoke(vehiclePather, SingleParam.Get(component[vehicleDef]));
-#if DEV
-                if (!component.ThreadAvailable ||
-                    component.dedicatedThread.State == DedicatedThread.ThreadState.Running)
-                {
-                    component.RequestGridsFor(vehicleDef, DeferredGridGeneration.Urgency.Urgent);
-                }
-                else
-                {
-                    component.RequestGridsFor(this);
-                }
-#else
-                component.RequestGridsFor(vehicleDef, DeferredGridGeneration.Urgency.Urgent);
-#endif
+                VehicleResizeUtility.RefreshVehiclePather(this);
             }
         }
     }
+
 
     public enum EnterCompKind
     {
