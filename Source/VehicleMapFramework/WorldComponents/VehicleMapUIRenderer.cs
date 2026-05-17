@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using SmashTools;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -28,14 +27,18 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
     public override void FinalizeInit()
     {
         CreateCamera();
+        GameEvent.OnGameDisposing -= Clear;
         GameEvent.OnGameDisposing += Clear;
     }
 
     public override void GameComponentUpdate()
     {
-        foreach (var cache in cachedTextures
-                     .Where(cache => cache.Value.Expired))
+        if (cachedTextures.Count == 0) return;
+
+        foreach (var cache in cachedTextures)
         {
+            if (!cache.Value.Expired) continue;
+            
             toRemove.Add(cache.Key);
             if (cache.Value.RenderTexture != null)
                 renderTexturesPool.Add(cache.Value.RenderTexture);
@@ -121,6 +124,8 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
         
         void DrawLayerNow(SectionLayer layer)
         {
+            if (layer == null) return;
+
             for (var i = 0; i < layer.subMeshes.Count; i++)
             {
                 var subMesh = layer.subMeshes[i];
@@ -135,16 +140,17 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
 
     public void Clear()
     {
-        foreach (var cache in cachedTextures.Values
-                     .Where(cache => cache.RenderTexture != null))
+        foreach (var cache in cachedTextures.Values)
         {
-            Object.Destroy(cache.RenderTexture);
+            if (cache.RenderTexture is not null)
+                Object.Destroy(cache.RenderTexture);
         }
         cachedTextures.Clear();
 
-        foreach (var renderTexture in renderTexturesPool.Where(renderTexture => renderTexture != null))
+        foreach (var renderTexture in renderTexturesPool)
         {
-            Object.Destroy(renderTexture);
+            if (renderTexture is not null)
+                Object.Destroy(renderTexture);
         }
         renderTexturesPool.Clear();
         toRemove.Clear();
@@ -159,15 +165,20 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
         commandBuffer?.Release();
         camera = null;
         commandBuffer = null;
+
+        GameEvent.OnGameDisposing -= Clear;
     }
 
 	public static void SetDirty(VehiclePawnWithMap vehicle)
     {
-        var component = Current.Game.GetComponent<VehicleMapUIRenderer>();
+        var component = Current.Game?.GetComponent<VehicleMapUIRenderer>();
+        if (component == null) return;
+
         var cachedTextures = component.cachedTextures;
-        foreach (var key in cachedTextures.Keys.Where(key => key.vehicle == vehicle))
+        foreach (var key in cachedTextures.Keys)
         {
-            component.toSetDirty.Add(key);
+            if (key.vehicle == vehicle)
+                component.toSetDirty.Add(key);
         }
         foreach (var key in component.toSetDirty)
             cachedTextures[key] = new CachedMapTexture(cachedTextures[key].RenderTexture, true, Time.time);
@@ -185,12 +196,14 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
 
 	private RenderTexture GetRenderTexture(Vector2Int size)
 	{
-		var num = renderTexturesPool.FindLastIndex(x => x.width == size.x && x.height == size.y);
-		if (num != -1)
-		{
-			var result = renderTexturesPool[num];
-			renderTexturesPool.RemoveAt(num);
-			return result;
+		for (var i = renderTexturesPool.Count - 1; i >= 0; i--)
+        {
+            var rt = renderTexturesPool[i];
+            if (rt.width == size.x && rt.height == size.y)
+            {
+                renderTexturesPool.RemoveAt(i);
+                return rt;
+            }
 		}
 		return new RenderTexture(size.x, size.y, 24)
 		{
