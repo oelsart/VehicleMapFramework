@@ -65,7 +65,7 @@ public class UniqueVehicleManager(Game game) : GameComponent
             foreach (var parentDef in PlaceholderDefs.Keys)
             {
                 if (claimedDefNames.TryGetValue(parentDef, out var claimed))
-                    Scribe_Collections.Look(ref claimed, $"{claimedDefNames}_{parentDef.defName}", LookMode.Value);
+                    Scribe_Collections.Look(ref claimed, $"{nameof(claimedDefNames)}_{parentDef.defName}", LookMode.Value);
             }
         }
         Scribe_Collections.Look(ref hashSet, "GravshipVehicleMapProps", LookMode.Deep);

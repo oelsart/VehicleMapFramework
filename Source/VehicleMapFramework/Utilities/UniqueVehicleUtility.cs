@@ -13,19 +13,19 @@ public static class UniqueVehicleUtility
     private static readonly Action<Def, Type, HashSet<ushort>> GiveShortHash = (Action<Def, Type, HashSet<ushort>>)AccessTools.Method(typeof(ShortHashGiver), "GiveShortHash").CreateDelegate(typeof(Action<Def, Type, HashSet<ushort>>));
     private static readonly Dictionary<Type, HashSet<ushort>> takenHashesPerDeftype = AccessTools.StaticFieldRefAccess<Dictionary<Type, HashSet<ushort>>>(typeof(ShortHashGiver), "takenHashesPerDeftype");
     internal static readonly FastInvokeHandler GeneratePathData;
-    internal static readonly FastInvokeHandler PathData;
+    internal static readonly FastInvokeHandler SetPathData;
 
     static UniqueVehicleUtility()
     {
         var m_GeneratePathData = AccessTools.Method(typeof(VehiclePathingSystem), "GeneratePathData");
+        // TODO with VF Updates: PathData will be managed by PathDataContainer
+        m_GeneratePathData ??= AccessTools.Method("Vehicles.PathDataContainer:CreatePathData");
         if (m_GeneratePathData is not null)
             GeneratePathData = MethodInvoker.GetHandler(m_GeneratePathData);
 
-        var m_PathData = AccessTools.PropertySetter(typeof(VehiclePathFollower), "PathData");
-        if (m_PathData is not null)
-        {
-            PathData = MethodInvoker.GetHandler(m_PathData);
-        }
+        var s_PathData = AccessTools.PropertySetter(typeof(VehiclePathFollower), "PathData");
+        if (s_PathData is not null)
+            SetPathData = MethodInvoker.GetHandler(s_PathData);
     }
     
     public static bool IsUniqueVehicle(VehicleDef def) => def.HasModExtension<VehicleMapProps_Unique>();

@@ -53,18 +53,60 @@ public class Reactor_Sink : Reactor, ITweakFields
 
     private void SpawnMote(VehiclePawn vehicle)
     {
-        var mote = (FlyingObject)ThingMaker.MakeThing(VMF_DefOf.VMF_MoteSink);
+        if (vehicle is not VehiclePawnWithMap { CompUpgradeTree: { } compUpgradeTree } vehiclePawnWithMap)
+            return;
+
+        ExpansionUpgrade upgradeToReset = null;
+        foreach (var node in compUpgradeTree.Props.def.nodes)
+        {
+            if (node.key == resetKey && compUpgradeTree.NodeUnlocked(node))
+            {
+                upgradeToReset = node.upgrades.OfType<ExpansionUpgrade>().FirstOrDefault();
+                if (upgradeToReset is not null) break;
+            }
+        }
+        var drawPos = vehicle.DrawPos;
         var overlays = vehicle.DrawTracker.overlayRenderer.AllOverlaysListForReading;
+        CellRect? mapLimit = null;
+        if (upgradeToReset is not null)
+        {
+            foreach (var cellRect in upgradeToReset.expandAreas)
+            {
+                mapLimit = mapLimit?.Encapsulate(cellRect.MovedBy(IntVec2.One)) ?? cellRect.MovedBy(IntVec2.One);
+            }
+        }
+        mapLimit ??= CellRect.Empty;
+
+        var rot = vehicle.FullRotation.RotForVehicleDraw();
         for (var i = overlays.Count - 1; i >= 0; i--)
         {
             var overlay = overlays[i];
             if (overlay.data.identifier == overlayId)
             {
-                var sinker = new SinkingComponent(GraphicOverlay.Create(overlay.data, vehicle), mote, this);
-                mote.Add(sinker, vehicle.FullRotation, vehicle.Transform.rotation);
+                var mote = (MoteThrownSinker)ThingMaker.MakeThing(VMF_DefOf.VMF_MoteSink);
+                var drawSize = overlay.Graphic.drawSize;
+                var drawSizeRotated = rot.IsHorizontal ? drawSize.Rotated() : drawSize;
+                var textureSize = new Vector2Int(Mathf.CeilToInt(drawSizeRotated.x * 256), Mathf.CeilToInt(drawSizeRotated.y * 256));
+                var texture = VehicleMapUIRenderer.GetOverlayWithVehicleMapTexture(
+                    vehiclePawnWithMap,
+                    overlay,
+                    rot,
+                    textureSize,
+                    mapLimit.Value);
+                mote.SetParameters(
+                    texture,
+                    Quaternion.AngleAxis(vehicle.ExtraAngle, Vector3.up),
+                    drawSizeRotated.ToVector3().WithY(1f),
+                    textureSize,
+                    vehiclePawnWithMap,
+                    overlay,
+                    this);
+                mote.SetVelocity(angle.RandomInRange, speed);
+                mote.exactPosition = drawPos +
+                                     overlay.Graphic.DrawOffset(rot).RotatedBy(vehicle.ExtraAngle);
+                GenSpawn.Spawn(mote, mote.exactPosition.ToIntVec3(), vehicle.Map);
             }
         }
-        mote.Launch(vehicle.Map, vehicle.DrawPos, rotationRate.RandomInRange, speed, angle.RandomInRange);
     }
 
     private void ResetUpgrades(VehiclePawn vehicle)
@@ -75,7 +117,7 @@ public class Reactor_Sink : Reactor, ITweakFields
         {
             if (node.key == resetKey && compUpgradeTree.NodeUnlocked(node))
             {
-                // TODO VF updates: waiting refundless upgrade reset
+                // TODO with VF updates: waiting refundless upgrade reset
                 var tmpList = node.ingredients;
                 node.ingredients = [];
                 compUpgradeTree.ResetUnlock(node);
@@ -102,7 +144,6 @@ public class Reactor_Sink : Reactor, ITweakFields
             {
                 if (component.props.reactors.OfType<Reactor_Sink>().FirstOrDefault() is { } reactor)
                 {
-                    Log.Message($"{reactor.resetKey}, {reactor.overlayId}");
                     reactor.SpawnMote(vehicle);
                     reactor.ResetUpgrades(vehicle);
                     break;

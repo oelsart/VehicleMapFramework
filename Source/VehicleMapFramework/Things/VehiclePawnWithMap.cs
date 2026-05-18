@@ -37,7 +37,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
 
     public bool impassableCellsDirty = true;
     public bool mapEdgeCellsDirty = true;
-    private bool walkableCellsDirty = true;
+    public bool walkableCellsDirty = true;
     public bool enterPositionsDirty = true;
     private int cellDesignationsDirtyTick;
     private int vehicleCaravanOrStashedVehicleCachedTick;
@@ -211,6 +211,9 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
                 enterPositionsDirty = true;
                 field.Clear();
                 var cellRect = interiorMap.BoundsRect(1);
+                var cachedOutOfBoundsCells = CachedOutOfBoundsCells;
+                var cachedExpandableCells = CachedExpandableCells;
+                var cachedImpassableCells = CachedImpassableCells;
                 for (var i = 0; i < 4; i++)
                 {
                     var rot = new Rot4(i);
@@ -219,13 +222,13 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
                     foreach (var c in cellRect.EdgeRectClockwise(rot))
                     {
                         var c2 = c;
-                        while (CachedOutOfBoundsCells.Contains(c2) ||
-                               (CachedExpandableCells.Contains(c2) && CachedImpassableCells.Contains(c2)))
+                        while (cachedOutOfBoundsCells.Contains(c2) ||
+                               (cachedExpandableCells.Contains(c2) && cachedImpassableCells.Contains(c2)))
                         {
                             c2 += facingInside;
                         }
 
-                        if (c2.InBounds(interiorMap))
+                        if (c2.InBounds(interiorMap) && !cachedImpassableCells.Contains(c2))
                         {
                             field.AddUnique(c2);
                         }
@@ -272,7 +275,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
         }
     } = [];
 
-    public List<IntVec3?> CachedEnterPositions
+    private List<IntVec3?> CachedEnterPositions
     {
         get
         {
@@ -625,6 +628,8 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
         {
             v.Transform.rotation = 0f;
         });
+        
+        enterPositionsDirty = true;
     }
 
     protected override void Tick()
@@ -1307,7 +1312,6 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     
     private void ResizeNow(bool changePosition = true)
     {
-        mapEdgeCellsDirty = true;
         var vehicleDef = VehicleDef;
         var curSize = vehicleDef.Size;
         var mapRect = CellRect.WholeMap(VehicleMap);
@@ -1315,6 +1319,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
         var newSize = newRect.Size;
         if (curSize != newSize)
         {
+            VehicleResizeUtility.PreResize(this);
             VMF_Log.DebugMessage($"Resize {vehicleDef} from {vehicleDef.size} to {newSize}");
             vehicleDef.size = newSize;
             var offset = mapRect.CenterVector3 - newRect.CenterVector3;
@@ -1332,13 +1337,19 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
                 if (map.IsVehicleMap) continue;
                     
                 var component = map.GetCachedMapComponent<VehiclePathingSystem>();
-                UniqueVehicleUtility.GeneratePathData?.Invoke(component, SingleParam.Get(vehicleDef));
+                component.GeneratePathData(vehicleDef);
             }
             
             if (Spawned)
             {
                 if (changePosition)
                     VehicleResizeUtility.Reposition(this, prevOffset - offset);
+                else
+                {
+                    Map.thingGrid.Register(this);
+                    Map.coverGrid.Register(this);
+                    RegionListersUpdater.RegisterInRegions(this, Map);
+                }
                 
                 VehicleResizeUtility.RefreshVehiclePather(this);
             }

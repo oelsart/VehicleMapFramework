@@ -3,11 +3,34 @@ using SmashTools;
 using UnityEngine;
 using Vehicles;
 using Verse;
+#if DEV
+using CoreLib.Performance;
+#endif
 
 namespace VehicleMapFramework;
 
 public static class VehicleResizeUtility
 {
+    public static void PreResize(VehiclePawn vehicle)
+    {
+        if (!vehicle.Spawned)
+        {
+            RegionListersUpdater.DeregisterInRegions(vehicle, vehicle.Map);
+            vehicle.Map.thingGrid.Deregister(vehicle);
+            vehicle.Map.coverGrid.DeRegister(vehicle);
+        }
+        if (vehicle is VehiclePawnWithMap vehiclePawnWithMap)
+        {
+            FrameDelay.DelayOne(_vehicle =>
+            {
+                _vehicle.impassableCellsDirty = true;
+                _vehicle.mapEdgeCellsDirty = true;
+                _vehicle.walkableCellsDirty = true;
+                _vehicle.enterPositionsDirty = true;
+            }, vehiclePawnWithMap);
+        }
+    }
+    
     public static void Reposition(VehiclePawn vehicle, Vector3 delta)
     {
         if (vehicle.Spawned)
@@ -37,16 +60,16 @@ public static class VehicleResizeUtility
     public static void RefreshVehiclePather(VehiclePawn vehicle)
     {
         var component = vehicle.Map.GetCachedMapComponent<VehiclePathingSystem>();
-        UniqueVehicleUtility.PathData?.Invoke(vehicle.vehiclePather, SingleParam.Get(component[vehicle.VehicleDef]));
+        UniqueVehicleUtility.SetPathData?.Invoke(vehicle.vehiclePather, SingleParam.Get(component.BridgeIndexer[vehicle.VehicleDef].Value));
 #if DEV
         if (!component.ThreadAvailable ||
             component.dedicatedThread.State == DedicatedThread.ThreadState.Running)
         {
-            component.RequestGridsFor(vehicleDef, DeferredGridGeneration.Urgency.Urgent);
+            component.RequestGridsFor(vehicle.VehicleDef, DeferredGridGeneration.Urgency.Urgent);
         }
         else
         {
-            component.RequestGridsFor(this);
+            component.RequestGridsFor(vehicle);
         }
 #else
         component.RequestGridsFor(vehicle.VehicleDef, DeferredGridGeneration.Urgency.Urgent);

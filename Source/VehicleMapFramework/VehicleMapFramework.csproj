@@ -27,14 +27,19 @@
   <ItemGroup>
     <PackageReference Include="Krafs.Rimworld.Ref" />
     <PackageReference Include="Lib.Harmony.Ref" />
-	<PackageReference Include="Nerdbank.GitVersioning">
-	  <PrivateAssets>all</PrivateAssets>
-	  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-	</PackageReference>
-	<PackageReference Include="PolySharp">
-	  <PrivateAssets>all</PrivateAssets>
-	  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-	</PackageReference>
+    <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <AdditionalFiles Include="BannedSymbols.txt" />
+    <PackageReference Include="Nerdbank.GitVersioning">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="PolySharp">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
   
   <PropertyGroup>
@@ -80,16 +85,6 @@
     </Reference>
   </ItemGroup>
   
-  <ItemGroup>
-    <Reference Update="System.Numerics">
-      <Private>False</Private>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Update="System.Runtime.Serialization">
-      <Private>False</Private>
-    </Reference>
-  </ItemGroup>
   <ItemGroup>
     <Content Include="..\..\.github\workflows\build.yml">
       <Link>build.yml</Link>

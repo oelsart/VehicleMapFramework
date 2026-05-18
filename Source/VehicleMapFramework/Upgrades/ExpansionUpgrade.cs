@@ -19,6 +19,7 @@ public class ExpansionUpgrade : Upgrade
         var from = vehicle.VehicleDef;
         if (!defTransitions.TryGetValue(vehicle.VehicleDef, out var to))
             return;
+        VehicleResizeUtility.PreResize(vehicle);
         vehicle.def = to;
         
         if (vehicle is not VehiclePawnWithMap vehiclePawnWithMap)
@@ -36,6 +37,7 @@ public class ExpansionUpgrade : Upgrade
         var from = vehicle.VehicleDef;
         if (defTransitions.FirstOrDefault(pair => pair.Value == vehicle.VehicleDef).Key is not { } to)
             return;
+        VehicleResizeUtility.PreResize(vehicle);
         vehicle.def = to;
         
         if (vehicle is not VehiclePawnWithMap vehiclePawnWithMap)
@@ -57,7 +59,7 @@ public class ExpansionUpgrade : Upgrade
                         if (thing is Pawn pawn)
                             pawn.pather.TryRecoverFromUnwalkablePosition(false);
                         else
-                            thing.Destroy(DestroyMode.Deconstruct);
+                            thing.Destroy();
                     }
                 }
             }
@@ -68,14 +70,12 @@ public class ExpansionUpgrade : Upgrade
         }
         Finalize(vehiclePawnWithMap, from, to);
     }
-
+    
     private void Finalize(VehiclePawnWithMap vehicle, VehicleDef from, VehicleDef to)
     {
-        vehicle.impassableCellsDirty = true;
         if (vehicle.Spawned)
         {
-            var rot = vehicle.Rotation;
-            VehicleResizeUtility.Reposition(vehicle, from.graphicData.DrawOffsetForRot(rot) - to.graphicData.DrawOffsetForRot(rot));
+            VehicleResizeUtility.Reposition(vehicle, from.graphicData.DrawOffsetForRot(Rot4.North) - to.graphicData.DrawOffsetForRot(Rot4.North));
             vehicle.ResetGraphic();
             var overlayRenderer = vehicle.DrawTracker.overlayRenderer;
             foreach (var overlay in overlayRenderer.Overlays)
@@ -105,6 +105,17 @@ public class ExpansionUpgrade : Upgrade
                 var map = _vehicle.Map;
                 var selected = Find.Selector.IsSelected(_vehicle);
                 _vehicle.DeSpawnWithoutJobClearVehicle(DestroyMode.WillReplace);
+                
+                var opp = _rot.AsInt > 1;
+                if (vehicle.VehicleDef.Size.x % 2 == 0 && opp)
+                {
+                    pos.x += 1;
+                }
+                if (vehicle.VehicleDef.Size.z % 2 == 0 && opp)
+                {
+                    pos.z += _rot == Rot4.West ? -1 : 1;
+                }
+                
                 GenSpawn.Spawn(_vehicle, pos, map, _rot);
                 if (selected)
                     Find.Selector.Select(_vehicle, false, false);

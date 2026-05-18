@@ -151,7 +151,7 @@ public class VehicleCaravanIncidentUtility
             var rot = edge?.Opposite ?? Rot4.Random;
             var cell = edge.HasValue ? CellFinder.RandomEdgeCell(edge.Value, map) : map.Center;
             vehicle.Rotation = rot;
-            var pathData = mapping[vehicle.VehicleDef];
+            var pathData = mapping.BridgeIndexer[vehicle.VehicleDef];
             if (!pathData.VehiclePathGrid.Enabled) pathData.VehiclePathGrid.RecalculateAllPerceivedPathCosts();
             if (!pathData.VehicleRegionAndRoomUpdater.Enabled) pathData.VehicleRegionAndRoomUpdater.Init();
 
