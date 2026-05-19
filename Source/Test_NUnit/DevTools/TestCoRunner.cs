@@ -8,7 +8,7 @@ internal class TestCoRunner
 {
     internal const string RiMWorldPath = "E:/Program Files (x86)/Steam/steamapps/common/RimWorld/RimWorldWin64.exe";
 
-    internal const string Arguments = "-disable-compute-shaders --pid \"OELS.VehicleMapFramework.dev\" -t -e --logger junit";
+    internal const string Arguments = "-disable-compute-shaders --pid OELS.VehicleMapFramework.dev -t -e --logger junit";
 
     internal const string ResultPath =
         "E:/Program Files (x86)/Steam/steamapps/common/RimWorld/Mods/VehicleMapFramework/.git/testresults/Test.log";
@@ -30,7 +30,6 @@ internal class TestCoRunner
             CreateNoWindow = true
         };
         var process = Process.Start(startInfo);
-        Console.WriteLine($"{process}");
         process?.WaitForExit();
         ReadResult();
     }
@@ -46,22 +45,27 @@ internal class TestCoRunner
         var modsConfigPath = Path.Combine(ConfigPath, "ModsConfig.xml");
         var backupPath = $"{modsConfigPath}.bak";
         var testConfigPath = Path.Combine(ConfigPath, "_TEST_MODLIST.xml");
-        if (!File.Exists(modsConfigPath) || !File.Exists(testConfigPath))
-            yield break;
-        File.Replace(testConfigPath, modsConfigPath, backupPath);
-        
-        Run();
-        ReadResult();
-        if (testCases is null)
-            yield break;
-        foreach (var testCase in testCases)
+        try
         {
-            var testCaseData = new TestCaseData(testCase);
-            testCaseData.SetName($"{testCase.Attribute("name")?.Value}");
-            yield return testCaseData;
-        }
+            if (!File.Exists(modsConfigPath) || !File.Exists(testConfigPath))
+                yield break;
+            File.Replace(testConfigPath, modsConfigPath, backupPath);
 
-        FileSystem.FileCopy(modsConfigPath, testConfigPath);
-        File.Replace(backupPath, modsConfigPath, null);
+            Run();
+            ReadResult();
+            if (testCases is null)
+                yield break;
+            foreach (var testCase in testCases)
+            {
+                var testCaseData = new TestCaseData(testCase);
+                testCaseData.SetName($"{testCase.Attribute("name")?.Value}");
+                yield return testCaseData;
+            }
+        }
+        finally
+        {
+            FileSystem.FileCopy(modsConfigPath, testConfigPath);
+            File.Replace(backupPath, modsConfigPath, null);
+        }
     }
 }

@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 #if DEV
-using CoreLib.Performance;
 #endif
 using HarmonyLib;
 using JetBrains.Annotations;

@@ -1,5 +1,4 @@
-﻿using DevTools.Testing;
-using RimWorld;
+﻿using RimWorld;
 using Vehicles.Testing;
 using Verse;
 
@@ -35,7 +34,6 @@ internal sealed class Test_StudyInteract(VehicleGroup group) : WorkGiverTestBase
             Thing.allowDestroyNonDestroyable = true;
             Current.Game.GetComponent<GameComponent_Anomaly>().monolith.Destroy();
             Thing.allowDestroyNonDestroyable = false;
-            Test.Fail("Failure for testing");
         }
     }
 }

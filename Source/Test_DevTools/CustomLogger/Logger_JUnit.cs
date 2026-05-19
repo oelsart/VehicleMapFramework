@@ -7,27 +7,18 @@ namespace VehicleMapFramework.Test_Logics;
 public class Logger_JUnit : CustomLoggerBase
 {
     private readonly XDocument document = new();
-
     private readonly XTestSuite testsuite = new(TestSuiteName);
-    
     private readonly Stack<XTestCase> testCaseStack = [];
+    private XElement failure;
     
     private const string TestSuiteName = "testsuite";
-    
     private const string TestCaseName = "testcase";
-    
     private const string NameAttribute = "name";
-    
     private const string ClassNameAttribute = "classname";
-    
     private const string TestsAttribute = "tests";
-    
     private const string SkippedAttribute = "skipped";
-    
     private const string FailureAttribute = "failure";
-    
     private const string AssertionAttribute = "assertions";
-    
     private const string MessageAttribute = "message";
 
     public Logger_JUnit(Config config) : base(config)
@@ -36,31 +27,30 @@ public class Logger_JUnit : CustomLoggerBase
         document.Add(testsuite);
     }
 
-    public override void WriteCustom(StreamWriter writer, string message)
+    public override void WriteCustom(string message)
     {
         if (message.NullOrEmpty()) return;
-        if (!message.StartsWith(Indent))
+
+        var labelMatch = Regex.Match(message, @"\[.*?\]"); // [...]を取得
+        if (labelMatch.Success && labelMatch.Value is PassedLabel or FailedLabel or SkippedLabel)
         {
-            EndTestCase();
-            var split = message.Split(SpaceFour);
-            var label = split[0];
-            var str = split[1];
-            var name = Regex.Replace(str, @"\([^)]*\)", ""); // テストの成否と括弧内のArgsを除去
-            EnterTestCase(null, name);
+            if (!message.StartsWith(Tab))
+            {
+                EndTestCase();
+                EndTestCase();
+            }
+            var label = labelMatch.Value;
+            var str = message.Split(label)[1].TrimStart();
+            var name = Regex.Replace(str, @"\(.*?\)", "").Split(Space)[0]; // (...)と以降のメッセージを除去
+            string fixture = null;
+            if (testCaseStack.TryPeek(out var parent))
+                fixture = parent.Attributes(NameAttribute).FirstOrDefault()?.Value;
+            EnterTestCase(fixture, name);
             Evaluate(label, str);
         }
         else
         {
-            var split = message.Split(SpaceFour);
-            var label = split[0][Indent.Length..];
-            var str = split[1];
-            var name = Regex.Replace(str, @"\([^)]*\)", "");
-            string fixture = null;
-            if (testCaseStack.TryPeek(out var parent))
-                fixture = parent.Name.ToString();
-            EnterTestCase(fixture, name);
-            Evaluate(label, str);
-            EndTestCase();
+            failure?.Value += message;
         }
         return;
 
@@ -69,14 +59,14 @@ public class Logger_JUnit : CustomLoggerBase
             switch (label)
             {
                 case SkippedLabel:
-                    var skipped = new XElement(SkippedAttribute);
-                    skipped.SetAttributeValue(MessageAttribute, str.Split(SpaceTwo).ElementAtOrDefault(1));
-                    testCaseStack.Peek().Add(skipped);
+                    failure = new XElement(SkippedAttribute);
+                    failure.SetAttributeValue(MessageAttribute, str.Split(Space).ElementAtOrDefault(1));
+                    testCaseStack.Peek().Add(failure);
                     break;
                 
-                case FailureAttribute:
-                    var failure = new XElement(FailureAttribute);
-                    failure.SetAttributeValue(MessageAttribute, str.Split(SpaceTwo).ElementAtOrDefault(1));
+                case FailedLabel:
+                    failure = new XElement(FailureAttribute);
+                    failure.SetAttributeValue(MessageAttribute, str.Split(Space).ElementAtOrDefault(1));
                     testCaseStack.Peek().Add(failure);
                     break;
                     
@@ -92,6 +82,9 @@ public class Logger_JUnit : CustomLoggerBase
     public override void DisposeCustom(StreamWriter writer)
     {
         WriteTestResults();
+        // ファイルを空にする
+        writer.BaseStream.SetLength(0);
+        writer.BaseStream.Position = 0;
         document.Save(writer);
         return;
 
@@ -118,12 +111,15 @@ public class Logger_JUnit : CustomLoggerBase
         testCase.SetAttributeValue(NameAttribute, name);
         testsuite.Add(testCase);
         testCaseStack.Push(testCase);
+        failure = null;
     }
         
     private void EndTestCase()
     {
         if (testCaseStack.TryPop(out var testCase))
             testCase.SetAttributeValue(AssertionAttribute, testCase.assertions);
+        
+        failure = null;
     }
 
     private class XTestCase(XName name) : XElement(name)

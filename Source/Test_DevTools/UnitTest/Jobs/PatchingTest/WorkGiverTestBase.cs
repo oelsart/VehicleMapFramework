@@ -2,7 +2,6 @@
 using DevTools.Testing;
 using RimWorld;
 using UnityEngine;
-using UnityEngine.Assertions;
 using VehicleMapFramework.VMF_HarmonyPatches;
 using Vehicles;
 using Vehicles.Testing;
