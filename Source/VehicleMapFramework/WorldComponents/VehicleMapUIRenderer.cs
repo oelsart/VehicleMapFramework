@@ -1,8 +1,12 @@
-﻿using System.Collections.Generic;
+using System;
+using System.Collections.Generic;
+using JetBrains.Annotations;
 using SmashTools;
 using UnityEngine;
 using UnityEngine.Rendering;
+using Vehicles;
 using Verse;
+using Object = UnityEngine.Object;
 
 namespace VehicleMapFramework;
 
@@ -16,13 +20,13 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
     
     private CommandBuffer commandBuffer;
     
-    private readonly Dictionary<(VehiclePawnWithMap vehicle, Vector2Int size), CachedMapTexture> cachedTextures = [];
+    private readonly Dictionary<CacheKey, CachedMapTexture> cachedTextures = [];
 
     private readonly List<RenderTexture> renderTexturesPool = [];
 
-    private readonly List<(VehiclePawnWithMap, Vector2Int)> toRemove = [];
+    private readonly List<CacheKey> toRemove = [];
 
-    private readonly List<(VehiclePawnWithMap, Vector2Int)> toSetDirty = [];
+    private readonly List<CacheKey> toSetDirty = [];
 
     public override void FinalizeInit()
     {
@@ -63,7 +67,7 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
         camera.renderingPath = RenderingPath.Forward;
         camera.transform.position = new Vector3(0f, 5f, 0f);
         camera.nearClipPlane = 0f;
-        camera.farClipPlane = 5f;
+        camera.farClipPlane = 5.5f;
         commandBuffer = new CommandBuffer { name = "VehicleMapDrawBuffer" };
         camera.AddCommandBuffer(CameraEvent.BeforeForwardOpaque, commandBuffer);
     }
@@ -71,11 +75,11 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
     public static Texture GetVehicleMapTexture(VehiclePawnWithMap vehicle, Rot4 rot, Vector2Int texSize,
         Vector2? drawSize = null, Vector3? drawOffset = null)
     {
-        var component = Current.Game.GetComponent<VehicleMapUIRenderer>();
+        var component = Current.Game?.GetComponent<VehicleMapUIRenderer>();
         if (component?.camera is null || component.commandBuffer is null)
             return BaseContent.BadTex;
         var camera = component.camera;
-        var key = (vehicle, texSize);
+        var key = new CacheKey(texSize, vehicle);
         var cache = component.GetOrCreateCachedMapTexture(key);
         if (!cache.Dirty)
         {
@@ -91,6 +95,7 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
         
         camera.enabled = true;
         camera.orthographicSize = maxSize / 2f;
+        camera.aspect = (float)texSize.x / texSize.y;
         camera.targetTexture = cache.RenderTexture;
         component.commandBuffer.Clear();
         component.RenderVehicleMap(vehicle.VehicleMap, mapOrigin + offset, rot);
@@ -98,6 +103,62 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
         camera.targetTexture = null;
         camera.enabled = false;
         component.cachedTextures[key] = new CachedMapTexture(cache.RenderTexture, false, Time.time);
+        return cache.RenderTexture;
+    }
+
+    public static Texture GetOverlayWithVehicleMapTexture(VehiclePawnWithMap vehicle, GraphicOverlay overlay, Rot4 rot,
+        Vector2Int texSize, CellRect mapLimit)
+    {
+        var component = Current.Game?.GetComponent<VehicleMapUIRenderer>();
+        if (component?.camera is null || component.commandBuffer is null)
+            return BaseContent.BadTex;
+
+        var key = new CacheKey(texSize, vehicle, overlay);
+        var cache = component.GetOrCreateCachedMapTexture(key);
+        if (!cache.Dirty)
+        {
+            component.cachedTextures[key] = new CachedMapTexture(cache.RenderTexture, false, GenTicks.TicksGame);
+            return cache.RenderTexture;
+        }
+
+        var camera = component.camera;
+        camera.enabled = true;
+        
+        var drawSize =  overlay.Graphic.drawSize;
+        var drawSizeRotated = rot.IsHorizontal ? drawSize.Rotated() : drawSize;
+        camera.targetTexture = cache.RenderTexture;
+        camera.orthographicSize = drawSizeRotated.y / 2f;
+        camera.aspect = (float)texSize.x / texSize.y;
+
+        component.commandBuffer.Clear();
+        var graphic = overlay.Graphic;
+        component.commandBuffer.DrawMesh(
+            graphic.MeshAt(rot),
+            Matrix4x4.TRS(Vector3.zero, Quaternion.identity, Vector3.one),
+            graphic.MatAt(rot, vehicle));
+
+        var overlayPos = VehicleMapUtility.OffsetFor(vehicle, rot) +
+                         vehicle.VehicleGraphic.DrawOffset(rot) -
+                         overlay.Graphic.DrawOffset(rot);
+        var mapOrigin = new Vector3(-vehicle.VehicleMap.Size.x / 2f, 0f, -vehicle.VehicleMap.Size.z / 2f).RotatedBy(rot) +
+                        overlayPos;
+        
+        var offset = drawSizeRotated.ToVector3() / 2f;
+        var scale = texSize.y / drawSizeRotated.y;
+        var bl = (mapOrigin + mapLimit.Min.ToVector3().RotatedBy(rot) + offset) * scale;
+        var tr = (mapOrigin + mapLimit.MaxExpandedBy(1).Max.ToVector3().RotatedBy(rot) + offset) * scale;   
+        var minX = Mathf.Min(bl.x, tr.x);
+        var minZ = Mathf.Min(bl.z, tr.z);
+        var maxX = Mathf.Max(bl.x, tr.x);
+        var maxZ = Mathf.Max(bl.z, tr.z);
+        component.commandBuffer.EnableScissorRect(Rect.MinMaxRect(minX, minZ, maxX, maxZ));
+        component.RenderVehicleMap(vehicle.VehicleMap, mapOrigin, rot);
+        camera.Render();
+
+        camera.targetTexture = null;
+        camera.enabled = false;
+        component.commandBuffer.DisableScissorRect();
+        component.cachedTextures[key] = new CachedMapTexture(cache.RenderTexture, false, GenTicks.TicksGame);
         return cache.RenderTexture;
     }
 
@@ -169,23 +230,30 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
         GameEvent.OnGameDisposing -= Clear;
     }
 
-	public static void SetDirty(VehiclePawnWithMap vehicle)
+	public static void SetDirty(VehiclePawnWithMap vehicle, DurationType type = DurationType.Time)
     {
         var component = Current.Game?.GetComponent<VehicleMapUIRenderer>();
         if (component == null) return;
 
         var cachedTextures = component.cachedTextures;
-        foreach (var key in cachedTextures.Keys)
+        foreach (var pair in cachedTextures)
         {
-            if (key.vehicle == vehicle)
-                component.toSetDirty.Add(key);
+            if (pair.Key.vehicle == vehicle && pair.Value.DurationType == type)
+                component.toSetDirty.Add(pair.Key);
         }
         foreach (var key in component.toSetDirty)
-            cachedTextures[key] = new CachedMapTexture(cachedTextures[key].RenderTexture, true, Time.time);
+        {
+            cachedTextures[key] = type switch
+            {
+                DurationType.Time => new CachedMapTexture(cachedTextures[key].RenderTexture, true, Time.time),
+                DurationType.Ticks => new CachedMapTexture(cachedTextures[key].RenderTexture, true, GenTicks.TicksGame),
+                _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+            };
+        }
         component.toSetDirty.Clear();
     }
 
-	private CachedMapTexture GetOrCreateCachedMapTexture((VehiclePawnWithMap vehicle, Vector2Int size) key)
+	private CachedMapTexture GetOrCreateCachedMapTexture(CacheKey key)
 	{
 		if (!cachedTextures.TryGetValue(key, out var value))
 		{
@@ -212,17 +280,50 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
 			filterMode = FilterMode.Bilinear
 		};
 	}
+
+    private readonly record struct CacheKey(Vector2Int size, VehiclePawnWithMap vehicle, [UsedImplicitly] GraphicOverlay overlay = null);
     
-    private readonly struct CachedMapTexture(RenderTexture renderTexture, bool dirty, float lastUseTime)
+    private readonly struct CachedMapTexture
     {
-        private const float CacheDuration = 1f;
+        private CachedMapTexture(RenderTexture renderTexture, bool dirty)
+        {
+            RenderTexture = renderTexture;
+            Dirty = dirty;
+        }
+        
+        public CachedMapTexture(RenderTexture renderTexture, bool dirty, float lastUseTime) : this(renderTexture, dirty)
+        {
+            LastUseTime = lastUseTime;
+            DurationType = DurationType.Time;
+        }
 
-        public RenderTexture RenderTexture { get; } = renderTexture;
+        public CachedMapTexture(RenderTexture renderTexture, bool dirty, int lastUseTick) : this(renderTexture, dirty)
+        {
+            LastUseTick = lastUseTick;
+            DurationType = DurationType.Ticks;
+        }
+        
+        private const float CacheDurationTime = 1f;
+        private const int CacheDurationTicks = 60;
 
-        public bool Dirty { get; } = dirty;
+        public RenderTexture RenderTexture { get; }
 
-        private float LastUseTime { get; } = lastUseTime;
+        public bool Dirty { get; }
 
-        public bool Expired => Time.time - LastUseTime > CacheDuration;
+        public DurationType DurationType { get; }
+
+        private float LastUseTime { get; }
+
+        private int LastUseTick { get; }
+
+        public bool Expired => DurationType == DurationType.Ticks
+            ? GenTicks.TicksGame - LastUseTick > CacheDurationTicks
+            : Time.time - LastUseTime > CacheDurationTime;
+    }
+
+    public enum DurationType
+    {
+        Time,
+        Ticks
     }
 }

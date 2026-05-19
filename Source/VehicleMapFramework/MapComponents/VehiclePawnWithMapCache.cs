@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using SmashTools;
 using UnityEngine;
-using VehicleMapFramework.VMF_HarmonyPatches;
 using Vehicles;
 using Verse;
 

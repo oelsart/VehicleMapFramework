@@ -3,7 +3,6 @@ using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
 using HarmonyLib;
 using ModAssemblyLoader;
-using NUnit.Framework.Interfaces;
 using YamlDotNet.Serialization;
 
 namespace VehicleMapFramework.Test_CompatPatches;

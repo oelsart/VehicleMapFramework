@@ -163,7 +163,7 @@ public static class Patch_VehiclePawn_FullRotation
 [PatchLevel(Level.Mandatory)]
 public static class Patch_Rendering_DrawSelectionBracketsVehicles
 {
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator, MethodBase original)
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
         var matcher = new CodeMatcher(instructions, generator)
             .MatchEndForward(CodeMatch.LoadsField(AccessTools.Field(typeof(Transform), nameof(Transform.rotation))), new CodeMatch(OpCodes.Add))
@@ -1136,10 +1136,10 @@ public static class Patch_VehicleCaravan_GetGizmos
             VehiclePawn vehicle;
             if (gizmo is Command_Action action && action.defaultLabel == "CommandLaunchGroup".Translate() && (vehicle = ___vehicles.FirstOrDefault()) != null)
             {
-                if (vehicle.CompVehicleLauncher is CompVehicleLauncherWithMap compLauncherWithmap)
+                if (vehicle.CompVehicleLauncher is CompVehicleLauncherWithMap compLauncherWithMap)
                 {
                     gizmo.Disabled = false;
-                    if (!compLauncherWithmap.CanLaunchWithCargoCapacityWithMap(out var disableReason))
+                    if (!compLauncherWithMap.CanLaunchWithCargoCapacityWithMap(out var disableReason))
                     {
                         gizmo.Disable(disableReason);
                     }
@@ -1288,5 +1288,23 @@ public static class Patch_TextureDrawer_Draw
             
             vehicle = null;
         }
+    }
+}
+
+// UniqueVehicleは常にMapGridOwnersのOwnerとして登録されるようにする
+[HarmonyPatch(typeof(MapGridOwners.PathConfig), $"{nameof(Vehicles)}.{nameof(IPathConfig)}.{nameof(IPathConfig.MatchesReachability)}")]
+[PatchLevel(Level.Mandatory)]
+public static class Patch_MapGridOwners_PathConfig_MatchesReachability
+{
+    public static void Postfix(VehicleDef ___vehicleDef, IPathConfig other, ref bool __result)
+    {
+        __result = __result &&
+                   !IsUniqueVehicleDefPlaceholder(___vehicleDef) &&
+                   other is MapGridOwners.PathConfig config &&
+                   !IsUniqueVehicleDefPlaceholder(VehicleFramework.vehicleDef(ref config));
+        return;
+
+        bool IsUniqueVehicleDefPlaceholder(VehicleDef def) =>
+            def.GetModExtension<VehicleMapProps_Unique>() is { baseDef: not null };
     }
 }

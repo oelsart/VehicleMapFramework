@@ -1,0 +1,78 @@
+﻿using System;
+using SmashTools;
+using UnityEngine;
+using Vehicles;
+using Verse;
+#if DEV
+using CoreLib.Performance;
+#endif
+
+namespace VehicleMapFramework;
+
+public static class VehicleResizeUtility
+{
+    public static void PreResize(VehiclePawn vehicle)
+    {
+        if (!vehicle.Spawned)
+        {
+            RegionListersUpdater.DeregisterInRegions(vehicle, vehicle.Map);
+            vehicle.Map.thingGrid.Deregister(vehicle);
+            vehicle.Map.coverGrid.DeRegister(vehicle);
+        }
+        if (vehicle is VehiclePawnWithMap vehiclePawnWithMap)
+        {
+            FrameDelay.DelayOne(_vehicle =>
+            {
+                _vehicle.impassableCellsDirty = true;
+                _vehicle.mapEdgeCellsDirty = true;
+                _vehicle.walkableCellsDirty = true;
+                _vehicle.enterPositionsDirty = true;
+            }, vehiclePawnWithMap);
+        }
+    }
+    
+    public static void Reposition(VehiclePawn vehicle, Vector3 delta)
+    {
+        if (vehicle.Spawned)
+        {
+            vehicle.Position += new IntVec3(
+                (int)MathF.Truncate(delta.x),
+                0,
+                (int)MathF.Truncate(delta.z)).RotatedBy(vehicle.Rotation);
+            var opp = Convert.ToInt32(vehicle.Rotation.AsInt > 1);
+            if ((delta.x < 0f) == (vehicle.VehicleDef.Size.x % 2 == opp))
+            {
+                vehicle.Position += (IntVec3.East * (int)(delta.x % 1f * 2f)).RotatedBy(vehicle.Rotation);
+            }
+            if ((delta.z < 0f) == (vehicle.VehicleDef.Size.z % 2 == opp))
+            {
+                vehicle.Position += (IntVec3.North * (int)(delta.z % 1f * 2f)).RotatedBy(vehicle.Rotation);
+            }
+
+            vehicle.DrawTracker.tweener.ResetTweenedPosToRoot();
+            if (!vehicle.vehiclePather.Moving)
+            {
+                vehicle.vehiclePather.nextCell = vehicle.Position;
+            }
+        }
+    }
+
+    public static void RefreshVehiclePather(VehiclePawn vehicle)
+    {
+        var component = vehicle.Map.GetCachedMapComponent<VehiclePathingSystem>();
+        UniqueVehicleUtility.SetPathData?.Invoke(vehicle.vehiclePather, SingleParam.Get(component.BridgeIndexer[vehicle.VehicleDef].Value));
+#if DEV
+        if (!component.ThreadAvailable ||
+            component.dedicatedThread.State == DedicatedThread.ThreadState.Running)
+        {
+            component.RequestGridsFor(vehicle.VehicleDef, DeferredGridGeneration.Urgency.Urgent);
+        }
+        else
+        {
+            component.RequestGridsFor(vehicle);
+        }
+#else
+        component.RequestGridsFor(vehicle.VehicleDef, DeferredGridGeneration.Urgency.Urgent);
+#endif
+    }
+}

@@ -1,0 +1,1 @@
+P:Vehicles.VehiclePathingSystem.Item(Vehicles.VehicleDef);VehiclePathingSystemのインデクサーは型リネーム中のため、BridgeIndexer拡張プロパティを使用してください。

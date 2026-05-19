@@ -15,6 +15,7 @@ using Verse.AI.Group;
 
 namespace VehicleMapFramework;
 
+[PublicAPI]
 public static class VehicleMapUtility
 {
     public const float YCompress = 40f;
@@ -37,6 +38,7 @@ public static class VehicleMapUtility
 
     extension(Map map)
     {
+        [UsedImplicitly] // Reflection access by Faction Territories and Vassalage
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsVehicleMapOf(out VehiclePawnWithMap vehicle)
         {
@@ -973,8 +975,7 @@ public static class VehicleMapUtility
         var mass = CollectionsMassCalculator.MassUsage(vehicle.VehicleMap.listerThings.AllThings, IgnorePawnsInventoryMode.DontIgnore, true);
         if (MultiFloors.Active)
         {
-            var component = vehicle.VehicleMap.GetComponent(MultiFloors.MF_LevelMapComp);
-            mass += ((IEnumerable<Map>)MultiFloors.GetOtherMapVerticallyOutwardFromCache(null, vehicle.VehicleMap, component, -1))
+            mass +=MultiFloors.GetOtherLevels(vehicle.VehicleMap)
                 .Sum(map => CollectionsMassCalculator.MassUsage(map.listerThings.AllThings, IgnorePawnsInventoryMode.DontIgnore, true));
         }
         return mass;

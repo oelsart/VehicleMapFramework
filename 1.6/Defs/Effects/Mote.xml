@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+
+    <ThingDef>
+        <defName>VMF_MoteSink</defName>
+        <label>Mote</label>
+        <category>Mote</category>
+        <thingClass>VehicleMapFramework.MoteThrownSinker</thingClass>
+        <altitudeLayer>TerrainScatter</altitudeLayer>
+        <tickerType>Normal</tickerType>
+        <useHitPoints>false</useHitPoints>
+        <isSaveable>false</isSaveable>
+        <mote>
+            <fadeOutTime>3</fadeOutTime>
+        </mote>
+    </ThingDef>
+    
+</Defs>

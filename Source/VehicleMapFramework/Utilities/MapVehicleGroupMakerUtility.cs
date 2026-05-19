@@ -10,6 +10,8 @@ namespace VehicleMapFramework;
 
 public static class MapVehicleGroupMakerUtility
 {
+    public const float MinPointsToGenerateVehicles = 50f;
+    
     public static IEnumerable<VehiclePawnWithMap> GenerateVehicles(Faction faction, float points, LinearCurve vehicleCountCurve, List<VehicleDef> availableDefs)
     {
         var raiderModExtension = faction.def.GetModExtension<VehicleRaiderDefModExtension>();
@@ -19,6 +21,7 @@ public static class MapVehicleGroupMakerUtility
             VMF_Log.DebugWarning("vehicleBudget <= 0f");
             yield break;
         }
+        vehicleBudget = Mathf.Max(vehicleBudget, MinPointsToGenerateVehicles);
         
         var vehicleCount = Mathf.FloorToInt(vehicleCountCurve.Evaluate(points));
         if (vehicleCount <= 0)

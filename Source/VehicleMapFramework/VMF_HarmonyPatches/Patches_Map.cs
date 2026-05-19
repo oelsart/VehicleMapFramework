@@ -507,9 +507,7 @@ public static class Patch_PawnsFinder_AllMaps_Spawned
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        var g_AllPawnsSpawned = AccessTools.PropertyGetter(typeof(MapPawns), nameof(MapPawns.AllPawnsSpawned));
-        var m_AllPawnsSpawned_Reverse = AccessTools.Method(typeof(Patch_MapPawns_AllPawnsSpawned), nameof(Patch_MapPawns_AllPawnsSpawned.AllPawnsSpawned));
-        return instructions.MethodReplacer(g_AllPawnsSpawned, m_AllPawnsSpawned_Reverse);
+        return instructions.MethodReplacer(CachedMethodInfo.g_AllPawnsSpawned, CachedMethodInfo.m_AllPawnsSpawned_Reverse);
     }
 }
 
@@ -710,17 +708,15 @@ public static class Patch_AreaSource_DataForArea
 [PatchLevel(Level.Cautious)]
 public static class Patch_StorytellerUtility_DefaultThreatPointsNow
 {
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    public static bool Prefix(IIncidentTarget target, ref float __result)
     {
-        var g_IsPocketMap = AccessTools.PropertyGetter(typeof(Map), nameof(Map.IsPocketMap));
-        var m_IsPocketMapReplace = AccessTools.Method(typeof(Patch_StorytellerUtility_DefaultThreatPointsNow), nameof(IsPocketMapReplace));
-        return instructions.MethodReplacer(g_IsPocketMap, m_IsPocketMapReplace);
-    }
+        if (target is Map { IsVehicleMap: true } || target.PlayerPawnsForStoryteller.Any(p => p is VehiclePawnWithMap))
+        {
+            __result = VehicleMapUtility.DefaultThreatPointsNowForMapVehicles(target);
+            return false;
+        }
 
-    private static bool IsPocketMapReplace(Map map)
-    {
-        if (!map.IsPocketMap) return false;
-        return map.PocketMapParent?.sourceMap is not null;
+        return true;
     }
 }
 
@@ -851,5 +847,16 @@ public static class Patch_ITab_Bills_FillTab_Delegate
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
+    }
+}
+
+[HarmonyPatch(typeof(CaravanFormingUtility), nameof(CaravanFormingUtility.AllSendablePawns))]
+[PatchLevel(Level.Cautious)]
+public static class Patch_CaravanFormingUtility_AllSendablePawns
+{
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        
+        return instructions.MethodReplacer(CachedMethodInfo.g_AllPawnsSpawned, CachedMethodInfo.m_AllPawnsSpawned_Reverse);
     }
 }

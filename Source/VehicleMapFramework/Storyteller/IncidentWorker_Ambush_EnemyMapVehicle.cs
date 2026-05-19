@@ -44,16 +44,14 @@ public class IncidentWorker_Ambush_EnemyMapVehicle : IncidentWorker_AmbushMapVeh
             .ToList();
         var list = MapVehicleGroupMakerUtility.GenerateVehicles(parms.faction, parms.points, VehicleCountByPointsCurve,
             availableDefs).ToList();
-        parms.points = Mathf.Max(parms.points - list.Sum(v => v.VehicleDef.combatPower), 10f);
+        parms.points = Mathf.Max(parms.points - list.Sum(v => v.VehicleDef.combatPower), parms.faction.def.MinPointsToGeneratePawnGroup(PawnGroupKindDefOf.Combat));
         return list;
     }
 
     protected virtual bool ValidRaiderVehicle(VehicleDef vehicleDef, VehicleCategory category,
         PawnsArrivalModeDef arrivalModeDef, Faction faction, float points)
     {
-        return vehicleDef.thingClass.SameOrSubclassOf<VehiclePawnWithMap>() && vehicleDef.HasComp<CompNpcVehicleMap>() &&
-               RaidInjectionHelper.ValidRaiderVehicle(vehicleDef, category, arrivalModeDef, faction, points) &&
-               vehicleDef.GetModExtension<VehicleMapProps_Unique>() is null or { baseDef: null };
+        return VehicleCaravanIncidentUtility.ValidThreatVehicle(vehicleDef, category, arrivalModeDef, faction, points);
     }
 
     protected override LordJob CreateLordJob(List<Pawn> generatedPawns, IncidentParms parms)
