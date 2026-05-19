@@ -1,10 +1,10 @@
 ﻿using RimWorld;
-using Vehicles.UnitTesting;
+using Vehicles.Testing;
 using Verse;
 
 namespace VehicleMapFramework.Test_Logics;
 
-internal class WorkGiver_BuildRoofs(VehicleGroup group) : CrossMapWorkGiverTestBase(group)
+internal class Test_BuildRoofs(VehicleGroup group) : CrossMapWorkGiverTestBase(group)
 {
     public override WorkGiverDef WorkGiverDef => DefDatabase<WorkGiverDef>.GetNamed("BuildRoofs");
 

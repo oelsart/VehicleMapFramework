@@ -57,7 +57,7 @@ public class VehicleMapFramework : Mod
         base.WriteSettings();
 
         Level level;
-        if (settings.dynamicPatchEnabled && Find.Maps.All(map => VehicleMapParentsComponent.GetCachedVehicle(map) == null))
+        if (settings.dynamicPatchEnabled && (Find.Maps is null || Find.Maps.All(map => VehicleMapParentsComponent.GetCachedVehicle(map) == null)))
         {
             level = settings.dynamicPatchLevel;
         }

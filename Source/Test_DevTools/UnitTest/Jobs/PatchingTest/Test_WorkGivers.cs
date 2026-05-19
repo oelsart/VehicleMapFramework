@@ -1,16 +1,15 @@
 ﻿using DevTools.Testing;
 using RimWorld;
-using UnityEngine.Assertions;
 using VehicleMapFramework.VMF_HarmonyPatches;
 using Vehicles;
-using Vehicles.UnitTesting;
+using Vehicles.Testing;
 using Verse;
 using Verse.AI;
 
 namespace VehicleMapFramework.Test_Logics;
 
-[UnitTest(TestType.Playing)]
-internal sealed class UnitTest_WorkGivers
+[TestFixture(TestType.Playing)]
+internal sealed class Test_WorkGivers
 {
     [Test]
     private void TestWorkGivers()
@@ -32,23 +31,8 @@ internal sealed class UnitTest_WorkGivers
         VMF_Harmony.DynamicPatchAllNow(Level.Sensitive);
         foreach (var test in workGiverTests)
         {
-            using var testGroup = new Test.Group($"BeforePatching: {test.WorkGiverDef.defName}");
-            try
-            {
-                test.SetUp();
-            }
-            catch (Exception ex)
-            {
-                Assert.IsNull(ex, $"SetUp: {ex}");
-            }
-            try
-            {
-                test.ExecuteStep1();
-            }
-            catch (Exception ex)
-            {
-                Assert.IsNull(ex, $"ExecuteStep1: {ex}");
-            }
+            var fixture = new NestedTestFixture(test.BeforePatchingType, $"BeforePatch: {test.WorkGiverDef.defName}", test);
+            fixture.RunIndependent();
             ClearPawnState(pawn);
         }
         
@@ -56,23 +40,8 @@ internal sealed class UnitTest_WorkGivers
         TestUtils.ForceSpawn(vehicleGroup.vehicle);
         foreach (var test in workGiverTests)
         {
-            using var testGroup = new Test.Group($"AfterPatching: {test.WorkGiverDef.defName}");
-            try
-            {
-                test.ExecuteStep2();
-            }
-            catch (Exception ex)
-            {
-                Assert.IsNull(ex, $"ExecuteStep2: {ex}");
-            }
-            try
-            {
-                test.TearDown();
-            }
-            catch (Exception ex)
-            {
-                Assert.IsNull(ex, $"TearDown: {ex}");
-            }
+            var fixture = new NestedTestFixture(test.AfterPatchingType, $"AfterPatch: {test.WorkGiverDef.defName}", test);
+            fixture.RunIndependent();
         }
     }
     

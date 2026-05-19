@@ -1,12 +1,12 @@
 ﻿using RimWorld;
-using Vehicles.UnitTesting;
+using Vehicles.Testing;
 using Verse;
 
 namespace VehicleMapFramework.Test_Logics;
 
-internal class UnitTest_HaulToInventoryCrossMap(VehicleGroup group) : UnitTest_HaulGeneralCrossMap(group)
+internal class Test_HaulToInventory(VehicleGroup group) : Test_HaulGeneral(group)
 {
     public override WorkGiverDef WorkGiverDef => DefDatabase<WorkGiverDef>.GetNamed("HaulToInventory");
-    
+
     protected override bool DisablePUAH => false;
 }

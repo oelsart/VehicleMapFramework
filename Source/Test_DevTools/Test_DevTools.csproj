@@ -10,10 +10,11 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Dev|AnyCPU'">
-    <DebugType>none</DebugType>
+    <DebugType>full</DebugType>
     <OutputPath>..\..\..\VehicleMapFrameworkDev\Test\Assemblies\</OutputPath>
     <Optimize>True</Optimize>
     <DefineConstants>UNITY_ASSERTIONS</DefineConstants>
+    <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
 
   <ItemGroup>

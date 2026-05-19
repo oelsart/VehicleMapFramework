@@ -3,7 +3,6 @@
 public readonly struct DynamicPatchEnabler : IDisposable
 {
     private readonly bool dynamicPatchEnabled = VehicleMapFramework.settings.dynamicPatchEnabled;
-    
     private readonly bool dynamicUnPatchEnabled = VehicleMapFramework.settings.dynamicUnpatchEnabled;
     
     public DynamicPatchEnabler()

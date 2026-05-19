@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.Assertions;
 using VehicleMapFramework.VMF_HarmonyPatches;
 using Vehicles;
-using Vehicles.UnitTesting;
+using Vehicles.Testing;
 using Verse;
 using Verse.AI;
 
@@ -14,42 +14,71 @@ namespace VehicleMapFramework.Test_Logics;
 internal abstract class WorkGiverTestBase(VehicleGroup group)
 {
     public abstract WorkGiverDef WorkGiverDef { get; }
-
-    protected VehicleGroup group = group;
     
-    protected Pawn Pawn => group.pawns[0];
-
-    protected VehiclePawnWithMap Vehicle => (VehiclePawnWithMap)group.vehicle;
-
+    protected VehicleGroup group = group;
     protected WorkGiverResult[] results = new WorkGiverResult[2];
 
-    public virtual void SetUp()
+    public abstract Type BeforePatchingType { get; }
+    public abstract Type AfterPatchingType { get;}
+
+    protected abstract class Base(WorkGiverTestBase parent)
     {
+        protected WorkGiverDef WorkGiverDef => parent.WorkGiverDef;
+
+        protected VehicleGroup Group
+        {
+            get => parent.group;
+            set => parent.group = value;
+        }
+        
+        protected Pawn Pawn => Group.pawns[0];
+
+        protected VehiclePawnWithMap Vehicle => (VehiclePawnWithMap)Group.vehicle;
+
+        protected WorkGiverResult[] Results
+        {
+            get => parent.results;
+            set => parent.results = value;
+        }
     }
     
-    public virtual void ExecuteStep1()
+    protected abstract class BeforePatching(WorkGiverTestBase parent) : Base(parent)
     {
-        results[0] = RunWorkGiverBeforePatch(Pawn, WorkGiverDef);
-        Expect.IsNotNull(results[0].job);
+        [SetUp]
+        public virtual void SetUp()
+        {
+        }
+    
+        [Test]
+        public virtual void RunBefore()
+        {
+            Results[0] = RunWorkGiverBeforePatch(Pawn, WorkGiverDef);
+            Expect.IsNotNull(Results[0].job);
+        }
     }
 
-    public virtual void ExecuteStep2()
+    protected abstract class AfterPatching(WorkGiverTestBase parent) : Base(parent)
     {
-        results[1] = RunWorkGiverAfterPatch(Pawn, Vehicle, WorkGiverDef);
-        Expect.AreEqual(results[0], results[1]);
-        Expect.IsFalse(JobFailReason.HaveReason, JobFailReason.Reason);
-    }
+        [Test]
+        public virtual void RunAfter()
+        {
+            Results[1] = RunWorkGiverAfterPatch(Pawn, Vehicle, WorkGiverDef);
+            Expect.AreEqual(Results[0], Results[1]);
+            Expect.IsFalse(JobFailReason.HaveReason, JobFailReason.Reason);
+        }
 
-    public virtual void TearDown()
-    {
-        UnitTest_WorkGivers.ClearPawnState(Pawn);
-        Clear();
-    }
+        [TearDown]
+        public virtual void TearDown()
+        {
+            Test_WorkGivers.ClearPawnState(Pawn);
+            Clear();
+        }
 
-    public void Clear()
-    {
-        group = null;
-        results = null;
+        public void Clear()
+        {
+            Group = null;
+            Results = null;
+        }
     }
 
     protected static WorkGiverResult RunWorkGiverBeforePatch(Pawn pawn, WorkGiverDef workGiverDef)
@@ -216,16 +245,19 @@ internal abstract class WorkGiverTestBase(VehicleGroup group)
     
     internal static WorkGiverResult RunWorkGiverAfterPatch(Pawn pawn, VehiclePawn vehicle, WorkGiverDef workGiverDef)
     {
-        Assert.IsNotNull(pawn, "pawn is null");
-        Assert.IsNotNull(vehicle, "vehicle is null");
-        Assert.IsNotNull(workGiverDef, "workGiverDef is null");
+        Expect.IsNotNull(pawn, "pawn is null");
+        Expect.IsNotNull(vehicle, "vehicle is null");
+        Expect.IsNotNull(workGiverDef, "workGiverDef is null");
         var result = new WorkGiverResult();
         
         var workGiver = workGiverDef.Worker;
         result.workGiver = workGiver;
         result.pawnCanUse = PawnCanUseWorkGiver(pawn, workGiver);
         if (!result.pawnCanUse)
+        {
+            Test.Fail($"{pawn} can not use {workGiver}");
             return result;
+        }
         result.job = workGiver.NonScanJobAll(pawn);
         if (result.job != null || workGiver is not WorkGiver_Scanner scanner)
             return result;

@@ -1,7 +1,7 @@
 ﻿using DevTools.Testing;
 using RimWorld;
 using Vehicles;
-using Vehicles.UnitTesting;
+using Vehicles.Testing;
 using Verse;
 
 namespace VehicleMapFramework.Test_Logics;
@@ -22,11 +22,13 @@ internal abstract class CrossMapWorkGiverTestBase(VehicleGroup group)
 
     protected WorkGiverTestBase.WorkGiverResult result;
 
+    [SetUp]
     public virtual void SetUp()
     {
     }
 
-    public virtual void Execute()
+    [Test]
+    public virtual void Run()
     {
         result = WorkGiverTestBase.RunWorkGiverAfterPatch(Pawn, Vehicle, WorkGiverDef);
         Expect.IsNotNull(result.job, result.ToString());
@@ -37,9 +39,10 @@ internal abstract class CrossMapWorkGiverTestBase(VehicleGroup group)
             $"job interrupted\n{result}\nbut curjob: {Pawn.CurJob}");
     }
 
+    [TearDown]
     public virtual void TearDown()
     {
-        UnitTest_WorkGivers.ClearPawnState(Pawn);
+        Test_WorkGivers.ClearPawnState(Pawn);
         Clear();
     }
 

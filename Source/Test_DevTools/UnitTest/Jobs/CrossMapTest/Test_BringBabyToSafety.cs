@@ -1,10 +1,11 @@
 ﻿using RimWorld;
-using Vehicles.UnitTesting;
+using Vehicles.Testing;
+using Vehicles;
 using Verse;
 
 namespace VehicleMapFramework.Test_Logics;
 
-internal class UnitTest_BringBabyToSafety(VehicleGroup group) : CrossMapWorkGiverTestBase(group)
+internal class Test_BringBabyToSafety(VehicleGroup group) : CrossMapWorkGiverTestBase(group)
 {
     public override WorkGiverDef WorkGiverDef => DefDatabase<WorkGiverDef>.GetNamed("BringBabyToSafety");
     

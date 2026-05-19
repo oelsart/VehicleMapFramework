@@ -2,13 +2,13 @@
 using RimWorld;
 using VehicleMapFramework.VMF_HarmonyPatches;
 using Vehicles;
-using Vehicles.UnitTesting;
+using Vehicles.Testing;
 using Verse;
 
 namespace VehicleMapFramework.Test_Logics;
 
-[UnitTest(TestType.Playing)]
-public sealed class UnitTest_WorkGiversCrossMap
+[TestFixture(TestType.Playing)]
+public sealed class Test_WorkGiversCrossMap
 {
     [Test]
     private void TestCrossMapWorkGivers()
@@ -31,33 +31,8 @@ public sealed class UnitTest_WorkGiversCrossMap
         vehicle.Map.weatherManager.curWeather = WeatherDefOf.Clear;
         foreach (var test in workGiverTests)
         {
-            using var testGroup = new Test.Group($"CrossMap: {test.WorkGiverDef?.defName}");
-            try
-            {
-                test.SetUp();
-            }
-            catch (Exception ex)
-            {
-                Expect.IsNull(ex, $"SetUp: {ex}");
-            }
-
-            try
-            {
-                test.Execute();
-            }
-            catch (Exception ex)
-            {
-                Expect.IsNull(ex, $"Execute: {ex}");
-            }
-
-            try
-            {
-                test.TearDown();
-            }
-            catch (Exception ex)
-            {
-                Expect.IsNull(ex, $"TearDown: {ex}");
-            }
+            var fixture = new NestedTestFixture(test.GetType(), test.WorkGiverDef.defName, vehicleGroup);
+            fixture.RunIndependent();
         }
     }
 }
