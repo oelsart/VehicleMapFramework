@@ -1,4 +1,6 @@
-﻿using System.Xml.Linq;
+﻿using System.Text.RegularExpressions;
+using System.Xml.Linq;
+using Verse;
 
 namespace VehicleMapFramework.Test_Logics;
 
@@ -36,57 +38,54 @@ public class Logger_JUnit : CustomLoggerBase
 
     public override void WriteCustom(StreamWriter writer, string message)
     {
-        if (message.StartsWith(SettingUp))
-            currentState = State.SettingUp;
-        else if (message.StartsWith(Executing))
+        if (message.NullOrEmpty()) return;
+        if (!message.StartsWith(Indent))
         {
             EndTestCase();
-            var name = message[10..].Split("::");
-            EnterTestCase(name[0], name[1]);
+            var split = message.Split(SpaceFour);
+            var label = split[0];
+            var str = split[1];
+            var name = Regex.Replace(str, @"\([^)]*\)", ""); // テストの成否と括弧内のArgsを除去
+            EnterTestCase(null, name);
+            Evaluate(label, str);
         }
-        else if (message.StartsWith(TearingDown))
-            currentState = State.TearingDown;
-        else if (message.StartsWith(BeginGroup))
+        else
         {
-            if (currentState == State.TearingDown)
-            {
-                EndTestCase();
-                currentState = State.None;           
-            }
-            var classname = default(string);
-            var name = message[15..].Replace("(", "").Replace(")", "");
+            var split = message.Split(SpaceFour);
+            var label = split[0][Indent.Length..];
+            var str = split[1];
+            var name = Regex.Replace(str, @"\([^)]*\)", "");
+            string fixture = null;
             if (testCaseStack.TryPeek(out var parent))
-            {
-                classname = parent.Attribute(ClassNameAttribute)?.Value;
-                name = $"{parent.Attribute(NameAttribute)?.Value}.{name}";
-            }
-            EnterTestCase(classname, name);
-        }
-        else if (message.StartsWith(EndGroup))
+                fixture = parent.Name.ToString();
+            EnterTestCase(fixture, name);
+            Evaluate(label, str);
             EndTestCase();
-        else if (message.StartsWith(PassedLabel))
-        {
-            foreach (var testCase in testCaseStack)
-                testCase.assertions++;
-            testsuite.assertions++;
         }
-        else if (message.StartsWith(FailedLabel))
+        return;
+
+        void Evaluate(string label, string str)
         {
-            if (testCaseStack.TryPeek(out var testCase))
+            switch (label)
             {
-                var failure = new XElement(FailureAttribute);
-                failure.SetAttributeValue(MessageAttribute, message[9..]);
-                testCase.Add(failure);
-                foreach (var testCase2 in testCaseStack)
-                    testCase2.assertions++;
-                testsuite.assertions++;
+                case SkippedLabel:
+                    var skipped = new XElement(SkippedAttribute);
+                    skipped.SetAttributeValue(MessageAttribute, str.Split(SpaceTwo).ElementAtOrDefault(1));
+                    testCaseStack.Peek().Add(skipped);
+                    break;
+                
+                case FailureAttribute:
+                    var failure = new XElement(FailureAttribute);
+                    failure.SetAttributeValue(MessageAttribute, str.Split(SpaceTwo).ElementAtOrDefault(1));
+                    testCaseStack.Peek().Add(failure);
+                    break;
+                    
+                case PassedLabel:
+                    foreach (var testCase in testCaseStack)
+                        testCase.assertions++;
+                    testsuite.assertions++;
+                    break;
             }
-        }
-        else if (message.StartsWith(SkippedLabel))
-        {
-            var skipped = new XElement(SkippedAttribute);
-            skipped.SetAttributeValue(MessageAttribute, message[10..]);
-            testCaseStack.Peek().Add(skipped);
         }
     }
 

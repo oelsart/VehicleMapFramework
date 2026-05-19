@@ -35,6 +35,7 @@ internal sealed class Test_StudyInteract(VehicleGroup group) : WorkGiverTestBase
             Thing.allowDestroyNonDestroyable = true;
             Current.Game.GetComponent<GameComponent_Anomaly>().monolith.Destroy();
             Thing.allowDestroyNonDestroyable = false;
+            Test.Fail("Failure for testing");
         }
     }
 }

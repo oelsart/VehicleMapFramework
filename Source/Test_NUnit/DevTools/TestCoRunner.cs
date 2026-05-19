@@ -8,7 +8,7 @@ internal class TestCoRunner
 {
     internal const string RiMWorldPath = "E:/Program Files (x86)/Steam/steamapps/common/RimWorld/RimWorldWin64.exe";
 
-    internal const string Arguments = "--pid OELS.VehicleMapFramework.dev --test -batchmode -e --logger junit";
+    internal const string Arguments = "-disable-compute-shaders --pid \"OELS.VehicleMapFramework.dev\" -t -e --logger junit";
 
     internal const string ResultPath =
         "E:/Program Files (x86)/Steam/steamapps/common/RimWorld/Mods/VehicleMapFramework/.git/testresults/Test.log";
