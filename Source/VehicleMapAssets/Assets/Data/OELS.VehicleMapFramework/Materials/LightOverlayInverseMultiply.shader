@@ -1,8 +1,9 @@
 Shader "VehicleMapFramework/LightOverlayInverseMultiply" {
 	Properties {
 		_Color ("Color", Color) = (1, 1, 1, 1)
-		_MaxRestore ("Max Recovery Limit", Range(1, 10)) = 5.0 // 夜間の白トビを防ぐセーフティ
-		_ColorPreservation ("Color Preservation", Range(0, 1)) = 0.3 // 0に近づけるほど彩度を抑え、輝度のみ復元する
+		_RestoreFactor ("Recovery Factor", Range(0, 10)) = 1
+		_MaxRestore ("Max Recovery Limit", Range(0, 1)) = 0.5
+		_ColorPreservation ("Color Preservation", Range(0, 1)) = 0.3
 	}
 	SubShader {
 		Tags
@@ -38,6 +39,7 @@ Shader "VehicleMapFramework/LightOverlayInverseMultiply" {
 			};
 
 			float4 _Color;
+			float _RestoreFactor;
 			float _MaxRestore;
 			float _ColorPreservation;
 			sampler2D _GrabTexture;
@@ -59,17 +61,14 @@ Shader "VehicleMapFramework/LightOverlayInverseMultiply" {
 				
 				// 除算
 				float3 shadowColor = max(_Color.rgb, 0.001);
-				float3 restored = bg.rgb / shadowColor;
+				float3 restored = bg.rgb / shadowColor * _RestoreFactor;
 				
 				// 白飛び防止
 				restored = min(restored, _MaxRestore);
 
 				// 彩度を調整
-				const float3 LumaCoeff = float3(0.299, 0.587, 0.114);
-				float restoredLuma = dot(restored, LumaCoeff);
-				float3 originalColor = lerp(restoredLuma.xxx, restored, _ColorPreservation);
 				
-				return fixed4(originalColor, inp.color.a);
+				return fixed4(restored, inp.color.a);
 			}
 			ENDCG
 		}
