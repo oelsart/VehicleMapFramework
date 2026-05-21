@@ -34,6 +34,8 @@ public static class VMF_DefOf
 
     public static ShaderTypeDef VMF_TerrainHardWithZ;
 
+    public static ShaderTypeDef VMF_LightOverlayInverseMultiply;
+
     public static ShaderTypeDef VMF_CutoutComplexRGBOpacity;
 
     public static ShaderTypeDef VMF_CutoutComplexPatternOpacity;

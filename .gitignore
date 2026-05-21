@@ -362,7 +362,6 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
-/Source/VehicleMapAssets
 
 
 ## ローカル作業用の翻訳メモ（未翻訳語・翻訳中）

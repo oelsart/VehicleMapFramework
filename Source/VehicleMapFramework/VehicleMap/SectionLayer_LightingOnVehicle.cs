@@ -1,34 +1,47 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Text;
+using JetBrains.Annotations;
+using LudeonTK;
 using RimWorld;
 using UnityEngine;
 using Verse;
 
 namespace VehicleMapFramework;
 
+[StaticConstructorOnStartup]
+[HotSwap]
 public class SectionLayer_LightingOnVehicle : SectionLayer
 {
     private int firstCenterInd;
-
     private CellRect sectRect;
 
-    private const byte RoofedAreaMinSkyCover = 100;
+    private static Material LightOverlayInverseMultiply;
+    private static MaterialPropertyBlock materialPropertyBlock = new();
+    private static readonly int MaxRestore = Shader.PropertyToID("_MaxRestore");
+    private static readonly int ColorPreservation = Shader.PropertyToID("_ColorPreservation");
 
-    private readonly MaterialPropertyBlock propertyBlockColorDodge = new();
-
-    private readonly MaterialPropertyBlock propertyBlockNormalLight = new();
+    [TweakValue("SectionLayer_LightingOnVehicle._MaxRestore", 0f, 1f)]
+    [UsedImplicitly] private static float maxRestore = 1f;
+    [TweakValue("SectionLayer_LightingOnVehicle._ColorPreservation", 0f, 1f)]
+    [UsedImplicitly] private static float colorPreservation = 0.8f;
 
     private bool expandWest;
-
     private bool expandSouth;
-
     private bool expandEast;
-
     private bool expandNorth;
 
-
+    private const byte RoofedAreaMinSkyCover = 100;
     private const int ExpandSize = 5;
+
+    static SectionLayer_LightingOnVehicle()
+    {
+        LongEventHandler.ExecuteWhenFinished(() =>
+        {
+            LightOverlayInverseMultiply = MaterialPool.MatFrom(VMF_DefOf.VMF_LightOverlayInverseMultiply.Shader);
+            materialPropertyBlock = new MaterialPropertyBlock();
+        });
+    }
+    
     public override bool Visible => DebugViewSettings.drawLightingOverlay && (Find.CurrentMap != Map || VehicleMapFramework.settings.drawPlanet);
 
     public SectionLayer_LightingOnVehicle(Section section) : base(section)
@@ -49,27 +62,31 @@ public class SectionLayer_LightingOnVehicle : SectionLayer
         }
         var baseMap = Map.BaseMap();
         var rot = Quaternion.AngleAxis(vehicle.FullAngle, Vector3.up);
-        var a = Mathf.Clamp01(1f - Mathf.Min(baseMap.gameConditionManager.MapBrightness, baseMap.skyManager.CurSkyGlow));
-        propertyBlockColorDodge.SetColor(ShaderPropertyIDs.ColorTwo, new Color(1f, 1f, 1f, a));
-        propertyBlockNormalLight.SetColor(ShaderPropertyIDs.Color, new Color(1f, 1f, 1f, 1f - a));
-        
         for (var i = 0; i < subMeshes.Count; i++)
         {
             var subMesh = subMeshes[i];
             if (subMesh.finalized && !subMesh.disabled)
             {
-                Graphics.DrawMesh(subMesh.mesh, drawPos, rot,
-                    subMesh.material, 0, null, 0,
-                    subMesh.material == VMF_Materials.LightOverlayColorDodge
-                        ? propertyBlockColorDodge
-                        : propertyBlockNormalLight);
+                var pos = drawPos;
+                if (subMesh.material == LightOverlayInverseMultiply)
+                {
+                    materialPropertyBlock.SetColor(ShaderPropertyIDs.Color, baseMap.skyManager.CurSky.colors.sky);
+                    materialPropertyBlock.SetFloat(MaxRestore, maxRestore);
+                    materialPropertyBlock.SetFloat(ColorPreservation, colorPreservation);
+                    pos = pos.WithY(AltitudeLayer.LightingOverlay.AltitudeFor(1f));
+                }
+                else
+                {
+                    materialPropertyBlock.SetColor(ShaderPropertyIDs.Color, Color.white);
+                }
+                Graphics.DrawMesh(subMesh.mesh, pos, rot, subMesh.material, 0, null, 0, materialPropertyBlock);
             }
         }
     }
 
     public string GlowReportAt(IntVec3 c)
     {
-        var colors = GetSubMesh(VMF_Materials.LightOverlayColorDodge).mesh.colors32;
+        var colors = GetSubMesh(LightOverlayInverseMultiply).mesh.colors32;
         CalculateVertexIndices(c.x, c.z, out var num, out var num2, out var num3, out var num4, out var num5);
         StringBuilder stringBuilder = new();
         stringBuilder.Append("BL=" + colors[num]);
@@ -82,11 +99,11 @@ public class SectionLayer_LightingOnVehicle : SectionLayer
 
     public override void Regenerate()
     {
-        if (!Map.IsVehicleMapOf(out _))
+        if (!Map.IsVehicleMap)
         {
             return;
         }
-        var subMesh = GetSubMesh(VMF_Materials.LightOverlayColorDodge);
+        var subMesh = GetSubMesh(LightOverlayInverseMultiply);
         var subMesh2 = GetSubMesh(MatBases.LightOverlay);
         if (subMesh.verts.Count == 0)
         {
@@ -97,7 +114,6 @@ public class SectionLayer_LightingOnVehicle : SectionLayer
             MakeBaseGeometry(subMesh2, AltitudeLayer.LightingOverlay.AltitudeFor().YOffset());
         }
         var array = new Color32[subMesh.verts.Count];
-        var array2 = new Color32[subMesh2.verts.Count];
         var origRect = new CellRect(section.botLeft.x, section.botLeft.z, 17, 17);
         origRect.ClipInsideMap(Map);
         var maxX = origRect.maxX;
@@ -107,7 +123,6 @@ public class SectionLayer_LightingOnVehicle : SectionLayer
         var x = map.Size.x;
         var innerArray = map.edificeGrid.InnerArray;
         var num = innerArray.Length;
-        var roofGrid = map.roofGrid;
         var cellIndices = map.cellIndices;
         CalculateVertexIndices(origRect.minX, origRect.minZ, out var num2, out _, out _, out _, out _);
         var num7 = cellIndices.CellToIndex(new IntVec3(origRect.minX, 0, origRect.minZ));
@@ -126,17 +141,16 @@ public class SectionLayer_LightingOnVehicle : SectionLayer
             {
                 ColorInt colorInt = new(0, 0, 0, 0);
                 var num9 = 0;
-                var flag = false;
+				var canShowLight = false;
                 for (var k = 0; k < 4; k++)
                 {
                     var num10 = num7 + array3[k];
                     if (num10 >= 0 && num10 < num && num10 / x == num8 + array4[k])
                     {
                         var thing = innerArray[num10];
-                        var roofDef = roofGrid.RoofAt(num10);
-                        if (roofDef != null && (roofDef.isThickRoof || thing == null || !thing.def.holdsRoof || thing.def.altitudeLayer == AltitudeLayer.DoorMoveable))
+						if (thing == null || !thing.def.holdsRoof || thing.def.altitudeLayer == AltitudeLayer.DoorMoveable)
                         {
-                            flag = true;
+							canShowLight = true;
                         }
                         if (thing == null || !thing.def.blockLight)
                         {
@@ -153,12 +167,9 @@ public class SectionLayer_LightingOnVehicle : SectionLayer
                 {
                     array[num2] = new Color32(0, 0, 0, 0);
                 }
-
-                array2[num2] = array[num2];
-                if (flag && array[num2].a < RoofedAreaMinSkyCover)
+				if (canShowLight && array[num2].a < RoofedAreaMinSkyCover)
                 {
                     array[num2].a = RoofedAreaMinSkyCover;
-                    array2[num2].a = RoofedAreaMinSkyCover;
                 }
                 j++;
                 num2++;
@@ -173,24 +184,19 @@ public class SectionLayer_LightingOnVehicle : SectionLayer
             num7 += map.Size.x;
         }
 
-        CalculateVertexIndices(origRect.minX, origRect.minZ, out var num12, out _, out var _, out var _, out var num13);
+        CalculateVertexIndices(origRect.minX, origRect.minZ, out var num12, out _, out _, out _, out var num13);
         var num14 = cellIndices.CellToIndex(origRect.minX, origRect.minZ);
         for (var l = origRect.minZ; l <= maxZ; l++)
         {
             var m = origRect.minX;
             while (m <= maxX)
             {
-                var colorInt2 = default(ColorInt) + array[num12];
-                colorInt2 += array[num12 + 1];
-                colorInt2 += array[num12 + width + 1];
-                colorInt2 += array[num12 + width + 2];
-                array[num13] = new Color32((byte)(colorInt2.r / 4), (byte)(colorInt2.g / 4), (byte)(colorInt2.b / 4), (byte)(colorInt2.a / 4));
-                colorInt2 = default(ColorInt) + array2[num12];
-                colorInt2 += array2[num12 + 1];
-                colorInt2 += array2[num12 + width + 1];
-                colorInt2 += array2[num12 + width + 2];
-                array2[num13] = new Color32((byte)(colorInt2.r / 4), (byte)(colorInt2.g / 4), (byte)(colorInt2.b / 4), (byte)(colorInt2.a / 4));
-                if (array[num13].a < RoofedAreaMinSkyCover && roofGrid.Roofed(num14))
+                var colorInt = default(ColorInt) + array[num12];
+                colorInt += array[num12 + 1];
+                colorInt += array[num12 + width + 1];
+                colorInt += array[num12 + width + 2];
+                array[num13] = new Color32((byte)(colorInt.r / 4), (byte)(colorInt.g / 4), (byte)(colorInt.b / 4), (byte)(colorInt.a / 4));
+				if (array[num13].a < RoofedAreaMinSkyCover)
                 {
                     var thing2 = innerArray[num14];
                     if (thing2 == null || !thing2.def.holdsRoof)
@@ -211,7 +217,7 @@ public class SectionLayer_LightingOnVehicle : SectionLayer
             num14 -= width - (offset * ExpandSize);
             num14 += map.Size.x;
         }
-
+        
         //こっから下でマップ周辺に漏れ出る光の計算
         var rect = new CellRect(section.botLeft.x, section.botLeft.z, 17, 17);
         rect.ClipInsideMap(Map);
@@ -262,21 +268,14 @@ public class SectionLayer_LightingOnVehicle : SectionLayer
                 }
 
 
-                var glow = (byte)((1f - map.skyManager.CurSkyGlow) * 255);
                 foreach (var cell in cells)
                 {
                     var edge = prevRect.ClosestCellTo(cell);
                     var cardinal = (edge - cell).IsCardinal;
                     var edgeColorCorner = array[IndexGetterCorner(edge)];
                     var index = IndexGetterCorner(cell);
-                    array[index] = new Color32(Decrease(edgeColorCorner.r), Decrease(edgeColorCorner.g), Decrease(edgeColorCorner.b), edgeColorCorner.a);
-                    array2[index] = new Color32(glow, glow, glow, glow);
-                    continue;
-
-                    byte Decrease(byte cur)
-                    {
-                        return (byte)Math.Max(0, cur - (cur / i) - ((cardinal ? 50 : 100) / ExpandSize));
-                    }
+                    var factor = 0.5f * (cardinal ? 1f : 0.71f);
+                    array[index] = new Color32((byte)(edgeColorCorner.r * factor), (byte)(edgeColorCorner.g * factor), (byte)(edgeColorCorner.b * factor), (byte)(edgeColorCorner.a * factor));
                 }
 
                 cells = [];
@@ -299,19 +298,18 @@ public class SectionLayer_LightingOnVehicle : SectionLayer
                 foreach (var cell in cells)
                 {
                     var corner = IndexGetterCorner(cell);
+                    var index = IndexGetterCenter(cell);
                     var colorInt = default(ColorInt) + array[corner];
                     colorInt += array[corner + 1];
                     colorInt += array[corner + width + 1];
                     colorInt += array[corner + width + 2];
-                    var index = IndexGetterCenter(cell);
                     array[index] = new Color32((byte)(colorInt.r / 4), (byte)(colorInt.g / 4), (byte)(colorInt.b / 4), (byte)(colorInt.a / 4));
-                    array2[index] = new Color32(glow, glow, glow, glow);
                 }
             }
         }
 
         subMesh.mesh.colors32 = array;
-        subMesh2.mesh.colors32 = array2;
+        subMesh2.mesh.colors32 = array;
         return;
 
         int IndexGetterCorner(IntVec3 c)
