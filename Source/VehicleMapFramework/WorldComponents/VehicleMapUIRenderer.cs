@@ -14,6 +14,11 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
 {
     private readonly Game game = game;
     
+    /// <summary>
+    /// Provides the current time. Can be overridden in tests to simulate time passage.
+    /// </summary>
+    public static Func<float> TimeProvider = () => Time.time;
+
     const int VEHICLE_MAP_LAYER = 28;
     
     private Camera camera;
@@ -83,7 +88,7 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
         var cache = component.GetOrCreateCachedMapTexture(key);
         if (!cache.Dirty)
         {
-            component.cachedTextures[key] = new CachedMapTexture(cache.RenderTexture, false, Time.time);
+            component.cachedTextures[key] = new CachedMapTexture(cache.RenderTexture, false, TimeProvider());
             return cache.RenderTexture;
         }
 
@@ -102,7 +107,7 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
         camera.Render();
         camera.targetTexture = null;
         camera.enabled = false;
-        component.cachedTextures[key] = new CachedMapTexture(cache.RenderTexture, false, Time.time);
+        component.cachedTextures[key] = new CachedMapTexture(cache.RenderTexture, false, TimeProvider());
         return cache.RenderTexture;
     }
 
@@ -245,7 +250,7 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
         {
             cachedTextures[key] = type switch
             {
-                DurationType.Time => new CachedMapTexture(cachedTextures[key].RenderTexture, true, Time.time),
+                DurationType.Time => new CachedMapTexture(cachedTextures[key].RenderTexture, true, TimeProvider()),
                 DurationType.Ticks => new CachedMapTexture(cachedTextures[key].RenderTexture, true, GenTicks.TicksGame),
                 _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
             };
@@ -257,7 +262,7 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
 	{
 		if (!cachedTextures.TryGetValue(key, out var value))
 		{
-            cachedTextures[key] = value = new CachedMapTexture(GetRenderTexture(key.size), true, Time.time);
+            cachedTextures[key] = value = new CachedMapTexture(GetRenderTexture(key.size), true, TimeProvider());
         }
 		return value;
 	}
@@ -283,14 +288,9 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
 
     private readonly record struct CacheKey(Vector2Int size, VehiclePawnWithMap vehicle, [UsedImplicitly] GraphicOverlay overlay = null);
     
-    private readonly struct CachedMapTexture
+    public readonly struct CachedMapTexture(RenderTexture renderTexture, bool dirty)
     {
-        private CachedMapTexture(RenderTexture renderTexture, bool dirty)
-        {
-            RenderTexture = renderTexture;
-            Dirty = dirty;
-        }
-        
+
         public CachedMapTexture(RenderTexture renderTexture, bool dirty, float lastUseTime) : this(renderTexture, dirty)
         {
             LastUseTime = lastUseTime;
@@ -303,22 +303,22 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
             DurationType = DurationType.Ticks;
         }
         
-        private const float CacheDurationTime = 1f;
-        private const int CacheDurationTicks = 60;
+        public const float CacheDurationTime = 1f;
+        public const int CacheDurationTicks = 60;
 
-        public RenderTexture RenderTexture { get; }
+        public RenderTexture RenderTexture { get; } = renderTexture;
 
-        public bool Dirty { get; }
+        public bool Dirty { get; } = dirty;
 
         public DurationType DurationType { get; }
 
-        private float LastUseTime { get; }
+        public float LastUseTime { get; }
 
-        private int LastUseTick { get; }
+        public int LastUseTick { get; }
 
         public bool Expired => DurationType == DurationType.Ticks
             ? GenTicks.TicksGame - LastUseTick > CacheDurationTicks
-            : Time.time - LastUseTime > CacheDurationTime;
+            : TimeProvider() - LastUseTime > CacheDurationTime;
     }
 
     public enum DurationType
