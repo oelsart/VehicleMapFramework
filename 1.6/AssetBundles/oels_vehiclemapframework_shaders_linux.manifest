@@ -1,15 +1,15 @@
 ManifestFileVersion: 0
-CRC: 4115696813
+CRC: 1993616120
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: 4a4782905827c77d8b5efdd9b307dea1
+    Hash: 08264fcd905faa671a2c72c21e56a33a
   TypeTreeHash:
     serializedVersion: 2
     Hash: 0df1dec30b5d061d422d3e6493d27647
   IncrementalBuildHash:
     serializedVersion: 2
-    Hash: 4a4782905827c77d8b5efdd9b307dea1
+    Hash: 08264fcd905faa671a2c72c21e56a33a
 HashAppended: 0
 ClassTypes:
 - Class: 48
@@ -17,8 +17,8 @@ ClassTypes:
 SerializeReferenceClassIdentifiers: []
 Assets:
 - Assets/Data/OELS.VehicleMapFramework/Materials/LightOverlayInverseMultiply.shader
-- Assets/Data/OELS.VehicleMapFramework/Materials/TransparentRGBSkin.shader
-- Assets/Data/OELS.VehicleMapFramework/Materials/TransparentRGB.shader
-- Assets/Data/OELS.VehicleMapFramework/Materials/TransparentRGBPattern.shader
+- Assets/Data/OELS.VehicleMapFramework/Materials/ShaderRGBSkinOpacity.shader
+- Assets/Data/OELS.VehicleMapFramework/Materials/ShaderRGBOpacity.shader
+- Assets/Data/OELS.VehicleMapFramework/Materials/ShaderRGBPatternOpacity.shader
 - Assets/Data/OELS.VehicleMapFramework/Materials/TerrainHardWithZ.shader
 Dependencies: []

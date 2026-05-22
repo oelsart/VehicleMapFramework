@@ -2,7 +2,7 @@
 // Derived from Vehicle Framework - Modified and rewritten by OELS (2026)
 // Licensed under the MIT License.
 
-Shader "VehicleMapFramework/TransparentRGB"
+Shader "VehicleMapFramework/ShaderRGBOpacity"
 {
 	Properties
 	{
@@ -11,6 +11,7 @@ Shader "VehicleMapFramework/TransparentRGB"
 		_ColorOne("ColorOne", Color) = (1,1,1,1)
 		_ColorTwo("ColorTwo", Color) = (1,1,1,1)
 		_ColorThree("ColorThree", Color) = (1,1,1,1)
+		_Opacity("Opacity", Float) = 1
 	}
 	SubShader
 	{
@@ -59,6 +60,7 @@ Shader "VehicleMapFramework/TransparentRGB"
 			float4 _ColorOne : _ColorOne;
 			float4 _ColorTwo : _ColorTwo;
 			float4 _ColorThree : _ColorThree;
+			float _Opacity;
 
 			fixed4 frag(v2f i) : SV_Target
 			{
@@ -72,8 +74,9 @@ Shader "VehicleMapFramework/TransparentRGB"
 				float x = 1 - u - v - w;
 
 				finalColor *= _ColorOne * u + _ColorTwo * v + _ColorThree * w + float4(1,1,1,1) * x;
-
-				// clip(finalColor.a - 0.5f);
+				finalColor.a *= _Opacity;
+				clip(finalColor.a - 0.01);
+				
 				return finalColor;
 			}
 			ENDCG
