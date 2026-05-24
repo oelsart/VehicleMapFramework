@@ -41,7 +41,7 @@
 				<lightGraphic>
 					<texPath>VehicleMapFramework/Things/WirelessCharger/WirelessTransmitterLight</texPath>
 					<graphicClass>Graphic_Single</graphicClass>
-					<shaderType>TransparentPostLight</shaderType>
+					<shaderType>MoteGlow</shaderType>
 				</lightGraphic>
 			</li>
 			<li Class="CompProperties_Glower">

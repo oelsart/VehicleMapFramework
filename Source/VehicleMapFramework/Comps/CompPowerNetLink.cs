@@ -47,6 +47,7 @@ public abstract class CompPowerNetLink : CompPowerTrader
         base.CompTick();
         
         if (!parent.IsHashIntervalTick(UpdateRateIntervalTicks)) return;
+        
         if (Connected)
         {
             if (parent.BaseMapOrCaravan != LinkedTo.BaseMapOrCaravan ||
@@ -56,6 +57,7 @@ public abstract class CompPowerNetLink : CompPowerTrader
                 return;
             }
             
+            var output = PowerOutput;
             if (PowerOutput < 0f && PowerOn)
             {
                 LinkedComp.PowerOutput = -PowerOutput * PowerLossFactor;
@@ -91,6 +93,12 @@ public abstract class CompPowerNetLink : CompPowerTrader
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+            
+            if (output == 0f && PowerOutput != 0f || PowerOutput == 0f && output != 0f)
+            {
+                // UpdateLitのため
+                parent.BroadcastCompSignal(PowerTurnedOnSignal);
+            }
             return;
         }
         
@@ -122,14 +130,15 @@ public abstract class CompPowerNetLink : CompPowerTrader
         LinkedComp?.LinkedTo = null;
         PowerOutput = 0f;
         LinkedTo = null;
+        parent.BroadcastCompSignal(PowerTurnedOffSignal);
     }
     
     protected static float PushAmount(CompPowerNetLink pusher, CompPowerNetLink drawer)
     {
         var powerNet = drawer.PowerNet;
         var sumBatteriesDiscarge = powerNet.batteryComps.Count * BatteryDischargingWatts;
-        var needs = PowerNetNeeds(drawer.PowerNet) + PowerNetBatteryAccepts(drawer.PowerNet) / WattsToWattDaysPerTick;
-        var supply = Mathf.Max(0f, -PowerNetNeeds(pusher.PowerNet) + pusher.PowerNet.CurrentStoredEnergy() / WattsToWattDaysPerTick);
+        var needs = PowerNetNeeds(drawer.PowerNet, drawer) + PowerNetBatteryAccepts(drawer.PowerNet) / WattsToWattDaysPerTick;
+        var supply = Mathf.Max(0f, -PowerNetNeeds(pusher.PowerNet, pusher) + pusher.PowerNet.CurrentStoredEnergy() / WattsToWattDaysPerTick);
         var wantsToPush = Mathf.Clamp((needs / pusher.PowerLossFactor) + 1E-07f, sumBatteriesDiscarge, pusher.MaxPowerPush);
         return Mathf.Clamp(wantsToPush, 0f, supply);
     }

@@ -164,7 +164,7 @@ public class SectionLayer_LightingOnVehicle : SectionLayer
                 }
                 else
                 {
-                    array[num2] = new Color32(0, 0, 0, 0);
+                    array[num2] = new Color32(255, 255, 255, 0);
                 }
 				if (canShowLight && array[num2].a < RoofedAreaMinSkyCover)
                 {

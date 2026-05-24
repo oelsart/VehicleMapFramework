@@ -6,6 +6,7 @@ using Verse.Sound;
 
 namespace VehicleMapFramework;
 
+[HotSwap]
 public class CompWirelessTransmitter : CompPowerNetLink, IThingGlower
 {
     protected const float PushMin = 0f;
@@ -166,7 +167,7 @@ public class CompWirelessTransmitter : CompPowerNetLink, IThingGlower
         if (Connected && Props.lightGraphic?.Graphic is { } graphic)
         {
             var colored = PowerOutput != 0f ? graphic : graphic.GetColoredVersion(graphic.Shader, graphic.Color.WithAlpha(0.5f), graphic.ColorTwo);
-            colored.Draw(parent.DrawPos.WithYOffset(Altitudes.AltInc / 10f), parent.Rotation, parent, parent.IsOnNonFocusedVehicleMapOf(out var vehicle) ? -vehicle.Angle : 0f);
+            colored.Draw(parent.DrawPos.WithYOffset(Altitudes.AltInc / (parent.IsOnNonFocusedVehicleMap ? 10f : 1f)), parent.Rotation, parent, parent.IsOnNonFocusedVehicleMapOf(out var vehicle) ? -vehicle.Angle : 0f);
         }
     }
 
@@ -190,7 +191,7 @@ public class CompWirelessTransmitter : CompPowerNetLink, IThingGlower
         return str;
     }
 
-    public new bool ShouldBeLitNow()
+    bool IThingGlower.ShouldBeLitNow()
     {
         return PowerOutput != 0f;
     }

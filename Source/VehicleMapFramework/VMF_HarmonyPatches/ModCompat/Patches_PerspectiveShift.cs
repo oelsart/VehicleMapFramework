@@ -344,7 +344,6 @@ public static class Patch_Avatar_HandleLeftClickInt
 [HarmonyPatchCategory(PatchCategories.PerspectiveShift)]
 [HarmonyPatch("PerspectiveShift.Avatar", "TryHandleFloatMenu")]
 [PatchLevel(Level.Safe)]
-[HotSwap]
 public static class Patch_Avatar_TryHandleFloatMenu
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
