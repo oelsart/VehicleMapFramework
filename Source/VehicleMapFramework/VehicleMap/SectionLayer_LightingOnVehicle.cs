@@ -9,7 +9,6 @@ using Verse;
 namespace VehicleMapFramework;
 
 [StaticConstructorOnStartup]
-[HotSwap]
 public class SectionLayer_LightingOnVehicle : SectionLayer
 {
     private int firstCenterInd;

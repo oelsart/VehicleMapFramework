@@ -1165,22 +1165,54 @@ public static class VehicleMapUtility
     public static List<Thing> GetThingListAcrossMaps(this IntVec3 c, Map map)
     {
         tmpThingList.Clear();
-        var orig = map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned ? c.ToBaseMapCoord(vehicle) : c;
-        foreach (var m in map.BaseMapAndVehicleMaps(true))
+        var thingList = c.InBounds(map) ? map.thingGrid.ThingsListAtFast(c) : tmpThingList;
+        if (map.IsVehicleMapOf(out var vehicle))
         {
-            if (m.IsVehicleMapOf(out var vehicle2))
+            tmpThingList.AddRange(thingList);
+            var root = c.ToBaseMapCoord(vehicle);
+            
+            if (vehicle.Spawned)
             {
-                var c2 = orig.ToVehicleMapCoord(vehicle2);
-                if (c2.InBounds(m))
-                    tmpThingList.AddRange(m.thingGrid.ThingsListAtFast(c2));
+                var baseMap = vehicle.Map;
+                tmpThingList.AddRange(root.GetThingList(baseMap));
+                if (root.TryGetVehicleMap(baseMap, out var vehicle2) && vehicle != vehicle2)
+                {
+                    var c2 = root.ToVehicleMapCoord(vehicle2);
+                    if (c2.InBounds(vehicle2.VehicleMap))
+                        tmpThingList.AddRange(vehicle2.VehicleMap.thingGrid.ThingsListAtFast(c2));
+                }
+                return tmpThingList;
             }
-            else
+            
+            foreach (var m in map.BaseMapAndVehicleMaps(false))
             {
-                if (orig.InBounds(m))
-                    tmpThingList.AddRange(m.thingGrid.ThingsListAtFast(orig));
+                if (m.IsVehicleMapOf(out var vehicle3))
+                {
+                    var c2 = root.ToVehicleMapCoord(vehicle3);
+                    if (c2.InBounds(m))
+                        tmpThingList.AddRange(m.thingGrid.ThingsListAtFast(c2));
+                }
+                else
+                {
+                    if (root.InBounds(m))
+                        tmpThingList.AddRange(m.thingGrid.ThingsListAtFast(root));
+                }
+            }
+            return tmpThingList;
+        }
+
+        if (c.TryGetVehicleMap(map, out var vehicle4))
+        {
+            var c2 = c.ToVehicleMapCoord(vehicle4);
+            var map2 = vehicle4.VehicleMap;
+            if (c2.InBounds(map2))
+            {
+                tmpThingList.AddRange(thingList);
+                tmpThingList.AddRange(map2.thingGrid.ThingsListAtFast(c2));
+                return tmpThingList;
             }
         }
-        return tmpThingList;
+        return thingList;
     }
 
     private static readonly List<Building> tmpBuildingList = [];

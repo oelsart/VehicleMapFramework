@@ -41,5 +41,6 @@
     <li IfModActive="Ludeon.RimWorld.Odyssey">1.6/_Odyssey</li>
 	<li IfModActive="memer.minigravships">1.6/_MiniGravships</li>
 	<li IfModActive="More.Buildable.Grav.Engine.Sizes">1.6/_MoreBuildableGravEngineSizes</li>
+	<li IfModActive="co.uk.epicguru.rimforgepoles">1.6/_PowerPoles</li>
   </v1.6>
 </loadFolders>

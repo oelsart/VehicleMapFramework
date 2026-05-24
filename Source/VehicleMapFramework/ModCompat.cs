@@ -89,9 +89,9 @@ internal static class ModCompat
         {
             if (!UnitTestDetector.IsTestingContext)
             {
-                CachedVehicleTextures = AccessTools.StaticFieldRefAccess<Dictionary<(VehicleDef, Rot4), Texture2D>>(typeof(VehicleTex), "CachedVehicleTextures");
-                connectedPower = AccessTools.FieldRefAccess<CompFueledTravel, CompPower>("connectedPower");
-                vehicleDef = AccessTools.StructFieldRefAccess<MapGridOwners.PathConfig, VehicleDef>("vehicleDef");
+                CachedVehicleTextures = AccessTools.StaticFieldRefAccess<Dictionary<(VehicleDef, Rot4), Texture2D>>(typeof(VehicleTex), nameof(CachedVehicleTextures));
+                connectedPower = AccessTools.FieldRefAccess<CompFueledTravel, CompPower>(nameof(connectedPower));
+                vehicleDef = AccessTools.StructFieldRefAccess<MapGridOwners.PathConfig, VehicleDef>(nameof(vehicleDef));
                 if (AnyNull(CachedVehicleTextures, connectedPower))
                 {
                     LogIncompat("Vehicle Framework");
@@ -126,7 +126,7 @@ internal static class ModCompat
                     TransformData = AccessTools.TypeByName("ITransformable.TransformData");
                     RotationAngle = AccessTools.TypeByName("ITransformable.RotationAngle");
                     ThingClass = AccessTools.TypeByName("AdaptiveStorage.ThingClass");
-                    Renderer = MethodInvoker.GetHandler(AccessTools.PropertyGetter(ThingClass, "Renderer"));
+                    Renderer = MethodInvoker.GetHandler(AccessTools.PropertyGetter(ThingClass, nameof(Renderer)));
                     SetAllPrintDatasDirty = MethodInvoker.GetHandler(AccessTools.Method("AdaptiveStorage.StorageRenderer:SetAllPrintDatasDirty"));
                     SameOrSubClassDic = [];
                 }
@@ -178,9 +178,9 @@ internal static class ModCompat
                 try
                 {
                     Job_CallTradeShip =
-                        GenTypes.GetTypeInAnyAssembly("CallTradeShips.Job_CallTradeShip", "CallTradeShips");
-                    TraderKindDef = AccessTools.FieldRefAccess<TraderKindDef>(Job_CallTradeShip, "TraderKindDef");
-                    TraderKind = AccessTools.FieldRefAccess<int>(Job_CallTradeShip, "TraderKind");
+                        GenTypes.GetTypeInAnyAssembly("CallTradeShips.Job_CallTradeShip", nameof(CallTradeShips));
+                    TraderKindDef = AccessTools.FieldRefAccess<TraderKindDef>(Job_CallTradeShip, nameof(TraderKindDef));
+                    TraderKind = AccessTools.FieldRefAccess<int>(Job_CallTradeShip, nameof(TraderKind));
                 }
                 catch (Exception ex)
                 {
@@ -242,22 +242,22 @@ internal static class ModCompat
                 try
                 {
                     Patch_JobGiver_Work_PawnCanUseWorkGiver.NoNeedVirtualMapTransferList.Add(
-                        GenTypes.GetTypeInAnyAssembly("DubsBadHygiene.WorkGiver_PlaceFertilizer", "DubsBadHygiene"));
+                        GenTypes.GetTypeInAnyAssembly("DubsBadHygiene.WorkGiver_PlaceFertilizer", nameof(DubsBadHygiene)));
                     
                     LiteMode = (bool)AccessTools.PropertyGetter("DubsBadHygiene.Settings:LiteMode").Invoke(null, null);
                     if (LiteMode) return;
 
-                    SectionLayer_ThingsSewagePipe = GenTypes.GetTypeInAnyAssembly("DubsBadHygiene.SectionLayer_SewagePipeOverlay", "DubsBadHygiene");
+                    SectionLayer_ThingsSewagePipe = GenTypes.GetTypeInAnyAssembly("DubsBadHygiene.SectionLayer_SewagePipeOverlay", nameof(DubsBadHygiene));
                     if (SectionLayer_ThingsSewagePipe != null)
                     {
                         VehicleSectionLayerManager.OrientedSectionLayerTypes.Add(SectionLayer_ThingsSewagePipe);
                     }
-                    SectionLayer_SewagePipeOverlay = GenTypes.GetTypeInAnyAssembly("DubsBadHygiene.SectionLayer_SewagePipeOverlay", "DubsBadHygiene");
-                    SectionLayer_AirDuctOverlay = GenTypes.GetTypeInAnyAssembly("DubsBadHygiene.SectionLayer_AirDuctOverlay", "DubsBadHygiene");
-                    SectionLayer_Irrigation = GenTypes.GetTypeInAnyAssembly("DubsBadHygiene.SectionLayer_Irrigation", "DubsBadHygiene");
-                    SectionLayer_FertilizerGrid = GenTypes.GetTypeInAnyAssembly("DubsBadHygiene.SectionLayer_FertilizerGrid", "DubsBadHygiene");
-                    Building_Pipe = GenTypes.GetTypeInAnyAssembly("DubsBadHygiene.Building_Pipe", "DubsBadHygiene");
-                    CompProperties_Pipe = GenTypes.GetTypeInAnyAssembly("DubsBadHygiene.CompProperties_Pipe", "DubsBadHygiene");
+                    SectionLayer_SewagePipeOverlay = GenTypes.GetTypeInAnyAssembly("DubsBadHygiene.SectionLayer_SewagePipeOverlay", nameof(DubsBadHygiene));
+                    SectionLayer_AirDuctOverlay = GenTypes.GetTypeInAnyAssembly("DubsBadHygiene.SectionLayer_AirDuctOverlay", nameof(DubsBadHygiene));
+                    SectionLayer_Irrigation = GenTypes.GetTypeInAnyAssembly("DubsBadHygiene.SectionLayer_Irrigation", nameof(DubsBadHygiene));
+                    SectionLayer_FertilizerGrid = GenTypes.GetTypeInAnyAssembly("DubsBadHygiene.SectionLayer_FertilizerGrid", nameof(DubsBadHygiene));
+                    Building_Pipe = GenTypes.GetTypeInAnyAssembly("DubsBadHygiene.Building_Pipe", nameof(DubsBadHygiene));
+                    CompProperties_Pipe = GenTypes.GetTypeInAnyAssembly("DubsBadHygiene.CompProperties_Pipe", nameof(DubsBadHygiene));
                     CompProperties_Pipe_mode = AccessTools.FieldRefAccess<int>(CompProperties_Pipe, "mode");
                     SectionLayer_PipeOverlay_mode = AccessTools.FieldRefAccess<int>("DubsBadHygiene.SectionLayer_PipeOverlay:mode");
                 }
@@ -312,16 +312,16 @@ internal static class ModCompat
             {
                 try
                 {
-                    SectionLayer_SewagePipe = GenTypes.GetTypeInAnyAssembly("Rimefeller.SectionLayer_SewagePipe", "Rimefeller");
-                    SectionLayer_ThingsPipe = GenTypes.GetTypeInAnyAssembly("Rimefeller.SectionLayer_ThingsPipe", "Rimefeller");
+                    SectionLayer_SewagePipe = GenTypes.GetTypeInAnyAssembly("Rimefeller.SectionLayer_SewagePipe", nameof(Rimefeller));
+                    SectionLayer_ThingsPipe = GenTypes.GetTypeInAnyAssembly("Rimefeller.SectionLayer_ThingsPipe", nameof(Rimefeller));
                     if (SectionLayer_ThingsPipe != null)
                     {
                         VehicleSectionLayerManager.OrientedSectionLayerTypes.Add(SectionLayer_ThingsPipe);
                     }
-                    XSectionLayer_Napalm = GenTypes.GetTypeInAnyAssembly("Rimefeller.XSectionLayer_Napalm", "Rimefeller");
-                    XSectionLayer_OilSpill = GenTypes.GetTypeInAnyAssembly("Rimefeller.XSectionLayer_OilSpill", "Rimefeller");
-                    Building_Pipe = GenTypes.GetTypeInAnyAssembly("Rimefeller.Building_Pipe", "Rimefeller");
-                    CompProperties_Pipe = GenTypes.GetTypeInAnyAssembly("Rimefeller.CompProperties_Pipe", "Rimefeller");
+                    XSectionLayer_Napalm = GenTypes.GetTypeInAnyAssembly("Rimefeller.XSectionLayer_Napalm", nameof(Rimefeller));
+                    XSectionLayer_OilSpill = GenTypes.GetTypeInAnyAssembly("Rimefeller.XSectionLayer_OilSpill", nameof(Rimefeller));
+                    Building_Pipe = GenTypes.GetTypeInAnyAssembly("Rimefeller.Building_Pipe", nameof(Rimefeller));
+                    CompProperties_Pipe = GenTypes.GetTypeInAnyAssembly("Rimefeller.CompProperties_Pipe", nameof(Rimefeller));
                     CompProperties_Pipe_mode = AccessTools.FieldRefAccess<int>(CompProperties_Pipe, "mode");
                     SectionLayer_PipeOverlay_mode = AccessTools.FieldRefAccess<int>("Rimefeller.SectionLayer_PipeOverlay:mode");
                 }
@@ -342,7 +342,7 @@ internal static class ModCompat
                         CompProperties_Pipe_mode,
                         SectionLayer_PipeOverlay_mode))
                     {
-                        LogIncompat("Rimefeller");
+                        LogIncompat(nameof(Rimefeller));
                         Active = false;
                     }
                 }
@@ -372,11 +372,11 @@ internal static class ModCompat
                     CompDefenseConduit = AccessTools.TypeByName("EccentricDefenseGrid.CompDefenseConduit");
                     Designator_DeconstructConduit = AccessTools.TypeByName("EccentricDefenseGrid.Designator_DeconstructConduit");
                     InterceptorMapComponent = GenTypes.GetTypeInAnyAssembly("EccentricProjectiles.InterceptorMapComponent", "EccentricProjectiles");
-                    grids = AccessTools.FieldRefAccess<IList>(InterceptorMapComponent, "grids");
+                    grids = AccessTools.FieldRefAccess<IList>(InterceptorMapComponent, nameof(grids));
                     var t_InterceptorGrid = GenTypes.GetTypeInAnyAssembly("EccentricProjectiles.InterceptorGrid", "EccentricProjectiles");
-                    mapComponent = AccessTools.FieldRefAccess<MapComponent>(t_InterceptorGrid, "mapComponent");
-                    RepaintGrid = MethodInvoker.GetHandler(AccessTools.Method(InterceptorMapComponent, "RepaintGrid"));
-                    UnpaintGrid = MethodInvoker.GetHandler(AccessTools.Method(InterceptorMapComponent, "UnpaintGrid"));
+                    mapComponent = AccessTools.FieldRefAccess<MapComponent>(t_InterceptorGrid, nameof(mapComponent));
+                    RepaintGrid = MethodInvoker.GetHandler(AccessTools.Method(InterceptorMapComponent, nameof(RepaintGrid)));
+                    UnpaintGrid = MethodInvoker.GetHandler(AccessTools.Method(InterceptorMapComponent, nameof(UnpaintGrid)));
                 }
                 catch (Exception ex)
                 {
@@ -476,7 +476,7 @@ internal static class ModCompat
                 {
                     if (AnyNull(X2_AIRobot, rechargeStation))
                     {
-                        LogIncompat("MiscRobots");
+                        LogIncompat(nameof(MiscRobots));
                         Active = false;
                     }
                 }
@@ -512,7 +512,7 @@ internal static class ModCompat
                 {
                     PipeNetDef = GenTypes.GetTypeInAnyAssembly("PipeSystem.PipeNetDef");
                     SectionLayer_Resource = GenTypes.GetTypeInAnyAssembly("PipeSystem.SectionLayer_Resource", "PipeSystem");
-                    ShouldDraw = MethodInvoker.GetHandler(AccessTools.PropertyGetter(SectionLayer_Resource, "ShouldDraw"));
+                    ShouldDraw = MethodInvoker.GetHandler(AccessTools.PropertyGetter(SectionLayer_Resource, nameof(ShouldDraw)));
                     pipeNetDef = AccessTools.StaticFieldRefAccess<Def>(AccessTools.Field(SectionLayer_Resource, "pipeNet"));
                 }
                 catch (Exception ex)
@@ -598,7 +598,7 @@ internal static class ModCompat
                 {
                     if (AnyNull(refuelAmountPerTick))
                     {
-                        LogIncompat("VVE");
+                        LogIncompat(nameof(VVE));
                         Active = false;
                     }
                 }
@@ -625,7 +625,7 @@ internal static class ModCompat
                 try
                 {
                     ProxyHeatManager = GenTypes.GetTypeInAnyAssembly("ProxyHeat.ProxyHeatManager", "ProxyHeat");
-                    RemoveComp = MethodInvoker.GetHandler(AccessTools.Method(ProxyHeatManager, "RemoveComp"));
+                    RemoveComp = MethodInvoker.GetHandler(AccessTools.Method(ProxyHeatManager, nameof(RemoveComp)));
                 }
                 catch (Exception ex)
                 {
@@ -720,7 +720,7 @@ internal static class ModCompat
                 {
                     if (AnyNull(CurrentTank))
                     {
-                        LogIncompat("Aquariums");
+                        LogIncompat(nameof(Aquariums));
                     }
                 }
             }
@@ -762,15 +762,15 @@ internal static class ModCompat
                 try
                 {
                     var t_SectionLayer_OverlayPipe =
-                        GenTypes.GetTypeInAnyAssembly("Rimatomics.SectionLayer_OverlayPipe", "Rimatomics");
-                    CompProperties_Pipe = GenTypes.GetTypeInAnyAssembly("Rimatomics.CompProperties_Pipe", "Rimatomics");
+                        GenTypes.GetTypeInAnyAssembly("Rimatomics.SectionLayer_OverlayPipe", nameof(Rimatomics));
+                    CompProperties_Pipe = GenTypes.GetTypeInAnyAssembly("Rimatomics.CompProperties_Pipe", nameof(Rimatomics));
                     CompProperties_Pipe_mode = AccessTools.FieldRefAccess<int>(CompProperties_Pipe, "mode");
                     SectionLayer_OverlayPipe_mode = AccessTools.FieldRefAccess<int>(t_SectionLayer_OverlayPipe, "mode");
                     SectionLayer_OverlayPipes = t_SectionLayer_OverlayPipe.AllSubclassesNonAbstract();
-                    Designator_RemovePipe = GenTypes.GetTypeInAnyAssembly("Rimatomics.Designator_RemovePipe", "Rimatomics");
+                    Designator_RemovePipe = GenTypes.GetTypeInAnyAssembly("Rimatomics.Designator_RemovePipe", nameof(Rimatomics));
                     Designator_RemovePipe_RemovalMode = AccessTools.FieldRefAccess<int>(Designator_RemovePipe, "RemovalMode");
-                    SectionLayer_ThingsPipe = GenTypes.GetTypeInAnyAssembly("Rimatomics.SectionLayer_ThingsPipe", "Rimatomics");
-                    BaseMissile = GenTypes.GetTypeInAnyAssembly("Rimatomics.BaseMissile", "Rimatomics");
+                    SectionLayer_ThingsPipe = GenTypes.GetTypeInAnyAssembly("Rimatomics.SectionLayer_ThingsPipe", nameof(Rimatomics));
+                    BaseMissile = GenTypes.GetTypeInAnyAssembly("Rimatomics.BaseMissile", nameof(Rimatomics));
                 }
                 catch (Exception ex)
                 {
@@ -783,7 +783,7 @@ internal static class ModCompat
                             SectionLayer_OverlayPipes, SectionLayer_ThingsPipe, Designator_RemovePipe,
                             Designator_RemovePipe_RemovalMode))
                     {
-                        LogIncompat("Rimatomics");
+                        LogIncompat(nameof(Rimatomics));
                         Active = false;
                     }
                 }
@@ -816,16 +816,16 @@ internal static class ModCompat
                     Type t_ZoneData;
                     if (SmartFarmingActive)
                     {
-                        MapComponent_SmartFarming = GenTypes.GetTypeInAnyAssembly("SmartFarming.MapComponent_SmartFarming", "SmartFarming");
-                        t_ZoneData = GenTypes.GetTypeInAnyAssembly("SmartFarming.ZoneData", "SmartFarming");
+                        MapComponent_SmartFarming = GenTypes.GetTypeInAnyAssembly("SmartFarming.MapComponent_SmartFarming", nameof(SmartFarming));
+                        t_ZoneData = GenTypes.GetTypeInAnyAssembly("SmartFarming.ZoneData", nameof(SmartFarming));
                     }
                     else
                     {
                         MapComponent_SmartFarming = GenTypes.GetTypeInAnyAssembly("ReGrowthCore.MapComponent_SmartFarming", "ReGrowthCore");
                         t_ZoneData = GenTypes.GetTypeInAnyAssembly("ReGrowthCore.ZoneData", "ReGrowthCore");
                     }
-                    growZoneRegistry = AccessTools.FieldRefAccess<IDictionary>(MapComponent_SmartFarming, "growZoneRegistry");
-                    priority = AccessTools.FieldRefAccess<int>(t_ZoneData, "priority");
+                    growZoneRegistry = AccessTools.FieldRefAccess<IDictionary>(MapComponent_SmartFarming, nameof(growZoneRegistry));
+                    priority = AccessTools.FieldRefAccess<int>(t_ZoneData, nameof(priority));
                 }
                 catch (Exception ex)
                 {
@@ -836,7 +836,7 @@ internal static class ModCompat
                 {
                     if (AnyNull(MapComponent_SmartFarming, growZoneRegistry, priority))
                     {
-                        LogIncompat("Smart Farming");
+                        LogIncompat(nameof(SmartFarming));
                         Active = false;
                     }
                 }
@@ -878,7 +878,7 @@ internal static class ModCompat
                     }
                     GetCachedLevelMapComp = AccessTools.MethodDelegate<Func<Map, MapComponent>>(
                         AccessTools.Method(
-                            typeof(MapComponentCache<>).MakeGenericType(GenTypes.GetTypeInAnyAssembly("MultiFloors.MF_LevelMapComp", "MultiFloors")),
+                            typeof(MapComponentCache<>).MakeGenericType(GenTypes.GetTypeInAnyAssembly("MultiFloors.MF_LevelMapComp", nameof(MultiFloors))),
                             "GetComponent", [typeof(Map)]));
                     GetOtherMapVerticallyOutwardFromCache = MethodInvoker.GetHandler(AccessTools.Method("MultiFloors.LevelUtility:GetOtherMapVerticallyOutwardFromCache"));
                 }
@@ -891,7 +891,7 @@ internal static class ModCompat
                 {
                     if (AnyNull(GroundMap, GetLevel, RevalidateLaunchSiteState, SectionLayer_LowerLevel, GetCachedLevelMapComp, GetOtherMapVerticallyOutwardFromCache))
                     {
-                        LogIncompat("MultiFloors");
+                        LogIncompat(nameof(MultiFloors));
                         Active = false;
                     }
                 }
@@ -926,18 +926,18 @@ internal static class ModCompat
         public const string HarmonyId = "ProgressionEducationMod";
     }
 
-    public static class ColonyManager
+    public static class ColonyManagerRedux
     {
         public static readonly bool Active = IsModActive("ilyvion.colonymanagerredux");
 
-        static ColonyManager()
+        static ColonyManagerRedux()
         {
             if (Active)
             {
-                var type = GenTypes.GetTypeInAnyAssembly("ColonyManagerRedux.WorkGiver_Manage", "ColonyManagerRedux");
+                var type = GenTypes.GetTypeInAnyAssembly("ColonyManagerRedux.WorkGiver_Manage", nameof(ColonyManagerRedux));
                 if (type is not null)
                     JobAcrossMapsUtility.WorkGiverClassesNeedWrap.Add(type);
-                else LogIncompat("ColonyManagerRedux");
+                else LogIncompat(nameof(ColonyManagerRedux));
             }
         }
     }
@@ -945,5 +945,47 @@ internal static class ModCompat
     public static class GestaltEngine
     {
         public const string HarmonyId = "GestaltEngine.Mod";
+    }
+
+    public static class PowerPoles
+    {
+        public static readonly bool Active = IsModActive("co.uk.epicguru.rimforgepoles");
+        public static readonly Type Building_LongDistancePower;
+        public static readonly Type Building_LongDistanceCabled;
+        public static readonly FastInvokeHandler IsLinkedTo;
+        public static readonly FastInvokeHandler TryRemoveLink;
+        public static readonly FastInvokeHandler GeneratePointsAsync;
+        public static readonly AccessTools.FieldRef<float> CableMaxDistance;
+        public static readonly AccessTools.FieldRef<Thing, IDictionary> connectionToPoints;
+
+        static PowerPoles()
+        {
+            if (Active)
+            {
+                try
+                {
+                    Building_LongDistancePower = GenTypes.GetTypeInAnyAssembly("RimForge.Buildings.Building_LongDistancePower", "RimForge.Buildings");
+                    Building_LongDistanceCabled = GenTypes.GetTypeInAnyAssembly("RimForge.Buildings.Building_LongDistanceCabled", "RimForge.Buildings");
+                    IsLinkedTo = MethodInvoker.GetHandler(AccessTools.Method(Building_LongDistancePower, "IsLinkedTo"));
+                    TryRemoveLink = MethodInvoker.GetHandler(AccessTools.Method(Building_LongDistancePower, "TryRemoveLink"));
+                    GeneratePointsAsync = MethodInvoker.GetHandler(AccessTools.Method(Building_LongDistanceCabled, "GeneratePointsAsync"));
+                    CableMaxDistance = AccessTools.StaticFieldRefAccess<float>(AccessTools.Field("RimForge.PolesSettings.PolesModSettings:CableMaxDistance"));
+                    connectionToPoints = AccessTools.FieldRefAccess<Thing, IDictionary>(AccessTools.Field(Building_LongDistanceCabled, "connectionToPoints"));
+                }
+                catch (Exception ex)
+                {
+                    LogError(ex);
+                    Active = false;
+                }
+                finally
+                {
+                    if (AnyNull(Building_LongDistancePower, Building_LongDistanceCabled, IsLinkedTo, TryRemoveLink, GeneratePointsAsync, CableMaxDistance, connectionToPoints))
+                    {
+                        LogIncompat(nameof(PowerPoles));
+                        Active = false;
+                    }
+                }
+            }
+        }
     }
 }

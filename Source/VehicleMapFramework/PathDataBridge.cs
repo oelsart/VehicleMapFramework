@@ -17,7 +17,6 @@ internal readonly ref struct PathDataIndexer(VehiclePathingSystem pathing)
 }
 
 [StaticConstructorOnStartup]
-[HotSwap]
 internal static class PathDataBridgeExtensions
 {
     private static bool Updated { get; }

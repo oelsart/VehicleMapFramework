@@ -1,15 +1,15 @@
 ManifestFileVersion: 0
-CRC: 3214565793
+CRC: 1924237928
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: d295b1939ab6a337bec19e9eab719a3b
+    Hash: 01ae9e598f6247875839d9f5a5dd4b39
   TypeTreeHash:
     serializedVersion: 2
     Hash: 2d8df09e698f722ada1caa03d3413830
   IncrementalBuildHash:
     serializedVersion: 2
-    Hash: d295b1939ab6a337bec19e9eab719a3b
+    Hash: 01ae9e598f6247875839d9f5a5dd4b39
 HashAppended: 0
 ClassTypes:
 - Class: 28
@@ -19,6 +19,7 @@ ClassTypes:
 SerializeReferenceClassIdentifiers: []
 Assets:
 - Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/UI/Drain.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/UI/Push.png
 - Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/BuildableUpgrade/CargoContainer/CargoContainer_Atlas.png
 - Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/GravshipWheel/GravshipWheel_westm.png
 - Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/EnterSpot/RampMedium.png
@@ -47,17 +48,18 @@ Assets:
 - Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/EnterSpot/RampSmall_south.png
 - Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/BuildableUpgrade/FuelTank/FuelTank.png
 - Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/PipeConnector/PipeEnd_m.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/WirelessCharger/WirelessTransmitter_m.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/UI/Draw.png
 - Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/UI/DecreasePriority.png
 - Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/UI/PowerRaise.png
 - Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/BuildableUpgrade/FuelTank/FuelTank_m.png
 - Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/EnterSpot/RampLarge.png
 - Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/EnterSpot/RampMedium_east.png
-- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/WirelessCharger/WirelessReceiverLight.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/UI/Transmit.png
 - Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/UI/Eye.png
 - Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/BuildableUpgrade/VehicleSeat/PassengerSeat_north.png
 - Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/SubstructureProps/SubstructureCorner_Full_east_NoShadow.png
 - Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/EnterSpot/Laddar_south.png
-- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/WirelessCharger/WirelessReceiver.png
 - Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/UI/PowerLower.png
 - Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/EnterSpot/Laddar_north.png
 - Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/GravshipWheel/GravshipWheel_eastm.png
