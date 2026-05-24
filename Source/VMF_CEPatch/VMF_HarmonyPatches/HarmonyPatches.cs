@@ -316,7 +316,19 @@ public static class Patch_VerbCIWS_TryFindNewTarget_Delegate
 [HarmonyPatchCategory(PatchCategories.CombatExtended)]
 [HarmonyPatch(typeof(VerbCIWS<ProjectileCE>), nameof(VerbCIWS.TryFindCEShootLineFromTo))]
 [PatchLevel(Level.Cautious)]
-public static class Patch_VerbCIWS_TryFindCEShootLineFromTo
+public static class Patch_VerbCIWS_ProjectileCE_TryFindCEShootLineFromTo
+{
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
+    }
+}
+
+// VerbCIWS<ProjectileCE>とパッチ結果が共有されなかったため、VerbCIWS<Skyfaller>にも同様のパッチを適用する必要があった
+[HarmonyPatchCategory(PatchCategories.CombatExtended)]
+[HarmonyPatch(typeof(VerbCIWS<Skyfaller>), nameof(VerbCIWS.TryFindCEShootLineFromTo))]
+[PatchLevel(Level.Cautious)]
+public static class Patch_VerbCIWS_Skyfaller_TryFindCEShootLineFromTo2
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
