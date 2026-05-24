@@ -393,15 +393,16 @@ public static class VehicleMapUtility
 
         public bool TryGetVehicleMap(Map map, out VehiclePawnWithMap vehicle, VehicleMapFlag flag = VehicleMapFlag.StructureCells)
         {
+            vehicle = null;
             if (map == null)
             {
-                vehicle = null;
                 return false;
             }
 
             var isVehicleMap = map.IsVehicleMapOf(out var vehicle2);
             var vehicleCaravanOrStashedVehicle = vehicle2?.VehicleCaravanOrStashedVehicle;
-            if (isVehicleMap && (vehicleCaravanOrStashedVehicle is null || !VehicleMapFramework.settings.drawPlanet))
+            if (isVehicleMap && vehicleCaravanOrStashedVehicle is null && VehicleMapFramework.settings.drawPlanet &&
+                ValidateVehicle(vehicle2))
             {
                 vehicle = vehicle2;
                 return true;
@@ -410,32 +411,45 @@ public static class VehicleMapUtility
             var vehicles =
                     (isVehicleMap
                     ? vehicleCaravanOrStashedVehicle.Vehicles.OfType<VehiclePawnWithMap>()
-                    : VehiclePawnWithMapCache.AllVehiclesOn(map))
-                .OrderBy(v => (v.cachedDrawPos - original).MagnitudeHorizontalSquared());
+                    : VehiclePawnWithMapCache.AllVehiclesOn(map));
 
-            vehicle = vehicles.FirstOrDefault(v =>
+            var distanceSquared = float.MaxValue;
+            foreach (var vehicle3 in vehicles)
             {
-                var rect = new Rect(0f, 0f, v.VehicleMap.Size.x, v.VehicleMap.Size.z);
-                var vector = original.ToVehicleMapCoord(v);
+                if (ValidateVehicle(vehicle3))
+                {
+                    var distanceSquared2 = (vehicle3.cachedDrawPos - original).MagnitudeHorizontalSquared();
+                    if (distanceSquared2 < distanceSquared)
+                    {
+                        distanceSquared = distanceSquared2;
+                        vehicle = vehicle3;
+                    }
+                }
+            }
+            return vehicle != null;
+
+            bool ValidateVehicle(VehiclePawnWithMap vehicle)
+            {
+                var rect = new Rect(0f, 0f, vehicle.VehicleMap.Size.x, vehicle.VehicleMap.Size.z);
+                var vector = original.ToVehicleMapCoord(vehicle);
                 if (!rect.Contains(new Vector2(vector.x, vector.z)))
                 {
                     return false;
                 }
 
                 var intVec = vector.ToIntVec3();
-                if (!v.CachedImpassableCells.Contains(intVec))
+                if (!vehicle.CachedImpassableCells.Contains(intVec))
                     return true;
-                var cachedEmptyStructureCellsContains = v.CachedEmptyStructureCells.Contains(intVec);
-                var cachedExpandableCellsContains = v.CachedExpandableCells.Contains(intVec);
-                var cachedOutOfBoundsCellsContains = v.CachedOutOfBoundsCells.Contains(intVec);
+                var cachedEmptyStructureCellsContains = vehicle.CachedEmptyStructureCells.Contains(intVec);
+                var cachedExpandableCellsContains = vehicle.CachedExpandableCells.Contains(intVec);
+                var cachedOutOfBoundsCellsContains = vehicle.CachedOutOfBoundsCells.Contains(intVec);
                 if ((flag & VehicleMapFlag.StructureCells) > 0 && !cachedEmptyStructureCellsContains &&
                     !cachedExpandableCellsContains && !cachedOutOfBoundsCellsContains)
                     return true;
                 if ((flag & VehicleMapFlag.ExpandableCells) > 0 && cachedExpandableCellsContains)
                     return true;
                 return (flag & VehicleMapFlag.OutOfBoundsCells) > 0 && cachedOutOfBoundsCellsContains;
-            });
-            return vehicle != null;
+            }
         }
 
         public bool TryGetVehicleMap(Map map, VehiclePawnWithMap vehicle, VehicleMapFlag flag = VehicleMapFlag.StructureCells)

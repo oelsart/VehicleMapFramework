@@ -21,6 +21,8 @@ public class VehiclePawnWithMapCache(Map map) : MapComponent(map)
 
     private int lastCachedTick = -1;
 
+    private int lastCachedFrame = -1;
+
     private readonly List<VehiclePawnWithMap> allVehicles = [];
 
     public override void FinalizeInit()
@@ -84,11 +86,15 @@ public class VehiclePawnWithMapCache(Map map) : MapComponent(map)
 
     public void ResetCache()
     {
-        if (lastCachedTick != Find.TickManager.TicksGame || Find.TickManager.Paused)
+        if (lastCachedTick != Find.TickManager.TicksGame)
         {
             ForceResetCache();
         }
-        cachedDrawPos.Clear(); // PawnのTweenerとの兼ね合いでDrawPosは毎フレームキャッシュクリアせねばならない
+        if (lastCachedFrame != Time.frameCount)
+        {
+            lastCachedFrame = Time.frameCount;
+            cachedDrawPos.Clear(); // PawnのTweenerとの兼ね合いでDrawPosは毎フレームキャッシュクリアせねばならない
+        }
     }
 
     public override void MapComponentUpdate()

@@ -308,14 +308,22 @@ public static class Patch_Avatar_HandleLeftClickInt
     public static void Prefix(Pawn ___pawn, ref (VirtualTeleporter?, Command_FocusVehicleMap.FocusVehicle?) __state)
     {
         if (!___pawn.Spawned) return;
-        var map = UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out var vehicle, VehicleMapFlag.None)
+        var mouseMapPosition = UI.MouseMapPosition();
+        var map = mouseMapPosition.TryGetVehicleMap(Find.CurrentMap, out var vehicle, VehicleMapFlag.None)
             ? vehicle.VehicleMap
             : Find.CurrentMap;
         if (___pawn.Map != map)
         {
             var pos = ___pawn.PositionOnBaseMap;
             if (vehicle is not null)
+            {
+                if (!mouseMapPosition.ToVehicleMapCoord(vehicle).InBounds(vehicle.VehicleMap))
+                {
+                    return; // 外のポーンから車両マップ外のクリック時エラーが出るのを防止
+                }
                 pos = pos.ToVehicleMapCoord(vehicle);
+            }
+            ___pawn.DepartMap = map;
             __state.Item1 = new VirtualTeleporter(___pawn, map, pos);
         }
 
@@ -325,10 +333,23 @@ public static class Patch_Avatar_HandleLeftClickInt
         }
     }
 
-    public static void Finalizer((VirtualTeleporter?, Command_FocusVehicleMap.FocusVehicle?) __state)
+    public static void Finalizer(Pawn ___pawn, (VirtualTeleporter?, Command_FocusVehicleMap.FocusVehicle?) __state)
     {
+        ___pawn.RemoveDepartMap();
         __state.Item1?.Dispose();
         __state.Item2?.Dispose();
+    }
+}
+
+[HarmonyPatchCategory(PatchCategories.PerspectiveShift)]
+[HarmonyPatch("PerspectiveShift.Avatar", "TryHandleFloatMenu")]
+[PatchLevel(Level.Safe)]
+[HotSwap]
+public static class Patch_Avatar_TryHandleFloatMenu
+{
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_DepartMapOrPawnMap);
     }
 }
 
@@ -376,4 +397,15 @@ public static class Patch_Avatar_HandleFiring
         return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
             .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
     }
+}
+
+/// <summary>
+/// 車両マップとのキャッシュフレームタイミングの違いによりエラーがでることがあるため、アバターの非アクティブ化を確実にする
+/// </summary>
+[HarmonyPatchCategory(PatchCategories.PerspectiveShift)]
+[HarmonyPatch("PerspectiveShift.State", "ClearAvatar")]
+[PatchLevel(Level.Safe)]
+public static class Patch_State_ClearAvatar
+{
+    public static void Postfix(ref int ____isAvatarCacheFrame) => ____isAvatarCacheFrame = -1;
 }
