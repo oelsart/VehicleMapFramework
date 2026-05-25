@@ -551,44 +551,63 @@ public static class Patch_SelectionHelper_MultiSelectClicker
 [PatchLevel(Level.Sensitive)]
 public static class Patch_CaravanFormation_CheckForErrors
 {
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, MethodBase original)
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        var codes = instructions.ToList();
-
-        //コンパイルごとにインデックスがころころ変わるのでここだけ多少変更に強くしてます
-        var ind = original.GetMethodBody()!.LocalVariables.First(l => l.LocalType == typeof(VehiclePawn)).LocalIndex;
-        var pos = codes.FindIndex(c =>
-        {
-            switch (ind)
+        var matcher = new CodeMatcher(instructions)
+            .MatchStartForward(CodeMatch.Calls(
+                AccessTools.PropertyGetter(
+                    typeof(List<VehiclePawn>.Enumerator),
+                    nameof(List<>.Enumerator.Current))))
+            .Advance();
+        var vehicleInd = StlocIndex(matcher.Instruction);
+        matcher.MatchStartForward(CodeMatch.Calls(
+                AccessTools.PropertyGetter(
+                    typeof(List<Pawn>.Enumerator),
+                    nameof(List<>.Enumerator.Current))))
+            .Advance();
+        var pawnInd = StlocIndex(matcher.Instruction);
+        
+        return matcher
+            .MatchStartForward(new CodeMatch(c =>
             {
-                case 0:
-                    return c.opcode == OpCodes.Ldloc_0;
-                case 1:
-                    return c.opcode == OpCodes.Ldloc_1;
-                case 2:
-                    return c.opcode == OpCodes.Ldloc_2;
-                case 3:
-                    return c.opcode == OpCodes.Ldloc_3;
-                default:
+                switch (vehicleInd)
                 {
-                    var localBuilder = codes.Select(c2 => c2.operand).OfType<LocalBuilder>().First(l => l.LocalIndex == ind);
-                    return c.IsLdloc(localBuilder);
+                    case 0:
+                        return c.opcode == OpCodes.Ldloc_0;
+                    case 1:
+                        return c.opcode == OpCodes.Ldloc_1;
+                    case 2:
+                        return c.opcode == OpCodes.Ldloc_2;
+                    case 3:
+                        return c.opcode == OpCodes.Ldloc_3;
+                    default:
+                    {
+                        var localBuilder = matcher.Instructions().Select(c2 => c2.operand).OfType<LocalBuilder>().First(l => l.LocalIndex == vehicleInd);
+                        return c.IsLdloc(localBuilder);
+                    }
                 }
-            }
-        });
+            }))
+            .InsertAfter(
+                CodeInstruction.LoadLocal(pawnInd),
+                CodeInstruction.Call(typeof(Patch_CaravanFormation_CheckForErrors), nameof(TargetThing)))
+            .InstructionEnumeration();
 
-        codes.InsertRange(pos + 1,
-        [
-            CodeInstruction.LoadLocal(ind + 2),
-            CodeInstruction.Call(typeof(Patch_CaravanFormation_CheckForErrors), nameof(TargetThing))
-        ]);
-        return codes;
+        static int StlocIndex(CodeInstruction instruction) => instruction.opcode switch
+        {
+            _ when instruction.opcode == OpCodes.Stloc_0 => 0,
+            _ when instruction.opcode == OpCodes.Stloc_1 => 1,
+            _ when instruction.opcode == OpCodes.Stloc_2 => 2,
+            _ when instruction.opcode == OpCodes.Stloc_3 => 3,
+            _ when instruction.opcode == OpCodes.Stloc_S || instruction.opcode == OpCodes.Stloc
+                => ((LocalBuilder)instruction.operand).LocalIndex,
+            _ => throw new Exception("Local variable not found.")
+        };
     }
 
     private static Thing TargetThing(VehiclePawn vehicle, Pawn pawn)
     {
         var assignedSeat = CaravanHelper.assignedSeats.GetAssignment(pawn);
-        if (assignedSeat != null && assignedSeat.handler.role is VehicleRoleBuildable vehicleRoleBuildable)
+        if (assignedSeat?.handler.role is VehicleRoleBuildable vehicleRoleBuildable)
         {
             return vehicleRoleBuildable.upgradeComp.parent;
         }
