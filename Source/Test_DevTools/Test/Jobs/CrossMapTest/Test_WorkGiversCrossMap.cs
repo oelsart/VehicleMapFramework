@@ -31,7 +31,7 @@ public sealed class Test_WorkGiversCrossMap
         vehicle.Map.weatherManager.curWeather = WeatherDefOf.Clear;
         foreach (var test in workGiverTests)
         {
-            var fixture = new NestedTestFixture(test.GetType(), test.WorkGiverDef.defName, vehicleGroup);
+            var fixture = new NestedTestFixture(test.GetType(), test.WorkGiverDef?.defName, vehicleGroup);
             fixture.RunIndependent();
         }
     }

@@ -1,11 +1,19 @@
 ﻿global using static VehicleMapFramework.Test_Logics.TestUtility;
 using RimWorld;
+using Vehicles;
+using Vehicles.Testing;
 using Verse;
 
 namespace VehicleMapFramework.Test_Logics;
 
 public static class TestUtility
 {
+    public static VehicleGroup DefaultVehicleGroup => VehicleGroup.CreateBasicVehicleGroup(new VehicleGroup.MockSettings
+    {
+        vehicleDef = DefDatabase<VehicleDef>.GetNamed("MV_Crawler"),
+        drivers = 1
+    });
+    
     public static bool EvacuateFromTestArea(Pawn pawn)
     {
         var map = pawn.Map;

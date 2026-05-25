@@ -37,7 +37,7 @@ public static class Patch_Building_LongDistancePower_CanLinkTo
     public static void Postfix(Building __instance, Building other, ref bool __result)
     {
         __result &= __instance.Map == other.Map ||
-                    (__instance.GetComp<CompPowerPole>(), other.GetComp<CompPowerPole>()) is ({ } comp, { } comp2) &&
+                    __instance.TryGetComp<CompPowerPole>(out var comp) && other.TryGetComp<CompPowerPole>(out var comp2) &&
                     comp.CanLinkTo(comp2);
     }
 }

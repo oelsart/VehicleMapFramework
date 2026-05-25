@@ -654,7 +654,7 @@ internal static class ModCompat
 
     public static readonly bool YayosCombat3 = IsModActive("Mlie.YayosCombat3");
 
-    public static readonly bool PickUpAndHaul = IsModActive("Mehni.PickUpAndHaul") || IsModActive("Teemo.PickUpAndHaulForked");
+    public static readonly bool PickUpAndHaul = IsModActive("Mehni.PickUpAndHaul");
 
     public static class EnergyShield
     {

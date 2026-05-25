@@ -77,23 +77,28 @@ public class VehiclePawnWithMapCache(Map map) : MapComponent(map)
         return component is null ? [] : component.allVehicles.AsReadOnlySpan();
     }
 
-    public void ForceResetCache()
+    public void ForceResetPositionCache()
     {
         lastCachedTick = Find.TickManager.TicksGame;
         cachedPosOnBaseMap.Clear();
         cachedFullRot.Clear();
     }
 
+    public void ForceResetDrawPosCache()
+    {
+        lastCachedFrame = Time.frameCount;
+        cachedDrawPos.Clear();
+    }
+
     public void ResetCache()
     {
         if (lastCachedTick != Find.TickManager.TicksGame)
         {
-            ForceResetCache();
+            ForceResetPositionCache();
         }
         if (lastCachedFrame != Time.frameCount)
         {
-            lastCachedFrame = Time.frameCount;
-            cachedDrawPos.Clear(); // PawnのTweenerとの兼ね合いでDrawPosは毎フレームキャッシュクリアせねばならない
+            ForceResetDrawPosCache(); // PawnのTweenerとの兼ね合いでDrawPosは毎フレームキャッシュクリアせねばならない
         }
     }
 

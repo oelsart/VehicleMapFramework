@@ -348,7 +348,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     
     public List<CompBuildableContainer> ContainerComps { get; } = [];
 
-    public override Vector3 DrawPos => Spawned && Find.CurrentMap != interiorMap ? base.DrawPos : cachedDrawPos;
+    public override Vector3 DrawPos => Spawned && Find.CurrentMap != CurrentLevel ? base.DrawPos : cachedDrawPos;
 
     public new bool ThreatDisabled(IAttackTargetSearcher disabledFor) => VehicleMap.mapPawns.FreeHumanlikesSpawnedOfFaction(Faction).Empty() && base.ThreatDisabled(disabledFor);
 
@@ -874,7 +874,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
         var transform = new TransformData(drawLoc + Transform.position, FullRotation, Transform.rotation.FlipAngle(this));
         var result = VehicleGraphic?.ParallelGetPreRenderResults(ref transform, false, this);
         cachedDrawPos = result?.position ?? drawLoc;
-        if (Spawned && Find.CurrentMap == interiorMap)
+        if (Spawned && Find.CurrentMap == CurrentLevel)
         {
             cachedExactPos = cachedDrawPos + base.DrawPos - drawLoc;
         }

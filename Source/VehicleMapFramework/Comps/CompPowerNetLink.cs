@@ -7,11 +7,12 @@ using Verse;
 
 namespace VehicleMapFramework;
 
+[HotSwap]
 public abstract class CompPowerNetLink : CompPowerTrader
 {
     private const float BatteryDischargingWatts = 5f;
 
-    protected bool Connected => LinkedTo is not null && LinkedComp is not null;
+    public bool Connected => LinkedTo is not null && LinkedComp is not null;
 
     protected abstract float Radius { get; }
     
@@ -23,15 +24,11 @@ public abstract class CompPowerNetLink : CompPowerTrader
     
     protected ThingWithComps LinkedTo
     {
-        get;
+        get => linkedTo;
         set
         {
-            field = value;
             linkedTo = value;
-            if (linkedTo is not null)
-            {
-                LinkedComp = linkedTo.TryGetComp<CompPowerNetLink>();
-            }
+            LinkedComp = linkedTo?.TryGetComp<CompPowerNetLink>();
         }
     }
 
@@ -39,7 +36,7 @@ public abstract class CompPowerNetLink : CompPowerTrader
 
     protected abstract PowerTransferMode Mode { get; }
 
-    protected virtual int UpdateRateIntervalTicks => Connected ? 30 : 180;
+    public virtual int UpdateRateIntervalTicks => Connected ? 30 : 180;
     
     public override void CompTick()
     {
@@ -58,12 +55,6 @@ public abstract class CompPowerNetLink : CompPowerTrader
             }
             
             var output = PowerOutput;
-            if (PowerOutput < 0f && PowerOn)
-            {
-                LinkedComp.PowerOutput = -PowerOutput * PowerLossFactor;
-            }
-
-
             switch (Mode)
             {
                 case PowerTransferMode.Push:
@@ -93,6 +84,10 @@ public abstract class CompPowerNetLink : CompPowerTrader
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+            if (PowerOutput < 0f && PowerOn)
+            {
+                LinkedComp.PowerOutput = -PowerOutput * PowerLossFactor;
+            }
             
             if (output == 0f && PowerOutput != 0f || PowerOutput == 0f && output != 0f)
             {
@@ -101,7 +96,7 @@ public abstract class CompPowerNetLink : CompPowerTrader
             }
             return;
         }
-        
+
         if (TryFindConnection(out var pair))
             Connect(pair);
     }
@@ -204,6 +199,7 @@ public abstract class CompPowerNetLink : CompPowerTrader
                     : diff < 0f
                         ? -Mathf.Clamp(needs4, 0f, other.MaxPowerPush) // むこうが供給
                         : Mathf.Max(Mathf.Min(needs3, me.MaxPowerPush), Mathf.Min(needs4, other.MaxPowerPush)); // バッテリー量が同じ場合需要を伝える
+                Log.Message($"両負圧: voltage: {voltage}, voltage2: {voltage2}, diff: {diff}, needs3: {needs3}, needs4: {needs4}, num4: {num4}");
                 me.DebugMessage($"両負圧: voltage: {voltage}, voltage2: {voltage2}, needs3: {needs3}, needs4: {needs4}, num4: {num4}");
                 return num4;
         }
@@ -212,7 +208,7 @@ public abstract class CompPowerNetLink : CompPowerTrader
 
     private static float PowerNetNeeds(PowerNet powerNet, CompPowerTrader ignore = null)
     {
-        var needs = powerNet.batteryComps.Count * BatteryDischargingWatts;
+        var needs = 0f;
         foreach (var comp in powerNet.powerComps)
         {
             if (comp == ignore) continue;
@@ -233,7 +229,7 @@ public abstract class CompPowerNetLink : CompPowerTrader
     {
         base.PostExposeData();
         Scribe_References.Look(ref linkedTo, nameof(linkedTo));
-        LinkedTo = linkedTo;
+        LinkedTo = linkedTo; // LinkedCompを初期化
     }
 
     [Conditional("DEBUG")]
@@ -243,7 +239,7 @@ public abstract class CompPowerNetLink : CompPowerTrader
             Log.Message(message);
     }
 
-    protected enum PowerTransferMode
+    public enum PowerTransferMode
     {
         Push,
         Draw,

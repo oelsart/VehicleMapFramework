@@ -15,10 +15,7 @@ public class Test_VehicleMapRenderTexture
         var cache = new VehicleMapUIRenderer.CachedMapTexture(null, false, GenTicks.TicksGame);
         Expect.IsFalse(cache.Expired, "It is not expired immediately after creation.");
         const int duration = VehicleMapUIRenderer.CachedMapTexture.CacheDurationTicks;
-        for (var i = 0; i < duration + 1; i++)
-        {
-            Find.TickManager.DoSingleTick();
-        }
+        using var _ = new MockGameTicks(GenTicks.TicksGame + duration + 1);
         Expect.IsTrue(cache.Expired, $"It expires after {duration} ticks or more have elapsed.");
     }
 

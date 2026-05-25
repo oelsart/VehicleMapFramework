@@ -21,7 +21,7 @@ internal class Test_HaulGeneral(VehicleGroup group) : WorkGiverTestBase(group)
 
     private PuahDisabler puahDisabler;
 
-    private new class BeforePatching(Test_HaulGeneral parent) : WorkGiverTestBase.BeforePatching(parent)
+    protected new class BeforePatching(Test_HaulGeneral parent) : WorkGiverTestBase.BeforePatching(parent)
     {
         public override void SetUp()
         {

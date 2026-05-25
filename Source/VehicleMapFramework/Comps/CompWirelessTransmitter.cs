@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using RimWorld;
 using UnityEngine;
 using Verse;
@@ -23,13 +24,13 @@ public class CompWirelessTransmitter : CompPowerNetLink, IThingGlower
 
     protected PowerTransferMode mode = PowerTransferMode.Transmit;
     
-    protected float powerPushSetting = 500f;
+    protected float maxPushSetting = 500f;
     
     public new CompProperties_WirelessTransmitter Props => (CompProperties_WirelessTransmitter)props;
 
     protected override float Radius => Props.radius;
 
-    protected override float MaxPowerPush => powerPushSetting;
+    protected override float MaxPowerPush => maxPushSetting;
 
     protected override float PowerLossFactor => Props.powerLossFactor;
 
@@ -45,8 +46,7 @@ public class CompWirelessTransmitter : CompPowerNetLink, IThingGlower
             var c = root + GenRadial.RadialPattern[i];
             foreach (var thing in c.GetThingListAcrossMaps(parent.Map))
             {
-                if (thing is not ThingWithComps thingWithComps) continue;
-                if (thing.Map != parent.Map && thingWithComps.GetComp<CompPowerNetLink>() is { } comp && CanLinkTo(comp))
+                if (thing.Map != parent.Map && thing.TryGetComp<CompPowerNetLink>(out var comp) && CanLinkTo(comp))
                 {
                     linkTo = comp;
                     return true;
@@ -101,8 +101,8 @@ public class CompWirelessTransmitter : CompPowerNetLink, IThingGlower
             {
                 action = delegate
                 {
-                    powerPushSetting = Mathf.Clamp(powerPushSetting - 1000f, PushMin, PushMax);
-                    MoteMaker.ThrowText(parent.DrawPos, parent.BaseMap(), powerPushSetting.ToString("F0"), Color.white);
+                    maxPushSetting = Mathf.Clamp(maxPushSetting - 1000f, PushMin, PushMax);
+                    MoteMaker.ThrowText(parent.DrawPos, parent.BaseMap(), maxPushSetting.ToString("F0"), Color.white);
                 },
                 defaultLabel = "-1000W",
                 defaultDesc = "VMF_LowerPowerDesc".Translate(),
@@ -113,8 +113,8 @@ public class CompWirelessTransmitter : CompPowerNetLink, IThingGlower
             {
                 action = delegate
                 {
-                    powerPushSetting = Mathf.Clamp(powerPushSetting - 100f, PushMin, PushMax);
-                    MoteMaker.ThrowText(parent.DrawPos, parent.BaseMap(), powerPushSetting.ToString("F0"), Color.white);
+                    maxPushSetting = Mathf.Clamp(maxPushSetting - 100f, PushMin, PushMax);
+                    MoteMaker.ThrowText(parent.DrawPos, parent.BaseMap(), maxPushSetting.ToString("F0"), Color.white);
                 },
                 defaultLabel = "-100W",
                 defaultDesc = "VMF_LowerPowerDesc".Translate(),
@@ -125,9 +125,9 @@ public class CompWirelessTransmitter : CompPowerNetLink, IThingGlower
             {
                 action = delegate
                 {
-                    powerPushSetting = 500f;
+                    maxPushSetting = 500f;
                     SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                    MoteMaker.ThrowText(parent.DrawPos, parent.BaseMap(), powerPushSetting.ToString("F0"), Color.white);
+                    MoteMaker.ThrowText(parent.DrawPos, parent.BaseMap(), maxPushSetting.ToString("F0"), Color.white);
                 },
                 defaultLabel = "VMF_ResetPower".Translate(),
                 defaultDesc = "VMF_ResetPowerDesc".Translate(),
@@ -138,8 +138,8 @@ public class CompWirelessTransmitter : CompPowerNetLink, IThingGlower
             {
                 action = delegate
                 {
-                    powerPushSetting = Mathf.Clamp(powerPushSetting + 100f, PushMin, PushMax);
-                    MoteMaker.ThrowText(parent.DrawPos, parent.BaseMap(), powerPushSetting.ToString("F0"), Color.white);
+                    maxPushSetting = Mathf.Clamp(maxPushSetting + 100f, PushMin, PushMax);
+                    MoteMaker.ThrowText(parent.DrawPos, parent.BaseMap(), maxPushSetting.ToString("F0"), Color.white);
                 },
                 defaultLabel = "+100W",
                 defaultDesc = "VMF_RaisePowerDesc".Translate(),
@@ -150,8 +150,8 @@ public class CompWirelessTransmitter : CompPowerNetLink, IThingGlower
             {
                 action = delegate
                 {
-                    powerPushSetting = Mathf.Clamp(powerPushSetting + 1000f, PushMin, PushMax);
-                    MoteMaker.ThrowText(parent.DrawPos, parent.BaseMap(), powerPushSetting.ToString("F0"), Color.white);
+                    maxPushSetting = Mathf.Clamp(maxPushSetting + 1000f, PushMin, PushMax);
+                    MoteMaker.ThrowText(parent.DrawPos, parent.BaseMap(), maxPushSetting.ToString("F0"), Color.white);
                 },
                 defaultLabel = "+1000W",
                 defaultDesc = "VMF_RaisePowerDesc".Translate(),
@@ -181,13 +181,13 @@ public class CompWirelessTransmitter : CompPowerNetLink, IThingGlower
     {
         base.PostExposeData();
         Scribe_Values.Look(ref mode, nameof(mode), PowerTransferMode.Transmit);
-        Scribe_Values.Look(ref powerPushSetting, nameof(powerPushSetting), 500f);
+        Scribe_Values.Look(ref maxPushSetting, nameof(maxPushSetting), 500f);
     }
 
     public override string CompInspectStringExtra()
     {
         var str = base.CompInspectStringExtra() + "\n";
-        str += $"{"VMF_PowerTransferSetting".Translate()}: {powerPushSetting} W";
+        str += $"{"VMF_PowerTransferSetting".Translate()}: {maxPushSetting} W";
         return str;
     }
 
@@ -195,4 +195,10 @@ public class CompWirelessTransmitter : CompPowerNetLink, IThingGlower
     {
         return PowerOutput != 0f;
     }
+
+    [Conditional("DEV")]
+    public void SetMode(PowerTransferMode _mode) => mode = _mode;
+    
+    [Conditional("DEV")]
+    public void SetMaxPush(float max) => maxPushSetting = max;
 }

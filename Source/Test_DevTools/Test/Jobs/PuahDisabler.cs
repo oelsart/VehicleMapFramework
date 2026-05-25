@@ -11,10 +11,15 @@ public readonly struct PuahDisabler : IDisposable
     
     public PuahDisabler()
     {
-        _harmony.Patch(Patch_HaulToStorageJobByRace.m_Original, Patch_HaulToStorageJobByRace.m_Patch);
+        if (Patch_HaulToStorageJobByRace.m_Original is not null)
+            _harmony.Patch(Patch_HaulToStorageJobByRace.m_Original, Patch_HaulToStorageJobByRace.m_Patch);
     }
-    
-    public void Dispose() => _harmony.Unpatch(Patch_HaulToStorageJobByRace.m_Original, HarmonyPatchType.All);
+
+    public void Dispose()
+    {
+        if (Patch_HaulToStorageJobByRace.m_Original is not null)
+            _harmony.Unpatch(Patch_HaulToStorageJobByRace.m_Original, HarmonyPatchType.All);
+    }
 }
 
 internal static class Patch_HaulToStorageJobByRace
