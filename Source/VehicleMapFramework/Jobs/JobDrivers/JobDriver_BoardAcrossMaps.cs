@@ -2,6 +2,7 @@
 using System.Linq;
 using RimWorld;
 using SmashTools.Rendering;
+using VehicleMapFramework.VMF_HarmonyPatches;
 using Vehicles;
 using Verse;
 using Verse.AI;
@@ -9,6 +10,7 @@ using Verse.AI.Group;
 
 namespace VehicleMapFramework;
 
+[StaticConstructorOnStartup]
 public class JobDriver_BoardAcrossMaps : JobDriverAcrossMaps
 {
     public override bool TryMakePreToilReservations(bool errorOnFailed)
@@ -44,7 +46,7 @@ public class JobDriver_BoardAcrossMaps : JobDriverAcrossMaps
             var lord = pawnBoarding.GetLord();
             if (lord?.LordJob is LordJob_FormAndSendVehicles lordJob_FormAndSendVehicles)
             {
-                var vehicleAssigned = lordJob_FormAndSendVehicles.GetVehicleAssigned(pawnBoarding);
+                var vehicleAssigned = Patch_JobDriver_Board_MakeNewToils.GetAssignedSeat(lordJob_FormAndSendVehicles, pawnBoarding);
                 vehicleAssigned.Vehicle.TryAddPawn(pawnBoarding, vehicleAssigned.handler);
             }
             else

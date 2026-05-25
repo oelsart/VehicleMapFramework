@@ -645,6 +645,12 @@ public static class Patch_CaravanFormation_TryFindExitSpot
 [PatchLevel(Level.Safe)]
 public static class Patch_JobDriver_Board_MakeNewToils
 {
+    // TODO VF Updates: The method will be renamed in the next update.
+    public static readonly Func<LordJob_FormAndSendVehicles, Pawn, AssignedSeat> GetAssignedSeat
+        = AccessTools.MethodDelegate<Func<LordJob_FormAndSendVehicles, Pawn, AssignedSeat>>(
+            AccessTools.Method(typeof(LordJob_FormAndSendVehicles), "GetAssignedSeat") ??
+            AccessTools.Method(typeof(LordJob_FormAndSendVehicles), "GetVehicleAssigned"));
+    
     public static IEnumerable<Toil> Postfix(IEnumerable<Toil> values)
     {
         foreach (var toil in values)
@@ -656,7 +662,7 @@ public static class Patch_JobDriver_Board_MakeNewToils
                 {
                     var actor = toil.actor;
                     if (actor.GetLord()?.LordJob is LordJob_FormAndSendVehicles lordJob_FormAndSendVehicles &&
-                    lordJob_FormAndSendVehicles.GetVehicleAssigned(actor).handler?.role is VehicleRoleBuildable vehicleRoleBuildable)
+                        GetAssignedSeat(lordJob_FormAndSendVehicles, actor).handler?.role is VehicleRoleBuildable vehicleRoleBuildable)
                     {
                         var dest = vehicleRoleBuildable.upgradeComp?.parent;
                         if (ToilFailConditions.DespawnedOrNull(dest, actor))

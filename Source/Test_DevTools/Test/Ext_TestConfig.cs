@@ -23,12 +23,12 @@ internal static class Ext_TestConfig
 
     public static bool LogContained(this ITestConfig config, LogType logType, string message)
     {
-        return logType switch
-        {
-            LogType.Assert or LogType.Exception or LogType.Error or LogType.Warning =>
-                config.SupressLogFailure(logType, message),
-            LogType.Log => false,
-            _           => throw new NotImplementedException(nameof(LogType)),
-        };
+		return logType switch
+		{
+			LogType.Assert or LogType.Exception or LogType.Error or LogType.Warning =>
+				config.SuppressLogFailure(logType, message),
+			LogType.Log => false,
+			_           => throw new NotImplementedException(nameof(LogType)),
+		};
     }
 }

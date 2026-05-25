@@ -669,7 +669,7 @@ public static class CrossMapReachabilityUtility
         for (var i = 0; i < num; i++)
         {
             var intVec = GenRadial.RadialPattern[i] + cell;
-            if (intVec.InBounds(map) && intVec.Standable(vehicle, map) && (!VehicleMod.settings.main.fullVehiclePathing || vehicle.DrivableRectOnCell(intVec, true, map)))
+            if (intVec.InBounds(map) && intVec.Standable(vehicle, map) && vehicle.DrivableRectOnCell(intVec, true, map))
             {
                 if (map == vehicle.Map && intVec == vehicle.Position || vehicle.beached ||
                     AnyVehicleBlockingPathAt(intVec, vehicle, map) == null && vehicle.CanReachVehicle(intVec,
