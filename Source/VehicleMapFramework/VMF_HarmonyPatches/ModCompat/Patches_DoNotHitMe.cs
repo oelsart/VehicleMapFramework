@@ -6,13 +6,13 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 internal static class Patches_DoNotHitMe
 {
-    static Patches_DoNotHitMe()
+  static Patches_DoNotHitMe()
+  {
+    if (DoNotHitMe)
     {
-        if (DoNotHitMe)
-        {
-            VMF_Harmony.PatchCategory(PatchCategories.DoNotHitMe);
-        }
+      VMF_Harmony.PatchCategory(PatchCategories.DoNotHitMe);
     }
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.DoNotHitMe)]
@@ -20,11 +20,11 @@ internal static class Patches_DoNotHitMe
 [PatchLevel(Level.Safe)]
 public static class Patch_MapComponent_OgDHM_IsIgnored
 {
-    public static void Prefix(ref MapComponent __instance, Thing thing, Map ___map)
+  public static void Prefix(ref MapComponent __instance, Thing thing, Map ___map)
+  {
+    if (thing.Map != null && thing.Map != ___map)
     {
-        if (thing.Map != null && thing.Map != ___map)
-        {
-            __instance = thing.Map.GetComponent(__instance.GetType());
-        }
+      __instance = thing.Map.GetComponent(__instance.GetType());
     }
+  }
 }

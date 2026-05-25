@@ -4,34 +4,34 @@ using Verse;
 
 namespace VehicleMapFramework;
 
-public readonly struct DeepProfilerScope: IDisposable
+public readonly struct DeepProfilerScope : IDisposable
 {
-    private readonly bool force;
-    private readonly bool enabled;
-    private readonly bool logVerbose;
+  private readonly bool force;
+  private readonly bool enabled;
+  private readonly bool logVerbose;
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DeepProfilerScope(string label, bool force = false)
+  [MethodImpl(MethodImplOptions.AggressiveInlining)]
+  public DeepProfilerScope(string label, bool force = false)
+  {
+    if (force)
     {
-        if (force)
-        {
-            this.force = true;
-            this.enabled = DeepProfiler.enabled;
-            this.logVerbose = Prefs.LogVerbose;
-            DeepProfiler.enabled = true;
-            Prefs.LogVerbose = true;
-        }
-        DeepProfiler.Start(label);
+      this.force = true;
+      enabled = DeepProfiler.enabled;
+      logVerbose = Prefs.LogVerbose;
+      DeepProfiler.enabled = true;
+      Prefs.LogVerbose = true;
     }
+    DeepProfiler.Start(label);
+  }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    void IDisposable.Dispose()
+  [MethodImpl(MethodImplOptions.AggressiveInlining)]
+  void IDisposable.Dispose()
+  {
+    DeepProfiler.End();
+    if (force)
     {
-        DeepProfiler.End();
-        if (force)
-        {
-            DeepProfiler.enabled = enabled;
-            Prefs.LogVerbose = logVerbose;
-        }
+      DeepProfiler.enabled = enabled;
+      Prefs.LogVerbose = logVerbose;
     }
+  }
 }

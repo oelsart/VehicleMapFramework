@@ -7,13 +7,13 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 internal static class Patches_CallTradeShips
 {
-    static Patches_CallTradeShips()
+  static Patches_CallTradeShips()
+  {
+    if (Active)
     {
-        if (Active)
-        {
-            VMF_Harmony.Instance.PatchCategory(PatchCategories.CallTradeShips);
-        }
+      VMF_Harmony.Instance.PatchCategory(PatchCategories.CallTradeShips);
     }
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.CallTradeShips)]
@@ -21,16 +21,16 @@ internal static class Patches_CallTradeShips
 [PatchLevel(Level.Safe)]
 public static class Patch_Job_Clone
 {
-    public static bool Prefix(Job __instance, ref Job __result)
+  public static bool Prefix(Job __instance, ref Job __result)
+  {
+    if (__instance.GetType() == Job_CallTradeShip)
     {
-        if (__instance.GetType() == Job_CallTradeShip)
-        {
-            _ = (Job)Job_CallTradeShip.CreateInstance();
-            __result = __instance.Clone();
-            TraderKindDef(__result) = TraderKindDef(__instance);
-            TraderKind(__result) = TraderKind(__instance);
-            return false;
-        }
-        return true;
+      _ = (Job)Job_CallTradeShip.CreateInstance();
+      __result = __instance.Clone();
+      TraderKindDef(__result) = TraderKindDef(__instance);
+      TraderKind(__result) = TraderKind(__instance);
+      return false;
     }
+    return true;
+  }
 }

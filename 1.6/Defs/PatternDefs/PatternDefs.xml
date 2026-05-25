@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<Defs>	
-	<VehicleMapFramework.RGBMaskDef>
-		<defName>VMF_RGBMask</defName>
-		<label>RGB Mask</label>
-		<path>Graphics/Patterns/Default/Default</path>
-		<properties>
-			<equalize>false</equalize>
-		</properties>
-	</VehicleMapFramework.RGBMaskDef>
+<Defs>
+  <VehicleMapFramework.RGBMaskDef>
+    <defName>VMF_RGBMask</defName>
+    <label>RGB Mask</label>
+    <path>Graphics/Patterns/Default/Default</path>
+    <properties>
+      <equalize>false</equalize>
+    </properties>
+  </VehicleMapFramework.RGBMaskDef>
 </Defs>

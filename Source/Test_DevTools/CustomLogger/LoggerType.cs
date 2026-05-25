@@ -2,6 +2,6 @@
 
 public enum LoggerType
 {
-    Default,
-    JUnit
+  Default,
+  JUnit
 }

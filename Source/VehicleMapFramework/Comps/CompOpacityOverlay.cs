@@ -7,77 +7,78 @@ namespace VehicleMapFramework;
 
 public class CompOpacityOverlay : VehicleComp
 {
-    public CompProperties_OpacityOverlay Props => (CompProperties_OpacityOverlay)props;
 
-    protected GraphicOverlay Overlay
+  private float tmpOpacity;
+
+  public CompProperties_OpacityOverlay Props => (CompProperties_OpacityOverlay)props;
+
+  protected GraphicOverlay Overlay
+  {
+    get
     {
-        get
-        {
-            field ??= Vehicle?.DrawTracker?.overlayRenderer?.AllOverlaysListForReading.FirstOrDefault(o => o.data?.identifier == Props.identifier);
-            return field;
-        }
+      field ??= Vehicle?.DrawTracker?.overlayRenderer?.AllOverlaysListForReading.FirstOrDefault(o => o.data?.identifier == Props.identifier);
+      return field;
     }
+  }
 
-    public override IEnumerable<Gizmo> CompGetGizmosExtra()
+  public override IEnumerable<Gizmo> CompGetGizmosExtra()
+  {
+    var overlay = Overlay;
+    if (overlay == null) yield break;
+
+    var tex = ContentFinder<Texture2D>.Get(overlay.Graphic.path + "_east");
+    var proportion = tex.height > tex.width
+      ? new Vector2(tex.height / (float)tex.height, 1f)
+      : new Vector2(1f, tex.height / (float)tex.width);
+
+    yield return new Command_Action
     {
-        var overlay = Overlay;
-        if (overlay == null) yield break;
-
-        var tex = ContentFinder<Texture2D>.Get(overlay.Graphic.path + "_east");
-        var proportion = tex.height > tex.width
-            ? new Vector2(tex.height / (float)tex.height, 1f)
-            : new Vector2(1f, tex.height / (float)tex.width);
-
-        yield return new Command_Action
+      defaultLabel = Props.label,
+      icon = tex,
+      iconProportions = proportion,
+      action = () =>
+      {
+        var rect = new Rect(UI.MousePositionOnUIInverted - new Vector2(75f, 18f), new Vector2(150f, 33f));
+        if (overlay.Graphic is Graphic_VehicleOpacity graphic)
         {
-            defaultLabel = Props.label,
-            icon = tex,
-            iconProportions = proportion,
-            action = () =>
+          Find.WindowStack.Add(new EphemenalWindow
+          {
+            windowRect = rect,
+            doWindowFunc = () =>
             {
-                var rect = new Rect(UI.MousePositionOnUIInverted - new Vector2(75f, 18f), new Vector2(150f, 33f));
-                if (overlay.Graphic is Graphic_VehicleOpacity graphic)
-                {
-                    Find.WindowStack.Add(new EphemenalWindow
-                    {
-                        windowRect = rect,
-                        doWindowFunc = () =>
-                        {
-                            Widgets.DrawWindowBackground(rect.AtZero(), GUI.color);
-                            graphic.Opacity = VMF_Widgets.HorizontalSlider(new Rect(0f, 15f, rect.width, rect.height), graphic.Opacity, 0f, 1f, false, null, "0%", "100%", -1, GUI.color);
-                        }
-                    });
-                }
+              Widgets.DrawWindowBackground(rect.AtZero(), GUI.color);
+              graphic.Opacity = VMF_Widgets.HorizontalSlider(new Rect(0f, 15f, rect.width, rect.height), graphic.Opacity, 0f, 1f, false, null, "0%", "100%", -1, GUI.color);
             }
-        };
-    }
+          });
+        }
+      }
+    };
+  }
 
-    public override void PostExposeData()
+  public override void PostExposeData()
+  {
+    base.PostExposeData();
+    if (Scribe.mode == LoadSaveMode.Saving)
     {
-        base.PostExposeData();
-        if (Scribe.mode == LoadSaveMode.Saving)
-        {
-            if (Overlay?.Graphic is Graphic_VehicleOpacity graphic)
-            {
-                tmpOpacity = graphic.Opacity;
-                Scribe_Values.Look(ref tmpOpacity, Props.identifier + "Opacity", 1f);
-            }
-        }
-        else if (Scribe.mode == LoadSaveMode.LoadingVars)
-        {
-            Scribe_Values.Look(ref tmpOpacity, Props.identifier + "Opacity", 1f);
-        }
-        else if (Scribe.mode == LoadSaveMode.PostLoadInit)
-        { 
-            LongEventHandler.ExecuteWhenFinished(() =>
-            {
-                if (Overlay?.Graphic is Graphic_VehicleOpacity graphic)
-                {
-                    graphic.Opacity = tmpOpacity;
-                }
-            });
-        }
+      if (Overlay?.Graphic is Graphic_VehicleOpacity graphic)
+      {
+        tmpOpacity = graphic.Opacity;
+        Scribe_Values.Look(ref tmpOpacity, Props.identifier + "Opacity", 1f);
+      }
     }
-
-    private float tmpOpacity;
+    else if (Scribe.mode == LoadSaveMode.LoadingVars)
+    {
+      Scribe_Values.Look(ref tmpOpacity, Props.identifier + "Opacity", 1f);
+    }
+    else if (Scribe.mode == LoadSaveMode.PostLoadInit)
+    {
+      LongEventHandler.ExecuteWhenFinished(() =>
+      {
+        if (Overlay?.Graphic is Graphic_VehicleOpacity graphic)
+        {
+          graphic.Opacity = tmpOpacity;
+        }
+      });
+    }
+  }
 }

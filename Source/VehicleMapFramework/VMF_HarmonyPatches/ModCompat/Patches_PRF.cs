@@ -8,13 +8,13 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 internal static class Patches_PRF
 {
-    static Patches_PRF()
+  static Patches_PRF()
+  {
+    if (ProjectRimFactory)
     {
-        if (ProjectRimFactory)
-        {
-            VMF_Harmony.PatchCategory(PatchCategories.ProjectRimFactory);
-        }
+      VMF_Harmony.PatchCategory(PatchCategories.ProjectRimFactory);
     }
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.ProjectRimFactory)]
@@ -22,13 +22,13 @@ internal static class Patches_PRF
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Patch_CanReserve_SAL_Postfix
 {
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        var codes = instructions.ToList();
-        var pos = codes.FindIndex(c => c.opcode == OpCodes.Callvirt && c.OperandIs(CachedMethodInfo.g_Thing_Map)) - 1;
-        codes[pos].opcode = OpCodes.Ldloc_2;
-        return codes;
-    }
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    var codes = instructions.ToList();
+    var pos = codes.FindIndex(c => c.opcode == OpCodes.Callvirt && c.OperandIs(CachedMethodInfo.g_Thing_Map)) - 1;
+    codes[pos].opcode = OpCodes.Ldloc_2;
+    return codes;
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.ProjectRimFactory)]
@@ -36,10 +36,10 @@ public static class Patch_Patch_CanReserve_SAL_Postfix
 [PatchLevel(Level.Cautious)]
 public static class Patch_JobGiver_DroneMain_TryGiveJob
 {
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMapOrCaravan_Thing);
-    }
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMapOrCaravan_Thing);
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.ProjectRimFactory)]
@@ -47,8 +47,8 @@ public static class Patch_JobGiver_DroneMain_TryGiveJob
 [PatchLevel(Level.Cautious)]
 public static class Patch_JobGiver_DroneFlee_ReturnToStationJob
 {
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMapOrCaravan_Thing);
-    }
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMapOrCaravan_Thing);
+  }
 }

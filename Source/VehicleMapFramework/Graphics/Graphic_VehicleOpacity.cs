@@ -6,33 +6,33 @@ namespace VehicleMapFramework;
 
 public class Graphic_VehicleOpacity : Graphic_Vehicle
 {
-    public static readonly int OpacityID = Shader.PropertyToID("_Opacity");
+  public static readonly int OpacityID = Shader.PropertyToID("_Opacity");
 
-    public float Opacity
+  private float opacityInt = 1f;
+
+  public float Opacity
+  {
+    get => opacityInt;
+    set
     {
-        get => opacityInt;
-        set
-        {
-            opacityInt = value;
-            Notify_OpacityChanged();
-        }
+      opacityInt = value;
+      Notify_OpacityChanged();
     }
+  }
 
-    public override Graphic GetColoredVersion(Shader newShader, Color newColor, Color newColorTwo)
+  public override Graphic GetColoredVersion(Shader newShader, Color newColor, Color newColorTwo)
+  {
+    Log.Warning(
+      $"Retrieving {GetType()} Colored Graphic from vanilla GraphicDatabase which will result in redundant graphic creation.");
+    return GraphicDatabase.Get<Graphic_VehicleOpacity>(path, newShader, drawSize, newColor, newColorTwo, DataRgb);
+  }
+
+  private void Notify_OpacityChanged()
+  {
+    if (materials.NullOrEmpty()) return;
+    foreach (var mat in materials)
     {
-        Log.Warning(
-            $"Retrieving {GetType()} Colored Graphic from vanilla GraphicDatabase which will result in redundant graphic creation.");
-        return GraphicDatabase.Get<Graphic_VehicleOpacity>(path, newShader, drawSize, newColor, newColorTwo, DataRgb);
+      mat?.SetFloat(OpacityID, opacityInt);
     }
-
-    private void Notify_OpacityChanged()
-    {
-        if (materials.NullOrEmpty()) return;
-        foreach (var mat in materials)
-        {
-            mat?.SetFloat(OpacityID, opacityInt);
-        }
-    }
-
-    private float opacityInt = 1f;
+  }
 }

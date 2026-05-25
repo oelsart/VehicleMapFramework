@@ -9,10 +9,10 @@ namespace VehicleMapFramework.Test_Logics;
 
 internal class TestReport
 {
-  private int passed;
   private int failed;
-  private int skipped;
   private int notRun;
+  private int passed;
+  private int skipped;
 
   /// <summary>
   /// Count of status aggregated at this point.
@@ -48,7 +48,7 @@ internal class TestReport
   {
     if (testGroup.Children.Any())
     {
-      foreach (ITestGroup child in testGroup.Children)
+      foreach (var child in testGroup.Children)
       {
         Add(child);
       }

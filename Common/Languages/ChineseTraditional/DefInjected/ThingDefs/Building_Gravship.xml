@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <LanguageData>
 
-	<VMF_GravshipWheel.label>重力船用輪胎</VMF_GravshipWheel.label>
-	<VMF_GravshipWheel.description>重力船在地面移動所需的裝備，同時也具備在太空中運作的推進器功能。輪胎數量會影響最大載重與移動速度。\n只有與駕駛控制台方向相同的輪胎才會被識別。\n\n&lt;color=#bb8f04&gt;最大載重:&lt;/color&gt; +1500 kg\n&lt;color=#bb8f04&gt;移動速度:&lt;/color&gt; +0.75</VMF_GravshipWheel.description>
+  <VMF_GravshipWheel.label>重力船用輪胎</VMF_GravshipWheel.label>
+  <VMF_GravshipWheel.description>重力船在地面移動所需的裝備，同時也具備在太空中運作的推進器功能。輪胎數量會影響最大載重與移動速度。\n只有與駕駛控制台方向相同的輪胎才會被識別。\n\n&lt;color=#bb8f04&gt;最大載重:&lt;/color&gt;
+    +1500 kg\n&lt;color=#bb8f04&gt;移動速度:&lt;/color&gt; +0.75
+  </VMF_GravshipWheel.description>
 
 </LanguageData>

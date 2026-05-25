@@ -5,48 +5,49 @@ namespace VehicleMapFramework;
 
 public class VehicleMapGrid(Map map) : MapComponent(map)
 {
-    public Dictionary<VehiclePawnWithMap, HashSet<IntVec3>> OccupiedCells { get; } = new();
 
-    private readonly VehiclePawnWithMap[] vehicleGrid = new VehiclePawnWithMap[map.cellIndices.NumGridCells];
-    
-    public VehiclePawnWithMap VehicleAt(IntVec3 c)
-    {
-        return vehicleGrid[map.cellIndices.CellToIndex(c)];
-    }
+  private readonly VehiclePawnWithMap[] vehicleGrid = new VehiclePawnWithMap[map.cellIndices.NumGridCells];
 
-    public Map VehicleMapAt(IntVec3 c)
-    {
-        return vehicleGrid[map.cellIndices.CellToIndex(c)]?.VehicleMap;
-    }
+  public Dictionary<VehiclePawnWithMap, HashSet<IntVec3>> OccupiedCells { get; } = new();
 
-    public void Register(IntVec3 c, VehiclePawnWithMap vehicle)
-    {
-        var index = map.cellIndices.CellToIndex(c);
-        vehicleGrid[index] ??= vehicle;
-    }
+  public VehiclePawnWithMap VehicleAt(IntVec3 c)
+  {
+    return vehicleGrid[map.cellIndices.CellToIndex(c)];
+  }
 
-    public void DeRegister(IntVec3 c)
-    {
-        var index = map.cellIndices.CellToIndex(c);
-        vehicleGrid[index] = null;
-    }
+  public Map VehicleMapAt(IntVec3 c)
+  {
+    return vehicleGrid[map.cellIndices.CellToIndex(c)]?.VehicleMap;
+  }
 
-    public override void MapComponentUpdate()
-    {
-        if (VehicleMapFramework.settings.drawVehicleMapGrid)
-        {
-            DebugDraw();
-        }
-    }
+  public void Register(IntVec3 c, VehiclePawnWithMap vehicle)
+  {
+    var index = map.cellIndices.CellToIndex(c);
+    vehicleGrid[index] ??= vehicle;
+  }
 
-    internal void DebugDraw()
+  public void DeRegister(IntVec3 c)
+  {
+    var index = map.cellIndices.CellToIndex(c);
+    vehicleGrid[index] = null;
+  }
+
+  public override void MapComponentUpdate()
+  {
+    if (VehicleMapFramework.settings.drawVehicleMapGrid)
     {
-        for (var i = 0; i < vehicleGrid.Length; i++)
-        {
-            if (vehicleGrid[i] != null)
-            {
-                CellRenderer.RenderCell(map.cellIndices.IndexToCell(i));
-            }
-        }
+      DebugDraw();
     }
+  }
+
+  internal void DebugDraw()
+  {
+    for (var i = 0; i < vehicleGrid.Length; i++)
+    {
+      if (vehicleGrid[i] != null)
+      {
+        CellRenderer.RenderCell(map.cellIndices.IndexToCell(i));
+      }
+    }
+  }
 }

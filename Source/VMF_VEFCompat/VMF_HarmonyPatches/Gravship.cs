@@ -12,10 +12,10 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [PatchLevel(Level.Cautious)]
 public static class Patch_CompPointDefence_FindTarget
 {
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
-    }
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.VGE)]
@@ -23,22 +23,22 @@ public static class Patch_CompPointDefence_FindTarget
 [PatchLevel(Level.Sensitive)]
 public static class Patch_CompPointDefence_FindTarget_Delegate
 {
-    private static IEnumerable<MethodBase> TargetMethods()
-    {
-        return GenTypes.GetTypeInAnyAssembly("VanillaGravshipExpanded.CompPointDefence", "VanillaGravshipExpanded")
-            .GetDeclaredMethods()
-            .Where(m =>
-            {
-                if (!m.Name.Contains("<FindTarget>")) return false;
-                return PatchHelper.ReadMethodBodyWrapper(m).Any(i =>
-                    CachedMethodInfo.g_Thing_Position.Equals(i.Value));
-            });
-    }
-    
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
-    }
+  private static IEnumerable<MethodBase> TargetMethods()
+  {
+    return GenTypes.GetTypeInAnyAssembly("VanillaGravshipExpanded.CompPointDefence", "VanillaGravshipExpanded")
+      .GetDeclaredMethods()
+      .Where(m =>
+      {
+        if (!m.Name.Contains("<FindTarget>")) return false;
+        return PatchHelper.ReadMethodBodyWrapper(m).Any(i =>
+          CachedMethodInfo.g_Thing_Position.Equals(i.Value));
+      });
+  }
+
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.VGE)]
@@ -46,10 +46,10 @@ public static class Patch_CompPointDefence_FindTarget_Delegate
 [PatchLevel(Level.Cautious)]
 public static class Patch_CompPointDefence_TryIntercept
 {
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
-    }
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.VGE)]
@@ -57,8 +57,10 @@ public static class Patch_CompPointDefence_TryIntercept
 [PatchLevel(Level.Sensitive)]
 public static class Patch_FloatMenuOptionProvider_ExtinguishAstrofires_GetSingleOption
 {
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
-        => Patch_FloatMenuOptionProvider_ExtinguishFires_GetSingleOption.Transpiler(instructions, generator);
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+  {
+    return Patch_FloatMenuOptionProvider_ExtinguishFires_GetSingleOption.Transpiler(instructions, generator);
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.VGE)]
@@ -66,16 +68,16 @@ public static class Patch_FloatMenuOptionProvider_ExtinguishAstrofires_GetSingle
 [PatchLevel(Level.Sensitive)]
 public static class Patch_FloatMenuOptionProvider_ExtinguishAstrofires_GetSingleOption_Delegate
 {
-    private static MethodBase TargetMethod()
-    {
-        var type = GenTypes.GetTypeInAnyAssembly(
-            "VanillaGravshipExpanded.FloatMenuOptionProvider_ExtinguishAstrofires", "VanillaGravshipExpanded");
-        return AccessTools.FindIncludingInnerTypes(type, t =>
-        {
-            return t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<GetSingleOption>"));
-        });
-    }
+  private static MethodBase TargetMethod()
+  {
+    var type = GenTypes.GetTypeInAnyAssembly(
+      "VanillaGravshipExpanded.FloatMenuOptionProvider_ExtinguishAstrofires",
+      "VanillaGravshipExpanded");
+    return AccessTools.FindIncludingInnerTypes(type, t => { return t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<GetSingleOption>")); });
+  }
 
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
-        => Patch_FloatMenuOptionProvider_ExtinguishFires_GetSingleOption_Delegate.Transpiler(instructions, generator);
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+  {
+    return Patch_FloatMenuOptionProvider_ExtinguishFires_GetSingleOption_Delegate.Transpiler(instructions, generator);
+  }
 }

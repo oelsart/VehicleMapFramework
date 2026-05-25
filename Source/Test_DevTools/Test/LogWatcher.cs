@@ -22,21 +22,6 @@ internal class LogWatcher : IDisposable
     Application.logMessageReceivedThreaded += LogReceived;
   }
 
-  [MustUseReturnValue]
-  private static List<LogEntry> LogsOfType(LogType type)
-  {
-    return LogCounts.TryGetValue(type, fallback: null);
-  }
-
-  private static void LogReceived(string msg, string stackTrace, LogType type)
-  {
-    if (!LogCounts.ContainsKey(type))
-    {
-      LogCounts[type] = [];
-    }
-    LogCounts[type].Add(new LogEntry(msg, stackTrace));
-  }
-
   public void Dispose()
   {
     try
@@ -51,20 +36,35 @@ internal class LogWatcher : IDisposable
     }
   }
 
+  [MustUseReturnValue]
+  private static List<LogEntry> LogsOfType(LogType type)
+  {
+    return LogCounts.TryGetValue(type, null);
+  }
+
+  private static void LogReceived(string msg, string stackTrace, LogType type)
+  {
+    if (!LogCounts.ContainsKey(type))
+    {
+      LogCounts[type] = [];
+    }
+    LogCounts[type].Add(new LogEntry(msg, stackTrace));
+  }
+
   private void VerifyLogs(LogType logType)
   {
     if (!config.VerifyForLogType(logType))
       return;
 
-    ITestGroup current = Test.Current;
+    var current = Test.Current;
     if (current is { Status: Status.Failed })
       return;
 
-    List<LogEntry> logs = LogsOfType(logType);
+    var logs = LogsOfType(logType);
     if (logs.NullOrEmpty())
       return;
 
-    foreach (LogEntry logEntry in logs)
+    foreach (var logEntry in logs)
     {
       TestLogEntry(config, logType, logEntry);
     }
@@ -79,11 +79,11 @@ internal class LogWatcher : IDisposable
     {
       case LogType.Error or LogType.Assert or LogType.Exception:
         Test.Fail("Logged error not whitelisted for tests.",
-          failureMessage: $"\"{logEntry.message}\"{Environment.NewLine}{logEntry.stackTrace}");
+          $"\"{logEntry.message}\"{Environment.NewLine}{logEntry.stackTrace}");
         break;
       case LogType.Warning:
         Test.Fail("Logged warning not whitelisted for tests.",
-          failureMessage: $"\"{logEntry.message}\"{Environment.NewLine}{logEntry.stackTrace}");
+          $"\"{logEntry.message}\"{Environment.NewLine}{logEntry.stackTrace}");
         break;
     }
   }

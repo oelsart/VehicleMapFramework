@@ -8,211 +8,228 @@ namespace VehicleMapFramework;
 
 public class Building_Hatch : Building_Bed, ISlotGroupParent, IStorageGroupMember, IHaulEnroute
 {
-    public StorageSettings settings;
 
-    public StorageGroup storageGroup;
+  public static readonly BedInteractionCellSearchPattern customBedInteractionCellsOrder = new BedInteractionCellSearchPattern3xN();
 
-    public string label;
+  private static readonly StringBuilder sb = new();
 
-    public readonly SlotGroup slotGroup;
+  public readonly SlotGroup slotGroup;
 
-    private List<IntVec3> cachedOccupiedCells;
-    
-    public static readonly BedInteractionCellSearchPattern customBedInteractionCellsOrder = new BedInteractionCellSearchPattern3xN();
+  private List<IntVec3> cachedOccupiedCells;
 
-    private static readonly StringBuilder sb = new ();
-    
-    public Building_Hatch()
-	{
-		this.slotGroup = new SlotGroup(this);
-	}
+  public string label;
+  public StorageSettings settings;
 
-	StorageGroup IStorageGroupMember.Group
-	{
-		get => this.storageGroup;
-        set => this.storageGroup = value;
+  public StorageGroup storageGroup;
+
+  public Building_Hatch()
+  {
+    slotGroup = new SlotGroup(this);
+  }
+
+  public int SpaceRemainingFor(ThingDef _)
+  {
+    return slotGroup.HeldThingsCount - def.building.maxItemsInCell * def.Size.Area;
+  }
+
+  public bool StorageTabVisible => true;
+
+  public bool IgnoreStoredThingsBeauty => def.building.ignoreStoredThingsBeauty;
+
+  public SlotGroup GetSlotGroup()
+  {
+    return slotGroup;
+  }
+
+  public virtual void Notify_ReceivedThing(Thing newItem)
+  {
+    if (Faction == Faction.OfPlayer && newItem.def.storedConceptLearnOpportunity != null)
+    {
+      LessonAutoActivator.TeachOpportunity(newItem.def.storedConceptLearnOpportunity, OpportunityType.GoodToKnow);
     }
+  }
 
-	bool IStorageGroupMember.DrawConnectionOverlay => Spawned;
+  public virtual void Notify_LostThing(Thing newItem) { }
 
-    Map IStorageGroupMember.Map => MapHeld;
+  public virtual IEnumerable<IntVec3> AllSlotCells()
+  {
+    if (!Spawned)
+      yield break;
+    foreach (var intVec in GenAdj.CellsOccupiedBy(this))
+    {
+      yield return intVec;
+    }
+  }
 
-    string IStorageGroupMember.StorageGroupTag => def.building.storageGroupTag;
+  public List<IntVec3> AllSlotCellsList()
+  {
+    return cachedOccupiedCells ??= AllSlotCells().ToList();
+  }
 
-    StorageSettings IStorageGroupMember.StoreSettings => GetStoreSettings();
+  public StorageSettings GetStoreSettings()
+  {
+    return storageGroup?.GetStoreSettings() ?? settings;
+  }
 
-    StorageSettings IStorageGroupMember.ParentStoreSettings => GetParentStoreSettings();
+  public StorageSettings GetParentStoreSettings()
+  {
+    return def.building.fixedStorageSettings ?? StorageSettings.EverStorableFixedSettings();
+  }
 
-    StorageSettings IStorageGroupMember.ThingStoreSettings => settings;
+  public void Notify_SettingsChanged()
+  {
+    if (Spawned && slotGroup != null)
+    {
+      base.Map.listerHaulables.Notify_SlotGroupChanged(slotGroup);
+    }
+  }
 
-    bool IStorageGroupMember.DrawStorageTab => true;
+  public string SlotYielderLabel()
+  {
+    return LabelCap;
+  }
 
-    bool IStorageGroupMember.ShowRenameButton => Faction == Faction.OfPlayer;
+  public string GroupingLabel => def.building.groupingLabel;
 
-    public bool StorageTabVisible => true;
+  public int GroupingOrder => def.building.groupingOrder;
 
-    public bool IgnoreStoredThingsBeauty => def.building.ignoreStoredThingsBeauty;
+  public bool HaulDestinationEnabled => true;
 
-    public SlotGroup GetSlotGroup()
-	{
-		return this.slotGroup;
-	}
+  public bool Accepts(Thing t)
+  {
+    return GetStoreSettings().AllowedToAccept(t);
+  }
 
-	public virtual void Notify_ReceivedThing(Thing newItem)
-	{
-		if (Faction == Faction.OfPlayer && newItem.def.storedConceptLearnOpportunity != null)
-		{
-			LessonAutoActivator.TeachOpportunity(newItem.def.storedConceptLearnOpportunity, OpportunityType.GoodToKnow);
-		}
-	}
+  StorageGroup IStorageGroupMember.Group
+  {
+    get => storageGroup;
+    set => storageGroup = value;
+  }
 
-	public virtual void Notify_LostThing(Thing newItem)
-	{
-	}
+  bool IStorageGroupMember.DrawConnectionOverlay => Spawned;
 
-	public virtual IEnumerable<IntVec3> AllSlotCells()
-	{
-		if (!base.Spawned)
-			yield break;
-		foreach (var intVec in GenAdj.CellsOccupiedBy(this))
-			yield return intVec;
-	}
+  Map IStorageGroupMember.Map => MapHeld;
 
-    public List<IntVec3> AllSlotCellsList() => cachedOccupiedCells ??= AllSlotCells().ToList();
+  string IStorageGroupMember.StorageGroupTag => def.building.storageGroupTag;
 
-	public StorageSettings GetStoreSettings() => storageGroup?.GetStoreSettings() ?? this.settings;
+  StorageSettings IStorageGroupMember.StoreSettings => GetStoreSettings();
 
-    public StorageSettings GetParentStoreSettings() =>
-        def.building.fixedStorageSettings ?? StorageSettings.EverStorableFixedSettings();
+  StorageSettings IStorageGroupMember.ParentStoreSettings => GetParentStoreSettings();
 
-	public void Notify_SettingsChanged()
-	{
-		if (base.Spawned && this.slotGroup != null)
-		{
-			base.Map.listerHaulables.Notify_SlotGroupChanged(this.slotGroup);
-		}
-	}
+  StorageSettings IStorageGroupMember.ThingStoreSettings => settings;
 
-    public string SlotYielderLabel() => LabelCap;
+  bool IStorageGroupMember.DrawStorageTab => true;
 
-	public string GroupingLabel => this.def.building.groupingLabel;
+  bool IStorageGroupMember.ShowRenameButton => Faction == Faction.OfPlayer;
 
-    public int GroupingOrder => this.def.building.groupingOrder;
+  public override void PostMake()
+  {
+    base.PostMake();
+    settings = new StorageSettings(this);
+    if (def.building.defaultStorageSettings != null)
+    {
+      settings.CopyFrom(def.building.defaultStorageSettings);
+    }
+  }
 
-    public bool HaulDestinationEnabled => true;
+  public override void SpawnSetup(Map map, bool respawningAfterLoad)
+  {
+    cachedOccupiedCells = null;
+    base.SpawnSetup(map, respawningAfterLoad);
+    if (storageGroup != null && map != storageGroup.Map)
+    {
+      var storeSettings = storageGroup.GetStoreSettings();
+      storageGroup.RemoveMember(this);
+      storageGroup = null;
+      settings.CopyFrom(storeSettings);
+    }
+  }
 
-    public bool Accepts(Thing t)
-	{
-		return this.GetStoreSettings().AllowedToAccept(t);
-	}
+  public override void DeSpawn(DestroyMode mode = DestroyMode.Vanish)
+  {
+    base.DeSpawn(mode);
+    cachedOccupiedCells = null;
+  }
 
-	public int SpaceRemainingFor(ThingDef _) =>
-        slotGroup.HeldThingsCount - def.building.maxItemsInCell * def.Size.Area;
+  public override void Destroy(DestroyMode mode = DestroyMode.Vanish)
+  {
+    base.Destroy(mode);
+    if (storageGroup != null)
+    {
+      storageGroup?.RemoveMember(this);
+      storageGroup = null;
+    }
+    BillUtility.Notify_ISlotGroupRemoved(slotGroup);
+  }
 
-	public override void PostMake()
-	{
-		base.PostMake();
-		this.settings = new StorageSettings(this);
-		if (this.def.building.defaultStorageSettings != null)
-		{
-			this.settings.CopyFrom(this.def.building.defaultStorageSettings);
-		}
-	}
+  public override void ExposeData()
+  {
+    base.ExposeData();
+    Scribe_Deep.Look(ref settings, "settings", this);
+    Scribe_References.Look(ref storageGroup, "storageGroup");
+    Scribe_Values.Look(ref label, "label");
+  }
 
-	public override void SpawnSetup(Map map, bool respawningAfterLoad)
-	{
-		this.cachedOccupiedCells = null;
-		base.SpawnSetup(map, respawningAfterLoad);
-		if (this.storageGroup != null && map != storageGroup.Map)
-		{
-			var storeSettings = storageGroup.GetStoreSettings();
-			this.storageGroup.RemoveMember(this);
-			this.storageGroup = null;
-			this.settings.CopyFrom(storeSettings);
-		}
-	}
+  public override void DrawExtraSelectionOverlays()
+  {
+    base.DrawExtraSelectionOverlays();
+    StorageGroupUtility.DrawSelectionOverlaysFor(this);
+  }
 
-	public override void DeSpawn(DestroyMode mode = DestroyMode.Vanish)
-	{
-		base.DeSpawn(mode);
-		this.cachedOccupiedCells = null;
-	}
+  public override string GetInspectString()
+  {
+    sb.Clear();
+    sb.Append(base.GetInspectString());
+    if (Spawned)
+    {
+      if (storageGroup != null)
+      {
+        sb.AppendLineIfNotEmpty();
+        sb.Append(
+          $"{"StorageGroupLabel".Translate()}: {storageGroup.RenamableLabel.CapitalizeFirst()} ");
+        sb.Append(storageGroup.MemberCount > 1
+          ? $"({"NumBuildings".Translate(storageGroup.MemberCount)})"
+          : $"({"OneBuilding".Translate()})");
+      }
+      if (slotGroup.HeldThings.Any())
+      {
+        sb.AppendLineIfNotEmpty();
+        sb.Append("StoresThings".Translate());
+        sb.Append(": ");
+        sb.Append(slotGroup.HeldThings.Select(x => x.LabelShortCap).Distinct().ToCommaList());
+        sb.Append(".");
+      }
+    }
+    return sb.ToString();
+  }
 
-	public override void Destroy(DestroyMode mode = DestroyMode.Vanish)
-	{
-		base.Destroy(mode);
-		if (storageGroup != null)
-		{
-            storageGroup?.RemoveMember(this);
-            storageGroup = null;
-		}
-		BillUtility.Notify_ISlotGroupRemoved(slotGroup);
-	}
-
-	public override void ExposeData()
-	{
-		base.ExposeData();
-		Scribe_Deep.Look(ref this.settings, "settings", this);
-		Scribe_References.Look(ref this.storageGroup, "storageGroup");
-		Scribe_Values.Look(ref this.label, "label");
-	}
-
-	public override void DrawExtraSelectionOverlays()
-	{
-		base.DrawExtraSelectionOverlays();
-		StorageGroupUtility.DrawSelectionOverlaysFor(this);
-	}
-
-	public override string GetInspectString()
-	{
-		sb.Clear();
-		sb.Append(base.GetInspectString());
-		if (base.Spawned)
-		{
-			if (this.storageGroup != null)
-			{
-				sb.AppendLineIfNotEmpty();
-				sb.Append(
-                    $"{"StorageGroupLabel".Translate()}: {this.storageGroup.RenamableLabel.CapitalizeFirst()} ");
-                sb.Append(this.storageGroup.MemberCount > 1
-                    ? $"({"NumBuildings".Translate(this.storageGroup.MemberCount)})"
-                    : $"({"OneBuilding".Translate()})");
-            }
-			if (slotGroup.HeldThings.Any())
-			{
-				sb.AppendLineIfNotEmpty();
-				sb.Append("StoresThings".Translate());
-				sb.Append(": ");
-				sb.Append(this.slotGroup.HeldThings.Select(x => x.LabelShortCap).Distinct().ToCommaList());
-				sb.Append(".");
-			}
-		}
-		return sb.ToString();
-	}
-
-	public override IEnumerable<Gizmo> GetGizmos()
-	{
-		foreach (var gizmo in base.GetGizmos())
-		{
-			yield return gizmo;
-		}
-		foreach (var gizmo2 in StorageSettingsClipboard.CopyPasteGizmosFor(this.GetStoreSettings()))
-		{
-			yield return gizmo2;
-		}
-		if (StorageTabVisible && MapHeld != null)
-		{
-			foreach (var gizmo3 in StorageGroupUtility.StorageGroupMemberGizmos(this))
-			{
-				yield return gizmo3;
-			}
-			if (Find.Selector.NumSelected == 1)
-			{
-				foreach (var thing in slotGroup.HeldThings)
-				{
-					yield return ContainingSelectionUtility.CreateSelectStorageGizmo("CommandSelectStoredThing".Translate(thing), ("CommandSelectStoredThingDesc".Translate() + "\n\n" + thing.LabelCap.Colorize(ColoredText.TipSectionTitleColor) + "\n\n" + thing.GetInspectString()).Resolve(), thing, thing, false);
-				}
-			}
-		}
-	}
+  public override IEnumerable<Gizmo> GetGizmos()
+  {
+    foreach (var gizmo in base.GetGizmos())
+    {
+      yield return gizmo;
+    }
+    foreach (var gizmo2 in StorageSettingsClipboard.CopyPasteGizmosFor(GetStoreSettings()))
+    {
+      yield return gizmo2;
+    }
+    if (StorageTabVisible && MapHeld != null)
+    {
+      foreach (var gizmo3 in StorageGroupUtility.StorageGroupMemberGizmos(this))
+      {
+        yield return gizmo3;
+      }
+      if (Find.Selector.NumSelected == 1)
+      {
+        foreach (var thing in slotGroup.HeldThings)
+        {
+          yield return ContainingSelectionUtility.CreateSelectStorageGizmo("CommandSelectStoredThing".Translate(thing),
+            ("CommandSelectStoredThingDesc".Translate() + "\n\n" + thing.LabelCap.Colorize(ColoredText.TipSectionTitleColor) + "\n\n" + thing.GetInspectString()).Resolve(),
+            thing,
+            thing,
+            false);
+        }
+      }
+    }
+  }
 }

@@ -22,7 +22,7 @@ jobs:
           name: LocalTestResults
           path: |
             ./TestResults.xml
-      
+
       - name: Test Report
         uses: dorny/test-reporter@v3
         with:
@@ -31,13 +31,13 @@ jobs:
           path: '*.xml'
           reporter: java-junit
           fail-on-error: 'true'
-          
+  
   build:
     runs-on: ubuntu-latest
     
     env:
       Solution_Name: VehicleMapFramework
-      Project_Path: Source/VehicleMapFramework/VehicleMapFramework.sln 
+      Project_Path: Source/VehicleMapFramework/VehicleMapFramework.sln
       WorkshopMods: |
         3014915404  # Vehicle Framework
         2023507013  # Vanilla Expanded Framework
@@ -47,77 +47,77 @@ jobs:
         1321849735  # Rimefeller
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v6
-      with:
-        submodules: true
-        fetch-depth: 0
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: true
+          fetch-depth: 0
 
-    - name: Install .NET
-      uses: actions/setup-dotnet@v5
-      with:
-        dotnet-version: 9.0.x
-    
-    - name: Restore Dependencies
-      run: dotnet restore ${{ env.Project_Path }}
-      
-    - name: Restore Cache
-      id: cache-steam
-      uses: actions/cache/restore@v5
-      with:
-        path: ~/Steam
-        key: steamcmd-initial
-        restore-keys: |
-          steamcmd-
+      - name: Install .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Restore Dependencies
+        run: dotnet restore ${{ env.Project_Path }}
+
+      - name: Restore Cache
+        id: cache-steam
+        uses: actions/cache/restore@v5
+        with:
+          path: ~/Steam
+          key: steamcmd-initial
+          restore-keys: |
+            steamcmd-
+
+      - name: Install SteamCMD
+        if: steps.cache-steam.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ~/Steam
+          cd ~/Steam
+          curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar zxvf -
+
+      - name: Download Workshop Mods
+        run: |
+          mkdir -p ~/Steam/steamapps/workshop/content/294100
           
-    - name: Install SteamCMD
-      if: steps.cache-steam.outputs.cache-hit != 'true'
-      run: |
-        mkdir -p ~/Steam
-        cd ~/Steam
-        curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar zxvf -
+          {
+            echo "login anonymous"
+            while IFS= read -r line; do
+              mod_id=$(echo "$line" | sed 's/#.*//' | xargs)
+              [[ -n "$mod_id" ]] && echo "workshop_download_item 294100 $mod_id validate"
+            done <<< "${{ env.WorkshopMods }}"
+            echo "quit"
+          } > steam_script.txt
+          
+          ~/Steam/steamcmd.sh +runscript "$(pwd)/steam_script.txt"
+          
+          echo "CI_SteamCMD_WorkShop=$HOME/Steam/steamapps/workshop/content/294100" >> $GITHUB_ENV
+          ls -la ~/Steam/steamapps/workshop/content/294100
 
-    - name: Download Workshop Mods
-      run: |
-        mkdir -p ~/Steam/steamapps/workshop/content/294100
-        
-        {
-          echo "login anonymous"
-          while IFS= read -r line; do
-            mod_id=$(echo "$line" | sed 's/#.*//' | xargs)
-            [[ -n "$mod_id" ]] && echo "workshop_download_item 294100 $mod_id validate"
-          done <<< "${{ env.WorkshopMods }}"
-          echo "quit"
-        } > steam_script.txt
-        
-        ~/Steam/steamcmd.sh +runscript "$(pwd)/steam_script.txt"
-        
-        echo "CI_SteamCMD_WorkShop=$HOME/Steam/steamapps/workshop/content/294100" >> $GITHUB_ENV
-        ls -la ~/Steam/steamapps/workshop/content/294100
-    
-    - name: Generate Content Hash
-      run: |
-        MODS_HASH=$(find ~/Steam/steamapps/workshop/content/294100 -type f -print0 | sort -z | xargs -0 sha1sum | sha1sum | awk '{print $1}')
-        echo "MODS_HASH=$MODS_HASH" >> $GITHUB_ENV
+      - name: Generate Content Hash
+        run: |
+          MODS_HASH=$(find ~/Steam/steamapps/workshop/content/294100 -type f -print0 | sort -z | xargs -0 sha1sum | sha1sum | awk '{print $1}')
+          echo "MODS_HASH=$MODS_HASH" >> $GITHUB_ENV
 
-    - name: Save Cache
-      uses: actions/cache/save@v5
-      with:
-        path: ~/Steam
-        key: steamcmd-${{ env.MODS_HASH }}
-        enableCrossOsArchive: true
+      - name: Save Cache
+        uses: actions/cache/save@v5
+        with:
+          path: ~/Steam
+          key: steamcmd-${{ env.MODS_HASH }}
+          enableCrossOsArchive: true
 
-    - name: Build Mod DLL
-      run: dotnet build ${{ env.Project_Path }} --configuration Release --no-restore /p:SkipPostBuild=true /p:SteamWorkshopRoot=${{ env.CI_SteamCMD_WorkShop }}
-    
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v7
-      with:
-        name: VehicleMapFramework
-        path: |
-          1.5
-          1.6
-          About
-          Common
-          LICENSE
-          LoadFolders.xml
+      - name: Build Mod DLL
+        run: dotnet build ${{ env.Project_Path }} --configuration Release --no-restore /p:SkipPostBuild=true /p:SteamWorkshopRoot=${{ env.CI_SteamCMD_WorkShop }}
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: VehicleMapFramework
+          path: |
+            1.5
+            1.6
+            About
+            Common
+            LICENSE
+            LoadFolders.xml

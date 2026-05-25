@@ -5,14 +5,15 @@ namespace VehicleMapFramework;
 
 public class CompRemoveVehicleMap : ThingComp
 {
-    public override void Notify_PassedToWorld()
+  public override void Notify_PassedToWorld()
+  {
+    if (parent is VehiclePawnWithMap vehicle)
     {
-        if (parent is VehiclePawnWithMap vehicle)
+      FrameDelay.DelayOne(v =>
         {
-            FrameDelay.DelayOne(v =>
-            {
-                if (v.IsWorldPawn() && v.ParentHolder is null) v.RemoveVehicleMap();
-            }, vehicle);
-        }
+          if (v.IsWorldPawn() && v.ParentHolder is null) v.RemoveVehicleMap();
+        },
+        vehicle);
     }
+  }
 }

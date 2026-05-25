@@ -15,64 +15,68 @@ namespace VehicleMapFramework.Test_Logics;
 internal class TestFunction(ITestFixture fixture, MethodInfo method, MethodType methodType) : ITestFunction
 {
 
-    public ITestFixture Fixture { get; } = fixture;
+  public Type Type => MethodInfo.DeclaringType;
 
-    public MethodType MethodType { get; } = methodType;
+  public object ExpectedResult { get; private set; }
 
-    public ITestModule Module => Fixture.Module;
+  public ITestFixture Fixture { get; } = fixture;
 
-    public Type Type => MethodInfo.DeclaringType;
+  public MethodType MethodType { get; } = methodType;
 
-    public object[] Args { get; set; }
+  public ITestModule Module => Fixture.Module;
 
-    public MetaDataContainer MetaData { get; } = new();
+  public object[] Args { get; set; }
 
-    public Status Status { get; set; }
+  public MetaDataContainer MetaData { get; } = new();
 
-    public MethodInfo MethodInfo { get; } = method;
+  public Status Status { get; set; }
 
-    public string Name => MethodInfo.Name;
+  public MethodInfo MethodInfo { get; } = method;
 
-    public object ExpectedResult { get; private set; }
+  public string Name => MethodInfo.Name;
 
-    object ITestFunction.ExpectedResult { get => ExpectedResult; set => ExpectedResult = value; }
+  object ITestFunction.ExpectedResult
+  {
+    get => ExpectedResult;
+    set => ExpectedResult = value;
+  }
 
-    public void Execute(object instance)
+  public void Execute(object instance)
+  {
+    try
     {
-        try
-        {
-            var result = MethodInfo.Invoke(instance, Args);
-            if (ExpectedResult != null)
-            {
-                Assert.AreEqual(ExpectedResult, result);
-            }
-        }
-        catch (Exception ex)
-        {
-            Test.Fail(ex);
-        }
+      var result = MethodInfo.Invoke(instance, Args);
+      if (ExpectedResult != null)
+      {
+        Assert.AreEqual(ExpectedResult, result);
+      }
     }
-
-    public IEnumerator ExecuteRoutine(object instance)
+    catch (Exception ex)
     {
-        Assert.AreEqual(MethodInfo.ReturnType, typeof(IEnumerator));
-        var enumerator = (IEnumerator)MethodInfo.Invoke(instance, Args);
-        while (true)
-        {
-            object current;
-            try
-            {
-                if (!enumerator.MoveNext())
-                    break;
-
-                current = enumerator.Current;
-            }
-            catch (Exception ex)
-            {
-                Test.Fail(ex);
-                yield break;
-            }
-            yield return current;
-        }
+      Test.Fail(ex);
     }
+  }
+
+  public IEnumerator ExecuteRoutine(object instance)
+  {
+    Assert.AreEqual(MethodInfo.ReturnType, typeof(IEnumerator));
+    var enumerator = (IEnumerator)MethodInfo.Invoke(instance, Args);
+    while (true)
+    {
+      object current;
+      try
+      {
+        if (!enumerator.MoveNext())
+          break;
+
+        current = enumerator.Current;
+      }
+      catch (Exception ex)
+      {
+        Test.Fail(ex);
+        yield break;
+      }
+      yield return current;
+    }
+  }
 }

@@ -6,15 +6,14 @@ namespace VehicleMapFramework;
 [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 public class CompProperties_DelayedKill : CompProperties
 {
-    public int delayTicks = 480;
+  public int delayTicks = 480;
 
-    public EffecterDef effecterDef;
+  public EffecterDef effecterDef;
 
-    [MustTranslate]
-    public string message;
-    
-    public CompProperties_DelayedKill()
-    {
-        compClass = typeof(CompDelayedKill);
-    }
+  [MustTranslate] public string message;
+
+  public CompProperties_DelayedKill()
+  {
+    compClass = typeof(CompDelayedKill);
+  }
 }

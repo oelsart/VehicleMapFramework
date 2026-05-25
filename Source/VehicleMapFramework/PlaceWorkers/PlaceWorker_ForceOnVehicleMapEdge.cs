@@ -5,23 +5,23 @@ namespace VehicleMapFramework;
 
 public class PlaceWorker_ForceOnVehicleMapEdge : PlaceWorker
 {
-    public override AcceptanceReport AllowsPlacing(BuildableDef checkingDef, IntVec3 loc, Rot4 rot, Map map, Thing thingToIgnore = null, Thing thing = null)
+  public override AcceptanceReport AllowsPlacing(BuildableDef checkingDef, IntVec3 loc, Rot4 rot, Map map, Thing thingToIgnore = null, Thing thing = null)
+  {
+    if (!map.IsVehicleMapOf(out var vehicle))
     {
-        if (!map.IsVehicleMapOf(out var vehicle))
-        {
-            return "VMF_ForceOnVehicle".Translate();
-        }
-
-        if (GenAdj.OccupiedRect(loc, rot, checkingDef.Size)
-            .Select(cell => cell - rot.FacingCell)
-            .Any(facingCell =>
-                !vehicle.CachedOutOfBoundsCells.Contains(facingCell) &&
-                (!vehicle.CachedExpandableCells.Contains(facingCell) ||
-                 !vehicle.CachedImpassableCells.Contains(facingCell))))
-        {
-            return "VMF_ForceOnVehicleMapEdge".Translate();
-        }
-
-        return true;
+      return "VMF_ForceOnVehicle".Translate();
     }
+
+    if (GenAdj.OccupiedRect(loc, rot, checkingDef.Size)
+        .Select(cell => cell - rot.FacingCell)
+        .Any(facingCell =>
+          !vehicle.CachedOutOfBoundsCells.Contains(facingCell) &&
+          (!vehicle.CachedExpandableCells.Contains(facingCell) ||
+           !vehicle.CachedImpassableCells.Contains(facingCell))))
+    {
+      return "VMF_ForceOnVehicleMapEdge".Translate();
+    }
+
+    return true;
+  }
 }

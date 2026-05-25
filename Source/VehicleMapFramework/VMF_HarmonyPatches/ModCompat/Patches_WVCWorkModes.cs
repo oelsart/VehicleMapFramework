@@ -10,13 +10,13 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 internal class Patches_WVCWorkModes
 {
-    static Patches_WVCWorkModes()
+  static Patches_WVCWorkModes()
+  {
+    if (WVCWorkModes)
     {
-        if (WVCWorkModes)
-        {
-            VMF_Harmony.PatchCategory(PatchCategories.WVCWorkModes);
-        }
+      VMF_Harmony.PatchCategory(PatchCategories.WVCWorkModes);
     }
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.WVCWorkModes)]
@@ -24,16 +24,16 @@ internal class Patches_WVCWorkModes
 [PatchLevel(Level.Cautious)]
 public static class Patch_ShutdownUtility_MechInShutdownZone
 {
-    private static IEnumerable<MethodBase> TargetMethods()
-    {
-        var type = GenTypes.GetTypeInAnyAssembly("WVC_WorkModes.ShutdownUtility", "WVC_WorkModes");
-        return AccessTools.GetDeclaredMethods(type).Where(m => m.Name == "MechInShutdownZone");
-    }
-    
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_DepartMapOrPawnMap);
-    }
+  private static IEnumerable<MethodBase> TargetMethods()
+  {
+    var type = GenTypes.GetTypeInAnyAssembly("WVC_WorkModes.ShutdownUtility", "WVC_WorkModes");
+    return AccessTools.GetDeclaredMethods(type).Where(m => m.Name == "MechInShutdownZone");
+  }
+
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_DepartMapOrPawnMap);
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.WVCWorkModes)]
@@ -41,32 +41,40 @@ public static class Patch_ShutdownUtility_MechInShutdownZone
 [PatchLevel(Level.Safe)]
 public static class Patch_JobGiver_GoToShutdownZone_TryGiveJob
 {
-    private static bool working;
-    
-    public static void Postfix(ThinkNode_JobGiver __instance, Pawn pawn, ref Job __result)
-    {
-        if (__result is not null || working) return;
+  private static bool working;
 
-        try
+  public static void Postfix(ThinkNode_JobGiver __instance, Pawn pawn, ref Job __result)
+  {
+    if (__result is not null || working) return;
+
+    try
+    {
+      working = true;
+      pawn.DepartMap = pawn.Map;
+      foreach (var map in pawn.Map.BaseMapAndVehicleMaps(false))
+      {
+        using var _ = new VirtualTeleporter(pawn, map);
+        var job = __instance.TryIssueJobPackage(pawn, new JobIssueParams()).Job;
+        if (job is not null && pawn.CanReach(job.targetA,
+              PathEndMode.OnCell,
+              Danger.Some,
+              false,
+              false,
+              TraverseMode.ByPawn,
+              map,
+              out var exitSpot,
+              out var enterSpot,
+              out var spotsQueue))
         {
-            working = true;
-            pawn.DepartMap = pawn.Map;
-            foreach (var map in pawn.Map.BaseMapAndVehicleMaps(false))
-            {
-                using var _ = new VirtualTeleporter(pawn, map);
-                var job = __instance.TryIssueJobPackage(pawn, new JobIssueParams()).Job;
-                if (job is not null && pawn.CanReach(job.targetA, PathEndMode.OnCell, Danger.Some, false, false,
-                        TraverseMode.ByPawn, map, out var exitSpot, out var enterSpot, out var spotsQueue))
-                {
-                    __result = JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, spotsQueue, job);
-                    break;
-                }
-            }
-            pawn.RemoveDepartMap();
+          __result = JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, spotsQueue, job);
+          break;
         }
-        finally
-        {
-            working = false;
-        }
+      }
+      pawn.RemoveDepartMap();
     }
+    finally
+    {
+      working = false;
+    }
+  }
 }

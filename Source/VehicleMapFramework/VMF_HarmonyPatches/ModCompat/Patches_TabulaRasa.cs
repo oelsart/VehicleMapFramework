@@ -12,16 +12,16 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 internal static class Patches_TabulaRasa
 {
-    static Patches_TabulaRasa()
+  static Patches_TabulaRasa()
+  {
+    if (TabulaRasa)
     {
-        if (TabulaRasa)
-        {
-            VMF_Harmony.PatchCategory(PatchCategories.TabulaRasa);
-            
-            Patch_Projectile_CheckForFreeInterceptBetween.Postfixes.Add(
-                Patch_Patch_Projectile_CheckForFreeInterceptBetween_Postfix.PostfixPatch);
-        }
+      VMF_Harmony.PatchCategory(PatchCategories.TabulaRasa);
+
+      Patch_Projectile_CheckForFreeInterceptBetween.Postfixes.Add(
+        Patch_Patch_Projectile_CheckForFreeInterceptBetween_Postfix.PostfixPatch);
     }
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.TabulaRasa)]
@@ -29,13 +29,13 @@ internal static class Patches_TabulaRasa
 [PatchLevel(Level.Safe)]
 public static class Patch_Comp_Shield_CurShieldPosition
 {
-    public static void Postfix(ThingWithComps ___parent, ref Vector3 __result)
+  public static void Postfix(ThingWithComps ___parent, ref Vector3 __result)
+  {
+    if (___parent.IsOnNonFocusedVehicleMapOf(out var vehicle))
     {
-        if (___parent.IsOnNonFocusedVehicleMapOf(out var vehicle))
-        {
-            __result = __result.ToBaseMapCoord(vehicle);
-        }
+      __result = __result.ToBaseMapCoord(vehicle);
     }
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.TabulaRasa)]
@@ -43,10 +43,10 @@ public static class Patch_Comp_Shield_CurShieldPosition
 [PatchLevel(Level.Cautious)]
 public static class Patch_Comp_Shield_ShouldBeBlocked
 {
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
-    }
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.TabulaRasa)]
@@ -54,10 +54,10 @@ public static class Patch_Comp_Shield_ShouldBeBlocked
 [PatchLevel(Level.Cautious)]
 public static class Patch_Comp_Shield_BombardmentCanStartFireAt
 {
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
-    }
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.TabulaRasa)]
@@ -65,18 +65,18 @@ public static class Patch_Comp_Shield_BombardmentCanStartFireAt
 [PatchLevel(Level.Mandatory)]
 public static class Patch_Patch_Projectile_CheckForFreeInterceptBetween_Postfix
 {
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    [HarmonyReversePatch]
-    public static void PostfixPatch(Projectile __instance, ref bool __result, Vector3 lastExactPos, Vector3 newExactPos)
+  [MethodImpl(MethodImplOptions.NoInlining)]
+  [HarmonyReversePatch]
+  public static void PostfixPatch(Projectile __instance, ref bool __result, Vector3 lastExactPos, Vector3 newExactPos)
+  {
+    _ = Transpiler(null);
+    throw new NotImplementedException();
+
+    IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        _ = Transpiler(null);
-        throw new NotImplementedException();
-        
-        IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
-            return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);
-        }
+      return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);
     }
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.TabulaRasa)]
@@ -84,18 +84,18 @@ public static class Patch_Patch_Projectile_CheckForFreeInterceptBetween_Postfix
 [PatchLevel(Level.Mandatory)]
 public static class Patch_Patch_Skyfaller_Tick_Prefix
 {
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    [HarmonyReversePatch]
-    public static bool PrefixPatch(Skyfaller __instance)
+  [MethodImpl(MethodImplOptions.NoInlining)]
+  [HarmonyReversePatch]
+  public static bool PrefixPatch(Skyfaller __instance)
+  {
+    _ = Transpiler(null);
+    throw new NotImplementedException();
+
+    IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        _ = Transpiler(null);
-        throw new NotImplementedException();
-        
-        IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
-            return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);
-        }
+      return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);
     }
+  }
 }
 
 [HarmonyAfter("Neronix17.TabulaRasa.RimWorld")]
@@ -104,27 +104,27 @@ public static class Patch_Patch_Skyfaller_Tick_Prefix
 [PatchLevel(Level.Safe)]
 public static class Patch_Skyfaller_Tick
 {
-    public static List<Func<Skyfaller, bool>> Prefixes { get; } = [Patch_Patch_Skyfaller_Tick_Prefix.PrefixPatch];
-    
-    public static bool Prefix(Skyfaller __instance)
+  public static List<Func<Skyfaller, bool>> Prefixes { get; } = [Patch_Patch_Skyfaller_Tick_Prefix.PrefixPatch];
+
+  public static bool Prefix(Skyfaller __instance)
+  {
+    foreach (var map in __instance.Map.BaseMapAndVehicleMaps(false))
     {
-        foreach (var map in __instance.Map.BaseMapAndVehicleMaps(false))
+      __instance.TargetMap = map;
+      try
+      {
+        for (var i = 0; i < Prefixes.Count; i++)
         {
-            __instance.TargetMap = map;
-            try
-            {
-                for (var i = 0; i < Prefixes.Count; i++)
-                {
-                    if (!Prefixes[i](__instance)) return false;
-                }
-            }
-            finally
-            {
-                __instance.RemoveTargetInfo();
-            }
+          if (!Prefixes[i](__instance)) return false;
         }
-        return true;
+      }
+      finally
+      {
+        __instance.RemoveTargetInfo();
+      }
     }
+    return true;
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.TabulaRasa)]
@@ -132,15 +132,15 @@ public static class Patch_Skyfaller_Tick
 [PatchLevel(Level.Sensitive)]
 public static class Patch_PlaceWorker_ShowShieldRadius_DrawGhost
 {
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    foreach (var instruction in instructions)
     {
-        foreach (var instruction in instructions)
-        {
-            yield return instruction;
-            if (instruction.opcode == OpCodes.Call && instruction.OperandIs(CachedMethodInfo.m_IntVec3_ToVector3Shifted))
-            {
-                yield return new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ToBaseMapCoord1);
-            }
-        }
+      yield return instruction;
+      if (instruction.opcode == OpCodes.Call && instruction.OperandIs(CachedMethodInfo.m_IntVec3_ToVector3Shifted))
+      {
+        yield return new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ToBaseMapCoord1);
+      }
     }
+  }
 }

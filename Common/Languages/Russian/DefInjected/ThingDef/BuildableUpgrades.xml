@@ -2,11 +2,14 @@
 <LanguageData>
 
   <VMF_DriverSeat.label>место водителя</VMF_DriverSeat.label>
-  <VMF_DriverSeat.description>Место водителя транспорта. Когда установлено, транспортным средством можно управлять.</VMF_DriverSeat.description>
+  <VMF_DriverSeat.description>Место водителя транспорта. Когда установлено, транспортным средством можно управлять.
+  </VMF_DriverSeat.description>
   <VMF_DriverSeat.comps.0.upgrades.0.roles.0.label>Водитель</VMF_DriverSeat.comps.0.upgrades.0.roles.0.label>
 
   <VMF_GunnerSeat.label>место стрелка</VMF_GunnerSeat.label>
-  <VMF_GunnerSeat.description>Место стрелка транспорта. Когда установлено, можно управлять выбранной турелью транспорта.</VMF_GunnerSeat.description>
+  <VMF_GunnerSeat.description>Место стрелка транспорта. Когда установлено, можно управлять выбранной турелью
+    транспорта.
+  </VMF_GunnerSeat.description>
   <VMF_GunnerSeat.comps.0.upgrades.0.roles.0.label>Стрелок</VMF_GunnerSeat.comps.0.upgrades.0.roles.0.label>
 
   <VMF_PassengerSeat.label>пассажирское место</VMF_PassengerSeat.label>
@@ -14,15 +17,24 @@
   <VMF_PassengerSeat.comps.0.upgrades.0.roles.0.label>Пассажир</VMF_PassengerSeat.comps.0.upgrades.0.roles.0.label>
 
   <VMF_CargoContainer.label>грузовой контейнер</VMF_CargoContainer.label>
-  <VMF_CargoContainer.description>Хранилище для увеличения грузоподъёмности транспорта.\n\n&lt;color=#bb8f04&gt;Вместимость груза:&lt;/color&gt; +150 кг</VMF_CargoContainer.description>
+  <VMF_CargoContainer.description>Хранилище для увеличения грузоподъёмности транспорта.\n\n&lt;color=#bb8f04&gt;Вместимость
+    груза:&lt;/color&gt; +150 кг
+  </VMF_CargoContainer.description>
 
   <VMF_TurboCharger.label>турбокомпрессор</VMF_TurboCharger.label>
-  <VMF_TurboCharger.description>Компонент двигателя для увеличения максимальной грузоподъёмности транспорта.\n\n&lt;color=#bb8f04&gt;Макс. грузоподъёмность:&lt;/color&gt; +500 кг\n&lt;color=#bb8f04&gt;Расход топлива:&lt;/color&gt; +8 /день</VMF_TurboCharger.description>
+  <VMF_TurboCharger.description>Компонент двигателя для увеличения максимальной грузоподъёмности транспорта.\n\n&lt;color=#bb8f04&gt;Макс.
+    грузоподъёмность:&lt;/color&gt; +500 кг\n&lt;color=#bb8f04&gt;Расход топлива:&lt;/color&gt; +8 /день
+  </VMF_TurboCharger.description>
 
   <VMF_LiftFan.label>подъёмный вентилятор</VMF_LiftFan.label>
-  <VMF_LiftFan.description>Подъёмный вентилятор для увеличения максимальной грузоподъёмности ховер-транспорта. Может быть установлен только на ховер-транспортах.\n\n&lt;color=#bb8f04&gt;Макс. грузоподъёмность:&lt;/color&gt; +250 кг\n&lt;color=#bb8f04&gt;Расход топлива:&lt;/color&gt; +4 /день</VMF_LiftFan.description>
+  <VMF_LiftFan.description>Подъёмный вентилятор для увеличения максимальной грузоподъёмности ховер-транспорта. Может
+    быть установлен только на ховер-транспортах.\n\n&lt;color=#bb8f04&gt;Макс. грузоподъёмность:&lt;/color&gt; +250
+    кг\n&lt;color=#bb8f04&gt;Расход топлива:&lt;/color&gt; +4 /день
+  </VMF_LiftFan.description>
 
   <VMF_FuelTank.label>топливный бак</VMF_FuelTank.label>
-  <VMF_FuelTank.description>Бак для увеличения запаса топлива транспорта.\n\n&lt;color=#bb8f04&gt;Ёмкость топлива:&lt;/color&gt; +300</VMF_FuelTank.description>
+  <VMF_FuelTank.description>Бак для увеличения запаса топлива транспорта.\n\n&lt;color=#bb8f04&gt;Ёмкость топлива:&lt;/color&gt;
+    +300
+  </VMF_FuelTank.description>
 
 </LanguageData>

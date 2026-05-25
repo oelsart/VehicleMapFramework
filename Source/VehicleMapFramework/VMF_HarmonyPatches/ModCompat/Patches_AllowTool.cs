@@ -9,13 +9,13 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 internal class Patches_AllowTool
 {
-    static Patches_AllowTool()
+  static Patches_AllowTool()
+  {
+    if (AllowTool)
     {
-        if (AllowTool)
-        {
-            VMF_Harmony.PatchCategory(PatchCategories.AllowTool);
-        }
+      VMF_Harmony.PatchCategory(PatchCategories.AllowTool);
     }
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.AllowTool)]
@@ -23,10 +23,10 @@ internal class Patches_AllowTool
 [PatchLevel(Level.Cautious)]
 public static class Patch_Designator_SelectSimilar_ProcessSingleCellClick
 {
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Find_CurrentMap, CachedMethodInfo.g_VehicleMapUtility_CurrentMap);
-    }
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    return instructions.MethodReplacer(CachedMethodInfo.g_Find_CurrentMap, CachedMethodInfo.g_VehicleMapUtility_CurrentMap);
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.AllowTool)]
@@ -34,10 +34,10 @@ public static class Patch_Designator_SelectSimilar_ProcessSingleCellClick
 [PatchLevel(Level.Cautious)]
 public static class Patch_Designator_SelectableThings_DesignateMultiCell
 {
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Find_CurrentMap, CachedMethodInfo.g_VehicleMapUtility_CurrentMap);
-    }
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    return instructions.MethodReplacer(CachedMethodInfo.g_Find_CurrentMap, CachedMethodInfo.g_VehicleMapUtility_CurrentMap);
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.AllowTool)]
@@ -45,10 +45,10 @@ public static class Patch_Designator_SelectableThings_DesignateMultiCell
 [PatchLevel(Level.Cautious)]
 public static class Patch_UnlimitedAreaDragger_OnSelectionStarted
 {
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Find_CurrentMap, CachedMethodInfo.g_VehicleMapUtility_CurrentMap);
-    }
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    return instructions.MethodReplacer(CachedMethodInfo.g_Find_CurrentMap, CachedMethodInfo.g_VehicleMapUtility_CurrentMap);
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.AllowTool)]
@@ -56,10 +56,10 @@ public static class Patch_UnlimitedAreaDragger_OnSelectionStarted
 [PatchLevel(Level.Cautious)]
 public static class Patch_UnlimitedAreaDragger_Update
 {
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Find_CurrentMap, CachedMethodInfo.g_VehicleMapUtility_CurrentMap);
-    }
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    return instructions.MethodReplacer(CachedMethodInfo.g_Find_CurrentMap, CachedMethodInfo.g_VehicleMapUtility_CurrentMap);
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.AllowTool)]
@@ -67,16 +67,16 @@ public static class Patch_UnlimitedAreaDragger_Update
 [PatchLevel(Level.Safe)]
 public static class Patch_MapCellHighlighter_CachedHighlight
 {
-    private static MethodBase TargetMethod()
-    {
-        return AccessTools.TypeByName("AllowTool.MapCellHighlighter+CachedHighlight").Constructor([typeof(Vector3), typeof(Material)]);
-    }
+  private static MethodBase TargetMethod()
+  {
+    return AccessTools.TypeByName("AllowTool.MapCellHighlighter+CachedHighlight").Constructor([typeof(Vector3), typeof(Material)]);
+  }
 
-    public static void Prefix(ref Vector3 drawPosition)
+  public static void Prefix(ref Vector3 drawPosition)
+  {
+    if (Find.CurrentMap.IsVehicleMapOf(out var vehicle) || (vehicle = Command_FocusVehicleMap.FocusedVehicle) != null)
     {
-        if (Find.CurrentMap.IsVehicleMapOf(out var vehicle) || (vehicle = Command_FocusVehicleMap.FocusedVehicle) != null)
-        {
-            drawPosition = drawPosition.ToBaseMapCoord(vehicle).WithY(drawPosition.y);
-        }
+      drawPosition = drawPosition.ToBaseMapCoord(vehicle).WithY(drawPosition.y);
     }
+  }
 }

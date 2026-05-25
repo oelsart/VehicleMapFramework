@@ -12,13 +12,13 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 internal static class Patches_AdaptiveStorage
 {
-    static Patches_AdaptiveStorage()
+  static Patches_AdaptiveStorage()
+  {
+    if (AdaptiveStorage.Active)
     {
-        if (AdaptiveStorage.Active)
-        {
-            VMF_Harmony.PatchCategory(PatchCategories.AdaptiveStorageFramework);
-        }
+      VMF_Harmony.PatchCategory(PatchCategories.AdaptiveStorageFramework);
     }
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.AdaptiveStorageFramework)]
@@ -26,74 +26,75 @@ internal static class Patches_AdaptiveStorage
 [PatchLevel(Level.Sensitive)]
 public static class Patch_StorageGraphicWorker_UpdatePrintData
 {
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        var codes = instructions.ToList();
-        var pos = codes.FindLastIndex(c => c.opcode == OpCodes.Stloc_0) + 1;
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    var codes = instructions.ToList();
+    var pos = codes.FindLastIndex(c => c.opcode == OpCodes.Stloc_0) + 1;
 
-        codes.InsertRange(pos,
-        [
-            CodeInstruction.LoadArgument(1),
-            CodeInstruction.LoadLocal(0),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_PrintExtraRotation),
-            new CodeInstruction(OpCodes.Callvirt, AccessTools.PropertySetter("AdaptiveStorage.PrintDatas.PrintData:ExtraRotation"))
-        ]);
-        return codes.MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_RotationForPrint);
-    }
+    codes.InsertRange(pos,
+    [
+      CodeInstruction.LoadArgument(1),
+      CodeInstruction.LoadLocal(0),
+      new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_PrintExtraRotation),
+      new CodeInstruction(OpCodes.Callvirt, AccessTools.PropertySetter("AdaptiveStorage.PrintDatas.PrintData:ExtraRotation"))
+    ]);
+    return codes.MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_RotationForPrint);
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.AdaptiveStorageFramework)]
 [HarmonyPatch("AdaptiveStorage.ItemGraphicWorker", "DrawOffsetForItem")]
 public static class Patch_ItemGraphicWorker_DrawOffsetForItem
 {
-    [PatchLevel(Level.Safe)]
-    public static void Postfix(object __instance, Building_Storage building, Thing item, ref Vector3 __result)
+
+  private static readonly AccessTools.FieldRef<object, int> stackBehaviour = AccessTools.FieldRefAccess<int>("AdaptiveStorage.ItemGraphic:stackBehaviour");
+
+  private static readonly AccessTools.FieldRef<object, object> graphic = AccessTools.FieldRefAccess<object>("AdaptiveStorage.ItemGraphicWorker:<graphic>P");
+
+  [PatchLevel(Level.Safe)]
+  public static void Postfix(object __instance, Building_Storage building, Thing item, ref Vector3 __result)
+  {
+    if (item.IsOnVehicleMapOf(out _))
     {
-        if (item.IsOnVehicleMapOf(out _))
+      //stackBehaviourがCircleの時
+      if (building == null || stackBehaviour(graphic(__instance)) == 1) return;
+
+      var angle = VehicleSectionLayerManager.RotForPrint.AsAngle;
+      Vector3 origin;
+      var parentDrawLoc = building.DrawPos;
+      if (VehicleSectionLayerManager.RotForPrint == Rot4.East)
+      {
+        origin = (item.Position.ToVector3Shifted() - parentDrawLoc).RotatedBy(angle);
+      }
+      else if (VehicleSectionLayerManager.RotForPrint == Rot4.West)
+      {
+        origin = item.Position.ToVector3Shifted() - parentDrawLoc;
+      }
+      else
+      {
+        origin = Vector3.zero;
+      }
+      if (!building.RotationForPrint().IsHorizontal)
+      {
+        if (VehicleSectionLayerManager.RotForPrint == Rot4.East)
         {
-            //stackBehaviourがCircleの時
-            if (building == null || stackBehaviour(graphic(__instance)) == 1) return;
-
-            var angle = VehicleSectionLayerManager.RotForPrint.AsAngle;
-            Vector3 origin;
-            var parentDrawLoc = building.DrawPos;
-            if (VehicleSectionLayerManager.RotForPrint == Rot4.East)
-            {
-                origin = (item.Position.ToVector3Shifted() - parentDrawLoc).RotatedBy(angle);
-            }
-            else if (VehicleSectionLayerManager.RotForPrint == Rot4.West)
-            {
-                origin = item.Position.ToVector3Shifted() - parentDrawLoc;
-            }
-            else
-            {
-                origin = Vector3.zero;
-            }
-            if (!building.RotationForPrint().IsHorizontal)
-            {
-                if (VehicleSectionLayerManager.RotForPrint == Rot4.East)
-                {
-                    origin = origin.RotatedBy(-angle);
-                }
-                if (VehicleSectionLayerManager.RotForPrint == Rot4.West)
-                {
-                    origin = origin.RotatedBy(angle);
-                }
-            }
-
-            __result = Ext_Math.RotatePoint(__result, origin, angle);
+          origin = origin.RotatedBy(-angle);
         }
+        if (VehicleSectionLayerManager.RotForPrint == Rot4.West)
+        {
+          origin = origin.RotatedBy(angle);
+        }
+      }
+
+      __result = Ext_Math.RotatePoint(__result, origin, angle);
     }
+  }
 
-    [PatchLevel(Level.Cautious)]
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_RotationForPrint);
-    }
-
-    private static readonly AccessTools.FieldRef<object, int> stackBehaviour = AccessTools.FieldRefAccess<int>("AdaptiveStorage.ItemGraphic:stackBehaviour");
-
-    private static readonly AccessTools.FieldRef<object, object> graphic = AccessTools.FieldRefAccess<object>("AdaptiveStorage.ItemGraphicWorker:<graphic>P");
+  [PatchLevel(Level.Cautious)]
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_RotationForPrint);
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.AdaptiveStorageFramework)]
@@ -101,8 +102,8 @@ public static class Patch_ItemGraphicWorker_DrawOffsetForItem
 [PatchLevel(Level.Safe)]
 public static class Patch_ItemGraphicWorker_ItemOffsetAt
 {
-    public static void Postfix(ref float stackRotation)
-    {
-        stackRotation -= VehicleSectionLayerManager.RotForPrint.AsAngle;
-    }
+  public static void Postfix(ref float stackRotation)
+  {
+    stackRotation -= VehicleSectionLayerManager.RotForPrint.AsAngle;
+  }
 }

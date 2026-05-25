@@ -1,31 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LanguageData>
 
-	<VMF_Settings.Tab.Main>主要</VMF_Settings.Tab.Main>
-	<VMF_Settings.Tab.PUAHPatch>PUAH補丁</VMF_Settings.Tab.PUAHPatch>
-	<VMF_Settings.Tab.DynamicPatches>動態補丁</VMF_Settings.Tab.DynamicPatches>
+  <VMF_Settings.Tab.Main>主要</VMF_Settings.Tab.Main>
+  <VMF_Settings.Tab.PUAHPatch>PUAH補丁</VMF_Settings.Tab.PUAHPatch>
+  <VMF_Settings.Tab.DynamicPatches>動態補丁</VMF_Settings.Tab.DynamicPatches>
 
-	<VMF_Settings.DrawPlanet>旅隊移動時顯示世界地圖</VMF_Settings.DrawPlanet>
-	<VMF_Settings.AutoGetOffPlayer>玩家派系的角色會自動從車輛地圖下車。</VMF_Settings.AutoGetOffPlayer>
-	<VMF_Settings.AutoGetOffNonPlayer>非玩家派系的角色會自動從車輛地圖下車。</VMF_Settings.AutoGetOffNonPlayer>
-	<VMF_Settings.RoofedPatch>載具地圖的屋頂判定同時參考基礎地圖的屋頂\n(會影響性能)</VMF_Settings.RoofedPatch>
-	<VMF_Settings.WeightFactor>載具地圖上物品的重量係數</VMF_Settings.WeightFactor>
-	<VMF_Settings.CrossMapJobProtect>跨地圖非相容工作的保護。</VMF_Settings.CrossMapJobProtect>
-	<VMF_Settings.CrossMapJobProtect.Tooltip>會自動將可能因「10 jobs in one tick」錯誤而導致角色卡住的Workgiver排除在跨地圖相容之外。\n可提升遊戲穩定性，但會較難發現不相容的工作（若回報給作者，這些工作可被修正）。</VMF_Settings.CrossMapJobProtect.Tooltip>
-	<VMF_Settings.ThreadingPathCost>大型載具的路徑成本計算多線程化</VMF_Settings.ThreadingPathCost>
-	<VMF_Settings.MinAreaForThreading>使用多線程計算的最小載具面積</VMF_Settings.MinAreaForThreading>
-	<VMF_Settings.AsyncClosestThing>獲取可到達的最近物品計算多線程化</VMF_Settings.AsyncClosestThing>
-	<VMF_Settings.MinSearchSetCount>多線程計算的最小搜索集數量</VMF_Settings.MinSearchSetCount>
-	<VMF_Settings.EnableDynamicPatches>啟用動態補丁。</VMF_Settings.EnableDynamicPatches>
-	<VMF_Settings.EnableDynamicPatches.Tooltip>當世界中存在含地圖的車輛時，套用Harmony補丁。</VMF_Settings.EnableDynamicPatches.Tooltip>
-	<VMF_Settings.EnableDynamicUnpatches>啟用動態解除補丁。</VMF_Settings.EnableDynamicUnpatches>
-	<VMF_Settings.EnableDynamicUnpatches.Tooltip>當世界中不存在含地圖的車輛時，解除Harmony補丁。</VMF_Settings.EnableDynamicUnpatches.Tooltip>
-	<VMF_Settings.DynamicPatchLevel>動態補丁切換等級</VMF_Settings.DynamicPatchLevel>
-	<VMF_PatchLevel.Sensitive>高敏感</VMF_PatchLevel.Sensitive>
-	<VMF_PatchLevel.Cautious>謹慎</VMF_PatchLevel.Cautious>
-	<VMF_PatchLevel.Safe>安全</VMF_PatchLevel.Safe>
-	<VMF_PatchLevel.Sensitive.Tooltip>連同使用IL索引搜尋等較為複雜且負載較高的Transpiler在內，一併切換補丁的套用狀態。</VMF_PatchLevel.Sensitive.Tooltip>
-	<VMF_PatchLevel.Cautious.Tooltip>切換相對安全的補丁套用狀態，例如單純函式替換等，即使是Transpiler也屬較低風險。</VMF_PatchLevel.Cautious.Tooltip>
-	<VMF_PatchLevel.Safe.Tooltip>切換可安全且高速執行的補丁套用狀態，例如Prefix、Postfix等。</VMF_PatchLevel.Safe.Tooltip>
+  <VMF_Settings.DrawPlanet>旅隊移動時顯示世界地圖</VMF_Settings.DrawPlanet>
+  <VMF_Settings.AutoGetOffPlayer>玩家派系的角色會自動從車輛地圖下車。</VMF_Settings.AutoGetOffPlayer>
+  <VMF_Settings.AutoGetOffNonPlayer>非玩家派系的角色會自動從車輛地圖下車。</VMF_Settings.AutoGetOffNonPlayer>
+  <VMF_Settings.RoofedPatch>載具地圖的屋頂判定同時參考基礎地圖的屋頂\n(會影響性能)</VMF_Settings.RoofedPatch>
+  <VMF_Settings.WeightFactor>載具地圖上物品的重量係數</VMF_Settings.WeightFactor>
+  <VMF_Settings.CrossMapJobProtect>跨地圖非相容工作的保護。</VMF_Settings.CrossMapJobProtect>
+  <VMF_Settings.CrossMapJobProtect.Tooltip>會自動將可能因「10 jobs in one
+    tick」錯誤而導致角色卡住的Workgiver排除在跨地圖相容之外。\n可提升遊戲穩定性，但會較難發現不相容的工作（若回報給作者，這些工作可被修正）。
+  </VMF_Settings.CrossMapJobProtect.Tooltip>
+  <VMF_Settings.ThreadingPathCost>大型載具的路徑成本計算多線程化</VMF_Settings.ThreadingPathCost>
+  <VMF_Settings.MinAreaForThreading>使用多線程計算的最小載具面積</VMF_Settings.MinAreaForThreading>
+  <VMF_Settings.AsyncClosestThing>獲取可到達的最近物品計算多線程化</VMF_Settings.AsyncClosestThing>
+  <VMF_Settings.MinSearchSetCount>多線程計算的最小搜索集數量</VMF_Settings.MinSearchSetCount>
+  <VMF_Settings.EnableDynamicPatches>啟用動態補丁。</VMF_Settings.EnableDynamicPatches>
+  <VMF_Settings.EnableDynamicPatches.Tooltip>當世界中存在含地圖的車輛時，套用Harmony補丁。
+  </VMF_Settings.EnableDynamicPatches.Tooltip>
+  <VMF_Settings.EnableDynamicUnpatches>啟用動態解除補丁。</VMF_Settings.EnableDynamicUnpatches>
+  <VMF_Settings.EnableDynamicUnpatches.Tooltip>當世界中不存在含地圖的車輛時，解除Harmony補丁。
+  </VMF_Settings.EnableDynamicUnpatches.Tooltip>
+  <VMF_Settings.DynamicPatchLevel>動態補丁切換等級</VMF_Settings.DynamicPatchLevel>
+  <VMF_PatchLevel.Sensitive>高敏感</VMF_PatchLevel.Sensitive>
+  <VMF_PatchLevel.Cautious>謹慎</VMF_PatchLevel.Cautious>
+  <VMF_PatchLevel.Safe>安全</VMF_PatchLevel.Safe>
+  <VMF_PatchLevel.Sensitive.Tooltip>連同使用IL索引搜尋等較為複雜且負載較高的Transpiler在內，一併切換補丁的套用狀態。
+  </VMF_PatchLevel.Sensitive.Tooltip>
+  <VMF_PatchLevel.Cautious.Tooltip>切換相對安全的補丁套用狀態，例如單純函式替換等，即使是Transpiler也屬較低風險。
+  </VMF_PatchLevel.Cautious.Tooltip>
+  <VMF_PatchLevel.Safe.Tooltip>切換可安全且高速執行的補丁套用狀態，例如Prefix、Postfix等。</VMF_PatchLevel.Safe.Tooltip>
 
 </LanguageData>

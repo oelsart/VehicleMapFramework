@@ -6,45 +6,45 @@ namespace VehicleMapFramework;
 
 public class Command_ToggleIcon : Command
 {
-    public Func<bool> isActive;
 
-    public Action toggleAction;
+  public Texture iconTwo;
+  public Func<bool> isActive;
 
-    public SoundDef toggleSound;
+  public string labelTwo;
 
-    public string labelTwo;
+  public Action toggleAction;
 
-    public Texture iconTwo;
-    
-    public override SoundDef CurActivateSound => toggleSound;
+  public SoundDef toggleSound;
 
-    public override string Label => isActive() ? defaultLabel : labelTwo;
+  public override SoundDef CurActivateSound => toggleSound;
 
-    public override void ProcessInput(Event ev)
+  public override string Label => isActive() ? defaultLabel : labelTwo;
+
+  public override void ProcessInput(Event ev)
+  {
+    base.ProcessInput(ev);
+    toggleAction();
+  }
+
+  public override void DrawIcon(Rect rect, Material buttonMat, GizmoRenderParms parms)
+  {
+    var badTex = (isActive() ? icon : iconTwo) ?? BaseContent.BadTex;
+    rect.position += new Vector2(iconOffset.x * rect.size.x, iconOffset.y * rect.size.y);
+    if (!disabled || parms.lowLight)
     {
-        base.ProcessInput(ev);
-        toggleAction();
+      GUI.color = IconDrawColor;
+    }
+    else
+    {
+      GUI.color = IconDrawColor.SaturationChanged(0f);
     }
 
-    public override void DrawIcon(Rect rect, Material buttonMat, GizmoRenderParms parms)
+    if (parms.lowLight)
     {
-        var badTex = (isActive() ? icon : iconTwo) ?? BaseContent.BadTex;
-        rect.position += new Vector2(iconOffset.x * rect.size.x, iconOffset.y * rect.size.y);
-        if (!disabled || parms.lowLight)
-        {
-            GUI.color = IconDrawColor;
-        }
-        else
-        {
-            GUI.color = IconDrawColor.SaturationChanged(0f);
-        }
-
-        if (parms.lowLight)
-        {
-            GUI.color = GUI.color.ToTransparent(0.6f);
-        }
-
-        Widgets.DrawTextureFitted(rect, badTex, iconDrawScale * 0.85f, iconProportions, iconTexCoords, iconAngle, buttonMat);
-        GUI.color = Color.white;
+      GUI.color = GUI.color.ToTransparent(0.6f);
     }
+
+    Widgets.DrawTextureFitted(rect, badTex, iconDrawScale * 0.85f, iconProportions, iconTexCoords, iconAngle, buttonMat);
+    GUI.color = Color.white;
+  }
 }

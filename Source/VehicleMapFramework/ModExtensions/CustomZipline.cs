@@ -9,94 +9,87 @@ namespace VehicleMapFramework;
 [StaticConstructorOnStartup]
 public class CustomZipline : DefModExtension
 {
-    public string texPath;
 
-    public float? ziplineWidth;
-    
-    public float? ziplineEndOffset;
-    
-    public float? launcherOffset;
+  private static Material DefaultZiplineMat;
 
-    public ThingDef ziplineEndDef;
-    
-    public ThingDef ziplineReturnDef;
-    
-    [Unsaved]
-    public ZipLineData zipLineData;
+  public float? launcherOffset;
+  public string texPath;
 
-    static CustomZipline()
+  [Unsaved] public ZipLineData zipLineData;
+
+  public ThingDef ziplineEndDef;
+
+  public float? ziplineEndOffset;
+
+  public ThingDef ziplineReturnDef;
+
+  public float? ziplineWidth;
+
+  static CustomZipline()
+  {
+    LongEventHandler.ExecuteWhenFinished(() => { DefaultZiplineMat = MaterialPool.MatFrom("VehicleMapFramework/Things/ZiplineTurret/Zipline"); });
+  }
+
+  public override void ResolveReferences(Def parentDef)
+  {
+    base.ResolveReferences(parentDef);
+    LongEventHandler.ExecuteWhenFinished(() => { zipLineData = new ZipLineData(texPath, ziplineWidth, ziplineEndOffset, launcherOffset, ziplineEndDef, ziplineReturnDef); });
+  }
+
+  public override IEnumerable<string> ConfigErrors()
+  {
+    if (ziplineEndDef?.thingClass.SameOrSubclassOf<ZiplineEnd>() == false)
     {
-        LongEventHandler.ExecuteWhenFinished(() =>
-        {
-            DefaultZiplineMat = MaterialPool.MatFrom("VehicleMapFramework/Things/ZiplineTurret/Zipline");
-        });
+      yield return "ZiplineEndDef must be a subclass of ZiplineEnd";
     }
-    
-    public override void ResolveReferences(Def parentDef)
+    if (ziplineReturnDef?.thingClass.SameOrSubclassOf<Bullet_ZiplineEndReturn>() == false)
     {
-        base.ResolveReferences(parentDef);
-        LongEventHandler.ExecuteWhenFinished(() =>
-        {
-            zipLineData = new ZipLineData(texPath, ziplineWidth, ziplineEndOffset, launcherOffset, ziplineEndDef, ziplineReturnDef);
-        });
+      yield return "ZiplineReturnDef must be a subclass of Bullet_ZiplineEndReturn";
     }
+  }
 
-    public override IEnumerable<string> ConfigErrors()
+  public readonly struct ZipLineData
+  {
+    private readonly float? ziplineWidth;
+
+    private readonly float? ziplineEndOffset;
+
+    private readonly float? launcherOffset;
+
+    private readonly Material ziplineMat;
+
+    public ZipLineData(string texPath, float? ziplineWidth, float? ziplineEndOffset, float? launcherOffset,
+      ThingDef ziplineEndDef, ThingDef ziplineReturnDef)
     {
-        if (ziplineEndDef?.thingClass.SameOrSubclassOf<ZiplineEnd>() == false)
-        {
-            yield return "ZiplineEndDef must be a subclass of ZiplineEnd";
-        }
-        if (ziplineReturnDef?.thingClass.SameOrSubclassOf<Bullet_ZiplineEndReturn>() == false)
-        {
-            yield return "ZiplineReturnDef must be a subclass of Bullet_ZiplineEndReturn";
-        }
+      this.ziplineWidth = ziplineWidth;
+      this.ziplineEndOffset = ziplineEndOffset;
+      this.launcherOffset = launcherOffset;
+      ZiplineEndDef = ziplineEndDef;
+      ZiplineReturnDef = ziplineReturnDef;
+      if (texPath != null)
+      {
+        ziplineMat = MaterialPool.MatFrom(texPath, ShaderDatabase.Transparent);
+        ziplineMat.mainTexture.wrapMode = TextureWrapMode.Repeat;
+        ziplineMat.enableInstancing = true;
+      }
     }
 
-    private static Material DefaultZiplineMat;
+    public Material ZiplineMat => ziplineMat ?? DefaultZiplineMat;
 
-    public readonly struct ZipLineData
-    {
-        private readonly float? ziplineWidth;
-    
-        private readonly float? ziplineEndOffset;
-    
-        private readonly float? launcherOffset;
+    public float ZiplineWidth => ziplineWidth ?? DefaultZiplineWidth;
 
-        private readonly Material ziplineMat;
+    public float ZiplineEndOffset => ziplineEndOffset ?? DefaultZiplineEndOffset;
 
-        public ZipLineData(string texPath, float? ziplineWidth, float? ziplineEndOffset, float? launcherOffset,
-            ThingDef ziplineEndDef, ThingDef ziplineReturnDef)
-        {
-            this.ziplineWidth = ziplineWidth;
-            this.ziplineEndOffset = ziplineEndOffset;
-            this.launcherOffset = launcherOffset;
-            this.ZiplineEndDef = ziplineEndDef;
-            this.ZiplineReturnDef = ziplineReturnDef;
-            if (texPath != null)
-            {
-                ziplineMat = MaterialPool.MatFrom(texPath, ShaderDatabase.Transparent);
-                ziplineMat.mainTexture.wrapMode = TextureWrapMode.Repeat;
-                ziplineMat.enableInstancing = true;
-            }
-        }
-        
-        public Material ZiplineMat => ziplineMat ?? DefaultZiplineMat;
+    public float LauncherOffset => launcherOffset ?? DefaultLauncherOffset;
 
-        public float ZiplineWidth => ziplineWidth ?? DefaultZiplineWidth;
+    public ThingDef ZiplineEndDef => field ?? VMF_DefOf.VMF_ZiplineEnd;
 
-        public float ZiplineEndOffset => ziplineEndOffset ?? DefaultZiplineEndOffset;
+    public ThingDef ZiplineReturnDef => field ?? VMF_DefOf.VMF_Bullet_ZiplineTurretReturn;
 
-        public float LauncherOffset => launcherOffset ?? DefaultLauncherOffset;
-        
-        public ThingDef ZiplineEndDef => field ?? VMF_DefOf.VMF_ZiplineEnd;
-        
-        public ThingDef ZiplineReturnDef => field ?? VMF_DefOf.VMF_Bullet_ZiplineTurretReturn;
+    private const float DefaultZiplineWidth = 0.12f;
 
-        private const float DefaultZiplineWidth = 0.12f;
+    private const float DefaultZiplineEndOffset = 0.42f;
 
-        private const float DefaultZiplineEndOffset = 0.42f;
-
-        private const float DefaultLauncherOffset = 0.85f;
-    }
+    private const float DefaultLauncherOffset = 0.85f;
+  }
 }

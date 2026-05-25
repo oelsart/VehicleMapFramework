@@ -6,13 +6,15 @@ namespace VehicleMapFramework;
 
 public class Building_AttackTargetByComps : Building, IAttackTarget
 {
-    Thing IAttackTarget.Thing => this;
+  Thing IAttackTarget.Thing => this;
 
-    LocalTargetInfo IAttackTarget.TargetCurrentlyAimingAt => LocalTargetInfo.Invalid;
-    
-    float IAttackTarget.TargetPriorityFactor =>
-        AllComps.OfType<IAttackTarget>().Select(a => a.TargetPriorityFactor).Aggregate((a, b) =>  a * b);
+  LocalTargetInfo IAttackTarget.TargetCurrentlyAimingAt => LocalTargetInfo.Invalid;
 
-    bool IAttackTarget.ThreatDisabled(IAttackTargetSearcher disabledFor) =>
-        AllComps.OfType<IAttackTarget>().Any(attackTarget => attackTarget.ThreatDisabled(disabledFor));
+  float IAttackTarget.TargetPriorityFactor =>
+    AllComps.OfType<IAttackTarget>().Select(a => a.TargetPriorityFactor).Aggregate((a, b) => a * b);
+
+  bool IAttackTarget.ThreatDisabled(IAttackTargetSearcher disabledFor)
+  {
+    return AllComps.OfType<IAttackTarget>().Any(attackTarget => attackTarget.ThreatDisabled(disabledFor));
+  }
 }

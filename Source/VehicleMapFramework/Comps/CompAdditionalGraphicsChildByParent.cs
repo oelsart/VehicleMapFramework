@@ -6,10 +6,10 @@ namespace VehicleMapFramework;
 
 public class CompAdditionalGraphicsChildByParent : CompAdditionalGraphicsChild
 {
-    public CompProperties_AdditionalGraphicsChildByParent Props => (CompProperties_AdditionalGraphicsChildByParent)props;
+  public CompProperties_AdditionalGraphicsChildByParent Props => (CompProperties_AdditionalGraphicsChildByParent)props;
 
-    public override IEnumerable<Graphic> Graphics =>
-        Props.graphicsByParent.TryGetValue(parentThing.def, out var list)
-            ? list.Select(g => g.Graphic)
-            : [];
+  public override IEnumerable<Graphic> Graphics =>
+    Props.graphicsByParent.TryGetValue(parentThing.def, out var list)
+      ? list.Select(g => g.Graphic)
+      : [];
 }

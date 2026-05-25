@@ -8,10 +8,10 @@ namespace VehicleMapFramework;
 [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 public class CompProperties_BuildableUpgrades : CompProperties
 {
-    public List<Upgrade> upgrades;
-    
-    public CompProperties_BuildableUpgrades()
-    {
-        compClass = typeof(CompBuildableUpgrades);
-    }
+  public List<Upgrade> upgrades;
+
+  public CompProperties_BuildableUpgrades()
+  {
+    compClass = typeof(CompBuildableUpgrades);
+  }
 }

@@ -4,10 +4,11 @@ namespace VehicleMapFramework;
 
 public class CompProperties_Zipline : CompProperties_VehicleEnterSpot
 {
-    public CompProperties_Zipline()
-    {
-        compClass = typeof(CompZipline);
-    }
 
-    public GraphicData standbyGraphic;
+  public GraphicData standbyGraphic;
+
+  public CompProperties_Zipline()
+  {
+    compClass = typeof(CompZipline);
+  }
 }

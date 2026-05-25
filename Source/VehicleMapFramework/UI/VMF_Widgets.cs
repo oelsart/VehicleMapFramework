@@ -9,125 +9,125 @@ namespace VehicleMapFramework;
 [StaticConstructorOnStartup]
 public static class VMF_Widgets
 {
-    private static readonly Texture2D SliderRailAtlas = ContentFinder<Texture2D>.Get("UI/Buttons/SliderRail");
+  private static readonly Texture2D SliderRailAtlas = ContentFinder<Texture2D>.Get("UI/Buttons/SliderRail");
 
-    private static readonly Texture2D SliderHandle = ContentFinder<Texture2D>.Get("UI/Buttons/SliderHandle");
+  private static readonly Texture2D SliderHandle = ContentFinder<Texture2D>.Get("UI/Buttons/SliderHandle");
 
-    private static readonly Color RangeControlTextColor = new(0.6f, 0.6f, 0.6f);
+  private static readonly Color RangeControlTextColor = new(0.6f, 0.6f, 0.6f);
 
-    private static float lastDragSliderSoundTime = -1f;
+  private static float lastDragSliderSoundTime = -1f;
 
-    private static int sliderDraggingID;
-    
-    public static float HorizontalSlider(Rect rect, float value, float min, float max, bool middleAlignment = false, string label = null, string leftAlignedLabel = null, string rightAlignedLabel = null, float roundTo = -1f, Color colorFactor = default)
+  private static int sliderDraggingID;
+
+  public static float HorizontalSlider(Rect rect, float value, float min, float max, bool middleAlignment = false, string label = null, string leftAlignedLabel = null, string rightAlignedLabel = null, float roundTo = -1f, Color colorFactor = default)
+  {
+    var color = GUI.color;
+    var num = value;
+    if (middleAlignment || !label.NullOrEmpty())
     {
-        var color = GUI.color;
-        var num = value;
-        if (middleAlignment || !label.NullOrEmpty())
-        {
-            rect.y += Mathf.Round((rect.height - 10f) / 2f);
-        }
-        if (!label.NullOrEmpty())
-        {
-            rect.y += 5f;
-        }
-        var num2 = UI.GUIToScreenPoint(new Vector2(rect.x, rect.y)).GetHashCode();
-        num2 = Gen.HashCombine(num2, rect.width);
-        num2 = Gen.HashCombine(num2, rect.height);
-        num2 = Gen.HashCombine(num2, min);
-        num2 = Gen.HashCombine(num2, max);
-        var rect2 = rect;
-        rect2.xMin += 6f;
-        rect2.xMax -= 6f;
-        GUI.color = RangeControlTextColor * colorFactor;
-        Rect rect3 = new(rect2.x, rect2.y + 2f, rect2.width, 8f);
-        Widgets.DrawAtlas(rect3, SliderRailAtlas);
-        GUI.color = colorFactor;
-        var x = Mathf.Clamp(rect2.x - 6f + (rect2.width * Mathf.InverseLerp(min, max, num)), rect2.xMin - 6f, rect2.xMax - 6f);
-        GUI.DrawTexture(new Rect(x, rect3.center.y - 6f, 12f, 12f), SliderHandle);
-        if (Event.current.type == EventType.MouseDown && Mouse.IsOver(rect) && sliderDraggingID != num2)
-        {
-            sliderDraggingID = num2;
-            SoundDefOf.DragSlider.PlayOneShotOnCamera();
-            Event.current.Use();
-        }
-        if (sliderDraggingID == num2 && UnityGUIBugsFixer.MouseDrag())
-        {
-            num = Mathf.Clamp(((Event.current.mousePosition.x - rect2.x) / rect2.width * (max - min)) + min, min, max);
-            if (Event.current.type == EventType.MouseDrag)
-            {
-                Event.current.Use();
-            }
-        }
-        if (!label.NullOrEmpty() || !leftAlignedLabel.NullOrEmpty() || !rightAlignedLabel.NullOrEmpty())
-        {
-            var anchor = Text.Anchor;
-            var font = Text.Font;
-            Text.Font = GameFont.Small;
-            var num3 = label.NullOrEmpty() ? 18f : Text.CalcSize(label).y;
-            rect.y = rect.y - num3 + 3f;
-            if (!leftAlignedLabel.NullOrEmpty())
-            {
-                Text.Anchor = TextAnchor.UpperLeft;
-                Widgets.Label(rect, leftAlignedLabel);
-            }
-            if (!rightAlignedLabel.NullOrEmpty())
-            {
-                Text.Anchor = TextAnchor.UpperRight;
-                Widgets.Label(rect, rightAlignedLabel);
-            }
-            if (!label.NullOrEmpty())
-            {
-                Text.Anchor = TextAnchor.UpperCenter;
-                Widgets.Label(rect, label);
-            }
-            Text.Anchor = anchor;
-            Text.Font = font;
-        }
-        if (roundTo > 0f)
-        {
-            num = Mathf.RoundToInt(num / roundTo) * roundTo;
-        }
-        if (!Mathf.Approximately(value, num))
-        {
-            if (Time.realtimeSinceStartup > lastDragSliderSoundTime + 0.075f)
-            {
-                SoundDefOf.DragSlider.PlayOneShotOnCamera();
-                lastDragSliderSoundTime = Time.realtimeSinceStartup;
-            }
-        }
-        GUI.color = color;
-        return num;
+      rect.y += Mathf.Round((rect.height - 10f) / 2f);
     }
-
-    public static void DrawBoxRotated(Rect rect, int thickness = 1, Texture2D lineTexture = null, float rotation = 0f)
+    if (!label.NullOrEmpty())
     {
-        var center = rect.center;
-        var vector = RotatePoint(new Vector2(rect.x, rect.y), center, -rotation);
-        var vector2 = RotatePoint(new Vector2(rect.xMax, rect.yMax), center, -rotation);
-        if (vector.x > vector2.x)
-        {
-            (vector.x, vector2.x) = (vector2.x, vector.x);
-        }
-        if (vector.y > vector2.y)
-        {
-            (vector.y, vector2.y) = (vector2.y, vector.y);
-        }
-        Vector3 vector3 = vector2 - vector;
-        var matrix = GUI.matrix;
-        UI.RotateAroundPivot(rotation, center);
-        GUI.DrawTexture(UIScaling.AdjustRectToUIScaling(new Rect(vector.x, vector.y, thickness, vector3.y)), lineTexture ?? BaseContent.WhiteTex);
-        GUI.DrawTexture(UIScaling.AdjustRectToUIScaling(new Rect(vector2.x - thickness, vector.y, thickness, vector3.y)), lineTexture ?? BaseContent.WhiteTex);
-        GUI.DrawTexture(UIScaling.AdjustRectToUIScaling(new Rect(vector.x + thickness, vector.y, vector3.x - (thickness * 2), thickness)), lineTexture ?? BaseContent.WhiteTex);
-        GUI.DrawTexture(UIScaling.AdjustRectToUIScaling(new Rect(vector.x + thickness, vector2.y - thickness, vector3.x - (thickness * 2), thickness)), lineTexture ?? BaseContent.WhiteTex);
-
-        GUI.matrix = matrix;
+      rect.y += 5f;
     }
-    
-    private static Vector2 RotatePoint(Vector2 point, Vector2 origin, float angle)
+    var num2 = UI.GUIToScreenPoint(new Vector2(rect.x, rect.y)).GetHashCode();
+    num2 = Gen.HashCombine(num2, rect.width);
+    num2 = Gen.HashCombine(num2, rect.height);
+    num2 = Gen.HashCombine(num2, min);
+    num2 = Gen.HashCombine(num2, max);
+    var rect2 = rect;
+    rect2.xMin += 6f;
+    rect2.xMax -= 6f;
+    GUI.color = RangeControlTextColor * colorFactor;
+    Rect rect3 = new(rect2.x, rect2.y + 2f, rect2.width, 8f);
+    Widgets.DrawAtlas(rect3, SliderRailAtlas);
+    GUI.color = colorFactor;
+    var x = Mathf.Clamp(rect2.x - 6f + rect2.width * Mathf.InverseLerp(min, max, num), rect2.xMin - 6f, rect2.xMax - 6f);
+    GUI.DrawTexture(new Rect(x, rect3.center.y - 6f, 12f, 12f), SliderHandle);
+    if (Event.current.type == EventType.MouseDown && Mouse.IsOver(rect) && sliderDraggingID != num2)
     {
-        var x = (Mathf.Cos(angle * Mathf.Deg2Rad) * (point.x - origin.x)) - (Mathf.Sin(angle * Mathf.Deg2Rad) * (point.y - origin.y)) + origin.x;
-        var y = (Mathf.Sin(angle * Mathf.Deg2Rad) * (point.x - origin.x)) + (Mathf.Cos(angle * Mathf.Deg2Rad) * (point.y - origin.y)) + origin.y;
-        return new Vector2(x, y);
+      sliderDraggingID = num2;
+      SoundDefOf.DragSlider.PlayOneShotOnCamera();
+      Event.current.Use();
     }
+    if (sliderDraggingID == num2 && UnityGUIBugsFixer.MouseDrag())
+    {
+      num = Mathf.Clamp((Event.current.mousePosition.x - rect2.x) / rect2.width * (max - min) + min, min, max);
+      if (Event.current.type == EventType.MouseDrag)
+      {
+        Event.current.Use();
+      }
+    }
+    if (!label.NullOrEmpty() || !leftAlignedLabel.NullOrEmpty() || !rightAlignedLabel.NullOrEmpty())
+    {
+      var anchor = Text.Anchor;
+      var font = Text.Font;
+      Text.Font = GameFont.Small;
+      var num3 = label.NullOrEmpty() ? 18f : Text.CalcSize(label).y;
+      rect.y = rect.y - num3 + 3f;
+      if (!leftAlignedLabel.NullOrEmpty())
+      {
+        Text.Anchor = TextAnchor.UpperLeft;
+        Widgets.Label(rect, leftAlignedLabel);
+      }
+      if (!rightAlignedLabel.NullOrEmpty())
+      {
+        Text.Anchor = TextAnchor.UpperRight;
+        Widgets.Label(rect, rightAlignedLabel);
+      }
+      if (!label.NullOrEmpty())
+      {
+        Text.Anchor = TextAnchor.UpperCenter;
+        Widgets.Label(rect, label);
+      }
+      Text.Anchor = anchor;
+      Text.Font = font;
+    }
+    if (roundTo > 0f)
+    {
+      num = Mathf.RoundToInt(num / roundTo) * roundTo;
+    }
+    if (!Mathf.Approximately(value, num))
+    {
+      if (Time.realtimeSinceStartup > lastDragSliderSoundTime + 0.075f)
+      {
+        SoundDefOf.DragSlider.PlayOneShotOnCamera();
+        lastDragSliderSoundTime = Time.realtimeSinceStartup;
+      }
+    }
+    GUI.color = color;
+    return num;
+  }
+
+  public static void DrawBoxRotated(Rect rect, int thickness = 1, Texture2D lineTexture = null, float rotation = 0f)
+  {
+    var center = rect.center;
+    var vector = RotatePoint(new Vector2(rect.x, rect.y), center, -rotation);
+    var vector2 = RotatePoint(new Vector2(rect.xMax, rect.yMax), center, -rotation);
+    if (vector.x > vector2.x)
+    {
+      (vector.x, vector2.x) = (vector2.x, vector.x);
+    }
+    if (vector.y > vector2.y)
+    {
+      (vector.y, vector2.y) = (vector2.y, vector.y);
+    }
+    Vector3 vector3 = vector2 - vector;
+    var matrix = GUI.matrix;
+    UI.RotateAroundPivot(rotation, center);
+    GUI.DrawTexture(UIScaling.AdjustRectToUIScaling(new Rect(vector.x, vector.y, thickness, vector3.y)), lineTexture ?? BaseContent.WhiteTex);
+    GUI.DrawTexture(UIScaling.AdjustRectToUIScaling(new Rect(vector2.x - thickness, vector.y, thickness, vector3.y)), lineTexture ?? BaseContent.WhiteTex);
+    GUI.DrawTexture(UIScaling.AdjustRectToUIScaling(new Rect(vector.x + thickness, vector.y, vector3.x - thickness * 2, thickness)), lineTexture ?? BaseContent.WhiteTex);
+    GUI.DrawTexture(UIScaling.AdjustRectToUIScaling(new Rect(vector.x + thickness, vector2.y - thickness, vector3.x - thickness * 2, thickness)), lineTexture ?? BaseContent.WhiteTex);
+
+    GUI.matrix = matrix;
+  }
+
+  private static Vector2 RotatePoint(Vector2 point, Vector2 origin, float angle)
+  {
+    var x = Mathf.Cos(angle * Mathf.Deg2Rad) * (point.x - origin.x) - Mathf.Sin(angle * Mathf.Deg2Rad) * (point.y - origin.y) + origin.x;
+    var y = Mathf.Sin(angle * Mathf.Deg2Rad) * (point.x - origin.x) + Mathf.Cos(angle * Mathf.Deg2Rad) * (point.y - origin.y) + origin.y;
+    return new Vector2(x, y);
+  }
 }

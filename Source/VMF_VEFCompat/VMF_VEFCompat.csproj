@@ -2,10 +2,11 @@
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
     <OutputType>Library</OutputType>
-	<RootNamespace>VehicleMapFramework</RootNamespace>
-	<LangVersion>preview</LangVersion>
-	<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-	<Configurations>Debug;Release;Dev</Configurations>
+    <RootNamespace>VehicleMapFramework</RootNamespace>
+    <LangVersion>preview</LangVersion>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <Configurations>Debug;Release;Dev</Configurations>
+    <Platforms>AnyCPU</Platforms>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>false</DebugSymbols>
@@ -81,8 +82,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.4633" />
-    <PackageReference Include="Lib.Harmony.Ref" Version="2.4.2" />
+    <PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.4633"/>
+    <PackageReference Include="Lib.Harmony.Ref" Version="2.4.2"/>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\VehicleMapFramework\VehicleMapFramework.csproj">

@@ -8,13 +8,13 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 internal static class Patches_Vivi
 {
-    static Patches_Vivi()
+  static Patches_Vivi()
+  {
+    if (Vivi)
     {
-        if (Vivi)
-        {
-            VMF_Harmony.PatchCategory(PatchCategories.ViviRace);
-        }
+      VMF_Harmony.PatchCategory(PatchCategories.ViviRace);
     }
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.ViviRace)]
@@ -22,16 +22,16 @@ internal static class Patches_Vivi
 [PatchLevel(Level.Sensitive)]
 public static class Patch_ArcanePlant_Turret_TryFindNewTarget_Delegate
 {
-    private static MethodBase TargetMethod()
-    {
-        return AccessTools.FindIncludingInnerTypes<MethodBase>(AccessTools.TypeByName("VVRace.ArcanePlant_Turret"),
-            t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<TryFindNewTarget>")));
-    }
+  private static MethodBase TargetMethod()
+  {
+    return AccessTools.FindIncludingInnerTypes<MethodBase>(AccessTools.TypeByName("VVRace.ArcanePlant_Turret"),
+      t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<TryFindNewTarget>")));
+  }
 
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
-    }
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.ViviRace)]
@@ -39,8 +39,8 @@ public static class Patch_ArcanePlant_Turret_TryFindNewTarget_Delegate
 [PatchLevel(Level.Sensitive)]
 public static class Patch_ArcanePlant_Turret_TryFindNewTarget
 {
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return instructions.AddAllBuildingsColonistForThingInstance();
-    }
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    return instructions.AddAllBuildingsColonistForThingInstance();
+  }
 }

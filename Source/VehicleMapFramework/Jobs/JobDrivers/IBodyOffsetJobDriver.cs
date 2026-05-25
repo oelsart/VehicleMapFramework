@@ -2,5 +2,5 @@
 
 public interface IBodyOffsetJobDriver
 {
-    public float PawnDrawPosOffset_Y { get; }
+  float PawnDrawPosOffset_Y { get; }
 }

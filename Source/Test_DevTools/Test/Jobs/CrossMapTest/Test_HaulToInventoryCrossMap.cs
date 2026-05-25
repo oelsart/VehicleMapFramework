@@ -9,7 +9,7 @@ namespace VehicleMapFramework.Test_Logics;
 [TestCategory("PickUpAndHaul")]
 internal class Test_HaulToInventoryCrossMap(VehicleGroup group) : Test_HaulGeneralCrossMap(group)
 {
-    public override WorkGiverDef WorkGiverDef => DefDatabase<WorkGiverDef>.GetNamed("HaulToInventory", false);
-    
-    protected override bool DisablePUAH => false;
+  public override WorkGiverDef WorkGiverDef => DefDatabase<WorkGiverDef>.GetNamed("HaulToInventory", false);
+
+  protected override bool DisablePUAH => false;
 }

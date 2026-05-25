@@ -5,10 +5,10 @@ namespace VehicleMapFramework;
 
 public class CompProperties_ExtraPrint : CompProperties
 {
-    public List<GraphicData> graphics;
+  public List<GraphicData> graphics;
 
-    public CompProperties_ExtraPrint()
-    {
-        compClass = typeof(CompExtraPrint);
-    }
+  public CompProperties_ExtraPrint()
+  {
+    compClass = typeof(CompExtraPrint);
+  }
 }

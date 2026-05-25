@@ -13,16 +13,16 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 internal class Patches_Rimatomics
 {
-    static Patches_Rimatomics()
+  static Patches_Rimatomics()
+  {
+    if (Rimatomics.Active)
     {
-        if (Rimatomics.Active)
-        {
-            VMF_Harmony.PatchCategory(PatchCategories.Rimatomics);
-            
-            Patch_Projectile_CheckForFreeInterceptBetween.Prefixes.Add(
-                Patch_Patch_HarmonyPatches_H_CheckForFreeInterceptBetween_Prefix.PrefixPatch);
-        }
+      VMF_Harmony.PatchCategory(PatchCategories.Rimatomics);
+
+      Patch_Projectile_CheckForFreeInterceptBetween.Prefixes.Add(
+        Patch_Patch_HarmonyPatches_H_CheckForFreeInterceptBetween_Prefix.PrefixPatch);
     }
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.Rimatomics)]
@@ -30,12 +30,12 @@ internal class Patches_Rimatomics
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Building_Radar_DrawAt
 {
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
-    {
-        return new CodeMatcher(instructions, generator)
-            .AddAltitudeFor(out _, 0.1f)
-            .InstructionEnumeration();
-    }
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+  {
+    return new CodeMatcher(instructions, generator)
+      .AddAltitudeFor(out _, 0.1f)
+      .InstructionEnumeration();
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.Rimatomics)]
@@ -43,11 +43,11 @@ public static class Patch_Building_Radar_DrawAt
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Building_ShieldArray_DrawAt
 {
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions,
-        ILGenerator generator)
-    {
-        return Patch_Building_Radar_DrawAt.Transpiler(instructions, generator);
-    }
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions,
+    ILGenerator generator)
+  {
+    return Patch_Building_Radar_DrawAt.Transpiler(instructions, generator);
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.Rimatomics)]
@@ -55,10 +55,10 @@ public static class Patch_Building_ShieldArray_DrawAt
 [PatchLevel(Level.Cautious)]
 public static class Patch_MissileSilo_DrawAt
 {
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseRotationVehicleDraw);
-    }
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseRotationVehicleDraw);
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.Rimatomics)]
@@ -66,10 +66,10 @@ public static class Patch_MissileSilo_DrawAt
 [PatchLevel(Level.Cautious)]
 public static class Patch_Building_EnergyWeapon_DrawAt
 {
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return instructions.MethodReplacer(CachedMethodInfo.m_OccupiedRect, CachedMethodInfo.m_MovedOccupiedRect);
-    }
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    return instructions.MethodReplacer(CachedMethodInfo.m_OccupiedRect, CachedMethodInfo.m_MovedOccupiedRect);
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.Rimatomics)]
@@ -77,11 +77,11 @@ public static class Patch_Building_EnergyWeapon_DrawAt
 [PatchLevel(Level.Cautious)]
 public static class Patch_Building_EnergyWeapon_OrderAttack
 {
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned)
-            .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned);
-    }
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned)
+      .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned);
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.Rimatomics)]
@@ -89,11 +89,11 @@ public static class Patch_Building_EnergyWeapon_OrderAttack
 [PatchLevel(Level.Cautious)]
 public static class Patch_Building_EnergyWeapon_InRange
 {
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned)
-            .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned);
-    }
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned)
+      .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned);
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.Rimatomics)]
@@ -101,28 +101,28 @@ public static class Patch_Building_EnergyWeapon_InRange
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Verb_RimatomicsVerb_TryCastShot
 {
-    private static IEnumerable<MethodBase> TargetMethods()
-    {
-        var type = GenTypes.GetTypeInAnyAssembly("Rimatomics.Verb_RimatomicsVerb", "Rimatomics");
-        return type.AllSubclasses().Select(t => AccessTools.DeclaredMethod(t, "TryCastShot"))
-            .Where(m =>
-            {
-                if (m is null) return false;
-                return PatchHelper.ReadMethodBodyWrapper(m)
-                    .Any(i =>
-                        CachedMethodInfo.g_Thing_Map.Equals(i.Value) ||
-                        CachedMethodInfo.g_Thing_Position.Equals(i.Value) ||
-                        CachedMethodInfo.g_LocalTargetInfo_Cell.Equals(i.Value));
-            });
-    }
-    
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        if (UnitTestDetector.IsTestingContext) return instructions;
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned)
-            .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned)
-            .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
-    }
+  private static IEnumerable<MethodBase> TargetMethods()
+  {
+    var type = GenTypes.GetTypeInAnyAssembly("Rimatomics.Verb_RimatomicsVerb", "Rimatomics");
+    return type.AllSubclasses().Select(t => AccessTools.DeclaredMethod(t, "TryCastShot"))
+      .Where(m =>
+      {
+        if (m is null) return false;
+        return PatchHelper.ReadMethodBodyWrapper(m)
+          .Any(i =>
+            CachedMethodInfo.g_Thing_Map.Equals(i.Value) ||
+            CachedMethodInfo.g_Thing_Position.Equals(i.Value) ||
+            CachedMethodInfo.g_LocalTargetInfo_Cell.Equals(i.Value));
+      });
+  }
+
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    if (UnitTestDetector.IsTestingContext) return instructions;
+    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned)
+      .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned)
+      .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.Rimatomics)]
@@ -130,10 +130,10 @@ public static class Patch_Verb_RimatomicsVerb_TryCastShot
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Building_PPC_DrawAt
 {
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return Patch_Building_Battery_DrawAt.Transpiler(instructions);
-    }
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    return Patch_Building_Battery_DrawAt.Transpiler(instructions);
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.Rimatomics)]
@@ -141,29 +141,29 @@ public static class Patch_Building_PPC_DrawAt
 [PatchLevel(Level.Sensitive)]
 public static class Patch_CompRimatomicsShield_PostDraw
 {
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
-    {
-        return new CodeMatcher(instructions, generator)
-            .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_IntVec3_ToVector3Shifted))
-            .CreateLabelWithOffsets(1, out var label)
-            .DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle)
-            .InsertAfterAndAdvance(
-                CodeInstruction.LoadArgument(0),
-                CodeInstruction.LoadField(typeof(ThingComp), nameof(ThingComp.parent)),
-                new CodeInstruction(OpCodes.Ldloca_S, vehicle),
-                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf),
-                new CodeInstruction(OpCodes.Brfalse_S, label),
-                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ToBaseMapCoord2))
-            .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_Altitudes_AltitudeFor))
-            .CreateLabelWithOffsets(1, out var label2)
-            .InsertAfter(
-                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-                new CodeInstruction(OpCodes.Brfalse_S, label2),
-                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_YOffsetFull))
-            .InstructionEnumeration();
-    }
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+  {
+    return new CodeMatcher(instructions, generator)
+      .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_IntVec3_ToVector3Shifted))
+      .CreateLabelWithOffsets(1, out var label)
+      .DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle)
+      .InsertAfterAndAdvance(
+        CodeInstruction.LoadArgument(0),
+        CodeInstruction.LoadField(typeof(ThingComp), nameof(ThingComp.parent)),
+        new CodeInstruction(OpCodes.Ldloca_S, vehicle),
+        new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf),
+        new CodeInstruction(OpCodes.Brfalse_S, label),
+        new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+        new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ToBaseMapCoord2))
+      .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_Altitudes_AltitudeFor))
+      .CreateLabelWithOffsets(1, out var label2)
+      .InsertAfter(
+        new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+        new CodeInstruction(OpCodes.Brfalse_S, label2),
+        new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+        new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_YOffsetFull))
+      .InstructionEnumeration();
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.Rimatomics)]
@@ -171,11 +171,11 @@ public static class Patch_CompRimatomicsShield_PostDraw
 [PatchLevel(Level.Cautious)]
 public static class Patch_CompRimatomicsShield_CheckIntercept
 {
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned)
-            .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
-    }
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned)
+      .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.Rimatomics)]
@@ -183,14 +183,14 @@ public static class Patch_CompRimatomicsShield_CheckIntercept
 [PatchLevel(Level.Safe)]
 public static class Patch_GenSpawn_Spawn_Rimatomics
 {
-    public static void Prefix(Thing newThing, ref Map map)
+  public static void Prefix(Thing newThing, ref Map map)
+  {
+    var thingClass = newThing?.def?.thingClass;
+    if (thingClass.SameOrSubclassOf(Rimatomics.BaseMissile))
     {
-        var thingClass = newThing?.def?.thingClass;
-        if (thingClass.SameOrSubclassOf(Rimatomics.BaseMissile))
-        {
-            map = map.BaseMap();
-        }
+      map = map.BaseMap();
     }
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.Rimatomics)]
@@ -198,18 +198,18 @@ public static class Patch_GenSpawn_Spawn_Rimatomics
 [PatchLevel(Level.Mandatory)]
 public static class Patch_Patch_HarmonyPatches_H_CheckForFreeInterceptBetween_Prefix
 {
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    [HarmonyReversePatch]
-    public static bool PrefixPatch(Projectile __instance, Vector3 lastExactPos, Vector3 newExactPos, ref bool __result)
+  [MethodImpl(MethodImplOptions.NoInlining)]
+  [HarmonyReversePatch]
+  public static bool PrefixPatch(Projectile __instance, Vector3 lastExactPos, Vector3 newExactPos, ref bool __result)
+  {
+    _ = Transpiler(null);
+    throw new NotImplementedException();
+
+    IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        _ = Transpiler(null);
-        throw new NotImplementedException();
-        
-        IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
-            return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);
-        }
+      return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);
     }
+  }
 }
 
 // 描画上の制約によりプールは建設不可とする

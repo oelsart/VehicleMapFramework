@@ -6,13 +6,13 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 internal class Patches_YayosCombat3
 {
-    static Patches_YayosCombat3()
+  static Patches_YayosCombat3()
+  {
+    if (YayosCombat3)
     {
-        if (YayosCombat3)
-        {
-            VMF_Harmony.PatchCategory(PatchCategories.YayosCombat3);
-        }
+      VMF_Harmony.PatchCategory(PatchCategories.YayosCombat3);
     }
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.YayosCombat3)]
@@ -20,10 +20,10 @@ internal class Patches_YayosCombat3
 [PatchLevel(Level.Cautious)]
 public static class Patch_Verb_LaunchProjectile_TryCastShot_Prefix
 {
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-            .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned)
-            .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
-    }
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
+      .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned)
+      .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
+  }
 }

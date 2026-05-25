@@ -7,73 +7,82 @@ namespace VehicleMapFramework;
 
 public class JobDriver_GotoDestMap : JobDriverAcrossMaps
 {
-    public Job nextJob;
+  public Job nextJob;
 
-    protected override string ReportStringProcessed(string str)
-    {
-        return nextJob?.GetReport(pawn);
-    }
+  protected override string ReportStringProcessed(string str)
+  {
+    return nextJob?.GetReport(pawn);
+  }
 
-    public override bool TryMakePreToilReservations(bool errorOnFailed)
+  public override bool TryMakePreToilReservations(bool errorOnFailed)
+  {
+    var map = pawn.Map;
+    pawn.VirtualMapTransfer(DestMap); //ScanCellのWorkなどの場合にVirtualMapTransferは必要
+    try
     {
-        var map = pawn.Map;
-        pawn.VirtualMapTransfer(DestMap); //ScanCellのWorkなどの場合にVirtualMapTransferは必要
-        try
-        {
-            return nextJob?.TryMakePreToilReservations(pawn, false) ?? true;
-        }
-        finally
-        {
-            pawn.VirtualMapTransfer(map);
-        }
+      return nextJob?.TryMakePreToilReservations(pawn, false) ?? true;
     }
+    finally
+    {
+      pawn.VirtualMapTransfer(map);
+    }
+  }
 
-    //次のJobDriverがNotify_Starting内でReserveを行っている場合があるため、先に次のJobのNotify_Startingを呼ぶ必要がある
-    public override void Notify_Starting()
-    {
-        base.Notify_Starting();
-        nextJob?.GetCachedDriver(pawn).Notify_Starting();
-    }
+  //次のJobDriverがNotify_Starting内でReserveを行っている場合があるため、先に次のJobのNotify_Startingを呼ぶ必要がある
+  public override void Notify_Starting()
+  {
+    base.Notify_Starting();
+    nextJob?.GetCachedDriver(pawn).Notify_Starting();
+  }
 
-    protected override IEnumerable<Toil> MakeNewToils()
+  protected override IEnumerable<Toil> MakeNewToils()
+  {
+    foreach (var toil in base.MakeNewToils())
     {
-        foreach (var toil in base.MakeNewToils()) yield return toil;
-        foreach (var toil in GotoTargetMap(TargetIndex.A)) yield return toil;
-        if (nextJob != null)
-        {
-            yield return TryStartNextJob();
-        }
+      yield return toil;
     }
+    foreach (var toil in GotoTargetMap(TargetIndex.A))
+    {
+      yield return toil;
+    }
+    if (nextJob != null)
+    {
+      yield return TryStartNextJob();
+    }
+  }
 
-    public override void ExposeData()
-    {
-        Scribe_Deep.Look(ref nextJob, "nextJob");
-        base.ExposeData();
-    }
+  public override void ExposeData()
+  {
+    Scribe_Deep.Look(ref nextJob, "nextJob");
+    base.ExposeData();
+  }
 
-    private Toil TryStartNextJob()
+  private Toil TryStartNextJob()
+  {
+    var toil = ToilMaker.MakeToil();
+    toil.defaultCompleteMode = ToilCompleteMode.Instant;
+    toil.initAction = () =>
     {
-        var toil = ToilMaker.MakeToil();
-        toil.defaultCompleteMode = ToilCompleteMode.Instant;
-        toil.initAction = () =>
-        {
-            ref var allowOpportunisticPrefix = ref nextJob.def.allowOpportunisticPrefix; //OpportunisticJobを一時的に無効化
-            var value = allowOpportunisticPrefix;
-            try
-            {
-                allowOpportunisticPrefix = false;
-                pawn.jobs.StartJob(nextJob, JobCondition.InterruptForced, VMF_DefOf.VMF_GotoDestMapThinkTree.thinkRoot, thinkTree: VMF_DefOf.VMF_GotoDestMapThinkTree, keepCarryingThingOverride: true, preToilReservationsCanFail: true);
-            }
-            finally
-            {
-                allowOpportunisticPrefix = value;
-            }
-        };
-        return toil;
-    }
+      ref var allowOpportunisticPrefix = ref nextJob.def.allowOpportunisticPrefix; //OpportunisticJobを一時的に無効化
+      var value = allowOpportunisticPrefix;
+      try
+      {
+        allowOpportunisticPrefix = false;
+        pawn.jobs.StartJob(nextJob, JobCondition.InterruptForced, VMF_DefOf.VMF_GotoDestMapThinkTree.thinkRoot, thinkTree: VMF_DefOf.VMF_GotoDestMapThinkTree, keepCarryingThingOverride: true, preToilReservationsCanFail: true);
+      }
+      finally
+      {
+        allowOpportunisticPrefix = value;
+      }
+    };
+    return toil;
+  }
 
-    public class ThinkNode_JobFromGotoDestMap : ThinkNode
+  public class ThinkNode_JobFromGotoDestMap : ThinkNode
+  {
+    public override ThinkResult TryIssueJobPackage(Pawn pawn, JobIssueParams jobParams)
     {
-        public override ThinkResult TryIssueJobPackage(Pawn pawn, JobIssueParams jobParams) => throw new NotImplementedException();
+      throw new NotImplementedException();
     }
+  }
 }

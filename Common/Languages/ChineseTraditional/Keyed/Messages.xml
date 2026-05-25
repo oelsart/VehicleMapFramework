@@ -8,8 +8,8 @@
     <VMF_ForceOnVehicleMapEdge>只能放在載具地圖邊緣</VMF_ForceOnVehicleMapEdge>
     <VMF_ForceOnRelatedVehicle>此建築與該車輛無關。</VMF_ForceOnRelatedVehicle>
     <VMF_ForceOnRelatedBuilding>只能建造在相關建築之上。</VMF_ForceOnRelatedBuilding>
-    
-    <VMF_NoRoles>{0}上沒有可以操作這個砲塔的職位</VMF_NoRoles>
+
+  <VMF_NoRoles>{0}上沒有可以操作這個砲塔的職位</VMF_NoRoles>
 
     <VMF_FailedEnterMap>載具無法進入地圖。</VMF_FailedEnterMap>
     <VMF_CannotSpawn>{0}無法生成</VMF_CannotSpawn>
@@ -17,16 +17,16 @@
     <VMF_MustShotAtAnotherMap>滑索必須射向另一個地圖</VMF_MustShotAtAnotherMap>
     <VMF_ApplyingDynamicPatches>正在套用動態補丁</VMF_ApplyingDynamicPatches>
     <VMF_UnpatchingDynamicPatches>正在解除動態補丁</VMF_UnpatchingDynamicPatches>
-    
-    <VMF_ContainsMapVehicle>重力船結構上存在含地圖的車輛。</VMF_ContainsMapVehicle>
+
+  <VMF_ContainsMapVehicle>重力船結構上存在含地圖的車輛。</VMF_ContainsMapVehicle>
     <VMF_ContainsForbidOnVehicle>{0}無法放置於車輛地圖上。</VMF_ContainsForbidOnVehicle>
     <VMF_RectContainsImpassable>車輛的矩形範圍包含無法通行的格子。</VMF_RectContainsImpassable>
     <VMF_WheelsUnstable>車輛不穩定。有效輪胎數量：{0}</VMF_WheelsUnstable>
     <VMF_CannotSetDownDiagonal>{0}無法以此角度放置在地面上。</VMF_CannotSetDownDiagonal>
     <VMF_CannotLaunchNoPilot>沒有駕駛員</VMF_CannotLaunchNoPilot>
-    
-    <VMF_GravshipVehicleDestroyed>重力船車輛已被摧毀。</VMF_GravshipVehicleDestroyed>
-    
-    <VMF_AreaDeselect>此地圖不包含區域 {0}。</VMF_AreaDeselect>
+
+  <VMF_GravshipVehicleDestroyed>重力船車輛已被摧毀。</VMF_GravshipVehicleDestroyed>
+
+  <VMF_AreaDeselect>此地圖不包含區域 {0}。</VMF_AreaDeselect>
 
 </LanguageData>

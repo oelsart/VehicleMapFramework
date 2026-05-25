@@ -2,7 +2,8 @@
 $OutputDir = "./Stubs"
 
 # 出力先フォルダがなければ作成
-if (-not (Test-Path $OutputDir)) {
+if (-not (Test-Path $OutputDir))
+{
     New-Item -Path $OutputDir -ItemType Directory
 }
 

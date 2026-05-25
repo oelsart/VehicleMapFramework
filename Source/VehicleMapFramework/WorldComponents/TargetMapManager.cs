@@ -8,82 +8,97 @@ namespace VehicleMapFramework;
 
 public class TargetMapManager(World world) : WorldComponent(world)
 {
-    private List<Thing> tmpKeys = [];
-    private List<TargetInfo> tmpValues = [];
-    private Dictionary<Thing, TargetInfo> tmpTargetInfoDic = [];
+  private List<Thing> tmpKeys = [];
+  private Dictionary<Thing, TargetInfo> tmpTargetInfoDic = [];
+  private List<TargetInfo> tmpValues = [];
 
-    public ConditionalWeakTable<Thing, StrongBox<TargetInfo>> TargetInfoTable { get; } = [];
+  public ConditionalWeakTable<Thing, StrongBox<TargetInfo>> TargetInfoTable { get; } = [];
 
-    internal StrongBox<TargetInfo> GetOrCreateTargetInfo(Thing thing)
-    {
-        if (thing is null) return null;
-        return TargetInfoTable.GetValue(thing, _ =>
+  internal StrongBox<TargetInfo> GetOrCreateTargetInfo(Thing thing)
+  {
+    if (thing is null) return null;
+    return TargetInfoTable.GetValue(thing,
+      _ =>
+      {
+        var box = new StrongBox<TargetInfo>
         {
-            var box = new StrongBox<TargetInfo>
-            {
-                Value = TargetInfo.Invalid
-            };
-            return box;
-        });
-    }
+          Value = TargetInfo.Invalid
+        };
+        return box;
+      });
+  }
 
-    public override void FinalizeInit(bool fromLoad)
-    {
-        TargetMapUtility.manager = this;
-    }
+  public override void FinalizeInit(bool fromLoad)
+  {
+    TargetMapUtility.manager = this;
+  }
 
-    public override void WorldComponentTick()
+  public override void WorldComponentTick()
+  {
+    if (GenTicks.IsTickInterval(10800))
     {
-        if (GenTicks.IsTickInterval(10800))
+      foreach (var pair in TargetInfoTable.Where(pair => !pair.Value?.Value.IsValid ?? true))
+      {
+        tmpKeys.Add(pair.Key);
+      }
+      foreach (var thing in tmpKeys.Where(thing => thing is not null))
+      {
+        TargetInfoTable.Remove(thing);
+      }
+      tmpKeys.Clear();
+    }
+  }
+
+  public override void ExposeData()
+  {
+    switch (Scribe.mode)
+    {
+      case LoadSaveMode.Saving:
+      {
+        var targetInfoDic = TargetInfoTable
+          .Select(pair => (pair.Key, pair.Value?.Value ?? TargetInfo.Invalid))
+          .Where(tuple => tuple is { Key: not null, Item2: { IsValid: true, Map: not null } })
+          .ToDictionary(pair => pair.Key, pair => pair.Item2);
+        Scribe_Collections.Look(ref targetInfoDic,
+          "TargetInfo",
+          LookMode.Reference,
+          LookMode.TargetInfo,
+          ref tmpKeys,
+          ref tmpValues,
+          false);
+        tmpTargetInfoDic = null;
+        break;
+      }
+      case LoadSaveMode.LoadingVars:
+      case LoadSaveMode.ResolvingCrossRefs:
+      {
+        Scribe_Collections.Look(ref tmpTargetInfoDic,
+          "TargetInfo",
+          LookMode.Reference,
+          LookMode.TargetInfo,
+          ref tmpKeys,
+          ref tmpValues,
+          false);
+        break;
+      }
+      case LoadSaveMode.PostLoadInit:
+      {
+        if (tmpTargetInfoDic is not null)
         {
-            foreach (var pair in TargetInfoTable.Where(pair => !pair.Value?.Value.IsValid ?? true))
-                tmpKeys.Add(pair.Key);
-            foreach (var thing in tmpKeys.Where(thing => thing is not null))
-                TargetInfoTable.Remove(thing);
-            tmpKeys.Clear();
+          foreach (var pair in tmpTargetInfoDic)
+          {
+            if (pair.Key is null) continue;
+            TargetInfoTable.Add(pair.Key, new StrongBox<TargetInfo>(pair.Value));
+          }
+          tmpTargetInfoDic = null;
         }
+        break;
+      }
+      case LoadSaveMode.Inactive:
+      default: break;
     }
 
-    public override void ExposeData()
-    {
-        switch (Scribe.mode)
-        {
-            case LoadSaveMode.Saving:
-            {
-                var targetInfoDic = TargetInfoTable
-                    .Select(pair => (pair.Key, pair.Value?.Value ?? TargetInfo.Invalid))
-                    .Where(tuple => tuple is { Key: not null, Item2: { IsValid: true, Map: not null } })
-                    .ToDictionary(pair => pair.Key, pair => pair.Item2);
-                Scribe_Collections.Look(ref targetInfoDic, "TargetInfo", LookMode.Reference, LookMode.TargetInfo,
-                    ref tmpKeys, ref tmpValues, false);
-                tmpTargetInfoDic = null;
-                break;
-            }
-            case LoadSaveMode.LoadingVars:
-            case LoadSaveMode.ResolvingCrossRefs:
-            {
-                Scribe_Collections.Look(ref tmpTargetInfoDic, "TargetInfo", LookMode.Reference, LookMode.TargetInfo,
-                    ref tmpKeys, ref tmpValues, false);
-                break;
-            }
-            case LoadSaveMode.PostLoadInit:
-            {
-                if (tmpTargetInfoDic is not null)
-                {
-                    foreach (var pair in tmpTargetInfoDic)
-                    {
-                        if (pair.Key is null) continue;
-                        TargetInfoTable.Add(pair.Key, new StrongBox<TargetInfo>(pair.Value));
-                    }
-                    tmpTargetInfoDic = null;
-                }
-                break;
-            }
-            case LoadSaveMode.Inactive:
-            default: break;
-        }
-
-        tmpKeys ??= [];
-        tmpValues ??= [];
-    }
+    tmpKeys ??= [];
+    tmpValues ??= [];
+  }
 }

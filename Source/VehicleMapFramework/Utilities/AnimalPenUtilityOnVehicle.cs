@@ -6,50 +6,58 @@ namespace VehicleMapFramework;
 
 public static class AnimalPenUtilityOnVehicle
 {
-    public static bool CanUseAndReach(Pawn animal, CompAnimalPenMarker penMarker, bool allowUnenclosedPens, Pawn roper = null)
-    {
-        var flag = false;
-        return CheckUseAndReach(animal, penMarker, allowUnenclosedPens, roper, ref flag, ref flag, ref flag);
-    }
+  public static bool CanUseAndReach(Pawn animal, CompAnimalPenMarker penMarker, bool allowUnenclosedPens, Pawn roper = null)
+  {
+    var flag = false;
+    return CheckUseAndReach(animal, penMarker, allowUnenclosedPens, roper, ref flag, ref flag, ref flag);
+  }
 
-    public static bool CheckUseAndReach(Pawn animal, CompAnimalPenMarker penMarker, bool allowUnenclosedPens, Pawn roper, ref bool foundEnclosed, ref bool foundUsable, ref bool foundReachable)
+  public static bool CheckUseAndReach(Pawn animal, CompAnimalPenMarker penMarker, bool allowUnenclosedPens, Pawn roper, ref bool foundEnclosed, ref bool foundUsable, ref bool foundReachable)
+  {
+    if (!allowUnenclosedPens && penMarker.PenState.Unenclosed)
     {
-        if (!allowUnenclosedPens && penMarker.PenState.Unenclosed)
-        {
-            return false;
-        }
-        foundEnclosed = true;
-        if (!penMarker.AcceptsToPen(animal))
-        {
-            return false;
-        }
-        if (roper == null && penMarker.parent.IsForbidden(Faction.OfPlayer))
-        {
-            return false;
-        }
-        if (roper != null && penMarker.parent.IsForbidden(roper))
-        {
-            return false;
-        }
-        foundUsable = true;
-        bool flag;
-        if (roper == null)
-        {
-            var traverseParams = TraverseParms.For(TraverseMode.PassDoors).WithFenceblockedOf(animal);
-            flag = CrossMapReachabilityUtility.CanReach(animal.Map, animal.Position, penMarker.parent,
-                PathEndMode.Touch, traverseParams, penMarker.parent.Map);
-        }
-        else
-        {
-            var traverseParams2 = TraverseParms.For(roper).WithFenceblockedOf(animal);
-            flag = CrossMapReachabilityUtility.CanReach(animal.Map, animal.Position, penMarker.parent,
-                PathEndMode.Touch, traverseParams2, penMarker.parent.Map);
-        }
-        if (!flag)
-        {
-            return false;
-        }
-        foundReachable = true;
-        return true;
+      return false;
     }
+    foundEnclosed = true;
+    if (!penMarker.AcceptsToPen(animal))
+    {
+      return false;
+    }
+    if (roper == null && penMarker.parent.IsForbidden(Faction.OfPlayer))
+    {
+      return false;
+    }
+    if (roper != null && penMarker.parent.IsForbidden(roper))
+    {
+      return false;
+    }
+    foundUsable = true;
+    bool flag;
+    if (roper == null)
+    {
+      var traverseParams = TraverseParms.For(TraverseMode.PassDoors).WithFenceblockedOf(animal);
+      flag = CrossMapReachabilityUtility.CanReach(animal.Map,
+        animal.Position,
+        penMarker.parent,
+        PathEndMode.Touch,
+        traverseParams,
+        penMarker.parent.Map);
+    }
+    else
+    {
+      var traverseParams2 = TraverseParms.For(roper).WithFenceblockedOf(animal);
+      flag = CrossMapReachabilityUtility.CanReach(animal.Map,
+        animal.Position,
+        penMarker.parent,
+        PathEndMode.Touch,
+        traverseParams2,
+        penMarker.parent.Map);
+    }
+    if (!flag)
+    {
+      return false;
+    }
+    foundReachable = true;
+    return true;
+  }
 }

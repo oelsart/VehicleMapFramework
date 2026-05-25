@@ -8,46 +8,45 @@ namespace VehicleMapFramework.Test_Logics;
 
 internal abstract class CrossMapWorkGiverTestBase(VehicleGroup group)
 {
-    public abstract WorkGiverDef WorkGiverDef { get; }
 
-    protected VehicleGroup group = group;
-    
-    protected Map GroundMap => group.vehicle.Map;
-    
-    protected Map VehicleMap => ((VehiclePawnWithMap)group.vehicle).VehicleMap;
-    
-    protected Pawn Pawn => group.pawns[0];
+  protected VehicleGroup group = group;
 
-    protected VehiclePawn Vehicle => group.vehicle;
+  protected WorkGiverTestBase.WorkGiverResult result;
 
-    protected WorkGiverTestBase.WorkGiverResult result;
+  public abstract WorkGiverDef WorkGiverDef { get; }
 
-    [SetUp]
-    public virtual void SetUp()
-    {
-    }
+  protected Map GroundMap => group.vehicle.Map;
 
-    [Test]
-    public virtual void Run()
-    {
-        result = WorkGiverTestBase.RunWorkGiverAfterPatch(Pawn, Vehicle, WorkGiverDef);
-        Expect.IsNotNull(result.job, result.ToString());
-        Pawn.jobs.StartJob(result.job);
-        Pawn.jobs.JobTrackerTick();
-        Expect.IsTrue(result.job == Pawn.CurJob ||
-                      Pawn.jobs.curDriver is JobDriver_GotoDestMap { nextJob: { } nextJob } && nextJob.def == result.job?.def,
-            $"job interrupted\n{result}\nbut curjob: {Pawn.CurJob}");
-    }
+  protected Map VehicleMap => ((VehiclePawnWithMap)group.vehicle).VehicleMap;
 
-    [TearDown]
-    public virtual void TearDown()
-    {
-        Test_WorkGivers.ClearPawnState(Pawn);
-        Clear();
-    }
+  protected Pawn Pawn => group.pawns[0];
 
-    public void Clear()
-    {
-        group = null;
-    }
+  protected VehiclePawn Vehicle => group.vehicle;
+
+  [SetUp]
+  public virtual void SetUp() { }
+
+  [Test]
+  public virtual void Run()
+  {
+    result = WorkGiverTestBase.RunWorkGiverAfterPatch(Pawn, Vehicle, WorkGiverDef);
+    Expect.IsNotNull(result.job, result.ToString());
+    Pawn.jobs.StartJob(result.job);
+    Pawn.jobs.JobTrackerTick();
+    Expect.IsTrue(result.job == Pawn.CurJob ||
+                  Pawn.jobs.curDriver is JobDriver_GotoDestMap { nextJob: { } nextJob } && nextJob.def == result.job?.def,
+      $"job interrupted\n{result}\nbut curjob: {Pawn.CurJob}");
+  }
+
+  [TearDown]
+  public virtual void TearDown()
+  {
+    Test_WorkGivers.ClearPawnState(Pawn);
+    Clear();
+  }
+
+  public void Clear()
+  {
+    group = null;
+  }
 }

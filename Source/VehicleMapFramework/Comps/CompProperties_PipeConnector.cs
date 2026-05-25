@@ -4,10 +4,11 @@ namespace VehicleMapFramework;
 
 public class CompProperties_PipeConnector : CompProperties
 {
-    public CompProperties_PipeConnector()
-    {
-        compClass = typeof(CompPipeConnector);
-    }
 
-    public float radius;
+  public float radius;
+
+  public CompProperties_PipeConnector()
+  {
+    compClass = typeof(CompPipeConnector);
+  }
 }

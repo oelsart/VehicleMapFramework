@@ -1,41 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Defs>
 
-	<WorkGiverDef>
-		<defName>VMF_RefuelVehicleTank</defName>
-		<label>refuel vehicle tank</label>
-		<giverClass>VehicleMapFramework.WorkGiver_RefuelVehicleTank</giverClass>
-		<workType>Hauling</workType>
-		<verb>refuel</verb>
-		<gerund>refueling</gerund>
-		<priorityInType>89</priorityInType>
-		<requiredCapacities>
-			<li>Manipulation</li>
-		</requiredCapacities>
-	</WorkGiverDef>
-	
-	<WorkGiverDef>
-		<defName>VMF_RepairMapVehicle</defName>
-		<label>repair vehicle</label>
-		<giverClass>VehicleMapFramework.WorkGiver_RepairMapVehicle</giverClass>
-		<workType>Construction</workType>
-		<scanThings>false</scanThings>
-		<scanCells>true</scanCells>
-		<verb>repair</verb>
-		<gerund>repairing</gerund>
-		<priorityInType>79</priorityInType>
-	</WorkGiverDef>
-	
-	<WorkGiverDef>
-		<defName>VMF_RemoveVehicleSegment</defName>
-		<label>remove vehicle segment</label>
-		<giverClass>VehicleMapFramework.WorkGiver_RemoveVehicleSegment</giverClass>
-		<workType>Construction</workType>
-		<priorityInType>50</priorityInType>
-		<verb>deconstruct</verb>
-		<gerund>deconstructing</gerund>
-		<requiredCapacities>
-		  <li>Manipulation</li>
-		</requiredCapacities>
-	</WorkGiverDef>
+  <WorkGiverDef>
+    <defName>VMF_RefuelVehicleTank</defName>
+    <label>refuel vehicle tank</label>
+    <giverClass>VehicleMapFramework.WorkGiver_RefuelVehicleTank</giverClass>
+    <workType>Hauling</workType>
+    <verb>refuel</verb>
+    <gerund>refueling</gerund>
+    <priorityInType>89</priorityInType>
+    <requiredCapacities>
+      <li>Manipulation</li>
+    </requiredCapacities>
+  </WorkGiverDef>
+
+  <WorkGiverDef>
+    <defName>VMF_RepairMapVehicle</defName>
+    <label>repair vehicle</label>
+    <giverClass>VehicleMapFramework.WorkGiver_RepairMapVehicle</giverClass>
+    <workType>Construction</workType>
+    <scanThings>false</scanThings>
+    <scanCells>true</scanCells>
+    <verb>repair</verb>
+    <gerund>repairing</gerund>
+    <priorityInType>79</priorityInType>
+  </WorkGiverDef>
+
+  <WorkGiverDef>
+    <defName>VMF_RemoveVehicleSegment</defName>
+    <label>remove vehicle segment</label>
+    <giverClass>VehicleMapFramework.WorkGiver_RemoveVehicleSegment</giverClass>
+    <workType>Construction</workType>
+    <priorityInType>50</priorityInType>
+    <verb>deconstruct</verb>
+    <gerund>deconstructing</gerund>
+    <requiredCapacities>
+      <li>Manipulation</li>
+    </requiredCapacities>
+  </WorkGiverDef>
 </Defs>

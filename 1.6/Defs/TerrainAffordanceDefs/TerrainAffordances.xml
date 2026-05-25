@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Defs>
 
-	<TerrainAffordanceDef>
-		<defName>VMF_DeepWater</defName>
-		<label>deep water</label>
-		<order>2500</order>
-		<visualizeOnAffordanceOverlay>true</visualizeOnAffordanceOverlay>
-		<affordanceOverlayColor>(0,0,75)</affordanceOverlayColor>
-	</TerrainAffordanceDef>
-	
-	<TerrainAffordanceDef>
-		<defName>VMF_ImpassableFloor</defName>
-		<label>impassable floor</label>
-		<order>2600</order>
-	</TerrainAffordanceDef>
+  <TerrainAffordanceDef>
+    <defName>VMF_DeepWater</defName>
+    <label>deep water</label>
+    <order>2500</order>
+    <visualizeOnAffordanceOverlay>true</visualizeOnAffordanceOverlay>
+    <affordanceOverlayColor>(0,0,75)</affordanceOverlayColor>
+  </TerrainAffordanceDef>
+
+  <TerrainAffordanceDef>
+    <defName>VMF_ImpassableFloor</defName>
+    <label>impassable floor</label>
+    <order>2600</order>
+  </TerrainAffordanceDef>
 
 </Defs>

@@ -6,15 +6,15 @@ namespace VehicleMapFramework;
 
 public interface IPipeConnector
 {
-    CompPipeConnector.PipeMod Mod { get; }
+  CompPipeConnector.PipeMod Mod { get; }
 
-    Texture GizmoIcon { get; }
+  Texture GizmoIcon { get; }
 
-    IEnumerable<FloatMenuOption> FloatMenuOptions { get; }
+  IEnumerable<FloatMenuOption> FloatMenuOptions { get; }
 
-    bool ConnectCondition(CompPipeConnector another);
+  bool ConnectCondition(CompPipeConnector another);
 
-    void ConnectedTickAction();
+  void ConnectedTickAction();
 
-    void DisconnectedAction();
+  void DisconnectedAction();
 }
