@@ -7,7 +7,6 @@ using Verse.Sound;
 
 namespace VehicleMapFramework;
 
-[HotSwap]
 public class CompWirelessTransmitter : CompPowerNetLink, IThingGlower
 {
     protected const float PushMin = 0f;

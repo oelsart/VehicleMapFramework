@@ -7,7 +7,6 @@ using Verse;
 
 namespace VehicleMapFramework;
 
-[HotSwap]
 public abstract class CompPowerNetLink : CompPowerTrader
 {
     private const float BatteryDischargingWatts = 5f;
@@ -199,7 +198,6 @@ public abstract class CompPowerNetLink : CompPowerTrader
                     : diff < 0f
                         ? -Mathf.Clamp(needs4, 0f, other.MaxPowerPush) // むこうが供給
                         : Mathf.Max(Mathf.Min(needs3, me.MaxPowerPush), Mathf.Min(needs4, other.MaxPowerPush)); // バッテリー量が同じ場合需要を伝える
-                Log.Message($"両負圧: voltage: {voltage}, voltage2: {voltage2}, diff: {diff}, needs3: {needs3}, needs4: {needs4}, num4: {num4}");
                 me.DebugMessage($"両負圧: voltage: {voltage}, voltage2: {voltage2}, needs3: {needs3}, needs4: {needs4}, num4: {num4}");
                 return num4;
         }
