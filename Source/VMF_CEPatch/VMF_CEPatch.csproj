@@ -30,7 +30,7 @@
   </PropertyGroup>
   <PropertyGroup>
     <VFUnstableFolder Condition="'$(CIBuild)' == 'true'">$(SteamWorkshopRoot)\3522907382</VFUnstableFolder>
-    <VFUnstableFolder Condition="'$(CIBuild)' != 'true'">..\..\..\VehicleFramework</VFUnstableFolder>
+    <VFUnstableFolder Condition="'$(CIBuild)' != 'true'">..\..\..\Vehicle-Framework</VFUnstableFolder>
   </PropertyGroup>
 
   <ItemGroup>

@@ -25,23 +25,23 @@
 
   <ItemGroup>
     <Reference Include="DevTools">
-      <HintPath>..\..\..\VehicleFramework\1.6\Assemblies\DevTools.dll</HintPath>
+      <HintPath>..\..\..\Vehicle-Framework\1.6\Assemblies\DevTools.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="SmashTools">
-      <HintPath>..\..\..\VehicleFramework\1.6\Assemblies\SmashTools.dll</HintPath>
+      <HintPath>..\..\..\Vehicle-Framework\1.6\Assemblies\SmashTools.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Test_SmashTools">
-      <HintPath>..\..\..\VehicleFramework\1.6\Assemblies\Test_SmashTools.dll</HintPath>
+      <HintPath>..\..\..\Vehicle-Framework\1.6\Assemblies\Test_SmashTools.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Test_Vehicles">
-      <HintPath>..\..\..\VehicleFramework\1.6\Assemblies\Test_Vehicles.dll</HintPath>
+      <HintPath>..\..\..\Vehicle-Framework\1.6\Assemblies\Test_Vehicles.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Vehicles">
-      <HintPath>..\..\..\VehicleFramework\1.6\Assemblies\Vehicles.dll</HintPath>
+      <HintPath>..\..\..\Vehicle-Framework\1.6\Assemblies\Vehicles.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
