@@ -173,7 +173,7 @@ namespace VehicleMapFramework
                 cellRect = cellRect.Encapsulate(wheelsRect);
             }
             var outOfBoundsCells = cellRect.Except(cells);
-            var pathGrid = map.GetCachedMapComponent<VehiclePathingSystem>().BridgeIndexer[baseDef].VehiclePathGrid;
+            var pathGrid = map.GetCachedMapComponent<VehiclePathingSystem>()[baseDef].VehiclePathGrid;
             var unwalkableCells = outOfBoundsCells.Where(c => !pathGrid.WalkableFast(c)).ToList();
             if (unwalkableCells.Any())
             {

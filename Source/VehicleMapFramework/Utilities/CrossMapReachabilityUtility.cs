@@ -739,7 +739,7 @@ public static class CrossMapReachabilityUtility
             var vehiclePawn = map.GetDetachedMapComponent<VehiclePositionManager>().ClaimedBy(cell);
             if (vehiclePawn == null || vehiclePawn == vehicle)
             {
-                return map.GetCachedMapComponent<VehiclePathingSystem>().BridgeIndexer[vehicle.VehicleDef].VehiclePathGrid.WalkableFast(cell);
+                return map.GetCachedMapComponent<VehiclePathingSystem>()[vehicle.VehicleDef].VehiclePathGrid.WalkableFast(cell);
             }
 
             return false;
@@ -762,7 +762,7 @@ public static class CrossMapReachabilityUtility
             if (departMap == null || destMap == null) return false;
             if (departMap == destMap)
             {
-                return MapComponentCache<VehiclePathingSystem>.GetComponent(departMap).BridgeIndexer[vehicle.VehicleDef]
+                return MapComponentCache<VehiclePathingSystem>.GetComponent(departMap)[vehicle.VehicleDef]
                     .VehicleReachability.CanReachVehicle(vehicle.Position, dest, peMode, traverseParms);
             }
             if (MultiFloors.Active && (MultiFloors.GetLevel(departMap) != MultiFloors.GetLevel(destMap)))
@@ -778,7 +778,7 @@ public static class CrossMapReachabilityUtility
 
             //行き先のマップでまだPathGridが作られてない場合構築をリクエストする処理を追加
             var destMapPathing = MapComponentCache<VehiclePathingSystem>.GetComponent(destMap);
-            if (!destMapPathing.BridgeIndexer[vehicle.VehicleDef].VehiclePathGrid.Enabled)
+            if (!destMapPathing[vehicle.VehicleDef].VehiclePathGrid.Enabled)
             {
                 destMapPathing.RequestGridsFor(vehicle.VehicleDef, DeferredGridGeneration.Urgency.Urgent);
             }
@@ -806,8 +806,8 @@ public static class CrossMapReachabilityUtility
 
                             var cell = tmpThing.Position + (tmpThing.Rotation.FacingCell * vehicle.HalfLength());
                             var cell2 = EnterVehiclePosition(tmpThing, vehicle);
-                            return MapComponentCache<VehiclePathingSystem>.GetComponent(departMap).BridgeIndexer[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(vehicle.Position, cell, PathEndMode.OnCell, traverseParms) &&
-                                   destMapPathing.BridgeIndexer[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(cell2, dest, peMode, TraverseMode.PassDoors, traverseParms.maxDanger);
+                            return MapComponentCache<VehiclePathingSystem>.GetComponent(departMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(vehicle.Position, cell, PathEndMode.OnCell, traverseParms) &&
+                                   destMapPathing[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(cell2, dest, peMode, TraverseMode.PassDoors, traverseParms.maxDanger);
                         });
                         exitSpot = result ? tmpThing : TargetInfo.Invalid;
                         return result;
@@ -823,8 +823,8 @@ public static class CrossMapReachabilityUtility
 
                             var cell = EnterVehiclePosition(tmpThing, vehicle);
                             var cell2 = tmpThing.Position + (tmpThing.Rotation.FacingCell * vehicle.HalfLength());
-                            return MapComponentCache<VehiclePathingSystem>.GetComponent(departMap).BridgeIndexer[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(vehicle.Position, cell, PathEndMode.OnCell, traverseParms) &&
-                                   destMapPathing.BridgeIndexer[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(cell2, dest, peMode, TraverseMode.PassDoors, traverseParms.maxDanger);
+                            return MapComponentCache<VehiclePathingSystem>.GetComponent(departMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(vehicle.Position, cell, PathEndMode.OnCell, traverseParms) &&
+                                   destMapPathing[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(cell2, dest, peMode, TraverseMode.PassDoors, traverseParms.maxDanger);
                         });
                         enterSpot = result ? tmpThing : TargetInfo.Invalid;
                         return result;
@@ -838,7 +838,7 @@ public static class CrossMapReachabilityUtility
                             {
                                 //行き先のベースマップでまだPathGridが作られてない場合構築をリクエストする処理を追加
                                 var departBaseMapPathing = MapComponentCache<VehiclePathingSystem>.GetComponent(departBaseMap);
-                                if (!departBaseMapPathing.BridgeIndexer[vehicle.VehicleDef].VehiclePathGrid.Enabled)
+                                if (!departBaseMapPathing[vehicle.VehicleDef].VehiclePathGrid.Enabled)
                                 {
                                     departBaseMapPathing.RequestGridsFor(vehicle.VehicleDef, DeferredGridGeneration.Urgency.Urgent);
                                 }
@@ -860,9 +860,9 @@ public static class CrossMapReachabilityUtility
 
                                         var cell3 = EnterVehiclePosition(tmpThing2, vehicle);
                                         var cell4 = tmpThing2.Position + (tmpThing2.Rotation.FacingCell * vehicle.HalfLength());
-                                        return MapComponentCache<VehiclePathingSystem>.GetComponent(departMap).BridgeIndexer[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(vehicle.Position, cell2, PathEndMode.OnCell, traverseParms) &&
-                                               departBaseMapPathing.BridgeIndexer[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(cell, cell3, PathEndMode.OnCell, TraverseMode.PassDoors, traverseParms.maxDanger) &&
-                                               destMapPathing.BridgeIndexer[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(cell4, dest, peMode, TraverseMode.PassDoors, traverseParms.maxDanger);
+                                        return MapComponentCache<VehiclePathingSystem>.GetComponent(departMap)[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(vehicle.Position, cell2, PathEndMode.OnCell, traverseParms) &&
+                                               departBaseMapPathing[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(cell, cell3, PathEndMode.OnCell, TraverseMode.PassDoors, traverseParms.maxDanger) &&
+                                               destMapPathing[vehicle.VehicleDef].VehicleReachability.CanReachVehicle(cell4, dest, peMode, TraverseMode.PassDoors, traverseParms.maxDanger);
                                     });
                                 });
                                 exitSpot = result ? tmpThing : TargetInfo.Invalid;

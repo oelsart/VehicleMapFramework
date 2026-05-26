@@ -124,7 +124,7 @@ public class HarmonyPatchTests
     threadLocal.Value = null;
     Assert.That(exception, Is.Null);
   }
-
+  
   [Test]
   [Order(3)]
   [TestCaseSource(typeof(TestPlanLoader), nameof(TestPlanLoader.GetPatchTestPlans))]
@@ -162,7 +162,8 @@ public class HarmonyPatchTests
         return
           attributes.Any(attr => attr.AttributeType == typeof(HarmonyPatch)) &&
           attributes.Any(attr => attr.AttributeType == typeof(HarmonyPatchCategory) &&
-                                 attr.ConstructorArguments.Any(c => (string)c.Value == category));
+                                 attr.ConstructorArguments.Any(c => (string)c.Value == category)) &&
+          attributes.All(attr => attr.AttributeType.Name != "VfVersionalPatchAttribute");
       }).Do(type =>
       {
         try

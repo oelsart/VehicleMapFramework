@@ -1336,7 +1336,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
                 if (map.IsVehicleMap) continue;
                     
                 var component = map.GetCachedMapComponent<VehiclePathingSystem>();
-                component.GeneratePathData(vehicleDef);
+                UniqueVehicleUtility.GeneratePathData(component, SingleParam.Get(vehicleDef));
             }
             
             if (Spawned)

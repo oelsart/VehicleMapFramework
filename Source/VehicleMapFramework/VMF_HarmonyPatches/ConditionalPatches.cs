@@ -35,7 +35,7 @@ internal class VfVersionalPatchAttribute : Attribute
   private Version TargetVersion { get; }
 
   private static Version CurrentVersion { get; } =
-    Version.Parse(Regex.Replace(VehicleMod.metaData?.ModVersion ?? CurrentDevBranch, @"[^\d.]", ""));
+    Version.Parse(Regex.Replace(VehicleMod.metaData?.ModVersion ?? LatestRelease, @"[^\d.]", ""));
 }
 
 [HarmonyPatchCategory(PatchCategories.VehicleFramework)]

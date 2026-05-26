@@ -60,7 +60,7 @@ public static class VehicleResizeUtility
     public static void RefreshVehiclePather(VehiclePawn vehicle)
     {
         var component = vehicle.Map.GetCachedMapComponent<VehiclePathingSystem>();
-        UniqueVehicleUtility.SetPathData?.Invoke(vehicle.vehiclePather, SingleParam.Get(component.BridgeIndexer[vehicle.VehicleDef].Value));
+        UniqueVehicleUtility.SetPathData?.Invoke(vehicle.vehiclePather, SingleParam.Get(component[vehicle.VehicleDef]));
 #if DEV
         if (!component.ThreadAvailable ||
             component.dedicatedThread.State == DedicatedThread.ThreadState.Running)
