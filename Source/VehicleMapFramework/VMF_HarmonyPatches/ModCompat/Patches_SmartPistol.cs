@@ -6,13 +6,13 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 internal class Patches_SmartPistol
 {
-    static Patches_SmartPistol()
+  static Patches_SmartPistol()
+  {
+    if (SmartPistol)
     {
-        if (SmartPistol)
-        {
-            VMF_Harmony.PatchCategory(PatchCategories.SmartPistol);
-        }
+      VMF_Harmony.PatchCategory(PatchCategories.SmartPistol);
     }
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.SmartPistol)]
@@ -20,10 +20,10 @@ internal class Patches_SmartPistol
 [PatchLevel(Level.Cautious)]
 public static class Patch_TargetCandidateUtil_GetSubTargets
 {
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
-    }
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.SmartPistol)]
@@ -31,10 +31,10 @@ public static class Patch_TargetCandidateUtil_GetSubTargets
 [PatchLevel(Level.Cautious)]
 public static class Patch_Mote_LockedCurve_Tick
 {
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
-    }
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.SmartPistol)]
@@ -42,8 +42,8 @@ public static class Patch_Mote_LockedCurve_Tick
 [PatchLevel(Level.Cautious)]
 public static class Patch_Mote_LockedCurve_DrawAt
 {
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
-    }
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
+  }
 }

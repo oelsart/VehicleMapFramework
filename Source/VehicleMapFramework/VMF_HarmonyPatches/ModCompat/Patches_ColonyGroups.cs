@@ -6,13 +6,13 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 internal static class Patches_ColonyGroups
 {
-    static Patches_ColonyGroups()
+  static Patches_ColonyGroups()
+  {
+    if (ColonyGroups)
     {
-        if (ColonyGroups)
-        {
-            VMF_Harmony.PatchCategory(PatchCategories.ColonyGroups);
-        }
+      VMF_Harmony.PatchCategory(PatchCategories.ColonyGroups);
     }
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.ColonyGroups)]
@@ -20,8 +20,8 @@ internal static class Patches_ColonyGroups
 [PatchLevel(Level.Sensitive)]
 public static class Patch_TacticalColonistBar_CheckRecacheEntries
 {
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return Patch_ColonistBar_CheckRecacheEntries.Transpiler(instructions);
-    }
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    return Patch_ColonistBar_CheckRecacheEntries.Transpiler(instructions);
+  }
 }

@@ -10,10 +10,11 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Dev|AnyCPU'">
-    <DebugType>none</DebugType>
+    <DebugType>full</DebugType>
     <OutputPath>..\..\..\VehicleMapFrameworkDev\Test\Assemblies\</OutputPath>
     <Optimize>True</Optimize>
     <DefineConstants>UNITY_ASSERTIONS</DefineConstants>
+    <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
 
   <ItemGroup>
@@ -24,28 +25,28 @@
 
   <ItemGroup>
     <Reference Include="DevTools">
-      <HintPath>..\..\..\VehicleFramework\1.6\Assemblies\DevTools.dll</HintPath>
+      <HintPath>..\..\..\Vehicle-Framework\1.6\Assemblies\DevTools.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="SmashTools">
-      <HintPath>..\..\..\VehicleFramework\1.6\Assemblies\SmashTools.dll</HintPath>
+      <HintPath>..\..\..\Vehicle-Framework\1.6\Assemblies\SmashTools.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Test_SmashTools">
-      <HintPath>..\..\..\VehicleFramework\1.6\Assemblies\Test_SmashTools.dll</HintPath>
+      <HintPath>..\..\..\Vehicle-Framework\1.6\Assemblies\Test_SmashTools.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Test_Vehicles">
-      <HintPath>..\..\..\VehicleFramework\1.6\Assemblies\Test_Vehicles.dll</HintPath>
+      <HintPath>..\..\..\Vehicle-Framework\1.6\Assemblies\Test_Vehicles.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Vehicles">
-      <HintPath>..\..\..\VehicleFramework\1.6\Assemblies\Vehicles.dll</HintPath>
+      <HintPath>..\..\..\Vehicle-Framework\1.6\Assemblies\Vehicles.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.4633" />
+    <PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.4633"/>
     <PackageReference Include="PolySharp" Version="1.15.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

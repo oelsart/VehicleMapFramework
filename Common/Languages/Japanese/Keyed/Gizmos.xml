@@ -21,6 +21,12 @@
 	<VMF_ResetPower>リセット</VMF_ResetPower>
 	<VMF_ResetPowerDesc>ターゲットの送電容量をリセットします.</VMF_ResetPowerDesc>
 	<VMF_RaisePowerDesc>ターゲットの送電容量を上げます.</VMF_RaisePowerDesc>
+	<VMF_PowerPush>送信</VMF_PowerPush>
+	<VMF_PowerDraw>受信</VMF_PowerDraw>
+	<VMF_PowerTransmit>送受信</VMF_PowerTransmit>
+	<VMF_PowerPushDesc>リンクした送信機に電力を送信します. 受信モードの送信機とリンクします.</VMF_PowerPushDesc>
+	<VMF_PowerDrawDesc>リンクした受信機から電力を受信します. 送信モードの受信機とリンクします</VMF_PowerDrawDesc>
+	<VMF_PowerTransmitDesc>リンクした送信機と電力を送受信します.</VMF_PowerTransmitDesc>
 
 	<VMF_Reassign>再割り当て</VMF_Reassign>
 	<VMF_ReassignDesc>この席が操作するタレットを再割り当てします.</VMF_ReassignDesc>

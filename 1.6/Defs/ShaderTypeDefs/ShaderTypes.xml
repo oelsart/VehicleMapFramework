@@ -7,6 +7,11 @@
 	</ShaderTypeDef>
 	
 	<ShaderTypeDef>
+		<defName>VMF_LightOverlayInverseMultiply</defName>
+		<shaderPath>LightOverlayInverseMultiply</shaderPath>
+	</ShaderTypeDef>
+	
+	<ShaderTypeDef>
 		<defName>VMF_CutoutComplexRGBOpacity</defName>
 		<shaderPath>ShaderRGBOpacity</shaderPath>
 	</ShaderTypeDef>

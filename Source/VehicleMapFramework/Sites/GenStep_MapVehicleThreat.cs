@@ -15,21 +15,20 @@ public class GenStep_MapVehicleThreat : GenStep
     protected virtual bool ValidRaiderVehicle(VehicleDef vehicleDef, VehicleCategory category, PawnsArrivalModeDef arrivalModeDef,
         Faction faction, float points)
     {
-        return vehicleDef.thingClass.SameOrSubclassOf<VehiclePawnWithMap>() && vehicleDef.HasComp<CompNpcVehicleMap>() &&
-               RaidInjectionHelper.ValidRaiderVehicle(vehicleDef, category, arrivalModeDef, faction, points) &&
-               vehicleDef.GetModExtension<VehicleMapProps_Unique>() is null or { baseDef: null };
+        return VehicleCaravanIncidentUtility.ValidThreatVehicle(vehicleDef, category, arrivalModeDef, faction, points);
     }
     
     protected virtual List<VehiclePawnWithMap> GenerateVehicles(Faction faction, SitePart sitePart)
     {
-        var points = sitePart.parms.points;
+        var minPoints = faction.def.MinPointsToGeneratePawnGroup(PawnGroupKindDefOf.Combat);
+        var points = Mathf.Max(sitePart.parms.points, minPoints);
         const VehicleCategory category = VehicleCategory.Combat;
         var availableDefs = DefDatabase<VehicleDef>.AllDefs
             .Where(vehicleDef => ValidRaiderVehicle(vehicleDef, category, null, faction, points))
             .ToList();
         var list = MapVehicleGroupMakerUtility.GenerateVehicles(faction, points, IncidentWorker_Ambush_EnemyMapVehicle.VehicleCountByPointsCurve,
             availableDefs).ToList();
-        points = Mathf.Max(points - list.Sum(v => v.VehicleDef.combatPower), 10f);
+        points = Mathf.Max(points - list.Sum(v => v.VehicleDef.combatPower), minPoints);
         return list;
     }
 

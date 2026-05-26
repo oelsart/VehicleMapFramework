@@ -10,15 +10,15 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 public class CeleTech
 {
-    static CeleTech()
+  static CeleTech()
+  {
+    if (ModCompat.CeleTech)
     {
-        if (ModCompat.CeleTech)
-        {
-            VMF_Harmony.PatchCategory(PatchCategories.CeleTechArsenalCECompat);
-            Patch_BlockerRegistry_CheckForCollisionBetweenCallback.Prefixes.Add(
-                Patch_Patch_ProjectileCE_CheckForCollisionBetween_Prefix.PrefixPatch);
-        }
+      VMF_Harmony.PatchCategory(PatchCategories.CeleTechArsenalCECompat);
+      Patch_BlockerRegistry_CheckForCollisionBetweenCallback.Prefixes.Add(
+        Patch_Patch_ProjectileCE_CheckForCollisionBetween_Prefix.PrefixPatch);
     }
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenalCECompat)]
@@ -26,18 +26,18 @@ public class CeleTech
 [PatchLevel(Level.Mandatory)]
 public static class Patch_Patch_ProjectileCE_CheckForCollisionBetween_Prefix
 {
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    [HarmonyReversePatch]
-    public static bool PrefixPatch(ProjectileCE __instance, ref bool __result)
+  [MethodImpl(MethodImplOptions.NoInlining)]
+  [HarmonyReversePatch]
+  public static bool PrefixPatch(ProjectileCE __instance, ref bool __result)
+  {
+    _ = Transpiler(null);
+    throw new NotImplementedException();
+
+    IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        _ = Transpiler(null);
-        throw new NotImplementedException();
-        
-        IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
-            return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);
-        }
+      return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);
     }
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenalCECompat)]
@@ -45,8 +45,8 @@ public static class Patch_Patch_ProjectileCE_CheckForCollisionBetween_Prefix
 [PatchLevel(Level.Mandatory)]
 public static class Patch_Patch_ProjectileCE_CheckForCollisionBetween_CheckIntercept_CMC
 {
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
-    }
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
+  }
 }

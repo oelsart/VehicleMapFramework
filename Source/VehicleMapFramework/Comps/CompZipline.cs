@@ -7,70 +7,72 @@ namespace VehicleMapFramework;
 
 public class CompZipline : CompVehicleEnterSpot
 {
-    public new CompProperties_Zipline Props => (CompProperties_Zipline)props;
-    
-    public Verb_LaunchZipline LaunchVerb
+  public new CompProperties_Zipline Props => (CompProperties_Zipline)props;
+
+  public Verb_LaunchZipline LaunchVerb
+  {
+    get
     {
-        get
+      if (field == null)
+      {
+        switch (parent)
         {
-            if (field == null)
+          case Building_Turret building_Turret:
+            field = building_Turret.AttackVerb as Verb_LaunchZipline;
+            break;
+          case ZiplineEnd ziplineEnd:
+            field = ziplineEnd.launchVerb;
+            break;
+          case Pawn pawn:
+            field = pawn.VerbTracker.AllVerbs.OfType<Verb_LaunchZipline>().FirstOrDefault();
+            break;
+          default:
+          {
+            if (parent.def.IsWeapon)
             {
-                switch (parent)
-                {
-                    case Building_Turret building_Turret:
-                        field = building_Turret.AttackVerb as Verb_LaunchZipline;
-                        break;
-                    case ZiplineEnd ziplineEnd:
-                        field = ziplineEnd.launchVerb;
-                        break;
-                    case Pawn pawn:
-                        field = pawn.VerbTracker.AllVerbs.OfType<Verb_LaunchZipline>().FirstOrDefault();
-                        break;
-                    default:
-                    {
-                        if (parent.def.IsWeapon)
-                        {
-                            field = parent.TryGetComp<CompEquippable>()?.PrimaryVerb as Verb_LaunchZipline;
-                        }
-
-                        break;
-                    }
-                }
+              field = parent.TryGetComp<CompEquippable>()?.PrimaryVerb as Verb_LaunchZipline;
             }
-            return field;
+
+            break;
+          }
         }
+      }
+      return field;
     }
+  }
 
-    public Thing Pair => IsZiplineEnd ? LaunchVerb?.caster : LaunchVerb?.ziplineEnd;
+  public Thing Pair => IsZiplineEnd ? LaunchVerb?.caster : LaunchVerb?.ziplineEnd;
 
-    public bool IsZiplineEnd { get; private set; }
+  public bool IsZiplineEnd { get; private set; }
 
-    public override bool Available => Pair is { Spawned: true };
+  public override bool Available => Pair is { Spawned: true };
 
-    public override IntVec3 EnterVehiclePosition => Pair?.Position ?? IntVec3.Invalid;
+  public override IntVec3 EnterVehiclePosition => Pair?.Position ?? IntVec3.Invalid;
 
-    public override void PostSpawnSetup(bool respawningAfterLoad)
+  public override void PostSpawnSetup(bool respawningAfterLoad)
+  {
+    base.PostSpawnSetup(respawningAfterLoad);
+    IsZiplineEnd = parent is ZiplineEnd;
+  }
+
+  public override void PostDraw()
+  {
+    if (!IsZiplineEnd)
     {
-        base.PostSpawnSetup(respawningAfterLoad);
-        IsZiplineEnd = parent is ZiplineEnd;
+      var ziplineEndThing = LaunchVerb?.ziplineEnd;
+      switch (ziplineEndThing)
+      {
+        case IZiplineEnd ziplineEnd:
+          ziplineEnd.DrawZipline(ziplineEndThing.DrawPos);
+          break;
+        case null when Props.standbyGraphic != null:
+          Graphics.DrawMesh(MeshPool.plane10,
+            parent.DrawPos,
+            Quaternion.AngleAxis((parent as Building_TurretGun)?.Top?.CurRotation ?? 0f, Vector3.up),
+            Props.standbyGraphic.Graphic.MatSingleFor(parent),
+            0);
+          break;
+      }
     }
-
-    public override void PostDraw()
-    {
-        if (!IsZiplineEnd)
-        {
-            var ziplineEndThing = LaunchVerb?.ziplineEnd;
-            switch (ziplineEndThing)
-            {
-                case IZiplineEnd ziplineEnd:
-                    ziplineEnd.DrawZipline(ziplineEndThing.DrawPos);
-                    break;
-                case null when Props.standbyGraphic != null:
-                    Graphics.DrawMesh(MeshPool.plane10, parent.DrawPos,
-                        Quaternion.AngleAxis((parent as Building_TurretGun)?.Top?.CurRotation ?? 0f, Vector3.up),
-                        Props.standbyGraphic.Graphic.MatSingleFor(parent), 0);
-                    break;
-            }
-        }
-    }
+  }
 }

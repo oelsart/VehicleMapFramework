@@ -150,42 +150,53 @@ public class VMF_Harmony
         return AllTypesInMod;
     }
 
-    internal static void PatchCategory(string category)
+  internal static void PatchCategory(string category)
+  {
+    var method = new StackTrace().GetFrame(1).GetMethod();
+    var assembly = method.ReflectedType?.Assembly;
+    if (!Categories.Contains(category))
     {
-        var method = new StackTrace().GetFrame(1).GetMethod();
-        var assembly = method.ReflectedType?.Assembly;
-        if (!Categories.Contains(category))
-        {
-            Categories.Add(category);
-        }
-        TypesInAssembly(assembly)
-            .Where(t => t.CustomAttributes.Any(a => a.AttributeType == typeof(HarmonyPatch)) &&
-            t.CustomAttributes.Any(a => a.AttributeType == typeof(HarmonyPatchCategory) && a.ConstructorArguments.Any(c => c.Value.Equals(category))))
-            .Where(CheckClassPatchLevel)
-            .Select(Instance.CreateClassProcessor)
-            .Do(patchClass =>
-            {
-                try
-                {
-                    AdjustPatchLevel(patchClass);
-                    patchClass.Patch();
-                }
-                catch (Exception ex)
-                {
-                    VMF_Log.Error($"Error while apply patching.\n{ex}");
-                }
-            });
+      Categories.Add(category);
     }
+    var patches = TypesInAssembly(assembly)
+      .Where(t => t.CustomAttributes.Any(a => a.AttributeType == typeof(HarmonyPatch)) &&
+                  t.CustomAttributes.Any(a => a.AttributeType == typeof(HarmonyPatchCategory) &&
+                                              a.ConstructorArguments.Any(c => c.Value.Equals(category))))
+      .Where(CheckClassPatchLevel);
+    if (category == PatchCategories.VehicleFramework)
+    {
+      patches = patches.Where(t => t.GetCustomAttribute<VfVersionalPatchAttribute>() is not { } attr ||
+                                   attr.Available);
+    }
+    patches.Select(Instance.CreateClassProcessor)
+      .Do(patchClass =>
+      {
+        try
+        {
+          AdjustPatchLevel(patchClass);
+          patchClass.Patch();
+        }
+        catch (Exception ex)
+        {
+          VMF_Log.Error($"Error while apply patching.\n{ex}");
+        }
+      });
+  }
 
     internal static void UnpatchCategory(string category)
     {
         var method = new StackTrace().GetFrame(1).GetMethod();
         var assembly = method.ReflectedType?.Assembly;
-        TypesInAssembly(assembly)
+        var patches = TypesInAssembly(assembly)
             .Where(t => t.CustomAttributes.Any(a => a.AttributeType == typeof(HarmonyPatch)) &&
             t.CustomAttributes.Any(a => a.AttributeType == typeof(HarmonyPatchCategory) && a.ConstructorArguments.Any(c => c.Value.Equals(category))))
-            .Where(CheckClassPatchLevel)
-            .Select(Instance.CreateClassProcessor)
+            .Where(CheckClassPatchLevel);
+        if (category == PatchCategories.VehicleFramework)
+        {
+          patches = patches.Where(t => t.GetCustomAttribute<VfVersionalPatchAttribute>() is not { } attr ||
+                                       attr.Available);
+        }
+        patches.Select(Instance.CreateClassProcessor)
             .Do(patchClass =>
             {
                 try

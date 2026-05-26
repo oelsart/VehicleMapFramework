@@ -1,0 +1,109 @@
+ManifestFileVersion: 0
+CRC: 1924237928
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: 01ae9e598f6247875839d9f5a5dd4b39
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: 2d8df09e698f722ada1caa03d3413830
+  IncrementalBuildHash:
+    serializedVersion: 2
+    Hash: 01ae9e598f6247875839d9f5a5dd4b39
+HashAppended: 0
+ClassTypes:
+- Class: 28
+  Script: {instanceID: 0}
+- Class: 213
+  Script: {instanceID: 0}
+SerializeReferenceClassIdentifiers: []
+Assets:
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/UI/Drain.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/UI/Push.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/BuildableUpgrade/CargoContainer/CargoContainer_Atlas.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/GravshipWheel/GravshipWheel_westm.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/EnterSpot/RampMedium.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/UI/AllowEnter.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/UI/PumpUp.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/Alternator/Alternator_east.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/EnterSpot/RampLargeBlueprint_north.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/PipeConnector/PipeConnector_m.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/ZiplineTurret/Bullet_ZiplineEnd.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/GravshipWheel/GravshipWheel_northm.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/BuildableUpgrade/TurboCharger/TurboCharger_west.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/GravshipWheel/GravshipWheel_west.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/GravshipWheel/GravshipWheel_east.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/EnterSpot/RampLargeBlueprint_south.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/BuildableUpgrade/VehicleSeat/DriverSeat_east.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/GravshipWheel/GravshipWheel_south.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/BuildableUpgrade/VehicleSeat/GunnerSeat_east.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/BuildableUpgrade/TurboCharger/TurboCharger_south.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/BuildableUpgrade/VehicleSeat/DriverSeat_south.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/SubstructureProps/SubstructureCorner_Full_west_NoShadow.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/EnterSpot/RampMedium_south.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/WirelessCharger/WirelessTransmitter.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/UI/AllowHaulIn.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/ZiplineTurret/Zipline.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/BuildableUpgrade/VehicleSeat/DriverSeat_north.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/EnterSpot/RampSmall_south.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/BuildableUpgrade/FuelTank/FuelTank.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/PipeConnector/PipeEnd_m.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/WirelessCharger/WirelessTransmitter_m.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/UI/Draw.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/UI/DecreasePriority.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/UI/PowerRaise.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/BuildableUpgrade/FuelTank/FuelTank_m.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/EnterSpot/RampLarge.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/EnterSpot/RampMedium_east.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/UI/Transmit.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/UI/Eye.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/BuildableUpgrade/VehicleSeat/PassengerSeat_north.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/SubstructureProps/SubstructureCorner_Full_east_NoShadow.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/EnterSpot/Laddar_south.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/UI/PowerLower.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/EnterSpot/Laddar_north.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/GravshipWheel/GravshipWheel_eastm.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/SubstructureProps/SubstructureCorner_Tip_east_NoShadow.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/PipeConnector/PipeConnector.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/SubstructureProps/SubstructureCorner_Tip_west_NoShadow.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/EnterSpot/RampMediumBlueprint_east.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/BuildableUpgrade/TurboCharger/TurboCharger_north.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/EnterSpot/RampMediumBlueprint_south.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/PipeConnector/Pipe.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/BuildableUpgrade/TurboCharger/TurboCharger_east.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/EnterSpot/RampLarge_south.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/SubstructureProps/SubstructureProps_Bottom_NoShadow.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/BuildableUpgrade/VehicleSeat/PassengerSeat_east.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/EnterSpot/RampSmall_east.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/ZiplineTurret/ZiplineTurret_Top.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/BuildableUpgrade/VehicleSeat/GunnerSeat_south.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/EnterSpot/RampMediumBlueprint_north.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/EnterSpot/RampMedium_north.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/EnterSpot/RampLarge_east.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/UI/PowerReset.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/BuildableUpgrade/CargoContainer/CargoContainer_Blueprint_Atlas.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/WirelessCharger/WirelessTransmitterLight.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/GravshipWheel/GravshipWheel_north.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/EnterSpot/RampSmall_north.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/ZiplineTurret/ZiplineTurret_MenuIcon.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/Alternator/Alternator_south.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/Alternator/Alternator_north.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/ClearTex.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/BuildableUpgrade/CargoContainer/CargoContainer_Filler.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/EnterSpot/RampLarge_north.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/EnterSpot/Laddar_east.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/ZiplineTurret/ZiplineTurret_Base.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/UI/AllowExit.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/BuildableUpgrade/CargoContainer/CargoContainer_MenuIcon.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/PipeConnector/PipeEnd.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/UI/AllowHaulOut.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/BuildableUpgrade/VehicleSeat/PassengerSeat_south.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/BuildableUpgrade/LiftFan.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/UI/IncreasePriority.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/EnterSpot/RampLargeBlueprint_east.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/UI/GravshipVehicleMode.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/ZiplineTurret/ZiplineEnd.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/UI/FlipIcon.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/GravshipWheel/GravshipWheel_southm.png
+- Assets/Data/OELS.VehicleMapFramework/Textures/VehicleMapFramework/Things/BuildableUpgrade/VehicleSeat/GunnerSeat_north.png
+Dependencies: []

@@ -201,7 +201,7 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
                     }
                     return false;
                 });
-            if (region2 is null) continue;
+            if (region2 is not { valid: true }) continue;
             
             using (new VirtualTeleporter(pawn, map2, region2.RandomCell))
             {

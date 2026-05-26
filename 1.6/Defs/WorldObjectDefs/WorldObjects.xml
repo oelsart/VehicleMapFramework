@@ -9,6 +9,7 @@
 		<selectable>false</selectable>
 		<neverMultiSelect>true</neverMultiSelect>
 		<saved>false</saved>
+		<treatAsPlayerHome>true</treatAsPlayerHome>
 	</WorldObjectDef>
 
 </Defs>

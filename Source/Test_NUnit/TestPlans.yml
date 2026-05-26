@@ -94,3 +94,4 @@
 - Name: ColonyManagerRedux
   LoadOnly: true
 - Name: WVCWorkModes
+- Name: PowerPoles

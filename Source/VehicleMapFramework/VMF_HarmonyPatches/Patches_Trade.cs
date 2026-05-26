@@ -70,6 +70,21 @@ public static class Patch_CaravanInventoryUtility_AllInventoryItems
     }
 }
 
+[HarmonyPatch(typeof(CaravanInventoryUtility), nameof(CaravanInventoryUtility.GetOwnerOf))]
+[PatchLevel(Level.Safe)]
+public static class Patch_CaravanInventoryUtility_GetOwnerOf
+{
+    public static bool Prefix(Thing item, ref Pawn __result)
+    {
+        if (item.IsOnVehicleMapOf(out var vehicle))
+        {
+            __result = vehicle;
+            return false;
+        }
+        return true;
+    }
+}
+
 [HarmonyPatch(typeof(Caravan_BedsTracker), "GetUsableBeds")]
 [PatchLevel(Level.Cautious)]
 [HarmonyPriority(Priority.Low)]

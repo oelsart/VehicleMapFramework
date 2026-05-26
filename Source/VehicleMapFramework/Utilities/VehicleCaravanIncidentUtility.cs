@@ -83,6 +83,7 @@ public class VehicleCaravanIncidentUtility
                             comp2.Opacity = 0.5f;
                     }
                 });
+                vehicle.Resize();
             }
             if (!SpawnVehicle(vehicle)) continue;
 
@@ -127,9 +128,11 @@ public class VehicleCaravanIncidentUtility
         int[] PawnAllocation()
         {
             var counts = new int[vehicles.Count];
+            if (vehicles.Count == 0) return counts;
             var pawnCount = enemies.Count;
             var num = pawnCount;
             var weightSum = vehicles.Sum(v => v.CompNpcVehicleMap?.Props.pawnCountWeight ?? 0f);
+            if (weightSum == 0f) weightSum = 1f;
             for (var i = 0; i < vehicles.Count; i++)
             {
                 var vehicle = vehicles[i];
@@ -139,7 +142,7 @@ public class VehicleCaravanIncidentUtility
                 num -= num2;
             }
             for (var i = 0; i < num; i++)
-                counts[i]++;
+                counts[i % vehicles.Count]++;
             return counts;
         }
 
@@ -152,10 +155,8 @@ public class VehicleCaravanIncidentUtility
             if (!pathData.VehiclePathGrid.Enabled) pathData.VehiclePathGrid.RecalculateAllPerceivedPathCosts();
             if (!pathData.VehicleRegionAndRoomUpdater.Enabled) pathData.VehicleRegionAndRoomUpdater.Init();
 
-            var reachability = map.GetCachedMapComponent<VehiclePathingSystem>()[vehicle.VehicleDef].VehicleReachability;
             var pos2 = CellFinderExtended.RandomSpawnCellForPawnNear(cell, map, vehicle,
                 c => vehicle.DrivableRectOnCell(c, true, map) &&
-                     reachability.CanReachBase(c, vehicle.VehicleDef) &&
                     (playerVehicle is null || playerVehicle.CanReachVehicle(c, PathEndMode.Touch, Danger.Deadly)),
                 vehicle.VehicleDef.type == VehicleType.Sea);
             if (!pos2.IsValid)
@@ -167,5 +168,28 @@ public class VehicleCaravanIncidentUtility
             var result = GenSpawn.Spawn(vehicle, pos2, map, rot) != null;
             return result;
         }
+    }
+    
+    public static bool ValidThreatVehicle(VehicleDef vehicleDef, VehicleCategory category,
+        PawnsArrivalModeDef arrivalModeDef, Faction faction, float points)
+    {
+        return vehicleDef.thingClass.SameOrSubclassOf<VehiclePawnWithMap>() && vehicleDef.HasComp<CompNpcVehicleMap>() &&
+               RaidInjectionHelper.ValidRaiderVehicle(vehicleDef, category, arrivalModeDef, faction, points) &&
+               vehicleDef.GetModExtension<VehicleMapProps_Unique>() is null or { baseDef: null } &&
+               UniqueVehicleUtility.AllowGenerate(vehicleDef);
+    }
+    
+    public static bool ValidSeaThreatVehicle(VehicleDef vehicleDef, VehicleCategory category,
+        PawnsArrivalModeDef arrivalModeDef, Faction faction, float points)
+    {
+        return vehicleDef.thingClass.SameOrSubclassOf<VehiclePawnWithMap>() && vehicleDef.HasComp<CompNpcVehicleMap>() &&
+               vehicleDef.GetModExtension<VehicleMapProps_Unique>() is null or { baseDef: null } &&
+               UniqueVehicleUtility.AllowGenerate(vehicleDef) &&
+               vehicleDef.type == VehicleType.Sea && (vehicleDef.vehicleCategory & category) == category &&
+               vehicleDef.combatPower <= points && faction.def.techLevel >= vehicleDef.techLevel &&
+               (vehicleDef.enabled & VehicleEnabled.For.Raiders) != VehicleEnabled.For.None &&
+               vehicleDef.npcProperties != null && (vehicleDef.npcProperties.raidParams == null ||
+                                                    vehicleDef.npcProperties.raidParams.Allows(faction,
+                                                        arrivalModeDef));
     }
 }

@@ -6,74 +6,78 @@ namespace VehicleMapFramework;
 
 public class FrameDelay(Game game) : GameComponent
 {
-    private readonly Game game = game;
-    
-    private interface IJob
+
+  private static List<IJob> currentJobs = [];
+  private static List<IJob> nextJobs = [];
+
+  // ReSharper disable once ChangeFieldTypeToSystemThreadingLock
+  private static readonly object lockObj = new();
+  private readonly Game game = game;
+
+  public static void DelayOne<T>(Action<T> action, T state)
+  {
+    lock (lockObj)
     {
-        public void Execute();
-        
-        public void Return();
+      nextJobs.Add(Job<T>.Get(action, state));
     }
-    
-    private class Job<T> : IJob
+  }
+
+  public override void GameComponentUpdate()
+  {
+    lock (lockObj)
     {
-        private Action<T> action;
-        private T state;
-
-        public static Job<T> Get(Action<T> action, T state)
-        {
-            var job = SimplePool<Job<T>>.Get();
-            job.state = state;
-            job.action = action;
-            return job;
-        }
-
-        public void Execute() => action(state);
-
-        public void Return()
-        {
-            state = default;
-            action = null;
-            SimplePool<Job<T>>.Return(this);
-        }
+      if (nextJobs.Count == 0) return;
+      (currentJobs, nextJobs) = (nextJobs, currentJobs);
     }
 
-    private static List<IJob> currentJobs = [];
-    private static List<IJob> nextJobs = [];
-    // ReSharper disable once ChangeFieldTypeToSystemThreadingLock
-    private static readonly object lockObj = new();
-
-    public static void DelayOne<T>(Action<T> action, T state)
+    for (var i = 0; i < currentJobs.Count; i++)
     {
-        lock (lockObj)
-        {
-            nextJobs.Add(Job<T>.Get(action, state));
-        }
+      try
+      {
+        currentJobs[i].Execute();
+      }
+      catch (Exception ex)
+      {
+        VMF_Log.Error($"Error in FrameDelay: {ex}");
+      }
+      finally
+      {
+        currentJobs[i].Return();
+      }
+    }
+    currentJobs.Clear();
+  }
+
+  private interface IJob
+  {
+    void Execute();
+
+    void Return();
+  }
+
+  private class Job<T> : IJob
+  {
+    private Action<T> action;
+    private T state;
+
+    public void Execute()
+    {
+      action(state);
     }
 
-    public override void GameComponentUpdate()
+    public void Return()
     {
-        lock (lockObj)
-        {
-            if (nextJobs.Count == 0) return;
-            (currentJobs, nextJobs) = (nextJobs, currentJobs);
-        }
-
-        for (var i = 0; i < currentJobs.Count; i++)
-        {
-            try
-            {
-                currentJobs[i].Execute();
-            }
-            catch (Exception ex)
-            {
-                VMF_Log.Error($"Error in FrameDelay: {ex}");
-            }
-            finally
-            {
-                currentJobs[i].Return();
-            }
-        }
-        currentJobs.Clear();
+      state = default;
+      action = null;
+      SimplePool<Job<T>>.Return(this);
     }
+
+    public static Job<T> Get(Action<T> action, T state)
+    {
+      var job = SimplePool<Job<T>>.Get();
+      job.state = state;
+      job.action = action;
+      return job;
+    }
+  }
 }

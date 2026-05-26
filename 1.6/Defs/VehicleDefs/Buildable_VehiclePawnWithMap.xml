@@ -4,12 +4,14 @@
 	<Vehicles.VehicleBuildDef Name="VehicleWithMapBaseBuildable" ParentName="VehicleBaseBuildable" Abstract="True">
 		<placeWorkers>
 			<li>VehicleMapFramework.PlaceWorker_ForbidOnVehicle</li>
+			<li>VehicleMapFramework.PlaceWorker_UniqueVehicle</li>
 		</placeWorkers>
 	</Vehicles.VehicleBuildDef>
 	
 	<Vehicles.VehicleBuildDef Name="VehicleBoatWithMapBaseBuildable" ParentName="VehicleBoatBaseBuildable" Abstract="True">
 		<placeWorkers>
 			<li>VehicleMapFramework.PlaceWorker_ForbidOnVehicle</li>
+			<li>VehicleMapFramework.PlaceWorker_UniqueVehicle</li>
 		</placeWorkers>
 	</Vehicles.VehicleBuildDef>
 </Defs>

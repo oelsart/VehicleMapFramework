@@ -1,20 +1,15 @@
 ﻿using SmashTools;
 using Vehicles;
 
-namespace VehicleMapFramework
+namespace VehicleMapFramework;
+
+public class VerticalProtocolProperties_Gravship : VerticalProtocolProperties
 {
-    public class VerticalProtocolProperties_Gravship : VerticalProtocolProperties
-    {
-        [GraphEditable]
-        public LinearCurve thrusterFlameCurve;
 
-        [GraphEditable]
-        public LinearCurve thrusterFlameVerticalCurve;
+  [GraphEditable] public LinearCurve engineGlowCurve;
 
-        [GraphEditable]
-        public LinearCurve engineGlowCurve;
+  [GraphEditable] public LinearCurve engineGlowVerticalCurve;
+  [GraphEditable] public LinearCurve thrusterFlameCurve;
 
-        [GraphEditable]
-        public LinearCurve engineGlowVerticalCurve;
-    }
+  [GraphEditable] public LinearCurve thrusterFlameVerticalCurve;
 }

@@ -1,136 +1,135 @@
-﻿using System.Xml.Linq;
+﻿using System.Text.RegularExpressions;
+using System.Xml.Linq;
+using Verse;
 
 namespace VehicleMapFramework.Test_Logics;
 
 public class Logger_JUnit : CustomLoggerBase
 {
-    private readonly XDocument document = new();
 
-    private readonly XTestSuite testsuite = new(TestSuiteName);
-    
-    private readonly Stack<XTestCase> testCaseStack = [];
-    
-    private const string TestSuiteName = "testsuite";
-    
-    private const string TestCaseName = "testcase";
-    
-    private const string NameAttribute = "name";
-    
-    private const string ClassNameAttribute = "classname";
-    
-    private const string TestsAttribute = "tests";
-    
-    private const string SkippedAttribute = "skipped";
-    
-    private const string FailureAttribute = "failure";
-    
-    private const string AssertionAttribute = "assertions";
-    
-    private const string MessageAttribute = "message";
+  private const string TestSuiteName = "testsuite";
+  private const string TestCaseName = "testcase";
+  private const string NameAttribute = "name";
+  private const string ClassNameAttribute = "classname";
+  private const string TestsAttribute = "tests";
+  private const string SkippedAttribute = "skipped";
+  private const string FailureAttribute = "failure";
+  private const string AssertionAttribute = "assertions";
+  private const string MessageAttribute = "message";
+  private readonly XDocument document = new();
+  private readonly Stack<XTestCase> testCaseStack = [];
+  private readonly XTestSuite testsuite = new(TestSuiteName);
+  private XElement failure;
 
-    public Logger_JUnit(Config config) : base(config)
+  public Logger_JUnit(Config config) : base(config)
+  {
+    testsuite.SetAttributeValue(NameAttribute, "Local test by DevTools");
+    document.Add(testsuite);
+  }
+
+  public override void WriteCustom(string message)
+  {
+    if (message.NullOrEmpty()) return;
+
+    var labelMatch = Regex.Match(message, @"\[.*?\]"); // [...]を取得
+    if (labelMatch.Success && labelMatch.Value is PassedLabel or FailedLabel or SkippedLabel)
     {
-        testsuite.SetAttributeValue(NameAttribute, "Local test by DevTools");
-        document.Add(testsuite);
+      if (!message.StartsWith(Tab))
+      {
+        EndTestCase();
+        EndTestCase();
+      }
+      var label = labelMatch.Value;
+      var str = message.Split(label)[1].TrimStart();
+      var name = Regex.Replace(str, @"\(.*?\)", "").Split(Space)[0]; // (...)と以降のメッセージを除去
+      string fixture = null;
+      if (testCaseStack.TryPeek(out var parent))
+        fixture = parent.Attributes(NameAttribute).FirstOrDefault()?.Value;
+      EnterTestCase(fixture, name);
+      Evaluate(label, str);
     }
-
-    public override void WriteCustom(StreamWriter writer, string message)
+    else
     {
-        if (message.StartsWith(SettingUp))
-            currentState = State.SettingUp;
-        else if (message.StartsWith(Executing))
-        {
-            EndTestCase();
-            var name = message[10..].Split("::");
-            EnterTestCase(name[0], name[1]);
-        }
-        else if (message.StartsWith(TearingDown))
-            currentState = State.TearingDown;
-        else if (message.StartsWith(BeginGroup))
-        {
-            if (currentState == State.TearingDown)
-            {
-                EndTestCase();
-                currentState = State.None;           
-            }
-            var classname = default(string);
-            var name = message[15..].Replace("(", "").Replace(")", "");
-            if (testCaseStack.TryPeek(out var parent))
-            {
-                classname = parent.Attribute(ClassNameAttribute)?.Value;
-                name = $"{parent.Attribute(NameAttribute)?.Value}.{name}";
-            }
-            EnterTestCase(classname, name);
-        }
-        else if (message.StartsWith(EndGroup))
-            EndTestCase();
-        else if (message.StartsWith(PassedLabel))
-        {
-            foreach (var testCase in testCaseStack)
-                testCase.assertions++;
-            testsuite.assertions++;
-        }
-        else if (message.StartsWith(FailedLabel))
-        {
-            if (testCaseStack.TryPeek(out var testCase))
-            {
-                var failure = new XElement(FailureAttribute);
-                failure.SetAttributeValue(MessageAttribute, message[9..]);
-                testCase.Add(failure);
-                foreach (var testCase2 in testCaseStack)
-                    testCase2.assertions++;
-                testsuite.assertions++;
-            }
-        }
-        else if (message.StartsWith(SkippedLabel))
-        {
-            var skipped = new XElement(SkippedAttribute);
-            skipped.SetAttributeValue(MessageAttribute, message[10..]);
-            testCaseStack.Peek().Add(skipped);
-        }
+      failure?.Value += message;
     }
+    return;
 
-    public override void DisposeCustom(StreamWriter writer)
+    void Evaluate(string label, string str)
     {
-        WriteTestResults();
-        document.Save(writer);
-        return;
+      switch (label)
+      {
+        case SkippedLabel:
+          failure = new XElement(SkippedAttribute);
+          failure.SetAttributeValue(MessageAttribute, str.Split(Space).ElementAtOrDefault(1));
+          testCaseStack.Peek().Add(failure);
+          break;
 
-        void WriteTestResults()
-        {
-            while (testCaseStack.Count > 0)
-            {
-                EndTestCase();
-            }
-            testsuite.SetAttributeValue(TestsAttribute, testsuite.Elements(TestCaseName).Count());
-            testsuite.SetAttributeValue(SkippedAttribute, testsuite.Elements(TestCaseName)
-                .SelectMany(testcase => testcase.Elements().Where(e => e.Name == SkippedAttribute)).Count());
-            testsuite.SetAttributeValue(FailureAttribute, testsuite.Elements(TestCaseName)
-                .SelectMany(testcase => testcase.Elements().Where(e => e.Name == FailureAttribute)).Count());
-            testsuite.SetAttributeValue(AssertionAttribute, testsuite.assertions);
-        }
-    }
-    
-    private void EnterTestCase(string classname, string name)
-    {
-        var testCase = new XTestCase(TestCaseName);
-        if (classname != null)
-            testCase.SetAttributeValue(ClassNameAttribute, classname);
-        testCase.SetAttributeValue(NameAttribute, name);
-        testsuite.Add(testCase);
-        testCaseStack.Push(testCase);
-    }
-        
-    private void EndTestCase()
-    {
-        if (testCaseStack.TryPop(out var testCase))
-            testCase.SetAttributeValue(AssertionAttribute, testCase.assertions);
-    }
+        case FailedLabel:
+          failure = new XElement(FailureAttribute);
+          failure.SetAttributeValue(MessageAttribute, str.Split(Space).ElementAtOrDefault(1));
+          testCaseStack.Peek().Add(failure);
+          break;
 
-    private class XTestCase(XName name) : XElement(name)
-    {
-        public int assertions;
+        case PassedLabel:
+          foreach (var testCase in testCaseStack)
+          {
+            testCase.assertions++;
+          }
+          testsuite.assertions++;
+          break;
+      }
     }
+  }
 
-    private class XTestSuite(XName name) : XTestCase(name);
+  public override void DisposeCustom(StreamWriter writer)
+  {
+    WriteTestResults();
+    // ファイルを空にする
+    writer.BaseStream.SetLength(0);
+    writer.BaseStream.Position = 0;
+    document.Save(writer);
+    return;
+
+    void WriteTestResults()
+    {
+      while (testCaseStack.Count > 0)
+      {
+        EndTestCase();
+      }
+      testsuite.SetAttributeValue(TestsAttribute, testsuite.Elements(TestCaseName).Count());
+      testsuite.SetAttributeValue(SkippedAttribute,
+        testsuite.Elements(TestCaseName)
+          .SelectMany(testcase => testcase.Elements().Where(e => e.Name == SkippedAttribute)).Count());
+      testsuite.SetAttributeValue(FailureAttribute,
+        testsuite.Elements(TestCaseName)
+          .SelectMany(testcase => testcase.Elements().Where(e => e.Name == FailureAttribute)).Count());
+      testsuite.SetAttributeValue(AssertionAttribute, testsuite.assertions);
+    }
+  }
+
+  private void EnterTestCase(string classname, string name)
+  {
+    var testCase = new XTestCase(TestCaseName);
+    if (classname != null)
+      testCase.SetAttributeValue(ClassNameAttribute, classname);
+    testCase.SetAttributeValue(NameAttribute, name);
+    testsuite.Add(testCase);
+    testCaseStack.Push(testCase);
+    failure = null;
+  }
+
+  private void EndTestCase()
+  {
+    if (testCaseStack.TryPop(out var testCase))
+      testCase.SetAttributeValue(AssertionAttribute, testCase.assertions);
+
+    failure = null;
+  }
+
+  private class XTestCase(XName name) : XElement(name)
+  {
+    public int assertions;
+  }
+
+  private class XTestSuite(XName name) : XTestCase(name);
 }

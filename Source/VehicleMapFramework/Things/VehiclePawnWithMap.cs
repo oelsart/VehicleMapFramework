@@ -3,9 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-#if DEV
-using CoreLib.Performance;
-#endif
 using HarmonyLib;
 using JetBrains.Annotations;
 using RimWorld;
@@ -18,6 +15,8 @@ using Vehicles;
 using Vehicles.World;
 using Verse;
 using Verse.AI;
+#if DEV
+#endif
 
 namespace VehicleMapFramework;
 
@@ -27,27 +26,19 @@ public class MapVehicleEventDef : Def;
 public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
 {
     private Map interiorMap;
-
     private VehicleMapFollower mapFollower;
-
+    
     public Vector3 cachedDrawPos;
-
     public Vector3 cachedExactPos;
-
+    
     private bool allowEnter = true;
-
     private bool allowExit = true;
 
     public bool impassableCellsDirty = true;
-
     public bool mapEdgeCellsDirty = true;
-
-    private bool walkableCellsDirty = true;
-
+    public bool walkableCellsDirty = true;
     public bool enterPositionsDirty = true;
-
     private int cellDesignationsDirtyTick;
-
     private int vehicleCaravanOrStashedVehicleCachedTick;
 
     internal bool resizeRequest;
@@ -58,25 +49,16 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
 
     private static readonly Material ClipMat =
         SolidColorMaterials.NewSolidColorMaterial(new Color(0.3f, 0.1f, 0.1f, 0.5f), ShaderDatabase.MetaOverlay);
-
     private static readonly Texture2D iconIncreasePriority = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/IncreasePriority");
-
     private static readonly Texture2D iconDecreasePriority = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/DecreasePriority");
-
     private static readonly Texture2D iconAllowEnter = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/AllowEnter");
-
     private static readonly Texture2D iconAllowExit = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/AllowExit");
-    
     private static readonly Texture2D iconEye = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/Eye");
-
     private static readonly Type t_SectionLayer_Zones = GenTypes.GetTypeInAnyAssembly("Verse.SectionLayer_Zones", "Verse");
-
     private static readonly FastInvokeHandler DirtyCellDesignationsCache =
         MethodInvoker.GetHandler(AccessTools.Method(typeof(DesignationManager), "DirtyCellDesignationsCache"));
-
     private static readonly List<DesignationDef> cellDesignations =
         DefDatabase<DesignationDef>.AllDefs.Where(d => d.targetType == TargetType.Cell).ToList();
-    
     internal static readonly AccessTools.FieldRef<MapDrawer, Section[,]> sections = AccessTools.FieldRefAccess<MapDrawer, Section[,]>("sections");
 
     EventManager<MapVehicleEventDef> IEventManager<MapVehicleEventDef>.EventRegistry { get; set; }
@@ -228,23 +210,24 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
                 enterPositionsDirty = true;
                 field.Clear();
                 var cellRect = interiorMap.BoundsRect(1);
+                var cachedOutOfBoundsCells = CachedOutOfBoundsCells;
+                var cachedExpandableCells = CachedExpandableCells;
+                var cachedImpassableCells = CachedImpassableCells;
                 for (var i = 0; i < 4; i++)
                 {
                     var rot = new Rot4(i);
                     var facingInside = rot.Opposite.FacingCell;
-                    var cells = cellRect.GetEdgeCells(rot);
                     // GetEdgeCellsはminからの列挙なので東と南は反転させ時計回りにしておく。
-                    cells = rot is { AsInt: Rot4.EastInt or Rot4.SouthInt } ? cells.Reverse() : cells;
-                    foreach (var c in cells)
+                    foreach (var c in cellRect.EdgeRectClockwise(rot))
                     {
                         var c2 = c;
-                        while (CachedOutOfBoundsCells.Contains(c2) ||
-                               (CachedExpandableCells.Contains(c2) && CachedImpassableCells.Contains(c2)))
+                        while (cachedOutOfBoundsCells.Contains(c2) ||
+                               (cachedExpandableCells.Contains(c2) && cachedImpassableCells.Contains(c2)))
                         {
                             c2 += facingInside;
                         }
 
-                        if (c2.InBounds(interiorMap))
+                        if (c2.InBounds(interiorMap) && !cachedImpassableCells.Contains(c2))
                         {
                             field.AddUnique(c2);
                         }
@@ -291,7 +274,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
         }
     } = [];
 
-    public List<IntVec3?> CachedEnterPositions
+    private List<IntVec3?> CachedEnterPositions
     {
         get
         {
@@ -365,7 +348,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     
     public List<CompBuildableContainer> ContainerComps { get; } = [];
 
-    public override Vector3 DrawPos => Spawned && Find.CurrentMap != interiorMap ? base.DrawPos : cachedDrawPos;
+    public override Vector3 DrawPos => Spawned && Find.CurrentMap != CurrentLevel ? base.DrawPos : cachedDrawPos;
 
     public new bool ThreatDisabled(IAttackTargetSearcher disabledFor) => VehicleMap.mapPawns.FreeHumanlikesSpawnedOfFaction(Faction).Empty() && base.ThreatDisabled(disabledFor);
 
@@ -593,6 +576,11 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
             interiorMap.events.BuildingSpawned += WalkableCellsDirtyIfNeeded;
             interiorMap.events.PathCostRecalculate += WalkableCellsDirtyIfNeeded;
             _ = CachedMapEdgeCells;
+
+            if (VehicleDef.GetModExtension<VehicleMapProps_Unique>() is { baseDef: not null })
+            {
+                FrameDelay.DelayOne<object>(_ => LongEventHandler.ExecuteWhenFinished(() => ResizeNow(false)), null);
+            }
         }
         interiorMap?.PocketMapParent?.sourceMap = map;
 
@@ -639,17 +627,15 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
         {
             v.Transform.rotation = 0f;
         });
+        
+        enterPositionsDirty = true;
     }
 
     protected override void Tick()
     {
         if (Spawned)
         {
-            if (resizeRequest)
-            {
-                resizeRequest = false;
-                Resize();
-            }
+            Resize();
             if (CompDelayedKill is { KillStarted: true })
             {
                 CompDelayedKill.CompTick();
@@ -763,7 +749,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
             var allThings = interiorMap.listerThings.AllThings;
             for (var i = allThings.Count - 1; i >= 0; i--)
             {
-                var thing = allThings.ElementAtOrDefault(i);
+                var thing = allThings[i];
                 if (mode != DestroyMode.Vanish && thing is { Destroyed: false })
                 {
                     var positionOnBaseMap = thing.PositionOnBaseMap;
@@ -817,6 +803,8 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
 
         base.Destroy(mode);
         RemoveVehicleMap();
+        if (VehicleDef.HasModExtension<VehicleMapProps_Unique>())
+            UniqueVehicleUtility.ReleaseUniqueVehicleDef(VehicleDef);
     }
 
     public override void DeSpawn(DestroyMode mode = DestroyMode.Vanish)
@@ -886,7 +874,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
         var transform = new TransformData(drawLoc + Transform.position, FullRotation, Transform.rotation.FlipAngle(this));
         var result = VehicleGraphic?.ParallelGetPreRenderResults(ref transform, false, this);
         cachedDrawPos = result?.position ?? drawLoc;
-        if (Spawned && Find.CurrentMap == interiorMap)
+        if (Spawned && Find.CurrentMap == CurrentLevel)
         {
             cachedExactPos = cachedDrawPos + base.DrawPos - drawLoc;
         }
@@ -916,7 +904,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
         cellDesignationsDirtyTick = GenTicks.TicksGame;
         foreach (var designationDef in cellDesignations)
         {
-            DirtyCellDesignationsCache(CurrentLevel.designationManager, FastInvokeHelper.SingleParam(designationDef));
+            DirtyCellDesignationsCache(CurrentLevel.designationManager, SingleParam.Get(designationDef));
         }
     }
 
@@ -1242,9 +1230,9 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     public override void ExposeData()
     {
         base.ExposeData();
-        Scribe_References.Look(ref interiorMap, "interiorMap");
-        Scribe_Values.Look(ref allowEnter, "allowEnter");
-        Scribe_Values.Look(ref allowExit, "autoGetOff");
+        Scribe_References.Look(ref interiorMap, nameof(interiorMap));
+        Scribe_Values.Look(ref allowEnter, nameof(allowEnter));
+        Scribe_Values.Look(ref allowExit, nameof(allowExit));
     }
 
     protected override void PostLoad()
@@ -1260,10 +1248,9 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     public override void PostMake()
     {
         base.PostMake();
-        var props = def.GetModExtension<VehicleMapProps_Unique>();
-        if (props != null && def.defName != props.defName)
+        if (def.GetModExtension<VehicleMapProps_Unique>() is { baseDef: null })
         {
-            def = UniqueVehicleUtility.GenerateUniqueVehicleDef(this);
+            def = UniqueVehicleUtility.ClaimUniqueVehicleDef(VehicleDef);
         }
     }
 
@@ -1291,7 +1278,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
                 if (InterceptorMapComponent is null) return;
                 foreach (var grid in DefenseGrid.grids(InterceptorMapComponent))
                 {
-                    DefenseGrid.RepaintGrid(InterceptorMapComponent, FastInvokeHelper.SingleParam(grid));
+                    DefenseGrid.RepaintGrid(InterceptorMapComponent, SingleParam.Get(grid));
                 }
             });
             this.AddEvent(VehicleEventDefOf.Spawned, () => FrameDelay.DelayOne(static component =>
@@ -1299,7 +1286,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
                 if (component is null) return;
                 foreach (var grid in DefenseGrid.grids(component))
                 {
-                    DefenseGrid.RepaintGrid(component, FastInvokeHelper.SingleParam(grid));
+                    DefenseGrid.RepaintGrid(component, SingleParam.Get(grid));
                 }
             }, InterceptorMapComponent));
             this.AddEvent(VehicleEventDefOf.Despawned, () =>
@@ -1307,15 +1294,23 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
                 if (InterceptorMapComponent is null) return;
                 foreach (var grid in DefenseGrid.grids(InterceptorMapComponent))
                 {
-                    DefenseGrid.UnpaintGrid(InterceptorMapComponent, FastInvokeHelper.SingleParam(grid));
+                    DefenseGrid.UnpaintGrid(InterceptorMapComponent, SingleParam.Get(grid));
                 }
             });
         }
     }
-    
-    private void Resize()
+
+    public void Resize()
     {
-        mapEdgeCellsDirty = true;
+        if (resizeRequest)
+        {
+            resizeRequest = false;
+            ResizeNow();
+        }
+    }
+    
+    private void ResizeNow(bool changePosition = true)
+    {
         var vehicleDef = VehicleDef;
         var curSize = vehicleDef.Size;
         var mapRect = CellRect.WholeMap(VehicleMap);
@@ -1323,6 +1318,8 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
         var newSize = newRect.Size;
         if (curSize != newSize)
         {
+            VehicleResizeUtility.PreResize(this);
+            VMF_Log.DebugMessage($"Resize {vehicleDef} from {vehicleDef.size} to {newSize}");
             vehicleDef.size = newSize;
             var offset = mapRect.CenterVector3 - newRect.CenterVector3;
             var data = VehicleGraphic.DataRgb;
@@ -1332,67 +1329,32 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
             data.drawOffsetEast = offset.RotatedBy(Rot4.East);
             data.drawOffsetSouth = offset.RotatedBy(Rot4.South);
             data.drawOffsetWest = offset.RotatedBy(Rot4.West);
-            if (vehicleDef.components is not null)
-            {
-                foreach (var component in vehicleDef.components)
-                {
-                    component.hitbox.Hitbox.Clear();
-                    component.hitbox.Initialize(vehicleDef);
-                }
-            }
+            UniqueVehicleUtility.ReinitializeComponents(vehicleDef);
 
             foreach (var map in Find.Maps)
             {
                 if (map.IsVehicleMap) continue;
                     
                 var component = map.GetCachedMapComponent<VehiclePathingSystem>();
-                UniqueVehicleUtility.configsMap(component.GridOwners)[vehicleDef.DefIndex]
-                    = UniqueVehicleUtility.PathConfigMap(vehicleDef);
-                UniqueVehicleUtility.GeneratePathData(component, FastInvokeHelper.SingleParam(vehicleDef));
+                UniqueVehicleUtility.GeneratePathData(component, SingleParam.Get(vehicleDef));
             }
             
             if (Spawned)
             {
-                var diff = prevOffset - offset;
-                Position += new IntVec3(
-                    (int)MathF.Truncate(diff.x),
-                    0,
-                    (int)MathF.Truncate(diff.z)).RotatedBy(Rotation);
-                var opp = Convert.ToInt32(Rotation.AsInt > 1);
-                if ((diff.x < 0f) == (newSize.x % 2 == opp))
-                {
-                    Position += (IntVec3.East * (int)(diff.x % 1f * 2f)).RotatedBy(Rotation);
-                }
-                if ((diff.z < 0f) == (newSize.z % 2 == opp))
-                {
-                    Position += (IntVec3.North * (int)(diff.z % 1f * 2f)).RotatedBy(Rotation);
-                }
-                
-                DrawTracker.tweener.ResetTweenedPosToRoot();
-                if (!vehiclePather.Moving)
-                {
-                    vehiclePather.nextCell = Position;
-                }
-                
-                var component = Map.GetCachedMapComponent<VehiclePathingSystem>();
-                if (UniqueVehicleUtility.PathData is not null)
-                    UniqueVehicleUtility.PathData(vehiclePather, FastInvokeHelper.SingleParam(component[vehicleDef]));
-#if DEV
-                if (!component.ThreadAvailable ||
-                    component.dedicatedThread.State == DedicatedThread.ThreadState.Running)
-                {
-                    component.RequestGridsFor(vehicleDef, DeferredGridGeneration.Urgency.Urgent);
-                }
+                if (changePosition)
+                    VehicleResizeUtility.Reposition(this, prevOffset - offset);
                 else
                 {
-                    component.RequestGridsFor(this);
+                    Map.thingGrid.Register(this);
+                    Map.coverGrid.Register(this);
+                    RegionListersUpdater.RegisterInRegions(this, Map);
                 }
-#else
-                component.RequestGridsFor(vehicleDef, DeferredGridGeneration.Urgency.Urgent);
-#endif
+                
+                VehicleResizeUtility.RefreshVehiclePather(this);
             }
         }
     }
+
 
     public enum EnterCompKind
     {

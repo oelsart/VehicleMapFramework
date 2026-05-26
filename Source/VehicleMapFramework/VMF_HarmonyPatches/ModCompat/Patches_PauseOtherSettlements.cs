@@ -6,27 +6,27 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 internal static class Patches_PauseOtherSettlements
 {
-    static Patches_PauseOtherSettlements()
+  static Patches_PauseOtherSettlements()
+  {
+    if (PauseOtherSettlements)
     {
-        if (PauseOtherSettlements)
-        {
-            VMF_Harmony.PatchCategory(PatchCategories.PauseOtherSettlements);
-        }
+      VMF_Harmony.PatchCategory(PatchCategories.PauseOtherSettlements);
     }
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.PauseOtherSettlements)]
 [HarmonyPatch("PauseOtherSettlementsSimulation.SimulationManager", "ShouldSimulateMap")]
 public static class Patch_SimulationManager_ShouldSimulateMap
 {
-    public static bool Prefix(ref Map map, ref bool __result)
+  public static bool Prefix(ref Map map, ref bool __result)
+  {
+    if (map.IsVehicleMapOf(out var vehicle) && !vehicle.Spawned)
     {
-        if (map.IsVehicleMapOf(out var vehicle) && !vehicle.Spawned)
-        {
-            __result = true;
-            return false;
-        }
-        map = map.BaseMap();
-        return true;
+      __result = true;
+      return false;
     }
+    map = map.BaseMap();
+    return true;
+  }
 }

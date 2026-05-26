@@ -7,138 +7,140 @@ using Verse;
 
 namespace VehicleMapFramework;
 
+[Obsolete("Changed to the patch for vanilla Explosion.")]
 public class ExplosionAcrossMaps : Explosion
 {
-    public override void StartExplosion(SoundDef explosionSound, List<Thing> ignoredThings)
+
+  private static readonly AccessTools.FieldRef<Explosion, List<IntVec3>> cellsToAffect = AccessTools.FieldRefAccess<Explosion, List<IntVec3>>("cellsToAffect");
+
+  private static readonly FastInvokeHandler AddCellsNeighbors = MethodInvoker.GetHandler(AccessTools.Method(typeof(Explosion), "AddCellsNeighbors"));
+
+  private static readonly FastInvokeHandler AffectCell = MethodInvoker.GetHandler(AccessTools.Method(typeof(Explosion), "AffectCell"));
+
+  private static readonly FastInvokeHandler GetCellAffectTick = MethodInvoker.GetHandler(AccessTools.Method(typeof(Explosion), "GetCellAffectTick"));
+
+  private Dictionary<VehiclePawnWithMap, List<IntVec3>> cellsToAffectOnVehicles = [];
+
+  public override void StartExplosion(SoundDef explosionSound, List<Thing> ignoredThings)
+  {
+    base.StartExplosion(explosionSound, ignoredThings);
+
+    var vehicles = Position.GetRoom(Map)?.ContainedThings<VehiclePawnWithMap>().ToArray();
+    if (vehicles.NullOrEmpty()) return;
+
+    var map = Map;
+    var pos = Position;
+    try
     {
-        base.StartExplosion(explosionSound, ignoredThings);
-
-        var vehicles = Position.GetRoom(Map)?.ContainedThings<VehiclePawnWithMap>().ToArray();
-        if (vehicles.NullOrEmpty()) return;
-
-        var map = Map;
-        var pos = Position;
-        try
+      foreach (var vehicle in vehicles!)
+      {
+        cellsToAffectOnVehicles[vehicle] = SimplePool<List<IntVec3>>.Get();
+        cellsToAffectOnVehicles[vehicle].Clear();
+        this.VirtualMapTransfer(vehicle.VehicleMap, pos.ToVehicleMapCoord(vehicle));
+        if (!overrideCells.NullOrEmpty())
         {
-            foreach (var vehicle in vehicles!)
-            {
-                cellsToAffectOnVehicles[vehicle] = SimplePool<List<IntVec3>>.Get();
-                cellsToAffectOnVehicles[vehicle].Clear();
-                this.VirtualMapTransfer(vehicle.VehicleMap, pos.ToVehicleMapCoord(vehicle));
-                if (!overrideCells.NullOrEmpty())
-                {
-                    foreach (var c in overrideCells)
-                    {
-                        cellsToAffectOnVehicles[vehicle].Add(c.ToVehicleMapCoord(vehicle));
-                    }
-                }
-                else
-                {
-                    cellsToAffectOnVehicles[vehicle].AddRange(damType.Worker.ExplosionCellsToHit(this));
-                }
-
-                if (applyDamageToExplosionCellsNeighbors)
-                {
-                    AddCellsNeighbors(this, cellsToAffectOnVehicles[vehicle]);
-                }
-
-                vehicle.VehicleMap.listerThings.AllThings.ForEach(t => t.Notify_Explosion(this));
-            }
+          foreach (var c in overrideCells)
+          {
+            cellsToAffectOnVehicles[vehicle].Add(c.ToVehicleMapCoord(vehicle));
+          }
         }
-        finally
+        else
         {
-            this.VirtualMapTransfer(map, pos);
+          cellsToAffectOnVehicles[vehicle].AddRange(damType.Worker.ExplosionCellsToHit(this));
         }
+
+        if (applyDamageToExplosionCellsNeighbors)
+        {
+          AddCellsNeighbors(this, cellsToAffectOnVehicles[vehicle]);
+        }
+
+        vehicle.VehicleMap.listerThings.AllThings.ForEach(t => t.Notify_Explosion(this));
+      }
+    }
+    finally
+    {
+      this.VirtualMapTransfer(map, pos);
+    }
+  }
+
+  protected override void Tick()
+  {
+    var ticksGame = Find.TickManager.TicksGame;
+    var num = cellsToAffect(this).Count - 1;
+    while (num >= 0 && ticksGame >= (int)GetCellAffectTick(this, cellsToAffect(this)[num]))
+    {
+      try
+      {
+        AffectCell(this, cellsToAffect(this)[num]);
+      }
+      catch (Exception ex)
+      {
+        Log.Error(string.Concat("Explosion could not affect cell ", cellsToAffect(this)[num], ": ", ex));
+      }
+      cellsToAffect(this).RemoveAt(num);
+      num--;
     }
 
-    protected override void Tick()
+    var map = Map;
+    var pos = Position;
+    try
     {
-        var ticksGame = Find.TickManager.TicksGame;
-        var num = cellsToAffect(this).Count - 1;
-        while (num >= 0 && ticksGame >= (int)GetCellAffectTick(this, cellsToAffect(this)[num]))
+      foreach (var vehicle in cellsToAffectOnVehicles.Keys.Where(vehicle => vehicle is { VehicleMap: not null, Spawned: true }))
+      {
+        this.VirtualMapTransfer(vehicle.VehicleMap, pos.ToVehicleMapCoord(vehicle));
+        num = cellsToAffectOnVehicles[vehicle].Count - 1;
+        while (num >= 0 && ticksGame >= (int)GetCellAffectTick(this, cellsToAffectOnVehicles[vehicle][num]) && !vehicle.VehicleMap.Disposed)
         {
-            try
-            {
-                AffectCell(this, cellsToAffect(this)[num]);
-            }
-            catch (Exception ex)
-            {
-                Log.Error(string.Concat("Explosion could not affect cell ", cellsToAffect(this)[num], ": ", ex));
-            }
-            cellsToAffect(this).RemoveAt(num);
-            num--;
+          try
+          {
+            AffectCell(this, cellsToAffectOnVehicles[vehicle][num]);
+          }
+          catch (Exception ex)
+          {
+            Log.Error(string.Concat("Explosion could not affect cell ", cellsToAffectOnVehicles[vehicle][num], ": ", ex));
+          }
+          cellsToAffectOnVehicles[vehicle].RemoveAt(num);
+          num--;
         }
+      }
+    }
+    finally
+    {
+      this.VirtualMapTransfer(map, pos);
 
-        var map = Map;
-        var pos = Position;
-        try
-        {
-            foreach (var vehicle in cellsToAffectOnVehicles.Keys.Where(vehicle => vehicle is { VehicleMap: not null, Spawned: true }))
-            {
-                this.VirtualMapTransfer(vehicle.VehicleMap, pos.ToVehicleMapCoord(vehicle));
-                num = cellsToAffectOnVehicles[vehicle].Count - 1;
-                while (num >= 0 && ticksGame >= (int)GetCellAffectTick(this, cellsToAffectOnVehicles[vehicle][num]) && !vehicle.VehicleMap.Disposed)
-                {
-                    try
-                    {
-                        AffectCell(this, cellsToAffectOnVehicles[vehicle][num]);
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Error(string.Concat("Explosion could not affect cell ", cellsToAffectOnVehicles[vehicle][num], ": ", ex));
-                    }
-                    cellsToAffectOnVehicles[vehicle].RemoveAt(num);
-                    num--;
-                }
-            }
-        }
-        finally
-        {
-            this.VirtualMapTransfer(map, pos);
+      if (!cellsToAffect(this).Any() && !cellsToAffectOnVehicles.Any(v => v.Value.Any()))
+      {
+        Destroy();
+      }
+    }
+  }
 
-            if (!cellsToAffect(this).Any() && !cellsToAffectOnVehicles.Any(v => v.Value.Any()))
-            {
-                Destroy();
-            }
-        }
+  public override void SpawnSetup(Map map, bool respawningAfterLoad)
+  {
+    base.SpawnSetup(map, respawningAfterLoad);
+    cellsToAffectOnVehicles = SimplePool<Dictionary<VehiclePawnWithMap, List<IntVec3>>>.Get();
+    cellsToAffectOnVehicles.Clear();
+  }
+
+  public override void DeSpawn(DestroyMode mode = DestroyMode.Vanish)
+  {
+    base.DeSpawn(mode);
+    for (var i = 0; i < cellsToAffectOnVehicles.Count; i++)
+    {
+      var key = cellsToAffectOnVehicles.ElementAt(i).Key;
+      cellsToAffectOnVehicles[key].Clear();
+      SimplePool<List<IntVec3>>.Return(cellsToAffectOnVehicles[key]);
+      cellsToAffectOnVehicles[key] = null;
     }
 
-    public override void SpawnSetup(Map map, bool respawningAfterLoad)
-    {
-        base.SpawnSetup(map, respawningAfterLoad);
-        cellsToAffectOnVehicles = SimplePool<Dictionary<VehiclePawnWithMap, List<IntVec3>>>.Get();
-        cellsToAffectOnVehicles.Clear();
-    }
+    cellsToAffectOnVehicles.Clear();
+    SimplePool<Dictionary<VehiclePawnWithMap, List<IntVec3>>>.Return(cellsToAffectOnVehicles);
+    cellsToAffectOnVehicles = null;
+  }
 
-    public override void DeSpawn(DestroyMode mode = DestroyMode.Vanish)
-    {
-        base.DeSpawn(mode);
-        for (var i = 0; i < cellsToAffectOnVehicles.Count; i++)
-        {
-            var key = cellsToAffectOnVehicles.ElementAt(i).Key;
-            cellsToAffectOnVehicles[key].Clear();
-            SimplePool<List<IntVec3>>.Return(cellsToAffectOnVehicles[key]);
-            cellsToAffectOnVehicles[key] = null;
-        }
-
-        cellsToAffectOnVehicles.Clear();
-        SimplePool<Dictionary<VehiclePawnWithMap, List<IntVec3>>>.Return(cellsToAffectOnVehicles);
-        cellsToAffectOnVehicles = null;
-    }
-
-    public override void ExposeData()
-    {
-        base.ExposeData();
-        Scribe_NestedCollections.Look(ref cellsToAffectOnVehicles, "cellsToAffectOnVehicles", LookMode.Reference, LookMode.Value);
-    }
-
-    private Dictionary<VehiclePawnWithMap, List<IntVec3>> cellsToAffectOnVehicles = [];
-
-    private static readonly AccessTools.FieldRef<Explosion, List<IntVec3>> cellsToAffect = AccessTools.FieldRefAccess<Explosion, List<IntVec3>>("cellsToAffect");
-
-    private static readonly FastInvokeHandler AddCellsNeighbors = MethodInvoker.GetHandler(AccessTools.Method(typeof(Explosion), "AddCellsNeighbors"));
-
-    private static readonly FastInvokeHandler AffectCell = MethodInvoker.GetHandler(AccessTools.Method(typeof(Explosion), "AffectCell"));
-
-    private static readonly FastInvokeHandler GetCellAffectTick = MethodInvoker.GetHandler(AccessTools.Method(typeof(Explosion), "GetCellAffectTick"));
+  public override void ExposeData()
+  {
+    base.ExposeData();
+    Scribe_NestedCollections.Look(ref cellsToAffectOnVehicles, "cellsToAffectOnVehicles", LookMode.Reference, LookMode.Value);
+  }
 }

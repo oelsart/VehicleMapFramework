@@ -1,13 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-  <TargetFramework>net48</TargetFramework>
-  <OutputType>Library</OutputType>
-  <RootNamespace>VehicleMapFramework</RootNamespace>
-  <AssemblyName>VehicleMapFramework</AssemblyName>
-  <LangVersion>preview</LangVersion>
-	<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-	<ImplicitUsings>disable</ImplicitUsings>
-	<Configurations>Debug;Release;Dev</Configurations>
+    <TargetFramework>net48</TargetFramework>
+    <OutputType>Library</OutputType>
+    <RootNamespace>VehicleMapFramework</RootNamespace>
+    <AssemblyName>VehicleMapFramework</AssemblyName>
+    <LangVersion>preview</LangVersion>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Configurations>Debug;Release;Dev</Configurations>
+    <Platforms>AnyCPU</Platforms>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <OutputPath>..\..\1.6\Assemblies\</OutputPath>
@@ -23,26 +24,31 @@
     <OutputPath>..\..\..\VehicleMapFrameworkDev\1.6\Assemblies\</OutputPath>
     <Optimize>True</Optimize>
   </PropertyGroup>
-  
+
   <ItemGroup>
-    <PackageReference Include="Krafs.Rimworld.Ref" />
-    <PackageReference Include="Lib.Harmony.Ref" />
-	<PackageReference Include="Nerdbank.GitVersioning">
-	  <PrivateAssets>all</PrivateAssets>
-	  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-	</PackageReference>
-	<PackageReference Include="PolySharp">
-	  <PrivateAssets>all</PrivateAssets>
-	  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-	</PackageReference>
+    <PackageReference Include="Krafs.Rimworld.Ref"/>
+    <PackageReference Include="Lib.Harmony.Ref"/>
+    <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <AdditionalFiles Include="BannedSymbols.txt"/>
+    <PackageReference Include="Nerdbank.GitVersioning">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="PolySharp">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
-  
+
   <PropertyGroup>
     <SteamWorkshopRoot Condition="'$(SteamWorkshopRoot)' == ''">..\..\..\..\..\..\workshop\content\294100</SteamWorkshopRoot>
   </PropertyGroup>
   <PropertyGroup>
-		<VFUnstableFolder Condition="'$(CIBuild)' == 'true'">$(SteamWorkshopRoot)\3522907382</VFUnstableFolder>
-    <VFUnstableFolder Condition="'$(CIBuild)' != 'true'">..\..\..\VehicleFramework</VFUnstableFolder>
+    <VFUnstableFolder Condition="'$(CIBuild)' == 'true'">$(SteamWorkshopRoot)\3522907382</VFUnstableFolder>
+    <VFUnstableFolder Condition="'$(CIBuild)' != 'true'">..\..\..\Vehicle-Framework</VFUnstableFolder>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Dev'">
@@ -79,17 +85,7 @@
       <Private>False</Private>
     </Reference>
   </ItemGroup>
-  
-  <ItemGroup>
-    <Reference Update="System.Numerics">
-      <Private>False</Private>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Update="System.Runtime.Serialization">
-      <Private>False</Private>
-    </Reference>
-  </ItemGroup>
+
   <ItemGroup>
     <Content Include="..\..\.github\workflows\build.yml">
       <Link>build.yml</Link>
@@ -113,15 +109,14 @@
     <AboutFolderPath Condition="'$(Configuration)'=='Dev'">../../Dev/About</AboutFolderPath>
   </PropertyGroup>
   <Target Name="UpdateVersion" AfterTargets="PostBuildEvent" Condition="'$(SkipPostBuild)' != 'true'">
-    <Exec Command="powershell.exe -ExecutionPolicy Bypass -File &quot;$(ProjectDir)UpdateAboutXmlVersion.ps1&quot; -AboutXmlPath &quot;$(AboutFolderPath)/About.xml&quot; -BuiltDllPath &quot;$(TargetPath)&quot;" />
+    <Exec Command="powershell.exe -ExecutionPolicy Bypass -File &quot;$(ProjectDir)UpdateAboutXmlVersion.ps1&quot; -AboutXmlPath &quot;$(AboutFolderPath)/About.xml&quot; -BuiltDllPath &quot;$(TargetPath)&quot;"/>
   </Target>
-	<Target Name="CopyToDev" AfterTargets="PostBuildEvent" Condition="'$(Configuration)'=='Dev'">
-		<Exec Command="(robocopy ../../1.5 ../../../VehicleMapFrameworkDev/1.5 /MIR /E /XD Assemblies) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0" />
-		<Exec Command="(robocopy ../../1.6 ../../../VehicleMapFrameworkDev/1.6 /MIR /E /XD Assemblies) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0" />
-		<Exec Command="(robocopy ../../Common ../../../VehicleMapFrameworkDev/Common /MIR /E /XD AssetBundles) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0" />
-    <Exec Command="(robocopy ../../Dev/About ../../../VehicleMapFrameworkDev/About /MIR /E) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0" />
-    <Exec Command="(robocopy ../../Dev/AssetBundles ../../../VehicleMapFrameworkDev/Common/AssetBundles /MIR /E) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0" />
-    <Exec Command="(robocopy ../../Dev/ ../../../VehicleMapFrameworkDev LoadFolders.xml) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0" />
-		<Exec Command="(robocopy ../../ ../../../VehicleMapFrameworkDev LICENSE) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0" />
-	</Target>
+  <Target Name="CopyToDev" AfterTargets="PostBuildEvent" Condition="'$(Configuration)'=='Dev'">
+    <Exec Command="(robocopy ../../1.5 ../../../VehicleMapFrameworkDev/1.5 /MIR /E /XD Assemblies) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0"/>
+    <Exec Command="(robocopy ../../1.6 ../../../VehicleMapFrameworkDev/1.6 /MIR /E /XD Assemblies /XD AssetBundles) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0"/>
+    <Exec Command="(robocopy ../../Common ../../../VehicleMapFrameworkDev/Common /MIR /E) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0"/>
+    <Exec Command="(robocopy ../../Dev/About ../../../VehicleMapFrameworkDev/About /MIR /E) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0"/>
+    <Exec Command="(robocopy ../../Dev/ ../../../VehicleMapFrameworkDev LoadFolders.xml) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0"/>
+    <Exec Command="(robocopy ../../ ../../../VehicleMapFrameworkDev LICENSE) ^&amp; IF %ERRORLEVEL% LEQ 1 exit 0"/>
+  </Target>
 </Project>

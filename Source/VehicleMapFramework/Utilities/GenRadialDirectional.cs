@@ -13,7 +13,7 @@ public class GenRadialDirectional
     private static readonly float[][] PatternRadii = new float[8][];
     private static readonly int[][] LengthSquaredToIndexArrays = new int[8][];
     private const int RadialPatternCount = 20000;
-    private const int MAX_RADIUS = 80;
+    private const int MAX_RADIUS = 79;
 
     static GenRadialDirectional()
     {

@@ -7,23 +7,24 @@ namespace VehicleMapFramework;
 
 public class CompProperties_Alternator : CompProperties_Power
 {
-    public CompProperties_Alternator()
+
+  public List<FuelProperties> fuelConsumptionRates;
+
+  public CompProperties_Alternator()
+  {
+    compClass = typeof(CompAlternator);
+  }
+
+  public class FuelProperties
+  {
+
+    public float fuelConsumptionRate = 1f;
+    public ThingDef fuelDef;
+
+    public void LoadDataFromXmlCustom(XmlNode xmlRoot)
     {
-        compClass = typeof(CompAlternator);
+      DirectXmlCrossRefLoader.RegisterObjectWantsCrossRef(this, "fuelDef", xmlRoot.Name);
+      fuelConsumptionRate = ParseHelper.FromString<float>(xmlRoot.InnerText);
     }
-
-    public List<FuelProperties> fuelConsumptionRates;
-
-    public class FuelProperties
-    {
-        public ThingDef fuelDef;
-
-        public float fuelConsumptionRate = 1f;
-
-        public void LoadDataFromXmlCustom(XmlNode xmlRoot)
-        {
-            DirectXmlCrossRefLoader.RegisterObjectWantsCrossRef(this, "fuelDef", xmlRoot.Name);
-            fuelConsumptionRate = ParseHelper.FromString<float>(xmlRoot.InnerText);
-        }
-    }
+  }
 }

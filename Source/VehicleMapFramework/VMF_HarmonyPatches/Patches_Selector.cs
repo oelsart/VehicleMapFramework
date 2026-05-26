@@ -262,7 +262,7 @@ public static class Patch_ThingSelectionUtility_MultiSelectableThingsInScreenRec
             for (var i = 0; i < cellThings.Count; i = num + 1)
             {
                 var t = cellThings[i];
-                if ((bool)SelectableByMapClick(null, FastInvokeHelper.SingleParam(t)) && !t.def.neverMultiSelect)
+                if ((bool)SelectableByMapClick(null, SingleParam.Get(t)) && !t.def.neverMultiSelect)
                 {
                     yieldedThings.Add(t);
                 }

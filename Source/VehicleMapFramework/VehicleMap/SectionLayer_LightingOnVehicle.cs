@@ -1,34 +1,44 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Text;
+using JetBrains.Annotations;
+using LudeonTK;
 using RimWorld;
 using UnityEngine;
 using Verse;
 
 namespace VehicleMapFramework;
 
+[StaticConstructorOnStartup]
 public class SectionLayer_LightingOnVehicle : SectionLayer
 {
     private int firstCenterInd;
-
     private CellRect sectRect;
 
+    private static Material LightOverlayInverseMultiply;
+    private static MaterialPropertyBlock materialPropertyBlock = new();
+    private static readonly int RestoreFactor = Shader.PropertyToID("_RestoreFactor");
+    private static readonly int MaxRestore = Shader.PropertyToID("_MaxRestore");
+    private static readonly int ColorPreservation = Shader.PropertyToID("_ColorPreservation");
+
+    [TweakValue("SectionLayer_LightingOnVehicle._RestoreFactor", 0f, 10f)]
+    [UsedImplicitly] private static float restoreFactor = 1.5f;
+    [TweakValue("SectionLayer_LightingOnVehicle._MaxRestore", 0f, 1f)]
+    [UsedImplicitly] private static float maxRestore = 0.85f;
+
+    private readonly bool[] expand = new bool[4];
+
     private const byte RoofedAreaMinSkyCover = 100;
+    private const int ExpandSize = 10;
 
-    private readonly MaterialPropertyBlock propertyBlockColorDodge = new();
-
-    private readonly MaterialPropertyBlock propertyBlockNormalLight = new();
-
-    private bool expandWest;
-
-    private bool expandSouth;
-
-    private bool expandEast;
-
-    private bool expandNorth;
-
-
-    private const int ExpandSize = 5;
+    static SectionLayer_LightingOnVehicle()
+    {
+        LongEventHandler.ExecuteWhenFinished(() =>
+        {
+            LightOverlayInverseMultiply = MaterialPool.MatFrom(VMF_DefOf.VMF_LightOverlayInverseMultiply.Shader);
+            materialPropertyBlock = new MaterialPropertyBlock();
+        });
+    }
+    
     public override bool Visible => DebugViewSettings.drawLightingOverlay && (Find.CurrentMap != Map || VehicleMapFramework.settings.drawPlanet);
 
     public SectionLayer_LightingOnVehicle(Section section) : base(section)
@@ -49,27 +59,29 @@ public class SectionLayer_LightingOnVehicle : SectionLayer
         }
         var baseMap = Map.BaseMap();
         var rot = Quaternion.AngleAxis(vehicle.FullAngle, Vector3.up);
-        var a = Mathf.Clamp01(1f - Mathf.Min(baseMap.gameConditionManager.MapBrightness, baseMap.skyManager.CurSkyGlow));
-        propertyBlockColorDodge.SetColor(ShaderPropertyIDs.ColorTwo, new Color(1f, 1f, 1f, a));
-        propertyBlockNormalLight.SetColor(ShaderPropertyIDs.Color, new Color(1f, 1f, 1f, 1f - a));
-        
         for (var i = 0; i < subMeshes.Count; i++)
         {
             var subMesh = subMeshes[i];
             if (subMesh.finalized && !subMesh.disabled)
             {
-                Graphics.DrawMesh(subMesh.mesh, drawPos, rot,
-                    subMesh.material, 0, null, 0,
-                    subMesh.material == VMF_Materials.LightOverlayColorDodge
-                        ? propertyBlockColorDodge
-                        : propertyBlockNormalLight);
+                if (subMesh.material == LightOverlayInverseMultiply)
+                {
+                    materialPropertyBlock.SetColor(ShaderPropertyIDs.Color, baseMap.skyManager.CurSky.colors.sky);
+                    materialPropertyBlock.SetFloat(RestoreFactor, restoreFactor);
+                    materialPropertyBlock.SetFloat(MaxRestore, maxRestore);
+                }
+                else
+                {
+                    materialPropertyBlock.SetColor(ShaderPropertyIDs.Color, Color.white);
+                }
+                Graphics.DrawMesh(subMesh.mesh, drawPos, rot, subMesh.material, 0, null, 0, materialPropertyBlock);
             }
         }
     }
 
     public string GlowReportAt(IntVec3 c)
     {
-        var colors = GetSubMesh(VMF_Materials.LightOverlayColorDodge).mesh.colors32;
+        var colors = GetSubMesh(LightOverlayInverseMultiply).mesh.colors32;
         CalculateVertexIndices(c.x, c.z, out var num, out var num2, out var num3, out var num4, out var num5);
         StringBuilder stringBuilder = new();
         stringBuilder.Append("BL=" + colors[num]);
@@ -82,11 +94,11 @@ public class SectionLayer_LightingOnVehicle : SectionLayer
 
     public override void Regenerate()
     {
-        if (!Map.IsVehicleMapOf(out _))
+        if (!Map.IsVehicleMap)
         {
             return;
         }
-        var subMesh = GetSubMesh(VMF_Materials.LightOverlayColorDodge);
+        var subMesh = GetSubMesh(LightOverlayInverseMultiply);
         var subMesh2 = GetSubMesh(MatBases.LightOverlay);
         if (subMesh.verts.Count == 0)
         {
@@ -97,7 +109,6 @@ public class SectionLayer_LightingOnVehicle : SectionLayer
             MakeBaseGeometry(subMesh2, AltitudeLayer.LightingOverlay.AltitudeFor().YOffset());
         }
         var array = new Color32[subMesh.verts.Count];
-        var array2 = new Color32[subMesh2.verts.Count];
         var origRect = new CellRect(section.botLeft.x, section.botLeft.z, 17, 17);
         origRect.ClipInsideMap(Map);
         var maxX = origRect.maxX;
@@ -126,7 +137,7 @@ public class SectionLayer_LightingOnVehicle : SectionLayer
             {
                 ColorInt colorInt = new(0, 0, 0, 0);
                 var num9 = 0;
-                var flag = false;
+				var canShowLight = false;
                 for (var k = 0; k < 4; k++)
                 {
                     var num10 = num7 + array3[k];
@@ -134,14 +145,16 @@ public class SectionLayer_LightingOnVehicle : SectionLayer
                     {
                         var thing = innerArray[num10];
                         var roofDef = roofGrid.RoofAt(num10);
-                        if (roofDef != null && (roofDef.isThickRoof || thing == null || !thing.def.holdsRoof || thing.def.altitudeLayer == AltitudeLayer.DoorMoveable))
+						if (roofDef != null && thing is not { def: { holdsRoof: true, altitudeLayer: not AltitudeLayer.DoorMoveable } })
                         {
-                            flag = true;
+							canShowLight = true;
                         }
-                        if (thing == null || !thing.def.blockLight)
+                        if (thing is not { def.blockLight: true })
                         {
                             colorInt += map.glowGrid.VisualGlowAt(num10);
                             num9++;
+                            if (!canShowLight && Mathf.Max(colorInt.r, colorInt.g, colorInt.b) > 0)
+                                canShowLight = true;
                         }
                     }
                 }
@@ -151,14 +164,11 @@ public class SectionLayer_LightingOnVehicle : SectionLayer
                 }
                 else
                 {
-                    array[num2] = new Color32(0, 0, 0, 0);
+                    array[num2] = new Color32(255, 255, 255, 0);
                 }
-
-                array2[num2] = array[num2];
-                if (flag && array[num2].a < RoofedAreaMinSkyCover)
+				if (canShowLight && array[num2].a < RoofedAreaMinSkyCover)
                 {
                     array[num2].a = RoofedAreaMinSkyCover;
-                    array2[num2].a = RoofedAreaMinSkyCover;
                 }
                 j++;
                 num2++;
@@ -166,162 +176,132 @@ public class SectionLayer_LightingOnVehicle : SectionLayer
             }
             var num11 = maxX + 2 - sectRect.minX;
             var offset = num11;
-            if (expandWest) offset -= ExpandSize;
+            if (expand[3]) offset -= ExpandSize;
             num2 -= offset;
             num7 -= offset;
             num2 += width + 1;
             num7 += map.Size.x;
         }
 
-        CalculateVertexIndices(origRect.minX, origRect.minZ, out var num12, out _, out var _, out var _, out var num13);
-        var num14 = cellIndices.CellToIndex(origRect.minX, origRect.minZ);
+        CalculateVertexIndices(origRect.minX, origRect.minZ, out var num12, out _, out _, out _, out var num13);
         for (var l = origRect.minZ; l <= maxZ; l++)
         {
             var m = origRect.minX;
             while (m <= maxX)
             {
-                var colorInt2 = default(ColorInt) + array[num12];
-                colorInt2 += array[num12 + 1];
-                colorInt2 += array[num12 + width + 1];
-                colorInt2 += array[num12 + width + 2];
-                array[num13] = new Color32((byte)(colorInt2.r / 4), (byte)(colorInt2.g / 4), (byte)(colorInt2.b / 4), (byte)(colorInt2.a / 4));
-                colorInt2 = default(ColorInt) + array2[num12];
-                colorInt2 += array2[num12 + 1];
-                colorInt2 += array2[num12 + width + 1];
-                colorInt2 += array2[num12 + width + 2];
-                array2[num13] = new Color32((byte)(colorInt2.r / 4), (byte)(colorInt2.g / 4), (byte)(colorInt2.b / 4), (byte)(colorInt2.a / 4));
-                if (array[num13].a < RoofedAreaMinSkyCover && roofGrid.Roofed(num14))
-                {
-                    var thing2 = innerArray[num14];
-                    if (thing2 == null || !thing2.def.holdsRoof)
-                    {
-                        array[num13].a = RoofedAreaMinSkyCover;
-                    }
-                }
+                var colorInt = default(ColorInt) + array[num12];
+                colorInt += array[num12 + 1];
+                colorInt += array[num12 + width + 1];
+                colorInt += array[num12 + width + 2];
+                array[num13] = new Color32((byte)(colorInt.r / 4), (byte)(colorInt.g / 4), (byte)(colorInt.b / 4), (byte)(colorInt.a / 4));
                 m++;
                 num12++;
                 num13++;
-                num14++;
             }
             var offset = 0;
-            if (expandWest) offset++;
-            if (expandEast) offset++;
+            if (expand[3]) offset++;
+            if (expand[1]) offset++;
             num12 += (offset * ExpandSize) + 1;
             num13 += offset * ExpandSize;
-            num14 -= width - (offset * ExpandSize);
-            num14 += map.Size.x;
         }
-
+        
         //こっから下でマップ周辺に漏れ出る光の計算
         var rect = new CellRect(section.botLeft.x, section.botLeft.z, 17, 17);
         rect.ClipInsideMap(Map);
         rect = rect.MovedBy(-rect.Min);
+        var initRect = rect;
 
-        if (expandEast || expandSouth || expandEast || expandNorth)
+        if (expand.Any(e => e))
         {
-            for (var i = ExpandSize; i > 0; i--)
+            for (var i = 0; i < ExpandSize; i++)
             {
-                var prevRect = rect;
-                if (expandWest)
+                if (expand[0])
                 {
-                    rect.minX -= 1;
+                    rect.maxZ += 1;
                 }
-                if (expandSouth)
-                {
-                    rect.minZ -= 1;
-                }
-                if (expandEast)
+                if (expand[1])
                 {
                     rect.maxX += 1;
                 }
-                if (expandNorth)
+                if (expand[2])
                 {
-                    rect.maxZ += 1;
+                    rect.minZ -= 1;
+                }
+                if (expand[3])
+                {
+                    rect.minX -= 1;
                 }
                 var rect2 = rect;
                 rect2.maxX++;
                 rect2.maxZ++;
-                prevRect.maxX++;
-                prevRect.maxZ++;
-                var cells = Enumerable.Empty<IntVec3>();
-                if (expandWest)
+                for (var j = 0; j < 4; j++)
                 {
-                    cells = cells.Union(rect2.GetEdgeCells(Rot4.West));
-                }
-                if (expandSouth)
-                {
-                    cells = cells.Union(rect2.GetEdgeCells(Rot4.South));
-                }
-                if (expandEast)
-                {
-                    cells = cells.Union(rect2.GetEdgeCells(Rot4.East));
-                }
-                if (expandNorth)
-                {
-                    cells = cells.Union(rect2.GetEdgeCells(Rot4.North));
-                }
-
-
-                var glow = (byte)((1f - map.skyManager.CurSkyGlow) * 255);
-                foreach (var cell in cells)
-                {
-                    var edge = prevRect.ClosestCellTo(cell);
-                    var cardinal = (edge - cell).IsCardinal;
-                    var edgeColorCorner = array[IndexGetterCorner(edge)];
-                    var index = IndexGetterCorner(cell);
-                    array[index] = new Color32(Decrease(edgeColorCorner.r), Decrease(edgeColorCorner.g), Decrease(edgeColorCorner.b), edgeColorCorner.a);
-                    array2[index] = new Color32(glow, glow, glow, glow);
-                    continue;
-
-                    byte Decrease(byte cur)
+                    var rot = new Rot4(j);
+                    if (expand[j])
                     {
-                        return (byte)Math.Max(0, cur - (cur / i) - ((cardinal ? 50 : 100) / ExpandSize));
-                    }
-                }
+                        var edgeRect = rect2.GetEdgeRect(rot);
+                        TrimCorner(ref edgeRect, j);
+                        foreach (var cell in edgeRect)
+                        {
+                            var edge = initRect.ClosestCellTo(cell);
+                            var edgeColorCorner = array[IndexGetterCorner(edge)];
+                            var corner = IndexGetterCorner(cell);
+                            var length = (edge - cell).LengthHorizontal;
+                            var factor = Mathf.Lerp(1f, 0f, length / ExpandSize);
+                            array[corner] = new Color32((byte)(edgeColorCorner.r * factor), (byte)(edgeColorCorner.g * factor), (byte)(edgeColorCorner.b * factor), (byte)(edgeColorCorner.a * factor));
+                        }
 
-                cells = [];
-                if (expandWest)
-                {
-                    cells = cells.Union(rect.GetEdgeCells(Rot4.West));
-                }
-                if (expandSouth)
-                {
-                    cells = cells.Union(rect.GetEdgeCells(Rot4.South));
-                }
-                if (expandEast)
-                {
-                    cells = cells.Union(rect.GetEdgeCells(Rot4.East));
-                }
-                if (expandNorth)
-                {
-                    cells = cells.Union(rect.GetEdgeCells(Rot4.North));
-                }
-                foreach (var cell in cells)
-                {
-                    var corner = IndexGetterCorner(cell);
-                    var colorInt = default(ColorInt) + array[corner];
-                    colorInt += array[corner + 1];
-                    colorInt += array[corner + width + 1];
-                    colorInt += array[corner + width + 2];
-                    var index = IndexGetterCenter(cell);
-                    array[index] = new Color32((byte)(colorInt.r / 4), (byte)(colorInt.g / 4), (byte)(colorInt.b / 4), (byte)(colorInt.a / 4));
-                    array2[index] = new Color32(glow, glow, glow, glow);
+                        var edgeRect2 = rect.GetEdgeRect(rot);
+                        TrimCorner(ref edgeRect2, j);
+                        foreach (var cell in edgeRect2)
+                        {
+                            var corner = IndexGetterCorner(cell);
+                            var center = IndexGetterCenter(cell);
+                            var colorInt = default(ColorInt) + array[corner];
+                            colorInt += array[corner + 1];
+                            colorInt += array[corner + width + 1];
+                            colorInt += array[corner + width + 2];
+                            array[center] = new Color32((byte)(colorInt.r / 4), (byte)(colorInt.g / 4), (byte)(colorInt.b / 4), (byte)(colorInt.a / 4));
+                        }
+                    }
                 }
             }
         }
 
         subMesh.mesh.colors32 = array;
-        subMesh2.mesh.colors32 = array2;
+        subMesh2.mesh.colors32 = array;
         return;
+
+        void TrimCorner(ref CellRect edgeRect, int index)
+        {
+            if (expand[(index + 1) % 4])
+            {
+                switch (index)
+                {
+                    case 0:
+                        edgeRect.maxX -= 1;
+                        break;
+                    case 1:
+                        edgeRect.minZ += 1;
+                        break;
+                    case 2:
+                        edgeRect.minX += 1;
+                        break;
+                    case 3:
+                        edgeRect.maxZ -= 1;
+                        break;
+                }
+            }
+        }
 
         int IndexGetterCorner(IntVec3 c)
         {
-            return (((expandSouth ? ExpandSize : 0) + c.z) * (width + 1)) + (expandWest ? ExpandSize : 0) + c.x;
+            return (((expand[2] ? ExpandSize : 0) + c.z) * (width + 1)) + (expand[3] ? ExpandSize : 0) + c.x;
         }
 
         int IndexGetterCenter(IntVec3 c)
         {
-            return firstCenterInd + (((expandSouth ? ExpandSize : 0) + c.z) * width) + (expandWest ? ExpandSize : 0) + c.x;
+            return firstCenterInd + (((expand[2] ? ExpandSize : 0) + c.z) * width) + (expand[3] ? ExpandSize : 0) + c.x;
         }
     }
 
@@ -331,25 +311,25 @@ public class SectionLayer_LightingOnVehicle : SectionLayer
         sectRect.ClipInsideMap(Map);
         var min = sectRect.Min;
         var max = sectRect.Max;
-        if (!(min + IntVec3.West).InBounds(Map))
+        if (!(max + IntVec3.North).InBounds(Map))
         {
-            expandWest = true;
-            sectRect.minX -= ExpandSize;
-        }
-        if (!(min + IntVec3.South).InBounds(Map))
-        {
-            expandSouth = true;
-            sectRect.minZ -= ExpandSize;
+            expand[0] = true;
+            sectRect.maxZ += ExpandSize;
         }
         if (!(max + IntVec3.East).InBounds(Map))
         {
-            expandEast = true;
+            expand[1] = true;
             sectRect.maxX += ExpandSize;
         }
-        if (!(max + IntVec3.North).InBounds(Map))
+        if (!(min + IntVec3.South).InBounds(Map))
         {
-            expandNorth = true;
-            sectRect.maxZ += ExpandSize;
+            expand[2] = true;
+            sectRect.minZ -= ExpandSize;
+        }
+        if (!(min + IntVec3.West).InBounds(Map))
+        {
+            expand[3] = true;
+            sectRect.minX -= ExpandSize;
         }
         var capacity = ((sectRect.Width + 1) * (sectRect.Height + 1)) + sectRect.Area;
         sm.verts.Capacity = capacity;

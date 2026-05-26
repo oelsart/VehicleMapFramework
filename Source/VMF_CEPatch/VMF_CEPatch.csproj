@@ -2,15 +2,16 @@
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
     <OutputType>Library</OutputType>
-	<LangVersion>preview</LangVersion>
-	<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-	<RootNamespace>VehicleMapFramework</RootNamespace>
-	<Configurations>Debug;Release;Dev</Configurations>
+    <LangVersion>preview</LangVersion>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <RootNamespace>VehicleMapFramework</RootNamespace>
+    <Configurations>Debug;Release;Dev</Configurations>
+    <Platforms>AnyCPU</Platforms>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>false</DebugSymbols>
     <DebugType>none</DebugType>
-    <OutputPath>..\..\1.6\_CE\Assemblies\</OutputPath>
+    <OutputPath>..\..\1.6\_CombatExtended\Assemblies\</OutputPath>
     <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
@@ -29,7 +30,7 @@
   </PropertyGroup>
   <PropertyGroup>
     <VFUnstableFolder Condition="'$(CIBuild)' == 'true'">$(SteamWorkshopRoot)\3522907382</VFUnstableFolder>
-    <VFUnstableFolder Condition="'$(CIBuild)' != 'true'">..\..\..\VehicleFramework</VFUnstableFolder>
+    <VFUnstableFolder Condition="'$(CIBuild)' != 'true'">..\..\..\Vehicle-Framework</VFUnstableFolder>
   </PropertyGroup>
 
   <ItemGroup>
@@ -59,8 +60,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.4633" />
-    <PackageReference Include="Lib.Harmony.Ref" Version="2.4.2" />
+    <PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.4633"/>
+    <PackageReference Include="Lib.Harmony.Ref" Version="2.4.2"/>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\VehicleMapFramework\VehicleMapFramework.csproj">

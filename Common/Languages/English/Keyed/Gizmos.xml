@@ -21,6 +21,12 @@
 	<VMF_ResetPower>Reset</VMF_ResetPower>
 	<VMF_ResetPowerDesc>Reset the target power transmission amount.</VMF_ResetPowerDesc>
 	<VMF_RaisePowerDesc>Raise the target power transmission amount.</VMF_RaisePowerDesc>
+	<VMF_PowerPush>Push</VMF_PowerPush>
+	<VMF_PowerDraw>Draw</VMF_PowerDraw>
+	<VMF_PowerTransmit>Transmit</VMF_PowerTransmit>
+	<VMF_PowerPushDesc>Transmits power to the linked transmitter. Pairs with the draw mode transmitter.</VMF_PowerPushDesc>
+	<VMF_PowerDrawDesc>Draws power from the linked transmitter. Pairs with the push mode transmitter.</VMF_PowerDrawDesc>
+	<VMF_PowerTransmitDesc>Transmits and receives power with the linked transmitter.</VMF_PowerTransmitDesc>
 
 	<VMF_Reassign>Reassign</VMF_Reassign>
 	<VMF_ReassignDesc>Reassign the turret that this seat operates.</VMF_ReassignDesc>

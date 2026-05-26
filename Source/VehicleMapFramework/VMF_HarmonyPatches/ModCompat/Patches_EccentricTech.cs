@@ -10,13 +10,13 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 internal class Patches_EccentricTech
 {
-    static Patches_EccentricTech()
+  static Patches_EccentricTech()
+  {
+    if (Active)
     {
-        if (Active)
-        {
-            VMF_Harmony.PatchCategory(PatchCategories.EccentricTech_DefenseGrid);
-        }
+      VMF_Harmony.PatchCategory(PatchCategories.EccentricTech_DefenseGrid);
     }
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.EccentricTech_DefenseGrid)]
@@ -24,13 +24,13 @@ internal class Patches_EccentricTech
 [PatchLevel(Level.Safe)]
 public static class Patch_PlaceWorker_DefenseProjector_DrawGhost
 {
-    public static void Prefix(ref IntVec3 center, Thing thing)
+  public static void Prefix(ref IntVec3 center, Thing thing)
+  {
+    if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle) || (vehicle = Command_FocusVehicleMap.FocusedVehicle) != null)
     {
-        if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle) || (vehicle = Command_FocusVehicleMap.FocusedVehicle) != null)
-        {
-            center = center.ToBaseMapCoord(vehicle);
-        }
+      center = center.ToBaseMapCoord(vehicle);
     }
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.EccentricTech_DefenseGrid)]
@@ -38,13 +38,13 @@ public static class Patch_PlaceWorker_DefenseProjector_DrawGhost
 [PatchLevel(Level.Safe)]
 public static class Patch_PlaceWorker_ArtillerySensor_DrawGhost
 {
-    public static void Prefix(ref IntVec3 center, Thing thing)
+  public static void Prefix(ref IntVec3 center, Thing thing)
+  {
+    if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle) || (vehicle = Command_FocusVehicleMap.FocusedVehicle) != null)
     {
-        if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle) || (vehicle = Command_FocusVehicleMap.FocusedVehicle) != null)
-        {
-            center = center.ToBaseMapCoord(vehicle);
-        }
+      center = center.ToBaseMapCoord(vehicle);
     }
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.EccentricTech_DefenseGrid)]
@@ -52,7 +52,10 @@ public static class Patch_PlaceWorker_ArtillerySensor_DrawGhost
 [PatchLevel(Level.Safe)]
 public static class Patch_Graphic_DefenseConduit_ShouldLinkWith
 {
-    public static void Prefix(ref IntVec3 cell, Thing parent) => Patch_Graphic_Linked_ShouldLinkWith.Prefix(ref cell, parent);
+  public static void Prefix(ref IntVec3 cell, Thing parent)
+  {
+    Patch_Graphic_Linked_ShouldLinkWith.Prefix(ref cell, parent);
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.EccentricTech_DefenseGrid)]
@@ -60,36 +63,37 @@ public static class Patch_Graphic_DefenseConduit_ShouldLinkWith
 [PatchLevel(Level.Sensitive)]
 public static class Patch_CompProjectorOverlay_PostDraw
 {
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
-    {
-        var f_Vector3_y = AccessTools.Field(typeof(Vector3), nameof(Vector3.y));
-        return new CodeMatcher(instructions, generator)
-            .AddAltitudeFor(out var vehicle, Altitudes.AltInc * 3f,
-                getInstance: [CodeInstruction.LoadArgument(0), CodeInstruction.LoadField(typeof(ThingComp), nameof(ThingComp.parent))])
-            .Advance()
-            .MatchStartForward(CodeMatch.StoresField(f_Vector3_y))
-            .Repeat(matcher => matcher
-                .CreateLabel(out var label2)
-                .InsertAndAdvance(
-                    new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-                    new CodeInstruction(OpCodes.Brfalse_S, label2),
-                    new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-                    new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_YOffsetFull),
-                    new CodeInstruction(OpCodes.Ldc_R4, Altitudes.AltInc * 3f),
-                    new CodeInstruction(OpCodes.Add)).Advance())
-            .Reset()
-            .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Quaternion_identity)).Advance()
-            .CreateLabel(out var label3)
-            .Insert(
-                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-                new CodeInstruction(OpCodes.Brfalse_S, label3),
-                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ExtraAngle),
-                new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(Vector3), nameof(Vector3.up))),
-                new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(Quaternion), nameof(Quaternion.AngleAxis))),
-                new CodeInstruction(OpCodes.Call, CachedMethodInfo.o_Quaternion_Multiply))
-            .InstructionEnumeration();
-    }
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+  {
+    var f_Vector3_y = AccessTools.Field(typeof(Vector3), nameof(Vector3.y));
+    return new CodeMatcher(instructions, generator)
+      .AddAltitudeFor(out var vehicle,
+        Altitudes.AltInc * 3f,
+        getInstance: [CodeInstruction.LoadArgument(0), CodeInstruction.LoadField(typeof(ThingComp), nameof(ThingComp.parent))])
+      .Advance()
+      .MatchStartForward(CodeMatch.StoresField(f_Vector3_y))
+      .Repeat(matcher => matcher
+        .CreateLabel(out var label2)
+        .InsertAndAdvance(
+          new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+          new CodeInstruction(OpCodes.Brfalse_S, label2),
+          new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+          new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_YOffsetFull),
+          new CodeInstruction(OpCodes.Ldc_R4, Altitudes.AltInc * 3f),
+          new CodeInstruction(OpCodes.Add)).Advance())
+      .Reset()
+      .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Quaternion_identity)).Advance()
+      .CreateLabel(out var label3)
+      .Insert(
+        new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+        new CodeInstruction(OpCodes.Brfalse_S, label3),
+        new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+        new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ExtraAngle),
+        new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(Vector3), nameof(Vector3.up))),
+        new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(Quaternion), nameof(Quaternion.AngleAxis))),
+        new CodeInstruction(OpCodes.Call, CachedMethodInfo.o_Quaternion_Multiply))
+      .InstructionEnumeration();
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.EccentricTech_DefenseGrid)]
@@ -97,10 +101,10 @@ public static class Patch_CompProjectorOverlay_PostDraw
 [PatchLevel(Level.Sensitive)]
 public static class Patch_CompGeneratorOverlay_PostDraw
 {
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
-    {
-        return Patch_CompProjectorOverlay_PostDraw.Transpiler(instructions, generator);
-    }
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+  {
+    return Patch_CompProjectorOverlay_PostDraw.Transpiler(instructions, generator);
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.EccentricTech_DefenseGrid)]
@@ -108,13 +112,13 @@ public static class Patch_CompGeneratorOverlay_PostDraw
 [PatchLevel(Level.Sensitive)]
 public static class Patch_InterceptorMapComponent_MapComponentUpdate
 {
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return new CodeMatcher(instructions)
-            .MatchStartForward(CodeMatch.LoadsField(AccessTools.Field(typeof(MapComponent), nameof(MapComponent.map))))
-            .InsertAfter(new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMap_Map))
-            .InstructionEnumeration();
-    }
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    return new CodeMatcher(instructions)
+      .MatchStartForward(CodeMatch.LoadsField(AccessTools.Field(typeof(MapComponent), nameof(MapComponent.map))))
+      .InsertAfter(new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMap_Map))
+      .InstructionEnumeration();
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.EccentricTech_DefenseGrid)]
@@ -122,10 +126,10 @@ public static class Patch_InterceptorMapComponent_MapComponentUpdate
 [PatchLevel(Level.Cautious)]
 public static class Patch_InterceptorMapComponent_Draw
 {
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return instructions.MethodReplacer(CachedMethodInfo.m_CellRect_ClipInsideMap, CachedMethodInfo.m_ClipInsideVehicleMap);
-    }
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    return instructions.MethodReplacer(CachedMethodInfo.m_CellRect_ClipInsideMap, CachedMethodInfo.m_ClipInsideVehicleMap);
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.EccentricTech_DefenseGrid)]
@@ -133,10 +137,10 @@ public static class Patch_InterceptorMapComponent_Draw
 [PatchLevel(Level.Cautious)]
 public static class Patch_InterceptorMapComponent_GetSourceCell
 {
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
-    }
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.EccentricTech_DefenseGrid)]
@@ -144,16 +148,16 @@ public static class Patch_InterceptorMapComponent_GetSourceCell
 [PatchLevel(Level.Safe)]
 public static class Patch_InterceptorMapComponent_PaintGrid
 {
-    public static void Prefix(ref MapComponent __instance, object grid, Map ___map)
+  public static void Prefix(ref MapComponent __instance, object grid, Map ___map)
+  {
+    if (___map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
     {
-        if (___map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
-        {
-            var component = vehicle.Map.GetComponent(InterceptorMapComponent);
-            if (component is null) return;
-            __instance = component;
-            mapComponent(grid) = component;
-        }
+      var component = vehicle.Map.GetComponent(InterceptorMapComponent);
+      if (component is null) return;
+      __instance = component;
+      mapComponent(grid) = component;
     }
+  }
 }
 
 [HarmonyPatchCategory(PatchCategories.EccentricTech_DefenseGrid)]
@@ -161,14 +165,14 @@ public static class Patch_InterceptorMapComponent_PaintGrid
 [PatchLevel(Level.Safe)]
 public static class Patch_InterceptorMapComponent_UnpaintGrid
 {
-    public static void Prefix(ref MapComponent __instance, object grid, Map ___map)
+  public static void Prefix(ref MapComponent __instance, object grid, Map ___map)
+  {
+    if (___map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
     {
-        if (___map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
-        {
-            var component = vehicle.Map.GetComponent(InterceptorMapComponent);
-            if (component is null) return;
-            __instance = component;
-            mapComponent(grid) = __instance;
-        }
+      var component = vehicle.Map.GetComponent(InterceptorMapComponent);
+      if (component is null) return;
+      __instance = component;
+      mapComponent(grid) = __instance;
     }
+  }
 }

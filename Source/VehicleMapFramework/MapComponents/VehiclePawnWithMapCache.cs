@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using SmashTools;
 using UnityEngine;
-using VehicleMapFramework.VMF_HarmonyPatches;
 using Vehicles;
 using Verse;
 
@@ -10,96 +9,103 @@ namespace VehicleMapFramework;
 
 public class VehiclePawnWithMapCache(Map map) : MapComponent(map)
 {
-    public readonly Dictionary<Thing, Vector3> cachedDrawPos = [];
+  private readonly List<VehiclePawnWithMap> allVehicles = [];
 
-    public readonly Dictionary<Thing, IntVec3> cachedPosOnBaseMap = [];
+  public readonly (int lastCachedTick, HashSet<Map> hashSet) cachedBaseMapAndVehicleMaps = (-1, []);
+  public readonly Dictionary<Thing, Vector3> cachedDrawPos = [];
 
-    public readonly Dictionary<VehiclePawn, Rot8> cachedFullRot = [];
+  public readonly Dictionary<VehiclePawn, Rot8> cachedFullRot = [];
 
-    public readonly (int lastCachedTick, HashSet<Map> hashSet) cachedBaseMapAndVehicleMaps = (-1, []);
+  public readonly Dictionary<Thing, IntVec3> cachedPosOnBaseMap = [];
 
-    public static bool CacheMode { get; set; }
+  private int lastCachedFrame = -1;
 
-    private int lastCachedTick = -1;
+  private int lastCachedTick = -1;
 
-    private readonly List<VehiclePawnWithMap> allVehicles = [];
+  public static bool CacheMode { get; set; }
 
-    public override void FinalizeInit()
+  private static List<VehiclePawnWithMap> EmptyList { get; } = [];
+
+  public override void FinalizeInit()
+  {
+    VehicleMapParentsComponent.SetCachedVehicle(map, map.Parent as MapParent_Vehicle);
+    if (MultiFloors.Active && VehicleMapParentsComponent.GetCachedVehicle(map) is null)
     {
-        VehicleMapParentsComponent.SetCachedVehicle(map, map.Parent as MapParent_Vehicle);
-        if (MultiFloors.Active && VehicleMapParentsComponent.GetCachedVehicle(map) is null)
-        {
-            VehicleMapParentsComponent.SetCachedVehicle(map, MultiFloors.GroundMap(map)?.Parent as MapParent_Vehicle);
-        }
+      VehicleMapParentsComponent.SetCachedVehicle(map, MultiFloors.GroundMap(map)?.Parent as MapParent_Vehicle);
+    }
+  }
+
+  public static void RegisterVehicle(VehiclePawnWithMap vehicle)
+  {
+    LongEventHandler.ExecuteWhenFinished(() => { vehicle.Map?.GetComponent<VehiclePawnWithMapCache>()?.allVehicles.AddUnique(vehicle); });
+  }
+
+  public static void DeRegisterVehicle(VehiclePawnWithMap vehicle)
+  {
+    foreach (var map in Find.Maps)
+    {
+      if (map.GetComponent<VehiclePawnWithMapCache>() is { } component)
+      {
+        component.allVehicles.Remove(vehicle);
+      }
     }
 
-    public static void RegisterVehicle(VehiclePawnWithMap vehicle)
+    if (Command_FocusVehicleMap.FocusedVehicle == vehicle)
     {
-        LongEventHandler.ExecuteWhenFinished(() =>
-        {
-            vehicle.Map?.GetComponent<VehiclePawnWithMapCache>()?.allVehicles.AddUnique(vehicle);
-        });
+      Command_FocusVehicleMap.FocusLockedVehicle = null;
+      Command_FocusVehicleMap.FocusedVehicle = null;
     }
+  }
 
-    public static void DeRegisterVehicle(VehiclePawnWithMap vehicle)
+  public static List<VehiclePawnWithMap> AllVehiclesOn(Map map)
+  {
+    // ColonyManagerReduxで早期にGetCachedMapComponentが呼ばれてしまった場合、キャッシュにnullが登録されnullを返し続けてしまう
+    if (map.mapPawns.AllPawnsSpawnedCount == 0) return EmptyList;
+
+    return map.GetCachedMapComponent<VehiclePawnWithMapCache>()?.allVehicles ?? EmptyList;
+  }
+
+  public static ReadOnlySpan<VehiclePawnWithMap> AllVehiclesOnAsReadOnlySpan(Map map)
+  {
+    if (map.mapPawns.AllPawnsSpawnedCount == 0) return [];
+
+    var component = map.GetCachedMapComponent<VehiclePawnWithMapCache>();
+    return component is null ? [] : component.allVehicles.AsReadOnlySpan();
+  }
+
+  public void ForceResetPositionCache()
+  {
+    lastCachedTick = Find.TickManager.TicksGame;
+    cachedPosOnBaseMap.Clear();
+    cachedFullRot.Clear();
+  }
+
+  public void ForceResetDrawPosCache()
+  {
+    lastCachedFrame = Time.frameCount;
+    cachedDrawPos.Clear();
+  }
+
+  public void ResetCache()
+  {
+    if (lastCachedTick != Find.TickManager.TicksGame)
     {
-        foreach (var map in Find.Maps)
-        {
-            if (map.GetComponent<VehiclePawnWithMapCache>() is { } component)
-            {
-                component.allVehicles.Remove(vehicle);
-            }
-        }
-
-        if (Command_FocusVehicleMap.FocusedVehicle == vehicle)
-        {
-            Command_FocusVehicleMap.FocusLockedVehicle = null;
-            Command_FocusVehicleMap.FocusedVehicle = null;
-        }
+      ForceResetPositionCache();
     }
-
-    private static List<VehiclePawnWithMap> EmptyList { get; } = [];
-
-    public static List<VehiclePawnWithMap> AllVehiclesOn(Map map)
+    if (lastCachedFrame != Time.frameCount)
     {
-        // ColonyManagerReduxで早期にGetCachedMapComponentが呼ばれてしまった場合、キャッシュにnullが登録されnullを返し続けてしまう
-        if (map.mapPawns.AllPawnsSpawnedCount == 0) return EmptyList;
-        
-        return map.GetCachedMapComponent<VehiclePawnWithMapCache>()?.allVehicles ?? EmptyList;
+      ForceResetDrawPosCache(); // PawnのTweenerとの兼ね合いでDrawPosは毎フレームキャッシュクリアせねばならない
     }
+  }
 
-    public static ReadOnlySpan<VehiclePawnWithMap> AllVehiclesOnAsReadOnlySpan(Map map)
-    {
-        if (map.mapPawns.AllPawnsSpawnedCount == 0) return [];
-        
-        var component = map.GetCachedMapComponent<VehiclePawnWithMapCache>();
-        return component is null ? [] : component.allVehicles.AsReadOnlySpan();
-    }
+  public override void MapComponentUpdate()
+  {
+    ResetCache();
+  }
 
-    public void ForceResetCache()
-    {
-        lastCachedTick = Find.TickManager.TicksGame;
-        cachedPosOnBaseMap.Clear();
-        cachedFullRot.Clear();
-    }
-
-    public void ResetCache()
-    {
-        if (lastCachedTick != Find.TickManager.TicksGame || Find.TickManager.Paused)
-        {
-            ForceResetCache();
-        }
-        cachedDrawPos.Clear(); // PawnのTweenerとの兼ね合いでDrawPosは毎フレームキャッシュクリアせねばならない
-    }
-
-    public override void MapComponentUpdate()
-    {
-        ResetCache();
-    }
-
-    public override void MapRemoved()
-    {
-        VehicleMapParentsComponent.SetCachedVehicle(map, null);
-        CrossMapReachabilityCache.ClearCacheFor(map, true);
-    }
+  public override void MapRemoved()
+  {
+    VehicleMapParentsComponent.SetCachedVehicle(map, null);
+    CrossMapReachabilityCache.ClearCacheFor(map, true);
+  }
 }

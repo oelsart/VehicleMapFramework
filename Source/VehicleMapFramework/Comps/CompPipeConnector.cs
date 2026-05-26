@@ -7,162 +7,161 @@ namespace VehicleMapFramework;
 
 public class CompPipeConnector : ThingComp
 {
-    public IPipeConnector selectedComp;
 
-    protected bool connectReq;
+  public enum PipeMod
+  {
+    VanillaExpandedFramework,
+    DubsBadHygiene,
+    Rimefeller
+  }
 
-    public const int TicksInterval = 30;
+  public const int TicksInterval = 30;
 
-    public CompProperties_PipeConnector Props => (CompProperties_PipeConnector)props;
+  protected bool connectReq;
+  public IPipeConnector selectedComp;
 
-    public CompPipeConnector Pair { get; set; }
+  public CompProperties_PipeConnector Props => (CompProperties_PipeConnector)props;
 
-    public List<IPipeConnector> ConnectorComps
+  public CompPipeConnector Pair { get; set; }
+
+  public List<IPipeConnector> ConnectorComps
+  {
+    get
     {
-        get
-        {
-            field ??= [.. parent.AllComps.OfType<IPipeConnector>()];
-            return field;
-        }
+      field ??= [.. parent.AllComps.OfType<IPipeConnector>()];
+      return field;
     }
+  }
 
-    private Material PipeMat
+  private Material PipeMat
+  {
+    get
     {
-        get
+      if (field == null)
+      {
+        field = MaterialPool.MatFrom("VehicleMapFramework/Things/PipeConnector/Pipe", ShaderDatabase.Cutout);
+      }
+      return field;
+    }
+  }
+
+  private Graphic PipeEndGraphic
+  {
+    get
+    {
+      field ??= GraphicDatabase.Get<Graphic_Single>("VehicleMapFramework/Things/PipeConnector/PipeEnd", ShaderDatabase.CutoutComplex);
+      return field.GetColoredVersion(ShaderDatabase.CutoutComplex, parent.DrawColor, parent.DrawColorTwo);
+    }
+  }
+
+  public override void CompTick()
+  {
+    base.CompTick();
+    if (!parent.Spawned) return;
+    if (Find.TickManager.TicksGame % TicksInterval != 0 || selectedComp == null) return;
+
+    if (parent.IsOnVehicleMap)
+    {
+      if (Pair != null && !connectReq)
+      {
+        selectedComp.DisconnectedAction();
+        Pair = null;
+      }
+      connectReq = false;
+    }
+    else
+    {
+      var flag = false;
+      var num = GenRadial.NumCellsInRadius(Props.radius);
+      var pos = parent.Position;
+      for (var i = 0; i < num; i++)
+      {
+        var c = pos + GenRadial.RadialPattern[i];
+        if (!c.InBounds(parent.Map)) continue;
+
+        if (c.TryGetVehicleMap(parent.Map, out var vehicle))
         {
-            if (field == null)
+          var c2 = c.ToVehicleMapCoord(vehicle);
+          if (!c2.InBounds(vehicle.VehicleMap)) continue;
+
+          var connector = c2.GetFirstThingWithComp<CompPipeConnector>(vehicle.VehicleMap);
+          if (connector != null)
+          {
+            var compConnector = connector.GetComp<CompPipeConnector>();
+            if (compConnector.selectedComp?.Mod != selectedComp.Mod) continue;
+
+            if (selectedComp.ConnectCondition(compConnector))
             {
-                field = MaterialPool.MatFrom("VehicleMapFramework/Things/PipeConnector/Pipe", ShaderDatabase.Cutout);
+              compConnector.connectReq = true;
+              if (Pair != compConnector || compConnector.Pair != this)
+              {
+                Pair = compConnector;
+                compConnector.Pair = this;
+              }
+              selectedComp.ConnectedTickAction();
+              flag = true;
+              break;
             }
-            return field;
+          }
         }
+      }
+      if (!flag)
+      {
+        Pair = null;
+      }
     }
+  }
 
-    private Graphic PipeEndGraphic
+  public override void PostDraw()
+  {
+    base.PostDraw();
+    if (Pair != null && parent.IsOnVehicleMapOf(out _))
     {
-        get
-        {
-            field ??= GraphicDatabase.Get<Graphic_Single>("VehicleMapFramework/Things/PipeConnector/PipeEnd", ShaderDatabase.CutoutComplex);
-            return field.GetColoredVersion(ShaderDatabase.CutoutComplex, parent.DrawColor, parent.DrawColorTwo);
-        }
+      var y = AltitudeLayer.LightingOverlay.AltitudeFor() - 0.001f;
+      var drawPosA = parent.DrawPos.WithY(y);
+      var drawPosB = Pair.parent.DrawPos.WithY(y);
+      var graphic = PipeEndGraphic;
+      var angle = (drawPosB - drawPosA).AngleFlat();
+      Graphics.DrawMesh(MeshPool.plane10, drawPosA, Quaternion.AngleAxis(angle, Vector3.up), graphic.MatSingle, 0);
+      Graphics.DrawMesh(MeshPool.plane10, drawPosB, Quaternion.AngleAxis(angle + 180f, Vector3.up), graphic.MatSingle, 0);
+      GenDraw.DrawLineBetween(drawPosA, drawPosB, -0.001f, PipeMat, 1f);
     }
+  }
 
-    public override void CompTick()
+  public override void PostDrawExtraSelectionOverlays()
+  {
+    base.PostDrawExtraSelectionOverlays();
+    GenDraw.DrawRadiusRing(parent.PositionOnBaseMap, Props.radius);
+  }
+
+  public override IEnumerable<Gizmo> CompGetGizmosExtra()
+  {
+    yield return new Command_Action
     {
-        base.CompTick();
-        if (!parent.Spawned) return;
-        if (Find.TickManager.TicksGame % TicksInterval != 0 || selectedComp == null) return;
+      defaultLabel = "VMF_AssignPipeNet".Translate(),
+      icon = selectedComp?.GizmoIcon ?? BaseContent.ClearTex,
+      action = () =>
+      {
+        Find.WindowStack.Add(new FloatMenu([
+          .. ConnectorComps.SelectMany(c => c.FloatMenuOptions.Select(f =>
+          {
+            f.action += () => { selectedComp = c; };
+            return f;
+          }))
+        ]));
+      }
+    };
+  }
 
-        if (parent.IsOnVehicleMap)
-        {
-            if (Pair != null && !connectReq)
-            {
-                selectedComp.DisconnectedAction();
-                Pair = null;
-            }
-            connectReq = false;
-        }
-        else
-        {
-            var flag = false;
-            var num = GenRadial.NumCellsInRadius(Props.radius);
-            var pos = parent.Position;
-            for (var i = 0; i < num; i++)
-            {
-                var c = pos + GenRadial.RadialPattern[i];
-                if (!c.InBounds(parent.Map)) continue;
+  public override string CompInspectStringExtra()
+  {
+    return (selectedComp as ThingComp)?.CompInspectStringExtra();
+  }
 
-                if (c.TryGetVehicleMap(parent.Map, out var vehicle))
-                {
-                    var c2 = c.ToVehicleMapCoord(vehicle);
-                    if (!c2.InBounds(vehicle.VehicleMap)) continue;
-
-                    var connector = c2.GetFirstThingWithComp<CompPipeConnector>(vehicle.VehicleMap);
-                    if (connector != null)
-                    {
-                        var compConnector = connector.GetComp<CompPipeConnector>();
-                        if (compConnector.selectedComp?.Mod != selectedComp.Mod) continue;
-
-                        if (selectedComp.ConnectCondition(compConnector))
-                        {
-                            compConnector.connectReq = true;
-                            if (Pair != compConnector || compConnector.Pair != this)
-                            {
-                                Pair = compConnector;
-                                compConnector.Pair = this;
-                            }
-                            selectedComp.ConnectedTickAction();
-                            flag = true;
-                            break;
-                        }
-                    }
-                }
-            }
-            if (!flag)
-            {
-                Pair = null;
-            }
-        }
-    }
-
-    public override void PostDraw()
-    {
-        base.PostDraw();
-        if (Pair != null && parent.IsOnVehicleMapOf(out _))
-        {
-            var y = AltitudeLayer.LightingOverlay.AltitudeFor() - 0.001f;
-            var drawPosA = parent.DrawPos.WithY(y);
-            var drawPosB = Pair.parent.DrawPos.WithY(y);
-            var graphic = PipeEndGraphic;
-            var angle = (drawPosB - drawPosA).AngleFlat();
-            Graphics.DrawMesh(MeshPool.plane10, drawPosA, Quaternion.AngleAxis(angle, Vector3.up), graphic.MatSingle, 0);
-            Graphics.DrawMesh(MeshPool.plane10, drawPosB, Quaternion.AngleAxis(angle + 180f, Vector3.up), graphic.MatSingle, 0);
-            GenDraw.DrawLineBetween(drawPosA, drawPosB, -0.001f, PipeMat, 1f);
-        }
-    }
-
-    public override void PostDrawExtraSelectionOverlays()
-    {
-        base.PostDrawExtraSelectionOverlays();
-        GenDraw.DrawRadiusRing(parent.PositionOnBaseMap, Props.radius);
-    }
-
-    public override IEnumerable<Gizmo> CompGetGizmosExtra()
-    {
-        yield return new Command_Action
-        {
-            defaultLabel = "VMF_AssignPipeNet".Translate(),
-            icon = selectedComp?.GizmoIcon ?? BaseContent.ClearTex,
-            action = () =>
-            {
-                Find.WindowStack.Add(new FloatMenu([.. ConnectorComps.SelectMany(c => c.FloatMenuOptions.Select(f =>
-                {
-                    f.action += () =>
-                    {
-                        selectedComp = c;
-                    };
-                    return f;
-                }))]));
-            }
-        };
-    }
-
-    public override string CompInspectStringExtra()
-    {
-        return (selectedComp as ThingComp)?.CompInspectStringExtra();
-    }
-
-    public override void PostExposeData()
-    {
-        var mod = selectedComp?.Mod;
-        Scribe_Values.Look(ref mod, "selectedComp");
-        selectedComp = ConnectorComps.FirstOrDefault(c => c.Mod == mod);
-    }
-
-    public enum PipeMod
-    {
-        VanillaExpandedFramework,
-        DubsBadHygiene,
-        Rimefeller
-    }
+  public override void PostExposeData()
+  {
+    var mod = selectedComp?.Mod;
+    Scribe_Values.Look(ref mod, "selectedComp");
+    selectedComp = ConnectorComps.FirstOrDefault(c => c.Mod == mod);
+  }
 }

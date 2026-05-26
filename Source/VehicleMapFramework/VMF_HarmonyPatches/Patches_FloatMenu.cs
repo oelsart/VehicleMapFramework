@@ -33,9 +33,9 @@ public static class Patch_FloatMenuMakerMap_GetOptions
             .InstructionEnumeration();
     }
 
-    private static bool InBounds(Vector3 c, Map map)
+    private static bool InBounds(Vector3 clickPos, Map map)
     {
-        return map.IsVehicleMapOf(out _) ? c.TryGetVehicleMap(map, out _, VehicleMapFlag.None) : c.InBounds(map);
+        return map.IsVehicleMap ? clickPos.TryGetVehicleMap(map, out _, VehicleMapFlag.None) : clickPos.InBounds(map);
     }
 }
 

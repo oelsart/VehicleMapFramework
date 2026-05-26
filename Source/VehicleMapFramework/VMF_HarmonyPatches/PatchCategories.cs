@@ -100,6 +100,8 @@ internal static class PatchCategories
     
     public const string PauseOtherSettlements = "VMF_Patches_PauseOtherSettlements";
     
+    public const string PowerPoles = "VMF_Patches_PowerPoles";
+    
     public const string ProjectRimFactory = "VMF_Patches_ProjectRimFactory";
     
     public const string PickUpAndHaul = "VMF_Patches_PickUpAndHaul";
