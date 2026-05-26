@@ -12,8 +12,8 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 internal class VfVersionalPatchAttribute : Attribute
 {
-
   internal const string LatestRelease = "1.6.2144";
+  internal const string CurrentDevBranch = "1.6.2361";
 
   public VfVersionalPatchAttribute(string version, ComparisonType comparison = ComparisonType.Equal)
   {
@@ -35,7 +35,7 @@ internal class VfVersionalPatchAttribute : Attribute
   private Version TargetVersion { get; }
 
   private static Version CurrentVersion { get; } =
-    Version.Parse(Regex.Replace(VehicleMod.metaData.ModVersion, @"[^\d.]", ""));
+    Version.Parse(Regex.Replace(VehicleMod.metaData?.ModVersion ?? CurrentDevBranch, @"[^\d.]", ""));
 }
 
 [HarmonyPatchCategory(PatchCategories.VehicleFramework)]

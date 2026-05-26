@@ -187,11 +187,16 @@ public class VMF_Harmony
     {
         var method = new StackTrace().GetFrame(1).GetMethod();
         var assembly = method.ReflectedType?.Assembly;
-        TypesInAssembly(assembly)
+        var patches = TypesInAssembly(assembly)
             .Where(t => t.CustomAttributes.Any(a => a.AttributeType == typeof(HarmonyPatch)) &&
             t.CustomAttributes.Any(a => a.AttributeType == typeof(HarmonyPatchCategory) && a.ConstructorArguments.Any(c => c.Value.Equals(category))))
-            .Where(CheckClassPatchLevel)
-            .Select(Instance.CreateClassProcessor)
+            .Where(CheckClassPatchLevel);
+        if (category == PatchCategories.VehicleFramework)
+        {
+          patches = patches.Where(t => t.GetCustomAttribute<VfVersionalPatchAttribute>() is not { } attr ||
+                                       attr.Available);
+        }
+        patches.Select(Instance.CreateClassProcessor)
             .Do(patchClass =>
             {
                 try
