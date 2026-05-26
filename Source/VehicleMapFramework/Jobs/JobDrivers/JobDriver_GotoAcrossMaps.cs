@@ -11,102 +11,99 @@ namespace VehicleMapFramework;
 
 public class JobDriver_GotoAcrossMaps : JobDriverAcrossMaps
 {
-  public override bool TryMakePreToilReservations(bool errorOnFailed)
-  {
-    DestMap.pawnDestinationReservationManager.Reserve(pawn, job, job.targetA.Cell);
-    return true;
-  }
+    public override bool TryMakePreToilReservations(bool errorOnFailed)
+    {
+        DestMap.pawnDestinationReservationManager.Reserve(pawn, job, job.targetA.Cell);
+        return true;
+    }
 
-  protected override IEnumerable<Toil> MakeNewToils()
-  {
-    foreach (var toil in base.MakeNewToils())
+    protected override IEnumerable<Toil> MakeNewToils()
     {
-      yield return toil;
-    }
-    foreach (var toil in GotoTargetMap(TargetIndex.A))
-    {
-      yield return toil;
-    }
-    if (job.targetA.IsValid)
-    {
-      var lookAtTarget = job.GetTarget(TargetIndex.B);
-      var toil = Toils_Goto.GotoCell(TargetIndex.A, PathEndMode.OnCell);
-      toil.AddPreTickAction(delegate
-      {
-        if (job.exitMapOnArrival && pawn.Map.exitMapGrid.IsExitCell(pawn.Position))
+        foreach (var toil in base.MakeNewToils()) yield return toil;
+        foreach (var toil in GotoTargetMap(TargetIndex.A)) yield return toil;
+        if (job.targetA.IsValid)
         {
-          TryExitMap();
-        }
-        if (pawn is VehiclePawn vehicle && job.exitMapOnArrival && vehicle.InhabitedCells(1).NotNullAndAny(cell => pawn.BaseMap().exitMapGrid.IsExitCell(cell)))
-        {
-          PathingHelper.ExitMapForVehicle(vehicle, job);
-        }
-      });
-      toil.FailOn(() => job.failIfCantJoinOrCreateCaravan && !CaravanExitMapUtility.CanExitMapAndJoinOrCreateCaravanNow(pawn));
-      toil.FailOn(() => job.GetTarget(TargetIndex.A).Thing is Pawn { ParentHolder: Corpse });
-      toil.FailOn(() =>
-      {
-        var thing = job.GetTarget(TargetIndex.A).Thing;
-        return thing is { Destroyed: true };
-      });
-      if (lookAtTarget.IsValid)
-      {
-        toil.tickAction += delegate { pawn.rotationTracker.FaceCell(job.GetTarget(TargetIndex.B).CellOnAnotherThingMap(pawn)); };
-        toil.handlingFacing = true;
-      }
-      toil.AddFinishAction(delegate
-      {
-        if (job.controlGroupTag == null)
-        {
-          return;
-        }
-        if (job.controlGroupTag != null)
-        {
-          var overseer = pawn.GetOverseer();
-          overseer?.mechanitor.GetControlGroup(pawn).SetTag(pawn, job.controlGroupTag);
-        }
-      });
-      yield return toil;
+            var lookAtTarget = job.GetTarget(TargetIndex.B);
+            var toil = Toils_Goto.GotoCell(TargetIndex.A, PathEndMode.OnCell);
+            toil.AddPreTickAction(delegate
+            {
+                if (job.exitMapOnArrival && pawn.Map.exitMapGrid.IsExitCell(pawn.Position))
+                {
+                    TryExitMap();
+                }
+                if (pawn is VehiclePawn vehicle && job.exitMapOnArrival && vehicle.InhabitedCells(1).NotNullAndAny(cell => pawn.BaseMap().exitMapGrid.IsExitCell(cell)))
+                {
+                    PathingHelper.ExitMapForVehicle(vehicle, job);
+                }
+            });
+            toil.FailOn(() => job.failIfCantJoinOrCreateCaravan && !CaravanExitMapUtility.CanExitMapAndJoinOrCreateCaravanNow(pawn));
+            toil.FailOn(() => job.GetTarget(TargetIndex.A).Thing is Pawn { ParentHolder: Corpse });
+            toil.FailOn(() =>
+            {
+                var thing = job.GetTarget(TargetIndex.A).Thing;
+                return thing is { Destroyed: true };
+            });
+            if (lookAtTarget.IsValid)
+            {
+                toil.tickAction += delegate
+                {
+                    pawn.rotationTracker.FaceCell(job.GetTarget(TargetIndex.B).CellOnAnotherThingMap(pawn));
+                };
+                toil.handlingFacing = true;
+            }
+            toil.AddFinishAction(delegate
+            {
+                if (job.controlGroupTag == null)
+                {
+                    return;
+                }
+                if (job.controlGroupTag != null)
+                {
+                    var overseer = pawn.GetOverseer();
+                    overseer?.mechanitor.GetControlGroup(pawn).SetTag(pawn, job.controlGroupTag);
+                }
+            });
+            yield return toil;
 
-      var toil3 = ToilMaker.MakeToil();
-      toil3.initAction = delegate
-      {
-        if (pawn.mindState != null && pawn.mindState.forcedGotoPosition == TargetA.Cell)
-        {
-          pawn.mindState.forcedGotoPosition = IntVec3.Invalid;
+            var toil3 = ToilMaker.MakeToil();
+            toil3.initAction = delegate
+            {
+                if (pawn.mindState != null && pawn.mindState.forcedGotoPosition == TargetA.Cell)
+                {
+                    pawn.mindState.forcedGotoPosition = IntVec3.Invalid;
+                }
+                if (!job.ritualTag.NullOrEmpty())
+                {
+                    var lord = pawn.GetLord();
+                    if (lord?.LordJob is LordJob_Ritual lordJob_Ritual)
+                    {
+                        lordJob_Ritual.AddTagForPawn(pawn, job.ritualTag);
+                    }
+                }
+                if (job.exitMapOnArrival && !pawn.IsOnVehicleMapOf(out _) && (pawn.Position.OnEdge(pawn.Map) || pawn.Map.exitMapGrid.IsExitCell(pawn.Position)))
+                {
+                    TryExitMap();
+                }
+            };
+            toil3.defaultCompleteMode = ToilCompleteMode.Instant;
+            yield return toil3;
         }
-        if (!job.ritualTag.NullOrEmpty())
-        {
-          var lord = pawn.GetLord();
-          if (lord?.LordJob is LordJob_Ritual lordJob_Ritual)
-          {
-            lordJob_Ritual.AddTagForPawn(pawn, job.ritualTag);
-          }
-        }
-        if (job.exitMapOnArrival && !pawn.IsOnVehicleMapOf(out _) && (pawn.Position.OnEdge(pawn.Map) || pawn.Map.exitMapGrid.IsExitCell(pawn.Position)))
-        {
-          TryExitMap();
-        }
-      };
-      toil3.defaultCompleteMode = ToilCompleteMode.Instant;
-      yield return toil3;
     }
-  }
 
-  private void TryExitMap()
-  {
-    if (job.failIfCantJoinOrCreateCaravan && !CaravanExitMapUtility.CanExitMapAndJoinOrCreateCaravanNow(pawn))
+    private void TryExitMap()
     {
-      return;
+        if (job.failIfCantJoinOrCreateCaravan && !CaravanExitMapUtility.CanExitMapAndJoinOrCreateCaravanNow(pawn))
+        {
+            return;
+        }
+        if (ModsConfig.BiotechActive)
+        {
+            MechanitorUtility.Notify_PawnGotoLeftMap(pawn, pawn.BaseMap());
+        }
+        if (ModsConfig.AnomalyActive && !MetalhorrorUtility.TryPawnExitMap(pawn))
+        {
+            return;
+        }
+        pawn.ExitMap(true, CellRect.WholeMap(Map.BaseMap()).GetClosestEdge(pawn.Position));
     }
-    if (ModsConfig.BiotechActive)
-    {
-      MechanitorUtility.Notify_PawnGotoLeftMap(pawn, pawn.BaseMap());
-    }
-    if (ModsConfig.AnomalyActive && !MetalhorrorUtility.TryPawnExitMap(pawn))
-    {
-      return;
-    }
-    pawn.ExitMap(true, CellRect.WholeMap(Map.BaseMap()).GetClosestEdge(pawn.Position));
-  }
 }

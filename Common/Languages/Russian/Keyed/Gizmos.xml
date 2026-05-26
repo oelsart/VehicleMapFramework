@@ -5,11 +5,9 @@
   <VMF_UnfocusVehicleMap>Снять фокус с карты техники</VMF_UnfocusVehicleMap>
 
   <VMF_AllowsHaulIn>Разрешить занос</VMF_AllowsHaulIn>
-  <VMF_AllowsHaulInDesc>Позволяет колонистам заносить предметы в хранилище на карте этого транспорта.
-  </VMF_AllowsHaulInDesc>
+  <VMF_AllowsHaulInDesc>Позволяет колонистам заносить предметы в хранилище на карте этого транспорта.</VMF_AllowsHaulInDesc>
   <VMF_AllowsHaulOut>Разрешить вынос</VMF_AllowsHaulOut>
-  <VMF_AllowsHaulOutDesc>Позволяет колонистам выносить предметы из хранилища на карте этого транспорта.
-  </VMF_AllowsHaulOutDesc>
+  <VMF_AllowsHaulOutDesc>Позволяет колонистам выносить предметы из хранилища на карте этого транспорта.</VMF_AllowsHaulOutDesc>
   <VMF_IncreasePriority>Повысить приоритет</VMF_IncreasePriority>
   <VMF_IncreasePriorityDesc>Повысить все приоритеты хранилищ на карте этого транспорта</VMF_IncreasePriorityDesc>
   <VMF_DecreasePriority>Понизить приоритет</VMF_DecreasePriority>

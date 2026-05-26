@@ -1,46 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LanguageData>
 
-  <VMF_FocusVehicleMap>車両マップフォーカス</VMF_FocusVehicleMap>
-  <VMF_UnfocusVehicleMap>車両マップフォーカス解除</VMF_UnfocusVehicleMap>
+	<VMF_FocusVehicleMap>車両マップフォーカス</VMF_FocusVehicleMap>
+	<VMF_UnfocusVehicleMap>車両マップフォーカス解除</VMF_UnfocusVehicleMap>
 
-  <VMF_AllowsHaulIn>運び込み</VMF_AllowsHaulIn>
-  <VMF_AllowsHaulInDesc>入植者にこの車両のマップ上のストレージに運搬することを許可します.</VMF_AllowsHaulInDesc>
-  <VMF_AllowsHaulOut>運び出し</VMF_AllowsHaulOut>
-  <VMF_AllowsHaulOutDesc>入植者にこの車両のマップ上のストレージから運搬することを許可します.</VMF_AllowsHaulOutDesc>
-  <VMF_IncreasePriority>優先度 +1</VMF_IncreasePriority>
-  <VMF_IncreasePriorityDesc>この車両のマップ上のストレージの優先度を1つ上げます</VMF_IncreasePriorityDesc>
-  <VMF_DecreasePriority>優先度 -1</VMF_DecreasePriority>
-  <VMF_DecreasePriorityDesc>この車両のマップ上のストレージの優先度を1つ下げます</VMF_DecreasePriorityDesc>
-  <VMF_AllowsGetOff>降車許可</VMF_AllowsGetOff>
-  <VMF_AllowsGetOffDesc>入植者のAIにこの車両マップから降りることを許可します.</VMF_AllowsGetOffDesc>
-  <VMF_AllowEnter>乗車許可</VMF_AllowEnter>
-  <VMF_AllowEnterDesc>入植者のAIにこの車両マップに入ることを許可します.</VMF_AllowEnterDesc>
+	<VMF_AllowsHaulIn>運び込み</VMF_AllowsHaulIn>
+	<VMF_AllowsHaulInDesc>入植者にこの車両のマップ上のストレージに運搬することを許可します.</VMF_AllowsHaulInDesc>
+	<VMF_AllowsHaulOut>運び出し</VMF_AllowsHaulOut>
+	<VMF_AllowsHaulOutDesc>入植者にこの車両のマップ上のストレージから運搬することを許可します.</VMF_AllowsHaulOutDesc>
+	<VMF_IncreasePriority>優先度 +1</VMF_IncreasePriority>
+	<VMF_IncreasePriorityDesc>この車両のマップ上のストレージの優先度を1つ上げます</VMF_IncreasePriorityDesc>
+	<VMF_DecreasePriority>優先度 -1</VMF_DecreasePriority>
+	<VMF_DecreasePriorityDesc>この車両のマップ上のストレージの優先度を1つ下げます</VMF_DecreasePriorityDesc>
+	<VMF_AllowsGetOff>降車許可</VMF_AllowsGetOff>
+	<VMF_AllowsGetOffDesc>入植者のAIにこの車両マップから降りることを許可します.</VMF_AllowsGetOffDesc>
+	<VMF_AllowEnter>乗車許可</VMF_AllowEnter>
+	<VMF_AllowEnterDesc>入植者のAIにこの車両マップに入ることを許可します.</VMF_AllowEnterDesc>
 
-  <VMF_LowerPowerDesc>ターゲットの送電容量を下げます.</VMF_LowerPowerDesc>
-  <VMF_ResetPower>リセット</VMF_ResetPower>
-  <VMF_ResetPowerDesc>ターゲットの送電容量をリセットします.</VMF_ResetPowerDesc>
-  <VMF_RaisePowerDesc>ターゲットの送電容量を上げます.</VMF_RaisePowerDesc>
-  <VMF_PowerPush>送信</VMF_PowerPush>
-  <VMF_PowerDraw>受信</VMF_PowerDraw>
-  <VMF_PowerTransmit>送受信</VMF_PowerTransmit>
-  <VMF_PowerPushDesc>リンクした送信機に電力を送信します. 受信モードの送信機とリンクします.</VMF_PowerPushDesc>
-  <VMF_PowerDrawDesc>リンクした受信機から電力を受信します. 送信モードの受信機とリンクします</VMF_PowerDrawDesc>
-  <VMF_PowerTransmitDesc>リンクした送信機と電力を送受信します.</VMF_PowerTransmitDesc>
+	<VMF_LowerPowerDesc>ターゲットの送電容量を下げます.</VMF_LowerPowerDesc>
+	<VMF_ResetPower>リセット</VMF_ResetPower>
+	<VMF_ResetPowerDesc>ターゲットの送電容量をリセットします.</VMF_ResetPowerDesc>
+	<VMF_RaisePowerDesc>ターゲットの送電容量を上げます.</VMF_RaisePowerDesc>
+	<VMF_PowerPush>送信</VMF_PowerPush>
+	<VMF_PowerDraw>受信</VMF_PowerDraw>
+	<VMF_PowerTransmit>送受信</VMF_PowerTransmit>
+	<VMF_PowerPushDesc>リンクした送信機に電力を送信します. 受信モードの送信機とリンクします.</VMF_PowerPushDesc>
+	<VMF_PowerDrawDesc>リンクした受信機から電力を受信します. 送信モードの受信機とリンクします</VMF_PowerDrawDesc>
+	<VMF_PowerTransmitDesc>リンクした送信機と電力を送受信します.</VMF_PowerTransmitDesc>
 
-  <VMF_Reassign>再割り当て</VMF_Reassign>
-  <VMF_ReassignDesc>この席が操作するタレットを再割り当てします.</VMF_ReassignDesc>
+	<VMF_Reassign>再割り当て</VMF_Reassign>
+	<VMF_ReassignDesc>この席が操作するタレットを再割り当てします.</VMF_ReassignDesc>
 
-  <VMF_GatherFromBaseMap>ベースマップから収集</VMF_GatherFromBaseMap>
-
-  <VMF_AssignPipeNet>割り当て</VMF_AssignPipeNet>
-  <VMF_PumpUp>汲み上げ</VMF_PumpUp>
-  <VMF_Drain>排水</VMF_Drain>
-
-  <VMF_Flip>反転</VMF_Flip>
-  <VMF_VehicleMode>車両モード</VMF_VehicleMode>
-
-  <VMF_RemoveSegment>車両セグメント解体</VMF_RemoveSegment>
-  <VMF_RemoveSegmentDesc>拡張された車両構造の一部を解体する.</VMF_RemoveSegmentDesc>
+	<VMF_GatherFromBaseMap>ベースマップから収集</VMF_GatherFromBaseMap>
+	
+	<VMF_AssignPipeNet>割り当て</VMF_AssignPipeNet>
+	<VMF_PumpUp>汲み上げ</VMF_PumpUp>
+	<VMF_Drain>排水</VMF_Drain>
+	
+	<VMF_Flip>反転</VMF_Flip>
+	<VMF_VehicleMode>車両モード</VMF_VehicleMode>
+	
+	<VMF_RemoveSegment>車両セグメント解体</VMF_RemoveSegment>
+	<VMF_RemoveSegmentDesc>拡張された車両構造の一部を解体する.</VMF_RemoveSegmentDesc>
 
 </LanguageData>

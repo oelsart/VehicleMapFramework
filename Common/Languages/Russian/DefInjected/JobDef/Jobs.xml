@@ -10,12 +10,12 @@
   <VMF_RefuelVehicleTank.reportString>Заправляет ЦельА</VMF_RefuelVehicleTank.reportString>
 
   <!-- <JobDef>
-        <defName>VMF_RefuelVehicleTankAtomic</defName>
-        <driverClass>VehicleMapFramework.JobDriver_RefuelVehicleTankAtomic</driverClass>
-        <reportString>Refueling TargetA</reportString>
-        <allowOpportunisticPrefix>true</allowOpportunisticPrefix>
-        <casualInterruptible>false</casualInterruptible>
-    </JobDef> -->
+		<defName>VMF_RefuelVehicleTankAtomic</defName>
+		<driverClass>VehicleMapFramework.JobDriver_RefuelVehicleTankAtomic</driverClass>
+		<reportString>Refueling TargetA</reportString>
+		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
+		<casualInterruptible>false</casualInterruptible>
+	</JobDef> -->
 
   <VMF_DeconstructVehicleSegment.reportString>Выполняет действие.</VMF_DeconstructVehicleSegment.reportString>
   <VMF_GotoShipCombat.reportString>Перемещается.</VMF_GotoShipCombat.reportString>

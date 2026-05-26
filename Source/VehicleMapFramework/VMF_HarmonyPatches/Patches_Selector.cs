@@ -15,60 +15,60 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [PatchLevel(Level.Safe)]
 public static class Patch_Selector_SelectableObjectsUnderMouse
 {
-  public static bool Prefix(ref IEnumerable<object> __result)
-  {
-    var mouseMapPosition = UI.MouseMapPosition();
-    if (!mouseMapPosition.TryGetVehicleMap(Find.CurrentMap, out var vehicle, VehicleMapFlag.All))
+    public static bool Prefix(ref IEnumerable<object> __result)
     {
-      return true;
-    }
-    __result = [.. SelectableObjects(vehicle, mouseMapPosition)];
-    return !__result.Any();
-  }
-
-  private static IEnumerable<object> SelectableObjects(VehiclePawnWithMap vehicle, Vector3 mouseMapPosition)
-  {
-    TargetingParameters targetingParameters = new()
-    {
-      mustBeSelectable = true,
-      canTargetPawns = true,
-      canTargetBuildings = true,
-      canTargetItems = true,
-      mapObjectTargetsMustBeAutoAttackable = false
-    };
-    var mouseVehicleMapPosition = mouseMapPosition.ToVehicleMapCoord(vehicle);
-
-    if (!mouseVehicleMapPosition.InBounds(vehicle.VehicleMap)) yield break;
-
-    var selectableList = GenUIOnVehicle.ThingsUnderMouse(mouseVehicleMapPosition, 1f, targetingParameters, null, vehicle);
-    if (selectableList.Count > 0)
-    {
-      if (selectableList[0] is Pawn && (selectableList[0].DrawPos - mouseMapPosition).MagnitudeHorizontal() < 0.4f)
-      {
-        for (var j = selectableList.Count - 1; j >= 0; j--)
+        var mouseMapPosition = UI.MouseMapPosition();
+        if (!mouseMapPosition.TryGetVehicleMap(Find.CurrentMap, out var vehicle, VehicleMapFlag.All))
         {
-          var thing2 = selectableList[j];
-          if (thing2.def.category == ThingCategory.Pawn && (thing2.DrawPosHeld!.Value - mouseMapPosition).MagnitudeHorizontal() > 0.4f)
-          {
-            selectableList.Remove(thing2);
-          }
+            return true;
         }
-      }
+        __result = [.. SelectableObjects(vehicle, mouseMapPosition)];
+        return !__result.Any();
     }
 
-    foreach (var thing in selectableList)
+    private static IEnumerable<object> SelectableObjects(VehiclePawnWithMap vehicle, Vector3 mouseMapPosition)
     {
-      yield return thing;
-    }
+        TargetingParameters targetingParameters = new()
+        {
+            mustBeSelectable = true,
+            canTargetPawns = true,
+            canTargetBuildings = true,
+            canTargetItems = true,
+            mapObjectTargetsMustBeAutoAttackable = false
+        };
+        var mouseVehicleMapPosition = mouseMapPosition.ToVehicleMapCoord(vehicle);
 
-    var zone = vehicle.CurrentLevel.zoneManager.ZoneAt(mouseVehicleMapPosition.ToIntVec3());
-    if (zone != null)
-    {
-      yield return zone;
-    }
+        if (!mouseVehicleMapPosition.InBounds(vehicle.VehicleMap)) yield break;
 
-    if (Find.CurrentMap == vehicle.VehicleMap && vehicle.Spawned) yield return vehicle;
-  }
+        var selectableList = GenUIOnVehicle.ThingsUnderMouse(mouseVehicleMapPosition, 1f, targetingParameters, null, vehicle);
+        if (selectableList.Count > 0)
+        {
+            if (selectableList[0] is Pawn && (selectableList[0].DrawPos - mouseMapPosition).MagnitudeHorizontal() < 0.4f)
+            {
+                for (var j = selectableList.Count - 1; j >= 0; j--)
+                {
+                    var thing2 = selectableList[j];
+                    if (thing2.def.category == ThingCategory.Pawn && (thing2.DrawPosHeld!.Value - mouseMapPosition).MagnitudeHorizontal() > 0.4f)
+                    {
+                        selectableList.Remove(thing2);
+                    }
+                }
+            }
+        }
+
+        foreach (var thing in selectableList)
+        {
+            yield return thing;
+        }
+
+        var zone = vehicle.CurrentLevel.zoneManager.ZoneAt(mouseVehicleMapPosition.ToIntVec3());
+        if (zone != null)
+        {
+            yield return zone;
+        }
+        
+        if (Find.CurrentMap == vehicle.VehicleMap && vehicle.Spawned) yield return vehicle;
+    }
 }
 
 //選択したオブジェクトへのジャンプ時マップをVehicleMapからそのBaseMapに、cellはBaseMapの系に変換する
@@ -77,152 +77,152 @@ public static class Patch_Selector_SelectableObjectsUnderMouse
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Selector_SelectInternal
 {
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
-  {
-    var codes = new CodeMatcher(instructions, generator)
-      .MatchStartForward(new CodeMatch(OpCodes.Ldloc_3))
-      .InsertAndAdvance(new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMapOrCaravan_Map))
-      .InsertAfterAndAdvance(new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMapOrCaravan_Map))
-      .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Find_CurrentMap))
-      .InsertAndAdvance(new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMapOrCaravan_Map))
-      .InsertAfterAndAdvance(new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMapOrCaravan_Map));
-
-    var l_intVec = codes.Instructions().Select(c => c.operand).OfType<LocalBuilder>()
-      .First(l => l.LocalType == typeof(IntVec3));
-    return codes
-      .MatchStartForward(CodeMatch.IsStloc(l_intVec))
-      .DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle)
-      .CreateLabel(out var label)
-      .Insert(
-        CodeInstruction.LoadLocal(3),
-        new CodeInstruction(OpCodes.Ldloca_S, vehicle),
-        new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsVehicleMapOf),
-        new CodeInstruction(OpCodes.Brfalse_S, label),
-        new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-        new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ToBaseMapCoord3))
-      .InstructionEnumeration();
-  }
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+    {
+        var codes = new CodeMatcher(instructions, generator)
+            .MatchStartForward(new CodeMatch(OpCodes.Ldloc_3))
+            .InsertAndAdvance(new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMapOrCaravan_Map))
+            .InsertAfterAndAdvance(new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMapOrCaravan_Map))
+            .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Find_CurrentMap))
+            .InsertAndAdvance(new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMapOrCaravan_Map))
+            .InsertAfterAndAdvance(new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMapOrCaravan_Map));
+        
+        var l_intVec = codes.Instructions().Select(c => c.operand).OfType<LocalBuilder>()
+            .First(l => l.LocalType == typeof(IntVec3));
+        return codes
+            .MatchStartForward(CodeMatch.IsStloc(l_intVec))
+            .DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle)
+            .CreateLabel(out var label)
+            .Insert(
+                CodeInstruction.LoadLocal(3),
+                new CodeInstruction(OpCodes.Ldloca_S, vehicle),
+                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsVehicleMapOf),
+                new CodeInstruction(OpCodes.Brfalse_S, label),
+                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ToBaseMapCoord3))
+            .InstructionEnumeration();
+    }
 }
 
 [HarmonyPatch(typeof(Selector), nameof(Selector.SelectorOnGUI_BeforeMainTabs))]
 [PatchLevel(Level.Safe)]
 public static class Patch_Selector_SelectorOnGUI_BeforeMainTabs
 {
-  private const float SphereRadius = 100f;
-  private const float Magnification = Patch_Map_MapUpdate.MeshSizeX / 2f / Patch_Map_MapUpdate.TextureSize;
-
-  public static void Postfix(Selector __instance)
-  {
-    if (Event.current.type == EventType.MouseDown && Event.current.button == 1 &&
-        Find.CurrentMap.IsVehicleMapOf(out var vehicle) &&
-        vehicle.ParentHolder is VehicleCaravan { IsPlayerControlled: true } caravan &&
-        __instance.SelectedPawns.Empty() &&
-        new Rect(Vector2.zero, Patch_Map_MapUpdate.MeshSize).Contains(UI.MouseMapPosition().ToVector2()))
+    private const float SphereRadius = 100f;
+    private const float Magnification = Patch_Map_MapUpdate.MeshSizeX / 2f / Patch_Map_MapUpdate.TextureSize;
+    
+    public static void Postfix(Selector __instance)
     {
-      var altitude = RootSizeToAltitude();
-      Patch_Map_MapUpdate.JumpTo(caravan.DrawPos, altitude);
-      Find.WorldCamera.transform.Translate(ScreenOffset());
-      Find.WorldSelector.ClearSelection();
-      Find.WorldSelector.Select(caravan, false);
-      Find.WorldSelector.WorldSelectorOnGUI();
-      Event.current.Use();
+        if (Event.current.type == EventType.MouseDown && Event.current.button == 1 &&
+            Find.CurrentMap.IsVehicleMapOf(out var vehicle) &&
+            vehicle.ParentHolder is VehicleCaravan { IsPlayerControlled: true } caravan &&
+            __instance.SelectedPawns.Empty() &&
+            new Rect(Vector2.zero, Patch_Map_MapUpdate.MeshSize).Contains(UI.MouseMapPosition().ToVector2()))
+        {
+            var altitude = RootSizeToAltitude();
+            Patch_Map_MapUpdate.JumpTo(caravan.DrawPos, altitude);
+            Find.WorldCamera.transform.Translate(ScreenOffset());
+            Find.WorldSelector.ClearSelection();
+            Find.WorldSelector.Select(caravan, false);
+            Find.WorldSelector.WorldSelectorOnGUI();
+            Event.current.Use();
+        }
     }
-  }
 
-  private static Vector2 ScreenOffset()
-  {
-    var offset = Find.Camera.transform.position.ToVector2() - Patch_Map_MapUpdate.MeshSize / 2f;
-    return offset * Magnification;
-  }
+    private static Vector2 ScreenOffset()
+    {
+        var offset = Find.Camera.transform.position.ToVector2() - Patch_Map_MapUpdate.MeshSize / 2f;
+        return offset * Magnification;
+    }
 
-  private static float RootSizeToAltitude()
-  {
-    var halfFovRad = Find.WorldCamera.fieldOfView * 0.5f * Mathf.Deg2Rad;
-    var distanceToSurface = Find.CameraDriver.RootSize * Magnification / Mathf.Tan(halfFovRad);
-    return distanceToSurface + SphereRadius;
-  }
+    private static float RootSizeToAltitude()
+    {
+        var halfFovRad = Find.WorldCamera.fieldOfView * 0.5f * Mathf.Deg2Rad;
+        var distanceToSurface = Find.CameraDriver.RootSize * Magnification / Mathf.Tan(halfFovRad);
+        return distanceToSurface + SphereRadius;
+    }
 }
 
 [HarmonyPatch(typeof(GenWorld), nameof(GenWorld.TileAt))]
 [PatchLevel(Level.Safe)]
 public static class Patch_GenWorld_TileAt
 {
-  public static void Prefix()
-  {
-    if (WorldRendererUtility.DrawingMap && Find.CurrentMap is { IsVehicleMap: true })
+    public static void Prefix()
     {
-      Find.WorldCamera?.gameObject.SetActive(true);
+        if (WorldRendererUtility.DrawingMap && Find.CurrentMap is { IsVehicleMap: true })
+        {
+            Find.WorldCamera?.gameObject.SetActive(true);
+        }
     }
-  }
 }
 
 [HarmonyPatch(typeof(CameraJumper), "TryJumpInternal", typeof(IntVec3), typeof(Map), typeof(CameraJumper.MovementMode))]
 [PatchLevel(Level.Safe)]
 public static class Patch_CameraJumper_TryJumpInternal
 {
-  public static void Prefix(ref IntVec3 cell, ref Map map)
-  {
-    if (map.IsVehicleMapOf(out var vehicle))
+    public static void Prefix(ref IntVec3 cell, ref Map map)
     {
-      if (MultiFloors.Active)
-      {
-        vehicle.CurrentLevel = map;
-      }
-
-      if (VehicleMapFramework.settings.drawPlanet)
-      {
-        if (vehicle.Spawned)
+        if (map.IsVehicleMapOf(out var vehicle))
         {
-          map = vehicle.Map;
-          cell = cell.ToBaseMapCoord(vehicle);
-          return;
+            if (MultiFloors.Active)
+            {
+                vehicle.CurrentLevel = map;
+            }
+
+            if (VehicleMapFramework.settings.drawPlanet)
+            {
+                if (vehicle.Spawned)
+                {
+                    map = vehicle.Map;
+                    cell = cell.ToBaseMapCoord(vehicle);
+                    return;
+                }
+                cell = cell.ToBaseMapCoord(vehicle);
+                Patch_Map_MapUpdate.lastRenderedTick = -1;
+            }
         }
-        cell = cell.ToBaseMapCoord(vehicle);
-        Patch_Map_MapUpdate.lastRenderedTick = -1;
-      }
     }
-  }
 }
 
 [HarmonyPatch(typeof(CameraJumper), "TrySelectInternal", typeof(Thing))]
 [PatchLevel(Level.Cautious)]
 public static class Patch_CameraJumper_TrySelectInternal
 {
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-  {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
-  }
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
+    }
 }
 
 [HarmonyPatch(typeof(Game), nameof(Game.CurrentMap), MethodType.Setter)]
 [PatchLevel(Level.Safe)]
 public static class Patch_Game_CurrentMap
 {
-  public static bool ForceSet { get; set; }
-
-  public static void Prefix(ref Map value)
-  {
-    if (ForceSet)
+    public static bool ForceSet { get; set; }
+    
+    public static void Prefix(ref Map value)
     {
-      ForceSet = false;
-      return;
+        if (ForceSet)
+        {
+            ForceSet = false;
+            return;
+        }
+        if (value.IsVehicleMapOf(out var vehicle))
+        {
+            if (MultiFloors.Active)
+            {
+                vehicle.CurrentLevel = value;
+            }
+            if (vehicle.Spawned)
+            {
+                value = vehicle.Map;
+            }
+            else if (VehicleMapFramework.settings.drawPlanet)
+            {
+                Patch_Map_MapUpdate.lastRenderedTick = -1;
+            }
+        }
     }
-    if (value.IsVehicleMapOf(out var vehicle))
-    {
-      if (MultiFloors.Active)
-      {
-        vehicle.CurrentLevel = value;
-      }
-      if (vehicle.Spawned)
-      {
-        value = vehicle.Map;
-      }
-      else if (VehicleMapFramework.settings.drawPlanet)
-      {
-        Patch_Map_MapUpdate.lastRenderedTick = -1;
-      }
-    }
-  }
 }
 
 //フォーカスしたVehicleがある場合それ用の改変メソッドを呼んでオリジナルをスキップ
@@ -230,88 +230,90 @@ public static class Patch_Game_CurrentMap
 [PatchLevel(Level.Safe)]
 public static class Patch_ThingSelectionUtility_MultiSelectableThingsInScreenRectDistinct
 {
-  private static readonly FastInvokeHandler SelectableByMapClick = MethodInvoker.GetHandler(AccessTools.Method(typeof(ThingSelectionUtility), "SelectableByMapClick"));
+    private static readonly FastInvokeHandler SelectableByMapClick = MethodInvoker.GetHandler(AccessTools.Method(typeof(ThingSelectionUtility), "SelectableByMapClick"));
 
-  private static readonly HashSet<Thing> yieldedThings = [];
-
-  public static bool Prefix(ref IEnumerable<object> __result, Rect rect)
-  {
-    var mouseMapPosition = UI.MouseMapPosition();
-    if (!mouseMapPosition.TryGetVehicleMap(Find.CurrentMap, out var vehicle, VehicleMapFlag.All))
+    private static readonly HashSet<Thing> yieldedThings = [];
+    public static bool Prefix(ref IEnumerable<object> __result, Rect rect)
     {
-      return true;
-    }
-    __result = MultiSelectableThings(vehicle, rect);
-    return !__result.Any();
-  }
-
-  private static IEnumerable<object> MultiSelectableThings(VehiclePawnWithMap vehicle, Rect rect)
-  {
-    var focusedMap = vehicle.VehicleMap;
-    var mapRect = GetMapRect(rect);
-    yieldedThings.Clear();
-    foreach (var cellThings in from c in mapRect
-             select c.ToVehicleMapCoord(vehicle)
-             into c2
-             where c2.InBounds(focusedMap)
-             select focusedMap.thingGrid.ThingsListAt(c2)
-             into cellThings
-             where cellThings != null
-             select cellThings)
-    {
-      int num;
-      for (var i = 0; i < cellThings.Count; i = num + 1)
-      {
-        var t = cellThings[i];
-        if ((bool)SelectableByMapClick(null, SingleParam.Get(t)) && !t.def.neverMultiSelect)
+        var mouseMapPosition = UI.MouseMapPosition();
+        if (!mouseMapPosition.TryGetVehicleMap(Find.CurrentMap, out var vehicle, VehicleMapFlag.All))
         {
-          yieldedThings.Add(t);
+            return true;
         }
-        num = i;
-      }
+        __result = MultiSelectableThings(vehicle, rect);
+        return !__result.Any();
     }
-    var rectInWorldSpace = GetRectInWorldSpace(rect);
-    foreach (var c2 in mapRect.ExpandedBy(1).EdgeCells)
+
+    private static IEnumerable<object> MultiSelectableThings(VehiclePawnWithMap vehicle, Rect rect)
     {
-      var c3 = c2.ToVehicleMapCoord(vehicle);
-      if (c3.InBounds(focusedMap) && c3.GetItemCount(focusedMap) > 1)
-      {
-        foreach (var t in focusedMap.thingGrid.ThingsAt(c3))
+        var focusedMap = vehicle.VehicleMap;
+        var mapRect = GetMapRect(rect);
+        yieldedThings.Clear();
+        foreach (var cellThings in from c in mapRect
+                 select c.ToVehicleMapCoord(vehicle)
+                 into c2
+                 where c2.InBounds(focusedMap)
+                 select focusedMap.thingGrid.ThingsListAt(c2)
+                 into cellThings
+                 where cellThings != null
+                 select cellThings)
         {
-          if (t.def.category == ThingCategory.Item && (bool)SelectableByMapClick(null, t) && !t.def.neverMultiSelect && !yieldedThings.Contains(t))
-          {
-            var vector = t.TrueCenter();
-            Rect rect2 = new(vector.x - 0.5f, vector.z - 0.5f, 1f, 1f);
-            if (rect2.Overlaps(rectInWorldSpace))
+            int num;
+            for (var i = 0; i < cellThings.Count; i = num + 1)
             {
-              yieldedThings.Add(t);
+                var t = cellThings[i];
+                if ((bool)SelectableByMapClick(null, SingleParam.Get(t)) && !t.def.neverMultiSelect)
+                {
+                    yieldedThings.Add(t);
+                }
+                num = i;
             }
-          }
         }
-      }
+        var rectInWorldSpace = GetRectInWorldSpace(rect);
+        foreach (var c2 in mapRect.ExpandedBy(1).EdgeCells)
+        {
+            var c3 = c2.ToVehicleMapCoord(vehicle);
+            if (c3.InBounds(focusedMap) && c3.GetItemCount(focusedMap) > 1)
+            {
+                foreach (var t in focusedMap.thingGrid.ThingsAt(c3))
+                {
+                    if (t.def.category == ThingCategory.Item && (bool)SelectableByMapClick(null, t) && !t.def.neverMultiSelect && !yieldedThings.Contains(t))
+                    {
+                        var vector = t.TrueCenter();
+                        Rect rect2 = new(vector.x - 0.5f, vector.z - 0.5f, 1f, 1f);
+                        if (rect2.Overlaps(rectInWorldSpace))
+                        {
+                            yieldedThings.Add(t);
+                        }
+                    }
+                }
+            }
+        }
+
+        return yieldedThings;
     }
 
-    return yieldedThings;
-  }
-
-  private static CellRect GetMapRect(Rect rect)
-  {
-    Vector2 screenLoc = new(rect.x, UI.screenHeight - rect.y);
-    Vector2 screenLoc2 = new(rect.x + rect.width, UI.screenHeight - (rect.y + rect.height));
-    var vector = UI.UIToMapPosition(screenLoc);
-    var vector2 = UI.UIToMapPosition(screenLoc2);
-    return new CellRect
+    private static CellRect GetMapRect(Rect rect)
     {
-      minX = Mathf.FloorToInt(vector.x), minZ = Mathf.FloorToInt(vector2.z), maxX = Mathf.FloorToInt(vector2.x), maxZ = Mathf.FloorToInt(vector.z)
-    };
-  }
+        Vector2 screenLoc = new(rect.x, UI.screenHeight - rect.y);
+        Vector2 screenLoc2 = new(rect.x + rect.width, UI.screenHeight - (rect.y + rect.height));
+        var vector = UI.UIToMapPosition(screenLoc);
+        var vector2 = UI.UIToMapPosition(screenLoc2);
+        return new CellRect
+        {
+            minX = Mathf.FloorToInt(vector.x),
+            minZ = Mathf.FloorToInt(vector2.z),
+            maxX = Mathf.FloorToInt(vector2.x),
+            maxZ = Mathf.FloorToInt(vector.z)
+        };
+    }
 
-  private static Rect GetRectInWorldSpace(Rect rect)
-  {
-    Vector2 screenLoc = new(rect.x, UI.screenHeight - rect.y);
-    Vector2 screenLoc2 = new(rect.x + rect.width, UI.screenHeight - (rect.y + rect.height));
-    var vector = UI.UIToMapPosition(screenLoc);
-    var vector2 = UI.UIToMapPosition(screenLoc2);
-    return new Rect(vector.x, vector2.z, vector2.x - vector.x, vector.z - vector2.z);
-  }
+    private static Rect GetRectInWorldSpace(Rect rect)
+    {
+        Vector2 screenLoc = new(rect.x, UI.screenHeight - rect.y);
+        Vector2 screenLoc2 = new(rect.x + rect.width, UI.screenHeight - (rect.y + rect.height));
+        var vector = UI.UIToMapPosition(screenLoc);
+        var vector2 = UI.UIToMapPosition(screenLoc2);
+        return new Rect(vector.x, vector2.z, vector2.x - vector.x, vector.z - vector2.z);
+    }
 }

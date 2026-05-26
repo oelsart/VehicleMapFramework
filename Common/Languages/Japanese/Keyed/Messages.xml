@@ -1,35 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LanguageData>
 
-  <VMF_ForceOnVehicle>車両マップの外には置けません.</VMF_ForceOnVehicle>
-  <VMF_ForceOnHoverVehicle>ホバータイプの車両マップの外には置けません.</VMF_ForceOnHoverVehicle>
-  <VMF_ForbidOnVehicle>車両マップには置けません.</VMF_ForbidOnVehicle>
-  <VMF_ForbidOnHumanPoweredVehicle>人力タイプの車両マップには置けません.</VMF_ForbidOnHumanPoweredVehicle>
-  <VMF_ForceOnVehicleMapEdge>車両マップの端以外には置けません.</VMF_ForceOnVehicleMapEdge>
-  <VMF_ForceOnRelatedVehicle>この建物はこの車両には関連しません.</VMF_ForceOnRelatedVehicle>
-  <VMF_ForceOnRelatedBuilding>関連する建物の上にしか建てられません.</VMF_ForceOnRelatedBuilding>
-  <VMF_UniqueVehicleExceedsLimit>{0}の数が制限を超えています.</VMF_UniqueVehicleExceedsLimit>
+	<VMF_ForceOnVehicle>車両マップの外には置けません.</VMF_ForceOnVehicle>
+	<VMF_ForceOnHoverVehicle>ホバータイプの車両マップの外には置けません.</VMF_ForceOnHoverVehicle>
+	<VMF_ForbidOnVehicle>車両マップには置けません.</VMF_ForbidOnVehicle>
+	<VMF_ForbidOnHumanPoweredVehicle>人力タイプの車両マップには置けません.</VMF_ForbidOnHumanPoweredVehicle>
+	<VMF_ForceOnVehicleMapEdge>車両マップの端以外には置けません.</VMF_ForceOnVehicleMapEdge>
+	<VMF_ForceOnRelatedVehicle>この建物はこの車両には関連しません.</VMF_ForceOnRelatedVehicle>
+	<VMF_ForceOnRelatedBuilding>関連する建物の上にしか建てられません.</VMF_ForceOnRelatedBuilding>
+	<VMF_UniqueVehicleExceedsLimit>{0}の数が制限を超えています.</VMF_UniqueVehicleExceedsLimit>
 
-  <VMF_NoRoles>{0} にこのタレットを操作する役割が存在しません.</VMF_NoRoles>
+	<VMF_NoRoles>{0} にこのタレットを操作する役割が存在しません.</VMF_NoRoles>
 
-  <VMF_FailedEnterMap>車両がマップに入るのに失敗しました.</VMF_FailedEnterMap>
-  <VMF_CannotSpawn>{0} がスポーンできません.</VMF_CannotSpawn>
+	<VMF_FailedEnterMap>車両がマップに入るのに失敗しました.</VMF_FailedEnterMap>
+	<VMF_CannotSpawn>{0} がスポーンできません.</VMF_CannotSpawn>
 
-  <VMF_MustShotAtAnotherMap>ジップラインは別のマップに発射される必要があります.</VMF_MustShotAtAnotherMap>
-  <VMF_GrapplingHookAlreadyLaunched>グラップリングフックが既に展開されています.</VMF_GrapplingHookAlreadyLaunched>
-
-  <VMF_ApplyingDynamicPatches>動的パッチ適用中</VMF_ApplyingDynamicPatches>
-  <VMF_UnpatchingDynamicPatches>動的アンパッチ適用中</VMF_UnpatchingDynamicPatches>
-
-  <VMF_ContainsMapVehicle>グラヴシップ構造体の上にマップ付き車両があります.</VMF_ContainsMapVehicle>
-  <VMF_ContainsForbidOnVehicle>{0} は車両マップには置けません.</VMF_ContainsForbidOnVehicle>
-  <VMF_RectContainsImpassable>車両の長方形が通れないセルを含んでいます.</VMF_RectContainsImpassable>
-  <VMF_WheelsUnstable>車両が不安定です. 有効なホイール数: {0}</VMF_WheelsUnstable>
-  <VMF_CannotSetDownDiagonal>{0}はこの角度で地面に置けません.</VMF_CannotSetDownDiagonal>
-  <VMF_CannotLaunchNoPilot>パイロットが居ない</VMF_CannotLaunchNoPilot>
-
-  <VMF_GravshipVehicleDestroyed>グラヴシップ車両は破壊されました.</VMF_GravshipVehicleDestroyed>
-
-  <VMF_AreaDeselect>このマップはエリア {0} を持ちません.</VMF_AreaDeselect>
-
+	<VMF_MustShotAtAnotherMap>ジップラインは別のマップに発射される必要があります.</VMF_MustShotAtAnotherMap>
+	<VMF_GrapplingHookAlreadyLaunched>グラップリングフックが既に展開されています.</VMF_GrapplingHookAlreadyLaunched>
+	
+	<VMF_ApplyingDynamicPatches>動的パッチ適用中</VMF_ApplyingDynamicPatches>
+	<VMF_UnpatchingDynamicPatches>動的アンパッチ適用中</VMF_UnpatchingDynamicPatches>
+	
+	<VMF_ContainsMapVehicle>グラヴシップ構造体の上にマップ付き車両があります.</VMF_ContainsMapVehicle>
+	<VMF_ContainsForbidOnVehicle>{0} は車両マップには置けません.</VMF_ContainsForbidOnVehicle>
+	<VMF_RectContainsImpassable>車両の長方形が通れないセルを含んでいます.</VMF_RectContainsImpassable>
+	<VMF_WheelsUnstable>車両が不安定です. 有効なホイール数: {0}</VMF_WheelsUnstable>
+	<VMF_CannotSetDownDiagonal>{0}はこの角度で地面に置けません.</VMF_CannotSetDownDiagonal>
+	<VMF_CannotLaunchNoPilot>パイロットが居ない</VMF_CannotLaunchNoPilot>
+	
+	<VMF_GravshipVehicleDestroyed>グラヴシップ車両は破壊されました.</VMF_GravshipVehicleDestroyed>
+	
+	<VMF_AreaDeselect>このマップはエリア {0} を持ちません.</VMF_AreaDeselect>
+	
 </LanguageData>

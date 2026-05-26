@@ -2,50 +2,51 @@
 using Vehicles;
 using Verse;
 
-namespace VehicleMapFramework;
-
-public static class ShaderUtility
+namespace VehicleMapFramework
 {
-  public static bool SupportsOpacity(this Shader shader)
-  {
-    return shader == VMF_DefOf.VMF_CutoutComplexRGBOpacity.Shader ||
-           shader == VMF_DefOf.VMF_CutoutComplexPatternOpacity.Shader ||
-           shader == VMF_DefOf.VMF_CutoutComplexSkinOpacity.Shader;
-  }
+    public static class ShaderUtility
+    {
+        public static bool SupportsOpacity(this Shader shader)
+        {
+            return shader == VMF_DefOf.VMF_CutoutComplexRGBOpacity.Shader ||
+                shader == VMF_DefOf.VMF_CutoutComplexPatternOpacity.Shader ||
+                shader == VMF_DefOf.VMF_CutoutComplexSkinOpacity.Shader;
+        }
 
-  public static ShaderTypeDef OpacityShaderTypeDefCorrespond(this ShaderTypeDef shaderTypeDef)
-  {
-    if (shaderTypeDef == VehicleShaderTypeDefOf.CutoutComplexRGB)
-    {
-      return VMF_DefOf.VMF_CutoutComplexRGBOpacity;
-    }
-    if (shaderTypeDef == VehicleShaderTypeDefOf.CutoutComplexPattern)
-    {
-      return VMF_DefOf.VMF_CutoutComplexPatternOpacity;
-    }
-    // ReSharper disable once ConvertIfStatementToReturnStatement
-    if (shaderTypeDef == VehicleShaderTypeDefOf.CutoutComplexSkin)
-    {
-      return VMF_DefOf.VMF_CutoutComplexSkinOpacity;
-    }
-    return shaderTypeDef;
-  }
+        public static ShaderTypeDef OpacityShaderTypeDefCorrespond(this ShaderTypeDef shaderTypeDef)
+        {
+            if (shaderTypeDef == VehicleShaderTypeDefOf.CutoutComplexRGB)
+            {
+                return VMF_DefOf.VMF_CutoutComplexRGBOpacity;
+            }
+            if (shaderTypeDef == VehicleShaderTypeDefOf.CutoutComplexPattern)
+            {
+                return VMF_DefOf.VMF_CutoutComplexPatternOpacity;
+            }
+            // ReSharper disable once ConvertIfStatementToReturnStatement
+            if (shaderTypeDef == VehicleShaderTypeDefOf.CutoutComplexSkin)
+            {
+                return VMF_DefOf.VMF_CutoutComplexSkinOpacity;
+            }
+            return shaderTypeDef;
+        }
 
-  public static Shader OpacityShaderCorrespond(this Shader shader)
-  {
-    if (shader == VehicleShaderTypeDefOf.CutoutComplexRGB.Shader)
-    {
-      return VMF_DefOf.VMF_CutoutComplexRGBOpacity.Shader;
+        public static Shader OpacityShaderCorrespond(this Shader shader)
+        {
+            if (shader == VehicleShaderTypeDefOf.CutoutComplexRGB.Shader)
+            {
+                return VMF_DefOf.VMF_CutoutComplexRGBOpacity.Shader;
+            }
+            if (shader == VehicleShaderTypeDefOf.CutoutComplexPattern.Shader)
+            {
+                return VMF_DefOf.VMF_CutoutComplexPatternOpacity.Shader;
+            }
+            // ReSharper disable once ConvertIfStatementToReturnStatement
+            if (shader == VehicleShaderTypeDefOf.CutoutComplexSkin.Shader)
+            {
+                return VMF_DefOf.VMF_CutoutComplexSkinOpacity.Shader;
+            }
+            return shader;
+        }
     }
-    if (shader == VehicleShaderTypeDefOf.CutoutComplexPattern.Shader)
-    {
-      return VMF_DefOf.VMF_CutoutComplexPatternOpacity.Shader;
-    }
-    // ReSharper disable once ConvertIfStatementToReturnStatement
-    if (shader == VehicleShaderTypeDefOf.CutoutComplexSkin.Shader)
-    {
-      return VMF_DefOf.VMF_CutoutComplexSkinOpacity.Shader;
-    }
-    return shader;
-  }
 }

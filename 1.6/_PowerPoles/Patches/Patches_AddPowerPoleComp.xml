@@ -1,29 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <Patch>
 
     <Operation Class="PatchOperationReplace">
-        <xpath>
-            Defs/ThingDef[
+        <xpath>Defs/ThingDef[
             thingClass="RimForge.Buildings.Building_PowerPole" or
             thingClass="RimForge.Buildings.Building_WallConnector"
-            ]/comps/li[@Class="CompProperties_Power"]/compClass[text()="CompPowerTransmitter"]
-        </xpath>
+            ]/comps/li[@Class="CompProperties_Power"]/compClass[text()="CompPowerTransmitter"]</xpath>
         <value>
             <compClass>VehicleMapFramework.CompPowerPole</compClass>
         </value>
     </Operation>
-
+    
     <Operation Class="PatchOperationReplace">
-        <xpath>
-            Defs/ThingDef[
+        <xpath>Defs/ThingDef[
             thingClass="RimForge.Buildings.Building_PowerPole" or
             thingClass="RimForge.Buildings.Building_WallConnector"
-            ]/tickerType
-        </xpath>
+            ]/tickerType</xpath>
         <value>
             <tickerType>Normal</tickerType>
         </value>
     </Operation>
-
+    
 </Patch>

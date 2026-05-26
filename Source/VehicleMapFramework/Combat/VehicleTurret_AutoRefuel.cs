@@ -11,60 +11,65 @@ namespace VehicleMapFramework;
 [StaticConstructorOnStartup]
 public class VehicleTurret_AutoRefuel : VehicleTurret
 {
-
-  static VehicleTurret_AutoRefuel()
-  {
-    LongEventHandler.ExecuteWhenFinished(() =>
+    /// <summary>
+    /// Init from CompProperties
+    /// </summary>
+    public VehicleTurret_AutoRefuel()
     {
-      const string PackVehicleTurret = "PackVehicleTurret";
-      RefuelVehicleTurret = (WorkGiver_RefuelVehicleTurret)DefDatabase<WorkGiverDef>.GetNamed(PackVehicleTurret).Worker;
-    });
-  }
-
-  /// <summary>
-  /// Init from CompProperties
-  /// </summary>
-  public VehicleTurret_AutoRefuel() { }
-
-  /// <summary>
-  /// Init from save file
-  /// </summary>
-  public VehicleTurret_AutoRefuel(VehiclePawn vehicle) : base(vehicle) { }
-
-  /// <summary>
-  /// Newly Spawned
-  /// </summary>
-  /// <param name="vehicle"></param>
-  /// <param name="reference">VehicleTurret as defined in xml</param>
-  public VehicleTurret_AutoRefuel(VehiclePawn vehicle, VehicleTurret reference) : base(vehicle, reference) { }
-
-  private static WorkGiver_RefuelVehicleTurret RefuelVehicleTurret { get; set; }
-
-  public override void PostTurretFire()
-  {
-    base.PostTurretFire();
-    if (loadedAmmo is null)
-    {
-      if (vehicle.Map.reservationManager.ReservationsReadOnly.Any(r => r.Job is not null &&
-                                                                       r.Job.workGiverDef == RefuelVehicleTurret.def && r.Job.targetB == vehicle))
-        return;
-
-      var handler =
-        vehicle.handlers.FirstOrDefault(handler => (handler.role.HandlingTypes & HandlingType.Turret) ==
-                                                   HandlingType.Turret &&
-                                                   (handler.role.TurretIds.Contains(key) ||
-                                                    handler.role.TurretIds.Contains(groupKey)));
-      var pawn = handler?.thingOwner.InnerListForReading.FirstOrDefault();
-      if (pawn is null) return;
-      vehicle.DisembarkPawn(pawn);
-      var job = RefuelVehicleTurret.JobOnThing(pawn, vehicle);
-      if (job is null) return;
-      pawn.jobs.TryTakeOrderedJob(job);
-      var job2 = JobMaker.MakeJob(JobDefOf_Vehicles.Board, vehicle);
-      vehicle.GiveLoadJob(pawn, handler);
-      pawn.jobs.TryTakeOrderedJob(job2, requestQueueing: true);
-      vehicle.Map.GetCachedMapComponent<VehicleReservationManager>()
-        .Reserve<VehicleRoleHandler, VehicleHandlerReservation>(vehicle, pawn, job2, handler);
     }
-  }
+
+    /// <summary>
+    /// Init from save file
+    /// </summary>
+    public VehicleTurret_AutoRefuel(VehiclePawn vehicle) : base(vehicle)
+    {
+    }
+
+    /// <summary>
+    /// Newly Spawned
+    /// </summary>
+    /// <param name="vehicle"></param>
+    /// <param name="reference">VehicleTurret as defined in xml</param>
+    public VehicleTurret_AutoRefuel(VehiclePawn vehicle, VehicleTurret reference) : base(vehicle, reference)
+    {
+    }
+
+    static VehicleTurret_AutoRefuel()
+    {
+        LongEventHandler.ExecuteWhenFinished(() =>
+        {
+            const string PackVehicleTurret = "PackVehicleTurret";
+            RefuelVehicleTurret = (WorkGiver_RefuelVehicleTurret)DefDatabase<WorkGiverDef>.GetNamed(PackVehicleTurret).Worker;
+        });
+    }
+    
+    private static WorkGiver_RefuelVehicleTurret RefuelVehicleTurret { get; set; }
+
+    public override void PostTurretFire()
+    {
+        base.PostTurretFire();
+        if (loadedAmmo is null)
+        {
+            if (vehicle.Map.reservationManager.ReservationsReadOnly.Any(r => r.Job is not null &&
+                    r.Job.workGiverDef == RefuelVehicleTurret.def && r.Job.targetB == vehicle))
+                return;
+            
+            var handler =
+                vehicle.handlers.FirstOrDefault(handler => (handler.role.HandlingTypes & HandlingType.Turret) ==
+                                                           HandlingType.Turret &&
+                                                           (handler.role.TurretIds.Contains(key) ||
+                                                            handler.role.TurretIds.Contains(groupKey)));
+            var pawn = handler?.thingOwner.InnerListForReading.FirstOrDefault();
+            if (pawn is null) return;
+            vehicle.DisembarkPawn(pawn);
+            var job = RefuelVehicleTurret.JobOnThing(pawn, vehicle);
+            if (job is null) return;
+            pawn.jobs.TryTakeOrderedJob(job);
+            var job2 =  JobMaker.MakeJob(JobDefOf_Vehicles.Board, vehicle);
+            vehicle.GiveLoadJob(pawn, handler);
+            pawn.jobs.TryTakeOrderedJob(job2, requestQueueing: true);
+            vehicle.Map.GetCachedMapComponent<VehicleReservationManager>()
+                .Reserve<VehicleRoleHandler, VehicleHandlerReservation>(vehicle, pawn, job2, handler);
+        }
+    }
 }

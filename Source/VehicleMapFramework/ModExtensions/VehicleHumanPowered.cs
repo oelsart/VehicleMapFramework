@@ -2,4 +2,6 @@
 
 namespace VehicleMapFramework;
 
-public class VehicleHumanPowered : DefModExtension { }
+public class VehicleHumanPowered : DefModExtension
+{
+}

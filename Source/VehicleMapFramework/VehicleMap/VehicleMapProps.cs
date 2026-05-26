@@ -8,176 +8,178 @@ namespace VehicleMapFramework;
 
 public class VehicleMapProps : DefModExtension
 {
+    //Map size.
+    public IntVec2 size;
 
-  //Specify the size of the gap between the position of the entrance to the vehicle map, such as a ladder or ramp, and where it will actually draw.
-  public EdgeSpace edgeSpace;
+    //Draw offset of vehicle map.
+    public Vector3 offset = Vector3.zero;
 
-  public EdgeSpace? edgeSpaceEast;
+    public Vector3? offsetNorth;
 
-  public EdgeSpace? edgeSpaceNorth;
+    public Vector3? offsetSouth;
 
-  public EdgeSpace? edgeSpaceNorthEast;
+    public Vector3? offsetEast;
 
-  public EdgeSpace? edgeSpaceNorthWest;
+    public Vector3? offsetWest;
 
-  public EdgeSpace? edgeSpaceSouth;
+    public Vector3? offsetNorthEast;
 
-  public EdgeSpace? edgeSpaceSouthEast;
+    public Vector3? offsetNorthWest;
 
-  public EdgeSpace? edgeSpaceSouthWest;
+    public Vector3? offsetSouthEast;
 
-  public EdgeSpace? edgeSpaceWest;
+    public Vector3? offsetSouthWest;
 
-  public List<CellRect> emptyStructureCellRects = [];
+    //Specify vehicle structures with a fillPercent of 1.0. Vehicle structures cannot be destroyed and damage is absorbed by the vehicle.
+    public List<IntVec2> filledStructureCells = [];
 
-  //Specify vehicle structures with a fillPercent of 0.0. Vehicle structures cannot be destroyed and damage is absorbed by the vehicle.
-  public List<IntVec2> emptyStructureCells = [];
+    public List<CellRect> filledStructureCellRects = [];
 
-  public List<CellRect> expandableCellRects = [];
+    //Specify vehicle structures with a fillPercent of 0.0. Vehicle structures cannot be destroyed and damage is absorbed by the vehicle.
+    public List<IntVec2> emptyStructureCells = [];
 
-  //Specify the expandable cells of the map.
-  public List<IntVec2> expandableCells = [];
+    public List<CellRect> emptyStructureCellRects = [];
 
-  public List<CellRect> filledStructureCellRects = [];
+    //Specify the expandable cells of the map.
+    public List<IntVec2> expandableCells = [];
 
-  //Specify vehicle structures with a fillPercent of 1.0. Vehicle structures cannot be destroyed and damage is absorbed by the vehicle.
-  public List<IntVec2> filledStructureCells = [];
+    public List<CellRect> expandableCellRects = [];
 
-  //Draw offset of vehicle map.
-  public Vector3 offset = Vector3.zero;
+    //Specify cells to be designated as OutOfBounds.
+    public List<IntVec2> outOfBoundsCells = [];
 
-  public Vector3? offsetEast;
+    public List<CellRect> outOfBoundsCellRects = [];
 
-  public Vector3? offsetNorth;
+    //Specify the size of the gap between the position of the entrance to the vehicle map, such as a ladder or ramp, and where it will actually draw.
+    public EdgeSpace edgeSpace;
 
-  public Vector3? offsetNorthEast;
+    public EdgeSpace? edgeSpaceNorth;
 
-  public Vector3? offsetNorthWest;
+    public EdgeSpace? edgeSpaceNorthEast;
 
-  public Vector3? offsetSouth;
+    public EdgeSpace? edgeSpaceEast;
 
-  public Vector3? offsetSouthEast;
+    public EdgeSpace? edgeSpaceSouthEast;
 
-  public Vector3? offsetSouthWest;
+    public EdgeSpace? edgeSpaceSouth;
 
-  public Vector3? offsetWest;
+    public EdgeSpace? edgeSpaceSouthWest;
 
-  public List<CellRect> outOfBoundsCellRects = [];
+    public EdgeSpace? edgeSpaceWest;
 
-  //Specify cells to be designated as OutOfBounds.
-  public List<IntVec2> outOfBoundsCells = [];
+    public EdgeSpace? edgeSpaceNorthWest;
 
-  //Map size.
-  public IntVec2 size;
+    public IEnumerable<IntVec2> FilledStructureCells => filledStructureCells.Union(filledStructureCellRects.SelectMany(r => r.Cells2D)).Select(c => c + IntVec2.One);
 
-  public IEnumerable<IntVec2> FilledStructureCells => filledStructureCells.Union(filledStructureCellRects.SelectMany(r => r.Cells2D)).Select(c => c + IntVec2.One);
+    public IEnumerable<IntVec2> EmptyStructureCells => emptyStructureCells.Union(emptyStructureCellRects.SelectMany(r => r.Cells2D)).Select(c => c + IntVec2.One);
 
-  public IEnumerable<IntVec2> EmptyStructureCells => emptyStructureCells.Union(emptyStructureCellRects.SelectMany(r => r.Cells2D)).Select(c => c + IntVec2.One);
+    public IEnumerable<IntVec2> ExpandableCells => expandableCells.Union(expandableCellRects.SelectMany(r => r.Cells2D)).Select(c => c + IntVec2.One);
 
-  public IEnumerable<IntVec2> ExpandableCells => expandableCells.Union(expandableCellRects.SelectMany(r => r.Cells2D)).Select(c => c + IntVec2.One);
-
-  public IEnumerable<IntVec2> OutOfBoundsCells
-  {
-    get { return new CellRect(0, 0, size.x + 2, size.z + 2).EdgeCells.Select(c => c.ToIntVec2).Union(outOfBoundsCells.Union(outOfBoundsCellRects.SelectMany(r => r.Cells2D)).Select(c => c + IntVec2.One)); }
-  }
-
-  public override IEnumerable<string> ConfigErrors()
-  {
-    var mapRect = new CellRect(0, 0, size.x + 2, size.z + 2);
-    foreach (var c in FilledStructureCells.Union(EmptyStructureCells))
+    public IEnumerable<IntVec2> OutOfBoundsCells
     {
-      if (!mapRect.Contains(c.ToIntVec3))
-      {
-        yield return "[VehicleMapFramework] Structure cells contain out of map range.";
-      }
-    }
-    foreach (var c in FilledStructureCells.Intersect(EmptyStructureCells))
-    {
-      yield return $"[VehicleMapFramework] Cell {c} is designated both filled and empty structure.";
-    }
-  }
-
-  public float EdgeSpaceValue(Rot8 vehicleRot, Rot4 thingRot)
-  {
-    return EdgeSpaceByRot(vehicleRot).SpaceByRot(thingRot);
-  }
-
-  public EdgeSpace EdgeSpaceByRot(Rot8 rot)
-  {
-    switch (rot.AsInt)
-    {
-      case Rot8.NorthInt: return edgeSpaceNorth ?? (edgeSpaceNorth = edgeSpaceSouth?.FlipVertical() ?? edgeSpace).Value;
-      case Rot8.EastInt: return edgeSpaceEast ?? (edgeSpaceEast = edgeSpaceWest?.FlipHorizontal() ?? edgeSpace).Value;
-      case Rot8.SouthInt: return edgeSpaceSouth ?? (edgeSpaceSouth = edgeSpaceNorth?.FlipVertical() ?? edgeSpace).Value;
-      case Rot8.WestInt: return edgeSpaceWest ?? (edgeSpaceWest = edgeSpaceEast?.FlipHorizontal() ?? edgeSpace).Value;
-      case Rot8.NorthEastInt: return edgeSpaceNorthEast ?? (edgeSpaceNorthEast = edgeSpaceNorth?.ToDiagonal() ?? (edgeSpaceNorth = edgeSpaceSouth?.FlipVertical() ?? edgeSpace).Value.ToDiagonal()).Value;
-      case Rot8.SouthEastInt: return edgeSpaceSouthEast ?? (edgeSpaceSouthEast = edgeSpaceSouth?.ToDiagonal() ?? (edgeSpaceSouth = edgeSpaceNorth?.FlipVertical() ?? edgeSpace).Value.ToDiagonal()).Value;
-      case Rot8.SouthWestInt: return edgeSpaceSouthWest ?? (edgeSpaceSouthWest = edgeSpaceSouth?.ToDiagonal() ?? (edgeSpaceSouth = edgeSpaceNorth?.FlipVertical() ?? edgeSpace).Value.ToDiagonal()).Value;
-      case Rot8.NorthWestInt: return edgeSpaceNorthWest ?? (edgeSpaceNorthWest = edgeSpaceNorth?.ToDiagonal() ?? (edgeSpaceNorth = edgeSpaceSouth?.FlipVertical() ?? edgeSpace).Value.ToDiagonal()).Value;
-      default: return edgeSpace;
-    }
-  }
-
-  public struct EdgeSpace
-  {
-    public float space;
-
-    public float? north;
-
-    public float? east;
-
-    public float? south;
-
-    public float? west;
-
-    public float SpaceByRot(Rot4 rot)
-    {
-      switch (rot.AsInt)
-      {
-        case Rot4.NorthInt: return north ?? (north = south ?? space).Value;
-        case Rot4.EastInt: return east ?? (east = west ?? space).Value;
-        case Rot4.SouthInt: return south ?? (south = north ?? space).Value;
-        case Rot4.WestInt: return west ?? (west = east ?? space).Value;
-        default: return space;
-      }
+        get
+        {
+            return new CellRect(0, 0, size.x + 2, size.z + 2).EdgeCells.Select(c => c.ToIntVec2).Union(outOfBoundsCells.Union(outOfBoundsCellRects.SelectMany(r => r.Cells2D)).Select(c => c + IntVec2.One));
+        }
     }
 
-    public EdgeSpace ToDiagonal()
+    public override IEnumerable<string> ConfigErrors()
     {
-      return new EdgeSpace
-      {
-        space = space * sin45,
-        north = north * sin45,
-        east = east * sin45,
-        south = south * sin45,
-        west = west * sin45
-      };
+        var mapRect = new CellRect(0, 0, size.x + 2, size.z + 2);
+        foreach (var c in FilledStructureCells.Union(EmptyStructureCells))
+        {
+            if (!mapRect.Contains(c.ToIntVec3))
+            {
+                yield return "[VehicleMapFramework] Structure cells contain out of map range.";
+            }
+        }
+        foreach (var c in FilledStructureCells.Intersect(EmptyStructureCells))
+        {
+            yield return $"[VehicleMapFramework] Cell {c} is designated both filled and empty structure.";
+        }
     }
 
-    public EdgeSpace FlipHorizontal()
+    public float EdgeSpaceValue(Rot8 vehicleRot, Rot4 thingRot)
     {
-      return new EdgeSpace
-      {
-        space = space,
-        north = north,
-        east = west,
-        south = south,
-        west = east
-      };
+        return EdgeSpaceByRot(vehicleRot).SpaceByRot(thingRot);
     }
 
-    public EdgeSpace FlipVertical()
+    public EdgeSpace EdgeSpaceByRot(Rot8 rot)
     {
-      return new EdgeSpace
-      {
-        space = space,
-        north = south,
-        east = east,
-        south = north,
-        west = west
-      };
+        switch (rot.AsInt)
+        {
+            case Rot8.NorthInt: return edgeSpaceNorth ?? (edgeSpaceNorth = edgeSpaceSouth?.FlipVertical() ?? edgeSpace).Value;
+            case Rot8.EastInt: return edgeSpaceEast ?? (edgeSpaceEast = edgeSpaceWest?.FlipHorizontal() ?? edgeSpace).Value;
+            case Rot8.SouthInt: return edgeSpaceSouth ?? (edgeSpaceSouth = edgeSpaceNorth?.FlipVertical() ?? edgeSpace).Value;
+            case Rot8.WestInt: return edgeSpaceWest ?? (edgeSpaceWest = edgeSpaceEast?.FlipHorizontal() ?? edgeSpace).Value;
+            case Rot8.NorthEastInt: return edgeSpaceNorthEast ?? (edgeSpaceNorthEast = edgeSpaceNorth?.ToDiagonal() ?? (edgeSpaceNorth = edgeSpaceSouth?.FlipVertical() ?? edgeSpace).Value.ToDiagonal()).Value;
+            case Rot8.SouthEastInt: return edgeSpaceSouthEast ?? (edgeSpaceSouthEast = edgeSpaceSouth?.ToDiagonal() ?? (edgeSpaceSouth = edgeSpaceNorth?.FlipVertical() ?? edgeSpace).Value.ToDiagonal()).Value;
+            case Rot8.SouthWestInt: return edgeSpaceSouthWest ?? (edgeSpaceSouthWest = edgeSpaceSouth?.ToDiagonal() ?? (edgeSpaceSouth = edgeSpaceNorth?.FlipVertical() ?? edgeSpace).Value.ToDiagonal()).Value;
+            case Rot8.NorthWestInt: return edgeSpaceNorthWest ?? (edgeSpaceNorthWest = edgeSpaceNorth?.ToDiagonal() ?? (edgeSpaceNorth = edgeSpaceSouth?.FlipVertical() ?? edgeSpace).Value.ToDiagonal()).Value;
+            default: return edgeSpace;
+        }
     }
 
-    private const float sin45 = 0.707106781f;
-  }
+    public struct EdgeSpace
+    {
+        public float space;
+
+        public float? north;
+
+        public float? east;
+
+        public float? south;
+
+        public float? west;
+
+        public float SpaceByRot(Rot4 rot)
+        {
+            switch (rot.AsInt)
+            {
+                case Rot4.NorthInt: return north ?? (north = south ?? space).Value;
+                case Rot4.EastInt: return east ?? (east = west ?? space).Value;
+                case Rot4.SouthInt: return south ?? (south = north ?? space).Value;
+                case Rot4.WestInt: return west ?? (west = east ?? space).Value;
+                default: return space;
+            }
+        }
+
+        public EdgeSpace ToDiagonal()
+        {
+            return new EdgeSpace
+            {
+                space = space * sin45,
+                north = north * sin45,
+                east = east * sin45,
+                south = south * sin45,
+                west = west * sin45,
+            };
+        }
+
+        public EdgeSpace FlipHorizontal()
+        {
+            return new EdgeSpace
+            {
+                space = space,
+                north = north,
+                east = west,
+                south = south,
+                west = east
+            };
+        }
+
+        public EdgeSpace FlipVertical()
+        {
+            return new EdgeSpace
+            {
+                space = space,
+                north = south,
+                east = east,
+                south = north,
+                west = west
+            };
+        }
+
+        private const float sin45 = 0.707106781f;
+    }
 }

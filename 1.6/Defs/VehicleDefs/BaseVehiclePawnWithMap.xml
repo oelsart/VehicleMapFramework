@@ -1,35 +1,35 @@
 <?xml version="1.0" encoding="utf-8" ?>
 
 <Defs>
-  <Vehicles.VehicleDef Name="BaseVehiclePawnWithMap" ParentName="BaseVehiclePawn" Abstract="True">
-    <thingClass>VehicleMapFramework.VehiclePawnWithMap</thingClass>
-    <enabled>Player</enabled>
-    <tradeability>None</tradeability>
-    <notifyMapRemoved>true</notifyMapRemoved>
-    <comps>
-      <li>
-        <compClass>VehicleMapFramework.CompRemoveVehicleMap</compClass>
-      </li>
-    </comps>
-  </Vehicles.VehicleDef>
+	<Vehicles.VehicleDef Name="BaseVehiclePawnWithMap" ParentName="BaseVehiclePawn" Abstract="True">
+		<thingClass>VehicleMapFramework.VehiclePawnWithMap</thingClass>
+		<enabled>Player</enabled>
+		<tradeability>None</tradeability>
+		<notifyMapRemoved>true</notifyMapRemoved>
+		<comps>
+			<li>
+				<compClass>VehicleMapFramework.CompRemoveVehicleMap</compClass>
+			</li>
+		</comps>
+	</Vehicles.VehicleDef>
+	
+	<Vehicles.VehicleDef Name="BaseVehiclePawnWithMapHover" ParentName="BaseVehiclePawnWithMap" Abstract="True">
+		<thingClass>VehicleMapFramework.VehiclePawnWithMap_Hover</thingClass>
+	</Vehicles.VehicleDef>
 
-  <Vehicles.VehicleDef Name="BaseVehiclePawnWithMapHover" ParentName="BaseVehiclePawnWithMap" Abstract="True">
-    <thingClass>VehicleMapFramework.VehiclePawnWithMap_Hover</thingClass>
-  </Vehicles.VehicleDef>
+	<Vehicles.VehicleDef Name="BaseSeaVehiclePawnWithMap" ParentName="BaseSeaVehicle" Abstract="True">
+		<thingClass>VehicleMapFramework.VehiclePawnWithMap</thingClass>
+		<enabled>Player</enabled>
+		<tradeability>None</tradeability>
+		<notifyMapRemoved>true</notifyMapRemoved>
+		<comps>
+			<li>
+				<compClass>VehicleMapFramework.CompRemoveVehicleMap</compClass>
+			</li>
+		</comps>
+	</Vehicles.VehicleDef>
 
-  <Vehicles.VehicleDef Name="BaseSeaVehiclePawnWithMap" ParentName="BaseSeaVehicle" Abstract="True">
-    <thingClass>VehicleMapFramework.VehiclePawnWithMap</thingClass>
-    <enabled>Player</enabled>
-    <tradeability>None</tradeability>
-    <notifyMapRemoved>true</notifyMapRemoved>
-    <comps>
-      <li>
-        <compClass>VehicleMapFramework.CompRemoveVehicleMap</compClass>
-      </li>
-    </comps>
-  </Vehicles.VehicleDef>
-
-  <Vehicles.VehicleDef Name="BaseSeaVehiclePawnWithMapHover" ParentName="BaseSeaVehiclePawnWithMap" Abstract="True">
-    <thingClass>VehicleMapFramework.VehiclePawnWithMap_Hover</thingClass>
-  </Vehicles.VehicleDef>
+	<Vehicles.VehicleDef Name="BaseSeaVehiclePawnWithMapHover" ParentName="BaseSeaVehiclePawnWithMap" Abstract="True">
+		<thingClass>VehicleMapFramework.VehiclePawnWithMap_Hover</thingClass>
+	</Vehicles.VehicleDef>
 </Defs>

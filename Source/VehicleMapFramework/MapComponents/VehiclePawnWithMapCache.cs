@@ -9,7 +9,6 @@ namespace VehicleMapFramework;
 
 public class VehiclePawnWithMapCache(Map map) : MapComponent(map)
 {
-
   private readonly List<VehiclePawnWithMap> allVehicles = [];
 
   public readonly (int lastCachedTick, HashSet<Map> hashSet) cachedBaseMapAndVehicleMaps = (-1, []);

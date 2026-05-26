@@ -6,7 +6,6 @@ namespace VehicleMapFramework;
 
 public class Graphic_LinkedCornerOverlaySingle : Graphic_Linked
 {
-
   public readonly Graphic_Single overlayGraphic;
 
   public Graphic_LinkedCornerOverlaySingle(Graphic subGraphic) : base(subGraphic)

@@ -4,8 +4,7 @@
   <VMF_ForceOnVehicle>Невозможно разместить вне карты техники.</VMF_ForceOnVehicle>
   <VMF_ForceOnHoverVehicle>Невозможно разместить вне карты ховер-транспорта.</VMF_ForceOnHoverVehicle>
   <VMF_ForbidOnVehicle>Невозможно разместить на карте техники.</VMF_ForbidOnVehicle>
-  <VMF_ForbidOnHumanPoweredVehicle>Невозможно разместить на карте транспорта с мускульным приводом.
-  </VMF_ForbidOnHumanPoweredVehicle>
+  <VMF_ForbidOnHumanPoweredVehicle>Невозможно разместить на карте транспорта с мускульным приводом.</VMF_ForbidOnHumanPoweredVehicle>
   <VMF_ForceOnVehicleMapEdge>Невозможно разместить вне границы карты техники.</VMF_ForceOnVehicleMapEdge>
   <VMF_ForceOnRelatedVehicle>Это сооружение не относится к данному транспорту.</VMF_ForceOnRelatedVehicle>
   <VMF_ForceOnRelatedBuilding>Может быть построено только поверх связанных сооружений.</VMF_ForceOnRelatedBuilding>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Defs>
-
-  <BiomeDef>
+ 
+ <BiomeDef>
     <defName>VMF_VehicleMapBiome</defName>
     <label>Vehicle map biome</label>
     <description>A biome of vehicle map.</description>
@@ -53,5 +53,5 @@
       </li>
     </diseases>
   </BiomeDef>
-
+  
 </Defs>

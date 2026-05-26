@@ -5,17 +5,17 @@ namespace VehicleMapFramework;
 
 public class PlaceWorker_UniqueVehicle : PlaceWorker
 {
-  public override AcceptanceReport AllowsPlacing(BuildableDef checkingDef, IntVec3 loc, Rot4 rot, Map map, Thing thingToIgnore = null,
-    Thing thing = null)
-  {
-    if (checkingDef is not VehicleBuildDef vehicleBuildDef) return true;
-
-    var vehicleDef = vehicleBuildDef.thingToSpawn;
-    if (!UniqueVehicleUtility.AllowGenerate(vehicleDef))
+    public override AcceptanceReport AllowsPlacing(BuildableDef checkingDef, IntVec3 loc, Rot4 rot, Map map, Thing thingToIgnore = null,
+        Thing thing = null)
     {
-      return "VMF_UniqueVehicleExceedsLimit".Translate(vehicleDef.label);
-    }
+        if (checkingDef is not VehicleBuildDef vehicleBuildDef) return true;
 
-    return true;
-  }
+        var vehicleDef = vehicleBuildDef.thingToSpawn;
+        if (!UniqueVehicleUtility.AllowGenerate(vehicleDef))
+        {
+            return "VMF_UniqueVehicleExceedsLimit".Translate(vehicleDef.label);
+        }
+
+        return true;
+    }
 }

@@ -573,10 +573,10 @@ public static class VehicleMapUtility
     public bool IsVehicleMapOf(out VehiclePawnWithMap vehicle)
     {
       var mapParentVehicle = VehicleMapParentsComponent.GetCachedVehicle(map);
-      if (mapParentVehicle != null)
+      if (mapParentVehicle is not null)
       {
         vehicle = mapParentVehicle.vehicle;
-        return vehicle != null;
+        return vehicle is not null;
       }
 
       vehicle = null;

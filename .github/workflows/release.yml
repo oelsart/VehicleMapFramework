@@ -9,7 +9,7 @@ on:
   push:
     tags:
       - 'v*'
-
+    
 permissions:
   contents: write
 
@@ -19,7 +19,7 @@ jobs:
     
     env:
       Solution_Name: VehicleMapFramework
-      Project_Path: Source/VehicleMapFramework/VehicleMapFramework.sln
+      Project_Path: Source/VehicleMapFramework/VehicleMapFramework.sln 
       WorkshopMods: |
         3014915404  # Vehicle Framework
         2023507013  # Vanilla Expanded Framework
@@ -29,83 +29,83 @@ jobs:
         1321849735  # Rimefeller
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
+    - name: Checkout
+      uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
 
-      - name: Install .NET Core
-        uses: actions/setup-dotnet@v5
-        with:
-          dotnet-version: 9.0.x
-
-      - name: Restore Dependencies
-        run: dotnet restore ${{ env.Project_Path }}
-
-      - name: Restore Cache
-        id: cache-steam
-        uses: actions/cache/restore@v5
-        with:
-          path: ~/Steam
-          key: steamcmd-initial
-          restore-keys: |
-            steamcmd-
-
-      - name: Install SteamCMD
-        if: steps.cache-steam.outputs.cache-hit != 'true'
-        run: |
-          mkdir -p ~/Steam
-          cd ~/Steam
-          curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar zxvf -
-
-      - name: Download Workshop Mods
-        run: |
-          mkdir -p ~/Steam/steamapps/workshop/content/294100
+    - name: Install .NET Core
+      uses: actions/setup-dotnet@v5
+      with:
+        dotnet-version: 9.0.x
+    
+    - name: Restore Dependencies
+      run: dotnet restore ${{ env.Project_Path }}
+      
+    - name: Restore Cache
+      id: cache-steam
+      uses: actions/cache/restore@v5
+      with:
+        path: ~/Steam
+        key: steamcmd-initial
+        restore-keys: |
+          steamcmd-
           
-          {
-            echo "login anonymous"
-            while IFS= read -r line; do
-              mod_id=$(echo "$line" | sed 's/#.*//' | xargs)
-              [[ -n "$mod_id" ]] && echo "workshop_download_item 294100 $mod_id validate"
-            done <<< "${{ env.WorkshopMods }}"
-            echo "quit"
-          } > steam_script.txt
-          
-          ~/Steam/steamcmd.sh +runscript "$(pwd)/steam_script.txt"
-          
-          echo "CI_SteamCMD_WorkShop=$HOME/Steam/steamapps/workshop/content/294100" >> $GITHUB_ENV
-          ls -la ~/Steam/steamapps/workshop/content/294100
+    - name: Install SteamCMD
+      if: steps.cache-steam.outputs.cache-hit != 'true'
+      run: |
+        mkdir -p ~/Steam
+        cd ~/Steam
+        curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar zxvf -
 
-      - name: Build DLL
-        run: |
-          dotnet build ${{ env.Project_Path }} \
-              --configuration Release \
-              --no-restore \
-              /p:SkipPostBuild=true \
-              /p:SteamWorkshopRoot=${{ env.CI_SteamCMD_WorkShop }}
-          
-          zip -r VehicleMapFramework-${{ github.ref_name }}.zip \
-              1.5 \
-              1.6 \
-              About \
-              Common \
-              LICENSE \
-              LoadFolders.xml
-          
-          echo "RELEASE_ASSET=VehicleMapFramework-${{ github.ref_name }}.zip" >> $GITHUB_ENV
+    - name: Download Workshop Mods
+      run: |
+        mkdir -p ~/Steam/steamapps/workshop/content/294100
+        
+        {
+          echo "login anonymous"
+          while IFS= read -r line; do
+            mod_id=$(echo "$line" | sed 's/#.*//' | xargs)
+            [[ -n "$mod_id" ]] && echo "workshop_download_item 294100 $mod_id validate"
+          done <<< "${{ env.WorkshopMods }}"
+          echo "quit"
+        } > steam_script.txt
+        
+        ~/Steam/steamcmd.sh +runscript "$(pwd)/steam_script.txt"
+        
+        echo "CI_SteamCMD_WorkShop=$HOME/Steam/steamapps/workshop/content/294100" >> $GITHUB_ENV
+        ls -la ~/Steam/steamapps/workshop/content/294100
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          tag_name: ${{ github.ref_name }}
-          name: "${{ github.ref_name }}"
-          files: ${{ env.RELEASE_ASSET }}
+    - name: Build DLL
+      run: |
+        dotnet build ${{ env.Project_Path }} \
+            --configuration Release \
+            --no-restore \
+            /p:SkipPostBuild=true \
+            /p:SteamWorkshopRoot=${{ env.CI_SteamCMD_WorkShop }}
+        
+        zip -r VehicleMapFramework-${{ github.ref_name }}.zip \
+            1.5 \
+            1.6 \
+            About \
+            Common \
+            LICENSE \
+            LoadFolders.xml
+        
+        echo "RELEASE_ASSET=VehicleMapFramework-${{ github.ref_name }}.zip" >> $GITHUB_ENV
+    
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v3
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        tag_name: ${{ github.ref_name }} 
+        name: "${{ github.ref_name }}"
+        files: ${{ env.RELEASE_ASSET }}
 
-      - name: Discord Notification
-        uses: sarisia/actions-status-discord@v1
-        with:
-          webhook: ${{ secrets.DISCORD_WEBHOOK_UPDATE }}
-          title: 'Release: ${{ github.ref_name }}'
-          username: LS & Co. (GitHub Division)
-          url: "https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}"
+    - name: Discord Notification
+      uses: sarisia/actions-status-discord@v1
+      with:
+        webhook: ${{ secrets.DISCORD_WEBHOOK_UPDATE }}
+        title: 'Release: ${{ github.ref_name }}'
+        username: LS & Co. (GitHub Division)
+        url: "https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}"

@@ -1,40 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Defs>
 
-  <TerrainDef>
-    <defName>VMF_VehicleFloor</defName>
-    <label>vehicle floor</label>
-    <dontRender>true</dontRender>
-    <statBases>
-      <Beauty>-3</Beauty>
-      <BeautyOutdoors>0</BeautyOutdoors>
-      <Cleanliness>-1</Cleanliness>
-    </statBases>
-    <fertility>0</fertility>
-    <affordances>
-      <li>Light</li>
-      <li>Medium</li>
-      <li>Heavy</li>
-      <li>Diggable</li>
-    </affordances>
-    <filthAcceptanceMask>
-      <li>Unnatural</li>
-    </filthAcceptanceMask>
-  </TerrainDef>
-
-  <TerrainDef>
-    <defName>VMF_ImpassableFloor</defName>
-    <label>out of bounds</label>
-    <dontRender>true</dontRender>
-    <fertility>0</fertility>
-    <passability>Impassable</passability>
-    <pathCost>300</pathCost>
-    <affordances>
-      <li>VMF_ImpassableFloor</li>
-    </affordances>
-    <filthAcceptanceMask>
-      <li>None</li>
-    </filthAcceptanceMask>
-  </TerrainDef>
-
+	<TerrainDef>
+		<defName>VMF_VehicleFloor</defName>
+		<label>vehicle floor</label>
+		<dontRender>true</dontRender>
+		<statBases>
+			<Beauty>-3</Beauty>
+			<BeautyOutdoors>0</BeautyOutdoors>
+			<Cleanliness>-1</Cleanliness>
+		</statBases>
+		<fertility>0</fertility>
+		<affordances>
+			<li>Light</li>
+			<li>Medium</li>
+			<li>Heavy</li>
+			<li>Diggable</li>
+		</affordances>
+		<filthAcceptanceMask>
+			<li>Unnatural</li>
+		</filthAcceptanceMask>
+	</TerrainDef>
+	
+	<TerrainDef>
+		<defName>VMF_ImpassableFloor</defName>
+		<label>out of bounds</label>
+		<dontRender>true</dontRender>
+		<fertility>0</fertility>
+		<passability>Impassable</passability>
+		<pathCost>300</pathCost>
+		<affordances>
+			<li>VMF_ImpassableFloor</li>
+		</affordances>
+		<filthAcceptanceMask>
+			<li>None</li>
+		</filthAcceptanceMask>
+	</TerrainDef>
+	
 </Defs>

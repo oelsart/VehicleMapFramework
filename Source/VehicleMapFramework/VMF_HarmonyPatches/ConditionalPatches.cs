@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Reflection.Emit;
+using System.Text.RegularExpressions;
 using HarmonyLib;
 using SmashTools;
 using UnityEngine;
@@ -30,109 +30,26 @@ internal class VfVersionalPatchAttribute : Attribute
     };
   }
 
-  public bool Available { get; init; }
+  public bool Available { get; }
 
-  public Version TargetVersion { get; init; }
+  private Version TargetVersion { get; }
 
-  public static Version CurrentVersion { get; } = Version.Parse(VehicleMod.metaData.ModVersion);
+  private static Version CurrentVersion { get; } =
+    Version.Parse(Regex.Replace(VehicleMod.metaData.ModVersion, @"[^\d.]", ""));
 }
 
-[StaticConstructorOnStartupPriority(Priority.Low)]
-internal class ConditionalPatches
-{
-  static ConditionalPatches()
-  {
-    // This class is just a placeholder for conditional patches.
-    var method = AccessTools.Method(typeof(VehicleOrientationController), "VehicleCanStandAt");
-    if (method is not null)
-    {
-      VMF_Harmony.Instance.Patch(method,
-        AccessTools.Method(typeof(Patch_VehicleOrientationController_VehicleCanStandAt),
-          nameof(Patch_VehicleOrientationController_VehicleCanStandAt.Prefix)),
-        finalizer: AccessTools.Method(typeof(Patch_VehicleOrientationController_VehicleCanStandAt),
-          nameof(Patch_VehicleOrientationController_VehicleCanStandAt.Finalizer)));
-    }
-  }
-
-  internal static void DebugError(string methodName)
-  {
-    VMF_Log.DebugError($"The method {methodName} targeted for patching was not found. This should mean the removal of the stubs targeted for patching.");
-  }
-}
-
-// 引数を変更するPRを出したので、変更を吸収するよう備えておく
-[VfVersionalPatch(VfVersionalPatchAttribute.LatestRelease, ComparisonType.LessThanOrEqual)]
 [HarmonyPatchCategory(PatchCategories.VehicleFramework)]
-[HarmonyPatch]
+[HarmonyPatch(typeof(VehiclePath), nameof(VehiclePath.DrawPath))]
 [PatchLevel(Level.Sensitive)]
-public static class Patch_VehicleGhostUtility_DrawGhostOverlays
-{
-  private static MethodBase TargetMethod()
-  {
-    var type = typeof(VehicleGhostUtility);
-    const string name = nameof(VehicleGhostUtility.DrawGhostOverlays);
-    List<Type> args =
-    [
-      typeof(IntVec3), typeof(Rot8), typeof(VehicleDef), typeof(Graphic), typeof(Color), typeof(AltitudeLayer),
-      typeof(Thing)
-    ];
-    var method = AccessTools.Method(type, name, args.ToArray());
-    if (method is null)
-    {
-      args.AddRange([typeof(Rot8?), typeof(float)]);
-      method = AccessTools.Method(type, name, args.ToArray());
-    }
-    return method;
-  }
-
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-  {
-    var codes = new CodeMatcher(instructions);
-    codes.MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_GenThing_TrueCenter2));
-    codes.InsertAfter(
-      CodeInstruction.LoadArgument(6),
-      CodeInstruction.Call(typeof(Patch_VehicleGhostUtility_DrawGhostVehicleDef), nameof(Patch_VehicleGhostUtility_DrawGhostVehicleDef.ToTargetMapCoord)));
-    return codes.Instructions();
-  }
-}
-
-[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
-[HarmonyPatch]
 public static class Patch_VehiclePath_DrawPath
 {
-  private static MethodBase TargetMethod()
-  {
-#if DEV
-        var type = GenTypes.GetTypeInAnyAssembly("SmashTools.Burst.Ext_Path", "SmashTools.Burst");
-        var method = AccessTools.Method(type, "DrawPath");
-        if (method is not null) return method;
-#endif
-    return AccessTools.Method(typeof(VehiclePath), nameof(VehiclePath.DrawPath));
-  }
-
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
   {
     return Patch_PawnPath_DrawPath.Transpiler(instructions, generator);
   }
 }
 
-// [HarmonyPatchCategory(PatchCategories.VehicleFramework)]
-// [HarmonyPatch(typeof(VehicleOrientationController), "VehicleCanStandAt")]
-// [PatchLevel(Level.Cautious)]
-public static class Patch_VehicleOrientationController_VehicleCanStandAt
-{
-  public static void Prefix(VehiclePawn vehicle, ref VirtualTeleporter? __state)
-  {
-    if (vehicle.TryGetTargetMap(out var map) && vehicle.Map != map)
-      __state = new VirtualTeleporter(vehicle, map);
-  }
-
-  public static void Finalizer(VirtualTeleporter? __state)
-  {
-    __state?.Dispose();
-  }
-}
-
+[VfVersionalPatch(VfVersionalPatchAttribute.LatestRelease, ComparisonType.LessThanOrEqual)]
 [HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(VehicleGhostUtility), nameof(VehicleGhostUtility.DrawGhostVehicleDef))]
 [PatchLevel(Level.Sensitive)]
@@ -151,5 +68,41 @@ public static class Patch_VehicleGhostUtility_DrawGhostVehicleDef
   public static Vector3 ToTargetMapCoord(Vector3 original, Thing thing)
   {
     return thing.TryGetTargetMap(out var map) ? original.ToBaseMapCoord(map).WithY(original.y) : original;
+  }
+}
+
+[VfVersionalPatch(VfVersionalPatchAttribute.LatestRelease, ComparisonType.LessThanOrEqual)]
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
+[HarmonyPatch(typeof(VehicleGhostUtility), nameof(VehicleGhostUtility.DrawGhostOverlays))]
+[PatchLevel(Level.Sensitive)]
+public static class Patch_VehicleGhostUtility_DrawGhostOverlays
+{
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    var codes = new CodeMatcher(instructions);
+    codes.MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_GenThing_TrueCenter2));
+    codes.InsertAfter(
+      CodeInstruction.LoadArgument(6),
+      CodeInstruction.Call(typeof(Patch_VehicleGhostUtility_DrawGhostVehicleDef), nameof(Patch_VehicleGhostUtility_DrawGhostVehicleDef.ToTargetMapCoord)));
+    return codes.Instructions();
+  }
+}
+
+[VfVersionalPatch(VfVersionalPatchAttribute.LatestRelease, ComparisonType.GreaterThan)]
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
+[HarmonyPatch("Vehicles.VehicleGhostUtility+DrawData", "DrawPos", MethodType.Getter)]
+public static class Patch_VehicleGhostUtility_DrawData_DrawPos
+{
+  public static void Postfix(VehiclePawn ___vehicle, ref Vector3 __result)
+  {
+    if (___vehicle is not null)
+    {
+      __result = ___vehicle.TryGetTargetMap(out var map) ? __result.ToBaseMapCoord(map).WithY(__result.y) : __result;
+      return;
+    }
+    if (UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out var vehicle))
+    {
+      __result = __result.ToBaseMapCoord(vehicle);
+    }
   }
 }

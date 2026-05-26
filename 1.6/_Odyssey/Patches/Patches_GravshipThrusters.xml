@@ -1,27 +1,27 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Patch>
-  <Operation Class="PatchOperationAdd">
-    <xpath>Defs/ThingDef/comps[li/@Class="CompProperties_GravshipThruster"]</xpath>
-    <value>
-      <li>
-        <compClass>VehicleMapFramework.CompLocalThruster</compClass>
-      </li>
-      <li Class="VehicleMapFramework.CompProperties_BuildableUpgrades">
-        <upgrades>
-          <li Class="Vehicles.StatUpgrade">
-            <vehicleStats>
-              <li>
-                <def>MaximumPayload</def>
-                <value>1000</value>
-              </li>
-              <li>
-                <def>MoveSpeed</def>
-                <value>0.5</value>
-              </li>
-            </vehicleStats>
-          </li>
-        </upgrades>
-      </li>
-    </value>
-  </Operation>
+	<Operation Class="PatchOperationAdd">
+		<xpath>Defs/ThingDef/comps[li/@Class="CompProperties_GravshipThruster"]</xpath>
+		<value>
+			<li>
+				<compClass>VehicleMapFramework.CompLocalThruster</compClass>
+			</li>
+			<li Class="VehicleMapFramework.CompProperties_BuildableUpgrades">
+				<upgrades>
+					<li Class = "Vehicles.StatUpgrade">
+						<vehicleStats>
+							<li>
+								<def>MaximumPayload</def>
+								<value>1000</value>
+							</li>
+							<li>
+								<def>MoveSpeed</def>
+								<value>0.5</value>
+							</li>
+						</vehicleStats>
+					</li>
+				</upgrades>
+			</li>
+		</value>
+	</Operation>
 </Patch>

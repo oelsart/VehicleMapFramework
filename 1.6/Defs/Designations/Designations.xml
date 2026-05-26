@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Defs>
 
-  <DesignationDef>
-    <defName>VMF_RemoveSegment</defName>
-    <texturePath>Designations/RemoveFloor</texturePath>
-    <targetType>Thing</targetType>
-  </DesignationDef>
-
+	<DesignationDef>
+		<defName>VMF_RemoveSegment</defName>
+		<texturePath>Designations/RemoveFloor</texturePath>
+		<targetType>Thing</targetType>
+	</DesignationDef>
+	
 </Defs>

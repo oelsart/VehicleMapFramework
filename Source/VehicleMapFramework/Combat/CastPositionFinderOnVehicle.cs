@@ -10,315 +10,313 @@ namespace VehicleMapFramework;
 
 public static class CastPositionFinderOnVehicle
 {
-
-  private const float BaseAIPreference = 0.3f;
-
-  private const float MinimumPreferredRange = 5f;
-
-  private const float OptimalRangeFactor = 0.8f;
-
-  private const float OptimalRangeFactorImportance = 0.3f;
-
-  private const float CoverPreferenceFactor = 0.55f;
-
-  private static CastPositionRequest req;
-
-  private static IntVec3 casterLoc;
-
-  private static IntVec3 targetLoc;
-
-  private static Verb verb;
-
-  private static float rangeFromTarget;
-
-  private static float rangeFromTargetSquared;
-
-  private static float optimalRangeSquared;
-
-  private static float rangeFromCasterToCellSquared;
-
-  private static float rangeFromTargetToCellSquared;
-
-  private static int inRadiusMark;
-
-  private static NativeArray<byte>.ReadOnly avoidGrid;
-
-  private static float maxRangeFromCasterSquared;
-
-  private static float maxRangeFromTargetSquared;
-
-  private static float maxRangeFromLocusSquared;
-
-  private static IntVec3 bestSpot = IntVec3.Invalid;
-
-  private static float bestSpotPref = 0.001f;
-
-  private static NativeArray<byte> emptyByteArray = NativeArrayUtility.EmptyArray<byte>();
-
-  public static bool TryFindCastPosition(CastPositionRequest newReq, out IntVec3 dest)
-  {
-    req = newReq;
-    casterLoc = req.caster.Position;
-    targetLoc = req.target.PositionOnAnotherThingMap(req.caster);
-    verb = req.verb;
-    avoidGrid = newReq.caster.TryGetAvoidGrid(out var grid) ? grid.Grid : emptyByteArray.AsReadOnly();
-
-    if (verb == null)
+    public static bool TryFindCastPosition(CastPositionRequest newReq, out IntVec3 dest)
     {
-      Log.Error(req.caster + " tried to find casting position without a verb.");
-      dest = IntVec3.Invalid;
-      return false;
-    }
-    if (req.maxRegions > 0)
-    {
-      var region = casterLoc.GetRegion(req.caster.Map);
-      if (region == null)
-      {
-        Log.Error("TryFindCastPosition requiring region traversal but root region is null.");
-        dest = IntVec3.Invalid;
-        return false;
-      }
-      inRadiusMark = Rand.Int;
-      RegionTraverser.MarkRegionsBFS(region, null, newReq.maxRegions, inRadiusMark);
-      if (req.maxRangeFromLocus > 0.01f)
-      {
-        var locusReg = req.locus.GetRegion(req.caster.Map);
-        if (locusReg == null)
+        req = newReq;
+        casterLoc = req.caster.Position;
+        targetLoc = req.target.PositionOnAnotherThingMap(req.caster);
+        verb = req.verb;
+        avoidGrid = newReq.caster.TryGetAvoidGrid(out var grid) ?
+            grid.Grid : emptyByteArray.AsReadOnly();
+
+        if (verb == null)
         {
-          Log.Error("locus " + req.locus + " has no region");
-          dest = IntVec3.Invalid;
-          return false;
+            Log.Error(req.caster + " tried to find casting position without a verb.");
+            dest = IntVec3.Invalid;
+            return false;
         }
-        if (locusReg.mark != inRadiusMark)
+        if (req.maxRegions > 0)
         {
-          inRadiusMark = Rand.Int;
-          RegionTraverser.BreadthFirstTraverse(region,
-            null,
-            delegate(Region r)
+            var region = casterLoc.GetRegion(req.caster.Map);
+            if (region == null)
             {
-              r.mark = inRadiusMark;
-              req.maxRegions++;
-              return ReferenceEquals(r, locusReg);
-            });
+                Log.Error("TryFindCastPosition requiring region traversal but root region is null.");
+                dest = IntVec3.Invalid;
+                return false;
+            }
+            inRadiusMark = Rand.Int;
+            RegionTraverser.MarkRegionsBFS(region, null, newReq.maxRegions, inRadiusMark);
+            if (req.maxRangeFromLocus > 0.01f)
+            {
+                var locusReg = req.locus.GetRegion(req.caster.Map);
+                if (locusReg == null)
+                {
+                    Log.Error("locus " + req.locus + " has no region");
+                    dest = IntVec3.Invalid;
+                    return false;
+                }
+                if (locusReg.mark != inRadiusMark)
+                {
+                    inRadiusMark = Rand.Int;
+                    RegionTraverser.BreadthFirstTraverse(region, null, delegate (Region r)
+                    {
+                        r.mark = inRadiusMark;
+                        req.maxRegions++;
+                        return ReferenceEquals(r, locusReg);
+                    });
+                }
+            }
         }
-      }
+        var cellRect = CellRect.WholeMap(req.caster.Map);
+        if (req.maxRangeFromCaster > 0.01f)
+        {
+            var num = Mathf.CeilToInt(req.maxRangeFromCaster);
+            CellRect otherRect = new(casterLoc.x - num, casterLoc.z - num, (num * 2) + 1, (num * 2) + 1);
+            cellRect.ClipInsideRect(otherRect);
+        }
+        var num2 = Mathf.CeilToInt(req.maxRangeFromTarget);
+        CellRect otherRect2 = new(targetLoc.x - num2, targetLoc.z - num2, (num2 * 2) + 1, (num2 * 2) + 1);
+        cellRect.ClipInsideRect(otherRect2);
+        if (req.maxRangeFromLocus > 0.01f)
+        {
+            var num3 = Mathf.CeilToInt(req.maxRangeFromLocus);
+            CellRect otherRect3 = new(targetLoc.x - num3, targetLoc.z - num3, (num3 * 2) + 1, (num3 * 2) + 1);
+            cellRect.ClipInsideRect(otherRect3);
+        }
+        bestSpot = IntVec3.Invalid;
+        bestSpotPref = 0.001f;
+        maxRangeFromCasterSquared = req.maxRangeFromCaster * req.maxRangeFromCaster;
+        maxRangeFromTargetSquared = req.maxRangeFromTarget * req.maxRangeFromTarget;
+        maxRangeFromLocusSquared = req.maxRangeFromLocus * req.maxRangeFromLocus;
+        rangeFromTarget = (casterLoc - targetLoc).LengthHorizontal;
+        rangeFromTargetSquared = (casterLoc - targetLoc).LengthHorizontalSquared;
+        optimalRangeSquared = verb.verbProps.range * 0.8f * (verb.verbProps.range * 0.8f);
+        if (req.preferredCastPosition is { IsValid: true })
+        {
+            EvaluateCell(req.preferredCastPosition.Value);
+            if (bestSpot.IsValid && bestSpotPref > 0.001f)
+            {
+                dest = req.preferredCastPosition.Value;
+                return true;
+            }
+        }
+        EvaluateCell(casterLoc);
+        if (bestSpotPref >= 1.0)
+        {
+            dest = casterLoc;
+            return true;
+        }
+        var slope = -1f / CellLine.Between(targetLoc, casterLoc).Slope;
+        CellLine cellLine = new(targetLoc, slope);
+        var flag = cellLine.CellIsAbove(casterLoc);
+        foreach (var c in cellRect.Where(c => cellLine.CellIsAbove(c) == flag && cellRect.Contains(c)))
+        {
+            EvaluateCell(c);
+        }
+        if (bestSpot.IsValid && bestSpotPref > 0.33f)
+        {
+            dest = bestSpot;
+            return true;
+        }
+        foreach (var c2 in cellRect.Where(c2 => cellLine.CellIsAbove(c2) != flag && cellRect.Contains(c2)))
+        {
+            EvaluateCell(c2);
+        }
+        if (bestSpot.IsValid)
+        {
+            dest = bestSpot;
+            return true;
+        }
+        dest = casterLoc;
+        return false;
     }
-    var cellRect = CellRect.WholeMap(req.caster.Map);
-    if (req.maxRangeFromCaster > 0.01f)
-    {
-      var num = Mathf.CeilToInt(req.maxRangeFromCaster);
-      CellRect otherRect = new(casterLoc.x - num, casterLoc.z - num, num * 2 + 1, num * 2 + 1);
-      cellRect.ClipInsideRect(otherRect);
-    }
-    var num2 = Mathf.CeilToInt(req.maxRangeFromTarget);
-    CellRect otherRect2 = new(targetLoc.x - num2, targetLoc.z - num2, num2 * 2 + 1, num2 * 2 + 1);
-    cellRect.ClipInsideRect(otherRect2);
-    if (req.maxRangeFromLocus > 0.01f)
-    {
-      var num3 = Mathf.CeilToInt(req.maxRangeFromLocus);
-      CellRect otherRect3 = new(targetLoc.x - num3, targetLoc.z - num3, num3 * 2 + 1, num3 * 2 + 1);
-      cellRect.ClipInsideRect(otherRect3);
-    }
-    bestSpot = IntVec3.Invalid;
-    bestSpotPref = 0.001f;
-    maxRangeFromCasterSquared = req.maxRangeFromCaster * req.maxRangeFromCaster;
-    maxRangeFromTargetSquared = req.maxRangeFromTarget * req.maxRangeFromTarget;
-    maxRangeFromLocusSquared = req.maxRangeFromLocus * req.maxRangeFromLocus;
-    rangeFromTarget = (casterLoc - targetLoc).LengthHorizontal;
-    rangeFromTargetSquared = (casterLoc - targetLoc).LengthHorizontalSquared;
-    optimalRangeSquared = verb.verbProps.range * 0.8f * (verb.verbProps.range * 0.8f);
-    if (req.preferredCastPosition is { IsValid: true })
-    {
-      EvaluateCell(req.preferredCastPosition.Value);
-      if (bestSpot.IsValid && bestSpotPref > 0.001f)
-      {
-        dest = req.preferredCastPosition.Value;
-        return true;
-      }
-    }
-    EvaluateCell(casterLoc);
-    if (bestSpotPref >= 1.0)
-    {
-      dest = casterLoc;
-      return true;
-    }
-    var slope = -1f / CellLine.Between(targetLoc, casterLoc).Slope;
-    CellLine cellLine = new(targetLoc, slope);
-    var flag = cellLine.CellIsAbove(casterLoc);
-    foreach (var c in cellRect.Where(c => cellLine.CellIsAbove(c) == flag && cellRect.Contains(c)))
-    {
-      EvaluateCell(c);
-    }
-    if (bestSpot.IsValid && bestSpotPref > 0.33f)
-    {
-      dest = bestSpot;
-      return true;
-    }
-    foreach (var c2 in cellRect.Where(c2 => cellLine.CellIsAbove(c2) != flag && cellRect.Contains(c2)))
-    {
-      EvaluateCell(c2);
-    }
-    if (bestSpot.IsValid)
-    {
-      dest = bestSpot;
-      return true;
-    }
-    dest = casterLoc;
-    return false;
-  }
 
-  private static void EvaluateCell(IntVec3 c)
-  {
-    var casterMap = req.caster.Map;
+    private static void EvaluateCell(IntVec3 c)
+    {
+        var casterMap = req.caster.Map;
 
-    if (req.validator != null && !req.validator(c))
-    {
-      return;
-    }
-    if (maxRangeFromTargetSquared is > 0.01f and < 250000f && (c - targetLoc).LengthHorizontalSquared > maxRangeFromTargetSquared)
-    {
-      if (DebugViewSettings.drawCastPositionSearch)
-      {
-        casterMap.debugDrawer.FlashCell(c, 0f, "range target");
-      }
-      return;
-    }
-    if ((double)maxRangeFromLocusSquared > 0.01f && (c - req.locus).LengthHorizontalSquared > maxRangeFromLocusSquared)
-    {
-      if (DebugViewSettings.drawCastPositionSearch)
-      {
-        casterMap.debugDrawer.FlashCell(c, 0.1f, "range home");
-      }
-      return;
-    }
-    if (maxRangeFromCasterSquared > 0.01f)
-    {
-      rangeFromCasterToCellSquared = (c - casterLoc).LengthHorizontalSquared;
-      if (rangeFromCasterToCellSquared > maxRangeFromCasterSquared)
-      {
+        if (req.validator != null && !req.validator(c))
+        {
+            return;
+        }
+        if (maxRangeFromTargetSquared is > 0.01f and < 250000f && (c - targetLoc).LengthHorizontalSquared > maxRangeFromTargetSquared)
+        {
+            if (DebugViewSettings.drawCastPositionSearch)
+            {
+                casterMap.debugDrawer.FlashCell(c, 0f, "range target");
+            }
+            return;
+        }
+        if ((double)maxRangeFromLocusSquared > 0.01f && (c - req.locus).LengthHorizontalSquared > maxRangeFromLocusSquared)
+        {
+            if (DebugViewSettings.drawCastPositionSearch)
+            {
+                casterMap.debugDrawer.FlashCell(c, 0.1f, "range home");
+            }
+            return;
+        }
+        if (maxRangeFromCasterSquared > 0.01f)
+        {
+            rangeFromCasterToCellSquared = (c - casterLoc).LengthHorizontalSquared;
+            if (rangeFromCasterToCellSquared > maxRangeFromCasterSquared)
+            {
+                if (DebugViewSettings.drawCastPositionSearch)
+                {
+                    casterMap.debugDrawer.FlashCell(c, 0.2f, "range caster");
+                }
+                return;
+            }
+        }
+        if (!c.Standable(casterMap))
+        {
+            return;
+        }
+        if (req.maxRegions > 0 && c.GetRegion(casterMap).mark != inRadiusMark)
+        {
+            if (DebugViewSettings.drawCastPositionSearch)
+            {
+                casterMap.debugDrawer.FlashCell(c, 0.64f, "reg radius");
+            }
+            return;
+        }
+        if (!CrossMapReachabilityUtility.CanReach(casterMap, req.caster.Position, c, PathEndMode.OnCell, TraverseParms.For(req.caster, Danger.Some), req.target.Map) &&
+            !req.caster.IsOnVehicleMapOf(out _) && !req.target.IsOnVehicleMapOf(out _))
+        {
+            if (DebugViewSettings.drawCastPositionSearch)
+            {
+                casterMap.debugDrawer.FlashCell(c, 0.4f, "can't reach");
+            }
+            return;
+        }
+        var num = CastPositionPreference(c);
+        if (avoidGrid.Length > 0)
+        {
+            var b = avoidGrid[req.caster.Map.cellIndices.CellToIndex(c)];
+            num *= Mathf.Max(0.1f, (37.5f - b) / 37.5f);
+        }
         if (DebugViewSettings.drawCastPositionSearch)
         {
-          casterMap.debugDrawer.FlashCell(c, 0.2f, "range caster");
+            casterMap.debugDrawer.FlashCell(c, num / 4f, num.ToString("F3"));
         }
-        return;
-      }
+        if (num < bestSpotPref)
+        {
+            return;
+        }
+        var cellOnBaseMap = c.ToThingBaseMapCoord(req.caster);
+        if (!verb.CanHitTargetFrom(cellOnBaseMap, req.target))
+        {
+            if (DebugViewSettings.drawCastPositionSearch)
+            {
+                casterMap.debugDrawer.FlashCell(c, 0.6f, "can't hit");
+            }
+            return;
+        }
+        if (!casterMap.pawnDestinationReservationManager.CanReserve(c, req.caster))
+        {
+            if (DebugViewSettings.drawCastPositionSearch)
+            {
+                casterMap.debugDrawer.FlashCell(c, num * 0.9f, "resvd");
+            }
+            return;
+        }
+        if (PawnUtility.KnownDangerAt(c, casterMap, req.caster))
+        {
+            if (DebugViewSettings.drawCastPositionSearch)
+            {
+                casterMap.debugDrawer.FlashCell(c, 0.9f, "danger");
+            }
+            return;
+        }
+        bestSpot = c;
+        bestSpotPref = num;
     }
-    if (!c.Standable(casterMap))
-    {
-      return;
-    }
-    if (req.maxRegions > 0 && c.GetRegion(casterMap).mark != inRadiusMark)
-    {
-      if (DebugViewSettings.drawCastPositionSearch)
-      {
-        casterMap.debugDrawer.FlashCell(c, 0.64f, "reg radius");
-      }
-      return;
-    }
-    if (!CrossMapReachabilityUtility.CanReach(casterMap, req.caster.Position, c, PathEndMode.OnCell, TraverseParms.For(req.caster, Danger.Some), req.target.Map) &&
-        !req.caster.IsOnVehicleMapOf(out _) && !req.target.IsOnVehicleMapOf(out _))
-    {
-      if (DebugViewSettings.drawCastPositionSearch)
-      {
-        casterMap.debugDrawer.FlashCell(c, 0.4f, "can't reach");
-      }
-      return;
-    }
-    var num = CastPositionPreference(c);
-    if (avoidGrid.Length > 0)
-    {
-      var b = avoidGrid[req.caster.Map.cellIndices.CellToIndex(c)];
-      num *= Mathf.Max(0.1f, (37.5f - b) / 37.5f);
-    }
-    if (DebugViewSettings.drawCastPositionSearch)
-    {
-      casterMap.debugDrawer.FlashCell(c, num / 4f, num.ToString("F3"));
-    }
-    if (num < bestSpotPref)
-    {
-      return;
-    }
-    var cellOnBaseMap = c.ToThingBaseMapCoord(req.caster);
-    if (!verb.CanHitTargetFrom(cellOnBaseMap, req.target))
-    {
-      if (DebugViewSettings.drawCastPositionSearch)
-      {
-        casterMap.debugDrawer.FlashCell(c, 0.6f, "can't hit");
-      }
-      return;
-    }
-    if (!casterMap.pawnDestinationReservationManager.CanReserve(c, req.caster))
-    {
-      if (DebugViewSettings.drawCastPositionSearch)
-      {
-        casterMap.debugDrawer.FlashCell(c, num * 0.9f, "resvd");
-      }
-      return;
-    }
-    if (PawnUtility.KnownDangerAt(c, casterMap, req.caster))
-    {
-      if (DebugViewSettings.drawCastPositionSearch)
-      {
-        casterMap.debugDrawer.FlashCell(c, 0.9f, "danger");
-      }
-      return;
-    }
-    bestSpot = c;
-    bestSpotPref = num;
-  }
 
-  private static float CastPositionPreference(IntVec3 c)
-  {
-    var flag = true;
-    foreach (var thing in req.caster.Map.thingGrid.ThingsAt(c))
+    private static float CastPositionPreference(IntVec3 c)
     {
-      if (thing is Fire { parent: null })
-      {
-        return -1f;
-      }
-      if (thing.def.passability == Traversability.PassThroughOnly)
-      {
-        flag = false;
-      }
+        var flag = true;
+        foreach (var thing in req.caster.Map.thingGrid.ThingsAt(c))
+        {
+            if (thing is Fire { parent: null })
+            {
+                return -1f;
+            }
+            if (thing.def.passability == Traversability.PassThroughOnly)
+            {
+                flag = false;
+            }
+        }
+        var num = 0.3f;
+        if (req.caster.kindDef.aiAvoidCover)
+        {
+            num += 8f - CoverUtility.TotalSurroundingCoverScore(c, req.caster.Map);
+        }
+        if (req.wantCoverFromTarget)
+        {
+            num += CoverUtility.CalculateOverallBlockChance(c, targetLoc, req.caster.Map) * 0.55f;
+        }
+        var num2 = (casterLoc - c).LengthHorizontal;
+        if (rangeFromTarget > 100f)
+        {
+            num2 -= rangeFromTarget - 100f;
+            if (num2 < 0f)
+            {
+                num2 = 0f;
+            }
+        }
+        num *= Mathf.Pow(0.967f, num2);
+        var num3 = 1f;
+        rangeFromTargetToCellSquared = (c - targetLoc).LengthHorizontalSquared;
+        var num4 = Mathf.Abs(rangeFromTargetToCellSquared - optimalRangeSquared) / optimalRangeSquared;
+        num4 = 1f - num4;
+        num4 = 0.7f + (0.3f * num4);
+        num3 *= num4;
+        if (rangeFromTargetToCellSquared < 25f)
+        {
+            num3 *= 0.5f;
+        }
+        num *= num3;
+        if (rangeFromCasterToCellSquared > rangeFromTargetSquared)
+        {
+            num *= 0.4f;
+        }
+        if (!flag)
+        {
+            num *= 0.2f;
+        }
+        return num;
     }
-    var num = 0.3f;
-    if (req.caster.kindDef.aiAvoidCover)
-    {
-      num += 8f - CoverUtility.TotalSurroundingCoverScore(c, req.caster.Map);
-    }
-    if (req.wantCoverFromTarget)
-    {
-      num += CoverUtility.CalculateOverallBlockChance(c, targetLoc, req.caster.Map) * 0.55f;
-    }
-    var num2 = (casterLoc - c).LengthHorizontal;
-    if (rangeFromTarget > 100f)
-    {
-      num2 -= rangeFromTarget - 100f;
-      if (num2 < 0f)
-      {
-        num2 = 0f;
-      }
-    }
-    num *= Mathf.Pow(0.967f, num2);
-    var num3 = 1f;
-    rangeFromTargetToCellSquared = (c - targetLoc).LengthHorizontalSquared;
-    var num4 = Mathf.Abs(rangeFromTargetToCellSquared - optimalRangeSquared) / optimalRangeSquared;
-    num4 = 1f - num4;
-    num4 = 0.7f + 0.3f * num4;
-    num3 *= num4;
-    if (rangeFromTargetToCellSquared < 25f)
-    {
-      num3 *= 0.5f;
-    }
-    num *= num3;
-    if (rangeFromCasterToCellSquared > rangeFromTargetSquared)
-    {
-      num *= 0.4f;
-    }
-    if (!flag)
-    {
-      num *= 0.2f;
-    }
-    return num;
-  }
+
+    private static CastPositionRequest req;
+
+    private static IntVec3 casterLoc;
+
+    private static IntVec3 targetLoc;
+
+    private static Verb verb;
+
+    private static float rangeFromTarget;
+
+    private static float rangeFromTargetSquared;
+
+    private static float optimalRangeSquared;
+
+    private static float rangeFromCasterToCellSquared;
+
+    private static float rangeFromTargetToCellSquared;
+
+    private static int inRadiusMark;
+
+    private static NativeArray<byte>.ReadOnly avoidGrid;
+
+    private static float maxRangeFromCasterSquared;
+
+    private static float maxRangeFromTargetSquared;
+
+    private static float maxRangeFromLocusSquared;
+
+    private static IntVec3 bestSpot = IntVec3.Invalid;
+
+    private static float bestSpotPref = 0.001f;
+
+    private static NativeArray<byte> emptyByteArray = NativeArrayUtility.EmptyArray<byte>();
+
+    private const float BaseAIPreference = 0.3f;
+
+    private const float MinimumPreferredRange = 5f;
+
+    private const float OptimalRangeFactor = 0.8f;
+
+    private const float OptimalRangeFactorImportance = 0.3f;
+
+    private const float CoverPreferenceFactor = 0.55f;
 }

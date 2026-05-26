@@ -13,203 +13,204 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [PatchLevel(Level.Sensitive)]
 public static class Patches_Designator_ZoneAdd_MakeNewZone
 {
-  private static IEnumerable<MethodBase> TargetMethods()
-  {
-    return typeof(Designator_ZoneAdd).AllSubclasses()
-      .Select(type => AccessTools.DeclaredMethod(type, "MakeNewZone"))
-      .Where(method => method != null && PatchHelper.ReadMethodBodyWrapper(method)
-        .Any(i => CachedMethodInfo.g_Find_CurrentMap.Equals(i.Value)));
-  }
+    private static IEnumerable<MethodBase> TargetMethods()
+    {
+        return typeof(Designator_ZoneAdd).AllSubclasses()
+            .Select(type => AccessTools.DeclaredMethod(type, "MakeNewZone"))
+            .Where(method => method != null && PatchHelper.ReadMethodBodyWrapper(method)
+                .Any(i => CachedMethodInfo.g_Find_CurrentMap.Equals(i.Value)));
+    }
 
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-  {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Find_CurrentMap, CachedMethodInfo.g_VehicleMapUtility_CurrentMap);
-  }
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        return instructions.MethodReplacer(CachedMethodInfo.g_Find_CurrentMap, CachedMethodInfo.g_VehicleMapUtility_CurrentMap);
+    }
 }
 
 [HarmonyPatch]
 [PatchLevel(Level.Sensitive)]
 public static class Patches_Designator_DesignateThing
 {
-  private static IEnumerable<MethodBase> TargetMethods()
-  {
-    foreach (var type in typeof(Designator).AllSubclasses())
+    private static IEnumerable<MethodBase> TargetMethods()
     {
-      var method = AccessTools.DeclaredMethod(type, "DesignateThing");
-      if (method != null && PatchHelper.ReadMethodBodyWrapper(method).Any(i => CachedMethodInfo.g_Designator_Map.Equals(i.Value)))
-      {
-        yield return method;
-      }
-      var method2 = AccessTools.DeclaredMethod(type, "CanDesignateThing");
-      if (method2 != null && PatchHelper.ReadMethodBodyWrapper(method2).Any(i => CachedMethodInfo.g_Designator_Map.Equals(i.Value)))
-      {
-        yield return method2;
-      }
+        foreach (var type in typeof(Designator).AllSubclasses())
+        {
+            var method = AccessTools.DeclaredMethod(type, "DesignateThing");
+            if (method != null && PatchHelper.ReadMethodBodyWrapper(method).Any(i => CachedMethodInfo.g_Designator_Map.Equals(i.Value)))
+            {
+                yield return method;
+            }
+            var method2 = AccessTools.DeclaredMethod(type, "CanDesignateThing");
+            if (method2 != null && PatchHelper.ReadMethodBodyWrapper(method2).Any(i => CachedMethodInfo.g_Designator_Map.Equals(i.Value)))
+            {
+                yield return method2;
+            }
+        }
     }
-  }
-
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
-  {
-    foreach (var instruction in instructions)
+    
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
-      if (instruction.Calls(CachedMethodInfo.g_Designator_Map))
-      {
-        var label = generator.DefineLabel();
-        yield return new CodeInstruction(OpCodes.Pop);
-        yield return CodeInstruction.LoadArgument(1);
-        yield return new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_Thing_MapHeld);
-        yield return new CodeInstruction(OpCodes.Dup);
-        yield return new CodeInstruction(OpCodes.Brtrue_S, label);
-        yield return new CodeInstruction(OpCodes.Pop);
-        yield return CodeInstruction.LoadArgument(0);
-        yield return new CodeInstruction(OpCodes.Call, CachedMethodInfo.g_Designator_Map);
-        yield return new CodeInstruction(OpCodes.Nop).WithLabels(label);
-      }
-      else
-      {
-        yield return instruction;
-      }
+        foreach (var instruction in instructions)
+        {
+            if (instruction.Calls(CachedMethodInfo.g_Designator_Map))
+            {
+                var label = generator.DefineLabel();
+                yield return new CodeInstruction(OpCodes.Pop);
+                yield return CodeInstruction.LoadArgument(1);
+                yield return new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_Thing_MapHeld);
+                yield return new CodeInstruction(OpCodes.Dup);
+                yield return new CodeInstruction(OpCodes.Brtrue_S, label);
+                yield return new CodeInstruction(OpCodes.Pop);
+                yield return CodeInstruction.LoadArgument(0);
+                yield return new CodeInstruction(OpCodes.Call, CachedMethodInfo.g_Designator_Map);
+                yield return new CodeInstruction(OpCodes.Nop).WithLabels(label);
+            }
+            else
+            {
+                yield return instruction;
+            }
+        }
     }
-  }
 }
 
 [HarmonyPatch(typeof(DesignatorManager), nameof(DesignatorManager.DesignatorManagerUpdate))]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Designator_SelectedUpdate
 {
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-  {
-    var m_SelectedUpdate = AccessTools.Method(typeof(Designator), nameof(Designator.SelectedUpdate));
-    foreach (var instruction in instructions)
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-      yield return instruction;
-      if (instruction.Calls(m_SelectedUpdate))
-      {
-        yield return CodeInstruction.LoadArgument(0);
-        yield return CodeInstruction.LoadField(typeof(DesignatorManager), "selectedDesignator");
-        yield return CodeInstruction.Call(typeof(Patch_Designator_SelectedUpdate), nameof(SelectedUpdatePostfix));
-      }
-    }
-  }
-
-  public static void SelectedUpdatePostfix(Designator ___selectedDesignator)
-  {
-    if (Command_FocusVehicleMap.FocusLockedVehicle != null) return;
-
-    Command_FocusVehicleMap.FocusedVehicle = null;
-    var mousePos = UI.MouseMapPosition();
-    var flag = VehicleMapFlag.None;
-    if (___selectedDesignator is Designator_Build { PlacingDef: ThingDef thingDef })
-    {
-      if (thingDef is VehicleBuildDef { thingToSpawn.thingClass: { } type } && type.SameOrSubclassOf(typeof(VehiclePawnWithMap)))
-        return;
-      if (thingDef.HasComp<CompMapExpander>())
-        flag |= VehicleMapFlag.ExpandableCells;
-    }
-    if (mousePos.TryGetVehicleMap(Find.CurrentMap, out var vehicle, flag))
-    {
-      Command_FocusVehicleMap.FocusedVehicle = vehicle;
-    }
-
-    if (___selectedDesignator is Designator_AreaAllowed)
-    {
-      var selArea = Designator_AreaAllowed.selectedArea;
-      if (selArea != null && selArea.Map != ___selectedDesignator.Map)
-      {
-        Designator_AreaAllowed.selectedArea = ___selectedDesignator.Map.areaManager.AllAreas
-          .FirstOrDefault(a => a.AssignableAsAllowed() &&
-                               a.InspectLabel == selArea.InspectLabel);
-        if (Designator_AreaAllowed.selectedArea is null)
+        var m_SelectedUpdate = AccessTools.Method(typeof(Designator), nameof(Designator.SelectedUpdate));
+        foreach (var instruction in instructions)
         {
-          Messages.Message("VMF_AreaDeselect".Translate(selArea.InspectLabel), MessageTypeDefOf.RejectInput, false);
-          Find.DesignatorManager.Deselect();
+            yield return instruction;
+            if (instruction.Calls(m_SelectedUpdate))
+            {
+                yield return CodeInstruction.LoadArgument(0);
+                yield return CodeInstruction.LoadField(typeof(DesignatorManager), "selectedDesignator");
+                yield return CodeInstruction.Call(typeof(Patch_Designator_SelectedUpdate), nameof(SelectedUpdatePostfix));
+            }
         }
-      }
     }
-  }
+
+    public static void SelectedUpdatePostfix(Designator ___selectedDesignator)
+    {
+        
+        if (Command_FocusVehicleMap.FocusLockedVehicle != null) return;
+
+        Command_FocusVehicleMap.FocusedVehicle = null;
+        var mousePos = UI.MouseMapPosition();
+        var flag = VehicleMapFlag.None;
+        if (___selectedDesignator is Designator_Build { PlacingDef: ThingDef thingDef })
+        {
+            if (thingDef is VehicleBuildDef { thingToSpawn.thingClass: { } type } && type.SameOrSubclassOf(typeof(VehiclePawnWithMap)))
+                return;
+            if (thingDef.HasComp<CompMapExpander>())
+                flag |= VehicleMapFlag.ExpandableCells;
+        }
+        if (mousePos.TryGetVehicleMap(Find.CurrentMap, out var vehicle, flag))
+        {
+            Command_FocusVehicleMap.FocusedVehicle = vehicle;
+        }
+
+        if (___selectedDesignator is Designator_AreaAllowed)
+        {
+            var selArea = Designator_AreaAllowed.selectedArea;
+            if (selArea != null && selArea.Map != ___selectedDesignator.Map)
+            {
+                Designator_AreaAllowed.selectedArea = ___selectedDesignator.Map.areaManager.AllAreas
+                    .FirstOrDefault(a => a.AssignableAsAllowed() &&
+                                         a.InspectLabel == selArea.InspectLabel);
+                if (Designator_AreaAllowed.selectedArea is null)
+                {
+                    Messages.Message("VMF_AreaDeselect".Translate(selArea.InspectLabel), MessageTypeDefOf.RejectInput, false);
+                    Find.DesignatorManager.Deselect();
+                }
+            }
+        }
+    }
 }
 
 [HarmonyPatch]
 public static class Patch_Designator_CreateReverseDesignationGizmo_Delegate
 {
-  private static MethodBase TargetMethod()
-  {
-    return AccessTools.FindIncludingInnerTypes(typeof(Designator), t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<CreateReverseDesignationGizmo>")));
-  }
+    private static MethodBase TargetMethod()
+    {
+        return AccessTools.FindIncludingInnerTypes(typeof(Designator), t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<CreateReverseDesignationGizmo>")));
+    }
 
-  public static void Prefix(Thing ___t, ref VehiclePawnWithMap __state)
-  {
-    ___t.IsOnVehicleMapOf(out var vehicle);
-    __state = Command_FocusVehicleMap.FocusedVehicle;
-    Command_FocusVehicleMap.FocusedVehicle = vehicle;
-  }
+    public static void Prefix(Thing ___t, ref VehiclePawnWithMap __state)
+    {
+        ___t.IsOnVehicleMapOf(out var vehicle);
+        __state = Command_FocusVehicleMap.FocusedVehicle;
+        Command_FocusVehicleMap.FocusedVehicle = vehicle;
+    }
 
-  public static void Finalizer(VehiclePawnWithMap __state)
-  {
-    Command_FocusVehicleMap.FocusedVehicle = __state;
-  }
+    public static void Finalizer(VehiclePawnWithMap __state)
+    {
+        Command_FocusVehicleMap.FocusedVehicle = __state;
+    }
 }
 
 [HarmonyPatch(typeof(Designator), nameof(Designator.Map), MethodType.Getter)]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Designator_Map
 {
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-  {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Find_CurrentMap, CachedMethodInfo.g_VehicleMapUtility_CurrentMap);
-  }
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        return instructions.MethodReplacer(CachedMethodInfo.g_Find_CurrentMap, CachedMethodInfo.g_VehicleMapUtility_CurrentMap);
+    }
 }
 
 [HarmonyPatch(typeof(DesignatorManager), nameof(DesignatorManager.Deselect))]
 [PatchLevel(Level.Safe)]
 public static class Patch_DesignatorManager_Deselect
 {
-  public static void Postfix()
-  {
-    if (Command_FocusVehicleMap.FocusLockedVehicle == null)
+    public static void Postfix()
     {
-      Command_FocusVehicleMap.FocusedVehicle = null;
+        if (Command_FocusVehicleMap.FocusLockedVehicle == null)
+        {
+            Command_FocusVehicleMap.FocusedVehicle = null;
+        }
     }
-  }
 }
 
 [HarmonyPatch(typeof(DesignationManager), nameof(DesignationManager.DrawDesignations))]
 [PatchLevel(Level.Cautious)]
 public static class Patch_DesignationManager_DrawDesignations
 {
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-  {
-    return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap);
-  }
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap);
+    }
 }
 
 [HarmonyPatch(typeof(GenGrid), nameof(GenGrid.InNoZoneEdgeArea))]
 [PatchLevel(Level.Safe)]
 public static class Patch_GenGrid_InNoZoneEdgeArea
 {
-  public static void Postfix(ref bool __result, Map map)
-  {
-    __result &= !map.IsVehicleMapOf(out _);
-  }
+    public static void Postfix(ref bool __result, Map map)
+    {
+        __result &= !map.IsVehicleMapOf(out _);
+    }
 }
 
 [HarmonyPatch(typeof(Designator_Zone), nameof(Designator_Zone.SelectedUpdate))]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Designator_Zone_SelectedUpdate
 {
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-  {
-    var codes = instructions.ToList();
-    var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(CachedMethodInfo.m_GenDraw_DrawFieldEdges1));
-    codes[pos].operand = CachedMethodInfo.m_GenDrawOnVehicle_DrawFieldEdges1;
-    codes.InsertRange(pos,
-    [
-      new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(Find), nameof(Find.Selector))),
-      new CodeInstruction(OpCodes.Callvirt, AccessTools.PropertyGetter(typeof(Selector), nameof(Selector.SelectedZone))),
-      new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_Zone_Map)
-    ]);
-    return codes;
-  }
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        var codes = instructions.ToList();
+        var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(CachedMethodInfo.m_GenDraw_DrawFieldEdges1));
+        codes[pos].operand = CachedMethodInfo.m_GenDrawOnVehicle_DrawFieldEdges1;
+        codes.InsertRange(pos,
+        [
+            new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(Find), nameof(Find.Selector))),
+            new CodeInstruction(OpCodes.Callvirt, AccessTools.PropertyGetter(typeof(Selector), nameof(Selector.SelectedZone))),
+            new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_Zone_Map)
+        ]);
+        return codes;
+    }
 }
 
 //利用可能なthingに車上マップ上のthingを含める
@@ -217,40 +218,40 @@ public static class Patch_Designator_Zone_SelectedUpdate
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Designator_Build_ProcessInput
 {
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-  {
-    var code = instructions.ToList();
-    var g_Count = AccessTools.PropertyGetter(typeof(List<Thing>), nameof(List<>.Count));
-    var pos = code.FindIndex(c => c.opcode == OpCodes.Callvirt && c.OperandIs(g_Count));
-    code.InsertRange(pos,
-    [
-      CodeInstruction.LoadArgument(0),
-      new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_Designator_Map),
-      CodeInstruction.LoadLocal(4),
-      CodeInstruction.Call(typeof(Patch_ItemAvailability_ThingsAvailableAnywhere), nameof(Patch_ItemAvailability_ThingsAvailableAnywhere.AddThingList))
-    ]);
-    return code;
-  }
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        var code = instructions.ToList();
+        var g_Count = AccessTools.PropertyGetter(typeof(List<Thing>), nameof(List<>.Count));
+        var pos = code.FindIndex(c => c.opcode == OpCodes.Callvirt && c.OperandIs(g_Count));
+        code.InsertRange(pos,
+        [
+            CodeInstruction.LoadArgument(0),
+            new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_Designator_Map),
+            CodeInstruction.LoadLocal(4),
+            CodeInstruction.Call(typeof(Patch_ItemAvailability_ThingsAvailableAnywhere), nameof(Patch_ItemAvailability_ThingsAvailableAnywhere.AddThingList))
+        ]);
+        return code;
+    }
 }
 
 [HarmonyPatch(typeof(DesignationDragger), nameof(DesignationDragger.DraggerUpdate))]
 [PatchLevel(Level.Cautious)]
 public static class Patch_DesignationDragger_DraggerUpdate
 {
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
-  {
-    return instructions.MethodReplacer(CachedMethodInfo.m_CellRect_ClipInsideMap, CachedMethodInfo.m_ClipInsideVehicleMap);
-  }
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+    {
+        return instructions.MethodReplacer(CachedMethodInfo.m_CellRect_ClipInsideMap, CachedMethodInfo.m_ClipInsideVehicleMap);
+    }
 }
 
 [HarmonyPatch(typeof(Area), nameof(Area.MarkForDraw))]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Area_MarkForDraw
 {
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-  {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Find_CurrentMap, CachedMethodInfo.g_VehicleMapUtility_CurrentMap);
-  }
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        return instructions.MethodReplacer(CachedMethodInfo.g_Find_CurrentMap, CachedMethodInfo.g_VehicleMapUtility_CurrentMap);
+    }
 }
 
 //CurrentMapがVehicleMapだったらマップエッジを描くことなんてないよ
@@ -258,8 +259,8 @@ public static class Patch_Area_MarkForDraw
 [PatchLevel(Level.Safe)]
 public static class Patch_GenDraw_DrawMapEdgeLines
 {
-  public static bool Prefix()
-  {
-    return !Find.CurrentMap.IsVehicleMapOf(out _);
-  }
+    public static bool Prefix()
+    {
+        return !Find.CurrentMap.IsVehicleMapOf(out _);
+    }
 }

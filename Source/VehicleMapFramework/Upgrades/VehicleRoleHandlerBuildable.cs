@@ -11,97 +11,100 @@ namespace VehicleMapFramework;
 
 public class VehicleRoleHandlerBuildable : VehicleRoleHandler, IExposable, IThingHolderWithDrawnPawn, IParallelRenderer
 {
-  private static readonly AccessTools.FieldRef<VehicleRoleHandler, string> roleKey = AccessTools.FieldRefAccess<VehicleRoleHandler, string>("roleKey");
+    private static readonly AccessTools.FieldRef<VehicleRoleHandler, string> roleKey = AccessTools.FieldRefAccess<VehicleRoleHandler, string>("roleKey");
 
-
-  public VehicleRoleHandlerBuildable()
-  {
-    thingOwner ??= new ThingOwner<Pawn>(this, false);
-  }
-
-  public VehicleRoleHandlerBuildable(VehiclePawn vehicle) : this()
-  {
-    uniqueID = VehicleIdManager.Instance.GetNextHandlerId();
-    this.vehicle = vehicle;
-  }
-
-  public VehicleRoleHandlerBuildable(VehiclePawn vehicle, VehicleRoleBuildable role) : this(vehicle)
-  {
-    this.role = role;
-    roleKey(this) = role.key;
-  }
-
-  public new void ExposeData()
-  {
-    Scribe_Values.Look(ref uniqueID, "uniqueID", -1);
-    Scribe_References.Look(ref vehicle, "vehicle", true);
-    Scribe_Values.Look(ref roleKey(this), "role", null, true);
-    if (Scribe.mode == LoadSaveMode.Saving)
+    float IThingHolderWithDrawnPawn.HeldPawnDrawPos_Y
     {
-      ThingOwner owner = thingOwner;
-      var pawn = thingOwner.InnerListForReading.FirstOrDefault();
-      owner.contentsLookMode = pawn != null && pawn.IsWorldPawn() ? LookMode.Reference : LookMode.Deep;
+        get
+        {
+            Rot8 rot;
+            if (this.role is VehicleRoleBuildable roleBuildable)
+            {
+                rot = roleBuildable.upgradeComp.parent.BaseFullRotation();
+            }
+            else
+            {
+                rot = vehicle.FullRotation;
+            }
+            return vehicle.DrawPos.y + AltitudeLayer.BuildingOnTop.AltitudeFor().YOffset() + this.role.PawnRenderer.LayerFor(rot);
+        }
     }
-    Scribe_Deep.Look(ref thingOwner, "thingOwner", this);
-    if (Scribe.mode != LoadSaveMode.ResolvingCrossRefs) return;
-    role = new VehicleRole
-    {
-      key = $"{roleKey(this)}_INVALID", label = $"{roleKey(this)} (INVALID)"
-    };
-    role.AddUpgrade(new VehicleUpgrade.RoleUpgrade
-    {
-      key = role.key, label = role.label, handlingTypes = HandlingType.Movement
-    });
-  }
 
-  void IParallelRenderer.DynamicDrawPhaseAt(DrawPhase phase, in TransformData transformData, bool forceDraw)
-  {
-    DynamicDrawPhaseAt(phase, in transformData, forceDraw);
-  }
-
-  float IThingHolderWithDrawnPawn.HeldPawnDrawPos_Y
-  {
-    get
+    float IThingHolderWithDrawnPawn.HeldPawnBodyAngle
     {
-      Rot8 rot;
-      if (role is VehicleRoleBuildable roleBuildable)
-      {
-        rot = roleBuildable.upgradeComp.parent.BaseFullRotation();
-      }
-      else
-      {
-        rot = vehicle.FullRotation;
-      }
-      return vehicle.DrawPos.y + AltitudeLayer.BuildingOnTop.AltitudeFor().YOffset() + role.PawnRenderer.LayerFor(rot);
+        get
+        {
+            Rot8 rot;
+            if (this.role is VehicleRoleBuildable roleBuildable)
+            {
+                rot = roleBuildable.upgradeComp.parent.BaseFullRotation();
+            }
+            else
+            {
+                rot = vehicle.FullRotation;
+            }
+            return this.role.PawnRenderer.AngleFor(rot) + vehicle.Transform.rotation;
+        }
     }
-  }
 
-  float IThingHolderWithDrawnPawn.HeldPawnBodyAngle
-  {
-    get
+    PawnPosture IThingHolderWithDrawnPawn.HeldPawnPosture => PawnPosture.LayingInBedFaceUp;
+
+    void IParallelRenderer.DynamicDrawPhaseAt(DrawPhase phase, in TransformData transformData, bool forceDraw)
     {
-      Rot8 rot;
-      if (role is VehicleRoleBuildable roleBuildable)
-      {
-        rot = roleBuildable.upgradeComp.parent.BaseFullRotation();
-      }
-      else
-      {
-        rot = vehicle.FullRotation;
-      }
-      return role.PawnRenderer.AngleFor(rot) + vehicle.Transform.rotation;
+        DynamicDrawPhaseAt(phase, in transformData, forceDraw);
     }
-  }
 
-  PawnPosture IThingHolderWithDrawnPawn.HeldPawnPosture => PawnPosture.LayingInBedFaceUp;
-
-  public new void DynamicDrawPhaseAt(DrawPhase phase, in TransformData transformData, bool forceDraw = false)
-  {
-    foreach (var item in thingOwner)
+    public new void DynamicDrawPhaseAt(DrawPhase phase, in TransformData transformData, bool forceDraw = false)
     {
-      var value = role.PawnRenderer.RotFor(transformData.orientation);
-      var vector = role.PawnRenderer.DrawOffsetFor(transformData.orientation).RotatedBy(transformData.orientation == Rot8.West ? -transformData.rotation : transformData.rotation);
-      item.Drawer.renderer.DynamicDrawPhaseAt(phase, transformData.position + vector, value, true);
+        foreach (var item in thingOwner)
+        {
+            var value = role.PawnRenderer.RotFor(transformData.orientation);
+            var vector = role.PawnRenderer.DrawOffsetFor(transformData.orientation).RotatedBy(transformData.orientation == Rot8.West ? -transformData.rotation : transformData.rotation);
+            item.Drawer.renderer.DynamicDrawPhaseAt(phase, transformData.position + vector, value, neverAimWeapon: true);
+        }
     }
-  }
+
+
+    public VehicleRoleHandlerBuildable()
+    {
+        thingOwner ??= new ThingOwner<Pawn>(this, false);
+    }
+
+    public VehicleRoleHandlerBuildable(VehiclePawn vehicle) : this()
+    {
+        uniqueID = VehicleIdManager.Instance.GetNextHandlerId();
+        this.vehicle = vehicle;
+    }
+
+    public VehicleRoleHandlerBuildable(VehiclePawn vehicle, VehicleRoleBuildable role) : this(vehicle)
+    {
+        this.role = role;
+        roleKey(this) = role.key;
+    }
+
+    public new void ExposeData()
+    {
+        Scribe_Values.Look(ref uniqueID, "uniqueID", -1);
+        Scribe_References.Look(ref vehicle, "vehicle", true);
+        Scribe_Values.Look(ref roleKey(this), "role", null, true);
+        if (Scribe.mode == LoadSaveMode.Saving)
+        {
+            ThingOwner owner = this.thingOwner;
+            var pawn = this.thingOwner.InnerListForReading.FirstOrDefault();
+            owner.contentsLookMode = (pawn != null && pawn.IsWorldPawn()) ? LookMode.Reference : LookMode.Deep;
+        }
+        Scribe_Deep.Look(ref thingOwner, "thingOwner", this);
+        if (Scribe.mode != LoadSaveMode.ResolvingCrossRefs) return;
+        role = new VehicleRole
+        {
+            key = $"{roleKey(this)}_INVALID",
+            label = $"{roleKey(this)} (INVALID)"
+        };
+        role.AddUpgrade(new VehicleUpgrade.RoleUpgrade
+        {
+            key = role.key,
+            label = role.label,
+            handlingTypes = HandlingType.Movement,
+        });
+    }
 }

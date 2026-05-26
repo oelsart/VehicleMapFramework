@@ -1,56 +1,56 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Defs>
-  <!-- Reportstrings are automatically overwritten and do not need to be translated -->
-  <JobDef>
-    <defName>VMF_GotoDestMap</defName>
-    <driverClass>VehicleMapFramework.JobDriver_GotoDestMap</driverClass>
-    <carryThingAfterJob>true</carryThingAfterJob>
-    <dropThingBeforeJob>false</dropThingBeforeJob>
-  </JobDef>
+	<!-- Reportstrings are automatically overwritten and do not need to be translated -->
+	<JobDef>
+		<defName>VMF_GotoDestMap</defName>
+		<driverClass>VehicleMapFramework.JobDriver_GotoDestMap</driverClass>
+		<carryThingAfterJob>true</carryThingAfterJob>
+		<dropThingBeforeJob>false</dropThingBeforeJob>
+	</JobDef>
 
-  <JobDef>
-    <defName>VMF_GotoAcrossMaps</defName>
-    <driverClass>VehicleMapFramework.JobDriver_GotoAcrossMaps</driverClass>
-    <reportString>moving.</reportString>
-    <allowOpportunisticPrefix>true</allowOpportunisticPrefix>
-    <carryThingAfterJob>true</carryThingAfterJob>
-    <dropThingBeforeJob>false</dropThingBeforeJob>
-  </JobDef>
+	<JobDef>
+		<defName>VMF_GotoAcrossMaps</defName>
+		<driverClass>VehicleMapFramework.JobDriver_GotoAcrossMaps</driverClass>
+		<reportString>moving.</reportString>
+		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
+		<carryThingAfterJob>true</carryThingAfterJob>
+		<dropThingBeforeJob>false</dropThingBeforeJob>
+	</JobDef>
+	
+	<JobDef>
+		<defName>VMF_BoardAcrossMaps</defName>
+		<driverClass>VehicleMapFramework.JobDriver_BoardAcrossMaps</driverClass>
+		<reportString>Entering TargetA.</reportString>
+		<casualInterruptible>false</casualInterruptible>
+	</JobDef>
 
-  <JobDef>
-    <defName>VMF_BoardAcrossMaps</defName>
-    <driverClass>VehicleMapFramework.JobDriver_BoardAcrossMaps</driverClass>
-    <reportString>Entering TargetA.</reportString>
-    <casualInterruptible>false</casualInterruptible>
-  </JobDef>
+	<JobDef>
+		<defName>VMF_RefuelVehicleTank</defName>
+		<driverClass>VehicleMapFramework.JobDriver_RefuelVehicleTank</driverClass>
+		<reportString>Refueling TargetA</reportString>
+		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
+		<casualInterruptible>false</casualInterruptible>
+	</JobDef>
 
-  <JobDef>
-    <defName>VMF_RefuelVehicleTank</defName>
-    <driverClass>VehicleMapFramework.JobDriver_RefuelVehicleTank</driverClass>
-    <reportString>Refueling TargetA</reportString>
-    <allowOpportunisticPrefix>true</allowOpportunisticPrefix>
-    <casualInterruptible>false</casualInterruptible>
-  </JobDef>
-
-  <!--<JobDef>
-      <defName>VMF_RefuelVehicleTankAtomic</defName>
-      <driverClass>VehicleMapFramework.JobDriver_RefuelVehicleTankAtomic</driverClass>
-      <reportString>Refueling TargetA</reportString>
-      <allowOpportunisticPrefix>true</allowOpportunisticPrefix>
-      <casualInterruptible>false</casualInterruptible>
-  </JobDef>-->
-
-  <JobDef>
-    <defName>VMF_RepairMapVehicle</defName>
-    <driverClass>VehicleMapFramework.JobDriver_RepairMapVehicle</driverClass>
-    <reportString>Repairing TargetA.</reportString>
-    <allowOpportunisticPrefix>true</allowOpportunisticPrefix>
-  </JobDef>
-
-  <JobDef>
-    <defName>VMF_DeconstructVehicleSegment</defName>
-    <driverClass>VehicleMapFramework.JobDriver_DeconstructSegment</driverClass>
-    <allowOpportunisticPrefix>true</allowOpportunisticPrefix>
-  </JobDef>
-
+	<!--<JobDef>
+		<defName>VMF_RefuelVehicleTankAtomic</defName>
+		<driverClass>VehicleMapFramework.JobDriver_RefuelVehicleTankAtomic</driverClass>
+		<reportString>Refueling TargetA</reportString>
+		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
+		<casualInterruptible>false</casualInterruptible>
+	</JobDef>-->
+	
+	<JobDef>
+		<defName>VMF_RepairMapVehicle</defName>
+		<driverClass>VehicleMapFramework.JobDriver_RepairMapVehicle</driverClass>
+		<reportString>Repairing TargetA.</reportString>
+		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
+	</JobDef>
+	
+	<JobDef>
+		<defName>VMF_DeconstructVehicleSegment</defName>
+		<driverClass>VehicleMapFramework.JobDriver_DeconstructSegment</driverClass>
+		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
+	</JobDef>
+	
 </Defs>

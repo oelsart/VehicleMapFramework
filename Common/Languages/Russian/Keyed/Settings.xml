@@ -6,48 +6,28 @@
   <VMF_Settings.DrawPlanet>Показывать карту мира во время каравана.</VMF_Settings.DrawPlanet>
   <VMF_Settings.WeightFactor>Фактор веса предметов на карте техники.</VMF_Settings.WeightFactor>
   <VMF_Settings.AutoGetOffPlayer>Пешки игрока автоматически покидают карту техники.</VMF_Settings.AutoGetOffPlayer>
-  <VMF_Settings.AutoGetOffNonPlayer>Пешки не-игрока автоматически покидают карту техники.
-  </VMF_Settings.AutoGetOffNonPlayer>
+  <VMF_Settings.AutoGetOffNonPlayer>Пешки не-игрока автоматически покидают карту техники.</VMF_Settings.AutoGetOffNonPlayer>
   <VMF_Settings.CrossMapJobProtect>Защита от работ, несовместимых с межкарточными.</VMF_Settings.CrossMapJobProtect>
-  <VMF_Settings.CrossMapJobProtect.Tooltip>Workgiver'ы, вызывающие проблемы со стеком пешек из-за ошибки "10 работ за
-    один такт", будут автоматически исключены из поддержки межкарточных работ.\nЭто улучшает стабильность геймплея,
-    но затрудняет обнаружение неподдерживаемых работ (Неподдерживаемые работы будут исправлены при сообщении
-    автору).
-  </VMF_Settings.CrossMapJobProtect.Tooltip>
-  <VMF_Settings.ThreadingPathCost>Многопоточность для расчёта стоимости пути на крупной технике.
-  </VMF_Settings.ThreadingPathCost>
-  <VMF_Settings.MinAreaForThreading>Минимальная площадь техники для расчёта в многопоточности.
-  </VMF_Settings.MinAreaForThreading>
-  <VMF_Settings.AsyncClosestThing>Многопоточность расчётов для поиска ближайшего достижимого объекта.
-  </VMF_Settings.AsyncClosestThing>
-  <VMF_Settings.MinSearchSetCount>Минимальное количество наборов поиска для расчёта в многопоточности.
-  </VMF_Settings.MinSearchSetCount>
+  <VMF_Settings.CrossMapJobProtect.Tooltip>Workgiver'ы, вызывающие проблемы со стеком пешек из-за ошибки "10 работ за один такт", будут автоматически исключены из поддержки межкарточных работ.\nЭто улучшает стабильность геймплея, но затрудняет обнаружение неподдерживаемых работ (Неподдерживаемые работы будут исправлены при сообщении автору).</VMF_Settings.CrossMapJobProtect.Tooltip>
+  <VMF_Settings.ThreadingPathCost>Многопоточность для расчёта стоимости пути на крупной технике.</VMF_Settings.ThreadingPathCost>
+  <VMF_Settings.MinAreaForThreading>Минимальная площадь техники для расчёта в многопоточности.</VMF_Settings.MinAreaForThreading>
+  <VMF_Settings.AsyncClosestThing>Многопоточность расчётов для поиска ближайшего достижимого объекта.</VMF_Settings.AsyncClosestThing>
+  <VMF_Settings.MinSearchSetCount>Минимальное количество наборов поиска для расчёта в многопоточности.</VMF_Settings.MinSearchSetCount>
 
   <VMF_Settings.Tab.PUAHPatch>Патч PUAH</VMF_Settings.Tab.PUAHPatch>
 
   <VMF_Settings.Tab.DynamicPatches>Динамические патчи</VMF_Settings.Tab.DynamicPatches>
   <VMF_Settings.EnableDynamicPatches>Включить динамическое патчинг.</VMF_Settings.EnableDynamicPatches>
-  <VMF_Settings.EnableDynamicPatches.Tooltip>Применять Harmony-патчи при наличии включённой на карте техники в мире.
-  </VMF_Settings.EnableDynamicPatches.Tooltip>
+  <VMF_Settings.EnableDynamicPatches.Tooltip>Применять Harmony-патчи при наличии включённой на карте техники в мире.</VMF_Settings.EnableDynamicPatches.Tooltip>
   <VMF_Settings.EnableDynamicUnpatches>Включить динамическое снятие патчей.</VMF_Settings.EnableDynamicUnpatches>
-  <VMF_Settings.EnableDynamicUnpatches.Tooltip>Снимать Harmony-патчи при отсутствии включённой на карте техники в
-    мире.
-  </VMF_Settings.EnableDynamicUnpatches.Tooltip>
+  <VMF_Settings.EnableDynamicUnpatches.Tooltip>Снимать Harmony-патчи при отсутствии включённой на карте техники в мире.</VMF_Settings.EnableDynamicUnpatches.Tooltip>
   <VMF_Settings.DynamicPatchLevel>Уровень динамического патчинга</VMF_Settings.DynamicPatchLevel>
   <VMF_PatchLevel.Sensitive>Чувствительный</VMF_PatchLevel.Sensitive>
   <VMF_PatchLevel.Cautious>Осторожный</VMF_PatchLevel.Cautious>
   <VMF_PatchLevel.Safe>Безопасный</VMF_PatchLevel.Safe>
-  <VMF_PatchLevel.Sensitive.Tooltip>Включает/выключает применение патчей, включая Transpiler'ы, выполняющие довольно
-    сложные операции, такие как поиск по индексам IL, и требующие больших вычислительных затрат.
-  </VMF_PatchLevel.Sensitive.Tooltip>
-  <VMF_PatchLevel.Cautious.Tooltip>Включает/выключает применение патчей, включая Transpiler'ы, считающиеся
-    относительно безопасными, такие как простые замены методов.
-  </VMF_PatchLevel.Cautious.Tooltip>
-  <VMF_PatchLevel.Safe.Tooltip>Включает/выключает применение патчей, которые могут быть выполнены безопасно и быстро,
-    например Prefixes и Postfixes.
-  </VMF_PatchLevel.Safe.Tooltip>
-  <VMF_Settings.RoofedPatch>Учитывать также состояние крыши на базовой карте для крыши на карте техники.\n(Влияет на
-    производительность)
-  </VMF_Settings.RoofedPatch>
+  <VMF_PatchLevel.Sensitive.Tooltip>Включает/выключает применение патчей, включая Transpiler'ы, выполняющие довольно сложные операции, такие как поиск по индексам IL, и требующие больших вычислительных затрат.</VMF_PatchLevel.Sensitive.Tooltip>
+  <VMF_PatchLevel.Cautious.Tooltip>Включает/выключает применение патчей, включая Transpiler'ы, считающиеся относительно безопасными, такие как простые замены методов.</VMF_PatchLevel.Cautious.Tooltip>
+  <VMF_PatchLevel.Safe.Tooltip>Включает/выключает применение патчей, которые могут быть выполнены безопасно и быстро, например Prefixes и Postfixes.</VMF_PatchLevel.Safe.Tooltip>
+  <VMF_Settings.RoofedPatch>Учитывать также состояние крыши на базовой карте для крыши на карте техники.\n(Влияет на производительность)</VMF_Settings.RoofedPatch>
 
 </LanguageData>
