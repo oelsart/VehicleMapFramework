@@ -973,7 +973,7 @@ public static class Patch_FloatMenuOptionProvider_OrderVehicle_PawnGotoAction
       }
       else
       {
-        Job job = new(VMF_DefOf.VMF_GotoAcrossMaps, gotoLoc);
+        var job = JobMaker.MakeJob(VMF_DefOf.VMF_GotoAcrossMaps, gotoLoc);
         job.SetSpotsToJobAcrossMaps(vehicle, exitSpot, enterSpot);
         job.globalTarget = new GlobalTargetInfo(gotoLoc, map);
         var baseMap = map.BaseMap();
