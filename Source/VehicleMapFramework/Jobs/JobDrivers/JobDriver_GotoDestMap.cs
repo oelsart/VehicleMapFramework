@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Verse;
 using Verse.AI;
 
@@ -74,6 +73,6 @@ public class JobDriver_GotoDestMap : JobDriverAcrossMaps
 
     public class ThinkNode_JobFromGotoDestMap : ThinkNode
     {
-        public override ThinkResult TryIssueJobPackage(Pawn pawn, JobIssueParams jobParams) => throw new NotImplementedException();
+        public override ThinkResult TryIssueJobPackage(Pawn pawn, JobIssueParams jobParams) => ThinkResult.NoJob;
     }
 }
