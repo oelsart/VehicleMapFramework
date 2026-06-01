@@ -25,1341 +25,1422 @@ public class MapVehicleEventDef : Def;
 [StaticConstructorOnStartup]
 public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
 {
-    private Map interiorMap;
-    private VehicleMapFollower mapFollower;
-    
-    public Vector3 cachedDrawPos;
-    public Vector3 cachedExactPos;
-    
-    private bool allowEnter = true;
-    private bool allowExit = true;
+  private Map interiorMap;
+  private VehicleMapFollower mapFollower;
 
-    public bool impassableCellsDirty = true;
-    public bool mapEdgeCellsDirty = true;
-    public bool walkableCellsDirty = true;
-    public bool enterPositionsDirty = true;
-    private int cellDesignationsDirtyTick;
-    private int vehicleCaravanOrStashedVehicleCachedTick;
+  public Vector3 cachedDrawPos;
+  public Vector3 cachedExactPos;
 
-    internal bool resizeRequest;
+  private bool allowEnter = true;
+  private bool allowExit = true;
 
-    private readonly List<CompVehicleEnterSpot> tmpEnterComps = [];
+  public bool impassableCellsDirty = true;
+  public bool mapEdgeCellsDirty = true;
+  public bool walkableCellsDirty = true;
+  public bool enterPositionsDirty = true;
+  private int cellDesignationsDirtyTick;
+  private int vehicleCaravanOrStashedVehicleCachedTick;
 
-    private static Def pipeNetDef;
+  internal bool resizeRequest;
 
-    private static readonly Material ClipMat =
-        SolidColorMaterials.NewSolidColorMaterial(new Color(0.3f, 0.1f, 0.1f, 0.5f), ShaderDatabase.MetaOverlay);
-    private static readonly Texture2D iconIncreasePriority = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/IncreasePriority");
-    private static readonly Texture2D iconDecreasePriority = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/DecreasePriority");
-    private static readonly Texture2D iconAllowEnter = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/AllowEnter");
-    private static readonly Texture2D iconAllowExit = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/AllowExit");
-    private static readonly Texture2D iconEye = ContentFinder<Texture2D>.Get("VehicleMapFramework/UI/Eye");
-    private static readonly Type t_SectionLayer_Zones = GenTypes.GetTypeInAnyAssembly("Verse.SectionLayer_Zones", "Verse");
-    private static readonly FastInvokeHandler DirtyCellDesignationsCache =
-        MethodInvoker.GetHandler(AccessTools.Method(typeof(DesignationManager), "DirtyCellDesignationsCache"));
-    private static readonly List<DesignationDef> cellDesignations =
-        DefDatabase<DesignationDef>.AllDefs.Where(d => d.targetType == TargetType.Cell).ToList();
-    internal static readonly AccessTools.FieldRef<MapDrawer, Section[,]> sections = AccessTools.FieldRefAccess<MapDrawer, Section[,]>("sections");
+  private readonly List<CompVehicleEnterSpot> tmpEnterComps = [];
 
-    EventManager<MapVehicleEventDef> IEventManager<MapVehicleEventDef>.EventRegistry { get; set; }
+  private static Def pipeNetDef;
 
-    public EventManager<MapVehicleEventDef> MapVehicleEventManager => ((IEventManager<MapVehicleEventDef>)this).EventRegistry;
+  private static readonly Material ClipMat =
+    SolidColorMaterials.NewSolidColorMaterial(new Color(0.3f, 0.1f, 0.1f, 0.5f), ShaderDatabase.MetaOverlay);
 
-    public Map VehicleMap
+  private static readonly CachedTexture iconIncreasePriority = new("VehicleMapFramework/UI/IncreasePriority");
+
+  private static readonly CachedTexture iconDecreasePriority = new("VehicleMapFramework/UI/DecreasePriority");
+
+  private static readonly CachedTexture iconAllowEnter = new("VehicleMapFramework/UI/AllowEnter");
+  private static readonly CachedTexture iconAllowExit = new("VehicleMapFramework/UI/AllowExit");
+  private static readonly CachedTexture iconEye = new("VehicleMapFramework/UI/Eye");
+
+  private static readonly Type t_SectionLayer_Zones =
+    GenTypes.GetTypeInAnyAssembly("Verse.SectionLayer_Zones", "Verse");
+
+  private static readonly FastInvokeHandler DirtyCellDesignationsCache =
+    MethodInvoker.GetHandler(AccessTools.Method(typeof(DesignationManager), "DirtyCellDesignationsCache"));
+
+  private static readonly List<DesignationDef> cellDesignations =
+    DefDatabase<DesignationDef>.AllDefs.Where(d => d.targetType == TargetType.Cell).ToList();
+
+  internal static readonly AccessTools.FieldRef<MapDrawer, Section[,]> sections =
+    AccessTools.FieldRefAccess<MapDrawer, Section[,]>("sections");
+
+  EventManager<MapVehicleEventDef> IEventManager<MapVehicleEventDef>.EventRegistry { get; set; }
+
+  public EventManager<MapVehicleEventDef> MapVehicleEventManager =>
+    ((IEventManager<MapVehicleEventDef>)this).EventRegistry;
+
+  public Map VehicleMap
+  {
+    get
     {
-        get
-        {
-            if (interiorMap == null)
-            {
-                GenerateVehicleMap(Map);
-            }
-            return interiorMap;
-        }
+      if (interiorMap == null)
+      {
+        GenerateVehicleMap(Map);
+      }
+
+      return interiorMap;
     }
+  }
 
-    public Map CurrentLevel
+  public Map CurrentLevel
+  {
+    get => field ?? interiorMap;
+    set;
+  }
+
+  [UsedImplicitly] public bool AllowEnter => allowEnter;
+
+  [UsedImplicitly] public bool AllowExit => allowExit;
+
+  [CanBeNull]
+  public WorldObject VehicleCaravanOrStashedVehicle
+  {
+    get
     {
-        get => field ?? interiorMap;
-        set;
+      var ticks = GenTicks.TicksGame;
+      if (GenTicks.TicksGame == vehicleCaravanOrStashedVehicleCachedTick)
+        return field;
+
+      vehicleCaravanOrStashedVehicleCachedTick = ticks;
+      field = ParentHolder as VehicleCaravan as WorldObject ??
+              Find.World.GetComponent<VehicleWorldObjectsHolder>().StashedVehicleObject(this);
+      return field;
     }
+  }
 
-    [UsedImplicitly]
-    public bool AllowEnter => allowEnter;
-
-    [UsedImplicitly]
-    public bool AllowExit => allowExit;
-    
-    [CanBeNull]
-    public WorldObject VehicleCaravanOrStashedVehicle
+  public HashSet<IntVec3> CachedImpassableCells
+  {
+    get
     {
-        get
+      if (impassableCellsDirty)
+      {
+        impassableCellsDirty = false;
+        field.Clear();
+        var sizeX = interiorMap.Size.x;
+        var sizeZ = interiorMap.Size.z;
+        var terrainGrid = interiorMap.terrainGrid;
+        for (var x = 0; x < sizeX; x++)
         {
-            var ticks = GenTicks.TicksGame;
-            if (GenTicks.TicksGame == vehicleCaravanOrStashedVehicleCachedTick)
-                return field;
-
-            vehicleCaravanOrStashedVehicleCachedTick = ticks;
-            field = ParentHolder as VehicleCaravan as WorldObject ??
-                    Find.World.GetComponent<VehicleWorldObjectsHolder>().StashedVehicleObject(this);
-            return field;
+          for (var z = 0; z < sizeZ; z++)
+          {
+            if (terrainGrid.TerrainAt(z * sizeX + x) is { passability: Traversability.Impassable })
+              field.Add(new IntVec3(x, 0, z));
+          }
         }
+
+        var list = interiorMap.listerThings.ThingsOfDef(VMF_DefOf.VMF_VehicleStructureFilled);
+        for (var i = 0; i < list.Count; i++)
+        {
+          field.Add(list[i].Position);
+        }
+      }
+
+      return field;
     }
+  } = [];
 
-    public HashSet<IntVec3> CachedImpassableCells
+  public HashSet<IntVec3> CachedEmptyStructureCells
+  {
+    get
     {
-        get
-        {
-            if (impassableCellsDirty)
-            {
-                impassableCellsDirty = false;
-                field.Clear();
-                var sizeX = interiorMap.Size.x;
-                var sizeZ = interiorMap.Size.z;
-                var terrainGrid = interiorMap.terrainGrid;
-                for (var x = 0; x < sizeX; x++)
-                {
-                    for (var z = 0; z < sizeZ; z++)
-                    {
-                        if (terrainGrid.TerrainAt(z * sizeX + x) is { passability: Traversability.Impassable })
-                            field.Add(new IntVec3(x, 0, z));
-                    }
-                }
+      if (field is not null) return field;
+      var props = VehicleDef.GetModExtension<VehicleMapProps>();
+      if (props != null)
+      {
+        field = [.. props.EmptyStructureCells.Select(c => c.ToIntVec3)];
+      }
+      else
+      {
+        field = [];
+      }
 
-                var list = interiorMap.listerThings.ThingsOfDef(VMF_DefOf.VMF_VehicleStructureFilled);
-                for (var i = 0; i < list.Count; i++)
-                {
-                    field.Add(list[i].Position);
-                }
-            }
-            return field;
-        }
-    } = [];
-
-    public HashSet<IntVec3> CachedEmptyStructureCells
-    {
-        get
-        {
-            if (field is not null) return field;
-            var props = VehicleDef.GetModExtension<VehicleMapProps>();
-            if (props != null)
-            {
-                field = [.. props.EmptyStructureCells.Select(c => c.ToIntVec3)];
-            }
-            else
-            {
-                field = [];
-            }
-            return field;
-        }
+      return field;
     }
+  }
 
-    public HashSet<IntVec3> CachedExpandableCells
+  public HashSet<IntVec3> CachedExpandableCells
+  {
+    get
     {
-        get
-        {
-            if (field != null) return field;
-            var props = VehicleDef.GetModExtension<VehicleMapProps>();
-            if (props != null)
-            {
-                field = [.. props.ExpandableCells.Select(c => c.ToIntVec3)];
-            }
-            else
-            {
-                field = [];
-            }
-            return field;
-        }
+      if (field != null) return field;
+      var props = VehicleDef.GetModExtension<VehicleMapProps>();
+      if (props != null)
+      {
+        field = [.. props.ExpandableCells.Select(c => c.ToIntVec3)];
+      }
+      else
+      {
+        field = [];
+      }
+
+      return field;
     }
+  }
 
-    public HashSet<IntVec3> CachedOutOfBoundsCells
+  public HashSet<IntVec3> CachedOutOfBoundsCells
+  {
+    get
     {
-        get
-        {
-            if (field != null) return field;
-            var props = VehicleDef.GetModExtension<VehicleMapProps>();
-            if (props != null)
-            {
-                field = [.. props.OutOfBoundsCells.Select(c => c.ToIntVec3)];
-            }
-            else
-            {
-                field = [];
-            }
-            return field;
-        }
+      if (field != null) return field;
+      var props = VehicleDef.GetModExtension<VehicleMapProps>();
+      if (props != null)
+      {
+        field = [.. props.OutOfBoundsCells.Select(c => c.ToIntVec3)];
+      }
+      else
+      {
+        field = [];
+      }
+
+      return field;
     }
+  }
 
-    public CellRect ValidMapRect
+  public CellRect ValidMapRect
+  {
+    get
     {
-        get
-        {
-            _ = CachedMapEdgeCells;
-            return field;
-        }
-        private set;
+      _ = CachedMapEdgeCells;
+      return field;
     }
+    private set;
+  }
 
-    public List<IntVec3> CachedMapEdgeCells
+  public List<IntVec3> CachedMapEdgeCells
+  {
+    get
     {
-        get
-        {
-            if (mapEdgeCellsDirty)
-            {
-                mapEdgeCellsDirty = false;
-                walkableCellsDirty = true;
-                enterPositionsDirty = true;
-                field.Clear();
-                var cellRect = interiorMap.BoundsRect(1);
-                var cachedOutOfBoundsCells = CachedOutOfBoundsCells;
-                var cachedExpandableCells = CachedExpandableCells;
-                var cachedImpassableCells = CachedImpassableCells;
-                for (var i = 0; i < 4; i++)
-                {
-                    var rot = new Rot4(i);
-                    var facingInside = rot.Opposite.FacingCell;
-                    // GetEdgeCellsはminからの列挙なので東と南は反転させ時計回りにしておく。
-                    foreach (var c in cellRect.EdgeRectClockwise(rot))
-                    {
-                        var c2 = c;
-                        while (cachedOutOfBoundsCells.Contains(c2) ||
-                               (cachedExpandableCells.Contains(c2) && cachedImpassableCells.Contains(c2)))
-                        {
-                            c2 += facingInside;
-                        }
-
-                        if (c2.InBounds(interiorMap) && !cachedImpassableCells.Contains(c2))
-                        {
-                            field.AddUnique(c2);
-                        }
-                    }
-                }
-                ValidMapRect = CellRect.FromCellList(field);
-            }
-            return field;
-        }
-    } = [];
-
-    public Dictionary<IntVec3, District> CachedWalkableMapEdgeCells
-    {
-        get
-        {
-            if (walkableCellsDirty)
-            {
-                var mapEdgeCells = CachedMapEdgeCells;
-                walkableCellsDirty = false;
-                CrossMapReachabilityCache.ClearCacheFor(interiorMap);
-                field.Clear();
-                CachedEdgeDistricts.Clear();
-                for (var i = 0; i < mapEdgeCells.Count; i++)
-                {
-                    var cell = mapEdgeCells[i];
-                    if (cell.Walkable(interiorMap))
-                    {
-                        var district = RegionAndRoomQuery.DistirctAtFast(cell, interiorMap);
-                        field[cell] = district;
-                        CachedEdgeDistricts.Add(district);
-                    }
-                }
-            }
-            return field;
-        }
-    } = [];
-
-    public HashSet<District> CachedEdgeDistricts
-    {
-        get
-        {
-            _ = CachedWalkableMapEdgeCells;
-            return field;
-        }
-    } = [];
-
-    private List<IntVec3?> CachedEnterPositions
-    {
-        get
-        {
-            if (enterPositionsDirty)
-            {
-                var mapEdgeCells = CachedMapEdgeCells;
-                enterPositionsDirty = false;
-                CrossMapReachabilityCache.ClearCacheFor(interiorMap);
-                field.Clear();
-                for (var i = 0; i < mapEdgeCells.Count; i++)
-                {
-                    field.Add(null);
-                }
-            }
-            return field;
-        }
-    } = [];
-
-    public IntVec3 GetCachedEnterPosition(int index)
-    {
-        var enterPositions = CachedEnterPositions;
-        var pos = enterPositions[index];
-        if (pos.HasValue) return pos.Value;
-
-        var cell = CachedMapEdgeCells[index];
-        pos = enterPositions[index] = CachedWalkableMapEdgeCells.ContainsKey(cell) &&
-                                      CrossMapReachabilityUtility.EnterVehiclePosition(
-                                              new TargetInfo(cell, interiorMap)) is
-                                          { IsValid: true } c
-            ? c
-            : IntVec3.Invalid;
-        return pos.Value;
-    }
-
-    private void WalkableCellsDirtyIfNeeded(Building building)
-    {
-        if (!building.def.AffectsReachability) return;
-        foreach (var c in building.OccupiedRect())
-        {
-            if (CachedMapEdgeCells.Contains(c))
-            {
-                walkableCellsDirty = true;
-                enterPositionsDirty = true;
-                CrossMapReachabilityCache.ClearCacheFor(interiorMap);
-                break;
-            }
-        }
-    }
-    
-    private void WalkableCellsDirtyIfNeeded(IntVec3 c)
-    {
-        if (CachedMapEdgeCells.Contains(c))
-        {
-            walkableCellsDirty = true;
-            enterPositionsDirty = true;
-            CrossMapReachabilityCache.ClearCacheFor(interiorMap);
-        }
-    }
-
-    public CompNpcVehicleMap CompNpcVehicleMap => field ??= GetComp<CompNpcVehicleMap>();
-    
-    public CompDelayedKill CompDelayedKill => field ??= GetComp<CompDelayedKill>();
-
-    public MapComponent InterceptorMapComponent => field ??= interiorMap.GetComponent(DefenseGrid.InterceptorMapComponent);
-
-    public List<CompVehicleEnterSpot> EnterComps { get; } = [];
-
-    public List<CompFuelTank> FuelTankComps { get; } = [];
-    
-    public List<CompMapExpander> MapExpanderComps { get; } = [];
-    
-    public List<CompBuildableContainer> ContainerComps { get; } = [];
-
-    public override Vector3 DrawPos => Spawned && Find.CurrentMap != CurrentLevel ? base.DrawPos : cachedDrawPos;
-
-    public new bool ThreatDisabled(IAttackTargetSearcher disabledFor) => VehicleMap.mapPawns.FreeHumanlikesSpawnedOfFaction(Faction).Empty() && base.ThreatDisabled(disabledFor);
-
-    public new float TargetPriorityFactor => 0.15f;
-
-    public override IEnumerable<Gizmo> GetGizmos()
-    {
-        foreach (var gizmo in base.GetGizmos()) yield return gizmo;
-        if (Faction != Faction.OfPlayer && !DebugSettings.ShowDevGizmos)
-            yield break;
-        
-        yield return new Command_Action
-        {
-            action = () =>
-            {
-                //リンクされたストレージの優先度が変わりすぎてしまうのを防ぎかつ全てのストレージにMoteを出したいので、一度優先度をキャッシュしておく
-                var allGroups = interiorMap.haulDestinationManager.AllGroupsListForReading;
-                var priorityList = allGroups.Select(g => g.Settings.Priority).ToList();
-                for (var i = 0; i < allGroups.Count; i++)
-                {
-                    allGroups[i].Settings.Priority = (StoragePriority)Math.Min((sbyte)(priorityList[i] + 1), (sbyte)StoragePriority.Critical);
-                    MoteMaker.ThrowText(allGroups[i].CellsList[0].ToVector3Shifted().ToBaseMapCoord(this), Map, allGroups[i].Settings.Priority.ToString(), Color.white);
-                }
-            },
-            defaultLabel = "VMF_IncreasePriority".Translate(),
-            defaultDesc = "VMF_IncreasePriorityDesc".Translate(),
-            icon = iconIncreasePriority,
-        };
-
-        yield return new Command_Action
-        {
-            action = () =>
-            {
-                var allGroups = interiorMap.haulDestinationManager.AllGroupsListForReading;
-                var priorityList = allGroups.Select(g => g.Settings.Priority).ToList();
-                for (var i = 0; i < allGroups.Count; i++)
-                {
-                    allGroups[i].Settings.Priority = (StoragePriority)Math.Max((sbyte)(priorityList[i] - 1), (sbyte)StoragePriority.Low);
-                    MoteMaker.ThrowText(allGroups[i].CellsList[0].ToVector3Shifted().ToBaseMapCoord(this), Map, allGroups[i].Settings.Priority.ToString(), Color.white);
-                }
-            },
-            defaultLabel = "VMF_DecreasePriority".Translate(),
-            defaultDesc = "VMF_DecreasePriorityDesc".Translate(),
-            icon = iconDecreasePriority,
-        };
-
-        yield return new Command_Toggle
-        {
-            isActive = () => allowEnter,
-            toggleAction = () => allowEnter = !allowEnter,
-            defaultLabel = "VMF_AllowEnter".Translate(),
-            defaultDesc = "VMF_AllowEnterDesc".Translate(),
-            icon = iconAllowEnter,
-        };
-
-        yield return new Command_Toggle
-        {
-            isActive = () => allowExit,
-            toggleAction = () => allowExit = !allowExit,
-            defaultLabel = "VMF_AllowsGetOff".Translate(),
-            defaultDesc = "VMF_AllowsGetOffDesc".Translate(),
-            icon = iconAllowExit,
-        };
-
-        yield return new Command_ToggleWithIcon
-        {
-            toggleAction = () =>
-            {
-                if (Find.CurrentMap == interiorMap && Spawned)
-                {
-                    Current.Game.CurrentMap = Map;
-                    return;
-                }
-                Patch_Game_CurrentMap.ForceSet = true;
-                Current.Game.CurrentMap = interiorMap;
-            },
-            isActive = () => Find.CurrentMap != interiorMap || !Spawned,
-            defaultLabel = interiorMap.Parent.LabelCap,
-            icon = VehicleMapUIRenderer.GetVehicleMapTexture(this, Rot4.East, new Vector2Int(128, 128)),
-            miniIcon = iconEye,
-            miniIconSize = 28f
-        };
-
-        if (DebugSettings.ShowDevGizmos)
-        {
-            yield return new Command_FocusVehicleMap();
-            yield return new Command_Toggle
-            {
-                defaultLabel = "Debug draw: bridge cells",
-                Order = 5005,
-                isActive = () => CompMapExpander.debugDraw,
-                toggleAction = () => CompMapExpander.debugDraw = !CompMapExpander.debugDraw
-            };
-            yield return new Command_Action
-            {
-                defaultLabel = "Flash CachedMapEdgeCells",
-                Order = 5001,
-                action = () =>
-                {
-                    foreach (var c in CachedMapEdgeCells) interiorMap.debugDrawer.FlashCell(c);
-                }
-            };
-            yield return new Command_Action
-            {
-                defaultLabel = "Flash CachedWalkableMapEdgeCells",
-                Order = 5002,
-                action = () =>
-                {
-                    foreach (var c in CachedWalkableMapEdgeCells.Keys) interiorMap.debugDrawer.FlashCell(c);
-                }
-            };
-            yield return new Command_Action
-            {
-                defaultLabel = "Flash CachedEnterPositions",
-                Order = 5003,
-                action = () =>
-                {
-                    for (var i = 0; i < CachedMapEdgeCells.Count; i++)
-                    {
-                        var pos = GetCachedEnterPosition(i);
-                        if (pos.IsValid) Map.debugDrawer.FlashCell(pos);
-                    }
-                }
-            };
-        }
-    }
-    
-    public List<CompVehicleEnterSpot> GetSortedEnterComps(IntVec3 cell, EnterCompKind kind = EnterCompKind.All)
-    {
-        tmpEnterComps.Clear();
-        if (EnterComps.Empty()) return tmpEnterComps;
-        for (var i = 0; i < EnterComps.Count; i++)
-        {
-            var comp = EnterComps[i];
-            if (kind == EnterCompKind.RampOnly && !comp.Props.allowPassingVehicle ||
-                kind == EnterCompKind.ZiplineOnly && comp is not CompZipline) continue;
-            if (comp.parent.Position.Walkable(interiorMap) && comp.Available) tmpEnterComps.Add(comp);
-        }
-        tmpEnterComps.SortBy(c => c.parent.Position.DistanceToSquared(cell));
-        return tmpEnterComps;
-    }
-
-    private void GenerateVehicleMap(Map sourceMap)
-    {
-        try
-        {
-            VehicleMapProps props;
-            if ((props = def.GetModExtension<VehicleMapProps>()) != null)
-            {
-                var mapParent = (MapParent_Vehicle)WorldObjectMaker.MakeWorldObject(VMF_DefOf.VMF_VehicleMap);
-                mapParent.mapGenerator = VMF_DefOf.VMF_VehicleMapGenerator;
-                mapParent.vehicle = this;
-                mapParent.Tile = 0;
-                mapParent.SetFaction(Faction);
-                var mapSize = new IntVec3(props.size.x, 1, props.size.z);
-                mapSize.x += 2;
-                mapSize.z += 2;
-                mapParent.sourceMap = sourceMap;
-                interiorMap = MapGenerator.GenerateMap(mapSize, mapParent, mapParent.MapGeneratorDef, mapParent.ExtraGenStepDefs, isPocketMap: true);
-                if (VehicleMapFramework.settings.drawPlanet)
-                {
-                    var size = Patch_Map_MapUpdate.MeshSize;
-                    interiorMap.rememberedCameraPos?.rootPos = new Vector3(size.x / 2f, 0f, size.y / 2f);
-                }
-                Find.World.pocketMaps.Add(mapParent);
-
-                foreach (var c in props.FilledStructureCells)
-                {
-                    GenSpawn.Spawn(VMF_DefOf.VMF_VehicleStructureFilled, c.ToIntVec3, interiorMap).SetFaction(Faction);
-                }
-                foreach (var c in props.EmptyStructureCells)
-                {
-                    interiorMap.terrainGrid.SetTerrain(c.ToIntVec3, VMF_DefOf.VMF_ImpassableFloor);
-                }
-                foreach (var c in props.ExpandableCells)
-                {
-                    interiorMap.terrainGrid.SetTerrain(c.ToIntVec3, VMF_DefOf.VMF_ImpassableFloor);
-                }
-                foreach (var c in CachedOutOfBoundsCells)
-                {
-                    interiorMap.terrainGrid.SetTerrain(c, VMF_DefOf.VMF_ImpassableFloor);
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            VMF_Log.Error($"Error while generating vehicle map.\n{ex}");
-        }
-    }
-
-    internal void RemoveVehicleMap()
-    {
-        LongEventHandler.ExecuteWhenFinished(() =>
-        {
-            if (Find.Maps.Contains(interiorMap))
-            {
-                var pocketMapParent = interiorMap.PocketMapParent;
-                if (pocketMapParent != null)
-                {
-                    pocketMapParent.sourceMap = null;
-                    Find.World.pocketMaps.Remove(pocketMapParent);
-                    Find.World.renderer.wantedMode = WorldRenderMode.None;
-                }
-                Current.Game.DeinitAndRemoveMap(interiorMap, false);
-            }
-            interiorMap = null;
-
-            if (!VehicleMapFramework.settings.dynamicUnpatchEnabled) return;
-            if (Find.Maps.Any(m => m.IsVehicleMap)) return;
-            VMF_Harmony.DynamicPatchAll(VehicleMapFramework.settings.dynamicPatchLevel);
-        });
-    }
-
-    public override void SpawnSetup(Map map, bool respawningAfterLoad)
-    {
-        if (interiorMap is null)
-        {
-            GenerateVehicleMap(map);
-            interiorMap?.events.BuildingSpawned += WalkableCellsDirtyIfNeeded;
-            interiorMap?.events.PathCostRecalculate += WalkableCellsDirtyIfNeeded;
-            _ = CachedMapEdgeCells;
-        }
-        else if (respawningAfterLoad)
-        {
-            interiorMap.events.BuildingSpawned += WalkableCellsDirtyIfNeeded;
-            interiorMap.events.PathCostRecalculate += WalkableCellsDirtyIfNeeded;
-            _ = CachedMapEdgeCells;
-
-            if (VehicleDef.GetModExtension<VehicleMapProps_Unique>() is { baseDef: not null })
-            {
-                FrameDelay.DelayOne<object>(_ => LongEventHandler.ExecuteWhenFinished(() => ResizeNow(false)), null);
-            }
-        }
-        interiorMap?.PocketMapParent?.sourceMap = map;
-
-        if (!Find.World.worldObjects.Contains(interiorMap!.Parent))
-        {
-            Find.World.worldObjects.Add(interiorMap.Parent);
-        }
-        CurrentLevel ??= interiorMap;
-
-        var isGravship = def.HasModExtension<VehicleMapProps_Gravship>();
-        if (isGravship)
-        {
-            if (GravshipUtility.GetPlayerGravEngine_NewTemp(interiorMap) is { launchInfo.doNegativeOutcome: true } engine)
-            {
-                var list = handlers.OfType<VehicleRoleHandlerBuildable>().SelectMany<VehicleRoleHandlerBuildable, Pawn>(h => h.thingOwner).ToList();
-                foreach (var t in list)
-                {
-                    DisembarkPawn(t);
-                }
-                var gravship = GravshipUtility.GenerateGravship(engine);
-                GravshipVehicleUtility.PlaceGravship(null, gravship, gravship.originalPosition, interiorMap);
-                DefDatabase<LandingOutcomeDef>.AllDefsListForReading.RandomElementByWeight(d => d.weight).Worker.ApplyOutcome(gravship);
-                engine.launchInfo = null;
-            }
-        }
-
-        base.SpawnSetup(map, respawningAfterLoad);
-        RegisterEvents();
-        CacheDrawPos(DrawPos);
-        VehiclePawnWithMapCache.RegisterVehicle(this);
-        mapFollower = new VehicleMapFollower(this);
-
-        interiorMap.skyManager = Map.skyManager;
-        interiorMap.weatherDecider = Map.weatherDecider;
-        interiorMap.weatherManager = Map.weatherManager;
-        SetTile();
-
-        if (Find.CurrentMap == interiorMap)
-        {
-            Current.Game.CurrentMap = map;
-        }
-        Transform.rotation = 0f;
-        interiorMap.mapPawns.AllPawns.OfType<VehiclePawn>().Do(v =>
-        {
-            v.Transform.rotation = 0f;
-        });
-        
+      if (mapEdgeCellsDirty)
+      {
+        mapEdgeCellsDirty = false;
+        walkableCellsDirty = true;
         enterPositionsDirty = true;
-    }
-
-    protected override void Tick()
-    {
-        if (Spawned)
+        field.Clear();
+        var cellRect = interiorMap.BoundsRect(1);
+        var cachedOutOfBoundsCells = CachedOutOfBoundsCells;
+        var cachedExpandableCells = CachedExpandableCells;
+        var cachedImpassableCells = CachedImpassableCells;
+        for (var i = 0; i < 4; i++)
         {
-            Resize();
-            if (CompDelayedKill is { KillStarted: true })
+          var rot = new Rot4(i);
+          var facingInside = rot.Opposite.FacingCell;
+          // GetEdgeCellsはminからの列挙なので東と南は反転させ時計回りにしておく。
+          foreach (var c in cellRect.EdgeRectClockwise(rot))
+          {
+            var c2 = c;
+            while (cachedOutOfBoundsCells.Contains(c2) ||
+                   (cachedExpandableCells.Contains(c2) && cachedImpassableCells.Contains(c2)))
             {
-                CompDelayedKill.CompTick();
-                return;
-            }
-            CacheDrawPos(DrawPos);
-            mapFollower?.MapFollowerTick();
-        }
-        else if (this.IsHashIntervalTick(30))
-        {
-            SetTile();
-        }
-        base.Tick();
-    }
-
-    protected override void TickInterval(int delta)
-    {
-        if (Spawned && CompDelayedKill is { KillStarted: true })
-            return;
-        base.TickInterval(delta);
-    }
-
-    private void SetTile()
-    {
-        if (Spawned)
-        {
-            interiorMap?.Parent.Tile = Map.Tile;
-            return;
-        }
-
-        var worldObject2 = GetWorldObject(this);
-        switch (worldObject2)
-        {
-            case AerialVehicleInFlight aerial:
-                Task.Run(() =>
-                {
-                    interiorMap?.Parent.Tile = WorldHelper.GetNearestTile(aerial.DrawPos);
-                });
-                return;
-            case null or MapParent_Vehicle:
-                return;
-            default:
-                interiorMap?.Parent.Tile = worldObject2.Tile;
-                return;
-        }
-
-        static WorldObject GetWorldObject(IThingHolder holder)
-        {
-            while (holder != null)
-            {
-                if (holder is WorldObject worldObject)
-                {
-                    return worldObject;
-                }
-                holder = holder.ParentHolder;
-            }
-            return null;
-        }
-    }
-
-    public override void Notify_MyMapRemoved()
-    {
-        base.Notify_MyMapRemoved();
-        Destroy();
-    }
-
-    public override void Notify_AbandonedAtTile(PlanetTile tile)
-    {
-        base.Notify_AbandonedAtTile(tile);
-        Destroy();
-    }
-
-    public override void Notify_LeftBehind()
-    {
-        base.Notify_LeftBehind();
-        Destroy();
-    }
-
-    public override void Kill(DamageInfo? dinfo, DestroyMode destroyMode = DestroyMode.KillFinalize, bool spawnWreckage = false)
-    {
-        if (Spawned && CompDelayedKill is { KillOnTick: false })
-        {
-            if (dinfo?.Instigator is Pawn instigator)
-            {
-                RecordsUtility.Notify_PawnKilled(this, instigator);
-            }
-            CompDelayedKill.StartKillTimer(destroyMode, spawnWreckage);
-            return;
-        }
-        base.Kill(dinfo, destroyMode, spawnWreckage);
-    }
-
-    public override void Destroy(DestroyMode mode = DestroyMode.Vanish)
-    {
-        var map = Map;
-        if (Spawned)
-        {
-            DisembarkAll();
-        }
-
-        if (interiorMap is null)
-        {
-            base.Destroy(mode);
-            return;
-        }
-
-        if (map is not null)
-        {
-            StringBuilder stringBuilder = new();
-            var flag = false;
-            var allThings = interiorMap.listerThings.AllThings;
-            for (var i = allThings.Count - 1; i >= 0; i--)
-            {
-                var thing = allThings[i];
-                if (mode != DestroyMode.Vanish && thing is { Destroyed: false })
-                {
-                    var positionOnBaseMap = thing.PositionOnBaseMap;
-                    if (thing.def.category == ThingCategory.Building)
-                    {
-                        if (!thing.def.destroyable)
-                        {
-                            allowDestroyNonDestroyable = true;
-                            thing.Destroy();
-                            allowDestroyNonDestroyable = false;
-                        }
-                        else thing.Destroy();
-
-                        if (positionOnBaseMap.Walkable(map) &&
-                            positionOnBaseMap.GetItemCount(map) < positionOnBaseMap.GetMaxItemsAllowedInCell(map))
-                        {
-                            var pos = thing.Position;
-                            thing.Position = positionOnBaseMap;
-                            GenLeaving.DoLeavingsFor(thing, map, DestroyMode.Deconstruct);
-                            thing.Position = pos;
-                        }
-                    }
-                    else if (thing is not (Explosion or Projectile))
-                    {
-                        thing.DeSpawn();
-                        var terrain = positionOnBaseMap.GetTerrain(map);
-                        if (thing is Pawn pawn &&
-                            (terrain == TerrainDefOf.WaterDeep || terrain == TerrainDefOf.WaterOceanDeep) &&
-                            HealthHelper.AttemptToDrown(pawn))
-                        {
-                            flag = true;
-                            stringBuilder.AppendLine(pawn.LabelCap);
-                        }
-
-                        if (!GenPlace.TryPlaceThing(thing, positionOnBaseMap, map, ThingPlaceMode.Near))
-                        {
-                            CellFinder.TryFindRandomCellNear(positionOnBaseMap, map, 50,
-                                c => GenPlace.TryPlaceThing(thing, c, Map, ThingPlaceMode.Near), out _);
-                        }
-                    }
-                }
+              c2 += facingInside;
             }
 
-            if (flag)
+            if (c2.InBounds(interiorMap) && !cachedImpassableCells.Contains(c2))
             {
-                string text = "VF_BoatSunkWithPawnsDesc".Translate(LabelShort, stringBuilder.ToString());
-                Find.LetterStack.ReceiveLetter("VF_BoatSunk".Translate(), text, LetterDefOf.NegativeEvent,
-                    new TargetInfo(Position, Map));
+              field.AddUnique(c2);
             }
+          }
         }
 
-        base.Destroy(mode);
-        RemoveVehicleMap();
-        if (VehicleDef.HasModExtension<VehicleMapProps_Unique>())
-            UniqueVehicleUtility.ReleaseUniqueVehicleDef(VehicleDef);
+        ValidMapRect = CellRect.FromCellList(field);
+      }
+
+      return field;
     }
+  } = [];
 
-    public override void DeSpawn(DestroyMode mode = DestroyMode.Vanish)
+  public Dictionary<IntVec3, District> CachedWalkableMapEdgeCells
+  {
+    get
     {
-        // sourceMapをinteriorMap自身にすると無限ループの危険がある
-        interiorMap.PocketMapParent.sourceMap = null;
-        VehiclePawnWithMapCache.DeRegisterVehicle(this);
-        mapFollower.DeRegisterVehicle();
-        if (mode < DestroyMode.KillFinalize)
-        {
-            interiorMap.skyManager = new SkyManager(interiorMap);
-            interiorMap.skyManager.ForceSetCurSkyGlow(Map.skyManager.CurSkyGlow);
-            interiorMap.weatherManager = new WeatherManager(interiorMap)
-            {
-                curWeather = Map.weatherManager.curWeather,
-                lastWeather = Map.weatherManager.lastWeather,
-                prevSkyTargetLerp = Map.weatherManager.prevSkyTargetLerp,
-                currSkyTargetLerp = Map.weatherManager.currSkyTargetLerp,
-                curWeatherAge = Map.weatherManager.curWeatherAge
-            };
-            interiorMap.weatherDecider = new WeatherDecider(interiorMap);
-        }
-        foreach (var thing in interiorMap.listerThings.AllThings.Intersect(Find.Selector.SelectedObjects))
-        {
-            Find.Selector.Deselect(thing);
-        }
-        foreach (var zone in interiorMap.zoneManager.AllZones.Intersect(Find.Selector.SelectedObjects))
-        {
-            Find.Selector.Deselect(zone);
-        }
-        var crossMapHaulDestinationManager = Map.GetCachedMapComponent<CrossMapHaulDestinationManager>();
-        foreach (var haulDestination in interiorMap.haulDestinationManager.AllHaulDestinations)
-        {
-            crossMapHaulDestinationManager.RemoveHaulDestination(haulDestination);
-        }
+      if (walkableCellsDirty)
+      {
+        var mapEdgeCells = CachedMapEdgeCells;
+        walkableCellsDirty = false;
         CrossMapReachabilityCache.ClearCacheFor(interiorMap);
-        Map.regionGrid.AllRegions.Where(r => r.ListerThings.Contains(this)).Do(r => r.ListerThings.Remove(this));
-        base.DeSpawn(mode);
+        field.Clear();
+        CachedEdgeDistricts.Clear();
+        for (var i = 0; i < mapEdgeCells.Count; i++)
+        {
+          var cell = mapEdgeCells[i];
+          if (cell.Walkable(interiorMap))
+          {
+            var district = RegionAndRoomQuery.DistirctAtFast(cell, interiorMap);
+            field[cell] = district;
+            CachedEdgeDistricts.Add(district);
+          }
+        }
+      }
+
+      return field;
+    }
+  } = [];
+
+  public HashSet<District> CachedEdgeDistricts
+  {
+    get
+    {
+      _ = CachedWalkableMapEdgeCells;
+      return field;
+    }
+  } = [];
+
+  private List<IntVec3?> CachedEnterPositions
+  {
+    get
+    {
+      if (enterPositionsDirty)
+      {
+        var mapEdgeCells = CachedMapEdgeCells;
+        enterPositionsDirty = false;
+        CrossMapReachabilityCache.ClearCacheFor(interiorMap);
+        field.Clear();
+        for (var i = 0; i < mapEdgeCells.Count; i++)
+        {
+          field.Add(null);
+        }
+      }
+
+      return field;
+    }
+  } = [];
+
+  public IntVec3 GetCachedEnterPosition(int index)
+  {
+    var enterPositions = CachedEnterPositions;
+    var pos = enterPositions[index];
+    if (pos.HasValue) return pos.Value;
+
+    var cell = CachedMapEdgeCells[index];
+    pos = enterPositions[index] = CachedWalkableMapEdgeCells.ContainsKey(cell) &&
+                                  CrossMapReachabilityUtility.EnterVehiclePosition(
+                                      new TargetInfo(cell, interiorMap)) is
+                                    { IsValid: true } c
+      ? c
+      : IntVec3.Invalid;
+    return pos.Value;
+  }
+
+  private void WalkableCellsDirtyIfNeeded(Building building)
+  {
+    if (!building.def.AffectsReachability) return;
+    foreach (var c in building.OccupiedRect())
+    {
+      if (CachedMapEdgeCells.Contains(c))
+      {
+        walkableCellsDirty = true;
+        enterPositionsDirty = true;
+        CrossMapReachabilityCache.ClearCacheFor(interiorMap);
+        break;
+      }
+    }
+  }
+
+  private void WalkableCellsDirtyIfNeeded(IntVec3 c)
+  {
+    if (CachedMapEdgeCells.Contains(c))
+    {
+      walkableCellsDirty = true;
+      enterPositionsDirty = true;
+      CrossMapReachabilityCache.ClearCacheFor(interiorMap);
+    }
+  }
+
+  private FetchedComp<CompNpcVehicleMap> _compNpcVehicleMap;
+  public CompNpcVehicleMap CompNpcVehicleMap => (_compNpcVehicleMap ??= new FetchedComp<CompNpcVehicleMap>(this)).Value;
+
+  private FetchedComp<CompDelayedKill> _compDelayedKill;
+  public CompDelayedKill CompDelayedKill => (_compDelayedKill ??= new FetchedComp<CompDelayedKill>(this)).Value;
+
+  private FetchedComp<VehicleComp> _compVehicleHover;
+  protected VehicleComp CompVehicleHover => (_compVehicleHover ??= new FetchedComp<VehicleComp>(this, VehicleRaidFramework.CompVehicleHover)).Value;
+
+  protected bool IsAirborne => VehicleRaidFramework.Active && CompVehicleHover is not null && VehicleRaidFramework.State(CompVehicleHover) > 0;
+
+  public MapComponent InterceptorMapComponent =>
+    field ??= interiorMap.GetComponent(DefenseGrid.InterceptorMapComponent);
+
+  public List<CompVehicleEnterSpot> EnterComps { get; } = [];
+
+  public List<CompFuelTank> FuelTankComps { get; } = [];
+
+  public List<CompMapExpander> MapExpanderComps { get; } = [];
+
+  public List<CompBuildableContainer> ContainerComps { get; } = [];
+
+  public override Vector3 DrawPos => Spawned && Find.CurrentMap != CurrentLevel ? base.DrawPos : cachedDrawPos;
+
+  public new bool ThreatDisabled(IAttackTargetSearcher disabledFor) =>
+    VehicleMap.mapPawns.FreeHumanlikesSpawnedOfFaction(Faction).Empty() && base.ThreatDisabled(disabledFor);
+
+  public new float TargetPriorityFactor => 0.15f;
+
+  public override IEnumerable<Gizmo> GetGizmos()
+  {
+    foreach (var gizmo in base.GetGizmos()) yield return gizmo;
+    if (Faction != Faction.OfPlayer && !DebugSettings.ShowDevGizmos)
+      yield break;
+
+    yield return new Command_Action
+    {
+      action = () =>
+      {
+        //リンクされたストレージの優先度が変わりすぎてしまうのを防ぎかつ全てのストレージにMoteを出したいので、一度優先度をキャッシュしておく
+        var allGroups = interiorMap.haulDestinationManager.AllGroupsListForReading;
+        var priorityList = allGroups.Select(g => g.Settings.Priority).ToList();
+        for (var i = 0; i < allGroups.Count; i++)
+        {
+          allGroups[i].Settings.Priority =
+            (StoragePriority)Math.Min((sbyte)(priorityList[i] + 1), (sbyte)StoragePriority.Critical);
+          MoteMaker.ThrowText(allGroups[i].CellsList[0].ToVector3Shifted().ToBaseMapCoord(this), Map,
+            allGroups[i].Settings.Priority.ToString(), Color.white);
+        }
+      },
+      defaultLabel = "VMF_IncreasePriority".Translate(),
+      defaultDesc = "VMF_IncreasePriorityDesc".Translate(),
+      icon = iconIncreasePriority.Texture
+    };
+
+    yield return new Command_Action
+    {
+      action = () =>
+      {
+        var allGroups = interiorMap.haulDestinationManager.AllGroupsListForReading;
+        var priorityList = allGroups.Select(g => g.Settings.Priority).ToList();
+        for (var i = 0; i < allGroups.Count; i++)
+        {
+          allGroups[i].Settings.Priority =
+            (StoragePriority)Math.Max((sbyte)(priorityList[i] - 1), (sbyte)StoragePriority.Low);
+          MoteMaker.ThrowText(allGroups[i].CellsList[0].ToVector3Shifted().ToBaseMapCoord(this), Map,
+            allGroups[i].Settings.Priority.ToString(), Color.white);
+        }
+      },
+      defaultLabel = "VMF_DecreasePriority".Translate(),
+      defaultDesc = "VMF_DecreasePriorityDesc".Translate(),
+      icon = iconDecreasePriority.Texture
+    };
+
+    yield return new Command_Toggle
+    {
+      isActive = () => allowEnter,
+      toggleAction = () => allowEnter = !allowEnter,
+      defaultLabel = "VMF_AllowEnter".Translate(),
+      defaultDesc = "VMF_AllowEnterDesc".Translate(),
+      icon = iconAllowEnter.Texture
+    };
+
+    yield return new Command_Toggle
+    {
+      isActive = () => allowExit,
+      toggleAction = () => allowExit = !allowExit,
+      defaultLabel = "VMF_AllowsGetOff".Translate(),
+      defaultDesc = "VMF_AllowsGetOffDesc".Translate(),
+      icon = iconAllowExit.Texture
+    };
+
+    yield return new Command_ToggleWithIcon
+    {
+      toggleAction = () =>
+      {
+        if (Find.CurrentMap == interiorMap && Spawned)
+        {
+          Current.Game.CurrentMap = Map;
+          return;
+        }
+
+        Patch_Game_CurrentMap.ForceSet = true;
+        Current.Game.CurrentMap = interiorMap;
+      },
+      isActive = () => Find.CurrentMap != interiorMap || !Spawned,
+      defaultLabel = interiorMap.Parent.LabelCap,
+      icon = VehicleMapUIRenderer.GetVehicleMapTexture(this, Rot4.East, new Vector2Int(128, 128)),
+      miniIcon = iconEye.Texture,
+      miniIconSize = 28f
+    };
+
+    if (DebugSettings.ShowDevGizmos)
+    {
+      yield return new Command_FocusVehicleMap();
+      yield return new Command_Toggle
+      {
+        defaultLabel = "Debug draw: bridge cells",
+        Order = 5005,
+        isActive = () => CompMapExpander.debugDraw,
+        toggleAction = () => CompMapExpander.debugDraw = !CompMapExpander.debugDraw
+      };
+      yield return new Command_Action
+      {
+        defaultLabel = "Flash CachedMapEdgeCells",
+        Order = 5001,
+        action = () =>
+        {
+          foreach (var c in CachedMapEdgeCells) interiorMap.debugDrawer.FlashCell(c);
+        }
+      };
+      yield return new Command_Action
+      {
+        defaultLabel = "Flash CachedWalkableMapEdgeCells",
+        Order = 5002,
+        action = () =>
+        {
+          foreach (var c in CachedWalkableMapEdgeCells.Keys) interiorMap.debugDrawer.FlashCell(c);
+        }
+      };
+      yield return new Command_Action
+      {
+        defaultLabel = "Flash CachedEnterPositions",
+        Order = 5003,
+        action = () =>
+        {
+          for (var i = 0; i < CachedMapEdgeCells.Count; i++)
+          {
+            var pos = GetCachedEnterPosition(i);
+            if (pos.IsValid) Map.debugDrawer.FlashCell(pos);
+          }
+        }
+      };
+    }
+  }
+
+  public List<CompVehicleEnterSpot> GetSortedEnterComps(IntVec3 cell, EnterCompKind kind = EnterCompKind.All)
+  {
+    tmpEnterComps.Clear();
+    if (EnterComps.Empty()) return tmpEnterComps;
+    for (var i = 0; i < EnterComps.Count; i++)
+    {
+      var comp = EnterComps[i];
+      if (kind == EnterCompKind.RampOnly && !comp.Props.allowPassingVehicle ||
+          kind == EnterCompKind.ZiplineOnly && comp is not CompZipline) continue;
+      if (comp.parent.Position.Walkable(interiorMap) && comp.Available) tmpEnterComps.Add(comp);
     }
 
-    public override void DrawAt(in Vector3 drawLoc, Rot8 rot, float rotation)
+    tmpEnterComps.SortBy(c => c.parent.Position.DistanceToSquared(cell));
+    return tmpEnterComps;
+  }
+
+  private void GenerateVehicleMap(Map sourceMap)
+  {
+    try
     {
-        if (!Spawned)
+      VehicleMapProps props;
+      if ((props = def.GetModExtension<VehicleMapProps>()) != null)
+      {
+        var mapParent = (MapParent_Vehicle)WorldObjectMaker.MakeWorldObject(VMF_DefOf.VMF_VehicleMap);
+        mapParent.mapGenerator = VMF_DefOf.VMF_VehicleMapGenerator;
+        mapParent.vehicle = this;
+        mapParent.Tile = 0;
+        mapParent.SetFaction(Faction);
+        var mapSize = new IntVec3(props.size.x, 1, props.size.z);
+        mapSize.x += 2;
+        mapSize.z += 2;
+        mapParent.sourceMap = sourceMap;
+        interiorMap = MapGenerator.GenerateMap(mapSize, mapParent, mapParent.MapGeneratorDef,
+          mapParent.ExtraGenStepDefs, isPocketMap: true);
+        if (VehicleMapFramework.settings.drawPlanet)
         {
-            interiorMap?.GetDetachedMapComponent<VehiclePositionManager>().AllClaimants.DoIf(v => v.def.graphicData?.drawRotated ?? false, v =>
-            {
-                v.Transform.rotation = rotation.FlipAngle(v);
-            });
-            if (!Mathf.Approximately(Transform.rotation, rotation))
-            {
-                Transform.rotation = rotation;
-                CellDesignationsDirty();
-            }
-
-            interiorMap?.rememberedCameraPos.rootPos = drawLoc;
+          var size = Patch_Map_MapUpdate.MeshSize;
+          interiorMap.rememberedCameraPos?.rootPos = new Vector3(size.x / 2f, 0f, size.y / 2f);
         }
-        var drawLoc2 = drawLoc.WithYOffset(-Altitudes.AltInc * 100f);
-        CacheDrawPos(drawLoc2);
-        DrawTracker.DynamicDrawPhaseAt(DrawPhase.Draw, in drawLoc2, rot, Transform.rotation.FlipAngle(this));
 
-        DrawVehicleMap();
+        Find.World.pocketMaps.Add(mapParent);
+
+        foreach (var c in props.FilledStructureCells)
+        {
+          GenSpawn.Spawn(VMF_DefOf.VMF_VehicleStructureFilled, c.ToIntVec3, interiorMap).SetFaction(Faction);
+        }
+
+        foreach (var c in props.EmptyStructureCells)
+        {
+          interiorMap.terrainGrid.SetTerrain(c.ToIntVec3, VMF_DefOf.VMF_ImpassableFloor);
+        }
+
+        foreach (var c in props.ExpandableCells)
+        {
+          interiorMap.terrainGrid.SetTerrain(c.ToIntVec3, VMF_DefOf.VMF_ImpassableFloor);
+        }
+
+        foreach (var c in CachedOutOfBoundsCells)
+        {
+          interiorMap.terrainGrid.SetTerrain(c, VMF_DefOf.VMF_ImpassableFloor);
+        }
+      }
+    }
+    catch (Exception ex)
+    {
+      VMF_Log.Error($"Error while generating vehicle map.\n{ex}");
+    }
+  }
+
+  internal void RemoveVehicleMap()
+  {
+    LongEventHandler.ExecuteWhenFinished(() =>
+    {
+      if (Find.Maps.Contains(interiorMap))
+      {
+        var pocketMapParent = interiorMap.PocketMapParent;
+        if (pocketMapParent != null)
+        {
+          pocketMapParent.sourceMap = null;
+          Find.World.pocketMaps.Remove(pocketMapParent);
+          Find.World.renderer.wantedMode = WorldRenderMode.None;
+        }
+
+        Current.Game.DeinitAndRemoveMap(interiorMap, false);
+      }
+
+      interiorMap = null;
+
+      if (!VehicleMapFramework.settings.dynamicUnpatchEnabled) return;
+      if (Find.Maps.Any(m => m.IsVehicleMap)) return;
+      VMF_Harmony.DynamicPatchAll(VehicleMapFramework.settings.dynamicPatchLevel);
+    });
+  }
+
+  public override void SpawnSetup(Map map, bool respawningAfterLoad)
+  {
+    if (interiorMap is null)
+    {
+      GenerateVehicleMap(map);
+      interiorMap?.events.BuildingSpawned += WalkableCellsDirtyIfNeeded;
+      interiorMap?.events.PathCostRecalculate += WalkableCellsDirtyIfNeeded;
+      _ = CachedMapEdgeCells;
+    }
+    else if (respawningAfterLoad)
+    {
+      interiorMap.events.BuildingSpawned += WalkableCellsDirtyIfNeeded;
+      interiorMap.events.PathCostRecalculate += WalkableCellsDirtyIfNeeded;
+      _ = CachedMapEdgeCells;
+
+      if (VehicleDef.GetModExtension<VehicleMapProps_Unique>() is { baseDef: not null })
+      {
+        FrameDelay.DelayOne<object>(_ => LongEventHandler.ExecuteWhenFinished(() => ResizeNow(false)), null);
+      }
     }
 
-    private void CacheDrawPos(Vector3 drawLoc)
+    interiorMap?.PocketMapParent?.sourceMap = map;
+
+    if (!Find.World.worldObjects.Contains(interiorMap!.Parent))
     {
-        if (!UnityData.IsInMainThread) return;
-        var transform = new TransformData(drawLoc + Transform.position, FullRotation, Transform.rotation.FlipAngle(this));
-        var result = VehicleGraphic?.ParallelGetPreRenderResults(ref transform, false, this);
-        cachedDrawPos = result?.position ?? drawLoc;
-        if (Spawned && Find.CurrentMap == CurrentLevel)
-        {
-            cachedExactPos = cachedDrawPos + base.DrawPos - drawLoc;
-        }
-        else
-        {
-            cachedExactPos = cachedDrawPos;
-        }
+      Find.World.worldObjects.Add(interiorMap.Parent);
     }
 
-    public override void DynamicDrawPhaseAt(DrawPhase phase, Vector3 drawLoc, bool flip = false)
+    CurrentLevel ??= interiorMap;
+
+    var isGravship = def.HasModExtension<VehicleMapProps_Gravship>();
+    if (isGravship)
     {
-        base.DynamicDrawPhaseAt(phase, drawLoc, flip);
-        if (phase == DrawPhase.Draw)
+      if (GravshipUtility.GetPlayerGravEngine_NewTemp(interiorMap) is { launchInfo.doNegativeOutcome: true } engine)
+      {
+        var list = handlers.OfType<VehicleRoleHandlerBuildable>()
+          .SelectMany<VehicleRoleHandlerBuildable, Pawn>(h => h.thingOwner).ToList();
+        foreach (var t in list)
         {
-            CacheDrawPos(drawLoc);
-            if (vehiclePather?.Moving ?? false)
-            {
-                CellDesignationsDirty();
-            }
-            DrawVehicleMap();
+          DisembarkPawn(t);
         }
+
+        var gravship = GravshipUtility.GenerateGravship(engine);
+        GravshipVehicleUtility.PlaceGravship(null, gravship, gravship.originalPosition, interiorMap);
+        DefDatabase<LandingOutcomeDef>.AllDefsListForReading.RandomElementByWeight(d => d.weight).Worker
+          .ApplyOutcome(gravship);
+        engine.launchInfo = null;
+      }
     }
 
-    private void CellDesignationsDirty()
+    base.SpawnSetup(map, respawningAfterLoad);
+    RegisterEvents();
+    CacheDrawPos(DrawPos);
+    VehiclePawnWithMapCache.RegisterVehicle(this);
+    mapFollower = new VehicleMapFollower(this);
+
+    interiorMap.skyManager = Map.skyManager;
+    interiorMap.weatherDecider = Map.weatherDecider;
+    interiorMap.weatherManager = Map.weatherManager;
+    SetTile();
+
+    if (Find.CurrentMap == interiorMap)
     {
-        if (cellDesignationsDirtyTick == GenTicks.TicksGame) return;
-        cellDesignationsDirtyTick = GenTicks.TicksGame;
-        foreach (var designationDef in cellDesignations)
-        {
-            DirtyCellDesignationsCache(CurrentLevel.designationManager, SingleParam.Get(designationDef));
-        }
+      Current.Game.CurrentMap = map;
     }
 
-    protected virtual void DrawVehicleMap()
-    {
-        var map = CurrentLevel;
-        if (map is null) return;
-        //PlantFallColors.SetFallShaderGlobals(map);
-        //map.waterInfo.SetTextures();
-        //map.avoidGrid.DebugDrawOnMap();
-        //BreachingGridDebug.DebugDrawAllOnMap(map);
-        FrameDelay.DelayOne(static vehicle =>
-        {
-            try
-            {
-                var map = vehicle.CurrentLevel;
-                VehicleSectionLayerManager.CacheMode = true;
-                map.GetCachedMapComponent<VehicleSectionLayerManager>()?.UpdateAllSection();
-                map.mapDrawer.MapMeshDrawerUpdate_First();
-            }
-            finally
-            {
-                VehicleSectionLayerManager.CacheMode = false;
-            }
-        }, this);
-        //map.powerNetGrid.DrawDebugPowerNetGrid();
-        //DoorsDebugDrawer.DrawDebug();
-        //map.mapDrawer.DrawMapMesh();
-        var drawPos = Vector3.zero.ToBaseMapCoord(this);
-        DrawVehicleMapMesh(drawPos, map);
-        DynamicDrawManagerOnVehicle.DrawDynamicThings(map);
-        DrawClippers(map);
-        map.designationManager.DrawDesignations();
-        map.overlayDrawer.DrawAllOverlays();
-        map.temporaryThingDrawer.Draw();
-        map.flecks.FleckManagerDraw();
+    Transform.rotation = 0f;
+    interiorMap.mapPawns.AllPawns.OfType<VehiclePawn>().Do(v => { v.Transform.rotation = 0f; });
 
-        using (new Command_FocusVehicleMap.FocusVehicle(this))
-        {
-            map.roofGrid.RoofGridUpdate();
-            map.mapTemperature.TemperatureUpdate();
-            MapComponentUtility.MapComponentOnDraw(map);
-            CompMapExpander.DebugDraw(MapExpanderComps);
-        }
-        DebugDrawHelper.DebugDraw(map.debugDrawer, map);
-        //map.gameConditionManager.GameConditionManagerDraw(map);
-        //MapEdgeClipDrawer.DrawClippers(__instance);
+    enterPositionsDirty = true;
+  }
+
+  protected override void Tick()
+  {
+    if (Spawned)
+    {
+      Resize();
+      if (CompDelayedKill is { KillStarted: true })
+      {
+        CompDelayedKill.CompTick();
+        return;
+      }
+
+      CacheDrawPos(DrawPos);
+      mapFollower?.MapFollowerTick();
+    }
+    else if (this.IsHashIntervalTick(30))
+    {
+      SetTile();
     }
 
-    internal void DrawVehicleMapMesh(Vector3 drawPos, Map map)
+    base.Tick();
+  }
+
+  protected override void TickInterval(int delta)
+  {
+    if (Spawned && CompDelayedKill is { KillStarted: true })
+      return;
+    base.TickInterval(delta);
+  }
+
+  private void SetTile()
+  {
+    if (Spawned)
     {
-        var mapDrawer = map.mapDrawer;
-        var component = map.GetCachedMapComponent<VehicleSectionLayerManager>();
-        if (component is null) return;
-        var dirty = false;
-        foreach (var section in sections(mapDrawer))
-        {
-            if (!dirty && (section.dirtyFlags & (MapMeshFlagDefOf.Things | MapMeshFlagDefOf.Terrain)) > 0UL)
-            {
-                VehicleMapUIRenderer.SetDirty(this);
-                dirty = true;
-            }
-            DrawSection(section, drawPos, component);
-        }
+      interiorMap?.Parent.Tile = Map.Tile;
+      return;
     }
 
-    protected virtual void DrawSection(Section section, Vector3 drawPos, VehicleSectionLayerManager component)
+    var worldObject2 = GetWorldObject(this);
+    switch (worldObject2)
     {
-        var rot = FullRotation;
-        ((SectionLayer_TerrainOnVehicle)component.GetLayer(section, typeof(SectionLayer_TerrainOnVehicle), default)).DrawLayer(drawPos);
-        DrawLayer(component.GetLayer(section, typeof(SectionLayer_ThingsGeneral), rot), drawPos);
-        DrawLayer(component, section, typeof(SectionLayer_BuildingsDamage), drawPos);
-        DrawLayer(component, section, typeof(SectionLayer_EdgeShadows), drawPos);
-        ((SectionLayer_SunShadowsOnVehicle)component.GetLayer(section, typeof(SectionLayer_SunShadowsOnVehicle), rot))
-                .DrawLayer(drawPos, Transform.rotation - Angle);
-        if (OverlayDrawHandler.ShouldDrawPowerGrid)
-        {
-            DrawLayer(component.GetLayer(section, typeof(SectionLayer_ThingsPowerGrid), rot), drawPos.Yto0());
-        }
-        if (OverlayDrawHandler.ShouldDrawZones)
-        {
-            DrawLayer(component, section, t_SectionLayer_Zones, drawPos);
-        }
-        if (Find.CurrentMap == interiorMap && !VehicleMapFramework.settings.drawPlanet)
-        {
-            DrawLayer(component, section, typeof(SectionLayer_LightingOverlay), drawPos);
-        }
-        else
-        {
-            ((SectionLayer_LightingOnVehicle)component.GetLayer(section, typeof(SectionLayer_LightingOnVehicle), default)).DrawLayer(drawPos);
-        }
-        DrawModLayers(section, drawPos, component);
+      case AerialVehicleInFlight aerial:
+        Task.Run(() => { interiorMap?.Parent.Tile = WorldHelper.GetNearestTile(aerial.DrawPos); });
+        return;
+      case null or MapParent_Vehicle:
+        return;
+      default:
+        interiorMap?.Parent.Tile = worldObject2.Tile;
+        return;
     }
 
-    protected virtual void DrawModLayers(Section section, Vector3 drawPos, VehicleSectionLayerManager component)
+    static WorldObject GetWorldObject(IThingHolder holder)
     {
-        if (VFECore.Active)
+      while (holder != null)
+      {
+        if (holder is WorldObject worldObject)
         {
-            var layer = component.GetLayer(section, VFECore.SectionLayer_Resource, default);
-            if (layer != null && (bool)VFECore.ShouldDraw(layer))
-            {
-                var curPipeNetDef = VFECore.pipeNetDef();
-                if (pipeNetDef != curPipeNetDef)
-                {
-                    pipeNetDef = curPipeNetDef;
-                    CurrentLevel.mapDrawer.WholeMapChanged(455UL);
-                }
-                DrawLayer(layer, drawPos);
-            }
+          return worldObject;
         }
-        if (DefenseGrid.Active)
-        {
-            var selDesignator = Find.DesignatorManager.SelectedDesignator;
-            if (selDesignator is Designator_Build { PlacingDef: ThingDef thingDef } &&
-                thingDef.HasComp(DefenseGrid.CompDefenseConduit) ||
-                DefenseGrid.Designator_DeconstructConduit.IsInstanceOfType(selDesignator))
-            {
-                DrawLayer(component, section, DefenseGrid.SectionLayer_DefenseGridOverlay, drawPos.Yto0());
-            }
-        }
-        if (DubsBadHygiene.Active && !DubsBadHygiene.LiteMode)
-        {
-            var selDesignator = Find.DesignatorManager.SelectedDesignator;
-            var sewagePipeOverlay = component.GetLayer(section, DubsBadHygiene.SectionLayer_SewagePipeOverlay, default);
-            var airDuctOverlay = component.GetLayer(section, DubsBadHygiene.SectionLayer_AirDuctOverlay, default);
-            CompProperties compProperties;
-            if (selDesignator is Designator_Build { PlacingDef: ThingDef thingDef } &&
-                (compProperties = thingDef.comps.Find(c => DubsBadHygiene.CompProperties_Pipe?.IsAssignableFrom(c.GetType()) ?? false)) != null)
-            {
-                var mode = DubsBadHygiene.CompProperties_Pipe_mode(compProperties);
-                if (sewagePipeOverlay != null & DubsBadHygiene.SectionLayer_PipeOverlay_mode(sewagePipeOverlay) == mode)
-                {
-                    DrawLayer(component, section, DubsBadHygiene.SectionLayer_SewagePipeOverlay, drawPos.Yto0());
-                }
-                if (airDuctOverlay != null && DubsBadHygiene.SectionLayer_PipeOverlay_mode(airDuctOverlay) == mode)
-                {
-                    DrawLayer(component, section, DubsBadHygiene.SectionLayer_AirDuctOverlay, drawPos.Yto0());
-                }
-                if (Time.frameCount % 120 == 0)
-                {
-                    component.GetLayer(section, DubsBadHygiene.SectionLayer_SewagePipeOverlay, default)?.Regenerate();
-                    component.GetLayer(section, DubsBadHygiene.SectionLayer_AirDuctOverlay, default)?.Regenerate();
-                }
-            }
-            DrawLayer(component, section, DubsBadHygiene.SectionLayer_Irrigation, drawPos);
-            DrawLayer(component, section, DubsBadHygiene.SectionLayer_FertilizerGrid, drawPos);
-        }
-        if (Rimefeller.Active)
-        {
-            var selDesignator = Find.DesignatorManager.SelectedDesignator;
-            var sewagePipeOverlay = component.GetLayer(section, Rimefeller.SectionLayer_SewagePipe, default);
-            CompProperties compProperties;
-            if (selDesignator is Designator_Build { PlacingDef: ThingDef thingDef } &&
-                (compProperties = thingDef.comps.Find(c => Rimefeller.CompProperties_Pipe?.IsAssignableFrom(c.GetType()) ?? false)) != null)
-            {
-                var mode = Rimefeller.CompProperties_Pipe_mode(compProperties);
-                if (sewagePipeOverlay != null & Rimefeller.SectionLayer_PipeOverlay_mode(sewagePipeOverlay) == mode)
-                {
-                    DrawLayer(component, section, Rimefeller.SectionLayer_SewagePipe, drawPos.Yto0());
-                }
-                if (Time.frameCount % 120 == 0)
-                {
-                    component.GetLayer(section, Rimefeller.SectionLayer_SewagePipe, default)?.Regenerate();
-                }
-            }
-            DrawLayer(component, section, Rimefeller.XSectionLayer_Napalm, drawPos);
-            DrawLayer(component, section, Rimefeller.XSectionLayer_OilSpill, drawPos);
-            DrawLayer(component, section, Rimefeller.SectionLayer_ThingsPipe, drawPos, FullRotation);
-        }
-        if (Rimatomics.Active)
-        {
-            var designator = Find.DesignatorManager.SelectedDesignator;
-            if (designator?.GetType() == Rimatomics.Designator_RemovePipe)
-            {
-                var mode = Rimatomics.Designator_RemovePipe_RemovalMode(designator);
-                foreach (var layer in Rimatomics.SectionLayer_OverlayPipes)
-                {
-                    if (mode == Rimatomics.SectionLayer_OverlayPipe_mode(component.GetLayer(section, layer, default)))
-                        DrawLayer(component, section, layer, drawPos);
-                }
-            }
-            else if (designator is Designator_Build { PlacingDef: ThingDef thingDef })
-            {
-                foreach (var compProperties in thingDef.comps.Where(c =>
-                             c.GetType().SameOrSubclassOf(Rimatomics.CompProperties_Pipe)))
-                {
-                    var mode = Rimatomics.CompProperties_Pipe_mode(compProperties);
-                    foreach (var layer in Rimatomics.SectionLayer_OverlayPipes)
-                    {
-                        if (mode == Rimatomics.SectionLayer_OverlayPipe_mode(component.GetLayer(section, layer, default)))
-                            DrawLayer(component, section, layer, drawPos);
-                    }
-                }
-            }
-            DrawLayer(component, section, Rimatomics.SectionLayer_ThingsPipe, drawPos);
-        }
-        if (ModsConfig.OdysseyActive)
-        {
-            var fullRot = FullRotation;
-            ((SectionLayer_SubstructurePropsOnVehicle)component.GetLayer(section, typeof(SectionLayer_SubstructurePropsOnVehicle), default))?.DrawLayer(fullRot, drawPos, Transform.rotation);
-            ((SectionLayer_GravshipHullOnVehicle)component.GetLayer(section, typeof(SectionLayer_GravshipHullOnVehicle), default))?.DrawLayer(fullRot, drawPos, Transform.rotation);
-        }
-        if (MultiFloors.Active && CurrentLevel != interiorMap)
-        {
-            DrawLayer(component, section, MultiFloors.SectionLayer_LowerLevel, drawPos, FullRotation);
-        }
+
+        holder = holder.ParentHolder;
+      }
+
+      return null;
+    }
+  }
+
+  public override void Notify_MyMapRemoved()
+  {
+    base.Notify_MyMapRemoved();
+    Destroy();
+  }
+
+  public override void Notify_AbandonedAtTile(PlanetTile tile)
+  {
+    base.Notify_AbandonedAtTile(tile);
+    Destroy();
+  }
+
+  public override void Notify_LeftBehind()
+  {
+    base.Notify_LeftBehind();
+    Destroy();
+  }
+
+  public override void Kill(DamageInfo? dinfo, DestroyMode destroyMode = DestroyMode.KillFinalize,
+    bool spawnWreckage = false)
+  {
+    if (Spawned && CompDelayedKill is { KillOnTick: false })
+    {
+      if (dinfo?.Instigator is Pawn instigator)
+      {
+        RecordsUtility.Notify_PawnKilled(this, instigator);
+      }
+
+      CompDelayedKill.StartKillTimer(destroyMode, spawnWreckage);
+      return;
     }
 
-    private void DrawLayer(VehicleSectionLayerManager component, Section section, Type layerType, Vector3 drawPos, Rot8 rot = default)
-    {
-        if (layerType is null) return;
+    base.Kill(dinfo, destroyMode, spawnWreckage);
+  }
 
-        var layer = component.GetLayer(section, layerType, rot);
-        if (layer is null) return;
-        
+  public override void Destroy(DestroyMode mode = DestroyMode.Vanish)
+  {
+    var map = Map;
+    if (Spawned)
+    {
+      DisembarkAll();
+    }
+
+    if (interiorMap is null)
+    {
+      base.Destroy(mode);
+      return;
+    }
+
+    if (map is not null)
+    {
+      StringBuilder stringBuilder = new();
+      var flag = false;
+      var allThings = interiorMap.listerThings.AllThings;
+      for (var i = allThings.Count - 1; i >= 0; i--)
+      {
+        var thing = allThings[i];
+        if (mode != DestroyMode.Vanish && thing is { Destroyed: false })
+        {
+          var positionOnBaseMap = thing.PositionOnBaseMap;
+          if (thing.def.category == ThingCategory.Building)
+          {
+            if (!thing.def.destroyable)
+            {
+              allowDestroyNonDestroyable = true;
+              thing.Destroy();
+              allowDestroyNonDestroyable = false;
+            }
+            else thing.Destroy();
+
+            if (positionOnBaseMap.Walkable(map) &&
+                positionOnBaseMap.GetItemCount(map) < positionOnBaseMap.GetMaxItemsAllowedInCell(map))
+            {
+              var pos = thing.Position;
+              thing.Position = positionOnBaseMap;
+              GenLeaving.DoLeavingsFor(thing, map, DestroyMode.Deconstruct);
+              thing.Position = pos;
+            }
+          }
+          else if (thing is not (Explosion or Projectile))
+          {
+            thing.DeSpawn();
+            var terrain = positionOnBaseMap.GetTerrain(map);
+            if (thing is Pawn pawn &&
+                (terrain == TerrainDefOf.WaterDeep || terrain == TerrainDefOf.WaterOceanDeep) &&
+                HealthHelper.AttemptToDrown(pawn))
+            {
+              flag = true;
+              stringBuilder.AppendLine(pawn.LabelCap);
+            }
+
+            if (!GenPlace.TryPlaceThing(thing, positionOnBaseMap, map, ThingPlaceMode.Near))
+            {
+              CellFinder.TryFindRandomCellNear(positionOnBaseMap, map, 50,
+                c => GenPlace.TryPlaceThing(thing, c, Map, ThingPlaceMode.Near), out _);
+            }
+          }
+        }
+      }
+
+      if (flag)
+      {
+        string text = "VF_BoatSunkWithPawnsDesc".Translate(LabelShort, stringBuilder.ToString());
+        Find.LetterStack.ReceiveLetter("VF_BoatSunk".Translate(), text, LetterDefOf.NegativeEvent,
+          new TargetInfo(Position, Map));
+      }
+    }
+
+    base.Destroy(mode);
+    RemoveVehicleMap();
+    if (VehicleDef.HasModExtension<VehicleMapProps_Unique>())
+      UniqueVehicleUtility.ReleaseUniqueVehicleDef(VehicleDef);
+  }
+
+  public override void DeSpawn(DestroyMode mode = DestroyMode.Vanish)
+  {
+    // sourceMapをinteriorMap自身にすると無限ループの危険がある
+    interiorMap.PocketMapParent.sourceMap = null;
+    VehiclePawnWithMapCache.DeRegisterVehicle(this);
+    mapFollower.DeRegisterVehicle();
+    if (mode < DestroyMode.KillFinalize)
+    {
+      interiorMap.skyManager = new SkyManager(interiorMap);
+      interiorMap.skyManager.ForceSetCurSkyGlow(Map.skyManager.CurSkyGlow);
+      interiorMap.weatherManager = new WeatherManager(interiorMap)
+      {
+        curWeather = Map.weatherManager.curWeather,
+        lastWeather = Map.weatherManager.lastWeather,
+        prevSkyTargetLerp = Map.weatherManager.prevSkyTargetLerp,
+        currSkyTargetLerp = Map.weatherManager.currSkyTargetLerp,
+        curWeatherAge = Map.weatherManager.curWeatherAge
+      };
+      interiorMap.weatherDecider = new WeatherDecider(interiorMap);
+    }
+
+    foreach (var thing in interiorMap.listerThings.AllThings.Intersect(Find.Selector.SelectedObjects))
+    {
+      Find.Selector.Deselect(thing);
+    }
+
+    foreach (var zone in interiorMap.zoneManager.AllZones.Intersect(Find.Selector.SelectedObjects))
+    {
+      Find.Selector.Deselect(zone);
+    }
+
+    var crossMapHaulDestinationManager = Map.GetCachedMapComponent<CrossMapHaulDestinationManager>();
+    foreach (var haulDestination in interiorMap.haulDestinationManager.AllHaulDestinations)
+    {
+      crossMapHaulDestinationManager.RemoveHaulDestination(haulDestination);
+    }
+
+    CrossMapReachabilityCache.ClearCacheFor(interiorMap);
+    Map.regionGrid.AllRegions.Where(r => r.ListerThings.Contains(this)).Do(r => r.ListerThings.Remove(this));
+    base.DeSpawn(mode);
+  }
+
+  public override void DrawAt(in Vector3 drawLoc, Rot8 rot, float rotation)
+  {
+    if (!Spawned)
+    {
+      interiorMap?.GetDetachedMapComponent<VehiclePositionManager>().AllClaimants.DoIf(
+        v => v.def.graphicData?.drawRotated ?? false, v => { v.Transform.rotation = rotation.FlipAngle(v); });
+      if (!Mathf.Approximately(Transform.rotation, rotation))
+      {
+        Transform.rotation = rotation;
+        CellDesignationsDirty();
+      }
+
+      interiorMap?.rememberedCameraPos.rootPos = drawLoc;
+    }
+
+    var drawLoc2 = drawLoc.WithYOffset(-Altitudes.AltInc * 100f);
+    CacheDrawPos(drawLoc2);
+    DrawTracker.DynamicDrawPhaseAt(DrawPhase.Draw, in drawLoc2, rot, Transform.rotation.FlipAngle(this));
+
+    DrawVehicleMap();
+  }
+
+  private void CacheDrawPos(Vector3 drawLoc)
+  {
+    if (!UnityData.IsInMainThread) return;
+    
+    var transform = new TransformData(drawLoc + Transform.position, FullRotation, Transform.rotation.FlipAngle(this));
+    var result = VehicleGraphic?.ParallelGetPreRenderResults(ref transform, false, this);
+    cachedDrawPos = result?.position ?? drawLoc;
+    if (Spawned && Find.CurrentMap == CurrentLevel)
+    {
+      cachedExactPos = cachedDrawPos + base.DrawPos - drawLoc;
+    }
+    else
+    {
+      cachedExactPos = cachedDrawPos;
+    }
+  }
+
+  public override void DynamicDrawPhaseAt(DrawPhase phase, Vector3 drawLoc, bool flip = false)
+  {
+    base.DynamicDrawPhaseAt(phase, drawLoc, flip);
+    if (phase == DrawPhase.Draw)
+    {
+      var drawPos = Spawned ? DrawPos : drawLoc;
+      CacheDrawPos(drawPos);
+      if (vehiclePather?.Moving ?? false)
+      {
+        CellDesignationsDirty();
+      }
+
+      DrawVehicleMap();
+    }
+  }
+
+  private void CellDesignationsDirty()
+  {
+    if (cellDesignationsDirtyTick == GenTicks.TicksGame) return;
+    cellDesignationsDirtyTick = GenTicks.TicksGame;
+    foreach (var designationDef in cellDesignations)
+    {
+      DirtyCellDesignationsCache(CurrentLevel.designationManager, SingleParam.Get(designationDef));
+    }
+  }
+
+  protected virtual void DrawVehicleMap()
+  {
+    var map = CurrentLevel;
+    if (map is null) return;
+    //PlantFallColors.SetFallShaderGlobals(map);
+    //map.waterInfo.SetTextures();
+    //map.avoidGrid.DebugDrawOnMap();
+    //BreachingGridDebug.DebugDrawAllOnMap(map);
+    FrameDelay.DelayOne(static vehicle =>
+    {
+      try
+      {
+        var map = vehicle.CurrentLevel;
+        VehicleSectionLayerManager.CacheMode = true;
+        map.GetCachedMapComponent<VehicleSectionLayerManager>()?.UpdateAllSection();
+        map.mapDrawer.MapMeshDrawerUpdate_First();
+      }
+      finally
+      {
+        VehicleSectionLayerManager.CacheMode = false;
+      }
+    }, this);
+    //map.powerNetGrid.DrawDebugPowerNetGrid();
+    //DoorsDebugDrawer.DrawDebug();
+    //map.mapDrawer.DrawMapMesh();
+    var drawPos = Vector3.zero.ToBaseMapCoord(this);
+    DrawVehicleMapMesh(drawPos, map);
+    DynamicDrawManagerOnVehicle.DrawDynamicThings(map);
+    DrawClippers(map);
+    map.designationManager.DrawDesignations();
+    map.overlayDrawer.DrawAllOverlays();
+    map.temporaryThingDrawer.Draw();
+    map.flecks.FleckManagerDraw();
+
+    using (new Command_FocusVehicleMap.FocusVehicle(this))
+    {
+      map.roofGrid.RoofGridUpdate();
+      map.mapTemperature.TemperatureUpdate();
+      MapComponentUtility.MapComponentOnDraw(map);
+      CompMapExpander.DebugDraw(MapExpanderComps);
+    }
+
+    DebugDrawHelper.DebugDraw(map.debugDrawer, map);
+    //map.gameConditionManager.GameConditionManagerDraw(map);
+    //MapEdgeClipDrawer.DrawClippers(__instance);
+  }
+
+  internal void DrawVehicleMapMesh(Vector3 drawPos, Map map)
+  {
+    var mapDrawer = map.mapDrawer;
+    var component = map.GetCachedMapComponent<VehicleSectionLayerManager>();
+    if (component is null) return;
+    var dirty = false;
+    foreach (var section in sections(mapDrawer))
+    {
+      if (!dirty && (section.dirtyFlags & (MapMeshFlagDefOf.Things | MapMeshFlagDefOf.Terrain)) > 0UL)
+      {
+        VehicleMapUIRenderer.SetDirty(this);
+        dirty = true;
+      }
+
+      DrawSection(section, drawPos, component);
+    }
+  }
+
+  protected virtual void DrawSection(Section section, Vector3 drawPos, VehicleSectionLayerManager component)
+  {
+    var rot = FullRotation;
+    ((SectionLayer_TerrainOnVehicle)component.GetLayer(section, typeof(SectionLayer_TerrainOnVehicle), default))
+      .DrawLayer(drawPos);
+    DrawLayer(component.GetLayer(section, typeof(SectionLayer_ThingsGeneral), rot), drawPos);
+    DrawLayer(component, section, typeof(SectionLayer_BuildingsDamage), drawPos);
+    DrawLayer(component, section, typeof(SectionLayer_IndoorMask), drawPos.Yto0());
+    DrawLayer(component, section, typeof(SectionLayer_EdgeShadows), drawPos);
+    ((SectionLayer_SunShadowsOnVehicle)component.GetLayer(section, typeof(SectionLayer_SunShadowsOnVehicle), rot))
+      .DrawLayer(drawPos, Transform.rotation - Angle);
+    if (OverlayDrawHandler.ShouldDrawPowerGrid)
+    {
+      DrawLayer(component.GetLayer(section, typeof(SectionLayer_ThingsPowerGrid), rot), drawPos.Yto0());
+    }
+
+    if (OverlayDrawHandler.ShouldDrawZones)
+    {
+      DrawLayer(component, section, t_SectionLayer_Zones, drawPos);
+    }
+
+    if (Find.CurrentMap == interiorMap && !VehicleMapFramework.settings.drawPlanet)
+    {
+      DrawLayer(component, section, typeof(SectionLayer_LightingOverlay), drawPos);
+    }
+    else
+    {
+      ((SectionLayer_LightingOnVehicle)component.GetLayer(section, typeof(SectionLayer_LightingOnVehicle), default))
+        .DrawLayer(drawPos);
+    }
+
+    DrawModLayers(section, drawPos, component);
+  }
+
+  protected virtual void DrawModLayers(Section section, Vector3 drawPos, VehicleSectionLayerManager component)
+  {
+    if (VFECore.Active)
+    {
+      var layer = component.GetLayer(section, VFECore.SectionLayer_Resource, default);
+      if (layer != null && (bool)VFECore.ShouldDraw(layer))
+      {
+        var curPipeNetDef = VFECore.pipeNetDef();
+        if (pipeNetDef != curPipeNetDef)
+        {
+          pipeNetDef = curPipeNetDef;
+          CurrentLevel.mapDrawer.WholeMapChanged(455UL);
+        }
+
         DrawLayer(layer, drawPos);
+      }
     }
 
-    private void DrawLayer(SectionLayer layer, Vector3 drawPos)
+    if (DefenseGrid.Active)
     {
-        if (!layer.Visible)
-            return;
-        
-        var rot = Quaternion.AngleAxis(this.FullAngle, Vector3.up);
-        for (var i = 0; i < layer.subMeshes.Count; i++)
-        {
-            var subMesh = layer.subMeshes[i];
-            if (subMesh.finalized && !subMesh.disabled)
-            {
-                Graphics.DrawMesh(subMesh.mesh, drawPos, rot, subMesh.material, subMesh.renderLayer);
-            }
-        }
+      var selDesignator = Find.DesignatorManager.SelectedDesignator;
+      if (selDesignator is Designator_Build { PlacingDef: ThingDef thingDef } &&
+          thingDef.HasComp(DefenseGrid.CompDefenseConduit) ||
+          DefenseGrid.Designator_DeconstructConduit.IsInstanceOfType(selDesignator))
+      {
+        DrawLayer(component, section, DefenseGrid.SectionLayer_DefenseGridOverlay, drawPos.Yto0());
+      }
     }
-    
-    private void DrawClippers(Map map)
-    {
-        if (Command_FocusVehicleMap.FocusLockedVehicle == this || Command_FocusVehicleMap.FocusedVehicle == this)
-        {
-            var material = ClipMat;
-            var quat = this.FullAngleQuat;
-            var size = map.Size;
-            Vector3 s = new(500f, 1f, size.z);
-            Matrix4x4 matrix = default;
-            matrix.SetTRS(new Vector3(-250f, 0f, size.z / 2f).ToBaseMapCoord(this), quat, s);
-            Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
-            matrix = default;
-            matrix.SetTRS(new Vector3(size.x + 250f, 0f, size.z / 2f).ToBaseMapCoord(this), quat, s);
-            Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
-            s = new Vector3(1000f, 1f, 500f);
-            matrix = default;
-            matrix.SetTRS(new Vector3(size.x / 2f, 0f, size.z + 250f).ToBaseMapCoord(this), quat, s);
-            Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
-            matrix = default;
-            matrix.SetTRS(new Vector3(size.x / 2f, 0f, -250f).ToBaseMapCoord(this), quat, s);
-            Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
 
-            s = Vector3.one;
-            IEnumerable<IntVec3> cells = CachedImpassableCells;
-            if (Find.DesignatorManager.SelectedDesignator is Designator_Build { PlacingDef: ThingDef thingDef } &&
-                thingDef.HasComp<CompMapExpander>())
-            {
-                cells = cells.Where(c => !CachedExpandableCells.Contains(c));
-            }
-            foreach (var c in cells)
-            {
-                matrix.SetTRS(c.ToVector3Shifted().ToBaseMapCoord(), quat, s);
-                Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
-            }
+    if (DubsBadHygiene.Active && !DubsBadHygiene.LiteMode)
+    {
+      var selDesignator = Find.DesignatorManager.SelectedDesignator;
+      var sewagePipeOverlay = component.GetLayer(section, DubsBadHygiene.SectionLayer_SewagePipeOverlay, default);
+      var airDuctOverlay = component.GetLayer(section, DubsBadHygiene.SectionLayer_AirDuctOverlay, default);
+      CompProperties compProperties;
+      if (selDesignator is Designator_Build { PlacingDef: ThingDef thingDef } &&
+          (compProperties =
+            thingDef.comps.Find(c => DubsBadHygiene.CompProperties_Pipe?.IsAssignableFrom(c.GetType()) ?? false)) !=
+          null)
+      {
+        var mode = DubsBadHygiene.CompProperties_Pipe_mode(compProperties);
+        if (sewagePipeOverlay != null & DubsBadHygiene.SectionLayer_PipeOverlay_mode(sewagePipeOverlay) == mode)
+        {
+          DrawLayer(component, section, DubsBadHygiene.SectionLayer_SewagePipeOverlay, drawPos.Yto0());
         }
 
-        var currentMap = Find.CurrentMap;
-        if ((currentMap == map || currentMap == interiorMap) && WorldRendererUtility.DrawingMap && VehicleMapFramework.settings.drawPlanet)
+        if (airDuctOverlay != null && DubsBadHygiene.SectionLayer_PipeOverlay_mode(airDuctOverlay) == mode)
         {
-            var material = MapEdgeClipDrawer.ClipMat;
-            var size = Patch_Map_MapUpdate.MeshSize;
-            Vector3 s = new(500f, 1f, size.y);
-            Matrix4x4 matrix = default;
-            matrix.SetTRS(new Vector3(-250f, 0f, size.y / 2f), Quaternion.identity, s);
-            Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
-            matrix = default;
-            matrix.SetTRS(new Vector3(size.x + 250f, 0f, size.y / 2f), Quaternion.identity, s);
-            Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
-            s = new Vector3(1000f, 1f, 500f);
-            matrix = default;
-            matrix.SetTRS(new Vector3(size.x / 2f, 0f, size.y + 250f), Quaternion.identity, s);
-            Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
-            matrix = default;
-            matrix.SetTRS(new Vector3(size.x / 2f, 0f, -250f), Quaternion.identity, s);
-            Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
+          DrawLayer(component, section, DubsBadHygiene.SectionLayer_AirDuctOverlay, drawPos.Yto0());
         }
-    }
 
-    public override void DrawGUIOverlay()
-    {
-        base.DrawGUIOverlay();
-        var map = CurrentLevel;
-        DebugDrawHelper.DebugOnGUI(map.debugDrawer, map);
-    }
-
-    public override string GetInspectString()
-    {
-        if (VehicleMapFramework.settings.weightFactor == 0f) return null;
-
-        var str = base.GetInspectString();
-        var stat = GetStatValue(VMF_DefOf.MaximumPayload);
-
-        str += $"\n{VMF_DefOf.MaximumPayload.LabelCap}:" +
-            $" {(VehicleMapUtility.VehicleMapMass(this) * VehicleMapFramework.settings.weightFactor).ToStringEnsureThreshold(2, 0)} /" +
-            $" {stat.ToStringEnsureThreshold(2, 0)} {"kg".Translate()}";
-        return str;
-    }
-
-    public virtual bool AllowEnterFor(Pawn pawn)
-    {
-        return AllowEnter || (pawn?.HostileTo(Faction.OfPlayer) ?? true) || pawn.Drafted;
-    }
-
-    public virtual bool AllowExitFor(Pawn pawn)
-    {
-        return AllowExit || (pawn?.HostileTo(Faction.OfPlayer) ?? true) || pawn.Drafted;
-    }
-
-    public override void ExposeData()
-    {
-        base.ExposeData();
-        Scribe_References.Look(ref interiorMap, nameof(interiorMap));
-        Scribe_Values.Look(ref allowEnter, nameof(allowEnter));
-        Scribe_Values.Look(ref allowExit, nameof(allowExit));
-    }
-
-    protected override void PostLoad()
-    {
-        VMF_Harmony.DynamicPatchAll(Level.All);
-        base.PostLoad();
-        RegisterEvents();
-        CompVehicleTurrets?.RevalidateTurrets();
-        ResetRenderStatus();
-        CurrentLevel = interiorMap;
-    }
-
-    public override void PostMake()
-    {
-        base.PostMake();
-        if (def.GetModExtension<VehicleMapProps_Unique>() is { baseDef: null })
+        if (Time.frameCount % 120 == 0)
         {
-            def = UniqueVehicleUtility.ClaimUniqueVehicleDef(VehicleDef);
+          component.GetLayer(section, DubsBadHygiene.SectionLayer_SewagePipeOverlay, default)?.Regenerate();
+          component.GetLayer(section, DubsBadHygiene.SectionLayer_AirDuctOverlay, default)?.Regenerate();
         }
+      }
+
+      DrawLayer(component, section, DubsBadHygiene.SectionLayer_Irrigation, drawPos);
+      DrawLayer(component, section, DubsBadHygiene.SectionLayer_FertilizerGrid, drawPos);
     }
 
-    public override void PostGenerationSetup()
+    if (Rimefeller.Active)
     {
-        VMF_Harmony.DynamicPatchAll(Level.All);
-        base.PostGenerationSetup();
-        RegisterEvents();
-    }
-
-    public new void RegisterEvents()
-    {
-        var manager = MapVehicleEventManager;
-        if (manager is not null && manager.Initialized()) return;
-        this.FillEventsDef<MapVehicleEventDef>();
-        this.AddEvent(VMF_DefOf.EnterNextCell, () =>
+      var selDesignator = Find.DesignatorManager.SelectedDesignator;
+      var sewagePipeOverlay = component.GetLayer(section, Rimefeller.SectionLayer_SewagePipe, default);
+      CompProperties compProperties;
+      if (selDesignator is Designator_Build { PlacingDef: ThingDef thingDef } &&
+          (compProperties =
+            thingDef.comps.Find(c => Rimefeller.CompProperties_Pipe?.IsAssignableFrom(c.GetType()) ?? false)) != null)
+      {
+        var mode = Rimefeller.CompProperties_Pipe_mode(compProperties);
+        if (sewagePipeOverlay != null & Rimefeller.SectionLayer_PipeOverlay_mode(sewagePipeOverlay) == mode)
         {
-            enterPositionsDirty = true;
-            CrossMapReachabilityCache.ClearCacheFor(VehicleMap);
-        });
-        if (DefenseGrid.Active)
-        {
-            this.AddEvent(VMF_DefOf.EnterNextCell, () =>
-            {
-                if (InterceptorMapComponent is null) return;
-                foreach (var grid in DefenseGrid.grids(InterceptorMapComponent))
-                {
-                    DefenseGrid.RepaintGrid(InterceptorMapComponent, SingleParam.Get(grid));
-                }
-            });
-            this.AddEvent(VehicleEventDefOf.Spawned, () => FrameDelay.DelayOne(static component =>
-            {
-                if (component is null) return;
-                foreach (var grid in DefenseGrid.grids(component))
-                {
-                    DefenseGrid.RepaintGrid(component, SingleParam.Get(grid));
-                }
-            }, InterceptorMapComponent));
-            this.AddEvent(VehicleEventDefOf.Despawned, () =>
-            {
-                if (InterceptorMapComponent is null) return;
-                foreach (var grid in DefenseGrid.grids(InterceptorMapComponent))
-                {
-                    DefenseGrid.UnpaintGrid(InterceptorMapComponent, SingleParam.Get(grid));
-                }
-            });
+          DrawLayer(component, section, Rimefeller.SectionLayer_SewagePipe, drawPos.Yto0());
         }
-    }
 
-    public void Resize()
-    {
-        if (resizeRequest)
+        if (Time.frameCount % 120 == 0)
         {
-            resizeRequest = false;
-            ResizeNow();
+          component.GetLayer(section, Rimefeller.SectionLayer_SewagePipe, default)?.Regenerate();
         }
+      }
+
+      DrawLayer(component, section, Rimefeller.XSectionLayer_Napalm, drawPos);
+      DrawLayer(component, section, Rimefeller.XSectionLayer_OilSpill, drawPos);
+      DrawLayer(component, section, Rimefeller.SectionLayer_ThingsPipe, drawPos, FullRotation);
     }
-    
-    private void ResizeNow(bool changePosition = true)
+
+    if (Rimatomics.Active)
     {
-        var vehicleDef = VehicleDef;
-        var curSize = vehicleDef.Size;
-        var mapRect = CellRect.WholeMap(VehicleMap);
-        var newRect = ValidMapRect;
-        var newSize = newRect.Size;
-        if (curSize != newSize)
+      var designator = Find.DesignatorManager.SelectedDesignator;
+      if (designator?.GetType() == Rimatomics.Designator_RemovePipe)
+      {
+        var mode = Rimatomics.Designator_RemovePipe_RemovalMode(designator);
+        foreach (var layer in Rimatomics.SectionLayer_OverlayPipes)
         {
-            VehicleResizeUtility.PreResize(this);
-            VMF_Log.DebugMessage($"Resize {vehicleDef} from {vehicleDef.size} to {newSize}");
-            vehicleDef.size = newSize;
-            var offset = mapRect.CenterVector3 - newRect.CenterVector3;
-            var data = VehicleGraphic.DataRgb;
-            var prevOffset = data.drawOffset;
-            data.drawOffset = offset;
-            data.drawOffsetNorth = offset;
-            data.drawOffsetEast = offset.RotatedBy(Rot4.East);
-            data.drawOffsetSouth = offset.RotatedBy(Rot4.South);
-            data.drawOffsetWest = offset.RotatedBy(Rot4.West);
-            UniqueVehicleUtility.ReinitializeComponents(vehicleDef);
-
-            foreach (var map in Find.Maps)
-            {
-                if (map.IsVehicleMap) continue;
-                    
-                var component = map.GetCachedMapComponent<VehiclePathingSystem>();
-                UniqueVehicleUtility.GeneratePathData(component, SingleParam.Get(vehicleDef));
-            }
-            
-            if (Spawned)
-            {
-                if (changePosition)
-                    VehicleResizeUtility.Reposition(this, prevOffset - offset);
-                else
-                {
-                    Map.thingGrid.Register(this);
-                    Map.coverGrid.Register(this);
-                    RegionListersUpdater.RegisterInRegions(this, Map);
-                }
-                
-                VehicleResizeUtility.RefreshVehiclePather(this);
-            }
+          if (mode == Rimatomics.SectionLayer_OverlayPipe_mode(component.GetLayer(section, layer, default)))
+            DrawLayer(component, section, layer, drawPos);
         }
+      }
+      else if (designator is Designator_Build { PlacingDef: ThingDef thingDef })
+      {
+        foreach (var compProperties in thingDef.comps.Where(c =>
+                   c.GetType().SameOrSubclassOf(Rimatomics.CompProperties_Pipe)))
+        {
+          var mode = Rimatomics.CompProperties_Pipe_mode(compProperties);
+          foreach (var layer in Rimatomics.SectionLayer_OverlayPipes)
+          {
+            if (mode == Rimatomics.SectionLayer_OverlayPipe_mode(component.GetLayer(section, layer, default)))
+              DrawLayer(component, section, layer, drawPos);
+          }
+        }
+      }
+
+      DrawLayer(component, section, Rimatomics.SectionLayer_ThingsPipe, drawPos);
     }
 
-
-    public enum EnterCompKind
+    if (ModsConfig.OdysseyActive)
     {
-        RampOnly,
-        ZiplineOnly,
-        All
+      var fullRot = FullRotation;
+      ((SectionLayer_SubstructurePropsOnVehicle)component.GetLayer(section,
+        typeof(SectionLayer_SubstructurePropsOnVehicle), default))?.DrawLayer(fullRot, drawPos, Transform.rotation);
+      ((SectionLayer_GravshipHullOnVehicle)component.GetLayer(section, typeof(SectionLayer_GravshipHullOnVehicle),
+        default))?.DrawLayer(fullRot, drawPos, Transform.rotation);
     }
+
+    if (MultiFloors.Active && CurrentLevel != interiorMap)
+    {
+      DrawLayer(component, section, MultiFloors.SectionLayer_LowerLevel, drawPos, FullRotation);
+    }
+  }
+
+  private void DrawLayer(VehicleSectionLayerManager component, Section section, Type layerType, Vector3 drawPos,
+    Rot8 rot = default)
+  {
+    if (layerType is null) return;
+
+    var layer = component.GetLayer(section, layerType, rot);
+    if (layer is null) return;
+
+    DrawLayer(layer, drawPos);
+  }
+
+  private void DrawLayer(SectionLayer layer, Vector3 drawPos)
+  {
+    if (!layer.Visible)
+      return;
+
+    var rot = Quaternion.AngleAxis(this.FullAngle, Vector3.up);
+    for (var i = 0; i < layer.subMeshes.Count; i++)
+    {
+      var subMesh = layer.subMeshes[i];
+      if (subMesh.finalized && !subMesh.disabled)
+      {
+        Graphics.DrawMesh(subMesh.mesh, drawPos, rot, subMesh.material, subMesh.renderLayer);
+      }
+    }
+  }
+
+  private void DrawClippers(Map map)
+  {
+    if (Command_FocusVehicleMap.FocusLockedVehicle == this || Command_FocusVehicleMap.FocusedVehicle == this)
+    {
+      var material = ClipMat;
+      var quat = this.FullAngleQuat;
+      var size = map.Size;
+      Vector3 s = new(500f, 1f, size.z);
+      Matrix4x4 matrix = default;
+      matrix.SetTRS(new Vector3(-250f, 0f, size.z / 2f).ToBaseMapCoord(this), quat, s);
+      Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
+      matrix = default;
+      matrix.SetTRS(new Vector3(size.x + 250f, 0f, size.z / 2f).ToBaseMapCoord(this), quat, s);
+      Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
+      s = new Vector3(1000f, 1f, 500f);
+      matrix = default;
+      matrix.SetTRS(new Vector3(size.x / 2f, 0f, size.z + 250f).ToBaseMapCoord(this), quat, s);
+      Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
+      matrix = default;
+      matrix.SetTRS(new Vector3(size.x / 2f, 0f, -250f).ToBaseMapCoord(this), quat, s);
+      Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
+
+      s = Vector3.one;
+      IEnumerable<IntVec3> cells = CachedImpassableCells;
+      if (Find.DesignatorManager.SelectedDesignator is Designator_Build { PlacingDef: ThingDef thingDef } &&
+          thingDef.HasComp<CompMapExpander>())
+      {
+        cells = cells.Where(c => !CachedExpandableCells.Contains(c));
+      }
+
+      foreach (var c in cells)
+      {
+        matrix.SetTRS(c.ToVector3Shifted().ToBaseMapCoord(), quat, s);
+        Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
+      }
+    }
+
+    var currentMap = Find.CurrentMap;
+    if ((currentMap == map || currentMap == interiorMap) && WorldRendererUtility.DrawingMap &&
+        VehicleMapFramework.settings.drawPlanet)
+    {
+      var material = MapEdgeClipDrawer.ClipMat;
+      var size = Patch_Map_MapUpdate.MeshSize;
+      Vector3 s = new(500f, 1f, size.y);
+      Matrix4x4 matrix = default;
+      matrix.SetTRS(new Vector3(-250f, 0f, size.y / 2f), Quaternion.identity, s);
+      Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
+      matrix = default;
+      matrix.SetTRS(new Vector3(size.x + 250f, 0f, size.y / 2f), Quaternion.identity, s);
+      Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
+      s = new Vector3(1000f, 1f, 500f);
+      matrix = default;
+      matrix.SetTRS(new Vector3(size.x / 2f, 0f, size.y + 250f), Quaternion.identity, s);
+      Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
+      matrix = default;
+      matrix.SetTRS(new Vector3(size.x / 2f, 0f, -250f), Quaternion.identity, s);
+      Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
+    }
+  }
+
+  public override void DrawGUIOverlay()
+  {
+    base.DrawGUIOverlay();
+    var map = CurrentLevel;
+    DebugDrawHelper.DebugOnGUI(map.debugDrawer, map);
+  }
+
+  public override string GetInspectString()
+  {
+    if (VehicleMapFramework.settings.weightFactor == 0f) return null;
+
+    var str = base.GetInspectString();
+    var stat = GetStatValue(VMF_DefOf.MaximumPayload);
+
+    str += $"\n{VMF_DefOf.MaximumPayload.LabelCap}:" +
+           $" {(VehicleMapUtility.VehicleMapMass(this) * VehicleMapFramework.settings.weightFactor).ToStringEnsureThreshold(2, 0)} /" +
+           $" {stat.ToStringEnsureThreshold(2, 0)} {"kg".Translate()}";
+    return str;
+  }
+
+  public virtual bool AllowEnterFor(Pawn pawn)
+  {
+    return (AllowEnter || (pawn?.HostileTo(Faction.OfPlayer) ?? true) || pawn.Drafted) && !IsAirborne;
+  }
+
+  public virtual bool AllowExitFor(Pawn pawn)
+  {
+    return (AllowExit || (pawn?.HostileTo(Faction.OfPlayer) ?? true) || pawn.Drafted) && !IsAirborne;
+  }
+
+  public override void ExposeData()
+  {
+    base.ExposeData();
+    Scribe_References.Look(ref interiorMap, nameof(interiorMap));
+    Scribe_Values.Look(ref allowEnter, nameof(allowEnter));
+    Scribe_Values.Look(ref allowExit, nameof(allowExit));
+  }
+
+  protected override void PostLoad()
+  {
+    VMF_Harmony.DynamicPatchAll(Level.All);
+    base.PostLoad();
+    RegisterEvents();
+    CompVehicleTurrets?.RevalidateTurrets();
+    ResetRenderStatus();
+    CurrentLevel = interiorMap;
+  }
+
+  public override void PostMake()
+  {
+    base.PostMake();
+    if (def.GetModExtension<VehicleMapProps_Unique>() is { baseDef: null })
+    {
+      def = UniqueVehicleUtility.ClaimUniqueVehicleDef(VehicleDef);
+    }
+  }
+
+  public override void PostGenerationSetup()
+  {
+    VMF_Harmony.DynamicPatchAll(Level.All);
+    base.PostGenerationSetup();
+    RegisterEvents();
+  }
+
+  public new void RegisterEvents()
+  {
+    var manager = MapVehicleEventManager;
+    if (manager is not null && manager.Initialized()) return;
+    this.FillEventsDef<MapVehicleEventDef>();
+    this.AddEvent(VMF_DefOf.EnterNextCell, () =>
+    {
+      enterPositionsDirty = true;
+      CrossMapReachabilityCache.ClearCacheFor(VehicleMap);
+    });
+    if (DefenseGrid.Active)
+    {
+      this.AddEvent(VMF_DefOf.EnterNextCell, () =>
+      {
+        if (InterceptorMapComponent is null) return;
+        foreach (var grid in DefenseGrid.grids(InterceptorMapComponent))
+        {
+          DefenseGrid.RepaintGrid(InterceptorMapComponent, SingleParam.Get(grid));
+        }
+      });
+      this.AddEvent(VehicleEventDefOf.Spawned, () => FrameDelay.DelayOne(static component =>
+      {
+        if (component is null) return;
+        foreach (var grid in DefenseGrid.grids(component))
+        {
+          DefenseGrid.RepaintGrid(component, SingleParam.Get(grid));
+        }
+      }, InterceptorMapComponent));
+      this.AddEvent(VehicleEventDefOf.Despawned, () =>
+      {
+        if (InterceptorMapComponent is null) return;
+        foreach (var grid in DefenseGrid.grids(InterceptorMapComponent))
+        {
+          DefenseGrid.UnpaintGrid(InterceptorMapComponent, SingleParam.Get(grid));
+        }
+      });
+    }
+  }
+
+  public void Resize()
+  {
+    if (resizeRequest)
+    {
+      resizeRequest = false;
+      ResizeNow();
+    }
+  }
+
+  private void ResizeNow(bool changePosition = true)
+  {
+    var vehicleDef = VehicleDef;
+    var curSize = vehicleDef.Size;
+    var mapRect = CellRect.WholeMap(VehicleMap);
+    var newRect = ValidMapRect;
+    var newSize = newRect.Size;
+    if (curSize != newSize)
+    {
+      VehicleResizeUtility.PreResize(this);
+      VMF_Log.DebugMessage($"Resize {vehicleDef} from {vehicleDef.size} to {newSize}");
+      vehicleDef.size = newSize;
+      var offset = mapRect.CenterVector3 - newRect.CenterVector3;
+      var data = VehicleGraphic.DataRgb;
+      var prevOffset = data.drawOffset;
+      data.drawOffset = offset;
+      data.drawOffsetNorth = offset;
+      data.drawOffsetEast = offset.RotatedBy(Rot4.East);
+      data.drawOffsetSouth = offset.RotatedBy(Rot4.South);
+      data.drawOffsetWest = offset.RotatedBy(Rot4.West);
+      UniqueVehicleUtility.ReinitializeComponents(vehicleDef);
+
+      foreach (var map in Find.Maps)
+      {
+        if (map.IsVehicleMap) continue;
+
+        var component = map.GetCachedMapComponent<VehiclePathingSystem>();
+        UniqueVehicleUtility.GeneratePathData(component, SingleParam.Get(vehicleDef));
+      }
+
+      if (Spawned)
+      {
+        if (changePosition)
+          VehicleResizeUtility.Reposition(this, prevOffset - offset);
+        else
+        {
+          Map.thingGrid.Register(this);
+          Map.coverGrid.Register(this);
+          RegionListersUpdater.RegisterInRegions(this, Map);
+        }
+
+        VehicleResizeUtility.RefreshVehiclePather(this);
+      }
+    }
+  }
+
+
+  public enum EnterCompKind
+  {
+    RampOnly,
+    ZiplineOnly,
+    All
+  }
 }

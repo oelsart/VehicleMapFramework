@@ -16,7 +16,7 @@ internal static class Patches_MeleeAnimation
 {
   static Patches_MeleeAnimation()
   {
-    if (Active)
+    if (MeleeAnimation.Active)
     {
       VMF_Harmony.PatchCategory(PatchCategories.MeleeAnimation);
     }

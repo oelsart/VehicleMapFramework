@@ -12,7 +12,7 @@ internal class Patches_EccentricTech
 {
   static Patches_EccentricTech()
   {
-    if (Active)
+    if (DefenseGrid.Active)
     {
       VMF_Harmony.PatchCategory(PatchCategories.EccentricTech_DefenseGrid);
     }

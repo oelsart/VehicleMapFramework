@@ -39,7 +39,7 @@ public static class Patches_VEF
     {
       VMF_Harmony.PatchCategory(PatchCategories.VFEFactory);
     }
-    if (ModCompat.VVE.Active)
+    if (ModCompat.VanillaVehiclesExpanded.Active)
     {
       VMF_Harmony.PatchCategory(PatchCategories.VVE);
     }
@@ -51,7 +51,7 @@ public static class Patches_VEF
     {
       VMF_Harmony.PatchCategory(PatchCategories.VQEGenerator);
     }
-    if (ModCompat.VTE.Active)
+    if (ModCompat.VanillaTemperatureExpanded.Active)
     {
       VMF_Harmony.PatchCategory(PatchCategories.VTE);
     }

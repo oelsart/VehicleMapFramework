@@ -17,7 +17,7 @@ internal static class Patches_PowerPoles
 {
   static Patches_PowerPoles()
   {
-    if (Active)
+    if (PowerPoles.Active)
     {
       VMF_Harmony.PatchCategory(PatchCategories.PowerPoles);
     }

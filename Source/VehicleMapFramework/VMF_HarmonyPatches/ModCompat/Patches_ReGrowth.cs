@@ -10,7 +10,7 @@ internal class Patches_ReGrowth
 {
   static Patches_ReGrowth()
   {
-    if (ReGrowth)
+    if (SmartFarming.ReGrowthActive)
     {
       VMF_Harmony.PatchCategory(PatchCategories.ReGrowth);
     }

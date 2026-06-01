@@ -100,6 +100,7 @@ public static class Patch_CompVehicleTurrets_CompGetGizmosExtra
 }
 
 [HarmonyPatchCategory(PatchCategories.VehicleFramework)]
+[HarmonyAfter(VehicleRaidFramework.HarmonyId)]
 [HarmonyPatch(typeof(VehiclePawn), nameof(VehiclePawn.DisembarkPawn))]
 [PatchLevel(Level.Safe)]
 public static class Patch_VehiclePawn_DisembarkPawn
@@ -1316,5 +1317,16 @@ public static class Patch_MapGridOwners_PathConfig_MatchesReachability
     {
       return def.GetModExtension<VehicleMapProps_Unique>() is { baseDef: not null };
     }
+  }
+}
+
+[HarmonyPatch(typeof(VehiclePawn), nameof(VehiclePawn.Notify_Teleported))]
+[PatchLevel(Level.Safe)]
+public static class Patch_VehiclePawn_Notify_Teleported
+{
+  public static void Postfix(VehiclePawn __instance)
+  {
+    if (__instance is VehiclePawnWithMap vehicle)
+      CrossMapReachabilityCache.ClearCacheFor(vehicle.VehicleMap);
   }
 }

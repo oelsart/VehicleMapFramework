@@ -95,3 +95,5 @@
   LoadOnly: true
 - Name: WVCWorkModes
 - Name: PowerPoles
+- Name: VehicleRaidFramework
+  LoadOnly: true

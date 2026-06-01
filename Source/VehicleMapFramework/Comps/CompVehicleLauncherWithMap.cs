@@ -19,70 +19,28 @@ public class CompVehicleLauncherWithMap : CompVehicleLauncher
           takeoffCommand.Disable(reason);
         }
       }
+
       yield return gizmo;
     }
   }
 
   public bool CanLaunchWithCargoCapacityWithMap(out string disableReason)
   {
-    disableReason = null;
-    if (Vehicle.Spawned)
+    if (!CanLaunchWithCargoCapacity(out disableReason))
+      return false;
+
+    if ((Vehicle.MovementPermissions & VehiclePermissions.Mobile) == 0 && Vehicle is VehiclePawnWithMap vehicleWithMap)
     {
-      if (Vehicle.vehiclePather.Moving)
-      {
-        disableReason = "VF_CannotLaunchWhileMoving".Translate(Vehicle.LabelShort);
-      }
-      else if (Ext_Vehicles.IsRoofed(Vehicle.Position, Vehicle.Map))
-      {
-        disableReason = "CommandLaunchGroupFailUnderRoof".Translate();
-      }
-    }
-    if (Vehicle.MovementPermissions.HasFlag(VehiclePermissions.Mobile))
-    {
-      if (!Vehicle.CanMoveFinal)
-      {
-        disableReason = "VF_CannotLaunchImmobile".Translate(Vehicle.LabelShort);
-      }
-      else if (Vehicle.Angle != 0f)
-      {
-        disableReason = "VF_CannotLaunchRotated".Translate(Vehicle.LabelShort);
-      }
-    }
-    else
-    {
-      var cargoCapacity = Vehicle.GetStatValue(VehicleStatDefOf.CargoCapacity);
-      var mass = MassUtility.InventoryMass(Vehicle);
-      var flag = true;
-      if (Vehicle is VehiclePawnWithMap vehicleWithMap)
-      {
-        var maximumPayload = Vehicle.GetStatValue(VMF_DefOf.MaximumPayload);
-        var mass2 = CollectionsMassCalculator.MassUsage(vehicleWithMap.VehicleMap.listerThings.AllThings, IgnorePawnsInventoryMode.DontIgnore, true);
-        if (mass2 > maximumPayload)
-        {
-          flag = false;
-        }
-      }
-      if (mass > cargoCapacity && flag)
+      var maximumPayload = Vehicle.GetStatValue(VMF_DefOf.MaximumPayload);
+      var mass2 = CollectionsMassCalculator.MassUsage(vehicleWithMap.VehicleMap.listerThings.AllThings,
+        IgnorePawnsInventoryMode.DontIgnore, true);
+      if (mass2 > maximumPayload)
       {
         disableReason = "VF_CannotLaunchOverEncumbered".Translate(Vehicle.LabelShort);
+        return false;
       }
     }
-    if (!VehicleMod.settings.debug.debugDraftAnyVehicle && !Vehicle.HasEnoughOperators)
-    {
-      disableReason = "VF_NotEnoughToOperate".Translate();
-    }
-    else if (Vehicle.CompFueledTravel is { EmptyTank: true })
-    {
-      disableReason = "VF_LaunchOutOfFuel".Translate();
-    }
-    else if (FlightSpeed <= 0f)
-    {
-      disableReason = "VF_NoFlightSpeed".Translate();
-    }
-    if (!launchProtocol.CanLaunchNow)
-    {
-      disableReason = launchProtocol.FailLaunchMessage;
-    }
-    return disableReason.NullOrEmpty();
+
+    return true;
   }
 }

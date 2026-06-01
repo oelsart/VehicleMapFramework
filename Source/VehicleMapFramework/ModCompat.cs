@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -25,7 +26,6 @@ internal static class UnitTestDetector
 [StaticConstructorOnStartup]
 internal static class ModCompat
 {
-
   public static readonly bool AllowTool = IsModActive("UnlimitedHugs.AllowTool");
 
   public static readonly bool BillDoorsFramework = IsModActive("3HSTltd.Framework");
@@ -89,8 +89,6 @@ internal static class ModCompat
   public static readonly bool SRALib = IsModActive("DiZhuan.SRALib");
 
   public static readonly bool RealFogOfWar = IsModActive("Mlie.NWNRealFogOfWar");
-
-  public static readonly bool ReGrowth = IsModActive("ReGrowth.BOTR.Core");
 
   public static readonly bool RimWorldOfMagic = IsModActive("Torann.ARimworldOfMagic");
 
@@ -157,6 +155,49 @@ internal static class ModCompat
     }
     VMF_Log.Error(ex.Message);
   }
+  
+  public abstract class CompatBase<T> where T : CompatBase<T>
+  {
+    // ReSharper disable once StaticMemberInGenericType
+    public static bool Active { get; private set; }
+
+    protected static void Initialize(string packageId, Action initialize, params Span<string> alternativeIds)
+    {
+      Active = IsModActive(packageId);
+      if (!Active && !alternativeIds.IsEmpty)
+      {
+        foreach (var alternativeId in alternativeIds)
+        {
+          if (IsModActive(alternativeId))
+          {
+            Active = true;
+            break;
+          }
+        }
+      }
+      
+      if (Active)
+      {
+        try
+        {
+          initialize();
+        }
+        catch (Exception ex)
+        {
+          LogError(ex);
+          Active = false;
+        }
+        finally
+        {
+          if (AnyNull(AccessTools.GetDeclaredProperties(typeof(T)).Select(f => f.GetValue(null))))
+          {
+            LogIncompat(typeof(T).Name);
+            Active = false;
+          }
+        }
+      }
+    }
+  }
 
   public static class VehicleFramework
   {
@@ -181,49 +222,23 @@ internal static class ModCompat
     }
   }
 
-  public static class AdaptiveStorage
+  public class AdaptiveStorage : CompatBase<AdaptiveStorage>
   {
-    public static readonly bool Active = IsModActive("adaptive.storage.framework");
-
-    public static readonly Type TransformData;
-
-    public static readonly Type RotationAngle;
-
-    public static readonly Type ThingClass;
-
-    public static readonly FastInvokeHandler Renderer;
-
-    public static readonly FastInvokeHandler SetAllPrintDatasDirty;
-
-    private static readonly Dictionary<Type, bool> SameOrSubClassDic;
+    public static Type ThingClass { get; private set; }
+    public static FastInvokeHandler Renderer { get; private set; }
+    public static FastInvokeHandler SetAllPrintDatasDirty { get; private set; }
+    private static Dictionary<Type, bool> SameOrSubClassDic { get; set; }
 
     static AdaptiveStorage()
     {
-      if (Active)
+      Initialize("adaptive.storage.framework", () =>
       {
-        try
-        {
-          TransformData = AccessTools.TypeByName("ITransformable.TransformData");
-          RotationAngle = AccessTools.TypeByName("ITransformable.RotationAngle");
-          ThingClass = AccessTools.TypeByName("AdaptiveStorage.ThingClass");
-          Renderer = MethodInvoker.GetHandler(AccessTools.PropertyGetter(ThingClass, nameof(Renderer)));
-          SetAllPrintDatasDirty = MethodInvoker.GetHandler(AccessTools.Method("AdaptiveStorage.StorageRenderer:SetAllPrintDatasDirty"));
-          SameOrSubClassDic = [];
-        }
-        catch (Exception ex)
-        {
-          LogError(ex);
-          Active = false;
-        }
-        finally
-        {
-          if (AnyNull(TransformData, RotationAngle, ThingClass, Renderer, SetAllPrintDatasDirty, SameOrSubClassDic))
-          {
-            LogIncompat("Adaptive Storage");
-            Active = false;
-          }
-        }
-      }
+        ThingClass = AccessTools.TypeByName("AdaptiveStorage.ThingClass");
+        Renderer = MethodInvoker.GetHandler(AccessTools.PropertyGetter(ThingClass, nameof(Renderer)));
+        SetAllPrintDatasDirty =
+          MethodInvoker.GetHandler(AccessTools.Method("AdaptiveStorage.StorageRenderer:SetAllPrintDatasDirty"));
+        SameOrSubClassDic = [];
+      });
     }
 
     public static bool IsAdaptiveStorageClass(Type type)
@@ -237,683 +252,350 @@ internal static class ModCompat
     }
   }
 
-  public static class CallTradeShips
+  public class CallTradeShips : CompatBase<CallTradeShips>
   {
-    public static readonly bool Active = IsModActive("calltradeships.kv.rw");
-
-    public static readonly Type Job_CallTradeShip;
-
-    public static readonly AccessTools.FieldRef<Job, TraderKindDef> TraderKindDef;
-
-    public static readonly AccessTools.FieldRef<Job, int> TraderKind;
+    public static Type Job_CallTradeShip { get; private set; }
+    public static AccessTools.FieldRef<Job, TraderKindDef> TraderKindDef { get; private set; }
+    public static AccessTools.FieldRef<Job, int> TraderKind { get; private set; }
 
     static CallTradeShips()
     {
-      if (Active)
+      Initialize("calltradeships.kv.rw", () =>
       {
-        try
-        {
-          Job_CallTradeShip =
-            GenTypes.GetTypeInAnyAssembly("CallTradeShips.Job_CallTradeShip", nameof(CallTradeShips));
-          TraderKindDef = AccessTools.FieldRefAccess<TraderKindDef>(Job_CallTradeShip, nameof(TraderKindDef));
-          TraderKind = AccessTools.FieldRefAccess<int>(Job_CallTradeShip, nameof(TraderKind));
-        }
-        catch (Exception ex)
-        {
-          LogError(ex);
-          Active = false;
-        }
-        finally
-        {
-          if (AnyNull(Job_CallTradeShip, TraderKindDef, TraderKind))
-          {
-            LogIncompat("Call Trade Ships");
-            Active = false;
-          }
-        }
-      }
+        Job_CallTradeShip =
+          GenTypes.GetTypeInAnyAssembly("CallTradeShips.Job_CallTradeShip", nameof(CallTradeShips));
+        TraderKindDef = AccessTools.FieldRefAccess<TraderKindDef>(Job_CallTradeShip, nameof(TraderKindDef));
+        TraderKind = AccessTools.FieldRefAccess<int>(Job_CallTradeShip, nameof(TraderKind));
+      });
     }
   }
 
-  public static class DubsBadHygiene
+  public class DubsBadHygiene : CompatBase<DubsBadHygiene>
   {
-    public static readonly bool Active = IsModActive("Dubwise.DubsBadHygiene") || IsModActive("Dubwise.DubsBadHygiene.Lite");
-
-    public static readonly bool LiteMode;
-
-    public static readonly Type SectionLayer_ThingsSewagePipe;
-
-    public static readonly Type SectionLayer_SewagePipeOverlay;
-
-    public static readonly Type SectionLayer_AirDuctOverlay;
-
-    public static readonly Type SectionLayer_Irrigation;
-
-    public static readonly Type SectionLayer_FertilizerGrid;
-
-    public static readonly Type Building_Pipe;
-
-    public static readonly Type CompProperties_Pipe;
-
-    public static readonly AccessTools.FieldRef<object, int> CompProperties_Pipe_mode;
-
-    public static readonly AccessTools.FieldRef<object, int> SectionLayer_PipeOverlay_mode;
-
+    public static bool LiteMode { get; private set; }
+    public static Type SectionLayer_ThingsSewagePipe { get; private set; }
+    public static Type SectionLayer_SewagePipeOverlay { get; private set; }
+    public static Type SectionLayer_AirDuctOverlay { get; private set; }
+    public static Type SectionLayer_Irrigation { get; private set; }
+    public static Type SectionLayer_FertilizerGrid { get; private set; }
+    public static Type CompProperties_Pipe { get; private set; }
+    public static AccessTools.FieldRef<object, int> CompProperties_Pipe_mode { get; private set; }
+    public static AccessTools.FieldRef<object, int> SectionLayer_PipeOverlay_mode { get; private set; }
+    
     static DubsBadHygiene()
     {
-      if (Active)
+      Initialize("Dubwise.DubsBadHygiene", () =>
       {
-        try
-        {
-          Patch_JobGiver_Work_PawnCanUseWorkGiver.NoNeedVirtualMapTransferList.Add(
-            GenTypes.GetTypeInAnyAssembly("DubsBadHygiene.WorkGiver_PlaceFertilizer", nameof(DubsBadHygiene)));
+        Patch_JobGiver_Work_PawnCanUseWorkGiver.NoNeedVirtualMapTransferList.Add(
+          GenTypes.GetTypeInAnyAssembly("DubsBadHygiene.WorkGiver_PlaceFertilizer", nameof(DubsBadHygiene)));
 
-          LiteMode = (bool)AccessTools.PropertyGetter("DubsBadHygiene.Settings:LiteMode").Invoke(null, null);
-          if (LiteMode) return;
+        LiteMode = (bool)AccessTools.PropertyGetter("DubsBadHygiene.Settings:LiteMode").Invoke(null, null);
+        if (LiteMode) return;
 
-          SectionLayer_ThingsSewagePipe = GenTypes.GetTypeInAnyAssembly("DubsBadHygiene.SectionLayer_SewagePipeOverlay", nameof(DubsBadHygiene));
-          if (SectionLayer_ThingsSewagePipe != null)
-          {
-            VehicleSectionLayerManager.OrientedSectionLayerTypes.Add(SectionLayer_ThingsSewagePipe);
-          }
-          SectionLayer_SewagePipeOverlay = GenTypes.GetTypeInAnyAssembly("DubsBadHygiene.SectionLayer_SewagePipeOverlay", nameof(DubsBadHygiene));
-          SectionLayer_AirDuctOverlay = GenTypes.GetTypeInAnyAssembly("DubsBadHygiene.SectionLayer_AirDuctOverlay", nameof(DubsBadHygiene));
-          SectionLayer_Irrigation = GenTypes.GetTypeInAnyAssembly("DubsBadHygiene.SectionLayer_Irrigation", nameof(DubsBadHygiene));
-          SectionLayer_FertilizerGrid = GenTypes.GetTypeInAnyAssembly("DubsBadHygiene.SectionLayer_FertilizerGrid", nameof(DubsBadHygiene));
-          Building_Pipe = GenTypes.GetTypeInAnyAssembly("DubsBadHygiene.Building_Pipe", nameof(DubsBadHygiene));
-          CompProperties_Pipe = GenTypes.GetTypeInAnyAssembly("DubsBadHygiene.CompProperties_Pipe", nameof(DubsBadHygiene));
-          CompProperties_Pipe_mode = AccessTools.FieldRefAccess<int>(CompProperties_Pipe, "mode");
-          SectionLayer_PipeOverlay_mode = AccessTools.FieldRefAccess<int>("DubsBadHygiene.SectionLayer_PipeOverlay:mode");
-        }
-        catch (Exception ex)
+        SectionLayer_ThingsSewagePipe = GenTypes.GetTypeInAnyAssembly("DubsBadHygiene.SectionLayer_SewagePipeOverlay", nameof(DubsBadHygiene));
+        if (SectionLayer_ThingsSewagePipe != null)
         {
-          LogError(ex);
-          Active = false;
+          VehicleSectionLayerManager.OrientedSectionLayerTypes.Add(SectionLayer_ThingsSewagePipe);
         }
-        finally
-        {
-          if (!LiteMode && AnyNull(
-                SectionLayer_SewagePipeOverlay,
-                SectionLayer_AirDuctOverlay,
-                SectionLayer_Irrigation,
-                SectionLayer_FertilizerGrid,
-                Building_Pipe,
-                CompProperties_Pipe,
-                CompProperties_Pipe_mode,
-                SectionLayer_PipeOverlay_mode))
-          {
-            LogIncompat("Dubs Bad Hygiene");
-            Active = false;
-          }
-        }
-      }
+        SectionLayer_SewagePipeOverlay = GenTypes.GetTypeInAnyAssembly("DubsBadHygiene.SectionLayer_SewagePipeOverlay", nameof(DubsBadHygiene));
+        SectionLayer_AirDuctOverlay = GenTypes.GetTypeInAnyAssembly("DubsBadHygiene.SectionLayer_AirDuctOverlay", nameof(DubsBadHygiene));
+        SectionLayer_Irrigation = GenTypes.GetTypeInAnyAssembly("DubsBadHygiene.SectionLayer_Irrigation", nameof(DubsBadHygiene));
+        SectionLayer_FertilizerGrid = GenTypes.GetTypeInAnyAssembly("DubsBadHygiene.SectionLayer_FertilizerGrid", nameof(DubsBadHygiene));
+        CompProperties_Pipe = GenTypes.GetTypeInAnyAssembly("DubsBadHygiene.CompProperties_Pipe", nameof(DubsBadHygiene));
+        CompProperties_Pipe_mode = AccessTools.FieldRefAccess<int>(CompProperties_Pipe, "mode");
+        SectionLayer_PipeOverlay_mode = AccessTools.FieldRefAccess<int>("DubsBadHygiene.SectionLayer_PipeOverlay:mode");
+      }, "Dubwise.DubsBadHygiene.Lite");
     }
   }
 
-  public static class Rimefeller
+  public class Rimefeller : CompatBase<Rimefeller>
   {
-    public static readonly bool Active = IsModActive("Dubwise.Rimefeller");
-
-    public static readonly Type SectionLayer_SewagePipe;
-
-    public static readonly Type SectionLayer_ThingsPipe;
-
-    public static readonly Type XSectionLayer_Napalm;
-
-    public static readonly Type XSectionLayer_OilSpill;
-
-    public static readonly Type Building_Pipe;
-
-    public static readonly Type CompProperties_Pipe;
-
-    public static readonly AccessTools.FieldRef<object, int> CompProperties_Pipe_mode;
-
-    public static readonly AccessTools.FieldRef<object, int> SectionLayer_PipeOverlay_mode;
+    public static Type SectionLayer_SewagePipe { get; private set; }
+    public static Type SectionLayer_ThingsPipe { get; private set; }
+    public static Type XSectionLayer_Napalm { get; private set; }
+    public static Type XSectionLayer_OilSpill { get; private set; }
+    public static Type CompProperties_Pipe { get; private set; }
+    public static AccessTools.FieldRef<object, int> CompProperties_Pipe_mode { get; private set; }
+    public static AccessTools.FieldRef<object, int> SectionLayer_PipeOverlay_mode { get; private set; }
 
     static Rimefeller()
     {
-      if (Active)
+      Initialize("Dubwise.Rimefeller", () =>
       {
-        try
+        SectionLayer_SewagePipe = GenTypes.GetTypeInAnyAssembly("Rimefeller.SectionLayer_SewagePipe", nameof(Rimefeller));
+        SectionLayer_ThingsPipe = GenTypes.GetTypeInAnyAssembly("Rimefeller.SectionLayer_ThingsPipe", nameof(Rimefeller));
+        if (SectionLayer_ThingsPipe != null)
         {
-          SectionLayer_SewagePipe = GenTypes.GetTypeInAnyAssembly("Rimefeller.SectionLayer_SewagePipe", nameof(Rimefeller));
-          SectionLayer_ThingsPipe = GenTypes.GetTypeInAnyAssembly("Rimefeller.SectionLayer_ThingsPipe", nameof(Rimefeller));
-          if (SectionLayer_ThingsPipe != null)
-          {
-            VehicleSectionLayerManager.OrientedSectionLayerTypes.Add(SectionLayer_ThingsPipe);
-          }
-          XSectionLayer_Napalm = GenTypes.GetTypeInAnyAssembly("Rimefeller.XSectionLayer_Napalm", nameof(Rimefeller));
-          XSectionLayer_OilSpill = GenTypes.GetTypeInAnyAssembly("Rimefeller.XSectionLayer_OilSpill", nameof(Rimefeller));
-          Building_Pipe = GenTypes.GetTypeInAnyAssembly("Rimefeller.Building_Pipe", nameof(Rimefeller));
-          CompProperties_Pipe = GenTypes.GetTypeInAnyAssembly("Rimefeller.CompProperties_Pipe", nameof(Rimefeller));
-          CompProperties_Pipe_mode = AccessTools.FieldRefAccess<int>(CompProperties_Pipe, "mode");
-          SectionLayer_PipeOverlay_mode = AccessTools.FieldRefAccess<int>("Rimefeller.SectionLayer_PipeOverlay:mode");
+          VehicleSectionLayerManager.OrientedSectionLayerTypes.Add(SectionLayer_ThingsPipe);
         }
-        catch (Exception ex)
-        {
-          LogError(ex);
-          Active = false;
-        }
-        finally
-        {
-          if (AnyNull(
-                SectionLayer_SewagePipe,
-                SectionLayer_ThingsPipe,
-                XSectionLayer_Napalm,
-                XSectionLayer_OilSpill,
-                Building_Pipe,
-                CompProperties_Pipe,
-                CompProperties_Pipe_mode,
-                SectionLayer_PipeOverlay_mode))
-          {
-            LogIncompat(nameof(Rimefeller));
-            Active = false;
-          }
-        }
-      }
+        XSectionLayer_Napalm = GenTypes.GetTypeInAnyAssembly("Rimefeller.XSectionLayer_Napalm", nameof(Rimefeller));
+        XSectionLayer_OilSpill = GenTypes.GetTypeInAnyAssembly("Rimefeller.XSectionLayer_OilSpill", nameof(Rimefeller));
+        CompProperties_Pipe = GenTypes.GetTypeInAnyAssembly("Rimefeller.CompProperties_Pipe", nameof(Rimefeller));
+        CompProperties_Pipe_mode = AccessTools.FieldRefAccess<int>(CompProperties_Pipe, "mode");
+        SectionLayer_PipeOverlay_mode = AccessTools.FieldRefAccess<int>("Rimefeller.SectionLayer_PipeOverlay:mode");
+      });
     }
   }
 
-  public static class DefenseGrid
+  public class DefenseGrid : CompatBase<DefenseGrid>
   {
-    public static readonly bool Active = IsModActive("Aelanna.EccentricTech.DefenseGrid");
-    public static readonly Type SectionLayer_DefenseGridOverlay;
-    public static readonly Type CompDefenseConduit;
-    public static readonly Type Designator_DeconstructConduit;
-    public static readonly Type InterceptorMapComponent;
-    public static readonly AccessTools.FieldRef<MapComponent, IList> grids;
-    public static readonly AccessTools.FieldRef<object, MapComponent> mapComponent;
-    public static readonly FastInvokeHandler RepaintGrid;
-    public static readonly FastInvokeHandler UnpaintGrid;
+    public static Type SectionLayer_DefenseGridOverlay { get; private set;}
+    public static Type CompDefenseConduit { get; private set;}
+    public static Type Designator_DeconstructConduit { get; private set;}
+    public static Type InterceptorMapComponent { get; private set;}
+    public static AccessTools.FieldRef<MapComponent, IList> grids { get; private set;}
+    public static AccessTools.FieldRef<object, MapComponent> mapComponent { get; private set;}
+    public static FastInvokeHandler RepaintGrid { get; private set;}
+    public static FastInvokeHandler UnpaintGrid { get; private set;}
 
     static DefenseGrid()
     {
-      if (Active)
+      Initialize("Aelanna.EccentricTech.DefenseGrid", () =>
       {
-        try
-        {
-          SectionLayer_DefenseGridOverlay = AccessTools.TypeByName("EccentricDefenseGrid.SectionLayer_DefenseGridOverlay");
-          CompDefenseConduit = AccessTools.TypeByName("EccentricDefenseGrid.CompDefenseConduit");
-          Designator_DeconstructConduit = AccessTools.TypeByName("EccentricDefenseGrid.Designator_DeconstructConduit");
-          InterceptorMapComponent = GenTypes.GetTypeInAnyAssembly("EccentricProjectiles.InterceptorMapComponent", "EccentricProjectiles");
-          grids = AccessTools.FieldRefAccess<IList>(InterceptorMapComponent, nameof(grids));
-          var t_InterceptorGrid = GenTypes.GetTypeInAnyAssembly("EccentricProjectiles.InterceptorGrid", "EccentricProjectiles");
-          mapComponent = AccessTools.FieldRefAccess<MapComponent>(t_InterceptorGrid, nameof(mapComponent));
-          RepaintGrid = MethodInvoker.GetHandler(AccessTools.Method(InterceptorMapComponent, nameof(RepaintGrid)));
-          UnpaintGrid = MethodInvoker.GetHandler(AccessTools.Method(InterceptorMapComponent, nameof(UnpaintGrid)));
-        }
-        catch (Exception ex)
-        {
-          LogError(ex);
-          Active = false;
-        }
-        finally
-        {
-          if (AnyNull(SectionLayer_DefenseGridOverlay,
-                CompDefenseConduit,
-                Designator_DeconstructConduit,
-                InterceptorMapComponent,
-                grids,
-                RepaintGrid,
-                UnpaintGrid))
-          {
-            LogIncompat("Defense Grid");
-            Active = false;
-          }
-        }
-      }
+        SectionLayer_DefenseGridOverlay = AccessTools.TypeByName("EccentricDefenseGrid.SectionLayer_DefenseGridOverlay");
+        CompDefenseConduit = AccessTools.TypeByName("EccentricDefenseGrid.CompDefenseConduit");
+        Designator_DeconstructConduit = AccessTools.TypeByName("EccentricDefenseGrid.Designator_DeconstructConduit");
+        InterceptorMapComponent = GenTypes.GetTypeInAnyAssembly("EccentricProjectiles.InterceptorMapComponent", "EccentricProjectiles");
+        grids = AccessTools.FieldRefAccess<IList>(InterceptorMapComponent, nameof(grids));
+        var t_InterceptorGrid = GenTypes.GetTypeInAnyAssembly("EccentricProjectiles.InterceptorGrid", "EccentricProjectiles");
+        mapComponent = AccessTools.FieldRefAccess<MapComponent>(t_InterceptorGrid, nameof(mapComponent));
+        RepaintGrid = MethodInvoker.GetHandler(AccessTools.Method(InterceptorMapComponent, nameof(RepaintGrid)));
+        UnpaintGrid = MethodInvoker.GetHandler(AccessTools.Method(InterceptorMapComponent, nameof(UnpaintGrid)));
+      });
     }
   }
 
-  public static class MeleeAnimation
+  public class MeleeAnimation : CompatBase<MeleeAnimation>
   {
-    public static readonly bool Active = IsModActive("co.uk.epicguru.meleeanimation");
-
-    public static readonly AccessTools.FieldRef<object, Map> AnimRenderer_Map;
-
-    public static readonly AccessTools.FieldRef<object, Matrix4x4> AnimRenderer_RootTransform;
-
-    public static readonly AccessTools.FieldRef<object, Def> AnimRenderer_Def;
-
-    public static readonly AccessTools.FieldRef<Def, IReadOnlyList<object>> AnimRenderer_cellData;
-
-    public static readonly MethodInfo m_GetWorldPosition;
-
-    public static readonly MethodInfo m_GetWorldPositionOffset;
+    public static AccessTools.FieldRef<object, Map> AnimRenderer_Map { get; private set;}
+    public static AccessTools.FieldRef<object, Matrix4x4> AnimRenderer_RootTransform { get; private set;}
+    public static AccessTools.FieldRef<object, Def> AnimRenderer_Def { get; private set;}
+    public static AccessTools.FieldRef<Def, IReadOnlyList<object>> AnimRenderer_cellData { get; private set;}
+    public static MethodInfo m_GetWorldPosition { get; private set;}
+    public static MethodInfo m_GetWorldPositionOffset { get; private set;}
 
     static MeleeAnimation()
     {
-      if (Active)
+      Initialize("co.uk.epicguru.meleeanimation", () =>
       {
-        try
-        {
-          AnimRenderer_Map = AccessTools.FieldRefAccess<Map>("AM.AnimRenderer:Map");
-          AnimRenderer_RootTransform = AccessTools.FieldRefAccess<Matrix4x4>("AM.AnimRenderer:RootTransform");
-          AnimRenderer_Def = AccessTools.FieldRefAccess<Def>("AM.AnimRenderer:Def");
-          AnimRenderer_cellData = AccessTools.FieldRefAccess<IReadOnlyList<object>>("AM.AnimDef:cellData");
-          m_GetWorldPosition = AccessTools.Method("AnimPartSnapshot:GetWorldPosition");
-          m_GetWorldPositionOffset = AccessTools.Method(typeof(Patch_AnimRenderer_DrawPawns), nameof(Patch_AnimRenderer_DrawPawns.GetWorldPositionOffset));
-        }
-        catch (Exception ex)
-        {
-          LogError(ex);
-          Active = false;
-        }
-        finally
-        {
-          if (AnyNull(AnimRenderer_Map, AnimRenderer_RootTransform, AnimRenderer_Def, AnimRenderer_cellData))
-          {
-            LogIncompat("Melee Animation");
-            Active = false;
-          }
-        }
-      }
+        AnimRenderer_Map = AccessTools.FieldRefAccess<Map>("AM.AnimRenderer:Map");
+        AnimRenderer_RootTransform = AccessTools.FieldRefAccess<Matrix4x4>("AM.AnimRenderer:RootTransform");
+        AnimRenderer_Def = AccessTools.FieldRefAccess<Def>("AM.AnimRenderer:Def");
+        AnimRenderer_cellData = AccessTools.FieldRefAccess<IReadOnlyList<object>>("AM.AnimDef:cellData");
+        m_GetWorldPosition = AccessTools.Method("AnimPartSnapshot:GetWorldPosition");
+        m_GetWorldPositionOffset = AccessTools.Method(typeof(Patch_AnimRenderer_DrawPawns), nameof(Patch_AnimRenderer_DrawPawns.GetWorldPositionOffset));
+      });
     }
   }
 
-  public static class MiscRobots
+  public class MiscRobots : CompatBase<MiscRobots>
   {
-    public static readonly bool Active = IsModActive("Haplo.Miscellaneous.Robots");
-
-    public static readonly Type X2_AIRobot;
-
-    public static readonly AccessTools.FieldRef<Pawn, Building> rechargeStation;
+    public static Type X2_AIRobot { get; private set; }
+    public static AccessTools.FieldRef<Pawn, Building> rechargeStation { get; private set;}
 
     static MiscRobots()
     {
-      if (Active)
+      Initialize("Haplo.Miscellaneous.Robots", () =>
       {
-        try
-        {
-          X2_AIRobot = GenTypes.GetTypeInAnyAssembly("AIRobot.X2_AIRobot", "AIRobot");
-          rechargeStation = AccessTools.FieldRefAccess<Building>("AIRobot.X2_AIRobot:rechargeStation");
-        }
-        catch (Exception ex)
-        {
-          LogError(ex);
-          Active = false;
-        }
-        finally
-        {
-          if (AnyNull(X2_AIRobot, rechargeStation))
-          {
-            LogIncompat(nameof(MiscRobots));
-            Active = false;
-          }
-        }
-      }
+        X2_AIRobot = GenTypes.GetTypeInAnyAssembly("AIRobot.X2_AIRobot", "AIRobot");
+        rechargeStation = AccessTools.FieldRefAccess<Building>("AIRobot.X2_AIRobot:rechargeStation");
+      });
     }
   }
 
-  public static class VFECore
+  public class VFECore : CompatBase<VFECore>
   {
-    public static readonly bool Active = IsModActive("OskarPotocki.VanillaFactionsExpanded.Core");
-
-    public static readonly Type PipeNetDef;
-
-    public static readonly Type SectionLayer_Resource;
-
-    public static readonly FastInvokeHandler ShouldDraw;
-
-    public static readonly AccessTools.FieldRef<Def> pipeNetDef;
+    public static Type PipeNetDef { get; private set; }
+    public static Type SectionLayer_Resource { get; private set;}
+    public static FastInvokeHandler ShouldDraw { get; private set;}
+    public static AccessTools.FieldRef<Def> pipeNetDef { get; private set;}
 
     static VFECore()
     {
-      if (Active)
+      Initialize("OskarPotocki.VanillaFactionsExpanded.Core", () =>
       {
-        try
-        {
-          PipeNetDef = GenTypes.GetTypeInAnyAssembly("PipeSystem.PipeNetDef");
-          SectionLayer_Resource = GenTypes.GetTypeInAnyAssembly("PipeSystem.SectionLayer_Resource", "PipeSystem");
-          ShouldDraw = MethodInvoker.GetHandler(AccessTools.PropertyGetter(SectionLayer_Resource, nameof(ShouldDraw)));
-          pipeNetDef = AccessTools.StaticFieldRefAccess<Def>(AccessTools.Field(SectionLayer_Resource, "pipeNet"));
-        }
-        catch (Exception ex)
-        {
-          LogError(ex);
-          Active = false;
-        }
-        finally
-        {
-          if (AnyNull(PipeNetDef, SectionLayer_Resource, ShouldDraw, pipeNetDef))
-          {
-            LogIncompat("VFE Core");
-            Active = false;
-          }
-        }
-      }
+        PipeNetDef = GenTypes.GetTypeInAnyAssembly("PipeSystem.PipeNetDef");
+        SectionLayer_Resource = GenTypes.GetTypeInAnyAssembly("PipeSystem.SectionLayer_Resource", "PipeSystem");
+        ShouldDraw = MethodInvoker.GetHandler(AccessTools.PropertyGetter(SectionLayer_Resource, nameof(ShouldDraw)));
+        pipeNetDef = AccessTools.StaticFieldRefAccess<Def>(AccessTools.Field(SectionLayer_Resource, "pipeNet"));
+      });
     }
   }
 
-  public static class VFESecurity
+  public class VFESecurity : CompatBase<VFESecurity>
   {
-    public static readonly bool Active = IsModActive("VanillaExpanded.VFESecurity");
-
-    public static readonly AccessTools.FieldRef<object, GlobalTargetInfo> worldTarget;
-
-    public static readonly AccessTools.FieldRef<object, int> worldMapAttackRange;
+    public static AccessTools.FieldRef<object, GlobalTargetInfo> worldTarget { get; private set;}
+    public static AccessTools.FieldRef<object, int> worldMapAttackRange { get; private set;}
 
     static VFESecurity()
     {
-      if (Active)
+      Initialize("VanillaExpanded.VFESecurity", () =>
       {
-        try
-        {
-          worldTarget = AccessTools.FieldRefAccess<GlobalTargetInfo>("VFESecurity.CompWorldArtillery:worldTarget");
-          worldMapAttackRange = AccessTools.FieldRefAccess<int>("VFESecurity.CompProperties_WorldArtillery:worldMapAttackRange");
-        }
-        catch (Exception ex)
-        {
-          LogError(ex);
-          Active = false;
-        }
-        finally
-        {
-          if (AnyNull(worldTarget, worldMapAttackRange))
-          {
-            LogIncompat("VFE Security");
-            Active = false;
-          }
-        }
-      }
+        worldTarget = AccessTools.FieldRefAccess<GlobalTargetInfo>("VFESecurity.CompWorldArtillery:worldTarget");
+        worldMapAttackRange = AccessTools.FieldRefAccess<int>("VFESecurity.CompProperties_WorldArtillery:worldMapAttackRange");
+      });
     }
   }
 
-  public static class VFEFactory
+  public class VFEFactory : CompatBase<VFEFactory>
   {
-    public static readonly bool Active = IsModActive("VanillaExpanded.VFEFactory");
-  }
-
-  public static class VVE
-  {
-    public static readonly bool Active = IsModActive("OskarPotocki.VanillaVehiclesExpanded");
-
-    public static readonly AccessTools.FieldRef<CompProperties, float> refuelAmountPerTick;
-
-    static VVE()
+    static VFEFactory()
     {
-      if (Active)
-      {
-        try
-        {
-          refuelAmountPerTick = AccessTools.FieldRefAccess<float>("VanillaVehiclesExpanded.CompProperties_RefuelingPump:refuelAmountPerTick");
-        }
-        catch (Exception ex)
-        {
-          LogError(ex);
-          Active = false;
-        }
-        finally
-        {
-          if (AnyNull(refuelAmountPerTick))
-          {
-            LogIncompat(nameof(VVE));
-            Active = false;
-          }
-        }
-      }
+      Initialize("VanillaExpanded.VFEFactory", () => { });
     }
   }
 
-  public static class VTE
+  public class VanillaVehiclesExpanded : CompatBase<VanillaVehiclesExpanded>
   {
-    public static readonly bool Active = IsModActive("VanillaExpanded.Temperature");
+    public static AccessTools.FieldRef<CompProperties, float> refuelAmountPerTick { get; private set;}
 
-    public static readonly Type ProxyHeatManager;
-
-    public static readonly FastInvokeHandler RemoveComp;
-
-    static VTE()
+    static VanillaVehiclesExpanded()
     {
-      if (Active)
+      Initialize("OskarPotocki.VanillaVehiclesExpanded", () =>
       {
-        try
-        {
-          ProxyHeatManager = GenTypes.GetTypeInAnyAssembly("ProxyHeat.ProxyHeatManager", "ProxyHeat");
-          RemoveComp = MethodInvoker.GetHandler(AccessTools.Method(ProxyHeatManager, nameof(RemoveComp)));
-        }
-        catch (Exception ex)
-        {
-          LogError(ex);
-          Active = false;
-        }
-        finally
-        {
-          if (AnyNull(ProxyHeatManager, RemoveComp))
-          {
-            LogIncompat("Vanilla Temperature Expanded");
-            Active = false;
-          }
-        }
-      }
+        refuelAmountPerTick = AccessTools.FieldRefAccess<float>("VanillaVehiclesExpanded.CompProperties_RefuelingPump:refuelAmountPerTick");
+      });
     }
   }
 
-  public static class EnergyShield
+  public class VanillaTemperatureExpanded : CompatBase<VanillaTemperatureExpanded>
   {
-    public static readonly bool Active = IsModActive("zhuzi.AdvancedEnergy.Shields");
+    public static Type ProxyHeatManager { get; private set; }
+    public static FastInvokeHandler RemoveComp { get; private set; }
 
-    public static readonly Type Building_Shield;
+    static VanillaTemperatureExpanded()
+    {
+      Initialize("VanillaExpanded.Temperature", () =>
+      {
+        ProxyHeatManager = GenTypes.GetTypeInAnyAssembly("ProxyHeat.ProxyHeatManager", "ProxyHeat");
+        RemoveComp = MethodInvoker.GetHandler(AccessTools.Method(ProxyHeatManager, nameof(RemoveComp)));
+      });
+    }
+  }
 
-    public static readonly bool CECompat;
+  public class EnergyShield : CompatBase<EnergyShield>
+  {
+    public static Type Building_Shield { get; private set;}
+    public static bool CECompat { get; private set;}
 
     static EnergyShield()
     {
-      if (Active)
+      Initialize("zhuzi.AdvancedEnergy.Shields", () =>
       {
-        try
-        {
-          Building_Shield = AccessTools.TypeByName("zhuzi.AdvancedEnergy.Shields.Shields.Building_Shield");
-          CECompat = IsModActive("cn.zhuzijun.EnergyShieldCECompat");
-        }
-        catch (Exception ex)
-        {
-          LogError(ex);
-          Active = false;
-        }
-        finally
-        {
-          if (AnyNull(Building_Shield))
-          {
-            LogIncompat("Energy Shield");
-            Active = false;
-          }
-        }
-      }
+        Building_Shield = AccessTools.TypeByName("zhuzi.AdvancedEnergy.Shields.Shields.Building_Shield");
+        CECompat = IsModActive("cn.zhuzijun.EnergyShieldCECompat");
+      });
     }
   }
 
-  public static class Aquariums
+  public class Aquariums : CompatBase<Aquariums>
   {
-    public static readonly bool Active = IsModActive("Nightmare.Aquariums");
-
-    public static readonly FastInvokeHandler CurrentTank;
+    public static FastInvokeHandler CurrentTank { get; private set;}
 
     static Aquariums()
     {
-      if (Active)
+      Initialize("Nightmare.Aquariums", () =>
       {
-        try
-        {
-          CurrentTank =
-            MethodInvoker.GetHandler(AccessTools.PropertyGetter("Aquariums.AquariumFish:CurrentTank"));
-        }
-        catch (Exception ex)
-        {
-          LogError(ex);
-          Active = false;
-        }
-        finally
-        {
-          if (AnyNull(CurrentTank))
-          {
-            LogIncompat(nameof(Aquariums));
-          }
-        }
-      }
+        CurrentTank =
+          MethodInvoker.GetHandler(AccessTools.PropertyGetter("Aquariums.AquariumFish:CurrentTank"));
+      });
     }
   }
 
-  public static class Rimatomics
+  public class Rimatomics : CompatBase<Rimatomics>
   {
-    public static readonly bool Active = IsModActive("Dubwise.Rimatomics");
-
-    public static readonly Type CompProperties_Pipe;
-
-    public static readonly AccessTools.FieldRef<object, int> CompProperties_Pipe_mode;
-
-    public static readonly AccessTools.FieldRef<object, int> SectionLayer_OverlayPipe_mode;
-
-    public static readonly List<Type> SectionLayer_OverlayPipes;
-
-    public static readonly Type Designator_RemovePipe;
-
-    public static readonly AccessTools.FieldRef<Designator, int> Designator_RemovePipe_RemovalMode;
-
-    public static readonly Type SectionLayer_ThingsPipe;
-
-    public static readonly Type BaseMissile;
+    public static Type CompProperties_Pipe { get; private set;}
+    public static AccessTools.FieldRef<object, int> CompProperties_Pipe_mode { get; private set;}
+    public static AccessTools.FieldRef<object, int> SectionLayer_OverlayPipe_mode { get; private set;}
+    public static List<Type> SectionLayer_OverlayPipes { get; private set;}
+    public static Type Designator_RemovePipe { get; private set;}
+    public static AccessTools.FieldRef<Designator, int> Designator_RemovePipe_RemovalMode { get; private set;}
+    public static Type SectionLayer_ThingsPipe { get; private set;}
+    public static Type BaseMissile { get; private set;}
 
     static Rimatomics()
     {
-      if (Active)
+      Initialize("Dubwise.Rimatomics", () =>
       {
-        try
-        {
-          var t_SectionLayer_OverlayPipe =
-            GenTypes.GetTypeInAnyAssembly("Rimatomics.SectionLayer_OverlayPipe", nameof(Rimatomics));
-          CompProperties_Pipe = GenTypes.GetTypeInAnyAssembly("Rimatomics.CompProperties_Pipe", nameof(Rimatomics));
-          CompProperties_Pipe_mode = AccessTools.FieldRefAccess<int>(CompProperties_Pipe, "mode");
-          SectionLayer_OverlayPipe_mode = AccessTools.FieldRefAccess<int>(t_SectionLayer_OverlayPipe, "mode");
-          SectionLayer_OverlayPipes = t_SectionLayer_OverlayPipe.AllSubclassesNonAbstract();
-          Designator_RemovePipe = GenTypes.GetTypeInAnyAssembly("Rimatomics.Designator_RemovePipe", nameof(Rimatomics));
-          Designator_RemovePipe_RemovalMode = AccessTools.FieldRefAccess<int>(Designator_RemovePipe, "RemovalMode");
-          SectionLayer_ThingsPipe = GenTypes.GetTypeInAnyAssembly("Rimatomics.SectionLayer_ThingsPipe", nameof(Rimatomics));
-          BaseMissile = GenTypes.GetTypeInAnyAssembly("Rimatomics.BaseMissile", nameof(Rimatomics));
-        }
-        catch (Exception ex)
-        {
-          LogError(ex);
-          Active = false;
-        }
-        finally
-        {
-          if (AnyNull(CompProperties_Pipe,
-                CompProperties_Pipe_mode,
-                SectionLayer_OverlayPipe_mode,
-                SectionLayer_OverlayPipes,
-                SectionLayer_ThingsPipe,
-                Designator_RemovePipe,
-                Designator_RemovePipe_RemovalMode))
-          {
-            LogIncompat(nameof(Rimatomics));
-            Active = false;
-          }
-        }
-      }
+        var t_SectionLayer_OverlayPipe =
+          GenTypes.GetTypeInAnyAssembly("Rimatomics.SectionLayer_OverlayPipe", nameof(Rimatomics));
+        CompProperties_Pipe = GenTypes.GetTypeInAnyAssembly("Rimatomics.CompProperties_Pipe", nameof(Rimatomics));
+        CompProperties_Pipe_mode = AccessTools.FieldRefAccess<int>(CompProperties_Pipe, "mode");
+        SectionLayer_OverlayPipe_mode = AccessTools.FieldRefAccess<int>(t_SectionLayer_OverlayPipe, "mode");
+        SectionLayer_OverlayPipes = t_SectionLayer_OverlayPipe.AllSubclassesNonAbstract();
+        Designator_RemovePipe = GenTypes.GetTypeInAnyAssembly("Rimatomics.Designator_RemovePipe", nameof(Rimatomics));
+        Designator_RemovePipe_RemovalMode = AccessTools.FieldRefAccess<int>(Designator_RemovePipe, "RemovalMode");
+        SectionLayer_ThingsPipe = GenTypes.GetTypeInAnyAssembly("Rimatomics.SectionLayer_ThingsPipe", nameof(Rimatomics));
+        BaseMissile = GenTypes.GetTypeInAnyAssembly("Rimatomics.BaseMissile", nameof(Rimatomics));
+      });
     }
   }
 
-  public static class SmartFarming
+  public class SmartFarming : CompatBase<SmartFarming>
   {
-    public static readonly bool SmartFarmingActive = IsModActive("Owlchemist.SmartFarming");
-
-    public static readonly bool Active = SmartFarmingActive || ReGrowth;
-
-    public static readonly Type MapComponent_SmartFarming;
-
-    public static readonly AccessTools.FieldRef<MapComponent, IDictionary> growZoneRegistry;
-
-    public static readonly AccessTools.FieldRef<object, int> priority;
+    private const string SmartFarmingPackageId = "Owlchemist.SmartFarming";
+    private const string ReGrowthPackageId = "ReGrowth.BOTR.Core";
+    public static readonly bool SmartFarmingActive = IsModActive(SmartFarmingPackageId);
+    public static readonly bool ReGrowthActive = IsModActive(ReGrowthPackageId);
+    public static Type MapComponent_SmartFarming { get; private set;}
+    public static AccessTools.FieldRef<MapComponent, IDictionary> growZoneRegistry { get; private set;}
+    public static AccessTools.FieldRef<object, int> priority { get; private set;}
 
     static SmartFarming()
     {
-      if (Active)
+      Initialize(SmartFarmingPackageId, () =>
       {
-        try
+        if (SmartFarmingActive && ReGrowthActive && !UnitTestDetector.IsTestingContext)
         {
-          if (SmartFarmingActive && ReGrowth && !UnitTestDetector.IsTestingContext)
-          {
-            VMF_Log.Error("When both Smart Farming and ReGrowth 2 are enabled, a patch error will occur. Since these have overlapping functionality, please enable only one of them.");
-          }
-          Type t_ZoneData;
-          if (SmartFarmingActive)
-          {
-            MapComponent_SmartFarming = GenTypes.GetTypeInAnyAssembly("SmartFarming.MapComponent_SmartFarming", nameof(SmartFarming));
-            t_ZoneData = GenTypes.GetTypeInAnyAssembly("SmartFarming.ZoneData", nameof(SmartFarming));
-          }
-          else
-          {
-            MapComponent_SmartFarming = GenTypes.GetTypeInAnyAssembly("ReGrowthCore.MapComponent_SmartFarming", "ReGrowthCore");
-            t_ZoneData = GenTypes.GetTypeInAnyAssembly("ReGrowthCore.ZoneData", "ReGrowthCore");
-          }
-          growZoneRegistry = AccessTools.FieldRefAccess<IDictionary>(MapComponent_SmartFarming, nameof(growZoneRegistry));
-          priority = AccessTools.FieldRefAccess<int>(t_ZoneData, nameof(priority));
+          VMF_Log.Error("When both Smart Farming and ReGrowth 2 are enabled, a patch error will occur. Since these have overlapping functionality, please enable only one of them.");
         }
-        catch (Exception ex)
+        Type t_ZoneData;
+        if (SmartFarmingActive)
         {
-          LogError(ex);
-          Active = false;
+          MapComponent_SmartFarming = GenTypes.GetTypeInAnyAssembly("SmartFarming.MapComponent_SmartFarming", nameof(SmartFarming));
+          t_ZoneData = GenTypes.GetTypeInAnyAssembly("SmartFarming.ZoneData", nameof(SmartFarming));
         }
-        finally
+        else
         {
-          if (AnyNull(MapComponent_SmartFarming, growZoneRegistry, priority))
-          {
-            LogIncompat(nameof(SmartFarming));
-            Active = false;
-          }
+          MapComponent_SmartFarming = GenTypes.GetTypeInAnyAssembly("ReGrowthCore.MapComponent_SmartFarming", "ReGrowthCore");
+          t_ZoneData = GenTypes.GetTypeInAnyAssembly("ReGrowthCore.ZoneData", "ReGrowthCore");
         }
-      }
+        growZoneRegistry = AccessTools.FieldRefAccess<IDictionary>(MapComponent_SmartFarming, nameof(growZoneRegistry));
+        priority = AccessTools.FieldRefAccess<int>(t_ZoneData, nameof(priority));
+      }, ReGrowthPackageId);
     }
   }
 
-  public static class MultiFloors
+  public class MultiFloors : CompatBase<MultiFloors>
   {
-    public static readonly bool Active = IsModActive("telardo.MultiFloors") || IsModActive("telardo.MultiFloorsDev");
-    public static readonly Func<Map, Map> GroundMap;
-    public static readonly Func<Map, int> GetLevel;
-    public static readonly Action<Map> RevalidateLaunchSiteState;
-    public static readonly Type SectionLayer_LowerLevel;
-    private static readonly Func<Map, MapComponent> GetCachedLevelMapComp;
-    private static readonly FastInvokeHandler GetOtherMapVerticallyOutwardFromCache;
+    public static Func<Map, Map> GroundMap { get; private set;}
+    public static Func<Map, int> GetLevel { get; private set;}
+    public static Action<Map> RevalidateLaunchSiteState { get; private set;}
+    public static Type SectionLayer_LowerLevel { get; private set;}
+    private static Func<Map, MapComponent> GetCachedLevelMapComp { get; set;}
+    private static FastInvokeHandler GetOtherMapVerticallyOutwardFromCache { get; set;}
 
     private static readonly object MinusOne = -1;
 
     static MultiFloors()
     {
-      if (Active)
+      Initialize("telardo.MultiFloors", () =>
       {
-        try
+        GroundMap = AccessTools.MethodDelegate<Func<Map, Map>>("MultiFloors.HarmonyPatches.HarmonyPatch_CallBossGroupOnGround:GetGroundMap");
+        GetLevel = AccessTools.MethodDelegate<Func<Map, int>>("MultiFloors.HarmonyPatches.HarmonyPatch_SortMapInColonistBarByLevel:GetLevel");
+        RevalidateLaunchSiteState = AccessTools.MethodDelegate<Action<Map>>("MultiFloors.HarmonyPatches.HarmonyPatch_OnGravshipLaunch:RevalidateLaunchSiteState");
+        SectionLayer_LowerLevel = GenTypes.GetTypeInAnyAssembly("MultiFloors.Maps.SectionLayer_LowerLevel", "MultiFloors.Maps");
+        if (SectionLayer_LowerLevel is not null)
         {
-          GroundMap = AccessTools.MethodDelegate<Func<Map, Map>>("MultiFloors.HarmonyPatches.HarmonyPatch_CallBossGroupOnGround:GetGroundMap");
-          GetLevel = AccessTools.MethodDelegate<Func<Map, int>>("MultiFloors.HarmonyPatches.HarmonyPatch_SortMapInColonistBarByLevel:GetLevel");
-          RevalidateLaunchSiteState = AccessTools.MethodDelegate<Action<Map>>("MultiFloors.HarmonyPatches.HarmonyPatch_OnGravshipLaunch:RevalidateLaunchSiteState");
-          SectionLayer_LowerLevel = GenTypes.GetTypeInAnyAssembly("MultiFloors.Maps.SectionLayer_LowerLevel", "MultiFloors.Maps");
-          if (SectionLayer_LowerLevel != null)
-          {
-            VehicleSectionLayerManager.OrientedSectionLayerTypes.Add(SectionLayer_LowerLevel);
-          }
-          GetCachedLevelMapComp = AccessTools.MethodDelegate<Func<Map, MapComponent>>(
-            AccessTools.Method(
-              typeof(MapComponentCache<>).MakeGenericType(GenTypes.GetTypeInAnyAssembly("MultiFloors.MF_LevelMapComp", nameof(MultiFloors))),
-              "GetComponent",
-              [typeof(Map)]));
-          GetOtherMapVerticallyOutwardFromCache = MethodInvoker.GetHandler(AccessTools.Method("MultiFloors.LevelUtility:GetOtherMapVerticallyOutwardFromCache"));
+          VehicleSectionLayerManager.OrientedSectionLayerTypes.Add(SectionLayer_LowerLevel);
         }
-        catch (Exception ex)
-        {
-          LogError(ex);
-          Active = false;
-        }
-        finally
-        {
-          if (AnyNull(GroundMap, GetLevel, RevalidateLaunchSiteState, SectionLayer_LowerLevel, GetCachedLevelMapComp, GetOtherMapVerticallyOutwardFromCache))
-          {
-            LogIncompat(nameof(MultiFloors));
-            Active = false;
-          }
-        }
-      }
+        GetCachedLevelMapComp = AccessTools.MethodDelegate<Func<Map, MapComponent>>(
+          AccessTools.Method(
+            typeof(MapComponentCache<>).MakeGenericType(GenTypes.GetTypeInAnyAssembly("MultiFloors.MF_LevelMapComp", nameof(MultiFloors))),
+            "GetComponent",
+            [typeof(Map)]));
+        GetOtherMapVerticallyOutwardFromCache = MethodInvoker.GetHandler(AccessTools.Method("MultiFloors.LevelUtility:GetOtherMapVerticallyOutwardFromCache"));
+      }, "telardo.MultiFloorsDev");
     }
 
     public static IEnumerable<Map> GetOtherLevels(Map map)
@@ -923,11 +605,14 @@ internal static class ModCompat
     }
   }
 
-  public static class StackGap
+  public class StackGap : CompatBase<StackGap>
   {
-
     public const string HarmonyId = "Andromeda.StackGap";
-    public static readonly bool Active = IsModActive("Andromeda.StackGap");
+
+    static StackGap()
+    {
+      Initialize("Andromeda.StackGap", () => { });
+    }
   }
 
   public static class ProgressionEducation
@@ -935,19 +620,17 @@ internal static class ModCompat
     public const string HarmonyId = "ProgressionEducationMod";
   }
 
-  public static class ColonyManagerRedux
+  public class ColonyManagerRedux : CompatBase<ColonyManagerRedux>
   {
-    public static readonly bool Active = IsModActive("ilyvion.colonymanagerredux");
-
     static ColonyManagerRedux()
     {
-      if (Active)
+      Initialize("ilyvion.colonymanagerredux", () =>
       {
         var type = GenTypes.GetTypeInAnyAssembly("ColonyManagerRedux.WorkGiver_Manage", nameof(ColonyManagerRedux));
         if (type is not null)
           JobAcrossMapsUtility.WorkGiverClassesNeedWrap.Add(type);
         else LogIncompat(nameof(ColonyManagerRedux));
-      }
+      });
     }
   }
 
@@ -956,45 +639,44 @@ internal static class ModCompat
     public const string HarmonyId = "GestaltEngine.Mod";
   }
 
-  public static class PowerPoles
+  public class PowerPoles : CompatBase<PowerPoles>
   {
-    public static readonly bool Active = IsModActive("co.uk.epicguru.rimforgepoles");
-    public static readonly Type Building_LongDistancePower;
-    public static readonly Type Building_LongDistanceCabled;
-    public static readonly FastInvokeHandler IsLinkedTo;
-    public static readonly FastInvokeHandler TryRemoveLink;
-    public static readonly FastInvokeHandler GeneratePointsAsync;
-    public static readonly AccessTools.FieldRef<float> CableMaxDistance;
-    public static readonly AccessTools.FieldRef<Thing, IDictionary> connectionToPoints;
+    public static Type Building_LongDistancePower { get; private set; }
+    public static Type Building_LongDistanceCabled { get; private set; }
+    public static FastInvokeHandler IsLinkedTo { get; private set; }
+    public static FastInvokeHandler TryRemoveLink { get; private set; }
+    public static FastInvokeHandler GeneratePointsAsync { get; private set; }
+    public static AccessTools.FieldRef<float> CableMaxDistance { get; private set; }
+    public static AccessTools.FieldRef<Thing, IDictionary> connectionToPoints { get; private set; }
 
     static PowerPoles()
     {
-      if (Active)
+      Initialize("co.uk.epicguru.rimforgepoles", () =>
       {
-        try
-        {
-          Building_LongDistancePower = GenTypes.GetTypeInAnyAssembly("RimForge.Buildings.Building_LongDistancePower", "RimForge.Buildings");
-          Building_LongDistanceCabled = GenTypes.GetTypeInAnyAssembly("RimForge.Buildings.Building_LongDistanceCabled", "RimForge.Buildings");
-          IsLinkedTo = MethodInvoker.GetHandler(AccessTools.Method(Building_LongDistancePower, "IsLinkedTo"));
-          TryRemoveLink = MethodInvoker.GetHandler(AccessTools.Method(Building_LongDistancePower, "TryRemoveLink"));
-          GeneratePointsAsync = MethodInvoker.GetHandler(AccessTools.Method(Building_LongDistanceCabled, "GeneratePointsAsync"));
-          CableMaxDistance = AccessTools.StaticFieldRefAccess<float>(AccessTools.Field("RimForge.PolesSettings.PolesModSettings:CableMaxDistance"));
-          connectionToPoints = AccessTools.FieldRefAccess<Thing, IDictionary>(AccessTools.Field(Building_LongDistanceCabled, "connectionToPoints"));
-        }
-        catch (Exception ex)
-        {
-          LogError(ex);
-          Active = false;
-        }
-        finally
-        {
-          if (AnyNull(Building_LongDistancePower, Building_LongDistanceCabled, IsLinkedTo, TryRemoveLink, GeneratePointsAsync, CableMaxDistance, connectionToPoints))
-          {
-            LogIncompat(nameof(PowerPoles));
-            Active = false;
-          }
-        }
-      }
+        Building_LongDistancePower = GenTypes.GetTypeInAnyAssembly("RimForge.Buildings.Building_LongDistancePower", "RimForge.Buildings");
+        Building_LongDistanceCabled = GenTypes.GetTypeInAnyAssembly("RimForge.Buildings.Building_LongDistanceCabled", "RimForge.Buildings");
+        IsLinkedTo = MethodInvoker.GetHandler(AccessTools.Method(Building_LongDistancePower, "IsLinkedTo"));
+        TryRemoveLink = MethodInvoker.GetHandler(AccessTools.Method(Building_LongDistancePower, "TryRemoveLink"));
+        GeneratePointsAsync = MethodInvoker.GetHandler(AccessTools.Method(Building_LongDistanceCabled, "GeneratePointsAsync"));
+        CableMaxDistance = AccessTools.StaticFieldRefAccess<float>(AccessTools.Field("RimForge.PolesSettings.PolesModSettings:CableMaxDistance"));
+        connectionToPoints = AccessTools.FieldRefAccess<Thing, IDictionary>(AccessTools.Field(Building_LongDistanceCabled, "connectionToPoints"));
+      });
+    }
+  }
+
+  public class VehicleRaidFramework : CompatBase<VehicleRaidFramework>
+  {
+    public const string HarmonyId = "VRF.VehicleRaidFramework";
+    public static Type CompVehicleHover { get; private set; }
+    public static AccessTools.FieldRef<VehicleComp, int> State { get; private set; }
+    
+    static VehicleRaidFramework()
+    {
+      Initialize("gabrieel1482.raidvehicleframework", () =>
+      {
+        CompVehicleHover = GenTypes.GetTypeInAnyAssembly("VehicleRaid.CompVehicleHover", "VehicleRaid");
+        State = AccessTools.FieldRefAccess<int>(CompVehicleHover, "State");
+      });
     }
   }
 }

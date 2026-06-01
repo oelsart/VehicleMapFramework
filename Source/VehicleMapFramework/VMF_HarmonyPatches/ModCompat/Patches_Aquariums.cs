@@ -11,7 +11,7 @@ internal class Patches_Aquariums
 {
   static Patches_Aquariums()
   {
-    if (Active)
+    if (Aquariums.Active)
     {
       VMF_Harmony.PatchCategory(PatchCategories.Aquariums);
     }
