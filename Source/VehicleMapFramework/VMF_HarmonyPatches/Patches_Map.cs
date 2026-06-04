@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
 using HarmonyLib;
 using RimWorld;
 using RimWorld.Planet;
@@ -440,7 +441,7 @@ public static class Patch_MapPawns_AllPawns
   [PatchLevel(Level.Safe)]
   public static void Postfix(ref List<Pawn> __result, Map ___map)
   {
-    if (!___map.IsVehicleMap && VehiclePawnWithMapCache.AllVehiclesOn(___map).Count == 0)
+    if (VehiclePawnWithMapCache.AllVehiclesOn(___map).Count == 0)
       return;
 
     __result = cache.Get(___map, __result);
@@ -448,6 +449,7 @@ public static class Patch_MapPawns_AllPawns
 
   [PatchLevel(Level.Mandatory)]
   [HarmonyReversePatch]
+  [MethodImpl(MethodImplOptions.NoInlining)]
   public static List<Pawn> AllPawns(MapPawns instance) => throw new NotImplementedException();
 }
 
@@ -461,13 +463,14 @@ public static class Patch_MapPawns_AllPawnsSpawned
 
   public static void Postfix(ref IReadOnlyList<Pawn> __result, Map ___map)
   {
-    if (!___map.IsVehicleMap && VehiclePawnWithMapCache.AllVehiclesOn(___map).Count == 0)
+    if (VehiclePawnWithMapCache.AllVehiclesOn(___map).Count == 0)
       return;
 
     __result = cache.Get(___map, __result);
   }
 
   [HarmonyReversePatch]
+  [MethodImpl(MethodImplOptions.NoInlining)]
   public static List<Pawn> AllPawnsSpawned(MapPawns instance) => throw new NotImplementedException();
 }
 
@@ -479,7 +482,7 @@ public static class Patch_MapPawns_FreeHumanlikesSpawnedOfFaction
   [PatchLevel(Level.Safe)]
   public static void Postfix(ref List<Pawn> __result, Map ___map, Faction faction)
   {
-    if (!___map.IsVehicleMap && VehiclePawnWithMapCache.AllVehiclesOn(___map).Count == 0)
+    if (VehiclePawnWithMapCache.AllVehiclesOn(___map).Count == 0)
       return;
 
     __result = cache.Get(___map, __result, faction);
@@ -487,8 +490,29 @@ public static class Patch_MapPawns_FreeHumanlikesSpawnedOfFaction
 
   [PatchLevel(Level.Mandatory)]
   [HarmonyReversePatch]
+  [MethodImpl(MethodImplOptions.NoInlining)]
   public static List<Pawn> FreeHumanlikesSpawnedOfFaction(MapPawns instance, Faction faction) =>
     throw new NotImplementedException();
+}
+
+[HarmonyPatch(typeof(MapPawns), nameof(MapPawns.PrisonersOfColonySpawned), MethodType.Getter)]
+public static class Patch_MapPawns_PrisonersOfColonySpawned
+{
+  private static readonly CrossMapMapPawnsCache _cache = new((instance, _) => PrisonersOfColonySpawned(instance));
+  
+  [PatchLevel(Level.Safe)]
+  public static void Postfix(ref List<Pawn> __result, Map ___map)
+  {
+    if (VehiclePawnWithMapCache.AllVehiclesOn(___map).Count == 0)
+      return;
+
+    __result = _cache.Get(___map, __result);
+  }
+  
+  [PatchLevel(Level.Mandatory)]
+  [HarmonyReversePatch]
+  [MethodImpl(MethodImplOptions.NoInlining)]
+  public static List<Pawn> PrisonersOfColonySpawned(MapPawns instance) => throw new NotImplementedException();
 }
 
 [HarmonyPatch(typeof(MapPawns), nameof(MapPawns.AnyPawnBlockingMapRemoval), MethodType.Getter)]
@@ -543,6 +567,18 @@ public static class Patch_PawnsFinder_AllMaps_Spawned
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
     return instructions.MethodReplacer(CachedMethodInfo.g_AllPawnsSpawned, CachedMethodInfo.m_AllPawnsSpawned_Reverse);
+  }
+}
+
+[HarmonyPatch(typeof(PawnsFinder), nameof(PawnsFinder.AllMaps_PrisonersOfColonySpawned), MethodType.Getter)]
+[PatchLevel(Level.Cautious)]
+public static class Patch_PawnsFinder_AllMaps_PrisonersOfColonySpawned
+{
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    var g_PrisonersOfColonySpawned = AccessTools.PropertyGetter(typeof(MapPawns), nameof(MapPawns.PrisonersOfColonySpawned));
+    var m_PrisonersOfColonySpawned_Reverse = AccessTools.Method(typeof(Patch_MapPawns_PrisonersOfColonySpawned), nameof(Patch_MapPawns_PrisonersOfColonySpawned.PrisonersOfColonySpawned));
+    return instructions.MethodReplacer(g_PrisonersOfColonySpawned, m_PrisonersOfColonySpawned_Reverse);
   }
 }
 
@@ -903,5 +939,17 @@ public static class Patch_CaravanFormingUtility_AllSendablePawns
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
     return instructions.MethodReplacer(CachedMethodInfo.g_AllPawnsSpawned, CachedMethodInfo.m_AllPawnsSpawned_Reverse);
+  }
+}
+
+[HarmonyPatch(typeof(MapDeiniter), "PassPawnsToWorld")]
+[PatchLevel((Level.Cautious))]
+public static class Patch_MapDeiniter_PassPawnsToWorld
+{
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    var g_AllPawns = AccessTools.PropertyGetter(typeof(MapPawns), nameof(MapPawns.AllPawns));
+    var m_AllPawns_Reverse = AccessTools.Method(typeof(Patch_MapPawns_AllPawns), nameof(Patch_MapPawns_AllPawns.AllPawns));
+    return instructions.MethodReplacer(g_AllPawns, m_AllPawns_Reverse);
   }
 }

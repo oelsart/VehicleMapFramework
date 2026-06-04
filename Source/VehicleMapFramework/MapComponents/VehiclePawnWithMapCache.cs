@@ -107,5 +107,6 @@ public class VehiclePawnWithMapCache(Map map) : MapComponent(map)
   {
     VehicleMapParentsComponent.SetCachedVehicle(map, null);
     CrossMapReachabilityCache.ClearCacheFor(map, true);
+    CrossMapMapPawnsCache.RemoveMap(map);
   }
 }
