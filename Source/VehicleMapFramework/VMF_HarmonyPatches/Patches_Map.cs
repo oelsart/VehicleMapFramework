@@ -547,6 +547,13 @@ public static class Patch_MapPawns_DeRegisterPawn
   public static void Postfix() => CrossMapMapPawnsCache.ClearAll();
 }
 
+[HarmonyPatch(typeof(MapPawns), nameof(MapPawns.UpdateRegistryForPawn))]
+[PatchLevel(Level.Safe)]
+public static class Patch_MapPawns_UpdateRegistryForPawn
+{
+  public static void Postfix() => CrossMapMapPawnsCache.ClearAll();
+}
+
 [HarmonyPatch(typeof(PawnsFinder), nameof(PawnsFinder.AllMaps), MethodType.Getter)]
 [PatchLevel(Level.Cautious)]
 public static class Patch_PawnsFinder_AllMaps

@@ -8,9 +8,11 @@ namespace VehicleMapFramework.Test_Logics;
 
 public static class TestUtility
 {
+  public static VehicleDef Crawler => DefDatabase<VehicleDef>.GetNamed("MV_Crawler");
+  
   public static VehicleGroup DefaultVehicleGroup => VehicleGroup.CreateBasicVehicleGroup(new VehicleGroup.MockSettings
   {
-    vehicleDef = DefDatabase<VehicleDef>.GetNamed("MV_Crawler"), drivers = 1
+    vehicleDef = Crawler, drivers = 1
   });
 
   public static bool EvacuateFromTestArea(Pawn pawn)

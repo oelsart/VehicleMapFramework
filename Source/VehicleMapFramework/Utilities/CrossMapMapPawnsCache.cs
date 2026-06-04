@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using RimWorld;
 using SmashTools;
 using Verse;
@@ -10,21 +11,24 @@ public class CrossMapMapPawnsCache
   private readonly List<Map> tmpMaps = new(128);
   private readonly Dictionary<(Map map, Faction faction), Cache> cacheDict = [];
   private readonly PawnsGetter GetPawns;
-  private static List<CrossMapMapPawnsCache> AllInstance { get; } = [];
+
+  internal int CacheCount => cacheDict.Count;
+  
+  internal static List<CrossMapMapPawnsCache> AllInstances { get; } = [];
 
   public delegate List<Pawn> PawnsGetter(MapPawns instance, Faction faction = null);
 
   public CrossMapMapPawnsCache(PawnsGetter getter)
   {
     GetPawns = getter;
-    AllInstance.Add(this);
+    AllInstances.Add(this);
   }
 
   static CrossMapMapPawnsCache()
   {
     GameEvent.OnWorldRemoved += () =>
     {
-      foreach (var instance in AllInstance)
+      foreach (var instance in AllInstances)
       {
         instance.cacheDict.Clear();
       }
@@ -62,7 +66,7 @@ public class CrossMapMapPawnsCache
 
   public static void RemoveMap(Map map)
   {
-    foreach (var instance in AllInstance)
+    foreach (var instance in AllInstances)
     {
       instance.cacheDict.RemoveAll(x => x.Key.map == map);
     }
@@ -70,7 +74,7 @@ public class CrossMapMapPawnsCache
 
   public static void ClearAll()
   {
-    foreach (var instance in AllInstance)
+    foreach (var instance in AllInstances)
     {
       foreach (var cache in instance.cacheDict)
         cache.Value.Clear();
