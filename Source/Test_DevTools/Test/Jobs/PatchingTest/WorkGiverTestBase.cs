@@ -342,32 +342,32 @@ internal abstract class WorkGiverTestBase(VehicleGroup group)
     {
       if (!giver.def.nonColonistsCanDo && !pawn.IsColonist && !pawn.IsColonyMech && !pawn.IsColonySubhuman)
       {
-        Log.Error($"Pawn {pawn.LabelShort} cannot use workgiver {giver.def.defName} because it is not a colonist.");
+        Test.Fail($"Pawn {pawn.LabelShort} cannot use workgiver {giver.def.defName} because it is not a colonist.");
         return false;
       }
       if (pawn.WorkTagIsDisabled(giver.def.workTags))
       {
-        Log.Error($"Pawn {pawn.LabelShort} cannot use workgiver {giver.def.defName} because it has a disabled work tag.");
+        Test.Fail($"Pawn {pawn.LabelShort} cannot use workgiver {giver.def.defName} because it has a disabled work tag.");
         return false;
       }
       if (giver.def.workType != null && pawn.WorkTypeIsDisabled(giver.def.workType))
       {
-        Log.Error($"Pawn {pawn.LabelShort} cannot use workgiver {giver.def.defName} because it has a disabled work type.");
+        Test.Fail($"Pawn {pawn.LabelShort} cannot use workgiver {giver.def.defName} because it has a disabled work type.");
         return false;
       }
       if (giver.ShouldSkipAll(pawn))
       {
-        Log.Error($"Pawn {pawn.LabelShort} cannot use workgiver {giver.def.defName} because it should skip job.");
+        Test.Fail($"Pawn {pawn.LabelShort} cannot use workgiver {giver.def.defName} because it should skip job.");
         return false;
       }
       if (giver.MissingRequiredCapacity(pawn) != null)
       {
-        Log.Error($"Pawn {pawn.LabelShort} cannot use workgiver {giver.def.defName} because it is missing required capacity.");
+        Test.Fail($"Pawn {pawn.LabelShort} cannot use workgiver {giver.def.defName} because it is missing required capacity.");
         return false;
       }
       if (pawn.RaceProps.IsMechanoid && !giver.def.canBeDoneByMechs)
       {
-        Log.Error($"Pawn {pawn.LabelShort} cannot use workgiver {giver.def.defName} because it is a mechanoid and cannot be done by mechanoids.");
+        Test.Fail($"Pawn {pawn.LabelShort} cannot use workgiver {giver.def.defName} because it is a mechanoid and cannot be done by mechanoids.");
         return false;
       }
       return true;

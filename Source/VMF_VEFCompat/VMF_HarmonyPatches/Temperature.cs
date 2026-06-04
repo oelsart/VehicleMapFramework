@@ -3,7 +3,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
 using Verse;
-using static VehicleMapFramework.ModCompat.VTE;
+using static VehicleMapFramework.ModCompat.VanillaTemperatureExpanded;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 

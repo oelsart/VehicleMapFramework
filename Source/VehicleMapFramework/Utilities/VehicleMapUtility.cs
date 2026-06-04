@@ -8,6 +8,7 @@ using RimWorld;
 using RimWorld.Planet;
 using SmashTools;
 using UnityEngine;
+using VehicleMapFramework.VMF_HarmonyPatches;
 using Vehicles;
 using Vehicles.World;
 using Verse;
@@ -23,6 +24,8 @@ public static class VehicleMapUtility
   private const float AltitudeOffset = 0.09615385f;
 
   private const float AltitudeOffsetFull = 7.692308f;
+
+  private static readonly VfVersionalPatchAttribute VfVersional = new (VfVersionalPatchAttribute.LatestRelease, ComparisonType.LessThanOrEqual);
 
   private static readonly List<Thing> tmpThingList = [];
 
@@ -816,10 +819,10 @@ public static class VehicleMapUtility
     {
       return original / YCompress + vehicle.cachedDrawPos.y;
     }
-
+    
     public float FlipAngle(VehiclePawn vehicle)
     {
-      return vehicle.VehicleGraphic.WestFlipped && vehicle.BaseRotation() == Rot4.West ? -original : original;
+      return VfVersional.Available && vehicle.VehicleGraphic.WestFlipped && vehicle.BaseRotation() == Rot4.West ? -original : original;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

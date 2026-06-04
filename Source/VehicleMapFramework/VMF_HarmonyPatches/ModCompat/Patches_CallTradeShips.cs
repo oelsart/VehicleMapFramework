@@ -9,7 +9,7 @@ internal static class Patches_CallTradeShips
 {
   static Patches_CallTradeShips()
   {
-    if (Active)
+    if (CallTradeShips.Active)
     {
       VMF_Harmony.Instance.PatchCategory(PatchCategories.CallTradeShips);
     }

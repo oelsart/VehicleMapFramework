@@ -7,7 +7,6 @@ namespace VehicleMapFramework.Test_Logics;
 
 internal class Test_HaulGeneral(VehicleGroup group) : WorkGiverTestBase(group)
 {
-
   private PuahDisabler puahDisabler;
 
   private Thing woodLog;
@@ -49,7 +48,7 @@ internal class Test_HaulGeneral(VehicleGroup group) : WorkGiverTestBase(group)
     }
   }
 
-  private new class AfterPatching(Test_HaulGeneral parent) : WorkGiverTestBase.AfterPatching(parent)
+  protected new class AfterPatching(Test_HaulGeneral parent) : WorkGiverTestBase.AfterPatching(parent)
   {
     public override void RunAfter()
     {

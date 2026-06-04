@@ -30,6 +30,7 @@ internal sealed class Test_WorkGivers
     VMF_Harmony.DynamicPatchAllNow(Level.Sensitive);
     foreach (var test in workGiverTests)
     {
+      if (test.BeforePatchingType.MissingRequiredMods()) continue;
       var fixture = new NestedTestFixture(test.BeforePatchingType, $"BeforePatch: {test.WorkGiverDef?.defName}", test);
       fixture.RunIndependent();
       ClearPawnState(pawn);
@@ -39,6 +40,7 @@ internal sealed class Test_WorkGivers
     TestUtils.ForceSpawn(vehicleGroup.vehicle);
     foreach (var test in workGiverTests)
     {
+      if (test.AfterPatchingType.MissingRequiredMods()) continue;
       var fixture = new NestedTestFixture(test.AfterPatchingType, $"AfterPatch: {test.WorkGiverDef?.defName}", test);
       fixture.RunIndependent();
     }

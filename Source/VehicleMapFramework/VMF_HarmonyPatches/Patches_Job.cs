@@ -27,7 +27,7 @@ public static class Patch_Pawn_JobTracker_StartJob
 
     private static JobDriver MakeOrGetDriver(Job curJob, Pawn driverPawn)
     {
-        if (typeof(JobDriverAcrossMaps).IsAssignableFrom(curJob.def.driverClass) || curJob.jobGiver?.GetType() == typeof(JobDriver_GotoDestMap.ThinkNode_JobFromGotoDestMap))
+        if (curJob.def.driverClass.SameOrSubclassOf(typeof(JobDriverAcrossMaps)) || curJob.jobGiver?.GetType() == typeof(JobDriver_GotoDestMap.ThinkNode_JobFromGotoDestMap))
         {
             return curJob.GetCachedDriver(driverPawn);
         }
