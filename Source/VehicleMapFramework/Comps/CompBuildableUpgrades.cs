@@ -7,7 +7,6 @@ namespace VehicleMapFramework;
 
 public class CompBuildableUpgrades : ThingComp
 {
-
   public List<UpgradeID> handlerUniqueIDs = [];
 
   protected CompProperties_BuildableUpgrades Props => (CompProperties_BuildableUpgrades)props;

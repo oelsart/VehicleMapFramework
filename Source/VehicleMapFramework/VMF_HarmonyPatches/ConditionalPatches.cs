@@ -10,6 +10,7 @@ using Verse;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
+[AttributeUsage(AttributeTargets.Class)]
 internal class VfVersionalPatchAttribute : Attribute
 {
   internal const string LatestRelease = "1.6.2144";
@@ -93,6 +94,46 @@ public static class Patch_VehicleGhostUtility_DrawGhostOverlays
 [HarmonyPatch("Vehicles.VehicleGhostUtility+DrawData", "DrawPos", MethodType.Getter)]
 public static class Patch_VehicleGhostUtility_DrawData_DrawPos
 {
+  [PatchLevel(Level.Sensitive)]
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    var type = GenTypes.GetTypeInAnyAssembly("Vehicles.VehicleGhostUtility+DrawData");
+    var f_rot = AccessTools.Field(type, "rot");
+    return new CodeMatcher(instructions)
+      .MatchStartForward(CodeMatch.LoadsField(f_rot))
+      .InsertAfterAndAdvance(
+        CodeInstruction.LoadArgument(0),
+        CodeInstruction.LoadField(type, "vehicle"),
+        new CodeInstruction(OpCodes.Call, ((Func<Rot8, VehiclePawn, Rot8>)BaseRot).Method))
+      .MatchStartForward(CodeMatch.LoadsField(f_rot))
+      .InsertAfter(
+        new CodeInstruction(OpCodes.Call, ((Func<Rot8, Rot8>)FocusedRot).Method))
+      .InstructionEnumeration();
+
+    Rot8 BaseRot(Rot8 rot, VehiclePawn vehicle)
+    {
+      if (Command_FocusVehicleMap.FocusedVehicle is { } vehicle2)
+      {
+        return rot.Rotated(vehicle2.FullRotation);
+      }
+      if (vehicle.TryGetTargetMap(out var map) && map.IsVehicleMapOf(out var vehicle3))
+      {
+        return rot.Rotated(vehicle3.FullRotation);
+      }
+      return rot;
+    }
+
+    Rot8 FocusedRot(Rot8 rot)
+    {
+      if (Command_FocusVehicleMap.FocusedVehicle is { } vehicle)
+      {
+        return rot.Rotated(vehicle.FullRotation);
+      }
+      return rot;
+    }
+  }
+  
+  [PatchLevel(Level.Safe)]
   public static void Postfix(VehiclePawn ___vehicle, ref Vector3 __result)
   {
     if (___vehicle is not null)
@@ -100,7 +141,8 @@ public static class Patch_VehicleGhostUtility_DrawData_DrawPos
       __result = ___vehicle.TryGetTargetMap(out var map) ? __result.ToBaseMapCoord(map).WithY(__result.y) : __result;
       return;
     }
-    if (UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out var vehicle))
+    if (Command_FocusVehicleMap.FocusedVehicle is null &&
+      UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out var vehicle))
     {
       __result = __result.ToBaseMapCoord(vehicle);
     }

@@ -34,6 +34,8 @@ public class MethodInfoCache
 
     public readonly MethodInfo g_Find_CurrentMap = AccessTools.PropertyGetter(typeof(Find), nameof(Find.CurrentMap));
 
+    public readonly MethodInfo g_Game_CurrentMap = AccessTools.PropertyGetter(typeof(Game), nameof(Game.CurrentMap));
+
     public readonly MethodInfo g_VehicleMapUtility_CurrentMap = AccessTools.PropertyGetter(typeof(VehicleMapUtility), nameof(VehicleMapUtility.CurrentMap));
 
     public readonly MethodInfo m_IsVehicleMapOf = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.IsVehicleMapOf));

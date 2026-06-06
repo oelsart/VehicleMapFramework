@@ -94,7 +94,6 @@ public static class Patch_Designator_SelectedUpdate
 
     public static void SelectedUpdatePostfix(Designator ___selectedDesignator)
     {
-        
         if (Command_FocusVehicleMap.FocusLockedVehicle != null) return;
 
         Command_FocusVehicleMap.FocusedVehicle = null;
@@ -131,6 +130,7 @@ public static class Patch_Designator_SelectedUpdate
 }
 
 [HarmonyPatch]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_Designator_CreateReverseDesignationGizmo_Delegate
 {
     private static MethodBase TargetMethod()

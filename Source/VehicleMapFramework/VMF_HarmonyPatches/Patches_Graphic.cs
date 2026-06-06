@@ -15,7 +15,7 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 public static class Patch_Graphic_Linked_ShouldLinkWith
 {
     [PatchLevel(Level.Mandatory)]
-    [HarmonyReversePatch()]
+    [HarmonyReversePatch]
     [HarmonyPriority(Priority.Normal)]
     //なんでReversePatchしてるのにオリジナルのメソッドをコピーしてるのかって？Performance AnalyzerがReversePatchに対応してないからだよ！
     public static bool ShouldLinkWith(Graphic_Linked instance, IntVec3 c, Thing parent)
@@ -399,7 +399,7 @@ public static class Patch_Graphic_DrawFromDef
             VehicleMapProps mapProps;
             if (thingDef.HasComp(typeof(CompVehicleEnterSpot)) && (mapProps = vehicle.VehicleDef.GetModExtension<VehicleMapProps>()) != null)
             {
-                var baseRot = new Rot8(Rot8.FromIntClockwise((vehicle.FullRotation.AsIntClockwise + new Rot8(rot2).AsIntClockwise) % 8));
+                var baseRot = new Rot8(rot2).Rotated(vehicle.FullRotation);
                 loc += baseRot.Opposite.AsVector2.ToVector3() * mapProps.EdgeSpaceValue(vehicle.FullRotation, rot2.Opposite);
             }
         }
