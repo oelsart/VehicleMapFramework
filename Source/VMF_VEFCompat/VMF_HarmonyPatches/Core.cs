@@ -1,4 +1,5 @@
 ﻿global using static VehicleMapFramework.MethodInfoCache;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
@@ -125,7 +126,7 @@ public static class Patch_Graphic_LinkedPipeVEF_ShouldLinkWith
 
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, AccessTools.Method(typeof(Patch_Graphic_LinkedPipeVEF_ShouldLinkWith), nameof(MapModified)));
+    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, ((Delegate)MapModified).Method);
   }
 
   private static Map MapModified(Thing thing)
@@ -175,9 +176,10 @@ public static class Patch_Verb_ShootCone_DrawLines
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap)
-      .MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseFullRotationAsRot4)
-      .MethodReplacer(CachedMethodInfo.g_Rot4_AsQuat, CachedMethodInfo.m_Rot8_AsQuatRef);
+    return instructions.MethodReplacer(
+      (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap),
+      (CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseFullRotationAsRot4),
+      (CachedMethodInfo.g_Rot4_AsQuat, CachedMethodInfo.m_Rot8_AsQuatRef));
   }
 }
 
@@ -188,8 +190,9 @@ public static class Patch_Verb_ShootCone_DrawConeRounded
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap)
-      .MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseFullRotationAsRot4);
+    return instructions.MethodReplacer(
+      (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap),
+      (CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseFullRotationAsRot4));
   }
 }
 
@@ -200,9 +203,10 @@ public static class Patch_Verb_ShootCone_CanHitTarget
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned)
-      .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned)
-      .MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseFullRotationSpawned_Thing);
+    return instructions.MethodReplacer(
+      (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned),
+      (CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned),
+      (CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseFullRotationSpawned_Thing));
   }
 }
 
@@ -258,8 +262,7 @@ public static class Patch_CompShieldField_GetThingsInAreas
     return new CodeMatcher(instructions)
       .MatchStartForward(CodeMatch.Calls(
         AccessTools.Method(typeof(ThingGrid), nameof(ThingGrid.ThingsListAtFast), [typeof(IntVec3)])))
-      .Set(OpCodes.Call,
-        AccessTools.Method(typeof(Patch_CompShieldField_GetThingsInAreas), nameof(ThingsListAtFastAcrossMaps)))
+      .Set(OpCodes.Call, ((Delegate)ThingsListAtFastAcrossMaps).Method)
       .MatchStartBackwards(CodeMatch.LoadsField(AccessTools.Field(typeof(Map), nameof(Map.thingGrid))))
       .RemoveInstruction()
       .InstructionEnumeration()
@@ -308,9 +311,10 @@ public static class Patch_CompShieldField_AbsorbDamage
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-      .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned)
-      .MethodReplacer(CachedMethodInfo.m_OccupiedRect, CachedMethodInfo.m_MovedOccupiedRect);
+    return instructions.MethodReplacer(
+      (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing),
+      (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned),
+      (CachedMethodInfo.m_OccupiedRect, CachedMethodInfo.m_MovedOccupiedRect));
   }
 }
 

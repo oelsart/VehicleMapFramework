@@ -106,7 +106,7 @@ public static class Patch_Building_LongDistancePower_DisconnectAll
     const string GetAllLinked = nameof(Patch_Building_LongDistancePower_GetAllLinked.GetAllLinked);
     return instructions.MethodReplacer(
       AccessTools.Method(Building_LongDistancePower, GetAllLinked),
-      AccessTools.Method(typeof(Patch_Building_LongDistancePower_GetAllLinked), GetAllLinked));
+      ((Delegate)Patch_Building_LongDistancePower_GetAllLinked.GetAllLinked).Method);
   }
 }
 

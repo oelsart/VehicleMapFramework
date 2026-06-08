@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
 using HarmonyLib;
@@ -28,7 +29,7 @@ public static class Patch_Graphic_LinkedStitched_Print
   {
     var codes = instructions.MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_RotationForPrint).ToList();
     var pos = codes.FindLastIndex(c => c.Calls(AccessTools.Method(typeof(Vector3), "op_Addition")));
-    codes.Insert(pos, CodeInstruction.Call(typeof(Patch_Graphic_LinkedStitched_Print), nameof(RotateVector)));
+    codes.Insert(pos, ((Delegate)RotateVector).Method.CallInstruction);
 
     return codes;
   }

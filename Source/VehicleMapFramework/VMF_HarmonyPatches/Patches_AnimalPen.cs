@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
 using HarmonyLib;
@@ -113,11 +114,12 @@ public static class Patch_AnimalPenUtility_GetPenAnimalShouldBeTakenTo
         codes.InsertRange(pos,
         [
             CodeInstruction.LoadLocal(1),
-            CodeInstruction.Call(typeof(Patch_AnimalPenUtility_GetPenAnimalShouldBeTakenTo), nameof(AddPenMarkers))
+            ((Delegate)AddPenMarkers).Method.CallInstruction
         ]);
 
-        return codes.MethodReplacer(AccessTools.Method(typeof(AnimalPenUtility), "CheckUseAndReach"),
-            AccessTools.Method(typeof(AnimalPenUtilityOnVehicle), nameof(AnimalPenUtilityOnVehicle.CheckUseAndReach)));
+        return codes.MethodReplacer(
+          AccessTools.Method(typeof(AnimalPenUtility), "CheckUseAndReach"),
+          ((Delegate)AnimalPenUtilityOnVehicle.CheckUseAndReach).Method);
     }
 
     private static HashSet<Building> AddPenMarkers(HashSet<Building> hashSet, Map map)
@@ -145,7 +147,7 @@ public static class Patch_AnimalPenUtility_GetHitchingPostAnimalShouldBeTakenTo
                 nameof(ListerBuildings.allBuildingsHitchingPosts))))
             .InsertAfter(
                 CodeInstruction.LoadArgument(1),
-                CodeInstruction.Call(typeof(Patch_AnimalPenUtility_GetHitchingPostAnimalShouldBeTakenTo), nameof(AddHitchingPosts)))
+                ((Delegate)AddHitchingPosts).Method.CallInstruction)
             .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Position)).Advance()
             .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Position))
             .Repeat(matcher => matcher.Set(OpCodes.Call, CachedMethodInfo.m_PositionOnBaseMap))

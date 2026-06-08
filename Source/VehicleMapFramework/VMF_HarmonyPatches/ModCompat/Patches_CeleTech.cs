@@ -30,8 +30,9 @@ public static class Patch_Building_CMCTurretGun_OrderAttack
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned)
-      .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned);
+    return instructions.MethodReplacer(
+      (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned),
+      (CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned));
   }
 }
 
@@ -42,9 +43,10 @@ public static class Patch_Building_CMCTurretGun_IsTargetStillValid
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-      .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned)
-      .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned);
+    return instructions.MethodReplacer(
+        (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing),
+        (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned),
+        (CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned));
   }
 }
 
@@ -62,7 +64,7 @@ public static class Patch_Building_CMCTurretGun_TryFindNewTarget
       .MatchStartForward(CodeMatch.LoadsField(AccessTools.Field(typeof(Map), nameof(Map.attackTargetsCache))))
       .RemoveInstruction()
       .MatchStartForward(CodeMatch.Calls(AccessTools.Method(typeof(AttackTargetsCache), nameof(AttackTargetsCache.GetPotentialTargetsFor))))
-      .Set(OpCodes.Call, AccessTools.Method(typeof(Patch_Building_CMCTurretGun_TryFindNewTarget), nameof(GetPotentialTargetsForCrossMap)))
+      .Set(OpCodes.Call, ((Delegate)GetPotentialTargetsForCrossMap).Method)
       .InstructionEnumeration();
   }
 
@@ -95,8 +97,9 @@ public static class Patch_Building_CMCTurretGun_CanTargetNow
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned)
-      .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
+    return instructions.MethodReplacer(
+        (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned),
+        (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing));
   }
 }
 
@@ -115,7 +118,7 @@ public static class Patch_Building_CMCTurretGun_ScoreTarget
       .MatchStartForward(
         new CodeMatch(OpCodes.Ldarg_0),
         CodeMatch.Calls(CachedMethodInfo.g_Thing_Map),
-        CodeMatch.Calls(AccessTools.Method(typeof(CoverUtility), nameof(CoverUtility.CalculateOverallBlockChance))))
+        CodeMatch.Calls(((Delegate)CoverUtility.CalculateOverallBlockChance).Method))
       .SetInstruction(CodeInstruction.LoadArgument(2))
       .Advance(-1)
       .Set(OpCodes.Call, CachedMethodInfo.m_PositionOnAnotherThingMap)
@@ -132,8 +135,9 @@ public static class Patch_Building_CMCTurretGun_AAAS_CanEngageTarget
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned)
-      .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned);
+    return instructions.MethodReplacer(
+      (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned),
+      (CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned));
   }
 }
 
@@ -282,9 +286,10 @@ public static class Patch_Verb_LauncherProjectileSwitchFire_Retarget
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-      .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned)
-      .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
+    return instructions.MethodReplacer(
+        (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing),
+        (CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned),
+        (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned));
   }
 }
 
@@ -311,8 +316,9 @@ public static class Patch_Verb_LauncherProjectileSwitchFire_CanHitFromCellIgnori
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned)
-      .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
+    return instructions.MethodReplacer(
+      (CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned),
+      (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing));
   }
 }
 
@@ -345,8 +351,9 @@ public static class Patch_Verb_Laser_Sustain_BurstingTick
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-      .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
+    return instructions.MethodReplacer(
+      (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing),
+      (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap));
   }
 }
 
@@ -379,9 +386,10 @@ public static class Patch_Verb_RocketShoot_TryCastShot
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-      .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned)
-      .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned);
+    return instructions.MethodReplacer(
+      (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing),
+      (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned),
+      (CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned));
   }
 }
 
@@ -392,8 +400,9 @@ public static class Patch_Verb_ShootDronePos_TryCastShot
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-      .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap);
+    return instructions.MethodReplacer(
+      (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing),
+      (CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap));
   }
 }
 
@@ -404,8 +413,9 @@ public static class Patch_Verb_Shoot_UAV_TryCastShot
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-      .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap);
+    return instructions.MethodReplacer(
+      (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing),
+      (CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap));
   }
 }
 
@@ -435,8 +445,9 @@ public static class Patch_CompFullProjectileInterceptor_CheckIntercept
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-      .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
+    return instructions.MethodReplacer(
+        (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing),
+        (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned));
   }
 }
 
@@ -464,7 +475,7 @@ public static class Patch_CompFullProjectileInterceptor_PostDraw
     return new CodeMatcher(instructions)
       .MatchStartForward(CodeMatch.LoadsField(AccessTools.Field(typeof(Map), nameof(Map.attackTargetsCache))))
       .RemoveInstruction()
-      .Set(OpCodes.Call, AccessTools.Method(typeof(Patch_CompFullProjectileInterceptor_PostDraw), nameof(TargetsHostileToColonyCrossMap)))
+      .Set(OpCodes.Call, ((Delegate)TargetsHostileToColonyCrossMap).Method)
       .InstructionEnumeration();
   }
 

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Reflection.Emit;
 using HarmonyLib;
 using RimWorld.Planet;
@@ -25,7 +26,7 @@ public static class Patch_MapComponent_SmartFarming_FinalizeInit
   {
     var codes = new CodeMatcher(instructions);
     codes.MatchStartForward(new CodeMatch(c => c.opcode == OpCodes.Isinst && c.OperandIs(typeof(PocketMapParent))));
-    codes.InsertAfter(CodeInstruction.Call(typeof(Patch_MapComponent_SmartFarming_FinalizeInit), nameof(CheckNotVehicleMapParent)));
+    codes.InsertAfter(((Delegate)CheckNotVehicleMapParent).Method.CallInstruction);
     return codes.Instructions();
   }
 

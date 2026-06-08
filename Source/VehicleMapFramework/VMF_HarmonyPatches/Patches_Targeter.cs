@@ -11,7 +11,7 @@ public static class Patch_Targeter_ConfirmStillValid
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        var code = new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMapOrCaravan_Map);
+        var code = CachedMethodInfo.m_BaseMapOrCaravan_Map.CallInstruction;
         return new CodeMatcher(instructions)
             .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Find_CurrentMap))
             .Repeat(c =>

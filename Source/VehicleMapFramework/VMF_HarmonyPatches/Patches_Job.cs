@@ -21,7 +21,7 @@ public static class Patch_Pawn_JobTracker_StartJob
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var m_MakeDriver = AccessTools.Method(typeof(Job), nameof(Job.MakeDriver));
-        var m_MakeOrGetDriver = AccessTools.Method(typeof(Patch_Pawn_JobTracker_StartJob), nameof(MakeOrGetDriver));
+        var m_MakeOrGetDriver = ((Delegate)MakeOrGetDriver).Method;
         return instructions.MethodReplacer(m_MakeDriver, m_MakeOrGetDriver);
     }
 
@@ -107,7 +107,7 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
         {
             CodeInstruction.LoadArgument(1),
             new CodeInstruction(OpCodes.Ldloc_S, scanner),
-            CodeInstruction.Call(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(AddSearchSet))
+            ((Delegate)AddSearchSet).Method.CallInstruction
         };
         codes.MatchStartForward(matchStloc);
         local = codes.Operand;
@@ -129,7 +129,7 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
             new CodeInstruction(OpCodes.Ldloc_S, scanner),
             CodeInstruction.LoadLocal(innerTypeIndex, true),
             CodeInstruction.LoadLocal(innerStructIndex, true),
-            CodeInstruction.Call(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(ScanCellsAcrossMaps)));
+            ((Delegate)ScanCellsAcrossMaps).Method.CallInstruction);
 
         var g_TargetInfo_Cell = AccessTools.PropertyGetter(typeof(TargetInfo), nameof(TargetInfo.Cell));
         codes.MatchStartForward(CodeMatch.Calls(g_TargetInfo_Cell));
@@ -137,26 +137,27 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
 
         var m_JobOnCell = AccessTools.Method(typeof(WorkGiver_Scanner), nameof(WorkGiver_Scanner.JobOnCell));
         codes.MatchStartForward(CodeMatch.Calls(m_JobOnCell));
-        codes.SetInstruction(CodeInstruction.Call(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(JobOnCellMap)));
+        codes.SetInstruction(((Delegate)JobOnCellMap).Method.CallInstruction);
 
         //GenClosestの各メソッドを自作のものに置き換える
         //PotentialWorkThingsGlobalの各マップの結果を合計
-        var m_GenClosest_ClosestThing_Global = AccessTools.Method(typeof(GenClosest), nameof(GenClosest.ClosestThing_Global));
-        var m_GenClosestCrossMap_ClosestThing_Global = AccessTools.Method(typeof(GenClosestCrossMap), nameof(GenClosestCrossMap.ClosestThing_Global));
-        var m_GenClosest_ClosestThing_Global_Reachable = AccessTools.Method(typeof(GenClosest), nameof(GenClosest.ClosestThing_Global_Reachable));
-        var m_GenClosestCrossMap_ClosestThing_Global_Reachable = AccessTools.Method(typeof(GenClosestCrossMap), nameof(GenClosestCrossMap.ClosestThing_Global_Reachable));
+        var m_GenClosest_ClosestThing_Global = ((Delegate)GenClosest.ClosestThing_Global).Method;
+        var m_GenClosestCrossMap_ClosestThing_Global = ((Delegate)GenClosestCrossMap.ClosestThing_Global).Method;
+        var m_GenClosest_ClosestThing_Global_Reachable = ((Delegate)GenClosest.ClosestThing_Global_Reachable).Method;
+        var m_GenClosestCrossMap_ClosestThing_Global_Reachable = ((Delegate)GenClosestCrossMap.ClosestThing_Global_Reachable).Method;
         var m_NonScanJob = AccessTools.Method(typeof(WorkGiver), nameof(WorkGiver.NonScanJob));
-        var m_NonScanJobAll = AccessTools.Method(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(NonScanJobAll));
+        var m_NonScanJobAll = ((Delegate)NonScanJobAll).Method;
         var m_Scanner_PotentialWorkThingsGlobal = AccessTools.Method(typeof(WorkGiver_Scanner), nameof(WorkGiver_Scanner.PotentialWorkThingsGlobal));
-        var m_PotentialWorkThingsGlobalAll = AccessTools.Method(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(PotentialWorkThingsGlobalAll));
+        var m_PotentialWorkThingsGlobalAll = ((Delegate)PotentialWorkThingsGlobalAll).Method;
         var m_Scanner_JobOnThing = AccessTools.Method(typeof(WorkGiver_Scanner), nameof(WorkGiver_Scanner.JobOnThing));
-        var m_JobOnThingMap = AccessTools.Method(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(JobOnThingMap));
-        return codes.Instructions()
-            .MethodReplacer(m_GenClosest_ClosestThing_Global, m_GenClosestCrossMap_ClosestThing_Global)
-            .MethodReplacer(m_GenClosest_ClosestThing_Global_Reachable, m_GenClosestCrossMap_ClosestThing_Global_Reachable)
-            .MethodReplacer(m_NonScanJob, m_NonScanJobAll)
-            .MethodReplacer(m_Scanner_PotentialWorkThingsGlobal, m_PotentialWorkThingsGlobalAll)
-            .MethodReplacer(m_Scanner_JobOnThing, m_JobOnThingMap);
+        var m_JobOnThingMap = ((Delegate)JobOnThingMap).Method;
+        return codes.InstructionEnumeration()
+            .MethodReplacer(
+              (m_GenClosest_ClosestThing_Global, m_GenClosestCrossMap_ClosestThing_Global),
+              (m_GenClosest_ClosestThing_Global_Reachable, m_GenClosestCrossMap_ClosestThing_Global_Reachable),
+              (m_NonScanJob, m_NonScanJobAll),
+              (m_Scanner_PotentialWorkThingsGlobal, m_PotentialWorkThingsGlobalAll),
+              (m_Scanner_JobOnThing, m_JobOnThingMap));
     }
 
     internal static IEnumerable<Thing> AddSearchSet(List<Thing> list, Pawn pawn, WorkGiver_Scanner scanner)
@@ -384,7 +385,7 @@ public static class Patch_JobGiver_Work_PawnCanUseWorkGiver
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var m_WorkGiver_ShouldSkip = AccessTools.Method(typeof(WorkGiver), nameof(WorkGiver.ShouldSkip));
-        var m_ShouldSkipAll = AccessTools.Method(typeof(Patch_JobGiver_Work_PawnCanUseWorkGiver), nameof(ShouldSkipAll));
+        var m_ShouldSkipAll = ((Delegate)ShouldSkipAll).Method;
         return instructions.MethodReplacer(m_WorkGiver_ShouldSkip, m_ShouldSkipAll);
     }
 
@@ -416,7 +417,7 @@ public static class Patch_JobGiver_Work_Validator
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var m_Scanner_HasJobOnThing = AccessTools.Method(typeof(WorkGiver_Scanner), nameof(WorkGiver_Scanner.HasJobOnThing));
-        var m_HasJobOnThingMap = AccessTools.Method(typeof(Patch_JobGiver_Work_Validator), nameof(HasJobOnThingMap));
+        var m_HasJobOnThingMap = ((Delegate)HasJobOnThingMap).Method;
         return instructions.MethodReplacer(m_Scanner_HasJobOnThing, m_HasJobOnThingMap);
     }
 
@@ -656,7 +657,7 @@ public static class Patch_ItemAvailability_ThingsAvailableAnywhere
             CodeInstruction.LoadArgument(0),
             CodeInstruction.LoadField(typeof(ItemAvailability), "map"),
             CodeInstruction.LoadArgument(1),
-            CodeInstruction.Call(typeof(Patch_ItemAvailability_ThingsAvailableAnywhere), nameof(AddThingList))
+            ((Delegate)AddThingList).Method.CallInstruction
         ]);
         return code;
     }
@@ -764,7 +765,7 @@ public static class Patch_RegionProcessorClosestThingReachable_RegionProcessor
         static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             var m_ProcessThingOrig = AccessTools.Method(typeof(RegionProcessorClosestThingReachable), "ProcessThing");
-            var m_ProcessThing = AccessTools.Method(typeof(Patch_RegionProcessorClosestThingReachable_ProcessThing), nameof(Patch_RegionProcessorClosestThingReachable_ProcessThing.ProcessThing));
+            var m_ProcessThing = ((Delegate)Patch_RegionProcessorClosestThingReachable_ProcessThing.ProcessThing).Method;
             return instructions.MethodReplacer(m_ProcessThingOrig, m_ProcessThing);
         }
     }
@@ -898,7 +899,7 @@ public static class Patch_FoodUtility_BestFoodSourceOnMap
         [
             CodeInstruction.LoadArgument(0),
             CodeInstruction.LoadLocal(1),
-            CodeInstruction.Call(typeof(Patch_FoodUtility_BestFoodSourceOnMap), nameof(AddSearchSet))
+            ((Delegate)AddSearchSet).Method.CallInstruction
         ]);
         return codes;
     }
@@ -948,8 +949,9 @@ public static class Patch_ToilFailConditions_SelfAndParentsDespawnedOrNull
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_MapHeld, CachedMethodInfo.m_MapHeldBaseMapOrCaravan)
-            .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMapOrCaravan_Thing);
+        return instructions.MethodReplacer(
+            (CachedMethodInfo.g_Thing_MapHeld, CachedMethodInfo.m_MapHeldBaseMapOrCaravan),
+            (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMapOrCaravan_Thing));
     }
 }
 
@@ -1003,8 +1005,9 @@ public static class Patch_PawnUtility_DutyLocation
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned)
-            .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
+        return instructions.MethodReplacer(
+          (CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned),
+          (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned));
     }
 }
 
@@ -1053,7 +1056,7 @@ public static class Patch_ToilFailConditions_FailOnBurningImmobile
         var ind = original.GetMethodBody()!.LocalVariables.FirstIndexOf(l => l.LocalType == typeof(LocalTargetInfo));
         var codes = new CodeMatcher(instructions);
         codes.MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Map))
-            .Set(OpCodes.Call, AccessTools.Method(typeof(Patch_ToilFailConditions_FailOnBurningImmobile), nameof(ThingMapOrTargetMapOrPawnMap)))
+            .Set(OpCodes.Call, ((Delegate)ThingMapOrTargetMapOrPawnMap).Method)
             .Insert(CodeInstruction.LoadLocal(ind));
         return codes.Instructions();
     }
@@ -1264,7 +1267,7 @@ public static class Patch_WanderUtility_GetColonyWanderRoot
     {
         return instructions.MethodReplacer(
             AccessTools.PropertyGetter(typeof(MapPawns), nameof(MapPawns.FreeColonistsSpawned)),
-            AccessTools.Method(typeof(Patch_WanderUtility_GetColonyWanderRoot), nameof(FreeColonistsSpawned)));
+            ((Delegate)FreeColonistsSpawned).Method);
     }
 }
 
@@ -1281,8 +1284,7 @@ public static class Patch_Reachability_ClearCache
                 CodeInstruction.LoadArgument(0),
                 CodeInstruction.LoadField(typeof(Reachability), "map"),
                 new CodeInstruction(OpCodes.Ldc_I4_0),
-                CodeInstruction.Call(typeof(CrossMapReachabilityCache),
-                    nameof(CrossMapReachabilityCache.ClearCacheFor)))
+                ((Delegate)CrossMapReachabilityCache.ClearCacheFor).Method.CallInstruction)
             .InstructionEnumeration();
     }
 }
@@ -1311,7 +1313,7 @@ public static class Patch_PaintUtility_FindNearbyDyes
             .InsertAfter(
                 CodeInstruction.LoadArgument(i_pawn),
                 CodeInstruction.LoadArgument(i_forced),
-                CodeInstruction.Call(typeof(Patch_PaintUtility_FindNearbyDyes), nameof(AddThingList)))
+                ((Delegate)AddThingList).Method.CallInstruction)
             .InstructionEnumeration();
     }
 
@@ -1340,8 +1342,9 @@ public static class Patch_ChildcareUtility_CanHaulBaby
 
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMapOrCaravan_Thing)
-            .MethodReplacer(CachedMethodInfo.g_Thing_MapHeld, CachedMethodInfo.m_MapHeldBaseMapOrCaravan);
+        return instructions.MethodReplacer(
+            (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMapOrCaravan_Thing),
+            (CachedMethodInfo.g_Thing_MapHeld, CachedMethodInfo.m_MapHeldBaseMapOrCaravan));
     }
 }
 

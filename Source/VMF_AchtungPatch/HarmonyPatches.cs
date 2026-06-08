@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 using AchtungMod;
 using HarmonyLib;
@@ -160,11 +161,9 @@ public static class Patch_Tools_OrderTo
 [PatchLevel(Level.Cautious)]
 public static class Patch_Tools_LabelDrawPosFor
 {
-  public static readonly MethodInfo m_ToVector3ShiftedOffset = AccessTools.Method(typeof(Patch_Tools_LabelDrawPosFor), nameof(ToVector3ShiftedOffset));
-
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.m_IntVec3_ToVector3Shifted, m_ToVector3ShiftedOffset);
+    return instructions.MethodReplacer(CachedMethodInfo.m_IntVec3_ToVector3Shifted, ((Delegate)ToVector3ShiftedOffset).Method);
   }
 
   public static Vector3 ToVector3ShiftedOffset(ref IntVec3 cell)
@@ -190,7 +189,9 @@ public static class Patch_Controller_HandleDrawing
 
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.m_IntVec3_ToVector3Shifted, Patch_Tools_LabelDrawPosFor.m_ToVector3ShiftedOffset);
+    return instructions.MethodReplacer(
+      CachedMethodInfo.m_IntVec3_ToVector3Shifted,
+      ((Delegate)Patch_Tools_LabelDrawPosFor.ToVector3ShiftedOffset).Method);
   }
 }
 
@@ -212,10 +213,11 @@ public static class Patch_Controller_MouseDown
 
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    var m_FromVector3 = AccessTools.Method(typeof(IntVec3), nameof(IntVec3.FromVector3), [typeof(Vector3)]);
-    var m_FromVector3Offset = AccessTools.Method(typeof(Patch_Controller_MouseDown), nameof(FromVector3Offset));
-    return instructions.MethodReplacer(CachedMethodInfo.g_Find_CurrentMap, CachedMethodInfo.g_VehicleMapUtility_CurrentMap)
-      .MethodReplacer(m_FromVector3, m_FromVector3Offset);
+    var m_FromVector3 = ((Func<Vector3, IntVec3>)IntVec3.FromVector3).Method;
+    var m_FromVector3Offset = ((Delegate)FromVector3Offset).Method;
+    return instructions.MethodReplacer(
+      (CachedMethodInfo.g_Find_CurrentMap, CachedMethodInfo.g_VehicleMapUtility_CurrentMap),
+      (m_FromVector3, m_FromVector3Offset));
   }
 
   private static IntVec3 FromVector3Offset(Vector3 pos)

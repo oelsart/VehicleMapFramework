@@ -51,8 +51,9 @@ public static class Patch_Rimatomics_CheckForCollisionBetweenCallback
 
     IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-      return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap)
-        .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
+      return instructions.MethodReplacer(
+        (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap),
+        (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned));
     }
   }
 }
@@ -71,8 +72,9 @@ public static class Patch_Rimatomics_ImpactSomethingCallback
 
     IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-      return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap)
-        .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
+      return instructions.MethodReplacer(
+        (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap),
+        (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned));
     }
   }
 }

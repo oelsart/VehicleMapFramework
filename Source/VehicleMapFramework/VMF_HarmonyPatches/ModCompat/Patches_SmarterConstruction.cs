@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -27,7 +28,7 @@ public static class Patch_Patch_WorkGiver_Scanner_GetPriority_PriorityPostfix
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
     var codes = instructions.ToList();
-    var m_DistanceTo = AccessTools.Method(typeof(IntVec3Utility), nameof(IntVec3Utility.DistanceTo));
+    var m_DistanceTo = ((Delegate)IntVec3Utility.DistanceTo).Method;
     var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(m_DistanceTo)) - 1;
     codes[pos].operand = CachedMethodInfo.m_CellOnBaseMap_TargetInfo;
     codes[pos - 2].opcode = OpCodes.Call;

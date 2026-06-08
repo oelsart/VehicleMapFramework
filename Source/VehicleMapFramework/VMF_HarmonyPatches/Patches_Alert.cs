@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
 using RimWorld;
@@ -33,7 +34,7 @@ public static class Patch_Alert_NeedColonistBeds_AvailableColonistBeds
             if (instruction.LoadsField(AccessTools.Field(typeof(ListerBuildings), nameof(ListerBuildings.allBuildingsColonist))))
             {
                 yield return CodeInstruction.LoadArgument(0);
-                yield return CodeInstruction.Call(typeof(Patch_Alert_NeedColonistBeds_AvailableColonistBeds), nameof(AddBuildings));
+                yield return ((Delegate)AddBuildings).Method.CallInstruction;
             }
         }
     }

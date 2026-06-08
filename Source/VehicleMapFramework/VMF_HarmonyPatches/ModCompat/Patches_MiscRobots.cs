@@ -98,7 +98,7 @@ public static class Patch_X2_JobGiver_Work_TryIssueJobPackage
       .Repeat(matcher => matcher.InsertAndAdvance(
           CodeInstruction.LoadArgument(1),
           new CodeInstruction(OpCodes.Ldloc_S, scanner),
-          CodeInstruction.Call(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(Patch_JobGiver_Work_TryIssueJobPackage.AddSearchSet)))
+          ((Delegate)Patch_JobGiver_Work_TryIssueJobPackage.AddSearchSet).Method.CallInstruction)
         .Advance());
 
     //複数マップのセルをスキャンする
@@ -123,22 +123,19 @@ public static class Patch_X2_JobGiver_Work_TryIssueJobPackage
 
     //GenClosestの各メソッドを自作のものに置き換える
     //PotentialWorkThingsGlobalの各マップの結果を合計
-    var m_GenClosest_ClosestThing_Global = AccessTools.Method(typeof(GenClosest), nameof(GenClosest.ClosestThing_Global));
-    var m_GenClosestCrossMap_ClosestThing_Global = AccessTools.Method(typeof(GenClosestCrossMap),
-      nameof(GenClosestCrossMap.ClosestThing_Global),
-      [typeof(IntVec3), typeof(IEnumerable<>), typeof(float), typeof(Predicate<Thing>), typeof(Func<Thing, float>), typeof(bool)]);
-    var m_GenClosest_ClosestThing_Global_Reachable = AccessTools.Method(typeof(GenClosest), nameof(GenClosest.ClosestThing_Global_Reachable));
-    var m_GenClosestCrossMap_ClosestThing_Global_Reachable = AccessTools.Method(typeof(GenClosestCrossMap),
-      nameof(GenClosestCrossMap.ClosestThing_Global_Reachable),
-      [typeof(IntVec3), typeof(Map), typeof(IEnumerable<Thing>), typeof(PathEndMode), typeof(TraverseParms), typeof(float), typeof(Predicate<Thing>), typeof(Func<Thing, float>), typeof(bool)]);
+    var m_GenClosest_ClosestThing_Global = ((Delegate)GenClosest.ClosestThing_Global).Method;
+    var m_GenClosestCrossMap_ClosestThing_Global = ((Delegate)GenClosestCrossMap.ClosestThing_Global).Method;
+    var m_GenClosest_ClosestThing_Global_Reachable = ((Delegate)GenClosest.ClosestThing_Global_Reachable).Method;
+    var m_GenClosestCrossMap_ClosestThing_Global_Reachable = ((Delegate)GenClosestCrossMap.ClosestThing_Global_Reachable).Method;
     var m_Scanner_PotentialWorkThingsGlobal = AccessTools.Method(typeof(WorkGiver_Scanner), nameof(WorkGiver_Scanner.PotentialWorkThingsGlobal));
-    var m_PotentialWorkThingsGlobalAll = AccessTools.Method(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(Patch_JobGiver_Work_TryIssueJobPackage.PotentialWorkThingsGlobalAll));
+    var m_PotentialWorkThingsGlobalAll = ((Delegate)Patch_JobGiver_Work_TryIssueJobPackage.PotentialWorkThingsGlobalAll).Method;
     var m_Scanner_JobOnThing = AccessTools.Method(typeof(WorkGiver_Scanner), nameof(WorkGiver_Scanner.JobOnThing));
-    var m_JobOnThingMap = AccessTools.Method(typeof(Patch_JobGiver_Work_TryIssueJobPackage), nameof(Patch_JobGiver_Work_TryIssueJobPackage.JobOnThingMap));
+    var m_JobOnThingMap = ((Delegate)Patch_JobGiver_Work_TryIssueJobPackage.JobOnThingMap).Method;
     return codes.InstructionEnumeration()
-      .MethodReplacer(m_GenClosest_ClosestThing_Global, m_GenClosestCrossMap_ClosestThing_Global)
-      .MethodReplacer(m_GenClosest_ClosestThing_Global_Reachable, m_GenClosestCrossMap_ClosestThing_Global_Reachable)
-      .MethodReplacer(m_Scanner_PotentialWorkThingsGlobal, m_PotentialWorkThingsGlobalAll)
-      .MethodReplacer(m_Scanner_JobOnThing, m_JobOnThingMap);
+      .MethodReplacer(
+        (m_GenClosest_ClosestThing_Global, m_GenClosestCrossMap_ClosestThing_Global),
+        (m_GenClosest_ClosestThing_Global_Reachable, m_GenClosestCrossMap_ClosestThing_Global_Reachable),
+        (m_Scanner_PotentialWorkThingsGlobal, m_PotentialWorkThingsGlobalAll),
+        (m_Scanner_JobOnThing, m_JobOnThingMap));
   }
 }

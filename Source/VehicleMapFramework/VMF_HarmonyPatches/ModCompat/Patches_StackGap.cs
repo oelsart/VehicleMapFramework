@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Reflection.Emit;
 using HarmonyLib;
 using RimWorld;
@@ -27,12 +28,12 @@ public static class Patch_HaulingUtility_TryGetHaulingDestination
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
     var codes = new CodeMatcher(instructions);
-    codes.MatchStartForward(CodeMatch.Calls(AccessTools.Method(typeof(StoreUtility), nameof(StoreUtility.GetSlotGroup), [typeof(IntVec3), typeof(Map)])));
+    codes.MatchStartForward(CodeMatch.Calls(((Func<IntVec3, Map, SlotGroup>)StoreUtility.GetSlotGroup).Method));
     codes.MatchStartBackwards(new CodeMatch(OpCodes.Ldarg_2));
     codes.Insert(
       CodeInstruction.LoadArgument(0),
       CodeInstruction.LoadArgument(1),
-      CodeInstruction.Call(typeof(Patch_HaulingUtility_TryGetHaulingDestination), nameof(TryReplaceMap)));
+      new CodeInstruction(OpCodes.Call, ((Delegate)TryReplaceMap).Method));
     return codes.Instructions();
   }
 

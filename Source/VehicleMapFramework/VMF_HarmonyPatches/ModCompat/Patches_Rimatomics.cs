@@ -79,8 +79,9 @@ public static class Patch_Building_EnergyWeapon_OrderAttack
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned)
-      .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned);
+    return instructions.MethodReplacer(
+      (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned),
+      (CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned));
   }
 }
 
@@ -91,8 +92,9 @@ public static class Patch_Building_EnergyWeapon_InRange
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned)
-      .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned);
+    return instructions.MethodReplacer(
+      (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned),
+      (CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned));
   }
 }
 
@@ -105,23 +107,19 @@ public static class Patch_Verb_RimatomicsVerb_TryCastShot
   {
     var type = GenTypes.GetTypeInAnyAssembly("Rimatomics.Verb_RimatomicsVerb", "Rimatomics");
     return type.AllSubclasses().Select(t => AccessTools.DeclaredMethod(t, "TryCastShot"))
-      .Where(m =>
-      {
-        if (m is null) return false;
-        return PatchHelper.ReadMethodBodyWrapper(m)
-          .Any(i =>
-            CachedMethodInfo.g_Thing_Map.Equals(i.Value) ||
-            CachedMethodInfo.g_Thing_Position.Equals(i.Value) ||
-            CachedMethodInfo.g_LocalTargetInfo_Cell.Equals(i.Value));
-      });
+      .WhereHasMethods(
+        CachedMethodInfo.g_Thing_Map,
+        CachedMethodInfo.g_Thing_Position,
+        CachedMethodInfo.g_LocalTargetInfo_Cell);
   }
 
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
     if (UnitTestDetector.IsTestingContext) return instructions;
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned)
-      .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned)
-      .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
+    return instructions.MethodReplacer(
+      (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned),
+      (CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned),
+      (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing));
   }
 }
 
@@ -173,8 +171,9 @@ public static class Patch_CompRimatomicsShield_CheckIntercept
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned)
-      .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
+    return instructions.MethodReplacer(
+      (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned),
+      (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing));
   }
 }
 

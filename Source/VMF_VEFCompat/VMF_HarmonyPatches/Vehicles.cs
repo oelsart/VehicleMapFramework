@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Reflection.Emit;
 using HarmonyLib;
 using RimWorld;
@@ -41,14 +42,14 @@ public static class Patch_GarageDoor_DrawAt
         new CodeInstruction(OpCodes.Stloc_S, rotation),
         new CodeInstruction(OpCodes.Ldloc_S, rotation),
         new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(Vector3), nameof(Vector3.up))),
-        CodeInstruction.Call(typeof(Quaternion), nameof(Quaternion.AngleAxis)),
+        ((Delegate)Quaternion.AngleAxis).Method.CallInstruction,
         new CodeInstruction(OpCodes.Call, CachedMethodInfo.o_Quaternion_Multiply))
       .MatchStartBackwards(CodeMatch.Calls(CachedMethodInfo.g_Thing_Rotation))
       .SetOperandAndAdvance(CachedMethodInfo.m_BaseFullRotation_Thing)
       .MatchStartBackwards(new CodeMatch(OpCodes.Ldarg_0))
       .Insert(
         CodeInstruction.LoadArgument(0),
-        CodeInstruction.Call(typeof(Patch_GarageDoor_DrawAt), nameof(RotateOffset))
+        ((Delegate)RotateOffset).Method.CallInstruction
       )
       .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Rotation))
       .SetOperandAndAdvance(CachedMethodInfo.m_BaseRotation)

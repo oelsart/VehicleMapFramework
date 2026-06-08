@@ -383,7 +383,7 @@ internal static class ModCompat
         AnimRenderer_Def = AccessTools.FieldRefAccess<Def>("AM.AnimRenderer:Def");
         AnimRenderer_cellData = AccessTools.FieldRefAccess<IReadOnlyList<object>>("AM.AnimDef:cellData");
         m_GetWorldPosition = AccessTools.Method("AnimPartSnapshot:GetWorldPosition");
-        m_GetWorldPositionOffset = AccessTools.Method(typeof(Patch_AnimRenderer_DrawPawns), nameof(Patch_AnimRenderer_DrawPawns.GetWorldPositionOffset));
+        m_GetWorldPositionOffset = ((Delegate)Patch_AnimRenderer_DrawPawns.GetWorldPositionOffset).Method;
       });
     }
   }

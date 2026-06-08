@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Threading.Tasks;
 using HarmonyLib;
 using Verse;
 
@@ -9,59 +11,121 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 public static class PatchHelper
 {
-    public static IEnumerable<KeyValuePair<OpCode, object>> ReadMethodBodyWrapper(MethodBase method)
+  public static IEnumerable<KeyValuePair<OpCode, object>> ReadMethodBodyWrapper(MethodBase method)
+  {
+    try
     {
-        try
-        {
-            return PatchProcessor.ReadMethodBody(method);
-        }
-        catch(Exception ex)
-        {
-            VMF_Log.Warning($"Autopatching to {method.FullDescription()} failed. It may be referencing outdated signatures. The patch will simply be skipped.\n{ex}");
-            return [];
-        }
+      return PatchProcessor.ReadMethodBody(method);
+    }
+    catch (Exception ex)
+    {
+      VMF_Log.Warning(
+        $"Autopatching to {method.FullDescription()} failed. It may be referencing outdated signatures. The patch will simply be skipped.\n{ex}");
+      return [];
+    }
+  }
+  
+  public static IEnumerable<MethodBase> WhereHasMethods(this IEnumerable<MethodBase> methods, params MethodBase[] targetMethods)
+  {
+    return methods.Where(method => method != null && ReadMethodBodyWrapper(method).Any(i =>
+      i.Value is MethodBase operandMethod && targetMethods.Contains(operandMethod)));
+  }
+
+  private static readonly FieldInfo f_allBuildingsColonist =
+    AccessTools.Field(typeof(ListerBuildings), nameof(ListerBuildings.allBuildingsColonist));
+
+  public static CodeMatcher AddAltitudeFor(this CodeMatcher codeMatcher, out LocalBuilder vehicle,
+    float offset = 0f, CodeMatch[] matches = null, CodeInstruction[] getInstance = null)
+  {
+    matches ??= [CodeMatch.Calls(CachedMethodInfo.m_Altitudes_AltitudeFor)];
+    getInstance ??= [CodeInstruction.LoadArgument(0)];
+    codeMatcher
+      .MatchStartForward(matches)
+      .Advance()
+      .CreateLabel(out var label)
+      .DeclareLocal(typeof(VehiclePawnWithMap), out vehicle)
+      .InsertAndAdvance(getInstance)
+      .InsertAndAdvance(
+        new CodeInstruction(OpCodes.Ldloca_S, vehicle),
+        CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf.CallInstruction,
+        new CodeInstruction(OpCodes.Brfalse_S, label),
+        new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+        CachedMethodInfo.m_YOffsetFull.CallInstruction);
+    if (offset != 0f)
+    {
+      codeMatcher
+        .InsertAndAdvance(
+          new CodeInstruction(OpCodes.Ldc_R4, offset),
+          new CodeInstruction(OpCodes.Add));
+    }
+
+    return codeMatcher;
+  }
+
+  extension(MethodInfo methodInfo)
+  {
+    public CodeInstruction CallInstruction => new (OpCodes.Call, methodInfo);
+    public CodeInstruction CallvirtInstruction => new (OpCodes.Callvirt, methodInfo);
+  }
+
+  [ThreadStatic] private static (MethodBase, MethodBase)[] single;
+  extension(IEnumerable<CodeInstruction> instructions)
+  {
+    public IEnumerable<CodeInstruction> MethodReplacer(MethodInfo from, MethodInfo to)
+    {
+      single ??= new (MethodBase, MethodBase)[1];
+      single[0] = (from, to);
+      return instructions.MethodReplacer(single);
     }
     
-    private static readonly FieldInfo f_allBuildingsColonist = AccessTools.Field(typeof(ListerBuildings), nameof(ListerBuildings.allBuildingsColonist));
-
-    public static IEnumerable<CodeInstruction> AddAllBuildingsColonistForThingInstance(this IEnumerable<CodeInstruction> instructions)
+    public List<CodeInstruction> MethodReplacer(params (MethodBase from, MethodBase to)[] pairs)
     {
-        foreach (var instruction in instructions)
+      var list = instructions as List<CodeInstruction> ?? [.. instructions];
+      var pairCount = pairs.Length;
+      var listCount = list.Count;
+      if (listCount < 500)
+      {
+        for (var i = 0; i < listCount; i++)
         {
-            yield return instruction;
-            if (instruction.LoadsField(f_allBuildingsColonist))
+          ProcessInstruction(list[i]);
+        }
+      }
+      else
+      {
+        Parallel.ForEach(list, ProcessInstruction);
+      }
+
+      return list;
+
+      void ProcessInstruction(CodeInstruction instruction)
+      {
+        if (instruction.operand is MethodBase methodBase)
+        {
+          for (var j = 0; j < pairCount; j++)
+          {
+            var pair = pairs[j];
+            if (methodBase == pair.from)
             {
-                yield return CodeInstruction.LoadArgument(0);
-                yield return new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_AddColonistBuildingList);
+              instruction.opcode = pair.to.IsConstructor ? OpCodes.Newobj : OpCodes.Call;
+              instruction.operand = pair.to;
+              break;
             }
+          }
         }
+      }
     }
 
-    public static CodeMatcher AddAltitudeFor(this CodeMatcher codeMatcher, out LocalBuilder vehicle,
-        float offset = 0f, CodeMatch[] matches = null, CodeInstruction[] getInstance = null)
+    public IEnumerable<CodeInstruction> AddAllBuildingsColonistForThingInstance()
     {
-        matches ??= [CodeMatch.Calls(CachedMethodInfo.m_Altitudes_AltitudeFor)];
-        getInstance ??= [CodeInstruction.LoadArgument(0)];
-        codeMatcher
-            .MatchStartForward(matches)
-            .Advance()
-            .CreateLabel(out var label)
-            .DeclareLocal(typeof(VehiclePawnWithMap), out vehicle)
-            .InsertAndAdvance(getInstance)
-            .InsertAndAdvance(
-                new CodeInstruction(OpCodes.Ldloca_S, vehicle),
-                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf),
-                new CodeInstruction(OpCodes.Brfalse_S, label),
-                new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_YOffsetFull));
-        if (offset != 0f)
+      foreach (var instruction in instructions)
+      {
+        yield return instruction;
+        if (instruction.LoadsField(f_allBuildingsColonist))
         {
-            codeMatcher
-                .InsertAndAdvance(
-                    new CodeInstruction(OpCodes.Ldc_R4, offset),
-                    new CodeInstruction(OpCodes.Add));
+          yield return CodeInstruction.LoadArgument(0);
+          yield return CachedMethodInfo.m_AddColonistBuildingList.CallInstruction;
         }
-
-        return codeMatcher;
+      }
     }
+  }
 }

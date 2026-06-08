@@ -26,15 +26,14 @@ public static class Patch_WASDGameComponent_TryMovePawn
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
     var f_lasPos3 = AccessTools.Field("wasdedPawn.WASDGameComponent:lasPos3");
-    var m_ToIntVec3 = AccessTools.Method(typeof(IntVec3Utility), nameof(IntVec3Utility.ToIntVec3));
     return new CodeMatcher(instructions)
-      .MatchStartForward(CodeMatch.Calls(m_ToIntVec3))
+      .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_ToIntVec3))
       .Repeat(c =>
         c.MatchStartBackwards(CodeMatch.LoadsField(f_lasPos3))
           .InsertAfterAndAdvance(
             CodeInstruction.LoadLocal(3),
             new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ToNonFocusedThingMapCoord))
-          .MatchStartForward(CodeMatch.Calls(m_ToIntVec3)).Advance()
+          .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_ToIntVec3)).Advance()
       )
       .InstructionEnumeration();
   }
@@ -64,9 +63,10 @@ public static class Patch_WASDGameComponent_HandleAiming
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-      .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap)
-      .MethodReplacer(CachedMethodInfo.m_GetThingList, CachedMethodInfo.m_GetThingListAcrossMaps);
+    return instructions.MethodReplacer(
+      (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing),
+      (CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap),
+      (CachedMethodInfo.m_GetThingList, CachedMethodInfo.m_GetThingListAcrossMaps));
   }
 }
 

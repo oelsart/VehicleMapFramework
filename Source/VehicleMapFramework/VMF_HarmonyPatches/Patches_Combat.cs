@@ -74,7 +74,7 @@ public static class Patch_Projectile_Launch
       .InsertAndAdvance(
         CodeInstruction.LoadArgument(1),
         CodeInstruction.LoadArgument(7))
-      .SetInstruction(CodeInstruction.Call(typeof(Patch_Projectile_Launch), nameof(TargetCell)))
+      .SetInstruction(((Delegate)TargetCell).Method.CallInstruction)
       .InstructionEnumeration();
   }
 
@@ -101,15 +101,16 @@ public static class Patch_Projectile_CanHit
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    var codes = instructions.ToList();
-    var pos = codes.FindIndex(c => c.opcode == OpCodes.Callvirt && c.OperandIs(CachedMethodInfo.g_Thing_Map));
-    codes[pos] = new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMap_Thing);
-
-    var m_ThingCovered = AccessTools.Method(typeof(CoverUtility), nameof(CoverUtility.ThingCovered));
-    var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Call && c.OperandIs(m_ThingCovered)) - 2;
-    codes[pos2] = CodeInstruction.LoadArgument(1);
-    codes[pos2 + 1].opcode = OpCodes.Callvirt;
-    return codes;
+    return new CodeMatcher(instructions)
+      .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Map))
+      .Set(OpCodes.Call, CachedMethodInfo.m_BaseMap_Thing)
+      .MatchStartForward(
+        new CodeMatch(OpCodes.Ldarg_0),
+        CodeMatch.Calls(CachedMethodInfo.g_Thing_Map),
+        CodeMatch.Calls(((Delegate)CoverUtility.ThingCovered).Method))
+      .SetOpcodeAndAdvance(OpCodes.Ldarg_1)
+      .SetOpcodeAndAdvance(OpCodes.Callvirt)
+      .InstructionEnumeration();
   }
 }
 
@@ -137,7 +138,6 @@ public static class Patch_CompProjectileInterceptor_CheckIntercept
 [StaticConstructorOnStartup]
 public static class Patch_Projectile_CheckForFreeInterceptBetween
 {
-
   // TabulaRasaのPostfixの引数順にちなむ
   public delegate void Postfix(Projectile __instance, ref bool __result, Vector3 lastExactPos, Vector3 newExactPos);
 
@@ -159,9 +159,7 @@ public static class Patch_Projectile_CheckForFreeInterceptBetween
         CodeInstruction.LoadArgument(0),
         CodeInstruction.LoadArgument(1),
         CodeInstruction.LoadArgument(2),
-        CodeInstruction.Call(
-          typeof(Patch_Projectile_CheckForFreeInterceptBetween),
-          nameof(CheckInterceptCrossMap)),
+        ((Delegate)CheckInterceptCrossMap).Method.CallInstruction,
         new CodeInstruction(OpCodes.Brfalse_S, label),
         new CodeInstruction(OpCodes.Ldc_I4_1),
         new CodeInstruction(OpCodes.Ret))
@@ -267,7 +265,7 @@ public static class Patch_Bombardment_TryDoExplosion
       .Insert(
         CodeInstruction.LoadArgument(0),
         CodeInstruction.LoadArgument(1),
-        CodeInstruction.Call(typeof(Patch_Bombardment_TryDoExplosion), nameof(CheckInterceptCrossMap)),
+        ((Delegate)CheckInterceptCrossMap).Method.CallInstruction,
         new CodeInstruction(OpCodes.Brfalse_S, label),
         new CodeInstruction(OpCodes.Ret))
       .InstructionEnumeration();
@@ -318,8 +316,6 @@ public static class Patch_ShotReport_HitReportFor
     var casterPositionOnTargetMap = generator.DeclareLocal(typeof(IntVec3));
 
     //冒頭のtargetMapとcasterPositionOnTargetMapの計算
-    var g_Thing = AccessTools.PropertyGetter(typeof(LocalTargetInfo), nameof(LocalTargetInfo.Thing));
-    var m_PositionOnAnotherThingMap = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.PositionOnAnotherThingMap));
     var label = generator.DefineLabel();
     var label2 = generator.DefineLabel();
     var label3 = generator.DefineLabel();
@@ -327,24 +323,24 @@ public static class Patch_ShotReport_HitReportFor
     codes.InsertRange(0,
     [
       CodeInstruction.LoadArgument(2, true),
-      new CodeInstruction(OpCodes.Call, g_Thing),
+      AccessTools.PropertyGetter(typeof(LocalTargetInfo), nameof(LocalTargetInfo.Thing)).CallInstruction,
       new CodeInstruction(OpCodes.Stloc_S, targThing),
       new CodeInstruction(OpCodes.Ldloc_S, targThing),
       new CodeInstruction(OpCodes.Brfalse_S, label),
       new CodeInstruction(OpCodes.Ldloc_S, targThing),
-      new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_Thing_Map),
+      CachedMethodInfo.g_Thing_Map.CallvirtInstruction,
       new CodeInstruction(OpCodes.Br_S, label2),
       CodeInstruction.LoadArgument(0).WithLabels(label),
-      new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMap_Thing),
+      CachedMethodInfo.m_BaseMap_Thing.CallInstruction,
       new CodeInstruction(OpCodes.Stloc_S, targetMap).WithLabels(label2),
       new CodeInstruction(OpCodes.Ldloc_S, targThing),
       new CodeInstruction(OpCodes.Brfalse_S, label3),
       CodeInstruction.LoadArgument(0),
       new CodeInstruction(OpCodes.Ldloc_S, targThing),
-      new CodeInstruction(OpCodes.Call, m_PositionOnAnotherThingMap),
+      CachedMethodInfo.m_PositionOnAnotherThingMap.CallInstruction,
       new CodeInstruction(OpCodes.Br_S, label4),
       CodeInstruction.LoadArgument(0).WithLabels(label3),
-      new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_PositionOnBaseMap),
+      CachedMethodInfo.m_PositionOnBaseMap.CallInstruction,
       new CodeInstruction(OpCodes.Stloc_S, casterPositionOnTargetMap).WithLabels(label4)
     ]);
 
@@ -365,9 +361,10 @@ public static class Patch_ShotReport_HitReportFor
     }
 
     var codes1 = codes.Take(pos2);
-    var codes2 = codes.Skip(pos2).MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned)
-      .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned)
-      .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
+    var codes2 = codes.Skip(pos2).MethodReplacer(
+      (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned),
+      (CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned),
+      (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing));
 
     return codes1.Concat(codes2);
   }
@@ -389,8 +386,9 @@ public static class Patch_Stance_Warmup_InitEffects
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-      .MethodReplacer(CachedMethodInfo.m_ToTargetInfo, CachedMethodInfo.m_ToBaseMapTargetInfo);
+    return instructions.MethodReplacer(
+      (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing),
+      (CachedMethodInfo.m_ToTargetInfo, CachedMethodInfo.m_ToBaseMapTargetInfo));
   }
 }
 
@@ -400,8 +398,9 @@ public static class Patch_Stance_Warmup_StanceTick
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-      .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
+    return instructions.MethodReplacer(
+      (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing),
+      (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned));
   }
 }
 
@@ -447,10 +446,11 @@ public static class Patch_Building_TurretFoam_TryFindNewTarget
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned)
-      .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-      .MethodReplacer(CachedMethodInfo.m_GenSight_LineOfSight2, CachedMethodInfo.m_GenSightOnVehicle_LineOfSight2)
-      .MethodReplacer(CachedMethodInfo.m_GetThingList, CachedMethodInfo.m_GetThingListAcrossMaps);
+    return instructions.MethodReplacer(
+      (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned),
+      (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing),
+      (CachedMethodInfo.m_GenSight_LineOfSight2, CachedMethodInfo.m_GenSightOnVehicle_LineOfSight2),
+      (CachedMethodInfo.m_GetThingList, CachedMethodInfo.m_GetThingListAcrossMaps));
   }
 }
 
@@ -466,7 +466,7 @@ public static class Patch_Building_Turret_OrderAttack
       if (instruction.Calls(CachedMethodInfo.g_LocalTargetInfo_Cell))
       {
         yield return CodeInstruction.LoadArgument(0);
-        yield return new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_TargetCellOnBaseMap);
+        yield return CachedMethodInfo.m_TargetCellOnBaseMap.CallInstruction;
       }
       else
       {
@@ -482,8 +482,9 @@ public static class Patch_Building_TurretGun_IsValidTarget
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned)
-      .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
+    return instructions.MethodReplacer(
+      (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned),
+      (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing));
   }
 }
 
@@ -498,7 +499,7 @@ public static class Patch_Building_TurretGun_DrawExtraSelectionOverlays
       if (instruction.Calls(CachedMethodInfo.g_LocalTargetInfo_Cell))
       {
         yield return CodeInstruction.LoadArgument(0);
-        yield return new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_TargetCellOnBaseMap);
+        yield return CachedMethodInfo.m_TargetCellOnBaseMap.CallInstruction;
       }
       else
       {
@@ -520,7 +521,7 @@ public static class Patch_TurretTop_TurretTopTick
       {
         yield return CodeInstruction.LoadArgument(0);
         yield return CodeInstruction.LoadField(typeof(TurretTop), "parentTurret");
-        yield return new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_TargetCellOnBaseMap);
+        yield return CachedMethodInfo.m_TargetCellOnBaseMap.CallInstruction;
       }
       else
       {
@@ -538,18 +539,17 @@ public static class Patch_TurretTop_DrawTurret
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
   {
     return new CodeMatcher(instructions, generator)
-      .MatchStartForward(CodeMatch.Calls(
-        AccessTools.Method(typeof(Vector3Utility), nameof(Vector3Utility.RotatedBy), [typeof(Vector3), typeof(float)])))
+      .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_RotatedBy))
       .DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle)
       .CreateLabel(out var label)
       .InsertAndAdvance(
         CodeInstruction.LoadArgument(0),
         CodeInstruction.LoadField(typeof(TurretTop), "parentTurret"),
         new CodeInstruction(OpCodes.Ldloca_S, vehicle),
-        new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf),
+        CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf.CallInstruction,
         new CodeInstruction(OpCodes.Brfalse_S, label),
         new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-        new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_Angle),
+        CachedMethodInfo.g_Angle.CallvirtInstruction,
         new CodeInstruction(OpCodes.Sub))
       .MatchStartForward(new CodeMatch(c => c.opcode == OpCodes.Stloc_S && ((LocalBuilder)c.operand).LocalType == typeof(Quaternion)))
       .CreateLabel(out var label2)
@@ -559,14 +559,14 @@ public static class Patch_TurretTop_DrawTurret
         new CodeInstruction(OpCodes.Brfalse_S, label2),
         CodeInstruction.LoadArgument(0),
         CodeInstruction.LoadField(typeof(TurretTop), "parentTurret"),
-        new CodeInstruction(OpCodes.Callvirt, AccessTools.PropertyGetter(typeof(Building_Turret), nameof(Building_Turret.CurrentTarget))),
+        AccessTools.PropertyGetter(typeof(Building_Turret), nameof(Building_Turret.CurrentTarget)).CallvirtInstruction,
         new CodeInstruction(OpCodes.Stloc_S, target),
         new CodeInstruction(OpCodes.Ldloca_S, target),
-        new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(LocalTargetInfo), nameof(LocalTargetInfo.IsValid))),
+        AccessTools.PropertyGetter(typeof(LocalTargetInfo), nameof(LocalTargetInfo.IsValid)).CallInstruction,
         new CodeInstruction(OpCodes.Brtrue_S, label2),
         new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-        new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_FullAngleQuat),
-        new CodeInstruction(OpCodes.Call, CachedMethodInfo.o_Quaternion_Multiply))
+        CachedMethodInfo.m_FullAngleQuat.CallInstruction,
+        CachedMethodInfo.o_Quaternion_Multiply.CallInstruction)
       .InstructionEnumeration();
   }
 }
@@ -577,8 +577,9 @@ public static class Patch_DamageWorker_ExplosionCellsToHit
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.m_GenSight_LineOfSight1, CachedMethodInfo.m_GenSightOnVehicle_LineOfSight1)
-      .MethodReplacer(CachedMethodInfo.m_GenSight_LineOfSight2, CachedMethodInfo.m_GenSightOnVehicle_LineOfSight2);
+    return instructions.MethodReplacer(
+      (CachedMethodInfo.m_GenSight_LineOfSight1, CachedMethodInfo.m_GenSightOnVehicle_LineOfSight1),
+      (CachedMethodInfo.m_GenSight_LineOfSight2, CachedMethodInfo.m_GenSightOnVehicle_LineOfSight2));
   }
 }
 
@@ -614,8 +615,9 @@ public static class Patch_Explosion_AffectCell
           CodeMatch.Calls(AccessTools.Method(typeof(Explosion), "ShouldCellBeAffectedOnlyByDamage")))
         .Repeat(matcher => matcher.SetOpcodeAndAdvance(OpCodes.Ldarg_2))
         .InstructionEnumeration()
-        .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnTargetMap)
-        .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);
+        .MethodReplacer(
+          (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnTargetMap),
+          (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap));
     }
   }
 }

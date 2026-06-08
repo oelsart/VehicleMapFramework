@@ -53,8 +53,9 @@ public static class Patch_VanillaPsycastExpanded_AOE_CheckIntercept
 
     IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-      return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap)
-        .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
+      return instructions.MethodReplacer(
+        (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap),
+        (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned));
     }
   }
 }
@@ -94,17 +95,14 @@ public static class Patch_VanillaPsycastExpanded_ImpactSomething
 
     IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-      var m_Hediff_Overshield_InterceptCheck =
-        AccessTools.Method(typeof(VanillaPsycastExpanded),
-          nameof(VanillaPsycastExpanded.Hediff_Overshield_InterceptCheck));
+      var m_Hediff_Overshield_InterceptCheck = ((Delegate)VanillaPsycastExpanded.Hediff_Overshield_InterceptCheck).Method;
       var m_Hediff_Overshield_InterceptCheck_Reverse =
-        AccessTools.Method(typeof(Patch_VanillaPsycastExpanded_Hediff_Overshield_InterceptCheck),
-          nameof(Patch_VanillaPsycastExpanded_Hediff_Overshield_InterceptCheck.Hediff_Overshield_InterceptCheck));
+        ((Delegate)Patch_VanillaPsycastExpanded_Hediff_Overshield_InterceptCheck.Hediff_Overshield_InterceptCheck).Method;
       var g_ExactPosition = AccessTools.PropertyGetter(typeof(ProjectileCE), nameof(ProjectileCE.ExactPosition));
-      var m_ExactPositionVCoord =
-        AccessTools.Method(typeof(Patch_VanillaPsycastExpanded_ImpactSomething), nameof(ExactPositionVehicleMapCoord));
-      return instructions.MethodReplacer(m_Hediff_Overshield_InterceptCheck, m_Hediff_Overshield_InterceptCheck_Reverse)
-        .MethodReplacer(g_ExactPosition, m_ExactPositionVCoord);
+      var m_ExactPositionVCoord = ((Delegate)ExactPositionVehicleMapCoord).Method;
+      return instructions.MethodReplacer(
+        (m_Hediff_Overshield_InterceptCheck, m_Hediff_Overshield_InterceptCheck_Reverse),
+        (g_ExactPosition, m_ExactPositionVCoord));
     }
   }
 

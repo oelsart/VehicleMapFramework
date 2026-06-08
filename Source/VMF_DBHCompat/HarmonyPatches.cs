@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -74,8 +75,9 @@ public static class Patch_PlaceWorker_SewageArea_DrawGhost
       CodeInstruction.LoadLocal(0),
       new CodeInstruction(OpCodes.Ldfld, f_visibleMap)
     ]);
-    return codes.MethodReplacer(CachedMethodInfo.g_Find_CurrentMap, CachedMethodInfo.g_VehicleMapUtility_CurrentMap)
-      .MethodReplacer(CachedMethodInfo.m_GenDraw_DrawFieldEdges1, CachedMethodInfo.m_GenDrawOnVehicle_DrawFieldEdges1);
+    return codes.MethodReplacer(
+      (CachedMethodInfo.g_Find_CurrentMap, CachedMethodInfo.g_VehicleMapUtility_CurrentMap),
+      (CachedMethodInfo.m_GenDraw_DrawFieldEdges1, CachedMethodInfo.m_GenDrawOnVehicle_DrawFieldEdges1));
   }
 }
 
@@ -93,13 +95,13 @@ public static class Patch_PlaceWorker_SewageArea_DrawGhost_Predicate
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
   {
     return new CodeMatcher(instructions, generator)
-      .MatchStartForward(CodeMatch.Calls(AccessTools.Method(typeof(GridsUtility), nameof(GridsUtility.GetFirstBuilding))))
+      .MatchStartForward(CodeMatch.Calls(((Delegate)GridsUtility.GetFirstBuilding).Method))
       .CreateLabel(out var label)
       .DeclareLocal(typeof(Map), out var map)
       .Insert(
         new CodeInstruction(OpCodes.Stloc_S, map),
         new CodeInstruction(OpCodes.Ldloc_S, map),
-        CodeInstruction.Call(typeof(GenGrid), nameof(GenGrid.InBounds), [typeof(IntVec3), typeof(Map)]),
+        ((Func<IntVec3, Map, bool>)GenGrid.InBounds).Method.CallInstruction,
         new CodeInstruction(OpCodes.Brtrue_S, label),
         new CodeInstruction(OpCodes.Ldc_I4_0),
         new CodeInstruction(OpCodes.Ret),

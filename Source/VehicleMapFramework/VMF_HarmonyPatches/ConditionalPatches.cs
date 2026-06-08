@@ -62,7 +62,7 @@ public static class Patch_VehicleGhostUtility_DrawGhostVehicleDef
     codes.MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_GenThing_TrueCenter2));
     codes.InsertAfter(
       CodeInstruction.LoadArgument(5),
-      CodeInstruction.Call(typeof(Patch_VehicleGhostUtility_DrawGhostVehicleDef), nameof(ToTargetMapCoord)));
+      ((Delegate)ToTargetMapCoord).Method.CallInstruction);
     return codes.Instructions();
   }
 
@@ -84,7 +84,7 @@ public static class Patch_VehicleGhostUtility_DrawGhostOverlays
     codes.MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_GenThing_TrueCenter2));
     codes.InsertAfter(
       CodeInstruction.LoadArgument(6),
-      CodeInstruction.Call(typeof(Patch_VehicleGhostUtility_DrawGhostVehicleDef), nameof(Patch_VehicleGhostUtility_DrawGhostVehicleDef.ToTargetMapCoord)));
+      ((Delegate)Patch_VehicleGhostUtility_DrawGhostVehicleDef.ToTargetMapCoord).Method.CallInstruction);
     return codes.Instructions();
   }
 }
@@ -104,10 +104,9 @@ public static class Patch_VehicleGhostUtility_DrawData_DrawPos
       .InsertAfterAndAdvance(
         CodeInstruction.LoadArgument(0),
         CodeInstruction.LoadField(type, "vehicle"),
-        new CodeInstruction(OpCodes.Call, ((Func<Rot8, VehiclePawn, Rot8>)BaseRot).Method))
+        ((Func<Rot8, VehiclePawn, Rot8>)BaseRot).Method.CallInstruction)
       .MatchStartForward(CodeMatch.LoadsField(f_rot))
-      .InsertAfter(
-        new CodeInstruction(OpCodes.Call, ((Func<Rot8, Rot8>)FocusedRot).Method))
+      .InsertAfter(((Func<Rot8, Rot8>)FocusedRot).Method.CallInstruction)
       .InstructionEnumeration();
 
     Rot8 BaseRot(Rot8 rot, VehiclePawn vehicle)

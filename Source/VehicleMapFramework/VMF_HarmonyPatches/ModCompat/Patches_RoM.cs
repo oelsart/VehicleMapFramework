@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -42,7 +43,8 @@ public static class Patch_TryFindShootLineFromTo_Base_Patch_Prefix
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
     var codes = new CodeMatcher(instructions);
-    var m_CanReachImmediate = AccessTools.Method(typeof(ReachabilityImmediate), nameof(ReachabilityImmediate.CanReachImmediate), [typeof(IntVec3), typeof(LocalTargetInfo), typeof(Map), typeof(PathEndMode), typeof(Pawn)]);
+    var m_CanReachImmediate =
+      ((Func<IntVec3, LocalTargetInfo, Map, PathEndMode, Pawn, bool>)ReachabilityImmediate.CanReachImmediate).Method;
     codes.MatchStartForward(CodeMatch.Calls(m_CanReachImmediate));
     codes.MatchStartBackwards(CodeMatch.IsLdarg(1));
     codes.InsertAfter(
@@ -82,9 +84,10 @@ public static class Patch_Phase_Evaluate
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned)
-      .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned)
-      .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
+    return instructions.MethodReplacer(
+      (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned),
+      (CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned),
+      (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing));
   }
 }
 
@@ -97,34 +100,32 @@ public static class Patch_Verb_UseAbility
   {
     var t_Verb_UseAbility = GenTypes.GetTypeInAnyAssembly("AbilityUser.Verb_UseAbility", "AbilityUser");
     var nestedTypes = AccessTools.InnerTypes(t_Verb_UseAbility);
-    foreach (var type in t_Verb_UseAbility.AllSubclasses().Append(t_Verb_UseAbility).Concat(nestedTypes))
-    {
-      foreach (var method in type.GetDeclaredMethods().Where(method => PatchHelper.ReadMethodBodyWrapper(method)
-                 .Any(i => CachedMethodInfo.g_Thing_Position.Equals(i.Value) ||
-                           CachedMethodInfo.g_Thing_PositionHeld.Equals(i.Value) ||
-                           CachedMethodInfo.m_GetThingList.Equals(i.Value) ||
-                           CachedMethodInfo.g_LocalTargetInfo_Cell.Equals(i.Value) ||
-                           CachedMethodInfo.g_Thing_Map.Equals(i.Value) ||
-                           CachedMethodInfo.g_Thing_MapHeld.Equals(i.Value) ||
-                           CachedMethodInfo.m_OccupiedRect.Equals(i.Value) ||
-                           CachedMethodInfo.m_BreadthFirstTraverse.Equals(i.Value))))
-      {
-        yield return method;
-      }
-    }
+    return t_Verb_UseAbility.AllSubclasses().Append(t_Verb_UseAbility).Concat(nestedTypes)
+      .AsParallel()
+      .SelectMany(t => t.GetDeclaredMethods())
+      .WhereHasMethods(
+        CachedMethodInfo.g_Thing_Position,
+        CachedMethodInfo.g_Thing_PositionHeld,
+        CachedMethodInfo.m_GetThingList,
+        CachedMethodInfo.g_LocalTargetInfo_Cell,
+        CachedMethodInfo.g_Thing_Map,
+        CachedMethodInfo.g_Thing_MapHeld,
+        CachedMethodInfo.m_OccupiedRect,
+        CachedMethodInfo.m_BreadthFirstTraverse);
   }
 
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
     if (UnitTestDetector.IsTestingContext) return instructions;
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned)
-      .MethodReplacer(CachedMethodInfo.g_Thing_PositionHeld, CachedMethodInfo.m_PositionHeldOnBaseMapSpawned)
-      .MethodReplacer(CachedMethodInfo.m_OccupiedRect, CachedMethodInfo.m_MovedOccupiedRect)
-      .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned)
-      .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-      .MethodReplacer(CachedMethodInfo.g_Thing_MapHeld, CachedMethodInfo.m_MapHeldBaseMap)
-      .MethodReplacer(CachedMethodInfo.m_BreadthFirstTraverse, CachedMethodInfo.m_BreadthFirstTraverseAcrossMaps)
-      .MethodReplacer(CachedMethodInfo.m_GetThingList, CachedMethodInfo.m_GetThingListAcrossMaps);
+    return instructions.MethodReplacer(
+      (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned),
+      (CachedMethodInfo.g_Thing_PositionHeld, CachedMethodInfo.m_PositionHeldOnBaseMapSpawned),
+      (CachedMethodInfo.m_OccupiedRect, CachedMethodInfo.m_MovedOccupiedRect),
+      (CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned),
+      (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing),
+      (CachedMethodInfo.g_Thing_MapHeld, CachedMethodInfo.m_MapHeldBaseMap),
+      (CachedMethodInfo.m_BreadthFirstTraverse, CachedMethodInfo.m_BreadthFirstTraverseAcrossMaps),
+      (CachedMethodInfo.m_GetThingList, CachedMethodInfo.m_GetThingListAcrossMaps));
   }
 }
 
@@ -144,7 +145,7 @@ public static class Patch_Verb_UseAbility_UpdateTargets
     {
       c.InsertAfterAndAdvance(
         CodeInstruction.LoadArgument(0),
-        CodeInstruction.Call(typeof(Patch_Verb_UseAbility_UpdateTargets), nameof(AddThingList)));
+        ((Delegate)AddThingList).Method.CallInstruction);
     });
     return codes.Instructions();
   }
@@ -174,10 +175,11 @@ public static class Patch_TMJobDriver_CastAbilityVerb_MakeNewToils
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
     var g_TargetLocA = AccessTools.PropertyGetter(typeof(JobDriver), "TargetLocA");
-    var m_TargetLocAOnBaseMap = AccessTools.Method(typeof(Patch_TMJobDriver_CastAbilityVerb_MakeNewToils), nameof(TargetLocAOnBaseMap));
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned)
-      .MethodReplacer(g_TargetLocA, m_TargetLocAOnBaseMap)
-      .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
+    var m_TargetLocAOnBaseMap = ((Delegate)TargetLocAOnBaseMap).Method;
+    return instructions.MethodReplacer(
+      (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned),
+      (g_TargetLocA, m_TargetLocAOnBaseMap),
+      (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing));
   }
 
   private static IntVec3 TargetLocAOnBaseMap(JobDriver instance)

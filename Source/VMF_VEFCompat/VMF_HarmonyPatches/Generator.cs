@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
 using HarmonyLib;
@@ -64,9 +65,9 @@ public static class Patch_Building_GenetronOverdrive_DrawAt
       .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Quaternion_identity))
       .InsertAfter(
         new CodeInstruction(OpCodes.Ldloc_S, rotation),
-        new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(Vector3), nameof(Vector3.up))),
-        new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(Quaternion), nameof(Quaternion.AngleAxis))),
-        new CodeInstruction(OpCodes.Call, CachedMethodInfo.o_Quaternion_Multiply))
+        AccessTools.PropertyGetter(typeof(Vector3), nameof(Vector3.up)).CallInstruction,
+        ((Delegate)Quaternion.AngleAxis).Method.CallInstruction,
+        CachedMethodInfo.o_Quaternion_Multiply.CallInstruction)
       .InstructionEnumeration();
   }
 }

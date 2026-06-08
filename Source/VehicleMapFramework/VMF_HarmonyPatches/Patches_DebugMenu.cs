@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using HarmonyLib;
@@ -21,7 +22,7 @@ public static class Patches_DebugTools
 
     public static void ApplyPatches(bool unpatch = false)
     {
-        var transpiler = AccessTools.Method(typeof(Patches_DebugTools), nameof(Transpiler));
+        var transpiler = ((Delegate)Transpiler).Method;
 
         Patch(AccessTools.FindIncludingInnerTypes(typeof(DebugActionNode), t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<Enter>"))));
         foreach (var method in typeof(DebugToolsSpawning).GetDeclaredMethods())
