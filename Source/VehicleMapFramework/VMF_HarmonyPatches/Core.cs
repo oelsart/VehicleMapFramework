@@ -2,9 +2,9 @@
 global using static VehicleMapFramework.ModCompat;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using HarmonyLib;
 using Verse;
 
@@ -31,9 +31,42 @@ public class VMF_Harmony
 
   internal static readonly List<string> Categories = [];
 
-  internal static readonly List<Assembly> Assemblies = [];
+  internal static Dictionary<string, List<Type>> PatchesInCategories
+  {
+    get
+    {
+      if (field is null)
+      {
+        var assemblies = VehicleMapFramework.mod.Content.assemblies.loadedAssemblies;
+        field = GenTypes.AllTypes.AsParallel()
+          .Where(t => assemblies.Contains(t.Assembly) &&
+                      t.CustomAttributes
+                        .Select(attribute => attribute.AttributeType)
+                        .Contains(typeof(HarmonyPatch)))
+          .GroupBy(t =>
+          {
+            var patchCategory = t.CustomAttributes
+              .FirstOrDefault(attribute => attribute.AttributeType == typeof(HarmonyPatchCategory));
 
-  internal static readonly List<Type> AllTypesInMod = [];
+            if (patchCategory is null) return "";
+            var category = patchCategory.ConstructorArguments
+              .Select(c => c.Value).OfType<string>().FirstOrDefault();
+            return category ?? "";
+          }).ToDictionary(group => group.Key, group =>
+          {
+            if (group.Key == PatchCategories.VehicleFramework)
+            {
+              return group.Where(t => t.GetCustomAttribute<VfVersionalPatchAttribute>() is not { } attr ||
+                                      attr.Available).ToList();
+            }
+
+            return group.ToList();
+          });
+      }
+      
+      return field;
+    }
+  }
 
   internal static Level CurrentPatchLevel { get; private set; } =
     (VehicleMapFramework.settings?.dynamicPatchEnabled ?? false)
@@ -53,15 +86,18 @@ public class VMF_Harmony
 
   internal static bool OutOfRange(Level level)
   {
-    if (level.CompareTo(PrevPatchLevel) * level.CompareTo(CurrentPatchLevel) > 0) return true;
-    var max = PrevPatchLevel.CompareTo(CurrentPatchLevel) > 0 ? PrevPatchLevel : CurrentPatchLevel;
+    if ((level < PrevPatchLevel && level < CurrentPatchLevel) ||
+        (level > PrevPatchLevel && level > CurrentPatchLevel))
+      return true;
+    
+    var max = PrevPatchLevel > CurrentPatchLevel ? PrevPatchLevel : CurrentPatchLevel;
     return level == max;
   }
 
-  internal static PatchClassProcessor AdjustPatchLevel(PatchClassProcessor patchClassProcessor)
+  internal static void AdjustPatchLevel(PatchClassProcessor patchClassProcessor)
   {
-    m_RemoveAll.Invoke(patchMethodsRef(patchClassProcessor), [(Predicate<object>)Predicate]);
-    return patchClassProcessor;
+    m_RemoveAll.Invoke(patchMethodsRef(patchClassProcessor), SingleParam.Get((Predicate<object>)Predicate));
+    return;
 
     static bool Predicate(object attributePatch)
     {
@@ -94,7 +130,7 @@ public class VMF_Harmony
       }
 
       var patchCountAfter = Instance.GetPatchedMethods().Count();
-      VMF_Log.Message($"Dynamic patches applied: {patchCountAfter - patchCountBefore} Total: {patchCountAfter}");
+      VMF_Log.Message($"Dynamic patches applied: {(patchCountAfter - patchCountBefore).ToString()} Total: {patchCountAfter.ToString()}");
     }
     else if (VehicleMapFramework.settings.dynamicUnpatchEnabled && CurrentPatchLevel != patchLevel)
     {
@@ -108,7 +144,7 @@ public class VMF_Harmony
       }
 
       var patchCountAfter = Instance.GetPatchedMethods().Count();
-      VMF_Log.Message($"Dynamic patches unapplied: {patchCountBefore - patchCountAfter} Total: {patchCountAfter}");
+      VMF_Log.Message($"Dynamic patches unapplied: {(patchCountBefore - patchCountAfter).ToString()} Total: {patchCountAfter.ToString()}");
     }
   }
 
@@ -128,7 +164,7 @@ public class VMF_Harmony
         }
 
         var patchCountAfter = Instance.GetPatchedMethods().Count();
-        VMF_Log.Message($"Dynamic patches applied: {patchCountAfter - patchCountBefore} Total: {patchCountAfter}");
+        VMF_Log.Message($"Dynamic patches applied: {(patchCountAfter - patchCountBefore).ToString()} Total: {patchCountAfter.ToString()}");
       }, "VMF_ApplyingDynamicPatches", false, null, false);
     }
     else if (VehicleMapFramework.settings.dynamicUnpatchEnabled && CurrentPatchLevel != patchLevel)
@@ -145,75 +181,67 @@ public class VMF_Harmony
         }
 
         var patchCountAfter = Instance.GetPatchedMethods().Count();
-        VMF_Log.Message($"Dynamic patches unapplied: {patchCountBefore - patchCountAfter} Total: {patchCountAfter}");
+        VMF_Log.Message($"Dynamic patches unapplied: {(patchCountBefore - patchCountAfter).ToString()} Total: {patchCountAfter.ToString()}");
       }, "VMF_UnpatchingDynamicPatches", false, null, false);
     }
   }
 
-  internal static List<Type> TypesInAssembly(Assembly assembly)
+  internal static List<Type> PatchClassesInCategory(string category)
   {
-    if (assembly is null) return [];
-    if (!Assemblies.Contains(assembly))
+    if (!PatchesInCategories.TryGetValue(category, out var list))
     {
-      Assemblies.Add(assembly);
-      AllTypesInMod.AddRange(GenTypes.AllTypes.Where(t => t.Assembly == assembly));
+      VMF_Log.Error("Patches for categories not included in this mod");
+      return [];
     }
-
-    return AllTypesInMod;
+    return list;
   }
 
   internal static void PatchCategory(string category)
   {
-    var method = new StackTrace().GetFrame(1).GetMethod();
-    var assembly = method.ReflectedType?.Assembly;
     if (!Categories.Contains(category))
     {
       Categories.Add(category);
     }
 
-    var patches = TypesInAssembly(assembly)
-      .Where(t => t.CustomAttributes.Any(a => a.AttributeType == typeof(HarmonyPatch)) &&
-                  t.CustomAttributes.Any(a => a.AttributeType == typeof(HarmonyPatchCategory) &&
-                                              a.ConstructorArguments.Any(c => c.Value.Equals(category))))
-      .Where(CheckClassPatchLevel);
-    if (category == PatchCategories.VehicleFramework)
+    if (category == PatchCategories.AsyncPatches)
     {
-      patches = patches.Where(t => t.GetCustomAttribute<VfVersionalPatchAttribute>() is not { } attr ||
-                                   attr.Available);
+      Task.Run(Process);
+      return;
     }
-
-    patches.Select(t => Instance.CreateClassProcessor(t))
-      .Do(patchClass =>
+    Process();
+    return;
+    
+    void Process()
+    {
+      var patches = PatchClassesInCategory(category)
+        .Where(CheckClassPatchLevel);
+      if (category == PatchCategories.VehicleFramework)
       {
-        try
+        patches = patches.Where(t => t.GetCustomAttribute<VfVersionalPatchAttribute>() is not { } attr ||
+                                     attr.Available);
+      }
+
+      patches.Select(t => Instance.CreateClassProcessor(t))
+        .Do(patchClass =>
         {
-          AdjustPatchLevel(patchClass);
-          patchClass.Patch();
-        }
-        catch (Exception ex)
-        {
-          VMF_Log.Error($"Error while apply patching.\n{ex}");
-        }
-      });
+          try
+          {
+            AdjustPatchLevel(patchClass);
+            patchClass.Patch();
+          }
+          catch (Exception ex)
+          {
+            VMF_Log.Error($"Error while apply patching.\n{ex}");
+          }
+        });
+    }
   }
 
   internal static void UnpatchCategory(string category)
   {
-    var method = new StackTrace().GetFrame(1).GetMethod();
-    var assembly = method.ReflectedType?.Assembly;
-    var patches = TypesInAssembly(assembly)
-      .Where(t => t.CustomAttributes.Any(a => a.AttributeType == typeof(HarmonyPatch)) &&
-                  t.CustomAttributes.Any(a =>
-                    a.AttributeType == typeof(HarmonyPatchCategory) &&
-                    a.ConstructorArguments.Any(c => c.Value.Equals(category))))
-      .Where(CheckClassPatchLevel);
-    if (category == PatchCategories.VehicleFramework)
-    {
-      patches = patches.Where(t => t.GetCustomAttribute<VfVersionalPatchAttribute>() is not { } attr ||
-                                   attr.Available);
-    }
-
-    patches.Select(t => Instance.CreateClassProcessor(t))
+    PatchClassesInCategory(category)
+      .Where(CheckClassPatchLevel)
+      .Select(t => Instance.CreateClassProcessor(t))
       .Do(patchClass =>
       {
         try
@@ -230,18 +258,11 @@ public class VMF_Harmony
 
   internal static void PatchAllUncategorized()
   {
-    var method = new StackTrace().GetFrame(1).GetMethod();
-    var assembly = method.ReflectedType?.Assembly;
-    var fieldRef = AccessTools.FieldRefAccess<PatchClassProcessor, Type>("containerType");
-    using var _ = new DeepProfilerScope("PatchAllUncategorized", true);
-    TypesInAssembly(assembly)
-      .Where(t => t.CustomAttributes.Any(a => a.AttributeType == typeof(HarmonyPatch)) &&
-                  t.CustomAttributes.All(a => a.AttributeType != typeof(HarmonyPatchCategory)))
+    PatchClassesInCategory("")
       .Where(CheckClassPatchLevel)
       .Select(t => Instance.CreateClassProcessor(t))
-      .DoIf(p => p.Category.NullOrEmpty(), patchClass =>
+      .Do(patchClass =>
       {
-        using var __ = new DeepProfilerScope(fieldRef(patchClass).Name);
         try
         {
           AdjustPatchLevel(patchClass);
@@ -256,14 +277,10 @@ public class VMF_Harmony
 
   internal static void UnpatchAllUncategorized()
   {
-    var method = new StackTrace().GetFrame(1).GetMethod();
-    var assembly = method.ReflectedType?.Assembly;
-    TypesInAssembly(assembly)
-      .Where(t => t.CustomAttributes.Any(a => a.AttributeType == typeof(HarmonyPatch)) &&
-                  t.CustomAttributes.All(a => a.AttributeType != typeof(HarmonyPatchCategory)))
+    PatchClassesInCategory("")
       .Where(CheckClassPatchLevel)
       .Select(t => Instance.CreateClassProcessor(t))
-      .DoIf(p => p.Category.NullOrEmpty(), patchClass =>
+      .Do(patchClass =>
       {
         try
         {
@@ -295,7 +312,7 @@ public static class Core
   {
     VMF_Harmony.PatchAllUncategorized();
     VMF_Harmony.PatchCategory(PatchCategories.VehicleFramework);
-    VMF_Harmony.Categories.Add(PatchCategories.VehicleFramework);
+    VMF_Harmony.PatchCategory(PatchCategories.AsyncPatches);
   }
 }
 

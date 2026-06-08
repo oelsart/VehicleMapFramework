@@ -101,7 +101,6 @@ public static class Patch_Verb_UseAbility
     var t_Verb_UseAbility = GenTypes.GetTypeInAnyAssembly("AbilityUser.Verb_UseAbility", "AbilityUser");
     var nestedTypes = AccessTools.InnerTypes(t_Verb_UseAbility);
     return t_Verb_UseAbility.AllSubclasses().Append(t_Verb_UseAbility).Concat(nestedTypes)
-      .AsParallel()
       .SelectMany(t => t.GetDeclaredMethods())
       .WhereHasMethods(
         CachedMethodInfo.g_Thing_Position,

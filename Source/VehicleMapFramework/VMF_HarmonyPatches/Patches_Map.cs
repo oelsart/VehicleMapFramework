@@ -233,16 +233,24 @@ public static class Patch_Map_MapUpdate
   public const int TextureSize = 2048;
   public const float MeshSizeX = 200f;
   public static readonly Vector2 MeshSize = new(MeshSizeX, MeshSizeX);
-  private static readonly Mesh mesh200 = MeshPool.GridPlane(MeshSize);
+  private static Mesh mesh200;
   private static Material mat;
-
-  private static readonly Material skyMat =
-    SolidColorMaterials.NewSolidColorMaterial(Color.black, ShaderDatabase.SolidColor);
+  private static Material skyMat;
 
   public static int lastRenderedTick = -1;
 
   private static readonly AccessTools.FieldRef<WorldCameraDriver, float> desiredAltitude =
     AccessTools.FieldRefAccess<WorldCameraDriver, float>("desiredAltitude");
+
+  static Patch_Map_MapUpdate()
+  {
+    if (UnitTestDetector.IsTestingContext) return;
+    LongEventHandler.ExecuteWhenFinished(() =>
+    {
+      mesh200 = MeshPool.GridPlane(MeshSize);
+      skyMat = SolidColorMaterials.NewSolidColorMaterial(Color.black, ShaderDatabase.SolidColor);
+    });
+  }
 
   public static void JumpTo(Vector3 pos, float altitude)
   {

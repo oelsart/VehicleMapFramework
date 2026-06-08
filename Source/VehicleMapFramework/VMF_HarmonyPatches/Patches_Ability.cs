@@ -8,13 +8,13 @@ using Verse;
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 [HarmonyPatch]
+[HarmonyPatchCategory(PatchCategories.AsyncPatches)]
 [PatchLevel(Level.Sensitive)]
 public static class Patches_AbilityComp
 {
   private static IEnumerable<MethodBase> TargetMethods()
   {
     return (typeof(AbilityComp).AllSubclasses().Append(typeof(GenClamor))
-      .AsParallel()
       .SelectMany(type => type.GetDeclaredMethods())
       .WhereHasMethods(
         CachedMethodInfo.g_Thing_Position,

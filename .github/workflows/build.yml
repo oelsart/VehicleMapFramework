@@ -107,8 +107,24 @@ jobs:
         key: steamcmd-${{ env.MODS_HASH }}
         enableCrossOsArchive: true
 
-    - name: Build Mod DLL
-      run: dotnet build ${{ env.Project_Path }} --configuration Release --no-restore /p:SkipPostBuild=true /p:SteamWorkshopRoot=${{ env.CI_SteamCMD_WorkShop }}
+    - name: Restore Dependencies
+      run: |
+        dotnet restore Source/VehicleMapFramework/VehicleMapFramework.csproj
+        dotnet restore Source/VMF_AchtungPatch/VMF_AchtungPatch.csproj
+        dotnet restore Source/VMF_CEPatch/VMF_CEPatch.csproj
+        dotnet restore Source/VMF_DBHCompat/VMF_DBHCompat.csproj
+        dotnet restore Source/VMF_RimefellerCompat/VMF_RimefellerCompat.csproj
+        dotnet restore Source/VMF_VEFCompat/VMF_VEFCompat.csproj
+
+    - name: Build DLL
+      run: |
+        $workshopRoot = ${{ env.CI_SteamCMD_WorkShop }}
+        dotnet build Source/VehicleMapFramework/VehicleMapFramework.csproj --configuration Release --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot /p:SkipPostBuild=true
+        dotnet build Source/VMF_AchtungPatch/VMF_AchtungPatch.csproj --configuration Release --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
+        dotnet build Source/VMF_CEPatch/VMF_CEPatch.csproj --configuration Release --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
+        dotnet build Source/VMF_DBHCompat/VMF_DBHCompat.csproj --configuration Release --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
+        dotnet build Source/VMF_RimefellerCompat/VMF_RimefellerCompat.csproj --configuration Release --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
+        dotnet build Source/VMF_VEFCompat/VMF_VEFCompat.csproj --configuration Release --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
     
     - name: Upload build artifacts
       uses: actions/upload-artifact@v7
