@@ -84,11 +84,11 @@ jobs:
     - name: Build DLL
       run: |
         dotnet build Source/VehicleMapFramework/VehicleMapFramework.csproj --configuration Release --no-restore /p:SteamWorkshopRoot=${{ env.CI_SteamCMD_WorkShop }} /p:SkipPostBuild=true
-        dotnet build Source/VMF_AchtungPatch/VMF_AchtungPatch.csproj --configuration Release --no-restore /p:SteamWorkshopRoot=${{ env.CI_SteamCMD_WorkShop }}
-        dotnet build Source/VMF_CEPatch/VMF_CEPatch.csproj --configuration Release --no-restore /p:SteamWorkshopRoot=${{ env.CI_SteamCMD_WorkShop }}
-        dotnet build Source/VMF_DBHCompat/VMF_DBHCompat.csproj --configuration Release --no-restore /p:SteamWorkshopRoot=${{ env.CI_SteamCMD_WorkShop }}
-        dotnet build Source/VMF_RimefellerCompat/VMF_RimefellerCompat.csproj --configuration Release --no-restore /p:SteamWorkshopRoot=${{ env.CI_SteamCMD_WorkShop }}
-        dotnet build Source/VMF_VEFCompat/VMF_VEFCompat.csproj --configuration Release --no-restore /p:SteamWorkshopRoot=${{ env.CI_SteamCMD_WorkShop }}
+        dotnet build Source/VMF_AchtungPatch/VMF_AchtungPatch.csproj --configuration Release --no-restore /p:SteamWorkshopRoot=${{ env.CI_SteamCMD_WorkShop }} /p:SkipPostBuild=true
+        dotnet build Source/VMF_CEPatch/VMF_CEPatch.csproj --configuration Release --no-restore /p:SteamWorkshopRoot=${{ env.CI_SteamCMD_WorkShop }} /p:SkipPostBuild=true
+        dotnet build Source/VMF_DBHCompat/VMF_DBHCompat.csproj --configuration Release --no-restore /p:SteamWorkshopRoot=${{ env.CI_SteamCMD_WorkShop }} /p:SkipPostBuild=true
+        dotnet build Source/VMF_RimefellerCompat/VMF_RimefellerCompat.csproj --configuration Release --no-restore /p:SteamWorkshopRoot=${{ env.CI_SteamCMD_WorkShop }} /p:SkipPostBuild=true
+        dotnet build Source/VMF_VEFCompat/VMF_VEFCompat.csproj --configuration Release --no-restore /p:SteamWorkshopRoot=${{ env.CI_SteamCMD_WorkShop }} /p:SkipPostBuild=true
 
         zip -r VehicleMapFramework-${{ github.ref_name }}.zip \
             1.5 \
