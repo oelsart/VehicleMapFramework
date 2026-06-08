@@ -19,7 +19,6 @@ jobs:
     
     env:
       Solution_Name: VehicleMapFramework
-      Project_Path: Source/VehicleMapFramework/VehicleMapFramework.sln 
       WorkshopMods: |
         3014915404  # Vehicle Framework
         2023507013  # Vanilla Expanded Framework
@@ -38,9 +37,6 @@ jobs:
       uses: actions/setup-dotnet@v5
       with:
         dotnet-version: 9.0.x
-    
-    - name: Restore Dependencies
-      run: dotnet restore ${{ env.Project_Path }}
       
     - name: Restore Cache
       id: cache-steam
@@ -75,15 +71,25 @@ jobs:
         
         echo "CI_SteamCMD_WorkShop=$HOME/Steam/steamapps/workshop/content/294100" >> $GITHUB_ENV
         ls -la ~/Steam/steamapps/workshop/content/294100
+        
+    - name: Restore Dependencies
+      run: |
+        dotnet restore Source/VehicleMapFramework/VehicleMapFramework.csproj
+        dotnet restore Source/VMF_AchtungPatch/VMF_AchtungPatch.csproj
+        dotnet restore Source/VMF_CEPatch/VMF_CEPatch.csproj
+        dotnet restore Source/VMF_DBHCompat/VMF_DBHCompat.csproj
+        dotnet restore Source/VMF_RimefellerCompat/VMF_RimefellerCompat.csproj
+        dotnet restore Source/VMF_VEFCompat/VMF_VEFCompat.csproj
 
     - name: Build DLL
       run: |
-        dotnet build ${{ env.Project_Path }} \
-            --configuration Release \
-            --no-restore \
-            /p:SkipPostBuild=true \
-            /p:SteamWorkshopRoot=${{ env.CI_SteamCMD_WorkShop }}
-        
+        dotnet build Source/VehicleMapFramework/VehicleMapFramework.csproj --configuration Release --no-restore /p:SteamWorkshopRoot=${{ env.CI_SteamCMD_WorkShop }} /p:SkipPostBuild=true
+        dotnet build Source/VMF_AchtungPatch/VMF_AchtungPatch.csproj --configuration Release --no-restore /p:SteamWorkshopRoot=${{ env.CI_SteamCMD_WorkShop }}
+        dotnet build Source/VMF_CEPatch/VMF_CEPatch.csproj --configuration Release --no-restore /p:SteamWorkshopRoot=${{ env.CI_SteamCMD_WorkShop }}
+        dotnet build Source/VMF_DBHCompat/VMF_DBHCompat.csproj --configuration Release --no-restore /p:SteamWorkshopRoot=${{ env.CI_SteamCMD_WorkShop }}
+        dotnet build Source/VMF_RimefellerCompat/VMF_RimefellerCompat.csproj --configuration Release --no-restore /p:SteamWorkshopRoot=${{ env.CI_SteamCMD_WorkShop }}
+        dotnet build Source/VMF_VEFCompat/VMF_VEFCompat.csproj --configuration Release --no-restore /p:SteamWorkshopRoot=${{ env.CI_SteamCMD_WorkShop }}
+
         zip -r VehicleMapFramework-${{ github.ref_name }}.zip \
             1.5 \
             1.6 \

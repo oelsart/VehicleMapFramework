@@ -37,7 +37,6 @@ jobs:
     
     env:
       Solution_Name: VehicleMapFramework
-      Project_Path: Source/VehicleMapFramework/VehicleMapFramework.sln 
       WorkshopMods: |
         3014915404  # Vehicle Framework
         2023507013  # Vanilla Expanded Framework
@@ -115,13 +114,12 @@ jobs:
 
     - name: Build DLL
       run: |
-        $workshopRoot = ${{ env.CI_SteamCMD_WorkShop }}
-        dotnet build Source/VehicleMapFramework/VehicleMapFramework.csproj --configuration Release --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot /p:SkipPostBuild=true
-        dotnet build Source/VMF_AchtungPatch/VMF_AchtungPatch.csproj --configuration Release --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
-        dotnet build Source/VMF_CEPatch/VMF_CEPatch.csproj --configuration Release --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
-        dotnet build Source/VMF_DBHCompat/VMF_DBHCompat.csproj --configuration Release --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
-        dotnet build Source/VMF_RimefellerCompat/VMF_RimefellerCompat.csproj --configuration Release --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
-        dotnet build Source/VMF_VEFCompat/VMF_VEFCompat.csproj --configuration Release --no-restore /p:CIBuild=true /p:SteamWorkshopRoot=$workshopRoot
+        dotnet build Source/VehicleMapFramework/VehicleMapFramework.csproj --configuration Release --no-restore /p:SteamWorkshopRoot=${{ env.CI_SteamCMD_WorkShop }} /p:SkipPostBuild=true
+        dotnet build Source/VMF_AchtungPatch/VMF_AchtungPatch.csproj --configuration Release --no-restore /p:SteamWorkshopRoot=${{ env.CI_SteamCMD_WorkShop }}
+        dotnet build Source/VMF_CEPatch/VMF_CEPatch.csproj --configuration Release --no-restore /p:SteamWorkshopRoot=${{ env.CI_SteamCMD_WorkShop }}
+        dotnet build Source/VMF_DBHCompat/VMF_DBHCompat.csproj --configuration Release --no-restore /p:SteamWorkshopRoot=${{ env.CI_SteamCMD_WorkShop }}
+        dotnet build Source/VMF_RimefellerCompat/VMF_RimefellerCompat.csproj --configuration Release --no-restore /p:SteamWorkshopRoot=${{ env.CI_SteamCMD_WorkShop }}
+        dotnet build Source/VMF_VEFCompat/VMF_VEFCompat.csproj --configuration Release --no-restore /p:SteamWorkshopRoot=${{ env.CI_SteamCMD_WorkShop }}
     
     - name: Upload build artifacts
       uses: actions/upload-artifact@v7
