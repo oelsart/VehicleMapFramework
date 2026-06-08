@@ -21,6 +21,8 @@ public class VehicleMapSettings : ModSettings
     
     public bool aStarTraverse = Default.aStarTraverse;
 
+    public bool joyPatches = Default.joyPatches;
+
     public ShowVehiclesOnColonistBar colonistBarMode = Default.colonistBarMode;
 
     public bool roofedPatch = Default.roofedPatch;
@@ -43,6 +45,7 @@ public class VehicleMapSettings : ModSettings
         Scribe_Values.Look(ref drawVehicleMapGrid, nameof(drawVehicleMapGrid), Default.drawVehicleMapGrid);
         Scribe_Values.Look(ref includeMapThings, nameof(includeMapThings), Default.includeMapThings);
         Scribe_Values.Look(ref aStarTraverse, nameof(aStarTraverse), Default.aStarTraverse);
+        Scribe_Values.Look(ref joyPatches, nameof(joyPatches), Default.joyPatches);
         Scribe_Values.Look(ref colonistBarMode, nameof(colonistBarMode), Default.colonistBarMode);
         Scribe_Values.Look(ref roofedPatch, nameof(roofedPatch), Default.roofedPatch);
         Scribe_Values.Look(ref debugToolPatches, nameof(debugToolPatches), Default.debugToolPatches);
@@ -68,6 +71,8 @@ public class VehicleMapSettings : ModSettings
         public const bool includeMapThings = true;
         
         public const bool aStarTraverse = false;
+
+        public const bool joyPatches = false;
         
         public const ShowVehiclesOnColonistBar colonistBarMode = ShowVehiclesOnColonistBar.MouseIsOver;
 

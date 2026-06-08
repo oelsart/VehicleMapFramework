@@ -86,6 +86,8 @@ internal static class PatchCategories
 
   public const string Gunplay = "VMF_Patches_Gunplay";
 
+  public const string HospitalityCasino = "VMF_Patches_HospitalityCasino";
+
   public const string IRBM = "VMF_Patches_IRBM";
 
   public const string MeleeAnimation = "VMF_Patches_MeleeAnimation";

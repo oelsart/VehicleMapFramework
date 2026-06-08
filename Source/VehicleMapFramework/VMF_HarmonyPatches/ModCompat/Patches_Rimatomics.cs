@@ -107,7 +107,7 @@ public static class Patch_Verb_RimatomicsVerb_TryCastShot
   {
     var type = GenTypes.GetTypeInAnyAssembly("Rimatomics.Verb_RimatomicsVerb", "Rimatomics");
     return type.AllSubclasses().Select(t => AccessTools.DeclaredMethod(t, "TryCastShot"))
-      .WhereHasMethods(
+      .WhereCallsMethod(
         CachedMethodInfo.g_Thing_Map,
         CachedMethodInfo.g_Thing_Position,
         CachedMethodInfo.g_LocalTargetInfo_Cell);

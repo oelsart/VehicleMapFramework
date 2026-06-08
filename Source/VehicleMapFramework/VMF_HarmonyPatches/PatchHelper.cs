@@ -26,10 +26,15 @@ public static class PatchHelper
     }
   }
   
-  public static IEnumerable<MethodBase> WhereHasMethods(this IEnumerable<MethodBase> methods, params MethodBase[] targetMethods)
+  public static IEnumerable<MethodBase> WhereCallsMethod(this IEnumerable<MethodBase> methods, params MethodBase[] targetMethods)
   {
-    return methods.ToArray().Where(method => method is not null && ReadMethodBodyWrapper(method).Any(i =>
-      i.Value is MethodBase operandMethod && targetMethods.Contains(operandMethod)));
+    return methods.Where(method => method.CallsMethod(targetMethods));
+  }
+
+  public static bool CallsMethod(this MethodBase method, params MethodBase[] targetMethods)
+  {
+    return method is not null && ReadMethodBodyWrapper(method).Any(i =>
+      i.Value is MethodBase operandMethod && targetMethods.Contains(operandMethod));
   }
 
   private static readonly FieldInfo f_allBuildingsColonist =
@@ -69,7 +74,7 @@ public static class PatchHelper
     public CodeInstruction CallvirtInstruction => new (OpCodes.Callvirt, methodInfo);
   }
 
-  private class Params<T> where T : struct, ITuple
+  private static class Params<T> where T : struct, ITuple
   {
     // ReSharper disable once StaticMemberInGenericType
     [ThreadStatic] private static (MethodBase, MethodBase)[] @params;
@@ -137,14 +142,14 @@ public static class PatchHelper
       }
     }
 
-    public IEnumerable<CodeInstruction> AddAllBuildingsColonistForThingInstance()
+    public IEnumerable<CodeInstruction> AddAllBuildingsColonistForThingInstance(int argumentIndex = 0)
     {
       foreach (var instruction in instructions)
       {
         yield return instruction;
         if (instruction.LoadsField(f_allBuildingsColonist))
         {
-          yield return CodeInstruction.LoadArgument(0);
+          yield return CodeInstruction.LoadArgument(argumentIndex);
           yield return CachedMethodInfo.m_AddColonistBuildingList.CallInstruction;
         }
       }

@@ -16,7 +16,7 @@ public static class Patches_AbilityComp
   {
     return (typeof(AbilityComp).AllSubclasses().Append(typeof(GenClamor))
       .SelectMany(type => type.GetDeclaredMethods())
-      .WhereHasMethods(
+      .WhereCallsMethod(
         CachedMethodInfo.g_Thing_Position,
         CachedMethodInfo.g_LocalTargetInfo_Cell,
         CachedMethodInfo.g_Thing_Map,

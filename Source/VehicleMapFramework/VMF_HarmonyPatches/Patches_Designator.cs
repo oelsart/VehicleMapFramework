@@ -18,7 +18,7 @@ public static class Patches_Designator_ZoneAdd_MakeNewZone
   {
     return typeof(Designator_ZoneAdd).AllSubclasses()
       .Select(type => AccessTools.DeclaredMethod(type, "MakeNewZone"))
-      .WhereHasMethods(CachedMethodInfo.g_Find_CurrentMap);
+      .WhereCallsMethod(CachedMethodInfo.g_Find_CurrentMap);
   }
 
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -38,7 +38,7 @@ public static class Patches_Designator_DesignateThing
     return typeof(Designator).AllSubclasses()
       .SelectMany(t => t.GetDeclaredMethods())
       .Where(m => m.Name is "DesignateThing" or "CanDesignateThing")
-      .WhereHasMethods(CachedMethodInfo.g_Designator_Map);
+      .WhereCallsMethod(CachedMethodInfo.g_Designator_Map);
   }
 
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions,

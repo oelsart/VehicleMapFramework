@@ -48,6 +48,8 @@ internal static class ModCompat
 
   public static readonly bool Gunplay = IsModActive("automatic.gunplay");
 
+  public static readonly bool HospitalityCasino = IsModActive("Adamas.HospitalityCasino");
+
   public static readonly bool IRBM = IsModActive("kazepsi.irbm");
 
   public static readonly bool MuzzleFlash = IsModActive("IssacZhuang.MuzzleFlash");

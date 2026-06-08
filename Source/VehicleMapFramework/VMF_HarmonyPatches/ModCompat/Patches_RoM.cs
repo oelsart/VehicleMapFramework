@@ -102,7 +102,7 @@ public static class Patch_Verb_UseAbility
     var nestedTypes = AccessTools.InnerTypes(t_Verb_UseAbility);
     return t_Verb_UseAbility.AllSubclasses().Append(t_Verb_UseAbility).Concat(nestedTypes)
       .SelectMany(t => t.GetDeclaredMethods())
-      .WhereHasMethods(
+      .WhereCallsMethod(
         CachedMethodInfo.g_Thing_Position,
         CachedMethodInfo.g_Thing_PositionHeld,
         CachedMethodInfo.m_GetThingList,
