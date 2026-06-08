@@ -13,6 +13,10 @@
 	<VMF_Settings.MinAreaForThreading>マルチスレッドで計算される車両の最小面積.</VMF_Settings.MinAreaForThreading>
 	<VMF_Settings.AsyncClosestThing>到達可能な最も近い物を取得する計算のマルチスレッド化.</VMF_Settings.AsyncClosestThing>
 	<VMF_Settings.MinSearchSetCount>マルチスレッドで計算されるサーチセットの最小数.</VMF_Settings.MinSearchSetCount>
+	<VMF_Settings.ColonistBarMode>入植者バーの下にマップ車両のアイコンを表示する.</VMF_Settings.ColonistBarMode>
+	<VMF_ColonistBarMode.DontShow>表示しない</VMF_ColonistBarMode.DontShow>
+	<VMF_ColonistBarMode.MouseIsOver>マウスオーバー時</VMF_ColonistBarMode.MouseIsOver>
+	<VMF_ColonistBarMode.Always>常に表示</VMF_ColonistBarMode.Always>
 	
 	<VMF_Settings.Tab.PUAHPatch>PUAHパッチ</VMF_Settings.Tab.PUAHPatch>
 	

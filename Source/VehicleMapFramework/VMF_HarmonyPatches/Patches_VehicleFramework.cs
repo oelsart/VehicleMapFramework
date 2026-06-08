@@ -54,18 +54,32 @@ public static class Patch_VehiclePawn_HasEnoughOperators
   {
     if (__instance is VehiclePawnWithMap)
     {
-      if ((__instance.MovementPermissions & VehiclePermissions.Autonomous) > VehiclePermissions.None)
+      if (VehicleMod.settings.debug.debugDraftAnyVehicle ||
+          (__instance.MovementPermissions & VehiclePermissions.Autonomous) != VehiclePermissions.None)
       {
         __result = true;
         return false;
       }
-      var matchHandlers = __instance.handlers.Where(h => (h.role.HandlingTypes & HandlingType.Movement) > HandlingType.None).ToList();
-      if (matchHandlers.Empty())
+
+      var hasMatchHandler = false;
+      var allFulfilled = true;
+      foreach (var h in __instance.handlers)
+      {
+        if ((h.role.HandlingTypes & HandlingType.Movement) != HandlingType.None)
+        {
+          hasMatchHandler = true;
+          if (!h.RoleFulfilled)
+          {
+            allFulfilled = false;
+          }
+        }
+      }
+      if (!hasMatchHandler)
       {
         __result = false;
         return false;
       }
-      __result = matchHandlers.All(h => h.RoleFulfilled);
+      __result = allFulfilled;
       return false;
     }
     return true;

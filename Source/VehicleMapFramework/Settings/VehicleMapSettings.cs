@@ -21,6 +21,8 @@ public class VehicleMapSettings : ModSettings
     
     public bool aStarTraverse = Default.aStarTraverse;
 
+    public ShowVehiclesOnColonistBar colonistBarMode = Default.colonistBarMode;
+
     public bool roofedPatch = Default.roofedPatch;
 
     public bool debugToolPatches = Default.debugToolPatches;
@@ -33,19 +35,20 @@ public class VehicleMapSettings : ModSettings
 
     public override void ExposeData()
     {
-        Scribe_Values.Look(ref drawPlanet, "drawPlanet", Default.drawPlanet);
-        Scribe_Values.Look(ref weightFactor, "weightFactor", Default.weightFactor);
-        Scribe_Values.Look(ref autoGetOffPlayer, "autoGetOffPlayer", Default.autoGetOffPlayer);
-        Scribe_Values.Look(ref autoGetOffNonPlayer, "autoGetOffNonPlayer", Default.autoGetOffNonPlayer);
-        Scribe_Values.Look(ref crossMapJobProtect, "crossMapJobProtect", Default.crossMapJobProtect);
-        Scribe_Values.Look(ref drawVehicleMapGrid, "drawVehicleMapGrid", Default.drawVehicleMapGrid);
-        Scribe_Values.Look(ref includeMapThings, "includeMapThings", Default.includeMapThings);
-        Scribe_Values.Look(ref aStarTraverse, "astarTraverse", Default.aStarTraverse);
-        Scribe_Values.Look(ref roofedPatch, "roofedPatch", Default.roofedPatch);
-        Scribe_Values.Look(ref debugToolPatches, "debugToolPatches", Default.debugToolPatches);
-        Scribe_Values.Look(ref dynamicPatchEnabled, "dynamicPatchEnabled", Default.dynamicPatchEnabled);
-        Scribe_Values.Look(ref dynamicUnpatchEnabled, "dynamicUnpatchEnabled", Default.dynamicUnpatchEnabled);
-        Scribe_Values.Look(ref dynamicPatchLevel, "dynamicPatchLevel", Default.dynamicPatchLevel);
+        Scribe_Values.Look(ref drawPlanet, nameof(drawPlanet), Default.drawPlanet);
+        Scribe_Values.Look(ref weightFactor, nameof(weightFactor), Default.weightFactor);
+        Scribe_Values.Look(ref autoGetOffPlayer, nameof(autoGetOffPlayer), Default.autoGetOffPlayer);
+        Scribe_Values.Look(ref autoGetOffNonPlayer, nameof(autoGetOffNonPlayer), Default.autoGetOffNonPlayer);
+        Scribe_Values.Look(ref crossMapJobProtect, nameof(crossMapJobProtect), Default.crossMapJobProtect);
+        Scribe_Values.Look(ref drawVehicleMapGrid, nameof(drawVehicleMapGrid), Default.drawVehicleMapGrid);
+        Scribe_Values.Look(ref includeMapThings, nameof(includeMapThings), Default.includeMapThings);
+        Scribe_Values.Look(ref aStarTraverse, nameof(aStarTraverse), Default.aStarTraverse);
+        Scribe_Values.Look(ref colonistBarMode, nameof(colonistBarMode), Default.colonistBarMode);
+        Scribe_Values.Look(ref roofedPatch, nameof(roofedPatch), Default.roofedPatch);
+        Scribe_Values.Look(ref debugToolPatches, nameof(debugToolPatches), Default.debugToolPatches);
+        Scribe_Values.Look(ref dynamicPatchEnabled, nameof(dynamicPatchEnabled), Default.dynamicPatchEnabled);
+        Scribe_Values.Look(ref dynamicUnpatchEnabled, nameof(dynamicUnpatchEnabled), Default.dynamicUnpatchEnabled);
+        Scribe_Values.Look(ref dynamicPatchLevel, nameof(dynamicPatchLevel), Default.dynamicPatchLevel);
     }
 
     internal class Default
@@ -65,6 +68,8 @@ public class VehicleMapSettings : ModSettings
         public const bool includeMapThings = true;
         
         public const bool aStarTraverse = false;
+        
+        public const ShowVehiclesOnColonistBar colonistBarMode = ShowVehiclesOnColonistBar.MouseIsOver;
 
         public const bool roofedPatch = false;
 
@@ -75,5 +80,12 @@ public class VehicleMapSettings : ModSettings
         public const bool dynamicUnpatchEnabled = false;
 
         public const Level dynamicPatchLevel = Level.Safe;
+    }
+
+    public enum ShowVehiclesOnColonistBar
+    {
+      DontShow,
+      MouseIsOver,
+      Always
     }
 }
