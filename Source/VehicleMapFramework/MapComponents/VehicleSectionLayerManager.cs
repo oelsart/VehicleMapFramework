@@ -30,7 +30,6 @@ namespace VehicleMapFramework
             LongEventHandler.ExecuteWhenFinished(() =>
             {
                 if (!map.IsVehicleMap) return;
-                VMF_Harmony.DynamicPatchAllNow(Level.All);
                 
                 layersByRot = [];
 

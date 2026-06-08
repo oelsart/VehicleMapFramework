@@ -70,13 +70,13 @@ public static class Patch_Graphic_LinkedTransmitter_ShouldLinkWith
 }
 
 [HarmonyPatch]
+[HarmonyPatchCategory(PatchCategories.AsyncPatches)]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Thing_Print
 {
   private static IEnumerable<MethodBase> TargetMethods()
   {
     return typeof(Thing).AllSubclasses().Append(typeof(Thing)).Where(t => t != typeof(MinifiedThing))
-      .AsParallel()
       .Select(t => AccessTools.DeclaredMethod(t, nameof(Thing.Print)))
       .Where(m =>
       {

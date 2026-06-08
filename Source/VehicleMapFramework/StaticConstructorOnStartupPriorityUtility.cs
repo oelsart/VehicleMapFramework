@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using VehicleMapFramework.VMF_HarmonyPatches;
@@ -13,6 +14,7 @@ public static class StaticConstructorOnStartupPriorityUtility
   {
     var types = GenTypes.AllTypesWithAttribute<StaticConstructorOnStartupPriorityAttribute>();
     types.SortByDescending(t => t.GetCustomAttribute<StaticConstructorOnStartupPriorityAttribute>().priority);
+
     foreach (var type in types)
     {
       try

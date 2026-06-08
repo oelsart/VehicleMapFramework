@@ -17,7 +17,6 @@ public static class Patches_Designator_ZoneAdd_MakeNewZone
   private static IEnumerable<MethodBase> TargetMethods()
   {
     return typeof(Designator_ZoneAdd).AllSubclasses()
-      .AsParallel()
       .Select(type => AccessTools.DeclaredMethod(type, "MakeNewZone"))
       .WhereHasMethods(CachedMethodInfo.g_Find_CurrentMap);
   }
@@ -30,13 +29,13 @@ public static class Patches_Designator_ZoneAdd_MakeNewZone
 }
 
 [HarmonyPatch]
+[HarmonyPatchCategory(PatchCategories.AsyncPatches)]
 [PatchLevel(Level.Sensitive)]
 public static class Patches_Designator_DesignateThing
 {
   private static IEnumerable<MethodBase> TargetMethods()
   {
     return typeof(Designator).AllSubclasses()
-      .AsParallel()
       .SelectMany(t => t.GetDeclaredMethods())
       .Where(m => m.Name is "DesignateThing" or "CanDesignateThing")
       .WhereHasMethods(CachedMethodInfo.g_Designator_Map);

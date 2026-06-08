@@ -28,7 +28,7 @@ namespace SmashTools
         private const string ShaderFolderName = "Materials";
 
         private const string OutputPath = "../../1.6/AssetBundles";
-        private const string OutputPathDev = "../../../VehicleMapFrameworkDev/1.6/AssetBundles";
+        private const string OutputPathDev = "../../Dev/AssetBundles";
 
         private const string DefaultBundleName = "AssetBundles";
 

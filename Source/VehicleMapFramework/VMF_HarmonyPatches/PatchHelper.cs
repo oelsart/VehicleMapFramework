@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using HarmonyLib;
 using Verse;
@@ -27,7 +28,7 @@ public static class PatchHelper
   
   public static IEnumerable<MethodBase> WhereHasMethods(this IEnumerable<MethodBase> methods, params MethodBase[] targetMethods)
   {
-    return methods.Where(method => method != null && ReadMethodBodyWrapper(method).Any(i =>
+    return methods.ToArray().Where(method => method is not null && ReadMethodBodyWrapper(method).Any(i =>
       i.Value is MethodBase operandMethod && targetMethods.Contains(operandMethod)));
   }
 
@@ -68,14 +69,35 @@ public static class PatchHelper
     public CodeInstruction CallvirtInstruction => new (OpCodes.Callvirt, methodInfo);
   }
 
-  [ThreadStatic] private static (MethodBase, MethodBase)[] single;
+  private class Params<T> where T : struct, ITuple
+  {
+    // ReSharper disable once StaticMemberInGenericType
+    [ThreadStatic] private static (MethodBase, MethodBase)[] @params;
+
+    public static (MethodBase, MethodBase)[] Get(T tuple)
+    {
+      @params ??= new (MethodBase, MethodBase)[tuple.Length]; 
+      for (var i = 0; i < tuple.Length; i++)
+        @params[i] = ((MethodBase, MethodBase))tuple[i];
+      return @params;
+    }
+  }
+  
   extension(IEnumerable<CodeInstruction> instructions)
   {
-    public IEnumerable<CodeInstruction> MethodReplacer(MethodInfo from, MethodInfo to)
+    public List<CodeInstruction> MethodReplacer(MethodInfo from, MethodInfo to)
     {
-      single ??= new (MethodBase, MethodBase)[1];
-      single[0] = (from, to);
-      return instructions.MethodReplacer(single);
+      return instructions.MethodReplacer(Params<ValueTuple<(MethodBase, MethodBase)>>.Get(new ValueTuple<(MethodBase, MethodBase)>((from, to))));
+    }
+    
+    public List<CodeInstruction> MethodReplacer((MethodInfo, MethodInfo) pair1, (MethodInfo, MethodInfo) pair2)
+    {
+      return instructions.MethodReplacer(Params<((MethodBase, MethodBase), (MethodBase, MethodBase))>.Get((pair1, pair2)));
+    }
+    
+    public List<CodeInstruction> MethodReplacer((MethodInfo, MethodInfo) pair1, (MethodInfo, MethodInfo) pair2, (MethodInfo, MethodInfo) pair3)
+    {
+      return instructions.MethodReplacer(Params<((MethodBase, MethodBase), (MethodBase, MethodBase), (MethodBase, MethodBase))>.Get((pair1, pair2, pair3)));
     }
     
     public List<CodeInstruction> MethodReplacer(params (MethodBase from, MethodBase to)[] pairs)
