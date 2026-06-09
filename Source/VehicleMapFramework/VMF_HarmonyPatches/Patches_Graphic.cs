@@ -70,7 +70,6 @@ public static class Patch_Graphic_LinkedTransmitter_ShouldLinkWith
 }
 
 [HarmonyPatch]
-[HarmonyPatchCategory(PatchCategories.AsyncPatches)]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Thing_Print
 {

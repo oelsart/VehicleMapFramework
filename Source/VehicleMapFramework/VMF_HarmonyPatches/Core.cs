@@ -202,39 +202,28 @@ public class VMF_Harmony
     {
       Categories.Add(category);
     }
-
-    if (category == PatchCategories.AsyncPatches)
-    {
-      Task.Run(Process);
-      return;
-    }
-    Process();
-    return;
     
-    void Process()
+    var patches = PatchClassesInCategory(category)
+      .Where(CheckClassPatchLevel);
+    if (category == PatchCategories.VehicleFramework)
     {
-      var patches = PatchClassesInCategory(category)
-        .Where(CheckClassPatchLevel);
-      if (category == PatchCategories.VehicleFramework)
-      {
-        patches = patches.Where(t => t.GetCustomAttribute<VfVersionalPatchAttribute>() is not { } attr ||
-                                     attr.Available);
-      }
-
-      patches.Select(t => Instance.CreateClassProcessor(t))
-        .Do(patchClass =>
-        {
-          try
-          {
-            AdjustPatchLevel(patchClass);
-            patchClass.Patch();
-          }
-          catch (Exception ex)
-          {
-            VMF_Log.Error($"Error while apply patching.\n{ex}");
-          }
-        });
+      patches = patches.Where(t => t.GetCustomAttribute<VfVersionalPatchAttribute>() is not { } attr ||
+                                   attr.Available);
     }
+
+    patches.Select(t => Instance.CreateClassProcessor(t))
+      .Do(patchClass =>
+      {
+        try
+        {
+          AdjustPatchLevel(patchClass);
+          patchClass.Patch();
+        }
+        catch (Exception ex)
+        {
+          VMF_Log.Error($"Error while apply patching.\n{ex}");
+        }
+      });
   }
 
   internal static void UnpatchCategory(string category)
@@ -312,7 +301,6 @@ public static class Core
   {
     VMF_Harmony.PatchAllUncategorized();
     VMF_Harmony.PatchCategory(PatchCategories.VehicleFramework);
-    VMF_Harmony.PatchCategory(PatchCategories.AsyncPatches);
   }
 }
 

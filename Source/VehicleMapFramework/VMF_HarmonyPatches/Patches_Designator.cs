@@ -29,7 +29,6 @@ public static class Patches_Designator_ZoneAdd_MakeNewZone
 }
 
 [HarmonyPatch]
-[HarmonyPatchCategory(PatchCategories.AsyncPatches)]
 [PatchLevel(Level.Sensitive)]
 public static class Patches_Designator_DesignateThing
 {
