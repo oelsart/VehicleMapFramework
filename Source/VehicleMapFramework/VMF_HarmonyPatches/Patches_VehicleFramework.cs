@@ -8,7 +8,6 @@ using RimWorld;
 using RimWorld.Planet;
 using SmashTools;
 using SmashTools.Rendering;
-using SmashTools.Targeting;
 using UnityEngine;
 using Vehicles;
 using Vehicles.Rendering;
@@ -55,18 +54,32 @@ public static class Patch_VehiclePawn_HasEnoughOperators
   {
     if (__instance is VehiclePawnWithMap)
     {
-      if ((__instance.MovementPermissions & VehiclePermissions.Autonomous) > VehiclePermissions.None)
+      if (VehicleMod.settings.debug.debugDraftAnyVehicle ||
+          (__instance.MovementPermissions & VehiclePermissions.Autonomous) != VehiclePermissions.None)
       {
         __result = true;
         return false;
       }
-      var matchHandlers = __instance.handlers.Where(h => (h.role.HandlingTypes & HandlingType.Movement) > HandlingType.None).ToList();
-      if (matchHandlers.Empty())
+
+      var hasMatchHandler = false;
+      var allFulfilled = true;
+      foreach (var h in __instance.handlers)
+      {
+        if ((h.role.HandlingTypes & HandlingType.Movement) != HandlingType.None)
+        {
+          hasMatchHandler = true;
+          if (!h.RoleFulfilled)
+          {
+            allFulfilled = false;
+          }
+        }
+      }
+      if (!hasMatchHandler)
       {
         __result = false;
         return false;
       }
-      __result = matchHandlers.All(h => h.RoleFulfilled);
+      __result = allFulfilled;
       return false;
     }
     return true;
@@ -100,7 +113,7 @@ public static class Patch_CompVehicleTurrets_CompGetGizmosExtra
 }
 
 [HarmonyPatchCategory(PatchCategories.VehicleFramework)]
-[HarmonyAfter(VehicleRaidFramework.HarmonyId)]
+[HarmonyAfter(VehicleRaidFramework.HarmonyId)] // パラシュート降下のため
 [HarmonyPatch(typeof(VehiclePawn), nameof(VehiclePawn.DisembarkPawn))]
 [PatchLevel(Level.Safe)]
 public static class Patch_VehiclePawn_DisembarkPawn
@@ -175,20 +188,20 @@ public static class Patch_Rendering_DrawSelectionBracketsVehicles
     return matcher.InsertAndAdvance(
         CodeInstruction.LoadLocal(l_vehicle_ind),
         new CodeInstruction(OpCodes.Ldloca_S, vehicle),
-        new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf),
+        CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf.CallInstruction,
         new CodeInstruction(OpCodes.Brfalse_S, label),
         CodeInstruction.LoadLocal(l_vehicle_ind),
-        new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_FlipAngle))
+        CachedMethodInfo.m_FlipAngle.CallInstruction)
       .CreateLabelWithOffsets(1, out var label2)
       .InsertAfter(
         new CodeInstruction(OpCodes.Ldloc_S, vehicle),
         new CodeInstruction(OpCodes.Brfalse_S, label2),
         new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-        new CodeInstruction(OpCodes.Call, CachedMethodInfo.g_Angle),
+        CachedMethodInfo.g_Angle.CallvirtInstruction,
         new CodeInstruction(OpCodes.Add))
       .MatchStartForward(CodeMatch.Calls(
         AccessTools.PropertyGetter(typeof(Thing), nameof(Thing.RotatedSize))))
-      .Set(OpCodes.Call, AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.BaseRotatedSize)))
+      .Set(OpCodes.Call, ((Delegate)VehicleMapUtility.BaseRotatedSize).Method)
       .InstructionEnumeration();
   }
 }
@@ -249,12 +262,12 @@ public static class Patch_TargetingHelper_TargetMeetsRequirements2
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned)
-      .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned)
-      .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-      .MethodReplacer(CachedMethodInfo.m_GenSight_LineOfSight1, CachedMethodInfo.m_GenSightOnVehicle_LineOfSight1)
-      .MethodReplacer(CachedMethodInfo.m_OccupiedRect, CachedMethodInfo.m_MovedOccupiedRect)
-      .MethodReplacer(CachedMethodInfo.m_GenSight_LineOfSightToEdges, CachedMethodInfo.m_GenSightOnVehicle_LineOfSightToEdges);
+    return instructions.MethodReplacer(
+      (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned),
+      (CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned),
+      (CachedMethodInfo.m_GenSight_LineOfSight1, CachedMethodInfo.m_GenSightOnVehicle_LineOfSight1),
+      (CachedMethodInfo.m_OccupiedRect, CachedMethodInfo.m_MovedOccupiedRect),
+      (CachedMethodInfo.m_GenSight_LineOfSightToEdges, CachedMethodInfo.m_GenSightOnVehicle_LineOfSightToEdges));
   }
 }
 
@@ -285,13 +298,13 @@ public static class Patch_TurretShotReport_HitReportFor
         new CodeInstruction(OpCodes.Stloc_S, targetMap).WithLabels(label2))
       .MatchStartForward(
         new CodeMatch(OpCodes.Ldloc_0),
-        CodeMatch.Calls(AccessTools.Method(typeof(CoverUtility), nameof(CoverUtility.CalculateCoverGiverSet))))
+        CodeMatch.Calls(((Delegate)CoverUtility.CalculateCoverGiverSet).Method))
       .Set(OpCodes.Ldloc_S, targetMap)
       .InstructionEnumeration()
-      .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-      .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap)
-      .MethodReplacer(AccessTools.Method(typeof(GridsUtility), nameof(GridsUtility.Roofed)),
-        AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.RoofedAcrossMaps), [typeof(IntVec3), typeof(Map)]));
+      .MethodReplacer(
+        (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing),
+        (CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap),
+        (CachedMethodInfo.m_Roofed, CachedMethodInfo.m_RoofedAcrossMaps));
   }
 }
 
@@ -313,9 +326,10 @@ public static class Patch_VehicleTurret_FireTurret
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned)
-      .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned)
-      .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
+    return instructions.MethodReplacer(
+      (CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned),
+      (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned),
+      (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing));
   }
 }
 
@@ -484,51 +498,134 @@ public static class Patch_LaunchProtocol_GetArrivalOptions
   public static IEnumerable<ArrivalOption> Postfix(IEnumerable<ArrivalOption> values, GlobalTargetInfo target, LaunchProtocol __instance)
   {
     foreach (var arrivalOption in values)
-    {
       yield return arrivalOption;
-    }
 
     if (__instance.Vehicle is VehiclePawnWithMap)
-    {
       yield break;
-    }
 
-    var mapParents = Find.World.pocketMaps.Where(p => p.Tile == target.Tile).OfType<MapParent_Vehicle>();
-    foreach (var mapParent in mapParents)
+    var mapParent = Find.World.pocketMaps
+      .Where(p => p.Tile == target.Tile).OfType<MapParent_Vehicle>()
+      .FirstOrDefault(m => m.vehicle is { Spawned: false });
+    if (mapParent is null)
+      yield break;
+    
+    var vehicle = __instance.Vehicle;
+    if (mapParent.HasMap && !mapParent.EnterCooldownBlocksEntering())
     {
-      var vehicle = __instance.Vehicle;
-      if (mapParent.HasMap && !mapParent.EnterCooldownBlocksEntering())
+      yield return new ArrivalOption("LandInExistingMap".Translate(mapParent.Label),
+        targetData =>
+        {
+          Current.Game.CurrentMap = mapParent.Map;
+          CameraJumper.TryHideWorld();
+          LandingTargeter.Instance.BeginTargeting(vehicle,
+            mapParent.Map,
+            (landingCell, rot) => LaunchProtocol.StartTargetingLocalMap(vehicle, targetData, VehicleMapParentOrMe(mapParent), landingCell, rot),
+            allowRotating: vehicle.VehicleDef.rotatable,
+            targetValidator: targetInfo =>
+            {
+              var parent = VehicleMapParentOrMe(mapParent);
+              return targetInfo.Cell.InBounds(parent.Map) &&
+                     !Ext_Vehicles.IsRoofRestricted(vehicle.VehicleDef, targetInfo.Cell, parent.Map);
+            });
+        });
+    }
+  }
+  
+  public static MapParent VehicleMapParentOrMe(MapParent mapParent)
+  {
+    return Command_FocusVehicleMap.FocusedVehicle is not null
+      ? Command_FocusVehicleMap.FocusedVehicle.VehicleMap.Parent
+      : mapParent;
+  }
+}
+
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
+[HarmonyPatch]
+[PatchLevel(Level.Sensitive)]
+public static class Patch_LaunchProtocol_GetArrivalOptions_Delegate
+{
+  private static IEnumerable<MethodBase> TargetMethods()
+  {
+    return AccessTools.InnerTypes(typeof(LaunchProtocol))
+      .SelectMany(t => t.GetDeclaredMethods()
+        .Where(m => m.Name.Contains("<GetArrivalOptions>") &&
+                    m.GetParameters().Any(p => p.ParameterType == typeof(LocalTargetInfo))));
+  }
+
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    foreach (var instruction in instructions)
+    {
+      yield return instruction;
+      if (instruction.opcode == OpCodes.Ldfld && ((FieldInfo)instruction.operand).FieldType == typeof(MapParent))
+        yield return ((Delegate)Patch_LaunchProtocol_GetArrivalOptions.VehicleMapParentOrMe).Method.CallInstruction;
+    }
+  }
+}
+
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
+[HarmonyPatch(typeof(LandingTargeter), nameof(LandingTargeter.TargeterUpdate))]
+[PatchLevel(Level.Safe)]
+public static class Patch_LandingTargeter_TargeterUpdate
+{
+  public static void Postfix()
+  {
+    if (Command_FocusVehicleMap.FocusLockedVehicle != null) return;
+
+    Command_FocusVehicleMap.FocusedVehicle = null;
+    if (UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out var vehicle, VehicleMapFlag.None))
+    {
+      Command_FocusVehicleMap.FocusedVehicle = vehicle;
+    }
+  }
+}
+
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
+[HarmonyPatch(typeof(LandingTargeter), nameof(LandingTargeter.StopTargeting))]
+[PatchLevel(Level.Safe)]
+public static class Patch_LandingTargeter_StopTargeting
+{
+  public static void Postfix()
+  {
+    if (Command_FocusVehicleMap.FocusLockedVehicle is null)
+    {
+      Command_FocusVehicleMap.FocusedVehicle = null;
+    }
+  }
+}
+
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
+[HarmonyPatch(typeof(LandingTargeter), nameof(LandingTargeter.GetPosState))]
+[PatchLevel(Level.Cautious)]
+public static class Patch_LandingTargeter_GetPosState
+{
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    var g_CurrentMap = AccessTools.PropertyGetter(typeof(Game), nameof(Game.CurrentMap));
+    foreach (var instruction in instructions)
+    {
+      yield return instruction;
+      if (instruction.Calls(g_CurrentMap))
       {
-        yield return new ArrivalOption("LandInExistingMap".Translate(mapParent.Label),
-          delegate(TargetData<GlobalTargetInfo> targetData)
-          {
-            Current.Game.CurrentMap = mapParent.Map;
-            CameraJumper.TryHideWorld();
-            LandingTargeter.Instance.BeginTargeting(vehicle,
-              mapParent.Map,
-              delegate(LocalTargetInfo landingCell, Rot4 rot)
-              {
-                if (vehicle.Spawned)
-                {
-                  vehicle.CompVehicleLauncher.Launch(targetData,
-                    new ArrivalAction_LandToCell(vehicle, mapParent, landingCell.Cell, rot));
-                }
-                else
-                {
-                  var aerialVehicle = vehicle.GetOrMakeAerialVehicle();
-                  var nodes = targetData.targets.Select(targetInfo => new FlightNode(targetInfo)).ToList();
-                  aerialVehicle.OrderFlyToTiles(nodes,
-                    new ArrivalAction_LandToCell(vehicle, mapParent, landingCell.Cell, rot));
-                  vehicle.CompVehicleLauncher.inFlight = true;
-                  CameraJumper.TryShowWorld();
-                }
-              },
-              allowRotating: vehicle.VehicleDef.rotatable,
-              targetValidator: targetInfo => targetInfo.Cell.InBounds(mapParent.Map) &&
-                                             !Ext_Vehicles.IsRoofRestricted(vehicle.VehicleDef, targetInfo.Cell, mapParent.Map));
-          });
+        yield return ((Delegate)FocusedMapOrCurrentMap).Method.CallInstruction;
       }
     }
+  }
+
+  private static Map FocusedMapOrCurrentMap(Map map)
+  {
+    return Command_FocusVehicleMap.FocusedVehicle is not null ? Command_FocusVehicleMap.FocusedVehicle.VehicleMap : map;
+  }
+}
+
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
+[HarmonyPatch(typeof(LandingTargeter), nameof(LandingTargeter.ProcessInputEvents))]
+[PatchLevel(Level.Cautious)]
+public static class Patch_LandingTargeter_ProcessInputEvents
+{
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    return Patch_LandingTargeter_GetPosState.Transpiler(instructions);
   }
 }
 
@@ -593,7 +690,7 @@ public static class Patch_CaravanFormation_CheckForErrors
       }))
       .InsertAfter(
         CodeInstruction.LoadLocal(pawnInd),
-        CodeInstruction.Call(typeof(Patch_CaravanFormation_CheckForErrors), nameof(TargetThing)))
+        ((Delegate)TargetThing).Method.CallInstruction)
       .InstructionEnumeration();
 
     static int StlocIndex(CodeInstruction instruction)
@@ -686,21 +783,6 @@ public static class Patch_JobDriver_Board_MakeNewToils
       }
       yield return toil;
     }
-  }
-}
-
-[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
-[HarmonyPatch(typeof(EnterMapUtilityVehicles), nameof(EnterMapUtilityVehicles.EnterAndSpawn))]
-[PatchLevel(Level.Safe)]
-public static class Patch_EnterMapUtilityVehicles_EnterAndSpawn
-{
-  public static Exception Finalizer(Exception __exception)
-  {
-    if (__exception != null)
-    {
-      Messages.Message("VMF_FailedEnterMap".Translate(), MessageTypeDefOf.NegativeEvent);
-    }
-    return null;
   }
 }
 
@@ -1082,8 +1164,9 @@ public static class Patch_VehicleOrientationController_RecomputeDestinations
   [PatchLevel(Level.Cautious)]
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-      .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnTargetMap);
+    return instructions.MethodReplacer(
+      (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing),
+      (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnTargetMap));
   }
 }
 
@@ -1095,13 +1178,12 @@ public static class Patch_VehicleOrientationController_TargeterUpdate
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
     var codes = instructions.ToList();
-    var m_ToVector3ShiftedWithAltitude = AccessTools.Method(typeof(IntVec3), nameof(IntVec3.ToVector3ShiftedWithAltitude), [typeof(float)]);
-    var m_ToVector3ShiftedOffsetWithAltitude = AccessTools.Method(typeof(Patch_MultiPawnGotoController_Draw), "ToVector3ShiftedOffsetWithAltitude");
+    var m_ToVector3ShiftedOffsetWithAltitude = ((Delegate)Patch_MultiPawnGotoController_Draw.ToVector3ShiftedOffsetWithAltitude).Method;
     var num = 0;
     var ind = codes.Select(c => c.operand).OfType<LocalBuilder>().First(l => l.LocalType == typeof(VehiclePawn)).LocalIndex;
     foreach (var code in codes)
     {
-      if (code.Calls(m_ToVector3ShiftedWithAltitude))
+      if (code.Calls(CachedMethodInfo.m_IntVec3_ToVector3ShiftedWithAltitude))
       {
         num++;
         if (num > 2)
@@ -1231,7 +1313,7 @@ public static class Patch_RenderHelper_DrawLinesBetweenTargets
     codes.Insert(pos, new CodeInstruction(OpCodes.Callvirt, g_Pawn_DrawPos));
 
     var g_CenterVector3 = AccessTools.PropertyGetter(typeof(LocalTargetInfo), nameof(LocalTargetInfo.CenterVector3));
-    var m_CenterVector3VehicleOffset = AccessTools.Method(typeof(Patch_Pawn_JobTracker_DrawLinesBetweenTargets), nameof(Patch_Pawn_JobTracker_DrawLinesBetweenTargets.CenterVector3VehicleOffset));
+    var m_CenterVector3VehicleOffset = ((Delegate)Patch_Pawn_JobTracker_DrawLinesBetweenTargets.CenterVector3VehicleOffset).Method;
     foreach (var code in codes)
     {
       if (code.opcode == OpCodes.Call && code.OperandIs(g_CenterVector3))
@@ -1268,7 +1350,7 @@ public static class Patch_TextureDrawer_Draw
         AccessTools.Method(typeof(UIElements), nameof(UIElements.DrawTextureWithMaterialOnGUI))))
       .InsertAfter(
         CodeInstruction.LoadLocal(3),
-        CodeInstruction.Call(typeof(Patch_TextureDrawer_Draw), nameof(TryRenderVehicleMap)))
+        ((Delegate)TryRenderVehicleMap).Method.CallInstruction)
       .InstructionEnumeration();
   }
 
@@ -1320,6 +1402,7 @@ public static class Patch_MapGridOwners_PathConfig_MatchesReachability
   }
 }
 
+// TODO VF Updates: Notify_Teleported will be changed to virtual, but it will also be marked as obsolete.
 [HarmonyPatch(typeof(VehiclePawn), nameof(VehiclePawn.Notify_Teleported))]
 [PatchLevel(Level.Safe)]
 public static class Patch_VehiclePawn_Notify_Teleported

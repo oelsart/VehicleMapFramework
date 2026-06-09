@@ -1276,7 +1276,7 @@ public static class VehicleMapUtility
     {
       if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle))
       {
-        return new Rot8(Rot8.FromIntClockwise((new Rot8(thing.Rotation).AsIntClockwise + vehicle.FullRotation.AsIntClockwise) % 8));
+        return new Rot8(thing.Rotation).Rotated(vehicle.FullRotation);
       }
       return thing.Rotation;
     }
@@ -1285,7 +1285,7 @@ public static class VehicleMapUtility
     {
       if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle) && vehicle.Spawned)
       {
-        return new Rot8(Rot8.FromIntClockwise((new Rot8(thing.Rotation).AsIntClockwise + vehicle.FullRotation.AsIntClockwise) % 8));
+        return new Rot8(thing.Rotation).Rotated(vehicle.FullRotation);
       }
       return thing.Rotation;
     }
@@ -1298,7 +1298,7 @@ public static class VehicleMapUtility
     public Rot8 BaseFullRotationDoor()
     {
       if (!thing.IsOnNonFocusedVehicleMapOf(out var vehicle)) return thing.Rotation;
-      var rot = new Rot8(Rot8.FromIntClockwise((new Rot8(thing.Rotation).AsIntClockwise + vehicle.FullRotation.AsIntClockwise) % 8));
+      var rot = new Rot8(thing.Rotation).Rotated(vehicle.FullRotation);
       return rot.FacingCell.z < 0 ? rot.Opposite : rot;
     }
   }
@@ -1316,7 +1316,7 @@ public static class VehicleMapUtility
       var map = vehicle.VehicleMap;
       if (Find.CurrentMap != map || VehicleMapFramework.settings.drawPlanet)
       {
-        return new Rot8(Rot8.FromIntClockwise((new Rot8(dir).AsIntClockwise + vehicle.FullRotation.AsIntClockwise) % 8));
+        return new Rot8(dir).Rotated(vehicle.FullRotation);
       }
       return dir;
     }
@@ -1380,7 +1380,7 @@ public static class VehicleMapUtility
       var rot = new Rot8(vehicle.Rotation, vehicle.Angle);
       if (vehicle.IsOnNonFocusedVehicleMapOf(out var vehicle2))
       {
-        rot = new Rot8(Rot8.FromIntClockwise((rot.AsIntClockwise + vehicle2.FullRotation.AsIntClockwise) % 8));
+        rot = rot.Rotated(vehicle2.FullRotation);
       }
       return rot;
     }

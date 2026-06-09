@@ -10,6 +10,7 @@ using Verse;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
+[AttributeUsage(AttributeTargets.Class)]
 internal class VfVersionalPatchAttribute : Attribute
 {
   internal const string LatestRelease = "1.6.2144";
@@ -61,7 +62,7 @@ public static class Patch_VehicleGhostUtility_DrawGhostVehicleDef
     codes.MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_GenThing_TrueCenter2));
     codes.InsertAfter(
       CodeInstruction.LoadArgument(5),
-      CodeInstruction.Call(typeof(Patch_VehicleGhostUtility_DrawGhostVehicleDef), nameof(ToTargetMapCoord)));
+      ((Delegate)ToTargetMapCoord).Method.CallInstruction);
     return codes.Instructions();
   }
 
@@ -83,7 +84,7 @@ public static class Patch_VehicleGhostUtility_DrawGhostOverlays
     codes.MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_GenThing_TrueCenter2));
     codes.InsertAfter(
       CodeInstruction.LoadArgument(6),
-      CodeInstruction.Call(typeof(Patch_VehicleGhostUtility_DrawGhostVehicleDef), nameof(Patch_VehicleGhostUtility_DrawGhostVehicleDef.ToTargetMapCoord)));
+      ((Delegate)Patch_VehicleGhostUtility_DrawGhostVehicleDef.ToTargetMapCoord).Method.CallInstruction);
     return codes.Instructions();
   }
 }
@@ -93,6 +94,45 @@ public static class Patch_VehicleGhostUtility_DrawGhostOverlays
 [HarmonyPatch("Vehicles.VehicleGhostUtility+DrawData", "DrawPos", MethodType.Getter)]
 public static class Patch_VehicleGhostUtility_DrawData_DrawPos
 {
+  [PatchLevel(Level.Sensitive)]
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    var type = GenTypes.GetTypeInAnyAssembly("Vehicles.VehicleGhostUtility+DrawData");
+    var f_rot = AccessTools.Field(type, "rot");
+    return new CodeMatcher(instructions)
+      .MatchStartForward(CodeMatch.LoadsField(f_rot))
+      .InsertAfterAndAdvance(
+        CodeInstruction.LoadArgument(0),
+        CodeInstruction.LoadField(type, "vehicle"),
+        ((Func<Rot8, VehiclePawn, Rot8>)BaseRot).Method.CallInstruction)
+      .MatchStartForward(CodeMatch.LoadsField(f_rot))
+      .InsertAfter(((Func<Rot8, Rot8>)FocusedRot).Method.CallInstruction)
+      .InstructionEnumeration();
+
+    Rot8 BaseRot(Rot8 rot, VehiclePawn vehicle)
+    {
+      if (Command_FocusVehicleMap.FocusedVehicle is { } vehicle2)
+      {
+        return rot.Rotated(vehicle2.FullRotation);
+      }
+      if (vehicle.TryGetTargetMap(out var map) && map.IsVehicleMapOf(out var vehicle3))
+      {
+        return rot.Rotated(vehicle3.FullRotation);
+      }
+      return rot;
+    }
+
+    Rot8 FocusedRot(Rot8 rot)
+    {
+      if (Command_FocusVehicleMap.FocusedVehicle is { } vehicle)
+      {
+        return rot.Rotated(vehicle.FullRotation);
+      }
+      return rot;
+    }
+  }
+  
+  [PatchLevel(Level.Safe)]
   public static void Postfix(VehiclePawn ___vehicle, ref Vector3 __result)
   {
     if (___vehicle is not null)
@@ -100,7 +140,8 @@ public static class Patch_VehicleGhostUtility_DrawData_DrawPos
       __result = ___vehicle.TryGetTargetMap(out var map) ? __result.ToBaseMapCoord(map).WithY(__result.y) : __result;
       return;
     }
-    if (UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out var vehicle))
+    if (Command_FocusVehicleMap.FocusedVehicle is null &&
+      UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out var vehicle))
     {
       __result = __result.ToBaseMapCoord(vehicle);
     }

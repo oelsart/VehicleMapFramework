@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Reflection.Emit;
 using HarmonyLib;
 using SmashTools;
@@ -31,7 +32,7 @@ public static class Patch_WorkGiver_HaulToInventory_PotentialWorkThingsGlobal
     codes.MatchStartForward(CodeMatch.StoresField(f_rootCell));
     codes.Insert(
       CodeInstruction.LoadArgument(1),
-      CodeInstruction.Call(typeof(Patch_WorkGiver_HaulToInventory_PotentialWorkThingsGlobal), nameof(ToBaseMapCoord)));
+      ((Delegate)ToBaseMapCoord).Method.CallInstruction);
     return codes.Instructions();
   }
 
@@ -92,8 +93,7 @@ public static class Patch_WorkGiver_HaulToInventory_JobOnThing
     codes.InsertAfter(
       CodeInstruction.LoadArgument(1),
       new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_TargetMapOrPawnMap),
-      CodeInstruction.Call(typeof(VehicleMapUtility), nameof(VehicleMapUtility.ToBaseMapCoord), [typeof(IntVec3), typeof(Map)]));
-
+      ((Func<IntVec3, Map, IntVec3>)VehicleMapUtility.ToBaseMapCoord).Method.CallInstruction);
     var num = 0;
     return codes.Instructions().Manipulator(c => c.Calls(CachedMethodInfo.g_Thing_Position),
       c =>

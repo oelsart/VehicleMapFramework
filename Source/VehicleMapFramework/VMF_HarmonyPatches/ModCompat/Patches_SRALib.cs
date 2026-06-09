@@ -35,8 +35,9 @@ public static class Patch_Building_TurretGunHasSpeed_IsValidTarget
 
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-      .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
+    return instructions.MethodReplacer(
+      (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing),
+      (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned));
   }
 }
 
@@ -63,7 +64,11 @@ public static class Patch_Building_TurretGunHasSpeed_TryFindNewTarget_Delegate
 {
   private static IEnumerable<MethodBase> TargetMethods()
   {
-    return Patches_SRALib.t_Building_TurretGunHasSpeed.Select(t => { return AccessTools.FindIncludingInnerTypes(t, t2 => { return t2.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<TryFindNewTarget>")); }); });
+    return Patches_SRALib.t_Building_TurretGunHasSpeed.Select(t =>
+    {
+      return AccessTools.FindIncludingInnerTypes(t,
+        t2 => { return t2.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<TryFindNewTarget>")); });
+    });
   }
 
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -96,9 +101,10 @@ public static class Patch_Verb_KT_Tachyon_Lances_TryCastShot
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-      .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned)
-      .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned);
+    return instructions.MethodReplacer(
+      (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing),
+      (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned),
+      (CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned));
   }
 }
 
@@ -109,8 +115,9 @@ public static class Patch_Verb_KT_Tachyon_Lances_AffectedCells
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-      .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
+    return instructions.MethodReplacer(
+      (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing),
+      (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned));
   }
 }
 
@@ -121,9 +128,10 @@ public static class Patch_Verb_KT_Tachyon_Lances_TargetPosition
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-      .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned)
-      .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned);
+    return instructions.MethodReplacer(
+      (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing),
+      (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned),
+      (CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned));
   }
 }
 
@@ -134,8 +142,9 @@ public static class Patch_Verb_KT_Tachyon_Lances_CanUseCell
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-      .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
+    return instructions.MethodReplacer(
+      (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing),
+      (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned));
   }
 }
 
@@ -146,8 +155,9 @@ public static class Patch_Verb_ShootWithOffsetSRA_BaseTryCastShot
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-      .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned)
-      .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
+    return instructions.MethodReplacer(
+      (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing),
+      (CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned),
+      (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned));
   }
 }

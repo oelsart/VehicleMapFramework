@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -25,7 +26,7 @@ public static class Patch_CompPointDefense_FindTarget
       .Advance()
       .RemoveInstruction()
       .Advance()
-      .Set(OpCodes.Call, AccessTools.Method(typeof(Patch_CompPointDefense_FindTarget), nameof(ThingsInGroup)))
+      .Set(OpCodes.Call, ((Delegate)ThingsInGroup).Method)
       .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Position))
       .Set(OpCodes.Call, CachedMethodInfo.m_PositionOnBaseMapSpawned)
       .Instructions();
@@ -63,8 +64,9 @@ public static class Patch_CompPointDefense_TryIntercept
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-      .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
+    return instructions.MethodReplacer(
+      (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing),
+      (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned));
   }
 }
 

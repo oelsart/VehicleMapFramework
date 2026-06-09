@@ -1,4 +1,5 @@
-﻿using HarmonyLib;
+﻿using System;
+using HarmonyLib;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
@@ -9,7 +10,7 @@ internal static class Patches_DeepStorage
   {
     if (DeepStorage)
     {
-      var original = AccessTools.Method(typeof(StoreAcrossMapsUtility), nameof(StoreAcrossMapsUtility.IsGoodStoreCell));
+      var original = ((Delegate)StoreAcrossMapsUtility.IsGoodStoreCell).Method;
       var patch = AccessTools.Method("LWM.DeepStorage.Patch_IsGoodStoreCell:Postfix");
       VMF_Harmony.Instance.Patch(original, postfix: patch);
     }

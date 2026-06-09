@@ -61,9 +61,10 @@ public static class Patch_Pawn_MechanitorTracker_CanCommandTo
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_MapHeld, CachedMethodInfo.m_MapHeldBaseMap)
-      .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap)
-      .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
+    return instructions.MethodReplacer(
+      (CachedMethodInfo.g_Thing_MapHeld, CachedMethodInfo.m_MapHeldBaseMap),
+      (CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap),
+      (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap));
   }
 }
 
@@ -110,9 +111,9 @@ public static class Patch_Reachability_CanReach
   {
     return new CodeMatcher(instructions)
       .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Map))
-      .SetInstruction(new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMapOrCaravan_Thing))
+      .SetInstruction(CachedMethodInfo.m_BaseMapOrCaravan_Thing.CallInstruction)
       .MatchStartForward(new CodeMatch(OpCodes.Beq_S))
-      .Insert(new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMapOrCaravan_Map))
+      .Insert(CachedMethodInfo.m_BaseMapOrCaravan_Map.CallInstruction)
       .InstructionEnumeration();
   }
 }
@@ -232,16 +233,24 @@ public static class Patch_Map_MapUpdate
   public const int TextureSize = 2048;
   public const float MeshSizeX = 200f;
   public static readonly Vector2 MeshSize = new(MeshSizeX, MeshSizeX);
-  private static readonly Mesh mesh200 = MeshPool.GridPlane(MeshSize);
+  private static Mesh mesh200;
   private static Material mat;
-
-  private static readonly Material skyMat =
-    SolidColorMaterials.NewSolidColorMaterial(Color.black, ShaderDatabase.SolidColor);
+  private static Material skyMat;
 
   public static int lastRenderedTick = -1;
 
   private static readonly AccessTools.FieldRef<WorldCameraDriver, float> desiredAltitude =
     AccessTools.FieldRefAccess<WorldCameraDriver, float>("desiredAltitude");
+
+  static Patch_Map_MapUpdate()
+  {
+    if (UnitTestDetector.IsTestingContext) return;
+    LongEventHandler.ExecuteWhenFinished(() =>
+    {
+      mesh200 = MeshPool.GridPlane(MeshSize);
+      skyMat = SolidColorMaterials.NewSolidColorMaterial(Color.black, ShaderDatabase.SolidColor);
+    });
+  }
 
   public static void JumpTo(Vector3 pos, float altitude)
   {
@@ -424,7 +433,7 @@ public static class Patch_Map_MapUpdate
       new CodeInstruction(OpCodes.Brfalse_S, label),
       CodeInstruction.LoadArgument(0),
       new CodeInstruction(OpCodes.Ldloca, vehicle),
-      new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsVehicleMapOf),
+      CachedMethodInfo.m_IsVehicleMapOf.CallInstruction,
       new CodeInstruction(OpCodes.Brfalse_S, label),
       new CodeInstruction(OpCodes.Pop),
       new CodeInstruction(OpCodes.Ldc_I4_0),
@@ -560,10 +569,7 @@ public static class Patch_PawnsFinder_AllMaps
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    var g_AllPawns = AccessTools.PropertyGetter(typeof(MapPawns), nameof(MapPawns.AllPawns));
-    var m_AllPawns_Reverse =
-      AccessTools.Method(typeof(Patch_MapPawns_AllPawns), nameof(Patch_MapPawns_AllPawns.AllPawns));
-    return instructions.MethodReplacer(g_AllPawns, m_AllPawns_Reverse);
+    return instructions.MethodReplacer(CachedMethodInfo.g_AllPawns, CachedMethodInfo.m_AllPawns_Reverse);
   }
 }
 
@@ -584,7 +590,7 @@ public static class Patch_PawnsFinder_AllMaps_PrisonersOfColonySpawned
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
     var g_PrisonersOfColonySpawned = AccessTools.PropertyGetter(typeof(MapPawns), nameof(MapPawns.PrisonersOfColonySpawned));
-    var m_PrisonersOfColonySpawned_Reverse = AccessTools.Method(typeof(Patch_MapPawns_PrisonersOfColonySpawned), nameof(Patch_MapPawns_PrisonersOfColonySpawned.PrisonersOfColonySpawned));
+    var m_PrisonersOfColonySpawned_Reverse = ((Delegate)Patch_MapPawns_PrisonersOfColonySpawned.PrisonersOfColonySpawned).Method;
     return instructions.MethodReplacer(g_PrisonersOfColonySpawned, m_PrisonersOfColonySpawned_Reverse);
   }
 }
@@ -639,20 +645,13 @@ public static class Patch_Room_DrawFieldEdges
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    var codes = instructions.ToList();
-    var m_DrawFieldEdges = AccessTools.Method(typeof(GenDraw), nameof(GenDraw.DrawFieldEdges),
-      [typeof(List<IntVec3>), typeof(Color), typeof(float?), typeof(HashSet<IntVec3>), typeof(int)]);
-    var m_DrawFieldEdgesOnVehicle = AccessTools.Method(typeof(GenDrawOnVehicle),
-      nameof(GenDrawOnVehicle.DrawFieldEdges),
-      [typeof(List<IntVec3>), typeof(Color), typeof(float?), typeof(HashSet<IntVec3>), typeof(int), typeof(Map)]);
-    var pos = codes.FindIndex(c => c.Calls(m_DrawFieldEdges));
-    codes[pos].operand = m_DrawFieldEdgesOnVehicle;
-    codes.InsertRange(pos,
-    [
-      CodeInstruction.LoadArgument(0),
-      new CodeInstruction(OpCodes.Callvirt, AccessTools.PropertyGetter(typeof(Room), nameof(Room.Map)))
-    ]);
-    return codes;
+    return new CodeMatcher(instructions)
+      .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_GenDraw_DrawFieldEdges2))
+      .InsertAndAdvance(
+        CodeInstruction.LoadArgument(0),
+        AccessTools.PropertyGetter(typeof(Room), nameof(Room.Map)).CallvirtInstruction)
+      .SetOperandAndAdvance(CachedMethodInfo.m_GenDrawOnVehicle_DrawFieldEdges2)
+      .InstructionEnumeration();
   }
 }
 
@@ -720,11 +719,10 @@ public static class Patch_SteadyEnvironmentEffects_SteadyEnvironmentEffectsTick
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
     var codes = instructions.ToList();
-    var m_CeilToInt = AccessTools.Method(typeof(Mathf), nameof(Mathf.CeilToInt));
+    var m_CeilToInt = ((Delegate)Mathf.CeilToInt).Method;
     var pos = codes.FindIndex(c => c.Calls(m_CeilToInt));
 
-    codes[pos].operand = AccessTools.Method(typeof(Patch_SteadyEnvironmentEffects_SteadyEnvironmentEffectsTick),
-      nameof(ChanceToInt));
+    codes[pos].operand = ((Delegate)ChanceToInt).Method;
     codes.InsertRange(pos,
     [
       CodeInstruction.LoadArgument(0),
@@ -955,8 +953,18 @@ public static class Patch_MapDeiniter_PassPawnsToWorld
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    var g_AllPawns = AccessTools.PropertyGetter(typeof(MapPawns), nameof(MapPawns.AllPawns));
-    var m_AllPawns_Reverse = AccessTools.Method(typeof(Patch_MapPawns_AllPawns), nameof(Patch_MapPawns_AllPawns.AllPawns));
-    return instructions.MethodReplacer(g_AllPawns, m_AllPawns_Reverse);
+    return instructions.MethodReplacer(CachedMethodInfo.g_AllPawns, CachedMethodInfo.m_AllPawns_Reverse);
+  }
+}
+
+[HarmonyPatch(typeof(Map), nameof(Map.IsPlayerHome), MethodType.Getter)]
+[PatchLevel(Level.Safe)]
+public static class Patch_Map_IsPlayerHome
+{
+  private static bool Prepare() => VehicleMapFramework.settings is { treatAsPlayerHome: true };
+
+  public static void Postfix(Map __instance, ref bool __result)
+  {
+    __result = __result || __instance.IsVehicleMapOf(out var vehicle) && vehicle.Faction == Faction.OfPlayer;
   }
 }

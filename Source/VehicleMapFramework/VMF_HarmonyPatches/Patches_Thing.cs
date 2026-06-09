@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
 using HarmonyLib;
@@ -64,13 +65,14 @@ public static class Patch_Building_Door_DrawMovers
     [PatchLevel(Level.Sensitive)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
-        var replaced = instructions.MethodReplacer(CachedMethodInfo.g_Thing_Rotation, AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.BaseFullRotationDoor)))
-            .MethodReplacer(CachedMethodInfo.g_Rot4_AsQuat, CachedMethodInfo.m_Rot8_AsQuatRef)
-            .MethodReplacer(CachedMethodInfo.m_Rot4_Rotate, CachedMethodInfo.m_Rot8_Rotate);
+        var replaced = instructions.MethodReplacer(
+          (CachedMethodInfo.g_Thing_Rotation, ((Delegate)VehicleMapUtility.BaseFullRotationDoor).Method),
+          (CachedMethodInfo.g_Rot4_AsQuat, CachedMethodInfo.m_Rot8_AsQuatRef),
+          (CachedMethodInfo.m_Rot4_Rotate, CachedMethodInfo.m_Rot8_Rotate));
         var codes = new CodeMatcher(replaced, generator);
         codes.MatchStartForward(CodeMatch.Calls(AccessTools.Method(typeof(Graphic), nameof(Graphic.MatAt))));
         codes.Advance(-1);
-        codes.Insert(CodeInstruction.Call(typeof(VehicleMapUtility), nameof(VehicleMapUtility.RotForVehicleDraw)));
+        codes.Insert(((Delegate)VehicleMapUtility.RotForVehicleDraw).Method.CallInstruction);
 
         codes.DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle);
         codes.Start();
@@ -81,14 +83,14 @@ public static class Patch_Building_Door_DrawMovers
             c.InsertAfterAndAdvance(
                 CodeInstruction.LoadArgument(0),
                 new CodeInstruction(OpCodes.Ldloca_S, vehicle),
-                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf),
+                CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf.CallInstruction,
                 new CodeInstruction(OpCodes.Brfalse_S, label),
                 new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-                new CodeInstruction(OpCodes.Callvirt, AccessTools.PropertyGetter(typeof(VehiclePawn), nameof(VehiclePawn.Transform))),
+                AccessTools.PropertyGetter(typeof(VehiclePawn), nameof(VehiclePawn.Transform)).CallvirtInstruction,
                 CodeInstruction.LoadField(typeof(Transform), nameof(Transform.rotation)),
-                new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(Vector3), nameof(Vector3.up))),
-                CodeInstruction.Call(typeof(Quaternion), nameof(Quaternion.AngleAxis)),
-                new CodeInstruction(OpCodes.Call, CachedMethodInfo.o_Quaternion_Multiply));
+                AccessTools.PropertyGetter(typeof(Vector3), nameof(Vector3.up)).CallInstruction,
+                ((Delegate)Quaternion.AngleAxis).Method.CallInstruction,
+                CachedMethodInfo.o_Quaternion_Multiply.CallInstruction);
         });
         return codes.Instructions();
     }
@@ -111,16 +113,16 @@ public static class Patch_Building_SupportedDoor_DrawAt
                 var vehicle = generator.DeclareLocal(typeof(VehiclePawnWithMap));
                 yield return CodeInstruction.LoadArgument(0);
                 yield return new CodeInstruction(OpCodes.Ldloca_S, vehicle);
-                yield return new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf);
+                yield return CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf.CallInstruction;
                 yield return new CodeInstruction(OpCodes.Brfalse_S, label);
                 yield return new CodeInstruction(OpCodes.Ldloc_S, vehicle);
-                yield return new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_YOffsetFull);
+                yield return CachedMethodInfo.m_YOffsetFull.CallInstruction;
                 yield return instruction.WithLabels(label);
             }
             else if (instruction.Calls(CachedMethodInfo.g_Thing_Rotation) && num < 2)
             {
                 num++;
-                yield return new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseRotationVehicleDraw);
+                yield return CachedMethodInfo.m_BaseRotationVehicleDraw.CallInstruction;
             }
             else
             {
@@ -137,8 +139,9 @@ public static class Patch_CompPowerPlantSolar_PostDraw
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
-        var codes = instructions.MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseFullRotation_Thing)
-            .MethodReplacer(CachedMethodInfo.m_Rot4_Rotate, CachedMethodInfo.m_Rot8_Rotate).ToList();
+        var codes = instructions.MethodReplacer(
+            (CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseFullRotation_Thing),
+            (CachedMethodInfo.m_Rot4_Rotate, CachedMethodInfo.m_Rot8_Rotate));
 
         var label = generator.DefineLabel();
         var label2 = generator.DefineLabel();
@@ -148,7 +151,7 @@ public static class Patch_CompPowerPlantSolar_PostDraw
         codes.InsertRange(pos,
         [
             new CodeInstruction(OpCodes.Dup),
-            new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(Rot8), nameof(Rot8.IsHorizontal))),
+            AccessTools.PropertyGetter(typeof(Rot8), nameof(Rot8.IsHorizontal)).CallInstruction,
             new CodeInstruction(OpCodes.Brfalse_S, label),
             new CodeInstruction(OpCodes.Pop),
             new CodeInstruction(OpCodes.Br_S, label2)
@@ -163,12 +166,13 @@ public static class Patch_CompPowerPlantWind_PostDraw
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseFullRotation_Thing)
-            .MethodReplacer(CachedMethodInfo.g_Rot4_FacingCell, CachedMethodInfo.g_Rot8_FacingCell)
-            .MethodReplacer(CachedMethodInfo.g_Rot4_RighthandCell, CachedMethodInfo.m_Rot8Utility_RighthandCell)
-            .MethodReplacer(CachedMethodInfo.m_Rot4_Rotate, CachedMethodInfo.m_Rot8_Rotate)
-            .MethodReplacer(CachedMethodInfo.g_Rot4_AsQuat, CachedMethodInfo.m_Rot8_AsQuatRef)
-            .MethodReplacer(CachedMethodInfo.m_IntVec3_ToVector3, CachedMethodInfo.m_Rot8Utility_ToFundVector3);
+        return instructions.MethodReplacer(
+            (CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseFullRotation_Thing),
+            (CachedMethodInfo.g_Rot4_FacingCell, CachedMethodInfo.g_Rot8_FacingCell),
+            (CachedMethodInfo.g_Rot4_RighthandCell, CachedMethodInfo.m_Rot8Utility_RighthandCell),
+            (CachedMethodInfo.m_Rot4_Rotate, CachedMethodInfo.m_Rot8_Rotate),
+            (CachedMethodInfo.g_Rot4_AsQuat, CachedMethodInfo.m_Rot8_AsQuatRef),
+            (CachedMethodInfo.m_IntVec3_ToVector3, CachedMethodInfo.m_Rot8Utility_ToFundVector3));
     }
 }
 
@@ -194,13 +198,14 @@ public static class Patch_CompPowerPlantWind_RecalculateBlockages
         [
             CodeInstruction.LoadArgument(0),
             CodeInstruction.LoadField(typeof(CompPowerPlantWind), nameof(CompPowerPlantWind.parent)),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMap_Thing),
-            CodeInstruction.Call(typeof(Patch_CompPowerPlantWind_RecalculateBlockages), nameof(Restrict))
+            CachedMethodInfo.m_BaseMap_Thing.CallInstruction,
+            ((Delegate)Restrict).Method.CallInstruction
         ]);
 
-        return codes.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned)
-            .MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseRotationSpawned)
-            .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
+        return codes.MethodReplacer(
+            (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned),
+            (CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseRotationSpawned),
+            (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing));
     }
 
     private static IEnumerable<IntVec3> Restrict(IEnumerable<IntVec3> enumerable, Map map)
@@ -218,8 +223,9 @@ public static class Patch_Building_Battery_DrawAt
         var codes = instructions.ToList();
         var ldcr4 = codes.Find(c => c.opcode == OpCodes.Ldc_R4 && c.OperandIs(0.1f));
         ldcr4?.operand = 0.75f;
-        return codes.MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseFullRotation_Thing)
-            .MethodReplacer(CachedMethodInfo.m_Rot4_Rotate, CachedMethodInfo.m_Rot8_Rotate);
+        return codes.MethodReplacer(
+            (CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseFullRotation_Thing),
+            (CachedMethodInfo.m_Rot4_Rotate, CachedMethodInfo.m_Rot8_Rotate));
     }
 }
 
@@ -248,8 +254,9 @@ public static class Patch_CompRefuelable_PostDraw
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseFullRotation_Thing)
-            .MethodReplacer(CachedMethodInfo.m_Rot4_Rotate, CachedMethodInfo.m_Rot8_Rotate);
+        return instructions.MethodReplacer(
+            (CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseFullRotation_Thing),
+            (CachedMethodInfo.m_Rot4_Rotate, CachedMethodInfo.m_Rot8_Rotate));
     }
 }
 
@@ -264,7 +271,7 @@ public static class Patch_PlaceWorker_FuelingPort_DrawFuelingPortCell
         codes.InsertRange(pos,
         [
             CodeInstruction.LoadArgument(0),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_FocusedOrSelectedDrawPosOffset)
+            CachedMethodInfo.m_FocusedOrSelectedDrawPosOffset.CallInstruction
         ]);
         return codes;
     }
@@ -314,10 +321,10 @@ public static class Patch_Building_MechCharger_DrawAt
         [
             CodeInstruction.LoadArgument(0),
             new CodeInstruction(OpCodes.Ldloca_S, vehicle),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf),
+            CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf.CallInstruction,
             new CodeInstruction(OpCodes.Brfalse_S, label),
             new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ToBaseMapCoord2)
+            CachedMethodInfo.m_ToBaseMapCoord2.CallInstruction
         ]);
         return codes.MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseFullRotation_Thing);
     }
@@ -349,8 +356,9 @@ public static class Patch_PlaceWorker_WatchArea_DrawGhost
         ]);
         pos = codes.FindIndex(pos, c => c.opcode == OpCodes.Call && c.OperandIs(CachedMethodInfo.m_GenDraw_DrawFieldEdges1));
         codes.Insert(pos, CodeInstruction.LoadLocal(0));
-        return codes.MethodReplacer(CachedMethodInfo.g_Find_CurrentMap, CachedMethodInfo.g_VehicleMapUtility_CurrentMap)
-            .MethodReplacer(CachedMethodInfo.m_GenDraw_DrawFieldEdges1, CachedMethodInfo.m_GenDrawOnVehicle_DrawFieldEdges1);
+        return codes.MethodReplacer(
+            (CachedMethodInfo.g_Find_CurrentMap, CachedMethodInfo.g_VehicleMapUtility_CurrentMap),
+            (CachedMethodInfo.m_GenDraw_DrawFieldEdges1, CachedMethodInfo.m_GenDrawOnVehicle_DrawFieldEdges1));
     }
 }
 
@@ -366,7 +374,7 @@ public static class Patch_PawnFlyer_RecomputePosition
         var pos = codes.FindLastIndex(c => c.opcode == OpCodes.Call && c.OperandIs(s_Position));
 
         var label = generator.DefineLabel();
-        var m_InBounds = AccessTools.Method(typeof(GenGrid), nameof(GenGrid.InBounds), [typeof(IntVec3), typeof(Map)]);
+        var m_InBounds = ((Func<IntVec3, Map, bool>)GenGrid.InBounds).Method;
 
         codes[pos].labels.Add(label);
         codes.InsertRange(pos,
@@ -457,7 +465,7 @@ public static class Patch_Building_Bookcase_DrawAt
                 yield return new CodeInstruction(OpCodes.Ldloc_S, vehicle);
                 yield return new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_Angle);
                 yield return new CodeInstruction(OpCodes.Neg);
-                yield return CodeInstruction.Call(typeof(Vector3Utility), nameof(Vector3Utility.RotatedBy), [typeof(Vector3), typeof(float)]);
+                yield return CachedMethodInfo.m_RotatedBy.CallInstruction;
                 yield return instruction.WithLabels(label);
             }
             else
@@ -527,8 +535,6 @@ public static class Patch_Plant_Psilocap_TickInterval
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        var g_AllPawnsSpawned = AccessTools.PropertyGetter(typeof(MapPawns), nameof(MapPawns.AllPawnsSpawned));
-        var m_AllPawnsSpawned_Reverse = AccessTools.Method(typeof(Patch_MapPawns_AllPawnsSpawned), nameof(Patch_MapPawns_AllPawnsSpawned.AllPawnsSpawned));
-        return instructions.MethodReplacer(g_AllPawnsSpawned, m_AllPawnsSpawned_Reverse);
+        return instructions.MethodReplacer(CachedMethodInfo.g_AllPawnsSpawned, CachedMethodInfo.m_AllPawnsSpawned_Reverse);
     }
 }

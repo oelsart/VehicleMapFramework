@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
 using RimWorld;
@@ -30,7 +31,7 @@ public static class Patch_CompShip_PostDraw
       if (instruction.LoadsConstant(0f))
       {
         yield return CodeInstruction.LoadArgument(0);
-        yield return CodeInstruction.Call(typeof(Patch_CompShip_PostDraw), nameof(Rotation));
+        yield return ((Delegate)Rotation).Method.CallInstruction;
       }
       else
       {

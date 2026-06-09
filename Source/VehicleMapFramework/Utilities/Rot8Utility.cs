@@ -1,4 +1,5 @@
-﻿using HarmonyLib;
+﻿using System.Runtime.CompilerServices;
+using HarmonyLib;
 using SmashTools;
 using UnityEngine;
 using Verse;
@@ -20,59 +21,71 @@ public static class Rot8Utility
         return rot.AsQuat();
     }
 
-    public static Quaternion AsQuat(this Rot8 rot)
+    extension(Rot8 rot)
     {
+      public Quaternion AsQuat()
+      {
         switch (rot.AsInt)
         {
-            case 0:
-                return Quaternion.identity;
-            case 1:
-                return Quaternion.LookRotation(Vector3.right);
-            case 2:
-                return Quaternion.LookRotation(Vector3.back);
-            case 3:
-                return Quaternion.LookRotation(Vector3.left);
-            case 4:
-                return Quaternion.LookRotation(new Vector3(1f, 0f, 1f));
-            case 5:
-                return Quaternion.LookRotation(new Vector3(1f, 0f, -1f));
-            case 6:
-                return Quaternion.LookRotation(new Vector3(-1f, 0f, -1f));
-            case 7:
-                return Quaternion.LookRotation(new Vector3(-1f, 0f, 1f));
-            default:
-                Log.Error("ToQuat with Rot = " + rot.AsInt);
-                return Quaternion.identity;
+          case 0:
+            return Quaternion.identity;
+          case 1:
+            return Quaternion.LookRotation(Vector3.right);
+          case 2:
+            return Quaternion.LookRotation(Vector3.back);
+          case 3:
+            return Quaternion.LookRotation(Vector3.left);
+          case 4:
+            return Quaternion.LookRotation(new Vector3(1f, 0f, 1f));
+          case 5:
+            return Quaternion.LookRotation(new Vector3(1f, 0f, -1f));
+          case 6:
+            return Quaternion.LookRotation(new Vector3(-1f, 0f, -1f));
+          case 7:
+            return Quaternion.LookRotation(new Vector3(-1f, 0f, 1f));
+          default:
+            Log.Error("ToQuat with Rot = " + rot.AsInt);
+            return Quaternion.identity;
         }
-    }
+      }
 
-    public static Rot4 AsRot4Force(this Rot8 rot8)
-    {
+      public Rot4 AsRot4Force()
+      {
         Rot4 rot4 = default;
-        rot4Int(ref rot4) = rot8.AsByte;
+        rot4Int(ref rot4) = rot.AsByte;
         return rot4;
+      }
+
+      [MethodImpl(MethodImplOptions.AggressiveInlining)]
+      public Rot8 Rotated(Rot8 other)
+      {
+        return new Rot8(Rot8.FromIntClockwise((rot.AsIntClockwise + other.AsIntClockwise) % 8));
+      }
     }
 
     //Rot4の変数に入れたRot8を無理やり回転させるためのもの。Rot4.RotateとTranspilerで簡単に置き換えられるようにしてある
     public static void Rotate(ref Rot4 rot, RotationDirection rotDir)
     {
-        if (rot.AsInt < 0 || rot.AsInt > 7)
+        if (rot.AsInt is < 0 or > 7)
         {
             return;
         }
         var rot2 = new Rot8(rot.AsInt);
         var num = rot2.AsIntClockwise;
-        if (rotDir == RotationDirection.Clockwise)
+        switch (rotDir)
         {
+          case RotationDirection.Clockwise:
             num += 2;
-        }
-        if (rotDir == RotationDirection.Counterclockwise)
-        {
+            break;
+          case RotationDirection.Counterclockwise:
             num -= 2;
-        }
-        if (rotDir == RotationDirection.Opposite)
-        {
+            break;
+          case RotationDirection.Opposite:
             num += 4;
+            break;
+          case RotationDirection.None:
+          default:
+            break;
         }
 
         rot2.AsInt = Rot8.FromIntClockwise(GenMath.PositiveMod(num, 8));

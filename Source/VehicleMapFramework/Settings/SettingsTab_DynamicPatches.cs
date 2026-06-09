@@ -30,13 +30,13 @@ namespace VehicleMapFramework.Settings
             {
                 listingStandard.CheckboxLabeled("VMF_Settings.EnableDynamicUnpatches".Translate(), ref settings.dynamicUnpatchEnabled, tooltip: "VMF_Settings.EnableDynamicUnpatches.Tooltip".Translate());
                 var label = "VMF_Settings.DynamicPatchLevel".Translate();
-                var widthPct = 0.5f;
+                const float widthPct = 0.5f;
                 var rect = listingStandard.GetRect(Text.CalcHeight(label, listingStandard.ColumnWidth * widthPct));
                 Widgets.Label(rect.LeftPart(widthPct), label);
 
                 var level = settings.dynamicPatchLevel;
-                var min = (float)Level.Sensitive;
-                var max = (float)Level.Safe;
+                const float min = (float)Level.Sensitive;
+                const float max = (float)Level.Safe;
                 var rightPart = rect.RightPart(widthPct);
                 settings.dynamicPatchLevel = (Level)Widgets.HorizontalSlider(rightPart, (float)level, min, max, label: $"VMF_PatchLevel.{level}".Translate(), roundTo: 1f);
                 TooltipHandler.TipRegion(rightPart, $"VMF_PatchLevel.{level}.Tooltip".Translate());

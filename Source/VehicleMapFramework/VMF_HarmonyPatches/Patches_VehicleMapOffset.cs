@@ -19,9 +19,8 @@ public static class Patch_UI_MouseCell
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var codes = instructions.ToList();
-        var toIntVec3 = AccessTools.Method(typeof(IntVec3Utility), nameof(IntVec3Utility.ToIntVec3));
-        var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(toIntVec3));
-        codes.Insert(pos, new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ToVehicleMapCoord));
+        var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(CachedMethodInfo.m_ToIntVec3));
+        codes.Insert(pos, CachedMethodInfo.m_ToVehicleMapCoord.CallInstruction);
         return codes;
     }
 
@@ -212,10 +211,10 @@ public static class Patch_SelectionDrawer_DrawSelectionBracketFor
         [
             CodeInstruction.LoadLocal(2),
             new CodeInstruction(OpCodes.Ldloca_S, vehicle),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf),
+            CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf.CallInstruction,
             new CodeInstruction(OpCodes.Brfalse_S, label),
             new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_FullAngle),
+            CachedMethodInfo.m_FullAngle.CallInstruction,
             new CodeInstruction(OpCodes.Conv_I4),
             new CodeInstruction(OpCodes.Add),
         ]);
@@ -229,30 +228,30 @@ public static class Patch_SelectionDrawer_DrawSelectionBracketFor
             new CodeInstruction(OpCodes.Ldloc_S, vehicle),
             new CodeInstruction(OpCodes.Brfalse_S, label2),
             CodeInstruction.LoadLocal(2),
-            new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_Thing_DrawPos),
+            CachedMethodInfo.g_Thing_DrawPos.CallvirtInstruction,
             new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_FullAngle),
+            CachedMethodInfo.m_FullAngle.CallInstruction,
             new CodeInstruction(OpCodes.Neg),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_RotatePoint)
+            CachedMethodInfo.m_RotatePoint.CallInstruction
         ]);
 
         var m_DrawFieldEdges = SmartFarming.Active ? AccessTools.Method(SmartFarming.MapComponent_SmartFarming, "DrawFieldEdges") : CachedMethodInfo.m_GenDraw_DrawFieldEdges1;
         var m_DrawFieldEdgesOnVehicle =
-            SmartFarming.SmartFarmingActive ? AccessTools.Method(typeof(GenDrawOnVehicle), nameof(GenDrawOnVehicle.DrawFieldEdgesSF)) :
-            SmartFarming.ReGrowthActive ? AccessTools.Method(typeof(GenDrawOnVehicle), nameof(GenDrawOnVehicle.DrawFieldEdgesRG)) : CachedMethodInfo.m_GenDrawOnVehicle_DrawFieldEdges1;
+            SmartFarming.SmartFarmingActive ? ((Delegate)GenDrawOnVehicle.DrawFieldEdgesSF).Method :
+            SmartFarming.ReGrowthActive ? ((Delegate)GenDrawOnVehicle.DrawFieldEdgesRG).Method : CachedMethodInfo.m_GenDrawOnVehicle_DrawFieldEdges1;
         var pos3 = codes.FindIndex(c => c.Calls(m_DrawFieldEdges));
         codes[pos3].operand = m_DrawFieldEdgesOnVehicle;
         codes.InsertRange(pos3,
         [
             CodeInstruction.LoadLocal(0),
-            new CodeInstruction(OpCodes.Callvirt, CachedMethodInfo.g_Zone_Map)
+            CachedMethodInfo.g_Zone_Map.CallvirtInstruction
         ]);
         var pos4 = codes.FindIndex(pos3 + 3, c => c.Calls(CachedMethodInfo.m_GenDraw_DrawFieldEdges1));
         codes[pos4].operand = CachedMethodInfo.m_GenDrawOnVehicle_DrawFieldEdges1;
         codes.InsertRange(pos4,
         [
             CodeInstruction.LoadLocal(1),
-            new CodeInstruction(OpCodes.Callvirt, AccessTools.PropertyGetter(typeof(Plan), nameof(Plan.Map)))
+            AccessTools.PropertyGetter(typeof(Plan), nameof(Plan.Map)).CallvirtInstruction
         ]);
         return codes;
     }
@@ -267,11 +266,10 @@ public static class Patch_Pawn_JobTracker_DrawLinesBetweenTargets
         var codes = instructions.ToList();
         var pos = codes.FindIndex(c => c.opcode == OpCodes.Callvirt && c.OperandIs(CachedMethodInfo.g_Thing_Position));
         codes.RemoveRange(pos, 4);
-        var g_Pawn_DrawPos = AccessTools.PropertyGetter(typeof(Pawn), nameof(Pawn.DrawPos));
-        codes.Insert(pos, new CodeInstruction(OpCodes.Callvirt, g_Pawn_DrawPos));
+        codes.Insert(pos, AccessTools.PropertyGetter(typeof(Pawn), nameof(Pawn.DrawPos)).CallvirtInstruction);
 
         var g_CenterVector3 = AccessTools.PropertyGetter(typeof(LocalTargetInfo), nameof(LocalTargetInfo.CenterVector3));
-        var m_CenterVector3VehicleOffset = AccessTools.Method(typeof(Patch_Pawn_JobTracker_DrawLinesBetweenTargets), nameof(CenterVector3VehicleOffset));
+        var m_CenterVector3VehicleOffset = ((Delegate)CenterVector3VehicleOffset).Method;
         foreach (var code in codes)
         {
             if (code.opcode == OpCodes.Call && code.OperandIs(g_CenterVector3))
@@ -340,7 +338,7 @@ public static class Patch_PawnPath_DrawPath
                     new CodeInstruction(OpCodes.Ldloc_S, vehicle),
                     new CodeInstruction(OpCodes.Brfalse_S, label2),
                     new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-                    new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ToBaseMapCoord2)))
+                    CachedMethodInfo.m_ToBaseMapCoord2.CallInstruction))
             .InstructionEnumeration();
     }
 }
@@ -363,8 +361,9 @@ public static class Patch_Designation_DrawLoc
     [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseFullRotation_Thing)
-            .MethodReplacer(CachedMethodInfo.g_Rot4_AsVector2, CachedMethodInfo.m_AsFundVector2);
+        return instructions.MethodReplacer(
+            (CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseFullRotation_Thing),
+            (CachedMethodInfo.g_Rot4_AsVector2, CachedMethodInfo.m_AsFundVector2));
     }
 }
 
@@ -374,8 +373,9 @@ public static class Patch_OverlayDrawer_RenderPulsingOverlay
     [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseFullRotation_Thing)
-            .MethodReplacer(CachedMethodInfo.g_Rot4_AsVector2, CachedMethodInfo.m_AsFundVector2);
+        return instructions.MethodReplacer(
+            (CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseFullRotation_Thing),
+            (CachedMethodInfo.g_Rot4_AsVector2, CachedMethodInfo.m_AsFundVector2));
     }
 }
 
@@ -457,14 +457,14 @@ public static class Patch_GenDraw_DrawInteractionCell
         codes.InsertRange(pos,
         [
             CodeInstruction.LoadArgument(2),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_SelectedDrawPosOffset)
+            CachedMethodInfo.m_SelectedDrawPosOffset.CallInstruction
         ]);
 
         var pos2 = codes.FindIndex(pos, c => c.opcode == OpCodes.Call && c.OperandIs(CachedMethodInfo.g_Quaternion_identity));
         codes.InsertRange(pos2,
         [
             CodeInstruction.LoadArgument(2),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_FocusedOrSelectedDrawPosOffset)
+            CachedMethodInfo.m_FocusedOrSelectedDrawPosOffset.CallInstruction
         ]);
         return codes;
     }
@@ -478,10 +478,7 @@ public static class Patch_RoyalTitlePermitWorker_CallShuttle_DrawShuttleGhost
     {
         var codes = instructions.ToList();
         var pos = codes.FindIndex(c => c.opcode == OpCodes.Call && c.OperandIs(CachedMethodInfo.g_Quaternion_identity));
-        codes.InsertRange(pos,
-        [
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_FocusedDrawPosOffset)
-        ]);
+        codes.Insert(pos, CachedMethodInfo.m_FocusedDrawPosOffset.CallInstruction);
         return codes;
     }
 }

@@ -54,7 +54,7 @@ public static class Patch_PatchProjectileCE_TickPostfix
       if (instruction.Calls(m_AllBuildingsColonistOfClass))
       {
         yield return CodeInstruction.LoadArgument(0);
-        yield return CodeInstruction.Call(typeof(Patch_PatchProjectileCE_TickPostfix), nameof(ReplaceBuildings));
+        yield return ((Delegate)ReplaceBuildings).Method.CallInstruction;
       }
     }
   }

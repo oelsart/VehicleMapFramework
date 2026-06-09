@@ -114,6 +114,7 @@ public static class Patch_Selector_SelectorOnGUI_BeforeMainTabs
     public static void Postfix(Selector __instance)
     {
         if (Event.current.type == EventType.MouseDown && Event.current.button == 1 &&
+            Event.current.shift &&
             Find.CurrentMap.IsVehicleMapOf(out var vehicle) &&
             vehicle.ParentHolder is VehicleCaravan { IsPlayerControlled: true } caravan &&
             __instance.SelectedPawns.Empty() &&

@@ -4,7 +4,7 @@ Shader "TerrainHardWithZ" {
        _Color ("Color", Color) = (1,1,1,1)
     }
     SubShader {
-       Tags { "RenderType" = "Opaque" "Queue" = "Transparent"}
+       Tags { "RenderType" = "Opaque" }
        
        Pass {
           ZWrite On

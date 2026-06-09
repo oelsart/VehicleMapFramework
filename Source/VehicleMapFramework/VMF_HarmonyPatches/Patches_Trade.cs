@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using HarmonyLib;
+using JetBrains.Annotations;
 using RimWorld;
 using RimWorld.Planet;
 using Vehicles;
@@ -222,12 +223,12 @@ public static class Patch_TradeUtility_AllLaunchableThingsForTrade
     //ローカル変数からビーコンを取ろうとするとforeachのMoveNextタイミングによってなんかがなんかしてたまにnullになるのでstaticフィールドでやりとりします
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        var m_GetThingList = AccessTools.Method(typeof(GridsUtility), nameof(GridsUtility.GetThingList));
+        var m_GetThingList = ((Delegate)GridsUtility.GetThingList).Method;
         foreach (var instruction in instructions)
         {
             if (instruction.Calls(m_GetThingList))
             {
-                yield return CodeInstruction.Call(typeof(Patch_TradeUtility_AllLaunchableThingsForTrade), nameof(BuildingMap));
+                yield return ((Delegate)BuildingMap).Method.CallInstruction;
             }
 
             yield return instruction;
@@ -240,7 +241,7 @@ public static class Patch_TradeUtility_AllLaunchableThingsForTrade
         }
     }
 
-    public static Building_OrbitalTradeBeacon beacon;
+    [UsedImplicitly] public static Building_OrbitalTradeBeacon beacon;
 
     private static Map BuildingMap(Map map)
     {
@@ -295,7 +296,7 @@ public static class Patch_IncidentWorker_OrbitalTraderArrival_TryExecuteWorker
             if (instruction.LoadsField(AccessTools.Field(typeof(ListerBuildings), nameof(ListerBuildings.allBuildingsColonist))))
             {
                 yield return CodeInstruction.LoadArgument(1);
-                yield return CodeInstruction.Call(typeof(Patch_IncidentWorker_OrbitalTraderArrival_TryExecuteWorker), nameof(AddBuildings));
+                yield return ((Delegate)AddBuildings).Method.CallInstruction;
             }
         }
     }

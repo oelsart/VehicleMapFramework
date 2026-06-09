@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Reflection.Emit;
 using HarmonyLib;
 using RimWorld;
 using UnityEngine;
@@ -104,9 +104,10 @@ public static class Patch_Verb_LaunchProjectile_TryCastShot
     [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-            .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned)
-            .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
+        return instructions.MethodReplacer(
+          (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing),
+          (CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned),
+          (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned));
     }
 }
 
@@ -161,8 +162,9 @@ public static class Patch_Verb_ShootBeam_GetBeamHitNeighbourCells
     
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-            .MethodReplacer(CachedMethodInfo.m_GenSight_LineOfSight1, CachedMethodInfo.m_GenSightOnVehicle_LineOfSight1);
+        return instructions.MethodReplacer(
+          (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing),
+          (CachedMethodInfo.m_GenSight_LineOfSight1, CachedMethodInfo.m_GenSightOnVehicle_LineOfSight1));
     }
 }
 
@@ -172,8 +174,9 @@ public static class Patch_Verb_ShootBeam_BurstingTick
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-            .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
+        return instructions.MethodReplacer(
+          (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing),
+          (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned));
     }
 }
 
@@ -188,8 +191,9 @@ public static class Patch_Verb_ShootBeam_BurstingTick_Delegate
 
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-            .MethodReplacer(CachedMethodInfo.m_CanBeSeenOverFast, CachedMethodInfo.m_CanBeSeenOverOnVehicleFast);
+        return instructions.MethodReplacer(
+          (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing),
+          (CachedMethodInfo.m_CanBeSeenOverFast, CachedMethodInfo.m_CanBeSeenOverOnVehicleFast));
     }
 }
 
@@ -219,9 +223,10 @@ public static class Patch_Verb_ShootBeam_ApplyDamage
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-            .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned)
-            .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned);
+        return instructions.MethodReplacer(
+          (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing),
+          (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned),
+          (CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned));
     }
 }
 
@@ -241,8 +246,9 @@ public static class Patch_Verb_ShootBeam_Delegate
 
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-            .MethodReplacer(CachedMethodInfo.m_CanBeSeenOverFast, CachedMethodInfo.m_CanBeSeenOverOnVehicleFast);
+        return instructions.MethodReplacer(
+          (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing),
+          (CachedMethodInfo.m_CanBeSeenOverFast, CachedMethodInfo.m_CanBeSeenOverOnVehicleFast));
     }
 }
 
@@ -262,8 +268,9 @@ public static class Patch_Verb_ArcSpray_PreparePath
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned)
-            .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned);
+        return instructions.MethodReplacer(
+          (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned),
+          (CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned));
     }
 }
 
@@ -273,9 +280,10 @@ public static class Patch_Verb_ArcSprayProjectile_HitCell
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-            .MethodReplacer(CachedMethodInfo.m_GenSight_LineOfSight2, CachedMethodInfo.m_GenSightOnVehicle_LineOfSight2)
-            .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
+        return instructions.MethodReplacer(
+          (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing),
+          (CachedMethodInfo.m_GenSight_LineOfSight2, CachedMethodInfo.m_GenSightOnVehicle_LineOfSight2),
+          (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned));
     }
 }
 
@@ -285,10 +293,11 @@ public static class Patch_JumpUtility_CanHitTargetFrom
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        var codes = instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-            .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap)
-            .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_TargetCellOnBaseMap)
-            .MethodReplacer(CachedMethodInfo.m_GenSight_LineOfSight1, CachedMethodInfo.m_GenSightOnVehicle_LineOfSight1).ToList();
+        var codes = instructions.MethodReplacer(
+            (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing),
+            (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap),
+            (CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_TargetCellOnBaseMap),
+            (CachedMethodInfo.m_GenSight_LineOfSight1, CachedMethodInfo.m_GenSightOnVehicle_LineOfSight1)).ToList();
 
         var pos = codes.FindIndex(c => c.Calls(CachedMethodInfo.m_TargetCellOnBaseMap));
         codes.Insert(pos, CodeInstruction.LoadArgument(0));
@@ -350,13 +359,13 @@ public static class Patch_Verb_Jump_DrawHighlight
         instructions = instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);
 
         var m_CenterVector3 = AccessTools.PropertyGetter(typeof(LocalTargetInfo), nameof(LocalTargetInfo.CenterVector3));
-        var m_CenterVector3Offset = AccessTools.Method(typeof(Patch_Verb_Jump_DrawHighlight), nameof(CenterVector3Offset));
+        var m_CenterVector3Offset = ((Delegate)CenterVector3Offset).Method;
         foreach (var instruction in instructions)
         {
             if (instruction.Calls(m_CenterVector3))
             {
                 yield return CodeInstruction.LoadArgument(0);
-                yield return new CodeInstruction(OpCodes.Call, m_CenterVector3Offset);
+                yield return m_CenterVector3Offset.CallInstruction;
             }
             else
             {
@@ -446,8 +455,9 @@ public static class Patch_Verb_Jump_DrawHighlight_Delegate
 
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned)
-            .MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-            .MethodReplacer(CachedMethodInfo.m_GenSight_LineOfSight1, CachedMethodInfo.m_GenSightOnVehicle_LineOfSight1);
+        return instructions.MethodReplacer(
+            (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned),
+            (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing),
+            (CachedMethodInfo.m_GenSight_LineOfSight1, CachedMethodInfo.m_GenSightOnVehicle_LineOfSight1));
     }
 }

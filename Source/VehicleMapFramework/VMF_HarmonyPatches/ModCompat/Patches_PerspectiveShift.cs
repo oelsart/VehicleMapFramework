@@ -376,7 +376,7 @@ public static class Patch_Avatar_GetBestTarget
       .Set(OpCodes.Call, CachedMethodInfo.m_BaseMap_Thing)
       .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_GetThingList))
       .SetOperandAndAdvance(CachedMethodInfo.m_GetThingListAcrossMaps)
-      .Insert(CodeInstruction.Call(typeof(Patch_Avatar_GetBestTarget), nameof(RemoveMapVehicles)))
+      .Insert(((Delegate)RemoveMapVehicles).Method.CallInstruction)
       .InstructionEnumeration();
   }
 
@@ -394,8 +394,9 @@ public static class Patch_Avatar_HandleFiring
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-      .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned);
+    return instructions.MethodReplacer(
+      (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing),
+      (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned));
   }
 }
 

@@ -4,7 +4,6 @@ using System.Linq;
 using JetBrains.Annotations;
 using RimWorld;
 using SmashTools;
-using VehicleMapFramework.VMF_HarmonyPatches;
 using Verse;
 
 namespace VehicleMapFramework
@@ -30,7 +29,6 @@ namespace VehicleMapFramework
             LongEventHandler.ExecuteWhenFinished(() =>
             {
                 if (!map.IsVehicleMap) return;
-                VMF_Harmony.DynamicPatchAllNow(Level.All);
                 
                 layersByRot = [];
 

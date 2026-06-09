@@ -20,11 +20,9 @@ public static class Patch_FloatMenuMakerMap_GetOptions
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         return new CodeMatcher(instructions)
-            .MatchStartForward(CodeMatch.Calls(AccessTools.Method(typeof(GenGrid), nameof(GenGrid.InBounds),
-                [typeof(Vector3), typeof(Map)])))
-            .SetInstruction(CodeInstruction.Call(typeof(Patch_FloatMenuMakerMap_GetOptions), nameof(InBounds)))
-            .MatchStartForward(CodeMatch.Calls(AccessTools.Method(typeof(GenGrid), nameof(GenGrid.InBounds),
-                [typeof(IntVec3), typeof(Map)])))
+            .MatchStartForward(CodeMatch.Calls(((Func<Vector3, Map, bool>)GenGrid.InBounds).Method))
+            .Set(OpCodes.Call, ((Delegate)InBounds).Method)
+            .MatchStartForward(CodeMatch.Calls(((Func<IntVec3, Map, bool>)GenGrid.InBounds).Method))
             .Insert(
                 new CodeInstruction(OpCodes.Pop),
                 CodeInstruction.LoadArgument(2),
@@ -65,8 +63,9 @@ public static class Patch_FloatMenuContext_Constructor
     [PatchLevel(Level.Cautious)]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        var m_ThingsUnderMouse = AccessTools.Method(typeof(GenUI), nameof(GenUI.ThingsUnderMouse));
-        var m_ThingsUnderMouseOnVehicle = AccessTools.Method(typeof(GenUIOnVehicle), nameof(GenUIOnVehicle.ThingsUnderMouse), [typeof(Vector3), typeof(float), typeof(TargetingParameters), typeof(ITargetingSource)]);
+        var m_ThingsUnderMouse = ((Delegate)GenUI.ThingsUnderMouse).Method;
+        var m_ThingsUnderMouseOnVehicle =
+          ((Func<Vector3, float, TargetingParameters, ITargetingSource, List<Thing>>)GenUIOnVehicle.ThingsUnderMouse).Method;
         return instructions.MethodReplacer(m_ThingsUnderMouse, m_ThingsUnderMouseOnVehicle);
     }
 }
@@ -79,8 +78,8 @@ public static class Patch_FloatMenuMakerMap_ShouldGenerateFloatMenuForPawn
     {
         return new CodeMatcher(instructions)
             .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Find_CurrentMap))
-            .InsertAndAdvance(new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMapOrCaravan_Map))
-            .InsertAfter(new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_BaseMapOrCaravan_Map))
+            .InsertAndAdvance(CachedMethodInfo.m_BaseMapOrCaravan_Map.CallInstruction)
+            .InsertAfter(CachedMethodInfo.m_BaseMapOrCaravan_Map.CallInstruction)
             .InstructionEnumeration();
     }
 }
@@ -107,16 +106,14 @@ public static class Patch_FloatMenuOptionProvider_ExtinguishFires_GetSingleOptio
                 new CodeInstruction(OpCodes.Dup),
                 new CodeInstruction(OpCodes.Stloc_S, pawn),
                 new CodeInstruction(OpCodes.Ldloc_S, context),
-                CodeInstruction.Call(typeof(Patch_FloatMenuOptionProvider_ExtinguishFires_GetSingleOption),
-                    nameof(Teleport)),
+                ((Delegate)Teleport).Method.CallInstruction,
                 new CodeInstruction(OpCodes.Stloc_S, teleporter),
                 new CodeInstruction(OpCodes.Ldloc_S, context))
             .MatchStartForward(new CodeMatch(OpCodes.Call))
             .InsertAfter(
                 new CodeInstruction(OpCodes.Ldloc_S, pawn),
                 new CodeInstruction(OpCodes.Ldloc_S, teleporter),
-                CodeInstruction.Call(typeof(Patch_FloatMenuOptionProvider_ExtinguishFires_GetSingleOption),
-                    nameof(Dispose)))
+                ((Delegate)Dispose).Method.CallInstruction)
             .InstructionEnumeration();
     }
     
@@ -158,16 +155,14 @@ public static class Patch_FloatMenuOptionProvider_ExtinguishFires_GetSingleOptio
                 new CodeInstruction(OpCodes.Dup),
                 new CodeInstruction(OpCodes.Stloc_S, pawn),
                 new CodeInstruction(OpCodes.Ldloc_S, context),
-                CodeInstruction.Call(typeof(Patch_FloatMenuOptionProvider_ExtinguishFires_GetSingleOption),
-                    nameof(Patch_FloatMenuOptionProvider_ExtinguishFires_GetSingleOption.Teleport)),
+                ((Delegate)Patch_FloatMenuOptionProvider_ExtinguishFires_GetSingleOption.Teleport).Method.CallInstruction,
                 new CodeInstruction(OpCodes.Stloc_S, teleporter),
                 new CodeInstruction(OpCodes.Ldloc_S, context))
             .MatchStartForward(new CodeMatch(OpCodes.Call))
             .InsertAfterAndAdvance(
                 new CodeInstruction(OpCodes.Ldloc_S, pawn),
                 new CodeInstruction(OpCodes.Ldloc_S, teleporter),
-                CodeInstruction.Call(typeof(Patch_FloatMenuOptionProvider_ExtinguishFires_GetSingleOption),
-                    nameof(Patch_FloatMenuOptionProvider_ExtinguishFires_GetSingleOption.Dispose)))
+                ((Delegate)Patch_FloatMenuOptionProvider_ExtinguishFires_GetSingleOption.Dispose).Method.CallInstruction)
             .MatchStartForward(CodeMatch.Calls(AccessTools.PropertyGetter(typeof(FloatMenuContext),
                 nameof(FloatMenuContext.FirstSelectedPawn))))
             .RemoveInstruction()
@@ -208,7 +203,7 @@ public static class Patch_FloatMenuMap_StillValid
         [
             CodeInstruction.LoadArgument(0),
             CodeInstruction.LoadField(typeof(FloatMenuOption), nameof(FloatMenuOption.revalidateClickTarget)),
-            new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ToThingBaseMapCoord)
+            CachedMethodInfo.m_ToThingBaseMapCoord.CallInstruction
         ]);
         return codes;
     }
@@ -236,23 +231,12 @@ public static class Patch_FloatMenuOptionProvider_Entity_GetOptionFor
         var codes = new CodeMatcher(instructions);
         var m_AllBuildingsColonistOfClass = AccessTools.Method(typeof(ListerBuildings), nameof(ListerBuildings.AllBuildingsColonistOfClass)).MakeGenericMethod(typeof(Building_HoldingPlatform));
         codes.MatchStartForward(CodeMatch.Calls(m_AllBuildingsColonistOfClass)).Advance();
-        codes.Insert(CodeInstruction.Call(typeof(Patch_FloatMenuOptionProvider_Entity_GetOptionFor), nameof(AddHoldingPlatforms)));
+        codes.Insert(((Delegate)AddHoldingPlatforms).Method.CallInstruction);
         codes.MatchStartBackwards(CodeMatch.Calls(CachedMethodInfo.g_Thing_Map));
         codes.Set(OpCodes.Call, CachedMethodInfo.m_BaseMap_Thing);
 
-        var m_ClosestThing_Global_Reachable = AccessTools.Method(typeof(GenClosest), nameof(GenClosest.ClosestThing_Global_Reachable));
-        var m_ClosestThing_Global_ReachableCrossMap = AccessTools.Method(typeof(GenClosestCrossMap), nameof(GenClosestCrossMap.ClosestThing_Global_Reachable),
-        [
-            typeof(IntVec3),
-            typeof(Map),
-            typeof(IEnumerable<Thing>),
-            typeof(PathEndMode),
-            typeof(TraverseParms),
-            typeof(float),
-            typeof(Predicate<Thing>),
-            typeof(Func<Thing,float>),
-            typeof(bool)
-        ]);
+        var m_ClosestThing_Global_Reachable = ((Delegate)GenClosest.ClosestThing_Global_Reachable).Method;
+        var m_ClosestThing_Global_ReachableCrossMap = ((Delegate)GenClosestCrossMap.ClosestThing_Global_Reachable).Method;
         codes.MatchStartForward(CodeMatch.Calls(m_ClosestThing_Global_Reachable));
         codes.Operand = m_ClosestThing_Global_ReachableCrossMap;
         return codes.Instructions();
@@ -310,14 +294,13 @@ public static class Patch_MultiPawnGotoController_Draw
 {
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        var m_ToVector3ShiftedWithAltitude = AccessTools.Method(typeof(IntVec3), nameof(IntVec3.ToVector3ShiftedWithAltitude), [typeof(float)]);
-        var m_ToVector3ShiftedOffsetWithAltitude = AccessTools.Method(typeof(Patch_MultiPawnGotoController_Draw), nameof(ToVector3ShiftedOffsetWithAltitude));
-        var m_Fogged = AccessTools.Method(typeof(GridsUtility), nameof(GridsUtility.Fogged), [typeof(IntVec3), typeof(Map)]);
-        var m_FoggedOffset = AccessTools.Method(typeof(Patch_MultiPawnGotoController_Draw), nameof(FoggedOffset));
+        var m_ToVector3ShiftedOffsetWithAltitude = ((Delegate)ToVector3ShiftedOffsetWithAltitude).Method;
+        var m_Fogged = ((Func<IntVec3, Map, bool>)GridsUtility.Fogged).Method;
+        var m_FoggedOffset = ((Delegate)FoggedOffset).Method;
         var num = 0;
         foreach (var instruction in instructions)
         {
-            if (num < 2 && instruction.opcode == OpCodes.Call && instruction.OperandIs(m_ToVector3ShiftedWithAltitude))
+            if (num < 2 && instruction.opcode == OpCodes.Call && instruction.OperandIs(CachedMethodInfo.m_IntVec3_ToVector3ShiftedWithAltitude))
             {
                 yield return CodeInstruction.LoadLocal(5);
                 instruction.operand = m_ToVector3ShiftedOffsetWithAltitude;
@@ -333,14 +316,14 @@ public static class Patch_MultiPawnGotoController_Draw
         }
     }
 
-    private static Vector3 ToVector3ShiftedOffsetWithAltitude(ref IntVec3 intVec, float AddedAltitude, Pawn pawn)
+    public static Vector3 ToVector3ShiftedOffsetWithAltitude(ref IntVec3 intVec, float AddedAltitude, Pawn pawn)
     {
         return pawn.TryGetTargetMap(out var map) ?
             intVec.ToVector3Shifted().ToBaseMapCoord(map).WithY(AddedAltitude) :
             intVec.ToVector3ShiftedWithAltitude(AddedAltitude);
     }
 
-    private static bool FoggedOffset(IntVec3 intVec, Pawn pawn)
+    public static bool FoggedOffset(IntVec3 intVec, Pawn pawn)
     {
         return pawn.TryGetTargetMap(out var map) ?
             intVec.ToBaseMapCoord(map).Fogged(map.BaseMap()) :
@@ -355,9 +338,9 @@ public static class Patch_MultiPawnGotoController_OnGUI
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var m_ToUIRect = AccessTools.Method(typeof(IntVec3), nameof(IntVec3.ToUIRect));
-        var m_ToUIRectOffset = AccessTools.Method(typeof(Patch_MultiPawnGotoController_OnGUI), nameof(ToUIRectOffset));
-        var m_Fogged = AccessTools.Method(typeof(GridsUtility), nameof(GridsUtility.Fogged), [typeof(IntVec3), typeof(Map)]);
-        var m_FoggedOffset = AccessTools.Method(typeof(Patch_MultiPawnGotoController_Draw), "FoggedOffset");
+        var m_ToUIRectOffset = ((Delegate)ToUIRectOffset).Method;
+        var m_Fogged = ((Func<IntVec3, Map, bool>)GridsUtility.Fogged).Method;
+        var m_FoggedOffset = ((Delegate)Patch_MultiPawnGotoController_Draw.FoggedOffset).Method;
         foreach (var instruction in instructions)
         {
             if (instruction.opcode == OpCodes.Call && instruction.OperandIs(m_ToUIRect))

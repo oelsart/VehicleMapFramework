@@ -60,8 +60,9 @@ public static class Patch_ActionController_GetGrappleReport
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    var codes = instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap)
-      .MethodReplacer(CachedMethodInfo.m_GenSight_LineOfSightToThing, CachedMethodInfo.m_GenSightOnVehicle_LineOfSightToThing).ToList();
+    var codes = instructions.MethodReplacer(
+        (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap),
+        (CachedMethodInfo.m_GenSight_LineOfSightToThing, CachedMethodInfo.m_GenSightOnVehicle_LineOfSightToThing));
 
     //GrapplerとTargetのマップ比較のとこだけBaseMapに変換する
     var pos = codes.FindIndex(c => c.opcode == OpCodes.Callvirt && c.OperandIs(CachedMethodInfo.g_Thing_Map));
@@ -83,8 +84,9 @@ public static class Patch_JobDriver_GrapplePawn_TickPreEnsnare
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap)
-      .MethodReplacer(CachedMethodInfo.m_GenSight_LineOfSightToThing, CachedMethodInfo.m_GenSightOnVehicle_LineOfSightToThing);
+    return instructions.MethodReplacer(
+      (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap),
+      (CachedMethodInfo.m_GenSight_LineOfSightToThing, CachedMethodInfo.m_GenSightOnVehicle_LineOfSightToThing));
   }
 }
 
@@ -146,8 +148,8 @@ public static class Patch_AnimRenderer_Draw
   {
     var f_AnimRenderer_Map = AccessTools.Field("AM.AnimRenderer:Map");
     var f_RootTransform = AccessTools.Field("AM.AnimRenderer:RootTransform");
-    var m_BaseMap = AccessTools.Method(typeof(Patch_AnimRenderer_Draw), nameof(BaseMap));
-    var m_RootTransformOffset = AccessTools.Method(typeof(Patch_AnimRenderer_Draw), nameof(RootTransformOffset));
+    var m_BaseMap = ((Delegate)BaseMap).Method;
+    var m_RootTransformOffset = ((Delegate)RootTransformOffset).Method;
     return instructions.Manipulator(c => c.LoadsField(f_AnimRenderer_Map),
       c =>
       {
@@ -221,7 +223,7 @@ public static class Patch_PartWithSweep_Draw
       c =>
       {
         c.opcode = OpCodes.Call;
-        c.operand = AccessTools.Method(typeof(Patch_AnimRenderer_Draw), nameof(Patch_AnimRenderer_Draw.RootTransformOffset));
+        c.operand = ((Delegate)Patch_AnimRenderer_Draw.RootTransformOffset).Method;
       });
   }
 }
@@ -254,7 +256,7 @@ public static class Patch_AnimRenderer_DrawSingle
       }
       return result;
     };
-    var m_RootPositionOffset = AccessTools.Method(typeof(Patch_AnimRenderer_DrawSingle), nameof(RootPositionOffset));
+    var m_RootPositionOffset = ((Delegate)RootPositionOffset).Method;
     return instructions.MethodReplacer(g_RootPosition, m_RootPositionOffset);
   }
 }
@@ -324,7 +326,7 @@ public static class Patch_DraftedFloatMenuOptionsUI_ExecutionEnabledOnClick
     codes.InsertRange(pos,
     [
       ldarg1,
-      CodeInstruction.Call(typeof(JobAcrossMapsUtility), nameof(JobAcrossMapsUtility.NextJobOfGotoDestMapJob)),
+      ((Delegate)JobAcrossMapsUtility.NextJobOfGotoDestMapJob).Method.CallInstruction,
       new CodeInstruction(OpCodes.Dup),
       new CodeInstruction(OpCodes.Brfalse_S, label),
       new CodeInstruction(OpCodes.Dup),

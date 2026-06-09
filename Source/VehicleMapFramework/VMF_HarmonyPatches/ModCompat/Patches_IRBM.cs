@@ -29,9 +29,10 @@ public static class Patch_Building_CIWS_DoGroundAttackCheck
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-      .MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned)
-      .MethodReplacer(CachedMethodInfo.m_Roofed, CachedMethodInfo.m_RoofedAcrossMaps);
+    return instructions.MethodReplacer(
+      (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing),
+      (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned),
+      (CachedMethodInfo.m_Roofed, CachedMethodInfo.m_RoofedAcrossMaps));
   }
 }
 
@@ -48,7 +49,7 @@ public static class Patch_Building_CIWS_FindBestGroundTarget
       .Insert(
         CodeInstruction.LoadArgument(0),
         CodeInstruction.LoadLocal(0),
-        CodeInstruction.Call(typeof(Patch_Building_CIWS_FindBestGroundTarget), nameof(PostfixWithMaxRange)))
+        ((Delegate)PostfixWithMaxRange).Method.CallInstruction)
       .InstructionEnumeration();
   }
 
@@ -98,8 +99,9 @@ public static class Patch_Building_CIWS_IsTargetValid
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-      .MethodReplacer(CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap);
+    return instructions.MethodReplacer(
+      (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing),
+      (CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap));
   }
 }
 
@@ -110,8 +112,9 @@ public static class Patch_Building_CIWS_IsHeadingForPlayerAssets
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing)
-      .MethodReplacer(CachedMethodInfo.m_GetThingList, CachedMethodInfo.m_GetThingListAcrossMaps);
+    return instructions.MethodReplacer(
+      (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing),
+      (CachedMethodInfo.m_GetThingList, CachedMethodInfo.m_GetThingListAcrossMaps));
   }
 }
 
@@ -174,8 +177,7 @@ public static class Patch_RadarUtility_GetActiveRadars
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
     var g_IsPlayerHome = AccessTools.PropertyGetter(typeof(Map), nameof(Map.IsPlayerHome));
-    var m_IsPlayerHomeOrVehicleMap =
-      AccessTools.Method(typeof(Patch_RadarUtility_GetActiveRadars), nameof(IsPlayerHomeOrVehicleMap));
+    var m_IsPlayerHomeOrVehicleMap = ((Delegate)IsPlayerHomeOrVehicleMap).Method;
     return instructions.MethodReplacer(g_IsPlayerHome, m_IsPlayerHomeOrVehicleMap);
   }
 

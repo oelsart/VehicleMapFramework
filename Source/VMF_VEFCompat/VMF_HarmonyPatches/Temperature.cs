@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
@@ -101,7 +102,7 @@ public static class Patch_CompTemperatureSource_GetCells
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    var m_ConditionalBaseMapOccupiedRect = AccessTools.Method(typeof(Patch_CompTemperatureSource_GetCells), nameof(ConditionalBaseMapOccupiedRect));
+    var m_ConditionalBaseMapOccupiedRect = ((Delegate)ConditionalBaseMapOccupiedRect).Method;
     return new CodeMatcher(instructions)
       .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.m_OccupiedRect))
       .Repeat(c => c

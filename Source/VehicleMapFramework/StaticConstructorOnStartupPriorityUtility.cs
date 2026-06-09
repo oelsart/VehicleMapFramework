@@ -13,6 +13,7 @@ public static class StaticConstructorOnStartupPriorityUtility
   {
     var types = GenTypes.AllTypesWithAttribute<StaticConstructorOnStartupPriorityAttribute>();
     types.SortByDescending(t => t.GetCustomAttribute<StaticConstructorOnStartupPriorityAttribute>().priority);
+
     foreach (var type in types)
     {
       try

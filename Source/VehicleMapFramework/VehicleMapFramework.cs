@@ -75,17 +75,17 @@ public class VehicleMapFramework : Mod
     {
       if (!settings.roofedPatch)
       {
-        var m_Postfix = AccessTools.Method(typeof(Patch_RoofGrid_Roofed), nameof(Patch_RoofGrid_Roofed.Postfix));
+        var m_Postfix = ((Delegate)Patch_RoofGrid_Roofed.Postfix).Method;
         VMF_Harmony.Instance.Unpatch(m_Roofed, m_Postfix);
       }
     }
     else if (settings.roofedPatch)
     {
-      var m_Postfix = AccessTools.Method(typeof(Patch_RoofGrid_Roofed), nameof(Patch_RoofGrid_Roofed.Postfix));
+      var m_Postfix = ((Delegate)Patch_RoofGrid_Roofed.Postfix).Method;
       VMF_Harmony.Instance.Patch(m_Roofed, postfix: m_Postfix);
     }
 
-    var m_GenericRectTool = AccessTools.Method(typeof(DebugToolsGeneral), nameof(DebugToolsGeneral.GenericRectTool));
+    var m_GenericRectTool = ((Delegate)DebugToolsGeneral.GenericRectTool).Method;
     if (VMF_Harmony.Instance.GetPatchedMethods().Contains(m_GenericRectTool))
     {
       if (!settings.debugToolPatches)

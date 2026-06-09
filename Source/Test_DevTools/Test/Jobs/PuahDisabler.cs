@@ -27,8 +27,7 @@ internal static class Patch_HaulToStorageJobByRace
   public static readonly MethodInfo m_Original =
     AccessTools.Method("PickUpAndHaul.HarmonyPatches:HaulToStorageJobByRace");
 
-  public static readonly MethodInfo m_Patch =
-    AccessTools.Method(typeof(Patch_HaulToStorageJobByRace), nameof(Prefix));
+  public static readonly MethodInfo m_Patch = ((Delegate)Prefix).Method;
 
   private static bool Prefix(Pawn p, Thing t, bool forced, out Job __result)
   {

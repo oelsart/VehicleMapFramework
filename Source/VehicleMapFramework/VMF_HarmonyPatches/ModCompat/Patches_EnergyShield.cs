@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
 using HarmonyLib;
@@ -38,7 +39,7 @@ public static class Patch_ShieldManagerMapComp_WillInterceptOrbitalStrike
       if (instruction.Calls(m_AllBuildingsColonistOfClass))
       {
         yield return CodeInstruction.LoadArgument(0);
-        yield return CodeInstruction.Call(typeof(Patch_ShieldManagerMapComp_WillInterceptOrbitalStrike), nameof(AddBuildings));
+        yield return ((Delegate)AddBuildings).Method.CallInstruction;
       }
     }
   }
