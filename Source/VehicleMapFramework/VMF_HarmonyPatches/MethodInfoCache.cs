@@ -26,11 +26,17 @@ public class MethodInfoCache
         {
           cacheInt.SetTarget(target = new MethodInfoCache());
           // List.AnyはGenCollectionによって解決されるためCIランで失敗する
-          if (typeof(MethodInfoCache).GetDeclaredFields().AsEnumerable().Any(f =>
-              {
-                if (f.IsStatic) return false;
-                return f.GetValue(target) is null;
-              }))
+          var hasNullField = false;
+          foreach (var f in AccessTools.GetDeclaredFields(typeof(MethodInfoCache)))
+          {
+            if (f.IsStatic) continue;
+            if (f.GetValue(target) is null)
+            {
+              hasNullField = true;
+              break;
+            }
+          }
+          if (hasNullField)
           {
             VMF_Log.Error(
               "MethodInfoCache failed to cache all MethodInfos. This may cause errors in some Harmony patches.");
