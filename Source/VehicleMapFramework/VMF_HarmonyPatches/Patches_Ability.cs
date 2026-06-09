@@ -8,7 +8,6 @@ using Verse;
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 [HarmonyPatch]
-[HarmonyPatchCategory(PatchCategories.AsyncPatches)]
 [PatchLevel(Level.Sensitive)]
 public static class Patches_AbilityComp
 {

@@ -2,8 +2,6 @@
 
 internal static class PatchCategories
 {
-  public const string AsyncPatches = "VMF_Patches_Async";
-  
   public const string Royalty = "VMF_Patches_Royalty";
 
   public const string Biotech = "VMF_Patches_Biotech";
