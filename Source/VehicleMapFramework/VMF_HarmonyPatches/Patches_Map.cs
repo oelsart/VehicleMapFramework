@@ -19,7 +19,7 @@ using Verse.Sound;
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 [HarmonyPatch(typeof(MapDrawLayer), "FinalizeMesh")]
-[PatchLevel(Level.Safe)]
+[PatchLevel(Level.Mandatory)]
 public static class Patch_MapDrawLayer_FinalizeMesh
 {
   public static void Prefix(MeshParts tags, Map ___map, List<LayerSubMesh> ___subMeshes)
