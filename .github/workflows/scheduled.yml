@@ -3,7 +3,7 @@ name: Scheduled Test
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 0 */2 * *'
+    - cron: '30 21 */2 * *'
 
 jobs:
   build_and_remote_test:
