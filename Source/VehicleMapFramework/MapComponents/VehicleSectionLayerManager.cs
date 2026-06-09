@@ -4,7 +4,6 @@ using System.Linq;
 using JetBrains.Annotations;
 using RimWorld;
 using SmashTools;
-using VehicleMapFramework.VMF_HarmonyPatches;
 using Verse;
 
 namespace VehicleMapFramework

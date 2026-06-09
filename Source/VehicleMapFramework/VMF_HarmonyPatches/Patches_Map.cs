@@ -956,3 +956,15 @@ public static class Patch_MapDeiniter_PassPawnsToWorld
     return instructions.MethodReplacer(CachedMethodInfo.g_AllPawns, CachedMethodInfo.m_AllPawns_Reverse);
   }
 }
+
+[HarmonyPatch(typeof(Map), nameof(Map.IsPlayerHome), MethodType.Getter)]
+[PatchLevel(Level.Safe)]
+public static class Patch_Map_IsPlayerHome
+{
+  private static bool Prepare() => VehicleMapFramework.settings.treatAsPlayerHome;
+
+  public static void Postfix(Map __instance, ref bool __result)
+  {
+    __result = __result || __instance.IsVehicleMapOf(out var vehicle) && vehicle.Faction == Faction.OfPlayer;
+  }
+}

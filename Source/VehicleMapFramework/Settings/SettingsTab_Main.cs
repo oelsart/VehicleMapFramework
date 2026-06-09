@@ -21,6 +21,7 @@ internal class SettingsTab_Main : SettingsTabDrawer
         settings.includeMapThings = VehicleMapSettings.Default.includeMapThings;
         settings.aStarTraverse = VehicleMapSettings.Default.aStarTraverse;
         settings.joyPatches = VehicleMapSettings.Default.joyPatches;
+        settings.treatAsPlayerHome = VehicleMapSettings.Default.treatAsPlayerHome;
         settings.colonistBarMode = VehicleMapSettings.Default.colonistBarMode;
         settings.drawVehicleMapGrid = VehicleMapSettings.Default.drawVehicleMapGrid;
     }
@@ -38,6 +39,7 @@ internal class SettingsTab_Main : SettingsTabDrawer
         listingStandard.CheckboxLabeled("VMF_Settings.TreatAsCaravanInventory".Translate(), ref settings.includeMapThings);
         listingStandard.CheckboxLabeled("(Experimental) Improved map traversal reachability checks.", ref settings.aStarTraverse);
         listingStandard.CheckboxLabeled("(Experimental) Cross map joy search.", ref settings.joyPatches);
+        listingStandard.CheckboxLabeled("(Experimental) Treat vehicle map as player home.", ref settings.treatAsPlayerHome);
         
         var label = "VMF_Settings.ColonistBarMode".Translate();
         const float widthPct = 0.5f;

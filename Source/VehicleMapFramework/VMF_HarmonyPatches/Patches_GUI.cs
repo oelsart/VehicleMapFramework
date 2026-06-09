@@ -352,6 +352,7 @@ public static class Patch_DesignationDragger_DraggerOnGUI
   }
 }
 
+// コロニストバーに車両アイコンを表示するパッチ
 [HarmonyPatch(typeof(ColonistBarColonistDrawer), nameof(ColonistBarColonistDrawer.DrawGroupFrame))]
 [PatchLevel(Level.Safe)]
 public static class Patch_ColonistBarColonistDrawer_DrawGroupFrame

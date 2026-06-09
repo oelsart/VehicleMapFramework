@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using HarmonyLib;
 using RimWorld;
-using RimWorld.Planet;
 using Verse;
 using Verse.AI;
 
@@ -17,10 +16,11 @@ public static class Patch_JoyGiver_GetSearchSet
     AccessTools.MethodDelegate<Action<JoyGiver, Pawn, List<Thing>>>(
       AccessTools.Method(typeof(JoyGiver), "GetSearchSet"));
   
+  private static bool Prepare() => VehicleMapFramework.settings.joyPatches;
+  
   public static void Postfix(JoyGiver __instance, Pawn pawn, List<Thing> outCandidates)
   {
-    if (!VehicleMapFramework.settings.joyPatches || working)
-      return;
+    if (working) return;
 
     working = true;
     try
@@ -42,13 +42,12 @@ public static class Patch_JoyGiver_GetSearchSet
 [PatchLevel(Level.Safe)]
 public static class Patch_JobGiver_GetJoy_TryGiveJobFromJoyGiverDefDirect
 {
+  private static bool Prepare() => VehicleMapFramework.settings.joyPatches;
+  
   public static void Postfix(Pawn pawn, Job __result)
   {
-    if (!VehicleMapFramework.settings.joyPatches || __result is null)
-      return;
-
-    var thingMap = __result.targetA.Thing?.MapHeld;
-    if (thingMap is not null && thingMap != pawn.Map &&
+    var thingMap = __result?.targetA.Thing?.MapHeld;
+    if (thingMap != null && thingMap != pawn.Map &&
         !__result.targetB.HasThing)
     {
       // CanReserveSittableOrSpotのパッチはTargetMapしか考慮できないため、Jobではなくpawnにセットしておく
@@ -61,11 +60,10 @@ public static class Patch_JobGiver_GetJoy_TryGiveJobFromJoyGiverDefDirect
 [PatchLevel(Level.Safe)]
 public static class Patch_WatchBuildingUtility_TryFindBestWatchCell
 {
+  private static bool Prepare() => VehicleMapFramework.settings.joyPatches;
+  
   public static void Prefix(Thing toWatch, Pawn pawn, ref VirtualTeleporter? __state)
   {
-    if (!VehicleMapFramework.settings.joyPatches)
-      return;
-
     var thingMap = toWatch.MapHeld;
     if (thingMap is not null && thingMap != pawn.Map)
     {
