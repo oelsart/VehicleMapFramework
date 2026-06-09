@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using HarmonyLib;
 using RimWorld;
@@ -24,7 +25,8 @@ public class MethodInfoCache
         if (!cacheInt.TryGetTarget(out var target))
         {
           cacheInt.SetTarget(target = new MethodInfoCache());
-          if (AccessTools.GetDeclaredFields(typeof(MethodInfoCache)).Any(f =>
+          // List.AnyはGenCollectionによって解決されるためCIランで失敗する
+          if (typeof(MethodInfoCache).GetDeclaredFields().AsEnumerable().Any(f =>
               {
                 if (f.IsStatic) return false;
                 return f.GetValue(target) is null;

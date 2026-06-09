@@ -42,7 +42,7 @@
 - Name: CeleTechArsenal
 - Name: CeleTechArsenal + CE
   Mods:
-    - Rimatomics
+    - CeleTechArsenal
   Categories:
     - VMF_Patches_CeleTechArsenalCECompat
 - Name: ColonyGroups
