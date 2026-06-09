@@ -530,8 +530,9 @@ public static class Patch_MapDrawer_ViewRect
 public static class Patch_GenView_ShouldSpawnMotesAt
 {
   [HarmonyPatch([typeof(IntVec3), typeof(Map), typeof(bool)])]
-  public static void Postfix(Map map, ref bool __result)
+  public static void Postfix(IntVec3 loc, Map map, ref bool __result)
   {
-    __result = __result || map.IsVehicleMap && map.BaseMapOrCaravan == Find.CurrentMap.BaseMapOrCaravan;
+    __result = __result || map.IsVehicleMap &&
+      map.BaseMapOrCaravan == Find.CurrentMap.BaseMapOrCaravan && loc.InBounds(map);
   }
 }
