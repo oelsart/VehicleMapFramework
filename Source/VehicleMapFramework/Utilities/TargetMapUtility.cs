@@ -7,7 +7,7 @@ public static class TargetMapUtility
 {
     public static TargetMapManager manager;
     
-    private static bool logging;
+    internal static bool logging;
 
     extension(Thing thing)
     {
