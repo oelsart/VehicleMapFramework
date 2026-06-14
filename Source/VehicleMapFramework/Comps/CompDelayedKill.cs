@@ -1,12 +1,13 @@
 ﻿using RimWorld;
+using UnityEngine;
 using Vehicles;
+using Vehicles.Rendering;
 using Verse;
 
 namespace VehicleMapFramework;
 
 public class CompDelayedKill : VehicleComp
 {
-
   private DestroyMode destroyMode;
 
   private Effecter effecter;
@@ -48,6 +49,34 @@ public class CompDelayedKill : VehicleComp
     ticksUntilKilled--;
     if (KillOnTick)
     {
+      var request = BlitRequest.For(Vehicle);
+      if (Vehicle is VehiclePawnWithMap vehiclePawnWithMap)
+        request.blitTargets.Add(vehiclePawnWithMap.VehicleMapBlitter);
+      request.rot = Vehicle.FullRotation;
+      var drawSize = Vehicle.DrawSize;
+      var max = Mathf.Max(drawSize.x, drawSize.y);
+      var drawSizeSquared = new Vector2(max, max);
+      var rect = new Rect(Vector2.zero, drawSizeSquared * 256);
+      var renderTex = VehicleGui.CreateRenderTexture(rect, in request);
+      VehicleGui.Blit(renderTex, rect, in request);
+      
+      var mote = (MoteThrownSinker)ThingMaker.MakeThing(VMF_DefOf.VMF_MoteSink);
+      mote.SetParameters(
+        renderTex,
+        Quaternion.AngleAxis(Vehicle.ExtraAngle, Vector3.up),
+        drawSizeSquared.ToVector3().WithY(1f),
+        new ColorInt(19, 29, 36).ToColor,
+        new SimpleCurve(
+          [
+            new CurvePoint(0f, 0f),
+            new CurvePoint(0.9f, 0.8f),
+            new CurvePoint(0.98f, 0.8f),
+            new CurvePoint(1f, 0f),
+          ]));
+      mote.SetVelocity(180f, 0.05f);
+      mote.exactPosition = Vehicle.DrawPos;
+      GenSpawn.Spawn(mote, mote.exactPosition.ToIntVec3(), Vehicle.Map);
+        
       Vehicle.Kill(null, destroyMode, spawnWreckage);
       effecter?.Cleanup();
       effecter = null;

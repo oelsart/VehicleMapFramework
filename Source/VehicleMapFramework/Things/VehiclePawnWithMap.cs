@@ -94,6 +94,8 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     set;
   }
 
+  public VehicleMapBlitter VehicleMapBlitter => field ??= new VehicleMapBlitter(this);
+
   [UsedImplicitly] public bool AllowEnter => allowEnter;
 
   [UsedImplicitly] public bool AllowExit => allowExit;

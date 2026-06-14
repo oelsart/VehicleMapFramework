@@ -100,7 +100,8 @@ public class Reactor_Sink : Reactor, ITweakFields
                     textureSize,
                     vehiclePawnWithMap,
                     overlay,
-                    this);
+                    overlayColor,
+                    colorOverlayAlphaCurve);
                 mote.SetVelocity(angle.RandomInRange, speed);
                 mote.exactPosition = drawPos +
                                      overlay.Graphic.DrawOffset(rot).RotatedBy(vehicle.ExtraAngle);
