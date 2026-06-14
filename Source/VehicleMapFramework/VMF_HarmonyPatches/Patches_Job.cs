@@ -37,7 +37,7 @@ public static class Patch_Pawn_JobTracker_StartJob
     [PatchLevel(Level.Safe)]
     public static void Prefix(Pawn_JobTracker __instance, Job newJob, int ___jobsGivenThisTick)
     {
-        if (___jobsGivenThisTick > 7 && newJob?.workGiverDef is { } workGiverDef)
+        if (___jobsGivenThisTick > 9 && newJob?.workGiverDef is { } workGiverDef)
         {
             var message = "A \"10 jobs in one tick\" error is about to occur. ";
             message += VehicleMapFramework.settings.crossMapJobProtect

@@ -73,6 +73,7 @@ public static class Patch_StoreUtility_TryFindBestBetterStoreCellFor
   public static void Postfix(Thing t, Pawn carrier, Map map, StoragePriority currentPriority, Faction faction,
     ref IntVec3 foundCell, bool needAccurateResult, ref bool __result)
   {
+    carrier.RemoveTargetInfo();
     var priority = foundCell.IsValid
       ? foundCell.GetSlotGroup(map)?.Settings?.Priority ?? currentPriority
       : currentPriority;
