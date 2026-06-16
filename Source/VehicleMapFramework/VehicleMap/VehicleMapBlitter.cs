@@ -7,7 +7,6 @@ using Verse;
 namespace VehicleMapFramework;
 
 [StaticConstructorOnStartup]
-[HotSwap]
 public class VehicleMapBlitter(VehiclePawnWithMap vehicle) : IBlitTarget
 {
   private static Material defaultMat;

@@ -692,13 +692,13 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     if (Spawned)
     {
       Resize();
+      CacheDrawPos(DrawPos);
       if (CompDelayedKill is { KillStarted: true })
       {
         CompDelayedKill.CompTick();
         return;
       }
 
-      CacheDrawPos(DrawPos);
       mapFollower?.MapFollowerTick();
     }
     else if (this.IsHashIntervalTick(30))
