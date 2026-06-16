@@ -31,7 +31,7 @@ public class MoteThrownSinker : MoteThrown
   private Texture texture;
   private Quaternion texRotation;
   private Vector3 texDrawSize;
-  private Vector2Int texSize;
+  private (int, int) texSize;
   private VehiclePawnWithMap vehicle;
   private GraphicOverlay overlay;
   private Color overlayColor;
@@ -50,7 +50,7 @@ public class MoteThrownSinker : MoteThrown
   }
   
   public virtual void SetParameters(Texture _texture, Quaternion _texRotation, Vector3 _texDrawSize,
-    Vector2Int _texSize,
+    (int, int) _texSize,
     VehiclePawnWithMap _vehicle, GraphicOverlay _overlay, Color _overlayColor, SimpleCurve _colorOverlayAlphaCurve)
   {
     texture = _texture;

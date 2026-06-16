@@ -86,7 +86,7 @@ public class Reactor_Sink : Reactor, ITweakFields
                 var mote = (MoteThrownSinker)ThingMaker.MakeThing(VMF_DefOf.VMF_MoteSink);
                 var drawSize = overlay.Graphic.drawSize;
                 var drawSizeRotated = rot.IsHorizontal ? drawSize.Rotated() : drawSize;
-                var textureSize = new Vector2Int(Mathf.CeilToInt(drawSizeRotated.x * 256), Mathf.CeilToInt(drawSizeRotated.y * 256));
+                var textureSize = (Mathf.CeilToInt(drawSizeRotated.x * 256), Mathf.CeilToInt(drawSizeRotated.y * 256));
                 var texture = VehicleMapUIRenderer.GetOverlayWithVehicleMapTexture(
                     vehiclePawnWithMap,
                     overlay,

@@ -20,8 +20,6 @@ public static class CrossMapReachabilityUtility
 
   private static ConditionalWeakTable<Pawn, Map> DestMaps { get; } = [];
 
-  public static Map DestMapGlobal;
-
   private static ConditionalWeakTable<Pawn, Map> DepartMaps { get; } = [];
 
   public static Map DepartMapGlobal;

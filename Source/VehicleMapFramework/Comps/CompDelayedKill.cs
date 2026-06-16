@@ -50,8 +50,6 @@ public class CompDelayedKill : VehicleComp
     if (KillOnTick)
     {
       var request = BlitRequest.For(Vehicle);
-      if (Vehicle is VehiclePawnWithMap vehiclePawnWithMap)
-        request.blitTargets.Add(vehiclePawnWithMap.VehicleMapBlitter);
       request.rot = Vehicle.FullRotation;
       var drawSize = Vehicle.DrawSize;
       var max = Mathf.Max(drawSize.x, drawSize.y);

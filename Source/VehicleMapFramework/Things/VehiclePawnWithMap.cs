@@ -95,6 +95,8 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
   }
 
   public VehicleMapBlitter VehicleMapBlitter => field ??= new VehicleMapBlitter(this);
+  
+  public Command_SelectVehicleMap VehicleMapGizmo => field ??= GetVehicleMapGizmo();
 
   [UsedImplicitly] public bool AllowEnter => allowEnter;
 
@@ -444,37 +446,11 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
       defaultDesc = "VMF_AllowsGetOffDesc".Translate(),
       icon = iconAllowExit.Texture
     };
-
-    yield return new Command_ToggleWithIcon
-    {
-      toggleAction = () =>
-      {
-        if (Find.CurrentMap == interiorMap && Spawned)
-        {
-          Current.Game.CurrentMap = Map;
-          return;
-        }
-
-        Patch_Game_CurrentMap.ForceSet = true;
-        Current.Game.CurrentMap = interiorMap;
-      },
-      isActive = () => Find.CurrentMap != interiorMap || !Spawned,
-      defaultLabel = interiorMap.Parent.LabelCap,
-      icon = VehicleMapUIRenderer.GetVehicleMapTexture(this, Rot4.East, new Vector2Int(128, 128)),
-      miniIcon = iconEye.Texture,
-      miniIconSize = 28f
-    };
+    yield return VehicleMapGizmo;
 
     if (DebugSettings.ShowDevGizmos)
     {
       yield return new Command_FocusVehicleMap();
-      yield return new Command_Toggle
-      {
-        defaultLabel = "Debug draw: bridge cells",
-        Order = 5005,
-        isActive = () => CompMapExpander.debugDraw,
-        toggleAction = () => CompMapExpander.debugDraw = !CompMapExpander.debugDraw
-      };
       yield return new Command_Action
       {
         defaultLabel = "Flash CachedMapEdgeCells",
@@ -506,7 +482,43 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
           }
         }
       };
+      if (this.VehicleDef.IsUniqueVehicle)
+      {
+        yield return new Command_Toggle
+        {
+          defaultLabel = "Debug draw: bridge cells",
+          Order = 5005,
+          isActive = () => CompMapExpander.debugDraw,
+          toggleAction = () => CompMapExpander.debugDraw = !CompMapExpander.debugDraw
+        };
+      }
     }
+  }
+
+  private Command_SelectVehicleMap GetVehicleMapGizmo()
+  {
+    return new Command_SelectVehicleMap(this)
+    {
+      portrait = new VehiclePortrait(new VehiclePortrait.Config
+      {
+        expiryTime = 5f
+      }),
+      toggleAction = () =>
+      {
+        if (Find.CurrentMap == interiorMap && Spawned)
+        {
+          Current.Game.CurrentMap = Map;
+          return;
+        }
+
+        Patch_Game_CurrentMap.ForceSet = true;
+        Current.Game.CurrentMap = interiorMap;
+      },
+      isActive = () => Find.CurrentMap != interiorMap || !Spawned,
+      defaultLabel = interiorMap.Parent.LabelCap,
+      miniIcon = iconEye.Texture,
+      miniIconSize = 28f
+    };
   }
 
   public List<CompVehicleEnterSpot> GetSortedEnterComps(IntVec3 cell, EnterCompKind kind = EnterCompKind.All)
@@ -620,7 +632,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
 
       if (VehicleDef.GetModExtension<VehicleMapProps_Unique>() is { baseDef: not null })
       {
-        FrameDelay.DelayOne<object>(_ => LongEventHandler.ExecuteWhenFinished(() => ResizeNow(false)), null);
+        FrameDelay.DelayOne<object>(_ => LongEventHandler.ExecuteWhenFinished(() => this.ResizeNow(false)), null);
       }
     }
 
@@ -1020,6 +1032,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
       if (!dirty && (section.dirtyFlags & (MapMeshFlagDefOf.Things | MapMeshFlagDefOf.Terrain)) > 0UL)
       {
         VehicleMapUIRenderer.SetDirty(this);
+        VehicleMapGizmo.portrait.MarkDirty();
         dirty = true;
       }
 
@@ -1388,53 +1401,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     if (resizeRequest)
     {
       resizeRequest = false;
-      ResizeNow();
-    }
-  }
-
-  private void ResizeNow(bool changePosition = true)
-  {
-    var vehicleDef = VehicleDef;
-    var curSize = vehicleDef.Size;
-    var mapRect = CellRect.WholeMap(VehicleMap);
-    var newRect = ValidMapRect;
-    var newSize = newRect.Size;
-    if (curSize != newSize)
-    {
-      VehicleResizeUtility.PreResize(this);
-      VMF_Log.DebugMessage($"Resize {vehicleDef} from {vehicleDef.size} to {newSize}");
-      vehicleDef.size = newSize;
-      var offset = mapRect.CenterVector3 - newRect.CenterVector3;
-      var data = VehicleGraphic.DataRgb;
-      var prevOffset = data.drawOffset;
-      data.drawOffset = offset;
-      data.drawOffsetNorth = offset;
-      data.drawOffsetEast = offset.RotatedBy(Rot4.East);
-      data.drawOffsetSouth = offset.RotatedBy(Rot4.South);
-      data.drawOffsetWest = offset.RotatedBy(Rot4.West);
-      UniqueVehicleUtility.ReinitializeComponents(vehicleDef);
-
-      foreach (var map in Find.Maps)
-      {
-        if (map.IsVehicleMap) continue;
-
-        var component = map.GetCachedMapComponent<VehiclePathingSystem>();
-        UniqueVehicleUtility.GeneratePathData(component, SingleParam.Get(vehicleDef));
-      }
-
-      if (Spawned)
-      {
-        if (changePosition)
-          VehicleResizeUtility.Reposition(this, prevOffset - offset);
-        else
-        {
-          Map.thingGrid.Register(this);
-          Map.coverGrid.Register(this);
-          RegionListersUpdater.RegisterInRegions(this, Map);
-        }
-
-        VehicleResizeUtility.RefreshVehiclePather(this);
-      }
+      this.ResizeNow();
     }
   }
 

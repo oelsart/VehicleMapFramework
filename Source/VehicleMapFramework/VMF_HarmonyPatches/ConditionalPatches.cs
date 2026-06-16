@@ -198,7 +198,7 @@ public static class Patch_TextureDrawer_Draw
       }
       var texture = VehicleMapUIRenderer.GetVehicleMapTexture(vehicle,
         Rot4.East,
-        new Vector2Int(256, 256),
+        (256, 256),
         drawSize,
         drawOffset);
       var rect2 = new Rect(0f, 0f, 150f, 150f)

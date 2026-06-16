@@ -80,15 +80,6 @@ public class UniqueVehicleManager(Game game) : GameComponent
 
     if (Scribe.mode == LoadSaveMode.LoadingVars)
     {
-      foreach (var props in hashSet)
-      {
-        VMF_Log.DebugMessage($"Loading VehicleDef: {props.defName}");
-        var vehicleDef = DefDatabase<VehicleDef>.GetNamedSilentFail(props.defName);
-        vehicleDef ??= GravshipVehicleUtility.GenerateGravshipVehicleDef(props);
-        vehicleDef.size = props.size;
-        UniqueVehicleUtility.ReinitializeComponents(vehicleDef);
-      }
-
       claimedDefNames ??= [];
       foreach (var parentDef in PlaceholderDefs.Keys)
       {
@@ -100,8 +91,14 @@ public class UniqueVehicleManager(Game game) : GameComponent
         foreach (var placeholder in PlaceholderDefs[parentDef])
         {
           placeholder.size = parentDef.size;
+          placeholder.uiIconScale = parentDef.uiIconScale;
           UniqueVehicleUtility.ReinitializeComponents(placeholder);
         }
+      }
+      
+      foreach (var props in hashSet)
+      {
+        GravshipVehicleUtility.GenerateGravshipVehicleDef(props, this);
       }
     }
   }
