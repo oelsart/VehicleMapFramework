@@ -238,8 +238,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
           foreach (var c in cellRect.EdgeRectClockwise(rot))
           {
             var c2 = c;
-            while (cachedOutOfBoundsCells.Contains(c2) ||
-                   (cachedExpandableCells.Contains(c2) && cachedImpassableCells.Contains(c2)))
+            while (cachedImpassableCells.Contains(c2))
             {
               c2 += facingInside;
             }
@@ -480,6 +479,15 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
             var pos = GetCachedEnterPosition(i);
             if (pos.IsValid) Map.debugDrawer.FlashCell(pos);
           }
+        }
+      };
+      yield return new Command_Action
+      {
+        defaultLabel = "Flash ValidMapRect",
+        Order = 5004,
+        action = () =>
+        {
+          foreach (var c in ValidMapRect) interiorMap.debugDrawer.FlashCell(c);
         }
       };
       if (this.VehicleDef.IsUniqueVehicle)

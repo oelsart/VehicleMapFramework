@@ -30,9 +30,9 @@ public class Command_SelectVehicleMap(VehiclePawnWithMap vehicle) : Command_Togg
     
     var request = BlitRequest.For(vehicle);
     var parentRect = rect2.AtZero();
-    var mapRect = vehicle.VehicleMapBlitter.GetRenderRect(parentRect, request);
-    var zoom = Mathf.Max(parentRect.width / Mathf.Max(mapRect.width, mapRect.height), 1f);
-    var drawRect = new Rect(parentRect.center - mapRect.center * zoom, parentRect.size * zoom);
+    var mapRect = vehicle.VehicleMapBlitter.GetRenderRect(parentRect, request, true);
+    var zoom = parentRect.width / mapRect.width;
+    var drawRect = new Rect(parentRect.position - mapRect.position * zoom, parentRect.size * zoom);
     portrait.Draw(drawRect, in request);
     Widgets.EndGroup();
   }

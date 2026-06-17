@@ -41,16 +41,28 @@ public class VehicleMapBlitter(VehiclePawnWithMap vehicle) : IBlitTarget
     yield return new RenderData(renderRect, texture, defaultMat, null, 0.1f, 0f);
   }
 
-  public Rect GetRenderRect(Rect parentRect, BlitRequest request)
+  public Rect GetRenderRect(Rect parentRect, BlitRequest request, bool fitToValidRect = false)
   {
     var vehicleRectSize = vehicle.VehicleDef.ScaleDrawRatio(parentRect.size);
     var vehicleMaxUi = Mathf.Max(vehicleRectSize.x, vehicleRectSize.y);
     var drawSizeMax = Mathf.Max(vehicle.VehicleDef.graphicData.drawSize.x, vehicle.VehicleDef.graphicData.drawSize.y);
     var pixelsPerCell = vehicleMaxUi / drawSizeMax;
 
-    var mapSize = vehicle.VehicleMap.Size;
+    var mapSize = fitToValidRect ? vehicle.ValidMapRect.ExpandedBy(1).Size : vehicle.VehicleMap.Size.ToIntVec2;
     float maxMapCells = Mathf.Max(mapSize.x, mapSize.z);
     var mapUiSize = new Vector2(maxMapCells * pixelsPerCell, maxMapCells * pixelsPerCell);
+
+    var elongated = request.rot.IsHorizontal || request.rot.IsDiagonal;
+    var vehicleGraphicData = vehicle.VehicleDef.graphicData;
+    var vehicleDrawSize = new Vector2(vehicleGraphicData.drawSize.x, vehicleGraphicData.drawSize.y);
+    if (elongated)
+    {
+      (vehicleDrawSize.x, vehicleDrawSize.y) = (vehicleDrawSize.y, vehicleDrawSize.x);
+    }
+
+    var scaleFactors = new Vector2(vehicleRectSize.x / vehicleDrawSize.x, vehicleRectSize.y / vehicleDrawSize.y);
+    var drawOffset = vehicleGraphicData.DrawOffsetForRot(request.rot);
+    var baseOffset = new Vector2(drawOffset.x * scaleFactors.x, -drawOffset.z * scaleFactors.y);
 
     var displayOffset = vehicle.VehicleDef.drawProperties.DisplayOffsetForRot(request.rot);
     var vehicleUiCenter = new Vector2(
@@ -59,9 +71,15 @@ public class VehicleMapBlitter(VehiclePawnWithMap vehicle) : IBlitTarget
     );
 
     var rawOffset = VehicleMapUtility.OffsetFor(vehicle, request.rot);
+    if (fitToValidRect)
+    {
+      rawOffset +=
+        (vehicle.ValidMapRect.CenterVector3 - vehicle.VehicleMap.BoundsRect().CenterVector3)
+        .RotatedBy(request.rot);
+    }
     var mapUiCenter = new Vector2(
-      vehicleUiCenter.x + (rawOffset.x * pixelsPerCell),
-      vehicleUiCenter.y + (-rawOffset.z * pixelsPerCell) // UIはY軸下向き
+      vehicleUiCenter.x + (rawOffset.x * pixelsPerCell) + baseOffset.x,
+      vehicleUiCenter.y + (-rawOffset.z * pixelsPerCell) + baseOffset.y // UIはY軸下向き
     );
 
     return new Rect(Vector2.zero, mapUiSize) { center = mapUiCenter };

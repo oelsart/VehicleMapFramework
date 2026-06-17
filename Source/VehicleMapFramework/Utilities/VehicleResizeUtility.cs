@@ -24,18 +24,19 @@ public static class VehicleResizeUtility
         VMF_Log.DebugMessage($"Resize {vehicleDef} from {vehicleDef.size} to {newSize}");
         var offset = mapRect.CenterVector3 - newRect.CenterVector3;
         var data = vehicle.VehicleGraphic.DataRgb;
+        var data2 = vehicle.VehicleDef.graphicData;
         var prevOffset = data.drawOffset;
         vehicleDef.size = newSize;
-        data.drawOffset = offset;
-        data.drawOffsetNorth = offset;
-        data.drawOffsetEast = offset.RotatedBy(Rot4.East);
-        data.drawOffsetSouth = offset.RotatedBy(Rot4.South);
-        data.drawOffsetWest = offset.RotatedBy(Rot4.West);
+        data.drawOffset = data2.drawOffset =  offset;
+        data.drawOffsetNorth = data2.drawOffsetNorth = offset;
+        data.drawOffsetEast = data2.drawOffsetEast = offset.RotatedBy(Rot4.East);
+        data.drawOffsetSouth = data2.drawOffsetSouth = offset.RotatedBy(Rot4.South);
+        data.drawOffsetWest = data2.drawOffsetWest = offset.RotatedBy(Rot4.West);
         if (vehicleDef.GetModExtension<VehicleMapProps_Unique>() is { baseDef: { } baseDef })
         {
-          vehicleDef.uiIconScale = (float)Mathf.Max(baseDef.size.x, baseDef.size.z) / Mathf.Max(newSize.x + 2, newSize.z + 2);
-          vehicle.VehicleMapGizmo.portrait.MarkDirty();
+          vehicleDef.uiIconScale = (float)Mathf.Max(baseDef.size.x, baseDef.size.z) / Mathf.Max(newSize.x, newSize.z);
         }
+        vehicle.VehicleMapGizmo.portrait.MarkDirty();
         UniqueVehicleUtility.ReinitializeComponents(vehicleDef);
 
         foreach (var map in Find.Maps)
