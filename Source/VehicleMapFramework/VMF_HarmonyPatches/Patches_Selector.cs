@@ -104,59 +104,6 @@ public static class Patch_Selector_SelectInternal
     }
 }
 
-[HarmonyPatch(typeof(Selector), nameof(Selector.SelectorOnGUI_BeforeMainTabs))]
-[PatchLevel(Level.Safe)]
-public static class Patch_Selector_SelectorOnGUI_BeforeMainTabs
-{
-    private const float SphereRadius = 100f;
-    private const float Magnification = Patch_Map_MapUpdate.MeshSizeX / 2f / Patch_Map_MapUpdate.TextureSize;
-    
-    public static void Postfix(Selector __instance)
-    {
-        if (Event.current.type == EventType.MouseDown && Event.current.button == 1 &&
-            Event.current.shift &&
-            Find.CurrentMap.IsVehicleMapOf(out var vehicle) &&
-            vehicle.ParentHolder is VehicleCaravan { IsPlayerControlled: true } caravan &&
-            __instance.SelectedPawns.Empty() &&
-            new Rect(Vector2.zero, Patch_Map_MapUpdate.MeshSize).Contains(UI.MouseMapPosition().ToVector2()))
-        {
-            var altitude = RootSizeToAltitude();
-            Patch_Map_MapUpdate.JumpTo(caravan.DrawPos, altitude);
-            Find.WorldCamera.transform.Translate(ScreenOffset());
-            Find.WorldSelector.ClearSelection();
-            Find.WorldSelector.Select(caravan, false);
-            Find.WorldSelector.WorldSelectorOnGUI();
-            Event.current.Use();
-        }
-    }
-
-    private static Vector2 ScreenOffset()
-    {
-        var offset = Find.Camera.transform.position.ToVector2() - Patch_Map_MapUpdate.MeshSize / 2f;
-        return offset * Magnification;
-    }
-
-    private static float RootSizeToAltitude()
-    {
-        var halfFovRad = Find.WorldCamera.fieldOfView * 0.5f * Mathf.Deg2Rad;
-        var distanceToSurface = Find.CameraDriver.RootSize * Magnification / Mathf.Tan(halfFovRad);
-        return distanceToSurface + SphereRadius;
-    }
-}
-
-[HarmonyPatch(typeof(GenWorld), nameof(GenWorld.TileAt))]
-[PatchLevel(Level.Safe)]
-public static class Patch_GenWorld_TileAt
-{
-    public static void Prefix()
-    {
-        if (WorldRendererUtility.DrawingMap && Find.CurrentMap is { IsVehicleMap: true })
-        {
-            Find.WorldCamera?.gameObject.SetActive(true);
-        }
-    }
-}
-
 [HarmonyPatch(typeof(CameraJumper), "TryJumpInternal", typeof(IntVec3), typeof(Map), typeof(CameraJumper.MovementMode))]
 [PatchLevel(Level.Safe)]
 public static class Patch_CameraJumper_TryJumpInternal

@@ -594,19 +594,6 @@ public static class Patch_PawnsFinder_AllMaps_PrisonersOfColonySpawned
   }
 }
 
-[HarmonyPatch(typeof(CameraJumper), nameof(CameraJumper.GetWorldTarget))]
-[PatchLevel(Level.Safe)]
-public static class Patch_CameraJumper_GetWorldTarget
-{
-  public static void Prefix(ref GlobalTargetInfo target)
-  {
-    if (target.Thing.IsOnVehicleMapOf(out var vehicle))
-    {
-      target = vehicle;
-    }
-  }
-}
-
 [HarmonyPatch]
 [PatchLevel(Level.Safe)]
 public static class Patch_DesignationManager_DesignationOn
@@ -651,32 +638,6 @@ public static class Patch_Room_DrawFieldEdges
         AccessTools.PropertyGetter(typeof(Room), nameof(Room.Map)).CallvirtInstruction)
       .SetOperandAndAdvance(CachedMethodInfo.m_GenDrawOnVehicle_DrawFieldEdges2)
       .InstructionEnumeration();
-  }
-}
-
-[HarmonyPatch(typeof(WorldObjectsHolder), nameof(WorldObjectsHolder.MapParentAt))]
-[PatchLevel(Level.Sensitive)]
-public static class Patch_WorldObjectsHolder_MapParentAt
-{
-  public static void Postfix(ref MapParent __result, List<MapParent> ___mapParents, PlanetTile tile)
-  {
-    if (__result is MapParent_Vehicle)
-    {
-      __result = ___mapParents.FirstOrDefault(p => p.Tile == tile && p is not MapParent_Vehicle);
-    }
-  }
-}
-
-[HarmonyPatch(typeof(Game), nameof(Game.FindMap), typeof(PlanetTile))]
-[PatchLevel(Level.Sensitive)]
-public static class Patch_Game_FindMap
-{
-  public static void Postfix(ref Map __result, List<Map> ___maps, PlanetTile tile)
-  {
-    if (__result.IsVehicleMap)
-    {
-      __result = ___maps.FirstOrDefault(m => m.Tile == tile && !m.IsVehicleMap);
-    }
   }
 }
 
