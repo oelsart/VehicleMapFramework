@@ -929,3 +929,88 @@ public static class Patch_Map_IsPlayerHome
     __result = __result || __instance.IsVehicleMapOf(out var vehicle) && vehicle.Faction == Faction.OfPlayer;
   }
 }
+
+// 地上マップの制限ゾーン変更により車両マップの制限ゾーンが地上マップのゾーンで上書きされる問題の修正
+[HarmonyPatch]
+[PatchLevel(Level.Cautious)]
+public static class Patch_Pawn_PlayerSettings_AreaRestrictionInPawnCurrentMap
+{
+  private static readonly AccessTools.FieldRef<Pawn_PlayerSettings, Pawn> pawn =
+    AccessTools.FieldRefAccess<Pawn_PlayerSettings, Pawn>("pawn");
+  
+  private static IEnumerable<MethodBase> TargetMethods()
+  {
+    yield return AccessTools.Method(typeof(AreaAllowedGUI), "DoAreaSelector");
+    yield return AccessTools.Method(typeof(InspectPaneFiller), "DrawAreaAllowed");
+    yield return AccessTools.FindIncludingInnerTypes(typeof(InspectPaneFiller), t =>
+      t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<DrawAreaAllowed>")));
+    yield return AccessTools.Method(typeof(PawnColumnWorker_AllowedArea), "HeaderClicked");
+  }
+
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    if (UnitTestDetector.IsTestingContext) return instructions;
+    var g_AreaRestrictionInPawnCurrentMap =
+      AccessTools.PropertyGetter(typeof(Pawn_PlayerSettings), nameof(Pawn_PlayerSettings.AreaRestrictionInPawnCurrentMap));
+    var g_AreaRestrictionInPawnBaseMap = ((Delegate)get_AreaRestrictionInPawnBaseMap).Method;
+    var s_AreaRestrictionInPawnCurrentMap =
+      AccessTools.PropertySetter(typeof(Pawn_PlayerSettings), nameof(Pawn_PlayerSettings.AreaRestrictionInPawnCurrentMap));
+    var s_AreaRestrictionInPawnBaseMap = ((Delegate)set_AreaRestrictionInPawnBaseMap).Method;
+    var m_AreaAllowedLabel = ((Delegate)AreaUtility.AreaAllowedLabel).Method;
+    var m_AreaAllowedLabelBaseMap = ((Delegate)AreaAllowedLabelBaseMap).Method;
+    var m_MakeAllowedAreaListFloatMenu = ((Delegate)AreaUtility.MakeAllowedAreaListFloatMenu).Method;
+    var m_MakeAllowedAreaListFloatMenuBaseMap = ((Delegate)MakeAllowedAreaListFloatMenuBaseMap).Method;
+    return instructions.MethodReplacer(
+      (g_AreaRestrictionInPawnCurrentMap, g_AreaRestrictionInPawnBaseMap),
+      (s_AreaRestrictionInPawnCurrentMap, s_AreaRestrictionInPawnBaseMap),
+      (m_AreaAllowedLabel, m_AreaAllowedLabelBaseMap),
+      (m_MakeAllowedAreaListFloatMenu, m_MakeAllowedAreaListFloatMenuBaseMap));
+  }
+
+  extension(Pawn_PlayerSettings playerSettings)
+  {
+    private Area AreaRestrictionInPawnBaseMap
+    {
+      get
+      {
+        var _pawn = pawn(playerSettings);
+        var mapHeldBaseMap = _pawn.MapHeldBaseMap();
+        if (Find.CurrentMap == mapHeldBaseMap && _pawn.MapHeld != mapHeldBaseMap)
+        {
+          using var _ = new VirtualTeleporter(_pawn, mapHeldBaseMap, _pawn.PositionOnBaseMap, true);
+          return playerSettings.AreaRestrictionInPawnCurrentMap;
+        }
+        return playerSettings.AreaRestrictionInPawnCurrentMap;
+      }
+      set
+      {
+        var _pawn = pawn(playerSettings);
+        var mapHeldBaseMap = _pawn.MapHeldBaseMap();
+        if (Find.CurrentMap == mapHeldBaseMap && _pawn.MapHeld != mapHeldBaseMap)
+        {
+          using var _ = new VirtualTeleporter(_pawn, mapHeldBaseMap, _pawn.PositionOnBaseMap, true);
+          playerSettings.AreaRestrictionInPawnCurrentMap = value;
+          return;
+        }
+        playerSettings.AreaRestrictionInPawnCurrentMap = value;
+      }
+    }
+  }
+
+  private static string AreaAllowedLabelBaseMap(Pawn _pawn)
+  {
+    return AreaUtility.AreaAllowedLabel_Area(_pawn.playerSettings?.AreaRestrictionInPawnBaseMap);
+  }
+
+  private static void MakeAllowedAreaListFloatMenuBaseMap(Action<Area> selAction,
+    bool addNullAreaOption, bool addManageOption, Map map)
+  {
+    var baseMap = map.GroundMap;
+    if (Find.CurrentMap == baseMap && map != baseMap)
+    {
+      AreaUtility.MakeAllowedAreaListFloatMenu(selAction, addNullAreaOption, addManageOption, baseMap);
+      return;
+    }
+    AreaUtility.MakeAllowedAreaListFloatMenu(selAction, addNullAreaOption, addManageOption, map);
+  }
+}
