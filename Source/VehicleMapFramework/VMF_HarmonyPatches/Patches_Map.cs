@@ -267,10 +267,12 @@ public static class Patch_Map_MapUpdate
     if (focused && __instance.IsVehicleMapOf(out var vehicle) && VehicleMapFramework.settings.drawPlanet &&
         WorldRendererUtility.DrawingMap && !Find.World.renderer.RegenerateLayersIfDirtyInLongEvent())
     {
-      var angle = vehicle.Transform.rotation + vehicle.Rotation.AsAngle;
+      var forceRotation = VehicleMapFramework.settings.forceRotated;
+      var forceRotated = forceRotation != VehicleMapSettings.ForceRotated.None;
+      var angle = forceRotated ? new Rot8((byte)forceRotation).AsAngle : vehicle.Transform.rotation + vehicle.Rotation.AsAngle;
       var vehicleCaravanOrStashedVehicle = vehicle.VehicleCaravanOrStashedVehicle;
       if ((GenTicks.TicksGame != lastRenderedTick || Find.TickManager.Paused) && Time.frameCount % 2 == 0 ||
-          mat != null && tmpRenderTex == null)
+          mat && !tmpRenderTex)
       {
         var worldObject = vehicleCaravanOrStashedVehicle ?? GetWorldObject(vehicle);
         if (worldObject is null) return;
@@ -292,7 +294,7 @@ public static class Patch_Map_MapUpdate
           vehicleCaravan.vehiclePather?.curPath?.DrawPath(vehicleCaravan);
         }
 
-        if (tmpRenderTex is not null)
+        if (tmpRenderTex)
         {
           RenderTexture.ReleaseTemporary(tmpRenderTex);
         }
@@ -306,7 +308,7 @@ public static class Patch_Map_MapUpdate
         Find.WorldCamera.orthographic = false;
         Find.World.renderer.wantedMode = WorldRenderMode.None;
         Find.CameraDriver.Update();
-        if (mat is null)
+        if (!mat)
         {
           mat = MaterialPool.MatFrom(new MaterialRequest(tmpRenderTex));
         }
@@ -333,35 +335,42 @@ public static class Patch_Map_MapUpdate
 
         if (!vehicle.Spawned)
         {
-          angle =
-            worldObject switch
-            {
-              VehicleCaravan vehicleCaravan2 => AngleOnPlanetSurface(
-                Find.WorldGrid.GetTileCenter(vehicleCaravan2.vehiclePather.NextTile.Valid
-                  ? vehicleCaravan2.vehiclePather.NextTile
-                  : vehicleCaravan2.Tile), Find.WorldGrid.GetTileCenter(vehicleCaravan2.Tile)),
-              Caravan caravan => AngleOnPlanetSurface(
-                Find.WorldGrid.GetTileCenter(caravan.pather.nextTile.Valid ? caravan.pather.nextTile : caravan.Tile),
-                Find.WorldGrid.GetTileCenter(caravan.Tile)),
-              AerialVehicleInFlight aerial => AngleOnPlanetSurface(aerial.DrawPos, aerial.position),
-              _ => 0f
-            };
-          var rot = Rot4.FromAngleFlat(angle);
-          if (vehicleCaravanOrStashedVehicle != null)
+          if (forceRotated)
           {
-            foreach (var vehicle2 in vehicleCaravanOrStashedVehicle.Vehicles)
-            {
-              vehicle2.FullRotation = rot;
-            }
+            vehicle.FullRotation = new Rot8((byte)forceRotation);
           }
-          else vehicle.FullRotation = rot;
+          else
+          {
+            angle =
+              worldObject switch
+              {
+                VehicleCaravan vehicleCaravan2 => AngleOnPlanetSurface(
+                  Find.WorldGrid.GetTileCenter(vehicleCaravan2.vehiclePather.NextTile.Valid
+                    ? vehicleCaravan2.vehiclePather.NextTile
+                    : vehicleCaravan2.Tile), Find.WorldGrid.GetTileCenter(vehicleCaravan2.Tile)),
+                Caravan caravan => AngleOnPlanetSurface(
+                  Find.WorldGrid.GetTileCenter(caravan.pather.nextTile.Valid ? caravan.pather.nextTile : caravan.Tile),
+                  Find.WorldGrid.GetTileCenter(caravan.Tile)),
+                AerialVehicleInFlight aerial => AngleOnPlanetSurface(aerial.DrawPos, aerial.position),
+                _ => 0f
+              };
+            var rot = Rot4.FromAngleFlat(angle);
+            if (vehicleCaravanOrStashedVehicle != null)
+            {
+              foreach (var vehicle2 in vehicleCaravanOrStashedVehicle.Vehicles)
+              {
+                vehicle2.FullRotation = rot;
+              }
+            }
+            else vehicle.FullRotation = rot;
+          }
         }
       }
 
       var center = new Vector3(MeshSize.x / 2f, 0f, MeshSize.y / 2f);
       // 背景
       Graphics.DrawMesh(mesh200, center, Quaternion.identity,
-        mat != null ? mat : SolidColorMaterials.SimpleSolidColorMaterial(Color.black), 0);
+        mat ? mat : SolidColorMaterials.SimpleSolidColorMaterial(Color.black), 0);
 
       // 空の暗さ
       skyMat.color = Color.black.WithAlpha((1f - vehicle.VehicleMap.skyManager.CurSkyGlow) * 0.2f);
@@ -388,7 +397,7 @@ public static class Patch_Map_MapUpdate
         vehicle.DrawAt(in drawPos, vehicle.FullRotation, angle - vehicle.FullRotation.AsAngle);
       }
     }
-    else if (tmpRenderTex != null && focused)
+    else if (tmpRenderTex && focused)
     {
       RenderTexture.ReleaseTemporary(tmpRenderTex);
       tmpRenderTex = null;
