@@ -4,6 +4,7 @@
 	<VMF_Settings.Tab.Main>Main</VMF_Settings.Tab.Main>
 	
 	<VMF_Settings.DrawPlanet>Draw the world map during caravan.</VMF_Settings.DrawPlanet>
+	<VMF_Settings.ForceRotated>Force vehicle rotation in the caravan.</VMF_Settings.ForceRotated>
 	<VMF_Settings.WeightFactor>Weight factor of things on the vehicle map.</VMF_Settings.WeightFactor>
 	<VMF_Settings.AutoGetOffPlayer>Player pawns automatically exit vehicle map.</VMF_Settings.AutoGetOffPlayer>
 	<VMF_Settings.AutoGetOffNonPlayer>Non-Player pawns automatically exit vehicle map.</VMF_Settings.AutoGetOffNonPlayer>

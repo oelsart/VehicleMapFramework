@@ -266,10 +266,12 @@ public static class Patch_Map_MapUpdate
     if (focused && __instance.IsVehicleMapOf(out var vehicle) && VehicleMapFramework.settings.drawPlanet &&
         WorldRendererUtility.DrawingMap && !Find.World.renderer.RegenerateLayersIfDirtyInLongEvent())
     {
-      var angle = vehicle.Transform.rotation + vehicle.Rotation.AsAngle;
+      var forceRotation = VehicleMapFramework.settings.forceRotated;
+      var forceRotated = forceRotation != VehicleMapSettings.ForceRotated.None;
+      var angle = forceRotated ? new Rot8((byte)forceRotation).AsAngle : vehicle.Transform.rotation + vehicle.Rotation.AsAngle;
       var vehicleCaravanOrStashedVehicle = vehicle.VehicleCaravanOrStashedVehicle;
       if ((GenTicks.TicksGame != lastRenderedTick || Find.TickManager.Paused) && Time.frameCount % 2 == 0 ||
-          mat != null && tmpRenderTex == null)
+          mat && !tmpRenderTex)
       {
         var worldObject = vehicleCaravanOrStashedVehicle ?? GetWorldObject(vehicle);
         if (worldObject is null) return;
@@ -291,7 +293,7 @@ public static class Patch_Map_MapUpdate
           vehicleCaravan.vehiclePather?.curPath?.DrawPath(vehicleCaravan);
         }
 
-        if (tmpRenderTex is not null)
+        if (tmpRenderTex)
         {
           RenderTexture.ReleaseTemporary(tmpRenderTex);
         }
@@ -305,7 +307,7 @@ public static class Patch_Map_MapUpdate
         Find.WorldCamera.orthographic = false;
         Find.World.renderer.wantedMode = WorldRenderMode.None;
         Find.CameraDriver.Update();
-        if (mat is null)
+        if (!mat)
         {
           mat = MaterialPool.MatFrom(new MaterialRequest(tmpRenderTex));
         }
@@ -332,35 +334,42 @@ public static class Patch_Map_MapUpdate
 
         if (!vehicle.Spawned)
         {
-          angle =
-            worldObject switch
-            {
-              VehicleCaravan vehicleCaravan2 => AngleOnPlanetSurface(
-                Find.WorldGrid.GetTileCenter(vehicleCaravan2.vehiclePather.NextTile.Valid
-                  ? vehicleCaravan2.vehiclePather.NextTile
-                  : vehicleCaravan2.Tile), Find.WorldGrid.GetTileCenter(vehicleCaravan2.Tile)),
-              Caravan caravan => AngleOnPlanetSurface(
-                Find.WorldGrid.GetTileCenter(caravan.pather.nextTile.Valid ? caravan.pather.nextTile : caravan.Tile),
-                Find.WorldGrid.GetTileCenter(caravan.Tile)),
-              AerialVehicleInFlight aerial => AngleOnPlanetSurface(aerial.DrawPos, aerial.position),
-              _ => 0f
-            };
-          var rot = Rot4.FromAngleFlat(angle);
-          if (vehicleCaravanOrStashedVehicle != null)
+          if (forceRotated)
           {
-            foreach (var vehicle2 in vehicleCaravanOrStashedVehicle.Vehicles)
-            {
-              vehicle2.FullRotation = rot;
-            }
+            vehicle.FullRotation = new Rot8((byte)forceRotation);
           }
-          else vehicle.FullRotation = rot;
+          else
+          {
+            angle =
+              worldObject switch
+              {
+                VehicleCaravan vehicleCaravan2 => AngleOnPlanetSurface(
+                  Find.WorldGrid.GetTileCenter(vehicleCaravan2.vehiclePather.NextTile.Valid
+                    ? vehicleCaravan2.vehiclePather.NextTile
+                    : vehicleCaravan2.Tile), Find.WorldGrid.GetTileCenter(vehicleCaravan2.Tile)),
+                Caravan caravan => AngleOnPlanetSurface(
+                  Find.WorldGrid.GetTileCenter(caravan.pather.nextTile.Valid ? caravan.pather.nextTile : caravan.Tile),
+                  Find.WorldGrid.GetTileCenter(caravan.Tile)),
+                AerialVehicleInFlight aerial => AngleOnPlanetSurface(aerial.DrawPos, aerial.position),
+                _ => 0f
+              };
+            var rot = Rot4.FromAngleFlat(angle);
+            if (vehicleCaravanOrStashedVehicle != null)
+            {
+              foreach (var vehicle2 in vehicleCaravanOrStashedVehicle.Vehicles)
+              {
+                vehicle2.FullRotation = rot;
+              }
+            }
+            else vehicle.FullRotation = rot;
+          }
         }
       }
 
       var center = new Vector3(MeshSize.x / 2f, 0f, MeshSize.y / 2f);
       // 背景
       Graphics.DrawMesh(mesh200, center, Quaternion.identity,
-        mat != null ? mat : SolidColorMaterials.SimpleSolidColorMaterial(Color.black), 0);
+        mat ? mat : SolidColorMaterials.SimpleSolidColorMaterial(Color.black), 0);
 
       // 空の暗さ
       skyMat.color = Color.black.WithAlpha((1f - vehicle.VehicleMap.skyManager.CurSkyGlow) * 0.2f);
@@ -387,7 +396,7 @@ public static class Patch_Map_MapUpdate
         vehicle.DrawAt(in drawPos, vehicle.FullRotation, angle - vehicle.FullRotation.AsAngle);
       }
     }
-    else if (tmpRenderTex != null && focused)
+    else if (tmpRenderTex && focused)
     {
       RenderTexture.ReleaseTemporary(tmpRenderTex);
       tmpRenderTex = null;
@@ -926,5 +935,90 @@ public static class Patch_Map_IsPlayerHome
   public static void Postfix(Map __instance, ref bool __result)
   {
     __result = __result || __instance.IsVehicleMapOf(out var vehicle) && vehicle.Faction == Faction.OfPlayer;
+  }
+}
+
+// 地上マップの制限ゾーン変更により車両マップの制限ゾーンが地上マップのゾーンで上書きされる問題の修正
+[HarmonyPatch]
+[PatchLevel(Level.Cautious)]
+public static class Patch_Pawn_PlayerSettings_AreaRestrictionInPawnCurrentMap
+{
+  private static readonly AccessTools.FieldRef<Pawn_PlayerSettings, Pawn> pawn =
+    AccessTools.FieldRefAccess<Pawn_PlayerSettings, Pawn>("pawn");
+  
+  private static IEnumerable<MethodBase> TargetMethods()
+  {
+    yield return AccessTools.Method(typeof(AreaAllowedGUI), "DoAreaSelector");
+    yield return AccessTools.Method(typeof(InspectPaneFiller), "DrawAreaAllowed");
+    yield return AccessTools.FindIncludingInnerTypes(typeof(InspectPaneFiller), t =>
+      t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<DrawAreaAllowed>")));
+    yield return AccessTools.Method(typeof(PawnColumnWorker_AllowedArea), "HeaderClicked");
+  }
+
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    if (UnitTestDetector.IsTestingContext) return instructions;
+    var g_AreaRestrictionInPawnCurrentMap =
+      AccessTools.PropertyGetter(typeof(Pawn_PlayerSettings), nameof(Pawn_PlayerSettings.AreaRestrictionInPawnCurrentMap));
+    var g_AreaRestrictionInPawnBaseMap = ((Delegate)get_AreaRestrictionInPawnBaseMap).Method;
+    var s_AreaRestrictionInPawnCurrentMap =
+      AccessTools.PropertySetter(typeof(Pawn_PlayerSettings), nameof(Pawn_PlayerSettings.AreaRestrictionInPawnCurrentMap));
+    var s_AreaRestrictionInPawnBaseMap = ((Delegate)set_AreaRestrictionInPawnBaseMap).Method;
+    var m_AreaAllowedLabel = ((Delegate)AreaUtility.AreaAllowedLabel).Method;
+    var m_AreaAllowedLabelBaseMap = ((Delegate)AreaAllowedLabelBaseMap).Method;
+    var m_MakeAllowedAreaListFloatMenu = ((Delegate)AreaUtility.MakeAllowedAreaListFloatMenu).Method;
+    var m_MakeAllowedAreaListFloatMenuBaseMap = ((Delegate)MakeAllowedAreaListFloatMenuBaseMap).Method;
+    return instructions.MethodReplacer(
+      (g_AreaRestrictionInPawnCurrentMap, g_AreaRestrictionInPawnBaseMap),
+      (s_AreaRestrictionInPawnCurrentMap, s_AreaRestrictionInPawnBaseMap),
+      (m_AreaAllowedLabel, m_AreaAllowedLabelBaseMap),
+      (m_MakeAllowedAreaListFloatMenu, m_MakeAllowedAreaListFloatMenuBaseMap));
+  }
+
+  extension(Pawn_PlayerSettings playerSettings)
+  {
+    private Area AreaRestrictionInPawnBaseMap
+    {
+      get
+      {
+        var _pawn = pawn(playerSettings);
+        var mapHeldBaseMap = _pawn.MapHeldBaseMap();
+        if (Find.CurrentMap == mapHeldBaseMap && _pawn.MapHeld != mapHeldBaseMap)
+        {
+          using var _ = new VirtualTeleporter(_pawn, mapHeldBaseMap, _pawn.PositionOnBaseMap, true);
+          return playerSettings.AreaRestrictionInPawnCurrentMap;
+        }
+        return playerSettings.AreaRestrictionInPawnCurrentMap;
+      }
+      set
+      {
+        var _pawn = pawn(playerSettings);
+        var mapHeldBaseMap = _pawn.MapHeldBaseMap();
+        if (Find.CurrentMap == mapHeldBaseMap && _pawn.MapHeld != mapHeldBaseMap)
+        {
+          using var _ = new VirtualTeleporter(_pawn, mapHeldBaseMap, _pawn.PositionOnBaseMap, true);
+          playerSettings.AreaRestrictionInPawnCurrentMap = value;
+          return;
+        }
+        playerSettings.AreaRestrictionInPawnCurrentMap = value;
+      }
+    }
+  }
+
+  private static string AreaAllowedLabelBaseMap(Pawn _pawn)
+  {
+    return AreaUtility.AreaAllowedLabel_Area(_pawn.playerSettings?.AreaRestrictionInPawnBaseMap);
+  }
+
+  private static void MakeAllowedAreaListFloatMenuBaseMap(Action<Area> selAction,
+    bool addNullAreaOption, bool addManageOption, Map map)
+  {
+    var baseMap = map.GroundMap;
+    if (Find.CurrentMap == baseMap && map != baseMap)
+    {
+      AreaUtility.MakeAllowedAreaListFloatMenu(selAction, addNullAreaOption, addManageOption, baseMap);
+      return;
+    }
+    AreaUtility.MakeAllowedAreaListFloatMenu(selAction, addNullAreaOption, addManageOption, map);
   }
 }

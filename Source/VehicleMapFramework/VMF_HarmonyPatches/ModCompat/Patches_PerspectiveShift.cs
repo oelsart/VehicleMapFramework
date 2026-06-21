@@ -37,6 +37,21 @@ public static class Patch_State_OnGUI
 }
 
 [HarmonyPatchCategory(PatchCategories.PerspectiveShift)]
+[HarmonyPatch("PerspectiveShift.Avatar", "UpdatePhysics")]
+[PatchLevel(Level.Sensitive)]
+public static class Patch_Avatar_UpdatePhysics
+{
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    return new CodeMatcher(instructions)
+      .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Find_CurrentMap))
+      .InsertAndAdvance(CachedMethodInfo.m_BaseMapOrCaravan_Map.CallInstruction)
+      .InsertAfter(CachedMethodInfo.m_BaseMapOrCaravan_Map.CallInstruction)
+      .InstructionEnumeration();
+  }
+}
+
+[HarmonyPatchCategory(PatchCategories.PerspectiveShift)]
 [HarmonyPatch("PerspectiveShift.Avatar", "UpdateCamera")]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Avatar_UpdateCamera
@@ -397,19 +412,5 @@ public static class Patch_Avatar_HandleFiring
     return instructions.MethodReplacer(
       (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing),
       (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned));
-  }
-}
-
-/// <summary>
-/// 車両マップとのキャッシュフレームタイミングの違いによりエラーがでることがあるため、アバターの非アクティブ化を確実にする
-/// </summary>
-[HarmonyPatchCategory(PatchCategories.PerspectiveShift)]
-[HarmonyPatch("PerspectiveShift.State", "ClearAvatar")]
-[PatchLevel(Level.Safe)]
-public static class Patch_State_ClearAvatar
-{
-  public static void Postfix(ref int ____isAvatarCacheFrame)
-  {
-    ____isAvatarCacheFrame = -1;
   }
 }

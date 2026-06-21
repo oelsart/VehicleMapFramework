@@ -1,4 +1,5 @@
-﻿using VehicleMapFramework.VMF_HarmonyPatches;
+﻿using JetBrains.Annotations;
+using VehicleMapFramework.VMF_HarmonyPatches;
 using Verse;
 
 namespace VehicleMapFramework;
@@ -6,6 +7,8 @@ namespace VehicleMapFramework;
 public class VehicleMapSettings : ModSettings
 {
     public bool drawPlanet = Default.drawPlanet;
+
+    public ForceRotated forceRotated = Default.forceRotated;
 
     public float weightFactor = Default.weightFactor;
 
@@ -40,6 +43,7 @@ public class VehicleMapSettings : ModSettings
     public override void ExposeData()
     {
         Scribe_Values.Look(ref drawPlanet, nameof(drawPlanet), Default.drawPlanet);
+        Scribe_Values.Look(ref forceRotated, nameof(forceRotated), Default.forceRotated);
         Scribe_Values.Look(ref weightFactor, nameof(weightFactor), Default.weightFactor);
         Scribe_Values.Look(ref autoGetOffPlayer, nameof(autoGetOffPlayer), Default.autoGetOffPlayer);
         Scribe_Values.Look(ref autoGetOffNonPlayer, nameof(autoGetOffNonPlayer), Default.autoGetOffNonPlayer);
@@ -60,6 +64,8 @@ public class VehicleMapSettings : ModSettings
     internal class Default
     {
         public const bool drawPlanet = true;
+
+        public const ForceRotated forceRotated = ForceRotated.None;
 
         public const float weightFactor = 1f;
 
@@ -97,5 +103,19 @@ public class VehicleMapSettings : ModSettings
       DontShow,
       MouseIsOver,
       Always
+    }
+
+    [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
+    public enum ForceRotated
+    {
+      None = -1,
+      North,
+      East,
+      South,
+      West,
+      NorthEast,
+      NorthWest,
+      SouthEast,
+      SouthWest
     }
 }

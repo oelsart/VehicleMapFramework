@@ -3,9 +3,7 @@ using System.Linq;
 using System.Reflection.Emit;
 using HarmonyLib;
 using RimWorld;
-using RimWorld.Planet;
 using UnityEngine;
-using Vehicles.World;
 using Verse;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
