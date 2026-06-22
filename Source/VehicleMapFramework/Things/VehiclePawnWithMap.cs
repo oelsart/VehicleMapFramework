@@ -227,8 +227,6 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
         enterPositionsDirty = true;
         field.Clear();
         var cellRect = interiorMap.BoundsRect(1);
-        var cachedOutOfBoundsCells = CachedOutOfBoundsCells;
-        var cachedExpandableCells = CachedExpandableCells;
         var cachedImpassableCells = CachedImpassableCells;
         for (var i = 0; i < 4; i++)
         {

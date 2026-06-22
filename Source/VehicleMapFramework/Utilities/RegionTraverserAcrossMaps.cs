@@ -97,13 +97,17 @@ public static class RegionTraverserAcrossMaps
                             continue;
                         }
                     }
-                    foreach (var thing in ZiplineDefs.SelectMany(def => region.ListerThings.ThingsOfDef(def)))
+
+                    foreach (var def in ZiplineDefs)
                     {
+                      foreach (var thing in region.ListerThings.ThingsOfDef(def))
+                      {
                         if (!thing.TryGetComp<CompZipline>(out var comp) || comp.Pair is null or { Spawned: false }) continue;
                         var pair = comp.Pair;
                         var region2 = pair.Position.GetRegion(pair.Map);
                         if (ValidateRegion(region, region2))
-                            QueueNewOpenRegion(region2);
+                          QueueNewOpenRegion(region2);
+                      }
                     }
                 }
             }
