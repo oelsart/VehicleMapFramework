@@ -286,7 +286,6 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
     {
       var map = pawn.Map;
       var targetMap = target.Map;
-      pawn.TargetInfo = target;
       if (map == targetMap)
       {
         return scanner.JobOnCell(pawn, target.Cell, forced);
