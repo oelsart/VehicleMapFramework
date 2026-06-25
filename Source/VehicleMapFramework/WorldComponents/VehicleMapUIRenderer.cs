@@ -7,6 +7,7 @@ using UnityEngine.Rendering;
 using Vehicles;
 using Verse;
 using Object = UnityEngine.Object;
+using TexSize = (int width, int height);
 
 namespace VehicleMapFramework;
 
@@ -88,7 +89,7 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
     camera.AddCommandBuffer(CameraEvent.BeforeForwardOpaque, commandBuffer);
   }
 
-  public static Texture GetVehicleMapTexture(VehiclePawnWithMap vehicle, Rot4 rot, Vector2Int texSize,
+  public static Texture GetVehicleMapTexture(VehiclePawnWithMap vehicle, Rot4 rot, TexSize texSize,
     Vector2? drawSize = null, Vector3? drawOffset = null)
   {
     var component = Current.Game?.GetComponent<VehicleMapUIRenderer>();
@@ -111,7 +112,7 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
 
     camera.enabled = true;
     camera.orthographicSize = maxSize / 2f;
-    camera.aspect = (float)texSize.x / texSize.y;
+    camera.aspect = (float)texSize.width / texSize.height;
     camera.targetTexture = cache.RenderTexture;
     component.commandBuffer.Clear();
     component.RenderVehicleMap(vehicle.VehicleMap, mapOrigin + offset, rot);
@@ -123,7 +124,7 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
   }
 
   public static Texture GetOverlayWithVehicleMapTexture(VehiclePawnWithMap vehicle, GraphicOverlay overlay, Rot4 rot,
-    Vector2Int texSize, CellRect mapLimit)
+    TexSize texSize, CellRect mapLimit)
   {
     var component = Current.Game?.GetComponent<VehicleMapUIRenderer>();
     if (component?.camera is null || component.commandBuffer is null)
@@ -144,7 +145,7 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
     var drawSizeRotated = rot.IsHorizontal ? drawSize.Rotated() : drawSize;
     camera.targetTexture = cache.RenderTexture;
     camera.orthographicSize = drawSizeRotated.y / 2f;
-    camera.aspect = (float)texSize.x / texSize.y;
+    camera.aspect = (float)texSize.width / texSize.height;
 
     component.commandBuffer.Clear();
     var graphic = overlay.Graphic;
@@ -160,7 +161,7 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
                     overlayPos;
 
     var offset = drawSizeRotated.ToVector3() / 2f;
-    var scale = texSize.y / drawSizeRotated.y;
+    var scale = texSize.height / drawSizeRotated.y;
     var bl = (mapOrigin + mapLimit.Min.ToVector3().RotatedBy(rot) + offset) * scale;
     var tr = (mapOrigin + mapLimit.MaxExpandedBy(1).Max.ToVector3().RotatedBy(rot) + offset) * scale;
     var minX = Mathf.Min(bl.x, tr.x);
@@ -279,24 +280,24 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
     return value;
   }
 
-  private RenderTexture GetRenderTexture(Vector2Int size)
+  private RenderTexture GetRenderTexture(TexSize size)
   {
     for (var i = renderTexturesPool.Count - 1; i >= 0; i--)
     {
       var rt = renderTexturesPool[i];
-      if (rt.width == size.x && rt.height == size.y)
+      if (rt.width == size.width && rt.height == size.height)
       {
         renderTexturesPool.RemoveAt(i);
         return rt;
       }
     }
-    return new RenderTexture(size.x, size.y, 24)
+    return new RenderTexture(size.width, size.height, 24)
     {
       name = "VehicleMapTexture", useMipMap = false, filterMode = FilterMode.Bilinear
     };
   }
 
-  private readonly record struct CacheKey(Vector2Int size, VehiclePawnWithMap vehicle, [UsedImplicitly] GraphicOverlay overlay = null);
+  private readonly record struct CacheKey(TexSize size, VehiclePawnWithMap vehicle, [UsedImplicitly] GraphicOverlay overlay = null);
 
   public readonly struct CachedMapTexture(RenderTexture renderTexture, bool dirty)
   {

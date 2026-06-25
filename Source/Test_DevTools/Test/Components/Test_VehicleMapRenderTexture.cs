@@ -52,11 +52,11 @@ public class Test_VehicleMapRenderTexture
       vehicleDef = DefDatabase<VehicleDef>.GetNamed("MV_Glypto"), drivers = 1
     });
     var vehiclePawnWithMap = (VehiclePawnWithMap)group.vehicle;
-    var texture = VehicleMapUIRenderer.GetVehicleMapTexture(vehiclePawnWithMap, Rot4.North, new Vector2Int(128, 128));
+    var texture = VehicleMapUIRenderer.GetVehicleMapTexture(vehiclePawnWithMap, Rot4.North, (128, 128));
     Expect.IsNotNull(texture, "GetVehicleMapTexture should return a non-null texture.");
-    var texture2 = VehicleMapUIRenderer.GetVehicleMapTexture(vehiclePawnWithMap, Rot4.North, new Vector2Int(128, 128));
+    var texture2 = VehicleMapUIRenderer.GetVehicleMapTexture(vehiclePawnWithMap, Rot4.North, (128, 128));
     Expect.AreEqual(texture2, texture, "Cache hit for GetVehicleMapTexture.");
-    var texture3 = VehicleMapUIRenderer.GetVehicleMapTexture(vehiclePawnWithMap, Rot4.North, new Vector2Int(256, 256));
+    var texture3 = VehicleMapUIRenderer.GetVehicleMapTexture(vehiclePawnWithMap, Rot4.North, (256, 256));
     Expect.AreNotEqual(texture3, texture, "GetRenderTextures should return a different texture for a different size.");
 
     var overlay = vehiclePawnWithMap.DrawTracker.overlayRenderer.Overlays.FirstOrDefault();
@@ -64,7 +64,7 @@ public class Test_VehicleMapRenderTexture
     var texture4 = VehicleMapUIRenderer.GetOverlayWithVehicleMapTexture(vehiclePawnWithMap,
       overlay,
       Rot4.North,
-      new Vector2Int(128, 128),
+      (128, 128),
       vehiclePawnWithMap.VehicleMap.BoundsRect());
     Expect.IsNotNull(texture4, "GetOverlayWithVehicleMapTexture should return a non-null texture.");
   }

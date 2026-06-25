@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using HarmonyLib;
 using JetBrains.Annotations;
+using LudeonTK;
 using RimWorld;
 using RimWorld.Planet;
 using SmashTools;
@@ -16,6 +17,7 @@ using Vehicles.World;
 using Verse;
 using Verse.AI;
 #if DEV
+using Vehicles.Rendering;
 #endif
 
 namespace VehicleMapFramework;
@@ -93,6 +95,10 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     get => field ?? interiorMap;
     set;
   }
+
+  public VehicleMapBlitter VehicleMapBlitter => field ??= new VehicleMapBlitter(this);
+  
+  public Command_SelectVehicleMap VehicleMapGizmo => field ??= GetVehicleMapGizmo();
 
   [UsedImplicitly] public bool AllowEnter => allowEnter;
 
@@ -223,8 +229,6 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
         enterPositionsDirty = true;
         field.Clear();
         var cellRect = interiorMap.BoundsRect(1);
-        var cachedOutOfBoundsCells = CachedOutOfBoundsCells;
-        var cachedExpandableCells = CachedExpandableCells;
         var cachedImpassableCells = CachedImpassableCells;
         for (var i = 0; i < 4; i++)
         {
@@ -234,8 +238,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
           foreach (var c in cellRect.EdgeRectClockwise(rot))
           {
             var c2 = c;
-            while (cachedOutOfBoundsCells.Contains(c2) ||
-                   (cachedExpandableCells.Contains(c2) && cachedImpassableCells.Contains(c2)))
+            while (cachedImpassableCells.Contains(c2))
             {
               c2 += facingInside;
             }
@@ -442,37 +445,11 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
       defaultDesc = "VMF_AllowsGetOffDesc".Translate(),
       icon = iconAllowExit.Texture
     };
-
-    yield return new Command_ToggleWithIcon
-    {
-      toggleAction = () =>
-      {
-        if (Find.CurrentMap == interiorMap && Spawned)
-        {
-          Current.Game.CurrentMap = Map;
-          return;
-        }
-
-        Patch_Game_CurrentMap.ForceSet = true;
-        Current.Game.CurrentMap = interiorMap;
-      },
-      isActive = () => Find.CurrentMap != interiorMap || !Spawned,
-      defaultLabel = interiorMap.Parent.LabelCap,
-      icon = VehicleMapUIRenderer.GetVehicleMapTexture(this, Rot4.East, new Vector2Int(128, 128)),
-      miniIcon = iconEye.Texture,
-      miniIconSize = 28f
-    };
+    yield return VehicleMapGizmo;
 
     if (DebugSettings.ShowDevGizmos)
     {
       yield return new Command_FocusVehicleMap();
-      yield return new Command_Toggle
-      {
-        defaultLabel = "Debug draw: bridge cells",
-        Order = 5005,
-        isActive = () => CompMapExpander.debugDraw,
-        toggleAction = () => CompMapExpander.debugDraw = !CompMapExpander.debugDraw
-      };
       yield return new Command_Action
       {
         defaultLabel = "Flash CachedMapEdgeCells",
@@ -504,7 +481,52 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
           }
         }
       };
+      yield return new Command_Action
+      {
+        defaultLabel = "Flash ValidMapRect",
+        Order = 5004,
+        action = () =>
+        {
+          foreach (var c in ValidMapRect) interiorMap.debugDrawer.FlashCell(c);
+        }
+      };
+      if (this.VehicleDef.IsUniqueVehicle)
+      {
+        yield return new Command_Toggle
+        {
+          defaultLabel = "Debug draw: bridge cells",
+          Order = 5005,
+          isActive = () => CompMapExpander.debugDraw,
+          toggleAction = () => CompMapExpander.debugDraw = !CompMapExpander.debugDraw
+        };
+      }
     }
+  }
+
+  private Command_SelectVehicleMap GetVehicleMapGizmo()
+  {
+    return new Command_SelectVehicleMap(this)
+    {
+      portrait = new VehiclePortrait(new VehiclePortrait.Config
+      {
+        expiryTime = 5f
+      }),
+      toggleAction = () =>
+      {
+        if (Find.CurrentMap == interiorMap && Spawned)
+        {
+          Current.Game.CurrentMap = Map;
+          return;
+        }
+
+        Patch_Game_CurrentMap.ForceSet = true;
+        Current.Game.CurrentMap = interiorMap;
+      },
+      isActive = () => Find.CurrentMap != interiorMap || !Spawned,
+      defaultLabel = interiorMap.Parent.LabelCap,
+      miniIcon = iconEye.Texture,
+      miniIconSize = 28f
+    };
   }
 
   public List<CompVehicleEnterSpot> GetSortedEnterComps(IntVec3 cell, EnterCompKind kind = EnterCompKind.All)
@@ -618,7 +640,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
 
       if (VehicleDef.GetModExtension<VehicleMapProps_Unique>() is { baseDef: not null })
       {
-        FrameDelay.DelayOne<object>(_ => LongEventHandler.ExecuteWhenFinished(() => ResizeNow(false)), null);
+        FrameDelay.DelayOne<object>(_ => LongEventHandler.ExecuteWhenFinished(() => this.ResizeNow(false)), null);
       }
     }
 
@@ -678,13 +700,13 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     if (Spawned)
     {
       Resize();
+      CacheDrawPos(DrawPos);
       if (CompDelayedKill is { KillStarted: true })
       {
         CompDelayedKill.CompTick();
         return;
       }
 
-      CacheDrawPos(DrawPos);
       mapFollower?.MapFollowerTick();
     }
     else if (this.IsHashIntervalTick(30))
@@ -1018,6 +1040,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
       if (!dirty && (section.dirtyFlags & (MapMeshFlagDefOf.Things | MapMeshFlagDefOf.Terrain)) > 0UL)
       {
         VehicleMapUIRenderer.SetDirty(this);
+        VehicleMapGizmo.portrait.MarkDirty();
         dirty = true;
       }
 
@@ -1386,56 +1409,39 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     if (resizeRequest)
     {
       resizeRequest = false;
-      ResizeNow();
+      this.ResizeNow();
     }
   }
 
-  private void ResizeNow(bool changePosition = true)
+  [DebugAction(VehicleMapFramework.CategoryName, "Set Transform.Rotation", actionType = DebugActionType.ToolMapForPawns)]
+  private static void SetTransformRotation(Pawn pawn)
   {
-    var vehicleDef = VehicleDef;
-    var curSize = vehicleDef.Size;
-    var mapRect = CellRect.WholeMap(VehicleMap);
-    var newRect = ValidMapRect;
-    var newSize = newRect.Size;
-    if (curSize != newSize)
+    if (pawn is not VehiclePawn vehicle)
     {
-      VehicleResizeUtility.PreResize(this);
-      VMF_Log.DebugMessage($"Resize {vehicleDef} from {vehicleDef.size} to {newSize}");
-      vehicleDef.size = newSize;
-      var offset = mapRect.CenterVector3 - newRect.CenterVector3;
-      var data = VehicleGraphic.DataRgb;
-      var prevOffset = data.drawOffset;
-      data.drawOffset = offset;
-      data.drawOffsetNorth = offset;
-      data.drawOffsetEast = offset.RotatedBy(Rot4.East);
-      data.drawOffsetSouth = offset.RotatedBy(Rot4.South);
-      data.drawOffsetWest = offset.RotatedBy(Rot4.West);
-      UniqueVehicleUtility.ReinitializeComponents(vehicleDef);
-
-      foreach (var map in Find.Maps)
-      {
-        if (map.IsVehicleMap) continue;
-
-        var component = map.GetCachedMapComponent<VehiclePathingSystem>();
-        UniqueVehicleUtility.GeneratePathData(component, SingleParam.Get(vehicleDef));
-      }
-
-      if (Spawned)
-      {
-        if (changePosition)
-          VehicleResizeUtility.Reposition(this, prevOffset - offset);
-        else
-        {
-          Map.thingGrid.Register(this);
-          Map.coverGrid.Register(this);
-          RegionListersUpdater.RegisterInRegions(this, Map);
-        }
-
-        VehicleResizeUtility.RefreshVehiclePather(this);
-      }
+      Messages.Message("The selected pawn is not a vehicle.", MessageTypeDefOf.RejectInput, false);
+      return;
     }
+  
+    DebugTools.curTool = new DebugTool($"{pawn}: to...", () =>
+    {
+      var angle = Ext_Math.RotateAngle((UI.MouseMapPosition() - vehicle.DrawPos).ToAngleFlat(), 90f) -
+                  vehicle.FullRotation.AsAngle;
+      vehicle.Transform.rotation = angle;
+      Messages.Message($"Set {pawn}'s Transform.rotation to {angle:F1}", MessageTypeDefOf.NeutralEvent, false);
+    });
   }
 
+  [DebugAction(VehicleMapFramework.CategoryName, "Reset Transform.Rotation", actionType = DebugActionType.ToolMapForPawns)]
+  private static void ResetTransformRotation(Pawn pawn)
+  {
+    if (pawn is not VehiclePawn vehicle)
+    {
+      Messages.Message("The selected pawn is not a vehicle.", MessageTypeDefOf.RejectInput, false);
+      return;
+    }
+  
+    vehicle.Transform.rotation = 0f;
+  }
 
   public enum EnterCompKind
   {

@@ -13,8 +13,7 @@ namespace VehicleMapFramework
         public override void ResolveReferences(Def parentDef)
         {
             base.ResolveReferences(parentDef);
-            if (this is VehicleMapProps_Gravship ||
-                parentDef is not VehicleDef vehicleDef) return;
+            if (parentDef is not VehicleDef vehicleDef) return;
             
             LongEventHandler.ExecuteWhenFinished(() =>
             {

@@ -1,4 +1,5 @@
 ﻿using JetBrains.Annotations;
+using UnityEngine;
 using Verse;
 
 namespace VehicleMapFramework;
@@ -7,10 +8,10 @@ namespace VehicleMapFramework;
 public class CompProperties_DelayedKill : CompProperties
 {
   public int delayTicks = 480;
-
   public EffecterDef effecterDef;
-
   [MustTranslate] public string message;
+
+  public Vector3 moveVector;
 
   public CompProperties_DelayedKill()
   {

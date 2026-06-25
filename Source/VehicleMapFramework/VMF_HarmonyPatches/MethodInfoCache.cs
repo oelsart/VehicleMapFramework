@@ -319,6 +319,10 @@ public class MethodInfoCache
     public readonly MethodInfo m_AllPawnsSpawned_Reverse = ((Delegate)Patch_MapPawns_AllPawnsSpawned.AllPawnsSpawned).Method;
     
     public readonly MethodInfo g_AllPawns = AccessTools.PropertyGetter(typeof(MapPawns), nameof(MapPawns.AllPawns));
-    
+
     public readonly MethodInfo m_AllPawns_Reverse = ((Delegate)Patch_MapPawns_AllPawns.AllPawns).Method;
+
+    public readonly MethodInfo g_Vector3_up = AccessTools.PropertyGetter(typeof(Vector3), nameof(Vector3.up));
+    
+    public readonly MethodInfo m_Quaternion_AngleAxis = ((Delegate)Quaternion.AngleAxis).Method;
 }

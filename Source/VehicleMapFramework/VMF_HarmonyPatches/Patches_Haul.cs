@@ -225,7 +225,8 @@ public static class Patch_LoadTransportersJobUtility_FindThingToLoad
         CodeInstruction.LoadField(typeof(ThingComp), nameof(ThingComp.parent)));
 
       var m_ClosestThingReachable = ((Delegate)GenClosest.ClosestThingReachable).Method;
-      var m_ClosestThingReachableOriginal = ((Delegate)Patch_GenClosest_ClosestThingReachable.ClosestThingReachableOriginal).Method;
+      var m_ClosestThingReachableOriginal =
+        ((Delegate)Patch_GenClosest_ClosestThingReachable.ClosestThingReachableOriginal).Method;
       return codes.Instructions().MethodReplacer(m_ClosestThingReachable, m_ClosestThingReachableOriginal);
     }
   }
@@ -260,6 +261,12 @@ public static class Patch_JobDriver_HaulToContainer_TryReplaceWithFrame
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrPawnMap);
+    return new CodeMatcher(instructions)
+      .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Map))
+      .InsertAndAdvance(CodeInstruction.LoadLocal(0))
+      .Set(OpCodes.Call, ((Delegate)ThingMapOrPawnMap).Method)
+      .InstructionEnumeration();
   }
+
+  private static Map ThingMapOrPawnMap(Pawn pawn, Thing t) => t.Map ?? pawn.Map;
 }

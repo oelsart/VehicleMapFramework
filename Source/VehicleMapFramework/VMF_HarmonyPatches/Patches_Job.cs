@@ -286,26 +286,33 @@ public static class Patch_JobGiver_Work_TryIssueJobPackage
     {
       var map = pawn.Map;
       var targetMap = target.Map;
-      pawn.TargetInfo = target;
       if (map == targetMap)
       {
         return scanner.JobOnCell(pawn, target.Cell, forced);
       }
 
-      var target2 = target.Cell.GetEdifice(targetMap) ?? (LocalTargetInfo)target.Cell;
-      if (pawn.CanReach(target2, scanner.PathEndMode, scanner.MaxPathDanger(pawn), false, false,
-            TraverseMode.ByPawn, targetMap, out var exitSpot, out var enterSpot, out var spotsQueue))
+      pawn.TargetInfo = target;
+      try
       {
-        var cell2 = CellFinder.StandableCellNear(target.Cell, targetMap, 1.5f);
-        if (!cell2.IsValid) cell2 = target.Cell;
-        using var _ = new VirtualTeleporter(pawn, targetMap, cell2);
-        var job = scanner.JobOnCell(pawn, target.Cell, forced);
-        if (!JobAcrossMapsUtility.NoNeedWrapGotoDestMapJob(scanner))
-          job = JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, spotsQueue, job);
-        return job;
-      }
+        var target2 = target.Cell.GetEdifice(targetMap) ?? (LocalTargetInfo)target.Cell;
+        if (pawn.CanReach(target2, scanner.PathEndMode, scanner.MaxPathDanger(pawn), false, false,
+              TraverseMode.ByPawn, targetMap, out var exitSpot, out var enterSpot, out var spotsQueue))
+        {
+          var cell2 = CellFinder.StandableCellNear(target.Cell, targetMap, 1.5f);
+          if (!cell2.IsValid) cell2 = target.Cell;
+          using var _ = new VirtualTeleporter(pawn, targetMap, cell2);
+          var job = scanner.JobOnCell(pawn, target.Cell, forced);
+          if (!JobAcrossMapsUtility.NoNeedWrapGotoDestMapJob(scanner))
+            job = JobAcrossMapsUtility.GotoDestMapJob(pawn, exitSpot, enterSpot, spotsQueue, job);
+          return job;
+        }
 
-      return null;
+        return null;
+      }
+      finally
+      {
+        pawn.RemoveTargetInfo();
+      }
     }
 
     internal void ScanCellsAcrossMaps(ref InnerClass innerClass, ref InnerStruct innerStruct)

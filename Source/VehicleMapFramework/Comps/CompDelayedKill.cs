@@ -6,7 +6,6 @@ namespace VehicleMapFramework;
 
 public class CompDelayedKill : VehicleComp
 {
-
   private DestroyMode destroyMode;
 
   private Effecter effecter;
@@ -46,6 +45,7 @@ public class CompDelayedKill : VehicleComp
   {
     base.CompTick();
     ticksUntilKilled--;
+    Vehicle.Transform.position += Props.moveVector / GenTicks.TicksPerRealSecond;
     if (KillOnTick)
     {
       Vehicle.Kill(null, destroyMode, spawnWreckage);

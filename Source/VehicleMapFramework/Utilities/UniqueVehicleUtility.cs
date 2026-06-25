@@ -27,8 +27,11 @@ public static class UniqueVehicleUtility
         if (s_PathData is not null)
             SetPathData = MethodInvoker.GetHandler(s_PathData);
     }
-    
-    public static bool IsUniqueVehicle(VehicleDef def) => def.HasModExtension<VehicleMapProps_Unique>();
+
+    extension(VehicleDef def)
+    {
+      public bool IsUniqueVehicle => def.HasModExtension<VehicleMapProps_Unique>();
+    }
     
     private static string GetDefName(VehicleDef parentDef, int index) =>  $"{index.ToString()}_{parentDef.defName}";
         
@@ -53,6 +56,7 @@ public static class UniqueVehicleUtility
         def.defName = GetDefName(parentDef, index);
         def.graphicData = new GraphicDataRGB();
         def.graphicData.CopyFrom(parentDef.graphicData);
+        def.drawProperties = Gen.MemberwiseClone(def.drawProperties);
         if (parentDef.components is not null)
         {
             def.components = [];
@@ -97,7 +101,7 @@ public static class UniqueVehicleUtility
     
     public static bool AllowGenerate(VehicleDef def)
     {
-        if (!IsUniqueVehicle(def)) return true;
+        if (!def.IsUniqueVehicle) return true;
         var manager = Current.Game.GetComponent<UniqueVehicleManager>();
         if (manager is null) return false;
         return manager.ClaimedCount(def) < UniqueVehicleManager.PlaceholderDefs.TryGetValue(def)?.Count;

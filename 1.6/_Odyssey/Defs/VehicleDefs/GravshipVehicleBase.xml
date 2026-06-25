@@ -360,6 +360,12 @@
 				<fuelConsumptionRate>750</fuelConsumptionRate>
 			</li>
 		</comps>
+		
+		<modExtensions>
+			<li Class="VehicleMapFramework.VehicleMapProps_Gravship">
+				<placeholderCount>4</placeholderCount>
+			</li>
+		</modExtensions>
 	</Vehicles.VehicleDef>
 	
 	<Vehicles.VehicleBuildDef ParentName="VehicleWithMapBaseBuildable" MayRequire="Ludeon.RimWorld.Odyssey">

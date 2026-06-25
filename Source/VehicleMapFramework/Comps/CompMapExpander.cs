@@ -124,7 +124,7 @@ public class CompMapExpander : ThingComp
 
   private bool ValidCell(IntVec3 c)
   {
-    return c.InBounds(parent.Map) && c.GetEdifice(parent.Map) is not VehicleStructure;
+    return c.InBounds(parent.Map) && c.GetTerrain(parent.Map) != VMF_DefOf.VMF_ImpassableFloor;
   }
 
   public override void PostSpawnSetup(bool respawningAfterLoad)
@@ -157,6 +157,23 @@ public class CompMapExpander : ThingComp
   public override void PostDeSpawn(Map map, DestroyMode mode = DestroyMode.Vanish)
   {
     var occupiedRect = parent.OccupiedRect();
+    if (map.IsVehicleMapOf(out var vehicle))
+    {
+      foreach (var c in occupiedRect)
+      {
+        map.terrainGrid.SetTerrain(c, VMF_DefOf.VMF_ImpassableFloor);
+      }
+      vehicle.MapExpanderComps.Remove(this);
+      if (IsBridge)
+      {
+        vehicle.MapExpanderComps.ForEach(c => c.cachedIsOnlyBridge = null);
+      }
+      DirtySelfAndAdjacentComps(map);
+      vehicle.impassableCellsDirty = true;
+      vehicle.resizeRequest = true;
+      CrossMapReachabilityCache.ClearCacheFor(vehicle.VehicleMap);
+    }
+    
     foreach (var intVec in occupiedRect)
     {
       var thingList = map.thingGrid.ThingsListAtFast(intVec);
@@ -176,22 +193,6 @@ public class CompMapExpander : ThingComp
       }
     }
 
-    if (map.IsVehicleMapOf(out var vehicle))
-    {
-      foreach (var c in occupiedRect)
-      {
-        map.terrainGrid.SetTerrain(c, VMF_DefOf.VMF_ImpassableFloor);
-      }
-      vehicle.MapExpanderComps.Remove(this);
-      if (IsBridge)
-      {
-        vehicle.MapExpanderComps.ForEach(c => c.cachedIsOnlyBridge = null);
-      }
-      DirtySelfAndAdjacentComps(map);
-      vehicle.impassableCellsDirty = true;
-      vehicle.resizeRequest = true;
-      CrossMapReachabilityCache.ClearCacheFor(vehicle.VehicleMap);
-    }
   }
 
   private void DirtySelfAndAdjacentComps(Map map)

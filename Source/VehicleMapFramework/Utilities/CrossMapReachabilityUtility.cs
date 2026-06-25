@@ -20,8 +20,6 @@ public static class CrossMapReachabilityUtility
 
   private static ConditionalWeakTable<Pawn, Map> DestMaps { get; } = [];
 
-  public static Map DestMapGlobal;
-
   private static ConditionalWeakTable<Pawn, Map> DepartMaps { get; } = [];
 
   public static Map DepartMapGlobal;
@@ -694,9 +692,14 @@ public static class CrossMapReachabilityUtility
 
   private static bool CellCheck(IntVec3 cell, Map map, Pawn pawn)
   {
+    if (pawn is not null)
+    {
+      return cell.WalkableBy(map, pawn) &&
+             (cell.GetDoor(map) is not { } door || door.HoldOpen ||
+              door.PawnCanOpen(pawn) && !door.IsForbidden(pawn));
+    }
     return cell.Walkable(map) &&
-           (cell.GetDoor(map) is not { } door || door.HoldOpen ||
-            pawn is not null && door.PawnCanOpen(pawn) && !door.IsForbidden(pawn));
+           (cell.GetDoor(map) is not { } door2 || door2.HoldOpen);
   }
 
   public static bool TryFindNearestStandableCell(VehiclePawn vehicle, IntVec3 cell, Map map, out IntVec3 result,
