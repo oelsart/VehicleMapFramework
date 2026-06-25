@@ -130,7 +130,7 @@ public class Reactor_Sink : Reactor, ITweakFields
     {
     }
     
-    [DebugAction("Vehicle Map Framework", "Sink component", actionType = DebugActionType.ToolMapForPawns)]
+    [DebugAction(VehicleMapFramework.CategoryName, "Sink component", actionType = DebugActionType.ToolMapForPawns)]
     private static void SinkComponent(Pawn pawn)
     {
         if (pawn is not VehiclePawn vehicle)

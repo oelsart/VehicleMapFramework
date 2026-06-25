@@ -170,3 +170,30 @@ public static class Patch_Building_StallDoor_DrawAt
     return codes;
   }
 }
+
+[HarmonyPatchCategory(PatchCategories.DubsBadHygiene)]
+[HarmonyPatch(typeof(Building_bath), nameof(Building_bath.DrawAt))]
+[PatchLevel(Level.Sensitive)]
+public static class Patch_Building_bath_DrawAt
+{
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+  {
+    return new CodeMatcher(instructions, generator)
+      .MatchStartForward(CodeMatch.LoadsField(AccessTools.Field(typeof(Building_bath), nameof(Building_bath.WaterOffset))))
+      .Advance()
+      .CreateLabel(out var label)
+      .DeclareLocal(typeof(VehiclePawnWithMap), out var vehicle)
+      .InsertAndAdvance(
+        CodeInstruction.LoadArgument(0),
+        new CodeInstruction(OpCodes.Ldloca_S, vehicle),
+        CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf.CallInstruction,
+        new CodeInstruction(OpCodes.Brfalse_S, label),
+        new CodeInstruction(OpCodes.Ldc_R4, VehicleMapUtility.YCompress),
+        new CodeInstruction(OpCodes.Div))
+      .MatchStartForward(CodeMatch.Calls(AccessTools.Method(typeof(Building_bath), nameof(Building_bath.QuatFromRot))))
+      .Advance()
+      .AddExtraAngle(vehicle)
+      .InstructionEnumeration()
+      .MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_BaseRotationVehicleDraw);
+  }
+}

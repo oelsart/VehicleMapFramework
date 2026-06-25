@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using HarmonyLib;
 using JetBrains.Annotations;
+using LudeonTK;
 using RimWorld;
 using RimWorld.Planet;
 using SmashTools;
@@ -1436,6 +1437,35 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     }
   }
 
+  [DebugAction(VehicleMapFramework.CategoryName, "Set Transform.Rotation", actionType = DebugActionType.ToolMapForPawns)]
+  private static void SetTransformRotation(Pawn pawn)
+  {
+    if (pawn is not VehiclePawn vehicle)
+    {
+      Messages.Message("The selected pawn is not a vehicle.", MessageTypeDefOf.RejectInput, false);
+      return;
+    }
+  
+    DebugTools.curTool = new DebugTool($"{pawn}: to...", () =>
+    {
+      var angle = Ext_Math.RotateAngle((UI.MouseMapPosition() - vehicle.DrawPos).ToAngleFlat(), 90f) -
+                  vehicle.FullRotation.AsAngle;
+      vehicle.Transform.rotation = angle;
+      Messages.Message($"Set {pawn}'s Transform.rotation to {angle:F1}", MessageTypeDefOf.NeutralEvent, false);
+    });
+  }
+
+  [DebugAction(VehicleMapFramework.CategoryName, "Reset Transform.Rotation", actionType = DebugActionType.ToolMapForPawns)]
+  private static void ResetTransformRotation(Pawn pawn)
+  {
+    if (pawn is not VehiclePawn vehicle)
+    {
+      Messages.Message("The selected pawn is not a vehicle.", MessageTypeDefOf.RejectInput, false);
+      return;
+    }
+  
+    vehicle.Transform.rotation = 0f;
+  }
 
   public enum EnterCompKind
   {

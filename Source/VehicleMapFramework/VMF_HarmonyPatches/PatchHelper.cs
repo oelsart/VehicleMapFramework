@@ -40,33 +40,64 @@ public static class PatchHelper
   private static readonly FieldInfo f_allBuildingsColonist =
     AccessTools.Field(typeof(ListerBuildings), nameof(ListerBuildings.allBuildingsColonist));
 
-  public static CodeMatcher AddAltitudeFor(this CodeMatcher codeMatcher, out LocalBuilder vehicle,
-    float offset = 0f, CodeMatch[] matches = null, CodeInstruction[] getInstance = null)
+  extension(CodeMatcher codeMatcher)
   {
-    matches ??= [CodeMatch.Calls(CachedMethodInfo.m_Altitudes_AltitudeFor)];
-    getInstance ??= [CodeInstruction.LoadArgument(0)];
-    codeMatcher
-      .MatchStartForward(matches)
-      .Advance()
-      .CreateLabel(out var label)
-      .DeclareLocal(typeof(VehiclePawnWithMap), out vehicle)
-      .InsertAndAdvance(getInstance)
-      .InsertAndAdvance(
-        new CodeInstruction(OpCodes.Ldloca_S, vehicle),
-        CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf.CallInstruction,
-        new CodeInstruction(OpCodes.Brfalse_S, label),
-        new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-        CachedMethodInfo.m_YOffsetFull.CallInstruction);
-    if (offset != 0f)
+    public CodeMatcher AddAltitudeFor(out LocalBuilder vehicle,
+      float offset = 0f, CodeMatch[] matches = null, CodeInstruction[] getInstance = null)
     {
+      matches ??= [CodeMatch.Calls(CachedMethodInfo.m_Altitudes_AltitudeFor)];
+      getInstance ??= [CodeInstruction.LoadArgument(0)];
       codeMatcher
+        .MatchStartForward(matches)
+        .Advance()
+        .CreateLabel(out var label)
+        .DeclareLocal(typeof(VehiclePawnWithMap), out vehicle)
+        .InsertAndAdvance(getInstance)
         .InsertAndAdvance(
-          new CodeInstruction(OpCodes.Ldc_R4, offset),
-          new CodeInstruction(OpCodes.Add));
+          new CodeInstruction(OpCodes.Ldloca_S, vehicle),
+          CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf.CallInstruction,
+          new CodeInstruction(OpCodes.Brfalse_S, label),
+          new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+          CachedMethodInfo.m_YOffsetFull.CallInstruction);
+      if (offset != 0f)
+      {
+        codeMatcher
+          .InsertAndAdvance(
+            new CodeInstruction(OpCodes.Ldc_R4, offset),
+            new CodeInstruction(OpCodes.Add));
+      }
+
+      return codeMatcher;
     }
 
-    return codeMatcher;
+    public CodeMatcher AddExtraAngle(out LocalBuilder vehicle, CodeInstruction[] getInstance = null)
+    {
+      getInstance ??= [CodeInstruction.LoadArgument(0)];
+      return codeMatcher
+        .DeclareLocal(typeof(VehiclePawnWithMap), out vehicle)
+        .InsertAndAdvance(getInstance)
+        .InsertAndAdvance(
+          new CodeInstruction(OpCodes.Ldloca_S, vehicle),
+          CachedMethodInfo.m_IsOnNonFocusedVehicleMapOf.CallInstruction,
+          new CodeInstruction(OpCodes.Pop))
+        .AddExtraAngle(vehicle);
+    }
+
+    public CodeMatcher AddExtraAngle(LocalBuilder vehicle)
+    {
+      return codeMatcher
+        .CreateLabel(out var label)
+        .InsertAndAdvance(
+          new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+          new CodeInstruction(OpCodes.Brfalse_S, label),
+          new CodeInstruction(OpCodes.Ldloc_S, vehicle),
+          CachedMethodInfo.m_ExtraAngle.CallInstruction,
+          CachedMethodInfo.g_Vector3_up.CallInstruction,
+          CachedMethodInfo.m_Quaternion_AngleAxis.CallInstruction,
+          CachedMethodInfo.o_Quaternion_Multiply.CallInstruction);
+    }
   }
+
 
   extension(MethodInfo methodInfo)
   {

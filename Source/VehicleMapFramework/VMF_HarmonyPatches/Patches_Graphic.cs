@@ -246,6 +246,7 @@ public static class Patch_CameraDriver_Update
 
 [HarmonyPatch(typeof(PawnRenderer), "GetBodyPos")]
 [PatchLevel(Level.Safe)]
+[HotSwap]
 public static class Patch_PawnRenderer_GetBodyPos
 {
   public static void Postfix(PawnPosture posture, Pawn ___pawn, ref Vector3 __result)
@@ -263,7 +264,7 @@ public static class Patch_PawnRenderer_GetBodyPos
       }
       else if (posture != PawnPosture.Standing)
       {
-        __result = __result.YOffsetFull(vehicle);
+        __result = __result.YOffsetFull(vehicle).WithYOffset(0.08f); // DBHの風呂にアジャスト
       }
     }
   }

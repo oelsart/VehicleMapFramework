@@ -19,7 +19,7 @@ namespace VehicleMapFramework;
 [PublicAPI]
 public static class VehicleMapUtility
 {
-  public const float YCompress = 40f;
+  public const float YCompress = 1.5f / Altitudes.AltInc - 1f;
 
   private const float AltitudeOffset = 0.09615385f;
 
