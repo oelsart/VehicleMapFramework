@@ -83,15 +83,7 @@ public static class Patch_CompProjectorOverlay_PostDraw
           new CodeInstruction(OpCodes.Add)).Advance())
       .Reset()
       .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Quaternion_identity)).Advance()
-      .CreateLabel(out var label3)
-      .Insert(
-        new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-        new CodeInstruction(OpCodes.Brfalse_S, label3),
-        new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-        new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ExtraAngle),
-        new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(Vector3), nameof(Vector3.up))),
-        new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(Quaternion), nameof(Quaternion.AngleAxis))),
-        new CodeInstruction(OpCodes.Call, CachedMethodInfo.o_Quaternion_Multiply))
+      .AddExtraAngle(vehicle)
       .InstructionEnumeration();
   }
 }
