@@ -17,6 +17,7 @@ using Vehicles.World;
 using Verse;
 using Verse.AI;
 #if DEV
+using Vehicles.Rendering;
 #endif
 
 namespace VehicleMapFramework;
