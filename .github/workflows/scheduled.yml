@@ -37,7 +37,7 @@ jobs:
       
     - name: Restore Cache
       id: cache-steam
-      uses: actions/cache/restore@v5
+      uses: actions/cache/restore@v6
       with:
         path: ~/Steam
         key: steamcmd-initial
@@ -77,7 +77,7 @@ jobs:
         echo "MODS_HASH=$MODS_HASH" >> $GITHUB_ENV
 
     - name: Save Cache
-      uses: actions/cache/save@v5
+      uses: actions/cache/save@v6
       with:
         path: ~/Steam
         key: steamcmd-${{ env.MODS_HASH }}
