@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Patch>
+
+	<Operation Class="PatchOperationAdd">
+		<xpath>Defs/ThingDef[
+			(defName="DNX_ExperimentalDroneDock" or
+			defName="DNX_LogisticsDroneDock" or
+			defName="DNX_DroneCommandConsole" or
+			defName="DNX_Inactive82AHoverVehicle" or
+			defName="DNX_RestoredInactive82AHoverVehicle")
+			and not(placeWorkers)
+			]</xpath>
+		<value>
+			<placeWorkers />
+		</value>
+	</Operation>
+
+	<Operation Class="PatchOperationAdd">
+		<xpath>Defs/ThingDef[
+			defName="DNX_ExperimentalDroneDock" or
+			defName="DNX_LogisticsDroneDock" or
+			defName="DNX_DroneCommandConsole" or
+			defName="DNX_Inactive82AHoverVehicle" or
+			defName="DNX_RestoredInactive82AHoverVehicle"
+			]/placeWorkers</xpath>
+		<value>
+			<li>VehicleMapFramework.PlaceWorker_ForbidOnVehicle</li>
+		</value>
+	</Operation>
+	
+</Patch>
