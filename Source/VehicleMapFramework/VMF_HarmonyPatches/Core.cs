@@ -189,7 +189,7 @@ public class VMF_Harmony
   {
     if (!PatchesInCategories.TryGetValue(category, out var list))
     {
-      VMF_Log.Error("Patches for categories not included in this mod");
+      VMF_Log.Error($"Patches for category ({category}) not included in this mod");
       return [];
     }
     return list;

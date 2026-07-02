@@ -63,6 +63,8 @@ internal static class PatchCategories
   public const string ColonyGroups = "VMF_Patches_ColonyGroups";
 
   public const string CutPlantsBeforeBuilding = "VMF_Patches_CutPlantsBeforeBuilding";
+  
+  public const string DefensiveNetwork = "VMF_Patches_DefensiveNetwork";
 
   public const string DoNotHitMe = "VMF_Patches_DoNotHitMe";
 

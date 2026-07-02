@@ -681,4 +681,20 @@ internal static class ModCompat
       });
     }
   }
+
+  public class DefensiveNetwork : CompatBase<DefensiveNetwork>
+  {
+    public static FastInvokeHandler CountWatchersTargeting;
+    
+    static DefensiveNetwork()
+    {
+      Initialize("wuhuansuiyue.defensivenetworkexpanded", () =>
+      {
+        CountWatchersTargeting = MethodInvoker.GetHandler(
+          AccessTools.Method(
+            GenTypes.GetTypeInAnyAssembly("DNX.WatcherTargetingUtility", "DNX"),
+            "CountWatchersTargeting"));
+      });
+    }
+  }
 }

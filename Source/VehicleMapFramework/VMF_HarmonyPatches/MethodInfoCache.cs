@@ -67,8 +67,10 @@ public class MethodInfoCache
     public readonly MethodInfo m_ToBaseMapCoord1 = ((Func<Vector3, Vector3>)VehicleMapUtility.ToBaseMapCoord).Method;
 
     public readonly MethodInfo m_ToBaseMapCoord2 = ((Func<Vector3, VehiclePawnWithMap, Vector3>)VehicleMapUtility.ToBaseMapCoord).Method;
+
+    public readonly MethodInfo m_ToBaseMapCoord3 = ((Func<Vector3, Map, Vector3>)VehicleMapUtility.ToBaseMapCoord).Method;
     
-    public readonly MethodInfo m_ToBaseMapCoord3 = ((Func<IntVec3, VehiclePawnWithMap, IntVec3>)VehicleMapUtility.ToBaseMapCoord).Method;
+    public readonly MethodInfo m_ToBaseMapCoordCell = ((Func<IntVec3, VehiclePawnWithMap, IntVec3>)VehicleMapUtility.ToBaseMapCoord).Method;
 
     public readonly MethodInfo m_ToThingMapCoord = ((Delegate)VehicleMapUtility.ToThingMapCoord).Method;
 

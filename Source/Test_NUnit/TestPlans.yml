@@ -98,3 +98,4 @@
 - Name: VehicleRaidFramework
   LoadOnly: true
 - Name: HospitalityCasino
+- Name: DefensiveNetwork
