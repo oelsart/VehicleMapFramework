@@ -604,9 +604,12 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
       {
         Find.World.worldObjects.Add(interiorMap.Parent);
       }
-      interiorMap.skyManager = sourceMap.skyManager;
-      interiorMap.weatherDecider = sourceMap.weatherDecider;
-      interiorMap.weatherManager = sourceMap.weatherManager;
+      if (sourceMap is not null)
+      {
+        interiorMap.skyManager = sourceMap.skyManager;
+        interiorMap.weatherDecider = sourceMap.weatherDecider;
+        interiorMap.weatherManager = sourceMap.weatherManager;
+      }
     }
     catch (Exception ex)
     {
