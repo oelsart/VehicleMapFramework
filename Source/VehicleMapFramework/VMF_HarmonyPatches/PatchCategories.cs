@@ -63,6 +63,8 @@ internal static class PatchCategories
   public const string ColonyGroups = "VMF_Patches_ColonyGroups";
 
   public const string CutPlantsBeforeBuilding = "VMF_Patches_CutPlantsBeforeBuilding";
+  
+  public const string DefensiveNetwork = "VMF_Patches_DefensiveNetwork";
 
   public const string DoNotHitMe = "VMF_Patches_DoNotHitMe";
 
@@ -87,6 +89,8 @@ internal static class PatchCategories
   public const string HospitalityCasino = "VMF_Patches_HospitalityCasino";
 
   public const string IRBM = "VMF_Patches_IRBM";
+
+  public const string ManipulatorBeamEmitter = "VMF_Patches_ManipulatorBeamEmitter";
 
   public const string MeleeAnimation = "VMF_Patches_MeleeAnimation";
 

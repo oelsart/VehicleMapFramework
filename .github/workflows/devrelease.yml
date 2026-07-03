@@ -54,7 +54,7 @@ jobs:
         
     - name: Restore Cache
       id: cache-steam
-      uses: actions/cache/restore@v5
+      uses: actions/cache/restore@v6
       with:
         path: ./Steam
         key: steamcmd-initial

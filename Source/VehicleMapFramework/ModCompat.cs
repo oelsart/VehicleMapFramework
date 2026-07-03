@@ -681,4 +681,60 @@ internal static class ModCompat
       });
     }
   }
+
+  public class DefensiveNetwork : CompatBase<DefensiveNetwork>
+  {
+    public static FastInvokeHandler CountWatchersTargeting;
+    
+    static DefensiveNetwork()
+    {
+      Initialize("wuhuansuiyue.defensivenetworkexpanded", () =>
+      {
+        CountWatchersTargeting = MethodInvoker.GetHandler(
+          AccessTools.Method(
+            GenTypes.GetTypeInAnyAssembly("DNX.WatcherTargetingUtility", "DNX"),
+            "CountWatchersTargeting"));
+      });
+    }
+  }
+
+  public class ManipulatorBeamEmitter : CompatBase<ManipulatorBeamEmitter>
+  {
+    public static FastInvokeHandler TryFindHaulBatch;
+    public static FastInvokeHandler TryFindBestStorageCellCore;
+    public static FastInvokeHandler FillTransferQueue;
+    public static FastInvokeHandler FillTransferQueueAuto;
+    public static AccessTools.FieldRef<object, Thing> thing;
+    public static MethodInfo WorldPosForCell;
+    
+    static ManipulatorBeamEmitter()
+    {
+      Initialize("natsuki.manipulatorbeam", () =>
+      {
+        var t_BeamManipulatorUtility = GenTypes.GetTypeInAnyAssembly("ManipulatorBeam.BeamManipulatorUtility", "ManipulatorBeam");
+        if (t_BeamManipulatorUtility is not null)
+        {
+          var m_TryFindHaulBatch = AccessTools.Method(t_BeamManipulatorUtility, "TryFindHaulBatch");
+          if (m_TryFindHaulBatch is not null)
+            TryFindHaulBatch = MethodInvoker.GetHandler(m_TryFindHaulBatch);
+          var m_TryFindBestStorageCellCore = AccessTools.Method(t_BeamManipulatorUtility, "TryFindBestStorageCellCore");
+          if (m_TryFindBestStorageCellCore is not null)
+            TryFindBestStorageCellCore = MethodInvoker.GetHandler(m_TryFindBestStorageCellCore, true);
+          var m_FillTransferQueue = AccessTools.Method(t_BeamManipulatorUtility, "FillTransferQueue");
+          if (m_FillTransferQueue is not null)
+            FillTransferQueue = MethodInvoker.GetHandler(m_FillTransferQueue);
+          var m_FillTransferQueueAuto = AccessTools.Method(t_BeamManipulatorUtility, "FillTransferQueueAuto");
+          if (m_FillTransferQueueAuto is not null)
+            FillTransferQueueAuto = MethodInvoker.GetHandler(m_FillTransferQueueAuto);
+          WorldPosForCell = AccessTools.Method(t_BeamManipulatorUtility, "WorldPosForCell");
+        }
+        thing = AccessTools.FieldRefAccess<Thing>("ManipulatorBeam.BeamTransfer:thing");
+        var type = GenTypes.GetTypeInAnyAssembly("ManipulatorBeam.WorkGiver_OperateBeamManipulator", "ManipulatorBeam");
+        if (type is not null)
+        {
+          JobAcrossMapsUtility.WorkGiverClassesNeedWrap.Add(type);
+        }
+      });
+    }
+  }
 }

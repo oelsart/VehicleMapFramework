@@ -40,15 +40,12 @@ public class AssemblyLoader(string version, string workshopPath, string localMod
           .Select(folder => Version.TryParse(folder.Name, out var v) ? v : null)
           .Where(v => v != null)
           .Max();
-        if (versionLatest is null)
-        {
-          folders.Add("/");
-        }
-        else if (versionLatest.Major > 0)
+        if (versionLatest?.Major > 0)
         {
           folders.Add(versionLatest.ToString());
         }
       }
+      folders.Add("/");
       if (Directory.Exists(Path.Combine(rootFolder.FullName, CommonFolderName)))
         folders.Add(CommonFolderName);
     }

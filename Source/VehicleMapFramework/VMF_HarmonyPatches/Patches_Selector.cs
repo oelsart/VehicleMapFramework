@@ -97,7 +97,7 @@ public static class Patch_Selector_SelectInternal
                 new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_IsVehicleMapOf),
                 new CodeInstruction(OpCodes.Brfalse_S, label),
                 new CodeInstruction(OpCodes.Ldloc_S, vehicle),
-                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ToBaseMapCoord3))
+                new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_ToBaseMapCoordCell))
             .InstructionEnumeration();
     }
 }

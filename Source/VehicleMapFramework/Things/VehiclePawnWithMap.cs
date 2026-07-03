@@ -547,6 +547,12 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
 
   private void GenerateVehicleMap(Map sourceMap)
   {
+    if (MapGenerator.mapBeingGenerated is not null)
+    {
+      LongEventHandler.ExecuteWhenFinished(() => GenerateVehicleMap(sourceMap));
+      return;
+    }
+    
     try
     {
       VehicleMapProps props;
@@ -591,6 +597,19 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
           interiorMap.terrainGrid.SetTerrain(c, VMF_DefOf.VMF_ImpassableFloor);
         }
       }
+      interiorMap.events.BuildingSpawned += WalkableCellsDirtyIfNeeded;
+      interiorMap.events.PathCostRecalculate += WalkableCellsDirtyIfNeeded;
+      CurrentLevel ??= interiorMap;
+      if (!Find.World.worldObjects.Contains(interiorMap.Parent))
+      {
+        Find.World.worldObjects.Add(interiorMap.Parent);
+      }
+      if (sourceMap is not null)
+      {
+        interiorMap.skyManager = sourceMap.skyManager;
+        interiorMap.weatherDecider = sourceMap.weatherDecider;
+        interiorMap.weatherManager = sourceMap.weatherManager;
+      }
     }
     catch (Exception ex)
     {
@@ -628,9 +647,6 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     if (interiorMap is null)
     {
       GenerateVehicleMap(map);
-      interiorMap?.events.BuildingSpawned += WalkableCellsDirtyIfNeeded;
-      interiorMap?.events.PathCostRecalculate += WalkableCellsDirtyIfNeeded;
-      _ = CachedMapEdgeCells;
     }
     else if (respawningAfterLoad)
     {
@@ -644,32 +660,32 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
       }
     }
 
-    interiorMap?.PocketMapParent?.sourceMap = map;
-
-    if (!Find.World.worldObjects.Contains(interiorMap!.Parent))
+    if (interiorMap is not null)
     {
-      Find.World.worldObjects.Add(interiorMap.Parent);
-    }
-
-    CurrentLevel ??= interiorMap;
-
-    var isGravship = def.HasModExtension<VehicleMapProps_Gravship>();
-    if (isGravship)
-    {
-      if (GravshipUtility.GetPlayerGravEngine_NewTemp(interiorMap) is { launchInfo.doNegativeOutcome: true } engine)
+      interiorMap.PocketMapParent?.sourceMap = map;
+      if (!Find.World.worldObjects.Contains(interiorMap.Parent))
       {
-        var list = handlers.OfType<VehicleRoleHandlerBuildable>()
-          .SelectMany<VehicleRoleHandlerBuildable, Pawn>(h => h.thingOwner).ToList();
-        foreach (var t in list)
-        {
-          DisembarkPawn(t);
-        }
+        Find.World.worldObjects.Add(interiorMap.Parent);
+      }
 
-        var gravship = GravshipUtility.GenerateGravship(engine);
-        GravshipVehicleUtility.PlaceGravship(null, gravship, gravship.originalPosition, interiorMap);
-        DefDatabase<LandingOutcomeDef>.AllDefsListForReading.RandomElementByWeight(d => d.weight).Worker
-          .ApplyOutcome(gravship);
-        engine.launchInfo = null;
+      var isGravship = def.HasModExtension<VehicleMapProps_Gravship>();
+      if (isGravship)
+      {
+        if (GravshipUtility.GetPlayerGravEngine_NewTemp(interiorMap) is { launchInfo.doNegativeOutcome: true } engine)
+        {
+          var list = handlers.OfType<VehicleRoleHandlerBuildable>()
+            .SelectMany<VehicleRoleHandlerBuildable, Pawn>(h => h.thingOwner).ToList();
+          foreach (var t in list)
+          {
+            DisembarkPawn(t);
+          }
+
+          var gravship = GravshipUtility.GenerateGravship(engine);
+          GravshipVehicleUtility.PlaceGravship(null, gravship, gravship.originalPosition, interiorMap);
+          DefDatabase<LandingOutcomeDef>.AllDefsListForReading.RandomElementByWeight(d => d.weight).Worker
+            .ApplyOutcome(gravship);
+          engine.launchInfo = null;
+        }
       }
     }
 
@@ -679,19 +695,20 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     VehiclePawnWithMapCache.RegisterVehicle(this);
     mapFollower = new VehicleMapFollower(this);
 
-    interiorMap.skyManager = Map.skyManager;
-    interiorMap.weatherDecider = Map.weatherDecider;
-    interiorMap.weatherManager = Map.weatherManager;
-    SetTile();
-
-    if (Find.CurrentMap == interiorMap)
+    if (interiorMap is not null)
     {
-      Current.Game.CurrentMap = map;
+      interiorMap.skyManager = map.skyManager;
+      interiorMap.weatherDecider = map.weatherDecider;
+      interiorMap.weatherManager = map.weatherManager;
+      if (Find.CurrentMap == interiorMap)
+      {
+        Current.Game.CurrentMap = map;
+      }
+      interiorMap.mapPawns.AllPawns.OfType<VehiclePawn>().Do(v => { v.Transform.rotation = 0f; });
     }
-
+    
+    SetTile();
     Transform.rotation = 0f;
-    interiorMap.mapPawns.AllPawns.OfType<VehiclePawn>().Do(v => { v.Transform.rotation = 0f; });
-
     enterPositionsDirty = true;
   }
 

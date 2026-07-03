@@ -9,7 +9,6 @@ using SmashTools;
 using UnityEngine;
 using Vehicles;
 using Verse;
-using Transform = SmashTools.Rendering.Transform;
 
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
