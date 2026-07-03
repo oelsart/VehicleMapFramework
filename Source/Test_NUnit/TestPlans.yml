@@ -99,3 +99,4 @@
   LoadOnly: true
 - Name: HospitalityCasino
 - Name: DefensiveNetwork
+- Name: ManipulatorBeamEmitter

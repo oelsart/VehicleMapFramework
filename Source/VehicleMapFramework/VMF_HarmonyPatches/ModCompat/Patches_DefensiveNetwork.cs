@@ -66,8 +66,8 @@ public static class Patch_Building_HunterKillerSupportSystem_TargetingParameters
 {
   private static MethodBase TargetMethod()
   {
-    return AccessTools.FindIncludingBaseTypes(GenTypes.GetTypeInAnyAssembly("DNX.Building_HunterKillerSupportSystem", "DNX"),
-      t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<get_TargetingParameters>")));
+    return GenTypes.GetTypeInAnyAssembly("DNX.Building_HunterKillerSupportSystem", "DNX")
+      .GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<get_TargetingParameters>"));
   }
   
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -142,8 +142,8 @@ public static class Patch_Building_GhoulBomberBay_TargetingParameters_Delegate
 {
   private static MethodBase TargetMethod()
   {
-    return AccessTools.FindIncludingBaseTypes(GenTypes.GetTypeInAnyAssembly("DNX.Building_GhoulBomberBay", "DNX"),
-      t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<get_TargetingParameters>")));
+    return GenTypes.GetTypeInAnyAssembly("DNX.Building_GhoulBomberBay", "DNX")
+      .GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<get_TargetingParameters>"));
   }
   
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -281,14 +281,23 @@ public static class Patch_Building_WatcherPrecisionTurret_TargetAngle
 [PatchLevel(Level.Safe)]
 public static class Patch_WatcherTargetingUtility_CountWatchersTargeting
 {
+  private static bool working;
+  
   public static void Postfix(Map map, Thing target, Building ignored, ref int __result)
   {
-    Log.Message($"Postfix: {__result}");
-    foreach (var map2 in map.BaseMapAndVehicleMaps(false))
+    if (working) return;
+    working = true;
+    try
     {
-      __result += (int)DefensiveNetwork.CountWatchersTargeting(null,
-        Params<(object, object, object)>.Get((map2, target, ignored)));
-      Log.Message($"{__result}");
+      foreach (var map2 in map.BaseMapAndVehicleMaps(false))
+      {
+        __result += (int)DefensiveNetwork.CountWatchersTargeting(null,
+          Params<(object, object, object)>.Get((map2, target, ignored)));
+      }
+    }
+    finally
+    {
+      working = false;
     }
   }
 }

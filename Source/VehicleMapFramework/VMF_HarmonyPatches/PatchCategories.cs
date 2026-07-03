@@ -90,6 +90,8 @@ internal static class PatchCategories
 
   public const string IRBM = "VMF_Patches_IRBM";
 
+  public const string ManipulatorBeamEmitter = "VMF_Patches_ManipulatorBeamEmitter";
+
   public const string MeleeAnimation = "VMF_Patches_MeleeAnimation";
 
   public const string MiscRobots = "VMF_Patches_MiscRobots";
