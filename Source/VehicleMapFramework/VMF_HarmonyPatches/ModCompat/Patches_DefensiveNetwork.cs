@@ -183,7 +183,7 @@ public static class Patch_BuildingTargeter_IsValidTarget
   private static IEnumerable<MethodBase> TargetMethods()
   {
     yield return AccessTools.Method("DNX.Building_TacticalMarkerTower:IsValidTarget");
-    yield return AccessTools.Method("DNX.Building_SustainedLaserEmitter:IsValidTarget");
+    yield return AccessTools.Method("DNX.Building_SustainedLaserEmitter:IsValidTarget", [typeof(Pawn), typeof(float)]);
   }
 
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
