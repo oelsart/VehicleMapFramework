@@ -1,9 +1,7 @@
-name: Scheduled Test
+name: Remote Test
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '30 21 */2 * *'
 
 jobs:
   build_and_remote_test:
@@ -13,7 +11,6 @@ jobs:
       Solution_Name: VehicleMapFramework
       TestProject_Path: Source/Test_NUnit
       Workshop_IDs_File: Source/Test_NUnit/WorkshopIds.yml
-      UseWorkshopVersion: true
 
     steps:
     - name: Checkout
@@ -108,13 +105,3 @@ jobs:
         name: Remote Tests
         path: "**/remote_results.trx"
         reporter: dotnet-trx
-    
-    - name: Discord Notification
-      uses: sarisia/actions-status-discord@v1
-      if: always()
-      with:
-        webhook: ${{ secrets.DISCORD_WEBHOOK_TEST }}
-        title: ${{ github.workflow }}
-        description: "Mod compatibility tests run every 2 days"
-        content: ${{ job.status == 'failure' && '<@1183347523843264602>' || '' }}
-        username: LS & Co. (GitHub Division)

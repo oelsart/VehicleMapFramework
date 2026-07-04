@@ -86,24 +86,6 @@
     </Reference>
   </ItemGroup>
 
-  <ItemGroup>
-    <Content Include="..\..\.github\workflows\build.yml">
-      <Link>build.yml</Link>
-    </Content>
-    <Content Include="..\..\.github\workflows\devrelease.yml">
-      <Link>devrelease.yml</Link>
-    </Content>
-    <Content Include="..\..\.github\workflows\release.yml">
-      <Link>release.yml</Link>
-    </Content>
-    <Content Include="..\..\.github\workflows\scheduled.yml">
-      <Link>scheduled.yml</Link>
-    </Content>
-    <Content Include="..\..\.git\hooks\pre-push">
-      <Link>pre-push</Link>
-    </Content>
-  </ItemGroup>
-
   <PropertyGroup>
     <AboutFolderPath Condition="'$(AboutXmlPath)' == ''">../../About</AboutFolderPath>
     <AboutFolderPath Condition="'$(Configuration)'=='Dev'">../../Dev/About</AboutFolderPath>
