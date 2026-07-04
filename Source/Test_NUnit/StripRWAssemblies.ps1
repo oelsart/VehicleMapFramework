@@ -7,7 +7,7 @@ if (-not (Test-Path $OutputDir))
     New-Item -Path $OutputDir -ItemType Directory
 }
 
-Get-ChildItem -Path $SourceDir -Filter "*.dll" | ForEach-Object {
+Get-ChildItem -Path $SourceDir -Filter "*.dll" | Where-Object { $_.Name -ne "mscorlib.dll" } | ForEach-Object {
     $dllName = $_.Name
     $inputPath = $_.FullName
     $outputPath = Join-Path $OutputDir $dllName

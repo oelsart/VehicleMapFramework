@@ -360,7 +360,7 @@ public static class Patch_JobDriver_OperateBeamManipulator_MakeNewToils
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, MethodBase original)
   {
     var t_BeamChannelRuntime = GenTypes.GetTypeInAnyAssembly("ManipulatorBeam.BeamChannelRuntime", "ManipulatorBeam");
-    var ind = original.GetMethodBody()!.LocalVariables.FirstIndexOf(l => l?.LocalType == t_BeamChannelRuntime);
+    var ind = original.GetMethodBody()!.LocalVariables.FirstIndexOf(l => l.LocalType == t_BeamChannelRuntime);
     return new CodeMatcher(instructions)
       .MatchStartForward(CodeMatch.Calls(WorldPosForCell))
       .InsertAfter(
