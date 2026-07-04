@@ -357,16 +357,18 @@ public static class Patch_JobDriver_OperateBeamManipulator_MakeNewToils
         m.CallsMethod(WorldPosForCell)));
   }
 
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, MethodBase original)
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
   {
-    var t_BeamChannelRuntime = GenTypes.GetTypeInAnyAssembly("ManipulatorBeam.BeamChannelRuntime", "ManipulatorBeam");
-    var ind = original.GetMethodBody()!.LocalVariables.FirstIndexOf(l => l?.LocalType == t_BeamChannelRuntime);
-    return new CodeMatcher(instructions)
+    var f_ActiveTransfer = AccessTools.Field("ManipulatorBeam.BeamChannelRuntime:activeTransfer");
+    return new CodeMatcher(instructions, generator)
+      .MatchStartForward(CodeMatch.LoadsField(f_ActiveTransfer))
+      .DeclareLocal(f_ActiveTransfer.FieldType, out var activeTransfer)
+      .InsertAfterAndAdvance(
+        new CodeInstruction(OpCodes.Dup),
+        new CodeInstruction(OpCodes.Stloc_S, activeTransfer))
       .MatchStartForward(CodeMatch.Calls(WorldPosForCell))
       .InsertAfter(
-        CodeInstruction.LoadLocal(ind),
-        CodeInstruction.LoadField(
-          GenTypes.GetTypeInAnyAssembly("ManipulatorBeam.BeamChannelRuntime", "ManipulatorBeam"), "activeTransfer"),
+        new CodeInstruction(OpCodes.Ldloc_S, activeTransfer),
         ((Delegate)Patch_BeamManipulatorUtility_WorldPosForTransferDestination.ToBaseMapWorldPos).Method
         .CallInstruction)
       .InstructionEnumeration();
@@ -378,8 +380,8 @@ public static class Patch_JobDriver_OperateBeamManipulator_MakeNewToils
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Building_BeamManipulatorAuto_Tick
 {
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, MethodBase original)
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
   {
-    return Patch_JobDriver_OperateBeamManipulator_MakeNewToils.Transpiler(instructions, original);
+    return Patch_JobDriver_OperateBeamManipulator_MakeNewToils.Transpiler(instructions, generator);
   }
 }
