@@ -81,6 +81,15 @@ jobs:
         key: steamcmd-${{ env.MODS_HASH }}
         enableCrossOsArchive: true
 
+    - name: Restore Dependencies
+      run: |
+        dotnet restore Source/VehicleMapFramework/VehicleMapFramework.csproj
+        dotnet restore Source/VMF_AchtungPatch/VMF_AchtungPatch.csproj
+        dotnet restore Source/VMF_CEPatch/VMF_CEPatch.csproj
+        dotnet restore Source/VMF_DBHCompat/VMF_DBHCompat.csproj
+        dotnet restore Source/VMF_RimefellerCompat/VMF_RimefellerCompat.csproj
+        dotnet restore Source/VMF_VEFCompat/VMF_VEFCompat.csproj
+        
     - name: Build Test DLL
       run: |
         dotnet build Source/VehicleMapFramework/VehicleMapFramework.csproj --configuration Release --no-restore /p:SteamWorkshopRoot=${{ env.CI_SteamCMD_WorkShop }} /p:SkipPostBuild=true
