@@ -82,7 +82,14 @@ jobs:
         enableCrossOsArchive: true
 
     - name: Build Test DLL
-      run: dotnet build ${{ env.TestProject_Path }} --configuration Release --no-restore /p:SteamWorkshopRoot=${{ env.CI_SteamCMD_WorkShop }}
+      run: |
+        dotnet build Source/VehicleMapFramework/VehicleMapFramework.csproj --configuration Release --no-restore /p:SteamWorkshopRoot=${{ env.CI_SteamCMD_WorkShop }} /p:SkipPostBuild=true
+        dotnet build Source/VMF_AchtungPatch/VMF_AchtungPatch.csproj --configuration Release --no-restore /p:SteamWorkshopRoot=${{ env.CI_SteamCMD_WorkShop }} /p:SkipPostBuild=true
+        dotnet build Source/VMF_CEPatch/VMF_CEPatch.csproj --configuration Release --no-restore /p:SteamWorkshopRoot=${{ env.CI_SteamCMD_WorkShop }} /p:SkipPostBuild=true
+        dotnet build Source/VMF_DBHCompat/VMF_DBHCompat.csproj --configuration Release --no-restore /p:SteamWorkshopRoot=${{ env.CI_SteamCMD_WorkShop }} /p:SkipPostBuild=true
+        dotnet build Source/VMF_RimefellerCompat/VMF_RimefellerCompat.csproj --configuration Release --no-restore /p:SteamWorkshopRoot=${{ env.CI_SteamCMD_WorkShop }} /p:SkipPostBuild=true
+        dotnet build Source/VMF_VEFCompat/VMF_VEFCompat.csproj --configuration Release --no-restore /p:SteamWorkshopRoot=${{ env.CI_SteamCMD_WorkShop }} /p:SkipPostBuild=true
+        dotnet build ${{ env.TestProject_Path }} --configuration Release --no-restore /p:SteamWorkshopRoot=${{ env.CI_SteamCMD_WorkShop }}
       
     - name: Run Remote Tests
       run: |
