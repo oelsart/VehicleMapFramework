@@ -39,7 +39,7 @@ public static class TestPlanLoader
     }
 
     // VMFロードと型キャッシュ
-    var assemblies = Configurations.IsRemote
+    var assemblies = Configurations.UseWorkshopVersion
       ? Loader.LoadModFolder(WorkshopIds["VehicleMapFramework"])
       : Loader.LoadModFolder("VehicleMapFramework");
     Types = assemblies
