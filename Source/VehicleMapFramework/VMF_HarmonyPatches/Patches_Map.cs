@@ -80,7 +80,8 @@ public static class Patch_Reachability_CanReach
 
     var pawn = traverseParams.pawn;
 
-    var destMap = pawn.DestMap ??
+    var destMap = CrossMapReachabilityUtility.DestMapGlobal ??
+                  pawn.DestMap ??
                   dest.Thing?.MapHeld ??
                   (pawn.IsTargeting(dest, out var target)
                     ? target.Map
