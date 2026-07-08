@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using AchtungMod;
 using HarmonyLib;
+using RimWorld;
 using UnityEngine;
 using VehicleMapFramework;
 using VehicleMapFramework.VMF_HarmonyPatches;
@@ -22,7 +23,7 @@ public static class Patches_Achtung
 }
 
 [HarmonyPatchCategory(PatchCategories.Achtung)]
-[HarmonyPatch(typeof(Colonist), nameof(Colonist.UpdateOrderPos))]
+[HarmonyPatch(typeof(Colonist), nameof(Colonist.UpdateOrderPos), typeof(Vector3), typeof(Predicate<IntVec3>))]
 [PatchLevel(Level.Safe)]
 public static class Patch_Colonist_UpdateOrderPos
 {
@@ -30,7 +31,7 @@ public static class Patch_Colonist_UpdateOrderPos
 
   private static int lastCachedTick;
 
-  public static bool Prefix(Colonist __instance, ref Vector3 pos, ref IntVec3 __result)
+  public static bool Prefix(Colonist __instance, ref Vector3 pos, Predicate<IntVec3> cellValidator, ref IntVec3 __result)
   {
     __instance.pawn.TargetMap = __instance.pawn.Map;
     if (Find.TickManager.TicksGame != lastCachedTick)
@@ -40,13 +41,13 @@ public static class Patch_Colonist_UpdateOrderPos
     }
     if (pos.TryGetVehicleMap(Find.CurrentMap, out var vehicle, VehicleMapFlag.None) || __instance.pawn.MapHeld.IsNonFocusedVehicleMapOf(out _))
     {
-      __result = UpdateOrderPos(__instance, pos, vehicle);
+      __result = __instance.UpdateOrderPos(pos, cellValidator, vehicle);
       return false;
     }
     return true;
   }
 
-  public static IntVec3 UpdateOrderPos(this Colonist colonist, Vector3 pos, VehiclePawnWithMap vehicle)
+  public static IntVec3 UpdateOrderPos(this Colonist colonist, Vector3 pos, Predicate<IntVec3> cellValidator, VehiclePawnWithMap vehicle)
   {
     IntVec3 destCell;
     IntVec3 destCellOnBaseMap;
@@ -66,7 +67,7 @@ public static class Patch_Colonist_UpdateOrderPos
 
     if (AchtungLoader.IsSameSpotInstalled)
     {
-      if (destCell.Standable(destMap) && colonist.pawn.CanReach(destCell,
+      if (destCell.Standable(destMap) && (cellValidator?.Invoke(destCell) ?? true) && colonist.pawn.CanReach(destCell,
             PathEndMode.OnCell,
             Danger.Deadly,
             false,
@@ -79,6 +80,9 @@ public static class Patch_Colonist_UpdateOrderPos
         return destCell;
       }
     }
+    
+    if (TryGetStandableMoveAnchor(destCell, destMap, out var moveAnchor))
+      destCell = moveAnchor;
 
     var bestCell = IntVec3.Invalid;
     if (ModsConfig.BiotechActive && colonist.pawn.IsColonyMech && !MechanitorUtility.InMechanitorCommandRange(colonist.pawn, destCellOnBaseMap))
@@ -114,6 +118,16 @@ public static class Patch_Colonist_UpdateOrderPos
       return bestCell;
     }
     return IntVec3.Invalid;
+    
+    static bool TryGetStandableMoveAnchor(IntVec3 cell, Map map, out IntVec3 result)
+    {
+      result = IntVec3.Invalid;
+      if (map == null || !cell.IsValid || !cell.InBounds(map))
+        return false;
+
+      result = cell.Standable(map) ? cell : CellFinder.StandableCellNear(cell, map, 2.9f);
+      return result.IsValid;
+    }
   }
 }
 
@@ -184,7 +198,8 @@ public static class Patch_Controller_HandleDrawing
 {
   private static MethodBase TargetMethod()
   {
-    return AccessTools.FindIncludingInnerTypes<MethodBase>(typeof(Controller), t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<HandleDrawing>")));
+    return AccessTools.FindIncludingInnerTypes<MethodBase>(typeof(Controller),
+      t => t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<HandleDrawing>")));
   }
 
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -197,20 +212,23 @@ public static class Patch_Controller_HandleDrawing
 
 [HarmonyPatchCategory(PatchCategories.Achtung)]
 [HarmonyPatch(typeof(Controller), nameof(Controller.MouseDown))]
-[PatchLevel(Level.Safe)]
 public static class Patch_Controller_MouseDown
 {
   private static VehiclePawnWithMap tmpFocusedMap;
 
+  [PatchLevel(Level.Safe)]
   public static void Prefix(Vector3 pos)
   {
     tmpFocusedMap = Command_FocusVehicleMap.FocusedVehicle;
     if (pos.TryGetVehicleMap(Find.CurrentMap, out var vehicle, VehicleMapFlag.None))
     {
       Command_FocusVehicleMap.FocusedVehicle = vehicle;
+      CrossMapReachabilityUtility.DestMapGlobal = vehicle.CurrentLevel;
+      GenUIOnVehicle.vehicleForSelector = vehicle;
     }
   }
 
+  [PatchLevel(Level.Cautious)]
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
     var m_FromVector3 = ((Func<Vector3, IntVec3>)IntVec3.FromVector3).Method;
@@ -225,8 +243,39 @@ public static class Patch_Controller_MouseDown
     return IntVec3.FromVector3(pos.ToVehicleMapCoord());
   }
 
+  [PatchLevel(Level.Safe)]
   public static void Finalizer()
   {
     Command_FocusVehicleMap.FocusedVehicle = tmpFocusedMap;
+    CrossMapReachabilityUtility.DestMapGlobal = null;
+    GenUIOnVehicle.vehicleForSelector = null;
+  }
+}
+
+[HarmonyPatchCategory(PatchCategories.Achtung)]
+[HarmonyPatch(typeof(Controller), "TryGetPlainDraftedMoveAnchor")]
+[PatchLevel(Level.Cautious)]
+public static class Patch_Tools_TryGetPlainDraftedMoveAnchor
+{
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    return Patch_Controller_MouseDown.Transpiler(instructions);
+  }
+}
+
+[HarmonyPatchCategory(PatchCategories.Achtung)]
+[HarmonyPatch(typeof(Controller), "PawnsUnderMouse")]
+public static class Patch_Tools_PawnsUnderMouse
+{
+  [PatchLevel(Level.Safe)]
+  public static void Prefix(ref Vector3 pos) => pos = pos.ToVehicleMapCoord();
+  
+  [PatchLevel(Level.Cautious)]
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    return instructions.MethodReplacer(
+      ((Delegate)GenUI.ThingsUnderMouse).Method,
+      ((Func<Vector3, float, TargetingParameters, ITargetingSource, List<Thing>>)GenUIOnVehicle.ThingsUnderMouse).Method
+      );
   }
 }

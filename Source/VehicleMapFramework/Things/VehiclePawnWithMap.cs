@@ -92,7 +92,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
 
   public Map CurrentLevel
   {
-    get => field ?? interiorMap;
+    get => field ??= interiorMap;
     set;
   }
 
@@ -1363,7 +1363,6 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     RegisterEvents();
     CompVehicleTurrets?.RevalidateTurrets();
     ResetRenderStatus();
-    CurrentLevel = interiorMap;
   }
 
   public override void PostMake()

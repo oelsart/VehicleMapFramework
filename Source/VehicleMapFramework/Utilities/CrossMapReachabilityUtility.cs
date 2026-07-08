@@ -24,6 +24,8 @@ public static class CrossMapReachabilityUtility
 
   public static Map DepartMapGlobal;
 
+  public static Map DestMapGlobal;
+
   private static readonly Traverser traverser = new();
 
   private static readonly AStar<MapTraverse> aStar = new(Traverser.Cost, traverser.Neighbors, traverser.FinalCheck,
