@@ -53,16 +53,8 @@ public class IncidentWorker_Ambush_EnemyMapVehicle : IncidentWorker_AmbushMapVeh
     {
         return VehicleCaravanIncidentUtility.ValidThreatVehicle(vehicleDef, category, arrivalModeDef, faction, points);
     }
-
-    protected override LordJob CreateLordJob(List<Pawn> generatedPawns, IncidentParms parms)
-    {
-        return new LordJob_AssaultColony(parms.faction,
-            canTimeoutOrFlee: false,
-            useAvoidGridSmart: true,
-            canPickUpOpportunisticWeapons: true);
-    }
-
-    protected override LordJob CreateLordJob(List<VehiclePawnWithMap> generatedVehicles, IncidentParms parms)
+    
+    protected override LordJob CreateLordJob(IncidentParms parms)
     {
         return new LordJob_ArmoredAssault(parms.faction, LordJob_ArmoredAssault.RaiderPermissions.All);
     }

@@ -92,7 +92,7 @@ public static class Patch_Verb_LaunchProjectile_TryCastShot
     [PatchLevel(Level.Safe)]
     public static void Prefix(Thing ___caster)
     {
-        if (___caster.IsOnVehicleMapOf(out var vehicle) && !vehicle.Spawned)
+        if (___caster.IsOnVehicleMapOf(out var vehicle) && (!vehicle.Spawned || vehicle.VehicleMap == Find.CurrentMap))
         {
             VehiclePawnWithMapCache.CacheMode = true;
         }

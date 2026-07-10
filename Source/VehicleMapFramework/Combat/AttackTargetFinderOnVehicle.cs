@@ -190,10 +190,12 @@ public static class AttackTargetFinderOnVehicle
       }
       else
       {
-        var flag4 = thing.MovedOccupiedRect().Any(c => !c.Fogged(baseMap));
-        if (!flag4)
+        foreach (var c in thing.MovedOccupiedRect())
         {
-          return false;
+          if (c.Fogged(baseMap))
+          {
+            return false;
+          }
         }
       }
 

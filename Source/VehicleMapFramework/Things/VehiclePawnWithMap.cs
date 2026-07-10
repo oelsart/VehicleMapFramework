@@ -97,7 +97,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
   }
 
   public VehicleMapBlitter VehicleMapBlitter => field ??= new VehicleMapBlitter(this);
-  
+
   public Command_SelectVehicleMap VehicleMapGizmo => field ??= GetVehicleMapGizmo();
 
   [UsedImplicitly] public bool AllowEnter => allowEnter;
@@ -361,9 +361,12 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
   public CompDelayedKill CompDelayedKill => (_compDelayedKill ??= new FetchedComp<CompDelayedKill>(this)).Value;
 
   private FetchedComp<VehicleComp> _compVehicleHover;
-  protected VehicleComp CompVehicleHover => (_compVehicleHover ??= new FetchedComp<VehicleComp>(this, VehicleRaidFramework.CompVehicleHover)).Value;
 
-  protected bool IsAirborne => VehicleRaidFramework.Active && CompVehicleHover is not null && VehicleRaidFramework.State(CompVehicleHover) > 0;
+  protected VehicleComp CompVehicleHover =>
+    (_compVehicleHover ??= new FetchedComp<VehicleComp>(this, VehicleRaidFramework.CompVehicleHover)).Value;
+
+  protected bool IsAirborne => VehicleRaidFramework.Active && CompVehicleHover is not null &&
+                               VehicleRaidFramework.State(CompVehicleHover) > 0;
 
   public MapComponent InterceptorMapComponent =>
     field ??= interiorMap.GetComponent(DefenseGrid.InterceptorMapComponent);
@@ -552,7 +555,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
       LongEventHandler.ExecuteWhenFinished(() => GenerateVehicleMap(sourceMap));
       return;
     }
-    
+
     try
     {
       VehicleMapProps props;
@@ -597,6 +600,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
           interiorMap.terrainGrid.SetTerrain(c, VMF_DefOf.VMF_ImpassableFloor);
         }
       }
+
       interiorMap.events.BuildingSpawned += WalkableCellsDirtyIfNeeded;
       interiorMap.events.PathCostRecalculate += WalkableCellsDirtyIfNeeded;
       CurrentLevel ??= interiorMap;
@@ -604,6 +608,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
       {
         Find.World.worldObjects.Add(interiorMap.Parent);
       }
+
       if (sourceMap is not null)
       {
         interiorMap.skyManager = sourceMap.skyManager;
@@ -704,9 +709,10 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
       {
         Current.Game.CurrentMap = map;
       }
+
       interiorMap.mapPawns.AllPawns.OfType<VehiclePawn>().Do(v => { v.Transform.rotation = 0f; });
     }
-    
+
     SetTile();
     Transform.rotation = 0f;
     enterPositionsDirty = true;
@@ -861,12 +867,14 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
           {
             thing.DeSpawn();
             var terrain = positionOnBaseMap.GetTerrain(map);
-            if (thing is Pawn pawn &&
+            var pawn = thing as Pawn;
+            if (pawn is not null &&
                 (terrain == TerrainDefOf.WaterDeep || terrain == TerrainDefOf.WaterOceanDeep) &&
                 HealthHelper.AttemptToDrown(pawn))
             {
               flag = true;
               stringBuilder.AppendLine(pawn.LabelCap);
+              continue;
             }
 
             if (!GenPlace.TryPlaceThing(thing, positionOnBaseMap, map, ThingPlaceMode.Near))
@@ -874,6 +882,9 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
               CellFinder.TryFindRandomCellNear(positionOnBaseMap, map, 50,
                 c => GenPlace.TryPlaceThing(thing, c, Map, ThingPlaceMode.Near), out _);
             }
+
+            if (pawn?.carryTracker.CarriedThing is not null)
+              pawn.carryTracker.TryDropCarriedThing(pawn.Position, ThingPlaceMode.Near, out _);
           }
         }
       }
@@ -959,7 +970,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
   private void CacheDrawPos(Vector3 drawLoc)
   {
     if (!UnityData.IsInMainThread) return;
-    
+
     var transform = new TransformData(drawLoc + Transform.position, FullRotation, Transform.rotation.FlipAngle(this));
     var result = VehicleGraphic?.ParallelGetPreRenderResults(ref transform, false, this);
     cachedDrawPos = result?.position ?? drawLoc;
@@ -1429,7 +1440,8 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     }
   }
 
-  [DebugAction(VehicleMapFramework.CategoryName, "Set Transform.Rotation", actionType = DebugActionType.ToolMapForPawns)]
+  [DebugAction(VehicleMapFramework.CategoryName, "Set Transform.Rotation",
+    actionType = DebugActionType.ToolMapForPawns)]
   private static void SetTransformRotation(Pawn pawn)
   {
     if (pawn is not VehiclePawn vehicle)
@@ -1437,7 +1449,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
       Messages.Message("The selected pawn is not a vehicle.", MessageTypeDefOf.RejectInput, false);
       return;
     }
-  
+
     DebugTools.curTool = new DebugTool($"{pawn}: to...", () =>
     {
       var angle = Ext_Math.RotateAngle((UI.MouseMapPosition() - vehicle.DrawPos).ToAngleFlat(), 90f) -
@@ -1447,7 +1459,8 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     });
   }
 
-  [DebugAction(VehicleMapFramework.CategoryName, "Reset Transform.Rotation", actionType = DebugActionType.ToolMapForPawns)]
+  [DebugAction(VehicleMapFramework.CategoryName, "Reset Transform.Rotation",
+    actionType = DebugActionType.ToolMapForPawns)]
   private static void ResetTransformRotation(Pawn pawn)
   {
     if (pawn is not VehiclePawn vehicle)
@@ -1455,7 +1468,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
       Messages.Message("The selected pawn is not a vehicle.", MessageTypeDefOf.RejectInput, false);
       return;
     }
-  
+
     vehicle.Transform.rotation = 0f;
   }
 

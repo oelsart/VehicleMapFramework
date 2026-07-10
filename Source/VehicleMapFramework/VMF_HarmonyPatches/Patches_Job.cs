@@ -1528,3 +1528,14 @@ public static class Patch_RitualStage_GetPawnPosition
     __state?.Dispose();
   }
 }
+
+[HarmonyPatch(typeof(JobGiver_ExitMap), "TryGiveJob")]
+[PatchLevel(Level.Safe)]
+public static class Patch_JobGiver_ExitMap_TryGiveJob
+{
+  public static bool Prefix(Pawn pawn, ref Job __result)
+  {
+    __result = JobAcrossMapsUtility.InsertBoardJobIfNeeded(pawn);
+    return __result is null;
+  }
+}

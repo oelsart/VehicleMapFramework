@@ -42,7 +42,7 @@ public class CompVehicleSeat : CompBuildableUpgrades, IAttackTarget
           out var spotsQueue))
     {
       foreach (var floatMenuOption in from handler in vehicle.handlers
-               where handler.AreSlotsAvailable && handlerUniqueIDs.Any(h => h.id == handler.uniqueID)
+               where handler.AreSlotsAvailableAndReservable && handlerUniqueIDs.Any(h => h.id == handler.uniqueID)
                let reservationManager = vehicle.Map?.GetCachedMapComponent<VehicleReservationManager>()
                let canOperate = handler.CanOperateRole(selPawn)
                let reservedCount =

@@ -24,12 +24,7 @@ public abstract class IncidentWorker_AmbushMapVehicle : IncidentWorker
     {
     }
     
-    protected virtual LordJob CreateLordJob(List<Pawn> generatedPawns, IncidentParms parms)
-    {
-        return null;
-    }
-
-    protected virtual LordJob CreateLordJob(List<VehiclePawnWithMap> generatedVehicles, IncidentParms parms)
+    protected virtual LordJob CreateLordJob(IncidentParms parms)
     {
         return null;
     }
@@ -125,12 +120,12 @@ public abstract class IncidentWorker_AmbushMapVehicle : IncidentWorker
         PostProcessGeneratedPawnsAfterSpawning(generatedEnemies);
         PostProcessGeneratedVehiclesAfterSpawning(generatedVehicles);
 
-        var lordJob = CreateLordJob(generatedEnemies, parms);
+        var lordJob = CreateLordJob(parms);
         if (lordJob != null)
-            LordMaker.MakeNewLord(parms.faction, lordJob, map, generatedEnemies);
-        var lordJob2 = CreateLordJob(generatedVehicles, parms);
-        if (lordJob2 != null)
-            LordMaker.MakeNewLord(parms.faction, lordJob2, map, generatedVehicles);
+        {
+          var lord = LordMaker.MakeNewLord(parms.faction, lordJob, map, generatedEnemies);
+          lord.AddPawns(generatedVehicles);
+        }
         
         TaggedString taggedString = GetLetterLabel(generatedEnemies[0], parms);
         TaggedString taggedString2 = GetLetterText(generatedEnemies[0], parms);

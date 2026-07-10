@@ -13,7 +13,7 @@ public class CompNpcVehicleMap : VehicleComp
 
   public void SetParams(int pawnCount)
   {
-    if (Params != null)
+    if (Params is not null)
     {
       VMF_Log.Warning("CompNpcVehicleMap: Params already set.");
       return;
