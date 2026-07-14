@@ -95,7 +95,7 @@ public class Reactor_Sink : Reactor, ITweakFields
                     mapLimit.Value);
                 mote.SetParameters(
                     texture,
-                    Quaternion.AngleAxis(vehicle.ExtraAngle, Vector3.up),
+                    Quaternion.AngleAxis(-vehicle.ExtraAngle, Vector3.up),
                     drawSizeRotated.ToVector3().WithY(1f),
                     textureSize,
                     vehiclePawnWithMap,

@@ -12,6 +12,7 @@ public class CrossMapRegionProcessorClosestThingReachable : RegionProcessorClose
   private float maxDistance;
   private float maxDistSquared;
   private IntVec3 root;
+  private ThingRequest req;
 
   public void SetParameters(TraverseParms _traverseParams, float _maxDistance, IntVec3 _root,
     bool ignoreEntirelyForbiddenRegions, ThingRequest req, PathEndMode peMode, Func<Thing, float> priorityGetter,
@@ -26,6 +27,7 @@ public class CrossMapRegionProcessorClosestThingReachable : RegionProcessorClose
     maxDistance = _maxDistance;
     root = _root;
     maxDistSquared = _maxDistance * _maxDistance;
+    this.req = req;
   }
 
   public new void Clear()
@@ -36,8 +38,9 @@ public class CrossMapRegionProcessorClosestThingReachable : RegionProcessorClose
 
   protected override bool RegionEntryPredicate(Region from, Region to)
   {
-    if (to.Room is null || to.Allows(traverseParams, false)) return false;
+    if (to.Room is null || !to.Allows(traverseParams, false)) return false;
 
+    // 車両マップからベースマップのdangerousなterrainに降りるのを禁止
     if (traverseParams.avoidPersistentDanger &&
         from.Map != to.Map && from.Map.IsVehicleMapOf(out var vehicle) && !to.Map.IsVehicleMap &&
         vehicle.Position.GetTerrain(vehicle.Map) is not { dangerous: false })
@@ -46,7 +49,7 @@ public class CrossMapRegionProcessorClosestThingReachable : RegionProcessorClose
     if (maxDistance > 5000f) return true;
 
     var rootCell = to.Map.IsVehicleMapOf(out var vehicle2) ? root.ToVehicleMapCoord(vehicle2) : root;
-    return (to.extentsClose.ClosestDistSquaredTo(rootCell) < maxDistSquared);
+    return to.extentsClose.ClosestDistSquaredTo(rootCell) < maxDistSquared;
   }
 
   protected override bool RegionProcessor(Region reg)

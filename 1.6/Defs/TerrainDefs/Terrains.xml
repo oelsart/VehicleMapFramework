@@ -29,6 +29,8 @@
 		<fertility>0</fertility>
 		<passability>Impassable</passability>
 		<pathCost>300</pathCost>
+    <holdSnowOrSand>false</holdSnowOrSand>
+    <changeable>false</changeable>
 		<affordances>
 			<li>VMF_ImpassableFloor</li>
 		</affordances>

@@ -716,6 +716,8 @@ public static class Patch_ItemAvailability_ThingsAvailableAnywhere
 [HarmonyPatch(typeof(GenClosest), nameof(GenClosest.ClosestThingReachable))]
 public static class Patch_GenClosest_ClosestThingReachable
 {
+  public static bool forceCrossMap;
+  
   [HarmonyReversePatch(HarmonyReversePatchType.Snapshot)]
   [PatchLevel(Level.Mandatory)]
   [MethodImpl(MethodImplOptions.NoInlining)] //リバースパッチはインライン化させないほうがいい。これ豆な
@@ -744,7 +746,7 @@ public static class Patch_GenClosest_ClosestThingReachable
     if (!map.CrossMapContext || traverseParams.pawn is not { } pawn) return;
 
     // 非プレイヤーポーンが車両マップの椅子に座ろうとすることなどの防止
-    if (pawn is { Faction.IsPlayer: false }) return;
+    if (!forceCrossMap && pawn is { Faction.IsPlayer: false }) return;
     customGlobalSearchSet = customGlobalSearchSet?.Where(t => t.Map != map);
     __result ??= GenClosestCrossMap.ClosestThingReachable(root, map, thingReq, peMode, traverseParams, maxDistance,
       validator, customGlobalSearchSet, searchRegionsMin, searchRegionsMax, forceAllowGlobalSearch,
@@ -756,10 +758,13 @@ public static class Patch_GenClosest_ClosestThingReachable
 [PatchLevel(Level.Safe)]
 public static class Patch_GenClosest_ClosestThing_Regionwise_ReachablePrioritized
 {
-  public static void Prefix(ref Map map, TraverseParms traverseParams)
+  public static void Prefix(IntVec3 root, ref Map map, TraverseParms traverseParams)
   {
-    var map2 = traverseParams.pawn?.DepartMap;
-    if (map2 != null) map = map2;
+    if (!map.CrossMapContext || traverseParams.pawn is not { } pawn) return;
+
+    var map2 = pawn.DepartMap;
+    if (map2 != null && root == pawn.Position && map == pawn.Map)
+      map = map2;
   }
 
   public static void Postfix(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode,
@@ -1526,16 +1531,5 @@ public static class Patch_RitualStage_GetPawnPosition
   public static void Finalizer(ref VirtualTeleporter? __state)
   {
     __state?.Dispose();
-  }
-}
-
-[HarmonyPatch(typeof(JobGiver_ExitMap), "TryGiveJob")]
-[PatchLevel(Level.Safe)]
-public static class Patch_JobGiver_ExitMap_TryGiveJob
-{
-  public static bool Prefix(Pawn pawn, ref Job __result)
-  {
-    __result = JobAcrossMapsUtility.InsertBoardJobIfNeeded(pawn);
-    return __result is null;
   }
 }

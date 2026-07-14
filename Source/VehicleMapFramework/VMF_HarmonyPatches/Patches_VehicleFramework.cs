@@ -263,6 +263,7 @@ public static class Patch_TargetingHelper_TargetMeetsRequirements2
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
     return instructions.MethodReplacer(
+      (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing),
       (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned),
       (CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned),
       (CachedMethodInfo.m_GenSight_LineOfSight1, CachedMethodInfo.m_GenSightOnVehicle_LineOfSight1),
@@ -332,6 +333,18 @@ public static class Patch_VehicleTurret_FireTurret
       (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing));
   }
 }
+
+[HarmonyPatchCategory(PatchCategories.VehicleFramework)]
+[HarmonyPatch(typeof(VehicleTurret), nameof(VehicleTurret.InitTurretMotes))]
+[PatchLevel(Level.Cautious)]
+public static class Patch_VehicleTurret_InitTurretMotes
+{
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
+  }
+}
+
 
 [HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(VehicleTurret), nameof(VehicleTurret.TurretRotation), MethodType.Getter)]

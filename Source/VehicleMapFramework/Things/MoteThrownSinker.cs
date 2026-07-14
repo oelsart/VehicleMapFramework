@@ -37,7 +37,7 @@ public class MoteThrownSinker : MoteThrown
   private Color overlayColor;
   private SimpleCurve colorOverlayAlphaCurve;
   private bool disposeOnDespawn;
-
+  
   public void SetParameters(RenderTexture _texture, Quaternion _texRotation, Vector3 _texDrawSize,
     Color _overlayColor, SimpleCurve _colorOverlayAlphaCurve)
   {
@@ -62,7 +62,7 @@ public class MoteThrownSinker : MoteThrown
     overlayColor = _overlayColor;
     colorOverlayAlphaCurve = _colorOverlayAlphaCurve;
   }
-
+  
   protected override void TickInterval(int delta)
   {
     base.TickInterval(delta);

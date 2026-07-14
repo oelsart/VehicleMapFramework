@@ -701,6 +701,11 @@ public static class AttackTargetFinderOnVehicle
     var seerPosOnBaseMap = seer.PositionOnBaseMapSpawned;
     var targPosOnBaseMap = target.PositionOnBaseMapSpawned;
     var baseMap = seer.BaseMap();
+    
+    // マップ端で車両マップ上のポーンがベースマップ外に行く可能性はある
+    if (!seerPosOnBaseMap.InBounds(baseMap) || !targPosOnBaseMap.InBounds(baseMap))
+      return false;
+    
     tempDestList.Clear();
     ShootLeanUtilityOnVehicle.CalcShootableCellsOf(tempDestList, target, seerPosOnBaseMap);
     for (var i = 0; i < tempDestList.Count; i++)

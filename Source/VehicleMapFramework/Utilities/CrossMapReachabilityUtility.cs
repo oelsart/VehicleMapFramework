@@ -300,10 +300,9 @@ public static class CrossMapReachabilityUtility
             {
               spotsQueue.Add(new TraverseSpots(traverse.exitSpot, traverse.enterSpot));
             }
-
-            traverseList.Clear();
           }
-
+          
+          traverseList.Clear();
           return result;
         }
 
@@ -569,7 +568,7 @@ public static class CrossMapReachabilityUtility
 
               bool CanReach2(IntVec3 cell, IntVec3 cell2, IntVec3 cell3, IntVec3 cell4)
               {
-                return CellCheck(cell2, departBaseMap, traverseParms) &&
+                return CellCheck(cell2, departBaseMap, traverseParms, true) &&
                        CellCheck(cell3, departBaseMap, traverseParms) &&
                        departMap.reachability.CanReach(root, cell, PathEndMode.OnCell,
                          traverseParms) &&
@@ -705,6 +704,92 @@ public static class CrossMapReachabilityUtility
     return cell.Walkable(map) &&
            (cell.GetDoor(map) is not { } door2 || door2.HoldOpen) &&
            (!destination || !parms.avoidPersistentDanger || cell.GetTerrain(map) is { dangerous: false });
+  }
+
+  public static bool CanReachToMap(IntVec3 root, Map departMap, TraverseParms parms, Map destMap, bool canUseAbility = true)
+  {
+    return CanReachToMap(root, departMap, parms, destMap, out _, out _, out _, canUseAbility);
+  }
+  
+  public static bool CanReachToMap(IntVec3 root, Map departMap, TraverseParms parms, Map destMap,
+    out TargetInfo exitSpot, out TargetInfo enterSpot, out List<TraverseSpots> spotsQueue, bool canUseAbility = true)
+  {
+    exitSpot = TargetInfo.Invalid;
+    enterSpot = TargetInfo.Invalid;
+    spotsQueue = null;
+    
+    
+
+    if (departMap == null || destMap == null) return false;
+    if (departMap == destMap) return true;
+    if (departMap.BaseMapOrCaravan != destMap.BaseMapOrCaravan) return false;
+
+    if (working)
+    {
+      Log.ErrorOnce("Called CanReachToMap() while working. This should never happen. Suppressing further errors.", 7312234);
+      return false;
+    }
+    
+    working = true;
+    try
+    {
+      var region = root.GetRegion(departMap);
+      TraverseParmsExtended parmsForCache = parms;
+      Ability_MapTraverse ability = null;
+      if (canUseAbility)
+      {
+        ability = parms.pawn?.abilities?.AllAbilitiesForReading.OfType<Ability_MapTraverse>()
+          .FirstOrDefault(a => a is { CanCast.Accepted: true });
+        parmsForCache.ability = ability?.def;
+      }
+
+      destRegions.Clear();
+      foreach (var district in destMap.regionGrid.allDistricts)
+      {
+        if (district.Passable)
+          destRegions.AddRange(district.Regions);
+      }
+
+      if (destRegions.Empty()) return false;
+
+      bool result;
+      foreach (var region2 in destRegions)
+      {
+        if (CrossMapReachabilityCache.TryGetCache(region, region2, parmsForCache, out result, out exitSpot,
+              out enterSpot,
+              out spotsQueue) && result)
+          return true;
+      }
+
+      var start = new MapTraverse(TargetInfo.Invalid, new TargetInfo(root, departMap));
+      var destination = new MapTraverse(TargetInfo.Invalid, new TargetInfo(destRegions[0].AnyCell, destMap));
+      traverser.SetParameters(start.enterSpot, destination.enterSpot, parms, ability);
+      traverseList.Clear();
+      aStar.Run(start, destination, traverseList);
+      result = traverseList.Count > 0;
+      if (traverseList.Count == 1)
+      {
+        exitSpot = traverseList[0].exitSpot;
+        enterSpot = traverseList[0].enterSpot;
+      }
+      else if (result)
+      {
+        spotsQueue = SimplePool<List<TraverseSpots>>.Get();
+        spotsQueue.Clear();
+        foreach (var traverse in traverseList)
+        {
+          spotsQueue.Add(new TraverseSpots(traverse.exitSpot, traverse.enterSpot));
+        }
+      }
+      if (result)
+        CrossMapReachabilityCache.Cache(region, traverser.destRegion, parmsForCache, true, exitSpot, enterSpot, spotsQueue);
+      traverseList.Clear();
+      return result;
+    }
+    finally
+    {
+      working = false;
+    }
   }
 
   public static bool TryFindNearestStandableCell(VehiclePawn vehicle, IntVec3 cell, Map map, out IntVec3 result,
@@ -1003,7 +1088,7 @@ public static class CrossMapReachabilityUtility
           traverseParms.alwaysUseAvoidGrid, traverseParms.canBashFences, traverseParms.avoidPersistentDanger);
       _ability = ability;
       _tmpCandidates.Clear();
-      _tmpCandidates.AddRange(destination.Map.BaseMapAndVehicleMaps());
+      _tmpCandidates.AddRange(start.Map.BaseMapAndVehicleMaps());
       var destMap = destination.Map;
       _tmpCandidates.SortBy(m =>
       {
@@ -1011,6 +1096,37 @@ public static class CrossMapReachabilityUtility
           return 0;
         if (m.IsVehicleMapOf(out var vehicle))
           return (m.Center.ToBaseMapCoord(vehicle) - _destBaseMapCoord).LengthManhattan;
+        return m.Size.LengthManhattan / 2;
+      });
+      _visitedDistrictIDs.Clear();
+      if (RegionAndRoomQuery.DistirctAtFast(start.Cell, start.Map) is { } district)
+        _visitedDistrictIDs.Add(district.ID);
+      destRegion = null;
+      debugNodeNumber = 0;
+    }
+    
+    public void SetParameters(TargetInfo start, Map destMap, TraverseParms traverseParms,
+      Ability_MapTraverse ability)
+    {
+      _destBaseMapCoord = destMap.IsVehicleMapOf(out var vehicle)
+        ? destMap.Center.ToBaseMapCoord(vehicle)
+        : start.CellOnBaseMap();
+      _traverseParms = traverseParms;
+      _traverseParms2 = traverseParms.pawn != null
+        ? TraverseParms.For(traverseParms.pawn, traverseParms.maxDanger, TraverseMode.PassDoors,
+          traverseParms.canBashDoors, traverseParms.alwaysUseAvoidGrid, traverseParms.canBashFences,
+          traverseParms.avoidPersistentDanger)
+        : TraverseParms.For(TraverseMode.PassDoors, traverseParms.maxDanger, traverseParms.canBashDoors,
+          traverseParms.alwaysUseAvoidGrid, traverseParms.canBashFences, traverseParms.avoidPersistentDanger);
+      _ability = ability;
+      _tmpCandidates.Clear();
+      _tmpCandidates.AddRange(start.Map.BaseMapAndVehicleMaps());
+      _tmpCandidates.SortBy(m =>
+      {
+        if (m == destMap)
+          return 0;
+        if (m.IsVehicleMapOf(out var vehicle2))
+          return (m.Center.ToBaseMapCoord(vehicle2) - _destBaseMapCoord).LengthManhattan;
         return m.Size.LengthManhattan / 2;
       });
       _visitedDistrictIDs.Clear();

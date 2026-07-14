@@ -69,13 +69,26 @@ public static class RegionTraverserAcrossMaps
           return;
         }
 
-        foreach (var vehicle2 in region.ListerThings.ThingsInGroup(ThingRequestGroup.Pawn).OfType<VehiclePawnWithMap>())
+        foreach (var pawn in region.ListerThings.ThingsInGroup(ThingRequestGroup.Pawn))
         {
-          var region2 =
-            vehicle2.VehicleMap.regionGrid.AllRegions_NoRebuild_InvalidAllowed.FirstOrDefault(r =>
-              ValidateRegion(region, r));
-          if (region2 is not null)
-            QueueNewOpenRegion(region2);
+          if (pawn is VehiclePawnWithMap vehicle2)
+          {
+            foreach (var district in vehicle2.VehicleMap.regionGrid.allDistricts)
+            {
+              var flag = false;
+              foreach (var region2 in district.Regions)
+              {
+                if (ValidateRegion(region, region2))
+                {
+                  QueueNewOpenRegion(region2);
+                  flag = true;
+                  break;
+                }
+              }
+
+              if (flag) break;
+            }
+          }
         }
 
         for (var i = 0; i < region.links.Count; i++)
@@ -105,7 +118,8 @@ public static class RegionTraverserAcrossMaps
           {
             foreach (var thing in region.ListerThings.ThingsOfDef(def))
             {
-              if (!thing.TryGetComp<CompZipline>(out var comp) || comp.Pair is null or { Spawned: false }) continue;
+              if (!thing.TryGetComp<CompZipline>(out var comp) || comp.Pair is not { Spawned: true }) continue;
+              
               var pair = comp.Pair;
               var region2 = pair.Position.GetRegion(pair.Map);
               if (ValidateRegion(region, region2))

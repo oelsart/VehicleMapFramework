@@ -36,7 +36,7 @@ public class SubEffector_SpawnSinkerMote(SubEffecterDef subDef, Effecter parent)
     var mote = (MoteThrownSinker)ThingMaker.MakeThing(VMF_DefOf.VMF_MoteSink);
     mote.SetParameters(
       renderTex,
-      Quaternion.AngleAxis(vehicle.ExtraAngle, Vector3.up),
+      Quaternion.AngleAxis(-vehicle.ExtraAngle, Vector3.up),
       drawSizeMax.ToVector3().SetToAltitude(AltitudeLayer.MoteLow),
       subDef.color,
       ColorOverlayAlphaCurve);

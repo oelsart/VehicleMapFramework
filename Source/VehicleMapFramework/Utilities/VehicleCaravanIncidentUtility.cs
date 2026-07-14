@@ -154,7 +154,7 @@ public class VehicleCaravanIncidentUtility
 
     bool SpawnVehicle(VehiclePawnWithMap vehicle)
     {
-      var rot = edge?.Opposite ?? Rot4.Random;
+      var rot = edge ?? Rot4.Random;
       vehicle.Rotation = rot;
       var pathData = mapping[vehicle.VehicleDef];
       if (!pathData.VehiclePathGrid.Enabled) pathData.VehiclePathGrid.RecalculateAllPerceivedPathCosts();

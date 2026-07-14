@@ -607,7 +607,7 @@ public static class VehicleMapUtility
     {
       if (map?.GetCachedMapComponent<VehiclePawnWithMapCache>() is not { } component)
         return [];
-      var cache = component.cachedBaseMapAndVehicleMaps;
+      ref var cache = ref component.cachedBaseMapAndVehicleMaps;
       if (cache.lastCachedTick == GenTicks.TicksGame)
       {
         if (includeItself) cache.hashSet.Add(map);

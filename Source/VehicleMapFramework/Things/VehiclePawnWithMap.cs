@@ -15,7 +15,7 @@ using VehicleMapFramework.VMF_HarmonyPatches;
 using Vehicles;
 using Vehicles.World;
 using Verse;
-using Verse.AI;
+using Verse.AI.Group;
 #if DEV
 using Vehicles.Rendering;
 #endif
@@ -381,9 +381,6 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
 
   public override Vector3 DrawPos => Spawned && Find.CurrentMap != CurrentLevel ? base.DrawPos : cachedDrawPos;
 
-  public new bool ThreatDisabled(IAttackTargetSearcher disabledFor) =>
-    VehicleMap.mapPawns.FreeHumanlikesSpawnedOfFaction(Faction).Empty() && base.ThreatDisabled(disabledFor);
-
   public new float TargetPriorityFactor => 0.15f;
 
   public override IEnumerable<Gizmo> GetGizmos()
@@ -550,6 +547,12 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
 
   private void GenerateVehicleMap(Map sourceMap)
   {
+    if (Destroyed)
+    {
+      VMF_Log.Error("Tried to generate vehicle map for destroyed vehicle.");
+      return;
+    }
+    
     if (MapGenerator.mapBeingGenerated is not null)
     {
       LongEventHandler.ExecuteWhenFinished(() => GenerateVehicleMap(sourceMap));
@@ -807,12 +810,15 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
   {
     if (Spawned && CompDelayedKill is { KillOnTick: false })
     {
-      if (dinfo?.Instigator is Pawn instigator)
+      if (!CompDelayedKill.KillStarted)
       {
-        RecordsUtility.Notify_PawnKilled(this, instigator);
-      }
+        if (dinfo?.Instigator is Pawn instigator)
+        {
+          RecordsUtility.Notify_PawnKilled(this, instigator);
+        }
 
-      CompDelayedKill.StartKillTimer(destroyMode, spawnWreckage);
+        CompDelayedKill.StartKillTimer(destroyMode, spawnWreckage);
+      }
       return;
     }
 
@@ -840,6 +846,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
       var allThings = interiorMap.listerThings.AllThings;
       for (var i = allThings.Count - 1; i >= 0; i--)
       {
+        if (i >= allThings.Count) continue;
         var thing = allThings[i];
         if (mode != DestroyMode.Vanish && thing is { Destroyed: false })
         {
@@ -853,7 +860,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
               allowDestroyNonDestroyable = false;
             }
             else thing.Destroy();
-
+    
             if (positionOnBaseMap.Walkable(map) &&
                 positionOnBaseMap.GetItemCount(map) < positionOnBaseMap.GetMaxItemsAllowedInCell(map))
             {
@@ -863,12 +870,22 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
               thing.Position = pos;
             }
           }
-          else if (thing is not (Explosion or Projectile))
+          else if (thing is not (Explosion or Projectile or Fire))
           {
+            var cell = thing.DrawPos.ToIntVec3();
+            if (!cell.InBounds(map))
+            {
+              cell = cell.ClampInsideMap(map);
+            }
             thing.DeSpawn();
-            var terrain = positionOnBaseMap.GetTerrain(map);
-            var pawn = thing as Pawn;
-            if (pawn is not null &&
+            var terrain = cell.GetTerrain(map);
+            if (terrain.IsWater && thing is Filth)
+            {
+              thing.Destroy();
+              continue;
+            }
+            
+            if (thing is Pawn pawn &&
                 (terrain == TerrainDefOf.WaterDeep || terrain == TerrainDefOf.WaterOceanDeep) &&
                 HealthHelper.AttemptToDrown(pawn))
             {
@@ -876,27 +893,38 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
               stringBuilder.AppendLine(pawn.LabelCap);
               continue;
             }
-
-            if (!GenPlace.TryPlaceThing(thing, positionOnBaseMap, map, ThingPlaceMode.Near))
+            
+            FrameDelay.DelayOne(static state =>
             {
-              CellFinder.TryFindRandomCellNear(positionOnBaseMap, map, 50,
-                c => GenPlace.TryPlaceThing(thing, c, Map, ThingPlaceMode.Near), out _);
-            }
-
-            if (pawn?.carryTracker.CarriedThing is not null)
-              pawn.carryTracker.TryDropCarriedThing(pawn.Position, ThingPlaceMode.Near, out _);
+              if (!GenPlace.TryPlaceThing(state.thing, state.cell, state.map, ThingPlaceMode.Near))
+              {
+                CellFinder.TryFindRandomCellNear(state.cell, state.map, 50,
+                  c => GenPlace.TryPlaceThing(state.thing, c, state.map, ThingPlaceMode.Near), out _);
+              }
+    
+              if (state.thing is Pawn { carryTracker.CarriedThing: not null } pawn)
+                pawn.carryTracker.TryDropCarriedThing(pawn.Position, ThingPlaceMode.Near, out _);
+            
+              if (state.thing is VehiclePawn vehicle &&
+                  vehicle.Position.GetTerrain(state.map) is { IsWater: true } &&
+                  !vehicle.DrivableRectOnCell(vehicle.Position))
+              {
+                vehicle.DisembarkAll();
+                vehicle.Destroy();
+              }
+            }, (thing, cell, map));
           }
         }
       }
-
+    
       if (flag)
       {
         string text = "VF_BoatSunkWithPawnsDesc".Translate(LabelShort, stringBuilder.ToString());
         Find.LetterStack.ReceiveLetter("VF_BoatSunk".Translate(), text, LetterDefOf.NegativeEvent,
-          new TargetInfo(Position, Map));
+          new TargetInfo(Position, map));
       }
     }
-
+    
     base.Destroy(mode);
     RemoveVehicleMap();
     if (VehicleDef.HasModExtension<VehicleMapProps_Unique>())
@@ -922,6 +950,12 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
         curWeatherAge = Map.weatherManager.curWeatherAge
       };
       interiorMap.weatherDecider = new WeatherDecider(interiorMap);
+
+      foreach (var pawn in interiorMap.mapPawns.AllPawns)
+      {
+        if (pawn.TryGetLord(out var pawnLord) && pawnLord.Map != interiorMap)
+          pawnLord.Notify_PawnLost(pawn, PawnLostCondition.ExitedMap);
+      }
     }
 
     foreach (var thing in interiorMap.listerThings.AllThings.Intersect(Find.Selector.SelectedObjects))
@@ -941,7 +975,6 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     }
 
     CrossMapReachabilityCache.ClearCacheFor(interiorMap);
-    Map.regionGrid.AllRegions.Where(r => r.ListerThings.Contains(this)).Do(r => r.ListerThings.Remove(this));
     base.DeSpawn(mode);
   }
 

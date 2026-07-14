@@ -124,7 +124,7 @@ public static class ToilsAcrossMaps
         driver.ReadyForNextToil();
       }
     };
-    toil.FailOn(() => !comp.parent.Spawned || comp.Pair is null or { Spawned: false });
+    toil.FailOn(() => !comp.parent.Spawned || comp.Pair is not { Spawned: true });
     toil.defaultCompleteMode = ToilCompleteMode.Never;
     return toil;
 
