@@ -1,4 +1,4 @@
-Shader "TerrainHardWithZ" {
+Shader "VehicleMapFramework/TerrainHardWithZ" {
     Properties {
        _MainTex ("Main texture", 2D) = "white" {}
        _Color ("Color", Color) = (1,1,1,1)

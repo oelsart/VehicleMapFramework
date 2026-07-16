@@ -30,6 +30,8 @@ public static class VMF_DefOf
 
   public static ShaderTypeDef VMF_TerrainHardWithZ;
 
+  public static ShaderTypeDef VMF_SnowWithZ;
+
   public static ShaderTypeDef VMF_LightOverlayInverseMultiply;
 
   public static ShaderTypeDef VMF_CutoutComplexRGBOpacity;

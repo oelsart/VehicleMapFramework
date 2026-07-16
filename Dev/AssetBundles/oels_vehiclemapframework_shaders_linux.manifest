@@ -1,24 +1,25 @@
 ManifestFileVersion: 0
-CRC: 1852377160
+CRC: 821302712
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: 45acf263c37ae314728abee29a4bc525
+    Hash: 0b478d852b11403876d7159edc7e6e54
   TypeTreeHash:
     serializedVersion: 2
     Hash: 0df1dec30b5d061d422d3e6493d27647
   IncrementalBuildHash:
     serializedVersion: 2
-    Hash: 45acf263c37ae314728abee29a4bc525
+    Hash: 0b478d852b11403876d7159edc7e6e54
 HashAppended: 0
 ClassTypes:
 - Class: 48
   Script: {instanceID: 0}
 SerializeReferenceClassIdentifiers: []
 Assets:
-- Assets/Data/OELS.VehicleMapFramework.dev/Materials/LightOverlayInverseMultiply.shader
-- Assets/Data/OELS.VehicleMapFramework.dev/Materials/ShaderRGBSkinOpacity.shader
-- Assets/Data/OELS.VehicleMapFramework.dev/Materials/ShaderRGBOpacity.shader
-- Assets/Data/OELS.VehicleMapFramework.dev/Materials/ShaderRGBPatternOpacity.shader
-- Assets/Data/OELS.VehicleMapFramework.dev/Materials/TerrainHardWithZ.shader
+- Assets/Data/OELS.VehicleMapFramework.dev/Materials/VehicleMapFramework/LightOverlayInverseMultiply.shader
+- Assets/Data/OELS.VehicleMapFramework.dev/Materials/VehicleMapFramework/ShaderRGBSkinOpacity.shader
+- Assets/Data/OELS.VehicleMapFramework.dev/Materials/VehicleMapFramework/SnowWithZ.shader
+- Assets/Data/OELS.VehicleMapFramework.dev/Materials/VehicleMapFramework/ShaderRGBOpacity.shader
+- Assets/Data/OELS.VehicleMapFramework.dev/Materials/VehicleMapFramework/ShaderRGBPatternOpacity.shader
+- Assets/Data/OELS.VehicleMapFramework.dev/Materials/VehicleMapFramework/TerrainHardWithZ.shader
 Dependencies: []

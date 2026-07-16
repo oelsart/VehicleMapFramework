@@ -114,7 +114,7 @@ namespace VehicleMapFramework
                 if ((section.dirtyFlags & MapMeshFlagDefOf.Buildings) > 0UL)
                 {
                     var edgeShadowsLayer = GetLayer(section, typeof(SectionLayer_EdgeShadows), default);
-                    FrameDelay.DelayOne(static layer => FinalizeShadowVerts(layer), edgeShadowsLayer);
+                    FrameDelay.DelayOne(static layer => FinalizeVerts(layer), edgeShadowsLayer);
                 }
             }
         }
@@ -194,10 +194,10 @@ namespace VehicleMapFramework
         }
 
         /// <summary>
-        /// Fixes the shadows layer by compressing the y values.
+        /// Finalizes the vertices of the given section layer by compressing the y values.
         /// </summary>
         /// <param name="layer"></param>
-        public static void FinalizeShadowVerts(SectionLayer layer)
+        public static void FinalizeVerts(SectionLayer layer)
         {
             var subMesh = layer.subMeshes.FirstOrDefault(subMesh => subMesh.finalized);
             if (subMesh is null) return;

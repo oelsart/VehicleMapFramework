@@ -24,7 +24,7 @@ public static class Patch_MapDrawLayer_FinalizeMesh
 {
   public static void Prefix(MeshParts tags, Map ___map, List<LayerSubMesh> ___subMeshes)
   {
-    if (!___map.IsVehicleMapOf(out _) || !tags.HasFlag(MeshParts.Verts))
+    if (!___map.IsVehicleMap || (tags & MeshParts.Verts) == 0)
       return;
 
     foreach (var subMesh in ___subMeshes)

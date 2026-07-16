@@ -1114,6 +1114,8 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     var rot = FullRotation;
     ((SectionLayer_TerrainOnVehicle)component.GetLayer(section, typeof(SectionLayer_TerrainOnVehicle), default))
       .DrawLayer(drawPos);
+    ((SectionLayer_SnowOnVehicle)component.GetLayer(section, typeof(SectionLayer_SnowOnVehicle), default))
+      .DrawLayer(drawPos.WithYOffset(0.1f));
     DrawLayer(component.GetLayer(section, typeof(SectionLayer_ThingsGeneral), rot), drawPos);
     DrawLayer(component, section, typeof(SectionLayer_BuildingsDamage), drawPos);
     DrawLayer(component, section, typeof(SectionLayer_IndoorMask), drawPos.Yto0());

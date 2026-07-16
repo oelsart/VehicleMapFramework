@@ -24,7 +24,7 @@
 		<graphicData>
 			<texPath>VehicleMapFramework/Things/BuildableUpgrade/VehicleSeat/DriverSeat</texPath>
 			<graphicClass>Graphic_Multi</graphicClass>
-			<drawSize>(1.1,2)</drawSize>
+			<drawSize>(2,2)</drawSize>
 		</graphicData>
 		<rotatable>false</rotatable>
 		<statBases>
@@ -79,7 +79,7 @@
 		<graphicData>
 			<texPath>VehicleMapFramework/Things/BuildableUpgrade/VehicleSeat/GunnerSeat</texPath>
 			<graphicClass>Graphic_Multi</graphicClass>
-			<drawSize>(1.1,2)</drawSize>
+			<drawSize>(2,2)</drawSize>
 		</graphicData>
 		<statBases>
 			<MaxHitPoints>200</MaxHitPoints>
@@ -133,7 +133,7 @@
 		<graphicData>
 			<texPath>VehicleMapFramework/Things/BuildableUpgrade/VehicleSeat/PassengerSeat</texPath>
 			<graphicClass>Graphic_Multi</graphicClass>
-			<drawSize>(1.1,1.3417)</drawSize>
+			<drawSize>(2,2)</drawSize>
 		</graphicData>
 		<statBases>
 			<MaxHitPoints>200</MaxHitPoints>
@@ -329,7 +329,7 @@
 		<graphicData>
 			<texPath>VehicleMapFramework/Things/BuildableUpgrade/LiftFan</texPath>
 			<graphicClass>Graphic_Single</graphicClass>
-			<drawSize>(1,1.064453125)</drawSize>
+			<drawSize>(1,2)</drawSize>
 			<drawOffset>(0,0,0.0322265625)</drawOffset>
 			<damageData>
 				<cornerTL>Damage/Corner</cornerTL>
