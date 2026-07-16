@@ -11,7 +11,7 @@ public class VehiclePawnWithMapCache(Map map) : MapComponent(map)
 {
   private readonly List<VehiclePawnWithMap> allVehicles = [];
 
-  public (int lastCachedTick, HashSet<Map> hashSet) cachedBaseMapAndVehicleMaps = (-1, []);
+  public (int lastCachedTick, HashSet<Map> includeItself, HashSet<Map> excludeItself) cachedBaseMapAndVehicleMaps = (-1, [], []);
   
   public readonly Dictionary<Thing, Vector3> cachedDrawPos = [];
 

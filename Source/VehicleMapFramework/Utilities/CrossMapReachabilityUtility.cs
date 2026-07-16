@@ -23,6 +23,8 @@ public static class CrossMapReachabilityUtility
 
   private static ConditionalWeakTable<Pawn, Map> DepartMaps { get; } = [];
 
+  private static Dictionary<Pawn, IntVec3?> DepartPositions { get; } = [];
+
   public static Map DepartMapGlobal;
 
   [UsedImplicitly]
@@ -114,12 +116,28 @@ public static class CrossMapReachabilityUtility
 
     public Map DepartMapOrPawnMapHeld => pawn.DepartMap ?? pawn.MapHeld;
 
+    internal IntVec3? DepartPosition
+    {
+      get => pawn is null ? null : DepartPositions.GetValueOrDefault(pawn);
+      set
+      {
+        if (pawn is null) return;
+        if (value is null)
+        {
+          DepartPositions.Remove(pawn);
+          return;
+        }
+
+        DepartPositions[pawn] = value;
+      }
+    }
+
     public bool CanReach(LocalTargetInfo dest3, PathEndMode peMode, Danger maxDanger, bool canBashDoors,
       bool canBashFences, TraverseMode mode, Map destMap)
     {
       var traverseParms = TraverseParms.For(pawn, maxDanger: maxDanger, mode: mode, canBashDoors: canBashDoors,
         canBashFences: canBashFences);
-      return pawn.Spawned && CanReach(pawn.DepartMap ?? pawn.Map, traverseParms.pawn.Position, dest3, peMode,
+      return pawn.Spawned && CanReach(pawn.DepartMap ?? pawn.Map, pawn.DepartPosition ?? pawn.Position, dest3, peMode,
         traverseParms, destMap, out _, out _, out _);
     }
 
@@ -132,7 +150,7 @@ public static class CrossMapReachabilityUtility
       exitSpot = TargetInfo.Invalid;
       enterSpot = TargetInfo.Invalid;
       spotsQueue = null;
-      return pawn.Spawned && CanReach(pawn.DepartMap ?? pawn.Map, traverseParms.pawn.Position, dest3, peMode,
+      return pawn.Spawned && CanReach(pawn.DepartMap ?? pawn.Map, pawn.DepartPosition ?? pawn.Position, dest3, peMode,
         traverseParms, destMap, out exitSpot, out enterSpot, out spotsQueue);
     }
   }

@@ -73,7 +73,7 @@ public static class Patch_Pawn_MechanitorTracker_CanCommandTo
 public static class Patch_Reachability_CanReach
 {
   [PatchLevel(Level.Safe)]
-  public static bool Prefix(IntVec3 start, LocalTargetInfo dest, PathEndMode peMode, TraverseParms traverseParams,
+  public static bool Prefix(ref IntVec3 start, LocalTargetInfo dest, PathEndMode peMode, TraverseParms traverseParams,
     Map ___map, ref bool __result)
   {
     if (CrossMapReachabilityUtility.working) return true;
@@ -102,7 +102,7 @@ public static class Patch_Reachability_CanReach
 
     if (departMap == destMap && departMap == ___map) return true;
 
-    __result = CrossMapReachabilityUtility.CanReach(departMap, start, dest, peMode, traverseParams, destMap);
+    __result = CrossMapReachabilityUtility.CanReach(departMap, pawn.DepartPosition ?? start, dest, peMode, traverseParams, destMap);
     return false;
   }
 
