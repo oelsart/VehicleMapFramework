@@ -1,4 +1,12 @@
-﻿namespace VehicleMapFramework;
+﻿using System;
+using System.Runtime.CompilerServices;
+using HarmonyLib;
+using JetBrains.Annotations;
+using UnityEngine;
+using Vehicles.Rendering;
+using Verse;
+
+namespace VehicleMapFramework;
 
 #if !DEV
 // Copyright (c) 2019-2025 Phil

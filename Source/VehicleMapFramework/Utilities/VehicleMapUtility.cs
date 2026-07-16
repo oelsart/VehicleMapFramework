@@ -954,7 +954,7 @@ public static class VehicleMapUtility
           }
         }
       }
-      return vehicle != null;
+      return vehicle is not null;
 
       bool ValidateVehicle(VehiclePawnWithMap vehicle)
       {
