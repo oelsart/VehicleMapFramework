@@ -15,13 +15,45 @@ public class VehicleCaravanIncidentUtility
 {
   public static int CalculateIncidentMapSize(List<VehiclePawn> caravanVehicles, List<VehiclePawnWithMap> enemyVehicles)
   {
-    var allVehicles = caravanVehicles.Concat(enemyVehicles).ToList();
+    var allVehicles = caravanVehicles.ConcatIfNotNull(enemyVehicles).ToList();
     var maxSize = allVehicles.Select(v => v.def.size.x).Concat(allVehicles.Select(v => v.def.size.z)).Max();
     return Mathf.Clamp(Mathf.RoundToInt(Mathf.Sqrt(Mathf.RoundToInt(allVehicles.Count * 300 * maxSize))), 75, 200);
   }
 
+  public static Map SetupCaravanAttackMap(VehicleCaravan caravan, List<Pawn> enemies,
+    bool sendLetterIfRelatedPawns, WorldObjectDef mapParent, CaravanEnterMode enterMode = CaravanEnterMode.Edge)
+  {
+    var first = caravan.Vehicles.FirstOrDefault();
+    if (first is null) return null;
+    var num = CalculateIncidentMapSize(caravan.VehiclesListForReading, null);
+    var map = CaravanIncidentUtility.GetOrGenerateMapForIncident(caravan, new IntVec3(num, 1, num), mapParent);
+    if (map is null) return null;
+
+    // キャラバンスポーン
+    EnterMapUtilityVehicles.EnterMap(caravan, map,
+      new EnterMapUtilityVehicles.SpawnParams(enterMode)
+      {
+        draftColonists = true
+      });
+
+    // 敵側スポーン
+    var root = enterMode == CaravanEnterMode.Edge ? map.Center : CellFinder.RandomEdgeCell(map);
+    for (var i = 0; i < enemies.Count; i++)
+    {
+      var intVec2 = CellFinder.RandomSpawnCellForPawnNear(root, map);
+      GenSpawn.Spawn(enemies[i], intVec2, map, Rot4.Random);
+    }
+    if (sendLetterIfRelatedPawns)
+    {
+      PawnRelationUtility.Notify_PawnsSeenByPlayer_Letter_Send(enemies,
+        "LetterRelatedPawnsGroupGeneric".Translate(Faction.OfPlayer.def.pawnsPlural), LetterDefOf.NeutralEvent, true);
+    }
+
+    return map;
+  }
+
   public static Map SetupCaravanAttackMap(VehicleCaravan caravan, List<VehiclePawnWithMap> vehicles, List<Pawn> enemies,
-    bool sendLetterIfRelatedPawns, WorldObjectDef mapParent)
+    bool sendLetterIfRelatedPawns, WorldObjectDef mapParent, CaravanEnterMode enterMode = CaravanEnterMode.Edge)
   {
     try
     {
@@ -33,7 +65,7 @@ public class VehicleCaravanIncidentUtility
 
       // キャラバンスポーン
       EnterMapUtilityVehicles.EnterMap(caravan, map,
-        new EnterMapUtilityVehicles.SpawnParams(CaravanEnterMode.Edge)
+        new EnterMapUtilityVehicles.SpawnParams(enterMode)
         {
           draftColonists = true
         });
