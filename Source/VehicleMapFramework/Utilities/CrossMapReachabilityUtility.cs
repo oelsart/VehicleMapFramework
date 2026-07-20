@@ -714,11 +714,22 @@ public static class CrossMapReachabilityUtility
   {
     if (parms.pawn is { } pawn)
     {
-      return cell.WalkableBy(map, pawn) &&
-             (cell.GetDoor(map) is not { } door || door.HoldOpen ||
-              door.PawnCanOpen(pawn) && !door.IsForbidden(pawn)) &&
-             (!destination || !parms.avoidPersistentDanger || cell.GetTerrain(map) is { dangerous: false });
+      if (!cell.WalkableBy(map, pawn) ||
+          cell.GetDoor(map) is { HoldOpen: false } door &&
+           (!door.PawnCanOpen(pawn) || door.IsForbidden(pawn)))
+        return false;
+      
+      if (!destination || !parms.avoidPersistentDanger)
+        return true;
+
+      var terrain = cell.GetTerrain(map);
+      if (terrain is { dangerous: false })
+        return true;
+
+      return CompAllowDangerTerrains.AllowedTerrains.TryGetValue(pawn, out var allowedTerrains) &&
+             allowedTerrains.Contains(terrain);
     }
+    
     return cell.Walkable(map) &&
            (cell.GetDoor(map) is not { } door2 || door2.HoldOpen) &&
            (!destination || !parms.avoidPersistentDanger || cell.GetTerrain(map) is { dangerous: false });
