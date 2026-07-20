@@ -56,7 +56,7 @@ public abstract class IncidentWorker_AmbushMapVehicle : IncidentWorker
         var existingMapEdgeCell = IntVec3.Invalid;
         
         var generatedVehicles = GenerateVehicles(parms);
-        if (generatedVehicles.Empty())
+        if (generatedVehicles.NullOrEmpty())
         {
             VMF_Log.DebugWarning($"{this.GetType()}: generatedVehicles empty");
             return false;
@@ -72,7 +72,7 @@ public abstract class IncidentWorker_AmbushMapVehicle : IncidentWorker
             return false;
         }
         var generatedEnemies = GeneratePawns(parms);
-        if (generatedEnemies.Empty())
+        if (generatedEnemies.NullOrEmpty())
         {
             VMF_Log.DebugWarning($"{this.GetType()} generatedEnemies empty");
             return false;

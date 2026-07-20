@@ -728,13 +728,15 @@ public static class Patch_GenClosest_ClosestThingReachable
     bool lookInHaulSources) => throw new NotImplementedException();
 
   [PatchLevel(Level.Safe)]
-  public static void Prefix(IntVec3 root, ref Map map, TraverseParms traverseParams)
+  public static void Prefix(ref IntVec3 root, ref Map map, TraverseParms traverseParams)
   {
     if (!map.CrossMapContext || traverseParams.pawn is not { } pawn) return;
 
-    var map2 = pawn.DepartMap;
-    if (map2 != null && root == pawn.Position && map == pawn.Map)
-      map = map2;
+    if (root == pawn.Position && map == pawn.Map)
+    {
+      map = pawn.DepartMap ?? map;
+      root = pawn.DepartPosition ?? root;
+    }
   }
 
   [PatchLevel(Level.Safe)]
@@ -758,13 +760,15 @@ public static class Patch_GenClosest_ClosestThingReachable
 [PatchLevel(Level.Safe)]
 public static class Patch_GenClosest_ClosestThing_Regionwise_ReachablePrioritized
 {
-  public static void Prefix(IntVec3 root, ref Map map, TraverseParms traverseParams)
+  public static void Prefix(ref IntVec3 root, ref Map map, TraverseParms traverseParams)
   {
     if (!map.CrossMapContext || traverseParams.pawn is not { } pawn) return;
 
-    var map2 = pawn.DepartMap;
-    if (map2 != null && root == pawn.Position && map == pawn.Map)
-      map = map2;
+    if (root == pawn.Position && map == pawn.Map)
+    {
+      map = pawn.DepartMap ?? map;
+      root = pawn.DepartPosition ?? root;
+    }
   }
 
   public static void Postfix(IntVec3 root, Map map, ThingRequest thingReq, PathEndMode peMode,
