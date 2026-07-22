@@ -10,7 +10,6 @@ namespace VehicleMapFramework;
 
 public class CompDrawAdditionalGraphicsOpacity : CompDrawAdditionalGraphics
 {
-
   public List<ThingWithComps> children = [];
   private float opacity = 1f;
 
@@ -18,11 +17,15 @@ public class CompDrawAdditionalGraphicsOpacity : CompDrawAdditionalGraphics
 
   public CompDrawAdditionalGraphicsOpacity()
   {
-    LongEventHandler.ExecuteWhenFinished(() => { propertyBlock = new MaterialPropertyBlock(); });
+    LongEventHandler.ExecuteWhenFinished(() =>
+    {
+      propertyBlock = new MaterialPropertyBlock();
+    });
   }
 
   public float Opacity
   {
+    get => opacity;
     set => opacity = value;
   }
 
@@ -44,7 +47,7 @@ public class CompDrawAdditionalGraphicsOpacity : CompDrawAdditionalGraphics
 
     yield return new Command_Action
     {
-      defaultLabel = parent.LabelCap,
+      defaultLabel = "VMF_ChangeOpacity".TranslateSimple(),
       icon = tex,
       iconProportions = proportion,
       action = () =>
@@ -87,8 +90,23 @@ public class CompDrawAdditionalGraphicsOpacity : CompDrawAdditionalGraphics
     if (opacity == 0f)
       return;
 
-    foreach (var graphic in Props.graphics.Select(g => g.Graphic)
-               .Concat(children.SelectMany(c => c.GetComp<CompAdditionalGraphicsChild>().Graphics)))
+    foreach (var data in Props.graphics)
+    {
+      Draw(data.Graphic);
+    }
+    foreach (var child in children)
+    {
+      if (child.TryGetComp<CompAdditionalGraphicsChild>(out var childComp))
+      {
+        foreach (var data in childComp.Graphics)
+        {
+          Draw(data.Graphic);
+        }
+      }
+    }
+    return;
+
+    void Draw(Graphic graphic)
     {
       var loc = parent.DrawPos;
       var rot = parent.BaseRotationVehicleDraw();
@@ -144,7 +162,7 @@ public class CompDrawAdditionalGraphicsOpacity : CompDrawAdditionalGraphics
   public override void PostExposeData()
   {
     base.PostExposeData();
-    Scribe_Values.Look(ref opacity, "opacity");
-    Scribe_Collections.Look(ref children, "children", LookMode.Reference);
+    Scribe_Values.Look(ref opacity, nameof(opacity));
+    Scribe_Collections.Look(ref children, nameof(children), LookMode.Reference);
   }
 }

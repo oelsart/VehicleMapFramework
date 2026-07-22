@@ -12,7 +12,7 @@ public class CompAdditionalGraphicsChild : ThingComp
 
   private CompProperties_DrawAdditionalGraphics Props => (CompProperties_DrawAdditionalGraphics)props;
 
-  public virtual IEnumerable<Graphic> Graphics => Props.graphics.Select(g => g.Graphic);
+  public virtual List<GraphicData> Graphics => Props.graphics;
 
   public override void PostSpawnSetup(bool respawningAfterLoad)
   {

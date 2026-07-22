@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using Verse;
 
 namespace VehicleMapFramework;
@@ -8,8 +7,8 @@ public class CompAdditionalGraphicsChildByParent : CompAdditionalGraphicsChild
 {
   public CompProperties_AdditionalGraphicsChildByParent Props => (CompProperties_AdditionalGraphicsChildByParent)props;
 
-  public override IEnumerable<Graphic> Graphics =>
+  public override List<GraphicData> Graphics =>
     Props.graphicsByParent.TryGetValue(parentThing.def, out var list)
-      ? list.Select(g => g.Graphic)
+      ? list
       : [];
 }
