@@ -42,7 +42,7 @@ public class CompVehicleSeat : CompBuildableUpgrades, IAttackTarget
           out var spotsQueue))
     {
       foreach (var floatMenuOption in from handler in vehicle.handlers
-               where handler.AreSlotsAvailable && handlerUniqueIDs.Any(h => h.id == handler.uniqueID)
+               where handler.AreSlotsAvailableAndReservable && handlerUniqueIDs.Any(h => h.id == handler.uniqueID)
                let reservationManager = vehicle.Map?.GetCachedMapComponent<VehicleReservationManager>()
                let canOperate = handler.CanOperateRole(selPawn)
                let reservedCount =
@@ -125,14 +125,17 @@ public class CompVehicleSeat : CompBuildableUpgrades, IAttackTarget
   public override void PostSpawnSetup(bool respawningAfterLoad)
   {
     base.PostSpawnSetup(respawningAfterLoad);
-    if (parent.IsOnVehicleMapOf(out var vehicle))
+    LongEventHandler.ExecuteWhenFinished(() =>
     {
-      vehicle.CompVehicleTurrets?.RecacheTurretPermissions();
-      vehicle.RecachePawnCount();
-      handlers.AddRange(vehicle.handlers.Where(h => handlerUniqueIDs.Any(i => h.uniqueID == i.id))
-        .Select(h => (h, Props.upgrades.OfType<VehicleUpgrade>().SelectMany(u => u.roles)
-          .FirstOrDefault(r => r?.key == h.role.key))));
-    }
+      if (parent.IsOnVehicleMapOf(out var vehicle))
+      {
+        vehicle.CompVehicleTurrets?.RecacheTurretPermissions();
+        vehicle.RecachePawnCount();
+        handlers.AddRange(vehicle.handlers.Where(h => handlerUniqueIDs.Any(i => h.uniqueID == i.id))
+          .Select(h => (h, Props.upgrades.OfType<VehicleUpgrade>().SelectMany(u => u.roles)
+            .FirstOrDefault(r => r?.key == h.role.key))));
+      }
+    });
   }
 
   public override void PostDeSpawn(Map map, DestroyMode mode = DestroyMode.Vanish)

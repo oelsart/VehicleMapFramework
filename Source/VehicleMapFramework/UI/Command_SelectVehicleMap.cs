@@ -4,7 +4,6 @@ using VehicleMapFramework.VMF_HarmonyPatches;
 using Vehicles.Rendering;
 using Verse;
 #if DEV
-using SmashTools.Rendering;
 #endif
 
 namespace VehicleMapFramework;

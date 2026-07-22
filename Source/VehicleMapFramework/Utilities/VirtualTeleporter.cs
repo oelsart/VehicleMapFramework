@@ -29,6 +29,7 @@ public readonly struct VirtualTeleporter : IDisposable
         {
           _departMap = pawn.DepartMap;
           pawn.DepartMap = _map;
+          if (c.HasValue) pawn.DepartPosition = _pos;
         }
     }
 
@@ -43,6 +44,7 @@ public readonly struct VirtualTeleporter : IDisposable
             if (_setDepartMap && _thing is Pawn pawn)
             {
               pawn.DepartMap = _departMap;
+              pawn.DepartPosition = null;
             }
         }
     }

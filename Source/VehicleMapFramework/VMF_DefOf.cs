@@ -1,13 +1,13 @@
 ﻿using RimWorld;
 using Vehicles;
 using Verse;
+using Verse.AI;
 
 namespace VehicleMapFramework;
 
 [DefOf]
 public static class VMF_DefOf
 {
-
   public static WorldObjectDef VMF_VehicleMap;
 
   public static MapGeneratorDef VMF_VehicleMapGenerator;
@@ -30,6 +30,8 @@ public static class VMF_DefOf
 
   public static ShaderTypeDef VMF_TerrainHardWithZ;
 
+  public static ShaderTypeDef VMF_SnowWithZ;
+
   public static ShaderTypeDef VMF_LightOverlayInverseMultiply;
 
   public static ShaderTypeDef VMF_CutoutComplexRGBOpacity;
@@ -49,6 +51,14 @@ public static class VMF_DefOf
   public static JobDef VMF_RepairMapVehicle;
 
   public static JobDef VMF_DeconstructVehicleSegment;
+
+  public static DutyDef VMF_ExitMapWithMapVehicle;
+
+  public static DutyDef VMF_ExitMapBest;
+
+  public static DutyDef VMF_Kidnap;
+
+  public static DutyDef VMF_Steal;
 
   public static WorkGiverDef VMF_RemoveVehicleSegment;
 

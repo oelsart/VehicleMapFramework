@@ -720,10 +720,12 @@ internal static class ModCompat
           var m_TryFindBestStorageCellCore = AccessTools.Method(t_BeamManipulatorUtility, "TryFindBestStorageCellCore");
           if (m_TryFindBestStorageCellCore is not null)
             TryFindBestStorageCellCore = MethodInvoker.GetHandler(m_TryFindBestStorageCellCore, true);
-          var m_FillTransferQueue = AccessTools.Method(t_BeamManipulatorUtility, "FillTransferQueue");
+          var m_FillTransferQueue = AccessTools.FirstMethod(t_BeamManipulatorUtility,
+            m => m.Name == "FillTransferQueue" && m.GetParameters().Length >= 9);
           if (m_FillTransferQueue is not null)
             FillTransferQueue = MethodInvoker.GetHandler(m_FillTransferQueue);
-          var m_FillTransferQueueAuto = AccessTools.Method(t_BeamManipulatorUtility, "FillTransferQueueAuto");
+          var m_FillTransferQueueAuto = AccessTools.FirstMethod(t_BeamManipulatorUtility,
+            m => m.Name == "FillTransferQueueAuto" && m.GetParameters().Length >= 7);
           if (m_FillTransferQueueAuto is not null)
             FillTransferQueueAuto = MethodInvoker.GetHandler(m_FillTransferQueueAuto);
           WorldPosForCell = AccessTools.Method(t_BeamManipulatorUtility, "WorldPosForCell");

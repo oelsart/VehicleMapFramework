@@ -170,12 +170,10 @@ public static class TargetingHelperOnVehicle
 
     private static IAttackTarget GetRandomShootingTargetByScore(VehicleTurret turret, List<IAttackTarget> targets, VehiclePawn searcher)
     {
-        if (GetAvailableShootingTargetsByScore(turret, targets, searcher).TryRandomElementByWeight(x => x.Second, out var result))
-        {
-            return result.First;
-        }
-
-        return null;
+      return GetAvailableShootingTargetsByScore(turret, targets, searcher)
+        .TryRandomElementByWeight(x => x.Second, out var result)
+        ? result.First
+        : null;
     }
 
     /// <summary>

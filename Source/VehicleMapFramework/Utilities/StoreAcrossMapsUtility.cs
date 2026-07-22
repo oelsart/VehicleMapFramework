@@ -232,4 +232,27 @@ public static class StoreAcrossMapsUtility
         }
         return haulDestination != null;
     }
+    
+    public static bool NoStorageBlockersIn(IntVec3 c, Map map, Thing thing)
+    {
+      var list = map.thingGrid.ThingsListAt(c);
+      var flag = false;
+      for (var i = 0; i < list.Count; i++)
+      {
+        var thing2 = list[i];
+        if (!flag && thing2.def.EverStorable(false) && thing2.CanStackWith(thing) && thing2.stackCount < thing2.def.stackLimit)
+        {
+          flag = true;
+        }
+        if (thing2.def.entityDefToBuild != null && thing2.def.entityDefToBuild.passability != Traversability.Standable)
+        {
+          return false;
+        }
+        if (thing2.def.surfaceType == SurfaceType.None && thing2.def.passability != Traversability.Standable && (c.GetMaxItemsAllowedInCell(map) <= 1 || thing2.def.category != ThingCategory.Item))
+        {
+          return false;
+        }
+      }
+      return flag || c.GetItemCount(map) < c.GetMaxItemsAllowedInCell(map);
+    }
 }

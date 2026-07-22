@@ -725,3 +725,38 @@ public static class Patch_CastPositionFinder_TryFindCastPosition
     return true;
   }
 }
+
+[HarmonyPatch(typeof(Pawn), nameof(Pawn.ThreatDisabled))]
+[HarmonyAfter(VehicleFramework.HarmonyId)]
+[PatchLevel(Level.Safe)]
+public static class Patch_Pawn_ThreatDisabled
+{
+  public static void Postfix(Pawn __instance, ref bool __result)
+  {
+    if (__result && __instance is VehiclePawnWithMap vehicle)
+    {
+      __result = vehicle.VehicleMap.mapPawns.FreeHumanlikesSpawnedOfFaction(vehicle.Faction).Empty();
+    }
+  }
+}
+
+[HarmonyPatch(typeof(DamageWatcher), nameof(DamageWatcher.Notify_DamageTaken))]
+[PatchLevel(Level.Safe)]
+public static class Patch_DamageWatcher_Notify_DamageTaken
+{
+  private static bool working;
+  
+  public static void Postfix(Thing damagee, float amount)
+  {
+    if (working || damagee.Faction != Faction.OfPlayer)
+      return;
+
+    var groundMap = damagee.GroundMap;
+    if (damagee.Map == damagee.GroundMap)
+      return;
+    
+    working = true;
+    groundMap.damageWatcher.Notify_DamageTaken(damagee, amount);
+    working = false;
+  }
+}

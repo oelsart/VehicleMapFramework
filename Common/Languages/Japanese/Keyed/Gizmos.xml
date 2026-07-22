@@ -43,4 +43,6 @@
 	<VMF_RemoveSegment>車両セグメント解体</VMF_RemoveSegment>
 	<VMF_RemoveSegmentDesc>拡張された車両構造の一部を解体する.</VMF_RemoveSegmentDesc>
 
+  <VMF_ChangeOpacity>不透明度を変更</VMF_ChangeOpacity>
+
 </LanguageData>

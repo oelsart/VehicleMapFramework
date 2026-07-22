@@ -65,7 +65,7 @@ public static class VehicleResizeUtility
     
     public static void PreResize(VehiclePawn vehicle)
     {
-      if (!vehicle.Spawned)
+      if (vehicle.Spawned)
       {
         RegionListersUpdater.DeregisterInRegions(vehicle, vehicle.Map);
         vehicle.Map.thingGrid.Deregister(vehicle);

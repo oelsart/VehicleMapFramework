@@ -42,10 +42,7 @@ public class CompPipeConnectorRF : CompPipe, IPipeConnector
   {
     get
     {
-      if (pairComp == null)
-      {
-        pairComp = CompPipeConnector.Pair?.parent.TryGetComp<CompPipeConnectorRF>();
-      }
+      pairComp ??= CompPipeConnector.Pair?.parent.TryGetComp<CompPipeConnectorRF>();
       return pairComp;
     }
   }
@@ -74,7 +71,7 @@ public class CompPipeConnectorRF : CompPipe, IPipeConnector
 
   public void ConnectedTickAction()
   {
-    if (PairComp is not { parent.Spawned: true })
+    if (PairComp is { parent.Spawned: true })
     {
       pumpUp = pumpUp || pairComp.pumpUp;
       if (pumpUp)

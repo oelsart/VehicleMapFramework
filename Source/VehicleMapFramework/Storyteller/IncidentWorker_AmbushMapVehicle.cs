@@ -24,12 +24,7 @@ public abstract class IncidentWorker_AmbushMapVehicle : IncidentWorker
     {
     }
     
-    protected virtual LordJob CreateLordJob(List<Pawn> generatedPawns, IncidentParms parms)
-    {
-        return null;
-    }
-
-    protected virtual LordJob CreateLordJob(List<VehiclePawnWithMap> generatedVehicles, IncidentParms parms)
+    protected virtual LordJob CreateLordJob(IncidentParms parms)
     {
         return null;
     }
@@ -61,7 +56,7 @@ public abstract class IncidentWorker_AmbushMapVehicle : IncidentWorker
         var existingMapEdgeCell = IntVec3.Invalid;
         
         var generatedVehicles = GenerateVehicles(parms);
-        if (generatedVehicles.Empty())
+        if (generatedVehicles.NullOrEmpty())
         {
             VMF_Log.DebugWarning($"{this.GetType()}: generatedVehicles empty");
             return false;
@@ -77,7 +72,7 @@ public abstract class IncidentWorker_AmbushMapVehicle : IncidentWorker
             return false;
         }
         var generatedEnemies = GeneratePawns(parms);
-        if (generatedEnemies.Empty())
+        if (generatedEnemies.NullOrEmpty())
         {
             VMF_Log.DebugWarning($"{this.GetType()} generatedEnemies empty");
             return false;
@@ -125,12 +120,12 @@ public abstract class IncidentWorker_AmbushMapVehicle : IncidentWorker
         PostProcessGeneratedPawnsAfterSpawning(generatedEnemies);
         PostProcessGeneratedVehiclesAfterSpawning(generatedVehicles);
 
-        var lordJob = CreateLordJob(generatedEnemies, parms);
+        var lordJob = CreateLordJob(parms);
         if (lordJob != null)
-            LordMaker.MakeNewLord(parms.faction, lordJob, map, generatedEnemies);
-        var lordJob2 = CreateLordJob(generatedVehicles, parms);
-        if (lordJob2 != null)
-            LordMaker.MakeNewLord(parms.faction, lordJob2, map, generatedVehicles);
+        {
+          var lord = LordMaker.MakeNewLord(parms.faction, lordJob, map, generatedEnemies);
+          lord.AddPawns(generatedVehicles);
+        }
         
         TaggedString taggedString = GetLetterLabel(generatedEnemies[0], parms);
         TaggedString taggedString2 = GetLetterText(generatedEnemies[0], parms);

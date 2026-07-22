@@ -186,11 +186,6 @@ public static class VehicleMapUtility
     return zone.Map;
   }
 
-  public static Map BaseMap(this ref GlobalTargetInfo target)
-  {
-    return target.Map.BaseMap();
-  }
-
   public static IntVec3 PositionOnBaseMap(this IHaulDestination dest)
   {
     return dest.Map.IsVehicleMapOf(out var vehicle) ? dest.Position.ToBaseMapCoord(vehicle) : dest.Position;
@@ -209,11 +204,6 @@ public static class VehicleMapUtility
       return TargetInfo.Invalid;
     }
     return target.Thing != null ? new TargetInfo(target.Thing) : new TargetInfo(target.CellOnBaseMap(), map);
-  }
-
-  public static IntVec3 PositionOnAnotherThingMap(this Thing thing, Thing another)
-  {
-    return another.IsOnVehicleMapOf(out var vehicle) ? thing.PositionOnBaseMap.ToVehicleMapCoord(vehicle) : thing.PositionOnBaseMap;
   }
 
   public static IntVec3 CellOnAnotherThingMap(this LocalTargetInfo target, Thing another)
@@ -607,45 +597,47 @@ public static class VehicleMapUtility
     {
       if (map?.GetCachedMapComponent<VehiclePawnWithMapCache>() is not { } component)
         return [];
-      var cache = component.cachedBaseMapAndVehicleMaps;
+      ref var cache = ref component.cachedBaseMapAndVehicleMaps;
       if (cache.lastCachedTick == GenTicks.TicksGame)
       {
-        if (includeItself) cache.hashSet.Add(map);
-        else cache.hashSet.Remove(map);
-        return cache.hashSet;
+        return includeItself ? cache.includeItself : cache.excludeItself;
       }
 
       cache.lastCachedTick = GenTicks.TicksGame;
-      cache.hashSet.Clear();
-      if (MultiFloors.Active && MultiFloors.GroundMap(map) != map)
-      {
-        if (includeItself)
-          cache.hashSet.Add(map);
-        return cache.hashSet;
-      }
+      cache.includeItself.Clear();
+      cache.excludeItself.Clear();
       var baseMap = map.BaseMap();
       if (baseMap is null)
-        return cache.hashSet;
-      if (includeItself || baseMap != map)
-        cache.hashSet.Add(baseMap);
+        return cache.includeItself;
+
+      cache.includeItself.Add(map);
+      if (MultiFloors.Active && MultiFloors.GroundMap(map) != map)
+      {
+        return includeItself ? cache.includeItself : cache.excludeItself;
+      }
+      
+      if (baseMap != map)
+        cache.excludeItself.Add(baseMap);
 
       if (baseMap.IsVehicleMapOf(out var vehicle) && vehicle.VehicleCaravanOrStashedVehicle is { } vehicleCaravanOrStashedVehicle)
       {
         foreach (var vehicle2 in vehicleCaravanOrStashedVehicle.Vehicles)
         {
           if (vehicle != vehicle2 && vehicle2 is VehiclePawnWithMap vehiclePawnWithMap)
-            cache.hashSet.Add(vehiclePawnWithMap.VehicleMap);
+            cache.excludeItself.Add(vehiclePawnWithMap.VehicleMap);
         }
       }
       else
       {
         foreach (var vehicle2 in VehiclePawnWithMapCache.AllVehiclesOn(baseMap))
         {
-          if (includeItself || vehicle2.VehicleMap != map)
-            cache.hashSet.Add(vehicle2.VehicleMap);
+          if (vehicle2.VehicleMap != map)
+            cache.excludeItself.Add(vehicle2.VehicleMap);
         }
       }
-      return cache.hashSet;
+      
+      cache.includeItself.AddRange(cache.excludeItself);
+      return includeItself ? cache.includeItself : cache.excludeItself;
     }
 
     public IEnumerable<Map> VehicleMapsOnMap()
@@ -705,7 +697,6 @@ public static class VehicleMapUtility
 
   extension(Thing thing)
   {
-
     public bool IsOnVehicleMap => thing.IsOnVehicleMapOf(out _);
 
     public bool IsOnNonFocusedVehicleMap => thing.IsOnNonFocusedVehicleMapOf(out _);
@@ -755,7 +746,146 @@ public static class VehicleMapUtility
     {
       return thing.MapHeld.BaseMap();
     }
+    
+    public IntVec3 PositionOnBaseMap
+    {
+      get
+      {
+        if (!thing.IsOnVehicleMapOf(out var vehicle)) return thing.Position;
+        var component = MapComponentCache<VehiclePawnWithMapCache>.GetComponent(thing.Map);
+        if (component.cachedPosOnBaseMap.TryGetValue(thing, out var pos))
+        {
+          return pos;
+        }
+        pos = thing.Position.ToBaseMapCoord(vehicle);
+        component.cachedPosOnBaseMap[thing] = pos;
+        return pos;
+      }
+    }
 
+    public IntVec3 PositionOnBaseMapSpawned
+    {
+      get
+      {
+        if (!thing.IsOnVehicleMapOf(out var vehicle) || !vehicle.Spawned) return thing.Position;
+        var component = MapComponentCache<VehiclePawnWithMapCache>.GetComponent(thing.Map);
+        if (component.cachedPosOnBaseMap.TryGetValue(thing, out var pos))
+        {
+          return pos;
+        }
+        pos = thing.Position.ToBaseMapCoord(vehicle);
+        component.cachedPosOnBaseMap[thing] = pos;
+        return pos;
+      }
+    }
+
+    public IntVec3 PositionHeldOnBaseMap
+    {
+      get
+      {
+        if (thing.Spawned)
+        {
+          return thing.PositionOnBaseMap;
+        }
+        var rootPosition = IntVec3.Invalid;
+        var holder = thing.ParentHolder;
+        while (holder != null)
+        {
+          rootPosition = holder switch
+          {
+            Thing { PositionOnBaseMap.IsValid: true } thing2 => thing2.PositionOnBaseMap,
+            ThingComp thingComp when thingComp.parent.PositionOnBaseMap.IsValid => thingComp.parent
+              .PositionOnBaseMap,
+            _ => rootPosition
+          };
+
+          holder = holder.ParentHolder;
+        }
+        return rootPosition.IsValid ? rootPosition : thing.PositionOnBaseMap;
+      }
+    }
+
+    public IntVec3 PositionHeldOnBaseMapSpawned
+    {
+      get
+      {
+        if (thing.Spawned)
+        {
+          return thing.PositionOnBaseMapSpawned;
+        }
+        var rootPosition = IntVec3.Invalid;
+        var holder = thing.ParentHolder;
+        while (holder != null)
+        {
+          rootPosition = holder switch
+          {
+            Thing { PositionOnBaseMapSpawned.IsValid: true } thing2 => thing2.PositionOnBaseMapSpawned,
+            ThingComp thingComp when thingComp.parent.PositionOnBaseMapSpawned.IsValid => thingComp.parent
+              .PositionOnBaseMapSpawned,
+            _ => rootPosition
+          };
+
+          holder = holder.ParentHolder;
+        }
+        return rootPosition.IsValid ? rootPosition : thing.PositionOnBaseMapSpawned;
+      }
+    }
+    
+    public IntVec3 PositionOnAnotherMap(Map map)
+    {
+      return map.IsVehicleMapOf(out var vehicle) ? thing.PositionOnBaseMap.ToVehicleMapCoord(vehicle) : thing.PositionOnBaseMap;
+    }
+    
+    public IntVec3 PositionOnAnotherThingMap(Thing another)
+    {
+      return another.IsOnVehicleMapOf(out var vehicle) ? thing.PositionOnBaseMap.ToVehicleMapCoord(vehicle) : thing.PositionOnBaseMap;
+    }
+    
+    public Rot4 BaseRotation()
+    {
+      return thing.IsOnNonFocusedVehicleMapOf(out var vehicle) ? new Rot4(thing.Rotation.AsInt + vehicle.Rotation.AsInt) : thing.Rotation;
+    }
+
+    public Rot4 BaseRotationSpawned()
+    {
+      return thing.IsOnNonFocusedVehicleMapOf(out var vehicle) && vehicle.Spawned ? new Rot4(thing.Rotation.AsInt + vehicle.Rotation.AsInt) : thing.Rotation;
+    }
+
+    public Rot4 BaseRotationVehicleDraw()
+    {
+      return thing.IsOnNonFocusedVehicleMapOf(out var vehicle) ? new Rot4(thing.Rotation.AsInt + vehicle.FullRotation.RotForVehicleDraw().AsInt) : thing.Rotation;
+    }
+
+    public Rot8 BaseFullRotation()
+    {
+      if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle))
+      {
+        return new Rot8(thing.Rotation).Rotated(vehicle.FullRotation);
+      }
+      return thing.Rotation;
+    }
+
+    public Rot8 BaseFullRotationSpawned()
+    {
+      if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle) && vehicle.Spawned)
+      {
+        return new Rot8(thing.Rotation).Rotated(vehicle.FullRotation);
+      }
+      return thing.Rotation;
+    }
+
+    public Rot4 BaseFullRotationAsRot4()
+    {
+      return thing.BaseFullRotation().AsRot4Force();
+    }
+
+    public Rot8 BaseFullRotationDoor()
+    {
+      if (!thing.IsOnNonFocusedVehicleMapOf(out var vehicle)) return thing.Rotation;
+      var rot = new Rot8(thing.Rotation).Rotated(vehicle.FullRotation);
+      return rot.FacingCell.z < 0 ? rot.Opposite : rot;
+    }
+    
     public bool TryGetDrawPos(ref Vector3 result)
     {
       if (VehicleSectionLayerManager.CacheMode)
@@ -798,6 +928,22 @@ public static class VehicleMapUtility
         }
       }
       return false;
+    }
+    
+    public void VirtualMapTransfer(Map map)
+    {
+      if (thing is not null && map is not null)
+        VirtualTeleporter.mapIndexOrState(thing) = (sbyte)map.Index;
+    }
+
+    public void VirtualMapTransfer(Map map, IntVec3 c)
+    {
+      if (thing is not null)
+      {
+        if (map is not null)
+          VirtualTeleporter.mapIndexOrState(thing) = (sbyte)map.Index;
+        thing.SetPositionDirect(c);
+      }
     }
   }
 
@@ -954,7 +1100,7 @@ public static class VehicleMapUtility
           }
         }
       }
-      return vehicle != null;
+      return vehicle is not null;
 
       bool ValidateVehicle(VehiclePawnWithMap vehicle)
       {
@@ -1112,93 +1258,6 @@ public static class VehicleMapUtility
     }
   }
 
-  extension(Thing thing)
-  {
-    public IntVec3 PositionOnBaseMap
-    {
-      get
-      {
-        if (!thing.IsOnVehicleMapOf(out var vehicle)) return thing.Position;
-        var component = MapComponentCache<VehiclePawnWithMapCache>.GetComponent(thing.Map);
-        if (component.cachedPosOnBaseMap.TryGetValue(thing, out var pos))
-        {
-          return pos;
-        }
-        pos = thing.Position.ToBaseMapCoord(vehicle);
-        component.cachedPosOnBaseMap[thing] = pos;
-        return pos;
-      }
-    }
-
-    public IntVec3 PositionOnBaseMapSpawned
-    {
-      get
-      {
-        if (!thing.IsOnVehicleMapOf(out var vehicle) || !vehicle.Spawned) return thing.Position;
-        var component = MapComponentCache<VehiclePawnWithMapCache>.GetComponent(thing.Map);
-        if (component.cachedPosOnBaseMap.TryGetValue(thing, out var pos))
-        {
-          return pos;
-        }
-        pos = thing.Position.ToBaseMapCoord(vehicle);
-        component.cachedPosOnBaseMap[thing] = pos;
-        return pos;
-      }
-    }
-
-    public IntVec3 PositionHeldOnBaseMap
-    {
-      get
-      {
-        if (thing.Spawned)
-        {
-          return thing.PositionOnBaseMap;
-        }
-        var rootPosition = IntVec3.Invalid;
-        var holder = thing.ParentHolder;
-        while (holder != null)
-        {
-          rootPosition = holder switch
-          {
-            Thing { PositionOnBaseMap.IsValid: true } thing2 => thing2.PositionOnBaseMap,
-            ThingComp thingComp when thingComp.parent.PositionOnBaseMap.IsValid => thingComp.parent
-              .PositionOnBaseMap,
-            _ => rootPosition
-          };
-
-          holder = holder.ParentHolder;
-        }
-        return rootPosition.IsValid ? rootPosition : thing.PositionOnBaseMap;
-      }
-    }
-
-    public IntVec3 PositionHeldOnBaseMapSpawned
-    {
-      get
-      {
-        if (thing.Spawned)
-        {
-          return thing.PositionOnBaseMapSpawned;
-        }
-        var rootPosition = IntVec3.Invalid;
-        var holder = thing.ParentHolder;
-        while (holder != null)
-        {
-          rootPosition = holder switch
-          {
-            Thing { PositionOnBaseMapSpawned.IsValid: true } thing2 => thing2.PositionOnBaseMapSpawned,
-            ThingComp thingComp when thingComp.parent.PositionOnBaseMapSpawned.IsValid => thingComp.parent
-              .PositionOnBaseMapSpawned,
-            _ => rootPosition
-          };
-
-          holder = holder.ParentHolder;
-        }
-        return rootPosition.IsValid ? rootPosition : thing.PositionOnBaseMapSpawned;
-      }
-    }
-  }
-
   extension(ref LocalTargetInfo target)
   {
     public IntVec3 CellOnBaseMap()
@@ -1253,53 +1312,10 @@ public static class VehicleMapUtility
     {
       return target.Map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned ? target.Cell.ToBaseMapCoord(vehicle) : target.Cell;
     }
-  }
 
-  extension(Thing thing)
-  {
-    public Rot4 BaseRotation()
+    public Map BaseMap()
     {
-      return thing.IsOnNonFocusedVehicleMapOf(out var vehicle) ? new Rot4(thing.Rotation.AsInt + vehicle.Rotation.AsInt) : thing.Rotation;
-    }
-
-    public Rot4 BaseRotationSpawned()
-    {
-      return thing.IsOnNonFocusedVehicleMapOf(out var vehicle) && vehicle.Spawned ? new Rot4(thing.Rotation.AsInt + vehicle.Rotation.AsInt) : thing.Rotation;
-    }
-
-    public Rot4 BaseRotationVehicleDraw()
-    {
-      return thing.IsOnNonFocusedVehicleMapOf(out var vehicle) ? new Rot4(thing.Rotation.AsInt + vehicle.FullRotation.RotForVehicleDraw().AsInt) : thing.Rotation;
-    }
-
-    public Rot8 BaseFullRotation()
-    {
-      if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle))
-      {
-        return new Rot8(thing.Rotation).Rotated(vehicle.FullRotation);
-      }
-      return thing.Rotation;
-    }
-
-    public Rot8 BaseFullRotationSpawned()
-    {
-      if (thing.IsOnNonFocusedVehicleMapOf(out var vehicle) && vehicle.Spawned)
-      {
-        return new Rot8(thing.Rotation).Rotated(vehicle.FullRotation);
-      }
-      return thing.Rotation;
-    }
-
-    public Rot4 BaseFullRotationAsRot4()
-    {
-      return thing.BaseFullRotation().AsRot4Force();
-    }
-
-    public Rot8 BaseFullRotationDoor()
-    {
-      if (!thing.IsOnNonFocusedVehicleMapOf(out var vehicle)) return thing.Rotation;
-      var rot = new Rot8(thing.Rotation).Rotated(vehicle.FullRotation);
-      return rot.FacingCell.z < 0 ? rot.Opposite : rot;
+      return target.Map.BaseMap();
     }
   }
 
@@ -1319,25 +1335,6 @@ public static class VehicleMapUtility
         return new Rot8(dir).Rotated(vehicle.FullRotation);
       }
       return dir;
-    }
-  }
-
-  extension(Thing thing)
-  {
-    public void VirtualMapTransfer(Map map)
-    {
-      if (thing is not null && map is not null)
-        VirtualTeleporter.mapIndexOrState(thing) = (sbyte)map.Index;
-    }
-
-    public void VirtualMapTransfer(Map map, IntVec3 c)
-    {
-      if (thing is not null)
-      {
-        if (map is not null)
-          VirtualTeleporter.mapIndexOrState(thing) = (sbyte)map.Index;
-        thing.SetPositionDirect(c);
-      }
     }
   }
 

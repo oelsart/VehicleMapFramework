@@ -43,4 +43,6 @@
 	<VMF_RemoveSegment>Remove segment</VMF_RemoveSegment>
 	<VMF_RemoveSegmentDesc>Removes the segment from the expanded vehicle structure.</VMF_RemoveSegmentDesc>
 
+  <VMF_ChangeOpacity>Change opacity</VMF_ChangeOpacity>
+
 </LanguageData>

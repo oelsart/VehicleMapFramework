@@ -1,29 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <Defs>
+  
 	<ShaderTypeDef>
 		<defName>VMF_TerrainHardWithZ</defName>
-		<shaderPath>TerrainHardWithZ</shaderPath>
+		<shaderPath>VehicleMapFramework/TerrainHardWithZ</shaderPath>
 	</ShaderTypeDef>
+  
+  <ShaderTypeDef>
+    <defName>VMF_SnowWithZ</defName>
+    <shaderPath>VehicleMapFramework/SnowWithZ</shaderPath>
+  </ShaderTypeDef>
 	
 	<ShaderTypeDef>
 		<defName>VMF_LightOverlayInverseMultiply</defName>
-		<shaderPath>LightOverlayInverseMultiply</shaderPath>
+		<shaderPath>VehicleMapFramework/LightOverlayInverseMultiply</shaderPath>
 	</ShaderTypeDef>
 	
 	<ShaderTypeDef>
 		<defName>VMF_CutoutComplexRGBOpacity</defName>
-		<shaderPath>ShaderRGBOpacity</shaderPath>
+		<shaderPath>VehicleMapFramework/ShaderRGBOpacity</shaderPath>
 	</ShaderTypeDef>
 
 	<ShaderTypeDef>
 		<defName>VMF_CutoutComplexPatternOpacity</defName>
-		<shaderPath>ShaderRGBPatternOpacity</shaderPath>
+		<shaderPath>VehicleMapFramework/ShaderRGBPatternOpacity</shaderPath>
 	</ShaderTypeDef>
 
 	<ShaderTypeDef>
 		<defName>VMF_CutoutComplexSkinOpacity</defName>
-		<shaderPath>ShaderRGBSkinOpacity</shaderPath>
+		<shaderPath>VehicleMapFramework/ShaderRGBSkinOpacity</shaderPath>
 	</ShaderTypeDef>
 
 </Defs>

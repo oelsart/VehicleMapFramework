@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using JetBrains.Annotations;
 using LudeonTK;
 using RimWorld;
 using SmashTools;
@@ -22,8 +23,11 @@ public static class CrossMapReachabilityUtility
 
   private static ConditionalWeakTable<Pawn, Map> DepartMaps { get; } = [];
 
+  private static Dictionary<Pawn, IntVec3?> DepartPositions { get; } = [];
+
   public static Map DepartMapGlobal;
 
+  [UsedImplicitly]
   public static Map DestMapGlobal;
 
   private static readonly Traverser traverser = new();
@@ -112,12 +116,28 @@ public static class CrossMapReachabilityUtility
 
     public Map DepartMapOrPawnMapHeld => pawn.DepartMap ?? pawn.MapHeld;
 
+    internal IntVec3? DepartPosition
+    {
+      get => pawn is null ? null : DepartPositions.GetValueOrDefault(pawn);
+      set
+      {
+        if (pawn is null) return;
+        if (value is null)
+        {
+          DepartPositions.Remove(pawn);
+          return;
+        }
+
+        DepartPositions[pawn] = value;
+      }
+    }
+
     public bool CanReach(LocalTargetInfo dest3, PathEndMode peMode, Danger maxDanger, bool canBashDoors,
       bool canBashFences, TraverseMode mode, Map destMap)
     {
       var traverseParms = TraverseParms.For(pawn, maxDanger: maxDanger, mode: mode, canBashDoors: canBashDoors,
         canBashFences: canBashFences);
-      return pawn.Spawned && CanReach(pawn.DepartMap ?? pawn.Map, traverseParms.pawn.Position, dest3, peMode,
+      return pawn.Spawned && CanReach(pawn.DepartMap ?? pawn.Map, pawn.DepartPosition ?? pawn.Position, dest3, peMode,
         traverseParms, destMap, out _, out _, out _);
     }
 
@@ -130,7 +150,7 @@ public static class CrossMapReachabilityUtility
       exitSpot = TargetInfo.Invalid;
       enterSpot = TargetInfo.Invalid;
       spotsQueue = null;
-      return pawn.Spawned && CanReach(pawn.DepartMap ?? pawn.Map, traverseParms.pawn.Position, dest3, peMode,
+      return pawn.Spawned && CanReach(pawn.DepartMap ?? pawn.Map, pawn.DepartPosition ?? pawn.Position, dest3, peMode,
         traverseParms, destMap, out exitSpot, out enterSpot, out spotsQueue);
     }
   }
@@ -298,10 +318,9 @@ public static class CrossMapReachabilityUtility
             {
               spotsQueue.Add(new TraverseSpots(traverse.exitSpot, traverse.enterSpot));
             }
-
-            traverseList.Clear();
           }
-
+          
+          traverseList.Clear();
           return result;
         }
 
@@ -309,8 +328,7 @@ public static class CrossMapReachabilityUtility
 
         var flag = departMap == departBaseMap;
         var flag2 = destBaseMap == destMap;
-        var pawn = traverseParms.pawn;
-        var traverseParms2 = traverseParms.pawn != null
+        var traverseParms2 = traverseParms.pawn is not null
           ? TraverseParms.For(traverseParms.pawn, traverseParms.maxDanger, TraverseMode.PassDoors,
             traverseParms.canBashDoors, traverseParms.alwaysUseAvoidGrid, traverseParms.canBashFences,
             traverseParms.avoidPersistentDanger)
@@ -351,7 +369,7 @@ public static class CrossMapReachabilityUtility
                   cell = EnterVehiclePosition(comp.parent);
                 }
 
-                result = CellCheck(cell, destMap, pawn) && CanReachLocal(comp.parent.Position, cell);
+                result = CellCheck(cell, destMap, traverseParms, true) && CanReachLocal(comp.parent.Position, cell);
                 DebugLog($"VehicleMap => BaseMap: {root}, {cell}, {comp}, {traverseParms} :{result} {comp.parent}");
                 if (result)
                 {
@@ -365,7 +383,7 @@ public static class CrossMapReachabilityUtility
               {
                 var targetInfo = new TargetInfo(c, departMap);
                 var cell = EnterVehiclePosition(targetInfo);
-                result = CellCheck(cell, destMap, pawn) && CanReachLocal(c, cell);
+                result = CellCheck(cell, destMap, traverseParms, true) && CanReachLocal(c, cell);
                 DebugLog($"VehicleMap => BaseMap: {root}, {cell}, {c}, {traverseParms} :{result} {targetInfo}");
                 if (result)
                 {
@@ -406,7 +424,7 @@ public static class CrossMapReachabilityUtility
                   cell = EnterVehiclePosition(comp.parent);
                 }
 
-                result = CellCheck(cell, departMap, pawn) && CanReachLocal(cell, comp.parent.Position);
+                result = CellCheck(cell, departMap, traverseParms) && CanReachLocal(cell, comp.parent.Position);
                 DebugLog($"BaseMap => VehicleMap: {root}, {cell}, {comp}, {traverseParms} :{result}");
                 if (result)
                 {
@@ -420,7 +438,7 @@ public static class CrossMapReachabilityUtility
               {
                 var targetInfo = new TargetInfo(c, destMap);
                 var cell = EnterVehiclePosition(targetInfo);
-                result = CellCheck(cell, departMap, pawn) && CanReachLocal(cell, c);
+                result = CellCheck(cell, departMap, traverseParms) && CanReachLocal(cell, c);
                 DebugLog(
                   $"BaseMap => VehicleMap: {new TargetInfo(root, departMap)}, {cell}, {c}, {dest.ToTargetInfo(destMap)}, {traverseParms} :{result}");
                 if (result)
@@ -470,7 +488,7 @@ public static class CrossMapReachabilityUtility
                   if (pair.Map == destMap)
                   {
                     var c = comp.parent.Position;
-                    if (CellCheck(cell, destMap, pawn) && CanReachLocal(c, cell))
+                    if (CellCheck(cell, destMap, traverseParms, true) && CanReachLocal(c, cell))
                     {
                       exitSpot = comp.parent;
                       return true;
@@ -568,8 +586,8 @@ public static class CrossMapReachabilityUtility
 
               bool CanReach2(IntVec3 cell, IntVec3 cell2, IntVec3 cell3, IntVec3 cell4)
               {
-                return CellCheck(cell2, departBaseMap, pawn) &&
-                       CellCheck(cell3, departBaseMap, pawn) &&
+                return CellCheck(cell2, departBaseMap, traverseParms, true) &&
+                       CellCheck(cell3, departBaseMap, traverseParms) &&
                        departMap.reachability.CanReach(root, cell, PathEndMode.OnCell,
                          traverseParms) &&
                        departBaseMap.reachability.CanReach(cell2, cell3, PathEndMode.OnCell,
@@ -627,7 +645,7 @@ public static class CrossMapReachabilityUtility
                   var c = comp2.parent.Position;
                   var c2 = pair.Position;
                   var map2 = comp2.parent.Map;
-                  if (CellCheck(c, map, pawn) && CellCheck(c2, map2, pawn) &&
+                  if (CellCheck(c, map, traverseParms) && CellCheck(c2, map2, traverseParms, true) &&
                       map2.reachability.CanReach(start, c, PathEndMode.OnCell, traverseParms2))
                   {
                     tmpTargets.Push(new TraverseSpots(comp2.parent, TargetInfo.Invalid));
@@ -692,16 +710,115 @@ public static class CrossMapReachabilityUtility
   }
 
 
-  private static bool CellCheck(IntVec3 cell, Map map, Pawn pawn)
+  private static bool CellCheck(IntVec3 cell, Map map, TraverseParms parms, bool destination = false)
   {
-    if (pawn is not null)
+    if (parms.pawn is { } pawn)
     {
-      return cell.WalkableBy(map, pawn) &&
-             (cell.GetDoor(map) is not { } door || door.HoldOpen ||
-              door.PawnCanOpen(pawn) && !door.IsForbidden(pawn));
+      if (!cell.WalkableBy(map, pawn) ||
+          cell.GetDoor(map) is { HoldOpen: false } door &&
+           (!door.PawnCanOpen(pawn) || door.IsForbidden(pawn)))
+        return false;
+      
+      if (!destination || !parms.avoidPersistentDanger)
+        return true;
+
+      var terrain = cell.GetTerrain(map);
+      if (terrain is { dangerous: false })
+        return true;
+
+      return CompAllowDangerTerrains.AllowedTerrains.TryGetValue(pawn, out var allowedTerrains) &&
+             allowedTerrains.Contains(terrain);
     }
+    
     return cell.Walkable(map) &&
-           (cell.GetDoor(map) is not { } door2 || door2.HoldOpen);
+           (cell.GetDoor(map) is not { } door2 || door2.HoldOpen) &&
+           (!destination || !parms.avoidPersistentDanger || cell.GetTerrain(map) is { dangerous: false });
+  }
+
+  public static bool CanReachToMap(IntVec3 root, Map departMap, TraverseParms parms, Map destMap, bool canUseAbility = true)
+  {
+    return CanReachToMap(root, departMap, parms, destMap, out _, out _, out _, canUseAbility);
+  }
+  
+  public static bool CanReachToMap(IntVec3 root, Map departMap, TraverseParms parms, Map destMap,
+    out TargetInfo exitSpot, out TargetInfo enterSpot, out List<TraverseSpots> spotsQueue, bool canUseAbility = true)
+  {
+    exitSpot = TargetInfo.Invalid;
+    enterSpot = TargetInfo.Invalid;
+    spotsQueue = null;
+    
+    
+
+    if (departMap == null || destMap == null) return false;
+    if (departMap == destMap) return true;
+    if (departMap.BaseMapOrCaravan != destMap.BaseMapOrCaravan) return false;
+
+    if (working)
+    {
+      Log.ErrorOnce("Called CanReachToMap() while working. This should never happen. Suppressing further errors.", 7312234);
+      return false;
+    }
+    
+    working = true;
+    try
+    {
+      var region = root.GetRegion(departMap);
+      TraverseParmsExtended parmsForCache = parms;
+      Ability_MapTraverse ability = null;
+      if (canUseAbility)
+      {
+        ability = parms.pawn?.abilities?.AllAbilitiesForReading.OfType<Ability_MapTraverse>()
+          .FirstOrDefault(a => a is { CanCast.Accepted: true });
+        parmsForCache.ability = ability?.def;
+      }
+
+      destRegions.Clear();
+      foreach (var district in destMap.regionGrid.allDistricts)
+      {
+        if (district.Passable)
+          destRegions.AddRange(district.Regions);
+      }
+
+      if (destRegions.Empty()) return false;
+
+      bool result;
+      foreach (var region2 in destRegions)
+      {
+        if (CrossMapReachabilityCache.TryGetCache(region, region2, parmsForCache, out result, out exitSpot,
+              out enterSpot,
+              out spotsQueue) && result)
+          return true;
+      }
+
+      var start = new MapTraverse(TargetInfo.Invalid, new TargetInfo(root, departMap));
+      var destination = new MapTraverse(TargetInfo.Invalid, new TargetInfo(destRegions[0].AnyCell, destMap));
+      traverser.SetParameters(start.enterSpot, destination.enterSpot, parms, ability);
+      traverseList.Clear();
+      aStar.Run(start, destination, traverseList);
+      result = traverseList.Count > 0;
+      if (traverseList.Count == 1)
+      {
+        exitSpot = traverseList[0].exitSpot;
+        enterSpot = traverseList[0].enterSpot;
+      }
+      else if (result)
+      {
+        spotsQueue = SimplePool<List<TraverseSpots>>.Get();
+        spotsQueue.Clear();
+        foreach (var traverse in traverseList)
+        {
+          spotsQueue.Add(new TraverseSpots(traverse.exitSpot, traverse.enterSpot));
+        }
+      }
+      if (result)
+        CrossMapReachabilityCache.Cache(region, traverser.destRegion, parmsForCache, true, exitSpot, enterSpot, spotsQueue);
+      traverseList.Clear();
+      return result;
+    }
+    finally
+    {
+      working = false;
+    }
   }
 
   public static bool TryFindNearestStandableCell(VehiclePawn vehicle, IntVec3 cell, Map map, out IntVec3 result,
@@ -1000,7 +1117,7 @@ public static class CrossMapReachabilityUtility
           traverseParms.alwaysUseAvoidGrid, traverseParms.canBashFences, traverseParms.avoidPersistentDanger);
       _ability = ability;
       _tmpCandidates.Clear();
-      _tmpCandidates.AddRange(destination.Map.BaseMapAndVehicleMaps());
+      _tmpCandidates.AddRange(start.Map.BaseMapAndVehicleMaps());
       var destMap = destination.Map;
       _tmpCandidates.SortBy(m =>
       {
@@ -1008,6 +1125,37 @@ public static class CrossMapReachabilityUtility
           return 0;
         if (m.IsVehicleMapOf(out var vehicle))
           return (m.Center.ToBaseMapCoord(vehicle) - _destBaseMapCoord).LengthManhattan;
+        return m.Size.LengthManhattan / 2;
+      });
+      _visitedDistrictIDs.Clear();
+      if (RegionAndRoomQuery.DistirctAtFast(start.Cell, start.Map) is { } district)
+        _visitedDistrictIDs.Add(district.ID);
+      destRegion = null;
+      debugNodeNumber = 0;
+    }
+    
+    public void SetParameters(TargetInfo start, Map destMap, TraverseParms traverseParms,
+      Ability_MapTraverse ability)
+    {
+      _destBaseMapCoord = destMap.IsVehicleMapOf(out var vehicle)
+        ? destMap.Center.ToBaseMapCoord(vehicle)
+        : start.CellOnBaseMap();
+      _traverseParms = traverseParms;
+      _traverseParms2 = traverseParms.pawn != null
+        ? TraverseParms.For(traverseParms.pawn, traverseParms.maxDanger, TraverseMode.PassDoors,
+          traverseParms.canBashDoors, traverseParms.alwaysUseAvoidGrid, traverseParms.canBashFences,
+          traverseParms.avoidPersistentDanger)
+        : TraverseParms.For(TraverseMode.PassDoors, traverseParms.maxDanger, traverseParms.canBashDoors,
+          traverseParms.alwaysUseAvoidGrid, traverseParms.canBashFences, traverseParms.avoidPersistentDanger);
+      _ability = ability;
+      _tmpCandidates.Clear();
+      _tmpCandidates.AddRange(start.Map.BaseMapAndVehicleMaps());
+      _tmpCandidates.SortBy(m =>
+      {
+        if (m == destMap)
+          return 0;
+        if (m.IsVehicleMapOf(out var vehicle2))
+          return (m.Center.ToBaseMapCoord(vehicle2) - _destBaseMapCoord).LengthManhattan;
         return m.Size.LengthManhattan / 2;
       });
       _visitedDistrictIDs.Clear();
@@ -1159,8 +1307,8 @@ public static class CrossMapReachabilityUtility
 
     public bool CanEnter(MapTraverse from, MapTraverse to)
     {
-      return CellCheck(to.exitSpot.Cell, to.exitSpot.Map, _traverseParms.pawn) &&
-             CellCheck(to.enterSpot.Cell, to.enterSpot.Map, _traverseParms.pawn) &&
+      return CellCheck(to.exitSpot.Cell, to.exitSpot.Map, _traverseParms) &&
+             CellCheck(to.enterSpot.Cell, to.enterSpot.Map, _traverseParms, true) &&
              from.enterSpot.Map.reachability.CanReach(from.enterSpot.Cell, to.exitSpot.Cell,
                PathEndMode.OnCell, _traverseParms2) &&
              _visitedDistrictIDs.Add(to.DistrictID);

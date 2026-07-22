@@ -67,7 +67,6 @@ Shader "VehicleMapFramework/LightOverlayInverseMultiply" {
 				restored = min(restored, _MaxRestore);
 
 				// 彩度を調整
-				
 				return fixed4(restored, inp.color.a);
 			}
 			ENDCG

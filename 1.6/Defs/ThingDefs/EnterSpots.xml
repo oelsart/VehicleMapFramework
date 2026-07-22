@@ -20,7 +20,7 @@
 		<graphicData>
 			<texPath>VehicleMapFramework/Things/EnterSpot/Laddar</texPath>
 			<graphicClass>Graphic_Multi</graphicClass>
-			<drawSize>(1.84765625,1.84765625)</drawSize>
+			<drawSize>(2,2)</drawSize>
 			<drawOffsetNorth>(0,0,-1)</drawOffsetNorth>
 			<drawOffsetSouth>(0,0,1)</drawOffsetSouth>
 			<drawOffsetEast>(-1,0,-0.5)</drawOffsetEast>

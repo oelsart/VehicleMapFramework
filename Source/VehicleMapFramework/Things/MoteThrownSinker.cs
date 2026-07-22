@@ -16,8 +16,6 @@ public class MoteThrownSinker : MoteThrown
 
   public static MaterialPropertyBlock MaterialPropertyBlock { get; private set; }
 
-  private static readonly int MainTex = Shader.PropertyToID("_MainTex");
-
   static MoteThrownSinker()
   {
     LongEventHandler.ExecuteWhenFinished(() =>
@@ -37,7 +35,7 @@ public class MoteThrownSinker : MoteThrown
   private Color overlayColor;
   private SimpleCurve colorOverlayAlphaCurve;
   private bool disposeOnDespawn;
-
+  
   public void SetParameters(RenderTexture _texture, Quaternion _texRotation, Vector3 _texDrawSize,
     Color _overlayColor, SimpleCurve _colorOverlayAlphaCurve)
   {
@@ -62,7 +60,7 @@ public class MoteThrownSinker : MoteThrown
     overlayColor = _overlayColor;
     colorOverlayAlphaCurve = _colorOverlayAlphaCurve;
   }
-
+  
   protected override void TickInterval(int delta)
   {
     base.TickInterval(delta);
@@ -91,7 +89,7 @@ public class MoteThrownSinker : MoteThrown
 
     var properties = MaterialPropertyBlock;
     properties.Clear();
-    properties.SetTexture(MainTex, texture);
+    properties.SetTexture(AdditionalShaderPropertyIDs.MainTex, texture);
     var pos = exactPosition.WithY(def.altitudeLayer.AltitudeFor() + yOffset);
     var matrix = Matrix4x4.TRS(pos, texRotation, texDrawSize);
     properties.SetColor(ShaderPropertyIDs.Color, Color.white.WithAlpha(Alpha));

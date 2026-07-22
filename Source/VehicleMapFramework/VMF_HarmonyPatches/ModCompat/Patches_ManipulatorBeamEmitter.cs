@@ -142,14 +142,22 @@ public static class Patch_BeamManipulatorUtility_TryFindBestStorageCellCore
 }
 
 [HarmonyPatchCategory(PatchCategories.ManipulatorBeamEmitter)]
-[HarmonyPatch("ManipulatorBeam.BeamManipulatorUtility", "FillTransferQueue")]
+[HarmonyPatch]
 [PatchLevel(Level.Safe)]
 public static class Patch_BeamManipulatorUtility_FillTransferQueue
 {
   private static bool working;
+
+  private static MethodBase TargetMethod()
+  {
+    return AccessTools.FirstMethod(
+      GenTypes.GetTypeInAnyAssembly("ManipulatorBeam.BeamManipulatorUtility", "ManipulatorBeam"),
+      m => m.Name == "FillTransferQueue" && m.GetParameters().Length >= 9);
+  }
   
   public static void Postfix(Pawn pawn, Building manipulator, int desiredCount, object destinationQueue,
-    HashSet<Thing> excludedThings, HashSet<IntVec3> excludedDestinations, Thing preferredThing)
+    HashSet<Thing> excludedThings, HashSet<IntVec3> excludedDestinations, Thing preferredThing,
+    HashSet<IntVec3> candidateSeenCellsScratch, List<IntVec3> candidateCellsScratch)
   {
     if (working) return;
     var map = pawn.Map;
@@ -160,8 +168,9 @@ public static class Patch_BeamManipulatorUtility_FillTransferQueue
       {
         using var _ = new VirtualTeleporter(pawn, map2);
         FillTransferQueue(null,
-          Params<(object, object, int, object, object, object, object)>
-            .Get((pawn, manipulator, desiredCount, destinationQueue, excludedThings, excludedDestinations, preferredThing)));
+          Params<(object, object, int, object, object, object, object, object, object)>
+            .Get((pawn, manipulator, desiredCount, destinationQueue, excludedThings, excludedDestinations, preferredThing,
+              candidateSeenCellsScratch, candidateCellsScratch)));
       }
     }
     finally
@@ -172,14 +181,22 @@ public static class Patch_BeamManipulatorUtility_FillTransferQueue
 }
 
 [HarmonyPatchCategory(PatchCategories.ManipulatorBeamEmitter)]
-[HarmonyPatch("ManipulatorBeam.BeamManipulatorUtility", "FillTransferQueueAuto")]
+[HarmonyPatch]
 [PatchLevel(Level.Safe)]
 public static class Patch_BeamManipulatorUtility_FillTransferQueueAuto
 {
   private static bool working;
+
+  private static MethodBase TargetMethod()
+  {
+    return AccessTools.FirstMethod(
+      GenTypes.GetTypeInAnyAssembly("ManipulatorBeam.BeamManipulatorUtility", "ManipulatorBeam"),
+      m => m.Name == "FillTransferQueueAuto" && m.GetParameters().Length >= 7);
+  }
   
   public static void Postfix(Building building, int desiredCount, object destinationQueue,
-    HashSet<Thing> excludedThings, HashSet<IntVec3> excludedDestinations)
+    HashSet<Thing> excludedThings, HashSet<IntVec3> excludedDestinations, HashSet<IntVec3> candidateSeenCellsScratch,
+    List<IntVec3> candidateCellsScratch)
   {
     if (working) return;
     var map = building.Map;
@@ -190,8 +207,9 @@ public static class Patch_BeamManipulatorUtility_FillTransferQueueAuto
       {
         using var _ = new VirtualTeleporter(building, map2);
         FillTransferQueueAuto(null,
-          Params<(object, int, object, object, object)>
-            .Get((building, desiredCount, destinationQueue, excludedThings, excludedDestinations)));
+          Params<(object, int, object, object, object, object, object)>
+            .Get((building, desiredCount, destinationQueue, excludedThings, excludedDestinations,
+              candidateSeenCellsScratch, candidateCellsScratch)));
       }
     }
     finally

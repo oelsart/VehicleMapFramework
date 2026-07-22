@@ -11,7 +11,8 @@ public class VehiclePawnWithMapCache(Map map) : MapComponent(map)
 {
   private readonly List<VehiclePawnWithMap> allVehicles = [];
 
-  public readonly (int lastCachedTick, HashSet<Map> hashSet) cachedBaseMapAndVehicleMaps = (-1, []);
+  public (int lastCachedTick, HashSet<Map> includeItself, HashSet<Map> excludeItself) cachedBaseMapAndVehicleMaps = (-1, [], []);
+  
   public readonly Dictionary<Thing, Vector3> cachedDrawPos = [];
 
   public readonly Dictionary<VehiclePawn, Rot8> cachedFullRot = [];
@@ -37,7 +38,18 @@ public class VehiclePawnWithMapCache(Map map) : MapComponent(map)
 
   public static void RegisterVehicle(VehiclePawnWithMap vehicle)
   {
-    LongEventHandler.ExecuteWhenFinished(() => { vehicle.Map?.GetComponent<VehiclePawnWithMapCache>()?.allVehicles.AddUnique(vehicle); });
+    LongEventHandler.ExecuteWhenFinished(() =>
+    {
+      vehicle.Map?.GetComponent<VehiclePawnWithMapCache>()?.allVehicles.AddUnique(vehicle);
+    });
+    
+    foreach (var map in Find.Maps)
+    {
+      if (map.GetComponent<VehiclePawnWithMapCache>() is { } component)
+      {
+        component.cachedBaseMapAndVehicleMaps.lastCachedTick = -1;
+      }
+    }
   }
 
   public static void DeRegisterVehicle(VehiclePawnWithMap vehicle)
@@ -47,6 +59,7 @@ public class VehiclePawnWithMapCache(Map map) : MapComponent(map)
       if (map.GetComponent<VehiclePawnWithMapCache>() is { } component)
       {
         component.allVehicles.Remove(vehicle);
+        component.cachedBaseMapAndVehicleMaps.lastCachedTick = -1;
       }
     }
 

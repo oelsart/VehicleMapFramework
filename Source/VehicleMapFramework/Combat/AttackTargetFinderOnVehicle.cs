@@ -190,10 +190,12 @@ public static class AttackTargetFinderOnVehicle
       }
       else
       {
-        var flag4 = thing.MovedOccupiedRect().Any(c => !c.Fogged(baseMap));
-        if (!flag4)
+        foreach (var c in thing.MovedOccupiedRect())
         {
-          return false;
+          if (c.Fogged(baseMap))
+          {
+            return false;
+          }
         }
       }
 
@@ -699,6 +701,11 @@ public static class AttackTargetFinderOnVehicle
     var seerPosOnBaseMap = seer.PositionOnBaseMapSpawned;
     var targPosOnBaseMap = target.PositionOnBaseMapSpawned;
     var baseMap = seer.BaseMap();
+    
+    // マップ端で車両マップ上のポーンがベースマップ外に行く可能性はある
+    if (!seerPosOnBaseMap.InBounds(baseMap) || !targPosOnBaseMap.InBounds(baseMap))
+      return false;
+    
     tempDestList.Clear();
     ShootLeanUtilityOnVehicle.CalcShootableCellsOf(tempDestList, target, seerPosOnBaseMap);
     for (var i = 0; i < tempDestList.Count; i++)
