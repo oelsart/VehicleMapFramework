@@ -451,17 +451,17 @@ public static class VehicleMapUtility
       {
         case VehicleCaravan caravan:
           target = caravan;
-          pawns = caravan.PlayerPawnsForStoryteller.ToList();
+          pawns = [.. caravan.PlayerPawnsForStoryteller];
           break;
         case StashedVehicle stashedVehicle:
-          pawns = stashedVehicle.Vehicles.OfType<Pawn>().ToList();
+          pawns = [.. stashedVehicle.Vehicles];
           break;
         default:
         {
           if (vehicle.Spawned)
           {
             target = vehicle.Map;
-            pawns = vehicle.Map.PlayerPawnsForStoryteller.ToList();
+            pawns = [.. vehicle.Map.PlayerPawnsForStoryteller];
           }
           else
           {
@@ -473,7 +473,7 @@ public static class VehicleMapUtility
     }
     else
     {
-      pawns = target.PlayerPawnsForStoryteller.ToList();
+      pawns = [.. target.PlayerPawnsForStoryteller];
     }
 
     var wealthForStoryteller = target.PlayerWealthForStoryteller;

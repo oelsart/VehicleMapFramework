@@ -927,18 +927,6 @@ public static class Patch_MapDeiniter_PassPawnsToWorld
   }
 }
 
-[HarmonyPatch(typeof(Map), nameof(Map.IsPlayerHome), MethodType.Getter)]
-[PatchLevel(Level.Safe)]
-public static class Patch_Map_IsPlayerHome
-{
-  private static bool Prepare() => VehicleMapFramework.settings is { treatAsPlayerHome: true };
-
-  public static void Postfix(Map __instance, ref bool __result)
-  {
-    __result = __result || __instance.IsVehicleMapOf(out var vehicle) && vehicle.Faction == Faction.OfPlayer;
-  }
-}
-
 // 地上マップの制限ゾーン変更により車両マップの制限ゾーンが地上マップのゾーンで上書きされる問題の修正
 [HarmonyPatch]
 [PatchLevel(Level.Cautious)]
@@ -1022,4 +1010,31 @@ public static class Patch_Pawn_PlayerSettings_AreaRestrictionInPawnCurrentMap
     }
     AreaUtility.MakeAllowedAreaListFloatMenu(selAction, addNullAreaOption, addManageOption, map);
   }
+}
+
+[HarmonyPatch(typeof(Map), nameof(Map.IsPlayerHome), MethodType.Getter)]
+[PatchLevel(Level.Safe)]
+public static class Patch_Map_IsPlayerHome
+{
+  private static bool Prepare() => VehicleMapFramework.settings is { treatAsPlayerHome: true };
+
+  public static void Postfix(Map __instance, ref bool __result)
+  {
+    __result = __result || __instance.IsVehicleMapOf(out var vehicle) && vehicle.Faction == Faction.OfPlayer;
+  }
+}
+
+[HarmonyPatch(typeof(QuestNode_GetMap), "IsAcceptableMap")]
+[PatchLevel(Level.Cautious)]
+public static class Patch_QuestNode_GetMap_IsAcceptableMap
+{
+  private static bool Prepare() => VehicleMapFramework.settings is { treatAsPlayerHome: true };
+
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    return instructions.MethodReplacer(
+      AccessTools.PropertyGetter(typeof(Map), nameof(Map.IsPocketMap)), ((Delegate)IsPocketMap).Method);
+  }
+
+  private static bool IsPocketMap(Map map) => map is { IsPocketMap: true, IsVehicleMap: false };
 }
