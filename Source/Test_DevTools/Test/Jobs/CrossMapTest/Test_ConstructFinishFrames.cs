@@ -1,4 +1,5 @@
-﻿using RimWorld;
+﻿using DevTools.Testing;
+using RimWorld;
 using UnityEngine.Assertions;
 using Vehicles.Testing;
 using Verse;
@@ -25,7 +26,10 @@ internal class Test_ConstructFinishFrames(VehicleGroup group) : CrossMapWorkGive
 
   public override void TearDown()
   {
-    frame.Destroy();
+    Expect.IsTrue(frame.Destroyed);
+    if (!frame.Destroyed) frame.Destroy();
+    var list = FromRUCorner(GroundMap, 3).GetThingList(GroundMap);
+    for (var i = list.Count - 1; i >= 0; i--) list[i].Destroy();
     frame = null;
     base.TearDown();
   }
