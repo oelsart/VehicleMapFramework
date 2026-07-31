@@ -35,13 +35,13 @@ public static class CrossMapReachabilityUtility
   private static readonly AStar<MapTraverse> aStar = new(Traverser.Cost, traverser.Neighbors, traverser.FinalCheck,
     traverser.CanEnter, traverser.Heuristic, Traverser.ProcessPath, traverser.DebugDrawEnterNode);
 
-  private static readonly List<MapTraverse> traverseList = new(16);
+  private static readonly List<MapTraverse> traverseList = [with(16)];
 
-  private static readonly Stack<TraverseSpots> tmpTargets = new(16);
+  private static readonly Stack<TraverseSpots> tmpTargets = [with(16)];
 
-  private static readonly HashSet<Map> visitedMaps = new(16);
+  private static readonly HashSet<Map> visitedMaps = [with(16)];
 
-  private static readonly List<Map> candidateMaps = new(16);
+  private static readonly List<Map> candidateMaps = [with(16)];
 
   private static readonly List<Region> destRegions = [];
 
@@ -157,14 +157,8 @@ public static class CrossMapReachabilityUtility
 
   public static IntVec3 EnterVehiclePosition(TargetInfo enterSpot, VehiclePawn enterer = null)
   {
-    return EnterVehiclePosition(enterSpot, out _, enterer);
-  }
-
-  public static IntVec3 EnterVehiclePosition(TargetInfo enterSpot, out int dist, VehiclePawn enterer = null)
-  {
     if (!enterSpot.Map.IsVehicleMapOf(out var vehicle) || vehicle is not { Spawned: true })
     {
-      dist = 0;
       return IntVec3.Invalid;
     }
 
@@ -173,7 +167,7 @@ public static class CrossMapReachabilityUtility
       ? enterSpot.Thing.BaseFullRotation().FacingCell
       : enterSpot.Cell.BaseFullDirectionToInsideMap(vehicle).FacingCell;
 
-    dist = 0;
+    var dist = 0;
     IntVec3 cell2;
     var cellRect = vehicle.VehicleRect();
     do
@@ -182,7 +176,6 @@ public static class CrossMapReachabilityUtility
       cell2 = cell - faceCell * dist;
       if (!cell2.InBounds(vehicle.Map))
       {
-        dist = 0;
         return IntVec3.Invalid;
       }
     } while (cellRect.Contains(cell2));
@@ -354,20 +347,13 @@ public static class CrossMapReachabilityUtility
                 return false;
               }
 
-              foreach (var comp in vehicle2.GetSortedEnterComps(dest.Cell))
+              foreach (var comp in vehicle2.GetSortedEnterComps(dest.Cell, CompVehicleEnterSpot.Kind.GroundAccessOnly))
               {
-                IntVec3 cell;
-                if (comp is CompZipline compZipline)
-                {
-                  var pair = compZipline.Pair;
-                  if (pair == null || !pair.HasComp<CompZipline>() || pair.Map != destMap) continue;
-
-                  cell = pair.Position;
-                }
-                else
-                {
-                  cell = EnterVehiclePosition(comp.parent);
-                }
+                if (comp is not { AvailableAccessSpot: { IsValid: true } accessSpot } ||
+                    accessSpot.Map != destMap)
+                  continue;
+                
+                var cell = accessSpot.Cell;
 
                 result = CellCheck(cell, destMap, traverseParms, true) && CanReachLocal(comp.parent.Position, cell);
                 DebugLog($"VehicleMap => BaseMap: {root}, {cell}, {comp}, {traverseParms} :{result} {comp.parent}");
@@ -627,28 +613,23 @@ public static class CrossMapReachabilityUtility
                 }
 
                 visitedMaps.Add(map);
-                var isVehicleMap = map.IsVehicleMapOf(out var vehicle3);
-                var comps = isVehicleMap
+                var comps = map.IsVehicleMapOf(out var vehicle3)
                   ? vehicle3.GetSortedEnterComps(destBaseMapCoord,
-                    VehiclePawnWithMap.EnterCompKind.ZiplineOnly).AsEnumerable()
-                  : RegionTraverserAcrossMaps.ZiplineDefs.SelectMany(def =>
-                    map.listerThings.ThingsOfDef(def).Select(t => t.TryGetComp<CompZipline>()));
+                    CompVehicleEnterSpot.Kind.DirectAccessOnly).AsEnumerable()
+                  : RegionTraverserAcrossMaps.EnterSpotDefs.SelectMany(def =>
+                    map.listerThings.ThingsOfDef(def).Select(t => t.TryGetComp<CompVehicleEnterSpot>()));
                 foreach (var comp in comps)
                 {
-                  if (comp is not CompZipline comp2) continue;
-                  // Pairが適正か
-                  var pair = comp2.Pair;
-                  if (pair is not { Spawned: true } || !visitedMaps.Contains(pair.Map))
-                    continue;
+                  if (comp is not { AvailableAccessSpot: { IsValid: true } accessSpot } ||
+                      visitedMaps.Contains(accessSpot.Map)) continue;
 
-                  // Pairの車両を探索
-                  var c = comp2.parent.Position;
-                  var c2 = pair.Position;
-                  var map2 = comp2.parent.Map;
+                  var c = comp.parent.Position;
+                  var c2 = accessSpot.Cell;
+                  var map2 = accessSpot.Map;
                   if (CellCheck(c, map, traverseParms) && CellCheck(c2, map2, traverseParms, true) &&
-                      map2.reachability.CanReach(start, c, PathEndMode.OnCell, traverseParms2))
+                      map.reachability.CanReach(start, c, PathEndMode.OnCell, traverseParms2))
                   {
-                    tmpTargets.Push(new TraverseSpots(comp2.parent, TargetInfo.Invalid));
+                    tmpTargets.Push(new TraverseSpots(comp.parent, TargetInfo.Invalid));
                     if (!EnterMap(map2, c2))
                     {
                       tmpTargets.Pop();
@@ -970,7 +951,7 @@ public static class CrossMapReachabilityUtility
           case false when flag2 && vehicle3 != null:
           {
             Thing tmpThing = null;
-            result = vehicle3.GetSortedEnterComps(dest.Cell, VehiclePawnWithMap.EnterCompKind.RampOnly).Any(e =>
+            result = vehicle3.GetSortedEnterComps(dest.Cell, CompVehicleEnterSpot.Kind.RampOnly).Any(e =>
             {
               tmpThing = e.parent;
               if (!AvailableEnterSpot(e) || tmpThing.OccupiedRect().Any(c3 => !vehicle.Drivable(c3, departMap)))
@@ -991,7 +972,7 @@ public static class CrossMapReachabilityUtility
           case true when !flag2 && vehicle2 != null:
           {
             Thing tmpThing = null;
-            result = vehicle2.GetSortedEnterComps(vehicle.Position, VehiclePawnWithMap.EnterCompKind.RampOnly).Any(e =>
+            result = vehicle2.GetSortedEnterComps(vehicle.Position, CompVehicleEnterSpot.Kind.RampOnly).Any(e =>
             {
               tmpThing = e.parent;
               if (!AvailableEnterSpot(e) || tmpThing.OccupiedRect().Any(c3 => !vehicle.Drivable(c3, destMap)))
@@ -1025,7 +1006,7 @@ public static class CrossMapReachabilityUtility
                 Thing tmpThing = null;
                 Thing tmpThing2 = null;
                 result = vehicle3.GetSortedEnterComps(dest.Cell.ToBaseMapCoord(vehicle2),
-                  VehiclePawnWithMap.EnterCompKind.RampOnly).Any(e =>
+                  CompVehicleEnterSpot.Kind.RampOnly).Any(e =>
                 {
                   tmpThing = e.parent;
                   if (!AvailableEnterSpot(e) || tmpThing.OccupiedRect().Any(c => !vehicle.Drivable(c, departMap)))
@@ -1034,7 +1015,7 @@ public static class CrossMapReachabilityUtility
                   var cell = EnterVehiclePosition(tmpThing, vehicle);
                   var cell2 = tmpThing.Position + (tmpThing.Rotation.FacingCell * vehicle.HalfLength());
 
-                  return vehicle2.GetSortedEnterComps(cell, VehiclePawnWithMap.EnterCompKind.RampOnly).Any(e2 =>
+                  return vehicle2.GetSortedEnterComps(cell, CompVehicleEnterSpot.Kind.RampOnly).Any(e2 =>
                   {
                     tmpThing2 = e2.parent;
                     if (!AvailableEnterSpot(e2) || tmpThing2.OccupiedRect().Any(c => !vehicle.Drivable(c, destMap)))
@@ -1178,14 +1159,9 @@ public static class CrossMapReachabilityUtility
         var spawned = vehicle.Spawned;
         foreach (var comp in vehicle.GetSortedEnterComps(_destBaseMapCoord.ToVehicleMapCoord(vehicle)))
         {
-          if (comp is CompZipline { Pair.Spawned: true } zipline)
+          if (comp is { AvailableAccessSpot: { IsValid: true } accessSpot })
           {
-            yield return new MapTraverse(zipline.parent, zipline.Pair, !zipline.Pair.IsOnVehicleMap);
-          }
-
-          if (spawned && comp.EnterVehiclePosition is { IsValid: true } c)
-          {
-            yield return new MapTraverse(comp.parent, new TargetInfo(c, vehicle.Map));
+            yield return new MapTraverse(comp.parent, accessSpot, !accessSpot.Map.IsVehicleMap);
           }
         }
 
@@ -1224,16 +1200,11 @@ public static class CrossMapReachabilityUtility
             if (!vehicle2.AllowEnterFor(_traverseParms.pawn))
               continue;
             
-            foreach (var comp in vehicle2.GetSortedEnterComps(start.ToVehicleMapCoord(vehicle2)))
+            foreach (var comp in vehicle2.GetSortedEnterComps(start.ToVehicleMapCoord(vehicle2), CompVehicleEnterSpot.Kind.GroundAccessOnly))
             {
-              if (comp is CompZipline { Pair.Spawned: true } zipline)
+              if (comp is { AvailableAccessSpot: { IsValid: true } accessSpot } && accessSpot.Map == map)
               {
-                if (zipline.Pair.Map == map)
-                  yield return new MapTraverse(zipline.Pair, zipline.parent);
-              }
-              else if (comp.EnterVehiclePosition is { IsValid: true } cell)
-              {
-                yield return new MapTraverse(new TargetInfo(cell, map), comp.parent);
+                yield return new MapTraverse(accessSpot, comp.parent);
               }
             }
 

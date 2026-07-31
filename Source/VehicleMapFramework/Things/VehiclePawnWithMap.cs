@@ -529,16 +529,24 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     };
   }
 
-  public List<CompVehicleEnterSpot> GetSortedEnterComps(IntVec3 cell, EnterCompKind kind = EnterCompKind.All)
+  public List<CompVehicleEnterSpot> GetSortedEnterComps(IntVec3 cell, CompVehicleEnterSpot.Kind kind = CompVehicleEnterSpot.Kind.All)
   {
     tmpEnterComps.Clear();
     if (EnterComps.Empty()) return tmpEnterComps;
     for (var i = 0; i < EnterComps.Count; i++)
     {
       var comp = EnterComps[i];
-      if (kind == EnterCompKind.RampOnly && !comp.Props.allowPassingVehicle ||
-          kind == EnterCompKind.ZiplineOnly && comp is not CompZipline) continue;
-      if (comp.parent.Position.Walkable(interiorMap) && comp.Available) tmpEnterComps.Add(comp);
+      switch (kind)
+      {
+        case CompVehicleEnterSpot.Kind.RampOnly when !comp.Props.allowPassingVehicle:
+        case CompVehicleEnterSpot.Kind.GroundAccessOnly when !comp.Props.canAccessToGround:
+        case CompVehicleEnterSpot.Kind.DirectAccessOnly when !comp.Props.canAccessVehicleToVehicle:
+          continue;
+        case CompVehicleEnterSpot.Kind.All:
+        default:
+          break;
+      }
+      if (comp.parent.Position.Walkable(interiorMap)) tmpEnterComps.Add(comp);
     }
 
     tmpEnterComps.SortBy(c => c.parent.Position.DistanceToSquared(cell));
@@ -1505,12 +1513,5 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     }
 
     vehicle.Transform.rotation = 0f;
-  }
-
-  public enum EnterCompKind
-  {
-    RampOnly,
-    ZiplineOnly,
-    All
   }
 }

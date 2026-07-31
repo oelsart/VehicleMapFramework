@@ -2,25 +2,17 @@
 
 namespace VehicleMapFramework;
 
-public class CompVehicleEnterSpot : ThingComp
+public abstract class CompVehicleEnterSpot : ThingComp
 {
   public CompProperties_VehicleEnterSpot Props => (CompProperties_VehicleEnterSpot)props;
 
-  public virtual bool Available
-  {
-    get
-    {
-      if (!parent.IsOnVehicleMapOf(out var vehicle))
-      {
-        return false;
-      }
-      var opposite = parent.Position + parent.Rotation.Opposite.AsIntVec3;
-      return vehicle.CachedOutOfBoundsCells.Contains(opposite) ||
-             vehicle.CachedExpandableCells.Contains(opposite) && vehicle.CachedImpassableCells.Contains(opposite);
-    }
-  }
+  protected abstract bool Available { get; }
 
-  public virtual IntVec3 EnterVehiclePosition => CrossMapReachabilityUtility.EnterVehiclePosition(parent);
+  protected abstract TargetInfo AccessSpot { get; }
+
+  public TargetInfo AvailableAccessSpot => Available ? AccessSpot : TargetInfo.Invalid;
+
+  public abstract float MovePerTick(Pawn pawn);
 
   public override void PostSpawnSetup(bool respawningAfterLoad)
   {
@@ -42,5 +34,13 @@ public class CompVehicleEnterSpot : ThingComp
       vehicle.EnterComps.Remove(this);
     }
     CrossMapReachabilityCache.ClearCacheFor(map);
+  }
+
+  public enum Kind
+  {
+    RampOnly,
+    GroundAccessOnly,
+    DirectAccessOnly,
+    All
   }
 }

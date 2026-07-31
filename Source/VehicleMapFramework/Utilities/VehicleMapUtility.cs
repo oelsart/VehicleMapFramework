@@ -1278,6 +1278,22 @@ public static class VehicleMapUtility
       : target.Map.IsVehicleMapOf(out var vehicle)
         ? target.Cell.ToBaseMapCoord(vehicle)
         : target.Cell;
+
+    public Vector3 CenterVector3OnGroundMap
+    {
+      get
+      {
+        if (target.HasThing)
+        {
+          if (target.Thing.Spawned)
+          {
+            return target.Thing.DrawPos;
+          }
+          return target.Thing.DrawPosHeld ?? target.Thing.Position.ToVector3Shifted().ToThingBaseMapCoord(target.Thing);
+        }
+        return target.Cell.IsValid ? target.Cell.ToVector3Shifted().ToBaseMapCoord(target.Map) : default;
+      }
+    }
   }
 
   extension(ref TargetInfo target)

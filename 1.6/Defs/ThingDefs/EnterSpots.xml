@@ -45,7 +45,10 @@
 		</costList>
 		<uiOrder>1000</uiOrder>
 		<comps>
-			<li Class="VehicleMapFramework.CompProperties_VehicleEnterSpot"/>
+			<li Class="VehicleMapFramework.CompProperties_VehicleEnterSpot">
+        <compClass>VehicleMapFramework.CompGroundToVehicleAccess</compClass>
+        <canAccessToGround>true</canAccessToGround>
+      </li>
 			<li>
 				<compClass>CompColorable</compClass>
 			</li>
@@ -87,6 +90,8 @@
 		<useBlueprintGraphicAsGhost>true</useBlueprintGraphicAsGhost>
 		<comps>
 			<li Class="VehicleMapFramework.CompProperties_VehicleEnterSpot">
+        <compClass>VehicleMapFramework.CompGroundToVehicleAccess</compClass>
+        <canAccessToGround>true</canAccessToGround>
 				<allowPassingVehicle>true</allowPassingVehicle>
 			</li>
 			<li>

@@ -219,7 +219,10 @@
 					<li>EMP</li>
 				</affectedDamageDefs>
 			</li>
-			<li Class="VehicleMapFramework.CompProperties_Zipline"/>
+			<li Class="VehicleMapFramework.CompProperties_Zipline">
+        <canAccessToGround>true</canAccessToGround>
+        <canAccessVehicleToVehicle>true</canAccessVehicleToVehicle>
+      </li>
 		</comps>
 		<researchPrerequisites>
 			<li>Fabrication</li>
@@ -312,7 +315,10 @@
 			<isEdifice>false</isEdifice>
 		</building>
 		<comps>
-			<li Class="VehicleMapFramework.CompProperties_Zipline"/>
+			<li Class="VehicleMapFramework.CompProperties_Zipline">
+        <canAccessToGround>true</canAccessToGround>
+        <canAccessVehicleToVehicle>true</canAccessVehicleToVehicle>
+      </li>
 		</comps>
 	</ThingDef>
 	
