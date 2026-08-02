@@ -62,7 +62,7 @@ internal class Test_HaulGeneral(VehicleGroup group) : WorkGiverTestBase(group)
       parent.woodLog = ThingMaker.MakeThing(ThingDefOf.WoodLog);
       parent.woodLog.stackCount = 10;
       var map = Pawn.Map;
-      GenSpawn.Spawn(parent.woodLog, Pawn.Position + new IntVec3(3, 0, 3), map);
+      GenSpawn.Spawn(parent.woodLog, Pawn.Position - new IntVec3(3, 0, 3), map);
       parent.zone = new Zone_Stockpile(StorageSettingsPreset.DefaultStockpile, map.zoneManager);
       map.zoneManager.RegisterZone(parent.zone);
       parent.zone.AddCell(FromRUCorner(map, 6));
@@ -86,7 +86,7 @@ internal class Test_HaulGeneral(VehicleGroup group) : WorkGiverTestBase(group)
       
       parent.woodLog = ThingMaker.MakeThing(ThingDefOf.WoodLog);
       parent.woodLog.stackCount = 10;
-      GenSpawn.Spawn(parent.woodLog, Pawn.Position + new IntVec3(3, 0, 3), Pawn.Map);
+      GenSpawn.Spawn(parent.woodLog, Pawn.Position - new IntVec3(3, 0, 3), Pawn.Map);
       
       parent.zone = new Zone_Stockpile(StorageSettingsPreset.DefaultStockpile, Vehicle.VehicleMap.zoneManager);
       Vehicle.VehicleMap.zoneManager.RegisterZone(parent.zone);

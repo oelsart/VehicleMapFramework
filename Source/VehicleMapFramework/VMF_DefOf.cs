@@ -24,6 +24,8 @@ public static class VMF_DefOf
 
   public static ThingDef VMF_MoteSink;
 
+  public static ThingDef VMF_GangplankAnchor;
+
   public static TerrainDef VMF_VehicleFloor;
 
   public static TerrainDef VMF_ImpassableFloor;

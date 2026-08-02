@@ -205,7 +205,7 @@ public static class ToilsAcrossMaps
 
       toil.actor.Rotation = rot;
 
-      var distance = comp?.MovePerTick(toil.actor) ?? 0.15f / toil.actor.TicksPerMoveCardinal;
+      var distance = comp?.MovePerTick(toil.actor) ?? (0.15f / toil.actor.TicksPerMoveCardinal);
       var distanceSquared = (drawPosB - drawPosC).MagnitudeHorizontalSquared();
       var moveDistance = distanceSquared < distance * distance ? Mathf.Sqrt(distanceSquared) : distance;
 

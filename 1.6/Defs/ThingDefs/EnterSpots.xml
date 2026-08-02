@@ -183,4 +183,24 @@
 			</blueprintGraphicData>
 		</building>
 	</ThingDef>
+
+  <ThingDef>
+    <defName>VMF_GangplankAnchor</defName>
+    <label>gangplank</label>
+    <description>A lumber for crossing directly from one vehicle map to another.</description>
+    <category>Mote</category>
+    <thingClass>ThingWithComps</thingClass>
+    <drawerType>None</drawerType>
+    <tickerType>Never</tickerType>
+    <selectable>false</selectable>
+    <useHitPoints>false</useHitPoints>
+    <isSaveable>false</isSaveable>
+    <rotatable>false</rotatable>
+    <comps>
+      <li Class="VehicleMapFramework.CompProperties_Gangplank">
+        <canAccessVehicleToVehicle>true</canAccessVehicleToVehicle>
+      </li>
+    </comps>
+  </ThingDef>
+  
 </Defs>

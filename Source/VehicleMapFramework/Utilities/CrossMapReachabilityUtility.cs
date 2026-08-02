@@ -290,7 +290,7 @@ public static class CrossMapReachabilityUtility
 
       if (departMap.BaseMapOrCaravan == destMap.BaseMapOrCaravan)
       {
-        if (VehicleMapFramework.settings.aStarTraverse)
+        if (!VehicleMapFramework.settings.legacyCanReach)
         {
           var start = new MapTraverse(TargetInfo.Invalid, new TargetInfo(root, departMap));
           var destination = new MapTraverse(TargetInfo.Invalid, dest.ToTargetInfo(destMap));
@@ -397,19 +397,11 @@ public static class CrossMapReachabilityUtility
 
               foreach (var comp in vehicle.GetSortedEnterComps(root))
               {
-                IntVec3 cell;
-                if (comp is CompZipline compZipline)
-                {
-                  var pair = compZipline.Pair;
-                  if (pair == null || !pair.HasComp<CompZipline>() || pair.Map != departMap) continue;
-
-                  cell = pair.Position;
-                }
-                else
-                {
-                  cell = EnterVehiclePosition(comp.parent);
-                }
-
+                if (comp is not { AvailableAccessSpot: { IsValid: true } accessSpot } ||
+                    accessSpot.Map != departMap)
+                  continue;
+                
+                var cell = accessSpot.Cell;
                 result = CellCheck(cell, departMap, traverseParms) && CanReachLocal(cell, comp.parent.Position);
                 DebugLog($"BaseMap => VehicleMap: {root}, {cell}, {comp}, {traverseParms} :{result}");
                 if (result)
@@ -461,46 +453,29 @@ public static class CrossMapReachabilityUtility
               var destBaseMapCoord = dest.Cell.ToBaseMapCoord(vehicle);
               foreach (var comp in vehicle2.GetSortedEnterComps(destBaseMapCoord))
               {
-                IntVec3 cell;
-                if (comp is CompZipline compZipline)
+                if (comp is not { AvailableAccessSpot: { IsValid: true } accessSpot } ||
+                    accessSpot.Map != destMap && accessSpot.Map != departBaseMap)
+                  continue;
+                
+                var cell = accessSpot.Cell;
+                //departMapからdestMapまで直通のジップラインがある場合
+                if (accessSpot.Map == destMap)
                 {
-                  var pair = compZipline.Pair;
-                  if (pair == null || !pair.HasComp<CompZipline>() || pair.Map != destMap && pair.Map != departBaseMap)
-                    continue;
-
-                  cell = pair.Position;
-
-                  //departMapからdestMapまで直通のジップラインがある場合
-                  if (pair.Map == destMap)
+                  var c = comp.parent.Position;
+                  if (CellCheck(cell, destMap, traverseParms, true) && CanReachLocal(c, cell))
                   {
-                    var c = comp.parent.Position;
-                    if (CellCheck(cell, destMap, traverseParms, true) && CanReachLocal(c, cell))
-                    {
-                      exitSpot = comp.parent;
-                      return true;
-                    }
+                    exitSpot = comp.parent;
+                    return true;
                   }
-                }
-                else
-                {
-                  cell = EnterVehiclePosition(comp.parent);
                 }
 
                 foreach (var comp2 in vehicle.GetSortedEnterComps(cell))
                 {
-                  IntVec3 cell2;
-                  if (comp2 is CompZipline compZipline2)
-                  {
-                    var pair = compZipline2.Pair;
-                    if (pair == null || pair.Isnt<ZiplineEnd>() ||
-                        pair.Map != departBaseMap) continue;
-                    cell2 = pair.Position;
-                  }
-                  else
-                  {
-                    cell2 = EnterVehiclePosition(comp2.parent);
-                  }
+                  if (comp2 is not { AvailableAccessSpot: { IsValid: true } accessSpot2 } ||
+                      accessSpot2.Map != departBaseMap)
+                    continue;
 
+                  var cell2 = accessSpot2.Cell;
                   if (CanReach2(comp.parent.Position, cell, cell2, comp2.parent.Position))
                   {
                     exitSpot = comp.parent;
@@ -524,27 +499,18 @@ public static class CrossMapReachabilityUtility
               }
 
               foreach (var c in vehicle2.CachedWalkableMapEdgeCells.Keys.OrderBy(c =>
-                         (c.ToBaseMapCoord(vehicle2) - destBaseMapCoord)
-                         .LengthHorizontalSquared))
+                         (c.ToBaseMapCoord(vehicle2) - destBaseMapCoord).LengthHorizontalSquared))
               {
                 var targetInfo = new TargetInfo(c, departMap);
                 var cell = EnterVehiclePosition(targetInfo);
 
                 foreach (var comp2 in vehicle.GetSortedEnterComps(cell))
                 {
-                  IntVec3 cell2;
-                  if (comp2 is CompZipline compZipline)
-                  {
-                    var pair = compZipline.Pair;
-                    if (pair == null || pair.Isnt<ZiplineEnd>() ||
-                        pair.Map != departBaseMap) continue;
-                    cell2 = pair.Position;
-                  }
-                  else
-                  {
-                    cell2 = EnterVehiclePosition(comp2.parent);
-                  }
-
+                  if (comp2 is not { AvailableAccessSpot: { IsValid: true } accessSpot2 } ||
+                      accessSpot2.Map != departBaseMap)
+                    continue;
+                  
+                  var cell2 = accessSpot2.Cell;
                   if (CanReach2(c, cell, cell2, comp2.parent.Position))
                   {
                     exitSpot = targetInfo;

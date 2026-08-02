@@ -51,9 +51,9 @@ public abstract class JobDriverAcrossMaps : JobDriverBodyOffset
                 if (last.exitSpot.Map != null) return last.exitSpot.Map;
             }
             if (enterSpotB.Map != null) return enterSpotB.Map;
-            if (exitSpotB.Map != null) return ZiplineMapOrBaseMap(exitSpotB);
+            if (exitSpotB.Map != null) return AccessSpotMapOrBaseMap(exitSpotB);
             if (enterSpotA.Map != null) return enterSpotA.Map;
-            return exitSpotA.Map != null ? ZiplineMapOrBaseMap(exitSpotA) : Map;
+            return exitSpotA.Map != null ? AccessSpotMapOrBaseMap(exitSpotA) : Map;
 
             
         }
@@ -71,14 +71,14 @@ public abstract class JobDriverAcrossMaps : JobDriverBodyOffset
                 if (last.exitSpot.Map != null) return last.exitSpot.Map;
             }
             if (enterSpotA.Map != null) return enterSpotA.Map;
-            return exitSpotA.Map != null ? ZiplineMapOrBaseMap(exitSpotA) : Map;
+            return exitSpotA.Map != null ? AccessSpotMapOrBaseMap(exitSpotA) : Map;
         }
     }
     
-    private static Map ZiplineMapOrBaseMap(TargetInfo target)
+    private static Map AccessSpotMapOrBaseMap(TargetInfo target)
     {
-        return target.Thing?.TryGetComp<CompZipline>() is { Pair.Spawned: true } compZipline
-            ? compZipline.Pair.Map
+        return target.Thing?.TryGetComp<CompVehicleEnterSpot>() is { AvailableAccessSpot: { IsValid: true } accessSpot }
+            ? accessSpot.Map
             : target.Map.GroundMap;
     }
 
