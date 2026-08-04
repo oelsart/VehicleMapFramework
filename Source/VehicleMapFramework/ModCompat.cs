@@ -80,6 +80,8 @@ internal static class ModCompat
 
   public static readonly bool PickUpAndHaul = IsModActive("Mehni.PickUpAndHaul");
 
+  public static readonly bool TextTool = IsModActive("ferny.TextTool");
+
   public static readonly bool TraderShips = IsModActive("automatic.traderships");
 
   public static readonly bool UFHeavyIndustries = IsModActive("KindSeal.LOL");

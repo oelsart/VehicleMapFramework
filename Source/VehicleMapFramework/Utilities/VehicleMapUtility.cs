@@ -48,10 +48,9 @@ public static class VehicleMapUtility
   private static readonly SimpleCurve PointsFactorForPawnAgeYearsCurve =
     AccessTools.StaticFieldRefAccess<SimpleCurve>(typeof(StorytellerUtility), "PointsFactorForPawnAgeYearsCurve");
 
-  public static Map CurrentMap =>
-    Command_FocusVehicleMap.FocusedVehicle != null
-      ? Command_FocusVehicleMap.FocusedVehicle.CurrentLevel
-      : Find.CurrentMap;
+  public static Map CurrentMap => Command_FocusVehicleMap.FocusedVehicle != null
+    ? Command_FocusVehicleMap.FocusedVehicle.CurrentLevel
+    : Find.CurrentMap;
 
   public static bool FocusedOnVehicleMap(out VehiclePawnWithMap vehicle)
   {
@@ -64,7 +63,7 @@ public static class VehicleMapUtility
   public static CellRect ToVehicleMapCoord(this CellRect original)
   {
     var longSide = Mathf.Max(original.Width, original.Height);
-    return new CellRect(0, 0, longSide, longSide);
+    return [with(0, 0, longSide, longSide)];
   }
 
   public static CellRect ClipInsideVehicleMap(ref this CellRect cellRect, Map map)

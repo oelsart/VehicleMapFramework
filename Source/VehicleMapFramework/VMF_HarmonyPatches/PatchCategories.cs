@@ -130,6 +130,8 @@ internal static class PatchCategories
 
   public const string TabulaRasa = "VMF_Patches_TabulaRasa";
 
+  public const string TextTool = "VMF_Patches_TextTool";
+
   public const string TraderShips = "VMF_Patches_TraderShips";
 
   public const string UFHeavyIndustries = "VMF_Patches_UFHeavyIndustries";
