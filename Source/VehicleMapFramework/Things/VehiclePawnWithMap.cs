@@ -68,7 +68,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     MethodInvoker.GetHandler(AccessTools.Method(typeof(DesignationManager), "DirtyCellDesignationsCache"));
 
   private static readonly List<DesignationDef> cellDesignations =
-    DefDatabase<DesignationDef>.AllDefs.Where(d => d.targetType == TargetType.Cell).ToList();
+    [.. DefDatabase<DesignationDef>.AllDefs.Where(d => d.targetType == TargetType.Cell)];
 
   internal static readonly AccessTools.FieldRef<MapDrawer, Section[,]> sections =
     AccessTools.FieldRefAccess<MapDrawer, Section[,]>("sections");
@@ -361,6 +361,11 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
   private FetchedComp<CompDelayedKill> _compDelayedKill;
   public CompDelayedKill CompDelayedKill => (_compDelayedKill ??= new FetchedComp<CompDelayedKill>(this)).Value;
 
+  private FetchedComp<CompVehicleDrawOffset> _compVehicleDrawOffset;
+
+  public CompVehicleDrawOffset CompVehicleDrawOffset =>
+    (_compVehicleDrawOffset ??= new FetchedComp<CompVehicleDrawOffset>(this)).Value;
+
   private FetchedComp<VehicleComp> _compVehicleHover;
 
   protected VehicleComp CompVehicleHover =>
@@ -530,7 +535,8 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     };
   }
 
-  public List<CompVehicleEnterSpot> GetSortedEnterComps(IntVec3 cell, CompVehicleEnterSpot.Kind kind = CompVehicleEnterSpot.Kind.All)
+  public List<CompVehicleEnterSpot> GetSortedEnterComps(IntVec3 cell,
+    CompVehicleEnterSpot.Kind kind = CompVehicleEnterSpot.Kind.All)
   {
     tmpEnterComps.Clear();
     if (EnterComps.Empty()) return tmpEnterComps;
@@ -547,6 +553,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
         default:
           break;
       }
+
       if (comp.parent.Position.Walkable(interiorMap)) tmpEnterComps.Add(comp);
     }
 
@@ -561,7 +568,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
       VMF_Log.Error("Tried to generate vehicle map for destroyed vehicle.");
       return;
     }
-    
+
     generatingVehicleMap = true;
     if (MapGenerator.mapBeingGenerated is not null)
     {
@@ -714,7 +721,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
 
     base.SpawnSetup(map, respawningAfterLoad);
     RegisterEvents();
-    CacheDrawPos(DrawPos);
+    RecacheDrawPos(DrawPos);
     VehiclePawnWithMapCache.RegisterVehicle(this);
     mapFollower = new VehicleMapFollower(this);
 
@@ -741,7 +748,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     if (Spawned)
     {
       Resize();
-      CacheDrawPos(DrawPos);
+      RecacheDrawPos(DrawPos);
       if (CompDelayedKill is { KillStarted: true })
       {
         CompDelayedKill.CompTick();
@@ -834,6 +841,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
 
         CompDelayedKill.StartKillTimer(destroyMode, spawnWreckage);
       }
+
       return;
     }
 
@@ -875,7 +883,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
               allowDestroyNonDestroyable = false;
             }
             else thing.Destroy();
-    
+
             if (positionOnBaseMap.Walkable(map) &&
                 positionOnBaseMap.GetItemCount(map) < positionOnBaseMap.GetMaxItemsAllowedInCell(map))
             {
@@ -892,6 +900,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
             {
               cell = cell.ClampInsideMap(map);
             }
+
             thing.DeSpawn();
             var terrain = cell.GetTerrain(map);
             if (terrain.IsWater && thing is Filth)
@@ -899,7 +908,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
               thing.Destroy();
               continue;
             }
-            
+
             if (thing is Pawn pawn &&
                 (terrain == TerrainDefOf.WaterDeep || terrain == TerrainDefOf.WaterOceanDeep) &&
                 HealthHelper.AttemptToDrown(pawn))
@@ -908,7 +917,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
               stringBuilder.AppendLine(pawn.LabelCap);
               continue;
             }
-            
+
             FrameDelay.DelayOne(static state =>
             {
               if (!GenPlace.TryPlaceThing(state.thing, state.cell, state.map, ThingPlaceMode.Near))
@@ -916,10 +925,10 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
                 CellFinder.TryFindRandomCellNear(state.cell, state.map, 50,
                   c => GenPlace.TryPlaceThing(state.thing, c, state.map, ThingPlaceMode.Near), out _);
               }
-    
+
               if (state.thing is Pawn { carryTracker.CarriedThing: not null } pawn)
                 pawn.carryTracker.TryDropCarriedThing(pawn.Position, ThingPlaceMode.Near, out _);
-            
+
               if (state.thing is VehiclePawn vehicle &&
                   vehicle.Position.GetTerrain(state.map) is { IsWater: true } &&
                   !vehicle.DrivableRectOnCell(vehicle.Position))
@@ -931,7 +940,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
           }
         }
       }
-    
+
       if (flag)
       {
         string text = "VF_BoatSunkWithPawnsDesc".Translate(LabelShort, stringBuilder.ToString());
@@ -939,7 +948,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
           new TargetInfo(Position, map));
       }
     }
-    
+
     base.Destroy(mode);
     RemoveVehicleMap();
     if (VehicleDef.HasModExtension<VehicleMapProps_Unique>())
@@ -1008,14 +1017,31 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
       interiorMap?.rememberedCameraPos.rootPos = drawLoc;
     }
 
-    var drawLoc2 = drawLoc.WithYOffset(-Altitudes.AltInc * 100f);
-    CacheDrawPos(drawLoc2);
+    var drawLoc2 = drawLoc.WithYOffset(-Altitudes.AltInc * 100f) +
+                   (CompVehicleDrawOffset?.DrawOffsetFull(FullRotation) ?? Vector3.zero);
+    RecacheDrawPos(drawLoc2);
     DrawTracker.DynamicDrawPhaseAt(DrawPhase.Draw, in drawLoc2, rot, Transform.rotation.FlipAngle(this));
 
     DrawVehicleMap();
   }
 
-  private void CacheDrawPos(Vector3 drawLoc)
+  public override void DynamicDrawPhaseAt(DrawPhase phase, Vector3 drawLoc, bool flip = false)
+  {
+    var drawLoc2 = drawLoc + (CompVehicleDrawOffset?.DrawOffsetFull(FullRotation) ?? Vector3.zero);
+    base.DynamicDrawPhaseAt(phase, drawLoc2, flip);
+    if (phase == DrawPhase.Draw)
+    {
+      RecacheDrawPos(drawLoc2);
+      if (vehiclePather?.Moving ?? false)
+      {
+        CellDesignationsDirty();
+      }
+
+      DrawVehicleMap();
+    }
+  }
+
+  public void RecacheDrawPos(Vector3 drawLoc)
   {
     if (!UnityData.IsInMainThread) return;
 
@@ -1029,22 +1055,6 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     else
     {
       cachedExactPos = cachedDrawPos;
-    }
-  }
-
-  public override void DynamicDrawPhaseAt(DrawPhase phase, Vector3 drawLoc, bool flip = false)
-  {
-    base.DynamicDrawPhaseAt(phase, drawLoc, flip);
-    if (phase == DrawPhase.Draw)
-    {
-      var drawPos = Spawned ? DrawPos : drawLoc;
-      CacheDrawPos(drawPos);
-      if (vehiclePather?.Moving ?? false)
-      {
-        CellDesignationsDirty();
-      }
-
-      DrawVehicleMap();
     }
   }
 

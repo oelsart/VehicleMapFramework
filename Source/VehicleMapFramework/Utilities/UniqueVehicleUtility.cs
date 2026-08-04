@@ -73,6 +73,8 @@ public static class UniqueVehicleUtility
         def.modExtensions = [.. parentDef.modExtensions];
         def.modExtensions.Remove(props);
         def.modExtensions.Add(newProps);
+        def.comps ??= [];
+        def.comps.Add(new CompProperties { compClass = typeof(CompVehicleDrawOffset)});
         def.shortHash = 0;
         GiveShortHash(def, typeof(ThingDef), takenHashesPerDeftype[typeof(ThingDef)]);
         return def;

@@ -22,17 +22,20 @@ public static class VehicleResizeUtility
       {
         PreResize(vehicle);
         VMF_Log.DebugMessage($"Resize {vehicleDef} from {vehicleDef.size} to {newSize}");
-        var offset = mapRect.CenterVector3 - newRect.CenterVector3;
-        var data = vehicle.VehicleGraphic.DataRgb;
-        var data2 = vehicle.VehicleDef.graphicData;
-        var prevOffset = data.drawOffset;
         vehicleDef.size = newSize;
-        data.drawOffset = data2.drawOffset =  offset;
-        data.drawOffsetNorth = data2.drawOffsetNorth = offset;
-        data.drawOffsetEast = data2.drawOffsetEast = offset.RotatedBy(Rot4.East);
-        data.drawOffsetSouth = data2.drawOffsetSouth = offset.RotatedBy(Rot4.South);
-        data.drawOffsetWest = data2.drawOffsetWest = offset.RotatedBy(Rot4.West);
-        if (vehicleDef.GetModExtension<VehicleMapProps_Unique>() is { baseDef: { } baseDef })
+        
+        var offset = mapRect.CenterVector3 - newRect.CenterVector3;
+        var comp = vehicle.CompVehicleDrawOffset;
+        var prevOffset = comp?.drawOffset ?? Vector3.zero;
+        if (comp is not null)
+        {
+          comp.drawOffset = offset;
+          comp.drawOffsetNorth = offset;
+          comp.drawOffsetEast = offset.RotatedBy(Rot4.East);
+          comp.drawOffsetSouth = offset.RotatedBy(Rot4.South);
+          comp.drawOffsetWest = offset.RotatedBy(Rot4.West);
+        }
+        if (vehicleDef.GetModExtension<VehicleMapProps_Unique>()?.baseDef is { } baseDef)
         {
           vehicleDef.uiIconScale = (float)Mathf.Max(baseDef.size.x, baseDef.size.z) / Mathf.Max(newSize.x, newSize.z);
         }
@@ -46,6 +49,8 @@ public static class VehicleResizeUtility
           var component = map.GetCachedMapComponent<VehiclePathingSystem>();
           UniqueVehicleUtility.GeneratePathData(component, SingleParam.Get(vehicleDef));
         }
+
+        PostResize(vehicle);
 
         if (vehicle.Spawned)
         {
@@ -80,6 +85,20 @@ public static class VehicleResizeUtility
           _vehicle.walkableCellsDirty = true;
           _vehicle.enterPositionsDirty = true;
         }, vehiclePawnWithMap);
+      }
+    }
+
+    public static void PostResize(VehiclePawn vehicle)
+    {
+      if (vehicle is not VehiclePawnWithMap vehiclePawnWithMap) return;
+
+      vehiclePawnWithMap.RecacheDrawPos(vehiclePawnWithMap.DrawPos);
+      foreach (var handler in vehicle.Handlers)
+      {
+        if (handler.role is VehicleRoleBuildable vehicleRoleBuildable)
+        {
+          vehicleRoleBuildable.pawnRenderer?.SetDrawOffsets(vehiclePawnWithMap, vehicleRoleBuildable);
+        }
       }
     }
     
