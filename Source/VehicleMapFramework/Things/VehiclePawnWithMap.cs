@@ -27,6 +27,7 @@ public class MapVehicleEventDef : Def;
 [StaticConstructorOnStartup]
 public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
 {
+  private bool generatingVehicleMap;
   private Map interiorMap;
   private VehicleMapFollower mapFollower;
 
@@ -561,9 +562,11 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
       return;
     }
     
+    generatingVehicleMap = true;
     if (MapGenerator.mapBeingGenerated is not null)
     {
-      LongEventHandler.ExecuteWhenFinished(() => GenerateVehicleMap(sourceMap));
+      if (!generatingVehicleMap)
+        LongEventHandler.ExecuteWhenFinished(() => GenerateVehicleMap(sourceMap));
       return;
     }
 
@@ -630,6 +633,10 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     catch (Exception ex)
     {
       VMF_Log.Error($"Error while generating vehicle map.\n{ex}");
+    }
+    finally
+    {
+      generatingVehicleMap = false;
     }
   }
 

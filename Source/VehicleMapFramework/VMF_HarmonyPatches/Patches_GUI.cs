@@ -110,6 +110,62 @@ public static class Patch_ColonistBar_CheckRecacheEntries
   }
 }
 
+// コロニストバーに車両アイコンを表示するパッチ
+[HarmonyPatch(typeof(ColonistBarColonistDrawer), nameof(ColonistBarColonistDrawer.DrawGroupFrame))]
+[PatchLevel(Level.Safe)]
+public static class Patch_ColonistBarColonistDrawer_DrawGroupFrame
+{
+  public static void Postfix(int group)
+  {
+    var mode = VehicleMapFramework.settings.colonistBarMode;
+    if (mode == VehicleMapSettings.ShowVehiclesOnColonistBar.DontShow)
+      return;
+    
+    var colonistBar = Find.ColonistBar;
+    Map map = null;
+    foreach (var entry in colonistBar.Entries)
+    {
+      if (entry.group == group)
+      {
+        map = entry.map;
+        break;
+      }
+    }
+    if (map.IsVehicleMapOf(out var vehicle))
+    {
+      var rect = GroupFrameRect();
+      if (mode == VehicleMapSettings.ShowVehiclesOnColonistBar.MouseIsOver && !rect.Contains(Event.current.mousePosition))
+        return;
+      
+      var drawRect = new Rect(0f, rect.yMax - 5f, 50f, 50f);
+      drawRect = drawRect.CenteredOnXIn(rect);
+      var request = BlitRequest.For(vehicle.VehicleDef);
+      VehicleGui.DrawVehicleOnGUI(drawRect, in request);
+    }
+    return;
+    
+    Rect GroupFrameRect()
+    {
+      const float BaseGroupFrameMargin = 12f;
+      var num = 99999f;
+      var num2 = 0f;
+      var num3 = 0f;
+      var entries = colonistBar.Entries;
+      var drawLocs = colonistBar.DrawLocs;
+      for (var i = 0; i < entries.Count; i++)
+      {
+        if (entries[i].group == group)
+        {
+          num = Mathf.Min(num, drawLocs[i].x);
+          num2 = Mathf.Max(num2, drawLocs[i].x + colonistBar.Size.x);
+          num3 = Mathf.Max(num3, drawLocs[i].y + colonistBar.Size.y);
+        }
+      }
+      return new Rect(num, 0f, num2 - num, num3 - 0f).ContractedBy(-BaseGroupFrameMargin * colonistBar.Scale);
+    }
+  }
+}
+
 //左下のセル情報の表示。車両マップ上にマウスオーバーされている時はその車両マップの情報を表示する
 [HarmonyPatch(typeof(MouseoverReadout), nameof(MouseoverReadout.MouseoverReadoutOnGUI))]
 [PatchLevel(Level.Safe)]
@@ -351,60 +407,3 @@ public static class Patch_DesignationDragger_DraggerOnGUI
     return UI.UIToMapPosition(screenPos).ToBaseMapCoord().Yto0().MapToUIPosition();
   }
 }
-
-// コロニストバーに車両アイコンを表示するパッチ
-[HarmonyPatch(typeof(ColonistBarColonistDrawer), nameof(ColonistBarColonistDrawer.DrawGroupFrame))]
-[PatchLevel(Level.Safe)]
-public static class Patch_ColonistBarColonistDrawer_DrawGroupFrame
-{
-  public static void Postfix(int group)
-  {
-    var mode = VehicleMapFramework.settings.colonistBarMode;
-    if (mode == VehicleMapSettings.ShowVehiclesOnColonistBar.DontShow)
-      return;
-    
-    var colonistBar = Find.ColonistBar;
-    Map map = null;
-    foreach (var entry in colonistBar.Entries)
-    {
-      if (entry.group == group)
-      {
-        map = entry.map;
-        break;
-      }
-    }
-    if (map.IsVehicleMapOf(out var vehicle))
-    {
-      var rect = GroupFrameRect();
-      if (mode == VehicleMapSettings.ShowVehiclesOnColonistBar.MouseIsOver && !rect.Contains(Event.current.mousePosition))
-        return;
-      
-      var drawRect = new Rect(0f, rect.yMax - 5f, 50f, 50f);
-      drawRect = drawRect.CenteredOnXIn(rect);
-      var request = BlitRequest.For(vehicle.VehicleDef);
-      VehicleGui.DrawVehicleOnGUI(drawRect, in request);
-    }
-    return;
-    
-    Rect GroupFrameRect()
-    {
-      const float BaseGroupFrameMargin = 12f;
-      var num = 99999f;
-      var num2 = 0f;
-      var num3 = 0f;
-      var entries = colonistBar.Entries;
-      var drawLocs = colonistBar.DrawLocs;
-      for (var i = 0; i < entries.Count; i++)
-      {
-        if (entries[i].group == group)
-        {
-          num = Mathf.Min(num, drawLocs[i].x);
-          num2 = Mathf.Max(num2, drawLocs[i].x + colonistBar.Size.x);
-          num3 = Mathf.Max(num3, drawLocs[i].y + colonistBar.Size.y);
-        }
-      }
-      return new Rect(num, 0f, num2 - num, num3 - 0f).ContractedBy(-BaseGroupFrameMargin * colonistBar.Scale);
-    }
-  }
-}
-    
