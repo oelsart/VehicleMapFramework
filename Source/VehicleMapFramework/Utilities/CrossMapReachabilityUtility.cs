@@ -292,6 +292,11 @@ public static class CrossMapReachabilityUtility
       {
         if (!VehicleMapFramework.settings.legacyCanReach)
         {
+          if (!root.InBounds(departMap))
+          {
+            VMF_Log.Error($"Root {root} is out of bounds of departMap {departMap}. This should never happen.");
+            return false;
+          }
           var start = new MapTraverse(TargetInfo.Invalid, new TargetInfo(root, departMap));
           var destination = new MapTraverse(TargetInfo.Invalid, dest.ToTargetInfo(destMap));
           traverser.SetParameters(start.enterSpot, destination.enterSpot, traverseParms, ability);

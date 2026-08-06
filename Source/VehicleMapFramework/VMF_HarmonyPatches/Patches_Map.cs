@@ -94,7 +94,9 @@ public static class Patch_Reachability_CanReach
     }
 
     var departMap = CrossMapReachabilityUtility.DepartMapGlobal ??
-                    pawn.DepartMap ?? ___map;
+                    (pawn is not null && start == (pawn.DepartPosition ?? pawn.Position)
+                      ? pawn.DepartMap ?? ___map
+                      : ___map);
     if (departMap == null)
     {
       return true;
