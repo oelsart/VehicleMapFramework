@@ -9,6 +9,7 @@ namespace VehicleMapFramework;
 public class CompProperties_BuildableUpgrades : CompProperties
 {
   public List<Upgrade> upgrades;
+  public bool syncWithPowerCondition;
 
   public CompProperties_BuildableUpgrades()
   {
