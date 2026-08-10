@@ -50,6 +50,8 @@ internal static class PatchCategories
 
   public const string Aquariums = "VMF_Patches_Aquariums";
 
+  public const string AsAboveSoBelow = "VMF_Patches_AsAboveSoBelow";
+
   public const string AttackTargetFinderAngle = "VMF_Patches_AttackTargetFinderAngle";
 
   public const string BillDoorsFramework = "VMF_Patches_BillDoorsFramework";

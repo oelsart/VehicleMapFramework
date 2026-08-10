@@ -35,7 +35,7 @@ public static class VehicleResizeUtility
           comp.drawOffsetSouth = offset.RotatedBy(Rot4.South);
           comp.drawOffsetWest = offset.RotatedBy(Rot4.West);
         }
-        if (vehicleDef.GetModExtension<VehicleMapProps_Unique>()?.baseDef is { } baseDef)
+        if (vehicle.VehicleMapProps is VehicleMapProps_Unique { baseDef: { } baseDef })
         {
           vehicleDef.uiIconScale = (float)Mathf.Max(baseDef.size.x, baseDef.size.z) / Mathf.Max(newSize.x, newSize.z);
         }

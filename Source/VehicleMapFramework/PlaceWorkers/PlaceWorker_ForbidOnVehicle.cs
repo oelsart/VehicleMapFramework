@@ -4,13 +4,14 @@ namespace VehicleMapFramework;
 
 public class PlaceWorker_ForbidOnVehicle : PlaceWorker
 {
-    public override AcceptanceReport AllowsPlacing(BuildableDef checkingDef, IntVec3 loc, Rot4 rot, Map map, Thing thingToIgnore = null, Thing thing = null)
+  public override AcceptanceReport AllowsPlacing(BuildableDef checkingDef, IntVec3 loc, Rot4 rot, Map map,
+    Thing thingToIgnore = null, Thing thing = null)
+  {
+    if (!map.IsVehicleMapOf(out _))
     {
-        if (!map.IsVehicleMapOf(out _))
-        {
-            return true;
-        }
-
-        return "VMF_ForbidOnVehicle".Translate();
+      return true;
     }
+
+    return "VMF_ForbidOnVehicle".Translate();
+  }
 }

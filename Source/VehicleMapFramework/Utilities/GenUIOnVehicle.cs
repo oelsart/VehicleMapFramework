@@ -10,7 +10,7 @@ namespace VehicleMapFramework;
 
 public static class GenUIOnVehicle
 {
-  private static readonly List<Thing> cellThings = new(32);
+  private static readonly List<Thing> cellThings = [with(32)];
 
   public static VehiclePawnWithMap vehicleForSelector;
 

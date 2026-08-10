@@ -13,8 +13,9 @@ public class CompGroundToVehicleAccess : CompVehicleEnterSpot
         return false;
       }
       var opposite = parent.Position + parent.Rotation.Opposite.AsIntVec3;
-      return vehicle.CachedOutOfBoundsCells.Contains(opposite) ||
-             vehicle.CachedExpandableCells.Contains(opposite) && vehicle.CachedImpassableCells.Contains(opposite);
+      return opposite.InBounds(vehicle.VehicleMap) &&
+             (vehicle.OutOfBoundsGrid[opposite] ||
+              vehicle.ExpandableGrid[opposite] && vehicle.ImpassableCellGrid[opposite]);
     }
   }
 

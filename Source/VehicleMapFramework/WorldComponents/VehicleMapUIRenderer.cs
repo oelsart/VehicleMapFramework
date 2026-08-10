@@ -104,7 +104,7 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
       return cache.RenderTexture;
     }
 
-    var mapSize = vehicle.VehicleMap.Size.ToVector2();
+    var mapSize = vehicle.MapSize.ToVector2();
     var mapOrigin = new Vector3(-mapSize.x / 2f, 0f, -mapSize.y / 2f).RotatedBy(rot);
     var proportions = drawSize ?? mapSize;
     var offset = drawOffset ?? Vector3.zero;
@@ -157,7 +157,7 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
     var overlayPos = VehicleMapUtility.OffsetFor(vehicle, rot) +
                      vehicle.VehicleGraphic.DrawOffset(rot) -
                      overlay.Graphic.DrawOffset(rot);
-    var mapOrigin = new Vector3(-vehicle.VehicleMap.Size.x / 2f, 0f, -vehicle.VehicleMap.Size.z / 2f).RotatedBy(rot) +
+    var mapOrigin = new Vector3(-vehicle.MapSize.x / 2f, 0f, -vehicle.MapSize.z / 2f).RotatedBy(rot) +
                     overlayPos;
 
     var offset = drawSizeRotated.ToVector3() / 2f;

@@ -26,7 +26,7 @@ public class VehicleMapBlitter(VehiclePawnWithMap vehicle) : IBlitTarget
     if (vehicle.VehicleMap is null)
       return (0, 0);
 
-    var size = vehicle.VehicleMap.Size;
+    var size = vehicle.MapSize;
     var maxCells = Mathf.Max(size.x, size.z);
     return (maxCells * SizePerCell, maxCells * SizePerCell);
   }
@@ -48,7 +48,7 @@ public class VehicleMapBlitter(VehiclePawnWithMap vehicle) : IBlitTarget
     var drawSizeMax = Mathf.Max(vehicle.VehicleDef.graphicData.drawSize.x, vehicle.VehicleDef.graphicData.drawSize.y);
     var pixelsPerCell = vehicleMaxUi / drawSizeMax;
 
-    var mapSize = fitToValidRect ? vehicle.ValidMapRect.ExpandedBy(1).Size : vehicle.VehicleMap.Size.ToIntVec2;
+    var mapSize = fitToValidRect ? vehicle.ValidMapRect.ExpandedBy(1).Size : vehicle.MapSize.ToIntVec2;
     float maxMapCells = Mathf.Max(mapSize.x, mapSize.z);
     var mapUiSize = new Vector2(maxMapCells * pixelsPerCell, maxMapCells * pixelsPerCell);
 
@@ -74,7 +74,7 @@ public class VehicleMapBlitter(VehiclePawnWithMap vehicle) : IBlitTarget
     if (fitToValidRect)
     {
       rawOffset +=
-        (vehicle.ValidMapRect.CenterVector3 - vehicle.VehicleMap.BoundsRect().CenterVector3)
+        (vehicle.ValidMapRect.CenterVector3 - vehicle.MapRect.CenterVector3)
         .RotatedBy(request.rot);
     }
     var mapUiCenter = new Vector2(

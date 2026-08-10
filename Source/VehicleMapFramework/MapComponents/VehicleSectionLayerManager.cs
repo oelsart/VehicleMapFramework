@@ -4,6 +4,7 @@ using System.Linq;
 using JetBrains.Annotations;
 using RimWorld;
 using SmashTools;
+using UnityEngine;
 using Verse;
 
 namespace VehicleMapFramework
@@ -17,6 +18,8 @@ namespace VehicleMapFramework
         internal static readonly List<Type> OrientedSectionLayerTypes =
             [.. typeof(SectionLayer_Things).AllSubclassesNonAbstract().Append(typeof(SectionLayer_SunShadowsOnVehicle))];
         
+        public static readonly List<CompatBase> CompatClassesForDrawLayers = [];
+
         [UsedImplicitly] // Reflection access by Naname Walls
         public static Rot4 RotForPrintCounter => RotForPrint.IsHorizontal ? RotForPrint.Opposite : RotForPrint;
 
@@ -208,6 +211,33 @@ namespace VehicleMapFramework
                 subMesh.verts[i] = vert;
             }
             subMesh.mesh.SetVertices(subMesh.verts);
+        }
+        
+        public static void DrawLayer(VehicleSectionLayerManager component, Section section, Type layerType, Vector3 drawPos,
+          float angle, Rot8 rot = default)
+        {
+          if (layerType is null) return;
+
+          var layer = component.GetLayer(section, layerType, rot);
+          if (layer is null) return;
+
+          DrawLayer(layer, drawPos, angle);
+        }
+        
+        public static void DrawLayer(SectionLayer layer, Vector3 drawPos, float angle)
+        {
+          if (!layer.Visible)
+            return;
+
+          var rot = Quaternion.AngleAxis(angle, Vector3.up);
+          for (var i = 0; i < layer.subMeshes.Count; i++)
+          {
+            var subMesh = layer.subMeshes[i];
+            if (subMesh.finalized && !subMesh.disabled)
+            {
+              Graphics.DrawMesh(subMesh.mesh, drawPos, rot, subMesh.material, subMesh.renderLayer);
+            }
+          }
         }
     }
 }

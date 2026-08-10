@@ -64,7 +64,7 @@ public class Test_VehicleMapRenderTexture
       overlay,
       Rot4.North,
       (128, 128),
-      vehiclePawnWithMap.VehicleMap.BoundsRect());
+      vehiclePawnWithMap.MapRect);
     Expect.IsNotNull(texture4, "GetOverlayWithVehicleMapTexture should return a non-null texture.");
   }
 }
