@@ -1143,6 +1143,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     var component = map.GetCachedMapComponent<VehicleSectionLayerManager>();
     if (component is null) return;
     var dirty = false;
+    var scope = AsAboveSoBelow.Active ? AsAboveSoBelow.RectOfBand(map, AsAboveSoBelow.CurrentBand(map)) : default;
     foreach (var section in sections(mapDrawer))
     {
       if (!dirty && (section.dirtyFlags & (MapMeshFlagDefOf.Things | MapMeshFlagDefOf.Terrain)) > 0UL)
@@ -1152,6 +1153,9 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
         dirty = true;
       }
 
+      if (AsAboveSoBelow.Active && !scope.Overlaps(section.CellRect))
+        continue;
+      
       DrawSection(section, drawPos, component);
     }
   }
@@ -1165,9 +1169,9 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
       .DrawLayer(drawPos.WithYOffset(0.1f));
     var angle = this.FullAngle;
     VehicleSectionLayerManager.DrawLayer(component.GetLayer(section, typeof(SectionLayer_ThingsGeneral), rot), drawPos, angle);
-    VehicleSectionLayerManager.DrawLayer(component, section, typeof(SectionLayer_BuildingsDamage), drawPos, angle);
-    VehicleSectionLayerManager.DrawLayer(component, section, typeof(SectionLayer_IndoorMask), drawPos.Yto0(), angle);
-    VehicleSectionLayerManager.DrawLayer(component, section, typeof(SectionLayer_EdgeShadows), drawPos, angle);
+    VehicleSectionLayerManager.DrawLayer(component, section, typeof(SectionLayer_BuildingsDamage), drawPos, rot, angle);
+    VehicleSectionLayerManager.DrawLayer(component, section, typeof(SectionLayer_IndoorMask), drawPos.Yto0(), rot, angle);
+    VehicleSectionLayerManager.DrawLayer(component, section, typeof(SectionLayer_EdgeShadows), drawPos, rot, angle);
     ((SectionLayer_SunShadowsOnVehicle)component.GetLayer(section, typeof(SectionLayer_SunShadowsOnVehicle), rot))
       .DrawLayer(drawPos, Transform.rotation - Angle);
     if (OverlayDrawHandler.ShouldDrawPowerGrid)
@@ -1177,12 +1181,12 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
 
     if (OverlayDrawHandler.ShouldDrawZones)
     {
-      VehicleSectionLayerManager.DrawLayer(component, section, t_SectionLayer_Zones, drawPos, angle);
+      VehicleSectionLayerManager.DrawLayer(component, section, t_SectionLayer_Zones, drawPos, rot, angle);
     }
 
     if (Find.CurrentMap == interiorMap && !VehicleMapFramework.settings.drawPlanet)
     {
-      VehicleSectionLayerManager.DrawLayer(component, section, typeof(SectionLayer_LightingOverlay), drawPos, angle);
+      VehicleSectionLayerManager.DrawLayer(component, section, typeof(SectionLayer_LightingOverlay), drawPos, rot, angle);
     }
     else
     {
@@ -1204,9 +1208,10 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
   protected virtual void DrawModLayers(Section section, Vector3 drawPos, VehicleSectionLayerManager component)
   {
     var angle = this.FullAngle;
+    var rot = FullRotation;
     foreach (var compat in VehicleSectionLayerManager.CompatClassesForDrawLayers)
     {
-      compat.DrawSectionLayers(component, section, drawPos, angle);
+      compat.DrawSectionLayers(component, section, drawPos, rot, angle);
     }
   }
 

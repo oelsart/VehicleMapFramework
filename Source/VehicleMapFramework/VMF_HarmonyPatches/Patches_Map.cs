@@ -22,17 +22,23 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [PatchLevel(Level.Mandatory)]
 public static class Patch_MapDrawLayer_FinalizeMesh
 {
-  public static void Prefix(MeshParts tags, Map ___map, List<LayerSubMesh> ___subMeshes)
+  public static void Prefix(MapDrawLayer __instance, MeshParts tags, Map ___map, List<LayerSubMesh> ___subMeshes)
   {
     if (!___map.IsVehicleMap || (tags & MeshParts.Verts) == 0)
       return;
 
+    var terrain = __instance is SectionLayer_TerrainOnVehicle;
+    // AsAboveSoBelowでポーンをTerrainの下に表示するため少し上げる
+    var altitude = terrain ? AltitudeLayer.Conduits.AltitudeFor(-0.1f).YOffset() : 0f;
     foreach (var subMesh in ___subMeshes)
     {
       for (var j = 0; j < subMesh.verts.Count; j++)
       {
         var vert = subMesh.verts[j];
-        vert.y /= VehicleMapUtility.YCompress;
+        if (terrain)
+          vert.y = altitude;
+        else
+          vert.y /= VehicleMapUtility.YCompress;
         subMesh.verts[j] = vert;
       }
     }

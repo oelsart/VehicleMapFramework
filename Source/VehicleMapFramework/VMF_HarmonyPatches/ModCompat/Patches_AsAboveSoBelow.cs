@@ -1,5 +1,10 @@
-﻿using HarmonyLib;
+﻿using System;
+using System.Collections.Generic;
+using System.Reflection.Emit;
+using HarmonyLib;
+using RimWorld;
 using RimWorld.Planet;
+using UnityEngine;
 using Verse;
 using static VehicleMapFramework.ModCompat.AsAboveSoBelow;
 
@@ -39,16 +44,16 @@ public static class Patch_MapGenerator_GenerateMap
 }
 
 [HarmonyPatchCategory(PatchCategories.AsAboveSoBelow)]
-[HarmonyPatch("AsAboveSoBelow.ABSkyBandGen", "Generate")]
+[HarmonyPatch("AsAboveSoBelow.Building_ABStairs2", "CarveLanding")]
 [PatchLevel(Level.Safe)]
-public static class Patch_ABSkyBandGen_Generate
+public static class Patch_Building_ABStairs2_CarveLanding
 {
-  public static void Postfix(Map map, MapComponent bands, int band)
+  public static void Postfix(Map map, MapComponent bands, int targetBand)
   {
     if (map.IsVehicleMapOf(out var vehicle) &&
         Banded(bands))
     {
-      vehicle.SpawnStructures(RectOfBand(map, band).Min);
+      vehicle.SpawnStructures(RectOfBand(map, targetBand).Min);
     }
   }
 }
@@ -59,4 +64,105 @@ public static class Patch_ABSkyBandGen_Generate
 public static class Patch_Patch_CameraDriver_ABClampToBand_Postfix
 {
   public static bool Prefix() => !Find.CurrentMap.IsVehicleMap || !VehicleMapFramework.settings.drawPlanet;
+}
+
+[HarmonyPatchCategory(PatchCategories.AsAboveSoBelow)]
+[HarmonyPatch("AsAboveSoBelow.SectionLayer_ABBelowV2", "MaterialFor")]
+[PatchLevel(Level.Safe)]
+public static class Patch_SectionLayer_ABBelowV2_MaterialFor
+{
+  public static void Postfix(Map map, ref Material __result)
+  {
+    if (map.IsVehicleMap)
+    {
+      __result = SectionLayer_TerrainOnVehicle.GetMaterialWithZ(__result);
+    }
+  }
+}
+
+[HarmonyPatchCategory(PatchCategories.AsAboveSoBelow)]
+[HarmonyPatch("AsAboveSoBelow.ABBandView", "TryStep")]
+[PatchLevel(Level.Safe)]
+public static class PatchABBandView_TryStep
+{
+  public static void Prefix(ref Map map)
+  {
+    var selected = Find.Selector.SingleSelectedThing;
+    if (selected is VehiclePawnWithMap vehicle || selected.IsOnVehicleMapOf(out vehicle))
+      map = vehicle.CurrentLevel;
+  }
+}
+
+[HarmonyPatchCategory(PatchCategories.AsAboveSoBelow)]
+[HarmonyPatch("AsAboveSoBelow.ABBandView", "SetBand")]
+[PatchLevel(Level.Safe)]
+public static class PatchABBandView_SetBand
+{
+  public static void Prefix(Map map, ref bool preserveXZ)
+  {
+    if (preserveXZ && map.IsNonFocusedVehicleMap)
+    {
+      // 車両マップの切り替え時はカメラをパンさせない
+      preserveXZ = false;
+    }
+  }
+}
+
+[HarmonyPatchCategory(PatchCategories.AsAboveSoBelow)]
+[HarmonyPatch("AsAboveSoBelow.Patch_JobTracker_ABLocalizeJobLines", "Prefix")]
+[PatchLevel(Level.Safe)]
+public static class Patch_Patch_JobTracker_ABLocalizeJobLines_Prefix
+{
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    return new CodeMatcher(instructions)
+      .MatchStartForward(CodeMatch.Calls(LocalizeForPawn.Method))
+      .SetOperandAndAdvance(((Delegate)LocalizeForPawnIfNotOnVehicleMap).Method)
+      .MatchStartForward(CodeMatch.Calls(LocalizeForPawn.Method))
+      .Repeat(c => c
+        .Advance(-1)
+        .RemoveInstruction()
+        .SetOperandAndAdvance(((Delegate)LocalizeForPawnTarget).Method))
+      .Reset()
+      .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Map))
+      .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Thing_Map))
+      .Repeat(c => c.Set(OpCodes.Call, CachedMethodInfo.m_BaseMapOrCaravan_Thing))
+      .InstructionEnumeration();
+  }
+
+  private static Vector3 LocalizeForPawnIfNotOnVehicleMap(Pawn pawn, Vector3 world)
+  {
+    return pawn.IsOnNonFocusedVehicleMap
+      ? world
+      : LocalizeForPawn(pawn, world);
+  }
+
+  private static Vector3 LocalizeForPawnTarget(Pawn pawn, ref LocalTargetInfo target)
+  {
+    if (target.Thing.IsOnNonFocusedVehicleMap ||
+        pawn.stances.curStance is Stance_Busy && pawn.TargetMap.IsNonFocusedVehicleMap ||
+        pawn.CurJob is { globalTarget.Map.IsNonFocusedVehicleMap: true } ||
+        pawn.CurJob?.GetCachedDriver(pawn) is JobDriverAcrossMaps { DestMap.IsNonFocusedVehicleMap: true } ||
+        pawn.IsOnNonFocusedVehicleMap && pawn.stances.curStance is not Stance_Busy { verb: Verb_Jump or Verb_CastAbilityJump })
+    {
+      return Patch_Pawn_JobTracker_DrawLinesBetweenTargets.CenterVector3VehicleOffset(ref target, pawn);
+    }
+    return LocalizeForPawn(pawn, target.CenterVector3);
+  }
+}
+
+[HarmonyPatchCategory(PatchCategories.AsAboveSoBelow)]
+[HarmonyPatch("AsAboveSoBelow.Patch_PawnPath_ABLiftPathLine", "Prefix")]
+[PatchLevel(Level.Safe)]
+public static class Patch_Patch_PawnPath_ABLiftPathLine_Prefix
+{
+  public static bool Prefix(Pawn pathingPawn, ref bool __result)
+  {
+    if (pathingPawn.IsOnNonFocusedVehicleMap)
+    {
+      __result = true;
+      return false;
+    }
+    return true;
+  }
 }

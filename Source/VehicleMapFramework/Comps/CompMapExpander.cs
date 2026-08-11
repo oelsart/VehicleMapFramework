@@ -153,7 +153,7 @@ public class CompMapExpander : ThingComp
           {
             for (var i = 1; i <= AsAboveSoBelow.UpperLevels(); i++)
             {
-              map.terrainGrid.SetTerrain(AsAboveSoBelow.Translate(mapComp, c), VMF_DefOf.VMF_VehicleFloor);
+              map.terrainGrid.SetTerrain(AsAboveSoBelow.Translate(mapComp, c, i), VMF_DefOf.VMF_VehicleFloor);
             }
           }
         }
@@ -182,7 +182,7 @@ public class CompMapExpander : ThingComp
         {
           for (var i = 1; i <= AsAboveSoBelow.UpperLevels(); i++)
           {
-            map.terrainGrid.SetTerrain(AsAboveSoBelow.Translate(mapComp, c), VMF_DefOf.VMF_ImpassableFloor);
+            map.terrainGrid.SetTerrain(AsAboveSoBelow.Translate(mapComp, c, i), VMF_DefOf.VMF_ImpassableFloor);
           }
         }
       }

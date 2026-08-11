@@ -164,7 +164,8 @@ public static class ModCompat
   {
     protected virtual bool ShouldDrawSectionLayers => false;
     
-    public virtual void DrawSectionLayers(VehicleSectionLayerManager component, Section section, Vector3 drawPos, float angle)
+    public virtual void DrawSectionLayers(VehicleSectionLayerManager component, Section section, Vector3 drawPos,
+      Rot8 rot, float angle)
     {
     }
   }
@@ -328,7 +329,8 @@ public static class ModCompat
     
     protected override bool ShouldDrawSectionLayers => !LiteMode;
 
-    public override void DrawSectionLayers(VehicleSectionLayerManager component, Section section, Vector3 drawPos, float angle)
+    public override void DrawSectionLayers(VehicleSectionLayerManager component, Section section, Vector3 drawPos,
+      Rot8 rot, float angle)
     {
       var selDesignator = Find.DesignatorManager.SelectedDesignator;
       var sewagePipeOverlay = component.GetLayer(section, SectionLayer_SewagePipeOverlay, default);
@@ -342,23 +344,23 @@ public static class ModCompat
         var mode = CompProperties_Pipe_mode(compProperties);
         if (sewagePipeOverlay is not null & SectionLayer_PipeOverlay_mode(sewagePipeOverlay) == mode)
         {
-          VehicleSectionLayerManager.DrawLayer(component, section, SectionLayer_SewagePipeOverlay, drawPos.Yto0(), angle);
+          VehicleSectionLayerManager.DrawLayer(component, section, SectionLayer_SewagePipeOverlay, drawPos.Yto0(), rot, angle);
         }
 
         if (airDuctOverlay is not null && SectionLayer_PipeOverlay_mode(airDuctOverlay) == mode)
         {
-          VehicleSectionLayerManager.DrawLayer(component, section, SectionLayer_AirDuctOverlay, drawPos.Yto0(), angle);
+          VehicleSectionLayerManager.DrawLayer(component, section, SectionLayer_AirDuctOverlay, drawPos.Yto0(), rot, angle);
         }
 
         if (Time.frameCount % 120 == 0)
         {
-          component.GetLayer(section, SectionLayer_SewagePipeOverlay, default)?.Regenerate();
-          component.GetLayer(section, SectionLayer_AirDuctOverlay, default)?.Regenerate();
+          component.GetLayer(section, SectionLayer_SewagePipeOverlay, rot)?.Regenerate();
+          component.GetLayer(section, SectionLayer_AirDuctOverlay, rot)?.Regenerate();
         }
       }
 
-      VehicleSectionLayerManager.DrawLayer(component, section, SectionLayer_Irrigation, drawPos.Yto0(), angle);
-      VehicleSectionLayerManager.DrawLayer(component, section, SectionLayer_FertilizerGrid, drawPos.Yto0(), angle);
+      VehicleSectionLayerManager.DrawLayer(component, section, SectionLayer_Irrigation, drawPos.Yto0(), rot, angle);
+      VehicleSectionLayerManager.DrawLayer(component, section, SectionLayer_FertilizerGrid, drawPos.Yto0(), rot, angle);
     }
   }
 
@@ -392,10 +394,11 @@ public static class ModCompat
 
     protected override bool ShouldDrawSectionLayers => true;
     
-    public override void DrawSectionLayers(VehicleSectionLayerManager component, Section section, Vector3 drawPos, float angle)
+    public override void DrawSectionLayers(VehicleSectionLayerManager component, Section section, Vector3 drawPos,
+      Rot8 rot, float angle)
     {
       var selDesignator = Find.DesignatorManager.SelectedDesignator;
-      var sewagePipeOverlay = component.GetLayer(section, SectionLayer_SewagePipe, default);
+      var sewagePipeOverlay = component.GetLayer(section, SectionLayer_SewagePipe, rot);
       CompProperties compProperties;
       if (selDesignator is Designator_Build { PlacingDef: ThingDef thingDef } &&
           (compProperties =
@@ -404,18 +407,18 @@ public static class ModCompat
         var mode = CompProperties_Pipe_mode(compProperties);
         if (sewagePipeOverlay != null & SectionLayer_PipeOverlay_mode(sewagePipeOverlay) == mode)
         {
-          VehicleSectionLayerManager.DrawLayer(component, section, SectionLayer_SewagePipe, drawPos.Yto0(), angle);
+          VehicleSectionLayerManager.DrawLayer(component, section, SectionLayer_SewagePipe, drawPos.Yto0(), rot, angle);
         }
 
         if (Time.frameCount % 120 == 0)
         {
-          component.GetLayer(section, SectionLayer_SewagePipe, default)?.Regenerate();
+          component.GetLayer(section, SectionLayer_SewagePipe, rot)?.Regenerate();
         }
       }
 
-      VehicleSectionLayerManager.DrawLayer(component, section, XSectionLayer_Napalm, drawPos, angle);
-      VehicleSectionLayerManager.DrawLayer(component, section, XSectionLayer_OilSpill, drawPos, angle);
-      VehicleSectionLayerManager.DrawLayer(component, section, SectionLayer_ThingsPipe, drawPos, angle);
+      VehicleSectionLayerManager.DrawLayer(component, section, XSectionLayer_Napalm, drawPos, rot, angle);
+      VehicleSectionLayerManager.DrawLayer(component, section, XSectionLayer_OilSpill, drawPos, rot, angle);
+      VehicleSectionLayerManager.DrawLayer(component, section, SectionLayer_ThingsPipe, drawPos, rot, angle);
     }
   }
 
@@ -448,14 +451,15 @@ public static class ModCompat
 
     protected override bool ShouldDrawSectionLayers => true;
     
-    public override void DrawSectionLayers(VehicleSectionLayerManager component, Section section, Vector3 drawPos, float angle)
+    public override void DrawSectionLayers(VehicleSectionLayerManager component, Section section, Vector3 drawPos,
+      Rot8 rot, float angle)
     {
       var selDesignator = Find.DesignatorManager.SelectedDesignator;
       if (selDesignator is Designator_Build { PlacingDef: ThingDef thingDef } &&
           thingDef.HasComp(CompDefenseConduit) ||
           Designator_DeconstructConduit.IsInstanceOfType(selDesignator))
       {
-        VehicleSectionLayerManager.DrawLayer(component, section, SectionLayer_DefenseGridOverlay, drawPos.Yto0(), angle);
+        VehicleSectionLayerManager.DrawLayer(component, section, SectionLayer_DefenseGridOverlay, drawPos.Yto0(), rot, angle);
       }
     }
   }
@@ -520,9 +524,10 @@ public static class ModCompat
     
     protected override bool ShouldDrawSectionLayers => true;
 
-    public override void DrawSectionLayers(VehicleSectionLayerManager component, Section section, Vector3 drawPos, float angle)
+    public override void DrawSectionLayers(VehicleSectionLayerManager component, Section section, Vector3 drawPos,
+      Rot8 rot, float angle)
     {
-      var layer = component.GetLayer(section, SectionLayer_Resource, default);
+      var layer = component.GetLayer(section, SectionLayer_Resource, rot);
       if (layer != null && (bool)ShouldDraw(layer))
       {
         var curPipeNetDef = pipeNetDef();
@@ -629,11 +634,14 @@ public static class ModCompat
     public static FieldInfo bandHeight;
     public static Func<Map, MapComponent> CompOf;
     public static Func<MapComponent, bool> Banded;
-    public static Func<MapComponent, IntVec3, IntVec3> Translate;
+    public static Func<MapComponent, IntVec3, int> BandOf;
+    public static Func<MapComponent, IntVec3, int, IntVec3> Translate;
     public static Func<Map, int> CurrentBand;
     public static Func<Map, int, CellRect> RectOfBand;
     public delegate bool GetBandRect(Map map, IntVec3 c, out CellRect band);
     public static GetBandRect TryBandRectOf;
+    public static FastInvokeHandler TryResolveVisibleBelow;
+    public static Func<Pawn, Vector3, Vector3> LocalizeForPawn;
     private static Type SectionLayer_ABBelowV2;
     
     static AsAboveSoBelow()
@@ -650,11 +658,15 @@ public static class ModCompat
         CompOf = AccessTools.MethodDelegate<Func<Map, MapComponent>>("AsAboveSoBelow.ABBands:CompOf");
         var handler = MethodInvoker.GetHandler(AccessTools.PropertyGetter("AsAboveSoBelow.ABBandMap:Banded"));
         Banded = component => (bool)handler(component);
-        var handler2 = MethodInvoker.GetHandler(AccessTools.Method("AsAboveSoBelow.ABBandMap:Translate"));
-        Translate = (component, c) => (IntVec3)handler2(component, SingleParam.Get(c));
+        var handler2 = MethodInvoker.GetHandler(AccessTools.Method("AsAboveSoBelow.ABBandMap:BandOf"));
+        BandOf = (component, c) => (int)handler2(component, Params<ValueTuple<IntVec3>>.Get(new ValueTuple<IntVec3>(c)));
+        var handler3 = MethodInvoker.GetHandler(AccessTools.Method("AsAboveSoBelow.ABBandMap:Translate"));
+        Translate = (component, c, toBand) => (IntVec3)handler3(component, Params<(IntVec3, int)>.Get((c, toBand)));
         CurrentBand = AccessTools.MethodDelegate<Func<Map, int>>("AsAboveSoBelow.ABBandView:CurrentBand");
         RectOfBand = AccessTools.MethodDelegate<Func<Map, int, CellRect>>("AsAboveSoBelow.ABBands:RectOfBand");
         TryBandRectOf = AccessTools.MethodDelegate<GetBandRect>("AsAboveSoBelow.ABBandSafety:TryBandRectOf");
+        TryResolveVisibleBelow = MethodInvoker.GetHandler(AccessTools.Method("AsAboveSoBelow.ABBands:TryResolveVisibleBelow"));
+        LocalizeForPawn = AccessTools.MethodDelegate<Func<Pawn, Vector3, Vector3>>("AsAboveSoBelow.ABUIGeometry:LocalizeForPawn");
         SectionLayer_ABBelowV2 = GenTypes.GetTypeInAnyAssembly("AsAboveSoBelow.SectionLayer_ABBelowV2", "AsAboveSoBelow");
         VehicleSectionLayerManager.OrientedSectionLayerTypes.Add(SectionLayer_ABBelowV2);
       });
@@ -680,9 +692,11 @@ public static class ModCompat
     
     protected override bool ShouldDrawSectionLayers => true;
 
-    public override void DrawSectionLayers(VehicleSectionLayerManager component, Section section, Vector3 drawPos, float angle)
+    public override void DrawSectionLayers(VehicleSectionLayerManager component, Section section, Vector3 drawPos,
+      Rot8 rot, float angle)
     {
-      VehicleSectionLayerManager.DrawLayer(component, section, SectionLayer_ABBelowV2, drawPos, angle);
+      VehicleSectionLayerManager.DrawLayer(component, section, SectionLayer_ABBelowV2,
+        drawPos.WithYOffset(-Altitudes.AltInc * 20f / VehicleMapUtility.YCompress), rot, angle);
     }
   }
 
@@ -716,7 +730,8 @@ public static class ModCompat
     
     protected override bool ShouldDrawSectionLayers => true;
 
-    public override void DrawSectionLayers(VehicleSectionLayerManager component, Section section, Vector3 drawPos, float angle)
+    public override void DrawSectionLayers(VehicleSectionLayerManager component, Section section, Vector3 drawPos,
+      Rot8 rot, float angle)
     {
       var designator = Find.DesignatorManager.SelectedDesignator;
       if (designator?.GetType() == Designator_RemovePipe)
@@ -724,8 +739,8 @@ public static class ModCompat
         var mode = Designator_RemovePipe_RemovalMode(designator);
         foreach (var layer in SectionLayer_OverlayPipes)
         {
-          if (mode == SectionLayer_OverlayPipe_mode(component.GetLayer(section, layer, default)))
-            VehicleSectionLayerManager.DrawLayer(component, section, layer, drawPos, angle);
+          if (mode == SectionLayer_OverlayPipe_mode(component.GetLayer(section, layer, rot)))
+            VehicleSectionLayerManager.DrawLayer(component, section, layer, drawPos, rot, angle);
         }
       }
       else if (designator is Designator_Build { PlacingDef: ThingDef thingDef })
@@ -736,13 +751,13 @@ public static class ModCompat
           var mode = CompProperties_Pipe_mode(compProperties);
           foreach (var layer in SectionLayer_OverlayPipes)
           {
-            if (mode == SectionLayer_OverlayPipe_mode(component.GetLayer(section, layer, default)))
-              VehicleSectionLayerManager.DrawLayer(component, section, layer, drawPos, angle);
+            if (mode == SectionLayer_OverlayPipe_mode(component.GetLayer(section, layer, rot)))
+              VehicleSectionLayerManager.DrawLayer(component, section, layer, drawPos, rot, angle);
           }
         }
       }
 
-      VehicleSectionLayerManager.DrawLayer(component, section, SectionLayer_ThingsPipe, drawPos, angle);
+      VehicleSectionLayerManager.DrawLayer(component, section, SectionLayer_ThingsPipe, drawPos, rot, angle);
     }
   }
 
@@ -821,10 +836,11 @@ public static class ModCompat
     
     protected override bool ShouldDrawSectionLayers => true;
 
-    public override void DrawSectionLayers(VehicleSectionLayerManager component, Section section, Vector3 drawPos, float angle)
+    public override void DrawSectionLayers(VehicleSectionLayerManager component, Section section, Vector3 drawPos,
+      Rot8 rot, float angle)
     {
       if (component.map.IsVehicleMapOf(out var vehicle) && vehicle.CurrentLevel != vehicle.VehicleMap)
-        VehicleSectionLayerManager.DrawLayer(component, section, SectionLayer_LowerLevel, drawPos, angle);
+        VehicleSectionLayerManager.DrawLayer(component, section, SectionLayer_LowerLevel, drawPos, rot, angle);
     }
   }
 

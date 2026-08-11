@@ -17,14 +17,9 @@ using Verse.AI.Group;
 namespace VehicleMapFramework;
 
 [PublicAPI]
-[HotSwap]
 public static class VehicleMapUtility
 {
   public const float YCompress = 1.5f / Altitudes.AltInc - 1f;
-
-  private const float AltitudeOffset = 0.09615385f;
-
-  private const float AltitudeOffsetFull = 7.692308f;
 
   private static readonly VfVersionalPatchAttribute VfVersional = new (VfVersionalPatchAttribute.LatestRelease, ComparisonType.LessThanOrEqual);
 
@@ -85,7 +80,7 @@ public static class VehicleMapUtility
       //    cellRect = cellRect.MovedBy(-vehicleRect.Min);
       //    return cellRect.ClipInsideMap(vehicle.VehicleMap);
       //}
-      return cellRect = vehicle.MapRect;
+      return cellRect = CellRect.WholeMap(vehicle.VehicleMap);
     }
     return cellRect.ClipInsideMap(map);
   }
@@ -902,7 +897,15 @@ public static class VehicleMapUtility
             try
             {
               VehiclePawnWithMapCache.CacheMode = true;
-              component.cachedDrawPos[thing] = result = thing.DrawPos.ToBaseMapCoord(vehicle);
+              result = thing.DrawPos.ToBaseMapCoord(vehicle);
+              if (AsAboveSoBelow.Active &&
+                  AsAboveSoBelow.CompOf(map) is { } comp &&
+                  AsAboveSoBelow.Banded(comp) &&
+                  AsAboveSoBelow.CurrentBand(map) > AsAboveSoBelow.BandOf(comp, thing.Position))
+              {
+                result.y = AltitudeLayer.Terrain.AltitudeFor().YOffsetFull(vehicle);
+              }
+              component.cachedDrawPos[thing] = result;
             }
             finally
             {
@@ -970,12 +973,6 @@ public static class VehicleMapUtility
   extension(float original)
   {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public float YOffsetFull()
-    {
-      return original / YCompress + AltitudeOffsetFull;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public float YOffsetFull(VehiclePawnWithMap vehicle)
     {
       return original / YCompress + vehicle.cachedDrawPos.y;
@@ -989,7 +986,7 @@ public static class VehicleMapUtility
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public float YOffset()
     {
-      return original / YCompress + AltitudeOffset;
+      return original / YCompress;
     }
   }
 
@@ -1111,8 +1108,8 @@ public static class VehicleMapUtility
 
     public bool TryGetVehicleMap(VehiclePawnWithMap vehicle, VehicleMapFlag flag = VehicleMapFlag.StructureCells)
     {
-      var rect = new Rect(0f, 0f, vehicle.VehicleMap.Size.x, vehicle.VehicleMap.Size.z);
-      var vector = original.ToVehicleMapCoord(vehicle);
+      var rect = new Rect(0f, 0f, vehicle.MapSize.x, vehicle.MapSize.z);
+      var vector = ToVehicleMapCoordLocal(original, vehicle);
       if (!rect.Contains(new Vector2(vector.x, vector.z)))
       {
         return false;
@@ -1132,6 +1129,15 @@ public static class VehicleMapUtility
       if ((flag & VehicleMapFlag.ExpandableCells) > 0 && isExpandableCell)
         return true;
       return (flag & VehicleMapFlag.OutOfBoundsCells) > 0 && isOutOfBoundsCell;
+      
+      static Vector3 ToVehicleMapCoordLocal(Vector3 o, VehiclePawnWithMap v)
+      {
+        var vehicleMapPos = v.cachedDrawPos + OffsetFor(v);
+        var mapSize = v.MapSize;
+        var pivot = new Vector3(mapSize.x / 2f, 0, mapSize.z / 2f);
+        var drawPos = (o - vehicleMapPos).RotatedBy(-v.FullAngle) + pivot;
+        return drawPos;
+      }
     }
 
     public Vector3 ToThingBaseMapCoord(Thing thing)
