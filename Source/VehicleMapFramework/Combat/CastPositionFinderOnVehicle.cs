@@ -61,16 +61,16 @@ public static class CastPositionFinderOnVehicle
         if (req.maxRangeFromCaster > 0.01f)
         {
             var num = Mathf.CeilToInt(req.maxRangeFromCaster);
-            CellRect otherRect = new(casterLoc.x - num, casterLoc.z - num, (num * 2) + 1, (num * 2) + 1);
+            CellRect otherRect = [with(casterLoc.x - num, casterLoc.z - num, (num * 2) + 1, (num * 2) + 1)];
             cellRect.ClipInsideRect(otherRect);
         }
         var num2 = Mathf.CeilToInt(req.maxRangeFromTarget);
-        CellRect otherRect2 = new(targetLoc.x - num2, targetLoc.z - num2, (num2 * 2) + 1, (num2 * 2) + 1);
+        CellRect otherRect2 = [with(targetLoc.x - num2, targetLoc.z - num2, (num2 * 2) + 1, (num2 * 2) + 1)];
         cellRect.ClipInsideRect(otherRect2);
         if (req.maxRangeFromLocus > 0.01f)
         {
             var num3 = Mathf.CeilToInt(req.maxRangeFromLocus);
-            CellRect otherRect3 = new(targetLoc.x - num3, targetLoc.z - num3, (num3 * 2) + 1, (num3 * 2) + 1);
+            CellRect otherRect3 = [with(targetLoc.x - num3, targetLoc.z - num3, (num3 * 2) + 1, (num3 * 2) + 1)];
             cellRect.ClipInsideRect(otherRect3);
         }
         bestSpot = IntVec3.Invalid;

@@ -10,6 +10,13 @@ public static class GenSightOnVehicle
   public static bool LineOfSight(IntVec3 start, IntVec3 end, Map map, bool skipFirstCell,
     Func<IntVec3, bool> validator = null, int halfXOffset = 0, int halfZOffset = 0)
   {
+    return LineOfSight(start, end, map, null, null, skipFirstCell, validator, halfXOffset, halfZOffset);
+  }
+
+  public static bool LineOfSight(IntVec3 start, IntVec3 end, Map map,
+    AsAboveSoBelow.TargetBand? sourceBand, AsAboveSoBelow.TargetBand? targetBand,
+    bool skipFirstCell = false, Func<IntVec3, bool> validator = null, int halfXOffset = 0, int halfZOffset = 0)
+  {
     bool flag;
     if (map.IsVehicleMapOf(out var vehicle))
     {
@@ -19,7 +26,7 @@ public static class GenSightOnVehicle
         end = end.ToBaseMapCoord(vehicle);
         map = vehicle.Map;
       }
-      else return LineOfSightVehicleToVehicle(start, end, map, skipFirstCell, validator, halfXOffset, halfZOffset);
+      else return LineOfSightVehicleToVehicle(start, end, map, sourceBand, targetBand, skipFirstCell, validator, halfXOffset, halfZOffset);
     }
 
     if (!start.InBounds(map) || !end.InBounds(map)) return false;
@@ -52,7 +59,7 @@ public static class GenSightOnVehicle
       intVec.z = num4;
       if (!skipFirstCell || !(intVec == start))
       {
-        if (!intVec.CanBeSeenOverOnVehicleFast(map))
+        if (!intVec.CanBeSeenOverOnVehicleFast(map, sourceBand, targetBand))
         {
           return false;
         }
@@ -80,8 +87,9 @@ public static class GenSightOnVehicle
     return true;
   }
 
-  public static bool LineOfSightVehicleToVehicle(IntVec3 start, IntVec3 end, Map map, bool skipFirstCell = false,
-    Func<IntVec3, bool> validator = null, int halfXOffset = 0, int halfZOffset = 0)
+  public static bool LineOfSightVehicleToVehicle(IntVec3 start, IntVec3 end, Map map,
+    AsAboveSoBelow.TargetBand? sourceBand, AsAboveSoBelow.TargetBand? targetBand,
+    bool skipFirstCell = false, Func<IntVec3, bool> validator = null, int halfXOffset = 0, int halfZOffset = 0)
   {
     return (!start.ToVector3Shifted().TryGetVehicleMap(map, out var vehicle2) || LOS(vehicle2)) &&
            (!end.ToVector3Shifted().TryGetVehicleMap(map, out var vehicle3) || LOS(vehicle3));
@@ -90,6 +98,13 @@ public static class GenSightOnVehicle
     {
       var _start = start.ToVehicleMapCoord(v);
       var _end = end.ToVehicleMapCoord(v);
+      
+      var translated = _start.TranslateToTargetBand(v.VehicleMap, sourceBand, targetBand);
+      if (_start != translated)
+      {
+        _start = translated;
+        _end = _end.TranslateToTargetBand(v.VehicleMap, sourceBand, targetBand);
+      }
       var flag = _start.x == _end.x ? _start.z < _end.z : _start.x < _end.x;
       var num = Mathf.Abs(_end.x - _start.x);
       var num2 = Mathf.Abs(_end.z - _start.z);
@@ -142,19 +157,26 @@ public static class GenSightOnVehicle
   public static bool LineOfSightThingToTarget(Thing thing, LocalTargetInfo target, bool skipFirstCell = false,
     Func<IntVec3, bool> validator = null)
   {
-    return LineOfSight(thing.PositionOnBaseMapSpawned, target.CellOnBaseMapSpawned(), thing.BaseMap(), skipFirstCell,
-      validator);
+    return LineOfSight(thing.PositionOnBaseMapSpawned, target.CellOnBaseMapSpawned(), thing.BaseMap(),
+      AsAboveSoBelow.GetTargetBand(thing), AsAboveSoBelow.GetTargetBand(target.Thing),
+      skipFirstCell, validator);
   }
 
   public static bool LineOfSightThingToThing(Thing start, Thing end, bool skipFirstCell = false,
     Func<IntVec3, bool> validator = null)
   {
-    return LineOfSight(start.PositionOnBaseMapSpawned, end.PositionOnBaseMapSpawned, start.BaseMap(), skipFirstCell,
-      validator);
+    return LineOfSight(start.PositionOnBaseMapSpawned, end.PositionOnBaseMapSpawned, start.BaseMap(),
+      AsAboveSoBelow.GetTargetBand(start), AsAboveSoBelow.GetTargetBand(end),
+      skipFirstCell, validator);
   }
 
-  public static bool LineOfSightToThing(IntVec3 start, Thing t, Map map, bool skipFirstCell = false,
-    Func<IntVec3, bool> validator = null)
+  public static bool LineOfSightToThing(IntVec3 start, Thing t, Map map, bool skipFirstCell = false, Func<IntVec3, bool> validator = null)
+  {
+    return LineOfSightToThing(start, t, map, null, skipFirstCell, validator);
+  }
+  
+  public static bool LineOfSightToThing(IntVec3 start, Thing t, Map map, AsAboveSoBelow.TargetBand? sourceBand,
+    bool skipFirstCell = false, Func<IntVec3, bool> validator = null)
   {
     var flag = false;
     if (map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned)
@@ -164,10 +186,11 @@ public static class GenSightOnVehicle
       flag = true;
     }
 
+    var targetBand = AsAboveSoBelow.GetTargetBand(t);
     return t.def.size == IntVec2.One
-      ? LineOfSight(start, t.PositionOnBaseMapSpawned, map, skipFirstCell, validator)
+      ? LineOfSight(start, t.PositionOnBaseMapSpawned, map, sourceBand, targetBand, skipFirstCell, validator)
       : t.OccupiedRect().Select(end => flag ? end.ToBaseMapCoord(vehicle) : end)
-        .Any(end2 => LineOfSight(start, end2, map, skipFirstCell, validator));
+        .Any(end2 => LineOfSight(start, end2, map, sourceBand, targetBand, skipFirstCell, validator));
   }
 
   public static bool LineOfSight(IntVec3 start, IntVec3 end, Map map)
@@ -178,6 +201,12 @@ public static class GenSightOnVehicle
   public static bool LineOfSight(IntVec3 start, IntVec3 end, Map map, CellRect startRect, CellRect endRect,
     Func<IntVec3, bool> validator = null)
   {
+    return LineOfSight(start, end, map, startRect, endRect, null, null, validator);
+  }
+
+  public static bool LineOfSight(IntVec3 start, IntVec3 end, Map map, CellRect startRect, CellRect endRect,
+    AsAboveSoBelow.TargetBand? sourceBand, AsAboveSoBelow.TargetBand? targetBand, Func<IntVec3, bool> validator = null)
+  {
     if (map.IsVehicleMapOf(out var vehicle))
     {
       if (vehicle.Spawned)
@@ -186,7 +215,7 @@ public static class GenSightOnVehicle
         end = end.ToBaseMapCoord(vehicle);
         map = vehicle.Map;
       }
-      else return LineOfSightVehicleToVehicle(start, end, map, false, validator);
+      else return LineOfSightVehicleToVehicle(start, end, map, sourceBand, targetBand, false, validator);
     }
 
     if (!start.InBounds(map) || !end.InBounds(map)) return false;
@@ -223,7 +252,7 @@ public static class GenSightOnVehicle
 
       if (!startRect.Contains(intVec))
       {
-        if (!intVec.CanBeSeenOverOnVehicleFast(map))
+        if (!intVec.CanBeSeenOverOnVehicleFast(map, sourceBand, targetBand))
         {
           return false;
         }
@@ -251,10 +280,17 @@ public static class GenSightOnVehicle
     return true;
   }
 
-  public static bool LineOfSightToEdges(IntVec3 start, IntVec3 end, Map map, bool skipFirstCell = false,
-    Func<IntVec3, bool> validator = null)
+  public static bool LineOfSightToEdges(IntVec3 start, IntVec3 end, Map map,
+    bool skipFirstCell = false, Func<IntVec3, bool> validator = null)
   {
-    if (LineOfSight(start, end, map, skipFirstCell, validator))
+    return LineOfSightToEdges(start, end, map, null, null, skipFirstCell, validator);
+  }
+
+  public static bool LineOfSightToEdges(IntVec3 start, IntVec3 end, Map map,
+    AsAboveSoBelow.TargetBand? sourceBand, AsAboveSoBelow.TargetBand? targetBand,
+    bool skipFirstCell = false, Func<IntVec3, bool> validator = null)
+  {
+    if (LineOfSight(start, end, map, sourceBand, targetBand, skipFirstCell, validator))
     {
       return true;
     }
@@ -263,7 +299,7 @@ public static class GenSightOnVehicle
     for (var i = 0; i < 4; i++)
     {
       if ((start * 2).DistanceToSquared((end * 2) + GenAdj.CardinalDirections[i]) <= num && LineOfSight(start, end, map,
-            skipFirstCell, validator, GenAdj.CardinalDirections[i].x, GenAdj.CardinalDirections[i].z))
+            sourceBand, targetBand, skipFirstCell, validator, GenAdj.CardinalDirections[i].x, GenAdj.CardinalDirections[i].z))
       {
         return true;
       }
@@ -276,40 +312,86 @@ public static class GenSightOnVehicle
   {
     public bool CanBeSeenOverOnVehicle(Map map)
     {
-      if (!c.InBounds(map)) return false;
-
-      var flag = true;
-      if (c.TryGetVehicleMap(map, out var vehicle))
-      {
-        var c2 = c.ToVehicleMapCoord(vehicle);
-        flag = !c2.InBounds(vehicle.VehicleMap);
-        if (!flag)
-        {
-          var edifice = c2.GetEdifice(vehicle.VehicleMap);
-          flag = edifice == null || edifice.CanBeSeenOver();
-        }
-      }
-
-      var edifice2 = c.GetEdifice(map);
-      return flag && (edifice2 == null || edifice2.CanBeSeenOver());
+      return c.CanBeSeenOverOnVehicle(map, null, null);
     }
     
-    public bool CanBeSeenOverOnVehicleFast(Map map)
+    public bool CanBeSeenOverOnVehicle(Map map, AsAboveSoBelow.TargetBand? sourceBand, AsAboveSoBelow.TargetBand? targetBand)
     {
-      var flag = true;
+      if (!c.InBounds(map)) return false;
+
       if (c.TryGetVehicleMap(map, out var vehicle))
       {
         var c2 = c.ToVehicleMapCoord(vehicle);
-        flag = !c2.InBounds(vehicle.VehicleMap);
-        if (!flag)
+        c2 = c2.TranslateToTargetBand(vehicle.VehicleMap, sourceBand, targetBand);
+        if (c2.InBounds(vehicle.VehicleMap))
         {
           var edifice = c2.GetEdifice(vehicle.VehicleMap);
-          flag = edifice == null || edifice.CanBeSeenOver();
+          if (edifice is not null && !edifice.CanBeSeenOver())
+            return false;
+        }
+      }
+      
+      c = c.TranslateToTargetBand(map, sourceBand, targetBand);
+      var edifice2 = c.GetEdifice(map);
+      return edifice2 is null || edifice2.CanBeSeenOver();
+    }
+
+    public bool CanBeSeenOverOnVehicleFast(Map map)
+    {
+      return c.CanBeSeenOverOnVehicleFast(map, null, null);
+    }
+    
+    public bool CanBeSeenOverOnVehicleFast(Map map, AsAboveSoBelow.TargetBand? sourceBand, AsAboveSoBelow.TargetBand? targetBand)
+    {
+      if (c.TryGetVehicleMap(map, out var vehicle))
+      {
+        var c2 = c.ToVehicleMapCoord(vehicle);
+        c2 = c2.TranslateToTargetBand(vehicle.VehicleMap, sourceBand, targetBand);
+        if (c2.InBounds(vehicle.VehicleMap))
+        {
+          var edifice = c2.GetEdifice(vehicle.VehicleMap);
+          if (edifice is not null && !edifice.CanBeSeenOver())
+            return false;
         }
       }
 
+      c = c.TranslateToTargetBand(map, sourceBand, targetBand);
       var edifice2 = c.GetEdifice(map);
-      return flag && (edifice2 == null || edifice2.CanBeSeenOver());
+      return edifice2 is null || edifice2.CanBeSeenOver();
+    }
+
+    public IntVec3 TranslateToTargetBand(Map map,
+      AsAboveSoBelow.TargetBand? sourceBand, AsAboveSoBelow.TargetBand? targetBand)
+    {
+      if (!AsAboveSoBelow.Active)
+        return c;
+      
+      var c2 = c;
+      if (sourceBand is { } source && source.Map == map)
+      {
+        c2 = AsAboveSoBelow.Translate(source.comp, c2, source.band);
+      }
+      else if (targetBand is { } target && target.Map == map)
+      {
+        c2 = AsAboveSoBelow.Translate(target.comp, c2, target.band);
+      }
+      else
+      {
+        var comp = AsAboveSoBelow.CompOf(map);
+        if (comp is not null && AsAboveSoBelow.Banded(comp))
+        {
+          var halfwayBand = targetBand ?? sourceBand;
+          if (halfwayBand is { } halfway)
+          {
+            var surface = AsAboveSoBelow.surfaceBand(comp);
+            var band = surface + halfway.band - AsAboveSoBelow.surfaceBand(halfway.comp);
+            if (surface != band)
+              c2 = AsAboveSoBelow.Translate(comp, c2, band);
+          }
+        }
+      }
+
+      return c2;
     }
   }
 }

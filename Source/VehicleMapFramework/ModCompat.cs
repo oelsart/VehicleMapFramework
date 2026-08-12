@@ -633,6 +633,7 @@ public static class ModCompat
     public static FieldInfo bandCount;
     public static FieldInfo bandHeight;
     public static Func<Map, MapComponent> CompOf;
+    public static AccessTools.FieldRef<MapComponent, int> surfaceBand;
     public static Func<MapComponent, bool> Banded;
     public static Func<MapComponent, IntVec3, int> BandOf;
     public static Func<MapComponent, IntVec3, int, IntVec3> Translate;
@@ -656,6 +657,7 @@ public static class ModCompat
         bandCount = AccessTools.Field(t_PendingLayout, "bandCount");
         bandHeight = AccessTools.Field(t_PendingLayout, "bandHeight");
         CompOf = AccessTools.MethodDelegate<Func<Map, MapComponent>>("AsAboveSoBelow.ABBands:CompOf");
+        surfaceBand = AccessTools.FieldRefAccess<int>("AsAboveSoBelow.ABBandMap:surfaceBand");
         var handler = MethodInvoker.GetHandler(AccessTools.PropertyGetter("AsAboveSoBelow.ABBandMap:Banded"));
         Banded = component => (bool)handler(component);
         var handler2 = MethodInvoker.GetHandler(AccessTools.Method("AsAboveSoBelow.ABBandMap:BandOf"));
@@ -697,6 +699,39 @@ public static class ModCompat
     {
       VehicleSectionLayerManager.DrawLayer(component, section, SectionLayer_ABBelowV2,
         drawPos.WithYOffset(-Altitudes.AltInc * 20f / VehicleMapUtility.YCompress), rot, angle);
+    }
+
+    public static IntVec3 TranslateToThingBand(IntVec3 c, Thing thing)
+    {
+      if (!Active) return c;
+      if (CompOf(thing.Map) is { } comp && Banded(comp))
+      {
+        return Translate(comp, c, BandOf(comp, thing.Position));
+      }
+
+      return c;
+    }
+
+    public static TargetBand? GetTargetBand(Thing thing)
+    {
+      if (!Active || thing is null) return null;
+      
+      var comp = CompOf(thing.Map);
+      if (comp is null) return null;
+      
+      if (!Banded(comp)) return null;
+      
+      var band = BandOf(comp, thing.Position);
+      if (band == surfaceBand(comp)) return null;
+      
+      return new TargetBand(comp, band);
+    }
+
+    public readonly struct TargetBand(MapComponent comp, int band)
+    {
+      public readonly MapComponent comp = comp;
+      public readonly int band = band;
+      public Map Map => comp.map;
     }
   }
 

@@ -172,7 +172,7 @@ public class Verb_LaunchZipline : Verb_LaunchProjectile, IAbilityVerb
         var baseMap = caster.GroundMap;
         GenDraw.DrawRadiusRing(caster.Position, EffectiveRange, Color.white,
             c =>
-                GenSightOnVehicle.LineOfSight(caster.PositionOnBaseMap, c, baseMap) &&
+                GenSightOnVehicle.LineOfSight(caster.PositionOnBaseMap, c, baseMap, false) &&
                 (JumpUtility.ValidJumpTarget(caster, baseMap, c) ||
                  c.InBounds(baseMap) && baseMap.GetCachedMapComponent<VehicleMapGrid>().VehicleAt(c) is { } vehicle &&
                  JumpUtility.ValidJumpTarget(caster, vehicle.VehicleMap, c.ToVehicleMapCoord(vehicle))));

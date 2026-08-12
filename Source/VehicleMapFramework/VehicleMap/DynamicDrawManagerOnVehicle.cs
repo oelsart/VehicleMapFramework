@@ -56,17 +56,16 @@ public static class DynamicDrawManagerOnVehicle
                 continue;
             }
             drawThings[j].DynamicDrawPhase(DrawPhase.Draw);
+            if (flag && drawThings[j] is Pawn pawn)
+            {
+              SilhouetteUtility.DrawGraphicSilhouette(pawn, pawn.Drawer.renderer.SilhouettePos);
+            }
           }
           catch (Exception arg)
           {
             Log.Error($"Exception drawing {drawThings[j]}: {arg}");
           }
         }
-      }
-
-      if (flag)
-      {
-        DrawSilhouettes(drawThings);
       }
     }
     catch (Exception arg2)
@@ -165,45 +164,7 @@ public static class DynamicDrawManagerOnVehicle
   }
 
   private static readonly Dictionary<Map, (int frame, CellRect rect)> cachedRect = [];
-
-  private static void DrawSilhouettes(IReadOnlyList<Thing> drawThings)
-  {
-    // using (new ProfilerBlock("Prepare matrices job"))
-    // {
-    //     for (var i = 0; i < drawThings.Count; i++)
-    //     {
-    //         var thing = drawThings[i];
-    //         if (SilhouetteUtility.ShouldDrawSilhouette(thing) && thing is Pawn pawn)
-    //         {
-    //             var value = details[i];
-    //             value.pos = pawn.Drawer.renderer.SilhouettePos;
-    //             value.drawSize = pawn.Drawer.renderer.SilhouetteGraphic.drawSize;
-    //             value.drawSilhouette = true;
-    //             details[i] = value;
-    //         }
-    //     }
-    // }
-    // using (new ProfilerBlock("Compute matrices"))
-    // {
-    //     new ComputeSilhouetteMatricesJob
-    //     {
-    //         inverseFovScale = Find.CameraDriver.InverseFovScale,
-    //         altitude = AltitudeLayer.Silhouettes.AltitudeFor(),
-    //         details = details
-    //     }.Schedule(details.Length, UnityData.GetIdealBatchCount(details.Length)).Complete();
-    // }
-    using (new ProfilerBlock("Draw silhouettes"))
-    {
-      for (var j = 0; j < drawThings.Count; j++)
-      {
-        if (drawThings[j] is Pawn thing2)
-        {
-          SilhouetteUtility.DrawGraphicSilhouette(thing2, thing2.Drawer.renderer.SilhouettePos);
-        }
-      }
-    }
-  }
-  //
+  
   // private struct CullJob : IJobParallelFor
   // {
   //     public void Execute(int index)

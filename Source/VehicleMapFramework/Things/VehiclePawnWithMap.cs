@@ -15,6 +15,7 @@ using VehicleMapFramework.VMF_HarmonyPatches;
 using Vehicles;
 using Vehicles.World;
 using Verse;
+using Verse.AI;
 using Verse.AI.Group;
 #if DEV
 using Vehicles.Rendering;
@@ -25,7 +26,7 @@ namespace VehicleMapFramework;
 public class MapVehicleEventDef : Def;
 
 [StaticConstructorOnStartup]
-public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
+public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>, IAttackTarget
 {
   private bool generatingVehicleMap;
   private Map interiorMap;
@@ -401,7 +402,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
 
   public override Vector3 DrawPos => Spawned && Find.CurrentMap != CurrentLevel ? base.DrawPos : cachedDrawPos;
 
-  public new float TargetPriorityFactor => 0.15f;
+  float IAttackTarget.TargetPriorityFactor => 0.15f;
 
   public override IEnumerable<Gizmo> GetGizmos()
   {
@@ -1174,6 +1175,9 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     VehicleSectionLayerManager.DrawLayer(component, section, typeof(SectionLayer_EdgeShadows), drawPos, rot, angle);
     ((SectionLayer_SunShadowsOnVehicle)component.GetLayer(section, typeof(SectionLayer_SunShadowsOnVehicle), rot))
       .DrawLayer(drawPos, Transform.rotation - Angle);
+    ((SectionLayer_LightingOnVehicle)component.GetLayer(section, typeof(SectionLayer_LightingOnVehicle), default))
+      .DrawLayer(drawPos);
+    
     if (OverlayDrawHandler.ShouldDrawPowerGrid)
     {
       VehicleSectionLayerManager.DrawLayer(component.GetLayer(section, typeof(SectionLayer_ThingsPowerGrid), rot), drawPos.Yto0(), angle);
@@ -1183,23 +1187,13 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     {
       VehicleSectionLayerManager.DrawLayer(component, section, t_SectionLayer_Zones, drawPos, rot, angle);
     }
-
-    if (Find.CurrentMap == interiorMap && !VehicleMapFramework.settings.drawPlanet)
-    {
-      VehicleSectionLayerManager.DrawLayer(component, section, typeof(SectionLayer_LightingOverlay), drawPos, rot, angle);
-    }
-    else
-    {
-      ((SectionLayer_LightingOnVehicle)component.GetLayer(section, typeof(SectionLayer_LightingOnVehicle), default))
-        .DrawLayer(drawPos);
-    }
+    
     if (ModsConfig.OdysseyActive)
     {
-      var fullRot = FullRotation;
       ((SectionLayer_SubstructurePropsOnVehicle)component.GetLayer(section,
-        typeof(SectionLayer_SubstructurePropsOnVehicle), default))?.DrawLayer(fullRot, drawPos, Transform.rotation);
+        typeof(SectionLayer_SubstructurePropsOnVehicle), default))?.DrawLayer(rot, drawPos, Transform.rotation);
       ((SectionLayer_GravshipHullOnVehicle)component.GetLayer(section, typeof(SectionLayer_GravshipHullOnVehicle),
-        default))?.DrawLayer(fullRot, drawPos, Transform.rotation);
+        default))?.DrawLayer(rot, drawPos, Transform.rotation);
     }
 
     DrawModLayers(section, drawPos, component);

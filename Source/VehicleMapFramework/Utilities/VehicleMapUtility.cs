@@ -813,12 +813,16 @@ public static class VehicleMapUtility
     
     public IntVec3 PositionOnAnotherMap(Map map)
     {
-      return map.IsVehicleMapOf(out var vehicle) ? thing.PositionOnBaseMap.ToVehicleMapCoord(vehicle) : thing.PositionOnBaseMap;
+      return map.IsVehicleMapOf(out var vehicle)
+        ? thing.PositionOnBaseMap.ToVehicleMapCoord(vehicle)
+        : thing.PositionOnBaseMap;
     }
     
     public IntVec3 PositionOnAnotherThingMap(Thing another)
     {
-      return another.IsOnVehicleMapOf(out var vehicle) ? thing.PositionOnBaseMap.ToVehicleMapCoord(vehicle) : thing.PositionOnBaseMap;
+      return another.IsOnVehicleMapOf(out var vehicle)
+        ? AsAboveSoBelow.TranslateToThingBand(thing.PositionOnBaseMap.ToVehicleMapCoord(vehicle), another)
+        : thing.PositionOnBaseMap;
     }
     
     public Rot4 BaseRotation()

@@ -87,8 +87,10 @@ public static class PatchABBandView_TryStep
 {
   public static void Prefix(ref Map map)
   {
-    var selected = Find.Selector.SingleSelectedThing;
-    if (selected is VehiclePawnWithMap vehicle || selected.IsOnVehicleMapOf(out vehicle))
+    var selected = Find.Selector.SingleSelectedObject;
+    if (selected is VehiclePawnWithMap vehicle ||
+        selected is Thing thing && thing.IsOnVehicleMapOf(out vehicle) ||
+        selected is Zone zone && zone.Map.IsVehicleMapOf(out vehicle))
       map = vehicle.CurrentLevel;
   }
 }
@@ -164,5 +166,39 @@ public static class Patch_Patch_PawnPath_ABLiftPathLine_Prefix
       return false;
     }
     return true;
+  }
+}
+
+[HarmonyPatchCategory(PatchCategories.AsAboveSoBelow)]
+[HarmonyPatch("AsAboveSoBelow.Patch_ShotReport_ABCrossBandDistance", "Prefix")]
+[PatchLevel(Level.Safe)]
+public static class Patch_Patch_ShotReport_ABCrossBandDistance_Prefix
+{
+  public static bool Prefix(Thing caster, LocalTargetInfo target)
+  {
+    return !caster.IsOnNonFocusedVehicleMap && !target.Thing.IsOnNonFocusedVehicleMap ||
+           caster.Map == (target.Thing?.Map ?? caster.GroundMap);
+  }
+}
+
+[HarmonyPatchCategory(PatchCategories.AsAboveSoBelow)]
+[HarmonyPatch("AsAboveSoBelow.Patch_Projectile_ABCrossBandOrigin", "Prefix")]
+[PatchLevel(Level.Safe)]
+public static class Patch_Patch_Projectile_ABCrossBandOrigin_Prefix
+{
+  public static bool Prefix(Thing launcher, LocalTargetInfo usedTarget)
+  {
+    return Patch_Patch_ShotReport_ABCrossBandDistance_Prefix.Prefix(launcher, usedTarget);
+  }
+}
+
+[HarmonyPatchCategory(PatchCategories.AsAboveSoBelow)]
+[HarmonyPatch("AsAboveSoBelow.ABCombatAim", "TryLocalAngle")]
+[PatchLevel(Level.Safe)]
+public static class Patch_ABCombatAim_TryLocalAngle
+{
+  public static bool Prefix(Building_Turret turret, LocalTargetInfo target)
+  {
+    return Patch_Patch_ShotReport_ABCrossBandDistance_Prefix.Prefix(turret, target);
   }
 }
