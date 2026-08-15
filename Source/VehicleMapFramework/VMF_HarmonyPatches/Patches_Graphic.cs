@@ -144,7 +144,8 @@ public static class Patch_Graphic_Print
   //はしごとかのマップ端オフセットを足す
   private static Vector3 EdgeSpacerOffset(Vector3 vector, Thing thing)
   {
-    if (thing.def.HasComp(typeof(CompVehicleEnterSpot)) && thing.IsOnVehicleMapOf(out var vehicle) &&
+    if (thing.TryGetComp<CompVehicleEnterSpot>() is { ShouldOffsetOnEdge: true } &&
+        thing.IsOnVehicleMapOf(out var vehicle) &&
         vehicle.VehicleMapProps is { } props)
     {
       var opposite = thing.Rotation.Opposite;

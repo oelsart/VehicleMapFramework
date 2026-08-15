@@ -400,7 +400,9 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
 
   public List<CompBuildableContainer> ContainerComps { get; } = [];
 
-  public override Vector3 DrawPos => Spawned && Find.CurrentMap != CurrentLevel ? base.DrawPos : cachedDrawPos;
+  public override Vector3 DrawPos => Spawned && Find.CurrentMap != CurrentLevel
+    ? base.DrawPos
+    : cachedDrawPos - (CompVehicleDrawOffset?.DrawOffsetFull(FullRotation) ?? Vector3.zero);
 
   float IAttackTarget.TargetPriorityFactor => 0.15f;
 

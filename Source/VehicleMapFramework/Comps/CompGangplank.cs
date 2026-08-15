@@ -13,6 +13,8 @@ public class CompGangplank : CompVehicleEnterSpot
   
   protected override bool Available => Pair is not null;
 
+  public override bool ShouldOffsetOnEdge => true;
+
   protected Thing Pair { get; set; }
 
   protected override TargetInfo AccessSpot => Pair ?? TargetInfo.Invalid;

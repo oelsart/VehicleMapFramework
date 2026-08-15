@@ -19,6 +19,8 @@ public class CompGroundToVehicleAccess : CompVehicleEnterSpot
     }
   }
 
+  public override bool ShouldOffsetOnEdge => true;
+
   protected override TargetInfo AccessSpot
   {
     get

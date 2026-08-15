@@ -7,6 +7,8 @@ public abstract class CompVehicleEnterSpot : ThingComp
   public CompProperties_VehicleEnterSpot Props => (CompProperties_VehicleEnterSpot)props;
 
   protected abstract bool Available { get; }
+  
+  public abstract bool ShouldOffsetOnEdge { get; }
 
   protected abstract TargetInfo AccessSpot { get; }
 
