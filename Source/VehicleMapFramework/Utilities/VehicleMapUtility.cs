@@ -21,6 +21,8 @@ public static class VehicleMapUtility
 {
   public const float YCompress = 1.5f / Altitudes.AltInc - 1f;
 
+  public const float YOffsetBase = Altitudes.AltInc / YCompress;
+
   private static readonly VfVersionalPatchAttribute VfVersional = new (VfVersionalPatchAttribute.LatestRelease, ComparisonType.LessThanOrEqual);
 
   private static readonly List<Thing> tmpThingList = [];
@@ -979,7 +981,7 @@ public static class VehicleMapUtility
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public float YOffsetFull(VehiclePawnWithMap vehicle)
     {
-      return original / YCompress + vehicle.cachedDrawPos.y;
+      return original / YCompress + vehicle.cachedDrawPos.y + YOffsetBase;
     }
     
     public float FlipAngle(VehiclePawn vehicle)
@@ -990,7 +992,7 @@ public static class VehicleMapUtility
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public float YOffset()
     {
-      return original / YCompress;
+      return original / YCompress + YOffsetBase;
     }
   }
 
