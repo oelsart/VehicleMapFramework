@@ -1,12 +1,24 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 
 <Patch>
-    <Operation Class = "PatchOperationAdd">
-        <xpath>Defs/WorldObjectDef[defName="VehicleCaravan" or defName="StashedVehicle"]/comps</xpath>
-        <value>
-            <li>
-                <compClass>VehicleMapFramework.CaravanHaulDestinationManager</compClass>
-            </li>
-        </value>
-    </Operation>
+
+  <Operation Class="PatchOperationAdd">
+    <xpath>Defs/WorldObjectDef[defName="VehicleCaravan" or defName="StashedVehicle"]/comps</xpath>
+    <value>
+      <li>
+        <compClass>VehicleMapFramework.CaravanHaulDestinationManager</compClass>
+      </li>
+      <li>
+        <compClass>VehicleMapFramework.VehicleFormationComp</compClass>
+      </li>
+    </value>
+  </Operation>
+
+  <Operation Class="PatchOperationAdd">
+    <xpath>Defs/WorldObjectDef[defName="VehicleCaravan"]/inspectorTabs</xpath>
+    <value>
+      <li>VehicleMapFramework.WITab_Vehicle_Formation</li>
+    </value>
+  </Operation>
+  
 </Patch>

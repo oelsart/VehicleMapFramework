@@ -9,7 +9,7 @@ namespace VehicleMapFramework;
 
 public class CaravanHaulDestinationManager : WorldObjectComp
 {
-  private List<VehiclePawn> Vehicles => field ??= parent.Vehicles.ToList();
+  private List<VehiclePawn> Vehicles => field ??= [.. parent.Vehicles];
 
   public List<IHaulDestination> AllHaulDestinationsListInPriorityOrder { get; } = [];
 

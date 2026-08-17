@@ -404,6 +404,8 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     ? base.DrawPos
     : cachedDrawPos - (CompVehicleDrawOffset?.DrawOffsetFull(FullRotation) ?? Vector3.zero);
 
+  public override Vector2 DrawSize => VehicleDef.IsUniqueVehicle ? VehicleDef.Size.ToVector2() : base.DrawSize;
+
   float IAttackTarget.TargetPriorityFactor => 0.15f;
 
   public override IEnumerable<Gizmo> GetGizmos()
@@ -767,9 +769,9 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
 
   protected override void Tick()
   {
+    Resize();
     if (Spawned)
     {
-      Resize();
       RecacheDrawPos(DrawPos);
       if (CompDelayedKill is { KillStarted: true })
       {
@@ -1336,6 +1338,8 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     RegisterEvents();
     CompVehicleTurrets?.RevalidateTurrets();
     ResetRenderStatus();
+    if (VehicleDef.IsUniqueVehicle)
+      this.ResizeNow();
   }
 
   public override void PostMake()

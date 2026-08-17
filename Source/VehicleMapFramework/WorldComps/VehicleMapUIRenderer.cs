@@ -13,7 +13,6 @@ namespace VehicleMapFramework;
 
 public class VehicleMapUIRenderer(Game game) : GameComponent
 {
-
   public enum DurationType
   {
     Time,
@@ -96,7 +95,7 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
     if (component?.camera is null || component.commandBuffer is null)
       return BaseContent.BadTex;
     var camera = component.camera;
-    var key = new CacheKey(texSize, vehicle);
+    var key = new CacheKey(texSize, vehicle, rot);
     var cache = component.GetOrCreateCachedMapTexture(key);
     if (!cache.Dirty)
     {
@@ -130,7 +129,7 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
     if (component?.camera is null || component.commandBuffer is null)
       return BaseContent.BadTex;
 
-    var key = new CacheKey(texSize, vehicle, overlay);
+    var key = new CacheKey(texSize, vehicle, rot, overlay);
     var cache = component.GetOrCreateCachedMapTexture(key);
     if (!cache.Dirty)
     {
@@ -297,7 +296,7 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
     };
   }
 
-  private readonly record struct CacheKey(TexSize size, VehiclePawnWithMap vehicle, [UsedImplicitly] GraphicOverlay overlay = null);
+  private readonly record struct CacheKey(TexSize size, VehiclePawnWithMap vehicle, Rot4 rot, [UsedImplicitly] GraphicOverlay overlay = null);
 
   public readonly struct CachedMapTexture(RenderTexture renderTexture, bool dirty)
   {

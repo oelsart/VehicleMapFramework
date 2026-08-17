@@ -10,13 +10,12 @@ namespace VehicleMapFramework;
 public class VehicleMapBlitter(VehiclePawnWithMap vehicle) : IBlitTarget
 {
   private static Material defaultMat;
-  private static readonly int MainTex = Shader.PropertyToID("_MainTex");
   
   static VehicleMapBlitter()
   {
     LongEventHandler.ExecuteWhenFinished(() =>
     {
-      defaultMat = new Material(ShaderDatabase.Transparent);
+      defaultMat = new Material(ShaderDatabase.CutoutComplexUI);
     });
   }
   

@@ -55,7 +55,7 @@ public class VMF_Harmony
           {
             if (group.Key == PatchCategories.VehicleFramework)
             {
-              return group.Where(t => t.GetCustomAttribute<VfVersionalPatchAttribute>() is not { } attr ||
+              return group.Where(t => t.GetCustomAttribute<VFVersionalPatchAttribute>() is not { } attr ||
                                       attr.Available).ToList();
             }
 
@@ -206,7 +206,7 @@ public class VMF_Harmony
       .Where(CheckClassPatchLevel);
     if (category == PatchCategories.VehicleFramework)
     {
-      patches = patches.Where(t => t.GetCustomAttribute<VfVersionalPatchAttribute>() is not { } attr ||
+      patches = patches.Where(t => t.GetCustomAttribute<VFVersionalPatchAttribute>() is not { } attr ||
                                    attr.Available);
     }
 

@@ -257,6 +257,7 @@ public static class Patch_Map_MapUpdate
     {
       mesh200 = MeshPool.GridPlane(MeshSize);
       skyMat = SolidColorMaterials.NewSolidColorMaterial(Color.black, ShaderDatabase.SolidColor);
+      skyMat.renderQueue = 3100;
     });
   }
 
@@ -363,7 +364,7 @@ public static class Patch_Map_MapUpdate
                 _ => 0f
               };
             var rot = Rot4.FromAngleFlat(angle);
-            if (vehicleCaravanOrStashedVehicle != null)
+            if (vehicleCaravanOrStashedVehicle is not null)
             {
               foreach (var vehicle2 in vehicleCaravanOrStashedVehicle.Vehicles)
               {
@@ -382,20 +383,23 @@ public static class Patch_Map_MapUpdate
 
       // 空の暗さ
       skyMat.color = Color.black.WithAlpha((1f - vehicle.VehicleMap.skyManager.CurSkyGlow) * 0.2f);
-      skyMat.renderQueue = 3100;
       Graphics.DrawMesh(mesh200, center.WithY(AltitudeLayer.LightingOverlay.AltitudeFor()), Quaternion.identity, skyMat,
         0);
 
       //　車両本体
-      if (vehicleCaravanOrStashedVehicle != null)
+      if (vehicleCaravanOrStashedVehicle?.GetComponent<VehicleFormationComp>() is { } comp)
       {
-        var drawPositions = vehicleCaravanOrStashedVehicle.DrawPositions;
-        if (!drawPositions.Keys.SequenceEqual(vehicleCaravanOrStashedVehicle.Vehicles))
-          vehicleCaravanOrStashedVehicle.RecalculateVehiclePositions();
+        var drawPositions = comp.DrawPositions;
 
         foreach (var vehicle2 in vehicleCaravanOrStashedVehicle.Vehicles)
         {
-          var drawPos2 = center + drawPositions[vehicle2].RotatedBy(angle);
+          if (!drawPositions.ContainsKey(vehicle2))
+          {
+            comp.FindVehiclePosition(vehicle2);
+            comp.CenteredDrawPositions();
+          }
+
+          var drawPos2 = center + (drawPositions[vehicle2].position).RotatedBy(angle);
           vehicle2.DrawAt(in drawPos2, vehicle2.FullRotation, angle - vehicle2.FullRotation.AsAngle);
         }
       }

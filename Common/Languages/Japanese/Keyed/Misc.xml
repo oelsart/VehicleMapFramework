@@ -12,5 +12,7 @@
 	<VMF_LandInSpecificMap>{0}にズームインして,{1}の着陸地点を選択する</VMF_LandInSpecificMap>
   
   <VMF_SelectPrefab>プレファブを選択</VMF_SelectPrefab>
+  
+  <VMF_VehicleFormation>陣形</VMF_VehicleFormation>
 
 </LanguageData>

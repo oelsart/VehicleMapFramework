@@ -12,5 +12,7 @@
 	<VMF_LandInSpecificMap>Zoom in to {0} and choose a landing spot in {1}</VMF_LandInSpecificMap>
   
   <VMF_SelectPrefab>select prefab</VMF_SelectPrefab>
+  
+  <VMF_VehicleFormation>Form.</VMF_VehicleFormation>
 
 </LanguageData>

@@ -11,7 +11,7 @@ namespace VehicleMapFramework;
 public class Command_SelectVehicleMap(VehiclePawnWithMap vehicle) : Command_ToggleWithIcon
 {
   public static bool Available { get; } =
-    new VfVersionalPatchAttribute("1.6.2380", ComparisonType.GreaterThanOrEqual).Available;
+    new VFVersionalPatchAttribute("1.6.2380", ComparisonType.GreaterThanOrEqual).Available;
   public VehiclePortrait portrait;
 
   public override void DrawIcon(Rect rect, Material buttonMat, GizmoRenderParms parms)
