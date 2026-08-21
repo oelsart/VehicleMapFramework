@@ -8,7 +8,7 @@ using Verse;
 namespace Test_DevTools.Test.Components;
 
 [TestFixture(TestType.Playing)]
-public class Test_CrossMapMapPawnsCache : IGenericTest
+internal sealed class Test_CrossMapMapPawnsCache : IGenericTest
 {
   public VehicleGroup Group { get; set; }
 

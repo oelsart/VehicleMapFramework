@@ -12,6 +12,7 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 public static class Patch_JoyGiver_GetSearchSet
 {
   private static bool working;
+  private static readonly List<Thing> tmpCandidates = [];
   private static readonly Action<JoyGiver, Pawn, List<Thing>> GetSearchSet =
     AccessTools.MethodDelegate<Action<JoyGiver, Pawn, List<Thing>>>(
       AccessTools.Method(typeof(JoyGiver), "GetSearchSet"));
@@ -28,7 +29,9 @@ public static class Patch_JoyGiver_GetSearchSet
       foreach (var map in pawn.Map.BaseMapAndVehicleMaps(false))
       {
         using var _ = new VirtualTeleporter(pawn, map);
-        GetSearchSet(__instance, pawn, outCandidates);
+        GetSearchSet(__instance, pawn, tmpCandidates);
+        outCandidates.AddRange(tmpCandidates);
+        tmpCandidates.Clear();
       }
     }
     finally

@@ -19,7 +19,7 @@ public static class AttackTargetFinderOnVehicle
 
   private const float FriendlyFireScoreOffsetSelf = 40f;
 
-  private static readonly List<IAttackTarget> tmpTargets = new(128);
+  private static readonly List<IAttackTarget> tmpTargets = [with(128)];
 
   private static readonly List<IAttackTarget> validTargets = [];
 
@@ -541,6 +541,8 @@ public static class AttackTargetFinderOnVehicle
       : target.Thing.PositionOnAnotherThingMap(searcher.Thing);
     var num = GenRadial.NumCellsInRadius(verb.verbProps.ai_AvoidFriendlyFireRadius);
     var num2 = 0f;
+    var sourceBand = AsAboveSoBelow.GetTargetBand(searcher.Thing);
+    var targetBand = AsAboveSoBelow.GetTargetBand(target.Thing);
     for (var i = 0; i < num; i++)
     {
       var intVec = position + GenRadial.RadialPattern[i];
@@ -554,7 +556,7 @@ public static class AttackTargetFinderOnVehicle
           {
             if (flag)
             {
-              if (!GenSightOnVehicle.LineOfSight(position, intVec, map, true))
+              if (!GenSightOnVehicle.LineOfSight(position, intVec, map, sourceBand, targetBand, true))
               {
                 break;
               }
@@ -700,6 +702,8 @@ public static class AttackTargetFinderOnVehicle
 
     var seerPosOnBaseMap = seer.PositionOnBaseMapSpawned;
     var targPosOnBaseMap = target.PositionOnBaseMapSpawned;
+    var sourceBand = AsAboveSoBelow.GetTargetBand(seer);
+    var targetBand = AsAboveSoBelow.GetTargetBand(target);
     var baseMap = seer.BaseMap();
     
     // マップ端で車両マップ上のポーンがベースマップ外に行く可能性はある
@@ -707,23 +711,24 @@ public static class AttackTargetFinderOnVehicle
       return false;
     
     tempDestList.Clear();
-    ShootLeanUtilityOnVehicle.CalcShootableCellsOf(tempDestList, target, seerPosOnBaseMap);
+    ShootLeanUtilityOnVehicle.CalcShootableCellsOf(tempDestList, target, seerPosOnBaseMap, sourceBand, targetBand);
     for (var i = 0; i < tempDestList.Count; i++)
     {
-      if (GenSightOnVehicle.LineOfSight(seerPosOnBaseMap, tempDestList[i].ToThingBaseMapCoord(target), baseMap, true,
-            validator))
+      if (GenSightOnVehicle.LineOfSight(seerPosOnBaseMap, tempDestList[i].ToThingBaseMapCoord(target), baseMap,
+            sourceBand, targetBand, true, validator))
       {
         return true;
       }
     }
 
-    ShootLeanUtilityOnVehicle.LeanShootingSourcesFromTo(seer.Position, targPosOnBaseMap, seer.Map, tempSourceList);
+    ShootLeanUtilityOnVehicle.LeanShootingSourcesFromTo(seer.Position, targPosOnBaseMap, seer.Map, tempSourceList,
+      sourceBand, targetBand);
     for (var j = 0; j < tempSourceList.Count; j++)
     {
       for (var k = 0; k < tempDestList.Count; k++)
       {
         if (GenSightOnVehicle.LineOfSight(tempSourceList[j].ToThingBaseMapCoord(seer),
-              tempDestList[k].ToThingBaseMapCoord(target), baseMap, true, validator))
+              tempDestList[k].ToThingBaseMapCoord(target), baseMap, sourceBand, targetBand, true, validator))
         {
           return true;
         }

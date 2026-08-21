@@ -46,14 +46,3 @@ public static class Patch_HaulingUtility_TryGetHaulingDestination
     }
   }
 }
-
-[HarmonyPatchCategory(PatchCategories.StackGap)]
-[HarmonyPatch("StorageUpperBound.ToilsRecipePatch", "PatchNum")]
-[PatchLevel(Level.Cautious)]
-public static class Patch_ToilsRecipePatch_PatchNum
-{
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-  {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_TargetMapOrThingMap);
-  }
-}

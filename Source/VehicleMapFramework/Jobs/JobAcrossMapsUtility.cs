@@ -39,7 +39,7 @@ public static class JobAcrossMapsUtility
     pawn.jobs.curDriver.globalFinishActions.Clear(); //Jobはまだ終わっちゃいねえためFinishActionはさせない。TryDropThingなどをしていることもあるし
     var job = GotoDestMapJob(pawn, exitSpot, enterSpot, spotsQueue, nextJob);
     job.playerForced = nextJob.playerForced;
-    pawn.jobs.StartJob(job, JobCondition.InterruptForced, keepCarryingThingOverride: true,
+    pawn.jobs.StartJob(job, JobCondition.Ongoing, keepCarryingThingOverride: true,
       preToilReservationsCanFail: true);
   }
 

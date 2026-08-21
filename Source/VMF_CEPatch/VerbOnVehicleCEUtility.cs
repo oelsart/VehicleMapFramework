@@ -61,7 +61,9 @@ public static class VerbOnVehicleCEUtility
         ? verb.ShotSource()
         : root.ToVector3Shifted().WithY(verb.ShotHeight);
 
-      if (verb.CanHitFromCellIgnoringRange(shotSource, targ, out var dest))
+      var sourceBand = AsAboveSoBelow.GetTargetBand(verb.caster);
+      var targetBand = AsAboveSoBelow.GetTargetBand(targ.Thing);
+      if (verb.CanHitFromCellIgnoringRange(shotSource, targ, out var dest, sourceBand, targetBand))
       {
         targetPos = dest.ToVector3Shifted();
         resultingLine = new ShootLine(tmpRoot, dest);
@@ -70,14 +72,15 @@ public static class VerbOnVehicleCEUtility
 
       if (verb.CasterIsPawn)
       {
-        ShootLeanUtilityOnVehicle.LeanShootingSourcesFromTo(verb.caster.Position, cellRect.ClosestCellTo(positionOnBaseMap), verb.caster.Map, tempLeanShootSources);
+        ShootLeanUtilityOnVehicle.LeanShootingSourcesFromTo(verb.caster.Position, cellRect.ClosestCellTo(positionOnBaseMap),
+          verb.caster.Map, tempLeanShootSources, sourceBand, targetBand);
         var targCellOnCasterMap = targ.CellOnAnotherThingMap(verb.caster);
         foreach (var leanLoc in tempLeanShootSources.OrderBy(c => c.DistanceTo(targCellOnCasterMap)))
         {
           const float leanOffset = 0.5f - 0.001f;
           var leanLocOnBaseMap = leanLoc.ToThingBaseMapCoord(verb.caster);
           var leanPosOffset = (leanLocOnBaseMap - positionOnBaseMap).ToVector3() * leanOffset;
-          if (verb.CanHitFromCellIgnoringRange(shotSource + leanPosOffset, targ, out dest))
+          if (verb.CanHitFromCellIgnoringRange(shotSource + leanPosOffset, targ, out dest, sourceBand, targetBand))
           {
             targetPos = dest.ToVector3Shifted();
             resultingLine = new ShootLine(!flag ? leanLoc : leanLocOnBaseMap, dest);
@@ -90,7 +93,8 @@ public static class VerbOnVehicleCEUtility
       return false;
     }
 
-    private bool CanHitFromCellIgnoringRange(Vector3 shotSource, LocalTargetInfo targ, out IntVec3 goodDest)
+    private bool CanHitFromCellIgnoringRange(Vector3 shotSource, LocalTargetInfo targ, out IntVec3 goodDest,
+      AsAboveSoBelow.TargetBand? sourceBand, AsAboveSoBelow.TargetBand? targetBand)
     {
       var targCellOnBaseMap = targ.CellOnBaseMap();
       if (targ.Thing != null && targ.Thing.BaseMapOrCaravan != verb.Caster.BaseMapOrCaravan)
@@ -100,13 +104,13 @@ public static class VerbOnVehicleCEUtility
       }
       if (targ.HasThing)
       {
-        if (verb.CanHitCellFromCellIgnoringRange(shotSource, targ.Cell, targ.Thing!.Map, targ.Thing))
+        if (verb.CanHitCellFromCellIgnoringRange(shotSource, targ.Cell, targ.Thing!.Map, sourceBand, targetBand, targ.Thing))
         {
           goodDest = targCellOnBaseMap;
           return true;
         }
       }
-      else if (verb.CanHitCellFromCellIgnoringRange(shotSource, targCellOnBaseMap, verb.Caster.BaseMap()))
+      else if (verb.CanHitCellFromCellIgnoringRange(shotSource, targCellOnBaseMap, verb.Caster.BaseMap(), sourceBand, targetBand))
       {
         goodDest = targCellOnBaseMap;
         return true;
@@ -116,7 +120,8 @@ public static class VerbOnVehicleCEUtility
       return false;
     }
 
-    private bool CanHitCellFromCellIgnoringRange(Vector3 shotSource, IntVec3 targetLoc, Map map, Thing targetThing = null)
+    private bool CanHitCellFromCellIgnoringRange(Vector3 shotSource, IntVec3 targetLoc, Map map,
+      AsAboveSoBelow.TargetBand? sourceBand, AsAboveSoBelow.TargetBand? targetBand, Thing targetThing = null)
     {
       if (verb.verbProps.mustCastOnOpenGround && (!targetLoc.Standable(map) || map.thingGrid.CellContains(targetLoc, ThingCategory.Pawn)))
       {
@@ -151,10 +156,22 @@ public static class VerbOnVehicleCEUtility
         // Create validator to check for intersection with partial cover
         var aimMode = verb.CompFireModes?.CurrentAimMode;
 
+        var groundMap = map.GroundMap;
         bool CanShootThroughCell(IntVec3 cell)
         {
-          var cover = cell.InBounds(map) ? cell.GetFirstPawn(map) ?? cell.GetCover(map) : null;
-          if (verb.caster.IsOnVehicleMapOf(out var vehicle) && cover == vehicle)
+          var cell2 = cell;
+          var map2 = groundMap;
+          if (cell2.TryGetVehicleMap(groundMap, out var vehicle))
+          {
+            var c = cell2.ToVehicleMapCoord(vehicle);
+            if (c.InBounds(vehicle.VehicleMap))
+            {
+              map2 = vehicle.VehicleMap;
+              cell2 = c.TranslateToTargetBand(map2, sourceBand, targetBand);
+            }
+          }
+          var cover = cell2.InBounds(map2) ? cell2.GetFirstPawn(map2) ?? cell2.GetCover(map2) : null;
+          if (verb.caster.IsOnVehicleMapOf(out var vehicle2) && cover == vehicle2)
           {
             return true;
           }
@@ -201,7 +218,7 @@ public static class VerbOnVehicleCEUtility
 
             if (Controller.settings.DebugDrawPartialLoSChecks)
             {
-              verb.caster.BaseMap().debugDrawer.FlashCell(cell, 0.7f, bounds.extents.y.ToString(CultureInfo.CurrentCulture));
+              verb.caster.GroundMap.debugDrawer.FlashCell(cell, 0.7f, bounds.extents.y.ToString(CultureInfo.CurrentCulture));
             }
           }
 
@@ -213,9 +230,9 @@ public static class VerbOnVehicleCEUtility
         {
           if (Controller.settings.DebugDrawPartialLoSChecks)
           {
-            verb.caster.BaseMap().debugDrawer.FlashCell(curCell, 0.4f);
+            verb.caster.GroundMap.debugDrawer.FlashCell(curCell, 0.4f);
           }
-          if (curCell != shotSource.ToIntVec3() && curCell != targetLoc && !CanShootThroughCell(targetThing != null ? curCell.ToThingMapCoord(targetThing) : curCell))
+          if (curCell != shotSource.ToIntVec3() && curCell != targetLoc && !CanShootThroughCell(curCell))
           {
             return false;
           }

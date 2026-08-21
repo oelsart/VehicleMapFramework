@@ -2,6 +2,7 @@
 using DevTools.Testing;
 using RimWorld;
 using UnityEngine;
+using UnityEngine.Assertions;
 using VehicleMapFramework.VMF_HarmonyPatches;
 using Vehicles;
 using Vehicles.Testing;
@@ -405,6 +406,8 @@ internal abstract class WorkGiverTestBase(VehicleGroup group)
     {
       Results[0] = RunWorkGiverBeforePatch(Pawn, WorkGiverDef);
       Expect.IsNotNull(Results[0].job);
+      Pawn.jobs.StartJob(Results[0].job, JobCondition.Succeeded);
+      Assert.AreEqual(Pawn.CurJob, Results[0].job);
     }
   }
 
@@ -416,12 +419,16 @@ internal abstract class WorkGiverTestBase(VehicleGroup group)
       Results[1] = RunWorkGiverAfterPatch(Pawn, Vehicle, WorkGiverDef);
       Expect.AreEqual(Results[0], Results[1]);
       Expect.IsFalse(JobFailReason.HaveReason, JobFailReason.Reason);
+      Pawn.jobs.StartJob(Results[1].job);
     }
 
     [TearDown]
     public virtual void TearDown()
     {
       Test_WorkGivers.ClearPawnState(Pawn);
+      Pawn.DeSpawn();
+      var map = Find.CurrentMap;
+      GenSpawn.Spawn(Pawn, CellFinder.RandomSpawnCellForPawnNear(map.Center, map), map, Rot4.North);
       Clear();
     }
 

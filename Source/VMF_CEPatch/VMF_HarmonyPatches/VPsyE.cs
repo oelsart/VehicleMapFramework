@@ -15,7 +15,7 @@ public static class Patches_CE_VPsyECompat
 {
   static Patches_CE_VPsyECompat()
   {
-    if (ModCompat.VPsyE)
+    if (VPsyE)
     {
       VMF_Harmony.PatchCategory(PatchCategories.CombatExtendedVPsyECompat);
 

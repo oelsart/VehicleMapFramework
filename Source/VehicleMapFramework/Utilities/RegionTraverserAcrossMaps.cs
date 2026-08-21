@@ -114,21 +114,21 @@ public static class RegionTraverserAcrossMaps
             }
           }
 
-          foreach (var def in ZiplineDefs)
+          foreach (var def in EnterSpotDefs)
           {
             foreach (var thing in region.ListerThings.ThingsOfDef(def))
             {
-              if (!thing.TryGetComp<CompZipline>(out var comp) || comp.Pair is not { Spawned: true }) continue;
+              if (thing.TryGetComp<CompVehicleEnterSpot>() is not { AvailableAccessSpot: { IsValid: true } accessSpot })
+                continue;
               
-              var pair = comp.Pair;
-              var region2 = pair.Position.GetRegion(pair.Map);
+              var region2 = accessSpot.Cell.GetRegion(accessSpot.Map);
               if (ValidateRegion(region, region2))
                 QueueNewOpenRegion(region2);
             }
           }
         }
       }
-
+      
       FinalizeSearch();
       return;
 
@@ -147,8 +147,11 @@ public static class RegionTraverserAcrossMaps
 
   public static readonly RegionEntryPredicate PassAll;
 
-  public static IReadOnlyList<ThingDef> ZiplineDefs { get; } = DefDatabase<ThingDef>.AllDefs
-    .Where(d => d.HasAssignableCompFrom(typeof(CompZipline))).ToList();
+  public static IReadOnlyList<ThingDef> EnterSpotDefs { get; } =
+  [
+    .. DefDatabase<ThingDef>.AllDefs
+      .Where(d => d.HasComp<CompVehicleEnterSpot>())
+  ];
 
   public static District FloodAndSetDistricts(Region root, Map map, District existingRoom)
   {

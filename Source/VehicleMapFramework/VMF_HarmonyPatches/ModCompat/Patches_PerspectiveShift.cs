@@ -191,7 +191,7 @@ public static class Patch_Avatar_ProcessMovement
         var baseMapCoord = ___physicsPosition.Value.ToBaseMapCoord(vehicle);
         var baseMapMove = ___moveInput.RotatedBy(vehicle.FullAngle);
         var moveToTentative = baseMapCoord + baseMapMove / 2f;
-        if (moveToTentative.TryGetVehicleMap(vehicle.Map, vehicle, VehicleMapFlag.None))
+        if (moveToTentative.TryGetVehicleMap(vehicle, VehicleMapFlag.None))
         {
           if (!___physicsPosition.Value.ToIntVec3().WalkableBy(___pawn.Map, ___pawn))
           {
@@ -273,7 +273,7 @@ public static class Patch_Avatar_ProcessMovement
           ___physicsPosition += offset;
           ___pawn.Rotation = Rot8.FromAngle(___moveInput.AngleFlat());
 
-          if (___physicsPosition.Value.TryGetVehicleMap(___pawn.Map, vehicle, VehicleMapFlag.None))
+          if (___physicsPosition.Value.TryGetVehicleMap(vehicle, VehicleMapFlag.None))
           {
             var vehicleMapCoord2 = ___physicsPosition.Value.ToVehicleMapCoord(vehicle);
             var cell = vehicleMapCoord2.ToIntVec3();

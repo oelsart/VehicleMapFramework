@@ -9,7 +9,11 @@ namespace VehicleMapFramework.Test_CompatPatches;
 
 public static class TestPlanLoader
 {
-
+  public static AssemblyLoader Loader { get; }
+  public static Type[] Types { get; private set; }
+  public static Type ModCompatType { get; private set; }
+  public static Dictionary<string, string> WorkshopIds { get; }
+  
   private static readonly List<TestPlan> testPlans;
 
   static TestPlanLoader()
@@ -36,24 +40,22 @@ public static class TestPlanLoader
     {
       plan.Mods ??= [plan.Name];
       plan.Categories ??= [$"VMF_Patches_{plan.Name}"];
+
+      if (plan.Name == "VehicleFramework")
+        Loader.LoadModFolder(WorkshopIds[plan.Name]);
     }
 
     // VMFロードと型キャッシュ
     var assemblies = Configurations.UseWorkshopVersion
       ? Loader.LoadModFolder(WorkshopIds["VehicleMapFramework"])
       : Loader.LoadModFolder("VehicleMapFramework");
-    Types = assemblies
-      .SelectMany(AccessTools.GetTypesFromAssembly)
-      .Where(type => type.FullName?.Contains("Patch") ?? false).ToArray();
+    Types =
+    [
+      .. assemblies
+        .SelectMany(AccessTools.GetTypesFromAssembly)
+        .Where(type => type.FullName?.Contains("Patch") ?? false)
+    ];
   }
-
-  public static AssemblyLoader Loader { get; }
-
-  public static Type[] Types { get; private set; }
-
-  public static Type ModCompatType { get; private set; }
-
-  public static Dictionary<string, string> WorkshopIds { get; }
 
   public static IEnumerable<TestCaseData> GetLoadTestPlans()
   {
@@ -70,7 +72,8 @@ public static class TestPlanLoader
     ModCompatType = AccessTools.TypeByName("VehicleMapFramework.ModCompat");
     foreach (var type in ModCompatType.InnerTypes())
     {
-      if (type.IsDefined(typeof(CompilerGeneratedAttribute)))
+      if (type.IsDefined(typeof(CompilerGeneratedAttribute)) ||
+          type.IsAbstract)
         continue;
       var testCaseData = new TestCaseData(type);
       testCaseData.SetName($"ModCompat: {type.Name}");

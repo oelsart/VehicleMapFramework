@@ -10,7 +10,7 @@ public static class Patches_CE_VFECompat
 {
   static Patches_CE_VFECompat()
   {
-    if (ModCompat.VFESecurity.Active)
+    if (VFESecurity.Active)
     {
       VMF_Harmony.PatchCategory(PatchCategories.CombatExtendedVFECompat);
     }

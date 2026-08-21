@@ -16,6 +16,7 @@
 	<VMF_Settings.AsyncClosestThing>Multi-threading of calculations to get closest reachable thing.</VMF_Settings.AsyncClosestThing>
 	<VMF_Settings.MinSearchSetCount>Minimum search set count calculated in multi-threading.</VMF_Settings.MinSearchSetCount>
 	<VMF_Settings.ColonistBarMode>Display map vehicle icons below the colonist bar.</VMF_Settings.ColonistBarMode>
+  <VMF_Settings.LegacyCanReach>Use legacy can reach checks.</VMF_Settings.LegacyCanReach>
 	<VMF_ColonistBarMode.DontShow>Don't show</VMF_ColonistBarMode.DontShow>
 	<VMF_ColonistBarMode.MouseIsOver>Mouse is over</VMF_ColonistBarMode.MouseIsOver>
 	<VMF_ColonistBarMode.Always>Always</VMF_ColonistBarMode.Always>

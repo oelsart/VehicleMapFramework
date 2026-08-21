@@ -222,7 +222,7 @@ public class MethodInfoCache
 
     public readonly MethodInfo m_GenSight_LineOfSightToThing = ((Delegate)GenSight.LineOfSightToThing).Method;
 
-    public readonly MethodInfo m_GenSightOnVehicle_LineOfSightToThing = ((Delegate)GenSightOnVehicle.LineOfSightToThing).Method;
+    public readonly MethodInfo m_GenSightOnVehicle_LineOfSightToThing = ((Func<IntVec3, Thing, Map, bool, Func<IntVec3, bool>, bool>)GenSightOnVehicle.LineOfSightToThing).Method;
 
     public readonly MethodInfo m_GenSight_LineOfSight1 = ((Func<IntVec3, IntVec3, Map, bool>)GenSight.LineOfSight).Method;
 
@@ -234,7 +234,7 @@ public class MethodInfoCache
 
     public readonly MethodInfo m_GenSight_LineOfSightToEdges = ((Delegate)GenSight.LineOfSightToEdges).Method;
 
-    public readonly MethodInfo m_GenSightOnVehicle_LineOfSightToEdges = ((Delegate)GenSightOnVehicle.LineOfSightToEdges).Method;
+    public readonly MethodInfo m_GenSightOnVehicle_LineOfSightToEdges = ((Func<IntVec3, IntVec3, Map, bool, Func<IntVec3, bool>, bool>)GenSightOnVehicle.LineOfSightToEdges).Method;
 
     public readonly MethodInfo m_GenUI_TargetsAtMouse = ((Delegate)GenUI.TargetsAtMouse).Method;
 
@@ -246,7 +246,7 @@ public class MethodInfoCache
 
     public readonly MethodInfo m_CanBeSeenOverFast = ((Delegate)GenGrid.CanBeSeenOverFast).Method;
 
-    public readonly MethodInfo m_CanBeSeenOverOnVehicleFast = ((Delegate)GenSightOnVehicle.CanBeSeenOverOnVehicleFast).Method;
+    public readonly MethodInfo m_CanBeSeenOverOnVehicleFast = ((Func<IntVec3, Map, bool>)GenSightOnVehicle.CanBeSeenOverOnVehicleFast).Method;
 
     public readonly MethodInfo g_Rot4_FacingCell = AccessTools.PropertyGetter(typeof(Rot4), nameof(Rot4.FacingCell));
 

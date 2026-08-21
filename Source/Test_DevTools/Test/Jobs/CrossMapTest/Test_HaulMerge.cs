@@ -1,4 +1,5 @@
-﻿using RimWorld;
+﻿using DevTools.Testing;
+using RimWorld;
 using Vehicles.Testing;
 using Verse;
 
@@ -31,9 +32,11 @@ internal class Test_HaulMerge(VehicleGroup group) : CrossMapWorkGiverTestBase(gr
 
   public override void TearDown()
   {
+    Expect.IsTrue(woodLog1.Destroyed || woodLog2.Destroyed);
+    Expect.IsTrue(woodLog1.stackCount == 2 || woodLog2.stackCount == 2);
     zone.Delete();
-    woodLog1.Destroy();
-    woodLog2.Destroy();
+    if (!woodLog1.Destroyed) woodLog1.Destroy();
+    if (!woodLog2.Destroyed) woodLog2.Destroy();
     zone = null;
     woodLog1 = null;
     woodLog2 = null;

@@ -322,10 +322,8 @@ public static class Patch_Pawn_JobTracker_DrawLinesBetweenTargets
         return targ.Cell.ToVector3Shifted().ToBaseMapCoord(vehicle);
       }
     }
-    else if (pawn.IsOnNonFocusedVehicleMapOf(out var vehicle) && pawn.stances.curStance is not Stance_Busy
-             {
-               verb: Verb_Jump or Verb_CastAbilityJump
-             })
+    else if (pawn.IsOnNonFocusedVehicleMapOf(out var vehicle) &&
+             pawn.stances.curStance is not Stance_Busy { verb: Verb_Jump or Verb_CastAbilityJump })
     {
       return targ.Cell.ToVector3Shifted().ToBaseMapCoord(vehicle);
     }

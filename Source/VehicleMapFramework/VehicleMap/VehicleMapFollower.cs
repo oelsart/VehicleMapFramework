@@ -69,6 +69,8 @@ public class VehicleMapFollower(VehiclePawnWithMap vehicle)
     }
 
     component.OccupiedCells[vehicle] = tmpOccupiedCells;
+    prevCell = vehicle.Position;
+    prevRot = vehicle.FullRotation;
   }
 
   public void DeRegisterVehicle()
@@ -117,7 +119,7 @@ public class VehicleMapFollower(VehiclePawnWithMap vehicle)
   private void CalculateMapCells()
   {
     tmpOccupiedCells.Clear();
-    var mapSize = vehicle.VehicleMap.Size;
+    var mapSize = vehicle.MapSize;
     var c1 = new IntVec3(0, 0, 0).ToBaseMapCoord(vehicle);
     var c2 = new IntVec3(mapSize.x - 1, 0, 0).ToBaseMapCoord(vehicle);
     var c3 = new IntVec3(0, 0, mapSize.z - 1).ToBaseMapCoord(vehicle);
@@ -128,7 +130,7 @@ public class VehicleMapFollower(VehiclePawnWithMap vehicle)
     var map = vehicle.Map;
     foreach (var cell in cellRect)
     {
-      if (cell.ToVector3Shifted().TryGetVehicleMap(map, vehicle))
+      if (cell.ToVector3Shifted().TryGetVehicleMap(vehicle))
       {
         var adj = GenAdj.AdjacentCellsAndInside;
         for (var i = 0; i < 5; i++)

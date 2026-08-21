@@ -137,7 +137,7 @@ public class CompDrawAdditionalGraphicsOpacity : CompDrawAdditionalGraphics
       }
       loc += graphic.DrawOffset(rot);
       var material = graphic.MatAt(rot, parent);
-      loc.y += 0.01f;
+      loc.y += 0.11f;
       loc.y -= loc.z * 0.00001f;
       loc.y -= loc.x * 0.000001f;
       var drawColor = parent.DrawColor.WithAlpha(opacity);

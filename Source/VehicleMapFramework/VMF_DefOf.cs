@@ -24,6 +24,8 @@ public static class VMF_DefOf
 
   public static ThingDef VMF_MoteSink;
 
+  public static ThingDef VMF_GangplankAnchor;
+
   public static TerrainDef VMF_VehicleFloor;
 
   public static TerrainDef VMF_ImpassableFloor;
@@ -70,6 +72,7 @@ public static class VMF_DefOf
 
   public static VehicleStatDef MaximumPayload;
 
+  // TODO VF Updates: VF本体にEnterNextCellのEventDefが実装済み
   public static MapVehicleEventDef EnterNextCell;
 
   [MayRequireOdyssey] public static VehicleDef VMF_GravshipVehicleBase;

@@ -45,9 +45,13 @@ public class CompZipline : CompVehicleEnterSpot
 
   public bool IsZiplineEnd { get; private set; }
 
-  public override bool Available => Pair is { Spawned: true };
+  protected override bool Available => Pair is { Spawned: true };
 
-  public override IntVec3 EnterVehiclePosition => Pair?.Position ?? IntVec3.Invalid;
+  public override bool ShouldOffsetOnEdge => false;
+
+  protected override TargetInfo AccessSpot => Pair ?? TargetInfo.Invalid;
+
+  public override float MovePerTick(Pawn pawn) => (IsZiplineEnd ? 0.5f : 1f) / pawn.TicksPerMoveCardinal;
 
   public override void PostSpawnSetup(bool respawningAfterLoad)
   {
