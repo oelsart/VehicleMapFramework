@@ -24,7 +24,7 @@ internal static class UnitTestDetector
 }
 
 [StaticConstructorOnStartup]
-internal static class ModCompat
+public static class ModCompat
 {
   public static readonly bool AllowTool = IsModActive("UnlimitedHugs.AllowTool");
 
@@ -79,6 +79,8 @@ internal static class ModCompat
   public static readonly bool YayosCombat3 = IsModActive("Mlie.YayosCombat3");
 
   public static readonly bool PickUpAndHaul = IsModActive("Mehni.PickUpAndHaul");
+
+  public static readonly bool TextTool = IsModActive("ferny.TextTool");
 
   public static readonly bool TraderShips = IsModActive("automatic.traderships");
 
@@ -157,12 +159,22 @@ internal static class ModCompat
     }
     VMF_Log.Error(ex.Message);
   }
+
+  public abstract class CompatBase
+  {
+    protected virtual bool ShouldDrawSectionLayers => false;
+    
+    public virtual void DrawSectionLayers(VehicleSectionLayerManager component, Section section, Vector3 drawPos,
+      Rot8 rot, float angle)
+    {
+    }
+  }
   
-  public abstract class CompatBase<T> where T : CompatBase<T>
+  public abstract class CompatBase<T> : CompatBase where T : CompatBase<T>, new()
   {
     // ReSharper disable once StaticMemberInGenericType
-    public static bool Active { get; private set; }
-
+    public static bool Active { get; protected set; }
+    
     protected static void Initialize(string packageId, Action initialize, params Span<string> alternativeIds)
     {
       Active = IsModActive(packageId);
@@ -197,6 +209,12 @@ internal static class ModCompat
             Active = false;
           }
         }
+      }
+
+      var t = new T();
+      if (Active && t.ShouldDrawSectionLayers)
+      {
+        VehicleSectionLayerManager.CompatClassesForDrawLayers.Add(t);
       }
     }
   }
@@ -308,6 +326,42 @@ internal static class ModCompat
         SectionLayer_PipeOverlay_mode = AccessTools.FieldRefAccess<int>("DubsBadHygiene.SectionLayer_PipeOverlay:mode");
       }, "Dubwise.DubsBadHygiene.Lite");
     }
+    
+    protected override bool ShouldDrawSectionLayers => !LiteMode;
+
+    public override void DrawSectionLayers(VehicleSectionLayerManager component, Section section, Vector3 drawPos,
+      Rot8 rot, float angle)
+    {
+      var selDesignator = Find.DesignatorManager.SelectedDesignator;
+      var sewagePipeOverlay = component.GetLayer(section, SectionLayer_SewagePipeOverlay, default);
+      var airDuctOverlay = component.GetLayer(section, SectionLayer_AirDuctOverlay, default);
+      CompProperties compProperties;
+      if (selDesignator is Designator_Build { PlacingDef: ThingDef thingDef } &&
+          (compProperties =
+            thingDef.comps.Find(c => CompProperties_Pipe?.IsAssignableFrom(c.GetType()) ?? false)) !=
+          null)
+      {
+        var mode = CompProperties_Pipe_mode(compProperties);
+        if (sewagePipeOverlay is not null & SectionLayer_PipeOverlay_mode(sewagePipeOverlay) == mode)
+        {
+          VehicleSectionLayerManager.DrawLayer(component, section, SectionLayer_SewagePipeOverlay, drawPos.Yto0(), rot, angle);
+        }
+
+        if (airDuctOverlay is not null && SectionLayer_PipeOverlay_mode(airDuctOverlay) == mode)
+        {
+          VehicleSectionLayerManager.DrawLayer(component, section, SectionLayer_AirDuctOverlay, drawPos.Yto0(), rot, angle);
+        }
+
+        if (Time.frameCount % 120 == 0)
+        {
+          component.GetLayer(section, SectionLayer_SewagePipeOverlay, rot)?.Regenerate();
+          component.GetLayer(section, SectionLayer_AirDuctOverlay, rot)?.Regenerate();
+        }
+      }
+
+      VehicleSectionLayerManager.DrawLayer(component, section, SectionLayer_Irrigation, drawPos.Yto0(), rot, angle);
+      VehicleSectionLayerManager.DrawLayer(component, section, SectionLayer_FertilizerGrid, drawPos.Yto0(), rot, angle);
+    }
   }
 
   public class Rimefeller : CompatBase<Rimefeller>
@@ -337,6 +391,35 @@ internal static class ModCompat
         SectionLayer_PipeOverlay_mode = AccessTools.FieldRefAccess<int>("Rimefeller.SectionLayer_PipeOverlay:mode");
       });
     }
+
+    protected override bool ShouldDrawSectionLayers => true;
+    
+    public override void DrawSectionLayers(VehicleSectionLayerManager component, Section section, Vector3 drawPos,
+      Rot8 rot, float angle)
+    {
+      var selDesignator = Find.DesignatorManager.SelectedDesignator;
+      var sewagePipeOverlay = component.GetLayer(section, SectionLayer_SewagePipe, rot);
+      CompProperties compProperties;
+      if (selDesignator is Designator_Build { PlacingDef: ThingDef thingDef } &&
+          (compProperties =
+            thingDef.comps.Find(c => CompProperties_Pipe?.IsAssignableFrom(c.GetType()) ?? false)) != null)
+      {
+        var mode = CompProperties_Pipe_mode(compProperties);
+        if (sewagePipeOverlay != null & SectionLayer_PipeOverlay_mode(sewagePipeOverlay) == mode)
+        {
+          VehicleSectionLayerManager.DrawLayer(component, section, SectionLayer_SewagePipe, drawPos.Yto0(), rot, angle);
+        }
+
+        if (Time.frameCount % 120 == 0)
+        {
+          component.GetLayer(section, SectionLayer_SewagePipe, rot)?.Regenerate();
+        }
+      }
+
+      VehicleSectionLayerManager.DrawLayer(component, section, XSectionLayer_Napalm, drawPos, rot, angle);
+      VehicleSectionLayerManager.DrawLayer(component, section, XSectionLayer_OilSpill, drawPos, rot, angle);
+      VehicleSectionLayerManager.DrawLayer(component, section, SectionLayer_ThingsPipe, drawPos, rot, angle);
+    }
   }
 
   public class DefenseGrid : CompatBase<DefenseGrid>
@@ -364,6 +447,20 @@ internal static class ModCompat
         RepaintGrid = MethodInvoker.GetHandler(AccessTools.Method(InterceptorMapComponent, nameof(RepaintGrid)));
         UnpaintGrid = MethodInvoker.GetHandler(AccessTools.Method(InterceptorMapComponent, nameof(UnpaintGrid)));
       });
+    }
+
+    protected override bool ShouldDrawSectionLayers => true;
+    
+    public override void DrawSectionLayers(VehicleSectionLayerManager component, Section section, Vector3 drawPos,
+      Rot8 rot, float angle)
+    {
+      var selDesignator = Find.DesignatorManager.SelectedDesignator;
+      if (selDesignator is Designator_Build { PlacingDef: ThingDef thingDef } &&
+          thingDef.HasComp(CompDefenseConduit) ||
+          Designator_DeconstructConduit.IsInstanceOfType(selDesignator))
+      {
+        VehicleSectionLayerManager.DrawLayer(component, section, SectionLayer_DefenseGridOverlay, drawPos.Yto0(), rot, angle);
+      }
     }
   }
 
@@ -412,6 +509,8 @@ internal static class ModCompat
     public static FastInvokeHandler ShouldDraw { get; private set;}
     public static AccessTools.FieldRef<Def> pipeNetDef { get; private set;}
 
+    private static Def pipeNet;
+
     static VFECore()
     {
       Initialize("OskarPotocki.VanillaFactionsExpanded.Core", () =>
@@ -421,6 +520,26 @@ internal static class ModCompat
         ShouldDraw = MethodInvoker.GetHandler(AccessTools.PropertyGetter(SectionLayer_Resource, nameof(ShouldDraw)));
         pipeNetDef = AccessTools.StaticFieldRefAccess<Def>(AccessTools.Field(SectionLayer_Resource, "pipeNet"));
       });
+    }
+    
+    protected override bool ShouldDrawSectionLayers => true;
+
+    public override void DrawSectionLayers(VehicleSectionLayerManager component, Section section, Vector3 drawPos,
+      Rot8 rot, float angle)
+    {
+      var layer = component.GetLayer(section, SectionLayer_Resource, rot);
+      if (layer != null && (bool)ShouldDraw(layer))
+      {
+        var curPipeNetDef = pipeNetDef();
+        if (pipeNet != curPipeNetDef)
+        {
+          pipeNet = curPipeNetDef;
+          if (component.map.IsVehicleMapOf(out var vehicle))
+            vehicle.CurrentLevel.mapDrawer.WholeMapChanged(455UL);
+        }
+
+        VehicleSectionLayerManager.DrawLayer(layer, drawPos, angle);
+      }
     }
   }
 
@@ -504,6 +623,118 @@ internal static class ModCompat
     }
   }
 
+  public class AsAboveSoBelow : CompatBase<AsAboveSoBelow>
+  {
+    public const string HarmonyId = "astryl.asabovesobelow";
+    public static Func<int, int> SlotFor;
+    public static FieldInfo pending;
+    public static Func<int> UpperLevels;
+    public static ConstructorInfo PendingLayout;
+    public static FieldInfo bandCount;
+    public static FieldInfo bandHeight;
+    public static Func<Map, MapComponent> CompOf;
+    public static AccessTools.FieldRef<MapComponent, int> surfaceBand;
+    public static Func<MapComponent, bool> Banded;
+    public static Func<MapComponent, IntVec3, int> BandOf;
+    public static Func<MapComponent, IntVec3, int, IntVec3> Translate;
+    public static Func<Map, int> CurrentBand;
+    public static Func<Map, int, CellRect> RectOfBand;
+    public delegate bool GetBandRect(Map map, IntVec3 c, out CellRect band);
+    public static GetBandRect TryBandRectOf;
+    public static FastInvokeHandler TryResolveVisibleBelow;
+    public static Func<Pawn, Vector3, Vector3> LocalizeForPawn;
+    private static Type SectionLayer_ABBelowV2;
+    
+    static AsAboveSoBelow()
+    {
+      Initialize("astryl.AsAboveSoBelow2", () =>
+      {
+        SlotFor = AccessTools.MethodDelegate<Func<int, int>>("AsAboveSoBelow.ABBandMap:SlotFor");
+        pending = AccessTools.Field("AsAboveSoBelow.ABBandedGeneration:pending");
+        UpperLevels = AccessTools.MethodDelegate<Func<int>>("AsAboveSoBelow.ABMapSizeLimit:get_UpperLevels");
+        var t_PendingLayout = GenTypes.GetTypeInAnyAssembly("AsAboveSoBelow.ABBandedGeneration+PendingLayout");
+        PendingLayout = AccessTools.Constructor(t_PendingLayout);
+        bandCount = AccessTools.Field(t_PendingLayout, "bandCount");
+        bandHeight = AccessTools.Field(t_PendingLayout, "bandHeight");
+        CompOf = AccessTools.MethodDelegate<Func<Map, MapComponent>>("AsAboveSoBelow.ABBands:CompOf");
+        surfaceBand = AccessTools.FieldRefAccess<int>("AsAboveSoBelow.ABBandMap:surfaceBand");
+        var handler = MethodInvoker.GetHandler(AccessTools.PropertyGetter("AsAboveSoBelow.ABBandMap:Banded"));
+        Banded = component => (bool)handler(component);
+        var handler2 = MethodInvoker.GetHandler(AccessTools.Method("AsAboveSoBelow.ABBandMap:BandOf"));
+        BandOf = (component, c) => (int)handler2(component, Params<ValueTuple<IntVec3>>.Get(new ValueTuple<IntVec3>(c)));
+        var handler3 = MethodInvoker.GetHandler(AccessTools.Method("AsAboveSoBelow.ABBandMap:Translate"));
+        Translate = (component, c, toBand) => (IntVec3)handler3(component, Params<(IntVec3, int)>.Get((c, toBand)));
+        CurrentBand = AccessTools.MethodDelegate<Func<Map, int>>("AsAboveSoBelow.ABBandView:CurrentBand");
+        RectOfBand = AccessTools.MethodDelegate<Func<Map, int, CellRect>>("AsAboveSoBelow.ABBands:RectOfBand");
+        TryBandRectOf = AccessTools.MethodDelegate<GetBandRect>("AsAboveSoBelow.ABBandSafety:TryBandRectOf");
+        TryResolveVisibleBelow = MethodInvoker.GetHandler(AccessTools.Method("AsAboveSoBelow.ABBands:TryResolveVisibleBelow"));
+        LocalizeForPawn = AccessTools.MethodDelegate<Func<Pawn, Vector3, Vector3>>("AsAboveSoBelow.ABUIGeometry:LocalizeForPawn");
+        SectionLayer_ABBelowV2 = GenTypes.GetTypeInAnyAssembly("AsAboveSoBelow.SectionLayer_ABBelowV2", "AsAboveSoBelow");
+        VehicleSectionLayerManager.OrientedSectionLayerTypes.Add(SectionLayer_ABBelowV2);
+      });
+    }
+
+    public static void CopyBoolGrid(VehiclePawnWithMap vehicle, BoolGrid grid)
+    {
+      if (Active &&
+          CompOf(vehicle.VehicleMap) is { } comp &&
+          Banded(comp))
+      {
+        var cellRect = vehicle.MapRect;
+        for (var i = 1; i <= UpperLevels(); i++)
+        {
+          var origin = RectOfBand(vehicle.VehicleMap, i).Min;
+          foreach (var c in cellRect)
+          {
+            grid[c + origin] = grid[c];
+          }
+        }
+      }
+    }
+    
+    protected override bool ShouldDrawSectionLayers => true;
+
+    public override void DrawSectionLayers(VehicleSectionLayerManager component, Section section, Vector3 drawPos,
+      Rot8 rot, float angle)
+    {
+      VehicleSectionLayerManager.DrawLayer(component, section, SectionLayer_ABBelowV2,
+        drawPos.WithYOffset(-Altitudes.AltInc * 20f / VehicleMapUtility.YCompress), rot, angle);
+    }
+
+    public static IntVec3 TranslateToThingBand(IntVec3 c, Thing thing)
+    {
+      if (!Active) return c;
+      if (CompOf(thing.Map) is { } comp && Banded(comp))
+      {
+        return Translate(comp, c, BandOf(comp, thing.Position));
+      }
+
+      return c;
+    }
+
+    public static TargetBand? GetTargetBand(Thing thing)
+    {
+      if (!Active || thing is null) return null;
+      
+      var comp = CompOf(thing.Map);
+      if (comp is null) return null;
+      
+      if (!Banded(comp)) return null;
+      
+      var band = BandOf(comp, thing.Position);
+      if (band == surfaceBand(comp)) return null;
+      
+      return new TargetBand(comp, band);
+    }
+
+    public readonly struct TargetBand(MapComponent comp, int band)
+    {
+      public readonly MapComponent comp = comp;
+      public readonly int band = band;
+      public Map Map => comp.map;
+    }
+  }
+
   public class Rimatomics : CompatBase<Rimatomics>
   {
     public static Type CompProperties_Pipe { get; private set;}
@@ -530,6 +761,38 @@ internal static class ModCompat
         SectionLayer_ThingsPipe = GenTypes.GetTypeInAnyAssembly("Rimatomics.SectionLayer_ThingsPipe", nameof(Rimatomics));
         BaseMissile = GenTypes.GetTypeInAnyAssembly("Rimatomics.BaseMissile", nameof(Rimatomics));
       });
+    }
+    
+    protected override bool ShouldDrawSectionLayers => true;
+
+    public override void DrawSectionLayers(VehicleSectionLayerManager component, Section section, Vector3 drawPos,
+      Rot8 rot, float angle)
+    {
+      var designator = Find.DesignatorManager.SelectedDesignator;
+      if (designator?.GetType() == Designator_RemovePipe)
+      {
+        var mode = Designator_RemovePipe_RemovalMode(designator);
+        foreach (var layer in SectionLayer_OverlayPipes)
+        {
+          if (mode == SectionLayer_OverlayPipe_mode(component.GetLayer(section, layer, rot)))
+            VehicleSectionLayerManager.DrawLayer(component, section, layer, drawPos, rot, angle);
+        }
+      }
+      else if (designator is Designator_Build { PlacingDef: ThingDef thingDef })
+      {
+        foreach (var compProperties in thingDef.comps.Where(c =>
+                   c.GetType().SameOrSubclassOf(CompProperties_Pipe)))
+        {
+          var mode = CompProperties_Pipe_mode(compProperties);
+          foreach (var layer in SectionLayer_OverlayPipes)
+          {
+            if (mode == SectionLayer_OverlayPipe_mode(component.GetLayer(section, layer, rot)))
+              VehicleSectionLayerManager.DrawLayer(component, section, layer, drawPos, rot, angle);
+          }
+        }
+      }
+
+      VehicleSectionLayerManager.DrawLayer(component, section, SectionLayer_ThingsPipe, drawPos, rot, angle);
     }
   }
 
@@ -604,6 +867,15 @@ internal static class ModCompat
     {
       return (IEnumerable<Map>)GetOtherMapVerticallyOutwardFromCache(null,
         Params<ValueTuple<object, object, object>>.Get((map, GetCachedLevelMapComp(map), MinusOne)));
+    }
+    
+    protected override bool ShouldDrawSectionLayers => true;
+
+    public override void DrawSectionLayers(VehicleSectionLayerManager component, Section section, Vector3 drawPos,
+      Rot8 rot, float angle)
+    {
+      if (component.map.IsVehicleMapOf(out var vehicle) && vehicle.CurrentLevel != vehicle.VehicleMap)
+        VehicleSectionLayerManager.DrawLayer(component, section, SectionLayer_LowerLevel, drawPos, rot, angle);
     }
   }
 

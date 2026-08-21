@@ -20,4 +20,5 @@ public class VehicleRoleBuildable : VehicleRole
     }
 
     public CompBuildableUpgrades upgradeComp;
+    public PawnOverlayRenderer sourceRenderer;
 }

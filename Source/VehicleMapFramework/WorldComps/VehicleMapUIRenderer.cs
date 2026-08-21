@@ -13,7 +13,6 @@ namespace VehicleMapFramework;
 
 public class VehicleMapUIRenderer(Game game) : GameComponent
 {
-
   public enum DurationType
   {
     Time,
@@ -96,7 +95,7 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
     if (component?.camera is null || component.commandBuffer is null)
       return BaseContent.BadTex;
     var camera = component.camera;
-    var key = new CacheKey(texSize, vehicle);
+    var key = new CacheKey(texSize, vehicle, rot);
     var cache = component.GetOrCreateCachedMapTexture(key);
     if (!cache.Dirty)
     {
@@ -104,7 +103,7 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
       return cache.RenderTexture;
     }
 
-    var mapSize = vehicle.VehicleMap.Size.ToVector2();
+    var mapSize = vehicle.MapSize.ToVector2();
     var mapOrigin = new Vector3(-mapSize.x / 2f, 0f, -mapSize.y / 2f).RotatedBy(rot);
     var proportions = drawSize ?? mapSize;
     var offset = drawOffset ?? Vector3.zero;
@@ -130,7 +129,7 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
     if (component?.camera is null || component.commandBuffer is null)
       return BaseContent.BadTex;
 
-    var key = new CacheKey(texSize, vehicle, overlay);
+    var key = new CacheKey(texSize, vehicle, rot, overlay);
     var cache = component.GetOrCreateCachedMapTexture(key);
     if (!cache.Dirty)
     {
@@ -157,7 +156,7 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
     var overlayPos = VehicleMapUtility.OffsetFor(vehicle, rot) +
                      vehicle.VehicleGraphic.DrawOffset(rot) -
                      overlay.Graphic.DrawOffset(rot);
-    var mapOrigin = new Vector3(-vehicle.VehicleMap.Size.x / 2f, 0f, -vehicle.VehicleMap.Size.z / 2f).RotatedBy(rot) +
+    var mapOrigin = new Vector3(-vehicle.MapSize.x / 2f, 0f, -vehicle.MapSize.z / 2f).RotatedBy(rot) +
                     overlayPos;
 
     var offset = drawSizeRotated.ToVector3() / 2f;
@@ -297,7 +296,7 @@ public class VehicleMapUIRenderer(Game game) : GameComponent
     };
   }
 
-  private readonly record struct CacheKey(TexSize size, VehiclePawnWithMap vehicle, [UsedImplicitly] GraphicOverlay overlay = null);
+  private readonly record struct CacheKey(TexSize size, VehiclePawnWithMap vehicle, Rot4 rot, [UsedImplicitly] GraphicOverlay overlay = null);
 
   public readonly struct CachedMapTexture(RenderTexture renderTexture, bool dirty)
   {

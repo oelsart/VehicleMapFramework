@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+
+  <ScenPartDef>
+    <defName>VMF_StartOnMapVehicle</defName>
+    <label>start on map vehicle</label>
+    <category>Fixed</category>
+    <scenPartClass>VehicleMapFramework.ScenPart_StartOnMapVehicle</scenPartClass>
+    <summaryPriority>475</summaryPriority>
+    <canBeRandomlyAdded>false</canBeRandomlyAdded>
+  </ScenPartDef>
+  
+  <ScenPartDef>
+    <defName>VMF_StartingMapVehicle</defName>
+    <label>start with map vehicle(s)</label>
+    <scenPartClass>VehicleMapFramework.ScenPart_StartingMapVehicle</scenPartClass>
+    <category>StartingImportant</category>
+    <selectionWeight>1.0</selectionWeight>
+    <summaryPriority>309</summaryPriority>
+  </ScenPartDef>
+  
+</Defs>

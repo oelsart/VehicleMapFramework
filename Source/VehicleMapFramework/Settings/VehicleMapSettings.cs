@@ -22,7 +22,7 @@ public class VehicleMapSettings : ModSettings
     
     public bool includeMapThings = Default.includeMapThings;
     
-    public bool aStarTraverse = Default.aStarTraverse;
+    public bool legacyCanReach = Default.legacyCanReach;
 
     public bool joyPatches = Default.joyPatches;
 
@@ -50,7 +50,7 @@ public class VehicleMapSettings : ModSettings
         Scribe_Values.Look(ref crossMapJobProtect, nameof(crossMapJobProtect), Default.crossMapJobProtect);
         Scribe_Values.Look(ref drawVehicleMapGrid, nameof(drawVehicleMapGrid), Default.drawVehicleMapGrid);
         Scribe_Values.Look(ref includeMapThings, nameof(includeMapThings), Default.includeMapThings);
-        Scribe_Values.Look(ref aStarTraverse, nameof(aStarTraverse), Default.aStarTraverse);
+        Scribe_Values.Look(ref legacyCanReach, nameof(legacyCanReach), Default.legacyCanReach);
         Scribe_Values.Look(ref joyPatches, nameof(joyPatches), Default.joyPatches);
         Scribe_Values.Look(ref treatAsPlayerHome, nameof(treatAsPlayerHome), Default.treatAsPlayerHome);
         Scribe_Values.Look(ref colonistBarMode, nameof(colonistBarMode), Default.colonistBarMode);
@@ -61,7 +61,7 @@ public class VehicleMapSettings : ModSettings
         Scribe_Values.Look(ref dynamicPatchLevel, nameof(dynamicPatchLevel), Default.dynamicPatchLevel);
     }
 
-    internal class Default
+    internal static class Default
     {
         public const bool drawPlanet = true;
 
@@ -79,7 +79,7 @@ public class VehicleMapSettings : ModSettings
         
         public const bool includeMapThings = true;
         
-        public const bool aStarTraverse = false;
+        public const bool legacyCanReach = false;
 
         public const bool joyPatches = false;
 

@@ -1,12 +1,18 @@
 ﻿using System.Text.RegularExpressions;
 using System.Xml.Linq;
+using DevTools.Testing;
 using Verse;
 
 namespace VehicleMapFramework.Test_Logics;
 
-public class Logger_JUnit : CustomLoggerBase
+public class Logger_JUnit : ILogWriter
 {
-
+  protected const string Tab = "--\t";
+  protected const string Space = "  ";
+  protected const string PassedLabel = "[Passed]";
+  protected const string FailedLabel = "[Failed]";
+  protected const string SkippedLabel = "[Skipped]";
+  
   private const string TestSuiteName = "testsuite";
   private const string TestCaseName = "testcase";
   private const string NameAttribute = "name";
@@ -20,14 +26,30 @@ public class Logger_JUnit : CustomLoggerBase
   private readonly Stack<XTestCase> testCaseStack = [];
   private readonly XTestSuite testsuite = new(TestSuiteName);
   private XElement failure;
+  
+  private readonly FileStream fileStream;
+  private readonly StreamWriter writer;
 
-  public Logger_JUnit(Config config) : base(config)
+  public Logger_JUnit(Logger logger)
+  {
+    var mode = FileMode.Append;
+    if (logger.IsOwner)
+    {
+      // Creates or clears log file, we can immediately close it
+      // since we want to open with StreamWriter with append mode.
+      mode = FileMode.Create;
+    }
+    fileStream = new FileStream(logger.LogConfig.FullPath, mode, FileAccess.Write, FileShare.ReadWrite);
+    writer = new StreamWriter(fileStream);
+  }
+  
+  void ILogWriter.PostInit()
   {
     testsuite.SetAttributeValue(NameAttribute, "Local test by DevTools");
     document.Add(testsuite);
   }
 
-  public override void WriteCustom(string message)
+  void ILogWriter.WriteLine(string message)
   {
     if (message.NullOrEmpty()) return;
 
@@ -81,13 +103,22 @@ public class Logger_JUnit : CustomLoggerBase
     }
   }
 
-  public override void DisposeCustom(StreamWriter writer)
+  void ILogWriter.Flush()
+  {
+    writer.Flush();
+  }
+
+  void IDisposable.Dispose()
   {
     WriteTestResults();
     // ファイルを空にする
     writer.BaseStream.SetLength(0);
     writer.BaseStream.Position = 0;
     document.Save(writer);
+    fileStream.Dispose();
+    testsuite.RemoveAll();
+    testCaseStack.Clear();
+    failure = null;
     return;
 
     void WriteTestResults()

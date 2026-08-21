@@ -15,6 +15,7 @@ using VehicleMapFramework.VMF_HarmonyPatches;
 using Vehicles;
 using Vehicles.World;
 using Verse;
+using Verse.AI;
 using Verse.AI.Group;
 #if DEV
 using Vehicles.Rendering;
@@ -25,8 +26,9 @@ namespace VehicleMapFramework;
 public class MapVehicleEventDef : Def;
 
 [StaticConstructorOnStartup]
-public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
+public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>, IAttackTarget
 {
+  private bool generatingVehicleMap;
   private Map interiorMap;
   private VehicleMapFollower mapFollower;
 
@@ -47,8 +49,6 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
 
   private readonly List<CompVehicleEnterSpot> tmpEnterComps = [];
 
-  private static Def pipeNetDef;
-
   private static readonly Material ClipMat =
     SolidColorMaterials.NewSolidColorMaterial(new Color(0.3f, 0.1f, 0.1f, 0.5f), ShaderDatabase.MetaOverlay);
 
@@ -67,7 +67,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     MethodInvoker.GetHandler(AccessTools.Method(typeof(DesignationManager), "DirtyCellDesignationsCache"));
 
   private static readonly List<DesignationDef> cellDesignations =
-    DefDatabase<DesignationDef>.AllDefs.Where(d => d.targetType == TargetType.Cell).ToList();
+    [.. DefDatabase<DesignationDef>.AllDefs.Where(d => d.targetType == TargetType.Cell)];
 
   internal static readonly AccessTools.FieldRef<MapDrawer, Section[,]> sections =
     AccessTools.FieldRefAccess<MapDrawer, Section[,]>("sections");
@@ -76,6 +76,8 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
 
   public EventManager<MapVehicleEventDef> MapVehicleEventManager =>
     ((IEventManager<MapVehicleEventDef>)this).EventRegistry;
+  
+  public VehicleMapProps VehicleMapProps => field ??= def.GetModExtension<VehicleMapProps>();
 
   public Map VehicleMap
   {
@@ -89,6 +91,11 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
       return interiorMap;
     }
   }
+  
+  // AsAboveSoBelowで生成されるBandを無視したマップサイズ
+  public IntVec3 MapSize{ get; private set; }
+
+  public CellRect MapRect => [with(0, 0, MapSize.x, MapSize.z)];
 
   public Map CurrentLevel
   {
@@ -105,6 +112,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
   [UsedImplicitly] public bool AllowExit => allowExit;
 
   [CanBeNull]
+  // TODO VF Updates: VF-393によるStashedVehicleもParentHolderで取得可能となる予定
   public WorldObject VehicleCaravanOrStashedVehicle
   {
     get
@@ -120,88 +128,96 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     }
   }
 
-  public HashSet<IntVec3> CachedImpassableCells
+  public BoolGrid ImpassableCellGrid
   {
     get
     {
       if (impassableCellsDirty)
       {
         impassableCellsDirty = false;
+        field ??= new BoolGrid(interiorMap);
         field.Clear();
-        var sizeX = interiorMap.Size.x;
-        var sizeZ = interiorMap.Size.z;
+        var sizeX = MapSize.x;
+        var sizeZ = MapSize.z;
         var terrainGrid = interiorMap.terrainGrid;
         for (var x = 0; x < sizeX; x++)
         {
           for (var z = 0; z < sizeZ; z++)
           {
             if (terrainGrid.TerrainAt(z * sizeX + x) is { passability: Traversability.Impassable })
-              field.Add(new IntVec3(x, 0, z));
+              field[new IntVec3(x, 0, z)] = true;
           }
         }
 
         var list = interiorMap.listerThings.ThingsOfDef(VMF_DefOf.VMF_VehicleStructureFilled);
         for (var i = 0; i < list.Count; i++)
         {
-          field.Add(list[i].Position);
+          field[list[i].Position] = true;
         }
+        AsAboveSoBelow.CopyBoolGrid(this, field);
       }
 
       return field;
     }
-  } = [];
+  }
 
-  public HashSet<IntVec3> CachedEmptyStructureCells
+  public BoolGrid EmptyStructureGrid
   {
     get
     {
       if (field is not null) return field;
-      var props = VehicleDef.GetModExtension<VehicleMapProps>();
-      if (props != null)
+      
+      field = new BoolGrid(interiorMap);
+      var props = VehicleMapProps;
+      if (props is not null)
       {
-        field = [.. props.EmptyStructureCells.Select(c => c.ToIntVec3)];
-      }
-      else
-      {
-        field = [];
-      }
-
-      return field;
-    }
-  }
-
-  public HashSet<IntVec3> CachedExpandableCells
-  {
-    get
-    {
-      if (field != null) return field;
-      var props = VehicleDef.GetModExtension<VehicleMapProps>();
-      if (props != null)
-      {
-        field = [.. props.ExpandableCells.Select(c => c.ToIntVec3)];
-      }
-      else
-      {
-        field = [];
+        foreach (var c in props.EmptyStructureCells)
+        {
+          field[c.ToIntVec3] = true;
+        }
+        AsAboveSoBelow.CopyBoolGrid(this, field);
       }
 
       return field;
     }
   }
 
-  public HashSet<IntVec3> CachedOutOfBoundsCells
+  public BoolGrid ExpandableGrid
   {
     get
     {
-      if (field != null) return field;
-      var props = VehicleDef.GetModExtension<VehicleMapProps>();
-      if (props != null)
+      if (field is not null) return field;
+      
+      field = new BoolGrid(interiorMap);
+      var props = VehicleMapProps;
+      if (props is not null)
       {
-        field = [.. props.OutOfBoundsCells.Select(c => c.ToIntVec3)];
+        foreach (var c in props.ExpandableCells)
+        {
+          field[c.ToIntVec3] = true;
+        }
+        AsAboveSoBelow.CopyBoolGrid(this, field);
       }
-      else
+
+      return field;
+    }
+  }
+
+  public BoolGrid OutOfBoundsGrid
+  {
+    get
+    {
+      if (field is not null) return field;
+      
+      field = new BoolGrid(interiorMap);
+      var props = VehicleMapProps;
+      if (props is not null)
       {
-        field = [];
+        foreach (var c in props.OutOfBoundsCells)
+        {
+          field[c.ToIntVec3] = true;
+        }
+        AsAboveSoBelow.CopyBoolGrid(this, field);
       }
 
       return field;
@@ -228,8 +244,9 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
         walkableCellsDirty = true;
         enterPositionsDirty = true;
         field.Clear();
-        var cellRect = interiorMap.BoundsRect(1);
-        var cachedImpassableCells = CachedImpassableCells;
+        var mapSize = MapSize;
+        var cellRect = new CellRect(1, 1, mapSize.x - 1, mapSize.z - 1);
+        var impassableGrid = ImpassableCellGrid;
         for (var i = 0; i < 4; i++)
         {
           var rot = new Rot4(i);
@@ -238,12 +255,12 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
           foreach (var c in cellRect.EdgeRectClockwise(rot))
           {
             var c2 = c;
-            while (cachedImpassableCells.Contains(c2))
+            while (cellRect.Contains(c2) && impassableGrid[c2])
             {
               c2 += facingInside;
             }
 
-            if (c2.InBounds(interiorMap) && !cachedImpassableCells.Contains(c2))
+            if (cellRect.Contains(c2) && !impassableGrid[c2])
             {
               field.AddUnique(c2);
             }
@@ -360,6 +377,11 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
   private FetchedComp<CompDelayedKill> _compDelayedKill;
   public CompDelayedKill CompDelayedKill => (_compDelayedKill ??= new FetchedComp<CompDelayedKill>(this)).Value;
 
+  private FetchedComp<CompVehicleDrawOffset> _compVehicleDrawOffset;
+
+  public CompVehicleDrawOffset CompVehicleDrawOffset =>
+    (_compVehicleDrawOffset ??= new FetchedComp<CompVehicleDrawOffset>(this)).Value;
+
   private FetchedComp<VehicleComp> _compVehicleHover;
 
   protected VehicleComp CompVehicleHover =>
@@ -379,9 +401,13 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
 
   public List<CompBuildableContainer> ContainerComps { get; } = [];
 
-  public override Vector3 DrawPos => Spawned && Find.CurrentMap != CurrentLevel ? base.DrawPos : cachedDrawPos;
+  public override Vector3 DrawPos => Spawned && Find.CurrentMap != CurrentLevel
+    ? base.DrawPos
+    : cachedDrawPos - (CompVehicleDrawOffset?.DrawOffsetFull(FullRotation) ?? Vector3.zero);
 
-  public new float TargetPriorityFactor => 0.15f;
+  public override Vector2 DrawSize => VehicleDef.IsUniqueVehicle ? VehicleDef.Size.ToVector2() : base.DrawSize;
+
+  float IAttackTarget.TargetPriorityFactor => 0.15f;
 
   public override IEnumerable<Gizmo> GetGizmos()
   {
@@ -529,16 +555,26 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     };
   }
 
-  public List<CompVehicleEnterSpot> GetSortedEnterComps(IntVec3 cell, EnterCompKind kind = EnterCompKind.All)
+  public List<CompVehicleEnterSpot> GetSortedEnterComps(IntVec3 cell,
+    CompVehicleEnterSpot.Kind kind = CompVehicleEnterSpot.Kind.All)
   {
     tmpEnterComps.Clear();
     if (EnterComps.Empty()) return tmpEnterComps;
     for (var i = 0; i < EnterComps.Count; i++)
     {
       var comp = EnterComps[i];
-      if (kind == EnterCompKind.RampOnly && !comp.Props.allowPassingVehicle ||
-          kind == EnterCompKind.ZiplineOnly && comp is not CompZipline) continue;
-      if (comp.parent.Position.Walkable(interiorMap) && comp.Available) tmpEnterComps.Add(comp);
+      switch (kind)
+      {
+        case CompVehicleEnterSpot.Kind.RampOnly when !comp.Props.allowPassingVehicle:
+        case CompVehicleEnterSpot.Kind.GroundAccessOnly when !comp.Props.canAccessToGround:
+        case CompVehicleEnterSpot.Kind.DirectAccessOnly when !comp.Props.canAccessVehicleToVehicle:
+          continue;
+        case CompVehicleEnterSpot.Kind.All:
+        default:
+          break;
+      }
+
+      if (comp.parent.Position.Walkable(interiorMap)) tmpEnterComps.Add(comp);
     }
 
     tmpEnterComps.SortBy(c => c.parent.Position.DistanceToSquared(cell));
@@ -552,17 +588,18 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
       VMF_Log.Error("Tried to generate vehicle map for destroyed vehicle.");
       return;
     }
-    
+
+    generatingVehicleMap = true;
     if (MapGenerator.mapBeingGenerated is not null)
     {
-      LongEventHandler.ExecuteWhenFinished(() => GenerateVehicleMap(sourceMap));
+      if (!generatingVehicleMap)
+        LongEventHandler.ExecuteWhenFinished(() => GenerateVehicleMap(sourceMap));
       return;
     }
 
     try
     {
-      VehicleMapProps props;
-      if ((props = def.GetModExtension<VehicleMapProps>()) != null)
+      if (VehicleMapProps is { } props)
       {
         var mapParent = (MapParent_Vehicle)WorldObjectMaker.MakeWorldObject(VMF_DefOf.VMF_VehicleMap);
         mapParent.mapGenerator = VMF_DefOf.VMF_VehicleMapGenerator;
@@ -572,6 +609,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
         var mapSize = new IntVec3(props.size.x, 1, props.size.z);
         mapSize.x += 2;
         mapSize.z += 2;
+        MapSize = mapSize;
         mapParent.sourceMap = sourceMap;
         interiorMap = MapGenerator.GenerateMap(mapSize, mapParent, mapParent.MapGeneratorDef,
           mapParent.ExtraGenStepDefs, isPocketMap: true);
@@ -582,26 +620,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
         }
 
         Find.World.pocketMaps.Add(mapParent);
-
-        foreach (var c in props.FilledStructureCells)
-        {
-          GenSpawn.Spawn(VMF_DefOf.VMF_VehicleStructureFilled, c.ToIntVec3, interiorMap).SetFaction(Faction);
-        }
-
-        foreach (var c in props.EmptyStructureCells)
-        {
-          interiorMap.terrainGrid.SetTerrain(c.ToIntVec3, VMF_DefOf.VMF_ImpassableFloor);
-        }
-
-        foreach (var c in props.ExpandableCells)
-        {
-          interiorMap.terrainGrid.SetTerrain(c.ToIntVec3, VMF_DefOf.VMF_ImpassableFloor);
-        }
-
-        foreach (var c in CachedOutOfBoundsCells)
-        {
-          interiorMap.terrainGrid.SetTerrain(c, VMF_DefOf.VMF_ImpassableFloor);
-        }
+        SpawnStructures(IntVec3.Zero);
       }
 
       interiorMap.events.BuildingSpawned += WalkableCellsDirtyIfNeeded;
@@ -622,6 +641,35 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     catch (Exception ex)
     {
       VMF_Log.Error($"Error while generating vehicle map.\n{ex}");
+    }
+    finally
+    {
+      generatingVehicleMap = false;
+    }
+  }
+
+  internal void SpawnStructures(IntVec3 origin)
+  {
+    if (VehicleMapProps is not { } props) return;
+    
+    foreach (var c in props.FilledStructureCells)
+    {
+      GenSpawn.Spawn(VMF_DefOf.VMF_VehicleStructureFilled, origin + c.ToIntVec3, interiorMap).SetFaction(Faction);
+    }
+
+    foreach (var c in props.EmptyStructureCells)
+    {
+      interiorMap.terrainGrid.SetTerrain(origin + c.ToIntVec3, VMF_DefOf.VMF_ImpassableFloor);
+    }
+
+    foreach (var c in props.ExpandableCells)
+    {
+      interiorMap.terrainGrid.SetTerrain(origin + c.ToIntVec3, VMF_DefOf.VMF_ImpassableFloor);
+    }
+
+    foreach (var c in props.OutOfBoundsCells)
+    {
+      interiorMap.terrainGrid.SetTerrain(origin + c.ToIntVec3, VMF_DefOf.VMF_ImpassableFloor);
     }
   }
 
@@ -662,7 +710,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
       interiorMap.events.PathCostRecalculate += WalkableCellsDirtyIfNeeded;
       _ = CachedMapEdgeCells;
 
-      if (VehicleDef.GetModExtension<VehicleMapProps_Unique>() is { baseDef: not null })
+      if (VehicleMapProps is VehicleMapProps_Unique { baseDef: not null })
       {
         FrameDelay.DelayOne<object>(_ => LongEventHandler.ExecuteWhenFinished(() => this.ResizeNow(false)), null);
       }
@@ -676,8 +724,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
         Find.World.worldObjects.Add(interiorMap.Parent);
       }
 
-      var isGravship = def.HasModExtension<VehicleMapProps_Gravship>();
-      if (isGravship)
+      if (VehicleMapProps is VehicleMapProps_Gravship)
       {
         if (GravshipUtility.GetPlayerGravEngine_NewTemp(interiorMap) is { launchInfo.doNegativeOutcome: true } engine)
         {
@@ -699,7 +746,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
 
     base.SpawnSetup(map, respawningAfterLoad);
     RegisterEvents();
-    CacheDrawPos(DrawPos);
+    RecacheDrawPos(DrawPos);
     VehiclePawnWithMapCache.RegisterVehicle(this);
     mapFollower = new VehicleMapFollower(this);
 
@@ -723,10 +770,10 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
 
   protected override void Tick()
   {
+    Resize();
     if (Spawned)
     {
-      Resize();
-      CacheDrawPos(DrawPos);
+      RecacheDrawPos(DrawPos);
       if (CompDelayedKill is { KillStarted: true })
       {
         CompDelayedKill.CompTick();
@@ -819,6 +866,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
 
         CompDelayedKill.StartKillTimer(destroyMode, spawnWreckage);
       }
+
       return;
     }
 
@@ -860,7 +908,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
               allowDestroyNonDestroyable = false;
             }
             else thing.Destroy();
-    
+
             if (positionOnBaseMap.Walkable(map) &&
                 positionOnBaseMap.GetItemCount(map) < positionOnBaseMap.GetMaxItemsAllowedInCell(map))
             {
@@ -877,6 +925,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
             {
               cell = cell.ClampInsideMap(map);
             }
+
             thing.DeSpawn();
             var terrain = cell.GetTerrain(map);
             if (terrain.IsWater && thing is Filth)
@@ -884,7 +933,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
               thing.Destroy();
               continue;
             }
-            
+
             if (thing is Pawn pawn &&
                 (terrain == TerrainDefOf.WaterDeep || terrain == TerrainDefOf.WaterOceanDeep) &&
                 HealthHelper.AttemptToDrown(pawn))
@@ -893,7 +942,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
               stringBuilder.AppendLine(pawn.LabelCap);
               continue;
             }
-            
+
             FrameDelay.DelayOne(static state =>
             {
               if (!GenPlace.TryPlaceThing(state.thing, state.cell, state.map, ThingPlaceMode.Near))
@@ -901,10 +950,10 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
                 CellFinder.TryFindRandomCellNear(state.cell, state.map, 50,
                   c => GenPlace.TryPlaceThing(state.thing, c, state.map, ThingPlaceMode.Near), out _);
               }
-    
+
               if (state.thing is Pawn { carryTracker.CarriedThing: not null } pawn)
                 pawn.carryTracker.TryDropCarriedThing(pawn.Position, ThingPlaceMode.Near, out _);
-            
+
               if (state.thing is VehiclePawn vehicle &&
                   vehicle.Position.GetTerrain(state.map) is { IsWater: true } &&
                   !vehicle.DrivableRectOnCell(vehicle.Position))
@@ -916,7 +965,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
           }
         }
       }
-    
+
       if (flag)
       {
         string text = "VF_BoatSunkWithPawnsDesc".Translate(LabelShort, stringBuilder.ToString());
@@ -924,7 +973,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
           new TargetInfo(Position, map));
       }
     }
-    
+
     base.Destroy(mode);
     RemoveVehicleMap();
     if (VehicleDef.HasModExtension<VehicleMapProps_Unique>())
@@ -993,14 +1042,31 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
       interiorMap?.rememberedCameraPos.rootPos = drawLoc;
     }
 
-    var drawLoc2 = drawLoc.WithYOffset(-Altitudes.AltInc * 100f);
-    CacheDrawPos(drawLoc2);
+    var drawLoc2 = drawLoc.WithYOffset(-Altitudes.AltInc * 100f) +
+                   (CompVehicleDrawOffset?.DrawOffsetFull(FullRotation) ?? Vector3.zero);
+    RecacheDrawPos(drawLoc2);
     DrawTracker.DynamicDrawPhaseAt(DrawPhase.Draw, in drawLoc2, rot, Transform.rotation.FlipAngle(this));
 
     DrawVehicleMap();
   }
 
-  private void CacheDrawPos(Vector3 drawLoc)
+  public override void DynamicDrawPhaseAt(DrawPhase phase, Vector3 drawLoc, bool flip = false)
+  {
+    var drawLoc2 = drawLoc + (CompVehicleDrawOffset?.DrawOffsetFull(FullRotation) ?? Vector3.zero);
+    base.DynamicDrawPhaseAt(phase, drawLoc2, flip);
+    if (phase == DrawPhase.Draw)
+    {
+      RecacheDrawPos(drawLoc2);
+      if (vehiclePather?.Moving ?? false)
+      {
+        CellDesignationsDirty();
+      }
+
+      DrawVehicleMap();
+    }
+  }
+
+  public void RecacheDrawPos(Vector3 drawLoc)
   {
     if (!UnityData.IsInMainThread) return;
 
@@ -1014,22 +1080,6 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     else
     {
       cachedExactPos = cachedDrawPos;
-    }
-  }
-
-  public override void DynamicDrawPhaseAt(DrawPhase phase, Vector3 drawLoc, bool flip = false)
-  {
-    base.DynamicDrawPhaseAt(phase, drawLoc, flip);
-    if (phase == DrawPhase.Draw)
-    {
-      var drawPos = Spawned ? DrawPos : drawLoc;
-      CacheDrawPos(drawPos);
-      if (vehiclePather?.Moving ?? false)
-      {
-        CellDesignationsDirty();
-      }
-
-      DrawVehicleMap();
     }
   }
 
@@ -1068,10 +1118,13 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     //map.powerNetGrid.DrawDebugPowerNetGrid();
     //DoorsDebugDrawer.DrawDebug();
     //map.mapDrawer.DrawMapMesh();
-    var drawPos = Vector3.zero.ToBaseMapCoord(this);
+    var origin = AsAboveSoBelow.Active
+      ? -AsAboveSoBelow.RectOfBand(map, AsAboveSoBelow.CurrentBand(map)).Min.ToVector3()
+      : Vector3.zero;
+    var drawPos = origin.ToBaseMapCoord(this);
     DrawVehicleMapMesh(drawPos, map);
     DynamicDrawManagerOnVehicle.DrawDynamicThings(map);
-    DrawClippers(map);
+    DrawClippers();
     map.designationManager.DrawDesignations();
     map.overlayDrawer.DrawAllOverlays();
     map.temporaryThingDrawer.Draw();
@@ -1096,6 +1149,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     var component = map.GetCachedMapComponent<VehicleSectionLayerManager>();
     if (component is null) return;
     var dirty = false;
+    var scope = AsAboveSoBelow.Active ? AsAboveSoBelow.RectOfBand(map, AsAboveSoBelow.CurrentBand(map)) : default;
     foreach (var section in sections(mapDrawer))
     {
       if (!dirty && (section.dirtyFlags & (MapMeshFlagDefOf.Things | MapMeshFlagDefOf.Terrain)) > 0UL)
@@ -1105,6 +1159,9 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
         dirty = true;
       }
 
+      if (AsAboveSoBelow.Active && !scope.Overlaps(section.CellRect))
+        continue;
+      
       DrawSection(section, drawPos, component);
     }
   }
@@ -1116,30 +1173,32 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
       .DrawLayer(drawPos);
     ((SectionLayer_SnowOnVehicle)component.GetLayer(section, typeof(SectionLayer_SnowOnVehicle), default))
       .DrawLayer(drawPos.WithYOffset(0.1f));
-    DrawLayer(component.GetLayer(section, typeof(SectionLayer_ThingsGeneral), rot), drawPos);
-    DrawLayer(component, section, typeof(SectionLayer_BuildingsDamage), drawPos);
-    DrawLayer(component, section, typeof(SectionLayer_IndoorMask), drawPos.Yto0());
-    DrawLayer(component, section, typeof(SectionLayer_EdgeShadows), drawPos);
+    var angle = this.FullAngle;
+    VehicleSectionLayerManager.DrawLayer(component.GetLayer(section, typeof(SectionLayer_ThingsGeneral), rot), drawPos, angle);
+    VehicleSectionLayerManager.DrawLayer(component, section, typeof(SectionLayer_BuildingsDamage), drawPos, rot, angle);
+    VehicleSectionLayerManager.DrawLayer(component, section, typeof(SectionLayer_IndoorMask), drawPos.Yto0(), rot, angle);
+    VehicleSectionLayerManager.DrawLayer(component, section, typeof(SectionLayer_EdgeShadows), drawPos, rot, angle);
     ((SectionLayer_SunShadowsOnVehicle)component.GetLayer(section, typeof(SectionLayer_SunShadowsOnVehicle), rot))
       .DrawLayer(drawPos, Transform.rotation - Angle);
+    ((SectionLayer_LightingOnVehicle)component.GetLayer(section, typeof(SectionLayer_LightingOnVehicle), default))
+      .DrawLayer(drawPos);
+    
     if (OverlayDrawHandler.ShouldDrawPowerGrid)
     {
-      DrawLayer(component.GetLayer(section, typeof(SectionLayer_ThingsPowerGrid), rot), drawPos.Yto0());
+      VehicleSectionLayerManager.DrawLayer(component.GetLayer(section, typeof(SectionLayer_ThingsPowerGrid), rot), drawPos.Yto0(), angle);
     }
 
     if (OverlayDrawHandler.ShouldDrawZones)
     {
-      DrawLayer(component, section, t_SectionLayer_Zones, drawPos);
+      VehicleSectionLayerManager.DrawLayer(component, section, t_SectionLayer_Zones, drawPos, rot, angle);
     }
-
-    if (Find.CurrentMap == interiorMap && !VehicleMapFramework.settings.drawPlanet)
+    
+    if (ModsConfig.OdysseyActive)
     {
-      DrawLayer(component, section, typeof(SectionLayer_LightingOverlay), drawPos);
-    }
-    else
-    {
-      ((SectionLayer_LightingOnVehicle)component.GetLayer(section, typeof(SectionLayer_LightingOnVehicle), default))
-        .DrawLayer(drawPos);
+      ((SectionLayer_SubstructurePropsOnVehicle)component.GetLayer(section,
+        typeof(SectionLayer_SubstructurePropsOnVehicle), default))?.DrawLayer(rot, drawPos, Transform.rotation);
+      ((SectionLayer_GravshipHullOnVehicle)component.GetLayer(section, typeof(SectionLayer_GravshipHullOnVehicle),
+        default))?.DrawLayer(rot, drawPos, Transform.rotation);
     }
 
     DrawModLayers(section, drawPos, component);
@@ -1147,202 +1206,52 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
 
   protected virtual void DrawModLayers(Section section, Vector3 drawPos, VehicleSectionLayerManager component)
   {
-    if (VFECore.Active)
+    var angle = this.FullAngle;
+    var rot = FullRotation;
+    foreach (var compat in VehicleSectionLayerManager.CompatClassesForDrawLayers)
     {
-      var layer = component.GetLayer(section, VFECore.SectionLayer_Resource, default);
-      if (layer != null && (bool)VFECore.ShouldDraw(layer))
-      {
-        var curPipeNetDef = VFECore.pipeNetDef();
-        if (pipeNetDef != curPipeNetDef)
-        {
-          pipeNetDef = curPipeNetDef;
-          CurrentLevel.mapDrawer.WholeMapChanged(455UL);
-        }
-
-        DrawLayer(layer, drawPos);
-      }
-    }
-
-    if (DefenseGrid.Active)
-    {
-      var selDesignator = Find.DesignatorManager.SelectedDesignator;
-      if (selDesignator is Designator_Build { PlacingDef: ThingDef thingDef } &&
-          thingDef.HasComp(DefenseGrid.CompDefenseConduit) ||
-          DefenseGrid.Designator_DeconstructConduit.IsInstanceOfType(selDesignator))
-      {
-        DrawLayer(component, section, DefenseGrid.SectionLayer_DefenseGridOverlay, drawPos.Yto0());
-      }
-    }
-
-    if (DubsBadHygiene.Active && !DubsBadHygiene.LiteMode)
-    {
-      var selDesignator = Find.DesignatorManager.SelectedDesignator;
-      var sewagePipeOverlay = component.GetLayer(section, DubsBadHygiene.SectionLayer_SewagePipeOverlay, default);
-      var airDuctOverlay = component.GetLayer(section, DubsBadHygiene.SectionLayer_AirDuctOverlay, default);
-      CompProperties compProperties;
-      if (selDesignator is Designator_Build { PlacingDef: ThingDef thingDef } &&
-          (compProperties =
-            thingDef.comps.Find(c => DubsBadHygiene.CompProperties_Pipe?.IsAssignableFrom(c.GetType()) ?? false)) !=
-          null)
-      {
-        var mode = DubsBadHygiene.CompProperties_Pipe_mode(compProperties);
-        if (sewagePipeOverlay != null & DubsBadHygiene.SectionLayer_PipeOverlay_mode(sewagePipeOverlay) == mode)
-        {
-          DrawLayer(component, section, DubsBadHygiene.SectionLayer_SewagePipeOverlay, drawPos.Yto0());
-        }
-
-        if (airDuctOverlay != null && DubsBadHygiene.SectionLayer_PipeOverlay_mode(airDuctOverlay) == mode)
-        {
-          DrawLayer(component, section, DubsBadHygiene.SectionLayer_AirDuctOverlay, drawPos.Yto0());
-        }
-
-        if (Time.frameCount % 120 == 0)
-        {
-          component.GetLayer(section, DubsBadHygiene.SectionLayer_SewagePipeOverlay, default)?.Regenerate();
-          component.GetLayer(section, DubsBadHygiene.SectionLayer_AirDuctOverlay, default)?.Regenerate();
-        }
-      }
-
-      DrawLayer(component, section, DubsBadHygiene.SectionLayer_Irrigation, drawPos);
-      DrawLayer(component, section, DubsBadHygiene.SectionLayer_FertilizerGrid, drawPos);
-    }
-
-    if (Rimefeller.Active)
-    {
-      var selDesignator = Find.DesignatorManager.SelectedDesignator;
-      var sewagePipeOverlay = component.GetLayer(section, Rimefeller.SectionLayer_SewagePipe, default);
-      CompProperties compProperties;
-      if (selDesignator is Designator_Build { PlacingDef: ThingDef thingDef } &&
-          (compProperties =
-            thingDef.comps.Find(c => Rimefeller.CompProperties_Pipe?.IsAssignableFrom(c.GetType()) ?? false)) != null)
-      {
-        var mode = Rimefeller.CompProperties_Pipe_mode(compProperties);
-        if (sewagePipeOverlay != null & Rimefeller.SectionLayer_PipeOverlay_mode(sewagePipeOverlay) == mode)
-        {
-          DrawLayer(component, section, Rimefeller.SectionLayer_SewagePipe, drawPos.Yto0());
-        }
-
-        if (Time.frameCount % 120 == 0)
-        {
-          component.GetLayer(section, Rimefeller.SectionLayer_SewagePipe, default)?.Regenerate();
-        }
-      }
-
-      DrawLayer(component, section, Rimefeller.XSectionLayer_Napalm, drawPos);
-      DrawLayer(component, section, Rimefeller.XSectionLayer_OilSpill, drawPos);
-      DrawLayer(component, section, Rimefeller.SectionLayer_ThingsPipe, drawPos, FullRotation);
-    }
-
-    if (Rimatomics.Active)
-    {
-      var designator = Find.DesignatorManager.SelectedDesignator;
-      if (designator?.GetType() == Rimatomics.Designator_RemovePipe)
-      {
-        var mode = Rimatomics.Designator_RemovePipe_RemovalMode(designator);
-        foreach (var layer in Rimatomics.SectionLayer_OverlayPipes)
-        {
-          if (mode == Rimatomics.SectionLayer_OverlayPipe_mode(component.GetLayer(section, layer, default)))
-            DrawLayer(component, section, layer, drawPos);
-        }
-      }
-      else if (designator is Designator_Build { PlacingDef: ThingDef thingDef })
-      {
-        foreach (var compProperties in thingDef.comps.Where(c =>
-                   c.GetType().SameOrSubclassOf(Rimatomics.CompProperties_Pipe)))
-        {
-          var mode = Rimatomics.CompProperties_Pipe_mode(compProperties);
-          foreach (var layer in Rimatomics.SectionLayer_OverlayPipes)
-          {
-            if (mode == Rimatomics.SectionLayer_OverlayPipe_mode(component.GetLayer(section, layer, default)))
-              DrawLayer(component, section, layer, drawPos);
-          }
-        }
-      }
-
-      DrawLayer(component, section, Rimatomics.SectionLayer_ThingsPipe, drawPos);
-    }
-
-    if (ModsConfig.OdysseyActive)
-    {
-      var fullRot = FullRotation;
-      ((SectionLayer_SubstructurePropsOnVehicle)component.GetLayer(section,
-        typeof(SectionLayer_SubstructurePropsOnVehicle), default))?.DrawLayer(fullRot, drawPos, Transform.rotation);
-      ((SectionLayer_GravshipHullOnVehicle)component.GetLayer(section, typeof(SectionLayer_GravshipHullOnVehicle),
-        default))?.DrawLayer(fullRot, drawPos, Transform.rotation);
-    }
-
-    if (MultiFloors.Active && CurrentLevel != interiorMap)
-    {
-      DrawLayer(component, section, MultiFloors.SectionLayer_LowerLevel, drawPos, FullRotation);
+      compat.DrawSectionLayers(component, section, drawPos, rot, angle);
     }
   }
 
-  private void DrawLayer(VehicleSectionLayerManager component, Section section, Type layerType, Vector3 drawPos,
-    Rot8 rot = default)
-  {
-    if (layerType is null) return;
-
-    var layer = component.GetLayer(section, layerType, rot);
-    if (layer is null) return;
-
-    DrawLayer(layer, drawPos);
-  }
-
-  private void DrawLayer(SectionLayer layer, Vector3 drawPos)
-  {
-    if (!layer.Visible)
-      return;
-
-    var rot = Quaternion.AngleAxis(this.FullAngle, Vector3.up);
-    for (var i = 0; i < layer.subMeshes.Count; i++)
-    {
-      var subMesh = layer.subMeshes[i];
-      if (subMesh.finalized && !subMesh.disabled)
-      {
-        Graphics.DrawMesh(subMesh.mesh, drawPos, rot, subMesh.material, subMesh.renderLayer);
-      }
-    }
-  }
-
-  private void DrawClippers(Map map)
+  private void DrawClippers()
   {
     if (Command_FocusVehicleMap.FocusLockedVehicle == this || Command_FocusVehicleMap.FocusedVehicle == this)
     {
       var material = ClipMat;
       var quat = this.FullAngleQuat;
-      var size = map.Size;
+      var size = MapSize;
       Vector3 s = new(500f, 1f, size.z);
       Matrix4x4 matrix = default;
-      matrix.SetTRS(new Vector3(-250f, 0f, size.z / 2f).ToBaseMapCoord(this), quat, s);
+      matrix.SetTRS(ToBaseMapCoord(new Vector3(-250f, 0f, size.z / 2f), this), quat, s);
       Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
       matrix = default;
-      matrix.SetTRS(new Vector3(size.x + 250f, 0f, size.z / 2f).ToBaseMapCoord(this), quat, s);
+      matrix.SetTRS(ToBaseMapCoord(new Vector3(size.x + 250f, 0f, size.z / 2f), this), quat, s);
       Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
       s = new Vector3(1000f, 1f, 500f);
       matrix = default;
-      matrix.SetTRS(new Vector3(size.x / 2f, 0f, size.z + 250f).ToBaseMapCoord(this), quat, s);
+      matrix.SetTRS(ToBaseMapCoord(new Vector3(size.x / 2f, 0f, size.z + 250f), this), quat, s);
       Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
       matrix = default;
-      matrix.SetTRS(new Vector3(size.x / 2f, 0f, -250f).ToBaseMapCoord(this), quat, s);
+      matrix.SetTRS(ToBaseMapCoord(new Vector3(size.x / 2f, 0f, -250f), this), quat, s);
       Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
 
       s = Vector3.one;
-      IEnumerable<IntVec3> cells = CachedImpassableCells;
-      if (Find.DesignatorManager.SelectedDesignator is Designator_Build { PlacingDef: ThingDef thingDef } &&
-          thingDef.HasComp<CompMapExpander>())
+      var expander = Find.DesignatorManager.SelectedDesignator is Designator_Build { PlacingDef: ThingDef thingDef } &&
+                     thingDef.HasComp<CompMapExpander>();
+      var impassableGrid = ImpassableCellGrid;
+      foreach (var c in MapRect)
       {
-        cells = cells.Where(c => !CachedExpandableCells.Contains(c));
-      }
-
-      foreach (var c in cells)
-      {
-        matrix.SetTRS(c.ToVector3Shifted().ToBaseMapCoord(), quat, s);
-        Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
+        if (impassableGrid[c] && (!expander || !ExpandableGrid[c]))
+        {
+          matrix.SetTRS(ToBaseMapCoord(c.ToVector3Shifted(), this), quat, s);
+          Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
+        }
       }
     }
 
     var currentMap = Find.CurrentMap;
-    if ((currentMap == map || currentMap == interiorMap) && WorldRendererUtility.DrawingMap &&
+    if ((currentMap == CurrentLevel || currentMap == interiorMap) && WorldRendererUtility.DrawingMap &&
         VehicleMapFramework.settings.drawPlanet)
     {
       var material = MapEdgeClipDrawer.ClipMat;
@@ -1361,6 +1270,17 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
       matrix = default;
       matrix.SetTRS(new Vector3(size.x / 2f, 0f, -250f), Quaternion.identity, s);
       Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
+    }
+    return;
+    
+    Vector3 ToBaseMapCoord(Vector3 original, VehiclePawnWithMap vehicle)
+    {
+      var vehiclePos = vehicle.cachedDrawPos;
+      var mapSize = vehicle.MapSize;
+      var pivot = new Vector3(mapSize.x / 2f, 0, mapSize.z / 2f);
+      var drawPos = (original.YOffset() - pivot).RotatedBy(vehicle.FullAngle) + vehiclePos;
+      drawPos += VehicleMapUtility.OffsetFor(vehicle);
+      return drawPos;
     }
   }
 
@@ -1400,6 +1320,16 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     Scribe_References.Look(ref interiorMap, nameof(interiorMap));
     Scribe_Values.Look(ref allowEnter, nameof(allowEnter));
     Scribe_Values.Look(ref allowExit, nameof(allowExit));
+    
+    if (VehicleMapProps is { } props)
+    {
+      var size = new IntVec3(props.size.x + 2, 1, props.size.z + 2);
+      MapSize = size;
+    }
+    else
+    {
+      MapSize = interiorMap.Size;
+    }
   }
 
   protected override void PostLoad()
@@ -1409,12 +1339,14 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     RegisterEvents();
     CompVehicleTurrets?.RevalidateTurrets();
     ResetRenderStatus();
+    if (VehicleDef.IsUniqueVehicle)
+      this.ResizeNow();
   }
 
   public override void PostMake()
   {
     base.PostMake();
-    if (def.GetModExtension<VehicleMapProps_Unique>() is { baseDef: null })
+    if (VehicleMapProps is VehicleMapProps_Unique { baseDef: null })
     {
       def = UniqueVehicleUtility.ClaimUniqueVehicleDef(VehicleDef);
     }
@@ -1505,12 +1437,5 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     }
 
     vehicle.Transform.rotation = 0f;
-  }
-
-  public enum EnterCompKind
-  {
-    RampOnly,
-    ZiplineOnly,
-    All
   }
 }

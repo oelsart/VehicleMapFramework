@@ -9,7 +9,7 @@ using Verse.AI;
 
 namespace VehicleMapFramework;
 
-public class NonSnapAttackTargetFinderOnVehicle
+public static class NonSnapAttackTargetFinderOnVehicle
 {
   private const float FriendlyFireScoreOffsetPerHumanlikeOrMechanoid = 18f;
 
@@ -19,7 +19,7 @@ public class NonSnapAttackTargetFinderOnVehicle
 
   private const float FriendlyFireScoreOffsetSelf = 40f;
 
-  private static readonly List<IAttackTarget> tmpTargets = new(128);
+  private static readonly List<IAttackTarget> tmpTargets = [with(128)];
 
   private static readonly List<Pair<IAttackTarget, float>> availableShootingTargets = [];
 
@@ -339,6 +339,8 @@ public class NonSnapAttackTargetFinderOnVehicle
     var position = target.Thing.PositionOnBaseMapSpawned;
     var num = GenRadial.NumCellsInRadius(verb.verbProps.ai_AvoidFriendlyFireRadius);
     var num2 = 0f;
+    var sourceBand = AsAboveSoBelow.GetTargetBand(searcher.Thing);
+    var targetBand = AsAboveSoBelow.GetTargetBand(target.Thing);
     for (var i = 0; i < num; i++)
     {
       var intVec = position + GenRadial.RadialPattern[i];
@@ -356,7 +358,7 @@ public class NonSnapAttackTargetFinderOnVehicle
         }
         if (flag)
         {
-          if (!GenSightOnVehicle.LineOfSight(position, intVec, map, true))
+          if (!GenSightOnVehicle.LineOfSight(position, intVec, map, sourceBand, targetBand, true))
           {
             break;
           }

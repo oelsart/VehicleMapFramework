@@ -1,4 +1,5 @@
-﻿using RimWorld;
+﻿using DevTools.Testing;
+using RimWorld;
 using Vehicles.Testing;
 using Verse;
 
@@ -6,9 +7,7 @@ namespace VehicleMapFramework.Test_Logics;
 
 internal class Test_BringBabyToSafety(VehicleGroup group) : CrossMapWorkGiverTestBase(group)
 {
-
   private Pawn baby;
-
   private CellRect roomRect;
 
   public override WorkGiverDef WorkGiverDef => DefDatabase<WorkGiverDef>.GetNamed("BringBabyToSafety");
@@ -35,11 +34,13 @@ internal class Test_BringBabyToSafety(VehicleGroup group) : CrossMapWorkGiverTes
 
   public override void TearDown()
   {
+    Expect.IsTrue(baby.Spawned);
+    Expect.IsFalse(roomRect.Contains(baby.Position));
     baby.Destroy();
     baby = null;
     foreach (var cell in roomRect.EdgeCells)
     {
-      cell.GetEdifice(GroundMap);
+      cell.GetEdifice(GroundMap)?.Destroy();
     }
     GroundMap.regionAndRoomUpdater.TryRebuildDirtyRegionsAndRooms();
     base.TearDown();

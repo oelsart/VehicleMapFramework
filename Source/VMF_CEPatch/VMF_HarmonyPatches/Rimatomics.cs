@@ -14,7 +14,7 @@ public static class Patches_CE_RimatomicsCompat
 {
   static Patches_CE_RimatomicsCompat()
   {
-    if (ModCompat.Rimatomics.Active)
+    if (Rimatomics.Active)
     {
       VMF_Harmony.PatchCategory(PatchCategories.CombatExtendedRimatomicsCompat);
 

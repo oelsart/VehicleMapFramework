@@ -892,6 +892,11 @@ public static class Patch_ReservationManager_CanReserve
       __result = claimant.CanReserve(target, maxPawns, stackCount, layer, ignoreOtherReservations, map);
       return false;
     }
+    if (claimant.Map != ___map)
+    {
+      __result = claimant.CanReserve(target, maxPawns, stackCount, layer, ignoreOtherReservations, ___map);
+      return false;
+    }
 
     return true;
   }

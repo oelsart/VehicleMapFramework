@@ -70,7 +70,7 @@ public static class Patch_PlaceWorker_ShowVerbRadiusBySight_AllowsPlacing
           Parallel.ForEach(GenRadial.RadialCellsAround(loc, verbProperties.minRange, verbProperties.range),
             cell =>
             {
-              if (GenSightOnVehicle.LineOfSight(loc, cell, map))
+              if (GenSightOnVehicle.LineOfSight(loc, cell, map, false))
               {
                 cellCache.Add(cell);
               }

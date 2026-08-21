@@ -8,8 +8,8 @@ namespace VehicleMapFramework;
 
 public class TargetMapManager(World world) : WorldComponent(world)
 {
-  private List<Thing> tmpKeys = [];
   private Dictionary<Thing, TargetInfo> tmpTargetInfoDic = [];
+  private List<Thing> tmpKeys = [];
   private List<TargetInfo> tmpValues = [];
 
   public ConditionalWeakTable<Thing, StrongBox<TargetInfo>> TargetInfoTable { get; } = [];
@@ -93,13 +93,12 @@ public class TargetMapManager(World world) : WorldComponent(world)
           }
           tmpTargetInfoDic = null;
         }
+        tmpKeys ??= [];
+        tmpValues ??= [];
         break;
       }
       case LoadSaveMode.Inactive:
       default: break;
     }
-
-    tmpKeys ??= [];
-    tmpValues ??= [];
   }
 }

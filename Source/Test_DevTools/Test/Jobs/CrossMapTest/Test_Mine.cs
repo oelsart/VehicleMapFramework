@@ -1,4 +1,5 @@
-﻿using RimWorld;
+﻿using DevTools.Testing;
+using RimWorld;
 using Vehicles.Testing;
 using Verse;
 
@@ -20,8 +21,11 @@ internal class Test_Mine(VehicleGroup group) : CrossMapWorkGiverTestBase(group)
 
   public override void TearDown()
   {
-    base.TearDown();
-    mine.Destroy();
+    Expect.IsTrue(mine.Destroyed);
+    var list = FromRUCorner(GroundMap, 5).GetThingList(GroundMap);
+    for (var i = list.Count - 1; i >= 0; i--) list[i].Destroy();
+    if (!mine.Destroyed) mine.Destroy();
     mine = null;
+    base.TearDown();
   }
 }

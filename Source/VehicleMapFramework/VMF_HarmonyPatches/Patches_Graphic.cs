@@ -143,13 +143,13 @@ public static class Patch_Graphic_Print
   //はしごとかのマップ端オフセットを足す
   private static Vector3 EdgeSpacerOffset(Vector3 vector, Thing thing)
   {
-    VehicleMapProps mapProps;
-    if (thing.def.HasComp(typeof(CompVehicleEnterSpot)) && thing.IsOnVehicleMapOf(out var vehicle) &&
-        (mapProps = vehicle.VehicleDef.GetModExtension<VehicleMapProps>()) != null)
+    if (thing.TryGetComp<CompVehicleEnterSpot>() is { ShouldOffsetOnEdge: true } &&
+        thing.IsOnVehicleMapOf(out var vehicle) &&
+        vehicle.VehicleMapProps is { } props)
     {
       var opposite = thing.Rotation.Opposite;
       return vector + (opposite.AsVector2.ToVector3() *
-                       mapProps.EdgeSpaceValue(VehicleSectionLayerManager.RotForPrint, opposite));
+                       props.EdgeSpaceValue(VehicleSectionLayerManager.RotForPrint, opposite));
     }
 
     return vector;
@@ -246,7 +246,6 @@ public static class Patch_CameraDriver_Update
 
 [HarmonyPatch(typeof(PawnRenderer), "GetBodyPos")]
 [PatchLevel(Level.Safe)]
-[HotSwap]
 public static class Patch_PawnRenderer_GetBodyPos
 {
   public static void Postfix(PawnPosture posture, Pawn ___pawn, ref Vector3 __result)
@@ -444,8 +443,11 @@ public static class Patch_Graphic_Shadow_DrawWorker
     ILGenerator generator)
   {
     return new CodeMatcher(instructions, generator)
-      .AddAltitudeFor(out var vehicle,
+      .AddAltitudeFor(out var vehicle, // AASB2の下階terrainを下回らない程度
         getInstance: [CodeInstruction.LoadArgument(4)])
+      .InsertAndAdvance(
+        CodeInstruction.LoadArgument(4),
+        ((Delegate)AASB2ShadowAltitude).Method.CallInstruction)
       .MatchStartForward(CodeMatch.Calls(CachedMethodInfo.g_Rot4_AsQuat))
       .SetOperandAndAdvance(CachedMethodInfo.m_Rot8_AsQuatRef)
       .CreateLabel(out var label)
@@ -456,6 +458,20 @@ public static class Patch_Graphic_Shadow_DrawWorker
         new CodeInstruction(OpCodes.Call, CachedMethodInfo.m_FullAngleQuat),
         new CodeInstruction(OpCodes.Call, CachedMethodInfo.o_Quaternion_Multiply))
       .InstructionEnumeration();
+  }
+
+  private static float AASB2ShadowAltitude(float value, Thing t)
+  {
+    if (AsAboveSoBelow.Active && t?.Map is { } map &&
+        map.IsNonFocusedVehicleMapOf(out var vehicle) &&
+        AsAboveSoBelow.CompOf(map) is { } comp &&
+        AsAboveSoBelow.Banded(comp) &&
+        AsAboveSoBelow.CurrentBand(map) > AsAboveSoBelow.BandOf(comp, t.Position))
+    {
+      return AltitudeLayer.Terrain.AltitudeFor(-0.1f).YOffsetFull(vehicle);
+    }
+
+    return value;
   }
 }
 

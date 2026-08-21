@@ -141,9 +141,21 @@ public class CompMapExpander : ThingComp
     {
       if (comp.parent.IsOnVehicleMapOf(out var vehicle))
       {
+        var map = comp.parent.Map;
+        MapComponent mapComp = null;
+        var banded = AsAboveSoBelow.Active &&
+                     (mapComp = AsAboveSoBelow.CompOf(map)) is not null &&
+                     AsAboveSoBelow.Banded(mapComp);
         foreach (var c in comp.parent.OccupiedRect())
         {
-          comp.parent.Map.terrainGrid.SetTerrain(c, VMF_DefOf.VMF_VehicleFloor);
+          map.terrainGrid.SetTerrain(c, VMF_DefOf.VMF_VehicleFloor);
+          if (banded)
+          {
+            for (var i = 1; i <= AsAboveSoBelow.UpperLevels(); i++)
+            {
+              map.terrainGrid.SetTerrain(AsAboveSoBelow.Translate(mapComp, c, i), VMF_DefOf.VMF_VehicleFloor);
+            }
+          }
         }
         vehicle.MapExpanderComps.Add(comp);
         comp.DirtySelfAndAdjacentComps(comp.parent.Map);
@@ -159,9 +171,20 @@ public class CompMapExpander : ThingComp
     var occupiedRect = parent.OccupiedRect();
     if (map.IsVehicleMapOf(out var vehicle))
     {
+      MapComponent mapComp = null;
+      var banded = AsAboveSoBelow.Active &&
+                   (mapComp = AsAboveSoBelow.CompOf(map)) is not null &&
+                   AsAboveSoBelow.Banded(mapComp);
       foreach (var c in occupiedRect)
       {
         map.terrainGrid.SetTerrain(c, VMF_DefOf.VMF_ImpassableFloor);
+        if (banded)
+        {
+          for (var i = 1; i <= AsAboveSoBelow.UpperLevels(); i++)
+          {
+            map.terrainGrid.SetTerrain(AsAboveSoBelow.Translate(mapComp, c, i), VMF_DefOf.VMF_ImpassableFloor);
+          }
+        }
       }
       vehicle.MapExpanderComps.Remove(this);
       if (IsBridge)

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using RimWorld;
-using SmashTools;
+using JetBrains.Annotations;
 using UnityEngine;
 using Vehicles;
 using Verse;
@@ -11,131 +10,6 @@ namespace VehicleMapFramework;
 
 public static class ToilsAcrossMaps
 {
-  public static Toil GotoVehicleEnterSpot(TargetInfo enterSpot)
-  {
-    var toil = ToilMaker.MakeToil();
-    toil.defaultCompleteMode = ToilCompleteMode.PatherArrival;
-
-    CompZipline compZipline = null;
-    enterSpot.Thing?.TryGetComp(out compZipline);
-
-    var dest = IntVec3.Invalid;
-    if (compZipline is { Pair: not null })
-    {
-      dest = compZipline.Pair.Position;
-      toil.FailOn(() =>
-      {
-        var result = !compZipline.Pair?.Spawned ?? true;
-        if (result) toil.actor.Drawer.tweener.ResetTweenedPosToRoot();
-        return result;
-      });
-    }
-    else
-    {
-      toil.initAction = () =>
-      {
-        dest = CrossMapReachabilityUtility.EnterVehiclePosition(enterSpot, toil.actor as VehiclePawn);
-      };
-
-      toil.tickIntervalAction = _ =>
-      {
-        var curDest = CrossMapReachabilityUtility.EnterVehiclePosition(enterSpot, toil.actor as VehiclePawn);
-        if (dest != curDest)
-        {
-          dest = curDest;
-          toil.actor.pather.StartPath(dest, PathEndMode.OnCell);
-        }
-      };
-    }
-
-    toil.initAction += () =>
-    {
-      if (toil.actor.Position == dest)
-      {
-        toil.actor.jobs.curDriver.ReadyForNextToil();
-        return;
-      }
-
-      toil.actor.pather.StartPath(dest, PathEndMode.OnCell);
-    };
-    toil.FailOn(() => !enterSpot.IsValid || enterSpot.Map.BaseMapOrCaravan != toil.actor.BaseMapOrCaravan);
-    return toil;
-  }
-
-  private static Toil OpenDoor(JobDriver driver, TargetInfo target)
-  {
-    var waitOpen = Toils_General.Wait(0);
-    waitOpen.handlingFacing = true;
-    waitOpen.initAction += () =>
-    {
-      var door = target.Cell.GetDoor(target.Map);
-      var ramp = target.Cell.GetFirstThing<Building_VehicleRamp>(target.Map);
-      waitOpen.defaultDuration = Math.Max(door?.TicksToOpenNow ?? 0, ramp?.TicksToOpenNow ?? 0);
-      driver.ticksLeftThisToil = waitOpen.defaultDuration;
-      door?.StartManualOpenBy(waitOpen.actor);
-      ramp?.StartManualOpenBy(waitOpen.actor);
-    };
-    return waitOpen;
-  }
-
-  private static Toil ZiplineAnimation(JobDriverAcrossMaps driver, CompZipline comp)
-  {
-    var toil = ToilMaker.MakeToil();
-    toil.handlingFacing = true;
-    var initTick = 0;
-    toil.initAction = () =>
-    {
-      toil.actor.pather.StopDead();
-      initTick = GenTicks.TicksGame;
-    };
-    toil.tickAction = () =>
-    {
-      var drawPosA = comp.parent.DrawPos;
-      var drawPosB = comp.Pair.DrawPos;
-      var normalized = NormalizeFlat(drawPosB - drawPosA);
-      var rot = Rot4.FromAngleFlat(normalized.AngleFlat());
-
-      if (toil.actor.IsOnNonFocusedVehicleMapOf(out var vehicle))
-      {
-        normalized = normalized.RotatedBy(-vehicle.FullAngle);
-        if (!toil.actor.Drafted) rot.AsInt -= vehicle.Rotation.AsInt;
-      }
-
-      toil.actor.Rotation = rot;
-
-      const float distancePerTick = 0.075f;
-      //ジップラインの先端から登る場合は遅くなるわな
-      var distance = comp.IsZiplineEnd ? distancePerTick * 0.5f : distancePerTick;
-      var distanceSquared = (drawPosB - toil.actor.DrawPos).MagnitudeHorizontalSquared();
-      var moveDistance = distanceSquared < distance * distance ? Mathf.Sqrt(distanceSquared) : distance;
-
-      driver.drawOffset = (normalized * moveDistance * (GenTicks.TicksGame - initTick)).WithYOffset(0.1f);
-      if (vehicle is null)
-      {
-        driver.drawOffset.y = Mathf.Max(driver.drawOffset.y, driver.drawOffset.y.YOffsetFull());
-      }
-
-      var rect = Rect.MinMaxRect(drawPosA.x, drawPosA.z, drawPosB.x, drawPosB.z);
-      // 裏返りを修正
-      if (rect.xMin > rect.xMax) (rect.xMin, rect.xMax) = (rect.xMax, rect.xMin);
-      if (rect.yMin > rect.yMax) (rect.yMin, rect.yMax) = (rect.yMax, rect.yMin);
-      if (distanceSquared < 0.2f || !rect.ExpandedBy(3f).Contains(toil.actor.DrawPos.ToVector2()))
-      {
-        driver.ReadyForNextToil();
-      }
-    };
-    toil.FailOn(() => !comp.parent.Spawned || comp.Pair is not { Spawned: true });
-    toil.defaultCompleteMode = ToilCompleteMode.Never;
-    return toil;
-
-    //なんかUnityのnormalizedって重いらしいよ
-    static Vector3 NormalizeFlat(Vector3 vec)
-    {
-      var length = vec.MagnitudeHorizontal();
-      return new Vector3(vec.x / length, 0f, vec.z / length);
-    }
-  }
-
   public static IEnumerable<Toil> GotoTargetMap(JobDriverAcrossMaps driver, TraverseSpots spots)
   {
     var exitSpot = spots.exitSpot;
@@ -146,8 +20,7 @@ public static class ToilsAcrossMaps
     yield return Toils_Jump.JumpIf(afterConsumeSpots, () => driver.Consumed(spots));
     if (exitSpot.IsValid)
     {
-      CompZipline compZipline = null;
-      exitSpot.Thing?.TryGetComp(out compZipline);
+      var comp = exitSpot.Thing?.TryGetComp<CompVehicleEnterSpot>();
 
       var ability = pawn.abilities?.AllAbilitiesForReading.FirstOrDefault(a => a is Ability_MapTraverse);
 
@@ -189,265 +62,239 @@ public static class ToilsAcrossMaps
       yield return gotoToil;
       yield return jumpTarget;
 
-      yield return Toils_Jump.JumpIf(gotoToil, () => !pawn.OccupiedRect().Contains(ExitCell(pawn, exitSpot)));
-
       //ドアがあれば開ける
       yield return OpenDoor(driver, exitSpot);
 
-      if (compZipline is not null)
+      // GrapplingHookアビリティがある場合
+      var abilityToil = Toils_General.Do(() =>
       {
-        yield return ZiplineAnimation(driver, compZipline);
-      }
-      else
+        if (ability is { CanCast.Accepted: true } && enterSpot is { Cell.IsValid: true, Map: not null })
+        {
+          if (pawn.TargetMap != enterSpot.Map)
+            pawn.TargetMap = enterSpot.Map;
+          ability.verb.TryStartCastOn(enterSpot.Cell);
+          driver.JumpToToil(afterEnterMap);
+        }
+      });
+      abilityToil.handlingFacing = true;
+
+      yield return Toils_Jump.JumpIf(abilityToil, () =>
       {
-        // GrapplingHookアビリティがある場合
-        var abilityToil = Toils_General.Do(() =>
-        {
-          if (ability is { CanCast.Accepted: true } && enterSpot is { Cell.IsValid: true, Map: not null })
-          {
-            if (pawn.TargetMap != enterSpot.Map)
-              pawn.TargetMap = enterSpot.Map;
-            ability.verb.TryStartCastOn(enterSpot.Cell);
-            driver.JumpToToil(afterEnterMap);
-          }
-        });
-        abilityToil.handlingFacing = true;
+        if (comp is not null) return false;
+        var pos = CrossMapReachabilityUtility.EnterVehiclePosition(exitSpot, vehiclePawn);
+        var groundMap = exitSpot.Map.GroundMap;
+        return !pos.IsValid || !pos.WalkableBy(groundMap, pawn) || pos.GetTerrain(groundMap) is { dangerous: true };
+      });
+      yield return TraverseAnimationToil(driver, exitSpot, comp);
+      
+      var mapCheck = Toils_Jump.JumpIf(afterExitMap, () => pawn.MapHeld != exitSpot.Map);
+      yield return Toils_Jump.Jump(mapCheck);
+      yield return abilityToil;
+      yield return mapCheck;
 
-        yield return Toils_Jump.JumpIf(abilityToil, () =>
-        {
-          var pos = CrossMapReachabilityUtility.EnterVehiclePosition(exitSpot, vehiclePawn);
-          return !pos.WalkableBy(exitSpot.Map.GroundMap, pawn);
-        });
-
-        //マップ移動アニメーション。目的地の計算の後tick毎の描画位置を計算。ドアは開け続けておく
-        var ticks = pawn.TicksPerMoveCardinal * 4f;
-        if (!exitSpot.HasThing) ticks *= 2f;
-        var toil2 = Toils_General.Wait((int)ticks);
-        toil2.handlingFacing = true;
-        toil2.initAction += () =>
-        {
-          CrossMapReachabilityUtility.EnterVehiclePosition(exitSpot, out var dist, vehiclePawn);
-          ticks *= Mathf.Max(dist, 1);
-          toil2.defaultDuration = (int)ticks;
-          driver.ticksLeftThisToil = toil2.defaultDuration;
-        };
-
-        toil2.tickAction = () =>
-        {
-          if (!exitSpot.Map.IsVehicleMapOf(out var vehicle)) return;
-          CrossMapReachabilityUtility.EnterVehiclePosition(exitSpot, out var dist, vehiclePawn);
-          var initPos = exitSpot.Cell.ToVector3Shifted().ToBaseMapCoord(vehicle);
-          var rot = exitSpot.Cell.DirectionToInsideMap(vehicle);
-
-          var offset = ((initPos + rot.Opposite.AsVector2.ToVector3() * dist) - initPos).Yto0();
-          var totalTick = toil2.defaultDuration;
-          driver.drawOffset = offset * ((totalTick - driver.ticksLeftThisToil) / (float)totalTick);
-
-          var door = exitSpot.Cell.GetDoor(exitSpot.Map);
-          var ramp = exitSpot.Cell.GetFirstThing<Building_VehicleRamp>(exitSpot.Map);
-          door?.StartManualOpenBy(toil2.actor);
-          ramp?.StartManualOpenBy(toil2.actor);
-
-          if (vehiclePawn != null)
-          {
-            vehiclePawn.FullRotation = rot.Opposite;
-          }
-          else
-          {
-            if (pawn.Drafted || pawn.HostileTo(Faction.OfPlayer))
-            {
-              rot.AsInt += vehicle.Rotation.AsInt; // Thing.Rotationへのパッチとの兼ね合い
-            }
-
-            pawn.Rotation = rot.Opposite;
-          }
-        };
-
-        yield return toil2.FailOn(() => exitSpot is { Cell.IsValid: true, Map: not { Disposed: false } });
-        var mapCheck = Toils_Jump.JumpIf(afterExitMap, () => pawn.MapHeld != exitSpot.Map);
-        yield return Toils_Jump.Jump(mapCheck);
-        yield return abilityToil;
-        yield return mapCheck;
-      }
-
-      //デスポーン後目的地のマップにリスポーン。スポーン地の再計算時にそこが埋まってたらとりあえず失敗に
-      var toil3 = ToilMaker.MakeToil();
-      toil3.defaultCompleteMode = ToilCompleteMode.Instant;
-      toil3.initAction = () =>
-      {
-        if (!exitSpot.Map.IsVehicleMapOf(out var vehicle)) return;
-        IntVec3 pos;
-        Rot4 rot;
-        Map map;
-        if (compZipline is not null)
-        {
-          if (compZipline.Pair is not { Spawned: true }) return;
-          pos = compZipline.Pair.Position;
-          map = compZipline.Pair.Map;
-          rot = toil3.actor.Rotation;
-        }
-        else
-        {
-          pos = CrossMapReachabilityUtility.EnterVehiclePosition(exitSpot, vehiclePawn);
-          map = exitSpot.Map.BaseMap();
-          rot = exitSpot.HasThing
-            ? exitSpot.Thing.BaseFullRotation()
-            : exitSpot.Cell.BaseFullDirectionToInsideMap(vehicle);
-          rot = rot.Opposite;
-        }
-
-        if (!pos.IsValid) return;
-
-        driver.drawOffset = Vector3.zero;
-        if (vehiclePawn != null)
-        {
-          vehiclePawn.DeSpawnWithoutJobClearVehicle();
-          GenSpawn.Spawn(toil3.actor, pos, map, rot);
-        }
-        else
-        {
-          toil3.actor.DeSpawnWithoutJobClear();
-          if (toil3.actor.roping != null)
-          {
-            foreach (var ropee in toil3.actor.roping.Ropees)
-            {
-              ropee.DeSpawnWithoutJobClear();
-            }
-          }
-
-          GenSpawn.Spawn(toil3.actor, pos, map, rot);
-          if (toil3.actor.roping != null)
-          {
-            foreach (var ropee in toil3.actor.roping.Ropees)
-            {
-              GenSpawn.Spawn(ropee, pos, map, rot);
-            }
-          }
-        }
-      };
-      yield return toil3.FailOn(() => exitSpot is { Cell.IsValid: true, Map: not { Disposed: false } });
+      yield return TraverseToil(exitSpot, comp);
       yield return afterExitMap;
     }
 
     if (enterSpot.IsValid)
     {
-      CompZipline compZipline = null;
-      enterSpot.Thing?.TryGetComp(out compZipline);
+      var comp = enterSpot.Thing?.TryGetComp<CompVehicleEnterSpot>();
 
       //あれ？もうenterSpotのマップに居ない？ジャンプしよ
       yield return Toils_Jump.JumpIf(afterEnterMap,
         () => enterSpot.Map is null || pawn.MapHeld != enterSpot.Map.GroundMap || pawn.MapHeld == enterSpot.Map);
 
       //enterSpotの手前の場所まで行く。vehicleの長さ分のオフセットはメソッド内でやっている
-      var vehiclePawn = pawn as VehiclePawn;
-      var toil = GotoVehicleEnterSpot(enterSpot);
-      yield return toil;
-
-      yield return Toils_Jump.JumpIf(toil, () =>
-        !pawn.OccupiedRect().Contains(CrossMapReachabilityUtility.EnterVehiclePosition(enterSpot, vehiclePawn)));
+      yield return GotoVehicleEnterSpot(enterSpot);
 
       //ドアがあれば開ける
       yield return OpenDoor(driver, enterSpot);
-
-      if (compZipline is { Pair.Spawned: true } && compZipline.Pair.TryGetComp<CompZipline>() is { } pairComp)
-      {
-        yield return ZiplineAnimation(driver, pairComp);
-      }
-      else
-      {
-        //マップ移動アニメーション。目的地の計算の後tick毎の描画位置を計算。ドアは開け続けておく
-        var ticks = pawn.TicksPerMoveCardinal * 4f;
-        if (!enterSpot.HasThing) ticks *= 2f;
-        var toil2 = Toils_General.Wait((int)ticks);
-        toil2.handlingFacing = true;
-        toil2.initAction += () =>
-        {
-          CrossMapReachabilityUtility.EnterVehiclePosition(enterSpot, out var dist, vehiclePawn);
-          ticks *= Mathf.Max(dist, 1);
-          toil2.defaultDuration = (int)ticks;
-          driver.ticksLeftThisToil = toil2.defaultDuration;
-        };
-
-        toil2.tickAction = () =>
-        {
-          if (!enterSpot.Map.IsVehicleMapOf(out var vehicle)) return;
-
-          var offset = (enterSpot.Cell.ToVector3Shifted().ToBaseMapCoord(vehicle) - pawn.Position.ToVector3Shifted()).Yto0();
-          var totalTick = toil2.defaultDuration;
-          driver.drawOffset = offset * ((totalTick - driver.ticksLeftThisToil) / (float)totalTick);
-          if (vehiclePawn is not null)
-            driver.drawOffset.y = Altitudes.AltInc * 30f;
-
-          var door = enterSpot.Cell.GetDoor(enterSpot.Map);
-          var ramp = enterSpot.Cell.GetFirstThing<Building_VehicleRamp>(enterSpot.Map);
-          door?.StartManualOpenBy(toil2.actor);
-          ramp?.StartManualOpenBy(toil2.actor);
-
-          if (vehiclePawn != null)
-          {
-            vehiclePawn.FullRotation = Rot8.FromAngle(offset.AngleFlat());
-          }
-          else
-          {
-            pawn.Rotation = Rot4.FromAngleFlat(offset.AngleFlat());
-          }
-        };
-        yield return toil2.FailOn(() => enterSpot is { Cell.IsValid: true, Map: not { Disposed: false } });
-      }
-
-      var toil3 = ToilMaker.MakeToil();
-      toil3.defaultCompleteMode = ToilCompleteMode.Instant;
-      toil3.initAction = () =>
-      {
-        if (!enterSpot.Map.IsVehicleMapOf(out var vehicle)) return;
-        driver.drawOffset = Vector3.zero;
-        IntVec3 cell;
-        Rot4 rot;
-        if (compZipline is not null)
-        {
-          if (compZipline.parent is not { Spawned: true }) return;
-          cell = compZipline.parent.Position;
-          rot = toil3.actor.Rotation;
-        }
-        else
-        {
-          cell = enterSpot.Cell;
-          rot = enterSpot.HasThing ? enterSpot.Thing.Rotation : enterSpot.Cell.DirectionToInsideMap(vehicle);
-        }
-
-        if (!cell.IsValid) return;
-
-        if (vehiclePawn != null)
-        {
-          vehiclePawn.DeSpawnWithoutJobClearVehicle();
-          GenSpawn.Spawn(toil3.actor, cell + (rot.FacingCell * vehiclePawn.HalfLength()), enterSpot.Map, rot);
-        }
-        else
-        {
-          toil3.actor.DeSpawnWithoutJobClear();
-          if (toil3.actor.roping != null)
-          {
-            foreach (var ropee in toil3.actor.roping.Ropees)
-            {
-              ropee.DeSpawnWithoutJobClear();
-            }
-          }
-
-          GenSpawn.Spawn(toil3.actor, cell, enterSpot.Map, rot, WipeMode.VanishOrMoveAside);
-          if (toil3.actor.roping != null)
-          {
-            foreach (var ropee in toil3.actor.roping.Ropees)
-            {
-              GenSpawn.Spawn(ropee, cell, enterSpot.Map, rot, WipeMode.VanishOrMoveAside);
-            }
-          }
-        }
-      };
-      yield return toil3.FailOn(() => enterSpot is { Cell.IsValid: true, Map: not { Disposed: false } });
+      yield return TraverseAnimationToil(driver, enterSpot, comp);
+      yield return TraverseToil(enterSpot, comp);
     }
 
     yield return afterEnterMap;
     yield return Toils_General.Do(() => driver.ConsumeSpots(spots));
     yield return afterConsumeSpots;
+  }
+  
+  private static Toil GotoVehicleEnterSpot(TargetInfo enterSpot)
+  {
+    var toil = ToilMaker.MakeToil();
+    toil.defaultCompleteMode = ToilCompleteMode.PatherArrival;
+
+    var comp = enterSpot.Thing?.TryGetComp<CompVehicleEnterSpot>();
+    var dest = default(LocalTargetInfo); 
+    toil.initAction = () =>
+    {
+      dest = GetDest(comp, enterSpot, toil.actor);
+      if (toil.actor.Position == dest)
+      {
+        toil.actor.jobs.curDriver.ReadyForNextToil();
+        return;
+      }
+      toil.actor.pather.StartPath(dest, PathEndMode.OnCell);
+    };
+
+    toil.tickIntervalAction = _ =>
+    {
+      var curDest = GetDest(comp, enterSpot, toil.actor);
+      if (dest != curDest)
+      {
+        dest = curDest;
+        toil.actor.pather.StartPath(dest, PathEndMode.OnCell);
+      }
+    };
+
+    toil.FailOn(() => !dest.IsValid);
+    toil.FailOn(() => !enterSpot.IsValid || enterSpot.Map.BaseMapOrCaravan != toil.actor.BaseMapOrCaravan);
+    return toil;
+    
+    static LocalTargetInfo GetDest(CompVehicleEnterSpot comp, TargetInfo spot, Pawn actor) =>
+      comp?.AvailableAccessSpot.Cell ?? CrossMapReachabilityUtility.EnterVehiclePosition(spot, actor as VehiclePawn);
+  }
+
+  private static Toil OpenDoor(JobDriver driver, TargetInfo target)
+  {
+    var waitOpen = Toils_General.Wait(0);
+    waitOpen.handlingFacing = true;
+    waitOpen.initAction += () =>
+    {
+      var door = target.Cell.GetDoor(target.Map);
+      var ramp = target.Cell.GetFirstThing<Building_VehicleRamp>(target.Map);
+      waitOpen.defaultDuration = Math.Max(door?.TicksToOpenNow ?? 0, ramp?.TicksToOpenNow ?? 0);
+      driver.ticksLeftThisToil = waitOpen.defaultDuration;
+      door?.StartManualOpenBy(waitOpen.actor);
+      ramp?.StartManualOpenBy(waitOpen.actor);
+    };
+    return waitOpen;
+  }
+
+  private static Toil TraverseAnimationToil(JobDriverAcrossMaps driver, TargetInfo enterSpot, [CanBeNull] CompVehicleEnterSpot comp)
+  {
+    var toil = ToilMaker.MakeToil();
+    toil.handlingFacing = true;
+    var initTick = 0;
+    toil.initAction = () =>
+    {
+      initTick = GenTicks.TicksGame;
+    };
+    toil.tickAction = () =>
+    {
+      var startOffset = Vector3.zero;
+      var drawPosA = enterSpot.CenterVector3OnGroundMap;
+      var drawPosB = comp is not null
+        ? comp.AvailableAccessSpot.CenterVector3OnGroundMap
+        : CrossMapReachabilityUtility.EnterVehiclePosition(enterSpot).ToVector3Shifted();
+      var drawPosC = toil.actor.DrawPos;
+      
+      if (enterSpot.Map != toil.actor.Map)
+      {
+        (drawPosA, drawPosB) = (drawPosB, drawPosA);
+        driver.drawOffset = Vector3.zero;
+        startOffset = (drawPosA - toil.actor.DrawPos).Yto0();
+      }
+      var normalized = NormalizeFlat(drawPosB - drawPosA);
+      var rot = Pawn_RotationTracker.RotFromAngleBiased(normalized.AngleFlat());
+
+      if (toil.actor.IsOnNonFocusedVehicleMapOf(out var vehicle))
+      {
+        normalized = normalized.RotatedBy(-vehicle.FullAngle);
+        if (!toil.actor.Drafted) rot.AsInt -= vehicle.Rotation.AsInt;
+      }
+
+      toil.actor.Rotation = rot;
+
+      var distance = comp?.MovePerTick(toil.actor) ?? (0.15f / toil.actor.TicksPerMoveCardinal);
+      var distanceSquared = (drawPosB - drawPosC).MagnitudeHorizontalSquared();
+      var moveDistance = distanceSquared < distance * distance ? Mathf.Sqrt(distanceSquared) : distance;
+
+      driver.drawOffset = startOffset + normalized * moveDistance * (GenTicks.TicksGame - initTick);
+      driver.drawOffset.y = Mathf.Max(Mathf.Max(drawPosA.y, drawPosB.y) - drawPosC.y, 0f) + 0.5f;
+      
+      var door = enterSpot.Cell.GetDoor(enterSpot.Map);
+      var ramp = enterSpot.Cell.GetFirstThing<Building_VehicleRamp>(enterSpot.Map);
+      door?.StartManualOpenBy(toil.actor);
+      ramp?.StartManualOpenBy(toil.actor);
+
+      var rect = Rect.MinMaxRect(drawPosA.x, drawPosA.z, drawPosB.x, drawPosB.z);
+      // 裏返りを修正
+      if (rect.xMin > rect.xMax) (rect.xMin, rect.xMax) = (rect.xMax, rect.xMin);
+      if (rect.yMin > rect.yMax) (rect.yMin, rect.yMax) = (rect.yMax, rect.yMin);
+      if (distanceSquared < 0.05f || !rect.ExpandedBy(1f).Contains(toil.actor.DrawPos.ToVector2()))
+      {
+        driver.ReadyForNextToil();
+      }
+    };
+    toil.AddFinishAction(() => driver.drawOffset = Vector3.zero);
+    toil.FailOn(() => comp is { parent.Spawned: false } or { AvailableAccessSpot.IsValid: false });
+    toil.defaultCompleteMode = ToilCompleteMode.Never;
+    return toil;
+
+    //なんかUnityのnormalizedって重いらしいよ
+    static Vector3 NormalizeFlat(Vector3 vec)
+    {
+      var length = vec.MagnitudeHorizontal();
+      return new Vector3(vec.x / length, 0f, vec.z / length);
+    }
+  }
+
+  //デスポーン後目的地のマップにリスポーン。スポーン地の再計算時にそこが埋まってたらとりあえず失敗に
+  private static Toil TraverseToil(TargetInfo enterSpot, CompVehicleEnterSpot comp)
+  {
+    var toil = ToilMaker.MakeToil();
+    toil.defaultCompleteMode = ToilCompleteMode.Instant;
+    toil.initAction = () =>
+    {
+      IntVec3 cell;
+      Map map;
+      var rot = toil.actor.Rotation;
+      var vehiclePawn = toil.actor as VehiclePawn;
+      if (toil.actor.Map != enterSpot.Map)
+      {
+        cell = enterSpot.Cell;
+        map = enterSpot.Map;
+      }
+      else if (comp is not null)
+      {
+        if (comp.AvailableAccessSpot is not { IsValid: true } accessSpot) return;
+        cell = accessSpot.Cell;
+        map = accessSpot.Map;
+      }
+      else
+      {
+        cell = CrossMapReachabilityUtility.EnterVehiclePosition(enterSpot, vehiclePawn);
+        map = enterSpot.Map.GroundMap;
+      }
+
+      if (!cell.IsValid) return;
+
+      if (vehiclePawn is not null)
+      {
+        vehiclePawn.DeSpawnWithoutJobClearVehicle();
+        GenSpawn.Spawn(toil.actor, cell + (rot.FacingCell * vehiclePawn.HalfLength()), map, rot);
+      }
+      else
+      {
+        toil.actor.DeSpawnWithoutJobClear();
+        if (toil.actor.roping != null)
+        {
+          foreach (var ropee in toil.actor.roping.Ropees)
+          {
+            ropee.DeSpawnWithoutJobClear();
+          }
+        }
+
+        GenSpawn.Spawn(toil.actor, cell, map, rot, WipeMode.VanishOrMoveAside);
+        if (toil.actor.roping != null)
+        {
+          foreach (var ropee in toil.actor.roping.Ropees)
+          {
+            GenSpawn.Spawn(ropee, cell, map, rot, WipeMode.VanishOrMoveAside);
+          }
+        }
+      }
+    };
+    return toil.FailOn(() => enterSpot is not { Cell.IsValid: true, Map.Disposed: false });
   }
 }

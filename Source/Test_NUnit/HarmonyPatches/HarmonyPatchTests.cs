@@ -11,7 +11,6 @@ namespace VehicleMapFramework.Test_CompatPatches;
 [Category("Remote")]
 public class HarmonyPatchTests
 {
-
   [OneTimeSetUp]
   public void OneTimeSetUp()
   {
@@ -102,6 +101,7 @@ public class HarmonyPatchTests
       Assert.That(plan.Categories, Is.Not.Empty);
     }
 
+    List<Assembly> assemblies = [];
     foreach (var mod in plan.Mods)
     {
       List<Assembly> assemblies2 = null;
@@ -110,7 +110,9 @@ public class HarmonyPatchTests
         Assert.DoesNotThrow(() => assemblies2 = TestPlanLoader.Loader.LoadModFolder(TestPlanLoader.WorkshopIds[mod]));
         Assert.That(assemblies2, Is.Not.Empty);
       }
+      assemblies.AddRange(assemblies2);
     }
+    Assert.Pass($"Successfully loaded {assemblies.Count} assemblies.");
   }
 
   [Test]

@@ -78,8 +78,10 @@ public static class VerbOnVehicleUtility
           return true;
         }
 
+        var sourceBand = AsAboveSoBelow.GetTargetBand(verb.caster);
+        var targetBand = AsAboveSoBelow.GetTargetBand(targ.Thing);
         ShootLeanUtilityOnVehicle.LeanShootingSourcesFromTo(verb.caster.Position,
-          occupiedRect.ClosestCellTo(positionOnBaseMap), verb.caster.Map, tempLeanShootSources);
+          occupiedRect.ClosestCellTo(positionOnBaseMap), verb.caster.Map, tempLeanShootSources, sourceBand, targetBand);
         for (var i = 0; i < tempLeanShootSources.Count; i++)
         {
           var intVec = tempLeanShootSources[i].ToThingBaseMapCoord(verb.caster);
@@ -109,27 +111,29 @@ public static class VerbOnVehicleUtility
     public bool CanHitFromCellIgnoringRange(IntVec3 sourceCellBaseCol, LocalTargetInfo targ, out IntVec3 goodDest)
     {
       var targCellOnBaseMap = targ.TargetCellOnBaseMap(verb.caster);
+      var sourceBand = AsAboveSoBelow.GetTargetBand(verb.caster);
       if (targ.HasThing)
       {
+        var targetBand = AsAboveSoBelow.GetTargetBand(targ.Thing);
         if (targ.Thing.BaseMapOrCaravan != verb.caster.BaseMapOrCaravan)
         {
           goodDest = IntVec3.Invalid;
           return false;
         }
 
-        ShootLeanUtilityOnVehicle.CalcShootableCellsOf(tempDestList, targ.Thing, sourceCellBaseCol);
+        ShootLeanUtilityOnVehicle.CalcShootableCellsOf(tempDestList, targ.Thing, sourceCellBaseCol, sourceBand, targetBand);
         var intVec = sourceCellBaseCol.ToThingMapCoord(targ.Thing);
         for (var i = 0; i < tempDestList.Count; i++)
         {
           if (verb.CanHitCellFromCellIgnoringRange(intVec, tempDestList[i], targ.Thing.Map,
-                targ.Thing.def.Fillage == FillCategory.Full))
+                sourceBand, targetBand, targ.Thing.def.Fillage == FillCategory.Full))
           {
             goodDest = tempDestList[i].ToThingBaseMapCoord(targ.Thing);
             return true;
           }
         }
       }
-      else if (verb.CanHitCellFromCellIgnoringRange(sourceCellBaseCol, targCellOnBaseMap, verb.Caster.BaseMap()))
+      else if (verb.CanHitCellFromCellIgnoringRange(sourceCellBaseCol, targCellOnBaseMap, verb.Caster.BaseMap(), sourceBand, null))
       {
         goodDest = targCellOnBaseMap;
         return true;
@@ -140,7 +144,7 @@ public static class VerbOnVehicleUtility
     }
 
     private bool CanHitCellFromCellIgnoringRange(IntVec3 sourceSq, IntVec3 targetLoc, Map map,
-      bool includeCorners = false)
+      AsAboveSoBelow.TargetBand? sourceBand, AsAboveSoBelow.TargetBand? targetBand, bool includeCorners = false)
     {
       if (verb.verbProps.mustCastOnOpenGround &&
           (!targetLoc.Standable(map) || map.thingGrid.CellContains(targetLoc, ThingCategory.Pawn)))
@@ -152,12 +156,12 @@ public static class VerbOnVehicleUtility
       {
         if (!includeCorners)
         {
-          if (!GenSightOnVehicle.LineOfSight(sourceSq, targetLoc, map, false))
+          if (!GenSightOnVehicle.LineOfSight(sourceSq, targetLoc, map, sourceBand, targetBand))
           {
             return false;
           }
         }
-        else if (!GenSightOnVehicle.LineOfSightToEdges(sourceSq, targetLoc, map))
+        else if (!GenSightOnVehicle.LineOfSightToEdges(sourceSq, targetLoc, map, sourceBand, targetBand))
         {
           return false;
         }

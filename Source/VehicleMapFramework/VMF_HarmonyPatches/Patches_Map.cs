@@ -22,17 +22,23 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [PatchLevel(Level.Mandatory)]
 public static class Patch_MapDrawLayer_FinalizeMesh
 {
-  public static void Prefix(MeshParts tags, Map ___map, List<LayerSubMesh> ___subMeshes)
+  public static void Prefix(MapDrawLayer __instance, MeshParts tags, Map ___map, List<LayerSubMesh> ___subMeshes)
   {
     if (!___map.IsVehicleMap || (tags & MeshParts.Verts) == 0)
       return;
 
+    var terrain = __instance is SectionLayer_TerrainOnVehicle;
+    // AsAboveSoBelowでポーンをTerrainの下に表示するため少し上げる
+    var altitude = terrain ? AltitudeLayer.Conduits.AltitudeFor(-0.1f).YOffset() : 0f;
     foreach (var subMesh in ___subMeshes)
     {
       for (var j = 0; j < subMesh.verts.Count; j++)
       {
         var vert = subMesh.verts[j];
-        vert.y /= VehicleMapUtility.YCompress;
+        if (terrain)
+          vert.y = altitude;
+        else
+          vert.y /= VehicleMapUtility.YCompress;
         subMesh.verts[j] = vert;
       }
     }
@@ -94,7 +100,9 @@ public static class Patch_Reachability_CanReach
     }
 
     var departMap = CrossMapReachabilityUtility.DepartMapGlobal ??
-                    pawn.DepartMap ?? ___map;
+                    (pawn is not null && start == (pawn.DepartPosition ?? pawn.Position)
+                      ? pawn.DepartMap ?? ___map
+                      : ___map);
     if (departMap == null)
     {
       return true;
@@ -249,6 +257,7 @@ public static class Patch_Map_MapUpdate
     {
       mesh200 = MeshPool.GridPlane(MeshSize);
       skyMat = SolidColorMaterials.NewSolidColorMaterial(Color.black, ShaderDatabase.SolidColor);
+      skyMat.renderQueue = 3100;
     });
   }
 
@@ -355,7 +364,7 @@ public static class Patch_Map_MapUpdate
                 _ => 0f
               };
             var rot = Rot4.FromAngleFlat(angle);
-            if (vehicleCaravanOrStashedVehicle != null)
+            if (vehicleCaravanOrStashedVehicle is not null)
             {
               foreach (var vehicle2 in vehicleCaravanOrStashedVehicle.Vehicles)
               {
@@ -374,20 +383,23 @@ public static class Patch_Map_MapUpdate
 
       // 空の暗さ
       skyMat.color = Color.black.WithAlpha((1f - vehicle.VehicleMap.skyManager.CurSkyGlow) * 0.2f);
-      skyMat.renderQueue = 3100;
       Graphics.DrawMesh(mesh200, center.WithY(AltitudeLayer.LightingOverlay.AltitudeFor()), Quaternion.identity, skyMat,
         0);
 
       //　車両本体
-      if (vehicleCaravanOrStashedVehicle != null)
+      if (vehicleCaravanOrStashedVehicle?.GetComponent<VehicleFormationComp>() is { } comp)
       {
-        var drawPositions = vehicleCaravanOrStashedVehicle.DrawPositions;
-        if (!drawPositions.Keys.SequenceEqual(vehicleCaravanOrStashedVehicle.Vehicles))
-          vehicleCaravanOrStashedVehicle.RecalculateVehiclePositions();
+        var drawPositions = comp.DrawPositions;
 
         foreach (var vehicle2 in vehicleCaravanOrStashedVehicle.Vehicles)
         {
-          var drawPos2 = center + drawPositions[vehicle2].RotatedBy(angle);
+          if (!drawPositions.ContainsKey(vehicle2))
+          {
+            comp.FindVehiclePosition(vehicle2);
+            comp.CenteredDrawPositions();
+          }
+
+          var drawPos2 = center + (drawPositions[vehicle2].position).RotatedBy(angle);
           vehicle2.DrawAt(in drawPos2, vehicle2.FullRotation, angle - vehicle2.FullRotation.AsAngle);
         }
       }
@@ -927,18 +939,6 @@ public static class Patch_MapDeiniter_PassPawnsToWorld
   }
 }
 
-[HarmonyPatch(typeof(Map), nameof(Map.IsPlayerHome), MethodType.Getter)]
-[PatchLevel(Level.Safe)]
-public static class Patch_Map_IsPlayerHome
-{
-  private static bool Prepare() => VehicleMapFramework.settings is { treatAsPlayerHome: true };
-
-  public static void Postfix(Map __instance, ref bool __result)
-  {
-    __result = __result || __instance.IsVehicleMapOf(out var vehicle) && vehicle.Faction == Faction.OfPlayer;
-  }
-}
-
 // 地上マップの制限ゾーン変更により車両マップの制限ゾーンが地上マップのゾーンで上書きされる問題の修正
 [HarmonyPatch]
 [PatchLevel(Level.Cautious)]
@@ -1022,4 +1022,31 @@ public static class Patch_Pawn_PlayerSettings_AreaRestrictionInPawnCurrentMap
     }
     AreaUtility.MakeAllowedAreaListFloatMenu(selAction, addNullAreaOption, addManageOption, map);
   }
+}
+
+[HarmonyPatch(typeof(Map), nameof(Map.IsPlayerHome), MethodType.Getter)]
+[PatchLevel(Level.Safe)]
+public static class Patch_Map_IsPlayerHome
+{
+  private static bool Prepare() => VehicleMapFramework.settings is { treatAsPlayerHome: true };
+
+  public static void Postfix(Map __instance, ref bool __result)
+  {
+    __result = __result || __instance.IsVehicleMapOf(out var vehicle) && vehicle.Faction == Faction.OfPlayer;
+  }
+}
+
+[HarmonyPatch(typeof(QuestNode_GetMap), "IsAcceptableMap")]
+[PatchLevel(Level.Cautious)]
+public static class Patch_QuestNode_GetMap_IsAcceptableMap
+{
+  private static bool Prepare() => VehicleMapFramework.settings is { treatAsPlayerHome: true };
+
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    return instructions.MethodReplacer(
+      AccessTools.PropertyGetter(typeof(Map), nameof(Map.IsPocketMap)), ((Delegate)IsPocketMap).Method);
+  }
+
+  private static bool IsPocketMap(Map map) => map is { IsPocketMap: true, IsVehicleMap: false };
 }

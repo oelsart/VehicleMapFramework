@@ -15,12 +15,12 @@ using Verse;
 namespace VehicleMapFramework.VMF_HarmonyPatches;
 
 [AttributeUsage(AttributeTargets.Class)]
-internal class VfVersionalPatchAttribute : Attribute
+internal class VFVersionalPatchAttribute : Attribute
 {
   internal const string LatestRelease = "1.6.2144";
   internal const string CurrentDevBranch = "1.6.2361";
 
-  public VfVersionalPatchAttribute(string version, ComparisonType comparison = ComparisonType.Equal)
+  public VFVersionalPatchAttribute(string version, ComparisonType comparison = ComparisonType.Equal)
   {
     TargetVersion = Version.Parse(version);
     Available = comparison switch
@@ -54,7 +54,7 @@ public static class Patch_VehiclePath_DrawPath
   }
 }
 
-[VfVersionalPatch(VfVersionalPatchAttribute.LatestRelease, ComparisonType.LessThanOrEqual)]
+[VFVersionalPatch(VFVersionalPatchAttribute.LatestRelease, ComparisonType.LessThanOrEqual)]
 [HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(VehicleGhostUtility), nameof(VehicleGhostUtility.DrawGhostVehicleDef))]
 [PatchLevel(Level.Sensitive)]
@@ -76,7 +76,7 @@ public static class Patch_VehicleGhostUtility_DrawGhostVehicleDef
   }
 }
 
-[VfVersionalPatch(VfVersionalPatchAttribute.LatestRelease, ComparisonType.LessThanOrEqual)]
+[VFVersionalPatch(VFVersionalPatchAttribute.LatestRelease, ComparisonType.LessThanOrEqual)]
 [HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(VehicleGhostUtility), nameof(VehicleGhostUtility.DrawGhostOverlays))]
 [PatchLevel(Level.Sensitive)]
@@ -93,7 +93,7 @@ public static class Patch_VehicleGhostUtility_DrawGhostOverlays
   }
 }
 
-[VfVersionalPatch(VfVersionalPatchAttribute.LatestRelease, ComparisonType.GreaterThan)]
+[VFVersionalPatch(VFVersionalPatchAttribute.LatestRelease, ComparisonType.GreaterThan)]
 [HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch("Vehicles.VehicleGhostUtility+DrawData", "DrawPos", MethodType.Getter)]
 public static class Patch_VehicleGhostUtility_DrawData_DrawPos
@@ -152,7 +152,7 @@ public static class Patch_VehicleGhostUtility_DrawData_DrawPos
   }
 }
 
-[VfVersionalPatch(VfVersionalPatchAttribute.LatestRelease, ComparisonType.LessThanOrEqual)]
+[VFVersionalPatch(VFVersionalPatchAttribute.LatestRelease, ComparisonType.LessThanOrEqual)]
 [HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(TransferableVehicleWidget), "DrawCard")]
 [PatchLevel(Level.Safe)]
@@ -167,7 +167,7 @@ public static class Patch_TransferableVehicleWidget_DrawCard
   }
 }
 
-[VfVersionalPatch(VfVersionalPatchAttribute.LatestRelease, ComparisonType.LessThanOrEqual)]
+[VFVersionalPatch(VFVersionalPatchAttribute.LatestRelease, ComparisonType.LessThanOrEqual)]
 [HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(TextureDrawer), "Draw")]
 [PatchLevel(Level.Sensitive)]
@@ -212,7 +212,7 @@ public static class Patch_TextureDrawer_Draw
   }
 }
 
-[VfVersionalPatch("1.6.2380", ComparisonType.GreaterThanOrEqual)]
+[VFVersionalPatch("1.6.2380", ComparisonType.GreaterThanOrEqual)]
 [HarmonyPatchCategory(PatchCategories.VehicleFramework)]
 [HarmonyPatch(typeof(BlitRequest), nameof(BlitRequest.For), typeof(VehiclePawn))]
 [PatchLevel(Level.Safe)]

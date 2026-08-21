@@ -45,7 +45,10 @@
 		</costList>
 		<uiOrder>1000</uiOrder>
 		<comps>
-			<li Class="VehicleMapFramework.CompProperties_VehicleEnterSpot"/>
+			<li Class="VehicleMapFramework.CompProperties_VehicleEnterSpot">
+        <compClass>VehicleMapFramework.CompGroundToVehicleAccess</compClass>
+        <canAccessToGround>true</canAccessToGround>
+      </li>
 			<li>
 				<compClass>CompColorable</compClass>
 			</li>
@@ -87,6 +90,8 @@
 		<useBlueprintGraphicAsGhost>true</useBlueprintGraphicAsGhost>
 		<comps>
 			<li Class="VehicleMapFramework.CompProperties_VehicleEnterSpot">
+        <compClass>VehicleMapFramework.CompGroundToVehicleAccess</compClass>
+        <canAccessToGround>true</canAccessToGround>
 				<allowPassingVehicle>true</allowPassingVehicle>
 			</li>
 			<li>
@@ -178,4 +183,24 @@
 			</blueprintGraphicData>
 		</building>
 	</ThingDef>
+
+  <ThingDef>
+    <defName>VMF_GangplankAnchor</defName>
+    <label>gangplank</label>
+    <description>A lumber for crossing directly from one vehicle map to another.</description>
+    <category>Mote</category>
+    <thingClass>ThingWithComps</thingClass>
+    <drawerType>None</drawerType>
+    <tickerType>Never</tickerType>
+    <selectable>false</selectable>
+    <useHitPoints>false</useHitPoints>
+    <isSaveable>false</isSaveable>
+    <rotatable>false</rotatable>
+    <comps>
+      <li Class="VehicleMapFramework.CompProperties_Gangplank">
+        <canAccessVehicleToVehicle>true</canAccessVehicleToVehicle>
+      </li>
+    </comps>
+  </ThingDef>
+  
 </Defs>

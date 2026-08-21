@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using RimWorld;
 using Vehicles;
 using Verse;
 
@@ -13,55 +14,104 @@ public class CompBuildableUpgrades : ThingComp
 
   public override void PostSpawnSetup(bool respawningAfterLoad)
   {
+    if (Props.syncWithPowerCondition &&
+        (!respawningAfterLoad ||
+         parent.GetComp<CompPowerTrader>() is not { PowerOn: true }))
+      return;
+
     LongEventHandler.ExecuteWhenFinished(() =>
     {
-      if (parent.IsOnVehicleMapOf(out var vehicle))
-      {
-        foreach (var upgrade in Props.upgrades)
-        {
-          if (upgrade is VehicleUpgradeBuildable buildable)
-          {
-            buildable.parent = this;
-            buildable.Unlock(vehicle, respawningAfterLoad);
-          }
-          else
-          {
-            upgrade.Unlock(vehicle, respawningAfterLoad);
-          }
-        }
-        vehicle.EventRegistry[VehicleEventDefOf.UpgradeCompleted].ExecuteEvents();
-      }
-    });
-  }
-
-  public override void PostDeSpawn(Map map, DestroyMode mode = DestroyMode.Vanish)
-  {
-    if (map.IsVehicleMapOf(out var vehicle))
-    {
+      if (!parent.IsOnVehicleMapOf(out var vehicle))
+        return;
+      
       foreach (var upgrade in Props.upgrades)
       {
         if (upgrade is VehicleUpgradeBuildable buildable)
         {
           buildable.parent = this;
-          buildable.Refund(vehicle);
+          buildable.Unlock(vehicle, respawningAfterLoad);
         }
         else
         {
-          upgrade.Refund(vehicle);
+          upgrade.Unlock(vehicle, respawningAfterLoad);
         }
       }
-      vehicle.EventRegistry[VehicleEventDefOf.UpgradeRefundCompleted].ExecuteEvents();
+      vehicle.EventRegistry[VehicleEventDefOf.UpgradeCompleted].ExecuteEvents();
+    });
+  }
 
-      //あふれた分の燃料を消費させる
-      CompFueledTravel comp;
-      if ((comp = vehicle.CompFueledTravel) != null)
+  public override void PostDeSpawn(Map map, DestroyMode mode = DestroyMode.Vanish)
+  {
+    if (Props.syncWithPowerCondition && parent.GetComp<CompPowerTrader>() is { PowerOn: false })
+      return;
+    
+    if (!map.IsVehicleMapOf(out var vehicle))
+      return;
+    
+    foreach (var upgrade in Props.upgrades)
+    {
+      if (upgrade is VehicleUpgradeBuildable buildable)
       {
-        var fuel = comp.Fuel - comp.FuelCapacity;
-        if (fuel > 0)
-        {
-          comp.ConsumeFuel(fuel);
-        }
+        buildable.parent = this;
+        buildable.Refund(vehicle);
       }
+      else
+      {
+        upgrade.Refund(vehicle);
+      }
+    }
+    vehicle.EventRegistry[VehicleEventDefOf.UpgradeRefundCompleted].ExecuteEvents();
+
+    //あふれた分の燃料を消費させる
+    CompFueledTravel comp;
+    if ((comp = vehicle.CompFueledTravel) != null)
+    {
+      var fuel = comp.Fuel - comp.FuelCapacity;
+      if (fuel > 0)
+      {
+        comp.ConsumeFuel(fuel);
+      }
+    }
+  }
+
+  public override void ReceiveCompSignal(string signal)
+  {
+    if (!Props.syncWithPowerCondition || !parent.IsOnVehicleMapOf(out var vehicle))
+      return;
+    
+    switch (signal)
+    {
+      case CompPowerTrader.PowerTurnedOnSignal:
+        foreach (var upgrade in Props.upgrades)
+        {
+          if (upgrade is VehicleUpgradeBuildable buildable)
+          {
+            buildable.parent = this;
+            buildable.Unlock(vehicle, false);
+          }
+          else
+          {
+            upgrade.Unlock(vehicle, false);
+          }
+        }
+        vehicle.EventRegistry[VehicleEventDefOf.UpgradeCompleted].ExecuteEvents();
+        break;
+      
+      case CompPowerTrader.PowerTurnedOffSignal:
+        foreach (var upgrade in Props.upgrades)
+        {
+          if (upgrade is VehicleUpgradeBuildable buildable)
+          {
+            buildable.parent = this;
+            buildable.Refund(vehicle);
+          }
+          else
+          {
+            upgrade.Refund(vehicle);
+          }
+        }
+        vehicle.EventRegistry[VehicleEventDefOf.UpgradeRefundCompleted].ExecuteEvents();
+        break;
     }
   }
 
@@ -114,7 +164,8 @@ public class CompBuildableUpgrades : ThingComp
   public override void PostExposeData()
   {
     Scribe_Collections.Look(ref handlerUniqueIDs, "handlerUniqueIDs", LookMode.Deep);
-    handlerUniqueIDs ??= [];
+    if (Scribe.mode is LoadSaveMode.PostLoadInit)
+      handlerUniqueIDs ??= [];
   }
 }
 
