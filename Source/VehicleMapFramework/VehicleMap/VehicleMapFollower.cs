@@ -69,6 +69,8 @@ public class VehicleMapFollower(VehiclePawnWithMap vehicle)
     }
 
     component.OccupiedCells[vehicle] = tmpOccupiedCells;
+    prevCell = vehicle.Position;
+    prevRot = vehicle.FullRotation;
   }
 
   public void DeRegisterVehicle()

@@ -28,7 +28,7 @@ public static class VerbOnVehicleUtility
       //    return verb.TryFindShootLineFromTo(root, targ, out resultingLine, ignoreRange);
       //}
       var positionOnBaseMap = verb.caster.PositionOnBaseMap;
-      var tmpRoot = !flag ? root : positionOnBaseMap;
+      var tmpRoot = !flag || root != verb.caster.Position ? root : positionOnBaseMap;
       var casterBaseMap = verb.caster.BaseMap();
       var targCellOnBaseMap = targ.TargetCellOnBaseMap(verb.caster);
 
@@ -58,7 +58,7 @@ public static class VerbOnVehicleUtility
 
       var occupiedRect =
         targ.HasThing ? targ.Thing.MovedOccupiedRect() : CellRect.SingleCell(targCellOnBaseMap);
-      if (!ignoreRange && verb.OutOfRange(positionOnBaseMap, targ, occupiedRect))
+      if (!ignoreRange && verb.OutOfRange(tmpRoot, targ, occupiedRect))
       {
         resultingLine = new ShootLine(tmpRoot, targCellOnBaseMap);
         return false;

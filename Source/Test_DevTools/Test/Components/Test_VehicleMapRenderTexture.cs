@@ -6,7 +6,7 @@ using Verse;
 namespace VehicleMapFramework.Test_Logics;
 
 [TestFixture(TestType.Playing)]
-public class Test_VehicleMapRenderTexture
+internal sealed class Test_VehicleMapRenderTexture
 {
   [Test]
   public void CacheExpiration_Ticks()

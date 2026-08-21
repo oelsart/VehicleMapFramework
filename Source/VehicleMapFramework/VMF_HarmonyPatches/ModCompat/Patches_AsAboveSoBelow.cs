@@ -25,7 +25,7 @@ internal class Patches_AsAboveSoBelow
 [HarmonyPatchCategory(PatchCategories.AsAboveSoBelow)]
 [HarmonyAfter(HarmonyId)]
 [HarmonyPatch(typeof(MapGenerator), nameof(MapGenerator.GenerateMap))]
-[PatchLevel(Level.Safe)]
+[PatchLevel(Level.Mandatory)]
 public static class Patch_MapGenerator_GenerateMap
 {
   public static void Prefix(ref IntVec3 mapSize, MapParent parent)
