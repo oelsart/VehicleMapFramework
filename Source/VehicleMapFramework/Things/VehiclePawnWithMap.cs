@@ -112,6 +112,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
   [UsedImplicitly] public bool AllowExit => allowExit;
 
   [CanBeNull]
+  // TODO VF Updates: VF-393によるStashedVehicleもParentHolderで取得可能となる予定
   public WorldObject VehicleCaravanOrStashedVehicle
   {
     get

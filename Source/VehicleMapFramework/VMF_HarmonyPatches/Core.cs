@@ -2,6 +2,7 @@
 global using static VehicleMapFramework.ModCompat;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Reflection;
 using HarmonyLib;
@@ -318,8 +319,15 @@ public static class LatePatchCore
         ?.Split('.');
       if (version != null)
       {
-        VMF_Log.Message(
-          $"{version.ElementAtOrDefault(0)}.{version.ElementAtOrDefault(1)}.{version.ElementAtOrDefault(2)} rev{version.ElementAtOrDefault(3)}");
+        var major = version.ElementAtOrDefault(0) ?? "0";
+        var minor = version.ElementAtOrDefault(1) ?? "0";
+        var build = version.ElementAtOrDefault(2) ?? "0";
+        var revision = version.ElementAtOrDefault(3) ?? "0";
+        var text = $"{major}.{minor}.{build} rev{revision}";
+#if DEV
+        text += " Dev";
+#endif
+        VMF_Log.Message(text);
       }
 
       VMF_Log.Message($"{VMF_Harmony.Instance.GetPatchedMethods().Count()} patches applied.");

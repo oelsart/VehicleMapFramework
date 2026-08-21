@@ -94,11 +94,12 @@ public class VehicleFormationComp : WorldObjectComp
   public override void PostExposeData()
   {
     Scribe_Collections.Look(ref drawPositions, nameof(drawPositions),
-      LookMode.Reference, LookMode.Deep, ref keysWorkingList, ref valuesWorkingList);
-    drawPositions ??= [];
-    if (drawPositions.Count == 0)
+      LookMode.Reference, LookMode.Deep, ref keysWorkingList, ref valuesWorkingList, false);
+    if (Scribe.mode is LoadSaveMode.PostLoadInit)
     {
-      RecalculateVehiclePositions();
+      drawPositions ??= [];
+      if (drawPositions.Count == 0)
+        RecalculateVehiclePositions();
     }
   }
 

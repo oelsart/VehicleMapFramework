@@ -7,6 +7,7 @@ namespace VehicleMapFramework;
 
 public static class VehicleCaravanHelper
 {
+  // TODO VF Updates: StashedVehicleにもIVehicleWorldObjectを実装するPRを提出済み
   extension(WorldObject vehicleCaravanOrStashedVehicle)
   {
     public IEnumerable<VehiclePawn> Vehicles => vehicleCaravanOrStashedVehicle switch
