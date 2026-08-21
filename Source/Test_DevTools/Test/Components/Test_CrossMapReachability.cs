@@ -211,7 +211,7 @@ internal sealed class Test_CrossMapReachability(
   }
 
   [Test]
-  public IEnumerator VehicleMapToVehicleMapToVehicleMap()
+  public void VehicleMapToVehicleMapToVehicleMap()
   {
     var offset = Pantodon.Size.x + 1;
     var scope = new DeepOceanCellRectScope(offset * 3 + 6);
@@ -224,8 +224,6 @@ internal sealed class Test_CrossMapReachability(
     {
       Assert.IsNotNull(GenSpawn.Spawn(pawn, Pantodons[0].VehicleMap.Center, Pantodons[0].VehicleMap), "Pawn");
     }
-
-    yield return Test.Suspend(-1f, "Paused");
 
     var result = CrossMapReachabilityUtility.CanReach(Pantodons[0].VehicleMap, Pantodons[0].VehicleMap.Center,
       Pantodons[2].VehicleMap.Center, PathEndMode.OnCell, traverseParms.Value, Pantodons[2].VehicleMap,

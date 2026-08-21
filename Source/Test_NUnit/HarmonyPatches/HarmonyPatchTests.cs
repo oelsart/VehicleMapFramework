@@ -165,7 +165,7 @@ public class HarmonyPatchTests
           attributes.Any(attr => attr.AttributeType == typeof(HarmonyPatch)) &&
           attributes.Any(attr => attr.AttributeType == typeof(HarmonyPatchCategory) &&
                                  attr.ConstructorArguments.Any(c => (string)c.Value == category)) &&
-          attributes.All(attr => attr.AttributeType.Name != "VfVersionalPatchAttribute");
+          attributes.All(attr => attr.AttributeType.Name != "VFVersionalPatchAttribute");
       }).Do(type =>
       {
         try
