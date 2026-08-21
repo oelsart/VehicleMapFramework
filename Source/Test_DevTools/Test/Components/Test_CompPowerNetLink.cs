@@ -9,7 +9,7 @@ using Verse;
 namespace VehicleMapFramework.Test_Logics;
 
 [TestFixture(TestType.Playing)]
-internal class Test_CompPowerNetLink : IGenericTest
+internal sealed class Test_CompPowerNetLink : IGenericTest
 {
   private CompWirelessTransmitter sinkLink;
 

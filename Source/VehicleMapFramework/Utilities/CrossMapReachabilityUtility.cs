@@ -233,8 +233,8 @@ public static class CrossMapReachabilityUtility
     Ability_MapTraverse ability = null;
     if (canUseAbility)
     {
-      ability = traverseParms.pawn?.abilities?.AllAbilitiesForReading.OfType<Ability_MapTraverse>()
-        .FirstOrDefault(a => a is { CanCast.Accepted: true });
+      ability = (Ability_MapTraverse)traverseParms.pawn?.abilities?.AllAbilitiesForReading
+        .FirstOrDefault(a => a is Ability_MapTraverse { CanCast.Accepted: true });
       parmsForCache.ability = ability?.def;
     }
 

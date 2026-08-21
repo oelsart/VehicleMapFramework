@@ -9,6 +9,7 @@ namespace VehicleMapFramework.Test_Logics;
 public static class TestUtility
 {
   public static VehicleDef Crawler => DefDatabase<VehicleDef>.GetNamed("MV_Crawler");
+  public static VehicleDef Pantodon => DefDatabase<VehicleDef>.GetNamed("MV_Pantodon");
   
   public static VehicleGroup DefaultVehicleGroup => VehicleGroup.CreateBasicVehicleGroup(new VehicleGroup.MockSettings
   {
