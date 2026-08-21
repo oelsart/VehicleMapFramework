@@ -37,8 +37,14 @@ public static class Patch_Pawn_JobTracker_StartJob
   }
 
   [PatchLevel(Level.Safe)]
-  public static void Prefix(Pawn_JobTracker __instance, Job newJob, int ___jobsGivenThisTick)
+  public static void Prefix(Pawn_JobTracker __instance, Pawn ___pawn, int ___jobsGivenThisTick,
+    Job newJob, JobCondition lastJobEndCondition)
   {
+    if ((lastJobEndCondition & (JobCondition.InterruptForced | JobCondition.InterruptOptional)) != JobCondition.None)
+    {
+      ___pawn.RemoveTargetInfo();
+    }
+    
     if (___jobsGivenThisTick > 9 && newJob?.workGiverDef is { } workGiverDef)
     {
       var message = "A \"10 jobs in one tick\" error is about to occur. ";

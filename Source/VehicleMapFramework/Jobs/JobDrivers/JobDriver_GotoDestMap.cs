@@ -53,7 +53,8 @@ public class JobDriver_GotoDestMap : JobDriverAcrossMaps
       try
       {
         allowOpportunisticPrefix = false;
-        pawn.jobs.StartJob(nextJob, JobCondition.InterruptForced, VMF_DefOf.VMF_GotoDestMapThinkTree.thinkRoot,
+        pawn.ClearAllReservations();
+        pawn.jobs.StartJob(nextJob, JobCondition.Ongoing, VMF_DefOf.VMF_GotoDestMapThinkTree.thinkRoot,
           thinkTree: VMF_DefOf.VMF_GotoDestMapThinkTree, keepCarryingThingOverride: true,
           preToilReservationsCanFail: true);
       }
