@@ -3,6 +3,7 @@
   <component name="UserContentModel">
     <attachedFolders>
       <Path>../../.git/hooks</Path>
+      <Path>../../.git/testresults</Path>
       <Path>../../.github/workflows</Path>
     </attachedFolders>
     <explicitIncludes />
