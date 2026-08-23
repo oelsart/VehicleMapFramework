@@ -18,6 +18,10 @@ public class HarmonyPatchTests
       .Invoke(null, [true]);
     harmony = new Harmony(HarmonyId);
     harmony.Patch(
+      AccessTools.PropertyGetter("Verse.GenTypes:AllTypes"),
+      AccessTools.Method(typeof(HarmonyPatchTests), nameof(AllTypes)));
+    
+    harmony.Patch(
       AccessTools.Method("Verse.GenTypes:GetTypeInAnyAssembly"),
       AccessTools.Method(typeof(HarmonyPatchTests), nameof(TypeByName)));
 
@@ -49,6 +53,12 @@ public class HarmonyPatchTests
   private Harmony harmony;
 
   private const string HarmonyId = "VehicleMapFramework.HarmonyPatchTests";
+  
+  private static bool AllTypes(out List<Type> __result)
+  {
+    __result = [.. AccessTools.AllTypes()];
+    return false;
+  }
 
   private static bool TypeByName(string typeName, out Type __result)
   {
@@ -112,7 +122,7 @@ public class HarmonyPatchTests
       }
       assemblies.AddRange(assemblies2);
     }
-    Assert.Pass($"Successfully loaded {assemblies.Count} assemblies.");
+    Assert.Pass($"Successfully loaded {assemblies.Count} assemblies.\n{string.Join("\n", assemblies)}");
   }
 
   [Test]

@@ -879,12 +879,14 @@ public static class ModCompat
   
   public class SRALib : CompatBase<SRALib>
   {
+    public static List<Type> Building_TurretGunHasSpeed;
     public static FastInvokeHandler GetTargetingCount;
     
     static SRALib()
     {
       Initialize("DiZhuan.SRALib", () =>
       {
+        Building_TurretGunHasSpeed = [.. GenTypes.AllTypes.Where(t => t.Name == "Building_TurretGunHasSpeed")];
         GetTargetingCount = MethodInvoker.GetHandler(AccessTools.Method("SRA.MapComponent_LaserADSManager:GetTargetingCount"));
       });
     }

@@ -11,14 +11,10 @@ namespace VehicleMapFramework.VMF_HarmonyPatches;
 [StaticConstructorOnStartupPriority(Priority.Low)]
 internal static class Patches_SRALib
 {
-  public static readonly List<Type> t_Building_TurretGunHasSpeed;
-
   static Patches_SRALib()
   {
     if (SRALib.Active)
     {
-      t_Building_TurretGunHasSpeed =
-        [.. GenTypes.AllTypes.Where(t => t.Name == "Building_TurretGunHasSpeed")];
       VMF_Harmony.PatchCategory(PatchCategories.SRALib);
     }
   }
@@ -26,12 +22,12 @@ internal static class Patches_SRALib
 
 [HarmonyPatchCategory(PatchCategories.SRALib)]
 [HarmonyPatch]
-[PatchLevel(Level.Cautious)]
+[PatchLevel(Level.Sensitive)]
 public static class Patch_Building_TurretGunHasSpeed_OrderAttack
 {
   private static IEnumerable<MethodBase> TargetMethods()
   {
-    return Patches_SRALib.t_Building_TurretGunHasSpeed.Select(t => AccessTools.Method(t, "OrderAttack"));
+    return SRALib.Building_TurretGunHasSpeed.Select(t => AccessTools.DeclaredMethod(t, "OrderAttack")).NonNull;
   }
 
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -49,7 +45,7 @@ public static class Patch_Building_TurretGunHasSpeed_IsValidTarget
 {
   private static IEnumerable<MethodBase> TargetMethods()
   {
-    return Patches_SRALib.t_Building_TurretGunHasSpeed.Select(t => AccessTools.Method(t, "IsValidTarget"));
+    return SRALib.Building_TurretGunHasSpeed.Select(t => AccessTools.DeclaredMethod(t, "IsValidTarget")).NonNull;
   }
 
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -65,7 +61,7 @@ public static class Patch_Building_TurretGunHasSpeed_TryFindNewTarget
 {
   private static IEnumerable<MethodBase> TargetMethods()
   {
-    return Patches_SRALib.t_Building_TurretGunHasSpeed.Select(t => AccessTools.Method(t, "TryFindNewTarget"));
+    return SRALib.Building_TurretGunHasSpeed.Select(t => AccessTools.DeclaredMethod(t, "TryFindNewTarget")).NonNull;
   }
 
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -81,11 +77,11 @@ public static class Patch_Building_TurretGunHasSpeed_TryFindNewTarget_Delegate
 {
   private static IEnumerable<MethodBase> TargetMethods()
   {
-    return Patches_SRALib.t_Building_TurretGunHasSpeed.Select(t =>
+    return SRALib.Building_TurretGunHasSpeed.Select(t =>
     {
       return AccessTools.FindIncludingInnerTypes(t,
         t2 => { return t2.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<TryFindNewTarget>")); });
-    });
+    }).NonNull;
   }
 
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
