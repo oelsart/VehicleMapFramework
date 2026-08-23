@@ -337,10 +337,8 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     if (pos.HasValue) return pos.Value;
 
     var cell = CachedMapEdgeCells[index];
-    pos = enterPositions[index] = CachedWalkableMapEdgeCells.ContainsKey(cell) &&
-                                  CrossMapReachabilityUtility.EnterVehiclePosition(
-                                      new TargetInfo(cell, interiorMap)) is
-                                    { IsValid: true } c
+    pos = enterPositions[index] = CrossMapReachabilityUtility.EnterVehiclePosition(
+                                      new TargetInfo(cell, interiorMap)) is { IsValid: true } c
       ? c
       : IntVec3.Invalid;
     return pos.Value;
@@ -502,6 +500,9 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
         {
           for (var i = 0; i < CachedMapEdgeCells.Count; i++)
           {
+            if (!CachedWalkableMapEdgeCells.ContainsKey(CachedMapEdgeCells[i]))
+              continue;
+            
             var pos = GetCachedEnterPosition(i);
             if (pos.IsValid) Map.debugDrawer.FlashCell(pos);
           }

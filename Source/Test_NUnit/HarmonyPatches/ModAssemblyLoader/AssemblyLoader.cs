@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Runtime.Loader;
 using System.Xml.Linq;
 
 namespace ModAssemblyLoader;
@@ -66,7 +67,10 @@ public class AssemblyLoader(string version, string workshopPath, string localMod
       {
         try
         {
-          loadedAssemblies.Add(Assembly.LoadFrom(fileInfo.FullName));
+          var assembly = Assembly.LoadFrom(fileInfo.FullName);
+          AssemblyLoadContext.Default.Resolving += (_, assemblyName) =>
+            assemblyName?.Name == assembly.GetName().Name ? assembly : null;
+          loadedAssemblies.Add(assembly);
         }
         catch
         {

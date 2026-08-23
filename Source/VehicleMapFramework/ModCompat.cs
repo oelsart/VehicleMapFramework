@@ -90,8 +90,6 @@ public static class ModCompat
 
   public static readonly bool SmartPistol = IsModActive("rabiosus.smartpistol");
 
-  public static readonly bool SRALib = IsModActive("DiZhuan.SRALib");
-
   public static readonly bool RealFogOfWar = IsModActive("Mlie.NWNRealFogOfWar");
 
   public static readonly bool RimWorldOfMagic = IsModActive("Torann.ARimworldOfMagic");
@@ -194,7 +192,7 @@ public static class ModCompat
       {
         try
         {
-          initialize();
+          initialize?.Invoke();
         }
         catch (Exception ex)
         {
@@ -878,14 +876,29 @@ public static class ModCompat
         VehicleSectionLayerManager.DrawLayer(component, section, SectionLayer_LowerLevel, drawPos, rot, angle);
     }
   }
-
+  
+  public class SRALib : CompatBase<SRALib>
+  {
+    public static List<Type> Building_TurretGunHasSpeed;
+    public static FastInvokeHandler GetTargetingCount;
+    
+    static SRALib()
+    {
+      Initialize("DiZhuan.SRALib", () =>
+      {
+        Building_TurretGunHasSpeed = [.. GenTypes.AllTypes.Where(t => t.Name == "Building_TurretGunHasSpeed")];
+        GetTargetingCount = MethodInvoker.GetHandler(AccessTools.Method("SRA.MapComponent_LaserADSManager:GetTargetingCount"));
+      });
+    }
+  }
+  
   public class StackGap : CompatBase<StackGap>
   {
     public const string HarmonyId = "Andromeda.StackGap";
 
     static StackGap()
     {
-      Initialize("Andromeda.StackGap", () => { });
+      Initialize("Andromeda.StackGap", null);
     }
   }
 

@@ -31,7 +31,8 @@ public static class Patch_Colonist_UpdateOrderPos
 
   private static int lastCachedTick;
 
-  public static bool Prefix(Colonist __instance, ref Vector3 pos, Predicate<IntVec3> cellValidator, ref IntVec3 __result)
+  public static bool Prefix(Colonist __instance, ref Vector3 pos, Predicate<IntVec3> cellValidator,
+    ref IntVec3 __result)
   {
     __instance.pawn.TargetMap = __instance.pawn.Map;
     if (Find.TickManager.TicksGame != lastCachedTick)
@@ -39,15 +40,19 @@ public static class Patch_Colonist_UpdateOrderPos
       tmpDestMaps.Clear();
       lastCachedTick = Find.TickManager.TicksGame;
     }
-    if (pos.TryGetVehicleMap(Find.CurrentMap, out var vehicle, VehicleMapFlag.None) || __instance.pawn.MapHeld.IsNonFocusedVehicleMapOf(out _))
+
+    if (pos.TryGetVehicleMap(Find.CurrentMap, out var vehicle, VehicleMapFlag.None) ||
+        __instance.pawn.MapHeld.IsNonFocusedVehicleMapOf(out _))
     {
       __result = __instance.UpdateOrderPos(pos, cellValidator, vehicle);
       return false;
     }
+
     return true;
   }
 
-  public static IntVec3 UpdateOrderPos(this Colonist colonist, Vector3 pos, Predicate<IntVec3> cellValidator, VehiclePawnWithMap vehicle)
+  public static IntVec3 UpdateOrderPos(this Colonist colonist, Vector3 pos, Predicate<IntVec3> cellValidator,
+    VehiclePawnWithMap vehicle)
   {
     IntVec3 destCell;
     IntVec3 destCellOnBaseMap;
@@ -63,6 +68,7 @@ public static class Patch_Colonist_UpdateOrderPos
       destCell = destCellOnBaseMap = pos.ToIntVec3();
       destMap = colonist.pawn.MapHeldBaseMap();
     }
+
     colonist.pawn.TargetMap = destMap;
 
     if (AchtungLoader.IsSameSpotInstalled)
@@ -80,12 +86,13 @@ public static class Patch_Colonist_UpdateOrderPos
         return destCell;
       }
     }
-    
+
     if (TryGetStandableMoveAnchor(destCell, destMap, out var moveAnchor))
       destCell = moveAnchor;
 
     var bestCell = IntVec3.Invalid;
-    if (ModsConfig.BiotechActive && colonist.pawn.IsColonyMech && !MechanitorUtility.InMechanitorCommandRange(colonist.pawn, destCellOnBaseMap))
+    if (ModsConfig.BiotechActive && colonist.pawn.IsColonyMech &&
+        !MechanitorUtility.InMechanitorCommandRange(colonist.pawn, destCellOnBaseMap))
     {
       var overseer = colonist.pawn.GetOverseer();
       var map = overseer.MapHeld;
@@ -97,7 +104,8 @@ public static class Patch_Colonist_UpdateOrderPos
           if (mechanitor.CanCommandTo(newPos))
             if (destMap.pawnDestinationReservationManager.CanReserve(newPos, colonist.pawn, true)
                 && newPos.Standable(destMap)
-                && colonist.pawn.CanReach(newPos, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn, destMap)
+                && colonist.pawn.CanReach(newPos, PathEndMode.OnCell, Danger.Deadly, false, false, TraverseMode.ByPawn,
+                  destMap)
                )
             {
               bestCell = newPos;
@@ -111,14 +119,16 @@ public static class Patch_Colonist_UpdateOrderPos
     {
       bestCell = CrossMapRCellFinder.BestOrderedGotoDestNear(destCell, colonist.pawn, null, true, destMap);
     }
+
     if (bestCell.InBounds(destMap))
     {
       colonist.designation = bestCell;
       tmpDestMaps[bestCell] = destMap;
       return bestCell;
     }
+
     return IntVec3.Invalid;
-    
+
     static bool TryGetStandableMoveAnchor(IntVec3 cell, Map map, out IntVec3 result)
     {
       result = IntVec3.Invalid;
@@ -153,12 +163,15 @@ public static class Patch_Tools_OrderTo
       OrderTo(pawn, cell, map, exitSpot, enterSpot, spotsQueue);
       return false;
     }
+
     return true;
   }
 
-  public static void OrderTo(Pawn pawn, IntVec3 cell, Map map, TargetInfo exitSpot, TargetInfo enterSpot, List<TraverseSpots> spotsQueue)
+  public static void OrderTo(Pawn pawn, IntVec3 cell, Map map, TargetInfo exitSpot, TargetInfo enterSpot,
+    List<TraverseSpots> spotsQueue)
   {
-    var job = JobMaker.MakeJob(VMF_DefOf.VMF_GotoAcrossMaps, cell).SetSpotsToJobAcrossMaps(pawn, exitSpot, enterSpot, spotsQueue);
+    var job = JobMaker.MakeJob(VMF_DefOf.VMF_GotoAcrossMaps, cell)
+      .SetSpotsToJobAcrossMaps(pawn, exitSpot, enterSpot, spotsQueue);
     job.playerForced = true;
     job.collideWithPawns = false;
     var baseMap = pawn.BaseMap();
@@ -177,16 +190,19 @@ public static class Patch_Tools_LabelDrawPosFor
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.m_IntVec3_ToVector3Shifted, ((Delegate)ToVector3ShiftedOffset).Method);
+    return instructions.MethodReplacer(CachedMethodInfo.m_IntVec3_ToVector3Shifted,
+      ((Delegate)ToVector3ShiftedOffset).Method);
   }
 
   public static Vector3 ToVector3ShiftedOffset(ref IntVec3 cell)
   {
     var vector = cell.ToVector3Shifted();
-    if (Patch_Colonist_UpdateOrderPos.tmpDestMaps.TryGetValue(cell, out var map) && map.IsNonFocusedVehicleMapOf(out var vehicle))
+    if (Patch_Colonist_UpdateOrderPos.tmpDestMaps.TryGetValue(cell, out var map) &&
+        map.IsNonFocusedVehicleMapOf(out var vehicle))
     {
       return vector.ToBaseMapCoord(vehicle);
     }
+
     return vector;
   }
 }
@@ -269,13 +285,13 @@ public static class Patch_Tools_PawnsUnderMouse
 {
   [PatchLevel(Level.Safe)]
   public static void Prefix(ref Vector3 pos) => pos = pos.ToVehicleMapCoord();
-  
+
   [PatchLevel(Level.Cautious)]
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
     return instructions.MethodReplacer(
       ((Delegate)GenUI.ThingsUnderMouse).Method,
       ((Func<Vector3, float, TargetingParameters, ITargetingSource, List<Thing>>)GenUIOnVehicle.ThingsUnderMouse).Method
-      );
+    );
   }
 }

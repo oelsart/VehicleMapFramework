@@ -1220,6 +1220,28 @@ public static class VehicleMapUtility
       return IntVec3.Invalid;
     }
 
+    public IntVec3 ClosestMapEdgeCell(VehiclePawnWithMap vehicle)
+    {
+      if (vehicle.CachedMapEdgeCells.Count == 0) return IntVec3.Invalid;
+
+      var cellOnVehicleMap = original.ToVehicleMapCoord(vehicle);
+      var mapRect = vehicle.ValidMapRect.ExpandedBy(1);
+      var root = mapRect.ClosestCellTo(cellOnVehicleMap);
+      if (cellOnVehicleMap == root || vehicle.CachedMapEdgeCells.Contains(root)) return root;
+      var radius = (mapRect.GetCorner(Rot4.North) - mapRect.GetCorner(Rot4.South)).LengthHorizontal;
+
+      var pattern =
+        GenRadialDirectional.PatternFor(cellOnVehicleMap, vehicle.ValidMapRect, 0f, radius, out var indexRange);
+      for (var i = indexRange.min; i < indexRange.max; i++)
+      {
+        var cell = root + pattern[i];
+        if (vehicle.CachedMapEdgeCells.Contains(cell))
+          return cell;
+      }
+
+      return IntVec3.Invalid;
+    }
+
     public IntVec3 ClosestWalkableEdgeCell(VehiclePawnWithMap vehicle, int districtID = -1)
     {
       if (vehicle.CachedWalkableMapEdgeCells.Count == 0) return IntVec3.Invalid;

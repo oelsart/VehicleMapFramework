@@ -24,7 +24,7 @@ internal class Patches_CeleTech
 }
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
-[HarmonyPatch("TOT_DLL_test.Building_CMCTurretGun", "OrderAttack")]
+[HarmonyPatch("CeleTech.Base.Building_CMCTurretGun", "OrderAttack")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Building_CMCTurretGun_OrderAttack
 {
@@ -37,7 +37,7 @@ public static class Patch_Building_CMCTurretGun_OrderAttack
 }
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
-[HarmonyPatch("TOT_DLL_test.Building_CMCTurretGun", "IsTargetStillValid")]
+[HarmonyPatch("CeleTech.Base.Building_CMCTurretGun", "IsTargetStillValid")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Building_CMCTurretGun_IsTargetStillValid
 {
@@ -51,7 +51,7 @@ public static class Patch_Building_CMCTurretGun_IsTargetStillValid
 }
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
-[HarmonyPatch("TOT_DLL_test.Building_CMCTurretGun", "TryFindNewTarget")]
+[HarmonyPatch("CeleTech.Base.Building_CMCTurretGun", "TryFindNewTarget")]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Building_CMCTurretGun_TryFindNewTarget
 {
@@ -80,7 +80,7 @@ public static class Patch_Building_CMCTurretGun_TryFindNewTarget
 }
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
-[HarmonyPatch("TOT_DLL_test.Building_CMCTurretGun", "TestForTarget")]
+[HarmonyPatch("CeleTech.Base.Building_CMCTurretGun", "TestForTarget")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Building_CMCTurretGun_TestForTarget
 {
@@ -91,7 +91,7 @@ public static class Patch_Building_CMCTurretGun_TestForTarget
 }
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
-[HarmonyPatch("TOT_DLL_test.Building_CMCTurretGun", "CanTargetNow")]
+[HarmonyPatch("CeleTech.Base.Building_CMCTurretGun", "CanTargetNow")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Building_CMCTurretGun_CanTargetNow
 {
@@ -104,7 +104,7 @@ public static class Patch_Building_CMCTurretGun_CanTargetNow
 }
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
-[HarmonyPatch("TOT_DLL_test.Building_CMCTurretGun", "ScoreTarget")]
+[HarmonyPatch("CeleTech.Base.Building_CMCTurretGun", "ScoreTarget")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Building_CMCTurretGun_ScoreTarget
 {
@@ -128,7 +128,7 @@ public static class Patch_Building_CMCTurretGun_ScoreTarget
 }
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
-[HarmonyPatch("TOT_DLL_test.Building_CMCTurretGun_AAAS", "CanEngageTarget")]
+[HarmonyPatch("CeleTech.Base.Building_CMCTurretGun_AAAS", "CanEngageTarget")]
 [HarmonyPatch([typeof(LocalTargetInfo)])]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Building_CMCTurretGun_AAAS_CanEngageTarget
@@ -142,7 +142,7 @@ public static class Patch_Building_CMCTurretGun_AAAS_CanEngageTarget
 }
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
-[HarmonyPatch("TOT_DLL_test.Building_PDBattery", "TryFindNewTarget")]
+[HarmonyPatch("CeleTech.Base.Building_PDBattery", "TryFindNewTarget")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Building_PDBattery_TryFindNewTarget
 {
@@ -159,7 +159,7 @@ public static class Patch_Building_PDBattery_TryFindNewTarget_Delegate
 {
   private static MethodBase TargetMethod()
   {
-    return AccessTools.FindIncludingInnerTypes(GenTypes.GetTypeInAnyAssembly("TOT_DLL_test.Building_PDBattery", "TOT_DLL_test"), t => { return t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<TryFindNewTarget>")); });
+    return AccessTools.FindIncludingInnerTypes(GenTypes.GetTypeInAnyAssembly("CeleTech.Base.Building_PDBattery", "CeleTech.Base"), t => { return t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<TryFindNewTarget>")); });
   }
 
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -169,7 +169,7 @@ public static class Patch_Building_PDBattery_TryFindNewTarget_Delegate
 }
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
-[HarmonyPatch("TOT_DLL_test.CMCTurretTop", "DrawTurret")]
+[HarmonyPatch("CeleTech.Base.CMCTurretTop", "DrawTurret")]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_CMCTurretTop_DrawTurret
 {
@@ -181,7 +181,7 @@ public static class Patch_CMCTurretTop_DrawTurret
         [
           CodeInstruction.LoadArgument(0),
           CodeInstruction.LoadField(
-            GenTypes.GetTypeInAnyAssembly("TOT_DLL_test.CMCTurretTop", "TOT_DLL_test"),
+            GenTypes.GetTypeInAnyAssembly("CeleTech.Base.CMCTurretTop", "CeleTech.Base"),
             "parentTurret")
         ])
       .InstructionEnumeration();
@@ -189,7 +189,7 @@ public static class Patch_CMCTurretTop_DrawTurret
 }
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
-[HarmonyPatch("TOT_DLL_test.CMCTurretTop", "ForceFaceTarget")]
+[HarmonyPatch("CeleTech.Base.CMCTurretTop", "ForceFaceTarget")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_CMCTurretTop_ForceFaceTarget
 {
@@ -200,7 +200,7 @@ public static class Patch_CMCTurretTop_ForceFaceTarget
 }
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
-[HarmonyPatch("TOT_DLL_test.CMCTurretTop", "TurretTopTick")]
+[HarmonyPatch("CeleTech.Base.CMCTurretTop", "TurretTopTick")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_CMCTurretTop_TurretTopTick
 {
@@ -211,7 +211,7 @@ public static class Patch_CMCTurretTop_TurretTopTick
 }
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
-[HarmonyPatch("TOT_DLL_test.Comp_FCradar", "PostDraw")]
+[HarmonyPatch("CeleTech.Base.Comp_FCradar", "PostDraw")]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Comp_FCradar_PostDraw
 {
@@ -225,7 +225,7 @@ public static class Patch_Comp_FCradar_PostDraw
 }
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
-[HarmonyPatch("TOT_DLL_test.Comp_CMCShield", "Draw")]
+[HarmonyPatch("CeleTech.Base.Comp_CMCShield", "Draw")]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Comp_CMCShield_Draw
 {
@@ -236,7 +236,7 @@ public static class Patch_Comp_CMCShield_Draw
 }
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
-[HarmonyPatch("TOT_DLL_test.Comp_PrismTowerTop", "PostDraw")]
+[HarmonyPatch("CeleTech.Base.Comp_PrismTowerTop", "PostDraw")]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Comp_PrismTowerTop_PostDraw
 {
@@ -247,7 +247,7 @@ public static class Patch_Comp_PrismTowerTop_PostDraw
 }
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
-[HarmonyPatch("TOT_DLL_test.Comp_TraderShuttle", "PostDraw")]
+[HarmonyPatch("CeleTech.Base.Comp_TraderShuttle", "PostDraw")]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_Comp_TraderShuttle_PostDraw
 {
@@ -258,7 +258,7 @@ public static class Patch_Comp_TraderShuttle_PostDraw
 }
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
-[HarmonyPatch("TOT_DLL_test.Comp_UAV", "CompTick")]
+[HarmonyPatch("CeleTech.Base.Comp_UAV", "CompTick")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Comp_UAV_CompTick
 {
@@ -269,7 +269,7 @@ public static class Patch_Comp_UAV_CompTick
 }
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
-[HarmonyPatch("TOT_DLL_test.Comp_FloatingGunRework", "CompTick")]
+[HarmonyPatch("CeleTech.Base.Comp_FloatingGunRework", "CompTick")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Comp_FloatingGunRework_CompTick
 {
@@ -280,7 +280,7 @@ public static class Patch_Comp_FloatingGunRework_CompTick
 }
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
-[HarmonyPatch("TOT_DLL_test.Verb_LauncherProjectileSwitchFire", "Retarget")]
+[HarmonyPatch("CeleTech.Base.Verb_LauncherProjectileSwitchFire", "Retarget")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Verb_LauncherProjectileSwitchFire_Retarget
 {
@@ -300,7 +300,7 @@ public static class Patch_Patch_Verb_LauncherProjectileSwitchFire_Retarget_Deleg
 {
   private static MethodBase TargetMethod()
   {
-    return AccessTools.FindIncludingInnerTypes(GenTypes.GetTypeInAnyAssembly("TOT_DLL_test.Verb_LauncherProjectileSwitchFire", "TOT_DLL_test"), t => { return t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<Retarget>")); });
+    return AccessTools.FindIncludingInnerTypes(GenTypes.GetTypeInAnyAssembly("CeleTech.Base.Verb_LauncherProjectileSwitchFire", "CeleTech.Base"), t => { return t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<Retarget>")); });
   }
 
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -310,7 +310,7 @@ public static class Patch_Patch_Verb_LauncherProjectileSwitchFire_Retarget_Deleg
 }
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
-[HarmonyPatch("TOT_DLL_test.Verb_LauncherProjectileSwitchFire", "CanHitFromCellIgnoringRange")]
+[HarmonyPatch("CeleTech.Base.Verb_LauncherProjectileSwitchFire", "CanHitFromCellIgnoringRange")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Verb_LauncherProjectileSwitchFire_CanHitFromCellIgnoringRange
 {
@@ -323,7 +323,7 @@ public static class Patch_Verb_LauncherProjectileSwitchFire_CanHitFromCellIgnori
 }
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
-[HarmonyPatch("TOT_DLL_test.Verb_Laser_Instant", "TryCastShot")]
+[HarmonyPatch("CeleTech.Base.Verb_Laser_Instant", "TryCastShot")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Verb_Laser_Instant_TryCastShot
 {
@@ -334,7 +334,7 @@ public static class Patch_Verb_Laser_Instant_TryCastShot
 }
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
-[HarmonyPatch("TOT_DLL_test.Verb_Laser_Instant_UAV", "TryCastShot")]
+[HarmonyPatch("CeleTech.Base.Verb_Laser_Instant_UAV", "TryCastShot")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Verb_Laser_Instant_UAV_TryCastShot
 {
@@ -345,7 +345,7 @@ public static class Patch_Verb_Laser_Instant_UAV_TryCastShot
 }
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
-[HarmonyPatch("TOT_DLL_test.Verb_Laser_Sustain", "BurstingTick")]
+[HarmonyPatch("CeleTech.Base.Verb_Laser_Sustain", "BurstingTick")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Verb_Laser_Sustain_BurstingTick
 {
@@ -358,7 +358,7 @@ public static class Patch_Verb_Laser_Sustain_BurstingTick
 }
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
-[HarmonyPatch("TOT_DLL_test.Verb_Laser_Sustain", "TryCastShot")]
+[HarmonyPatch("CeleTech.Base.Verb_Laser_Sustain", "TryCastShot")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Verb_Laser_Sustain_TryCastShot
 {
@@ -369,7 +369,7 @@ public static class Patch_Verb_Laser_Sustain_TryCastShot
 }
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
-[HarmonyPatch("TOT_DLL_test.Verb_PlasmaIncinerator", "TryCastShot")]
+[HarmonyPatch("CeleTech.Base.Verb_PlasmaIncinerator", "TryCastShot")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Verb_PlasmaIncinerator_TryCastShot
 {
@@ -380,7 +380,7 @@ public static class Patch_Verb_PlasmaIncinerator_TryCastShot
 }
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
-[HarmonyPatch("TOT_DLL_test.Verb_RocketShoot", "TryCastShot")]
+[HarmonyPatch("CeleTech.Base.Verb_RocketShoot", "TryCastShot")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Verb_RocketShoot_TryCastShot
 {
@@ -394,7 +394,7 @@ public static class Patch_Verb_RocketShoot_TryCastShot
 }
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
-[HarmonyPatch("TOT_DLL_test.Verb_ShootDronePos", "TryCastShot")]
+[HarmonyPatch("CeleTech.Base.Verb_ShootDronePos", "TryCastShot")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Verb_ShootDronePos_TryCastShot
 {
@@ -407,7 +407,7 @@ public static class Patch_Verb_ShootDronePos_TryCastShot
 }
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
-[HarmonyPatch("TOT_DLL_test.Verb_Shoot_UAV", "TryCastShot")]
+[HarmonyPatch("CeleTech.Base.Verb_Shoot_UAV", "TryCastShot")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Verb_Shoot_UAV_TryCastShot
 {
@@ -420,7 +420,7 @@ public static class Patch_Verb_Shoot_UAV_TryCastShot
 }
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
-[HarmonyPatch("TOT_DLL_test.HarmonyPatches+Harmony_CheckForFreeInterceptBetween", "Prefix")]
+[HarmonyPatch("CeleTech.Base.HarmonyPatches+Harmony_CheckForFreeInterceptBetween", "Prefix")]
 [PatchLevel(Level.Mandatory)]
 public static class Patch_CheckForFreeInterceptBetween_Prefix
 {
@@ -439,7 +439,7 @@ public static class Patch_CheckForFreeInterceptBetween_Prefix
 }
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
-[HarmonyPatch("TOT_DLL_test.CompFullProjectileInterceptor", "CheckIntercept")]
+[HarmonyPatch("CeleTech.Base.CompFullProjectileInterceptor", "CheckIntercept")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_CompFullProjectileInterceptor_CheckIntercept
 {
@@ -452,7 +452,7 @@ public static class Patch_CompFullProjectileInterceptor_CheckIntercept
 }
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
-[HarmonyPatch("TOT_DLL_test.CompFullProjectileInterceptor", "GetCurrentAlpha")]
+[HarmonyPatch("CeleTech.Base.CompFullProjectileInterceptor", "GetCurrentAlpha")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_CompFullProjectileInterceptor_GetCurrentAlpha
 {
@@ -463,7 +463,7 @@ public static class Patch_CompFullProjectileInterceptor_GetCurrentAlpha
 }
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
-[HarmonyPatch("TOT_DLL_test.CompFullProjectileInterceptor", "PostDraw")]
+[HarmonyPatch("CeleTech.Base.CompFullProjectileInterceptor", "PostDraw")]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_CompFullProjectileInterceptor_PostDraw
 {
@@ -491,7 +491,7 @@ public static class Patch_CompFullProjectileInterceptor_PostDraw
 }
 
 [HarmonyPatchCategory(PatchCategories.CeleTechArsenal)]
-[HarmonyPatch("TOT_DLL_test.CompFullProjectileInterceptor", "PostDrawExtraSelectionOverlays")]
+[HarmonyPatch("CeleTech.Base.CompFullProjectileInterceptor", "PostDrawExtraSelectionOverlays")]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_CompFullProjectileInterceptor_PostDrawExtraSelectionOverlays
 {

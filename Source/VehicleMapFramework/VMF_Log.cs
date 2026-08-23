@@ -14,7 +14,7 @@ internal static class VMF_Log
     {
       Console.WriteLine(message);
     }
-    Log.Error($"{LogLabel} {message}");
+    Log.Error($"{LogLabel} {message}\n{new StackTrace(2, true)}");
   }
 
   public static void Warning(string message)

@@ -37,7 +37,7 @@ internal class TestCoRunner
   internal static void ReadResult()
   {
     var document = XDocument.Load(ResultPath);
-    testCases = document.Descendants("testcase").ToArray();
+    testCases = [.. document.Descendants("testcase")];
   }
 
   public static IEnumerable<TestCaseData> TestResults()

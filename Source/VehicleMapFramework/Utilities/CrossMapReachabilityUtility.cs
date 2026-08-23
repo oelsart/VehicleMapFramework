@@ -660,15 +660,14 @@ public static class CrossMapReachabilityUtility
       working = false;
     }
   }
-
-
-  private static bool CellCheck(IntVec3 cell, Map map, TraverseParms parms, bool destination = false)
+  
+  private static bool CellCheck(IntVec3 cell, Map map, TraverseParms parms, bool destination = false, bool destroyMode = false)
   {
     if (parms.pawn is { } pawn)
     {
-      if (!cell.WalkableBy(map, pawn) ||
+      if (!destroyMode && !cell.WalkableBy(map, pawn) ||
           cell.GetDoor(map) is { HoldOpen: false } door &&
-           (!door.PawnCanOpen(pawn) || door.IsForbidden(pawn)))
+          (!door.PawnCanOpen(pawn) || door.IsForbidden(pawn)))
         return false;
       
       if (!destination || !parms.avoidPersistentDanger)
@@ -1050,6 +1049,7 @@ public static class CrossMapReachabilityUtility
     private IntVec3 _destBaseMapCoord;
     private TraverseParms _traverseParms;
     private TraverseParms _traverseParms2;
+    private bool _destroyMode;
     private Ability_MapTraverse _ability;
     private readonly List<Map> _tmpCandidates = [];
     private readonly HashSet<int> _visitedDistrictIDs = [];
@@ -1061,12 +1061,17 @@ public static class CrossMapReachabilityUtility
     {
       _destBaseMapCoord = destination.CellOnGroundMap;
       _traverseParms = traverseParms;
+      var mode = traverseParms.mode > TraverseMode.PassDoors ? traverseParms.mode : TraverseMode.PassDoors;
       _traverseParms2 = traverseParms.pawn != null
-        ? TraverseParms.For(traverseParms.pawn, traverseParms.maxDanger, TraverseMode.PassDoors,
+        ? TraverseParms.For(traverseParms.pawn, traverseParms.maxDanger, mode,
           traverseParms.canBashDoors, traverseParms.alwaysUseAvoidGrid, traverseParms.canBashFences,
           traverseParms.avoidPersistentDanger)
-        : TraverseParms.For(TraverseMode.PassDoors, traverseParms.maxDanger, traverseParms.canBashDoors,
+        : TraverseParms.For(mode, traverseParms.maxDanger, traverseParms.canBashDoors,
           traverseParms.alwaysUseAvoidGrid, traverseParms.canBashFences, traverseParms.avoidPersistentDanger);
+      _destroyMode = _traverseParms.mode is
+        TraverseMode.PassAllDestroyableThings or
+        TraverseMode.PassAllDestroyablePlayerOwnedThings or
+        TraverseMode.PassAllDestroyableThingsNotWater;
       _ability = ability;
       _tmpCandidates.Clear();
       _tmpCandidates.AddRange(start.Map.BaseMapAndVehicleMaps());
@@ -1140,20 +1145,28 @@ public static class CrossMapReachabilityUtility
         {
           // OrderByを避けて行き先に近いセルから返す
           var map2 = vehicle.Map;
-          var startIndex =
-            vehicle.CachedMapEdgeCells.IndexOf(_destBaseMapCoord.ClosestWalkableEdgeCell(vehicle, current.DistrictID));
-          var count = vehicle.CachedMapEdgeCells.Count;
-          for (var i = 0; i < count; i++)
+          var startCell = _destroyMode
+            ? _destBaseMapCoord.ClosestMapEdgeCell(vehicle)
+            : _destBaseMapCoord.ClosestWalkableEdgeCell(vehicle);
+          if (startCell.IsValid)
           {
-            var offset = (i % 2 == 0) ? (i / 2) : -(i / 2 + 1);
-            var index = GenMath.PositiveMod(startIndex + offset, count);
-            var cell = vehicle.CachedMapEdgeCells[index];
-            if (vehicle.GetCachedEnterPosition(index) is { IsValid: true } cell2)
+            var startIndex = vehicle.CachedMapEdgeCells.IndexOf(startCell);
+            var count = vehicle.CachedMapEdgeCells.Count;
+            for (var i = 0; i < count; i++)
             {
-              var traverse = new MapTraverse(new TargetInfo(cell, map), new TargetInfo(cell2, map2));
-              yield return traverse;
-              if (_visitedDistrictIDs.Contains(traverse.DistrictID))
-                break; // 車両の周りにnullでない複数のDistrictがあるとは考えにくいため早期breakしていいはず
+              var offset = (i % 2 == 0) ? (i / 2) : -(i / 2 + 1);
+              var index = GenMath.PositiveMod(startIndex + offset, count);
+              var cell = vehicle.CachedMapEdgeCells[index];
+              if (!_destroyMode && !vehicle.CachedWalkableMapEdgeCells.ContainsKey(cell))
+                continue;
+            
+              if (vehicle.GetCachedEnterPosition(index) is { IsValid: true } cell2)
+              {
+                var traverse = new MapTraverse(new TargetInfo(cell, map), new TargetInfo(cell2, map2));
+                yield return traverse;
+                if (_visitedDistrictIDs.Contains(traverse.DistrictID))
+                  break; // 車両の周りにnullでない複数のDistrictがあるとは考えにくいため早期breakしていいはず
+              }
             }
           }
         }
@@ -1185,7 +1198,7 @@ public static class CrossMapReachabilityUtility
                 continue;
               var startIndex =
                 vehicle2.CachedMapEdgeCells.IndexOf(
-                  current.enterSpot.Cell.ClosestWalkableEdgeCell(vehicle2, district.ID));
+                  current.enterSpot.Cell.ClosestWalkableEdgeCell(vehicle2));
               var count = vehicle2.CachedMapEdgeCells.Count;
               for (var j = 0; j < count; j++)
               {
@@ -1249,7 +1262,7 @@ public static class CrossMapReachabilityUtility
 
     public bool CanEnter(MapTraverse from, MapTraverse to)
     {
-      return CellCheck(to.exitSpot.Cell, to.exitSpot.Map, _traverseParms) &&
+      return CellCheck(to.exitSpot.Cell, to.exitSpot.Map, _traverseParms, destroyMode: _destroyMode) &&
              CellCheck(to.enterSpot.Cell, to.enterSpot.Map, _traverseParms, true) &&
              from.enterSpot.Map.reachability.CanReach(from.enterSpot.Cell, to.exitSpot.Cell,
                PathEndMode.OnCell, _traverseParms2) &&
@@ -1262,6 +1275,7 @@ public static class CrossMapReachabilityUtility
         return false;
       foreach (var region in destRegions)
       {
+        
         if (from.enterSpot.Map.reachability.CanReach(from.enterSpot.Cell, region.AnyCell, PathEndMode.OnCell,
               _traverseParms2))
         {
@@ -1398,6 +1412,11 @@ public static class CrossMapReachabilityUtility
         }
 
         VMF_Log.Error(stringBuilder.ToString());
+      }
+
+      if (debug)
+      {
+        Log.Message($"A* run finished\nfrom {start}\nto {destination}\npath:\n{string.Join("\n", path)}");
       }
     }
 

@@ -43,6 +43,7 @@
 - Name: CeleTechArsenal + CE
   Mods:
     - CeleTechArsenal
+    - CombatExtended
   Categories:
     - VMF_Patches_CeleTechArsenalCECompat
 - Name: ColonyGroups
@@ -102,3 +103,4 @@
 - Name: ManipulatorBeamEmitter
 - Name: TextTool
 - Name: AsAboveSoBelow
+- Name: SRALib

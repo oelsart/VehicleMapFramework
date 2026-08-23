@@ -19,7 +19,6 @@ public interface IGenericTest
   {
     Group = DefaultVehicleGroup;
     TestUtils.ForceSpawn(Vehicle);
-    Vehicle.DoTick();
   }
 
   void DisposeGroup()

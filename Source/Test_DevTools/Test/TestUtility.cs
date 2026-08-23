@@ -3,6 +3,7 @@ using RimWorld;
 using Vehicles;
 using Vehicles.Testing;
 using Verse;
+using Verse.AI;
 
 namespace VehicleMapFramework.Test_Logics;
 
@@ -95,5 +96,10 @@ public static class TestUtility
     {
       return new IntVec3(map.Size.x - c.x - 1, c.y, map.Size.z - c.z - 1);
     }
+  }
+
+  extension(Job job)
+  {
+    public Job ActualJob(Pawn pawn) => (job.GetCachedDriver(pawn) as JobDriver_GotoDestMap)?.nextJob ?? job;
   }
 }

@@ -19,7 +19,7 @@ public class VehicleRoleHandlerBuildable : VehicleRoleHandler, IExposable, IThin
     get
     {
       Rot8 rot;
-      if (this.role is VehicleRoleBuildable roleBuildable)
+      if (role is VehicleRoleBuildable roleBuildable)
       {
         rot = roleBuildable.upgradeComp.parent.BaseFullRotation();
       }
@@ -29,7 +29,7 @@ public class VehicleRoleHandlerBuildable : VehicleRoleHandler, IExposable, IThin
       }
 
       return vehicle.DrawPos.y + AltitudeLayer.BuildingOnTop.AltitudeFor().YOffset() +
-             this.role.PawnRenderer.LayerFor(rot);
+             role.PawnRenderer.LayerFor(rot);
     }
   }
 
@@ -38,7 +38,7 @@ public class VehicleRoleHandlerBuildable : VehicleRoleHandler, IExposable, IThin
     get
     {
       Rot8 rot;
-      if (this.role is VehicleRoleBuildable roleBuildable)
+      if (role is VehicleRoleBuildable roleBuildable)
       {
         rot = roleBuildable.upgradeComp.parent.BaseFullRotation();
       }
@@ -47,10 +47,11 @@ public class VehicleRoleHandlerBuildable : VehicleRoleHandler, IExposable, IThin
         rot = vehicle.FullRotation;
       }
 
-      return this.role.PawnRenderer.AngleFor(rot) + vehicle.Transform.rotation;
+      return role.PawnRenderer.AngleFor(rot) + vehicle.Transform.rotation;
     }
   }
 
+  // TODO VF Updates: transformData.rotationを入れるための再実装であるため、次回リリースで不要となる
   PawnPosture IThingHolderWithDrawnPawn.HeldPawnPosture => PawnPosture.LayingInBedFaceUp;
 
   void IParallelRenderer.DynamicDrawPhaseAt(DrawPhase phase, in TransformData transformData, bool forceDraw)
@@ -64,7 +65,7 @@ public class VehicleRoleHandlerBuildable : VehicleRoleHandler, IExposable, IThin
     {
       var value = role.PawnRenderer.RotFor(transformData.orientation);
       var vector = role.PawnRenderer.DrawOffsetFor(transformData.orientation)
-        .RotatedBy(transformData.orientation == Rot8.West ? -transformData.rotation : transformData.rotation);
+        .RotatedBy(transformData.rotation.FlipAngle(vehicle));
       item.Drawer.renderer.DynamicDrawPhaseAt(phase, transformData.position + vector, value, neverAimWeapon: true);
     }
   }
