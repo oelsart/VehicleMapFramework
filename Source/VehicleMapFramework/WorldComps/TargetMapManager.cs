@@ -37,6 +37,7 @@ public class TargetMapManager(World world) : WorldComponent(world)
   {
     if (GenTicks.IsTickInterval(10800))
     {
+      tmpKeys ??= [];
       foreach (var pair in
                TargetInfoTable.Where(pair => pair is not { Value.Value.IsValid: true } and { Key: not null }))
       {
@@ -93,8 +94,6 @@ public class TargetMapManager(World world) : WorldComponent(world)
           }
           tmpTargetInfoDic = null;
         }
-        tmpKeys ??= [];
-        tmpValues ??= [];
         break;
       }
       case LoadSaveMode.Inactive:

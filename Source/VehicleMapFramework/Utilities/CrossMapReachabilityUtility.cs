@@ -660,15 +660,14 @@ public static class CrossMapReachabilityUtility
       working = false;
     }
   }
-
-
+  
   private static bool CellCheck(IntVec3 cell, Map map, TraverseParms parms, bool destination = false, bool destroyMode = false)
   {
     if (parms.pawn is { } pawn)
     {
       if (!destroyMode && !cell.WalkableBy(map, pawn) ||
           cell.GetDoor(map) is { HoldOpen: false } door &&
-           (!door.PawnCanOpen(pawn) || door.IsForbidden(pawn)))
+          (!door.PawnCanOpen(pawn) || door.IsForbidden(pawn)))
         return false;
       
       if (!destination || !parms.avoidPersistentDanger)
@@ -1148,7 +1147,7 @@ public static class CrossMapReachabilityUtility
           var map2 = vehicle.Map;
           var startCell = _destroyMode
             ? _destBaseMapCoord.ClosestMapEdgeCell(vehicle)
-            : _destBaseMapCoord.ClosestWalkableEdgeCell(vehicle, current.DistrictID);
+            : _destBaseMapCoord.ClosestWalkableEdgeCell(vehicle);
           if (startCell.IsValid)
           {
             var startIndex = vehicle.CachedMapEdgeCells.IndexOf(startCell);
@@ -1199,7 +1198,7 @@ public static class CrossMapReachabilityUtility
                 continue;
               var startIndex =
                 vehicle2.CachedMapEdgeCells.IndexOf(
-                  current.enterSpot.Cell.ClosestWalkableEdgeCell(vehicle2, district.ID));
+                  current.enterSpot.Cell.ClosestWalkableEdgeCell(vehicle2));
               var count = vehicle2.CachedMapEdgeCells.Count;
               for (var j = 0; j < count; j++)
               {
@@ -1276,6 +1275,7 @@ public static class CrossMapReachabilityUtility
         return false;
       foreach (var region in destRegions)
       {
+        
         if (from.enterSpot.Map.reachability.CanReach(from.enterSpot.Cell, region.AnyCell, PathEndMode.OnCell,
               _traverseParms2))
         {
@@ -1412,6 +1412,11 @@ public static class CrossMapReachabilityUtility
         }
 
         VMF_Log.Error(stringBuilder.ToString());
+      }
+
+      if (debug)
+      {
+        Log.Message($"A* run finished\nfrom {start}\nto {destination}\npath:\n{string.Join("\n", path)}");
       }
     }
 

@@ -156,9 +156,9 @@ public static class Patch_MeditationUtility_GetMeditationJob
 	{
 		var flag = false;
 		if (pawn.royalty is not null && pawn.royalty.AllTitlesInEffectForReading.Count > 0 && !pawn.IsPrisonerOfColony)
-		{
+    {
 			var building_Throne = RoyalTitleUtility.FindBestUsableThrone(pawn);
-			if (building_Throne is not  null)
+			if (building_Throne is not null)
 			{
 				yield return building_Throne;
 				flag = true;
@@ -166,12 +166,12 @@ public static class Patch_MeditationUtility_GetMeditationJob
 		}
 		if (!pawn.IsPrisonerOfColony)
 		{
-      foreach (var item in
+      foreach (var spot in
                from s in pawn.Map.listerBuildings.AllBuildingsColonistOfDef(ThingDefOf.MeditationSpot)
                where MeditationUtility.IsValidMeditationBuildingForPawn(s, pawn)
                select s)
       {
-        yield return item;
+        yield return spot;
         flag = true;
       }
     }
@@ -179,16 +179,16 @@ public static class Patch_MeditationUtility_GetMeditationJob
 			yield break;
     
 		var list = pawn.Map.listerThings.ThingsInGroup(ThingRequestGroup.MeditationFocus);
-		foreach (var item2 in list)
+		foreach (var thing in list)
 		{
-			if (item2.def == ThingDefOf.Wall)
+			if (thing.def == ThingDefOf.Wall)
 				continue;
       
-			var room = item2.GetRoom();
+			var room = thing.GetRoom();
 			if ((room == null || MeditationUtility.CanUseRoomToMeditate(room, pawn)) &&
-          item2.GetStatValueForPawn(StatDefOf.MeditationFocusStrength, pawn) > 0f)
+          thing.GetStatValueForPawn(StatDefOf.MeditationFocusStrength, pawn) > 0f)
 			{
-				var localTargetInfo = MeditationUtility.MeditationSpotForFocus(item2, pawn);
+				var localTargetInfo = MeditationUtility.MeditationSpotForFocus(thing, pawn);
 				if (localTargetInfo.IsValid)
 					yield return localTargetInfo;
 			}
@@ -197,17 +197,17 @@ public static class Patch_MeditationUtility_GetMeditationJob
 		if (bed?.GetRoom() is { PsychologicallyOutdoors: false } room2 &&
         pawn.CanReserveAndReach(bed, PathEndMode.OnCell, pawn.NormalMaxDanger()))
 		{
-			foreach (var item3 in MeditationUtility.FocusSpotsInTheRoom(pawn, room2))
+			foreach (var spot in MeditationUtility.FocusSpotsInTheRoom(pawn, room2))
 			{
-				yield return item3;
+				yield return spot;
 			}
 		}
 		foreach (var room3 in MeditationUtility.UsableWorshipRooms(pawn))
 		{
-			foreach (var item4 in MeditationUtility.FocusSpotsInTheRoom(pawn, room3))
+			foreach (var spot in MeditationUtility.FocusSpotsInTheRoom(pawn, room3))
 			{
-				if (pawn.CanReach(item4, PathEndMode.Touch, pawn.NormalMaxDanger()))
-					yield return item4;
+				if (pawn.CanReach(spot, PathEndMode.Touch, pawn.NormalMaxDanger()))
+					yield return spot;
 			}
 		}
 	}

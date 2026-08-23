@@ -13,8 +13,8 @@ public readonly struct VirtualTeleporter : IDisposable
   private readonly Map _map;
   private readonly IntVec3 _pos = IntVec3.Invalid;
   private readonly bool _setDepartMap;
-  private readonly Map _departMap;
-  private readonly IntVec3? _departPosition;
+  private readonly bool _departMapIsNull;
+  private readonly bool _departPositionIsNull;
 
   public VirtualTeleporter(Thing thing, Map map, IntVec3? c = null, bool setDepartMap = false)
   {
@@ -29,12 +29,18 @@ public readonly struct VirtualTeleporter : IDisposable
     _setDepartMap = setDepartMap;
     if (_setDepartMap && thing is Pawn pawn)
     {
-      _departMap = pawn.DepartMap;
-      pawn.DepartMap = _map;
+      if (pawn.DepartMap is null)
+      {
+        pawn.DepartMap = _map;
+        _departMapIsNull = true;
+      }
       if (c.HasValue)
       {
-        _departPosition = pawn.DepartPosition;
-        pawn.DepartPosition = _pos;
+        if (pawn.DepartPosition is null)
+        {
+          pawn.DepartPosition = _pos;
+          _departPositionIsNull = true;
+        }
       }
     }
   }
@@ -49,8 +55,10 @@ public readonly struct VirtualTeleporter : IDisposable
         _thing.SetPositionDirect(_pos);
       if (_setDepartMap && _thing is Pawn pawn)
       {
-        pawn.DepartMap = _departMap;
-        pawn.DepartPosition = _departPosition;
+        if (_departMapIsNull)
+          pawn.DepartMap = null;
+        if (_departPositionIsNull)
+          pawn.DepartPosition = null;
       }
     }
   }
