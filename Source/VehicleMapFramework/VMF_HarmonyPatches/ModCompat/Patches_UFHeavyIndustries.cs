@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using HarmonyLib;
@@ -35,56 +34,6 @@ internal class Patches_UFHeavyIndustries
   }
 }
 
-[HarmonyPatchCategory(PatchCategories.UFHeavyIndustries)]
-[HarmonyPatch("HNGT.Building_TurretGunRotateAim", "TryStartShootSomething")]
-[PatchLevel(Level.Cautious)]
-public static class Patch_Building_TurretGunRotateAim_TryStartShootSomething
-{
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-  {
-    return instructions.MethodReplacer(CachedMethodInfo.m_Roofed, CachedMethodInfo.m_RoofedAcrossMaps);
-  }
-}
-
-[HarmonyPatchCategory(PatchCategories.UFHeavyIndustries)]
-[HarmonyPatch("HNGT.Building_TurretGunRotateAim", "IsValidTarget")]
-[PatchLevel(Level.Cautious)]
-public static class Patch_Building_TurretGunRotateAim_IsValidTarget
-{
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-  {
-    return instructions.MethodReplacer(CachedMethodInfo.m_Roofed, CachedMethodInfo.m_RoofedAcrossMaps);
-  }
-}
-
-[HarmonyPatchCategory(PatchCategories.UFHeavyIndustries)]
-[HarmonyPatch("HNGT.Building_TurretGunRotateAim", "TryFindNewTarget")]
-[PatchLevel(Level.Cautious)]
-public static class Patch_Building_TurretGunRotateAim_TryFindNewTarget
-{
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-  {
-    return instructions.AddAllBuildingsColonistForThingInstance();
-  }
-}
-
-[HarmonyPatchCategory(PatchCategories.UFHeavyIndustries)]
-[HarmonyPatch]
-[PatchLevel(Level.Sensitive)]
-public static class Patch_Building_TurretGunRotateAim_TryFindNewTarget_Delegate
-{
-  private static MethodBase TargetMethod()
-  {
-    var type = GenTypes.GetTypeInAnyAssembly("HNGT.Building_TurretGunRotateAim", "HNGT");
-    return AccessTools.FindIncludingInnerTypes(type, t => { return t.GetDeclaredMethods().FirstOrDefault(m => m.Name.Contains("<TryFindNewTarget>")); });
-  }
-
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-  {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
-  }
-}
-
 // ECT版Building_TurretGunHasSpeed特有のコードに対するパッチ
 [HarmonyPatchCategory(PatchCategories.UFHeavyIndustries)]
 [HarmonyPatch("ECT.Building_TurretGunHasSpeed", "DrawAt")]
@@ -100,36 +49,9 @@ public static class Patch_Building_TurretGunHasSpeed_DrawAt
 }
 
 [HarmonyPatchCategory(PatchCategories.UFHeavyIndustries)]
-[HarmonyPatch("HNGT.Building_TurretGunRotateAim", "DrawAt")]
-[PatchLevel(Level.Sensitive)]
-public static class Patch_Building_TurretGunRotateAim_DrawAt
-{
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
-  {
-    return new CodeMatcher(instructions, generator)
-      .AddAltitudeFor(out _)
-      .InstructionEnumeration();
-  }
-}
-
-[HarmonyPatchCategory(PatchCategories.UFHeavyIndustries)]
 [HarmonyPatch("ECT.Verb_ShootWithOffset", "BaseTryCastShot")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Verb_ShootWithOffsetECT_BaseTryCastShot
-{
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-  {
-    return instructions.MethodReplacer(
-      (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing),
-      (CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned),
-      (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned));
-  }
-}
-
-[HarmonyPatchCategory(PatchCategories.UFHeavyIndustries)]
-[HarmonyPatch("HNGT.Verb_BarrelWithRecoilAndFlash", "BaseTryCastShot")]
-[PatchLevel(Level.Cautious)]
-public static class Patch_Verb_BarrelWithRecoilAndFlash_BaseTryCastShot
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
