@@ -85,6 +85,35 @@ public static class TestUtility
     return pawn;
   }
 
+  public static Ability_GrapplingHook GrapplingAbility =>
+    new()
+    {
+      def = new AbilityDef
+      {
+        defName = "VMF_Mock_GrapplingHookAbility",
+        label = "grappling hook",
+        abilityClass = typeof(Ability_GrapplingHook),
+        casterMustBeCapableOfViolence = false,
+        verbProperties = new VerbProperties
+        {
+          verbClass = typeof(Verb_LaunchZipline),
+          defaultProjectile = DefDatabase<ThingDef>.GetNamed("VMF_Bullet_ZiplineTurret"),
+          range = 4.9f,
+          warmupTime = 0.5f,
+          defaultCooldownTime = 1f,
+          targetParams = TargetingParameters.ForCell()
+        }
+      }
+    };
+
+  public static void AddGrapplingAbility(Pawn pawn)
+  {
+    var ability = GrapplingAbility;
+    ability.pawn = pawn;
+    ability.Initialize();
+    pawn.abilities.abilities.Add(ability);
+  }
+
   public static IntVec3 FromRUCorner(Map map, int dist)
   {
     return new IntVec3(dist, 0, dist).Reversed(map);
