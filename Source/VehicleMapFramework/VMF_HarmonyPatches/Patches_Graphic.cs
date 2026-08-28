@@ -269,16 +269,29 @@ public static class Patch_PawnRenderer_GetBodyPos
   }
 }
 
-[HarmonyPatch(typeof(PawnRenderer), nameof(PawnRenderer.BodyAngle))]
-[PatchLevel(Level.Safe)]
-public static class Patch_PawnRenderer_BodyAngle
+[HarmonyPatch(typeof(PawnRenderer), "ParallelGetPreRenderResults")]
+[PatchLevel(Level.Sensitive)]
+public static class Patch_PawnRenderer_ParallelGetPreRenderResults
 {
-  public static void Postfix(Pawn ___pawn, ref float __result)
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, MethodBase original)
   {
-    if (___pawn.IsOnNonFocusedVehicleMapOf(out var vehicle))
-    {
-      __result = Ext_Math.RotateAngle(__result, vehicle.FullAngle);
-    }
+    return new CodeMatcher(instructions)
+      .MatchStartForward(CodeMatch.StoresField(AccessTools.Field("Verse.PawnRenderer+PreRenderResults:bodyAngle")))
+      .Insert(
+        CodeInstruction.LoadArgument(0),
+        CodeInstruction.LoadField(typeof(PawnRenderer), "pawn"),
+        ((Delegate)BodyAngleOffset).Method.CallInstruction)
+      .InstructionEnumeration();
+  }
+  
+  private static float BodyAngleOffset(float bodyAngle, Pawn pawn)
+  {
+    if (pawn.IsOnNonFocusedVehicleMapOf(out var vehicle) && pawn.GetPosture() != PawnPosture.Standing)
+      bodyAngle = Ext_Math.RotateAngle(bodyAngle, vehicle.FullAngle);
+
+    if (pawn.jobs?.curDriver is IBodyOffsetJobDriver driver)
+      bodyAngle = Ext_Math.RotateAngle(bodyAngle, driver.PawnBodyAngleOffset);
+    return bodyAngle;
   }
 }
 

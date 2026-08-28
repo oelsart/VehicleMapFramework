@@ -1,6 +1,5 @@
 ﻿using System.Linq;
 using HarmonyLib;
-using RimWorld;
 using RimWorld.Planet;
 using SmashTools;
 using SmashTools.Rendering;
@@ -18,18 +17,11 @@ public class VehicleRoleHandlerBuildable : VehicleRoleHandler, IExposable, IThin
   {
     get
     {
-      Rot8 rot;
-      if (role is VehicleRoleBuildable roleBuildable)
+      if (role is VehicleRoleBuildable { upgradeComp.parent: { } parent })
       {
-        rot = roleBuildable.upgradeComp.parent.BaseFullRotation();
+        return parent.DrawPos.y + role.PawnRenderer.LayerFor(parent.BaseFullRotation());
       }
-      else
-      {
-        rot = vehicle.FullRotation;
-      }
-
-      return vehicle.DrawPos.y + AltitudeLayer.BuildingOnTop.AltitudeFor().YOffset() +
-             role.PawnRenderer.LayerFor(rot);
+      return vehicle.DrawPos.y + role.PawnRenderer.LayerFor(vehicle.FullRotation);
     }
   }
 
@@ -52,8 +44,6 @@ public class VehicleRoleHandlerBuildable : VehicleRoleHandler, IExposable, IThin
   }
 
   // TODO VF Updates: transformData.rotationを入れるための再実装であるため、次回リリースで不要となる
-  PawnPosture IThingHolderWithDrawnPawn.HeldPawnPosture => PawnPosture.LayingInBedFaceUp;
-
   void IParallelRenderer.DynamicDrawPhaseAt(DrawPhase phase, in TransformData transformData, bool forceDraw)
   {
     DynamicDrawPhaseAt(phase, in transformData, forceDraw);
