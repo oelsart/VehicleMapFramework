@@ -54,6 +54,8 @@ internal static class PatchCategories
 
   public const string AttackTargetFinderAngle = "VMF_Patches_AttackTargetFinderAngle";
 
+  public const string AvoidFriendlyFire = "VMF_Patches_AvoidFriendlyFire";
+
   public const string BillDoorsFramework = "VMF_Patches_BillDoorsFramework";
 
   public const string CallTradeShips = "VMF_Patches_CallTradeShips";
