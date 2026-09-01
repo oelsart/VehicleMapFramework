@@ -1024,4 +1024,14 @@ public static class ModCompat
       });
     }
   }
+
+  public class HaulersDream : CompatBase<HaulersDream>
+  {
+    public const string HarmonyId = "giwaffed.HaulersDream";
+    
+    static HaulersDream()
+    {
+      Initialize("giwaffed.HaulersDream", null);
+    }
+  }
 }
