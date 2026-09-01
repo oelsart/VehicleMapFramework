@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using HarmonyLib;
@@ -52,7 +53,8 @@ public static class VehicleMapUtility
     ? Command_FocusVehicleMap.FocusedVehicle.CurrentLevel
     : Find.CurrentMap;
 
-  public static bool FocusedOnVehicleMap(out VehiclePawnWithMap vehicle)
+  [ContractAnnotation("=> true, vehicle:notnull; => false, vehicle:null")]
+  public static bool FocusedOnVehicleMap([CanBeNull] out VehiclePawnWithMap vehicle)
   {
     if (Command_FocusVehicleMap.FocusedVehicle is null)
       return Find.CurrentMap.IsNonFocusedVehicleMapOf(out vehicle);
@@ -538,7 +540,8 @@ public static class VehicleMapUtility
 
     [UsedImplicitly] // Reflection access by Faction Territories and Vassalage
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool IsVehicleMapOf(out VehiclePawnWithMap vehicle)
+    [ContractAnnotation("=> true, vehicle:notnull; => false, vehicle:null")]
+    public bool IsVehicleMapOf([CanBeNull] out VehiclePawnWithMap vehicle)
     {
       var mapParentVehicle = VehicleMapParentsComponent.GetCachedVehicle(map);
       if (mapParentVehicle is not null)
@@ -552,7 +555,8 @@ public static class VehicleMapUtility
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool IsNonFocusedVehicleMapOf(out VehiclePawnWithMap vehicle)
+    [ContractAnnotation("=> true, vehicle:notnull; => false, vehicle:null")]
+    public bool IsNonFocusedVehicleMapOf([CanBeNull] out VehiclePawnWithMap vehicle)
     {
       if (map.IsVehicleMapOf(out vehicle) && (VehicleMapFramework.settings.drawPlanet || Find.CurrentMap != vehicle.VehicleMap))
       {

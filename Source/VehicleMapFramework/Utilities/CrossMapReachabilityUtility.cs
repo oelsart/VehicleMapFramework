@@ -30,12 +30,15 @@ public static class CrossMapReachabilityUtility
   [UsedImplicitly]
   public static Map DestMapGlobal;
 
-  private static readonly Traverser traverser = new();
+  internal static readonly Traverser traverser = new();
 
-  private static readonly AStar<MapTraverse> aStar = new(Traverser.Cost, traverser.Neighbors, traverser.FinalCheck,
+  internal static readonly AStar<MapTraverse> aStar = new(Traverser.Cost, traverser.Neighbors, traverser.FinalCheck,
     traverser.CanEnter, traverser.Heuristic, Traverser.ProcessPath, traverser.DebugDrawEnterNode);
 
-  private static readonly List<MapTraverse> traverseList = [with(16)];
+  internal static readonly AStar<MapTraverse> aStar_new = new(Traverser.Cost, traverser.Neighbors_New, traverser.FinalCheck,
+    traverser.CanEnter, traverser.Heuristic, Traverser.ProcessPath, traverser.DebugDrawEnterNode);
+
+  internal static readonly List<MapTraverse> traverseList = [with(16)];
 
   private static readonly Stack<TraverseSpots> tmpTargets = [with(16)];
 
@@ -301,7 +304,7 @@ public static class CrossMapReachabilityUtility
           var destination = new MapTraverse(TargetInfo.Invalid, dest.ToTargetInfo(destMap));
           traverser.SetParameters(start.enterSpot, destination.enterSpot, traverseParms, ability);
           traverseList.Clear();
-          aStar.Run(start, destination, traverseList);
+          aStar_new.Run(start, destination, traverseList);
           result = traverseList.Count > 0;
           if (traverseList.Count == 1)
           {
@@ -718,8 +721,8 @@ public static class CrossMapReachabilityUtility
       Ability_MapTraverse ability = null;
       if (canUseAbility)
       {
-        ability = parms.pawn?.abilities?.AllAbilitiesForReading.OfType<Ability_MapTraverse>()
-          .FirstOrDefault(a => a is { CanCast.Accepted: true });
+        ability = (Ability_MapTraverse)parms.pawn?.abilities?.AllAbilitiesForReading
+          .FirstOrDefault(static a => a is Ability_MapTraverse { CanCast.Accepted: true });
         parmsForCache.ability = ability?.def;
       }
 
@@ -745,7 +748,7 @@ public static class CrossMapReachabilityUtility
       var destination = new MapTraverse(TargetInfo.Invalid, new TargetInfo(destRegions[0].AnyCell, destMap));
       traverser.SetParameters(start.enterSpot, destination.enterSpot, parms, ability);
       traverseList.Clear();
-      aStar.Run(start, destination, traverseList);
+      aStar_new.Run(start, destination, traverseList);
       result = traverseList.Count > 0;
       if (traverseList.Count == 1)
       {
@@ -1017,7 +1020,7 @@ public static class CrossMapReachabilityUtility
     }
   }
 
-  private struct MapTraverse(TargetInfo exitSpot, TargetInfo enterSpot, bool canMerge = true) : IEquatable<MapTraverse>
+  internal struct MapTraverse(TargetInfo exitSpot, TargetInfo enterSpot, bool canMerge = true) : IEquatable<MapTraverse>
   {
     public TargetInfo exitSpot = exitSpot;
     public readonly TargetInfo enterSpot = enterSpot;
@@ -1044,7 +1047,7 @@ public static class CrossMapReachabilityUtility
     }
   }
 
-  private class Traverser
+  internal class Traverser
   {
     private IntVec3 _destBaseMapCoord;
     private TraverseParms _traverseParms;
@@ -1053,6 +1056,7 @@ public static class CrossMapReachabilityUtility
     private Ability_MapTraverse _ability;
     private readonly List<Map> _tmpCandidates = [];
     private readonly HashSet<int> _visitedDistrictIDs = [];
+    private readonly List<MapTraverse> neighbors = [with(32)];
     private int debugNodeNumber;
     public Region destRegion;
 
@@ -1082,37 +1086,6 @@ public static class CrossMapReachabilityUtility
           return 0;
         if (m.IsVehicleMapOf(out var vehicle))
           return (m.Center.ToBaseMapCoord(vehicle) - _destBaseMapCoord).LengthManhattan;
-        return m.Size.LengthManhattan / 2;
-      });
-      _visitedDistrictIDs.Clear();
-      if (RegionAndRoomQuery.DistirctAtFast(start.Cell, start.Map) is { } district)
-        _visitedDistrictIDs.Add(district.ID);
-      destRegion = null;
-      debugNodeNumber = 0;
-    }
-    
-    public void SetParameters(TargetInfo start, Map destMap, TraverseParms traverseParms,
-      Ability_MapTraverse ability)
-    {
-      _destBaseMapCoord = destMap.IsVehicleMapOf(out var vehicle)
-        ? destMap.Center.ToBaseMapCoord(vehicle)
-        : start.CellOnBaseMap();
-      _traverseParms = traverseParms;
-      _traverseParms2 = traverseParms.pawn != null
-        ? TraverseParms.For(traverseParms.pawn, traverseParms.maxDanger, TraverseMode.PassDoors,
-          traverseParms.canBashDoors, traverseParms.alwaysUseAvoidGrid, traverseParms.canBashFences,
-          traverseParms.avoidPersistentDanger)
-        : TraverseParms.For(TraverseMode.PassDoors, traverseParms.maxDanger, traverseParms.canBashDoors,
-          traverseParms.alwaysUseAvoidGrid, traverseParms.canBashFences, traverseParms.avoidPersistentDanger);
-      _ability = ability;
-      _tmpCandidates.Clear();
-      _tmpCandidates.AddRange(start.Map.BaseMapAndVehicleMaps());
-      _tmpCandidates.SortBy(m =>
-      {
-        if (m == destMap)
-          return 0;
-        if (m.IsVehicleMapOf(out var vehicle2))
-          return (m.Center.ToBaseMapCoord(vehicle2) - _destBaseMapCoord).LengthManhattan;
         return m.Size.LengthManhattan / 2;
       });
       _visitedDistrictIDs.Clear();
@@ -1259,6 +1232,144 @@ public static class CrossMapReachabilityUtility
                !visited.Contains(district.ID);
       }
     }
+    public List<MapTraverse> Neighbors_New(MapTraverse current)
+    {
+      neighbors.Clear();
+      var start = current.enterSpot.Cell;
+      var map = current.enterSpot.Map;
+      if (map.IsVehicleMapOf(out var vehicle))
+      {
+        using var profiler = new DeepProfilerScope("Vehicle Neighbors");
+        if (!vehicle.AllowExitFor(_traverseParms.pawn))
+          return neighbors;
+        
+        var spawned = vehicle.Spawned;
+        foreach (var comp in vehicle.GetSortedEnterComps(_destBaseMapCoord.ToVehicleMapCoord(vehicle)))
+        {
+          if (comp is { AvailableAccessSpot: { IsValid: true } accessSpot })
+          {
+            neighbors.Add(new MapTraverse(comp.parent, accessSpot, !accessSpot.Map.IsVehicleMap));
+          }
+        }
+
+        if (spawned)
+        {
+          // OrderByを避けて行き先に近いセルから返す
+          var map2 = vehicle.Map;
+          var startCell = _destroyMode
+            ? _destBaseMapCoord.ClosestMapEdgeCell(vehicle)
+            : _destBaseMapCoord.ClosestWalkableEdgeCell(vehicle);
+          if (startCell.IsValid)
+          {
+            var startIndex = vehicle.CachedMapEdgeCells.IndexOf(startCell);
+            var count = vehicle.CachedMapEdgeCells.Count;
+            for (var i = 0; i < count; i++)
+            {
+              var offset = (i % 2 == 0) ? (i / 2) : -(i / 2 + 1);
+              var index = GenMath.PositiveMod(startIndex + offset, count);
+              var cell = vehicle.CachedMapEdgeCells[index];
+              if (!_destroyMode && !vehicle.CachedWalkableMapEdgeCells.ContainsKey(cell))
+                continue;
+            
+              if (vehicle.GetCachedEnterPosition(index) is { IsValid: true } cell2)
+              {
+                var traverse = new MapTraverse(new TargetInfo(cell, map), new TargetInfo(cell2, map2));
+                neighbors.Add(traverse);
+                if (_visitedDistrictIDs.Contains(traverse.DistrictID))
+                  break; // 車両の周りにnullでない複数のDistrictがあるとは考えにくいため早期breakしていいはず
+              }
+            }
+          }
+        }
+      }
+      else
+      {
+        using var profiler = new DeepProfilerScope("Ground Neighbors");
+        for (var i = 0; i < _tmpCandidates.Count; i++)
+        {
+          var map2 = _tmpCandidates[i];
+          if (map == map2) continue;
+
+          if (map2.IsVehicleMapOf(out var vehicle2))
+          {
+            if (!vehicle2.AllowEnterFor(_traverseParms.pawn))
+              continue;
+            
+            foreach (var comp in vehicle2.GetSortedEnterComps(start.ToVehicleMapCoord(vehicle2), CompVehicleEnterSpot.Kind.GroundAccessOnly))
+            {
+              if (comp is { AvailableAccessSpot: { IsValid: true } accessSpot } && accessSpot.Map == map)
+              {
+                neighbors.Add(new MapTraverse(accessSpot, comp.parent));
+              }
+            }
+
+            foreach (var district in vehicle2.CachedEdgeDistricts)
+            {
+              if (!ValidateDistrict(district, _visitedDistrictIDs))
+                continue;
+              var startIndex =
+                vehicle2.CachedMapEdgeCells.IndexOf(
+                  current.enterSpot.Cell.ClosestWalkableEdgeCell(vehicle2));
+              var count = vehicle2.CachedMapEdgeCells.Count;
+              for (var j = 0; j < count; j++)
+              {
+                var offset = j % 2 == 0 ? j / 2 : -j / 2 + 1;
+                var index = GenMath.PositiveMod(startIndex + offset, count);
+                if (vehicle2.GetCachedEnterPosition(index) is { IsValid: true } cell)
+                {
+                  var cell2 = vehicle2.CachedMapEdgeCells[index];
+                  neighbors.Add(new MapTraverse(new TargetInfo(cell, map), new TargetInfo(cell2, map2)));
+                  if (_visitedDistrictIDs.Contains(district.ID)) break;
+                }
+              }
+            }
+          }
+        }
+      }
+
+      if (_ability is not null)
+      {
+        using var profiler = new DeepProfilerScope("Ability Neighbors");
+        for (var i = 0; i < _tmpCandidates.Count; i++)
+        {
+          var map2 = _tmpCandidates[i];
+          if (map == map2) continue;
+          if (map2.IsVehicleMapOf(out var vehicle2))
+          {
+            if (!vehicle2.AllowEnterFor(_traverseParms.pawn))
+              continue;
+            
+            foreach (var district in vehicle2.CachedEdgeDistricts)
+            {
+              if (!ValidateDistrict(district, _visitedDistrictIDs))
+                continue;
+              var tmpCell = district.Regions[0].AnyCell;
+              var targetInfo = new TargetInfo(tmpCell, map2);
+              if (_ability.TryFindCastPositionFromTo(current.enterSpot, targetInfo, out var castSpot, out var targSpot,
+                    district.ID))
+              {
+                neighbors.Add(new MapTraverse(castSpot, targSpot, false));
+              }
+            }
+          }
+          // 地上マップのDistrict全走査は無駄が多すぎるためひとつのスポットのみの探索
+          else if (_ability.TryFindCastPositionFromTo(current.enterSpot, new TargetInfo(_destBaseMapCoord, map2),
+                     out var castSpot, out var targSpot))
+          {
+            neighbors.Add(new MapTraverse(castSpot, targSpot, false));
+          }
+        }
+      }
+
+      return neighbors;
+    }
+
+    private static bool ValidateDistrict(District district, HashSet<int> visited)
+    {
+      return district.RegionCount != 0 &&
+             (district.RegionType & RegionType.Set_Passable) != RegionType.None &&
+             !visited.Contains(district.ID);
+    }
 
     public bool CanEnter(MapTraverse from, MapTraverse to)
     {
@@ -1326,7 +1437,7 @@ public static class CrossMapReachabilityUtility
     }
   }
 
-  private class AStar<T>(
+  internal class AStar<T>(
     Func<T, T, int> cost,
     Func<T, IEnumerable<T>> neighbors,
     Func<T, T, bool> finalCheck,
@@ -1336,9 +1447,7 @@ public static class CrossMapReachabilityUtility
     Action<T> debugAction = null) where T : IEquatable<T>
   {
     private readonly PriorityQueue<T, int> openQueue = new();
-
     private readonly Dictionary<T, Node> nodes = [];
-
     public bool debug;
 
     public void Run(T start, T destination, List<T> path)
@@ -1353,8 +1462,29 @@ public static class CrossMapReachabilityUtility
       while (openQueue.Count > 0 && openQueue.TryDequeue(out var current, out _))
       {
         using var profiler2 = new DeepProfilerScope("Neighbors");
-        foreach (var neighbor in neighbors(current))
+        var curNeighbors = neighbors(current);
+        if (curNeighbors is List<T> list)
         {
+          foreach (var neighbor in list)
+          {
+            EnterNeighbor(neighbor, out var found);
+            if (found) return;
+          }
+        }
+        else
+        {
+          foreach (var neighbor in curNeighbors)
+          {
+            EnterNeighbor(neighbor, out var found);
+            if (found) return;
+          }
+        }
+
+        continue;
+          
+        void EnterNeighbor(T neighbor, out bool foundPath)
+        {
+          foundPath = false;
           if (CreateNode(current, neighbor, out var node))
           {
             nodes[neighbor] = node;
@@ -1367,7 +1497,7 @@ public static class CrossMapReachabilityUtility
             if (finalCheck(neighbor, destination))
             {
               SolvePath(start, neighbor, path);
-              return;
+              foundPath = true;
             }
           }
         }

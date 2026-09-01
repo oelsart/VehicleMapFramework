@@ -44,22 +44,7 @@ internal sealed class Test_CrossMapReachability(
       {
         var pawn = PawnGenerator.GeneratePawn(PawnKindDefOf.Colonist, Faction.OfPlayer);
         MakePawnPerfect(pawn);
-        pawn.abilities.abilities.Add(new Ability_GrapplingHook(pawn, new AbilityDef
-        {
-          defName = "VMF_Mock_GrapplingHookAbility",
-          label = "grappling hook",
-          abilityClass = typeof(Ability_GrapplingHook),
-          casterMustBeCapableOfViolence = false,
-          verbProperties = new VerbProperties
-          {
-            verbClass = typeof(Verb_LaunchZipline),
-            defaultProjectile = DefDatabase<ThingDef>.GetNamed("VMF_Bullet_ZiplineTurret"),
-            range = 4.9f,
-            warmupTime = 0.5f,
-            defaultCooldownTime = 1f,
-            targetParams = TargetingParameters.ForCell()
-          }
-        }));
+        AddGrapplingAbility(pawn);
         return forMode with { pawn = pawn };
       });
 

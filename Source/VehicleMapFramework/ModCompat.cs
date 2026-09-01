@@ -1024,4 +1024,25 @@ public static class ModCompat
       });
     }
   }
+
+  public class HaulersDream : CompatBase<HaulersDream>
+  {
+    static HaulersDream()
+    {
+      Initialize("giwaffed.HaulersDream", null);
+    }
+  }
+
+  public class AvoidFriendlyFire : CompatBase<AvoidFriendlyFire>
+  {
+    static AvoidFriendlyFire()
+    {
+      Initialize("falconne.AFF", null);
+    }
+  }
+  
+  public class DesignationsTooltip : CompatBase<DesignationsTooltip>
+  {
+    public const string HarmonyId = "com.cheatereater.designationstooltip";
+  }
 }

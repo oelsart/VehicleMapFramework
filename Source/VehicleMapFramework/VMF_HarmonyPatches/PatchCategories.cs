@@ -54,6 +54,8 @@ internal static class PatchCategories
 
   public const string AttackTargetFinderAngle = "VMF_Patches_AttackTargetFinderAngle";
 
+  public const string AvoidFriendlyFire = "VMF_Patches_AvoidFriendlyFire";
+
   public const string BillDoorsFramework = "VMF_Patches_BillDoorsFramework";
 
   public const string CallTradeShips = "VMF_Patches_CallTradeShips";
@@ -87,6 +89,8 @@ internal static class PatchCategories
   public const string GiantImperialTurret = "VMF_Patches_GiantImperialTurret";
 
   public const string Gunplay = "VMF_Patches_Gunplay";
+
+  public const string HaulersDream = "VMF_Patches_HaulersDream";
 
   public const string HospitalityCasino = "VMF_Patches_HospitalityCasino";
 
