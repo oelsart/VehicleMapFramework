@@ -1040,4 +1040,9 @@ public static class ModCompat
       Initialize("falconne.AFF", null);
     }
   }
+  
+  public class DesignationsTooltip : CompatBase<DesignationsTooltip>
+  {
+    public const string HarmonyId = "com.cheatereater.designationstooltip";
+  }
 }
