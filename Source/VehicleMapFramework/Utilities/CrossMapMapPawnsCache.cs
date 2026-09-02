@@ -7,7 +7,7 @@ namespace VehicleMapFramework;
 
 public class CrossMapMapPawnsCache
 {
-  private readonly List<Map> tmpMaps = new(128);
+  private readonly List<Map> tmpMaps = [with(128)];
   private readonly Dictionary<(Map map, Faction faction), Cache> cacheDict = [];
   private readonly PawnsGetter GetPawns;
 

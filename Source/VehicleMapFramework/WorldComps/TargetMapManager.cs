@@ -45,6 +45,7 @@ public class TargetMapManager(World world) : WorldComponent(world)
       }
       foreach (var thing in tmpKeys)
       {
+        if (thing is null) continue;
         TargetInfoTable.Remove(thing);
       }
       tmpKeys.Clear();
@@ -74,6 +75,9 @@ public class TargetMapManager(World world) : WorldComponent(world)
       case LoadSaveMode.LoadingVars:
       case LoadSaveMode.ResolvingCrossRefs:
       {
+        tmpTargetInfoDic ??= [];
+        tmpKeys ??= [];
+        tmpValues ??= [];
         Scribe_Collections.Look(ref tmpTargetInfoDic,
           "TargetInfo",
           LookMode.Reference,
