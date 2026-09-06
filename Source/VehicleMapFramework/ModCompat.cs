@@ -985,43 +985,33 @@ public static class ModCompat
 
   public class ManipulatorBeamEmitter : CompatBase<ManipulatorBeamEmitter>
   {
-    public static FastInvokeHandler TryFindHaulBatch;
     public static FastInvokeHandler TryFindBestStorageCellCore;
     public static FastInvokeHandler FillTransferQueue;
-    public static FastInvokeHandler FillTransferQueueAuto;
     public static AccessTools.FieldRef<object, Thing> thing;
-    public static MethodInfo WorldPosForCell;
+    public static FastInvokeHandler Manipulator;
+    public static FastInvokeHandler Pawn;
     
     static ManipulatorBeamEmitter()
     {
       Initialize("natsuki.manipulatorbeam", () =>
       {
-        var t_BeamManipulatorUtility = GenTypes.GetTypeInAnyAssembly("ManipulatorBeam.BeamManipulatorUtility", "ManipulatorBeam");
-        if (t_BeamManipulatorUtility is not null)
-        {
-          var m_TryFindHaulBatch = AccessTools.Method(t_BeamManipulatorUtility, "TryFindHaulBatch");
-          if (m_TryFindHaulBatch is not null)
-            TryFindHaulBatch = MethodInvoker.GetHandler(m_TryFindHaulBatch);
-          var m_TryFindBestStorageCellCore = AccessTools.Method(t_BeamManipulatorUtility, "TryFindBestStorageCellCore");
-          if (m_TryFindBestStorageCellCore is not null)
-            TryFindBestStorageCellCore = MethodInvoker.GetHandler(m_TryFindBestStorageCellCore, true);
-          var m_FillTransferQueue = AccessTools.FirstMethod(t_BeamManipulatorUtility,
-            m => m.Name == "FillTransferQueue" && m.GetParameters().Length >= 9);
-          if (m_FillTransferQueue is not null)
-            FillTransferQueue = MethodInvoker.GetHandler(m_FillTransferQueue);
-          var m_FillTransferQueueAuto = AccessTools.FirstMethod(t_BeamManipulatorUtility,
-            m => m.Name == "FillTransferQueueAuto" && m.GetParameters().Length >= 7);
-          if (m_FillTransferQueueAuto is not null)
-            FillTransferQueueAuto = MethodInvoker.GetHandler(m_FillTransferQueueAuto);
-          WorldPosForCell = AccessTools.Method(t_BeamManipulatorUtility, "WorldPosForCell");
-        }
-        thing = AccessTools.FieldRefAccess<Thing>("ManipulatorBeam.BeamTransfer:thing");
         var type = GenTypes.GetTypeInAnyAssembly("ManipulatorBeam.WorkGiver_OperateBeamManipulator", "ManipulatorBeam");
         if (type is not null)
-        {
           JobAcrossMapsUtility.WorkGiverClassesNeedWrap.Add(type);
-        }
+        
+        var t_BeamManipulatorUtility = GenTypes.GetTypeInAnyAssembly("ManipulatorBeam.BeamManipulatorUtility", "ManipulatorBeam");
+        TryFindBestStorageCellCore = MethodInvoker.GetHandler(AccessTools.Method(t_BeamManipulatorUtility, "TryFindBestStorageCellCore"), true);
+        FillTransferQueue = MethodInvoker.GetHandler(AccessTools.Method(t_BeamManipulatorUtility, "FillTransferQueue"));
+        thing = AccessTools.FieldRefAccess<Thing>("ManipulatorBeam.BeamTransfer:thing");
+        var t_IBeamOperator = GenTypes.GetTypeInAnyAssembly("ManipulatorBeam.IBeamOperator", "ManipulatorBeam");
+        Manipulator = MethodInvoker.GetHandler(AccessTools.PropertyGetter(t_IBeamOperator, "Manipulator"));
+        Pawn = MethodInvoker.GetHandler(AccessTools.PropertyGetter(t_IBeamOperator, "Pawn"));
       });
+    }
+
+    public static Thing OperatorThing(object op)
+    {
+      return (Thing)Pawn(op) ?? (Thing)Manipulator(op);
     }
   }
 
