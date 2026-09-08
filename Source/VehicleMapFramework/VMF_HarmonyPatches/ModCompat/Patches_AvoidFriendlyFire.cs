@@ -83,17 +83,16 @@ public static class Patch_FireProperties_AdjustForLeaning
 }
 
 [HarmonyPatchCategory(PatchCategories.AvoidFriendlyFire)]
-[HarmonyPatch("AvoidFriendlyFire.AttackTargetFinder_BestAttackTarget_Patch", "Prefix")]
+[HarmonyPatch]
 [PatchLevel(Level.Cautious)]
 public static class Patch_AttackTargetFinder_BestAttackTarget_Patch_Prefix
 {
   private static IEnumerable<MethodBase> TargetMethods()
   {
     return GenTypes.GetTypeInAnyAssembly(
-        "AvoidFriendlyFire.AttackTargetFinder_BestAttackTarget_Patch",
-        "AvoidFriendlyFire")
-      .FindIncludingInnerTypes(t =>
-        t.GetDeclaredMethods().Where(m => m.CallsMethod(CachedMethodInfo.g_Thing_Position)));
+        "AvoidFriendlyFire.AttackTargetFinder_BestAttackTarget_Patch", "AvoidFriendlyFire")
+      .InnerTypes().SelectMany(t => t.GetDeclaredMethods())
+      .Where(m => m.Name.Contains("<Prefix>") && m.CallsMethod(CachedMethodInfo.g_Thing_Position));
   }
   
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)

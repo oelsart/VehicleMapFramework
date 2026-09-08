@@ -1327,6 +1327,11 @@ public static class VehicleMapUtility
           ? target.Cell.ToBaseMapCoord(vehicle)
           : target.Cell;
     }
+
+    public Map BaseMap()
+    {
+      return target.Map.BaseMap();
+    }
   }
 
   extension(ref GlobalTargetInfo target)

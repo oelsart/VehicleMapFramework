@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Linq;
-using SmashTools;
 using UnityEngine;
 using Vehicles;
 using Verse;
 #if DEV
+using SmashTools;
 #endif
 
 namespace VehicleMapFramework;

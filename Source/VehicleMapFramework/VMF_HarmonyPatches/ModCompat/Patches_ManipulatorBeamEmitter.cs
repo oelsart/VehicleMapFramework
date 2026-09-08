@@ -33,17 +33,6 @@ public static class Patch_Building_BeamManipulator_CanOperate
 }
 
 [HarmonyPatchCategory(PatchCategories.ManipulatorBeamEmitter)]
-[HarmonyPatch("ManipulatorBeam.Building_BeamManipulator", "ActiveOperatorCount", MethodType.Getter)]
-[PatchLevel(Level.Cautious)]
-public static class Patch_Building_BeamManipulator_ActiveOperatorCount
-{
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-  {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
-  }
-}
-
-[HarmonyPatchCategory(PatchCategories.ManipulatorBeamEmitter)]
 [HarmonyPatch("ManipulatorBeam.WorkGiver_OperateBeamManipulator", "GetPriority")]
 [PatchLevel(Level.Cautious)]
 public static class Patch_WorkGiver_OperateBeamManipulator_GetPriority
