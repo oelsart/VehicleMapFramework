@@ -163,6 +163,7 @@ public static class Patch_Verb_KT_Tachyon_Lances_CanUseCell
 
 [HarmonyPatchCategory(PatchCategories.SRALib)]
 [HarmonyPatch("SRA.Verb_ShootWithOffset", "BaseTryCastShot")]
+[HarmonyPatch([typeof(int)], [ArgumentType.Out])]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Verb_ShootWithOffsetSRA_BaseTryCastShot
 {
