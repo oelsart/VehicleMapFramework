@@ -994,14 +994,17 @@ public static class Patch_Pawn_PlayerSettings_AreaRestrictionInPawnCurrentMap
       set
       {
         var _pawn = pawn(playerSettings);
-        var mapHeldBaseMap = _pawn.MapHeldBaseMap();
-        if (Find.CurrentMap == mapHeldBaseMap && _pawn.MapHeld != mapHeldBaseMap)
+        var mapHeld = _pawn.MapHeld;
+        var mapHeldBaseMap = mapHeld.BaseMap();
+        if (Find.CurrentMap == mapHeldBaseMap && mapHeld != mapHeldBaseMap)
         {
           using var _ = new VirtualTeleporter(_pawn, mapHeldBaseMap, _pawn.PositionOnBaseMap, true);
           playerSettings.AreaRestrictionInPawnCurrentMap = value;
+          CrossMapReachabilityCache.ClearCacheFor(mapHeldBaseMap);
           return;
         }
         playerSettings.AreaRestrictionInPawnCurrentMap = value;
+        CrossMapReachabilityCache.ClearCacheFor(mapHeld);
       }
     }
   }

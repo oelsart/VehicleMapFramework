@@ -305,7 +305,7 @@ public static class Patch_TurretShotReport_HitReportFor
       .MethodReplacer(
         (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing),
         (CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMap),
-        (CachedMethodInfo.m_Roofed, CachedMethodInfo.m_RoofedAcrossMaps));
+        (CachedMethodInfo.m_Roofed2, CachedMethodInfo.m_RoofedAcrossMaps2));
   }
 }
 
