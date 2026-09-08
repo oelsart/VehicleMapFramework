@@ -8,8 +8,7 @@ namespace VehicleMapFramework;
 
 public class CompMapExpander : ThingComp
 {
-
-  private static readonly List<IntVec3> tmpCells = new(8);
+  private static readonly List<IntVec3> tmpCells = [with(8)];
 
   public static bool debugDraw;
 

@@ -151,6 +151,17 @@ internal sealed class Test_CrossMapReachability(
     Expect.AreEqual(exitSpot, TargetInfo.Invalid, $"exitSpot: {exitSpot}");
     Expect.AreNotEqual(enterSpot, TargetInfo.Invalid, $"enterSpot: {enterSpot}");
     Expect.IsNull(spotsQueue, $"spotsQueue: {string.Join(", ", spotsQueue ?? [])}");
+
+    if (traverseParms.Value.pawn is { } pawn2)
+    {
+      using var areaScope = new AllowedAreaScope(pawn2, Crawlers[0]);
+      var resultWithAllowedArea = CrossMapReachabilityUtility.CanReach(Map, root, vehicleMap.Center, PathEndMode.OnCell,
+        traverseParms.Value, vehicleMap, out exitSpot, out enterSpot, out spotsQueue);
+      Expect.IsTrue(resultWithAllowedArea, "Entering vehicle should ignore destination vehicle allowed area");
+      Expect.AreEqual(exitSpot, TargetInfo.Invalid, $"exitSpot (area): {exitSpot}");
+      Expect.AreNotEqual(enterSpot, TargetInfo.Invalid, $"enterSpot (area): {enterSpot}");
+      Expect.IsNull(spotsQueue, $"spotsQueue (area): {string.Join(", ", spotsQueue ?? [])}");
+    }
   }
 
   [Test]
@@ -174,6 +185,18 @@ internal sealed class Test_CrossMapReachability(
     else
       Expect.AreNotEqual(enterSpot, TargetInfo.Invalid, $"enterSpot: {enterSpot}");
     Expect.IsNull(spotsQueue, $"spotsQueue: {string.Join(", ", spotsQueue ?? [])}");
+
+    if (traverseParms.Value.pawn is { } pawn2)
+    {
+      using var areaScope = new AllowedAreaScope(pawn2, Crawlers[0]);
+      var resultWithAllowedArea = CrossMapReachabilityUtility.CanReach(vehicleMap, vehicleMap.Center, dest, PathEndMode.OnCell,
+        traverseParms.Value, Map, out _, out _, out _);
+      if (traverseParms.Name.ToLower().Contains("ability"))
+        Expect.IsTrue(resultWithAllowedArea);
+      else
+        Expect.IsTrue(VehicleMapFramework.settings.treatAsPlayerHome != resultWithAllowedArea,
+        "Should not be able to exit vehicle when edge cells are forbidden by allowed area");
+    }
   }
 
   [Test]

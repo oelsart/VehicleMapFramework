@@ -1364,6 +1364,19 @@ public static class Patch_Reachability_ClearCache
   }
 }
 
+[HarmonyPatch(typeof(Region), nameof(Region.Notify_AreaChanged))]
+[PatchLevel(Level.Safe)]
+public static class Patch_Region_Notify_AreaChanged
+{
+  public static void Postfix(Area a)
+  {
+    if (a is Area_Allowed)
+    {
+      CrossMapReachabilityCache.ClearCacheFor(a.Map);
+    }
+  }
+}
+
 [HarmonyPatch]
 [PatchLevel(Level.Sensitive)]
 public static class Patch_PaintUtility_FindNearbyDyes

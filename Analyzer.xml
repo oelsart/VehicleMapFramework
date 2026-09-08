@@ -28,7 +28,6 @@
 			<li>VehicleMapFramework.CrossMapMapPawnsCache:Get</li>
 			<li>VehicleMapFramework.VMF_HarmonyPatches.Patch_GenClosest_ClosestThingReachable:Postfix</li>
 			<li>VehicleMapFramework.VehicleMapUIRenderer:GetVehicleMapTexture</li>
-			<li>VehicleMapFramework.CrossMapReachabilityCache:ClearCacheFor</li>
 		</Methods>
 	</VehicleMapFramework>
 </Analyzer>
