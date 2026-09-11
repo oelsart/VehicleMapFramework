@@ -33,7 +33,9 @@ public static class Patch_MapGenerator_GenerateMap
     if (parent is MapParent_Vehicle { Faction.IsPlayer: true })
     {
       var pendingLayout = PendingLayout.Invoke(null);
-      var count = UpperLevels() + 1;
+      var upperLevels = UpperLevels();
+      if (upperLevels < 1) return; // レベルが1つのみのマップでAASBのレイアウトを設定するとバグる。
+      var count = upperLevels + 1;
       bandCount.SetValue(pendingLayout, count);
       bandHeight.SetValue(pendingLayout, mapSize.z);
       // surfaceBandは0 (default)
@@ -83,7 +85,7 @@ public static class Patch_SectionLayer_ABBelowV2_MaterialFor
 [HarmonyPatchCategory(PatchCategories.AsAboveSoBelow)]
 [HarmonyPatch("AsAboveSoBelow.ABBandView", "TryStep")]
 [PatchLevel(Level.Safe)]
-public static class PatchABBandView_TryStep
+public static class Patch_ABBandView_TryStep
 {
   public static void Prefix(ref Map map)
   {
@@ -98,7 +100,7 @@ public static class PatchABBandView_TryStep
 [HarmonyPatchCategory(PatchCategories.AsAboveSoBelow)]
 [HarmonyPatch("AsAboveSoBelow.ABBandView", "SetBand")]
 [PatchLevel(Level.Safe)]
-public static class PatchABBandView_SetBand
+public static class Patch_ABBandView_SetBand
 {
   public static void Prefix(Map map, ref bool preserveXZ)
   {
