@@ -204,3 +204,14 @@ public static class Patch_ABCombatAim_TryLocalAngle
     return Patch_Patch_ShotReport_ABCrossBandDistance_Prefix.Prefix(turret, target);
   }
 }
+
+[HarmonyPatchCategory(PatchCategories.AsAboveSoBelow)]
+[HarmonyPatch("AsAboveSoBelow.Patch_Selector_ABSelectThrough", "Postfix")]
+[PatchLevel(Level.Safe)]
+public static class Patch_Patch_Selector_ABSelectThrough_Postfix
+{
+  public static bool Prefix()
+  {
+    return !UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out _, VehicleMapFlag.All);
+  }
+}
