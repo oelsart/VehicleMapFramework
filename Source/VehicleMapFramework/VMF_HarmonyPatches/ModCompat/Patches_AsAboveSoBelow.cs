@@ -215,3 +215,18 @@ public static class Patch_Patch_Selector_ABSelectThrough_Postfix
     return !UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out _, VehicleMapFlag.All);
   }
 }
+
+[HarmonyPatchCategory(PatchCategories.AsAboveSoBelow)]
+[HarmonyPatch("AsAboveSoBelow.Graphic_ABLink", "Print")]
+[PatchLevel(Level.Sensitive)]
+public static class Patch_Graphic_ABLink_Print
+{
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    return new CodeMatcher(instructions)
+      .MatchStartForward(CodeMatch.Calls(AccessTools.Method(typeof(Graphic), nameof(Graphic.DrawOffset))))
+      .InsertAfter(CachedMethodInfo.m_RotateForPrintNegate.CallInstruction)
+      .InstructionEnumeration()
+      .MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_RotationForPrint);
+  }
+}
