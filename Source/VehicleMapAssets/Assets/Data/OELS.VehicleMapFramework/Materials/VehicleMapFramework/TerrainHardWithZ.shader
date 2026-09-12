@@ -4,7 +4,7 @@ Shader "VehicleMapFramework/TerrainHardWithZ" {
        _Color ("Color", Color) = (1,1,1,1)
     }
     SubShader {
-       Tags { "RenderType" = "Opaque" }
+       Tags { "RenderType" = "Opaque" "DisableBatching" = "True" }
        
        Pass {
           ZWrite On

@@ -1,24 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Patch>
 
-    <Operation Class="PatchOperationReplace">
-        <xpath>Defs/ThingDef[
-            thingClass="RimForge.Buildings.Building_PowerPole" or
-            thingClass="RimForge.Buildings.Building_WallConnector"
-            ]/comps/li[@Class="CompProperties_Power"]/compClass[text()="CompPowerTransmitter"]</xpath>
-        <value>
-            <compClass>VehicleMapFramework.CompPowerPole</compClass>
-        </value>
-    </Operation>
-    
-    <Operation Class="PatchOperationReplace">
-        <xpath>Defs/ThingDef[
-            thingClass="RimForge.Buildings.Building_PowerPole" or
-            thingClass="RimForge.Buildings.Building_WallConnector"
-            ]/tickerType</xpath>
-        <value>
-            <tickerType>Normal</tickerType>
-        </value>
-    </Operation>
-    
+  <Operation Class="PatchOperationReplace">
+    <xpath>
+      Defs/ThingDef[
+      (thingClass="RimForge.Buildings.Building_PowerPole" or thingClass="RimForge.Buildings.Building_WallConnector") and
+      comps/li/compClass="CompPowerTrader" and
+      comps/li/compClass="CompPowerTransmitter"
+      ]/comps/li[@Class="CompProperties_Power" and compClass="CompPowerTrader"]/compClass
+    </xpath>
+    <value>
+      <compClass>VehicleMapFramework.CompPowerPole</compClass>
+    </value>
+  </Operation>
+
+  <Operation Class="PatchOperationRemove">
+    <xpath>
+      Defs/ThingDef[
+      (thingClass="RimForge.Buildings.Building_PowerPole" or thingClass="RimForge.Buildings.Building_WallConnector") and
+      comps/li/compClass="VehicleMapFramework.CompPowerPole" and
+      comps/li/compClass="CompPowerTransmitter"
+      ]/comps/li[@Class="CompProperties_Power" and compClass="CompPowerTransmitter"]
+    </xpath>
+  </Operation>
+
+  <Operation Class="PatchOperationReplace">
+    <xpath>
+      Defs/ThingDef[
+      (thingClass="RimForge.Buildings.Building_PowerPole" or thingClass="RimForge.Buildings.Building_WallConnector") and
+      not(comps/li/compClass="VehicleMapFramework.CompPowerPole")
+      ]/comps/li[@Class="CompProperties_Power" and compClass="CompPowerTransmitter"]/compClass
+    </xpath>
+    <value>
+      <compClass>VehicleMapFramework.CompPowerPole</compClass>
+    </value>
+  </Operation>
+
+  <Operation Class="PatchOperationReplace">
+    <xpath>
+      Defs/ThingDef[
+      thingClass="RimForge.Buildings.Building_PowerPole" or
+      thingClass="RimForge.Buildings.Building_WallConnector"
+      ]/tickerType
+    </xpath>
+    <value>
+      <tickerType>Normal</tickerType>
+    </value>
+  </Operation>
+
 </Patch>

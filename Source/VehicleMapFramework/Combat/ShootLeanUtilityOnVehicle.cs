@@ -64,7 +64,13 @@ public static class ShootLeanUtilityOnVehicle
       outCells.AddRange(t.OccupiedRect().Where(intVec => intVec != t.Position));
     }
   }
-
+  
+  public static void LeanShootingSourcesFromTo(IntVec3 shooterLoc, IntVec3 targetPosBaseCol, Map map,
+    List<IntVec3> listToFill)
+  {
+    LeanShootingSourcesFromTo(shooterLoc, targetPosBaseCol, map, listToFill, null, null);
+  }
+  
   public static void LeanShootingSourcesFromTo(IntVec3 shooterLoc, IntVec3 targetPosBaseCol, Map map,
     List<IntVec3> listToFill, AsAboveSoBelow.TargetBand? sourceBand, AsAboveSoBelow.TargetBand? targetBand)
   {

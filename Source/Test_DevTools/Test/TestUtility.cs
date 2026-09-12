@@ -1,5 +1,6 @@
 ﻿global using static VehicleMapFramework.Test_Logics.TestUtility;
 using RimWorld;
+using UnityEngine.Assertions;
 using Vehicles;
 using Vehicles.Testing;
 using Verse;
@@ -130,5 +131,29 @@ public static class TestUtility
   extension(Job job)
   {
     public Job ActualJob(Pawn pawn) => (job.GetCachedDriver(pawn) as JobDriver_GotoDestMap)?.nextJob ?? job;
+  }
+
+  public readonly struct AllowedAreaScope : IDisposable
+  {
+    private readonly Area_Allowed area;
+    
+    public AllowedAreaScope(Pawn pawn, VehiclePawnWithMap vehicle)
+    {
+      var map = vehicle.VehicleMap;
+      Assert.IsTrue(map.areaManager.TryMakeNewAllowed(out area));
+      foreach (var c in vehicle.ValidMapRect.ContractedBy(1))
+      {
+        area[c] = true;
+      }
+
+      using var _ = new VirtualTeleporter(pawn, map);
+      pawn.playerSettings.AreaRestrictionInPawnCurrentMap = area;
+      Assert.AreEqual(pawn.playerSettings.AreaRestrictionInPawnCurrentMap, area, "AreaRestrictionInPawnCurrentMap");
+    }
+
+    public void Dispose()
+    {
+      area.Delete();
+    }
   }
 }

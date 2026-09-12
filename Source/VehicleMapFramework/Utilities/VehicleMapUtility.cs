@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using HarmonyLib;
@@ -1327,6 +1326,11 @@ public static class VehicleMapUtility
         : target.Map.IsVehicleMapOf(out var vehicle) && vehicle.Spawned
           ? target.Cell.ToBaseMapCoord(vehicle)
           : target.Cell;
+    }
+
+    public Map BaseMap()
+    {
+      return target.Map.BaseMap();
     }
   }
 

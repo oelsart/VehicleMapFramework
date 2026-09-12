@@ -50,7 +50,9 @@ public static class Patch_Building_TurretGunHasSpeed_IsValidTarget
 
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
-    return instructions.MethodReplacer(CachedMethodInfo.m_Roofed, CachedMethodInfo.m_RoofedAcrossMaps);
+    return instructions.MethodReplacer(
+      (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing),
+      (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned));
   }
 }
 
@@ -87,23 +89,6 @@ public static class Patch_Building_TurretGunHasSpeed_TryFindNewTarget_Delegate
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
     return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMap);
-  }
-}
-
-[HarmonyPatchCategory(PatchCategories.SRALib)]
-[HarmonyPatch]
-[PatchLevel(Level.Cautious)]
-public static class Patch_Projectile_BulletWithEffect_Impact
-{
-  private static IEnumerable<MethodBase> TargetMethods()
-  {
-    yield return AccessTools.Method("SRA.Projectile_BulletWithEffect:Impact");
-    yield return AccessTools.Method("SRA.Projectile_BeamWithEffect:Impact");
-  }
-
-  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-  {
-    return instructions.MethodReplacer(CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing);
   }
 }
 
@@ -163,6 +148,7 @@ public static class Patch_Verb_KT_Tachyon_Lances_CanUseCell
 
 [HarmonyPatchCategory(PatchCategories.SRALib)]
 [HarmonyPatch("SRA.Verb_ShootWithOffset", "BaseTryCastShot")]
+[HarmonyPatch([typeof(int)], [ArgumentType.Out])]
 [PatchLevel(Level.Cautious)]
 public static class Patch_Verb_ShootWithOffsetSRA_BaseTryCastShot
 {
@@ -170,7 +156,6 @@ public static class Patch_Verb_ShootWithOffsetSRA_BaseTryCastShot
   {
     return instructions.MethodReplacer(
       (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing),
-      (CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned),
       (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned));
   }
 }
@@ -241,7 +226,7 @@ public static class Patch_CompLaserADS_TryFindTarget_AntiGround
     return instructions.MethodReplacer(
       (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing),
       (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned),
-      (CachedMethodInfo.m_Roofed, CachedMethodInfo.m_RoofedAcrossMaps));
+      (CachedMethodInfo.m_Roofed2, CachedMethodInfo.m_RoofedAcrossMaps2));
   }
 }
 
@@ -272,7 +257,7 @@ public static class Patch_CompLaserADS_CompTick
     return instructions.MethodReplacer(
       (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing),
       (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned),
-      (CachedMethodInfo.m_Roofed, CachedMethodInfo.m_RoofedAcrossMaps));
+      (CachedMethodInfo.m_Roofed2, CachedMethodInfo.m_RoofedAcrossMaps2));
   }
 }
 

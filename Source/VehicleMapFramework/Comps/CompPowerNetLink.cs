@@ -67,25 +67,25 @@ public abstract class CompPowerNetLink : CompPowerTrader
       {
         case PowerTransferMode.Push:
           var amount = PushAmount(this, LinkedComp);
-          PowerOutput = -amount;
+          PowerOutput = -amount - Props.PowerConsumption;
           break;
         case PowerTransferMode.Draw:
           var amount2 = PushAmount(LinkedComp, this);
-          LinkedComp.PowerOutput = -amount2;
+          LinkedComp.PowerOutput = -amount2 - LinkedComp.Props.PowerConsumption;
           break;
         case PowerTransferMode.Transmit:
           var amount3 = TransmitAmount(this, LinkedComp);
           switch (amount3)
           {
             case > 0f:
-              PowerOutput = -amount3;
+              PowerOutput = -amount3 - Props.PowerConsumption;
               break;
             case < 0f:
-              LinkedComp.PowerOutput = amount3;
+              LinkedComp.PowerOutput = amount3 - LinkedComp.Props.PowerConsumption;
               break;
             case 0f:
-              PowerOutput = 0f;
-              LinkedComp.PowerOutput = 0f;
+              PowerOutput = -Props.PowerConsumption;
+              LinkedComp.PowerOutput = -LinkedComp.Props.PowerConsumption;
               break;
           }
           break;
@@ -94,7 +94,7 @@ public abstract class CompPowerNetLink : CompPowerTrader
       }
       if (PowerOutput < 0f && PowerOn)
       {
-        LinkedComp.PowerOutput = -PowerOutput * PowerLossFactor;
+        LinkedComp.PowerOutput = (-PowerOutput - Props.PowerConsumption) * PowerLossFactor - LinkedComp.Props.PowerConsumption;
       }
 
       if (output == 0f && PowerOutput != 0f || PowerOutput == 0f && output != 0f)
@@ -209,7 +209,6 @@ public abstract class CompPowerNetLink : CompPowerTrader
           : diff < 0f
             ? -Mathf.Clamp(needs4, 0f, other.MaxPowerPush) // むこうが供給
             : Mathf.Max(Mathf.Min(needs3, me.MaxPowerPush), Mathf.Min(needs4, other.MaxPowerPush)); // バッテリー量が同じ場合需要を伝える
-        // ReSharper disable once InvocationIsSkipped
         me.DebugMessage($"両負圧: voltage: {voltage}, voltage2: {voltage2}, needs3: {needs3}, needs4: {needs4}, num4: {num4}");
         return num4;
     }
@@ -221,10 +220,16 @@ public abstract class CompPowerNetLink : CompPowerTrader
     var needs = 0f;
     foreach (var comp in powerNet.powerComps)
     {
-      if (comp == ignore) continue;
       if (comp.PowerOn || FlickUtility.WantsToBeOn(comp.parent) && !comp.parent.IsBrokenDown())
       {
-        needs -= comp.PowerOutput;
+        if (comp == ignore)
+        {
+          needs += comp.Props.PowerConsumption;
+        }
+        else
+        {
+          needs -= comp.PowerOutput;
+        }
       }
     }
     return needs;

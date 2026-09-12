@@ -82,7 +82,9 @@ public class MethodInfoCache
 
     public readonly MethodInfo g_Thing_Map = AccessTools.PropertyGetter(typeof(Thing), nameof(Thing.Map));
     
-    public readonly MethodBase g_GlobalTargetInfo_Map = AccessTools.PropertyGetter(typeof(GlobalTargetInfo), nameof(GlobalTargetInfo.Map));
+    public readonly MethodInfo g_TargetInfo_Map = AccessTools.PropertyGetter(typeof(TargetInfo), nameof(TargetInfo.Map));
+    
+    public readonly MethodInfo g_GlobalTargetInfo_Map = AccessTools.PropertyGetter(typeof(GlobalTargetInfo), nameof(GlobalTargetInfo.Map));
 
     public readonly MethodInfo m_BaseMap_Map = ((Func<Map, Map>)VehicleMapUtility.BaseMap).Method;
     
@@ -91,6 +93,8 @@ public class MethodInfoCache
     public readonly MethodInfo m_BaseMap_Thing = ((Func<Thing, Map>)VehicleMapUtility.BaseMap).Method;
     
     public readonly MethodInfo m_BaseMapOrCaravan_Thing = ((Func<Thing, object>)VehicleMapUtility.get_BaseMapOrCaravan).Method;
+    
+    public readonly MethodInfo m_BaseMap_TargetInfo = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.BaseMap), [typeof(TargetInfo).MakeByRefType()]);
     
     public readonly MethodInfo m_BaseMap_GlobalTargetInfo = AccessTools.Method(typeof(VehicleMapUtility), nameof(VehicleMapUtility.BaseMap), [typeof(GlobalTargetInfo).MakeByRefType()]);
 
@@ -284,7 +288,11 @@ public class MethodInfoCache
 
     public readonly MethodInfo m_Roofed = AccessTools.Method(typeof(RoofGrid), nameof(RoofGrid.Roofed), [typeof(IntVec3)]);
 
+    public readonly MethodInfo m_Roofed2 = ((Delegate)GridsUtility.Roofed).Method;
+
     public readonly MethodInfo m_RoofedAcrossMaps = ((Func<RoofGrid, IntVec3, bool>)VehicleMapUtility.RoofedAcrossMaps).Method;
+    
+    public readonly MethodInfo m_RoofedAcrossMaps2 = ((Func<IntVec3, Map, bool>)VehicleMapUtility.RoofedAcrossMaps).Method;
 
     public readonly MethodInfo m_GetThingList = ((Delegate)GridsUtility.GetThingList).Method;
 

@@ -340,8 +340,9 @@ public static class Patch_GUI_VehicleMapOffset
 //v, v2にToBaseMapCoordをしてDrawBoxRotatedにFocusedVehicle.FullRotation.AsAngleを渡す
 //Widgets.DrawNumberOnMap(screenPos, intVec.x, Color.white) ->
 //Widgets.DrawNumberOnMap(ConvertToVehicleMap(screenPos), intVec.x, Color.white)を3回
+[HarmonyBefore(DesignationsTooltip.HarmonyId)]
 [HarmonyPatch(typeof(DesignationDragger), nameof(DesignationDragger.DraggerOnGUI))]
-[PatchLevel(Level.Sensitive)]
+[PatchLevel(Level.Mandatory)]
 public static class Patch_DesignationDragger_DraggerOnGUI
 {
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions,

@@ -33,7 +33,9 @@ public static class Patch_MapGenerator_GenerateMap
     if (parent is MapParent_Vehicle { Faction.IsPlayer: true })
     {
       var pendingLayout = PendingLayout.Invoke(null);
-      var count = UpperLevels() + 1;
+      var upperLevels = UpperLevels();
+      if (upperLevels < 1) return; // レベルが1つのみのマップでAASBのレイアウトを設定するとバグる。
+      var count = upperLevels + 1;
       bandCount.SetValue(pendingLayout, count);
       bandHeight.SetValue(pendingLayout, mapSize.z);
       // surfaceBandは0 (default)
@@ -83,7 +85,7 @@ public static class Patch_SectionLayer_ABBelowV2_MaterialFor
 [HarmonyPatchCategory(PatchCategories.AsAboveSoBelow)]
 [HarmonyPatch("AsAboveSoBelow.ABBandView", "TryStep")]
 [PatchLevel(Level.Safe)]
-public static class PatchABBandView_TryStep
+public static class Patch_ABBandView_TryStep
 {
   public static void Prefix(ref Map map)
   {
@@ -98,7 +100,7 @@ public static class PatchABBandView_TryStep
 [HarmonyPatchCategory(PatchCategories.AsAboveSoBelow)]
 [HarmonyPatch("AsAboveSoBelow.ABBandView", "SetBand")]
 [PatchLevel(Level.Safe)]
-public static class PatchABBandView_SetBand
+public static class Patch_ABBandView_SetBand
 {
   public static void Prefix(Map map, ref bool preserveXZ)
   {
@@ -200,5 +202,31 @@ public static class Patch_ABCombatAim_TryLocalAngle
   public static bool Prefix(Building_Turret turret, LocalTargetInfo target)
   {
     return Patch_Patch_ShotReport_ABCrossBandDistance_Prefix.Prefix(turret, target);
+  }
+}
+
+[HarmonyPatchCategory(PatchCategories.AsAboveSoBelow)]
+[HarmonyPatch("AsAboveSoBelow.Patch_Selector_ABSelectThrough", "Postfix")]
+[PatchLevel(Level.Safe)]
+public static class Patch_Patch_Selector_ABSelectThrough_Postfix
+{
+  public static bool Prefix()
+  {
+    return !UI.MouseMapPosition().TryGetVehicleMap(Find.CurrentMap, out _, VehicleMapFlag.All);
+  }
+}
+
+[HarmonyPatchCategory(PatchCategories.AsAboveSoBelow)]
+[HarmonyPatch("AsAboveSoBelow.Graphic_ABLink", "Print")]
+[PatchLevel(Level.Sensitive)]
+public static class Patch_Graphic_ABLink_Print
+{
+  public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+  {
+    return new CodeMatcher(instructions)
+      .MatchStartForward(CodeMatch.Calls(AccessTools.Method(typeof(Graphic), nameof(Graphic.DrawOffset))))
+      .InsertAfter(CachedMethodInfo.m_RotateForPrintNegate.CallInstruction)
+      .InstructionEnumeration()
+      .MethodReplacer(CachedMethodInfo.g_Thing_Rotation, CachedMethodInfo.m_RotationForPrint);
   }
 }

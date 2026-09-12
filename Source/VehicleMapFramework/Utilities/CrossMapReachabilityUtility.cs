@@ -669,6 +669,7 @@ public static class CrossMapReachabilityUtility
     if (parms.pawn is { } pawn)
     {
       if (!destroyMode && !cell.WalkableBy(map, pawn) ||
+          !destination && cell.IsForbidden(pawn, map) ||
           cell.GetDoor(map) is { HoldOpen: false } door &&
           (!door.PawnCanOpen(pawn) || door.IsForbidden(pawn)))
         return false;

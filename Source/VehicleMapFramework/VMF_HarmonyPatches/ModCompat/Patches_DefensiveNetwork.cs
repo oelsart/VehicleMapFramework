@@ -74,7 +74,8 @@ public static class Patch_Building_HunterKillerSupportSystem_TargetingParameters
   {
     return instructions.MethodReplacer(
       (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing),
-      (CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned));
+      (CachedMethodInfo.g_TargetInfo_Map, CachedMethodInfo.m_BaseMap_TargetInfo),
+      (CachedMethodInfo.g_TargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned_TargetInfo));
   }
 }
 
@@ -150,7 +151,8 @@ public static class Patch_Building_GhoulBomberBay_TargetingParameters_Delegate
   {
     return instructions.MethodReplacer(
       (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing),
-      (CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned));
+      (CachedMethodInfo.g_TargetInfo_Map, CachedMethodInfo.m_BaseMap_TargetInfo),
+      (CachedMethodInfo.g_TargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned_TargetInfo));
   }
 }
 
@@ -168,10 +170,12 @@ public static class Patch_CompTargeter_IsValidTarget
 
   public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
   {
+    if (UnitTestDetector.IsTestingContext) return instructions;
     return instructions.MethodReplacer(
       (CachedMethodInfo.g_Thing_Map, CachedMethodInfo.m_BaseMap_Thing),
       (CachedMethodInfo.g_Thing_Position, CachedMethodInfo.m_PositionOnBaseMapSpawned),
-      (CachedMethodInfo.g_LocalTargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned));
+      (CachedMethodInfo.g_TargetInfo_Map, CachedMethodInfo.m_BaseMap_TargetInfo),
+      (CachedMethodInfo.g_TargetInfo_Cell, CachedMethodInfo.m_CellOnBaseMapSpawned_TargetInfo));
   }
 }
 

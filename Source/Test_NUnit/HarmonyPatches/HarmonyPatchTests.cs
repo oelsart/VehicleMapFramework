@@ -19,27 +19,28 @@ public class HarmonyPatchTests
     harmony = new Harmony(HarmonyId);
     harmony.Patch(
       AccessTools.PropertyGetter("Verse.GenTypes:AllTypes"),
-      AccessTools.Method(typeof(HarmonyPatchTests), nameof(AllTypes)));
+      ((Delegate)AllTypes).Method);
     
     harmony.Patch(
       AccessTools.Method("Verse.GenTypes:GetTypeInAnyAssembly"),
-      AccessTools.Method(typeof(HarmonyPatchTests), nameof(TypeByName)));
+      ((Delegate)TypeByName).Method);
 
     harmony.Patch(
       AccessTools.Method("Verse.GenTypes:AllSubclasses"),
-      AccessTools.Method(typeof(HarmonyPatchTests), nameof(AllSubclasses)));
+      ((Delegate)AllSubclasses).Method);
 
     harmony.Patch(
       AccessTools.Method("Verse.GenTypes:AllSubclassesNonAbstract"),
-      AccessTools.Method(typeof(HarmonyPatchTests), nameof(AllSubclassesNonAbstract)));
+      ((Delegate)AllSubclassesNonAbstract).Method);
 
     harmony.Patch(
-      AccessTools.Method(typeof(Transpilers), nameof(Transpilers.MethodReplacer)),
-      postfix: AccessTools.Method(typeof(HarmonyPatchTests), nameof(AssertReplaced)));
+      AccessTools.Method("VehicleMapFramework.VMF_HarmonyPatches.PatchHelper:MethodReplacer",
+        [typeof(IEnumerable<CodeInstruction>), typeof((MethodBase, MethodBase)[])]),
+      postfix: ((Delegate)AssertReplaced).Method);
 
     harmony.Patch(
       AccessTools.Method("Verse.GenCollection:FirstOrDefault").MakeGenericMethod(typeof(object)),
-      AccessTools.Method(typeof(HarmonyPatchTests), nameof(FirstOrDefault)));
+      ((Delegate)FirstOrDefault).Method);
   }
 
   [OneTimeTearDown]
@@ -79,14 +80,17 @@ public class HarmonyPatchTests
     return false;
   }
 
-  private static readonly MethodInfo m_GetExecutingAssembly =
-    AccessTools.Method(typeof(Assembly), nameof(Assembly.GetExecutingAssembly), []);
+  private static readonly MethodInfo m_GetExecutingAssembly = ((Delegate)Assembly.GetExecutingAssembly).Method;
 
-  private static void AssertReplaced(MethodBase from, MethodBase to, IEnumerable<CodeInstruction> __result)
+  private static void AssertReplaced((MethodBase from, MethodBase to)[] pairs, List<CodeInstruction> __result)
   {
-    if (from == m_GetExecutingAssembly)
-      return;
-    Assert.That(__result.Any(c => c.operand as MethodBase == to));
+    var methods = __result.Select(c => c.operand).OfType<MethodBase>().ToList();
+    foreach (var (from, to) in pairs)
+    {
+      if (from == m_GetExecutingAssembly)
+        return;
+      Assert.Contains(to, methods);
+    }
   }
 
   private static bool FirstOrDefault(IEnumerable<object> list, Predicate<object> predicate, out object __result)
