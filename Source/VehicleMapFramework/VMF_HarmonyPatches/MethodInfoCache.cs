@@ -335,4 +335,6 @@ public class MethodInfoCache
     public readonly MethodInfo g_Vector3_up = AccessTools.PropertyGetter(typeof(Vector3), nameof(Vector3.up));
     
     public readonly MethodInfo m_Quaternion_AngleAxis = ((Delegate)Quaternion.AngleAxis).Method;
+
+    public readonly MethodInfo m_CurrentViewRect = AccessTools.PropertyGetter(typeof(CameraDriver), nameof(CameraDriver.CurrentViewRect));
 }

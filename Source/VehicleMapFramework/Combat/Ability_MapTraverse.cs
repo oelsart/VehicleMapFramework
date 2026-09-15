@@ -101,7 +101,7 @@ public abstract class Ability_MapTraverse : Ability
     var flag = tmpTargetMap != toMap;
     if (flag) pawn.TargetMap = toMap;
 
-    var rect = toVehicleMap ? vehicle2.ValidMapRect : toMap.BoundsRect(1);
+    var rect = toVehicleMap ? vehicle2.ValidMapRect : toMap.VehicleMapBoundsRect(1);
     var pattern = GenRadialDirectional.PatternFor(castPositionOnTargMap, rect, minRange, maxRange, out var indexRange);
     for (var i = indexRange.min; i < indexRange.max; i++)
     {
