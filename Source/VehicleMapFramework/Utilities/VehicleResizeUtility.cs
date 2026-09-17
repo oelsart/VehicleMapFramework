@@ -15,7 +15,7 @@ public static class VehicleResizeUtility
   {
     var vehicleDef = vehicle.VehicleDef;
     var curSize = vehicleDef.Size;
-    var mapRect = CellRect.WholeMap(vehicle.VehicleMap);
+    var mapRect = vehicle.MapRect;
     var newRect = vehicle.ValidMapRect;
     var newSize = newRect.Size;
     if (curSize != newSize)
