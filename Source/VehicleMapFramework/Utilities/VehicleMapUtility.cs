@@ -672,10 +672,10 @@ public static class VehicleMapUtility
       return map;
     }
 
-    public CellRect BoundsRect(int contractedBy = 0)
+    public CellRect VehicleMapBoundsRect(int contractedBy = 0)
     {
       if (!AsAboveSoBelow.Active || !map.IsVehicleMapOf(out var vehicle))
-        return GenGrid.BoundsRect(map, contractedBy);
+        return map.BoundsRect(contractedBy);
 
       var size = vehicle.MapSize;
       return [with(contractedBy, contractedBy, size.x - contractedBy * 2, size.z - contractedBy * 2)];

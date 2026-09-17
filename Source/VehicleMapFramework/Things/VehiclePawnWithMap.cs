@@ -750,7 +750,7 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     RecacheDrawPos(DrawPos);
     VehiclePawnWithMapCache.RegisterVehicle(this);
     mapFollower = new VehicleMapFollower(this);
-    mapFollower.RegisterVehicle();
+    LongEventHandler.ExecuteWhenFinished(mapFollower.RegisterVehicle);
 
     if (interiorMap is not null)
     {
@@ -1342,7 +1342,9 @@ public class VehiclePawnWithMap : VehiclePawn, IEventManager<MapVehicleEventDef>
     CompVehicleTurrets?.RevalidateTurrets();
     ResetRenderStatus();
     if (VehicleDef.IsUniqueVehicle)
-      this.ResizeNow();
+    {
+      FrameDelay.DelayOne<object>(_ => LongEventHandler.ExecuteWhenFinished(() => this.ResizeNow(false)), null);
+    }
   }
 
   public override void PostMake()

@@ -60,6 +60,7 @@ public class ScenPart_StartOnMapVehicle : ScenPart
     LongEventHandler.ExecuteWhenFinished(() =>
     {
       DropPodUtility.DropThingGroupsNear(vehicle.VehicleMap.Center, vehicle.VehicleMap, list2, 110, true, true, true, true, false);
+      CameraJumper.TryJump(vehicle);
     });
   }
 }
