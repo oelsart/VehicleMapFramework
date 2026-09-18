@@ -15,10 +15,10 @@ public class IncidentWorker_Ambush_EnemyMapVehicle : IncidentWorker_AmbushMapVeh
     public static LinearCurve VehicleCountByPointsCurve { get; } =
     [
         new CurvePoint(0f, 1f),
-        new CurvePoint(1000f, 1f),
-        new CurvePoint(3000f, 1f),
-        new CurvePoint(5000f, 3f),
-        new CurvePoint(20000f, 5f)
+        new CurvePoint(1000f, 2f),
+        new CurvePoint(3000f, 4f),
+        new CurvePoint(5000f, 6f),
+        new CurvePoint(20000f, 8f)
     ];
 
     protected override WorldObjectDef MapParentDef => WorldObjectDefOf.Ambush;
@@ -33,7 +33,7 @@ public class IncidentWorker_Ambush_EnemyMapVehicle : IncidentWorker_AmbushMapVeh
         var defaultPawnGroupMakerParms = IncidentParmsUtility.GetDefaultPawnGroupMakerParms(PawnGroupKindDefOf.Combat, parms);
         defaultPawnGroupMakerParms.generateFightersOnly = true;
         defaultPawnGroupMakerParms.dontUseSingleUseRocketLaunchers = true;
-        return PawnGroupMakerUtility.GeneratePawns(defaultPawnGroupMakerParms).ToList();
+        return [.. PawnGroupMakerUtility.GeneratePawns(defaultPawnGroupMakerParms)];
     }
 
     protected override List<VehiclePawnWithMap> GenerateVehicles(IncidentParms parms)

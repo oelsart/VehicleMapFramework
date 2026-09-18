@@ -104,7 +104,7 @@ public static class RegionTraverserAcrossMaps
 
         if (region.Map.IsVehicleMapOf(out var vehicle))
         {
-          if (vehicle.Spawned)
+          if (vehicle.Map is { Disposed: false })
           {
             var baseRegion = vehicle.Position.GetRegion(vehicle.Map, traversableRegionTypes);
             if (ValidateRegion(region, baseRegion))
@@ -118,7 +118,8 @@ public static class RegionTraverserAcrossMaps
           {
             foreach (var thing in region.ListerThings.ThingsOfDef(def))
             {
-              if (thing.TryGetComp<CompVehicleEnterSpot>() is not { AvailableAccessSpot: { IsValid: true } accessSpot })
+              if (thing.TryGetComp<CompVehicleEnterSpot>() is not
+                  { AvailableAccessSpot: { IsValid: true, Map.Disposed: false } accessSpot })
                 continue;
               
               var region2 = accessSpot.Cell.GetRegion(accessSpot.Map);
@@ -147,7 +148,7 @@ public static class RegionTraverserAcrossMaps
 
   public static readonly RegionEntryPredicate PassAll;
 
-  public static IReadOnlyList<ThingDef> EnterSpotDefs { get; } =
+  public static List<ThingDef> EnterSpotDefs { get; } =
   [
     .. DefDatabase<ThingDef>.AllDefs
       .Where(d => d.HasComp<CompVehicleEnterSpot>())

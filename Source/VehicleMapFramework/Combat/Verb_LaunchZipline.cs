@@ -202,6 +202,7 @@ public class Verb_LaunchZipline : Verb_LaunchProjectile, IAbilityVerb
   public override void ExposeData()
   {
     base.ExposeData();
-    Scribe_References.Look(ref ability, "ability");
+    Scribe_References.Look(ref ability, nameof(ability));
+    Scribe_References.Look(ref ziplineEnd, nameof(ziplineEnd));
   }
 }

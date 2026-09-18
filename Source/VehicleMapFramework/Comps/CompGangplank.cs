@@ -53,7 +53,7 @@ public class CompGangplank : CompVehicleEnterSpot
     }
     else
     {
-      if ((Pair.DrawPos - pairDrawPos).MagnitudeHorizontalSquared() > 1f)
+      if ((Pair.DrawPos - pairDrawPos).MagnitudeHorizontalSquared() > 0.5f)
       {
         if (!Pair.Destroyed) Pair.Destroy();
         Pair = null;

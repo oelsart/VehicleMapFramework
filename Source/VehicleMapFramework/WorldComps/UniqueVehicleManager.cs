@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using LudeonTK;
 using Vehicles;
 using Verse;
 
@@ -9,6 +11,7 @@ public class UniqueVehicleManager(Game game) : GameComponent
 {
   private readonly Game game = game;
   private Dictionary<VehicleDef, List<string>> claimedDefNames = [];
+  private static bool logging;
 
   public static Dictionary<VehicleDef, List<VehicleDef>> PlaceholderDefs { get; } = [];
 
@@ -30,7 +33,21 @@ public class UniqueVehicleManager(Game game) : GameComponent
         list.Add(vehicleDef.defName);
         vehicleDef.size = parentDef.size;
         UniqueVehicleUtility.ReinitializeComponents(vehicleDef);
-        VMF_Log.DebugMessage($"Claim unique vehicle def: {vehicleDef}");
+        if (logging) VMF_Log.Message($"Claim unique vehicle def: {vehicleDef}");
+        if (vehicleDef.GetModExtension<VehicleMapProps_Unique>() is not { } props)
+        {
+          VMF_Log.Warning("Could not get the props required for the def being claimed.");
+          vehicleDef.modExtensions ??= [];
+          vehicleDef.modExtensions.Add(props = new VehicleMapProps_Unique
+          {
+            baseDef = parentDef
+          });
+        }
+        if (props.baseDef is null)
+        {
+          VMF_Log.Warning("The parent is not set in the props of the def being claimed.");
+          props.baseDef = parentDef;
+        }
         return vehicleDef;
       }
     }
@@ -41,7 +58,7 @@ public class UniqueVehicleManager(Game game) : GameComponent
 
   public void ReleaseUniqueVehicleDef(VehicleDef def)
   {
-    VMF_Log.DebugMessage($"Release unique vehicle def: {def}");
+    if (logging) VMF_Log.Message($"Release unique vehicle def: {def}");
     foreach (var hashSet in claimedDefNames.Values)
     {
       hashSet.Remove(def.defName);
@@ -80,14 +97,28 @@ public class UniqueVehicleManager(Game game) : GameComponent
 
     if (Scribe.mode == LoadSaveMode.LoadingVars)
     {
+      foreach (var props in hashSet)
+      {
+        GravshipVehicleUtility.GenerateGravshipVehicleDef(props, this);
+      }
+    }
+
+    if (Scribe.mode is LoadSaveMode.LoadingVars or LoadSaveMode.ResolvingCrossRefs or LoadSaveMode.PostLoadInit)
+    {
       claimedDefNames ??= [];
       foreach (var parentDef in PlaceholderDefs.Keys)
       {
-        List<string> claimed = null;
-        Scribe_Collections.Look(ref claimed, $"{claimedDefNames}_{parentDef.defName}", LookMode.Value);
-        if (claimed is not null)
-          claimedDefNames[parentDef] = claimed;
+        var claimed = claimedDefNames.GetValueOrDefault(parentDef);
+        Scribe_Collections.Look(ref claimed, $"{nameof(claimedDefNames)}_{parentDef.defName}", LookMode.Value);
+        claimedDefNames[parentDef] = claimed;
+      }
+    }
 
+    if (Scribe.mode is LoadSaveMode.PostLoadInit)
+    {
+      claimedDefNames.RemoveAll(l => l.Value is null);
+      foreach (var parentDef in PlaceholderDefs.Keys)
+      {
         foreach (var placeholder in PlaceholderDefs[parentDef])
         {
           placeholder.size = parentDef.size;
@@ -95,11 +126,45 @@ public class UniqueVehicleManager(Game game) : GameComponent
           UniqueVehicleUtility.ReinitializeComponents(placeholder);
         }
       }
-      
-      foreach (var props in hashSet)
+    }
+  }
+
+  [DebugAction(VehicleMapFramework.CategoryName, "Toggle logging UniqueVehicleManager",
+    allowedGameStates = AllowedGameStates.Entry | AllowedGameStates.PlayingOnMap)]
+  private static void ToggleLogging() => logging = !logging;
+
+  [DebugOutput(VehicleMapFramework.CategoryName, name = "UniqueVehicleManager")]
+  private static void OutputState()
+  {
+    var stringBuilder = new StringBuilder();
+    stringBuilder.AppendLine("PlaceholderDefs count");
+    foreach (var (vehicleDef, list) in PlaceholderDefs)
+    {
+      stringBuilder.AppendLine($"{vehicleDef.defName}: {list.Count}");
+    }
+
+    if (Current.Game?.GetComponent<UniqueVehicleManager>() is { } component)
+    {
+      foreach (var (vehicleDef, list) in PlaceholderDefs)
       {
-        GravshipVehicleUtility.GenerateGravshipVehicleDef(props, this);
+        stringBuilder.AppendLine();
+        stringBuilder.AppendLine(vehicleDef.defName);
+        if (!component.claimedDefNames.TryGetValue(vehicleDef, out var list2))
+        {
+          stringBuilder.AppendLine("Nothing is claimed");
+          continue;
+        }
+
+        for (var i = 0; i < list.Count; i++)
+        {
+          var vehicleDef2 = list[i];
+          stringBuilder.Append($"{vehicleDef2.defName}: ");
+          stringBuilder.Append(list2.Contains(vehicleDef2.defName) ? "Claimed" : "       ");
+          stringBuilder.Append(i % 2 == 0 ? "   " : "\n");
+        }
       }
     }
+    
+    Log.Message(stringBuilder);
   }
 }
